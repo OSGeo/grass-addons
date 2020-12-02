@@ -4,9 +4,9 @@
 #
 # MODULE:      r.hazard.flood.py
 # AUTHOR(S):   Margherita Di Leo
-# PURPOSE:     Fast procedure to detect flood prone areas on the basis of a 
+# PURPOSE:     Fast procedure to detect flood prone areas on the basis of a
 #              topographic index
-# COPYRIGHT:   (C) 2010 by Margherita Di Leo 
+# COPYRIGHT:   (C) 2010 by Margherita Di Leo
 #              dileomargherita@gmail.com
 #
 #              This program is free software under the GNU General Public
@@ -26,7 +26,7 @@
 #% type: string
 #% gisprompt: old,raster,raster
 #% key_desc: elevation
-#% description: Name of elevation raster map 
+#% description: Name of elevation raster map
 #% required: yes
 #%end
 #%option
@@ -34,7 +34,7 @@
 #% type: string
 #% gisprompt: new,raster,raster
 #% key_desc: flood
-#% description: Name of output flood raster map 
+#% description: Name of output flood raster map
 #% required: yes
 #%end
 #%option
@@ -48,7 +48,7 @@
 #%END
 
 import sys
-import os 
+import os
 try:
     import grass.script as grass
 except:
@@ -71,7 +71,7 @@ def main():
     if kv['+proj'] == 'longlat':
         grass.fatal(_("This module does not operate in LatLong locations"))
 
-    r_elevation = options['map'].split('@')[0] 
+    r_elevation = options['map'].split('@')[0]
     mapname = options['map'].replace("@"," ")
     mapname = mapname.split()
     mapname[0] = mapname[0].replace(".","_")
@@ -82,7 +82,7 @@ def main():
     info_region = grass.read_command('g.region', flags = 'p')
     dict_region = grass.parse_key_val(info_region, ':')
     resolution = (float(dict_region['nsres']) + float(dict_region['ewres']))/2
-    grass.message("Cellsize : %s " % resolution) 
+    grass.message("Cellsize : %s " % resolution)
 
     # Flow accumulation map MFD
     grass.run_command('r.watershed', elevation = r_elevation, accumulation = 'r_accumulation', convergence = 5, flags = 'a')
@@ -92,21 +92,21 @@ def main():
     grass.run_command('r.slope.aspect', elevation = r_elevation, slope = 'r_slope' )
     grass.message("Slope map done. ")
 
-    # n exponent 
+    # n exponent
     n = 0.016 * (resolution ** 0.46)
     grass.message("Exponent : %s " % n)
 
     # MTI threshold
     mti_th = 10.89 * n + 2.282
-    grass.message("MTI threshold : %s " % mti_th) 
+    grass.message("MTI threshold : %s " % mti_th)
     
     # MTI map
     grass.message("Calculating MTI raster map.. ")
-    grass.mapcalc("$r_mti = log((exp((($rast1+1)*$resolution) , $n)) / (tan($rast2+0.001)))", 
-                   r_mti = r_mti, 
-                   rast1 = 'r_accumulation', 
-                   resolution = resolution, 
-                   rast2 = 'r_slope', 
+    grass.mapcalc("$r_mti = log((exp((($rast1+1)*$resolution) , $n)) / (tan($rast2+0.001)))",
+                   r_mti = r_mti,
+                   rast1 = 'r_accumulation',
+                   resolution = resolution,
+                   rast2 = 'r_slope',
                    n = n)
 
     # Cleaning up
@@ -118,21 +118,21 @@ def main():
 
     # flood map
     grass.message("Calculating flood raster map.. ")
-    grass.mapcalc("r_flood = if($rast1 >  $mti_th, 1, 0)", 
-                   rast1 = r_mti, 
+    grass.mapcalc("r_flood = if($rast1 >  $mti_th, 1, 0)",
+                   rast1 = r_mti,
                    mti_th = mti_th)
 
-    ## # Deleting isolated pixels 
+    ## # Deleting isolated pixels
     # Recategorizes data in a raster map by grouping cells that form physically discrete areas into unique categories (preliminar to r.area)
     grass.message("Running r.clump.. ")
-    grass.run_command('r.clump', input = 'r_flood', 
-                                 output = 'r_clump', 
+    grass.run_command('r.clump', input = 'r_flood',
+                                 output = 'r_clump',
                                  overwrite = 'True')
     
     # Delete areas of less than a threshold of cells (corresponding to 1 square kilometer)
     # Calculating threshold
     th = int(1000000 / resolution**2)
-    grass.message("Deleting areas of less than %s cells.. " % th)   
+    grass.message("Deleting areas of less than %s cells.. " % th)
     grass.run_command('r.area', input = 'r_clump', output = 'r_flood_th', lesser = th, flags = 'b')
 
     # New flood map

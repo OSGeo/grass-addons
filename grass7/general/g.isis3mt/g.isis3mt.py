@@ -3,7 +3,7 @@
 ############################################################################
 #
 # MODULE:      g.isis3mt
-# AUTHOR(S):   Alessandro Frigeri; 
+# AUTHOR(S):   Alessandro Frigeri;
 # PURPOSE:     Generates an ISIS3 map template file according to the current
 #              GRASS projection parameters
 # COPYRIGHT:   (C) 2009,2010 by Alessandro Frigeri for the GRASS Development Team
@@ -12,9 +12,9 @@
 #              License (>=v2). Read the file COPYING that comes with GRASS
 #              for details.
 # HISTORY:     Apr 15th, 2010: Time for the first public release
-#              Sep 15th, 2010: added LatLon Range and mpp/ppd resolution 
+#              Sep 15th, 2010: added LatLon Range and mpp/ppd resolution
 #                              options
-# 
+#
 #############################################################################
 
 # TODO
@@ -45,7 +45,7 @@
 #%option
 #% key: outres
 #% type: double
-#% description: Resolution of the ISIS3 projected data (default is: camera resolution) 
+#% description: Resolution of the ISIS3 projected data (default is: camera resolution)
 #% required : no
 #%end
 
@@ -61,7 +61,7 @@
 
 #%flag
 #% key: a
-#% description: Align ISIS3 data to the extents of the current GRASS region 
+#% description: Align ISIS3 data to the extents of the current GRASS region
 #%end
 
 import subprocess
@@ -107,10 +107,10 @@ paradict = {'proj':'ProjectionName',         # Name of the projection
             }
            
 class IsisMapTemplate(IterableUserDict):
-   def __init__(self,isisdict):      
-      UserDict.__init__(self)      
+   def __init__(self,isisdict):
+      UserDict.__init__(self)
       if isisdict is not None:
-          UserDict.__init__(self,isisdict)    
+          UserDict.__init__(self,isisdict)
       self['LatitudeType'] = 'Planetographic'
       self['LongitudeDirection'] = 'PositiveEast'
       self['LongitudeDomain'] = '180'
@@ -119,7 +119,7 @@ class IsisMapTemplate(IterableUserDict):
        out.write("Group = Mapping\n")
        keys = self.keys()
        for k in self.keys():
-           if k is not None:               
+           if k is not None:
               myk = string.rjust(k, 30)
               myv = string.ljust(self[k], 20)
               out.write("%s = %s\n" %(myk,myv))
@@ -153,12 +153,12 @@ def main():
             if p == 'proj' and v == 'll':
                 sys.exit("This GRASS location is in LatLong, no cartographic projection is set.\nExiting...")
             if p == 'proj':
-                k,v = 'ProjectionName', projdict[v]                   
+                k,v = 'ProjectionName', projdict[v]
             isis3[k] = v
     isis3mt = IsisMapTemplate(isis3)
     of = open(outfile,'w')
     isis3mt.dump(of)
-    sys.stderr.write("Done writing %s ISIS3 MapTemplate file\n" %outfile)     
+    sys.stderr.write("Done writing %s ISIS3 MapTemplate file\n" %outfile)
     
 if __name__ == "__main__":
     options, flags = grass.parser()

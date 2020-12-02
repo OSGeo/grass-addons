@@ -5,8 +5,8 @@
 # MODULE:		Set of time discrete population models in fisheries science
 #
 # AUTHOR(S):		Johannes Radinger
-#				
-# VERSION:		
+#
+# VERSION:
 #
 # DATE:			2013-11-27
 #
@@ -140,12 +140,12 @@ import numpy
 def cleanup():
 	grass.debug(_("This is the cleanup part"))
 	if (tmp_map_rast or tmp_map_vect):
-		grass.run_command("g.remove", 
+		grass.run_command("g.remove",
                 flags = 'fb',
                 type = 'raster',
                 name = [f + str(os.getpid()) for f in tmp_map_rast],
 				quiet = True)
-		grass.run_command("g.remove", 
+		grass.run_command("g.remove",
                 flags = 'f',
                 type = 'vector',
 				name = [f + str(os.getpid()) for f in tmp_map_vect],
@@ -192,7 +192,7 @@ def main():
     	#	fixup = numpy.sign(x) * 10**prec
     	#	x *= fixup
 	#	if options['seed']:
-	#		numpy.random.seed(seed=int(options['seed'])) 
+	#		numpy.random.seed(seed=int(options['seed']))
     	#	round_func = int(x) + numpy.random.binomial(1,x-int(x))
     	#	return round_func/fixup
 	#vprob_round = numpy.vectorize(prob_round)

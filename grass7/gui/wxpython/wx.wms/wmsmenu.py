@@ -2,7 +2,7 @@
 @package wmsmenu.py
 
 @brief Main python app for handling wms requests for getCapabilities
-and getMaps.  
+and getMaps.
 
 Classes:
  - wmsFrame
@@ -58,7 +58,7 @@ class LayerData():
     def printLayerData(self,layerDataDict):
         """
      @description:Function to print dictionary structure holding information of
-                  layers with keys as integers and values as objects of type LayerData() 
+                  layers with keys as integers and values as objects of type LayerData()
      @todo:None
      @param1:reference variable
      @param2:Dictionary holding values of type LayerData() object with keys as integers from 0 to len(layerDataDict)
@@ -77,13 +77,13 @@ class LayerData():
             
     def appendLayerTree(self, layerDataDict, LayerTree, layerTreeRoot):
         """
-     @description:Adds layers to LayerTree widget. 
+     @description:Adds layers to LayerTree widget.
      @todo:None
      @param self: reference variable
      @param layerDataDict:{},  Dictionary holding values of type LayerData() object with keys as integers from 0 to len(layerDataDict)
-     @param LayerTree: TreeCtrl, widget used to display fetched layers. 
+     @param LayerTree: TreeCtrl, widget used to display fetched layers.
      @param layerTreeRoot: TreeItemId,  returned by LayerTree.AddRoot("Layers") (in the init function), used to refer root of the LayerTree.
-     @return: None  
+     @return: None
          """
         for key, value in layerDataDict.iteritems():
             name = value.name
@@ -98,7 +98,7 @@ class LayerData():
      @todo:None
      @param self: reference variable
      @param layerDataDict:{},  Dictionary holding values of type LayerData() object with keys as integers from 0 to len(layerDataDict)
-     @return: Dictionary with key as an integer in the string form str(int), and value a string (EPSG code for the key).  
+     @return: Dictionary with key as an integer in the string form str(int), and value a string (EPSG code for the key).
          """
         keytoepsgcodes = {}
         for key, value in layerDataDict.iteritems():
@@ -116,17 +116,17 @@ class Message():
 
 class ManageLayerTree():
     """
-    Contains functionalities to Manage TreeCtrl widget (LayerTree) , used to display layers. 
+    Contains functionalities to Manage TreeCtrl widget (LayerTree) , used to display layers.
     """
     
     def getAllChild(self,LayerTree, parentId):
         """
-     @description:Returns all the children nodes of a parent node in the TreeCtrl (LayerTree). 
+     @description:Returns all the children nodes of a parent node in the TreeCtrl (LayerTree).
      @todo:None
      @param self: reference variable
-     @param LayerTree: TreeCtrl, widget used to display fetched layers. 
+     @param LayerTree: TreeCtrl, widget used to display fetched layers.
      @param parentId: TreeItemId, reference to the parent Node in TreeCtrl.
-     @return: a list of TreeItemId, the children nodes of parentId(TreeItemId)  
+     @return: a list of TreeItemId, the children nodes of parentId(TreeItemId)
         """
         children = []
         currentchild,obj = LayerTree.GetFirstChild(parentId)
@@ -140,10 +140,10 @@ class ManageLayerTree():
     
     def layerTreeItemDFS(self,parent,LayerTree,nodeId):
         """
-     @description: performs a DFS(Depth first search) selection on the LayerTree(TreeCtrl), starting from the nodeId(TreeItemId) 
+     @description: performs a DFS(Depth first search) selection on the LayerTree(TreeCtrl), starting from the nodeId(TreeItemId)
      @todo:None
      @param self: reference variable
-     @param LayerTree: TreeCtrl, widget used to display fetched layers. 
+     @param LayerTree: TreeCtrl, widget used to display fetched layers.
      @param nodeId: TreeItemId, reference to the parent Node in TreeCtrl.
      @return: None
         """
@@ -152,16 +152,16 @@ class ManageLayerTree():
         
         currentLayerDetails = LayerTree.GetItemText(nodeId)
         print currentLayerDetails
-        if(not(currentLayerDetails == 'Layers' and currentLayerDetails.count(':') == 0)): 
+        if(not(currentLayerDetails == 'Layers' and currentLayerDetails.count(':') == 0)):
             currentLayerName = (currentLayerDetails.split(':')[0]).split('-')[1]
             print 'name = ' + currentLayerName
             currentLayerKey = (currentLayerDetails.split(':')[0]).split('-')[0]
             print 'key = ' + currentLayerKey
-            if(not currentLayerKey in parent.selectedLayersKeys):    
+            if(not currentLayerKey in parent.selectedLayersKeys):
                 parent.selectedLayersKeys += [currentLayerKey]
-                print 'selected layers = ' 
+                print 'selected layers = '
                 print parent.selectedLayersKeys
-                print 'queryable = ' 
+                print 'queryable = '
                 print int(parent.layerDataDict1[currentLayerKey].queryable)
                 if(int(parent.layerDataDict1[currentLayerKey].queryable) == 1):
                     parent.epsgList.Append('<'+currentLayerName+'>')
@@ -274,12 +274,12 @@ class wmsFrame(wx.Frame):
 
     def OnGetCapabilities(self, event): # wxGlade: wmsFrame.<event_handler>
         """
-     @description: called on press of getCapabilities button. Performs fetching of the getCapabilties document for the selected URL. 
+     @description: called on press of getCapabilities button. Performs fetching of the getCapabilties document for the selected URL.
      @todo:None
      @param self: reference variable
-     @param event: event associated. 
+     @param event: event associated.
      @return: None
-         """            
+         """
         if(self.selectedURL == "No server selected"):
             message = 'No Server selected'
             self.ShowMessage(message, 'Warning')
@@ -294,7 +294,7 @@ class wmsFrame(wx.Frame):
             grass.warning(message)
         self.usernameInput.Enable()
         self.passwordInput.Enable()
-        self.LayerTree.CollapseAndReset(self.layerTreeRoot) 
+        self.LayerTree.CollapseAndReset(self.layerTreeRoot)
         url = self.selectedURL
         url = url + '?request=GetCapabilities&service=wms&version=1.1.1'
         StatusBar_fields = ["GetCapabilities Request Sent..."]
@@ -315,7 +315,7 @@ class wmsFrame(wx.Frame):
                 self.ShowMessage(message, 'Warning')
                 StatusBar_fields = [message]
                 self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
-                grass.warning(message)               
+                grass.warning(message)
                 return
             layerDataDict = parsexml2(xml)
             ld = LayerData()
@@ -328,7 +328,7 @@ class wmsFrame(wx.Frame):
         except HTTPError, e:
             message = 'The server couldn\'t fulfill the request.'
             message = str(e)
-        except URLError, e: 
+        except URLError, e:
             message = 'Failed to reach a server.'
             message = str(e)
         except ValueError, e:
@@ -355,12 +355,12 @@ class wmsFrame(wx.Frame):
     
     def OnGetMaps(self, event): # wxGlade: wmsFrame.<event_handler>
         """
-     @description: called on press of getMaps button. Performs fetching of the Maps for the selected layers of a WMS Service. 
+     @description: called on press of getMaps button. Performs fetching of the Maps for the selected layers of a WMS Service.
      @todo:None
      @param self: reference variable
-     @param event: event associated. 
+     @param event: event associated.
      @return: None
-        """ 
+        """
         if(self.selectedURL == "No server selected"):
             message = 'No server selected'
             grass.warning(message)
@@ -429,7 +429,7 @@ class wmsFrame(wx.Frame):
         except HTTPError, e:
             message = 'The server couldn\'t fulfill the request.'
             message = str(e)
-        except URLError, e: 
+        except URLError, e:
             message = 'Failed to reach a server.'
             message = str(e)
         except ValueError, e:
@@ -458,9 +458,9 @@ class wmsFrame(wx.Frame):
      @description: called on selection of an epsg code from the epsg list(ComboBox) displayed. Sets self.selectedEPSG variable.
      @todo:None
      @param self: reference variable
-     @param event: event associated. 
+     @param event: event associated.
      @return: None
-        """ 
+        """
         info = self.epsgList.GetValue()
         if(not info.isdigit()):
             message = 'Please select an EPSG Code'
@@ -476,9 +476,9 @@ class wmsFrame(wx.Frame):
      @description: called on selection of a URL from ServerList(ComboBox) displayed. Sets self.selectedURL variable.
      @todo:None
      @param self: reference variable
-     @param event: event associated. 
+     @param event: event associated.
      @return: None
-        """ 
+        """
         info = self.ServerList.GetValue()
         if(len(info) == 0):
             return
@@ -510,7 +510,7 @@ class wmsFrame(wx.Frame):
      @description: called on selection of a layer from self.LayerTree. Sets self.layerName variable.
      @todo:None
      @param self: reference variable
-     @param event: event associated. 
+     @param event: event associated.
      @return: None
         """
         self.epsgList.Clear()
@@ -564,20 +564,20 @@ class wmsFrame(wx.Frame):
      @description: called on ManageServers button press. Calls AddSerevrFrame function to display GUI to Manage Servers.
      @todo:None
      @param self: reference variable
-     @param event: event associated. 
+     @param event: event associated.
      @return: None
         """
         self.AddServerisClosed = False
         self.addServer.Disable()
         AddServerFrame(self)
-        return 
+        return
     
     def onAddServerFrameClose(self, msg):
         """
      @description: called when the AddServer Frame is closed. Re-enables the addServer Button
      @todo:None
      @param self: reference variable
-     @param event: event associated. 
+     @param event: event associated.
      @return: None
         """
         self.AddServerisClosed = True
@@ -585,23 +585,23 @@ class wmsFrame(wx.Frame):
         
     def onUpdateServerListmessage(self, msg):
         """
-     @description: called when the updateserverlist message is received from AddServerFrame. Updates the local server list (self.ServerList) 
+     @description: called when the updateserverlist message is received from AddServerFrame. Updates the local server list (self.ServerList)
      @todo:None
      @param self: reference variable
-     @param event: event associated. 
+     @param event: event associated.
      @return: None
         """
         self.servers = msg.data
         #self.printDict(self.servers)
         self.__update_Url_List(self.ServerList)
         
-    def onUpdateMapListmessage(self, msg): 
+    def onUpdateMapListmessage(self, msg):
         """
      @description: called when the update.map_servernameTouid message is received from AddServerFrame. Updates the local dictionary
-      self.map_servernameTouid . This dictionary translates servername to itd Uid. 
+      self.map_servernameTouid . This dictionary translates servername to itd Uid.
      @todo:None
      @param self: reference variable
-     @param event: event associated. 
+     @param event: event associated.
      @return: None
         """
         self.map_servernameTouid = msg.data
@@ -609,10 +609,10 @@ class wmsFrame(wx.Frame):
         
     def OnQuit(self, event):
         """
-     @description: called when the close button is pressed. Closes the AddServerFrame if it's not closed. 
+     @description: called when the close button is pressed. Closes the AddServerFrame if it's not closed.
      @todo:None
      @param self: reference variable
-     @param event: event associated. 
+     @param event: event associated.
      @return: None
         """
         msg = ""
@@ -624,10 +624,10 @@ class wmsFrame(wx.Frame):
     
     def ShowMessage(self, message, type = 'Warning'):
         """
-     @description: Display's the message as a pop-up. 
+     @description: Display's the message as a pop-up.
      @todo:None
      @param self: reference variable
-     @param message: String, message to be displayed. 
+     @param message: String, message to be displayed.
      @param type: String, the type of message
      @return: None
         """
@@ -635,10 +635,10 @@ class wmsFrame(wx.Frame):
     
     def __update_Url_List(self, ComboBox):
         """
-     @description: Internal function to update ServerList(ComboBox).  
+     @description: Internal function to update ServerList(ComboBox).
      @todo:None
      @param self: reference variable
-     @param ComboBox: ComboBox to be updated. 
+     @param ComboBox: ComboBox to be updated.
      @return: None
         """
         ComboBox.Clear()
@@ -649,7 +649,7 @@ class wmsFrame(wx.Frame):
         
     def __populate_Url_List(self, ComboBox):
         """
-     @description: Internal function to populate ServerList(ComboBox). Used to populate ServerList for the first time in the init function. 
+     @description: Internal function to populate ServerList(ComboBox). Used to populate ServerList for the first time in the init function.
      @todo:None
      @param self: reference variable
      @param ComboBox: ComboBox to be updated.
@@ -694,7 +694,7 @@ class wmsFrame(wx.Frame):
 
     def printDict(self,dict):
         for key in dict.keys():
-            print "the key name is" + key + "and its value is" 
+            print "the key name is" + key + "and its value is"
     
 
 # end of class wmsFrame

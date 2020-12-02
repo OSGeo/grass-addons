@@ -138,7 +138,7 @@ def main():
         # Split columns and create list with data and with labels
         df = [x.split('|') for x in df]
         vals = [float(i[1]) for i in df]
-        groups = [i[0] for i in df] 
+        groups = [i[0] for i in df]
         uid = list(set(groups))
         data = []
         sf = []
@@ -150,7 +150,7 @@ def main():
         # Order boxes
         if sort:
             sf.sort(key = operator.itemgetter(1), reverse=reverse)
-        sf = [i[0] for i in sf] 
+        sf = [i[0] for i in sf]
         ii = {e: i for i, e in enumerate(sf) }
         sfo = [(ii[e]) for i, e in enumerate(uid) if e in ii]
       

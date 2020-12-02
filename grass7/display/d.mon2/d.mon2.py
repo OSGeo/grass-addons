@@ -114,7 +114,7 @@ def main():
 
 
     ## rest of this won't work, as parent can't inherit from the child..
-    ##  (unless we do some ugly g.gisenv) 
+    ##  (unless we do some ugly g.gisenv)
     ##  ... any ideas? end by running grass.call(['bash'])?
     if not grass.find_program(handler, '--help'):
         grass.fatal(_("'%s' not found.") % handler)

@@ -163,7 +163,7 @@ def main():
     hru_columns.append('outlet_sta integer') # Index of streamflow station at basin outlet:
     # station number if it has one, 0 if not
     # Note that the below specify projections and note lat/lon; they really seem
-    # to work for any projected coordinates, with _x, _y, in meters, and _xlong, 
+    # to work for any projected coordinates, with _x, _y, in meters, and _xlong,
     # _ylat, in feet (i.e. they are just northing and easting). The meters and feet
     # are not just simple conversions, but actually are required for different
     # modules in the code, and are hence redundant but intentional.
@@ -209,7 +209,7 @@ def main():
     nhrut = []
     for i in range(len(nhru)):
       nhrut.append((nhru[i], cats[i]) )
-    # Access the HRUs 
+    # Access the HRUs
     hru = VectorTopo(HRU)
     # Open the map with topology:
     hru.open('rw')
@@ -243,7 +243,7 @@ def main():
 
     # GET MEAN VALUES FOR THESE NEXT ONES, ACROSS THE BASIN
 
-    # SLOPE (and aspect) 
+    # SLOPE (and aspect)
     #####################
     v.rast_stats(map=HRU, raster=slope, method='average', column_prefix='tmp', flags='c', quiet=True)
     v.db_update(map=HRU, column='hru_slope', query_column='tmp_average', quiet=True)
@@ -253,7 +253,7 @@ def main():
     v.db_dropcolumn(map=HRU, columns='tmp_average', quiet=True)
     # Dealing with conversion from degrees (no good average) to something I can
     # average -- x- and y-vectors
-    # Geographic coordinates, so sin=x, cos=y.... not that it matters so long 
+    # Geographic coordinates, so sin=x, cos=y.... not that it matters so long
     # as I am consistent in how I return to degrees
     r.mapcalc('aspect_x = sin(' + aspect + ')', overwrite=gscript.overwrite(), quiet=True)
     r.mapcalc('aspect_y = cos(' + aspect + ')', overwrite=gscript.overwrite(), quiet=True)
@@ -281,7 +281,7 @@ def main():
     v.db_update(map=HRU, column='hru_elev', query_column='tmp_average', quiet=True)
     v.db_dropcolumn(map=HRU, columns='tmp_average', quiet=True)
 
-    # CENTROIDS 
+    # CENTROIDS
     ############
 
     # get x,y of centroid -- but have areas not in database table, that do have
@@ -371,11 +371,11 @@ def main():
     # Probably an issue with index__cats -- maybe fix later, if needed
     # But currently not a major speed issue
     """
-    cur.executemany("update "+HRU+" set hru_xlong=?*3.28084 where hru_x=?", 
+    cur.executemany("update "+HRU+" set hru_xlong=?*3.28084 where hru_x=?",
                     index__cats)
-    cur.executemany("update "+HRU+" set hru_ylat=?*3.28084 where hru_y=?", 
+    cur.executemany("update "+HRU+" set hru_ylat=?*3.28084 where hru_y=?",
                     index__cats)
-    """                    
+    """
 
     cur.close()
     hru.table.conn.commit()
@@ -383,7 +383,7 @@ def main():
 
     # ID NUMBER
     ############
-    #cur.executemany("update "+HRU+" set hru_segment=? where id=?", 
+    #cur.executemany("update "+HRU+" set hru_segment=? where id=?",
     #                index__cats)
     # Segment number = HRU ID number
     v.db_update(map=HRU, column='hru_segment', query_column='id', quiet=True)

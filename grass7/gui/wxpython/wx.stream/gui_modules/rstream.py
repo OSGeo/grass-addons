@@ -44,7 +44,7 @@ from rstream_panelOne import *
 
 
 
-# Child panel class before customization 
+# Child panel class before customization
 
 class TabPanel(wx.Panel):
 
@@ -101,15 +101,15 @@ class RStreamFrame(wx.Frame):
         self.button = wx.BoxSizer(wx.HORIZONTAL)
         self.btn_close = wx.Button(parent = self, id = wx.ID_CLOSE)
         self.btn_close.Bind(wx.EVT_BUTTON, self.OnClose)
-        self.button.Add(item=self.btn_close,flag = wx.ALL, border = 5)        
+        self.button.Add(item=self.btn_close,flag = wx.ALL, border = 5)
         self.sizer.Add(self.button)
         
         self.SetSizer(self.sizer)
 
         
 
-    def OnClose(self, event): 
-        self.Destroy()        
+    def OnClose(self, event):
+        self.Destroy()
         self.Show()
 
 def main():

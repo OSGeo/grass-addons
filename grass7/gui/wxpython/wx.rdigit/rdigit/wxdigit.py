@@ -68,11 +68,11 @@ class IRDigit:
                         locbuf = " %s %s\n" % (east,north)
                         self.polyfile.write(locbuf);
 
-                elif obj.ftype == GV_LINE:    
+                elif obj.ftype == GV_LINE:
                     self.polyfile.write("LINE\n");
                     for coor in obj.coords:
                         east, north = coor
-                        locbuf = " %s %s\n" % (east,north)            
+                        locbuf = " %s %s\n" % (east,north)
                         self.polyfile.write(locbuf);
                         
                 catbuf = "=%d a\n" % (obj.catId)
@@ -80,7 +80,7 @@ class IRDigit:
 
             self.polyfile.close()
             region_settings = grass.parse_command('g.region', flags = 'p', delimiter = ':')
-            RunCommand('r.in.poly', input=self.polyfile.name, 
+            RunCommand('r.in.poly', input=self.polyfile.name,
                                     rows=region_settings['rows'], output=self.getOutputName(),overwrite=True)
             
             os.unlink(self.polyfile.name)
@@ -116,7 +116,7 @@ class IRDigit:
         elif ftype == 'area':
             vtype = GV_AREA
         elif ftype == 'circle':
-            vtype = 'circle'         
+            vtype = 'circle'
         else:
             GError(parent = self.mapWindow,
                    message = _("Unknown feature type '%s'") % ftype)
@@ -148,7 +148,7 @@ class IRDigit:
             message = _('No vector map open for editing.3')
         GError(message + ' ' + _('Operation canceled.'),
                parent  = self.parent,
-               caption = self.caption)        
+               caption = self.caption)
 
     def _addFeature(self, ftype, coords):
         """!Add new feature(s) to the vector map
@@ -162,10 +162,10 @@ class IRDigit:
         
         obj = RasterObject(self.cat, coords,ftype)
         self.objects.append(obj)
-        self.cat = self.cat + 1 
+        self.cat = self.cat + 1
 
         Debug.msg(2, "IRDigit._addFeature(): npoints=%d, ftype=%d, catId=%d",
-                  len(coords), ftype,self.cat)        
+                  len(coords), ftype,self.cat)
            
         return self.cat - 1
     

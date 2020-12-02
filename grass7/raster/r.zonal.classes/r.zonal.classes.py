@@ -20,7 +20,7 @@
 #%end
 #%option G_OPT_R_INPUT
 #% key: zone_map
-#% label: Name for input raster map with areas 
+#% label: Name for input raster map with areas
 #% description: Raster map with areas (all pixels of an area have same id), such as the output of r.clump
 #% required: yes
 #%end
@@ -117,7 +117,7 @@ def cleanup():
             gscript.run_command('g.remove', flags='f', type_='vector',
                     name=temporary_vect, quiet=True)
         if gscript.db_table_exist(temporary_vect):
-            gscript.run_command('db.execute', 
+            gscript.run_command('db.execute',
                                 sql='DROP TABLE %s' % temporary_vect,
                                 quiet=True)
 
@@ -135,7 +135,7 @@ def main():
     global decimals
     decimals = int(options['decimals'])
     global zone_map
-    zone_map = options['zone_map']  
+    zone_map = options['zone_map']
     
     csvfile = options['csvfile'] if options['csvfile'] else []
     separator = gscript.separator(options['separator'])
@@ -145,7 +145,7 @@ def main():
     prop = False if 'proportion' not in options['statistics'].split(',') else True
     mode = False if 'mode' not in options['statistics'].split(',') else True
     
-    if flags['c']:  # Check only if flag activated - Can be bottleneck in case of very large raster. 
+    if flags['c']:  # Check only if flag activated - Can be bottleneck in case of very large raster.
         # Check if input layer is CELL
         if gscript.parse_command('r.info', flags='g', map=raster)['datatype'] != 'CELL':
             gscript.fatal(_("The type of the input map 'raster' is not CELL. Please use raster with integer values"))
@@ -167,10 +167,10 @@ def main():
     tmpfile = gscript.tempfile()
     try:
         if flags['n']:
-            gscript.run_command('r.stats', overwrite=True, flags='c', 
+            gscript.run_command('r.stats', overwrite=True, flags='c',
                                 input='%s,%s' %(zone_map,raster), output=tmpfile, separator=separator) # Consider null values in R.STATS
         else:
-            gscript.run_command('r.stats', overwrite=True, flags='cn', 
+            gscript.run_command('r.stats', overwrite=True, flags='cn',
                                 input='%s,%s' %(zone_map,raster), output=tmpfile, separator=separator) # Do not consider null values in R.STATS
         gscript.message(_("r.stats command finished..."))
     except:
@@ -201,7 +201,7 @@ def main():
         modalclass_dict = {}
         for ID in id_list:
             # The trick was found here : https://stackoverflow.com/a/268285/8013239
-            mode = max(iter(totals_dict[ID].items()), key=operator.itemgetter(1))[0] 
+            mode = max(iter(totals_dict[ID].items()), key=operator.itemgetter(1))[0]
             if mode == '*':   # If the mode is NULL values
                 modalclass_dict[ID] = 'NULL'
             else:
@@ -240,7 +240,7 @@ def main():
             class_list.sort()
             class_list.append('NULL')
         else:
-            class_list = [int(k) for k in class_dict.keys()]    
+            class_list = [int(k) for k in class_dict.keys()]
             class_list.sort()
     gscript.verbose(_("Statistics computed..."))
     # Set 'totals_dict' to None to try RAM release

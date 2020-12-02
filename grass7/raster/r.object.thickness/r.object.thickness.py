@@ -89,7 +89,7 @@
 import sys
 import os
 import atexit
-import csv 
+import csv
 
 import grass.script as gscript
 from grass.exceptions import CalledModuleError
@@ -158,7 +158,7 @@ def main():
     dsize = tsize / 2
     categorymap_transects = '{}'.format(categorymap) + '_transects'
     gscript.verbose(_("Creating transects"))
-    gscript.run_command('v.transects', input=categorymap_thin, output=categorymap_transects, transect_spacing=tspace, 
+    gscript.run_command('v.transects', input=categorymap_thin, output=categorymap_transects, transect_spacing=tspace,
                         dleft=dsize, dright=dsize, quiet=True, overwrite='t')
 
     # clip transects with the clumps
@@ -205,21 +205,21 @@ def main():
     gscript.verbose(_("Creating CSV file"))
     gscript.run_command('v.out.ogr', input=categorymap_transects_inside, output=csv_file, format='CSV', quiet=True, overwrite='t')
     
-    # initializing the titles and rows list 
-    fields = [] 
-    rows = [] 
+    # initializing the titles and rows list
+    fields = []
+    rows = []
     
-    # reading csv file 
-    with open(csv_file, 'r') as csvfile: 
-        # creating a csv reader object 
-        csvreader = csv.reader(csvfile) 
+    # reading csv file
+    with open(csv_file, 'r') as csvfile:
+        # creating a csv reader object
+        csvreader = csv.reader(csvfile)
         
-        # extracting field names through first row 
-        fields = csvreader.next() 
+        # extracting field names through first row
+        fields = csvreader.next()
     
-        # extracting each data row one by one 
-        for row in csvreader: 
-            rows.append(row) 
+        # extracting each data row one by one
+        for row in csvreader:
+            rows.append(row)
             
     # transpose the list
     lengths = list(map(list, zip(*rows)))
@@ -256,16 +256,16 @@ def main():
 
     # copy the maps if the user has provided a name
     if rmedian:
-        gscript.run_command('g.copy', raster='{inmap},{outmap}'.format(inmap=categorymap_thin,                   
+        gscript.run_command('g.copy', raster='{inmap},{outmap}'.format(inmap=categorymap_thin,
                         outmap=rmedian), overwrite='{}'.format(overwrite_flag), quiet=True)
     if vmedian:
-        gscript.run_command('g.copy', vector='{inmap},{outmap}'.format(inmap=categorymap_thin,                   
+        gscript.run_command('g.copy', vector='{inmap},{outmap}'.format(inmap=categorymap_thin,
                         outmap=vmedian), overwrite='{}'.format(overwrite_flag), quiet=True)
     if transects:
-        gscript.run_command('g.copy', vector='{inmap},{outmap}'.format(inmap=categorymap_transects,                   
+        gscript.run_command('g.copy', vector='{inmap},{outmap}'.format(inmap=categorymap_transects,
                         outmap=transects), overwrite='{}'.format(overwrite_flag), quiet=True)
     if itransects:
-        gscript.run_command('g.copy', vector='{inmap},{outmap}'.format(inmap=categorymap_transects_inside,                   
+        gscript.run_command('g.copy', vector='{inmap},{outmap}'.format(inmap=categorymap_transects_inside,
                         outmap=itransects), overwrite='{}'.format(overwrite_flag), quiet=True)
     if csv_file_out:
         gscript.run_command('v.out.ogr', input=categorymap_transects_inside, output=csv_file_out, format='CSV', quiet=True, overwrite='t')

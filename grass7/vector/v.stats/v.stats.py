@@ -195,7 +195,7 @@ def main(opt, flg):
     if not get_mapset_raster(zones):
         get_zones(opt['vector'], zones, layer)
     if not rstcsv or not os.path.exists(rstcsv[0]):
-        get_rst_csv(rasters, zones, rstcsv, rstpercentile, overwrite, 
+        get_rst_csv(rasters, zones, rstcsv, rstpercentile, overwrite,
                     nprocs, separator)
 
     newlink = Link(newlayer, newlayername, newtabname)

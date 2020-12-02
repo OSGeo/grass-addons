@@ -43,7 +43,7 @@
 #%option
 #% key: model
 #% type: string
-#% gisprompt: model 
+#% gisprompt: model
 #% description: model type: ols (ordinary least squares), rlm (robust linear model)
 #% required: no
 #% answer: ols

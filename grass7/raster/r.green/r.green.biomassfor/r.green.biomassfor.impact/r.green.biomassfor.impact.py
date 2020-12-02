@@ -5,9 +5,9 @@
 #
 # MODULE:      r.green.biomassfor.impact
 # AUTHOR(S):   Sandro Sacchelli, Francesco Geri
-#              Converted to Python by Francesco Geri, reviewed by Marco Ciolli 
-# PURPOSE:     Calculates impacts and multifunctionality values regarding fertility maintenance, 
-#              soil water protection, biodiversity, sustainable bioenergy, 
+#              Converted to Python by Francesco Geri, reviewed by Marco Ciolli
+# PURPOSE:     Calculates impacts and multifunctionality values regarding fertility maintenance,
+#              soil water protection, biodiversity, sustainable bioenergy,
 #              avoided CO2 emission, fire risk, recreation
 # COPYRIGHT:   (C) 2013 by the GRASS Development Team
 #
@@ -48,7 +48,7 @@
 #% description: Vector field of stand surface (ha)
 #% required : yes
 #%end
-#%option 
+#%option
 #% key: forest_column_management
 #% type: string
 #% description: Vector field of forest management (1: high forest, 2:coppice)
@@ -123,7 +123,7 @@
 #% label: Name of vector district heating points
 #% required : yes
 #%end
-#%option 
+#%option
 #% key: output_sw_map
 #% type: string
 #% description: Name for output soil and water reduction bioenergy map
@@ -324,14 +324,14 @@
 #% required : no
 #% guisection: TEV
 #%end
-#%option 
+#%option
 #% key: field_tev
 #% type: string
 #% description: Name of field with TEV value
 #% key_desc : name
 #% guisection: TEV
 #%end
-#%option 
+#%option
 #% key: area_tev
 #% type: string
 #% description: Area of TEV polygons
@@ -456,13 +456,13 @@ def yield_pix_process(opts, flgs,yield_,yield_surface):
     #             base="compartment", cover="analysis_surface", method="sum",
     #             output="techn_pix_comp")
 
-    run_command("r.mapcalc", overwrite=ow,  
+    run_command("r.mapcalc", overwrite=ow,
         expression='yield_pix1 = ('+yield_+'/'+yield_surface+')*((ewres()*nsres())/10000)')
 
 
     run_command("r.null", map="yield_pix1", null=0)
     # run_command("r.mapcalc", overwrite=ow,
-    #     expression='yield_pix2 = yield/(analysis_surface*techn_pix_comp)')   
+    #     expression='yield_pix2 = yield/(analysis_surface*techn_pix_comp)')
 
 
     # run_command("r.mapcalc", overwrite=ow,
@@ -478,7 +478,7 @@ def yield_pix_process(opts, flgs,yield_,yield_surface):
 def fertility_maintenance(opts, flgs):
 
     energy_tops_hf = float(opts['energy_tops_hf'])
-    energy_cormometric_vol_hf = float(opts['energy_cormometric_vol_hf'])  
+    energy_cormometric_vol_hf = float(opts['energy_cormometric_vol_hf'])
     management = opts['management']
     treatment = opts['treatment']
 
@@ -491,8 +491,8 @@ def fertility_maintenance(opts, flgs):
     run_command("r.mapcalc", overwrite=ow, expression=expr_prodT % (energy_tops_hf, energy_cormometric_vol_hf, energy_tops_hf, energy_cormometric_vol_hf))
     
     listmapsite = ''
-    map_site_prod_bioenergyT = grass.find_file('site_prod_bioenergyT',element='cell')  
-    map_site_prod_bioenergyFF = grass.find_file('site_prod_bioenergyFF',element='cell') 
+    map_site_prod_bioenergyT = grass.find_file('site_prod_bioenergyT',element='cell')
+    map_site_prod_bioenergyFF = grass.find_file('site_prod_bioenergyFF',element='cell')
 
     if map_site_prod_bioenergyT['fullname'] != '':
         listmapsite += map_site_prod_bioenergyT['fullname']
@@ -500,7 +500,7 @@ def fertility_maintenance(opts, flgs):
             listmapsite += ","+map_site_prod_bioenergyFF['fullname']
     else:
         if map_site_prod_bioenergyFF['fullname'] != '':
-            listmapsite += map_site_prod_bioenergyFF['fullname']    
+            listmapsite += map_site_prod_bioenergyFF['fullname']
             
     run_command("r.mapcalc", overwrite=ow,
                 expression=opts['output_fert_map']+'= max(%s)' % listmapsite)
@@ -509,13 +509,13 @@ def fertility_maintenance(opts, flgs):
 def soil_water_protection(opts, flgs):
 
     energy_tops_hf = float(opts['energy_tops_hf'])
-    energy_cormometric_vol_hf = float(opts['energy_cormometric_vol_hf']) 
+    energy_cormometric_vol_hf = float(opts['energy_cormometric_vol_hf'])
 
     management = opts['management']
     treatment = opts['treatment']
     
 
-    run_command("r.slope.aspect", flags="a", overwrite=ow,elevation=opts['dtm'], slope="slope__", format="percent") 
+    run_command("r.slope.aspect", flags="a", overwrite=ow,elevation=opts['dtm'], slope="slope__", format="percent")
 
     yield_pix_process(opts, flgs,yield_,yield_surface)
 
@@ -541,7 +541,7 @@ def soil_water_protection(opts, flgs):
         map_sw = grass.find_file(file_sw,element='cell')
         if map_sw['fullname'] != '':
             list_sw_prot.append(map_sw['fullname'])
-    string_sw_prot = string.join(list_sw_prot,',')   
+    string_sw_prot = string.join(list_sw_prot,',')
 
     
     expr_sw5 = 'S_W_prot_bioenergy5 = if('+treatment+'==2 && slope__<30,0,if('+treatment+'==2 && slope__ >=30, '+opts['energy_map']+'*1))'
@@ -707,8 +707,8 @@ def avoided_CO2_emission(opts, flgs):
         rivers = "rivers"
         exprmap += '+ if('+rivers+'>=1, 99999)'
 
-    if lakes != '':    
-        run_command("v.to.rast", input=lakes,output="lakes", use="val", overwrite=True)    
+    if lakes != '':
+        run_command("v.to.rast", input=lakes,output="lakes", use="val", overwrite=True)
         run_command("r.null", map="lakes", null=0)
         lakes = "lakes"
         exprmap += '+ if('+lakes+'>=1, 99999)'
@@ -950,16 +950,16 @@ def main(opts, flgs):
     # biodiversity_maintenance(opts, flgs)
     # sustainable_bioenergy(opts, flgs)
 
-    if(opts['output_basename_co2map']) != "":        
+    if(opts['output_basename_co2map']) != "":
         avoided_CO2_emission(opts, flgs)
 
-    if(opts['output_fr_map']) != "":        
+    if(opts['output_fr_map']) != "":
         fire_risk_reduction(opts, flgs)
 
-    if(opts['output_tot_re_map']) != "":        
+    if(opts['output_tot_re_map']) != "":
         recreational_improvement(opts, flgs)
 
-    if(opts['output_tev']) != "":        
+    if(opts['output_tev']) != "":
         tev(opts, flgs)
 
     if flgs['r']:

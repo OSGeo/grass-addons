@@ -34,7 +34,7 @@ class Nnbathy:
         
         # set variables
         self.cols = int(kv['cols'])
-        self.rows = int(kv['rows'])        
+        self.rows = int(kv['rows'])
         self.area = (reg_N-reg_S)*(reg_E-reg_W)
         self.ALG = 'nn'
 

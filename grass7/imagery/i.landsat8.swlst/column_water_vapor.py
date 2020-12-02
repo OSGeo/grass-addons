@@ -64,7 +64,7 @@ class Column_Water_Vapor():
 
     ==================================================================
 
-    * NOTE, there is a typo in the paper 
+    * NOTE, there is a typo in the paper
 
     [0] Du, Chen; Ren, Huazhong; Qin, Qiming; Meng, Jinjie; Zhao,
     Shaohua. 2015. "A Practical Split-Window Algorithm for Estimating

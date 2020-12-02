@@ -7,7 +7,7 @@
 #
 #               This tool was developed as part of the BiodivERsA-net project 'FISHCON'
 #               and has been funded by the German Federal Ministry for Education and
-#               Research (grant number 01LC1205). 
+#               Research (grant number 01LC1205).
 #
 # PURPOSE:      Compute the stream order of stream networks stored in
 #               a vector map at specific outlet vector points
@@ -398,7 +398,7 @@ def detect_compute_networks(vname, vmapset, pname, pmapset,
 
     copy_columns = None
 
-    # Check for copy columns only if the input vector map 
+    # Check for copy columns only if the input vector map
     # has an attribute table
     if v.table and columns:
 

@@ -39,7 +39,7 @@ class RDigitWindow(BufferedWindow):
         BufferedWindow.__init__(self, parent = parent, giface = giface, id = id, Map = Map,
                                 frame = frame, tree = tree, style = style, **kwargs)
         self.lmgr = lmgr
-        self.pdcVector = wx.PseudoDC()   
+        self.pdcVector = wx.PseudoDC()
         self.toolbar   = self.parent.GetToolbar('rdigit')
         self.digit     = None # wxvdigit.IVDigit
         self.existingCoords = list()
@@ -130,11 +130,11 @@ class RDigitWindow(BufferedWindow):
             
             return plineid
         
-        return -1            
+        return -1
         
     def _updateMap(self):
         if not self.toolbar or \
-                not self.toolbar.GetMapName():  
+                not self.toolbar.GetMapName():
             return
        
         self.pdcVector.RemoveAll()
@@ -169,7 +169,7 @@ class RDigitWindow(BufferedWindow):
             self.pdcVector.SetId(idx)
             self.pdcVector.DrawCircle(C.point[0],C.point[1],C.radius)
             self.pdcVector.EndDrawing()
-            self.Refresh()       
+            self.Refresh()
          
         item = None
         if self.tree:
@@ -252,11 +252,11 @@ class RDigitWindow(BufferedWindow):
                 self.selectid_circle = None
            
             ids = []
-            self.polycoords = []            
+            self.polycoords = []
             
         elif action == "addCircle":
           if len(self.polycoords) < 1: # ignore 'one-point' lines
-              self.polycoords.append(event.GetPositionTuple()[:])            
+              self.polycoords.append(event.GetPositionTuple()[:])
             
 
     def OnLeftUpVarious(self, event):
@@ -281,15 +281,15 @@ class RDigitWindow(BufferedWindow):
                 else:
                     self.selectid = None
              
-                ids = [] 
-                self.polycoords = []      
+                ids = []
+                self.polycoords = []
                 self.UpdateMap(render = False)
             
     def _onLeftUp(self, event):
         """!Left mouse button released"""
         
         # eliminate initial mouse moving efect
-        self.mouse['begin'] = self.mouse['end'] 
+        self.mouse['begin'] = self.mouse['end']
         
         action = self.toolbar.GetAction()
 
@@ -312,7 +312,7 @@ class RDigitWindow(BufferedWindow):
               self.circles.append(circle)
               
               self._updateMap()
-              self.polycoords = []          
+              self.polycoords = []
         
     def _onRightDown(self, event):
         # digitization tool (confirm action)
@@ -337,7 +337,7 @@ class RDigitWindow(BufferedWindow):
                     return
                                    
                 self.idxCats[self.idx] = self.digit.AddFeature(self.toolbar.GetAction('type'), self.polycoords)
-                if self.toolbar.GetAction('type') == 'boundary': 
+                if self.toolbar.GetAction('type') == 'boundary':
                     x0,y0 = self.polycoords[0]
                     for coord in self.polycoords:
                         x,y = coord  # self.Cell2Pixel(coord)
@@ -363,11 +363,11 @@ class RDigitWindow(BufferedWindow):
                     self.idx = self.idx+1
                     self.existingCoords = []
 
-                #Update Map 
+                #Update Map
                 self.polycoords = []
                 self.UpdateMap(render = False)
                 self.redrawAll = True
-                self.Refresh()                
+                self.Refresh()
 
         elif action in ["deleteArea", "deleteLine"]:
             # -> delete selected raster features
@@ -384,7 +384,7 @@ class RDigitWindow(BufferedWindow):
             for poly in polygonsCopy:
                 id = poly.keys()[0]
                 if idx != id:
-                    self.polygons.append(poly)            
+                    self.polygons.append(poly)
 
         elif action == "deleteCircle":
             x,y = event.GetPositionTuple()
@@ -403,7 +403,7 @@ class RDigitWindow(BufferedWindow):
             for circle in circlesCopy:
                 id = circle.keys()[0]
                 if idx != id:
-                    self.circles.append(circle)                
+                    self.circles.append(circle)
 
     def _onMouseMoving(self, event):
         self.mouse['end'] = event.GetPositionTuple()[:]

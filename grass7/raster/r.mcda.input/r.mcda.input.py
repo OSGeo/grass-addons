@@ -6,9 +6,9 @@
 # PURPOSE:	  Import roles from *.rls file and apply those condition
 #			   at geographics information system for generate a raster
 #			   map classified under Dominance Rough Set Approach
-# COPYRIGHT:	c) 2010 Gianluca Massei, Antonio Boggia  and the GRASS 
-#			   Development Team. This program is free software under the 
-#			   GNU General PublicLicense (>=v2). Read the file COPYING 
+# COPYRIGHT:	c) 2010 Gianluca Massei, Antonio Boggia  and the GRASS
+#			   Development Team. This program is free software under the
+#			   GNU General PublicLicense (>=v2). Read the file COPYING
 #			   that comes with GRASS for details.
 #
 #############################################################################
@@ -35,11 +35,11 @@
 #% required: yes
 #%end
 #%flag
-#% key:k 
+#% key:k
 #% description:file *.rls from software 4eMka2
 #%end
 #%flag
-#% key:j 
+#% key:j
 #% description:file *.rls from software jMAF (NOT YET IMPLEMENTED)
 #%end
 #%flag
@@ -92,7 +92,7 @@ def parser_mapcalc(rules,i):
 	"parser to build a formula to be included  in mapcalc command"
 	mapalgebra = "if("
 	for j in rules[i]['condition'][:-1]:
-		mapalgebra += j + " && " 
+		mapalgebra += j + " && "
 	mapalgebra += rules[i]['condition'][-1]+","+rules[i]['id_rule']+",null())"
 	return mapalgebra
 
@@ -111,7 +111,7 @@ def clean_rules(rules):
 				return -1
 
 def patch_georules(maps,outputMap):
-	labels = ["_".join(m.split('_')[1:]) for m in maps] 
+	labels = ["_".join(m.split('_')[1:]) for m in maps]
 	labels = list(set(labels))
 	for l in labels:
 		print("mapping %s rule" % str(l))
@@ -147,7 +147,7 @@ def main():
 	nsres = int(gregion['nsres'])
 	
 	input_rules = open(input_rules,"r")
-	tags = input_rules.readlines()   
+	tags = input_rules.readlines()
 	
 	rules = []  # single rule (dictionary) in array
 	maps = []
@@ -159,7 +159,7 @@ def main():
 		grass.mapcalc(mappa + "=" + formula)
 		maps.append(mappa)
 		
-	maplist = ",".join(maps)	
+	maplist = ",".join(maps)
 	print(maplist)
 	patch_georules(maps,outputMap)
 			

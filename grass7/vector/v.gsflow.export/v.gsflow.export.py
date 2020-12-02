@@ -179,7 +179,7 @@ def main():
     ##########
     if (len(reaches) > 0) and (len(out_reaches) > 0):
         columns_in_order = ['KRCH', 'IRCH', 'JRCH', 'ISEG', 'IREACH', 'RCHLEN',
-                            'STRTOP', 'SLOPE', 'STRTHICK', 'STRHC1', 'THTS', 
+                            'STRTOP', 'SLOPE', 'STRTHICK', 'STRHC1', 'THTS',
                             'THTI', 'EPS', 'UHC']
         outcols = get_columns_in_order(reaches, columns_in_order)
         outarray = np.array(outcols).transpose()
@@ -191,30 +191,30 @@ def main():
     # Segments
     ###########
     if (len(segments) > 0) and (len(out_segments) > 0):
-        columns_in_order = ['NSEG', 'ICALC', 'OUTSEG', 'IUPSEG', 'IPRIOR', 
-                            'NSTRPTS', 'FLOW', 'RUNOFF', 'ETSW', 'PPTSW', 
-                            'ROUGHCH', 'ROUGHBK', 'CDPTH', 'FDPTH', 'AWDTH', 
+        columns_in_order = ['NSEG', 'ICALC', 'OUTSEG', 'IUPSEG', 'IPRIOR',
+                            'NSTRPTS', 'FLOW', 'RUNOFF', 'ETSW', 'PPTSW',
+                            'ROUGHCH', 'ROUGHBK', 'CDPTH', 'FDPTH', 'AWDTH',
                             'BWDTH']
         outcols = get_columns_in_order(segments, columns_in_order)
         outarray = np.array(outcols).transpose()
         outtable = np.vstack((columns_in_order, outarray))
-        np.savetxt(out_segments+'_4A_INFORMATION.txt', outtable, fmt='%s', 
+        np.savetxt(out_segments+'_4A_INFORMATION.txt', outtable, fmt='%s',
                    delimiter=',')
 
-        columns_in_order = ['HCOND1', 'THICKM1', 'ELEVUP', 'WIDTH1', 'DEPTH1', 
+        columns_in_order = ['HCOND1', 'THICKM1', 'ELEVUP', 'WIDTH1', 'DEPTH1',
                             'THTS1', 'THTI1', 'EPS1', 'UHC1']
         outcols = get_columns_in_order(segments, columns_in_order)
         outarray = np.array(outcols).transpose()
         outtable = np.vstack((columns_in_order, outarray))
-        np.savetxt(out_segments+'_4B_UPSTREAM.txt', outtable, fmt='%s', 
+        np.savetxt(out_segments+'_4B_UPSTREAM.txt', outtable, fmt='%s',
                    delimiter=',')
 
-        columns_in_order = ['HCOND2', 'THICKM2', 'ELEVDN', 'WIDTH2', 'DEPTH2', 
+        columns_in_order = ['HCOND2', 'THICKM2', 'ELEVDN', 'WIDTH2', 'DEPTH2',
                             'THTS2', 'THTI2', 'EPS2', 'UHC2']
         outcols = get_columns_in_order(segments, columns_in_order)
         outarray = np.array(outcols).transpose()
         outtable = np.vstack((columns_in_order, outarray))
-        np.savetxt(out_segments+'_4C_DOWNSTREAM.txt', outtable, fmt='%s', 
+        np.savetxt(out_segments+'_4C_DOWNSTREAM.txt', outtable, fmt='%s',
                    delimiter=',')
     elif (len(segments) > 0) or (len(out_segments) > 0):
         gscript.fatal(_("You must inlcude both input and output segments"))
@@ -222,21 +222,21 @@ def main():
     # Gravity reservoirs
     #####################
     if (len(gravity_reservoirs) > 0) and (len(out_gravity_reservoirs) > 0):
-        columns_in_order = ['gvr_hru_id', 'gvr_hru_pct', 'gvr_cell_id', 
+        columns_in_order = ['gvr_hru_id', 'gvr_hru_pct', 'gvr_cell_id',
                             'gvr_cell_pct']
         outcols = get_columns_in_order(gravity_reservoirs, columns_in_order)
         outarray = np.array(outcols).transpose()
         outtable = np.vstack((columns_in_order, outarray))
-        np.savetxt(out_gravity_reservoirs+'.txt', outtable, fmt='%s', 
+        np.savetxt(out_gravity_reservoirs+'.txt', outtable, fmt='%s',
                    delimiter=',')
     elif (len(gravity_reservoirs) > 0) or (len(out_gravity_reservoirs) > 0):
         gscript.fatal(_("You must inlcude both input and output \
                       gravity reservoirs"))
 
-    # HRUs 
+    # HRUs
     #######
     if (len(HRUs) > 0) and (len(out_HRUs) > 0):
-        columns_in_order = ['hru_area', 'hru_aspect', 'hru_elev', 'hru_lat', 
+        columns_in_order = ['hru_area', 'hru_aspect', 'hru_elev', 'hru_lat',
                             'hru_slope', 'hru_segment', 'hru_strmseg_down_id',
                             'cov_type', 'soil_type']
         outcols = get_columns_in_order(HRUs, columns_in_order)
@@ -263,7 +263,7 @@ def main():
             outfile = file(out_pour_point_boundary+'.txt', 'a')
             _xys = np.squeeze(gscript.db_select(sql='SELECT row,col FROM ' +
                                 bc_cell))
-            # if only one point (so was on N-S, W-E direct connection), 
+            # if only one point (so was on N-S, W-E direct connection),
             # expand dimensions so code below works
             if _xys.ndim < 2:
                 _xys = np.expand_dims(_xys, axis=0)

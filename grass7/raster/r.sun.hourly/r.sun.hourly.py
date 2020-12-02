@@ -107,7 +107,7 @@
 #% required: no
 #% description: Name of input raster map containing longitudes [decimal degrees]
 #%end
-#%option 
+#%option
 #% key: mode
 #% required: yes
 #% options: mode1,mode2

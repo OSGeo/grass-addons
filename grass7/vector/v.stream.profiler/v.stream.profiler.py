@@ -142,7 +142,7 @@ def moving_average(x, y, window):
     out_x = np.hstack((out_x, x[-1]-window/2.))
     out_y = []
     for _x in out_x:
-        out_y.append(np.mean(y[(x < _x + window/2.) * 
+        out_y.append(np.mean(y[(x < _x + window/2.) *
                                  (x > _x - window/2.) ]))
     return out_x, out_y
 
@@ -152,7 +152,7 @@ def moving_average(x, y, window):
 
 def main():
     """
-    Links each river segment to the next downstream segment in a tributary 
+    Links each river segment to the next downstream segment in a tributary
     network by referencing its category (cat) number in a new column. "0"
     means that the river exits the map.
     """

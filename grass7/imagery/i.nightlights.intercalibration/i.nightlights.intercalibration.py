@@ -383,7 +383,7 @@ def main():
 #            zero = 0 if zero else ('null()')
 #            equation = "{out} = if(Input == 0, {zn}, {formula})"
 #            calibration_formula = equation.format(out=tmp_cdn, zero, formula=mapcalc_formula)
-        # ----------------------------------------------- Compress even more? 
+        # ----------------------------------------------- Compress even more?
 
         # replace the "dummy" string...
         calibration_formula = calibration_formula.replace("Input", image)

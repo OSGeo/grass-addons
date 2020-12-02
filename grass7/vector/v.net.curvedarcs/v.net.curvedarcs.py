@@ -100,7 +100,7 @@ def write_segmentdefs(lineinfo, minoffset, maxoffset, nbvertices):
 
     filename = gscript.tempfile()
     maxlength = max(lineinfo.values())
-    step = 100000/nbvertices 
+    step = 100000/nbvertices
     t = [x/100000.0 for x in range(0,int(math.pi*100000),step)]
     x = [a/max(t)*100 for a in t]
     x[-1] -= 0.001

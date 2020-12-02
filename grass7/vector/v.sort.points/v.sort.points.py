@@ -7,7 +7,7 @@
 # AUTHOR(S):    Moritz Lennert
 #
 # PURPOSE:      Takes a point map and creates a new point map with the points
-#               sorted according to a chosen numeric column with largest 
+#               sorted according to a chosen numeric column with largest
 #               values first
 #
 # DATE:         Wed May  4 18:44:05 2016

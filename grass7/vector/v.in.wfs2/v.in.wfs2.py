@@ -22,7 +22,7 @@ This program is free software under the GNU General Public License
 #%option
 #% key: url
 #% type: string
-#% description:URL of WFS server 
+#% description:URL of WFS server
 #% required: yes
 #%end
 
@@ -42,8 +42,8 @@ This program is free software under the GNU General Public License
 #%option
 #% key: srs
 #% type: integer
-#% description: EPSG number of source projection for request 
-#% answer:4326 
+#% description: EPSG number of source projection for request
+#% answer:4326
 #% guisection: Request properties
 #%end
 
@@ -120,7 +120,7 @@ def main():
     if flags['c']:
         wfs.GetCapabilities(options)
     else:
-        wfs.GetFeature(options, flags)    
+        wfs.GetFeature(options, flags)
    
     return 0
 

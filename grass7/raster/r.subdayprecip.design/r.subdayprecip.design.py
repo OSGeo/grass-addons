@@ -51,14 +51,14 @@
 import os
 import sys
 
-import grass.script as grass 
+import grass.script as grass
 from grass.pygrass.modules import Module
 from grass.exceptions import CalledModuleError
 
 def coeff(name, rl):
     a = c = None
     if name == 'N2':
-        if rl < 40: 
+        if rl < 40:
             a = 0.166
             c = 0.701
         elif rl < 120:

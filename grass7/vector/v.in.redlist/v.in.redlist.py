@@ -20,9 +20,9 @@ COPYRIGHT: (C) 2015 by the GRASS Development Team
 #% keyword: geometry
 #%end
 
-#%option G_OPT_F_BIN_INPUT  
+#%option G_OPT_F_BIN_INPUT
 #% key: input
-#% description: name of the IUCN Red List Spatial Data shapefile 
+#% description: name of the IUCN Red List Spatial Data shapefile
 #% required : yes
 #% guisection: GIS data
 #%end
@@ -43,7 +43,7 @@ COPYRIGHT: (C) 2015 by the GRASS Development Team
 
 #%flag
 #% key: l
-#% description: list species in IUCN Red List Spatial Data 
+#% description: list species in IUCN Red List Spatial Data
 #% guisection: listing
 #%end
 
@@ -78,7 +78,7 @@ def main():
     redlist_shapefile_short = os.path.basename(redlist_shapefile_long)
     species_filename = redlist_shapefile_short.split('.')[0]
     species_file = species_filename+'.txt'
-    global tmp         
+    global tmp
 
     # save species list to a user defined directory
 
@@ -100,7 +100,7 @@ def main():
                 f.close()
                 grass.message("%s" % (output_species_file) )
 
-    # print species list of the shapefile        
+    # print species list of the shapefile
         
     elif list_species:
                 
@@ -112,17 +112,17 @@ def main():
                 # get layer
                 layer = dataSource.GetLayer()
                 for feature in layer:
-                                grass.message('%s' % (feature.GetField("binomial")))        
+                                grass.message('%s' % (feature.GetField("binomial")))
 
     # import spatial data for a user defined species in the Red List
         
-    else:                
+    else:
 
                 grass.message(" importing spatial data for %s ..." % (imported_species_quoted) )
                 grass.run_command("v.in.ogr", input = redlist_shapefile_long,
                                                                 output = species_to_import,
                                                                 where = "binomial = %s" % (imported_species_quoted),
-                                                                quiet = True)        
+                                                                quiet = True)
 
 if __name__ == "__main__":
     options, flags = grass.parser()

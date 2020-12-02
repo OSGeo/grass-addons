@@ -5,7 +5,7 @@
 #
 # AUTHOR(S):    Andrew Wickert
 #
-# PURPOSE:      Build a drainage basin from the subwatersheds of a river  
+# PURPOSE:      Build a drainage basin from the subwatersheds of a river
 #               network, based on the structure of the network.
 #
 # COPYRIGHT:    (c) 2016 Andrew Wickert
@@ -125,7 +125,7 @@ def find_upstream_segments(cats, tostream, cat):
 
 def main():
     """
-    Links each river segment to the next downstream segment in a tributary 
+    Links each river segment to the next downstream segment in a tributary
     network by referencing its category (cat) number in a new column. "0"
     means that the river exits the map.
     """
@@ -156,7 +156,7 @@ def main():
     # NEED TO ADD IF-STATEMENT HERE TO AVOID AUTOMATIC OVERWRITING!!!!!!!!!!!
     if snapflag or (downstream_cat != ''):
         if downstream_cat == '':
-            # Need to find outlet pour point -- start by creating a point at this 
+            # Need to find outlet pour point -- start by creating a point at this
             # location to use with v.distance
             try:
                 v.db_droptable(table='tmp', flags='f')

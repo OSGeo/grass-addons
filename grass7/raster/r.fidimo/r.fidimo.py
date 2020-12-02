@@ -5,7 +5,7 @@
 # MODULE:		FIDIMO Fish Dispersal Model for River Networks for GRASS 7
 #
 # AUTHOR(S):		Johannes Radinger
-#				
+#
 # VERSION:		V0.1 Beta
 #
 # DATE:			2013-04-11
@@ -106,7 +106,7 @@
 #% required: no
 #% multiple: no
 #% description: Share of the stationary component (valid range 0 - 1)
-#% answer:0.67 
+#% answer:0.67
 #% guisection: Dispersal parameters
 #%End
 #%option

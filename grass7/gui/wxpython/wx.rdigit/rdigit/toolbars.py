@@ -99,7 +99,7 @@ class RDigitToolbar(BaseToolbar):
                                          desc = _('Left: new point; Ctrl+Left: undo last point; Right: close line')),
             'addBoundary': MetaIcon(img = 'polygon-create',
                                          label = _('Digitize new boundary'),
-                                         desc = _('Left: new point; Ctrl+Left: undo last point; Right: close line')), 
+                                         desc = _('Left: new point; Ctrl+Left: undo last point; Right: close line')),
             'addCircle': MetaIcon(img = 'draw-circle',
                                          label = _('Digitize new Cirlce'),
                                          desc = _('Left: new point; Ctrl+Left: undo last point; Right: close line')),
@@ -199,14 +199,14 @@ class RDigitToolbar(BaseToolbar):
     def OnTool(self, event):
         """!Tool selected -> untoggles previusly selected tool in
         toolbar"""
-        # set cursor  
+        # set cursor
         cursor = self.parent.cursors["cross"]
         self.MapWindow.SetCursor(cursor)
         
         # pointer
         self.parent.OnPointer(None)
          
-        aId = self.action.get('id', -1)       
+        aId = self.action.get('id', -1)
         BaseToolbar.OnTool(self, event)
 
         # clear tmp canvas
@@ -217,7 +217,7 @@ class RDigitToolbar(BaseToolbar):
 #                    len(self.MapWindow.digit.GetDisplay().GetSelected()) > 0:
 #                # cancel action
 #                self.MapWindow.OnMiddleDown(None)
-#        
+#
         # set no action
         if self.action['id'] == -1:
             self.action = {'desc': '',
@@ -263,7 +263,7 @@ class RDigitToolbar(BaseToolbar):
         self.action = {'desc': "addCircle",
                         'type': "circle",
                         'id': self.addCircle }
-        self.MapWindow.mouse['box'] = 'line'        
+        self.MapWindow.mouse['box'] = 'line'
 
     def OnExit (self, event=None):
         """!Quit digitization tool"""
@@ -407,7 +407,7 @@ class RDigitToolbar(BaseToolbar):
             #return
         
         if selection == -1:  # FIXME
-            # deactive map layer for editing 
+            # deactive map layer for editing
             self.StopEditing()
 
         
@@ -437,11 +437,11 @@ class RDigitToolbar(BaseToolbar):
 #                                subkey = 'value', internal = True) == mapLayer:
 #                UserSettings.Set(group = 'vdigit', key = 'bgmap',
 #                                 subkey = 'value', value = '', internal = True)
-#            
+#
 #            self.parent.SetStatusText(_("Please wait, "
 #                                        "opening raster map <%s> for editing...") % mapLayer,
 #                                        0)
-#        
+#
         self.MapWindow.pdcVector = wx.PseudoDC()
         self.digit = self.MapWindow.digit = self.digitClass(mapwindow = self.MapWindow)
         
@@ -449,7 +449,7 @@ class RDigitToolbar(BaseToolbar):
 
         self.EnableAll()
         self.EnableUndo(False)
-        self.EnableRedo(False)       
+        self.EnableRedo(False)
         
         Debug.msg (4, "RDigitToolbar.StartEditing(): layer=%s" % mapLayer)
         

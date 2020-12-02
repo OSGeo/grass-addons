@@ -4,7 +4,7 @@
 IGB-Berlin,Johannes Radinger; Implementation: Geoinformatikbuero Dassau GmbH , Soeren Gebbert
 This tool was developed as part of the BiodivERsA-net project 'FISHCON'
 and has been funded by the German Federal Ministry for Education and
-Research (grant number 01LC1205). 
+Research (grant number 01LC1205).
 
 (C) 2014 by the GRASS Development Team
 This program is free software under the GNU General Public
@@ -30,12 +30,12 @@ class TestStreamOrder(TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.runModule("g.remove", flags="f", type="vector",  
+        cls.runModule("g.remove", flags="f", type="vector",
                       name="stream_network,stream_network_outlets")
 
     def tearDown(self):
         pass
-        self.runModule("g.remove", flags="f", type="vector",  
+        self.runModule("g.remove", flags="f", type="vector",
                        pattern="stream_network_order_test_*")
 
     def test_strahler(self):
@@ -142,7 +142,7 @@ class TestStreamOrderFails(TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.runModule("g.remove", flags="f", type="vector",  
+        cls.runModule("g.remove", flags="f", type="vector",
                       name="stream_network,stream_network_outlets")
 
     def test_error_handling_1(self):

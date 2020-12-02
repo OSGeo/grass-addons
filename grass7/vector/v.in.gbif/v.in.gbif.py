@@ -21,7 +21,7 @@ COPYRIGHT: (C) 2015 by the GRASS Development Team
 #% keyword: geometry
 #%end
 
-#%option G_OPT_F_INPUT 
+#%option G_OPT_F_INPUT
 #% key: input
 #% required: yes
 #%end
@@ -67,9 +67,9 @@ def main():
     move_vrt_gbif_to_dir = flags['c']
     gbifvrt = gbifimported+'.vrt'
     gbif_vrt_layer = gbifimported
-    gbifcsv = gbifimported+'.csv'        
+    gbifcsv = gbifimported+'.csv'
     reproject_gbif = flags['r']
-    global tmp         
+    global tmp
 
     # check for unsupported locations or unsupported combination of option and projected location
     in_proj = grass.parse_command('g.proj', flags='g')
@@ -94,7 +94,7 @@ def main():
                                 gbifwriter.writerow(row)
     grass.message("----" )
 
-    # write        vrt                
+    # write        vrt
     grass.message("writing vrt ..." )
     new_gbif_vrt = os.path.join(gbiftempdir, gbifvrt )
     
@@ -102,7 +102,7 @@ def main():
     f.write("""<OGRVRTDataSource>
     <OGRVRTLayer name="%s">
         <SrcDataSource relativeToVRT="1">%s</SrcDataSource>
-        <GeometryType>wkbPoint</GeometryType> 
+        <GeometryType>wkbPoint</GeometryType>
         <LayerSRS>WGS84</LayerSRS>
                 <Field name="g_gbifid" src="gbifid" type="Integer" />
                 <Field name="g_datasetkey" src="datasetkey" type="String" width="255" />
@@ -147,16 +147,16 @@ def main():
                 <Field name="g_mediatype" src="mediatype" type="String" width="100" />
                 <Field name="g_issue" src="issue" type="String" width="255" />
                 <GeometryField encoding="PointFromColumns" x="decimallongitude" y="decimallatitude"/>
-        </OGRVRTLayer>        
+        </OGRVRTLayer>
         </OGRVRTDataSource>""" % (gbif_vrt_layer, gbifcsv) )
         
     f.close()
 
     grass.message("----" )
-    # Give information where output file are saved                                                                 
+    # Give information where output file are saved
     grass.message("GBIF vrt files:" )
     grass.message(gbifvrt )
-    grass.message("-" )        
+    grass.message("-" )
     grass.message(gbifcsv )
     grass.message("----" )
 
@@ -182,7 +182,7 @@ def main():
                                      quiet = True)
 
     grass.message("..." )
-    # v.in.gbif done!        
+    # v.in.gbif done!
     grass.message("importing GBIF data done!" )
     # move vrt and csv to user defined directory
     
@@ -194,7 +194,7 @@ def main():
         shutil.move(new_gbif_csv, directory)
         grass.message("in following user defined directory:" )
         grass.message(directory )
-        grass.message("----" )                      
+        grass.message("----" )
                 
     else:
                 

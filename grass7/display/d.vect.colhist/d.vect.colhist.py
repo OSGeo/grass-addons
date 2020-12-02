@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 ############################################################################
 #
-# MODULE:       d.vect.colhist 
+# MODULE:       d.vect.colhist
 # AUTHOR:       Moritz Lennert
 # PURPOSE:      Draws the histogram of values in a vector attribute column
 #

@@ -153,7 +153,7 @@
 #% required: no
 #% guisection: Misc
 #%end
-#%flag 
+#%flag
 #% guisection: Files
 #% key: g
 #%description: Save thematic map commands to group file for GIS Manager
@@ -175,7 +175,7 @@
 #% key: rgb_column
 #% description: Name of color column to populate RGB values
 #%end
-#%flag 
+#%flag
 #% guisection: Theme
 #%key: l
 #%description: Create graphic legend in x11 display monitor
@@ -185,12 +185,12 @@
 #% key: f
 #% description: Only draw fills (no outlines) for areas and points
 #%end
-#%flag 
+#%flag
 #% guisection: Misc
 #%key: s
 #%description: Output legend for GIS Manager (for scripting use only)
 #%end
-#%flag 
+#%flag
 #% guisection: Misc
 #%key: m
 #%description: Use math notation brackets in legend
@@ -392,7 +392,7 @@ def main():
         annotations = " %f; %f; %f; %f" % (q1, q2, q3, q4)
     elif themecalc == "custom_breaks":
         if not breakpoints:
-            grass.fatal(_("Required parameter <%s> not set") % "breakpoints") 
+            grass.fatal(_("Required parameter <%s> not set") % "breakpoints")
         breakpoints = [int(x) for x in breakpoints.split()]
         numint = len(breakpoints) - 1
         annotations = ""
@@ -582,7 +582,7 @@ end
                     openbracket = "["
                     mincomparison = ">"
             else:
-                closebracket = "" 
+                closebracket = ""
                 openbracket = ""
                 if first:
                     mincomparison = ">="
@@ -920,7 +920,7 @@ end
                     openbracket = "]"
                     mincomparison = ">"
             else:
-                closebracket = "" 
+                closebracket = ""
                 openbracket = ""
                 if i == 1:
                     mincomparison = ">="

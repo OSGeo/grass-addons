@@ -48,7 +48,7 @@ class ImgPanel(wx.Panel):
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.staticBitmap = wx.StaticBitmap(self, -1, img)
         self.PhotoMaxSize = 240
-        self.sizer.Add(self.staticBitmap, 1, wx.EXPAND)        
+        self.sizer.Add(self.staticBitmap, 1, wx.EXPAND)
         self.SetSizer(self.sizer)
         self.sizer.Layout()
         
@@ -73,7 +73,7 @@ class ListImg(wx.Listbook):
             self.AddPage(self.pages[-1], "", imageId=imID)
         self.AssignImageList(self.ImL)
             
-        # Binders    
+        # Binders
         self.Bind(wx.EVT_LISTBOOK_PAGE_CHANGED, self.OnPageChanged)
         self.Bind(wx.EVT_LISTBOOK_PAGE_CHANGING, self.OnPageChanging)
         
@@ -109,7 +109,7 @@ class ImgFrame(wx.Frame):
         directory = pat
         panel = wx.Panel(self)
 
-        os.chdir(directory) 
+        os.chdir(directory)
         previews = ListImg(panel)
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(previews, 1, wx.ALL | wx.EXPAND, 5)

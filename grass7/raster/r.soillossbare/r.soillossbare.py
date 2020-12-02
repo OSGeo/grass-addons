@@ -101,7 +101,7 @@ This program is free software under the GNU General Public License
 #%  key_desc: name
 #%  type: string
 #%  gisprompt: old,vector,vector
-#%  description: Fieldblock vector map 
+#%  description: Fieldblock vector map
 #%  required: no
 #%end
 
@@ -290,7 +290,7 @@ class rusle_base(object):
 
     def _getElevationFieldblock(self,elevation,fieldblock,elevationfieldblock):
         formula = "$elevationfieldblock = if(isnull($fieldblock),null(),$elevation)"
-        g.mapcalc(formula, elevationfieldblock = elevationfieldblock, 
+        g.mapcalc(formula, elevationfieldblock = elevationfieldblock,
                     elevation = elevation, fieldblock=fieldblock, quiet=quiet)
         g.verbose('Raster map elevationfieldblock is in "%s"' %elevationfieldblock)
         return elevationfieldblock
@@ -318,8 +318,8 @@ class rusle_base(object):
         
         flowacc is uplslope area per unit width (measure of water flow, m²/m2),
         slope in degrees,
-        22.1m is the length of standard USLE plot, 
-        0.09 = 9% = 5.15° ist slope of standard USLE plot, 
+        22.1m is the length of standard USLE plot,
+        0.09 = 9% = 5.15° ist slope of standard USLE plot,
         m and n are empirical constants
         
         Bemerkung zur Formel: gemäss Mitasova (1999) könnten die Exponenten m=0.2..0.6
@@ -347,7 +347,7 @@ class rusle_base(object):
 
     def _getSoillossbare(self,lsfactor,kfactor,rfactor,soillossbare):
         """!Calculate soilloss on bare soil
-        A = R * K * LS 
+        A = R * K * LS
         A potential soil loss t/(ha*a) for bare soil
         LS LS-factor
         R rain erosivity factor
@@ -468,7 +468,7 @@ class rusle_terraflow(rusle_base):
 
 
 def main():
-    ''' 
+    '''
     begin main
     
     '''

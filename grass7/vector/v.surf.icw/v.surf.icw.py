@@ -5,7 +5,7 @@
 #                version $Id$
 #
 # AUTHOR:       M. Hamish Bowman, Dunedin, New Zealand
-#                Originally written aboard the NZ DoC ship M/V Renown, 
+#                Originally written aboard the NZ DoC ship M/V Renown,
 #                Bligh Sound, Fiordland National Park, November 2003
 #                With thanks to Franz Smith and Steve Wing for support
 #                Ported to Python for GRASS 7 December 2011
@@ -501,7 +501,7 @@ def main():
     if flags['r']:
         grass.run_command('r.support', map = output,
                           history = '  (d^n)*log(d) as radial basis function')
-    if post_mask: 
+    if post_mask:
         grass.run_command('r.support', map = output,
                           history = '  post-processing mask=' + post_mask)
     if where:

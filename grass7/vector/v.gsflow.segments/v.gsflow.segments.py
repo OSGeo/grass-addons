@@ -427,9 +427,9 @@ def main():
         gscript.message('Continuing nonetheless.')
         gscript.message('')
         if options['fp_width_pts'] is not '':
-            gscript.run_command('v.distance', from_=segments, 
-                                to=options['fp_width_pts'], upload='to_attr', 
-                                to_column=options['fp_width_pts_col'], 
+            gscript.run_command('v.distance', from_=segments,
+                                to=options['fp_width_pts'], upload='to_attr',
+                                to_column=options['fp_width_pts_col'],
                                 column='floodplain_width')
         else:
             segmentsTopo = VectorTopo(segments)

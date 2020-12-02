@@ -244,7 +244,7 @@ def get_percentile(L, input, radius=3, window_square=False):
     # if opposite neighbor is also nodata, then use center pixel
     terms = []
     for d in offsets:
-        valid = ','.join(map(str, d))        
+        valid = ','.join(map(str, d))
         invalid = ','.join([str(-d[0]), str(-d[1])])
         terms.append("if(isnull({input}[{d}]), if(isnull({input}[{e}]), 1, {input}[{e}]<={input}), {input}[{d}]<={input})".format(
             input=input_grown, d=valid, e=invalid))
@@ -283,7 +283,7 @@ def get_flatness(L, slope, t, p):
     F = "tmp_F{L}".format(L=L+1) + \
         ''.join([random.choice(string.ascii_letters + string.digits) for n in range(4)])
     TMP_RAST[L].append(F)
-    grass.mapcalc("$g = 1.0 / (1.0 + pow(($x / $t), $p))", 
+    grass.mapcalc("$g = 1.0 / (1.0 + pow(($x / $t), $p))",
                    g=F, x=slope, t=t, p=p)
     
     return F
@@ -402,7 +402,7 @@ def refine(L, input, region, method='bilinear'):
     TMP_RAST[L].append(input)
 
     if method == 'bilinear':
-       r.resamp_interp(input=input_padded, 
+       r.resamp_interp(input=input_padded,
                        output=input,
                        method="bilinear")
 
@@ -555,7 +555,7 @@ def main():
     # Remaining steps
     # DEM_1_1 refers to scale (smoothing) and resolution (cell size)
     # so that DEM_L1_L-1 refers to smoothing of current step,
-    # but resolution of previous step 
+    # but resolution of previous step
 
     for L in range(2, levels):
 

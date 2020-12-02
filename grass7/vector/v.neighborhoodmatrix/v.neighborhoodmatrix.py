@@ -61,7 +61,7 @@ def main():
     sep = separator(options['separator'])
     bidirectional = flags['b']
     global tempmapname
-    tempmapname = 'neighborhoodmatrix_tempmap_%d' % os.getpid() 
+    tempmapname = 'neighborhoodmatrix_tempmap_%d' % os.getpid()
     #TODO: automatically determine the first available layer in file
     blayer = player+1
 

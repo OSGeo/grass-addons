@@ -11,7 +11,7 @@ class CategoryEncoder(BaseEstimator, TransformerMixin):
     def fit(self, X, y = None):
         self._encoding = {value: label for (label, value, mtype) in X}
         self._inverse = {label: value for (label, value, mtype) in X}
-        return self 
+        return self
     
     def transform(self, X, y = None):
         """Takes integer values and returns the category label"""

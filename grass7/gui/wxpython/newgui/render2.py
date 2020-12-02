@@ -176,7 +176,7 @@ class Layer(object):
     
     def _runCommand(self, cmd):
         """!Run command to render data
-        """ 
+        """
         if self.type == 'wms':
             ret = 0
             msg = ''
@@ -261,9 +261,9 @@ class Layer(object):
         
         if ltype == 'wms' and not isinstance(self.renderMgr, RenderWMSMgr):
             self.renderMgr = RenderWMSMgr(receiver = self.Map.GetReceiver(),
-                                          layer = self, 
-                                          Map = self.Map, 
-                                          mapfile = self.mapfile, 
+                                          layer = self,
+                                          Map = self.Map,
+                                          mapfile = self.mapfile,
                                           maskfile = self.maskfile)
         elif self.type == 'wms' and ltype != 'wms':
             self.renderMgr = None
@@ -324,7 +324,7 @@ class Layer(object):
 
 class MapLayer(Layer):
     def __init__(self, ltype, cmd, Map, name = None,
-                 active = True, hidden = False, opacity = 1.0): 
+                 active = True, hidden = False, opacity = 1.0):
         """!Represents map layer in the map canvas
         
         @param ltype layer type ('raster', 'vector', 'command', etc.)
@@ -902,10 +902,10 @@ class Map(object):
                     continue
 
             if layer.IsDownloading():
-                self.downloading = True     
+                self.downloading = True
             if self.receiver:
                 event = wxUpdateProgressBar(layer = layer, map = self)
-                self.receiver.GetEventHandler().ProcessEvent(event) 
+                self.receiver.GetEventHandler().ProcessEvent(event)
 
             # skip map layers when rendering fails
             if not os.path.exists(layer.mapfile):
@@ -1082,7 +1082,7 @@ class Map(object):
         return layer
 
     def DeleteAllLayers(self, overlay = False):
-        """!Delete all layers 
+        """!Delete all layers
 
         @param overlay True to delete also overlayes
         """
@@ -1171,7 +1171,7 @@ class Map(object):
             layer.SetOpacity(kargs['opacity'])
         
         if render and not layer.Render():
-            raise GException(_("Unable to render map layer <%s>.") % 
+            raise GException(_("Unable to render map layer <%s>.") %
                              layer.GetName())
         
         return layer
@@ -1282,7 +1282,7 @@ class Map(object):
         self.overlays.append(overlay)
         
         if render and command != '' and not overlay.Render():
-            raise GException(_("Unable to render overlay <%s>.") % 
+            raise GException(_("Unable to render overlay <%s>.") %
                              ltype)
         
         return self.overlays[-1]
@@ -1321,7 +1321,7 @@ class Map(object):
             overlay.SetOpacity(kargs['opacity'])
         
         if render and overlay.GetCmd() != [] and not overlay.Render():
-            raise GException(_("Unable to render overlay <%s>.") % 
+            raise GException(_("Unable to render overlay <%s>.") %
                              overlay.GetType())
         
         return overlay

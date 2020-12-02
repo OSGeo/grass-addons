@@ -23,8 +23,8 @@ import wx
 
 from api_test           import MySingleMapFrame
 from api_test       import ToolBarNames
-from render2        import MapLayer      
-from lmgr.toolbars         import LMWorkspaceToolbar  
+from render2        import MapLayer
+from lmgr.toolbars         import LMWorkspaceToolbar
 class MyFrame(MySingleMapFrame):
     """!main frame
     """
@@ -56,7 +56,7 @@ class MyFrame(MySingleMapFrame):
         
     def dummyfunc(self,event):
         xx = 1
-        print xx       
+        print xx
 
 def main():
 

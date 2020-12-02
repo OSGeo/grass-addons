@@ -21,7 +21,7 @@ import grass
 def loadConfigFile(self):
     """
      @description: Called by the init method of the class wmsFrame.
-     Loads the config file and initializes corresponding paramters.  
+     Loads the config file and initializes corresponding paramters.
      @todo:None
      @param self: reference variable
      @return: Boolean, True is config file is loaded successfuly, else False

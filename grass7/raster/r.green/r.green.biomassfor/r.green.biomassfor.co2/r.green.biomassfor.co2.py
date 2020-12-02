@@ -5,9 +5,9 @@
 #
 # MODULE:      r.green.biomassfor.co2
 # AUTHOR(S):   Sandro Sacchelli, Francesco Geri
-#              Converted to Python by Francesco Geri, reviewed by Marco Ciolli 
-# PURPOSE:     Calculates impacts and multifunctionality values regarding fertility maintenance, 
-#              soil water protection, biodiversity, sustainable bioenergy, 
+#              Converted to Python by Francesco Geri, reviewed by Marco Ciolli
+# PURPOSE:     Calculates impacts and multifunctionality values regarding fertility maintenance,
+#              soil water protection, biodiversity, sustainable bioenergy,
 #              avoided CO2 emission, fire risk, recreation
 # COPYRIGHT:   (C) 2013 by the GRASS Development Team
 #
@@ -48,7 +48,7 @@
 #% description: Vector field of stand surface (ha)
 #% required : yes
 #%end
-#%option 
+#%option
 #% key: forest_column_management
 #% type: string
 #% description: Vector field of forest management (1: high forest, 2:coppice)
@@ -276,7 +276,7 @@ def yield_pix_process(opts, flgs,yield_,yield_surface):
     run_command('r.mapcalc', overwrite=ow,expression=expr_surf)
 
 
-    run_command("r.mapcalc", overwrite=ow,  
+    run_command("r.mapcalc", overwrite=ow,
         expression='yield_pix1 = ('+yield_+'/'+yield_surface+')*((ewres()*nsres())/10000)')
 
 
@@ -405,8 +405,8 @@ def avoided_CO2_emission(opts, flgs):
         rivers = "rivers"
         exprmap += '+ if('+rivers+'>=1, 99999)'
 
-    if lakes != '':    
-        run_command("v.to.rast", input=lakes,output="lakes", use="val", overwrite=True)    
+    if lakes != '':
+        run_command("v.to.rast", input=lakes,output="lakes", use="val", overwrite=True)
         run_command("r.null", map="lakes", null=0)
         lakes = "lakes"
         exprmap += '+ if('+lakes+'>=1, 99999)'

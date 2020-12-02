@@ -856,7 +856,7 @@ def main():
         newewres = ewres
         newnsres = nsres
 
-        # if colsregiontomap < 1: 
+        # if colsregiontomap < 1:
         # CHANGE: also enables raising of resolution to prevent
         # pixelation because of low resolution setting...
         newewres = ewres / colsregiontomap

@@ -40,7 +40,7 @@ class newLayerData():
 	title, String - Title for the layer
 	abstract, String - Abstract for the layer
 	srsList, List - List to hold srs values for this layer
-	queryable, int - whether a layer is queryable or not. queryable = 1 , is layer is queryable else 0. 
+	queryable, int - whether a layer is queryable or not. queryable = 1 , is layer is queryable else 0.
 	"""
 	name = None
 	title = None
@@ -143,9 +143,9 @@ def parsexml2(xml):
 
 def isValidResponse(xml):
 	"""
-     @description: Checks for the validity of the xml response, if it is a genuine WMS get Capabilities request.  
+     @description: Checks for the validity of the xml response, if it is a genuine WMS get Capabilities request.
      @todo:None
-     @param xml: XML, xml String to be checked. 
+     @param xml: XML, xml String to be checked.
      @return: Boolean, True if a valid response, else False
     """
 	soup = BeautifulSoup(xml)
@@ -156,9 +156,9 @@ def isValidResponse(xml):
 		return True
 def isServiceException(xml):
 	"""
-     @description: Checks for the service exception in the xml response 
+     @description: Checks for the service exception in the xml response
      @todo:None
-     @param xml: XML, xml String to be checked. 
+     @param xml: XML, xml String to be checked.
      @return: Boolean, True if service exception occurs response, else False
     """
 	soup = BeautifulSoup(xml)
@@ -231,7 +231,7 @@ def dfs(root,LayerTree, ltr):
     		return
 
 def getAttributeLayers(node, attribute):
-	Attribute = attribute.capitalize() 
+	Attribute = attribute.capitalize()
 	l = node.getElementsByTagName(attribute)
 	g = None
 	if(len(l) > 0):
@@ -247,12 +247,12 @@ def getAttributeLayers(node, attribute):
 	    
 def dfs1(node,LayerTree, ltr,lData):
 	"""
-     @description: DFS search for all the layers in the GetCapabilties response. 
+     @description: DFS search for all the layers in the GetCapabilties response.
      @todo:None
      @param node: TreeItem, current node
      @param LayerTree: TreeCtrl, to display the layers in the GUI
      @param ltr:
-     @param lData:   
+     @param lData:
      @return: None
     """
 	global key
@@ -308,7 +308,7 @@ def dfs1(node,LayerTree, ltr,lData):
 	
 	
 def parseGrass_Region(grassRegion, dir):
-	grassRegion = 'n-s resol: 26.266417; n-s resol3: 100; rows: 533; north: 4928000.0; t-b resol: 1; zone: 13; bottom: 0; rows3: 140; west: 590000.0; top: 1; cols: 698; cols3: 190; depths: 1; e-w resol: 27.220630; proj: 1; e-w resol3: 100; east: 609000.0; south: 4914000.0;' 
+	grassRegion = 'n-s resol: 26.266417; n-s resol3: 100; rows: 533; north: 4928000.0; t-b resol: 1; zone: 13; bottom: 0; rows3: 140; west: 590000.0; top: 1; cols: 698; cols3: 190; depths: 1; e-w resol: 27.220630; proj: 1; e-w resol3: 100; east: 609000.0; south: 4914000.0;'
 	width = '698'
 	Height = '533'
 	s = grassRegion.find(dir)

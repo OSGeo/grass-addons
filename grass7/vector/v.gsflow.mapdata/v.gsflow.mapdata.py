@@ -120,7 +120,7 @@ from grass import script as gscript
 
 def main():
     """
-    Import any raster or vector data set and add its attribute 
+    Import any raster or vector data set and add its attribute
     to a GSFLOW data object
     """
 
@@ -170,7 +170,7 @@ def main():
                          quiet=True)
             g.remove(type='raster', name='tmp___tmp', flags='f', quiet=True)
             v.db_renamecolumn(map=options['map'],
-                              column=['tmp_average',options['column']], 
+                              column=['tmp_average',options['column']],
                               quiet=True)
 
         else:
@@ -210,7 +210,7 @@ def main():
         except:
             pass
         v.rast_stats(map=options['map'], raster=options['raster'],
-                     column_prefix='tmp', method='average', flags='c', 
+                     column_prefix='tmp', method='average', flags='c',
                      quiet=True)
         v.db_renamecolumn(map=options['map'],
                           column=['tmp_average',options['column']], quiet=True)

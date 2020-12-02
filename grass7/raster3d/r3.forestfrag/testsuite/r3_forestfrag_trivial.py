@@ -29,15 +29,15 @@ bottom: 5
 rows: 3
 cols: 3
 levels: 3
-1 0 0 
-1 0 0 
-0 0 0 
-1 1 0 
-0 1 1 
-1 0 1 
-0 1 1 
-0 0 0 
-0 0 0 
+1 0 0
+1 0 0
+0 0 0
+1 1 0
+0 1 1
+1 0 1
+0 1 1
+0 0 0
+0 0 0
 """
 
 # output contains all cells but we check just the middle one

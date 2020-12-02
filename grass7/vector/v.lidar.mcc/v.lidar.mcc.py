@@ -42,7 +42,7 @@
 #%end
 #%option nl
 #% key: nl
-#% label: Number of scale domains (nl) 
+#% label: Number of scale domains (nl)
 #% description: nl
 #% type: integer
 #% required: no
@@ -113,7 +113,7 @@ def main():
     else:
         nuldev = sys.stderr
 
-    # Initalise temporary verctor map names   
+    # Initalise temporary verctor map names
     temp_ng = "v_lidar_mcc_tmp_ng_" + str(os.getpid())
     temp_ncin = "v_lidar_mcc_tmp_ncin_" + str(os.getpid())
     temp_ncout = "v_lidar_mcc_tmp_ncout_" + str(os.getpid())
@@ -173,7 +173,7 @@ def main():
     x_res_fin = gregion['ewres']
     y_res_fin = gregion['nsres']
 
-    # Defineresolution steps in iteration 
+    # Defineresolution steps in iteration
     n_res_steps = (l_stop + 1 ) / 2
         
     # Pass ame of input map to v.outlier
@@ -236,7 +236,7 @@ def main():
             n_input = nc
             grass.run_command('g.remove', flags='f', type='vector', name= temp_ncin, quiet = True, stderr = nuldev)
             grass.run_command("g.rename", vector = temp_ncout + "," + temp_ncin, quiet = True, stderr = nuldev )
-            nc_points = temp_ncin        
+            nc_points = temp_ncin
             # Give information on process status
             grass.verbose("Unclassified points after iteration " + str(i) + ": " + str(nc) )
             grass.verbose("Points classified as non ground after iteration " + str(i) + ": " + str(ng) )
@@ -260,7 +260,7 @@ def main():
             # Increase iterator
             i = i + 1
         # Adjust curvature tolerance and reset scale domain
-        t = t + ti 
+        t = t + ti
         l = l + 1
         # Delete temporary region
         grass.del_temp_region()

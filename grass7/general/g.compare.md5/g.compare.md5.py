@@ -5,11 +5,11 @@
 # MODULE:       g.md5sum.py
 #
 # AUTHOR(S):    Luca Delucchi <lucadeluge@gmail.com>
-#               
+#
 # PURPOSE:      Check if two GRASS maps are the same
 #
 # COPYRIGHT:    (c) 2012-2020 by Luca Delucchi and the GRASS Development Team
-#               
+#
 #               This program is free software under the GNU General
 #               Public License (>=v2). Read the file COPYING that
 #               comes with GRASS for details.
@@ -140,7 +140,7 @@ def main():
     else:
         shell = False
         err = _('The two maps are different')
-        good = _('The two maps are identical')    
+        good = _('The two maps are identical')
     # options
     typ = options['type']
     ainp = checkfile(options['ainput'],typ,shell)

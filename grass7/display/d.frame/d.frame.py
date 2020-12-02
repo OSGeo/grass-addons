@@ -250,7 +250,7 @@ def main():
                 warning(_("Frame <%s> already found. An existing frame can be overwritten by '%s' flag.") %
                         (options['frame'], "--overwrite"))
     
-    # select givenframe 
+    # select givenframe
     select_frame(monitor, options['frame'])
             
 if __name__ == "__main__":

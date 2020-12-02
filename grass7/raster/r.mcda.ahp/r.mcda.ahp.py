@@ -4,9 +4,9 @@
 # MODULE:       r.mcda.ahp
 # AUTHOR:       Gianluca Massei - Antonio Boggia
 # PURPOSE:      Generate a raster map classified with  analytic hierarchy process (AHP) [Saaty, 1977 and Saaty & Vargas, 1991]
-# COPYRIGHT:    c) 2010 Gianluca Massei, Antonio Boggia  and the GRASS 
-#                       Development Team. This program is free software under the 
-#                       GNU General PublicLicense (>=v2). Read the file COPYING 
+# COPYRIGHT:    c) 2010 Gianluca Massei, Antonio Boggia  and the GRASS
+#                       Development Team. This program is free software under the
+#                       GNU General PublicLicense (>=v2). Read the file COPYING
 #                       that comes with GRASS for details.
 #
 #############################################################################
@@ -24,7 +24,7 @@
 #% multiple: yes
 #% gisprompt: old,cell,raster
 #% key_desc: name
-#% description: Name of criteria raster maps 
+#% description: Name of criteria raster maps
 #% required: yes
 #%end
 #%option
@@ -42,7 +42,7 @@
 #% required: yes
 #%end
 #%flag
-#% key:k 
+#% key:k
 #% description:build a void pairwise comparison matrix and exit (no yet implemented)
 #%end
 

@@ -5,7 +5,7 @@
 # MODULE:      r.rock.stability
 # VERSION:     1.0
 # AUTHOR(S):   Andrea Filipello & Daniele Strigaro
-# PURPOSE:     A tool for preliminary rock failure susceptibility mapping 
+# PURPOSE:     A tool for preliminary rock failure susceptibility mapping
 # COPYRIGHT:   (C) 2014 by Andrea Filipello & Daniele Strigaro
 #              andrea.filipello@gmail.com; daniele.strigaro@gmail.com
 #
@@ -45,7 +45,7 @@
 #%option
 #% key: f4
 #% type: string
-#% description: F4 index 
+#% description: F4 index
 #% options: Natural Slope +15,Pre-splitting +10,Smooth blasting +8,Normal blasting or mechanical excavation 0,Poor blasting -8
 #% required: yes
 #%end
@@ -53,7 +53,7 @@
 #% key: rmr
 #% type: string
 #% gisprompt: old,raster,raster
-#% description: RMR index 
+#% description: RMR index
 #% required: yes
 #%end
 ################ouput######################
@@ -119,8 +119,8 @@ def main():
     RMR = options['rmr']
     prefix = options['prefix']
     #SMRrib = options['SMRtoppling']
-    grass.message('Starting to calculate SMR index')    
-    grass.message('Waiting...')    
+    grass.message('Starting to calculate SMR index')
+    grass.message('Waiting...')
 #calcolo slope ed aspect
 
     grass.run_command('r.slope.aspect',
@@ -150,7 +150,7 @@ def main():
         overwrite = True,
         quiet = True)
 
-# calcolo F1 
+# calcolo F1
 # la formula originale e' stata in parte modificata per tener conto dei valori di A compresi tra 270 e 360 sfavorevoli x la stabilita'
 
     grass.mapcalc("F1sci1 = if(Asci > 270, 0.64 - 0.006*atan(0.1*(abs(Asci - 360) - 17)), 0)",
@@ -179,7 +179,7 @@ def main():
         overwrite = True,
         quiet = True)
 
-# calcolo F3 
+# calcolo F3
 
     grass.mapcalc("F3sci = -30 + 0.33*atan($incl - slopes_)",
         incl = incl,
@@ -199,7 +199,7 @@ def main():
         overwrite = True,
         quiet = True)
 
-# Calcola l'indice SMR 
+# Calcola l'indice SMR
 
     grass.mapcalc("$SMRsciv = Isciv + $RMR + $F4",
         SMRsciv = prefix + '_planar',
@@ -256,15 +256,15 @@ def main():
             overwrite = True,
             quiet = True)
 #calcola slope e aspect
-#...calcolo A (valore assoluto)che vale SCIVOL=abs(immersdelgiunto-aspect1); RIBAL=abs(immersdelgiunto-aspect1-180) 
+#...calcolo A (valore assoluto)che vale SCIVOL=abs(immersdelgiunto-aspect1); RIBAL=abs(immersdelgiunto-aspect1-180)
         grass.mapcalc("Asci=abs(TB-aspects_1)",
             overwrite = True,
             quiet = True)
         reclass_rules = "-360 thru 5 = 1\n5.1 thru 10 = 0.085\n10.1 thru 20 = 0.7\n20.1 thru 30 = 0.4\n30.1 thru 320 = 0.15"
-        grass.write_command('r.reclass', 
-            input='Asci', 
+        grass.write_command('r.reclass',
+            input='Asci',
             output='F1sci_',
-            rules='-', 
+            rules='-',
             stdin=reclass_rules,
             overwrite = True,
             quiet = True)
@@ -274,24 +274,24 @@ def main():
             quiet = True)
 # calcolo di F2
         reclass_rules2 = "0 thru 20 = 0.15\n20.1 thru 30 = 0.4\n30.1 thru 35 = 0.7\n35.1 thru 45 = 0.85\n45.1 thru 90 = 1"
-        grass.write_command('r.reclass', 
-            input='mappa', 
+        grass.write_command('r.reclass',
+            input='mappa',
             output='F2',
-            rules='-', 
-            stdin=reclass_rules2, 
+            rules='-',
+            stdin=reclass_rules2,
             overwrite = True,
             quiet = True )
-# Calcolo di F3 
+# Calcolo di F3
 # Calcolo C che vale SCIVOL=inclgiunto - slopes;
         grass.mapcalc("Csci=P2-slopes_",
             overwrite = True,
             quiet = True)
 # Reclass per F3 scivolamento
         reclass_rules3 = "180 thru 9 = 0\n10 thru 0.1 = -6\n0 = -25\n-0.1 thru -9 = -50\n-10 thru -180 = -60"
-        grass.write_command('r.reclass', 
-            input='Csci', 
+        grass.write_command('r.reclass',
+            input='Csci',
             output='F3sci_',
-            rules='-', 
+            rules='-',
             overwrite = True,
             stdin=reclass_rules3)
         grass.mapcalc('Isciv_=F1sci_*F3sci_*F2',
@@ -302,7 +302,7 @@ def main():
             F4 = f4,
             overwrite = True,
             quiet = True)
-        grass.run_command('g.remove', 
+        grass.run_command('g.remove',
             flags = 'f',
             type = 'raster',
             name = (
@@ -337,7 +337,7 @@ def main():
             overwrite = True,
             quiet = True)
 # calcola A=cosenoDELTA
-        grass.mapcalc("A = cos(delta)", 
+        grass.mapcalc("A = cos(delta)",
             overwrite = True,
             quiet = True)
 # calcola B=tan(inclinazione)
@@ -346,47 +346,47 @@ def main():
             overwrite = True,
             quiet = True)
 # calcola C=A*B
-        grass.mapcalc("C = A * B", 
+        grass.mapcalc("C = A * B",
             overwrite = True,
             quiet = True)
 # calcola AP
-        grass.mapcalc("AP = atan(C)", 
+        grass.mapcalc("AP = atan(C)",
             overwrite = True,
             quiet = True)
 # additional condition per scivolamento (dip del pendio deve essere < di AP+5), AP deve essere < di 85
-        grass.mapcalc("AP1 = slopes_ - AP - 5", 
+        grass.mapcalc("AP1 = slopes_ - AP - 5",
             overwrite = True,
             quiet = True)
-        grass.mapcalc("consci1 = if(AP1 > 0, 0, null())", 
+        grass.mapcalc("consci1 = if(AP1 > 0, 0, null())",
             overwrite = True,
             quiet = True)
-        grass.mapcalc("consci2 = if(AP < 85, 0, null())", 
+        grass.mapcalc("consci2 = if(AP < 85, 0, null())",
             overwrite = True,
             quiet = True)
 # additional condition per ribaltamento (AP deve essere> di 85)
-        grass.mapcalc("conrib = if(AP > (-85), 0, null())", 
+        grass.mapcalc("conrib = if(AP > (-85), 0, null())",
             overwrite = True,
             quiet = True)
 # ANALISI SCIVOLAMENTO PLANARE AP * 0.0113
-        grass.mapcalc("membro_sci = 0.0113 * AP", 
+        grass.mapcalc("membro_sci = 0.0113 * AP",
             overwrite = True,
             quiet = True)
         grass.mapcalc("sci = membro_sci - $TC",
-            TC = TC, 
+            TC = TC,
             overwrite = True,
             quiet = True)
 # se il risultato ottenuto e' minore di zero non ho cinematismo, maggiore e' il valore piu' alta sara' la propensione al distacco
         grass.mapcalc("cinem_sci = if(sci >= 0, 1, null())",
-            TC = TC, 
+            TC = TC,
             overwrite = True,
             quiet = True)
         grass.mapcalc("$SSPCsciv = cinem_sci * sci + consci1 + consci2",
-            SSPCsciv = prefix + '_SSPC_planar', 
+            SSPCsciv = prefix + '_SSPC_planar',
             overwrite = True,
             quiet = True)
 # ANALISI RIBALTAMENTO 0.0087*(-90-AP+INCLINAZIONE)
         grass.mapcalc("membro_RIB = 0.0087 * ((-90) - AP + $incl)",
-            incl = incl, 
+            incl = incl,
             overwrite = True,
             quiet = True)
         grass.mapcalc("rib = membro_RIB - $TC",
@@ -413,7 +413,7 @@ def main():
             overwrite = True,
             quiet = True)
 #elimino mappe
-        grass.run_command('g.remove', 
+        grass.run_command('g.remove',
             flags = 'f',
             type = 'raster',
             name = (
@@ -450,9 +450,9 @@ def main():
                 'cinem_rib'),
             quiet = True)
     else:
-        grass.run_command('g.remove', 
-            flags = 'f', 
-            type = 'raster', 
+        grass.run_command('g.remove',
+            flags = 'f',
+            type = 'raster',
             name = (
                 'slopes_',
                 'aspects_',

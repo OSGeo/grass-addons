@@ -309,7 +309,7 @@ def main():
     v.to_db(map=reaches, option='end', columns='xr2,yr2')
 
     # Now just sort by category, find which stream has the same xr1 and yr1 as
-    # x1 and y1 (or a_x1, a_y1) and then find where its endpoint matches another 
+    # x1 and y1 (or a_x1, a_y1) and then find where its endpoint matches another
     # starting point and move down the line.
     # v.db.select reaches col=cat,a_id,xr1,xr2 where="a_x1 = xr1"
 
@@ -369,7 +369,7 @@ def main():
         reachesTopo = VectorTopo(reaches)
         reachesTopo.open('rw')
         cur = reachesTopo.table.conn.cursor()
-        cur.executemany("update "+reaches+" set IREACH=? where cat=?", 
+        cur.executemany("update "+reaches+" set IREACH=? where cat=?",
                         reach_number__reach_order_cats)
         reachesTopo.table.conn.commit()
         reachesTopo.close()
@@ -381,7 +381,7 @@ def main():
     # 2018.10.01: Updating this to use the computational region for the DEM
     g.region(raster=elevation)
     
-    # Compute slope and starting elevations from the elevations at the start and 
+    # Compute slope and starting elevations from the elevations at the start and
     # end of the reaches and the length of each reach]
     
     gscript.message('Obtaining elevation values from raster: may take time.')

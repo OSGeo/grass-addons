@@ -53,7 +53,7 @@ class MapWindow(object):
             'box': "point"
         }
         # last east, north coordinates, changes on mouse motion
-        self.lastEN = None 
+        self.lastEN = None
         
         # stores overridden cursor
         self._overriddenCursor = None
@@ -90,7 +90,7 @@ class MapWindow(object):
             self.Bind(ev, self.EventTypeHandler(handlers))
     
     def EventTypeHandler(self, evHandlers):
-        return lambda event:self.HandlersCaller(event, evHandlers)  
+        return lambda event:self.HandlersCaller(event, evHandlers)
     
     def HandlersCaller(self, event, handlers):
         """!Hepler function which calls all handlers registered for
@@ -105,7 +105,7 @@ class MapWindow(object):
                        message=_("Error occured during calling of handler: %s \n"
                                  "Handler was unregistered.") % handler.__name__)
         
-        event.Skip() 
+        event.Skip()
 
     def RegisterMouseEventHandler(self, event, handler, cursor = None):
         """!Binds event handler
@@ -114,7 +114,7 @@ class MapWindow(object):
 
         If any error occures inside of handler, the handler is removed.
 
-        Before handler is unregistered it is called with 
+        Before handler is unregistered it is called with
         string value "unregistered" of event parameter.
 
         @code
@@ -146,7 +146,7 @@ class MapWindow(object):
         """
         # inserts handler into list
         for containerEv, handlers in self.handlersContainer.iteritems():
-            if event == containerEv: 
+            if event == containerEv:
                 handlers.append(handler)
         
         self.mouse['useBeforeGenericEvent'] = self.mouse['use']
@@ -159,7 +159,7 @@ class MapWindow(object):
         return True
 
     def UnregisterAllHandlers(self):
-        """!Unregisters all registered handlers 
+        """!Unregisters all registered handlers
 
         Before each handler is unregistered it is called with string
         value "unregistered" of event parameter.
@@ -187,7 +187,7 @@ class MapWindow(object):
         @return True if successful
         @return False if event cannot be unbind
         """
-        # removes handler from list 
+        # removes handler from list
         for containerEv, handlers in self.handlersContainer.iteritems():
             if event != containerEv:
                 continue
@@ -202,7 +202,7 @@ class MapWindow(object):
                 GError(parent = self,
                        message = _("Error occured during unregistration of handler: %s \n \
                                        Handler was unregistered") % handler.__name__)
-                handlers.remove(handler) 
+                handlers.remove(handler)
         
         # restore mouse use (previous state)
         self.mouse['use'] = self.mouse['useBeforeGenericEvent']
@@ -229,7 +229,7 @@ class MapWindow(object):
         except (ValueError):
             self.lastEN = None
         # FIXME: special case for vdigit and access to statusbarManager
-#rashad        if self.frame.statusbarManager.GetMode() == 0: # Coordinates            
+#rashad        if self.frame.statusbarManager.GetMode() == 0: # Coordinates
 #            updated = False
 #            if hasattr(self, "digit"):
 #                precision = int(UserSettings.Get(group = 'projection', key = 'format',
@@ -238,7 +238,7 @@ class MapWindow(object):
 
 #            if not updated:
 #                self.frame.CoordinatesChanged()
-#        
+#
         event.Skip()
 
     def GetLastEN(self):

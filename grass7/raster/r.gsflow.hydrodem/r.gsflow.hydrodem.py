@@ -6,7 +6,7 @@
 # AUTHOR(S):    Andrew Wickert
 #
 # PURPOSE:      Builds DEM of elevations for MODFLOW grid as part of GSFLOW,
-#               with minimum in-cell elevations chosen for channel cells in 
+#               with minimum in-cell elevations chosen for channel cells in
 #               order to maintain a hydrologically correct DEM
 #
 # COPYRIGHT:    (c) 2016-2017 Andrew Wickert
@@ -124,7 +124,7 @@ def main():
     r.mapcalc('tmp'+" = "+streams_MODFLOW+" * " + dem, overwrite=True)
     g.rename(raster=('tmp',streams_MODFLOW), overwrite=True, quiet=True)
     g.region(vector=grid, rows=nRows, cols=nCols, quiet=True)
-    r.resamp_stats(input=streams_MODFLOW, output=streams_MODFLOW, 
+    r.resamp_stats(input=streams_MODFLOW, output=streams_MODFLOW,
                    method='average', overwrite=gscript.overwrite(), quiet=True)
     r.resamp_stats(input=dem, output=DEM_MODFLOW, method='average',
                    overwrite=gscript.overwrite(), quiet=True)

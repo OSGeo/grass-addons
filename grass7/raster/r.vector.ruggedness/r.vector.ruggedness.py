@@ -96,7 +96,7 @@ tmp_rast = []
 
 
 def distance_from_centre(radius):
-    """Create a square matrix filled with the euclidean distance from the 
+    """Create a square matrix filled with the euclidean distance from the
     centre cell
 
     Parameters

@@ -74,7 +74,7 @@
 #% required: no
 #% guisection: Model tuning
 #%end
-#%option 
+#%option
 #% key: tuning_sample_size
 #% type: integer
 #% label: Size of sample per class to be used for hyperparameter tuning
@@ -320,7 +320,7 @@ def main():
     global r_commands
     global reclass_files
 
-    allmap  = trainmap  = feature_vars  = training_vars = None 
+    allmap  = trainmap  = feature_vars  = training_vars = None
     model_output_csv = model_output_csvt  = temptable  = r_commands = None
     reclass_files = None
 
@@ -336,7 +336,7 @@ def main():
     weighting_functions['bwwv'] = "weights <- 1-(max(weighting_base) - weighting_base)/(max(weighting_base) - min(weighting_base))"
     weighting_functions['qbwwv'] = "weights <- ((min(weighting_base) - weighting_base)/(max(weighting_base) - min(weighting_base)))**2"
 
-    packages = {'svmRadial': ['kernlab'], 
+    packages = {'svmRadial': ['kernlab'],
                 'svmLinear': ['kernlab'],
                 'svmPoly': ['kernlab'],
                 'rf': ['randomForest'],
@@ -529,7 +529,7 @@ def main():
             r_file.write("rndid <- with(training, ave(training[,1], %s, FUN=function(x) {sample.int(length(x))}))" % classcol)
             r_file.write("\n")
             r_file.write("tuning_data <- training[rndid<=%s,]" % tuning_sample_size)
-            r_file.write("\n")        
+            r_file.write("\n")
         else:
             r_file.write("tuning_data <- training")
             r_file.write("\n")
@@ -844,7 +844,7 @@ def main():
                             map_=allfeatures,
                             column=orig_cat,
                             otable=temptable,
-                            ocolumn='id', 
+                            ocolumn='id',
                             subset_columns=columns,
                             quiet=True)
 

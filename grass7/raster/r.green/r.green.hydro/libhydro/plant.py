@@ -211,7 +211,7 @@ def write_structures(plants, output, elev, stream=None,
             remove = False
         else:
             # create a random name
-            contour = 'tmp_struct_contour_%05d_%03d' % (os.getpid(), 
+            contour = 'tmp_struct_contour_%05d_%03d' % (os.getpid(),
                                                         random.randint(0, 999))
             compute_contour = True
             remove = True

@@ -5,10 +5,10 @@
 # MODULE:       t.rast.what.aggr
 # AUTHOR(S):    Luca Delucchi
 #
-# PURPOSE:      Sample a space time raster dataset at specific vector point 
+# PURPOSE:      Sample a space time raster dataset at specific vector point
 #               map returning aggregate values and write the output to stdout
 #               or to attribute table
-#               
+#
 # COPYRIGHT:    (C) 2017 by the GRASS Development Team
 #
 #               This program is free software under the GNU General Public
@@ -52,7 +52,7 @@
 #% answer: -
 #%end
 
-#%option G_OPT_DB_COLUMNS 
+#%option G_OPT_DB_COLUMNS
 #%end
 
 #%option
@@ -149,7 +149,7 @@ def return_value(vals, met):
     elif met == 'perc90':
         return np.percentile(vals, 90)
     elif met == 'quantile':
-        return 
+        return
 
 def main(options, flags):
     import grass.pygrass.modules as pymod

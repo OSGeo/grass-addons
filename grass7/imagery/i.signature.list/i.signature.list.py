@@ -34,7 +34,7 @@
 #% required : no
 #%end
 
-#%option G_OPT_I_SUBGROUP 
+#%option G_OPT_I_SUBGROUP
 #% description: Subroup used to print signature file
 #% required : no
 #%end

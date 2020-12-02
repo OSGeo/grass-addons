@@ -6,9 +6,9 @@
 # PURPOSE:      Export criteria raster maps and decision raster map in a *.isf
 #               file for dominance rough set approach analysis (DRSA)
 #               Dominance Rough Set Analysis (e.g. 4eMka2,JAMM, jMAF).
-# COPYRIGHT:    c) 2010 Gianluca Massei, Antonio Boggia  and the GRASS 
-#               Development Team. This program is free software under the 
-#               GNU General PublicLicense (>=v2). Read the file COPYING 
+# COPYRIGHT:    c) 2010 Gianluca Massei, Antonio Boggia  and the GRASS
+#               Development Team. This program is free software under the
+#               GNU General PublicLicense (>=v2). Read the file COPYING
 #               that comes with GRASS for details.
 #
 #############################################################################
@@ -25,7 +25,7 @@
 #% multiple: yes
 #% gisprompt: old,cell,raster
 #% key_desc: name
-#% description: Name of criteria raster maps 
+#% description: Name of criteria raster maps
 #% required: yes
 #%end
 #%option
@@ -40,7 +40,7 @@
 #% type: string
 #% gisprompt: old,cell,raster
 #% key_desc: name
-#% description: Name of decision raster map 
+#% description: Name of decision raster map
 #% required: yes
 #%end
 #%option
@@ -111,7 +111,7 @@ def main():
     MATRIX = list(map(list,list(zip(*examples))))
 
     MATRIX = [r for r in MATRIX if not '?' in r]  # remove all rows with almost one "?"
-    MATRIX = [list(i) for i in set(tuple(j) for j in MATRIX)]  # remove duplicate example 
+    MATRIX = [list(i) for i in set(tuple(j) for j in MATRIX)]  # remove duplicate example
                 
     print("rows:%d - col:%d" % (len(MATRIX),len(MATRIX[0])))
     for r in range(len(MATRIX)):

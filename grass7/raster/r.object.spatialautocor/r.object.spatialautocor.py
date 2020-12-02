@@ -14,7 +14,7 @@
 #
 #############################################################################
 # References:
-# 
+#
 #Moran, P.A.P., 1950. Notes on Continuous Stochastic Phenomena. Biometrika 37,
 # 17-23. https://dx.doi.org/10.2307%2F2332142
 #Geary, R.C., 1954. The Contiguity Ratio and Statistical Mapping. The

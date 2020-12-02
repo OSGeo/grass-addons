@@ -49,7 +49,7 @@ class CoorWindow(wx.Dialog):
     """!Get coordinates from map display and generates preview
     """
 
-    def __init__(self, parent, mapwindow, rad2, rad3, elev, acc, thre, net, drain, id = wx.ID_ANY, **kwargs):                                
+    def __init__(self, parent, mapwindow, rad2, rad3, elev, acc, thre, net, drain, id = wx.ID_ANY, **kwargs):
         wx.Dialog.__init__(self, parent, id, **kwargs)
         self.parent = parent
         self.radioval2 = rad2
@@ -124,7 +124,7 @@ class CoorWindow(wx.Dialog):
         
         # new_ewres = 1/4 original_ewres
         # new_nsres = 1/4 original_nsres
-        #TODO testing about time, to adjust optimal dimension of preview 
+        #TODO testing about time, to adjust optimal dimension of preview
         
         new_ewres = original_ewres / 4
         new_nsres = original_nsres / 4
@@ -168,7 +168,7 @@ class CoorWindow(wx.Dialog):
         
         # set new temporary region
         
-        grass.run_command('g.region', 
+        grass.run_command('g.region',
                          flags = 'ap',
                          n = new_n,
                          s = new_s,
@@ -180,53 +180,53 @@ class CoorWindow(wx.Dialog):
         # MFD
         
         if self.radioval2 == 'True':
-            print self.radioval2 
+            print self.radioval2
             grass.message('Creating flow accumulation map with MFD algorithm..')
-            grass.run_command('r.watershed', elevation = self.r_elev, 
-                              accumulation = self.r_acc, 
-                              convergence = 5, 
+            grass.run_command('r.watershed', elevation = self.r_elev,
+                              accumulation = self.r_acc,
+                              convergence = 5,
                               flags = 'a', overwrite = True)
             print self.r_acc
         
-            grass.run_command('r.stream.extract', elevation = self.r_elev, 
-                          accumulation = self.r_acc, 
-                          threshold = self.thre, 
-                          stream_vect = self.v_net, 
+            grass.run_command('r.stream.extract', elevation = self.r_elev,
+                          accumulation = self.r_acc,
+                          threshold = self.thre,
+                          stream_vect = self.v_net,
                           direction = self.r_drain, overwrite = True)
 
-        # SFD  
+        # SFD
         elif self.radioval3 == 'True':
-            print self.radioval3 
+            print self.radioval3
             grass.message('Creating flow accumulation map with SFD algorithm..')
-            grass.run_command('r.watershed', elevation = self.r_elev, 
-                              accumulation = self.r_acc, 
-                              drainage = self.r_drain, 
-                              convergence = 5, 
+            grass.run_command('r.watershed', elevation = self.r_elev,
+                              accumulation = self.r_acc,
+                              drainage = self.r_drain,
+                              convergence = 5,
                               flags = 'sa', overwrite = True)
             print self.r_acc
             
-            grass.run_command('r.stream.extract', elevation = self.r_elev, 
-                          accumulation = self.r_acc, 
-                          threshold = self.thre, 
-                          stream_vect = self.v_net, 
+            grass.run_command('r.stream.extract', elevation = self.r_elev,
+                          accumulation = self.r_acc,
+                          threshold = self.thre,
+                          stream_vect = self.v_net,
                           direction = self.r_drain, overwrite = True)
                           
         else:
 
-            grass.run_command('r.stream.extract', elevation = self.r_elev, 
-                          accumulation = self.r_acc, 
-                          threshold = self.thre,  
-                          stream_vect = self.v_net, 
+            grass.run_command('r.stream.extract', elevation = self.r_elev,
+                          accumulation = self.r_acc,
+                          threshold = self.thre,
+                          stream_vect = self.v_net,
                           direction = self.r_drain, overwrite = True)
             print self.v_net
 
         
-        # Create temporary files to be visualized in the preview 
+        # Create temporary files to be visualized in the preview
         img_tmp = grass.tempfile() + ".png"
-        print  img_tmp 
-        grass.run_command('d.mon', start = 'png', output = img_tmp) 
-        grass.run_command('d.rast', map = self.r_elev ) 
-        grass.run_command('d.vect', map = self.v_net)  
+        print  img_tmp
+        grass.run_command('d.mon', start = 'png', output = img_tmp)
+        grass.run_command('d.rast', map = self.r_elev )
+        grass.run_command('d.vect', map = self.v_net)
         print "Exported in file " + img_tmp
         
         directory = os.path.dirname(img_tmp)
@@ -234,14 +234,14 @@ class CoorWindow(wx.Dialog):
         
         # set region to original region
         
-        grass.run_command('g.region', 
+        grass.run_command('g.region',
                          flags = 'ap',
                          n = original_n,
                          s = original_s,
                          w = original_w,
                          e = original_e)
                          
-        os.chdir(directory) 
+        os.chdir(directory)
         # Call ImageViewer
         ImgVvr = wx.PySimpleApp()
         frame = ImgFrame(directory)
@@ -258,8 +258,8 @@ class CoorWindow(wx.Dialog):
             self.text.SetLabel('Cannot get coordinates')
             
             
-    def OnClose(self, event): 
-        self.Destroy()        
+    def OnClose(self, event):
+        self.Destroy()
         self.Show()
     
     
@@ -280,7 +280,7 @@ class CoorWindow(wx.Dialog):
 #-------------------------------------------------------------
 
 class TabPanelOne(wx.Panel):
-    """!Main panel for layout, network extraction and preview 
+    """!Main panel for layout, network extraction and preview
     """
 
     def __init__(self, parent, layerManager, MapFrame):
@@ -298,11 +298,11 @@ class TabPanelOne(wx.Panel):
         self.v_net = 'v_net'
         self.r_drain = 'r_drain'
         
-        self.panel = wx.Panel(self)                        
+        self.panel = wx.Panel(self)
         self._layout()
         
 
-    def _layout(self): 
+    def _layout(self):
 
         self.select = wx.GridBagSizer(20, 5)
 
@@ -310,10 +310,10 @@ class TabPanelOne(wx.Panel):
         #---------Input maps---------
 
         # Ask user for digital elevation model
-        self.text1 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "INPUT : Elevation map (required)") 
+        self.text1 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "INPUT : Elevation map (required)")
         self.select.Add(item = self.text1, flag = wx.LEFT, pos = (1,0), span = wx.DefaultSpan, border = 0)
 
-        # Add the box for choosing the map 
+        # Add the box for choosing the map
         self.select1 = gselect.Select(parent = self.panel, id = wx.ID_ANY, size = (250, -1),
                                type = 'raster', multiple = False)
         self.select.Add(item = self.select1, pos = (2,0), span = wx.DefaultSpan)
@@ -324,7 +324,7 @@ class TabPanelOne(wx.Panel):
         #----------------------------
 
         # Ask user for Flow accumulation
-        self.text2 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "INPUT/OUTPUT : Flow accumulation (required)") 
+        self.text2 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "INPUT/OUTPUT : Flow accumulation (required)")
         self.select.Add(item = self.text2, flag = wx.LEFT, pos = (3,0), span = wx.DefaultSpan)
         
 
@@ -341,11 +341,11 @@ class TabPanelOne(wx.Panel):
 
         self.select.Add(item = self.hbox1, pos = (4,0))
 
-        # Box to insert name of acc map 
+        # Box to insert name of acc map
         self.select2 = gselect.Select(parent = self.panel, id = wx.ID_ANY, size = (250, -1),
                                type = 'raster', multiple = False) # select existing map
         self.select.Add(item = self.select2, pos = (5,0), span = wx.DefaultSpan)
-        self.textOne = wx.TextCtrl(parent = self.panel, id = wx.ID_ANY, style = wx.TE_LEFT) 
+        self.textOne = wx.TextCtrl(parent = self.panel, id = wx.ID_ANY, style = wx.TE_LEFT)
         self.select.Add(item = self.textOne, flag = wx.LEFT | wx.EXPAND, pos = (6,0), span = wx.DefaultSpan)
 
 
@@ -357,7 +357,7 @@ class TabPanelOne(wx.Panel):
 
         self.selectedText = self.select2 # default is select existing map
 
-        # Disable 
+        # Disable
         self.textOne.Enable(False)
 
         # RadioButton binders
@@ -368,7 +368,7 @@ class TabPanelOne(wx.Panel):
         #----------------------------
 
         # Ask user for Mask
-        self.text3 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "INPUT : Mask (optional)") 
+        self.text3 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "INPUT : Mask (optional)")
         self.select.Add(item = self.text3, flag = wx.LEFT, pos = (7,0), span = wx.DefaultSpan)
 
         # Add the box for choosing the map
@@ -382,7 +382,7 @@ class TabPanelOne(wx.Panel):
         #----------------------------
 
         # Ask user for threshold
-        self.text4 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "INPUT : Threshold (required)") 
+        self.text4 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "INPUT : Threshold (required)")
         self.select.Add(item = self.text4, flag = wx.LEFT, pos = (9,0), span = wx.DefaultSpan)
 
         # Box to insert threshold
@@ -398,7 +398,7 @@ class TabPanelOne(wx.Panel):
 
 
         # Flow direction map
-        self.text5 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "OUTPUT : Flow direction map (required)") 
+        self.text5 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "OUTPUT : Flow direction map (required)")
         self.select.Add(item = self.text5, flag = wx.LEFT | wx.EXPAND, pos = (11,0), span = wx.DefaultSpan)
 
         # Box to insert name of new flow dir map (to be created)
@@ -412,7 +412,7 @@ class TabPanelOne(wx.Panel):
         #----------------------------
 
         # Streams map
-        self.text6 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "OUTPUT : Streams (required)") 
+        self.text6 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "OUTPUT : Streams (required)")
         self.select.Add(item = self.text6, flag = wx.LEFT | wx.EXPAND, pos = (13,0), span = wx.DefaultSpan)
 
         # Box to insert name of new streams map (to be created)
@@ -425,7 +425,7 @@ class TabPanelOne(wx.Panel):
         #----------------------------
 
         # Network map
-        self.text7 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "OUTPUT : Network (required)") 
+        self.text7 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "OUTPUT : Network (required)")
         self.select.Add(item = self.text7, flag = wx.LEFT | wx.EXPAND, pos = (15,0), span = wx.DefaultSpan)
 
         # Box to insert name of new streams map (to be created)
@@ -443,8 +443,8 @@ class TabPanelOne(wx.Panel):
 
         #-------------Buttons-------------
 
-        self.createButtonBar(self.btnPanel)       
-        self.sizer = wx.BoxSizer(wx.VERTICAL)        
+        self.createButtonBar(self.btnPanel)
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.panel, 1, wx.EXPAND)
         self.sizer.Add(self.btnPanel, 0, wx.EXPAND)
         self.SetSizer(self.sizer)
@@ -529,7 +529,7 @@ class TabPanelOne(wx.Panel):
 
 
     def buttonData(self):
-        return (("Update Preview", self.OnPreview),        
+        return (("Update Preview", self.OnPreview),
                 ("Run Analysis", self.OnRun))
 
     def createButtonBar(self, panel, yPos = 0):
@@ -557,11 +557,11 @@ class TabPanelOne(wx.Panel):
         self.radioval2 = self.cb2.GetValue()
         self.radioval3 = self.cb3.GetValue()
 
-        # message box 
-        self.msg = wx.MessageDialog(parent = self.panel, 
+        # message box
+        self.msg = wx.MessageDialog(parent = self.panel,
                                     message = "Please select the center of preview window on the map",
-                                    caption = "Preview utility", 
-                                    style = wx.OK | wx.CANCEL, 
+                                    caption = "Preview utility",
+                                    style = wx.OK | wx.CANCEL,
                                     pos = wx.DefaultPosition)
         self.retCode = self.msg.ShowModal()
         if self.retCode == wx.ID_OK:
@@ -571,15 +571,15 @@ class TabPanelOne(wx.Panel):
             self.mapdisp = self.layerManager.NewDisplay()
             
             # Display the elevation map
-            self.mapdisp.Map.AddLayer(type = 'raster', 
+            self.mapdisp.Map.AddLayer(type = 'raster',
                                  command = ['d.rast', 'map=%s' % self.r_elev])
                                  
             self.mapdisp.OnRender(None)
                      
             # Call CoorWindow
-            coorWin = CoorWindow(parent    = self, 
-                                 mapwindow = self.mapdisp, 
-                                 rad2      = self.radioval2, 
+            coorWin = CoorWindow(parent    = self,
+                                 mapwindow = self.mapdisp,
+                                 rad2      = self.radioval2,
                                  rad3      = self.radioval3,
                                  elev      = self.r_elev,
                                  acc       = self.r_acc,
@@ -612,26 +612,26 @@ class TabPanelOne(wx.Panel):
         # MFD
         if self.radioval2 == 'True':
             grass.message('Creating flow accumulation map with MFD algorithm..')
-            grass.run_command('r.watershed', elevation = self.r_elev, 
-                              accumulation = self.r_acc, 
-                              convergence = 5, 
+            grass.run_command('r.watershed', elevation = self.r_elev,
+                              accumulation = self.r_acc,
+                              convergence = 5,
                               flags = 'a', overwrite = True )
 
         # SFD
         if self.radioval3 == 'True':
             grass.message('Creating flow accumulation map with SFD algorithm..')
-            grass.run_command('r.watershed', elevation = self.r_elev, 
-                              accumulation = self.r_acc, 
-                              drainage = self.r_drain, 
-                              convergence = 5, 
+            grass.run_command('r.watershed', elevation = self.r_elev,
+                              accumulation = self.r_acc,
+                              drainage = self.r_drain,
+                              convergence = 5,
                               flags = 'sa', overwrite = True)
 
         grass.message('Network extraction..')
-        grass.run_command('r.stream.extract', elevation = self.r_elev, 
-                          accumulation = self.r_acc, 
-                          threshold = self.thre, 
-                          #stream_rast = self.r_stre, 
-                          stream_vect = self.v_net, 
+        grass.run_command('r.stream.extract', elevation = self.r_elev,
+                          accumulation = self.r_acc,
+                          threshold = self.thre,
+                          #stream_rast = self.r_stre,
+                          stream_vect = self.v_net,
                           direction = self.r_drain, overwrite = True)
 
         

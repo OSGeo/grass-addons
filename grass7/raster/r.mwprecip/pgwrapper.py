@@ -13,7 +13,7 @@ class pgwrapper:
                 self.dbname = dbname                    # Database name which connect to.
                 self.host = host                        # Host name (default is "localhost")
                 self.user = user                        # User name for login to the database.
-                self.password = passwd                  # Password for login to the database. 
+                self.password = passwd                  # Password for login to the database.
                 self.connection = self.setConnect()     # Set a connection to the database
                 self.cursor = self.setCursor()          # Generate cursor.
                 
@@ -70,7 +70,7 @@ class pgwrapper:
                         print(e.pgerror)
                         pass
                 
-                if commit:        
+                if commit:
                         self.connection.commit()
 
                 if results:
@@ -84,7 +84,7 @@ class pgwrapper:
         def count(self, table):
                 """!Count the number of rows.
                 @param table         : Name of the table to count row"""
-                sql_count = 'SELECT COUNT(*) FROM ' + table 
+                sql_count = 'SELECT COUNT(*) FROM ' + table
                 self.cursor.execute(sql_count)
                 n = self.cursor.fetchall()[0][0]
                 return n
@@ -96,7 +96,7 @@ class pgwrapper:
                 @param where            : Advanced search option for 'where' statement.
                 """
                 # Make a SQL statement.
-                parse = '' 
+                parse = ''
                 for i in range(len(columns)):
                         parse = parse + '"' + str(dict.keys(columns)[i]) + '"=' + str(dict.values(columns)[i]) + ','
                 parse = parse.rstrip(',')
@@ -105,7 +105,7 @@ class pgwrapper:
                         sql_update_col = 'UPDATE "' + table + '" SET ' + parse
                 else:
                         sql_update_col = 'UPDATE "' + table + '" SET ' + parse + ' WHERE ' + where
-                print("upcol %s" %sql_update_col)      
+                print("upcol %s" %sql_update_col)
                 # Excute the SQL statement.
                 self.cursor.execute(sql_update_col)
                 
@@ -113,5 +113,5 @@ class pgwrapper:
                 print('-' * 80)
                 print(msg)
                 print('-' * 80)
-                print() 
+                print()
                 sys.stdout.flush()

@@ -1,4 +1,4 @@
-import grass.script as grass 
+import grass.script as grass
 
 from urllib2 import urlopen
 import xml.etree.ElementTree as etree
@@ -7,10 +7,10 @@ from wfs_base import WFSBase
 
 class WFSDrv(WFSBase):
     def _download(self):
-        """!Downloads data from WFS server 
+        """!Downloads data from WFS server
         
         @return temp_map with downloaded data
-        """ 
+        """
         grass.message(_("Downloading data from WFS server..."))
 
         proj = self.projection_name + "=EPSG:" + str(self.o_srs)
@@ -26,7 +26,7 @@ class WFSDrv(WFSBase):
                 query_bbox = self.bbox
 
             url += "&BBOX=%s,%s,%s,%s" % \
-                   (query_bbox['minx'], query_bbox['miny'], query_bbox['maxx'], query_bbox['maxy']) 
+                   (query_bbox['minx'], query_bbox['miny'], query_bbox['maxx'], query_bbox['maxy'])
         
         if self.o_maximum_features:
             url += '&MAXFEATURES=' + str(self.o_maximum_features)
@@ -35,7 +35,7 @@ class WFSDrv(WFSBase):
             url += "&" + self.o_urlparams
         
         grass.debug(url)
-        try: 
+        try:
             wfs_data = urlopen(url)
         except IOError:
             grass.fatal(_("Unable to fetch data from server"))
@@ -63,7 +63,7 @@ class WFSDrv(WFSBase):
                 root.tag == "{%s}ServiceExceptionReport" % namesp:
                 try:
                     error_xml_opened = open(temp_map, 'r')
-                    err_str = error_xml_opened.read()     
+                    err_str = error_xml_opened.read()
                 except IOError:
                     grass.fatal(_("Unable to read data from tempfile"))
                 finally:

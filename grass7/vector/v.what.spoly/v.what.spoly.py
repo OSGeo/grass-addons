@@ -4,8 +4,8 @@
 #
 # MODULE:       v.what.spoly
 # AUTHOR(S):    Alexander Muriy
-#               (Institute of Environmental Geoscience, Moscow, Russia)  
-#               e-mail: amuriy AT gmail DOT com 
+#               (Institute of Environmental Geoscience, Moscow, Russia)
+#               e-mail: amuriy AT gmail DOT com
 #
 # PURPOSE:      Queries vector map with overlaping "spaghetti" polygons (e.g. Landsat footprints) at given location
 #
@@ -22,8 +22,8 @@
 #  GNU General Public License for more details.
 #
 ############################################################################
-#%Module 
-#%  description: Queries vector map with overlaping "spaghetti" polygons (e.g. Landsat footprints) at given location. Polygons must have not intersected boundaries. 
+#%Module
+#%  description: Queries vector map with overlaping "spaghetti" polygons (e.g. Landsat footprints) at given location. Polygons must have not intersected boundaries.
 #%  keyword: vector
 #%  keyword: topology
 #%End
@@ -55,7 +55,7 @@
 #%End
 #%Flag
 #%  key: p
-#%  description: Only print selected polygons 
+#%  description: Only print selected polygons
 #%End
 ############################################################################
 
@@ -113,8 +113,8 @@ def main():
     ## export polygons to CSV + WKT
     tmp1 = tmp + '.csv'
     tmp2 = tmp + '2.csv'
-    grass.run_command('v.out.ogr', input_ = 'v_temp_bcats', output = tmp1, 
-                      format_ = "CSV", type_ = ('boundary'), 
+    grass.run_command('v.out.ogr', input_ = 'v_temp_bcats', output = tmp1,
+                      format_ = "CSV", type_ = ('boundary'),
                       lco = "GEOMETRY=AS_WKT", quiet = True, stderr = nuldev)
 
     ## convert lines to polygons

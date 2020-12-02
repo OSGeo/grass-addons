@@ -187,20 +187,20 @@ def main():
 #todo (taken from Glynn's v.out.gps)
     # reproject to lat/lon WGS84
 #     grass.verbose("Reprojecting data ...")
-# 
+#
 #     re1 = re.compile(r'^\([PLBCFKA]\)')
 #     re2 = re.compile(r'^ 1     ')
-# 
+#
 #     re3 = re.compile(r'\t\([-\.0-9]*\) .*')
 #     re4 = re.compile(r'^\([-\.0-9]\)')
 #     re5 = re.compile(r'^#')
-# 
+#
 #     tmp_proj = tmp + ".proj"
 #     tf = open(tmp_proj, 'w')
 #     p1 = grass.pipe_command('v.out.ascii', input = inmap, format = 'standard')
 #     p2 = grass.feed_command('m.proj', input = '-', flags = 'od', quiet = True, stdout = tf)
 #     tf.close()
-# 
+#
 #     lineno = 0
 #     for line in p1.stdout:
 #         lineno += 1
@@ -209,28 +209,28 @@ def main():
 #         line = re1.sub(r'#\1', line)
 #         line = re2.sub(r'# 1  ', line)
 #         p2.stdin.write(line)
-# 
+#
 #     p2.stdin.close()
 #     p1.wait()
 #     p2.wait()
-# 
+#
 #     if p1.returncode != 0 or p2.returncode != 0:
 #         grass.fatal(_("Error reprojecting data"))
-# 
+#
 #     tmp_vogb = "tmp_vogb_epsg4326_%d" % os.getpid()
 #     p3 = grass.feed_command('v.in.ascii', out = tmp_vogb, format = 'standard', flags = 'n', quiet = True)
 #     tf = open(tmp_proj, 'r')
-# 
+#
 #     for line in tf:
 #         line = re3.sub(r' \1', line)
 #         line = re4.sub(r' \1', line)
 #         line = re5.sub('', line)
 #         p3.stdin.write(line)
-# 
+#
 #     p3.stdin.close()
 #     tf.close()
 #     p3.wait()
-# 
+#
 #     if p3.returncode != 0:
 #         grass.fatal(_("Error reprojecting data"))
 

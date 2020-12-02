@@ -252,7 +252,7 @@ def main():
     flex.run()
     flex.finalize()
     
-    # Now to use lower-level GRASS vector commands to work with the database 
+    # Now to use lower-level GRASS vector commands to work with the database
     # table and update its entries
     # See for help:
     # http://nbviewer.ipython.org/github/zarch/workshop-pygrass/blob/master/02_Vector.ipynb

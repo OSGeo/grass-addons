@@ -113,7 +113,7 @@ class RasterStack(StatisticsMixin):
         return RasterStack(selected)
 
     def __setitem__(self, key, value):
-        """Replace a RasterLayer within the Raster object with a new 
+        """Replace a RasterLayer within the Raster object with a new
         RasterLayer
         
         Note that this modifies the Raster object in place
@@ -135,7 +135,7 @@ class RasterStack(StatisticsMixin):
 
     @property
     def names(self):
-        """Return the names of the grass.pygrass.raster.RasterRow objects in 
+        """Return the names of the grass.pygrass.raster.RasterRow objects in
         the RasterStack
         """
         names = []
@@ -787,7 +787,7 @@ class RasterStack(StatisticsMixin):
         if labels and use_cats is True:
             enc = CategoryEncoder()
             enc.fit(labels)
-            y = enc.transform(y)            
+            y = enc.transform(y)
 
         if as_df is True:
             df = pd.DataFrame(
@@ -824,7 +824,7 @@ class RasterStack(StatisticsMixin):
             ordered by (n_samples, n_features).
             
         y : ndarray
-            1d or 2d array of labels with the dimensions ordered by 
+            1d or 2d array of labels with the dimensions ordered by
             (n_samples, n_fields).
                 
         df : pandas.DataFrame
@@ -952,7 +952,7 @@ class RasterStack(StatisticsMixin):
         return df
 
     def head(self):
-        """Show the head (first rows, first columns) or tail (last rows, last 
+        """Show the head (first rows, first columns) or tail (last rows, last
         columns) of the cells of a Raster object.
 
         Returns

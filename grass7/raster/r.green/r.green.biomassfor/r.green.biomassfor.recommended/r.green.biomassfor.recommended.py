@@ -29,7 +29,7 @@
 #% description: Bioenergy potential map for Coppice in MWh/m³
 #% required : yes
 #%end
-#%option 
+#%option
 #% key: output_basename
 #% type: string
 #% description: Basename for final recommended maps of bioenergy (HF,CC and total)
@@ -166,7 +166,7 @@ def main(opts, flgs):
                 run_command("r.mapcalc", overwrite=1,expression=convert_bool)
                 run_command("r.null", map=mapr, null=0)
             else:
-                expr_map += "||"+mapr  
+                expr_map += "||"+mapr
                 convert_bool = mapr+"="+mapr+">0"
                 run_command("r.mapcalc", overwrite=1,expression=convert_bool)
                 run_command("r.null", map=mapr, null=0)
@@ -207,11 +207,11 @@ def main(opts, flgs):
         constr_C = rec_bioenergyC+"="+rec_bioenergyC+"*constraint"
 
         run_command("r.mapcalc", overwrite=ow,expression=constr_HF)
-        run_command("r.mapcalc", overwrite=ow,expression=constr_C) 
+        run_command("r.mapcalc", overwrite=ow,expression=constr_C)
 
     if zone_less != "":
         run_command("r.mapcalc", overwrite=ow, expression='wood_pix=('+zone_less+'/((ewres()*nsres())*10000))')
-        WHF = 'wood_energyHF= if('+management+'==1 && '+treatment+'==1 || '+management+' == 1 && '+treatment+'==99999, wood_pix*%f, if('+management+'==1 && '+treatment+'==2, wood_pix*%f + wood_pix*%f))' 
+        WHF = 'wood_energyHF= if('+management+'==1 && '+treatment+'==1 || '+management+' == 1 && '+treatment+'==99999, wood_pix*%f, if('+management+'==1 && '+treatment+'==2, wood_pix*%f + wood_pix*%f))'
         WCC = 'wood_energyC = if('+management+'==2, wood_pix*'+opts['energy_tops_cop']+')'
         run_command("r.mapcalc", overwrite=ow,expression=WHF % tuple(map(float, (opts['energy_tops_hf'],opts['energy_tops_hf'],opts['energy_cormometric_vol_hf']))))
         run_command("r.mapcalc", overwrite=ow, expression=WCC)
@@ -223,12 +223,12 @@ def main(opts, flgs):
         limit_C = rec_bioenergyC+"="+rec_bioenergyC+"-wood_energyC"
 
         run_command("r.mapcalc", overwrite=ow,expression=limit_HF)
-        run_command("r.mapcalc", overwrite=ow,expression=limit_C) 
+        run_command("r.mapcalc", overwrite=ow,expression=limit_C)
 
 
     RECOT = rec_bioenergy+' = ('+rec_bioenergyHF+' + '+rec_bioenergyC+')'
 
-    run_command("r.mapcalc", overwrite=ow,expression=RECOT) 
+    run_command("r.mapcalc", overwrite=ow,expression=RECOT)
 
     with RasterRow(rec_bioenergy) as pT:
         T = np.array(pT)

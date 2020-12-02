@@ -4,8 +4,8 @@
 #
 # MODULE:       v.explode
 # AUTHOR(S):    Alexander Muriy
-#               (Institute of Environmental Geoscience, Moscow, Russia)  
-#               e-mail: amuriy AT gmail DOT com 
+#               (Institute of Environmental Geoscience, Moscow, Russia)
+#               e-mail: amuriy AT gmail DOT com
 #
 # PURPOSE:      "Explode" polylines, splitting them to separate lines
 #
@@ -22,7 +22,7 @@
 #  GNU General Public License for more details.
 #
 ############################################################################
-#%Module 
+#%Module
 #%  description: "Explode" polylines, splitting them to separate lines (uses v.split + v.category)
 #%  keyword: display
 #%  keyword: graphics
@@ -44,7 +44,7 @@
 #%  required: no
 #%  multiple: no
 #%  key_desc: name
-#%  description: Name of output vector map 
+#%  description: Name of output vector map
 #%  gisprompt: new,vector,vector
 #%End
 ############################################################################
@@ -81,12 +81,12 @@ def main():
 
     
     out_split = 'v_explode' + '_' + 'split'
-    grass.run_command('v.split', input_ = inmap, vertices = 2, 
+    grass.run_command('v.split', input_ = inmap, vertices = 2,
                           out = out_split, quiet = True, stderr = nuldev)
     out_catdel = 'v_explode' + '_' + 'catdel'
-    grass.run_command('v.category', input_ = out_split, opt = 'del', 
+    grass.run_command('v.category', input_ = out_split, opt = 'del',
                       output = out_catdel, quiet = True, stderr = nuldev)
-    grass.run_command('v.category', input_ = out_catdel, opt = 'add', 
+    grass.run_command('v.category', input_ = out_catdel, opt = 'add',
                       output = outmap, quiet = True, stderr = nuldev)
     
 

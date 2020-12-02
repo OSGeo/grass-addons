@@ -3,13 +3,13 @@
 #
 # MODULE:		r.mcda.topsis
 # AUTHOR:		Gianluca Massei - Antonio Boggia
-# PURPOSE:		Generate a MCDA map based on TOPSIS algorthm. 
-#				Based on Hwang C. L. and Yoon K. Multiple Objective Decision 
-#				Making Methods and Applications, A State-of-the-Art Survey . 
-#				Springer - Verlag , 1981.	 
-# COPYRIGHT:  c) 2015 Gianluca Massei, Antonio Boggia  and the GRASS 
-#				Development Team. This program is free software under the 
-#				GNU General PublicLicense (>=v2). Read the file COPYING 
+# PURPOSE:		Generate a MCDA map based on TOPSIS algorthm.
+#				Based on Hwang C. L. and Yoon K. Multiple Objective Decision
+#				Making Methods and Applications, A State-of-the-Art Survey .
+#				Springer - Verlag , 1981.
+# COPYRIGHT:  c) 2015 Gianluca Massei, Antonio Boggia  and the GRASS
+#				Development Team. This program is free software under the
+#				GNU General PublicLicense (>=v2). Read the file COPYING
 #				that comes with GRASS for details.
 #
 #############################################################################
@@ -25,7 +25,7 @@
 #% multiple: yes
 #% gisprompt: old,cell,raster
 #% key_desc: name
-#% description: Name of criteria raster maps 
+#% description: Name of criteria raster maps
 #% required: yes
 #%end
 #%option
@@ -43,7 +43,7 @@
 #% required: yes
 #%end
 #%option
-#% key: topsismap   
+#% key: topsismap
 #% type: string
 #% gisprompt: new_file,cell,output
 #% description: Ranked raster map
@@ -53,7 +53,7 @@
 
 import sys
 import grass.script as gscript
-from time import time  
+from time import time
 
 def standardizedNormalizedMatrix(attributes,weights):  # step1 and step2
 	criteria = []

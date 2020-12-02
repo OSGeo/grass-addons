@@ -117,7 +117,7 @@ def focal_expr(radius, circular=False):
 
 
 def distance_from_centre(radius):
-    """Create a square matrix filled with the euclidean distance from the 
+    """Create a square matrix filled with the euclidean distance from the
     centre cell
 
     Parameters

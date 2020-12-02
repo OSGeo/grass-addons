@@ -443,7 +443,7 @@ def compute_losses(struct, options,
             # FIXME: it is not physical possible that it is <0
             line.attrs['sg_losses'] = 0
             line.attrs['gross_head'] = 0
-            line.attrs['losses'] = 0          
+            line.attrs['losses'] = 0
         else:
             
             length = line.length()
@@ -528,7 +528,7 @@ def compute_losses(struct, options,
                     line.attrs['kind'] == 'penstock'):
                 line.attrs['tot_losses'] = totallosses0 + sing_losses
                 tot_losses = float(line.attrs['tot_losses'])
-                line.attrs['net_head'] = max(0.0, line.attrs['gross_head'] 
+                line.attrs['net_head'] = max(0.0, line.attrs['gross_head']
                                              - tot_losses)
                 # net_head = float(line.attrs['net_head'])
                 if tot_losses > line.attrs['gross_head']:
@@ -541,7 +541,7 @@ def compute_losses(struct, options,
                     line.attrs['kind'] == 'penstock'):
                 line.attrs['tot_losses'] = totallosses1 + sing_losses
                 tot_losses = float(line.attrs['tot_losses'])
-                line.attrs['net_head'] = max(0.0, line.attrs['gross_head'] 
+                line.attrs['net_head'] = max(0.0, line.attrs['gross_head']
                                              - tot_losses)
                 if tot_losses > line.attrs['gross_head']:
                     
@@ -569,7 +569,7 @@ def compute_power(struct, list_intakeid, turbine_list, turbine_folder,
 
     # TODO: make it more readable/pythonic
     for line in struct:
-        # TODO: in one query 
+        # TODO: in one query
         net_head = float(line.attrs['net_head'])
         gross_head = float(line.attrs['gross_head'])
         discharge = float(line.attrs['discharge'])
@@ -748,7 +748,7 @@ def main(options, flags):
                                        ks_derivation)
 
         compute_power(struct, list_intakeid, turbine_list, turbine_folder,
-                      efficiency_shaft, efficiency_alt, efficiency_transf) 
+                      efficiency_shaft, efficiency_alt, efficiency_transf)
 
     with VectorTopo(output_plant, mode='rw') as out, \
             VectorTopo(output_struct, mode='r') as struct:
@@ -773,7 +773,7 @@ def main(options, flags):
                         seg.attrs[col] = value
         out.table.conn.commit()
 
-    power2energy(output_plant, 'power', float(options['n']))  
+    power2energy(output_plant, 'power', float(options['n']))
 
 
 if __name__ == "__main__":

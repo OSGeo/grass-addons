@@ -129,7 +129,7 @@ def main(options, flags):
         # in the Location/Mapset where processing takes place.
         #
         # We fix this by requiring the user (in the QGIS Plugin *only*) to set the
-        # computational region from a raster map of his choice. 
+        # computational region from a raster map of his choice.
         # GRASS GIS users don't need to use this option.
         g.region(raster=options["region"], quiet=False)
 

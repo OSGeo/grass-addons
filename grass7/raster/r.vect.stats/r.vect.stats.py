@@ -67,9 +67,9 @@ def main():
         columns = gs.vector_columns(vector)
 
         if options['column'] not in columns:
-            gs.fatal(_('Column <{0}> not found'.format(options['column']))) 
+            gs.fatal(_('Column <{0}> not found'.format(options['column'])))
         if columns[options['column']]['type'] not in ('INTEGER', 'DOUBLE PRECISION'):
-            gs.fatal(_('Column <{0}> is not numeric'.format(options['column']))) 
+            gs.fatal(_('Column <{0}> is not numeric'.format(options['column'])))
 
 
     out_process = gs.pipe_command(

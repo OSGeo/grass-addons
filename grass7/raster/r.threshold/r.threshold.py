@@ -5,11 +5,11 @@
 # MODULE:       r.threshold.py
 #
 # AUTHOR(S):    Margherita Di Leo <dileomargherita@gmail.com>
-#               
+#
 # PURPOSE:      Find optimal threshold for stream extraction
 #
 # COPYRIGHT:    (c) 2011 by Margherita Di Leo and the GRASS Development Team
-#               
+#
 #               This program is free software under the GNU General
 #               Public License (>=v2). Read the file COPYING that
 #               comes with GRASS for details.
@@ -28,7 +28,7 @@
 #% type: string
 #% gisprompt: old,raster,raster
 #% key_desc: acc
-#% description: Name of accumulation raster map 
+#% description: Name of accumulation raster map
 #% required: yes
 #%END
 
@@ -50,12 +50,12 @@ def main():
     
     mappatella = np.zeros((len(stats),3),float)
     
-    # mappatella is a matrix, in the first column the value of upslope area is stored, 
+    # mappatella is a matrix, in the first column the value of upslope area is stored,
     # in the second the number of cells, in the third the distance from origin is calculated
     
     for i in range(len(stats)):
         mappatella[i,0], mappatella[i,1] = map(float, stats[i].split(' '))
-        # calculating distance from origin of each point; origin of the plot is in low left point 
+        # calculating distance from origin of each point; origin of the plot is in low left point
         mappatella[i,2] = math.sqrt((mappatella[i,0]**2) + (mappatella[i,1]**2))
     
     area = mappatella[:,0]

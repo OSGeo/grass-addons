@@ -104,7 +104,7 @@ class BufferedWindow2(MapWindow, wx.Window):
         # decoration overlays
         self.overlays = overlays
         # images and their PseudoDC ID's for painting and dragging
-        self.imagedict = {}   
+        self.imagedict = {}
         self.select = {}      # selecting/unselecting decorations for dragging
         self.textdict = {}    # text, font, and color indexed by id
         self.currtxtid = None # PseudoDC id for currently selected text
@@ -473,7 +473,7 @@ class BufferedWindow2(MapWindow, wx.Window):
 #rashad
 #            # reposition checkbox in statusbar
 #            self.frame.StatusbarReposition()
-#            
+#
 #            # update statusbar
 #            self.frame.StatusbarUpdate()
 
@@ -596,7 +596,7 @@ class BufferedWindow2(MapWindow, wx.Window):
         return self.alwaysRender
 
     def OnUpdateMap(self, event):
-        """!Called when this class receives core.events.gUpdateMap event. 
+        """!Called when this class receives core.events.gUpdateMap event.
         """
         kwargs, missing_args = GetGEventAttribsForHandler(self.UpdateMap, event)
 
@@ -641,7 +641,7 @@ class BufferedWindow2(MapWindow, wx.Window):
                 # update display size
                 self.Map.ChangeMapSize(self.GetClientSize())
 #############rashad
-                windres = True                  
+                windres = True
 #                if self.frame.GetProperty('resolution'):
                 # use computation region resolution for rendering
                 #   windres = True
@@ -719,15 +719,15 @@ class BufferedWindow2(MapWindow, wx.Window):
                     GError(parent = self,
                            message = _('Unable to draw registered graphics. '
                                        'The graphics was unregistered.'))
-                    self.UnregisterGraphicsToDraw(item) 
+                    self.UnregisterGraphicsToDraw(item)
             
-            self.pen = penOrig 
-            self.polypen = polypenOrig 
+            self.pen = penOrig
+            self.polypen = polypenOrig
         
         if len(self.polycoords) > 0:
             self.DrawLines(self.pdcTmp)
         
-        # 
+        #
         # clear measurement
         #
         if self.mouse["use"] == "measure":
@@ -780,7 +780,7 @@ class BufferedWindow2(MapWindow, wx.Window):
         @param refRegion reference region (e.g. computational region)
 
         @return True if region is inside of refRegion
-        @return False 
+        @return False
         """
         if region['s'] >= refRegion['s'] and \
                 region['n'] <= refRegion['n'] and \
@@ -1105,22 +1105,22 @@ class BufferedWindow2(MapWindow, wx.Window):
             self.DragMap(move)
         
         # dragging decoration overlay item
-        elif (self.mouse['use'] == 'pointer' and 
-                not digitToolbar and 
+        elif (self.mouse['use'] == 'pointer' and
+                not digitToolbar and
                 self.dragid is not None):
             coords = event.GetPositionTuple()
             self.DragItem(self.dragid, coords)
         
         # dragging anything else - rubber band box or line
         else:
-            if (self.mouse['use'] == 'pointer' and 
+            if (self.mouse['use'] == 'pointer' and
                     not digitToolbar):
                 return
             
             self.mouse['end'] = event.GetPositionTuple()[:]
-            if (event.LeftIsDown() and 
-                not (digitToolbar and 
-                    digitToolbar.GetAction() in ("moveLine",) and 
+            if (event.LeftIsDown() and
+                not (digitToolbar and
+                    digitToolbar.GetAction() in ("moveLine",) and
                      self.digit.GetDisplay().GetSelected() > 0)):
                 self.MouseDraw(pdc = self.pdcTmp)
         
@@ -1192,21 +1192,21 @@ class BufferedWindow2(MapWindow, wx.Window):
             self.UpdateMap(render = True)
             
             # update statusbar
-###############rashad 
+###############rashad
 #            self.frame.StatusbarUpdate()
-#            
+#
 #        elif self.mouse["use"] == "query":
 #            self.frame.Query(self.mouse['end'][0], self.mouse['end'][1])
-#        
+#
 #        elif self.mouse["use"] in ["measure", "profile"]:
 #            # measure or profile
 #            if self.mouse["use"] == "measure":
 #                self.frame.MeasureDist(self.mouse['begin'], self.mouse['end'])
-#            
+#
 #            self.polycoords.append(self.Pixel2Cell(self.mouse['end']))
 #            self.ClearLines(pdc = self.pdcTmp)
 #            self.DrawLines(pdc = self.pdcTmp)
-#        
+#
 #        elif self.mouse["use"] == "pointer" and \
 #                not self.frame.IsStandalone() and \
 #                self.frame.GetLayerManager().gcpmanagement:
@@ -1217,7 +1217,7 @@ class BufferedWindow2(MapWindow, wx.Window):
 #                    coordtype = 'source'
 #                else:
 #                    coordtype = 'target'
-#                
+#
 #                self.frame.GetLayerManager().gcpmanagement.SetGCPData(coordtype, coord, self, confirm = True)
 #                self.UpdateMap(render = False, renderVector = False)
             
@@ -1225,7 +1225,7 @@ class BufferedWindow2(MapWindow, wx.Window):
                 hasattr(self, "digit"):
             self._onLeftUp(event)
             
-        elif (self.mouse['use'] == 'pointer' and 
+        elif (self.mouse['use'] == 'pointer' and
                 self.dragid >= 0):
             # end drag of overlay decoration
             
@@ -1237,7 +1237,7 @@ class BufferedWindow2(MapWindow, wx.Window):
                 pass
             self.dragid = None
             self.currtxtid = None
-#########rashad            
+#########rashad
 #        elif self.mouse['use'] == 'legend':
 #            self.frame.dialogs['legend'].resizeBtn.SetValue(False)
 #            screenSize = self.GetClientSizeTuple()
@@ -1245,7 +1245,7 @@ class BufferedWindow2(MapWindow, wx.Window):
 
 #            self.frame.MapWindow.SetCursor(self.frame.cursors["default"])
 #            self.frame.MapWindow.mouse['use'] = 'pointer'
-#            
+#
 #            self.UpdateMap()
             
     def OnButtonDClick(self, event):
@@ -1262,7 +1262,7 @@ class BufferedWindow2(MapWindow, wx.Window):
             self.mouse['box'] = 'point'
             self.mouse['end'] = [0, 0]
             self.Refresh()
-#############rashad              
+#############rashad
             #self.SetCursor(self.frame.cursors["default"])
         
         elif self.mouse["use"] != "profile" or \
@@ -1276,7 +1276,7 @@ class BufferedWindow2(MapWindow, wx.Window):
             self.dragid = idlist[0]
 
             # self.ovlcoords[self.dragid] = self.pdc.GetIdBounds(self.dragid)
-#############rashad            
+#############rashad
 #            if self.dragid > 100:
 #                self.currtxtid = self.dragid
 #                self.frame.OnAddText(None)
@@ -1339,7 +1339,7 @@ class BufferedWindow2(MapWindow, wx.Window):
         """!Mouse entered window and no mouse buttons were pressed
 
         """
-#############rashad          
+#############rashad
 #        if not self.frame.IsStandalone() and \
 #                self.frame.GetLayerManager().gcpmanagement:
 #            if self.frame.GetToolbar('gcpdisp'):
@@ -1496,7 +1496,7 @@ class BufferedWindow2(MapWindow, wx.Window):
             self.Map.region['center_northing'] = cn
             self.Map.region['ewres'] = (newreg['e'] - newreg['w']) / self.Map.width
             self.Map.region['nsres'] = (newreg['n'] - newreg['s']) / self.Map.height
-#############rashad              
+#############rashad
 #            if not self.frame.HasProperty('alignExtent') or \
 #                    self.frame.GetProperty('alignExtent'):
 #                self.Map.AlignExtentFromDisplay()
@@ -1670,7 +1670,7 @@ class BufferedWindow2(MapWindow, wx.Window):
 
         # add to zoom history
         self.ZoomHistory(region['n'], region['s'],
-                                   region['e'], region['w'])        
+                                   region['e'], region['w'])
         self.UpdateMap()
     
     def DisplayToWind(self):
@@ -1858,9 +1858,9 @@ class BufferedWindow2(MapWindow, wx.Window):
                             
         @return reference to GraphicsSet, which was added.
         """
-        item = GraphicsSet(parentMapWin = self, 
-                           graphicsType = graphicsType, 
-                           setStatusFunc = setStatusFunc, 
+        item = GraphicsSet(parentMapWin = self,
+                           graphicsType = graphicsType,
+                           setStatusFunc = setStatusFunc,
                            drawFunc = drawFunc)
         self.graphicsSetList.append(item)
         
@@ -1873,7 +1873,7 @@ class BufferedWindow2(MapWindow, wx.Window):
         
         @return True - if item was unregistered
         @return False - if item was not found
-        """     
+        """
         if item in self.graphicsSetList:
             self.graphicsSetList.remove(item)
             return True
@@ -1911,7 +1911,7 @@ class GraphicsSet:
             self.properties["text"]['font'] = wx.Font(pointSize = self.properties["size"],
                                                       family = wx.FONTFAMILY_DEFAULT,
                                                       style = wx.FONTSTYLE_NORMAL,
-                                                      weight = wx.FONTWEIGHT_NORMAL) 
+                                                      weight = wx.FONTWEIGHT_NORMAL)
             self.properties["text"]['active'] = True
             
             self.drawFunc = self.parentMapWin.DrawCross
@@ -1922,7 +1922,7 @@ class GraphicsSet:
     def Draw(self, pdc):
         """!Draws all containing items.
         
-        @param pdc - device context, where items are drawn 
+        @param pdc - device context, where items are drawn
         """
         itemOrderNum = 0
         for item in self.itemsList:
@@ -1943,12 +1943,12 @@ class GraphicsSet:
                 size = self.properties["size"]
                 
                 self.properties["text"]['coords'] = [coords[0] + size, coords[1] + size, size, size]
-                self.properties["text"]['color'] = self.parentMapWin.pen.GetColour() 
+                self.properties["text"]['color'] = self.parentMapWin.pen.GetColour()
                 self.properties["text"]['text'] = item.GetPropertyVal("label")
                 
                 self.drawFunc(pdc = pdc,
-                              coords = coords, 
-                              text = self.properties["text"], 
+                              coords = coords,
+                              text = self.properties["text"],
                               size = self.properties["size"])
             
             elif self.graphicsType == "line":
@@ -1956,22 +1956,22 @@ class GraphicsSet:
                     self.parentMapWin.polypen = self.pens[item.GetPropertyVal("pen")]
                 else:
                     self.parentMapWin.polypen = self.pens["default"]
-                self.drawFunc(pdc = pdc, 
+                self.drawFunc(pdc = pdc,
                               polycoords = coords)
             itemOrderNum += 1
         
     def AddItem(self, coords, penName = None, label = None, hide = False):
         """!Append item to the list.
         
-        Added item is put to the last place in drawing order. 
+        Added item is put to the last place in drawing order.
         Could be 'point' or 'line' according to graphicsType.
         
         @param coords - list of east, north coordinates (double) of item
-                        Example: point: [1023, 122] 
-                                 line: [[10, 12],[20,40],[23, 2334]] 
+                        Example: point: [1023, 122]
+                                 line: [[10, 12],[20,40],[23, 2334]]
         @param penName (string) - the 'default' pen is used if is not defined
         @param label (string) - label, which will be drawn with point. It is relavant just for 'point' type.
-        @param hide (bool) -  If it is True, the item is not drawn, when self.Draw is called. 
+        @param hide (bool) -  If it is True, the item is not drawn, when self.Draw is called.
                               Hidden items are also counted in drawing order.
                               
         @return (GraphicsSetItem) - added item reference
@@ -1987,7 +1987,7 @@ class GraphicsSet:
         @param item (GraphicsSetItem) - item to remove
         
         @return True if item was removed
-        @return False if item was not found 
+        @return False if item was not found
         """
         try:
             self.itemsList.remove(item)
@@ -1997,7 +1997,7 @@ class GraphicsSet:
         return True
 
     def GetAllItems(self):
-        """!Returns list of all containing instances of GraphicsSetItem, in order 
+        """!Returns list of all containing instances of GraphicsSetItem, in order
         as they are drawn. If you want to change order of drawing use: SetItemDrawOrder method.
         """
         # user can edit objects but not order in list, that is reason,
@@ -2008,7 +2008,7 @@ class GraphicsSet:
     def GetItem(self, drawNum):
         """!Get given item from the list.
         
-        @param drawNum (int) - drawing order (index) number of item 
+        @param drawNum (int) - drawing order (index) number of item
         
         @return instance of GraphicsSetItem which is drawn in drawNum order
         @return False if drawNum was out of range
@@ -2023,16 +2023,16 @@ class GraphicsSet:
         
         @param propName (string) - property name: "size", "text"
                                  - both properties are relevant for "point" type
-        @param propVal - property value to be set  
+        @param propVal - property value to be set
         
         @return True - if value was set
-        @return False - if propName is not "size" or "text" or type is "line"   
+        @return False - if propName is not "size" or "text" or type is "line"
         """
         if self.properties.has_key(propName):
             self.properties[propName] = propVal
             return True
         
-        return False       
+        return False
 
     def GetPropertyVal(self, propName):
         """!Get property value
@@ -2044,11 +2044,11 @@ class GraphicsSet:
                                  - both properties are relevant for "point" type
                                 
         @return value of property
-        """       
+        """
         if self.properties.has_key(propName):
             return self.properties[propName]
         
-        raise KeyError(_("Property does not exist: %s") % (propName))          
+        raise KeyError(_("Property does not exist: %s") % (propName))
         
     def AddPen(self, penName, pen):
         """!Add pen
@@ -2057,8 +2057,8 @@ class GraphicsSet:
         @param pen (wx.Pen) - added pen
         
         @return True - if pen was added
-        @return False - if pen already exists   
-        """       
+        @return False - if pen already exists
+        """
         if self.pens.has_key(penName):
             return False
         
@@ -2072,13 +2072,13 @@ class GraphicsSet:
         
         @return wx.Pen reference if is found
         @return None if penName was not found
-        """       
+        """
         if self.pens.has_key(penName):
             return self.pens[penName]
         
         return None
 
-    def SetItemDrawOrder(self, item, drawNum): 
+    def SetItemDrawOrder(self, item, drawNum):
         """!Set draw order for item
         
         @param item (GraphicsSetItem)
@@ -2086,7 +2086,7 @@ class GraphicsSet:
         
         @return True - if order was changed
         @return False - if drawNum is out of range or item was not found
-        """ 
+        """
         if drawNum < len(self.itemsList) and drawNum >= 0 and \
             item in self.itemsList:
             self.itemsList.insert(drawNum, self.itemsList.pop(self.itemsList.index(item)))
@@ -2094,14 +2094,14 @@ class GraphicsSet:
         
         return False
 
-    def GetItemDrawOrder(self, item):       
+    def GetItemDrawOrder(self, item):
         """!Get draw order for given item
         
-        @param item (GraphicsSetItem) 
+        @param item (GraphicsSetItem)
         
         @return (int) - drawing order of item
         @return None - if item was not found
-        """ 
+        """
         try:
             return self.itemsList.index(item)
         except ValueError:
@@ -2112,9 +2112,9 @@ class GraphicsSetItem:
         """!Could be point or line according to graphicsType in
         GraphicsSet class
 
-        @param coords - list of coordinates (double) of item 
-                        Example: point: [1023, 122] 
-                                 line: [[10, 12],[20,40],[23, 2334]] 
+        @param coords - list of coordinates (double) of item
+                        Example: point: [1023, 122]
+                                 line: [[10, 12],[20,40],[23, 2334]]
         @param penName (string) - if it is not defined 'default' pen is used
         @param label (string) - label, which will be drawn with point. It is relevant just for 'point' type
         @param hide (bool) - if it is True, item is not drawn
@@ -2131,10 +2131,10 @@ class GraphicsSetItem:
         
         @param propName (string) - property name: "penName", "hide" or "label"
                                  - property "label" is relevant just for 'point' type
-        @param propVal - property value to be set  
+        @param propVal - property value to be set
         
         @return True - if value was set
-        @return False - if propName is not "penName", "hide" or "label"  
+        @return False - if propName is not "penName", "hide" or "label"
         """
         if self.properties.has_key(propName):
             self.properties[propName] = propVal
@@ -2152,24 +2152,24 @@ class GraphicsSetItem:
                                  - property "label" is relevant just for 'point' type
                                  
         @return value of property
-        """       
+        """
         if self.properties.has_key(propName):
             return self.properties[propName]
         
-        raise KeyError(_("Property does not exist: %s") % (propName))          
+        raise KeyError(_("Property does not exist: %s") % (propName))
 
     def SetCoords(self, coords):
         """!Set coordinates of item
         
         @param coords - list of east, north coordinates (double) of item
-                        Example: point: [1023, 122] 
-                                 line: [[10, 12],[20,40],[23, 2334]]  
-        """   
+                        Example: point: [1023, 122]
+                                 line: [[10, 12],[20,40],[23, 2334]]
+        """
         self.coords = coords
         
     def GetCoords(self):
         """!Get item coordinates
         
         @returns coordinates
-        """ 
+        """
         return self.coords

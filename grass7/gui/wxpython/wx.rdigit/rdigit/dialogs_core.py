@@ -40,7 +40,7 @@ class NewRasterDialog(ElementDialog):
         @param style window style
         @param kwargs other argumentes for ElementDialog
         
-        @return dialog instance       
+        @return dialog instance
         """
         ElementDialog.__init__(self, parent, title, label = _("Name for new raster map:"))
         
@@ -228,6 +228,6 @@ def CreateNewRaster(parent, title = _('Create new vector map'),
         outmap += '@' + grass.gisenv()['MAPSET']
         
     #if log:
-    #    log.WriteLog(_("New raster map <%s> created") % outmap)   
+    #    log.WriteLog(_("New raster map <%s> created") % outmap)
     return dlg
 

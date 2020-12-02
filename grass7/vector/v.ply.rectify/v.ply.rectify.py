@@ -111,13 +111,13 @@ def main():
 
     # print RMS
     rmsfile = os.path.join(srcdir, ply + "_rms.csv")
-    grass.run_command('v.rectify', input = ply, output = ply + '_georef', 
+    grass.run_command('v.rectify', input = ply, output = ply + '_georef',
                       points = gcpfile, flags = '3bor', separator = ';',
                       rmsfile = rmsfile)
 
     # georectify
     ply_georef = ply + '_georef'
-    grass.run_command('v.rectify', input = ply, output = ply_georef, 
+    grass.run_command('v.rectify', input = ply, output = ply_georef,
                       points = gcpfile, flags = '3bo')
 
     # output vector exists?

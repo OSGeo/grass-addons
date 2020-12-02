@@ -787,7 +787,7 @@ def main():
         grass.message("\n" )
         grass.message("----------------------------------" )
         grass.message("Morphometric parameters of basin :" )
-        grass.message("----------------------------------\n" )    
+        grass.message("----------------------------------\n" )
         grass.message("Easting Centroid of basin : %s " % basin_east )
         grass.message("Northing Centroid of Basin : %s " % basin_north )
         grass.message("Rectangle containing basin N-W : %s , %s " % nw )

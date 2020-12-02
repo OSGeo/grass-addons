@@ -101,7 +101,7 @@ from grass import script as gscript
 
 def main():
     """
-    Links each river segment to the next downstream segment in a tributary 
+    Links each river segment to the next downstream segment in a tributary
     network by referencing its category (cat) number in a new column. "0"
     means that the river exits the map.
     """

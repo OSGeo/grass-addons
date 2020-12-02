@@ -5,7 +5,7 @@
 #
 # AUTHOR(S):    Kerry Callaghan, Andrew Wickert
 #
-# PURPOSE:      Moves water across a landscape towards its eventual equilibrium 
+# PURPOSE:      Moves water across a landscape towards its eventual equilibrium
 #               position using an iterative, mass-conserving approach
 #
 # COPYRIGHT:    (c) 2019 Andrew Wickert
@@ -177,7 +177,7 @@ def main():
         if _h_runoff_raster is not '':
             g.message(flags='e', message='Only one of "h_runoff" and ' +
                                          '"h_runoff_raster" may be set')
-    elif _h_runoff_raster is '':             
+    elif _h_runoff_raster is '':
             g.message(flags='e', message='Either "h_runoff" or ' +
                                          '"h_runoff_raster" must be set')
 
@@ -244,7 +244,7 @@ def main():
     
     _mpirun_error_flag = False
     
-    popen = subprocess.Popen(mpirunstr, stdout=subprocess.PIPE, 
+    popen = subprocess.Popen(mpirunstr, stdout=subprocess.PIPE,
                              shell=True, universal_newlines=True)
     for stdout_line in iter(popen.stdout.readline, ""):
         print(stdout_line),

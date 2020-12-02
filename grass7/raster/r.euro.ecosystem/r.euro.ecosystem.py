@@ -25,7 +25,7 @@ COPYRIGHT: (C) 2015, 2019 by the GRASS Development Team
 #% keyword: ecosystem
 #%end
 
-#%option G_OPT_R_INPUT 
+#%option G_OPT_R_INPUT
 #% key: input
 #%end
 
@@ -50,17 +50,17 @@ import grass.script as grass
 
 def main():
 
-    iraster = options['input']        
+    iraster = options['input']
     eraster = options['input'].split('@')[0]
     level1 = flags['1']
     level2 = flags['2']
     if level1:
         color_rules_level1 = eraster+'_color_level1.txt'
-        cat_rules_level1 = eraster+'_cat_level1.txt'        
+        cat_rules_level1 = eraster+'_cat_level1.txt'
     if level2:
         color_rules_level2 = eraster+'_color_level2.txt'
         cat_rules_level2 = eraster+'_cat_level2.txt'
-    global tmp     
+    global tmp
         
     # start settings
     grass.message("Setting colors and categories ..." )
@@ -70,9 +70,9 @@ def main():
     if level1:
         tmp_col_l1 = os.path.join(datatempdir, color_rules_level1 )
         tmp_cat_l1 = os.path.join(datatempdir, cat_rules_level1 )
-    if level2:    
+    if level2:
         tmp_col_l2 = os.path.join(datatempdir, color_rules_level2 )
-        tmp_cat_l2 = os.path.join(datatempdir, cat_rules_level2 )    
+        tmp_cat_l2 = os.path.join(datatempdir, cat_rules_level2 )
 
         
     # write intermediate color and cat rule file data level 1
@@ -89,7 +89,7 @@ def main():
         8 178:178:178
         9 255:255:0
         10 255:0:0""")
-        # close intermediate color level 1 rules      
+        # close intermediate color level 1 rules
         fcl1.close()
         # write intermediate category rule file level 1
         fcal1 = open('%s' % (tmp_cat_l1), 'wt')
@@ -103,24 +103,24 @@ def main():
         8|H Inland unvegetated or sparsely vegetated habitats
         9|I Regularly or recently cultivated, hortocultural and domestic habitats
         10|J Constructed, industrial and other artificial habitats""")
-        # close intermediate category level 1 rules      
+        # close intermediate category level 1 rules
         fcal1.close()
 
         # apply color rules level 1
-        grass.message ("applying color rules for data level 1..." )        
+        grass.message ("applying color rules for data level 1..." )
         grass.run_command("r.colors", map = iraster,
                                         rules = tmp_col_l1,
                                         quiet = True)
 
         
         # apply category rules level 1
-        grass.message ("applying category rules for data level 1..." )            
+        grass.message ("applying category rules for data level 1..." )
         grass.run_command("r.category", map = iraster,
                                         rules = tmp_cat_l1,
                                         separator = 'pipe',
-                                        quiet = True)        
+                                        quiet = True)
         
-    # write intermediate color and cat rule file data level 2        
+    # write intermediate color and cat rule file data level 2
     if level2:
         # write intermediate color rule file level 2
         fcl2 = open('%s' % (tmp_col_l2), 'wt')
@@ -255,8 +255,8 @@ def main():
         705 21:35:161
         706 21:35:161
         710 21:32:158
-        720 15:22:153""")    
-        # close intermediate color level 2 rules 
+        720 15:22:153""")
+        # close intermediate color level 2 rules
         fcl2.close()
         
         # write intermediate category rule file level 2
@@ -393,7 +393,7 @@ def main():
         57|J4 - Transport networks and other constructed hard-surfaced areas
         58|J5 - Highly artificial man-made waters and associated structures
         59|J6 - Waste deposits""")
-        # close intermediate category level 1 rules      
+        # close intermediate category level 1 rules
         fcal2.close()
 
 
@@ -405,7 +405,7 @@ def main():
 
         
         # apply category rules level 2
-        grass.message ("applying category rules for data level 2..." )    
+        grass.message ("applying category rules for data level 2..." )
         grass.run_command("r.category", map = iraster,
                                         rules = tmp_cat_l2,
                                         separator = 'pipe',
@@ -413,7 +413,7 @@ def main():
 
     # do some clean up
     grass.message("----" )
-    grass.message("cleaning intermediate files ...." )    
+    grass.message("cleaning intermediate files ...." )
     if level1:
         os.remove("%s" % tmp_col_l1)
         os.remove("%s" % tmp_cat_l1)

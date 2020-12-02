@@ -164,7 +164,7 @@ def main():
                 quiet=True, overwrite='t')
 
         # evaluate the number of the remaining pixels of the category to relace
-        pixel_stat = gscript.parse_command('r.stats', input='{inmap}'.format(inmap=stepmap), 
+        pixel_stat = gscript.parse_command('r.stats', input='{inmap}'.format(inmap=stepmap),
                      flags='c',sep='=', quiet=True)
         # parse the output, if the category is not in the list raise an exception and set pixel_num = 0
         try:
@@ -173,7 +173,7 @@ def main():
             pixel_num = 0
             # print(e.message)
         
-        gscript.verbose(_("Iteration: %d  Remaining pixels: %d") % (iteration, pixel_num) )  
+        gscript.verbose(_("Iteration: %d  Remaining pixels: %d") % (iteration, pixel_num) )
 
         iteration = iteration + 1
 
@@ -183,10 +183,10 @@ def main():
     # if the loop ended before reaching pixel_num=0
     if pixel_num > 0:
         gscript.warning(_("the process stopped after %d iterations with %d pixels of category %d left")
-            % (iteration, pixel_num, category) ) 
+            % (iteration, pixel_num, category) )
 
     # copy the output of the last iteration to the output map
-    gscript.run_command('g.copy', raster='{inmap},{outmap}'.format(inmap=stepmap,                   
+    gscript.run_command('g.copy', raster='{inmap},{outmap}'.format(inmap=stepmap,
                         outmap=out_name),overwrite='{}'.format(overwrite_flag), quiet=True)
 
     # remove the last intermediate map unless the k flag is set
@@ -198,7 +198,7 @@ def main():
     # optionally create an mpeg animation of the replacement sequence
     if animationfile:
         gscript.message(_("Generating mpeg file %s...") % animationfile)
-        gscript.run_command('r.out.mpeg', view1='{}_step_[0-9][0-9][0-9]'.format(in_name), 
+        gscript.run_command('r.out.mpeg', view1='{}_step_[0-9][0-9][0-9]'.format(in_name),
                 output='{}'.format(animationfile), quality='{}'.format(quality), overwrite='{}'.format(overwrite_flag))
 
     # remove intermediate maps if they have been kept for generating the animation

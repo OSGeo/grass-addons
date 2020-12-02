@@ -4,10 +4,10 @@
 #
 # MODULE:	    g.copyall
 #
-# AUTHOR(S):    Michael Barton (ASU)	
+# AUTHOR(S):    Michael Barton (ASU)
 #
-# PURPOSE:	Copies all or a filtered subset of GRASS files of a selected type 
-#           from another mapset to the current working mapset 
+# PURPOSE:	Copies all or a filtered subset of GRASS files of a selected type
+#           from another mapset to the current working mapset
 #
 # COPYRIGHT:	(C) 2002-2012 by the GRASS Development Team
 #
@@ -113,7 +113,7 @@ def main():
         params = {datatype: '%s@%s,%s' % (input, mapset, output)}
         grass.run_command('g.copy', overwrite=overwrite, **params)
         
-        if datatype == 'vector' and flags['t']: 
+        if datatype == 'vector' and flags['t']:
             grass.run_command('v.build', map=output)
         
 if __name__ == "__main__":

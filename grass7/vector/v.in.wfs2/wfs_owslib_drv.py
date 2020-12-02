@@ -1,4 +1,4 @@
-import grass.script as grass 
+import grass.script as grass
 try:
     from owslib.wfs import WebFeatureService
     from owslib.util import ServiceException
@@ -12,7 +12,7 @@ class WFSOwsLibDrv(WFSBase):
         """!Downloads data from WFS server using OSWlLib driver
         
         @return temp_map with downloaded data
-        """ 
+        """
         grass.message(_("Downloading data from WFS server..."))
 
         if self.bbox:
@@ -26,8 +26,8 @@ class WFSOwsLibDrv(WFSBase):
             wfs_data = wfs.getfeature(typename = [self.o_layers],
                                        srsname = "EPSG:" + str(self.o_srs),
                                        maxfeatures = self.o_maximum_features,
-                                       bbox = query_bbox)   
-        #TODO do it better                                         
+                                       bbox = query_bbox)
+        #TODO do it better
         except ServiceException as e:
             grass.fatal(_("Server returned exception"))
 

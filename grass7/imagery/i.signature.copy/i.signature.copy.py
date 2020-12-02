@@ -29,7 +29,7 @@
 #% required : yes
 #%end
 
-#%option G_OPT_I_SUBGROUP 
+#%option G_OPT_I_SUBGROUP
 #% key: isubgroup
 #% description: Input subgroup for signature file to copy
 #% required : yes
@@ -52,7 +52,7 @@
 #% required : yes
 #%end
 
-#%option 
+#%option
 #% key: osubgroup
 #% type: string
 #% gisprompt: old,subgroup,subgroup

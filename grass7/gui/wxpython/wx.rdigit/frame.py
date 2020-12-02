@@ -44,7 +44,7 @@ from rdigit.toolbars    import RDigitToolbar
 from rdigit.main import haveRDigit, RDigit
         
 class RDigitMapFrame(SingleMapFrame):
-    """! RDigitMapFrame main frame    
+    """! RDigitMapFrame main frame
     This is the raster digitizer main window. It holds a minimal layer manager from wxIClass
     """
 
@@ -134,7 +134,7 @@ class RDigitMapFrame(SingleMapFrame):
         if name in self.toolbars:
             return self.toolbars[name]
         
-        return None    
+        return None
         
     def AddToolbar(self, name):
         """!Add toolbars to the frame
@@ -162,7 +162,7 @@ class RDigitMapFrame(SingleMapFrame):
                           LeftDockable(False).RightDockable(False).
                           BottomDockable(False).TopDockable(True).
                           CloseButton(False).Layer(0).
-                          BestSize((self.toolbars['rdigit'].GetBestSize())))                                                
+                          BestSize((self.toolbars['rdigit'].GetBestSize())))
           self.MapWindow.SetToolbar(self.toolbars[name])
           #self._mgr.GetPane('rdigittoolbar').Hide()
                            
@@ -204,7 +204,7 @@ class RDigitMapFrame(SingleMapFrame):
         """!
         @todo move to DoubleMapFrame?
         """
-        self.StatusbarUpdate() 
+        self.StatusbarUpdate()
 
     def GetMapToolbar(self):
         """!Returns toolbar with zooming tools"""
@@ -221,7 +221,7 @@ class RDigitMapFrame(SingleMapFrame):
     def OnZoomMenu(self, event):
         """!Popup Zoom menu """
         zoommenu = wx.Menu()
-        zoommenu.Destroy()             
+        zoommenu.Destroy()
 
     def OnZoomIn(self, event):
         super(RDigitMapFrame, self).OnZoomIn(event)
@@ -266,7 +266,7 @@ class MapManager:
         self.toolbar = toolbar
         
     def AddLayer(self, name, alias = None, resultsLayer = False):
-        """!Adds layer to Map and update toolbar 
+        """!Adds layer to Map and update toolbar
         
         @param name layer (raster) name
         @param resultsLayer True if layer is temp. raster showing the results of computation
@@ -302,7 +302,7 @@ class MapManager:
         if not self.toolbar.choice.IsEmpty():
             self.toolbar.choice.SetSelection(0)
 
-        self.frame.GetWindow().UpdateMap(render = True, renderVector = False)            
+        self.frame.GetWindow().UpdateMap(render = True, renderVector = False)
         #self.frame.Render(self.mapWindow)
             
     def SelectLayer(self, name):

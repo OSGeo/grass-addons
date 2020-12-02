@@ -275,7 +275,7 @@ def main():
     outlayer = '%s_clean' % inlayer
     grass.message = (_("Exporting cleaned layer as <%s>") % outlayer)
     try:
-        grass.run_command('v.out.ogr', input=outvect, layer='1', output=outdsn, 
+        grass.run_command('v.out.ogr', input=outvect, layer='1', output=outdsn,
                         output_layer=outlayer, format=outformat, flags=oflags,
                         overwrite=overwrite)
     except CalledModuleError:

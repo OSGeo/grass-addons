@@ -45,12 +45,12 @@ class _LocIndexer(Mapping):
         """Add a new key, value pair to the LocIndexer
         
         Checks to see if the key exists already, in which case it replaces
-        oldkey with newkey, value, otherwise it just adds a new key, value 
+        oldkey with newkey, value, otherwise it just adds a new key, value
         pair to the dict
         """
         
         # convert to lists
-        if isinstance(key, str):            
+        if isinstance(key, str):
             key = [key]
         
         if isinstance(value, RasterRow):
@@ -78,7 +78,7 @@ class _LocIndexer(Mapping):
             if k in self.keys():
                 self.update(k, v)
             
-            else:  
+            else:
                 self._dict[k] = v
                 setattr(self.parent, k, v)
                 self.parent.mtypes.update({k: v.mtype})

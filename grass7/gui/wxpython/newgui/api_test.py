@@ -25,7 +25,7 @@ except ImportError:
     import wx.lib.customtreectrl as CT
 import wx.lib.buttons  as buttons
 try:
-    import treemixin 
+    import treemixin
 except ImportError:
     from wx.lib.mixins import treemixin
 
@@ -52,7 +52,7 @@ class ToolBarNames:
     WORKSPACEOPEN = {"open": [wx.NewId(), _('Open existing workspace file (Ctrl+O')] }
     WORKSPACESAVE = {"save": [wx.NewId(), _('Save current workspace to file (Ctrl+S)')] }
     ADDRASTER = {"layer-raster-add": [wx.NewId(), _("Add raster map layer")] }
-    ADDVECTOR = {"layer-vector-add": [wx.NewId(), _("Add vector map layer")] }    
+    ADDVECTOR = {"layer-vector-add": [wx.NewId(), _("Add vector map layer")] }
 
 
 class MySingleMapFrame(MapFrameBase):
@@ -109,7 +109,7 @@ class MySingleMapFrame(MapFrameBase):
 
         vbox.Add(self._lmgr, 1, wx.EXPAND | wx.ALL, 20)
         vbox.Add(self.MapWindow, 1, wx.EXPAND | wx.ALL, 20)
-        p.SetSizer(vbox)  
+        p.SetSizer(vbox)
         
     def CreateWxToolBar(self):
         self.toolbar = self.CreateToolBar()
@@ -126,7 +126,7 @@ class MySingleMapFrame(MapFrameBase):
         wx.EVT_TOOL(self, tid, func )
 
     def GetIcon(self, tname):
-        return MetaIcon(img = tname).GetBitmap()  
+        return MetaIcon(img = tname).GetBitmap()
 
 
     def GetLayerByIndex(self, index):
@@ -172,12 +172,12 @@ class LayerManager(wx.Panel):
                  CT.TR_HIDE_ROOT | CT.TR_ROW_LINES | CT.TR_FULL_ROW_HIGHLIGHT |
                  CT.TR_MULTIPLE, **kwargs):
 
-        wx.Panel.__init__(self, parent = parent, id =id, style = style)  
+        wx.Panel.__init__(self, parent = parent, id =id, style = style)
 
         self._layerList = []
         self._activeLayer = None
         self._activeIndex = 0
-        self._Map = Map        
+        self._Map = Map
         
         self.ltree = LayerTree(self,Map, id = id, style = style, ctstyle = ctstyle, **kwargs)
         self.ltree.SetSize((300,500))
@@ -189,7 +189,7 @@ class LayerManager(wx.Panel):
         self.ltree.GetLayerByIndex(index)
             
     def GetCurrentIndex(self):
-        self.ltree.GetCurrentIndex()     
+        self.ltree.GetCurrentIndex()
         
 class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
     """copied from lmgr.layertree.py"""
@@ -199,9 +199,9 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         if globalvar.hasAgw:
             super(LayerTree, self).__init__(parent, id, agwStyle = ctstyle, **kwargs)
         else:
-            super(LayerTree, self).__init__(parent, id, style = ctstyle, **kwargs)    
+            super(LayerTree, self).__init__(parent, id, style = ctstyle, **kwargs)
     
-        #wx.Window.__init__(self, parent = parent, id =-2)  
+        #wx.Window.__init__(self, parent = parent, id =-2)
         #self.panel = wx.Panel(self, )
         self._layerList = []
         self._activeLayer = None
@@ -398,7 +398,7 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
             self.SetItemImage(layeritem, self.folder, CT.TreeItemIcon_Normal)
             self.SetItemImage(layeritem, self.folder_open, CT.TreeItemIcon_Expanded)
             self.SetItemText(layeritem, grouptext)
-        elif layer.type == 'wms':            
+        elif layer.type == 'wms':
             self.SetItemImage(layeritem, self.ws_icon)
             self.SetItemText(layeritem, '%s %s' % (_('wms'), label))
     
@@ -431,22 +431,22 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
                                     'maplayer': None,
                                     'vdigit': None,
                                     'nviz': None,
-                                    'propwin': None}, 
+                                    'propwin': None},
                                    None))
             
-            # find previous map layer instance 
+            # find previous map layer instance
             prevItem = self.GetFirstChild(self.root)[0]
-            prevMapLayer = None 
+            prevMapLayer = None
             pos = -1
-            while prevItem and prevItem.IsOk() and prevItem != layeritem: 
-                if self.GetLayerInfo(prevItem, key = 'maplayer'): 
+            while prevItem and prevItem.IsOk() and prevItem != layeritem:
+                if self.GetLayerInfo(prevItem, key = 'maplayer'):
                     prevMapLayer = self.GetLayerInfo(prevItem, key = 'maplayer')
                 
-                prevItem = self.GetNextSibling(prevItem) 
+                prevItem = self.GetNextSibling(prevItem)
                 
-                if prevMapLayer: 
+                if prevMapLayer:
                     pos = self.Map.GetLayerIndex(prevMapLayer)
-                else: 
+                else:
                     pos = -1
             
 #            maplayer = self.Map.AddLayer(pos = pos,
@@ -454,7 +454,7 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
 #                                         active = checked, hidden = False,
 #                                         opacity = lopacity, render = render)
 #            self.SetLayerInfo(layer, key = 'maplayer', value = maplayer)
-#            
+#
 #            # run properties dialog if no properties given
 #            if len(cmd) == 0:
 #                self.PropertiesDialog(layer, show = True)
@@ -465,7 +465,7 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
                                     'ctrl': None,
                                     'label': None,
                                     'maplayer': None,
-                                    'propwin': None}, 
+                                    'propwin': None},
                                    None))
         
         # select new item
@@ -483,13 +483,13 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
             if layer.type == 'group':
                 self.OnRenameLayer(None)
                 
-        return layeritem       
+        return layeritem
    
     def GetLayerByIndex(self, index):
         if index > -1 and index < len(self._layerList):
             return self._layerList[index]
             
     def GetCurrentIndex(self):
-        return self._activeIndex      
+        return self._activeIndex
 
          

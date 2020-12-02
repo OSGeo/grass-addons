@@ -55,7 +55,7 @@
 #% description: Vector field of stand surface (ha)
 #% guisection: Base
 #%end
-#%option 
+#%option
 #% key: forest_column_management
 #% type: string
 #% answer: management
@@ -69,7 +69,7 @@
 #% description: Vector field of forest treatment (1: final felling, 2:thinning)
 #% guisection: Base
 #%end
-#%option 
+#%option
 #% key: output_basename
 #% answer: biomassfor
 #% type: string
@@ -146,7 +146,7 @@ def main(opts, flgs):
 
     #import pdb; pdb.set_trace()
     #treatment=1 final felling, treatment=2 thinning
-    ECOHF = l_bioenergyHF+' = if('+management+'==1 && '+treatment+'==1 || '+management+' == 1 && '+treatment+'==99999, yield_pix1*%f, if('+management+'==1 && '+treatment+'==2, yield_pix1*%f + yield_pix1*%f))'                                     
+    ECOHF = l_bioenergyHF+' = if('+management+'==1 && '+treatment+'==1 || '+management+' == 1 && '+treatment+'==99999, yield_pix1*%f, if('+management+'==1 && '+treatment+'==2, yield_pix1*%f + yield_pix1*%f))'
 
     #ECOHF = 'ecological_bioenergyHF = if(management==1 && treatment==1 || management == 1 && treatment==99999,yield_pix1*'+opts['energy_tops_hf']+', if(management==1 && treatment==2, yield_pix1*'+opts['energy_tops_hf']+' + yield_pix1*'+opts['energy_cormometric_vol_hf']+'))'
 

@@ -53,7 +53,7 @@
 #% description: Vector field of stand surface (ha)
 #% required : yes
 #%end
-#%option 
+#%option
 #% key: forest_column_management
 #% type: string
 #% description: Vector field of forest management (1: high forest, 2:coppice)
@@ -72,7 +72,7 @@
 #% label: Vector map of forest roads
 #% required : yes
 #%end
-#%option 
+#%option
 #% key: output_basename
 #% type: string
 #% description: Basename for technical bioenergy (HF,CC and total)
@@ -309,8 +309,8 @@ def main(opts, flgs):
         rivers = "rivers"
         exprmap += '+ if('+rivers+'>=1, 99999)'
 
-    if lakes != '':    
-        run_command("v.to.rast", input=lakes,output="lakes", use="val", overwrite=True)    
+    if lakes != '':
+        run_command("v.to.rast", input=lakes,output="lakes", use="val", overwrite=True)
         run_command("r.null", map="lakes", null=0)
         lakes = "lakes"
         exprmap += '+ if('+lakes+'>=1, 99999)'

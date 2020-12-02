@@ -6,7 +6,7 @@
 # AUTHOR(S):    Andrew Wickert
 #
 # PURPOSE:      Calculate flexure of the lithosphere under a specified
-#               set of loads and with a given elastic thickness (scalar 
+#               set of loads and with a given elastic thickness (scalar
 #               or array)
 #
 # COPYRIGHT:    (c) 2012, 2014, 2015 Andrew Wickert

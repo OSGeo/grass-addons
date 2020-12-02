@@ -8,7 +8,7 @@
 #
 ##############################################################################
 #%module
-#% description: Perform Minimum Redundancy Maximum Relevance Feature Selection on a GRASS Attribute Table 
+#% description: Perform Minimum Redundancy Maximum Relevance Feature Selection on a GRASS Attribute Table
 #%end
 
 #%option G_OPT_V_INPUT
@@ -62,7 +62,7 @@
 #% description: Feature selection method
 #% key: method
 #% type: string
-#% options: MID,MIQ 
+#% options: MID,MIQ
 #% answer: MID
 #% required : yes
 #% guisection: Options

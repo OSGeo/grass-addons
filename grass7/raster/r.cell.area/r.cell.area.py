@@ -63,10 +63,10 @@ def main():
     units = options['units']
     
     # First check if output exists
-    if len(grass.parse_command('g.list', type='rast', 
+    if len(grass.parse_command('g.list', type='rast',
                                pattern=options['output'])):
         if not grass.overwrite():
-            grass.fatal("Raster map '" + options['output'] + 
+            grass.fatal("Raster map '" + options['output'] +
                         "' already exists. Use '--o' to overwrite.")
   
     projunits = str(projinfo['units']) # Unicode to str

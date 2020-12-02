@@ -3,11 +3,11 @@
 #
 # MODULE:	   r.mcda.roughset
 # AUTHOR:	   Gianluca Massei - Antonio Boggia
-# PURPOSE:	  Generate a MCDA map from several criteria maps using Dominance Rough Set Approach - DRSA 
-#					   (DOMLEM algorithm proposed by  (S. Greco, B. Matarazzo, R. Slowinski)	 
-# COPYRIGHT:  c) 2010 Gianluca Massei, Antonio Boggia  and the GRASS 
-#					   Development Team. This program is free software under the 
-#					   GNU General PublicLicense (>=v2). Read the file COPYING 
+# PURPOSE:	  Generate a MCDA map from several criteria maps using Dominance Rough Set Approach - DRSA
+#					   (DOMLEM algorithm proposed by  (S. Greco, B. Matarazzo, R. Slowinski)
+# COPYRIGHT:  c) 2010 Gianluca Massei, Antonio Boggia  and the GRASS
+#					   Development Team. This program is free software under the
+#					   GNU General PublicLicense (>=v2). Read the file COPYING
 #					   that comes with GRASS for details.
 #
 #############################################################################
@@ -15,7 +15,7 @@
 #%Module
 #% description: Generates a MCDA map from several criteria maps using Dominance Rough Set Approach.
 #% keyword: raster
-#% keyword: Dominance Rough Set Approach 
+#% keyword: Dominance Rough Set Approach
 #% keyword: Multi Criteria Decision Analysis (MCDA)
 #%End
 #%option
@@ -24,7 +24,7 @@
 #% multiple: yes
 #% gisprompt: old,cell,raster
 #% key_desc: name
-#% description: Name of criteria raster maps 
+#% description: Name of criteria raster maps
 #% required: yes
 #%end
 #%option
@@ -39,7 +39,7 @@
 #% type: string
 #% gisprompt: old,cell,raster
 #% key_desc: name
-#% description: Name of decision raster map 
+#% description: Name of decision raster map
 #% required: yes
 #%end
 #%option
@@ -70,7 +70,7 @@
 import sys
 import copy
 import numpy as np
-from time import time, ctime  
+from time import time, ctime
 import grass.script as grass
 import grass.script.array as garray
 from functools import reduce
@@ -122,7 +122,7 @@ def BuildFileISF(attributes, preferences, decision, outputMap, outputTxt):
 
 	MATRIX = list(map(list,list(zip(*examples))))
 	MATRIX = [r for r in MATRIX if not '?' in r]  # remove all rows with almost one "?"
-	MATRIX = [list(i) for i in set(tuple(j) for j in MATRIX)]  # remove duplicate example 
+	MATRIX = [list(i) for i in set(tuple(j) for j in MATRIX)]  # remove duplicate example
 	
 	for r in range(len(MATRIX)):
 		for c in range(len(MATRIX[0])):
@@ -153,7 +153,7 @@ def collect_attributes (data):
 	for r in header:
 		r['preference'] = data[start+j][1]
 		j = j+1
-	return header	
+	return header
 
 
 def collect_examples (data):
@@ -161,7 +161,7 @@ def collect_examples (data):
 	
 	matrix = []
 	data = [r for r in data if not '?' in r]  # filter objects with " ?"
-#	data=[data.remove(r) for r in data if data.count(r)>1] 
+#	data=[data.remove(r) for r in data if data.count(r)>1]
 	start = (data.index(['**EXAMPLES'])+1)
 	end = data.index(['**END'])
 	for i in range(start, end):
@@ -171,7 +171,7 @@ def collect_examples (data):
 	for r in matrix:
 		r.insert(0, str(i))
 		i = i+1
-##	matrix=[list(i) for i in set(tuple(j) for j in matrix)] #remove duplicate example   
+##	matrix=[list(i) for i in set(tuple(j) for j in matrix)] #remove duplicate example
 	return matrix
 
 
@@ -185,7 +185,7 @@ def FileToInfoSystem(isf):
 			line = (line.split())
 			if (len(line) > 0 ):
 				data.append(line)
-		infile.close()	   
+		infile.close()
 		infosystem = {'attributes':collect_attributes(data),'examples':collect_examples(data)}
 	except TypeError:
 		print("\n\n Computing error or input file %s is not readeable. Exiting gracefully" % isf)
@@ -204,7 +204,7 @@ def UnionOfClasses (infosystem):
 	DecisionClass = list(set(DecisionClass))
 	for c in range(len(DecisionClass)):
 		tmplist = [r for r in matrix if int(r[-1]) == DecisionClass[c]]
-		AllClasses.append(tmplist)  
+		AllClasses.append(tmplist)
 	
 	return AllClasses
 	
@@ -246,12 +246,12 @@ def UpwardUnionsOfClasses (infosystem):
 ###############################
 def is_better (r1,r2, preference):
 	"Check if r1 is better than r2"
-	return all(((x >= y and p == 'gain') or (x <= y and p == 'cost')) for x,y, p in zip(r1,r2, preference) ) 
+	return all(((x >= y and p == 'gain') or (x <= y and p == 'cost')) for x,y, p in zip(r1,r2, preference) )
 	
 
-def is_worst (r1,r2, preference): 
+def is_worst (r1,r2, preference):
 	"Check if r1 is worst than r2"
-	return all(((x <= y and p == 'gain') or (x >= y and p == 'cost')) for x,y, p in zip(r1,r2, preference) ) 
+	return all(((x <= y and p == 'gain') or (x >= y and p == 'cost')) for x,y, p in zip(r1,r2, preference) )
  #################################
 
 
@@ -261,10 +261,10 @@ def DominatingSet (infosystem):
 	preference = [s['preference'] for s in infosystem['attributes'] ]
 	Dominating = []
 	for row in matrix:
-		examples = [r  for r in matrix if  is_better(r[1:-1], row[1:-1], preference) ] 
+		examples = [r  for r in matrix if  is_better(r[1:-1], row[1:-1], preference) ]
 		Dominating.append({'object':row[0], 'dominance':[i[0] for i in examples], 'examples':examples})
 ##	for dom in Dominating:
-##		print  dom['dominance'] ,' dominating ', dom['object'] 
+##		print  dom['dominance'] ,' dominating ', dom['object']
 	return Dominating
 
 def DominatedSet (infosystem):
@@ -273,10 +273,10 @@ def DominatedSet (infosystem):
 	preference = [s['preference'] for s in infosystem['attributes'] ]
 	Dominated = []
 	for row in matrix:
-		examples = [r  for r in matrix if  is_worst(r[1:-1], row[1:-1], preference[:-1]) ] 
+		examples = [r  for r in matrix if  is_worst(r[1:-1], row[1:-1], preference[:-1]) ]
 		Dominated.append({'object':row[0], 'dominance':[i[0] for i in examples], 'examples':examples})
 ##	for dom in Dominated:
-##		print  dom['dominance'] ,' is dominated by ', dom['object'] 
+##		print  dom['dominance'] ,' is dominated by ', dom['object']
 	return Dominated
 
 
@@ -291,7 +291,7 @@ def LowerApproximation (UnionClasses, Dom):
 		for d in Dom:
 			if (UClass.issuperset(set(d['dominance']))):  # if Union class is a superse of dominating/dominated set, =>single Loer approx.
 				tmp.append(d['object'])
-		single = {'class':c, 'objects':tmp}  # dictionary for lower approximation  -- 
+		single = {'class':c, 'objects':tmp}  # dictionary for lower approximation  --
 		LowApprox.append(single)  # insert all Lower approximation in a list
 		c += 1
 	return LowApprox
@@ -349,7 +349,7 @@ def FindObjectCovered (rules, selected):
 	examples = []
 	
 	for rule in rules:
-		examples.append(rule['objectsCovered']) 
+		examples.append(rule['objectsCovered'])
 
 	if len(examples) > 0:
 		examples = reduce(set.intersection,list(map(set,examples)))  # functional approach: intersect all lists if example is not empty
@@ -433,7 +433,7 @@ def Find_rules (B, infosystem, type_rule):
 						elem = {'criterion':'','condition':'','sign':'','class':'','objectsCovered':'','label':'', 'type':''}
 					best = FindBestCondition(best, elem, rules, selected, G, infosystem)
 			if best not in rules:
-				rules.append(best)  # add the best condition to the complex 
+				rules.append(best)  # add the best condition to the complex
 
 			for r in rules:
 				obj_cov_by_rules.append(r['objectsCovered'])
@@ -465,7 +465,7 @@ def Domlem(Lu,Ld, infosystem):
 	
 	RULES = []
 
-##  *** AT MOST {<= Class} - Type 3 rules ***"		
+##  *** AT MOST {<= Class} - Type 3 rules ***"
 	for b in Ld[:-1]:
 		B = b['objects']
 		E = Find_rules(B, infosystem, 'three')
@@ -493,7 +493,7 @@ def Domlem(Lu,Ld, infosystem):
 					i['sign'] = '>='
 				else:
 					i['sign'] = '<='
-			RULES.append(e)	   
+			RULES.append(e)
 
 	return RULES
 	
@@ -520,7 +520,7 @@ def Parser_mapcalc(RULES, outputMap):
 	maps = []
 	stringa = []
 	
-	for R in RULES: 
+	for R in RULES:
 		formula = "if("
 		for e in R[:-1]:  # build a mapcalc formula
 			formula += "(%s %s %.4f ) && " % (e['label'], e['sign'], e['condition'] )
@@ -534,7 +534,7 @@ def Parser_mapcalc(RULES, outputMap):
 
 	
 	#make one layer for each label rule
-	labels = ["_".join(m.split('_')[1:]) for m in maps] 
+	labels = ["_".join(m.split('_')[1:]) for m in maps]
 	labels = list(set(labels))
 	for l in labels:
 		print("mapping %s rule" % str(l))
@@ -590,12 +590,12 @@ def main():
 ##	downward union class
 	print("elaborate downward union")
 	Ld = LowerApproximation(DownwardUnionClass, Dominated) # lower approximation of  downward union for type 3 rules
-	Ud = UpperApproximation(DownwardUnionClass,Dominating ) # upper approximation of  downward union 
+	Ud = UpperApproximation(DownwardUnionClass,Dominating ) # upper approximation of  downward union
 	DownwardBoundary = Boundaries(Ud, Ld)
 	QualityOfQpproximation(DownwardBoundary, infosystem)
-	print("RULES extraction (*)") 
+	print("RULES extraction (*)")
 	RULES = Domlem(Lu,Ld, infosystem)
-	Parser_mapcalc(RULES, outputMap)		   
+	Parser_mapcalc(RULES, outputMap)
 	Print_rules(RULES, outputTxt)
 	end = time()
 	print("Time computing-> %.4f s" % (end-start))
