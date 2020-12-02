@@ -228,13 +228,13 @@ def main():
             'product': 'National Elevation Dataset (NED)',
             'dataset': {
                 'ned1sec': (1. / 3600, 30, 100),
-                    'ned13sec': (1. / 3600 / 3, 10, 30),
+                'ned13sec': (1. / 3600 / 3, 10, 30),
                 'ned19sec': (1. / 3600 / 9, 3, 10)
                 },
             'subset': {},
             'extent': [
                 '1 x 1 degree',
-                    '15 x 15 minute'
+                '15 x 15 minute'
                 ],
             'format': 'IMG',
             'extension': 'img',
@@ -248,22 +248,22 @@ def main():
             'product': 'National Land Cover Database (NLCD)',
             'dataset': {
                 'National Land Cover Database (NLCD) - 2001': (1. / 3600, 30, 100),
-                    'National Land Cover Database (NLCD) - 2006': (1. / 3600, 30, 100),
+                'National Land Cover Database (NLCD) - 2006': (1. / 3600, 30, 100),
                 'National Land Cover Database (NLCD) - 2011': (1. / 3600, 30, 100)
                 },
             'subset': {
                 'Percent Developed Imperviousness',
-                    'Percent Tree Canopy',
+                'Percent Tree Canopy',
                 'Land Cover'
                 },
-                'extent': ['3 x 3 degree'],
-                'format': 'GeoTIFF',
-                'extension': 'tif',
-                'zip': True,
-                'srs': 'wgs84',
-                'srs_proj4': "+proj=longlat +ellps=GRS80 +datum=NAD83 +nodefs",
-                'interpolation': 'nearest',
-                'url_split': '/'
+            'extent': ['3 x 3 degree'],
+            'format': 'GeoTIFF',
+            'extension': 'tif',
+            'zip': True,
+            'srs': 'wgs84',
+            'srs_proj4': "+proj=longlat +ellps=GRS80 +datum=NAD83 +nodefs",
+            'interpolation': 'nearest',
+            'url_split': '/'
         },
         "naip": {
             'product': 'USDA National Agriculture Imagery Program (NAIP)',
