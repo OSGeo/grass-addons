@@ -30,25 +30,25 @@ rdigitIcons = {
                             label = _('Delete selected map layer')),
 
     }
-        
+
 class RDigitMapToolbar(BaseToolbar):
     """!RDigit Map toolbar """
 
     def __init__(self, parent):
         """!RDigit Map toolbar constructor"""
         BaseToolbar.__init__(self, parent)
-        
+
         self.InitToolbar(self._toolbarData())
 
         # realize the toolbar
         self.Realize()
-        
+
         self.action = {'id': self.pan }
         self.defaultAction = {'id': self.pan,
                                'bind': self.parent.OnPan }
         self.OnTool(None)
         self.EnableTool(self.zoomBack, False)
- 
+
     def _toolbarData(self):
         """!Toolbar data"""
         icons = BaseIcons
@@ -84,36 +84,36 @@ class RDigitMapManagerToolbar(BaseToolbar):
         """!IClass toolbar constructor
         """
         BaseToolbar.__init__(self, parent)
-        
+
         self.InitToolbar(self._toolbarData())
         self.choice = wx.Choice(parent = self, id = wx.ID_ANY, size = (300, -1))
         self.choiceid = self.AddControl(self.choice)
         self.choice.Bind(wx.EVT_CHOICE, self.OnSelectLayer)
-        
+
         self.mapManager = mapManager
         # realize the toolbar
         self.Realize()
-        
+
     def _toolbarData(self):
         """!Toolbar data"""
         return self._getToolbarData((("addRast", BaseIcons['addRast'],
                                       self.OnAddRast),
                                       ("delRast", rdigitIcons['delCmd'],
                                       self.OnDelRast)))
-                                    
+
     def OnSelectLayer(self, event):
         layer = self.choice.GetStringSelection()
         self.mapManager.SelectLayer(name = layer)
-        
+
     def OnAddRast(self, event):
         dlg = MDialog(self, title = _("Add raster map"), element = 'raster')
         if dlg.ShowModal() == wx.ID_OK:
             raster = grass.find_file(name = dlg.GetMap(), element = 'cell')
             if raster['fullname']:
                 self.mapManager.AddLayer(name = raster['fullname'])
-                
+
         dlg.Destroy()
-        
+
     def OnDelRast(self, event):
         layer = self.choice.GetStringSelection()
         idx = self.choice.GetSelection()

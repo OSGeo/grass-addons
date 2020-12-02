@@ -30,16 +30,16 @@ cls4_wannabe = [11, 17, 24, 39]
 
 #Define Norm of a Vector product
 def prod(v1, v2):
-	return np.sum(np.multiply(v1,v2))
+    return np.sum(np.multiply(v1,v2))
 
 #Define Euclidian Norm of a vector ("L2-norm")
 def l2(v):
-	return np.sqrt((np.multiply(v,v)).sum(axis=0))
+    return np.sqrt((np.multiply(v,v)).sum(axis=0))
 
 
 #Define Spectral Angle (degrees) of a vector pair
 def specangle(v1,v2):
-	return np.arccos(prod(v1,v2)/(l2(v1)*l2(v2)))*180/np.pi
+    return np.arccos(prod(v1,v2)/(l2(v1)*l2(v2)))*180/np.pi
 
 
 #Run for all 4 classes

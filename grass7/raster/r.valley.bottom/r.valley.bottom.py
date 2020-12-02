@@ -130,7 +130,7 @@ def cleanup():
             if len(grass.find_file(f)['fullname']) > 0:
                 grass.run_command(
                     "g.remove", type="raster", name=f, flags="f", quiet=True)
-    
+
     Region.write(current_region)
 
 
@@ -143,12 +143,12 @@ def cell_padding(input, output, radius=3):
         Names of GRASS raster map for input, and padded output
     radius : int
         Radius in which to expand region and grow raster
-    
+
     Returns
     -------
     input_grown : str
         GRASS raster map which has been expanded by radius cells"""
-    
+
     region = Region()
 
     g.region(n=region.north + (region.nsres * radius),
@@ -188,12 +188,12 @@ def focal_expr(radius, window_square=False):
     # generate a list of spatial neighbourhood offsets for the chosen radius
     # ignoring the centre cell
     if window_square:
-        
+
         for i in range(-radius, radius+1):
             for j in range(-radius, radius+1):
                 if (i,j) != (0,0):
                     offsets.append((i, j))
-    
+
     else:
 
         for i in range(-radius, radius+1):
@@ -222,7 +222,7 @@ def get_percentile(L, input, radius=3, window_square=False):
         Neighborhood radius (in pixels)
     window_square : bool. Optional (default is False)
         Boolean to use square or circular neighborhood
-    
+
     Returns
     -------
     PCTL : str
@@ -232,10 +232,10 @@ def get_percentile(L, input, radius=3, window_square=False):
     PCTL = "PCTL{L}".format(L=L+1)
     TMP_RAST[L].append(PCTL)
     input_grown = input
-    
+
     # get offsets for given neighborhood radius
     offsets = focal_expr(radius=radius, window_square=window_square)
-    
+
     # generate grass mapcalc terms and execute
     n_pixels = float(len(offsets))
 
@@ -277,7 +277,7 @@ def get_slope(L, elevation):
 def get_flatness(L, slope, t, p):
     """Calculates the flatness index
     Flatness F1 = 1 / (1 + pow ((slope / t), p)
-    
+
     Equation 2 (Gallant and Dowling, 2003)"""
 
     F = "tmp_F{L}".format(L=L+1) + \
@@ -285,7 +285,7 @@ def get_flatness(L, slope, t, p):
     TMP_RAST[L].append(F)
     grass.mapcalc("$g = 1.0 / (1.0 + pow(($x / $t), $p))",
                    g=F, x=slope, t=t, p=p)
-    
+
     return F
 
 
@@ -293,16 +293,16 @@ def get_prelim_flatness(L, F, PCTL, t, p):
     """Transform elevation percentile to a local lowness value using
     equation (1) and combined with flatness F to produce the preliminary
     valley flatness index (PVF) for the first step.
-    
+
     Equation 3 (Gallant and Dowling, 2003)"""
-    
+
     PVF = "tmp_PVF{L}".format(L=L+1) + \
         ''.join([random.choice(string.ascii_letters + string.digits) for n in range(4)])
     TMP_RAST[L].append(PVF)
 
     grass.mapcalc("$g = $a * (1.0 / (1.0 + pow(($x / $t), $p)))",
                     g=PVF, a=F, x=PCTL, t=t, p=p)
-    
+
     return PVF
 
 
@@ -310,16 +310,16 @@ def get_prelim_flatness_rf(L, F, PCTL, t, p):
     """Transform elevation percentile to a local upness value using
     equation (1) and combined with flatness to produce the preliminary
     valley flatness index (PVF) for the first step
-    
+
     Equation 3 (Gallant and Dowling, 2003)"""
-    
+
     PVF = "tmp_PVF{L}".format(L=L+1) + \
         ''.join([random.choice(string.ascii_letters + string.digits) for n in range(4)])
     TMP_RAST[L].append(PVF)
 
     grass.mapcalc("$g = $a * (1.0 / (1.0 + pow(((1-$x) / $t), $p)))",
                     g=PVF, a=F, x=PCTL, t=t, p=p)
-    
+
     return PVF
 
 
@@ -335,7 +335,7 @@ def get_valley_flatness(L, PVF, t, p):
     TMP_RAST[L].append(VF)
     grass.mapcalc("$g = 1 - (1.0 / (1.0 + pow(($x / $t), $p)))",
                   g=VF, x=PVF, t=t, p=p)
-    
+
     return VF
 
 
@@ -358,13 +358,13 @@ def get_mrvbf(L, VF_Lminus1, VF_L, t):
     TMP_RAST[L].append(MRVBF)
     grass.mapcalc("$MBF = ($W * ($L + $VF)) + ((1 - $W) * $VF1)",
                   MBF=MRVBF, L=L, W=W, VF=VF_L, VF1=VF_Lminus1)
-                
+
     return MRVBF
 
 
 def get_combined_flatness(L, F1, F2):
     """Calculates the combined flatness index
-    
+
     Equation 13 (Gallant and Dowling, 2003)"""
 
     CF = "tmp_CF{L}".format(L=L+1) + \
@@ -377,41 +377,41 @@ def get_combined_flatness(L, F1, F2):
 
 def get_smoothed_dem(L, DEM):
     """Smooth the DEM using an 11 cell averaging filter with gauss weighting of 3 radius"""
-    
+
     smoothed = "tmp_DEM_smoothed_step{L}".format(L=L+1) + \
         ''.join([random.choice(string.ascii_letters + string.digits) for n in range(4)])
     TMP_RAST[L].append(smoothed)
 
     # g = 4.3565 * math.exp(-(3 / 3.0))
     r.neighbors(input=DEM, output=smoothed, size=11, gauss=3)
-    
+
     return smoothed
 
 
 def refine(L, input, region, method='bilinear'):
     """change resolution back to base resolution and resample a raster"""
-    
+
     input_padded = '_'.join(['tmp', input, '_padded']) + \
         ''.join([random.choice(string.ascii_letters + string.digits) for n in range(4)])
     TMP_RAST[L].append(input_padded)
     cell_padding(input=input, output=input_padded, radius=2)
-    
+
     Region.write(region)
     input = '_'.join(['tmp', input, 'refined_base_resolution']) + \
         ''.join([random.choice(string.ascii_letters + string.digits) for n in range(4)])
     TMP_RAST[L].append(input)
 
     if method == 'bilinear':
-       r.resamp_interp(input=input_padded,
-                       output=input,
-                       method="bilinear")
+        r.resamp_interp(input=input_padded,
+                        output=input,
+                        method="bilinear")
 
     if method == 'average':
         r.resamp_stats(input=input_padded,
                        output=input,
                        method='average',
                        flags='w')
-    
+
     return input
 
 
@@ -532,14 +532,14 @@ def main():
     if mrrtf != '':
         grass.message("Calculation of preliminary ridge top flatness index PRF{L}...".format(L=L+1))
         PVF_RF[L] = get_prelim_flatness_rf(L, F[L], PCTL[L], t_pctl_r, p_pctl)
-    
+
     # Calculation of the valley flatness VF for step 2 (Equation 7)
     grass.message("Calculation of valley flatness VF{L}...".format(L=L+1))
     VF[L] = get_valley_flatness(L, PVF[L], t_vf, p_slope)
     if mrrtf != '':
         grass.message("Calculation of ridge top flatness RF{L}...".format(L=L+1))
         VF_RF[L] = get_valley_flatness(L, PVF_RF[L], t_rf, p_slope)
-            
+
     # Calculation of MRVBF for step 2
     grass.message("Calculation of MRVBF{L}...".format(L=L+1))
     MRVBF[L] = get_mrvbf(L, VF_Lminus1=VF[L-1], VF_L=VF[L], t=t_pctl_v)
@@ -571,13 +571,13 @@ def main():
         grass.message(os.linesep)
         grass.message("Step {L}".format(L=L+1))
         grass.message("------")
-        
+
         # Coarsen resolution to resolution of prevous step (step L-1) and smooth DEM
         if L >= 3:
             grass.run_command('g.region', ewres = Xres_step[L-1], nsres = Yres_step[L-1])
             grass.message('Coarsening resolution to ew_res={e} and ns_res={n}...'.format(
                 e=Xres_step[L-1], n=Yres_step[L-1]))
-        
+
         grass.message("DEM smoothing 11 x 11 windows with Gaussian smoothing kernel (sigma) 3...")
         DEM.append(get_smoothed_dem(L, DEM[L-1]))
 
@@ -595,7 +595,7 @@ def main():
         DEM[L] = refine(L, DEM[L], Region(), method = 'average')
         grass.message("Calculation of elevation percentile PCTL{L}...".format(L=L+1))
         PCTL[L] = get_percentile(L, DEM[L], radi, moving_window_square)
-        
+
         # Refine PCTL to base resolution
         grass.message("Resampling PCTL{L} to base resolution...".format(L=L+1))
         PCTL[L] = refine(L, PCTL[L], current_region, method='bilinear')
@@ -614,14 +614,14 @@ def main():
         if mrrtf != '':
             grass.message("Calculate preliminary ridge top flatness index PRF{L} at base resolution...".format(L=L+1))
             PVF_RF[L] = get_prelim_flatness_rf(L, F[L], PCTL[L], t_pctl_r, p_pctl)
-        
+
         # Calculate valley flatness index VF
         grass.message("Calculate valley flatness index VF{L} at base resolution...".format(L=L+1))
         VF[L] = get_valley_flatness(L, PVF[L], t_vf, p_slope)
         if mrrtf != '':
             grass.message("Calculate ridge top flatness index RF{L} at base resolution...".format(L=L+1))
             VF_RF[L] = get_valley_flatness(L, PVF_RF[L], t_rf, p_slope)
-            
+
         # Calculation of MRVBF
         grass.message("Calculation of MRVBF{L}...".format(L=L+1))
         MRVBF[L] = get_mrvbf(L, VF_Lminus1=MRVBF[L-1], VF_L=VF[L], t=t_pctl_v)

@@ -59,7 +59,7 @@ class TestStreamOrder(TestCase):
         self.assertEqual(v.read(4).attrs["network"], 1)
         self.assertEqual(v.read(4).attrs["reversed"], 0)
         self.assertEqual(v.read(4).attrs["strahler"], 4)
-        
+
         v.close()
 
     def test_all(self):
@@ -150,14 +150,14 @@ class TestStreamOrderFails(TestCase):
         self.assertModuleFail("v.stream.order", input="stream_network",
                               output="stream_network_order", threshold=25,
                               order=["strahler", "shreve", "drwal", "scheidegger"])
-                              
+
     def test_error_handling_2(self):
         # No input network
         self.assertModuleFail("v.stream.order",
                               points="stream_network_outlets",
                               output="stream_network_order", threshold=25,
                               order=["strahler", "shreve", "drwal", "scheidegger"])
-                              
+
     def test_error_handling_3(self):
         # No output
         self.assertModuleFail("v.stream.order", input="stream_network",
@@ -165,7 +165,7 @@ class TestStreamOrderFails(TestCase):
                               threshold=25,
                               order=["strahler", "shreve", "drwal", "scheidegger"],
                               overwrite=True, verbose=True)
-                              
+
     def test_error_handling_4(self):
         # Recursion limit is below 1000
         self.assertModuleFail("v.stream.order", input="stream_network",
@@ -174,7 +174,7 @@ class TestStreamOrderFails(TestCase):
                               order=["strahler", "shreve", "drwal", "scheidegger"],
                               recursionlimit=0,
                               overwrite=True, verbose=True)
-                              
+
     def test_error_handling_5(self):
         # Horton order is not implemented
         self.assertModuleFail("v.stream.order", input="stream_network",

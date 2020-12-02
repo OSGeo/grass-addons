@@ -10,7 +10,7 @@ from wfs_base import WFSBase
 class WFSOwsLibDrv(WFSBase):
     def _download(self):
         """!Downloads data from WFS server using OSWlLib driver
-        
+
         @return temp_map with downloaded data
         """
         grass.message(_("Downloading data from WFS server..."))
@@ -21,7 +21,7 @@ class WFSOwsLibDrv(WFSBase):
             query_bbox = self.bbox
 
         wfs = WebFeatureService(url = self.o_url, version= self.o_wfs_version)
-  
+
         try:
             wfs_data = wfs.getfeature(typename = [self.o_layers],
                                        srsname = "EPSG:" + str(self.o_srs),
@@ -34,7 +34,7 @@ class WFSOwsLibDrv(WFSBase):
         grass.debug(url)
 
         temp_map = self._temp()
-                
+
         # download data into temporary file
         try:
             temp_map_opened = open(temp_map, 'w')

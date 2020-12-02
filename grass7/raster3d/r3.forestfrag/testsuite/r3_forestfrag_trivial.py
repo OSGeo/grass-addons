@@ -138,7 +138,7 @@ class TestForestFragTrivial(TestCase):
                        output=self.forest_frag_ref,
                        null_value='N')
         self.to_remove.append(self.forest_frag_ref)
-        
+
 
     def tearDown(self):
         self.del_temp_region()

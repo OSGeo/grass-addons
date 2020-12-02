@@ -93,18 +93,18 @@ def cleanup():
 # test if requirements are present
 def check_requirements():
         # mdenoise
-        if not grass.find_program('mdenoise'):
-            grass.fatal(_("mdenoise required. Follow instructions in html manual page to install it (g.manual r.denoise)."))
+    if not grass.find_program('mdenoise'):
+        grass.fatal(_("mdenoise required. Follow instructions in html manual page to install it (g.manual r.denoise)."))
 
 # Test for projected location
 def check_proj(epsg):
     # check if location is in longlat
     if grass.parse_command('g.proj', flags='j')['+proj'] == 'longlat':
-        # if not projected, check if EPSG code was supplied for reprojection
+    # if not projected, check if EPSG code was supplied for reprojection
         if epsg:
-            # Check if EPSG code exists in database
+        # Check if EPSG code exists in database
             try:
-                 out_proj = pyproj.Proj(init='epsg:'+str(epsg))
+                out_proj = pyproj.Proj(init='epsg:'+str(epsg))
             except RuntimeError:
                 grass.fatal(_("EPSG code is not found. Please check."))
             # With EPSG code, check that it corresponds to a projected locality. # WGS84 LatLong: 4326

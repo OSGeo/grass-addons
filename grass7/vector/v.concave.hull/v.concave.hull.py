@@ -72,7 +72,7 @@ def main():
     input = options['input']
     output = options['output']
     perc = options['threshold']
-    
+
     perc = float(perc) + 90
 
     delaunay = prefix + '_delaunay'
@@ -185,7 +185,7 @@ def main():
     grass.run_command('v.dissolve', input = areas_concave_extr,
                       output = output, col = 'count', layer = '1', quiet = True)
     grass.message(_("Concave hull successfully created"))
-    
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

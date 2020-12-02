@@ -80,25 +80,25 @@ def main():
     ogroup = options['ogroup']
     osub = options['osubgroup']
     osign = options['osignature']
-    
+
     #check if output signature is set
     if not osign:
         osign = isign
 
     gisenv = grass.gisenv()
-    
+
     # try to split input group and mapset
     try:
         name, mapset = igroup.split('@', 1)
     except ValueError:
         name = igroup
         mapset = gisenv['MAPSET']
-    
+
     ipath = os.path.join(gisenv['GISDBASE'], gisenv['LOCATION_NAME'],
                          mapset, name, 'subgroup', isub, 'sig', isign)
     if not os.path.exists(ipath):
         grass.fatal(_("Signature file <{}> does not exist".format(ipath)))
-    
+
     # try to split output group and mapset
     try:
         oname, omapset = ogroup.split('@', 1)

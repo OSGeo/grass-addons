@@ -43,7 +43,7 @@ def main():
     r_easterness = r_elevation+'_easterness'
     r_northerness_slope = r_elevation+'_northerness_slope'
 
-							 
+
     # Calculation of slope and aspect maps
     grass.message("----" )
     grass.message("Calculation of slope and aspect by r.slope.aspect ..." )
@@ -53,7 +53,7 @@ def main():
                                      overwrite = True)
     grass.message("Calculation of slope and aspect done." )
     grass.message("----" )
- 
+
     # Correction aspect angles from cartesian (GRASS default) to compass angles
     #   if((A < 90, 90-A, 360+90-A))
     grass.message("Convert aspect angles from cartesian (GRASS GIS default) to compass angles ..." )
@@ -107,7 +107,7 @@ def main():
 
     grass.message("Color adjustment done." )
     grass.message("----" )
-	
+
     # clean up some temporay files and maps
     grass.message("Some clean up ..." )
     grass.run_command("g.remove", flags="f", type="raster", name= r_slope,

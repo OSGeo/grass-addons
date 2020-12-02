@@ -379,9 +379,9 @@ def main():
                                   mapset='PERMANENT')
         # reproject track
         if flags['t'] and checkEle(curs, 'gpslogs') != 0:
-             grass.run_command('v.proj', quiet=True, input=tracksname,
-                               location='geopaparazzi_%s' % new_loc,
-                               mapset='PERMANENT')
+            grass.run_command('v.proj', quiet=True, input=tracksname,
+                              location='geopaparazzi_%s' % new_loc,
+                              mapset='PERMANENT')
 
 if __name__ == "__main__":
     options, flags = grass.parser()

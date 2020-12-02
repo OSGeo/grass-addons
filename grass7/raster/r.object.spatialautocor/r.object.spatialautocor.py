@@ -60,13 +60,13 @@ import grass.script as gscript
 
 # check requirements
 def check_progs():
-   found_missing = False
-   for prog in ['r.neighborhoodmatrix']:
-       if not gscript.find_program(prog, '--help'):
-           found_missing = True
-           gscript.warning(_("'%s' required. Please install '%s' first using 'g.extension %s'") % (prog, prog, prog))
-   if found_missing:
-       gscript.fatal(_("An ERROR occurred running i.segment.uspo"))
+    found_missing = False
+    for prog in ['r.neighborhoodmatrix']:
+        if not gscript.find_program(prog, '--help'):
+            found_missing = True
+            gscript.warning(_("'%s' required. Please install '%s' first using 'g.extension %s'") % (prog, prog, prog))
+    if found_missing:
+        gscript.fatal(_("An ERROR occurred running i.segment.uspo"))
 
 
 def get_nb_matrix (mapname, diagonal):
@@ -126,13 +126,13 @@ def get_autocorrelation (mapname, raster, neighbordict, method):
         else:
             means[l[0]] = float(l[i])
             mean_diffs[l[0]] = float(l[i]) - global_mean
-    
+
     sum_sq_mean_diffs = sum(x**2 for x in mean_diffs.values())
 
     total_nb_neighbors = 0
     for region in neighbordict:
         total_nb_neighbors += len(neighbordict[region])
-    
+
     N = len(means)
     sum_products = 0
     sum_squared_differences = 0

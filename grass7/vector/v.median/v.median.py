@@ -92,7 +92,7 @@ def main():
         else:
             grass.run_command('v.in.ascii', input=temp_out, output = map_name)
         try_remove(temp_out)
-   
+
 if __name__ == "__main__":
     options, flags = grass.parser()
     sys.exit(main())

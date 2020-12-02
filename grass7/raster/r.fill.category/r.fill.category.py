@@ -103,12 +103,12 @@ def main():
     keepintmaps = False
     if flags['k']:
         keepintmaps = True
-    
+
     # to generate the animation file, intermediate files must be kept
     # they will be removed at the end of the process if the 'k' flag is not set
     if animationfile:
         keepintmaps = True
-    
+
     # check if input file exists
     if not gscript.find_file(input)['file']:
         gscript.fatal(_("Raster map <%s> not found") % input)
@@ -132,14 +132,14 @@ def main():
     stepmap_old = '{}'.format(in_name) + '_step_000'
     gscript.run_command('g.copy', raster='{inmap},{outmap}'.format(inmap=input, outmap=stepmap_old),
             quiet=True, overwrite='t')
-    
+
     gscript.verbose(_("Category to remove: %d") % category)
     gscript.verbose(_("Maxiter: %d") % maxiter)
     gscript.verbose(_("Quality for animation: %d") % quality)
-    
+
     pixel_num = 1
     iteration = 1
-    
+
     # iterate until no pixel of the category to be replaced is left
     # or the maximum number of iterations is reached
     while (pixel_num > 0) and (iteration <= maxiter):
@@ -151,11 +151,11 @@ def main():
         # substitute pixels of the category to remove with the mode of the surrounding pixels
         gscript.run_command('r.neighbors', input=stepmap_old, selection=categorymap,
                     size=nsize, output=stepmap, method='mode', overwrite='true', quiet=True)
-        
+
         # remove intermediate map unless the k flag is set
         if keepintmaps is False:
             gscript.run_command('g.remove', type='raster', name=stepmap_old, flags='f', quiet=True)
-        
+
         # the r.neighbors output map is the input map for the next step
         stepmap_old = stepmap
 
@@ -172,7 +172,7 @@ def main():
         except KeyError as e:
             pixel_num = 0
             # print(e.message)
-        
+
         gscript.verbose(_("Iteration: %d  Remaining pixels: %d") % (iteration, pixel_num) )
 
         iteration = iteration + 1

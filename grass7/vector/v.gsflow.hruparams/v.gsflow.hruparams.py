@@ -208,7 +208,7 @@ def main():
     nhru = np.arange(1, number_of_hrus + 1)
     nhrut = []
     for i in range(len(nhru)):
-      nhrut.append((nhru[i], cats[i]) )
+        nhrut.append((nhru[i], cats[i]) )
     # Access the HRUs
     hru = VectorTopo(HRU)
     # Open the map with topology:
@@ -303,7 +303,7 @@ def main():
     hru_cats = np.array(hru_cats)
     hru_coords = np.array(hru_coords)
     hru.rewind()
-    
+
     hru_area_ids = []
     for coor in hru_coords:
         _area = hru.find_by_point.area(Point(coor[0], coor[1]))
@@ -316,9 +316,9 @@ def main():
         hru_areas.append(_area_id.area())
     hru_areas = np.array(hru_areas)
     hru.rewind()
-      
+
     allcats = sorted(list(set(list(hru_cats))))
-    
+
     # Now create weighted mean
     hru_centroid_locations = []
     for cat in allcats:
@@ -334,7 +334,7 @@ def main():
             _y = np.average(_centroids[:,1], weights=_areas)
             #print _x, _y
             hru_centroid_locations.append(np.array([_x, _y]))
-          
+
     # Now upload weighted mean to database table
     # allcats and hru_centroid_locations are co-indexed
     index__cats = create_iterator(HRU)

@@ -77,7 +77,7 @@ import grass.script as grass
 import tempfile
 import atexit
 import os.path
-  
+
 # env = grass.gisenv()
 # gisdbase = env['GISDBASE']
 # location = env['LOCATION_NAME']

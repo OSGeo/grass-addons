@@ -93,7 +93,7 @@ data
 A_average
 """
         self.assertLooksLike(text, dbcols.outputs.stdout)
-        
+
         dbvals = SimpleModule("v.db.select", map="points")
         self.assertModule(dbvals)
         text = """cat|data|A_average

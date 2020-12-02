@@ -151,7 +151,7 @@ from grass.exceptions import CalledModuleError
 
 class rusle_base(object):
     def __init__(self):
-        
+
         # these variables are information for destructor
         self.temp_files_to_cleanup = []
         self.temp_dirs_to_cleanup = []
@@ -162,8 +162,8 @@ class rusle_base(object):
     def _debug(self, fn, msg):
         g.debug("%s.%s: %s" %
                     (self.__class__.__name__, fn, msg))
-                    
-                    
+
+
     def __del__(self):
         # tries to remove temporary files, all files should be
         # removed before, implemented just in case of unexpected
@@ -171,11 +171,11 @@ class rusle_base(object):
         for temp_file in self.temp_files_to_cleanup:
             g.try_remove(temp_file)
         pass
-    
+
         for temp_dir in self.temp_dirs_to_cleanup:
             g.try_remove(temp_dir)
         pass
-    
+
         if flag_r:
             self.removeTempRasters()
 
@@ -189,13 +189,13 @@ class rusle_base(object):
         temp_file = g.tempfile()
         if temp_file is None:
             g.fatal(_("Unable to create temporary files"))
-        
+
         # list of created tempfiles for destructor
         self.temp_files_to_cleanup.append(temp_file)
         self._debug("_tempfile", "finished")
 
         return temp_file
-            
+
     def _tempdir(self):
         """!Create temp_dir and append list self.temp_dirs_to_cleanup
             with path of file
@@ -212,7 +212,7 @@ class rusle_base(object):
         self._debug("_tempdir", "finished")
 
         return temp_dir
-    
+
     def removeTempRasters(self):
         for tmprast in self.tmp_rast:
             g.message('Removing "%s"' % tmprast)
@@ -228,18 +228,18 @@ class rusle_base(object):
     def rusle(self):
         """!main method in rusle_base
         controlling the whole process, once called by main()
-        
+
         @return soillossbare name of output raster map
         """
-        
+
         flowacc = outprefix + 'flowacc'
         slope  = outprefix + 'slope'
         lsfactor = outprefix + 'lsfactor'
-        
+
         self.tmp_rast.append(flowacc)
         self.tmp_rast.append(slope)
         self.tmp_rast.append(lsfactor)
-        
+
         global fieldblock
         if not fieldblock:
             if fieldblockvect:
@@ -262,7 +262,7 @@ class rusle_base(object):
             g.verbose('Raster map flowacc is in "%s".' %flowacc)
         else:
             g.verbose('Raster map flowacc taken from "%s".' %flowacc)
-            
+
 
         self._getSlope(elevation,slope)
         g.verbose('Raster map slope is in  "%s"' %slope)
@@ -272,10 +272,10 @@ class rusle_base(object):
 
         self._getSoillossbare(lsfactor,kfactor,rfactor,soillossbare)
         g.message('Soilloss for bare soil in map "%s".' % soillossbare)
-        
+
         stats = g.parse_command('r.univar', flags="g", map=soillossbare, delimiter = '=')
         g.message('mean = %s \n stddev = %s \n min = %s \n max = %s' % (stats['mean'],stats['stddev'], stats['min'], stats['max']))
-        
+
         return soillossbare
 
 
@@ -315,13 +315,13 @@ class rusle_base(object):
     def _getLsfac(self,flowacc,slope,lsfactor):
         """! Calculate LS factor
         flowaccumulation and slope are combined to LS-factor
-        
+
         flowacc is uplslope area per unit width (measure of water flow, m²/m2),
         slope in degrees,
         22.1m is the length of standard USLE plot,
         0.09 = 9% = 5.15° ist slope of standard USLE plot,
         m and n are empirical constants
-        
+
         Bemerkung zur Formel: gemäss Mitasova (1999) könnten die Exponenten m=0.2..0.6
         und n=1.0..1.3 an die Gegebenheiten angepasst werden.
         default: m=0.4, n=1.3 (Mitasova)
@@ -337,7 +337,7 @@ class rusle_base(object):
         # /22.13 nach Renard et al. 1997
 
         formula_lsfactor = "$lsfactor = (1+$m)*exp($flowacc * $resolution /22.1,$m)*exp(sin($slope)/0.09,$n)"
-    
+
 
         g.mapcalc(formula_lsfactor, lsfactor = lsfactor, flowacc = flowacc,
                       slope = slope, resolution=resolution,
@@ -374,16 +374,16 @@ class rusle_base(object):
         ])
 
         g.write_command("r.colors",
-    				map = soillossbare,
-    				rules = '-',
-    				stdin = rules,
+                                map = soillossbare,
+                                rules = '-',
+                                stdin = rules,
                         quiet = quiet)
 
         return soillossbare
-        
-   
-        
-    
+
+
+
+
 
 class rusle_flow(rusle_base):
     def _getFlowacc(self,elevation,flowacc,fieldblock):
@@ -399,7 +399,7 @@ class rusle_flow(rusle_base):
 
         else:
             g.run_command('r.flow', elevation = elevation, flowaccumulation = flowacc, quiet=quiet)
-            
+
         return flowacc
 
 
@@ -415,7 +415,7 @@ class rusle_watershed(rusle_base):
             self.tmp_rast.append(elevationfieldblock)
             self._getElevationFieldblock(elevation, fieldblock, elevationfieldblock)
             elevation = elevationfieldblock
-        
+
         g.run_command('r.watershed',
                           flags='a',
                           elevation = elevation,
@@ -443,7 +443,7 @@ class rusle_terraflow(rusle_base):
         for map in ["filled", "direction", "swatershed", "tci"]:
             raster[map] = outprefix + map
             self.tmp_rast.append(raster[map])
-            
+
         statsfile = self._tempfile()
         streamdir  = self._tempdir()
 
@@ -470,7 +470,7 @@ class rusle_terraflow(rusle_base):
 def main():
     '''
     begin main
-    
+
     '''
 
 
@@ -481,11 +481,11 @@ def main():
     global kfactor
     global rfactor
     global resolution
-    
+
     global flowacc
     global fieldblock
     global fieldblockvect
-    
+
     global flag_r
     global quiet
     global options

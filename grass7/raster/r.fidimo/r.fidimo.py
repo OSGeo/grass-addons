@@ -383,7 +383,7 @@ def main():
     #############################################
 
 
- 
+
     ################ Preparation River Raster (Distance-Raster) ################
 
 
@@ -861,7 +861,7 @@ def main():
 
                 # Applying upstream split at network nodes based on inverse shreve stream order
                 grass.debug(_("Applying upstream split at network nodes based on inverse shreve stream order"))
- 
+
                 grass.mapcalc("$upstream_shreve = if($upstream_part, $shreve)",
                             upstream_shreve = "upstream_shreve_tmp_%d" % os.getpid(),
                             upstream_part = "upstream_part_tmp_%d" % os.getpid(),

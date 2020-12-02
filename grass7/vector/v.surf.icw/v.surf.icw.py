@@ -185,7 +185,7 @@ def main():
 
     # Check that we have the column and it is the correct type
     try:
-       coltype = grass.vector_columns(pts_input, layer)[column]
+        coltype = grass.vector_columns(pts_input, layer)[column]
     except KeyError:
         grass.fatal(_("Data column <%s> not found in vector points map <%s>")
                     % (column, pts_input))
@@ -383,7 +383,7 @@ def main():
     grass.message(_("Summation of cost weights ..."))
 
     input_maps = tmp_base + '1by_cost_site_sq.%05d' % 1
-    
+
     global TMP_FILE
     TMP_FILE = grass.tempfile()
     with open(TMP_FILE, 'w') as maplist:

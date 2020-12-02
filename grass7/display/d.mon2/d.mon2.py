@@ -89,7 +89,7 @@ def main():
         if not os.environ.has_key("GRASS_RENDER_WIDTH"):
             print('GRASS_RENDER_WIDTH=%s' % options['width'])
         if not os.environ.has_key("GRASS_RENDER_HEIGHT"):
-           print('GRASS_RENDER_HEIGHT=%s' % options['height'])
+            print('GRASS_RENDER_HEIGHT=%s' % options['height'])
         if flags['c']:
             print('GRASS_RENDER_IMMEDIATE=cairo')
         else:

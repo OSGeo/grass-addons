@@ -278,11 +278,11 @@ def run():
 
     elif flags['a']:
         try:
-                with open(os.path.join(path,filetimewin),'r') as f:
-                    for win in f.read().splitlines():
-                        view = schema+'.%sview' %prefix+win[5:]
+            with open(os.path.join(path,filetimewin),'r') as f:
+                for win in f.read().splitlines():
+                    view = schema+'.%sview' %prefix+win[5:]
 
-                        createVect(win)
+                    createVect(win)
 
         except IOError as e:
             print("I/O error({}): {}".format(e.errno, e))
@@ -297,8 +297,8 @@ def run():
 
 def isTimeValid(time):
 
-        RE = re.compile(r'^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}$')
-        return bool(RE.search(time))
+    RE = re.compile(r'^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}$')
+    return bool(RE.search(time))
 
 def main():
 

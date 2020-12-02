@@ -224,7 +224,7 @@ class HiveCsvTable(HiveBaseTable):
             self.hql += (" ROW FORMAT DELIMITED FIELDS TERMINATED"
                        " BY '%s'" %self.delimeter)
         else:
-             self.hql += ' ROW FORMAT %s' %self.row_format
+            self.hql += ' ROW FORMAT %s' %self.row_format
 
 class HiveSpatial(object):
     """

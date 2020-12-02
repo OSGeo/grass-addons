@@ -119,7 +119,7 @@
 #% required : no
 #%end
 #
- 
+
 import sys
 import atexit
 import grass.script as grass
@@ -271,28 +271,28 @@ def main():
 #    sum_Xcosine = grass.tempfile()
     grass.run_command("r.neighbors",
             input=cosine_x,
-			output='sum_Xcosine',
-			method='sum',
-			size=window,
-			overwrite=True)
+                        output='sum_Xcosine',
+                        method='sum',
+                        size=window,
+                        overwrite=True)
 
     grass.message("Calculating sum of Y direction cosines ..." )
 #    sum_Ycosine = grass.tempfile()
     grass.run_command("r.neighbors",
             input=cosine_y,
-			output='sum_Ycosine',
-			method='sum',
-			size=window,
-			overwrite=True)
+                        output='sum_Ycosine',
+                        method='sum',
+                        size=window,
+                        overwrite=True)
 
     grass.message("Calculating sum of Z direction cosines ..." )
 #    sum_Zcosine = grass.tempfile()
     grass.run_command("r.neighbors",
             input=cosine_z,
-			output='sum_Zcosine',
-			method='sum',
-			size=window,
-			overwrite=True)
+                        output='sum_Zcosine',
+                        method='sum',
+                        size=window,
+                        overwrite=True)
 
 #####################
 # calculate vector strength
@@ -327,7 +327,7 @@ def main():
     grass.message(fisher )
     grass.message("Calculations done." )
     grass.message("----" )
-			
+
 # this "if" condition instructs execution of code contained in this script, *only* if the script is being executed directly
 if __name__ == "__main__": # this allows the script to be used as a module in other scripts or as a standalone script
     options, flags = grass.parser() #

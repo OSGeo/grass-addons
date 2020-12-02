@@ -153,7 +153,7 @@ def main(opts, flgs):
     ECOT = p_bioenergy+' = ('+p_bioenergyHF+' + '+p_bioenergyC+')'
 
     run_command("r.mapcalc", overwrite=ow,expression='yield_pixp = ('+increment+'/'+yield_surface+')*((ewres()*nsres())/10000)')
-       
+
     run_command("r.mapcalc", overwrite=ow,
                 expression=ECOHF % tuple(map(float, (opts['energy_tops_hf'],
                                                      opts['energy_tops_hf'],
@@ -163,7 +163,7 @@ def main(opts, flgs):
     run_command("r.mapcalc", overwrite=ow,expression=ECOCC)
 
     run_command("r.mapcalc", overwrite=ow,expression=ECOT)
-    
+
 
     with RasterRow(p_bioenergy) as pT:
         T = np.array(pT)

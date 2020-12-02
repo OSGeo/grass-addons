@@ -167,7 +167,7 @@ class WCSBase:
         # check if authentication information is complete
         if (self.params['password'] and self.params['username'] == '') or \
            (self.params['password'] == '' and self.params['username']):
-                grass.fatal(_("Please insert both %s and %s parameters or none of them." % ('password', 'username')))
+            grass.fatal(_("Please insert both %s and %s parameters or none of them." % ('password', 'username')))
 
 
         # configure region extent (specified name or current region)
@@ -190,7 +190,7 @@ class WCSBase:
 
             if not grass.find_file(name = reg_spl[0], element = 'windows',
                                    mapset = reg_mapset)['name']:
-                 grass.fatal(_("Region <%s> not found") % opt_region)
+                grass.fatal(_("Region <%s> not found") % opt_region)
 
         if opt_region:
             s = grass.read_command('g.region',
@@ -282,8 +282,8 @@ class WCSBase:
 
         request = Request(url)
         if username and password:
-                    base64string = base64.encodestring('%s:%s' % (username, password)).replace('\n', '')
-                    request.add_header("Authorization", "Basic %s" % base64string)
+            base64string = base64.encodestring('%s:%s' % (username, password)).replace('\n', '')
+            request.add_header("Authorization", "Basic %s" % base64string)
 
         try:
             return urlopen(request)
@@ -416,20 +416,20 @@ class WCSGdalDrv(WCSBase):
 
 
         else:
-                p = grass.start_command('r.in.gdal',
-                         input=self.vrt_file,
-                         output=self.params['output'],
-                         location = self.params['location'],
-                         stdout = grass.PIPE,
-                         stderr=grass.PIPE,
-                         env = env
-                                        )
+            p = grass.start_command('r.in.gdal',
+                     input=self.vrt_file,
+                     output=self.params['output'],
+                     location = self.params['location'],
+                     stdout = grass.PIPE,
+                     stderr=grass.PIPE,
+                     env = env
+                                    )
 
         while p.poll() is None:
             line = p.stderr.readline()
             linepercent = line.replace('GRASS_INFO_PERCENT:','').strip()
             if linepercent.isdigit():
-                #print linepercent
+            #print linepercent
                 grass.percent(int(linepercent),100,1)
             else:
                 grass.verbose(line)

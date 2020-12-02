@@ -264,10 +264,10 @@ def main():
 
     elif edge_detection_algorithm == 'canny':
         if not gscript.find_program('i.edge', '--help'):
-                message = _("You need to install the addon i.edge to use ")
-                message += _("the Canny edge detector.\n")
-                message += _(" You can install the addon with 'g.extension i.edge'")
-                gscript.fatal(message)
+            message = _("You need to install the addon i.edge to use ")
+            message += _("the Canny edge detector.\n")
+            message += _(" You can install the addon with 'g.extension i.edge'")
+            gscript.fatal(message)
 
         kwargs = {'input': inputraster,
                   'output': temp_edge_map,

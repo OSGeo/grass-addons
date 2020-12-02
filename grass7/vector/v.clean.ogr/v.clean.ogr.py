@@ -181,7 +181,7 @@ def main():
     inkey = options['key']
     ingeom = options['geometry']
     listlayers = flags['l']
-    
+
     min_area = options['min_area']
 
     outdsn = options['output']
@@ -216,7 +216,7 @@ def main():
         vopts['key'] = options['key']
     if options['snap']:
         vopts['snap'] = options['snap']
-    
+
     # create temp location from input without import
     grassenv = grass.gisenv()
     tgtloc = grassenv['LOCATION_NAME']
@@ -256,7 +256,7 @@ def main():
                           output=outvect_tmp, overwrite=overwrite, **vopts)
     except CalledModuleError:
         grass.fatal(_("Unable to import OGR datasource <%s>") % indsn)
-    
+
     # remove small areas
     if float(min_area) > 0:
         grass.message(_("Removing small areas in data source <%s>, layer <%s> ...") % (indsn, inlayer))
@@ -265,7 +265,7 @@ def main():
                       type='area', tool='rmarea', threshold=min_area, overwrite=overwrite)
         except CalledModuleError:
             grass.fatal(_("Removing small areas in data source <%s>, layer <%s> failed") % (indsn, inlayer))
-    
+
     # export
     oflags = 'sm'
     if flags['u']:
@@ -298,7 +298,7 @@ def main():
                       overwrite=True)
         except CalledModuleError:
             grass.fatal(_("Unable to export to OGR datasource <%s>") % outdsn)
-    
+
     # switch to target location
     os.environ['GISRC'] = str(tgtgisrc)
 

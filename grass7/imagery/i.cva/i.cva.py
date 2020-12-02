@@ -163,7 +163,7 @@ def main():
     elif stat_threshold:
         #Getting values of mean and standard dev of magnitude to calculate the change detection criteria (> mean + N*stdev)
         univar = grass.read_command('r.univar', map=magnitudemap_name, flags='g')
- 
+
         found = 0
         for line in univar.splitlines():
             name,val = line.split('=')

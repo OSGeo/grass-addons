@@ -42,12 +42,12 @@ def list_layers(dsn):
                              input = dsn)
     if not ret:
         sys.exit(1)
-    
+
     return ret.splitlines()
 
 def make_links(dsn):
     layers = list_layers(dsn)
-    
+
     for layer in layers:
         oname = layer.replace('.', '_')
         grass.message(_("%s\nCreating link for OGR layer <%s> as <%s>...\n%s") %
@@ -57,7 +57,7 @@ def make_links(dsn):
                               input = dsn, layer = layer, output = oname)
         except CalledModuleError:
             grass.warning(_("Unable to create link for OGR layer <%s>") % layer)
-    
+
 def main():
     if flags['l']:
         ret = list_layers(options['input'])
@@ -65,7 +65,7 @@ def main():
         sys.stdout.write(os.linesep)
     else:
         make_links(options['input'])
-    
+
     return 0
 
 if __name__ == "__main__":

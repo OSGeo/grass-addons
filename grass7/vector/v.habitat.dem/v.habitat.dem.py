@@ -155,23 +155,23 @@ def main():
     Xres = current_region['ewres']
     PixelArea = Xres * Yres
     global tmp
- 
+
     ## check if r.geomorphon addon is installed
     if not grass.find_program('r.geomorphon', '--help'):
-            grass.fatal(_("The 'r.geomorphon' addon was not found, install it first:") +
-                        "\n" +
-                        "g.extension r.geomorphon")
+        grass.fatal(_("The 'r.geomorphon' addon was not found, install it first:") +
+                    "\n" +
+                    "g.extension r.geomorphon")
 
     ## check if r.geomorphon addon is installed
     if not grass.find_program('r.sun.hourly', '--help'):
-            grass.fatal(_("The 'r.sun.hourly' addon was not found, install it first:") +
-                        "\n" +
-                        "g.extension r.sun.hourly")
-						
+        grass.fatal(_("The 'r.sun.hourly' addon was not found, install it first:") +
+                    "\n" +
+                    "g.extension r.sun.hourly")
+
     # Region settings
     grass.message("Current region will be saved and extended." )
     grass.message("----" )
-	
+
     # Print and save current region
     grass.message("Current region:" )
     grass.message("n, s, e, w" )
@@ -204,12 +204,12 @@ def main():
     grass.message("n, s, e, w" )
     grass.message([aligned_region[key] for key in "nsew"] )
     grass.message("----" )
-									 
+
     # Extend region
     grass.message("Extend region by" )
     grass.message(regext )
     grass.message("in all directions" )
-	
+
     grass.run_command('g.region', n = Naligned+X,
                                      s = Saligned-X,
                                      e = Ealigned+X,
@@ -217,12 +217,12 @@ def main():
     grass.message("Region extension done." )
 
     extended_region = grass.region()
-	
+
     grass.message("Extended region:" )
     grass.message("n, s, e, w" )
     grass.message([extended_region[key] for key in "nsew"] )
     grass.message("----" )
-	
+
     # Watershed calculation: accumulation, drainage direction, topographic index
     grass.message("Calculation of accumulation, drainage direction, topographic index by r.watershed ..." )
     grass.run_command('r.watershed', elevation = r_elevation,
@@ -234,7 +234,7 @@ def main():
                                      overwrite = True)
     grass.message("Calculation of accumulation, drainage direction, topographic done." )
     grass.message("----" )
-									 
+
     # Calculation of slope and aspect maps
     grass.message("Calculation of slope and aspect by r.slope.aspect ..." )
     grass.run_command('r.slope.aspect', elevation = r_elevation,
@@ -243,7 +243,7 @@ def main():
                                      overwrite = True)
     grass.message("Calculation of slope and aspect done." )
     grass.message("----" )
- 
+
     # Calculate pixel area by nsres x ewres
     grass.message("Pixel area:" )
     grass.message(PixelArea )
@@ -254,7 +254,7 @@ def main():
     grass.run_command("v.db.addcolumn", map = v_habitat,
                                      layer = 1,
                                      columns = "habarea double")
-	
+
     grass.run_command("v.to.db", map = v_habitat,
                                      option = 'area',
                                      layer = 1,
@@ -273,7 +273,7 @@ def main():
                                     where = "habarea < %s" % (PixelArea))
 
     smallareacsv = os.path.join(directory, f_habitat_small_areas )
-									
+
     grass.run_command("v.db.select", map = v_habitat,
                                     flags = 'v',
                                     layer = 1,
@@ -306,7 +306,7 @@ def main():
                                      method = 'minimum,maximum,range,average,median')
     grass.message("Upload DEM zonal statistics done." )
     grass.message("----" )
-	
+
     # Upload slope zonal statistics to the attribute table
     grass.message("Upload slope zonal statistics to the attribute table ..." )
     grass.run_command("v.rast.stats", map = v_habitat,
@@ -342,7 +342,7 @@ def main():
     grass.run_command("db.execute", sql = "UPDATE %s SET %s ='**' WHERE %s < 300 AND %s >= 200" % (v_habitat, prefix+'_check_aspect_range', prefix+'_aspect_range', prefix+'_aspect_range'))
     grass.run_command("db.execute", sql = "UPDATE %s SET %s ='***' WHERE %s >= 300" % (v_habitat, prefix+'_check_aspect_range', prefix+'_aspect_range'))
 
-									 
+
     grass.message("Simple checks regarding aspect range done." )
     grass.message("----" )
 
@@ -407,9 +407,9 @@ def main():
 
     # Join geomorphons to habitat attribute table
     grass.message("Join geomorphon information to habitat attribute table ...." )
-    
+
     habgeocsv = os.path.join(directory, f_habitat_geomorphons)
-	
+
     grass.run_command("r.stats", input = [r_habitat, r_geomorphon],
                                      flags = 'aln',
                                      separator = ';',
@@ -421,11 +421,11 @@ def main():
     grass.run_command("db.dropcolumn", table = t_habitat_geomorphons,
                                      column = 'field_2',
                                      flags = 'f')
-									 
+
     grass.run_command("db.dropcolumn", table = t_habitat_geomorphons,
                                      column = 'field_3',
                                      flags = 'f')
-    								 
+
     habgeocsv_pivot = os.path.join(directory, f_habitat_geomorphons_pivot)
 
     grass.run_command("db.select", separator = ';',
@@ -455,11 +455,11 @@ def main():
     grass.run_command("v.db.addcolumn", map = v_habitat,
                                      layer = 1,
                                      columns = "%s_perc_ridge double precision" % prefix )
-									 
+
     grass.run_command("v.db.addcolumn", map = v_habitat,
                                      layer = 1,
                                      columns = "%s_perc_shoulder double precision" % prefix )
-									 
+
     grass.run_command("v.db.addcolumn", map = v_habitat,
                                      layer = 1,
                                      columns = "%s_perc_spur double precision" % prefix )
@@ -467,7 +467,7 @@ def main():
     grass.run_command("v.db.addcolumn", map = v_habitat,
                                      layer = 1,
                                      columns = "%s_perc_slope double precision" % prefix )
-									 
+
     grass.run_command("v.db.addcolumn", map = v_habitat,
                                      layer = 1,
                                      columns = "%s_perc_hollow double precision" % prefix )
@@ -564,20 +564,20 @@ def main():
     # create and define color rules file for LS factor map
     ls_color_rules_out = os.path.join(directory, f_LS_colorrules )
     with open(ls_color_rules_out, 'w') as f:
-         writer = csv.writer(f)
-         writer.writerow(['0 white'])
-         writer.writerow(['3 yellow'])
-         writer.writerow(['6 orange'])
-         writer.writerow(['10 red'])
-         writer.writerow(['50 magenta'])
-         writer.writerow(['100 violet'])
+        writer = csv.writer(f)
+        writer.writerow(['0 white'])
+        writer.writerow(['3 yellow'])
+        writer.writerow(['6 orange'])
+        writer.writerow(['10 red'])
+        writer.writerow(['50 magenta'])
+        writer.writerow(['100 violet'])
 
     grass.run_command("r.colors", map = r_LS,
                                      rules = ls_color_rules_out)
 
     grass.message("Calculation LS factor done." )
     grass.message("----" )
-	
+
     # Run r.sun.hourly in binary mode for light/shadow
     grass.message("Run r.sun.hourly in binary mode for light/shadow for a certain day in the year ..." )
     grass.run_command("r.sun.hourly", elevation = r_elevation,
@@ -604,13 +604,13 @@ def main():
     grass.run_command("t.info", flags = 'h',
                                      input = r_beam_rad)
     grass.message("----" )
-	
+
     # Set region to original
     grass.message("Restore original region settings:" )
     grass.run_command("g.region", flags = 'p',
                                      region = saved_region)
     grass.message("----" )
-	
+
     # clean up some temporay files and maps
     grass.message("Some clean up ..." )
     grass.run_command("g.remove", flags="f", type="region", name= saved_region)

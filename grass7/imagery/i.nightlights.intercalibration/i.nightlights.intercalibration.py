@@ -409,10 +409,10 @@ def main():
                 g.message(msg)
 
             except CalledModuleError:
-                    grass.fatal(_('\n|* Timestamp is missing! '
-                    'Please add one to the input map if further times series '
-                    'analysis is important. '
-                    'If you don\'t need it, you may use the -t flag.'))
+                grass.fatal(_('\n|* Timestamp is missing! '
+                'Please add one to the input map if further times series '
+                'analysis is important. '
+                'If you don\'t need it, you may use the -t flag.'))
 
         else:
             grass.warning(_('As requested, timestamp transferring not attempted.'))

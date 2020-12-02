@@ -115,7 +115,7 @@ def main():
     calibration_column = options['calibration_column']
     bisquare = flags['b']
     fixed_GWR = flags['f']
-    
+
     res = g.parse_command('g.region', raster=Green, flags='g')
     g.run_command('v.to.rast', input=Calibration_points, type='point',
                   use='attr', attribute_column=calibration_column,

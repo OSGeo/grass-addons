@@ -151,7 +151,7 @@ if __name__ == "__main__":
     print ('Testing classes for calibration models for DMSP-OLS NightTime '
            'Lights Time Series')
     print
-    
+
     # uncomment to test
     test_model('ELVIDGE2009')
     test_model('ELVIDGE2014')

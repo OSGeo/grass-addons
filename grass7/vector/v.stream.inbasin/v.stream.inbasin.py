@@ -18,7 +18,7 @@
 #
 # REQUIREMENTS:
 #      -  uses inputs from v.stream.network
- 
+
 # More information
 # Started 14 October 2016
 
@@ -121,7 +121,7 @@ def find_upstream_segments(cats, tostream, cat):
     Find segments immediately upstream of the given one
     """
     pass
-    
+
 
 def main():
     """
@@ -129,9 +129,9 @@ def main():
     network by referencing its category (cat) number in a new column. "0"
     means that the river exits the map.
     """
-    
+
     options, flags = gscript.parser()
-    
+
     streams = options['input_streams']
     basins = options['input_basins']
     downstream_cat = options['cat']
@@ -142,10 +142,10 @@ def main():
     output_pour_point = options['output_pour_point']
     draindir = options['draindir']
     snapflag = flags['s']
-    
+
     #print options
     #print flags
-    
+
     # Check that either x,y or cat are set
     if (downstream_cat != '') or ((x_outlet != '') and (y_outlet != '')):
         pass
@@ -196,11 +196,11 @@ def main():
             for ucat in tmp:
                 most_upstream_cats += list(cats[tostream == int(ucat)])
                 basincats += most_upstream_cats
-                
+
         basincats = list(set(list(basincats)))
 
         basincats_str = ','.join(map(str, basincats))
-        
+
         # Many basins out -- need to use overwrite flag in future!
         #SQL_OR = 'rnum = ' + ' OR rnum = '.join(map(str, basincats))
         #SQL_OR = 'cat = ' + ' OR cat = '.join(map(str, basincats))

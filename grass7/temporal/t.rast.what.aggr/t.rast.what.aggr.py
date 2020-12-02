@@ -195,7 +195,7 @@ def main(options, flags):
             except CalledModuleError:
                 gscript.fatal(_("Not possible to create column "
                                 "{col}".format(col=colname)))
-                             
+
     if output != '-' and len(cols) != len(mets):
         gscript.fatal(_("'columns' and 'method' options must have the same "
                         "number of elements"))
@@ -253,7 +253,7 @@ def main(options, flags):
         qfeat = pymod.Module("v.category", stdout_=PI, stderr_=PI,
                              input=invect, option='print')
         myfeats = qfeat.outputs["stdout"].value.splitlines()
-    
+
     if stdout:
         outtxt = ''
     for data in mydates:

@@ -72,7 +72,7 @@ def main():
     fpointscsv_export = prefix+'_segmentpoints.csv'
     fpoints = prefix+'_segmentpoints.txt'
     global tmp
-	
+
     # Extract vector line
     grass.message("Extract vector line for which segment points should be calculated ..." )
     grass.run_command('v.extract', input = vlines,
@@ -112,10 +112,10 @@ def main():
     grass.message("Vector line length in meter:" )
     grass.message(vector_line_length )
     grass.message("----" )
-	
+
     # Calculation number of segment points (start and end point included)
     # number of segment points without end point
-    
+
     number_segmentpoints_without_end = math.floor(vector_line_length / float(sdistance) )
 
     number_segmentpoints_with_end = int(number_segmentpoints_without_end + 2)
@@ -123,7 +123,7 @@ def main():
     grass.message("Number of segment points (start and end point included):" )
     grass.message(number_segmentpoints_with_end )
     grass.message("----" )
-	
+
     segmentpointsrange_without_end = range(1, number_segmentpoints_with_end, 1)
     max_distancerange = float(sdistance) * number_segmentpoints_with_end
     distancesrange_without_end = range(0, int(max_distancerange), int(sdistance))
@@ -133,7 +133,7 @@ def main():
     segment_points_file = os.path.join(directory, fpoints )
     file = open(segment_points_file, 'a')
     for f, b in zip(segmentpointsrange_without_end, distancesrange_without_end):
-                                     file.write("P %s %s %s\n" % (f, vcat, b))
+        file.write("P %s %s %s\n" % (f, vcat, b))
     file.close()
 
     file = open(segment_points_file, 'a')
@@ -161,7 +161,7 @@ def main():
     grass.run_command("v.db.addcolumn", map = voutpoint,
                                      layer = 1,
                                      columns = "xcoor double,ycoor double")
-	
+
     grass.run_command("v.to.db", map = voutpoint,
                                      option = 'coor',
                                      layer = 1,
@@ -169,7 +169,7 @@ def main():
 
     grass.message("Coordinates added." )
     grass.message("----" )
-	
+
     # join point segment file data to point vector
     grass.message("Join distance information to segment point vector ..." )
     segment_points_file_csv = os.path.join(directory, fpointscsv )
@@ -189,7 +189,7 @@ def main():
 
     grass.run_command("db.droptable", table = 't_segmentpoints_csv',
                                      flags = 'f')
-									 
+
     grass.run_command("v.db.addcolumn", map = voutpoint,
                                      layer = 1,
                                      columns = "cat_2 integer,distance double,cat_line integer")
@@ -198,15 +198,15 @@ def main():
     grass.run_command("db.execute", sql = "UPDATE %s SET distance =  field_4" % (voutpoint))
     grass.run_command("db.execute", sql = "UPDATE %s SET cat_line =  %d" % (voutpoint, int(vcat)))
     grass.run_command("db.execute", sql = "UPDATE %s SET distance =  %s WHERE cat = %s" % (voutpoint, vector_line_length, number_segmentpoints_with_end))
-	
+
     grass.run_command("db.dropcolumn", table = voutpoint,
                                      column = 'field_2',
                                      flags = 'f')
-									 
+
     grass.run_command("db.dropcolumn", table = voutpoint,
                                      column = 'field_4',
                                      flags = 'f')
-	
+
     grass.message("Distance information added to attribute table." )
     grass.message("----" )
 
@@ -218,7 +218,7 @@ def main():
     grass.run_command("db.out.ogr", input = voutpoint,
                                      output = '%s' % (csv_to_export),
                                      format = 'CSV')
-	
+
     grass.message("Export done." )
     grass.message("----" )
 

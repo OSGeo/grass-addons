@@ -61,7 +61,7 @@ except:
         if not os.environ.has_key("GISBASE"):
             print("You must be in GRASS GIS to run this program.")
             sys.exit(1)
-        
+
 
 def cleanup():
     nuldev = file(os.devnull, 'w')
@@ -79,7 +79,7 @@ def main():
     if not grass.find_file(inmap, element = 'vector')['file']:
         grass.fatal(_("<%s> does not exist.") % inmap)
 
-    
+
     out_split = 'v_explode' + '_' + 'split'
     grass.run_command('v.split', input_ = inmap, vertices = 2,
                           out = out_split, quiet = True, stderr = nuldev)
@@ -88,7 +88,7 @@ def main():
                       output = out_catdel, quiet = True, stderr = nuldev)
     grass.run_command('v.category', input_ = out_catdel, opt = 'add',
                       output = outmap, quiet = True, stderr = nuldev)
-    
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

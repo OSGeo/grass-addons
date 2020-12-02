@@ -41,7 +41,7 @@ import menuform
 class ImgPanel(wx.Panel):
     """!Display selected image in the main window
     """
-    
+
     def __init__(self, parent, img):
         """"""
         wx.Panel.__init__(self, parent)
@@ -51,12 +51,12 @@ class ImgPanel(wx.Panel):
         self.sizer.Add(self.staticBitmap, 1, wx.EXPAND)
         self.SetSizer(self.sizer)
         self.sizer.Layout()
-        
+
 
 
 class ListImg(wx.Listbook):
     """!Load png files *from current folder* and convert to bitmap"""
-    
+
     def __init__(self, parent):
         """"""
         wx.Listbook.__init__(self, parent, style=wx.BK_BOTTOM)
@@ -72,12 +72,12 @@ class ListImg(wx.Listbook):
             self.pages.append(ImgPanel(self, bmp))
             self.AddPage(self.pages[-1], "", imageId=imID)
         self.AssignImageList(self.ImL)
-            
+
         # Binders
         self.Bind(wx.EVT_LISTBOOK_PAGE_CHANGED, self.OnPageChanged)
         self.Bind(wx.EVT_LISTBOOK_PAGE_CHANGING, self.OnPageChanging)
-        
-    
+
+
     def OnPageChanged(self, event):
         old = event.GetOldSelection()
         new = event.GetSelection()
@@ -100,7 +100,7 @@ class ImgFrame(wx.Frame):
 
     def __init__(self, pat):
         """"""
-       
+
         wx.Frame.__init__(self, None, wx.ID_ANY,
                           "Image Viewer",
                           size=(800,600)

@@ -518,7 +518,7 @@ def main():
                 mainchannel_slope = sum(pendenze) / len(pendenze) * 100
             except:
                 pass
-            
+
         # Elongation Ratio
         R_al = (2 * math.sqrt(area_basin / math.pi) ) / mainchannel
 
@@ -831,7 +831,7 @@ def main():
         grass.message("An ERROR occurred running r.basin" )
         grass.message("Please check for error messages above or try with another pairs of outlet coordinates" )
 
-    
+
     # Set region to original
     grass.read_command('g.region', flags = 'p', region = 'original')
     grass.run_command('g.remove', flags = 'f', type = 'region', name = 'original')

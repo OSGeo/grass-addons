@@ -68,7 +68,7 @@ def E_hydro(delta, Q):
     gross head m
     """
     if Q and delta:
-            return max((delta * 9.81 * Q), 0)
+        return max((delta * 9.81 * Q), 0)
     else:
         return 0.0
 

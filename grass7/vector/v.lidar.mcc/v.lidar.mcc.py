@@ -128,13 +128,13 @@ def main():
 
     # Count points in input map
     n_input = grass.vector_info(input)['points']
-    
+
     # does map contain points ?
     if not (n_input > 0 ):
         grass.fatal(_("Vector map <%s> does not contain points") % input)
 
     flag_n = flags['n']
-    
+
     ### Scale domain (l)
     # Evans & Hudak 2007 used scale domains 1 to 3
     l = int(1)
@@ -147,26 +147,26 @@ def main():
     t = float(options['t'])
     ###Increase of curvature tolerance threshold for each
     ti = t / 3.0
-    
+
     ### Convergence threshold (j)
     # Evans & Hudak 2007 used a convergence threshold of 0.3
     j = float(options['j'])
     if (j <= 0 ):
         grass.fatal("The convergence threshold has to be > 0.")
-    
+
     ### Tension parameter (f)
     # Evans & Hudak 2007 used a tension parameter 1.5
     f = float(options['f'])
     if (f <= 0 ):
         grass.fatal("The tension parameter has to be > 0.")
-    
+
     ### Spline steps parameter (s)
     # Evans & Hudak 2007 used the 12 nearest neighbors
     # (used spline steps $res * 5 before)
     s = int(options['s'])
     if (s <= 0 ):
         grass.fatal("The spline step parameter has to be > 0.")
-    
+
     ###Read desired resolution from region
     #Evans & Hudak 2007 used a desired resolution (delta) of 1.5
     gregion = grass.region()
@@ -175,7 +175,7 @@ def main():
 
     # Defineresolution steps in iteration
     n_res_steps = (l_stop + 1 ) / 2
-        
+
     # Pass ame of input map to v.outlier
     nc_points = input
 
@@ -202,12 +202,12 @@ def main():
             xres = x_res_fin / (n_res_steps - (l - 1 ) )
             yres = y_res_fin / (n_res_steps - (l - 1 ) )
         elif (l == ((l_stop + 1 ) / 2 ) ):
-             xres = x_res_fin
-             yres = y_res_fin
+            xres = x_res_fin
+            yres = y_res_fin
         else:
             xres = x_res_fin * ((l + 1 ) - n_res_steps )
             yres = y_res_fin * ((l + 1 ) - n_res_steps )
-        
+
         grass.use_temp_region()
         grass.run_command("g.region", s=gregion['s'], w=gregion['w'], nsres=yres, ewres=xres, flags="a")
         xs_s = xres * s
@@ -229,7 +229,7 @@ def main():
                     ew_step=xs_s, ns_step=ys_s, lambda_=f, threshold=t,
                     filter='negative',
                     overwrite=True, quiet=True, stderr=nuldev)
-            
+
             # Get information about results for calculating convergence level
             ng = grass.vector_info(temp_ng)['points']
             nc = n_input - ng
@@ -264,7 +264,7 @@ def main():
         l = l + 1
         # Delete temporary region
         grass.del_temp_region()
-    
+
     # Rename temporary map of points whichhave not been classified as non-ground to output vector map containing ground points
     grass.run_command("g.rename", vector = nc_points + "," + g_output, quiet = True, stderr = nuldev )
 

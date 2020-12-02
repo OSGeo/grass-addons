@@ -547,12 +547,12 @@ def main(opt, flg):
 
     # Append the SVC classifier
     if opt['svc_c'] and opt['svc_gamma']:
-            from sklearn.svm import SVC
-            svc = {'name': 'SVC', 'classifier': SVC,
-                   'kwargs': {'C': float(opt['svc_c']),
-                              'gamma': float(opt['svc_gamma']),
-                              'kernel': opt['svc_kernel']}}
-            classifiers.append(svc)
+        from sklearn.svm import SVC
+        svc = {'name': 'SVC', 'classifier': SVC,
+               'kwargs': {'C': float(opt['svc_c']),
+                          'gamma': float(opt['svc_gamma']),
+                          'kernel': opt['svc_kernel']}}
+        classifiers.append(svc)
 
     # extract classifiers from pyindx
     if opt['pyindx']:
@@ -705,7 +705,7 @@ def main(opt, flg):
 
         import pickle
         with open('classification_results.pkl', 'w') as res:
-              pickle.dump(classifiers, res)
+            pickle.dump(classifiers, res)
         #classifiers = pickle.load(res)
         msgr.message("Export the results to layer: <%s>" % str(rlayer))
         export_results(vect, classifiers, cats, rlayer, vtraining, tcols,

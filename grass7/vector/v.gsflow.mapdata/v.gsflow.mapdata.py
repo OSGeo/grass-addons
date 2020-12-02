@@ -19,7 +19,7 @@
 #
 # REQUIREMENTS:
 #      -  uses inputs from r.stream.extract
- 
+
 # More information
 # Started December 2016
 
@@ -129,7 +129,7 @@ def main():
     ##################
 
     options, flags = gscript.parser()
-    
+
     # Parsing
     if options['attrtype'] == 'int':
         attrtype = 'integer'
@@ -139,11 +139,11 @@ def main():
         attrtype = 'varchar'
     else:
         attrtype = ''
-    
+
     ########################################
     # PROCESS AND UPLOAD TO DATABASE TABLE #
     ########################################
-    
+
     if options['vector_area'] is not '':
         gscript.use_temp_region()
         g.region(vector=options['map'], res=options['dxy'])
@@ -200,7 +200,7 @@ def main():
                             to=options['vector_points'],
                             upload='to_attr', to_column=options['from_column'],
                             column=options['column'], quiet=True)
-    
+
     elif options['raster'] is not '':
         try:
             gscript.message("Checking for existing column to overwrite")

@@ -41,8 +41,8 @@ class TestSpread(TestCase):
         # TODO: eventually, removing maps should be handled through testing framework fucntions
         cls.runModule('g.remove', flags='f', type='raster',
                       pattern='average*,single*,stddev*,probability*,dead*')
-                     
-                      
+
+
     def test_outputs(self):
         start = '2019-01-01'
         end = '2022-12-31'

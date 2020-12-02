@@ -62,7 +62,7 @@ class ssh_session:
 
     def __exec(self, command):
         """Execute a command on the remote host. Return the output."""
-        
+
         child = spawn(command  # , timeout=10
                       )
         if self.verbose:
@@ -94,35 +94,35 @@ class ssh_session:
         return child.before
 
     def ssh(self, command):
-	"""Function to launch command with ssh"""
+        """Function to launch command with ssh"""
         return self.__exec("ssh -Y -l %s %s \"%s\"" % (self.user,self.host,command))
 
     def scp(self, src, dst):
-	"""Function to move data from client to server"""
+        """Function to move data from client to server"""
         return self.__exec("scp %s %s@%s:%s" % (src, self.user, self.host, dst))
 
     def pcs(self, src, dst):
-	"""Function to move data from server to client"""
+        """Function to move data from server to client"""
         return self.__exec("scp %s@%s:%s %s" % (self.user, self.host, src, dst))
 
     def add(self):
-	"""Function to launch ssh-add"""
-	sess = self.__exec("ssh-add")
-	if sess.find('Could not open') == -1:
-	    return 0
-	else:
-	    self.openagent = True
-	    proc = subprocess.Popen(['ssh-agent', '-s'], stdout=subprocess.PIPE)
-	    output = proc.stdout.read()
-	    vari = output.split('\n')
-	    sshauth = vari[0].split(';')[0].split('=')
-	    sshpid = vari[1].split(';')[0].split('=')
-	    os.putenv(sshauth[0],sshauth[1])
-	    os.putenv(sshpid[0],sshpid[1])
-	    self.add()
+        """Function to launch ssh-add"""
+        sess = self.__exec("ssh-add")
+        if sess.find('Could not open') == -1:
+            return 0
+        else:
+            self.openagent = True
+            proc = subprocess.Popen(['ssh-agent', '-s'], stdout=subprocess.PIPE)
+            output = proc.stdout.read()
+            vari = output.split('\n')
+            sshauth = vari[0].split(';')[0].split('=')
+            sshpid = vari[1].split(';')[0].split('=')
+            os.putenv(sshauth[0],sshauth[1])
+            os.putenv(sshpid[0],sshpid[1])
+            self.add()
 
     def close(self):
-	"""Close connection"""
-	if self.openagent:
-	    subprocess.Popen(['ssh-agent', '-k'], stdout=subprocess.PIPE )
+        """Close connection"""
+        if self.openagent:
+            subprocess.Popen(['ssh-agent', '-k'], stdout=subprocess.PIPE )
         return self.f.close()

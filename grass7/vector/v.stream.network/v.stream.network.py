@@ -19,7 +19,7 @@
 #
 # REQUIREMENTS:
 #      -  uses inputs from r.stream.extract
- 
+
 # More information
 # Started 14 October 2016
 
@@ -128,7 +128,7 @@ def main():
         if type(row) == vector.geometry.Line:
             points_in_streams.append(row)
     """
-    
+
     # 3. Coordinates of points: 1 = start, 2 = end
     try:
         streamsTopo.table.columns.add(x1,'double precision')

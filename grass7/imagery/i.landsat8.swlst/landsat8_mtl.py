@@ -45,7 +45,7 @@ class Landsat8_MTL():
         """
         # read lines
         with open(mtl_filename, 'r') as mtl_file:
-                mtl_lines = mtl_file.readlines()
+            mtl_lines = mtl_file.readlines()
 
         # close and remove 'mtl_file'
         mtl_file.close()

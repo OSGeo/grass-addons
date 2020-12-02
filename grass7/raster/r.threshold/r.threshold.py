@@ -47,21 +47,21 @@ import grass.script as grass
 
 def main():
     stats = grass.read_command('r.stats', input = options['acc'], separator = 'space', nv = '*', nsteps = '1000', flags = 'Anc').split('\n')[:-1]
-    
+
     mappatella = np.zeros((len(stats),3),float)
-    
+
     # mappatella is a matrix, in the first column the value of upslope area is stored,
     # in the second the number of cells, in the third the distance from origin is calculated
-    
+
     for i in range(len(stats)):
         mappatella[i,0], mappatella[i,1] = map(float, stats[i].split(' '))
         # calculating distance from origin of each point; origin of the plot is in low left point
         mappatella[i,2] = math.sqrt((mappatella[i,0]**2) + (mappatella[i,1]**2))
-    
+
     area = mappatella[:,0]
     num_cells = mappatella[:,1]
     distance = mappatella[:,2]
-    
+
     index = np.where(distance == min(distance))
     th = area[index]
 

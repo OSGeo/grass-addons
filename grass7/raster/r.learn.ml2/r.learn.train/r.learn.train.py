@@ -453,7 +453,7 @@ def main():
 
     try:
         import pandas as pd
-        
+
     except ImportError:
         gs.fatal("Package python3-pandas 0.25 or newer is not installed")
 
@@ -576,7 +576,7 @@ def main():
             y = y.flatten()
 
             with RasterRow(training_map) as src:
-                
+
                 if mode == "classification":
                     src_cats = {v: k for (k, v, m) in src.cats}
                     class_labels = {k:k for k in np.unique(y)}
@@ -587,7 +587,7 @@ def main():
         elif training_points != "":
             X, y, cat = stack.extract_points(training_points, field)
             y = y.flatten()
-            
+
             if y.dtype in (np.object_, np.object):
                 from sklearn.preprocessing import LabelEncoder
                 le = LabelEncoder()

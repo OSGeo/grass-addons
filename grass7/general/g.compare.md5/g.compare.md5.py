@@ -124,7 +124,7 @@ def checkmd5(a,b,shell):
     # one file exists and the other not, this is not good result
     else:
         # if some files could be not exist add here other elif condition
-            return 0
+        return 0
 
 def main():
     # check if we are in grass
@@ -163,7 +163,7 @@ def main():
     if typ == "raster":
         # for each folder
         for fold in raster_folder:
-            # create the path to folder
+        # create the path to folder
             apath = os.path.join(aloc,fold,ainp['name'])
             bpath = os.path.join(bloc,fold,binp['name'])
             # if folder is cell_misc it check the into files inside cell_misc folder

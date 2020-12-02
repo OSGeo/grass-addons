@@ -333,8 +333,8 @@ def main():
         # Export the data to csv file and remove temporary file
         if flag_e:
             if flag_h and i == 0:
-                    grass.run_command("v.db.select", map=specname,
-                              columns='*', separator=",", file=bgrtmp, quiet=True)
+                grass.run_command("v.db.select", map=specname,
+                          columns='*', separator=",", file=bgrtmp, quiet=True)
             else:
                 grass.run_command("v.db.select", flags='c', map=specname,
                               columns='*', separator=",", file=bgrtmp, quiet=True)
@@ -358,7 +358,7 @@ def main():
 
     # Remove temporary text files
     for m in filenames:
-       os.remove(m)
+        os.remove(m)
 
 
 if __name__ == "__main__":

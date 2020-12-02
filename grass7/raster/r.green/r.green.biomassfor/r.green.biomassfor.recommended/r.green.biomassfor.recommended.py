@@ -172,7 +172,7 @@ def main(opts, flgs):
                 run_command("r.null", map=mapr, null=0)
             count_map += 1
         expr_map += ")"
-        
+
     #if the river buffer is inserted add calculate the buffer and
     # add the buffer to the constraint map
     if buffer_hydro > 0:
@@ -202,7 +202,7 @@ def main(opts, flgs):
         run_command("r.mapcalc", overwrite=ow,expression=expr_map)
         run_command("r.mapcalc", overwrite=ow, expression="constraint=constraint<1")
         run_command("r.null", map="constraint", null=0)
-        
+
         constr_HF = rec_bioenergyHF+"="+rec_bioenergyHF+"*constraint"
         constr_C = rec_bioenergyC+"="+rec_bioenergyC+"*constraint"
 

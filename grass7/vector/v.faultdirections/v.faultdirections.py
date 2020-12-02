@@ -66,7 +66,7 @@ def main():
                                      column=column,
                                      flags='c').splitlines():
         azimuth.append(float(line))
-   
+
     bins = 360/step
     az_bins = np.histogram(azimuth, bins=bins, range=(0,360))
     if flags['a']:

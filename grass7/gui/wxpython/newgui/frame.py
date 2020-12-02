@@ -38,10 +38,10 @@ class MyFrame(MySingleMapFrame):
         """
         #self.Map = Map()
         #self.giface = giface
-        
+
         MySingleMapFrame.__init__(self, parent = parent, title = title, size = size, name = name, **kwargs)
-       
-        
+
+
         self.cmd = ["d.rast", "map=aspect@PERMANENT"]
         self.rlayer = MapLayer(ltype = 'raster', cmd = self.cmd, Map = self.GetMap(), name = "elevation")
         self.AddLayer(self.rlayer)
@@ -53,7 +53,7 @@ class MyFrame(MySingleMapFrame):
         self.AddToolBarItem(ToolBarNames.ADDVECTOR,self.dummyfunc)
         #print self.GetLayerByIndex(0).name
         #print self.GetCurrentIndex()
-        
+
     def dummyfunc(self,event):
         xx = 1
         print xx
@@ -61,7 +61,7 @@ class MyFrame(MySingleMapFrame):
 def main():
 
     gettext.install('grasswxpy', os.path.join(os.getenv("GISBASE"), 'locale'), unicode = True)
-    
+
     app = wx.PySimpleApp()
     wx.InitAllImageHandlers()
     frame = MyFrame()

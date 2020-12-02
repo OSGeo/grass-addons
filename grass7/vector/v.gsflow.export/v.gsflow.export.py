@@ -17,7 +17,7 @@
 #
 # REQUIREMENTS:
 #      -  uses inputs from the v.gsflow series
- 
+
 # More information
 # Started December 2016
 
@@ -163,14 +163,14 @@ def main():
     HRUs = options['hru_input']
     pour_point = options['pour_point_input']
     bc_cell = options['bc_cell_input']
-    
+
     # Output
     out_reaches = options['reaches_output']
     out_segments = options['segments_output']
     out_gravity_reservoirs = options['gravres_output']
     out_HRUs = options['hru_output']
     out_pour_point_boundary = options['pour_point_boundary_output']
-    
+
     ##############
     # PROCESSING #
     ##############

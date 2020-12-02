@@ -8,7 +8,7 @@ from wfs_base import WFSBase
 class WFSDrv(WFSBase):
     def _download(self):
         """!Downloads data from WFS server
-        
+
         @return temp_map with downloaded data
         """
         grass.message(_("Downloading data from WFS server..."))
@@ -27,19 +27,19 @@ class WFSDrv(WFSBase):
 
             url += "&BBOX=%s,%s,%s,%s" % \
                    (query_bbox['minx'], query_bbox['miny'], query_bbox['maxx'], query_bbox['maxy'])
-        
+
         if self.o_maximum_features:
             url += '&MAXFEATURES=' + str(self.o_maximum_features)
 
         if self.o_urlparams != "":
             url += "&" + self.o_urlparams
-        
+
         grass.debug(url)
         try:
             wfs_data = urlopen(url)
         except IOError:
             grass.fatal(_("Unable to fetch data from server"))
-        
+
         temp_map = self._temp()
 
         # download data into temporary file

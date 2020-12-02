@@ -44,7 +44,7 @@ def loadConfigFile(self):
             self.name_url_delimiter = '#'
             self.timeoutValueSeconds = 5
             self.urlLength = 50
-            
+
         return True
     except:
         return False

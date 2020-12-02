@@ -34,31 +34,31 @@ except ImportError:
     pass
 
 class RasterObject:
-  def __init__(self,cat,coords,ft):
-    self.catId = cat
-    self.coords = coords
-    self.ftype = ft
+    def __init__(self,cat,coords,ft):
+        self.catId = cat
+        self.coords = coords
+        self.ftype = ft
 
 class IRDigit:
     def __init__(self, mapwindow):
         """!Base class for vector digitizer (ctypes interface)
-        
+
         @param mapwindow reference for map window (BufferedWindow)
         """
         self.mapWindow = mapwindow
         self.objects = list()
         self.toolbar = mapwindow.parent.toolbars['rdigit']
         self.polyfile = tempfile.NamedTemporaryFile(delete=False)
-        
+
         Debug.msg(2, "IRDigit.__init__() %s ", self.polyfile.name)
- 
+
         self.cat = 1
         self.saveMap = True
         self.outputName = None
-        
+
     def __del__(self):
         Debug.msg(1, "IRDigit.__del__()")
-        
+
         if self.saveMap:
             for obj in self.objects:
                 if obj.ftype == GV_BOUNDARY:
@@ -74,7 +74,7 @@ class IRDigit:
                         east, north = coor
                         locbuf = " %s %s\n" % (east,north)
                         self.polyfile.write(locbuf);
-                        
+
                 catbuf = "=%d a\n" % (obj.catId)
                 self.polyfile.write(catbuf);
 
@@ -82,29 +82,29 @@ class IRDigit:
             region_settings = grass.parse_command('g.region', flags = 'p', delimiter = ':')
             RunCommand('r.in.poly', input=self.polyfile.name,
                                     rows=region_settings['rows'], output=self.getOutputName(),overwrite=True)
-            
+
             os.unlink(self.polyfile.name)
 
     def setOutputName(self, name):
-      if name:
-        self.outputName = name
+        if name:
+            self.outputName = name
 
     def getOutputName(self):
-      return self.outputName
+        return self.outputName
 
     def DeleteArea(self, cat):
-      self.objectsCopy = self.objects
-      self.objects = []
-      for obj in self.objectsCopy:
-        if obj.catId != cat:
-          self.objects.append(obj)
-    
+        self.objectsCopy = self.objects
+        self.objects = []
+        for obj in self.objectsCopy:
+            if obj.catId != cat:
+                self.objects.append(obj)
+
     def AddFeature(self, ftype, points):
         """!Add new feature
-        
+
         @param ftype feature type (point, line, centroid, boundary)
         @param points tuple of points ((x, y), (x, y), ...)
-        
+
         @return tuple (number of added features, feature ids)
         """
         if ftype == 'point':
@@ -121,13 +121,13 @@ class IRDigit:
             GError(parent = self.mapWindow,
                    message = _("Unknown feature type '%s'") % ftype)
             return (-1, None)
-         
-        
+
+
         if vtype & GV_LINES and len(points) < 2:
             GError(parent = self.mapWindow,
                    message = _("Not enough points for line"))
             return (-1, None)
-            
+
         self.toolbar.EnableUndo()
         return self._addFeature(vtype, points)
 
@@ -137,9 +137,9 @@ class IRDigit:
         if not self.polyfile.name:
             self._NoMap()
             return False
-            
+
         return True
-        
+
     def NoMap(self, name = None):
         """!No map for editing"""
         if name:
@@ -159,12 +159,12 @@ class IRDigit:
         """
         if not self._checkMap():
             return (-1, None)
-        
+
         obj = RasterObject(self.cat, coords,ftype)
         self.objects.append(obj)
         self.cat = self.cat + 1
 
         Debug.msg(2, "IRDigit._addFeature(): npoints=%d, ftype=%d, catId=%d",
                   len(coords), ftype,self.cat)
-           
+
         return self.cat - 1

@@ -856,7 +856,7 @@ def predict(estimator, predictors, output, predict_type='raw', index=None,
 
     # first unwrap the estimator from any potential pipelines or gridsearchCV
     if type(estimator).__name__ == 'Pipeline':
-       clf_type = estimator.named_steps['classifier']
+        clf_type = estimator.named_steps['classifier']
     else:
         clf_type = estimator
 
@@ -871,7 +871,7 @@ def predict(estimator, predictors, output, predict_type='raw', index=None,
         'ExtraTreesClassifier',
         'ExtraTreesRegressor',
             'KNeighborsClassifier']:
-       n_jobs = 1
+        n_jobs = 1
 
     # convert potential single index to list
     if isinstance(index, int):

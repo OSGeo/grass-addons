@@ -84,7 +84,7 @@ def cleanup():
     while len(TMP_MAPS) > 0:
         gscript.run_command('g.remove', type='all', name=TMP_MAPS.pop(),
                             flags='f', quiet=True)
-        
+
 
 def compute_d_max(region):
     global d_max
@@ -135,7 +135,7 @@ def main():
         cell_side = region['nsres']
     else:
         cell_side = region['ewres']
-        
+
     compute_d_max(region)
 
     # Make cell size compatible
@@ -180,7 +180,7 @@ def main():
     gscript.run_command('r.to.vect', input=diff, output=diff_points_edge,
                         type='point')
     gscript.run_command('r.mask', flags='r')
-    
+
     # Compute average of the differences if flag -a was passed
     if use_average_differences:
         p = gscript.pipe_command('r.univar', map=diff)
@@ -246,7 +246,7 @@ def main():
     gscript.run_command('v.patch',
                         input=diff_points_edge + ',' + weight_points_edge,
                         output=points_edges, flags='e')
-    
+
     # Interpolate smoothing raster
     smoothing = getTemporaryIdentifier()
     interpol_area_rst = getTemporaryIdentifier()

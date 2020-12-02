@@ -136,7 +136,7 @@ def main():
     decimals = int(options['decimals'])
     global zone_map
     zone_map = options['zone_map']
-    
+
     csvfile = options['csvfile'] if options['csvfile'] else []
     separator = gscript.separator(options['separator'])
     prefix = options['prefix'] if options['prefix'] else []
@@ -144,25 +144,25 @@ def main():
     vectormap = options['vectormap'] if options['vectormap'] else []
     prop = False if 'proportion' not in options['statistics'].split(',') else True
     mode = False if 'mode' not in options['statistics'].split(',') else True
-    
+
     if flags['c']:  # Check only if flag activated - Can be bottleneck in case of very large raster.
         # Check if input layer is CELL
         if gscript.parse_command('r.info', flags='g', map=raster)['datatype'] != 'CELL':
             gscript.fatal(_("The type of the input map 'raster' is not CELL. Please use raster with integer values"))
         if gscript.parse_command('r.info', flags='g', map=zone_map)['datatype'] != 'CELL':
             gscript.fatal(_("The type of the input map 'zone_map' is not CELL. Please use raster with integer values"))
-     
+
     # Check if 'decimals' is + and with credible value
     if decimals <= 0:
         gscript.fatal(_("The number of decimals should be positive"))
     if decimals > 100:
         gscript.fatal(_("The number of decimals should not be more than 100"))
-        
+
     # Adjust region to input map is flag active
     if flags['r']:
         gscript.use_temp_region()
         gscript.run_command('g.region', raster=zone_map)
-        
+
     # R.STATS
     tmpfile = gscript.tempfile()
     try:
@@ -264,7 +264,7 @@ def main():
         value_dict[ID] = []
         value_dict[ID].append(ID)
         if mode:
-                value_dict[ID].append(modalclass_dict[ID])
+            value_dict[ID].append(modalclass_dict[ID])
         if prop:
             for cl in class_list:
                 value_dict[ID].append(proportion_dict[ID]['%s' %cl])
@@ -301,8 +301,8 @@ def main():
                     addcol_statement = 'ALTER TABLE %s ADD COLUMN %s double precision;\n' % (temporary_vect, col)
                 fsql.write(addcol_statement)
             for key in value_dict:
-                    insert_statement = 'INSERT INTO %s VALUES (%s);\n' % (temporary_vect, ','.join(value_dict[key]))
-                    fsql.write(insert_statement)
+                insert_statement = 'INSERT INTO %s VALUES (%s);\n' % (temporary_vect, ','.join(value_dict[key]))
+                fsql.write(insert_statement)
             fsql.write('END TRANSACTION;')
         gscript.run_command('db.execute', input=insert_sql, quiet=True)
         gscript.run_command('v.db.connect', map_=temporary_vect, table=temporary_vect, quiet=True)

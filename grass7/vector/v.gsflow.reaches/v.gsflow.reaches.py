@@ -18,7 +18,7 @@
 #
 # REQUIREMENTS:
 #      -  uses inputs from r.stream.extract
- 
+
 # More information
 # Started December 2016
 
@@ -361,7 +361,7 @@ def main():
         _message = str(len(reach_order_cats)) + ' ' + \
                    str(len(reach_cats[rsel]))
         gscript.message(_message )
-          
+
         # Reach order to database table
         reach_number__reach_order_cats = []
         for i in range(len(reach_order_cats)):
@@ -373,17 +373,17 @@ def main():
                         reach_number__reach_order_cats)
         reachesTopo.table.conn.commit()
         reachesTopo.close()
-      
+
 
     # TOP AND BOTTOM ARE OUT OF ORDER: SOME SEGS ARE BACKWARDS. UGH!!!!
     # NEED TO GET THEM IN ORDER TO GET THE Z VALUES AT START AND END
 
     # 2018.10.01: Updating this to use the computational region for the DEM
     g.region(raster=elevation)
-    
+
     # Compute slope and starting elevations from the elevations at the start and
     # end of the reaches and the length of each reach]
-    
+
     gscript.message('Obtaining elevation values from raster: may take time.')
     v.db_addcolumn(map=reaches, columns='zr1 double precision, zr2 double precision')
     zr1 = []

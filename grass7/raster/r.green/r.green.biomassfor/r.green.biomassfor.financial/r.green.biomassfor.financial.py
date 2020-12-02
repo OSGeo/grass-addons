@@ -432,15 +432,15 @@ def main(opts, flgs):
 
     if (opts['technical_bioenergy'] and opts['tech_bioc']
             and opts['tech_biohf']):
-            technical_bioenergy = opts['technical_bioenergy']
-            tech_bioC = opts['tech_bioc']
-            tech_bioHF = opts['tech_biohf']
-            technical_surface = 'tmprgreen_%i_technical_surface' % pid
-            expr = "{technical_surface} = if({technical_bioenergy}, 1, 0)"
-            r.mapcalc(expr.format(technical_surface=technical_surface,
-                                  technical_bioenergy=technical_bioenergy
-                                  ),
-                                  overwrite=True)
+        technical_bioenergy = opts['technical_bioenergy']
+        tech_bioC = opts['tech_bioc']
+        tech_bioHF = opts['tech_biohf']
+        technical_surface = 'tmprgreen_%i_technical_surface' % pid
+        expr = "{technical_surface} = if({technical_bioenergy}, 1, 0)"
+        r.mapcalc(expr.format(technical_surface=technical_surface,
+                              technical_bioenergy=technical_bioenergy
+                              ),
+                              overwrite=True)
 
     else:
         #FIXME: call directly the biomassfor.technical module

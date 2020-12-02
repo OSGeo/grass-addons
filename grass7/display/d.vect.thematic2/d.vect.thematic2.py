@@ -232,7 +232,7 @@ def msg(vars, tmpl, verbose=False):
         grass.message(subs(vars, tmpl))
     else:
         grass.verbose(subs(vars, tmpl))
-        
+
 def out(fh, vars, tmpl):
     fh.write(subs(vars, tmpl))
 
@@ -260,7 +260,7 @@ def main():
     where = options['where']
     icon = options['icon']
     rgb_column = options['rgb_column']
-    
+
     flag_f = flags['f']
     flag_g = flags['g']
     flag_l = flags['l']
@@ -274,9 +274,9 @@ def main():
 
     if 'MONITOR' not in grass.gisenv().keys() and \
        'GRASS_RENDER_IMMEDIATE' not in os.environ:
-       grass.fatal(_("Neither MONITOR (managed by d.mon command) nor GRASS_RENDER_IMMEDIATE "
-                     "(used for direct rendering) defined)"))
-            
+        grass.fatal(_("Neither MONITOR (managed by d.mon command) nor GRASS_RENDER_IMMEDIATE "
+                      "(used for direct rendering) defined)"))
+
     mapset = grass.find_file(map, element='vector')['mapset']
     if not mapset:
         grass.fatal(_("Vector map <%s> not found") % map)
@@ -357,7 +357,7 @@ def main():
     if 'min' not in stats:
         grass.fatal(_("Unable to calculate statistics for vector map <%s> "
                       "(missing minimum/maximum value)" % map))
-        
+
     min  = float(stats['min'])
     max  = float(stats['max'])
     mean = float(stats['mean'])
@@ -453,7 +453,7 @@ end
 
     # open file for psmap instructions
     f_psmap = file(tmp_psmap, 'w')
-    
+
     # graduated color thematic mapping
     if themetype == "graduated_colors":
         if colorscheme in colorschemes:
@@ -558,7 +558,7 @@ text 14% 80% ============
   ref bottom left
 end
 """)
-        
+
         grass.message("")
         grass.message(_("Color(R:G:B)\tValue"))
         grass.message("============\t==========")
@@ -589,7 +589,7 @@ end
                     first = False
                 else:
                     mincomparison = ">"
-            
+
             themecolor = ":".join(__builtins__.map(str,color))
             if flag_f:
                 linecolor = "none"
@@ -604,7 +604,7 @@ end
             ### rangemax = __builtins__.max(breakpoints)
             rangemin = breakpoints[i]
             rangemax = breakpoints[i+1]
-            
+
             if not annotations:
                 extranote = ""
             else:
@@ -1074,12 +1074,12 @@ end
             kwargs = {}
             if themetype == "graduated_lines":
                 kwargs['width'] = ptsize
-                
+
             grass.run_command('d.vect', map = map, type = type, layer = layer,
                               where = sqlwhere,
                               color = linecolor, fcolor = themecolor, icon = icon,
                               size = ptsize, quiet = True, **kwargs)
-            
+
             if themetype != "graduated_lines":
                 out(f_psmap, locals(), """\
 vpoints $map

@@ -54,7 +54,7 @@ class LayerData():
     title = None
     abstract = None
     srs = None
-    
+
     def printLayerData(self,layerDataDict):
         """
      @description:Function to print dictionary structure holding information of
@@ -74,7 +74,7 @@ class LayerData():
                 a = a.split(':')
                 print a[0]+' '+a[1]
             print '--------------------------------------------'
-            
+
     def appendLayerTree(self, layerDataDict, LayerTree, layerTreeRoot):
         """
      @description:Adds layers to LayerTree widget.
@@ -91,7 +91,7 @@ class LayerData():
             abstract = value.abstract
             string = str(key)+"-"+name+":"+title+":"+abstract
             LayerTree.AppendItem(layerTreeRoot, string)
-    
+
     def setKeyToEPSGCodes(self, layerDataDict):
         """
      @description: Builds a dictionary to map keys of layers to EPSG codes
@@ -118,7 +118,7 @@ class ManageLayerTree():
     """
     Contains functionalities to Manage TreeCtrl widget (LayerTree) , used to display layers.
     """
-    
+
     def getAllChild(self,LayerTree, parentId):
         """
      @description:Returns all the children nodes of a parent node in the TreeCtrl (LayerTree).
@@ -131,13 +131,13 @@ class ManageLayerTree():
         children = []
         currentchild,obj = LayerTree.GetFirstChild(parentId)
         while(1):
-                if(not currentchild.IsOk()):
-                    break
-                children += [currentchild]
-                nextchild = LayerTree.GetNextSibling(currentchild)
-                currentchild = nextchild
+            if(not currentchild.IsOk()):
+                break
+            children += [currentchild]
+            nextchild = LayerTree.GetNextSibling(currentchild)
+            currentchild = nextchild
         return children
-    
+
     def layerTreeItemDFS(self,parent,LayerTree,nodeId):
         """
      @description: performs a DFS(Depth first search) selection on the LayerTree(TreeCtrl), starting from the nodeId(TreeItemId)
@@ -149,7 +149,7 @@ class ManageLayerTree():
         """
         if(not nodeId.IsOk()):
             return
-        
+
         currentLayerDetails = LayerTree.GetItemText(nodeId)
         print currentLayerDetails
         if(not(currentLayerDetails == 'Layers' and currentLayerDetails.count(':') == 0)):
@@ -222,14 +222,14 @@ class wmsFrame(wx.Frame):
         Publisher().subscribe(self.onAddServerFrameClose, ("Add_Server_Frame_Closed"))
         Publisher().subscribe(self.onUpdateServerListmessage, ("update.serverList"))
         Publisher().subscribe(self.onUpdateMapListmessage, ("update.map_servernameTouid"))
-        
+
         self.keyToEPSGCodes = {}
         self.Bind(wx.EVT_CLOSE, self.OnQuit)
         self.AddServerisClosed = True
         self.layerName = ""
         self.layerDataDict1 = {}
         self.selectedEPSG = None
-        
+
     def __set_properties(self):
         # begin wxGlade: wmsFrame.__set_properties
         self.SetTitle("wmsFrame")
@@ -270,7 +270,7 @@ class wmsFrame(wx.Frame):
         sizer_1.Fit(self)
         self.Layout()
         # end wxGlade
-    
+
 
     def OnGetCapabilities(self, event): # wxGlade: wmsFrame.<event_handler>
         """
@@ -339,20 +339,20 @@ class wmsFrame(wx.Frame):
             message = str(e)
         else:
             message = 'Successful'
-                        
+
         if(not message == 'Successful'):
-                self.ShowMessage(message, 'Warning')
-                StatusBar_fields = [message]
-                self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
-                grass.warning(message)
+            self.ShowMessage(message, 'Warning')
+            StatusBar_fields = [message]
+            self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
+            grass.warning(message)
         else:
             StatusBar_fields = [message]
             self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
             grass.message(message)
             #Sudeep's Code Ends
         event.Skip()
-        
-    
+
+
     def OnGetMaps(self, event): # wxGlade: wmsFrame.<event_handler>
         """
      @description: called on press of getMaps button. Performs fetching of the Maps for the selected layers of a WMS Service.
@@ -368,7 +368,7 @@ class wmsFrame(wx.Frame):
             StatusBar_fields = [message]
             self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
             return
-        
+
         if(self.selectedEPSG is None):
             message = 'No EPSG code selected'
             grass.warning(message)
@@ -383,7 +383,7 @@ class wmsFrame(wx.Frame):
             self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
             self.ShowMessage(message, 'Warning')
             return
-        
+
         bbox = self.getBBOXParameters()
         #bbox = '584344,397868,585500,398500'
         self.url_in = self.selectedURL
@@ -398,7 +398,7 @@ class wmsFrame(wx.Frame):
             self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
             response = urlopen(req, None, self.timeoutValueSeconds)
             image = response.read()
-            
+
             if(isServiceException(image)):
                 message = 'Service Exception has occured'
                 self.ShowMessage(message, 'Warning')
@@ -424,8 +424,8 @@ class wmsFrame(wx.Frame):
                 StatusBar_fields = [message]
                 self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
                 NewImageFrame(TMP)
-            
-            
+
+
         except HTTPError, e:
             message = 'The server couldn\'t fulfill the request.'
             message = str(e)
@@ -440,7 +440,7 @@ class wmsFrame(wx.Frame):
             message = str(e)
         else:
             message = 'Successful'
-            
+
         if(message != 'Successful'):
             self.ShowMessage(message, 'Warning')
             grass.warning(message)
@@ -450,9 +450,9 @@ class wmsFrame(wx.Frame):
             grass.message(message)
             StatusBar_fields = [message]
             self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
-            
+
         event.Skip()
-        
+
     def OnEPSGList(self,event):
         """
      @description: called on selection of an epsg code from the epsg list(ComboBox) displayed. Sets self.selectedEPSG variable.
@@ -470,7 +470,7 @@ class wmsFrame(wx.Frame):
             self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
             return
         self.selectedEPSG = info
-        
+
     def OnServerList(self, event): # wxGlade: wmsFrame.<event_handler>
         """
      @description: called on selection of a URL from ServerList(ComboBox) displayed. Sets self.selectedURL variable.
@@ -485,25 +485,25 @@ class wmsFrame(wx.Frame):
         urlarr = info.split(self.name_url_delimiter)
         if(len(urlarr) == 2):
             try:
-            	uid = self.map_servernameTouid[urlarr[0]]
-            	self.selectedURL = self.servers[uid].url
+                uid = self.map_servernameTouid[urlarr[0]]
+                self.selectedURL = self.servers[uid].url
             except KeyError,e:
-            	message = 'key error reported'
+                message = 'key error reported'
                 grass.warning(message)
         else:
             message = "Wrong format of URL selected"
             grass.warning(message)
-            
+
         event.Skip()
 
     def OnLayerTreeActivated(self, event): # wxGlade: wmsFrame.<event_handler>
         event.Skip()
-    
+
     def OnServerListEnter(self, event): # wxGlade: wmsFrame.<event_handler>
         event.Skip()
-        
-    
-            
+
+
+
 
     def OnLayerTreeSelChanged(self, event): # wxGlade: wmsFrame.<event_handler>"
         """
@@ -526,8 +526,8 @@ class wmsFrame(wx.Frame):
         for sellayer in self.LayerTree.GetSelections():
             #res = res + ','+self.LayerTree.GetItemText(sellayer)
             manageLT.layerTreeItemDFS(self,self.LayerTree, sellayer)
-                
-                
+
+
             #print child
         print self.layersString[1:]
         self.layerName = self.layersString[1:]
@@ -558,7 +558,7 @@ class wmsFrame(wx.Frame):
         self.layerName = self.layerName[1:]
         print self.layerName
         self.selectedEPSG = None'''
-        
+
     def OnAddServer(self, event): # wxGlade: wmsFrame.<event_handler>
         """
      @description: called on ManageServers button press. Calls AddSerevrFrame function to display GUI to Manage Servers.
@@ -571,7 +571,7 @@ class wmsFrame(wx.Frame):
         self.addServer.Disable()
         AddServerFrame(self)
         return
-    
+
     def onAddServerFrameClose(self, msg):
         """
      @description: called when the AddServer Frame is closed. Re-enables the addServer Button
@@ -582,7 +582,7 @@ class wmsFrame(wx.Frame):
         """
         self.AddServerisClosed = True
         self.addServer.Enable()
-        
+
     def onUpdateServerListmessage(self, msg):
         """
      @description: called when the updateserverlist message is received from AddServerFrame. Updates the local server list (self.ServerList)
@@ -594,7 +594,7 @@ class wmsFrame(wx.Frame):
         self.servers = msg.data
         #self.printDict(self.servers)
         self.__update_Url_List(self.ServerList)
-        
+
     def onUpdateMapListmessage(self, msg):
         """
      @description: called when the update.map_servernameTouid message is received from AddServerFrame. Updates the local dictionary
@@ -606,7 +606,7 @@ class wmsFrame(wx.Frame):
         """
         self.map_servernameTouid = msg.data
         #self.printDict(self.map_servernameTouid)
-        
+
     def OnQuit(self, event):
         """
      @description: called when the close button is pressed. Closes the AddServerFrame if it's not closed.
@@ -621,7 +621,7 @@ class wmsFrame(wx.Frame):
             Publisher().sendMessage(("WMS_Menu_Close"), msg)
         self.Destroy()
         return
-    
+
     def ShowMessage(self, message, type = 'Warning'):
         """
      @description: Display's the message as a pop-up.
@@ -632,7 +632,7 @@ class wmsFrame(wx.Frame):
      @return: None
         """
         wx.MessageBox(message, type)
-    
+
     def __update_Url_List(self, ComboBox):
         """
      @description: Internal function to update ServerList(ComboBox).
@@ -646,7 +646,7 @@ class wmsFrame(wx.Frame):
         for key, value in self.servers.items():
             ComboBox.Append(value.servername+self.name_url_delimiter+value.url[0:self.urlLength])
         return
-        
+
     def __populate_Url_List(self, ComboBox):
         """
      @description: Internal function to populate ServerList(ComboBox). Used to populate ServerList for the first time in the init function.
@@ -661,7 +661,7 @@ class wmsFrame(wx.Frame):
             ComboBox.Append(value.servername+self.name_url_delimiter+value.url[0:self.urlLength])
 
         return
-    
+
     def getBBOXParameters(self):
         """
      @description: to parse bounding box parameters in Grass_Region parameter.
@@ -673,21 +673,21 @@ class wmsFrame(wx.Frame):
         s = parseGrass_Region(None, 'south')
         e = parseGrass_Region(None, 'east')
         w = parseGrass_Region(None, 'west')
-    
+
         if(e < w):
             minx = e
             maxx = w
         else:
             minx = w
             maxx = e
-        
+
         if(n < s):
             miny = n
             maxy = s
         else:
             miny = s
             maxy = n
-            
+
         res = str(minx)+','+str(miny)+','+str(maxx)+','+str(maxy)
         return res
 
@@ -695,18 +695,18 @@ class wmsFrame(wx.Frame):
     def printDict(self,dict):
         for key in dict.keys():
             print "the key name is" + key + "and its value is"
-    
+
 
 # end of class wmsFrame
 
 def DisplayWMSMenu():
         #print os.environ
-        app = wx.PySimpleApp(0)
-        wx.InitAllImageHandlers()
-        wms_Frame = wmsFrame(None, -1, "")
-        app.SetTopWindow(wms_Frame)
-        wms_Frame.Show()
-        app.MainLoop()
+    app = wx.PySimpleApp(0)
+    wx.InitAllImageHandlers()
+    wms_Frame = wmsFrame(None, -1, "")
+    app.SetTopWindow(wms_Frame)
+    wms_Frame.Show()
+    app.MainLoop()
 
 if __name__ == "__main__":
     app = wx.PySimpleApp(0)

@@ -120,7 +120,7 @@ def mask_rasternd(raster):
 
     return mask
 
-    
+
 def main():
 
     try:
@@ -292,7 +292,7 @@ def main():
         cols = [(u'cat', 'INTEGER PRIMARY KEY')]
         for b in band_types.keys():
             cols.append((b.replace('.','_'), band_types[b]))
-        
+
         # Get region information
         reg = Region()
 

@@ -52,11 +52,11 @@ def initServerInfoBase(fileName):
         serverinfolist = []
         soup = BeautifulSoup()
         xml = "null"
-    
+
     if(len(serverinfolist) == 0):
-            serverinfo = Tag(soup, "serverinfo")
-            soup.insert(0, serverinfo)
-            
+        serverinfo = Tag(soup, "serverinfo")
+        soup.insert(0, serverinfo)
+
     return soup, True
 
 def ifServerNameExists(soup,servername):
@@ -75,7 +75,7 @@ def ifServerNameExists(soup,servername):
         else:
             return False
     return False
-    
+
 
 def addServerInfo(soup, serverinfo, uid, snamevalue, urlvalue, unamevalue, passwordvalue):
     """

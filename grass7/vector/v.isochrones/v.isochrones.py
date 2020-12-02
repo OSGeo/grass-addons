@@ -166,7 +166,7 @@ def cleanup():
             grass.run_command('g.remove', flags='f', type='vector', name=isos_poly_all, quiet=True)
         if grass.find_file(isos_final, element='vector')['name']:
             grass.run_command('g.remove', flags='f', type='vector', name=isos_final, quiet=True)
-            
+
 
 def isocalc(isoraw):
 
@@ -187,7 +187,7 @@ def isocalc(isoraw):
     isos_poly_all = 'isos_poly_all_%d' % os.getpid()
 
     grass.use_temp_region()
-    
+
     grass.run_command('v.extract', input_=isoraw,
             cat=output_cats[0:-1], output=isos_extract,
             overwrite=True)

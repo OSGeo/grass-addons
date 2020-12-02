@@ -61,7 +61,7 @@ def main():
         color_rules_level2 = eraster+'_color_level2.txt'
         cat_rules_level2 = eraster+'_cat_level2.txt'
     global tmp
-        
+
     # start settings
     grass.message("Setting colors and categories ..." )
 
@@ -74,7 +74,7 @@ def main():
         tmp_col_l2 = os.path.join(datatempdir, color_rules_level2 )
         tmp_cat_l2 = os.path.join(datatempdir, cat_rules_level2 )
 
-        
+
     # write intermediate color and cat rule file data level 1
     if level1:
         # write intermediate color rule file level 1
@@ -112,14 +112,14 @@ def main():
                                         rules = tmp_col_l1,
                                         quiet = True)
 
-        
+
         # apply category rules level 1
         grass.message ("applying category rules for data level 1..." )
         grass.run_command("r.category", map = iraster,
                                         rules = tmp_cat_l1,
                                         separator = 'pipe',
                                         quiet = True)
-        
+
     # write intermediate color and cat rule file data level 2
     if level2:
         # write intermediate color rule file level 2
@@ -258,7 +258,7 @@ def main():
         720 15:22:153""")
         # close intermediate color level 2 rules
         fcl2.close()
-        
+
         # write intermediate category rule file level 2
         fcal2 = open('%s' % (tmp_cat_l2), 'wt')
         fcal2.write("""100|A100 - Littoral undetermined substrate with no sea ice presence
@@ -403,7 +403,7 @@ def main():
                                         rules = tmp_col_l2,
                                         quiet = True)
 
-        
+
         # apply category rules level 2
         grass.message ("applying category rules for data level 2..." )
         grass.run_command("r.category", map = iraster,

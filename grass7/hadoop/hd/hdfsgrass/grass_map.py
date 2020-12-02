@@ -119,7 +119,7 @@ class VectorDBInfo:
 
 class GrassMap(object):
     def __init__(self,map):
-       self.map = map
+        self.map = map
 
     def get_topology(self,map):
         vinfo = Module('v.info',

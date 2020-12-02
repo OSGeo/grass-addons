@@ -45,7 +45,7 @@ class TestPreprocessing(TestCase):
     @classmethod
     def setUpClass(cls):
         """Setup that is required for all tests
-        
+
         Uses a temporary region for testing and creates an imagery group and randomly samples a
         categorical map to use as training pixels
         """

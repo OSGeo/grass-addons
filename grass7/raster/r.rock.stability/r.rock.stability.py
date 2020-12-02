@@ -96,7 +96,7 @@ try:
 except:
     try:
         from grass.script import core as grass
-	#from grass.script import core as gcore
+        #from grass.script import core as gcore
     except:
         sys.exit("grass.script can't be imported.")
 
@@ -324,7 +324,7 @@ def main():
         grass.message('SMR_wedge index done!')
     else:
         grass.message('No parameter set for SMR_wedge')
-        
+
 #####################################################
 ############################SSPC#####################
 #####################################################

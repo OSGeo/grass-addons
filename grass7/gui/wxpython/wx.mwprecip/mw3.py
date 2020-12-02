@@ -1268,7 +1268,7 @@ class GrassLayerMgr():
         try:
             f = open(os.path.join(self.database.pathworkSchemaDir, "l_timewindow"), 'r')
         except:
-             grass.warning('Cannot connect tables(time-windows)  to vector layer')
+            grass.warning('Cannot connect tables(time-windows)  to vector layer')
         layerNum = 0
         for win in f.read().splitlines():
             layerNum += 1
@@ -1480,7 +1480,7 @@ class Database():
                               overwrite=True)
 
         if grass.run_command('db.connect', driver="pg", database=self.dbName,overwrite=True) != 0:
-             grass.warning("Unable to connect to the database by grass driver.")
+            grass.warning("Unable to connect to the database by grass driver.")
 
     def pyConnection(self):
         try:

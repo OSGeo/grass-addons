@@ -73,10 +73,10 @@ def main():
 
     # check for unsupported locations or unsupported combination of option and projected location
     in_proj = grass.parse_command('g.proj', flags='g')
-    
+
     if in_proj['name'].lower() == 'xy_location_unprojected':
         grass.fatal(_("xy-locations are not supported"))
-                
+
     # import GBIF data
     grass.message("Starting importing GBIF data ..." )
     grass.message("preparing data for vrt ..." )
@@ -87,17 +87,17 @@ def main():
 
     # quote raw data
     with open('%s' % (gbifraw), 'rb') as csvinfile:
-                gbifreader = csv.reader(csvinfile, delimiter='\t')
-                with open ('%s' % (new_gbif_csv), 'wb') as csvoutfile:
-                        gbifwriter = csv.writer(csvoutfile, quotechar='"', quoting=csv.QUOTE_ALL)
-                        for row in gbifreader:
-                                gbifwriter.writerow(row)
+        gbifreader = csv.reader(csvinfile, delimiter='\t')
+        with open ('%s' % (new_gbif_csv), 'wb') as csvoutfile:
+            gbifwriter = csv.writer(csvoutfile, quotechar='"', quoting=csv.QUOTE_ALL)
+            for row in gbifreader:
+                gbifwriter.writerow(row)
     grass.message("----" )
 
     # write        vrt
     grass.message("writing vrt ..." )
     new_gbif_vrt = os.path.join(gbiftempdir, gbifvrt )
-    
+
     f = open('%s' % (new_gbif_vrt), 'wt')
     f.write("""<OGRVRTDataSource>
     <OGRVRTLayer name="%s">
@@ -149,7 +149,7 @@ def main():
                 <GeometryField encoding="PointFromColumns" x="decimallongitude" y="decimallatitude"/>
         </OGRVRTLayer>
         </OGRVRTDataSource>""" % (gbif_vrt_layer, gbifcsv) )
-        
+
     f.close()
 
     grass.message("----" )
@@ -162,32 +162,32 @@ def main():
 
     # import GBIF vrt
     grass.message("importing GBIF vrt ..." )
-    
+
     # reprojection-on-the-fly if flag r
-            
+
     if reproject_gbif:
-                
-                grass.message("reprojecting data on-the-fly ..." )
-                grass.run_command("v.import", input = new_gbif_vrt,
-                                     output = gbifimported,
-                                     quiet = True)
+
+        grass.message("reprojecting data on-the-fly ..." )
+        grass.run_command("v.import", input = new_gbif_vrt,
+                             output = gbifimported,
+                             quiet = True)
 
         # no reprojection-on-the-fly
-        
+
     else:
-                
-                grass.run_command("v.in.ogr", input = new_gbif_vrt,
-                                     layer = gbif_vrt_layer,
-                                     output = gbifimported,
-                                     quiet = True)
+
+        grass.run_command("v.in.ogr", input = new_gbif_vrt,
+                             layer = gbif_vrt_layer,
+                             output = gbifimported,
+                             quiet = True)
 
     grass.message("..." )
     # v.in.gbif done!
     grass.message("importing GBIF data done!" )
     # move vrt and csv to user defined directory
-    
+
     if move_vrt_gbif_to_dir:
-                
+
         grass.message("----" )
         grass.message("Create GBIF vrt data files ..." )
         shutil.move(new_gbif_vrt, directory)
@@ -195,16 +195,16 @@ def main():
         grass.message("in following user defined directory:" )
         grass.message(directory )
         grass.message("----" )
-                
+
     else:
-                
+
         grass.message("----")
         grass.message("Some clean up ...")
         os.remove("%s" % new_gbif_vrt)
         os.remove("%s" % new_gbif_csv)
         grass.message("Clean up done.")
         grass.message("----")
-        
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

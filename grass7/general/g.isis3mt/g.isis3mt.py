@@ -19,7 +19,7 @@
 
 # TODO
 #  Add a note to the user to use  matchmap=yes in cam2map
- 
+
 #%module
 #% description: Generates an ISIS3 map template file according to the current GRASS GIS coordinate reference system.
 #% keyword: coordinates
@@ -105,26 +105,26 @@ paradict = {'proj':'ProjectionName',         # Name of the projection
             'y_0':None,  	              # false northing
             'x_0':None,                       # false easting
             }
-           
-class IsisMapTemplate(IterableUserDict):
-   def __init__(self,isisdict):
-      UserDict.__init__(self)
-      if isisdict is not None:
-          UserDict.__init__(self,isisdict)
-      self['LatitudeType'] = 'Planetographic'
-      self['LongitudeDirection'] = 'PositiveEast'
-      self['LongitudeDomain'] = '180'
 
-   def dump(self,out):
-       out.write("Group = Mapping\n")
-       keys = self.keys()
-       for k in self.keys():
-           if k is not None:
-              myk = string.rjust(k, 30)
-              myv = string.ljust(self[k], 20)
-              out.write("%s = %s\n" %(myk,myv))
-       out.write("End_Group\nEnd")
-       
+class IsisMapTemplate(IterableUserDict):
+    def __init__(self,isisdict):
+        UserDict.__init__(self)
+        if isisdict is not None:
+            UserDict.__init__(self,isisdict)
+        self['LatitudeType'] = 'Planetographic'
+        self['LongitudeDirection'] = 'PositiveEast'
+        self['LongitudeDomain'] = '180'
+
+    def dump(self,out):
+        out.write("Group = Mapping\n")
+        keys = self.keys()
+        for k in self.keys():
+            if k is not None:
+                myk = string.rjust(k, 30)
+                myv = string.ljust(self[k], 20)
+                out.write("%s = %s\n" %(myk,myv))
+        out.write("End_Group\nEnd")
+
 
 def main():
     isis3 = {}
@@ -143,7 +143,7 @@ def main():
         isis3['MaximumLatitude'] = "%f" %max(ne_lat,nw_lat)
         isis3['MinimumLongitude'] = "%f" %min(sw_long,nw_long)
         isis3['MaximumLongitude'] = "%f" %max(se_long,ne_long)
-        
+
     for p in paradict.keys():
         if grasslib.G_find_key_value(p, pj):
             k = paradict[p]
@@ -159,7 +159,7 @@ def main():
     of = open(outfile,'w')
     isis3mt.dump(of)
     sys.stderr.write("Done writing %s ISIS3 MapTemplate file\n" %outfile)
-    
+
 if __name__ == "__main__":
     options, flags = grass.parser()
     main()

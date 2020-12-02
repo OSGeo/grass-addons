@@ -60,53 +60,53 @@ class CoorWindow(wx.Dialog):
         #self.stre = stre
         self.v_net = net
         self.r_drain = drain
-                
+
         text_static = wx.StaticText(self, label = "Coordinates:")
-        
+
         font = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
         font.SetWeight(wx.BOLD)
-        
+
         text_static.SetFont(font)
-        
+
         self.text_values = wx.StaticText(self, label = " "*40)
-        
+
         self.buttonCoor = wx.Button(self, label = 'Get coordinates')
         self.buttonCoor.Bind(wx.EVT_BUTTON, self.OnButtonCoor)
-        
+
         self.buttonGenPrev = wx.Button(self, label = 'Generate preview')
         self.buttonGenPrev.Bind(wx.EVT_BUTTON, self.OnGenPrev)
-        
+
         self.buttonClose = wx.Button(self, label = 'Close')
         self.buttonClose.Bind(wx.EVT_BUTTON, self.OnClose)
-        
+
         mainSizer = wx.BoxSizer(wx.VERTICAL)
         buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
-        
+
         buttonSizer.Add(self.buttonCoor, 0, wx.ALL, 10)
         buttonSizer.Add((0, 0), 1, wx.EXPAND)
         buttonSizer.Add(self.buttonGenPrev, 0, wx.ALL, 10)
         buttonSizer.Add((0, 0), 1, wx.EXPAND)
         buttonSizer.Add(self.buttonClose, 0, wx.ALL, 10)
-        
+
         mainSizer.Add(buttonSizer, 0, wx.EXPAND)
-        
+
         textSizer = wx.BoxSizer(wx.HORIZONTAL)
         textSizer.Add(text_static, 0, wx.ALIGN_CENTER_VERTICAL |wx.ALL, 15)
         textSizer.Add(self.text_values, 1, wx.EXPAND |wx.ALIGN_CENTER_VERTICAL |wx.ALL, 15)
-        
+
         mainSizer.Add(textSizer, 0, wx.EXPAND)
-        
+
         width, height = self.GetTextExtent("M"*50)
         self.SetSize((width, -1))
 
         self.SetSizer(mainSizer)
         mainSizer.Layout()
-        
+
         self.mapwin = mapwindow.GetWindow()
-        
-        
+
+
     def OnGenPrev(self, event):
-        
+
         # read current region
         infoRegion = grass.read_command('g.region',
                         flags = 'p')
@@ -119,66 +119,66 @@ class CoorWindow(wx.Dialog):
         original_n     = float(dictRegion['north'])
         original_s     = float(dictRegion['south'])
         original_w     = float(dictRegion['west'])
-        
+
         print original_rows, original_cols, original_nsres, original_ewres, original_e, original_n, original_s, original_w
-        
+
         # new_ewres = 1/4 original_ewres
         # new_nsres = 1/4 original_nsres
         #TODO testing about time, to adjust optimal dimension of preview
-        
+
         new_ewres = original_ewres / 4
         new_nsres = original_nsres / 4
-        
+
         mid_new_ewres = new_ewres / 2
         mid_new_nsres = new_nsres / 2
-        
+
         x = float(self.x)
         y = float(self.y)
-        
+
         tentative_new_n = y + mid_new_nsres
         tentative_new_s = y - mid_new_nsres
         tentative_new_e = x + mid_new_ewres
         tentative_new_w = x - mid_new_ewres
-        
+
         if tentative_new_n >= original_n:
-    	    new_n = original_n
-    	    new_s = original_n - nsres
-			
-    	elif tentative_new_s <= original_s:
+            new_n = original_n
+            new_s = original_n - nsres
+
+        elif tentative_new_s <= original_s:
             new_s = original_s
             new_n = original_s + nsres
-		    
+
         else:
             new_n = tentative_new_n
             new_s = tentative_new_s
-	        
+
         #---
-	        
+
         if tentative_new_e >= original_e:
             new_e = original_e
             new_w = original_e - ewres
-	        
+
         elif tentative_new_w <= original_w:
             new_w = original_w
             new_e = original_w + ewres
-	        
+
         else:
             new_w = tentative_new_w
             new_e = tentative_new_e
-        
+
         # set new temporary region
-        
+
         grass.run_command('g.region',
                          flags = 'ap',
                          n = new_n,
                          s = new_s,
                          w = new_w,
                          e = new_e)
-                    
+
         # run stream extraction on the smaller region
 
         # MFD
-        
+
         if self.radioval2 == 'True':
             print self.radioval2
             grass.message('Creating flow accumulation map with MFD algorithm..')
@@ -187,7 +187,7 @@ class CoorWindow(wx.Dialog):
                               convergence = 5,
                               flags = 'a', overwrite = True)
             print self.r_acc
-        
+
             grass.run_command('r.stream.extract', elevation = self.r_elev,
                           accumulation = self.r_acc,
                           threshold = self.thre,
@@ -204,13 +204,13 @@ class CoorWindow(wx.Dialog):
                               convergence = 5,
                               flags = 'sa', overwrite = True)
             print self.r_acc
-            
+
             grass.run_command('r.stream.extract', elevation = self.r_elev,
                           accumulation = self.r_acc,
                           threshold = self.thre,
                           stream_vect = self.v_net,
                           direction = self.r_drain, overwrite = True)
-                          
+
         else:
 
             grass.run_command('r.stream.extract', elevation = self.r_elev,
@@ -220,7 +220,7 @@ class CoorWindow(wx.Dialog):
                           direction = self.r_drain, overwrite = True)
             print self.v_net
 
-        
+
         # Create temporary files to be visualized in the preview
         img_tmp = grass.tempfile() + ".png"
         print  img_tmp
@@ -228,48 +228,48 @@ class CoorWindow(wx.Dialog):
         grass.run_command('d.rast', map = self.r_elev )
         grass.run_command('d.vect', map = self.v_net)
         print "Exported in file " + img_tmp
-        
+
         directory = os.path.dirname(img_tmp)
         print directory
-        
+
         # set region to original region
-        
+
         grass.run_command('g.region',
                          flags = 'ap',
                          n = original_n,
                          s = original_s,
                          w = original_w,
                          e = original_e)
-                         
+
         os.chdir(directory)
         # Call ImageViewer
         ImgVvr = wx.PySimpleApp()
         frame = ImgFrame(directory)
         ImgVvr.MainLoop()
-        
 
-            
+
+
     def OnButtonCoor(self, event):
-        
+
         if self.mapwin.RegisterMouseEventHandler(wx.EVT_LEFT_DOWN, self.OnMouseAction,
                                                  wx.StockCursor(wx.CURSOR_CROSS)):
             self.mapwin.Raise()
         else:
             self.text.SetLabel('Cannot get coordinates')
-            
-            
+
+
     def OnClose(self, event):
         self.Destroy()
         self.Show()
-    
-    
+
+
     def OnMouseAction(self, event):
         coor = self.mapwin.Pixel2Cell(event.GetPositionTuple()[:])
         print coor
-        
+
         self.x, self.y = coor
         self.x, self.y = "%0.3f" %self.x, "%0.3f" %self.y
-        
+
         self.text_values.SetLabel("Easting=%s, Northing=%s" %(self.x, self.y))
         self.mapwin.UnregisterMouseEventHandler(wx.EVT_LEFT_DOWN)
         event.Skip()
@@ -285,7 +285,7 @@ class TabPanelOne(wx.Panel):
 
     def __init__(self, parent, layerManager, MapFrame):
         wx.Panel.__init__(self, parent, id = wx.ID_ANY)
-        
+
         self.layerManager = layerManager
         self.mapdisp = MapFrame
         self.radioval2 = False
@@ -297,10 +297,10 @@ class TabPanelOne(wx.Panel):
         #self.r_stre = 'r_stre'
         self.v_net = 'v_net'
         self.r_drain = 'r_drain'
-        
+
         self.panel = wx.Panel(self)
         self._layout()
-        
+
 
     def _layout(self):
 
@@ -326,7 +326,7 @@ class TabPanelOne(wx.Panel):
         # Ask user for Flow accumulation
         self.text2 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "INPUT/OUTPUT : Flow accumulation (required)")
         self.select.Add(item = self.text2, flag = wx.LEFT, pos = (3,0), span = wx.DefaultSpan)
-        
+
 
         # Flow accum can be either existent or to be calculated
         # RadioButton
@@ -437,7 +437,7 @@ class TabPanelOne(wx.Panel):
 
 
         #----------------------------
- 
+
         self.panel.SetSizer(self.select)
         self.btnPanel = wx.Panel(self)
 
@@ -448,8 +448,8 @@ class TabPanelOne(wx.Panel):
         self.sizer.Add(self.panel, 1, wx.EXPAND)
         self.sizer.Add(self.btnPanel, 0, wx.EXPAND)
         self.SetSizer(self.sizer)
-    
-        
+
+
     #-------------input maps-------------
 
 
@@ -523,7 +523,7 @@ class TabPanelOne(wx.Panel):
         """!Gets network map and assign it to var
         """
         self.v_net = event.GetString()
-    
+
 
     #-------------Buttons-------------
 
@@ -538,22 +538,22 @@ class TabPanelOne(wx.Panel):
             pos = (xPos, yPos)
             button = self.buildOneButton(panel, eachLabel, eachHandler, pos)
             xPos += button.GetSize().width
-    
+
     def buildOneButton(self, parent, label, handler, pos = (0,0)):
         button = wx.Button(parent, wx.ID_ANY, label, pos)
         self.Bind(wx.EVT_BUTTON, handler, button)
         return button
-    
+
 
     #-------------Preview funct-------------
-    
+
 
 
 
     def OnPreview(self, event):
         """!Allows to watch a preview of the analysis on a small region
         """
-        
+
         self.radioval2 = self.cb2.GetValue()
         self.radioval3 = self.cb3.GetValue()
 
@@ -569,13 +569,13 @@ class TabPanelOne(wx.Panel):
 
             # Raise a new Map Display
             self.mapdisp = self.layerManager.NewDisplay()
-            
+
             # Display the elevation map
             self.mapdisp.Map.AddLayer(type = 'raster',
                                  command = ['d.rast', 'map=%s' % self.r_elev])
-                                 
+
             self.mapdisp.OnRender(None)
-                     
+
             # Call CoorWindow
             coorWin = CoorWindow(parent    = self,
                                  mapwindow = self.mapdisp,
@@ -587,28 +587,28 @@ class TabPanelOne(wx.Panel):
                                  #stre      = self.stre,
                                  net       = self.v_net,
                                  drain     = self.r_drain)
-                                 
-            coorWin.Show()
-            
 
-            
+            coorWin.Show()
+
+
+
 
 
         else:
             print "Cancel"
-        
-        
-        
-    
+
+
+
+
 
     #-------------Network extraction-------------
-    
+
 
     def OnRun(self, event):
-        
+
         self.radioval2 = self.cb2.GetValue()
         self.radioval3 = self.cb3.GetValue()
-        
+
         # MFD
         if self.radioval2 == 'True':
             grass.message('Creating flow accumulation map with MFD algorithm..')
@@ -634,7 +634,7 @@ class TabPanelOne(wx.Panel):
                           stream_vect = self.v_net,
                           direction = self.r_drain, overwrite = True)
 
-        
+
         # Debug
         print self.r_elev
         print self.r_acc

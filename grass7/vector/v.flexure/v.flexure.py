@@ -20,7 +20,7 @@
 #      -  gFlex: http://csdms.colorado.edu/wiki/gFlex
 #         (should be downloaded automatically along with the module)
 #         github repository: https://github.com/awickert/gFlex
- 
+
 # More information
 # Started 20 Jan 2015 to add GRASS GIS support for distributed point loads
 # and their effects on lithospheric flexure
@@ -141,7 +141,7 @@ def get_points_xy(vect_name):
     points.open('r')
     coords = []
     for i in range(len(points)):
-      coords.append(points.read(i+1).coords())
+        coords.append(points.read(i+1).coords())
     coords = np.array(coords)
     return coords[:,0], coords[:,1] # x, y
 
@@ -155,7 +155,7 @@ def main():
     Superposition of analytical solutions in gFlex for flexural isostasy in
     GRASS GIS
     """
-    
+
     options, flags = grass.parser()
     # if just interface description is requested, it will not get to this point
     # so gflex will not be needed
@@ -177,18 +177,18 @@ def main():
     ##########
     # SET-UP #
     ##########
-    
+
     # This code is for 2D flexural isostasy
     flex = gflex.F2D()
     # And show that it is coming from GRASS GIS
     flex.grass = True
-    
+
     # Method
     flex.Method = 'SAS_NG'
-    
+
     # Parameters that are often changed for the solution
     ######################################################
-    
+
     # x, y, q
     flex.x, flex.y = get_points_xy(options['input'])
     # xw, yw: gridded output
@@ -219,7 +219,7 @@ def main():
     else:
         grass.fatal("Inappropriate te_units. How? Options should be limited by GRASS.")
     flex.rho_fill = float(options['rho_fill'])
-    
+
     # Parameters that often stay at their default values
     ######################################################
     flex.g = float(options['g'])
@@ -234,7 +234,7 @@ def main():
         flex.Debug = True
     elif grass.verbosity() == 0:
         flex.Quiet = True
-    
+
     # Check if lat/lon and let user know if verbosity is True
     if grass.region_env()[6] == '3':
         flex.latlon = True
@@ -251,7 +251,7 @@ def main():
     flex.initialize()
     flex.run()
     flex.finalize()
-    
+
     # Now to use lower-level GRASS vector commands to work with the database
     # table and update its entries
     # See for help:
@@ -268,7 +268,7 @@ def main():
     wtable.conn.commit() # Save this
     w.close(build=False) # don't build here b/c it is always verbose
     grass.run_command('v.build', map=options['output'], quiet=True)
-    
+
     # And raster export
     # "w" vector defined by raster resolution, so can do direct v.to.rast
     # though if this option isn't selected, the user can do a finer-grained

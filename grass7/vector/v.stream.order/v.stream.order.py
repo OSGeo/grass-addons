@@ -149,7 +149,7 @@ def traverse_graph_create_stream_order(start_id,
     """
     Traverse the graph, reverse lines that are not in
     the outflow direction and compute the required orders
-    
+
     :param start_id: The id of the edge to start the traversing from
     :param edges: A dictionary of edge objects
     :param checked_edges: A list with edge ids that have been checked already
@@ -161,7 +161,7 @@ def traverse_graph_create_stream_order(start_id,
                       * ORDER_SCHEIDEGGER = 3
                       * ORDER_DRWAL = 4
                       * ORDER_HORTON = 5 -> Not correct implemented
-                      
+
     :return:
     """
     current_edge = edges[start_id]

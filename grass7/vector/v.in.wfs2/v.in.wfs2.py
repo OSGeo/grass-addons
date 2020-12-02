@@ -116,12 +116,12 @@ def main():
         grass.debug("Using OSWLib driver")
         from wfs_owslib_drv import WFSOwsLibDrv
         wfs = WFSOwsLibDrv()
-    
+
     if flags['c']:
         wfs.GetCapabilities(options)
     else:
         wfs.GetFeature(options, flags)
-   
+
     return 0
 
 if __name__ == "__main__":

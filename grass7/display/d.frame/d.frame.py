@@ -87,7 +87,7 @@ def read_monitor_file(monitor, ftype='env'):
         lines.append(line)
 
     fd.close()
-    
+
     return lines
 
 # check if monitor file exists
@@ -96,7 +96,7 @@ def check_monitor_file(monitor, ftype='env'):
     mfile = gisenv().get(var, None)
     if mfile is None or not os.path.isfile(mfile):
         fatal(_("Unable to get monitor info (no %s found)") % var)
-    
+
     return mfile
 
 # write new monitor file
@@ -118,9 +118,9 @@ def erase(monitor):
     for line in read_monitor_file(monitor):
         if 'FRAME' not in line:
             lines.append(line)
-            
+
     write_monitor_file(monitor, lines)
-    
+
     # erase screen
     run_command('d.erase')
 
@@ -160,10 +160,10 @@ def calculate_frame(frame, at, width, height):
     bottom = height - (b / 100. * height)
     left = l / 100. * width
     right = r / 100. * width
-    
+
     return 'GRASS_RENDER_FRAME=%d,%d,%d,%d # %s%s' % \
         (top, bottom, left, right, frame, '\n')
-    
+
 # create new frame
 def create_frame(monitor, frame, at, overwrite=False):
     lines = read_monitor_file(monitor)
@@ -180,7 +180,7 @@ def create_frame(monitor, frame, at, overwrite=False):
 
     if width < 0 or height < 0:
         fatal(_("Invalid monitor size: %dx%d") % (width, height))
-    
+
     if not overwrite:
         lines.append(calculate_frame(frame, at, width, height))
     else:
@@ -190,7 +190,7 @@ def create_frame(monitor, frame, at, overwrite=False):
                 continue
             if get_frame_name(line) == frame:
                 lines[idx] = calculate_frame(frame, at, width, height)
-    
+
     write_monitor_file(monitor, lines)
 
 # select existing frame
@@ -205,9 +205,9 @@ def select_frame(monitor, frame):
                 lines[idx] = line.lstrip('# ') # un-comment line
         elif not line.startswith('#'):
             lines[idx] = '# ' + line # comment-line
-    
+
     write_monitor_file(monitor, lines)
-    
+
 def main():
     # get currently selected monitor
     monitor = check_monitor()
@@ -215,17 +215,17 @@ def main():
         fatal(_("No graphics device selected. Use d.mon to select graphics device."))
     if monitor not in ('png', 'cairo'):
         fatal(_("Only Cairo or PNG monitors are currently supported"))
-    
+
     if flags['e']:
         # remove frames and erase monitor and exit
         erase(monitor)
         return
-    
+
     if flags['p']:
         # print current frame and exit
         print_frames(monitor, current_only=True)
         return
-        
+
     if flags['a']:
         # print all frames including their position and exit
         print_frames(monitor, current_only=False, full=True)
@@ -249,10 +249,10 @@ def main():
             if options['at']:
                 warning(_("Frame <%s> already found. An existing frame can be overwritten by '%s' flag.") %
                         (options['frame'], "--overwrite"))
-    
+
     # select givenframe
     select_frame(monitor, options['frame'])
-            
+
 if __name__ == "__main__":
     options, flags = parser()
     sys.exit(main())

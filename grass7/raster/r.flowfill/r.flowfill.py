@@ -18,7 +18,7 @@
 #############################################################################
 #
 # REQUIREMENTS: FlowFill, libmpich-dev, libnetcdff-dev
- 
+
 # More information
 # Started June 2019
 
@@ -132,7 +132,7 @@ def main():
     _ffpath = options['ffpath']
     _output = options['output']
     _water = options['water']
-    
+
     """
     import os
     import numpy as np
@@ -156,7 +156,7 @@ def main():
     _output = 'tmpout'
     _water = 'tmpout_water'
     """
-    
+
     # Check for overwrite -- should be unnecessary thanks to GRASS parser
     _rasters = np.array(gscript.parse_command('g.list', type='raster').keys())
     if (_rasters == _output).any() or (_water == _output).any():
@@ -168,7 +168,7 @@ def main():
         _np = int(_np)
     except:
         g.message(flags='e', message="Number of processors must be an integer.")
-    
+
     if _np < 3:
         g.message(flags='e', message="FlowFill requires 3 or more processors.")
 
@@ -178,11 +178,11 @@ def main():
             g.message(flags='e', message='Only one of "h_runoff" and ' +
                                          '"h_runoff_raster" may be set')
     elif _h_runoff_raster is '':
-            g.message(flags='e', message='Either "h_runoff" or ' +
-                                         '"h_runoff_raster" must be set')
+        g.message(flags='e', message='Either "h_runoff" or ' +
+                                     '"h_runoff_raster" must be set')
 
     if _output is '' and _water is '':
-            g.message(flags='w', message='No output is set.')
+        g.message(flags='w', message='No output is set.')
 
     # Set up runoff options
     if _h_runoff_raster is not '':
@@ -194,7 +194,7 @@ def main():
     # Get computational region
     n_columns = gscript.region()['cols']
     n_rows = gscript.region()['rows']
-    
+
     # Output DEM as temporary file for FORTRAN
     temp_FlowFill_input_file = gscript.tempfile(create=False)
     dem = garray.array()
@@ -210,7 +210,7 @@ def main():
     del newnc
     #r.out_gdal(input=_input, output=temp_DEM_input_file, format='netCDF',
     #           overwrite=True)
-    
+
     # Output runoff raster as temporary file for FORTRAN
     if _h_runoff_raster is not '':
         temp_FlowFill_runoff_file = gscript.tempfile(create=False)
@@ -229,7 +229,7 @@ def main():
     else:
         _h_runoff_raster = 'NoRaster' # A dummy value for the parser
         temp_FlowFill_runoff_file = ''
-    
+
     # Run FlowFill
     temp_FlowFill_output_file = gscript.tempfile(create=False)
     mpirunstr = 'mpirun -np '+str(_np)+' '+_ffpath+' ' +\
@@ -241,9 +241,9 @@ def main():
     print('Sending command to FlowFill:')
     print(mpirunstr)
     print('')
-    
+
     _mpirun_error_flag = False
-    
+
     popen = subprocess.Popen(mpirunstr, stdout=subprocess.PIPE,
                              shell=True, universal_newlines=True)
     for stdout_line in iter(popen.stdout.readline, ""):
@@ -263,7 +263,7 @@ def main():
               'Otherwise, you may have simply have typed in an incorrect ' +
               '"ffpath".')
 
-    
+
     #_stdout = subprocess.Popen(mpirunstr, shell=True, stdout=subprocess.PIPE)
     #
     #if 'mpirun was unable to find the specified executable file' in \
@@ -272,18 +272,18 @@ def main():
     #    g.message('FlowFill Executable Found.')
     #    print('')
 
-    
+
     #subprocess.Popen(mpirunstr, shell=True).wait()
     #os.system(mpirunstr)
     #subprocess.Popen(mpirunstr, shell=True)
-    
+
     # Import the output -- padded by two cells (remove these)
     outrast = np.fromfile(temp_FlowFill_output_file+'.dat', dtype=np.float32)
     outrast_water = np.fromfile(temp_FlowFill_output_file+'_water.dat',
                                 dtype=np.float32)
     outrast = outrast.reshape(n_rows+2, n_columns+2)[:-2, 1:-1]
     outrast_water = outrast_water.reshape(n_rows+2, n_columns+2)[:-2, 1:-1]
-    
+
     # Mask to return NAN to NAN in GRASS -- FIX SHIFT ISSUE WITH KERRY
     dem_array_mask = dem_array.copy()
     dem_array_mask[dem_array_mask == -999999] = np.nan

@@ -30,8 +30,8 @@ class Nnbathy:
         reg_E = float(kv['e'])
         nsres = float(kv['nsres'])
         ewres = float(kv['ewres'])
-        
-        
+
+
         # set variables
         self.cols = int(kv['cols'])
         self.rows = int(kv['rows'])

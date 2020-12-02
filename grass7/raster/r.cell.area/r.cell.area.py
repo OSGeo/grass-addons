@@ -55,20 +55,20 @@ def main():
     """
     Compute cell areas
     """
-    
+
     projinfo = grass.parse_command('g.proj', flags='g')
-    
+
     options, flags = grass.parser()
     output = options['output']
     units = options['units']
-    
+
     # First check if output exists
     if len(grass.parse_command('g.list', type='rast',
                                pattern=options['output'])):
         if not grass.overwrite():
             grass.fatal("Raster map '" + options['output'] +
                         "' already exists. Use '--o' to overwrite.")
-  
+
     projunits = str(projinfo['units']) # Unicode to str
     # Then compute
     if (projunits == 'meters') or (projunits == 'Meters'):
@@ -85,6 +85,6 @@ def main():
                           ( ewres() * '+str(np.pi/180.)+' * 6371. * cos(y()) )')
     else:
         print('Units: ', projunits, ' not currently supported')
-    
+
 if __name__ == "__main__":
     main()

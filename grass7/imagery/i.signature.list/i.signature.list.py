@@ -47,14 +47,14 @@ def main():
     group = options['group']
     sub = options['subgroup']
     flagg = flags['g']
-    
+
     if flagg and not (group and sub):
         grass.fatal(_("'g' flag requires group and subgroup options"))
-   
+
     gisenv = grass.gisenv()
-    
+
     path = os.path.join(gisenv['GISDBASE'], gisenv['LOCATION_NAME'])
-    
+
     if group:
         try:
             name, mapset = group.split('@', 1)
@@ -106,7 +106,7 @@ def main():
                 for sig in os.listdir(os.path.join(path, gr, 'subgroup', di, 'sig')):
                     if sig != 'REF':
                         print("        {}".format(sig))
-                
+
     return
 
 

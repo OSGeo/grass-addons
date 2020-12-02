@@ -55,7 +55,7 @@ out1.open('w', mtype='DCELL', overwrite=True)
 out2.open('w', mtype='DCELL', overwrite=True)
 out3.open('w', mtype='DCELL', overwrite=True)
 out4.open('w', mtype='DCELL', overwrite=True)
-	
+
 # Get the number of rows
 rg = Region()
 
@@ -86,7 +86,7 @@ for r in range(rg.rows):
             out2.put(r,c,cls4_wannabe[1])
             out3.put(r,c,cls4_wannabe[2])
             out4.put(r,c,cls4_wannabe[3])
-	
+
 # Close the raster maps
 out1.close()
 out2.close()

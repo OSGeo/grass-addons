@@ -69,7 +69,7 @@ def main():
     #
     # define variables
     #
-    
+
     overwrite   = False
     mapset      = options['mapset'] # prefix for copied maps
     datatype    = options['datatype'] # prefix for copied maps
@@ -81,16 +81,16 @@ def main():
     output      = ''
     if grass.overwrite():
         overwrite = True
-    
+
     if filter_type == 'select all':
         filter = '*'
-    
+
     filterflag = ''
     if filter_type == 'regular expressions':
         filterflag = 'r'
     if filter_type == 'extended regular expressions':
         filterflag = 'e'
-    
+
     #
     # first run g.list to get list of maps to parse
     #
@@ -98,7 +98,7 @@ def main():
     if mapset not in l:
         grass.warning(_('You do not have access to mapset %s. Run g.mapsets (under settings menu) to change mapset access') % mapset)
         return
-    
+
     datalist = l[mapset]
 
     #
@@ -112,10 +112,10 @@ def main():
 
         params = {datatype: '%s@%s,%s' % (input, mapset, output)}
         grass.run_command('g.copy', overwrite=overwrite, **params)
-        
+
         if datatype == 'vector' and flags['t']:
             grass.run_command('v.build', map=output)
-        
+
 if __name__ == "__main__":
     options, flags = grass.parser()
     main()

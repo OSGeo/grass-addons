@@ -61,7 +61,7 @@ from grass.pygrass.modules.shortcuts import general as g
 from grass.pygrass.modules.shortcuts import raster as r
 
 def lee_filter(img, size, img_out):
-    
+
     pid = str(os.getpid())
     img_mean     = 'tmp%s_img_mean'     % pid
     img_sqr      = 'tmp%s_img_sqr'      % pid
@@ -122,7 +122,7 @@ def main():
         g.message(_('Applying Lee Filter'))
         img_out = lee_filter(img, size, img_out)
         g.message(_('Done.'))
-        
+
     else:
         grass.fatal(_("The requested speckle filter is not yet implemented."))
 

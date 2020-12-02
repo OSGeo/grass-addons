@@ -256,7 +256,7 @@ def main():
 
     # Print to stdout if no output file is specified
     if not options['output']:
-            sys.stdout.write(rules)
+        sys.stdout.write(rules)
     else:
         with open(output, 'w') as o:
             o.write(rules)

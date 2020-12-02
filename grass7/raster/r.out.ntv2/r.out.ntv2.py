@@ -107,38 +107,38 @@ from grass.script import core as grass
 tmp_group = str(uuid.uuid4())
 
 def cleanup():
-  grass.run_command("g.remove",
-                    type = "group",
-                    name = tmp_group,
-                    flags = "f",
-                    quiet = True)
+    grass.run_command("g.remove",
+                      type = "group",
+                      name = tmp_group,
+                      flags = "f",
+                      quiet = True)
 
 def main():
-  grass.run_command("i.group",
-                    input = (options["latshift"], options["lonshift"]),
-                    group = tmp_group,
-                    quiet = True)
+    grass.run_command("i.group",
+                      input = (options["latshift"], options["lonshift"]),
+                      group = tmp_group,
+                      quiet = True)
 
-  grass.run_command("r.out.gdal",
-                    input = tmp_group,
-                    output = options["output"],
-                    format = "NTv2",
-                    type = "Float32",
-                    quiet = True,
-                    metaopt = ("CREATED="+time.strftime("%Y%m%d"),
-                              "GS_TYPE=SECONDS",
-                              "SYSTEM_T="+options["systemt"],
-                              "MAJOR_T="+options["majort"],
-                              "MINOR_T="+options["minort"],
-                              "SYSTEM_F="+options["systemf"],
-                              "MAJOR_F="+options["majorf"],
-                              "MINOR_F="+options["minorf"],
-                              "PARENT=NONE",
-                              "SUB_NAME=NONE",
-                              "UPDATED="+time.strftime("%H%M%S"),
-                              "VERSION=NTv2.0"))
+    grass.run_command("r.out.gdal",
+                      input = tmp_group,
+                      output = options["output"],
+                      format = "NTv2",
+                      type = "Float32",
+                      quiet = True,
+                      metaopt = ("CREATED="+time.strftime("%Y%m%d"),
+                                "GS_TYPE=SECONDS",
+                                "SYSTEM_T="+options["systemt"],
+                                "MAJOR_T="+options["majort"],
+                                "MINOR_T="+options["minort"],
+                                "SYSTEM_F="+options["systemf"],
+                                "MAJOR_F="+options["majorf"],
+                                "MINOR_F="+options["minorf"],
+                                "PARENT=NONE",
+                                "SUB_NAME=NONE",
+                                "UPDATED="+time.strftime("%H%M%S"),
+                                "VERSION=NTv2.0"))
 
 if __name__ == "__main__":
-  options, flags = grass.parser()
-  atexit.register(cleanup)
-  sys.exit(main())
+    options, flags = grass.parser()
+    atexit.register(cleanup)
+    sys.exit(main())

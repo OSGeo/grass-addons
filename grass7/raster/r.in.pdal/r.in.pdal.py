@@ -343,7 +343,7 @@ def scan_extent(infile):
         e = str(data[str1][str2][str3][str4][u'maxx'])
         t = str(data[str1][str2][str3][str4][u'maxz'])
         b = str(data[str1][str2][str3][str4][u'minz'])
-        
+
     return n, s, w, e, t, b
 
 def main():

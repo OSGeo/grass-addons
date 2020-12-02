@@ -323,7 +323,7 @@ class HiveTableBuilder:
                 grass.fatal('Automatic generation of columns faild, datatype %s is not recognized' %dtype)
 
     def _get_map(self):
-       raise NotImplemented
+        raise NotImplemented
 
 class JSONBuilder:
     """
@@ -526,9 +526,9 @@ class GrassMapBuilder(object):
         :return:
         """
         with open(self.file, "r+") as f:
-             old = f.read() # read everything in the file
-             f.seek(0) # rewind
-             f.write("%s\n" %line + old) # write the new line before
+            old = f.read() # read everything in the file
+            f.seek(0) # rewind
+            f.write("%s\n" %line + old) # write the new line before
 
     def _append_line(self,line):
         """

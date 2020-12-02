@@ -130,7 +130,7 @@ def main():
         # for each number in the range
         for n in range(0, max_value):
             # try to insert the values otherwise insert 0
-            
+
             try:
                 val = int(stats_dict[str(n)])
                 cdf += val

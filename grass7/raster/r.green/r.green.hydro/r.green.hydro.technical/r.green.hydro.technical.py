@@ -389,7 +389,7 @@ def losses_Strickler(discharge, length, diameter, theta, velocity, ks=75):
 
 
 def singular_losses(gross_head, length, discharge, diameter_penstock):
-    
+
     if diameter_penstock != 0 and gross_head != 0:
 
         h_sing = (1. / (2. * 9.81) +
@@ -426,7 +426,7 @@ def compute_losses(struct, options,
             ('net_head', 'DOUBLE')]
     add_columns(struct, cols)
     # power column renamed?
-    
+
     # extract intake id
     list_intakeid = list(set(struct.table.execute('SELECT intake_id FROM %s' %
                                                   struct.table.name).fetchall()
@@ -445,7 +445,7 @@ def compute_losses(struct, options,
             line.attrs['gross_head'] = 0
             line.attrs['losses'] = 0
         else:
-            
+
             length = line.length()
             losses = 0
             if length > 0 and discharge > 0:
@@ -532,7 +532,7 @@ def compute_losses(struct, options,
                                              - tot_losses)
                 # net_head = float(line.attrs['net_head'])
                 if tot_losses > line.attrs['gross_head']:
-                                    
+
                     msgr.warning(("Losses greater than gross_head, %i"
                                       % (line.cat)))
 
@@ -544,7 +544,7 @@ def compute_losses(struct, options,
                 line.attrs['net_head'] = max(0.0, line.attrs['gross_head']
                                              - tot_losses)
                 if tot_losses > line.attrs['gross_head']:
-                    
+
                     msgr.warning(("Losses greater than gross_head, %i"
                                       % (line.cat)))
                 # net_head = float(line.attrs['net_head'])

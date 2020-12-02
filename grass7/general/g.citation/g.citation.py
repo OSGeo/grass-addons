@@ -410,7 +410,7 @@ except ImportError:
 
 
 def print_using_citeproc(csl_json, keys, style):
-    
+
     from citeproc import CitationStylesStyle, CitationStylesBibliography
     from citeproc import Citation, CitationItem
     from citeproc import formatter

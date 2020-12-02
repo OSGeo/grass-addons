@@ -489,7 +489,7 @@ def fertility_maintenance(opts, flgs):
     # Fertility maintenance
     run_command("r.mapcalc", overwrite=ow, expression=expr_prodFF)
     run_command("r.mapcalc", overwrite=ow, expression=expr_prodT % (energy_tops_hf, energy_cormometric_vol_hf, energy_tops_hf, energy_cormometric_vol_hf))
-    
+
     listmapsite = ''
     map_site_prod_bioenergyT = grass.find_file('site_prod_bioenergyT',element='cell')
     map_site_prod_bioenergyFF = grass.find_file('site_prod_bioenergyFF',element='cell')
@@ -501,7 +501,7 @@ def fertility_maintenance(opts, flgs):
     else:
         if map_site_prod_bioenergyFF['fullname'] != '':
             listmapsite += map_site_prod_bioenergyFF['fullname']
-            
+
     run_command("r.mapcalc", overwrite=ow,
                 expression=opts['output_fert_map']+'= max(%s)' % listmapsite)
 
@@ -513,7 +513,7 @@ def soil_water_protection(opts, flgs):
 
     management = opts['management']
     treatment = opts['treatment']
-    
+
 
     run_command("r.slope.aspect", flags="a", overwrite=ow,elevation=opts['dtm'], slope="slope__", format="percent")
 
@@ -531,7 +531,7 @@ def soil_water_protection(opts, flgs):
     run_command("r.mapcalc", overwrite=ow,expression=expr_sw2)
     run_command("r.mapcalc", overwrite=ow,expression=expr_sw3)
     run_command("r.mapcalc", overwrite=ow,expression=expr_sw4)
-    
+
 
 
     string_sw_prot = ''
@@ -543,7 +543,7 @@ def soil_water_protection(opts, flgs):
             list_sw_prot.append(map_sw['fullname'])
     string_sw_prot = string.join(list_sw_prot,',')
 
-    
+
     expr_sw5 = 'S_W_prot_bioenergy5 = if('+treatment+'==2 && slope__<30,0,if('+treatment+'==2 && slope__ >=30, '+opts['energy_map']+'*1))'
     expr_sw6 = 'S_W_prot_bioenergy6 = if('+treatment+'==2 && '+opts['soild_map']+'==1,analysis_surface*(yield_pix*%f*0+yield_pix*%f),if('+treatment+'==2 && '+opts['soild_map']+'!=1, analysis_surface*(yield_pix*%f+yield_pix*%f)))'
     expr_sw7 = 'S_W_prot_bioenergy7 = if('+treatment+'==2 && '+opts['soiltx_map']+'==3,analysis_surface*(yield_pix*%f*0.35+yield_pix*%f),if('+treatment+'==2 && '+opts['soiltx_map']+'!=3, analysis_surface*(yield_pix*%f+yield_pix*%f)))'
@@ -675,7 +675,7 @@ def avoided_CO2_emission(opts, flgs):
         run_command("r.mapcalc",overwrite=ow,expression='soil_map=99999')
         soil_prod = 'soil_map'
 
-    
+
 
     #process the yield_pix map
     yield_pix_process(opts, flgs,yield_,yield_surface)
@@ -698,9 +698,9 @@ def avoided_CO2_emission(opts, flgs):
 
     run_command("r.null", map="yield_pix1", null=0)
     run_command("r.null", map="morphometric_features", null=0)
-    
+
     exprmap = 'frict_surf_extr = pix_cross + if(yield_pix1<=0, 99999) + if(morphometric_features==6, 99999)'
-    
+
     if rivers != '':
         run_command("v.to.rast", input=rivers,output="rivers", use="val", overwrite=True)
         run_command("r.null", map="rivers", null=0)
@@ -724,7 +724,7 @@ def avoided_CO2_emission(opts, flgs):
     CCEXTR = 'cable_crane_extraction = if('+yield_+'>0 && slope__>'+opts['slp_min_cc']+' && slope__<='+opts['slp_max_cc']+' && extr_dist<'+opts['dist_max_cc']+', 1)'
 
     FWEXTR = 'forwarder_extraction = if('+yield_+'>0 && slope__<='+opts['slp_max_fw']+' && '+management+'==1 && ('+roughness+'==0 || '+roughness+'==1 || '+roughness+'==99999) && extr_dist<'+opts['dist_max_fw']+', 1)'
-    
+
     OEXTR = 'other_extraction = if('+yield_+'>0 && slope__<='+opts['slp_max_cop']+' && '+management+'==2 && ('+roughness+'==0 || '+roughness+'==1 || '+roughness+'==99999) && extr_dist<'+opts['dist_max_cop']+', 1)'
 
 
@@ -783,11 +783,11 @@ def avoided_CO2_emission(opts, flgs):
     run_command("r.mapcalc", overwrite=ow,
                 expression='extr_product_other = other_extraction*36.293*(extr_dist^-1.1791)* extr_dist/8*0.6')
     run_command("r.null", map="extr_product_other", null=0)
-        
+
     #cost of the transport distance
     #this is becouse the wood must be sell to the collection point
     #instead the residual must be brung to the heating points
-    
+
     run_command("r.mapcalc", overwrite=ow,
                 expression='tot_roads = '+forest_roads+' ||| '+main_roads)
     run_command("r.null", map="tot_roads", null=0)
@@ -861,7 +861,7 @@ def avoided_CO2_emission(opts, flgs):
     mapaco2 = opts['output_basename_nco2map']
     with RasterRow(mapaco2) as pT1:
         A = np.array(pT1)
-   
+
     print(("Total emission (Tons): %.2f" % np.nansum(T)))
     print(("Total avoided emission (Tons): %.2f" % np.nansum(A)))
 
@@ -946,7 +946,7 @@ def main(opts, flgs):
 
     if(opts['output_sw_map']) != "":
         soil_water_protection(opts, flgs)
-    
+
     # biodiversity_maintenance(opts, flgs)
     # sustainable_bioenergy(opts, flgs)
 
@@ -963,7 +963,7 @@ def main(opts, flgs):
         tev(opts, flgs)
 
     if flgs['r']:
-         remove_map(opts, flgs)
+        remove_map(opts, flgs)
 
 
 

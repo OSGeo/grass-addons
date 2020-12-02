@@ -68,7 +68,7 @@ def cleanup():
                           quiet = True, stderr = nuldev)
 
 def main():
-    
+
     global nuldev, tmp
     nuldev = file(os.devnull, 'w')
     tmp = "v_tin_to_rast_%d" % os.getpid()
@@ -76,7 +76,7 @@ def main():
 
     input = options['input']
     output = options['output']
-    
+
     # initialize GRASS library
     G_gisinit('')
 
@@ -87,7 +87,7 @@ def main():
 
     # define map structure
     map_info = pointer(Map_info())
-    
+
     # set vector topology to level 2
     Vect_set_open_level(2)
 
@@ -95,7 +95,7 @@ def main():
     Vect_open_old(map_info, input, mapset)
 
     Vect_maptype_info(map_info, input, mapset)
-    
+
     # check if vector map is 3D
     if Vect_is_3d(map_info):
         grass.message("Vector map <%s> is 3D" % input)
@@ -115,12 +115,12 @@ def main():
     outrast = []
     for i in range(nrows):
         outrast[i:] = [Rast_allocate_d_buf()]
-    
+
     # create new raster
     outfd = Rast_open_new(output, DCELL_TYPE)
     if outfd < 0:
         grass.fatal("Impossible to create a raster <%s>" % output)
-        
+
     # insert null values in cells
     grass.message(_("Step 1/4: Inserting null values in cells..."))
     for i in range(nrows):
@@ -147,7 +147,7 @@ def main():
     for i in range(nrows - 1, -1, -1):
         Rast_put_d_row(outfd, outrast[i])
         G_percent(nrows - i, nrows, 2)
-        
+
     # clear buffer
     for i in range(nrows):
         G_free(outrast[i])
@@ -157,7 +157,7 @@ def main():
 
     # close vector
     Vect_close(map_info)
-    
+
     # cut output raster to TIN vertical range
     vtop = grass.read_command('v.info', flags = 'g',
                               map = input).rsplit()[4].split('=')[1]

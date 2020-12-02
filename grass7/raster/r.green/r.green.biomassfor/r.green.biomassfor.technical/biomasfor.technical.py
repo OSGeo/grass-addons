@@ -123,7 +123,7 @@ YPIX = 'yield_pix = yield_pix1*%d + yield_pix2*%d'
 def main(opts, flgs):
     ow = overwrite()
 
-    
+
     CCEXTR = 'cable_crane_extraction = if(yield>0 && slope>'+opts['slp_min_cc']+' && slope<='+opts['slp_max_cc']+' && extr_dist<'+opts['dist_max_cc']+', 1)'
 
     FWEXTR = 'forwarder_extraction = if(yield>0 && slope<='+opts['slp_max_fw']+' && management==1 && (roughness==0 || roughness==1 || roughness==99999) && extr_dist<'+opts['dist_max_fw']+', 1)'
@@ -135,7 +135,7 @@ def main(opts, flgs):
     ECC = 'technical_bioenergyC = technical_surface*(if(management == 2, yield_pix*'+opts['energy_tops_cop']+'))'
 
 
-    
+
 
     run_command("r.param.scale", overwrite=ow,
                 input=opts['dtm'], output="morphometric_features",

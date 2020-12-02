@@ -72,8 +72,8 @@ try:
 except:
     print("Please install GDAL-Python bindings or add them to PYTHONPATH")
     sys.exit(1)
-    
-            
+
+
 def cleanup():
     inmap = options['input']
     nuldev = file(os.devnull, 'w')
@@ -88,7 +88,7 @@ def main():
     outmap = options['output']
     coor = options['coor']
     coor = coor.replace(',',' ')
-    
+
     global tmp, nuldev, grass_version
     nuldev = None
 
@@ -102,7 +102,7 @@ def main():
     # check if input file exists
     if not grass.find_file(inmap, element = 'vector')['file']:
         grass.fatal(_("<%s> does not exist.") % inmap)
-        
+
 
     ## DO IT ##
     ## add categories to boundaries
@@ -151,7 +151,7 @@ def main():
     else:
         grass.run_command('v.in.ogr', input_ = tmp3, layer = lyr_name,
                           output = outmap, flags = 'c', quiet = True, stderr = nuldev)
-    
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

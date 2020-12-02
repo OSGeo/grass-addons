@@ -47,16 +47,16 @@ class StatisticsMixin(object):
     def linear_regression(self, x, y):
         """
         Simple wrapper around the GRASS GIS module r.regression.line
-        
+
         Parameters
         ----------
         x : str
             Name of GRASS GIS raster map to use as the x-variable. Has to be within the RasterStack
             object.
-        
+
         y : str
             Name of GRASS GIS raster map to use as the y-variable.
-        
+
         Returns
         -------
         dict
@@ -76,25 +76,25 @@ class StatisticsMixin(object):
     ):
         """
         Simple wrapper around the GRASS GIS module r.regression.multi
-        
+
         Parameters
         ----------
         x : str
             Name of GRASS GIS raster map to use as the x-variable. Has to be within the RasterStack
             object.
-        
+
         y : str
             Name of GRASS GIS raster map to use as the y-variable.
-        
+
         estimates : str (opt)
             Optionally specify a name to create a raster map of the regression estimate.
-        
+
         residuals : str (opt)
             Optionally specify a name to create a raste rmap of the residuals.
-        
+
         overwrite : bool (default is False)
             Overwrite existing GRASS GIS rasters for estimates and residuals.
-        
+
         Returns
         -------
         dict

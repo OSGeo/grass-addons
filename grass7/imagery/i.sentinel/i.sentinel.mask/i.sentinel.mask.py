@@ -251,7 +251,7 @@ def main ():
     if not flags["c"]:
         if mtd_file != '':
             if not os.path.isfile(mtd_file):
-                 gscript.fatal('Metadata file <{}> not found. Please select the right .xml file'.format(mtd_file))
+                gscript.fatal('Metadata file <{}> not found. Please select the right .xml file'.format(mtd_file))
         elif metadata_file == 'default':
             # use default json
             env = gscript.gisenv()
@@ -662,7 +662,7 @@ def main ():
                         gscript.run_command('v.to.rast', input=tmp["shadow_temp_mask"],
                                             output=shadow_raster, use='val')
                     else:
-                         gscript.warning(_('No cloud shadows detected'))
+                        gscript.warning(_('No cloud shadows detected'))
 
 
                 gscript.message('--- the estimated clouds height is: {} m ---'.format(HH[index_maxAA]))

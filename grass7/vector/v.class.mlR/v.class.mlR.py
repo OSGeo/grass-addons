@@ -360,7 +360,7 @@ def main():
     else:
         allfeatures = options['segments_file']
         allmap = False
-    
+
     if options['training_map']:
         training = options['training_map']
         training_layer = options['training_layer']
@@ -368,7 +368,7 @@ def main():
     else:
         training = options['training_file']
         trainmap = False
-    
+
     classcol = None
     if options['train_class_column']:
         classcol = options['train_class_column']

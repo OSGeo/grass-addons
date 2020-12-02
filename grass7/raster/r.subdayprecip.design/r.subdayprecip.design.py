@@ -125,13 +125,13 @@ def main():
     mapset = grass.find_file(opt['map'], element='vector')['mapset']
     if not mapset or mapset != grass.gisenv()['MAPSET']:
         grass.fatal(_("Vector map <{}> not found in the current mapset").format(opt['map']))
-    
+
     # get list of existing columns
     try:
         columns = grass.vector_columns(opt['map']).keys()
     except CalledModuleError as e:
         return 1
-    
+
     allowed_rasters = ('N2', 'N5', 'N10', 'N20', 'N50', 'N100')
 
     # test input feature type
@@ -166,7 +166,7 @@ def main():
             grass.warning('Raster map <{}> skipped. '
                           'Allowed: {}'.format(rast, allowed_rasters))
             continue
-        
+
         # perform zonal statistics
         grass.message('Processing <{}>...'.format(rast))
         table = '{}_table'.format(name)
@@ -187,8 +187,8 @@ def main():
         else: # -> points
             Module('v.what.rast', map=opt['map'], raster=rast,
                    column='{}_average'.format(name), quiet=True)
-            
-        
+
+
         # add column to the attribute table if not exists
         rl = float(opt['rainlength'])
         field_name = 'H_{}T{}'.format(name, opt['rainlength'])
@@ -200,7 +200,7 @@ def main():
         a, c = coeff(rast, rl)
         if a is None or c is None:
             grass.fatal("Unable to calculate coefficients")
-        
+
         # calculate output values, update attribute table
         coef = a * rl ** (1 - c)
         expression = '{}_average * {}'.format(name, coef)

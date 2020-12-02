@@ -274,7 +274,7 @@ def main(opts, flgs):
     else:
         run_command("v.to.rast", input=forest,output="roughness", use="attr", attrcolumn=roughness,overwrite=True)
         run_command("r.null", map='roughness',null=0)
-    
+
     CCEXTR = 'cable_crane_extraction = if('+yield_+'>0 && slope>'+opts['slp_min_cc']+' && slope<='+opts['slp_max_cc']+' && extr_dist<'+opts['dist_max_cc']+', 1)'
 
     FWEXTR = 'forwarder_extraction = if('+yield_+'>0 && slope<='+opts['slp_max_fw']+' && '+management+'==1 && ('+roughness+'==0 || '+roughness+'==1 || '+roughness+'==99999) && extr_dist<'+opts['dist_max_fw']+', 1)'
@@ -286,7 +286,7 @@ def main(opts, flgs):
     ECC = tech_bioenergyC+' = technical_surface*(if('+management+' == 2, yield_pix*'+opts['energy_tops_cop']+'))'
 
     ET = tech_bioenergy+' = ('+tech_bioenergyC+' + '+tech_bioenergyHF+')'
-    
+
 
     run_command("r.param.scale", overwrite=ow,
                 input=opts['dtm'], output="morphometric_features",
@@ -300,7 +300,7 @@ def main(opts, flgs):
     run_command("r.null", map="morphometric_features", null=0)
 
 
-    
+
     exprmap = 'frict_surf_extr = pix_cross + if(yield_pix1<=0, 99999) + if(morphometric_features==6, 99999)'
 
     if rivers != '':
@@ -315,12 +315,12 @@ def main(opts, flgs):
         lakes = "lakes"
         exprmap += '+ if('+lakes+'>=1, 99999)'
 
-     
+
 
     #morphometric_features==6 -> peaks
     #run_command("r.mapcalc", overwrite=ow,expression='frict_surf_extr = if(morphometric_features==6, 99999) + if(rivers>=1 || lakes>=1, 99999) + if(yield_pix1<=0, 99999) + pix_cross')
     run_command("r.mapcalc", overwrite=ow,expression=exprmap)
-    
+
     run_command("r.cost", overwrite=ow,
                 input="frict_surf_extr", output="extr_dist",
                 stop_points=vector_forest, start_rast=forest_roads,
@@ -362,7 +362,7 @@ def main(opts, flgs):
 
 
     if flgs['r']:
-         remove_map(opts, flgs)
+        remove_map(opts, flgs)
 
 
 

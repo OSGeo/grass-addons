@@ -17,7 +17,7 @@
 #
 # REQUIREMENTS:
 #      -  uses inputs from v.stream.network
- 
+
 # More information
 # Started December 2016
 
@@ -299,31 +299,31 @@ def main():
     ##################
 
     options, flags = gscript.parser()
-    
+
     # I/O
     streams = options['input']
     segments = options['output']
-    
+
     # Hydraulic geometry
     ICALC = int(options['icalc'])
-    
+
     # ICALC=0: Constant depth
     WIDTH1 = options['width1']
     WIDTH2 = options['width2']
-    
+
     # ICALC=1,2: Manning (in channel and overbank): below
-    
+
     # ICALC=3: Power-law relationships (following Leopold and others)
     # The at-a-station default exponents are from Rhodes (1977)
     CDPTH = str(float(options['cdpth']) / 35.3146667) # cfs to m^3/s
     FDPTH = options['fdpth']
     AWDTH = str(float(options['awdth']) / 35.3146667) # cfs to m^3/s
     BWDTH = options['bwdth']
-    
+
     ##################################################
     # CHECKING DEPENDENCIES WITH OPTIONAL PARAMETERS #
     ##################################################
-    
+
     if ICALC == 3:
         if CDPTH and FDPTH and AWDTH and BWDTH:
             pass
@@ -448,7 +448,7 @@ def main():
         cur.execute("update "+segments+" set BWDTH="+str(BWDTH))
         segmentsTopo.table.conn.commit()
         segmentsTopo.close()
-    
+
     # values that are 0
     gscript.message('')
     gscript.message('NOTICE: not currently used:')
@@ -488,7 +488,7 @@ def main():
         cur.execute("update "+segments+" set ROUGHCH="+str(ROUGHCH))
         segmentsTopo.table.conn.commit()
         segmentsTopo.close()
-    
+
     # ICALC=2: Manning (overbank)
     if (options['roughbk_raster'] is not '') and (options['roughbk_points'] is not ''):
         gscript.fatal("Choose either a raster or vector or a value as Manning's n input.")

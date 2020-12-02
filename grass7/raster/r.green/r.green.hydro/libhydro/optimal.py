@@ -439,17 +439,17 @@ def conv_segpoints(seg, output):
 
     for pla in seg:
             #import ipdb; ipdb.set_trace()
-            new_vec.write(pla[-1], (2,
-                          pla.attrs['plant_id'], 'restitution', pla.attrs['stream_id'],
-                          pla.attrs['elev_down'],
-                          pla.attrs['discharge'],
-                          pla.attrs['pot_power']))
-            #import ipdb; ipdb.set_trace()
-            new_vec.write(pla[0], (1,
-                          pla.attrs['plant_id'], 'intake', pla.attrs['stream_id'],
-                          pla.attrs['elev_up'],
-                          pla.attrs['discharge'],
-                          pla.attrs['pot_power']))
+        new_vec.write(pla[-1], (2,
+                      pla.attrs['plant_id'], 'restitution', pla.attrs['stream_id'],
+                      pla.attrs['elev_down'],
+                      pla.attrs['discharge'],
+                      pla.attrs['pot_power']))
+        #import ipdb; ipdb.set_trace()
+        new_vec.write(pla[0], (1,
+                      pla.attrs['plant_id'], 'intake', pla.attrs['stream_id'],
+                      pla.attrs['elev_up'],
+                      pla.attrs['discharge'],
+                      pla.attrs['pot_power']))
 
     new_vec.table.conn.commit()
     new_vec.comment = (' '.join(sys.argv))
