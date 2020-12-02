@@ -2028,7 +2028,7 @@ class GraphicsSet:
         @return True - if value was set
         @return False - if propName is not "size" or "text" or type is "line"
         """
-        if self.properties.has_key(propName):
+        if propName in self.properties:
             self.properties[propName] = propVal
             return True
 
@@ -2045,7 +2045,7 @@ class GraphicsSet:
 
         @return value of property
         """
-        if self.properties.has_key(propName):
+        if propName in self.properties:
             return self.properties[propName]
 
         raise KeyError(_("Property does not exist: %s") % (propName))
@@ -2059,7 +2059,7 @@ class GraphicsSet:
         @return True - if pen was added
         @return False - if pen already exists
         """
-        if self.pens.has_key(penName):
+        if penName in self.pens:
             return False
 
         self.pens[penName] = pen
@@ -2073,7 +2073,7 @@ class GraphicsSet:
         @return wx.Pen reference if is found
         @return None if penName was not found
         """
-        if self.pens.has_key(penName):
+        if penName in self.pens:
             return self.pens[penName]
 
         return None
@@ -2136,7 +2136,7 @@ class GraphicsSetItem:
         @return True - if value was set
         @return False - if propName is not "penName", "hide" or "label"
         """
-        if self.properties.has_key(propName):
+        if propName in self.properties:
             self.properties[propName] = propVal
             return True
 
@@ -2153,7 +2153,7 @@ class GraphicsSetItem:
 
         @return value of property
         """
-        if self.properties.has_key(propName):
+        if propName in self.properties:
             return self.properties[propName]
 
         raise KeyError(_("Property does not exist: %s") % (propName))

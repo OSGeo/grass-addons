@@ -375,7 +375,7 @@ class RDigitWindow(BufferedWindow):
             ids = self.pdcVector.FindObjectsByBBox(x,y)
             idx = ids[0]
             cat = None
-            if self.idxCats.has_key(idx):
+            if idx in self.idxCats:
                 cat = self.idxCats[idx]
                 self.digit.DeleteArea(cat)
 
@@ -393,7 +393,7 @@ class RDigitWindow(BufferedWindow):
             cat = None
             #print self.idxCats
             #print self.idxCats.has_key(idx) , idx
-            if self.idxCats.has_key(idx):
+            if idx in self.idxCats:
                 cat = self.idxCats[idx]
                 #print cat
                 #self.digit.DeleteCircle(cat)

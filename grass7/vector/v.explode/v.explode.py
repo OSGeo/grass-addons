@@ -58,7 +58,7 @@ except:
     try:
         from grass.script import core as grass
     except:
-        if not os.environ.has_key("GISBASE"):
+        if "GISBASE" not in os.environ:
             print("You must be in GRASS GIS to run this program.")
             sys.exit(1)
 

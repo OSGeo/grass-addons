@@ -108,7 +108,7 @@ class Playground(object):
         @param list a map layer
         @param boolean optional, whether to overwrite values if key exists
         """
-        if not force and self.layers.has_key(layername):
+        if not force and layername in self.layers:
             raise error.Error(
                 "r.agent::libagent.playground.Playground.setlayer()",
                 "May not overwrite existing layer.")
@@ -138,7 +138,7 @@ class Playground(object):
         @return list the requested map layer
         """
         retval = False
-        if self.layers.has_key(layername):
+        if layername in self.layers:
             retval = self.layers[layername]
         return retval
 
@@ -147,7 +147,7 @@ class Playground(object):
         Remove (forget about) the layer named from the layer collection
         @param string name of the layer
         """
-        if self.layers.has_key(layername):
+        if layername in self.layers:
             self.layers.pop(layername)
 
     def writelayer(self, layername, filename, force=False):

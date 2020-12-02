@@ -14,9 +14,9 @@ class TestWorld(unittest.TestCase):
 
     def test_removelayerfrompg(self):
         self.world.addlayertopg("foo")
-        self.assertTrue(self.world.playground.layers.has_key("foo"))
+        self.assertTrue("foo" in self.world.playground.layers)
         self.world.removelayerfrompg("foo")
-        self.assertFalse(self.world.playground.layers.has_key("foo"))
+        self.assertFalse("foo" in self.world.playground.layers)
 
     def test_getlayer(self):
         self.world.addlayertopg("foo")

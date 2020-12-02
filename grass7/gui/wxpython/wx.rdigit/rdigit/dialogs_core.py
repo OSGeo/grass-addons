@@ -153,7 +153,7 @@ def CreateNewRaster(parent, title = _('Create new vector map'),
     vExternalOut = grass.parse_command('r.external.out', flags = 'p', delimiter = ':')
 
 
-    UsingGDAL  = vExternalOut.has_key('Not using GDAL') == False
+    UsingGDAL  = ('Not using GDAL' in vExternalOut) == False
 
 
     if not UsingGDAL:

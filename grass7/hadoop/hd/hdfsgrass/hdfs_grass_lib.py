@@ -211,7 +211,7 @@ class ConnectionManager:
         """
         cfg = read_dict(settings.grass_config)
         if cfg:
-            if cfg.has_key(conn_type):
+            if conn_type in cfg:
                 return cfg.get(conn_type)
         else:
             return None

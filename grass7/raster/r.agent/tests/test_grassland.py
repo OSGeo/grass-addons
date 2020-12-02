@@ -88,8 +88,8 @@ class TestGrassland(unittest.TestCase):
 
     def test_createlayer(self):
         self.pg.createlayer("foo", "foo")
-        self.assertTrue(self.pg.layers.has_key("foo"))
-        self.assertTrue(self.pg.grassmapnames.has_key("foo"))
+        self.assertTrue("foo" in self.pg.layers)
+        self.assertTrue("foo" in self.pg.grassmapnames)
         self.assertEqual(len(self.pg.layers["foo"]), self.pg.region["rows"])
         self.assertEqual(len(self.pg.layers["foo"][0]), self.pg.region["cols"])
 
@@ -100,10 +100,10 @@ class TestGrassland(unittest.TestCase):
     def test_removelayer(self):
         self.pg.layers["foo"] = [0]
         self.pg.grassmapnames["foo"] = "foo"
-        self.assertTrue(self.pg.layers.has_key("foo"))
+        self.assertTrue("foo" in self.pg.layers)
         self.pg.removelayer("foo")
-        self.assertFalse(self.pg.layers.has_key("foo"))
-        self.assertFalse(self.pg.grassmapnames.has_key("foo"))
+        self.assertFalse("foo" in self.pg.layers)
+        self.assertFalse("foo" in self.pg.grassmapnames)
 
     def test_writelayer(self):
         if self.rastlayername:

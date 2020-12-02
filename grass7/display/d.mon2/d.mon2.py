@@ -86,9 +86,9 @@ def main():
 
     if flags['b']:
         print('GRASS_RENDER_FILE="%s"' % img_tmp)
-        if not os.environ.has_key("GRASS_RENDER_WIDTH"):
+        if "GRASS_RENDER_WIDTH" not in os.environ:
             print('GRASS_RENDER_WIDTH=%s' % options['width'])
-        if not os.environ.has_key("GRASS_RENDER_HEIGHT"):
+        if "GRASS_RENDER_HEIGHT" not in os.environ:
             print('GRASS_RENDER_HEIGHT=%s' % options['height'])
         if flags['c']:
             print('GRASS_RENDER_IMMEDIATE=cairo')
@@ -120,9 +120,9 @@ def main():
         grass.fatal(_("'%s' not found.") % handler)
 
     os.environ['GRASS_RENDER_FILE'] = img_tmp
-    if not os.environ.has_key("GRASS_RENDER_WIDTH"):
+    if "GRASS_RENDER_WIDTH" not in os.environ:
         os.environ['GRASS_RENDER_WIDTH'] = options['width']
-    if not os.environ.has_key("GRASS_RENDER_HEIGHT"):
+    if "GRASS_RENDER_HEIGHT" not in os.environ:
         os.environ['GRASS_RENDER_HEIGHT'] = options['height']
     if flags['c']:
         os.environ['GRASS_RENDER_IMMEDIATE'] = 'cairo'
