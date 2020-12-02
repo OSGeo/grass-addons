@@ -253,7 +253,8 @@ class rusle_base(object):
                               )
         if fieldblock:
             g.verbose('Raster map fieldblock is in "%s"' %fieldblock)
-        else: fieldblock = ""
+        else:
+            fieldblock = ""
 
 
         if not options['flowacc']:

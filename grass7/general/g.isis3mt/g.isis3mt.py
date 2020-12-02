@@ -131,8 +131,10 @@ def main():
     outfile = options['out']
     body = options['body']
     pj = grasslib.G_get_projinfo()
-    if options['outres'] and options['restype'] == 'mpp': isis3['PixelResolution'] = "%f <meters>" %float(options['outres'])
-    if options['outres'] and options['restype'] == 'ppd': isis3['Scale'] = "%f <pixel/degree>" %float(options['outres'])
+    if options['outres'] and options['restype'] == 'mpp':
+        isis3['PixelResolution'] = "%f <meters>" %float(options['outres'])
+    if options['outres'] and options['restype'] == 'ppd':
+        isis3['Scale'] = "%f <pixel/degree>" %float(options['outres'])
     isis3['TargetName'] = body
     if flags['a']:
         ret = grass.start_command("g.region", flags="gl", stdout = subprocess.PIPE)
@@ -146,9 +148,12 @@ def main():
         if grasslib.G_find_key_value(p, pj):
             k = paradict[p]
             v = grasslib.G_find_key_value(p, pj)
-            if p == 'a' or p == 'b': v = v + ' <meters>'
-            if p == 'proj' and v == 'll': sys.exit("This GRASS location is in LatLong, no cartographic projection is set.\nExiting...")
-            if p == 'proj': k,v = 'ProjectionName', projdict[v]                   
+            if p == 'a' or p == 'b':
+                v = v + ' <meters>'
+            if p == 'proj' and v == 'll':
+                sys.exit("This GRASS location is in LatLong, no cartographic projection is set.\nExiting...")
+            if p == 'proj':
+                k,v = 'ProjectionName', projdict[v]                   
             isis3[k] = v
     isis3mt = IsisMapTemplate(isis3)
     of = open(outfile,'w')

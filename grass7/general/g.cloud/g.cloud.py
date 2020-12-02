@@ -140,7 +140,8 @@ if cloudpath:
 
 def transposed(lists):
     """ Function to transpose list of variables """
-    if not lists: return []
+    if not lists:
+        return []
     return map(lambda *row: list(row), *lists)
 
 

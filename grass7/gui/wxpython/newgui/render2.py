@@ -1183,8 +1183,10 @@ class Map(object):
         @param opacity opacity level <0;1>
         """
         # opacity must be <0;1>
-        if opacity < 0: opacity = 0
-        elif opacity > 1: opacity = 1
+        if opacity < 0:
+            opacity = 0
+        elif opacity > 1:
+            opacity = 1
         
         layer.opacity = opacity
         Debug.msg (3, "Map.ChangeOpacity(): layer=%s, opacity=%f" %

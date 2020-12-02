@@ -455,9 +455,12 @@ def main():
         # level 1 produces classes 1 thru 8
         # level 2 produces classes 5 thru 12
         # level 3 produces classes 9 thru 16
-        if nclasses == 8: levels = 1
-        if nclasses == 12: levels = 2
-        if nclasses == 16: levels = 3
+        if nclasses == 8:
+            levels = 1
+        if nclasses == 12:
+            levels = 2
+        if nclasses == 16:
+            levels = 3
 
         classif = []
         for level in range(levels):

@@ -79,13 +79,17 @@ def main():
     datalist    = []  # list of GRASS data files to copy
     input       = ''
     output      = ''
-    if grass.overwrite(): overwrite = True
+    if grass.overwrite():
+        overwrite = True
     
-    if filter_type == 'select all': filter = '*'
+    if filter_type == 'select all':
+        filter = '*'
     
     filterflag = ''
-    if filter_type == 'regular expressions': filterflag = 'r'
-    if filter_type == 'extended regular expressions': filterflag = 'e'
+    if filter_type == 'regular expressions':
+        filterflag = 'r'
+    if filter_type == 'extended regular expressions':
+        filterflag = 'e'
     
     #
     # first run g.list to get list of maps to parse
@@ -101,8 +105,10 @@ def main():
     # then loop through the maps copying them with g.copy and optionally adding prefix
     #
     for input in datalist:
-        if prefix: output = '%s_%s' % (prefix, input)
-        else: output = input
+        if prefix:
+            output = '%s_%s' % (prefix, input)
+        else:
+            output = input
 
         params = {datatype: '%s@%s,%s' % (input, mapset, output)}
         grass.run_command('g.copy', overwrite=overwrite, **params)

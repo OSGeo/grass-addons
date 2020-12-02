@@ -823,7 +823,8 @@ class BufferedWindow2(MapWindow, wx.Window):
     def DragItem(self, id, coords):
         """!Drag an overlay decoration item
         """
-        if id == 99 or id == '' or id == None: return
+        if id == 99 or id == '' or id == None:
+            return
         Debug.msg (5, "BufferedWindow2.DragItem(): id=%d" % id)
         x, y = self.lastpos
         dx = coords[0] - x

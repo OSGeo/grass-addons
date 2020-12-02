@@ -455,7 +455,8 @@ def model_classifiers(estimator, random_state, n_jobs, p, weights=None):
     # convert balanced boolean to scikit learn method
     if weights is True:
         weights = 'balanced'
-    else: weights = None
+    else:
+        weights = None
 
     # optional packages that add additional classifiers here
     if estimator == 'EarthClassifier' or estimator == 'EarthRegressor':
@@ -873,7 +874,8 @@ def predict(estimator, predictors, output, predict_type='raw', index=None,
        n_jobs = 1
 
     # convert potential single index to list
-    if isinstance(index, int): index = [index]
+    if isinstance(index, int):
+        index = [index]
 
     # open predictors as list of rasterrow objects
     current = Region()
@@ -1502,7 +1504,8 @@ def main():
         indexes = [int(i) for i in indexes.split(',')]
     else:
         indexes = int(indexes)
-    if indexes == -1: indexes = None
+    if indexes == -1:
+        indexes = None
 
     # error checking
     # remove @ from output in case overwriting result
@@ -1570,8 +1573,10 @@ def main():
         else:
             hyperparams[key] = hyperparams_type[key](val)
 
-    if hyperparams['max_depth'] == 0: hyperparams['max_depth'] = None
-    if hyperparams['max_features'] == 0: hyperparams['max_features'] = 'auto'
+    if hyperparams['max_depth'] == 0:
+        hyperparams['max_depth'] = None
+    if hyperparams['max_features'] == 0:
+        hyperparams['max_features'] = 'auto'
     param_grid = {k: v for k, v in param_grid.items() if v is not None}
 
     # retrieve sklearn classifier object and parameters
