@@ -431,7 +431,7 @@ def main(opts, flgs):
     slope_computation(opts['elevation'])
 
     if (opts['technical_bioenergy'] and opts['tech_bioc']
-        and opts['tech_biohf']):
+            and opts['tech_biohf']):
             technical_bioenergy = opts['technical_bioenergy']
             tech_bioC = opts['tech_bioc']
             tech_bioHF = opts['tech_biohf']

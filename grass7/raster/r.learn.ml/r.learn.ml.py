@@ -869,7 +869,7 @@ def predict(estimator, predictors, output, predict_type='raw', index=None,
         'RandomForestRegressor',
         'ExtraTreesClassifier',
         'ExtraTreesRegressor',
-        'KNeighborsClassifier']:
+            'KNeighborsClassifier']:
        n_jobs = 1
 
     # convert potential single index to list
@@ -1213,7 +1213,7 @@ def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
         'RandomForestRegressor',
         'ExtraTreesClassifier',
         'ExtraTreesRegressor',
-        'KNeighborsClassifier']:
+            'KNeighborsClassifier']:
         n_jobs=1
 
     # -------------------------------------------------------------------------

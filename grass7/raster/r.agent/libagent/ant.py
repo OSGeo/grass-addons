@@ -117,7 +117,7 @@ class Ant(agent.Agent):
             p = copyofpositions[i]
             penalty = self.world.getpenalty(p)
             if (( penalty < self.world.minpenalty ) or
-                ( penalty > self.world.maxpenalty )):
+                    ( penalty > self.world.maxpenalty )):
                 positions.remove(p)
         if not positions:
             # die as there is nowwhere to go to

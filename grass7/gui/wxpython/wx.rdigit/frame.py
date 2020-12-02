@@ -270,7 +270,7 @@ class MapManager:
         @param resultsLayer True if layer is temp. raster showing the results of computation
         """
         if (resultsLayer and
-            name in [l.GetName() for l in self.map.GetListOfLayers(l_name = name)]):
+                name in [l.GetName() for l in self.map.GetListOfLayers(l_name = name)]):
             self.frame.Render(self.mapWindow)
             return
             

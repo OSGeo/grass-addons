@@ -1112,7 +1112,7 @@ class BufferedWindow2(MapWindow, wx.Window):
         # dragging anything else - rubber band box or line
         else:
             if (self.mouse['use'] == 'pointer' and 
-                not digitToolbar):
+                    not digitToolbar):
                 return
             
             self.mouse['end'] = event.GetPositionTuple()[:]

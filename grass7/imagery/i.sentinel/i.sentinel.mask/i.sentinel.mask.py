@@ -239,7 +239,7 @@ def main ():
                     'nir',
                     'nir8a',
                     'swir11',
-                    'swir12']:
+                        'swir12']:
                     txt_bands.append(a[0])
                     bands[a[0]] = a[1].strip()
             if len(txt_bands) < 7:
@@ -310,7 +310,7 @@ def main ():
         bands['nir'] == '' or
         bands['nir8a'] == ''or
         bands['swir11'] == '' or
-        bands['swir12'] == ''):
+            bands['swir12'] == ''):
         gscript.fatal('All input bands (blue, green, red, nir, nir8a, swir11, swir12) are required')
 
     # Check if input bands exist
@@ -349,7 +349,7 @@ def main ():
         gscript.warning(_('No rescale factor has been applied'))
         for key, b in bands.items():
             if (gscript.raster_info(b)['datatype'] != "DCELL" and
-                gscript.raster_info(b)['datatype'] != "FCELL"):
+                    gscript.raster_info(b)['datatype'] != "FCELL"):
                 gscript.fatal('Raster maps must be DCELL o FCELL')
             else:
                 f_bands = bands

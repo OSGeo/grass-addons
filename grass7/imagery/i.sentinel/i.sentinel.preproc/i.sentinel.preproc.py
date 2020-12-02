@@ -747,7 +747,7 @@ def main ():
                     'nir',
                     'nir8a',
                     'swir11',
-                    'swir12']:
+                        'swir12']:
                     txt.write(str(key) + '=' + prefix + str(value) + "\n")
             mtd_tl_xml = glob.glob(os.path.join(input_dir, 'GRANULE/*/MTD_TL.xml'))[0]
             txt.write('MTD_TL.xml=' + mtd_tl_xml + "\n")
