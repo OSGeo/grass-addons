@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM=r.vect.stats
+PGM = r.vect.stats
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 

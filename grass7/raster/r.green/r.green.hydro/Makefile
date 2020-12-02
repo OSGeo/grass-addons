@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../../..
 
-PGM=r.green.hydro
+PGM = r.green.hydro
 
 SUBDIRS = libhydro \
 	r.green.hydro.theoretical  \

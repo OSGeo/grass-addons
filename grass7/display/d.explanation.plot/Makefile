@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM=d.explanation.plot
+PGM = d.explanation.plot
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 

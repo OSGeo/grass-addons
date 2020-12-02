@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../../..
 
-PGM=r.green.gshp
+PGM = r.green.gshp
 
 SUBDIRS = libgshp \
 	r.green.gshp.theoretical \
