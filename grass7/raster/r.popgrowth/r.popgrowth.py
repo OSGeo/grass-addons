@@ -201,6 +201,8 @@ def main():
     ################# Model Definiations #################
     # Model definitions modified from R scripts (http://www.mbr-pwrc.usgs.gov/workshops/unmarked/Rscripts/script-state-space.R)
     # Exponential Model
+
+
     def exponential_mod(n0,r,t):
         n = n0
         for t in range(t):

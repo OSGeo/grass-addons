@@ -461,6 +461,7 @@ def author_name_to_cff(text):
     particles = ["von", "van", "der", "di", "de"]
     suffixes = ["jr", "jnr", "sr", "snr", "junior", "senior"]
     roman = "IVX"  # if you are 40th, we will fix it for you
+
     def is_suffix(text):
         text = text.lower()
         for suffix in suffixes:
@@ -471,6 +472,7 @@ def author_name_to_cff(text):
         if text.isupper():
             bool([char for char in text if char in roman])
         return False
+
     def is_middle_initial(text):
         if text.isupper():
             if  len(text) == 2 and text.endswith('.'):
