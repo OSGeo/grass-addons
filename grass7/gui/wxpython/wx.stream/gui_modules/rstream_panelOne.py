@@ -90,8 +90,8 @@ class CoorWindow(wx.Dialog):
         mainSizer.Add(buttonSizer, 0, wx.EXPAND)
         
         textSizer = wx.BoxSizer(wx.HORIZONTAL)
-        textSizer.Add(text_static, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 15)
-        textSizer.Add(self.text_values, 1, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 15)
+        textSizer.Add(text_static, 0, wx.ALIGN_CENTER_VERTICAL |wx.ALL, 15)
+        textSizer.Add(self.text_values, 1, wx.EXPAND |wx.ALIGN_CENTER_VERTICAL |wx.ALL, 15)
         
         mainSizer.Add(textSizer, 0, wx.EXPAND)
         
