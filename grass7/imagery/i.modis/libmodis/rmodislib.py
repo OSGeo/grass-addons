@@ -167,7 +167,7 @@ class product:
                                           'spec': lst_spec, 'spec_qa': lst_specqa,
                                           'suff': lst6km_suff, 'res': 5600,
                                           'color': lst_color
-                                        }
+                                         }
                }
         vi = {'ndvi_terra_sixteen_250': {'url': urlbase, 'folder': 'MOLT/',
                                          'prod': 'MOD13Q1.006',
@@ -286,13 +286,13 @@ class product:
                                      'spec_qa': water_specqa, 'res': 250,
                                      'suff': water_suff, 'days': daily,
                                      'color': snow_color}
-                }
+                 }
         aerosol = {'aerosol_terra_aqua_daily_1000': {'url': urlbase, 'folder': 'MOTA/',
                                                      'prod': 'MCD19A2.006', 'days': daily,
                                                      'spec': aerosol_spec, 'spec_qa': aerosol_specqa,
                                                      'suff': aerosol1km_suff, 'res': 1000,
                                                      'color': aerosol_color}
-                }
+                   }
         self.products = {}
         self.products.update(lst)
         self.products.update(vi)

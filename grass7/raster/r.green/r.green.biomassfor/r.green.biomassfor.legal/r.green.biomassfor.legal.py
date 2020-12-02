@@ -160,7 +160,7 @@ def main(opts, flgs):
                 expression=ECOHF % tuple(map(float, (opts['energy_tops_hf'],
                                                      opts['energy_tops_hf'],
                                                      opts['energy_cormometric_vol_hf'])))
-                                                     )
+                )
 
     run_command("r.mapcalc", overwrite=ow,expression=ECOCC)
 

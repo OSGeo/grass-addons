@@ -697,7 +697,7 @@ def main():
                                                   closest_points_min_dist,
                                                   closest_points_dist,
                                                   closest_points_max_dist
-                                                  ))
+                                                        ))
 
             #Save edges to network dataset
             if closest_points_dist <= 0:

@@ -398,7 +398,7 @@ def landscapeEvol(m, o, p, q, res, s, f):
     numcells = grass.parse_command('r.univar',
                                   flags = 'g',
                                   map = old_dem,
-                                  )['n']
+                                   )['n']
 
     # Calculate soil as difference between surface and bedrock
     grass.mapcalc('${old_soil}=${old_dem}-${initbdrk}',

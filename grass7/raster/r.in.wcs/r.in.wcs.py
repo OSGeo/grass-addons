@@ -412,7 +412,7 @@ class WCSGdalDrv(WCSBase):
                              stdout = grass.PIPE,
                              stderr = grass.PIPE,
                              env = env
-            )
+                                    )
 
 
         else:
@@ -423,7 +423,7 @@ class WCSGdalDrv(WCSBase):
                          stdout = grass.PIPE,
                          stderr=grass.PIPE,
                          env = env
-                )
+                                        )
 
         while p.poll() is None:
             line = p.stderr.readline()

@@ -87,7 +87,7 @@ projdict = {'sinu':'Sinusoidal',
             'cc':'SimpleCylindrical',
             'eqc':'Equirectangular',
             'lcc':'LambertConformal'
-           }
+            }
 
 paradict = {'proj' :'ProjectionName',         # Name of the projection
             'lon_0':'CenterLongitude',        # Center Longitude
@@ -100,7 +100,7 @@ paradict = {'proj' :'ProjectionName',         # Name of the projection
             'to_meter':None,                  # no map on isis3
             'y_0':None,  	              # false northing
             'x_0':None,                       # false easting
-           }
+            }
            
 class IsisMapTemplate(IterableUserDict):
    def __init__(self,isisdict):      

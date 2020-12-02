@@ -265,7 +265,7 @@ def main():
         # we know the point is in the region, but is it in a non-null area of the cost surface?
         rast_val = grass.read_command('r.what', map = area_mask,
                                       coordinates = '%s,%s' % (position[0], position[1])
-                                     ).strip().split('|')[-1]
+                                      ).strip().split('|')[-1]
         if rast_val == '*':
             grass.message(_(" -- Skipping, point lays outside of cost_map."))
             del(points_list[num-1])
@@ -432,7 +432,7 @@ def main():
         # we know the point is in the region, but is it in a non-null area of the cost surface?
         rast_val = grass.read_command('r.what', map = area_mask,
                                       coordinates = '%s,%s' % (position[0], position[1])
-                                     ).strip().split('|')[-1]
+                                      ).strip().split('|')[-1]
         if rast_val == '*':
             grass.message(_(" -- Skipping, point lays outside of cost_map. [Probably programmer error]"))
             n -= 1

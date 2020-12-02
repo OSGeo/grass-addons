@@ -410,7 +410,7 @@ class Map(object):
                "GRASS_RENDER_TRUECOLOR"       : "TRUE",
                "GRASS_TRANSPARENT"     : "TRUE",
                "GRASS_RENDER_FILE_READ"        : "FALSE",
-               }
+                    }
 
         for k, v in self.env.iteritems():
             os.environ[k] = v

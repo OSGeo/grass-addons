@@ -233,7 +233,7 @@ class SentinelDownloader(object):
         # connect SciHub via API
         self._api = SentinelAPI(user, password,
                                 api_url=api_url
-        )
+                                )
 
         self._products_df_sorted = None
 
@@ -397,7 +397,7 @@ class SentinelDownloader(object):
         # -> snap
         gs.run_command('v.import', input=tmp_name, output=map_name,
                        layer=map_name, snap=1e-10, quiet=True
-        )
+                       )
 
     def set_uuid(self, uuid_list):
         """Set products by uuid.
@@ -504,7 +504,7 @@ def main():
                               sortby=sortby,
                               asc=options['order'] == 'asc',
                               relativeorbitnumber=options['relativeorbitnumber']
-            )
+                              )
     except Exception as e:
         gs.fatal(_('Unable to connect Copernicus Open Access Hub: {}').format(e))
 

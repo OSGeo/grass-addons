@@ -355,7 +355,7 @@ class HiveSpatial(object):
                           external=external,
                           partitioned=partitioned,
                           outputformat=outputformat
-                          )
+                            )
 
         hql= tbl.get_table()
 
@@ -432,7 +432,7 @@ class HiveSpatial(object):
                           partitioned=partition,
                           delimeter=delimiter,
                           tbl_properties = tblproperties
-                          )
+                         )
 
         hql= tbl.get_table()
 

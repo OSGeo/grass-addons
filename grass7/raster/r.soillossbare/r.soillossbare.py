@@ -250,7 +250,7 @@ class rusle_base(object):
                         use="val",
                         value="1",
                         quiet=quiet
-                        )
+                              )
         if fieldblock:
             g.verbose('Raster map fieldblock is in "%s"'%fieldblock)
         else: fieldblock = ""

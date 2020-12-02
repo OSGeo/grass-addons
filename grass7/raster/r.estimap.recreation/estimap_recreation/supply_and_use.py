@@ -307,7 +307,7 @@ def compute_supply(
                 rules="-",
                 stdin=cells_rules,
                 separator=":",
-        )
+                   )
 
         # Compute extent of each land category
         extent_expression = "@{cells} * area()"

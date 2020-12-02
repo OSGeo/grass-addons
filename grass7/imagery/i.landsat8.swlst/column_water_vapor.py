@@ -485,7 +485,7 @@ def estimate_cwv_big_expression(
             source1=source1_cwv,
             source2=source2_cwv,
             history=history_cwv,
-           )
+            )
         run('g.rename', raster=(outname, cwv_output))
 
 
