@@ -143,8 +143,8 @@ class RDigitWindow(BufferedWindow):
             #print idx
             self.pdcVector.SetId(idx)
             #if self.selectid:
-                  #if poly.has_key(self.selectid):
-                  #print poly[self.selectid]
+            #if poly.has_key(self.selectid):
+            #print poly[self.selectid]
             if idx != self.selectid:
                 self.pen = self.polypen = wx.Pen(colour = wx.GREEN, width = 2)
             else:
@@ -201,7 +201,7 @@ class RDigitWindow(BufferedWindow):
             east, north = self.Pixel2Cell(self.mouse['begin'])
             nfeat, fids = self.digit.AddFeature(self.toolbar.GetAction('type'), [(east, north)])
             #if nfeat < 1:
-                #return
+            #return
             
             self.UpdateMap(render = False) # redraw map
         

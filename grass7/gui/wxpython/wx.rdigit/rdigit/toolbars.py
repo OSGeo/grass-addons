@@ -517,7 +517,7 @@ class RDigitToolbar(BaseToolbar):
         Debug.msg (4, "RDigitToolbar.UpdateListOfLayers(): updateTool=%d" % updateTool)
         
         layerNameSelected = None
-         # name of currently selected layer
+        # name of currently selected layer
         if self.mapLayer:
             layerNameSelected = self.mapLayer
         

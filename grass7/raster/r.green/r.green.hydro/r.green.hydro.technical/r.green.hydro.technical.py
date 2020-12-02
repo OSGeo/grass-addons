@@ -493,7 +493,7 @@ def compute_losses(struct, options,
 
             line.attrs['losses'] = losses  # in [m]
             # TODO: fix as function of velocity
-                    # TODO: check when gross_head>length not physically
+            # TODO: check when gross_head>length not physically
     # save the changes
     struct.table.conn.commit()
 

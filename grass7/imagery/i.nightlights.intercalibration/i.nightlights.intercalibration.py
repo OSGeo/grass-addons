@@ -426,27 +426,27 @@ def main():
         # - use '-t' for temporal, makes more sense
         # - adapt following
 
-                # temporal = flags['t']
-                # if temporal:
-                #     core.info(_("Registering created maps into temporal dataset..."))
-                #     import grass.temporal as tgis
+            # temporal = flags['t']
+            # if temporal:
+            #     core.info(_("Registering created maps into temporal dataset..."))
+            #     import grass.temporal as tgis
 
-                #     def registerToTemporal(basename, suffixes, mapset, start_day, day_step,
-                #                            title, desc):
-                #         """
-                #         Register daily output maps in spatio-temporal raster data set
-                #         """
-                #         maps = ','.join([basename + suf + '@' + mapset for suf in suffixes])
-                #         tgis.open_new_stds(basename, type='strds', temporaltype='relative',
-                #                            title=title, descr=desc, semantic='sum',
-                #                            dbif=None, overwrite=grass.overwrite())
+            #     def registerToTemporal(basename, suffixes, mapset, start_day, day_step,
+            #                            title, desc):
+            #         """
+            #         Register daily output maps in spatio-temporal raster data set
+            #         """
+            #         maps = ','.join([basename + suf + '@' + mapset for suf in suffixes])
+            #         tgis.open_new_stds(basename, type='strds', temporaltype='relative',
+            #                            title=title, descr=desc, semantic='sum',
+            #                            dbif=None, overwrite=grass.overwrite())
 
-                #         tgis.register_maps_in_space_time_dataset(type='rast',
-                #                                                  name=basename, maps=maps,
-                #                                                  start=start_day, end=None,
-                #                                                  unit='days',
-                #                                                  increment=day_step,
-                #                                                  dbif=None, interval=False)
+            #         tgis.register_maps_in_space_time_dataset(type='rast',
+            #                                                  name=basename, maps=maps,
+            #                                                  start=start_day, end=None,
+            #                                                  unit='days',
+            #                                                  increment=day_step,
+            #                                                  dbif=None, interval=False)
 
         '''Normalised Difference Index (NDI), if requested'''
 

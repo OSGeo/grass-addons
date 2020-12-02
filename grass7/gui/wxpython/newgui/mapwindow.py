@@ -642,10 +642,10 @@ class BufferedWindow2(MapWindow, wx.Window):
 #############rashad
                 windres = True                  
 #                if self.frame.GetProperty('resolution'):
-                    # use computation region resolution for rendering
-                 #   windres = True
+                # use computation region resolution for rendering
+                #   windres = True
                 #else:
-                  #  windres = False
+                #  windres = False
                 
                 self.mapfile = self.Map.Render(force = True,
                                                windres = windres)

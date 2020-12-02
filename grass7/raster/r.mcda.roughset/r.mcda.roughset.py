@@ -601,8 +601,8 @@ def main():
 	print("Time computing-> %.4f s" % (end-start))
 	return 0
 	#except:
-		#print "ERROR! Rules does not generated!"
-		#sys.exit()
+	#print "ERROR! Rules does not generated!"
+	#sys.exit()
 
 if __name__ == "__main__":
 	options, flags = grass.parser()

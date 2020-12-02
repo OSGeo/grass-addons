@@ -154,14 +154,14 @@ def main():
     hru_columns.append('hru_elev double precision') # Mean elevation
     hru_columns.append('hru_lat double precision') # Latitude of centroid
     hru_columns.append('hru_lon double precision') # Longitude of centroid
-                                                   # unnecessary but why not?
+    # unnecessary but why not?
     hru_columns.append('hru_slope double precision') # Mean slope [percent]
     # Basic Physical Attributes (Other)
     #hru_columns.append('hru_type integer') # 0=inactive; 1=land; 2=lake; 3=swale; almost all will be 1
     #hru_columns.append('elev_units integer') # 0=feet; 1=meters. 0=default. I think I will set this to 1 by default.
     # Measured input
     hru_columns.append('outlet_sta integer') # Index of streamflow station at basin outlet:
-                                             # station number if it has one, 0 if not
+    # station number if it has one, 0 if not
     # Note that the below specify projections and note lat/lon; they really seem
     # to work for any projected coordinates, with _x, _y, in meters, and _xlong, 
     # _ylat, in feet (i.e. they are just northing and easting). The meters and feet
@@ -173,18 +173,18 @@ def main():
     hru_columns.append('hru_ylat double precision') # Northing [feet]
     # Streamflow and lake routing
     hru_columns.append('K_coef double precision') # Travel time of flood wave to next downstream segment;
-                                                  # this is the Muskingum storage coefficient
-                                                  # 1.0 for reservoirs, diversions, and segments flowing
-                                                  # out of the basin
+    # this is the Muskingum storage coefficient
+    # 1.0 for reservoirs, diversions, and segments flowing
+    # out of the basin
     hru_columns.append('x_coef double precision') # Amount of attenuation of flow wave;
-                                                  # this is the Muskingum routing weighting factor
-                                                  # range: 0.0--0.5; default 0.2
-                                                  # 0 for all segments flowing out of the basin
+    # this is the Muskingum routing weighting factor
+    # range: 0.0--0.5; default 0.2
+    # 0 for all segments flowing out of the basin
     hru_columns.append('hru_segment integer') # ID of stream segment to which flow will be routed
-                                              # this is for non-cascade routing (flow goes directly
-                                              # from HRU to stream segment)
+    # this is for non-cascade routing (flow goes directly
+    # from HRU to stream segment)
     hru_columns.append('obsin_segment integer') # Index of measured streamflow station that replaces
-                                                # inflow to a segment
+    # inflow to a segment
     hru_columns.append('cov_type integer') # 0=bare soil;1=grasses; 2=shrubs; 3=trees; 4=coniferous
     hru_columns.append('soil_type integer') # 1=sand; 2=loam; 3=clay
 

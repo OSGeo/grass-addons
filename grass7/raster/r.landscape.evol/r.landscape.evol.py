@@ -601,7 +601,7 @@ def landscapeEvol(m, o, p, q, res, s, f):
     # vertical meters of elevation change. Add back the divergence in EW and NS
     # directions. Units are in kg/m2.s, so start by dividing by soil density
     # [kg/m3] to get m/s elevation change (for USPED that is m/year already,
-      #but not for the shear stress or stream power).
+    #but not for the shear stress or stream power).
     # For shear stress and stream power, also multiply by the number
     # of seconds at peak flow depth (stormi) and then by the number of erosive
     # storms per year to get m/year elevation change.

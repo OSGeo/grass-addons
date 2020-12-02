@@ -13,7 +13,7 @@ class VectorDBInfo:
 
         # dictionary of layer number and associated (driver, database, table)
         self.layers = {}
-         # dictionary of table and associated columns (type, length, values, ids)
+        # dictionary of table and associated columns (type, length, values, ids)
         self.tables = {}
 
         if not self._CheckDBConnection(): # -> self.layers
