@@ -100,9 +100,9 @@ def check_requirements():
 def check_proj(epsg):
     # check if location is in longlat
     if grass.parse_command('g.proj', flags='j')['+proj'] == 'longlat':
-    # if not projected, check if EPSG code was supplied for reprojection
+        # if not projected, check if EPSG code was supplied for reprojection
         if epsg:
-        # Check if EPSG code exists in database
+            # Check if EPSG code exists in database
             try:
                 out_proj = pyproj.Proj(init='epsg:'+str(epsg))
             except RuntimeError:

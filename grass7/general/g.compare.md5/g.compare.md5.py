@@ -163,7 +163,7 @@ def main():
     if typ == "raster":
         # for each folder
         for fold in raster_folder:
-        # create the path to folder
+            # create the path to folder
             apath = os.path.join(aloc,fold,ainp['name'])
             bpath = os.path.join(bloc,fold,binp['name'])
             # if folder is cell_misc it check the into files inside cell_misc folder
