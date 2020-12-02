@@ -1200,7 +1200,7 @@ class MdDataCatalog(LocationMapTree):
                'vector',
                'stvds',
                'strds',
-               ]
+                 ]
         if type in types:
             return True
         else:
