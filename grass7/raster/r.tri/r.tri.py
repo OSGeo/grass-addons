@@ -94,7 +94,7 @@ def focal_expr(radius, circular=False):
     size = radius * 2 + 1
     centre = int(size / 2)
 
-    rows, cols = np.ogrid[-radius : radius + 1, -radius : radius + 1]
+    rows, cols = np.ogrid[-radius: radius + 1, -radius: radius + 1]
     row_offsets, col_offsets = np.meshgrid(rows, cols)
 
     # create circular mask (also masking centre)

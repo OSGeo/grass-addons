@@ -152,14 +152,14 @@ def main():
                     "source: https://pypi.python.org/pypi/pyspatialite \n"
                     "Please activate/install it in your python stack.")        
 
-    if list_n2k_layer :
+    if list_n2k_layer:
         grass.message("Available data layer(s):" )
         grass.message("may take some time ..." )
         grass.message("..." )                
         grass.run_command("v.in.ogr", input = n2k_input,
                                      flags = 'l')
 
-    if list_bg_reg :
+    if list_bg_reg:
         grass.message("Biogeographic regions:" )
         conn = db.connect("%s" % n2k_input)
         c = conn.cursor()
@@ -167,7 +167,7 @@ def main():
                 grass.message(row )
         conn.close()                                                         
 
-    if list_ms :
+    if list_ms:
         grass.message("EU member states:" )
         conn = db.connect("%s" % n2k_input)
         c = conn.cursor()
@@ -175,7 +175,7 @@ def main():
                 grass.message(row )
         conn.close()
 
-    if list_habitats :
+    if list_habitats:
         grass.message("habitat codes of EU community interest:" )
         conn = db.connect("%s" % n2k_input)
         c = conn.cursor()
@@ -188,7 +188,7 @@ def main():
                           " Please check columns HABITATCODE and DESCRIPTION of table HABITATS in the sqlite database.")
         conn.close()
 
-    if list_species :
+    if list_species:
         grass.message("species codes of EU community interest:" )
         conn = db.connect("%s" % n2k_input)
         c = conn.cursor()
@@ -201,7 +201,7 @@ def main():
                           " Please check columns SPECIESCODE and SPECIESNAME of table SPECIES in the sqlite database.")
         conn.close()
 
-    if list_site_type :
+    if list_site_type:
         grass.message("site types:" )
         conn = db.connect("%s" % n2k_input)
         c = conn.cursor()
@@ -209,7 +209,7 @@ def main():
                 grass.message(row )
         conn.close()
 
-    if pa_sitetype_input :
+    if pa_sitetype_input:
         grass.message("importing protected areas of site type: %s" % pa_sitetype_input )
         grass.message("may take some time ..." )
         grass.run_command("v.in.ogr", input = "%s" % (n2k_input),
@@ -218,7 +218,7 @@ def main():
                                                                 where = "SITETYPE = '%s'" % (pa_sitetype_input),
                                                                 quiet = False)        
 
-    if ms_input :
+    if ms_input:
         grass.message("importing protected areas of member state: %s" % ms_input )
         grass.message("may take some time ..." )
         grass.run_command("v.in.ogr", input = "%s" % (n2k_input),
@@ -227,7 +227,7 @@ def main():
                                                                 where = "MS = '%s'" % (ms_input),
                                                                 quiet = False)                                                                
 
-    if habitat_code_input :
+    if habitat_code_input:
        grass.message("importing protected areas with habitat (code): %s" % habitat_code_input )
        grass.message("preparing (spatial) views in the sqlite/spatialite database:" )
        conn = db.connect("%s" % n2k_input)
@@ -274,7 +274,7 @@ def main():
                                    output = n2k_output,
                                    quiet = False)           
 
-    if species_code_input :
+    if species_code_input:
        grass.message("importing protected areas with species (code): %s" % species_code_input )
        grass.message("preparing (spatial) views in the sqlite/spatialite database:" )
        conn = db.connect("%s" % n2k_input)
@@ -326,7 +326,7 @@ def main():
                         output = n2k_output,
                         quiet = False)        
 
-    if biogeoreg_long :
+    if biogeoreg_long:
        grass.message("importing protected areas of biogeographic region: %s" % biogeoreg_long )
        grass.message("preparing (spatial) views in the sqlite/spatialite database:" )
        conn = db.connect("%s" % n2k_input)
@@ -369,7 +369,7 @@ def main():
                         output = n2k_output,
                         quiet = False)           
 
-    if layer_exist :
+    if layer_exist:
        grass.message("importing existing spatial layer %s of the dataset" % layer_exist )
        grass.run_command("v.in.ogr", input = "%s" % (n2k_input),
                         layer = "%s" % (layer_exist),

@@ -257,7 +257,7 @@ class ServerAdd(wx.Frame):
         
         serverData = ServerData()
 
-        if len(newServerName) != 0 :
+        if len(newServerName) != 0:
             if self.selectedServer is not None:
                 if not self.selectedServer.servername == newServerName:
                     if self.valueExists(self.servers, newServerName):

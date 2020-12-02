@@ -121,7 +121,7 @@ def wkt2standards(prj_txt):
     if flags['p']:
         print('proj4=%s' % srs.ExportToProj4())
     srs.AutoIdentifyEPSG()
-    try :
+    try:
         int(srs.GetAuthorityCode(None))
         epsg=srs.GetAuthorityCode(None)
         print('epsg=%s' % epsg)

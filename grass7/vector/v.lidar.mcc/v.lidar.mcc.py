@@ -195,16 +195,16 @@ def main():
         vpatch_flags += 'nz'
 
     # Loop through scale domaines
-    while (l <= l_stop ) :
+    while (l <= l_stop ):
         i = 1
         convergence = 100
-        if (l < ((l_stop + 1 ) / 2 ) ) :
+        if (l < ((l_stop + 1 ) / 2 ) ):
             xres = x_res_fin / (n_res_steps - (l - 1 ) )
             yres = y_res_fin / (n_res_steps - (l - 1 ) )
-        elif (l == ((l_stop + 1 ) / 2 ) ) :
+        elif (l == ((l_stop + 1 ) / 2 ) ):
              xres = x_res_fin
              yres = y_res_fin
-        else :
+        else:
             xres = x_res_fin * ((l + 1 ) - n_res_steps )
             yres = y_res_fin * ((l + 1 ) - n_res_steps )
         
@@ -214,16 +214,16 @@ def main():
         ys_s = yres * s
         grass.message("Processing scale domain " + str(l) + "...")
         # Repeat application of v.outlier until convergence level is reached
-        while (convergence > j ) :
+        while (convergence > j ):
             grass.verbose("Number of input points in iteration " + str(i) + ": " + str(n_input) )
             # Run v.outlier
-            if flag_n == False :
+            if flag_n == False:
                 grass.run_command('v.outlier',
                     input=nc_points, output=temp_ncout, outlier=temp_ng,
                     ew_step=xs_s, ns_step=ys_s, lambda_=f, threshold=t,
                     filter='positive',
                     overwrite=True, quiet=True, stderr=nuldev)
-            else :
+            else:
                 grass.run_command('v.outlier',
                     input=nc_points, output=temp_ncout, outlier=temp_ng,
                     ew_step=xs_s, ns_step=ys_s, lambda_=f, threshold=t,
@@ -241,7 +241,7 @@ def main():
             grass.verbose("Unclassified points after iteration " + str(i) + ": " + str(nc) )
             grass.verbose("Points classified as non ground after iteration " + str(i) + ": " + str(ng) )
             # Set convergence level
-            if (nc > 0 ) :
+            if (nc > 0 ):
                 convergence = float(float(ng) / float(nc) )
                 if build_before_patch:
                     grass.run_command('v.build', map=temp_ng, stderr=nuldev)
@@ -253,7 +253,7 @@ def main():
                 else:
                     grass.run_command('g.copy', vector=(temp_ng, ng_output), stderr=nuldev)
                     ng_output_exists = True
-            else :
+            else:
                 convergence = 0
             # Give information on convergence level
             grass.verbose("Convergence level after run " + str(i) + " in scale domain " + str(l) + ": " + str(round(convergence, 3 ) ) )

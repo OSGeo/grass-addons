@@ -560,8 +560,8 @@ class BufferedWindow2(MapWindow, wx.Window):
                     if self.imagedict[key]['id'] == overlay.id:
                         del self.imagedict[key]
                 
-                self.imagedict[img] = {'id' : overlay.id,
-                                        'layer' : overlay }
+                self.imagedict[img] = {'id': overlay.id,
+                                        'layer': overlay }
                 imgs.append(img)
 
         return imgs
@@ -1885,10 +1885,10 @@ class GraphicsSet:
             RegisterGraphicsToDraw in BufferedWindow2 class.
         """
         self.pens =  {
-            "default"  :  wx.Pen(colour = wx.BLACK, width = 2, style = wx.SOLID),
-            "selected" :  wx.Pen(colour = wx.GREEN, width = 2, style = wx.SOLID),
-            "unused"   :  wx.Pen(colour = wx.LIGHT_GREY, width = 2, style = wx.SOLID),
-            "highest"  :  wx.Pen(colour = wx.RED, width = 2, style = wx.SOLID)
+            "default":  wx.Pen(colour = wx.BLACK, width = 2, style = wx.SOLID),
+            "selected":  wx.Pen(colour = wx.GREEN, width = 2, style = wx.SOLID),
+            "unused":  wx.Pen(colour = wx.LIGHT_GREY, width = 2, style = wx.SOLID),
+            "highest":  wx.Pen(colour = wx.RED, width = 2, style = wx.SOLID)
         }
         
         # list contains instances of GraphicsSetItem
@@ -2120,9 +2120,9 @@ class GraphicsSetItem:
         """
         self.coords = coords
         
-        self.properties = {"penName" : penName,
-                            "hide"    : hide,
-                            "label"   : label }
+        self.properties = {"penName": penName,
+                            "hide": hide,
+                            "label": label }
         
     def SetPropertyVal(self, propName, propVal):
         """!Set property value

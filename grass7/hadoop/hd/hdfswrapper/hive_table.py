@@ -115,7 +115,7 @@ class HiveJsonTable(HiveBaseTable):
     """
     def __init__(self,
                 name,
-                col ,
+                col,
                 db_name = None,
                 temporary = False,
                 external = False,
@@ -170,7 +170,7 @@ class HiveCsvTable(HiveBaseTable):
     """
     def __init__(self,
                 name,
-                col ,
+                col,
                 db_name = None,
                 temporary = False,
                 external = False,

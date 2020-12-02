@@ -89,7 +89,7 @@ projdict = {'sinu':'Sinusoidal',
             'lcc':'LambertConformal'
             }
 
-paradict = {'proj' :'ProjectionName',         # Name of the projection
+paradict = {'proj':'ProjectionName',         # Name of the projection
             'lon_0':'CenterLongitude',        # Center Longitude
             'lat_0':'CenterLatitude',         # Center Latitude
             'k':'ScaleFactor',                # Scale Factor
@@ -127,8 +127,8 @@ def main():
     outfile = options['out']
     body = options['body']
     pj = grasslib.G_get_projinfo()
-    if options['outres'] and options['restype']=='mpp' : isis3['PixelResolution'] = "%f <meters>"%float(options['outres'])
-    if options['outres'] and options['restype']=='ppd' : isis3['Scale'] = "%f <pixel/degree>"%float(options['outres'])
+    if options['outres'] and options['restype']=='mpp': isis3['PixelResolution'] = "%f <meters>"%float(options['outres'])
+    if options['outres'] and options['restype']=='ppd': isis3['Scale'] = "%f <pixel/degree>"%float(options['outres'])
     isis3['TargetName'] = body
     if flags['a']:
         ret = grass.start_command("g.region", flags="gl", stdout = subprocess.PIPE)

@@ -85,11 +85,11 @@ def main():
     grass.message("Cellsize : %s " % resolution) 
 
     # Flow accumulation map MFD
-    grass.run_command('r.watershed', elevation = r_elevation , accumulation = 'r_accumulation' , convergence = 5, flags = 'a')
+    grass.run_command('r.watershed', elevation = r_elevation, accumulation = 'r_accumulation', convergence = 5, flags = 'a')
     grass.message("Flow accumulation done. ")
 
     # Slope map
-    grass.run_command('r.slope.aspect', elevation = r_elevation , slope = 'r_slope' )
+    grass.run_command('r.slope.aspect', elevation = r_elevation, slope = 'r_slope' )
     grass.message("Slope map done. ")
 
     # n exponent 

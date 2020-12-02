@@ -54,10 +54,10 @@ def main():
     eraster = options['input'].split('@')[0]
     level1 = flags['1']
     level2 = flags['2']
-    if level1 :
+    if level1:
         color_rules_level1 = eraster+'_color_level1.txt'
         cat_rules_level1 = eraster+'_cat_level1.txt'        
-    if level2 :
+    if level2:
         color_rules_level2 = eraster+'_color_level2.txt'
         cat_rules_level2 = eraster+'_cat_level2.txt'
     global tmp     
@@ -67,16 +67,16 @@ def main():
 
     # define intermediate folder files
     datatempdir = tempfile.gettempdir()
-    if level1 :
+    if level1:
         tmp_col_l1 = os.path.join(datatempdir, color_rules_level1 )
         tmp_cat_l1 = os.path.join(datatempdir, cat_rules_level1 )
-    if level2 :    
+    if level2:    
         tmp_col_l2 = os.path.join(datatempdir, color_rules_level2 )
         tmp_cat_l2 = os.path.join(datatempdir, cat_rules_level2 )    
 
         
     # write intermediate color and cat rule file data level 1
-    if level1 :
+    if level1:
         # write intermediate color rule file level 1
         fcl1 = open('%s' % (tmp_col_l1), 'wt')
         fcl1.write("""1 115:178:255
@@ -121,7 +121,7 @@ def main():
                                         quiet = True)        
         
     # write intermediate color and cat rule file data level 2        
-    if level2 :
+    if level2:
         # write intermediate color rule file level 2
         fcl2 = open('%s' % (tmp_col_l2), 'wt')
         fcl2.write("""9 166:255:230
@@ -414,11 +414,11 @@ def main():
     # do some clean up
     grass.message("----" )
     grass.message("cleaning intermediate files ...." )    
-    if level1 :
+    if level1:
         os.remove("%s" % tmp_col_l1)
         os.remove("%s" % tmp_cat_l1)
 
-    if level2 :
+    if level2:
         os.remove("%s" % tmp_col_l2)
         os.remove("%s" % tmp_cat_l2)
 

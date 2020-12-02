@@ -244,7 +244,7 @@ def main ():
                     bands[a[0]] = a[1].strip()
             if len(txt_bands) < 7:
                 gscript.fatal(('One or more bands are missing in the input text file.\n Only these bands have been found: {}').format(txt_bands))
-            if mtd_file and metadata_file != 'default' :
+            if mtd_file and metadata_file != 'default':
                 gscript.fatal(('Metadata json file and mtd_file are both given as input text files.\n Only one of these should be specified.'))
 
     # we want cloud and shadows: check input and output for shadow mask

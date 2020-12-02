@@ -53,9 +53,9 @@ class RDigitToolbar(BaseToolbar):
         self.Bind(wx.EVT_TOOL, self._toolChosen)
         
         # default action (digitize new point, line, etc.)
-        self.action = {'desc' : '',
-                        'type' : '',
-                        'id'   : -1 }
+        self.action = {'desc': '',
+                        'type': '',
+                        'id': -1 }
         
         # list of available raster maps
         self.UpdateListOfLayers(updateTool = True)
@@ -93,36 +93,36 @@ class RDigitToolbar(BaseToolbar):
         
         icons = {
 
-            'addLine'         : MetaIcon(img = 'line-create',
+            'addLine': MetaIcon(img = 'line-create',
                                          label = _('Digitize new line'),
                                          desc = _('Left: new point; Ctrl+Left: undo last point; Right: close line')),
-            'addBoundary'     : MetaIcon(img = 'polygon-create',
+            'addBoundary': MetaIcon(img = 'polygon-create',
                                          label = _('Digitize new boundary'),
                                          desc = _('Left: new point; Ctrl+Left: undo last point; Right: close line')), 
-            'addCircle'        : MetaIcon(img = 'draw-circle',
+            'addCircle': MetaIcon(img = 'draw-circle',
                                          label = _('Digitize new Cirlce'),
                                          desc = _('Left: new point; Ctrl+Left: undo last point; Right: close line')),
 
 
-            'deleteLine'      : MetaIcon(img = 'line-delete',
+            'deleteLine': MetaIcon(img = 'line-delete',
                                          label = _('Delete feature(s)'),
                                          desc = _('Left: Select; Ctrl+Left: Unselect; Right: Confirm')),
-            'deleteArea'      : MetaIcon(img = 'polygon-delete',
+            'deleteArea': MetaIcon(img = 'polygon-delete',
                                          label = _('Delete area(s)'),
                                          desc = _('Left: Select; Ctrl+Left: Unselect; Right: Confirm')),
-            'deleteCircle'        : MetaIcon(img = 'delete-circle',
+            'deleteCircle': MetaIcon(img = 'delete-circle',
                                          label = _('Digitize new Cirlce'),
                                          desc = _('Left: new point; Ctrl+Left: undo last point; Right: close line')),
  
-            'settings'        : BaseIcons['settings'].SetLabel(_('Digitization settings')),
-            'quit'            : BaseIcons['quit'].SetLabel(label = _('Quit digitizer'),
+            'settings': BaseIcons['settings'].SetLabel(_('Digitization settings')),
+            'quit': BaseIcons['quit'].SetLabel(label = _('Quit digitizer'),
                                                            desc = _('Quit digitizer and save changes')),
-            'help'            : BaseIcons['help'].SetLabel(label = _('Vector Digitizer manual'),
+            'help': BaseIcons['help'].SetLabel(label = _('Vector Digitizer manual'),
                                                            desc = _('Show Vector Digitizer manual')),
-            'undo'            : MetaIcon(img = 'undo',
+            'undo': MetaIcon(img = 'undo',
                                          label = _('Undo'),
                                          desc = _('Undo previous changes')),
-            'redo'            : MetaIcon(img = 'redo',
+            'redo': MetaIcon(img = 'redo',
                                          label = _('Redo'),
                                          desc = _('Redo previous changes')),
         }
@@ -219,9 +219,9 @@ class RDigitToolbar(BaseToolbar):
 #        
         # set no action
         if self.action['id'] == -1:
-            self.action = {'desc' : '',
-                            'type' : '',
-                            'id'   : -1 }
+            self.action = {'desc': '',
+                            'type': '',
+                            'id': -1 }
         
         # set focus
         self.MapWindow.SetFocus()
@@ -233,9 +233,9 @@ class RDigitToolbar(BaseToolbar):
         
         Debug.msg (2, "RDigitToolbar.OnAddLine()")
         
-        self.action = {'desc' : "addLine",
-                        'type' : "line",
-                        'id'   : self.addLine }
+        self.action = {'desc': "addLine",
+                        'type': "line",
+                        'id': self.addLine }
         self.MapWindow.mouse['box'] = 'line'
 
         
@@ -247,9 +247,9 @@ class RDigitToolbar(BaseToolbar):
         if self.action['desc'] != 'addLine' or \
                 self.action['type'] != 'boundary':
             self.MapWindow.polycoords = [] # reset temp line
-        self.action = {'desc' : "addLine",
-                        'type' : "boundary",
-                        'id'   : self.addBoundary }
+        self.action = {'desc': "addLine",
+                        'type': "boundary",
+                        'id': self.addBoundary }
         self.MapWindow.mouse['box'] = 'line'
         
     def OnAddCircle(self, event):
@@ -259,9 +259,9 @@ class RDigitToolbar(BaseToolbar):
         
         if self.action['desc'] != 'addCircle':
             self.MapWindow.polycoords = [] # reset temp line
-        self.action = {'desc' : "addCircle",
-                        'type' : "circle",
-                        'id'   : self.addCircle }
+        self.action = {'desc': "addCircle",
+                        'type': "circle",
+                        'id': self.addCircle }
         self.MapWindow.mouse['box'] = 'line'        
 
     def OnExit (self, event=None):
@@ -290,8 +290,8 @@ class RDigitToolbar(BaseToolbar):
         
         Debug.msg(2, "RDigittoolbar.OnDeleteLine():")
         
-        self.action = {'desc' : "deleteLine",
-                        'id'   : self.deleteLine }
+        self.action = {'desc': "deleteLine",
+                        'id': self.deleteLine }
         self.MapWindow.mouse['box'] = 'box'
 
     def OnDeleteArea(self, event):
@@ -299,8 +299,8 @@ class RDigitToolbar(BaseToolbar):
         
         Debug.msg(2, "RDigittoolbar.OnDeleteArea():")
         
-        self.action = {'desc' : "deleteArea",
-                        'id'   : self.deleteArea }
+        self.action = {'desc': "deleteArea",
+                        'id': self.deleteArea }
         self.MapWindow.mouse['box'] = 'line'
 
     def OnDeleteCircle(self, event):
@@ -308,8 +308,8 @@ class RDigitToolbar(BaseToolbar):
         
         Debug.msg(2, "RDigittoolbar.OnDeleteCircle():")
         
-        self.action = {'desc' : "deleteCircle",
-                        'id'   : self.deleteCircle }
+        self.action = {'desc': "deleteCircle",
+                        'id': self.deleteCircle }
         self.MapWindow.mouse['box'] = 'line'
 
         

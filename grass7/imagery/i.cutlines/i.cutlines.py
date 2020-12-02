@@ -243,11 +243,11 @@ def main():
 
     gscript.message(_("Creating edge map"))
     if edge_detection_algorithm == 'zc':
-        kwargs = {'input' : inputraster,
-                  'output' : temp_edge_map,
-                  'width_' : int(options['zc_width']),
-                  'threshold' : float(options['zc_threshold']),
-                  'quiet' : True}
+        kwargs = {'input': inputraster,
+                  'output': temp_edge_map,
+                  'width_': int(options['zc_width']),
+                  'threshold': float(options['zc_threshold']),
+                  'quiet': True}
 
         if tiled:
             grd = GridModule('i.zc',
@@ -269,12 +269,12 @@ def main():
                 message += _(" You can install the addon with 'g.extension i.edge'")
                 gscript.fatal(message)
 
-        kwargs = {'input' : inputraster,
-                  'output' : temp_edge_map,
-                  'low_threshold' : float(options['canny_low_threshold']),
-                  'high_threshold' : float(options['canny_high_threshold']),
-                  'sigma' : float(options['canny_sigma']),
-                  'quiet' : True}
+        kwargs = {'input': inputraster,
+                  'output': temp_edge_map,
+                  'low_threshold': float(options['canny_low_threshold']),
+                  'high_threshold': float(options['canny_high_threshold']),
+                  'sigma': float(options['canny_sigma']),
+                  'quiet': True}
 
 
         if tiled:

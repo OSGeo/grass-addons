@@ -904,7 +904,7 @@ def tev(opts,flgs):
 
     #pdb.set_trace()
 
-    if (len(vol_matching)<1) or (len(vol_matching2<1)) :
+    if (len(vol_matching)<1) or (len(vol_matching2<1)):
         #get_msgr().fatal("Field in vector TEV map not found")
         print("Errors in fields of TEV map")
         return

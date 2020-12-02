@@ -8,7 +8,7 @@ import shutil
 import psycopg2
 import time
 import math
-import sys ,os
+import sys,os
 from subprocess import PIPE
 
 from pgwrapper      import pgwrapper as pg
@@ -889,7 +889,7 @@ class Computor():
             # print 'valuesDirectly'
             self.baselineDict = readBaselineFromText(self.baseline.pathTofile)
 
-        elif self.baseline.type == 'fromDryWin' :
+        elif self.baseline.type == 'fromDryWin':
             logger.info('Computing baselines "dry window" "%s"...' % self.baseline.statFce)
             if computeBaselineFromTime():
                 self.baselineDict = readBaselineFromText(os.path.join(database.pathworkSchemaDir, 'baseline'))

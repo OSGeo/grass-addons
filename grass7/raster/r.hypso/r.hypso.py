@@ -78,15 +78,15 @@ def main():
         kl[i,1] = 1 - (zn[i,2] / totcell)
 
     # quantiles
-    prc[0,0] , prc[0,1] = findint(kl,0.025) , 0.025
-    prc[1,0] , prc[1,1] = findint(kl,0.05) , 0.05
-    prc[2,0] , prc[2,1] = findint(kl,0.1) , 0.1
-    prc[3,0] , prc[3,1] = findint(kl,0.25) , 0.25
-    prc[4,0] , prc[4,1] = findint(kl,0.5) , 0.5
-    prc[5,0] , prc[5,1] = findint(kl,0.75) , 0.75
-    prc[6,0] , prc[6,1] = findint(kl,0.9) , 0.9
-    prc[7,0] , prc[7,1] = findint(kl,0.95) , 0.95
-    prc[8,0] , prc[8,1] = findint(kl,0.975) , 0.975
+    prc[0,0], prc[0,1] = findint(kl,0.025), 0.025
+    prc[1,0], prc[1,1] = findint(kl,0.05), 0.05
+    prc[2,0], prc[2,1] = findint(kl,0.1), 0.1
+    prc[3,0], prc[3,1] = findint(kl,0.25), 0.25
+    prc[4,0], prc[4,1] = findint(kl,0.5), 0.5
+    prc[5,0], prc[5,1] = findint(kl,0.75), 0.75
+    prc[6,0], prc[6,1] = findint(kl,0.9), 0.9
+    prc[7,0], prc[7,1] = findint(kl,0.95), 0.95
+    prc[8,0], prc[8,1] = findint(kl,0.975), 0.975
 
     # Managing flag & plot
     if flags['a']:
@@ -97,14 +97,14 @@ def main():
     print("===========================")
     print("Hypsometric | quantiles")
     print("===========================")
-    print('%.0f' %findint(kl,0.025) , "|", 0.025)
-    print('%.0f' %findint(kl,0.05) , "|", 0.05)
-    print('%.0f' %findint(kl,0.1) , "|", 0.1)
-    print('%.0f' %findint(kl,0.25) , "|", 0.25)
-    print('%.0f' %findint(kl,0.5) , "|", 0.5)
-    print('%.0f' %findint(kl,0.75) , "|", 0.75)
-    print('%.0f' %findint(kl,0.9) , "|", 0.9)
-    print('%.0f' %findint(kl,0.975) , "|", 0.975)
+    print('%.0f' %findint(kl,0.025), "|", 0.025)
+    print('%.0f' %findint(kl,0.05), "|", 0.05)
+    print('%.0f' %findint(kl,0.1), "|", 0.1)
+    print('%.0f' %findint(kl,0.25), "|", 0.25)
+    print('%.0f' %findint(kl,0.5), "|", 0.5)
+    print('%.0f' %findint(kl,0.75), "|", 0.75)
+    print('%.0f' %findint(kl,0.9), "|", 0.9)
+    print('%.0f' %findint(kl,0.975), "|", 0.975)
     print('\n')
     print('Done!')
     #print prc

@@ -224,7 +224,7 @@ def main ():
         gscript.warning(_("Topographic correction of reflectance will use "
                           "default method 'c-factor'"))
 
-    if not gscript.find_program('i.sentinel.import', '--help') :
+    if not gscript.find_program('i.sentinel.import', '--help'):
         gscript.fatal('Module requires i.sentinel.import. Please install it using g.extension.')
 
     # Import bands

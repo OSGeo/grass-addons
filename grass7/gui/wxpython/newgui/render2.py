@@ -132,7 +132,7 @@ class Layer(object):
         
         if self.type not in layertypes:
             raise GException(_("<%(name)s>: layer type <%(type)s> is not supported") % \
-                                 {'type' : self.type, 'name' : self.name})
+                                 {'type': self.type, 'name': self.name})
         
         if self.mapfile:
             os.environ["GRASS_RENDER_FILE"] = self.mapfile
@@ -243,11 +243,11 @@ class Layer(object):
             return self.name
         else:
             if '@' in self.name:
-                return {'name' : self.name.split('@')[0],
-                         'mapset' : self.name.split('@')[1] }
+                return {'name': self.name.split('@')[0],
+                         'mapset': self.name.split('@')[1] }
             else:
-                return {'name' : self.name,
-                         'mapset' : '' }
+                return {'name': self.name,
+                         'mapset': '' }
         
     def IsActive(self):
         """!Check if layer is activated for rendering"""
@@ -405,11 +405,11 @@ class Map(object):
         self.receiver = None
 
         # GRASS environment variable (for rendering)
-        self.env = {"GRASS_RENDER_BACKGROUNDCOLOR" : "FFFFFF",
-               "GRASS_COMPRESSION"     : "0",
-               "GRASS_RENDER_TRUECOLOR"       : "TRUE",
-               "GRASS_TRANSPARENT"     : "TRUE",
-               "GRASS_RENDER_FILE_READ"        : "FALSE",
+        self.env = {"GRASS_RENDER_BACKGROUNDCOLOR": "FFFFFF",
+               "GRASS_COMPRESSION": "0",
+               "GRASS_RENDER_TRUECOLOR": "TRUE",
+               "GRASS_TRANSPARENT": "TRUE",
+               "GRASS_RENDER_FILE_READ": "FALSE",
                     }
 
         for k, v in self.env.iteritems():
@@ -487,7 +487,7 @@ class Map(object):
             windfile = open (filename, "r")
         except IOError, e:
             sys.exit(_("Error: Unable to open '%(file)s'. Reason: %(ret)s. wxGUI exited.\n") % \
-                         {'file' : filename, 'ret' : e})
+                         {'file': filename, 'ret': e})
         
         for line in windfile.readlines():
             line = line.strip()

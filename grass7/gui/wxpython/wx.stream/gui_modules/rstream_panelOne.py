@@ -181,14 +181,14 @@ class CoorWindow(wx.Dialog):
         if self.radioval2 == 'True':
             print self.radioval2 
             grass.message('Creating flow accumulation map with MFD algorithm..')
-            grass.run_command('r.watershed', elevation = self.r_elev , 
-                              accumulation = self.r_acc , 
-                              convergence = 5 , 
+            grass.run_command('r.watershed', elevation = self.r_elev, 
+                              accumulation = self.r_acc, 
+                              convergence = 5, 
                               flags = 'a', overwrite = True)
             print self.r_acc
         
-            grass.run_command('r.stream.extract', elevation = self.r_elev , 
-                          accumulation = self.r_acc , 
+            grass.run_command('r.stream.extract', elevation = self.r_elev, 
+                          accumulation = self.r_acc, 
                           threshold = self.thre, 
                           stream_vect = self.v_net, 
                           direction = self.r_drain, overwrite = True)
@@ -197,23 +197,23 @@ class CoorWindow(wx.Dialog):
         elif self.radioval3 == 'True':
             print self.radioval3 
             grass.message('Creating flow accumulation map with SFD algorithm..')
-            grass.run_command('r.watershed', elevation = self.r_elev , 
-                              accumulation = self.r_acc , 
-                              drainage = self.r_drain , 
-                              convergence = 5 , 
+            grass.run_command('r.watershed', elevation = self.r_elev, 
+                              accumulation = self.r_acc, 
+                              drainage = self.r_drain, 
+                              convergence = 5, 
                               flags = 'sa', overwrite = True)
             print self.r_acc
             
-            grass.run_command('r.stream.extract', elevation = self.r_elev , 
-                          accumulation = self.r_acc , 
+            grass.run_command('r.stream.extract', elevation = self.r_elev, 
+                          accumulation = self.r_acc, 
                           threshold = self.thre, 
                           stream_vect = self.v_net, 
                           direction = self.r_drain, overwrite = True)
                           
         else:
 
-            grass.run_command('r.stream.extract', elevation = self.r_elev , 
-                          accumulation = self.r_acc , 
+            grass.run_command('r.stream.extract', elevation = self.r_elev, 
+                          accumulation = self.r_acc, 
                           threshold = self.thre,  
                           stream_vect = self.v_net, 
                           direction = self.r_drain, overwrite = True)
@@ -345,13 +345,13 @@ class TabPanelOne(wx.Panel):
                                type = 'raster', multiple = False) # select existing map
         self.select.Add(item = self.select2, pos = (5,0), span = wx.DefaultSpan)
         self.textOne = wx.TextCtrl(parent = self.panel, id = wx.ID_ANY, style = wx.TE_LEFT) 
-        self.select.Add(item = self.textOne, flag = wx.LEFT | wx.EXPAND , pos = (6,0), span = wx.DefaultSpan)
+        self.select.Add(item = self.textOne, flag = wx.LEFT | wx.EXPAND, pos = (6,0), span = wx.DefaultSpan)
 
 
         # linking buttons and text
-        self.texts = {"Custom (select existing map)" : self.select2,
-                      "Create by MFD algorithm" : self.textOne,
-                      "Create by SFD algorithm" : self.textOne}
+        self.texts = {"Custom (select existing map)": self.select2,
+                      "Create by MFD algorithm": self.textOne,
+                      "Create by SFD algorithm": self.textOne}
 
 
         self.selectedText = self.select2 # default is select existing map
@@ -402,7 +402,7 @@ class TabPanelOne(wx.Panel):
 
         # Box to insert name of new flow dir map (to be created)
         self.txtThr = wx.TextCtrl(parent = self.panel, id = wx.ID_ANY, style = wx.TE_LEFT)
-        self.select.Add(item = self.txtThr, flag = wx.LEFT | wx.EXPAND , pos = (12,0), span = wx.DefaultSpan)
+        self.select.Add(item = self.txtThr, flag = wx.LEFT | wx.EXPAND, pos = (12,0), span = wx.DefaultSpan)
 
         # binder
         self.txtThr.Bind(wx.EVT_TEXT, self.OnSelecFd)
@@ -416,7 +416,7 @@ class TabPanelOne(wx.Panel):
 
         # Box to insert name of new streams map (to be created)
         self.txtFou = wx.TextCtrl(parent = self.panel, id = wx.ID_ANY, style = wx.TE_LEFT)
-        self.select.Add(item = self.txtFou, flag = wx.LEFT | wx.EXPAND , pos = (14,0), span = wx.DefaultSpan)
+        self.select.Add(item = self.txtFou, flag = wx.LEFT | wx.EXPAND, pos = (14,0), span = wx.DefaultSpan)
 
         # binder
         self.txtFou.Bind(wx.EVT_TEXT, self.OnSelecStr)
@@ -429,7 +429,7 @@ class TabPanelOne(wx.Panel):
 
         # Box to insert name of new streams map (to be created)
         self.txtFiv = wx.TextCtrl(parent = self.panel, id = wx.ID_ANY, style = wx.TE_LEFT)
-        self.select.Add(item = self.txtFiv, flag = wx.LEFT | wx.EXPAND , pos = (16,0), span = wx.DefaultSpan)
+        self.select.Add(item = self.txtFiv, flag = wx.LEFT | wx.EXPAND, pos = (16,0), span = wx.DefaultSpan)
 
         # binder
         self.txtFiv.Bind(wx.EVT_TEXT, self.OnSelecNet)
@@ -607,23 +607,23 @@ class TabPanelOne(wx.Panel):
         # MFD
         if self.radioval2 == 'True':
             grass.message('Creating flow accumulation map with MFD algorithm..')
-            grass.run_command('r.watershed', elevation = self.r_elev , 
-                              accumulation = self.r_acc , 
-                              convergence = 5 , 
+            grass.run_command('r.watershed', elevation = self.r_elev, 
+                              accumulation = self.r_acc, 
+                              convergence = 5, 
                               flags = 'a', overwrite = True )
 
         # SFD
         if self.radioval3 == 'True':
             grass.message('Creating flow accumulation map with SFD algorithm..')
-            grass.run_command('r.watershed', elevation = self.r_elev , 
-                              accumulation = self.r_acc , 
-                              drainage = self.r_drain , 
-                              convergence = 5 , 
+            grass.run_command('r.watershed', elevation = self.r_elev, 
+                              accumulation = self.r_acc, 
+                              drainage = self.r_drain, 
+                              convergence = 5, 
                               flags = 'sa', overwrite = True)
 
         grass.message('Network extraction..')
-        grass.run_command('r.stream.extract', elevation = self.r_elev , 
-                          accumulation = self.r_acc , 
+        grass.run_command('r.stream.extract', elevation = self.r_elev, 
+                          accumulation = self.r_acc, 
                           threshold = self.thre, 
                           #stream_rast = self.r_stre, 
                           stream_vect = self.v_net, 

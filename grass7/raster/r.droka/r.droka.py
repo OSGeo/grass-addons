@@ -75,7 +75,7 @@
 #% required: no
 #%end
 
-import os, sys, time, math , string, re
+import os, sys, time, math, string, re
 from grass.script import array as garray
 import numpy as np
 try:
@@ -149,27 +149,27 @@ def main():
 
     grass.message("Defining starting points...") 
     if int(num) == 1:
-        grass.run_command('g.copy' , 
-            vector= start+',start_points_' ,
+        grass.run_command('g.copy', 
+            vector= start+',start_points_',
             quiet = True )    
     else:    
-        grass.run_command('v.buffer' ,
-            input = start ,
-            type = 'point' ,
-            output = 'start_buffer_' ,
-            distance = d_buff ,
+        grass.run_command('v.buffer',
+            input = start,
+            type = 'point',
+            output = 'start_buffer_',
+            distance = d_buff,
             quiet = True )
 
-        grass.run_command('v.random' ,
-            input = 'start_buffer_' ,
-            npoints = num ,
-            output = 'start_random_' ,
-            flags = 'a' ,
+        grass.run_command('v.random',
+            input = 'start_buffer_',
+            npoints = num,
+            output = 'start_random_',
+            flags = 'a',
             quiet = True )
 
-        grass.run_command('v.patch' ,
-            input = start + ',start_random_' ,
-            output = 'start_points_' ,
+        grass.run_command('v.patch',
+            input = start + ',start_random_',
+            output = 'start_points_',
             quiet = True )
 
     #v.buffer input=punto type=point output=punti_buffer distance=$cellsize
@@ -178,11 +178,11 @@ def main():
 
     #creo raster (che sara' il DEM di input) con valore 1
     grass.mapcalc('uno=$dem*0+1', 
-        dem = r_elevation ,
+        dem = r_elevation,
         quiet = True )     
-    what = grass.read_command('r.what' , 
-        map=r_elevation , 
-        points='start_points_' ,
+    what = grass.read_command('r.what', 
+        map=r_elevation, 
+        points='start_points_',
         null_value="-9999", # TODO: a better test for points outside the current region is needed
         quiet = True )
     quota = what.split('\n')
@@ -211,12 +211,12 @@ def main():
         y = float(point.split('|')[1])
         #print x,y,z
         # Calcolo cost (sostituire i punti di partenza in start_raster al pusto di punto)
-        grass.run_command('r.cost' , 
+        grass.run_command('r.cost', 
             flags="k",  
             input = 'uno',
             output = 'costo',
             start_coordinates = str(x)+','+str(y),
-            quiet = True ,
+            quiet = True,
             overwrite = True ) 
 
 
@@ -279,23 +279,23 @@ def main():
     #grass.run_command('d.rast' ,
     #    map=eMean)
     if int(num) == 1:
-        grass.run_command('g.remove' ,
+        grass.run_command('g.remove',
             flags = 'f',
             type = 'vector',
             name = ('start_points_' ),
             quiet = True )    
     else:
-        grass.run_command('g.rename' , 
-            vect= 'start_points_,' + prefix + '_starting' ,
+        grass.run_command('g.rename', 
+            vect= 'start_points_,' + prefix + '_starting',
             quiet = True )
-        grass.run_command('g.remove' , 
+        grass.run_command('g.remove', 
             flags = 'f',
             type = 'vector',
             name = (
                 'start_buffer_',
-                'start_random_') ,
+                'start_random_'),
             quiet = True )
-    grass.run_command('g.remove' , 
+    grass.run_command('g.remove', 
         flags = 'f',
         type = 'raster',
         name = (
@@ -309,7 +309,7 @@ def main():
             'F',
             'en',
             'vel',
-            'somma') ,
+            'somma'),
         quiet = True )
     grass.message("Done!")
 

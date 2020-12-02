@@ -82,7 +82,7 @@ def main():
 
     # save species list to a user defined directory
 
-    if save_species :
+    if save_species:
                 
                 grass.message("saving species list to a text file ..." )
                 output_species_file = os.path.join(directory, species_file )
@@ -102,7 +102,7 @@ def main():
 
     # print species list of the shapefile        
         
-    elif list_species :
+    elif list_species:
                 
                 grass.message("list species IUCN Red List Spatial Data ..." )
                 # define ogr driver
@@ -116,7 +116,7 @@ def main():
 
     # import spatial data for a user defined species in the Red List
         
-    else :                
+    else:                
 
                 grass.message(" importing spatial data for %s ..." % (imported_species_quoted) )
                 grass.run_command("v.in.ogr", input = redlist_shapefile_long,

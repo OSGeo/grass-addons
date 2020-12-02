@@ -1005,7 +1005,7 @@ def main():
                                     passability=passability,
                                     overwrite = True)
 
-                        if dist == last_barrier :
+                        if dist == last_barrier:
                             grass.run_command("r.null", map="density_"+str(cat), null="0")
                         else:
                             grass.run_command("r.null", map="density_"+str(cat), setnull="0")

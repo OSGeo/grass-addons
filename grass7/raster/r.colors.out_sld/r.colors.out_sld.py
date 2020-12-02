@@ -68,10 +68,10 @@ import grass.script as grass
 def set_output_encoding(encoding='utf-8'):
     import codecs
     current = sys.stdout.encoding
-    if current is None :
+    if current is None:
         sys.stdout = codecs.getwriter(encoding)(sys.stdout)
     current = sys.stderr.encoding
-    if current is None :
+    if current is None:
         sys.stderr = codecs.getwriter(encoding)(sys.stderr)
 
 def main():

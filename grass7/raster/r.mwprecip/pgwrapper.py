@@ -71,7 +71,7 @@ class pgwrapper:
                 if commit:        
                         self.connection.commit()
 
-                if results :
+                if results:
                         # Get the results.
                         results = self.cursor.fetchall()
                         # Return the results.1

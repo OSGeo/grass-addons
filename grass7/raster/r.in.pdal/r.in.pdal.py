@@ -554,7 +554,7 @@ def main():
                 'g.remove',
                 flags='f',
                 type='raster',
-                pattern=raster_reference[:-1] + '*' ,
+                pattern=raster_reference[:-1] + '*',
                 quiet=True
                 )
         os.remove(tmp_file_json)

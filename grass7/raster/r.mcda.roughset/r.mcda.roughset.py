@@ -523,8 +523,8 @@ def Parser_mapcalc(RULES, outputMap):
 	for R in RULES: 
 		formula="if("
 		for e in R[:-1]: #build a mapcalc formula
-			formula+= "(%s %s %.4f ) && " % (e['label'],  e['sign'] ,  e['condition'] )
-		formula+= "(%s %s %.4f ),%d,null())" % (R[-1]['label'],R[-1]['sign'], R[-1]['condition'] ,i )
+			formula+= "(%s %s %.4f ) && " % (e['label'],  e['sign'],  e['condition'] )
+		formula+= "(%s %s %.4f ),%d,null())" % (R[-1]['label'],R[-1]['sign'], R[-1]['condition'],i )
 		mappa="r%d_%s_%d" % (i, R[0]['type'], R[0]['class'] ) #build map name for mapcalc output
 		category.append({'id':i, 'type': R[0]['type'], 'class':R[0]['class']}) #extract category name
 		maps.append(mappa) #extract maps name

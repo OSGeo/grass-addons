@@ -81,15 +81,15 @@ def main():
         kl[i,1] = zn[i,2] / totcell
 
     # quantiles
-    prc[0,0] , prc[0,1] = findint(kl,0.05) , 0.05
-    prc[1,0] , prc[1,1] = findint(kl,0.15) , 0.15
-    prc[2,0] , prc[2,1] = findint(kl,0.3) , 0.3
-    prc[3,0] , prc[3,1] = findint(kl,0.4) , 0.4
-    prc[4,0] , prc[4,1] = findint(kl,0.5) , 0.5
-    prc[5,0] , prc[5,1] = findint(kl,0.6) , 0.6
-    prc[6,0] , prc[6,1] = findint(kl,0.7) , 0.7
-    prc[7,0] , prc[7,1] = findint(kl,0.85) , 0.85
-    prc[8,0] , prc[8,1] = findint(kl,0.95) , 0.95
+    prc[0,0], prc[0,1] = findint(kl,0.05), 0.05
+    prc[1,0], prc[1,1] = findint(kl,0.15), 0.15
+    prc[2,0], prc[2,1] = findint(kl,0.3), 0.3
+    prc[3,0], prc[3,1] = findint(kl,0.4), 0.4
+    prc[4,0], prc[4,1] = findint(kl,0.5), 0.5
+    prc[5,0], prc[5,1] = findint(kl,0.6), 0.6
+    prc[6,0], prc[6,1] = findint(kl,0.7), 0.7
+    prc[7,0], prc[7,1] = findint(kl,0.85), 0.85
+    prc[8,0], prc[8,1] = findint(kl,0.95), 0.95
 
     # plot
     plotImage(zn[:,0], zn[:,3], options['image']+'_width_function.png','-','x','W(x)','Width Function')

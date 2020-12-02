@@ -10,20 +10,20 @@ import imp
 open_file, file_name, description = imp.find_module('r.objects.activelearning')
 al = imp.load_source('al', file_name, open_file)
 
-def silent_remove(filename) :
+def silent_remove(filename):
 	"""
 		Remove the file if it exists or do nothing if it does not exists
 	"""
-	try :
+	try:
 		os.remove(filename)
-	except OSerror as e :
-		if e.errno != errno.ENOENT :
+	except OSerror as e:
+		if e.errno != errno.ENOENT:
 			raise
 
-class Test (unittest.TestCase) :
+class Test (unittest.TestCase):
 
 
-	def test_linear_scale(self) :
+	def test_linear_scale(self):
 
 		X = np.random.randint(0,100, (10,5))
 		#print(X)
@@ -52,7 +52,7 @@ class Test (unittest.TestCase) :
 		self.assertTrue((p95 == 1).all())
 		self.assertTrue((p99 >= 0).all())
 
-	def test_dist_to_closest(self) :
+	def test_dist_to_closest(self):
 		# 5 samples
 		a = [1, 	3]
 		b = [0, 	4]
@@ -69,7 +69,7 @@ class Test (unittest.TestCase) :
 		self.assertEqual(dist[4], rbf_kernel([d], [e])[0][0]) # closest to e
 
 
-	def test_average_dist(self) :
+	def test_average_dist(self):
 		# 3 samples
 		a = [1, 	3]
 		b = [0, 	4]
@@ -85,7 +85,7 @@ class Test (unittest.TestCase) :
 		self.assertAlmostEqual(dist[1],avg_b)
 		self.assertAlmostEqual(dist[2],avg_c)
 
-	def test_diversity_criterion(self) :
+	def test_diversity_criterion(self):
 		# 9 samples -> plot them for a better visualization (e.g. with GeoGebra)
 		a = [2, 	4]
 		b = [4, 	1]
@@ -113,7 +113,7 @@ class Test (unittest.TestCase) :
 		self.assertTrue((samples == np.array([a, b, b_bis, c, d, e, f, g, h, i])).all())	# Check that the original array was not modified
 
 
-	def test_write_result_file(self) :
+	def test_write_result_file(self):
 		X = np.array([
 			[11., 3.5, 4.7],
 			[22., 4.5, 6.7]
@@ -139,7 +139,7 @@ class Test (unittest.TestCase) :
 
 		silent_remove(filename)
 
-	def test_update(self) :
+	def test_update(self):
 		#Create a fake update file
 		update_file = 'update.csv'
 		update_data = np.array([
@@ -184,5 +184,5 @@ class Test (unittest.TestCase) :
 
 	
 
-if __name__ == '__main__' :
+if __name__ == '__main__':
 	unittest.main()

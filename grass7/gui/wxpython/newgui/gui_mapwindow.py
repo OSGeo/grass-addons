@@ -47,9 +47,9 @@ class MapWindow(object):
         # dragging, and type of drawing
         self.mouse = {
             'begin': [0, 0], # screen coordinates
-            'end'  : [0, 0],
-            'use'  : "pointer",
-            'box'  : "point"
+            'end': [0, 0],
+            'use': "pointer",
+            'box': "point"
         }
         # last east, north coordinates, changes on mouse motion
         self.lastEN = None 
@@ -60,20 +60,20 @@ class MapWindow(object):
         # dictionary where event types are stored as keys and lists of
         # handlers for these types as values
         self.handlersContainer = {
-            wx.EVT_LEFT_DOWN : [],
-            wx.EVT_LEFT_UP : [],
-            wx.EVT_LEFT_DCLICK : [],
-            wx.EVT_MIDDLE_DOWN : [],
-            wx.EVT_MIDDLE_UP : [],
-            wx.EVT_MIDDLE_DCLICK : [],
-            wx.EVT_RIGHT_DOWN : [],
-            wx.EVT_RIGHT_UP : [],
-            wx.EVT_RIGHT_DCLICK : [],
-            wx.EVT_MOTION : [],
-            wx.EVT_ENTER_WINDOW : [],
-            wx.EVT_LEAVE_WINDOW : [],
-            wx.EVT_MOUSEWHEEL : [],
-            wx.EVT_MOUSE_EVENTS : []
+            wx.EVT_LEFT_DOWN: [],
+            wx.EVT_LEFT_UP: [],
+            wx.EVT_LEFT_DCLICK: [],
+            wx.EVT_MIDDLE_DOWN: [],
+            wx.EVT_MIDDLE_UP: [],
+            wx.EVT_MIDDLE_DCLICK: [],
+            wx.EVT_RIGHT_DOWN: [],
+            wx.EVT_RIGHT_UP: [],
+            wx.EVT_RIGHT_DCLICK: [],
+            wx.EVT_MOTION: [],
+            wx.EVT_ENTER_WINDOW: [],
+            wx.EVT_LEAVE_WINDOW: [],
+            wx.EVT_MOUSEWHEEL: [],
+            wx.EVT_MOUSE_EVENTS: []
         }
         
         wx.CallAfter(self.InitBinding)

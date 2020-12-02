@@ -53,12 +53,12 @@ class VectorDBInfo:
                 else:
                     ctype = str
 
-                columns[name.strip()] = {'index'  : i,
-                                          'type'   : type.lower(),
-                                          'ctype'  : ctype,
-                                          'length' : int(length),
-                                          'values' : [],
-                                          'ids'    : []}
+                columns[name.strip()] = {'index': i,
+                                          'type': type.lower(),
+                                          'ctype': ctype,
+                                          'length': int(length),
+                                          'values': [],
+                                          'ids': []}
                 i += 1
 
             # check for key column

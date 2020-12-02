@@ -26,7 +26,7 @@ from iclass.dialogs     import IClassMapDialog as MDialog
 import grass.script as grass
 
 rdigitIcons = {
-    'delCmd' : MetaIcon(img = 'layer-remove',
+    'delCmd': MetaIcon(img = 'layer-remove',
                             label = _('Delete selected map layer')),
 
     }
@@ -42,9 +42,9 @@ class RDigitMapToolbar(BaseToolbar):
         # realize the toolbar
         self.Realize()
         
-        self.action = {'id' : self.pan }
-        self.defaultAction = {'id' : self.pan,
-                               'bind' : self.parent.OnPan }
+        self.action = {'id': self.pan }
+        self.defaultAction = {'id': self.pan,
+                               'bind': self.parent.OnPan }
         self.OnTool(None)
         self.EnableTool(self.zoomBack, False)
  

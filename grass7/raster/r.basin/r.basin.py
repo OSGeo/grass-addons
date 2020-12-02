@@ -157,11 +157,11 @@ def main():
                                      flags = 'am')
 
     # Managing flag
-    if autothreshold :
+    if autothreshold:
         resolution = grass.region()['nsres']
         th = 1000000 / (resolution**2)
         grass.message("threshold : %s" % th )
-    else :
+    else:
         th = options['threshold']
 
     # Stream extraction
@@ -500,7 +500,7 @@ def main():
         pendenze = []
 
         for i in range(len(vertex)):
-            x, y = float(vertex[i].split('|')[0]) , float(vertex[i].split('|')[1])
+            x, y = float(vertex[i].split('|')[0]), float(vertex[i].split('|')[1])
             vertice1 = grass.read_command('r.what', verbose = True,
                                                map = 'r_elevation_crop',
                                                coordinates = '%s,%s' % (x,y))
@@ -516,7 +516,7 @@ def main():
                 pendenza = deltaz / dist
                 pendenze.append(pendenza)
                 mainchannel_slope = sum(pendenze) / len(pendenze) * 100
-            except :
+            except:
                 pass
             
         # Elongation Ratio
@@ -526,9 +526,9 @@ def main():
         S_f = area_basin / mainchannel
 
         # Characteristic altitudes
-        height_basin_average = grass.read_command('r.what', map = r_height_average ,
-                                                        cache = 500 ,
-                                                        coordinates = '%s,%s' % (east_o , north_o ))
+        height_basin_average = grass.read_command('r.what', map = r_height_average,
+                                                        cache = 500,
+                                                        coordinates = '%s,%s' % (east_o, north_o ))
         height_basin_average = height_basin_average.replace('\n','')
         height_basin_average = float(height_basin_average.split('|')[-1])
         minmax_height_basin = grass.read_command('r.info', flags = 'r',
@@ -581,8 +581,8 @@ def main():
 
         stream_stats_summary = stream_stats.split('\n')[4].split('|')
         stream_stats_mom = stream_stats.split('\n')[8].split('|')
-        Max_order , Num_streams , Len_streams , Stream_freq = stream_stats_summary[0] , stream_stats_summary[1] , stream_stats_summary[2] , stream_stats_summary[5]
-        Bif_ratio , Len_ratio , Area_ratio , Slope_ratio = stream_stats_mom[0] , stream_stats_mom[1] , stream_stats_mom[2] , stream_stats_mom[3]
+        Max_order, Num_streams, Len_streams, Stream_freq = stream_stats_summary[0], stream_stats_summary[1], stream_stats_summary[2], stream_stats_summary[5]
+        Bif_ratio, Len_ratio, Area_ratio, Slope_ratio = stream_stats_mom[0], stream_stats_mom[1], stream_stats_mom[2], stream_stats_mom[3]
         drainage_density = float(Len_streams) / float(area_basin)
 
         # Cleaning up
@@ -606,7 +606,7 @@ def main():
         grass.run_command('g.remove', flags='f', type='vector', name= v_mainchannel_dim, quiet = True)
         grass.run_command('g.remove', flags='f', type='vector', name= v_ord_1, quiet = True)
 
-        if nomap :
+        if nomap:
             grass.run_command('g.remove', flags='f', type='vector', name= v_outlet, quiet = True)
             grass.run_command('g.remove', flags='f', type='vector', name= v_basin, quiet = True)
             grass.run_command('g.remove', flags='f', type='vector', name= v_mainchannel, quiet = True)

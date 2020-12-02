@@ -123,7 +123,7 @@ class WFSBase:
         """
         self._debug("_computeBbox", "started")
         
-        bbox_region_items = {'maxy' : 'n', 'miny' : 's', 'maxx' : 'e', 'minx' : 'w'}  
+        bbox_region_items = {'maxy': 'n', 'miny': 's', 'maxx': 'e', 'minx': 'w'}  
         bbox = {}
 
         if self.proj_srs == self.proj_location: # TODO: do it better

@@ -205,7 +205,7 @@ def main():
             'mean': 7}
 
     geometry_stat_dict = {'cat': 0, 'area': 1, 'perimeter': 2,
-                        'compact_square': 3, 'compact_circle': 4, 'fd' : 5,
+                        'compact_square': 3, 'compact_circle': 4, 'fd': 5,
                         'xcoords': 6, 'ycoords': 7}
 
     if flags['r']:

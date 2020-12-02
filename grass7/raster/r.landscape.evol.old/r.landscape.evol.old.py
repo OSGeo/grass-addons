@@ -357,7 +357,7 @@ def main(m, o, p, q, r, s):
         old_dem = '%s' % options["elev"]
         old_soil = "%s%s_init" % (prefx, options["outsoil"])
         grass.mapcalc('${old_soil}=${old_dem}-${old_bdrk}', overwrite = "True", quiet = "True", old_soil = old_soil, old_dem = old_dem, old_bdrk = old_bdrk)
-    else :
+    else:
         old_dem = '%s%s%04d' % (p, options["outdem"], m)
         old_soil = '%s%s%04d' % (p, options["outsoil"], m)
     #Checking for special condition of there being only one run, and setting variables accordingly (one year runs have no numbers suffixed to the output map names)
@@ -537,7 +537,7 @@ def main(m, o, p, q, r, s):
             grass.message('Keeping Slope map.')
         else:
             mapstoremove.append(slope)
-        if  flags["d"] is True :
+        if  flags["d"] is True:
             grass.message('Not keeping Soil Depth map.')
             mapstoremove.append(old_soil)
             #check if this is the last year and remove the "new-soil" map too
@@ -547,19 +547,19 @@ def main(m, o, p, q, r, s):
             #check if this is the first year, and if so, remove the temporary "soildepths_init" map
             if (o <= 1 ):
                 mapstoremove.append("%s%s_init" % (prefx, options["outsoil"]))
-        if  flags["e"] is True :
+        if  flags["e"] is True:
             grass.message('Keeping Excess Transport Capacity (divergence) maps for all processes.')
         else:
             mapstoremove.extend([qsxdx, qsydy])
-            if  flags["1"] is True :
+            if  flags["1"] is True:
                 mapstoremove.append(qsd1)
-        if  flags["t"] is True :
+        if  flags["t"] is True:
             grass.message('Keeping Transport Capacity maps for all processes.')
         else:
             mapstoremove.extend([qsx, qsy])
-            if  flags["1"] is True :
+            if  flags["1"] is True:
                 mapstoremove.append(qs1)
-        if  flags["r"] is True :
+        if  flags["r"] is True:
             grass.message('Not keeping an Erosion and Deposition rate map.')
             mapstoremove.append(netchange)
         if len(mapstoremove) == 0:
@@ -663,7 +663,7 @@ if __name__ == "__main__":
     else:
         f = open(statsout, 'wt')
         f.write('These statistics are in units of vertical meters (depth) per cell\n,,Mean Values,,,,Standard Deviations,,,,Totals,,,Additional Stats\nIteration,,Mean Erosion,Mean Deposition,Mean Soil Depth,,Standard Deviation Erosion,Standard Deviation Deposition,Standard Deviation Soil Depth,,Total Sediment Eroded,Total Sediment Deposited,,Minimum Erosion,First Quartile Erosion,Median Erosion,Third Quartile Erosion,Maximum Erosion,Original Un-smoothed Maximum Erosion,,Minimum Deposition,First Quartile Deposition,Median Deposition,Third Quartile Deposition,Maximum Deposition,Original Un-smoothed Maximum Deposition,,Minimum Soil Depth,First Quartile Soil Depth,Median Soil Depth,Third Quartile Soil Depth,Maximum Soil Depth')
-    if  flags["p"] is True :
+    if  flags["p"] is True:
         grass.message('Making sample points map for determining cutoffs.')
     else:
         grass.message('\n##################################################\n##################################################\n\n STARTING SIMULATION\n\nBeginning iteration sequence. This may take some time.\nProcess is not finished until you see the message: \'Done with everything\'\n _____________________________________________________________\n_____________________________________________________________\n')

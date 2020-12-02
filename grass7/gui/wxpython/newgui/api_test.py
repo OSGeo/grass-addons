@@ -47,12 +47,12 @@ from icons.icon          import MetaIcon
 from core.utils          import GetLayerNameFromCmd
 
 class ToolBarNames:
-    NEWDISPLAY = {"monitor-create" :   [wx.NewId(),     _('Start new map display')] }
-    WORKSPACENEW = {"create" :         [wx.NewId(),     _('Create new workspace (Ctrl+N)')] }
-    WORKSPACEOPEN ={"open" :           [wx.NewId(),     _('Open existing workspace file (Ctrl+O')] }
-    WORKSPACESAVE ={"save" :           [wx.NewId(),     _('Save current workspace to file (Ctrl+S)')] }
-    ADDRASTER = {"layer-raster-add" :  [wx.NewId(),     _("Add raster map layer")] }
-    ADDVECTOR = {"layer-vector-add" :  [wx.NewId(),     _("Add vector map layer")] }    
+    NEWDISPLAY = {"monitor-create":   [wx.NewId(),     _('Start new map display')] }
+    WORKSPACENEW = {"create":         [wx.NewId(),     _('Create new workspace (Ctrl+N)')] }
+    WORKSPACEOPEN ={"open":           [wx.NewId(),     _('Open existing workspace file (Ctrl+O')] }
+    WORKSPACESAVE ={"save":           [wx.NewId(),     _('Save current workspace to file (Ctrl+S)')] }
+    ADDRASTER = {"layer-raster-add":  [wx.NewId(),     _("Add raster map layer")] }
+    ADDVECTOR = {"layer-vector-add":  [wx.NewId(),     _("Add vector map layer")] }    
 
 
 class MySingleMapFrame(MapFrameBase):
@@ -422,14 +422,14 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
                 ctrlId = None
             
             # add a data object to hold the layer's command (does not apply to generic command layers)
-            self.SetPyData(layeritem, ({'cmd'      : cmd,
-                                    'type'     : layer.type,
-                                    'ctrl'     : ctrlId,
-                                    'label'    : None,
-                                    'maplayer' : None,
-                                    'vdigit'   : None,
-                                    'nviz'     : None,
-                                    'propwin'  : None}, 
+            self.SetPyData(layeritem, ({'cmd': cmd,
+                                    'type': layer.type,
+                                    'ctrl': ctrlId,
+                                    'label': None,
+                                    'maplayer': None,
+                                    'vdigit': None,
+                                    'nviz': None,
+                                    'propwin': None}, 
                                    None))
             
             # find previous map layer instance 
@@ -458,12 +458,12 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
 #                self.PropertiesDialog(layer, show = True)
         
         else: # group
-            self.SetPyData(layeritem, ({'cmd'      : None,
-                                    'type'     : ltype,
-                                    'ctrl'     : None,
-                                    'label'    : None,
-                                    'maplayer' : None,
-                                    'propwin'  : None}, 
+            self.SetPyData(layeritem, ({'cmd': None,
+                                    'type': ltype,
+                                    'ctrl': None,
+                                    'label': None,
+                                    'maplayer': None,
+                                    'propwin': None}, 
                                    None))
         
         # select new item

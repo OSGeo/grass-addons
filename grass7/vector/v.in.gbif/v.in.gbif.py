@@ -165,7 +165,7 @@ def main():
     
     # reprojection-on-the-fly if flag r
             
-    if reproject_gbif :
+    if reproject_gbif:
                 
                 grass.message("reprojecting data on-the-fly ..." )
                 grass.run_command("v.import", input = new_gbif_vrt,
@@ -186,7 +186,7 @@ def main():
     grass.message("importing GBIF data done!" )
     # move vrt and csv to user defined directory
     
-    if move_vrt_gbif_to_dir :
+    if move_vrt_gbif_to_dir:
                 
         grass.message("----" )
         grass.message("Create GBIF vrt data files ..." )

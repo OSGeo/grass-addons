@@ -767,7 +767,7 @@ def landscapeEvol(m, o, p, q, res, s, f):
             grass.message('Keeping Slope map.')
         else:
             mapstoremove.append(slope)
-        if  flags["d"] is True :
+        if  flags["d"] is True:
             grass.message('Not keeping Soil Depth map.')
             mapstoremove.append(old_soil)
             # Check if this is the last year and remove the "new-soil" map too
@@ -775,18 +775,18 @@ def landscapeEvol(m, o, p, q, res, s, f):
                 mapstoremove.append(new_soil)
         else:
             # Check if this is the first year, and if so, remove the temporary initial soil depths map
-            if o <= 1 :
+            if o <= 1:
                 grass.message(('%s%s%04d' % (p, outsoil, m)))
                 mapstoremove.append('%s%s%04d' % (p, outsoil, m))
-        if  flags["e"] is True :
+        if  flags["e"] is True:
             grass.message('Keeping delta Transport Capacity (divergence) maps.')
         else:
             mapstoremove.extend([qsxdx, qsydy])
-        if  flags["t"] is True :
+        if  flags["t"] is True:
             grass.message('Keeping Transport Capacity maps.')
         else:
             mapstoremove.extend([qsx, qsy])
-        if  flags["r"] is True :
+        if  flags["r"] is True:
             grass.message('Not keeping an Erosion and Deposition rate map.')
             mapstoremove.append(netchange)
         if len(mapstoremove) == 0:
