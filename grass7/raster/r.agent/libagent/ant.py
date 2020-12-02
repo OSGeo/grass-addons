@@ -218,7 +218,7 @@ class Ant(agent.Agent):
             # exit if we died in the meantime..
             return False
         # at this point either we already know where to go to next..
-        if self.nextstep[0] == None:
+        if self.nextstep[0] is None:
             # ..or we'll have to decide it now if it was not clear yet
             self.choose()
             self.penalty += self.nextstep[3] + \

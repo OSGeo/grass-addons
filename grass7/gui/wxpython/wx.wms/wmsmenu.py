@@ -369,7 +369,7 @@ class wmsFrame(wx.Frame):
             self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
             return
         
-        if(self.selectedEPSG == None):
+        if(self.selectedEPSG is None):
             message = 'No EPSG code selected'
             grass.warning(message)
             StatusBar_fields = [message]

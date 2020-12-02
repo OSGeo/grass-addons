@@ -357,7 +357,7 @@ class product:
         if list(prod.keys()).count('spec') == 1:
             string += ", spectral_subset: " + prod['spec']
         if list(prod.keys()).count('spec_qa') == 1:
-            if prod['spec_qa'] != None:
+            if prod['spec_qa'] is not None:
                 string += ", spectral_subset_qa:" + prod['spec_qa']
         return string
 

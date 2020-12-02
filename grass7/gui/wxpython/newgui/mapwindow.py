@@ -174,7 +174,7 @@ class BufferedWindow2(MapWindow, wx.Window):
     def Draw(self, pdc, img = None, drawid = None, pdctype = 'image', coords = [0, 0, 0, 0], pen = None):
         """!Draws map and overlay decorations
         """
-        if drawid == None:
+        if drawid is None:
             if pdctype == 'image' and img:
                 drawid = self.imagedict[img]
             elif pdctype == 'clear':
@@ -823,7 +823,7 @@ class BufferedWindow2(MapWindow, wx.Window):
     def DragItem(self, id, coords):
         """!Drag an overlay decoration item
         """
-        if id == 99 or id == '' or id == None:
+        if id == 99 or id == '' or id is None:
             return
         Debug.msg (5, "BufferedWindow2.DragItem(): id=%d" % id)
         x, y = self.lastpos
@@ -1107,7 +1107,7 @@ class BufferedWindow2(MapWindow, wx.Window):
         # dragging decoration overlay item
         elif (self.mouse['use'] == 'pointer' and 
                 not digitToolbar and 
-                self.dragid != None):
+                self.dragid is not None):
             coords = event.GetPositionTuple()
             self.DragItem(self.dragid, coords)
         

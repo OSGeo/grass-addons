@@ -412,7 +412,7 @@ class PlantAlign(object):
         super_lim = []
         tot_accum = self.cloth_out.leng_accum + self.cloth_out.length()
 
-        if (self.dat['superelev'] != '' and self.dat['superelev'] != None and
+        if (self.dat['superelev'] != '' and self.dat['superelev'] is not None and
                 self.dat['superelev'] != 'None'):
 
             dist1, dist2, bom1, peral, bom2, dist3, dist4 = \

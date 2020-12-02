@@ -830,35 +830,35 @@ class Map(object):
         # ["raster", "vector", "wms", ... ]
         for layer in llist:
             # specified type only
-            if ltype != None:
+            if ltype is not None:
                 if one_type and layer.type != ltype:
                     continue
                 elif not one_type and layer.type not in ltype:
                     continue
             
             # mapset
-            if (mapset != None and ltype != 'overlay') and \
+            if (mapset is not None and ltype != 'overlay') and \
                     layer.GetMapset() != mapset:
                 continue
             
             # name
-            if name != None and layer.name != name:
+            if name is not None and layer.name != name:
                 continue
             
             # hidden and active layers
-            if active != None and \
-                   hidden != None:
+            if active is not None and \
+                   hidden is not None:
                 if layer.active == active and \
                     layer.hidden == hidden:
                     selected.append(layer)
             
             # active layers
-            elif active != None:
+            elif active is not None:
                 if layer.active == active:
                     selected.append(layer)
             
             # hidden layers
-            elif hidden != None:
+            elif hidden is not None:
                 if layer.hidden == hidden:
                     selected.append(layer)
             
@@ -1235,7 +1235,7 @@ class Map(object):
                     self.layers.remove(layer)
                     return retlayer
         # del by id
-        elif id != None:
+        elif id is not None:
             return self.layers.pop(id)
         
         return None

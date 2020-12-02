@@ -250,7 +250,7 @@ class ServerAdd(wx.Frame):
             grass.warning(message)
             return
         
-        if self.selectedUid == None:
+        if self.selectedUid is None:
             update = False
         else:
             update = True
@@ -374,7 +374,7 @@ class ServerAdd(wx.Frame):
      @param event: event associated
      @return: None
         """
-        if self.selectedUid == None:
+        if self.selectedUid is None:
             message = _("No server selected. Remove unsuccessful")
             self.ShowMessage(message, _('Warning'))
             grass.warning(message)

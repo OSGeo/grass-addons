@@ -119,7 +119,7 @@ class IsisMapTemplate(IterableUserDict):
        out.write("Group = Mapping\n")
        keys = self.keys()
        for k in self.keys():
-           if k != None:               
+           if k is not None:               
               myk = string.rjust(k, 30)
               myv = string.ljust(self[k], 20)
               out.write("%s = %s\n" %(myk,myv))
