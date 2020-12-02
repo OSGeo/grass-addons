@@ -23,26 +23,26 @@ from __future__ import (nested_scopes, generators, division, absolute_import,
 #row3: 10.54  16.35  23.7   38.98
 
 #Define the spectral signatures for each land use class
-cls1=[8.87, 13.14, 11.71, 35.85]
-cls2=[13.59, 20.12, 19.61, 50.66]
-cls3=[28.26, 34.82, 38.27, 40.10]
-cls4=[10.54, 16.35, 23.70, 38.98]
+cls1 = [8.87, 13.14, 11.71, 35.85]
+cls2 = [13.59, 20.12, 19.61, 50.66]
+cls3 = [28.26, 34.82, 38.27, 40.10]
+cls4 = [10.54, 16.35, 23.70, 38.98]
 
 #Generate a disturbed class manually 
-cls1_wannabe=[9, 14, 12, 36]
-cls2_wannabe=[14, 21, 20, 51]
-cls3_wannabe=[29, 35, 39, 41]
-cls4_wannabe=[11, 17, 24, 39]
+cls1_wannabe = [9, 14, 12, 36]
+cls2_wannabe = [14, 21, 20, 51]
+cls3_wannabe = [29, 35, 39, 41]
+cls4_wannabe = [11, 17, 24, 39]
 
 # Load Library
 from grass.pygrass.raster import RasterSegment
 from grass.pygrass.gis.region import Region
 
 #Raster layers names
-outrast1='sam_test_b1'
-outrast2='sam_test_b2'
-outrast3='sam_test_b3'
-outrast4='sam_test_b4'
+outrast1 = 'sam_test_b1'
+outrast2 = 'sam_test_b2'
+outrast3 = 'sam_test_b3'
+outrast4 = 'sam_test_b4'
 
 # Create output raster file
 out1 = RasterSegment(outrast1)

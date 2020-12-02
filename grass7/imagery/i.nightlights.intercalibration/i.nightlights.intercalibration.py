@@ -287,7 +287,7 @@ def main():
     # ----------------------------
 
     # flags
-    citation=flags['c']
+    citation = flags['c']
     info = flags['i']
     extend_region = flags['x']
     timestamps = not(flags['t'])

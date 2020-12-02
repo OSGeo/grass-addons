@@ -263,11 +263,11 @@ def main(options, flags):
             fdata = int(data)
         if flags['a']:
             sdata = fdata + td
-            mwhere="start_time >= '{inn}' and end_time < " \
+            mwhere = "start_time >= '{inn}' and end_time < " \
                    "'{out}'".format(inn=fdata, out=sdata)
         else:
             sdata = fdata - td
-            mwhere="start_time >= '{inn}' and end_time < " \
+            mwhere = "start_time >= '{inn}' and end_time < " \
                    "'{out}'".format(inn=sdata, out=fdata)
         lines = None
         try:
@@ -298,7 +298,7 @@ def main(options, flags):
                 outtxt += "\n"
         if not lines:
             continue
-        x=0
+        x = 0
         for line in lines:
             vals = line.split(separator)
             if vals[0] in myfeats:

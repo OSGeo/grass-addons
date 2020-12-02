@@ -273,7 +273,7 @@ def main():
         overwrite = True
 
     outlayer = '%s_clean' % inlayer
-    grass.message=(_("Exporting cleaned layer as <%s>") % outlayer)
+    grass.message = (_("Exporting cleaned layer as <%s>") % outlayer)
     try:
         grass.run_command('v.out.ogr', input=outvect, layer='1', output=outdsn, 
                         output_layer=outlayer, format=outformat, flags=oflags,
@@ -291,7 +291,7 @@ def main():
     if nlayers == 2:
         outlayer = '%s_overlaps' % inlayer
         oflags = 'smu'
-        grass.message=(_("Exporting overlaps as <%s>") % outlayer)
+        grass.message = (_("Exporting overlaps as <%s>") % outlayer)
         try:
             grass.run_command('v.out.ogr', input=outvect, layer='2', output=outdsn,
                       output_layer=outlayer, format=outformat, flags=oflags,

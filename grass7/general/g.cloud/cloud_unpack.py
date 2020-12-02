@@ -24,7 +24,7 @@ homeServer = os.getcwd()
 f = open(os.path.join(homeServer, 'unpackwrite.log'), 'w')
 
 LOG_FILENAME = os.path.join(homeServer, 'unpack.log')
-LOGGING_FORMAT='%(asctime)s - %(levelname)s - %(message)s'
+LOGGING_FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
 logging.basicConfig(filename=LOG_FILENAME, level=logging.DEBUG, \
                     format=LOGGING_FORMAT)
 

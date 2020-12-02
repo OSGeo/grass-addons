@@ -245,7 +245,7 @@ def main():
         grass.mapcalc('vel = $red*sqrt(2*9.8*F)',
             red = red, overwrite = True)
         velocity.read('vel')
-        velMax[...] = (np.where(velocity>velMax,velocity,velMax)).astype(float)
+        velMax[...] = (np.where(velocity > velMax,velocity,velMax)).astype(float)
         velMean[...] = (velocity + velMean).astype(float)
 
         #calcolo numero massi
@@ -258,7 +258,7 @@ def main():
             m = m,
             overwrite = True)
         energy.read('en')
-        enMax[...] = (np.where(energy>enMax,energy,enMax)).astype(float)
+        enMax[...] = (np.where(energy > enMax,energy,enMax)).astype(float)
         enMean[...] = (energy + enMean).astype(float)
     grass.message("Create output maps...")
     tot.write(rocks)

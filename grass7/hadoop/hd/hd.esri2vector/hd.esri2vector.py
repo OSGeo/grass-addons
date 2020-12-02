@@ -45,18 +45,18 @@ from hdfsgrass.hdfs_grass_lib import GrassMapBuilderEsriToEsri
 
 def main():
 
-    files=os.listdir(options['path'])
-    map_string=''
+    files = os.listdir(options['path'])
+    map_string = ''
     #download and convert  blocks of table
     for block in files:
-        map='%s_0%s'%(options['out'],block)
-        block=os.path.join(options['path'],block)
+        map = '%s_0%s'%(options['out'],block)
+        block = os.path.join(options['path'],block)
         map_build = GrassMapBuilderEsriToEsri(block,
                                               map,
                                               options['attributes'])
         try:
             map_build.build()
-            map_string+='%s,'%map
+            map_string += '%s,'%map
         except Exception,e:
             grass.warning("Error: %s\n     Map < %s >  conversion failed"%(e,block))
 

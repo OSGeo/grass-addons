@@ -75,7 +75,7 @@ def main():
     
     perc = float(perc) + 90
 
-    delaunay=prefix + '_delaunay'
+    delaunay = prefix + '_delaunay'
 
     grass.message(_("Delaunay triangulation..."))
     grass.run_command('v.delaunay', input = input, output = delaunay, quiet = True)

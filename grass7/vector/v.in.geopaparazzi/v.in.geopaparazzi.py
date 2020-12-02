@@ -335,7 +335,7 @@ def main():
             except CalledModuleError:
                 grass.fatal(_("Error importing %s" % tracksname))
             # create table for line
-            sql='CREATE TABLE %s (cat int, startts text, ' % tracksname
+            sql = 'CREATE TABLE %s (cat int, startts text, ' % tracksname
             sql += 'endts text, text text, color text, width int)'
             grass.write_command('db.execute', input='-', stdin=sql)
             sql = "select logid, startts, endts, text, color, width from" \

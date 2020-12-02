@@ -59,7 +59,7 @@ class TestRasterWhatAggr(TestCase):
                                    granularity="2 months", overwrite=True,
                                    verbose=True)
         self.assertModule(t_rast_what)
-        text="""1|2001-04-01|200.0
+        text = """1|2001-04-01|200.0
 2|2001-04-01|200.0
 3|2001-04-01|200.0
 
@@ -73,7 +73,7 @@ class TestRasterWhatAggr(TestCase):
                                    granularity="2 months", overwrite=True,
                                    verbose=True)
         self.assertModule(t_rast_what)
-        text="""1|2001-04-01|400.0
+        text = """1|2001-04-01|400.0
 2|2001-04-01|400.0
 3|2001-04-01|400.0
 
@@ -88,7 +88,7 @@ class TestRasterWhatAggr(TestCase):
                                        granularity="2 months", overwrite=True))
         dbcols = SimpleModule("db.columns", table="points")
         self.assertModule(dbcols)
-        text="""cat
+        text = """cat
 data
 A_average
 """
@@ -96,7 +96,7 @@ A_average
         
         dbvals = SimpleModule("v.db.select", map="points")
         self.assertModule(dbvals)
-        text="""cat|data|A_average
+        text = """cat|data|A_average
 1|2001-05-10|200
 2|2001-04-08|200
 3|2001-06-01|200
@@ -111,7 +111,7 @@ A_average
                                    granularity="3 months", overwrite=True,
                                    method=["minimum","maximum"], verbose=True)
         self.assertModule(t_rast_what)
-        text="""1|2001-05-01|200.0|300.0
+        text = """1|2001-05-01|200.0|300.0
 2|2001-05-01|200.0|300.0
 3|2001-05-01|200.0|300.0
 
@@ -125,7 +125,7 @@ A_average
                                    granularity="3 months", overwrite=True,
                                    verbose=True)
         self.assertModule(t_rast_what)
-        text="""2|2001-04-08|250.0
+        text = """2|2001-04-08|250.0
 1|2001-05-10|350.0
 3|2001-06-01|400.0
 
@@ -140,7 +140,7 @@ A_average
                                    method=["minimum","maximum"], verbose=True,
                                    date_format="%Y/%m/%d")
         self.assertModule(t_rast_what)
-        text="""1|2001/05/01|200.0|300.0
+        text = """1|2001/05/01|200.0|300.0
 2|2001/05/01|200.0|300.0
 3|2001/05/01|200.0|300.0
 

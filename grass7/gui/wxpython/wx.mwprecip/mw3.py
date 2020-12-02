@@ -18,7 +18,7 @@ import grass.script as grass
 import numpy as np
 from mw_util import *
 
-timeMes=MeasureTime()
+timeMes = MeasureTime()
 import logging
 logger = logging.getLogger('mwprecip.Computing')
 
@@ -313,15 +313,15 @@ class RainGauge():
 class Baseline():
     def __init__(self, type='noDryWin', pathToFile=None, statFce='quantile', quantile=97, roundMode=3, aw=0):
         if quantile is None:
-            quantile=97
+            quantile = 97
             logger.info('Quantile is not defined. Default is 97')
         self.quantile = quantile
         if roundMode is None:
-            roundMode=3
+            roundMode = 3
             logger.info('Round is not defined. Default is 3 decimal places')
         self.roundMode = roundMode
         if aw is None:
-            aw=0
+            aw = 0
             logger.info('Antena wetting value is not defined. Default is 0')
         self.aw = aw
         self.pathToFile = pathToFile
@@ -389,8 +389,8 @@ class TimeWindows():
                                  self.sumStep)
         self.database.connection.executeSql(sql, False, True)
 
-        sql ='ALTER %s %s.%s\
-                ADD %s VARCHAR(11) '% (self.viewStatement, self.schema, self.viewDB,self.database.colorCol)
+        sql = 'ALTER %s %s.%s\
+                ADD %s VARCHAR(11) ' % (self.viewStatement, self.schema, self.viewDB,self.database.colorCol)
         self.database.connection.executeSql(sql, False, True)
 
     def setTimestamp(self):
@@ -558,8 +558,8 @@ class Computor():
         database = self.database
         tMin = self.timeWin.timestamp_min
         tMax = self.timeWin.timestamp_max
-        startTime=self.timeWin.startTime
-        endTime=self.timeWin.endTime
+        startTime = self.timeWin.startTime
+        endTime = self.timeWin.endTime
 
         def computeBaselinFromMode(recordTable):
             sql = "SELECT linkid from %s group by 1" % recordTable
@@ -781,7 +781,7 @@ class Computor():
                             resu += resu
                             continue
                 tmp.append(resu)
-                table_tmp = baseline.statFce+ '_tmp'
+                table_tmp = baseline.statFce + '_tmp'
                 sql = "CREATE TABLE %s.%s ( linkid integer,a real);" % (database.schema, table_tmp)
                 database.connection.executeSql(sql, False, True)
 
@@ -802,7 +802,7 @@ class Computor():
                     io1.close()
                     os.remove(os.path.join(database.pathworkSchemaDir, table_tmp))
                 except IOError as e:
-                    grass.warning('Cannot open <%s> file'% table_tmp)
+                    grass.warning('Cannot open <%s> file' % table_tmp)
                     return False
 
                 recname = database.schema + '.' + table_tmp
@@ -851,10 +851,10 @@ class Computor():
             'data'. Uses the 'precision' parameter to control the noise level.
             """
             #data = np.random.normal(size=2000000)
-            q=float(q)/100
+            q = float(q)/100
             N, bins = np.histogram(data, bins=precision*np.sqrt(len(data)))
             norm_cumul = 1.0*N.cumsum() / len(data)
-            ret=bins[norm_cumul > q][0]
+            ret = bins[norm_cumul > q][0]
            # print "error in  %s quantile"%q, ((1.0*(data < ret).sum() / len(data)) -q)
 
             return ret
@@ -866,15 +866,15 @@ class Computor():
             # for each link  compute baseline
             for linkid in linksid:
                 linkid = linkid[0]
-                sql = "SELECT a from %s where linkid=%s"% (recordTable, linkid)
+                sql = "SELECT a from %s where linkid=%s" % (recordTable, linkid)
                 resu = database.connection.executeSql(sql, True, True)
-                data=np.array(resu)
+                data = np.array(resu)
                 #data=[item for sublist in data for item in sublist]#merge lists
                 #print data
                 #quantileRes=Quantile(data, baseline.quantile)
 
-                quantileRes=np.percentile(data,  (100-float(baseline.quantile))/100)
-                tmp.append(str(linkid) + ',' + str(quantileRes)+ '\n')
+                quantileRes = np.percentile(data,  (100-float(baseline.quantile))/100)
+                tmp.append(str(linkid) + ',' + str(quantileRes) + '\n')
             io0 = open(os.path.join(database.pathworkSchemaDir, "baseline"), 'w+')
             io0.writelines(tmp)
             io0.close()
@@ -924,7 +924,7 @@ class Computor():
             return False
 
         if self.baseline.aw is None:
-            self.baseline.aw=0
+            self.baseline.aw = 0
         Aw = float(self.baseline.aw)
 
         link_num = self.database.connection.count("link")
@@ -1018,7 +1018,7 @@ class Computor():
                 'Missing values "linkid,baseline," in text file. Data are not available in dry interval(baseline) .')
 
         temp = []
-        errLinkList=[]
+        errLinkList = []
         timeMes.timeMsg("Computing precipitation")
         skippedList = []
         for record in resu:
@@ -1052,10 +1052,10 @@ class Computor():
                 Am = record[2] - baseline_decibel - Aw
                 yl = Am / curLinkData[0]
                 aa = yl / coef_a_k[1]
-                if aa <0:
-                    aa*=-1
+                if aa < 0:
+                    aa *= -1
                     R1 = aa ** (1 / coef_a_k[0])
-                    R1*=-1
+                    R1 *= -1
                 else:
                     R1 = aa ** (1 / coef_a_k[0])
 
@@ -1235,7 +1235,7 @@ class GrassLayerMgr():
         timeMes.timeMsg('Connecting tables to maps')
         inputMap = self.database.linkVecMapName
         if '@' in self.database.linkVecMapName:
-            self.database.linkVecMapName=self.database.linkVecMapName.split('@')[0]
+            self.database.linkVecMapName = self.database.linkVecMapName.split('@')[0]
         self.database.linkVecMapName += '_%s' % self.database.schema
 
 
@@ -1343,7 +1343,7 @@ class GrassTemporalMgr():
         io1 = open(regFilePath, 'w+')
         io1.writelines(regTMP), io1.close
         io1.close()
-        logger.info('datasetName %s'% self.datasetName)
+        logger.info('datasetName %s' % self.datasetName)
         logger.info(regFilePath)
 
         RunCommand('t.register',
@@ -1358,7 +1358,7 @@ class Database():
     def __init__(self, name=None, user=None, password=None,
                  host=None, port=None, nodeVecMapName='node', linkVecMapName='link',
                  linkPointsVecName='linkPoints',workPath=None, workSchema=None, dataSchema=None):
-        self.dbConnStr=name
+        self.dbConnStr = name
         self.dbName = name
         self.user = user
         self.port = port
@@ -1378,7 +1378,7 @@ class Database():
         self.rgaugRecord = 'rgauge_record'
         self.rgaugeTableName = 'rgauge'
         self.precipColName = 'precip_mm_h'
-        self.colorCol= 'rgb'
+        self.colorCol = 'rgb'
 
         self.nodeVecMapName = nodeVecMapName
         self.linkVecMapName = linkVecMapName

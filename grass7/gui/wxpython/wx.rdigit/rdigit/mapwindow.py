@@ -300,7 +300,7 @@ class RDigitWindow(BufferedWindow):
         elif action == "addCircle":
           if len(self.polycoords) > 0: # ignore 'one-point' lines
 
-              beginpt =self.polycoords[0]
+              beginpt = self.polycoords[0]
               endpt = event.GetPositionTuple()[:]
               dist, (north, east) = self.Distance(beginpt, endpt,False)
               #print dist

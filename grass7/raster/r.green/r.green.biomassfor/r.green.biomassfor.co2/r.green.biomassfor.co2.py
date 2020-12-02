@@ -272,7 +272,7 @@ def yield_pix_process(opts, flgs,yield_,yield_surface):
     YPIX = ''
 
 
-    expr_surf='analysis_surface='+opts['energy_map']+'>0'
+    expr_surf = 'analysis_surface='+opts['energy_map']+'>0'
     run_command('r.mapcalc', overwrite=ow,expression=expr_surf)
 
 
@@ -294,26 +294,26 @@ def avoided_CO2_emission(opts, flgs):
 
 
 
-    forest=opts['forest']
-    boundaries=opts['boundaries']
-    yield_=opts['forest_column_yield']
-    management=opts['forest_column_management']
-    treatment=opts['forest_column_treatment']
-    yield_surface=opts['forest_column_yield_surface']
-    roughness=opts['forest_column_roughness']
-    forest_roads=opts['forest_roads']
-    main_roads=opts['main_roads']
+    forest = opts['forest']
+    boundaries = opts['boundaries']
+    yield_ = opts['forest_column_yield']
+    management = opts['forest_column_management']
+    treatment = opts['forest_column_treatment']
+    yield_surface = opts['forest_column_yield_surface']
+    roughness = opts['forest_column_roughness']
+    forest_roads = opts['forest_roads']
+    main_roads = opts['main_roads']
 
-    tree_diam=opts['tree_diam']
-    tree_vol=opts['tree_vol']
-    soil_prod=opts['soilp2_map']
+    tree_diam = opts['tree_diam']
+    tree_vol = opts['tree_vol']
+    soil_prod = opts['soilp2_map']
 
-    rivers=opts['rivers']
-    lakes=opts['lakes']
+    rivers = opts['rivers']
+    lakes = opts['lakes']
 
-    dhp=opts['dhp']
+    dhp = opts['dhp']
 
-    vector_forest=opts['forest']
+    vector_forest = opts['forest']
 
 
 
@@ -342,36 +342,36 @@ def avoided_CO2_emission(opts, flgs):
 
     ######## temp patch to link map and fields ######
 
-    management="management"
-    treatment="treatment"
-    yield_surface="yield_surface"
-    yield_="yield"
-    forest_roads="forest_roads"
-    main_roads="main_roads"
+    management = "management"
+    treatment = "treatment"
+    yield_surface = "yield_surface"
+    yield_ = "yield"
+    forest_roads = "forest_roads"
+    main_roads = "main_roads"
 
     ######## end temp patch to link map and fields ######
 
     ######## end temp patch to link map and fields ######
 
-    if roughness=='':
+    if roughness == '':
         run_command("r.mapcalc",overwrite=ow,expression='roughness=0')
-        roughness='roughness'
+        roughness = 'roughness'
     else:
         run_command("v.to.rast", input=forest,output="roughness", use="attr", attrcolumn=roughness,overwrite=True)
         run_command("r.null", map='roughness',null=0)
-        roughness='roughness'
+        roughness = 'roughness'
 
-    if tree_diam=='':
+    if tree_diam == '':
         run_command("r.mapcalc",overwrite=ow,expression='tree_diam=99999')
-        tree_diam='tree_diam'
+        tree_diam = 'tree_diam'
 
-    if tree_vol=='':
+    if tree_vol == '':
         run_command("r.mapcalc",overwrite=ow,expression='tree_vol=9.999')
-        tree_vol='tree_vol'
+        tree_vol = 'tree_vol'
 
-    if soil_prod=='':
+    if soil_prod == '':
         run_command("r.mapcalc",overwrite=ow,expression='soil_map=99999')
-        soil_prod='soil_map'
+        soil_prod = 'soil_map'
 
     
 
@@ -397,19 +397,19 @@ def avoided_CO2_emission(opts, flgs):
     run_command("r.null", map="yield_pix1", null=0)
     run_command("r.null", map="morphometric_features", null=0)
     
-    exprmap='frict_surf_extr = pix_cross + if(yield_pix1<=0, 99999) + if(morphometric_features==6, 99999)'
+    exprmap = 'frict_surf_extr = pix_cross + if(yield_pix1<=0, 99999) + if(morphometric_features==6, 99999)'
     
-    if rivers!='':
+    if rivers != '':
         run_command("v.to.rast", input=rivers,output="rivers", use="val", overwrite=True)
         run_command("r.null", map="rivers", null=0)
-        rivers="rivers"
-        exprmap+='+ if('+rivers+'>=1, 99999)'
+        rivers = "rivers"
+        exprmap += '+ if('+rivers+'>=1, 99999)'
 
-    if lakes!='':    
+    if lakes != '':    
         run_command("v.to.rast", input=lakes,output="lakes", use="val", overwrite=True)    
         run_command("r.null", map="lakes", null=0)
-        lakes="lakes"
-        exprmap+='+ if('+lakes+'>=1, 99999)'
+        lakes = "lakes"
+        exprmap += '+ if('+lakes+'>=1, 99999)'
 
 
     run_command("r.mapcalc",overwrite=ow,expression=exprmap)
@@ -552,11 +552,11 @@ def avoided_CO2_emission(opts, flgs):
     #run_command("r.mapcalc", overwrite=ow, expression=opts['output_netco2_map']+' = analysis_surface*'+('+opts['output_aco2_map']+' - '+opts['output_co2_map']+')/1000')
     run_command("r.mapcalc", overwrite=ow, expression=opts['output_basename_nco2map']+' = analysis_surface*('+opts['output_basename_aco2map']+' - '+opts['output_basename_co2map']+')/1000')
 
-    mapco2=opts['output_basename_co2map']
+    mapco2 = opts['output_basename_co2map']
     with RasterRow(mapco2) as pT:
         T = np.array(pT)
 
-    mapaco2=opts['output_basename_nco2map']
+    mapaco2 = opts['output_basename_nco2map']
     with RasterRow(mapaco2) as pT1:
         A = np.array(pT1)
    

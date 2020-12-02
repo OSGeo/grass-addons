@@ -5,7 +5,7 @@ import subprocess
 
 from ruamel.yaml import YAML
 
-yaml=YAML(typ="safe", pure=True)
+yaml = YAML(typ="safe", pure=True)
 
 TEST_DIR = pathlib.Path(__file__).parent.resolve()
 DATA_DIR = TEST_DIR / "data"

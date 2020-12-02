@@ -97,14 +97,14 @@ def main():
     print("===========================")
     print("Hypsometric | quantiles")
     print("===========================")
-    print('%.0f' %findint(kl,0.025), "|", 0.025)
-    print('%.0f' %findint(kl,0.05), "|", 0.05)
-    print('%.0f' %findint(kl,0.1), "|", 0.1)
-    print('%.0f' %findint(kl,0.25), "|", 0.25)
-    print('%.0f' %findint(kl,0.5), "|", 0.5)
-    print('%.0f' %findint(kl,0.75), "|", 0.75)
-    print('%.0f' %findint(kl,0.9), "|", 0.9)
-    print('%.0f' %findint(kl,0.975), "|", 0.975)
+    print('%.0f' % findint(kl,0.025), "|", 0.025)
+    print('%.0f' % findint(kl,0.05), "|", 0.05)
+    print('%.0f' % findint(kl,0.1), "|", 0.1)
+    print('%.0f' % findint(kl,0.25), "|", 0.25)
+    print('%.0f' % findint(kl,0.5), "|", 0.5)
+    print('%.0f' % findint(kl,0.75), "|", 0.75)
+    print('%.0f' % findint(kl,0.9), "|", 0.9)
+    print('%.0f' % findint(kl,0.975), "|", 0.975)
     print('\n')
     print('Done!')
     #print prc
@@ -112,7 +112,7 @@ def main():
 
 def findint(kl,f):
     Xf = np.abs(kl-f)
-    Xf = np.where(Xf==Xf.min())
+    Xf = np.where(Xf == Xf.min())
     item = itemgetter(0)(Xf)
     Xf = item[0]  # added this further step to handle the case the function has 2 min
     z1 = kl[Xf][0]

@@ -279,7 +279,7 @@ def main():
             NSmid = (grass.region()['n'] + grass.region()['s'])/2.
             dx_at_mid_latitude = (3.14159/180.) * 6371000. * np.cos(np.deg2rad(NSmid))
             if flex.Verbose:
-                print("Setting x-resolution [m] to "+"%.2f" %dx_at_mid_latitude+" * [degrees]")
+                print("Setting x-resolution [m] to "+"%.2f" % dx_at_mid_latitude+" * [degrees]")
             flex.dx = grass.region()['ewres']*dx_at_mid_latitude
         else:
             grass.fatal("Need the '-l' flag to enable lat/lon solution approximation.")

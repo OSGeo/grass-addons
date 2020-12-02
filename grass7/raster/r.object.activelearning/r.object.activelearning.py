@@ -544,11 +544,11 @@ def main():
 
     nbr_train = ID_train.shape[0]
 
-    if (options['update'] !=''): # If an update file has been specified, transfer samples
+    if (options['update'] != ''): # If an update file has been specified, transfer samples
         X_train, ID_train, y_train = update(options['update'], X_train, ID_train, y_train, X_unlabeled, ID_unlabeled)
         if (options['training_updated'] != '' or options['unlabeled_updated'] != ''):
             write_update(options['update'], options['training_set'], options['unlabeled_set'], options['training_updated'], options['unlabeled_updated'])
-    elif (options['update'] =='' and (options['training_updated'] != '' or options['unlabeled_updated'] != '')):
+    elif (options['update'] == '' and (options['training_updated'] != '' or options['unlabeled_updated'] != '')):
         gcore.warning('No update file specified : could not write the updated files.')
     nbr_new_train = ID_train.shape[0]
 

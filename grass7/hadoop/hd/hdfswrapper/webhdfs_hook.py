@@ -107,7 +107,7 @@ class WebHDFSHook(BaseHook):
                       **kwargs):
 
         c = self.get_conn()
-        out=c.download(hdfs_path=hdfs_path,
+        out = c.download(hdfs_path=hdfs_path,
                    local_path=local_path,
                    overwrite=overwrite,
                    n_threads=parallelism,

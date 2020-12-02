@@ -448,7 +448,7 @@ class ServerAdd(wx.Frame):
         self.URLText.Clear()
         self.UsernameText.Clear()
         self.editOn = False
-        self.selectedServer=None
+        self.selectedServer = None
         StatusBar_fields = ["Fill in the Info fields"]
         self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
         event.Skip()
@@ -490,7 +490,7 @@ class ServerAdd(wx.Frame):
         if(len(info) == 0):
             return
         urlarr = info.split(self.name_url_delimiter)
-        if(len(urlarr)==2):
+        if(len(urlarr) == 2):
             uid = self.map_servernameTouid[urlarr[0]]
             self.selectedUid = uid
             self.selectedServer = self.servers[uid]

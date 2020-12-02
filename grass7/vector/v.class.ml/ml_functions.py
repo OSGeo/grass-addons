@@ -315,7 +315,7 @@ def extra_analysis(cls, tdata, tclss, labels, n_folds=10):
         # compute score for each class VS rest
         for idx, label in enumerate(clss):
             fpr, tpr, roc_thr = roc_curve(y_test, proba[:, idx], label)
-            precision, recall, pr_thr = prc(y_test==label, proba[:, idx], label)
+            precision, recall, pr_thr = prc(y_test == label, proba[:, idx], label)
             lk[label]['fprs'].append(fpr)
             lk[label]['tprs'].append(tpr)
             lk[label]['roc_scores'].append(auc(fpr, tpr))

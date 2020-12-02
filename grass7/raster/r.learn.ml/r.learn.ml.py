@@ -1214,7 +1214,7 @@ def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
         'ExtraTreesClassifier',
         'ExtraTreesRegressor',
             'KNeighborsClassifier']:
-        n_jobs=1
+        n_jobs = 1
 
     # -------------------------------------------------------------------------
     # create copies of estimator and create cross-validation iterator
@@ -1549,7 +1549,7 @@ def main():
 
     # check that valid combination of training data input is present
     if trainingpoints == '' and trainingmap == '' and load_training == '' \
-        and model_load =='':
+        and model_load == '':
         gs.fatal('No training vector, raster or tabular data is present')
 
     # make dicts for hyperparameters, datatypes and parameters for tuning

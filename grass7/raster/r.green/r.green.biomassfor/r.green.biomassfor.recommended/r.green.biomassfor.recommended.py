@@ -109,7 +109,7 @@ from grass.pygrass.raster import RasterRow
 from grass.script.core import overwrite, parser, run_command
 
 #check_var checks the presence/absence of the input maps
-check_var=0
+check_var = 0
 
 def main(opts, flgs):
     ow = overwrite()
@@ -119,79 +119,79 @@ def main(opts, flgs):
     treatment = opts['treatment']
 
     #ouput variables
-    rec_bioenergyHF=output+'_rec_bioenergyHF'
-    rec_bioenergyC=output+'_rec_bioenergyC'
-    rec_bioenergy=output+'_rec_bioenergy'
+    rec_bioenergyHF = output+'_rec_bioenergyHF'
+    rec_bioenergyC = output+'_rec_bioenergyC'
+    rec_bioenergy = output+'_rec_bioenergy'
 
     #input variables
-    pot_HF=opts['hfmap']
-    pot_C=opts['cmap']
+    pot_HF = opts['hfmap']
+    pot_C = opts['cmap']
 
-    rivers=opts['hydro']
+    rivers = opts['hydro']
 
-    buffer_hydro=int(opts['buffer_hydro'])
+    buffer_hydro = int(opts['buffer_hydro'])
 
-    zone_less=opts['zone_less']
+    zone_less = opts['zone_less']
 
-    check_var=0
+    check_var = 0
 
 
     #pdb.set_trace()
 
     #check if the raster of rivers is present with a buffer inserted
-    if (buffer_hydro>0 and rivers==""):
+    if (buffer_hydro > 0 and rivers == ""):
         print("if the river buffer is greater than zero, the raster map of rivers is required")
         return
 
     #recovery of the series of raster constraint maps
-    restr_map=opts['restrictions'].split(',')
+    restr_map = opts['restrictions'].split(',')
 
     #start the query string
-    expr_map="constraint="
+    expr_map = "constraint="
 
 
     #check if at least 1 constraint map is inserted
-    if opts['restrictions']!="":
-        check_var=1
-        count_map=0
+    if opts['restrictions'] != "":
+        check_var = 1
+        count_map = 0
 
         #cycle with composition of the query string with all the constraint maps
         for mapr_ in restr_map:
-            mapr1=string.split(mapr_,'@')
-            mapr=mapr1[0]
+            mapr1 = string.split(mapr_,'@')
+            mapr = mapr1[0]
 
-            if count_map==0:
-                expr_map+="("+mapr
-                convert_bool=mapr+"="+mapr+">0"
+            if count_map == 0:
+                expr_map += "("+mapr
+                convert_bool = mapr+"="+mapr+">0"
                 run_command("r.mapcalc", overwrite=1,expression=convert_bool)
                 run_command("r.null", map=mapr, null=0)
             else:
-                expr_map+="||"+mapr  
-                convert_bool=mapr+"="+mapr+">0"
+                expr_map += "||"+mapr  
+                convert_bool = mapr+"="+mapr+">0"
                 run_command("r.mapcalc", overwrite=1,expression=convert_bool)
                 run_command("r.null", map=mapr, null=0)
-            count_map+=1
-        expr_map+=")"
+            count_map += 1
+        expr_map += ")"
         
     #if the river buffer is inserted add calculate the buffer and
     # add the buffer to the constraint map
-    if buffer_hydro>0:
+    if buffer_hydro > 0:
         run_command("r.null", map=rivers, null=0)
         run_command("r.buffer", overwrite=ow,
                 input=rivers, output="rivers_buffer",
                 distances=buffer_hydro,flags = 'z')
         run_command("r.null", map="rivers_buffer", null=0)
-        if check_var==1:
-            expr_map+="|| (rivers || rivers_buffer)"
+        if check_var == 1:
+            expr_map += "|| (rivers || rivers_buffer)"
         else:
-            expr_map+="rivers || rivers_buffer"
-        check_var=1
+            expr_map += "rivers || rivers_buffer"
+        check_var = 1
 
-    if zone_less!="":
-        check_var=1
+    if zone_less != "":
+        check_var = 1
 
 
-    if check_var==0:
+    if check_var == 0:
         print("Error: At least one constraint map must be inserted")
         return
     else:
@@ -203,13 +203,13 @@ def main(opts, flgs):
         run_command("r.mapcalc", overwrite=ow, expression="constraint=constraint<1")
         run_command("r.null", map="constraint", null=0)
         
-        constr_HF=rec_bioenergyHF+"="+rec_bioenergyHF+"*constraint"
-        constr_C=rec_bioenergyC+"="+rec_bioenergyC+"*constraint"
+        constr_HF = rec_bioenergyHF+"="+rec_bioenergyHF+"*constraint"
+        constr_C = rec_bioenergyC+"="+rec_bioenergyC+"*constraint"
 
         run_command("r.mapcalc", overwrite=ow,expression=constr_HF)
         run_command("r.mapcalc", overwrite=ow,expression=constr_C) 
 
-    if zone_less!="":
+    if zone_less != "":
         run_command("r.mapcalc", overwrite=ow, expression='wood_pix=('+zone_less+'/((ewres()*nsres())*10000))')
         WHF = 'wood_energyHF= if('+management+'==1 && '+treatment+'==1 || '+management+' == 1 && '+treatment+'==99999, wood_pix*%f, if('+management+'==1 && '+treatment+'==2, wood_pix*%f + wood_pix*%f))' 
         WCC = 'wood_energyC = if('+management+'==2, wood_pix*'+opts['energy_tops_cop']+')'
@@ -219,14 +219,14 @@ def main(opts, flgs):
         run_command("r.null", map="wood_energyHF", null=0)
         run_command("r.null", map="wood_energyC", null=0)
 
-        limit_HF=rec_bioenergyHF+"="+rec_bioenergyHF+"-wood_energyHF"
-        limit_C=rec_bioenergyC+"="+rec_bioenergyC+"-wood_energyC"
+        limit_HF = rec_bioenergyHF+"="+rec_bioenergyHF+"-wood_energyHF"
+        limit_C = rec_bioenergyC+"="+rec_bioenergyC+"-wood_energyC"
 
         run_command("r.mapcalc", overwrite=ow,expression=limit_HF)
         run_command("r.mapcalc", overwrite=ow,expression=limit_C) 
 
 
-    RECOT=rec_bioenergy+' = ('+rec_bioenergyHF+' + '+rec_bioenergyC+')'
+    RECOT = rec_bioenergy+' = ('+rec_bioenergyHF+' + '+rec_bioenergyC+')'
 
     run_command("r.mapcalc", overwrite=ow,expression=RECOT) 
 

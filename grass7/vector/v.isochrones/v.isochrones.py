@@ -345,7 +345,7 @@ def main():
         output_cats = []
         for i in range(1,len(time_steps)+2):
             output_cats.append(i)
-        startpoints=grass.read_command('v.distance', from_=start_points, 
+        startpoints = grass.read_command('v.distance', from_=start_points, 
                 to=roads, to_type='point', to_layer=node_layer, 
                 upload='cat', flags='p', quiet=True).split('\n')[1:-1]
 

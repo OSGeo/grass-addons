@@ -386,7 +386,7 @@ def main():
         annotations = ";".join(annotations)
         numint = len(breakpoints) - 1
     elif themecalc == "quartiles":
-        numint=4
+        numint = 4
         # one for each quartile
         breakpoints = [min, q1, q2, q3, max]
         annotations = " %f; %f; %f; %f" % (q1, q2, q3, q4)

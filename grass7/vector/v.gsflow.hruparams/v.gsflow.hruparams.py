@@ -263,7 +263,7 @@ def main():
     hru = VectorTopo(HRU)
     hru.open('rw')
     cur = hru.table.conn.cursor()
-    cur.execute("SELECT cat,aspect_x_sum,aspect_y_sum FROM %s" %hru.name)
+    cur.execute("SELECT cat,aspect_x_sum,aspect_y_sum FROM %s" % hru.name)
     _arr = np.array(cur.fetchall()).astype(float)
     _cat = _arr[:,0]
     _aspect_x_sum = _arr[:,1]
@@ -271,7 +271,7 @@ def main():
     aspect_angle = np.arctan2(_aspect_y_sum, _aspect_x_sum) * 180. / np.pi
     aspect_angle[aspect_angle < 0] += 360 # all positive
     aspect_angle_cat = np.vstack((aspect_angle, _cat)).transpose()
-    cur.executemany("update "+ HRU +" set hru_aspect=? where cat=?", aspect_angle_cat)
+    cur.executemany("update " + HRU + " set hru_aspect=? where cat=?", aspect_angle_cat)
     hru.table.conn.commit()
     hru.close()
 
@@ -342,18 +342,18 @@ def main():
     for i in range(len(allcats)):
         # meters
         cur.execute('update '+HRU
-                    +' set hru_x='+str(hru_centroid_locations[i][0])
-                    +' where cat='+str(allcats[i]))
+                    + ' set hru_x='+str(hru_centroid_locations[i][0])
+                    + ' where cat='+str(allcats[i]))
         cur.execute('update '+HRU
-                    +' set hru_y='+str(hru_centroid_locations[i][1])
-                    +' where cat='+str(allcats[i]))
+                    + ' set hru_y='+str(hru_centroid_locations[i][1])
+                    + ' where cat='+str(allcats[i]))
         # feet
         cur.execute('update '+HRU
-                    +' set hru_xlong='+str(hru_centroid_locations[i][0]*3.28084)
-                    +' where cat='+str(allcats[i]))
+                    + ' set hru_xlong='+str(hru_centroid_locations[i][0]*3.28084)
+                    + ' where cat='+str(allcats[i]))
         cur.execute('update '+HRU
-                    +' set hru_ylat='+str(hru_centroid_locations[i][1]*3.28084)
-                    +' where cat='+str(allcats[i]))
+                    + ' set hru_ylat='+str(hru_centroid_locations[i][1]*3.28084)
+                    + ' where cat='+str(allcats[i]))
         # (un)Project to lat/lon
         _centroid_ll = gscript.parse_command('m.proj',
                                              coordinates=
@@ -361,11 +361,11 @@ def main():
                                              flags='od').keys()[0]
         _lon, _lat, _z = _centroid_ll.split('|')
         cur.execute('update '+HRU
-                    +' set hru_lon='+_lon
-                    +' where cat='+str(allcats[i]))
+                    + ' set hru_lon='+_lon
+                    + ' where cat='+str(allcats[i]))
         cur.execute('update '+HRU
-                    +' set hru_lat='+_lat
-                    +' where cat='+str(allcats[i]))
+                    + ' set hru_lat='+_lat
+                    + ' where cat='+str(allcats[i]))
 
     # feet -- not working.
     # Probably an issue with index__cats -- maybe fix later, if needed

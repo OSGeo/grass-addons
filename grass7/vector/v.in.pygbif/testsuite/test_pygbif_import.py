@@ -44,7 +44,7 @@ class TestPyGBIFImport(TestCase):
         self.assertModule(v_in_pygbif_count)
         stdout_count = v_in_pygbif_count.outputs.stdout
 
-        self.assertTrue(int(stdout_count.split(" ")[1])>=250)
+        self.assertTrue(int(stdout_count.split(" ")[1]) >= 250)
 
     def test_poa_map(self):
 

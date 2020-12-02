@@ -377,7 +377,7 @@ def losses_Strickler(discharge, length, diameter, theta, velocity, ks=75):
     # circolar section
     r = diameter * 0.5
     A = 0.5 * r**2 * (2 * pi - theta + sin(theta))
-    pw = r * (2* pi - theta)
+    pw = r * (2 * pi - theta)
     Rh = A / pw
 
     if round(discharge / A, 5) == round(velocity, 5):
@@ -574,7 +574,7 @@ def compute_power(struct, list_intakeid, turbine_list, turbine_folder,
         gross_head = float(line.attrs['gross_head'])
         discharge = float(line.attrs['discharge'])
 
-        if net_head >= 0 and gross_head > 0 and discharge>0:
+        if net_head >= 0 and gross_head > 0 and discharge > 0:
             possible_turb = turb_char(net_head, discharge,
                                       turbine_list, turbine_folder)
             efficiency = np.zeros(len(possible_turb))

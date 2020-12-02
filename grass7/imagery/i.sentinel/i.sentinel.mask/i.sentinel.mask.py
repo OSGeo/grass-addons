@@ -187,7 +187,7 @@ def main ():
     mapset2 = '@{}'.format(mapset)
     processid = os.getpid()
     processid = str(processid)
-    tmp["shadow_temp"] = "shadow_temp"+ processid
+    tmp["shadow_temp"] = "shadow_temp" + processid
     tmp["cloud_v"] = "cloud_v_" + processid
     tmp["shadow_temp_v"] = "shadow_temp_v_" + processid
     tmp["shadow_temp_mask"] = "shadow_temp_mask_" + processid
@@ -283,7 +283,7 @@ def main ():
     if options['cloud_raster']:
         cloud_raster = options['cloud_raster']
     else:
-        tmp["cloud_def"] = "cloud_def"+ processid
+        tmp["cloud_def"] = "cloud_def" + processid
         cloud_raster = tmp["cloud_def"]
     if options['cloud_mask']:
         cloud_mask = options['cloud_mask']
@@ -291,7 +291,7 @@ def main ():
             gscript.fatal('Name for cloud_mask output \
                            is not SQL compliant'.format(options['cloud_mask']))
     else:
-        tmp["cloud_mask"] = "cloud_mask"+ processid
+        tmp["cloud_mask"] = "cloud_mask" + processid
         cloud_mask = tmp["cloud_mask"]
     if options['shadow_mask']:
         shadow_mask = options['shadow_mask']
@@ -299,7 +299,7 @@ def main ():
             gscript.fatal('Name for shadow_mask output \
                            is not SQL compliant'.format(options['shadow_mask']))
     else:
-        tmp["shadow_mask"] = "shadow_mask"+ processid
+        tmp["shadow_mask"] = "shadow_mask" + processid
         shadow_mask = tmp["shadow_mask"]
     shadow_raster = options['shadow_raster']
 
@@ -308,7 +308,7 @@ def main ():
         bands['green'] == '' or
         bands['red'] == '' or
         bands['nir'] == '' or
-        bands['nir8a'] == ''or
+        bands['nir8a'] == '' or
         bands['swir11'] == '' or
             bands['swir12'] == ''):
         gscript.fatal('All input bands (blue, green, red, nir, nir8a, swir11, swir12) are required')

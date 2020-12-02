@@ -270,14 +270,14 @@ class MdBoxKeywords(MdBox):
         self.panelSizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.panelSizer)
         self.boxButtonSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.parent2=parent2
+        self.parent2 = parent2
 
         self.panelSizer.Add(self.boxButtonSizer, flag=wx.EXPAND, proportion=1)
-        self.parent=parent
+        self.parent = parent
         self.stBoxSizer = wx.StaticBoxSizer(self.stbox, orient=wx.VERTICAL)
         self.boxButtonSizer.Add(self.stBoxSizer, flag=wx.EXPAND, proportion=1)
-        self.itemHolder=[]
-        self.textTMP=None
+        self.itemHolder = []
+        self.textTMP = None
 
     def addKeywordItem(self,item):
         self.stBoxSizer.Add(
@@ -376,8 +376,8 @@ class MdItem(wx.BoxSizer):
         self.mdDescription = item
         self.chckBox = chckBox
         self.multiple = multiplicity
-        self.parent=parent
-        added=False
+        self.parent = parent
+        added = False
         if multiplicity is None:
             self.multiple = item.multiplicity
 
@@ -387,21 +387,21 @@ class MdItem(wx.BoxSizer):
         if isFirstNum != 1 and item.multiplicity:
             rmMulti = True
         self.tagText = wx.StaticText(parent=parent, id=ID_ANY, label=item.name)
-        if self.mdDescription.databaseAttr =='language':
+        if self.mdDescription.databaseAttr == 'language':
             self.fillComboDB('language')
-            added=True
-        elif self.mdDescription.databaseAttr =='topicCategory':
+            added = True
+        elif self.mdDescription.databaseAttr == 'topicCategory':
             self.fillComboDB('topicCategory')
-            added=True
-        elif self.mdDescription.databaseAttr =='degree':
+            added = True
+        elif self.mdDescription.databaseAttr == 'degree':
             self.fillComboDB('degree')
-            added=True
-        elif self.mdDescription.databaseAttr =='dateType':
+            added = True
+        elif self.mdDescription.databaseAttr == 'dateType':
             self.fillComboDB('dateType')
-            added=True
-        elif self.mdDescription.databaseAttr =='role':
+            added = True
+        elif self.mdDescription.databaseAttr == 'role':
             self.fillComboDB('role')
-            added=True
+            added = True
 
         if self.chckBox is False and not added:
             if item.multiline is True:
@@ -454,7 +454,7 @@ class MdItem(wx.BoxSizer):
 
     def fillComboDB(self,label):
         if label == 'language':
-            lang=["Afrikaans","Albanian","Arabic","Armenian","Basque","Bengali",
+            lang = ["Afrikaans","Albanian","Arabic","Armenian","Basque","Bengali",
                   "Bulgarian","Catalan","Cambodian","Chinese","Croatian","Czech",
                   "Danish","Dutch","English","Estonian","Fiji","Finnish","French",
                   "Georgian","German","Greek","Gujarati","Hebrew","Hindi","Hungarian",
@@ -464,31 +464,31 @@ class MdItem(wx.BoxSizer):
                   "Punjabi","Quechua","Romanian","Russian","Samoan","Serbian","Slovak","Slovenian",
                   "Spanish","Swahili","Swedish","Tamil","Tatar","Telugu","Thai","Tibetan","Tonga",
                   "Turkish","Ukrainian","Urdu","Uzbek","Vietnamese","Welsh","Xhosa"]
-            self.valueCtrl=wx.ComboBox(self.parent, id=wx.ID_ANY,)
+            self.valueCtrl = wx.ComboBox(self.parent, id=wx.ID_ANY,)
             for lng in lang:
                 self.valueCtrl.Append(lng)
         if label == 'topicCategory':
-            lang= ['farming','biota','boundaries','climatologyMeteorologyAtmosphere','economy',
+            lang = ['farming','biota','boundaries','climatologyMeteorologyAtmosphere','economy',
                    'elevation','enviroment','geoscientificInformation','health','imageryBaseMapsEarthCover',
                    'intelligenceMilitary','inlandWaters','location','planningCadastre','society','structure',
                    'transportation','utilitiesCommunication']
-            self.valueCtrl=wx.ComboBox(self.parent, id=wx.ID_ANY,)
+            self.valueCtrl = wx.ComboBox(self.parent, id=wx.ID_ANY,)
             for lng in lang:
                 self.valueCtrl.Append(lng)
         if label == 'degree':
-            lang=['Not evaluated','Not conformant','Conformant']
-            self.valueCtrl=wx.ComboBox(self.parent, id=wx.ID_ANY,)
+            lang = ['Not evaluated','Not conformant','Conformant']
+            self.valueCtrl = wx.ComboBox(self.parent, id=wx.ID_ANY,)
             for lng in lang:
                 self.valueCtrl.Append(lng)
         if label == 'dateType':
-            lang=['Date of creation','Date of last revision', 'Date of publication']
-            self.valueCtrl=wx.ComboBox(self.parent, id=wx.ID_ANY,)
+            lang = ['Date of creation','Date of last revision', 'Date of publication']
+            self.valueCtrl = wx.ComboBox(self.parent, id=wx.ID_ANY,)
             for lng in lang:
                 self.valueCtrl.Append(lng)
         if label == 'role':
-            lang=['Author','Custodian','Distributor','Originator','Owner','Point of contact','Principal Investigation',
+            lang = ['Author','Custodian','Distributor','Originator','Owner','Point of contact','Principal Investigation',
                   'Processor','Publisher','Resource provider','User']
-            self.valueCtrl=wx.ComboBox(self.parent, id=wx.ID_ANY,)
+            self.valueCtrl = wx.ComboBox(self.parent, id=wx.ID_ANY,)
             for lng in lang:
                 self.valueCtrl.Append(lng)
 
@@ -681,14 +681,14 @@ class MdItemKeyword(wx.BoxSizer):
         wx.BoxSizer.__init__(self, wx.VERTICAL)
         self.isValid = False
         self.isChecked = False
-        self.keywordObj=keywordObj
+        self.keywordObj = keywordObj
         self.text = wx.StaticText(parent=parent, id=ID_ANY, label=text)
-        self.parent=parent
+        self.parent = parent
         self.rmItemButt = wx.Button(parent, -1, size=ADD_RM_BUTTON_SIZE,
                                     label='-')
         self.rmItemButt.Bind(EVT_BUTTON, self.removeItem)
-        self.keyword=keyword
-        self.title=title
+        self.keyword = keyword
+        self.title = title
         #self.createInfo()
         #self.tip = wx.ToolTip(self.infoTip)
         self.layout()
@@ -697,12 +697,12 @@ class MdItemKeyword(wx.BoxSizer):
         return  self.text.GetLabel()
 
     def getKyewordObj(self):
-        self.keywordObj['keywords']=self.keyword
-        self.keywordObj['title']=self.title
+        self.keywordObj['keywords'] = self.keyword
+        self.keywordObj['title'] = self.title
         return self.keywordObj
 
     def removeItem(self,evt):
-        self.parent.textTMP=self.text.GetLabel()
+        self.parent.textTMP = self.text.GetLabel()
         self.textFieldSizer.Clear()
         #self.textFieldSizer.Destroy()
 
@@ -800,16 +800,16 @@ class MdNotebookPage(scrolled.ScrolledPanel):
 class MdKeywords(wx.BoxSizer):
     def __init__(self,parent,mdObject,mdOWS):
         wx.BoxSizer.__init__(self, wx.VERTICAL)
-        self.itemHolder=set()
-        self.parent=parent
-        self.keywordsOWSObject=mdOWS
+        self.itemHolder = set()
+        self.parent = parent
+        self.keywordsOWSObject = mdOWS
 
-        self.comboKeysLabel=wx.StaticText(parent=self.parent,id=ID_ANY,label='Keywords from repositories')
-        self.comboKeys=wx.ComboBox(parent=self.parent, id=ID_ANY)
+        self.comboKeysLabel = wx.StaticText(parent=self.parent,id=ID_ANY,label='Keywords from repositories')
+        self.comboKeys = wx.ComboBox(parent=self.parent, id=ID_ANY)
 
-        self.keysList=wx.TreeCtrl(parent=self.parent, id=ID_ANY, size=(0, 120), style=wx.TR_FULL_ROW_HIGHLIGHT | wx.TR_DEFAULT_STYLE)
-        self.box=MdBoxKeywords(parent=parent,parent2=self,label='Keywords')
-        self.memKeys=set()
+        self.keysList = wx.TreeCtrl(parent=self.parent, id=ID_ANY, size=(0, 120), style=wx.TR_FULL_ROW_HIGHLIGHT | wx.TR_DEFAULT_STYLE)
+        self.box = MdBoxKeywords(parent=parent,parent2=self,label='Keywords')
+        self.memKeys = set()
         self.comboKeys.Bind(wx.EVT_COMBOBOX,self.onSetVocabulary)
         self.keysList.Bind(wx.EVT_TREE_ITEM_ACTIVATED,self.addItemsToBox)
         self.layout()
@@ -827,14 +827,14 @@ class MdKeywords(wx.BoxSizer):
         if item == self.keysList.GetRootItem():
             return
 
-        keyword=self.keysList.GetItemText(item)
-        currKeyword=self.titles[self.comboKeys.GetValue()]
-        out=self.comboKeys.GetValue()+', '+ keyword+', '+ currKeyword['type']+', '+ currKeyword['date']
+        keyword = self.keysList.GetItemText(item)
+        currKeyword = self.titles[self.comboKeys.GetValue()]
+        out = self.comboKeys.GetValue()+', ' + keyword+', ' + currKeyword['type']+', ' + currKeyword['date']
         if keyword in self.memKeys:
             return
         self.memKeys.add(out)
 
-        kItem=MdItemKeyword(self.box,out,keyword,self.comboKeys.GetValue(),currKeyword)
+        kItem = MdItemKeyword(self.box,out,keyword,self.comboKeys.GetValue(),currKeyword)
         self.itemHolder.add(kItem)
         self.box.addKeywordItem(kItem)
         self.box.Fit()
@@ -900,40 +900,40 @@ class MdKeywords(wx.BoxSizer):
         )
 
         #TODO check if database exist
-        self.keysDict=None
-        metaRepository=self.dbSelect(sql)
-        self.titles={}
-        theme=''
-        titleTmp=None
-        lines=metaRepository.splitlines()
+        self.keysDict = None
+        metaRepository = self.dbSelect(sql)
+        self.titles = {}
+        theme = ''
+        titleTmp = None
+        lines = metaRepository.splitlines()
         #lines.pop()
         for line in lines:
-            line=line.split('|')
+            line = line.split('|')
             if theme != line[0]:  # if new theme found
                 if titleTmp is not None:  # first loop
-                    self.titles[titleTmp]=self.keysDict
-                theme=line[0]
-                self.keysDict={}
-                self.keysDict['date']=line[2]
-                self.keysDict['type']=line[3]
-                self.keysDict['keywords']=[1]
+                    self.titles[titleTmp] = self.keysDict
+                theme = line[0]
+                self.keysDict = {}
+                self.keysDict['date'] = line[2]
+                self.keysDict['type'] = line[3]
+                self.keysDict['keywords'] = [1]
             self.keysDict['keywords'].append(str(line[1]))
-            titleTmp=line[0]
+            titleTmp = line[0]
 
         if self.keysDict is None:
             GMessage('Predefined values of metadata are missing in database')
             return
-        self.titles[titleTmp]=self.keysDict
+        self.titles[titleTmp] = self.keysDict
 
         for key in list(self.titles.keys()):
             self.comboKeys.Append(key)
 
     def onSetVocabulary(self,evt):
         self.keysList.DeleteAllItems()
-        self.root=self.keysList.AddRoot('Keywords')
-        title=self.comboKeys.GetValue()
+        self.root = self.keysList.AddRoot('Keywords')
+        title = self.comboKeys.GetValue()
 
-        keywords=self.titles[title]['keywords']
+        keywords = self.titles[title]['keywords']
         keywords.pop(0)
         for keyword in keywords:
             self.keysList.AppendItem(parent=self.root,text=str(keyword))
@@ -978,8 +978,8 @@ class MdMainEditor(wx.Panel):
         # string of tags from jinja template (loops and OWSLib objects)
         self.mdOWSTagStr = self.jinj.mdOWSTagStr
         self.mdOWSTagStrList = self.jinj.mdOWSTagStrList  #
-        self.keywords=None
-        self.nbPage=None
+        self.keywords = None
+        self.nbPage = None
         self.generateGUI()
         self._layout()
 
@@ -1047,7 +1047,7 @@ class MdMainEditor(wx.Panel):
             '''
             self.isValidS = False
             staTMP = sta
-            if not '\t'in staTMP:
+            if not '\t' in staTMP:
                 tab = '\t'
                 tab1 = ''
                 staTMP = staTMP + ":\n" + tab + 'self.isValidS=True'
@@ -1197,8 +1197,8 @@ class MdMainEditor(wx.Panel):
                 markedgroup.append(group)  # mark group
                 self.nbPage = MdNotebookPage(self.notebook)
                 self.notebook.AddPage(self.nbPage, mdDescrObj[self.c].group)
-                if mdDescrObj[self.c].group=='Keywords':
-                    self.keywords=MdKeywords(parent=self.nbPage,mdObject=mdDescrObj[self.c],mdOWS=self.md.identification.keywords)
+                if mdDescrObj[self.c].group == 'Keywords':
+                    self.keywords = MdKeywords(parent=self.nbPage,mdObject=mdDescrObj[self.c],mdOWS=self.md.identification.keywords)
                     self.nbPage.addKeywordObj(self.keywords)
                 self.notebokDict[mdDescrObj[self.c].group] = self.nbPage
             else:
@@ -1350,16 +1350,16 @@ class MdMainEditor(wx.Panel):
     def getKeywordsFromRepositoryWidget(self,md):
         if  self.keywords is not None:
             for item in self.keywords.GetKws():
-                titles=item.getKyewordObj()
+                titles = item.getKyewordObj()
 
                 kw = {}
                 kw['keywords'] = []
                 kw['keywords'].append(titles['keywords'])
                 kw['type'] = None
                 kw['thesaurus'] = {}
-                kw['thesaurus']['title']=titles['title']
-                kw['thesaurus']['date']=titles['date']
-                kw['thesaurus']['datetype']=titles['type']
+                kw['thesaurus']['title'] = titles['title']
+                kw['thesaurus']['date'] = titles['date']
+                kw['thesaurus']['datetype'] = titles['type']
                 md.identification.keywords.append(kw)
         return md
 
@@ -1398,9 +1398,9 @@ class MdMainEditor(wx.Panel):
         def chckIf2xStatements():
             '''Return true if next two items in jinjainfo::MdDescription are representing statements
             '''
-            if 'if'in mdDes[self.c].tag.split() or 'for' in mdDes[self.c].tag.split():
+            if 'if' in mdDes[self.c].tag.split() or 'for' in mdDes[self.c].tag.split():
                 try:
-                    if 'if'in mdDes[self.c + 1].tag.split() or 'for'in mdDes[self.c + 1].tag.split():
+                    if 'if' in mdDes[self.c + 1].tag.split() or 'for' in mdDes[self.c + 1].tag.split():
                         return True
                     else:
                         return False
@@ -1616,7 +1616,7 @@ class MdMainEditor(wx.Panel):
         self.md = self.mdo.initMD()
         # most of objects from OWSLib is initialized in configure file
         #dirpath = os.path.dirname(os.path.realpath(__file__))
-        context=mdutil.StaticContext()
+        context = mdutil.StaticContext()
         path = os.path.join(context.lib_path,'config','init_md.txt')
 
         mdInitData = open(path, 'r')

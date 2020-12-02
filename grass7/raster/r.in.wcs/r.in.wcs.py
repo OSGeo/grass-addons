@@ -198,7 +198,7 @@ class WCSBase:
                                     flags = 'ug',
                                     region = opt_region)
             region_params = grass.parse_key_val(s, val_type = float)
-            grass.verbose("Using region parameters for region %s" %opt_region)
+            grass.verbose("Using region parameters for region %s" % opt_region)
         else:
             region_params = grass.region()
             grass.verbose("Using current grass region")
@@ -217,7 +217,7 @@ class WCSBase:
         boundingbox = list()
         for f in boundingboxvars:
             boundingbox.append(self.params['region'][f])
-        grass.verbose("Boundingbox coordinates:\n %s  \n [West, South, Eest, North]" %boundingbox)
+        grass.verbose("Boundingbox coordinates:\n %s  \n [West, South, Eest, North]" % boundingbox)
         self._debug("_computeBbox", "finished")
         return boundingbox
 
@@ -337,17 +337,17 @@ class WCSGdalDrv(WCSBase):
 
         gdal_wcs = etree.Element("WCS_GDAL")
         server_url = etree.SubElement(gdal_wcs, "ServiceUrl")
-        server_url.text =self.params['url']
+        server_url.text = self.params['url']
 
         version = etree.SubElement(gdal_wcs, "Version")
-        version.text =self.params['version']
+        version.text = self.params['version']
 
         coverage = etree.SubElement(gdal_wcs, "CoverageName")
         coverage.text = self.params['coverage']
 
         if self.params['username']:
             userpwd = etree.SubElement(gdal_wcs,'UserPwd')
-            userpwd.text = self.params['username']+':'+ self.params['password']
+            userpwd.text = self.params['username']+':' + self.params['password']
 
         xml_file = self._tempfile()
 
@@ -460,7 +460,7 @@ def main():
     password = options['password']
     flag_c = flags['c']
 
-    options['version']="1.0.0" # right now only supported version, therefore not in GUI
+    options['version'] = "1.0.0" # right now only supported version, therefore not in GUI
 
     if not LXML_AVAILABLE:
         grass.warning("The Python lxml is not installed."

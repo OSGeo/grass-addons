@@ -133,7 +133,7 @@ def main():
     if not (n_input > 0 ):
         grass.fatal(_("Vector map <%s> does not contain points") % input)
 
-    flag_n=flags['n']
+    flag_n = flags['n']
     
     ### Scale domain (l)
     # Evans & Hudak 2007 used scale domains 1 to 3
@@ -170,8 +170,8 @@ def main():
     ###Read desired resolution from region
     #Evans & Hudak 2007 used a desired resolution (delta) of 1.5
     gregion = grass.region()
-    x_res_fin=gregion['ewres']
-    y_res_fin=gregion['nsres']
+    x_res_fin = gregion['ewres']
+    y_res_fin = gregion['nsres']
 
     # Defineresolution steps in iteration 
     n_res_steps = (l_stop + 1 ) / 2
@@ -231,7 +231,7 @@ def main():
                     overwrite=True, quiet=True, stderr=nuldev)
             
             # Get information about results for calculating convergence level
-            ng=grass.vector_info(temp_ng)['points']
+            ng = grass.vector_info(temp_ng)['points']
             nc = n_input - ng
             n_input = nc
             grass.run_command('g.remove', flags='f', type='vector', name= temp_ncin, quiet = True, stderr = nuldev)

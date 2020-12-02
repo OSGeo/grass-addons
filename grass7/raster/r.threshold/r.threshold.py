@@ -61,7 +61,7 @@ def main():
     num_cells = mappatella[:,1]
     distance = mappatella[:,2]
     
-    index = np.where(distance==min(distance))
+    index = np.where(distance == min(distance))
     th = area[index]
 
     if th < 0:

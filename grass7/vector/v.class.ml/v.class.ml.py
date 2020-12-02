@@ -484,7 +484,7 @@ def substitute(X, rules, cols):
 
 
 def extract_classes(vect, layer):
-    vect, mset = vect.split('@') if '@'in vect else (vect, '')
+    vect, mset = vect.split('@') if '@' in vect else (vect, '')
     with Vector(vect, mapset=mset, layer=layer, mode='r') as vct:
         vct.table.filters.select('cat', 'class')
         return {key: val for key, val in vct.table.execute()}

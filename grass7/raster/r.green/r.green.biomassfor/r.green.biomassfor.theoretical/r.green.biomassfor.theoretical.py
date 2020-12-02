@@ -104,16 +104,16 @@ def main(opts, flgs):
 
     output = opts['output_basename']
 
-    forest=opts['forest']
-    boundaries=opts['boundaries']
-    increment=opts['forest_column_increment']
-    management=opts['forest_column_management']
-    treatment=opts['forest_column_treatment']
-    yield_surface=opts['forest_column_yield_surface']
+    forest = opts['forest']
+    boundaries = opts['boundaries']
+    increment = opts['forest_column_increment']
+    management = opts['forest_column_management']
+    treatment = opts['forest_column_treatment']
+    yield_surface = opts['forest_column_yield_surface']
 
-    p_bioenergyHF=output+'_t_bioenergyHF'
-    p_bioenergyC=output+'_t_bioenergyC'
-    p_bioenergy=output+'_t_bioenergy'
+    p_bioenergyHF = output+'_t_bioenergyHF'
+    p_bioenergyC = output+'_t_bioenergyC'
+    p_bioenergy = output+'_t_bioenergy'
 
     ######## start import and convert ########
 
@@ -136,10 +136,10 @@ def main(opts, flgs):
 
     ######## temp patch to link map and fields ######
 
-    management="management"
-    treatment="treatment"
-    yield_surface="yield_surface"
-    increment="increment"
+    management = "management"
+    treatment = "treatment"
+    yield_surface = "yield_surface"
+    increment = "increment"
 
     ######## end temp patch to link map and fields ######
 
@@ -150,7 +150,7 @@ def main(opts, flgs):
 
     ECOCC = p_bioenergyC+' = if('+management+'==2, yield_pixp*'+opts['energy_tops_cop']+')'
 
-    ECOT=p_bioenergy+' = ('+p_bioenergyHF+' + '+p_bioenergyC+')'
+    ECOT = p_bioenergy+' = ('+p_bioenergyHF+' + '+p_bioenergyC+')'
 
     run_command("r.mapcalc", overwrite=ow,expression='yield_pixp = ('+increment+'/'+yield_surface+')*((ewres()*nsres())/10000)')
        

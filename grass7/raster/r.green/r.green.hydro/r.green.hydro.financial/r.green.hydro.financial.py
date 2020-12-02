@@ -1097,18 +1097,18 @@ def main(opts, flgs):
     vec.open('rw')
     vec.table.columns.add('max_NPV','VARCHAR(3)')
 
-    list_intakeid=list(set(vec.table.execute('SELECT intake_id FROM %s' %vec.table.name).fetchall()))
+    list_intakeid = list(set(vec.table.execute('SELECT intake_id FROM %s' % vec.table.name).fetchall()))
 
     for i in range(0,len(list_intakeid)):
         vec.rewind()
-        list_npv=list(vec.table.execute('SELECT NPV FROM %s WHERE intake_id=%i;' % (vec.table.name, list_intakeid[i][0])).fetchall())
-        npvmax=max(list_npv)[0]
+        list_npv = list(vec.table.execute('SELECT NPV FROM %s WHERE intake_id=%i;' % (vec.table.name, list_intakeid[i][0])).fetchall())
+        npvmax = max(list_npv)[0]
         for line in vec:
             if line.attrs['intake_id'] == list_intakeid[i][0]:
                 if line.attrs['NPV'] == npvmax:
-                    line.attrs['max_NPV']='yes'
+                    line.attrs['max_NPV'] = 'yes'
                 else:
-                    line.attrs['max_NPV']='no'
+                    line.attrs['max_NPV'] = 'no'
 
     vec.table.conn.commit()
     vec.close()

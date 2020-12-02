@@ -32,9 +32,9 @@ class pgwrapper:
         
          
         def setIsoLvl(self,lvl='0'):
-                if lvl==0:
+                if lvl == 0:
                         self.connection.set_session('read committed')
-                elif lvl==1:
+                elif lvl == 1:
                         self.connection.set_session(readonly=True, autocommit=False)
         
         
@@ -82,9 +82,9 @@ class pgwrapper:
         def count(self, table):
                 """!Count the number of rows.
                 @param table         : Name of the table to count row"""
-                sql_count='SELECT COUNT(*) FROM ' + table 
+                sql_count = 'SELECT COUNT(*) FROM ' + table 
                 self.cursor.execute(sql_count)
-                n=self.cursor.fetchall()[0][0]
+                n = self.cursor.fetchall()[0][0]
                 return n
         
         def updatecol(self, table, columns, where=''):
@@ -99,7 +99,7 @@ class pgwrapper:
                         parse = parse + '"' + str(dict.keys(columns)[i]) + '"=' + str(dict.values(columns)[i]) + ','
                 parse = parse.rstrip(',')
 
-                if where=='':
+                if where == '':
                         sql_update_col = 'UPDATE "' + table + '" SET ' + parse
                 else:
                         sql_update_col = 'UPDATE "' + table + '" SET ' + parse + ' WHERE ' + where

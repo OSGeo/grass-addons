@@ -70,11 +70,11 @@ def main():
             zn[i,3] = zn[i,1] * (res**2)
 
     totcell = sum(zn[:,1])
-    print("Tot. cells %s" %(totcell))
+    print("Tot. cells %s" % (totcell))
     totarea = totcell * (res**2)
-    print("Tot. area %s" %(totarea))
+    print("Tot. area %s" % (totarea))
     maxdist = max(zn[:,0])
-    print("Max distance %s" %(maxdist))
+    print("Max distance %s" % (maxdist))
 
     for i in range(len(stats)):
         kl[i,0] = zn[i,0]
@@ -97,15 +97,15 @@ def main():
     print("===========================")
     print("Width Function | quantiles")
     print("===========================")
-    print('%.0f | %s' %(findint(kl,0.05), 0.05))
-    print('%.0f | %s' %(findint(kl,0.15), 0.15))
-    print('%.0f | %s' %(findint(kl,0.3), 0.3))
-    print('%.0f | %s' %(findint(kl,0.4), 0.4))
-    print('%.0f | %s' %(findint(kl,0.5), 0.5))
-    print('%.0f | %s' %(findint(kl,0.6), 0.6))
-    print('%.0f | %s' %(findint(kl,0.7), 0.7))
-    print('%.0f | %s' %(findint(kl,0.85), 0.85))
-    print('%.0f | %s' %(findint(kl,0.95), 0.95))
+    print('%.0f | %s' % (findint(kl,0.05), 0.05))
+    print('%.0f | %s' % (findint(kl,0.15), 0.15))
+    print('%.0f | %s' % (findint(kl,0.3), 0.3))
+    print('%.0f | %s' % (findint(kl,0.4), 0.4))
+    print('%.0f | %s' % (findint(kl,0.5), 0.5))
+    print('%.0f | %s' % (findint(kl,0.6), 0.6))
+    print('%.0f | %s' % (findint(kl,0.7), 0.7))
+    print('%.0f | %s' % (findint(kl,0.85), 0.85))
+    print('%.0f | %s' % (findint(kl,0.95), 0.95))
     print('\n')
     print('Done!')
 
@@ -125,7 +125,7 @@ def plotImage(x,y,image,type,xlabel,ylabel,title):
     plt.close('all')
 
 def findint(kl,f):
-    Xf = np.abs(kl-f); Xf = np.where(Xf==Xf.min())
+    Xf = np.abs(kl-f); Xf = np.where(Xf == Xf.min())
     z1, z2, f1, f2 = kl[int(Xf[0])][0], kl[int(Xf[0]-1)][0], kl[int(Xf[0])][1], kl[int(Xf[0]-1)][1]
     z = z1 + ((z2 - z1) / (f2 - f1)) * (f - f1)
     return z

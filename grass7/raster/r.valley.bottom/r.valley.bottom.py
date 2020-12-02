@@ -231,7 +231,7 @@ def get_percentile(L, input, radius=3, window_square=False):
 
     PCTL = "PCTL{L}".format(L=L+1)
     TMP_RAST[L].append(PCTL)
-    input_grown=input
+    input_grown = input
     
     # get offsets for given neighborhood radius
     offsets = focal_expr(radius=radius, window_square=window_square)

@@ -87,7 +87,7 @@ class Grassland(playground.Playground):
         """
         if not grassmapname:
             if self.grassmapnames.has_key(layername):
-                grassmapname=self.grassmapnames[layername]
+                grassmapname = self.grassmapnames[layername]
             else:
                 raise error.DataError(Grassland.ME,
                                         "Grass Map name is empty.")
@@ -95,7 +95,7 @@ class Grassland(playground.Playground):
             if grassmapname in \
                     grass.list_strings('rast'):
                 if force:
-                    force="force"
+                    force = "force"
                 else:
                     raise error.DataError(Grassland.ME,
                                         "Grass map already exists.")

@@ -314,8 +314,8 @@ class HiveTableBuilder:
         map_info = table.GetTableDesc(self.map)
 
         for col in map_info.keys():
-            name=str(col)
-            dtype=col['type']
+            name = str(col)
+            dtype = col['type']
             if dtype == 'integer':
                 dtype = 'INT'
             if not dtype.capitalize() in dtype:
@@ -343,7 +343,7 @@ class JSONBuilder:
             self.json = self._get_grass_json()
         else:
             filename, file_extension = os.path.splitext(self.json_file)
-            self.json = os.path.join(get_tmp_folder(), "%s.json" %filename)
+            self.json = os.path.join(get_tmp_folder(), "%s.json" % filename)
         return self.json
 
     def rm_last_lines(self, path, rm_last_line=3):
@@ -438,7 +438,7 @@ class GrassMapBuilder(object):
     def __init__(self, json_file, map,attributes):
         self.file = json_file
         self.map = map
-        self.attr=attributes
+        self.attr = attributes
 
     def build(self):
         raise NotImplemented
@@ -505,7 +505,7 @@ class GrassMapBuilder(object):
         Create map from GeoJSON
         :return:
         """
-        out1=Module('v.in.ogr',
+        out1 = Module('v.in.ogr',
               input=self.file,
               output=self.map,
               verbose=True,
@@ -561,12 +561,12 @@ class GrassMapBuilder(object):
         :param bar:
         :return:
         """
-        path='%s1'%self.file
-        io=open(path,'w')
+        path = '%s1'%self.file
+        io = open(path,'w')
         stream_lines(self.file) |\
             filt(lambda l: l.replace(foo, bar)) |\
             to_stream(io)
-        self.file=path
+        self.file = path
 
 class GrassMapBuilderEsriToStandard(GrassMapBuilder):
     """
@@ -580,7 +580,7 @@ class GrassMapBuilderEsriToStandard(GrassMapBuilder):
         self.replace_substring(geom_type[0],[1])
         self.replace_substring('}}}','}}},')
 
-        fst_line= ('{"type": "FeatureCollection","crs": '
+        fst_line = ('{"type": "FeatureCollection","crs": '
                    '{ "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },"features": [')
         self._prepend_line(fst_line)
         self._append_line(']}')
@@ -602,7 +602,7 @@ class GrassMapBuilderEsriToEsri(GrassMapBuilder):
         wkid = self._get_wkid()
         self.replace_substring('}}','}},')
 
-        header=self._generate_header(geom_type[1],wkid)
+        header = self._generate_header(geom_type[1],wkid)
         self._prepend_line(header)
         self._append_line(']}')
 
@@ -610,13 +610,13 @@ class GrassMapBuilderEsriToEsri(GrassMapBuilder):
 
     def _generate_header(self,geom_type,wkid):
 
-        cols=''
+        cols = ''
         if self.attr:
-            items=self.attr.split(',')
+            items = self.attr.split(',')
             for att in items:
-                col,typ=att.split(' ')
+                col,typ = att.split(' ')
                 if 'int' in typ.lower():
-                    typ='esriFieldTypeInteger'
+                    typ = 'esriFieldTypeInteger'
                 if 'str' in typ.lower():
                     typ = 'esriFieldTypeString'
                 if 'double' in typ.lower():
@@ -624,14 +624,14 @@ class GrassMapBuilderEsriToEsri(GrassMapBuilder):
                 if 'id' in typ.lower():
                     typ = 'esriFieldTypeOID'
 
-                cols+='{"name":"%s","type":"%s"},'%(col,typ)
+                cols += '{"name":"%s","type":"%s"},'%(col,typ)
 
 
         cols = cols[:-1]
 
         if not wkid:
-            wkid='4326' #TODO g.proj.identify3
-        header =('{"objectIdFieldName":"objectid",'
+            wkid = '4326' #TODO g.proj.identify3
+        header = ('{"objectIdFieldName":"objectid",'
                  '"globalIdFieldName":"",'
                  '"geometryType":"%s",'
                  '"spatialReference":{"wkid":%s},'

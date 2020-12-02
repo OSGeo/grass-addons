@@ -2053,10 +2053,10 @@ class DynamicEvolution:
             for row in precip:
 
                 # update the elevation
-                evol.elevation=evolved_elevation
+                evol.elevation = evolved_elevation
 
                 # update time
-                evol.start=row[0]
+                evol.start = row[0]
 
                 # compute rainfall intensity (mm/hr)
                 # from rainfall observation (mm)

@@ -329,7 +329,7 @@ def main(m, o, p, q, r, s):
         tc = '%stc%04d' % (p, o)
 #        meancurv = '%smeancurv%04d' % (p, o)    # This variable might be used if bedrock weathering is ever implemented
 #        rate = '%srate%04d' % (p, o)    # This variable might be used if bedrock weathering is ever implemented
-        rainexcess = "%s_rainfall_excess_map_%04d"% (p, o)
+        rainexcess = "%s_rainfall_excess_map_%04d" % (p, o)
         tempnetchange1 = '%sTEMPORARY_unsmoothed_ED_rate%04d' % (p, o)
         tempnetchange2 = '%sTEMPORARY_smoothed_ED_rate%04d' % (p, o)
         tmperosion = '%sTEMPORARY_erosion%04d' % (p, o)
@@ -343,7 +343,7 @@ def main(m, o, p, q, r, s):
         tc = '%stc%04d' % (pid, o)
 #        meancurv = '%smeancurv%04d' % (pid, o)    # This variable might be used if bedrock weathering is ever implemented
 #        rate = '%srate%04d' % (p, o)    # This variable might be used if bedrock weathering is ever implemented
-        rainexcess = "%s_rainfall_excess_map_%04d"% (pid, o)
+        rainexcess = "%s_rainfall_excess_map_%04d" % (pid, o)
         tempnetchange1 = '%sTEMPORARY_unsmoothed_ED_rate%04d' % (pid, o)
         tempnetchange2 = '%sTEMPORARY_smoothed_ED_rate%04d' % (pid, o)
         tmperosion = '%sTEMPORARY_erosion%04d' % (pid, o)
@@ -364,7 +364,7 @@ def main(m, o, p, q, r, s):
     if (years == '1' ):
         slope = '%sslope' % p
         netchange = '%sED_rate' % p
-        new_dem ='%s%s' % (p, outdem)
+        new_dem = '%s%s' % (p, outdem)
         new_soil = '%s%s' % (p, outsoil)
     else:
         slope = '%sslope%04d' % (p, o)

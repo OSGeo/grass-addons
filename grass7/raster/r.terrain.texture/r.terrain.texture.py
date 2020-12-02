@@ -159,7 +159,7 @@ def laplacian_matrix(w):
     x = np.zeros((w,w))
     x[:] = -1
     x[np.floor(w/2).astype('int'), np.floor(w/2).astype('int')] = (np.square(w))-1
-    x_str=str(x)    
+    x_str = str(x)    
     x_str = x_str.replace(' [', '')
     x_str = x_str.replace('[', '')
     x_str = x_str.replace(']', '')

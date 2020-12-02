@@ -221,7 +221,7 @@ def main():
     specs = options['species']
     specs = specs.split(',')
     specsn = options['species_name']
-    if specsn=='':
+    if specsn == '':
         specsn = [z.split('@')[0] for z in specs]
     else:
         specsn = specsn.split(',')
@@ -332,7 +332,7 @@ def main():
 
         # Export the data to csv file and remove temporary file
         if flag_e:
-            if flag_h and i==0:
+            if flag_h and i == 0:
                     grass.run_command("v.db.select", map=specname,
                               columns='*', separator=",", file=bgrtmp, quiet=True)
             else:
@@ -340,7 +340,7 @@ def main():
                               columns='*', separator=",", file=bgrtmp, quiet=True)
         else:
             cols = ['species'] + evpn
-            if header == '' and i==0:
+            if header == '' and i == 0:
                 grass.run_command("v.db.select", map=specname,
                               columns=cols, separator=",", file=bgrtmp, quiet=True)
             else:

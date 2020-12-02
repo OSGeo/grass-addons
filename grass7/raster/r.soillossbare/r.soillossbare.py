@@ -215,7 +215,7 @@ class rusle_base(object):
     
     def removeTempRasters(self):
         for tmprast in self.tmp_rast:
-            g.message('Removing "%s"' %tmprast)
+            g.message('Removing "%s"' % tmprast)
             try:
                 g.run_command('g.remove',
                               flags = 'f',
@@ -234,7 +234,7 @@ class rusle_base(object):
         
         flowacc = outprefix + 'flowacc'
         slope  = outprefix + 'slope'
-        lsfactor = outprefix+ 'lsfactor'
+        lsfactor = outprefix + 'lsfactor'
         
         self.tmp_rast.append(flowacc)
         self.tmp_rast.append(slope)
@@ -270,7 +270,7 @@ class rusle_base(object):
         g.verbose('Raster map lsfactor is in  "%s"'%lsfactor)
 
         self._getSoillossbare(lsfactor,kfactor,rfactor,soillossbare)
-        g.message('Soilloss for bare soil in map "%s".' %soillossbare)
+        g.message('Soilloss for bare soil in map "%s".' % soillossbare)
         
         stats = g.parse_command('r.univar', flags="g", map=soillossbare, delimiter = '=')
         g.message('mean = %s \n stddev = %s \n min = %s \n max = %s' % (stats['mean'],stats['stddev'], stats['min'], stats['max']))
@@ -509,12 +509,12 @@ def main():
 
     quiet = True
     if g.verbosity() > 2:
-        quiet=False
+        quiet = False
 
     g.run_command("g.region", flags="a", res=resolution)
 
     if flowacc:
-        g.info("Using flowaccumulation from input raster map %s ..." %flowacc)
+        g.info("Using flowaccumulation from input raster map %s ..." % flowacc)
         ruslealg = rusle_base()
 
     elif flowaccmethod == "r.terraflow":

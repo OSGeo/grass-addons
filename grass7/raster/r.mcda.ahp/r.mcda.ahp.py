@@ -53,36 +53,36 @@ import warnings
 
 def calculateWeight(pairwise):
     "Define vector of weight based on eigenvector and eigenvalues"
-    pairwise=np.genfromtxt(pairwise, delimiter=",")
+    pairwise = np.genfromtxt(pairwise, delimiter=",")
     warnings.simplefilter("ignore", np.ComplexWarning)
-    eigenvalues, eigenvector=np.linalg.eig(pairwise)
-    maxindex=np.argmax(eigenvalues)
-    eigenvalues=np.float32(eigenvalues)
-    eigenvector=np.float32(eigenvector)
-    weight=eigenvector[:, maxindex] #extract vector from eigenvector with max vaue in eigenvalues
+    eigenvalues, eigenvector = np.linalg.eig(pairwise)
+    maxindex = np.argmax(eigenvalues)
+    eigenvalues = np.float32(eigenvalues)
+    eigenvector = np.float32(eigenvector)
+    weight = eigenvector[:, maxindex] #extract vector from eigenvector with max vaue in eigenvalues
     weight.tolist() #convert array(numpy)  to vector
-    weight=[w/sum(weight) for w in weight ]
+    weight = [w/sum(weight) for w in weight ]
     return weight, eigenvalues,  eigenvector
     
 def calculateMap(criteria, weight, outputMap):
     "Parser a formula for mapcalc and run grass.mapcalc"
-    formula=''
+    formula = ''
     for i in range(len(criteria)-1):
         formula += "%s*%s + " % (criteria[i], weight[i])
-    formula +="%s*%s " % (criteria[len(criteria)-1], weight[len(criteria)-1])
-    grass.mapcalc(outputMap +"=" +formula)
+    formula += "%s*%s " % (criteria[len(criteria)-1], weight[len(criteria)-1])
+    grass.mapcalc(outputMap + "=" + formula)
     return 0
     
 def Consistency(weight,eigenvalues):
     "Calculete Consistency index in accord with Saaty (1977)"
-    RI=[0.00, 0.00, 0.00,0.52,0.90,1.12,1.24,1.32,1.41]     #order of matrix: 0,1,2,3,4,5,6,7,8
-    order=len(weight)
-    CI= (np.max(eigenvalues)-order)/(order-1)
+    RI = [0.00, 0.00, 0.00,0.52,0.90,1.12,1.24,1.32,1.41]     #order of matrix: 0,1,2,3,4,5,6,7,8
+    order = len(weight)
+    CI = (np.max(eigenvalues)-order)/(order-1)
     return CI/RI[order-1]
     
 def ReportLog(eigenvalues,eigenvector, weight, consistency):
     "Make a log file"
-    log=open("log.txt", "w")
+    log = open("log.txt", "w")
     log.write("eigenvalues:\n%s" % eigenvalues)
     log.write("\neigenvector:\n%s" % eigenvector)
     log.write("\nweight:\n%s" % weight)
@@ -98,11 +98,11 @@ def main():
     gregion = grass.region()
     nrows = gregion['rows']
     ncols = gregion['cols']
-    ewres=int(gregion['ewres'])
-    nsres=int(gregion['nsres'])
+    ewres = int(gregion['ewres'])
+    nsres = int(gregion['nsres'])
     weight, eigenvalues,  eigenvector = calculateWeight(pairwise)
     calculateMap(criteria, weight, outputMap)
-    consistency=Consistency(weight,eigenvalues)
+    consistency = Consistency(weight,eigenvalues)
     ReportLog(eigenvalues,eigenvector, weight, consistency)
     
     

@@ -41,7 +41,7 @@ class MyFrame(MySingleMapFrame):
         MySingleMapFrame.__init__(self, parent = parent, title = title, size = size, name = name, **kwargs)
        
         
-        self.cmd =["d.rast", "map=aspect@PERMANENT"]
+        self.cmd = ["d.rast", "map=aspect@PERMANENT"]
         self.rlayer = MapLayer(ltype = 'raster', cmd = self.cmd, Map = self.GetMap(), name = "elevation")
         self.AddLayer(self.rlayer)
         #LMWorkspaceToolbar(self)
@@ -54,7 +54,7 @@ class MyFrame(MySingleMapFrame):
         #print self.GetCurrentIndex()
         
     def dummyfunc(self,event):
-        xx =1
+        xx = 1
         print xx       
 
 def main():

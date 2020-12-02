@@ -312,7 +312,7 @@ def main():
     fm = importr('fishmove')
 
     #Dispersal parameter input
-    if str(options['species']!="Custom species") and (options['l'] or options['ar']):
+    if str(options['species'] != "Custom species") and (options['l'] or options['ar']):
         grass.message(_("Species settings will be overwritten with l and ar"))
     species = str(options['species'])
     if options['l']:
@@ -329,7 +329,7 @@ def main():
         grass.message(_("Map of habitat dependent share of mobile/stationary will be used"))
         habitat_p = options['habitat_p']
     elif (float(options['p']) >= 0 and float(options['p']) < 1):
-        p_fixed =float(options['p'])
+        p_fixed = float(options['p'])
     else:
         grass.fatal(_("Valid range for p: 0 - 1"))
 
@@ -441,7 +441,7 @@ def main():
             vector = "barriers_%d" % os.getpid() + "," + output_fidimo + "_barriers")
 
         #Breaking river_vector at position of barriers to get segments
-        for adj_X,adj_Y in db.execute('SELECT adj_X, adj_Y FROM barriers_%d'% os.getpid()):
+        for adj_X,adj_Y in db.execute('SELECT adj_X, adj_Y FROM barriers_%d' % os.getpid()):
             barrier_coors = str(adj_X)+","+str(adj_Y)
 
             grass.run_command("v.edit",
@@ -521,7 +521,7 @@ def main():
     # Get maximum value and divide if to large (>2200000)
     max_buffer = grass.raster_info("distance_raster_buffered_tmp_%d" % os.getpid())['max']
 
-    if max_buffer>2100000:
+    if max_buffer > 2100000:
         grass.message(_("River network is very large and r.watershed (and e.g stream order extract) might not work"))
         grass.mapcalc("$distance_raster_buffered_div = $distance_raster_buffered/1000.0",
                         distance_raster_buffered_div = "distance_raster_buffered_div_tmp_%d" % os.getpid(),
@@ -713,7 +713,7 @@ def main():
         for j in segment_list:
 
             segment_cat = str(j)
-            grass.debug(_("This is segment nr.: " +str(segment_cat)))
+            grass.debug(_("This is segment nr.: " + str(segment_cat)))
 
             mapcalc_list_Aa = []
             mapcalc_list_Ab = []
@@ -747,7 +747,7 @@ def main():
 
                 # Debug messages
                 grass.debug(_("Start looping over source points"))
-                grass.debug(_("Source point coors:"+coors+" in segment nr: " +str(segment_cat)))
+                grass.debug(_("Source point coors:"+coors+" in segment nr: " + str(segment_cat)))
 
                 #Select dispersal parameters
                 SO = 'SO='+str(Strahler)
@@ -955,7 +955,7 @@ def main():
 
 
                         # barrier_effect = Length of Effect of barriers (linear decrease up to max (barrier_effect)
-                        barrier_effect=200 #units as in mapset (m)
+                        barrier_effect = 200 #units as in mapset (m)
 
                         # Calculating distance from barriers (up- and downstream)
                         grass.run_command("r.cost",

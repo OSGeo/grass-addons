@@ -159,8 +159,8 @@ class Nnbathy_vector(Nnbathy):
                     from grass.pygrass.vector import VectorTopo
                     pnt = VectorTopo(options['input'].split('@')[0])
                     pnt.open(mode='r')
-                    check=pnt.read(1)
-                    if check.is2D==True:
+                    check = pnt.read(1)
+                    if check.is2D == True:
                         #fout.write(parts[0]+' '+parts[1]+' '+parts[3])
                         fout.write('{} {} {}'.format(parts[0],parts[1],parts[3]))
                     else:

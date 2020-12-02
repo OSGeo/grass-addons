@@ -100,14 +100,14 @@ def main():
         overwrite_flag = 't'
 
     # keep intermediate maps
-    keepintmaps=False
+    keepintmaps = False
     if flags['k']:
-        keepintmaps=True
+        keepintmaps = True
     
     # to generate the animation file, intermediate files must be kept
     # they will be removed at the end of the process if the 'k' flag is not set
     if animationfile:
-        keepintmaps=True
+        keepintmaps = True
     
     # check if input file exists
     if not gscript.find_file(input)['file']:
@@ -137,15 +137,15 @@ def main():
     gscript.verbose(_("Maxiter: %d") % maxiter)
     gscript.verbose(_("Quality for animation: %d") % quality)
     
-    pixel_num=1
-    iteration=1
+    pixel_num = 1
+    iteration = 1
     
     # iterate until no pixel of the category to be replaced is left
     # or the maximum number of iterations is reached
     while (pixel_num > 0) and (iteration <= maxiter):
-        stepmap='{}'.format(in_name)
-        stepmap+='_step_'
-        stepmap+='{:03d}'.format(iteration)
+        stepmap = '{}'.format(in_name)
+        stepmap += '_step_'
+        stepmap += '{:03d}'.format(iteration)
         gscript.verbose(_("Step map: <%s>") % stepmap)
 
         # substitute pixels of the category to remove with the mode of the surrounding pixels
@@ -157,14 +157,14 @@ def main():
             gscript.run_command('g.remove', type='raster', name=stepmap_old, flags='f', quiet=True)
         
         # the r.neighbors output map is the input map for the next step
-        stepmap_old=stepmap
+        stepmap_old = stepmap
 
         # create the new map containing only the category to replace and NULL
         gscript.run_command('r.mapcalc', expression="{outmap}=if({inmap}=={cat},1,null())".format(outmap=categorymap, inmap=stepmap, cat=category),
                 quiet=True, overwrite='t')
 
         # evaluate the number of the remaining pixels of the category to relace
-        pixel_stat=gscript.parse_command('r.stats', input='{inmap}'.format(inmap=stepmap), 
+        pixel_stat = gscript.parse_command('r.stats', input='{inmap}'.format(inmap=stepmap), 
                      flags='c',sep='=', quiet=True)
         # parse the output, if the category is not in the list raise an exception and set pixel_num = 0
         try:
@@ -205,11 +205,11 @@ def main():
     # but the 'k' flag is not set
     if animationfile and not flags['k']:
         gscript.message(_("Removing intermediate files after generating %s...") % animationfile)
-        newiter=0
-        while newiter<=iteration:
-            stepmap='{}'.format(in_name)
-            stepmap+='_step_'
-            stepmap+='{:03d}'.format(newiter)
+        newiter = 0
+        while newiter <= iteration:
+            stepmap = '{}'.format(in_name)
+            stepmap += '_step_'
+            stepmap += '{:03d}'.format(newiter)
             gscript.verbose(_("Removing step map: <%s>") % stepmap)
             gscript.run_command('g.remove', type='raster', name=stepmap, flags='f', quiet=True)
             newiter = newiter + 1

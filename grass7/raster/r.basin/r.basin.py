@@ -424,7 +424,7 @@ def main():
         grass.message("Compactness coefficient done")
 
         # Circularity ratio
-        R_c = (4 * math.pi * area_basin ) / (perimeter_basin **2)
+        R_c = (4 * math.pi * area_basin ) / (perimeter_basin ** 2)
         grass.message("Circularity ratio done")
 
         # Mainchannel

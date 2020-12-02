@@ -303,7 +303,7 @@ def main():
         cat = 1
         for e in E:
             # Get indices
-            idx = np.where((img[:,:]==e).all(-1))
+            idx = np.where((img[:,:] == e).all(-1))
 
             # Numpy array is ordered rows, columns (y,x)
             if len(idx[0]) == 0 or len(idx[1]) == 0:

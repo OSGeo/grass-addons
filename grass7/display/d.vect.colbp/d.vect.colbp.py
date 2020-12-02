@@ -122,21 +122,21 @@ def main():
     
     # Get data with where clause
     if where:
-        df=[x for x in gscript.read_command('v.db.select',
+        df = [x for x in gscript.read_command('v.db.select',
                                             map_=vector,
                                             column=cols,
                                             where=where,
                                             flags='c').splitlines()]
     # Get all column data
     else:
-        df=[x for x in gscript.read_command('v.db.select',
+        df = [x for x in gscript.read_command('v.db.select',
                                             map_=vector,
                                             column=cols,
                                             flags='c').splitlines()]
     # for grouped boxplot
     if group_by:
         # Split columns and create list with data and with labels
-        df=[x.split('|') for x in df]
+        df = [x.split('|') for x in df]
         vals = [float(i[1]) for i in df]
         groups = [i[0] for i in df] 
         uid = list(set(groups))
@@ -158,7 +158,7 @@ def main():
         plt.boxplot(data, notch=flag_n, sym='gD', labels=uid, vert=flag_h,
                         showfliers=flag_o, positions=sfo)
     else:
-        data=[float(x) for x in df]
+        data = [float(x) for x in df]
         plt.boxplot(data, notch=flag_n, sym='gD', vert=flag_h,
                         showfliers=flag_o)
     if flag_r:

@@ -171,7 +171,7 @@ def main():
         # define projections
         loc_proj = grass.read_command('g.proj', flags='jf')
         loc_proj = pyproj.Proj(loc_proj.strip())
-        epsg_proj = pyproj.Proj(init='epsg:'+ str(epsg))
+        epsg_proj = pyproj.Proj(init='epsg:' + str(epsg))
         do_proj(xyz_in=tmp_xyz, xyz_out=tmp_xyz_proj, in_proj=loc_proj, out_proj=epsg_proj)
         tmp_xyz = tmp_xyz_proj
 

@@ -251,7 +251,7 @@ def main():
     if (len(out_pour_point_boundary) > 0):
         # Pour point
         if (len(pour_point) > 0):
-            _y, _x = np.squeeze(gscript.db_select(sql='SELECT row,col FROM '+
+            _y, _x = np.squeeze(gscript.db_select(sql='SELECT row,col FROM ' +
                                 pour_point))
             outstr = 'discharge_pt: row_i '+_y+' col_i '+_x
             if (len(bc_cell) > 0):
@@ -261,7 +261,7 @@ def main():
         # Bounadry condition
         if (len(bc_cell) > 0):
             outfile = file(out_pour_point_boundary+'.txt', 'a')
-            _xys = np.squeeze(gscript.db_select(sql='SELECT row,col FROM '+
+            _xys = np.squeeze(gscript.db_select(sql='SELECT row,col FROM ' +
                                 bc_cell))
             # if only one point (so was on N-S, W-E direct connection), 
             # expand dimensions so code below works

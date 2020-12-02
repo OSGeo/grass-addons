@@ -71,7 +71,7 @@ def coeff(name, rl):
         if rl < 40:
             a = 0.171
             c = 0.688
-        elif rl <120:
+        elif rl < 120:
             a = 0.265
             c = 0.803
         elif rl < 1440:
@@ -81,7 +81,7 @@ def coeff(name, rl):
         if rl < 40:
             a = 0.163
             c = 0.656
-        elif rl <120:
+        elif rl < 120:
             a = 0.280
             c = 0.803
         elif rl < 1440:
@@ -191,7 +191,7 @@ def main():
         
         # add column to the attribute table if not exists
         rl = float(opt['rainlength'])
-        field_name='H_{}T{}'.format(name, opt['rainlength'])
+        field_name = 'H_{}T{}'.format(name, opt['rainlength'])
         if field_name not in columns:
             Module('v.db.addcolumn', map=opt['map'],
                    columns='{} double precision'.format(field_name))

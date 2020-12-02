@@ -49,8 +49,8 @@ from core.utils          import GetLayerNameFromCmd
 class ToolBarNames:
     NEWDISPLAY = {"monitor-create":   [wx.NewId(),     _('Start new map display')] }
     WORKSPACENEW = {"create":         [wx.NewId(),     _('Create new workspace (Ctrl+N)')] }
-    WORKSPACEOPEN ={"open":           [wx.NewId(),     _('Open existing workspace file (Ctrl+O')] }
-    WORKSPACESAVE ={"save":           [wx.NewId(),     _('Save current workspace to file (Ctrl+S)')] }
+    WORKSPACEOPEN = {"open":           [wx.NewId(),     _('Open existing workspace file (Ctrl+O')] }
+    WORKSPACESAVE = {"save":           [wx.NewId(),     _('Save current workspace to file (Ctrl+S)')] }
     ADDRASTER = {"layer-raster-add":  [wx.NewId(),     _("Add raster map layer")] }
     ADDVECTOR = {"layer-vector-add":  [wx.NewId(),     _("Add vector map layer")] }    
 

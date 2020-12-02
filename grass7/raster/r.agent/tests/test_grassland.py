@@ -53,8 +53,8 @@ class TestGrassland(unittest.TestCase):
         self.assertIsNotNone(s)
         self.assertIsNotNone(w)
         self.assertIsNotNone(e)
-        self.assertTrue(n>s)
-        self.assertTrue(e>w)
+        self.assertTrue(n > s)
+        self.assertTrue(e > w)
 
         self.assertEqual((n-s)/ns, r)
         self.assertEqual((e-w)/ew, c)

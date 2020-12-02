@@ -103,7 +103,7 @@ class LayerData():
         keytoepsgcodes = {}
         for key, value in layerDataDict.iteritems():
             srss = value.srs
-            l=[]
+            l = []
             for srs in srss:
                 a = srs.string
                 a = a.split(':')
@@ -152,7 +152,7 @@ class ManageLayerTree():
         
         currentLayerDetails = LayerTree.GetItemText(nodeId)
         print currentLayerDetails
-        if(not(currentLayerDetails == 'Layers' and currentLayerDetails.count(':')==0)): 
+        if(not(currentLayerDetails == 'Layers' and currentLayerDetails.count(':') == 0)): 
             currentLayerName = (currentLayerDetails.split(':')[0]).split('-')[1]
             print 'name = ' + currentLayerName
             currentLayerKey = (currentLayerDetails.split(':')[0]).split('-')[0]
@@ -217,7 +217,7 @@ class wmsFrame(wx.Frame):
             self.Close()
             return
         self.__populate_Url_List(self.ServerList)
-        self.selectedURL="No server selected"
+        self.selectedURL = "No server selected"
         self.layerTreeRoot = self.LayerTree.AddRoot("Layers")
         Publisher().subscribe(self.onAddServerFrameClose, ("Add_Server_Frame_Closed"))
         Publisher().subscribe(self.onUpdateServerListmessage, ("update.serverList"))
@@ -340,7 +340,7 @@ class wmsFrame(wx.Frame):
         else:
             message = 'Successful'
                         
-        if(not message=='Successful'):
+        if(not message == 'Successful'):
                 self.ShowMessage(message, 'Warning')
                 StatusBar_fields = [message]
                 self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
@@ -483,7 +483,7 @@ class wmsFrame(wx.Frame):
         if(len(info) == 0):
             return
         urlarr = info.split(self.name_url_delimiter)
-        if(len(urlarr)==2):
+        if(len(urlarr) == 2):
             try:
             	uid = self.map_servernameTouid[urlarr[0]]
             	self.selectedURL = self.servers[uid].url
@@ -516,11 +516,11 @@ class wmsFrame(wx.Frame):
         self.epsgList.Clear()
         self.epsgList.Append('')
         self.selectedLayerList = []
-        keys =[]
+        keys = []
         self.layerName = ""
         #print len(self.LayerTree.GetSelections())
         res = ''
-        self.layersString=''
+        self.layersString = ''
         manageLT = ManageLayerTree()
         self.selectedLayersKeys = []
         for sellayer in self.LayerTree.GetSelections():
@@ -669,19 +669,19 @@ class wmsFrame(wx.Frame):
      @param self: reference variable
      @return: a string containing comma separated bounding box parameters.
         """
-        n=parseGrass_Region(None, 'north')
-        s=parseGrass_Region(None, 'south')
-        e=parseGrass_Region(None, 'east')
-        w=parseGrass_Region(None, 'west')
+        n = parseGrass_Region(None, 'north')
+        s = parseGrass_Region(None, 'south')
+        e = parseGrass_Region(None, 'east')
+        w = parseGrass_Region(None, 'west')
     
-        if(e<w):
+        if(e < w):
             minx = e
             maxx = w
         else:
             minx = w
             maxx = e
         
-        if(n<s):
+        if(n < s):
             miny = n
             maxy = s
         else:

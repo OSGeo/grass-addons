@@ -13,7 +13,7 @@ class WFSDrv(WFSBase):
         """ 
         grass.message(_("Downloading data from WFS server..."))
 
-        proj = self.projection_name + "=EPSG:"+ str(self.o_srs)
+        proj = self.projection_name + "=EPSG:" + str(self.o_srs)
 
         url = self.o_url + ("SERVICE=WFS&REQUEST=GetFeature&VERSION=%s&TYPENAME=%s" % \
              (self.o_wfs_version, self.o_layers))
@@ -32,7 +32,7 @@ class WFSDrv(WFSBase):
             url += '&MAXFEATURES=' + str(self.o_maximum_features)
 
         if self.o_urlparams != "":
-            url +="&" + self.o_urlparams
+            url += "&" + self.o_urlparams
         
         grass.debug(url)
         try: 

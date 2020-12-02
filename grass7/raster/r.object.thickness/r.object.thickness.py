@@ -179,11 +179,11 @@ def main():
     except CalledModuleError:
         # cleanup
         # raster
-        temp_raster_maps=[categorymap, categorymap_thin]
+        temp_raster_maps = [categorymap, categorymap_thin]
         for temp_map in temp_raster_maps:
             gscript.run_command('g.remove', type='raster', name=temp_map, flags='f', quiet=True)
         # vector
-        temp_vector_maps=[categorymap, categorymap_thin, categorymap_transects]
+        temp_vector_maps = [categorymap, categorymap_thin, categorymap_transects]
         for temp_map in temp_vector_maps:
             gscript.run_command('g.remove', type='vector', name=temp_map, flags='f', quiet=True)
 
@@ -222,7 +222,7 @@ def main():
             rows.append(row) 
             
     # transpose the list
-    lengths=list(map(list, zip(*rows)))
+    lengths = list(map(list, zip(*rows)))
 
     # convert to floats
     result = list(map(lambda x: float(x.replace(",", "")), lengths[4]))
@@ -272,11 +272,11 @@ def main():
 
     # cleanup
     # raster
-    temp_raster_maps=[categorymap, categorymap_thin]
+    temp_raster_maps = [categorymap, categorymap_thin]
     for temp_map in temp_raster_maps:
         gscript.run_command('g.remove', type='raster', name=temp_map, flags='f', quiet=True)
     # vector
-    temp_vector_maps=[categorymap, categorymap_thin, categorymap_transects, categorymap_transects_inside]
+    temp_vector_maps = [categorymap, categorymap_thin, categorymap_transects, categorymap_transects_inside]
     for temp_map in temp_vector_maps:
         gscript.run_command('g.remove', type='vector', name=temp_map, flags='f', quiet=True)
 

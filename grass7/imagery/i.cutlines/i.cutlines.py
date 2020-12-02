@@ -226,7 +226,7 @@ def main():
                                 output=existingcutlinesmap,
                                 quiet=True,
                                 overwrite=True)
-            existing_cutlines=existingcutlinesmap
+            existing_cutlines = existingcutlinesmap
 
         gscript.run_command('v.to.rast',
                             input_=existing_cutlines,

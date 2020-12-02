@@ -1,4 +1,4 @@
-owslib=False
+owslib = False
 try:
     import sqlalchemy
 except:

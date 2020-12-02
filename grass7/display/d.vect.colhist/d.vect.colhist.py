@@ -60,14 +60,14 @@ def main():
     where = options['where'] if options['where'] else None
 
     if where:
-        data=[float(x) for x in gscript.read_command('v.db.select',
+        data = [float(x) for x in gscript.read_command('v.db.select',
                                                      map_=vector,
                                                      layer=layer,
                                                      column=column,
                                                      where=where,
                                                      flags='c').splitlines()]
     else:
-        data=[float(x) for x in gscript.read_command('v.db.select',
+        data = [float(x) for x in gscript.read_command('v.db.select',
                                                      map_=vector,
                                                      layer=layer,
                                                      column=column,

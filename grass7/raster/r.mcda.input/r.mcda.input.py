@@ -56,21 +56,21 @@ import string
 
 def parser_4eMka2_rule(tags):
 	"parser file *.rls from 4eMka2 software and extract information for make new classified raster"
-	rule=dict()
-	rules=[]
+	rule = dict()
+	rules = []
 	for t in tags:
-		condition=[]
-		decision=[]
-		row=t.split()
-		if(len(row)>0 and row[0]=="Rule"):
+		condition = []
+		decision = []
+		row = t.split()
+		if(len(row) > 0 and row[0] == "Rule"):
 			#rules_list.append(row)
-			i=row.index("=>")
+			i = row.index("=>")
 			for j in range(2,i):
-				 if(row[j]!="&"):
+				 if(row[j] != "&"):
 					 condition.append(row[j].strip('[,;]'))
 			for j in range(i+1,len(row)-2):
 					 decision.append(row[j].strip('([,;])'))
-			rule={'id_rule':row[1].strip('[.;]'),
+			rule = {'id_rule':row[1].strip('[.;]'),
 				  'condition':condition,
 				  'decision':(decision[0]),
 				  'class':"_".join(decision[1:]),
@@ -79,7 +79,7 @@ def parser_4eMka2_rule(tags):
 			rules.append(rule)
 	rls = open('rules',"w")
 	for l in rules:
-		factor=l['decision'].strip('()').split(' ')
+		factor = l['decision'].strip('()').split(' ')
 		rls.write('id_rule:%s - condition:%s - decision: %s - class:%s \n' % (l['id_rule'],l['condition'], l['decision'],l['class']))
 	rls.close
 	return rules
@@ -90,36 +90,36 @@ def parser_JAMM_rule(tags):
 	
 def parser_mapcalc(rules,i):
 	"parser to build a formula to be included  in mapcalc command"
-	mapalgebra="if("
+	mapalgebra = "if("
 	for j in rules[i]['condition'][:-1]:
-		mapalgebra+= j + " && " 
-	mapalgebra+=rules[i]['condition'][-1]+","+rules[i]['id_rule']+",null())"
+		mapalgebra += j + " && " 
+	mapalgebra += rules[i]['condition'][-1]+","+rules[i]['id_rule']+",null())"
 	return mapalgebra
 
 def clean_rules(rules):
 	"cleans rules to no processed vaue from rules (eg = -> ==) "
 	for i in range(len(rules)):
 		for j in rules[i]['condition']:
-			if (j.find("<=")!=-1):
+			if (j.find("<=") != -1):
 				return 1
-			elif (j.find("<=")!=-1):
+			elif (j.find("<=") != -1):
 				return 1
-			elif (j.find("=")!=-1):
-				j=j.replace("=","==")
+			elif (j.find("=") != -1):
+				j = j.replace("=","==")
 				return 0
 			else:
 				return -1
 
 def patch_georules(maps,outputMap):
-	labels=["_".join(m.split('_')[1:]) for m in maps] 
-	labels=list(set(labels))
+	labels = ["_".join(m.split('_')[1:]) for m in maps] 
+	labels = list(set(labels))
 	for l in labels:
 		print("mapping %s rule" % str(l))
-		map_synth=[]
+		map_synth = []
 		for m in maps:
 			if l == "_".join(m.split('_')[1:]):
 				map_synth.append(m)
-		if len(map_synth)>1:
+		if len(map_synth) > 1:
 			grass.run_command("r.patch", overwrite='True', input=(",".join(map_synth)), output=l )
 		else:
 			grass.run_command("g.copy", raster=(str(map_synth),l))
@@ -128,9 +128,9 @@ def patch_georules(maps,outputMap):
 		grass.run_command("v.db.addcol", map=l, columns='rule varchar(25)')
 		grass.run_command("v.db.update", map=l, column='rule', value=l)
 		grass.run_command("v.db.update", map=l, column='label', value=l)
-	mapstring=",".join(labels)
+	mapstring = ",".join(labels)
 
-	if len(maps)>1:
+	if len(maps) > 1:
 		grass.run_command("v.patch", overwrite='True', flags='e', input=mapstring, output=outputMap)
 	else:
 		grass.run_command("g.copy", vector=(mapstring,outputMap))
@@ -143,23 +143,23 @@ def main():
 	gregion = grass.region()
 	nrows = gregion['rows']
 	ncols = gregion['cols']
-	ewres=int(gregion['ewres'])
-	nsres=int(gregion['nsres'])
+	ewres = int(gregion['ewres'])
+	nsres = int(gregion['nsres'])
 	
-	input_rules=open(input_rules,"r")
-	tags=input_rules.readlines()   
+	input_rules = open(input_rules,"r")
+	tags = input_rules.readlines()   
 	
-	rules=[]  #single rule (dictionary) in array
-	maps=[]
-	rules=parser_4eMka2_rule(tags)
+	rules = []  #single rule (dictionary) in array
+	maps = []
+	rules = parser_4eMka2_rule(tags)
 ##	clean_rules(rules)
 	for i in range(len(rules)):
-		mappa="r"+rules[i]['id_rule']+"_"+rules[i]['class']
-		formula=parser_mapcalc(rules,i)
-		grass.mapcalc(mappa +"=" +formula)
+		mappa = "r"+rules[i]['id_rule']+"_"+rules[i]['class']
+		formula = parser_mapcalc(rules,i)
+		grass.mapcalc(mappa + "=" + formula)
 		maps.append(mappa)
 		
-	maplist=",".join(maps)	
+	maplist = ",".join(maps)	
 	print(maplist)
 	patch_georules(maps,outputMap)
 			

@@ -449,7 +449,7 @@ def yield_pix_process(opts, flgs,yield_,yield_surface):
     YPIX = ''
 
 
-    expr_surf='analysis_surface='+opts['energy_map']+'>0'
+    expr_surf = 'analysis_surface='+opts['energy_map']+'>0'
     run_command('r.mapcalc', overwrite=ow,expression=expr_surf)
 
     # run_command("r.stats.zonal", overwrite=ow,
@@ -477,30 +477,30 @@ def yield_pix_process(opts, flgs,yield_,yield_surface):
 
 def fertility_maintenance(opts, flgs):
 
-    energy_tops_hf=float(opts['energy_tops_hf'])
-    energy_cormometric_vol_hf=float(opts['energy_cormometric_vol_hf'])  
-    management=opts['management']
-    treatment=opts['treatment']
+    energy_tops_hf = float(opts['energy_tops_hf'])
+    energy_cormometric_vol_hf = float(opts['energy_cormometric_vol_hf'])  
+    management = opts['management']
+    treatment = opts['treatment']
 
     yield_pix_process(opts, flgs,yield_,yield_surface)
 
-    expr_prodFF='site_prod_bioenergyFF = if(('+management+'==1 || '+management+'==2) && ('+treatment+'==1 || '+treatment+'==99999), '+opts['energy_map']+'*0.9)'
-    expr_prodT='site_prod_bioenergyT = if('+treatment+'==2 && ('+opts['soilp_map']+'==1 || '+opts['soilp_map']+'==2), analysis_surface*yield_pix*%f*0+yield_pix*%f, if('+treatment+'==2 && '+opts['soilp_map']+'>2, analysis_surface*yield_pix*%f*0.7+yield_pix*%f))'
+    expr_prodFF = 'site_prod_bioenergyFF = if(('+management+'==1 || '+management+'==2) && ('+treatment+'==1 || '+treatment+'==99999), '+opts['energy_map']+'*0.9)'
+    expr_prodT = 'site_prod_bioenergyT = if('+treatment+'==2 && ('+opts['soilp_map']+'==1 || '+opts['soilp_map']+'==2), analysis_surface*yield_pix*%f*0+yield_pix*%f, if('+treatment+'==2 && '+opts['soilp_map']+'>2, analysis_surface*yield_pix*%f*0.7+yield_pix*%f))'
     # Fertility maintenance
     run_command("r.mapcalc", overwrite=ow, expression=expr_prodFF)
     run_command("r.mapcalc", overwrite=ow, expression=expr_prodT % (energy_tops_hf, energy_cormometric_vol_hf, energy_tops_hf, energy_cormometric_vol_hf))
     
-    listmapsite=''
-    map_site_prod_bioenergyT=grass.find_file('site_prod_bioenergyT',element='cell')  
-    map_site_prod_bioenergyFF=grass.find_file('site_prod_bioenergyFF',element='cell') 
+    listmapsite = ''
+    map_site_prod_bioenergyT = grass.find_file('site_prod_bioenergyT',element='cell')  
+    map_site_prod_bioenergyFF = grass.find_file('site_prod_bioenergyFF',element='cell') 
 
-    if map_site_prod_bioenergyT['fullname']!='':
-        listmapsite+=map_site_prod_bioenergyT['fullname']
-        if map_site_prod_bioenergyFF['fullname']!='':
-            listmapsite+=","+map_site_prod_bioenergyFF['fullname']
+    if map_site_prod_bioenergyT['fullname'] != '':
+        listmapsite += map_site_prod_bioenergyT['fullname']
+        if map_site_prod_bioenergyFF['fullname'] != '':
+            listmapsite += ","+map_site_prod_bioenergyFF['fullname']
     else:
-        if map_site_prod_bioenergyFF['fullname']!='':
-            listmapsite+=map_site_prod_bioenergyFF['fullname']    
+        if map_site_prod_bioenergyFF['fullname'] != '':
+            listmapsite += map_site_prod_bioenergyFF['fullname']    
             
     run_command("r.mapcalc", overwrite=ow,
                 expression=opts['output_fert_map']+'= max(%s)' % listmapsite)
@@ -508,11 +508,11 @@ def fertility_maintenance(opts, flgs):
 
 def soil_water_protection(opts, flgs):
 
-    energy_tops_hf=float(opts['energy_tops_hf'])
-    energy_cormometric_vol_hf=float(opts['energy_cormometric_vol_hf']) 
+    energy_tops_hf = float(opts['energy_tops_hf'])
+    energy_cormometric_vol_hf = float(opts['energy_cormometric_vol_hf']) 
 
-    management=opts['management']
-    treatment=opts['treatment']
+    management = opts['management']
+    treatment = opts['treatment']
     
 
     run_command("r.slope.aspect", flags="a", overwrite=ow,elevation=opts['dtm'], slope="slope__", format="percent") 
@@ -521,10 +521,10 @@ def soil_water_protection(opts, flgs):
 
     # Soil and water protection
 
-    expr_sw1='S_W_prot_bioenergy1 = if(('+treatment+'==1 || '+treatment+'==99999) && slope__<30,'+opts['energy_map']+'*0.67,if(('+treatment+'==1 || '+treatment+'==99999) && slope__>=30, '+opts['energy_map']+'*1))'
-    expr_sw2='S_W_prot_bioenergy2 = if(('+treatment+'==1 || '+treatment+'==99999) && '+opts['soild_map']+'==1,0,if(('+treatment+'==1 || '+treatment+'==99999) && '+opts['soild_map']+'!=1, '+opts['energy_map']+'*1))'
-    expr_sw3='S_W_prot_bioenergy3 = if(('+treatment+'==1 || '+treatment+'==99999) && '+opts['soiltx_map']+'==3,0,if(('+treatment+'==1 || '+treatment+'==99999) && '+opts['soiltx_map']+'!=3, '+opts['energy_map']+'*1))'
-    expr_sw4='S_W_prot_bioenergy4 = if(('+treatment+'==1 || '+treatment+'==99999) && ('+opts['soilcmp_map']+'==4 || '+opts['soilcmp_map']+'==5),0,if(('+treatment+'==1 || '+treatment+'==99999) && ('+opts['soilcmp_map']+'<4 || '+opts['soilcmp_map']+'>5), '+opts['energy_map']+'*1))'
+    expr_sw1 = 'S_W_prot_bioenergy1 = if(('+treatment+'==1 || '+treatment+'==99999) && slope__<30,'+opts['energy_map']+'*0.67,if(('+treatment+'==1 || '+treatment+'==99999) && slope__>=30, '+opts['energy_map']+'*1))'
+    expr_sw2 = 'S_W_prot_bioenergy2 = if(('+treatment+'==1 || '+treatment+'==99999) && '+opts['soild_map']+'==1,0,if(('+treatment+'==1 || '+treatment+'==99999) && '+opts['soild_map']+'!=1, '+opts['energy_map']+'*1))'
+    expr_sw3 = 'S_W_prot_bioenergy3 = if(('+treatment+'==1 || '+treatment+'==99999) && '+opts['soiltx_map']+'==3,0,if(('+treatment+'==1 || '+treatment+'==99999) && '+opts['soiltx_map']+'!=3, '+opts['energy_map']+'*1))'
+    expr_sw4 = 'S_W_prot_bioenergy4 = if(('+treatment+'==1 || '+treatment+'==99999) && ('+opts['soilcmp_map']+'==4 || '+opts['soilcmp_map']+'==5),0,if(('+treatment+'==1 || '+treatment+'==99999) && ('+opts['soilcmp_map']+'<4 || '+opts['soilcmp_map']+'>5), '+opts['energy_map']+'*1))'
 
 
     run_command("r.mapcalc", overwrite=ow,expression=expr_sw1)
@@ -534,20 +534,20 @@ def soil_water_protection(opts, flgs):
     
 
 
-    string_sw_prot=''
-    list_sw_prot=[]
+    string_sw_prot = ''
+    list_sw_prot = []
     for i in range(1,4):
-        file_sw='S_W_prot_bioenergy%s' % i
-        map_sw=grass.find_file(file_sw,element='cell')
-        if map_sw['fullname']!='':
+        file_sw = 'S_W_prot_bioenergy%s' % i
+        map_sw = grass.find_file(file_sw,element='cell')
+        if map_sw['fullname'] != '':
             list_sw_prot.append(map_sw['fullname'])
-    string_sw_prot=string.join(list_sw_prot,',')   
+    string_sw_prot = string.join(list_sw_prot,',')   
 
     
-    expr_sw5='S_W_prot_bioenergy5 = if('+treatment+'==2 && slope__<30,0,if('+treatment+'==2 && slope__ >=30, '+opts['energy_map']+'*1))'
-    expr_sw6='S_W_prot_bioenergy6 = if('+treatment+'==2 && '+opts['soild_map']+'==1,analysis_surface*(yield_pix*%f*0+yield_pix*%f),if('+treatment+'==2 && '+opts['soild_map']+'!=1, analysis_surface*(yield_pix*%f+yield_pix*%f)))'
-    expr_sw7='S_W_prot_bioenergy7 = if('+treatment+'==2 && '+opts['soiltx_map']+'==3,analysis_surface*(yield_pix*%f*0.35+yield_pix*%f),if('+treatment+'==2 && '+opts['soiltx_map']+'!=3, analysis_surface*(yield_pix*%f+yield_pix*%f)))'
-    expr_sw8='S_W_prot_bioenergy8 = if('+treatment+'==2 && ('+opts['soilcmp_map']+'==4 || '+opts['soilcmp_map']+'==5),analysis_surface*(yield_pix*%f*0+yield_pix*%f),if('+treatment+'==2 && ('+opts['soilcmp_map']+'<4 || '+opts['soilcmp_map']+'>5), analysis_surface*(yield_pix*%f+yield_pix*2.1)))'
+    expr_sw5 = 'S_W_prot_bioenergy5 = if('+treatment+'==2 && slope__<30,0,if('+treatment+'==2 && slope__ >=30, '+opts['energy_map']+'*1))'
+    expr_sw6 = 'S_W_prot_bioenergy6 = if('+treatment+'==2 && '+opts['soild_map']+'==1,analysis_surface*(yield_pix*%f*0+yield_pix*%f),if('+treatment+'==2 && '+opts['soild_map']+'!=1, analysis_surface*(yield_pix*%f+yield_pix*%f)))'
+    expr_sw7 = 'S_W_prot_bioenergy7 = if('+treatment+'==2 && '+opts['soiltx_map']+'==3,analysis_surface*(yield_pix*%f*0.35+yield_pix*%f),if('+treatment+'==2 && '+opts['soiltx_map']+'!=3, analysis_surface*(yield_pix*%f+yield_pix*%f)))'
+    expr_sw8 = 'S_W_prot_bioenergy8 = if('+treatment+'==2 && ('+opts['soilcmp_map']+'==4 || '+opts['soilcmp_map']+'==5),analysis_surface*(yield_pix*%f*0+yield_pix*%f),if('+treatment+'==2 && ('+opts['soilcmp_map']+'<4 || '+opts['soilcmp_map']+'>5), analysis_surface*(yield_pix*%f+yield_pix*2.1)))'
 
     run_command("r.mapcalc", overwrite=ow,
                 expression='S_W_prot_bioenergy_FF = min(%s)' % string_sw_prot)
@@ -559,14 +559,14 @@ def soil_water_protection(opts, flgs):
     run_command("r.mapcalc", overwrite=ow,
                 expression=expr_sw8 % (energy_tops_hf, energy_cormometric_vol_hf, energy_tops_hf))
 
-    string_sw_prot=''
-    list_sw_prot=[]
+    string_sw_prot = ''
+    list_sw_prot = []
     for i in range(5,8):
-        file_sw='S_W_prot_bioenergy%s' % i
-        map_sw=grass.find_file(file_sw,element='cell')
-        if map_sw['fullname']!='':
+        file_sw = 'S_W_prot_bioenergy%s' % i
+        map_sw = grass.find_file(file_sw,element='cell')
+        if map_sw['fullname'] != '':
             list_sw_prot.append(map_sw['fullname'])
-    string_sw_prot=string.join(list_sw_prot,',')
+    string_sw_prot = string.join(list_sw_prot,',')
 
     run_command("r.mapcalc", overwrite=ow,
                 expression='S_W_prot_bioenergy_T = min(%s)' % string_sw_prot)
@@ -596,26 +596,26 @@ def avoided_CO2_emission(opts, flgs):
 
 
 
-    forest=opts['forest']
-    boundaries=opts['boundaries']
-    yield_=opts['forest_column_yield']
-    management=opts['forest_column_management']
-    treatment=opts['forest_column_treatment']
-    yield_surface=opts['forest_column_yield_surface']
-    roughness=opts['forest_column_roughness']
-    forest_roads=opts['forest_roads']
-    main_roads=opts['main_roads']
+    forest = opts['forest']
+    boundaries = opts['boundaries']
+    yield_ = opts['forest_column_yield']
+    management = opts['forest_column_management']
+    treatment = opts['forest_column_treatment']
+    yield_surface = opts['forest_column_yield_surface']
+    roughness = opts['forest_column_roughness']
+    forest_roads = opts['forest_roads']
+    main_roads = opts['main_roads']
 
-    tree_diam=opts['tree_diam']
-    tree_vol=opts['tree_vol']
-    soil_prod=opts['soilp2_map']
+    tree_diam = opts['tree_diam']
+    tree_vol = opts['tree_vol']
+    soil_prod = opts['soilp2_map']
 
-    rivers=opts['rivers']
-    lakes=opts['lakes']
+    rivers = opts['rivers']
+    lakes = opts['lakes']
 
-    dhp=opts['dhp']
+    dhp = opts['dhp']
 
-    vector_forest=opts['forest']
+    vector_forest = opts['forest']
 
 
 
@@ -644,36 +644,36 @@ def avoided_CO2_emission(opts, flgs):
 
     ######## temp patch to link map and fields ######
 
-    management="management"
-    treatment="treatment"
-    yield_surface="yield_surface"
-    yield_="yield"
-    forest_roads="forest_roads"
-    main_roads="main_roads"
+    management = "management"
+    treatment = "treatment"
+    yield_surface = "yield_surface"
+    yield_ = "yield"
+    forest_roads = "forest_roads"
+    main_roads = "main_roads"
 
     ######## end temp patch to link map and fields ######
 
     ######## end temp patch to link map and fields ######
 
-    if roughness=='':
+    if roughness == '':
         run_command("r.mapcalc",overwrite=ow,expression='roughness=0')
-        roughness='roughness'
+        roughness = 'roughness'
     else:
         run_command("v.to.rast", input=forest,output="roughness", use="attr", attrcolumn=roughness,overwrite=True)
         run_command("r.null", map='roughness',null=0)
-        roughness='roughness'
+        roughness = 'roughness'
 
-    if tree_diam=='':
+    if tree_diam == '':
         run_command("r.mapcalc",overwrite=ow,expression='tree_diam=99999')
-        tree_diam='tree_diam'
+        tree_diam = 'tree_diam'
 
-    if tree_vol=='':
+    if tree_vol == '':
         run_command("r.mapcalc",overwrite=ow,expression='tree_vol=9.999')
-        tree_vol='tree_vol'
+        tree_vol = 'tree_vol'
 
-    if soil_prod=='':
+    if soil_prod == '':
         run_command("r.mapcalc",overwrite=ow,expression='soil_map=99999')
-        soil_prod='soil_map'
+        soil_prod = 'soil_map'
 
     
 
@@ -699,19 +699,19 @@ def avoided_CO2_emission(opts, flgs):
     run_command("r.null", map="yield_pix1", null=0)
     run_command("r.null", map="morphometric_features", null=0)
     
-    exprmap='frict_surf_extr = pix_cross + if(yield_pix1<=0, 99999) + if(morphometric_features==6, 99999)'
+    exprmap = 'frict_surf_extr = pix_cross + if(yield_pix1<=0, 99999) + if(morphometric_features==6, 99999)'
     
-    if rivers!='':
+    if rivers != '':
         run_command("v.to.rast", input=rivers,output="rivers", use="val", overwrite=True)
         run_command("r.null", map="rivers", null=0)
-        rivers="rivers"
-        exprmap+='+ if('+rivers+'>=1, 99999)'
+        rivers = "rivers"
+        exprmap += '+ if('+rivers+'>=1, 99999)'
 
-    if lakes!='':    
+    if lakes != '':    
         run_command("v.to.rast", input=lakes,output="lakes", use="val", overwrite=True)    
         run_command("r.null", map="lakes", null=0)
-        lakes="lakes"
-        exprmap+='+ if('+lakes+'>=1, 99999)'
+        lakes = "lakes"
+        exprmap += '+ if('+lakes+'>=1, 99999)'
 
 
     run_command("r.mapcalc",overwrite=ow,expression=exprmap)
@@ -854,11 +854,11 @@ def avoided_CO2_emission(opts, flgs):
     #run_command("r.mapcalc", overwrite=ow, expression=opts['output_netco2_map']+' = analysis_surface*'+('+opts['output_aco2_map']+' - '+opts['output_co2_map']+')/1000')
     run_command("r.mapcalc", overwrite=ow, expression=opts['output_basename_nco2map']+' = analysis_surface*('+opts['output_basename_aco2map']+' - '+opts['output_basename_co2map']+')/1000')
 
-    mapco2=opts['output_basename_co2map']
+    mapco2 = opts['output_basename_co2map']
     with RasterRow(mapco2) as pT:
         T = np.array(pT)
 
-    mapaco2=opts['output_basename_nco2map']
+    mapaco2 = opts['output_basename_nco2map']
     with RasterRow(mapaco2) as pT1:
         A = np.array(pT1)
    
@@ -868,14 +868,14 @@ def avoided_CO2_emission(opts, flgs):
 
 def fire_risk_reduction(opts, flgs):
     # Fire risk reduction
-    expr_surf='analysis_surface='+opts['energy_map']+'>0'
+    expr_surf = 'analysis_surface='+opts['energy_map']+'>0'
     run_command('r.mapcalc', overwrite=ow,expression=expr_surf)
     run_command("r.mapcalc", overwrite=ow, expression=opts['output_fr_map']+' = if(analysis_surface==1,'+opts['firerisk_map']+'*0.7, '+opts['firerisk_map']+'*1)')
 
 
 def recreational_improvement(opts, flgs):
     # Recreational improvement
-    expr_surf='analysis_surface='+opts['energy_map']+'>0'
+    expr_surf = 'analysis_surface='+opts['energy_map']+'>0'
     run_command('r.mapcalc', overwrite=ow,expression=expr_surf)
     run_command("r.mapcalc", overwrite=ow, expression=opts['output_tot_re_map']+' = (ewres()*nsres()/10000)*'+opts['touristic_map'])
     run_command("r.mapcalc", overwrite=ow, expression=opts['output_imp_re_map']+' = if(analysis_surface==1,(ewres()*nsres()/10000)*'+opts['touristic_map'])
@@ -885,7 +885,7 @@ def tev(opts,flgs):
 
 
     TEV = opts['tev']
-    field_tev=opts['field_tev']
+    field_tev = opts['field_tev']
     expl = opts['expl']
     impact = opts['impact']
     base = opts['base']
@@ -893,9 +893,9 @@ def tev(opts,flgs):
     area_tev = opts['area_tev']
 
 
-    forest_split=str.split(TEV,'@')
+    forest_split = str.split(TEV,'@')
 
-    fields=str.split(read_command('db.columns', table=forest_split[0]),"\n")
+    fields = str.split(read_command('db.columns', table=forest_split[0]),"\n")
 
 
     vol_matching = [s for s in fields if field_tev in s]
@@ -904,7 +904,7 @@ def tev(opts,flgs):
 
     #pdb.set_trace()
 
-    if (len(vol_matching)<1) or (len(vol_matching2<1)):
+    if (len(vol_matching) < 1) or (len(vol_matching2 < 1)):
         #get_msgr().fatal("Field in vector TEV map not found")
         print("Errors in fields of TEV map")
         return
@@ -917,7 +917,7 @@ def tev(opts,flgs):
 
     run_command("r.mapcalc", overwrite=ow, expression='tev_map=(tev1/tev_area)*ewres()*nsres()')
 
-    TEV2="tev_area"
+    TEV2 = "tev_area"
 
     if base:
         formula_tev = "%s=if(%s>0, %s-%f*%s/%s*%s)" % (res, expl, TEV2, impact,
@@ -944,22 +944,22 @@ def main(opts, flgs):
     # if(opts['output_fert_map'])!="":
     #     fertility_maintenance(opts, flgs)
 
-    if(opts['output_sw_map'])!="":
+    if(opts['output_sw_map']) != "":
         soil_water_protection(opts, flgs)
     
     # biodiversity_maintenance(opts, flgs)
     # sustainable_bioenergy(opts, flgs)
 
-    if(opts['output_basename_co2map'])!="":        
+    if(opts['output_basename_co2map']) != "":        
         avoided_CO2_emission(opts, flgs)
 
-    if(opts['output_fr_map'])!="":        
+    if(opts['output_fr_map']) != "":        
         fire_risk_reduction(opts, flgs)
 
-    if(opts['output_tot_re_map'])!="":        
+    if(opts['output_tot_re_map']) != "":        
         recreational_improvement(opts, flgs)
 
-    if(opts['output_tev'])!="":        
+    if(opts['output_tev']) != "":        
         tev(opts, flgs)
 
     if flgs['r'] == True:

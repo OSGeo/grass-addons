@@ -262,7 +262,7 @@ class TextInput1(wx.Panel):
 class TextInput(wx.Panel):
     def __init__(self, parent, label ):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
-        self.context=StaticContext()
+        self.context = StaticContext()
 
         self.tmpPath = None
         statText = wx.StaticText(self, id=wx.ID_ANY, label=label)
@@ -271,7 +271,7 @@ class TextInput(wx.Panel):
         self.pathInput = wx.TextCtrl(self, id=wx.ID_ANY)
         self.browseBtt = wx.Button(self, id=wx.ID_ANY, label='Browse')
         self.directInp = wx.TextCtrl(self, id=wx.ID_ANY, size=(0, 70), style=wx.TE_MULTILINE | wx.HSCROLL)
-        self.saveBtt=wx.Button(self,label='Save to new file')
+        self.saveBtt = wx.Button(self,label='Save to new file')
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer2 = wx.BoxSizer(wx.HORIZONTAL)
@@ -297,7 +297,7 @@ class TextInput(wx.Panel):
                 self.tmpPath = os.path.join(self.context.getTmpPath(), 'tmp%s'%randomWord(3))
                 self.pathInput.SetValue(self.tmpPath)
 
-        io=open(self.tmpPath,'w')
+        io = open(self.tmpPath,'w')
         io.writelines(self.directInp.GetValue())
         io.close()
 
@@ -337,8 +337,8 @@ class TextInput(wx.Panel):
         io.close()
 
     def GetPath(self):
-        path=self.pathInput.GetValue()
-        if path=='':
+        path = self.pathInput.GetValue()
+        if path == '':
             return None
         else:
             return path
@@ -390,8 +390,8 @@ class FileInput(wx.Panel):
 
 
     def GetPath(self):
-        path=self.pathInput.GetValue()
-        if len(path)!=0:
+        path = self.pathInput.GetValue()
+        if len(path) != 0:
             return path
         else:
             return None
@@ -427,25 +427,25 @@ def getFilesInFoldr(fpath, full=False):
 
 class MeasureTime():
     def __init__(self,total_count_step=14):
-        self.startLast=None
-        self.total_count_step=total_count_step
-        self.end=None
-        self.start=None
+        self.startLast = None
+        self.total_count_step = total_count_step
+        self.end = None
+        self.start = None
         self.logger = logging.getLogger('mwprecip.MeasureTime')
-        self.set_counter=0
+        self.set_counter = 0
 
     def timeMsg(self,msg,end=False,step=1):
         self.set_counter += 1
         if self.start is None:
             self.start = time.time()
-            self.startLast= self.start
+            self.startLast = self.start
             self.logger.info("Measuring time - START: %s "%str(datetime.now()))
             self.logger.info(msg)
         else:
             self.end = time.time()
-            elapsedTotal=self.end - self.start
-            elapsedLast=self.end-self.startLast
-            self.startLast=self.end
+            elapsedTotal = self.end - self.start
+            elapsedLast = self.end-self.startLast
+            self.startLast = self.end
             grass.percent(self.set_counter,self.total_count_step,1)
 
             self.logger.info("TOTAL TIME < %s > : %s"%(msg,elapsedTotal))

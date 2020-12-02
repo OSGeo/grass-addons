@@ -157,7 +157,7 @@ def write_plants(plants, output, stream, elev, overwrite=False):
     with VectorTopo(output, mode='w', tab_cols=COLS,
                     overwrite=overwrite) as out:
         for p in plants:
-            potential_power= plants[p].potential_power()
+            potential_power = plants[p].potential_power()
             plant_id = plants[p].id
             lines, ids = plants[p].plant(stream, elev)
             for line, r_id in zip(lines, ids):

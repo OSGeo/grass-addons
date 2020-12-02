@@ -60,7 +60,7 @@ class MdDescription():
         self.group = group
         self.inbox = inbox
         self.ref = ref
-        self.databaseAttr=database
+        self.databaseAttr = database
         self.selfInfoString = selfInfoString
 
         self.inboxmulti = inboxmulti

@@ -102,7 +102,7 @@ def parsexml2(xml):
      @param xml: xml, xml to be parsed
      @return: List, list of layers parsed
     	"""
-    	layerDataDict={}
+    	layerDataDict = {}
     	count = -1
     	xmltext = xml
     	soup = BeautifulSoup(xmltext)
@@ -114,23 +114,23 @@ def parsexml2(xml):
 		titles = soupname.findAll('title')
 		abstracts = soupname.findAll('abstract')
 		srs = soupname.findAll('srs')
-		if(len(names)>0):
+		if(len(names) > 0):
 			count = count + 1
 			layerDataDict[count] = LayerData()
 			layerDataDict[count].name = unicode(names[0].string)
 		else:
 			continue
-		if(len(titles)>0):
+		if(len(titles) > 0):
 			layerDataDict[count].title = unicode(titles[0].string)
 		else:
 			layerDataDict[count].title = ''
 
-		if(len(abstracts)>0):
+		if(len(abstracts) > 0):
 			layerDataDict[count].abstract = unicode(abstracts[0].string)
 		else:
 			layerDataDict[count].abstract = ''
 
-		if(len(srs)>0):
+		if(len(srs) > 0):
 			layerDataDict[count].srs = srs
 		else:
 			layerDataDict[count].srs = ''
@@ -149,7 +149,7 @@ def isValidResponse(xml):
     """
 	soup = BeautifulSoup(xml)
 	getCapabilities = soup.findAll('wmt_ms_capabilities')
-	if(len(getCapabilities)==0):
+	if(len(getCapabilities) == 0):
 		return False
 	else:
 		return True
@@ -186,7 +186,7 @@ def test(xml,LayerTree,layerTreeRoot):
 	f.write(xml)
 	f.close()
 	f = open('/home/sudeep/in3.xml','r')
-	xml1=f.read()
+	xml1 = f.read()
 	'''
 	#xml1=xml
 	#xml='<root> '+xml1+' </root>'
@@ -202,8 +202,8 @@ def test(xml,LayerTree,layerTreeRoot):
 	print 'a4='+str(a)
 	#print xml1[a:]
 	'''
-	dom=parseString(xml1)
-	root=dom.firstChild
+	dom = parseString(xml1)
+	root = dom.firstChild
 	lData = {}
 	global key
 	key = 0
@@ -221,7 +221,7 @@ def dfs(root,LayerTree, ltr):
 		print root.name
 		if(root.name == 'layer'):
 			names = root.findAll('name')
-			if(len(names)>0):
+			if(len(names) > 0):
 				id = LayerTree.AppendItem(ltr,names[0].string)
 				print  names[0].string
 		children = root.contents
@@ -231,14 +231,14 @@ def dfs(root,LayerTree, ltr):
 
 def getAttributeLayers(node, attribute):
 	Attribute = attribute.capitalize() 
-	l=node.getElementsByTagName(attribute)
-	g=None
-	if(len(l)>0):
-		g=l[0].firstChild
+	l = node.getElementsByTagName(attribute)
+	g = None
+	if(len(l) > 0):
+		g = l[0].firstChild
 	else:
-		l=node.getElementsByTagName(Attribute)
-		if(len(l)>0):
-			g=l[0].firstChild
+		l = node.getElementsByTagName(Attribute)
+		if(len(l) > 0):
+			g = l[0].firstChild
 	if(g is not None):
 		return unicode(g.nodeValue)
 	else:

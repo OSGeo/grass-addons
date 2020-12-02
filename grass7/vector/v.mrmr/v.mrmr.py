@@ -110,7 +110,7 @@ def main():
                       format = 'CSV',
                       flags = 's')
 
-    mrmrcmd = 'mrmr -i ' + tmptable +' -m ' + method + ' -t ' + threshold + ' -n ' + nfeatures + ' -s ' + nsamples + ' -v ' + maxvar
+    mrmrcmd = 'mrmr -i ' + tmptable + ' -m ' + method + ' -t ' + threshold + ' -n ' + nfeatures + ' -s ' + nsamples + ' -v ' + maxvar
 
     subprocess.call(mrmrcmd, shell=True)
 

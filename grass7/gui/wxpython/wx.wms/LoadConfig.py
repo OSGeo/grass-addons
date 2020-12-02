@@ -27,13 +27,13 @@ def loadConfigFile(self):
      @return: Boolean, True is config file is loaded successfuly, else False
     """
     try:
-        f=open('config','r')
+        f = open('config','r')
         lines = f.readlines()
         f.close()
         print lines
         #patch4s
         try:
-            if(len(lines)!=3):
+            if(len(lines) != 3):
                 message = 'Insufficient number of arguments,3 paramters required name_url_delimiter, timeoutValueSeconds, urlLength'
                 grass.fatal_error(message)
                 raise Exception

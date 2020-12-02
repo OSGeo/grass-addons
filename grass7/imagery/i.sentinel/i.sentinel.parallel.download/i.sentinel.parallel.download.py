@@ -137,7 +137,7 @@ def scenename_split(scenename):
     ### get query string
     if not scenename.endswith('.SAFE'):
         scenename = scenename + '.SAFE'
-    query_string = 'filename=%s' %(scenename)
+    query_string = 'filename=%s' % (scenename)
     return producttype, start_day, end_day, query_string
 
 def main():
@@ -150,8 +150,8 @@ def main():
     producttype = options['producttype']
     start = options['start']
     end   = options['end']
-    use_scenenames=flags['s']
-    ind_folder=flags['f']
+    use_scenenames = flags['s']
+    ind_folder = flags['f']
 
     ### check if we have the i.sentinel.download + i.sentinel.import addons
     if not grass.find_program('i.sentinel.download', '--help'):
@@ -171,7 +171,7 @@ def main():
     ### test nprocs Settings
     if nprocs > mp.cpu_count():
         grass.fatal("Using %d parallel processes but only %d CPUs available."
-                    %(nprocs,mp.cpu_count()))
+                    % (nprocs,mp.cpu_count()))
 
     ### sentinelsat allows only three parallel downloads
     elif nprocs > 2:
@@ -183,7 +183,7 @@ def main():
         scenenames = scene_names
         ### check if the filename is valid
         ### TODO: refine check, it's currently a very lazy check
-        if len(scenenames[0])<10:
+        if len(scenenames[0]) < 10:
             grass.fatal("No scene names indicated. Please provide scenenames in \
                         the format S2A_MSIL1C_20180822T155901_N0206_R097_T17SPV_20180822T212023.SAFE")
     else:
@@ -204,8 +204,8 @@ def main():
     grass.message(_("Downloading Sentinel-2 data..."))
 
     ### adapt nprocs to number of scenes
-    if len(scenenames)==1:
-        nprocs=1
+    if len(scenenames) == 1:
+        nprocs = 1
 
     queue_download = ParallelModuleQueue(nprocs=nprocs)
 

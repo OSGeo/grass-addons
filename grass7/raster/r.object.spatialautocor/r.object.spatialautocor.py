@@ -88,8 +88,8 @@ def get_nb_matrix (mapname, diagonal):
 
     neighbordict = {}
     for line in res.splitlines():
-        n1=line.split(',')[0]
-        n2=line.split(',')[1]
+        n1 = line.split(',')[0]
+        n2 = line.split(',')[1]
         if n1 in neighbordict:
             neighbordict[n1].append(n2)
         else:

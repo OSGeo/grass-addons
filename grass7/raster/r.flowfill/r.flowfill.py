@@ -118,8 +118,8 @@ def main():
     try:
         from netCDF4 import Dataset
     except:
-        g.message(flags='e', message=('netCDF4 not detected. Install pip3 and '+
-                                      'then type at the command prompt: '+
+        g.message(flags='e', message=('netCDF4 not detected. Install pip3 and ' +
+                                      'then type at the command prompt: ' +
                                       '"pip3 install netCDF4".'))
 
     options, flags = gscript.parser()
@@ -175,10 +175,10 @@ def main():
     # Check for proper option set
     if _h_runoff is not '': # ????? possible ?????
         if _h_runoff_raster is not '':
-            g.message(flags='e', message='Only one of "h_runoff" and '+
+            g.message(flags='e', message='Only one of "h_runoff" and ' +
                                          '"h_runoff_raster" may be set')
     elif _h_runoff_raster is '':             
-            g.message(flags='e', message='Either "h_runoff" or '+
+            g.message(flags='e', message='Either "h_runoff" or ' +
                                          '"h_runoff_raster" must be set')
 
     if _output is '' and _water is '':
@@ -232,10 +232,10 @@ def main():
     
     # Run FlowFill
     temp_FlowFill_output_file = gscript.tempfile(create=False)
-    mpirunstr = 'mpirun -np '+str(_np)+' '+_ffpath+' '+\
-              str(_h_runoff)+' '+temp_FlowFill_input_file+' '+\
-              str(n_columns)+' '+str(n_rows)+' '+\
-              str(_threshold)+' '+temp_FlowFill_output_file+' '+\
+    mpirunstr = 'mpirun -np '+str(_np)+' '+_ffpath+' ' +\
+              str(_h_runoff)+' '+temp_FlowFill_input_file+' ' +\
+              str(n_columns)+' '+str(n_rows)+' ' +\
+              str(_threshold)+' '+temp_FlowFill_output_file+' ' +\
               _runoff_bool+' '+temp_FlowFill_runoff_file+' '+_ties
     print('')
     print('Sending command to FlowFill:')
@@ -254,13 +254,13 @@ def main():
     popen.stdout.close()
     if _mpirun_error_flag:
         print('')
-        g.message(flags='e', message='FlowFill executable not found.\n'+
-              'If you have not installed FlowFill, please download it '+
-              'from https://github.com/KCallaghan/FlowFill, '+
-              'and follow the directions in the README to compile and '+
-              'install it on your system.\n'+
-              'This should then work with the default "ffpath". '+
-              'Otherwise, you may have simply have typed in an incorrect '+
+        g.message(flags='e', message='FlowFill executable not found.\n' +
+              'If you have not installed FlowFill, please download it ' +
+              'from https://github.com/KCallaghan/FlowFill, ' +
+              'and follow the directions in the README to compile and ' +
+              'install it on your system.\n' +
+              'This should then work with the default "ffpath". ' +
+              'Otherwise, you may have simply have typed in an incorrect ' +
               '"ffpath".')
 
     
