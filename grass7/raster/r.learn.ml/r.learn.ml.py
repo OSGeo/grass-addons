@@ -860,7 +860,7 @@ def predict(estimator, predictors, output, predict_type='raw', index=None,
         clf_type = estimator
 
     if type(clf_type).__name__ == 'GridSearchCV' or \
-    type(clf_type).__name__ == 'RandomizedSearchCV':
+        type(clf_type).__name__ == 'RandomizedSearchCV':
         clf_type = clf_type.best_estimator_
 
     # check name against already multithreaded classifiers
@@ -1343,15 +1343,15 @@ def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
 
             # metrics that have no averaging for multiclass
             elif m == 'kappa' or m == 'specificity' or m == 'accuracy' \
-            or m == 'hamming_loss' or m == 'jaccard_similarity' \
-            or m == 'log_loss' or m == 'zero_one_loss' \
-            or m == 'matthews_corrcoef' \
-            or m == 'r2' \
-            or m == 'explained_variance' \
-            or m == 'neg_mean_absolute_error' \
-            or m == 'neg_mean_squared_error' \
-            or m == 'neg_mean_squared_log_error' \
-            or m == 'neg_median_absolute_error':
+                or m == 'hamming_loss' or m == 'jaccard_similarity' \
+                or m == 'log_loss' or m == 'zero_one_loss' \
+                or m == 'matthews_corrcoef' \
+                or m == 'r2' \
+                or m == 'explained_variance' \
+                or m == 'neg_mean_absolute_error' \
+                or m == 'neg_mean_squared_error' \
+                or m == 'neg_mean_squared_log_error' \
+                or m == 'neg_median_absolute_error':
                 scores[m] = np.append(
                     scores[m], scoring_methods[m](y_test, y_pred))
 
@@ -1549,7 +1549,7 @@ def main():
 
     # check that valid combination of training data input is present
     if trainingpoints == '' and trainingmap == '' and load_training == '' \
-    and model_load =='':
+        and model_load =='':
         gs.fatal('No training vector, raster or tabular data is present')
 
     # make dicts for hyperparameters, datatypes and parameters for tuning

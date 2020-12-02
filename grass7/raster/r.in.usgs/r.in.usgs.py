@@ -798,21 +798,21 @@ def main():
                     process = Process(
                         name="Import-{}-{}-{}".format(process_count, i, LT_layer_name),
                         target=run_file_import, kwargs=dict(
-                        identifier=i, results=results,
-                        input=t, output=LT_layer_name,
-                        resolution='value', resolution_value=product_resolution,
-                        extent="region", resample=product_interpolation,
-                        memory=memory
-                    ))
+                            identifier=i, results=results,
+                            input=t, output=LT_layer_name,
+                            resolution='value', resolution_value=product_resolution,
+                            extent="region", resample=product_interpolation,
+                            memory=memory
+                            ))
                 else:
                     srs = options['input_srs']
                     process = Process(
                         name="Import-{}-{}-{}".format(process_count, i, LT_layer_name),
                         target=run_lidar_import, kwargs=dict(
-                        identifier=i, results=results,
-                        input=t, output=LT_layer_name,
-                        input_srs=srs if srs else None
-                    ))
+                            identifier=i, results=results,
+                            input=t, output=LT_layer_name,
+                            input_srs=srs if srs else None
+                            ))
                 process.start()
                 process_list.append(process)
                 process_id_list.append(i)

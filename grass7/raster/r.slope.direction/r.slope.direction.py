@@ -186,11 +186,11 @@ def main():
                        }
 
     slope_measure_dict = {
-'difference': """\n{gradient}={abs}({elev}-{elev_in})""",
-'percent': """\n{gradient}={abs}({elev}-{elev_in})/{dist}""",
-'percent_int': """\n{gradient}=round(({abs}(({elev}-{elev_in}))/{dist})*10000.0)""",
-'degree': """\n{gradient}=atan({abs}({elev}-{elev_in})/{dist})""",
-'degree_int': """\n{gradient}=round(atan({abs}({elev}-{elev_in})/{dist})*100.0)"""
+        'difference': """\n{gradient}={abs}({elev}-{elev_in})""",
+        'percent': """\n{gradient}={abs}({elev}-{elev_in})/{dist}""",
+        'percent_int': """\n{gradient}=round(({abs}(({elev}-{elev_in}))/{dist})*10000.0)""",
+        'degree': """\n{gradient}=atan({abs}({elev}-{elev_in})/{dist})""",
+        'degree_int': """\n{gradient}=round(atan({abs}({elev}-{elev_in})/{dist})*100.0)"""
     }
 
     dirs = dir_format_dict[dir_type]
@@ -235,12 +235,12 @@ if({dir} == {NE} || {dir} == {NW} || {dir} == {SW}\
 || {dir} == {SE}, sqrt({ewres}^2+{nsres}^2), \
 if({dir} == {N} || {dir} == {S},{nsres},{ewres}))
 {dist_sum_in}=0""".format(NE=dirs[0], NW=dirs[2], SW=dirs[4], SE=dirs[6],
-                          N=dirs[1], S=dirs[5],
-                          nsres=curent_region['nsres'],
-                          ewres=curent_region['ewres'],
-                          dir=direction,
-                          dist_in=kwargs['dist_in'],
-                          dist_sum_in=kwargs['dist_sum_in']))
+                                N=dirs[1], S=dirs[5],
+                                nsres=curent_region['nsres'],
+                                ewres=curent_region['ewres'],
+                                dir=direction,
+                                dist_in=kwargs['dist_in'],
+                                dist_sum_in=kwargs['dist_sum_in']))
 
     for x in range(max(steps)+1):
         mc_expression = expression_template.format(**kwargs)

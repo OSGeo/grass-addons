@@ -124,7 +124,7 @@ def main():
     if columns != ['']:
         if len(columns) != len(rasters):
             grass.fatal(_(
-            "The number of rasters and the number of column names do not match"
+                "The number of rasters and the number of column names do not match"
             ))
 
     # Get flags

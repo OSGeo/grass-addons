@@ -290,7 +290,7 @@ def main():
     for j in range(len(evpn)):
         grass.run_command("v.what.rast", map=bgpname, raster=evp[j], column=evpn[j], quiet=True)
         sqlst = "update " + bgpname + " SET " + evpn[j] + " = " + \
-        str(nodata) + " WHERE " + evpn[j] + " ISNULL"
+            str(nodata) + " WHERE " + evpn[j] + " ISNULL"
         grass.run_command("db.execute", sql=sqlst, quiet=True)
     sqlst = "update " + bgpname + " SET species = 'background'"
     grass.run_command("db.execute", sql=sqlst, quiet=True)
@@ -322,7 +322,7 @@ def main():
         for j in range(len(evpn)):
             grass.run_command("v.what.rast", map=specname, raster=evp[j], column=evpn[j], quiet=True)
             sqlst = "update " + specname + " SET " + evpn[j] + " = " + \
-            str(nodata) + " WHERE " + evpn[j] + " ISNULL"
+                str(nodata) + " WHERE " + evpn[j] + " ISNULL"
             grass.run_command("db.execute", sql=sqlst, quiet=True)
         sqlst = "update " + specname + " SET species = '" + specsn[i] + "'"
         grass.run_command("db.execute", sql=sqlst, quiet=True)

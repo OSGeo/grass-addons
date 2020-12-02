@@ -727,7 +727,7 @@ class Computor():
                 #parse input file
                 if baseline.type == 'noDryWin':
                     sql = "SELECT linkid, a from  %s.record WHERE time >='%s' and time<='%s'" % (
-                    database.schema, startTime, endTime)
+                        database.schema, startTime, endTime)
                     resu = database.connection.executeSql(sql, True, True)
                     database.connection.executeSql(sql, False, True)
                 else:

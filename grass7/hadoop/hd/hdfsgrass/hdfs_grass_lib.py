@@ -564,8 +564,8 @@ class GrassMapBuilder(object):
         path='%s1'%self.file
         io=open(path,'w')
         stream_lines(self.file) |\
-        filt(lambda l: l.replace(foo, bar)) |\
-        to_stream(io)
+            filt(lambda l: l.replace(foo, bar)) |\
+            to_stream(io)
         self.file=path
 
 class GrassMapBuilderEsriToStandard(GrassMapBuilder):

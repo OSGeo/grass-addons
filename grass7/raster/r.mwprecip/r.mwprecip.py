@@ -278,7 +278,7 @@ def intrpolatePoints(db):
     io.close
 
     sql = "create table %s.%s (linkid integer,long real,lat real,point_id serial PRIMARY KEY) " % (
-    schema_name, nametable)  # create table where will be intrpol. points.
+        schema_name, nametable)  # create table where will be intrpol. points.
     db.executeSql(sql, False, True)
 
     latlong = []  # list of  [lon1 lat1 lon2 lat2]
@@ -342,12 +342,12 @@ def intrpolatePoints(db):
     io1.close()
 
     sql = "SELECT AddGeometryColumn  ('%s','%s','geom',4326,'POINT',2); " % (
-    schema_name, nametable)  # add geometry column for computed interpolated points
+        schema_name, nametable)  # add geometry column for computed interpolated points
     db.executeSql(sql, False, True)
 
     sql = "UPDATE %s.%s SET geom = \
     (ST_SetSRID(ST_MakePoint(long, lat),4326)); " % (
-    schema_name, nametable)  # make geometry for computed interpolated points
+        schema_name, nametable)  # make geometry for computed interpolated points
     db.executeSql(sql, False, True)
 
     sql = "alter table %s.%s drop column lat" % (schema_name, nametable)  # remove latitde column from table
@@ -812,7 +812,7 @@ def computeBaselinFromMode(db, linktb, recordtb):
     schema_name = options['schema']
     # round value
     sql = "create table %s.tempround as select round(a::numeric,%s) as a, linkid from %s" % (
-    schema_name, options['roundm'], recordtb)
+        schema_name, options['roundm'], recordtb)
     db.executeSql(sql, False, True)
     # compute mode for current link
     for linkid in linksid:
@@ -879,7 +879,7 @@ def computeBaselineFromTime(db):
                         grass.fatal("Input data is not valid. Parameter 'baselitime'")
                     st += tot.replace("\n", "")
                     sql = "select linkid, avg(txpower-rxpower)as a from record where time >='%s' and time<='%s' group by linkid order by 1" % (
-                    fromt, tot)
+                        fromt, tot)
                     resu = db.executeSql(sql, True, True)
                     tmp.append(resu)
 
@@ -893,7 +893,7 @@ def computeBaselineFromTime(db):
                     fromt = time + timedelta(seconds=-60)
                     tot = time + timedelta(seconds=+60)
                     sql = "select linkid, avg(txpower-rxpower)as a from record where time >='%s' and time<='%s' group by linkid order by 1" % (
-                    fromt, tot)
+                        fromt, tot)
                     resu = db.executeSql(sql, True, True)
                     tmp.append(resu)
 
@@ -953,7 +953,7 @@ def computeBaselineFromTime(db):
                         grass.fatal("Input data is not valid. Parameter 'baselitime'")
                     st += tot.replace("\n", "")
                     sql = "select linkid, txpower-rxpower as a from record where time >='%s' and time<='%s'" % (
-                    fromt, tot)
+                        fromt, tot)
                     resu = db.executeSql(sql, True, True)
                     resu += resu
 
@@ -967,7 +967,7 @@ def computeBaselineFromTime(db):
                     tot = time + timedelta(seconds=+60)
 
                     sql = "select linkid, txpower-rxpower as a from record where time >='%s' and time<='%s'" % (
-                    fromt, tot)
+                        fromt, tot)
                     resu = db.executeSql(sql, True, True)
 
                     resu += resu
@@ -1237,7 +1237,7 @@ def computePrecip(db):
     link_num = db.count("link")
     ##select values for computing
     sql = " select time, txpower-rxpower as a,lenght,polarization,frequency,linkid from %s order by recordid limit %d ; " % (
-    record_tb_name, xx)
+        record_tb_name, xx)
     resu = db.executeSql(sql, True, True)
 
     sql = "create table %s.%s ( linkid integer,time timestamp, precip real);" % (schema_name, comp_precip)
@@ -1326,7 +1326,7 @@ def makeTimeWin(db, typeid, table):
         %s ,round(avg(precip)::numeric,3) as precip_mm_h, date_trunc('%s',time)\
         as time  FROM %s.%s GROUP BY %s, date_trunc('%s',time)\
         ORDER BY time" % (
-    view_statement, schema_name, view_db, typeid, sum_precip, schema_name, table, typeid, sum_precip)
+        view_statement, schema_name, view_db, typeid, sum_precip, schema_name, table, typeid, sum_precip)
     data = db.executeSql(sql, False, True)
     stamp = ""
     stamp1 = ""
@@ -1419,7 +1419,7 @@ def makeTimeWin(db, typeid, table):
 
         # create view
         sql = "CREATE table %s.%s as select * from %s.%s where time=(timestamp'%s'+ %s * interval '1 second')" % (
-        schema_name, view_name, schema_name, view_db, timestamp_min, time_const)
+            schema_name, view_name, schema_name, view_db, timestamp_min, time_const)
         data = db.executeSql(sql, False, True)
 
         # compute cur_timestamp (need for loop)
