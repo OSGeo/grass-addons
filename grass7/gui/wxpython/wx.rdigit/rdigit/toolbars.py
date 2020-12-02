@@ -125,7 +125,7 @@ class RDigitToolbar(BaseToolbar):
             'redo'            : MetaIcon(img = 'redo',
                                          label = _('Redo'),
                                          desc = _('Redo previous changes')),
-            }
+        }
         
         if not self.tools or 'selector' in self.tools:
             data.append((None, ))

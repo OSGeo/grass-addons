@@ -50,7 +50,7 @@ class MapWindow(object):
             'end'  : [0, 0],
             'use'  : "pointer",
             'box'  : "point"
-            }
+        }
         # last east, north coordinates, changes on mouse motion
         self.lastEN = None 
         
@@ -74,7 +74,7 @@ class MapWindow(object):
             wx.EVT_LEAVE_WINDOW : [],
             wx.EVT_MOUSEWHEEL : [],
             wx.EVT_MOUSE_EVENTS : []
-            }
+        }
         
         wx.CallAfter(self.InitBinding)
 

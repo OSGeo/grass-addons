@@ -389,7 +389,7 @@ def internal_to_csl_json(citation):
         authors.append({
             'family': name['family'],
             'given': name['given']
-            })
+        })
     return {
         'id': citation['module'],
         'issued': {
@@ -736,7 +736,7 @@ def grass_cff_reference(grass_version, scope=None):
     citation['authors'] = [
         {'name': "The GRASS Development Team",
          'website': "http://grass.osgeo.org/"}
-        ]
+    ]
     citation['title'] = "GRASS GIS {version}".format(**grass_version)
     citation['version'] = grass_version['version']
     # approximation
@@ -745,7 +745,7 @@ def grass_cff_reference(grass_version, scope=None):
     citation['keywords'] = [
         "GIS", "geospatial analysis", "remote sensing",
         "image processing"
-        ]
+    ]
     citation['license'] = 'GPL-2.0-or-later'
     return citation
 

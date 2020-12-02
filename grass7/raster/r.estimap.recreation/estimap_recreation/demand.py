@@ -212,7 +212,7 @@ def compute_demand(
         vector_base_map=None,
         vector_methods=None,
         vector_column_prefix=None,
-        ):
+):
     """
     """
     r.stats_zonal(

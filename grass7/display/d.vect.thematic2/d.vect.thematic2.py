@@ -449,7 +449,7 @@ end
         "cyan-yellow":	("0:255:255",	"255:255:0"),
         "yellow-cyan":	("255:255:0",	"0:255:255"),
         "custom_gradient":	(startcolor,	endcolor)
-        }
+    }
 
     # open file for psmap instructions
     f_psmap = file(tmp_psmap, 'w')

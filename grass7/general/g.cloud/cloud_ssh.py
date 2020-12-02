@@ -43,7 +43,7 @@ class ssh_session:
             '@@@@@@@@@@@@',
             'Command not found.',
             EOF,
-            ]
+        ]
         # set the home path
         home = os.path.expanduser('~')
         logfile = os.path.join(home, self.gsession,'g.cloud','ssh.log')

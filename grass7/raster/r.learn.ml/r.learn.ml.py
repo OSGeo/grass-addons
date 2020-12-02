@@ -470,7 +470,7 @@ def model_classifiers(estimator, random_state, n_jobs, p, weights=None):
             classifiers = {
                 'EarthClassifier': earth_classifier,
                 'EarthRegressor': Earth(max_degree=p['max_degree'])
-                }
+            }
         except:
             gs.fatal('Py-earth package not installed')
     else:
@@ -1440,7 +1440,7 @@ def main():
         'max_degree': options['max_degree'],
         'n_neighbors': options['n_neighbors'],
         'weights': options['weights']
-        }
+    }
 
     # cross validation
     cv = int(options['cv'])

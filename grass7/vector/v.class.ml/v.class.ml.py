@@ -399,7 +399,7 @@ def load_decompositions():
         'FastICA': FastICA,
         'TruncatedSVD': TruncatedSVD,
         'LDA': LDA
-        })
+    })
 
 
 def get_indexes(string, sep=',', rangesep='-'):

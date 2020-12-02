@@ -11,7 +11,7 @@ def determine_average_emissivity(
         landcover_map,
         avg_lse_expression,
         quiet=True,
-        ):
+):
     """
     Produce an average emissivity map based on FROM-GLC map covering the region
     of interest.

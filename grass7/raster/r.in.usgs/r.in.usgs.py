@@ -803,7 +803,7 @@ def main():
                             resolution='value', resolution_value=product_resolution,
                             extent="region", resample=product_interpolation,
                             memory=memory
-                            ))
+                        ))
                 else:
                     srs = options['input_srs']
                     process = Process(
@@ -812,7 +812,7 @@ def main():
                             identifier=i, results=results,
                             input=t, output=LT_layer_name,
                             input_srs=srs if srs else None
-                            ))
+                        ))
                 process.start()
                 process_list.append(process)
                 process_id_list.append(i)

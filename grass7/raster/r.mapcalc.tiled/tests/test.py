@@ -103,6 +103,6 @@ with open(conf["csvfile"], "w", newline="") as f:
                     'number of cells': cells,
                     'time_rmapcalc': time_rmapcalc,
                     'time_rmapcalctiled': time_rmapcalctiled
-                    })
+                })
 
 print("<%s> created" % conf["csvfile"])

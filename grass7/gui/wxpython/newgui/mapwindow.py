@@ -1889,7 +1889,7 @@ class GraphicsSet:
             "selected" :  wx.Pen(colour = wx.GREEN, width = 2, style = wx.SOLID),
             "unused"   :  wx.Pen(colour = wx.LIGHT_GREY, width = 2, style = wx.SOLID),
             "highest"  :  wx.Pen(colour = wx.RED, width = 2, style = wx.SOLID)
-            }
+        }
         
         # list contains instances of GraphicsSetItem
         self.itemsList = []
