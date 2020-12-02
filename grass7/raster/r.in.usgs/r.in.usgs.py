@@ -226,35 +226,35 @@ def main():
     usgs_product_dict = {
         "ned": {
             'product': 'National Elevation Dataset (NED)',
-                'dataset': {
+            'dataset': {
                     'ned1sec': (1. / 3600, 30, 100),
-                        'ned13sec': (1. / 3600 / 3, 10, 30),
+                    'ned13sec': (1. / 3600 / 3, 10, 30),
                         'ned19sec': (1. / 3600 / 9, 3, 10)
                     },
-                'subset': {},
-                'extent': [
+            'subset': {},
+            'extent': [
                     '1 x 1 degree',
-                        '15 x 15 minute'
+                    '15 x 15 minute'
                     ],
-                'format': 'IMG',
-                'extension': 'img',
-                'zip': True,
-                'srs': 'wgs84',
-                'srs_proj4': "+proj=longlat +ellps=GRS80 +datum=NAD83 +nodefs",
-                'interpolation': 'bilinear',
-                'url_split': '/'
+            'format': 'IMG',
+            'extension': 'img',
+            'zip': True,
+            'srs': 'wgs84',
+            'srs_proj4': "+proj=longlat +ellps=GRS80 +datum=NAD83 +nodefs",
+            'interpolation': 'bilinear',
+            'url_split': '/'
             },
         "nlcd": {
             'product': 'National Land Cover Database (NLCD)',
-                'dataset': {
+            'dataset': {
                     'National Land Cover Database (NLCD) - 2001': (1. / 3600, 30, 100),
-                        'National Land Cover Database (NLCD) - 2006': (1. / 3600, 30, 100),
+                    'National Land Cover Database (NLCD) - 2006': (1. / 3600, 30, 100),
                         'National Land Cover Database (NLCD) - 2011': (1. / 3600, 30, 100)
                     },
-                'subset': {
+            'subset': {
                     'Percent Developed Imperviousness',
-                        'Percent Tree Canopy',
-                        'Land Cover'
+                    'Percent Tree Canopy',
+                'Land Cover'
                     },
                 'extent': ['3 x 3 degree'],
                 'format': 'GeoTIFF',
@@ -267,33 +267,33 @@ def main():
             },
         "naip": {
             'product': 'USDA National Agriculture Imagery Program (NAIP)',
-                'dataset': {
+            'dataset': {
                     'Imagery - 1 meter (NAIP)': (1. / 3600 / 27, 1, 3)},
-                'subset': {},
-                'extent': [
+            'subset': {},
+            'extent': [
                     '3.75 x 3.75 minute',
                     ],
-                'format': 'JPEG2000',
-                'extension': 'jp2',
-                'zip': False,
-                'srs': 'wgs84',
-                'srs_proj4': "+proj=longlat +ellps=GRS80 +datum=NAD83 +nodefs",
-                'interpolation': 'nearest',
-                'url_split': '/'
+            'format': 'JPEG2000',
+            'extension': 'jp2',
+            'zip': False,
+            'srs': 'wgs84',
+            'srs_proj4': "+proj=longlat +ellps=GRS80 +datum=NAD83 +nodefs",
+            'interpolation': 'nearest',
+            'url_split': '/'
             },
         "lidar": {
             'product': 'Lidar Point Cloud (LPC)',
-                'dataset': {
+            'dataset': {
                     'Lidar Point Cloud (LPC)': (1. / 3600 / 9, 3, 10)},
-                'subset': {},
-                'extent': [''],
-                'format': 'LAS,LAZ',
-                'extension': 'las,laz',
-                'zip': True,
-                'srs': '',
-                'srs_proj4': "+proj=longlat +ellps=GRS80 +datum=NAD83 +nodefs",
-                'interpolation': 'nearest',
-                'url_split': '/'
+            'subset': {},
+            'extent': [''],
+            'format': 'LAS,LAZ',
+            'extension': 'las,laz',
+            'zip': True,
+            'srs': '',
+            'srs_proj4': "+proj=longlat +ellps=GRS80 +datum=NAD83 +nodefs",
+            'interpolation': 'nearest',
+            'url_split': '/'
             }
         }
 
@@ -604,12 +604,12 @@ def main():
     else:
         data_info = (
             "USGS file(s) to download:",
-                     "-------------------------",
-                     "Total download size:\t{size}",
-                     "Tile count:\t{count}",
-                     "USGS SRS:\t{srs}",
-                     "USGS tile titles:\n{tile}",
-                     "-------------------------",
+            "-------------------------",
+            "Total download size:\t{size}",
+            "Tile count:\t{count}",
+            "USGS SRS:\t{srs}",
+            "USGS tile titles:\n{tile}",
+            "-------------------------",
             )
         data_info = '\n'.join(data_info).format(size=total_size_str,
                                                 count=file_download_count,

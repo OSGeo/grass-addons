@@ -446,11 +446,11 @@ def main():
 
         proc[num-1] = grass.mapcalc_start(
             "$partial_n = ($data * $one_by_cost_sq) / $sum_of_1by_cost_sqs",
-                      partial_n = partial_n,
-                      data = data_value,
-                      one_by_cost_sq = one_by_cost_site_sq,
-                      sum_of_1by_cost_sqs = sum_of_1by_cost_sqs,
-                      quiet = True)
+            partial_n = partial_n,
+            data = data_value,
+            one_by_cost_sq = one_by_cost_site_sq,
+            sum_of_1by_cost_sqs = sum_of_1by_cost_sqs,
+            quiet = True)
 
         # stall to wait for the nth worker to complete,
         if num % workers is 0:
