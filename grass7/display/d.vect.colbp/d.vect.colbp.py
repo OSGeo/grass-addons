@@ -96,8 +96,8 @@ import operator
 import numpy as np
 
 def main():
-    import matplotlib #required by windows
-    matplotlib.use('wxAGG') #required by windows
+    import matplotlib  # required by windows
+    matplotlib.use('wxAGG')  # required by windows
     import matplotlib.pyplot as plt
 
     # input

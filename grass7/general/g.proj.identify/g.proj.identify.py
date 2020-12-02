@@ -59,7 +59,7 @@ def writeEPSGtoPEMANENT(epsg):
     gisdbase = env['GISDBASE']
     location = env['LOCATION_NAME']
     path = os.path.join(gisdbase, location, "PERMANENT","PROJ_EPSG")
-    if os.path.isfile(path): #if already file exist
+    if os.path.isfile(path):  # if already file exist
         if os.getenv('GRASS_OVERWRITE', False):
             try:
                 io = open(path,'w')

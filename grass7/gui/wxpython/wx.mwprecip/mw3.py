@@ -642,7 +642,7 @@ class Computor():
                         grass.warning('Path to file with dry-window definiton not exist; %s' % baseline.pathTofile)
                     for line in f:
                         st += line.replace("\n", "")
-                        if 'i' in line.split("\n")[0]:  #get baseline form interval
+                        if 'i' in line.split("\n")[0]:  # get baseline form interval
                             fromt = f.next()
                             if not chckTimeValidity(fromt):
                                 return False
@@ -739,7 +739,7 @@ class Computor():
                         return False
                     for line in f:
                         st += line.replace("\n", "")
-                        if 'i' in line.split("\n")[0]:  #get baseline  intervals
+                        if 'i' in line.split("\n")[0]:  # get baseline  intervals
                             fromt = f.next()
                             if not chckTimeValidity(fromt):
                                 return False
@@ -757,7 +757,7 @@ class Computor():
                             resu = database.connection.executeSql(sql, True, True)
                             resu += resu
 
-                        else:  #get baseline one moment
+                        else:  # get baseline one moment
                             time = line.split("\n")[0]
                             if not isTimeValid(time):
                                 grass.warning("Input data are not valid. Parameter 'baselitime'")

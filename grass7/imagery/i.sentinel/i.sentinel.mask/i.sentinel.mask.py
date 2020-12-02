@@ -277,8 +277,8 @@ def main ():
     cloud_threshold = options['cloud_threshold']
     shadow_threshold = options['shadow_threshold']
     raster_max = {}
-    check_cloud = 1 #by default the procedure finds clouds
-    check_shadow = 1 #by default the procedure finds shadows
+    check_cloud = 1  # by default the procedure finds clouds
+    check_shadow = 1  # by default the procedure finds shadows
 
     if options['cloud_raster']:
         cloud_raster = options['cloud_raster']

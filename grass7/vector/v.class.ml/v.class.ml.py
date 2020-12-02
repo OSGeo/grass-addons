@@ -604,7 +604,7 @@ def main(opt, flg):
         cls = classifiers[ind_optimize]
         msgr.message("Find the optimum training set.")
         best, Xbt, Ybt = optimize_training(cls, Xt, Yt,
-                                           labels, #{v: k for k, v in labels.items()},
+                                           labels,  # {v: k for k, v in labels.items()},
                                            scaler, decmp,
                                            num=num, maxiterations=1000)
         msg = "    - save the optimum training data set to: %s."

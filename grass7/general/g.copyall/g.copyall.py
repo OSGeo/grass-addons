@@ -76,7 +76,7 @@ def main():
     filter      = options['filter'] # prefix for copied maps
     filter_type = options['filter_type'] # prefix for copied maps
     prefix      = options['output_prefix'] # prefix for copied maps
-    datalist    = [] #list of GRASS data files to copy
+    datalist    = []  # list of GRASS data files to copy
     input       = ''
     output      = ''
     if grass.overwrite(): overwrite = True

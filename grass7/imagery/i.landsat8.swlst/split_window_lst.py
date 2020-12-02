@@ -160,7 +160,7 @@ class SplitWindowLST():
         Return a string representation of the basic Split Window LST equation
         """
         equation = ' > The algorithm\'s basic equation: ' + self._equation
-        return equation #+ '\n' + model
+        return equation  # + '\n' + model
 
     def _landcover_string_validity(self, string):
         """

@@ -65,7 +65,7 @@ def add_timestamp(mtl_filename, outname):
     metadata = Landsat8_MTL(mtl_filename)
 
     # required format is: day=integer month=string year=integer time=hh:mm:ss.dd
-    acquisition_date = str(metadata.date_acquired)  ### FixMe ###
+    acquisition_date = str(metadata.date_acquired)  # FixMe ###
     acquisition_date = datetime.datetime.strptime(acquisition_date, '%Y-%m-%d').strftime('%d %b %Y')
     acquisition_time = str(metadata.scene_center_time)[0:8]
     date_time_string = acquisition_date + ' ' + acquisition_time

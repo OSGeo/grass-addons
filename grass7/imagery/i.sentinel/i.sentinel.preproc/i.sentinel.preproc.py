@@ -602,7 +602,7 @@ def main ():
         elif aerosol_mod == 'Shettle model for background desert aerosol':
             text.write('4' + "\n") # Shettle aerosol model
         elif aerosol_mod == 'Biomass burning':
-            text.write('5' + "\n") #Biomass aerosol model
+            text.write('5' + "\n")  # Biomass aerosol model
         elif aerosol_mod == 'Stratospheric model':
             text.write('6' + "\n") # Stratospheric aerosol model
         # Visibility and/or AOD

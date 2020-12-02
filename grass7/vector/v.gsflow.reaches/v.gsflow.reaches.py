@@ -422,7 +422,7 @@ def main():
     # r.to.vect in=srtm_local_filled_grid out=srtm_local_filled_grid col=z type=area --o#
     # NOT SURE IF IT IS BEST TO USE MEAN ELEVATION OR TOP ELEVATION!!!!!!!!!!!!!!!!!!!!!!!
     v.db_addcolumn(map=reaches, columns='z_topo_mean double precision')
-    v.what_rast(map=reaches, raster=elevation, column='z_topo_mean')#, query_column='z')
+    v.what_rast(map=reaches, raster=elevation, column='z_topo_mean')  # , query_column='z')
     v.db_update(map=reaches, column='STRTOP', value='z_topo_mean -'+str(h_stream), quiet=True)
 
 

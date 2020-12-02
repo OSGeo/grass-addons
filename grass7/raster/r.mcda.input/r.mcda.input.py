@@ -149,7 +149,7 @@ def main():
 	input_rules = open(input_rules,"r")
 	tags = input_rules.readlines()   
 	
-	rules = []  #single rule (dictionary) in array
+	rules = []  # single rule (dictionary) in array
 	maps = []
 	rules = parser_4eMka2_rule(tags)
 ##	clean_rules(rules)

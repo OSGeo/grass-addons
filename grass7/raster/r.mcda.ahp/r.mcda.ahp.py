@@ -59,8 +59,8 @@ def calculateWeight(pairwise):
     maxindex = np.argmax(eigenvalues)
     eigenvalues = np.float32(eigenvalues)
     eigenvector = np.float32(eigenvector)
-    weight = eigenvector[:, maxindex] #extract vector from eigenvector with max vaue in eigenvalues
-    weight.tolist() #convert array(numpy)  to vector
+    weight = eigenvector[:, maxindex]  # extract vector from eigenvector with max vaue in eigenvalues
+    weight.tolist()  # convert array(numpy)  to vector
     weight = [w/sum(weight) for w in weight ]
     return weight, eigenvalues, eigenvector
     
@@ -75,7 +75,7 @@ def calculateMap(criteria, weight, outputMap):
     
 def Consistency(weight,eigenvalues):
     "Calculete Consistency index in accord with Saaty (1977)"
-    RI = [0.00, 0.00, 0.00,0.52,0.90,1.12,1.24,1.32,1.41]     #order of matrix: 0,1,2,3,4,5,6,7,8
+    RI = [0.00, 0.00, 0.00,0.52,0.90,1.12,1.24,1.32,1.41]  # order of matrix: 0,1,2,3,4,5,6,7,8
     order = len(weight)
     CI = (np.max(eigenvalues)-order)/(order-1)
     return CI/RI[order-1]

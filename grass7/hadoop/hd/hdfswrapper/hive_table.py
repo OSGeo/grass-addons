@@ -276,7 +276,7 @@ class HiveSpatial(object):
                     path = cell[1].split('/')
                     #print path
 
-                    path = '/'+'/'.join(path[3:]) #todo windows
+                    path = '/'+'/'.join(path[3:])  # todo windows
                     logging.info("path to table {} ".format(path))
                     return path
         return None

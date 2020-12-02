@@ -1160,7 +1160,7 @@ class BufferedWindow2(MapWindow, wx.Window):
             if 99 in idlist:
                 idlist.remove(99)
             if idlist != []:
-                self.dragid = idlist[0] #drag whatever is on top
+                self.dragid = idlist[0]  # drag whatever is on top
         else:
             pass
         

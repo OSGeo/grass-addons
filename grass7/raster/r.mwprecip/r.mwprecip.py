@@ -313,7 +313,7 @@ def intrpolatePoints(db):
         az = bearing(lat1, lon1, lat2, lon2)  # compute approx. azimut on sphere
         a += 1
 
-        if options['pmethod'].find('p') != -1:  ##compute per distance interval
+        if options['pmethod'].find('p') != -1:  # compute per distance interval
             while abs(dist) > step:  # compute points per step while is not achieve second node on link
                 lat1, lon1, az, backBrg = destinationPointWGS(lat1, lon1, az,
                                                               step)  # return interpol. point and set current point as starting point(for next loop), also return azimut for next point
@@ -323,7 +323,7 @@ def intrpolatePoints(db):
                     x) + "\n"  # set string for one row in table with interpol points
                 temp.append(out)
 
-        else:  ## compute by dividing distance to sub-distances
+        else:  # compute by dividing distance to sub-distances
             step1 = dist / (step + 1)
             for i in range(0, int(step)):  # compute points per step while is not achieve second node on link
                 lat1, lon1, az, backBrg = destinationPointWGS(lat1, lon1, az,
@@ -883,7 +883,7 @@ def computeBaselineFromTime(db):
                     resu = db.executeSql(sql, True, True)
                     tmp.append(resu)
 
-                else:  ##get baseline one moment
+                else:  # get baseline one moment
                     time = line.split("\n")[0]
                     ##validate input data
                     if not isTimeValid(time):
@@ -957,7 +957,7 @@ def computeBaselineFromTime(db):
                     resu = db.executeSql(sql, True, True)
                     resu += resu
 
-                else:  ##get baseline one moment
+                else:  # get baseline one moment
                     time = line.split("\n")[0]
                     if not isTimeValid(time):
                         grass.fatal("Input data is not valid. Parameter 'baselitime'")

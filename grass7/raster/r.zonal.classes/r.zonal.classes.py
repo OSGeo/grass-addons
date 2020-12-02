@@ -210,7 +210,7 @@ def main():
     if prop:
         # Get list of categories to output
         if classes_list:   # If list of classes provided by user
-            class_dict = {str(int(a)):'' for a in classes_list}  #To be sure it's string format
+            class_dict = {str(int(a)):'' for a in classes_list}  # To be sure it's string format
         else:
             class_dict = {}
         # Proportion of each category per zone

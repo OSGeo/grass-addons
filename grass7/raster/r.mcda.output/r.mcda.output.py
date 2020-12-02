@@ -110,8 +110,8 @@ def main():
     examples.append(example)
     MATRIX = list(map(list,list(zip(*examples))))
 
-    MATRIX = [r for r in MATRIX if not '?' in r] #remove all rows with almost one "?"
-    MATRIX = [list(i) for i in set(tuple(j) for j in MATRIX)] #remove duplicate example 
+    MATRIX = [r for r in MATRIX if not '?' in r]  # remove all rows with almost one "?"
+    MATRIX = [list(i) for i in set(tuple(j) for j in MATRIX)]  # remove duplicate example 
                 
     print("rows:%d - col:%d" % (len(MATRIX),len(MATRIX[0])))
     for r in range(len(MATRIX)):

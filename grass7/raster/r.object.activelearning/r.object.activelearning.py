@@ -131,16 +131,16 @@ def load_data(file_path, labeled=False, skip_header=1, scale=True):
 
     if skip_header != 0:
         header = data[0:skip_header,:]
-    data = data[skip_header:, :] #Remove header
+    data = data[skip_header:, :]  # Remove header
     data = data.astype(np.float)
 
-    ID = data[:,0] #get only row 0s
+    ID = data[:,0]  # get only row 0s
     if labeled:
-        y = data[:,1] #get only row 1
-        X = data[:,2:] #remove ID and label
+        y = data[:,1]  # get only row 1
+        X = data[:,2:]  # remove ID and label
     else:
         y = []
-        X = data[:,1:] #remove ID
+        X = data[:,1:]  # remove ID
 
     if scale:
         X = preprocessing.scale(X)

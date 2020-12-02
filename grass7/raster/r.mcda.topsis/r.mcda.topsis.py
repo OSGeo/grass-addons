@@ -55,7 +55,7 @@ import sys
 import grass.script as gscript
 from time import time  
 
-def standardizedNormalizedMatrix(attributes,weights): #step1 and step2
+def standardizedNormalizedMatrix(attributes,weights):  # step1 and step2
 	criteria = []
 	for criterion,weight in zip(attributes,weights):
 		gscript.mapcalc("critPow=pow(${criterion},2)",criterion=criterion,overwrite='True')
@@ -67,7 +67,7 @@ def standardizedNormalizedMatrix(attributes,weights): #step1 and step2
 	return criteria
 
 
-def idealPoints(criteria,preference): #step3
+def idealPoints(criteria,preference):  # step3
 	idelaPointsList = []
 	for c,p in zip(criteria,preference):
 		stats = gscript.parse_command("r.univar",map=c,flags='g')
@@ -96,7 +96,7 @@ def worstPoints(criteria,preference):
 	return worstPointsList
 	  
 	  
-def idealPointDistance(idelaPointsList,criteria): #step4a
+def idealPointDistance(idelaPointsList,criteria):  # step4a
 	distance = []
 	i = 0
 	for c,ip in zip(criteria,idelaPointsList):
@@ -109,7 +109,7 @@ def idealPointDistance(idelaPointsList,criteria): #step4a
 	gscript.run_command("g.remove", flags='f', type='raster', name=",".join(distance))
 	return 0
 
-def worstPointDistance(worstPointsList,criteria): #step4b
+def worstPointDistance(worstPointsList,criteria):  # step4b
 	distance = []
 	i = 0
 	for c,wp in zip(criteria,worstPointsList):
@@ -122,7 +122,7 @@ def worstPointDistance(worstPointsList,criteria): #step4b
 	gscript.run_command("g.remove", flags='f', type='raster', name=",".join(distance))
 
 
-def relativeCloseness(topsismap): #step5
+def relativeCloseness(topsismap):  # step5
 	gscript.mapcalc("${topsismap}=WorstPointDistance/(WorstPointDistance+IdealPointDistance)",\
 		topsismap=topsismap,overwrite='True')
 

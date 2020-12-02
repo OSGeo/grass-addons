@@ -124,7 +124,7 @@
 import sys
 import os
 import atexit
-import math #for function sqrt()
+import math  # for function sqrt()
 
 # import required grass modules
 import grass.script as grass

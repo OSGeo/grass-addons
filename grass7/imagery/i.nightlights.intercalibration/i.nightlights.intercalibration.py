@@ -292,7 +292,7 @@ def main():
     extend_region = flags['x']
     timestamps = not(flags['t'])
     zero = flags['z']
-    null = flags['n']  ### either zero or null, not both --- FixMe! ###
+    null = flags['n']  # either zero or null, not both --- FixMe! ###
     evaluation = flags['e']
     shell = flags['g']
 

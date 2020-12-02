@@ -121,8 +121,8 @@ def BuildFileISF(attributes, preferences, decision, outputMap, outputTxt):
 	examples.append(example)
 
 	MATRIX = list(map(list,list(zip(*examples))))
-	MATRIX = [r for r in MATRIX if not '?' in r] #remove all rows with almost one "?"
-	MATRIX = [list(i) for i in set(tuple(j) for j in MATRIX)] #remove duplicate example 
+	MATRIX = [r for r in MATRIX if not '?' in r]  # remove all rows with almost one "?"
+	MATRIX = [list(i) for i in set(tuple(j) for j in MATRIX)]  # remove duplicate example 
 	
 	for r in range(len(MATRIX)):
 		for c in range(len(MATRIX[0])):
@@ -160,7 +160,7 @@ def collect_examples (data):
 	"Collect examples values and put them in a matrix (list of lists) "
 	
 	matrix = []
-	data = [r for r in data if not '?' in r] #filter objects with " ?"
+	data = [r for r in data if not '?' in r]  # filter objects with " ?"
 #	data=[data.remove(r) for r in data if data.count(r)>1] 
 	start = (data.index(['**EXAMPLES'])+1)
 	end = data.index(['**END'])
@@ -289,10 +289,10 @@ def LowerApproximation (UnionClasses, Dom):
 		tmp = []
 		UClass = set([row[0] for row in union] )
 		for d in Dom:
-			if (UClass.issuperset(set(d['dominance']))): #if Union class is a superse of dominating/dominated set, =>single Loer approx.
+			if (UClass.issuperset(set(d['dominance']))):  # if Union class is a superse of dominating/dominated set, =>single Loer approx.
 				tmp.append(d['object'])
-		single = {'class':c, 'objects':tmp} #dictionary for lower approximation  -- 
-		LowApprox.append(single) #insert all Lower approximation in a list
+		single = {'class':c, 'objects':tmp}  # dictionary for lower approximation  -- 
+		LowApprox.append(single)  # insert all Lower approximation in a list
 		c += 1
 	return LowApprox
 
@@ -303,7 +303,7 @@ def UpperApproximation (UnionClasses, Dom):
 	UppApprox = []
 	single = dict()
 	for union in UnionClasses:
-		UnClass = [row[0] for row in union]  #single union class
+		UnClass = [row[0] for row in union]  # single union class
 		s = []
 		for d in Dom:
 		   if len(set(d['dominance']) & set(UnClass)) > 0:
@@ -352,9 +352,9 @@ def FindObjectCovered (rules, selected):
 		examples.append(rule['objectsCovered']) 
 
 	if len(examples) > 0:
-		examples = reduce(set.intersection,list(map(set,examples)))  #functional approach: intersect all lists if example is not empty
+		examples = reduce(set.intersection,list(map(set,examples)))  # functional approach: intersect all lists if example is not empty
 		examples = list(set(examples) & set([r[0] for r in selected]))
-	return examples #all examples covered from a single rule
+	return examples  # all examples covered from a single rule
 	
 		
 def Evaluate (elem,rules,G,selected,infosystem):
@@ -409,21 +409,21 @@ def Find_rules (B, infosystem, type_rule):
 	matrix = copy.deepcopy(infosystem['examples'])
 	criteria_num = len(infosystem['attributes'])
 	criteria = [r[1:-1] for r in matrix]
-	preference = [s['preference'] for s in infosystem['attributes'] ] #extract preference label
-	num_rules = 0 #total rules number for each lower approximation
-	G = copy.deepcopy(B)		#a set of objects from the given approximation
-	E = []		#a set  of rules covering set B (is a list of dictionary)
-	all_obj_cov_by_rules = [] #all objects covered by all rules in E
-	selected = copy.deepcopy(matrix) #storage reduct matrix by single elementary condition
+	preference = [s['preference'] for s in infosystem['attributes'] ]  # extract preference label
+	num_rules = 0  # total rules number for each lower approximation
+	G = copy.deepcopy(B)  # a set of objects from the given approximation
+	E = []  # a set  of rules covering set B (is a list of dictionary)
+	all_obj_cov_by_rules = []  # all objects covered by all rules in E
+	selected = copy.deepcopy(matrix)  # storage reduct matrix by single elementary condition
 	while (len(G) != 0 ):
-		rules = []	 #starting comples (single rule built from elementary conditions  )
-		S = copy.deepcopy(G)		 #set of objects currently covered by rule
+		rules = []  # starting comples (single rule built from elementary conditions  )
+		S = copy.deepcopy(G)  # set of objects currently covered by rule
 		control = 0
 		while (len(rules) == 0 or set(obj_cov_by_rules).issubset(B) == False):
-			obj_cov_by_rules = [] #set covered by rules
-			best = {'criterion':'','condition':'','sign':'','class':'','objectsCovered':'','label':'', 'type':''} #best candidate for elementary condition - start as empty
+			obj_cov_by_rules = []  # set covered by rules
+			best = {'criterion':'','condition':'','sign':'','class':'','objectsCovered':'','label':'', 'type':''}  # best candidate for elementary condition - start as empty
 			for c in range(1, criteria_num):
-				Cond = [r[c] for r in selected if  r[0] in S] #for each positive object from S create an elementary condition
+				Cond = [r[c] for r in selected if  r[0] in S]  # for each positive object from S create an elementary condition
 				for e in Cond:
 					if type_rule == 'one':
 						elem = Type_one_rule (c, e, preference, matrix)
@@ -433,11 +433,11 @@ def Find_rules (B, infosystem, type_rule):
 						elem = {'criterion':'','condition':'','sign':'','class':'','objectsCovered':'','label':'', 'type':''}
 					best = FindBestCondition(best, elem, rules, selected, G, infosystem)
 			if best not in rules:
-				rules.append(best)   #add the best condition to the complex 
+				rules.append(best)  # add the best condition to the complex 
 
 			for r in rules:
 				obj_cov_by_rules.append(r['objectsCovered'])
-			obj_cov_by_rules = list((reduce(set.intersection,list(map(set,obj_cov_by_rules))))) #reduce():Apply function of two arguments cumulatively to the items of iterable, from left to right, so as to reduce the iterable to a single value.
+			obj_cov_by_rules = list((reduce(set.intersection,list(map(set,obj_cov_by_rules)))))  # reduce():Apply function of two arguments cumulatively to the items of iterable, from left to right, so as to reduce the iterable to a single value.
 
 			S = list(set(S) & set(best['objectsCovered'] ))
 			control += 1
@@ -445,12 +445,12 @@ def Find_rules (B, infosystem, type_rule):
 #		rules=CheckMinimalCondition (rules,B,matrix)
 		
 		if rules not in E:
-			E.append(rules) #add the induced rule
+			E.append(rules)  # add the induced rule
 			num_rules += 1
 		all_obj_cov_by_rules = list(set(all_obj_cov_by_rules) | set(obj_cov_by_rules))
 		
-		G = list(set(B)-set(all_obj_cov_by_rules)) #remove example coverred by all finded rule -- this operation is a set difference
-		selected = [o  for o in selected if  not  o[0]  in all_obj_cov_by_rules] #reduct matrix, remove object coverred by all finded rule
+		G = list(set(B)-set(all_obj_cov_by_rules))  # remove example coverred by all finded rule -- this operation is a set difference
+		selected = [o  for o in selected if  not  o[0]  in all_obj_cov_by_rules]  # reduct matrix, remove object coverred by all finded rule
 		num_rules += 1
 		
 	return E
@@ -522,12 +522,12 @@ def Parser_mapcalc(RULES, outputMap):
 	
 	for R in RULES: 
 		formula = "if("
-		for e in R[:-1]: #build a mapcalc formula
+		for e in R[:-1]:  # build a mapcalc formula
 			formula += "(%s %s %.4f ) && " % (e['label'], e['sign'], e['condition'] )
 		formula += "(%s %s %.4f ),%d,null())" % (R[-1]['label'],R[-1]['sign'], R[-1]['condition'],i )
-		mappa = "r%d_%s_%d" % (i, R[0]['type'], R[0]['class'] ) #build map name for mapcalc output
-		category.append({'id':i, 'type': R[0]['type'], 'class':R[0]['class']}) #extract category name
-		maps.append(mappa) #extract maps name
+		mappa = "r%d_%s_%d" % (i, R[0]['type'], R[0]['class'] )  # build map name for mapcalc output
+		category.append({'id':i, 'type': R[0]['type'], 'class':R[0]['class']})  # extract category name
+		maps.append(mappa)  # extract maps name
 		grass.mapcalc(mappa + "=" + formula)
 		i += 1
 	mapstring = ",".join(maps)
@@ -584,8 +584,8 @@ def main():
 	Dominated = DominatedSet(infosystem)
 ##	upward union class
 	print("elaborate upward union")
-	Lu = LowerApproximation(UpwardUnionClass, Dominating) #lower approximation of upward union for type 1 rules
-	Uu = UpperApproximation(UpwardUnionClass,Dominated ) #upper approximation of upward union
+	Lu = LowerApproximation(UpwardUnionClass, Dominating)  # lower approximation of upward union for type 1 rules
+	Uu = UpperApproximation(UpwardUnionClass,Dominated )  # upper approximation of upward union
 	UpwardBoundary = Boundaries(Uu, Lu)
 ##	downward union class
 	print("elaborate downward union")

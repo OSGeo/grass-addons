@@ -291,7 +291,7 @@ class TextInput(wx.Panel):
         self.firstDirInp = False
 
     def setTmpPath(self, event):
-        if self.firstDirInp is False: #intitialization
+        if self.firstDirInp is False:  # intitialization
             self.firstDirInp = True
             if self.tmpPath is None:
                 self.tmpPath = os.path.join(self.context.getTmpPath(), 'tmp%s' %randomWord(3))

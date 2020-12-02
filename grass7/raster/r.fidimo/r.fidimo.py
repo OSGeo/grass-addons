@@ -193,7 +193,7 @@ import os
 import atexit
 import time
 import sqlite3
-import math #for function sqrt()
+import math  # for function sqrt()
 import csv
 import random
 
@@ -274,7 +274,7 @@ def main():
     if options['n_source'] and flags['r']:
         grass.fatal(_("Realisation (flag: 'r') in combination with random source populations (n_source) not possible. Please choose either random source populations or provide source populations to calculate realisation"))
 
-    n_source = options['n_source'] #number of random source points
+    n_source = options['n_source']  # number of random source points
     source_populations = options['source_populations']
 
 
@@ -528,7 +528,7 @@ def main():
                         distance_raster_buffered = "distance_raster_buffered_tmp_%d" % os.getpid())
         # Getting flow direction and stream segments
         grass.run_command("r.watershed",
-                        flags = 'm', #depends on memory!! #
+                        flags = 'm',  # depends on memory!! #
                         elevation = "distance_raster_buffered_div_tmp_%d" % os.getpid(),
                         drainage = "drainage_tmp_%d" % os.getpid(),
                         stream = "stream_rwatershed_tmp_%d" % os.getpid(),
@@ -538,7 +538,7 @@ def main():
     else:
         # Getting flow direction and stream segments
         grass.run_command("r.watershed",
-                        flags = 'm', #depends on memory!! #
+                        flags = 'm',  # depends on memory!! #
                         elevation = "distance_raster_buffered_tmp_%d" % os.getpid(),
                         drainage = "drainage_tmp_%d" % os.getpid(),
                         stream = "stream_rwatershed_tmp_%d" % os.getpid(),
@@ -955,7 +955,7 @@ def main():
 
 
                         # barrier_effect = Length of Effect of barriers (linear decrease up to max (barrier_effect)
-                        barrier_effect = 200 #units as in mapset (m)
+                        barrier_effect = 200  # units as in mapset (m)
 
                         # Calculating distance from barriers (up- and downstream)
                         grass.run_command("r.cost",

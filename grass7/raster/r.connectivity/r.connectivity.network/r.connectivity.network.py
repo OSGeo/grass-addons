@@ -269,7 +269,7 @@ def main():
                       " (use PYTHONPATH variable)."))
 
     import matplotlib
-    matplotlib.use('wxAGG') #required by windows
+    matplotlib.use('wxAGG')  # required by windows
     import matplotlib.pyplot as plt
 
     #Input variables

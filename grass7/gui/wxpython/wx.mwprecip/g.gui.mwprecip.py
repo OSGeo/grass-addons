@@ -887,7 +887,7 @@ class MWMainFrame(wx.Frame):
         path = OnSaveAs(self)
         if not self.OnSaveSettings(toFile=False):
             return
-        if not self.exportDMgr.chkprecip.GetValue(): #if export only data from sql without computing
+        if not self.exportDMgr.chkprecip.GetValue():  # if export only data from sql without computing
             attrTmp1 = ['link.linkid']
             attrTmp2 = []
             attrTmp3 = []

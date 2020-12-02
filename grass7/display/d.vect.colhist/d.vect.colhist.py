@@ -48,8 +48,8 @@ import sys
 import grass.script as gscript
 
 def main():
-    import matplotlib #required by windows
-    matplotlib.use('wxAGG') #required by windows
+    import matplotlib  # required by windows
+    matplotlib.use('wxAGG')  # required by windows
     import matplotlib.pyplot as plt
 
     vector = options['map']

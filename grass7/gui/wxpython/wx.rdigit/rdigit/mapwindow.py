@@ -339,7 +339,7 @@ class RDigitWindow(BufferedWindow):
                 if self.toolbar.GetAction('type') == 'boundary': 
                     x0,y0 = self.polycoords[0]
                     for coord in self.polycoords:
-                        x,y = coord #self.Cell2Pixel(coord)
+                        x,y = coord  # self.Cell2Pixel(coord)
                         c = wx.Point(x,y)
                         self.existingCoords.append(c)
                     
@@ -352,7 +352,7 @@ class RDigitWindow(BufferedWindow):
 
                 if self.toolbar.GetAction('type') == 'line':
                     for coord in self.polycoords:
-                        x,y = coord #self.Cell2Pixel(coord)
+                        x,y = coord  # self.Cell2Pixel(coord)
                         c = wx.Point(x,y)
                         self.existingCoords.append(c)
 

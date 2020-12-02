@@ -630,7 +630,7 @@ class GrassMapBuilderEsriToEsri(GrassMapBuilder):
         cols = cols[:-1]
 
         if not wkid:
-            wkid = '4326' #TODO g.proj.identify3
+            wkid = '4326'  # TODO g.proj.identify3
         header = ('{"objectIdFieldName":"objectid",'
                  '"globalIdFieldName":"",'
                  '"geometryType":"%s",'

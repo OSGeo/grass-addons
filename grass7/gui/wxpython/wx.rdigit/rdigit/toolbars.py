@@ -405,7 +405,7 @@ class RDigitToolbar(BaseToolbar):
         #if self.layers[selection] == self.mapLayer:
             #return
         
-        if selection == -1: #FIXME
+        if selection == -1:  # FIXME
             # deactive map layer for editing 
             self.StopEditing()
 
