@@ -908,7 +908,7 @@ def computeBaselineFromTime(db):
         ## sum all baseline per every linkid from get baseline dataset(next step avg)
         for dataset in tmp:
             mydict = {int(rows[0]): float(rows[1]) for rows in dataset}
-            if i == True:
+            if i:
                 mydict1 = mydict
                 i = False
                 continue

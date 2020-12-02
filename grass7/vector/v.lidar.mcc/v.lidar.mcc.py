@@ -217,7 +217,7 @@ def main():
         while (convergence > j ):
             grass.verbose("Number of input points in iteration " + str(i) + ": " + str(n_input) )
             # Run v.outlier
-            if flag_n == False:
+            if not flag_n:
                 grass.run_command('v.outlier',
                     input=nc_points, output=temp_ncout, outlier=temp_ng,
                     ew_step=xs_s, ns_step=ys_s, lambda_=f, threshold=t,

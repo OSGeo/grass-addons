@@ -59,7 +59,7 @@ class IRDigit:
     def __del__(self):
         Debug.msg(1, "IRDigit.__del__()")
         
-        if self.saveMap == True:
+        if self.saveMap:
             for obj in self.objects:
                 if obj.ftype == GV_BOUNDARY:
                     self.polyfile.write("AREA\n");

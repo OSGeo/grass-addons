@@ -962,7 +962,7 @@ def main(opts, flgs):
     if(opts['output_tev']) != "":        
         tev(opts, flgs)
 
-    if flgs['r'] == True:
+    if flgs['r']:
          remove_map(opts, flgs)
 
 

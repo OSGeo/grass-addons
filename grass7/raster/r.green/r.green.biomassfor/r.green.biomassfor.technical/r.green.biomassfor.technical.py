@@ -361,7 +361,7 @@ def main(opts, flgs):
     print("Total bioenergy stimated (Mwh): %.2f" % np.nansum(T))
 
 
-    if flgs['r'] == True:
+    if flgs['r']:
          remove_map(opts, flgs)
 
 

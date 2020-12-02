@@ -1929,7 +1929,7 @@ class GraphicsSet:
             if self.setStatusFunc is not None:
                 self.setStatusFunc(item, itemOrderNum)
             
-            if item.GetPropertyVal("hide") == True:
+            if item.GetPropertyVal("hide"):
                 itemOrderNum += 1
                 continue
             

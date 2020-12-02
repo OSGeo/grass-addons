@@ -746,7 +746,7 @@ def extract_pixels(response, predictors, lowmem=False, na_rm=False):
 
     # remove samples containing NaNs
     if na_rm is True:
-        if np.isnan(training_data).any() == True:
+        if np.isnan(training_data).any():
             gs.message('Removing samples with NaN values in the raster feature variables...')
         training_labels = training_labels[~np.isnan(training_data).any(axis=1)]
         is_train = is_train[~np.isnan(training_data).any(axis=1)]
@@ -817,7 +817,7 @@ def extract_points(gvector, grasters, field, na_rm=False):
 
     # remove samples containing NaNs
     if na_rm is True:
-        if np.isnan(X).any() == True:
+        if np.isnan(X).any():
             gs.message('Removing samples with NaN values in the raster feature variables...')
 
         y = y[~np.isnan(X).any(axis=1)]

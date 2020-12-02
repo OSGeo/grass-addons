@@ -96,7 +96,7 @@ def main():
     tmp = grass.tempfile()
 
     # check for LatLong location
-    if grass.locn_is_latlong() == True:
+    if grass.locn_is_latlong():
         grass.fatal("Module works only in locations with cartesian coordinate system")
 
     # check if input file exists

@@ -160,7 +160,7 @@ class Nnbathy_vector(Nnbathy):
                     pnt = VectorTopo(options['input'].split('@')[0])
                     pnt.open(mode='r')
                     check = pnt.read(1)
-                    if check.is2D == True:
+                    if check.is2D:
                         #fout.write(parts[0]+' '+parts[1]+' '+parts[3])
                         fout.write('{} {} {}'.format(parts[0],parts[1],parts[3]))
                     else:
