@@ -118,7 +118,7 @@ class IsisMapTemplate(IterableUserDict):
            if k != None:               
               myk = string.rjust(k, 30)
               myv = string.ljust(self[k], 20)
-              out.write("%s = %s\n"%(myk,myv))
+              out.write("%s = %s\n" %(myk,myv))
        out.write("End_Group\nEnd")
        
 
@@ -127,16 +127,16 @@ def main():
     outfile = options['out']
     body = options['body']
     pj = grasslib.G_get_projinfo()
-    if options['outres'] and options['restype'] == 'mpp': isis3['PixelResolution'] = "%f <meters>"%float(options['outres'])
-    if options['outres'] and options['restype'] == 'ppd': isis3['Scale'] = "%f <pixel/degree>"%float(options['outres'])
+    if options['outres'] and options['restype'] == 'mpp': isis3['PixelResolution'] = "%f <meters>" %float(options['outres'])
+    if options['outres'] and options['restype'] == 'ppd': isis3['Scale'] = "%f <pixel/degree>" %float(options['outres'])
     isis3['TargetName'] = body
     if flags['a']:
         ret = grass.start_command("g.region", flags="gl", stdout = subprocess.PIPE)
         exec(ret.communicate()[0])
-        isis3['MinimumLatitude'] = "%f"%min(se_lat,sw_lat)
-        isis3['MaximumLatitude'] = "%f"%max(ne_lat,nw_lat)
-        isis3['MinimumLongitude'] = "%f"%min(sw_long,nw_long)
-        isis3['MaximumLongitude'] = "%f"%max(se_long,ne_long)
+        isis3['MinimumLatitude'] = "%f" %min(se_lat,sw_lat)
+        isis3['MaximumLatitude'] = "%f" %max(ne_lat,nw_lat)
+        isis3['MinimumLongitude'] = "%f" %min(sw_long,nw_long)
+        isis3['MaximumLongitude'] = "%f" %max(se_long,ne_long)
         
     for p in paradict.keys():
         if grasslib.G_find_key_value(p, pj):
@@ -149,7 +149,7 @@ def main():
     isis3mt = IsisMapTemplate(isis3)
     of = open(outfile,'w')
     isis3mt.dump(of)
-    sys.stderr.write("Done writing %s ISIS3 MapTemplate file\n"%outfile)     
+    sys.stderr.write("Done writing %s ISIS3 MapTemplate file\n" %outfile)     
     
 if __name__ == "__main__":
     options, flags = grass.parser()

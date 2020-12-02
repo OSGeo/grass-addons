@@ -267,9 +267,9 @@ class CoorWindow(wx.Dialog):
         print coor
         
         self.x, self.y = coor
-        self.x, self.y = "%0.3f"%self.x, "%0.3f"%self.y
+        self.x, self.y = "%0.3f" %self.x, "%0.3f" %self.y
         
-        self.text_values.SetLabel("Easting=%s, Northing=%s"%(self.x, self.y))
+        self.text_values.SetLabel("Easting=%s, Northing=%s" %(self.x, self.y))
         self.mapwin.UnregisterMouseEventHandler(wx.EVT_LEFT_DOWN)
         event.Skip()
 

@@ -168,10 +168,10 @@ def main():
     try:
         if flags['n']:
             gscript.run_command('r.stats', overwrite=True, flags='c', 
-                                input='%s,%s'%(zone_map,raster), output=tmpfile, separator=separator) # Consider null values in R.STATS
+                                input='%s,%s' %(zone_map,raster), output=tmpfile, separator=separator) # Consider null values in R.STATS
         else:
             gscript.run_command('r.stats', overwrite=True, flags='cn', 
-                                input='%s,%s'%(zone_map,raster), output=tmpfile, separator=separator) # Do not consider null values in R.STATS
+                                input='%s,%s' %(zone_map,raster), output=tmpfile, separator=separator) # Do not consider null values in R.STATS
         gscript.message(_("r.stats command finished..."))
     except:
         gscript.fatal(_("The execution of r.stats failed"))
@@ -250,14 +250,14 @@ def main():
     header = ['cat',]
     if mode:
         if prefix:
-            header.append('%s_mode'%prefix)
+            header.append('%s_mode' %prefix)
         else:
             header.append('mode')
     if prop:
         if prefix:
-            [header.append('%s_prop_%s'%(prefix,cl)) for cl in class_list]
+            [header.append('%s_prop_%s' %(prefix,cl)) for cl in class_list]
         else:
-            [header.append('prop_%s'%cl) for cl in class_list]
+            [header.append('prop_%s' %cl) for cl in class_list]
     # Values
     value_dict = {}
     for ID in id_list:
@@ -267,7 +267,7 @@ def main():
                 value_dict[ID].append(modalclass_dict[ID])
         if prop:
             for cl in class_list:
-                value_dict[ID].append(proportion_dict[ID]['%s'%cl])
+                value_dict[ID].append(proportion_dict[ID]['%s' %cl])
     # WRITE OUTPUT
     if csvfile:
         with open(csvfile, 'w', newline='') as outfile:

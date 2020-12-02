@@ -147,7 +147,7 @@ def main(options, flags):
             r_what.inputs.map = entry[0]
             r_what.inputs.coordinates = [x,y]
             r_what.run()
-            out = "%s%s%s"%(id_, separator, r_what.outputs.stdout)
+            out = "%s%s%s" %(id_, separator, r_what.outputs.stdout)
 
             sys.stdout.write(out)
 

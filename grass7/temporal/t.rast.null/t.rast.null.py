@@ -97,7 +97,7 @@ def main():
         mod.inputs.map = mapp.get_id()
         process_queue.put(mod)
 
-        if count%10 == 0:
+        if count %10 == 0:
             gscript.percent(count, num_maps, 1)
 
     # Wait for unfinished processes

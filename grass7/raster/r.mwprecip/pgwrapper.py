@@ -103,7 +103,7 @@ class pgwrapper:
                         sql_update_col = 'UPDATE "' + table + '" SET ' + parse
                 else:
                         sql_update_col = 'UPDATE "' + table + '" SET ' + parse + ' WHERE ' + where
-                print("upcol %s"%sql_update_col)      
+                print("upcol %s" %sql_update_col)      
                 # Excute the SQL statement.
                 self.cursor.execute(sql_update_col)
                 
