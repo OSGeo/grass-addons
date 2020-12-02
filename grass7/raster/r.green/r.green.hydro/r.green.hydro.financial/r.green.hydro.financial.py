@@ -863,7 +863,8 @@ def economic2segment(economic, segment, basename='eco_',
                                                              cpid=seg_pid,
                                                              pid=pid)))
                 if len(scats) != 1:
-                    import ipdb; ipdb.set_trace()
+                    import ipdb
+                    ipdb.set_trace()
                 print('segment found, ', end='')
                 # TODO: this is not efficient should be done in one step
                 # to avoid to call several time the db update
