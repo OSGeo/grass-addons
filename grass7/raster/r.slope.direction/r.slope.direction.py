@@ -183,7 +183,7 @@ def main():
         'degree_45': [1, 2, 3, 4, 5, 6, 7],
         'degree': [45, 90, 135, 180, 225, 270, 315],
         'bitmask': [1, 8, 7, 6, 5, 4, 3]
-        }
+    }
 
     slope_measure_dict = {
         'difference': """\n{gradient}={abs}({elev}-{elev_in})""",

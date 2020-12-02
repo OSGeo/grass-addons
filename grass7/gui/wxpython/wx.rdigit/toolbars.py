@@ -29,7 +29,7 @@ rdigitIcons = {
     'delCmd': MetaIcon(img = 'layer-remove',
                             label = _('Delete selected map layer')),
 
-    }
+}
 
 class RDigitMapToolbar(BaseToolbar):
     """!RDigit Map toolbar """

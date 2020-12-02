@@ -243,7 +243,7 @@ def main():
             'srs_proj4': "+proj=longlat +ellps=GRS80 +datum=NAD83 +nodefs",
             'interpolation': 'bilinear',
             'url_split': '/'
-            },
+        },
         "nlcd": {
             'product': 'National Land Cover Database (NLCD)',
             'dataset': {
@@ -264,7 +264,7 @@ def main():
                 'srs_proj4': "+proj=longlat +ellps=GRS80 +datum=NAD83 +nodefs",
                 'interpolation': 'nearest',
                 'url_split': '/'
-            },
+        },
         "naip": {
             'product': 'USDA National Agriculture Imagery Program (NAIP)',
             'dataset': {
@@ -280,7 +280,7 @@ def main():
             'srs_proj4': "+proj=longlat +ellps=GRS80 +datum=NAD83 +nodefs",
             'interpolation': 'nearest',
             'url_split': '/'
-            },
+        },
         "lidar": {
             'product': 'Lidar Point Cloud (LPC)',
             'dataset': {
@@ -294,8 +294,8 @@ def main():
             'srs_proj4': "+proj=longlat +ellps=GRS80 +datum=NAD83 +nodefs",
             'interpolation': 'nearest',
             'url_split': '/'
-            }
         }
+    }
 
     # Set GRASS GUI options and flags to python variables
     gui_product = options['product']
@@ -610,7 +610,7 @@ def main():
             "USGS SRS:\t{srs}",
             "USGS tile titles:\n{tile}",
             "-------------------------",
-            )
+        )
         data_info = '\n'.join(data_info).format(size=total_size_str,
                                                 count=file_download_count,
                                                 srs=product_srs,
@@ -741,7 +741,7 @@ def main():
                           " used {used} existing tiles").format(
             used=used_existing_extracted_tiles_num,
             extracted=extracted_tiles_num
-            ))
+        ))
         if old_extracted_tiles_num:
             gscript.verbose(_("Found {removed} existing tiles older"
                               " than the corresponding downloaded archive").format(
@@ -849,7 +849,7 @@ def main():
                       " used {used} existing tiles").format(
         used=used_existing_imported_tiles_num,
         imported=imported_tiles_num
-        ))
+    ))
 
     # if control variables match and multiple files need to be patched,
     # check product resolution, run r.patch

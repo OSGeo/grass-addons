@@ -599,11 +599,11 @@ class SplitWindowLST():
                 avg_lse = self._compute_average_emissivity(
                     emissivity_t10,
                     emissivity_t11,
-                    )
+                )
                 delta_lse = self._compute_delta_emissivity(
                     emissivity_t10,
                     emissivity_t11,
-                    )
+                )
         except:
             pass
 
@@ -627,7 +627,7 @@ class SplitWindowLST():
             b7=b7,
             DUMMY_T10=DUMMY_MAPCALC_STRING_T10,
             DUMMY_T11=DUMMY_MAPCALC_STRING_T11,
-            )
+        )
 
         return mapcalc
 
