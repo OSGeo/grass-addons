@@ -138,9 +138,9 @@ def main():
 
     if format == 'gpx':
         # short circuit, we have what we came for.
-#todo
-#        grass.try_remove(output)
-#        os.rename(tmp_gpx, output)
+        #todo
+        #        grass.try_remove(output)
+        #        os.rename(tmp_gpx, output)
         grass.verbose("Fast exit.")
         sys.exit()
 

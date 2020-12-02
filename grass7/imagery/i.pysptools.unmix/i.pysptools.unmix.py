@@ -237,19 +237,19 @@ def main():
         pass
 
     if extraction_method == 'NFINDR':
-    # Extract endmembers from valid pixels using NFINDR function from pysptools
+        # Extract endmembers from valid pixels using NFINDR function from pysptools
         gs.verbose('Extracting endmembers using NFINDR...')
         nfindr = eea.NFINDR()
         E = nfindr.extract(img, endmember_n, maxit=maxit, normalize=False,
                            ATGP_init=atgp_init, mask=mask)
     elif extraction_method == 'PPI':
-    # Extract endmembers from valid pixels using PPI function from pysptools
+        # Extract endmembers from valid pixels using PPI function from pysptools
         gs.verbose('Extracting endmembers using PPI...')
         ppi = eea.PPI()
         E = ppi.extract(img, endmember_n, numSkewers=10000, normalize=False,
                         mask=mask)
     elif extraction_method == 'FIPPI':
-    # Extract endmembers from valid pixels using FIPPI function from pysptools
+        # Extract endmembers from valid pixels using FIPPI function from pysptools
         gs.verbose('Extracting endmembers using FIPPI...')
         fippi = eea.FIPPI()
         # q and maxit can be None according to manual, but does not work

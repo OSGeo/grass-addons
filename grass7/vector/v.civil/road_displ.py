@@ -653,10 +653,10 @@ class Displaced(object):
         for d_line in self.displines:
             pnt = d_line.find_cutoff(r_pnt)
             if d_line.left:
-#                if pnt is not None:
+                #                if pnt is not None:
                 list_pnts_d_left.append(pnt)
             else:
-#                if pnt is not None:
+                #                if pnt is not None:
                 list_pnts_d_right.append(pnt)
         return [list_pnts_d_left, list_pnts_d_right]
 

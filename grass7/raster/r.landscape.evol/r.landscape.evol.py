@@ -470,7 +470,7 @@ def landscapeEvol(m, o, p, q, res, s, f):
            # S=topographic slope [degrees]
            # m = transport coefficient for upslope area [unitless]
            # n transport coefficient for slope [unitless]
-#SLOPE VERSISON
+        #SLOPE VERSISON
         e1 = '''${qsx}=${K}*${C}*${P} * exp(${manningn}, -1) * 9810. * \
         exp((((${rain}/1000.)*${flowacc})/(0.595*${stormtimet})), \
         graph(${flowacc}, ${exp_m1a},${exp_m1b}, ${exp_m2a},${exp_m2b}) ) * \

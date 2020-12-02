@@ -322,7 +322,7 @@ def main():
     #for links
     if options['type'].find('l')!=-1:
         if options['vector'].find('l')!=-1:
-  #connect to line layer
+          #connect to line layer
             ogr='link_ogr'
             nat="link_nat"
             layer='link'

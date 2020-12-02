@@ -210,8 +210,8 @@ def CreateFileName(outputfile):
 
 def main():
 
-#options = {"species":"species1@plantspecies,species2","species_name":"", "evp_maps":"bio_1@climate,bio_2@climate,bio_3@climate", "alias_names":"BIO1,BIO2,bio3", "evp_cat":"tmpcategory@plantspecies","alias_cat":"categ","bgr_output":"swd_bgr.csv", "species_output":"swd_spec.csv", "nbgp":1000, "bgp":"", "nodata":-9999}
-#flags = {"e":False, "h":False}
+    #options = {"species":"species1@plantspecies,species2","species_name":"", "evp_maps":"bio_1@climate,bio_2@climate,bio_3@climate", "alias_names":"BIO1,BIO2,bio3", "evp_cat":"tmpcategory@plantspecies","alias_cat":"categ","bgr_output":"swd_bgr.csv", "species_output":"swd_spec.csv", "nbgp":1000, "bgp":"", "nodata":-9999}
+    #flags = {"e":False, "h":False}
 
     #--------------------------------------------------------------------------
     # Variables

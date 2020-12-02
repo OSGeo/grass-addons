@@ -100,7 +100,7 @@ except:
         sys.exit("grass.script can't be imported.")
 
 def main():
-############################################### leggo variabili###################################
+    ############################################### leggo variabili###################################
     r_elevation = options['dem'].split('@')[0]
     imme = options['imme']
     incl = options['incl']
@@ -218,7 +218,7 @@ def main():
     incl2 = options['incl2']
     grass.message('SMR index done!')
     if (imme2 != '' and incl2 != ''):
-#calcola trend del cuneo
+        #calcola trend del cuneo
         grass.message('Parameter set for SMR_wedge')
         grass.message('Starting to calculate SMR_wedge index')
         grass.message('Waiting...')
@@ -330,7 +330,7 @@ def main():
 
     TC = options['tc']
     if (TC != ''):
-# calcolo DELTA=aspect-immersione
+        # calcolo DELTA=aspect-immersione
         grass.mapcalc("delta = aspects_1 - $imme",
             imme = imme ,
             overwrite = True ,

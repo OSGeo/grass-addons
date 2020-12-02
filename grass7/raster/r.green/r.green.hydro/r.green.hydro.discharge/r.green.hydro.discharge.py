@@ -328,7 +328,7 @@ def main(options, flags):
     else:
         msgr.warning("No formula for the MVF")
     if corr_fact:
-    # if corr_fact coumpute the environemtal flow else the minimum flow"
+        # if corr_fact coumpute the environemtal flow else the minimum flow"
         command = '%s=if(not(%s), %s, %s*%s)' % (env_area, min_flow,
                                                  corr_fact*min_flow)
 

@@ -54,12 +54,12 @@ def productivity(opts,
                  tree_diam, tree_vol, forest_roads, main_roads):
     # return a dictionary with the productivity maps as key and
     # the cost form the GUI as value
-#    if tree_diam == '':
-#        tree_diam="99999"
-#    if tree_vol == '':
-#        tree_vol="9.999"
-#    if soilp2_map == '':
-#        soilp2_map="99999"
+    #    if tree_diam == '':
+    #        tree_diam="99999"
+    #    if tree_vol == '':
+    #        tree_vol="9.999"
+    #    if soilp2_map == '':
+    #        soilp2_map="99999"
     pid = os.getpid()
     dhp = opts['dhp']
     #FIXME: to remove this big list of temporary file

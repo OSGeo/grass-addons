@@ -335,11 +335,11 @@ def main():
         if not flags['r']:
             #  exp(3,2) is 3^2  etc.  as is pow(3,2)
             # r.mapcalc "1by_cost_site_sqrd.$NUM =  1.0 / exp(cost_site.$NUM , $FRICTION)"
-#      EXPRESSION="1.0 / pow(cost_site.$NUM $DIVISOR, $FRICTION )"
+            #      EXPRESSION="1.0 / pow(cost_site.$NUM $DIVISOR, $FRICTION )"
             expr = '1.0 / pow($cost_n / ' + str(divisor) + ', $friction)'
         else:
             # use log10() or ln() ?
-#      EXPRESSION="1.0 / ( pow(cost_site.$NUM, $FRICTION) * log (cost_site.$NUM) )"
+            #      EXPRESSION="1.0 / ( pow(cost_site.$NUM, $FRICTION) * log (cost_site.$NUM) )"
             expr = '1.0 / ( pow($cost_n, $friction) * log($cost_n) )"'
 
         grass.debug("r.mapcalc expression is: [%s]" % expr)

@@ -250,7 +250,7 @@ def check_plant(args, range_plant, distance, start, end, rank, cat,
     len_min = range_plant[0]*math.cos(theta)
     if count < 100:
         if len_p > len_plant + 2*dis:
-        # if (end-start) > len_plant + 2*distance:
+            # if (end-start) > len_plant + 2*distance:
             if not(p_max):
                 x_min = find_optimal(args, (len_min, len_plant),
                                      (start+dis, end-dis))
@@ -348,8 +348,8 @@ def find_segments(river, discharge, dtm, range_plant, distance, p_max):
         line, prog, h, q = build_array(line, raster_q, raster_dtm)
         #pdb.set_trace()
         if len(line) > 2:
-#            import ipdb; ipdb.set_trace()
-#        else:
+            #            import ipdb; ipdb.set_trace()
+            #        else:
             # import pdb; pdb.set_trace()
             plants = recursive_plant((prog, h, q), range_plant, distance,
                                      prog[0], prog[-1],

@@ -131,7 +131,7 @@ def cleanup():
 
 def main():
 
-#set options
+    #set options
     elevmap = options['elevation']          # input
     slope = options['slope']                # input
     aspect = options['aspect']              # input

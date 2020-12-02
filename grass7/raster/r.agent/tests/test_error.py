@@ -5,7 +5,7 @@ import unittest2 as unittest
 from libagent import error
 
 class TestOurExceptions(unittest.TestCase):
-#    def setUp(self):
+    #    def setUp(self):
 
     def raise_base(context, message):
         raise error.Error(context, message)
