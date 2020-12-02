@@ -440,15 +440,15 @@ end
     msg(locals(), _("Value range: $min - $max"))
 
     colorschemes = {
-        "blue-red":		("0:0:255",	"255:0:0"),
-        "red-blue":		("255:0:0",	"0:0:255"),
-        "green-red":	("0:255:0",	"255:0:0"),
-        "red-green":	("255:0:0",	"0:255:0"),
-        "blue-green":	("0:0:255",	"0:255:0"),
-        "green-blue":	("0:255:0",	"0:0:255"),
-        "cyan-yellow":	("0:255:255",	"255:255:0"),
-        "yellow-cyan":	("255:255:0",	"0:255:255"),
-        "custom_gradient":	(startcolor,	endcolor)
+        "blue-red":  ("0:0:255", "255:0:0"),
+        "red-blue":  ("255:0:0", "0:0:255"),
+        "green-red": ("0:255:0", "255:0:0"),
+        "red-green": ("255:0:0", "0:255:0"),
+        "blue-green": ("0:0:255", "0:255:0"),
+        "green-blue": ("0:255:0", "0:0:255"),
+        "cyan-yellow": ("0:255:255", "255:255:0"),
+        "yellow-cyan": ("255:255:0", "0:255:255"),
+        "custom_gradient": (startcolor, endcolor)
     }
 
     # open file for psmap instructions
