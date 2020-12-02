@@ -386,14 +386,14 @@ def main(options, flags):
     if any([recreation_opportunity, recreation_spectrum, demand, flow, supply]):
 
         infrastructure_component = build_infrastructure_component(
-                infrastructure=infrastructure,
-                artificial=artificial,
-                roads=roads,
-                roads_distance_categories=roads_distance_categories,
-                roads_proximity_map_name="roads_proximity",
-                artificial_distance_categories=artificial_distance_categories,
-                artificial_proximity_map_name="artificial_proximity",
-                artificial_accessibility_map_name="artificial_accessibility",
+            infrastructure=infrastructure,
+            artificial=artificial,
+            roads=roads,
+            roads_distance_categories=roads_distance_categories,
+            roads_proximity_map_name="roads_proximity",
+            artificial_distance_categories=artificial_distance_categories,
+            artificial_proximity_map_name="artificial_proximity",
+            artificial_accessibility_map_name="artificial_accessibility",
         )
 
 
@@ -616,13 +616,13 @@ def main(options, flags):
             demand = temporary_filename(filename="demand")
 
         compute_demand(
-                base=tmp_crossmap,
-                population=population,
-                method="sum",
-                output_demand=demand,
-                vector_base_map=base_vector,
-                vector_methods=METHODS,
-                vector_column_prefix=COLUMN_PREFIX_DEMAND,
+            base=tmp_crossmap,
+            population=population,
+            method="sum",
+            output_demand=demand,
+            vector_base_map=base_vector,
+            vector_methods=METHODS,
+            vector_column_prefix=COLUMN_PREFIX_DEMAND,
         )
 
 

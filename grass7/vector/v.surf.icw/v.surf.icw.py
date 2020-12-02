@@ -445,7 +445,7 @@ def main():
         #"( cost_sq_site.$NUM / sum_of_cost_sqs ) * ( $DATA_VALUE / $N )"
 
         proc[num-1] = grass.mapcalc_start(
-                      "$partial_n = ($data * $one_by_cost_sq) / $sum_of_1by_cost_sqs",
+            "$partial_n = ($data * $one_by_cost_sq) / $sum_of_1by_cost_sqs",
                       partial_n = partial_n,
                       data = data_value,
                       one_by_cost_sq = one_by_cost_site_sq,

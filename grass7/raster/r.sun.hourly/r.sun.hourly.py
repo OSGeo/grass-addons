@@ -739,7 +739,7 @@ def main():
 
     else:
         absolute_time = datetime.datetime(year, 1, 1) + \
-                        datetime.timedelta(days=day - 1)
+            datetime.timedelta(days=day - 1)
         for i, time in enumerate(times):
             grass_time = format_grass_time(absolute_time + datetime.timedelta(hours=time))
             if beam_rad_basename_user:

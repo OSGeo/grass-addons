@@ -214,12 +214,12 @@ def cleanup():
                 flags = 'f',
                 type = 'raster',
                 name = [f + str(os.getpid()) for f in tmp_map_rast],
-                quiet = True)
+            quiet = True)
         grass.run_command("g.remove",
                 flags = 'f',
                 type = 'vector',
                 name = [f + str(os.getpid()) for f in tmp_map_vect],
-                quiet = True)
+            quiet = True)
 
 
 

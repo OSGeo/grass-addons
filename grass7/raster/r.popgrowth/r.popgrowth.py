@@ -149,7 +149,7 @@ def cleanup():
                 flags = 'f',
                 type = 'vector',
 				name = [f + str(os.getpid()) for f in tmp_map_vect],
-				quiet = True)
+                    quiet = True)
 
 
 def main():
@@ -176,9 +176,9 @@ def main():
 	if options['population_patches']:
 		grass.run_command("r.statistics2",
 				base=options['population_patches'],
-				cover=options['n_initial'],
-				method="sum",
-				output="n0_tmp_%d" % os.getpid())
+                    cover=options['n_initial'],
+                    method="sum",
+                    output="n0_tmp_%d" % os.getpid())
 	else:
 		 grass.run_command("g.copy",
 				raster=options['n_initial']+","+"n0_tmp_%d" % os.getpid())
@@ -235,9 +235,9 @@ def main():
 			if options['population_patches']:
 				grass.run_command("r.statistics2",
 						base=options['population_patches'],
-						cover=options['r_exp_map'],
-						method="average",
-						output="r_exp_tmp_%d" % os.getpid())
+                                    cover=options['r_exp_map'],
+                                    method="average",
+                                    output="r_exp_tmp_%d" % os.getpid())
 			else:
 		 		grass.run_command("g.copy",
 						raster=options['r_exp_map']+","+"r_exp_tmp_%d" % os.getpid())
@@ -290,9 +290,9 @@ def main():
 			if options['population_patches']:
 				grass.run_command("r.statistics2",
 						base=options['population_patches'],
-						cover=options['r_rick_map'],
-						method="average",
-						output="r_rick_tmp_%d" % os.getpid())
+                                    cover=options['r_rick_map'],
+                                    method="average",
+                                    output="r_rick_tmp_%d" % os.getpid())
 			else:
 		 		grass.run_command("g.copy",
 						raster=options['r_rick_map']+","+"r_rick_tmp_%d" % os.getpid())
@@ -312,9 +312,9 @@ def main():
 			if options['population_patches']:
 				grass.run_command("r.statistics2",
 						base=options['population_patches'],
-						cover=options['k_map'],
-						method="sum",
-						output="k_tmp_%d" % os.getpid())
+                                    cover=options['k_map'],
+                                    method="sum",
+                                    output="k_tmp_%d" % os.getpid())
 			else:
 		 		grass.run_command("g.copy",
 						raster=options['k_map']+","+"k_tmp_%d" % os.getpid())

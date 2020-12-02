@@ -297,10 +297,10 @@ def classification(level, slope, smean, texture, tmean, convexity,
 
     incr = (4*level)-4
     expr = '{x} = if({s}>{smean}, if({c}>{cmean}, if({t}<{tmean}, {i}+1, {i}+2), if({t}<{tmean}, {i}+3, {i}+4)), if({c}>{cmean}, if({t}<{tmean}, {i}+5, {i}+6), if({t}<{tmean}, {i}+7, {i}+8)))'.format(
-            x=classif, i=incr,
-            s=slope, smean=smean,
-            t=texture, tmean=tmean,
-            c=convexity, cmean=cmean)
+        x=classif, i=incr,
+        s=slope, smean=smean,
+        t=texture, tmean=tmean,
+        c=convexity, cmean=cmean)
     r.mapcalc(expression=expr)
 
     return 0
@@ -372,8 +372,8 @@ def main():
     pitpeaks = temp_map('tmp_pitpeaks')
     gs.message("2. Extracting pits and peaks with difference > thres...")
     r.mapcalc(expression='{x} = if ( abs({dem}-{median})>{thres}, 1, 0)'.format(
-                x=pitpeaks, dem=elevation, thres=flat_thres, median=filtered_dem),
-                quiet=True)
+        x=pitpeaks, dem=elevation, thres=flat_thres, median=filtered_dem),
+        quiet=True)
 
     # calculate density of pits and peaks
     gs.message("3. Using resampling filter to create terrain texture...")

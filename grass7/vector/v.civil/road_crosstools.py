@@ -387,10 +387,10 @@ class Intersections(object):
         else:
             if self.plant2.param < 0:
                 beta = -1 * self.izq1 * self.izq2 * \
-                       self._get_alpha(azi_c1c, pto_t1.azimuth(pto_c))
+                    self._get_alpha(azi_c1c, pto_t1.azimuth(pto_c))
             else:
                 beta = self.izq1 * self.izq2 * \
-                       self._get_alpha(azi_c1c, pto_c.azimuth(pto_t1))
+                    self._get_alpha(azi_c1c, pto_c.azimuth(pto_t1))
 
             pto_p = pto_c.project(radio, pto_c.azimuth(pto_t1) + beta / 2)
 

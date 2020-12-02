@@ -383,7 +383,7 @@ def destinationPointWGS(lat1, lon1, brng, s):
         ss1 = sin(s1)
         cs1 = cos(s1)
         ds1 = B * ss1 * (cs1m + B / 4 * (
-                    cs1 * (-1 + 2 * cs1m * cs1m) - B / 6 * cs1m * (-3 + 4 * ss1 * ss1) * (-3 + 4 * cs1m * cs1m)))
+            cs1 * (-1 + 2 * cs1m * cs1m) - B / 6 * cs1m * (-3 + 4 * ss1 * ss1) * (-3 + 4 * cs1m * cs1m)))
         s1p = s1
         s1 = s / (b * A) + ds1
     # Continue calculation after the loop.

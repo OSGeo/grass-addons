@@ -304,8 +304,8 @@ def external_georeferencing(imagesDir, classes, masksDir, mList, cList,
     :param extension: extension if images
     """
     for referencing in [file for file in next(os.walk(imagesDir))[2] if (
-                    os.path.splitext(file)[1] != extension and
-                    extension in file)]:
+        os.path.splitext(file)[1] != extension and
+        extension in file)]:
         fileName, refExtension = referencing.split(extension)
         # TODO: Join with converting to one loop
         for i in range(1, len(classes) + 1):

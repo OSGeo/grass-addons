@@ -399,9 +399,9 @@ def main(opts, flgs):
     # ================================================
     # GROUND LOADS
     ground_loads = GroundLoads(
-            rast_or_numb('g_loads_6h_rast', 'g_loads_6h_value', opts),
-            rast_or_numb('g_loads_1m_rast', 'g_loads_1m_value', opts),
-            rast_or_numb('g_loads_1y_rast', 'g_loads_1y_value', opts))
+        rast_or_numb('g_loads_6h_rast', 'g_loads_6h_value', opts),
+        rast_or_numb('g_loads_1m_rast', 'g_loads_1m_value', opts),
+        rast_or_numb('g_loads_1y_rast', 'g_loads_1y_value', opts))
 
     # ================================================
     # FLUID

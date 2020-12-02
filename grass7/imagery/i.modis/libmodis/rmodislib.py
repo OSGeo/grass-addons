@@ -423,10 +423,10 @@ class projection:
                 swath):
         if swath:
             return '%i %i %d %d %d %d %d %d 0.0 0.0 0.0 0.0 0.0 0.0 0.0' % (
-                    SMajor, SMinor, Val, Factor, CentMer, TrueScale, FE, FN)
+                SMajor, SMinor, Val, Factor, CentMer, TrueScale, FE, FN)
         else:
             return '( %i %i %d %d %d %d %d %d 0.0 0.0 0.0 0.0 0.0 0.0 0.0 )' % (
-                    SMajor, SMinor, Val, Factor, CentMer, TrueScale, FE, FN)
+                SMajor, SMinor, Val, Factor, CentMer, TrueScale, FE, FN)
 
     def return_params(self, swath=False):
         """ Return the 13 parameters for MRT parameter file """

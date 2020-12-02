@@ -232,7 +232,7 @@ def main(options, flags):
     if MXVIF == '':
         # Print header of table to std output
         print('{0[0]:{1}s} {0[1]:8s} {0[2]:8s}'.format(
-                ['variable', 'vif', 'sqrtvif'], nlength))
+            ['variable', 'vif', 'sqrtvif'], nlength))
 
         # Compute the VIF
         for i, e in enumerate(IPFn):

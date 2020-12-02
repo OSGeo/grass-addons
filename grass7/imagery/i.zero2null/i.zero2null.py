@@ -270,10 +270,10 @@ def main():
 
         # remove <inmap>_rcl first
         gscript.run_command(
-                'g.remove', type='raster', name=inmap + "_rcl", flags='f', quiet=True)
+            'g.remove', type='raster', name=inmap + "_rcl", flags='f', quiet=True)
         # remove <inmap>
         gscript.run_command(
-                'g.remove', type='raster', name=inmap, flags='f', quiet=True)
+            'g.remove', type='raster', name=inmap, flags='f', quiet=True)
 
         # rename <inmap>_null to <inmap>
         gscript.run_command('g.rename',

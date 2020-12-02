@@ -26,10 +26,10 @@ from iclass.dialogs     import IClassMapDialog as MDialog
 import grass.script as grass
 
 rdigitIcons = {
-        'delCmd' : MetaIcon(img = 'layer-remove',
+    'delCmd' : MetaIcon(img = 'layer-remove',
                             label = _('Delete selected map layer')),
 
-        }
+    }
         
 class RDigitMapToolbar(BaseToolbar):
     """!RDigit Map toolbar """

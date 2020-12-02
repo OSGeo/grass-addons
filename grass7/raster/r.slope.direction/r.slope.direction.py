@@ -180,10 +180,10 @@ def main():
         kwargs_odd['dist_sum_out'] = '{}_dist_sum_even'.format(tmpname)
 
     dir_format_dict = {
-                       'degree_45': [1, 2, 3, 4, 5, 6, 7],
+        'degree_45': [1, 2, 3, 4, 5, 6, 7],
                        'degree': [45, 90, 135, 180, 225, 270, 315],
                        'bitmask': [1, 8, 7, 6, 5, 4, 3]
-                       }
+        }
 
     slope_measure_dict = {
         'difference': """\n{gradient}={abs}({elev}-{elev_in})""",

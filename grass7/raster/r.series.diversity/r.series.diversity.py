@@ -257,7 +257,7 @@ def main():
                               renyi=renyi, tmp_2=tmp_2,
                               inl=IN[i], tmp_1=tmp_1, quiet=True)
                 grass.run_command("g.rename", raster="{0},{1}".format(
-                        tmp_2,renyi), overwrite=True, quiet=True)
+                    tmp_2,renyi), overwrite=True, quiet=True)
         else:
             # If alpha != 1
             tmp_3 = tmpname("sht")
@@ -272,7 +272,7 @@ def main():
                             tmp_1=tmp_1, inl=IN[i],
                             alpha=Q[n],  quiet=True)
                 grass.run_command("g.rename", raster="{0},{1}".format(
-                        tmp_4,tmp_3), overwrite=True, quiet=True)
+                    tmp_4,tmp_3), overwrite=True, quiet=True)
             grass.mapcalc("$outl = (1/(1-$alpha)) * log($tmp_3)",
                             outl=renyi, tmp_3=tmp_3,
                             alpha=Q[n], quiet=True)

@@ -68,7 +68,7 @@ class Playground(object):
         for layer in self.layers:
             if not ( len(layer) is rows and len(layer[0]) is cols):
                 raise error.Error(
-                        "r.agent::libagent.playground.Playground.setregion()",
+                    "r.agent::libagent.playground.Playground.setregion()",
                         "new region is incompatible with some layer(s).")
 
     def getregion(self):
@@ -110,7 +110,7 @@ class Playground(object):
         """
         if not force and self.layers.has_key(layername):
             raise error.Error(
-                    "r.agent::libagent.playground.Playground.setlayer()",
+                "r.agent::libagent.playground.Playground.setlayer()",
                     "May not overwrite existing layer.")
         self.layers[layername] = layer
 

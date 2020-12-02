@@ -848,7 +848,7 @@ class Map(object):
             if active != None and \
                    hidden != None:
                 if layer.active == active and \
-                       layer.hidden == hidden:
+                    layer.hidden == hidden:
                     selected.append(layer)
             
             # active layers

@@ -188,8 +188,8 @@ def download_tile(tile, url, pid, srtmv3, one, username, password):
             cookie_jar = CookieJar()
 
             opener = urllib2.build_opener(
-                        urllib2.HTTPBasicAuthHandler(password_manager),
-                        #urllib2.HTTPHandler(debuglevel=1),    # Uncomment these two lines to see
+                urllib2.HTTPBasicAuthHandler(password_manager),
+                #urllib2.HTTPHandler(debuglevel=1),    # Uncomment these two lines to see
                         #urllib2.HTTPSHandler(debuglevel=1),   # details of the requests/responses
                         urllib2.HTTPCookieProcessor(cookie_jar))
             urllib2.install_opener(opener)

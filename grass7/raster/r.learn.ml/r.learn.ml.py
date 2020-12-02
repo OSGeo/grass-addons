@@ -1737,7 +1737,7 @@ def main():
                 categorical_features=categorymaps,
                 n_values=enc.n_values_, handle_unknown='ignore',
                 sparse=False)),  # dense because not all clf can use sparse
-                            ('classifier', clf)])
+                ('classifier', clf)])
 
         # standardization and onehot encoding
         if norm_data is True and categorymaps is not None:
@@ -1747,8 +1747,8 @@ def main():
                 categorical_features=categorymaps,
                 n_values=enc.n_values_, handle_unknown='ignore',
                 sparse=False)),
-                            ('scaling', StandardScaler()),
-                            ('classifier', clf)])
+                ('scaling', StandardScaler()),
+                ('classifier', clf)])
 
         # ---------------------------------------------------------------------
         # create the hyperparameter grid search method
@@ -1853,11 +1853,11 @@ def main():
                         gs.message(
                             method+':\t' + '\t'.join(
                                 map(str, np.round(
-                                        mat_cscores.mean(axis=0), 2)[0])))
+                                    mat_cscores.mean(axis=0), 2)[0])))
                         gs.message(
                             method+' std:\t' + '\t'.join(
                                 map(str, np.round(
-                                        mat_cscores.std(axis=0), 2)[0])))
+                                    mat_cscores.std(axis=0), 2)[0])))
 
                 # write cross-validation results for csv file
                 if errors_file != '':

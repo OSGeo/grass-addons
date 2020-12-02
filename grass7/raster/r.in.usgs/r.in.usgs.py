@@ -225,17 +225,17 @@ def main():
     # Hard-coded parameters needed for USGS datasets
     usgs_product_dict = {
         "ned": {
-                'product': 'National Elevation Dataset (NED)',
+            'product': 'National Elevation Dataset (NED)',
                 'dataset': {
-                        'ned1sec': (1. / 3600, 30, 100),
+                    'ned1sec': (1. / 3600, 30, 100),
                         'ned13sec': (1. / 3600 / 3, 10, 30),
                         'ned19sec': (1. / 3600 / 9, 3, 10)
-                        },
+                    },
                 'subset': {},
                 'extent': [
-                        '1 x 1 degree',
+                    '1 x 1 degree',
                         '15 x 15 minute'
-                         ],
+                    ],
                 'format': 'IMG',
                 'extension': 'img',
                 'zip': True,
@@ -243,19 +243,19 @@ def main():
                 'srs_proj4': "+proj=longlat +ellps=GRS80 +datum=NAD83 +nodefs",
                 'interpolation': 'bilinear',
                 'url_split': '/'
-                },
+            },
         "nlcd": {
-                'product': 'National Land Cover Database (NLCD)',
+            'product': 'National Land Cover Database (NLCD)',
                 'dataset': {
-                        'National Land Cover Database (NLCD) - 2001': (1. / 3600, 30, 100),
+                    'National Land Cover Database (NLCD) - 2001': (1. / 3600, 30, 100),
                         'National Land Cover Database (NLCD) - 2006': (1. / 3600, 30, 100),
                         'National Land Cover Database (NLCD) - 2011': (1. / 3600, 30, 100)
-                        },
+                    },
                 'subset': {
-                        'Percent Developed Imperviousness',
+                    'Percent Developed Imperviousness',
                         'Percent Tree Canopy',
                         'Land Cover'
-                        },
+                    },
                 'extent': ['3 x 3 degree'],
                 'format': 'GeoTIFF',
                 'extension': 'tif',
@@ -264,15 +264,15 @@ def main():
                 'srs_proj4': "+proj=longlat +ellps=GRS80 +datum=NAD83 +nodefs",
                 'interpolation': 'nearest',
                 'url_split': '/'
-                },
+            },
         "naip": {
-                'product': 'USDA National Agriculture Imagery Program (NAIP)',
+            'product': 'USDA National Agriculture Imagery Program (NAIP)',
                 'dataset': {
-                        'Imagery - 1 meter (NAIP)': (1. / 3600 / 27, 1, 3)},
+                    'Imagery - 1 meter (NAIP)': (1. / 3600 / 27, 1, 3)},
                 'subset': {},
                 'extent': [
-                        '3.75 x 3.75 minute',
-                         ],
+                    '3.75 x 3.75 minute',
+                    ],
                 'format': 'JPEG2000',
                 'extension': 'jp2',
                 'zip': False,
@@ -280,11 +280,11 @@ def main():
                 'srs_proj4': "+proj=longlat +ellps=GRS80 +datum=NAD83 +nodefs",
                 'interpolation': 'nearest',
                 'url_split': '/'
-                },
+            },
         "lidar": {
-                'product': 'Lidar Point Cloud (LPC)',
+            'product': 'Lidar Point Cloud (LPC)',
                 'dataset': {
-                        'Lidar Point Cloud (LPC)': (1. / 3600 / 9, 3, 10)},
+                    'Lidar Point Cloud (LPC)': (1. / 3600 / 9, 3, 10)},
                 'subset': {},
                 'extent': [''],
                 'format': 'LAS,LAZ',
@@ -294,8 +294,8 @@ def main():
                 'srs_proj4': "+proj=longlat +ellps=GRS80 +datum=NAD83 +nodefs",
                 'interpolation': 'nearest',
                 'url_split': '/'
-                }
             }
+        }
 
     # Set GRASS GUI options and flags to python variables
     gui_product = options['product']
@@ -603,14 +603,14 @@ def main():
                     gscript.fatal(nlcd_unavailable)
     else:
         data_info = (
-                     "USGS file(s) to download:",
+            "USGS file(s) to download:",
                      "-------------------------",
                      "Total download size:\t{size}",
                      "Tile count:\t{count}",
                      "USGS SRS:\t{srs}",
                      "USGS tile titles:\n{tile}",
                      "-------------------------",
-                     )
+            )
         data_info = '\n'.join(data_info).format(size=total_size_str,
                                                 count=file_download_count,
                                                 srs=product_srs,
@@ -667,7 +667,7 @@ def main():
             else:
                 local_tile_path_list.append(local_file_path)
             file_complete = "Download {0} of {1}: COMPLETE".format(
-                    download_count, TNM_count)
+                download_count, TNM_count)
             gscript.info(file_complete)
         except URLError:
             gscript.fatal(_("USGS download request has timed out. Network or formatting error."))
@@ -675,7 +675,7 @@ def main():
             cleanup_list.append(local_file_path)
             if download_count:
                 file_failed = "Download {0} of {1}: FAILED".format(
-                            download_count, TNM_count)
+                    download_count, TNM_count)
                 gscript.fatal(file_failed)
 
     # sets already downloaded zip files or tiles to be extracted or imported
@@ -739,9 +739,9 @@ def main():
         # TODO: do this before the extraction begins
         gscript.verbose(_("Extracted {extracted} new tiles and"
                           " used {used} existing tiles").format(
-                            used=used_existing_extracted_tiles_num,
-                            extracted=extracted_tiles_num
-                            ))
+            used=used_existing_extracted_tiles_num,
+            extracted=extracted_tiles_num
+            ))
         if old_extracted_tiles_num:
             gscript.verbose(_("Found {removed} existing tiles older"
                               " than the corresponding downloaded archive").format(
@@ -847,9 +847,9 @@ def main():
 
     gscript.verbose(_("Imported {imported} new tiles and"
                       " used {used} existing tiles").format(
-                        used=used_existing_imported_tiles_num,
-                        imported=imported_tiles_num
-                        ))
+        used=used_existing_imported_tiles_num,
+        imported=imported_tiles_num
+        ))
 
     # if control variables match and multiple files need to be patched,
     # check product resolution, run r.patch
