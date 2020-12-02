@@ -26,9 +26,9 @@ class TestAgent(unittest.TestCase):
                     self.agent.randomposition([position, position]))
 
     def test_step(self):
-        position = self.agent.getposition();
+        position = self.agent.getposition()
         oldposition = [position[0],position[1]]
-        agentneighbours = self.world.getneighbourpositions(position);
+        agentneighbours = self.world.getneighbourpositions(position)
         for i in range(len(agentneighbours)):
             p = [agentneighbours[i][0],agentneighbours[i][1]]
             agentneighbours[i] = p

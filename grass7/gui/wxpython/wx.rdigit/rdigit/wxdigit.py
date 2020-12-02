@@ -62,21 +62,21 @@ class IRDigit:
         if self.saveMap:
             for obj in self.objects:
                 if obj.ftype == GV_BOUNDARY:
-                    self.polyfile.write("AREA\n");
+                    self.polyfile.write("AREA\n")
                     for coor in obj.coords:
                         east, north = coor
                         locbuf = " %s %s\n" % (east,north)
-                        self.polyfile.write(locbuf);
+                        self.polyfile.write(locbuf)
 
                 elif obj.ftype == GV_LINE:
-                    self.polyfile.write("LINE\n");
+                    self.polyfile.write("LINE\n")
                     for coor in obj.coords:
                         east, north = coor
                         locbuf = " %s %s\n" % (east,north)
-                        self.polyfile.write(locbuf);
+                        self.polyfile.write(locbuf)
 
                 catbuf = "=%d a\n" % (obj.catId)
-                self.polyfile.write(catbuf);
+                self.polyfile.write(catbuf)
 
             self.polyfile.close()
             region_settings = grass.parse_command('g.region', flags = 'p', delimiter = ':')

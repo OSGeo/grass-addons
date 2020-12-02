@@ -673,7 +673,7 @@ if __name__ == "__main__":
     # This is the loop!
     for x in range(int(years)):
         grass.message("Iteration = %s" % (x + 1))
-        main(x, (x + 1), prefx, statsout, region1['nsres'], masterlist);
+        main(x, (x + 1), prefx, statsout, region1['nsres'], masterlist)
     #Since we are now done with the loop, close the stats file.
     f.close()
     grass.message('\nIterations complete!\n\nDone with everything')

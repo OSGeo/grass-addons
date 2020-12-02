@@ -513,7 +513,7 @@ def main():
         else:
             grass.fatal(_("Please check internet connection, credentials, and if url <%s> is correct.") % url)
 
-    grass.run_command('g.region', raster = str(srtmtiles));
+    grass.run_command('g.region', raster = str(srtmtiles))
 
     grass.message(_("Patching tiles..."))
     if fillnulls == 0:
