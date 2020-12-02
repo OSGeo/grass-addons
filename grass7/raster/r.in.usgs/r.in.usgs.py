@@ -227,15 +227,15 @@ def main():
         "ned": {
             'product': 'National Elevation Dataset (NED)',
             'dataset': {
-                    'ned1sec': (1. / 3600, 30, 100),
+                'ned1sec': (1. / 3600, 30, 100),
                     'ned13sec': (1. / 3600 / 3, 10, 30),
-                        'ned19sec': (1. / 3600 / 9, 3, 10)
-                    },
+                'ned19sec': (1. / 3600 / 9, 3, 10)
+                },
             'subset': {},
             'extent': [
-                    '1 x 1 degree',
+                '1 x 1 degree',
                     '15 x 15 minute'
-                    ],
+                ],
             'format': 'IMG',
             'extension': 'img',
             'zip': True,
@@ -247,15 +247,15 @@ def main():
         "nlcd": {
             'product': 'National Land Cover Database (NLCD)',
             'dataset': {
-                    'National Land Cover Database (NLCD) - 2001': (1. / 3600, 30, 100),
+                'National Land Cover Database (NLCD) - 2001': (1. / 3600, 30, 100),
                     'National Land Cover Database (NLCD) - 2006': (1. / 3600, 30, 100),
-                        'National Land Cover Database (NLCD) - 2011': (1. / 3600, 30, 100)
-                    },
+                'National Land Cover Database (NLCD) - 2011': (1. / 3600, 30, 100)
+                },
             'subset': {
-                    'Percent Developed Imperviousness',
+                'Percent Developed Imperviousness',
                     'Percent Tree Canopy',
                 'Land Cover'
-                    },
+                },
                 'extent': ['3 x 3 degree'],
                 'format': 'GeoTIFF',
                 'extension': 'tif',
@@ -268,11 +268,11 @@ def main():
         "naip": {
             'product': 'USDA National Agriculture Imagery Program (NAIP)',
             'dataset': {
-                    'Imagery - 1 meter (NAIP)': (1. / 3600 / 27, 1, 3)},
+                'Imagery - 1 meter (NAIP)': (1. / 3600 / 27, 1, 3)},
             'subset': {},
             'extent': [
-                    '3.75 x 3.75 minute',
-                    ],
+                '3.75 x 3.75 minute',
+                ],
             'format': 'JPEG2000',
             'extension': 'jp2',
             'zip': False,
@@ -284,7 +284,7 @@ def main():
         "lidar": {
             'product': 'Lidar Point Cloud (LPC)',
             'dataset': {
-                    'Lidar Point Cloud (LPC)': (1. / 3600 / 9, 3, 10)},
+                'Lidar Point Cloud (LPC)': (1. / 3600 / 9, 3, 10)},
             'subset': {},
             'extent': [''],
             'format': 'LAS,LAZ',

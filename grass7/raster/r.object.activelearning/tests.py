@@ -115,7 +115,7 @@ class Test (unittest.TestCase):
 
     def test_write_result_file(self):
         X = np.array([
-                [11., 3.5, 4.7],
+            [11., 3.5, 4.7],
                 [22., 4.5, 6.7]
         ])
         header = np.array(['ID', 'attr1','attr2', 'attr3'])
@@ -130,7 +130,7 @@ class Test (unittest.TestCase):
         result = np.genfromtxt(filename, delimiter=',', dtype=str)
 
         data = np.array([
-                ['ID', 'Class', 'attr1','attr2', 'attr3'],
+            ['ID', 'Class', 'attr1','attr2', 'attr3'],
                 [1., 0., 11., 3.5, 4.7],
                 [2., 1., 22., 4.5, 6.7]
         ])
@@ -143,21 +143,21 @@ class Test (unittest.TestCase):
         #Create a fake update file
         update_file = 'update.csv'
         update_data = np.array([
-                ['cat', 'Class'],
+            ['cat', 'Class'],
                 [123, 1],
                 [456, 2]
         ])
 
         np.savetxt(update_file, update_data, delimiter=",",fmt="%s")
         X_train = np.array([
-                [1,2,3],
-                [4,5,6]
+            [1,2,3],
+            [4,5,6]
         ])
         ID_train = np.array([111,222])
         y_train = np.array([1,2])
 
         X_unlabeled = np.array([
-                [11,22,33],
+            [11,22,33],
                 [44,55,66],
                 [77,88,99]
         ])
@@ -167,7 +167,7 @@ class Test (unittest.TestCase):
         X_train, ID_train, y_train = al.update(update_file, X_train, ID_train, y_train, X_unlabeled, ID_unlabeled)
         ####
         X_train_should_be = np.array([
-                [1,2,3],
+            [1,2,3],
                 [4,5,6],
                 [11,22,33],
                 [44,55,66]
