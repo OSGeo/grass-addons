@@ -32,6 +32,7 @@ class Circle:
 class RDigitWindow(BufferedWindow):
     """!A Buffered window extended for raster digitizer.
     """
+
     def __init__(self, parent, giface, Map, frame,
                  id = wx.ID_ANY, tree = None, lmgr = None,
                  style = wx.NO_FULL_REPAINT_ON_RESIZE, **kwargs):

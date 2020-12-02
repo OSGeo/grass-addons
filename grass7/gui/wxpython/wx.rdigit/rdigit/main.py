@@ -23,6 +23,7 @@ except (ImportError, NameError), err:
     errorMsg   = err
     print errorMsg
     GV_LINES   = -1
+
     class IRDigit:
         def __init__(self):
             pass

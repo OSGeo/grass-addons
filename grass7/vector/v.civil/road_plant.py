@@ -36,6 +36,7 @@ def time_func(funcion_f):
 class Aligns(object):
     """ Return
     """
+
     def __init__(self, list_aligns=None):
         """ Return
         """
@@ -280,6 +281,7 @@ class Aligns(object):
 class PlantAlign(object):
     """ Return
     """
+
     def __init__(self, dat, dat1=None, dat2=None, recta1=None, recta2=None):
         """ Return
         """
@@ -460,6 +462,7 @@ class PlantAlign(object):
 class Plant(Aligns, object):
     """ Return
     """
+
     def __init__(self, polygon=None, road_table=None,
                  table_to_plan=False, bombeo=0):
         """ Return

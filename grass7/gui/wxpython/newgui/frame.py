@@ -28,6 +28,7 @@ from lmgr.toolbars         import LMWorkspaceToolbar
 class MyFrame(MySingleMapFrame):
     """!main frame
     """
+
     def __init__(self, parent = None, giface = None, title = _("GRASS UI"),
               size = (875, 600), name = 'Frame', **kwargs):
         """!

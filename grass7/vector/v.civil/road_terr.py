@@ -43,6 +43,7 @@ def get_side(left):
 class Talud(object):
     """ Return
     """
+
     def __init__(self, pks, cut, fill, left=True, terr=None):
         """ Return
         """
@@ -195,6 +196,7 @@ class Talud(object):
 class Taludes(object):
     """ Return
     """
+
     def __init__(self, polygon=None, tabla=None, terr=None):
         """ Return
         """
@@ -333,6 +335,7 @@ class Taludes(object):
 class Terrain(object):
     """ Return
     """
+
     def __init__(self, mapname=None):
         """ Return
         """

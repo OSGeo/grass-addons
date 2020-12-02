@@ -61,6 +61,7 @@ class BatchNorm(KL.BatchNormalization):
     so this layer is often frozen (via setting in Config class) and functions
     as linear layer.
     """
+
     def call(self, inputs, training=None):
         """
         Note about training values:

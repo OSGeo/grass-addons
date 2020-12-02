@@ -51,6 +51,7 @@ class Layer(object):
     - For map layer use MapLayer class.
     - For overlays use Overlay class.
     """
+
     def __init__(self, ltype, cmd, Map, name = None,
                  active = True, hidden = False, opacity = 1.0):
         """!Create new instance

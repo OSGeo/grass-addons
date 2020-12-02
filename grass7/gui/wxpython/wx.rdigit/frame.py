@@ -47,6 +47,7 @@ class RDigitMapFrame(SingleMapFrame):
     """! RDigitMapFrame main frame    
     This is the raster digitizer main window. It holds a minimal layer manager from wxIClass
     """
+
     def __init__(self, parent = None, giface = None, title = _("Raster Digitizer"),
                  toolbars = ["digitMap","rdigit"],
                  size = (875, 600), name = 'RDigitWindow', **kwargs):
@@ -246,6 +247,7 @@ class MapManager:
     
     It is connected with iClassMapManagerToolbar.
     """
+
     def __init__(self, frame, mapWindow, Map):
         """!
         

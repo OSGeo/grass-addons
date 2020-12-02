@@ -303,6 +303,7 @@ class HiveTableBuilder:
     """
     Abstract class for Hive table maker
     """
+
     def __init__(self,map,layer):
         self.map = map
         self.layer = layer
@@ -328,6 +329,7 @@ class JSONBuilder:
     """
     Class which performe conversion from grass map to  serialisable GeoJSON
     """
+
     def __init__(self, grass_map=None, json_file=None):
 
         self.grass_map = grass_map
@@ -435,6 +437,7 @@ class GrassMapBuilder(object):
     """
     Base class for creating GRASS map from GeoJSON
     """
+
     def __init__(self, json_file, map,attributes):
         self.file = json_file
         self.map = map
@@ -572,6 +575,7 @@ class GrassMapBuilderEsriToStandard(GrassMapBuilder):
     """
     Class for conversion serialised GeoJson to GRASS MAP
     """
+
     def __init__(self,json_file, map):
         super(GrassMapBuilderEsriToStandard,self).__init__(json_file, map)
 
@@ -591,6 +595,7 @@ class GrassMapBuilderEsriToEsri(GrassMapBuilder):
     """
     Class for conversion serialised Esri GeoJson to GRASS MAP
     """
+
     def __init__(self,json_file, map,attributes):
         super(GrassMapBuilderEsriToEsri,self).__init__(json_file, map,attributes)
         if not os.path.exists(self.file):
@@ -658,6 +663,7 @@ class GrassHdfs():
     """
     Helper class for ineteraction between GRASS and HDFS/HIVE
     """
+
     def __init__(self, conn_type):
         self.conn = None
         self.hook = None

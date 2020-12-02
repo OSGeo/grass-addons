@@ -24,6 +24,7 @@ class CalibrationModel:
 
     # satellite year coefficients: a tuple (pair or triplet, so far) mapcalc
     """
+
     def __init__(self, author, satellite, year):
         """
         Create object for the calibration model
@@ -134,6 +135,7 @@ class Elvidge(CalibrationModel):
     proposed by Elvidge, 2009  or  Elvidge, 2014.
     DN adj. = C0 + C1×DN + C2×DN^2
     """
+
     def __init__(self, satellite, year, version):
         """
         Create object for the polynomial calibration model
@@ -231,6 +233,7 @@ class Liu2012(CalibrationModel):
     - b:
     - c:
     """
+
     def __init__(self, satellite, year):
         """
         Create object for the polynomial calibration model

@@ -67,6 +67,7 @@ def generate_ptsround(radio, radio2, azimut, center):
 class InterAlign(object):
     """ Return
     """
+
     def __init__(self, name_map, cat):
         """ Return
         """
@@ -125,6 +126,7 @@ class InterAlign(object):
 class Intersections(object):
     """ Return
     """
+
     def __init__(self, name_map1, cat1, izq1, name_map2, cat2, izq2,
                  inout=None, rounda=None):
         """ Return

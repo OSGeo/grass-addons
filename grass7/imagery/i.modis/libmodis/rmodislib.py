@@ -365,6 +365,7 @@ class product:
 class resampling:
     """Return the resampling value from the code used in the modules
     """
+
     def __init__(self, value):
         self.code = value
         self.resampling = {'nearest': 'NEAREST_NEIGHBOR',
@@ -378,6 +379,7 @@ class resampling:
 class projection:
     """Definition of projection for converting from sinusoidal projection to
     another one. Not all projection systems are supported"""
+
     def __init__(self):
         self.proj = get_proj()
         self.val = self.proj['proj']

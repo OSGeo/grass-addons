@@ -27,6 +27,7 @@ from iclass.digit       import IClassVDigit
 class RDigitToolbar(BaseToolbar):
     """!Toolbar for digitization
     """
+
     def __init__(self, parent, MapWindow, digitClass, tools = [], layerTree = None, log = None):
         self.MapWindow     = MapWindow
         self.Map           = MapWindow.GetMap() # Map class instance

@@ -311,6 +311,7 @@ INIT_VALUES = {
 class RoadTable(object):
     """ Return
     """
+
     def __init__(self, polygon, polyline, layer, map_name, tab_sufix):
         """ Return
         """
@@ -766,6 +767,7 @@ class RoadTable(object):
 class RoadTables(object):
     """ Return
     """
+
     def __init__(self, road_name, polygon=None):
         """ Return
         """

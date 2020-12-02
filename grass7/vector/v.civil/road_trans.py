@@ -21,6 +21,7 @@ from grass.pygrass.vector.geometry import Line
 class TransLine(object):
     """ Return
     """
+
     def __init__(self, r_pnt=None, dist_left=None, dist_right=None):
         """ Return
         """
@@ -206,6 +207,7 @@ class TransLine(object):
 class Trans(object):
     """ Return
     """
+
     def __init__(self, polygon, tabla_iter, plant, vert, terr):
         """ Return
         """

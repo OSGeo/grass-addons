@@ -21,6 +21,7 @@ from grass.pygrass.vector.geometry import Line
 class LongProfile(object):
     """ Return
     """
+
     def __init__(self, options, scale, offset='0,0'):
         """ Return
         """
@@ -203,6 +204,7 @@ class LongProfile(object):
 class TransProfiles(object):
     """ Return
     """
+
     def __init__(self, options1, options2, scale, offset='0,0'):
         """ Return
         """

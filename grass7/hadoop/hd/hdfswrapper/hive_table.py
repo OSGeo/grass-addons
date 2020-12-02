@@ -7,6 +7,7 @@ class HiveBaseTable(object):
     """
     Base class for creating Hive tables - table factory
     """
+
     def __init__(self,
                 name,
                 col,
@@ -113,6 +114,7 @@ class HiveJsonTable(HiveBaseTable):
     """
     Table factory for Json tables
     """
+
     def __init__(self,
                 name,
                 col,
@@ -168,6 +170,7 @@ class HiveCsvTable(HiveBaseTable):
     """
     Table factory for CSV tables
     """
+
     def __init__(self,
                 name,
                 col,
@@ -227,6 +230,7 @@ class HiveSpatial(object):
     """
     Factory for spatial queries
     """
+
     def execute(self, hql):
         NotImplementedError()
 

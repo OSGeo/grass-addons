@@ -3,6 +3,7 @@ import numpy as np
 
 class CategoryEncoder(BaseEstimator, TransformerMixin):
     """Transformer to encode GRASS GIS category labels into integer labels"""
+
     def __init__(self):
         self._encoding = None
         self._inverse = None

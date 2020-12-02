@@ -33,6 +33,7 @@ rdigitIcons = {
         
 class RDigitMapToolbar(BaseToolbar):
     """!RDigit Map toolbar """
+
     def __init__(self, parent):
         """!RDigit Map toolbar constructor"""
         BaseToolbar.__init__(self, parent)
@@ -78,6 +79,7 @@ class RDigitMapToolbar(BaseToolbar):
 class RDigitMapManagerToolbar(BaseToolbar):
     """!IClass toolbar
     """
+
     def __init__(self, parent, mapManager):
         """!IClass toolbar constructor
         """

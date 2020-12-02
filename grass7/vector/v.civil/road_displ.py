@@ -42,6 +42,7 @@ def write_objs(allrectas, radio):
 class Parallel(Base.RoadObj, object):
     """ Return
     """
+
     def __init__(self, pk1, pk2, dist1, dist2, g90, plant=None):
         """ Return
         """
@@ -554,6 +555,7 @@ class DisplLine(Aligns, object):
 class Displaced(object):
     """ Return
     """
+
     def __init__(self, polygon, tabla_iter, plant):
         """ Return
         """

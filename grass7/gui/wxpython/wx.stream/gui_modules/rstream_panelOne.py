@@ -48,6 +48,7 @@ from rstream_ImageViewer import ImgFrame
 class CoorWindow(wx.Dialog):
     """!Get coordinates from map display and generates preview
     """
+
     def __init__(self, parent, mapwindow, rad2, rad3, elev, acc, thre, net, drain, id = wx.ID_ANY, **kwargs):                                
         wx.Dialog.__init__(self, parent, id, **kwargs)
         self.parent = parent
@@ -451,6 +452,7 @@ class TabPanelOne(wx.Panel):
         
     #-------------input maps-------------
 
+
     def OnSelectElev(self, event):
         """!Gets elevation map and assign it to var
         """
@@ -505,6 +507,7 @@ class TabPanelOne(wx.Panel):
 
     #-------------output maps-------------
 
+
     def OnSelecFd(self, event):
         """!Gets flow direction map and assign it to var
         """
@@ -523,6 +526,7 @@ class TabPanelOne(wx.Panel):
     
 
     #-------------Buttons-------------
+
 
     def buttonData(self):
         return (("Update Preview", self.OnPreview),        
@@ -599,6 +603,7 @@ class TabPanelOne(wx.Panel):
 
     #-------------Network extraction-------------
     
+
     def OnRun(self, event):
         
         self.radioval2 = self.cb2.GetValue()

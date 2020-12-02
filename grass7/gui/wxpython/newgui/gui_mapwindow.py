@@ -36,6 +36,7 @@ class MapWindow(object):
      - Pixel2Cell
      - Cell2Pixel (if it is possible)
     """
+
     def __init__(self, parent, giface, Map, frame, **kwargs):
         self.parent = parent
         self.Map = Map

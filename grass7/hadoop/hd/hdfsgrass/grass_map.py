@@ -8,6 +8,7 @@ from subprocess import PIPE
 class VectorDBInfo:
     """Class providing information about attribute tables
     linked to a vector map"""
+
     def __init__(self, map):
         self.map = map
 

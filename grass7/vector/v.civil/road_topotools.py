@@ -43,6 +43,7 @@ def time_func(funcion_f):
 class Topo(object):
     """ Return
     """
+
     def __init__(self, name_map=''):
         """ Return
         """
@@ -158,6 +159,7 @@ class Topo(object):
 class Triang(object):
     """ Return
     """
+
     def __init__(self, name_map):
         """ Return
         """

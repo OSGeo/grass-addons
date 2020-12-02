@@ -66,6 +66,7 @@ class LayerData():
 				a = a.split(':')
 				print a[0]+' '+a[1]
 			print '--------------------------------------------'
+
 	def appendLayerTree(self, layerDataDict, LayerTree, layerTreeRoot):
 		for key, value in layerDataDict.iteritems():
 			name = value.name.string

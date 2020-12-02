@@ -66,6 +66,7 @@ class MySingleMapFrame(MapFrameBase):
     @note To access maps use getters only
     (when using class or when writing class itself).
     """
+
     def __init__(self, parent = None, giface = None, id = wx.ID_ANY, title = None,
                  style = wx.DEFAULT_FRAME_STYLE,
                  Map = Map(),
@@ -192,6 +193,7 @@ class LayerManager(wx.Panel):
         
 class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
     """copied from lmgr.layertree.py"""
+
     def __init__(self, parent, Map, id, style, ctstyle, **kwargs):
     
         if globalvar.hasAgw:
