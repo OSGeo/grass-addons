@@ -121,7 +121,7 @@ def BuildFileISF(attributes, preferences, decision, outputMap, outputTxt):
     examples.append(example)
 
     MATRIX = list(map(list,list(zip(*examples))))
-    MATRIX = [r for r in MATRIX if not '?' in r]  # remove all rows with almost one "?"
+    MATRIX = [r for r in MATRIX if '?' not in r]  # remove all rows with almost one "?"
     MATRIX = [list(i) for i in set(tuple(j) for j in MATRIX)]  # remove duplicate example
 
     for r in range(len(MATRIX)):
@@ -160,7 +160,7 @@ def collect_examples (data):
     "Collect examples values and put them in a matrix (list of lists) "
 
     matrix = []
-    data = [r for r in data if not '?' in r]  # filter objects with " ?"
+    data = [r for r in data if '?' not in r]  # filter objects with " ?"
 #	data=[data.remove(r) for r in data if data.count(r)>1]
     start = (data.index(['**EXAMPLES'])+1)
     end = data.index(['**END'])

@@ -98,7 +98,7 @@ from grass.pygrass import raster as r
 from grass.pygrass.utils import getenv
 import grass.script as gs
 
-if not "GISBASE" in os.environ.keys():
+if "GISBASE" not in os.environ.keys():
     gs.message("You must be in GRASS GIS to run this program.")
     sys.exit(1)
 

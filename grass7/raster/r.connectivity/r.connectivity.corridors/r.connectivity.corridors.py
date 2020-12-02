@@ -310,7 +310,7 @@ def main():
     for patch in selected_patches:
         #Check if cost distance raster maps exist
         patchmap = "{}_patch_{}_cost_dist".format(dist_prefix, patch)
-        if not patchmap in patchmaps:
+        if patchmap not in patchmaps:
             grass.fatal("Cannot find raster map {}.".format(patchmap))
 
 

@@ -7,7 +7,7 @@ import os
 import sys
 #import mmap
 path = os.path.join(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))), os.pardir)
-if not path in sys.path:
+if path not in sys.path:
     sys.path.append(path)
 
 from hdfswrapper.connections import Connection

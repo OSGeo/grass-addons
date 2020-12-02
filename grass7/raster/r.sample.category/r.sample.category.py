@@ -158,7 +158,7 @@ def main():
         gscript.write_command('r.reclass', input=input_raster, output=temp_name,
                               rules='-', stdin=rc_rule, overwrite=True, quiet=True)
 
-        if not temp_name in TMP:
+        if temp_name not in TMP:
             TMP.append(temp_name)
 
         # Create the points

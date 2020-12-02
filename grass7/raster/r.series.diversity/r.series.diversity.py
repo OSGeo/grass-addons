@@ -214,19 +214,19 @@ def main():
     #--------------------------------------------------------------------------
     if not flag_r:
         flag_r = []
-    if flag_s and not 0.0 in Q:
+    if flag_s and 0.0 not in Q:
         Q.append(0.0)
-    if flag_h and not 1.0 in Q:
+    if flag_h and 1.0 not in Q:
         Q.append(1.0)
-    if flag_e and not 0.0 in Q:
+    if flag_e and 0.0 not in Q:
         Q.append(0.0)
-    if flag_e and not 1.0 in Q:
+    if flag_e and 1.0 not in Q:
         Q.append(1.0)
-    if flag_p and not 2.0 in Q:
+    if flag_p and 2.0 not in Q:
         Q.append(2.0)
-    if flag_g and not 2.0 in Q:
+    if flag_g and 2.0 not in Q:
         Q.append(2.0)
-    if flag_n and not 1.0 in Q:
+    if flag_n and 1.0 not in Q:
         Q.append(1.0)
 
     #--------------------------------------------------------------------------

@@ -105,7 +105,7 @@ import os
 import grass.script as grass
 from grass.pygrass.modules.shortcuts import vector as v
 
-if not "GISBASE" in os.environ:
+if "GISBASE" not in os.environ:
     grass.message("You must be in GRASS GIS to run this program.")
     sys.exit(1)
 

@@ -66,7 +66,7 @@ class RDigitToolbar(BaseToolbar):
                                                       l_mapset = grass.gisenv()['MAPSET'])
 
         for layer in layers:
-            if not layer.name in self.layerNameList: # do not duplicate layer
+            if layer.name not in self.layerNameList: # do not duplicate layer
                 self.layerNameList.append (layer.GetName())
 
         # realize toolbar
@@ -528,7 +528,7 @@ class RDigitToolbar(BaseToolbar):
                                                       l_mapset = grass.gisenv()['MAPSET'])
 
         for layer in self.layers:
-            if not layer.name in layerNameList: # do not duplicate layer
+            if layer.name not in layerNameList: # do not duplicate layer
                 layerNameList.append (layer.GetName())
 
         if updateTool: # update toolbar

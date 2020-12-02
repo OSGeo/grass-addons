@@ -1047,7 +1047,7 @@ class MdMainEditor(wx.Panel):
             '''
             self.isValidS = False
             staTMP = sta
-            if not '\t' in staTMP:
+            if '\t' not in staTMP:
                 tab = '\t'
                 tab1 = ''
                 staTMP = staTMP + ":\n" + tab + 'self.isValidS=True'

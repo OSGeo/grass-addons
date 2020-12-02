@@ -157,7 +157,7 @@ class ManageLayerTree():
             print 'name = ' + currentLayerName
             currentLayerKey = (currentLayerDetails.split(':')[0]).split('-')[0]
             print 'key = ' + currentLayerKey
-            if(not currentLayerKey in parent.selectedLayersKeys):
+            if(currentLayerKey not in parent.selectedLayersKeys):
                 parent.selectedLayersKeys += [currentLayerKey]
                 print 'selected layers = '
                 print parent.selectedLayersKeys
