@@ -39,7 +39,7 @@ class TestRasterWhatAggr(TestCase):
         cls.runModule("v.db.update", map="points", column="data",
                       value="2001-06-01", where="cat=3")
         cls.runModule("t.create", type="strds", temporaltype="absolute",
-                      output="A",  title="A test", description="A test",
+                      output="A", title="A test", description="A test",
                       overwrite=True)
         cls.runModule("t.register", flags="i", type="raster", input="A",
                       maps="a_1,a_2,a_3,a_4,a_5,a_6", start="2001-01-01",

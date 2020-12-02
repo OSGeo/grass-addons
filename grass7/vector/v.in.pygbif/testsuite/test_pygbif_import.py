@@ -24,7 +24,7 @@ class TestPyGBIFImport(TestCase):
     def tearDownClass(cls):
         """Remove the temporary region
         """
-        cls.runModule("g.remove",  flags="rf",  type="vector",
+        cls.runModule("g.remove", flags="rf", type="vector",
                                    name="gbif_poa3")
         cls.del_temp_region()
 

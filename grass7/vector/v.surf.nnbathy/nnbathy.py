@@ -72,7 +72,7 @@ class Nnbathy:
         # 1 create header
         header = open(self._tmp, 'w')
         header.write('north: %s\nsouth: %s\neast: %s\nwest: %s\nrows: %s\ncols: %s\ntype: %s\nnull: %s\n\n' %
-                     (self.nn_n, self.nn_s, self.nn_e,  self.nn_w, self.rows, self.cols, self.ctype, self.null))
+                     (self.nn_n, self.nn_s, self.nn_e, self.nn_w, self.rows, self.cols, self.ctype, self.null))
         header.close()
 
         # 2 do the conversion

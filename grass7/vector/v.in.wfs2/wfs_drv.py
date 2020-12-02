@@ -26,7 +26,7 @@ class WFSDrv(WFSBase):
                 query_bbox = self.bbox
 
             url += "&BBOX=%s,%s,%s,%s" % \
-                   (query_bbox['minx'],  query_bbox['miny'],  query_bbox['maxx'],  query_bbox['maxy']) 
+                   (query_bbox['minx'], query_bbox['miny'], query_bbox['maxx'], query_bbox['maxy']) 
         
         if self.o_maximum_features:
             url += '&MAXFEATURES=' + str(self.o_maximum_features)

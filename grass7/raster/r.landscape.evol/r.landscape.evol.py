@@ -592,7 +592,7 @@ def landscapeEvol(m, o, p, q, res, s, f):
 
     # Taking divergence of transport capacity Tc converts kg/m.s to kg/m2.s
     sax = grass.start_command('r.slope.aspect', quiet = True, elevation = qsx, dx = qsxdx)
-    say = grass.start_command('r.slope.aspect', quiet = True,  elevation = qsy, dy = qsydy)
+    say = grass.start_command('r.slope.aspect', quiet = True, elevation = qsy, dy = qsydy)
 
     sax.wait()
     say.wait()

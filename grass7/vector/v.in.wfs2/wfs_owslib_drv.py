@@ -16,7 +16,7 @@ class WFSOwsLibDrv(WFSBase):
         grass.message(_("Downloading data from WFS server..."))
 
         if self.bbox:
-            query_bbox = (self.bbox['minx'],  self.bbox['miny'],  self.bbox['maxx'],  self.bbox['maxy'])
+            query_bbox = (self.bbox['minx'], self.bbox['miny'], self.bbox['maxx'], self.bbox['maxy'])
         else:
             query_bbox = self.bbox
 

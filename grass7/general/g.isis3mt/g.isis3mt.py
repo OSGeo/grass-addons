@@ -144,7 +144,7 @@ def main():
             v = grasslib.G_find_key_value(p, pj)
             if p == 'a' or p == 'b': v = v + ' <meters>'
             if p == 'proj' and v == 'll': sys.exit("This GRASS location is in LatLong, no cartographic projection is set.\nExiting...")
-            if p == 'proj':  k,v = 'ProjectionName', projdict[v]                   
+            if p == 'proj': k,v = 'ProjectionName', projdict[v]                   
             isis3[k] = v
     isis3mt = IsisMapTemplate(isis3)
     of = open(outfile,'w')

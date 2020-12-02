@@ -289,7 +289,7 @@ def main():
 
         # Build attribute table
         # Deinfe columns for attribute table
-        cols = [(u'cat',       'INTEGER PRIMARY KEY')]
+        cols = [(u'cat', 'INTEGER PRIMARY KEY')]
         for b in band_types.keys():
             cols.append((b.replace('.','_'), band_types[b]))
         

@@ -499,7 +499,7 @@ def main():
                 merged.append(temp_map('tmp_merged'))
                 r.mapcalc(
                     expression='{x} = if({a}>{min}, {b}, {a})'.format(
-                        x=merged[level], min=min_cla, a=merged[level-1],  b=classif[level]))
+                        x=merged[level], min=min_cla, a=merged[level-1], b=classif[level]))
             else:
                 merged.append(classif[level])
         g.rename(raster=[merged[-1], features], quiet=True)

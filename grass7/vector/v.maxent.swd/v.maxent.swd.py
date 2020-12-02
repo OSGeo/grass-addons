@@ -281,7 +281,7 @@ def main():
     if bgp == '':
         grass.run_command("r.random", input=evp[0], npoints=bgpn, vector=bgpname, quiet=True)
         grass.run_command("v.db.droptable", flags="f", map=bgpname, quiet=True)
-        grass.run_command("v.db.addtable",  map=bgpname, table=bgpname, quiet=True)
+        grass.run_command("v.db.addtable", map=bgpname, table=bgpname, quiet=True)
     else:
         grass.run_command("g.copy", vector=[bgpn,bgpname], quiet=True)
     grass.run_command("v.db.addcolumn", map=bgpname, columns=evp_cols, quiet=True)

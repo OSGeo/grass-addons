@@ -558,7 +558,7 @@ def main():
 
     predictions_file = options['predictions']
     if (predictions_file != ''): # Write the class prediction only if an output file has been specified by the user
-        write_result_file(ID_unlabeled, X_unlabeled, predictions, header_unlabeled,  predictions_file)
+        write_result_file(ID_unlabeled, X_unlabeled, predictions, header_unlabeled, predictions_file)
         gcore.message("Class predictions written to {}".format(predictions_file))
 
 

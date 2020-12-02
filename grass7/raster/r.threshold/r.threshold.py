@@ -53,7 +53,7 @@ def main():
     # in the second the number of cells, in the third the distance from origin is calculated
     
     for i in range(len(stats)):
-        mappatella[i,0],  mappatella[i,1] = map(float, stats[i].split(' '))
+        mappatella[i,0], mappatella[i,1] = map(float, stats[i].split(' '))
         # calculating distance from origin of each point; origin of the plot is in low left point 
         mappatella[i,2] = math.sqrt((mappatella[i,0]**2) + (mappatella[i,1]**2))
     

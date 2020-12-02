@@ -873,7 +873,7 @@ class Computor():
                 #print data
                 #quantileRes=Quantile(data, baseline.quantile)
 
-                quantileRes = np.percentile(data,  (100-float(baseline.quantile))/100)
+                quantileRes = np.percentile(data, (100-float(baseline.quantile))/100)
                 tmp.append(str(linkid) + ',' + str(quantileRes) + '\n')
             io0 = open(os.path.join(database.pathworkSchemaDir, "baseline"), 'w+')
             io0.writelines(tmp)

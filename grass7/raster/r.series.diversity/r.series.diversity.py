@@ -270,7 +270,7 @@ def main():
                 grass.mapcalc("$tmp_4 = if($inl == 0, $tmp_3, $tmp_3 + (pow($inl/$tmp_1,$alpha)))",
                             tmp_3=tmp_3, tmp_4=tmp_4,
                             tmp_1=tmp_1, inl=IN[i],
-                            alpha=Q[n],  quiet=True)
+                            alpha=Q[n], quiet=True)
                 grass.run_command("g.rename", raster="{0},{1}".format(
                     tmp_4,tmp_3), overwrite=True, quiet=True)
             grass.mapcalc("$outl = (1/(1-$alpha)) * log($tmp_3)",

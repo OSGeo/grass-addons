@@ -37,7 +37,7 @@ import logging
 
 class DBconn(wx.ScrolledWindow):
     def __init__(self, parent, settings={}):
-        wx.ScrolledWindow.__init__(self, parent,  wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL |wx.VSCROLL)
+        wx.ScrolledWindow.__init__(self, parent, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL |wx.VSCROLL)
         self.SetScrollRate(5, 5 )
         self.settings = settings
         self.database = BaseInput(self, label='Name of database')
@@ -110,7 +110,7 @@ class DBconn(wx.ScrolledWindow):
 
 class PointInterpolationPanel(wx.ScrolledWindow):
     def __init__(self, parent, settings=None):
-        wx.ScrolledWindow.__init__(self, parent,  wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL |wx.VSCROLL)
+        wx.ScrolledWindow.__init__(self, parent, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL |wx.VSCROLL)
         self.SetScrollRate(5, 5 )
         self.settings = settings
         self.interpolState = wx.CheckBox(self, label='interpolate points along links')
@@ -156,7 +156,7 @@ class PointInterpolationPanel(wx.ScrolledWindow):
 
 class BaselinePanel(wx.ScrolledWindow):
     def __init__(self, parent, settings={}):
-        wx.ScrolledWindow.__init__(self, parent,  wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL |wx.VSCROLL)
+        wx.ScrolledWindow.__init__(self, parent, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL |wx.VSCROLL)
         self.SetScrollRate(5, 5 )
         self.settings = settings
 
@@ -290,7 +290,7 @@ class DataMgrRG(wx.Panel):
 
 class DataMgrMW(wx.ScrolledWindow):
     def __init__(self, parent, settings={}):
-        wx.ScrolledWindow.__init__(self, parent,  wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL |wx.VSCROLL)
+        wx.ScrolledWindow.__init__(self, parent, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL |wx.VSCROLL)
         self.SetScrollRate(5, 5 )
         self.settings = settings
 

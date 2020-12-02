@@ -218,7 +218,7 @@ class WFSBase:
                               '-overwrite',
                               '-s_srs', '%s' % self.proj_srs,
                               '-t_srs', '%s' % self.proj_location,
-                              '-f',     '%s' % self.ogr_drv_format, 
+                              '-f', '%s' % self.ogr_drv_format, 
                               temp_warpmap, self.temp_map], stdout = nuldev)
             ps.wait()
             

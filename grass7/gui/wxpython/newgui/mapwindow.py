@@ -86,12 +86,12 @@ class BufferedWindow2(MapWindow, wx.Window):
         #rashad self._giface.updateMap.connect(self.UpdateMap)
 
         # event bindings
-        self.Bind(wx.EVT_PAINT,           self.OnPaint)
-        self.Bind(wx.EVT_SIZE,            self.OnSize)
-        self.Bind(wx.EVT_IDLE,            self.OnIdle)
-        self.Bind(EVT_UPDATE_MAP,         self.OnUpdateMap)
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_SIZE, self.OnSize)
+        self.Bind(wx.EVT_IDLE, self.OnIdle)
+        self.Bind(EVT_UPDATE_MAP, self.OnUpdateMap)
         if self.frame and hasattr(self.frame, 'OnUpdateProgress'):
-            self.Bind(EVT_UPDATE_PRGBAR,   self.frame.OnUpdateProgress)
+            self.Bind(EVT_UPDATE_PRGBAR, self.frame.OnUpdateProgress)
 
         self._bindMouseEvents()
         
@@ -150,7 +150,7 @@ class BufferedWindow2(MapWindow, wx.Window):
         
     def _bindMouseEvents(self):
         self.Bind(wx.EVT_MOUSE_EVENTS, self.MouseActions)
-        self.Bind(wx.EVT_MOTION,       self.OnMotion)
+        self.Bind(wx.EVT_MOTION, self.OnMotion)
         self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
 
     def OnContextMenu(self, event):
@@ -1885,10 +1885,10 @@ class GraphicsSet:
             RegisterGraphicsToDraw in BufferedWindow2 class.
         """
         self.pens = {
-            "default":  wx.Pen(colour = wx.BLACK, width = 2, style = wx.SOLID),
-            "selected":  wx.Pen(colour = wx.GREEN, width = 2, style = wx.SOLID),
-            "unused":  wx.Pen(colour = wx.LIGHT_GREY, width = 2, style = wx.SOLID),
-            "highest":  wx.Pen(colour = wx.RED, width = 2, style = wx.SOLID)
+            "default": wx.Pen(colour = wx.BLACK, width = 2, style = wx.SOLID),
+            "selected": wx.Pen(colour = wx.GREEN, width = 2, style = wx.SOLID),
+            "unused": wx.Pen(colour = wx.LIGHT_GREY, width = 2, style = wx.SOLID),
+            "highest": wx.Pen(colour = wx.RED, width = 2, style = wx.SOLID)
         }
         
         # list contains instances of GraphicsSetItem

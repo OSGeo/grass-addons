@@ -158,7 +158,7 @@ def main():
 
     grass.run_command('v.category', input = lines_concave, 
                       output = lines_concave_nocat, type = 'line', 
-                      op = 'del',  cat = '-1', quiet = True)
+                      op = 'del', cat = '-1', quiet = True)
 
     borders_concave = prefix + '_delaunay_borders_select'
     grass.run_command('v.type', input = lines_concave_nocat,

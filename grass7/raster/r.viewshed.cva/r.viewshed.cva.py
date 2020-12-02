@@ -185,7 +185,7 @@ def main():
         grass.message(_("Temporary viewshed maps will not removed"))
     else:
         grass.message(_("Removing temporary viewshed maps"))
-        grass.run_command("g.remove",  quiet=True, flags='f', type='raster', name=(",").join(vshed_list))
+        grass.run_command("g.remove", quiet=True, flags='f', type='raster', name=(",").join(vshed_list))
     return
 
 # here is where the code in "main" actually gets executed. This way of programming is neccessary for the way g.parser needs to run.

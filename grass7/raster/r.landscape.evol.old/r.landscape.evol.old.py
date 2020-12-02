@@ -374,10 +374,10 @@ def main(m, o, p, q, r, s):
     #Check to see if we are going to only output diagnostics for determing cutoff values, and act accordingly
     if (flags["p"] is True ):
         grass.message('GATHERING STATISTICS FOR DETERMINING CUTOFF VALUES\n-------------------------------------------------\n1) Calculating slope and curvatures')
-        grass.run_command('r.slope.aspect',  quiet = "True", elevation = old_dem, slope = slope, pcurv = pc, tcurv = tc)
+        grass.run_command('r.slope.aspect', quiet = "True", elevation = old_dem, slope = slope, pcurv = pc, tcurv = tc)
     else:
         grass.message('\n##################################################\n\n*************************\n Iteration %s -- ' % o + 'step 1: calculating slope\n*************************\n')
-        grass.run_command('r.slope.aspect',  quiet = "True", elevation = old_dem, aspect = aspect, slope = slope)
+        grass.run_command('r.slope.aspect', quiet = "True", elevation = old_dem, aspect = aspect, slope = slope)
     if (flags["p"] is True ):
         grass.message('2) Calculating map of rainfall excess')
     else:
@@ -390,7 +390,7 @@ def main(m, o, p, q, r, s):
     grass.mapcalc('${rainexcess}=int(${flowcontrib})', quiet = "True", rainexcess = rainexcess, flowcontrib = flowcontrib)
     if (os.getenv("GIS_FLAG_p") == "1" ):
         grass.message('3) Calculating accumulated flow (in numbers of upslope cells, scaled by runoff contribution')
-    grass.run_command('r.watershed',  quiet = "True",  flags = 'a',  elevation = old_dem, flow = rainexcess, accumulation = flacclargenums, drainage = flowdir, convergence = convergence)
+    grass.run_command('r.watershed', quiet = "True", flags = 'a', elevation = old_dem, flow = rainexcess, accumulation = flacclargenums, drainage = flowdir, convergence = convergence)
     grass.mapcalc('${flowacc}=${flacclargenums}/100', quiet = "True", flowacc = flowacc, flacclargenums = flacclargenums)
     #again, do something different if we are only making an evaluation of cutoffs
     if (flags["p"] is True ):
@@ -421,9 +421,9 @@ def main(m, o, p, q, r, s):
         #choose shear stress or stream power
         #these are the stream-power versions * note that I'm converting the stream-power output (kg/m2) to same units as USPED (T/ha) by multiplying by ten. This ensures they are even going into the divergence calculation #Qs = Kt * n^-1 * 9810 * depth^1.6 * tan(slope)^1.5
         if (flags['c'] is True ):
-            grass.mapcalc('${qs1}=(${Kt} * exp(9806.65*(((${rain}/1000)*${flowacc})/(0.595*${stormtimet}))*tan(${slope}), ${loadexp}) )', quiet = "True",  qs1 = qs1, flowacc = flowacc, stormtimet = stormtimet, rain = rain, slope = slope, loadexp = loadexp, Kt = Kt,  sdensity = sdensity)
+            grass.mapcalc('${qs1}=(${Kt} * exp(9806.65*(((${rain}/1000)*${flowacc})/(0.595*${stormtimet}))*tan(${slope}), ${loadexp}) )', quiet = "True", qs1 = qs1, flowacc = flowacc, stormtimet = stormtimet, rain = rain, slope = slope, loadexp = loadexp, Kt = Kt, sdensity = sdensity)
         else:
-            grass.mapcalc('${qs1}=10 * ${Kt} * exp(${manningn}, -1) * 9810 * exp( ( ( (${rain}/1000)*${flowacc}) / (0.595*${stormtimet}) ), 1.6) * exp(tan(${slope}), 1.5)', quiet = "True",  qs1 = qs1, flowacc = flowacc, stormtimet = stormtimet, rain = rain, slope = slope, loadexp = loadexp, Kt = Kt,  sdensity = sdensity, manningn = manningn)
+            grass.mapcalc('${qs1}=10 * ${Kt} * exp(${manningn}, -1) * 9810 * exp( ( ( (${rain}/1000)*${flowacc}) / (0.595*${stormtimet}) ), 1.6) * exp(tan(${slope}), 1.5)', quiet = "True", qs1 = qs1, flowacc = flowacc, stormtimet = stormtimet, rain = rain, slope = slope, loadexp = loadexp, Kt = Kt, sdensity = sdensity, manningn = manningn)
         qsx = "%sQsx_%04d" % (p,o)
         qsy = "%sQsy_%04d" % (p,o)
         grass.mapcalc("${qsx}=eval(a=(${kappa} * sin(${slope}) * cos(${aspect})), b=((${R}*${K}*${C}*${flowacc}*${res}*sin(${slope})) * cos(${aspect})), c=( (${R}*${K}*${C}*exp((${flowacc}*${res}),1.6000000)*exp(sin(${slope}),1.3000000)) * cos(${aspect})),  if(${flowacc} <= ${cutoff1}, a, if(${flowacc} <= ${cutoff2} && ${flowacc} > ${cutoff1}, b, c)) )", quiet = "True", qsx = qsx, kappa = kappa, slope = slope, aspect = aspect, R = R, K = K, C =C, res = r, flowacc = flowacc, Kt = Kt, rain = rain, stormtimet = stormtimet, loadexp = loadexp, cutoff1 = cutoff1, cutoff2 = cutoff2, cutoff3 = cutoff3)
@@ -452,14 +452,14 @@ def main(m, o, p, q, r, s):
         grass.mapcalc('${qsd1}=if(${flowdir} == 7, (${qs1}[-1,-1]-${qs1}), if (${flowdir} == 6, (${qs1}[-1,0]-${qs1}), if (${flowdir} == 5, (${qs1}[-1,1]-${qs1}), if (${flowdir} == 4, (${qs1}[0,1]-${qs1}), if (${flowdir} == 3, (${qs1}[1,1]-${qs1}), if (${flowdir} == 2, (${qs1}[1,0]-${qs1}), if (${flowdir} == 1, (${qs1}[1,-1]-${qs1}), if (${flowdir} == 8, (${qs1}[0,-1]-${qs1}), ${qs1}))))))))', quiet = "True", qsd1 = qsd1, flowdir = flowdir, qs1 = qs1)
         qsxdx = '%sDelta_Qsx_%04d' % (p, o)
         qsydy = '%sDelta_Qsy_%04d' % (p, o)
-        grass.run_command('r.slope.aspect',  quiet = "True",  elevation = qsx, dx = qsxdx)
-        grass.run_command('r.slope.aspect',  quiet = "True",  elevation = qsy, dy = qsydy)
+        grass.run_command('r.slope.aspect', quiet = "True", elevation = qsx, dx = qsxdx)
+        grass.run_command('r.slope.aspect', quiet = "True", elevation = qsy, dy = qsydy)
     else:
         #This is the normal version (with 2D streams)
         qsxdx = '%sDelta_Qsx_%04d' % (p, o)
         qsydy = '%sDelta_Qsy_%04d' % (p, o)
-        grass.run_command('r.slope.aspect',  quiet = "True",  elevation = qsx, dx = qsxdx)
-        grass.run_command('r.slope.aspect',  quiet = "True",  elevation = qsy, dy = qsydy)
+        grass.run_command('r.slope.aspect', quiet = "True", elevation = qsx, dx = qsxdx)
+        grass.run_command('r.slope.aspect', quiet = "True", elevation = qsy, dy = qsydy)
 
     #This is the smoothing routine. First we calculate the rate of Erosion and Deposition by converting the Delta QS of the different processes to vertical meters by dividing by the soil denisity (with apropriate constants to get into the correct units, see UNIT CONVERSION note below), and for streams, also expand from the storm to the year level. All units of this initial (temporary) ED_rate map will be in m/cell/year.
     #CHANGES
@@ -491,7 +491,7 @@ def main(m, o, p, q, r, s):
     #Check if additional smoothing is requested.
     if smoothing == "no":
         grass.message('No additional modal smoothing was requested...')
-        grass.run_command('g.rename',  quiet = "True", rast = tempnetchange2 + ',' + netchange)
+        grass.run_command('g.rename', quiet = "True", rast = tempnetchange2 + ',' + netchange)
     elif smoothing == "low":
         grass.message('Enacting additional "low" smoothing: one pass of a 3x3 modal smoothing window.')
         grass.run_command('r.neighbors', quiet = "True", input = tempnetchange2, output = netchange, method = 'mode', size = '3')
@@ -500,7 +500,7 @@ def main(m, o, p, q, r, s):
         grass.run_command('r.neighbors', quiet = "True", input = tempnetchange2, output = netchange, method = 'mode', size = '5')
     else:
         grass.message('There was a problem reading the median-smoothing variable, so maps will not be median-smoothed.')
-        grass.run_command('g.rename',  quiet = "True", rast = tempnetchange2 + ',' + netchange)
+        grass.run_command('g.rename', quiet = "True", rast = tempnetchange2 + ',' + netchange)
     #Set the netchange map colors to the rules we've provided above
     grass.write_command('r.colors', quiet=True, map=netchange, rules='-', stdin=nccolors)
     #Grab the stats from these new smoothed netchange maps and save them to dictionaries (Note that the temporary erosion and deposition maps made in this step are overwriting the two temporary maps made for gathering the stats for the soft-knee limiting filter)
@@ -511,9 +511,9 @@ def main(m, o, p, q, r, s):
 
     grass.message('\n*************************\n Iteration %s -- ' % o + 'step 5: calculating terrain evolution and new soil depths\n *************************\n\n')
     #Set up a temp dem, and then do initial addition of ED change to old DEM. This mapcalc statement first checks the amount of erodable soil in a given cell against the amount of erosion calculated, and keeps the cell from eroding past this amount (if there is soil, then if the amount of erosion is more than the amount of soil, just remove all the soil and stop, else remove the amount of caclulated erosion. It also runs an error catch that checks to make sure that soil depth is not negative (could happen, I suppose), and if it is, corrects it). Finally, do patch-job to catch the shrinking edge problem (the edge cells have no upstream cell, so get turned null in the calculations in step 4)
-    grass.mapcalc('${new_dem}=eval(x=if(${old_soil} > 0.0 && (-1*${netchange}) <= ${old_soil}, ${netchange}, if((-1*${netchange}) > ${old_soil},   (-1*${old_soil}), 0)), y=(${old_dem} + x), if(isnull(y), ${old_dem}, y))', quiet = "True", new_dem = new_dem, old_soil = old_soil, old_dem = old_dem,  netchange = netchange)
+    grass.mapcalc('${new_dem}=eval(x=if(${old_soil} > 0.0 && (-1*${netchange}) <= ${old_soil}, ${netchange}, if((-1*${netchange}) > ${old_soil},   (-1*${old_soil}), 0)), y=(${old_dem} + x), if(isnull(y), ${old_dem}, y))', quiet = "True", new_dem = new_dem, old_soil = old_soil, old_dem = old_dem, netchange = netchange)
     #Set colors for elevation map to match other dems
-    grass.run_command('r.colors',  quiet = "True", map = new_dem, rast = options["elev"])
+    grass.run_command('r.colors', quiet = "True", map = new_dem, rast = options["elev"])
     grass.mapcalc('${new_soil}=if ((${new_dem} - ${initbdrk}) < 0, 0, (${new_dem} - ${initbdrk}))', quiet = "True", new_soil = new_soil, new_dem = new_dem, initbdrk = initbdrk)
     grass.write_command('r.colors', quiet=True, map=new_soil, rules='-', stdin=sdcolors)
     grass.message('\n*************************\n Iteration %s -- ' % o + 'step 6: writing stats to output file\n *************************\n\n')
@@ -673,7 +673,7 @@ if __name__ == "__main__":
     # This is the loop!
     for x in range(int(years)):
         grass.message("Iteration = %s" % (x + 1))
-        main(x, (x + 1), prefx, statsout,  region1['nsres'], masterlist);
+        main(x, (x + 1), prefx, statsout, region1['nsres'], masterlist);
     #Since we are now done with the loop, close the stats file.
     f.close()
     grass.message('\nIterations complete!\n\nDone with everything')

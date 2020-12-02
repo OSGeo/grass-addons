@@ -61,11 +61,11 @@ def main():
 
     for i in range(len(stats)):
         if i == 0:
-            zn[i,0],  zn[i,1] = map(float, stats[i].split(' '))
+            zn[i,0], zn[i,1] = map(float, stats[i].split(' '))
             zn[i,1] = zn[i,1]
             zn[i,2] = zn[i,1] * res
         if i != 0:
-            zn[i,0],  zn[i,1] = map(float, stats[i].split(' '))
+            zn[i,0], zn[i,1] = map(float, stats[i].split(' '))
             zn[i,2] = zn[i,1] + zn[i-1,2]
             zn[i,3] = zn[i,1] * (res**2)
 

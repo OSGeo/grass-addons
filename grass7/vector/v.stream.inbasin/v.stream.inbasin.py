@@ -163,10 +163,10 @@ def main():
             except:
                 pass
             tmp = vector.Vector('tmp')
-            _cols = [(u'cat',       'INTEGER PRIMARY KEY'),
-                     (u'x',         'DOUBLE PRECISION'),
-                     (u'y',         'DOUBLE PRECISION'),
-                     (u'strcat',    'DOUBLE PRECISION')]
+            _cols = [(u'cat', 'INTEGER PRIMARY KEY'),
+                     (u'x', 'DOUBLE PRECISION'),
+                     (u'y', 'DOUBLE PRECISION'),
+                     (u'strcat', 'DOUBLE PRECISION')]
             tmp.open('w', tab_name='tmp', tab_cols=_cols)
             point0 = Point(x_outlet,y_outlet)
             tmp.write(point0, cat=1, attrs=(str(x_outlet), str(y_outlet), 0), )
@@ -236,9 +236,9 @@ def main():
             _x = x_outlet
             _y = y_outlet
         pptmp = vector.Vector(output_pour_point)
-        _cols = [(u'cat',       'INTEGER PRIMARY KEY'),
-                 (u'x',         'DOUBLE PRECISION'),
-                 (u'y',         'DOUBLE PRECISION')]
+        _cols = [(u'cat', 'INTEGER PRIMARY KEY'),
+                 (u'x', 'DOUBLE PRECISION'),
+                 (u'y', 'DOUBLE PRECISION')]
         pptmp.open('w', tab_name=output_pour_point, tab_cols=_cols)
         point0 = Point(_x,_y)
         pptmp.write(point0, cat=1, attrs=(str(_x), str(_y)), )
