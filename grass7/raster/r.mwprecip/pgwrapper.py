@@ -45,7 +45,7 @@ class pgwrapper:
 
                  except Exception as err:
                         self.connection.rollback()
-                        self.print_message( " Catched error (as expected):\n")
+                        self.print_message(" Catched error (as expected):\n")
                         self.print_message(err)
                         
                         pass

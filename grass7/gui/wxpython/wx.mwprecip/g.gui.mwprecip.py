@@ -38,7 +38,7 @@ import logging
 class DBconn(wx.ScrolledWindow):
     def __init__(self, parent, settings={}):
         wx.ScrolledWindow.__init__(self, parent,  wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.VSCROLL)
-        self.SetScrollRate( 5, 5 )
+        self.SetScrollRate(5, 5 )
         self.settings = settings
         self.database = BaseInput(self, label='Name of database')
         self.user = BaseInput(self, label='User name')
@@ -111,7 +111,7 @@ class DBconn(wx.ScrolledWindow):
 class PointInterpolationPanel(wx.ScrolledWindow):
     def __init__(self, parent, settings=None):
         wx.ScrolledWindow.__init__(self, parent,  wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.VSCROLL)
-        self.SetScrollRate( 5, 5 )
+        self.SetScrollRate(5, 5 )
         self.settings = settings
         self.interpolState = wx.CheckBox(self, label='interpolate points along links')
         self.interpolState.Bind(wx.EVT_CHECKBOX, self.onCheckInterpol)
@@ -157,7 +157,7 @@ class PointInterpolationPanel(wx.ScrolledWindow):
 class BaselinePanel(wx.ScrolledWindow):
     def __init__(self, parent, settings={}):
         wx.ScrolledWindow.__init__(self, parent,  wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.VSCROLL)
-        self.SetScrollRate( 5, 5 )
+        self.SetScrollRate(5, 5 )
         self.settings = settings
 
         self.noDryWin = wx.RadioButton(self, label='Compute without dry window', style=wx.RB_GROUP)
@@ -291,7 +291,7 @@ class DataMgrRG(wx.Panel):
 class DataMgrMW(wx.ScrolledWindow):
     def __init__(self, parent, settings={}):
         wx.ScrolledWindow.__init__(self, parent,  wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.VSCROLL)
-        self.SetScrollRate( 5, 5 )
+        self.SetScrollRate(5, 5 )
         self.settings = settings
 
         self.stBoxTWIN = wx.StaticBox(self, wx.ID_ANY, 'Time windows MW')

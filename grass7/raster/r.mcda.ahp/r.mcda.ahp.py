@@ -61,7 +61,7 @@ def calculateWeight(pairwise):
     eigenvector=np.float32(eigenvector)
     weight=eigenvector[:, maxindex] #extract vector from eigenvector with max vaue in eigenvalues
     weight.tolist() #convert array(numpy)  to vector
-    weight=[ w/sum(weight) for w in weight ]
+    weight=[w/sum(weight) for w in weight ]
     return weight, eigenvalues,  eigenvector
     
 def calculateMap(criteria, weight, outputMap):

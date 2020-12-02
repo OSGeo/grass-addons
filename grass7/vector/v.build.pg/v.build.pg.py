@@ -92,7 +92,7 @@ def main():
     
     # default connection
     global pg_conn
-    pg_conn = { 'driver': 'pg',
+    pg_conn = {'driver': 'pg',
                 'database' : vInfo['pg_dbname'] }
     
     # default topo schema

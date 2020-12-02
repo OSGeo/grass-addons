@@ -271,7 +271,7 @@ class RainGauge():
                     tmp.append(stri)
                 f.close()
         except IOError as e:
-            grass.error( "I/O error({0}): {1}".format(errno, strerror))
+            grass.error("I/O error({0}): {1}".format(errno, strerror))
 
         # write list of string to database
         try:
@@ -279,7 +279,7 @@ class RainGauge():
                 io.writelines(tmp)
                 io.close()
         except IOError as e:
-            grass.error( "I/O error({0}): {1}".format(errno, strerror))
+            grass.error("I/O error({0}): {1}".format(errno, strerror))
 
         if not isTableExist(self.db.connection, self.schema, self.db.rgaugeTableName):
             # #create table for raingauge stations
@@ -485,7 +485,7 @@ class TimeWindows():
             sql = "CREATE TABLE %s.%s as\
                    SELECT * from %s.%s \
                    WHERE time=(timestamp'%s'+ %s * interval '1 second')" % \
-                  ( self.schema, view_name,
+                  (self.schema, view_name,
                     self.schema, self.viewDB,
                     self.timestamp_min,
                     time_const)
@@ -1272,7 +1272,7 @@ class GrassLayerMgr():
         for win in f.read().splitlines():
             layerNum += 1
             win = self.database.schema + '.' + win
-            logger.info( win)
+            logger.info(win)
             RunCommand('v.db.connect',
                        driver='pg',
                        map=self.database.linkVecMapName,
@@ -1343,7 +1343,7 @@ class GrassTemporalMgr():
         io1 = open(regFilePath, 'w+')
         io1.writelines(regTMP), io1.close
         io1.close()
-        logger.info( 'datasetName %s'% self.datasetName)
+        logger.info('datasetName %s'% self.datasetName)
         logger.info(regFilePath)
 
         RunCommand('t.register',

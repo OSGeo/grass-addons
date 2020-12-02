@@ -320,7 +320,7 @@ def main(m, o, p, q, r, s):
     Kt = options["kt"]
     loadexp = options["loadexp"]
     # Make some variables for temporary map names, labeled different depending on if we keep them or not
-    if ( flags["k"] is True ):
+    if (flags["k"] is True ):
         aspect = '%saspect%04d' % (p, o)
         flowacc = '%sflowacc%04d' % (p, o)
         flacclargenums = '%sflowacc_largenums%04d' % (p, o)
@@ -353,7 +353,7 @@ def main(m, o, p, q, r, s):
     # Make color rules for soil depth maps
     sdcolors = '100% 0:249:47\n20% 78:151:211\n6% 194:84:171\n0% 227:174:217'
     # If first iteration, use input maps. Otherwise, use maps generated from previous iterations
-    if ( o == 1 ):
+    if (o == 1 ):
         old_dem = '%s' % options["elev"]
         old_soil = "%s%s_init" % (prefx, options["outsoil"])
         grass.mapcalc('${old_soil}=${old_dem}-${old_bdrk}', overwrite = "True", quiet = "True", old_soil = old_soil, old_dem = old_dem, old_bdrk = old_bdrk)
@@ -361,7 +361,7 @@ def main(m, o, p, q, r, s):
         old_dem = '%s%s%04d' % (p, options["outdem"], m)
         old_soil = '%s%s%04d' % (p, options["outsoil"], m)
     #Checking for special condition of there being only one run, and setting variables accordingly (one year runs have no numbers suffixed to the output map names)
-    if ( years == '1' ):
+    if (years == '1' ):
         slope = '%sslope' % p
         netchange = '%sED_rate' % p
         new_dem ='%s%s' % (p, outdem)
@@ -372,13 +372,13 @@ def main(m, o, p, q, r, s):
         new_dem = '%s%s%04d' % (p, outdem, o)
         new_soil = '%s%s%04d' % (p, outsoil, o)
     #Check to see if we are going to only output diagnostics for determing cutoff values, and act accordingly
-    if ( flags["p"] is True ):
+    if (flags["p"] is True ):
         grass.message('GATHERING STATISTICS FOR DETERMINING CUTOFF VALUES\n-------------------------------------------------\n1) Calculating slope and curvatures')
         grass.run_command('r.slope.aspect',  quiet = "True", elevation = old_dem, slope = slope, pcurv = pc, tcurv = tc)
     else:
         grass.message('\n##################################################\n\n*************************\n Iteration %s -- ' % o + 'step 1: calculating slope\n*************************\n')
         grass.run_command('r.slope.aspect',  quiet = "True", elevation = old_dem, aspect = aspect, slope = slope)
-    if ( flags["p"] is True ):
+    if (flags["p"] is True ):
         grass.message('2) Calculating map of rainfall excess')
     else:
         grass.message('\n*************************\n Iteration %s -- ' % o + 'step 2: calculating accumulated flow depths\n*************************\n')
@@ -388,12 +388,12 @@ def main(m, o, p, q, r, s):
     if flowcontrib == "":
         flowcontrib = 100
     grass.mapcalc('${rainexcess}=int(${flowcontrib})', quiet = "True", rainexcess = rainexcess, flowcontrib = flowcontrib)
-    if ( os.getenv("GIS_FLAG_p") == "1" ):
+    if (os.getenv("GIS_FLAG_p") == "1" ):
         grass.message('3) Calculating accumulated flow (in numbers of upslope cells, scaled by runoff contribution')
     grass.run_command('r.watershed',  quiet = "True",  flags = 'a',  elevation = old_dem, flow = rainexcess, accumulation = flacclargenums, drainage = flowdir, convergence = convergence)
     grass.mapcalc('${flowacc}=${flacclargenums}/100', quiet = "True", flowacc = flowacc, flacclargenums = flacclargenums)
     #again, do something different if we are only making an evaluation of cutoffs
-    if ( flags["p"] is True ):
+    if (flags["p"] is True ):
         grass.message('4) Determining number of sampling points using formula: "ln(#cells_in_input_map)*100"')
         flaccstats = grass.parse_command('r.univar', flags = 'g', map = flowacc)
         numpts = int(math.log(int(flaccstats['n']))*100)
@@ -405,7 +405,7 @@ def main(m, o, p, q, r, s):
         grass.run_command('v.db.addcolumn', quiet = "True", map = vout, columns = 'Tang_curv double precision, Slope double precision')
         grass.run_command('v.what.rast', quiet = "True", map = vout, raster = tc, column = "Tang_curv")
         grass.run_command('v.what.rast', quiet = "True", map = vout, raster = slope, column = "Slope")
-        if ( flags["k"] is True ):
+        if (flags["k"] is True ):
             grass.message('--Keeping the created maps (Flow Accumulation, Slope, Principle Curvature, Tangential Curvature)')
         else:
             grass.message('6) Cleaning up...')
@@ -414,13 +414,13 @@ def main(m, o, p, q, r, s):
         sys.exit(0)
     grass.message('\n*************************\n Iteration %s -- ' % o + 'step 3: calculating sediment transport rates (units variable depending upon process) \n*************************\n')
     # This step calculates the force of the flowing water at every cell on the landscape using the proper transport process law for the specific point in the flow regime. For upper hillslopes (below cutoff point 1) this done by multiplying the diffusion coeficient by the accumulated flow/cell res width. For midslopes (between cutoff 1 and 2) this is done by multiplying slope by accumulated flow with the m and n exponents set to 1. For channel catchment heads (between cutoff 2 and 3), this is done by multiplying slope by accumulated flow with the m and n exponents set to 1.6 and 1.3 respectively. For Channelized flow in streams (above cutoff 3), this is done by calculating the reach average shear stress (hydraulic radius [here estimated for a cellular landscape simply as the depth of flow]  times  slope times accumulated flow [cells] times gravitatiopnal acceleration of water [9806.65 newtons], all raised to the appropriate exponant for the type of transport (bedload or suspended load), and then divided by the resolution. Depth of flow is calculated as a mean "instantaneous depth" during any given rain event, here estimated by the maximum depth of an idealized unit hydrograph with base equal to the duration of the storm, and area equal to the total accumulated excess rainfall during the storm. Then finally calculates the stream power or sediment carrying capacity (qs) of the water flowing at each part of the map by multiplying the reach average shear stress (channelized flow in streams) or the estimated flow force (overland flow) by the transport coeficient (estimated by R*K*C for hillslopes or kt for streams). This is a "Transport Limited" equation, however, we add some constraints on detachment by checking to see if the sediment supply has been exhausted: if the current soil depth is 0 or negative (checking for a negative value is kind of an error trap) then we make the transport coefficient small (0.000001) to simulate erosion on bedrock. Because diffusion and USPED require 2D divergence later on, we calculate these as vectors in the X and Y directions. Stream flow only needs 1D difference, so it's calulated in the direction of flow.
-    if ( flags["1"] is True ):
+    if (flags["1"] is True ):
         #This is the version with 1D streams
         qs1 = '%sQs_1D_streams%04d' % (p, o)
         #CHANGES
         #choose shear stress or stream power
         #these are the stream-power versions * note that I'm converting the stream-power output (kg/m2) to same units as USPED (T/ha) by multiplying by ten. This ensures they are even going into the divergence calculation #Qs = Kt * n^-1 * 9810 * depth^1.6 * tan(slope)^1.5
-        if ( flags['c'] is True ):
+        if (flags['c'] is True ):
             grass.mapcalc('${qs1}=(${Kt} * exp(9806.65*(((${rain}/1000)*${flowacc})/(0.595*${stormtimet}))*tan(${slope}), ${loadexp}) )', quiet = "True",  qs1 = qs1, flowacc = flowacc, stormtimet = stormtimet, rain = rain, slope = slope, loadexp = loadexp, Kt = Kt,  sdensity = sdensity)
         else:
             grass.mapcalc('${qs1}=10 * ${Kt} * exp(${manningn}, -1) * 9810 * exp( ( ( (${rain}/1000)*${flowacc}) / (0.595*${stormtimet}) ), 1.6) * exp(tan(${slope}), 1.5)', quiet = "True",  qs1 = qs1, flowacc = flowacc, stormtimet = stormtimet, rain = rain, slope = slope, loadexp = loadexp, Kt = Kt,  sdensity = sdensity, manningn = manningn)
@@ -432,7 +432,7 @@ def main(m, o, p, q, r, s):
         #This is the normal version (with 2D streams)
         qsx = "%sQsx_%04d" % (p,o)
         qsy = "%sQsy_%04d" % (p,o)
-        if ( flags['c'] is True ): #do the shear stress version. Note that I'm converting the stream-power output (kg/m2) to same units as USPED (T/ha) by multiplying by ten. This ensures they are even going into the divergence calculation
+        if (flags['c'] is True ): #do the shear stress version. Note that I'm converting the stream-power output (kg/m2) to same units as USPED (T/ha) by multiplying by ten. This ensures they are even going into the divergence calculation
             grass.mapcalc("${qsx}=eval(a=(${kappa} * sin(${slope}) * cos(${aspect})), b=((${R}*${K}*${C}*${flowacc}*${res}*sin(${slope})) * cos(${aspect})), c=( (${R}*${K}*${C}*exp((${flowacc}*${res}),1.6000000)*exp(sin(${slope}),1.3000000)) * cos(${aspect})), d=10 * (${Kt} * exp(9806.65*(((${rain}/1000)*${flowacc})/(0.595*${stormtimet}))*tan(${slope}), ${loadexp}) ) * cos(${aspect}),  if(${flowacc} >= ${cutoff3}, a, if(${flowacc} >= ${cutoff2} && ${flowacc} < ${cutoff3}, b, if(${flowacc} >= ${cutoff1} && ${flowacc} < ${cutoff2}, c, d))) )", quiet = "True", qsx = qsx, kappa = kappa, slope = slope, aspect = aspect, R = R, K = K, C =C, res = r, flowacc = flowacc, Kt = Kt, rain = rain, stormtimet = stormtimet, loadexp = loadexp, cutoff1 = cutoff1, cutoff2 = cutoff2, cutoff3 = cutoff3)
             grass.mapcalc("${qsy}=eval(a=(${kappa} * sin(${slope}) * sin(${aspect})), b=((${R}*${K}*${C}*${flowacc}*${res}*sin(${slope})) * sin(${aspect})), c=( (${R}*${K}*${C}*exp((${flowacc}*${res}),1.6000000)*exp(sin(${slope}),1.3000000)) * sin(${aspect})), d=10 * (${Kt} * exp(9806.65*(((${rain}/1000)*${flowacc})/(0.595*${stormtimet}))*tan(${slope}), ${loadexp}) ) * sin(${aspect}), if(${flowacc} >= ${cutoff3}, a, if(${flowacc} >= ${cutoff2} && ${flowacc} < ${cutoff3}, b, if(${flowacc} >= ${cutoff1} && ${flowacc} < ${cutoff2}, c, d))) )", quiet = "True", qsy = qsy, kappa = kappa, slope = slope, aspect = aspect, R = R, K = K, C =C, res = r, flowacc = flowacc, Kt = Kt, rain = rain, stormtimet = stormtimet, loadexp = loadexp, cutoff1 = cutoff1, cutoff2 = cutoff2, cutoff3 = cutoff3)
         else: #do the stream powered version. Note that I'm converting the stream-power output (kg/m2) to same units as USPED (T/ha) by multiplying by ten. This ensures they are even going into the divergence calculation #Qs = Kt * n^-1 * 9810 * depth^1.6 * tan(slope)^1.5
@@ -446,7 +446,7 @@ def main(m, o, p, q, r, s):
     grass.message('\n*************************\n Iteration %s -- ' % o + 'step 4: calculating divergence/difference of sediment transport for each process and the actual amount of erosion or deposition in vertical meters/cell/year\n*************************\n\n')
     #Here is where we figure out the change in transport capacity, and thus the actual amount of erosion an deposition that would occur. There are two ways of doing this. On planar and convex surfaces (i.e., ridgetops, flats, hillslopes), it is better to take the 2D divergence of sediment flux (we use r.slope.aspect to calculate this), but on highly convex surfaces (i.e., in channels) it is better to take the 1D difference between one cell, and the cell that is immediately downstream from it. This all assumes that the system is always operating at Transport Capacity, or if it is not, then is still behaves as if it were (ie., that the actual differences in transported sediment between the cells would be proportional to the system operating at capacity). Thus, under this assumption, the divergence of capacity is equals to actual amount of sediment eroded/deposited.
     #This is the way we implemnt this: First calculate, we calculate the divergence/differnce for EACH of the different flow processes on the ENTIRE map (i.e., make one map per process, difference for streams, divergence for USPED and diffusion). Then, we cut out the pieces of each of these maps that correspond to the correct landforms from each specific process (based on the user-input cutoffs in flow accumulation), and patch them together into a single map (NOTE: see output unit conversions section below to see how we get all the units to line up during this process). This counters the "boundary effect" that happens when running the differential equations for divergence across the boundary of two different flow processes.  Then we may still have to run a median smoother on the patched map to get rid of any latent spikes.
-    if ( flags["1"] is True ):
+    if (flags["1"] is True ):
         #This is the version with 1D streams
         qsd1 = '%sDelta_Qs_1D_streams%04d' % (p, o)
         grass.mapcalc('${qsd1}=if(${flowdir} == 7, (${qs1}[-1,-1]-${qs1}), if (${flowdir} == 6, (${qs1}[-1,0]-${qs1}), if (${flowdir} == 5, (${qs1}[-1,1]-${qs1}), if (${flowdir} == 4, (${qs1}[0,1]-${qs1}), if (${flowdir} == 3, (${qs1}[1,1]-${qs1}), if (${flowdir} == 2, (${qs1}[1,0]-${qs1}), if (${flowdir} == 1, (${qs1}[1,-1]-${qs1}), if (${flowdir} == 8, (${qs1}[0,-1]-${qs1}), ${qs1}))))))))', quiet = "True", qsd1 = qsd1, flowdir = flowdir, qs1 = qs1)
@@ -464,7 +464,7 @@ def main(m, o, p, q, r, s):
     #This is the smoothing routine. First we calculate the rate of Erosion and Deposition by converting the Delta QS of the different processes to vertical meters by dividing by the soil denisity (with apropriate constants to get into the correct units, see UNIT CONVERSION note below), and for streams, also expand from the storm to the year level. All units of this initial (temporary) ED_rate map will be in m/cell/year.
     #CHANGES
     #OUTPUT UNIT CONVERSIONS: In the case of the diffusion equation, the output units are in vertical meters of sediment per cell per year, so these will be left alone. Everything else should be in units of T/cell per storm. So we just need to convert to kg/cell, divide by the soil density and multiply the number of storms
-    if ( flags["1"] is True ):
+    if (flags["1"] is True ):
         #This is the version with 1D streams
         grass.mapcalc('${tempnetchange1}=if(${flowacc} >= ${cutoff3}, ((${qsd1}*0.1)/${sdensity})*${storms}, if(${flowacc} >= ${cutoff1} && ${flowacc} < ${cutoff3}, (((${qsxdx}+${qsydy})*0.1)/${sdensity})*${storms}, ${qsxdx}+${qsydy}))', quiet = "True", tempnetchange1 = tempnetchange1, qsd1 = qsd1, qsxdx = qsxdx, qsydy = qsydy, flowacc = flowacc, cutoff1 = cutoff1, cutoff3 = cutoff3, sdensity = sdensity, storms = storms, stormtimet = stormtimet)
     else:
@@ -541,11 +541,11 @@ def main(m, o, p, q, r, s):
             grass.message('Not keeping Soil Depth map.')
             mapstoremove.append(old_soil)
             #check if this is the last year and remove the "new-soil" map too
-            if ( o == int(options["number"])):
+            if (o == int(options["number"])):
                 mapstoremove.append(new_soil)
         else:
             #check if this is the first year, and if so, remove the temporary "soildepths_init" map
-            if ( o <= 1 ):
+            if (o <= 1 ):
                 mapstoremove.append("%s%s_init" % (prefx, options["outsoil"]))
         if  flags["e"] is True :
             grass.message('Keeping Excess Transport Capacity (divergence) maps for all processes.')

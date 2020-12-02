@@ -281,7 +281,7 @@ def main():
     nseg = np.arange(1, len(cats)+1)
     nseg_cats = []
     for i in range(len(cats)):
-        nseg_cats.append( (nseg[i], cats[i]) )
+        nseg_cats.append((nseg[i], cats[i]) )
     cur = reachesTopo.table.conn.cursor()
     # Hydrogeologic properties
     cur.execute("update "+reaches+" set STRTHICK="+str(STRTHICK))
@@ -360,12 +360,12 @@ def main():
                 reach_order_cats.append(_cat)
         _message = str(len(reach_order_cats)) + ' ' + \
                    str(len(reach_cats[rsel]))
-        gscript.message( _message )
+        gscript.message(_message )
           
         # Reach order to database table
         reach_number__reach_order_cats = []
         for i in range(len(reach_order_cats)):
-            reach_number__reach_order_cats.append( (i+1, reach_order_cats[i]) )
+            reach_number__reach_order_cats.append((i+1, reach_order_cats[i]) )
         reachesTopo = VectorTopo(reaches)
         reachesTopo.open('rw')
         cur = reachesTopo.table.conn.cursor()
@@ -402,8 +402,8 @@ def main():
     zr1_cats = []
     zr2_cats = []
     for i in range(len(reach_cats)):
-        zr1_cats.append( (zr1[i], reach_cats[i]) )
-        zr2_cats.append( (zr2[i], reach_cats[i]) )
+        zr1_cats.append((zr1[i], reach_cats[i]) )
+        zr2_cats.append((zr2[i], reach_cats[i]) )
 
     reachesTopo = VectorTopo(reaches)
     reachesTopo.open('rw')

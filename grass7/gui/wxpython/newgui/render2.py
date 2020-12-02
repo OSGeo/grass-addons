@@ -243,10 +243,10 @@ class Layer(object):
             return self.name
         else:
             if '@' in self.name:
-                return { 'name' : self.name.split('@')[0],
+                return {'name' : self.name.split('@')[0],
                          'mapset' : self.name.split('@')[1] }
             else:
-                return { 'name' : self.name,
+                return {'name' : self.name,
                          'mapset' : '' }
         
     def IsActive(self):
@@ -487,7 +487,7 @@ class Map(object):
             windfile = open (filename, "r")
         except IOError, e:
             sys.exit(_("Error: Unable to open '%(file)s'. Reason: %(ret)s. wxGUI exited.\n") % \
-                         { 'file' : filename, 'ret' : e})
+                         {'file' : filename, 'ret' : e})
         
         for line in windfile.readlines():
             line = line.strip()

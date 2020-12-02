@@ -207,7 +207,7 @@ class wmsFrame(wx.Frame):
 
         self.usernameInput.Disable()
         self.passwordInput.Disable()
-        if( not loadConfigFile(self)):
+        if(not loadConfigFile(self)):
             grass.fatal_error('Config File Error, Unable to start application...')
             self.Close()
             return

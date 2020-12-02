@@ -143,7 +143,7 @@ def main():
         data = []
         sf = []
         for i,m in enumerate(uid):
-            a = [ j for j, grp in enumerate(groups) if grp == m]
+            a = [j for j, grp in enumerate(groups) if grp == m]
             data.append([vals[i] for i in a])
             sf.append([m, np.median([vals[i] for i in a])])
         
@@ -151,7 +151,7 @@ def main():
         if sort:
             sf.sort(key = operator.itemgetter(1), reverse=reverse)
         sf = [i[0] for i in sf] 
-        ii = { e: i for i, e in enumerate(sf) }
+        ii = {e: i for i, e in enumerate(sf) }
         sfo = [(ii[e]) for i, e in enumerate(uid) if e in ii]
       
         # Draw boxplot

@@ -53,7 +53,7 @@ class VectorDBInfo:
                 else:
                     ctype = str
 
-                columns[name.strip()] = { 'index'  : i,
+                columns[name.strip()] = {'index'  : i,
                                           'type'   : type.lower(),
                                           'ctype'  : ctype,
                                           'length' : int(length),

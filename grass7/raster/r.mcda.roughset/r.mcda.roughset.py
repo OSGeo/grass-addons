@@ -246,12 +246,12 @@ def UpwardUnionsOfClasses (infosystem):
 ###############################
 def is_better (r1,r2, preference):
 	"Check if r1 is better than r2"
-	return all((( x >=y and p=='gain') or (x<=y and p=='cost')) for x,y, p in zip(r1,r2, preference) ) 
+	return all(((x >=y and p=='gain') or (x<=y and p=='cost')) for x,y, p in zip(r1,r2, preference) ) 
 	
 
 def is_worst (r1,r2, preference): 
 	"Check if r1 is worst than r2"
-	return all((( x <=y and p=='gain') or (x>=y and p=='cost')) for x,y, p in zip(r1,r2, preference) ) 
+	return all(((x <=y and p=='gain') or (x>=y and p=='cost')) for x,y, p in zip(r1,r2, preference) ) 
  #################################
 
 
@@ -508,7 +508,7 @@ def Print_rules(RULES, outputTxt):
 		outfile.write("%d: " % i, )
 		for e in R:
 				outfile.write("( %s %s %.3f )" % (e['label'], e['sign'],e['condition'] ))
-		outfile.write("=> ( class %s , %s )\n" % ( e['type'], e['class'] ))
+		outfile.write("=> ( class %s , %s )\n" % (e['type'], e['class'] ))
 		i+=1
 	outfile.close()
 	return 0
@@ -525,7 +525,7 @@ def Parser_mapcalc(RULES, outputMap):
 		for e in R[:-1]: #build a mapcalc formula
 			formula+= "(%s %s %.4f ) && " % (e['label'],  e['sign'] ,  e['condition'] )
 		formula+= "(%s %s %.4f ),%d,null())" % (R[-1]['label'],R[-1]['sign'], R[-1]['condition'] ,i )
-		mappa="r%d_%s_%d" % ( i, R[0]['type'], R[0]['class'] ) #build map name for mapcalc output
+		mappa="r%d_%s_%d" % (i, R[0]['type'], R[0]['class'] ) #build map name for mapcalc output
 		category.append({'id':i, 'type': R[0]['type'], 'class':R[0]['class']}) #extract category name
 		maps.append(mappa) #extract maps name
 		grass.mapcalc(mappa +"=" +formula)

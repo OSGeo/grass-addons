@@ -111,7 +111,7 @@ def create_iterator(vect):
     _n = np.arange(1, len(cats)+1)
     _n_cats = []
     for i in range(len(cats)):
-        _n_cats.append( (_n[i], cats[i]) )
+        _n_cats.append((_n[i], cats[i]) )
     return _n_cats
 
 
@@ -208,7 +208,7 @@ def main():
     nhru = np.arange(1, number_of_hrus + 1)
     nhrut = []
     for i in range(len(nhru)):
-      nhrut.append( (nhru[i], cats[i]) )
+      nhrut.append((nhru[i], cats[i]) )
     # Access the HRUs 
     hru = VectorTopo(HRU)
     # Open the map with topology:

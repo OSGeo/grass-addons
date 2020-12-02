@@ -104,7 +104,7 @@ def main():
         elif handler == "qiv":
             print('qiv -e -T "%s" &' % img_tmp)  # add --center ?
         else:
-            print('%s image="%s" percent=%s &' % ( handler, img_tmp, options['percent']) )
+            print('%s image="%s" percent=%s &' % (handler, img_tmp, options['percent']) )
 
         sys.exit(0)
 

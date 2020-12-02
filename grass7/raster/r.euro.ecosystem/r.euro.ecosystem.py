@@ -63,16 +63,16 @@ def main():
     global tmp     
         
     # start settings
-    grass.message( "Setting colors and categories ..." )
+    grass.message("Setting colors and categories ..." )
 
     # define intermediate folder files
     datatempdir = tempfile.gettempdir()
     if level1 :
-        tmp_col_l1 = os.path.join( datatempdir, color_rules_level1 )
-        tmp_cat_l1 = os.path.join( datatempdir, cat_rules_level1 )
+        tmp_col_l1 = os.path.join(datatempdir, color_rules_level1 )
+        tmp_cat_l1 = os.path.join(datatempdir, cat_rules_level1 )
     if level2 :    
-        tmp_col_l2 = os.path.join( datatempdir, color_rules_level2 )
-        tmp_cat_l2 = os.path.join( datatempdir, cat_rules_level2 )    
+        tmp_col_l2 = os.path.join(datatempdir, color_rules_level2 )
+        tmp_cat_l2 = os.path.join(datatempdir, cat_rules_level2 )    
 
         
     # write intermediate color and cat rule file data level 1
@@ -107,14 +107,14 @@ def main():
         fcal1.close()
 
         # apply color rules level 1
-        grass.message ( "applying color rules for data level 1..." )        
+        grass.message ("applying color rules for data level 1..." )        
         grass.run_command("r.colors", map = iraster,
                                         rules = tmp_col_l1,
                                         quiet = True)
 
         
         # apply category rules level 1
-        grass.message ( "applying category rules for data level 1..." )            
+        grass.message ("applying category rules for data level 1..." )            
         grass.run_command("r.category", map = iraster,
                                         rules = tmp_cat_l1,
                                         separator = 'pipe',
@@ -398,22 +398,22 @@ def main():
 
 
         # apply color rules level 2
-        grass.message ( "applying color rules for data level 2..." )
+        grass.message ("applying color rules for data level 2..." )
         grass.run_command("r.colors", map = iraster,
                                         rules = tmp_col_l2,
                                         quiet = True)
 
         
         # apply category rules level 2
-        grass.message ( "applying category rules for data level 2..." )    
+        grass.message ("applying category rules for data level 2..." )    
         grass.run_command("r.category", map = iraster,
                                         rules = tmp_cat_l2,
                                         separator = 'pipe',
                                         quiet = True)
 
     # do some clean up
-    grass.message( "----" )
-    grass.message( "cleaning intermediate files ...." )    
+    grass.message("----" )
+    grass.message("cleaning intermediate files ...." )    
     if level1 :
         os.remove("%s" % tmp_col_l1)
         os.remove("%s" % tmp_cat_l1)
@@ -422,8 +422,8 @@ def main():
         os.remove("%s" % tmp_col_l2)
         os.remove("%s" % tmp_cat_l2)
 
-    grass.message( "Cleaning done." )
-    grass.message( "----" )
+    grass.message("Cleaning done." )
+    grass.message("----" )
 
 
 if __name__ == "__main__":

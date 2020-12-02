@@ -482,8 +482,8 @@ def main ():
             wl.append(int(l[1]))
 
         aot_req = 550
-        upper = min([ i for i in wl if i >= aot_req], key=lambda x:abs(x-aot_req))
-        lower = min([ i for i in wl if i < aot_req], key=lambda x:abs(x-aot_req))
+        upper = min([i for i in wl if i >= aot_req], key=lambda x:abs(x-aot_req))
+        lower = min([i for i in wl if i < aot_req], key=lambda x:abs(x-aot_req))
 
         count=0
         for row in file(aeronet_file):
@@ -497,7 +497,7 @@ def main ():
                     # Search for the not null value for the upper wavelength
                     if t_columns[wl.index(upper)+i_col[0]]=="N/A":
                         aot_req_tmp = upper
-                        upper = min([ i for i in wl if i > aot_req_tmp], key=lambda x:abs(x-aot_req_tmp))
+                        upper = min([i for i in wl if i > aot_req_tmp], key=lambda x:abs(x-aot_req_tmp))
                     else:
                         wl_upper = float(upper)
                         aot_upper = float(t_columns[wl.index(upper)+i_col[0]])
@@ -508,7 +508,7 @@ def main ():
                     # Search for the not null value for the lower wavelength
                     if t_columns[wl.index(lower)+i_col[0]]=="N/A":
                         aot_req_tmp = lower
-                        lower = min([ i for i in wl if i < aot_req_tmp], key=lambda x:abs(x-aot_req_tmp))
+                        lower = min([i for i in wl if i < aot_req_tmp], key=lambda x:abs(x-aot_req_tmp))
                     else:
                         wl_lower = float(lower)
                         aot_lower = float(t_columns[wl.index(lower)+i_col[0]])

@@ -78,12 +78,12 @@ def main():
         grass.fatal(_("xy-locations are not supported"))
                 
     # import GBIF data
-    grass.message( "Starting importing GBIF data ..." )
-    grass.message( "preparing data for vrt ..." )
+    grass.message("Starting importing GBIF data ..." )
+    grass.message("preparing data for vrt ..." )
 
     # new quoted GBIF csv file
     gbiftempdir = tempfile.gettempdir()
-    new_gbif_csv = os.path.join( gbiftempdir, gbifcsv )
+    new_gbif_csv = os.path.join(gbiftempdir, gbifcsv )
 
     # quote raw data
     with open('%s' % (gbifraw), 'rb') as csvinfile:
@@ -92,11 +92,11 @@ def main():
                         gbifwriter = csv.writer(csvoutfile, quotechar='"', quoting=csv.QUOTE_ALL)
                         for row in gbifreader:
                                 gbifwriter.writerow(row)
-    grass.message( "----" )
+    grass.message("----" )
 
     # write        vrt                
-    grass.message( "writing vrt ..." )
-    new_gbif_vrt = os.path.join( gbiftempdir, gbifvrt )
+    grass.message("writing vrt ..." )
+    new_gbif_vrt = os.path.join(gbiftempdir, gbifvrt )
     
     f = open('%s' % (new_gbif_vrt), 'wt')
     f.write("""<OGRVRTDataSource>
@@ -152,22 +152,22 @@ def main():
         
     f.close()
 
-    grass.message( "----" )
+    grass.message("----" )
     # Give information where output file are saved                                                                 
-    grass.message( "GBIF vrt files:" )
-    grass.message( gbifvrt )
-    grass.message( "-" )        
-    grass.message( gbifcsv )
-    grass.message( "----" )
+    grass.message("GBIF vrt files:" )
+    grass.message(gbifvrt )
+    grass.message("-" )        
+    grass.message(gbifcsv )
+    grass.message("----" )
 
     # import GBIF vrt
-    grass.message( "importing GBIF vrt ..." )
+    grass.message("importing GBIF vrt ..." )
     
     # reprojection-on-the-fly if flag r
             
     if reproject_gbif :
                 
-                grass.message( "reprojecting data on-the-fly ..." )
+                grass.message("reprojecting data on-the-fly ..." )
                 grass.run_command("v.import", input = new_gbif_vrt,
                                      output = gbifimported,
                                      quiet = True)
@@ -181,29 +181,29 @@ def main():
                                      output = gbifimported,
                                      quiet = True)
 
-    grass.message( "..." )
+    grass.message("..." )
     # v.in.gbif done!        
-    grass.message( "importing GBIF data done!" )
+    grass.message("importing GBIF data done!" )
     # move vrt and csv to user defined directory
     
     if move_vrt_gbif_to_dir :
                 
-        grass.message( "----" )
-        grass.message( "Create GBIF vrt data files ..." )
+        grass.message("----" )
+        grass.message("Create GBIF vrt data files ..." )
         shutil.move(new_gbif_vrt, directory)
         shutil.move(new_gbif_csv, directory)
-        grass.message( "in following user defined directory:" )
-        grass.message( directory )
-        grass.message( "----" )                      
+        grass.message("in following user defined directory:" )
+        grass.message(directory )
+        grass.message("----" )                      
                 
     else:
                 
-        grass.message( "----")
+        grass.message("----")
         grass.message("Some clean up ...")
         os.remove("%s" % new_gbif_vrt)
         os.remove("%s" % new_gbif_csv)
         grass.message("Clean up done.")
-        grass.message( "----")
+        grass.message("----")
         
 
 if __name__ == "__main__":

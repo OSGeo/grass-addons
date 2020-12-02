@@ -23,7 +23,7 @@ class WFSOwsLibDrv(WFSBase):
         wfs = WebFeatureService(url = self.o_url, version= self.o_wfs_version)
   
         try:
-            wfs_data = wfs.getfeature( typename = [self.o_layers],
+            wfs_data = wfs.getfeature(typename = [self.o_layers],
                                        srsname =  "EPSG:" + str(self.o_srs),
                                        maxfeatures = self.o_maximum_features,
                                        bbox = query_bbox)   

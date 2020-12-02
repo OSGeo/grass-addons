@@ -560,7 +560,7 @@ class BufferedWindow2(MapWindow, wx.Window):
                     if self.imagedict[key]['id'] == overlay.id:
                         del self.imagedict[key]
                 
-                self.imagedict[img] = { 'id' : overlay.id,
+                self.imagedict[img] = {'id' : overlay.id,
                                         'layer' : overlay }
                 imgs.append(img)
 
@@ -584,7 +584,7 @@ class BufferedWindow2(MapWindow, wx.Window):
             if self.imagedict[key]['id'] == imgId:
                 del self.imagedict[key]
 
-        self.imagedict[img] = { 'id': imgId }
+        self.imagedict[img] = {'id': imgId }
         
         return img
 
@@ -2120,7 +2120,7 @@ class GraphicsSetItem:
         """
         self.coords = coords
         
-        self.properties = { "penName" : penName,
+        self.properties = {"penName" : penName,
                             "hide"    : hide,
                             "label"   : label }
         

@@ -223,9 +223,9 @@ class CoorWindow(wx.Dialog):
         # Create temporary files to be visualized in the preview 
         img_tmp = grass.tempfile() + ".png"
         print  img_tmp 
-        grass.run_command( 'd.mon', start = 'png', output = img_tmp) 
-        grass.run_command( 'd.rast', map = self.r_elev ) 
-        grass.run_command( 'd.vect', map = self.v_net)  
+        grass.run_command('d.mon', start = 'png', output = img_tmp) 
+        grass.run_command('d.rast', map = self.r_elev ) 
+        grass.run_command('d.vect', map = self.v_net)  
         print "Exported in file " + img_tmp
         
         directory = os.path.dirname(img_tmp)

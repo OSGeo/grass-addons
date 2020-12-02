@@ -42,8 +42,8 @@ class RDigitMapToolbar(BaseToolbar):
         # realize the toolbar
         self.Realize()
         
-        self.action = { 'id' : self.pan }
-        self.defaultAction = { 'id' : self.pan,
+        self.action = {'id' : self.pan }
+        self.defaultAction = {'id' : self.pan,
                                'bind' : self.parent.OnPan }
         self.OnTool(None)
         self.EnableTool(self.zoomBack, False)

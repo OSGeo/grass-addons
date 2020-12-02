@@ -66,7 +66,7 @@ def parser_4eMka2_rule(tags):
 			#rules_list.append(row)
 			i=row.index("=>")
 			for j in range(2,i):
-				 if( row[j]!="&"):
+				 if(row[j]!="&"):
 					 condition.append(row[j].strip('[,;]'))
 			for j in range(i+1,len(row)-2):
 					 decision.append(row[j].strip('([,;])'))

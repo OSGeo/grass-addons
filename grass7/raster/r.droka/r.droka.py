@@ -282,7 +282,7 @@ def main():
         grass.run_command('g.remove' ,
             flags = 'f',
             type = 'vector',
-            name = ( 'start_points_' ),
+            name = ('start_points_' ),
             quiet = True )    
     else:
         grass.run_command('g.rename' , 

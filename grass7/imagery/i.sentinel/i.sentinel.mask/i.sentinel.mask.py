@@ -458,7 +458,7 @@ def main ():
         expr_s = '{} = if({}, 0, null())'.format(
             tmp["shadow_temp"],
             shadow_rules)
-        gscript.mapcalc( expr_s, overwrite=True)
+        gscript.mapcalc(expr_s, overwrite=True)
         gscript.message(_('--- Converting raster shadow mask into vector map ---'))
         gscript.run_command('r.to.vect',
             input=tmp["shadow_temp"],

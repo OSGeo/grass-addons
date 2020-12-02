@@ -444,7 +444,7 @@ def landscapeEvol(m, o, p, q, res, s, f):
                      flacclargenum = flacclargenum)
 
     #again, do something different if we are only making an evaluation of cutoffs
-    if ( flags["p"] is True ):
+    if (flags["p"] is True ):
         samplePoints(old_dem, aspect, slope, pc, tc, flowacc, p)
 
     grass.message('\n*************************\n' +

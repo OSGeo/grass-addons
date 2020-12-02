@@ -255,7 +255,7 @@ def dfs1(node,LayerTree, ltr,lData):
      @return: None
     """
 	global key
-	if ( hasattr(node,'data')):
+	if (hasattr(node,'data')):
 		return
 	id = ltr
 	if(hasattr(node,'tagName')):

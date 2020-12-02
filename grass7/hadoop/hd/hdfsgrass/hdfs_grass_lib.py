@@ -494,8 +494,8 @@ class GrassMapBuilder(object):
         :return:
         """
         try:
-            start = s.index( first ) + len( first )
-            end = s.index( last, start )
+            start = s.index(first ) + len(first )
+            end = s.index(last, start )
             return s[start:end]
         except ValueError:
             return ""
@@ -673,7 +673,7 @@ class GrassHdfs():
         self.hook = self.conn.get_hook()
 
     @staticmethod
-    def printInfo( hdfs, msg=None):
+    def printInfo(hdfs, msg=None):
         grass.message('***' * 30)
         if msg:
             grass.message("     %s \n" % msg)
@@ -704,7 +704,7 @@ class GrassHdfs():
     def download(self, fs, hdfs, overwrite=True, parallelism=1):
         logging.info('Trying download : hdfs: %s to fs: %s   ' % (hdfs, fs))
 
-        out = self.hook.download_file( hdfs_path = hdfs,
+        out = self.hook.download_file(hdfs_path = hdfs,
                                        local_path = fs,
                                        overwrite = overwrite,
                                        parallelism = parallelism)

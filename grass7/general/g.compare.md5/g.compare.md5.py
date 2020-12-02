@@ -147,10 +147,10 @@ def main():
     variables = grass.core.gisenv()
     # files to investigate to check identity
     # for now color2 is ignored
-    raster_folder = [ "cats", "cell", "cellhd", "cell_misc", "fcell", "colr", "hist" ]
+    raster_folder = ["cats", "cell", "cellhd", "cell_misc", "fcell", "colr", "hist" ]
     if flags['c']:
         raster_folder.remove("colr")
-    vector_folder = [ "coor", "head", "topo" ]
+    vector_folder = ["coor", "head", "topo" ]
     if flags['t']:
         vector_folder.remove("topo")
     # path to the mapsets

@@ -44,7 +44,7 @@ class Playground(object):
             x = float(x)
             y = float(y)
             # also catch 'inf' and 'nan' ..
-            if ( x == x ) and ( y == y ) and ( x + y - 1 != x + y ):
+            if (x == x ) and (y == y ) and (x + y - 1 != x + y ):
                 return [float(y), float(x)]
             else:
                 return []
@@ -66,7 +66,7 @@ class Playground(object):
         self.region["cols"] = cols
 
         for layer in self.layers:
-            if not ( len(layer) is rows and len(layer[0]) is cols):
+            if not (len(layer) is rows and len(layer[0]) is cols):
                 raise error.Error(
                     "r.agent::libagent.playground.Playground.setregion()",
                     "new region is incompatible with some layer(s).")
