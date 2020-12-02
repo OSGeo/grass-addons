@@ -832,7 +832,7 @@ class BufferedWindow2(MapWindow, wx.Window):
         self.pdc.SetBackground(wx.Brush(self.GetBackgroundColour()))
         r = self.pdc.GetIdBounds(id)
 
-        if type(r) is list:
+        if isinstance(r, list):
             r = wx.Rect(r[0], r[1], r[2], r[3])
         if id > 100: # text dragging
             rtop = (r[0],r[1]-r[3],r[2],r[3])
@@ -842,7 +842,7 @@ class BufferedWindow2(MapWindow, wx.Window):
         self.pdc.TranslateId(id, dx, dy)
 
         r2 = self.pdc.GetIdBounds(id)
-        if type(r2) is list:
+        if isinstance(r2, list):
             r2 = wx.Rect(r[0], r[1], r[2], r[3])
         if id > 100: # text
             self.textdict[id]['bbox'] = r2
@@ -875,7 +875,7 @@ class BufferedWindow2(MapWindow, wx.Window):
             mousecoords = [begin[0], begin[1],
                            end[0], end[1]]
             r = pdc.GetIdBounds(boxid)
-            if type(r) is list:
+            if isinstance(r, list):
                 r = wx.Rect(r[0], r[1], r[2], r[3])
             r.Inflate(4, 4)
             try:

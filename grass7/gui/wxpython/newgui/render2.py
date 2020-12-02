@@ -817,7 +817,7 @@ class Map(object):
         """
         selected = []
 
-        if type(ltype) == types.StringType:
+        if isinstance(ltype, types.StringType):
             one_type = True
         else:
             one_type = False

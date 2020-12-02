@@ -786,8 +786,7 @@ def citation_for_module(name, add_grass=False):
 
 def get_core_modules():
     # TODO: see what get_commands() does on MS Windows
-    modules = list(gs.get_commands()[0])
-    modules.sort()
+    modules = sorted(gs.get_commands()[0])
     return modules
 
 

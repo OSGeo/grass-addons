@@ -37,7 +37,7 @@ def calibrate_digital_number(dn, c0, c1, c2):
     Calibrate a "raw" digital number based on Elvidge's calibration
     polynomial model
     """
-    if type(dn) != int:
+    if not isinstance(dn, int):
         raise ValueError('The provided Digital Number value is NOT an '
                          'integer!')
 

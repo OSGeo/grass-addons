@@ -207,7 +207,7 @@ def copyMaps(conn, infiles, typ, home):
 def variablesCheck(listValue):
     """Function to check if all variables as the same length and
     return the values in a useful list"""
-    if type(listValue[0]) == ListType:
+    if isinstance(listValue[0], ListType):
         oldlen = len(listValue[0])
     else:
         grass.fatal(_('Values must be a Python list'))

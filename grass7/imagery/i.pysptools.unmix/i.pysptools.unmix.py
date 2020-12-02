@@ -105,7 +105,7 @@ if "GISBASE" not in os.environ.keys():
 
 def get_rastertype(raster):
 
-    if type(raster[0,0]) != np.float32 and type(raster[0,0]) != np.float64:
+    if not isinstance(raster[0,0], np.float32) and not isinstance(raster[0,0], np.float64):
         map_type = u'INTEGER'
     else:
         map_type = u'REAL'
@@ -113,7 +113,7 @@ def get_rastertype(raster):
     return map_type
 
 def mask_rasternd(raster):
-    if type(raster[0,0]) != np.float32 and type(raster[0,0]) != np.float64:
+    if not isinstance(raster[0,0], np.float32) and not isinstance(raster[0,0], np.float64):
         mask = raster != -2147483648
     else:
         mask = np.isnan(raster) == False

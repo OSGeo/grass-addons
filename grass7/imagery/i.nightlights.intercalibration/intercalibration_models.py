@@ -101,7 +101,7 @@ class CalibrationModel:
         """
         Control whether the given DN is valid
         """
-        if type(dn) != int:
+        if not isinstance(dn, int):
             raise ValueError('The provided Digital Number value is NOT an '
                              'integer!')
 

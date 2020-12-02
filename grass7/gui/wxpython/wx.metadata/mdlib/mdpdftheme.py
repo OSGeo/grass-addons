@@ -73,8 +73,7 @@ class MySheet:
             self.byAlias[alias] = style
 
     def list(self):
-        styles = list(self.byName.items())
-        styles.sort()
+        styles = sorted(self.byName.items())
         alii = {}
         for (alias, style) in list(self.byAlias.items()):
             alii[style] = alias

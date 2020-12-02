@@ -204,7 +204,7 @@ def main():
         coords = []
         _i = 0
         for i in range(len(data)):
-            if type(data.read(i+1)) is vector.geometry.Line:
+            if isinstance(data.read(i+1), vector.geometry.Line):
                 if data.read(i+1).cat in selected_cats:
                     coords.append(data.read(i+1).to_array())
                     gscript.core.percent(_i, len(selected_cats), 100./len(selected_cats))

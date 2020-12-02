@@ -297,7 +297,7 @@ def main():
     hru_cats = []
     hru_coords = []
     for hru_i in hru:
-        if type(hru_i) is vector.geometry.Centroid:
+        if isinstance(hru_i, vector.geometry.Centroid):
             hru_cats.append(hru_i.cat)
             hru_coords.append(hru_i.coords())
     hru_cats = np.array(hru_cats)
@@ -394,7 +394,7 @@ def main():
         land_cover = int(land_cover)
     except:
         pass
-    if type(land_cover) is int:
+    if isinstance(land_cover, int):
         if land_cover <= 3:
             v.db_update(map=HRU, column='cov_type', value=land_cover, quiet=True)
         else:
@@ -415,7 +415,7 @@ def main():
         soil = int(soil)
     except:
         pass
-    if type(soil) is int:
+    if isinstance(soil, int):
         if (soil > 0) and (soil <= 3):
             v.db_update(map=HRU, column='soil_type', value=soil, quiet=True)
         else:

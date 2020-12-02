@@ -262,7 +262,7 @@ class WCSBase:
             cap = self._fetchDataFromServer(cap_url, options['username'], options['password'])
             print(dir(cap))
         except (IOError, HTTPException) as e:
-            if HTTPError == type(e) and e.code == 401:
+            if isinstance(e, HTTPError) and e.code == 401:
                 grass.fatal(_("Authorization failed to <%s> when fetching capabilities") % options['url'])
             else:
                 msg = _("Unable to fetch capabilities from <%s>: %s") % (options['url'], e)

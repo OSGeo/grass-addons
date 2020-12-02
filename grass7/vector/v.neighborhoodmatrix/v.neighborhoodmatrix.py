@@ -87,8 +87,7 @@ def main():
         temp_neighbors += neighbors_reversed
 
     #uniqify the list of integer pairs
-    neighbors = [list(x) for x in set(tuple(x) for x in temp_neighbors)]
-    neighbors.sort()
+    neighbors = sorted([list(x) for x in set(tuple(x) for x in temp_neighbors)])
 
     currentcat = ''
     if output and output != '-':

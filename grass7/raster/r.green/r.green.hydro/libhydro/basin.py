@@ -584,10 +584,9 @@ def fill_discharge_tot(bas, discharge_n, stream_n):
     """
     msgr = get_msgr()
     warn = ("%i") % bas.ID
-    ttt = discharge_n[stream_n == bas.ID]
+    ttt = sorted(discharge_n[stream_n == bas.ID])
     #import ipdb; ipdb.set_trace()
     # bas.discharge_tot = 0.0
-    ttt.sort()
     ttt = ttt[~np.isnan(ttt)]
     #FIXME: take the second bgger value to avoid to take the value of
     # another catchment, it is not so elegant

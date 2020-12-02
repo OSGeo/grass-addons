@@ -236,12 +236,10 @@ def main():
                     proportion_dict[ID][cl] = '{:.{}f}'.format(0,decimals)
         # Get list of class sorted by value (arithmetic ordering)
         if 'NULL' in class_dict.keys():
-            class_list = [int(k) for k in class_dict.keys() if k != 'NULL']
-            class_list.sort()
+            class_list = sorted([int(k) for k in class_dict.keys() if k != 'NULL'])
             class_list.append('NULL')
         else:
-            class_list = [int(k) for k in class_dict.keys()]
-            class_list.sort()
+            class_list = sorted([int(k) for k in class_dict.keys()])
     gscript.verbose(_("Statistics computed..."))
     # Set 'totals_dict' to None to try RAM release
     totals_dict = None
