@@ -123,6 +123,3 @@ class ImgFrame(wx.Frame):
     #app = wx.PySimpleApp()
     #frame = ImgFrame()
     #app.MainLoop()
-
-
-

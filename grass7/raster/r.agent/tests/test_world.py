@@ -55,4 +55,3 @@ class TestWorld(unittest.TestCase):
         self.assertTrue(len(self.world.agents) == 0)
 
 #    def tearDown(self):
-

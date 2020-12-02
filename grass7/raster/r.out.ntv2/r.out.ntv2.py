@@ -142,4 +142,3 @@ if __name__ == "__main__":
   options, flags = grass.parser()
   atexit.register(cleanup)
   sys.exit(main())
-

@@ -642,4 +642,3 @@ class TabPanelOne(wx.Panel):
         #print self.r_stre
         print self.v_net
         print self.r_drain
-

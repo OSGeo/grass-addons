@@ -20,4 +20,3 @@ class CategoryEncoder(BaseEstimator, TransformerMixin):
     def inverse_transform(self, X, y = None):
         """Takes a category label and returns the category index"""
         return np.asarray([self._inverse[x] for x in X]).astype(np.object)
-

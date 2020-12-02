@@ -129,4 +129,3 @@ class GrassMap(object):
                         stdout_=PIPE)
 
         features = parse_key_val(vinfo.outputs.stdout)
-

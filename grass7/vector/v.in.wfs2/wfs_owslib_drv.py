@@ -46,7 +46,3 @@ class WFSOwsLibDrv(WFSBase):
             temp_map_opened.close()
 
         return temp_map
-    
-   
-
-

@@ -230,4 +230,3 @@ def CreateNewRaster(parent, title = _('Create new vector map'),
     #if log:
     #    log.WriteLog(_("New raster map <%s> created") % outmap)
     return dlg
-

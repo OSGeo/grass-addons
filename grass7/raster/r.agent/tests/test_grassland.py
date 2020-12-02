@@ -147,4 +147,3 @@ class TestGrassland(unittest.TestCase):
         if self.vectlayername:
             grass.try_remove(grass.find_file(name = self.vectlayername,
                                              element = 'vector')['file'])
-

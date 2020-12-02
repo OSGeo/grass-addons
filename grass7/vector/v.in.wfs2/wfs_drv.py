@@ -75,7 +75,3 @@ class WFSDrv(WFSBase):
                     grass.fatal(_("WFS server unknown error") )
 
         return temp_map
-    
-   
-
-

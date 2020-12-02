@@ -168,5 +168,3 @@ class IRDigit:
                   len(coords), ftype,self.cat)
            
         return self.cat - 1
-    
-

@@ -80,4 +80,3 @@ class Agent(object):
     def snuffit(self):
         """to die peacefully and without pain"""
         self.world.kill(self)
-

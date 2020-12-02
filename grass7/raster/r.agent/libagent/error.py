@@ -39,5 +39,3 @@ class DataError(Error):
         expr -- Context expression in which the error occurred
         msg  -- explanation of the error
     """
-
-

@@ -379,4 +379,3 @@ if __name__ == "__main__":
     options, flags = grass.parser()
     world = anthill.Anthill(grassland.Grassland())
     main()
-

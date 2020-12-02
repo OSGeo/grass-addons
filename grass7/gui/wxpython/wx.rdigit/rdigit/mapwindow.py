@@ -425,5 +425,3 @@ class RDigitWindow(BufferedWindow):
         tmp2 = self.Cell2Pixel(self.moveInfo['begin'])
         dx = tmp1[0] - tmp2[0]
         dy = tmp1[1] - tmp2[1]
-      
-        

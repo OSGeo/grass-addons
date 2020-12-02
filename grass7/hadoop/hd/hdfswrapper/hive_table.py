@@ -452,4 +452,3 @@ class HiveSpatial(object):
 
     def drop_table(self, name):
         self.execute('DROP TABLE IF EXISTS %s' % name)
-

@@ -491,5 +491,3 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
             
     def GetCurrentIndex(self):
         return self._activeIndex
-
-         

@@ -554,4 +554,3 @@ class RDigitToolbar(BaseToolbar):
     def GetLayer(self):
         """!Get selected layer for editing -- MapLayer instance"""
         return self.mapLayer
-

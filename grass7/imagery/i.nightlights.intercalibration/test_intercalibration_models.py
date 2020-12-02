@@ -157,4 +157,3 @@ if __name__ == "__main__":
     test_model('ELVIDGE2014')
     test_model('LIU2012')
     test_model('WU2013')
-

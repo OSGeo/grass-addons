@@ -88,4 +88,3 @@ def random_brightness_temperature_values(count=2):
         return digital_numbers[0]
 
     return digital_numbers
-

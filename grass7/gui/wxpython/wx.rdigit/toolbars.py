@@ -119,4 +119,3 @@ class RDigitMapManagerToolbar(BaseToolbar):
         idx = self.choice.GetSelection()
         if layer:
             self.mapManager.RemoveLayer(name = layer, idx = idx)
-            

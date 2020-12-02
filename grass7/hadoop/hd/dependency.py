@@ -23,4 +23,3 @@ import hdfs
 import thrift
 from snakebite.client import Client, HAClient, Namenode
 import sqlalchemy
-

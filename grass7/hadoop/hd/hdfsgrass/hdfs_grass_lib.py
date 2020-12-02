@@ -719,5 +719,3 @@ class GrassHdfs():
         else:
             grass.message('Copy error!')
         return out
-
-

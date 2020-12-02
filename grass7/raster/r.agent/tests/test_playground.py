@@ -162,4 +162,3 @@ class TestPlayground(unittest.TestCase):
         self.assertEqual(int(round(self.pg.layers[l][0][0])), 50)
 
 #    def tearDown(self):
-

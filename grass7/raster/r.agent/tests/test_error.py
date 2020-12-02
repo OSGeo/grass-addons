@@ -28,4 +28,3 @@ class TestOurExceptions(unittest.TestCase):
         self.assertRaises(error.DataError, self.raise_data, ("tests", "data"))
 
 #    def tearDown(self):
-

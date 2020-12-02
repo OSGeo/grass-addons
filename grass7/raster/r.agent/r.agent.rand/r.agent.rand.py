@@ -156,4 +156,3 @@ if __name__ == "__main__":
     options, flags = grass.parser()
     world = world.World(grassland.Grassland())
     main()
-
