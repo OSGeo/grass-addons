@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM=r.sample.category
+PGM = r.sample.category
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 

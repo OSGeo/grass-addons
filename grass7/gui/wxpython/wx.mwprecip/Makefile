@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM= g.gui.mwprecip
+PGM = g.gui.mwprecip
 
 ETCFILES = mw3 mw_util pgwrapper
 

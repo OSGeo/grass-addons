@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM=r.connectivity
+PGM = r.connectivity
 
 SUBDIRS = r.connectivity.distance  \
 	r.connectivity.network  \

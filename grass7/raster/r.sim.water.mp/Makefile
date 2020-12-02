@@ -1,7 +1,7 @@
 
 MODULE_TOPDIR = ../../..
 
-PGM=r.sim.water.mp
+PGM = r.sim.water.mp
 
 EXTRA_CLEAN_DIRS=doxygenhtml
 

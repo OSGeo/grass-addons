@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM=r.bioclim
+PGM = r.bioclim
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 
