@@ -131,8 +131,8 @@ def read_plants(hydro, elev=None, restitution='restitution', intake='intake',
     skipped = []
     for pnt in hydro:
         if pnt is None:
-            import ipdb
-            ipdb.set_trace()
+            #import ipdb
+            #ipdb.set_trace()
         if elev is None:
             select = ','.join([cid_plant, cid_point, ckind_label, celevation, cdischarge])
             id_plant, id_point, kind_label, el, disch = pnt.attrs[select]

@@ -381,8 +381,8 @@ def losses_Strickler(discharge, length, diameter, theta, velocity, ks=75):
     Rh = A / pw
 
     if round(discharge / A, 5) == round(velocity, 5):
-        import ipdb
-        ipdb.set_trace()
+        #import ipdb
+        #ipdb.set_trace()
 
     # i = v**2 / (ks**2 * Rh ** (4/3))
     # hs = i * l
@@ -462,8 +462,8 @@ def compute_losses(struct, options,
                         msgr.warning("To check length of penstock,"
                                      "gross head greater than "
                                      "length")
-                        import ipdb
-                        ipdb.set_trace()
+                        #import ipdb
+                        #ipdb.set_trace()
                     losses = losses_Colebrooke(discharge, length,
                                                diameter, roughness_penstock)
                     # when you compute alpha (see manual) the lenght of the
