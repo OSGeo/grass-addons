@@ -280,7 +280,7 @@ def main():
             rules='-',
             stdin=reclass_rules2,
             overwrite = True,
-            quiet = True )
+            quiet = True)
 # Calcolo di F3
 # Calcolo C che vale SCIVOL=inclgiunto - slopes;
         grass.mapcalc("Csci=P2-slopes_",
@@ -319,7 +319,7 @@ def main():
                 'TA',
                 'T1',
                 'mappa',
-                'Isciv_' ),
+                'Isciv_'),
             quiet = True)
         grass.message('SMR_wedge index done!')
     else:
@@ -469,7 +469,7 @@ def main():
                 'F3sci',
                 'F3rib',
                 'Isciv',
-                'Irib' ),
+                'Irib'),
             quiet = True)
 
     grass.message("Done!")

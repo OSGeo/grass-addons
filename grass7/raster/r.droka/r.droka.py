@@ -156,26 +156,26 @@ def main():
     if int(num) == 1:
         grass.run_command('g.copy',
             vector= start+',start_points_',
-            quiet = True )
+            quiet = True)
     else:
         grass.run_command('v.buffer',
             input = start,
             type = 'point',
             output = 'start_buffer_',
             distance = d_buff,
-            quiet = True )
+            quiet = True)
 
         grass.run_command('v.random',
             input = 'start_buffer_',
             npoints = num,
             output = 'start_random_',
             flags = 'a',
-            quiet = True )
+            quiet = True)
 
         grass.run_command('v.patch',
             input = start + ',start_random_',
             output = 'start_points_',
-            quiet = True )
+            quiet = True)
 
     #v.buffer input=punto type=point output=punti_buffer distance=$cellsize
     #v.random -a output=random n=$numero input=punti_buffer
@@ -184,12 +184,12 @@ def main():
     #creo raster (che sara' il DEM di input) con valore 1
     grass.mapcalc('uno=$dem*0+1',
         dem = r_elevation,
-        quiet = True )
+        quiet = True)
     what = grass.read_command('r.what',
         map=r_elevation,
         points='start_points_',
         null_value="-9999", # TODO: a better test for points outside the current region is needed
-        quiet = True )
+        quiet = True)
     quota = what.split('\n')
 
     #array per la somma dei massi
@@ -222,7 +222,7 @@ def main():
             output = 'costo',
             start_coordinates = str(x)+','+str(y),
             quiet = True,
-            overwrite = True )
+            overwrite = True)
 
 
         #trasforma i valori di distanza celle in valori metrici utilizzando la risoluzione raster
@@ -287,19 +287,19 @@ def main():
         grass.run_command('g.remove',
             flags = 'f',
             type = 'vector',
-            name = ('start_points_' ),
-            quiet = True )
+            name = ('start_points_'),
+            quiet = True)
     else:
         grass.run_command('g.rename',
             vect= 'start_points_,' + prefix + '_starting',
-            quiet = True )
+            quiet = True)
         grass.run_command('g.remove',
             flags = 'f',
             type = 'vector',
             name = (
                 'start_buffer_',
                 'start_random_'),
-            quiet = True )
+            quiet = True)
     grass.run_command('g.remove',
         flags = 'f',
         type = 'raster',
@@ -315,7 +315,7 @@ def main():
             'en',
             'vel',
             'somma'),
-        quiet = True )
+        quiet = True)
     grass.message("Done!")
 
 if __name__ == "__main__":

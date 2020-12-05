@@ -457,7 +457,7 @@ class rusle_terraflow(rusle_base):
                           tci = raster['tci'],
                           stats = statsfile,
                           stream_dir=streamdir,
-                          quiet=quiet )
+                          quiet=quiet)
 
         g.mapcalc("$flowacc = $flowacc / $resolution", overwrite=True, flowacc = flowacc, resolution = resolution)
         self._debug("_getFlowacc", "finished")

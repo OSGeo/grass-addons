@@ -120,7 +120,7 @@ def patch_georules(maps,outputMap):
             if l == "_".join(m.split('_')[1:]):
                 map_synth.append(m)
         if len(map_synth) > 1:
-            grass.run_command("r.patch", overwrite='True', input=(",".join(map_synth)), output=l )
+            grass.run_command("r.patch", overwrite='True', input=(",".join(map_synth)), output=l)
         else:
             grass.run_command("g.copy", raster=(str(map_synth),l))
 

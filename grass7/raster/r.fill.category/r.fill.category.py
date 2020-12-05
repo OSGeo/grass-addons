@@ -173,7 +173,7 @@ def main():
             pixel_num = 0
             # print(e.message)
 
-        gscript.verbose(_("Iteration: %d  Remaining pixels: %d") % (iteration, pixel_num) )
+        gscript.verbose(_("Iteration: %d  Remaining pixels: %d") % (iteration, pixel_num))
 
         iteration = iteration + 1
 
@@ -183,7 +183,7 @@ def main():
     # if the loop ended before reaching pixel_num=0
     if pixel_num > 0:
         gscript.warning(_("the process stopped after %d iterations with %d pixels of category %d left")
-            % (iteration, pixel_num, category) )
+            % (iteration, pixel_num, category))
 
     # copy the output of the last iteration to the output map
     gscript.run_command('g.copy', raster='{inmap},{outmap}'.format(inmap=stepmap,

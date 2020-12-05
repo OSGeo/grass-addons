@@ -438,9 +438,9 @@ class WCSGdalDrv(WCSBase):
 
         ret = p.wait()
         if ret != 0:
-            grass.fatal('r.in.gdal for %s failed.' % self.vrt_file )
+            grass.fatal('r.in.gdal for %s failed.' % self.vrt_file)
         else:
-            grass.message('r.in.gdal was successful for new raster map %s ' % self.params['output'] )
+            grass.message('r.in.gdal was successful for new raster map %s ' % self.params['output'])
 
         grass.try_remove(self.vrt_file)
         grass.try_remove(self.xml_file)

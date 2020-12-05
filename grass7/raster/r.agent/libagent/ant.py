@@ -116,8 +116,8 @@ class Ant(agent.Agent):
         for i in xrange(0, len(positions)):
             p = copyofpositions[i]
             penalty = self.world.getpenalty(p)
-            if ((penalty < self.world.minpenalty ) or
-                    (penalty > self.world.maxpenalty )):
+            if ((penalty < self.world.minpenalty) or
+                    (penalty > self.world.maxpenalty)):
                 positions.remove(p)
         if not positions:
             # die as there is nowwhere to go to
@@ -137,7 +137,7 @@ class Ant(agent.Agent):
                     self.world.getpheromone(p) * self.world.pheroweight +\
                     uniform(self.world.minrandom, self.world.maxrandom) *\
                     self.world.randomweight
-            if (newval > tmpval ):
+            if (newval > tmpval):
                 position = p
                 tmpval = newval
         return position
@@ -158,7 +158,7 @@ class Ant(agent.Agent):
             newval = self.world.getpheromone(p) * self.world.pheroweight +\
                     uniform(self.world.minrandom, self.world.maxrandom) *\
                     self.world.randomweight
-            if (newval > tmpval ):
+            if (newval > tmpval):
                 position = p
                 tmpval = newval
         return position

@@ -66,7 +66,7 @@ class WFSBase:
 
         self.proj_srs = grass.read_command('g.proj',
                                            flags = 'jf',
-                                           epsg = str(self.o_srs) ).rstrip('\n')
+                                           epsg = str(self.o_srs)).rstrip('\n')
 
         if not self.proj_srs or not self.proj_location:
             grass.fatal(_("Unable to get projection info"))
@@ -74,7 +74,7 @@ class WFSBase:
         # set region
         self.o_region = options['region']
         if self.o_region:
-            if not grass.find_file(name = self.o_region, element = 'windows', mapset = '.' )['name']:
+            if not grass.find_file(name = self.o_region, element = 'windows', mapset = '.')['name']:
                 grass.fatal(_("Region <%s> not found") % self.o_region)
 
         if self.o_region:
@@ -146,7 +146,7 @@ class WFSBase:
                                        (self.region['e'], self.region['n'],
                                         self.region['w'], self.region['n'],
                                         self.region['w'], self.region['s'],
-                                        self.region['e'], self.region['s'] ))
+                                        self.region['e'], self.region['s']))
             except IOError:
                 grass.fatal(_("Unable to write data into tempfile"))
             finally:

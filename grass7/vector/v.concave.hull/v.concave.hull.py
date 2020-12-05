@@ -139,7 +139,7 @@ def main():
 
     if perc_orig > perc:
         thresh = int(perc) - 90
-        grass.warning(_('Threshold reduced to %d to calculate hull' % thresh ))
+        grass.warning(_('Threshold reduced to %d to calculate hull' % thresh))
 
     inf = open(tmp + ".sort", 'r')
     l = 0

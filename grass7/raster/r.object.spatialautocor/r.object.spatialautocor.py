@@ -143,12 +143,12 @@ def get_autocorrelation (mapname, raster, neighbordict, method):
         for neighbor in neighbors:
             neighbor_value = means[neighbor] - global_mean
             sum_products += region_value * neighbor_value
-            sum_squared_differences = (means[region] - means[neighbor] ) ** 2
+            sum_squared_differences = (means[region] - means[neighbor]) ** 2
 
     if method == 'moran':
-        autocor = ((float(N) / total_nb_neighbors ) * (float(sum_products)  / sum_sq_mean_diffs ) )
+        autocor = ((float(N) / total_nb_neighbors) * (float(sum_products)  / sum_sq_mean_diffs))
     elif method == 'geary':
-        autocor = (float(N - 1) / (2 * total_nb_neighbors ) ) * (float(sum_squared_differences)  / sum_sq_mean_diffs )
+        autocor = (float(N - 1) / (2 * total_nb_neighbors)) * (float(sum_squared_differences)  / sum_sq_mean_diffs)
 
     return autocor
 

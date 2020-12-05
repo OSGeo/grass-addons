@@ -89,7 +89,7 @@ def main():
     grass.message("Flow accumulation done. ")
 
     # Slope map
-    grass.run_command('r.slope.aspect', elevation = r_elevation, slope = 'r_slope' )
+    grass.run_command('r.slope.aspect', elevation = r_elevation, slope = 'r_slope')
     grass.message("Slope map done. ")
 
     # n exponent
@@ -144,7 +144,7 @@ def main():
     grass.run_command('g.remove', flags='f', type='raster', name='r_flood_th', quiet=True)
     grass.run_command('g.remove', flags='f', type='raster', name='r_flood', quiet=True)
 
-    grass.message(_('Raster maps <%s> and <%s> calculated') % (r_mti, r_flood_map) )
+    grass.message(_('Raster maps <%s> and <%s> calculated') % (r_mti, r_flood_map))
 
 if __name__ == "__main__":
     options, flags = grass.parser()

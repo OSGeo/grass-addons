@@ -143,7 +143,7 @@ def moving_average(x, y, window):
     out_y = []
     for _x in out_x:
         out_y.append(np.mean(y[(x < _x + window/2.) *
-                                 (x > _x - window/2.) ]))
+                                 (x > _x - window/2.)]))
     return out_x, out_y
 
 ###############
@@ -235,7 +235,7 @@ def main():
         selected_cats_str = list(np.array(selected_cats).astype(str))
         selected_cats_csv = ','.join(selected_cats_str)
         v.extract(input=options['streams'], output=options['outstream'],
-                   cats=selected_cats_csv, overwrite=gscript.overwrite() )
+                   cats=selected_cats_csv, overwrite=gscript.overwrite())
 
     # Analysis
     gscript.message("Elevation")

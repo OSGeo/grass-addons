@@ -488,7 +488,7 @@ class GrassMapBuilder(object):
             if first_line.find('null') != -1:
                 self.remove_line(0)
 
-    def _find_between(self,s, first, last ):
+    def _find_between(self,s, first, last):
         """
         Return sting between two strings
         :param s:
@@ -497,8 +497,8 @@ class GrassMapBuilder(object):
         :return:
         """
         try:
-            start = s.index(first ) + len(first )
-            end = s.index(last, start )
+            start = s.index(first) + len(first)
+            end = s.index(last, start)
             return s[start:end]
         except ValueError:
             return ""

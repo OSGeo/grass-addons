@@ -63,7 +63,7 @@ def writeEPSGtoPEMANENT(epsg):
         if os.getenv('GRASS_OVERWRITE', False):
             try:
                 io = open(path,'w')
-                io.write("epsg: %s" % epsg )
+                io.write("epsg: %s" % epsg)
                 io.close()
                 grass.message("EPSG code have been written to <%s>" % path)
             except IOError as e:

@@ -562,7 +562,7 @@ class BufferedWindow2(MapWindow, wx.Window):
                         del self.imagedict[key]
 
                 self.imagedict[img] = {'id': overlay.id,
-                                        'layer': overlay }
+                                        'layer': overlay}
                 imgs.append(img)
 
         return imgs
@@ -585,7 +585,7 @@ class BufferedWindow2(MapWindow, wx.Window):
             if self.imagedict[key]['id'] == imgId:
                 del self.imagedict[key]
 
-        self.imagedict[img] = {'id': imgId }
+        self.imagedict[img] = {'id': imgId}
 
         return img
 
@@ -2124,7 +2124,7 @@ class GraphicsSetItem:
 
         self.properties = {"penName": penName,
                             "hide": hide,
-                            "label": label }
+                            "label": label}
 
     def SetPropertyVal(self, propName, propVal):
         """!Set property value

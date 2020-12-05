@@ -72,6 +72,6 @@ class WFSDrv(WFSBase):
                 if  err_str is not None:
                     grass.fatal(_("WFS server error: %s") % err_str)
                 else:
-                    grass.fatal(_("WFS server unknown error") )
+                    grass.fatal(_("WFS server unknown error"))
 
         return temp_map

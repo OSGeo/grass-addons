@@ -260,7 +260,7 @@ class TextInput1(wx.Panel):
         event.Skip()
 '''
 class TextInput(wx.Panel):
-    def __init__(self, parent, label ):
+    def __init__(self, parent, label):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
         self.context = StaticContext()
 

@@ -523,7 +523,7 @@ def main():
             else:
                 grass.run_command('r.patch', input = srtmtiles, output = output)
         else:
-            grass.run_command('g.rename', raster = '%s,%s' % (srtmtiles, output ), quiet = True)
+            grass.run_command('g.rename', raster = '%s,%s' % (srtmtiles, output), quiet = True)
     else:
         ncells = grass.region()['cells']
         if long(ncells) > 1000000000:

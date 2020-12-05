@@ -143,7 +143,7 @@ def main():
     grid_ratio_ew = np.round(regnew['ewres']/reg['ewres'])
     # Get S, W, and then move the unit number of grid cells over to get N and E
     # and include 3 cells of padding around the whole watershed
-    _s_dist = np.abs(reg_grid_edges_sn - (regnew['s'] - 3.*regnew['nsres']) )
+    _s_dist = np.abs(reg_grid_edges_sn - (regnew['s'] - 3.*regnew['nsres']))
     _s_idx = np.where(_s_dist == np.min(_s_dist))[0][0]
     _s = float(reg_grid_edges_sn[_s_idx])
     _n_grid = np.arange(_s, reg['n'] + 3*grid_ratio_ns*reg['nsres'], grid_ratio_ns*reg['nsres'])
@@ -175,7 +175,7 @@ def main():
     _id = np.ravel([ncols * (rows - 1) + cols])
     _id_cat = []
     for i in range(len(_id)):
-        _id_cat.append((_id[i], cats[i]) )
+        _id_cat.append((_id[i], cats[i]))
     gridTopo = VectorTopo(grid)
     gridTopo.open('rw')
     cur = gridTopo.table.conn.cursor()

@@ -408,7 +408,7 @@ class SentinelDownloader(object):
         """
         from sentinelsat.sentinel import SentinelAPIError
 
-        self._products_df_sorted = {'uuid': [] }
+        self._products_df_sorted = {'uuid': []}
         for uuid in uuid_list:
             try:
                 odata = self._api.get_product_odata(uuid, full=True)

@@ -380,7 +380,7 @@ def main():
     nseg = np.arange(1, len(cats)+1)
     nseg_cats = []
     for i in range(len(cats)):
-        nseg_cats.append((nseg[i], cats[i]) )
+        nseg_cats.append((nseg[i], cats[i]))
 
     segmentsTopo = VectorTopo(segments)
     segmentsTopo.open('rw')

@@ -124,9 +124,9 @@ class Grassland(playground.Playground):
                     # TODO - as with grass numpy array it seems that
                     # [0,0] is north-most west-most..
                     p[0] = int(round(
-                        (self.region["n"] - p[0] ) / self.region["nsres"] ))
+                        (self.region["n"] - p[0]) / self.region["nsres"]))
                     p[1] = int(round(
-                        (p[1] - self.region["w"] ) / self.region["ewres"] ))
+                        (p[1] - self.region["w"]) / self.region["ewres"]))
                     vectors.append(p)
                     self.layers[layername][p[0]][p[1]] = value
         return vectors

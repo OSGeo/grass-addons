@@ -334,7 +334,7 @@ def main():
     pc = 0
     for i in range(errormatrix.shape[0] - 1):
         pc += errormatrix[i,-1] * errormatrix[-1,i]
-    pc *= 1 / (errormatrix[-1,-1] * errormatrix[-1,-1] )
+    pc *= 1 / (errormatrix[-1,-1] * errormatrix[-1,-1])
     kappa = (overall_accuracy / 100 - pc) / (1 - pc)
     if not flags['m']:
         grass.message("\nKappa coefficient: %f" % kappa)

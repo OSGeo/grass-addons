@@ -124,5 +124,5 @@ class ssh_session:
     def close(self):
         """Close connection"""
         if self.openagent:
-            subprocess.Popen(['ssh-agent', '-k'], stdout=subprocess.PIPE )
+            subprocess.Popen(['ssh-agent', '-k'], stdout=subprocess.PIPE)
         return self.f.close()

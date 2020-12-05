@@ -84,8 +84,8 @@ def main():
 
     if save_species:
 
-        grass.message("saving species list to a text file ..." )
-        output_species_file = os.path.join(directory, species_file )
+        grass.message("saving species list to a text file ...")
+        output_species_file = os.path.join(directory, species_file)
         # define ogr driver
         driver = ogr.GetDriverByName("ESRI Shapefile")
         # open data source
@@ -98,13 +98,13 @@ def main():
         for feature in layer:
             f.write('%s\n' % (feature.GetField("binomial")))
         f.close()
-        grass.message("%s" % (output_species_file) )
+        grass.message("%s" % (output_species_file))
 
     # print species list of the shapefile
 
     elif list_species:
 
-        grass.message("list species IUCN Red List Spatial Data ..." )
+        grass.message("list species IUCN Red List Spatial Data ...")
         # define ogr driver
         driver = ogr.GetDriverByName("ESRI Shapefile")
         # open data source
@@ -118,7 +118,7 @@ def main():
 
     else:
 
-        grass.message(" importing spatial data for %s ..." % (imported_species_quoted) )
+        grass.message(" importing spatial data for %s ..." % (imported_species_quoted))
         grass.run_command("v.in.ogr", input = redlist_shapefile_long,
                                                         output = species_to_import,
                                                         where = "binomial = %s" % (imported_species_quoted),

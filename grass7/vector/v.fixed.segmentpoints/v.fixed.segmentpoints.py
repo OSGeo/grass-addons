@@ -74,15 +74,15 @@ def main():
     global tmp
 
     # Extract vector line
-    grass.message("Extract vector line for which segment points should be calculated ..." )
+    grass.message("Extract vector line for which segment points should be calculated ...")
     grass.run_command('v.extract', input = vlines,
                                      output = voutline,
                                      cats = vcat)
-    grass.message("Extraction done." )
-    grass.message("----" )
+    grass.message("Extraction done.")
+    grass.message("----")
 
     # Calculate vector line length and populate it to the attribute table
-    grass.message("Calculate vector line length and populate it to the attribute table ..." )
+    grass.message("Calculate vector line length and populate it to the attribute table ...")
     grass.run_command("v.db.addcolumn", map = voutline,
                                      layer = 1,
                                      columns = "vlength double")
@@ -93,8 +93,8 @@ def main():
                                      columns = 'vlength',
                                      overwrite = True)
 
-    grass.message("Calculate vector line length done." )
-    grass.message("----" )
+    grass.message("Calculate vector line length done.")
+    grass.message("----")
 
     # Read length
     tmp = grass.read_command('v.to.db', map = voutline,
@@ -109,28 +109,28 @@ def main():
     vector_line_length = float(tmp.split('|')[1])
 
     # Print vector line length
-    grass.message("Vector line length in meter:" )
-    grass.message(vector_line_length )
-    grass.message("----" )
+    grass.message("Vector line length in meter:")
+    grass.message(vector_line_length)
+    grass.message("----")
 
     # Calculation number of segment points (start and end point included)
     # number of segment points without end point
 
-    number_segmentpoints_without_end = math.floor(vector_line_length / float(sdistance) )
+    number_segmentpoints_without_end = math.floor(vector_line_length / float(sdistance))
 
     number_segmentpoints_with_end = int(number_segmentpoints_without_end + 2)
 
-    grass.message("Number of segment points (start and end point included):" )
-    grass.message(number_segmentpoints_with_end )
-    grass.message("----" )
+    grass.message("Number of segment points (start and end point included):")
+    grass.message(number_segmentpoints_with_end)
+    grass.message("----")
 
     segmentpointsrange_without_end = range(1, number_segmentpoints_with_end, 1)
     max_distancerange = float(sdistance) * number_segmentpoints_with_end
     distancesrange_without_end = range(0, int(max_distancerange), int(sdistance))
 
     # Write segment point input file for g.segment to G_OPT_M_DIR
-    grass.message("Write segment point input file for g.segment ..." )
-    segment_points_file = os.path.join(directory, fpoints )
+    grass.message("Write segment point input file for g.segment ...")
+    segment_points_file = os.path.join(directory, fpoints)
     file = open(segment_points_file, 'a')
     for f, b in zip(segmentpointsrange_without_end, distancesrange_without_end):
         file.write("P %s %s %s\n" % (f, vcat, b))
@@ -141,22 +141,22 @@ def main():
     file.close()
 
     # Give information where output file
-    grass.message("Segment points file:" )
-    grass.message(segment_points_file )
-    grass.message("----" )
+    grass.message("Segment points file:")
+    grass.message(segment_points_file)
+    grass.message("----")
 
     # Run v.segment with the segment point input
-    grass.message("Run v.segment ..." )
+    grass.message("Run v.segment ...")
     grass.run_command("v.segment", input = voutline,
                                      output = voutpoint,
                                      rules = segment_points_file)
 
     grass.run_command("v.db.addtable", map = voutpoint)
-    grass.message("v.segment done." )
-    grass.message("----" )
+    grass.message("v.segment done.")
+    grass.message("----")
 
     # Adding coordinates to segment points attribute table.
-    grass.message("Adding coordinates to segment points attribute table ..." )
+    grass.message("Adding coordinates to segment points attribute table ...")
 
     grass.run_command("v.db.addcolumn", map = voutpoint,
                                      layer = 1,
@@ -167,14 +167,14 @@ def main():
                                      layer = 1,
                                      columns = 'xcoor,ycoor', overwrite = True)
 
-    grass.message("Coordinates added." )
-    grass.message("----" )
+    grass.message("Coordinates added.")
+    grass.message("----")
 
     # join point segment file data to point vector
-    grass.message("Join distance information to segment point vector ..." )
-    segment_points_file_csv = os.path.join(directory, fpointscsv )
+    grass.message("Join distance information to segment point vector ...")
+    segment_points_file_csv = os.path.join(directory, fpointscsv)
     with open('%s' % (segment_points_file), 'r') as d:
-        with open('%s' % (segment_points_file_csv), 'w' ) as f:
+        with open('%s' % (segment_points_file_csv), 'w') as f:
             for line in d:
                 new_line = line.replace(" ", ";")
                 f.write(new_line)
@@ -207,29 +207,29 @@ def main():
                                      column = 'field_4',
                                      flags = 'f')
 
-    grass.message("Distance information added to attribute table." )
-    grass.message("----" )
+    grass.message("Distance information added to attribute table.")
+    grass.message("----")
 
     # export segment point attribute table as csv
-    grass.message("Export segment point attribute table as CSV file ..." )
+    grass.message("Export segment point attribute table as CSV file ...")
 
-    csv_to_export = os.path.join(directory, fpointscsv_export )
+    csv_to_export = os.path.join(directory, fpointscsv_export)
 
     grass.run_command("db.out.ogr", input = voutpoint,
                                      output = '%s' % (csv_to_export),
                                      format = 'CSV')
 
-    grass.message("Export done." )
-    grass.message("----" )
+    grass.message("Export done.")
+    grass.message("----")
 
     # clean up some temporay files and maps
-    grass.message("Some clean up ..." )
+    grass.message("Some clean up ...")
     os.remove("%s" % segment_points_file_csv)
-    grass.message("Clean up done." )
-    grass.message("----" )
+    grass.message("Clean up done.")
+    grass.message("----")
 
     # v.fixed.segmentpoints done!
-    grass.message("v.fixed.segmentpoints done!" )
+    grass.message("v.fixed.segmentpoints done!")
 
 if __name__ == "__main__":
     options, flags = grass.parser()

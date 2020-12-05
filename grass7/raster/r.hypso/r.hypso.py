@@ -73,7 +73,7 @@ def main():
     for i in range(len(stats)):
         zn[i,3] = 1 - (zn[i,2] / sum(zn[:,1]))
         zn[i,4] = zn[i,3] * (((res**2)/1000000)*sum(zn[:,1]))
-        zn[i,5] = ((zn[i,0] - min(zn[:,0])) / (max(zn[:,0]) - min(zn[:,0])) )
+        zn[i,5] = ((zn[i,0] - min(zn[:,0])) / (max(zn[:,0]) - min(zn[:,0])))
         kl[i,0] = zn[i,0]
         kl[i,1] = 1 - (zn[i,2] / totcell)
 
@@ -130,8 +130,8 @@ def plotImage(x,y,image,type,xlabel,ylabel,title):
     plt.plot(x, y, type)
     plt.ylabel(ylabel)
     plt.xlabel(xlabel)
-    plt.xlim(min(x), max(x) )
-    plt.ylim(min(y), max(y) )
+    plt.xlim(min(x), max(x))
+    plt.ylim(min(y), max(y))
     plt.title(title)
     plt.grid(True)
     plt.savefig(image)

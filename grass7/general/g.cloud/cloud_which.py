@@ -56,7 +56,7 @@ def _getRegisteredExecutable(exeName):
 def _samefile(fname1, fname2):
     if sys.platform.startswith('win'):
         return (os.path.normpath(os.path.normcase(fname1)) ==
-            os.path.normpath(os.path.normcase(fname2)) )
+            os.path.normpath(os.path.normcase(fname2)))
     else:
         return os.path.samefile(fname1, fname2)
 
@@ -222,4 +222,4 @@ def whichall(command, path=None, verbose=0, exts=None):
         not a VisualBasic script but ".vbs" is on PATHEXT. This option
         is only supported on Windows.
     """
-    return list(whichgen(command, path, verbose, exts) )
+    return list(whichgen(command, path, verbose, exts))

@@ -225,7 +225,7 @@ class CoorWindow(wx.Dialog):
         img_tmp = grass.tempfile() + ".png"
         print  img_tmp
         grass.run_command('d.mon', start = 'png', output = img_tmp)
-        grass.run_command('d.rast', map = self.r_elev )
+        grass.run_command('d.rast', map = self.r_elev)
         grass.run_command('d.vect', map = self.v_net)
         print "Exported in file " + img_tmp
 
@@ -615,7 +615,7 @@ class TabPanelOne(wx.Panel):
             grass.run_command('r.watershed', elevation = self.r_elev,
                               accumulation = self.r_acc,
                               convergence = 5,
-                              flags = 'a', overwrite = True )
+                              flags = 'a', overwrite = True)
 
         # SFD
         if self.radioval3 == 'True':

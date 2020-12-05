@@ -245,10 +245,10 @@ class Layer(object):
         else:
             if '@' in self.name:
                 return {'name': self.name.split('@')[0],
-                         'mapset': self.name.split('@')[1] }
+                         'mapset': self.name.split('@')[1]}
             else:
                 return {'name': self.name,
-                         'mapset': '' }
+                         'mapset': ''}
 
     def IsActive(self):
         """!Check if layer is activated for rendering"""

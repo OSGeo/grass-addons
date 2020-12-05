@@ -183,7 +183,7 @@ def FileToInfoSystem(isf):
         rows = infile.readlines()
         for line in rows:
             line = (line.split())
-            if (len(line) > 0 ):
+            if (len(line) > 0):
                 data.append(line)
         infile.close()
         infosystem = {'attributes':collect_attributes(data),'examples':collect_examples(data)}
@@ -246,22 +246,22 @@ def UpwardUnionsOfClasses (infosystem):
 ###############################
 def is_better (r1,r2, preference):
     "Check if r1 is better than r2"
-    return all(((x >= y and p == 'gain') or (x <= y and p == 'cost')) for x,y, p in zip(r1,r2, preference) )
+    return all(((x >= y and p == 'gain') or (x <= y and p == 'cost')) for x,y, p in zip(r1,r2, preference))
 
 
 def is_worst (r1,r2, preference):
     "Check if r1 is worst than r2"
-    return all(((x <= y and p == 'gain') or (x >= y and p == 'cost')) for x,y, p in zip(r1,r2, preference) )
+    return all(((x <= y and p == 'gain') or (x >= y and p == 'cost')) for x,y, p in zip(r1,r2, preference))
  #################################
 
 
 def DominatingSet (infosystem):
     "Find P-dominating set"
     matrix = infosystem['examples']
-    preference = [s['preference'] for s in infosystem['attributes'] ]
+    preference = [s['preference'] for s in infosystem['attributes']]
     Dominating = []
     for row in matrix:
-        examples = [r  for r in matrix if  is_better(r[1:-1], row[1:-1], preference) ]
+        examples = [r  for r in matrix if  is_better(r[1:-1], row[1:-1], preference)]
         Dominating.append({'object':row[0], 'dominance':[i[0] for i in examples], 'examples':examples})
 ##	for dom in Dominating:
 ##		print  dom['dominance'] ,' dominating ', dom['object']
@@ -270,10 +270,10 @@ def DominatingSet (infosystem):
 def DominatedSet (infosystem):
     "Find P-Dominated set"
     matrix = infosystem['examples']
-    preference = [s['preference'] for s in infosystem['attributes'] ]
+    preference = [s['preference'] for s in infosystem['attributes']]
     Dominated = []
     for row in matrix:
-        examples = [r  for r in matrix if  is_worst(r[1:-1], row[1:-1], preference[:-1]) ]
+        examples = [r  for r in matrix if  is_worst(r[1:-1], row[1:-1], preference[:-1])]
         Dominated.append({'object':row[0], 'dominance':[i[0] for i in examples], 'examples':examples})
 ##	for dom in Dominated:
 ##		print  dom['dominance'] ,' is dominated by ', dom['object']
@@ -287,7 +287,7 @@ def LowerApproximation (UnionClasses, Dom):
     single = dict()
     for union in UnionClasses:
         tmp = []
-        UClass = set([row[0] for row in union] )
+        UClass = set([row[0] for row in union])
         for d in Dom:
             if (UClass.issuperset(set(d['dominance']))):  # if Union class is a superse of dominating/dominated set, =>single Loer approx.
                 tmp.append(d['object'])
@@ -322,7 +322,7 @@ def Boundaries (UppApprox, LowApprox):
     single = dict()
 
     for i in range(len(UppApprox)):
-        single = {'class':i, 'objects':list (set(UppApprox[i]['objects'])-set(LowApprox[i]['objects']) )}
+        single = {'class':i, 'objects':list (set(UppApprox[i]['objects'])-set(LowApprox[i]['objects']))}
         Boundary.append(single)
 
     return Boundary
@@ -391,14 +391,14 @@ def FindBestCondition (best, elem, rules, selected, G, infosystem):
 
 def Type_one_rule (c, e, preference, matrix):
     elem = {'criterion':c,'condition':e, 'sign':preference[c-1],'class':'',
-    'objectsCovered':[r[0] for r in matrix if (((r[c] >= e ) and (preference[c-1] == 'gain'))
-                                                                                                                                                      or ((r[c] <= e ) and (preference[c-1] == 'cost' )))],'label':''}
+    'objectsCovered':[r[0] for r in matrix if (((r[c] >= e) and (preference[c-1] == 'gain'))
+                                                                                                                                                      or ((r[c] <= e) and (preference[c-1] == 'cost')))],'label':''}
     return elem
 
 def Type_three_rule (c, e, preference, matrix):
     elem = {'criterion':c,'condition':e, 'sign':preference[c-1],'class':'',
-    'objectsCovered':[r[0] for r in matrix if (((r[c] <= e ) and (preference[c-1] == 'gain'))
-                                                                                                            or ((r[c] >= e ) and (preference[c-1] == 'cost' )))],'label':''}
+    'objectsCovered':[r[0] for r in matrix if (((r[c] <= e) and (preference[c-1] == 'gain'))
+                                                                                                            or ((r[c] >= e) and (preference[c-1] == 'cost')))],'label':''}
     return elem
 
 
@@ -409,13 +409,13 @@ def Find_rules (B, infosystem, type_rule):
     matrix = copy.deepcopy(infosystem['examples'])
     criteria_num = len(infosystem['attributes'])
     criteria = [r[1:-1] for r in matrix]
-    preference = [s['preference'] for s in infosystem['attributes'] ]  # extract preference label
+    preference = [s['preference'] for s in infosystem['attributes']]  # extract preference label
     num_rules = 0  # total rules number for each lower approximation
     G = copy.deepcopy(B)  # a set of objects from the given approximation
     E = []  # a set  of rules covering set B (is a list of dictionary)
     all_obj_cov_by_rules = []  # all objects covered by all rules in E
     selected = copy.deepcopy(matrix)  # storage reduct matrix by single elementary condition
-    while (len(G) != 0 ):
+    while (len(G) != 0):
         rules = []  # starting comples (single rule built from elementary conditions  )
         S = copy.deepcopy(G)  # set of objects currently covered by rule
         control = 0
@@ -439,7 +439,7 @@ def Find_rules (B, infosystem, type_rule):
                 obj_cov_by_rules.append(r['objectsCovered'])
             obj_cov_by_rules = list((reduce(set.intersection,list(map(set,obj_cov_by_rules)))))  # reduce():Apply function of two arguments cumulatively to the items of iterable, from left to right, so as to reduce the iterable to a single value.
 
-            S = list(set(S) & set(best['objectsCovered'] ))
+            S = list(set(S) & set(best['objectsCovered']))
             control += 1
 
 #		rules=CheckMinimalCondition (rules,B,matrix)
@@ -507,8 +507,8 @@ def Print_rules(RULES, outputTxt):
     for R in RULES:
         outfile.write("%d: " % i, )
         for e in R:
-            outfile.write("( %s %s %.3f )" % (e['label'], e['sign'],e['condition'] ))
-        outfile.write("=> ( class %s , %s )\n" % (e['type'], e['class'] ))
+            outfile.write("( %s %s %.3f )" % (e['label'], e['sign'],e['condition']))
+        outfile.write("=> ( class %s , %s )\n" % (e['type'], e['class']))
         i += 1
     outfile.close()
     return 0
@@ -523,9 +523,9 @@ def Parser_mapcalc(RULES, outputMap):
     for R in RULES:
         formula = "if("
         for e in R[:-1]:  # build a mapcalc formula
-            formula += "(%s %s %.4f ) && " % (e['label'], e['sign'], e['condition'] )
-        formula += "(%s %s %.4f ),%d,null())" % (R[-1]['label'],R[-1]['sign'], R[-1]['condition'],i )
-        mappa = "r%d_%s_%d" % (i, R[0]['type'], R[0]['class'] )  # build map name for mapcalc output
+            formula += "(%s %s %.4f ) && " % (e['label'], e['sign'], e['condition'])
+        formula += "(%s %s %.4f ),%d,null())" % (R[-1]['label'],R[-1]['sign'], R[-1]['condition'],i)
+        mappa = "r%d_%s_%d" % (i, R[0]['type'], R[0]['class'])  # build map name for mapcalc output
         category.append({'id':i, 'type': R[0]['type'], 'class':R[0]['class']})  # extract category name
         maps.append(mappa)  # extract maps name
         grass.mapcalc(mappa + "=" + formula)
@@ -543,7 +543,7 @@ def Parser_mapcalc(RULES, outputMap):
             if l == "_".join(m.split('_')[1:]):
                 map_synth.append(m)
         if len(map_synth) > 1:
-            grass.run_command("r.patch", overwrite='True', input=(",".join(map_synth)), output=l )
+            grass.run_command("r.patch", overwrite='True', input=(",".join(map_synth)), output=l)
         else:
             grass.run_command("g.copy", raster=(str(map_synth),l))
         print("__",str(map_synth),l)
@@ -585,12 +585,12 @@ def main():
 ##	upward union class
     print("elaborate upward union")
     Lu = LowerApproximation(UpwardUnionClass, Dominating)  # lower approximation of upward union for type 1 rules
-    Uu = UpperApproximation(UpwardUnionClass,Dominated )  # upper approximation of upward union
+    Uu = UpperApproximation(UpwardUnionClass,Dominated)  # upper approximation of upward union
     UpwardBoundary = Boundaries(Uu, Lu)
 ##	downward union class
     print("elaborate downward union")
     Ld = LowerApproximation(DownwardUnionClass, Dominated) # lower approximation of  downward union for type 3 rules
-    Ud = UpperApproximation(DownwardUnionClass,Dominating ) # upper approximation of  downward union
+    Ud = UpperApproximation(DownwardUnionClass,Dominating) # upper approximation of  downward union
     DownwardBoundary = Boundaries(Ud, Ld)
     QualityOfQpproximation(DownwardBoundary, infosystem)
     print("RULES extraction (*)")

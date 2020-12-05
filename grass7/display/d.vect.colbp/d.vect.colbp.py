@@ -151,7 +151,7 @@ def main():
         if sort:
             sf.sort(key = operator.itemgetter(1), reverse=reverse)
         sf = [i[0] for i in sf]
-        ii = {e: i for i, e in enumerate(sf) }
+        ii = {e: i for i, e in enumerate(sf)}
         sfo = [(ii[e]) for i, e in enumerate(uid) if e in ii]
 
         # Draw boxplot

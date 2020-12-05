@@ -44,7 +44,7 @@ class Playground(object):
             x = float(x)
             y = float(y)
             # also catch 'inf' and 'nan' ..
-            if (x == x ) and (y == y ) and (x + y - 1 != x + y ):
+            if (x == x) and (y == y) and (x + y - 1 != x + y):
                 return [float(y), float(x)]
             else:
                 return []

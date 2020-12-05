@@ -56,7 +56,7 @@ class RDigitToolbar(BaseToolbar):
         # default action (digitize new point, line, etc.)
         self.action = {'desc': '',
                         'type': '',
-                        'id': -1 }
+                        'id': -1}
 
         # list of available raster maps
         self.UpdateListOfLayers(updateTool = True)
@@ -222,7 +222,7 @@ class RDigitToolbar(BaseToolbar):
         if self.action['id'] == -1:
             self.action = {'desc': '',
                             'type': '',
-                            'id': -1 }
+                            'id': -1}
 
         # set focus
         self.MapWindow.SetFocus()
@@ -236,7 +236,7 @@ class RDigitToolbar(BaseToolbar):
 
         self.action = {'desc': "addLine",
                         'type': "line",
-                        'id': self.addLine }
+                        'id': self.addLine}
         self.MapWindow.mouse['box'] = 'line'
 
 
@@ -250,7 +250,7 @@ class RDigitToolbar(BaseToolbar):
             self.MapWindow.polycoords = [] # reset temp line
         self.action = {'desc': "addLine",
                         'type': "boundary",
-                        'id': self.addBoundary }
+                        'id': self.addBoundary}
         self.MapWindow.mouse['box'] = 'line'
 
     def OnAddCircle(self, event):
@@ -262,7 +262,7 @@ class RDigitToolbar(BaseToolbar):
             self.MapWindow.polycoords = [] # reset temp line
         self.action = {'desc': "addCircle",
                         'type': "circle",
-                        'id': self.addCircle }
+                        'id': self.addCircle}
         self.MapWindow.mouse['box'] = 'line'
 
     def OnExit (self, event=None):
@@ -292,7 +292,7 @@ class RDigitToolbar(BaseToolbar):
         Debug.msg(2, "RDigittoolbar.OnDeleteLine():")
 
         self.action = {'desc': "deleteLine",
-                        'id': self.deleteLine }
+                        'id': self.deleteLine}
         self.MapWindow.mouse['box'] = 'box'
 
     def OnDeleteArea(self, event):
@@ -301,7 +301,7 @@ class RDigitToolbar(BaseToolbar):
         Debug.msg(2, "RDigittoolbar.OnDeleteArea():")
 
         self.action = {'desc': "deleteArea",
-                        'id': self.deleteArea }
+                        'id': self.deleteArea}
         self.MapWindow.mouse['box'] = 'line'
 
     def OnDeleteCircle(self, event):
@@ -310,7 +310,7 @@ class RDigitToolbar(BaseToolbar):
         Debug.msg(2, "RDigittoolbar.OnDeleteCircle():")
 
         self.action = {'desc': "deleteCircle",
-                        'id': self.deleteCircle }
+                        'id': self.deleteCircle}
         self.MapWindow.mouse['box'] = 'line'
 
 
