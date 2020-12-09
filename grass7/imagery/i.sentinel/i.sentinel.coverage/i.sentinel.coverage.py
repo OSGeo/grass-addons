@@ -274,6 +274,12 @@ def main():
         'v.db.addcolumn', map=fps_in_area, columns="tmp INTEGER", quiet=True)
     grass.run_command(
         'v.db.update', map=fps_in_area, column='tmp', value=1, quiet=True)
+    # list of scenes that actually intersect with bbox
+    name_list_updated = list(grass.parse_command('v.db.select',
+                                                 map=fps_in_area,
+                                                 column='a_identifier',
+                                                 flags='c').keys())
+
     fps_in_area_dis = 'tmp_fps_in_area_dis_%s' % str(os.getpid())
     rm_vectors.append(fps_in_area_dis)
     grass.run_command(
@@ -293,7 +299,7 @@ def main():
     # save list of Sentinel names
     if output:
         with open(output, 'w') as f:
-            f.write(','.join(name_list))
+            f.write(','.join(name_list_updated))
         grass.message(_(
             "Name of Sentinel scenes are written to file <%s>") % (output))
 
