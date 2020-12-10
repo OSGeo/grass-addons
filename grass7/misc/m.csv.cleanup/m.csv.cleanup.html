@@ -1,0 +1,62 @@
+<h2>DESCRIPTION</h2>
+
+<em>m.csv.cleanup</em> reads a CSV (Comma Separated Value) file,
+cleans it, and writes a new CSV file.
+The separator for CSV is comma (<code>,</code>) by default,
+but it can be set to any single character such as semicolon (<code>;</code>),
+pipe (<code>|</code>), or tabulator.
+
+<h2>NOTES</h2>
+
+Originally, the name for this module was supposed to be <em>m.csv.polish</em>
+and the module was to be accompanied with module named <em>m.csv.czech</em>
+for checking the state of the CSV.
+
+<h2>EXAMPLES</h2>
+
+<h3>In GRASS GIS shell</h3>
+
+The following would apply all the default fixes to the the file <code>sampling_sites_raw.csv</code>
+and output a cleaned file <code>sampling_sites.csv</code>:
+
+<div class="code"><pre>
+m.csv.cleanup input=sampling_sites_raw.csv output=sampling_sites.csv
+</pre></div>
+
+<h3>In any shell</h3>
+
+The module is not using any information from the current location and mapset,
+so it is very easy to run it with an adhoc temporary location
+by executing a <code>grass --exec</code> command:
+
+<div class="code"><pre>
+grass --tmp-location XY --exec m.csv.cleanup input=sampling_sites_raw.csv output=sampling_sites.csv
+</pre></div>
+
+
+<h2>SEE ALSO</h2>
+
+<ul>
+    <li>
+        <em><a href="v.in.csv.html">v.in.csv</a></em>
+        for an addon module for importing CSV as vector points with coordinate transformation,
+    </li>
+    <li>
+        <em><a href="https://grass.osgeo.org/grass-stable/manuals/v.in.ascii.html">v.in.ascii</a></em>
+        for importing CSV as vector points with different approach,
+    </li>
+    <li>
+        <em><a href="https://grass.osgeo.org/grass-stable/manuals/v.in.ogr.html">v.in.ogr</a></em>
+        for an alternative CSV import using GDAL/OGR.
+    </li>
+</ul>
+
+
+<h2>AUTHOR</h2>
+
+Vaclav Petras, <a href="http://geospatial.ncsu.edu/">NCSU Center for Geospatial Analytics</a>
+
+<!--
+<p>
+<i>Last changed: $Date$</i>
+-->
