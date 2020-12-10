@@ -6,6 +6,8 @@
 
 #MAILTO=neteler@osgeo.org
 #STDOUT=/dev/null
+# needed to silence tput in cronjob:
+TERM=xterm
 
 # +---------------- minute (0 - 59)
 # |  +------------- hour (0 - 23)
