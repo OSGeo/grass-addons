@@ -143,8 +143,6 @@ def main():
     check_area_size = float(opt['area_size']) > 0
     if check_area_size:
         area_col_name = 'area_{}'.format(os.getpid())
-        Module('v.db.addcolumn', map=opt['map'],
-               columns='{} double precision'.format(area_col_name))
         Module('v.to.db', map=opt['map'], option='area', units='kilometers',
                columns=area_col_name, quiet=True)
         areas = Module('v.db.select', flags='c', map=opt['map'], columns=area_col_name,
