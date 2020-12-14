@@ -337,14 +337,12 @@
 import atexit
 import os
 import re
-import sys
 import warnings
 from copy import deepcopy
 
 import grass.script as gs
 from grass.pygrass.raster import RasterRow
 import numpy as np
-from grass.script.utils import get_lib_path
 
 gs.utils.set_path(modulename='r.learn.ml2', dirname='rlearnlib',
                   path='..')

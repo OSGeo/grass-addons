@@ -69,16 +69,13 @@
 #%end
 
 
-import sys
 import grass.script as gs
 import numpy as np
 import math
-from grass.script.utils import get_lib_path
 from grass.pygrass.gis.region import Region
 from grass.pygrass.modules.shortcuts import raster as r
 
-gs.utils.set_path(modulename='r.learn.ml2', dirname='rlearnlib',
-                  path='..')
+gs.utils.set_path(modulename='r.learn.ml2', dirname='rlearnlib', path='..')
 
 from rlearnlib.raster import RasterStack
 
