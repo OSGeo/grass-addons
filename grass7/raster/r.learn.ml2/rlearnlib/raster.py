@@ -753,6 +753,10 @@ class RasterStack(StatisticsMixin):
             Whether to return the extracted RasterStack pixels as a Pandas
             DataFrame.
         """
+        # some checks
+        if RasterRow(rast_name).exist() is False:
+            gs.fatal("The supplied raster does not exist")
+
         # check for categories in labelled pixel map
         with RasterRow(rast_name) as src:
             labels = src.cats
@@ -832,6 +836,9 @@ class RasterStack(StatisticsMixin):
         df : pandas.DataFrame
             Extracted raster values as Pandas DataFrame if as_df = True.
         """
+        # some checks
+        if VectorTopo(vect_name).exist() is False:
+            gs.fatal("The supplied vector map does not exist")
 
         if isinstance(fields, str):
             fields = [fields]
