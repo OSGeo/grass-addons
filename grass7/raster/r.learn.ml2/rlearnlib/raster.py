@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 import os
+import itertools
 from subprocess import PIPE
-from copy import deepcopy
-import re
 
 import grass.script as gs
 import numpy as np
@@ -769,6 +768,9 @@ class RasterStack(StatisticsMixin):
             stdout_=PIPE,
         ).outputs.stdout
 
+        if data == "":
+            gs.fatal("The training pixel locations do not spatially intersect any raster datasets")
+
         data = data.strip().split(os.linesep)
         data = [i.split("|") for i in data]
         data = np.asarray(data).astype("float32")
@@ -879,6 +881,9 @@ class RasterStack(StatisticsMixin):
                     else:
                         nodata = np.nan
                         dtype = np.float32
+
+                    if len(list(itertools.chain(*rast_data))) == 0:
+                        gs.fatal("There are no training point geometries in the supplied vector dataset")
 
                     X = [k.split("|")[1] if k.split("|")[1] != "*" else nodata for k in rast_data]
                     X = np.asarray(X)
