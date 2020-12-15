@@ -14,6 +14,28 @@ log_html_file_path"
     exit 1
 fi
 
+# Colour output text
+if [ $# -eq 3 ]; then
+    COLOR_OUTPUT=1
+else
+    case $4 in
+        ''|*[!0-9]*)
+            if [ "$4" == "true" ] || [ "$4" == "True" ]; then
+                COLOR_OUTPUT=0
+            else
+                COLOR_OUTPUT=1
+            fi
+            ;;
+        *)
+            if [ "$4" -eq 0 ]; then
+                COLOR_OUTPUT=0
+            else
+                COLOR_OUTPUT=1
+            fi
+           ;;
+    esac
+fi
+
 ADDONS_DOCS_HTML_DIR_PATH=$1
 LOG_FILE_PATH=$2
 LOG_HTML_FILE_PATH=$3
@@ -35,21 +57,31 @@ check_addon_html_manual_page() {
         echo "<tr><td><tt>$pgm</tt></td>" \
              >> "$LOG_HTML_FILE_PATH"
         if [ "$found_urls" -eq 2 ]; then
-            # Stdout, log file
-            echo "${NORMAL_COLOR}Checking $pgm... \
+            if [ "$COLOR_OUTPUT" -eq 0 ]; then
+                # Stdout, log file
+                echo "${NORMAL_COLOR}Checking $pgm... \
 source and commits URL: CORRECT" | tee -a "$LOG_FILE_PATH"
+            else
+                echo "Checking $pgm... \
+source and commits URL: CORRECT" | tee -a "$LOG_FILE_PATH"
+            fi
             # Html file
             echo "<td style=\"background-color: green\">\
 source and commits URL: CORRECT</td>" >> "$LOG_HTML_FILE_PATH"
         else
-            # Stdout, log file
-            echo "${RED_COLOR}Checking $pgm... source or \
+            if [ "$COLOR_OUTPUT" -eq 0 ]; then
+                # Stdout, log file
+                echo "${RED_COLOR}Checking $pgm... source or \
 commits URL: INCORRECT" | tee -a "$LOG_FILE_PATH"
+            else
+                echo "Checking $pgm... source or \
+commits URL: INCORRECT" | tee -a "$LOG_FILE_PATH"
+            fi
             # Html file
             echo "<td style=\"background-color: red\">\
 source or commits URL: INCORRECT</td>" >> "$LOG_HTML_FILE_PATH"
         fi;
-        tput sgr0
+        if [ "$COLOR_OUTPUT" -eq 0 ]; then tput sgr0; fi
    done;
 }
 
