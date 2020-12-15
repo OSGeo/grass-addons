@@ -1,7 +1,7 @@
 <h2>OPTIONS</h2>
 
 <dl>
-<dt><b>maps</b></dt>
+<dt><b>maps</b> file</dt>
 <dd>A text file containing maps name and fuzzy sets connected with map
 definition. The input maps must be found in the search path.
 The output map name must be <b>_OUTPUT_</b>  If maps are in different
@@ -48,7 +48,7 @@ boundaries, without hedge and height modifiers:
 </dd>
 -->
 
-<dt><b>rules</b></dt>
+<dt><b>rules</b> file</dt>
 <dd>A text file containing rules for classification. A typical fuzzy rule
 consists of one or more antecedents and one consequent:
 
@@ -85,7 +85,7 @@ $ small {distance = high & elev = high}
 <h2>ADVANCED OPTIONS</h2>
 In most cases default options should not be changed.
 <dl>
-<dt><b>family</b></dt>
+<dt><b>family</b> (fuzzy logic family)</dt>
 <dd>AND and OR operations in fuzzy logic are made with T-norms and T-conorms.
 These are a generalization of the two-valued logical conjunction
 and  disjunction  used by boolean logic, for fuzzy logic. Because there is more
@@ -115,7 +115,7 @@ sum as T-conorm;
 (x*y)/((x+y)-x*y)</TD><TD>	(x+y)/(1+x*y)</TD></TR>
 </TABLE>
 </dd>
-<dt><b>imp: implication </b></dt>
+<dt><b>imp</b> (implication)</dt>
 <dd>Implication determines the method of reshapening of consequents (fuzzy set)
 by antecedents (single value) : 
 <ul>
@@ -125,7 +125,7 @@ definition. It usually creates trapezoidal consequent set definition.
 definition. It usually creates triangular consequent set definition.
 </ul>
 </dd>
-<dt><b>defuz: defuzzification method</b></dt>
+<dt><b>defuz</b> (defuzzification method)</dt>
 <dd>Before defuzzification all consequents are aggregated into one fuzzy set.
 Defuzzification is the process of conversion of aggregated fuzzy set into one
 crisp value. The r.fuzzy.system provides 5 methods of defuzzification:
@@ -137,7 +137,7 @@ crisp value. The r.fuzzy.system provides 5 methods of defuzzification:
 <li><b>max</b> max (left limit) of highest part of the set;
 </ul>
 </dd>
-<dt><b>res: universe resolution</b></dt>
+<dt><b>res</b> (universe resolution)</dt>
 <dd>The universe is an interval between the lowest and highest values of
 consequent and aggregated fuzzy sets. The resolution provides number of elements
 of these fuzzy sets. The minimum and maximum for universe is taken from the
@@ -163,7 +163,7 @@ for every map.</dd>
 
 <h2>OUTPUTS</h2>
 <dl>
-<dt><b>output</b></dt>
+<dt><b>output</b> (raster map)</dt>
 <dd>Map containing defuzzified values. Map is always of type FCELLS and contains
 values defined in output universe. The output name must be the same as one of
 maps in maps definition file.
@@ -249,11 +249,11 @@ r.mapcalc "horton3 = if(horton>2,horton,null())"
 r.stream.distance stream=streams dir=dirs method=downstream distance=distance elevation=elevation.10m
 </pre></div>
 
-Next, to perform the analysis we need two files: one with the
+Next, to perform the analysis we need write two text files: one with the
 definition of maps used in analysis and the definition of fuzzy sets for
 every map, and a second with fuzzy rules. For this example:
 
-<p>MAPS:</p>
+<p>MAPS file example (text file):</p>
 
 Note: the raster map names are specified with a "%" character (here 
 "% elevation" and "% distance" are the input maps). The single output map
@@ -276,7 +276,7 @@ $ prob {both; 20,40,40,60; linear; 0;1}
 $ veryprob {both; 40,60,60,80; linear; 0;1}
 </pre></div>
 
-<p>RULES:
+<p>RULES file example (text file):
 <div class="code"><pre>
 # flood.rul
 $ unprob {elevation = high & distance = far}
@@ -284,7 +284,7 @@ $ prob {distance = near | elevation = low}
 $ veryprob {distance = near & elevation = low}
 </pre></div>
 
-finally we need run r.fuzzy.system:
+Finally we need run r.fuzzy.system:
 <div class="code"><pre>
 r.fuzzy.system maps=flood.map rules=flood.rul output=flood 
 </pre></div>
@@ -298,7 +298,7 @@ risk, green, blue end so on moderate risk.
 <em>
 <a href="r.fuzzy.logic.html">r.fuzzy.logic</a> addon,
 <a href="r.fuzzy.set.html">r.fuzzy.set</a> addon,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a>
 </em>
 
 <h2>REFERENCES</h2>
@@ -307,10 +307,10 @@ risk, green, blue end so on moderate risk.
 <li>Jasiewicz, J. (2011). A new GRASS GIS fuzzy inference system for massive data analysis.
 Computers & Geosciences (37) 1525-1531. DOI <a href="https://doi.org/10.1016/j.cageo.2010.09.008">https://doi.org/10.1016/j.cageo.2010.09.008</a>
 
-<li>Zadeh, L.A. (1965). "Fuzzy sets". Information and Control 8 (3): 338–353.
-<a href="https://doi.org/10.1016/S0019-9958(65)90241-X"><a href="https://doi.org/10.1016/S0019-9958(65)90241-X"</a>. ISSN 0019-9958.
+<li>Zadeh, L.A. (1965). "Fuzzy sets". Information and Control 8 (3): 338-353.
+<a href="https://doi.org/10.1016/S0019-9958(65)90241-X">DOI:10.1016/S0019-9958(65)90241-X</a>. ISSN 0019-9958.
 
-<li>Novák, Vilém (1989). Fuzzy Sets and Their Applications. Bristol: Adam Hilger.
+<li>Nov&aacute;k, V. (1989). Fuzzy Sets and Their Applications. Bristol: Adam Hilger.
 ISBN 0-85274-583-4.
 
 <li>Klir, George J.; Yuan, Bo (1995). Fuzzy sets and fuzzy logic: theory and
@@ -321,7 +321,7 @@ foundations and applications. Englewood Cliffs, NJ: Prentice Hall. ISBN
 0133410587.
 
 <li>Meyer D, Hornik K (2009a). Generalized and Customizable Sets in R. Journal of
-Statistical Software, 31(2), 1-27. DOI <a href="http://dx.doi.org/10.18637/jss.v031.i02">http://dx.doi.org/10.18637/jss.v031.i02</a>
+Statistical Software, 31(2), 1-27. DOI <a href="http://dx.doi.org/10.18637/jss.v031.i02">DOI:10.18637/jss.v031.i02</a>
 
 <li>Meyer D, Hornik K (2009b). sets: Sets, Generalized Sets, and Customizable Sets.
 R~package version~1.0, URL <a href="http://CRAN.R-project.org/package=sets">http://CRAN.R-project.org/package=sets</a>.
