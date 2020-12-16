@@ -1,4 +1,4 @@
-  MODULE_TOPDIR = ../../..
+MODULE_TOPDIR = ../../..
 
 include $(MODULE_TOPDIR)/include/Make/Other.make
 include $(MODULE_TOPDIR)/include/Make/Python.make
@@ -13,10 +13,12 @@ PYCFILES := $(patsubst %,$(ETCDIR)/%.pyc,$(MODULES))
 default: $(PYFILES) $(PYCFILES)
 
 $(ETCDIR):
-	$(MKDIR) -p $@
+	$(MKDIR) $@
 
 $(ETCDIR)/%: % | $(ETCDIR)
 	$(INSTALL_DATA) $< $@
 
+
 install:
+	$(MKDIR) $(INST_DIR)/etc/r.learn.ml2
 	cp -r $(ETCDIR) $(INST_DIR)/etc/r.learn.ml2

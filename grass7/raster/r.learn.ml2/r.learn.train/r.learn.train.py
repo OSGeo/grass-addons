@@ -344,15 +344,8 @@ import grass.script as gs
 from grass.pygrass.raster import RasterRow
 import numpy as np
 
-try:
-    gs.utils.set_path(modulename='r.learn.ml2', dirname='rlearnlib', path='..')
-    from rlearnlib.raster import RasterStack
-except:
-    path = get_lib_path(modname="r.learn.ml2")
-    if path is None:
-        gs.fatal("Not able to find the r.learn.ml2 library directory")
-    sys.path.append(path)
-    from rlearnlib.raster import RasterStack
+gs.utils.set_path(modulename='r.learn.ml2', dirname='rlearnlib', path='..')
+from rlearnlib.raster import RasterStack
 
 from rlearnlib.utils import (
     predefined_estimators,
