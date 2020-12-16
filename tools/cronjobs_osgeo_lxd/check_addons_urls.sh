@@ -20,7 +20,7 @@ if [ $# -eq 3 ]; then
 else
     case $4 in
         ''|*[!0-9]*)
-            if [ "$4" == "true" ] || [ "$4" == "True" ]; then
+            if [[ "$4" == [tT][rR][uU][eE] ]] || [[ "$4" == [yY][eE][sS] ]]; then
                 COLOR_OUTPUT=0
             else
                 COLOR_OUTPUT=1
