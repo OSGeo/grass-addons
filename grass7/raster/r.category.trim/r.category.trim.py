@@ -121,7 +121,7 @@ def main(options, flags):
     RCOL = [x for x in RCOL if "nv" not in x and 'default' not in x]
     RCOL = [_f for _f in RCOL if _f]
     CCAT = [z.split(' ')[0] for z in RCOL]
-    idx = [i for i, item in enumerate(CCAT) if not re.search(r'\.', item)]
+    idx = [i for i, item in enumerate(CCAT) if not re.search('\.', item)]
     CCAT = [CCAT[i] for i in idx]
     RCOL = [RCOL[i] for i in idx]
     CCAT = list(map(int, CCAT))

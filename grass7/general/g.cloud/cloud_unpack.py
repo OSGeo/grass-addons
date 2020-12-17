@@ -37,7 +37,7 @@ if len(sys.argv) != 2:
     f.write('Usage: python %s GISDBASE' % sys.argv[0])
 
 # the full path to GISDBASE, LOCATION_NAME, MAPSET
-dbaselocatmap = sys.argv[1].strip('').rstrip(r'\/')
+dbaselocatmap = sys.argv[1].strip('').rstrip('\/')
 mapset = os.path.split(dbaselocatmap)[1]
 location = os.path.split(os.path.split(dbaselocatmap)[0])[1]
 dbase = os.path.split(os.path.split(dbaselocatmap)[0])[0]
