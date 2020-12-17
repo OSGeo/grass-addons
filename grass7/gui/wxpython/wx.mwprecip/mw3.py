@@ -5,7 +5,7 @@ from math import sin, cos, atan2, degrees, tan, sqrt
 from datetime import datetime
 from datetime import timedelta
 import shutil
-import psycopg2
+import importlib
 import time
 import math
 import sys
@@ -24,6 +24,13 @@ import logging
 logger = logging.getLogger('mwprecip.Computing')
 
 class PointInterpolation():
+    try:
+        psycopg2 = importlib.import_module('psycopg2')
+    except ModuleNotFoundError as e:
+        msg = e.msg
+        grass.fatal(_("Unable to load python <{0}> lib (requires lib "
+                      "<{0}> being installed).".format(msg.split("'")[-2])))
+
     def __init__(self, database, step, methodDist=False):
         timeMes.timeMsg("Interpolating points along lines...")
         self.step = float(step)
@@ -1495,7 +1502,7 @@ class Database():
                 conninfo['port'] = self.port
             self.connection = pg(**conninfo)
 
-        except psycopg2.OperationalError as e:
+        except self.psycopg2.OperationalError as e:
             grass.warning("Unable to connect to the database <%s>. %s" % (self.dbName, e))
 
     def firstPreparation(self):
