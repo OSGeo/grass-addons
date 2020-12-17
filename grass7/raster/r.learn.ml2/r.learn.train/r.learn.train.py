@@ -344,8 +344,8 @@ import grass.script as gs
 from grass.pygrass.raster import RasterRow
 import numpy as np
 
-gs.utils.set_path(modulename='r.learn.ml2', dirname='rlearnlib', path='..')
-from rlearnlib.raster import RasterStack
+gs.utils.set_path(modulename='r.learn.ml2', dirname='rlearnlib',
+                  path='..')
 
 from rlearnlib.utils import (
     predefined_estimators,
@@ -355,6 +355,7 @@ from rlearnlib.utils import (
     scoring_metrics,
     check_class_weights,
 )
+from rlearnlib.raster import RasterStack
 
 
 tmp_rast = []

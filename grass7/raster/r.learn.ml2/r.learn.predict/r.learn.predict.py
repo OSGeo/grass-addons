@@ -76,6 +76,7 @@ from grass.pygrass.gis.region import Region
 from grass.pygrass.modules.shortcuts import raster as r
 
 gs.utils.set_path(modulename='r.learn.ml2', dirname='rlearnlib', path='..')
+
 from rlearnlib.raster import RasterStack
 
 

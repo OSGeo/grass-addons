@@ -1,4 +1,4 @@
-MODULE_TOPDIR = ../../..
+  MODULE_TOPDIR = ../../..
 
 include $(MODULE_TOPDIR)/include/Make/Other.make
 include $(MODULE_TOPDIR)/include/Make/Python.make
@@ -17,7 +17,6 @@ $(ETCDIR):
 
 $(ETCDIR)/%: % | $(ETCDIR)
 	$(INSTALL_DATA) $< $@
-
 
 install:
 	$(MKDIR) $(INST_DIR)/etc/r.learn.ml2
