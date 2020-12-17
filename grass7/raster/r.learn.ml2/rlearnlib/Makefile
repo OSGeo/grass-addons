@@ -19,5 +19,5 @@ $(ETCDIR)/%: % | $(ETCDIR)
 	$(INSTALL_DATA) $< $@
 
 install:
-	$(MKDIR) $(INST_DIR)/etc/r.learn.ml2
+	$(MKDIR) $(INST_DIR)/etc/r.learn.ml2/rlearnlib
 	cp -r $(ETCDIR) $(INST_DIR)/etc/r.learn.ml2
