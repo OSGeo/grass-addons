@@ -94,7 +94,7 @@ def focal_expr(radius, circular=False):
     size = radius * 2 + 1
     centre = int(size / 2)
 
-    rows, cols = np.ogrid[-radius : radius + 1, -radius : radius + 1]
+    rows, cols = np.ogrid[-radius: radius + 1, -radius: radius + 1]
     row_offsets, col_offsets = np.meshgrid(rows, cols)
 
     # create circular mask (also masking centre)
@@ -117,20 +117,20 @@ def focal_expr(radius, circular=False):
 
 
 def distance_from_centre(radius):
-    """Create a square matrix filled with the euclidean distance from the 
+    """Create a square matrix filled with the euclidean distance from the
     centre cell
 
     Parameters
     ----------
     radius : int
         Radius of the square matrix in cells.
-    
+
     Returns
     -------
     dist_from_centre : 2d ndarray
         Square matrix with each cell filled with the distance from the centre
         cell.
-    
+
     """
     size = radius * 2 + 1
     centre = int(size / 2)
@@ -150,13 +150,13 @@ def idw_weights(radius, p, circular=False):
     ----------
     radius : int
         Radius of the square matrix in cells.
-    
+
     p : float
         Distance weighting power. p=0 gives equal weights.
-    
+
     circular : bool (opt). Default is False
         Optionally use a circular mask.
-    
+
     Returns
     -------
     W : list
@@ -196,10 +196,10 @@ def tile_shape(region, n_jobs):
     ----------
     region : pygrass.gis.region.Region
         The computational region object.
-    
+
     n_jobs : int
         The number of processing cores.
-    
+
     Returns
     -------
     width, height : tuple
@@ -239,13 +239,13 @@ def main():
             gs.fatal(
                 "The GRASS addon r.mapcalc.tiled must also be installed if n_jobs != 1. Run 'g.extension r.mapcalc.tiled'"
             )
-    
+
     if size <= 2 or size > 51:
         gs.fatal("size must be > 2 and <= 51")
 
     if size % 2 != 1:
         gs.fatal("size must be an odd number")
-    
+
     if exponent < 0 or exponent > 4.0:
         gs.fatal("exponent must be >= 0 and <= 4.0")
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 ############################################################################
 #
-# MODULE:       d.vect.colhist 
+# MODULE:       d.vect.colhist
 # AUTHOR:       Moritz Lennert
 # PURPOSE:      Draws the histogram of values in a vector attribute column
 #
@@ -48,8 +48,8 @@ import sys
 import grass.script as gscript
 
 def main():
-    import matplotlib #required by windows
-    matplotlib.use('wxAGG') #required by windows
+    import matplotlib  # required by windows
+    matplotlib.use('wxAGG')  # required by windows
     import matplotlib.pyplot as plt
 
     vector = options['map']
@@ -60,26 +60,25 @@ def main():
     where = options['where'] if options['where'] else None
 
     if where:
-        data=[float(x) for x in gscript.read_command('v.db.select',
+        data = [float(x) for x in gscript.read_command('v.db.select',
                                                      map_=vector,
                                                      layer=layer,
                                                      column=column,
                                                      where=where,
                                                      flags='c').splitlines()]
     else:
-        data=[float(x) for x in gscript.read_command('v.db.select',
+        data = [float(x) for x in gscript.read_command('v.db.select',
                                                      map_=vector,
                                                      layer=layer,
                                                      column=column,
                                                      flags='c').splitlines()]
-   
+
     plt.hist(data, bins=bins)
     if plot_output == '-':
-       plt.show()
+        plt.show()
     else:
-       plt.savefig(plot_output)
+        plt.savefig(plot_output)
 
 if __name__ == "__main__":
     options, flags = gscript.parser()
     main()
-

@@ -53,7 +53,7 @@
 #%option
 #% key: max_size
 #% type: double
-#% description: Maximum pixel size (= minimum resolution) to analyse  
+#% description: Maximum pixel size (= minimum resolution) to analyse
 #% required: no
 #% multiple: no
 #%end
@@ -86,27 +86,29 @@ def cleanup():
                           name=temp_variance_map, quiet=True)
 
 def FindMaxima(numbers):
-  maxima = []
-  differences = []
-  length = len(numbers)
-  if length >= 2:
-    if numbers[0] > numbers[1]:
-        maxima.append(0)
-        differences.append(numbers[0] - numbers[1])
-       
-    if length > 3:
-      for i in range(1, length-1):     
-        if numbers[i] > numbers[i-1] and numbers[i] > numbers[i+1]:
-            maxima.append(i)
-            differences.append(min(numbers[i] - numbers[i-1], numbers[i] - numbers[i+1]))
+    maxima = []
+    differences = []
+    length = len(numbers)
+    if length >= 2:
+        if numbers[0] > numbers[1]:
+            maxima.append(0)
+            differences.append(numbers[0] - numbers[1])
 
-    if numbers[length-1] > numbers[length-2]:
-        maxima.append(length-1)        
-        differences.append(numbers[length-1] - numbers[length-2])
+        if length > 3:
+            for i in range(1, length-1):
+                if numbers[i] > numbers[i-1] and numbers[i] > numbers[i+1]:
+                    maxima.append(i)
+                    differences.append(min(numbers[i] - numbers[i-1], numbers[i] - numbers[i+1]))
 
-  return maxima, differences
+        if numbers[length-1] > numbers[length-2]:
+            maxima.append(length-1)
+            differences.append(numbers[length-1] - numbers[length-2])
+
+    return maxima, differences
 
 def main():
+    import matplotlib  # required by windows
+    matplotlib.use('wxAGG')  # required by windows
     import matplotlib.pyplot as plt
 
     input = options['input']
@@ -132,7 +134,7 @@ def main():
 
     region = gscript.parse_command('g.region', flags='g')
     cells = int(region['cells'])
-    res = (float(region['nsres']) + float(region['ewres'])) / 2 
+    res = (float(region['nsres']) + float(region['ewres'])) / 2
     north = float(region['n'])
     south = float(region['s'])
     west = float(region['w'])
@@ -147,7 +149,7 @@ def main():
         target_res_cells = int(sqrt(((east - west) * (north - south)) / min_cells))
         if target_res > target_res_cells:
             target_res = target_res_cells
-            gscript.message(_("Max resolution leads to less cells than defined by 'min_cells' (%d)." % min_cells)) 
+            gscript.message(_("Max resolution leads to less cells than defined by 'min_cells' (%d)." % min_cells))
             gscript.message(_("Max resolution reduced to %d" % target_res))
 
     nb_iterations = target_res - res / step

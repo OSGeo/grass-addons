@@ -160,7 +160,7 @@ class SplitWindowLST():
         Return a string representation of the basic Split Window LST equation
         """
         equation = ' > The algorithm\'s basic equation: ' + self._equation
-        return equation #+ '\n' + model
+        return equation  # + '\n' + model
 
     def _landcover_string_validity(self, string):
         """
@@ -597,13 +597,13 @@ class SplitWindowLST():
                 emissivity_t10 = float(self.emissivity_t10)
                 emissivity_t11 = float(self.emissivity_t11)
                 avg_lse = self._compute_average_emissivity(
-                        emissivity_t10,
-                        emissivity_t11,
-                        )
+                    emissivity_t10,
+                    emissivity_t11,
+                )
                 delta_lse = self._compute_delta_emissivity(
-                        emissivity_t10,
-                        emissivity_t11,
-                        )
+                    emissivity_t10,
+                    emissivity_t11,
+                )
         except:
             pass
 
@@ -615,19 +615,19 @@ class SplitWindowLST():
 
         b0, b1, b2, b3, b4, b5, b6, b7 = self._retrieve_cwv_coefficients(subrange)
         mapcalc = LST_FORMULA.format(
-                    b0=b0,
-                    b1=b1,
-                    b2=b2,
-                    ae=avg_lse,
-                    de=delta_lse,
-                    b3=b3,
-                    b4=b4,
-                    b5=b5,
-                    b6=b6,
-                    b7=b7,
-                    DUMMY_T10=DUMMY_MAPCALC_STRING_T10,
-                    DUMMY_T11=DUMMY_MAPCALC_STRING_T11,
-                )
+            b0=b0,
+            b1=b1,
+            b2=b2,
+            ae=avg_lse,
+            de=delta_lse,
+            b3=b3,
+            b4=b4,
+            b5=b5,
+            b6=b6,
+            b7=b7,
+            DUMMY_T10=DUMMY_MAPCALC_STRING_T10,
+            DUMMY_T11=DUMMY_MAPCALC_STRING_T11,
+        )
 
         return mapcalc
 

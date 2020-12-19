@@ -4,7 +4,7 @@
 #
 # MODULE:       r.bioclim
 # AUTHOR(S):    Markus Metz
-# PURPOSE:      Calculates bioclimatic indices from time series 
+# PURPOSE:      Calculates bioclimatic indices from time series
 # COPYRIGHT:    (C) 2014 by the GRASS Development Team
 #
 #               This program is free software under the GNU General Public

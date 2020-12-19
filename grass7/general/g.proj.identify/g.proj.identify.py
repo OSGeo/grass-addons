@@ -59,11 +59,11 @@ def writeEPSGtoPEMANENT(epsg):
     gisdbase = env['GISDBASE']
     location = env['LOCATION_NAME']
     path = os.path.join(gisdbase, location, "PERMANENT","PROJ_EPSG")
-    if os.path.isfile(path): #if already file exist
+    if os.path.isfile(path):  # if already file exist
         if os.getenv('GRASS_OVERWRITE', False):
             try:
                 io = open(path,'w')
-                io.write("epsg: %s"%epsg )
+                io.write("epsg: %s" % epsg)
                 io.close()
                 grass.message("EPSG code have been written to <%s>" % path)
             except IOError as e:
@@ -74,7 +74,7 @@ def writeEPSGtoPEMANENT(epsg):
     else:
         try:
             io = open(path,'w')
-            io.write("epsg: %s"%epsg)
+            io.write("epsg: %s" % epsg)
             io.close()
             grass.message("EPSG code have been written to <%s>" % path)
         except IOError as e:
@@ -87,15 +87,15 @@ def isPermanent():
     return False
 
 def grassEpsg():
-    proj=Module('g.proj',
+    proj = Module('g.proj',
                flags='p',
                quiet=True,
                stdout_=PIPE)
-    proj=proj.outputs.stdout
-    lines=proj.splitlines()
+    proj = proj.outputs.stdout
+    lines = proj.splitlines()
     for e,line in enumerate(lines):
         if 'EPSG' in line:
-            epsg=lines[e+1].split(':')[1].replace(' ','')
+            epsg = lines[e+1].split(':')[1].replace(' ','')
             print('epsg=%s' % epsg)
             if flags['s']:
                 if isPermanent():
@@ -104,11 +104,11 @@ def grassEpsg():
                     grass.warning("Unable to access PERMANENT mapset")
             return
     try:
-        proj=Module('g.proj',
+        proj = Module('g.proj',
                flags='wf',
                quiet=True,
                stdout_=PIPE)
-        proj=proj.outputs.stdout
+        proj = proj.outputs.stdout
         wkt2standards(proj)
     except:
         grass.error('WKT input error')
@@ -121,9 +121,9 @@ def wkt2standards(prj_txt):
     if flags['p']:
         print('proj4=%s' % srs.ExportToProj4())
     srs.AutoIdentifyEPSG()
-    try :
+    try:
         int(srs.GetAuthorityCode(None))
-        epsg=srs.GetAuthorityCode(None)
+        epsg = srs.GetAuthorityCode(None)
         print('epsg=%s' % epsg)
         if flags['s']:
             if isPermanent():
@@ -148,8 +148,9 @@ def main():
         grass.fatal(_("Unable to load GDAL Python bindings (requires package "
                       "'python-gdal' being installed)"),)
 
-    epsg=options['epsg']
-    pathwkt=options['wkt']
+    epsg = options['epsg']
+    pathwkt = options['wkt']
+
     if epsg and pathwkt:
         grass.error('Only one type of conversions can be processed concurrently')
 
@@ -158,11 +159,11 @@ def main():
     else:
         if pathwkt:
             try:
-                io= open(pathwkt,'r')
-                wkt=io.read().rstrip()
+                io = open(pathwkt,'r')
+                wkt = io.read().rstrip()
                 wkt2standards(wkt)
             except IOError as e:
-                grass.error('Unable to open file <%s>: %s'%(e.errno, e.strerror))
+                grass.error('Unable to open file <%s>: %s' % (e.errno, e.strerror))
         else:
             grassEpsg()
 

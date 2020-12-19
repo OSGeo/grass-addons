@@ -1119,7 +1119,7 @@ class MdDataCatalog(LocationMapTree):
         maplist = RunCommand('g.list', flags='mt', type='raster,vector', mapset=mapset,
                              quiet=True, read=True)
         maplist = maplist.splitlines()
-        vartype=None
+        vartype = None
         for ml in maplist:
             # parse
             parts1 = ml.split('/')
@@ -1161,7 +1161,7 @@ class MdDataCatalog(LocationMapTree):
 
         self.AppendItem(varloc, mapset)
         # get list of all maps in location
-        vartype=None
+        vartype = None
         env = grass.gisenv()
         mapset = env['MAPSET']
         try:
@@ -1196,11 +1196,11 @@ class MdDataCatalog(LocationMapTree):
 
     def isMapExist(self,map,type):
         '''Check if the map is in current mapset'''
-        types=['raster',
+        types = ['raster',
                'vector',
                'stvds',
                'strds',
-               ]
+                 ]
         if type in types:
             return True
         else:

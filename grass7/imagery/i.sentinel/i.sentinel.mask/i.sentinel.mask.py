@@ -187,7 +187,7 @@ def main ():
     mapset2 = '@{}'.format(mapset)
     processid = os.getpid()
     processid = str(processid)
-    tmp["shadow_temp"] = "shadow_temp"+ processid
+    tmp["shadow_temp"] = "shadow_temp" + processid
     tmp["cloud_v"] = "cloud_v_" + processid
     tmp["shadow_temp_v"] = "shadow_temp_v_" + processid
     tmp["shadow_temp_mask"] = "shadow_temp_mask_" + processid
@@ -239,19 +239,19 @@ def main ():
                     'nir',
                     'nir8a',
                     'swir11',
-                    'swir12']:
+                        'swir12']:
                     txt_bands.append(a[0])
                     bands[a[0]] = a[1].strip()
             if len(txt_bands) < 7:
                 gscript.fatal(('One or more bands are missing in the input text file.\n Only these bands have been found: {}').format(txt_bands))
-            if mtd_file and metadata_file != 'default' :
+            if mtd_file and metadata_file != 'default':
                 gscript.fatal(('Metadata json file and mtd_file are both given as input text files.\n Only one of these should be specified.'))
 
     # we want cloud and shadows: check input and output for shadow mask
     if not flags["c"]:
         if mtd_file != '':
             if not os.path.isfile(mtd_file):
-                 gscript.fatal('Metadata file <{}> not found. Please select the right .xml file'.format(mtd_file))
+                gscript.fatal('Metadata file <{}> not found. Please select the right .xml file'.format(mtd_file))
         elif metadata_file == 'default':
             # use default json
             env = gscript.gisenv()
@@ -277,13 +277,13 @@ def main ():
     cloud_threshold = options['cloud_threshold']
     shadow_threshold = options['shadow_threshold']
     raster_max = {}
-    check_cloud = 1 #by default the procedure finds clouds
-    check_shadow = 1 #by default the procedure finds shadows
+    check_cloud = 1  # by default the procedure finds clouds
+    check_shadow = 1  # by default the procedure finds shadows
 
     if options['cloud_raster']:
         cloud_raster = options['cloud_raster']
     else:
-        tmp["cloud_def"] = "cloud_def"+ processid
+        tmp["cloud_def"] = "cloud_def" + processid
         cloud_raster = tmp["cloud_def"]
     if options['cloud_mask']:
         cloud_mask = options['cloud_mask']
@@ -291,7 +291,7 @@ def main ():
             gscript.fatal('Name for cloud_mask output \
                            is not SQL compliant'.format(options['cloud_mask']))
     else:
-        tmp["cloud_mask"] = "cloud_mask"+ processid
+        tmp["cloud_mask"] = "cloud_mask" + processid
         cloud_mask = tmp["cloud_mask"]
     if options['shadow_mask']:
         shadow_mask = options['shadow_mask']
@@ -299,7 +299,7 @@ def main ():
             gscript.fatal('Name for shadow_mask output \
                            is not SQL compliant'.format(options['shadow_mask']))
     else:
-        tmp["shadow_mask"] = "shadow_mask"+ processid
+        tmp["shadow_mask"] = "shadow_mask" + processid
         shadow_mask = tmp["shadow_mask"]
     shadow_raster = options['shadow_raster']
 
@@ -308,9 +308,9 @@ def main ():
         bands['green'] == '' or
         bands['red'] == '' or
         bands['nir'] == '' or
-        bands['nir8a'] == ''or
+        bands['nir8a'] == '' or
         bands['swir11'] == '' or
-        bands['swir12'] == ''):
+            bands['swir12'] == ''):
         gscript.fatal('All input bands (blue, green, red, nir, nir8a, swir11, swir12) are required')
 
     # Check if input bands exist
@@ -349,7 +349,7 @@ def main ():
         gscript.warning(_('No rescale factor has been applied'))
         for key, b in bands.items():
             if (gscript.raster_info(b)['datatype'] != "DCELL" and
-                gscript.raster_info(b)['datatype'] != "FCELL"):
+                    gscript.raster_info(b)['datatype'] != "FCELL"):
                 gscript.fatal('Raster maps must be DCELL o FCELL')
             else:
                 f_bands = bands
@@ -458,7 +458,7 @@ def main ():
         expr_s = '{} = if({}, 0, null())'.format(
             tmp["shadow_temp"],
             shadow_rules)
-        gscript.mapcalc( expr_s, overwrite=True)
+        gscript.mapcalc(expr_s, overwrite=True)
         gscript.message(_('--- Converting raster shadow mask into vector map ---'))
         gscript.run_command('r.to.vect',
             input=tmp["shadow_temp"],
@@ -662,7 +662,7 @@ def main ():
                         gscript.run_command('v.to.rast', input=tmp["shadow_temp_mask"],
                                             output=shadow_raster, use='val')
                     else:
-                         gscript.warning(_('No cloud shadows detected'))
+                        gscript.warning(_('No cloud shadows detected'))
 
 
                 gscript.message('--- the estimated clouds height is: {} m ---'.format(HH[index_maxAA]))

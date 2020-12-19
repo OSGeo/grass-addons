@@ -399,7 +399,7 @@ def load_decompositions():
         'FastICA': FastICA,
         'TruncatedSVD': TruncatedSVD,
         'LDA': LDA
-        })
+    })
 
 
 def get_indexes(string, sep=',', rangesep='-'):
@@ -484,7 +484,7 @@ def substitute(X, rules, cols):
 
 
 def extract_classes(vect, layer):
-    vect, mset = vect.split('@') if '@'in vect else (vect, '')
+    vect, mset = vect.split('@') if '@' in vect else (vect, '')
     with Vector(vect, mapset=mset, layer=layer, mode='r') as vct:
         vct.table.filters.select('cat', 'class')
         return {key: val for key, val in vct.table.execute()}
@@ -547,12 +547,12 @@ def main(opt, flg):
 
     # Append the SVC classifier
     if opt['svc_c'] and opt['svc_gamma']:
-            from sklearn.svm import SVC
-            svc = {'name': 'SVC', 'classifier': SVC,
-                   'kwargs': {'C': float(opt['svc_c']),
-                              'gamma': float(opt['svc_gamma']),
-                              'kernel': opt['svc_kernel']}}
-            classifiers.append(svc)
+        from sklearn.svm import SVC
+        svc = {'name': 'SVC', 'classifier': SVC,
+               'kwargs': {'C': float(opt['svc_c']),
+                          'gamma': float(opt['svc_gamma']),
+                          'kernel': opt['svc_kernel']}}
+        classifiers.append(svc)
 
     # extract classifiers from pyindx
     if opt['pyindx']:
@@ -604,7 +604,7 @@ def main(opt, flg):
         cls = classifiers[ind_optimize]
         msgr.message("Find the optimum training set.")
         best, Xbt, Ybt = optimize_training(cls, Xt, Yt,
-                                           labels, #{v: k for k, v in labels.items()},
+                                           labels,  # {v: k for k, v in labels.items()},
                                            scaler, decmp,
                                            num=num, maxiterations=1000)
         msg = "    - save the optimum training data set to: %s."
@@ -705,7 +705,7 @@ def main(opt, flg):
 
         import pickle
         with open('classification_results.pkl', 'w') as res:
-              pickle.dump(classifiers, res)
+            pickle.dump(classifiers, res)
         #classifiers = pickle.load(res)
         msgr.message("Export the results to layer: <%s>" % str(rlayer))
         export_results(vect, classifiers, cats, rlayer, vtraining, tcols,

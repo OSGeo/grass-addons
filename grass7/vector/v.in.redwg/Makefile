@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM=v.in.redwg
+PGM = v.in.redwg
 
 ## hard coded
 LIBREDWGLIB=-lredwg

@@ -597,7 +597,7 @@ def main():
                 sfphi = (msx_phi - msx_med) / (hpf_phi - hpf_med)
             else:
                 # avoid zero and division by zero
-                sfphi =  1
+                sfphi = 1
 
             scale = "{out} = {outfn}(double({hpf} - {hpf_med}) * " \
                             "if({hpf} < {hpf_med}, {sfplo}, " \

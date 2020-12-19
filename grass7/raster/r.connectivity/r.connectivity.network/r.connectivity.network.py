@@ -269,7 +269,7 @@ def main():
                       " (use PYTHONPATH variable)."))
 
     import matplotlib
-    matplotlib.use('wxAGG') #required by windows
+    matplotlib.use('wxAGG')  # required by windows
     import matplotlib.pyplot as plt
 
     #Input variables
@@ -352,7 +352,7 @@ def main():
 
     net_hist_str = grass.parse_command('v.info', map=network_map,
                                       flags='h', delimiter=':'
-                                      )['COMMAND'].split('\n')[0]
+                                       )['COMMAND'].split('\n')[0]
     # grass.parse_command('v.info', map=network_map, flags='h'
     #                     ).split('\n')[0].split(': ')[1]
     # Parsing goes wrong in some cases (extractig with -tp) as input

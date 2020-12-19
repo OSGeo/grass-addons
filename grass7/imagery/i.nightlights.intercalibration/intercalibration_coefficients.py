@@ -3,7 +3,7 @@
 @author: nik | Created on Wed Feb 25 23:20:05 2015
 
 Regression coefficients derived from models for
-Inter-Satellite Calibration  of  DMSP-OLS Night-Time Light Time Series 
+Inter-Satellite Calibration  of  DMSP-OLS Night-Time Light Time Series
 
 Elvidge 2009, 2014:  dn_adjusted = C0 + C1 × dn + C2 × dn^2
 Liu 2012:  dn_calibrated = a * dn^2 + b * dn + c

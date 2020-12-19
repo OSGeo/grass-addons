@@ -8,7 +8,7 @@
 #
 ##############################################################################
 #%module
-#% description: Perform Minimum Redundancy Maximum Relevance Feature Selection on a GRASS Attribute Table 
+#% description: Perform Minimum Redundancy Maximum Relevance Feature Selection on a GRASS Attribute Table
 #%end
 
 #%option G_OPT_V_INPUT
@@ -62,7 +62,7 @@
 #% description: Feature selection method
 #% key: method
 #% type: string
-#% options: MID,MIQ 
+#% options: MID,MIQ
 #% answer: MID
 #% required : yes
 #% guisection: Options
@@ -77,7 +77,7 @@ import grass.script as grass
 import tempfile
 import atexit
 import os.path
-  
+
 # env = grass.gisenv()
 # gisdbase = env['GISDBASE']
 # location = env['LOCATION_NAME']
@@ -110,7 +110,7 @@ def main():
                       format = 'CSV',
                       flags = 's')
 
-    mrmrcmd = 'mrmr -i ' + tmptable +' -m ' + method + ' -t ' + threshold + ' -n ' + nfeatures + ' -s ' + nsamples + ' -v ' + maxvar
+    mrmrcmd = 'mrmr -i ' + tmptable + ' -m ' + method + ' -t ' + threshold + ' -n ' + nfeatures + ' -s ' + nsamples + ' -v ' + maxvar
 
     subprocess.call(mrmrcmd, shell=True)
 

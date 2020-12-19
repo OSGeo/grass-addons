@@ -98,19 +98,19 @@ class MyGridModule(GridModule):
         """Patch the final results."""
         bboxes = split_region_tiles(width=self.width, height=self.height)
         loc = Location()
-        methods_dic = {'asm' : 'ASM',
-                       'contrast' : 'Contr',
-                       'corr' : 'Corr',
-                       'var' : 'Var',
-                       'idm' : 'IDM',
-                       'sa' : 'SA',
-                       'sv' : 'SV',
-                       'se' : 'SE',
-                       'entr' : 'Entr',
-                       'dv' : 'DV',
-                       'de' : 'DE',
-                       'moc1' : 'MOC-1',
-                       'moc2' : 'MOC-2'}
+        methods_dic = {'asm': 'ASM',
+                       'contrast': 'Contr',
+                       'corr': 'Corr',
+                       'var': 'Var',
+                       'idm': 'IDM',
+                       'sa': 'SA',
+                       'sv': 'SV',
+                       'se': 'SE',
+                       'entr': 'Entr',
+                       'dv': 'DV',
+                       'de': 'DE',
+                       'moc1': 'MOC-1',
+                       'moc2': 'MOC-2'}
         mset = loc[self.mset.name]
         mset.visible.extend(loc.mapsets())
         method = self.module.inputs['method'].value[0]
@@ -140,13 +140,13 @@ def main():
         mapset_prefix = options['mapset_prefix']
 
 
-    kwargs = {'input' : inputraster,
-              'output' : outputprefix,
-              'size' : windowsize,
-              'distance' : distance,
-              'method' : texture_method,
-              'flags' : 'n',
-              'quiet' : True}
+    kwargs = {'input': inputraster,
+              'output': outputprefix,
+              'size': windowsize,
+              'distance': distance,
+              'method': texture_method,
+              'flags': 'n',
+              'quiet': True}
 
     grd = MyGridModule('r.texture',
                        width=width,

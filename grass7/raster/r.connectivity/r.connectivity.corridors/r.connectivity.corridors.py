@@ -310,7 +310,7 @@ def main():
     for patch in selected_patches:
         #Check if cost distance raster maps exist
         patchmap = "{}_patch_{}_cost_dist".format(dist_prefix, patch)
-        if not patchmap in patchmaps:
+        if patchmap not in patchmaps:
             grass.fatal("Cannot find raster map {}.".format(patchmap))
 
 
@@ -328,13 +328,13 @@ def main():
                                       flags='e',
                                       pattern=pattern,
                                       type='raster'
-                                      ).rstrip('\n').split('\n')
+                                                     ).rstrip('\n').split('\n')
     for weight in weights:
         pattern = "{}_corridor_[0-9]+_{}".format(dist_prefix, weight)
         corridormaps[weight] = grass.read_command('g.list', flags='e',
                                           pattern=pattern,
                                           type='raster'
-                                          ).rstrip('\n').split('\n')
+                                                  ).rstrip('\n').split('\n')
 
     # Setup GRASS modules for raster processing
     mapcalc = Module("r.mapcalc", quiet=True, run_=False)

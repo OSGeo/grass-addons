@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 import os
+import itertools
 from subprocess import PIPE
-from copy import deepcopy
-import re
 
 import grass.script as gs
 import numpy as np
@@ -16,39 +15,39 @@ from grass.pygrass.raster import RasterRow, numpy2raster
 from grass.pygrass.raster.buffer import Buffer
 from grass.pygrass.utils import get_mapset_raster
 from grass.pygrass.vector import VectorTopo
-from indexing import _LocIndexer, _ILocIndexer
-from stats import StatisticsMixin
-from transformers import CategoryEncoder
+from .indexing import _LocIndexer, _ILocIndexer
+from .stats import StatisticsMixin
+from .transformers import CategoryEncoder
 
 
 class RasterStack(StatisticsMixin):
     def __init__(self, rasters=None, group=None):
         """A RasterStack enables a collection of raster layers to be bundled
         into a single RasterStack object
-        
+
         Parameters
         ----------
         rasters : list, str
             List of names of GRASS GIS raster maps. Note that although the
             maps can reside in different mapsets, they cannot have the same
             names.
-        
+
         group : str (opt)
             Create a RasterStack from rasters contained in a GRASS GIS imagery
             group. This parameter is mutually exclusive with the `rasters`
             parameter.
-        
+
         Attributes
         ----------
         loc : dict
             Name-based indexing of RasterRow objects within the RasterStack.
-        
+
         iloc : int
             Index-based indexing of RasterRow objects within the RasterStack.
-                        
+
         mtypes : dict
             Dict of key, value pairs of full_names and GRASS data types.
-        
+
         count : int
             Number of RasterRow objects within the RasterStack.
         """
@@ -87,13 +86,13 @@ class RasterStack(StatisticsMixin):
 
     def __getitem__(self, label):
         """Subset the RasterStack object using a label or list of labels
-        
+
         Parameters
         -----------
         label : str, list
             Label or list of labels representing RasterRow objects within the
             stack.
-            
+
         Returns
         -------
         RasterStack
@@ -103,7 +102,7 @@ class RasterStack(StatisticsMixin):
             label = [label]
 
         selected = []
-        
+
         for i in label:
             if i in self.names is False:
                 raise KeyError("layername not present in Raster object")
@@ -113,16 +112,16 @@ class RasterStack(StatisticsMixin):
         return RasterStack(selected)
 
     def __setitem__(self, key, value):
-        """Replace a RasterLayer within the Raster object with a new 
+        """Replace a RasterLayer within the Raster object with a new
         RasterLayer
-        
+
         Note that this modifies the Raster object in place
-        
+
         Parameters
         ----------
         key : str
             Key-based index of layer to be replaced.
-        
+
         value : grass.pygrass.raster.RasterRow
             RasterRow to use for replacement.
         """
@@ -135,11 +134,11 @@ class RasterStack(StatisticsMixin):
 
     @property
     def names(self):
-        """Return the names of the grass.pygrass.raster.RasterRow objects in 
+        """Return the names of the grass.pygrass.raster.RasterRow objects in
         the RasterStack
         """
         names = []
-        
+
         for src in self.loc.values():
             names.append(src.fullname())
 
@@ -152,7 +151,7 @@ class RasterStack(StatisticsMixin):
     @layers.setter
     def layers(self, mapnames):
         """Setter method for the layers attribute in the RasterStack
-        
+
         Parameters
         ----------
         mapnames : str, list
@@ -238,18 +237,18 @@ class RasterStack(StatisticsMixin):
 
     def append(self, other, in_place=True):
         """Setter method to add new RasterRows to a RasterStack object
-        
+
         Note that this modifies the Raster object in-place
 
         Parameters
         ----------
         other : str, or list
             Name of GRASS GIS rasters, or a list of names.
-        
+
         in_place : bool (opt). Default is True
             Whether to change the Raster object in-place or leave original and
             return a new Raster object.
-        
+
         Returns
         -------
         RasterStack
@@ -268,15 +267,15 @@ class RasterStack(StatisticsMixin):
 
     def drop(self, labels, in_place=True):
         """Drop individual RasterRow objects from the RasterStack
-        
+
         Note that this modifies the RasterStack object in-place by default
-        
+
         Parameters
         ---------
         labels : single label or list-like
             Index (int) or layer name to drop. Can be a single integer or
             label, or a list of integers or labels.
-        
+
         in_place : bool (opt). Default is True
             Whether to change the RasterStack object in-place or leave original
             and return a new RasterStack object.
@@ -303,16 +302,16 @@ class RasterStack(StatisticsMixin):
             new_raster = RasterStack(rasters=[i for i in subset_names])
 
             return new_raster
-    
+
     def read(self, row=None, rows=None):
         """Read data from RasterStack as a masked 3D numpy array
-        
+
         Notes
         -----
         Read an entire RasterStack into a numpy array
-        
+
         If the row parameter is used then a single row is read into a 3d numpy array
-        
+
         If the rows parameter is used, then a range of rows from (start_row, end_row) is read
         into a 3d numpy array
 
@@ -330,7 +329,7 @@ class RasterStack(StatisticsMixin):
 
         Returns
         -------
-        
+
         data : ndarray
             3d masked numpy array containing data from RasterStack rasters.
         """
@@ -523,17 +522,17 @@ class RasterStack(StatisticsMixin):
         ----------
         estimator : estimator object implementing 'fit'
             The object to use to fit the data.
-            
+
         output : str
             Output name for prediction raster.
-            
+
         height : int (opt).
             Number of raster rows to pass to estimator at one time. If not
             specified then the entire raster is read into memory.
-            
+
         overwrite : bool (opt). Default is False
             Option to overwrite an existing raster.
-        
+
         Returns
         -------
         RasterStack
@@ -604,7 +603,7 @@ class RasterStack(StatisticsMixin):
                 numpy2raster(
                     result[0, :, :], mtype=mtype, rastname=output, overwrite=overwrite
                 )
-            
+
             result_stack = RasterStack(output)
 
         return result_stack
@@ -616,22 +615,22 @@ class RasterStack(StatisticsMixin):
         ----------
         estimator : estimator object implementing 'fit'
             The object to use to fit the data
-            
+
         output : str
             Output name for prediction raster
-            
+
         class_labels : ndarray (opt)
             1d array containing indices of class labels to subset the
             prediction by. Only probability outputs for these classes will be
             produced.
-            
+
         height : int (opt)
             Number of raster rows to pass to estimator at one time. If not
             specified then the entire raster is read into memory.
-            
+
         overwrite : bool (opt). Default is False
             Option to overwrite an existing raster(s)
-        
+
         Returns
         -------
         RasterStack
@@ -710,7 +709,7 @@ class RasterStack(StatisticsMixin):
             if height is not None:
                 for i in dst:
                     i.close()
-        
+
         return RasterStack([i.name for i in dst])
 
     def row_windows(self, region=None, height=25):
@@ -720,7 +719,7 @@ class RasterStack(StatisticsMixin):
         ----------
         region : grass.pygrass.gis.region.Region (opt)
             Whether to restrict windows to specified region.
-            
+
         height : int (opt). Default is 25
             Height of window in number of image rows.
         """
@@ -738,22 +737,26 @@ class RasterStack(StatisticsMixin):
     def extract_pixels(self, rast_name, use_cats=False, as_df=False):
         """Extract pixel values from a RasterStack using another RasterRow
         object of labelled pixels
-        
+
         Parameters
         ----------
         rast_name : str
             Name of GRASS GIS raster map containing labelled pixels.
-        
+
         use_cats : bool (default is False)
             Whether to return pixel values as category labels instead of
             numeric values if the rast_name map has categories assigned to
             it. Note that if some categories are missing in the rast_name
             map then this option is ignored.
-        
+
         as_df : bool (opt). Default is False
             Whether to return the extracted RasterStack pixels as a Pandas
             DataFrame.
         """
+        # some checks
+        if RasterRow(rast_name).exist() is False:
+            gs.fatal("The supplied raster does not exist")
+
         # check for categories in labelled pixel map
         with RasterRow(rast_name) as src:
             labels = src.cats
@@ -768,6 +771,9 @@ class RasterStack(StatisticsMixin):
             flags=["n", "g"],
             stdout_=PIPE,
         ).outputs.stdout
+
+        if data == "":
+            gs.fatal("The training pixel locations do not spatially intersect any raster datasets")
 
         data = data.strip().split(os.linesep)
         data = [i.split("|") for i in data]
@@ -787,7 +793,7 @@ class RasterStack(StatisticsMixin):
         if labels and use_cats is True:
             enc = CategoryEncoder()
             enc.fit(labels)
-            y = enc.transform(y)            
+            y = enc.transform(y)
 
         if as_df is True:
             df = pd.DataFrame(
@@ -806,13 +812,13 @@ class RasterStack(StatisticsMixin):
         ----------
         vect_name : str
             Name of GRASS GIS vector containing point features.
-            
+
         fields : list, str
             Name of attribute(s) containing the vect_name variable(s).
-            
+
         na_rm : bool (opt). Default is True
             Whether to remove samples containing NaNs.
-        
+
         as_df : bool (opt). Default is False.
             Whether to return the extracted RasterStack values as a Pandas
             DataFrame.
@@ -822,14 +828,17 @@ class RasterStack(StatisticsMixin):
         X : ndarray
             2d array containing the extracted raster values with the dimensions
             ordered by (n_samples, n_features).
-            
+
         y : ndarray
-            1d or 2d array of labels with the dimensions ordered by 
+            1d or 2d array of labels with the dimensions ordered by
             (n_samples, n_fields).
-                
+
         df : pandas.DataFrame
             Extracted raster values as Pandas DataFrame if as_df = True.
         """
+        # some checks
+        if VectorTopo(vect_name).exist() is False:
+            gs.fatal("The supplied vector map does not exist")
 
         if isinstance(fields, str):
             fields = [fields]
@@ -880,6 +889,9 @@ class RasterStack(StatisticsMixin):
                         nodata = np.nan
                         dtype = np.float32
 
+                    if len(list(itertools.chain(*rast_data))) == 0:
+                        gs.fatal("There are no training point geometries in the supplied vector dataset")
+
                     X = [k.split("|")[1] if k.split("|")[1] != "*" else nodata for k in rast_data]
                     X = np.asarray(X)
                     cat = np.asarray([int(k.split("|")[0]) for k in rast_data])
@@ -921,7 +933,7 @@ class RasterStack(StatisticsMixin):
 
     def to_pandas(self):
         """RasterStack to pandas DataFrame
-        
+
         Returns
         -------
         pandas.DataFrame
@@ -952,7 +964,7 @@ class RasterStack(StatisticsMixin):
         return df
 
     def head(self):
-        """Show the head (first rows, first columns) or tail (last rows, last 
+        """Show the head (first rows, first columns) or tail (last rows, last
         columns) of the cells of a Raster object.
 
         Returns

@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../../..
 
-PGM=r.green.biomassfor
+PGM = r.green.biomassfor
 
 SUBDIRS = libforest\
 	  r.green.biomassfor.financial \

@@ -20,7 +20,7 @@
 #%end
 #%option G_OPT_R_INPUT
 #% key: zone_map
-#% label: Name for input raster map with areas 
+#% label: Name for input raster map with areas
 #% description: Raster map with areas (all pixels of an area have same id), such as the output of r.clump
 #% required: yes
 #%end
@@ -117,7 +117,7 @@ def cleanup():
             gscript.run_command('g.remove', flags='f', type_='vector',
                     name=temporary_vect, quiet=True)
         if gscript.db_table_exist(temporary_vect):
-            gscript.run_command('db.execute', 
+            gscript.run_command('db.execute',
                                 sql='DROP TABLE %s' % temporary_vect,
                                 quiet=True)
 
@@ -135,8 +135,8 @@ def main():
     global decimals
     decimals = int(options['decimals'])
     global zone_map
-    zone_map = options['zone_map']  
-    
+    zone_map = options['zone_map']
+
     csvfile = options['csvfile'] if options['csvfile'] else []
     separator = gscript.separator(options['separator'])
     prefix = options['prefix'] if options['prefix'] else []
@@ -144,34 +144,34 @@ def main():
     vectormap = options['vectormap'] if options['vectormap'] else []
     prop = False if 'proportion' not in options['statistics'].split(',') else True
     mode = False if 'mode' not in options['statistics'].split(',') else True
-    
-    if flags['c']:  # Check only if flag activated - Can be bottleneck in case of very large raster. 
+
+    if flags['c']:  # Check only if flag activated - Can be bottleneck in case of very large raster.
         # Check if input layer is CELL
         if gscript.parse_command('r.info', flags='g', map=raster)['datatype'] != 'CELL':
             gscript.fatal(_("The type of the input map 'raster' is not CELL. Please use raster with integer values"))
         if gscript.parse_command('r.info', flags='g', map=zone_map)['datatype'] != 'CELL':
             gscript.fatal(_("The type of the input map 'zone_map' is not CELL. Please use raster with integer values"))
-     
+
     # Check if 'decimals' is + and with credible value
     if decimals <= 0:
         gscript.fatal(_("The number of decimals should be positive"))
     if decimals > 100:
         gscript.fatal(_("The number of decimals should not be more than 100"))
-        
+
     # Adjust region to input map is flag active
     if flags['r']:
         gscript.use_temp_region()
         gscript.run_command('g.region', raster=zone_map)
-        
+
     # R.STATS
     tmpfile = gscript.tempfile()
     try:
         if flags['n']:
-            gscript.run_command('r.stats', overwrite=True, flags='c', 
-                                input='%s,%s'%(zone_map,raster), output=tmpfile, separator=separator) # Consider null values in R.STATS
+            gscript.run_command('r.stats', overwrite=True, flags='c',
+                                input='%s,%s' % (zone_map,raster), output=tmpfile, separator=separator) # Consider null values in R.STATS
         else:
-            gscript.run_command('r.stats', overwrite=True, flags='cn', 
-                                input='%s,%s'%(zone_map,raster), output=tmpfile, separator=separator) # Do not consider null values in R.STATS
+            gscript.run_command('r.stats', overwrite=True, flags='cn',
+                                input='%s,%s' % (zone_map,raster), output=tmpfile, separator=separator) # Do not consider null values in R.STATS
         gscript.message(_("r.stats command finished..."))
     except:
         gscript.fatal(_("The execution of r.stats failed"))
@@ -201,7 +201,7 @@ def main():
         modalclass_dict = {}
         for ID in id_list:
             # The trick was found here : https://stackoverflow.com/a/268285/8013239
-            mode = max(iter(totals_dict[ID].items()), key=operator.itemgetter(1))[0] 
+            mode = max(iter(totals_dict[ID].items()), key=operator.itemgetter(1))[0]
             if mode == '*':   # If the mode is NULL values
                 modalclass_dict[ID] = 'NULL'
             else:
@@ -210,7 +210,7 @@ def main():
     if prop:
         # Get list of categories to output
         if classes_list:   # If list of classes provided by user
-            class_dict = {str(int(a)):'' for a in classes_list}  #To be sure it's string format
+            class_dict = {str(int(a)):'' for a in classes_list}  # To be sure it's string format
         else:
             class_dict = {}
         # Proportion of each category per zone
@@ -236,12 +236,10 @@ def main():
                     proportion_dict[ID][cl] = '{:.{}f}'.format(0,decimals)
         # Get list of class sorted by value (arithmetic ordering)
         if 'NULL' in class_dict.keys():
-            class_list = [int(k) for k in class_dict.keys() if k != 'NULL']
-            class_list.sort()
+            class_list = sorted([int(k) for k in class_dict.keys() if k != 'NULL'])
             class_list.append('NULL')
         else:
-            class_list = [int(k) for k in class_dict.keys()]    
-            class_list.sort()
+            class_list = sorted([int(k) for k in class_dict.keys()])
     gscript.verbose(_("Statistics computed..."))
     # Set 'totals_dict' to None to try RAM release
     totals_dict = None
@@ -250,24 +248,24 @@ def main():
     header = ['cat',]
     if mode:
         if prefix:
-            header.append('%s_mode'%prefix)
+            header.append('%s_mode' % prefix)
         else:
             header.append('mode')
     if prop:
         if prefix:
-            [header.append('%s_prop_%s'%(prefix,cl)) for cl in class_list]
+            [header.append('%s_prop_%s' % (prefix,cl)) for cl in class_list]
         else:
-            [header.append('prop_%s'%cl) for cl in class_list]
+            [header.append('prop_%s' % cl) for cl in class_list]
     # Values
     value_dict = {}
     for ID in id_list:
         value_dict[ID] = []
         value_dict[ID].append(ID)
         if mode:
-                value_dict[ID].append(modalclass_dict[ID])
+            value_dict[ID].append(modalclass_dict[ID])
         if prop:
             for cl in class_list:
-                value_dict[ID].append(proportion_dict[ID]['%s'%cl])
+                value_dict[ID].append(proportion_dict[ID]['%s' % cl])
     # WRITE OUTPUT
     if csvfile:
         with open(csvfile, 'w', newline='') as outfile:
@@ -301,8 +299,8 @@ def main():
                     addcol_statement = 'ALTER TABLE %s ADD COLUMN %s double precision;\n' % (temporary_vect, col)
                 fsql.write(addcol_statement)
             for key in value_dict:
-                    insert_statement = 'INSERT INTO %s VALUES (%s);\n' % (temporary_vect, ','.join(value_dict[key]))
-                    fsql.write(insert_statement)
+                insert_statement = 'INSERT INTO %s VALUES (%s);\n' % (temporary_vect, ','.join(value_dict[key]))
+                fsql.write(insert_statement)
             fsql.write('END TRANSACTION;')
         gscript.run_command('db.execute', input=insert_sql, quiet=True)
         gscript.run_command('v.db.connect', map_=temporary_vect, table=temporary_vect, quiet=True)

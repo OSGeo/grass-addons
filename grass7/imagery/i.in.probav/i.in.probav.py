@@ -117,7 +117,7 @@ def main():
 
     # remove original input
     gscript.run_command('g.remove', type='raster', name=tmpname, quiet=True, flags='f')
-    
+
     # set color table to ndvi
     gscript.run_command('r.colors', map=out, color='ndvi')
 

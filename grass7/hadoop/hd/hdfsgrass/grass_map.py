@@ -8,12 +8,13 @@ from subprocess import PIPE
 class VectorDBInfo:
     """Class providing information about attribute tables
     linked to a vector map"""
+
     def __init__(self, map):
         self.map = map
 
         # dictionary of layer number and associated (driver, database, table)
         self.layers = {}
-         # dictionary of table and associated columns (type, length, values, ids)
+        # dictionary of table and associated columns (type, length, values, ids)
         self.tables = {}
 
         if not self._CheckDBConnection(): # -> self.layers
@@ -53,12 +54,12 @@ class VectorDBInfo:
                 else:
                     ctype = str
 
-                columns[name.strip()] = { 'index'  : i,
-                                          'type'   : type.lower(),
-                                          'ctype'  : ctype,
-                                          'length' : int(length),
-                                          'values' : [],
-                                          'ids'    : []}
+                columns[name.strip()] = {'index': i,
+                                          'type': type.lower(),
+                                          'ctype': ctype,
+                                          'length': int(length),
+                                          'values': [],
+                                          'ids': []}
                 i += 1
 
             # check for key column
@@ -118,7 +119,7 @@ class VectorDBInfo:
 
 class GrassMap(object):
     def __init__(self,map):
-       self.map=map
+        self.map = map
 
     def get_topology(self,map):
         vinfo = Module('v.info',
@@ -128,4 +129,3 @@ class GrassMap(object):
                         stdout_=PIPE)
 
         features = parse_key_val(vinfo.outputs.stdout)
-

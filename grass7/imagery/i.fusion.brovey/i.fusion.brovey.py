@@ -108,7 +108,7 @@ def main():
 
     grass.verbose("Performing Brovey transformation...")
 
-    # The formula was originally developed for LANDSAT-TM5 and SPOT, 
+    # The formula was originally developed for LANDSAT-TM5 and SPOT,
     # but it also works well with LANDSAT-TM7
     # LANDSAT formula:
     #  r.mapcalc "brov.red=1. *  tm.5 / (tm.2 + tm.4 + tm.5) * etmpan"

@@ -29,15 +29,15 @@ bottom: 5
 rows: 3
 cols: 3
 levels: 3
-1 0 0 
-1 0 0 
-0 0 0 
-1 1 0 
-0 1 1 
-1 0 1 
-0 1 1 
-0 0 0 
-0 0 0 
+1 0 0
+1 0 0
+0 0 0
+1 1 0
+0 1 1
+1 0 1
+0 1 1
+0 0 0
+0 0 0
 """
 
 # output contains all cells but we check just the middle one
@@ -138,7 +138,7 @@ class TestForestFragTrivial(TestCase):
                        output=self.forest_frag_ref,
                        null_value='N')
         self.to_remove.append(self.forest_frag_ref)
-        
+
 
     def tearDown(self):
         self.del_temp_region()

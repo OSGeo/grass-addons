@@ -51,8 +51,8 @@ import grass.script as gscript
 
 
 def main():
-    import matplotlib #required by windows
-    matplotlib.use('wxAGG') #required by windows
+    import matplotlib  # required by windows
+    matplotlib.use('wxAGG')  # required by windows
     import matplotlib.pyplot as plt
 
     vector = options['map']
@@ -66,7 +66,7 @@ def main():
                                      column=column,
                                      flags='c').splitlines():
         azimuth.append(float(line))
-   
+
     bins = 360/step
     az_bins = np.histogram(azimuth, bins=bins, range=(0,360))
     if flags['a']:

@@ -7,7 +7,7 @@ import os
 import sys
 #import mmap
 path = os.path.join(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))), os.pardir)
-if not path in sys.path:
+if path not in sys.path:
     sys.path.append(path)
 
 from hdfswrapper.connections import Connection
@@ -211,7 +211,7 @@ class ConnectionManager:
         """
         cfg = read_dict(settings.grass_config)
         if cfg:
-            if cfg.has_key(conn_type):
+            if conn_type in cfg:
                 return cfg.get(conn_type)
         else:
             return None
@@ -303,6 +303,7 @@ class HiveTableBuilder:
     """
     Abstract class for Hive table maker
     """
+
     def __init__(self,map,layer):
         self.map = map
         self.layer = layer
@@ -314,20 +315,21 @@ class HiveTableBuilder:
         map_info = table.GetTableDesc(self.map)
 
         for col in map_info.keys():
-            name=str(col)
-            dtype=col['type']
+            name = str(col)
+            dtype = col['type']
             if dtype == 'integer':
                 dtype = 'INT'
             if not dtype.capitalize() in dtype:
-                grass.fatal('Automatic generation of columns faild, datatype %s is not recognized'%dtype)
+                grass.fatal('Automatic generation of columns faild, datatype %s is not recognized' % dtype)
 
     def _get_map(self):
-       raise NotImplemented
+        raise NotImplemented
 
 class JSONBuilder:
     """
     Class which performe conversion from grass map to  serialisable GeoJSON
     """
+
     def __init__(self, grass_map=None, json_file=None):
 
         self.grass_map = grass_map
@@ -343,7 +345,7 @@ class JSONBuilder:
             self.json = self._get_grass_json()
         else:
             filename, file_extension = os.path.splitext(self.json_file)
-            self.json = os.path.join(get_tmp_folder(), "%s.json" %filename)
+            self.json = os.path.join(get_tmp_folder(), "%s.json" % filename)
         return self.json
 
     def rm_last_lines(self, path, rm_last_line=3):
@@ -435,10 +437,11 @@ class GrassMapBuilder(object):
     """
     Base class for creating GRASS map from GeoJSON
     """
+
     def __init__(self, json_file, map,attributes):
         self.file = json_file
         self.map = map
-        self.attr=attributes
+        self.attr = attributes
 
     def build(self):
         raise NotImplemented
@@ -485,7 +488,7 @@ class GrassMapBuilder(object):
             if first_line.find('null') != -1:
                 self.remove_line(0)
 
-    def _find_between(self,s, first, last ):
+    def _find_between(self,s, first, last):
         """
         Return sting between two strings
         :param s:
@@ -494,8 +497,8 @@ class GrassMapBuilder(object):
         :return:
         """
         try:
-            start = s.index( first ) + len( first )
-            end = s.index( last, start )
+            start = s.index(first) + len(first)
+            end = s.index(last, start)
             return s[start:end]
         except ValueError:
             return ""
@@ -505,7 +508,7 @@ class GrassMapBuilder(object):
         Create map from GeoJSON
         :return:
         """
-        out1=Module('v.in.ogr',
+        out1 = Module('v.in.ogr',
               input=self.file,
               output=self.map,
               verbose=True,
@@ -523,9 +526,9 @@ class GrassMapBuilder(object):
         :return:
         """
         with open(self.file, "r+") as f:
-             old = f.read() # read everything in the file
-             f.seek(0) # rewind
-             f.write("%s\n"%line + old) # write the new line before
+            old = f.read() # read everything in the file
+            f.seek(0) # rewind
+            f.write("%s\n" % line + old) # write the new line before
 
     def _append_line(self,line):
         """
@@ -561,17 +564,18 @@ class GrassMapBuilder(object):
         :param bar:
         :return:
         """
-        path='%s1'%self.file
-        io=open(path,'w')
+        path = '%s1' % self.file
+        io = open(path,'w')
         stream_lines(self.file) |\
-        filt(lambda l: l.replace(foo, bar)) |\
-        to_stream(io)
-        self.file=path
+            filt(lambda l: l.replace(foo, bar)) |\
+            to_stream(io)
+        self.file = path
 
 class GrassMapBuilderEsriToStandard(GrassMapBuilder):
     """
     Class for conversion serialised GeoJson to GRASS MAP
     """
+
     def __init__(self,json_file, map):
         super(GrassMapBuilderEsriToStandard,self).__init__(json_file, map)
 
@@ -580,7 +584,7 @@ class GrassMapBuilderEsriToStandard(GrassMapBuilder):
         self.replace_substring(geom_type[0],[1])
         self.replace_substring('}}}','}}},')
 
-        fst_line= ('{"type": "FeatureCollection","crs": '
+        fst_line = ('{"type": "FeatureCollection","crs": '
                    '{ "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },"features": [')
         self._prepend_line(fst_line)
         self._append_line(']}')
@@ -591,6 +595,7 @@ class GrassMapBuilderEsriToEsri(GrassMapBuilder):
     """
     Class for conversion serialised Esri GeoJson to GRASS MAP
     """
+
     def __init__(self,json_file, map,attributes):
         super(GrassMapBuilderEsriToEsri,self).__init__(json_file, map,attributes)
         if not os.path.exists(self.file):
@@ -602,7 +607,7 @@ class GrassMapBuilderEsriToEsri(GrassMapBuilder):
         wkid = self._get_wkid()
         self.replace_substring('}}','}},')
 
-        header=self._generate_header(geom_type[1],wkid)
+        header = self._generate_header(geom_type[1],wkid)
         self._prepend_line(header)
         self._append_line(']}')
 
@@ -610,13 +615,13 @@ class GrassMapBuilderEsriToEsri(GrassMapBuilder):
 
     def _generate_header(self,geom_type,wkid):
 
-        cols=''
+        cols = ''
         if self.attr:
-            items=self.attr.split(',')
+            items = self.attr.split(',')
             for att in items:
-                col,typ=att.split(' ')
+                col,typ = att.split(' ')
                 if 'int' in typ.lower():
-                    typ='esriFieldTypeInteger'
+                    typ = 'esriFieldTypeInteger'
                 if 'str' in typ.lower():
                     typ = 'esriFieldTypeString'
                 if 'double' in typ.lower():
@@ -624,24 +629,24 @@ class GrassMapBuilderEsriToEsri(GrassMapBuilder):
                 if 'id' in typ.lower():
                     typ = 'esriFieldTypeOID'
 
-                cols+='{"name":"%s","type":"%s"},'%(col,typ)
+                cols += '{"name":"%s","type":"%s"},' % (col,typ)
 
 
         cols = cols[:-1]
 
         if not wkid:
-            wkid='4326' #TODO g.proj.identify3
-        header =('{"objectIdFieldName":"objectid",'
+            wkid = '4326'  # TODO g.proj.identify3
+        header = ('{"objectIdFieldName":"objectid",'
                  '"globalIdFieldName":"",'
                  '"geometryType":"%s",'
                  '"spatialReference":{"wkid":%s},'
                  '"fields":[%s],'
-                 '"features": ['%(geom_type,wkid,cols))
+                 '"features": [' % (geom_type,wkid,cols))
 
         return header
 
     def _get_type(self):
-        logging.info("Get type for file: %s"%self.file)
+        logging.info("Get type for file: %s" % self.file)
         line = stream_lines(self.file) | nth(0)
         if line.find('ring'):
             return ['ring','esriGeometryPolygon']
@@ -658,6 +663,7 @@ class GrassHdfs():
     """
     Helper class for ineteraction between GRASS and HDFS/HIVE
     """
+
     def __init__(self, conn_type):
         self.conn = None
         self.hook = None
@@ -673,7 +679,7 @@ class GrassHdfs():
         self.hook = self.conn.get_hook()
 
     @staticmethod
-    def printInfo( hdfs, msg=None):
+    def printInfo(hdfs, msg=None):
         grass.message('***' * 30)
         if msg:
             grass.message("     %s \n" % msg)
@@ -704,7 +710,7 @@ class GrassHdfs():
     def download(self, fs, hdfs, overwrite=True, parallelism=1):
         logging.info('Trying download : hdfs: %s to fs: %s   ' % (hdfs, fs))
 
-        out = self.hook.download_file( hdfs_path = hdfs,
+        out = self.hook.download_file(hdfs_path = hdfs,
                                        local_path = fs,
                                        overwrite = overwrite,
                                        parallelism = parallelism)
@@ -713,5 +719,3 @@ class GrassHdfs():
         else:
             grass.message('Copy error!')
         return out
-
-

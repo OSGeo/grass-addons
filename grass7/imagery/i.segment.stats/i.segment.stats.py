@@ -179,17 +179,17 @@ def main():
     area_measures = options['area_measures'].split(',') if (options['area_measures'] and not flags['s']) else []
     if area_measures:
         if not gscript.find_program('r.object.geometry', '--help'):
-                message = _("You need to install the addon r.object.geometry to be able")
-                message += _(" to calculate area measures.\n")
-                message += _(" You can install the addon with 'g.extension r.object.geometry'")
-                gscript.fatal(message)
+            message = _("You need to install the addon r.object.geometry to be able")
+            message += _(" to calculate area measures.\n")
+            message += _(" You can install the addon with 'g.extension r.object.geometry'")
+            gscript.fatal(message)
     neighborhood = True if flags['n'] else False
     if neighborhood:
         if not gscript.find_program('r.neighborhoodmatrix', '--help'):
-                message = _("You need to install the addon r.neighborhoodmatrix to be able")
-                message += _(" to calculate area measures.\n")
-                message += _(" You can install the addon with 'g.extension r.neighborhoodmatrix'")
-                gscript.fatal(message)
+            message = _("You need to install the addon r.neighborhoodmatrix to be able")
+            message += _(" to calculate area measures.\n")
+            message += _(" You can install the addon with 'g.extension r.neighborhoodmatrix'")
+            gscript.fatal(message)
 
     raster_statistics = options['raster_statistics'].split(',') if options['raster_statistics'] else []
     separator = gscript.separator(options['separator'])
@@ -205,7 +205,7 @@ def main():
             'mean': 7}
 
     geometry_stat_dict = {'cat': 0, 'area': 1, 'perimeter': 2,
-                        'compact_square': 3, 'compact_circle': 4, 'fd' : 5,
+                        'compact_square': 3, 'compact_circle': 4, 'fd': 5,
                         'xcoords': 6, 'ycoords': 7}
 
     if flags['r']:
@@ -386,14 +386,14 @@ def main():
             addcol_statement = 'ALTER TABLE %s ADD COLUMN %s double precision;\n' % (temporary_vect, header)
             fsql.write(addcol_statement)
         for key in output_dict:
-                if len(output_dict[key]) + 1  == len(output_header):
-                    sql = "INSERT INTO %s VALUES (%s, %s);\n" % (temporary_vect, key, ",".join(output_dict[key]))
-                    sql = sql.replace('inf', 'NULL')
-                    sql = sql.replace('nan', 'NULL')
-                    fsql.write(sql)
-                else:
-                    if not csvfile:
-                            error_objects.append(key)
+            if len(output_dict[key]) + 1  == len(output_header):
+                sql = "INSERT INTO %s VALUES (%s, %s);\n" % (temporary_vect, key, ",".join(output_dict[key]))
+                sql = sql.replace('inf', 'NULL')
+                sql = sql.replace('nan', 'NULL')
+                fsql.write(sql)
+            else:
+                if not csvfile:
+                    error_objects.append(key)
 
         fsql.write('END TRANSACTION;')
         fsql.close()

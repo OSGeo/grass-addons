@@ -73,8 +73,8 @@ def main():
 
     # check if GISBASE is set
     if "GISBASE" not in os.environ:
-    # return an error advice
-       grass.fatal("You must be in GRASS GIS to run this program")
+        # return an error advice
+        grass.fatal("You must be in GRASS GIS to run this program")
 
     # input raster map and parameters
     inputmap = options['input']
@@ -127,4 +127,3 @@ def main():
 if __name__ == "__main__":
     options, flags = grass.parser()
     sys.exit(main())
-

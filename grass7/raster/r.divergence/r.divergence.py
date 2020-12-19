@@ -77,7 +77,7 @@ def main():
                           "names}").format(names=','.join(old_maps)))
         else:
             gcore.warning(_("The following maps will be overwritten: {names}"
-                           ).format(names=','.join(old_maps)))
+                            ).format(names=','.join(old_maps)))
     try:
         grast.mapcalc(exp="{qsx}={mag} * cos({direct})".format(qsx=qsx, mag=magnitude, direct=direction))
         grast.mapcalc(exp="{qsy}={mag} * sin({direct})".format(qsy=qsy, mag=magnitude, direct=direction))

@@ -58,7 +58,8 @@ class HiveCliHook(BaseHook, HiveSpatial):
         schema = schema or conn.schema
         if schema:
             hql = "USE {schema};\n{hql}".format(**locals())
-        import tempfile, os
+        import tempfile
+        import os
 
         tmp_dir = tempfile.gettempdir()
         if not os.path.isdir(tmp_dir):

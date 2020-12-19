@@ -153,7 +153,7 @@
 #% required: no
 #% guisection: Misc
 #%end
-#%flag 
+#%flag
 #% guisection: Files
 #% key: g
 #%description: Save thematic map commands to group file for GIS Manager
@@ -175,7 +175,7 @@
 #% key: rgb_column
 #% description: Name of color column to populate RGB values
 #%end
-#%flag 
+#%flag
 #% guisection: Theme
 #%key: l
 #%description: Create graphic legend in x11 display monitor
@@ -185,12 +185,12 @@
 #% key: f
 #% description: Only draw fills (no outlines) for areas and points
 #%end
-#%flag 
+#%flag
 #% guisection: Misc
 #%key: s
 #%description: Output legend for GIS Manager (for scripting use only)
 #%end
-#%flag 
+#%flag
 #% guisection: Misc
 #%key: m
 #%description: Use math notation brackets in legend
@@ -232,7 +232,7 @@ def msg(vars, tmpl, verbose=False):
         grass.message(subs(vars, tmpl))
     else:
         grass.verbose(subs(vars, tmpl))
-        
+
 def out(fh, vars, tmpl):
     fh.write(subs(vars, tmpl))
 
@@ -260,7 +260,7 @@ def main():
     where = options['where']
     icon = options['icon']
     rgb_column = options['rgb_column']
-    
+
     flag_f = flags['f']
     flag_g = flags['g']
     flag_l = flags['l']
@@ -274,9 +274,9 @@ def main():
 
     if 'MONITOR' not in grass.gisenv().keys() and \
        'GRASS_RENDER_IMMEDIATE' not in os.environ:
-       grass.fatal(_("Neither MONITOR (managed by d.mon command) nor GRASS_RENDER_IMMEDIATE "
-                     "(used for direct rendering) defined)"))
-            
+        grass.fatal(_("Neither MONITOR (managed by d.mon command) nor GRASS_RENDER_IMMEDIATE "
+                      "(used for direct rendering) defined)"))
+
     mapset = grass.find_file(map, element='vector')['mapset']
     if not mapset:
         grass.fatal(_("Vector map <%s> not found") % map)
@@ -357,7 +357,7 @@ def main():
     if 'min' not in stats:
         grass.fatal(_("Unable to calculate statistics for vector map <%s> "
                       "(missing minimum/maximum value)" % map))
-        
+
     min  = float(stats['min'])
     max  = float(stats['max'])
     mean = float(stats['mean'])
@@ -386,13 +386,13 @@ def main():
         annotations = ";".join(annotations)
         numint = len(breakpoints) - 1
     elif themecalc == "quartiles":
-        numint=4
+        numint = 4
         # one for each quartile
         breakpoints = [min, q1, q2, q3, max]
         annotations = " %f; %f; %f; %f" % (q1, q2, q3, q4)
     elif themecalc == "custom_breaks":
         if not breakpoints:
-            grass.fatal(_("Required parameter <%s> not set") % "breakpoints") 
+            grass.fatal(_("Required parameter <%s> not set") % "breakpoints")
         breakpoints = [int(x) for x in breakpoints.split()]
         numint = len(breakpoints) - 1
         annotations = ""
@@ -440,20 +440,20 @@ end
     msg(locals(), _("Value range: $min - $max"))
 
     colorschemes = {
-        "blue-red":		("0:0:255",	"255:0:0"),
-        "red-blue":		("255:0:0",	"0:0:255"),
-        "green-red":	("0:255:0",	"255:0:0"),
-        "red-green":	("255:0:0",	"0:255:0"),
-        "blue-green":	("0:0:255",	"0:255:0"),
-        "green-blue":	("0:255:0",	"0:0:255"),
-        "cyan-yellow":	("0:255:255",	"255:255:0"),
-        "yellow-cyan":	("255:255:0",	"0:255:255"),
-        "custom_gradient":	(startcolor,	endcolor)
-        }
+        "blue-red":  ("0:0:255", "255:0:0"),
+        "red-blue":  ("255:0:0", "0:0:255"),
+        "green-red": ("0:255:0", "255:0:0"),
+        "red-green": ("255:0:0", "0:255:0"),
+        "blue-green": ("0:0:255", "0:255:0"),
+        "green-blue": ("0:255:0", "0:0:255"),
+        "cyan-yellow": ("0:255:255", "255:255:0"),
+        "yellow-cyan": ("255:255:0", "0:255:255"),
+        "custom_gradient": (startcolor, endcolor)
+    }
 
     # open file for psmap instructions
     f_psmap = file(tmp_psmap, 'w')
-    
+
     # graduated color thematic mapping
     if themetype == "graduated_colors":
         if colorscheme in colorschemes:
@@ -558,7 +558,7 @@ text 14% 80% ============
   ref bottom left
 end
 """)
-        
+
         grass.message("")
         grass.message(_("Color(R:G:B)\tValue"))
         grass.message("============\t==========")
@@ -582,14 +582,14 @@ end
                     openbracket = "["
                     mincomparison = ">"
             else:
-                closebracket = "" 
+                closebracket = ""
                 openbracket = ""
                 if first:
                     mincomparison = ">="
                     first = False
                 else:
                     mincomparison = ">"
-            
+
             themecolor = ":".join(__builtins__.map(str,color))
             if flag_f:
                 linecolor = "none"
@@ -604,7 +604,7 @@ end
             ### rangemax = __builtins__.max(breakpoints)
             rangemin = breakpoints[i]
             rangemax = breakpoints[i+1]
-            
+
             if not annotations:
                 extranote = ""
             else:
@@ -920,7 +920,7 @@ end
                     openbracket = "]"
                     mincomparison = ">"
             else:
-                closebracket = "" 
+                closebracket = ""
                 openbracket = ""
                 if i == 1:
                     mincomparison = ">="
@@ -1008,7 +1008,7 @@ text 25% $xline1% ...
 end
 """)
 
-            grass.message("%-15d %s%.3f - %.3f%s %s" % \
+            grass.message("%-15d %s%.3f - %.3f%s %s" %
                           (ptsize, openbracket, rangemin, rangemax, closebracket, extranote))
 
             if not where:
@@ -1074,12 +1074,12 @@ end
             kwargs = {}
             if themetype == "graduated_lines":
                 kwargs['width'] = ptsize
-                
+
             grass.run_command('d.vect', map = map, type = type, layer = layer,
                               where = sqlwhere,
                               color = linecolor, fcolor = themecolor, icon = icon,
                               size = ptsize, quiet = True, **kwargs)
-            
+
             if themetype != "graduated_lines":
                 out(f_psmap, locals(), """\
 vpoints $map

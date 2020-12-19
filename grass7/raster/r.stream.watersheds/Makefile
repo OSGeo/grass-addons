@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM=r.stream.watersheds
+PGM = r.stream.watersheds
 
 include $(MODULE_TOPDIR)/include/Make/ShScript.make
 

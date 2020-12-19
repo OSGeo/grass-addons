@@ -247,13 +247,13 @@ def main():
                 catname = prefix + '_notes_' + cat
                 pois = importGeom(catname, 'notes', curs, owrite, d3, cat)
                 # select form to understand the number
-                forms = returnClear(curs, "select _id from notes where cat = '%s' " \
+                forms = returnClear(curs, "select _id from notes where cat = '%s' "
                                     "and form is not null order by _id" % cat)
                 # if number of form is different from 0 and number of point
                 # remove the vector because some form it is different
                 if len(forms) != 0 and len(forms) != len(pois):
                     grass.run_command('g.remove', flags='f', type='vector', name=catname, quiet=True)
-                    grass.warning(_("Vector %s not imported because number" \
+                    grass.warning(_("Vector %s not imported because number"
                                     " of points and form is different"))
                 # if form it's 0 there is no form
                 elif len(forms) == 0:
@@ -335,7 +335,7 @@ def main():
             except CalledModuleError:
                 grass.fatal(_("Error importing %s" % tracksname))
             # create table for line
-            sql='CREATE TABLE %s (cat int, startts text, ' % tracksname
+            sql = 'CREATE TABLE %s (cat int, startts text, ' % tracksname
             sql += 'endts text, text text, color text, width int)'
             grass.write_command('db.execute', input='-', stdin=sql)
             sql = "select logid, startts, endts, text, color, width from" \
@@ -379,9 +379,9 @@ def main():
                                   mapset='PERMANENT')
         # reproject track
         if flags['t'] and checkEle(curs, 'gpslogs') != 0:
-             grass.run_command('v.proj', quiet=True, input=tracksname,
-                               location='geopaparazzi_%s' % new_loc,
-                               mapset='PERMANENT')
+            grass.run_command('v.proj', quiet=True, input=tracksname,
+                              location='geopaparazzi_%s' % new_loc,
+                              mapset='PERMANENT')
 
 if __name__ == "__main__":
     options, flags = grass.parser()

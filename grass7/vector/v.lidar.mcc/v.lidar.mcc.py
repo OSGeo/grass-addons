@@ -42,7 +42,7 @@
 #%end
 #%option nl
 #% key: nl
-#% label: Number of scale domains (nl) 
+#% label: Number of scale domains (nl)
 #% description: nl
 #% type: integer
 #% required: no
@@ -113,7 +113,7 @@ def main():
     else:
         nuldev = sys.stderr
 
-    # Initalise temporary verctor map names   
+    # Initalise temporary verctor map names
     temp_ng = "v_lidar_mcc_tmp_ng_" + str(os.getpid())
     temp_ncin = "v_lidar_mcc_tmp_ncin_" + str(os.getpid())
     temp_ncout = "v_lidar_mcc_tmp_ncout_" + str(os.getpid())
@@ -128,18 +128,18 @@ def main():
 
     # Count points in input map
     n_input = grass.vector_info(input)['points']
-    
+
     # does map contain points ?
-    if not ( n_input > 0 ):
+    if not (n_input > 0):
         grass.fatal(_("Vector map <%s> does not contain points") % input)
 
-    flag_n=flags['n']
-    
+    flag_n = flags['n']
+
     ### Scale domain (l)
     # Evans & Hudak 2007 used scale domains 1 to 3
     l = int(1)
     l_stop = int(options['nl'])
-    if ( l_stop < 1 ):
+    if (l_stop < 1):
         grass.fatal("The minimum number of scale domains is 1.")
 
     ### Curvature tolerance threshold (t)
@@ -147,35 +147,35 @@ def main():
     t = float(options['t'])
     ###Increase of curvature tolerance threshold for each
     ti = t / 3.0
-    
+
     ### Convergence threshold (j)
     # Evans & Hudak 2007 used a convergence threshold of 0.3
     j = float(options['j'])
-    if ( j <= 0 ):
+    if (j <= 0):
         grass.fatal("The convergence threshold has to be > 0.")
-    
+
     ### Tension parameter (f)
     # Evans & Hudak 2007 used a tension parameter 1.5
     f = float(options['f'])
-    if ( f <= 0 ):
+    if (f <= 0):
         grass.fatal("The tension parameter has to be > 0.")
-    
+
     ### Spline steps parameter (s)
     # Evans & Hudak 2007 used the 12 nearest neighbors
     # (used spline steps $res * 5 before)
     s = int(options['s'])
-    if ( s <= 0 ):
+    if (s <= 0):
         grass.fatal("The spline step parameter has to be > 0.")
-    
+
     ###Read desired resolution from region
     #Evans & Hudak 2007 used a desired resolution (delta) of 1.5
     gregion = grass.region()
-    x_res_fin=gregion['ewres']
-    y_res_fin=gregion['nsres']
+    x_res_fin = gregion['ewres']
+    y_res_fin = gregion['nsres']
 
-    # Defineresolution steps in iteration 
-    n_res_steps = ( l_stop + 1 ) / 2
-        
+    # Defineresolution steps in iteration
+    n_res_steps = (l_stop + 1) / 2
+
     # Pass ame of input map to v.outlier
     nc_points = input
 
@@ -195,54 +195,54 @@ def main():
         vpatch_flags += 'nz'
 
     # Loop through scale domaines
-    while ( l <= l_stop ) :
+    while (l <= l_stop):
         i = 1
         convergence = 100
-        if (l < ( ( l_stop + 1 ) / 2 ) ) :
-            xres = x_res_fin / ( n_res_steps - ( l - 1 ) )
-            yres = y_res_fin / ( n_res_steps - ( l - 1 ) )
-        elif ( l == ( ( l_stop + 1 ) / 2 ) ) :
-             xres = x_res_fin
-             yres = y_res_fin
-        else :
-            xres = x_res_fin * ( ( l + 1 ) - n_res_steps )
-            yres = y_res_fin * ( ( l + 1 ) - n_res_steps )
-        
+        if (l < ((l_stop + 1) / 2)):
+            xres = x_res_fin / (n_res_steps - (l - 1))
+            yres = y_res_fin / (n_res_steps - (l - 1))
+        elif (l == ((l_stop + 1) / 2)):
+            xres = x_res_fin
+            yres = y_res_fin
+        else:
+            xres = x_res_fin * ((l + 1) - n_res_steps)
+            yres = y_res_fin * ((l + 1) - n_res_steps)
+
         grass.use_temp_region()
         grass.run_command("g.region", s=gregion['s'], w=gregion['w'], nsres=yres, ewres=xres, flags="a")
         xs_s = xres * s
         ys_s = yres * s
         grass.message("Processing scale domain " + str(l) + "...")
         # Repeat application of v.outlier until convergence level is reached
-        while ( convergence > j ) :
-            grass.verbose("Number of input points in iteration " + str(i) + ": " + str(n_input) )
+        while (convergence > j):
+            grass.verbose("Number of input points in iteration " + str(i) + ": " + str(n_input))
             # Run v.outlier
-            if flag_n == False :
+            if not flag_n:
                 grass.run_command('v.outlier',
                     input=nc_points, output=temp_ncout, outlier=temp_ng,
                     ew_step=xs_s, ns_step=ys_s, lambda_=f, threshold=t,
                     filter='positive',
                     overwrite=True, quiet=True, stderr=nuldev)
-            else :
+            else:
                 grass.run_command('v.outlier',
                     input=nc_points, output=temp_ncout, outlier=temp_ng,
                     ew_step=xs_s, ns_step=ys_s, lambda_=f, threshold=t,
                     filter='negative',
                     overwrite=True, quiet=True, stderr=nuldev)
-            
+
             # Get information about results for calculating convergence level
-            ng=grass.vector_info(temp_ng)['points']
+            ng = grass.vector_info(temp_ng)['points']
             nc = n_input - ng
             n_input = nc
             grass.run_command('g.remove', flags='f', type='vector', name= temp_ncin, quiet = True, stderr = nuldev)
-            grass.run_command("g.rename", vector = temp_ncout + "," + temp_ncin, quiet = True, stderr = nuldev )
-            nc_points = temp_ncin        
+            grass.run_command("g.rename", vector = temp_ncout + "," + temp_ncin, quiet = True, stderr = nuldev)
+            nc_points = temp_ncin
             # Give information on process status
-            grass.verbose("Unclassified points after iteration " + str(i) + ": " + str(nc) )
-            grass.verbose("Points classified as non ground after iteration " + str(i) + ": " + str(ng) )
+            grass.verbose("Unclassified points after iteration " + str(i) + ": " + str(nc))
+            grass.verbose("Points classified as non ground after iteration " + str(i) + ": " + str(ng))
             # Set convergence level
-            if ( nc > 0 ) :
-                convergence = float( float(ng) / float(nc) )
+            if (nc > 0):
+                convergence = float(float(ng) / float(nc))
                 if build_before_patch:
                     grass.run_command('v.build', map=temp_ng, stderr=nuldev)
                 # Patch non-ground points to non-ground output map
@@ -253,20 +253,20 @@ def main():
                 else:
                     grass.run_command('g.copy', vector=(temp_ng, ng_output), stderr=nuldev)
                     ng_output_exists = True
-            else :
+            else:
                 convergence = 0
             # Give information on convergence level
-            grass.verbose("Convergence level after run " + str(i) + " in scale domain " + str(l) + ": " + str( round( convergence, 3 ) ) )
+            grass.verbose("Convergence level after run " + str(i) + " in scale domain " + str(l) + ": " + str(round(convergence, 3)))
             # Increase iterator
             i = i + 1
         # Adjust curvature tolerance and reset scale domain
-        t = t + ti 
+        t = t + ti
         l = l + 1
         # Delete temporary region
         grass.del_temp_region()
-    
+
     # Rename temporary map of points whichhave not been classified as non-ground to output vector map containing ground points
-    grass.run_command("g.rename", vector = nc_points + "," + g_output, quiet = True, stderr = nuldev )
+    grass.run_command("g.rename", vector = nc_points + "," + g_output, quiet = True, stderr = nuldev)
 
 if __name__ == "__main__":
     options, flags = grass.parser()

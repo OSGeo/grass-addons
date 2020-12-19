@@ -68,10 +68,10 @@ import grass.script as grass
 def set_output_encoding(encoding='utf-8'):
     import codecs
     current = sys.stdout.encoding
-    if current is None :
+    if current is None:
         sys.stdout = codecs.getwriter(encoding)(sys.stdout)
     current = sys.stderr.encoding
-    if current is None :
+    if current is None:
         sys.stderr = codecs.getwriter(encoding)(sys.stderr)
 
 def main():
@@ -118,7 +118,7 @@ def main():
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <NamedLayer>
     <Name>{}</Name>""".format(style_name)
-    sld+="""    <UserStyle>
+    sld += """    <UserStyle>
       <Title>{}</Title>\n
       <FeatureTypeStyle>
         <Rule>
@@ -126,10 +126,10 @@ def main():
 
     # Define type of ColorMap depending on data type of input map
     if use_categories:
-        sld+='            <ColorMap type={}>\n'.format('"values"')
+        sld += '            <ColorMap type={}>\n'.format('"values"')
         ColorMapEntry = '              <ColorMapEntry color="#{0:02x}{1:02x}{2:02x}" quantity="{3}" label="{4}" opacity="{5}" />\n'
     else:
-        sld+='            <ColorMap>\n'
+        sld += '            <ColorMap>\n'
         # sld+='            <ColorMap type={}>\n'.format('"ramp"')
         ColorMapEntry = '              <ColorMapEntry color="#{0:02x}{1:02x}{2:02x}" quantity="{3}" opacity="{4}" />\n'
 
@@ -156,13 +156,13 @@ def main():
                 else:
                     continue
                 if not q == 'NaN' or flags['n']:
-                    sld+=ColorMapEntry.format(r,g,b,q,l,o)
+                    sld += ColorMapEntry.format(r,g,b,q,l,o)
             else:
                 if not q == 'NaN' or flags['n']:
-                    sld+=ColorMapEntry.format(r,g,b,q,o)
+                    sld += ColorMapEntry.format(r,g,b,q,o)
 
     # write file footer
-    sld+="""            </ColorMap>
+    sld += """            </ColorMap>
           </RasterSymbolizer>
         </Rule>
       </FeatureTypeStyle>

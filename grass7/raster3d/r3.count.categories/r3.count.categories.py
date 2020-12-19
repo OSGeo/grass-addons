@@ -199,7 +199,7 @@ def main():
                 expr_list = []
                 for depth, raster in enumerate(rasters):
                     expr_list.append(base_expr.format(
-                            m=raster, d=depth + 1, s=surface))
+                        m=raster, d=depth + 1, s=surface))
                 expr = " + ".join(expr_list)
                 if divide:
                     expr = "({e}) / {otype}({s})".format(

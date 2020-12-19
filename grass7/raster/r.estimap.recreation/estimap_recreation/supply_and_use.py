@@ -181,9 +181,9 @@ def compute_supply(
     )
     r.mapcalc(copy_equation, overwrite=True)
     g.rename(
-            raster=(temporary_reclassified_base, reclassified_base),
-            overwrite=True,
-            quiet=True,
+        raster=(temporary_reclassified_base, reclassified_base),
+        overwrite=True,
+        quiet=True,
     )
 
     # Count flow within each land cover category
@@ -297,9 +297,9 @@ def compute_supply(
         copy_equation = EQUATION.format(result=temporary_cells, expression=cells)
         r.mapcalc(copy_equation, overwrite=True)
         g.rename(
-                raster=(temporary_cells, cells),
-                overwrite=True,
-                quiet=True,
+            raster=(temporary_cells, cells),
+            overwrite=True,
+            quiet=True,
         )
 
         # Reassign cell category labels
@@ -307,7 +307,7 @@ def compute_supply(
                 rules="-",
                 stdin=cells_rules,
                 separator=":",
-        )
+                   )
 
         # Compute extent of each land category
         extent_expression = "@{cells} * area()"
@@ -328,9 +328,9 @@ def compute_supply(
             quiet=True,
         )
         g.rename(
-                raster=(extent_figures_as_labels, extent),
-                overwrite=True,
-                quiet=True,
+            raster=(extent_figures_as_labels, extent),
+            overwrite=True,
+            quiet=True,
         )
 
         # Write land suitability scores as an ASCII file
@@ -374,9 +374,9 @@ def compute_supply(
             quiet=True,
         )
         g.rename(
-                raster=(weighted_figures_as_labels, weighted),
-                overwrite=True,
-                quiet=True)
+            raster=(weighted_figures_as_labels, weighted),
+            overwrite=True,
+            quiet=True)
 
 
         # Get weighted extents in a dictionary
@@ -483,9 +483,9 @@ def compute_supply(
         )
         r.mapcalc(copy_equation, overwrite=True)
         g.rename(
-                raster=(temporary_flow_in_category, flow_in_category),
-                overwrite=True,
-                quiet=True,
+            raster=(temporary_flow_in_category, flow_in_category),
+            overwrite=True,
+            quiet=True,
         )
 
         # Reassign cell category labels

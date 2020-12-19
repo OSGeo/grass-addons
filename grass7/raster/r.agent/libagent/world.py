@@ -41,12 +41,12 @@ class World(object):
         @param playground optional, if playground already exists
         """
         # set an initial playground, as every world wants at least one..
-        if pg == None:
+        if pg is None:
             self.playground = playground.Playground()
         else:
             self.playground = pg
         # per default, create this kind of agents
-        if agenttype == None:
+        if agenttype is None:
             self.agenttype = agent.Agent
         else:
             self.agenttype = agenttype

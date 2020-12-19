@@ -1,7 +1,8 @@
 #!/bin/sh
 
 # Martin Landa, 2013
-# updated for GRASS GIS 7 (only) Addons by Markus Neteler 2020
+# updated for GRASS GIS 7 (only) Addons by Markus Neteler, 2020
+# fixes for addon creation by Tomas Zigo, 2020
 
 # This script compiles GRASS Addons, it's called by cron_grass78_releasebranch_78_build_bins.sh | cron_grass7_HEAD_build_bins.sh
 
@@ -83,8 +84,9 @@ border: 1px solid black;
 <tr><th style=\"background-color: grey\">AddOns</th>
 <th style=\"background-color: grey\">Status</th>"
 
+# initiate the index file
 echo "$html_template" > "$ADDON_PATH/logs/${INDEX_FILE}.html"
-echo "<th style=\"background-color: grey\">Log file</th></tr>" > "$ADDON_PATH/logs/${INDEX_FILE}.html"
+echo "<th style=\"background-color: grey\">Log file</th></tr>" >> "$ADDON_PATH/logs/${INDEX_FILE}.html"
 
 echo "$html_template" > "$ADDON_PATH/logs/${INDEX_MANUAL_PAGES_FILE}.html"
 
@@ -124,7 +126,8 @@ for c in "db" "display" "general" "gui/wxpython" "imagery" "misc" "raster" "rast
         SCRIPTDIR="$path/scripts" \
         ETC="$path/etc" \
             SOURCE_URL="https://github.com/OSGeo/grass-addons/tree/master/grass${GRASS_VERSION}/" > \
-            "$ADDON_PATH/logs/$m.log" 2>&1
+            "$ADDON_PATH/logs/$m.log" 2>&1 \
+        HTML_PAGE_FOOTER_PAGES_PATH="../"
     if [ `echo $?` -eq 0 ] ; then
         printf "%-30s%s\n" "$c/$m" "SUCCESS" >> "$ADDON_PATH/logs/${INDEX_FILE}.log"
         echo " SUCCESS"

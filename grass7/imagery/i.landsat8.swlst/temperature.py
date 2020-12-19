@@ -47,20 +47,20 @@ def tirs_to_at_satellite_temperature(
     # rescale DNs to spectral radiance
     radiance_expression = landsat8.toar_radiance(band_number)
     digital_numbers_to_radiance(
-            tmp_radiance,
-            tirs_1x,
-            radiance_expression,
-            null,
-            quiet,
+        tmp_radiance,
+        tirs_1x,
+        radiance_expression,
+        null,
+        quiet,
     )
 
     # convert spectral radiance to at-satellite temperature
     temperature_expression = landsat8.radiance_to_temperature(band_number)
     radiance_to_brightness_temperature(
-            tmp_brightness_temperature,
-            tmp_radiance,
-            temperature_expression,
-            quiet,
+        tmp_brightness_temperature,
+        tmp_radiance,
+        temperature_expression,
+        quiet,
     )
 
     # save Brightness Temperature map?
@@ -161,12 +161,12 @@ def estimate_lst(
 
 
     split_window_equation = EQUATION.format(
-            result=outname,
-            expression=split_window_expression,
+        result=outname,
+        expression=split_window_expression,
     )
     grass.mapcalc(
-            split_window_equation,
-            overwrite=True,
+        split_window_equation,
+        overwrite=True,
     )
     if not quiet:
         run('r.info', map=outname, flags='r')

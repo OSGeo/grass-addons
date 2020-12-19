@@ -2,7 +2,7 @@
 @package ServerInfoAPIs.py
 
 @brief Python code providing API's for managing the xml
-based file storing of the server information. 
+based file storing of the server information.
 
 Classes:
  - ServerData
@@ -34,9 +34,9 @@ class ServerData():
 
 def initServerInfoBase(fileName):
     """
-     @description: Intializes soup for the Beautiful soup parser. Reads the exisitng Data from the fileName paramter. 
+     @description: Intializes soup for the Beautiful soup parser. Reads the exisitng Data from the fileName paramter.
      @todo:None
-     @param xml: String, Name of file to be loaded in soup.  
+     @param xml: String, Name of file to be loaded in soup.
      @return: Boolean, True if a successful, else False
     """
     if(os.path.exists(fileName)):
@@ -44,7 +44,7 @@ def initServerInfoBase(fileName):
             f = open(fileName,'r')
         except:
             return None, False
-        xml = f.read()   
+        xml = f.read()
         f.close()
         soup = BeautifulStoneSoup(xml)
         serverinfolist = soup.findAll('serverinfo')
@@ -52,11 +52,11 @@ def initServerInfoBase(fileName):
         serverinfolist = []
         soup = BeautifulSoup()
         xml = "null"
-    
+
     if(len(serverinfolist) == 0):
-            serverinfo = Tag(soup, "serverinfo")
-            soup.insert(0, serverinfo)
-            
+        serverinfo = Tag(soup, "serverinfo")
+        soup.insert(0, serverinfo)
+
     return soup, True
 
 def ifServerNameExists(soup,servername):
@@ -75,19 +75,19 @@ def ifServerNameExists(soup,servername):
         else:
             return False
     return False
-    
+
 
 def addServerInfo(soup, serverinfo, uid, snamevalue, urlvalue, unamevalue, passwordvalue):
     """
      @description: Adds server info to the soup
      @todo:None
      @param soup: soup
-     @param serverinfo: 
+     @param serverinfo:
      @param uid: Unique Id of the server
      @param snamevalue: String, server name
      @param urlvalue: String, url of the server
      @param unamevalue: String, UserName for the server
-     @param passwordvalue: String, password for the server 
+     @param passwordvalue: String, password for the server
      @return: Boolean, True if added successfuly, else False
     """
     snamevalue = unicode(snamevalue)
@@ -125,7 +125,7 @@ def removeServerInfo(soup, serverID):
     """
     serverID = unicode(serverID)
     elements = soup.findAll(id = serverID)
-    if(len(elements)==0):
+    if(len(elements) == 0):
         return False
     else:
         for element in elements:
@@ -137,12 +137,12 @@ def updateServerInfo(soup, serverinfo, uid, snamevalue, urlvalue, unamevalue, pa
      @description: updates server with uid = uid
      @todo:None
      @param soup: soup
-     @param serverinfo: 
+     @param serverinfo:
      @param uid: Unique Id of the server
      @param snamevalue: String, server name
      @param urlvalue: String, url of the server
      @param unamevalue: String, UserName for the server
-     @param passwordvalue: String, password for the server 
+     @param passwordvalue: String, password for the server
      @return: Boolean, True if updated successfuly, else False
     """
     snamevalue = unicode(snamevalue)
@@ -159,7 +159,7 @@ def getAllRows(soup):
      @description: returns all the rows in the xml file table.
      @todo:None
      @param soup: soup
-     @return: servers(dictionary), map_servernameTouid(dictionary) 
+     @return: servers(dictionary), map_servernameTouid(dictionary)
     """
     elements = soup.findAll('server')
     servers = {}

@@ -180,17 +180,17 @@ def main():
         kwargs_odd['dist_sum_out'] = '{}_dist_sum_even'.format(tmpname)
 
     dir_format_dict = {
-                       'degree_45': [1, 2, 3, 4, 5, 6, 7],
-                       'degree': [45, 90, 135, 180, 225, 270, 315],
-                       'bitmask': [1, 8, 7, 6, 5, 4, 3]
-                       }
+        'degree_45': [1, 2, 3, 4, 5, 6, 7],
+        'degree': [45, 90, 135, 180, 225, 270, 315],
+        'bitmask': [1, 8, 7, 6, 5, 4, 3]
+    }
 
     slope_measure_dict = {
-'difference': """\n{gradient}={abs}({elev}-{elev_in})""",
-'percent': """\n{gradient}={abs}({elev}-{elev_in})/{dist}""",
-'percent_int': """\n{gradient}=round(({abs}(({elev}-{elev_in}))/{dist})*10000.0)""",
-'degree': """\n{gradient}=atan({abs}({elev}-{elev_in})/{dist})""",
-'degree_int': """\n{gradient}=round(atan({abs}({elev}-{elev_in})/{dist})*100.0)"""
+        'difference': """\n{gradient}={abs}({elev}-{elev_in})""",
+        'percent': """\n{gradient}={abs}({elev}-{elev_in})/{dist}""",
+        'percent_int': """\n{gradient}=round(({abs}(({elev}-{elev_in}))/{dist})*10000.0)""",
+        'degree': """\n{gradient}=atan({abs}({elev}-{elev_in})/{dist})""",
+        'degree_int': """\n{gradient}=round(atan({abs}({elev}-{elev_in})/{dist})*100.0)"""
     }
 
     dirs = dir_format_dict[dir_type]
@@ -205,7 +205,7 @@ if({{dir}} == {5}, if(isnull({{elev_in}}[1,0]),{{elev_in}},{{elev_in}}[1,0]), \
 if({{dir}} == {6}, if(isnull({{elev_in}}[1,1]),{{elev_in}},{{elev_in}}[1,1]), \
 if(isnull({{elev_in}}[0,1]),{{elev_in}},{{elev_in}}[0,1]))))))))""".format(*dirs)
 
-    kwargs =  {'dir': direction,
+    kwargs = {'dir': direction,
                'elev_in': elevation,
                'elev_out': '{}_elev_even'.format(tmpname)}
 
@@ -235,12 +235,12 @@ if({dir} == {NE} || {dir} == {NW} || {dir} == {SW}\
 || {dir} == {SE}, sqrt({ewres}^2+{nsres}^2), \
 if({dir} == {N} || {dir} == {S},{nsres},{ewres}))
 {dist_sum_in}=0""".format(NE=dirs[0], NW=dirs[2], SW=dirs[4], SE=dirs[6],
-                          N=dirs[1], S=dirs[5],
-                          nsres=curent_region['nsres'],
-                          ewres=curent_region['ewres'],
-                          dir=direction,
-                          dist_in=kwargs['dist_in'],
-                          dist_sum_in=kwargs['dist_sum_in']))
+                                N=dirs[1], S=dirs[5],
+                                nsres=curent_region['nsres'],
+                                ewres=curent_region['ewres'],
+                                dir=direction,
+                                dist_in=kwargs['dist_in'],
+                                dist_sum_in=kwargs['dist_sum_in']))
 
     for x in range(max(steps)+1):
         mc_expression = expression_template.format(**kwargs)

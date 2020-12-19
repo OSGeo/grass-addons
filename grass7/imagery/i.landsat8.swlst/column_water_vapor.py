@@ -64,7 +64,7 @@ class Column_Water_Vapor():
 
     ==================================================================
 
-    * NOTE, there is a typo in the paper 
+    * NOTE, there is a typo in the paper
 
     [0] Du, Chen; Ren, Huazhong; Qin, Qiming; Meng, Jinjie; Zhao,
     Shaohua. 2015. "A Practical Split-Window Algorithm for Estimating
@@ -485,7 +485,7 @@ def estimate_cwv_big_expression(
             source1=source1_cwv,
             source2=source2_cwv,
             history=history_cwv,
-           )
+            )
         run('g.rename', raster=(outname, cwv_output))
 
 

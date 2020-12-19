@@ -72,10 +72,10 @@ def main():
     input = options['input']
     output = options['output']
     perc = options['threshold']
-    
+
     perc = float(perc) + 90
 
-    delaunay=prefix + '_delaunay'
+    delaunay = prefix + '_delaunay'
 
     grass.message(_("Delaunay triangulation..."))
     grass.run_command('v.delaunay', input = input, output = delaunay, quiet = True)
@@ -88,14 +88,14 @@ def main():
     grass.message(_("Geometry conversion..."))
     grass.run_command('v.extract', input = delaunay, output = out_lines_tmp,
                       type = 'boundary', layer = '-1', quiet = True)
-    grass.run_command('v.type', input = out_lines_tmp, output = out_lines_nocat, 
+    grass.run_command('v.type', input = out_lines_tmp, output = out_lines_nocat,
                       from_type = 'boundary', to_type = 'line', quiet = True)
-    grass.run_command('v.type', input = delaunay, output = out_points, 
+    grass.run_command('v.type', input = delaunay, output = out_points,
                       from_type = 'centroid', to_type = 'point', quiet = True)
 
     grass.run_command('v.category', input = out_lines_nocat, output = out_lines,
                       op = 'add', type = 'line', quiet = True)
-    grass.run_command('v.db.addtable', map = out_lines, 
+    grass.run_command('v.db.addtable', map = out_lines,
                       col = 'cat integer,length double precision', quiet = True)
 
     grass.message(_("Evaluating threshold..."))
@@ -139,7 +139,7 @@ def main():
 
     if perc_orig > perc:
         thresh = int(perc) - 90
-        grass.warning(_('Threshold reduced to %d to calculate hull' % thresh ))
+        grass.warning(_('Threshold reduced to %d to calculate hull' % thresh))
 
     inf = open(tmp + ".sort", 'r')
     l = 0
@@ -156,9 +156,9 @@ def main():
     grass.run_command('v.extract', input = out_lines, output = lines_concave,
                       type = 'line', where = 'length < %f' % max_length, quiet = True)
 
-    grass.run_command('v.category', input = lines_concave, 
-                      output = lines_concave_nocat, type = 'line', 
-                      op = 'del',  cat = '-1', quiet = True)
+    grass.run_command('v.category', input = lines_concave,
+                      output = lines_concave_nocat, type = 'line',
+                      op = 'del', cat = '-1', quiet = True)
 
     borders_concave = prefix + '_delaunay_borders_select'
     grass.run_command('v.type', input = lines_concave_nocat,
@@ -177,15 +177,15 @@ def main():
 
     areas_concave_extr = prefix + '_delaunay_areas_extract'
 
-    grass.run_command('v.extract', input = areas_concave, 
+    grass.run_command('v.extract', input = areas_concave,
                       output = areas_concave_extr, type = 'area',
                       where='count = 1', quiet = True)
 
     grass.message(_("The following warnings can be ignored"), flag = 'i')
-    grass.run_command('v.dissolve', input = areas_concave_extr, 
+    grass.run_command('v.dissolve', input = areas_concave_extr,
                       output = output, col = 'count', layer = '1', quiet = True)
     grass.message(_("Concave hull successfully created"))
-    
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

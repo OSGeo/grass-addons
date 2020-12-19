@@ -7,7 +7,7 @@
 #
 #               This tool was developed as part of the BiodivERsA-net project 'FISHCON'
 #               and has been funded by the German Federal Ministry for Education and
-#               Research (grant number 01LC1205). 
+#               Research (grant number 01LC1205).
 #
 # PURPOSE:      Compute the stream order of stream networks stored in
 #               a vector map at specific outlet vector points
@@ -149,7 +149,7 @@ def traverse_graph_create_stream_order(start_id,
     """
     Traverse the graph, reverse lines that are not in
     the outflow direction and compute the required orders
-    
+
     :param start_id: The id of the edge to start the traversing from
     :param edges: A dictionary of edge objects
     :param checked_edges: A list with edge ids that have been checked already
@@ -161,7 +161,7 @@ def traverse_graph_create_stream_order(start_id,
                       * ORDER_SCHEIDEGGER = 3
                       * ORDER_DRWAL = 4
                       * ORDER_HORTON = 5 -> Not correct implemented
-                      
+
     :return:
     """
     current_edge = edges[start_id]
@@ -398,7 +398,7 @@ def detect_compute_networks(vname, vmapset, pname, pmapset,
 
     copy_columns = None
 
-    # Check for copy columns only if the input vector map 
+    # Check for copy columns only if the input vector map
     # has an attribute table
     if v.table and columns:
 

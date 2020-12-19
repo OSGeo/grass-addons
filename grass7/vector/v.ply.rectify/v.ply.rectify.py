@@ -45,7 +45,7 @@ from grass.script import vector as gvector
 def main():
 
     export_shifted = flags['s']
-    
+
     currmapset = grass.gisenv()['MAPSET']
 
     #### check for v.in.ply, v.out.ply
@@ -59,10 +59,10 @@ def main():
     if not os.path.exists(infile):
         grass.fatal(_("Unable to read input file <%s>") % infile)
     grass.debug("input file=[%s]" % infile)
-    
+
     if not infile[-4:].lower() == '.ply':
         grass.fatal(_("Input file must end with .ply or .PLY"))
-        
+
     gcpfile = infile[:-4] + ".txt"
     srcdir, ply = os.path.split(infile)
     ply = ply[:-4]
@@ -98,10 +98,10 @@ def main():
 
     grass.run_command('v.in.ply', flags = 'b',
                       input = infile, output = ply)
-    
+
     # import vector exists?
     found = grass.find_file(ply, element = 'vector', mapset = currmapset)
-    
+
     if found['name'] != ply:
         grass.fatal(_('PLY import failed!'))
 
@@ -111,26 +111,26 @@ def main():
 
     # print RMS
     rmsfile = os.path.join(srcdir, ply + "_rms.csv")
-    grass.run_command('v.rectify', input = ply, output = ply + '_georef', 
+    grass.run_command('v.rectify', input = ply, output = ply + '_georef',
                       points = gcpfile, flags = '3bor', separator = ';',
                       rmsfile = rmsfile)
 
     # georectify
     ply_georef = ply + '_georef'
-    grass.run_command('v.rectify', input = ply, output = ply_georef, 
+    grass.run_command('v.rectify', input = ply, output = ply_georef,
                       points = gcpfile, flags = '3bo')
 
     # output vector exists?
     found = grass.find_file(ply_georef, element = 'vector', mapset = currmapset)
-    
+
     if found['name'] != ply_georef:
         grass.run_command('v.db.connect', map = ply,
                           layer = 1, table = table, key = 'cat')
         grass.fatal('PLY import failed!')
-    
+
     grass.run_command('v.db.connect', map = ply_georef,
                       layer = 1, table = table, key = 'cat')
-    
+
     output = os.path.join(srcdir, ply_georef + '.ply')
     grass.run_command('v.out.ply', input = ply_georef, output = output,
                       columns = columns)
@@ -149,7 +149,7 @@ def main():
                           yshift = north_center, zshift = height_center,
                           xscale = 1.0, yscale = 1.0, zscale = 1.0, zrot = 0.0,
                           flags = 'b')
-        
+
         # output vector exists?
         found = grass.find_file(ply_shifted, element = 'vector', mapset = currmapset)
 
@@ -160,13 +160,13 @@ def main():
 
         grass.run_command('v.db.connect', map = ply_shifted,
                           layer = 1, table = table, key = 'cat')
-        
+
         output = os.path.join(srcdir, ply_shifted + '.ply')
         grass.run_command('v.out.ply', input = ply_shifted, output = output,
                           columns = columns)
-        
+
         grass.run_command('v.db.connect', map = ply_shifted, layer = 1, flags = 'd')
-    
+
 
 
     grass.run_command('v.db.connect', map = ply,

@@ -23,11 +23,12 @@ import wx
 
 from api_test           import MySingleMapFrame
 from api_test       import ToolBarNames
-from render2        import MapLayer      
-from lmgr.toolbars         import LMWorkspaceToolbar  
+from render2        import MapLayer
+from lmgr.toolbars         import LMWorkspaceToolbar
 class MyFrame(MySingleMapFrame):
     """!main frame
     """
+
     def __init__(self, parent = None, giface = None, title = _("GRASS UI"),
               size = (875, 600), name = 'Frame', **kwargs):
         """!
@@ -37,11 +38,11 @@ class MyFrame(MySingleMapFrame):
         """
         #self.Map = Map()
         #self.giface = giface
-        
+
         MySingleMapFrame.__init__(self, parent = parent, title = title, size = size, name = name, **kwargs)
-       
-        
-        self.cmd =["d.rast", "map=aspect@PERMANENT"]
+
+
+        self.cmd = ["d.rast", "map=aspect@PERMANENT"]
         self.rlayer = MapLayer(ltype = 'raster', cmd = self.cmd, Map = self.GetMap(), name = "elevation")
         self.AddLayer(self.rlayer)
         #LMWorkspaceToolbar(self)
@@ -52,15 +53,15 @@ class MyFrame(MySingleMapFrame):
         self.AddToolBarItem(ToolBarNames.ADDVECTOR,self.dummyfunc)
         #print self.GetLayerByIndex(0).name
         #print self.GetCurrentIndex()
-        
+
     def dummyfunc(self,event):
-        xx =1
-        print xx       
+        xx = 1
+        print xx
 
 def main():
 
     gettext.install('grasswxpy', os.path.join(os.getenv("GISBASE"), 'locale'), unicode = True)
-    
+
     app = wx.PySimpleApp()
     wx.InitAllImageHandlers()
     frame = MyFrame()
@@ -69,4 +70,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    

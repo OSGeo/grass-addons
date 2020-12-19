@@ -489,22 +489,22 @@ def main():
         if b10:
             # convert DNs to at-satellite temperatures
             t10 = tirs_to_at_satellite_temperature(
-                    b10,
-                    mtl_file,
-                    brightness_temperature_prefix,
-                    null,
-                    quiet=info,
+                b10,
+                mtl_file,
+                brightness_temperature_prefix,
+                null,
+                quiet=info,
             )
 
         # likewise for b11 -> t11
         if b11:
             # convert DNs to at-satellite temperatures
             t11 = tirs_to_at_satellite_temperature(
-                    b11,
-                    mtl_file,
-                    brightness_temperature_prefix,
-                    null,
-                    quiet=info,
+                b11,
+                mtl_file,
+                brightness_temperature_prefix,
+                null,
+                quiet=info,
             )
 
     #
@@ -553,11 +553,11 @@ def main():
 
         if not average_emissivity_map:
             determine_average_emissivity(
-                    tmp_avg_lse,
-                    emissivity_output,
-                    landcover_map,
-                    split_window_lst.average_lse_mapcalc,
-                    quiet=info,
+                tmp_avg_lse,
+                emissivity_output,
+                landcover_map,
+                split_window_lst.average_lse_mapcalc,
+                quiet=info,
             )
             if options['emissivity_out']:
                 tmp_avg_lse = options['emissivity_out']
@@ -567,11 +567,11 @@ def main():
 
         if not delta_emissivity_map:
             determine_delta_emissivity(
-                    tmp_delta_lse,
-                    delta_emissivity_output,
-                    landcover_map,
-                    split_window_lst.delta_lse_mapcalc,
-                    quiet=info,
+                tmp_delta_lse,
+                delta_emissivity_output,
+                landcover_map,
+                split_window_lst.delta_lse_mapcalc,
+                quiet=info,
             )
             if options['delta_emissivity_out']:
                 tmp_delta_lse = options['delta_emissivity_out']
@@ -588,11 +588,11 @@ def main():
     cwv = Column_Water_Vapor(cwv_window_size, t10, t11)
     citation_cwv = cwv.citation
     estimate_cwv_big_expression(
-            tmp_cwv,
-            cwv_output,
-            t10,
-            t11,
-            cwv._big_cwv_expression(),
+        tmp_cwv,
+        cwv_output,
+        t10,
+        t11,
+        cwv._big_cwv_expression(),
     )
     if cwv_output:
         tmp_cwv = cwv_output
@@ -606,18 +606,18 @@ def main():
         grass.verbose(msg)
 
     estimate_lst(
-            lst_output,
-            t10,
-            t11,
-            landcover_map,
-            landcover_class,
-            tmp_avg_lse,
-            tmp_delta_lse,
-            tmp_cwv,
-            split_window_lst.sw_lst_mapcalc,
-            rounding,
-            celsius,
-            quiet=info,
+        lst_output,
+        t10,
+        t11,
+        landcover_map,
+        landcover_class,
+        tmp_avg_lse,
+        tmp_delta_lse,
+        tmp_cwv,
+        split_window_lst.sw_lst_mapcalc,
+        rounding,
+        celsius,
+        quiet=info,
     )
 
     #

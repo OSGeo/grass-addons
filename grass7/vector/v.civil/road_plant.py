@@ -36,6 +36,7 @@ def time_func(funcion_f):
 class Aligns(object):
     """ Return
     """
+
     def __init__(self, list_aligns=None):
         """ Return
         """
@@ -280,6 +281,7 @@ class Aligns(object):
 class PlantAlign(object):
     """ Return
     """
+
     def __init__(self, dat, dat1=None, dat2=None, recta1=None, recta2=None):
         """ Return
         """
@@ -410,7 +412,7 @@ class PlantAlign(object):
         super_lim = []
         tot_accum = self.cloth_out.leng_accum + self.cloth_out.length()
 
-        if (self.dat['superelev'] != '' and self.dat['superelev'] != None and
+        if (self.dat['superelev'] != '' and self.dat['superelev'] is not None and
                 self.dat['superelev'] != 'None'):
 
             dist1, dist2, bom1, peral, bom2, dist3, dist4 = \
@@ -460,6 +462,7 @@ class PlantAlign(object):
 class Plant(Aligns, object):
     """ Return
     """
+
     def __init__(self, polygon=None, road_table=None,
                  table_to_plan=False, bombeo=0):
         """ Return

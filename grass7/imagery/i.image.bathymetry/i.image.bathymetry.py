@@ -115,7 +115,7 @@ def main():
     calibration_column = options['calibration_column']
     bisquare = flags['b']
     fixed_GWR = flags['f']
-    
+
     res = g.parse_command('g.region', raster=Green, flags='g')
     g.run_command('v.to.rast', input=Calibration_points, type='point',
                   use='attr', attribute_column=calibration_column,
@@ -278,7 +278,7 @@ def main():
                     continue
                 r_file.write('grass_file = readRAST("tmp_crctd%s")\n' % j)
                 r_file.write('raster_file = raster(grass_file)\n')
-                r_file.write('frame_ref%s = as.data.frame(raster_file,na.rm = TRUE,' \
+                r_file.write('frame_ref%s = as.data.frame(raster_file,na.rm = TRUE,'
                      'xy = TRUE)\n' % j)
                 ref_file = 'calib = merge(calib, frame_ref%s)\n' % j
                 r_file.write(ref_file)
@@ -298,7 +298,7 @@ def main():
                 k = '+'.join(l)
             if bisquare:
                 ref_flag = "cat('\nCalculating optimal bandwidth using " \
-                       "bisquare kernel..\n')\n"
+                    "bisquare kernel..\n')\n"
                 ref_flag += 'BW_Rapid_ref.sdf=bw.gwr(tmp_Calibration_points~%s,' \
                         'data=Rapid_ref.sdf, kernel="bisquare",' \
                         'adaptive=TRUE, dMat=DM_Rapid_ref.sdf)\n' % k
@@ -315,7 +315,7 @@ def main():
                 r_file.write(ref_flag)
             if not bisquare:
                 ref_fla = "cat('\nCalculating optimal bandwidth using " \
-                         "gaussian kernel..\n')\n"
+                    "gaussian kernel..\n')\n"
                 ref_fla += 'BW_Rapid_ref.sdf=bw.gwr(tmp_Calibration_points~%s,' \
                        'data=Rapid_ref.sdf, kernel="gaussian",' \
                        'adaptive=TRUE, dMat= DM_Rapid_ref.sdf)\n' % k
@@ -340,7 +340,7 @@ def main():
             g.run_command('r.in.xyz', input=predict,
                       output='tmp_bathymetry', skip=1, separator=",",
                       x=(int(le) + 5), y=(int(le) + 6), z=(int(le) + 3),
-                      overwrite=True)
+                overwrite=True)
         except subprocess.CalledProcessError:
             g.message("Integer outflow... ")
             if not g.find_program('r.gwr', '--help'):

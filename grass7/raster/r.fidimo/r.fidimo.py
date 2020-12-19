@@ -5,7 +5,7 @@
 # MODULE:		FIDIMO Fish Dispersal Model for River Networks for GRASS 7
 #
 # AUTHOR(S):		Johannes Radinger
-#				
+#
 # VERSION:		V0.1 Beta
 #
 # DATE:			2013-04-11
@@ -106,7 +106,7 @@
 #% required: no
 #% multiple: no
 #% description: Share of the stationary component (valid range 0 - 1)
-#% answer:0.67 
+#% answer:0.67
 #% guisection: Dispersal parameters
 #%End
 #%option
@@ -193,7 +193,7 @@ import os
 import atexit
 import time
 import sqlite3
-import math #for function sqrt()
+import math  # for function sqrt()
 import csv
 import random
 
@@ -214,12 +214,12 @@ def cleanup():
                 flags = 'f',
                 type = 'raster',
                 name = [f + str(os.getpid()) for f in tmp_map_rast],
-                quiet = True)
+            quiet = True)
         grass.run_command("g.remove",
                 flags = 'f',
                 type = 'vector',
                 name = [f + str(os.getpid()) for f in tmp_map_vect],
-                quiet = True)
+            quiet = True)
 
 
 
@@ -243,7 +243,7 @@ def main():
 
 
     if options['barriers']:
-        tmp_map_rast = tmp_map_rast + ['downstream_barrier_density_tmp_','distance_barrier_tmp_','distance_downstream_barrier_tmp_', 'distance_upstream_point_tmp_','inv_distance_downstream_barrier_tmp_', 'lower_distance_barrier_tmp_', 'upper_distance_barrier_tmp_', 'upstream_barrier_tmp_',  'upstream_barrier_density_tmp_']
+        tmp_map_rast = tmp_map_rast + ['downstream_barrier_density_tmp_','distance_barrier_tmp_','distance_downstream_barrier_tmp_', 'distance_upstream_point_tmp_','inv_distance_downstream_barrier_tmp_', 'lower_distance_barrier_tmp_', 'upper_distance_barrier_tmp_', 'upstream_barrier_tmp_', 'upstream_barrier_density_tmp_']
         tmp_map_vect = tmp_map_vect + ["barriers_",'barriers_tmp_']
 
 
@@ -274,7 +274,7 @@ def main():
     if options['n_source'] and flags['r']:
         grass.fatal(_("Realisation (flag: 'r') in combination with random source populations (n_source) not possible. Please choose either random source populations or provide source populations to calculate realisation"))
 
-    n_source = options['n_source'] #number of random source points
+    n_source = options['n_source']  # number of random source points
     source_populations = options['source_populations']
 
 
@@ -312,7 +312,7 @@ def main():
     fm = importr('fishmove')
 
     #Dispersal parameter input
-    if str(options['species']!="Custom species") and (options['l'] or options['ar']):
+    if str(options['species'] != "Custom species") and (options['l'] or options['ar']):
         grass.message(_("Species settings will be overwritten with l and ar"))
     species = str(options['species'])
     if options['l']:
@@ -329,7 +329,7 @@ def main():
         grass.message(_("Map of habitat dependent share of mobile/stationary will be used"))
         habitat_p = options['habitat_p']
     elif (float(options['p']) >= 0 and float(options['p']) < 1):
-        p_fixed =float(options['p'])
+        p_fixed = float(options['p'])
     else:
         grass.fatal(_("Valid range for p: 0 - 1"))
 
@@ -342,9 +342,9 @@ def main():
         seed = ""
 
     if species == "Custom species":
-        fishmove = eval("fm.fishmove(L=l,AR=ar,SO=so,T=t,interval=interval,rep=200%s)"%(seed))
+        fishmove = eval("fm.fishmove(L=l,AR=ar,SO=so,T=t,interval=interval,rep=200%s)" % (seed))
     else:
-        fishmove = eval("fm.fishmove(L=l,AR=ar,SO=so,T=t,interval=interval,rep=200%s)"%(seed))
+        fishmove = eval("fm.fishmove(L=l,AR=ar,SO=so,T=t,interval=interval,rep=200%s)" % (seed))
 
 
     # using only part of fishmove results (only regression coeffients)
@@ -383,7 +383,7 @@ def main():
     #############################################
 
 
- 
+
     ################ Preparation River Raster (Distance-Raster) ################
 
 
@@ -441,7 +441,7 @@ def main():
             vector = "barriers_%d" % os.getpid() + "," + output_fidimo + "_barriers")
 
         #Breaking river_vector at position of barriers to get segments
-        for adj_X,adj_Y in db.execute('SELECT adj_X, adj_Y FROM barriers_%d'% os.getpid()):
+        for adj_X,adj_Y in db.execute('SELECT adj_X, adj_Y FROM barriers_%d' % os.getpid()):
             barrier_coors = str(adj_X)+","+str(adj_Y)
 
             grass.run_command("v.edit",
@@ -521,14 +521,14 @@ def main():
     # Get maximum value and divide if to large (>2200000)
     max_buffer = grass.raster_info("distance_raster_buffered_tmp_%d" % os.getpid())['max']
 
-    if max_buffer>2100000:
+    if max_buffer > 2100000:
         grass.message(_("River network is very large and r.watershed (and e.g stream order extract) might not work"))
         grass.mapcalc("$distance_raster_buffered_div = $distance_raster_buffered/1000.0",
                         distance_raster_buffered_div = "distance_raster_buffered_div_tmp_%d" % os.getpid(),
                         distance_raster_buffered = "distance_raster_buffered_tmp_%d" % os.getpid())
         # Getting flow direction and stream segments
         grass.run_command("r.watershed",
-                        flags = 'm', #depends on memory!! #
+                        flags = 'm',  # depends on memory!! #
                         elevation = "distance_raster_buffered_div_tmp_%d" % os.getpid(),
                         drainage = "drainage_tmp_%d" % os.getpid(),
                         stream = "stream_rwatershed_tmp_%d" % os.getpid(),
@@ -538,7 +538,7 @@ def main():
     else:
         # Getting flow direction and stream segments
         grass.run_command("r.watershed",
-                        flags = 'm', #depends on memory!! #
+                        flags = 'm',  # depends on memory!! #
                         elevation = "distance_raster_buffered_tmp_%d" % os.getpid(),
                         drainage = "drainage_tmp_%d" % os.getpid(),
                         stream = "stream_rwatershed_tmp_%d" % os.getpid(),
@@ -552,8 +552,8 @@ def main():
 
     # Stream segments depicts new river_raster (corrected for small tributaries of 1 cell)
     grass.mapcalc("$river_raster_combine_tmp = if(!isnull($stream_rwatershed_tmp) && !isnull($river_raster_tmp),$res*1.0,null())",
-                            river_raster_combine_tmp =  "river_raster_combine_tmp_%d" % os.getpid(),
-                            river_raster_tmp =  "river_raster_tmp_%d" % os.getpid(),
+                            river_raster_combine_tmp = "river_raster_combine_tmp_%d" % os.getpid(),
+                            river_raster_tmp = "river_raster_tmp_%d" % os.getpid(),
                             stream_rwatershed_tmp = "stream_rwatershed_tmp_%d" % os.getpid(),
                             res = res)
     grass.run_command("g.copy",
@@ -713,7 +713,7 @@ def main():
         for j in segment_list:
 
             segment_cat = str(j)
-            grass.debug(_("This is segment nr.: " +str(segment_cat)))
+            grass.debug(_("This is segment nr.: " + str(segment_cat)))
 
             mapcalc_list_Aa = []
             mapcalc_list_Ab = []
@@ -747,7 +747,7 @@ def main():
 
                 # Debug messages
                 grass.debug(_("Start looping over source points"))
-                grass.debug(_("Source point coors:"+coors+" in segment nr: " +str(segment_cat)))
+                grass.debug(_("Source point coors:"+coors+" in segment nr: " + str(segment_cat)))
 
                 #Select dispersal parameters
                 SO = 'SO='+str(Strahler)
@@ -861,7 +861,7 @@ def main():
 
                 # Applying upstream split at network nodes based on inverse shreve stream order
                 grass.debug(_("Applying upstream split at network nodes based on inverse shreve stream order"))
- 
+
                 grass.mapcalc("$upstream_shreve = if($upstream_part, $shreve)",
                             upstream_shreve = "upstream_shreve_tmp_%d" % os.getpid(),
                             upstream_part = "upstream_part_tmp_%d" % os.getpid(),
@@ -955,7 +955,7 @@ def main():
 
 
                         # barrier_effect = Length of Effect of barriers (linear decrease up to max (barrier_effect)
-                        barrier_effect=200 #units as in mapset (m)
+                        barrier_effect = 200  # units as in mapset (m)
 
                         # Calculating distance from barriers (up- and downstream)
                         grass.run_command("r.cost",
@@ -1005,7 +1005,7 @@ def main():
                                     passability=passability,
                                     overwrite = True)
 
-                        if dist == last_barrier :
+                        if dist == last_barrier:
                             grass.run_command("r.null", map="density_"+str(cat), null="0")
                         else:
                             grass.run_command("r.null", map="density_"+str(cat), setnull="0")

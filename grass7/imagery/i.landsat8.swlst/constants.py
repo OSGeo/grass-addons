@@ -37,7 +37,7 @@ FROM_GLC_LEGEND = {'Cropland': (10, 11, 12, 13),
 #                '({b4} + '
 #                '({b5}) * ((1 - {ae}) / {ae}) + '
 #                '({b6}) * ({de}/{ae}^2)) * (({DUMMY_T10}-{DUMMY_T11})/2)')
-# LST_FORMULA_BARREN_LAND = 
+# LST_FORMULA_BARREN_LAND =
 LST_FORMULA = ('{b0} + '
                '({b1} + '
                '({b2}) * ((1 - {ae}) / {ae}^2) + '

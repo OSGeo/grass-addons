@@ -69,7 +69,8 @@
 #%end
 
 from __future__ import print_function
-import atexit, sys
+import atexit
+import sys
 import grass.script as grass
 from grass import script
 
@@ -162,7 +163,7 @@ def main():
     elif stat_threshold:
         #Getting values of mean and standard dev of magnitude to calculate the change detection criteria (> mean + N*stdev)
         univar = grass.read_command('r.univar', map=magnitudemap_name, flags='g')
- 
+
         found = 0
         for line in univar.splitlines():
             name,val = line.split('=')
@@ -211,4 +212,3 @@ def cleanup():
 if __name__ == "__main__":
     atexit.register(cleanup)
     sys.exit(main())
-

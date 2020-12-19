@@ -22,4 +22,3 @@ def add_points(vname, vmapset='', *points):
 
 ciface = RPCServer()
 check = ciface.call(function=add_points, args=('new', (1, 2), (2, 3), (3, 4)))
-

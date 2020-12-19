@@ -14,7 +14,7 @@
 #
 #############################################################################
 # References:
-# 
+#
 #Moran, P.A.P., 1950. Notes on Continuous Stochastic Phenomena. Biometrika 37,
 # 17-23. https://dx.doi.org/10.2307%2F2332142
 #Geary, R.C., 1954. The Contiguity Ratio and Statistical Mapping. The
@@ -60,13 +60,13 @@ import grass.script as gscript
 
 # check requirements
 def check_progs():
-   found_missing = False
-   for prog in ['r.neighborhoodmatrix']:
-       if not gscript.find_program(prog, '--help'):
-           found_missing = True
-           gscript.warning(_("'%s' required. Please install '%s' first using 'g.extension %s'") % (prog, prog, prog))
-   if found_missing:
-       gscript.fatal(_("An ERROR occurred running i.segment.uspo"))
+    found_missing = False
+    for prog in ['r.neighborhoodmatrix']:
+        if not gscript.find_program(prog, '--help'):
+            found_missing = True
+            gscript.warning(_("'%s' required. Please install '%s' first using 'g.extension %s'") % (prog, prog, prog))
+    if found_missing:
+        gscript.fatal(_("An ERROR occurred running i.segment.uspo"))
 
 
 def get_nb_matrix (mapname, diagonal):
@@ -88,8 +88,8 @@ def get_nb_matrix (mapname, diagonal):
 
     neighbordict = {}
     for line in res.splitlines():
-        n1=line.split(',')[0]
-        n2=line.split(',')[1]
+        n1 = line.split(',')[0]
+        n2 = line.split(',')[1]
         if n1 in neighbordict:
             neighbordict[n1].append(n2)
         else:
@@ -126,13 +126,13 @@ def get_autocorrelation (mapname, raster, neighbordict, method):
         else:
             means[l[0]] = float(l[i])
             mean_diffs[l[0]] = float(l[i]) - global_mean
-    
+
     sum_sq_mean_diffs = sum(x**2 for x in mean_diffs.values())
 
     total_nb_neighbors = 0
     for region in neighbordict:
         total_nb_neighbors += len(neighbordict[region])
-    
+
     N = len(means)
     sum_products = 0
     sum_squared_differences = 0
@@ -143,12 +143,12 @@ def get_autocorrelation (mapname, raster, neighbordict, method):
         for neighbor in neighbors:
             neighbor_value = means[neighbor] - global_mean
             sum_products += region_value * neighbor_value
-            sum_squared_differences = ( means[region] - means[neighbor] ) ** 2
+            sum_squared_differences = (means[region] - means[neighbor]) ** 2
 
     if method == 'moran':
-        autocor = ( ( float(N) / total_nb_neighbors ) * (float(sum_products)  /  sum_sq_mean_diffs ) )
+        autocor = ((float(N) / total_nb_neighbors) * (float(sum_products)  / sum_sq_mean_diffs))
     elif method == 'geary':
-        autocor = ( float(N - 1) /  ( 2 * total_nb_neighbors ) ) * ( float(sum_squared_differences)  / sum_sq_mean_diffs )
+        autocor = (float(N - 1) / (2 * total_nb_neighbors)) * (float(sum_squared_differences)  / sum_sq_mean_diffs)
 
     return autocor
 

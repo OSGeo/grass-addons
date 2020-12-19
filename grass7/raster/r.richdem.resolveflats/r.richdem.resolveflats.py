@@ -60,8 +60,8 @@ def main():
     try:
         import richdem as rd
     except:
-        g.message(flags='e', message=('RichDEM not detected. Install pip3 and '+
-                                      'then type at the command prompt: '+
+        g.message(flags='e', message=('RichDEM not detected. Install pip3 and ' +
+                                      'then type at the command prompt: ' +
                                       '"pip3 install richdem".'))
 
     _input = options['input']

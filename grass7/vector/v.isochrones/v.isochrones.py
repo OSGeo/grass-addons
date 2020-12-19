@@ -166,7 +166,7 @@ def cleanup():
             grass.run_command('g.remove', flags='f', type='vector', name=isos_poly_all, quiet=True)
         if grass.find_file(isos_final, element='vector')['name']:
             grass.run_command('g.remove', flags='f', type='vector', name=isos_final, quiet=True)
-            
+
 
 def isocalc(isoraw):
 
@@ -187,7 +187,7 @@ def isocalc(isoraw):
     isos_poly_all = 'isos_poly_all_%d' % os.getpid()
 
     grass.use_temp_region()
-    
+
     grass.run_command('v.extract', input_=isoraw,
             cat=output_cats[0:-1], output=isos_extract,
             overwrite=True)
@@ -345,8 +345,8 @@ def main():
         output_cats = []
         for i in range(1,len(time_steps)+2):
             output_cats.append(i)
-        startpoints=grass.read_command('v.distance', from_=start_points, 
-                to=roads, to_type='point', to_layer=node_layer, 
+        startpoints = grass.read_command('v.distance', from_=start_points,
+                to=roads, to_type='point', to_layer=node_layer,
                 upload='cat', flags='p', quiet=True).split('\n')[1:-1]
 
         global isoraw
@@ -374,8 +374,8 @@ def main():
             startnodes = []
             for point in startpoints:
                 startnodes.append(point.split('|')[1])
-            grass.run_command('v.net.iso', input_=roads, output=isoraw, 
-                    center_cats=startnodes, costs=time_steps, 
+            grass.run_command('v.net.iso', input_=roads, output=isoraw,
+                    center_cats=startnodes, costs=time_steps,
                     arc_column=cost_column, overwrite=True)
             isocalc(isoraw)
             grass.run_command('g.rename', vect=isos_final+','+isochrones)

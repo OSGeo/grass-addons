@@ -5,11 +5,11 @@
 # MODULE:       g.md5sum.py
 #
 # AUTHOR(S):    Luca Delucchi <lucadeluge@gmail.com>
-#               
+#
 # PURPOSE:      Check if two GRASS maps are the same
 #
 # COPYRIGHT:    (c) 2012-2020 by Luca Delucchi and the GRASS Development Team
-#               
+#
 #               This program is free software under the GNU General
 #               Public License (>=v2). Read the file COPYING that
 #               comes with GRASS for details.
@@ -55,7 +55,8 @@
 #% answer: raster
 #%end
 
-import os, sys
+import os
+import sys
 import hashlib
 import grass.script as grass
 
@@ -123,7 +124,7 @@ def checkmd5(a,b,shell):
     # one file exists and the other not, this is not good result
     else:
         # if some files could be not exist add here other elif condition
-            return 0
+        return 0
 
 def main():
     # check if we are in grass
@@ -139,7 +140,7 @@ def main():
     else:
         shell = False
         err = _('The two maps are different')
-        good = _('The two maps are identical')    
+        good = _('The two maps are identical')
     # options
     typ = options['type']
     ainp = checkfile(options['ainput'],typ,shell)
@@ -147,10 +148,10 @@ def main():
     variables = grass.core.gisenv()
     # files to investigate to check identity
     # for now color2 is ignored
-    raster_folder = [ "cats", "cell", "cellhd", "cell_misc", "fcell", "colr", "hist" ]
+    raster_folder = ["cats", "cell", "cellhd", "cell_misc", "fcell", "colr", "hist"]
     if flags['c']:
         raster_folder.remove("colr")
-    vector_folder = [ "coor", "head", "topo" ]
+    vector_folder = ["coor", "head", "topo"]
     if flags['t']:
         vector_folder.remove("topo")
     # path to the mapsets

@@ -64,7 +64,7 @@ def main():
     strds = options["input"]
     where = options["where"]
     nprocs = int(options["nprocs"])
-    
+
     nullmod = pymod.Module('r.null')
     nullmod.flags.quiet = True
     if options["null"]:
@@ -73,7 +73,7 @@ def main():
         nullmod.inputs.setnull = options["setnull"]
     else:
         gscript.fatal(_("Please set 'null' or 'setnull' option"))
-        
+
     tgis.init()
     # We need a database interface
     dbif = tgis.SQLDatabaseInterfaceConnection()
@@ -90,19 +90,19 @@ def main():
 
     count = 0
     num_maps = len(maps)
-    
+
     for mapp in maps:
         count += 1
         mod = copy.deepcopy(nullmod)
         mod.inputs.map = mapp.get_id()
         process_queue.put(mod)
 
-        if count%10 == 0:
+        if count % 10 == 0:
             gscript.percent(count, num_maps, 1)
 
     # Wait for unfinished processes
     process_queue.wait()
-    
+
 if __name__ == "__main__":
     options, flags = gscript.parser()
     sys.exit(main())

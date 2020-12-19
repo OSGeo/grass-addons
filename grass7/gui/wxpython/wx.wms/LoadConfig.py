@@ -21,19 +21,19 @@ import grass
 def loadConfigFile(self):
     """
      @description: Called by the init method of the class wmsFrame.
-     Loads the config file and initializes corresponding paramters.  
+     Loads the config file and initializes corresponding paramters.
      @todo:None
      @param self: reference variable
      @return: Boolean, True is config file is loaded successfuly, else False
     """
     try:
-        f=open('config','r')
+        f = open('config','r')
         lines = f.readlines()
         f.close()
         print lines
         #patch4s
         try:
-            if(len(lines)!=3):
+            if(len(lines) != 3):
                 message = 'Insufficient number of arguments,3 paramters required name_url_delimiter, timeoutValueSeconds, urlLength'
                 grass.fatal_error(message)
                 raise Exception
@@ -44,7 +44,7 @@ def loadConfigFile(self):
             self.name_url_delimiter = '#'
             self.timeoutValueSeconds = 5
             self.urlLength = 50
-            
+
         return True
     except:
         return False

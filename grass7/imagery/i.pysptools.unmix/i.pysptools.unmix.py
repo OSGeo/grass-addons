@@ -98,14 +98,14 @@ from grass.pygrass import raster as r
 from grass.pygrass.utils import getenv
 import grass.script as gs
 
-if not "GISBASE" in os.environ.keys():
+if "GISBASE" not in os.environ.keys():
     gs.message("You must be in GRASS GIS to run this program.")
     sys.exit(1)
 
 
 def get_rastertype(raster):
 
-    if type(raster[0,0]) != np.float32 and type(raster[0,0]) != np.float64:
+    if not isinstance(raster[0,0], np.float32) and not isinstance(raster[0,0], np.float64):
         map_type = u'INTEGER'
     else:
         map_type = u'REAL'
@@ -113,14 +113,14 @@ def get_rastertype(raster):
     return map_type
 
 def mask_rasternd(raster):
-    if type(raster[0,0]) != np.float32 and type(raster[0,0]) != np.float64:
+    if not isinstance(raster[0,0], np.float32) and not isinstance(raster[0,0], np.float64):
         mask = raster != -2147483648
     else:
         mask = np.isnan(raster) == False
 
     return mask
 
-    
+
 def main():
 
     try:
@@ -237,19 +237,19 @@ def main():
         pass
 
     if extraction_method == 'NFINDR':
-    # Extract endmembers from valid pixels using NFINDR function from pysptools
+        # Extract endmembers from valid pixels using NFINDR function from pysptools
         gs.verbose('Extracting endmembers using NFINDR...')
         nfindr = eea.NFINDR()
         E = nfindr.extract(img, endmember_n, maxit=maxit, normalize=False,
                            ATGP_init=atgp_init, mask=mask)
     elif extraction_method == 'PPI':
-    # Extract endmembers from valid pixels using PPI function from pysptools
+        # Extract endmembers from valid pixels using PPI function from pysptools
         gs.verbose('Extracting endmembers using PPI...')
         ppi = eea.PPI()
         E = ppi.extract(img, endmember_n, numSkewers=10000, normalize=False,
                         mask=mask)
     elif extraction_method == 'FIPPI':
-    # Extract endmembers from valid pixels using FIPPI function from pysptools
+        # Extract endmembers from valid pixels using FIPPI function from pysptools
         gs.verbose('Extracting endmembers using FIPPI...')
         fippi = eea.FIPPI()
         # q and maxit can be None according to manual, but does not work
@@ -289,10 +289,10 @@ def main():
 
         # Build attribute table
         # Deinfe columns for attribute table
-        cols = [(u'cat',       'INTEGER PRIMARY KEY')]
+        cols = [(u'cat', 'INTEGER PRIMARY KEY')]
         for b in band_types.keys():
             cols.append((b.replace('.','_'), band_types[b]))
-        
+
         # Get region information
         reg = Region()
 
@@ -303,7 +303,7 @@ def main():
         cat = 1
         for e in E:
             # Get indices
-            idx = np.where((img[:,:]==e).all(-1))
+            idx = np.where((img[:,:] == e).all(-1))
 
             # Numpy array is ordered rows, columns (y,x)
             if len(idx[0]) == 0 or len(idx[1]) == 0:

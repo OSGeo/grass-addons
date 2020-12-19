@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM=g.copyall
+PGM = g.copyall
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 

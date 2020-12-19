@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM=v.surf.nnbathy
+PGM = v.surf.nnbathy
 
 ETCFILES = nnbathy
 

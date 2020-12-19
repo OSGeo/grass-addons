@@ -6,7 +6,7 @@
 # AUTHOR(S):    Andrew Wickert
 #
 # PURPOSE:      Calculate flexure of the lithosphere under a specified
-#               set of loads and with a given elastic thickness (scalar 
+#               set of loads and with a given elastic thickness (scalar
 #               or array)
 #
 # COPYRIGHT:    (c) 2012, 2014, 2015 Andrew Wickert
@@ -21,7 +21,7 @@
 #      -  gFlex: http://csdms.colorado.edu/wiki/gFlex
 #         (should be downloaded automatically along with the module)
 #         github repository: https://github.com/awickert/gFlex
- 
+
 # More information
 # Started 11 March 2012 as a GRASS interface for Flexure (now gFlex)
 # Revised 15--?? November 2014 after significantly improving the model
@@ -186,7 +186,7 @@ def main():
     """
     Gridded flexural isostatic solutions
     """
-    
+
     options, flags = grass.parser()
     # if just interface description is requested, it will not get to this point
     # so gflex will not be needed
@@ -209,10 +209,10 @@ def main():
     flex = gflex.F2D()
     # And show that it is coming from GRASS GIS
     flex.grass = True
-    
+
     # Flags
     latlon_override = flags['l']
-    
+
     # Inputs
     # Solution selection
     flex.Method = options['method']
@@ -261,12 +261,12 @@ def main():
         flex.Debug = True
     elif grass.verbosity() == 0:
         flex.Quiet = True
-    
+
     # First check if output exists
     if len(grass.parse_command('g.list', type='rast', pattern=options['output'])):
         if not grass.overwrite():
             grass.fatal("Raster map '" + options['output'] + "' already exists. Use '--o' to overwrite.")
-    
+
     # Get grid spacing from GRASS
     # Check if lat/lon and proceed as directed
     if grass.region_env()[6] == '3':
@@ -279,7 +279,7 @@ def main():
             NSmid = (grass.region()['n'] + grass.region()['s'])/2.
             dx_at_mid_latitude = (3.14159/180.) * 6371000. * np.cos(np.deg2rad(NSmid))
             if flex.Verbose:
-                print("Setting x-resolution [m] to "+"%.2f" %dx_at_mid_latitude+" * [degrees]")
+                print("Setting x-resolution [m] to "+"%.2f" % dx_at_mid_latitude+" * [degrees]")
             flex.dx = grass.region()['ewres']*dx_at_mid_latitude
         else:
             grass.fatal("Need the '-l' flag to enable lat/lon solution approximation.")
@@ -287,7 +287,7 @@ def main():
     else:
         flex.dx = grass.region()['ewres']
         flex.dy = grass.region()['nsres']
-      
+
     # CALCULATE!
     flex.initialize()
     flex.run()
@@ -316,4 +316,3 @@ if __name__ == "__main__":
         install_dependencies()
     else:
         main()
-

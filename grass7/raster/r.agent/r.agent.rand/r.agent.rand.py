@@ -148,7 +148,7 @@ def main():
         mark = int(options['mark'])
     else:
         mark = 99
-        
+
     run(int(options['rounds']), maxagents, agentslife, mark, flags['p'])
     grass.message("FINISH")
 
@@ -156,4 +156,3 @@ if __name__ == "__main__":
     options, flags = grass.parser()
     world = world.World(grassland.Grassland())
     main()
-

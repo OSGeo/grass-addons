@@ -100,7 +100,7 @@ def write_segmentdefs(lineinfo, minoffset, maxoffset, nbvertices):
 
     filename = gscript.tempfile()
     maxlength = max(lineinfo.values())
-    step = 100000/nbvertices 
+    step = 100000/nbvertices
     t = [x/100000.0 for x in range(0,int(math.pi*100000),step)]
     x = [a/max(t)*100 for a in t]
     x[-1] -= 0.001
@@ -124,8 +124,8 @@ def write_segarcdefs(lineinfo, maxcat):
     with open(filename, 'w') as fout:
         for arccat in lineinfo:
             for cat in range(1, maxcat):
-                    pointcat = arccat*10000 + cat
-                    fout.write("%d %d %d\n" % (arccat, pointcat, pointcat+1))
+                pointcat = arccat*10000 + cat
+                fout.write("%d %d %d\n" % (arccat, pointcat, pointcat+1))
 
     return filename
 
@@ -214,7 +214,7 @@ def main():
                         file_=vnetinfile,
                         overwrite=True,
                         quiet=True)
-     
+
     gscript.run_command('v.extract',
                         input_=tmplines,
                         output=tmplines2,

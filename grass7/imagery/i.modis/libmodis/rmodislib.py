@@ -115,6 +115,11 @@ class product:
         water_spec = ('( 1 )')
         water_specqa = ('( 1 1 )')
         water_suff = {'.water_mask': '.water_mask_QA'}
+        # value for aerosol product
+        aerosol_spec = '( 0 1 0 0 0 0 0 0 0 0 0 0 0 )'
+        aerosol_specqa = '( 0 1 0 0 0 1 0 0 0 0 0 0 0 )'
+        aerosol1km_suff = {'.Optical_Depth_055': '.AOD_QA'}
+        aerosol_color = 'bcyr'
 
         # granularity
         daily = 1
@@ -162,7 +167,7 @@ class product:
                                           'spec': lst_spec, 'spec_qa': lst_specqa,
                                           'suff': lst6km_suff, 'res': 5600,
                                           'color': lst_color
-                                        }
+                                         }
                }
         vi = {'ndvi_terra_sixteen_250': {'url': urlbase, 'folder': 'MOLT/',
                                          'prod': 'MOD13Q1.006',
@@ -281,13 +286,20 @@ class product:
                                      'spec_qa': water_specqa, 'res': 250,
                                      'suff': water_suff, 'days': daily,
                                      'color': snow_color}
-                }
+                 }
+        aerosol = {'aerosol_terra_aqua_daily_1000': {'url': urlbase, 'folder': 'MOTA/',
+                                                     'prod': 'MCD19A2.006', 'days': daily,
+                                                     'spec': aerosol_spec, 'spec_qa': aerosol_specqa,
+                                                     'suff': aerosol1km_suff, 'res': 1000,
+                                                     'color': aerosol_color}
+                   }
         self.products = {}
         self.products.update(lst)
         self.products.update(vi)
         self.products.update(snow)
         self.products.update(surf_refl)
         self.products.update(water)
+        self.products.update(aerosol)
         self.products_swath = {'lst_terra_daily': {'url': urlbase,
                                                    'folder': 'MOLT/',
                                                    'prod': 'MOD11_L2.006',
@@ -345,7 +357,7 @@ class product:
         if list(prod.keys()).count('spec') == 1:
             string += ", spectral_subset: " + prod['spec']
         if list(prod.keys()).count('spec_qa') == 1:
-            if prod['spec_qa'] != None:
+            if prod['spec_qa'] is not None:
                 string += ", spectral_subset_qa:" + prod['spec_qa']
         return string
 
@@ -353,6 +365,7 @@ class product:
 class resampling:
     """Return the resampling value from the code used in the modules
     """
+
     def __init__(self, value):
         self.code = value
         self.resampling = {'nearest': 'NEAREST_NEIGHBOR',
@@ -366,6 +379,7 @@ class resampling:
 class projection:
     """Definition of projection for converting from sinusoidal projection to
     another one. Not all projection systems are supported"""
+
     def __init__(self):
         self.proj = get_proj()
         self.val = self.proj['proj']
@@ -411,10 +425,10 @@ class projection:
                 swath):
         if swath:
             return '%i %i %d %d %d %d %d %d 0.0 0.0 0.0 0.0 0.0 0.0 0.0' % (
-                    SMajor, SMinor, Val, Factor, CentMer, TrueScale, FE, FN)
+                SMajor, SMinor, Val, Factor, CentMer, TrueScale, FE, FN)
         else:
             return '( %i %i %d %d %d %d %d %d 0.0 0.0 0.0 0.0 0.0 0.0 0.0 )' % (
-                    SMajor, SMinor, Val, Factor, CentMer, TrueScale, FE, FN)
+                SMajor, SMinor, Val, Factor, CentMer, TrueScale, FE, FN)
 
     def return_params(self, swath=False):
         """ Return the 13 parameters for MRT parameter file """

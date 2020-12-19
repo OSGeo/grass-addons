@@ -685,7 +685,7 @@ def col_exist(vname, cname, ctype='double precision', vlayer=1, create=False):
 
 
 def linear_cost(vname, cname='lin_cost', alpha=310., length='length', vlayer=1,
-                ctype='double precision',  overwrite=False):
+                ctype='double precision', overwrite=False):
     # check if length it is alread in the db
     if not col_exist(vname, 'length', create=True):
         v.to_db(map=vname, type='line', layer=vlayer, option='length',
@@ -733,7 +733,7 @@ def get_electro_length(opts):
         new = VectorTopo(elines)  # new vec with elines
         new.layer = 1
         cols = [(u'cat', 'INTEGER PRIMARY KEY'),
-                (u'plant_id',  'VARCHAR(10)'),
+                (u'plant_id', 'VARCHAR(10)'),
                 (u'side', 'VARCHAR(10)'), ]
         new.open('w', tab_cols=cols)
         reg = Region()
@@ -760,7 +760,7 @@ def get_gamma_NPV(r=0.03, y=30):
 
 def group_by(vinput, voutput, isolate=None, aggregate=None,
              function='sum', vtype='lines',
-             where='',  group_by=None, linput=1, loutput=1):
+             where='', group_by=None, linput=1, loutput=1):
     vname, vmapset = vinput.split('@') if '@' in vinput else (vinput, '')
     with VectorTopo(vname, mapset=vmapset, mode='r') as vin:
         columns = ['cat', ]
@@ -863,7 +863,8 @@ def economic2segment(economic, segment, basename='eco_',
                                                              cpid=seg_pid,
                                                              pid=pid)))
                 if len(scats) != 1:
-                    import ipdb; ipdb.set_trace()
+                    import ipdb
+                    ipdb.set_trace()
                 print('segment found, ', end='')
                 # TODO: this is not efficient should be done in one step
                 # to avoid to call several time the db update
@@ -970,13 +971,13 @@ def main(opts, flgs):
     # add linear cost for pipeline
     linear_cost(vname=struct, cname='lin_pipe_cost',
                 alpha=float(opts['lc_pipe']), vlayer=vlayer,
-                ctype='double precision',  overwrite=overw)
+                ctype='double precision', overwrite=overw)
 
     # add linear for for electroline
     get_electro_length(opts)
     linear_cost(vname=struct, cname='lin_electro_cost',
                 alpha=float(opts['lc_electro']), length='electro_length',
-                vlayer=vlayer, ctype='double precision',  overwrite=overw)
+                vlayer=vlayer, ctype='double precision', overwrite=overw)
     # Compensation raster costs for electroline
     comp = (opts['compensation']+'el' if
             opts['compensation']
@@ -1097,18 +1098,18 @@ def main(opts, flgs):
     vec.open('rw')
     vec.table.columns.add('max_NPV','VARCHAR(3)')
 
-    list_intakeid=list(set(vec.table.execute('SELECT intake_id FROM %s' %vec.table.name).fetchall()))
+    list_intakeid = list(set(vec.table.execute('SELECT intake_id FROM %s' % vec.table.name).fetchall()))
 
     for i in range(0,len(list_intakeid)):
         vec.rewind()
-        list_npv=list(vec.table.execute('SELECT NPV FROM %s WHERE intake_id=%i;' % (vec.table.name, list_intakeid[i][0])).fetchall())
-        npvmax=max(list_npv)[0]
+        list_npv = list(vec.table.execute('SELECT NPV FROM %s WHERE intake_id=%i;' % (vec.table.name, list_intakeid[i][0])).fetchall())
+        npvmax = max(list_npv)[0]
         for line in vec:
             if line.attrs['intake_id'] == list_intakeid[i][0]:
                 if line.attrs['NPV'] == npvmax:
-                    line.attrs['max_NPV']='yes'
+                    line.attrs['max_NPV'] = 'yes'
                 else:
-                    line.attrs['max_NPV']='no'
+                    line.attrs['max_NPV'] = 'no'
 
     vec.table.conn.commit()
     vec.close()

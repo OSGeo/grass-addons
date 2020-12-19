@@ -51,14 +51,14 @@
 import os
 import sys
 
-import grass.script as grass 
+import grass.script as grass
 from grass.pygrass.modules import Module
 from grass.exceptions import CalledModuleError
 
 def coeff(name, rl):
     a = c = None
     if name == 'N2':
-        if rl < 40: 
+        if rl < 40:
             a = 0.166
             c = 0.701
         elif rl < 120:
@@ -71,7 +71,7 @@ def coeff(name, rl):
         if rl < 40:
             a = 0.171
             c = 0.688
-        elif rl <120:
+        elif rl < 120:
             a = 0.265
             c = 0.803
         elif rl < 1440:
@@ -81,7 +81,7 @@ def coeff(name, rl):
         if rl < 40:
             a = 0.163
             c = 0.656
-        elif rl <120:
+        elif rl < 120:
             a = 0.280
             c = 0.803
         elif rl < 1440:
@@ -125,13 +125,13 @@ def main():
     mapset = grass.find_file(opt['map'], element='vector')['mapset']
     if not mapset or mapset != grass.gisenv()['MAPSET']:
         grass.fatal(_("Vector map <{}> not found in the current mapset").format(opt['map']))
-    
+
     # get list of existing columns
     try:
         columns = grass.vector_columns(opt['map']).keys()
     except CalledModuleError as e:
         return 1
-    
+
     allowed_rasters = ('N2', 'N5', 'N10', 'N20', 'N50', 'N100')
 
     # test input feature type
@@ -143,8 +143,6 @@ def main():
     check_area_size = float(opt['area_size']) > 0
     if check_area_size:
         area_col_name = 'area_{}'.format(os.getpid())
-        Module('v.db.addcolumn', map=opt['map'],
-               columns='{} double precision'.format(area_col_name))
         Module('v.to.db', map=opt['map'], option='area', units='kilometers',
                columns=area_col_name, quiet=True)
         areas = Module('v.db.select', flags='c', map=opt['map'], columns=area_col_name,
@@ -166,7 +164,7 @@ def main():
             grass.warning('Raster map <{}> skipped. '
                           'Allowed: {}'.format(rast, allowed_rasters))
             continue
-        
+
         # perform zonal statistics
         grass.message('Processing <{}>...'.format(rast))
         table = '{}_table'.format(name)
@@ -187,11 +185,11 @@ def main():
         else: # -> points
             Module('v.what.rast', map=opt['map'], raster=rast,
                    column='{}_average'.format(name), quiet=True)
-            
-        
+
+
         # add column to the attribute table if not exists
         rl = float(opt['rainlength'])
-        field_name='H_{}T{}'.format(name, opt['rainlength'])
+        field_name = 'H_{}T{}'.format(name, opt['rainlength'])
         if field_name not in columns:
             Module('v.db.addcolumn', map=opt['map'],
                    columns='{} double precision'.format(field_name))
@@ -200,7 +198,7 @@ def main():
         a, c = coeff(rast, rl)
         if a is None or c is None:
             grass.fatal("Unable to calculate coefficients")
-        
+
         # calculate output values, update attribute table
         coef = a * rl ** (1 - c)
         expression = '{}_average * {}'.format(name, coef)

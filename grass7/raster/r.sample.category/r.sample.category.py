@@ -154,11 +154,11 @@ def main():
         gscript.info(_("Selecting {n} sampling locations at category {cat}...").format(n=npoints[i], cat=cat))
 
         # Create reclass map with only pixels of current category
-        rc_rule='{0} = {0}\n* = NULL'.format(cat)
-        gscript.write_command('r.reclass', input=input_raster, output=temp_name, 
+        rc_rule = '{0} = {0}\n* = NULL'.format(cat)
+        gscript.write_command('r.reclass', input=input_raster, output=temp_name,
                               rules='-', stdin=rc_rule, overwrite=True, quiet=True)
 
-        if not temp_name in TMP:
+        if temp_name not in TMP:
             TMP.append(temp_name)
 
         # Create the points

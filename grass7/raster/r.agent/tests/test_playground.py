@@ -49,8 +49,8 @@ class TestPlayground(unittest.TestCase):
         self.assertIsNotNone(s)
         self.assertIsNotNone(w)
         self.assertIsNotNone(e)
-        self.assertTrue(n>s)
-        self.assertTrue(e>w)
+        self.assertTrue(n > s)
+        self.assertTrue(e > w)
 
         self.assertEqual((n-s)/ns, r)
         self.assertEqual((e-w)/ew, c)
@@ -69,7 +69,7 @@ class TestPlayground(unittest.TestCase):
     def test_createlayer(self):
         #TODO from file, better test manually?
         self.pg.createlayer("foo")
-        self.assertTrue(self.pg.layers.has_key("foo"))
+        self.assertTrue("foo" in self.pg.layers)
         self.assertEqual(len(self.pg.layers["foo"]), self.pg.region["rows"])
         self.assertEqual(len(self.pg.layers["foo"][0]), self.pg.region["cols"])
 
@@ -79,9 +79,9 @@ class TestPlayground(unittest.TestCase):
 
     def test_removelayer(self):
         self.pg.layers["foo"] = [0]
-        self.assertTrue(self.pg.layers.has_key("foo"))
+        self.assertTrue("foo" in self.pg.layers)
         self.pg.removelayer("foo")
-        self.assertFalse(self.pg.layers.has_key("foo"))
+        self.assertFalse("foo" in self.pg.layers)
 
     def test_writelayer(self):
         #TODO better test manually?
@@ -162,4 +162,3 @@ class TestPlayground(unittest.TestCase):
         self.assertEqual(int(round(self.pg.layers[l][0][0])), 50)
 
 #    def tearDown(self):
-

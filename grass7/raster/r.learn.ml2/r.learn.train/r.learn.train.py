@@ -337,21 +337,17 @@
 import atexit
 import os
 import re
-import sys
 import warnings
 from copy import deepcopy
 
 import grass.script as gs
 from grass.pygrass.raster import RasterRow
 import numpy as np
-from grass.script.utils import get_lib_path
 
-path = get_lib_path(modname="r.learn.ml2")
-if path is None:
-    gs.fatal("Not able to find the r.learn.ml2 library directory")
-sys.path.append(path)
+gs.utils.set_path(modulename='r.learn.ml2', dirname='rlearnlib',
+                  path='..')
 
-from utils import (
+from rlearnlib.utils import (
     predefined_estimators,
     load_training_data,
     save_training_data,
@@ -359,7 +355,7 @@ from utils import (
     scoring_metrics,
     check_class_weights,
 )
-from raster import RasterStack
+from rlearnlib.raster import RasterStack
 
 
 tmp_rast = []
@@ -453,7 +449,7 @@ def main():
 
     try:
         import pandas as pd
-        
+
     except ImportError:
         gs.fatal("Package python3-pandas 0.25 or newer is not installed")
 
@@ -576,7 +572,7 @@ def main():
             y = y.flatten()
 
             with RasterRow(training_map) as src:
-                
+
                 if mode == "classification":
                     src_cats = {v: k for (k, v, m) in src.cats}
                     class_labels = {k:k for k in np.unique(y)}
@@ -587,7 +583,7 @@ def main():
         elif training_points != "":
             X, y, cat = stack.extract_points(training_points, field)
             y = y.flatten()
-            
+
             if y.dtype in (np.object_, np.object):
                 from sklearn.preprocessing import LabelEncoder
                 le = LabelEncoder()

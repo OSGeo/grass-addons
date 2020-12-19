@@ -24,6 +24,7 @@ class CalibrationModel:
 
     # satellite year coefficients: a tuple (pair or triplet, so far) mapcalc
     """
+
     def __init__(self, author, satellite, year):
         """
         Create object for the calibration model
@@ -100,7 +101,7 @@ class CalibrationModel:
         """
         Control whether the given DN is valid
         """
-        if type(dn) != int:
+        if not isinstance(dn, int):
             raise ValueError('The provided Digital Number value is NOT an '
                              'integer!')
 
@@ -134,6 +135,7 @@ class Elvidge(CalibrationModel):
     proposed by Elvidge, 2009  or  Elvidge, 2014.
     DN adj. = C0 + C1×DN + C2×DN^2
     """
+
     def __init__(self, satellite, year, version):
         """
         Create object for the polynomial calibration model
@@ -170,25 +172,25 @@ class Elvidge(CalibrationModel):
         return msg + '  ' + self._model + '\n'
 
     def set_coefficients(self):
-            """
-            Set coefficients
-            """
-            self.c0 = COEFFICIENTS[self.author][self.satellite][self.year][0]
-            self.c1 = COEFFICIENTS[self.author][self.satellite][self.year][1]
-            self.c2 = COEFFICIENTS[self.author][self.satellite][self.year][2]
-            self.coefficients = (self.c0, self.c1, self.c2)
+        """
+        Set coefficients
+        """
+        self.c0 = COEFFICIENTS[self.author][self.satellite][self.year][0]
+        self.c1 = COEFFICIENTS[self.author][self.satellite][self.year][1]
+        self.c2 = COEFFICIENTS[self.author][self.satellite][self.year][2]
+        self.coefficients = (self.c0, self.c1, self.c2)
 
     def get_coefficients(self):
-            """
-            Triplet tuple
-            """
-            return (self.c0, self.c1, self.c2)
+        """
+        Triplet tuple
+        """
+        return (self.c0, self.c1, self.c2)
 
     def set_r2(self):
-            """
-            set R^2
-            """
-            self.r2 = COEFFICIENTS[self.author][self.satellite][self.year][3]
+        """
+        set R^2
+        """
+        self.r2 = COEFFICIENTS[self.author][self.satellite][self.year][3]
 
     def build_model(self):
         """
@@ -231,6 +233,7 @@ class Liu2012(CalibrationModel):
     - b:
     - c:
     """
+
     def __init__(self, satellite, year):
         """
         Create object for the polynomial calibration model
@@ -251,25 +254,25 @@ class Liu2012(CalibrationModel):
         return msg + '  ' + self._model + '\n'
 
     def set_coefficients(self):
-            """
-            set coefficients
-            """
-            self.c0 = COEFFICIENTS[self.author][self.satellite][self.year][0]
-            self.c1 = COEFFICIENTS[self.author][self.satellite][self.year][1]
-            self.c2 = COEFFICIENTS[self.author][self.satellite][self.year][2]
-            self.coefficients = (self.c0, self.c1, self.c2)
+        """
+        set coefficients
+        """
+        self.c0 = COEFFICIENTS[self.author][self.satellite][self.year][0]
+        self.c1 = COEFFICIENTS[self.author][self.satellite][self.year][1]
+        self.c2 = COEFFICIENTS[self.author][self.satellite][self.year][2]
+        self.coefficients = (self.c0, self.c1, self.c2)
 
     def get_coefficients(self):
-            """
-            # triplet tuple
-            """
-            return (self.c0, self.c1, self.c2)
+        """
+        # triplet tuple
+        """
+        return (self.c0, self.c1, self.c2)
 
     def set_r2(self):
-            """
-            set R^2
-            """
-            self.r2 = COEFFICIENTS[self.author][self.satellite][self.year][3]
+        """
+        set R^2
+        """
+        self.r2 = COEFFICIENTS[self.author][self.satellite][self.year][3]
 
     def build_model(self):
         # model = 'DNadj. = {c0} + {c1} * DN + {c2} * DN^2'

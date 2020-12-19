@@ -3,4 +3,4 @@ all = [
     'main',
     'toolbars',
     'wxdigit',
-    ]
+]

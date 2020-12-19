@@ -88,7 +88,7 @@ def main():
             path = os.path.dirname(dbopt)
             dbpath = dbopt
         else:
-            grass.fatal(_("Folder to write database files does not" \
+            grass.fatal(_("Folder to write database files does not"
                           + " exist or is not writeable"))
     # connect to the db
     db = sqlite3.connect(dbpath)
@@ -130,17 +130,17 @@ def main():
         # for each number in the range
         for n in range(0, max_value):
             # try to insert the values otherwise insert 0
-            
+
             try:
                 val = int(stats_dict[str(n)])
                 cdf += val
                 numPixelValue[n] += val
                 insert = "INSERT INTO \"t%s\" VALUES (%i, %i, %i, 0.000000)" % (
-                                                            iname, n, val, cdf)
+                    iname, n, val, cdf)
                 curs.execute(insert)
             except:
                 insert = "INSERT INTO \"t%s\" VALUES (%i, 0, %i, 0.000000)" % (
-                                                            iname, n, cdf)
+                    iname, n, cdf)
                 curs.execute(insert)
             # save cumulative_histogram for the second loop
             cumulHistoValue[n] = cdf
@@ -164,7 +164,7 @@ def main():
             if val != 0 and numPixel != 0:
                 update_cdf = round(float(val) / float(numPixel), 6)
                 update_cdf = "UPDATE \"t%s\" SET cdf=%s WHERE (grey_value=%i)" % (
-                                                        iname, update_cdf, n)
+                    iname, update_cdf, n)
                 curs.execute(update_cdf)
 
         curs.execute("COMMIT")

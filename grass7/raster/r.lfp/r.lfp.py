@@ -87,7 +87,7 @@ def main():
     outletidcol = options["outlet_id_column"]
 
     calculate_lfp(input, output, idcol, id, coords, outlet, layer, outletidcol)
-                                            
+
 def calculate_lfp(input, output, idcol, id, coords, outlet, layer, outletidcol):
     prefix = "r_lfp_%d_" % os.getpid()
 

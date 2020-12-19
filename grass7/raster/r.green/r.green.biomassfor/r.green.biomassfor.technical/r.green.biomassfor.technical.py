@@ -53,7 +53,7 @@
 #% description: Vector field of stand surface (ha)
 #% required : yes
 #%end
-#%option 
+#%option
 #% key: forest_column_management
 #% type: string
 #% description: Vector field of forest management (1: high forest, 2:coppice)
@@ -72,7 +72,7 @@
 #% label: Vector map of forest roads
 #% required : yes
 #%end
-#%option 
+#%option
 #% key: output_basename
 #% type: string
 #% description: Basename for technical bioenergy (HF,CC and total)
@@ -217,23 +217,23 @@ def main(opts, flgs):
 
     output = opts['output_basename']
 
-    forest=opts['forest']
-    boundaries=opts['boundaries']
-    yield_=opts['forest_column_yield']
-    management=opts['forest_column_management']
-    treatment=opts['forest_column_treatment']
-    yield_surface=opts['forest_column_yield_surface']
-    roughness=opts['forest_column_roughness']
-    forest_roads=opts['forest_roads']
+    forest = opts['forest']
+    boundaries = opts['boundaries']
+    yield_ = opts['forest_column_yield']
+    management = opts['forest_column_management']
+    treatment = opts['forest_column_treatment']
+    yield_surface = opts['forest_column_yield_surface']
+    roughness = opts['forest_column_roughness']
+    forest_roads = opts['forest_roads']
 
-    rivers=opts['rivers']
-    lakes=opts['lakes']
+    rivers = opts['rivers']
+    lakes = opts['lakes']
 
-    vector_forest=opts['forest']
+    vector_forest = opts['forest']
 
-    tech_bioenergyHF=output+'_tech_bioenergyHF'
-    tech_bioenergyC=output+'_tech_bioenergyC'
-    tech_bioenergy=output+'_tech_bioenergy'
+    tech_bioenergyHF = output+'_tech_bioenergyHF'
+    tech_bioenergyC = output+'_tech_bioenergyC'
+    tech_bioenergy = output+'_tech_bioenergy'
 
     ######## start import and convert ########
 
@@ -259,22 +259,22 @@ def main(opts, flgs):
 
     ######## temp patch to link map and fields ######
 
-    management="management"
-    treatment="treatment"
-    yield_surface="yield_surface"
-    yield_="yield"
-    forest_roads="forest_roads"
+    management = "management"
+    treatment = "treatment"
+    yield_surface = "yield_surface"
+    yield_ = "yield"
+    forest_roads = "forest_roads"
 
     ######## end temp patch to link map and fields ######
 
 
-    if roughness=='':
+    if roughness == '':
         run_command("r.mapcalc",overwrite=ow,expression='roughness=0')
-        roughness='roughness'
+        roughness = 'roughness'
     else:
         run_command("v.to.rast", input=forest,output="roughness", use="attr", attrcolumn=roughness,overwrite=True)
         run_command("r.null", map='roughness',null=0)
-    
+
     CCEXTR = 'cable_crane_extraction = if('+yield_+'>0 && slope>'+opts['slp_min_cc']+' && slope<='+opts['slp_max_cc']+' && extr_dist<'+opts['dist_max_cc']+', 1)'
 
     FWEXTR = 'forwarder_extraction = if('+yield_+'>0 && slope<='+opts['slp_max_fw']+' && '+management+'==1 && ('+roughness+'==0 || '+roughness+'==1 || '+roughness+'==99999) && extr_dist<'+opts['dist_max_fw']+', 1)'
@@ -285,8 +285,8 @@ def main(opts, flgs):
 
     ECC = tech_bioenergyC+' = technical_surface*(if('+management+' == 2, yield_pix*'+opts['energy_tops_cop']+'))'
 
-    ET=tech_bioenergy+' = ('+tech_bioenergyC+' + '+tech_bioenergyHF+')'
-    
+    ET = tech_bioenergy+' = ('+tech_bioenergyC+' + '+tech_bioenergyHF+')'
+
 
     run_command("r.param.scale", overwrite=ow,
                 input=opts['dtm'], output="morphometric_features",
@@ -300,27 +300,27 @@ def main(opts, flgs):
     run_command("r.null", map="morphometric_features", null=0)
 
 
-    
-    exprmap='frict_surf_extr = pix_cross + if(yield_pix1<=0, 99999) + if(morphometric_features==6, 99999)'
 
-    if rivers!='':
+    exprmap = 'frict_surf_extr = pix_cross + if(yield_pix1<=0, 99999) + if(morphometric_features==6, 99999)'
+
+    if rivers != '':
         run_command("v.to.rast", input=rivers,output="rivers", use="val", overwrite=True)
         run_command("r.null", map="rivers", null=0)
-        rivers="rivers"
-        exprmap+='+ if('+rivers+'>=1, 99999)'
+        rivers = "rivers"
+        exprmap += '+ if('+rivers+'>=1, 99999)'
 
-    if lakes!='':    
-        run_command("v.to.rast", input=lakes,output="lakes", use="val", overwrite=True)    
+    if lakes != '':
+        run_command("v.to.rast", input=lakes,output="lakes", use="val", overwrite=True)
         run_command("r.null", map="lakes", null=0)
-        lakes="lakes"
-        exprmap+='+ if('+lakes+'>=1, 99999)'
+        lakes = "lakes"
+        exprmap += '+ if('+lakes+'>=1, 99999)'
 
-     
+
 
     #morphometric_features==6 -> peaks
     #run_command("r.mapcalc", overwrite=ow,expression='frict_surf_extr = if(morphometric_features==6, 99999) + if(rivers>=1 || lakes>=1, 99999) + if(yield_pix1<=0, 99999) + pix_cross')
     run_command("r.mapcalc", overwrite=ow,expression=exprmap)
-    
+
     run_command("r.cost", overwrite=ow,
                 input="frict_surf_extr", output="extr_dist",
                 stop_points=vector_forest, start_rast=forest_roads,
@@ -361,8 +361,8 @@ def main(opts, flgs):
     print("Total bioenergy stimated (Mwh): %.2f" % np.nansum(T))
 
 
-    if flgs['r'] == True:
-         remove_map(opts, flgs)
+    if flgs['r']:
+        remove_map(opts, flgs)
 
 
 

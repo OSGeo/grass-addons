@@ -6,7 +6,7 @@ from ruamel.yaml import YAML
 from .runner import estimap_test_runner
 
 
-yaml=YAML(typ="safe", pure=True)
+yaml = YAML(typ="safe", pure=True)
 
 
 def pytest_collect_file(parent, path):

@@ -96,8 +96,8 @@ import operator
 import numpy as np
 
 def main():
-    import matplotlib #required by windows
-    matplotlib.use('wxAGG') #required by windows
+    import matplotlib  # required by windows
+    matplotlib.use('wxAGG')  # required by windows
     import matplotlib.pyplot as plt
 
     # input
@@ -119,46 +119,46 @@ def main():
     flag_o = not flags['o']
     flag_n = flags['n']
     flag_r = flags['r']
-    
+
     # Get data with where clause
     if where:
-        df=[x for x in gscript.read_command('v.db.select',
+        df = [x for x in gscript.read_command('v.db.select',
                                             map_=vector,
                                             column=cols,
                                             where=where,
                                             flags='c').splitlines()]
     # Get all column data
     else:
-        df=[x for x in gscript.read_command('v.db.select',
+        df = [x for x in gscript.read_command('v.db.select',
                                             map_=vector,
                                             column=cols,
                                             flags='c').splitlines()]
     # for grouped boxplot
     if group_by:
         # Split columns and create list with data and with labels
-        df=[x.split('|') for x in df]
+        df = [x.split('|') for x in df]
         vals = [float(i[1]) for i in df]
-        groups = [i[0] for i in df] 
+        groups = [i[0] for i in df]
         uid = list(set(groups))
         data = []
         sf = []
         for i,m in enumerate(uid):
-            a = [ j for j, grp in enumerate(groups) if grp == m]
+            a = [j for j, grp in enumerate(groups) if grp == m]
             data.append([vals[i] for i in a])
             sf.append([m, np.median([vals[i] for i in a])])
-        
+
         # Order boxes
         if sort:
             sf.sort(key = operator.itemgetter(1), reverse=reverse)
-        sf = [i[0] for i in sf] 
-        ii = { e: i for i, e in enumerate(sf) }
+        sf = [i[0] for i in sf]
+        ii = {e: i for i, e in enumerate(sf)}
         sfo = [(ii[e]) for i, e in enumerate(uid) if e in ii]
-      
+
         # Draw boxplot
         plt.boxplot(data, notch=flag_n, sym='gD', labels=uid, vert=flag_h,
                         showfliers=flag_o, positions=sfo)
     else:
-        data=[float(x) for x in df]
+        data = [float(x) for x in df]
         plt.boxplot(data, notch=flag_n, sym='gD', vert=flag_h,
                         showfliers=flag_o)
     if flag_r:
@@ -168,7 +168,7 @@ def main():
         plt.savefig(output)
     else:
         plt.show()
-        
+
 if __name__ == "__main__":
     options, flags = gscript.parser()
     main()

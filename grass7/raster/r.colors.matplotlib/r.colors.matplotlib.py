@@ -146,7 +146,7 @@ def main(options, flags):
     if os.path.isfile(name):
         ns = {'__name__': '',
               '__file__': os.path.basename(name),
-        }
+              }
 
         with open(name) as f:
             code = compile(f.read(),

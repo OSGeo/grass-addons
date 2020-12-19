@@ -1,7 +1,7 @@
 
 MODULE_TOPDIR = ../..
 
-PGM=v.area.stats
+PGM = v.area.stats
 
 LIBES = $(VECTORLIB) $(DBMILIB) $(GISLIB) $(MATHLIB)
 DEPENDENCIES = $(VECTORDEP) $(DBMIDEP) $(GISDEP)

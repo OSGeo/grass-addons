@@ -24,7 +24,7 @@ class TestPyGBIFImport(TestCase):
     def tearDownClass(cls):
         """Remove the temporary region
         """
-        cls.runModule("g.remove",  flags="rf",  type="vector",
+        cls.runModule("g.remove", flags="rf", type="vector",
                                    name="gbif_poa3")
         cls.del_temp_region()
 
@@ -44,7 +44,7 @@ class TestPyGBIFImport(TestCase):
         self.assertModule(v_in_pygbif_count)
         stdout_count = v_in_pygbif_count.outputs.stdout
 
-        self.assertTrue(int(stdout_count.split(" ")[1])>=250)
+        self.assertTrue(int(stdout_count.split(" ")[1]) >= 250)
 
     def test_poa_map(self):
 

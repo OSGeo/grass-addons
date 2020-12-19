@@ -162,7 +162,7 @@ def main(opt, flg):
     rasters = opt['rasters'].split(',') if opt['rasters'] else []
     rprefix = opt['rprefix'].split(',') if opt['rprefix'] else []
 
-    split = lambda x: x.split('@') if '@' in x else (x, '')
+    def split(x): return x.split('@') if '@' in x else (x, '')
 
     vname, vmset = split(opt['vector'])
     shpcsv = opt['shpcsv'] if opt['shpcsv'] else vname + '.csv'
@@ -195,7 +195,7 @@ def main(opt, flg):
     if not get_mapset_raster(zones):
         get_zones(opt['vector'], zones, layer)
     if not rstcsv or not os.path.exists(rstcsv[0]):
-        get_rst_csv(rasters, zones, rstcsv, rstpercentile, overwrite, 
+        get_rst_csv(rasters, zones, rstcsv, rstpercentile, overwrite,
                     nprocs, separator)
 
     newlink = Link(newlayer, newlayername, newtabname)

@@ -33,7 +33,7 @@
 #% required : no
 #%end
 
-#%option G_OPT_I_SUBGROUP 
+#%option G_OPT_I_SUBGROUP
 #% description: Subroup used to print signature file
 #% required : no
 #%end
@@ -65,7 +65,7 @@ def main():
     except ValueError:
         name = group
         mapset = gisenv['MAPSET']
-    
+
     output_str = "The following signature files would be deleted:\n"
     for sign in signs.split(','):
         path = os.path.join(gisenv['GISDBASE'], gisenv['LOCATION_NAME'])
@@ -86,7 +86,7 @@ def main():
         else:
             output_str += "{gr}/{su}/{sig}\n".format(gr=group, su=sub,
                                                      sig=sign)
-    
+
     if not rem:
         print(output_str.rstrip())
         grass.warning(_("Nothing removed. You must use the force flag (-f) "
