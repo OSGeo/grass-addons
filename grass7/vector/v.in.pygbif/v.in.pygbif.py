@@ -182,8 +182,6 @@ import sys
 
 # import os
 import math
-from osgeo import ogr, osr
-from osgeo import __version__ as gdal_version
 import grass.script as grass
 from grass.pygrass.vector import Vector
 from grass.pygrass.vector import VectorTopo
@@ -832,5 +830,13 @@ def main():
 
 # Run the module
 if __name__ == "__main__":
+    try:
+        from osgeo import ogr, osr
+        from osgeo import __version__ as gdal_version
+    except ImportError:
+        grass.fatal(_("Unable to load GDAL Python bindings (requires "
+                      "package 'python-gdal' or Python library GDAL "
+                      "to be installed)."))
+
     options, flags = grass.parser()
     sys.exit(main())
