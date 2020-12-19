@@ -170,4 +170,3 @@ class TestAnt(unittest.TestCase):
         self.pg = None
         self.world = None
         self.agent = None
-

@@ -198,7 +198,7 @@ def main(options, flags):
     # Write results to csv file
     if OPF:
         IND = [["Statistic", "Layer 1", "Layer 2", "value"]] + \
-                Dind + Iind + Cind
+            Dind + Iind + Cind
         import csv
         with open(OPF, "wb") as f:
             writer = csv.writer(f)

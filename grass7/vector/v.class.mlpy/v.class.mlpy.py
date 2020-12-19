@@ -115,6 +115,7 @@ class Classifier:
 
     It does not uses numpy in the interface bu this may be wrong.
     """
+
     def __init__(self):
         try:
             import mlpy

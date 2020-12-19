@@ -12,7 +12,7 @@
 #               License (>=v2). Read the file COPYING that comes with GRASS
 #               for details.
 #
-# TODO: use "BEGIN TRANSACTION" 
+# TODO: use "BEGIN TRANSACTION"
 #            or f.write("{}\n".format(grass.db_begin_transaction(fi['driver']))) ?
 #############################################################################
 

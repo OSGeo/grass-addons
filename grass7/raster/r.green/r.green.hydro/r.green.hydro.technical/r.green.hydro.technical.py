@@ -377,11 +377,12 @@ def losses_Strickler(discharge, length, diameter, theta, velocity, ks=75):
     # circolar section
     r = diameter * 0.5
     A = 0.5 * r**2 * (2 * pi - theta + sin(theta))
-    pw = r * (2* pi - theta)
+    pw = r * (2 * pi - theta)
     Rh = A / pw
 
     if round(discharge / A, 5) == round(velocity, 5):
-        import ipdb; ipdb.set_trace()
+        #import ipdb
+        #ipdb.set_trace()
 
     # i = v**2 / (ks**2 * Rh ** (4/3))
     # hs = i * l
@@ -389,7 +390,7 @@ def losses_Strickler(discharge, length, diameter, theta, velocity, ks=75):
 
 
 def singular_losses(gross_head, length, discharge, diameter_penstock):
-    
+
     if diameter_penstock != 0 and gross_head != 0:
 
         h_sing = (1. / (2. * 9.81) +
@@ -426,7 +427,7 @@ def compute_losses(struct, options,
             ('net_head', 'DOUBLE')]
     add_columns(struct, cols)
     # power column renamed?
-    
+
     # extract intake id
     list_intakeid = list(set(struct.table.execute('SELECT intake_id FROM %s' %
                                                   struct.table.name).fetchall()
@@ -443,9 +444,9 @@ def compute_losses(struct, options,
             # FIXME: it is not physical possible that it is <0
             line.attrs['sg_losses'] = 0
             line.attrs['gross_head'] = 0
-            line.attrs['losses'] = 0          
+            line.attrs['losses'] = 0
         else:
-            
+
             length = line.length()
             losses = 0
             if length > 0 and discharge > 0:
@@ -461,7 +462,8 @@ def compute_losses(struct, options,
                         msgr.warning("To check length of penstock,"
                                      "gross head greater than "
                                      "length")
-                        import ipdb; ipdb.set_trace()
+                        #import ipdb
+                        #ipdb.set_trace()
                     losses = losses_Colebrooke(discharge, length,
                                                diameter, roughness_penstock)
                     # when you compute alpha (see manual) the lenght of the
@@ -493,7 +495,7 @@ def compute_losses(struct, options,
 
             line.attrs['losses'] = losses  # in [m]
             # TODO: fix as function of velocity
-                    # TODO: check when gross_head>length not physically
+            # TODO: check when gross_head>length not physically
     # save the changes
     struct.table.conn.commit()
 
@@ -528,11 +530,11 @@ def compute_losses(struct, options,
                     line.attrs['kind'] == 'penstock'):
                 line.attrs['tot_losses'] = totallosses0 + sing_losses
                 tot_losses = float(line.attrs['tot_losses'])
-                line.attrs['net_head'] = max(0.0, line.attrs['gross_head'] 
+                line.attrs['net_head'] = max(0.0, line.attrs['gross_head']
                                              - tot_losses)
                 # net_head = float(line.attrs['net_head'])
                 if tot_losses > line.attrs['gross_head']:
-                                    
+
                     msgr.warning(("Losses greater than gross_head, %i"
                                       % (line.cat)))
 
@@ -541,10 +543,10 @@ def compute_losses(struct, options,
                     line.attrs['kind'] == 'penstock'):
                 line.attrs['tot_losses'] = totallosses1 + sing_losses
                 tot_losses = float(line.attrs['tot_losses'])
-                line.attrs['net_head'] = max(0.0, line.attrs['gross_head'] 
+                line.attrs['net_head'] = max(0.0, line.attrs['gross_head']
                                              - tot_losses)
                 if tot_losses > line.attrs['gross_head']:
-                    
+
                     msgr.warning(("Losses greater than gross_head, %i"
                                       % (line.cat)))
                 # net_head = float(line.attrs['net_head'])
@@ -569,12 +571,12 @@ def compute_power(struct, list_intakeid, turbine_list, turbine_folder,
 
     # TODO: make it more readable/pythonic
     for line in struct:
-        # TODO: in one query 
+        # TODO: in one query
         net_head = float(line.attrs['net_head'])
         gross_head = float(line.attrs['gross_head'])
         discharge = float(line.attrs['discharge'])
 
-        if net_head >= 0 and gross_head > 0 and discharge>0:
+        if net_head >= 0 and gross_head > 0 and discharge > 0:
             possible_turb = turb_char(net_head, discharge,
                                       turbine_list, turbine_folder)
             efficiency = np.zeros(len(possible_turb))
@@ -748,7 +750,7 @@ def main(options, flags):
                                        ks_derivation)
 
         compute_power(struct, list_intakeid, turbine_list, turbine_folder,
-                      efficiency_shaft, efficiency_alt, efficiency_transf) 
+                      efficiency_shaft, efficiency_alt, efficiency_transf)
 
     with VectorTopo(output_plant, mode='rw') as out, \
             VectorTopo(output_struct, mode='r') as struct:
@@ -773,7 +775,7 @@ def main(options, flags):
                         seg.attrs[col] = value
         out.table.conn.commit()
 
-    power2energy(output_plant, 'power', float(options['n']))  
+    power2energy(output_plant, 'power', float(options['n']))
 
 
 if __name__ == "__main__":

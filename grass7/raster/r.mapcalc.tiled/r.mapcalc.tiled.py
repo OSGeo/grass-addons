@@ -110,8 +110,8 @@ def main():
         mapset_prefix = options['mapset_prefix']
 
 
-    kwargs = {'expression' : expression,
-              'quiet' : True}
+    kwargs = {'expression': expression,
+              'quiet': True}
 
     if output:
         output_mapname = output

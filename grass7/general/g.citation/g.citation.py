@@ -389,7 +389,7 @@ def internal_to_csl_json(citation):
         authors.append({
             'family': name['family'],
             'given': name['given']
-            })
+        })
     return {
         'id': citation['module'],
         'issued': {
@@ -410,7 +410,7 @@ except ImportError:
 
 
 def print_using_citeproc(csl_json, keys, style):
-    
+
     from citeproc import CitationStylesStyle, CitationStylesBibliography
     from citeproc import Citation, CitationItem
     from citeproc import formatter
@@ -461,6 +461,7 @@ def author_name_to_cff(text):
     particles = ["von", "van", "der", "di", "de"]
     suffixes = ["jr", "jnr", "sr", "snr", "junior", "senior"]
     roman = "IVX"  # if you are 40th, we will fix it for you
+
     def is_suffix(text):
         text = text.lower()
         for suffix in suffixes:
@@ -471,6 +472,7 @@ def author_name_to_cff(text):
         if text.isupper():
             bool([char for char in text if char in roman])
         return False
+
     def is_middle_initial(text):
         if text.isupper():
             if  len(text) == 2 and text.endswith('.'):
@@ -736,7 +738,7 @@ def grass_cff_reference(grass_version, scope=None):
     citation['authors'] = [
         {'name': "The GRASS Development Team",
          'website': "http://grass.osgeo.org/"}
-        ]
+    ]
     citation['title'] = "GRASS GIS {version}".format(**grass_version)
     citation['version'] = grass_version['version']
     # approximation
@@ -745,7 +747,7 @@ def grass_cff_reference(grass_version, scope=None):
     citation['keywords'] = [
         "GIS", "geospatial analysis", "remote sensing",
         "image processing"
-        ]
+    ]
     citation['license'] = 'GPL-2.0-or-later'
     return citation
 
@@ -784,8 +786,7 @@ def citation_for_module(name, add_grass=False):
 
 def get_core_modules():
     # TODO: see what get_commands() does on MS Windows
-    modules = list(gs.get_commands()[0])
-    modules.sort()
+    modules = sorted(gs.get_commands()[0])
     return modules
 
 

@@ -23,6 +23,7 @@ except (ImportError, NameError), err:
     errorMsg   = err
     print errorMsg
     GV_LINES   = -1
+
     class IRDigit:
         def __init__(self):
             pass
@@ -30,7 +31,7 @@ except (ImportError, NameError), err:
 class RDigit(IRDigit):
     def __init__(self, mapwindow):
         """!Base class of vector digitizer
-        
+
         @param mapwindow reference to mapwindow (mapdisp_window.BufferedWindow) instance
         """
         IRDigit.__init__(self, mapwindow)

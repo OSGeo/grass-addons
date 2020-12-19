@@ -444,7 +444,7 @@ def importR():
 
     if not robjects.r.require("automap", quietly=True)[0]:
         grass.warning(_("R package \"automap\" is missing. It provides variogram autofitting functionality and thus is recomended."))
-    
+
     # R packages check. Will create one error message after check of all packages.
     missingPackagesList = []
     for each in ["rgeos", "gstat", "rgrass7", "maptools", "rgdal", "sf"]:

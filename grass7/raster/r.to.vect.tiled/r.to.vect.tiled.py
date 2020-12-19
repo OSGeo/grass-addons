@@ -115,7 +115,7 @@ def main():
     xtiles = int(options['x'])
     ytiles = int(options['y'])
 
-    rtvflags=""
+    rtvflags = ""
     for key in 'sbtvz':
         if flags[key]:
             rtvflags += key

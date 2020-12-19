@@ -11,7 +11,7 @@ def determine_average_emissivity(
         landcover_map,
         avg_lse_expression,
         quiet=True,
-        ):
+):
     """
     Produce an average emissivity map based on FROM-GLC map covering the region
     of interest.
@@ -22,13 +22,13 @@ def determine_average_emissivity(
         msg = msg.format(exp=avg_lse_expression)
     g.message(msg)
     avg_lse_expression = replace_dummies(
-            avg_lse_expression,
-            instring=DUMMY_MAPCALC_STRING_FROM_GLC,
-            outstring=landcover_map,
+        avg_lse_expression,
+        instring=DUMMY_MAPCALC_STRING_FROM_GLC,
+        outstring=landcover_map,
     )
     avg_lse_equation = EQUATION.format(
-            result=outname,
-            expression=avg_lse_expression,
+        result=outname,
+        expression=avg_lse_expression,
     )
     grass.mapcalc(avg_lse_equation, overwrite=True)
 

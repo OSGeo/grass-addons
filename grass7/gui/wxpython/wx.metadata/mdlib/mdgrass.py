@@ -65,8 +65,8 @@ class GrassMD():
         self.gisenv_grass = grass.gisenv()  # dict with gisenv information
         # suffix of output xml file (variables)
         self.schema_type = '_basic.xml'
-        self.profileName='GRASS BASIC'
-        context=mdutil.StaticContext()
+        self.profileName = 'GRASS BASIC'
+        context = mdutil.StaticContext()
         self.dirpath = os.path.join(context.lib_path,'profiles')
         # metadata object from OWSLIB ( for define md values)
         self.md = mdutil.MD_MetadataMOD(md=None)
@@ -81,7 +81,7 @@ class GrassMD():
         elif self.type == "r3??":
             # TODO
             self.parseRast3D()
-        elif self.type=='strds' or self.type=='stvds':
+        elif self.type == 'strds' or self.type == 'stvds':
             self.parseTemporal()
 
     def isMapExist(self):
@@ -170,7 +170,7 @@ class GrassMD():
         #self.md_grass       dictionary of metadata from v.info
         #self.md_abstract    string created by merge information from 'description' and 'source'
         '''
-        map=str(self.map).partition('@')[0]
+        map = str(self.map).partition('@')[0]
         rinfo = Module('r.info',
                        map,
                        flags='gre',
@@ -195,23 +195,23 @@ class GrassMD():
         self.md_abstract.translate("""&<>"'""")
 
     def getEPSG(self):
-        proj=Module('g.proj',
+        proj = Module('g.proj',
                    flags='p',
                    quiet=True,
                    stdout_=PIPE)
 
-        proj=proj.outputs.stdout
-        lines=proj.splitlines()
+        proj = proj.outputs.stdout
+        lines = proj.splitlines()
         for e,line in enumerate(lines):
             if 'EPSG' in line:
-                epsg=lines[e+1].split(':')[1].replace(' ','')
+                epsg = lines[e+1].split(':')[1].replace(' ','')
                 return epsg
 
-        proj=Module('g.proj',
+        proj = Module('g.proj',
                    flags='wf',
                    quiet=True,
                    stdout_=PIPE)
-        proj=proj.outputs.stdout
+        proj = proj.outputs.stdout
 
         epsg = self.wkt2standards(proj)
 
@@ -276,7 +276,7 @@ class GrassMD():
         self.md.identification.uricodespace.append(n)
 
         self.md.identification.resourcelanguage.append('English')
-        self.md.languagecode ='English'
+        self.md.languagecode = 'English'
 
         val = CI_Date()
         val.date = mdutil.replaceXMLReservedChar(self.md_grass['creation_time'])
@@ -299,7 +299,7 @@ class GrassMD():
         self.md.identification.temporalType = mdutil.replaceXMLReservedChar(self.md_grass['temporal_type'])
 
         try:
-            gran=self.md_grass['granularity'].split(' ')
+            gran = self.md_grass['granularity'].split(' ')
             self.md.identification.timeUnit = mdutil.replaceXMLReservedChar(gran[1])
             self.md.identification.radixT = mdutil.replaceXMLReservedChar(gran[0])
             self.md.identification.factor = mdutil.replaceXMLReservedChar('1')
@@ -308,7 +308,7 @@ class GrassMD():
             self.md.identification.radixT = mdutil.replaceXMLReservedChar(None)
             self.md.identification.factor = mdutil.replaceXMLReservedChar(None)
 
-        self.md.dataquality.lineage= "TODO"
+        self.md.dataquality.lineage = "TODO"
         self.profilePathAbs = os.path.join(self.dirpath, self.profilePath)
 
     def createGrassBasicISO(self, profile=None):
@@ -364,9 +364,9 @@ class GrassMD():
         self.md.dataquality.conformancetitle.append(
             'GRASS GIS basic metadata profile based on ISO 19115, 19139')
 
-        epsg=self.getEPSG()
+        epsg = self.getEPSG()
         if epsg is not None:
-            self.md.referencesystem=MD_ReferenceSystem(None)
+            self.md.referencesystem = MD_ReferenceSystem(None)
             self.md.referencesystem.code = 'http://www.opengis.net/def/crs/EPSG/0/%s' % epsg
 
         #print self.md.referencesystem.code
@@ -427,7 +427,7 @@ class GrassMD():
         '''
 
         self.schema_type = '_inspire.xml'
-        self.profileName='INSPIRE'
+        self.profileName = 'INSPIRE'
 
         # create basic profile
         self.createGrassBasicISO()

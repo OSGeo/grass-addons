@@ -20,9 +20,9 @@ COPYRIGHT: (C) 2015 by the GRASS Development Team
 #% keyword: geometry
 #%end
 
-#%option G_OPT_F_BIN_INPUT  
+#%option G_OPT_F_BIN_INPUT
 #% key: input
-#% description: name of the IUCN Red List Spatial Data shapefile 
+#% description: name of the IUCN Red List Spatial Data shapefile
 #% required : yes
 #% guisection: GIS data
 #%end
@@ -43,7 +43,7 @@ COPYRIGHT: (C) 2015 by the GRASS Development Team
 
 #%flag
 #% key: l
-#% description: list species in IUCN Red List Spatial Data 
+#% description: list species in IUCN Red List Spatial Data
 #% guisection: listing
 #%end
 
@@ -78,51 +78,51 @@ def main():
     redlist_shapefile_short = os.path.basename(redlist_shapefile_long)
     species_filename = redlist_shapefile_short.split('.')[0]
     species_file = species_filename+'.txt'
-    global tmp         
+    global tmp
 
     # save species list to a user defined directory
 
-    if save_species :
-                
-                grass.message( "saving species list to a text file ..." )
-                output_species_file = os.path.join( directory, species_file )
-                # define ogr driver
-                driver = ogr.GetDriverByName("ESRI Shapefile")
-                # open data source
-                dataSource = driver.Open(redlist_shapefile_long, 0)
-                # get layer
-                layer = dataSource.GetLayer()
-                # open export file
-                f = open('%s' % (output_species_file), 'wb')
-                # write content of the attribute table column binomial
-                for feature in layer:
-                         f.write('%s\n' % (feature.GetField("binomial")))
-                f.close()
-                grass.message( "%s" % (output_species_file) )
+    if save_species:
 
-    # print species list of the shapefile        
-        
-    elif list_species :
-                
-                grass.message( "list species IUCN Red List Spatial Data ..." )
-                # define ogr driver
-                driver = ogr.GetDriverByName("ESRI Shapefile")
-                # open data source
-                dataSource = driver.Open(redlist_shapefile_long, 0)
-                # get layer
-                layer = dataSource.GetLayer()
-                for feature in layer:
-                                grass.message( '%s' % (feature.GetField("binomial")))        
+        grass.message("saving species list to a text file ...")
+        output_species_file = os.path.join(directory, species_file)
+        # define ogr driver
+        driver = ogr.GetDriverByName("ESRI Shapefile")
+        # open data source
+        dataSource = driver.Open(redlist_shapefile_long, 0)
+        # get layer
+        layer = dataSource.GetLayer()
+        # open export file
+        f = open('%s' % (output_species_file), 'wb')
+        # write content of the attribute table column binomial
+        for feature in layer:
+            f.write('%s\n' % (feature.GetField("binomial")))
+        f.close()
+        grass.message("%s" % (output_species_file))
+
+    # print species list of the shapefile
+
+    elif list_species:
+
+        grass.message("list species IUCN Red List Spatial Data ...")
+        # define ogr driver
+        driver = ogr.GetDriverByName("ESRI Shapefile")
+        # open data source
+        dataSource = driver.Open(redlist_shapefile_long, 0)
+        # get layer
+        layer = dataSource.GetLayer()
+        for feature in layer:
+            grass.message('%s' % (feature.GetField("binomial")))
 
     # import spatial data for a user defined species in the Red List
-        
-    else :                
 
-                grass.message( " importing spatial data for %s ..." % (imported_species_quoted) )
-                grass.run_command( "v.in.ogr", input = redlist_shapefile_long,
-                                                                output = species_to_import,
-                                                                where = "binomial = %s" % (imported_species_quoted),
-                                                                quiet = True)        
+    else:
+
+        grass.message(" importing spatial data for %s ..." % (imported_species_quoted))
+        grass.run_command("v.in.ogr", input = redlist_shapefile_long,
+                                                        output = species_to_import,
+                                                        where = "binomial = %s" % (imported_species_quoted),
+                                                        quiet = True)
 
 if __name__ == "__main__":
     options, flags = grass.parser()

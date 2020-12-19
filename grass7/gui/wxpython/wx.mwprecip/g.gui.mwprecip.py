@@ -37,8 +37,8 @@ import logging
 
 class DBconn(wx.ScrolledWindow):
     def __init__(self, parent, settings={}):
-        wx.ScrolledWindow.__init__(self, parent,  wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.VSCROLL)
-        self.SetScrollRate( 5, 5 )
+        wx.ScrolledWindow.__init__(self, parent, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL | wx.VSCROLL)
+        self.SetScrollRate(5, 5)
         self.settings = settings
         self.database = BaseInput(self, label='Name of database')
         self.user = BaseInput(self, label='User name')
@@ -110,8 +110,8 @@ class DBconn(wx.ScrolledWindow):
 
 class PointInterpolationPanel(wx.ScrolledWindow):
     def __init__(self, parent, settings=None):
-        wx.ScrolledWindow.__init__(self, parent,  wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.VSCROLL)
-        self.SetScrollRate( 5, 5 )
+        wx.ScrolledWindow.__init__(self, parent, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL | wx.VSCROLL)
+        self.SetScrollRate(5, 5)
         self.settings = settings
         self.interpolState = wx.CheckBox(self, label='interpolate points along links')
         self.interpolState.Bind(wx.EVT_CHECKBOX, self.onCheckInterpol)
@@ -156,8 +156,8 @@ class PointInterpolationPanel(wx.ScrolledWindow):
 
 class BaselinePanel(wx.ScrolledWindow):
     def __init__(self, parent, settings={}):
-        wx.ScrolledWindow.__init__(self, parent,  wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.VSCROLL)
-        self.SetScrollRate( 5, 5 )
+        wx.ScrolledWindow.__init__(self, parent, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL | wx.VSCROLL)
+        self.SetScrollRate(5, 5)
         self.settings = settings
 
         self.noDryWin = wx.RadioButton(self, label='Compute without dry window', style=wx.RB_GROUP)
@@ -290,8 +290,8 @@ class DataMgrRG(wx.Panel):
 
 class DataMgrMW(wx.ScrolledWindow):
     def __init__(self, parent, settings={}):
-        wx.ScrolledWindow.__init__(self, parent,  wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.VSCROLL)
-        self.SetScrollRate( 5, 5 )
+        wx.ScrolledWindow.__init__(self, parent, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL | wx.VSCROLL)
+        self.SetScrollRate(5, 5)
         self.settings = settings
 
         self.stBoxTWIN = wx.StaticBox(self, wx.ID_ANY, 'Time windows MW')
@@ -450,7 +450,7 @@ class GrassLayers(wx.Panel):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
         self.settings = settings
         self.colorRules = TextInput(self, label='Color table')
-        self.colorsName =ColorTablesComboBox(parent=self,
+        self.colorsName = ColorTablesComboBox(parent=self,
                      size=globalvar.DIALOG_COMBOBOX_SIZE,
                      choices=GetColorTables())
         self.layout()
@@ -561,14 +561,14 @@ class ExportData(wx.Panel):
 
 class MWMainFrame(wx.Frame):
     def __init__(self, parent, id, title):
-        wx.Frame.__init__(self, parent, id, title,style=wx.DEFAULT_FRAME_STYLE )
+        wx.Frame.__init__(self, parent, id, title,style=wx.DEFAULT_FRAME_STYLE)
         self.SetIcon(wx.Icon(os.path.join(globalvar.ICONDIR, 'grass.ico'), wx.BITMAP_TYPE_ICO))
 
         #logging.getLogger().addHandler(logging.StreamHandler())
         self.initConsoleLogger()
         self.worker = None
-        self.logger=None
-        context=StaticContext()
+        self.logger = None
+        context = StaticContext()
         self.workPath = context.getTmpPath()
         self.initWorkingFoldrs()
         self.settings = {}
@@ -576,7 +576,7 @@ class MWMainFrame(wx.Frame):
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         self.panelSizer = wx.BoxSizer(wx.VERTICAL)
         self.mainPanel = wx.Panel(self,id=wx.ID_ANY)
-        self.loggerCurrentProfile=""
+        self.loggerCurrentProfile = ""
         menubar = wx.MenuBar()
         settMenu = wx.Menu()
         databaseItem = settMenu.Append(wx.ID_ANY, 'Database', 'Set database')
@@ -603,7 +603,7 @@ class MWMainFrame(wx.Frame):
         self.dataMgrMW.getEndBtt.Bind(wx.EVT_BUTTON, self.getMaxTime)
         self.dataMgrMW.getStartBtt.Bind(wx.EVT_BUTTON, self.getMinTime)
 
-        self.baselinePnl=BaselinePanel(self.ntb)
+        self.baselinePnl = BaselinePanel(self.ntb)
 
         #self.dataMgrRG = DataMgrMW(self.ntb )
         #self.pointInter = PointInterpolationPanel(self.ntb)
@@ -639,7 +639,7 @@ class MWMainFrame(wx.Frame):
     def initFileLogger(self,path):
         fileHandler = logging.FileHandler(filename=path,mode="w")
         fileHandler.setLevel(logging.INFO)
-        fileFormater=logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+        fileFormater = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
         fileHandler.setFormatter(fileFormater)
         logging.getLogger('').addHandler(fileHandler)
         logging.getLogger('mwprecip.GUI')
@@ -654,7 +654,7 @@ class MWMainFrame(wx.Frame):
         root.addHandler(ch)
 
     def onAbout(self,evt):
-        dir=os.path.dirname(os.path.realpath(__file__))
+        dir = os.path.dirname(os.path.realpath(__file__))
         GMessage(
             "wx.mwprecip\n\nVersion: {} \nDirectory: {}".format(
                 VERSION, dir,
@@ -827,7 +827,7 @@ class MWMainFrame(wx.Frame):
             dlg.Destroy()
             self.initWorkingFoldrs()
             self.profilSelection.Clear()
-            self.settingsLst=[]
+            self.settingsLst = []
             self.findProject()
 
         GMessage('Working path destination: %s' % self.workPath,self)
@@ -887,7 +887,7 @@ class MWMainFrame(wx.Frame):
         path = OnSaveAs(self)
         if not self.OnSaveSettings(toFile=False):
             return
-        if not self.exportDMgr.chkprecip.GetValue(): #if export only data from sql without computing
+        if not self.exportDMgr.chkprecip.GetValue():  # if export only data from sql without computing
             attrTmp1 = ['link.linkid']
             attrTmp2 = []
             attrTmp3 = []
@@ -956,7 +956,7 @@ class MWMainFrame(wx.Frame):
             interface.initBaseline()
             interface.Run()
             if interface.connStatus:
-                conn= interface.dbConn
+                conn = interface.dbConn
                 sql = 'SELECT * FROM %s.%s' % (interface.dbConn.schema, interface.dbConn.computedPrecip)
                 res = conn.connection.executeSql(sql, True, True)
 
@@ -976,13 +976,13 @@ class MWMainFrame(wx.Frame):
         self.exportDialog.Destroy()
 
     def startProcess(self,evt=None):
-        profilePath=os.path.join(self.workPath,"logs")
+        profilePath = os.path.join(self.workPath,"logs")
         if not os.path.exists(profilePath):
             os.mkdir(profilePath)
-        self.initFileLogger(os.path.join(profilePath,"%s.log"% self.settings['workSchema']))
+        self.initFileLogger(os.path.join(profilePath,"%s.log" % self.settings['workSchema']))
         print("file logger initialized")
 
-        self.thread=gThread()
+        self.thread = gThread()
         self.thread.Run(callable=self.runComp,
                         ondone=self.onFinish)
         self.computeBtt.Enable()
@@ -1045,8 +1045,8 @@ class Gui2Model():
         self.settings = settings
         self.dbConn = None
         self.connStatus = False
-        self.conninfo=None
-        self.workPath=path
+        self.conninfo = None
+        self.workPath = path
 
     def checkConn(self):
         try:
@@ -1108,13 +1108,13 @@ class Gui2Model():
             convertor.grass_vinASCII(linksASCII, self.dbConn.linkVecMapName)
 
     def initPInterpolation(self):
-        run=0
+        run = 0
         if 'pitypeDist' in self.settings:
             pitypeDist = self.settings['pitypeDist']
-            run+=1
+            run += 1
         if 'pivalue' in self.settings:
             pivalue = self.settings['pivalue']
-            run+=1
+            run += 1
         else:
             self.errMsg('Missing value for interpolating points along lines')
         if run == 2:

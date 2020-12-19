@@ -67,6 +67,7 @@ def generate_ptsround(radio, radio2, azimut, center):
 class InterAlign(object):
     """ Return
     """
+
     def __init__(self, name_map, cat):
         """ Return
         """
@@ -125,6 +126,7 @@ class InterAlign(object):
 class Intersections(object):
     """ Return
     """
+
     def __init__(self, name_map1, cat1, izq1, name_map2, cat2, izq2,
                  inout=None, rounda=None):
         """ Return
@@ -387,10 +389,10 @@ class Intersections(object):
         else:
             if self.plant2.param < 0:
                 beta = -1 * self.izq1 * self.izq2 * \
-                       self._get_alpha(azi_c1c, pto_t1.azimuth(pto_c))
+                    self._get_alpha(azi_c1c, pto_t1.azimuth(pto_c))
             else:
                 beta = self.izq1 * self.izq2 * \
-                       self._get_alpha(azi_c1c, pto_c.azimuth(pto_t1))
+                    self._get_alpha(azi_c1c, pto_c.azimuth(pto_t1))
 
             pto_p = pto_c.project(radio, pto_c.azimuth(pto_t1) + beta / 2)
 

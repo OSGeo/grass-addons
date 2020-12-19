@@ -163,7 +163,7 @@ def main():
 
     # Check type of timestamp column
     cols = grass.vector_columns(input, layer=layer)
-    if not timestamp_column in cols.keys():
+    if timestamp_column not in cols.keys():
         grass.fatal(_('Could not find column {} \
                     in table connected to vector map {} \
                     at layer {}'.format(timestamp_column, input, layer)))
@@ -255,4 +255,3 @@ def main():
 if __name__ == "__main__":
     options, flags = grass.parser()
     main()
-

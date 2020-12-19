@@ -12,7 +12,7 @@
 #               calculated again after removing the variables with the highest
 #               VIF. This will be repeated till the VIF falls below the user
 #               defined VIF threshold value.
- #
+#
 # COPYRIGHT: (C) 2015 - 2017 Paulo van Breugel and the GRASS Development Team
 #
 #            This program is free software under the GNU General Public
@@ -232,7 +232,7 @@ def main(options, flags):
     if MXVIF == '':
         # Print header of table to std output
         print('{0[0]:{1}s} {0[1]:8s} {0[2]:8s}'.format(
-                ['variable', 'vif', 'sqrtvif'], nlength))
+            ['variable', 'vif', 'sqrtvif'], nlength))
 
         # Compute the VIF
         for i, e in enumerate(IPFn):

@@ -968,7 +968,7 @@ def main():
             best_values[region] = []
             if rg:
                 best_values[region].append(
-                        [threshlist[0], minsizelist[0], -1])
+                    [threshlist[0], minsizelist[0], -1])
             else:
                 best_values[region].append([threshlist[0], hrlist[0],
                                                 radiuslist[0], minsizelist[0],

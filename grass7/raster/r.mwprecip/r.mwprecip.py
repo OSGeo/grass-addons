@@ -3,7 +3,8 @@
 import os
 import sys
 import argparse
-import string, random
+import string
+import random
 import math
 import timeit
 import time
@@ -278,7 +279,7 @@ def intrpolatePoints(db):
     io.close
 
     sql = "create table %s.%s (linkid integer,long real,lat real,point_id serial PRIMARY KEY) " % (
-    schema_name, nametable)  # create table where will be intrpol. points.
+        schema_name, nametable)  # create table where will be intrpol. points.
     db.executeSql(sql, False, True)
 
     latlong = []  # list of  [lon1 lat1 lon2 lat2]
@@ -313,7 +314,7 @@ def intrpolatePoints(db):
         az = bearing(lat1, lon1, lat2, lon2)  # compute approx. azimut on sphere
         a += 1
 
-        if options['pmethod'].find('p') != -1:  ##compute per distance interval
+        if options['pmethod'].find('p') != -1:  # compute per distance interval
             while abs(dist) > step:  # compute points per step while is not achieve second node on link
                 lat1, lon1, az, backBrg = destinationPointWGS(lat1, lon1, az,
                                                               step)  # return interpol. point and set current point as starting point(for next loop), also return azimut for next point
@@ -323,7 +324,7 @@ def intrpolatePoints(db):
                     x) + "\n"  # set string for one row in table with interpol points
                 temp.append(out)
 
-        else:  ## compute by dividing distance to sub-distances
+        else:  # compute by dividing distance to sub-distances
             step1 = dist / (step + 1)
             for i in range(0, int(step)):  # compute points per step while is not achieve second node on link
                 lat1, lon1, az, backBrg = destinationPointWGS(lat1, lon1, az,
@@ -342,12 +343,12 @@ def intrpolatePoints(db):
     io1.close()
 
     sql = "SELECT AddGeometryColumn  ('%s','%s','geom',4326,'POINT',2); " % (
-    schema_name, nametable)  # add geometry column for computed interpolated points
+        schema_name, nametable)  # add geometry column for computed interpolated points
     db.executeSql(sql, False, True)
 
     sql = "UPDATE %s.%s SET geom = \
     (ST_SetSRID(ST_MakePoint(long, lat),4326)); " % (
-    schema_name, nametable)  # make geometry for computed interpolated points
+        schema_name, nametable)  # make geometry for computed interpolated points
     db.executeSql(sql, False, True)
 
     sql = "alter table %s.%s drop column lat" % (schema_name, nametable)  # remove latitde column from table
@@ -383,7 +384,7 @@ def destinationPointWGS(lat1, lon1, brng, s):
         ss1 = sin(s1)
         cs1 = cos(s1)
         ds1 = B * ss1 * (cs1m + B / 4 * (
-                    cs1 * (-1 + 2 * cs1m * cs1m) - B / 6 * cs1m * (-3 + 4 * ss1 * ss1) * (-3 + 4 * cs1m * cs1m)))
+            cs1 * (-1 + 2 * cs1m * cs1m) - B / 6 * cs1m * (-3 + 4 * ss1 * ss1) * (-3 + 4 * cs1m * cs1m)))
         s1p = s1
         s1 = s / (b * A) + ds1
     # Continue calculation after the loop.
@@ -812,7 +813,7 @@ def computeBaselinFromMode(db, linktb, recordtb):
     schema_name = options['schema']
     # round value
     sql = "create table %s.tempround as select round(a::numeric,%s) as a, linkid from %s" % (
-    schema_name, options['roundm'], recordtb)
+        schema_name, options['roundm'], recordtb)
     db.executeSql(sql, False, True)
     # compute mode for current link
     for linkid in linksid:
@@ -879,11 +880,11 @@ def computeBaselineFromTime(db):
                         grass.fatal("Input data is not valid. Parameter 'baselitime'")
                     st += tot.replace("\n", "")
                     sql = "select linkid, avg(txpower-rxpower)as a from record where time >='%s' and time<='%s' group by linkid order by 1" % (
-                    fromt, tot)
+                        fromt, tot)
                     resu = db.executeSql(sql, True, True)
                     tmp.append(resu)
 
-                else:  ##get baseline one moment
+                else:  # get baseline one moment
                     time = line.split("\n")[0]
                     ##validate input data
                     if not isTimeValid(time):
@@ -893,7 +894,7 @@ def computeBaselineFromTime(db):
                     fromt = time + timedelta(seconds=-60)
                     tot = time + timedelta(seconds=+60)
                     sql = "select linkid, avg(txpower-rxpower)as a from record where time >='%s' and time<='%s' group by linkid order by 1" % (
-                    fromt, tot)
+                        fromt, tot)
                     resu = db.executeSql(sql, True, True)
                     tmp.append(resu)
 
@@ -907,7 +908,7 @@ def computeBaselineFromTime(db):
         ## sum all baseline per every linkid from get baseline dataset(next step avg)
         for dataset in tmp:
             mydict = {int(rows[0]): float(rows[1]) for rows in dataset}
-            if i == True:
+            if i:
                 mydict1 = mydict
                 i = False
                 continue
@@ -953,11 +954,11 @@ def computeBaselineFromTime(db):
                         grass.fatal("Input data is not valid. Parameter 'baselitime'")
                     st += tot.replace("\n", "")
                     sql = "select linkid, txpower-rxpower as a from record where time >='%s' and time<='%s'" % (
-                    fromt, tot)
+                        fromt, tot)
                     resu = db.executeSql(sql, True, True)
                     resu += resu
 
-                else:  ##get baseline one moment
+                else:  # get baseline one moment
                     time = line.split("\n")[0]
                     if not isTimeValid(time):
                         grass.fatal("Input data is not valid. Parameter 'baselitime'")
@@ -967,7 +968,7 @@ def computeBaselineFromTime(db):
                     tot = time + timedelta(seconds=+60)
 
                     sql = "select linkid, txpower-rxpower as a from record where time >='%s' and time<='%s'" % (
-                    fromt, tot)
+                        fromt, tot)
                     resu = db.executeSql(sql, True, True)
 
                     resu += resu
@@ -1237,7 +1238,7 @@ def computePrecip(db):
     link_num = db.count("link")
     ##select values for computing
     sql = " select time, txpower-rxpower as a,lenght,polarization,frequency,linkid from %s order by recordid limit %d ; " % (
-    record_tb_name, xx)
+        record_tb_name, xx)
     resu = db.executeSql(sql, True, True)
 
     sql = "create table %s.%s ( linkid integer,time timestamp, precip real);" % (schema_name, comp_precip)
@@ -1326,7 +1327,7 @@ def makeTimeWin(db, typeid, table):
         %s ,round(avg(precip)::numeric,3) as precip_mm_h, date_trunc('%s',time)\
         as time  FROM %s.%s GROUP BY %s, date_trunc('%s',time)\
         ORDER BY time" % (
-    view_statement, schema_name, view_db, typeid, sum_precip, schema_name, table, typeid, sum_precip)
+        view_statement, schema_name, view_db, typeid, sum_precip, schema_name, table, typeid, sum_precip)
     data = db.executeSql(sql, False, True)
     stamp = ""
     stamp1 = ""
@@ -1419,7 +1420,7 @@ def makeTimeWin(db, typeid, table):
 
         # create view
         sql = "CREATE table %s.%s as select * from %s.%s where time=(timestamp'%s'+ %s * interval '1 second')" % (
-        schema_name, view_name, schema_name, view_db, timestamp_min, time_const)
+            schema_name, view_name, schema_name, view_db, timestamp_min, time_const)
         data = db.executeSql(sql, False, True)
 
         # compute cur_timestamp (need for loop)

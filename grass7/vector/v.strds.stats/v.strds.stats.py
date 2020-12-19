@@ -223,7 +223,7 @@ def main():
             try:
                 grass.run_command("v.rast.stats", map=output, raster=name,
                                   column=column_name,
-                                  method=methods,  percentile=percentile,
+                                  method=methods, percentile=percentile,
                                   quiet=quiet, overwrite=overwrite)
             except CalledModuleError:
                 dbif.close()

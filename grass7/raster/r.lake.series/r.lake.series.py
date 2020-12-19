@@ -191,9 +191,9 @@ def main():
         kwargs['coordinates'] = coordinates
 
     if flags['n']:
-        pass_flags='n'
+        pass_flags = 'n'
     else:
-        pass_flags=None
+        pass_flags = None
 
     for i, water_level in enumerate(water_levels):
         try:

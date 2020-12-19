@@ -55,7 +55,7 @@
 #% description: Vector field of stand surface (ha)
 #% guisection: Base
 #%end
-#%option 
+#%option
 #% key: forest_column_management
 #% type: string
 #% answer: management
@@ -69,7 +69,7 @@
 #% description: Vector field of forest treatment (1: final felling, 2:thinning)
 #% guisection: Base
 #%end
-#%option 
+#%option
 #% key: output_basename
 #% answer: biomassfor
 #% type: string
@@ -104,16 +104,16 @@ def main(opts, flgs):
 
     output = opts['output_basename']
 
-    forest=opts['forest']
-    boundaries=opts['boundaries']
-    increment=opts['forest_column_increment']
-    management=opts['forest_column_management']
-    treatment=opts['forest_column_treatment']
-    yield_surface=opts['forest_column_yield_surface']
+    forest = opts['forest']
+    boundaries = opts['boundaries']
+    increment = opts['forest_column_increment']
+    management = opts['forest_column_management']
+    treatment = opts['forest_column_treatment']
+    yield_surface = opts['forest_column_yield_surface']
 
-    p_bioenergyHF=output+'_t_bioenergyHF'
-    p_bioenergyC=output+'_t_bioenergyC'
-    p_bioenergy=output+'_t_bioenergy'
+    p_bioenergyHF = output+'_t_bioenergyHF'
+    p_bioenergyC = output+'_t_bioenergyC'
+    p_bioenergy = output+'_t_bioenergy'
 
     ######## start import and convert ########
 
@@ -136,34 +136,34 @@ def main(opts, flgs):
 
     ######## temp patch to link map and fields ######
 
-    management="management"
-    treatment="treatment"
-    yield_surface="yield_surface"
-    increment="increment"
+    management = "management"
+    treatment = "treatment"
+    yield_surface = "yield_surface"
+    increment = "increment"
 
     ######## end temp patch to link map and fields ######
 
 
     #import pdb; pdb.set_trace()
-    ECOHF = p_bioenergyHF+' = if('+management+'==1 && '+treatment+'==1 || '+management+' == 1 && '+treatment+'==99999, yield_pixp*%f, if('+management+'==1 && '+treatment+'==2, yield_pixp*%f + yield_pixp*%f))'                                     
+    ECOHF = p_bioenergyHF+' = if('+management+'==1 && '+treatment+'==1 || '+management+' == 1 && '+treatment+'==99999, yield_pixp*%f, if('+management+'==1 && '+treatment+'==2, yield_pixp*%f + yield_pixp*%f))'
 
 
     ECOCC = p_bioenergyC+' = if('+management+'==2, yield_pixp*'+opts['energy_tops_cop']+')'
 
-    ECOT=p_bioenergy+' = ('+p_bioenergyHF+' + '+p_bioenergyC+')'
+    ECOT = p_bioenergy+' = ('+p_bioenergyHF+' + '+p_bioenergyC+')'
 
     run_command("r.mapcalc", overwrite=ow,expression='yield_pixp = ('+increment+'/'+yield_surface+')*((ewres()*nsres())/10000)')
-       
+
     run_command("r.mapcalc", overwrite=ow,
                 expression=ECOHF % tuple(map(float, (opts['energy_tops_hf'],
                                                      opts['energy_tops_hf'],
                                                      opts['energy_cormometric_vol_hf'])))
-                                                     )
+                )
 
     run_command("r.mapcalc", overwrite=ow,expression=ECOCC)
 
     run_command("r.mapcalc", overwrite=ow,expression=ECOT)
-    
+
 
     with RasterRow(p_bioenergy) as pT:
         T = np.array(pT)

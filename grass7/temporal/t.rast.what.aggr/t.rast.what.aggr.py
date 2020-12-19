@@ -5,10 +5,10 @@
 # MODULE:       t.rast.what.aggr
 # AUTHOR(S):    Luca Delucchi
 #
-# PURPOSE:      Sample a space time raster dataset at specific vector point 
+# PURPOSE:      Sample a space time raster dataset at specific vector point
 #               map returning aggregate values and write the output to stdout
 #               or to attribute table
-#               
+#
 # COPYRIGHT:    (C) 2017 by the GRASS Development Team
 #
 #               This program is free software under the GNU General Public
@@ -52,7 +52,7 @@
 #% answer: -
 #%end
 
-#%option G_OPT_DB_COLUMNS 
+#%option G_OPT_DB_COLUMNS
 #%end
 
 #%option
@@ -149,7 +149,7 @@ def return_value(vals, met):
     elif met == 'perc90':
         return np.percentile(vals, 90)
     elif met == 'quantile':
-        return 
+        return
 
 def main(options, flags):
     import grass.pygrass.modules as pymod
@@ -195,7 +195,7 @@ def main(options, flags):
             except CalledModuleError:
                 gscript.fatal(_("Not possible to create column "
                                 "{col}".format(col=colname)))
-                             
+
     if output != '-' and len(cols) != len(mets):
         gscript.fatal(_("'columns' and 'method' options must have the same "
                         "number of elements"))
@@ -230,7 +230,7 @@ def main(options, flags):
     elif incol:
         try:
             dates = pymod.Module("db.select", flags='c', stdout_=PI,
-                                 stderr_=PI, sql="SELECT DISTINCT {dc} from " \
+                                 stderr_=PI, sql="SELECT DISTINCT {dc} from "
                                    "{vmap} order by {dc}".format(vmap=invect,
                                                                  dc=incol))
             mydates = dates.outputs["stdout"].value.splitlines()
@@ -253,7 +253,7 @@ def main(options, flags):
         qfeat = pymod.Module("v.category", stdout_=PI, stderr_=PI,
                              input=invect, option='print')
         myfeats = qfeat.outputs["stdout"].value.splitlines()
-    
+
     if stdout:
         outtxt = ''
     for data in mydates:
@@ -263,11 +263,11 @@ def main(options, flags):
             fdata = int(data)
         if flags['a']:
             sdata = fdata + td
-            mwhere="start_time >= '{inn}' and end_time < " \
+            mwhere = "start_time >= '{inn}' and end_time < " \
                    "'{out}'".format(inn=fdata, out=sdata)
         else:
             sdata = fdata - td
-            mwhere="start_time >= '{inn}' and end_time < " \
+            mwhere = "start_time >= '{inn}' and end_time < " \
                    "'{out}'".format(inn=sdata, out=fdata)
         lines = None
         try:
@@ -298,7 +298,7 @@ def main(options, flags):
                 outtxt += "\n"
         if not lines:
             continue
-        x=0
+        x = 0
         for line in lines:
             vals = line.split(separator)
             if vals[0] in myfeats:
@@ -318,7 +318,7 @@ def main(options, flags):
                     outtxt += "{di}{sep}{da}".format(di=vals[0], da=data,
                                                      sep=separator)
                 for n in range(len(mets)):
-                    result =  return_value(nvals, mets[n])
+                    result = return_value(nvals, mets[n])
                     if stdout:
                         outtxt += "{sep}{val}".format(val=result,
                                                       sep=separator)

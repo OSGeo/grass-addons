@@ -19,7 +19,7 @@
 #
 # REQUIREMENTS:
 #      -  uses inputs from r.stream.extract
- 
+
 # More information
 # Started December 2016
 
@@ -120,7 +120,7 @@ from grass import script as gscript
 
 def main():
     """
-    Import any raster or vector data set and add its attribute 
+    Import any raster or vector data set and add its attribute
     to a GSFLOW data object
     """
 
@@ -129,7 +129,7 @@ def main():
     ##################
 
     options, flags = gscript.parser()
-    
+
     # Parsing
     if options['attrtype'] == 'int':
         attrtype = 'integer'
@@ -139,11 +139,11 @@ def main():
         attrtype = 'varchar'
     else:
         attrtype = ''
-    
+
     ########################################
     # PROCESS AND UPLOAD TO DATABASE TABLE #
     ########################################
-    
+
     if options['vector_area'] is not '':
         gscript.use_temp_region()
         g.region(vector=options['map'], res=options['dxy'])
@@ -170,7 +170,7 @@ def main():
                          quiet=True)
             g.remove(type='raster', name='tmp___tmp', flags='f', quiet=True)
             v.db_renamecolumn(map=options['map'],
-                              column=['tmp_average',options['column']], 
+                              column=['tmp_average',options['column']],
                               quiet=True)
 
         else:
@@ -200,7 +200,7 @@ def main():
                             to=options['vector_points'],
                             upload='to_attr', to_column=options['from_column'],
                             column=options['column'], quiet=True)
-    
+
     elif options['raster'] is not '':
         try:
             gscript.message("Checking for existing column to overwrite")
@@ -210,7 +210,7 @@ def main():
         except:
             pass
         v.rast_stats(map=options['map'], raster=options['raster'],
-                     column_prefix='tmp', method='average', flags='c', 
+                     column_prefix='tmp', method='average', flags='c',
                      quiet=True)
         v.db_renamecolumn(map=options['map'],
                           column=['tmp_average',options['column']], quiet=True)

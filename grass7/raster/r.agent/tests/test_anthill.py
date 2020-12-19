@@ -98,4 +98,3 @@ class TestAnthill(unittest.TestCase):
         pass
 
 #    def tearDown(self):
-

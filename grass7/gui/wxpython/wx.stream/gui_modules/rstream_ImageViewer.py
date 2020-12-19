@@ -23,7 +23,8 @@ This program is free software under the GNU General Public License
 
 import wx
 import glob
-import os, sys
+import os
+import sys
 
 from debug import Debug as Debug
 from preferences import globalSettings as UserSettings
@@ -40,22 +41,22 @@ import menuform
 class ImgPanel(wx.Panel):
     """!Display selected image in the main window
     """
-    
+
     def __init__(self, parent, img):
         """"""
         wx.Panel.__init__(self, parent)
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.staticBitmap = wx.StaticBitmap(self, -1, img)
         self.PhotoMaxSize = 240
-        self.sizer.Add(self.staticBitmap, 1, wx.EXPAND)        
+        self.sizer.Add(self.staticBitmap, 1, wx.EXPAND)
         self.SetSizer(self.sizer)
         self.sizer.Layout()
-        
+
 
 
 class ListImg(wx.Listbook):
     """!Load png files *from current folder* and convert to bitmap"""
-    
+
     def __init__(self, parent):
         """"""
         wx.Listbook.__init__(self, parent, style=wx.BK_BOTTOM)
@@ -71,12 +72,12 @@ class ListImg(wx.Listbook):
             self.pages.append(ImgPanel(self, bmp))
             self.AddPage(self.pages[-1], "", imageId=imID)
         self.AssignImageList(self.ImL)
-            
-        # Binders    
+
+        # Binders
         self.Bind(wx.EVT_LISTBOOK_PAGE_CHANGED, self.OnPageChanged)
         self.Bind(wx.EVT_LISTBOOK_PAGE_CHANGING, self.OnPageChanging)
-        
-    
+
+
     def OnPageChanged(self, event):
         old = event.GetOldSelection()
         new = event.GetSelection()
@@ -99,7 +100,7 @@ class ImgFrame(wx.Frame):
 
     def __init__(self, pat):
         """"""
-       
+
         wx.Frame.__init__(self, None, wx.ID_ANY,
                           "Image Viewer",
                           size=(800,600)
@@ -108,7 +109,7 @@ class ImgFrame(wx.Frame):
         directory = pat
         panel = wx.Panel(self)
 
-        os.chdir(directory) 
+        os.chdir(directory)
         previews = ListImg(panel)
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(previews, 1, wx.ALL | wx.EXPAND, 5)
@@ -122,6 +123,3 @@ class ImgFrame(wx.Frame):
     #app = wx.PySimpleApp()
     #frame = ImgFrame()
     #app.MainLoop()
-
-
-

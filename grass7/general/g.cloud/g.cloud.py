@@ -108,7 +108,15 @@
 #%end
 
 # import library
-import os, sys, tarfile, ast, tempfile, getpass, itertools, collections, stat
+import os
+import sys
+import tarfile
+import ast
+import tempfile
+import getpass
+import itertools
+import collections
+import stat
 from types import *
 import grass.script as grass
 
@@ -132,7 +140,8 @@ if cloudpath:
 
 def transposed(lists):
     """ Function to transpose list of variables """
-    if not lists: return []
+    if not lists:
+        return []
     return map(lambda *row: list(row), *lists)
 
 
@@ -198,14 +207,14 @@ def copyMaps(conn, infiles, typ, home):
 def variablesCheck(listValue):
     """Function to check if all variables as the same length and
     return the values in a useful list"""
-    if type(listValue[0]) == ListType:
+    if isinstance(listValue[0], ListType):
         oldlen = len(listValue[0])
     else:
         grass.fatal(_('Values must be a Python list'))
     # check if all variables have the same lenght
     for i in listValue:
         if oldlen != len(i):
-            grass.fatal(_('Attention: the lists of values have different length\n' \
+            grass.fatal(_('Attention: the lists of values have different length\n'
                           'All the variables have to have the same number of values'))
     return transposed(listValue)
 
@@ -233,7 +242,7 @@ def reconnect(conn, pid, path, vari, home):
                                    location_name, "PERMANENT")
         grass.message(_("Job %s terminated, now coping the result data..." % pid))
         conn.ssh(
-            '"cd %s; tar --exclude=DEFAULT_WIND --exclude=PROJ_INFO --exclude=PROJ_UNITS --exclude=PROJ_EPSG -czf %s *;"' \
+            '"cd %s; tar --exclude=DEFAULT_WIND --exclude=PROJ_INFO --exclude=PROJ_UNITS --exclude=PROJ_EPSG -czf %s *;"'
             % (mapset_name, output_file))
         conn.pcs(output_file, path)
         new_mapset = os.path.join(vari['GISDBASE'], vari['LOCATION_NAME'], 'gcloud%s' % pid)

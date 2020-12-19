@@ -4,8 +4,8 @@
 #
 # MODULE:       v.what.spoly
 # AUTHOR(S):    Alexander Muriy
-#               (Institute of Environmental Geoscience, Moscow, Russia)  
-#               e-mail: amuriy AT gmail DOT com 
+#               (Institute of Environmental Geoscience, Moscow, Russia)
+#               e-mail: amuriy AT gmail DOT com
 #
 # PURPOSE:      Queries vector map with overlaping "spaghetti" polygons (e.g. Landsat footprints) at given location
 #
@@ -22,8 +22,8 @@
 #  GNU General Public License for more details.
 #
 ############################################################################
-#%Module 
-#%  description: Queries vector map with overlaping "spaghetti" polygons (e.g. Landsat footprints) at given location. Polygons must have not intersected boundaries. 
+#%Module
+#%  description: Queries vector map with overlaping "spaghetti" polygons (e.g. Landsat footprints) at given location. Polygons must have not intersected boundaries.
 #%  keyword: vector
 #%  keyword: topology
 #%End
@@ -55,7 +55,7 @@
 #%End
 #%Flag
 #%  key: p
-#%  description: Only print selected polygons 
+#%  description: Only print selected polygons
 #%End
 ############################################################################
 
@@ -72,8 +72,8 @@ try:
 except:
     print("Please install GDAL-Python bindings or add them to PYTHONPATH")
     sys.exit(1)
-    
-            
+
+
 def cleanup():
     inmap = options['input']
     nuldev = file(os.devnull, 'w')
@@ -88,7 +88,7 @@ def main():
     outmap = options['output']
     coor = options['coor']
     coor = coor.replace(',',' ')
-    
+
     global tmp, nuldev, grass_version
     nuldev = None
 
@@ -96,25 +96,25 @@ def main():
     tmp = grass.tempfile()
 
     # check for LatLong location
-    if grass.locn_is_latlong() == True:
+    if grass.locn_is_latlong():
         grass.fatal("Module works only in locations with cartesian coordinate system")
 
     # check if input file exists
     if not grass.find_file(inmap, element = 'vector')['file']:
         grass.fatal(_("<%s> does not exist.") % inmap)
-        
+
 
     ## DO IT ##
     ## add categories to boundaries
-    grass.run_command('v.category', input_ = inmap, option = 'add',\
-                      type_ = 'boundary', output = 'v_temp_bcats', \
+    grass.run_command('v.category', input_ = inmap, option = 'add',
+                      type_ = 'boundary', output = 'v_temp_bcats',
                       quiet = True, stderr = nuldev)
 
     ## export polygons to CSV + WKT
     tmp1 = tmp + '.csv'
     tmp2 = tmp + '2.csv'
-    grass.run_command('v.out.ogr', input_ = 'v_temp_bcats', output = tmp1, 
-                      format_ = "CSV", type_ = ('boundary'), 
+    grass.run_command('v.out.ogr', input_ = 'v_temp_bcats', output = tmp1,
+                      format_ = "CSV", type_ = ('boundary'),
                       lco = "GEOMETRY=AS_WKT", quiet = True, stderr = nuldev)
 
     ## convert lines to polygons
@@ -136,7 +136,7 @@ def main():
     ## make spatial query with coordinates
     coords = "%s %s" % (coor, coor)
     tmp3 = tmp + '_v_temp_select.shp'
-    cmd = 'ogr2ogr ' +  ' -spat ' + coords + ' ' + tmp3 + ' ' + tmp2 + ' ' + lyr_name
+    cmd = 'ogr2ogr ' + ' -spat ' + coords + ' ' + tmp3 + ' ' + tmp2 + ' ' + lyr_name
     os.system(cmd)
 
     ## open SHP with OGR and get layer name
@@ -149,12 +149,11 @@ def main():
         cmd = 'ogrinfo -al -fields=YES -geom=SUMMARY' + ' ' + tmp3 + ' ' + lyr_name
         os.system(cmd)
     else:
-        grass.run_command('v.in.ogr', input_ = tmp3, layer = lyr_name, \
+        grass.run_command('v.in.ogr', input_ = tmp3, layer = lyr_name,
                           output = outmap, flags = 'c', quiet = True, stderr = nuldev)
-    
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()
     atexit.register(cleanup)
     main()
-    

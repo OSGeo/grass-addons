@@ -307,7 +307,7 @@ class inputs(glob, test):
     dim = 0
 
     def __init__(self, skip_input):
-    # no. of lines to be skipped in the input file
+        # no. of lines to be skipped in the input file
         self.skip_input = int(skip_input)
         inputs.data, inputs.n, inputs.dim = self.raw_data()  # extract xyz
 
@@ -734,7 +734,7 @@ class layer(glob, Flag, vect_rules, layer_init):
         return 0
 
     def complete(self):
-    # modify file to respect standard format for lines and boundaries:
+        # modify file to respect standard format for lines and boundaries:
         self.out.close()        # close layer input file
         if self.vformat == 'standard':
             self.out_bckp.close()    # close backup file

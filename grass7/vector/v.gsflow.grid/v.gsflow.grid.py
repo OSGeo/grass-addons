@@ -17,7 +17,7 @@
 #
 # REQUIREMENTS:
 #      -  uses inputs from r.stream.extract
- 
+
 # More information
 # Started December 2016
 
@@ -105,7 +105,7 @@ def main():
     Builds a grid for the MODFLOW component of the USGS hydrologic model,
     GSFLOW.
     """
-    
+
     options, flags = gscript.parser()
     basin = options['basin']
     pp = options['pour_point']
@@ -116,7 +116,7 @@ def main():
     mask = options['mask_output']
     bc_cell = options['bc_cell']
     # basin='basins_tmp_onebasin'; pp='pp_tmp'; raster_input='DEM'; raster_output='DEM_coarse'; dx=dy='500'; grid='grid_tmp'; mask='mask_tmp'
-    
+
     """
     # Fatal if raster input and output are not both set
     _lena0 = (len(raster_input) == 0)
@@ -124,12 +124,12 @@ def main():
     if _lena0 + _lenb0 == 1:
         gscript.fatal("You must set both raster input and output, or neither.")
     """
-    
+
     # Fatal if bc_cell set but mask and grid are false
     if bc_cell != '':
         if (mask == '') or (pp == ''):
             gscript.fatal('Mask and pour point must be set to define b.c. cell')
-        
+
     # Create grid -- overlaps DEM, three cells of padding
     g.region(raster=raster_input, ewres=dx, nsres=dy)
     gscript.use_temp_region()
@@ -143,7 +143,7 @@ def main():
     grid_ratio_ew = np.round(regnew['ewres']/reg['ewres'])
     # Get S, W, and then move the unit number of grid cells over to get N and E
     # and include 3 cells of padding around the whole watershed
-    _s_dist = np.abs(reg_grid_edges_sn - (regnew['s'] - 3.*regnew['nsres']) )
+    _s_dist = np.abs(reg_grid_edges_sn - (regnew['s'] - 3.*regnew['nsres']))
     _s_idx = np.where(_s_dist == np.min(_s_dist))[0][0]
     _s = float(reg_grid_edges_sn[_s_idx])
     _n_grid = np.arange(_s, reg['n'] + 3*grid_ratio_ns*reg['nsres'], grid_ratio_ns*reg['nsres'])
@@ -175,7 +175,7 @@ def main():
     _id = np.ravel([ncols * (rows - 1) + cols])
     _id_cat = []
     for i in range(len(_id)):
-        _id_cat.append( (_id[i], cats[i]) )
+        _id_cat.append((_id[i], cats[i]))
     gridTopo = VectorTopo(grid)
     gridTopo.open('rw')
     cur = gridTopo.table.conn.cursor()
@@ -245,17 +245,17 @@ def main():
                   overwrite=gscript.overwrite(), quiet=True)
         v.db_addcolumn(map=bc_cell, columns=('row integer','col integer','x double precision','y double precision'), quiet=True)
         v.build(map=bc_cell, quiet=True)
-        v.what_vect(map=bc_cell, query_map=grid, column='row', \
+        v.what_vect(map=bc_cell, query_map=grid, column='row',
                     query_column='row', quiet=True)
-        v.what_vect(map=bc_cell, query_map=grid, column='col', \
+        v.what_vect(map=bc_cell, query_map=grid, column='col',
                     query_column='col', quiet=True)
         v.to_db(map=bc_cell, option='coor', columns=('x,y'))
-        
+
         # Of the candidates, the pour point is the closest one
         #v.db_addcolumn(map=bc_cell, columns=('dist_to_pp double precision'), quiet=True)
         #v.distance(from_=bc_cell, to=pp, upload='dist', column='dist_to_pp')
 
-        
+
         # Find out if this is diagonal: finite difference works only N-S, W-E
         colNames = np.array(gscript.vector_db_select(pp, layer=1)['columns'])
         colValues = np.array(gscript.vector_db_select(pp, layer=1)['values'].values())
@@ -294,7 +294,7 @@ def main():
                         if _ismask_1 and _ismask_2:
                             gscript.fatal('All possible b.c. cells covered by basin mask.\n\
                                          Contact the developer: awickert (at) umn(.)edu')
-                                
+
             # If not diagonal, two possible locations that are adjacent
             # to the pour point
             _col1, _row1 = str(bc_col), str(pp_row)
@@ -334,7 +334,7 @@ def main():
                     _x = bc_x + float(dx) * (int(_col2) - bc_col) # col 1 at w edge
                     _y = bc_y - float(dy) * (int(_row2) - bc_row) # row 1 at n edge
                     point0 = Point(_x,_y)
-                    bcvect.write(point0, cat=_cat_i, attrs=(None, _row2, _col2, _x, _y), )            
+                    bcvect.write(point0, cat=_cat_i, attrs=(None, _row2, _col2, _x, _y), )
                     bcvect.table.conn.commit()
                 # Build database table and vector geometry
                 bcvect.build()

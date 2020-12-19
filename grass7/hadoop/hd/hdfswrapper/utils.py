@@ -55,7 +55,7 @@ def find_ST_fnc(hsql):
         if s.find('ST_'):
             s = s.split('ST_')
             fc = 'ST_%s' % s[0]
-            if not fc in ST:
+            if fc not in ST:
                 ST[s] = "com.esri.hadoop.hive.%s" % fc
 
     return ST

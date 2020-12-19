@@ -5,7 +5,7 @@
 #                version $Id$
 #
 # AUTHOR:       M. Hamish Bowman, Dunedin, New Zealand
-#                Originally written aboard the NZ DoC ship M/V Renown, 
+#                Originally written aboard the NZ DoC ship M/V Renown,
 #                Bligh Sound, Fiordland National Park, November 2003
 #                With thanks to Franz Smith and Steve Wing for support
 #                Ported to Python for GRASS 7 December 2011
@@ -188,7 +188,7 @@ def main():
 
     # Check that we have the column and it is the correct type
     try:
-       coltype = grass.vector_columns(pts_input, layer)[column]
+        coltype = grass.vector_columns(pts_input, layer)[column]
     except KeyError:
         grass.fatal(_("Data column <%s> not found in vector points map <%s>")
                     % (column, pts_input))
@@ -230,7 +230,7 @@ def main():
     n = len(points_list)
 
     if n > 200:
-        grass.warning(_("Computation is expensive! Please consider " \
+        grass.warning(_("Computation is expensive! Please consider "
                       + "fewer points or get ready to wait a while ..."))
         import time
         time.sleep(5)
@@ -268,7 +268,7 @@ def main():
         # we know the point is in the region, but is it in a non-null area of the cost surface?
         rast_val = grass.read_command('r.what', map = area_mask,
                                       coordinates = '%s,%s' % (position[0], position[1])
-                                     ).strip().split('|')[-1]
+                                      ).strip().split('|')[-1]
         if rast_val == '*':
             grass.message(_(" -- Skipping, point lays outside of cost_map."))
             del(points_list[num-1])
@@ -338,11 +338,11 @@ def main():
         if not flags['r']:
             #  exp(3,2) is 3^2  etc.  as is pow(3,2)
             # r.mapcalc "1by_cost_site_sqrd.$NUM =  1.0 / exp(cost_site.$NUM , $FRICTION)"
-#      EXPRESSION="1.0 / pow(cost_site.$NUM $DIVISOR, $FRICTION )"
+            #      EXPRESSION="1.0 / pow(cost_site.$NUM $DIVISOR, $FRICTION )"
             expr = '1.0 / pow($cost_n / ' + str(divisor) + ', $friction)'
         else:
             # use log10() or ln() ?
-#      EXPRESSION="1.0 / ( pow(cost_site.$NUM, $FRICTION) * log (cost_site.$NUM) )"
+            #      EXPRESSION="1.0 / ( pow(cost_site.$NUM, $FRICTION) * log (cost_site.$NUM) )"
             expr = '1.0 / ( pow($cost_n, $friction) * log($cost_n) )"'
 
         grass.debug("r.mapcalc expression is: [%s]" % expr)
@@ -386,7 +386,7 @@ def main():
     grass.message(_("Summation of cost weights ..."))
 
     input_maps = tmp_base + '1by_cost_site_sq.%05d' % 1
-    
+
     global TMP_FILE
     TMP_FILE = grass.tempfile()
     with open(TMP_FILE, 'w') as maplist:
@@ -435,7 +435,7 @@ def main():
         # we know the point is in the region, but is it in a non-null area of the cost surface?
         rast_val = grass.read_command('r.what', map = area_mask,
                                       coordinates = '%s,%s' % (position[0], position[1])
-                                     ).strip().split('|')[-1]
+                                      ).strip().split('|')[-1]
         if rast_val == '*':
             grass.message(_(" -- Skipping, point lays outside of cost_map. [Probably programmer error]"))
             n -= 1
@@ -448,12 +448,12 @@ def main():
         #"( cost_sq_site.$NUM / sum_of_cost_sqs ) * ( $DATA_VALUE / $N )"
 
         proc[num-1] = grass.mapcalc_start(
-                      "$partial_n = ($data * $one_by_cost_sq) / $sum_of_1by_cost_sqs",
-                      partial_n = partial_n,
-                      data = data_value,
-                      one_by_cost_sq = one_by_cost_site_sq,
-                      sum_of_1by_cost_sqs = sum_of_1by_cost_sqs,
-                      quiet = True)
+            "$partial_n = ($data * $one_by_cost_sq) / $sum_of_1by_cost_sqs",
+            partial_n = partial_n,
+            data = data_value,
+            one_by_cost_sq = one_by_cost_site_sq,
+            sum_of_1by_cost_sqs = sum_of_1by_cost_sqs,
+            quiet = True)
 
         # stall to wait for the nth worker to complete,
         if num % workers == 0:
@@ -504,7 +504,7 @@ def main():
     if flags['r']:
         grass.run_command('r.support', map = output,
                           history = '  (d^n)*log(d) as radial basis function')
-    if post_mask: 
+    if post_mask:
         grass.run_command('r.support', map = output,
                           history = '  post-processing mask=' + post_mask)
     if where:

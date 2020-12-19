@@ -8,7 +8,8 @@ import shutil
 import psycopg2
 import time
 import math
-import sys ,os
+import sys
+import os
 from subprocess import PIPE
 
 from pgwrapper      import pgwrapper as pg
@@ -18,7 +19,7 @@ import grass.script as grass
 import numpy as np
 from mw_util import *
 
-timeMes=MeasureTime()
+timeMes = MeasureTime()
 import logging
 logger = logging.getLogger('mwprecip.Computing')
 
@@ -271,7 +272,7 @@ class RainGauge():
                     tmp.append(stri)
                 f.close()
         except IOError as e:
-            grass.error( "I/O error({0}): {1}".format(errno, strerror))
+            grass.error("I/O error({0}): {1}".format(errno, strerror))
 
         # write list of string to database
         try:
@@ -279,7 +280,7 @@ class RainGauge():
                 io.writelines(tmp)
                 io.close()
         except IOError as e:
-            grass.error( "I/O error({0}): {1}".format(errno, strerror))
+            grass.error("I/O error({0}): {1}".format(errno, strerror))
 
         if not isTableExist(self.db.connection, self.schema, self.db.rgaugeTableName):
             # #create table for raingauge stations
@@ -313,15 +314,15 @@ class RainGauge():
 class Baseline():
     def __init__(self, type='noDryWin', pathToFile=None, statFce='quantile', quantile=97, roundMode=3, aw=0):
         if quantile is None:
-            quantile=97
+            quantile = 97
             logger.info('Quantile is not defined. Default is 97')
         self.quantile = quantile
         if roundMode is None:
-            roundMode=3
+            roundMode = 3
             logger.info('Round is not defined. Default is 3 decimal places')
         self.roundMode = roundMode
         if aw is None:
-            aw=0
+            aw = 0
             logger.info('Antena wetting value is not defined. Default is 0')
         self.aw = aw
         self.pathToFile = pathToFile
@@ -384,13 +385,13 @@ class TimeWindows():
                SELECT %s ,round(avg(precip)::numeric,3) as %s, date_trunc('%s',time)as time  \
                FROM %s.%s \
                GROUP BY %s, date_trunc('%s',time)\
-               ORDER BY time" % (self.viewStatement, self.schema, self.viewDB, self.typeID, \
+               ORDER BY time" % (self.viewStatement, self.schema, self.viewDB, self.typeID,
                                  self.database.precipColName, self.sumStep, self.schema, self.tbName, self.typeID,
                                  self.sumStep)
         self.database.connection.executeSql(sql, False, True)
 
-        sql ='ALTER %s %s.%s\
-                ADD %s VARCHAR(11) '% (self.viewStatement, self.schema, self.viewDB,self.database.colorCol)
+        sql = 'ALTER %s %s.%s\
+                ADD %s VARCHAR(11) ' % (self.viewStatement, self.schema, self.viewDB,self.database.colorCol)
         self.database.connection.executeSql(sql, False, True)
 
     def setTimestamp(self):
@@ -485,7 +486,7 @@ class TimeWindows():
             sql = "CREATE TABLE %s.%s as\
                    SELECT * from %s.%s \
                    WHERE time=(timestamp'%s'+ %s * interval '1 second')" % \
-                  ( self.schema, view_name,
+                  (self.schema, view_name,
                     self.schema, self.viewDB,
                     self.timestamp_min,
                     time_const)
@@ -558,8 +559,8 @@ class Computor():
         database = self.database
         tMin = self.timeWin.timestamp_min
         tMax = self.timeWin.timestamp_max
-        startTime=self.timeWin.startTime
-        endTime=self.timeWin.endTime
+        startTime = self.timeWin.startTime
+        endTime = self.timeWin.endTime
 
         def computeBaselinFromMode(recordTable):
             sql = "SELECT linkid from %s group by 1" % recordTable
@@ -642,7 +643,7 @@ class Computor():
                         grass.warning('Path to file with dry-window definiton not exist; %s' % baseline.pathTofile)
                     for line in f:
                         st += line.replace("\n", "")
-                        if 'i' in line.split("\n")[0]:  #get baseline form interval
+                        if 'i' in line.split("\n")[0]:  # get baseline form interval
                             fromt = f.next()
                             if not chckTimeValidity(fromt):
                                 return False
@@ -727,7 +728,7 @@ class Computor():
                 #parse input file
                 if baseline.type == 'noDryWin':
                     sql = "SELECT linkid, a from  %s.record WHERE time >='%s' and time<='%s'" % (
-                    database.schema, startTime, endTime)
+                        database.schema, startTime, endTime)
                     resu = database.connection.executeSql(sql, True, True)
                     database.connection.executeSql(sql, False, True)
                 else:
@@ -739,7 +740,7 @@ class Computor():
                         return False
                     for line in f:
                         st += line.replace("\n", "")
-                        if 'i' in line.split("\n")[0]:  #get baseline  intervals
+                        if 'i' in line.split("\n")[0]:  # get baseline  intervals
                             fromt = f.next()
                             if not chckTimeValidity(fromt):
                                 return False
@@ -757,7 +758,7 @@ class Computor():
                             resu = database.connection.executeSql(sql, True, True)
                             resu += resu
 
-                        else:  #get baseline one moment
+                        else:  # get baseline one moment
                             time = line.split("\n")[0]
                             if not isTimeValid(time):
                                 grass.warning("Input data are not valid. Parameter 'baselitime'")
@@ -781,7 +782,7 @@ class Computor():
                             resu += resu
                             continue
                 tmp.append(resu)
-                table_tmp = baseline.statFce+ '_tmp'
+                table_tmp = baseline.statFce + '_tmp'
                 sql = "CREATE TABLE %s.%s ( linkid integer,a real);" % (database.schema, table_tmp)
                 database.connection.executeSql(sql, False, True)
 
@@ -802,7 +803,7 @@ class Computor():
                     io1.close()
                     os.remove(os.path.join(database.pathworkSchemaDir, table_tmp))
                 except IOError as e:
-                    grass.warning('Cannot open <%s> file'% table_tmp)
+                    grass.warning('Cannot open <%s> file' % table_tmp)
                     return False
 
                 recname = database.schema + '.' + table_tmp
@@ -851,10 +852,10 @@ class Computor():
             'data'. Uses the 'precision' parameter to control the noise level.
             """
             #data = np.random.normal(size=2000000)
-            q=float(q)/100
+            q = float(q)/100
             N, bins = np.histogram(data, bins=precision*np.sqrt(len(data)))
             norm_cumul = 1.0*N.cumsum() / len(data)
-            ret=bins[norm_cumul > q][0]
+            ret = bins[norm_cumul > q][0]
            # print "error in  %s quantile"%q, ((1.0*(data < ret).sum() / len(data)) -q)
 
             return ret
@@ -866,15 +867,15 @@ class Computor():
             # for each link  compute baseline
             for linkid in linksid:
                 linkid = linkid[0]
-                sql = "SELECT a from %s where linkid=%s"% (recordTable, linkid)
+                sql = "SELECT a from %s where linkid=%s" % (recordTable, linkid)
                 resu = database.connection.executeSql(sql, True, True)
-                data=np.array(resu)
+                data = np.array(resu)
                 #data=[item for sublist in data for item in sublist]#merge lists
                 #print data
                 #quantileRes=Quantile(data, baseline.quantile)
 
-                quantileRes=np.percentile(data,  (100-float(baseline.quantile))/100)
-                tmp.append(str(linkid) + ',' + str(quantileRes)+ '\n')
+                quantileRes = np.percentile(data, (100-float(baseline.quantile))/100)
+                tmp.append(str(linkid) + ',' + str(quantileRes) + '\n')
             io0 = open(os.path.join(database.pathworkSchemaDir, "baseline"), 'w+')
             io0.writelines(tmp)
             io0.close()
@@ -889,7 +890,7 @@ class Computor():
             # print 'valuesDirectly'
             self.baselineDict = readBaselineFromText(self.baseline.pathTofile)
 
-        elif self.baseline.type == 'fromDryWin' :
+        elif self.baseline.type == 'fromDryWin':
             logger.info('Computing baselines "dry window" "%s"...' % self.baseline.statFce)
             if computeBaselineFromTime():
                 self.baselineDict = readBaselineFromText(os.path.join(database.pathworkSchemaDir, 'baseline'))
@@ -924,7 +925,7 @@ class Computor():
             return False
 
         if self.baseline.aw is None:
-            self.baseline.aw=0
+            self.baseline.aw = 0
         Aw = float(self.baseline.aw)
 
         link_num = self.database.connection.count("link")
@@ -1018,7 +1019,7 @@ class Computor():
                 'Missing values "linkid,baseline," in text file. Data are not available in dry interval(baseline) .')
 
         temp = []
-        errLinkList=[]
+        errLinkList = []
         timeMes.timeMsg("Computing precipitation")
         skippedList = []
         for record in resu:
@@ -1042,7 +1043,7 @@ class Computor():
                 else:
                     if record[0]  not in errLinkList:
                         errLinkList.append(record[0])
-                        self.logMsg('Data of link <%s> are not valid'%record[0])
+                        self.logMsg('Data of link <%s> are not valid' % record[0])
                         continue
 
                 #read value from dictionary
@@ -1052,10 +1053,10 @@ class Computor():
                 Am = record[2] - baseline_decibel - Aw
                 yl = Am / curLinkData[0]
                 aa = yl / coef_a_k[1]
-                if aa <0:
-                    aa*=-1
+                if aa < 0:
+                    aa *= -1
                     R1 = aa ** (1 / coef_a_k[0])
-                    R1*=-1
+                    R1 *= -1
                 else:
                     R1 = aa ** (1 / coef_a_k[0])
 
@@ -1235,7 +1236,7 @@ class GrassLayerMgr():
         timeMes.timeMsg('Connecting tables to maps')
         inputMap = self.database.linkVecMapName
         if '@' in self.database.linkVecMapName:
-            self.database.linkVecMapName=self.database.linkVecMapName.split('@')[0]
+            self.database.linkVecMapName = self.database.linkVecMapName.split('@')[0]
         self.database.linkVecMapName += '_%s' % self.database.schema
 
 
@@ -1267,12 +1268,12 @@ class GrassLayerMgr():
         try:
             f = open(os.path.join(self.database.pathworkSchemaDir, "l_timewindow"), 'r')
         except:
-             grass.warning('Cannot connect tables(time-windows)  to vector layer')
+            grass.warning('Cannot connect tables(time-windows)  to vector layer')
         layerNum = 0
         for win in f.read().splitlines():
             layerNum += 1
             win = self.database.schema + '.' + win
-            logger.info( win)
+            logger.info(win)
             RunCommand('v.db.connect',
                        driver='pg',
                        map=self.database.linkVecMapName,
@@ -1343,7 +1344,7 @@ class GrassTemporalMgr():
         io1 = open(regFilePath, 'w+')
         io1.writelines(regTMP), io1.close
         io1.close()
-        logger.info( 'datasetName %s'% self.datasetName)
+        logger.info('datasetName %s' % self.datasetName)
         logger.info(regFilePath)
 
         RunCommand('t.register',
@@ -1358,7 +1359,7 @@ class Database():
     def __init__(self, name=None, user=None, password=None,
                  host=None, port=None, nodeVecMapName='node', linkVecMapName='link',
                  linkPointsVecName='linkPoints',workPath=None, workSchema=None, dataSchema=None):
-        self.dbConnStr=name
+        self.dbConnStr = name
         self.dbName = name
         self.user = user
         self.port = port
@@ -1378,7 +1379,7 @@ class Database():
         self.rgaugRecord = 'rgauge_record'
         self.rgaugeTableName = 'rgauge'
         self.precipColName = 'precip_mm_h'
-        self.colorCol= 'rgb'
+        self.colorCol = 'rgb'
 
         self.nodeVecMapName = nodeVecMapName
         self.linkVecMapName = linkVecMapName
@@ -1479,7 +1480,7 @@ class Database():
                               overwrite=True)
 
         if grass.run_command('db.connect', driver="pg", database=self.dbName,overwrite=True) != 0:
-             grass.warning("Unable to connect to the database by grass driver.")
+            grass.warning("Unable to connect to the database by grass driver.")
 
     def pyConnection(self):
         try:

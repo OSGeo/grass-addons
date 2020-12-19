@@ -58,7 +58,7 @@ class TestObjectGeometryPixel(TestCase):
         self.assertModule('r.object.geometry', input=self.test_objects1,
                           output=self.output_file_pixel)
         # check to see if output file exists
-        self.assertFileExists(self.output_file_pixel, 
+        self.assertFileExists(self.output_file_pixel,
                                msg='Output file does not exist')
         # check if the output file is equal to the reference file
         self.assertFilesEqualMd5(self.output_file_pixel, 'data/file_pixel.csv',
@@ -100,7 +100,7 @@ class TestObjectGeometryMeter(TestCase):
         self.assertModule('r.object.geometry', input=self.test_objects1,
                           output=self.output_file_meter, flags='m')
         # check to see if output file exists
-        self.assertFileExists(self.output_file_meter, 
+        self.assertFileExists(self.output_file_meter,
                                msg='Output file does not exist')
         # check if the output file is equal to the reference file
         self.assertFilesEqualMd5(self.output_file_meter, 'data/file_meter.csv',

@@ -209,6 +209,7 @@ class RoadPoint(Point, object):
     """RoadPoint object, is a Point with pk and azimuth, and others params
     >>> r_pnt = RoadPoint(Point(1,1,0), 0, 0)
     """
+
     def __init__(self, point=None, npk=None, azi=None, p_type=None):
         """ Return
         """
@@ -358,6 +359,7 @@ class RoadPoint(Point, object):
 class RoadLine(object):
     """Class to manage list of roadpoints
     """
+
     def __init__(self, list_r_pnts, attrs=None, name=None):
         """ Return
         """
@@ -494,6 +496,7 @@ class RoadLine(object):
 #                              self.zero_y))
 #        return Line(line)
 
+
     def get_area(self, pnts_line2):
         """Return a closed polyline with this roadline and the reverse of the
         given roadline
@@ -532,6 +535,7 @@ class RoadLine(object):
 class RoadObj(object):
     """Road object, base of straight, curve, clothoid and parallel
     """
+
     def __init__(self, leng_obj):
         """ Return
         """
@@ -639,6 +643,7 @@ class Straight(RoadObj, object):
     >>> line.length()
     14.142135623730951
     """
+
     def __init__(self, pstart=None, pend=None, azi=None, leng=None):
         """ Return
         """
@@ -859,6 +864,7 @@ class Curve(RoadObj, object):
     >>> curve.length()
     15.707963268
     """
+
     def __init__(self, radio=0, alpha=0, az_ini=0, p_center=None):
 
         self.radio = radio
@@ -1044,6 +1050,7 @@ class Clothoid(RoadObj, object):
     and center of the curve. Other_local coord in local of other clothoid
     ::
     """
+
     def __init__(self, a_clot=0, radio=0, azi=0, inout='', other_local=None,
                  p_center=None):
 

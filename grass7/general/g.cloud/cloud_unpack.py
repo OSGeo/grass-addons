@@ -14,7 +14,11 @@
 #
 #############################################################################
 
-import glob, os, sys, tarfile, logging
+import glob
+import os
+import sys
+import tarfile
+import logging
 import cloud_which as which
 from grass.exceptions import CalledModuleError
 
@@ -24,8 +28,8 @@ homeServer = os.getcwd()
 f = open(os.path.join(homeServer, 'unpackwrite.log'), 'w')
 
 LOG_FILENAME = os.path.join(homeServer, 'unpack.log')
-LOGGING_FORMAT='%(asctime)s - %(levelname)s - %(message)s'
-logging.basicConfig(filename=LOG_FILENAME, level=logging.DEBUG, \
+LOGGING_FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
+logging.basicConfig(filename=LOG_FILENAME, level=logging.DEBUG,
                     format=LOGGING_FORMAT)
 
 if len(sys.argv) != 2:

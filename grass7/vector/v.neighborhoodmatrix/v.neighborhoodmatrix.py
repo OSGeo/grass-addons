@@ -61,52 +61,51 @@ def main():
     sep = separator(options['separator'])
     bidirectional = flags['b']
     global tempmapname
-    tempmapname='neighborhoodmatrix_tempmap_%d' % os.getpid() 
+    tempmapname = 'neighborhoodmatrix_tempmap_%d' % os.getpid()
     #TODO: automatically determine the first available layer in file
     blayer = player+1
 
     gscript.run_command('v.category', input=input, output=tempmapname,
             option='add', layer=blayer, type='boundary', quiet=True,
             overwrite=True)
-    vtodb_results=gscript.read_command('v.to.db', flags='p', map=tempmapname,
+    vtodb_results = gscript.read_command('v.to.db', flags='p', map=tempmapname,
             type='boundary', option='sides', layer=blayer, qlayer=player, quiet=True)
 
     #put result into a list of integer pairs
-    temp_neighbors=[]
+    temp_neighbors = []
     for line in vtodb_results.splitlines():
-        if line.split('|')[1]!='-1' and line.split('|')[2]!='-1':
+        if line.split('|')[1] != '-1' and line.split('|')[2] != '-1':
             temp_neighbors.append([int(line.split('|')[1]), int(line.split('|')[2])])
 
     #temp_neighbors.sort()
 
     #if user wants bidirectional matrix, add the inversed pairs to the original
     if bidirectional:
-        neighbors_reversed=[]
+        neighbors_reversed = []
         for pair in temp_neighbors:
             neighbors_reversed.append([pair[1], pair[0]])
         temp_neighbors += neighbors_reversed
 
     #uniqify the list of integer pairs
-    neighbors = [list(x) for x in set(tuple(x) for x in temp_neighbors)]
-    neighbors.sort()
+    neighbors = sorted([list(x) for x in set(tuple(x) for x in temp_neighbors)])
 
-    currentcat=''
+    currentcat = ''
     if output and output != '-':
-        out=open(output, 'w')
+        out = open(output, 'w')
     for pair in neighbors:
         if idcolumn:
             # While pair[0] stays the same we don't have to call v.db.select
             # again and again to get the id
             if currentcat != pair[0]:
                 currentcat = pair[0]
-                fromid=gscript.read_command('v.db.select',
+                fromid = gscript.read_command('v.db.select',
                                  map=input,
                                  column=idcolumn,
                                  where="cat=%d" % pair[0],
                                  layer=player,
                                  flags="c",
                                  quiet=True).rstrip()
-            toid=gscript.read_command('v.db.select',
+            toid = gscript.read_command('v.db.select',
                              map=input,
                              column=idcolumn,
                              where="cat=%d" % pair[1],

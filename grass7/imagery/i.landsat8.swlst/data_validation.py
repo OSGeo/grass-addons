@@ -30,6 +30,3 @@ def check_cwv(cwv):
                          'expected range [0.0, 6.3]')
     else:
         return True
-
-
-

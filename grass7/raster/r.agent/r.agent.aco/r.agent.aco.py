@@ -297,7 +297,7 @@ def letantsdance(rounds, outrounds):
     while run < mainloops:
         if outputmapbasename:
             outputmapname = outputmapbasename[0] + str(run) + "@" + \
-                            outputmapbasename[1]
+                outputmapbasename[1]
         # loop and write out the contents at the end
         world.letantsdance(nextwrite)
         # Print the number of found paths
@@ -308,7 +308,7 @@ def letantsdance(rounds, outrounds):
             for j in range(len(
                     world.playground.layers[anthill.Anthill.RESULT][0])):
                 world.playground.layers["copy"][i][j] = \
-                        world.playground.layers[anthill.Anthill.RESULT][i][j]
+                    world.playground.layers[anthill.Anthill.RESULT][i][j]
         world.playground.writelayer("copy", outputmapname,
                                             world.overwritepheormone)
         #TODO world.playground.writelayer(anthill.Anthill.RESULT, False,
@@ -379,4 +379,3 @@ if __name__ == "__main__":
     options, flags = grass.parser()
     world = anthill.Anthill(grassland.Grassland())
     main()
-

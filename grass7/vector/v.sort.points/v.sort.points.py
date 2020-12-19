@@ -7,7 +7,7 @@
 # AUTHOR(S):    Moritz Lennert
 #
 # PURPOSE:      Takes a point map and creates a new point map with the points
-#               sorted according to a chosen numeric column with largest 
+#               sorted according to a chosen numeric column with largest
 #               values first
 #
 # DATE:         Wed May  4 18:44:05 2016
@@ -64,7 +64,7 @@ def main():
     key_column = gscript.vector_layer_db(inputmap, layer)['key']
     sort_index = columns[sort_column]['index']+2
     sorted_cols = sorted(iter(columns.items()), key=lambda x_y: x_y[1]['index'])
-    column_def="x DOUBLE PRECISION, y DOUBLE PRECISION, cat INTEGER"
+    column_def = "x DOUBLE PRECISION, y DOUBLE PRECISION, cat INTEGER"
     colnames = []
     for colcount in range(1,len(sorted_cols)):
         name = sorted_cols[colcount][0]
@@ -76,21 +76,21 @@ def main():
         colnames.append(name)
         column_def += ", %s %s" % (name, type)
 
-    inpoints=gscript.read_command('v.out.ascii',
+    inpoints = gscript.read_command('v.out.ascii',
                             in_=inputmap,
                             columns=colnames,
                             quiet=True)
 
-    points=[]
+    points = []
     for line in inpoints.splitlines():
         data = [num(x) for x in line.split('|')]
         points.append(data)
 
-    points_sorted=sorted(points, key=lambda x: x[sort_index], reverse=reverse)
+    points_sorted = sorted(points, key=lambda x: x[sort_index], reverse=reverse)
 
     outpoints = ""
     for list in points_sorted:
-        outpoints+="|".join([str(x) for x in list])+"\n"
+        outpoints += "|".join([str(x) for x in list])+"\n"
 
     gscript.write_command('v.in.ascii',
                         input='-',

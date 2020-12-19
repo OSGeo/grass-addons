@@ -210,8 +210,8 @@ def CreateFileName(outputfile):
 
 def main():
 
-#options = {"species":"species1@plantspecies,species2","species_name":"", "evp_maps":"bio_1@climate,bio_2@climate,bio_3@climate", "alias_names":"BIO1,BIO2,bio3", "evp_cat":"tmpcategory@plantspecies","alias_cat":"categ","bgr_output":"swd_bgr.csv", "species_output":"swd_spec.csv", "nbgp":1000, "bgp":"", "nodata":-9999}
-#flags = {"e":False, "h":False}
+    #options = {"species":"species1@plantspecies,species2","species_name":"", "evp_maps":"bio_1@climate,bio_2@climate,bio_3@climate", "alias_names":"BIO1,BIO2,bio3", "evp_cat":"tmpcategory@plantspecies","alias_cat":"categ","bgr_output":"swd_bgr.csv", "species_output":"swd_spec.csv", "nbgp":1000, "bgp":"", "nodata":-9999}
+    #flags = {"e":False, "h":False}
 
     #--------------------------------------------------------------------------
     # Variables
@@ -221,7 +221,7 @@ def main():
     specs = options['species']
     specs = specs.split(',')
     specsn = options['species_name']
-    if specsn=='':
+    if specsn == '':
         specsn = [z.split('@')[0] for z in specs]
     else:
         specsn = specsn.split(',')
@@ -231,7 +231,7 @@ def main():
     bgrout = options['bgr_output']
     if os.path.isfile(bgrout):
         bgrout2 = CreateFileName(bgrout)
-        grass.message("The file " + bgrout + " already exist. Using " + \
+        grass.message("The file " + bgrout + " already exist. Using " +
         bgrout2 + " instead")
         bgrout = bgrout2
     specout = options['species_output']
@@ -281,7 +281,7 @@ def main():
     if bgp == '':
         grass.run_command("r.random", input=evp[0], npoints=bgpn, vector=bgpname, quiet=True)
         grass.run_command("v.db.droptable", flags="f", map=bgpname, quiet=True)
-        grass.run_command("v.db.addtable",  map=bgpname, table=bgpname, quiet=True)
+        grass.run_command("v.db.addtable", map=bgpname, table=bgpname, quiet=True)
     else:
         grass.run_command("g.copy", vector=[bgpn,bgpname], quiet=True)
     grass.run_command("v.db.addcolumn", map=bgpname, columns=evp_cols, quiet=True)
@@ -290,7 +290,7 @@ def main():
     for j in range(len(evpn)):
         grass.run_command("v.what.rast", map=bgpname, raster=evp[j], column=evpn[j], quiet=True)
         sqlst = "update " + bgpname + " SET " + evpn[j] + " = " + \
-        str(nodata) + " WHERE " + evpn[j] + " ISNULL"
+            str(nodata) + " WHERE " + evpn[j] + " ISNULL"
         grass.run_command("db.execute", sql=sqlst, quiet=True)
     sqlst = "update " + bgpname + " SET species = 'background'"
     grass.run_command("db.execute", sql=sqlst, quiet=True)
@@ -322,7 +322,7 @@ def main():
         for j in range(len(evpn)):
             grass.run_command("v.what.rast", map=specname, raster=evp[j], column=evpn[j], quiet=True)
             sqlst = "update " + specname + " SET " + evpn[j] + " = " + \
-            str(nodata) + " WHERE " + evpn[j] + " ISNULL"
+                str(nodata) + " WHERE " + evpn[j] + " ISNULL"
             grass.run_command("db.execute", sql=sqlst, quiet=True)
         sqlst = "update " + specname + " SET species = '" + specsn[i] + "'"
         grass.run_command("db.execute", sql=sqlst, quiet=True)
@@ -332,15 +332,15 @@ def main():
 
         # Export the data to csv file and remove temporary file
         if flag_e:
-            if flag_h and i==0:
-                    grass.run_command("v.db.select", map=specname,
-                              columns='*', separator=",", file=bgrtmp, quiet=True)
+            if flag_h and i == 0:
+                grass.run_command("v.db.select", map=specname,
+                          columns='*', separator=",", file=bgrtmp, quiet=True)
             else:
                 grass.run_command("v.db.select", flags='c', map=specname,
                               columns='*', separator=",", file=bgrtmp, quiet=True)
         else:
             cols = ['species'] + evpn
-            if header == '' and i==0:
+            if header == '' and i == 0:
                 grass.run_command("v.db.select", map=specname,
                               columns=cols, separator=",", file=bgrtmp, quiet=True)
             else:
@@ -358,12 +358,10 @@ def main():
 
     # Remove temporary text files
     for m in filenames:
-       os.remove(m)
+        os.remove(m)
 
 
 if __name__ == "__main__":
     options, flags = grass.parser()
     atexit.register(cleanup)
     sys.exit(main())
-
-

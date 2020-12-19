@@ -455,7 +455,8 @@ def model_classifiers(estimator, random_state, n_jobs, p, weights=None):
     # convert balanced boolean to scikit learn method
     if weights is True:
         weights = 'balanced'
-    else: weights = None
+    else:
+        weights = None
 
     # optional packages that add additional classifiers here
     if estimator == 'EarthClassifier' or estimator == 'EarthRegressor':
@@ -470,7 +471,7 @@ def model_classifiers(estimator, random_state, n_jobs, p, weights=None):
             classifiers = {
                 'EarthClassifier': earth_classifier,
                 'EarthRegressor': Earth(max_degree=p['max_degree'])
-                }
+            }
         except:
             gs.fatal('Py-earth package not installed')
     else:
@@ -745,7 +746,7 @@ def extract_pixels(response, predictors, lowmem=False, na_rm=False):
 
     # remove samples containing NaNs
     if na_rm is True:
-        if np.isnan(training_data).any() == True:
+        if np.isnan(training_data).any():
             gs.message('Removing samples with NaN values in the raster feature variables...')
         training_labels = training_labels[~np.isnan(training_data).any(axis=1)]
         is_train = is_train[~np.isnan(training_data).any(axis=1)]
@@ -816,7 +817,7 @@ def extract_points(gvector, grasters, field, na_rm=False):
 
     # remove samples containing NaNs
     if na_rm is True:
-        if np.isnan(X).any() == True:
+        if np.isnan(X).any():
             gs.message('Removing samples with NaN values in the raster feature variables...')
 
         y = y[~np.isnan(X).any(axis=1)]
@@ -855,12 +856,12 @@ def predict(estimator, predictors, output, predict_type='raw', index=None,
 
     # first unwrap the estimator from any potential pipelines or gridsearchCV
     if type(estimator).__name__ == 'Pipeline':
-       clf_type = estimator.named_steps['classifier']
+        clf_type = estimator.named_steps['classifier']
     else:
         clf_type = estimator
 
     if type(clf_type).__name__ == 'GridSearchCV' or \
-    type(clf_type).__name__ == 'RandomizedSearchCV':
+        type(clf_type).__name__ == 'RandomizedSearchCV':
         clf_type = clf_type.best_estimator_
 
     # check name against already multithreaded classifiers
@@ -869,11 +870,12 @@ def predict(estimator, predictors, output, predict_type='raw', index=None,
         'RandomForestRegressor',
         'ExtraTreesClassifier',
         'ExtraTreesRegressor',
-        'KNeighborsClassifier']:
-       n_jobs = 1
+            'KNeighborsClassifier']:
+        n_jobs = 1
 
     # convert potential single index to list
-    if isinstance(index, int): index = [index]
+    if isinstance(index, int):
+        index = [index]
 
     # open predictors as list of rasterrow objects
     current = Region()
@@ -1213,8 +1215,8 @@ def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
         'RandomForestRegressor',
         'ExtraTreesClassifier',
         'ExtraTreesRegressor',
-        'KNeighborsClassifier']:
-        n_jobs=1
+            'KNeighborsClassifier']:
+        n_jobs = 1
 
     # -------------------------------------------------------------------------
     # create copies of estimator and create cross-validation iterator
@@ -1343,15 +1345,15 @@ def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
 
             # metrics that have no averaging for multiclass
             elif m == 'kappa' or m == 'specificity' or m == 'accuracy' \
-            or m == 'hamming_loss' or m == 'jaccard_similarity' \
-            or m == 'log_loss' or m == 'zero_one_loss' \
-            or m == 'matthews_corrcoef' \
-            or m == 'r2' \
-            or m == 'explained_variance' \
-            or m == 'neg_mean_absolute_error' \
-            or m == 'neg_mean_squared_error' \
-            or m == 'neg_mean_squared_log_error' \
-            or m == 'neg_median_absolute_error':
+                or m == 'hamming_loss' or m == 'jaccard_similarity' \
+                or m == 'log_loss' or m == 'zero_one_loss' \
+                or m == 'matthews_corrcoef' \
+                or m == 'r2' \
+                or m == 'explained_variance' \
+                or m == 'neg_mean_absolute_error' \
+                or m == 'neg_mean_squared_error' \
+                or m == 'neg_mean_squared_log_error' \
+                or m == 'neg_median_absolute_error':
                 scores[m] = np.append(
                     scores[m], scoring_methods[m](y_test, y_pred))
 
@@ -1440,7 +1442,7 @@ def main():
         'max_degree': options['max_degree'],
         'n_neighbors': options['n_neighbors'],
         'weights': options['weights']
-        }
+    }
 
     # cross validation
     cv = int(options['cv'])
@@ -1502,7 +1504,8 @@ def main():
         indexes = [int(i) for i in indexes.split(',')]
     else:
         indexes = int(indexes)
-    if indexes == -1: indexes = None
+    if indexes == -1:
+        indexes = None
 
     # error checking
     # remove @ from output in case overwriting result
@@ -1549,7 +1552,7 @@ def main():
 
     # check that valid combination of training data input is present
     if trainingpoints == '' and trainingmap == '' and load_training == '' \
-    and model_load =='':
+        and model_load == '':
         gs.fatal('No training vector, raster or tabular data is present')
 
     # make dicts for hyperparameters, datatypes and parameters for tuning
@@ -1570,8 +1573,10 @@ def main():
         else:
             hyperparams[key] = hyperparams_type[key](val)
 
-    if hyperparams['max_depth'] == 0: hyperparams['max_depth'] = None
-    if hyperparams['max_features'] == 0: hyperparams['max_features'] = 'auto'
+    if hyperparams['max_depth'] == 0:
+        hyperparams['max_depth'] = None
+    if hyperparams['max_features'] == 0:
+        hyperparams['max_features'] = 'auto'
     param_grid = {k: v for k, v in param_grid.items() if v is not None}
 
     # retrieve sklearn classifier object and parameters
@@ -1586,7 +1591,7 @@ def main():
 
     # scoring metrics
     if mode == 'classification':
-        scoring = ['accuracy', 'precision', 'recall', 'f1', 'kappa',\
+        scoring = ['accuracy', 'precision', 'recall', 'f1', 'kappa',
                    'balanced_accuracy']
         search_scorer = make_scorer(metrics.matthews_corrcoef)
     else:
@@ -1737,7 +1742,7 @@ def main():
                 categorical_features=categorymaps,
                 n_values=enc.n_values_, handle_unknown='ignore',
                 sparse=False)),  # dense because not all clf can use sparse
-                            ('classifier', clf)])
+                ('classifier', clf)])
 
         # standardization and onehot encoding
         if norm_data is True and categorymaps is not None:
@@ -1747,8 +1752,8 @@ def main():
                 categorical_features=categorymaps,
                 n_values=enc.n_values_, handle_unknown='ignore',
                 sparse=False)),
-                            ('scaling', StandardScaler()),
-                            ('classifier', clf)])
+                ('scaling', StandardScaler()),
+                ('classifier', clf)])
 
         # ---------------------------------------------------------------------
         # create the hyperparameter grid search method
@@ -1853,11 +1858,11 @@ def main():
                         gs.message(
                             method+':\t' + '\t'.join(
                                 map(str, np.round(
-                                        mat_cscores.mean(axis=0), 2)[0])))
+                                    mat_cscores.mean(axis=0), 2)[0])))
                         gs.message(
                             method+' std:\t' + '\t'.join(
                                 map(str, np.round(
-                                        mat_cscores.std(axis=0), 2)[0])))
+                                    mat_cscores.std(axis=0), 2)[0])))
 
                 # write cross-validation results for csv file
                 if errors_file != '':

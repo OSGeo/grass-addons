@@ -8,9 +8,9 @@ NPY2COLTYPE = {'<i8': 'INTEGER',
                '<f8': 'DOUBLE'}
 
 # shp column names
-ALLSHPN = ['area_id',    'cat',   'nisles',     'x_extent', 'y_extent',
-           'iperimeter', 'iarea', 'icompact',   'ifd',      'perimeter',
-           'area',       'boundarea', 'aratio', 'compact',  'fd']
+ALLSHPN = ['area_id', 'cat', 'nisles', 'x_extent', 'y_extent',
+           'iperimeter', 'iarea', 'icompact', 'ifd', 'perimeter',
+           'area', 'boundarea', 'aratio', 'compact', 'fd']
 
 # shp column types
 ALLSHPT = ['<i8', '<i8', '<i8', '<f8', '<f8',
@@ -70,7 +70,7 @@ def getcols(names, types, skipnames=None, prefix='',
 
 def gettablecols(prefixes, allshpn, allshpt, skipshp,
                  allrstn, allrstt, skiprst):
-    gettype = lambda x: NPY2COLTYPE[x]
+    def gettype(x): return NPY2COLTYPE[x]
     # define the new columns
     cols = getcols(allshpn, allshpt, skipshp, gettype=gettype)
     for prfx in prefixes:

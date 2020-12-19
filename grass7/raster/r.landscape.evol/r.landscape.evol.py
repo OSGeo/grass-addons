@@ -352,7 +352,7 @@ def landscapeEvol(m, o, p, q, res, s, f):
     qsy             = "%sQsy_%04d" % (p,o)
     qsxdx           = '%sDelta_Qsx_%04d' % (p, o)
     qsydy           = '%sDelta_Qsy_%04d' % (p, o)
-    rainexcess      = "%s_rainfall_excess_map_%04d"% (p, o)
+    rainexcess      = "%s_rainfall_excess_map_%04d" % (p, o)
     tmpnetchange    = 'tmp%s_netchange%04d' % (pid, o)
     tmp90qle       = 'tmp%s_netchange_90qle%04d' % (pid, o)
     tmp10qle       = 'tmp%s_netchange_10qle%04d' % (pid, o)
@@ -398,7 +398,7 @@ def landscapeEvol(m, o, p, q, res, s, f):
     numcells = grass.parse_command('r.univar',
                                   flags = 'g',
                                   map = old_dem,
-                                  )['n']
+                                   )['n']
 
     # Calculate soil as difference between surface and bedrock
     grass.mapcalc('${old_soil}=${old_dem}-${initbdrk}',
@@ -444,7 +444,7 @@ def landscapeEvol(m, o, p, q, res, s, f):
                      flacclargenum = flacclargenum)
 
     #again, do something different if we are only making an evaluation of cutoffs
-    if ( flags["p"] is True ):
+    if (flags["p"] is True):
         samplePoints(old_dem, aspect, slope, pc, tc, flowacc, p)
 
     grass.message('\n*************************\n' +
@@ -470,7 +470,7 @@ def landscapeEvol(m, o, p, q, res, s, f):
            # S=topographic slope [degrees]
            # m = transport coefficient for upslope area [unitless]
            # n transport coefficient for slope [unitless]
-#SLOPE VERSISON
+        #SLOPE VERSISON
         e1 = '''${qsx}=${K}*${C}*${P} * exp(${manningn}, -1) * 9810. * \
         exp((((${rain}/1000.)*${flowacc})/(0.595*${stormtimet})), \
         graph(${flowacc}, ${exp_m1a},${exp_m1b}, ${exp_m2a},${exp_m2b}) ) * \
@@ -592,7 +592,7 @@ def landscapeEvol(m, o, p, q, res, s, f):
 
     # Taking divergence of transport capacity Tc converts kg/m.s to kg/m2.s
     sax = grass.start_command('r.slope.aspect', quiet = True, elevation = qsx, dx = qsxdx)
-    say = grass.start_command('r.slope.aspect', quiet = True,  elevation = qsy, dy = qsydy)
+    say = grass.start_command('r.slope.aspect', quiet = True, elevation = qsy, dy = qsydy)
 
     sax.wait()
     say.wait()
@@ -601,7 +601,7 @@ def landscapeEvol(m, o, p, q, res, s, f):
     # vertical meters of elevation change. Add back the divergence in EW and NS
     # directions. Units are in kg/m2.s, so start by dividing by soil density
     # [kg/m3] to get m/s elevation change (for USPED that is m/year already,
-      #but not for the shear stress or stream power).
+    #but not for the shear stress or stream power).
     # For shear stress and stream power, also multiply by the number
     # of seconds at peak flow depth (stormi) and then by the number of erosive
     # storms per year to get m/year elevation change.
@@ -767,7 +767,7 @@ def landscapeEvol(m, o, p, q, res, s, f):
             grass.message('Keeping Slope map.')
         else:
             mapstoremove.append(slope)
-        if  flags["d"] is True :
+        if  flags["d"] is True:
             grass.message('Not keeping Soil Depth map.')
             mapstoremove.append(old_soil)
             # Check if this is the last year and remove the "new-soil" map too
@@ -775,18 +775,18 @@ def landscapeEvol(m, o, p, q, res, s, f):
                 mapstoremove.append(new_soil)
         else:
             # Check if this is the first year, and if so, remove the temporary initial soil depths map
-            if o <= 1 :
+            if o <= 1:
                 grass.message(('%s%s%04d' % (p, outsoil, m)))
                 mapstoremove.append('%s%s%04d' % (p, outsoil, m))
-        if  flags["e"] is True :
+        if  flags["e"] is True:
             grass.message('Keeping delta Transport Capacity (divergence) maps.')
         else:
             mapstoremove.extend([qsxdx, qsydy])
-        if  flags["t"] is True :
+        if  flags["t"] is True:
             grass.message('Keeping Transport Capacity maps.')
         else:
             mapstoremove.extend([qsx, qsy])
-        if  flags["r"] is True :
+        if  flags["r"] is True:
             grass.message('Not keeping an Erosion and Deposition rate map.')
             mapstoremove.append(netchange)
         if len(mapstoremove) == 0:

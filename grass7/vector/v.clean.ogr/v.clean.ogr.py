@@ -181,7 +181,7 @@ def main():
     inkey = options['key']
     ingeom = options['geometry']
     listlayers = flags['l']
-    
+
     min_area = options['min_area']
 
     outdsn = options['output']
@@ -216,7 +216,7 @@ def main():
         vopts['key'] = options['key']
     if options['snap']:
         vopts['snap'] = options['snap']
-    
+
     # create temp location from input without import
     grassenv = grass.gisenv()
     tgtloc = grassenv['LOCATION_NAME']
@@ -256,7 +256,7 @@ def main():
                           output=outvect_tmp, overwrite=overwrite, **vopts)
     except CalledModuleError:
         grass.fatal(_("Unable to import OGR datasource <%s>") % indsn)
-    
+
     # remove small areas
     if float(min_area) > 0:
         grass.message(_("Removing small areas in data source <%s>, layer <%s> ...") % (indsn, inlayer))
@@ -265,7 +265,7 @@ def main():
                       type='area', tool='rmarea', threshold=min_area, overwrite=overwrite)
         except CalledModuleError:
             grass.fatal(_("Removing small areas in data source <%s>, layer <%s> failed") % (indsn, inlayer))
-    
+
     # export
     oflags = 'sm'
     if flags['u']:
@@ -273,9 +273,9 @@ def main():
         overwrite = True
 
     outlayer = '%s_clean' % inlayer
-    grass.message=(_("Exporting cleaned layer as <%s>") % outlayer)
+    grass.message = (_("Exporting cleaned layer as <%s>") % outlayer)
     try:
-        grass.run_command('v.out.ogr', input=outvect, layer='1', output=outdsn, 
+        grass.run_command('v.out.ogr', input=outvect, layer='1', output=outdsn,
                         output_layer=outlayer, format=outformat, flags=oflags,
                         overwrite=overwrite)
     except CalledModuleError:
@@ -291,14 +291,14 @@ def main():
     if nlayers == 2:
         outlayer = '%s_overlaps' % inlayer
         oflags = 'smu'
-        grass.message=(_("Exporting overlaps as <%s>") % outlayer)
+        grass.message = (_("Exporting overlaps as <%s>") % outlayer)
         try:
             grass.run_command('v.out.ogr', input=outvect, layer='2', output=outdsn,
                       output_layer=outlayer, format=outformat, flags=oflags,
                       overwrite=True)
         except CalledModuleError:
             grass.fatal(_("Unable to export to OGR datasource <%s>") % outdsn)
-    
+
     # switch to target location
     os.environ['GISRC'] = str(tgtgisrc)
 

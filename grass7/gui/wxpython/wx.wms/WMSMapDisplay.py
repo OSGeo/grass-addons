@@ -2,7 +2,7 @@
 @package WMSMapDisplay.py
 
 @brief Python code for displaying the fetched map
-from wms server. 
+from wms server.
 
 Classes:
  - ImagePanel
@@ -22,22 +22,22 @@ import wx
 import  cStringIO
 
 class ImagePanel(wx.Panel):
-   def __init__(self, parent, id, tempFile):
-    wx.Panel.__init__(self, parent, id)
-    try:
-        imageFile = tempFile
-        data = open(imageFile, "rb").read()
-        stream = cStringIO.StringIO(data) 
-        bmp = wx.BitmapFromImage( wx.ImageFromStream( stream )) 
-        wx.StaticBitmap(self, -1, bmp, (5, 5))          
-        png = wx.Image(imageFile, wx.BITMAP_TYPE_ANY).ConvertToBitmap() 
-        wx.StaticBitmap(self, -1, png, (10 + png.GetWidth(), 5), (png.GetWidth(), png.GetHeight()))
-    except IOError:
-        message = "Image file %s not found" % imageFile
-        grass.warning(message)
-        raise SystemExit
+    def __init__(self, parent, id, tempFile):
+        wx.Panel.__init__(self, parent, id)
+        try:
+            imageFile = tempFile
+            data = open(imageFile, "rb").read()
+            stream = cStringIO.StringIO(data)
+            bmp = wx.BitmapFromImage(wx.ImageFromStream(stream))
+            wx.StaticBitmap(self, -1, bmp, (5, 5))
+            png = wx.Image(imageFile, wx.BITMAP_TYPE_ANY).ConvertToBitmap()
+            wx.StaticBitmap(self, -1, png, (10 + png.GetWidth(), 5), (png.GetWidth(), png.GetHeight()))
+        except IOError:
+            message = "Image file %s not found" % imageFile
+            grass.warning(message)
+            raise SystemExit
 
-def NewImageFrame(tempFile): 
+def NewImageFrame(tempFile):
     NewWindowapp = wx.PySimpleApp()
     NewWindowframe = wx.Frame(None, -1, "Map Display", size = (400, 300))
     ImagePanel(NewWindowframe,-1,tempFile)

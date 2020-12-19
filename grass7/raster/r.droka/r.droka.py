@@ -4,7 +4,7 @@
 #
 # MODULE:	r.droka
 # AUTHOR(S):	original idea by: HUNGR (1993)
-#		implementation by: 
+#		implementation by:
 #               Andrea Filipello -filipello@provincia.verbania.it
 #               Daniele Strigaro - daniele.strigaro@gmail.com
 # PURPOSE:	Calculates run-out distance of a falling rock mass
@@ -31,7 +31,7 @@
 #% key: start
 #% type: string
 #% gisprompt: old,vector,vector
-#% description: Name of starting points map 
+#% description: Name of starting points map
 #% required : yes
 #%end
 #%option
@@ -75,7 +75,12 @@
 #% required: no
 #%end
 
-import os, sys, time, math , string, re
+import os
+import sys
+import time
+import math
+import string
+import re
 from grass.script import array as garray
 import numpy as np
 try:
@@ -98,7 +103,7 @@ if "GISBASE" not in os.environ:
     sys.exit(1)
 
 def main():
-    
+
     # leggo variabili
     r_elevation = options['dem'].split('@')[0]
     mapname = options['dem'].replace("@", " ")
@@ -125,7 +130,7 @@ def main():
     #else:
     #    n = float(n)
 
-    grass.message("Setting variables...") 
+    grass.message("Setting variables...")
     prefix = options['prefix']
     rocks = prefix + '_propagation'
     v = prefix + '_vel'
@@ -147,44 +152,44 @@ def main():
 
     #d_buff = (n * PixelWidth)/2
 
-    grass.message("Defining starting points...") 
+    grass.message("Defining starting points...")
     if int(num) == 1:
-        grass.run_command('g.copy' , 
-            vector= start+',start_points_' ,
-            quiet = True )    
-    else:    
-        grass.run_command('v.buffer' ,
-            input = start ,
-            type = 'point' ,
-            output = 'start_buffer_' ,
-            distance = d_buff ,
-            quiet = True )
+        grass.run_command('g.copy',
+            vector= start+',start_points_',
+            quiet = True)
+    else:
+        grass.run_command('v.buffer',
+            input = start,
+            type = 'point',
+            output = 'start_buffer_',
+            distance = d_buff,
+            quiet = True)
 
-        grass.run_command('v.random' ,
-            input = 'start_buffer_' ,
-            npoints = num ,
-            output = 'start_random_' ,
-            flags = 'a' ,
-            quiet = True )
+        grass.run_command('v.random',
+            input = 'start_buffer_',
+            npoints = num,
+            output = 'start_random_',
+            flags = 'a',
+            quiet = True)
 
-        grass.run_command('v.patch' ,
-            input = start + ',start_random_' ,
-            output = 'start_points_' ,
-            quiet = True )
+        grass.run_command('v.patch',
+            input = start + ',start_random_',
+            output = 'start_points_',
+            quiet = True)
 
     #v.buffer input=punto type=point output=punti_buffer distance=$cellsize
     #v.random -a output=random n=$numero input=punti_buffer
     #v.patch input=punto,random output=patch1
 
     #creo raster (che sara' il DEM di input) con valore 1
-    grass.mapcalc('uno=$dem*0+1', 
-        dem = r_elevation ,
-        quiet = True )     
-    what = grass.read_command('r.what' , 
-        map=r_elevation , 
-        points='start_points_' ,
+    grass.mapcalc('uno=$dem*0+1',
+        dem = r_elevation,
+        quiet = True)
+    what = grass.read_command('r.what',
+        map=r_elevation,
+        points='start_points_',
         null_value="-9999", # TODO: a better test for points outside the current region is needed
-        quiet = True )
+        quiet = True)
     quota = what.split('\n')
 
     #array per la somma dei massi
@@ -211,20 +216,20 @@ def main():
         y = float(point.split('|')[1])
         #print x,y,z
         # Calcolo cost (sostituire i punti di partenza in start_raster al pusto di punto)
-        grass.run_command('r.cost' , 
-            flags="k",  
+        grass.run_command('r.cost',
+            flags="k",
             input = 'uno',
             output = 'costo',
             start_coordinates = str(x)+','+str(y),
-            quiet = True ,
-            overwrite = True ) 
+            quiet = True,
+            overwrite = True)
 
 
         #trasforma i valori di distanza celle in valori metrici utilizzando la risoluzione raster
         grass.mapcalc('costo_m=costo*(ewres()+nsres())/2',
              overwrite = True)
 
-        # calcola A=tangente angolo visuale (INPUT) * costo in metri   
+        # calcola A=tangente angolo visuale (INPUT) * costo in metri
         grass.mapcalc('A=tan($ang)*costo_m',
             ang = ang,
              overwrite = True)
@@ -245,12 +250,12 @@ def main():
         grass.mapcalc('vel = $red*sqrt(2*9.8*F)',
             red = red, overwrite = True)
         velocity.read('vel')
-        velMax[...] = (np.where(velocity>velMax,velocity,velMax)).astype(float)
+        velMax[...] = (np.where(velocity > velMax,velocity,velMax)).astype(float)
         velMean[...] = (velocity + velMean).astype(float)
 
         #calcolo numero massi
         grass.mapcalc('somma=if(vel>0,1,0)', overwrite = True)
-        somma.read('somma') 
+        somma.read('somma')
         tot[...] = (somma + tot).astype(float)
 
         # calcolo energia
@@ -258,7 +263,7 @@ def main():
             m = m,
             overwrite = True)
         energy.read('en')
-        enMax[...] = (np.where(energy>enMax,energy,enMax)).astype(float)
+        enMax[...] = (np.where(energy > enMax,energy,enMax)).astype(float)
         enMean[...] = (energy + enMean).astype(float)
     grass.message("Create output maps...")
     tot.write(rocks)
@@ -279,23 +284,23 @@ def main():
     #grass.run_command('d.rast' ,
     #    map=eMean)
     if int(num) == 1:
-        grass.run_command('g.remove' ,
+        grass.run_command('g.remove',
             flags = 'f',
             type = 'vector',
-            name = ( 'start_points_' ),
-            quiet = True )    
+            name = ('start_points_'),
+            quiet = True)
     else:
-        grass.run_command('g.rename' , 
-            vect= 'start_points_,' + prefix + '_starting' ,
-            quiet = True )
-        grass.run_command('g.remove' , 
+        grass.run_command('g.rename',
+            vect= 'start_points_,' + prefix + '_starting',
+            quiet = True)
+        grass.run_command('g.remove',
             flags = 'f',
             type = 'vector',
             name = (
                 'start_buffer_',
-                'start_random_') ,
-            quiet = True )
-    grass.run_command('g.remove' , 
+                'start_random_'),
+            quiet = True)
+    grass.run_command('g.remove',
         flags = 'f',
         type = 'raster',
         name = (
@@ -309,8 +314,8 @@ def main():
             'F',
             'en',
             'vel',
-            'somma') ,
-        quiet = True )
+            'somma'),
+        quiet = True)
     grass.message("Done!")
 
 if __name__ == "__main__":

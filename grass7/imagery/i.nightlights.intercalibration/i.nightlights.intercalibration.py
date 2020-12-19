@@ -216,7 +216,7 @@ from intercalibration_models import Elvidge, Liu2012, Wu2013
 
 
 # any constants? -------------------------------------------------------------
-MODELS = {'elvidge': Elvidge, 'liu2012': Liu2012, 'wu2013' : Wu2013}
+MODELS = {'elvidge': Elvidge, 'liu2012': Liu2012, 'wu2013': Wu2013}
 
 # helper functions ----------------------------------------------------------
 def cleanup():
@@ -287,12 +287,12 @@ def main():
     # ----------------------------
 
     # flags
-    citation=flags['c']
+    citation = flags['c']
     info = flags['i']
     extend_region = flags['x']
     timestamps = not(flags['t'])
     zero = flags['z']
-    null = flags['n']  ### either zero or null, not both --- FixMe! ###
+    null = flags['n']  # either zero or null, not both --- FixMe! ###
     evaluation = flags['e']
     shell = flags['g']
 
@@ -383,7 +383,7 @@ def main():
 #            zero = 0 if zero else ('null()')
 #            equation = "{out} = if(Input == 0, {zn}, {formula})"
 #            calibration_formula = equation.format(out=tmp_cdn, zero, formula=mapcalc_formula)
-        # ----------------------------------------------- Compress even more? 
+        # ----------------------------------------------- Compress even more?
 
         # replace the "dummy" string...
         calibration_formula = calibration_formula.replace("Input", image)
@@ -409,10 +409,10 @@ def main():
                 g.message(msg)
 
             except CalledModuleError:
-                    grass.fatal(_('\n|* Timestamp is missing! '
-                    'Please add one to the input map if further times series '
-                    'analysis is important. '
-                    'If you don\'t need it, you may use the -t flag.'))
+                grass.fatal(_('\n|* Timestamp is missing! '
+                'Please add one to the input map if further times series '
+                'analysis is important. '
+                'If you don\'t need it, you may use the -t flag.'))
 
         else:
             grass.warning(_('As requested, timestamp transferring not attempted.'))
@@ -426,27 +426,27 @@ def main():
         # - use '-t' for temporal, makes more sense
         # - adapt following
 
-                # temporal = flags['t']
-                # if temporal:
-                #     core.info(_("Registering created maps into temporal dataset..."))
-                #     import grass.temporal as tgis
+            # temporal = flags['t']
+            # if temporal:
+            #     core.info(_("Registering created maps into temporal dataset..."))
+            #     import grass.temporal as tgis
 
-                #     def registerToTemporal(basename, suffixes, mapset, start_day, day_step,
-                #                            title, desc):
-                #         """
-                #         Register daily output maps in spatio-temporal raster data set
-                #         """
-                #         maps = ','.join([basename + suf + '@' + mapset for suf in suffixes])
-                #         tgis.open_new_stds(basename, type='strds', temporaltype='relative',
-                #                            title=title, descr=desc, semantic='sum',
-                #                            dbif=None, overwrite=grass.overwrite())
+            #     def registerToTemporal(basename, suffixes, mapset, start_day, day_step,
+            #                            title, desc):
+            #         """
+            #         Register daily output maps in spatio-temporal raster data set
+            #         """
+            #         maps = ','.join([basename + suf + '@' + mapset for suf in suffixes])
+            #         tgis.open_new_stds(basename, type='strds', temporaltype='relative',
+            #                            title=title, descr=desc, semantic='sum',
+            #                            dbif=None, overwrite=grass.overwrite())
 
-                #         tgis.register_maps_in_space_time_dataset(type='rast',
-                #                                                  name=basename, maps=maps,
-                #                                                  start=start_day, end=None,
-                #                                                  unit='days',
-                #                                                  increment=day_step,
-                #                                                  dbif=None, interval=False)
+            #         tgis.register_maps_in_space_time_dataset(type='rast',
+            #                                                  name=basename, maps=maps,
+            #                                                  start=start_day, end=None,
+            #                                                  unit='days',
+            #                                                  increment=day_step,
+            #                                                  dbif=None, interval=False)
 
         '''Normalised Difference Index (NDI), if requested'''
 

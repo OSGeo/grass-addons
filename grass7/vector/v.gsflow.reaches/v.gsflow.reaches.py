@@ -18,7 +18,7 @@
 #
 # REQUIREMENTS:
 #      -  uses inputs from r.stream.extract
- 
+
 # More information
 # Started December 2016
 
@@ -281,7 +281,7 @@ def main():
     nseg = np.arange(1, len(cats)+1)
     nseg_cats = []
     for i in range(len(cats)):
-        nseg_cats.append( (nseg[i], cats[i]) )
+        nseg_cats.append((nseg[i], cats[i]))
     cur = reachesTopo.table.conn.cursor()
     # Hydrogeologic properties
     cur.execute("update "+reaches+" set STRTHICK="+str(STRTHICK))
@@ -309,7 +309,7 @@ def main():
     v.to_db(map=reaches, option='end', columns='xr2,yr2')
 
     # Now just sort by category, find which stream has the same xr1 and yr1 as
-    # x1 and y1 (or a_x1, a_y1) and then find where its endpoint matches another 
+    # x1 and y1 (or a_x1, a_y1) and then find where its endpoint matches another
     # starting point and move down the line.
     # v.db.select reaches col=cat,a_id,xr1,xr2 where="a_x1 = xr1"
 
@@ -360,30 +360,30 @@ def main():
                 reach_order_cats.append(_cat)
         _message = str(len(reach_order_cats)) + ' ' + \
                    str(len(reach_cats[rsel]))
-        gscript.message( _message )
-          
+        gscript.message(_message)
+
         # Reach order to database table
         reach_number__reach_order_cats = []
         for i in range(len(reach_order_cats)):
-            reach_number__reach_order_cats.append( (i+1, reach_order_cats[i]) )
+            reach_number__reach_order_cats.append((i+1, reach_order_cats[i]))
         reachesTopo = VectorTopo(reaches)
         reachesTopo.open('rw')
         cur = reachesTopo.table.conn.cursor()
-        cur.executemany("update "+reaches+" set IREACH=? where cat=?", 
+        cur.executemany("update "+reaches+" set IREACH=? where cat=?",
                         reach_number__reach_order_cats)
         reachesTopo.table.conn.commit()
         reachesTopo.close()
-      
+
 
     # TOP AND BOTTOM ARE OUT OF ORDER: SOME SEGS ARE BACKWARDS. UGH!!!!
     # NEED TO GET THEM IN ORDER TO GET THE Z VALUES AT START AND END
 
     # 2018.10.01: Updating this to use the computational region for the DEM
     g.region(raster=elevation)
-    
-    # Compute slope and starting elevations from the elevations at the start and 
+
+    # Compute slope and starting elevations from the elevations at the start and
     # end of the reaches and the length of each reach]
-    
+
     gscript.message('Obtaining elevation values from raster: may take time.')
     v.db_addcolumn(map=reaches, columns='zr1 double precision, zr2 double precision')
     zr1 = []
@@ -402,8 +402,8 @@ def main():
     zr1_cats = []
     zr2_cats = []
     for i in range(len(reach_cats)):
-        zr1_cats.append( (zr1[i], reach_cats[i]) )
-        zr2_cats.append( (zr2[i], reach_cats[i]) )
+        zr1_cats.append((zr1[i], reach_cats[i]))
+        zr2_cats.append((zr2[i], reach_cats[i]))
 
     reachesTopo = VectorTopo(reaches)
     reachesTopo.open('rw')
@@ -422,7 +422,7 @@ def main():
     # r.to.vect in=srtm_local_filled_grid out=srtm_local_filled_grid col=z type=area --o#
     # NOT SURE IF IT IS BEST TO USE MEAN ELEVATION OR TOP ELEVATION!!!!!!!!!!!!!!!!!!!!!!!
     v.db_addcolumn(map=reaches, columns='z_topo_mean double precision')
-    v.what_rast(map=reaches, raster=elevation, column='z_topo_mean')#, query_column='z')
+    v.what_rast(map=reaches, raster=elevation, column='z_topo_mean')  # , query_column='z')
     v.db_update(map=reaches, column='STRTOP', value='z_topo_mean -'+str(h_stream), quiet=True)
 
 

@@ -23,16 +23,16 @@ from grass.pygrass.vector.geometry import Point
 def option_to_list(x, dtype=None):
     """
     Parses a multiple choice option from into a list
-    
+
     Parameters
     ----------
     x : str
         String with comma-separated values
-    
+
     dtype : func, optional
         Optionally pass a function to coerce with list elements into a
         specific type, e.g. int
-    
+
     Returns
     -------
     x : list
@@ -68,10 +68,10 @@ def predefined_estimators(estimator, random_state, n_jobs, p):
 
     random_state : Any number
         Seed to use in randomized components.
-    
+
     n_jobs : int
         Number of processing cores to use.
-    
+
     p : dict
         Classifier setttings (keys) and values.
 
@@ -282,12 +282,12 @@ def scoring_metrics(mode):
     """
     Simple helper function to return a suite of scoring methods depending on
     if classification or regression is required
-    
+
     Parameters
     ----------
     mode : str
         'classification' or 'regression'
-    
+
     Returns
     -------
     scoring : list
@@ -326,7 +326,7 @@ def scoring_metrics(mode):
 def save_training_data(file, X, y, cat, class_labels=None, groups=None, names=None):
     """
     Saves any extracted training data to a csv file.
-    
+
     Training data is saved in the following format:
         col (0..n) : feature data
         col (n) : response data
@@ -433,7 +433,7 @@ def grass_read_vect_sql(vect):
     ----------
     vect : str
         Name of GRASS GIS vector map
-    
+
     Returns
     -------
     geopandas.GeoDataFrame
@@ -481,7 +481,7 @@ def grass_write_vect_sql(gpdf, x="x_crd", y="y_crd", output=None, overwrite=Fals
 
     x, y : str
         Name of coordinate fields to use in GRASS table
-    
+
     output : str
         Name of output GRASS GIS vector map
     """
@@ -520,7 +520,7 @@ def grass_read_vect(vect):
     ----------
     vect : str
         Name of GRASS GIS vector map
-    
+
     Returns
     -------
     geopandas.GeoDataFrame
@@ -546,13 +546,13 @@ def grass_write_vect(gpdf, output, overwrite=False, flags=""):
     ----------
     gpdf : geopandas.GeoDataFrame
         Geodataframe to write to GRASS
-    
+
     output : str
         Name to use to store the dataset in GRASS
-    
+
     overwrite : bool
         Whether to overwrite existing datasets
-    
+
     flags : str, list, tuple
         Flags to pass to GRASS v.in.ogr command
     """

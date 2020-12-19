@@ -2,7 +2,7 @@
 """!
 @package addserver.py
 
-@brief Main Python app for managing the server information. 
+@brief Main Python app for managing the server information.
 Add a new server, Edit an existing server, Remove an existing
 server.
 
@@ -82,13 +82,13 @@ class ServerAdd(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.OnAddNew, self.AddNew)
         self.Bind(wx.EVT_BUTTON, self.OnQuit, self.Quit)
         # end wxGlade
-        
-        
+
+
         #sudeep code starts
         if not loadConfigFile(self):
             grass.fatal_error(_('Configuration file error. Unable to start application.'))
             self.Close()
-        
+
         self.soup, open = initServerInfoBase('ServersList.xml')
         if not open:
             return
@@ -157,14 +157,14 @@ class ServerAdd(wx.Frame):
         self.SetSizer(sizer_1)
         self.Layout()
         # end wxGlade
-    
+
     def valueExists(self,dict, newServerName):
         """
-     @description: to check if a value exists in the dictionary or not. 
+     @description: to check if a value exists in the dictionary or not.
      @todo:None
      @param self: reference variable
      @param dict: dictionary.
-     @param newServerName: String, value to be checked for. 
+     @param newServerName: String, value to be checked for.
      @return: boolean
         """
         try:
@@ -177,8 +177,8 @@ class ServerAdd(wx.Frame):
 
     def parse_WMS_URL(self, full_url):
         """
-     @description: Strips any WMS parts from url for easy reuse.        
-        Strips all WMS 1.1.1 and 1.3.0 parts from URL.        
+     @description: Strips any WMS parts from url for easy reuse.
+        Strips all WMS 1.1.1 and 1.3.0 parts from URL.
         This could be moved to some separate WxS support procedure file.
      @todo:None
      @param self: reference variable
@@ -186,7 +186,7 @@ class ServerAdd(wx.Frame):
      @return: URL as dict suitable for storage or None if provided URL isn't a valid WMS URL.
         """
         WMS_13_parameters = (
-            'VERSION', 
+            'VERSION',
             'SERVICE',
             'REQUEST',
             'FORMAT',
@@ -220,7 +220,7 @@ class ServerAdd(wx.Frame):
         # If URL lacks host, it's not valid
         if not final_url['hostname']:
             return None
-        
+
         # Leave any non-WMS query parts
         query = urlparse.parse_qs(url.query)
         for k in query.keys():
@@ -228,11 +228,11 @@ class ServerAdd(wx.Frame):
                 del query[k]
         final_url['query'] = urllib.urlencode(query)
         return urlparse.urlunparse((final_url['scheme'], final_url['netloc'], final_url['path'], final_url['params'], final_url['query'], None))
-    
+
     def OnSave(self, event): # wxGlade: ServerAdd.<event_handler>
         """
      @description: Called on Save button press. Validates the information provided.
-     Saves or updates the provided information.  
+     Saves or updates the provided information.
      @todo:None
      @param self: reference variable
      @param event: event associated
@@ -242,22 +242,22 @@ class ServerAdd(wx.Frame):
         newUrl = self.URLText.GetValue()
         newUserName = self.UsernameText.GetValue()
         newPassword = self.PasswordText.GetValue()
-        
+
         newUrl = self.parse_WMS_URL(newUrl.strip())
         if not newUrl:
             message = _("Provided WMS URL is not valid.")
             self.ShowMessage(message, _('Error'))
             grass.warning(message)
             return
-        
-        if self.selectedUid == None:
+
+        if self.selectedUid is None:
             update = False
         else:
             update = True
-        
+
         serverData = ServerData()
 
-        if len(newServerName) != 0 :
+        if len(newServerName) != 0:
             if self.selectedServer is not None:
                 if not self.selectedServer.servername == newServerName:
                     if self.valueExists(self.servers, newServerName):
@@ -275,15 +275,15 @@ class ServerAdd(wx.Frame):
                 grass.warning(message)
             else:
                 message = _("Url validated (%s)") % message
-            
-            
+
+
             StatusBar_fields = [message]
-            self.StatusBar.SetStatusText(StatusBar_fields[0], 0)            
+            self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
             serverData.servername = newServerName
             serverData.url = newUrl
             serverData.username = newUserName
             serverData.password = newPassword
-            
+
             if update:
                 if updateServerInfo(self.soup, self.soup.serverinfo, self.selectedUid, newServerName, newUrl, newUserName, newPassword):
                     if not self.saveXMLData():
@@ -305,21 +305,21 @@ class ServerAdd(wx.Frame):
 
                     msg = self.servers
                     Publisher().sendMessage(("update.serverList"), msg)
-                    
+
                     msg = self.map_servernameTouid
                     Publisher().sendMessage(("update.map_servernameTouid"), msg)
                     message = _("Server Info Updated")
                     grass.message(message)
                     StatusBar_fields = [message]
                     self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
-                    self.setModified(False)                    
+                    self.setModified(False)
                 else:
                     message = _("Update not Successful")
                     self.ShowMessage(message, 'Warning')
                     grass.warning(message)
                     StatusBar_fields = [message]
                     self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
-            else:    
+            else:
                 uid = str(uuid.uuid4())
                 if addServerInfo(self.soup, self.soup.serverinfo, uid, newServerName, newUrl, newUserName, newPassword):
                     if not self.saveXMLData():
@@ -352,7 +352,7 @@ class ServerAdd(wx.Frame):
                     "Server Info Saved Successfully"
                     StatusBar_fields = [message]
                     self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
-                    
+
             self.selectedURL = newUrl
             self.__update_URL_List()
         else:
@@ -361,20 +361,20 @@ class ServerAdd(wx.Frame):
             grass.warning(message)
             StatusBar_fields = [message]
             self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
-            
+
         self.editOn = False
         if(event):
             event.Skip()
 
     def OnRemove(self, event): # wxGlade: ServerAdd.<event_handler>
         """
-     @description: Called on Remove button press. Deleted the server info selected to be deleted. 
+     @description: Called on Remove button press. Deleted the server info selected to be deleted.
      @todo:None
      @param self: reference variable
      @param event: event associated
      @return: None
         """
-        if self.selectedUid == None:
+        if self.selectedUid is None:
             message = _("No server selected. Remove unsuccessful")
             self.ShowMessage(message, _('Warning'))
             grass.warning(message)
@@ -401,7 +401,7 @@ class ServerAdd(wx.Frame):
                         StatusBar_fields = [message]
                         self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
                         return
-                        
+
                 message = "Remove Successful"
                 StatusBar_fields = [message]
                 self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
@@ -411,7 +411,7 @@ class ServerAdd(wx.Frame):
                     self.ServerList.SetSelection(0)
                 if(len(self.servers) == 0):
                     self.ServerList.Clear()
-                
+
                 del self.servers[self.selectedUid]
                 self.selectedUid = None
                 self.__update_URL_List()
@@ -429,16 +429,16 @@ class ServerAdd(wx.Frame):
                 StatusBar_fields = [message]
                 self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
                 return
-            
+
         self.editOn = False
         event.Skip()
 
     def OnAddNew(self, event): # wxGlade: ServerAdd.<event_handler>
         """
-     @description: Called on AddNew button press. Clears all the fields. 
+     @description: Called on AddNew button press. Clears all the fields.
      @todo:None
      @param self: reference variable
-     @param event: event associated 
+     @param event: event associated
      @return: None
         """
         self.checkIfModified(event)
@@ -448,18 +448,18 @@ class ServerAdd(wx.Frame):
         self.URLText.Clear()
         self.UsernameText.Clear()
         self.editOn = False
-        self.selectedServer=None
+        self.selectedServer = None
         StatusBar_fields = ["Fill in the Info fields"]
         self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
         event.Skip()
-    
+
     def OnQuit(self, event): # wxGlade: ServerAdd.<event_handler>
         """
      @description: Called on Quit button press. Closes the AddServerFrame.
-     Sends   Add_Server_Frame_Closed message to wmsmenu Frame before closing. 
+     Sends   Add_Server_Frame_Closed message to wmsmenu Frame before closing.
      @todo:None
      @param self: reference variable
-     @param event: event associated 
+     @param event: event associated
      @return: None
         """
         if(self.checkIfModified(event) == wx.ID_CANCEL):
@@ -469,7 +469,7 @@ class ServerAdd(wx.Frame):
             grass.message(message)
             StatusBar_fields = [message]
             self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
-            
+
         msg = self.servers
         Publisher().sendMessage(("Add_Server_Frame_Closed"), msg)
         self.Destroy()
@@ -478,11 +478,11 @@ class ServerAdd(wx.Frame):
     def OnServerList(self, event): # wxGlade: ServerAdd.<event_handler>
         """
      @description: Called on ServerList (ComboBox) select.
-     Parses the selected url and fills the corresponding fields with the information present. 
-     Sends   Add_Server_Frame_Closed message to wmsmenu Frame before closing. 
+     Parses the selected url and fills the corresponding fields with the information present.
+     Sends   Add_Server_Frame_Closed message to wmsmenu Frame before closing.
      @todo:None
      @param self: reference variable
-     @param event: event associated 
+     @param event: event associated
      @return: None
         """
         self.checkIfModified(event)
@@ -490,7 +490,7 @@ class ServerAdd(wx.Frame):
         if(len(info) == 0):
             return
         urlarr = info.split(self.name_url_delimiter)
-        if(len(urlarr)==2):
+        if(len(urlarr) == 2):
             uid = self.map_servernameTouid[urlarr[0]]
             self.selectedUid = uid
             self.selectedServer = self.servers[uid]
@@ -503,7 +503,7 @@ class ServerAdd(wx.Frame):
             StatusBar_fields = [message]
             self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
             grass.fatal_error(message)
-            
+
         event.Skip()
 
     def OnText(self, event): # wxGlade: ServerAdd.<event_handler>
@@ -513,49 +513,49 @@ class ServerAdd(wx.Frame):
 
     def setModified(self, booleanValue):
         """
-     @description: Sets SetModified function of all fields to booleanValue.  
+     @description: Sets SetModified function of all fields to booleanValue.
      @todo:None
      @param self: reference variable
-     @param booleanValue: Boolean, boolean value to be set 
+     @param booleanValue: Boolean, boolean value to be set
      @return: None
         """
         self.ServerNameText.SetModified(booleanValue)
         self.URLText.SetModified(booleanValue)
         self.UsernameText.SetModified(booleanValue)
         self.PasswordText.SetModified(booleanValue)
-        
+
     def checkIfModified(self, event):
         """
-     @description: To check if any field is modified and unsaved. Displays a pop-up if a field is Unsaved. 
+     @description: To check if any field is modified and unsaved. Displays a pop-up if a field is Unsaved.
      @todo:None
      @param self: reference variable
-     @param event: event associated 
+     @param event: event associated
      @return: wx.ID_CANCEL or wx.ID_YES
         """
         if(self.URLText.IsModified() or self.ServerNameText.IsModified() or self.UsernameText.IsModified() or self.PasswordText.IsModified()):
             dial = wx.MessageDialog(None, 'You have unsaved changes.\n Do you want to save them ?', 'Quit',
-                                    wx.STAY_ON_TOP | wx.YES_NO | wx.YES_DEFAULT | wx.CANCEL | wx.ICON_QUESTION)        
+                                    wx.STAY_ON_TOP | wx.YES_NO | wx.YES_DEFAULT | wx.CANCEL | wx.ICON_QUESTION)
             val = dial.ShowModal()
             if val == wx.ID_CANCEL:
                 return val
             if val == wx.ID_YES:
                 self.OnSave(event)
                 return val
-    
+
     def ShowMessage(self, message, type = 'Warning'):
         """
-     @description: Display's the message as a pop-up. 
+     @description: Display's the message as a pop-up.
      @todo:None
      @param self: reference variable
-     @param message: String, message to be displayed. 
+     @param message: String, message to be displayed.
      @param type: String, the type of message
      @return: None
         """
         wx.MessageBox(message, type)
-        
+
     def __populate_URL_List(self, ComboBox):
         """
-     @description: Internal function to populate ServerList(ComboBox). Used to populate ServerList for the first time in the init function. 
+     @description: Internal function to populate ServerList(ComboBox). Used to populate ServerList for the first time in the init function.
      @todo:None
      @param self: reference variable
      @param ComboBox: ComboBox to be updated.
@@ -566,13 +566,13 @@ class ServerAdd(wx.Frame):
         for key, value in self.servers.items():
             ComboBox.Append(value.servername+self.name_url_delimiter+value.url[0:self.urlLength])
         return
-    
+
     def __update_URL_List(self):
         """
-     @description: Internal function to update ServerList(ComboBox).  
+     @description: Internal function to update ServerList(ComboBox).
      @todo:None
      @param self: reference variable
-     @param ComboBox: ComboBox to be updated. 
+     @param ComboBox: ComboBox to be updated.
      @return: None
         """
         self.ServerList.Clear()
@@ -588,7 +588,7 @@ class ServerAdd(wx.Frame):
      @param self: reference variable
      @return: Boolean, True if save is successful else returns False.
         """
-        xml = self.soup.prettify()        
+        xml = self.soup.prettify()
         try:
             TMP = grass.tempfile()
             if TMP is None:
@@ -615,38 +615,38 @@ class ServerAdd(wx.Frame):
             e.close()
         except:
             return False
-        
+
         return True
-    
+
     def allFieldsValid(self, newServerName, newUrl, newUserName, newPassword):
         """
-     @description: Validates all the field informations. 
+     @description: Validates all the field informations.
      @todo:None.
      @param self: reference variable.
      @param newServerName: String, name of the server.
      @param newUrl: String, url of the server.
      @param newUserName: String, UserName for the server.
      @param newPassword: String, Password for the server.
-     @return: Boolean, True if all fields are valid, else False. 
+     @return: Boolean, True if all fields are valid, else False.
         """
         # FIXME All texts should be encoded and accept all characters!
         # Šitajam vajadzētu pazust, ja izmanto XML, kas automātiski kodē tekstus.
         if newServerName.count(self.name_url_delimiter) > 0:
-                message = "Warning: UserName cannot consist of "+self.name_url_delimiter
-                StatusBar_fields = [message]
-                self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
-                self.ShowMessage(message, 'Warning')
-                grass.warning(message)
-                return False
-            
+            message = "Warning: UserName cannot consist of "+self.name_url_delimiter
+            StatusBar_fields = [message]
+            self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
+            self.ShowMessage(message, 'Warning')
+            grass.warning(message)
+            return False
+
         if newUrl.count(self.name_url_delimiter) > 0:
-                message = "Warning: URL cannot consist of "+self.name_url_delimiter
-                StatusBar_fields = ["Warning: URL Delimiter conflict. Edit config file"]
-                self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
-                self.ShowMessage(message, 'Warning')
-                grass.warning(message)
-                return False
-            
+            message = "Warning: URL cannot consist of "+self.name_url_delimiter
+            StatusBar_fields = ["Warning: URL Delimiter conflict. Edit config file"]
+            self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
+            self.ShowMessage(message, 'Warning')
+            grass.warning(message)
+            return False
+
         character = '>'
         if(newServerName.count(character) > 0 or newUrl.count(character) > 0 or newUserName.count(character) > 0 or newPassword.count(character) > 0):
             message = character+' is not allowed in a Field'
@@ -664,7 +664,7 @@ class ServerAdd(wx.Frame):
             StatusBar_fields = [message]
             self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
             return False
-        
+
         character = '&'
         if(newServerName.count(character) > 0  or newUserName.count(character) > 0 or newPassword.count(character) > 0):
             message = character+' is not allowed in a Field'
@@ -673,9 +673,9 @@ class ServerAdd(wx.Frame):
             StatusBar_fields = [message]
             self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
             return False
-        
+
         return True
-    
+
     def validateUrl(self, url):
         """
      @description: Validates the url provided. Sends a getCapabilities request to the url server and checks for the response.
@@ -697,7 +697,7 @@ class ServerAdd(wx.Frame):
                 message = 'Service Exception'
         except HTTPError, e:
             message = 'The server couldn\'t fulfill the request.'
-        except URLError, e: 
+        except URLError, e:
             message = 'Failed to reach a server.'
         except ValueError, e:
             message = 'Value error'
@@ -712,10 +712,10 @@ class ServerAdd(wx.Frame):
 
     def OnWMSMenuClose(self, msg):
         """
-     @description: Called on receiving WMS_Menu_Close message from wmsmenu Frame.  
+     @description: Called on receiving WMS_Menu_Close message from wmsmenu Frame.
      @todo:None
      @param self: reference variable
-     @param msg: message received, not used in the function though. 
+     @param msg: message received, not used in the function though.
      @return: None
         """
         self.Close()

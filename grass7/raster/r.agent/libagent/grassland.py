@@ -73,9 +73,9 @@ class Grassland(playground.Playground):
         Remove (forget about) the layer named from the layer collection
         @param string name of the layer
         """
-        if self.layers.has_key(layername):
+        if layername in self.layers:
             self.layers.pop(layername)
-        if self.grassmapnames.has_key(layername):
+        if layername in self.grassmapnames:
             self.grassmapnames.pop(layername)
 
     def writelayer(self, layername, grassmapname=False, force=False):
@@ -86,16 +86,16 @@ class Grassland(playground.Playground):
         @param boolean optional, whether an existing file may be overwritten
         """
         if not grassmapname:
-            if self.grassmapnames.has_key(layername):
-                grassmapname=self.grassmapnames[layername]
+            if layername in self.grassmapnames:
+                grassmapname = self.grassmapnames[layername]
             else:
                 raise error.DataError(Grassland.ME,
                                         "Grass Map name is empty.")
-        if self.layers.has_key(layername):
+        if layername in self.layers:
             if grassmapname in \
                     grass.list_strings('rast'):
                 if force:
-                    force="force"
+                    force = "force"
                 else:
                     raise error.DataError(Grassland.ME,
                                         "Grass map already exists.")
@@ -124,9 +124,9 @@ class Grassland(playground.Playground):
                     # TODO - as with grass numpy array it seems that
                     # [0,0] is north-most west-most..
                     p[0] = int(round(
-                        ( self.region["n"] - p[0] ) / self.region["nsres"] ))
+                        (self.region["n"] - p[0]) / self.region["nsres"]))
                     p[1] = int(round(
-                        ( p[1] - self.region["w"] ) / self.region["ewres"] ))
+                        (p[1] - self.region["w"]) / self.region["ewres"]))
                     vectors.append(p)
                     self.layers[layername][p[0]][p[1]] = value
         return vectors

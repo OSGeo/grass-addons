@@ -13,20 +13,20 @@ from grass.pygrass.vector.geometry import Line
 from grass.pygrass.vector.table import Link
 from grass.script import core as gcore
 
-COLS = [(u'cat',       'INTEGER PRIMARY KEY'),
-        (u'plant_id',  'VARCHAR(10)'),
-        (u'stream_id',  'INTEGER'),
+COLS = [(u'cat', 'INTEGER PRIMARY KEY'),
+        (u'plant_id', 'VARCHAR(10)'),
+        (u'stream_id', 'INTEGER'),
         (u'pot_power', 'DOUBLE'),
         (u'discharge', 'DOUBLE'),
         (u'elev_up', 'DOUBLE'),
         (u'elev_down', 'DOUBLE'),]
 
 
-COLS_points = [(u'cat',       'INTEGER PRIMARY KEY'),
-               (u'kind',  'VARCHAR(10)'),
-               (u'plant_id',  'VARCHAR(10)'),
-               (u'kind_label',  'VARCHAR(10)'),
-               (u'stream_id',  'INTEGER'),
+COLS_points = [(u'cat', 'INTEGER PRIMARY KEY'),
+               (u'kind', 'VARCHAR(10)'),
+               (u'plant_id', 'VARCHAR(10)'),
+               (u'kind_label', 'VARCHAR(10)'),
+               (u'stream_id', 'INTEGER'),
                (u'elevation', 'DOUBLE'),
                (u'discharge', 'DOUBLE'),
                (u'pot_power', 'DOUBLE')]
@@ -131,7 +131,8 @@ def read_plants(hydro, elev=None, restitution='restitution', intake='intake',
     skipped = []
     for pnt in hydro:
         if pnt is None:
-            import ipdb; ipdb.set_trace()
+            #import ipdb
+            #ipdb.set_trace()
         if elev is None:
             select = ','.join([cid_plant, cid_point, ckind_label, celevation, cdischarge])
             id_plant, id_point, kind_label, el, disch = pnt.attrs[select]
@@ -157,7 +158,7 @@ def write_plants(plants, output, stream, elev, overwrite=False):
     with VectorTopo(output, mode='w', tab_cols=COLS,
                     overwrite=overwrite) as out:
         for p in plants:
-            potential_power= plants[p].potential_power()
+            potential_power = plants[p].potential_power()
             plant_id = plants[p].id
             lines, ids = plants[p].plant(stream, elev)
             for line, r_id in zip(lines, ids):
@@ -182,14 +183,14 @@ def write_structures(plants, output, elev, stream=None,
                   (plant_id, itk_id, disch, gross_head, pot, 'penstock', side))
         out.table.conn.commit()
 
-    tab_cols = [(u'cat',        'INTEGER PRIMARY KEY'),
-                (u'plant_id',   'VARCHAR(10)'),
-                (u'intake_id',  'INTEGER'),
-                (u'discharge',  'DOUBLE'),
+    tab_cols = [(u'cat', 'INTEGER PRIMARY KEY'),
+                (u'plant_id', 'VARCHAR(10)'),
+                (u'intake_id', 'INTEGER'),
+                (u'discharge', 'DOUBLE'),
                 (u'gross_head', 'DOUBLE'),
-                (u'power',      'DOUBLE'),
-                (u'kind',       'VARCHAR(10)'),
-                (u'side',       'VARCHAR(10)'), ]
+                (u'power', 'DOUBLE'),
+                (u'kind', 'VARCHAR(10)'),
+                (u'side', 'VARCHAR(10)'), ]
 
     with VectorTopo(output, mode='w', overwrite=overwrite) as out:
         link = Link(layer=1, name=output, table=output,
@@ -204,14 +205,14 @@ def write_structures(plants, output, elev, stream=None,
         # check if contour vector map is provide by the user
         if contour:
             cname, cmset = (contour.split('@') if '@' in contour
-                            else (contour,  ''))
+                            else (contour, ''))
             # check if the map already exist
             if bool(utils.get_mapset_vector(cname, cmset)) and overwrite:
                 compute_contour = True
             remove = False
         else:
             # create a random name
-            contour = 'tmp_struct_contour_%05d_%03d' % (os.getpid(), 
+            contour = 'tmp_struct_contour_%05d_%03d' % (os.getpid(),
                                                         random.randint(0, 999))
             compute_contour = True
             remove = True

@@ -188,10 +188,10 @@ def download_tile(tile, url, pid, srtmv3, one, username, password):
             cookie_jar = CookieJar()
 
             opener = urllib2.build_opener(
-                        urllib2.HTTPBasicAuthHandler(password_manager),
-                        #urllib2.HTTPHandler(debuglevel=1),    # Uncomment these two lines to see
-                        #urllib2.HTTPSHandler(debuglevel=1),   # details of the requests/responses
-                        urllib2.HTTPCookieProcessor(cookie_jar))
+                urllib2.HTTPBasicAuthHandler(password_manager),
+                #urllib2.HTTPHandler(debuglevel=1),    # Uncomment these two lines to see
+                #urllib2.HTTPSHandler(debuglevel=1),   # details of the requests/responses
+                urllib2.HTTPCookieProcessor(cookie_jar))
             urllib2.install_opener(opener)
 
             request = urllib2.Request(remote_tile)
@@ -513,7 +513,7 @@ def main():
         else:
             grass.fatal(_("Please check internet connection, credentials, and if url <%s> is correct.") % url)
 
-    grass.run_command('g.region', raster = str(srtmtiles));
+    grass.run_command('g.region', raster = str(srtmtiles))
 
     grass.message(_("Patching tiles..."))
     if fillnulls == 0:
@@ -523,7 +523,7 @@ def main():
             else:
                 grass.run_command('r.patch', input = srtmtiles, output = output)
         else:
-            grass.run_command('g.rename', raster = '%s,%s' % (srtmtiles, output ), quiet = True)
+            grass.run_command('g.rename', raster = '%s,%s' % (srtmtiles, output), quiet = True)
     else:
         ncells = grass.region()['cells']
         if long(ncells) > 1000000000:

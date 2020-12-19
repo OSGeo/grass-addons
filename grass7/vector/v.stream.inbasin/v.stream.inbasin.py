@@ -5,7 +5,7 @@
 #
 # AUTHOR(S):    Andrew Wickert
 #
-# PURPOSE:      Build a drainage basin from the subwatersheds of a river  
+# PURPOSE:      Build a drainage basin from the subwatersheds of a river
 #               network, based on the structure of the network.
 #
 # COPYRIGHT:    (c) 2016 Andrew Wickert
@@ -18,7 +18,7 @@
 #
 # REQUIREMENTS:
 #      -  uses inputs from v.stream.network
- 
+
 # More information
 # Started 14 October 2016
 
@@ -121,17 +121,17 @@ def find_upstream_segments(cats, tostream, cat):
     Find segments immediately upstream of the given one
     """
     pass
-    
+
 
 def main():
     """
-    Links each river segment to the next downstream segment in a tributary 
+    Links each river segment to the next downstream segment in a tributary
     network by referencing its category (cat) number in a new column. "0"
     means that the river exits the map.
     """
-    
+
     options, flags = gscript.parser()
-    
+
     streams = options['input_streams']
     basins = options['input_basins']
     downstream_cat = options['cat']
@@ -142,10 +142,10 @@ def main():
     output_pour_point = options['output_pour_point']
     draindir = options['draindir']
     snapflag = flags['s']
-    
+
     #print options
     #print flags
-    
+
     # Check that either x,y or cat are set
     if (downstream_cat != '') or ((x_outlet != '') and (y_outlet != '')):
         pass
@@ -156,17 +156,17 @@ def main():
     # NEED TO ADD IF-STATEMENT HERE TO AVOID AUTOMATIC OVERWRITING!!!!!!!!!!!
     if snapflag or (downstream_cat != ''):
         if downstream_cat == '':
-            # Need to find outlet pour point -- start by creating a point at this 
+            # Need to find outlet pour point -- start by creating a point at this
             # location to use with v.distance
             try:
                 v.db_droptable(table='tmp', flags='f')
             except:
                 pass
             tmp = vector.Vector('tmp')
-            _cols = [(u'cat',       'INTEGER PRIMARY KEY'),
-                     (u'x',         'DOUBLE PRECISION'),
-                     (u'y',         'DOUBLE PRECISION'),
-                     (u'strcat',    'DOUBLE PRECISION')]
+            _cols = [(u'cat', 'INTEGER PRIMARY KEY'),
+                     (u'x', 'DOUBLE PRECISION'),
+                     (u'y', 'DOUBLE PRECISION'),
+                     (u'strcat', 'DOUBLE PRECISION')]
             tmp.open('w', tab_name='tmp', tab_cols=_cols)
             point0 = Point(x_outlet,y_outlet)
             tmp.write(point0, cat=1, attrs=(str(x_outlet), str(y_outlet), 0), )
@@ -196,15 +196,15 @@ def main():
             for ucat in tmp:
                 most_upstream_cats += list(cats[tostream == int(ucat)])
                 basincats += most_upstream_cats
-                
+
         basincats = list(set(list(basincats)))
 
         basincats_str = ','.join(map(str, basincats))
-        
+
         # Many basins out -- need to use overwrite flag in future!
         #SQL_OR = 'rnum = ' + ' OR rnum = '.join(map(str, basincats))
         #SQL_OR = 'cat = ' + ' OR cat = '.join(map(str, basincats))
-        SQL_LIST =  'cat IN (' + ', '.join(map(str, basincats)) + ')'
+        SQL_LIST = 'cat IN (' + ', '.join(map(str, basincats)) + ')'
         if len(basins) > 0:
             v.extract(input=basins, output=output_basins, where=SQL_LIST, overwrite=gscript.overwrite(), quiet=True)
         if len(streams) > 0:
@@ -236,9 +236,9 @@ def main():
             _x = x_outlet
             _y = y_outlet
         pptmp = vector.Vector(output_pour_point)
-        _cols = [(u'cat',       'INTEGER PRIMARY KEY'),
-                 (u'x',         'DOUBLE PRECISION'),
-                 (u'y',         'DOUBLE PRECISION')]
+        _cols = [(u'cat', 'INTEGER PRIMARY KEY'),
+                 (u'x', 'DOUBLE PRECISION'),
+                 (u'y', 'DOUBLE PRECISION')]
         pptmp.open('w', tab_name=output_pour_point, tab_cols=_cols)
         point0 = Point(_x,_y)
         pptmp.write(point0, cat=1, attrs=(str(_x), str(_y)), )

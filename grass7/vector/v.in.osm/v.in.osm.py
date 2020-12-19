@@ -122,7 +122,7 @@ class OsmImporter:
                              where=options['where'],
                              type=options['type'],
                              flags=flags['o']
-                            )
+                              )
         except CalledModuleError:
             grass.fatal(_('%s failed') % 'v.in.ogr')
 
@@ -133,7 +133,7 @@ class OsmImporter:
                              input=self.getTmp('ogr'),
                              output=self.getNewTmp('split'),
                              vertices=2
-                            )
+                              )
         except CalledModuleError:
             grass.fatal(_('%s failed') % 'v.split')
 
@@ -144,7 +144,7 @@ class OsmImporter:
                              input=self.getNewTmp('split'),
                              output=options['output'],
                              cats='same'
-                             )
+                              )
         except CalledModuleError:
             grass.fatal(_('%s failed') % 'v.build.polylines')
 

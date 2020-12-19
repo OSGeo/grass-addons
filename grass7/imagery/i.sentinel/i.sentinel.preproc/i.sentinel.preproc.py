@@ -224,7 +224,7 @@ def main ():
         gscript.warning(_("Topographic correction of reflectance will use "
                           "default method 'c-factor'"))
 
-    if not gscript.find_program('i.sentinel.import', '--help') :
+    if not gscript.find_program('i.sentinel.import', '--help'):
         gscript.fatal('Module requires i.sentinel.import. Please install it using g.extension.')
 
     # Import bands
@@ -391,31 +391,31 @@ def main ():
     gscript.message(_("--- The computational region has been temporarily set to image max extent ---"))
 
     if flags["a"]:
-        if vis!='':
-            if options['aod_value']!='' and aeronet_file!='':
+        if vis != '':
+            if options['aod_value'] != '' and aeronet_file != '':
                 gscript.warning(_('--- Visibility map will be ignored ---'))
                 gscript.fatal('Only one parameter must be provided, AOD value or AERONET file')
-            elif options['aod_value']=='' and aeronet_file=='':
+            elif options['aod_value'] == '' and aeronet_file == '':
                 gscript.warning(_('--- Visibility map will be ignored ---'))
                 gscript.fatal('If -a flag is checked an AOD value or AERONET file must be provided')
-            elif options['aod_value']!='':
+            elif options['aod_value'] != '':
                 gscript.warning(_('--- Visibility map will be ignored ---'))
                 check_value = 1
                 aot550 = options['aod_value']
-            elif aeronet_file!='':
+            elif aeronet_file != '':
                 gscript.warning(_('--- Visibility map will be ignored ---'))
-        elif options['aod_value']!='' and aeronet_file!='':
+        elif options['aod_value'] != '' and aeronet_file != '':
             gscript.fatal('Only one parameter must be provided, AOD value or AERONET file')
-        elif options['aod_value']!='':
+        elif options['aod_value'] != '':
             check_value = 1
             aot550 = options['aod_value']
-        elif aeronet_file!='':
+        elif aeronet_file != '':
             gscript.message(_('--- Computing AOD from input AERONET file ---'))
-        elif options['aod_value']=='' and aeronet_file=='':
+        elif options['aod_value'] == '' and aeronet_file == '':
             gscript.fatal('If -a flag is checked an AOD value or AERONET file must be provided')
     else:
-        if vis!='':
-            if options['aod_value']!='' or aeronet_file!='':
+        if vis != '':
+            if options['aod_value'] != '' or aeronet_file != '':
                 gscript.warning(_('--- AOD will be ignored ---'))
             check_file = 1
             stats_v = gscript.parse_command('r.univar', flags='g', map=vis)
@@ -424,7 +424,7 @@ def main ():
                 gscript.message('--- Computed visibility mean value: {} Km ---'.format(vis_mean))
             except:
                 gscript.fatal('The input visibility maps is not valid. It could be out of the computational region.')
-        elif vis=='' and (options['aod_value']!='' or aeronet_file!=''):
+        elif vis == '' and (options['aod_value'] != '' or aeronet_file != ''):
             gscript.fatal('Check the -a flag to use AOD instead of visibility')
         else:
             gscript.fatal('No visibility map has been provided')
@@ -436,9 +436,9 @@ def main ():
 
     # Read and compute AOD from AERONET file
     if check_value == 0 and check_file == 0:
-        i=0
-        cc=0
-        count=0
+        i = 0
+        cc = 0
+        count = 0
         columns = []
         m_time = []
         dates_list = []
@@ -447,14 +447,14 @@ def main ():
         coll = []
         wl = []
         for row in file(aeronet_file):
-            count+=1
-            if count==4:
+            count += 1
+            if count == 4:
                 columns = row.split(',')
         # Search for the closest date and time to the acquisition one
-        count=0
+        count = 0
         for row in file(aeronet_file):
-            count+=1
-            if count>=5:
+            count += 1
+            if count >= 5:
                 columns = row.split(',')
                 m_time.append(columns[0] + ' ' + columns[1])
 
@@ -468,10 +468,10 @@ def main ():
             closest = min(line, key=lambda x: abs(x - b_d))
             timedelta = abs(closest - b_d)
         # Search for the closest wavelengths (upper and lower) to 550
-        count=0
+        count = 0
         for row in file(aeronet_file):
-            count+=1
-            if count==4:
+            count += 1
+            if count == 4:
                 t_columns = row.split(',')
                 for i, col in enumerate(t_columns):
                     if "AOT_" in col:
@@ -482,38 +482,38 @@ def main ():
             wl.append(int(l[1]))
 
         aot_req = 550
-        upper = min([ i for i in wl if i >= aot_req], key=lambda x:abs(x-aot_req))
-        lower = min([ i for i in wl if i < aot_req], key=lambda x:abs(x-aot_req))
+        upper = min([i for i in wl if i >= aot_req], key=lambda x:abs(x-aot_req))
+        lower = min([i for i in wl if i < aot_req], key=lambda x:abs(x-aot_req))
 
-        count=0
+        count = 0
         for row in file(aeronet_file):
-            count+=1
-            if count==dates.index(closest)+5:
+            count += 1
+            if count == dates.index(closest)+5:
                 t_columns = row.split(',')
-                count2=0
-                check_up=0
-                check_lo=0
-                while count2<len(i_col) and check_up<1:
+                count2 = 0
+                check_up = 0
+                check_lo = 0
+                while count2 < len(i_col) and check_up < 1:
                     # Search for the not null value for the upper wavelength
-                    if t_columns[wl.index(upper)+i_col[0]]=="N/A":
+                    if t_columns[wl.index(upper)+i_col[0]] == "N/A":
                         aot_req_tmp = upper
-                        upper = min([ i for i in wl if i > aot_req_tmp], key=lambda x:abs(x-aot_req_tmp))
+                        upper = min([i for i in wl if i > aot_req_tmp], key=lambda x:abs(x-aot_req_tmp))
                     else:
                         wl_upper = float(upper)
                         aot_upper = float(t_columns[wl.index(upper)+i_col[0]])
-                        check_up=1
-                    count2+=1
-                count2=0
-                while count2<len(i_col) and check_lo<1:
+                        check_up = 1
+                    count2 += 1
+                count2 = 0
+                while count2 < len(i_col) and check_lo < 1:
                     # Search for the not null value for the lower wavelength
-                    if t_columns[wl.index(lower)+i_col[0]]=="N/A":
+                    if t_columns[wl.index(lower)+i_col[0]] == "N/A":
                         aot_req_tmp = lower
-                        lower = min([ i for i in wl if i < aot_req_tmp], key=lambda x:abs(x-aot_req_tmp))
+                        lower = min([i for i in wl if i < aot_req_tmp], key=lambda x:abs(x-aot_req_tmp))
                     else:
                         wl_lower = float(lower)
                         aot_lower = float(t_columns[wl.index(lower)+i_col[0]])
-                        check_lo=1
-                    count2+=1
+                        check_lo = 1
+                    count2 += 1
         # Compute AOD at 550 nm
         alpha = math.log(aot_lower/aot_upper)/math.log(wl_upper/wl_lower)
         aot550 = math.exp(math.log(aot_lower) - math.log(550.0/wl_lower)*alpha)
@@ -602,7 +602,7 @@ def main ():
         elif aerosol_mod == 'Shettle model for background desert aerosol':
             text.write('4' + "\n") # Shettle aerosol model
         elif aerosol_mod == 'Biomass burning':
-            text.write('5' + "\n") #Biomass aerosol model
+            text.write('5' + "\n")  # Biomass aerosol model
         elif aerosol_mod == 'Stratospheric model':
             text.write('6' + "\n") # Stratospheric aerosol model
         # Visibility and/or AOD
@@ -747,7 +747,7 @@ def main ():
                     'nir',
                     'nir8a',
                     'swir11',
-                    'swir12']:
+                        'swir12']:
                     txt.write(str(key) + '=' + prefix + str(value) + "\n")
             mtd_tl_xml = glob.glob(os.path.join(input_dir, 'GRANULE/*/MTD_TL.xml'))[0]
             txt.write('MTD_TL.xml=' + mtd_tl_xml + "\n")

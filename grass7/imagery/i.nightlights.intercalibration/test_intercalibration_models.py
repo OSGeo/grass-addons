@@ -37,7 +37,7 @@ def calibrate_digital_number(dn, c0, c1, c2):
     Calibrate a "raw" digital number based on Elvidge's calibration
     polynomial model
     """
-    if type(dn) != int:
+    if not isinstance(dn, int):
         raise ValueError('The provided Digital Number value is NOT an '
                          'integer!')
 
@@ -151,10 +151,9 @@ if __name__ == "__main__":
     print ('Testing classes for calibration models for DMSP-OLS NightTime '
            'Lights Time Series')
     print
-    
+
     # uncomment to test
     test_model('ELVIDGE2009')
     test_model('ELVIDGE2014')
     test_model('LIU2012')
     test_model('WU2013')
-

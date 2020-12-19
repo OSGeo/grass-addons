@@ -16,7 +16,7 @@ class TestSpread(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.use_temp_region()
-        cls.runModule('g.region', raster='lsat7_2002_30',  res=85.5, flags='a')
+        cls.runModule('g.region', raster='lsat7_2002_30', res=85.5, flags='a')
         cls.runModule('r.mapcalc',
             expression="ndvi = double(lsat7_2002_40 - lsat7_2002_30) / double(lsat7_2002_40 + lsat7_2002_30)")
         cls.runModule('r.mapcalc', expression="host = round(if(ndvi > 0, graph(ndvi, 0, 0, 1, 20), 0))")
@@ -41,8 +41,8 @@ class TestSpread(TestCase):
         # TODO: eventually, removing maps should be handled through testing framework fucntions
         cls.runModule('g.remove', flags='f', type='raster',
                       pattern='average*,single*,stddev*,probability*,dead*')
-                     
-                      
+
+
     def test_outputs(self):
         start = '2019-01-01'
         end = '2022-12-31'

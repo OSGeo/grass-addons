@@ -1,4 +1,4 @@
-owslib=False
+owslib = False
 try:
     import sqlalchemy
 except:
@@ -23,4 +23,3 @@ import hdfs
 import thrift
 from snakebite.client import Client, HAClient, Namenode
 import sqlalchemy
-

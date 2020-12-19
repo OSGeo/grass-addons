@@ -240,8 +240,8 @@ def check_plant(args, range_plant, distance, start, end, rank, cat,
                 line, count, p_max):
     #import pdb; pdb.set_trace()
     prog, h, q = args
-    fun_h = interpolate.interp1d(prog, h,  bounds_error=False, fill_value=0)
-    fun_q = interpolate.interp1d(prog, q,  bounds_error=False, fill_value=0)
+    fun_h = interpolate.interp1d(prog, h, bounds_error=False, fill_value=0)
+    fun_q = interpolate.interp1d(prog, q, bounds_error=False, fill_value=0)
     delta_h = fun_h(end) - fun_h(start)
     theta = math.atan(delta_h/(end-start))
     len_p = end-start
@@ -250,7 +250,7 @@ def check_plant(args, range_plant, distance, start, end, rank, cat,
     len_min = range_plant[0]*math.cos(theta)
     if count < 100:
         if len_p > len_plant + 2*dis:
-        # if (end-start) > len_plant + 2*distance:
+            # if (end-start) > len_plant + 2*distance:
             if not(p_max):
                 x_min = find_optimal(args, (len_min, len_plant),
                                      (start+dis, end-dis))
@@ -348,8 +348,8 @@ def find_segments(river, discharge, dtm, range_plant, distance, p_max):
         line, prog, h, q = build_array(line, raster_q, raster_dtm)
         #pdb.set_trace()
         if len(line) > 2:
-#            import ipdb; ipdb.set_trace()
-#        else:
+            #            import ipdb; ipdb.set_trace()
+            #        else:
             # import pdb; pdb.set_trace()
             plants = recursive_plant((prog, h, q), range_plant, distance,
                                      prog[0], prog[-1],
@@ -439,17 +439,17 @@ def conv_segpoints(seg, output):
 
     for pla in seg:
             #import ipdb; ipdb.set_trace()
-            new_vec.write(pla[-1], (2,
-                          pla.attrs['plant_id'], 'restitution', pla.attrs['stream_id'],
-                          pla.attrs['elev_down'],
-                          pla.attrs['discharge'],
-                          pla.attrs['pot_power']))
-            #import ipdb; ipdb.set_trace()
-            new_vec.write(pla[0], (1,
-                          pla.attrs['plant_id'], 'intake', pla.attrs['stream_id'],
-                          pla.attrs['elev_up'],
-                          pla.attrs['discharge'],
-                          pla.attrs['pot_power']))
+        new_vec.write(pla[-1], (2,
+                      pla.attrs['plant_id'], 'restitution', pla.attrs['stream_id'],
+                      pla.attrs['elev_down'],
+                      pla.attrs['discharge'],
+                      pla.attrs['pot_power']))
+        #import ipdb; ipdb.set_trace()
+        new_vec.write(pla[0], (1,
+                      pla.attrs['plant_id'], 'intake', pla.attrs['stream_id'],
+                      pla.attrs['elev_up'],
+                      pla.attrs['discharge'],
+                      pla.attrs['pot_power']))
 
     new_vec.table.conn.commit()
     new_vec.comment = (' '.join(sys.argv))

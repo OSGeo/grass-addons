@@ -214,19 +214,19 @@ def main():
     #--------------------------------------------------------------------------
     if not flag_r:
         flag_r = []
-    if flag_s and not 0.0 in Q:
+    if flag_s and 0.0 not in Q:
         Q.append(0.0)
-    if flag_h and not 1.0 in Q:
+    if flag_h and 1.0 not in Q:
         Q.append(1.0)
-    if flag_e and not 0.0 in Q:
+    if flag_e and 0.0 not in Q:
         Q.append(0.0)
-    if flag_e and not 1.0 in Q:
+    if flag_e and 1.0 not in Q:
         Q.append(1.0)
-    if flag_p and not 2.0 in Q:
+    if flag_p and 2.0 not in Q:
         Q.append(2.0)
-    if flag_g and not 2.0 in Q:
+    if flag_g and 2.0 not in Q:
         Q.append(2.0)
-    if flag_n and not 1.0 in Q:
+    if flag_n and 1.0 not in Q:
         Q.append(1.0)
 
     #--------------------------------------------------------------------------
@@ -257,7 +257,7 @@ def main():
                               renyi=renyi, tmp_2=tmp_2,
                               inl=IN[i], tmp_1=tmp_1, quiet=True)
                 grass.run_command("g.rename", raster="{0},{1}".format(
-                        tmp_2,renyi), overwrite=True, quiet=True)
+                    tmp_2,renyi), overwrite=True, quiet=True)
         else:
             # If alpha != 1
             tmp_3 = tmpname("sht")
@@ -270,9 +270,9 @@ def main():
                 grass.mapcalc("$tmp_4 = if($inl == 0, $tmp_3, $tmp_3 + (pow($inl/$tmp_1,$alpha)))",
                             tmp_3=tmp_3, tmp_4=tmp_4,
                             tmp_1=tmp_1, inl=IN[i],
-                            alpha=Q[n],  quiet=True)
+                            alpha=Q[n], quiet=True)
                 grass.run_command("g.rename", raster="{0},{1}".format(
-                        tmp_4,tmp_3), overwrite=True, quiet=True)
+                    tmp_4,tmp_3), overwrite=True, quiet=True)
             grass.mapcalc("$outl = (1/(1-$alpha)) * log($tmp_3)",
                             outl=renyi, tmp_3=tmp_3,
                             alpha=Q[n], quiet=True)

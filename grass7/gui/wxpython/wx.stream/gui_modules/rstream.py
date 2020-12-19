@@ -44,7 +44,7 @@ from rstream_panelOne import *
 
 
 
-# Child panel class before customization 
+# Child panel class before customization
 
 class TabPanel(wx.Panel):
 
@@ -55,7 +55,7 @@ class TabPanel(wx.Panel):
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.txtOne = wx.TextCtrl(self, wx.ID_ANY, "")
         self.txtTwo = wx.TextCtrl(self, wx.ID_ANY, "")
- 
+
         self.sizer.Add(self.txtOne, 0, wx.ALL, 5)
         self.sizer.Add(self.txtTwo, 0, wx.ALL, 5)
 
@@ -69,18 +69,18 @@ class RStreamFrame(wx.Frame):
     def __init__(self, parent, id = wx.ID_ANY, style = wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER,
                  title = _("GRASS GIS Hydrological Modelling Utility"), **kwargs):
         """!Main window of r.stream's GUI
-        
+
         @param parent parent window
         @param id window id
         @param title window title
-        
+
         @param kwargs wx.Frames' arguments
         """
         self.parent = parent
-        
+
         wx.Frame.__init__(self, parent = parent, id = id, title = title, name = "RStream", size = (600, 900), **kwargs)
         self.SetIcon(wx.Icon(os.path.join(globalvar.ETCICONDIR, 'grass.ico'), wx.BITMAP_TYPE_ICO))
-        
+
 
         self.nb = FN.FlatNotebook(parent = self, id = wx.ID_ANY,
                                         style = FN.FNB_NO_NAV_BUTTONS |
@@ -101,15 +101,15 @@ class RStreamFrame(wx.Frame):
         self.button = wx.BoxSizer(wx.HORIZONTAL)
         self.btn_close = wx.Button(parent = self, id = wx.ID_CLOSE)
         self.btn_close.Bind(wx.EVT_BUTTON, self.OnClose)
-        self.button.Add(item=self.btn_close,flag = wx.ALL, border = 5)        
+        self.button.Add(item=self.btn_close,flag = wx.ALL, border = 5)
         self.sizer.Add(self.button)
-        
+
         self.SetSizer(self.sizer)
 
-        
 
-    def OnClose(self, event): 
-        self.Destroy()        
+
+    def OnClose(self, event):
+        self.Destroy()
         self.Show()
 
 def main():
@@ -117,10 +117,8 @@ def main():
     wx.InitAllImageHandlers()
     frame = RStreamFrame()
     frame.Show()
-    
+
     app.MainLoop()
 
 if __name__ == "__main__":
     main()
-
-

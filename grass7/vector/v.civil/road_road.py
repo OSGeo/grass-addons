@@ -51,6 +51,7 @@ class Road(object):
     >>> road
     Circuit
     """
+
     def __init__(self, mapa=None):
 
         self.mapa = mapa.split('@')[0]

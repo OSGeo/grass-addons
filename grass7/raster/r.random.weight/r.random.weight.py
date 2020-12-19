@@ -127,7 +127,7 @@ def main(options, flags):
     flag_n = flags['n']
 
     # Compute minimum and maximum value raster
-    minmax = gs.parse_command('r.univar', map=weight,  flags='g', quiet=True)
+    minmax = gs.parse_command('r.univar', map=weight, flags='g', quiet=True)
 
     # Set min and max if not set, and check set min/max against map min and max
     if minval == '':

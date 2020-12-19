@@ -167,7 +167,7 @@ class WCSBase:
         # check if authentication information is complete
         if (self.params['password'] and self.params['username'] == '') or \
            (self.params['password'] == '' and self.params['username']):
-                grass.fatal(_("Please insert both %s and %s parameters or none of them." % ('password', 'username')))
+            grass.fatal(_("Please insert both %s and %s parameters or none of them." % ('password', 'username')))
 
 
         # configure region extent (specified name or current region)
@@ -190,7 +190,7 @@ class WCSBase:
 
             if not grass.find_file(name = reg_spl[0], element = 'windows',
                                    mapset = reg_mapset)['name']:
-                 grass.fatal(_("Region <%s> not found") % opt_region)
+                grass.fatal(_("Region <%s> not found") % opt_region)
 
         if opt_region:
             s = grass.read_command('g.region',
@@ -198,7 +198,7 @@ class WCSBase:
                                     flags = 'ug',
                                     region = opt_region)
             region_params = grass.parse_key_val(s, val_type = float)
-            grass.verbose("Using region parameters for region %s" %opt_region)
+            grass.verbose("Using region parameters for region %s" % opt_region)
         else:
             region_params = grass.region()
             grass.verbose("Using current grass region")
@@ -217,7 +217,7 @@ class WCSBase:
         boundingbox = list()
         for f in boundingboxvars:
             boundingbox.append(self.params['region'][f])
-        grass.verbose("Boundingbox coordinates:\n %s  \n [West, South, Eest, North]" %boundingbox)
+        grass.verbose("Boundingbox coordinates:\n %s  \n [West, South, Eest, North]" % boundingbox)
         self._debug("_computeBbox", "finished")
         return boundingbox
 
@@ -262,7 +262,7 @@ class WCSBase:
             cap = self._fetchDataFromServer(cap_url, options['username'], options['password'])
             print(dir(cap))
         except (IOError, HTTPException) as e:
-            if HTTPError == type(e) and e.code == 401:
+            if isinstance(e, HTTPError) and e.code == 401:
                 grass.fatal(_("Authorization failed to <%s> when fetching capabilities") % options['url'])
             else:
                 msg = _("Unable to fetch capabilities from <%s>: %s") % (options['url'], e)
@@ -282,8 +282,8 @@ class WCSBase:
 
         request = Request(url)
         if username and password:
-                    base64string = base64.encodestring('%s:%s' % (username, password)).replace('\n', '')
-                    request.add_header("Authorization", "Basic %s" % base64string)
+            base64string = base64.encodestring('%s:%s' % (username, password)).replace('\n', '')
+            request.add_header("Authorization", "Basic %s" % base64string)
 
         try:
             return urlopen(request)
@@ -337,17 +337,17 @@ class WCSGdalDrv(WCSBase):
 
         gdal_wcs = etree.Element("WCS_GDAL")
         server_url = etree.SubElement(gdal_wcs, "ServiceUrl")
-        server_url.text =self.params['url']
+        server_url.text = self.params['url']
 
         version = etree.SubElement(gdal_wcs, "Version")
-        version.text =self.params['version']
+        version.text = self.params['version']
 
         coverage = etree.SubElement(gdal_wcs, "CoverageName")
         coverage.text = self.params['coverage']
 
         if self.params['username']:
             userpwd = etree.SubElement(gdal_wcs,'UserPwd')
-            userpwd.text = self.params['username']+':'+ self.params['password']
+            userpwd.text = self.params['username']+':' + self.params['password']
 
         xml_file = self._tempfile()
 
@@ -412,18 +412,18 @@ class WCSGdalDrv(WCSBase):
                              stdout = grass.PIPE,
                              stderr = grass.PIPE,
                              env = env
-            )
+                                    )
 
 
         else:
-                p = grass.start_command('r.in.gdal',
-                         input=self.vrt_file,
-                         output=self.params['output'],
-                         location = self.params['location'],
-                         stdout = grass.PIPE,
-                         stderr=grass.PIPE,
-                         env = env
-                )
+            p = grass.start_command('r.in.gdal',
+                     input=self.vrt_file,
+                     output=self.params['output'],
+                     location = self.params['location'],
+                     stdout = grass.PIPE,
+                     stderr=grass.PIPE,
+                     env = env
+                                    )
 
         while p.poll() is None:
             line = p.stderr.readline()
@@ -438,9 +438,9 @@ class WCSGdalDrv(WCSBase):
 
         ret = p.wait()
         if ret != 0:
-            grass.fatal('r.in.gdal for %s failed.' % self.vrt_file )
+            grass.fatal('r.in.gdal for %s failed.' % self.vrt_file)
         else:
-            grass.message('r.in.gdal was successful for new raster map %s ' % self.params['output'] )
+            grass.message('r.in.gdal was successful for new raster map %s ' % self.params['output'])
 
         grass.try_remove(self.vrt_file)
         grass.try_remove(self.xml_file)
@@ -460,7 +460,7 @@ def main():
     password = options['password']
     flag_c = flags['c']
 
-    options['version']="1.0.0" # right now only supported version, therefore not in GUI
+    options['version'] = "1.0.0" # right now only supported version, therefore not in GUI
 
     if not LXML_AVAILABLE:
         grass.warning("The Python lxml is not installed."

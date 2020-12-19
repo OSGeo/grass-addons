@@ -42,6 +42,7 @@ def write_objs(allrectas, radio):
 class Parallel(Base.RoadObj, object):
     """ Return
     """
+
     def __init__(self, pk1, pk2, dist1, dist2, g90, plant=None):
         """ Return
         """
@@ -554,6 +555,7 @@ class DisplLine(Aligns, object):
 class Displaced(object):
     """ Return
     """
+
     def __init__(self, polygon, tabla_iter, plant):
         """ Return
         """
@@ -653,10 +655,10 @@ class Displaced(object):
         for d_line in self.displines:
             pnt = d_line.find_cutoff(r_pnt)
             if d_line.left:
-#                if pnt is not None:
+                #                if pnt is not None:
                 list_pnts_d_left.append(pnt)
             else:
-#                if pnt is not None:
+                #                if pnt is not None:
                 list_pnts_d_right.append(pnt)
         return [list_pnts_d_left, list_pnts_d_right]
 

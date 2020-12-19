@@ -164,7 +164,7 @@ def calculateM(home, map_in, map_out, res, alpha, method, quiet, overw):
             if i == 'renyi':
                 for alp in alpha:
                     grass.run_command('r.li.renyi', input=map_in,
-                                      output=map_out + '_renyi_size_' + r + \
+                                      output=map_out + '_renyi_size_' + r +
                                       '_alpha_' + str(alp), alpha=alp,
                                       conf='conf_diversity_' + r,
                                       overwrite=overw)
@@ -190,12 +190,12 @@ def calculateE(home, map_in, map_out, res, alpha, method, quiet, overw):
                 if i == 'renyi':
                     for alp in alpha:
                         grass.run_command('r.li.renyi', input=map_in,
-                                          output=map_out + '_renyi_size_' + r \
+                                          output=map_out + '_renyi_size_' + r
                                           + '_alpha_' + str(alp), alpha=alp,
                                           conf='conf_diversity_' + r,
                                           overwrite=overw)
                 else:
-                    grass.run_command('r.li.' + i, input=map_in, output=map_out \
+                    grass.run_command('r.li.' + i, input=map_in, output=map_out
                                       + '_' + i + '_size_' + r,
                                       conf='conf_diversity_' + r,
                                       overwrite=overw)
@@ -262,7 +262,7 @@ def checkValues(res, alpha=False):
         reso[i] = float(reso[i]) if alpha else int(reso[i])
         if not alpha and reso[i] % 2 == 0:
             # return the error advice
-            grass.fatal(_("The size setting must be an odd number " \
+            grass.fatal(_("The size setting must be an odd number "
                           "(found %d)" % reso[i]))
     # create a range
     if typ == 'range':

@@ -55,8 +55,8 @@ def _getRegisteredExecutable(exeName):
 
 def _samefile(fname1, fname2):
     if sys.platform.startswith('win'):
-        return ( os.path.normpath(os.path.normcase(fname1)) ==\
-            os.path.normpath(os.path.normcase(fname2)) )
+        return (os.path.normpath(os.path.normcase(fname1)) ==
+            os.path.normpath(os.path.normcase(fname2)))
     else:
         return os.path.samefile(fname1, fname2)
 
@@ -80,7 +80,7 @@ def _cull(potential, matches, verbose=0):
         elif sys.platform != "win32" \
              and not os.access(potential[0], os.X_OK):
             if verbose:
-                sys.stderr.write("no executable access: %s (%s)\n"\
+                sys.stderr.write("no executable access: %s (%s)\n"
                                  % potential)
         else:
             matches.append(potential)
@@ -133,7 +133,7 @@ def whichgen(command, path=None, verbose=0, exts=None):
             raise TypeError("'exts' argument must be a list or None")
     else:
         if exts is not None:
-            raise WhichError("'exts' argument is not supported on "\
+            raise WhichError("'exts' argument is not supported on "
                              "platform '%s'" % sys.platform)
         exts = []
 
@@ -222,4 +222,4 @@ def whichall(command, path=None, verbose=0, exts=None):
         not a VisualBasic script but ".vbs" is on PATHEXT. This option
         is only supported on Windows.
     """
-    return list( whichgen(command, path, verbose, exts) )
+    return list(whichgen(command, path, verbose, exts))

@@ -17,7 +17,7 @@
 #
 # REQUIREMENTS:
 #      -  uses inputs from r.stream.extract
- 
+
 # More information
 # Started 14 October 2016
 #%module
@@ -142,8 +142,8 @@ def moving_average(x, y, window):
     out_x = np.hstack((out_x, x[-1]-window/2.))
     out_y = []
     for _x in out_x:
-        out_y.append( np.mean(y[ (x < _x + window/2.) * 
-                                 (x > _x - window/2.) ]))
+        out_y.append(np.mean(y[(x < _x + window/2.) *
+                                 (x > _x - window/2.)]))
     return out_x, out_y
 
 ###############
@@ -152,7 +152,7 @@ def moving_average(x, y, window):
 
 def main():
     """
-    Links each river segment to the next downstream segment in a tributary 
+    Links each river segment to the next downstream segment in a tributary
     network by referencing its category (cat) number in a new column. "0"
     means that the river exits the map.
     """
@@ -161,7 +161,7 @@ def main():
     from matplotlib import pyplot as plt
 
     options, flags = gscript.parser()
-    
+
     # Parsing
     window = float(options['window'])
     accum_mult = float(options['accum_mult'])
@@ -176,7 +176,7 @@ def main():
     else:
         accum_label = 'Flow accumulation [$-$]'
     plots = options['plots'].split(',')
-    
+
     # Attributes of streams
     colNames = np.array(vector_db_select(options['streams'])['columns'])
     colValues = np.array(vector_db_select(options['streams'])['values'].values())
@@ -196,27 +196,27 @@ def main():
             selected_cats.append(int(tostream[cats == selected_cats[-1]]))
         x.append(selected_cats[-1])
         selected_cats = selected_cats[:-1] # remove 0 at end
-        
+
         # Extract x points in network
         data = vector.VectorTopo(options['streams']) # Create a VectorTopo object
         data.open('r') # Open this object for reading
-        
+
         coords = []
         _i = 0
         for i in range(len(data)):
-            if type(data.read(i+1)) is vector.geometry.Line:
+            if isinstance(data.read(i+1), vector.geometry.Line):
                 if data.read(i+1).cat in selected_cats:
                     coords.append(data.read(i+1).to_array())
                     gscript.core.percent(_i, len(selected_cats), 100./len(selected_cats))
                     _i += 1
         gscript.core.percent(1, 1, 1)
         coords = np.vstack(np.array(coords))
-        
+
         _dx = np.diff(coords[:,0])
         _dy = np.diff(coords[:,1])
         x_downstream_0 = np.hstack((0, np.cumsum((_dx**2 + _dy**2)**.5)))
         x_downstream = x_downstream_0.copy()
-        
+
     elif options['direction'] == 'upstream':
         #terminalCATS = list(options['cat'])
         #while terminalCATS:
@@ -229,14 +229,14 @@ def main():
         while
         full_river_cats
         """
-    
+
     # Network extraction
     if options['outstream'] is not '':
         selected_cats_str = list(np.array(selected_cats).astype(str))
         selected_cats_csv = ','.join(selected_cats_str)
-        v.extract( input=options['streams'], output=options['outstream'], \
-                   cats=selected_cats_csv, overwrite=gscript.overwrite() )
-    
+        v.extract(input=options['streams'], output=options['outstream'],
+                   cats=selected_cats_csv, overwrite=gscript.overwrite())
+
     # Analysis
     gscript.message("Elevation")
     if options['elevation']:
@@ -330,7 +330,7 @@ def main():
         plt.ylabel(accum_label, fontsize=20)
         plt.tight_layout()
     plt.show()
-    
+
     # Saving data
     if options['outfile_original'] is not '':
         header = ['x_downstream', 'E', 'N']
@@ -372,7 +372,6 @@ def main():
         header = np.array(header)
         outfile = np.vstack((header, outfile))
         np.savetxt(options['outfile_smoothed'], outfile, '%s')
-    
+
 if __name__ == "__main__":
     main()
-

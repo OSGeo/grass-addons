@@ -215,57 +215,57 @@ def footprint_to_vectormap(infile, footprint):
     f.write(xy_in[:-1])
     f.close()
     grass.run_command(
-                        'v.in.lines',
-                        input=tmp_xy,
-                        output='footprint_line',
-                        separator='comma'
-                      )
+        'v.in.lines',
+        input=tmp_xy,
+        output='footprint_line',
+        separator='comma'
+    )
     grass.run_command('g.region', vector='footprint_line')
     grass.run_command(
-                        'v.type',
-                        input='footprint_line',
-                        out='footprint_boundary',
-                        from_type='line',
-                        to_type='boundary'
-                    )
+        'v.type',
+        input='footprint_line',
+        out='footprint_boundary',
+        from_type='line',
+        to_type='boundary'
+    )
     grass.run_command('v.centroids', input='footprint_boundary', out=footprint)
     grass.run_command(
-                        'v.db.addtable',
-                        map=footprint,
-                        columns='name varchar(50)'
-                    )
+        'v.db.addtable',
+        map=footprint,
+        columns='name varchar(50)'
+    )
     grass.run_command(
-                        'v.db.update',
-                        map=footprint,
-                        column='name',
-                        value=infile
-                    )
+        'v.db.update',
+        map=footprint,
+        column='name',
+        value=infile
+    )
 
     # Cleaning up
     grass.message(_("Cleaning up..."))
     os.remove(tmp_fp)
     os.remove(tmp_xy)
     grass.run_command(
-                        'g.remove',
-                        flags='f',
-                        type='vector',
-                        name='footprint_line',
-                        quiet=True
-                    )
+        'g.remove',
+        flags='f',
+        type='vector',
+        name='footprint_line',
+        quiet=True
+    )
     grass.run_command(
-                        'g.remove',
-                        flags='f',
-                        type='vector',
-                        name='footprint_boundary',
-                        quiet=True
-                    )
+        'g.remove',
+        flags='f',
+        type='vector',
+        name='footprint_boundary',
+        quiet=True
+    )
 
     # metadata
     grass.run_command(
-                        'v.support',
-                        map=footprint,
-                        comment='in ' + os.environ['CMDLINE']
-                    )
+        'v.support',
+        map=footprint,
+        comment='in ' + os.environ['CMDLINE']
+    )
 
     grass.message(_("Generating output vector map <%s>...") % footprint)
 
@@ -343,7 +343,7 @@ def scan_extent(infile):
         e = str(data[str1][str2][str3][str4][u'maxx'])
         t = str(data[str1][str2][str3][str4][u'maxz'])
         b = str(data[str1][str2][str3][str4][u'minz'])
-        
+
     return n, s, w, e, t, b
 
 def main():
@@ -401,11 +401,11 @@ def main():
         if raster_file:
             raster_reference = 'img' + str(os.getpid())
             grass.run_command(
-                                'r.external',
-                                input=raster_file,
-                                flags='o',
-                                output=raster_reference
-                            )
+                'r.external',
+                input=raster_file,
+                flags='o',
+                output=raster_reference
+            )
             result = grass.find_file(name=raster_reference, element='raster')
             if result[u'fullname'] == u'':
                 raster_reference = raster_reference + '.1'
@@ -413,20 +413,20 @@ def main():
         # geometry to raster_reference (including both raster_reference and raster_file)
         if raster_reference:
             grass.run_command(
-                                'g.region',
-                                n=n, s=s, e=e, w=w,
-                                flags='g',
-                                align=raster_reference
-                            )
+                'g.region',
+                n=n, s=s, e=e, w=w,
+                flags='g',
+                align=raster_reference
+            )
         else:
             # option 2: change raster resolution to final resolution while best
             # effort aligning to pixel geometry
             grass.run_command(
-                            'g.region',
-                            n=n, s=s, e=e, w=w,
-                            flags='ap',
-                            res=resolution
-                        )
+                'g.region',
+                n=n, s=s, e=e, w=w,
+                flags='ap',
+                res=resolution
+            )
         # generate PDAL pipeline
         # . pdal pipline laz2json (STDOUT) | r.in.xyz
         bn = os.path.basename(infile)
@@ -440,12 +440,12 @@ def main():
             format_reader = 'readers.pts'
         else:
             grass.run_command(
-                                'g.remove',
-                                flags='f',
-                                type='vector',
-                                name='tiles',
-                                quiet=True
-                            )
+                'g.remove',
+                flags='f',
+                type='vector',
+                name='tiles',
+                quiet=True
+            )
             grass.fatal(_("Format .%s is not supported.." % infile_format))
 
 
@@ -527,36 +527,36 @@ def main():
             f = open(empty_history, 'w')
             f.close()
             grass.run_command(
-                                'r.support',
-                                map=outfile,
-                                source1=infile,
-                                description='generated by r.in.pdal',
-                                loadhistory=empty_history
-                            )
+                'r.support',
+                map=outfile,
+                source1=infile,
+                description='generated by r.in.pdal',
+                loadhistory=empty_history
+            )
             grass.run_command(
-                                'r.support',
-                                map=outfile,
-                                history=os.environ['CMDLINE']
-                            )
+                'r.support',
+                map=outfile,
+                history=os.environ['CMDLINE']
+            )
             os.remove(empty_history)
 
         # Cleanup
         grass.message(_("Cleaning up..."))
         grass.run_command(
-                            'g.remove',
-                            flags='f',
-                            type='vector',
-                            name='tiles',
-                            quiet=True
-                        )
+            'g.remove',
+            flags='f',
+            type='vector',
+            name='tiles',
+            quiet=True
+        )
         if raster_file:
             grass.run_command(
-                            'g.remove',
-                            flags='f',
-                            type='raster',
-                            pattern=raster_reference[:-1] + '*' ,
-                            quiet=True
-                        )
+                'g.remove',
+                flags='f',
+                type='raster',
+                pattern=raster_reference[:-1] + '*',
+                quiet=True
+            )
         os.remove(tmp_file_json)
         os.remove(tmp_xyz)
         grass.del_temp_region()

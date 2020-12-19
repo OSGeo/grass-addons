@@ -53,7 +53,7 @@
 #%end
 #%flag
 #% key: a
-#% description: Assign the average difference between the two rasters to the far edge (instead of zero). 
+#% description: Assign the average difference between the two rasters to the far edge (instead of zero).
 #%end
 
 import os
@@ -84,7 +84,7 @@ def cleanup():
     while len(TMP_MAPS) > 0:
         gscript.run_command('g.remove', type='all', name=TMP_MAPS.pop(),
                             flags='f', quiet=True)
-        
+
 
 def compute_d_max(region):
     global d_max
@@ -135,7 +135,7 @@ def main():
         cell_side = region['nsres']
     else:
         cell_side = region['ewres']
-        
+
     compute_d_max(region)
 
     # Make cell size compatible
@@ -180,7 +180,7 @@ def main():
     gscript.run_command('r.to.vect', input=diff, output=diff_points_edge,
                         type='point')
     gscript.run_command('r.mask', flags='r')
-    
+
     # Compute average of the differences if flag -a was passed
     if use_average_differences:
         p = gscript.pipe_command('r.univar', map=diff)
@@ -209,22 +209,22 @@ def main():
     gscript.message(_("[r.mblend] Rescaling distance to [0,10000] interval"))
     gscript.run_command('r.rescale', input=dist_high, output=weights,
                         to='0,' + str(WEIGHT_MAX))
-    # 3. Extract points from interpolation area border 
-    gscript.message(_("[r.mblend] Extract points from interpolation area " + 
+    # 3. Extract points from interpolation area border
+    gscript.message(_("[r.mblend] Extract points from interpolation area " +
                       "boundary"))
-    gscript.run_command('v.to.points', input=interpol_area, 
-                        output=pre_interpol_area_points, type='boundary', 
+    gscript.run_command('v.to.points', input=interpol_area,
+                        output=pre_interpol_area_points, type='boundary',
                         dmax=d_max, layer='-1')
     gscript.message(_("[r.mblend] Copying features to layer 1"))
-    gscript.run_command('v.category', input=pre_interpol_area_points, 
-                        output=interpol_area_points, option='chlayer', 
+    gscript.run_command('v.category', input=pre_interpol_area_points,
+                        output=interpol_area_points, option='chlayer',
                         layer='2,1')
     gscript.message(_("[r.mblend] Linking attribute table to layer 1"))
-    gscript.run_command('v.db.connect', map=interpol_area_points, 
+    gscript.run_command('v.db.connect', map=interpol_area_points,
                         table=interpol_area_points, layer='1', flags='o')
     # 4. Query distances to interpolation area points
     gscript.message(_("[r.mblend] Querying distances raster"))
-    gscript.run_command('v.what.rast', map=interpol_area_points, 
+    gscript.run_command('v.what.rast', map=interpol_area_points,
                         raster=weights, column=COL_VALUE)
     # 5. Select those with higher weights
     cut_off = str(far_edge / 100 * WEIGHT_MAX)
@@ -237,7 +237,7 @@ def main():
     # Merge the two point edges and set low res edge to zero
     points_edges = getTemporaryIdentifier()
     gscript.message(_("[r.mblend] Dropping extra column from far edge"))
-    gscript.run_command('v.db.dropcolumn', map=weight_points_edge, layer='1', 
+    gscript.run_command('v.db.dropcolumn', map=weight_points_edge, layer='1',
                         columns='along')
     gscript.message(_("[r.mblend] Setting far edge weights to zero"))
     gscript.run_command('v.db.update', map=weight_points_edge,
@@ -246,7 +246,7 @@ def main():
     gscript.run_command('v.patch',
                         input=diff_points_edge + ',' + weight_points_edge,
                         output=points_edges, flags='e')
-    
+
     # Interpolate smoothing raster
     smoothing = getTemporaryIdentifier()
     interpol_area_rst = getTemporaryIdentifier()

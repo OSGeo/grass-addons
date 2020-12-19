@@ -324,12 +324,12 @@ def main():
     pcols = grass.vector.vector_columns(patch_map, layer=layer)
 
     #Check if cat column exists
-    if not 'cat' in pcols.keys():
+    if 'cat' not in pcols.keys():
         grass.fatal('Cannot find the reqired column cat in vector map \
                     {}.'.format(patches))
 
     #Check if pop_proxy column exists
-    if not pop_proxy in pcols.keys():
+    if pop_proxy not in pcols.keys():
         grass.fatal('Cannot find column {} in vector map \
                     {}'.format(pop_proxy, patches))
 
@@ -697,7 +697,7 @@ def main():
                                                   closest_points_min_dist,
                                                   closest_points_dist,
                                                   closest_points_max_dist
-                                                  ))
+                                                        ))
 
             #Save edges to network dataset
             if closest_points_dist <= 0:

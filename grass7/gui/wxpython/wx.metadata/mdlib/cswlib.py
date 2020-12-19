@@ -595,7 +595,7 @@ class CSWBrowserPanel(wx.Panel):
             # convert constreints to owslib object fes
             tmpConstraints = self.constraints
             for x, constraint in enumerate(tmpConstraints):
-                if type(constraint) is list:
+                if isinstance(constraint, list):
                     for y, const in enumerate(constraint):
                         self.constraints[x][y] = PropertyIsLike('csw:AnyText', const)
                     continue

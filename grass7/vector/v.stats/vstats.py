@@ -24,7 +24,7 @@ def get_zones(vector, zones, layer=1, overwrite=False):
     rclr = Module("r.colors", map=zones, color="random")
 
 
-def get_rst_csv(rasters, zones, csvfiles, percentile=90., overwrite=False, 
+def get_rst_csv(rasters, zones, csvfiles, percentile=90., overwrite=False,
                 nprocs=1, separator=';'):
     queue = ParallelModuleQueue(nprocs=nprocs)
     for rast, csv in zip(rasters, csvfiles):

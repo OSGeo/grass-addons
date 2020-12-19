@@ -52,7 +52,9 @@ try:
     from urllib2 import build_opener
 except ImportError:
     # Python3 imports
-    import urllib.request, urllib.error, urllib.parse
+    import urllib.request
+    import urllib.error
+    import urllib.parse
     from html.entities import name2codepoint
     from html.parser import HTMLParser
     from urllib.request import build_opener

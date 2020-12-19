@@ -353,7 +353,7 @@ def doy2date(modis):
     """From he MODIS code to YYYY-MM-DD string date"""
     year = modis[:4]
     doy = modis[-3:]
-    dat = datetime.strptime('{ye} {doy}'.format(ye=year,  doy=doy), '%Y %j')
+    dat = datetime.strptime('{ye} {doy}'.format(ye=year, doy=doy), '%Y %j')
     return dat.strftime('%Y-%m-%d')
 
 

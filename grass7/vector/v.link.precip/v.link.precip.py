@@ -3,7 +3,8 @@
 import os
 import sys
 import argparse
-import string, random
+import string
+import random
 import re
 
 try:
@@ -93,18 +94,18 @@ except ImportError:
 #%end
 
 
-schema=''
-time=''
-path=''
-ogr=''
-nat=''
-layer=''
-key=''
-prefix=''
-typ=''
-firstrun=''
-view=''
-filetimewin=''
+schema = ''
+time = ''
+path = ''
+ogr = ''
+nat = ''
+layer = ''
+key = ''
+prefix = ''
+typ = ''
+firstrun = ''
+view = ''
+filetimewin = ''
 
 
 
@@ -114,7 +115,7 @@ def print_message(msg):
 
 def setFirstRun():
     try:
-        io= open(os.path.join(path,firstrun),"wr")
+        io = open(os.path.join(path,firstrun),"wr")
         io.write(options['type'])
         io.close
     except IOError as e:
@@ -256,8 +257,8 @@ def run():
 
 
     if not flags['c'] and not flags['a']:
-        view=schema+'.%sview'%prefix+time.replace('-','_').replace(':','_').replace(' ','_')
-        view=view[:-3]
+        view = schema+'.%sview' % prefix+time.replace('-','_').replace(':','_').replace(' ','_')
+        view = view[:-3]
 
         if not os.path.exists(os.path.join(path,firstrun)):
             setFirstRun()
@@ -270,18 +271,18 @@ def run():
 
     elif flags['c']:
 
-        view=schema+'.%sview'%prefix+time.replace('-','_').replace(':','_').replace(' ','_')
-        view=view[:-3]
-        view_nat='view'+time.replace('-','_').replace(':','_').replace(' ','_')
+        view = schema+'.%sview' % prefix+time.replace('-','_').replace(':','_').replace(' ','_')
+        view = view[:-3]
+        view_nat = 'view'+time.replace('-','_').replace(':','_').replace(' ','_')
         createVect(view_nat)
 
     elif flags['a']:
         try:
-                with open(os.path.join(path,filetimewin),'r') as f:
-                    for win in f.read().splitlines():
-                        view=schema+'.%sview'%prefix+win[5:]
+            with open(os.path.join(path,filetimewin),'r') as f:
+                for win in f.read().splitlines():
+                    view = schema+'.%sview' % prefix+win[5:]
 
-                        createVect(win)
+                    createVect(win)
 
         except IOError as e:
             print("I/O error({}): {}".format(e.errno, e))
@@ -289,24 +290,24 @@ def run():
 
     if flags['p']:
 
-        sql='select %s, precip_mm_h from %s '%(key,view)
+        sql = 'select %s, precip_mm_h from %s ' % (key,view)
         grass.run_command('db.select',
                     sql=sql,
                     separator='  ')
 
 def isTimeValid(time):
 
-        RE = re.compile(r'^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}$')
-        return bool(RE.search(time))
+    RE = re.compile(r'^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}$')
+    return bool(RE.search(time))
 
 def main():
 
     global schema,time,path,ogr,nat,layer,key,prefix,typ,firstrun,filetimewin
-    schema=options['schema']
+    schema = options['schema']
 
 
-    time=options['time']
-    path= os.path.join(os.path.dirname(os.path.realpath(__file__)), "tmp_%s"%schema)
+    time = options['time']
+    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "tmp_%s" % schema)
 
 
 
@@ -320,43 +321,43 @@ def main():
 
 
     #for links
-    if options['type'].find('l')!=-1:
-        if options['vector'].find('l')!=-1:
-  #connect to line layer
-            ogr='link_ogr'
-            nat="link_nat"
-            layer='link'
-            key='linkid'
-            prefix='l'
-            typ='line'
-            firstrun='firstrunlink'
-            filetimewin='l_timewindow'
+    if options['type'].find('l') != -1:
+        if options['vector'].find('l') != -1:
+          #connect to line layer
+            ogr = 'link_ogr'
+            nat = "link_nat"
+            layer = 'link'
+            key = 'linkid'
+            prefix = 'l'
+            typ = 'line'
+            firstrun = 'firstrunlink'
+            filetimewin = 'l_timewindow'
             run()
         else:
             #connect to points layer
             if not options['layername']:
                 grass.fatal("set up name of points layer")
             else:
-                ogr='point_ogr'
-                nat="points_nat"
-                layer='%s.%s'%(schema,options['layername'])
-                key='linkid'
-                prefix='l'
-                typ='point'
-                firstrun='firstrunlink'
-                filetimewin='l_timewindow'
+                ogr = 'point_ogr'
+                nat = "points_nat"
+                layer = '%s.%s' % (schema,options['layername'])
+                key = 'linkid'
+                prefix = 'l'
+                typ = 'point'
+                firstrun = 'firstrunlink'
+                filetimewin = 'l_timewindow'
                 run()
 
     #for rain gaugues
-    if options['type'].find('r')!=-1:
-        ogr='gauge_ogr'
-        nat="gauge_nat"
-        layer='%s.rgauge'%schema
-        key='gaugeid'
-        prefix='g'
-        typ='point'
-        firstrun='firstrungauge'
-        filetimewin='g_timewindow'
+    if options['type'].find('r') != -1:
+        ogr = 'gauge_ogr'
+        nat = "gauge_nat"
+        layer = '%s.rgauge' % schema
+        key = 'gaugeid'
+        prefix = 'g'
+        typ = 'point'
+        firstrun = 'firstrungauge'
+        filetimewin = 'g_timewindow'
         run()
 
 

@@ -73,20 +73,20 @@ def main():
     for i in range(len(stats)):
         zn[i,3] = 1 - (zn[i,2] / sum(zn[:,1]))
         zn[i,4] = zn[i,3] * (((res**2)/1000000)*sum(zn[:,1]))
-        zn[i,5] = ((zn[i,0] - min(zn[:,0])) / (max(zn[:,0]) - min(zn[:,0])) )
+        zn[i,5] = ((zn[i,0] - min(zn[:,0])) / (max(zn[:,0]) - min(zn[:,0])))
         kl[i,0] = zn[i,0]
         kl[i,1] = 1 - (zn[i,2] / totcell)
 
     # quantiles
-    prc[0,0] , prc[0,1] = findint(kl,0.025) , 0.025
-    prc[1,0] , prc[1,1] = findint(kl,0.05) , 0.05
-    prc[2,0] , prc[2,1] = findint(kl,0.1) , 0.1
-    prc[3,0] , prc[3,1] = findint(kl,0.25) , 0.25
-    prc[4,0] , prc[4,1] = findint(kl,0.5) , 0.5
-    prc[5,0] , prc[5,1] = findint(kl,0.75) , 0.75
-    prc[6,0] , prc[6,1] = findint(kl,0.9) , 0.9
-    prc[7,0] , prc[7,1] = findint(kl,0.95) , 0.95
-    prc[8,0] , prc[8,1] = findint(kl,0.975) , 0.975
+    prc[0,0], prc[0,1] = findint(kl,0.025), 0.025
+    prc[1,0], prc[1,1] = findint(kl,0.05), 0.05
+    prc[2,0], prc[2,1] = findint(kl,0.1), 0.1
+    prc[3,0], prc[3,1] = findint(kl,0.25), 0.25
+    prc[4,0], prc[4,1] = findint(kl,0.5), 0.5
+    prc[5,0], prc[5,1] = findint(kl,0.75), 0.75
+    prc[6,0], prc[6,1] = findint(kl,0.9), 0.9
+    prc[7,0], prc[7,1] = findint(kl,0.95), 0.95
+    prc[8,0], prc[8,1] = findint(kl,0.975), 0.975
 
     # Managing flag & plot
     if flags['a']:
@@ -97,14 +97,14 @@ def main():
     print("===========================")
     print("Hypsometric | quantiles")
     print("===========================")
-    print('%.0f' %findint(kl,0.025) , "|", 0.025)
-    print('%.0f' %findint(kl,0.05) , "|", 0.05)
-    print('%.0f' %findint(kl,0.1) , "|", 0.1)
-    print('%.0f' %findint(kl,0.25) , "|", 0.25)
-    print('%.0f' %findint(kl,0.5) , "|", 0.5)
-    print('%.0f' %findint(kl,0.75) , "|", 0.75)
-    print('%.0f' %findint(kl,0.9) , "|", 0.9)
-    print('%.0f' %findint(kl,0.975) , "|", 0.975)
+    print('%.0f' % findint(kl,0.025), "|", 0.025)
+    print('%.0f' % findint(kl,0.05), "|", 0.05)
+    print('%.0f' % findint(kl,0.1), "|", 0.1)
+    print('%.0f' % findint(kl,0.25), "|", 0.25)
+    print('%.0f' % findint(kl,0.5), "|", 0.5)
+    print('%.0f' % findint(kl,0.75), "|", 0.75)
+    print('%.0f' % findint(kl,0.9), "|", 0.9)
+    print('%.0f' % findint(kl,0.975), "|", 0.975)
     print('\n')
     print('Done!')
     #print prc
@@ -112,7 +112,7 @@ def main():
 
 def findint(kl,f):
     Xf = np.abs(kl-f)
-    Xf = np.where(Xf==Xf.min())
+    Xf = np.where(Xf == Xf.min())
     item = itemgetter(0)(Xf)
     Xf = item[0]  # added this further step to handle the case the function has 2 min
     z1 = kl[Xf][0]
@@ -123,20 +123,20 @@ def findint(kl,f):
     return z
 
 def plotImage(x,y,image,type,xlabel,ylabel,title):
-    import matplotlib #required by windows
-    matplotlib.use('wxAGG') #required by windows
+    import matplotlib  # required by windows
+    matplotlib.use('wxAGG')  # required by windows
     import matplotlib.pyplot as plt
 
     plt.plot(x, y, type)
     plt.ylabel(ylabel)
     plt.xlabel(xlabel)
-    plt.xlim( min(x), max(x) )
-    plt.ylim( min(y), max(y) )
+    plt.xlim(min(x), max(x))
+    plt.ylim(min(y), max(y))
     plt.title(title)
     plt.grid(True)
     plt.savefig(image)
     plt.close('all')
 
 if __name__ == "__main__":
-	options, flags = grass.parser()
-	sys.exit(main())
+    options, flags = grass.parser()
+    sys.exit(main())

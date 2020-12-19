@@ -40,28 +40,28 @@ class GMApp(wx.App):
         @param workspace path to the workspace file
         """
         self.workspaceFile = workspace
-        
+
         # call parent class initializer
         wx.App.__init__(self, False)
-        
+
         self.locale = wx.Locale(language = wx.LANGUAGE_DEFAULT)
-        
+
     def OnInit(self):
         """!Initialize all available image handlers
-        
+
         @return True
         """
         if not globalvar.CheckWxVersion([2, 9]):
             wx.InitAllImageHandlers()
-        
+
         # create splash screen
         introImagePath = os.path.join(globalvar.ETCIMGDIR, "silesia_splash.png")
         introImage     = wx.Image(introImagePath, wx.BITMAP_TYPE_PNG)
         introBmp       = introImage.ConvertToBitmap()
         if SC and sys.platform != 'darwin':
-            # AdvancedSplash is buggy on the Mac as of 2.8.12.1 
+            # AdvancedSplash is buggy on the Mac as of 2.8.12.1
             # and raises annoying (though seemingly harmless) errors everytime the GUI is started
-            splash = SC.AdvancedSplash(bitmap = introBmp, 
+            splash = SC.AdvancedSplash(bitmap = introBmp,
                                        timeout = 2000, parent = None, id = wx.ID_ANY)
             splash.SetText(_('Starting GRASS GUI...'))
             splash.SetTextColour(wx.Colour(45, 52, 27))
@@ -71,16 +71,16 @@ class GMApp(wx.App):
         else:
             wx.SplashScreen (bitmap = introBmp, splashStyle = wx.SPLASH_CENTRE_ON_SCREEN | wx.SPLASH_TIMEOUT,
                              milliseconds = 2000, parent = None, id = wx.ID_ANY)
-        
+
         wx.Yield()
-        
+
         # create and show main frame
         mainframe = GMFrame(parent = None, id = wx.ID_ANY,
                             workspace = self.workspaceFile)
-        
+
         mainframe.Show()
         self.SetTopWindow(mainframe)
-        
+
         return True
 
 class Usage(Exception):
@@ -101,7 +101,7 @@ def process_opt(opts, args):
     for o, a in opts:
         if o in ("-h", "--help"):
             printHelp()
-            
+
         if o in ("-w", "--workspace"):
             if a != '':
                 workspaceFile = str(a)
@@ -113,7 +113,7 @@ def process_opt(opts, args):
 def main(argv = None):
     import gettext
     gettext.install('grasswxpy', os.path.join(os.getenv("GISBASE"), 'locale'), unicode = True)
-    
+
     if argv is None:
         argv = sys.argv
     try:
@@ -122,19 +122,19 @@ def main(argv = None):
                                        ["help", "workspace"])
         except getopt.error, msg:
             raise Usage(msg)
-    
+
     except Usage, err:
         print >> sys.stderr, err.msg
         print >> sys.stderr, "for help use --help"
         printHelp()
-    
+
     workspaceFile = process_opt(opts, args)[0]
-    
+
     app = GMApp(workspaceFile)
     # suppress wxPython logs
     q = wx.LogNull()
-    
+
     app.MainLoop()
-    
+
 if __name__ == "__main__":
     sys.exit(main())

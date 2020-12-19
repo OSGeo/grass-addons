@@ -4,7 +4,7 @@
 IGB-Berlin,Johannes Radinger; Implementation: Geoinformatikbuero Dassau GmbH , Soeren Gebbert
 This tool was developed as part of the BiodivERsA-net project 'FISHCON'
 and has been funded by the German Federal Ministry for Education and
-Research (grant number 01LC1205). 
+Research (grant number 01LC1205).
 
 (C) 2014 by the GRASS Development Team
 This program is free software under the GNU General Public
@@ -30,12 +30,12 @@ class TestStreamOrder(TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.runModule("g.remove",  flags="f",  type="vector",  
+        cls.runModule("g.remove", flags="f", type="vector",
                       name="stream_network,stream_network_outlets")
 
     def tearDown(self):
         pass
-        self.runModule("g.remove",  flags="f",  type="vector",  
+        self.runModule("g.remove", flags="f", type="vector",
                        pattern="stream_network_order_test_*")
 
     def test_strahler(self):
@@ -44,7 +44,7 @@ class TestStreamOrder(TestCase):
                           output="stream_network_order_test_strahler",
                           threshold=25,
                           order=["strahler"],
-                          overwrite=True,  verbose=True)
+                          overwrite=True, verbose=True)
 
         # Check the strahler value
         v = VectorTopo(name="stream_network_order_test_strahler",
@@ -59,7 +59,7 @@ class TestStreamOrder(TestCase):
         self.assertEqual(v.read(4).attrs["network"], 1)
         self.assertEqual(v.read(4).attrs["reversed"], 0)
         self.assertEqual(v.read(4).attrs["strahler"], 4)
-        
+
         v.close()
 
     def test_all(self):
@@ -68,7 +68,7 @@ class TestStreamOrder(TestCase):
                           output="stream_network_order_test_all",
                           threshold=25,
                           order=["strahler", "shreve", "drwal", "scheidegger"],
-                          overwrite=True,  verbose=True)
+                          overwrite=True, verbose=True)
 
         # Check all values
         v = VectorTopo(name="stream_network_order_test_all",
@@ -95,7 +95,7 @@ class TestStreamOrder(TestCase):
                           threshold=25,
                           order=["strahler", "shreve", "drwal", "scheidegger"],
                           columns=["strahler", "shreve", "drwal", "scheidegger"],
-                          overwrite=True,  verbose=True)
+                          overwrite=True, verbose=True)
 
         # Check all values and their copies
         v = VectorTopo(name="stream_network_order_test_all_2",
@@ -142,7 +142,7 @@ class TestStreamOrderFails(TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.runModule("g.remove",  flags="f",  type="vector",  
+        cls.runModule("g.remove", flags="f", type="vector",
                       name="stream_network,stream_network_outlets")
 
     def test_error_handling_1(self):
@@ -150,22 +150,22 @@ class TestStreamOrderFails(TestCase):
         self.assertModuleFail("v.stream.order", input="stream_network",
                               output="stream_network_order", threshold=25,
                               order=["strahler", "shreve", "drwal", "scheidegger"])
-                              
+
     def test_error_handling_2(self):
         # No input network
         self.assertModuleFail("v.stream.order",
                               points="stream_network_outlets",
                               output="stream_network_order", threshold=25,
                               order=["strahler", "shreve", "drwal", "scheidegger"])
-                              
+
     def test_error_handling_3(self):
         # No output
         self.assertModuleFail("v.stream.order", input="stream_network",
                               points="stream_network_outlets",
                               threshold=25,
                               order=["strahler", "shreve", "drwal", "scheidegger"],
-                              overwrite=True,  verbose=True)
-                              
+                              overwrite=True, verbose=True)
+
     def test_error_handling_4(self):
         # Recursion limit is below 1000
         self.assertModuleFail("v.stream.order", input="stream_network",
@@ -173,15 +173,15 @@ class TestStreamOrderFails(TestCase):
                               output="stream_network_order", threshold=25,
                               order=["strahler", "shreve", "drwal", "scheidegger"],
                               recursionlimit=0,
-                              overwrite=True,  verbose=True)
-                              
+                              overwrite=True, verbose=True)
+
     def test_error_handling_5(self):
         # Horton order is not implemented
         self.assertModuleFail("v.stream.order", input="stream_network",
                               points="stream_network_outlets",
                               output="stream_network_order", threshold=25,
                               order=["horton"],
-                              overwrite=True,  verbose=True)
+                              overwrite=True, verbose=True)
 
 if __name__ == '__main__':
     from grass.gunittest.main import test

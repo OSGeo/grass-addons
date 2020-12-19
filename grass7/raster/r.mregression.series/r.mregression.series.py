@@ -43,7 +43,7 @@
 #%option
 #% key: model
 #% type: string
-#% gisprompt: model 
+#% gisprompt: model
 #% description: model type: ols (ordinary least squares), rlm (robust linear model)
 #% required: no
 #% answer: ols
@@ -205,7 +205,7 @@ class DataModel(object):
             map = raster.RasterSegment(name)
             self._b_rasters.append(map)
 
-    def open_rasters(self,  overwrite):
+    def open_rasters(self, overwrite):
         for i in range(self.sample_count):
             map = self.y(i)
             map.open()

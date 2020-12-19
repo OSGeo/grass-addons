@@ -109,7 +109,7 @@ class Anthill(world.World):
         Let the agents do their job. The actual main loop in such a world.
         """
         while rounds > 0:
-#            grass.info(len(self.agents))
+            #            grass.info(len(self.agents))
             if len(self.agents) <= self.maxants:
                 # as there is still space on the pg, produce another ant
                 self.bear()

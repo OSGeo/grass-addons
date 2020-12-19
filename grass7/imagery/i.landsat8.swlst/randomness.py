@@ -33,7 +33,7 @@ def random_column_water_vapor():
     an atmospheric column water vapor subrange, as part of testing the
     Split-WindowLST class.
     """
-    return random.uniform(0.0 -1, 6.3 + 1)
+    return random.uniform(0.0 - 1, 6.3 + 1)
 
 
 def random_column_water_vapor_value():
@@ -88,4 +88,3 @@ def random_brightness_temperature_values(count=2):
         return digital_numbers[0]
 
     return digital_numbers
-

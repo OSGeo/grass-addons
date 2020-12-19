@@ -11,6 +11,7 @@ class ImportSklearnModule():
 class CategoryEncoder(ImportSklearnModule.sklearn_base.BaseEstimator,
                       ImportSklearnModule.sklearn_base.TransformerMixin):
     """Transformer to encode GRASS GIS category labels into integer labels"""
+
     def __init__(self):
         self._encoding = None
         self._inverse = None

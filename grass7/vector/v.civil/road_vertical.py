@@ -20,6 +20,7 @@ from grass.pygrass.vector.geometry import Line
 class Parabola(object):
     """ Return
     """
+
     def __init__(self, k_v=0, pnt_1=None, pnt_v=None, pnt_2=None, plant=None):
         """ Return
         """
@@ -134,6 +135,7 @@ class Parabola(object):
 class VStraight(object):
     """ Return
     """
+
     def __init__(self, pnt_in=None, pnt_out=None):
         """ Return
         """
@@ -207,6 +209,7 @@ class VStraight(object):
 class Vert(object):
     """ Return
     """
+
     def __init__(self, polygon, tabla_iter, plant):
         """ Return
         """

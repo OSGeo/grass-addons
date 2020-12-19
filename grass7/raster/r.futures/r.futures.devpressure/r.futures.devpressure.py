@@ -146,7 +146,7 @@ def main():
     gcore.run_command('r.mfilter', input=rmfilter_inp, output=rmfilter_out, filter=path)
 
     if flags['n']:
-        gcore.run_command('g.region', n=region['n'],  s=region['s'], e=region['e'], w=region['w'],)
+        gcore.run_command('g.region', n=region['n'], s=region['s'], e=region['e'], w=region['w'],)
         grast.mapcalc(exp="{out} = if(isnull({temp_null}), {rmfilter_out}, null())".format(temp_null=temp_map_nulls,
                       rmfilter_out=rmfilter_out, out=output))
         gcore.del_temp_region()

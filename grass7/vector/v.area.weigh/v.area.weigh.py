@@ -82,10 +82,10 @@ def main():
 
     # is column numeric?
     coltype = grass.vector_columns(vector, layer)[column]['type']
-    
+
     if coltype not in ('INTEGER', 'DOUBLE PRECISION'):
         grass.fatal(_("Column must be numeric"))
-    
+
     # rasterize with cats (will be base layer)
     # strip off mapset for tmp output
     vector_basename = vector.split("@")[0]
@@ -103,7 +103,7 @@ def main():
                           use='attr', layer=layer, attrcolumn=column,
                           quiet=True)
     except CalledModuleError:
-         grass.fatal(_("An error occurred while converting vector to raster"))
+        grass.fatal(_("An error occurred while converting vector to raster"))
 
     # zonal statistics
     rastertmp3 = "%s_%s_3" % (vector_basename, tmpname)

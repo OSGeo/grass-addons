@@ -96,20 +96,20 @@ tmp_rast = []
 
 
 def distance_from_centre(radius):
-    """Create a square matrix filled with the euclidean distance from the 
+    """Create a square matrix filled with the euclidean distance from the
     centre cell
 
     Parameters
     ----------
     radius : int
         Radius of the square matrix in cells.
-    
+
     Returns
     -------
     dist_from_centre : 2d ndarray
         Square matrix with each cell filled with the distance from the centre
         cell.
-    
+
     """
     size = radius * 2 + 1
     centre = int(size / 2)

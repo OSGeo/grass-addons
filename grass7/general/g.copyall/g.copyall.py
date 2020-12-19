@@ -4,10 +4,10 @@
 #
 # MODULE:	    g.copyall
 #
-# AUTHOR(S):    Michael Barton (ASU)	
+# AUTHOR(S):    Michael Barton (ASU)
 #
-# PURPOSE:	Copies all or a filtered subset of GRASS files of a selected type 
-#           from another mapset to the current working mapset 
+# PURPOSE:	Copies all or a filtered subset of GRASS files of a selected type
+#           from another mapset to the current working mapset
 #
 # COPYRIGHT:	(C) 2002-2012 by the GRASS Development Team
 #
@@ -69,24 +69,28 @@ def main():
     #
     # define variables
     #
-    
+
     overwrite   = False
     mapset      = options['mapset'] # prefix for copied maps
     datatype    = options['datatype'] # prefix for copied maps
     filter      = options['filter'] # prefix for copied maps
     filter_type = options['filter_type'] # prefix for copied maps
     prefix      = options['output_prefix'] # prefix for copied maps
-    datalist    = [] #list of GRASS data files to copy
+    datalist    = []  # list of GRASS data files to copy
     input       = ''
     output      = ''
-    if grass.overwrite(): overwrite = True
-    
-    if filter_type == 'select all': filter = '*'
-    
+    if grass.overwrite():
+        overwrite = True
+
+    if filter_type == 'select all':
+        filter = '*'
+
     filterflag = ''
-    if filter_type == 'regular expressions': filterflag = 'r'
-    if filter_type == 'extended regular expressions': filterflag = 'e'
-    
+    if filter_type == 'regular expressions':
+        filterflag = 'r'
+    if filter_type == 'extended regular expressions':
+        filterflag = 'e'
+
     #
     # first run g.list to get list of maps to parse
     #
@@ -94,22 +98,24 @@ def main():
     if mapset not in l:
         grass.warning(_('You do not have access to mapset %s. Run g.mapsets (under settings menu) to change mapset access') % mapset)
         return
-    
+
     datalist = l[mapset]
 
     #
     # then loop through the maps copying them with g.copy and optionally adding prefix
     #
     for input in datalist:
-        if prefix: output = '%s_%s' % (prefix, input)
-        else: output = input
+        if prefix:
+            output = '%s_%s' % (prefix, input)
+        else:
+            output = input
 
         params = {datatype: '%s@%s,%s' % (input, mapset, output)}
         grass.run_command('g.copy', overwrite=overwrite, **params)
-        
-        if datatype == 'vector' and flags['t']: 
+
+        if datatype == 'vector' and flags['t']:
             grass.run_command('v.build', map=output)
-        
+
 if __name__ == "__main__":
     options, flags = grass.parser()
     main()

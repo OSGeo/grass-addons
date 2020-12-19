@@ -19,7 +19,7 @@
 # REQUIREMENTS:
 #      -  uses inputs from r.stream.basins & r.to.vect
 #      -  uses inputs from v.gsflow.grid
- 
+
 # More information
 # Started December 2016
 
@@ -86,7 +86,7 @@ def main():
 
     # I/O
     options, flags = gscript.parser()
-    
+
     # I/O
     HRUs = options['hru_input']
     grid = options['grid_input']

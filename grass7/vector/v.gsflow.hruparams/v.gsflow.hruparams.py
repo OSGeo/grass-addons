@@ -111,7 +111,7 @@ def create_iterator(vect):
     _n = np.arange(1, len(cats)+1)
     _n_cats = []
     for i in range(len(cats)):
-        _n_cats.append( (_n[i], cats[i]) )
+        _n_cats.append((_n[i], cats[i]))
     return _n_cats
 
 
@@ -154,16 +154,16 @@ def main():
     hru_columns.append('hru_elev double precision') # Mean elevation
     hru_columns.append('hru_lat double precision') # Latitude of centroid
     hru_columns.append('hru_lon double precision') # Longitude of centroid
-                                                   # unnecessary but why not?
+    # unnecessary but why not?
     hru_columns.append('hru_slope double precision') # Mean slope [percent]
     # Basic Physical Attributes (Other)
     #hru_columns.append('hru_type integer') # 0=inactive; 1=land; 2=lake; 3=swale; almost all will be 1
     #hru_columns.append('elev_units integer') # 0=feet; 1=meters. 0=default. I think I will set this to 1 by default.
     # Measured input
     hru_columns.append('outlet_sta integer') # Index of streamflow station at basin outlet:
-                                             # station number if it has one, 0 if not
+    # station number if it has one, 0 if not
     # Note that the below specify projections and note lat/lon; they really seem
-    # to work for any projected coordinates, with _x, _y, in meters, and _xlong, 
+    # to work for any projected coordinates, with _x, _y, in meters, and _xlong,
     # _ylat, in feet (i.e. they are just northing and easting). The meters and feet
     # are not just simple conversions, but actually are required for different
     # modules in the code, and are hence redundant but intentional.
@@ -173,18 +173,18 @@ def main():
     hru_columns.append('hru_ylat double precision') # Northing [feet]
     # Streamflow and lake routing
     hru_columns.append('K_coef double precision') # Travel time of flood wave to next downstream segment;
-                                                  # this is the Muskingum storage coefficient
-                                                  # 1.0 for reservoirs, diversions, and segments flowing
-                                                  # out of the basin
+    # this is the Muskingum storage coefficient
+    # 1.0 for reservoirs, diversions, and segments flowing
+    # out of the basin
     hru_columns.append('x_coef double precision') # Amount of attenuation of flow wave;
-                                                  # this is the Muskingum routing weighting factor
-                                                  # range: 0.0--0.5; default 0.2
-                                                  # 0 for all segments flowing out of the basin
+    # this is the Muskingum routing weighting factor
+    # range: 0.0--0.5; default 0.2
+    # 0 for all segments flowing out of the basin
     hru_columns.append('hru_segment integer') # ID of stream segment to which flow will be routed
-                                              # this is for non-cascade routing (flow goes directly
-                                              # from HRU to stream segment)
+    # this is for non-cascade routing (flow goes directly
+    # from HRU to stream segment)
     hru_columns.append('obsin_segment integer') # Index of measured streamflow station that replaces
-                                                # inflow to a segment
+    # inflow to a segment
     hru_columns.append('cov_type integer') # 0=bare soil;1=grasses; 2=shrubs; 3=trees; 4=coniferous
     hru_columns.append('soil_type integer') # 1=sand; 2=loam; 3=clay
 
@@ -208,8 +208,8 @@ def main():
     nhru = np.arange(1, number_of_hrus + 1)
     nhrut = []
     for i in range(len(nhru)):
-      nhrut.append( (nhru[i], cats[i]) )
-    # Access the HRUs 
+        nhrut.append((nhru[i], cats[i]))
+    # Access the HRUs
     hru = VectorTopo(HRU)
     # Open the map with topology:
     hru.open('rw')
@@ -243,7 +243,7 @@ def main():
 
     # GET MEAN VALUES FOR THESE NEXT ONES, ACROSS THE BASIN
 
-    # SLOPE (and aspect) 
+    # SLOPE (and aspect)
     #####################
     v.rast_stats(map=HRU, raster=slope, method='average', column_prefix='tmp', flags='c', quiet=True)
     v.db_update(map=HRU, column='hru_slope', query_column='tmp_average', quiet=True)
@@ -253,7 +253,7 @@ def main():
     v.db_dropcolumn(map=HRU, columns='tmp_average', quiet=True)
     # Dealing with conversion from degrees (no good average) to something I can
     # average -- x- and y-vectors
-    # Geographic coordinates, so sin=x, cos=y.... not that it matters so long 
+    # Geographic coordinates, so sin=x, cos=y.... not that it matters so long
     # as I am consistent in how I return to degrees
     r.mapcalc('aspect_x = sin(' + aspect + ')', overwrite=gscript.overwrite(), quiet=True)
     r.mapcalc('aspect_y = cos(' + aspect + ')', overwrite=gscript.overwrite(), quiet=True)
@@ -263,7 +263,7 @@ def main():
     hru = VectorTopo(HRU)
     hru.open('rw')
     cur = hru.table.conn.cursor()
-    cur.execute("SELECT cat,aspect_x_sum,aspect_y_sum FROM %s" %hru.name)
+    cur.execute("SELECT cat,aspect_x_sum,aspect_y_sum FROM %s" % hru.name)
     _arr = np.array(cur.fetchall()).astype(float)
     _cat = _arr[:,0]
     _aspect_x_sum = _arr[:,1]
@@ -271,7 +271,7 @@ def main():
     aspect_angle = np.arctan2(_aspect_y_sum, _aspect_x_sum) * 180. / np.pi
     aspect_angle[aspect_angle < 0] += 360 # all positive
     aspect_angle_cat = np.vstack((aspect_angle, _cat)).transpose()
-    cur.executemany("update "+ HRU +" set hru_aspect=? where cat=?", aspect_angle_cat)
+    cur.executemany("update " + HRU + " set hru_aspect=? where cat=?", aspect_angle_cat)
     hru.table.conn.commit()
     hru.close()
 
@@ -281,7 +281,7 @@ def main():
     v.db_update(map=HRU, column='hru_elev', query_column='tmp_average', quiet=True)
     v.db_dropcolumn(map=HRU, columns='tmp_average', quiet=True)
 
-    # CENTROIDS 
+    # CENTROIDS
     ############
 
     # get x,y of centroid -- but have areas not in database table, that do have
@@ -297,13 +297,13 @@ def main():
     hru_cats = []
     hru_coords = []
     for hru_i in hru:
-        if type(hru_i) is vector.geometry.Centroid:
+        if isinstance(hru_i, vector.geometry.Centroid):
             hru_cats.append(hru_i.cat)
             hru_coords.append(hru_i.coords())
     hru_cats = np.array(hru_cats)
     hru_coords = np.array(hru_coords)
     hru.rewind()
-    
+
     hru_area_ids = []
     for coor in hru_coords:
         _area = hru.find_by_point.area(Point(coor[0], coor[1]))
@@ -316,9 +316,9 @@ def main():
         hru_areas.append(_area_id.area())
     hru_areas = np.array(hru_areas)
     hru.rewind()
-      
+
     allcats = sorted(list(set(list(hru_cats))))
-    
+
     # Now create weighted mean
     hru_centroid_locations = []
     for cat in allcats:
@@ -334,7 +334,7 @@ def main():
             _y = np.average(_centroids[:,1], weights=_areas)
             #print _x, _y
             hru_centroid_locations.append(np.array([_x, _y]))
-          
+
     # Now upload weighted mean to database table
     # allcats and hru_centroid_locations are co-indexed
     index__cats = create_iterator(HRU)
@@ -342,18 +342,18 @@ def main():
     for i in range(len(allcats)):
         # meters
         cur.execute('update '+HRU
-                    +' set hru_x='+str(hru_centroid_locations[i][0])
-                    +' where cat='+str(allcats[i]))
+                    + ' set hru_x='+str(hru_centroid_locations[i][0])
+                    + ' where cat='+str(allcats[i]))
         cur.execute('update '+HRU
-                    +' set hru_y='+str(hru_centroid_locations[i][1])
-                    +' where cat='+str(allcats[i]))
+                    + ' set hru_y='+str(hru_centroid_locations[i][1])
+                    + ' where cat='+str(allcats[i]))
         # feet
         cur.execute('update '+HRU
-                    +' set hru_xlong='+str(hru_centroid_locations[i][0]*3.28084)
-                    +' where cat='+str(allcats[i]))
+                    + ' set hru_xlong='+str(hru_centroid_locations[i][0]*3.28084)
+                    + ' where cat='+str(allcats[i]))
         cur.execute('update '+HRU
-                    +' set hru_ylat='+str(hru_centroid_locations[i][1]*3.28084)
-                    +' where cat='+str(allcats[i]))
+                    + ' set hru_ylat='+str(hru_centroid_locations[i][1]*3.28084)
+                    + ' where cat='+str(allcats[i]))
         # (un)Project to lat/lon
         _centroid_ll = gscript.parse_command('m.proj',
                                              coordinates=
@@ -361,21 +361,21 @@ def main():
                                              flags='od').keys()[0]
         _lon, _lat, _z = _centroid_ll.split('|')
         cur.execute('update '+HRU
-                    +' set hru_lon='+_lon
-                    +' where cat='+str(allcats[i]))
+                    + ' set hru_lon='+_lon
+                    + ' where cat='+str(allcats[i]))
         cur.execute('update '+HRU
-                    +' set hru_lat='+_lat
-                    +' where cat='+str(allcats[i]))
+                    + ' set hru_lat='+_lat
+                    + ' where cat='+str(allcats[i]))
 
     # feet -- not working.
     # Probably an issue with index__cats -- maybe fix later, if needed
     # But currently not a major speed issue
     """
-    cur.executemany("update "+HRU+" set hru_xlong=?*3.28084 where hru_x=?", 
+    cur.executemany("update "+HRU+" set hru_xlong=?*3.28084 where hru_x=?",
                     index__cats)
-    cur.executemany("update "+HRU+" set hru_ylat=?*3.28084 where hru_y=?", 
+    cur.executemany("update "+HRU+" set hru_ylat=?*3.28084 where hru_y=?",
                     index__cats)
-    """                    
+    """
 
     cur.close()
     hru.table.conn.commit()
@@ -383,7 +383,7 @@ def main():
 
     # ID NUMBER
     ############
-    #cur.executemany("update "+HRU+" set hru_segment=? where id=?", 
+    #cur.executemany("update "+HRU+" set hru_segment=? where id=?",
     #                index__cats)
     # Segment number = HRU ID number
     v.db_update(map=HRU, column='hru_segment', query_column='id', quiet=True)
@@ -394,7 +394,7 @@ def main():
         land_cover = int(land_cover)
     except:
         pass
-    if type(land_cover) is int:
+    if isinstance(land_cover, int):
         if land_cover <= 3:
             v.db_update(map=HRU, column='cov_type', value=land_cover, quiet=True)
         else:
@@ -415,7 +415,7 @@ def main():
         soil = int(soil)
     except:
         pass
-    if type(soil) is int:
+    if isinstance(soil, int):
         if (soil > 0) and (soil <= 3):
             v.db_update(map=HRU, column='soil_type', value=soil, quiet=True)
         else:

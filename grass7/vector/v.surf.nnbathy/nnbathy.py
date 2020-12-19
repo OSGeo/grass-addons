@@ -30,11 +30,11 @@ class Nnbathy:
         reg_E = float(kv['e'])
         nsres = float(kv['nsres'])
         ewres = float(kv['ewres'])
-        
-        
+
+
         # set variables
         self.cols = int(kv['cols'])
-        self.rows = int(kv['rows'])        
+        self.rows = int(kv['rows'])
         self.area = (reg_N-reg_S)*(reg_E-reg_W)
         self.ALG = 'nn'
 
@@ -72,7 +72,7 @@ class Nnbathy:
         # 1 create header
         header = open(self._tmp, 'w')
         header.write('north: %s\nsouth: %s\neast: %s\nwest: %s\nrows: %s\ncols: %s\ntype: %s\nnull: %s\n\n' %
-                     (self.nn_n, self.nn_s, self.nn_e,  self.nn_w, self.rows, self.cols, self.ctype, self.null))
+                     (self.nn_n, self.nn_s, self.nn_e, self.nn_w, self.rows, self.cols, self.ctype, self.null))
         header.close()
 
         # 2 do the conversion
@@ -159,8 +159,8 @@ class Nnbathy_vector(Nnbathy):
                     from grass.pygrass.vector import VectorTopo
                     pnt = VectorTopo(options['input'].split('@')[0])
                     pnt.open(mode='r')
-                    check=pnt.read(1)
-                    if check.is2D==True:
+                    check = pnt.read(1)
+                    if check.is2D:
                         #fout.write(parts[0]+' '+parts[1]+' '+parts[3])
                         fout.write('{} {} {}'.format(parts[0],parts[1],parts[3]))
                     else:

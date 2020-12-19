@@ -53,8 +53,8 @@ class TestGrassland(unittest.TestCase):
         self.assertIsNotNone(s)
         self.assertIsNotNone(w)
         self.assertIsNotNone(e)
-        self.assertTrue(n>s)
-        self.assertTrue(e>w)
+        self.assertTrue(n > s)
+        self.assertTrue(e > w)
 
         self.assertEqual((n-s)/ns, r)
         self.assertEqual((e-w)/ew, c)
@@ -88,8 +88,8 @@ class TestGrassland(unittest.TestCase):
 
     def test_createlayer(self):
         self.pg.createlayer("foo", "foo")
-        self.assertTrue(self.pg.layers.has_key("foo"))
-        self.assertTrue(self.pg.grassmapnames.has_key("foo"))
+        self.assertTrue("foo" in self.pg.layers)
+        self.assertTrue("foo" in self.pg.grassmapnames)
         self.assertEqual(len(self.pg.layers["foo"]), self.pg.region["rows"])
         self.assertEqual(len(self.pg.layers["foo"][0]), self.pg.region["cols"])
 
@@ -100,10 +100,10 @@ class TestGrassland(unittest.TestCase):
     def test_removelayer(self):
         self.pg.layers["foo"] = [0]
         self.pg.grassmapnames["foo"] = "foo"
-        self.assertTrue(self.pg.layers.has_key("foo"))
+        self.assertTrue("foo" in self.pg.layers)
         self.pg.removelayer("foo")
-        self.assertFalse(self.pg.layers.has_key("foo"))
-        self.assertFalse(self.pg.grassmapnames.has_key("foo"))
+        self.assertFalse("foo" in self.pg.layers)
+        self.assertFalse("foo" in self.pg.grassmapnames)
 
     def test_writelayer(self):
         if self.rastlayername:
@@ -147,4 +147,3 @@ class TestGrassland(unittest.TestCase):
         if self.vectlayername:
             grass.try_remove(grass.find_file(name = self.vectlayername,
                                              element = 'vector')['file'])
-

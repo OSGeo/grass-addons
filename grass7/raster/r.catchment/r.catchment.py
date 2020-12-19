@@ -242,53 +242,53 @@ def main():
         grass.verbose('No slope mask created')
 ##################################################
     if flags["l"] is True:
-            grass.message('Calculating list of possible catchment'
-            ' configurations...\ncost value | catchment area')
-            areadict = {}
-            out2dictnum('r.stats -Aani input=' + cost +
-                    ' separator=, nv=* nsteps=255', ',', areadict)
-            testarea = 0
-            #start the loop, and list the values
-            for key in sorted(areadict):
-                testarea = testarea + int(float(areadict[key]))
-                grass.message("%s | %s" % (int(key), testarea))
-            if flags["c"] is True:
-                if bool(options["in_cost"]) is False:
-                    grass.run_command('g.rename', overwrite=grass.overwrite(),
-                            quiet=True, rast='temporary.cost.%s,%s_cost_surface'
-                             % (pid, buff))
-                    grass.verbose('Cleaning up...(keeping cost map)')
-                    grass.run_command('g.remove', quiet=True, flags='f',
-                                type='raster', name='cost.reclass.%s' % pid)
-                else:
-                    grass.verbose('Cleaning up...1')
-                    grass.run_command('g.remove', quiet=True, flags='f',
-                                type='raster', name='cost.reclass.%s' % pid)
-            else:
-                if bool(options["in_cost"]) is False:
-                    grass.verbose('Cleaning up...2')
-                    grass.run_command('g.remove', quiet=True, flags='f',
-                                type='raster',
-                                name='cost.reclass.%s,temporary.cost.%s' %
-                                (pid, pid))
-                else:
-                    grass.verbose('Cleaning up...3')
-                    grass.run_command('g.remove', quiet=True, flags='f',
-                                type='raster', name='cost.reclass.%s' % pid)
-            if bool(options["sigma"]) is True:
-                grass.run_command('g.remove', quiet=True, flags='f',
-                            type='raster', name=slope)
-            if ismask == 2:
-                grass.message('Reinstating original MASK...')
+        grass.message('Calculating list of possible catchment'
+        ' configurations...\ncost value | catchment area')
+        areadict = {}
+        out2dictnum('r.stats -Aani input=' + cost +
+                ' separator=, nv=* nsteps=255', ',', areadict)
+        testarea = 0
+        #start the loop, and list the values
+        for key in sorted(areadict):
+            testarea = testarea + int(float(areadict[key]))
+            grass.message("%s | %s" % (int(key), testarea))
+        if flags["c"] is True:
+            if bool(options["in_cost"]) is False:
                 grass.run_command('g.rename', overwrite=grass.overwrite(),
-                            quiet="True", rast=tempmask + ',MASK')
-            elif ismask == 0 and bool(options["sigma"]) is True:
+                        quiet=True, rast='temporary.cost.%s,%s_cost_surface'
+                         % (pid, buff))
+                grass.verbose('Cleaning up...(keeping cost map)')
                 grass.run_command('g.remove', quiet=True, flags='f',
-                            type='raster', name='MASK')
-            elif ismask == 1:
-                grass.message('Keeping original MASK')
-            grass.verbose('     DONE!')
-            return
+                            type='raster', name='cost.reclass.%s' % pid)
+            else:
+                grass.verbose('Cleaning up...1')
+                grass.run_command('g.remove', quiet=True, flags='f',
+                            type='raster', name='cost.reclass.%s' % pid)
+        else:
+            if bool(options["in_cost"]) is False:
+                grass.verbose('Cleaning up...2')
+                grass.run_command('g.remove', quiet=True, flags='f',
+                            type='raster',
+                            name='cost.reclass.%s,temporary.cost.%s' %
+                            (pid, pid))
+            else:
+                grass.verbose('Cleaning up...3')
+                grass.run_command('g.remove', quiet=True, flags='f',
+                            type='raster', name='cost.reclass.%s' % pid)
+        if bool(options["sigma"]) is True:
+            grass.run_command('g.remove', quiet=True, flags='f',
+                        type='raster', name=slope)
+        if ismask == 2:
+            grass.message('Reinstating original MASK...')
+            grass.run_command('g.rename', overwrite=grass.overwrite(),
+                        quiet="True", rast=tempmask + ',MASK')
+        elif ismask == 0 and bool(options["sigma"]) is True:
+            grass.run_command('g.remove', quiet=True, flags='f',
+                        type='raster', name='MASK')
+        elif ismask == 1:
+            grass.message('Keeping original MASK')
+        grass.verbose('     DONE!')
+        return
     else:
         areadict = {}
         out2dictnum('r.stats -Aani input=' + cost +
@@ -323,7 +323,7 @@ def main():
         grass.verbose('Creating output map')
         t = grass.tempfile()
         temp = file(t, 'w+')
-        temp.write('0 thru %s = %s\n' % (int(cutoff),  mapval))
+        temp.write('0 thru %s = %s\n' % (int(cutoff), mapval))
         temp.flush()
         grass.run_command('r.reclass', overwrite=grass.overwrite(), input=cost,
                     output='cost.reclass.%s' % pid, rules=t)

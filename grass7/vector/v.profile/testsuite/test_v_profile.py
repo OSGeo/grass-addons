@@ -69,7 +69,7 @@ class TestProfiling(TestCase):
         # Wrong output name
         self.assertModuleFail('v.profile', input=self.in_points, coordinates=self.prof_ponts, buffer=10,
             map_output='5cats')
-    
+
     def testFileExists(self):
         """This function checks if the output file is written correctly"""
         self.runModule('v.profile', input=self.in_points, coordinates=self.prof_ponts, buffer=10,
@@ -77,7 +77,7 @@ class TestProfiling(TestCase):
         self.assertFileExists(self.outfile)
         if os.path.isfile(self.outfile):
             os.remove(self.outfile)
-    
+
     def testOutput(self):
         """Test correctness of output"""
         # Normal output
