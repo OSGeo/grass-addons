@@ -1,0 +1,162 @@
+<h2>DESCRIPTION</h2>
+
+The <em>i.landsat.import</em> module allows importing Landsat 5, 7 and 8 products
+downloaded by the <em><a href="i.landsat.download.html">i.landsat.download</a></em>
+module.
+
+<p>
+By default <em>i.landsat.import</em> imports all Landsat bands within the scene
+files found in the <b>input</b> directory. The number of scene files can be optionally
+reduced with the <b>pattern_file</b> option. In this option, a regular expression
+for filtering the file names can be given, e.g. '229083' for
+importing only scenes from path 229 and row 083.
+
+<p>
+By default <em>i.landsat.import</em> imports the full scene. Optionally, the
+import can be reduced to the computational region extent with
+<b>extent=region</b>.
+
+<p>
+Note that in case that the spatial reference system of the input data differs
+from that of the GRASS GIS target location, the input data will be reprojected
+internally by means of <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.import.html">r.import</a></em>.
+To speed up this process, a higher than default value can be specified for
+the <b>memory</b> option.
+
+<p>
+If the user wants to ignore an insignificant mismatch in the spatial reference
+system, the projection check can be suppressed with the <b>-o</b> flag and data
+will be imported directly.
+
+<p>
+Alternatively, input data can be linked by means of
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.external.html">r.external</a></em>
+using <b>-l</b> flag. Note that linking data requires that Landsat input data
+and GRASS location have the same spatial reference system (e.g., the same UTM zone).
+Take into account that USGS provides all Landsat products in UTM north zones
+whether they belong to North or South Hemisphere.
+
+<p>
+The number of Landsat bands to be imported can be optionally reduced by the
+<b>pattern</b> option. Below an overview of Landsat 5 TM, 7 ETM and 8 OLI band's
+spatial resolution:
+
+<p>
+<table border="1">
+<thead>
+<tr>
+<th>Spatial resolution [m]</th>
+<th>L5 Bands</th>
+<th>L7 Bands</th>
+<th>L8 Bands</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>15</td>
+<td>--</td>
+<td>B8</td>
+<td>B8</td>
+</tr>
+<tr>
+<td>30</td>
+<td>B1, B2, B3, B4, B5, B7</td>
+<td>B1, B2, B3, B4, B5, B7</td>
+<td>B1, B2, B3, B4, B5, B6, B7, B9</td>
+</tr>
+<tr>
+<td>60</td>
+<td>--</td>
+<td>B6</td>
+<td>--</td>
+</tr>
+<tr>
+<td>100</td>
+<td>--</td>
+<td>--</td>
+<td>B10, B11</td>
+</tr>
+<tr>
+<td>120</td>
+<td>B6</td>
+<td>--</td>
+<td>--</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+Note that while the original resolution of band 6 in Landsat 5 TM and
+Landsat 7 ETM is 120 and 60 m respectively, they are provided with
+a resampled resolution of 30 m.
+For further details about bands wavelength and scene size, visit the
+<a href="https://www.usgs.gov/faqs/what-are-band-designations-landsat-satellites?qt-news_science_products=0#qt-news_science_products" target="_blank">band designations</a>
+page at USGS website.
+
+<h2>EXAMPLES</h2>
+
+<h3>List Landsat bands to import</h3>
+
+At first, print the list of raster files to be imported by <b>-p</b>.
+For each file also projection match with current location is printed
+including detected input data EPSG code:
+
+<div class="code"><pre>
+i.landsat.import -p input=data
+
+</pre></div>
+
+<h3>Import Landsat data</h3>
+
+Limit import to only 4th and 5th bands:
+
+<div class="code"><pre>
+i.landsat.import input=data pattern='B(4|5)'
+</pre></div>
+
+<p>
+Limit import to all bands with 30m resolution:
+
+<div class="code"><pre>
+i.landsat.import input=data pattern='B(1|2|3|4|5|6|7|9)'
+</pre></div>
+
+<p>
+Link Landsat data:
+
+<div class="code"><pre>
+i.landsat.import -l input=data
+</pre></div>
+
+<p>
+Link data from specific path and row while ignoring projection check
+
+<div class="code"><pre>
+i.landsat.import -l -o input=data pattern_file='229083'
+</pre></div>
+
+<p>
+Limit import to bands 4 and 5 for path 229 and row 083 in 2019
+
+<div class="code"><pre>
+i.landsat.import input=data pattern_file='229083_2019' pattern='B(4|5)'
+</pre></div>
+
+<h2>SEE ALSO</h2>
+
+<a href="i.landsat.html">Overview of i.landsat tools</a>,
+<a href="i.landsat.download.html">i.landsat.download</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/i.lansat.toar">i.landsat.toar</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/addons/i.landsat8.qc.html">i.landsat8.qc</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/addons/i.landsat8.swlst.html">i.landsat8.swlst</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.import.html">r.import</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.external.html">r.external</a>,
+
+<h2>AUTHOR</h2>
+
+Veronica Andreo
+
+<!--
+<p>
+<i>Last changed: $Date$</i>
+-->
