@@ -106,9 +106,8 @@ r.mapcalc expression="accum_diff=if(flow_accum-flow_accum_new, flow_accum-flow_a
 <img src="r_accumulate_nc_example.png">
 
 <p>For some reason, there are slight differences between the two output maps.
-
-<p>The yellow and purple cells show the difference raster map
-(<i>accum_diff</i>). The red arrows and numbers represent drainage directions
+The yellow and purple cells show the difference raster map (<i>accum_diff</i>).
+The red arrows and numbers represent drainage directions
 (<i>drain_directions</i>) and flow accumulation by <em>r.watershed</em>
 (<i>flow_accum</i>), respectively. Note that some cells close to headwater
 cells are assigned 1 even though they are located downstream of other cells.
