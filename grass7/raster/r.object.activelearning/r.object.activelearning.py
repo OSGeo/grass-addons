@@ -101,9 +101,6 @@ try: # You can run the tests outside of grass where those imports are not availa
 except ImportError:
     pass
 
-import numpy as np
-import scipy
-import os.path
 import sys
 
 def load_data(file_path, labeled=False, skip_header=1, scale=True):
@@ -273,7 +270,7 @@ def linear_scale(data):
         :return: Linearly scaled data
         :rtype: ndarray(#samples x #features)
     """
-    p5 = np.percentile(data, 5, axis=0, interpolation='nearest')[np.newaxis] 	# 5th percentiles as a 2D array (-> newaxis)
+    p5 = np.percentile(data, 5, axis=0, interpolation='nearest')[np.newaxis]    # 5th percentiles as a 2D array (-> newaxis)
     p95 = np.percentile(data, 95, axis=0, interpolation='nearest')[np.newaxis]	# 95th percentiles as a 2D array (-> newaxis)
 
     return (data-p5)/(p95-p5)
@@ -536,7 +533,7 @@ def main():
     learning_steps = int(options['learning_steps']) if options['learning_steps'] != '0' else 5
     search_iter = int(options['search_iter']) if options['search_iter'] != '0' else 10					# Number of samples to label at each iteration
     diversity_lambda = float(options['diversity_lambda']) if options['diversity_lambda'] != '' else 0.25		# Lambda parameter used in the diversity heuristic
-    nbr_uncertainty = int(options['nbr_uncertainty']) if options['nbr_uncertainty'] != '0' else 15 	# Number of samples to select (based on uncertainty criterion) before applying the diversity criterion. Must be at least greater or equal to [LEARNING][steps]
+    nbr_uncertainty = int(options['nbr_uncertainty']) if options['nbr_uncertainty'] != '0' else 15      # Number of samples to select (based on uncertainty criterion) before applying the diversity criterion. Must be at least greater or equal to [LEARNING][steps]
 
     X_train, ID_train, y_train, header_train = load_data(options['training_set'], labeled = True)
     X_test, ID_test, y_test, header_test = load_data(options['test_set'], labeled = True)
@@ -572,5 +569,13 @@ def main():
 
 
 if __name__ == '__main__':
+    try:
+        import scipy
+        import numpy as np
+    except ModuleNotFoundError as e:
+        msg = e.msg
+        gcore.fatal(_("Unable to load python <{0}> lib (requires lib "
+                      "<{0}> being installed).".format(msg.split("'")[-2])))
+
     options, flags = grass.script.parser()
     main()
