@@ -48,7 +48,11 @@ import os
 import tempfile
 import atexit
 import shutil
-from PIL import Image
+try:
+    from PIL import Image
+except ImportError:
+    grass.fatal("Cannot import PIL."
+                " Please install the Python pillow package.")
 from math import exp
 import grass.script as gscript
 
