@@ -128,7 +128,7 @@ if __name__ == "__main__":
     try:
         from PIL import Image
     except ImportError:
-        grass.fatal("Cannot import PIL."
+        gscript.fatal("Cannot import PIL."
                     " Please install the Python pillow package.")
     options, flags = gscript.parser()
     rinput = options['input']
