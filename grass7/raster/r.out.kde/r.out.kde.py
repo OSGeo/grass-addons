@@ -129,7 +129,7 @@ if __name__ == "__main__":
         from PIL import Image
     except ImportError:
         gscript.fatal("Cannot import PIL."
-                    " Please install the Python pillow package.")
+                      " Please install the Python pillow package.")
     options, flags = gscript.parser()
     rinput = options['input']
     bg = options['background']
