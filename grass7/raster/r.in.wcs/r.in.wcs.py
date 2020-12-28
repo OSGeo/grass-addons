@@ -93,16 +93,12 @@ This program is free software under the GNU General Public License
 #%end
 
 
-
-
-
 import os
 import sys
-import io
 import grass.script as grass
 import base64
 try:
-    from urllib2 import urlopen, URLError, HTTPError
+    from urllib2 import urlopen, URLError, HTTPError, Request
 except ImportError:
     from urllib.request import urlopen, Request
     from urllib.error import URLError, HTTPError
@@ -260,7 +256,6 @@ class WCSBase:
 
         try:
             cap = self._fetchDataFromServer(cap_url, options['username'], options['password'])
-            print(dir(cap))
         except (IOError, HTTPException) as e:
             if isinstance(e, HTTPError) and e.code == 401:
                 grass.fatal(_("Authorization failed to <%s> when fetching capabilities") % options['url'])
