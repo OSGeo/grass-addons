@@ -40,6 +40,11 @@ This program is free software under the GNU General Public License
 #% guisection: Request
 #%end
 
+#%flag
+#% key: r
+#% description: Reproject raster data using r.import if needed
+#%end
+
 #%option
 #% key: coverage
 #% type: string
@@ -169,6 +174,7 @@ class WCSBase:
         # configure region extent (specified name or current region)
         self.params['region'] = self._getRegionParams(options['region'])
         self.params['boundingbox'] = self._computeBbox(self.params['region'])
+        self.params['rimport'] = flags['r']
         self._debug("_initializeParameters", "finished")
 
     def _getRegionParams(self,opt_region):
@@ -401,7 +407,15 @@ class WCSGdalDrv(WCSBase):
         env = os.environ.copy()
         env['GRASS_MESSAGE_FORMAT'] = 'gui'
 
-        if self.params['location'] == "":
+        if self.params['rimport']:
+            p = grass.start_command('r.import',
+                             input=self.vrt_file,
+                             output=self.params['output'],
+                             stdout = grass.PIPE,
+                             stderr = grass.PIPE,
+                             env = env
+                                    )
+        elif self.params['location'] == "":
             p = grass.start_command('r.in.gdal',
                              input=self.vrt_file,
                              output=self.params['output'],
@@ -409,8 +423,6 @@ class WCSGdalDrv(WCSBase):
                              stderr = grass.PIPE,
                              env = env
                                     )
-
-
         else:
             p = grass.start_command('r.in.gdal',
                      input=self.vrt_file,
