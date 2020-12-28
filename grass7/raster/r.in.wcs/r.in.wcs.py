@@ -427,8 +427,6 @@ class WCSGdalDrv(WCSBase):
             if linepercent.isdigit():
                 #print linepercent
                 grass.percent(int(linepercent),100,1)
-            else:
-                grass.verbose(line)
 
         grass.percent(100,100,5)
 
