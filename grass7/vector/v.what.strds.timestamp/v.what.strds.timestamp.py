@@ -151,8 +151,6 @@ def main():
     # if grass.verbosity() > 2:
     #     quiet = False
 
-    grass.warning(_('This addon is experimental!'))
-
     # Check DB connection for input vector map
     dbcon = grass.vector_layer_db(input, layer)
     # Check the number of sample strds and the number of columns
