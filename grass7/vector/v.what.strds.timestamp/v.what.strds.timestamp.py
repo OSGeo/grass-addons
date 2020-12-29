@@ -202,6 +202,14 @@ def main():
 
         cur_strds = tgis.open_old_stds(strds_name, "strds", dbif)
 
+        # skip current STRDS if no map is registered in it
+        if cur_strds.metadata.get_number_of_maps() is None:
+            grass.warning(_(
+                'Space time raster dataset {} does not contain any registered '
+                'map. It is being skipped.'.format(cur_strds.get_id())))
+            counter += 1
+            continue
+
         granu = cur_strds.get_granularity()
         start_time = tgis.datetime_math.check_datetime_string(extent[0])
         start_gran = tgis.datetime_math.adjust_datetime_to_granularity(start_time, granu).isoformat()
@@ -223,13 +231,10 @@ def main():
 
         # Check if there are raster maps to sample from that fullfill
         # temporal conditions
-        if not rows and not tempwhere:
+        if not rows and tempwhere:
             dbif.close()
-            grass.fatal(_("Space time raster dataset <%s> is empty".format(cur_strds.get_id())))
-        elif not rows and tempwhere:
-            dbif.close()
-            grass.fatal(_("No maps selected from Space time raster dataset <%s>, \
-                          or dataset is empty".format(cur_strds.get_id())))
+            grass.fatal(_("No maps selected from Space time raster dataset \
+                          <%s>".format(cur_strds.get_id())))
 
         # Include temporal condition into where clause
         where_clause = '({}) AND '.format(where) if where else ''
