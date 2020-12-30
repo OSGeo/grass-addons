@@ -61,6 +61,11 @@
 #% description: Cache size for raster rows
 #% answer: 300
 #%end
+#%option G_OPT_F_OUTPUT
+#% key: register_output
+#% description: Name for output file to use with t.register
+#% required: no
+#%end
 #%flag
 #% key: r
 #% description: Reproject raster data using r.import if needed
@@ -92,6 +97,7 @@ import sys
 import glob
 import re
 import shutil
+from datetime import *
 import grass.script as gs
 from grass.exceptions import CalledModuleError
 
@@ -199,6 +205,40 @@ def import_raster(filename, module, args):
         pass  # error already printed
 
 
+def write_register_file(filenames,register_output):
+    gs.message(_("Creating register file <{}>...").format(register_output))
+    has_band_ref = float(gs.version()['version'][0:3]) >= 7.9
+    sep = '|'
+
+    with open(register_output, 'w') as fd:
+        for img_file in filenames:
+            map_name = _map_name(img_file)
+            satellite = map_name.strip()[3]
+            timestamp_str = map_name.split('_')[3]
+            timestamp = datetime.strptime(timestamp_str, "%Y%m%d").strftime("%Y-%m-%d")
+            fd.write('{img}{sep}{ts}'.format(
+                img=map_name,
+                sep=sep,
+                ts=timestamp
+            ))
+            if has_band_ref:
+                try:
+                    band_ref = re.match(
+                        r".*_B([1-9]+).*", map_name
+                    ).groups()
+                    band_ref = band_ref[0] if band_ref[0] else band_ref[1]
+                except AttributeError:
+                    gs.warning(
+                        _("Unable to determine band reference for <{}>").format(
+                            map_name))
+                    continue
+                fd.write('{sep}{br}'.format(
+                    sep=sep,
+                    br='L{}_{}'.format(satellite,band_ref)
+                ))
+            fd.write(os.linesep)
+
+
 def print_products(filenames):
     for f in filenames:
         sys.stdout.write(
@@ -265,6 +305,9 @@ def main():
                         )
                     )
             import_raster(f, module, args)
+
+    if options['register_output']:
+        write_register_file(files_to_import, options['register_output'])
 
     # remove all tif files after import
     for f in files:
