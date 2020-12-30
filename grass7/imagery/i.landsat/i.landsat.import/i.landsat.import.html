@@ -93,6 +93,22 @@ For further details about bands wavelength and scene size, visit the
 <a href="https://www.usgs.gov/faqs/what-are-band-designations-landsat-satellites?qt-news_science_products=0#qt-news_science_products" target="_blank">band designations</a>
 page at USGS website.
 
+<p>
+With the <b>register_output</b> option <em>i.landsat.import</em> allows
+to create a text file that can be used to register imported imagery data
+into a space-time raster dateset (STRDS) by means of
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/t.register.html">t.register</a></em>.
+A register file typically contains 2 or 3 columns with the map name and
+start time or the map name plus start and end time in the case of interval
+time type. Landsat data is considered to be of <em>instance</em> time type,
+i.e., we only have one point in time. Hence, the output register file will
+contain the map name and start time separated by <tt>|</tt> when using GRASS
+GIS stable version.
+In the case of GRASS GIS development version which supports the band reference
+concept (see <em><a href="https://grass.osgeo.org/grass-devel/manuals/g.bands.html">g.bands</a></em> module for details),
+the output register file is extended by a third column containing the band
+reference information, see the examples below.
+
 <h2>EXAMPLES</h2>
 
 <h3>List Landsat bands to import</h3>
@@ -141,6 +157,20 @@ Limit import to bands 4 and 5 for path 229 and row 083 in 2019
 i.landsat.import input=data pattern_file='229083_2019' pattern='B(4|5)'
 </pre></div>
 
+<p>
+Limit import to bands 4 and 5 for path 229 and row 083 in 2019 and get a
+txt file to use in <em>t.register</em>
+
+<div class="code"><pre>
+i.landsat.import input=data pattern_file='229083_2019' pattern='B(4|5)' \
+    register_output=t_register.txt
+
+# create a STRDS and register imported data
+t.create output=landsat_ts title="Landsat 8 time series" \
+    description="Landsat 8 data, path-row 229-83, year 2020"
+t.register input=landsat_ts file=t_register.txt
+</pre></div>
+
 <h2>SEE ALSO</h2>
 
 <em>
@@ -158,7 +188,7 @@ i.landsat.import input=data pattern_file='229083_2019' pattern='B(4|5)'
 
 <h2>AUTHOR</h2>
 
-Veronica Andreo
+<a href="https://veroandreo.gitlab.io/" target="_blank">Veronica Andreo</a>, CONICET, Argentina.
 
 <!--
 <p>
