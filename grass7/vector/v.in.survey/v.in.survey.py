@@ -180,15 +180,154 @@
 #% guisection: DXF conversion
 #%end
 
-import sys
-import os
-import string
-import math
 import fileinput
+import os
+import subprocess
+from functools import reduce
 
 import grass.script as grass
 from grass.pygrass.messages import get_msgr
-import grass.script.vector as gvect
+
+
+class MakeSameVarcharColTypeLengthMapTables:
+    """Make same varchar column type length value in tables with same
+    columns structure
+
+    Same varchar column type length value is needed for 'v.patch'
+    command.
+
+    :param list tables: input tables list
+    """
+
+    def __init__(self, tables):
+        self.process_tables(tables=tables)
+
+    def get_clen_value(self, col):
+        """Get column name with column length as tuple
+
+        :param dict col: column definition
+        {'str_1': {'ctype': 'CHARACTER', 'clen': '8'}
+
+        :return list: column name with column length as tuple
+        [('str_1', 8)]
+        """
+
+        return [(d[0], d[1]['clen']) for d in col.items()]
+
+    def get_symm_diff_cols(self, a, b):
+        """Get symmetrict difference between two columns from two another
+        tables
+
+        :param dict a: column definition
+        {'str_1': {'ctype': 'CHARACTER', 'clen': '8'}
+        :param dict b: column definition
+        {'str_1': {'ctype': 'CHARACTER', 'clen': '12'}
+
+        :return set: symmetric difference between cols
+        {('str_1', '12'), ('str_1', '8')}
+        """
+
+        if isinstance(a, dict):
+            return set(self.get_clen_value(col=a)) ^ \
+                set(self.get_clen_value(col=b))
+        else:
+            return a ^ set(self.get_clen_value(col=b))
+
+    def get_same_col_from_tables(self, tables_cols, col):
+        """
+        Get same column definition from different tables
+
+        :param list tables_cols: tables columns definition from different
+        tables
+        [
+        '{cat': {'ctype': 'INTEGER', 'clen': '20'},
+        'dbl_1': {'ctype': 'DOUBLE PRECISION', 'clen': '20'},
+        'dbl_2': {'ctype': 'DOUBLE PRECISION', 'clen': '20'},
+        'str_1': {'ctype': 'CHARACTER', 'clen': '14'}},
+
+        '{cat': {'ctype': 'INTEGER', 'clen': '20'},
+        'dbl_1': {'ctype': 'DOUBLE PRECISION', 'clen': '20'},
+        'dbl_2': {'ctype': 'DOUBLE PRECISION', 'clen': '20'},
+        'str_1': {'ctype': 'CHARACTER', 'clen': '8'}},
+        ...
+        ]
+        :param str col: col name e.g. 'str_1'
+
+        :return list cols: list of same column with definition from
+        different tables
+        [
+        {'str_1': {'ctype': 'CHARACTER', 'clen': '14'}},
+        {'str_1': {'ctype': 'CHARACTER', 'clen': '8'}},
+        ...
+        ]
+        """
+
+        cols = []
+        for table in tables_cols:
+            cols.append({col: table[col]})
+        return cols
+
+    def process_tables(self, tables):
+        """Get difference between varchar column type length value
+        (max value) across different tables (same columns structure)
+        and change varchar type column length value accodring max length
+        value in the input other tables.
+
+        Same varchar column type length value is needed for 'v.patch'
+        command.
+
+        :param list tables: list of input tables (with same columns
+        structure)
+
+        :return None
+        """
+
+        result = []
+        for index, table in enumerate(tables):
+            result.append({})
+            stdout, stderr = grass.start_command(
+                'db.describe', flags='c', table=table,
+                stdout=subprocess.PIPE,
+            ).communicate()
+            if stdout:
+                stdout = grass.decode(stdout)
+                for row in stdout.split('\n'):
+                    if row.count(':') == 3:
+                        col, ctype, clen = row.split(':')[-3:]
+                        result[index][col.strip()] = {
+                            'ctype': ctype, 'clen': clen,
+                        }
+
+        if result and len(result) > 1:
+            for col in result[0].keys():
+                sym_diff = reduce(
+                    self.get_symm_diff_cols,
+                    self.get_same_col_from_tables(
+                        tables_cols=result, col=col,
+                    ),
+                )
+                if sym_diff and len(sym_diff) > 1:
+                    col, clen = max(sym_diff, key=lambda i: int(i[1]))
+                    for index, t in enumerate(result):
+                        if t[col]['clen'] == clen:
+                            table = tables[index]
+                            break
+                    for table in list(filter(lambda i: i != table, tables)):
+                        grass.run_command(
+                            'v.db.addcolumn', map=table,
+                            columns="{}_ varchar({})".format(col, clen),
+                        )
+                        grass.run_command(
+                            'v.db.update', map=table,
+                            column="{}_".format(col), query_column=col,
+                        )
+                        grass.run_command(
+                            'v.db.dropcolumn', map=table, columns=col,
+                        )
+                        grass.run_command(
+                            'v.db.renamecolumn', map=table,
+                            column="{0}_,{0}".format(col),
+                        )
 
 
 class test:
@@ -722,7 +861,6 @@ class layer(glob, Flag, vect_rules, layer_init):
         for num, line in enumerate(fileinput.FileInput(self.filename,  # etc
                                                        inplace=2)):
             if num == 0:
-                print("VERTI:")
                 print(layer.vector + ' ' + str(layer.n_pts))
                 print(line.strip('\n'))
             else:
@@ -836,7 +974,6 @@ class Merge(Merge_init, layer):
 
     def __init__(self, export2dxf):
         self.export2dxf = export2dxf
-
         if sum(Merge_init.len_item) > 0:
             if Merge.init_add is True:
                 # export to DXF after merging
@@ -910,7 +1047,10 @@ class Merge(Merge_init, layer):
             if Merge.wait4 is True and layer.name[:n_item] == Merge_init.item[i]:
                 merge_file = Merge.filename[i]
                 # set up name of current file to be merged
-                add_file_name = files(layer.name + '_bckp').path2('txt')
+                if layer.vector == 'P':
+                    add_file_name = files(layer.name).path2('txt')
+                else:
+                    add_file_name = files(layer.name + '_bckp').path2('txt')
                 if layer.vector == 'B':
                     subtract = -1
                 else:
@@ -918,7 +1058,6 @@ class Merge(Merge_init, layer):
                 # add merged items to list of point number in the layer
                 Merge.n_pts[i].append(layer.n_pts + subtract)
                 Merge.init_done = False
-
                 # test if file to be added is not blank
                 with open(add_file_name, 'r') as add_file:
                     test(add_file).blank(False)
@@ -939,26 +1078,26 @@ class Merge(Merge_init, layer):
     # merge layers according to pattern items
     def layers(self):
         if sum(Merge_init.len_item) > 0:
-            for i in range(0, Merge_init.n_items):
-                if Merge.name[i] == '':
-                    msgr.warning(_("There are no layers to merge into <"  # etc
-                                   + Merge_init.item[i] + ">."))
-                    continue
-
-                # merge layers to temporary layer
-                grass.run_command('v.patch',
-                                  input=Merge.name[i],
-                                  output=Merge_init.item[i]+"_tmp",
-                                  flags='e', overwrite=True)
-                # remove original dataset
-                grass.run_command('g.remove',
-                                  type='vector', name=Merge.name[i], flags='f')
+            if not Merge.name:
+                msgr.warning(_("There are no layers to merge into <"  # etc
+                               + Merge_init.item[0] + ">."))
+            MakeSameVarcharColTypeLengthMapTables(tables=Merge.name)
+            # merge layers to temporary layer
+            grass.run_command('v.patch',
+                              input=Merge.name,
+                              output=Merge_init.item[0] + '_tmp',
+                              flags='e', overwrite=True)
+            for map in Merge.name:
+                grass.run_command(
+                    'g.remove', flags='f', type='vector',
+                    name=map,
+                )
         return 0
 
     # clean topology
     def clean_topology(self):
         if sum(Merge_init.len_item) > 0:
-            for i in range(0, Merge.n_items):
+            for i in range(0, 1):
                 if Merge.name[i] != '':        # just for merged layers
 
                     # find out code to recognize a type of the vector layer:
@@ -1004,7 +1143,7 @@ class dxf(files):
         dxf.export2 = export2
         dxf.File = File
         dxf.unit = unit
-        dxf.textsize = textsize
+        dxf.textsize = float(textsize)
 
         # open dxf file
         if dxf.export2 is True:
@@ -1202,10 +1341,9 @@ class dxf_layer_merged(Merge):
 
     def __init__(self, i):
         self.i = i
-
         dxf_layer_merged.name = Merge_init.item[i]
-        dxf_layer_merged.vector = Merge.vector[i]
-        dxf_layer_merged.n_pts = Merge.n_pts[i]
+        dxf_layer_merged.vector = Merge.vector[i] if Merge.vector else ''
+        dxf_layer_merged.n_pts = Merge.n_pts[i] if Merge.n_pts else ''
         Merge.wait4 = False
 
 
