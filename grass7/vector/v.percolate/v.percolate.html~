@@ -1,0 +1,38 @@
+<h2>DESCRIPTION</h2>
+
+<b>v.perc1<b>.<p> Finds cluster membership of vector points in a vector map using a distance threshold
+<b>maxthresh<b>. The units used for this maxthresh are the same as those set in the current map environemnt.
+Various .csv outputs can be chosen, from standard output <b>output<b> at the end of computation,
+inteerval output <b>interval<b> or complete output <b>a<b> for every vector point pair relationship
+assessed.
+
+<p>
+vector point pair relationships are assessed by the distance between them. If this distance between
+the two points is smaller than the inputted maxthresh then they a grouped and assigned the same 
+group membership attribute number.
+
+
+
+<h2>EXAMPLES</h2>
+
+<h3>Print standard output</h3>
+
+<p>
+v.perc1 input=archsites output=archsitesperc maxthresh=2000 
+
+<h4>Print interval ouput</h4>
+
+v.perc1 input=archsites output=archsitesperc maxthresh=2000 interval=10
+
+<h4>Print total ouput</h4>
+
+v.perc1 input=archsites output=archsitesperc maxthresh=2000 -a
+
+
+
+<h2>AUTHORS</h2>
+
+Theo Brown
+
+<p>
+<i>Last changed: $Date: 2015-09-14 12:50:11 +0100 (Mon, 14 Sep 2015) $</i>

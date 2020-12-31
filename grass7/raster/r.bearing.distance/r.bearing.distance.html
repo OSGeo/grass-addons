@@ -1,0 +1,62 @@
+<h2>DESCRIPTION</h2>
+
+<p><em>r.bearing.distance</em> computes the bearing and/or straight-line distance from a point location to all non-NULL cells in a raster map.  Optionally, the bearing returned in each non-NULL cell may be:</p>
+
+  <ul>
+    <li>the actual bearing measured from the point location;</li>
+    <li>the difference between that bearing and a reference bearing;</li>
+    <li>one of two measures of the extent to which the bearing is or is not orthogonal to the reference bearing.</li>
+  </ul>
+  
+<p> By default, the <b>bearing</b> map records the bearing of a straight line projected from the point location to each non-NULL cell in the input map.  If the <b>-r</b> flag is set then this map records the reverse bearing, i.e. that of a straight line projected from each non-NULL cell towards the point location.  The point location itself is coded NULL, irrespective of whether it was NULL or non-NULL in the input map.</p>
+
+<p>If a <b>reference_bearing</b> is specified without the <b>-a</b> or <b>-b</b> flags then the bearing map will by default record the bearing relative to the reference bearing.  This relative bearing is the clockwise difference between the reference bearing and the bearing that would otherwise have been recorded.  For example: if the bearing is 315 degrees and the reference bearing 270 degrees, the relative bearing would be +45 degrees; if the bearing is 45 degrees and the reference bearing 270 degrees, the relative bearing would be +135 degrees.</p>
+
+<p>If a <b>reference_bearing</b> is specified along with the <b>-a</b> flag then the bearing map will record the bearing relative to an axis defined by the reference bearing, such that if the bearing is aligned (or 180 degrees opposite) the reference bearing the difference will be zero degrees, and if it is orthogonal the difference will be +90 degrees.</p>
+
+<p>If a <b>reference_bearing</b> is specified along with the <b>-b</b> flag then the bearing map will record the signed bearing relative to an axis defined by the reference bearing, such that if the bearing is aligned (or 180 degrees opposite) the reference bearing the difference will be zero degrees, if it is orthogonal in a clockwise direction the difference will be +90 degrees, and if it is orthogonal in an anticlockwise direction the difference will be -90 degrees.</p>
+
+<p>The <b>distance</b> map records the straight-line distance from the point location to each non-NULL cell in the input map.  The distance is computed using the geographic coordinates of the point location and the geographic coordinates of the centre of each non-NULL map cell.</p>
+
+<p>The <b>segment</b> map records which azimuthal segment the bearing (or relative bearing) falls in.  The <b>-e</b> flag determines whether 4 or 8 segments are returned.  The <b>-s</b> flag determines whether segments are centred on a bearing (or relative bearing) of zero degrees, or start clockwise from zero degrees.</p>
+
+<p>The <b>csv_seg</b> file is a plain text CSV file which records the count and percentage of cells falling in each of the segments.</p>
+
+<p>The <b>csv_ax</b> file is only available if an axial relative bearing has been requested by setting the <b>-a</b> or <b>-b</b> flags.  In the case of an axial relative bearing (<b>-a</b>) this plain text CSV file records the count of cells whose relative bearing (&theta;) falls in each of 5 ranges: &theta; = 0; 0 < &theta; &le; 22.5; 22.5 < &theta; &le; 45; 45 < &theta; &le; 67.5; 67.5 < &theta; &le; 90.  It also records the mean value of &theta;.  In the case of a signed axial relative bearing (<b>-b</b>) this file distinguishes positive and negative values of &theta;.  It also records separate means of the positive and negative values of &theta; in addition to an overall mean.</p>
+
+
+<h2>NOTES</h2>
+
+<p>This module was originally written for an archaeological investigation of the orientation of viewsheds from prehistoric burial mounds, but it will be useful for visibility analysis in a range of academic disciplines, as well as planning and environmental management.  Indeed, it potentially has application for any kind of analysis which involves a set of non-NULL cells that are somehow related to a point location.</p>
+
+<p>In the case of visibility analysis, the <b>-r</b> flag will be particularly useful when a viewshed has been produced with observer and target offsets set so as to compute the visibility from each cell back towards the point location set as the 'viewpoint'.  With the <b>-r</b> flag the bearing returned will similarly be that from each cell in the viewshed back towards the point location of interest.</p>
+  
+<p>The code does not currently deal with Lat/Long databases.</p>
+
+<p>The module only runs when the current region has integer resolution (since the algorithm is not robust in cases where resolution is non-integer).</p>
+
+
+
+<h2>SEE ALSO</h2>
+
+<p><em>r.viewshed</em></p>
+
+<h2>REFERENCES</h2>
+
+  <ul>
+    <li>Harris, B. and Lake, M. (in prep.) The influence of visibility on the territorial packing of Neolithic long barrows in central southern England.  For submission to <em>Journal of Archaeological Method and Theory</em>.
+  </ul>
+
+<h2>AUTHOR</h2>
+
+<p> Mark Lake, UCL Institute of Archaeology, University College London, UK.
+(the author).
+
+
+<h2>ACKNOWLEDGEMENTS</h2>
+
+<p> Draws on code from <em>r.skyline</em>.
+
+<h2>BUGS</h2>
+
+<p>The code might work satisfactorily when the map resolution in non-integer, but this has not been rigorously checked.</p>
