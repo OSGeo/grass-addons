@@ -7,10 +7,10 @@ stream networks, and longest flow paths using a flow direction map.
 
 <h3>Flow accumulation</h3>
 
-Unlike <em>r.watershed</em>, <em>r.accumulate</em> does not require the
-elevation data to calculate weighted flow accumulation.  Instead, this module
-only uses a flow direction map to trace and accumulate the amount of flow
-draining through and including each cell.
+Unlike <em>r.watershed</em>, <em>r.accumulate</em> does not require elevation
+data to calculate weighted flow accumulation.  Instead, this module only uses a
+flow direction map to trace and accumulate the amount of flow draining through
+and including each cell.
 
 <p>With <b>-n</b> flag, the module will count the number of upstream cells plus
 one and convert it to the negative if any upstream cells are likely to receive
@@ -106,20 +106,19 @@ r.mapcalc expression="accum_diff=if(flow_accum-flow_accum_new, flow_accum-flow_a
 <img src="r_accumulate_nc_example.png">
 
 <p>For some reason, there are slight differences between the two output maps.
+The yellow and purple cells show the difference raster map (<i>accum_diff</i>).
+The red arrows and numbers represent drainage directions
+(<i>drain_directions</i>) and flow accumulation by <em>r.watershed</em>
+(<i>flow_accum</i>), respectively. Note that some cells close to headwater
+cells are assigned 1 even though they are located downstream of other cells.
 
 <p><img src="r_accumulate_r_watershed_nc_example.png">
 
-<p>The yellow and purple cells show the difference raster map
-(<i>accum_diff</i>). The red arrows and numbers represent drainage directions
-(<i>drain_directions</i>) and flow accumulation (<i>flow_accum</i> from
-<em>r.watershed</em>), respectively. Note that some cells close to headwater
-cells are assigned 1 even if they are located downstream of other cells.
+<p>For comparison, these numbers show the new flow accumulation by
+<em>r.accumulate</em> (<i>flow_accum_new</i>). The same cells are properly
+accumulated from the headwater cells.
 
 <p><img src="r_accumulate_nc_comparison.png">
-
-<p>For comparison, these numbers show the new flow accumulation
-(<i>flow_accum_new</i> from <em>r.accumulate</em>). The same cells are properly
-accumulated from the headwater cells.
 
 <h3>Stream network delineation</h3>
 
@@ -247,7 +246,7 @@ r.accumulate direction=drain_directions lfp=lfp_multi_w_id \
 
 <h3>Longest flow path calculation and subwatershed delineation in one run</h3>
 
-<p>Calculate longest flow paths and delineate subwatersheds in one rune:
+<p>Calculate longest flow paths and delineate subwatersheds in one run:
 <div class="code"><pre>
 # set computational region
 g.region -p raster=elevation
