@@ -2,11 +2,17 @@
 # -*- coding: utf-8
 
 import sys
-import psycopg2 as ppg
-# import psycopg2.extensions
+import importlib
 import logging
 
 class pgwrapper:
+    try:
+        psycopg2 = importlib.import_module('psycopg2')
+    except ModuleNotFoundError as e:
+        msg = e.msg
+        gs.fatal(_("Unable to load python <{0}> lib (requires lib "
+                   "<{0}> being installed).".format(msg.split("'")[-2])))
+
     def __init__(self, dbname, host='', user='', passwd='', port=''):
         self.dbname = dbname  # Database name which connect to.
         self.host = host  # Host name (default is "localhost")
@@ -28,7 +34,7 @@ class pgwrapper:
         if self.port:
             conn_string += " port='%s'" % self.port
         try:
-            conn = ppg.connect(conn_string)
+            conn = self.psycopg2.connect(conn_string)
         except:
             self.logger.error('Cannot connect to database')
             self.print_message('Cannot connect to database')
