@@ -530,6 +530,15 @@ def main():
     except ImportError:
         gcore.fatal("This module requires the scikit-learn python package. Please install it.")
 
+    global scipy, np
+    try:
+        import scipy
+        import numpy as np
+    except ModuleNotFoundError as e:
+        msg = e.msg
+        gcore.fatal(_("Unable to load python <{0}> lib (requires lib "
+                      "<{0}> being installed).".format(msg.split("'")[-2])))
+
     learning_steps = int(options['learning_steps']) if options['learning_steps'] != '0' else 5
     search_iter = int(options['search_iter']) if options['search_iter'] != '0' else 10					# Number of samples to label at each iteration
     diversity_lambda = float(options['diversity_lambda']) if options['diversity_lambda'] != '' else 0.25		# Lambda parameter used in the diversity heuristic
@@ -569,13 +578,5 @@ def main():
 
 
 if __name__ == '__main__':
-    try:
-        import scipy
-        import numpy as np
-    except ModuleNotFoundError as e:
-        msg = e.msg
-        gcore.fatal(_("Unable to load python <{0}> lib (requires lib "
-                      "<{0}> being installed).".format(msg.split("'")[-2])))
-
     options, flags = grass.script.parser()
     main()
