@@ -66,6 +66,12 @@ import grass.script as grass
 
 
 def main():
+    try:
+        from osgeo import ogr
+    except ImportError:
+        grass.fatal(_("Unable to load GDAL Python bindings (requires "
+                      "package 'python-gdal' or Python library GDAL "
+                      "to be installed)."))
 
     redlist_shapefile_long = options['input']
     imported_species = options['species_name']
@@ -124,12 +130,5 @@ def main():
                                                         quiet = True)
 
 if __name__ == "__main__":
-    try:
-        from osgeo import ogr
-    except ImportError:
-        grass.fatal(_("Unable to load GDAL Python bindings (requires "
-                      "package 'python-gdal' or Python library GDAL "
-                      "to be installed)."))
-
     options, flags = grass.parser()
     sys.exit(main())
