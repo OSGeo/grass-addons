@@ -1,8 +1,8 @@
 #!/bin/sh
 
-# script to build GRASS 7.x trunk binaries (shared libs)
+# script to build GRASS 7.x master binaries (shared libs)
 # (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
-# Nov 2008, 2014, 2015, 2016, 2017, 2018, 2019, 2020
+# Nov 2008, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
@@ -11,13 +11,14 @@
 #
 ###################################################################
 # how it works:
-# - it downloads GRASS source code from github server
+# - it updates locally the GRASS source code from github server
 # - configures, compiles
 # - packages the binaries
 # - generated the install scripts
-# - generates the programmer HTML manual
+# - generates the programmer's HTML manual
 # - generates the pyGRASS HTML manual
 # - generates the user HTML manuals
+# - injects DuckDuckGo search field
 
 # Preparations:
 #  - Install PROJ: http://trac.osgeo.org/proj/ incl Datum shift grids
@@ -35,7 +36,7 @@ DOTVERSION=$GMAJOR.$GMINOR
 VERSION=$GMAJOR$GMINOR
 GVERSION=$GMAJOR
 
-####################
+###################
 CFLAGSSTRING='-O2'
 CFLAGSSTRING='-Werror-implicit-function-declaration -fno-common'
 LDFLAGSSTRING='-s'
@@ -162,6 +163,9 @@ rm -f $TARGETHTMLDIR/*.*
 cp -rp dist.$ARCH/docs/html/* $TARGETHTMLDIR/
 echo "Copied pygrass progman to http://grass.osgeo.org/grass${VERSION}/manuals/libpython/"
 
+echo "Injecting DuckDuckGo search field into manual main page..."
+(cd $TARGETHTMLDIR/ ; sed -i -e "s+</table>+</table><\!\-\- injected in cron_grass7_HEAD_build_bins.sh \-\-> <center><iframe src=\"https://duckduckgo.com/search.html?site=grass.osgeo.org\&prefill=Search manual pages at DuckDuckGo\" style=\"overflow:hidden;margin:0;padding:0;width:410px;height:40px;\" frameborder=\"0\"></iframe></center>+g" index.html)
+
 cp -p AUTHORS CHANGES CITING COPYING GPL.TXT INSTALL REQUIREMENTS.html $TARGETDIR/
 
 # note: addons are in grass7x compilation scripts
@@ -259,7 +263,7 @@ echo "Written to: $TARGETDIR"
 cd $GRASSBUILDDIR
 
 ############################################
-## compile addons <--- only for latest stable!
+## compile addons <--- only done for latest stable! See: cron_grass78_releasebranch_78_build_bins.sh
 #cd $GRASSBUILDDIR
 #sh ~/cronjobs/compile_addons_git.sh ~/src/grass-addons/grass7/ ~/src/master/dist.x86_64-pc-linux-gnu/ ~/.grass7/addons
 #mkdir $TARGETHTMLDIR/addons/
