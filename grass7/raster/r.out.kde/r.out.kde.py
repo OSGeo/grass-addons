@@ -62,6 +62,12 @@ def cleanup():
 
 
 def main(rinput, background, output, method):
+    try:
+        from PIL import Image
+    except ImportError:
+        gscript.fatal("Cannot import PIL."
+                      " Please install the Python pillow package.")
+
     if '@' in rinput:
         rinput = rinput.split('@')[0]
     suffix = '_' + os.path.basename(gscript.tempfile(False))
@@ -125,11 +131,6 @@ def scale(cmin, cmax, intens, method):
 
 
 if __name__ == "__main__":
-    try:
-        from PIL import Image
-    except ImportError:
-        gscript.fatal("Cannot import PIL."
-                      " Please install the Python pillow package.")
     options, flags = gscript.parser()
     rinput = options['input']
     bg = options['background']
