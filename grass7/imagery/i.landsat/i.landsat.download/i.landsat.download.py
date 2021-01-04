@@ -156,13 +156,13 @@ def main():
     if user is None or password is None:
         gs.fatal(_("No user or password given"))
 
-    start_date = ""
+    start_date = options["start"]
     delta_days = timedelta(60)
     if not options["start"]:
         start_date = date.today() - delta_days
         start_date = start_date.strftime("%Y-%m-%d")
 
-    end_date = ""
+    end_date = options["end"]
     if not options["end"]:
         end_date = date.today().strftime("%Y-%m-%d")
 
