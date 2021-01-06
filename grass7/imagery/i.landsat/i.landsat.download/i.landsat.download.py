@@ -102,7 +102,7 @@
 #% guisection: Print
 #%end
 #%rules
-#% exclusive: -l, id, output
+#% excludes: -l, id, output
 #%end
 
 import os
