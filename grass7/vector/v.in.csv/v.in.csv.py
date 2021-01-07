@@ -198,10 +198,15 @@ def main():
     assert limit is None or limit >= 1, "Check limit option definition"
 
     fieldnames = get_header_from_csv(input_filename, separator)
-    fieldnames.extend(["X", "Y"])
-    float_names.extend(["X", "Y"])
-    y_index = len(fieldnames)  # One-based index in v.in.ascii
-    x_index = y_index - 1
+    if "X" not in fieldnames and "Y" not in fieldnames:
+        # If there is X and Y, we will replace is content.
+        fieldnames.extend(["X", "Y"])
+        float_names.extend(["X", "Y"])
+        y_index = len(fieldnames)  # One-based index in v.in.ascii
+        x_index = y_index - 1
+    else:
+        y_index = fieldnames.index("Y") + 1
+        x_index = fieldnames.index("X") + 1
 
     tmp_file = get_tmp_file_name()
 
