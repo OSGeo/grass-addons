@@ -5,7 +5,7 @@
 The results are uploaded to the attribute table of the vector map <em>areas</em>.
 
 <p>
-By default, spastics are computed for all integer and floating point attributes (columns),
+By default, statistics are computed for all integer and floating point attributes (columns),
 e.g., DOUBLE PRECISION and INTEGER columns will be used, but TEXT will not.
 Specific (multiple) columns can be selected using <b>points_columns</b>.
 The type of the selected columns again need to be some integer and floating point type.
@@ -15,6 +15,7 @@ The type of the selected columns again need to be some integer and floating poin
 Using numeric attribute values of all points falling into a given area,
 a new value is determined with the selected method.
 
+<p>
 <em>v.vect.stats</em> can perform the following operations:
 
 <p><dl>
@@ -80,8 +81,10 @@ See <em>v.vect.stats</em> for details about behavior in special cases.
 
 <h2>EXAMPLES</h2>
 
-The following example is using points of interest and ZIP code areas vector
-from the basic North Carolina sample database:
+<h3>ZIP codes and POIs</h3>
+
+The following example is using points of interest (POIs) and ZIP code
+areas vector from the basic North Carolina sample database:
 
 Create a copy of ZIP code areas in the current mapset
 to allow for adding attributes (using a name which expresses
@@ -95,7 +98,7 @@ Compute minimum and maximum for each numerical colum in the attribute table
 of points of interest:
 
 <div class="code"><pre>
-v.vect.stats.multi points=points_of_interest method=minimum,maximum count_column=point_count areas=zipcodes_with_poi_stats
+v.vect.stats.multi points=points_of_interest areas=zipcodes_with_poi_stats method=minimum,maximum count_column=point_count
 </pre></div>
 
 Use <em>v.info</em> to see all the newly created columns:
@@ -118,6 +121,19 @@ Each of the new columns separately can be assigned color using <em>v.colors</em>
 v.colors map=zipcodes_with_poi_stats use=attr column=elev_m_maximum color=viridis rgb_column=elev_m_maximum_color
 </pre></div>
 
+<h3>Specifying columns by name</h3>
+
+Assuming a similar setup as in the previous example
+(<em>g.copy</em> used to create a copy in the current mapset),
+you can ask for statistics only on columns PUMPERS, TANKER, and AERIAL
+and specify the names of new columns using:
+(wrapping a long line here using Bash-like syntax):
+
+<div class="code"><pre>
+v.vect.stats.multi points=firestations areas=zipcodes method=sum \
+    count_column=count point_columns=PUMPERS,TANKER,AERIAL \
+    stats_columns=all_pumpers,all_tankers,all_aerials
+</pre></div>
 
 <h2>SEE ALSO</h2>
 
@@ -129,7 +145,13 @@ v.colors map=zipcodes_with_poi_stats use=attr column=elev_m_maximum color=viridi
     </li>
     <li>
         <em><a href="v.what.rast.multi.html">v.what.rast.multi</a></em>
-        for querying multiple raster maps by one vector points map.
+        for querying multiple raster maps by one vector points map,
+    </li>
+    <li>
+        <em><a href="g.copy.html">g.copy</a></em>
+        for creating a copy of vector map to update
+        (to preserve the original data given that this module performs
+        a large automated operation).
     </li>
 </ul>
 
