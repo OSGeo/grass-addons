@@ -1,6 +1,6 @@
 <h2>DESCRIPTION</h2>
 
-<em>m.csv.cleanup</em> reads a CSV (Comma Separated Value) file,
+<em>m.csv.clean</em> reads a CSV (Comma Separated Value) file,
 cleans it, and writes a new CSV file.
 The separator for CSV is comma (<code>,</code>) by default,
 but it can be set to any single character such as semicolon (<code>;</code>),
@@ -20,7 +20,7 @@ The following would apply all the default fixes to the the file <code>sampling_s
 and output a cleaned file <code>sampling_sites.csv</code>:
 
 <div class="code"><pre>
-m.csv.cleanup input=sampling_sites_raw.csv output=sampling_sites.csv
+m.csv.clean input=sampling_sites_raw.csv output=sampling_sites.csv
 </pre></div>
 
 <h3>In any shell</h3>
@@ -30,7 +30,7 @@ so it is very easy to run it with an adhoc temporary location
 by executing a <code>grass --exec</code> command:
 
 <div class="code"><pre>
-grass --tmp-location XY --exec m.csv.cleanup input=sampling_sites_raw.csv output=sampling_sites.csv
+grass --tmp-location XY --exec m.csv.clean input=sampling_sites_raw.csv output=sampling_sites.csv
 </pre></div>
 
 
