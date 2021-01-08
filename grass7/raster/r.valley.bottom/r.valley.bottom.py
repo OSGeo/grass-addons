@@ -505,21 +505,25 @@ def smooth_dem(DEM):
 def refine(input, region, method="bilinear"):
     """change resolution back to base resolution and resample a raster"""
 
+    # grow input
     input_padded = rand_id("padded{}".format(L + 1))
-    TMP_RAST[L].append(input_padded)
     cell_padding(input=input, output=input_padded, radius=2)
 
-    region.write()
-    input = rand_id("refined{}".format(L + 1))
+    # resample
+    refined = rand_id("refined{}".format(L + 1))
     TMP_RAST[L].append(input)
 
+    region.write()
     if method == "bilinear":
-        r.resamp_interp(input=input_padded, output=input, method="bilinear")
+        r.resamp_interp(input=input_padded, output=refined, method="bilinear")
 
     if method == "average":
-        r.resamp_stats(input=input_padded, output=input, method="average", flags="w")
+        r.resamp_stats(input=input_padded, output=refined, method="average", flags="w")
 
-    return input
+    # remove padded raster
+    g.remove(type="raster", name=input_padded, flags="f", quiet=True)
+
+    return refined
 
 
 def step_message(L, xres, yres, ncells, t_slope):
@@ -722,7 +726,6 @@ def main():
 
     if mrrtf != "":
         gs.mapcalc("$x = $y", x=mrrtf, y=MRRTF[L])
-
 
 if __name__ == "__main__":
     options, flags = gs.parser()
