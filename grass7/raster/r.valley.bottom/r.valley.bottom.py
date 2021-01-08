@@ -511,7 +511,7 @@ def refine(input, region, method="bilinear"):
 
     # resample
     refined = rand_id("refined{}".format(L + 1))
-    TMP_RAST[L].append(input)
+    TMP_RAST[L].append(refined)
 
     region.write()
     if method == "bilinear":
