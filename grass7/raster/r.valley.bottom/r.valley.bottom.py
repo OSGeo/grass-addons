@@ -575,6 +575,16 @@ def main():
         gs.fatal(
             "Minimum number of cells in the generalized DEM cannot exceed the ungeneralized number of cells"
         )
+    
+    levels = -math.log(float(min_cells)/current_region.cells) / math.log(3) - 2
+    levels = int(levels)
+
+    if levels < 3:
+        gs.fatal('MRVBF algorithm requires a greater level of generalization. Reduce number of min_cells or use a larger computational region.')
+    
+    gs.message('Parameter Settings')
+    gs.message('------------------')
+    gs.message('min_cells = %d will result in %d generalization steps' % (min_cells, levels))
 
     # intermediate outputs
     Xres_step = list()
