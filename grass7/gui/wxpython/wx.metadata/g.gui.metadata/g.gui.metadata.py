@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: utf-8
+
 """
 @module  g.gui.metadata
 @brief   GUI components of metadata editor

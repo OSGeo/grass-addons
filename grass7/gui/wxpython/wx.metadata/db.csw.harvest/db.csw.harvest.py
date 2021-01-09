@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: ISO-8859-15 -*-
+
 """
 @module  db.csw.harvest
 @brief   Module for creating metadata based on ISO for vector maps

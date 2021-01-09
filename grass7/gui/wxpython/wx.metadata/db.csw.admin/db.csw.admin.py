@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: utf-8
+
 """
 @module  db.csw.admin
 @brief   Module for creating metadata based on ISO for vector maps

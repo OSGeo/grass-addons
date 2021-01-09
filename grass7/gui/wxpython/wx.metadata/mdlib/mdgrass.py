@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: utf-8
+
 """
 @package mdgrass
 @module  v.info.iso, r.info.iso, g.gui.metadata
