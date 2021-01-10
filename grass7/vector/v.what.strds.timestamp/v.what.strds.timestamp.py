@@ -125,8 +125,8 @@ def sample_absolute(input, layer, timestamp_column, column, t_raster,
 
         # Sample spatio-temporally matching points and raster map
         rast_what = Module('v.what.rast', map=input, layer=layer,
-                           column=column, raster=raster_map,
-                           where=where, stderr_=DEVNULL, quiet=True)
+                           column=column, raster=raster_map, where=where,
+                           stderr_=DEVNULL, run_=False, quiet=True)
         rast_what.flags.i = i_flag
         rast_what.run()
 
