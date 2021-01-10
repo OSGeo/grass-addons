@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ..
 
-SHELL_OUTPUT := $(shell python mdlib/dependency.py 2>&1)
+SHELL_OUTPUT := $(shell python3 mdlib/dependency.py 2>&1)
 ifeq ($(filter File mdlib/dependency.py,$(SHELL_OUTPUT)),)
     $(info $(SHELL_OUTPUT))
 else
