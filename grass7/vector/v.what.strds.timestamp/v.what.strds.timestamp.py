@@ -123,15 +123,12 @@ def sample_absolute(input, layer, timestamp_column, column, t_raster,
         grass.run_command("g.region", n=treg['n'], s=treg['s'], e=treg['e'],
                           w=treg['w'], align=raster_map)
 
-        if i_flag is True:
-            flags = 'i'
-        else:
-            flags = ''
-
         # Sample spatio-temporally matching points and raster map
-        Module('v.what.rast', map=input, layer=layer, column=column,
-                raster=raster_map, where=where, stderr_=DEVNULL, flags=flags,
-                quiet=True)
+        rast_what = Module('v.what.rast', map=input, layer=layer,
+                           column=column, raster=raster_map, where=where,
+                           stderr_=DEVNULL, run_=False, quiet=True)
+        rast_what.flags.i = i_flag
+        rast_what.run()
 
 def main():
     # Get the options
