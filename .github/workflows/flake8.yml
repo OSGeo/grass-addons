@@ -1,0 +1,226 @@
+name: Python code quality check
+
+on:
+- push
+- pull_request
+
+jobs:
+
+  flake8-grass7-db-scripts:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.8
+    - name: Install
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8==3.8.0
+    - name: Run Flake8
+      run: |
+        cd grass7/db
+        flake8 --count --statistics --show-source --jobs=$(nproc) .
+
+
+  flake8-grass7-display-scripts:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.8
+    - name: Install
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8==3.8.0
+    - name: Run Flake8
+      run: |
+        cd grass7/display
+        flake8 --count --statistics --show-source --jobs=$(nproc) .
+
+
+  flake8-grass7-general-scripts:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.8
+    - name: Install
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8==3.8.0
+    - name: Run Flake8
+      run: |
+        cd grass7/general
+        flake8 --count --statistics --show-source --jobs=$(nproc) .
+
+
+  flake8-gui-wxgui-scripts:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.8
+    - name: Install
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8==3.8.0
+    - name: Run Flake8
+      run: |
+        cd gui/wxpython/
+        flake8 --count --statistics --show-source --jobs=$(nproc) .
+
+
+  flake8-grass7-imagery-scripts:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.8
+    - name: Install
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8==3.8.0
+    - name: Run Flake8
+      run: |
+        cd grass7/imagery
+        flake8 --count --statistics --show-source --jobs=$(nproc) .
+
+
+  flake8-grass7-misc-scripts:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.8
+    - name: Install
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8==3.8.0
+    - name: Run Flake8
+      run: |
+        cd grass7/misc
+        flake8 --count --statistics --show-source --jobs=$(nproc) .
+
+
+  flake8-grass7-raster-scripts:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.8
+    - name: Install
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8==3.8.0
+    - name: Run Flake8
+      run: |
+        cd grass7/raster
+        flake8 --count --statistics --show-source --jobs=$(nproc) .
+
+
+  flake8-grass7-raster3d-scripts:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.8
+    - name: Install
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8==3.8.0
+    - name: Run Flake8
+      run: |
+        cd grass7/raster3d
+        flake8 --count --statistics --show-source --jobs=$(nproc) .
+
+
+  flake8-grass7-temporal-scripts:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.8
+    - name: Install
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8==3.8.0
+    - name: Run Flake8
+      run: |
+        cd grass7/temporal
+        flake8 --count --statistics --show-source --jobs=$(nproc) .
+
+
+  flake8-grass7-tools-scripts:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.8
+    - name: Install
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8==3.8.0
+    - name: Run Flake8
+      run: |
+        cd grass7/tools
+        flake8 --count --statistics --show-source --jobs=$(nproc) .
+
+
+  flake8-grass7-vector-scripts:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.8
+    - name: Install
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8==3.8.0
+    - name: Run Flake8
+      run: |
+        cd grass7/vector
+        flake8 --count --statistics --show-source --jobs=$(nproc) .
