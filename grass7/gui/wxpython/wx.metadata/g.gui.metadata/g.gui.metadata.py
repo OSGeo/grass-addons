@@ -1090,7 +1090,8 @@ class MdDataCatalog(LocationMapTree):
         """
         if self.dbif.connected is True:
             self.dbif.close()
-        tgis.stop_subprocesses()
+        if tgis:
+            tgis.stop_subprocesses()
 
 
     def InitTreeItems(self):
