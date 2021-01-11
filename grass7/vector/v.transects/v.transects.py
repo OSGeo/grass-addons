@@ -105,11 +105,11 @@ def loadVector(vector):
     len(v[i]) = number of vertices in ith line
     v[i][j] = [ xij, yij ] ,i.e., jth vertex in ith line
     """
-    expVecCmmd = 'v.out.ascii format=standard input=' + vector
+    #expVecCmmd = grass.encode('v.out.ascii format=standard input={}'.format(vector))
 # JL    p = Popen(expVecCmmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-    p = Popen(expVecCmmd, shell=True, stdin=PIPE, stdout=PIPE,
-              stderr=STDOUT, close_fds=False)
-    vectorAscii = p.stdout.read().strip('\n').split('\n')
+    #p = Popen(expVecCmmd, shell=True, stdin=PIPE, stdout=PIPE,
+    #          stderr=STDOUT, close_fds=False)
+    vectorAscii = grass.read_command("v.out.ascii", format="standard", input=vector).strip('\n').split('\n')
     l = 0
     while 'ORGANIZATION' not in vectorAscii[l]:
         l += 1
@@ -124,7 +124,7 @@ def loadVector(vector):
             l += 1
             v.append([])
             for i in range(vertices):
-                v[-1].append(map(float, vectorAscii[l].split()[:2]))
+                v[-1].append(list(map(float, vectorAscii[l].split()[:2])))
                 l += 1
             l += skip
         elif line[0] in ['P', 'C', 'F', 'K']:
