@@ -80,13 +80,12 @@ import sys
 import contextlib
 
 from grass.script import core as grass
+from grass.script.utils import set_path
 
+set_path(modulename='wx.metadata', dirname='mdlib', path='..')
 
-try:
-    from pycsw import server
-except:
-    sys.exit(
-        'pycsw library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
+from mdlib import globalvar
+
 app_path = None
 
 
@@ -152,6 +151,15 @@ def application(env, start_response):
 
 
 def main():
+    try:
+        global server
+        from pycsw import server
+    except ModuleNotFoundError as e:
+        msg = e.msg
+        grass.fatal(globalvar.MODULE_NOT_FOUND.format(
+            lib=msg.split("'")[-2],
+            url=globalvar.MODULE_URL))
+
     path = options['path']
     port = int(options['port'])
     path = os.path.dirname(path)

@@ -22,6 +22,7 @@ from grass.script.setup import set_gui_path
 
 grass.utils.set_path(modulename='wx.metadata', dirname='mdlib', path='..')
 
+from mdlib import globalvar
 from mdlib.cswlib import CSWBrowserPanel, CSWConnectionPanel
 
 import wx

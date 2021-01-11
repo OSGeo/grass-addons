@@ -34,8 +34,6 @@ import tempfile
 import webbrowser
 from functools import reduce
 
-from lxml import etree
-
 import grass.script as grass
 import grass.temporal as tgis
 from grass.pydispatch import dispatcher
@@ -50,6 +48,7 @@ from core.utils import GetListOfLocations, ListOfMapsets
 
 grass.utils.set_path(modulename='wx.metadata', dirname='mdlib', path='..')
 
+from mdlib import globalvar
 from mdlib import mdgrass
 from mdlib import mdutil
 from mdlib.cswlib import CSWConnectionPanel
@@ -1375,6 +1374,16 @@ class TreeBrowser(wx.TreeCtrl):
     def __init__(self, parent, xmlPath=False, xmlEtree=False):
         wx.TreeCtrl.__init__(self, parent=parent, id=wx.ID_ANY,
                              style=wx.TR_HAS_BUTTONS | wx.TR_FULL_ROW_HIGHLIGHT)
+        try:
+            global etree
+
+            from lxml import etree
+        except ModuleNotFoundError as e:
+            msg = e.msg
+            grass.fatal(globalvar.MODULE_NOT_FOUND.format(
+                lib=msg.split("'")[-2],
+                url=globalvar.MODULE_URL))
+
         tree = self
         if xmlPath:
             xml = etree.parse(xmlPath)
