@@ -149,7 +149,7 @@ def main():
     clouds = int(options['clouds'])
     producttype = options['producttype']
     start = options['start']
-    end   = options['end']
+    end = options['end']
     use_scenenames = flags['s']
     ind_folder = flags['f']
 

@@ -320,8 +320,8 @@ def main():
     global r_commands
     global reclass_files
 
-    allmap  = trainmap  = feature_vars  = training_vars = None
-    model_output_csv = model_output_csvt  = temptable  = r_commands = None
+    allmap = trainmap = feature_vars = training_vars = None
+    model_output_csv = model_output_csvt = temptable = r_commands = None
     reclass_files = None
 
     voting_function = "voting <- function (x, w) {\n"

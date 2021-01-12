@@ -145,7 +145,7 @@ def main():
 
         # Sample using v.what.rast
         v.what_rast(
-          map=vmap,
+            map=vmap,
           layer=layer,
           type=vtype,
           raster=r,

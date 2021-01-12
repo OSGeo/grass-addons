@@ -29,25 +29,25 @@ class RDigitToolbar(BaseToolbar):
     """
 
     def __init__(self, parent, MapWindow, digitClass, tools = [], layerTree = None, log = None):
-        self.MapWindow     = MapWindow
-        self.Map           = MapWindow.GetMap() # Map class instance
-        self.layerTree     = layerTree  # reference to layer tree associated to map display
-        self.log           = log        # log area
-        self.tools         = tools
-        self.digitClass    = digitClass
+        self.MapWindow = MapWindow
+        self.Map = MapWindow.GetMap() # Map class instance
+        self.layerTree = layerTree  # reference to layer tree associated to map display
+        self.log = log        # log area
+        self.tools = tools
+        self.digitClass = digitClass
         BaseToolbar.__init__(self, parent)
-        self.digit         = None
+        self.digit = None
 
         # currently selected map layer for editing (reference to MapLayer instance)
         self.mapLayer = None
-        self.mapName  = None
+        self.mapName = None
 
-        self.comboid  = self.combo = None
-        self.undo     = -1
-        self.redo     = -1
+        self.comboid = self.combo = None
+        self.undo = -1
+        self.redo = -1
 
         # only one dialog can be open
-        self.settingsDialog   = None
+        self.settingsDialog = None
 
         # create toolbars (two rows optionally)
         self.InitToolbar(self._toolbarData())

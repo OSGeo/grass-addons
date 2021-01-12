@@ -56,8 +56,8 @@ class GMApp(wx.App):
 
         # create splash screen
         introImagePath = os.path.join(globalvar.ETCIMGDIR, "silesia_splash.png")
-        introImage     = wx.Image(introImagePath, wx.BITMAP_TYPE_PNG)
-        introBmp       = introImage.ConvertToBitmap()
+        introImage = wx.Image(introImagePath, wx.BITMAP_TYPE_PNG)
+        introBmp = introImage.ConvertToBitmap()
         if SC and sys.platform != 'darwin':
             # AdvancedSplash is buggy on the Mac as of 2.8.12.1
             # and raises annoying (though seemingly harmless) errors everytime the GUI is started

@@ -12,7 +12,7 @@ class WFSBase:
         # these variables are information for destructor
         self.temp_to_cleanup = []
 
-        self.bbox     = None
+        self.bbox = None
         self.temp_map = None
 
     def __del__(self):
@@ -142,7 +142,7 @@ class WFSBase:
 
             try:
                 temp_region_opened = open(temp_region, 'w')
-                temp_region_opened.write("%f %f\n%f %f\n%f %f\n%f %f\n"  %
+                temp_region_opened.write("%f %f\n%f %f\n%f %f\n%f %f\n" %
                                        (self.region['e'], self.region['n'],
                                         self.region['w'], self.region['n'],
                                         self.region['w'], self.region['s'],

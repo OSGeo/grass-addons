@@ -73,9 +73,9 @@ class Layer(object):
             tmpfile = tempfile.mkstemp()[1]
             self.maskfile = tmpfile + '.pgm'
             if ltype == 'overlay':
-                self.mapfile  = tmpfile + '.png'
+                self.mapfile = tmpfile + '.png'
             else:
-                self.mapfile  = tmpfile + '.ppm'
+                self.mapfile = tmpfile + '.ppm'
             grass.try_remove(tmpfile)
         else:
             self.mapfile = self.maskfile = None
@@ -84,9 +84,9 @@ class Layer(object):
         self.renderMgr = None
 
         self.Map = Map
-        self.type      = None
+        self.type = None
         self.SetType(ltype)
-        self.name  = name
+        self.name = name
 
 
 
@@ -97,8 +97,8 @@ class Layer(object):
         else:
             self.cmd = utils.CmdToTuple(cmd)
 
-        self.active  = active
-        self.hidden  = hidden
+        self.active = active
+        self.hidden = hidden
         self.opacity = opacity
 
         self.forceRender = True
@@ -378,19 +378,19 @@ class Map(object):
         @param gisrc alternative gisrc (used eg. by georectifier)
         """
         # region/extent settigns
-        self.wind      = dict() # WIND settings (wind file)
-        self.region    = dict() # region settings (g.region)
-        self.width     = 640    # map width
-        self.height    = 480    # map height
+        self.wind = dict() # WIND settings (wind file)
+        self.region = dict() # region settings (g.region)
+        self.width = 640    # map width
+        self.height = 480    # map height
 
         # list of layers
-        self.layers    = list()  # stack of available GRASS layer
+        self.layers = list()  # stack of available GRASS layer
 
-        self.overlays  = list()  # stack of available overlays
-        self.ovlookup  = dict()  # lookup dictionary for overlay items and overlays
+        self.overlays = list()  # stack of available overlays
+        self.ovlookup = dict()  # lookup dictionary for overlay items and overlays
 
         # environment settings
-        self.env   = dict()
+        self.env = dict()
 
         # path to external gisrc
         self.gisrc = gisrc
@@ -506,13 +506,13 @@ class Map(object):
         computational resolution. Set computational resolution through
         g.region.
         """
-        mapwidth    = abs(self.region["e"] - self.region["w"])
-        mapheight   = abs(self.region['n'] - self.region['s'])
+        mapwidth = abs(self.region["e"] - self.region["w"])
+        mapheight = abs(self.region['n'] - self.region['s'])
 
         self.region["nsres"] = mapheight / self.height
-        self.region["ewres"] = mapwidth  / self.width
-        self.region['rows']  = round(mapheight / self.region["nsres"])
-        self.region['cols']  = round(mapwidth / self.region["ewres"])
+        self.region["ewres"] = mapwidth / self.width
+        self.region['rows'] = round(mapheight / self.region["nsres"])
+        self.region['cols'] = round(mapwidth / self.region["ewres"])
         self.region['cells'] = self.region['rows'] * self.region['cols']
 
         Debug.msg (3, "Map.AdjustRegion(): %s" % self.region)
@@ -584,13 +584,13 @@ class Map(object):
         @param width,height map size given as tuple
         """
         try:
-            self.width  = int(width)
+            self.width = int(width)
             self.height = int(height)
             if self.width < 1 or self.height < 1:
                 sys.stderr.write(_("Invalid map size %d,%d\n") % (self.width, self.height))
                 raise ValueError
         except ValueError:
-            self.width  = 640
+            self.width = 640
             self.height = 480
 
         Debug.msg(2, "Map.ChangeMapSize(): width=%d, height=%d" %
@@ -793,7 +793,7 @@ class Map(object):
                     grass_region += "depths: %d; " % \
                         (region['depths'])
                 else:
-                    grass_region += key + ": "  + self.wind[key] + "; "
+                    grass_region += key + ": " + self.wind[key] + "; "
 
             Debug.msg (3, "Map.SetRegion(): %s" % grass_region)
 
@@ -948,7 +948,7 @@ class Map(object):
 
         tmp_region = os.getenv("GRASS_REGION")
         os.environ["GRASS_REGION"] = self.SetRegion(windres)
-        os.environ["GRASS_RENDER_WIDTH"]  = str(self.width)
+        os.environ["GRASS_RENDER_WIDTH"] = str(self.width)
         os.environ["GRASS_RENDER_HEIGHT"] = str(self.height)
         driver = UserSettings.Get(group = 'display', key = 'driver', subkey = 'type')
         if driver == 'png':

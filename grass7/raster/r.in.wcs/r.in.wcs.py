@@ -299,7 +299,7 @@ class WCSBase:
         """
         self._debug("GetCapabilities", "started")
 
-        cap  = self._fetchCapabilities(options,flags)
+        cap = self._fetchCapabilities(options,flags)
         root = etree.fromstringlist(cap.readlines())
         cov_offering = []
         for label in root.iter('{*}CoverageOfferingBrief'):

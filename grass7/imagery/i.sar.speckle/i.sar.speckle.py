@@ -63,11 +63,11 @@ from grass.pygrass.modules.shortcuts import raster as r
 def lee_filter(img, size, img_out):
 
     pid = str(os.getpid())
-    img_mean     = 'tmp%s_img_mean'     % pid
-    img_sqr      = 'tmp%s_img_sqr'      % pid
+    img_mean = 'tmp%s_img_mean' % pid
+    img_sqr = 'tmp%s_img_sqr' % pid
     img_sqr_mean = 'tmp%s_img_sqr_mean' % pid
     img_variance = 'tmp%s_img_variance' % pid
-    img_weights  = 'tmp%s_img_weights'  % pid
+    img_weights = 'tmp%s_img_weights' % pid
 
     # Local mean
     r.neighbors(input = img,
@@ -107,10 +107,10 @@ def lee_filter(img, size, img_out):
 
 def main():
 
-    method    = options['method']  # algorithm for speckle removal
-    img       = options['input']   # name of input image
-    img_out   = options['output']  # name of output image
-    size      = options['size']    # size of neighborhood
+    method = options['method']  # algorithm for speckle removal
+    img = options['input']   # name of input image
+    img_out = options['output']  # name of output image
+    size = options['size']    # size of neighborhood
 
     out = grass.core.find_file(img_out)
 

@@ -555,7 +555,7 @@ def soil_water_protection(opts, flgs):
     run_command("r.mapcalc", overwrite=ow,
                 expression=expr_sw6 % (energy_tops_hf, energy_cormometric_vol_hf, energy_tops_hf, energy_cormometric_vol_hf))
     run_command("r.mapcalc", overwrite=ow,
-                expression=expr_sw7  % (energy_tops_hf, energy_cormometric_vol_hf, energy_tops_hf, energy_cormometric_vol_hf))
+                expression=expr_sw7 % (energy_tops_hf, energy_cormometric_vol_hf, energy_tops_hf, energy_cormometric_vol_hf))
     run_command("r.mapcalc", overwrite=ow,
                 expression=expr_sw8 % (energy_tops_hf, energy_cormometric_vol_hf, energy_tops_hf))
 

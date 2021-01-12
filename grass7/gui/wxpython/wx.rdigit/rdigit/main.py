@@ -17,12 +17,12 @@ This program is free software under the GNU General Public License
 try:
     from rdigit.wxdigit import IRDigit, GV_LINES, CFUNCTYPE
     haveRDigit = True
-    errorMsg   = ''
+    errorMsg = ''
 except (ImportError, NameError), err:
     haveRDigit = False
-    errorMsg   = err
+    errorMsg = err
     print errorMsg
-    GV_LINES   = -1
+    GV_LINES = -1
 
     class IRDigit:
         def __init__(self):

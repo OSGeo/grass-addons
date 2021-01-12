@@ -97,15 +97,15 @@ def cleanup():
         grass.run_command('g.remove', flags='f', type='raster', name= tmp_colr, quiet = True)
 
 def main():
-    color  = options['color']
+    color = options['color']
     column = options['column']
-    layer  = options['layer']
-    map    = options['map']
-    range  = options['range']
+    layer = options['layer']
+    map = options['map']
+    range = options['range']
     raster = options['raster']
     rgb_column = options['rgb_column']
-    rules  = options['rules']
-    flip   = flags['n']
+    rules = options['rules']
+    flip = flags['n']
 
     global tmp, tmp_colr, tmp_vcol
     pid = os.getpid()
