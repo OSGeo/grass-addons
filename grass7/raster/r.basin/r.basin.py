@@ -179,7 +179,7 @@ def main():
         grass.write_command('v.in.ascii', output = v_outlet,
                                       input = "-",
                                       sep = ",",
-                                      stdin = "%s,9999"  % (coordinates))
+                                      stdin = "%s,9999" % (coordinates))
 
         # Snap outlet to stream network
         # TODO: does snap depend on the raster resolution? hardcoded 30 below

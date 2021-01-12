@@ -406,7 +406,7 @@ def main():
     mapcalc_expression += "if(isnull(%s), " % vlanemap
     if existing_cutlines:
         mapcalc_expression += "if(%s == 0 && isnull(%s), " % (temp_edge_map, existingcutlinesmap)
-        mapcalc_expression += "%i, " % (no_edge_friction  * 10)
+        mapcalc_expression += "%i, " % (no_edge_friction * 10)
         mapcalc_expression += "if(isnull(%s), %s, 1))," % (existingcutlinesmap, no_edge_friction)
         mapcalc_expression += "%i)" % (lane_border_multiplier * no_edge_friction * 10)
     else:

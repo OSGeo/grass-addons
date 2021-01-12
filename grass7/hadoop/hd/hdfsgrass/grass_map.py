@@ -80,7 +80,7 @@ class VectorDBInfo:
             table = self.layers[layer]["table"] # get table desc
             for name in self.tables[table].keys():
                 self.tables[table][name]['values'] = []
-                self.tables[table][name]['ids']    = []
+                self.tables[table][name]['ids'] = []
 
     def GetName(self):
         """Get vector name"""

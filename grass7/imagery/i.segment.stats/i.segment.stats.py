@@ -386,7 +386,7 @@ def main():
             addcol_statement = 'ALTER TABLE %s ADD COLUMN %s double precision;\n' % (temporary_vect, header)
             fsql.write(addcol_statement)
         for key in output_dict:
-            if len(output_dict[key]) + 1  == len(output_header):
+            if len(output_dict[key]) + 1 == len(output_header):
                 sql = "INSERT INTO %s VALUES (%s, %s);\n" % (temporary_vect, key, ",".join(output_dict[key]))
                 sql = sql.replace('inf', 'NULL')
                 sql = sql.replace('nan', 'NULL')

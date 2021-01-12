@@ -1445,7 +1445,7 @@ class Database():
         '''
 
     def grassConnectionRemote(self):
-        self.dbConnStr  = self.dbName
+        self.dbConnStr = self.dbName
 
         if self.user and not self.password:
             grass.run_command('db.login',

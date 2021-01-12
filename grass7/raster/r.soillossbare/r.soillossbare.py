@@ -233,7 +233,7 @@ class rusle_base(object):
         """
 
         flowacc = outprefix + 'flowacc'
-        slope  = outprefix + 'slope'
+        slope = outprefix + 'slope'
         lsfactor = outprefix + 'lsfactor'
 
         self.tmp_rast.append(flowacc)
@@ -445,7 +445,7 @@ class rusle_terraflow(rusle_base):
             self.tmp_rast.append(raster[map])
 
         statsfile = self._tempfile()
-        streamdir  = self._tempdir()
+        streamdir = self._tempdir()
 
 
         g.run_command('r.terraflow',

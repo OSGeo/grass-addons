@@ -147,7 +147,7 @@ class IRDigit:
         else:
             message = _('No vector map open for editing.3')
         GError(message + ' ' + _('Operation canceled.'),
-               parent  = self.parent,
+               parent = self.parent,
                caption = self.caption)
 
     def _addFeature(self, ftype, coords):

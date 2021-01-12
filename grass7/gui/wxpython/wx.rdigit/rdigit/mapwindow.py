@@ -40,8 +40,8 @@ class RDigitWindow(BufferedWindow):
                                 frame = frame, tree = tree, style = style, **kwargs)
         self.lmgr = lmgr
         self.pdcVector = wx.PseudoDC()
-        self.toolbar   = self.parent.GetToolbar('rdigit')
-        self.digit     = None # wxvdigit.IVDigit
+        self.toolbar = self.parent.GetToolbar('rdigit')
+        self.digit = None # wxvdigit.IVDigit
         self.existingCoords = list()
         self.polygons = list()
         self.circles = list()
