@@ -1,0 +1,13 @@
+MODULE_TOPDIR = ../..
+
+PGM = r.los
+
+LIBES = $(SEGMENTLIB) $(RASTERLIB) $(GISLIB) $(GDALLIBS) $(MATHLIB)
+DEPENDENCIES = $(SEGMENTDEP) $(RASTERDEP) $(GISDEP)
+EXTRA_INC = $(PROJINC) $(GDALCFLAGS)
+
+include $(MODULE_TOPDIR)/include/Make/Module.make
+
+ifneq ($(USE_GDAL),)
+default: cmd
+endif
