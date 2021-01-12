@@ -6,6 +6,7 @@ ignore =
     E722, # do not use bare 'except'
     E741, # ambiguous variable name 'l'
     F401, # 'grass.script.core.gisenv' imported but unused
+    F405, # '_' may be undefined, or defined from star imports: datetime
     F821, # undefined name '_'
     F841, # local variable 'center' is assigned to but never used
     E121, # continuation line under-indented for hanging indent
