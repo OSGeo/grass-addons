@@ -107,7 +107,7 @@ except ImportError:
 
 def collapse_whitespace(text):
     """Minimize the whitespace in the text.
-    
+
     Replaces multiple whitespaces including the unicode ones
     by a single space.
 
@@ -118,7 +118,7 @@ def collapse_whitespace(text):
 
 def minimize_whitespace(text):
     """Minimize the whitespace in the text.
-    
+
     Replaces multiple whitespaces including the unicode ones
     by a single space.
 
