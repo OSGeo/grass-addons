@@ -124,7 +124,7 @@ def removeServerInfo(soup, serverID):
      @return: Boolean, True if successfuly removed, else False
     """
     serverID = unicode(serverID)
-    elements = soup.findAll(id = serverID)
+    elements = soup.findAll(id=serverID)
     if(len(elements) == 0):
         return False
     else:

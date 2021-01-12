@@ -46,11 +46,11 @@ import grass.script as grass
 import numpy as np
 
 def main():
-    stats = grass.read_command('r.stats', input = options['map'],
-                                          sep = 'space',
-                                          nv = '*',
-                                          nsteps = '255',
-                                          flags = 'Anc').split('\n')[:-1]
+    stats = grass.read_command('r.stats', input=options['map'],
+                                          sep='space',
+                                          nv='*',
+                                          nsteps='255',
+                                          flags='Anc').split('\n')[:-1]
 
     # res = cellsize
     res = grass.region()['nsres']

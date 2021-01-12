@@ -79,7 +79,7 @@ class IRDigit:
                 self.polyfile.write(catbuf)
 
             self.polyfile.close()
-            region_settings = grass.parse_command('g.region', flags = 'p', delimiter = ':')
+            region_settings = grass.parse_command('g.region', flags='p', delimiter=':')
             RunCommand('r.in.poly', input=self.polyfile.name,
                                     rows=region_settings['rows'], output=self.getOutputName(),overwrite=True)
 
@@ -118,14 +118,14 @@ class IRDigit:
         elif ftype == 'circle':
             vtype = 'circle'
         else:
-            GError(parent = self.mapWindow,
-                   message = _("Unknown feature type '%s'") % ftype)
+            GError(parent=self.mapWindow,
+                   message=_("Unknown feature type '%s'") % ftype)
             return (-1, None)
 
 
         if vtype & GV_LINES and len(points) < 2:
-            GError(parent = self.mapWindow,
-                   message = _("Not enough points for line"))
+            GError(parent=self.mapWindow,
+                   message=_("Not enough points for line"))
             return (-1, None)
 
         self.toolbar.EnableUndo()
@@ -140,15 +140,15 @@ class IRDigit:
 
         return True
 
-    def NoMap(self, name = None):
+    def NoMap(self, name=None):
         """!No map for editing"""
         if name:
             message = _('Unable to open vector map <%s>.') % name
         else:
             message = _('No vector map open for editing.3')
         GError(message + ' ' + _('Operation canceled.'),
-               parent = self.parent,
-               caption = self.caption)
+               parent=self.parent,
+               caption=self.caption)
 
     def _addFeature(self, ftype, coords):
         """!Add new feature(s) to the vector map

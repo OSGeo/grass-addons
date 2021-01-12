@@ -111,7 +111,7 @@ def main():
     mapname[0] = mapname[0].replace(".", "_")
     start = options['start']
     start_ = start.split('@')[0]
-    gfile = grass.find_file(start, element = 'vector')
+    gfile = grass.find_file(start, element='vector')
     if not gfile['name']:
         grass.fatal(_("Vector map <%s> not found") % infile)
 
@@ -155,27 +155,27 @@ def main():
     grass.message("Defining starting points...")
     if int(num) == 1:
         grass.run_command('g.copy',
-            vector= start+',start_points_',
-            quiet = True)
+            vector=start+',start_points_',
+            quiet=True)
     else:
         grass.run_command('v.buffer',
-            input = start,
-            type = 'point',
-            output = 'start_buffer_',
-            distance = d_buff,
-            quiet = True)
+            input=start,
+            type='point',
+            output='start_buffer_',
+            distance=d_buff,
+            quiet=True)
 
         grass.run_command('v.random',
-            input = 'start_buffer_',
-            npoints = num,
-            output = 'start_random_',
-            flags = 'a',
-            quiet = True)
+            input='start_buffer_',
+            npoints=num,
+            output='start_random_',
+            flags='a',
+            quiet=True)
 
         grass.run_command('v.patch',
-            input = start + ',start_random_',
-            output = 'start_points_',
-            quiet = True)
+            input=start + ',start_random_',
+            output='start_points_',
+            quiet=True)
 
     #v.buffer input=punto type=point output=punti_buffer distance=$cellsize
     #v.random -a output=random n=$numero input=punti_buffer
@@ -183,13 +183,13 @@ def main():
 
     #creo raster (che sara' il DEM di input) con valore 1
     grass.mapcalc('uno=$dem*0+1',
-        dem = r_elevation,
-        quiet = True)
+        dem=r_elevation,
+        quiet=True)
     what = grass.read_command('r.what',
         map=r_elevation,
         points='start_points_',
         null_value="-9999", # TODO: a better test for points outside the current region is needed
-        quiet = True)
+        quiet=True)
     quota = what.split('\n')
 
     #array per la somma dei massi
@@ -218,50 +218,50 @@ def main():
         # Calcolo cost (sostituire i punti di partenza in start_raster al pusto di punto)
         grass.run_command('r.cost',
             flags="k",
-            input = 'uno',
-            output = 'costo',
-            start_coordinates = str(x)+','+str(y),
-            quiet = True,
-            overwrite = True)
+            input='uno',
+            output='costo',
+            start_coordinates=str(x)+','+str(y),
+            quiet=True,
+            overwrite=True)
 
 
         #trasforma i valori di distanza celle in valori metrici utilizzando la risoluzione raster
         grass.mapcalc('costo_m=costo*(ewres()+nsres())/2',
-             overwrite = True)
+             overwrite=True)
 
         # calcola A=tangente angolo visuale (INPUT) * costo in metri
         grass.mapcalc('A=tan($ang)*costo_m',
-            ang = ang,
-             overwrite = True)
+            ang=ang,
+             overwrite=True)
         grass.mapcalc('C=$z-A',
-            z = z,
-            overwrite = True)
+            z=z,
+            overwrite=True)
         grass.mapcalc('D=C-$dem',
-            dem = r_elevation,
-             overwrite = True)
+            dem=r_elevation,
+             overwrite=True)
         # area di espansione
         grass.mapcalc('E=if(D>0,1,null())',
-             overwrite = True)
+             overwrite=True)
         # valore di deltaH (F)
         grass.mapcalc('F=D*E',
-             overwrite = True)
+             overwrite=True)
 
         # calcolo velocita
         grass.mapcalc('vel = $red*sqrt(2*9.8*F)',
-            red = red, overwrite = True)
+            red=red, overwrite=True)
         velocity.read('vel')
         velMax[...] = (np.where(velocity > velMax,velocity,velMax)).astype(float)
         velMean[...] = (velocity + velMean).astype(float)
 
         #calcolo numero massi
-        grass.mapcalc('somma=if(vel>0,1,0)', overwrite = True)
+        grass.mapcalc('somma=if(vel>0,1,0)', overwrite=True)
         somma.read('somma')
         tot[...] = (somma + tot).astype(float)
 
         # calcolo energia
         grass.mapcalc('en=$m*9.8*F/1000',
-            m = m,
-            overwrite = True)
+            m=m,
+            overwrite=True)
         energy.read('en')
         enMax[...] = (np.where(energy > enMax,energy,enMax)).astype(float)
         enMean[...] = (energy + enMean).astype(float)
@@ -285,25 +285,25 @@ def main():
     #    map=eMean)
     if int(num) == 1:
         grass.run_command('g.remove',
-            flags = 'f',
-            type = 'vector',
-            name = ('start_points_'),
-            quiet = True)
+            flags='f',
+            type='vector',
+            name=('start_points_'),
+            quiet=True)
     else:
         grass.run_command('g.rename',
-            vect= 'start_points_,' + prefix + '_starting',
-            quiet = True)
+            vect='start_points_,' + prefix + '_starting',
+            quiet=True)
         grass.run_command('g.remove',
-            flags = 'f',
-            type = 'vector',
-            name = (
+            flags='f',
+            type='vector',
+            name=(
                 'start_buffer_',
                 'start_random_'),
-            quiet = True)
+            quiet=True)
     grass.run_command('g.remove',
-        flags = 'f',
-        type = 'raster',
-        name = (
+        flags='f',
+        type='raster',
+        name=(
             'uno',
             'costo',
             'costo_m',
@@ -315,7 +315,7 @@ def main():
             'en',
             'vel',
             'somma'),
-        quiet = True)
+        quiet=True)
     grass.message("Done!")
 
 if __name__ == "__main__":

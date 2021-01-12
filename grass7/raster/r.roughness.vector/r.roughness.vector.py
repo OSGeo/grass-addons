@@ -127,7 +127,7 @@ import grass.script as grass
 # cleaning up temp files
 def cleanup():
     rasts = ['aspect_compass','colat_angle','cosine_x','cosine_y','cosine_z','sum_Xcosine','sum_Ycosine','sum_Zcosine']
-    grass.run_command('g.remove', flags = 'bf', type = 'raster', name = rasts, quiet = True)
+    grass.run_command('g.remove', flags='bf', type='raster', name=rasts, quiet=True)
 
 def main():
 
@@ -149,17 +149,17 @@ def main():
     grass.message("----")
     grass.message("Check if input files exist ...")
 
-    find_elev = grass.find_file(elevmap, element = 'cell')
+    find_elev = grass.find_file(elevmap, element='cell')
     if find_elev['name'] == "":
         print("Map %s not found! Aborting." % elevmap)
         sys.exit()
 
-    find_slope = grass.find_file(slope, element = 'cell')
+    find_slope = grass.find_file(slope, element='cell')
     if find_slope['name'] == "":
         print("Map %s not found! Aborting." % slope)
         sys.exit()
 
-    find_aspect = grass.find_file(aspect, element = 'cell')
+    find_aspect = grass.find_file(aspect, element='cell')
     if find_aspect['name'] == "":
         print("Map %s not found! Aborting." % aspect)
         sys.exit()
@@ -197,8 +197,8 @@ def main():
         aspect_compass = 'aspect_compass'
 #        aspect_compass = grass.tempfile()
         grass.mapcalc("${out} = if(${rast1}==0,0,if(${rast1} < 90, 90-${rast1}, 360+90-${rast1}))",
-            out = aspect_compass,
-            rast1 = aspect)
+            out=aspect_compass,
+            rast1=aspect)
     else:
         grass.message("Using previous calculated compass aspect values (longitude)")
         aspect_compass = compass
@@ -212,8 +212,8 @@ def main():
         colat_angle = 'colat_angle'
 #        colat_angle = grass.tempfile()
         grass.mapcalc("${out} = 90 - ${rast1}",
-            out = colat_angle,
-            rast1 = slope)
+            out=colat_angle,
+            rast1=slope)
     else:
         grass.message("Using previous calculated colatitude values")
         colat_angle = colatitude
@@ -231,9 +231,9 @@ def main():
         cosine_x = 'cosine_x'
 #        cosine_x = grass.tempfile()
         grass.mapcalc("${out} = sin(${rast1}) * cos(${rast2})",
-            out = 'cosine_x',
-            rast1 = aspect_compass,
-            rast2 = colat_angle)
+            out='cosine_x',
+            rast1=aspect_compass,
+            rast2=colat_angle)
     else:
         grass.message("Using previous calculated X direction cosine value")
         cosine_x = xcos
@@ -243,9 +243,9 @@ def main():
         cosine_y = 'cosine_y'
 #        cosine_y = grass.tempfile()
         grass.mapcalc("${out} = sin(${rast1}) * sin(${rast2})",
-            out = 'cosine_y',
-            rast1 = aspect_compass,
-            rast2 = colat_angle)
+            out='cosine_y',
+            rast1=aspect_compass,
+            rast2=colat_angle)
     else:
         grass.message("Using previous calculated Y direction cosine values")
         cosine_y = ycos
@@ -255,8 +255,8 @@ def main():
         cosine_z = 'cosine_z'
 #        cosine_z = grass.tempfile()
         grass.mapcalc("${out} = cos(${rast1})",
-            out = 'cosine_z',
-            rast1 = aspect_compass)
+            out='cosine_z',
+            rast1=aspect_compass)
     else:
         grass.message("Using previous calculated Y direction cosine values")
         cosine_z = zcos
@@ -302,10 +302,10 @@ def main():
 
 #    print strength
     grass.mapcalc("${out} = sqrt(exp(${rast1},2) + exp(${rast2},2) + exp(${rast3},2))",
-            out = strength,
-            rast1 = 'sum_Xcosine',
-            rast2 = 'sum_Ycosine',
-            rast3 = 'sum_Zcosine')
+            out=strength,
+            rast1='sum_Xcosine',
+            rast2='sum_Ycosine',
+            rast3='sum_Zcosine')
 
 # calculate Inverted Fisher's K parameter
 # k=1/((N-1)/(N-R))
@@ -315,9 +315,9 @@ def main():
 
     w = int(window)
     grass.mapcalc("${out} = ($w * $w - ${rast1}) / ($w * $w - 1)",
-            out = fisher,
-            rast1 = strength,
-            w = int(window))
+            out=fisher,
+            rast1=strength,
+            w=int(window))
 
 #    calculations done
 

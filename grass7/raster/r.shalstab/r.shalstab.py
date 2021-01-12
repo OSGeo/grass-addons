@@ -129,38 +129,38 @@ def main():
     #    gamma_wet = 2100
     # calculate slope
     grass.run_command('r.slope.aspect',
-                        elevation = r_elevation,
-                        slope = 'slopes',
-                        min_slope = 0.0,
-                        overwrite = 'True')
+                        elevation=r_elevation,
+                        slope='slopes',
+                        min_slope=0.0,
+                        overwrite='True')
     #zero value = null
     grass.run_command('r.null',
-                        map = 'slopes',
-                        setnull = 0)
+                        map='slopes',
+                        setnull=0)
     # calculate soil transmissivity T (m^2/day)
     grass.mapcalc("T=$k*24*$z*cos(slopes)",
-                    k = k,
-                    z = z)
+                    k=k,
+                    z=z)
     # calculate dimensionless
     grass.mapcalc("C=($root+$c_soil)/($z*cos(slopes)*9.81*$gamma)",
-                    root = root,
-                    c_soil = c_soil,
-                    z = z,
-                    gamma = gamma)
+                    root=root,
+                    c_soil=c_soil,
+                    z=z,
+                    gamma=gamma)
     # calculate contribution area
     grass.run_command('r.watershed',
-                        elevation = r_elevation,
-                        accumulation = 'accum')
+                        elevation=r_elevation,
+                        accumulation='accum')
 
     grass.mapcalc("A=abs(accum*((ewres()+nsres())/2)*((ewres()+nsres())/2))")
     #stable condition
     grass.mapcalc("assoluta_stab=(1-1000/($gamma))*tan($phy)",
-                    gamma = gamma,
-                    phy = phy)
+                    gamma=gamma,
+                    phy=phy)
     grass.mapcalc("assoluta_cond=if(assoluta_stab>tan(slopes),9999,0)")
     #unstable condition
     grass.mapcalc("assoluta_instab=C/cos(slopes)+(tan($phy))",
-                    phy = phy)
+                    phy=phy)
     grass.mapcalc("cond_instab=if(assoluta_instab<tan(slopes),-9999,0)")
     # calculate 1(m/day)
     grass.mapcalc("i_crit_m=T*sin(slopes)*(((ewres()+nsres())/2)/A)*($gamma/1000*(1-(1-(C/(sin(slopes))))*(tan(slopes)/tan($phy))))+(assoluta_cond)+(cond_instab)",
@@ -185,8 +185,8 @@ def main():
     grass.run_command('r.neighbors', input='Icritica', method='average',
                       size=3, output='I_cri_average')
     # rename maps
-    grass.run_command('g.rename', raster = ("I_cri_average", susceptibility))
-    grass.run_command('g.rename', raster = ("i_cri_mm", critic_rain))
+    grass.run_command('g.rename', raster=("I_cri_average", susceptibility))
+    grass.run_command('g.rename', raster=("i_cri_mm", critic_rain))
     # remove temporary map
     grass.run_command('g.remove', flags='f', type='raster', name=("A",
                                         "copia_reclass",

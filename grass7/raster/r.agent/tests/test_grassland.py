@@ -142,8 +142,8 @@ class TestGrassland(unittest.TestCase):
 
     def tearDown(self):
         if self.rastlayername:
-            grass.try_remove(grass.find_file(name = self.rastlayername,
-                                             element = 'cell')['file'])
+            grass.try_remove(grass.find_file(name=self.rastlayername,
+                                             element='cell')['file'])
         if self.vectlayername:
-            grass.try_remove(grass.find_file(name = self.vectlayername,
-                                             element = 'vector')['file'])
+            grass.try_remove(grass.find_file(name=self.vectlayername,
+                                             element='vector')['file'])

@@ -337,8 +337,7 @@ def write_results2newvec(stream, E, basins_tot, inputs):
     # TODO: dissolve the areas with the same cat
     # adding columns
     gcore.run_command("v.db.addcolumn", map=E,
-                      columns=
-                      "Qown double precision,"
+                      columns="Qown double precision,"
                       "Qtot double precision, Hmean double precision,"
                       "H0 double precision, Eown_kW double precision,"
                       "IDup1 int, Eup1_kW double precision,"

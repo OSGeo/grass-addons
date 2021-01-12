@@ -103,12 +103,12 @@ def main():
     os.chdir(tmpdir)
 
     grass.run_command("v.out.ogr",
-                      input = table,
-                      layer= layer,
-                      type = 'auto',
-                      output = tmpdir + '/' + tmptable,
-                      format = 'CSV',
-                      flags = 's')
+                      input=table,
+                      layer=layer,
+                      type='auto',
+                      output=tmpdir + '/' + tmptable,
+                      format='CSV',
+                      flags='s')
 
     mrmrcmd = 'mrmr -i ' + tmptable + ' -m ' + method + ' -t ' + threshold + ' -n ' + nfeatures + ' -s ' + nsamples + ' -v ' + maxvar
 

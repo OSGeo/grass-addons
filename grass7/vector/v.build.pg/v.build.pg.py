@@ -54,7 +54,7 @@ import grass.script as grass
 from grass.exceptions import CalledModuleError
 
 
-def execute(sql, msg = None, useSelect = True):
+def execute(sql, msg=None, useSelect=True):
     if useSelect:
         cmd = 'select'
     else:
@@ -76,8 +76,8 @@ def execute(sql, msg = None, useSelect = True):
 def main():
     vmap = options['map']
     curr_mapset = grass.gisenv()['MAPSET']
-    mapset = grass.find_file(name = vmap,
-                             element = 'vector')['mapset']
+    mapset = grass.find_file(name=vmap,
+                             element='vector')['mapset']
 
     # check if map exists in the current mapset
     if not mapset:
@@ -101,7 +101,7 @@ def main():
 
     # check if topology schema already exists
     topo_found = False
-    ret = grass.db_select(sql = "SELECT COUNT(*) FROM topology.topology "
+    ret = grass.db_select(sql="SELECT COUNT(*) FROM topology.topology "
                               "WHERE name = '%s'" % options['topo_schema'],
                           **pg_conn)
 
@@ -118,8 +118,8 @@ def main():
                             ('topo_schema', options['topo_schema']))
 
         # drop topo schema if exists
-        execute(sql = "SELECT topology.DropTopology('%s')" % options['topo_schema'],
-                msg = _("Unable to remove topology schema"))
+        execute(sql="SELECT topology.DropTopology('%s')" % options['topo_schema'],
+                msg=_("Unable to remove topology schema"))
 
     # create topo schema
     schema, table = vInfo['pg_table'].split('.')
@@ -137,7 +137,7 @@ def main():
     execute("UPDATE %s.%s SET %s = topology.toTopoGeom(%s, '%s', 1, %s)" %
                 (schema, table, options['topo_column'], vInfo['geometry_column'],
                  options['topo_schema'], options['tolerance']),
-            useSelect = False)
+            useSelect=False)
 
     # report summary
     execute("SELECT topology.TopologySummary('%s')" % options['topo_schema'])

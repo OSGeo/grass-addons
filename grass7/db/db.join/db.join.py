@@ -149,7 +149,7 @@ def main():
 
         # add only the new column to the table
         if colname not in all_cols_tt:
-            p = grass.feed_command('db.execute', input = '-', database = database, driver = driver)
+            p = grass.feed_command('db.execute', input='-', database=database, driver=driver)
             p.stdin.write("ALTER TABLE %s ADD COLUMN %s" % (table, colspec))
             grass.debug("ALTER TABLE %s ADD COLUMN %s" % (table, colspec))
             p.stdin.close()

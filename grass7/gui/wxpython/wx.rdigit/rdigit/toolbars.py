@@ -28,7 +28,7 @@ class RDigitToolbar(BaseToolbar):
     """!Toolbar for digitization
     """
 
-    def __init__(self, parent, MapWindow, digitClass, tools = [], layerTree = None, log = None):
+    def __init__(self, parent, MapWindow, digitClass, tools=[], layerTree=None, log=None):
         self.MapWindow = MapWindow
         self.Map = MapWindow.GetMap() # Map class instance
         self.layerTree = layerTree  # reference to layer tree associated to map display
@@ -59,11 +59,11 @@ class RDigitToolbar(BaseToolbar):
                         'id': -1}
 
         # list of available raster maps
-        self.UpdateListOfLayers(updateTool = True)
+        self.UpdateListOfLayers(updateTool=True)
 
         self.layerNameList = []
-        layers = self.Map.GetListOfLayers(l_type = "raster",
-                                                      l_mapset = grass.gisenv()['MAPSET'])
+        layers = self.Map.GetListOfLayers(l_type="raster",
+                                                      l_mapset=grass.gisenv()['MAPSET'])
 
         for layer in layers:
             if layer.name not in self.layerNameList: # do not duplicate layer
@@ -85,7 +85,7 @@ class RDigitToolbar(BaseToolbar):
         # toogle to pointer by default
         self.OnTool(None)
 
-        self.FixSize(width = 105)
+        self.FixSize(width=105)
 
     def _toolbarData(self):
         """!Toolbar data
@@ -94,38 +94,38 @@ class RDigitToolbar(BaseToolbar):
 
         icons = {
 
-            'addLine': MetaIcon(img = 'line-create',
-                                         label = _('Digitize new line'),
-                                         desc = _('Left: new point; Ctrl+Left: undo last point; Right: close line')),
-            'addBoundary': MetaIcon(img = 'polygon-create',
-                                         label = _('Digitize new boundary'),
-                                         desc = _('Left: new point; Ctrl+Left: undo last point; Right: close line')),
-            'addCircle': MetaIcon(img = 'draw-circle',
-                                         label = _('Digitize new Cirlce'),
-                                         desc = _('Left: new point; Ctrl+Left: undo last point; Right: close line')),
+            'addLine': MetaIcon(img='line-create',
+                                         label=_('Digitize new line'),
+                                         desc=_('Left: new point; Ctrl+Left: undo last point; Right: close line')),
+            'addBoundary': MetaIcon(img='polygon-create',
+                                         label=_('Digitize new boundary'),
+                                         desc=_('Left: new point; Ctrl+Left: undo last point; Right: close line')),
+            'addCircle': MetaIcon(img='draw-circle',
+                                         label=_('Digitize new Cirlce'),
+                                         desc=_('Left: new point; Ctrl+Left: undo last point; Right: close line')),
 
 
-            'deleteLine': MetaIcon(img = 'line-delete',
-                                         label = _('Delete feature(s)'),
-                                         desc = _('Left: Select; Ctrl+Left: Unselect; Right: Confirm')),
-            'deleteArea': MetaIcon(img = 'polygon-delete',
-                                         label = _('Delete area(s)'),
-                                         desc = _('Left: Select; Ctrl+Left: Unselect; Right: Confirm')),
-            'deleteCircle': MetaIcon(img = 'delete-circle',
-                                         label = _('Digitize new Cirlce'),
-                                         desc = _('Left: new point; Ctrl+Left: undo last point; Right: close line')),
+            'deleteLine': MetaIcon(img='line-delete',
+                                         label=_('Delete feature(s)'),
+                                         desc=_('Left: Select; Ctrl+Left: Unselect; Right: Confirm')),
+            'deleteArea': MetaIcon(img='polygon-delete',
+                                         label=_('Delete area(s)'),
+                                         desc=_('Left: Select; Ctrl+Left: Unselect; Right: Confirm')),
+            'deleteCircle': MetaIcon(img='delete-circle',
+                                         label=_('Digitize new Cirlce'),
+                                         desc=_('Left: new point; Ctrl+Left: undo last point; Right: close line')),
 
             'settings': BaseIcons['settings'].SetLabel(_('Digitization settings')),
-            'quit': BaseIcons['quit'].SetLabel(label = _('Quit digitizer'),
-                                                           desc = _('Quit digitizer and save changes')),
-            'help': BaseIcons['help'].SetLabel(label = _('Vector Digitizer manual'),
-                                                           desc = _('Show Vector Digitizer manual')),
-            'undo': MetaIcon(img = 'undo',
-                                         label = _('Undo'),
-                                         desc = _('Undo previous changes')),
-            'redo': MetaIcon(img = 'redo',
-                                         label = _('Redo'),
-                                         desc = _('Redo previous changes')),
+            'quit': BaseIcons['quit'].SetLabel(label=_('Quit digitizer'),
+                                                           desc=_('Quit digitizer and save changes')),
+            'help': BaseIcons['help'].SetLabel(label=_('Vector Digitizer manual'),
+                                                           desc=_('Show Vector Digitizer manual')),
+            'undo': MetaIcon(img='undo',
+                                         label=_('Undo'),
+                                         desc=_('Undo previous changes')),
+            'redo': MetaIcon(img='redo',
+                                         label=_('Redo'),
+                                         desc=_('Redo previous changes')),
         }
 
         if not self.tools or 'selector' in self.tools:
@@ -212,7 +212,7 @@ class RDigitToolbar(BaseToolbar):
         # clear tmp canvas
         if self.action['id'] != aId or aId == -1:
             self.MapWindow.polycoords = []
-            self.MapWindow.ClearLines(pdc = self.MapWindow.pdcTmp)
+            self.MapWindow.ClearLines(pdc=self.MapWindow.pdcTmp)
 #            if self.digit and \
 #                    len(self.MapWindow.digit.GetDisplay().GetSelected()) > 0:
 #                # cancel action
@@ -322,18 +322,18 @@ class RDigitToolbar(BaseToolbar):
 
     def OnRedo(self, event):
         """!Undo previous changes"""
-        self.digit.Undo(level = 1)
+        self.digit.Undo(level=1)
 
         event.Skip()
 
-    def EnableUndo(self, enable = True):
+    def EnableUndo(self, enable=True):
         """!Enable 'Undo' in toolbar
 
         @param enable False for disable
         """
         self._enableTool(self.undo, enable)
 
-    def EnableRedo(self, enable = True):
+    def EnableRedo(self, enable=True):
         """!Enable 'Redo' in toolbar
 
         @param enable False for disable
@@ -377,10 +377,10 @@ class RDigitToolbar(BaseToolbar):
         selection = -1
         if event.GetSelection() == 0: # create new raster map layer
             if self.mapLayer:
-                openRasterMap = self.mapLayer.GetName(fullyQualified = False)['name']
+                openRasterMap = self.mapLayer.GetName(fullyQualified=False)['name']
             else:
                 openRasterMap = None
-            dlg = CreateNewRaster(self.parent, exceptMap = openRasterMap,disableAdd = True)
+            dlg = CreateNewRaster(self.parent, exceptMap=openRasterMap,disableAdd=True)
 
 
 
@@ -443,7 +443,7 @@ class RDigitToolbar(BaseToolbar):
 #                                        0)
 #
         self.MapWindow.pdcVector = wx.PseudoDC()
-        self.digit = self.MapWindow.digit = self.digitClass(mapwindow = self.MapWindow)
+        self.digit = self.MapWindow.digit = self.digitClass(mapwindow=self.MapWindow)
 
         self.mapLayer = mapLayer
 
@@ -458,14 +458,14 @@ class RDigitToolbar(BaseToolbar):
             self.MapWindow.SetCursor(self.parent.cursors["cross"])
 
         if not self.MapWindow.resize:
-            self.MapWindow.UpdateMap(render = True)
+            self.MapWindow.UpdateMap(render=True)
 
         # respect opacity
         opacity = 100 # FIXME mapLayer.GetOpacity(float = True)
 
         if opacity < 1.0:
             alpha = int(opacity * 255)
-            self.digit.GetDisplay().UpdateSettings(alpha = alpha)
+            self.digit.GetDisplay().UpdateSettings(alpha=alpha)
 
         return True
 
@@ -482,11 +482,11 @@ class RDigitToolbar(BaseToolbar):
         if self.mapLayer:
             Debug.msg (4, "RDigitToolbar.StopEditing(): layer=%s" % self.mapLayer)
 
-            dlg = wx.MessageDialog(parent = self.parent,
-                                   message = _("Do you want to save changes "
+            dlg = wx.MessageDialog(parent=self.parent,
+                                   message=_("Do you want to save changes "
                                              "in raster map <%s>?") % self.mapLayer,
-                                   caption = _("Save changes?"),
-                                   style = wx.YES_NO | wx.YES_DEFAULT | wx.ICON_QUESTION)
+                                   caption=_("Save changes?"),
+                                   style=wx.YES_NO | wx.YES_DEFAULT | wx.ICON_QUESTION)
             if dlg.ShowModal() == wx.ID_NO:
                 # revert changes
                 self.digit.saveMap = False
@@ -509,7 +509,7 @@ class RDigitToolbar(BaseToolbar):
 
         return True
 
-    def UpdateListOfLayers (self, updateTool = False):
+    def UpdateListOfLayers (self, updateTool=False):
         """!Update list of available raster map layers.
         This list consists only editable layers (in the current mapset)
 
@@ -524,8 +524,8 @@ class RDigitToolbar(BaseToolbar):
 
         # select raster map layer in the current mapset
         layerNameList = []
-        self.layers = self.Map.GetListOfLayers(l_type = "raster",
-                                                      l_mapset = grass.gisenv()['MAPSET'])
+        self.layers = self.Map.GetListOfLayers(l_type="raster",
+                                                      l_mapset=grass.gisenv()['MAPSET'])
 
         for layer in self.layers:
             if layer.name not in layerNameList: # do not duplicate layer
@@ -539,9 +539,9 @@ class RDigitToolbar(BaseToolbar):
 
             if not self.comboid:
                 if not self.tools or 'selector' in self.tools:
-                    self.combo = wx.ComboBox(self, id = wx.ID_ANY, value = value,
-                                             choices = [_('New raster map'), ] + layerNameList, size = (80, -1),
-                                             style = wx.CB_READONLY)
+                    self.combo = wx.ComboBox(self, id=wx.ID_ANY, value=value,
+                                             choices=[_('New raster map'), ] + layerNameList, size=(80, -1),
+                                             style=wx.CB_READONLY)
                     self.comboid = self.InsertControl(0, self.combo)
                     self.parent.Bind(wx.EVT_COMBOBOX, self.OnSelectMap, self.comboid)
             else:

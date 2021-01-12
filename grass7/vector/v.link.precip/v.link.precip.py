@@ -125,9 +125,9 @@ def firstConnect():
 
     print_message('v.in.ogr')
     grass.run_command('v.in.ogr',
-                    input = "PG:",
-                    layer = layer,
-                    output = ogr,
+                    input="PG:",
+                    layer=layer,
+                    output=ogr,
                     overwrite=True,
                     flags='t',
                     type=typ,
@@ -196,9 +196,9 @@ def createVect(view_nat):
 
 
     grass.run_command('v.in.ogr',
-                    input = "PG:",
-                    layer = layer,
-                    output = ogr,
+                    input="PG:",
+                    layer=layer,
+                    output=ogr,
                     overwrite=True,
                     flags='t',
                     key=key,

@@ -54,8 +54,8 @@ for wh in whs_unique:
     x = cells[idx]
     y_tiled = times_rmapcalctiled[idx]
     y = times_rmapcalc[idx]
-    plt.plot(x, y_tiled, label = "r.mapcalc.tiled (%s processes)" % str(int(nprocs)))
-    plt.plot(x, y, label = "r.mapcalc")
+    plt.plot(x, y_tiled, label="r.mapcalc.tiled (%s processes)" % str(int(nprocs)))
+    plt.plot(x, y, label="r.mapcalc")
     plt.xlabel('Number of cells')
     plt.ylabel('time [sec]')
     plt.title('r.mapcalc vs. r.mapcalc.tiled: number of cells (with width and height %s)' % str(int(wh)))
@@ -70,7 +70,7 @@ for c_u in cells_unique:
     idx = np.where(cells == c_u)
     x = whs[idx]
     y_tiled = times_rmapcalctiled[idx]
-    plt.plot(x, y_tiled, label = "r.mapcalc.tiled (%s processes)" % str(int(nprocs)))
+    plt.plot(x, y_tiled, label="r.mapcalc.tiled (%s processes)" % str(int(nprocs)))
     plt.xlabel('Height - Weigth')
     plt.ylabel('time [sec]')
     plt.title('r.mapcalc.tiled: weight/height (with cells: %s)' % str(int(c_u)))

@@ -108,17 +108,17 @@ def main():
 
         # apply color rules level 1
         grass.message ("applying color rules for data level 1...")
-        grass.run_command("r.colors", map = iraster,
-                                        rules = tmp_col_l1,
-                                        quiet = True)
+        grass.run_command("r.colors", map=iraster,
+                                        rules=tmp_col_l1,
+                                        quiet=True)
 
 
         # apply category rules level 1
         grass.message ("applying category rules for data level 1...")
-        grass.run_command("r.category", map = iraster,
-                                        rules = tmp_cat_l1,
-                                        separator = 'pipe',
-                                        quiet = True)
+        grass.run_command("r.category", map=iraster,
+                                        rules=tmp_cat_l1,
+                                        separator='pipe',
+                                        quiet=True)
 
     # write intermediate color and cat rule file data level 2
     if level2:
@@ -399,17 +399,17 @@ def main():
 
         # apply color rules level 2
         grass.message ("applying color rules for data level 2...")
-        grass.run_command("r.colors", map = iraster,
-                                        rules = tmp_col_l2,
-                                        quiet = True)
+        grass.run_command("r.colors", map=iraster,
+                                        rules=tmp_col_l2,
+                                        quiet=True)
 
 
         # apply category rules level 2
         grass.message ("applying category rules for data level 2...")
-        grass.run_command("r.category", map = iraster,
-                                        rules = tmp_cat_l2,
-                                        separator = 'pipe',
-                                        quiet = True)
+        grass.run_command("r.category", map=iraster,
+                                        rules=tmp_cat_l2,
+                                        separator='pipe',
+                                        quiet=True)
 
     # do some clean up
     grass.message("----")

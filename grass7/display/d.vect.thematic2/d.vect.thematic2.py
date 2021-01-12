@@ -330,11 +330,11 @@ def main():
     # update color values to the table?
     if rgb_column:
         # test, if the rgb column is in the table
-        s = grass.read_command('db.columns', table = table, database = database, driver = driver)
+        s = grass.read_command('db.columns', table=table, database=database, driver=driver)
         if rgb_column not in s.splitlines():
             msg(locals(), _("Creating column <$rgb_column> in table <$table>"))
             sql = "ALTER TABLE %s ADD COLUMN %s varchar(11)" % (table, rgb_column)
-            grass.write_command('db.execute', database = database, driver = driver, input = '-', stdin = sql)
+            grass.write_command('db.execute', database=database, driver=driver, input='-', stdin=sql)
 
     # Group name
     if not group:
@@ -350,7 +350,7 @@ def main():
         stype = ["point", "centroid"]
 
     grass.message(_("Calculating statistics..."))
-    stats = grass.read_command('v.univar', flags = 'eg', map = map, type = stype, column = column, where = where, layer = layer)
+    stats = grass.read_command('v.univar', flags='eg', map=map, type=stype, column=column, where=where, layer=layer)
     if not stats:
         grass.fatal(_("Unable to calculate statistics for vector map <%s>" % map))
     stats = grass.parse_key_val(stats)
@@ -697,7 +697,7 @@ end
             # update color to database?
             if rgb_column:
                 sql = subs(locals(), "UPDATE $table SET $rgb_column = '$themecolor' WHERE $sqlwhere")
-                grass.write_command('db.execute', database = database, driver = driver, input = '-', stdin = sql)
+                grass.write_command('db.execute', database=database, driver=driver, input='-', stdin=sql)
 
             # Create group for GIS Manager
             if flag_g:
@@ -755,10 +755,10 @@ end
 
             # display theme vector map
 
-            grass.run_command('d.vect', map = map, type = type, layer = layer,
-                              where = sqlwhere,
-                              color = linecolor, fcolor = themecolor, icon = icon, size = ptsize,
-                              quiet = True)
+            grass.run_command('d.vect', map=map, type=type, layer=layer,
+                              where=sqlwhere,
+                              color=linecolor, fcolor=themecolor, icon=icon, size=ptsize,
+                              quiet=True)
 
             if type in ["line", "boundary"]:
                 out(f_psmap, locals(), """\
@@ -1019,7 +1019,7 @@ end
             # update color to database?
             if rgb_column:
                 sql = subs(locals(), "UPDATE $table SET $rgb_column = '$themecolor' WHERE $sqlwhere")
-                grass.write_command('db.execute', database = database, driver = driver, input = '-', stdin = sql)
+                grass.write_command('db.execute', database=database, driver=driver, input='-', stdin=sql)
 
             # Create group for GIS Manager
             if flag_g:
@@ -1075,10 +1075,10 @@ end
             if themetype == "graduated_lines":
                 kwargs['width'] = ptsize
 
-            grass.run_command('d.vect', map = map, type = type, layer = layer,
-                              where = sqlwhere,
-                              color = linecolor, fcolor = themecolor, icon = icon,
-                              size = ptsize, quiet = True, **kwargs)
+            grass.run_command('d.vect', map=map, type=type, layer=layer,
+                              where=sqlwhere,
+                              color=linecolor, fcolor=themecolor, icon=icon,
+                              size=ptsize, quiet=True, **kwargs)
 
             if themetype != "graduated_lines":
                 out(f_psmap, locals(), """\
@@ -1104,7 +1104,7 @@ end
     f_graph.close()
     if flag_l:
         grass.run_command('d.erase')
-        grass.run_command('d.graph', input = tmp_graph)
+        grass.run_command('d.graph', input=tmp_graph)
 
     # Create group file for GIS Manager
     f_group.write("End\n")

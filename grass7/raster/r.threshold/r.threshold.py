@@ -46,7 +46,7 @@ import numpy as np
 import grass.script as grass
 
 def main():
-    stats = grass.read_command('r.stats', input = options['acc'], separator = 'space', nv = '*', nsteps = '1000', flags = 'Anc').split('\n')[:-1]
+    stats = grass.read_command('r.stats', input=options['acc'], separator='space', nv='*', nsteps='1000', flags='Anc').split('\n')[:-1]
 
     mappatella = np.zeros((len(stats),3),float)
 

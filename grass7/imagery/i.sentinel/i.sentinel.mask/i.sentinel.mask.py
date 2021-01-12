@@ -201,12 +201,12 @@ def main ():
     # Check temporary map names are not existing maps
     for key, value in tmp.items():
         if gscript.find_file(value,
-            element = 'vector',
-            mapset = mapset)['file']:
+            element='vector',
+            mapset=mapset)['file']:
             gscript.fatal(('Temporary vector map <{}> already exists.').format(value))
         if gscript.find_file(value,
-            element = 'cell',
-            mapset = mapset)['file']:
+            element='cell',
+            mapset=mapset)['file']:
             gscript.fatal(('Temporary raster map <{}> already exists.').format(value))
 
     # Input files
@@ -316,8 +316,8 @@ def main ():
     # Check if input bands exist
     for key, value in bands.items():
         if not gscript.find_file(value,
-            element = 'cell',
-            mapset = mapset)['file']:
+            element='cell',
+            mapset=mapset)['file']:
             gscript.fatal(('Raster map <{}> not found.').format(value))
 
     if flags["r"]:
@@ -334,7 +334,7 @@ def main ():
         check_b = 0
         for key, b in bands.items():
             gscript.message(b)
-            b = gscript.find_file(b, element = 'cell')['name']
+            b = gscript.find_file(b, element='cell')['name']
             tmp["band_double{}".format(check_b)] = "{}_{}".format(b, d)
             band_double = tmp["band_double{}".format(check_b)]
             gscript.mapcalc('{r} = 1.0 * ({b})/{scale_fac}'.format(
@@ -689,16 +689,16 @@ def cleanup():
     else:
         for key, value in tmp.items():
             if gscript.find_file(value,
-                element = 'vector',
-                mapset = mapset)['file']:
+                element='vector',
+                mapset=mapset)['file']:
                 gscript.run_command("g.remove",
                     flags="f",
                     type='vector',
                     name=",".join([tmp[m] for m in tmp.keys()]),
                     quiet=True)
             if gscript.find_file(value,
-                element = 'cell',
-                mapset = mapset)['file']:
+                element='cell',
+                mapset=mapset)['file']:
                 gscript.run_command("g.remove",
                     flags="f",
                     type='raster',

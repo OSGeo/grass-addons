@@ -272,9 +272,9 @@ def main ():
                 a = img.text.split('.jp2')[0].split('/')
                 b = a[3].split('_')
                 if gscript.find_file(a[3],
-                    element = 'cell',
-                    mapset = mapset)['file'] or gscript.find_file(a[3],
-                    element = 'cell')['file'] or b[2] == 'TCI':
+                    element='cell',
+                    mapset=mapset)['file'] or gscript.find_file(a[3],
+                    element='cell')['file'] or b[2] == 'TCI':
                     if b[2] == 'B01':
                         bands['costal'] = a[3]
                     elif b[2] == 'B02':
@@ -327,8 +327,8 @@ def main ():
             for img in root.iter('IMAGE_ID'):
                 b = img.text.split('_')
                 if gscript.find_file(img.text,
-                    element = 'cell',
-                    mapset = mapset)['file']:
+                    element='cell',
+                    mapset=mapset)['file']:
                     if b[10] == 'B01':
                         bands['costal'] = img.text
                     elif b[10] == 'B02':
@@ -362,17 +362,17 @@ def main ():
     # Check if input exist
     for key, value in bands.items():
         if not gscript.find_file(value,
-            element = 'cell',
-            mapset = mapset)['file'] and not gscript.find_file(value,
-            element = 'cell')['file']:
+            element='cell',
+            mapset=mapset)['file'] and not gscript.find_file(value,
+            element='cell')['file']:
             gscript.fatal(('Raster map <{}> not found.').format(value))
 
     # Check if output already exist
     for key, value in bands.items():
         if not os.getenv('GRASS_OVERWRITE'):
             if gscript.find_file(value + '_' + suffix,
-                element = 'cell',
-                mapset = mapset)['file']:
+                element='cell',
+                mapset=mapset)['file']:
                 gscript.fatal(('Raster map {} already exists.').format(
                     value + '_' + suffix))
 

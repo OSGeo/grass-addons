@@ -124,10 +124,10 @@ def main():
     else:
 
         grass.message(" importing spatial data for %s ..." % (imported_species_quoted))
-        grass.run_command("v.in.ogr", input = redlist_shapefile_long,
-                                                        output = species_to_import,
-                                                        where = "binomial = %s" % (imported_species_quoted),
-                                                        quiet = True)
+        grass.run_command("v.in.ogr", input=redlist_shapefile_long,
+                                                        output=species_to_import,
+                                                        where="binomial = %s" % (imported_species_quoted),
+                                                        quiet=True)
 
 if __name__ == "__main__":
     options, flags = grass.parser()

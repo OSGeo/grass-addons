@@ -53,7 +53,7 @@ import numpy as np
 from operator import itemgetter
 
 def main():
-    stats = grass.read_command('r.stats', input = options['map'], sep = 'space', nv = '*', nsteps = '255', flags = 'inc').split('\n')[:-1]
+    stats = grass.read_command('r.stats', input=options['map'], sep='space', nv='*', nsteps='255', flags='inc').split('\n')[:-1]
     res = grass.region()['nsres']
     zn = np.zeros((len(stats),6),float)
     kl = np.zeros((len(stats),2),float)

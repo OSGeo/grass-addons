@@ -622,7 +622,7 @@ class wmsFrame(wx.Frame):
         self.Destroy()
         return
 
-    def ShowMessage(self, message, type = 'Warning'):
+    def ShowMessage(self, message, type='Warning'):
         """
      @description: Display's the message as a pop-up.
      @todo:None

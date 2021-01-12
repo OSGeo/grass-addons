@@ -364,8 +364,8 @@ def main():
         "1. Smoothing input DEM with a {n}x{n} median filter...".format(
             n=filter_size))
     filtered_dem = temp_map('tmp_filtered_dem')
-    gs.run_command("r.neighbors", input = elevation, method = "median",
-                    size = filter_size, output = filtered_dem, flags='c',
+    gs.run_command("r.neighbors", input=elevation, method="median",
+                    size=filter_size, output=filtered_dem, flags='c',
                     quiet=True)
 
     # extract the pits and peaks based on the threshold

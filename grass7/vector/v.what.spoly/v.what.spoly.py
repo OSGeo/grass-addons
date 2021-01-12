@@ -80,8 +80,8 @@ def cleanup():
     grass.try_remove(tmp)
     for f in glob.glob(tmp + '*'):
         grass.try_remove(f)
-    grass.run_command('g.remove', type_ = 'vect', pat = 'v_temp*', flags = 'f',
-                      quiet = True, stderr = nuldev)
+    grass.run_command('g.remove', type_='vect', pat='v_temp*', flags='f',
+                      quiet=True, stderr=nuldev)
 
 def main():
     inmap = options['input']
@@ -100,22 +100,22 @@ def main():
         grass.fatal("Module works only in locations with cartesian coordinate system")
 
     # check if input file exists
-    if not grass.find_file(inmap, element = 'vector')['file']:
+    if not grass.find_file(inmap, element='vector')['file']:
         grass.fatal(_("<%s> does not exist.") % inmap)
 
 
     ## DO IT ##
     ## add categories to boundaries
-    grass.run_command('v.category', input_ = inmap, option = 'add',
-                      type_ = 'boundary', output = 'v_temp_bcats',
-                      quiet = True, stderr = nuldev)
+    grass.run_command('v.category', input_=inmap, option='add',
+                      type_='boundary', output='v_temp_bcats',
+                      quiet=True, stderr=nuldev)
 
     ## export polygons to CSV + WKT
     tmp1 = tmp + '.csv'
     tmp2 = tmp + '2.csv'
-    grass.run_command('v.out.ogr', input_ = 'v_temp_bcats', output = tmp1,
-                      format_ = "CSV", type_ = ('boundary'),
-                      lco = "GEOMETRY=AS_WKT", quiet = True, stderr = nuldev)
+    grass.run_command('v.out.ogr', input_='v_temp_bcats', output=tmp1,
+                      format_="CSV", type_=('boundary'),
+                      lco="GEOMETRY=AS_WKT", quiet=True, stderr=nuldev)
 
     ## convert lines to polygons
     f1 = open(tmp1, 'r')
@@ -149,8 +149,8 @@ def main():
         cmd = 'ogrinfo -al -fields=YES -geom=SUMMARY' + ' ' + tmp3 + ' ' + lyr_name
         os.system(cmd)
     else:
-        grass.run_command('v.in.ogr', input_ = tmp3, layer = lyr_name,
-                          output = outmap, flags = 'c', quiet = True, stderr = nuldev)
+        grass.run_command('v.in.ogr', input_=tmp3, layer=lyr_name,
+                          output=outmap, flags='c', quiet=True, stderr=nuldev)
 
 
 if __name__ == "__main__":

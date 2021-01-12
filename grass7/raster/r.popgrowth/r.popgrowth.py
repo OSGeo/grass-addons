@@ -141,15 +141,15 @@ def cleanup():
     grass.debug(_("This is the cleanup part"))
     if (tmp_map_rast or tmp_map_vect):
         grass.run_command("g.remove",
-        flags = 'fb',
-        type = 'raster',
-        name = [f + str(os.getpid()) for f in tmp_map_rast],
-            quiet = True)
+        flags='fb',
+        type='raster',
+        name=[f + str(os.getpid()) for f in tmp_map_rast],
+            quiet=True)
         grass.run_command("g.remove",
-        flags = 'f',
-        type = 'vector',
-                        name = [f + str(os.getpid()) for f in tmp_map_vect],
-            quiet = True)
+        flags='f',
+        type='vector',
+                        name=[f + str(os.getpid()) for f in tmp_map_vect],
+            quiet=True)
 
 
 def main():

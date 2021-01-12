@@ -34,7 +34,7 @@ except ImportError:
 from lmgr.frame import GMFrame
 
 class GMApp(wx.App):
-    def __init__(self, workspace = None):
+    def __init__(self, workspace=None):
         """!Main GUI class.
 
         @param workspace path to the workspace file
@@ -44,7 +44,7 @@ class GMApp(wx.App):
         # call parent class initializer
         wx.App.__init__(self, False)
 
-        self.locale = wx.Locale(language = wx.LANGUAGE_DEFAULT)
+        self.locale = wx.Locale(language=wx.LANGUAGE_DEFAULT)
 
     def OnInit(self):
         """!Initialize all available image handlers
@@ -61,22 +61,22 @@ class GMApp(wx.App):
         if SC and sys.platform != 'darwin':
             # AdvancedSplash is buggy on the Mac as of 2.8.12.1
             # and raises annoying (though seemingly harmless) errors everytime the GUI is started
-            splash = SC.AdvancedSplash(bitmap = introBmp,
-                                       timeout = 2000, parent = None, id = wx.ID_ANY)
+            splash = SC.AdvancedSplash(bitmap=introBmp,
+                                       timeout=2000, parent=None, id=wx.ID_ANY)
             splash.SetText(_('Starting GRASS GUI...'))
             splash.SetTextColour(wx.Colour(45, 52, 27))
-            splash.SetTextFont(wx.Font(pointSize = 15, family = wx.DEFAULT, style = wx.NORMAL,
-                                       weight = wx.BOLD))
+            splash.SetTextFont(wx.Font(pointSize=15, family=wx.DEFAULT, style=wx.NORMAL,
+                                       weight=wx.BOLD))
             splash.SetTextPosition((150, 430))
         else:
-            wx.SplashScreen (bitmap = introBmp, splashStyle = wx.SPLASH_CENTRE_ON_SCREEN | wx.SPLASH_TIMEOUT,
-                             milliseconds = 2000, parent = None, id = wx.ID_ANY)
+            wx.SplashScreen (bitmap=introBmp, splashStyle=wx.SPLASH_CENTRE_ON_SCREEN | wx.SPLASH_TIMEOUT,
+                             milliseconds=2000, parent=None, id=wx.ID_ANY)
 
         wx.Yield()
 
         # create and show main frame
-        mainframe = GMFrame(parent = None, id = wx.ID_ANY,
-                            workspace = self.workspaceFile)
+        mainframe = GMFrame(parent=None, id=wx.ID_ANY,
+                            workspace=self.workspaceFile)
 
         mainframe.Show()
         self.SetTopWindow(mainframe)
@@ -110,9 +110,9 @@ def process_opt(opts, args):
 
     return (workspaceFile,)
 
-def main(argv = None):
+def main(argv=None):
     import gettext
-    gettext.install('grasswxpy', os.path.join(os.getenv("GISBASE"), 'locale'), unicode = True)
+    gettext.install('grasswxpy', os.path.join(os.getenv("GISBASE"), 'locale'), unicode=True)
 
     if argv is None:
         argv = sys.argv

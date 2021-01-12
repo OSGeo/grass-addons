@@ -168,18 +168,18 @@ def main():
     if reproject_gbif:
 
         grass.message("reprojecting data on-the-fly ...")
-        grass.run_command("v.import", input = new_gbif_vrt,
-                             output = gbifimported,
-                             quiet = True)
+        grass.run_command("v.import", input=new_gbif_vrt,
+                             output=gbifimported,
+                             quiet=True)
 
         # no reprojection-on-the-fly
 
     else:
 
-        grass.run_command("v.in.ogr", input = new_gbif_vrt,
-                             layer = gbif_vrt_layer,
-                             output = gbifimported,
-                             quiet = True)
+        grass.run_command("v.in.ogr", input=new_gbif_vrt,
+                             layer=gbif_vrt_layer,
+                             output=gbifimported,
+                             quiet=True)
 
     grass.message("...")
     # v.in.gbif done!

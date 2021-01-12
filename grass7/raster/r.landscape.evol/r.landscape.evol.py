@@ -392,26 +392,26 @@ def landscapeEvol(m, o, p, q, res, s, f):
     # If first iteration, use input maps. Otherwise, use maps generated from
     # previous iterations
     if (o == 1):
-        grass.run_command('g.copy', raster = elev + "," + old_dem, quiet = True)
+        grass.run_command('g.copy', raster=elev + "," + old_dem, quiet=True)
 
     # Grab the number of cells in the starting DEM
     numcells = grass.parse_command('r.univar',
-                                  flags = 'g',
-                                  map = old_dem,
+                                  flags='g',
+                                  map=old_dem,
                                    )['n']
 
     # Calculate soil as difference between surface and bedrock
     grass.mapcalc('${old_soil}=${old_dem}-${initbdrk}',
-                     overwrite = True,
-                     quiet = True,
-                     old_soil = old_soil,
-                     old_dem = old_dem,
-                     initbdrk = initbdrk)
+                     overwrite=True,
+                     quiet=True,
+                     old_soil=old_soil,
+                     old_dem=old_dem,
+                     initbdrk=initbdrk)
 
     grass.message('\n*************************\n' +
                   'Iteration %s -- ' % o + 'step 1/6: calculating slope\n' +
                   '*************************\n')
-    grass.run_command('r.slope.aspect', quiet = True, elevation = old_dem, aspect = aspect, slope = slope)
+    grass.run_command('r.slope.aspect', quiet=True, elevation=old_dem, aspect=aspect, slope=slope)
 
     grass.message('\n*************************\n' +
                   'Iteration %s -- ' % o + 'step 2/6: calculating accumulated flow depths\n' +
@@ -425,23 +425,23 @@ def landscapeEvol(m, o, p, q, res, s, f):
     # made, bringing the values back down to what they should be.
 
     grass.mapcalc('${rainexcess}=int(${flowcontrib})',
-                     quiet = True,
-                     rainexcess = rainexcess,
-                     flowcontrib = flowcontrib)
+                     quiet=True,
+                     rainexcess=rainexcess,
+                     flowcontrib=flowcontrib)
 
-    grass.run_command('r.watershed', quiet = True,
-                                     flags = 'a',
-                                     elevation = old_dem,
-                                     threshold = numcells,
-                                     flow = rainexcess,
-                                     accumulation = flacclargenum,
-                                     drainage = flowdir,
-                                     convergence = convergence)
+    grass.run_command('r.watershed', quiet=True,
+                                     flags='a',
+                                     elevation=old_dem,
+                                     threshold=numcells,
+                                     flow=rainexcess,
+                                     accumulation=flacclargenum,
+                                     drainage=flowdir,
+                                     convergence=convergence)
 
     grass.mapcalc('${flowacc}=${flacclargenum}/100',
-                     quiet = True,
-                     flowacc = flowacc,
-                     flacclargenum = flacclargenum)
+                     quiet=True,
+                     flowacc=flowacc,
+                     flacclargenum=flacclargenum)
 
     #again, do something different if we are only making an evaluation of cutoffs
     if (flags["p"] is True):
@@ -544,45 +544,45 @@ def landscapeEvol(m, o, p, q, res, s, f):
         grass.fatal("You have entered a non-viable tranport equation name. Please ensure option \"transp_eq\" is one of \"StreamPower,\" \"ShearStress,\" or \"USPED.\"")
 
     # Actually do the mapcalc statement for chosen transport equation
-    x = grass.mapcalc_start(e1, quiet = True,
-                                qsx = qsx,
-                                slope = slope,
-                                aspect = aspect,
-                                R = R, K = K, C = C, P = P,
-                                res = res,
-                                flowacc = flowacc,
-                                rain = rain,
-                                stormtimet = stormtimet,
-                                stormi = stormi,
-                                exp_m1a = exp_m[0],
-                                exp_m1b = exp_m[1],
-                                exp_m2a = exp_m[2],
-                                exp_m2b = exp_m[3],
-                                exp_n1a = exp_n[0],
-                                exp_n1b = exp_n[1],
-                                exp_n2a = exp_n[2],
-                                exp_n2b = exp_n[3],
-                                manningn = manningn)
+    x = grass.mapcalc_start(e1, quiet=True,
+                                qsx=qsx,
+                                slope=slope,
+                                aspect=aspect,
+                                R=R, K=K, C=C, P=P,
+                                res=res,
+                                flowacc=flowacc,
+                                rain=rain,
+                                stormtimet=stormtimet,
+                                stormi=stormi,
+                                exp_m1a=exp_m[0],
+                                exp_m1b=exp_m[1],
+                                exp_m2a=exp_m[2],
+                                exp_m2b=exp_m[3],
+                                exp_n1a=exp_n[0],
+                                exp_n1b=exp_n[1],
+                                exp_n2a=exp_n[2],
+                                exp_n2b=exp_n[3],
+                                manningn=manningn)
 
-    y = grass.mapcalc_start(e2, quiet = True,
-                                qsy = qsy,
-                                slope = slope,
-                                aspect = aspect,
-                                R = R, K = K, C =C, P = P,
-                                res = res,
-                                flowacc = flowacc,
-                                rain = rain,
-                                stormtimet = stormtimet,
-                                stormi = stormi,
-                                exp_m1a = exp_m[0],
-                                exp_m1b = exp_m[1],
-                                exp_m2a = exp_m[2],
-                                exp_m2b = exp_m[3],
-                                exp_n1a = exp_n[0],
-                                exp_n1b = exp_n[1],
-                                exp_n2a = exp_n[2],
-                                exp_n2b = exp_n[3],
-                                manningn = manningn)
+    y = grass.mapcalc_start(e2, quiet=True,
+                                qsy=qsy,
+                                slope=slope,
+                                aspect=aspect,
+                                R=R, K=K, C=C, P=P,
+                                res=res,
+                                flowacc=flowacc,
+                                rain=rain,
+                                stormtimet=stormtimet,
+                                stormi=stormi,
+                                exp_m1a=exp_m[0],
+                                exp_m1b=exp_m[1],
+                                exp_m2a=exp_m[2],
+                                exp_m2b=exp_m[3],
+                                exp_n1a=exp_n[0],
+                                exp_n1b=exp_n[1],
+                                exp_n2a=exp_n[2],
+                                exp_n2b=exp_n[3],
+                                manningn=manningn)
     x.wait()
     y.wait()
 
@@ -591,8 +591,8 @@ def landscapeEvol(m, o, p, q, res, s, f):
                   '*************************\n')
 
     # Taking divergence of transport capacity Tc converts kg/m.s to kg/m2.s
-    sax = grass.start_command('r.slope.aspect', quiet = True, elevation = qsx, dx = qsxdx)
-    say = grass.start_command('r.slope.aspect', quiet = True, elevation = qsy, dy = qsydy)
+    sax = grass.start_command('r.slope.aspect', quiet=True, elevation=qsx, dx=qsxdx)
+    say = grass.start_command('r.slope.aspect', quiet=True, elevation=qsy, dy=qsydy)
 
     sax.wait()
     say.wait()
@@ -607,44 +607,44 @@ def landscapeEvol(m, o, p, q, res, s, f):
     # storms per year to get m/year elevation change.
     if transp_eq == 'USPED':
         ed = '''${netchange}=((${qsxdx}+${qsydy})/${sdensity})'''
-        grass.mapcalc(ed, quiet = True,
-                  netchange = tmpnetchange,
-                  qsxdx = qsxdx,
-                  qsydy = qsydy,
-                  sdensity = sdensity)
+        grass.mapcalc(ed, quiet=True,
+                  netchange=tmpnetchange,
+                  qsxdx=qsxdx,
+                  qsydy=qsydy,
+                  sdensity=sdensity)
     else:
         ed = '''${netchange}=((${qsxdx}+${qsydy})/${sdensity})*${stormi}*${storms}'''
-        grass.mapcalc(ed, quiet = True,
-                  netchange = tmpnetchange,
-                  qsxdx = qsxdx,
-                  qsydy = qsydy,
-                  sdensity = sdensity,
-                  stormi = stormi,
-                  storms = storms)
+        grass.mapcalc(ed, quiet=True,
+                  netchange=tmpnetchange,
+                  qsxdx=qsxdx,
+                  qsydy=qsydy,
+                  sdensity=sdensity,
+                  stormi=stormi,
+                  storms=storms)
     # Apply smoothing to the output to remove some spikes. Map will only be smoothed for values above the 90th quantile and below the 10th quantile (i.e., only extreme values will be smoothed)
     if flags["m"] is True:
-        a = grass.start_command('r.neighbors', quiet = True,
-                      input = tmpnetchange,
-                      output = tmp10qle,
-                      method ='quantile',
-                      size = 5,
-                      quantile = 0.1)
-        b = grass.start_command('r.neighbors', quiet = True,
-                      input = tmpnetchange,
-                      output = tmp90qle,
-                      method = 'quantile',
-                      size = 5,
-                      quantile = 0.9)
+        a = grass.start_command('r.neighbors', quiet=True,
+                      input=tmpnetchange,
+                      output=tmp10qle,
+                      method='quantile',
+                      size=5,
+                      quantile=0.1)
+        b = grass.start_command('r.neighbors', quiet=True,
+                      input=tmpnetchange,
+                      output=tmp90qle,
+                      method='quantile',
+                      size=5,
+                      quantile=0.9)
         a.wait()
         b.wait()
         smoother = '''${netchange}=if(${tmpnetchange}<${tmp10qle}, ${tmp10qle}, if(${tmpnetchange}>${tmp90qle}, ${tmp90qle}, ${tmpnetchange}))'''
-        grass.mapcalc(smoother, quiet = True,
-                  netchange = netchange,
-                  tmpnetchange = tmpnetchange,
-                  tmp90qle = tmp90qle,
-                  tmp10qle = tmp10qle)
+        grass.mapcalc(smoother, quiet=True,
+                  netchange=netchange,
+                  tmpnetchange=tmpnetchange,
+                  tmp90qle=tmp90qle,
+                  tmp10qle=tmp10qle)
     else:
-        grass.run_command('g.rename', quiet = True, raster = tmpnetchange + ',' + netchange)
+        grass.run_command('g.rename', quiet=True, raster=tmpnetchange + ',' + netchange)
 
 
     grass.message('\n*************************\n' +
@@ -664,28 +664,28 @@ def landscapeEvol(m, o, p, q, res, s, f):
     e = '''${new_dem} = eval(x=if(${old_soil} > 0.0 && (-1*${netchange}) <= ${old_soil}, ${netchange}, \
            if((-1*${netchange}) > ${old_soil}, (-1*${old_soil}), 0)), \
            y=(${old_dem} + x), if(isnull(y), ${old_dem}, y))'''
-    grass.mapcalc(e, quiet = True,
-                  new_dem = new_dem,
-                  old_soil = old_soil,
-                  old_dem = old_dem,
-                  netchange = netchange)
+    grass.mapcalc(e, quiet=True,
+                  new_dem=new_dem,
+                  old_soil=old_soil,
+                  old_dem=old_dem,
+                  netchange=netchange)
 
     # Calculate new soil depths by subtracting initial bedrock elevations from
     # the new DEM.
     e = '''${new_soil} = if((${new_dem} - ${initbdrk}) < 0, 0, (${new_dem} - ${initbdrk}))'''
-    grass.mapcalc(e, quiet = True,
-                  new_soil = new_soil,
-                  new_dem = new_dem,
-                  initbdrk = initbdrk)
+    grass.mapcalc(e, quiet=True,
+                  new_soil=new_soil,
+                  new_dem=new_dem,
+                  initbdrk=initbdrk)
 
     # Set colors for elevation, soil, and ED maps
-    grass.run_command('r.colors', quiet = True, map = new_dem, color="srtm")
+    grass.run_command('r.colors', quiet=True, map=new_dem, color="srtm")
 
     sdcolors = ['100% 0:249:47',
                 '20% 78:151:211',
                 '6% 194:84:171',
                 '0% 227:174:217']
-    sdc = grass.feed_command('r.colors', quiet = True, map = new_soil, rules = "-")
+    sdc = grass.feed_command('r.colors', quiet=True, map=new_soil, rules="-")
     sdc.stdin.write('\n'.join(sdcolors))
     sdc.stdin.close()
 
@@ -698,7 +698,7 @@ def landscapeEvol(m, o, p, q, res, s, f):
                 '-.1 255:127:0',
                 '-1 255:0:0',
                 '-100 127:0:255']
-    ncc = grass.feed_command('r.colors', quiet = True, map = netchange, rules = "-")
+    ncc = grass.feed_command('r.colors', quiet=True, map=netchange, rules="-")
     ncc.stdin.write('\n'.join(nccolors))
     ncc.stdin.close()
 
@@ -710,24 +710,24 @@ def landscapeEvol(m, o, p, q, res, s, f):
                   '*************************\n')
     # Make some temp maps of just erosion rate and just deposition rates
     e = '''${tmperosion}=if(${netchange} < -0, ${netchange}, null())'''
-    ero1 = grass.mapcalc_start(e, quiet = True,
-                               tmperosion = tmperosion,
-                               netchange = netchange)
+    ero1 = grass.mapcalc_start(e, quiet=True,
+                               tmperosion=tmperosion,
+                               netchange=netchange)
 
     e = '''${tmpdep}=if(${netchange} > 0, ${netchange}, null())'''
-    dep1 = grass.mapcalc_start(e, quiet = True,
-                               tmpdep = tmpdep,
-                               netchange = netchange)
+    dep1 = grass.mapcalc_start(e, quiet=True,
+                               tmpdep=tmpdep,
+                               netchange=netchange)
 
     ero1.wait()
     dep1.wait()
 
     # Grab the stats from these temp files and save them to dictionaries
-    erosstats = grass.parse_command('r.univar', flags = 'ge', percentile = '1', map = tmperosion)
-    depostats = grass.parse_command('r.univar', flags = 'ge', percentile = '99', map = tmpdep)
+    erosstats = grass.parse_command('r.univar', flags='ge', percentile='1', map=tmperosion)
+    depostats = grass.parse_command('r.univar', flags='ge', percentile='99', map=tmpdep)
 
     #Finish gathering stats (just need the soil depth stats now)
-    soilstats = grass.parse_command('r.univar', flags = 'ge', map = new_soil, percentile = '99')
+    soilstats = grass.parse_command('r.univar', flags='ge', map=new_soil, percentile='99')
 
     # Write stats to a new line in the stats file
     # HEADER of the file should be: ',,Mean Values,,,,Standard Deviations,,,,Totals,,,Additional Stats\nIteration,,Mean Erosion,Mean Deposition,Mean Soil Depth,,Standard Deviation Erosion,Standard Deviation Deposition,Standard Deviation Soil Depth,,Total Sediment Eroded,Total Sediment Deposited,,Minimum Erosion,First Quartile Erosion,Median Erosion,Third Quartile Erosion,Maximum Erosion,Original Un-smoothed Maximum Erosion,,Minimum Deposition,First Quartile Deposition,Median Deposition,Third Quartile Deposition,Maximum Deposition,Original Un-smoothed Maximum Deposition,,Minimum Soil Depth,First Quartile Soil Depth,Median Soil Depth,Third Quartile Soil Depth,Maximum Soil Depth'
@@ -792,7 +792,7 @@ def landscapeEvol(m, o, p, q, res, s, f):
         if len(mapstoremove) == 0:
             pass
         else:
-            grass.run_command('g.remove', quiet = True, flags = 'f', type = "rast", name = ','.join(mapstoremove))
+            grass.run_command('g.remove', quiet=True, flags='f', type="rast", name=','.join(mapstoremove))
 
     grass.message('\n*************************\n' +
                   'Done with Iteration %s ' % o +
@@ -834,39 +834,39 @@ def climfile(d, y, years):
 
 def samplePoints(old_dem, aspect, slope, pc, tc, flowacc, p):
     # Create terrain morphology maps
-    grass.run_command('r.slope.aspect', quiet = True,
-                                        elevation = old_dem,
-                                        aspect = aspect,
-                                        slope = slope,
-                                        pcurv = pc,
-                                        tcurv = tc)
+    grass.run_command('r.slope.aspect', quiet=True,
+                                        elevation=old_dem,
+                                        aspect=aspect,
+                                        slope=slope,
+                                        pcurv=pc,
+                                        tcurv=tc)
 
     # Generate random vector points and sample terrain to determine cutoff values for flow accumulation coefficients
     grass.message('GATHERING STATISTICS FOR DETERMINING CUTOFF VALUES\n-------------------------------------------------\n1) Calculating slope and curvatures')
 
     grass.message('4) Determining number of sampling points using formula: "ln(#cells_in_input_map)*100"')
-    flaccstats = grass.parse_command('r.univar', flags = 'g', map = flowacc)
+    flaccstats = grass.parse_command('r.univar', flags='g', map=flowacc)
     numpts = int(math.log(int(flaccstats['n']))*100)
 
     grass.message('5) Creating random points and sampling values of flow accumulation, curvatures, and slope.')
     vout = '%s%s_randomly_sampled_points' % (p, numpts)
-    grass.run_command('r.random', quiet = True,
-                                  input = flowacc,
-                                  cover = pc,
-                                  npoints = numpts,
-                                  vector = vout)
+    grass.run_command('r.random', quiet=True,
+                                  input=flowacc,
+                                  cover=pc,
+                                  npoints=numpts,
+                                  vector=vout)
 
-    grass.run_command('v.db.renamecolumn', quiet = True, map = vout, column = 'value,Flow_acc')
-    grass.run_command('v.db.renamecolumn', quiet = True, map = vout, column = 'covervalue,Princ_curv')
-    grass.run_command('v.db.addcolumn', quiet = True, map = vout, columns = 'Tang_curv double precision, Slope double precision')
-    grass.run_command('v.what.rast', quiet = True, map = vout, raster = tc, column = "Tang_curv")
-    grass.run_command('v.what.rast', quiet = True, map = vout, raster = slope, column = "Slope")
+    grass.run_command('v.db.renamecolumn', quiet=True, map=vout, column='value,Flow_acc')
+    grass.run_command('v.db.renamecolumn', quiet=True, map=vout, column='covervalue,Princ_curv')
+    grass.run_command('v.db.addcolumn', quiet=True, map=vout, columns='Tang_curv double precision, Slope double precision')
+    grass.run_command('v.what.rast', quiet=True, map=vout, raster=tc, column="Tang_curv")
+    grass.run_command('v.what.rast', quiet=True, map=vout, raster=slope, column="Slope")
 
     if flags["k"] is True:
         grass.message('--Keeping the created maps (Flow Accumulation, Slope, Principle Curvature, Tangential Curvature)')
     else:
         grass.message('6) Cleaning up...')
-        grass.run_command('g.remove', quiet = True, flags = 'f', type = "rast", name = slope + "," + pc + "," + tc + "," + flowacc)
+        grass.run_command('g.remove', quiet=True, flags='f', type="rast", name=slope + "," + pc + "," + tc + "," + flowacc)
 
     grass.message('FINISHED. \nRandom sample points map "%s" created successfully.\n' % vout)
 

@@ -86,7 +86,7 @@ class LocationMapTree(wx.TreeCtrl):
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         self.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
 
-    def _initTreeItems(self, locations = [], mapsets = []):
+    def _initTreeItems(self, locations=[], mapsets=[]):
         """Add locations, mapsets and layers to the tree."""
         if not locations:
             locations = GetListOfLocations(self.gisdbase)

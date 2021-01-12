@@ -79,17 +79,17 @@ def main():
     r_mti = options['mti']
 
     # Detect cellsize of the DEM
-    info_region = grass.read_command('g.region', flags = 'p')
+    info_region = grass.read_command('g.region', flags='p')
     dict_region = grass.parse_key_val(info_region, ':')
     resolution = (float(dict_region['nsres']) + float(dict_region['ewres']))/2
     grass.message("Cellsize : %s " % resolution)
 
     # Flow accumulation map MFD
-    grass.run_command('r.watershed', elevation = r_elevation, accumulation = 'r_accumulation', convergence = 5, flags = 'a')
+    grass.run_command('r.watershed', elevation=r_elevation, accumulation='r_accumulation', convergence=5, flags='a')
     grass.message("Flow accumulation done. ")
 
     # Slope map
-    grass.run_command('r.slope.aspect', elevation = r_elevation, slope = 'r_slope')
+    grass.run_command('r.slope.aspect', elevation=r_elevation, slope='r_slope')
     grass.message("Slope map done. ")
 
     # n exponent
@@ -103,40 +103,40 @@ def main():
     # MTI map
     grass.message("Calculating MTI raster map.. ")
     grass.mapcalc("$r_mti = log((exp((($rast1+1)*$resolution) , $n)) / (tan($rast2+0.001)))",
-                   r_mti = r_mti,
-                   rast1 = 'r_accumulation',
-                   resolution = resolution,
-                   rast2 = 'r_slope',
-                   n = n)
+                   r_mti=r_mti,
+                   rast1='r_accumulation',
+                   resolution=resolution,
+                   rast2='r_slope',
+                   n=n)
 
     # Cleaning up
     grass.message("Cleaning up.. ")
-    grass.run_command('g.remove', quiet = True, flags = 'f',
-                      type = 'raster', name = 'r_accumulation')
-    grass.run_command('g.remove', quiet = True, flags = 'f',
-                      type = 'raster', name = 'r_slope')
+    grass.run_command('g.remove', quiet=True, flags='f',
+                      type='raster', name='r_accumulation')
+    grass.run_command('g.remove', quiet=True, flags='f',
+                      type='raster', name='r_slope')
 
     # flood map
     grass.message("Calculating flood raster map.. ")
     grass.mapcalc("r_flood = if($rast1 >  $mti_th, 1, 0)",
-                   rast1 = r_mti,
-                   mti_th = mti_th)
+                   rast1=r_mti,
+                   mti_th=mti_th)
 
     ## # Deleting isolated pixels
     # Recategorizes data in a raster map by grouping cells that form physically discrete areas into unique categories (preliminar to r.area)
     grass.message("Running r.clump.. ")
-    grass.run_command('r.clump', input = 'r_flood',
-                                 output = 'r_clump',
-                                 overwrite = 'True')
+    grass.run_command('r.clump', input='r_flood',
+                                 output='r_clump',
+                                 overwrite='True')
 
     # Delete areas of less than a threshold of cells (corresponding to 1 square kilometer)
     # Calculating threshold
     th = int(1000000 / resolution**2)
     grass.message("Deleting areas of less than %s cells.. " % th)
-    grass.run_command('r.area', input = 'r_clump', output = 'r_flood_th', lesser = th, flags = 'b')
+    grass.run_command('r.area', input='r_clump', output='r_flood_th', lesser=th, flags='b')
 
     # New flood map
-    grass.mapcalc("$r_flood_map = $rast1 / $rast1", r_flood_map = r_flood_map, rast1 = 'r_flood_th')
+    grass.mapcalc("$r_flood_map = $rast1 / $rast1", r_flood_map=r_flood_map, rast1='r_flood_th')
 
     # Cleaning up
     grass.message("Cleaning up.. ")

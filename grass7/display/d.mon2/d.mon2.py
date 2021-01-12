@@ -130,12 +130,12 @@ def main():
     os.environ['GRASS_RENDER_FILE_READ'] = 'TRUE'
     #? os.environ['GRASS_PNG_AUTO_WRITE'] = 'FALSE'
 
-    grass.run_command('d.erase', bgcolor = options['color'])
+    grass.run_command('d.erase', bgcolor=options['color'])
 
     if handler == "qiv":
         ret = grass.call(['qiv', '-e', '-T', img_tmp])
     else:
-        ret = grass.exec_command(handler, image = img_tmp, percent = options['percent'])
+        ret = grass.exec_command(handler, image=img_tmp, percent=options['percent'])
 
     os.remove(img_tmp)
     sys.exit(ret)

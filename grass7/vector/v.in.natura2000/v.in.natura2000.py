@@ -156,8 +156,8 @@ def main():
         grass.message("Available data layer(s):")
         grass.message("may take some time ...")
         grass.message("...")
-        grass.run_command("v.in.ogr", input = n2k_input,
-                                     flags = 'l')
+        grass.run_command("v.in.ogr", input=n2k_input,
+                                     flags='l')
 
     if list_bg_reg:
         grass.message("Biogeographic regions:")
@@ -212,20 +212,20 @@ def main():
     if pa_sitetype_input:
         grass.message("importing protected areas of site type: %s" % pa_sitetype_input)
         grass.message("may take some time ...")
-        grass.run_command("v.in.ogr", input = "%s" % (n2k_input),
-                                                                layer = "natura2000polygon",
-                                                                output = n2k_output,
-                                                                where = "SITETYPE = '%s'" % (pa_sitetype_input),
-                                                                quiet = False)
+        grass.run_command("v.in.ogr", input="%s" % (n2k_input),
+                                                                layer="natura2000polygon",
+                                                                output=n2k_output,
+                                                                where="SITETYPE = '%s'" % (pa_sitetype_input),
+                                                                quiet=False)
 
     if ms_input:
         grass.message("importing protected areas of member state: %s" % ms_input)
         grass.message("may take some time ...")
-        grass.run_command("v.in.ogr", input = "%s" % (n2k_input),
-                                                                layer = "natura2000polygon",
-                                                                output = n2k_output,
-                                                                where = "MS = '%s'" % (ms_input),
-                                                                quiet = False)
+        grass.run_command("v.in.ogr", input="%s" % (n2k_input),
+                                                                layer="natura2000polygon",
+                                                                output=n2k_output,
+                                                                where="MS = '%s'" % (ms_input),
+                                                                quiet=False)
 
     if habitat_code_input:
         grass.message("importing protected areas with habitat (code): %s" % habitat_code_input)
@@ -269,10 +269,10 @@ def main():
         # import spatial view
         grass.message ("importing data...")
         grass.message ("may take some time...")
-        grass.run_command("v.in.ogr", input = "%s" % (n2k_input),
-                                    layer = "%s" % (habitat_spatial_view),
-                                    output = n2k_output,
-                                    quiet = False)
+        grass.run_command("v.in.ogr", input="%s" % (n2k_input),
+                                    layer="%s" % (habitat_spatial_view),
+                                    output=n2k_output,
+                                    quiet=False)
 
     if species_code_input:
         grass.message("importing protected areas with species (code): %s" % species_code_input)
@@ -321,10 +321,10 @@ def main():
         # import spatial view
         grass.message ("importing data...")
         grass.message ("may take some time...")
-        grass.run_command("v.in.ogr", input = "%s" % (n2k_input),
-                         layer = "%s" % (species_spatial_view),
-                         output = n2k_output,
-                         quiet = False)
+        grass.run_command("v.in.ogr", input="%s" % (n2k_input),
+                         layer="%s" % (species_spatial_view),
+                         output=n2k_output,
+                         quiet=False)
 
     if biogeoreg_long:
         grass.message("importing protected areas of biogeographic region: %s" % biogeoreg_long)
@@ -364,17 +364,17 @@ def main():
         # import spatial view
         grass.message ("importing data...")
         grass.message ("may take some time...")
-        grass.run_command("v.in.ogr", input = "%s" % (n2k_input),
-                         layer = "%s" % (biogeoreg_spatial_view),
-                         output = n2k_output,
-                         quiet = False)
+        grass.run_command("v.in.ogr", input="%s" % (n2k_input),
+                         layer="%s" % (biogeoreg_spatial_view),
+                         output=n2k_output,
+                         quiet=False)
 
     if layer_exist:
         grass.message("importing existing spatial layer %s of the dataset" % layer_exist)
-        grass.run_command("v.in.ogr", input = "%s" % (n2k_input),
-                         layer = "%s" % (layer_exist),
-                         output = n2k_output,
-                         quiet = False)
+        grass.run_command("v.in.ogr", input="%s" % (n2k_input),
+                         layer="%s" % (layer_exist),
+                         output=n2k_output,
+                         quiet=False)
 
 if __name__ == "__main__":
     options, flags = grass.parser()

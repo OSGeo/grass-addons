@@ -43,14 +43,14 @@ import grass.script as grass
 def cleanup():
     for ext in ['', '.sort']:
         grass.try_remove(tmp + ext)
-    grass.run_command('g.remove', flags = 'f', type = 'vector', pattern = prefix + '_*', quiet = True)
+    grass.run_command('g.remove', flags='f', type='vector', pattern=prefix + '_*', quiet=True)
 
 def sortfile(infile, outfile):
     inf = open(infile, 'r')
     outf = open(outfile, 'w')
 
     if grass.find_program('sort', '-n'):
-        grass.run_command('sort', flags = 'n', stdin = inf, stdout = outf)
+        grass.run_command('sort', flags='n', stdin=inf, stdout=outf)
     else:
         # FIXME: we need a large-file sorting function
         grass.warning(_("'sort' not found: sorting in memory"))
@@ -78,7 +78,7 @@ def main():
     delaunay = prefix + '_delaunay'
 
     grass.message(_("Delaunay triangulation..."))
-    grass.run_command('v.delaunay', input = input, output = delaunay, quiet = True)
+    grass.run_command('v.delaunay', input=input, output=delaunay, quiet=True)
 
     out_points = prefix + '_delaunay_pnts'
     out_lines_nocat = prefix + '_delaunay_lines_nocat'
@@ -86,31 +86,31 @@ def main():
     out_lines_tmp = prefix + '_delaunay_lines_tmp'
 
     grass.message(_("Geometry conversion..."))
-    grass.run_command('v.extract', input = delaunay, output = out_lines_tmp,
-                      type = 'boundary', layer = '-1', quiet = True)
-    grass.run_command('v.type', input = out_lines_tmp, output = out_lines_nocat,
-                      from_type = 'boundary', to_type = 'line', quiet = True)
-    grass.run_command('v.type', input = delaunay, output = out_points,
-                      from_type = 'centroid', to_type = 'point', quiet = True)
+    grass.run_command('v.extract', input=delaunay, output=out_lines_tmp,
+                      type='boundary', layer='-1', quiet=True)
+    grass.run_command('v.type', input=out_lines_tmp, output=out_lines_nocat,
+                      from_type='boundary', to_type='line', quiet=True)
+    grass.run_command('v.type', input=delaunay, output=out_points,
+                      from_type='centroid', to_type='point', quiet=True)
 
-    grass.run_command('v.category', input = out_lines_nocat, output = out_lines,
-                      op = 'add', type = 'line', quiet = True)
-    grass.run_command('v.db.addtable', map = out_lines,
-                      col = 'cat integer,length double precision', quiet = True)
+    grass.run_command('v.category', input=out_lines_nocat, output=out_lines,
+                      op='add', type='line', quiet=True)
+    grass.run_command('v.db.addtable', map=out_lines,
+                      col='cat integer,length double precision', quiet=True)
 
     grass.message(_("Evaluating threshold..."))
-    grass.run_command('v.to.db', map = out_lines, type = 'line', op = 'length',
-                      col = 'length', quiet = True)
+    grass.run_command('v.to.db', map=out_lines, type='line', op='length',
+                      col='length', quiet=True)
 
-    db_info = grass.vector_db(map = out_lines, layer = '1')[1]
+    db_info = grass.vector_db(map=out_lines, layer='1')[1]
     table = db_info['table']
     database = db_info['database']
     driver = db_info['driver']
     sql = "SELECT length FROM %s" % (table)
     tmpf = open(tmp, 'w')
-    grass.run_command('db.select', flags = 'c', table = table,
-        database = database, driver = driver, sql = sql,
-        stdout = tmpf)
+    grass.run_command('db.select', flags='c', table=table,
+        database=database, driver=driver, sql=sql,
+        stdout=tmpf)
     tmpf.close()
 
     # check if result is empty
@@ -153,37 +153,37 @@ def main():
     grass.message(_("Feature selection..."))
     lines_concave = prefix + '_delaunay_lines_select'
     lines_concave_nocat = prefix + '_delaunay_lines_select_nocat'
-    grass.run_command('v.extract', input = out_lines, output = lines_concave,
-                      type = 'line', where = 'length < %f' % max_length, quiet = True)
+    grass.run_command('v.extract', input=out_lines, output=lines_concave,
+                      type='line', where='length < %f' % max_length, quiet=True)
 
-    grass.run_command('v.category', input = lines_concave,
-                      output = lines_concave_nocat, type = 'line',
-                      op = 'del', cat = '-1', quiet = True)
+    grass.run_command('v.category', input=lines_concave,
+                      output=lines_concave_nocat, type='line',
+                      op='del', cat='-1', quiet=True)
 
     borders_concave = prefix + '_delaunay_borders_select'
-    grass.run_command('v.type', input = lines_concave_nocat,
-                      output = borders_concave, from_type = 'line',
-                      to_type = 'boundary', quiet = True)
+    grass.run_command('v.type', input=lines_concave_nocat,
+                      output=borders_concave, from_type='line',
+                      to_type='boundary', quiet=True)
 
     areas_concave = prefix + '_delaunay_areas_select'
-    grass.run_command('v.centroids', input = borders_concave,
-                       output = areas_concave, quiet = True)
-    grass.run_command('v.db.droptable', map = areas_concave, flags = 'f', quiet = True)
-    grass.run_command('v.db.addtable', map = areas_concave,
-                      col = 'cat integer,count integer', quiet = True)
+    grass.run_command('v.centroids', input=borders_concave,
+                       output=areas_concave, quiet=True)
+    grass.run_command('v.db.droptable', map=areas_concave, flags='f', quiet=True)
+    grass.run_command('v.db.addtable', map=areas_concave,
+                      col='cat integer,count integer', quiet=True)
 
-    grass.run_command('v.vect.stats', points = out_points, areas = areas_concave,
-                      ccolumn = 'count', quiet = True)
+    grass.run_command('v.vect.stats', points=out_points, areas=areas_concave,
+                      ccolumn='count', quiet=True)
 
     areas_concave_extr = prefix + '_delaunay_areas_extract'
 
-    grass.run_command('v.extract', input = areas_concave,
-                      output = areas_concave_extr, type = 'area',
-                      where='count = 1', quiet = True)
+    grass.run_command('v.extract', input=areas_concave,
+                      output=areas_concave_extr, type='area',
+                      where='count = 1', quiet=True)
 
-    grass.message(_("The following warnings can be ignored"), flag = 'i')
-    grass.run_command('v.dissolve', input = areas_concave_extr,
-                      output = output, col = 'count', layer = '1', quiet = True)
+    grass.message(_("The following warnings can be ignored"), flag='i')
+    grass.run_command('v.dissolve', input=areas_concave_extr,
+                      output=output, col='count', layer='1', quiet=True)
     grass.message(_("Concave hull successfully created"))
 
 

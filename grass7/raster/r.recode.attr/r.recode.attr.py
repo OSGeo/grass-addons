@@ -104,22 +104,22 @@ def main():
         else:
             nmOutput = outNames[0] + '_' + nmsData[y]
 
-        cf = grass.find_file(name=nmOutput, element = 'cell',
+        cf = grass.find_file(name=nmOutput, element='cell',
                           mapset=grass.gisenv()['MAPSET'])
         if cf['fullname'] != '':
             grass.fatal("The layer " + nmOutput + " already exist in this mapset")
 
         if flag_a:
             grass.run_command('r.recode',
-                    input = inputmap,
-                    output = nmOutput,
-                    rules = tmpname,
-                    flags = "a")
+                    input=inputmap,
+                    output=nmOutput,
+                    rules=tmpname,
+                    flags="a")
         else:
             grass.run_command('r.recode',
-                    input = inputmap,
-                    output = nmOutput,
-                    rules = tmpname)
+                    input=inputmap,
+                    output=nmOutput,
+                    rules=tmpname)
         os.close(fd1)
         os.remove(tmpname)
 

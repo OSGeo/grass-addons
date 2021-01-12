@@ -29,8 +29,8 @@ class MyFrame(MySingleMapFrame):
     """!main frame
     """
 
-    def __init__(self, parent = None, giface = None, title = _("GRASS UI"),
-              size = (875, 600), name = 'Frame', **kwargs):
+    def __init__(self, parent=None, giface=None, title=_("GRASS UI"),
+              size=(875, 600), name='Frame', **kwargs):
         """!
         @param parent (no parent is expected)
         @param title window title
@@ -39,11 +39,11 @@ class MyFrame(MySingleMapFrame):
         #self.Map = Map()
         #self.giface = giface
 
-        MySingleMapFrame.__init__(self, parent = parent, title = title, size = size, name = name, **kwargs)
+        MySingleMapFrame.__init__(self, parent=parent, title=title, size=size, name=name, **kwargs)
 
 
         self.cmd = ["d.rast", "map=aspect@PERMANENT"]
-        self.rlayer = MapLayer(ltype = 'raster', cmd = self.cmd, Map = self.GetMap(), name = "elevation")
+        self.rlayer = MapLayer(ltype='raster', cmd=self.cmd, Map=self.GetMap(), name="elevation")
         self.AddLayer(self.rlayer)
         #LMWorkspaceToolbar(self)
         self.CreateWxToolBar()
@@ -60,7 +60,7 @@ class MyFrame(MySingleMapFrame):
 
 def main():
 
-    gettext.install('grasswxpy', os.path.join(os.getenv("GISBASE"), 'locale'), unicode = True)
+    gettext.install('grasswxpy', os.path.join(os.getenv("GISBASE"), 'locale'), unicode=True)
 
     app = wx.PySimpleApp()
     wx.InitAllImageHandlers()

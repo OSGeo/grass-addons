@@ -157,7 +157,7 @@ class WCSBase:
         if not self.params['output']:
             self.params['output'] = self.params['coverage']
             if not grass.overwrite():
-                result = grass.find_file(name = self.params['output'], element = 'cell')
+                result = grass.find_file(name=self.params['output'], element='cell')
                 if  result['file']:
                     grass.fatal("Raster map <%s> does already exist. Choose other output name or toggle flag --o." % self.params['output'])
 
@@ -188,16 +188,16 @@ class WCSBase:
             if len(reg_spl) > 1:
                 reg_mapset = reg_spl[1]
 
-            if not grass.find_file(name = reg_spl[0], element = 'windows',
-                                   mapset = reg_mapset)['name']:
+            if not grass.find_file(name=reg_spl[0], element='windows',
+                                   mapset=reg_mapset)['name']:
                 grass.fatal(_("Region <%s> not found") % opt_region)
 
         if opt_region:
             s = grass.read_command('g.region',
-                                    quiet = True,
-                                    flags = 'ug',
-                                    region = opt_region)
-            region_params = grass.parse_key_val(s, val_type = float)
+                                    quiet=True,
+                                    flags='ug',
+                                    region=opt_region)
+            region_params = grass.parse_key_val(s, val_type=float)
             grass.verbose("Using region parameters for region %s" % opt_region)
         else:
             region_params = grass.region()
@@ -274,7 +274,7 @@ class WCSBase:
         self._debug("_fetchCapabilities", "finished")
         return cap
 
-    def _fetchDataFromServer(self, url, username = None, password = None):
+    def _fetchDataFromServer(self, url, username=None, password=None):
         """!Fetch data from server
 
         """
@@ -409,9 +409,9 @@ class WCSGdalDrv(WCSBase):
             p = grass.start_command('r.in.gdal',
                              input=self.vrt_file,
                              output=self.params['output'],
-                             stdout = grass.PIPE,
-                             stderr = grass.PIPE,
-                             env = env
+                             stdout=grass.PIPE,
+                             stderr=grass.PIPE,
+                             env=env
                                     )
 
 
@@ -419,10 +419,10 @@ class WCSGdalDrv(WCSBase):
             p = grass.start_command('r.in.gdal',
                      input=self.vrt_file,
                      output=self.params['output'],
-                     location = self.params['location'],
-                     stdout = grass.PIPE,
+                     location=self.params['location'],
+                     stdout=grass.PIPE,
                      stderr=grass.PIPE,
-                     env = env
+                     env=env
                                     )
 
         while p.poll() is None:

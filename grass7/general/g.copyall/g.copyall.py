@@ -94,7 +94,7 @@ def main():
     #
     # first run g.list to get list of maps to parse
     #
-    l = grass.list_grouped(type=datatype, pattern=filter, check_search_path = True, flag=filterflag)
+    l = grass.list_grouped(type=datatype, pattern=filter, check_search_path=True, flag=filterflag)
     if mapset not in l:
         grass.warning(_('You do not have access to mapset %s. Run g.mapsets (under settings menu) to change mapset access') % mapset)
         return

@@ -710,10 +710,10 @@ class GrassHdfs():
     def download(self, fs, hdfs, overwrite=True, parallelism=1):
         logging.info('Trying download : hdfs: %s to fs: %s   ' % (hdfs, fs))
 
-        out = self.hook.download_file(hdfs_path = hdfs,
-                                       local_path = fs,
-                                       overwrite = overwrite,
-                                       parallelism = parallelism)
+        out = self.hook.download_file(hdfs_path=hdfs,
+                                       local_path=fs,
+                                       overwrite=overwrite,
+                                       parallelism=parallelism)
         if out:
             self.grass.messageInfo(out)
         else:

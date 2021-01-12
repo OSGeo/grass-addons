@@ -99,13 +99,13 @@ def cleanup():
 
     # only try to remove map if it exists to avoid ugly warnings
     if tmp_vogb:
-        if grass.find_file(tmp_vogb, element = 'vector')['name']:
-            grass.run_command('g.remove', flags = 'f', type = 'vector',
-                          name = tmp_vogb, quiet = True)
+        if grass.find_file(tmp_vogb, element='vector')['name']:
+            grass.run_command('g.remove', flags='f', type='vector',
+                          name=tmp_vogb, quiet=True)
     if tmp_extr:
-        if grass.find_file(tmp_extr, element = 'vector')['name']:
-            grass.run_command('g.remove', flags = 'f', type = 'vector',
-                          name = tmp_vogb, quiet = True)
+        if grass.find_file(tmp_extr, element='vector')['name']:
+            grass.run_command('g.remove', flags='f', type='vector',
+                          name=tmp_vogb, quiet=True)
 
 tmp = None
 tmp_proj = None
@@ -197,8 +197,8 @@ def main():
 
     tmp_proj = tmp + ".proj"
     tf = open(tmp_proj, 'w')
-    p1 = grass.pipe_command('v.out.ascii', input = inmap, format = 'standard')
-    p2 = grass.feed_command('m.proj', input = '-', flags = 'od', quiet = True, stdout = tf)
+    p1 = grass.pipe_command('v.out.ascii', input=inmap, format='standard')
+    p2 = grass.feed_command('m.proj', input='-', flags='od', quiet=True, stdout=tf)
     tf.close()
 
     lineno = 0
@@ -218,7 +218,7 @@ def main():
         grass.fatal(_("Error reprojecting data"))
 
     tmp_vogb = "tmp_vogb_epsg4326_%d" % os.getpid()
-    p3 = grass.feed_command('v.in.ascii', out = tmp_vogb, format = 'standard', flags = 'n', quiet = True)
+    p3 = grass.feed_command('v.in.ascii', out=tmp_vogb, format='standard', flags='n', quiet=True)
     tf = open(tmp_proj, 'r')
 
     for line in tf:
