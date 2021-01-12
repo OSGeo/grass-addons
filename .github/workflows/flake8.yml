@@ -82,7 +82,7 @@ jobs:
         pip install flake8==3.8.0
     - name: Run Flake8
       run: |
-        cd gui/wxpython/
+        cd grass7/gui/wxpython/
         flake8 --count --statistics --show-source --jobs=$(nproc) .
 
 
