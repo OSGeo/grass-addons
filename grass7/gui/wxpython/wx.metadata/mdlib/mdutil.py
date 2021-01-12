@@ -240,7 +240,7 @@ def grassProfileValidator(md):
            (
                md.identification.temporalextent_start is (None or '') or
                md.identification.temporalextent_end is (None or '')
-            )):
+        )):
 
             result["errors"].append(
                 "Both gmd:EX_TemporalExtent and gmd:CI_Date are missing")

@@ -230,12 +230,12 @@ def main():
                 'ned1sec': (1. / 3600, 30, 100),
                 'ned13sec': (1. / 3600 / 3, 10, 30),
                 'ned19sec': (1. / 3600 / 9, 3, 10)
-                },
+            },
             'subset': {},
             'extent': [
                 '1 x 1 degree',
                 '15 x 15 minute'
-                ],
+            ],
             'format': 'IMG',
             'extension': 'img',
             'zip': True,
@@ -250,12 +250,12 @@ def main():
                 'National Land Cover Database (NLCD) - 2001': (1. / 3600, 30, 100),
                 'National Land Cover Database (NLCD) - 2006': (1. / 3600, 30, 100),
                 'National Land Cover Database (NLCD) - 2011': (1. / 3600, 30, 100)
-                },
+            },
             'subset': {
                 'Percent Developed Imperviousness',
                 'Percent Tree Canopy',
                 'Land Cover'
-                },
+            },
             'extent': ['3 x 3 degree'],
             'format': 'GeoTIFF',
             'extension': 'tif',
@@ -272,7 +272,7 @@ def main():
             'subset': {},
             'extent': [
                 '3.75 x 3.75 minute',
-                ],
+            ],
             'format': 'JPEG2000',
             'extension': 'jp2',
             'zip': False,
