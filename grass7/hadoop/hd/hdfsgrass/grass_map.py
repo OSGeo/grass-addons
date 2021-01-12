@@ -42,9 +42,9 @@ class VectorDBInfo:
             table = self.layers[layer]["table"]
             columns = {} # {name: {type, length, [values], [ids]}}
             i = 0
-            for item in grass.db_describe(table=self.layers[layer]["table"],
-                                          driver=self.layers[layer]["driver"],
-                                          database=self.layers[layer]["database"])['cols']:
+            for item in grass.db_describe(table = self.layers[layer]["table"],
+                                          driver = self.layers[layer]["driver"],
+                                          database = self.layers[layer]["database"])['cols']:
                 name, type, length = item
                 # FIXME: support more datatypes
                 if type.lower() == "integer":

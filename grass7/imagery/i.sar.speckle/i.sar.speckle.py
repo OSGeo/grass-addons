@@ -70,22 +70,22 @@ def lee_filter(img, size, img_out):
     img_weights = 'tmp%s_img_weights' % pid
 
     # Local mean
-    r.neighbors(input=img,
-                size=size,
-                method='average',
-                output=img_mean)
+    r.neighbors(input = img,
+                size = size,
+                method = 'average',
+                output = img_mean)
     # Local square mean
     r.mapcalc("%s = %s^2" % (img_sqr, img))
-    r.neighbors(input=img_sqr,
-                size=size,
-                method='average',
-                output=img_sqr_mean)
+    r.neighbors(input = img_sqr,
+                size = size,
+                method = 'average',
+                output = img_sqr_mean)
     # Local variance
     r.mapcalc("%s = %s - (%s^2)" % (img_variance,
                 img_sqr_mean, img_mean))
     # Overall variance
     return_univar = grass.read_command('r.univar',
-                map=img, flags='ge')
+                map = img, flags = 'ge')
     univar_stats = grass.parse_key_val(return_univar)
     overall_variance = univar_stats['variance']
     # Weights
@@ -98,8 +98,8 @@ def lee_filter(img, size, img_out):
     # Cleanup
     grass.message(_("Cleaning up intermediate files..."))
     try:
-        grass.run_command('g.remove', flags='f', quiet=False,
-                type='raster', pattern='tmp*')
+        grass.run_command('g.remove', flags = 'f', quiet = False,
+                type = 'raster', pattern = 'tmp*')
     except:
         ""
 

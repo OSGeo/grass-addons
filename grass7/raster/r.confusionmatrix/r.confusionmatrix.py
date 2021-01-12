@@ -141,7 +141,7 @@ def print_descriptions():
     grass.message(kap)
     grass.message('\n')
 
-def set_reference(descriptionflag=None):
+def set_reference(descriptionflag = None):
     if options['raster_reference']:
         reference = options['raster_reference']
         refname = reference

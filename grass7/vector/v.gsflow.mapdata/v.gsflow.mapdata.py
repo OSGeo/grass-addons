@@ -189,7 +189,7 @@ def main():
         try:
             gscript.message("Checking for existing column to overwrite")
             v.db_dropcolumn(map=options['map'],
-                            columns=options['column'],
+                            columns = options['column'],
                             quiet=True)
             v.db_addcolumn(map=options['map'],
                            columns=options['column']+' '+attrtype,

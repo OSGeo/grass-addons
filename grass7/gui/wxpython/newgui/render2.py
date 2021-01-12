@@ -52,8 +52,8 @@ class Layer(object):
     - For overlays use Overlay class.
     """
 
-    def __init__(self, ltype, cmd, Map, name=None,
-                 active=True, hidden=False, opacity=1.0):
+    def __init__(self, ltype, cmd, Map, name = None,
+                 active = True, hidden = False, opacity = 1.0):
         """!Create new instance
 
         @todo pass cmd as tuple instead of list
@@ -105,12 +105,12 @@ class Layer(object):
 
         Debug.msg (3, "Layer.__init__(): type=%s, cmd='%s', name=%s, "
                        "active=%d, opacity=%d, hidden=%d" %
-                       (self.type, self.GetCmd(string=True), self.name, self.active,
+                       (self.type, self.GetCmd(string = True), self.name, self.active,
                         self.opacity, self.hidden))
 
     def __del__(self):
         Debug.msg (3, "Layer.__del__(): layer=%s, cmd='%s'" %
-                   (self.name, self.GetCmd(string=True)))
+                   (self.name, self.GetCmd(string = True)))
 
     def Render(self):
         """!Render layer to image
@@ -153,7 +153,7 @@ class Layer(object):
             else:
                 ret, msg = self._runCommand(self.cmd)
             if ret != 0:
-                sys.stderr.write(_("Command '%s' failed\n") % self.GetCmd(string=True))
+                sys.stderr.write(_("Command '%s' failed\n") % self.GetCmd(string = True))
                 if msg:
                     sys.stderr.write(_("Details: %s\n") % msg)
                 raise GException()
@@ -183,13 +183,13 @@ class Layer(object):
             self.renderMgr.Render(cmd)
         else:
             ret, msg = RunCommand(cmd[0],
-                                  getErrorMsg=True,
-                                  quiet=True,
+                                  getErrorMsg = True,
+                                  quiet = True,
                                   **cmd[1])
 
         return ret, msg
 
-    def GetCmd(self, string=False):
+    def GetCmd(self, string = False):
         """!Get GRASS command as list of string.
 
         @param string get command as string if True otherwise as list
@@ -218,7 +218,7 @@ class Layer(object):
             return 'cell'
         return self.type
 
-    def GetOpacity(self, float=False):
+    def GetOpacity(self, float = False):
         """
         Get layer opacity level
 
@@ -231,7 +231,7 @@ class Layer(object):
 
         return int (self.opacity * 100)
 
-    def GetName(self, fullyQualified=True):
+    def GetName(self, fullyQualified = True):
         """!Get map layer name
 
         @param fullyQualified True to return fully qualified name as a
@@ -260,11 +260,11 @@ class Layer(object):
             raise GException(_("Unsupported map layer type '%s'") % ltype)
 
         if ltype == 'wms' and not isinstance(self.renderMgr, RenderWMSMgr):
-            self.renderMgr = RenderWMSMgr(receiver=self.Map.GetReceiver(),
-                                          layer=self,
-                                          Map=self.Map,
-                                          mapfile=self.mapfile,
-                                          maskfile=self.maskfile)
+            self.renderMgr = RenderWMSMgr(receiver = self.Map.GetReceiver(),
+                                          layer = self,
+                                          Map = self.Map,
+                                          mapfile = self.mapfile,
+                                          maskfile = self.maskfile)
         elif self.type == 'wms' and ltype != 'wms':
             self.renderMgr = None
 
@@ -274,11 +274,11 @@ class Layer(object):
         """!Set layer name"""
         self.name = name
 
-    def SetActive(self, enable=True):
+    def SetActive(self, enable = True):
         """!Active or deactive layer"""
         self.active = bool(enable)
 
-    def SetHidden(self, enable=False):
+    def SetHidden(self, enable = False):
         """!Hide or show map layer in Layer Manager"""
         self.hidden = bool(enable)
 
@@ -299,7 +299,7 @@ class Layer(object):
                 self.cmd.append(utils.CmdToTuple(c))
         else:
             self.cmd = utils.CmdToTuple(cmd)
-        Debug.msg(3, "Layer.SetCmd(): cmd='%s'" % self.GetCmd(string=True))
+        Debug.msg(3, "Layer.SetCmd(): cmd='%s'" % self.GetCmd(string = True))
 
         # for re-rendering
         self.forceRender = True
@@ -323,8 +323,8 @@ class Layer(object):
         return self.renderMgr
 
 class MapLayer(Layer):
-    def __init__(self, ltype, cmd, Map, name=None,
-                 active=True, hidden=False, opacity=1.0):
+    def __init__(self, ltype, cmd, Map, name = None,
+                 active = True, hidden = False, opacity = 1.0):
         """!Represents map layer in the map canvas
 
         @param ltype layer type ('raster', 'vector', 'command', etc.)
@@ -355,7 +355,7 @@ class MapLayer(Layer):
 
 class Overlay(Layer):
     def __init__(self, id, ltype, cmd, Map,
-                 active=True, hidden=True, opacity=1.0):
+                 active = True, hidden = True, opacity = 1.0):
         """!Represents overlay displayed in map canvas
 
         @param id overlay id (for PseudoDC)
@@ -372,7 +372,7 @@ class Overlay(Layer):
         self.id = id
 
 class Map(object):
-    def __init__(self, gisrc=None):
+    def __init__(self, gisrc = None):
         """!Map composition (stack of map layers and overlays)
 
         @param gisrc alternative gisrc (used eg. by georectifier)
@@ -396,7 +396,7 @@ class Map(object):
         self.gisrc = gisrc
 
         # generated file for g.pnmcomp output for rendering the map
-        self.mapfile = grass.tempfile(create=False) + '.ppm'
+        self.mapfile = grass.tempfile(create = False) + '.ppm'
 
         # setting some initial env. variables
         self._initGisEnv() # g.gisenv
@@ -458,8 +458,8 @@ class Map(object):
             sys.exit(_("GRASS module '%s' not found. Unable to start map "
                        "display window.") % 'g.proj')
 
-        ret = self._runCommand(RunCommand, prog='g.proj',
-                               read=True, flags='p')
+        ret = self._runCommand(RunCommand, prog = 'g.proj',
+                               read = True, flags = 'p')
 
         if not ret:
             return projinfo
@@ -596,9 +596,9 @@ class Map(object):
         Debug.msg(2, "Map.ChangeMapSize(): width=%d, height=%d" %
                       (self.width, self.height))
 
-    def GetRegion(self, rast=[], zoom=False, vect=[], regionName=None,
-                  n=None, s=None, e=None, w=None, default=False,
-                  update=False, add3d=False):
+    def GetRegion(self, rast = [], zoom = False, vect = [], regionName = None,
+                  n = None, s = None, e = None, w = None, default = False,
+                  update = False, add3d = False):
         """!Get region settings (g.region -upgc)
 
         Optionally extent, raster or vector map layer can be given.
@@ -660,8 +660,8 @@ class Map(object):
             cmd['vect'] = ','.join(vect)
 
         ret, reg, msg = RunCommand('g.region',
-                                   read=True,
-                                   getErrorMsg=True,
+                                   read = True,
+                                   getErrorMsg = True,
                                    **cmd)
 
         if ret != 0:
@@ -707,7 +707,7 @@ class Map(object):
         """
         return self.region
 
-    def SetRegion(self, windres=False, windres3=False):
+    def SetRegion(self, windres = False, windres3 = False):
         """!Render string for GRASS_REGION env. variable, so that the
         images will be rendered from desired zoom level.
 
@@ -720,7 +720,7 @@ class Map(object):
         grass_region = ""
 
         if windres:
-            compRegion = self.GetRegion(add3d=windres3)
+            compRegion = self.GetRegion(add3d = windres3)
             region = copy.copy(self.region)
             for key in ('nsres', 'ewres', 'cells'):
                 region[key] = compRegion[key]
@@ -802,8 +802,8 @@ class Map(object):
         except:
             return None
 
-    def GetListOfLayers(self, ltype=None, mapset=None, name=None,
-                        active=None, hidden=None):
+    def GetListOfLayers(self, ltype = None, mapset = None, name = None,
+                        active = None, hidden = None):
         """!Returns list of layers of selected properties or list of
         all layers.
 
@@ -870,7 +870,7 @@ class Map(object):
 
         return selected
 
-    def _renderLayers(self, force=False, overlaysOnly=False):
+    def _renderLayers(self, force = False, overlaysOnly = False):
         """!Render all map layers into files
 
         @param force True to force rendering
@@ -889,7 +889,7 @@ class Map(object):
 
         self.downloading = False
         if self.receiver:
-            event = wxUpdateProgressBar(layer=None, map=self)
+            event = wxUpdateProgressBar(layer = None, map = self)
             self.receiver.GetEventHandler().ProcessEvent(event)
         for layer in layers:
             # skip non-active map layers
@@ -904,7 +904,7 @@ class Map(object):
             if layer.IsDownloading():
                 self.downloading = True
             if self.receiver:
-                event = wxUpdateProgressBar(layer=layer, map=self)
+                event = wxUpdateProgressBar(layer = layer, map = self)
                 self.receiver.GetEventHandler().ProcessEvent(event)
 
             # skip map layers when rendering fails
@@ -929,7 +929,7 @@ class Map(object):
         """
         return self._renderLayers(force)
 
-    def Render(self, force=False, windres=False):
+    def Render(self, force = False, windres = False):
         """!Creates final image composite
 
         This function can conditionaly use high-level tools, which
@@ -950,7 +950,7 @@ class Map(object):
         os.environ["GRASS_REGION"] = self.SetRegion(windres)
         os.environ["GRASS_RENDER_WIDTH"] = str(self.width)
         os.environ["GRASS_RENDER_HEIGHT"] = str(self.height)
-        driver = UserSettings.Get(group='display', key='driver', subkey='type')
+        driver = UserSettings.Get(group = 'display', key = 'driver', subkey = 'type')
         if driver == 'png':
             os.environ["GRASS_RENDER_IMMEDIATE"] = "png"
         else:
@@ -973,20 +973,20 @@ class Map(object):
             maskstr = maskstr.rstrip(',')
 
         # run g.pngcomp to get composite image
-        bgcolor = ':'.join(map(str, UserSettings.Get(group='display', key='bgcolor',
-                                                     subkey='color')))
+        bgcolor = ':'.join(map(str, UserSettings.Get(group = 'display', key = 'bgcolor',
+                                                     subkey = 'color')))
 
         if maps:
             ret, msg = RunCommand('g.pnmcomp',
-                                  getErrorMsg=True,
-                                  overwrite=True,
-                                  input='%s' % ",".join(maps),
-                                  mask='%s' % ",".join(masks),
-                                  opacity='%s' % ",".join(opacities),
-                                  bgcolor=bgcolor,
-                                  width=self.width,
-                                  height=self.height,
-                                  output=self.mapfile)
+                                  getErrorMsg = True,
+                                  overwrite = True,
+                                  input = '%s' % ",".join(maps),
+                                  mask = '%s' % ",".join(masks),
+                                  opacity = '%s' % ",".join(opacities),
+                                  bgcolor = bgcolor,
+                                  width = self.width,
+                                  height = self.height,
+                                  output = self.mapfile)
 
             if ret != 0:
                 print >> sys.stderr, _("ERROR: Rendering failed. Details: %s") % msg
@@ -1011,7 +1011,7 @@ class Map(object):
 
         return self.mapfile
 
-    def AddMapLayer(self, mlayer, render=False, pos=-1):
+    def AddMapLayer(self, mlayer, render = False, pos = -1):
         wx.BeginBusyCursor()
         # opacity must be <0;1>
         if mlayer.opacity < 0:
@@ -1037,9 +1037,9 @@ class Map(object):
 
         return mlayer
 
-    def AddLayer(self, ltype, command, name=None,
-                 active=True, hidden=False, opacity=1.0, render=False,
-                 pos=-1):
+    def AddLayer(self, ltype, command, name = None,
+                 active = True, hidden = False, opacity = 1.0, render = False,
+                 pos = -1):
         """!Adds generic map layer to list of layers
 
         @param ltype layer type ('raster', 'vector', etc.)
@@ -1063,8 +1063,8 @@ class Map(object):
 
 
 
-        layer = MapLayer(ltype=ltype, name=name, cmd=command, Map=self,
-                         active=active, hidden=hidden, opacity=opacity)
+        layer = MapLayer(ltype = ltype, name = name, cmd = command, Map = self,
+                         active = active, hidden = hidden, opacity = opacity)
 
         # add maplayer to the list of layers
         if pos > -1:
@@ -1081,7 +1081,7 @@ class Map(object):
 
         return layer
 
-    def DeleteAllLayers(self, overlay=False):
+    def DeleteAllLayers(self, overlay = False):
         """!Delete all layers
 
         @param overlay True to delete also overlayes
@@ -1090,7 +1090,7 @@ class Map(object):
         if overlay:
             self.overlays = []
 
-    def DeleteLayer(self, layer, overlay=False):
+    def DeleteLayer(self, layer, overlay = False):
         """!Removes layer from list of layers
 
         @param layer layer instance in layer tree
@@ -1135,7 +1135,7 @@ class Map(object):
         Debug.msg (4, "Map.ReoderLayers(): layers=%s" %
                    (layerNameList))
 
-    def ChangeLayer(self, layer, render=False, **kargs):
+    def ChangeLayer(self, layer, render = False, **kargs):
         """!Change map layer properties
 
         @param layer map layer instance
@@ -1213,7 +1213,7 @@ class Map(object):
                    (layer.name, name))
         layer.name = name
 
-    def RemoveLayer(self, name=None, id=None):
+    def RemoveLayer(self, name = None, id = None):
         """!Removes layer from layer list
 
         Layer is defined by name@mapset or id.
@@ -1240,7 +1240,7 @@ class Map(object):
 
         return None
 
-    def GetLayerIndex(self, layer, overlay=False):
+    def GetLayerIndex(self, layer, overlay = False):
         """!Get index of layer in layer list.
 
         @param layer layer instace in layer tree
@@ -1260,7 +1260,7 @@ class Map(object):
         return -1
 
     def AddOverlay(self, id, ltype, command,
-                   active=True, hidden=True, opacity=1.0, render=False):
+                   active = True, hidden = True, opacity = 1.0, render = False):
         """!Adds overlay (grid, barscale, legend, etc.) to list of
         overlays
 
@@ -1275,8 +1275,8 @@ class Map(object):
         @return None on failure
         """
         Debug.msg (2, "Map.AddOverlay(): cmd=%s, render=%d" % (command, render))
-        overlay = Overlay(id=id, ltype=ltype, cmd=command, Map=self,
-                          active=active, hidden=hidden, opacity=opacity)
+        overlay = Overlay(id = id, ltype = ltype, cmd = command, Map = self,
+                          active = active, hidden = hidden, opacity = opacity)
 
         # add maplayer to the list of layers
         self.overlays.append(overlay)
@@ -1287,7 +1287,7 @@ class Map(object):
 
         return self.overlays[-1]
 
-    def ChangeOverlay(self, id, render=False, **kargs):
+    def ChangeOverlay(self, id, render = False, **kargs):
         """!Change overlay properities
 
         Add new overlay if overlay with 'id' doesn't exist.
@@ -1301,9 +1301,9 @@ class Map(object):
 
         @return new layer on success
         """
-        overlay = self.GetOverlay(id, list=False)
+        overlay = self.GetOverlay(id, list = False)
         if  overlay is None:
-            overlay = Overlay(id, ltype=None, cmd=None)
+            overlay = Overlay(id, ltype = None, cmd = None)
 
         if 'ltype' in kargs:
             overlay.SetName(kargs['ltype']) # ltype -> overlay
@@ -1326,7 +1326,7 @@ class Map(object):
 
         return overlay
 
-    def GetOverlay(self, id, list=False):
+    def GetOverlay(self, id, list = False):
         """!Return overlay(s) with 'id'
 
         @param id overlay id
@@ -1357,7 +1357,7 @@ class Map(object):
 
         @return removed overlay on success or None
         """
-        return self.DeleteLayer(overlay, overlay=True)
+        return self.DeleteLayer(overlay, overlay = True)
 
     def _clean(self, llist):
         for layer in llist:

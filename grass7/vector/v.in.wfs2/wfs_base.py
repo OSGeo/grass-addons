@@ -62,11 +62,11 @@ class WFSBase:
 
         # read projection info
         self.proj_location = grass.read_command('g.proj',
-                                                flags='jf').rstrip('\n')
+                                                flags ='jf').rstrip('\n')
 
         self.proj_srs = grass.read_command('g.proj',
-                                           flags='jf',
-                                           epsg=str(self.o_srs)).rstrip('\n')
+                                           flags = 'jf',
+                                           epsg = str(self.o_srs)).rstrip('\n')
 
         if not self.proj_srs or not self.proj_location:
             grass.fatal(_("Unable to get projection info"))
@@ -74,15 +74,15 @@ class WFSBase:
         # set region
         self.o_region = options['region']
         if self.o_region:
-            if not grass.find_file(name=self.o_region, element='windows', mapset='.')['name']:
+            if not grass.find_file(name = self.o_region, element = 'windows', mapset = '.')['name']:
                 grass.fatal(_("Region <%s> not found") % self.o_region)
 
         if self.o_region:
             s = grass.read_command('g.region',
-                                   quiet=True,
-                                   flags='ug',
-                                   region=self.o_region)
-            self.region = grass.parse_key_val(s, val_type=float)
+                                   quiet = True,
+                                   flags = 'ug',
+                                   region = self.o_region)
+            self.region = grass.parse_key_val(s, val_type = float)
         else:
             self.region = grass.region()
 
@@ -152,10 +152,10 @@ class WFSBase:
             finally:
                 temp_region_opened.close()
 
-            points = grass.read_command('m.proj', flags='d',
-                                        proj_out=self.proj_srs,
-                                        proj_in=self.proj_location,
-                                        input=temp_region) # TODO: stdin
+            points = grass.read_command('m.proj', flags = 'd',
+                                        proj_out = self.proj_srs,
+                                        proj_in = self.proj_location,
+                                        input = temp_region) # TODO: stdin
             grass.try_remove(temp_region)
             if not points:
                 grass.fatal(_("Unable to determine region, %s failed") % 'm.proj')
@@ -212,14 +212,14 @@ class WFSBase:
             else:
                 nuldev = None
 
-            temp_warpmap = self._temp(directory=True)
+            temp_warpmap = self._temp(directory = True)
 
             ps = grass.Popen(['ogr2ogr',
                               '-overwrite',
                               '-s_srs', '%s' % self.proj_srs,
                               '-t_srs', '%s' % self.proj_location,
                               '-f', '%s' % self.ogr_drv_format,
-                              temp_warpmap, self.temp_map], stdout=nuldev)
+                              temp_warpmap, self.temp_map], stdout = nuldev)
             ps.wait()
 
             if nuldev:
@@ -235,10 +235,10 @@ class WFSBase:
         # importing temp_map into GRASS
         try:
             grass.run_command('v.in.ogr',
-                              quiet=True,
-                              overwrite=True,
-                              input=temp_warpmap,
-                              output=self.o_output)
+                              quiet = True,
+                              overwrite = True,
+                              input = temp_warpmap,
+                              output = self.o_output)
         except CalledModuleError:
             grass.fatal(_('%s failed') % 'v.in.ogr')
 
@@ -264,7 +264,7 @@ class WFSBase:
 
         return new_bbox
 
-    def _temp(self, directory=False):
+    def _temp(self, directory = False):
         """!Create temp file/dir and append list self.temp_to_cleanup
             with the file/dir path
 

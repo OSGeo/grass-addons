@@ -574,7 +574,7 @@ def main():
 
         # Coarsen resolution to resolution of prevous step (step L-1) and smooth DEM
         if L >= 3:
-            grass.run_command('g.region', ewres=Xres_step[L-1], nsres=Yres_step[L-1])
+            grass.run_command('g.region', ewres = Xres_step[L-1], nsres = Yres_step[L-1])
             grass.message('Coarsening resolution to ew_res={e} and ns_res={n}...'.format(
                 e=Xres_step[L-1], n=Yres_step[L-1]))
 
@@ -592,7 +592,7 @@ def main():
 
         # Coarsen resolution to current step L and calculate PCTL
         grass.run_command('g.region', ewres=Xres_step[L], nsres=Yres_step[L])
-        DEM[L] = refine(L, DEM[L], Region(), method='average')
+        DEM[L] = refine(L, DEM[L], Region(), method = 'average')
         grass.message("Calculation of elevation percentile PCTL{L}...".format(L=L+1))
         PCTL[L] = get_percentile(L, DEM[L], radi, moving_window_square)
 
@@ -630,10 +630,10 @@ def main():
             MRRTF[L] = get_mrvbf(L, VF_Lminus1=MRRTF[L-1], VF_L=VF_RF[L], t=t_pctl_r)
 
     # Output final MRVBF
-    grass.mapcalc("$x = $y", x=mrvbf, y=MRVBF[L])
+    grass.mapcalc("$x = $y", x = mrvbf, y=MRVBF[L])
 
     if mrrtf != '':
-        grass.mapcalc("$x = $y", x=mrrtf, y=MRRTF[L])
+        grass.mapcalc("$x = $y", x = mrrtf, y=MRRTF[L])
 
 if __name__ == "__main__":
     options, flags = grass.parser()

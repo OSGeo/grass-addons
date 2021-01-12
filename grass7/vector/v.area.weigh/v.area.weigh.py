@@ -43,11 +43,11 @@ from grass.exceptions import CalledModuleError
 
 def cleanup():
     if rastertmp1:
-        grass.run_command('g.remove', flags='f', type='raster', name=rastertmp1, quiet=True)
+        grass.run_command('g.remove', flags='f', type='raster', name= rastertmp1, quiet = True)
     if rastertmp2:
-        grass.run_command('g.remove', flags='f', type='raster', name=rastertmp2, quiet=True)
+        grass.run_command('g.remove', flags='f', type='raster', name= rastertmp2, quiet = True)
     if rastertmp3:
-        grass.run_command('g.remove', flags='f', type='raster', name=rastertmp3, quiet=True)
+        grass.run_command('g.remove', flags='f', type='raster', name= rastertmp3, quiet = True)
 
 def main():
     global tmp, tmpname, rastertmp1, rastertmp2, rastertmp3
@@ -117,10 +117,10 @@ def main():
     exp = "$output = if($sumweight == 0, if(isnull($area_val), null(), 0), double($area_val) * $weight / $sumweight)"
 
     grass.mapcalc(exp,
-                  output=output,
-                  sumweight=rastertmp3,
-                  area_val=rastertmp2,
-                  weight=weight)
+                  output = output,
+                  sumweight = rastertmp3,
+                  area_val = rastertmp2,
+                  weight = weight)
 
     sys.exit(0)
 

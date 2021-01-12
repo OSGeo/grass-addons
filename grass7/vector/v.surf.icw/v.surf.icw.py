@@ -134,8 +134,8 @@ TMP_FILE = None
 def cleanup():
     grass.verbose(_("Cleanup.."))
     tmp_base = 'tmp_icw_' + str(os.getpid()) + '_'
-    grass.run_command('g.remove', flags='f', type='raster', pattern=tmp_base + '*',
-                          quiet=True)
+    grass.run_command('g.remove', flags = 'f', type = 'raster', pattern = tmp_base + '*',
+                          quiet = True)
     grass.try_remove(TMP_FILE)
 
 
@@ -160,7 +160,7 @@ def main():
     tmp_base = 'tmp_icw_' + pid + '_'
 
     # do the maps exist?
-    if not grass.find_file(pts_input, element='vector')['file']:
+    if not grass.find_file(pts_input, element = 'vector')['file']:
         grass.fatal(_("Vector map <%s> not found") % pts_input)
     if post_mask:
         if grass.find_file('MASK')['file']:
@@ -199,8 +199,8 @@ def main():
     # cleanse cost area mask to a flat =1 for my porpoises
     area_mask = tmp_base + 'area'
     grass.mapcalc("$result = if($cost_map, 1, null())",
-                  result=area_mask, cost_map=cost_map,
-                  quiet=True)
+                  result = area_mask, cost_map = cost_map,
+                  quiet = True)
 
     ## done with prep work,
     ########################################################################
@@ -211,8 +211,8 @@ def main():
     if where:
         addl_opts['where'] = '%s' % where
 
-    points_list = grass.read_command('v.out.ascii', input=pts_input,
-                                     output='-', flags='r',
+    points_list = grass.read_command('v.out.ascii', input = pts_input,
+                                     output = '-', flags = 'r',
                                      **addl_opts).splitlines()
 
     # Needed to strip away empty entries from MS Windows newlines
@@ -251,7 +251,7 @@ def main():
         cat = int(position[-1])
 
         # retrieve data value from vector's attribute table:
-        data_value = grass.vector_db_select(pts_input, columns=column)['values'][cat][0]
+        data_value = grass.vector_db_select(pts_input, columns = column)['values'][cat][0]
 
         if not data_value:
             grass.message(_("Site %d of %d,  e=%.4f  n=%.4f  cat=%d  data=?")
@@ -266,8 +266,8 @@ def main():
                              float(data_value)))
 
         # we know the point is in the region, but is it in a non-null area of the cost surface?
-        rast_val = grass.read_command('r.what', map=area_mask,
-                                      coordinates='%s,%s' % (position[0], position[1])
+        rast_val = grass.read_command('r.what', map = area_mask,
+                                      coordinates = '%s,%s' % (position[0], position[1])
                                       ).strip().split('|')[-1]
         if rast_val == '*':
             grass.message(_(" -- Skipping, point lays outside of cost_map."))
@@ -282,10 +282,10 @@ def main():
             grass.fatal('Data value [%s] is non-numeric' % data_value)
 
         cost_site_name = tmp_base + 'cost_site.' + '%05d' % num
-        proc[num-1] = grass.start_command('r.cost', flags='k', input=area_mask,
-                                        output=cost_site_name,
-                                        start_coordinates=easting + ',' + northing,
-                                        quiet=True)
+        proc[num-1] = grass.start_command('r.cost', flags = 'k', input = area_mask,
+                                        output = cost_site_name,
+                                        start_coordinates = easting + ',' + northing,
+                                        quiet = True)
         # stall to wait for the nth worker to complete,
         if num % workers == 0:
             proc[num-1].wait()
@@ -310,8 +310,8 @@ def main():
         # we do this so the divisor exists and the weighting is huge at the exact sample spots
         # more efficient to reclass to 1?
         proc[i] = grass.mapcalc_start("$cost_n_cleansed = if($cost_n == 0, 0.1, $cost_n)",
-                      cost_n_cleansed=cost_site_name + '.cleansed',
-                      cost_n=cost_site_name, quiet=True)
+                      cost_n_cleansed = cost_site_name + '.cleansed',
+                      cost_n = cost_site_name, quiet = True)
         # stall to wait for the nth worker to complete,
         if (i+1) % workers == 0:
             #print 'stalling ...'
@@ -329,8 +329,8 @@ def main():
     for i in range(n):
         cost_site_name = tmp_base + 'cost_site.' + '%05d' % (i+1)
         grass.run_command('g.remove', flags='f', type='raster', name=cost_site_name, quiet=True)
-        grass.run_command('g.rename', raster=cost_site_name + '.cleansed'
-                          + ',' + cost_site_name, quiet=True)
+        grass.run_command('g.rename', raster = cost_site_name + '.cleansed'
+                          + ',' + cost_site_name, quiet = True)
 
         # r.to.vect then r.patch output
         # v.to.rast in=tmp_idw_cost_site_29978 out=tmp_idw_cost_val_$$ use=val val=10
@@ -350,10 +350,10 @@ def main():
         one_by_cost_site_sq_n = tmp_base + '1by_cost_site_sq.' + '%05d' % (i+1)
 
         proc[i] = grass.mapcalc_start("$result = " + expr,
-                                      result=one_by_cost_site_sq_n,
-                                      cost_n=cost_site_name,
-                                      friction=friction,
-                                      quiet=True)
+                                      result = one_by_cost_site_sq_n,
+                                      cost_n = cost_site_name,
+                                      friction = friction,
+                                      quiet = True)
         # stall to wait for the nth worker to complete,
         if (i+1) % workers == 0:
             #print 'stalling ...'
@@ -367,8 +367,8 @@ def main():
         if proc[i].wait() != 0:
             grass.fatal(_('Problem running %s') % 'r.mapcalc')
 
-    grass.run_command('g.remove', flags='f', type='raster',
-                          pattern=tmp_base + 'cost_site.*', quiet=True)
+    grass.run_command('g.remove', flags = 'f', type = 'raster',
+                          pattern = tmp_base + 'cost_site.*', quiet = True)
     #grass.run_command('g.list', type = 'raster', mapset = '.')
 
 
@@ -380,7 +380,7 @@ def main():
     #todo: test if MASK exists already, fatal exit if it does?
     if post_mask:
         grass.message(_("Setting post_mask <%s>"), post_mask)
-        grass.mapcalc("MASK = $maskmap", maskmap=post_mask, overwrite=True)
+        grass.mapcalc("MASK = $maskmap", maskmap = post_mask, overwrite = True)
 
 
     grass.message(_("Summation of cost weights ..."))
@@ -405,7 +405,7 @@ def main():
 
     if post_mask:
         grass.message(_("Removing post_mask <%s>"), post_mask)
-        grass.run_command('g.remove', flags='f', name='MASK', quiet=True)
+        grass.run_command('g.remove', flags = 'f', name = 'MASK', quiet = True)
 
 
     #######################################################
@@ -419,7 +419,7 @@ def main():
         easting = position[0]
         northing = position[1]
         cat = int(position[-1])
-        data_value = grass.vector_db_select(pts_input, columns=column)['values'][cat][0]
+        data_value = grass.vector_db_select(pts_input, columns = column)['values'][cat][0]
         data_value = float(data_value)
 
         # failsafe: at this point the data values should all be valid
@@ -433,8 +433,8 @@ def main():
                               % (num, n, cat, data_value))
 
         # we know the point is in the region, but is it in a non-null area of the cost surface?
-        rast_val = grass.read_command('r.what', map=area_mask,
-                                      coordinates='%s,%s' % (position[0], position[1])
+        rast_val = grass.read_command('r.what', map = area_mask,
+                                      coordinates = '%s,%s' % (position[0], position[1])
                                       ).strip().split('|')[-1]
         if rast_val == '*':
             grass.message(_(" -- Skipping, point lays outside of cost_map. [Probably programmer error]"))
@@ -449,11 +449,11 @@ def main():
 
         proc[num-1] = grass.mapcalc_start(
             "$partial_n = ($data * $one_by_cost_sq) / $sum_of_1by_cost_sqs",
-            partial_n=partial_n,
-            data=data_value,
-            one_by_cost_sq=one_by_cost_site_sq,
-            sum_of_1by_cost_sqs=sum_of_1by_cost_sqs,
-            quiet=True)
+            partial_n = partial_n,
+            data = data_value,
+            one_by_cost_sq = one_by_cost_site_sq,
+            sum_of_1by_cost_sqs = sum_of_1by_cost_sqs,
+            quiet = True)
 
         # stall to wait for the nth worker to complete,
         if num % workers == 0:
@@ -492,24 +492,24 @@ def main():
 
     #TODO: r.patch in v.to.rast of values at exact seed site locations. currently set to null
 
-    grass.run_command('r.colors', map=output, color='bcyr', quiet=True)
-    grass.run_command('r.support', map=output, history='',
-                      title='Inverse cost-weighted interpolation')
-    grass.run_command('r.support', map=output,
-                      history='v.surf.icw interpolation:')
-    grass.run_command('r.support', map=output,
-                      history='  input map=' + pts_input + '   attribute column=' + column)
-    grass.run_command('r.support', map=output,
-                      history='  cost map=' + cost_map + '   coefficient of friction=' + str(friction))
+    grass.run_command('r.colors', map = output, color = 'bcyr', quiet = True)
+    grass.run_command('r.support', map = output, history = '',
+                      title = 'Inverse cost-weighted interpolation')
+    grass.run_command('r.support', map = output,
+                      history = 'v.surf.icw interpolation:')
+    grass.run_command('r.support', map = output,
+                      history = '  input map=' + pts_input + '   attribute column=' + column)
+    grass.run_command('r.support', map = output,
+                      history = '  cost map=' + cost_map + '   coefficient of friction=' + str(friction))
     if flags['r']:
-        grass.run_command('r.support', map=output,
-                          history='  (d^n)*log(d) as radial basis function')
+        grass.run_command('r.support', map = output,
+                          history = '  (d^n)*log(d) as radial basis function')
     if post_mask:
-        grass.run_command('r.support', map=output,
-                          history='  post-processing mask=' + post_mask)
+        grass.run_command('r.support', map = output,
+                          history = '  post-processing mask=' + post_mask)
     if where:
-        grass.run_command('r.support', map=output,
-                          history='  SQL query= WHERE ' + where)
+        grass.run_command('r.support', map = output,
+                          history = '  SQL query= WHERE ' + where)
 
     # save layer #? to metadata?   command line hist?
 

@@ -544,8 +544,8 @@ def main():
     diversity_lambda = float(options['diversity_lambda']) if options['diversity_lambda'] != '' else 0.25		# Lambda parameter used in the diversity heuristic
     nbr_uncertainty = int(options['nbr_uncertainty']) if options['nbr_uncertainty'] != '0' else 15      # Number of samples to select (based on uncertainty criterion) before applying the diversity criterion. Must be at least greater or equal to [LEARNING][steps]
 
-    X_train, ID_train, y_train, header_train = load_data(options['training_set'], labeled=True)
-    X_test, ID_test, y_test, header_test = load_data(options['test_set'], labeled=True)
+    X_train, ID_train, y_train, header_train = load_data(options['training_set'], labeled = True)
+    X_test, ID_test, y_test, header_test = load_data(options['test_set'], labeled = True)
     X_unlabeled, ID_unlabeled, y_unlabeled, header_unlabeled = load_data(options['unlabeled_set'])
 
     nbr_train = ID_train.shape[0]

@@ -77,8 +77,8 @@ def main():
 
 
     clist = list()
-    plydesc = grass.read_command('v.in.ply', flags='p',
-                      input=infile, output=ply)
+    plydesc = grass.read_command('v.in.ply', flags = 'p',
+                      input = infile, output = ply)
 
     # remember column names for vertices
     currname = ''
@@ -96,81 +96,81 @@ def main():
 
     columns = ','.join(clist)
 
-    grass.run_command('v.in.ply', flags='b',
-                      input=infile, output=ply)
+    grass.run_command('v.in.ply', flags = 'b',
+                      input = infile, output = ply)
 
     # import vector exists?
-    found = grass.find_file(ply, element='vector', mapset=currmapset)
+    found = grass.find_file(ply, element = 'vector', mapset = currmapset)
 
     if found['name'] != ply:
         grass.fatal(_('PLY import failed!'))
 
     # detach table
-    table = gvector.vector_layer_db(map=ply, layer=1)['table']
-    grass.run_command('v.db.connect', map=ply, layer=1, flags='d')
+    table = gvector.vector_layer_db(map = ply, layer = 1)['table']
+    grass.run_command('v.db.connect', map = ply, layer = 1, flags = 'd')
 
     # print RMS
     rmsfile = os.path.join(srcdir, ply + "_rms.csv")
-    grass.run_command('v.rectify', input=ply, output=ply + '_georef',
-                      points=gcpfile, flags='3bor', separator=';',
-                      rmsfile=rmsfile)
+    grass.run_command('v.rectify', input = ply, output = ply + '_georef',
+                      points = gcpfile, flags = '3bor', separator = ';',
+                      rmsfile = rmsfile)
 
     # georectify
     ply_georef = ply + '_georef'
-    grass.run_command('v.rectify', input=ply, output=ply_georef,
-                      points=gcpfile, flags='3bo')
+    grass.run_command('v.rectify', input = ply, output = ply_georef,
+                      points = gcpfile, flags = '3bo')
 
     # output vector exists?
-    found = grass.find_file(ply_georef, element='vector', mapset=currmapset)
+    found = grass.find_file(ply_georef, element = 'vector', mapset = currmapset)
 
     if found['name'] != ply_georef:
-        grass.run_command('v.db.connect', map=ply,
-                          layer=1, table=table, key='cat')
+        grass.run_command('v.db.connect', map = ply,
+                          layer = 1, table = table, key = 'cat')
         grass.fatal('PLY import failed!')
 
-    grass.run_command('v.db.connect', map=ply_georef,
-                      layer=1, table=table, key='cat')
+    grass.run_command('v.db.connect', map = ply_georef,
+                      layer = 1, table = table, key = 'cat')
 
     output = os.path.join(srcdir, ply_georef + '.ply')
-    grass.run_command('v.out.ply', input=ply_georef, output=output,
-                      columns=columns)
+    grass.run_command('v.out.ply', input = ply_georef, output = output,
+                      columns = columns)
 
-    grass.run_command('v.db.connect', map=ply_georef, layer=1, flags='d')
+    grass.run_command('v.db.connect', map = ply_georef, layer = 1, flags = 'd')
 
     if export_shifted:
-        vinfo = gvector.vector_info(map=ply_georef)
+        vinfo = gvector.vector_info(map = ply_georef)
         north_center = (float(vinfo['north']) + float(vinfo['south'])) / -2.0
         east_center = (float(vinfo['east']) + float(vinfo['west'])) / -2.0
         height_center = (float(vinfo['top']) + float(vinfo['bottom'])) / -2.0
 
         ply_shifted = ply_georef + '_shifted'
-        grass.run_command('v.transform', input=ply_georef, layer=-1,
-                          output=ply_shifted, xshift=east_center,
-                          yshift=north_center, zshift=height_center,
-                          xscale=1.0, yscale=1.0, zscale=1.0, zrot=0.0,
-                          flags='b')
+        grass.run_command('v.transform', input = ply_georef, layer = -1,
+                          output = ply_shifted, xshift = east_center,
+                          yshift = north_center, zshift = height_center,
+                          xscale = 1.0, yscale = 1.0, zscale = 1.0, zrot = 0.0,
+                          flags = 'b')
 
         # output vector exists?
-        found = grass.find_file(ply_shifted, element='vector', mapset=currmapset)
+        found = grass.find_file(ply_shifted, element = 'vector', mapset = currmapset)
 
         if found['name'] != ply_shifted:
-            grass.run_command('v.db.connect', map=ply,
-                              layer=1, table=table, key='cat')
+            grass.run_command('v.db.connect', map = ply,
+                              layer = 1, table = table, key = 'cat')
             grass.fatal('PLY import failed!')
 
-        grass.run_command('v.db.connect', map=ply_shifted,
-                          layer=1, table=table, key='cat')
+        grass.run_command('v.db.connect', map = ply_shifted,
+                          layer = 1, table = table, key = 'cat')
 
         output = os.path.join(srcdir, ply_shifted + '.ply')
-        grass.run_command('v.out.ply', input=ply_shifted, output=output,
-                          columns=columns)
+        grass.run_command('v.out.ply', input = ply_shifted, output = output,
+                          columns = columns)
 
-        grass.run_command('v.db.connect', map=ply_shifted, layer=1, flags='d')
+        grass.run_command('v.db.connect', map = ply_shifted, layer = 1, flags = 'd')
 
 
 
-    grass.run_command('v.db.connect', map=ply,
-                      layer=1, table=table, key='cat')
+    grass.run_command('v.db.connect', map = ply,
+                      layer = 1, table = table, key = 'cat')
 
     grass.message(_("Done: Pointcloud '%s' has been successfully imported, georeferenced, and exported") % ply)
 

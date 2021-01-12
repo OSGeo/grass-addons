@@ -103,9 +103,9 @@ def cleanup():
     if REMOVE or MREMOVE:
         core.info(_("Cleaning temporary maps..."))
     for rast in REMOVE:
-        grass.run_command('g.remove', flags='f', type='raster', name=rast, quiet=True)
+        grass.run_command('g.remove', flags = 'f', type = 'raster', name = rast, quiet=True)
     for pattern in MREMOVE:
-        grass.run_command('g.remove', flags='f', type='raster', pattern='%s*' % pattern,
+        grass.run_command('g.remove', flags = 'f', type = 'raster', pattern ='%s*' % pattern,
                            quiet=True)
 
 

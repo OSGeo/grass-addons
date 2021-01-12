@@ -101,13 +101,13 @@ class MapWindow(object):
                 handler(event)
             except:
                 handlers.remove(handler)
-                GError(parent=self,
+                GError(parent = self,
                        message=_("Error occured during calling of handler: %s \n"
                                  "Handler was unregistered.") % handler.__name__)
 
         event.Skip()
 
-    def RegisterMouseEventHandler(self, event, handler, cursor=None):
+    def RegisterMouseEventHandler(self, event, handler, cursor = None):
         """!Binds event handler
 
         Call event.Skip() in handler to allow default processing in MapWindow.
@@ -170,8 +170,8 @@ class MapWindow(object):
                     handler("unregistered")
                     handlers.remove(handler)
                 except:
-                    GError(parent=self,
-                           message=_("Error occured during unregistration of handler: %s \n \
+                    GError(parent = self,
+                           message = _("Error occured during unregistration of handler: %s \n \
                                        Handler was unregistered.") % handler.__name__)
                     handlers.remove(handler)
 
@@ -199,8 +199,8 @@ class MapWindow(object):
                     grass.warning(_("Handler: %s was not registered")
                                       % handler.__name__)
             except:
-                GError(parent=self,
-                       message=_("Error occured during unregistration of handler: %s \n \
+                GError(parent = self,
+                       message = _("Error occured during unregistration of handler: %s \n \
                                        Handler was unregistered") % handler.__name__)
                 handlers.remove(handler)
 

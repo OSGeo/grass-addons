@@ -50,14 +50,14 @@ def point_med(filetmp):
 def main():
     # check if input file exists
     infile = options['input']
-    gfile = grass.find_file(infile, element='vector')
+    gfile = grass.find_file(infile, element = 'vector')
     if not gfile['name']:
         grass.fatal(_("Vector map <%s> not found") % infile)
     # create tempfile and write ascii file of input
     temp_in = grass.tempfile()
     try:
-        grass.run_command('v.out.ascii', overwrite=True, input=gfile['name'],
-                          output=temp_in)
+        grass.run_command('v.out.ascii', overwrite = True, input=gfile['name'],
+                          output = temp_in)
     except CalledModuleError:
         grass.fatal(_("Failed to export vector in a temporary file"))
     # x and y of median point
@@ -73,8 +73,8 @@ def main():
     # else
     else:
         # output file
-        goutfile = grass.find_file(name=map_name, element='vector',
-                            mapset='.')
+        goutfile = grass.find_file(name = map_name, element = 'vector',
+                            mapset = '.')
         # output tempfile
         temp_out = grass.tempfile()
         file_out = open(temp_out,'w')
@@ -86,11 +86,11 @@ def main():
         # output file exists and overwrite
         elif goutfile['file'] and overwrite == '1':
             grass.warning(_("Vector map <%s> already exists and will be overwritten") % map_name)
-            grass.run_command('v.in.ascii', overwrite=True, input=temp_out,
-                                        output=map_name)
+            grass.run_command('v.in.ascii', overwrite = True, input=temp_out,
+                                        output = map_name)
         # output file not exists
         else:
-            grass.run_command('v.in.ascii', input=temp_out, output=map_name)
+            grass.run_command('v.in.ascii', input=temp_out, output = map_name)
         try_remove(temp_out)
 
 if __name__ == "__main__":

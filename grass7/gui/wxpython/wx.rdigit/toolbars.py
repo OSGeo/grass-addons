@@ -26,8 +26,8 @@ from iclass.dialogs     import IClassMapDialog as MDialog
 import grass.script as grass
 
 rdigitIcons = {
-    'delCmd': MetaIcon(img='layer-remove',
-                            label=_('Delete selected map layer')),
+    'delCmd': MetaIcon(img = 'layer-remove',
+                            label = _('Delete selected map layer')),
 
 }
 
@@ -86,7 +86,7 @@ class RDigitMapManagerToolbar(BaseToolbar):
         BaseToolbar.__init__(self, parent)
 
         self.InitToolbar(self._toolbarData())
-        self.choice = wx.Choice(parent=self, id=wx.ID_ANY, size=(300, -1))
+        self.choice = wx.Choice(parent = self, id = wx.ID_ANY, size = (300, -1))
         self.choiceid = self.AddControl(self.choice)
         self.choice.Bind(wx.EVT_CHOICE, self.OnSelectLayer)
 
@@ -103,14 +103,14 @@ class RDigitMapManagerToolbar(BaseToolbar):
 
     def OnSelectLayer(self, event):
         layer = self.choice.GetStringSelection()
-        self.mapManager.SelectLayer(name=layer)
+        self.mapManager.SelectLayer(name = layer)
 
     def OnAddRast(self, event):
-        dlg = MDialog(self, title=_("Add raster map"), element='raster')
+        dlg = MDialog(self, title = _("Add raster map"), element = 'raster')
         if dlg.ShowModal() == wx.ID_OK:
-            raster = grass.find_file(name=dlg.GetMap(), element='cell')
+            raster = grass.find_file(name = dlg.GetMap(), element = 'cell')
             if raster['fullname']:
-                self.mapManager.AddLayer(name=raster['fullname'])
+                self.mapManager.AddLayer(name = raster['fullname'])
 
         dlg.Destroy()
 
@@ -118,4 +118,4 @@ class RDigitMapManagerToolbar(BaseToolbar):
         layer = self.choice.GetStringSelection()
         idx = self.choice.GetSelection()
         if layer:
-            self.mapManager.RemoveLayer(name=layer, idx=idx)
+            self.mapManager.RemoveLayer(name = layer, idx = idx)

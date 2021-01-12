@@ -74,7 +74,7 @@ logging.debug("db.connect: driver: %s, database %s" % (driver, database))
 # unpack raster and vector maps
 if len(raster) != 0:
     try:
-        tar = tarfile.TarFile.open(name='rastertarpack', mode='r')
+        tar = tarfile.TarFile.open(name = 'rastertarpack', mode = 'r')
         tar.extractall()
         rasters = glob.glob1(homeServer, "*.rasterpack")
     except:
@@ -90,7 +90,7 @@ if len(raster) != 0:
 
 if len(vector) != 0:
     try:
-        tar = tarfile.TarFile.open(name='vectortarpack', mode='r')
+        tar = tarfile.TarFile.open(name = 'vectortarpack', mode = 'r')
         tar.extractall()
         vectors = glob.glob1(homeServer, "*.vectorpack")
     except:

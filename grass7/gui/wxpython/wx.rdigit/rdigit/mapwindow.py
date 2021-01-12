@@ -34,10 +34,10 @@ class RDigitWindow(BufferedWindow):
     """
 
     def __init__(self, parent, giface, Map, frame,
-                 id=wx.ID_ANY, tree=None, lmgr=None,
-                 style=wx.NO_FULL_REPAINT_ON_RESIZE, **kwargs):
-        BufferedWindow.__init__(self, parent=parent, giface=giface, id=id, Map=Map,
-                                frame=frame, tree=tree, style=style, **kwargs)
+                 id = wx.ID_ANY, tree = None, lmgr = None,
+                 style = wx.NO_FULL_REPAINT_ON_RESIZE, **kwargs):
+        BufferedWindow.__init__(self, parent = parent, giface = giface, id = id, Map = Map,
+                                frame = frame, tree = tree, style = style, **kwargs)
         self.lmgr = lmgr
         self.pdcVector = wx.PseudoDC()
         self.toolbar = self.parent.GetToolbar('rdigit')
@@ -72,12 +72,12 @@ class RDigitWindow(BufferedWindow):
 
         # for linear feature show segment and total length
         distance_seg = self.Distance(self.polycoords[-1],
-                                     (e, n), screen=False)[0]
+                                     (e, n), screen = False)[0]
         distance_tot = distance_seg
         for idx in range(1, len(self.polycoords)):
             distance_tot += self.Distance(self.polycoords[idx-1],
                                           self.polycoords[idx],
-                                          screen=False)[0]
+                                          screen = False)[0]
         self.parent.SetStatusText("%.*f, %.*f (seg: %.*f; tot: %.*f)" %
                                                 (precision, e, precision, n,
                                                  precision, distance_seg,
@@ -93,10 +93,10 @@ class RDigitWindow(BufferedWindow):
         event = None
         if not shift:
             if kc == ord('P'):
-                event = wx.CommandEvent(winid=self.toolbar.addPoint)
+                event = wx.CommandEvent(winid = self.toolbar.addPoint)
                 tool = self.toolbar.OnAddPoint
             elif kc == ord('L'):
-                event = wx.CommandEvent(winid=self.toolbar.addLine)
+                event = wx.CommandEvent(winid = self.toolbar.addLine)
                 tool = self.toolbar.OnAddLine
         if event:
             self.toolbar.OnTool(event)
@@ -104,7 +104,7 @@ class RDigitWindow(BufferedWindow):
             tool(event)
 
 
-    def DrawLines2(self, plineid, pdc=None, polycoords=None):
+    def DrawLines2(self, plineid, pdc = None, polycoords = None):
         """!Draw polyline in PseudoDC
 
         Set self.pline to wx.NEW_ID + 1
@@ -123,7 +123,7 @@ class RDigitWindow(BufferedWindow):
             for p in polycoords:
                 coords.append(self.Cell2Pixel(p))
 
-            self.Draw(pdc, drawid=plineid, pdctype='polyline', coords=coords)
+            self.Draw(pdc, drawid = plineid, pdctype = 'polyline', coords = coords)
 
             Debug.msg (2, "BufferedWindow.DrawLines2(): coords=%s, id=%s" %
                            (coords, plineid))
@@ -147,11 +147,11 @@ class RDigitWindow(BufferedWindow):
             #if poly.has_key(self.selectid):
             #print poly[self.selectid]
             if idx != self.selectid:
-                self.pen = self.polypen = wx.Pen(colour=wx.GREEN, width=2)
+                self.pen = self.polypen = wx.Pen(colour = wx.GREEN, width = 2)
             else:
-                self.pen = self.polypen = wx.Pen(colour=wx.RED, width=2)
+                self.pen = self.polypen = wx.Pen(colour = wx.RED, width = 2)
 
-            self.DrawLines2(idx, pdc=self.pdcVector, polycoords=poly[idx])
+            self.DrawLines2(idx, pdc = self.pdcVector, polycoords = poly[idx])
 
         #print self.circles
         for circle in self.circles:
@@ -159,9 +159,9 @@ class RDigitWindow(BufferedWindow):
             C = circle[idx]
 
             if idx != self.selectid_circle:
-                self.pen = self.polypen = wx.Pen(colour=wx.GREEN, width=2)
+                self.pen = self.polypen = wx.Pen(colour = wx.GREEN, width = 2)
             else:
-                self.pen = self.polypen = wx.Pen(colour=wx.RED, width=2)
+                self.pen = self.polypen = wx.Pen(colour = wx.RED, width = 2)
 
             self.pdcVector.BeginDrawing()
             self.pdcVector.SetBrush(wx.Brush(wx.CYAN, wx.TRANSPARENT))
@@ -204,12 +204,12 @@ class RDigitWindow(BufferedWindow):
             #if nfeat < 1:
             #return
 
-            self.UpdateMap(render=False) # redraw map
+            self.UpdateMap(render = False) # redraw map
 
         elif self.toolbar.GetAction('type') in ["line", "boundary", "area"]:
             # add new point to the line
             self.polycoords.append(self.Pixel2Cell(event.GetPositionTuple()[:]))
-            self.DrawLines(pdc=self.pdcTmp)
+            self.DrawLines(pdc = self.pdcTmp)
 
 
     def _onLeftDown(self, event):
@@ -217,26 +217,26 @@ class RDigitWindow(BufferedWindow):
         """
         mapLayer = self.toolbar.GetMapName()
         if not mapLayer:
-            GError(parent=self, message=_("No raster map selected for editing."))
+            GError(parent = self, message = _("No raster map selected for editing."))
             event.Skip()
             return
 
         action = self.toolbar.GetAction()
         #print action
         if not action:
-            GMessage(parent=self,
-                     message=_("Nothing to do. "
+            GMessage(parent = self,
+                     message = _("Nothing to do. "
                                  "Choose appropriate tool from digitizer toolbar."))
             event.Skip()
             return
 
         # set pen
-        self.pen = wx.Pen(colour=UserSettings.Get(group='vdigit', key='symbol',
-                                                    subkey=['newSegment', 'color']),
-                          width=2, style=wx.SHORT_DASH)
-        self.polypen = wx.Pen(colour=UserSettings.Get(group='vdigit', key='symbol',
-                                                        subkey=['newLine', 'color']),
-                              width=2, style=wx.SOLID)
+        self.pen = wx.Pen(colour = UserSettings.Get(group = 'vdigit', key = 'symbol',
+                                                    subkey = ['newSegment', 'color']),
+                          width = 2, style = wx.SHORT_DASH)
+        self.polypen = wx.Pen(colour = UserSettings.Get(group = 'vdigit', key = 'symbol',
+                                                        subkey = ['newLine', 'color']),
+                              width = 2, style = wx.SOLID)
 
         if action == "addLine":
             self.OnLeftDownAddLine(event)
@@ -283,7 +283,7 @@ class RDigitWindow(BufferedWindow):
 
                 ids = []
                 self.polycoords = []
-                self.UpdateMap(render=False)
+                self.UpdateMap(render = False)
 
     def _onLeftUp(self, event):
         """!Left mouse button released"""
@@ -329,7 +329,7 @@ class RDigitWindow(BufferedWindow):
             # -> add new line / boundary
             mapName = self.toolbar.GetMapName()
             if not mapName:
-                GError(parent=self, message=_("No raster map selected for editing."))
+                GError(parent = self, message = _("No raster map selected for editing."))
                 return
 
             if mapName:
@@ -365,7 +365,7 @@ class RDigitWindow(BufferedWindow):
 
                 #Update Map
                 self.polycoords = []
-                self.UpdateMap(render=False)
+                self.UpdateMap(render = False)
                 self.redrawAll = True
                 self.Refresh()
 
@@ -415,7 +415,7 @@ class RDigitWindow(BufferedWindow):
         if action == "addLine" and \
                 self.toolbar.GetAction('type') in ["line", "boundary", "area"]:
             if len(self.polycoords) > 0:
-                self.MouseDraw(pdc=self.pdcTmp, begin=self.Cell2Pixel(self.polycoords[-1]))
+                self.MouseDraw(pdc = self.pdcTmp, begin = self.Cell2Pixel(self.polycoords[-1]))
 
             self.Refresh() # TODO: use RefreshRect()
             self.mouse['begin'] = self.mouse['end']

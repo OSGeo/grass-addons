@@ -70,8 +70,8 @@ class OsmImporter:
     def cleanup(self):
 
         for tmp in self.tmp_vects:
-            grass.run_command('g.remove', flags='f', type='vector',
-                              name=tmp, quiet=True)
+            grass.run_command('g.remove', flags = 'f', type = 'vector',
+                              name = tmp, quiet = True)
 
     def _getTmpName(self, name):
 

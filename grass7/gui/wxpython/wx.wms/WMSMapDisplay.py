@@ -39,7 +39,7 @@ class ImagePanel(wx.Panel):
 
 def NewImageFrame(tempFile):
     NewWindowapp = wx.PySimpleApp()
-    NewWindowframe = wx.Frame(None, -1, "Map Display", size=(400, 300))
+    NewWindowframe = wx.Frame(None, -1, "Map Display", size = (400, 300))
     ImagePanel(NewWindowframe,-1,tempFile)
     NewWindowframe.Show(1)
     NewWindowapp.MainLoop()

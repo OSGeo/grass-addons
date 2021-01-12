@@ -125,7 +125,7 @@ def main():
         grass.fatal(_("Number of tiles in x direction must be > 0"))
     if ytiles < 0:
         grass.fatal(_("Number of tiles in y direction must be > 0"))
-    if grass.find_file(name=input)['name'] == '':
+    if grass.find_file(name = input)['name'] == '':
         grass.fatal(_("Input raster %s not found") % input)
 
     grass.use_temp_region()
@@ -176,7 +176,7 @@ def main():
             if xtile == xtiles - 1:
                 e = curr['e']
 
-            grass.run_command('g.region', n=n, s=s, e=e, w=w, nsres=nsres, ewres=ewres)
+            grass.run_command('g.region', n = n, s = s, e = e, w = w, nsres = nsres, ewres = ewres)
 
             if do_clip:
                 tilename = output + '_stile_' + str(ytile) + str(xtile)
@@ -185,8 +185,8 @@ def main():
 
             outname = output + '_tile_' + str(ytile) + str(xtile)
 
-            grass.run_command('r.to.vect', input=input, output=tilename,
-                              type=ftype, column=column, flags=rtvflags)
+            grass.run_command('r.to.vect', input = input, output = tilename,
+                              type = ftype, column = column, flags = rtvflags)
 
             if do_clip:
                 n2 = curr['n'] - ytile * height * nsres - yoverlap2
@@ -207,22 +207,22 @@ def main():
 
                 tilename = output + '_stile_' + str(ytile) + str(xtile)
                 if grass.vector_info_topo(tilename)['areas'] > 0:
-                    grass.run_command('g.region', n=n2, s=s2, e=e2, w=w2,
-                                      nsres=nsres, ewres=ewres)
+                    grass.run_command('g.region', n = n2, s = s2, e = e2, w = w2,
+                                      nsres = nsres, ewres = ewres)
 
                     extname = 'extent_tile_' + str(ytile) + str(xtile)
-                    grass.run_command('v.in.region', output=extname, flags='d')
+                    grass.run_command('v.in.region', output = extname, flags = 'd')
                     outname = output + '_tile_' + str(ytile) + str(xtile)
-                    grass.run_command('v.overlay', ainput=tilename, binput=extname,
-                                      output=outname, operator='and', olayer='0,1,0')
-                    grass.run_command('g.remove', flags='f', type='vector', name=extname, quiet=True)
+                    grass.run_command('v.overlay', ainput = tilename, binput = extname,
+                                      output = outname, operator = 'and', olayer = '0,1,0')
+                    grass.run_command('g.remove', flags='f', type='vector', name= extname, quiet = True)
 
                     if vtiles is None:
                         vtiles = outname
                     else:
                         vtiles = vtiles + ',' + outname
 
-                grass.run_command('g.remove', flags='f', type='vector', name=tilename, quiet=True)
+                grass.run_command('g.remove', flags='f', type='vector', name= tilename, quiet = True)
 
             else:
                 # write cmd history:
@@ -233,17 +233,17 @@ def main():
                     vtiles = vtiles + ',' + outname
 
     if flags['p']:
-        grass.run_command('v.patch', input=vtiles, output=output,
-                          flags='e')
+        grass.run_command('v.patch', input = vtiles, output = output,
+                          flags = 'e')
 
-        grass.run_command('g.remove', flags='f', type='vector', name=vtiles, quiet=True)
+        grass.run_command('g.remove', flags='f', type='vector', name= vtiles, quiet = True)
 
         if grass.vector_info_topo(output)['boundaries'] > 0:
             outpatch = output + '_patch'
-            grass.run_command('g.rename', vector=(output,outpatch))
-            grass.run_command('v.clean', input=outpatch, output=output,
-                              tool='break', flags='c')
-            grass.run_command('g.remove', flags='f', type='vector', name=outpatch)
+            grass.run_command('g.rename', vector = (output,outpatch))
+            grass.run_command('v.clean', input = outpatch, output = output,
+                              tool = 'break', flags = 'c')
+            grass.run_command('g.remove', flags='f', type='vector', name= outpatch)
 
 
     grass.message(_("%s complete") % 'r.to.vect.tiled')

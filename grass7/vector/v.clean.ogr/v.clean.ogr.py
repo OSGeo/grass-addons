@@ -194,14 +194,14 @@ def main():
     # list input layers
     if flags['l']:
         try:
-            grass.run_command('v.in.ogr', input=indsn, flags='l')
+            grass.run_command('v.in.ogr', input=indsn, flags = 'l')
         except CalledModuleError:
             grass.fatal(_("Unable to list layers in OGR datasource <%s>") % indsn)
         return 0
 
     # list output formats
     if flags['f']:
-        grass.run_command('v.out.ogr', flags='l')
+        grass.run_command('v.out.ogr', flags = 'l')
         return 0
 
     # import options

@@ -137,7 +137,7 @@ def main():
         isis3['Scale'] = "%f <pixel/degree>" % float(options['outres'])
     isis3['TargetName'] = body
     if flags['a']:
-        ret = grass.start_command("g.region", flags="gl", stdout=subprocess.PIPE)
+        ret = grass.start_command("g.region", flags="gl", stdout = subprocess.PIPE)
         exec(ret.communicate()[0])
         isis3['MinimumLatitude'] = "%f" % min(se_lat,sw_lat)
         isis3['MaximumLatitude'] = "%f" % max(ne_lat,nw_lat)

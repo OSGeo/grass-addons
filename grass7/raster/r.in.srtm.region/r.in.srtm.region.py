@@ -143,9 +143,9 @@ def import_local_tile(tile, local, pid, srtmv3, one):
     if os.path.exists(path):
         path = os.path.join(local, local_tile)
         if one:
-            grass.run_command('r.in.srtm', input=path, output=output, flags='1', quiet=True)
+            grass.run_command('r.in.srtm', input = path, output = output, flags = '1', quiet = True)
         else:
-            grass.run_command('r.in.srtm', input=path, output=output, quiet=True)
+            grass.run_command('r.in.srtm', input = path, output = output, quiet = True)
         return 1
 
     # SRTM subdirs: Africa, Australia, Eurasia, Islands, North_America, South_America
@@ -155,9 +155,9 @@ def import_local_tile(tile, local, pid, srtmv3, one):
         if os.path.exists(path):
             path = os.path.join(local, srtmdir, local_tile)
             if one:
-                grass.run_command('r.in.srtm', input=path, output=output, flags='1', quiet=True)
+                grass.run_command('r.in.srtm', input = path, output = output, flags = '1', quiet = True)
             else:
-                grass.run_command('r.in.srtm', input=path, output=output, quiet=True)
+                grass.run_command('r.in.srtm', input = path, output = output, quiet = True)
             return 1
 
     return 0
@@ -165,7 +165,7 @@ def import_local_tile(tile, local, pid, srtmv3, one):
 
 def download_tile(tile, url, pid, srtmv3, one, username, password):
 
-    grass.debug("Download tile: %s" % tile, debug=1)
+    grass.debug("Download tile: %s" % tile, debug = 1)
     output = tile + '.r.in.srtm.tmp.' + str(pid)
     if srtmv3:
         if one:
@@ -235,8 +235,8 @@ def cleanup():
         return
     os.chdir(currdir)
     if tmpregionname:
-        grass.run_command('g.region', region=tmpregionname)
-        grass.run_command('g.remove', type='region', name=tmpregionname, flags='f', quiet=True)
+        grass.run_command('g.region', region = tmpregionname)
+        grass.run_command('g.remove', type = 'region', name = tmpregionname, flags = 'f', quiet = True)
     grass.try_rmdir(tmpdir)
     if TGTGISRC:
         os.environ['GISRC'] = str(TGTGISRC)
@@ -414,7 +414,7 @@ def main():
     rows = abs(north - south)
     cols = abs(east - west)
     ntiles = rows * cols
-    grass.message(_("Importing %d SRTM tiles...") % ntiles, flag='i')
+    grass.message(_("Importing %d SRTM tiles...") % ntiles, flag = 'i')
     counter = 1
 
     srtmtiles = ''
@@ -433,7 +433,7 @@ def main():
             else:
                 tile = tile + 'E'
             tile = tile + '%03d' % abs(edeg)
-            grass.debug("Tile: %s" % tile, debug=1)
+            grass.debug("Tile: %s" % tile, debug = 1)
 
             if local != tmpdir:
                 gotit = import_local_tile(tile, local, pid, srtmv3, one)
@@ -489,70 +489,70 @@ def main():
                     else:
                         tmpw = '%03d:59:58.5E' % (edeg - 1)
 
-                grass.run_command('g.region', n=tmpn, s=tmps, e=tmpe, w=tmpw, res=res)
-                grass.run_command('r.mapcalc', expression="%s = 0" % (tile + '.r.in.srtm.tmp.' + str(pid)), quiet=True)
-                grass.run_command('g.region', region=tmpregionname)
+                grass.run_command('g.region', n = tmpn, s = tmps, e = tmpe, w = tmpw, res = res)
+                grass.run_command('r.mapcalc', expression = "%s = 0" % (tile + '.r.in.srtm.tmp.' + str(pid)), quiet = True)
+                grass.run_command('g.region', region = tmpregionname)
 
 
     # g.list with sep = comma does not work ???
     pattern = '*.r.in.srtm.tmp.%d' % pid
-    srtmtiles = grass.read_command('g.list', type='raster',
-                                   pattern=pattern,
-                                   sep='newline',
-                                   quiet=True)
+    srtmtiles = grass.read_command('g.list', type = 'raster',
+                                   pattern = pattern,
+                                   sep = 'newline',
+                                   quiet = True)
 
     srtmtiles = srtmtiles.splitlines()
     srtmtiles = ','.join(srtmtiles)
-    grass.debug("'List of Tiles: %s" % srtmtiles, debug=1)
+    grass.debug("'List of Tiles: %s" % srtmtiles, debug = 1)
 
     if valid_tiles == 0:
-        grass.run_command('g.remove', type='raster', name=str(srtmtiles), flags='f', quiet=True)
+        grass.run_command('g.remove', type = 'raster', name = str(srtmtiles), flags = 'f', quiet = True)
         grass.warning(_("No tiles imported"))
         if local != tmpdir:
             grass.fatal(_("Please check if local folder <%s> is correct.") % local)
         else:
             grass.fatal(_("Please check internet connection, credentials, and if url <%s> is correct.") % url)
 
-    grass.run_command('g.region', raster=str(srtmtiles))
+    grass.run_command('g.region', raster = str(srtmtiles))
 
     grass.message(_("Patching tiles..."))
     if fillnulls == 0:
         if valid_tiles > 1:
             if kv['+proj'] != 'longlat':
-                grass.run_command('r.buildvrt', input=srtmtiles, output=output)
+                grass.run_command('r.buildvrt', input = srtmtiles, output = output)
             else:
-                grass.run_command('r.patch', input=srtmtiles, output=output)
+                grass.run_command('r.patch', input = srtmtiles, output = output)
         else:
-            grass.run_command('g.rename', raster='%s,%s' % (srtmtiles, output), quiet=True)
+            grass.run_command('g.rename', raster = '%s,%s' % (srtmtiles, output), quiet = True)
     else:
         ncells = grass.region()['cells']
         if long(ncells) > 1000000000:
-            grass.message(_("%s cells to interpolate, this will take some time") % str(ncells), flag='i')
+            grass.message(_("%s cells to interpolate, this will take some time") % str(ncells), flag = 'i')
         if kv['+proj'] != 'longlat':
-            grass.run_command('r.buildvrt', input=srtmtiles, output=output + '.holes')
+            grass.run_command('r.buildvrt', input = srtmtiles, output = output + '.holes')
         else:
-            grass.run_command('r.patch', input=srtmtiles, output=output + '.holes')
-        mapstats = grass.parse_command('r.univar', map=output + '.holes', flags='g', quiet=True)
+            grass.run_command('r.patch', input = srtmtiles, output = output + '.holes')
+        mapstats = grass.parse_command('r.univar', map = output + '.holes', flags = 'g', quiet = True)
         if mapstats['null_cells'] == '0':
-            grass.run_command('g.rename', raster='%s,%s' % (output + '.holes', output), quiet=True)
+            grass.run_command('g.rename', raster = '%s,%s' % (output + '.holes', output), quiet = True)
         else:
             grass.run_command('r.resamp.bspline',
-                              input=output + '.holes',
-                              output=output + '.interp',
-                              se='0.0025', sn='0.0025',
-                              method='linear',
-                              memory=memory,
-                              flags='n')
+                              input = output + '.holes',
+                              output = output + '.interp',
+                              se = '0.0025', sn = '0.0025',
+                              method = 'linear',
+                              memory = memory,
+                              flags = 'n')
             grass.run_command('r.patch',
-                              input='%s,%s' % (output + '.holes',
+                              input = '%s,%s' % (output + '.holes',
                               output + '.interp'),
-                              output=output + '.float',
-                              flags='z')
-            grass.run_command('r.mapcalc', expression='%s = round(%s)' % (output, output + '.float'))
-            grass.run_command('g.remove', type='raster',
-                              name='%s,%s,%s' % (output + '.holes', output + '.interp', output + '.float'),
-                              flags='f',
-                              quiet=True)
+                              output = output + '.float',
+                              flags = 'z')
+            grass.run_command('r.mapcalc', expression = '%s = round(%s)' % (output, output + '.float'))
+            grass.run_command('g.remove', type = 'raster',
+                              name = '%s,%s,%s' % (output + '.holes', output + '.interp', output + '.float'),
+                              flags = 'f',
+                              quiet = True)
 
 
     # switch to target location
@@ -575,10 +575,10 @@ def main():
             grass.fatal(_("Unable to to reproject raster <%s>") % output)
     else:
         if fillnulls != 0:
-            grass.run_command('g.remove', type='raster', pattern=pattern, flags='f', quiet=True)
+            grass.run_command('g.remove', type = 'raster', pattern = pattern, flags = 'f', quiet = True)
 
     # nice color table
-    grass.run_command('r.colors', map=output, color='srtm', quiet=True)
+    grass.run_command('r.colors', map = output, color = 'srtm', quiet = True)
 
     # write metadata:
     tmphist = grass.tempfile()
@@ -589,11 +589,11 @@ def main():
         source1 = 'SRTM V3'
     else:
         source1 = 'SRTM V2.1'
-    grass.run_command('r.support', map=output,
-                      loadhistory=tmphist,
-                      description='generated by r.in.srtm.region',
-                      source1=source1,
-                      source2=(local if local != tmpdir else url))
+    grass.run_command('r.support', map = output,
+                      loadhistory = tmphist,
+                      description = 'generated by r.in.srtm.region',
+                      source1 = source1,
+                      source2 = (local if local != tmpdir else url))
     grass.try_remove(tmphist)
 
     grass.message(_("Done: generated map <%s>") % output)

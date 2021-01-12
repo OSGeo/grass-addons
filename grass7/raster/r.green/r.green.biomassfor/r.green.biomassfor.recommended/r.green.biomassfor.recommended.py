@@ -179,7 +179,7 @@ def main(opts, flgs):
         run_command("r.null", map=rivers, null=0)
         run_command("r.buffer", overwrite=ow,
                 input=rivers, output="rivers_buffer",
-                distances=buffer_hydro,flags='z')
+                distances=buffer_hydro,flags = 'z')
         run_command("r.null", map="rivers_buffer", null=0)
         if check_var == 1:
             expr_map += "|| (rivers || rivers_buffer)"

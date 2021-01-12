@@ -20,13 +20,13 @@ class WFSOwsLibDrv(WFSBase):
         else:
             query_bbox = self.bbox
 
-        wfs = WebFeatureService(url=self.o_url, version=self.o_wfs_version)
+        wfs = WebFeatureService(url = self.o_url, version= self.o_wfs_version)
 
         try:
-            wfs_data = wfs.getfeature(typename=[self.o_layers],
-                                       srsname="EPSG:" + str(self.o_srs),
-                                       maxfeatures=self.o_maximum_features,
-                                       bbox=query_bbox)
+            wfs_data = wfs.getfeature(typename = [self.o_layers],
+                                       srsname = "EPSG:" + str(self.o_srs),
+                                       maxfeatures = self.o_maximum_features,
+                                       bbox = query_bbox)
         #TODO do it better
         except ServiceException as e:
             grass.fatal(_("Server returned exception"))

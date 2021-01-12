@@ -136,11 +136,11 @@ clean_rast = set()
 def cleanup():
     for rast in clean_rast:
         grass.run_command("g.remove", flags="f",
-        type="rast", name=rast, quiet=True)
+        type="rast", name = rast, quiet = True)
 
 def CheckLayer(envlay):
     for chl in range(len(envlay)):
-        ffile = grass.find_file(envlay[chl], element='cell')
+        ffile = grass.find_file(envlay[chl], element = 'cell')
         if ffile['fullname'] == '':
             grass.fatal("The layer " + envlay[chl] + " does not exist.")
 
@@ -153,7 +153,7 @@ def tmpname(name):
 
 # Create mask for all areas with sum=0, incorporate existing mask
 def replacemask(inmap):
-    msk = grass.find_file(name='MASK', element='cell',
+    msk = grass.find_file(name='MASK', element = 'cell',
                           mapset=grass.gisenv()['MAPSET'])
     minval = float(grass.parse_command("r.info", flags="gr",
                                        map=inmap, quiet=True)['min'])

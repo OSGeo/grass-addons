@@ -108,24 +108,24 @@ tmp_group = str(uuid.uuid4())
 
 def cleanup():
     grass.run_command("g.remove",
-                      type="group",
-                      name=tmp_group,
-                      flags="f",
-                      quiet=True)
+                      type = "group",
+                      name = tmp_group,
+                      flags = "f",
+                      quiet = True)
 
 def main():
     grass.run_command("i.group",
-                      input=(options["latshift"], options["lonshift"]),
-                      group=tmp_group,
-                      quiet=True)
+                      input = (options["latshift"], options["lonshift"]),
+                      group = tmp_group,
+                      quiet = True)
 
     grass.run_command("r.out.gdal",
-                      input=tmp_group,
-                      output=options["output"],
-                      format="NTv2",
-                      type="Float32",
-                      quiet=True,
-                      metaopt=("CREATED="+time.strftime("%Y%m%d"),
+                      input = tmp_group,
+                      output = options["output"],
+                      format = "NTv2",
+                      type = "Float32",
+                      quiet = True,
+                      metaopt = ("CREATED="+time.strftime("%Y%m%d"),
                                 "GS_TYPE=SECONDS",
                                 "SYSTEM_T="+options["systemt"],
                                 "MAJOR_T="+options["majort"],

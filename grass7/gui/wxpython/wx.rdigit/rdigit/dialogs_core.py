@@ -27,9 +27,9 @@ import ctypes
 
 
 class NewRasterDialog(ElementDialog):
-    def __init__(self, parent, id=wx.ID_ANY, title=_('Create new vector map'),
-                 disableAdd=False, showType=False,
-                 style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER, *kwargs):
+    def __init__(self, parent, id = wx.ID_ANY, title = _('Create new vector map'),
+                 disableAdd = False, showType = False,
+                 style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER, *kwargs):
         """!Dialog for creating new vector map
 
         @param parent parent window
@@ -42,25 +42,25 @@ class NewRasterDialog(ElementDialog):
 
         @return dialog instance
         """
-        ElementDialog.__init__(self, parent, title, label=_("Name for new raster map:"))
+        ElementDialog.__init__(self, parent, title, label = _("Name for new raster map:"))
 
-        self.element = Select(parent=self.panel, id=wx.ID_ANY, size=globalvar.DIALOG_GSELECT_SIZE,
-                              type='raster', mapsets=[grass.gisenv()['MAPSET'],])
+        self.element = Select(parent = self.panel, id = wx.ID_ANY, size = globalvar.DIALOG_GSELECT_SIZE,
+                              type = 'raster', mapsets = [grass.gisenv()['MAPSET'],])
 
         # determine output format
         if showType:
-            self.ftype = GdalSelect(parent=self, panel=self.panel)
+            self.ftype = GdalSelect(parent = self, panel = self.panel)
         else:
             self.ftype = None
 
 
-        self.addbox = wx.CheckBox(parent=self.panel,
-                                  label=_('Add created map into layer tree'), style=wx.NO_BORDER)
+        self.addbox = wx.CheckBox(parent = self.panel,
+                                  label = _('Add created map into layer tree'), style = wx.NO_BORDER)
         if disableAdd:
             self.addbox.SetValue(True)
             self.addbox.Enable(False)
         else:
-            self.addbox.SetValue(UserSettings.Get(group='cmd', key='addNewLayer', subkey='enabled'))
+            self.addbox.SetValue(UserSettings.Get(group = 'cmd', key = 'addNewLayer', subkey = 'enabled'))
 
 
 
@@ -77,24 +77,24 @@ class NewRasterDialog(ElementDialog):
 
     def _layout(self):
         """!Do layout"""
-        self.dataSizer.Add(item=self.element, proportion=0,
-                      flag=wx.EXPAND | wx.ALL, border=1)
+        self.dataSizer.Add(item = self.element, proportion = 0,
+                      flag = wx.EXPAND | wx.ALL, border = 1)
         if self.ftype:
             self.dataSizer.AddSpacer(1)
-            self.dataSizer.Add(item=self.ftype, proportion=0,
-                               flag=wx.EXPAND | wx.ALL, border=1)
+            self.dataSizer.Add(item = self.ftype, proportion = 0,
+                               flag = wx.EXPAND | wx.ALL, border = 1)
 
 
 
         self.dataSizer.AddSpacer(5)
 
-        self.dataSizer.Add(item=self.addbox, proportion=0,
-                      flag=wx.EXPAND | wx.ALL, border=1)
+        self.dataSizer.Add(item = self.addbox, proportion = 0,
+                      flag = wx.EXPAND | wx.ALL, border = 1)
 
         self.panel.SetSizer(self.sizer)
         self.sizer.Fit(self)
 
-    def GetName(self, full=False):
+    def GetName(self, full = False):
         """!Get name of vector map to be created
 
         @param full True to get fully qualified name
@@ -137,9 +137,9 @@ class NewRasterDialog(ElementDialog):
 
         return None
 
-def CreateNewRaster(parent, title=_('Create new vector map'),
-                    exceptMap=None,
-                    disableAdd=False):
+def CreateNewRaster(parent, title = _('Create new vector map'),
+                    exceptMap = None,
+                    disableAdd = False):
     """!Create new vector map layer
 
     @param cmd (prog, **kwargs)
@@ -150,7 +150,7 @@ def CreateNewRaster(parent, title=_('Create new vector map'),
     @return dialog instance
     @return None on error
     """
-    vExternalOut = grass.parse_command('r.external.out', flags='p', delimiter=':')
+    vExternalOut = grass.parse_command('r.external.out', flags = 'p', delimiter = ':')
 
 
     UsingGDAL = "Not using GDAL" not in vExternalOut
@@ -161,8 +161,8 @@ def CreateNewRaster(parent, title=_('Create new vector map'),
     else:
         showType = True
 
-    dlg = NewRasterDialog(parent, title=title,
-                          disableAdd=disableAdd, showType=showType)
+    dlg = NewRasterDialog(parent, title = title,
+                          disableAdd = disableAdd, showType = showType)
 
     if dlg.ShowModal() != wx.ID_OK:
         dlg.Destroy()
@@ -171,8 +171,8 @@ def CreateNewRaster(parent, title=_('Create new vector map'),
     outmap = dlg.GetName()
     #key    = dlg.GetKey()
     if outmap == exceptMap:
-        GError(parent=parent,
-               message=_("Unable to create raster map <%s>.") % outmap)
+        GError(parent = parent,
+               message = _("Unable to create raster map <%s>.") % outmap)
         dlg.Destroy()
         return None
 
@@ -187,20 +187,20 @@ def CreateNewRaster(parent, title=_('Create new vector map'),
         listOfRasters = grass.list_grouped('rast')[grass.gisenv()['MAPSET']]
     else:
         listOfRasters = RunCommand('r.external',
-                                   quiet=True,
-                                   parent=parent,
-                                   read=True,
-                                   flags='l',
-                                   out=outmap,
-                                   source=vExternalOut['directory']).splitlines()
+                                   quiet = True,
+                                   parent = parent,
+                                   read = True,
+                                   flags = 'l',
+                                   out = outmap,
+                                   source = vExternalOut['directory']).splitlines()
 
-    if not UserSettings.Get(group='cmd', key='overwrite', subkey='enabled') and \
+    if not UserSettings.Get(group = 'cmd', key = 'overwrite', subkey = 'enabled') and \
             outmap in listOfRasters:
-        dlgOw = wx.MessageDialog(parent, message=_("Raster map <%s> already exists "
+        dlgOw = wx.MessageDialog(parent, message = _("Raster map <%s> already exists "
                                                      "in the current mapset. "
                                                      "Do you want to overwrite it?") % outmap,
-                                 caption=_("Overwrite?"),
-                                 style=wx.YES_NO | wx.YES_DEFAULT | wx.ICON_QUESTION)
+                                 caption = _("Overwrite?"),
+                                 style = wx.YES_NO | wx.YES_DEFAULT | wx.ICON_QUESTION)
         if dlgOw.ShowModal() == wx.ID_YES:
             overwrite = True
         else:
@@ -208,7 +208,7 @@ def CreateNewRaster(parent, title=_('Create new vector map'),
             dlg.Destroy()
             return None
 
-    if UserSettings.Get(group='cmd', key='overwrite', subkey='enabled'):
+    if UserSettings.Get(group = 'cmd', key = 'overwrite', subkey = 'enabled'):
         overwrite = True
 
 
@@ -217,10 +217,10 @@ def CreateNewRaster(parent, title=_('Create new vector map'),
     if UsingGDAL:
         # create link for OGR layers
         RunCommand('r.external',
-                   overwrite=overwrite,
-                   parent=parent,
-                   directory=vExternalOut['directory'],
-                   layer=outmap)
+                   overwrite = overwrite,
+                   parent = parent,
+                   directory = vExternalOut['directory'],
+                   layer = outmap)
 
 
     # return fully qualified map name

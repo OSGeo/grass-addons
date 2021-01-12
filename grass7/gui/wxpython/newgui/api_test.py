@@ -67,10 +67,10 @@ class MySingleMapFrame(MapFrameBase):
     (when using class or when writing class itself).
     """
 
-    def __init__(self, parent=None, giface=None, id=wx.ID_ANY, title=None,
-                 style=wx.DEFAULT_FRAME_STYLE,
-                 Map=Map(),
-                 auimgr=None, name=None, **kwargs):
+    def __init__(self, parent = None, giface = None, id = wx.ID_ANY, title = None,
+                 style = wx.DEFAULT_FRAME_STYLE,
+                 Map = Map(),
+                 auimgr = None, name = None, **kwargs):
         """!
 
         @param parent gui parent
@@ -82,9 +82,9 @@ class MySingleMapFrame(MapFrameBase):
         @param kwargs arguments passed to MapFrameBase
         """
 
-        MapFrameBase.__init__(self, parent=parent, id=id, title=title,
-                              style=style,
-                              auimgr=auimgr, name=name, **kwargs)
+        MapFrameBase.__init__(self, parent = parent, id = id, title = title,
+                              style = style,
+                              auimgr = auimgr, name = name, **kwargs)
 
         self.Map = Map       # instance of render.Map
 
@@ -99,11 +99,11 @@ class MySingleMapFrame(MapFrameBase):
         # initialize region values
         #
 
-        self._initMap(Map=self.Map)
+        self._initMap(Map = self.Map)
 
         self._lmgr = LayerManager(p,self.Map)
 
-        self.MapWindow = BufferedWindow2(p, giface=giface, id=id, Map=self.Map)
+        self.MapWindow = BufferedWindow2(p, giface = giface, id = id, Map = self.Map)
 
         self.toolbar = None
 
@@ -122,11 +122,11 @@ class MySingleMapFrame(MapFrameBase):
         tid = tname.values()[0][0]
         tooltip = tname.values()[0][1]
 
-        self.toolbar.AddLabelTool(tid, label, self.GetIcon(label), shortHelp=tooltip)
+        self.toolbar.AddLabelTool(tid, label, self.GetIcon(label), shortHelp = tooltip)
         wx.EVT_TOOL(self, tid, func)
 
     def GetIcon(self, tname):
-        return MetaIcon(img=tname).GetBitmap()
+        return MetaIcon(img = tname).GetBitmap()
 
 
     def GetLayerByIndex(self, index):
@@ -159,7 +159,7 @@ class MySingleMapFrame(MapFrameBase):
     def OnRender(self, event):
         """!Re-render map composition (each map layer)
         """
-        self.GetWindow().UpdateMap(render=True, renderVector=True)
+        self.GetWindow().UpdateMap(render = True, renderVector = True)
 
         # update statusbar
         #rashad
@@ -167,22 +167,22 @@ class MySingleMapFrame(MapFrameBase):
 
 class LayerManager(wx.Panel):
 
-    def __init__(self, parent, Map, id=wx.ID_ANY, style=wx.SUNKEN_BORDER,
-                 ctstyle=CT.TR_HAS_BUTTONS | CT.TR_HAS_VARIABLE_ROW_HEIGHT |
+    def __init__(self, parent, Map, id = wx.ID_ANY, style = wx.SUNKEN_BORDER,
+                 ctstyle = CT.TR_HAS_BUTTONS | CT.TR_HAS_VARIABLE_ROW_HEIGHT |
                  CT.TR_HIDE_ROOT | CT.TR_ROW_LINES | CT.TR_FULL_ROW_HIGHLIGHT |
                  CT.TR_MULTIPLE, **kwargs):
 
-        wx.Panel.__init__(self, parent=parent, id=id, style=style)
+        wx.Panel.__init__(self, parent = parent, id =id, style = style)
 
         self._layerList = []
         self._activeLayer = None
         self._activeIndex = 0
         self._Map = Map
 
-        self.ltree = LayerTree(self,Map, id=id, style=style, ctstyle=ctstyle, **kwargs)
+        self.ltree = LayerTree(self,Map, id = id, style = style, ctstyle = ctstyle, **kwargs)
         self.ltree.SetSize((300,500))
 
-    def AddLayer(self, layer, active=True):
+    def AddLayer(self, layer, active = True):
         self.ltree.AddLayer(layer, True)
 
     def GetLayerByIndex(self, index):
@@ -197,9 +197,9 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
     def __init__(self, parent, Map, id, style, ctstyle, **kwargs):
 
         if globalvar.hasAgw:
-            super(LayerTree, self).__init__(parent, id, agwStyle=ctstyle, **kwargs)
+            super(LayerTree, self).__init__(parent, id, agwStyle = ctstyle, **kwargs)
         else:
-            super(LayerTree, self).__init__(parent, id, style=ctstyle, **kwargs)
+            super(LayerTree, self).__init__(parent, id, style = ctstyle, **kwargs)
 
         #wx.Window.__init__(self, parent = parent, id =-2)
         #self.panel = wx.Panel(self, )
@@ -211,7 +211,7 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         self.SetPyData(self.root, (None, None))
 
 
-        il = wx.ImageList(16, 16, mask=False)
+        il = wx.ImageList(16, 16, mask = False)
 
         trart = wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, wx.ART_OTHER, (16, 16))
         self.folder_open = il.Add(trart)
@@ -269,7 +269,7 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
 
         self.AssignImageList(il)
 
-    def AddLayer(self, layer, active=True, multiple=True, lchecked=True):
+    def AddLayer(self, layer, active = True, multiple = True, lchecked = True):
         self._Map.AddMapLayer(layer)
         self._layerList.append(layer)
         self._activeIndex = len(self._layerList) - 1
@@ -277,8 +277,8 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
             # check for duplicates
             item = self.GetFirstVisibleItem()
             while item and item.IsOk():
-                if self.GetLayerInfo(item, key='type') == 'vector':
-                    name = self.GetLayerInfo(item, key='maplayer').GetName()
+                if self.GetLayerInfo(item, key = 'type') == 'vector':
+                    name = self.GetLayerInfo(item, key = 'maplayer').GetName()
                     if name == lname:
                         return
                 item = self.GetNextVisible(item)
@@ -287,16 +287,16 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
 
         # deselect active item
         if self._activeLayer:
-            self.SelectItem(self._activeLayer, select=False)
+            self.SelectItem(self._activeLayer, select = False)
 
         Debug.msg (3, "LayerTree().AddLayer(): ltype=%s" % (layer.type))
 
         if layer.type == 'command':
             # generic command item
-            ctrl = wx.TextCtrl(self, id=wx.ID_ANY, value='',
-                               pos=wx.DefaultPosition, size=(self.GetSize()[0]-100,25),
+            ctrl = wx.TextCtrl(self, id = wx.ID_ANY, value = '',
+                               pos = wx.DefaultPosition, size = (self.GetSize()[0]-100,25),
                                # style = wx.TE_MULTILINE|wx.TE_WORDWRAP)
-                               style=wx.TE_PROCESS_ENTER | wx.TE_DONTWRAP)
+                               style = wx.TE_PROCESS_ENTER | wx.TE_DONTWRAP)
             ctrl.Bind(wx.EVT_TEXT_ENTER, self.OnCmdChanged)
             # ctrl.Bind(wx.EVT_TEXT,       self.OnCmdChanged)
         elif layer.type == 'group':
@@ -306,37 +306,37 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
             self.groupnode += 1
         else:
             btnbmp = LMIcons["layerOptions"].GetBitmap((16,16))
-            ctrl = buttons.GenBitmapButton(self, id=wx.ID_ANY, bitmap=btnbmp, size=(24,24))
+            ctrl = buttons.GenBitmapButton(self, id = wx.ID_ANY, bitmap = btnbmp, size = (24,24))
             ctrl.SetToolTipString(_("Click to edit layer settings"))
 #rashad            self.Bind(wx.EVT_BUTTON, self.OnLayerContextMenu, ctrl)
         # add layer to the layer tree
         if self._activeLayer and self._activeLayer != self.GetRootItem():
-            if self.GetLayerInfo(self._activeLayer, key='type') == 'group' \
+            if self.GetLayerInfo(self._activeLayer, key = 'type') == 'group' \
                 and self.IsExpanded(self._activeLayer):
                 # add to group (first child of self._activeLayer) if group expanded
-                layeritem = self.PrependItem(parent=self._activeLayer,
-                                         text='', ct_type=1, wnd=ctrl)
+                layeritem = self.PrependItem(parent = self._activeLayer,
+                                         text = '', ct_type = 1, wnd = ctrl)
             else:
                 # prepend to individual layer or non-expanded group
                 if lgroup == -1:
                     # -> last child of root (loading from workspace)
-                    layeritem = self.AppendItem(parentId=self.root,
-                                            text='', ct_type=1, wnd=ctrl)
+                    layeritem = self.AppendItem(parentId = self.root,
+                                            text = '', ct_type = 1, wnd = ctrl)
                 elif lgroup > -1:
                     # -> last child of group (loading from workspace)
-                    parent = self.FindItemByIndex(index=lgroup)
+                    parent = self.FindItemByIndex(index = lgroup)
                     if not parent:
                         parent = self.root
-                    layeritem = self.AppendItem(parentId=parent,
-                                            text='', ct_type=1, wnd=ctrl)
+                    layeritem = self.AppendItem(parentId = parent,
+                                            text = '', ct_type = 1, wnd = ctrl)
                 elif lgroup is None:
                     # -> previous sibling of selected layer
                     parent = self.GetItemParent(self._activeLayer)
-                    layeritem = self.InsertItem(parentId=parent,
-                                            input=self.GetPrevSibling(self._activeLayer),
-                                            text='', ct_type=1, wnd=ctrl)
+                    layeritem = self.InsertItem(parentId = parent,
+                                            input = self.GetPrevSibling(self._activeLayer),
+                                            text = '', ct_type = 1, wnd = ctrl)
         else: # add first layer to the layer tree (first child of root)
-            layeritem = self.PrependItem(parent=self.root, text='', ct_type=1, wnd=ctrl)
+            layeritem = self.PrependItem(parent = self.root, text = '', ct_type = 1, wnd = ctrl)
 
         # layer is initially unchecked as inactive (beside 'command')
         # use predefined value if given
@@ -346,7 +346,7 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
             checked = True
 
         self.forceCheck = True
-        self.CheckItem(layeritem, checked=checked)
+        self.CheckItem(layeritem, checked = checked)
 
         # add text and icons for each layer layer.type
         label = _('(double click to set properties)') + ' ' * 15
@@ -439,8 +439,8 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
             prevMapLayer = None
             pos = -1
             while prevItem and prevItem.IsOk() and prevItem != layeritem:
-                if self.GetLayerInfo(prevItem, key='maplayer'):
-                    prevMapLayer = self.GetLayerInfo(prevItem, key='maplayer')
+                if self.GetLayerInfo(prevItem, key = 'maplayer'):
+                    prevMapLayer = self.GetLayerInfo(prevItem, key = 'maplayer')
 
                 prevItem = self.GetNextSibling(prevItem)
 
@@ -469,7 +469,7 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
                                    None))
 
         # select new item
-        self.SelectItem(layeritem, select=True)
+        self.SelectItem(layeritem, select = True)
 
         # use predefined layer name if given
         if layer.name:

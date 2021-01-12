@@ -77,7 +77,7 @@ def main():
         outf.write("+ %s: (continuous)\n" % attributes[i])
     outf.write("+ %s: [" % decision)
     value = []
-    value = grass.read_command("r.describe", flags="1n", map=decision)
+    value = grass.read_command("r.describe", flags = "1n", map = decision)
     v = value.split()
 
     for i in range(len(v)-1):
@@ -101,10 +101,10 @@ def main():
                          rast="rast",
                          decision=decision,
                          attribute=attributes[i])
-        tmp = grass.read_command("r.stats", flags="1n", nv="?", input="rast")
+        tmp = grass.read_command("r.stats", flags = "1n", nv="?", input = "rast")
         example = tmp.split()
         examples.append(example)
-    tmp = grass.read_command("r.stats", flags="1n", nv="?", input=decision)
+    tmp = grass.read_command("r.stats", flags = "1n", nv="?", input = decision)
     example = tmp.split()
 
     examples.append(example)

@@ -356,7 +356,8 @@ def main():
                     + ' where cat='+str(allcats[i]))
         # (un)Project to lat/lon
         _centroid_ll = gscript.parse_command('m.proj',
-                                             coordinates=list(hru_centroid_locations[i]),
+                                             coordinates=
+                                             list(hru_centroid_locations[i]),
                                              flags='od').keys()[0]
         _lon, _lat, _z = _centroid_ll.split('|')
         cur.execute('update '+HRU

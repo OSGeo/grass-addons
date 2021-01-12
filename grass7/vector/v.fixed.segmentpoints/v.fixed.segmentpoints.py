@@ -75,37 +75,37 @@ def main():
 
     # Extract vector line
     grass.message("Extract vector line for which segment points should be calculated ...")
-    grass.run_command('v.extract', input=vlines,
-                                     output=voutline,
-                                     cats=vcat)
+    grass.run_command('v.extract', input = vlines,
+                                     output = voutline,
+                                     cats = vcat)
     grass.message("Extraction done.")
     grass.message("----")
 
     # Calculate vector line length and populate it to the attribute table
     grass.message("Calculate vector line length and populate it to the attribute table ...")
-    grass.run_command("v.db.addcolumn", map=voutline,
-                                     layer=1,
-                                     columns="vlength double")
+    grass.run_command("v.db.addcolumn", map = voutline,
+                                     layer = 1,
+                                     columns = "vlength double")
 
-    grass.run_command("v.to.db", map=voutline,
-                                     option='length',
-                                     layer=1,
-                                     columns='vlength',
-                                     overwrite=True)
+    grass.run_command("v.to.db", map = voutline,
+                                     option = 'length',
+                                     layer = 1,
+                                     columns = 'vlength',
+                                     overwrite = True)
 
     grass.message("Calculate vector line length done.")
     grass.message("----")
 
     # Read length
-    tmp = grass.read_command('v.to.db', map=voutline,
-                                     type='line',
-                                     layer=1,
-                                     qlayer=1,
-                                     option='length',
-                                     units='meters',
-                                     column='vlength',
-                                     flags='p',
-                                     quiet=True)
+    tmp = grass.read_command('v.to.db', map = voutline,
+                                     type = 'line',
+                                     layer = 1,
+                                     qlayer = 1,
+                                     option = 'length',
+                                     units = 'meters',
+                                     column = 'vlength',
+                                     flags = 'p',
+                                     quiet = True)
     vector_line_length = float(tmp.split('|')[1])
 
     # Print vector line length
@@ -147,25 +147,25 @@ def main():
 
     # Run v.segment with the segment point input
     grass.message("Run v.segment ...")
-    grass.run_command("v.segment", input=voutline,
-                                     output=voutpoint,
-                                     rules=segment_points_file)
+    grass.run_command("v.segment", input = voutline,
+                                     output = voutpoint,
+                                     rules = segment_points_file)
 
-    grass.run_command("v.db.addtable", map=voutpoint)
+    grass.run_command("v.db.addtable", map = voutpoint)
     grass.message("v.segment done.")
     grass.message("----")
 
     # Adding coordinates to segment points attribute table.
     grass.message("Adding coordinates to segment points attribute table ...")
 
-    grass.run_command("v.db.addcolumn", map=voutpoint,
-                                     layer=1,
-                                     columns="xcoor double,ycoor double")
+    grass.run_command("v.db.addcolumn", map = voutpoint,
+                                     layer = 1,
+                                     columns = "xcoor double,ycoor double")
 
-    grass.run_command("v.to.db", map=voutpoint,
-                                     option='coor',
-                                     layer=1,
-                                     columns='xcoor,ycoor', overwrite=True)
+    grass.run_command("v.to.db", map = voutpoint,
+                                     option = 'coor',
+                                     layer = 1,
+                                     columns = 'xcoor,ycoor', overwrite = True)
 
     grass.message("Coordinates added.")
     grass.message("----")
@@ -179,33 +179,33 @@ def main():
                 new_line = line.replace(" ", ";")
                 f.write(new_line)
 
-    grass.run_command("db.in.ogr", output='t_segmentpoints_csv', input="%s" % segment_points_file_csv)
+    grass.run_command("db.in.ogr", output = 't_segmentpoints_csv', input = "%s" % segment_points_file_csv)
 
-    grass.run_command("v.db.join", map=voutpoint,
-                                     column='cat',
-                                     otable='t_segmentpoints_csv',
-                                     ocolumn='field_2',
-                                     scolumns='field_2,field_4')
+    grass.run_command("v.db.join", map = voutpoint,
+                                     column = 'cat',
+                                     otable = 't_segmentpoints_csv',
+                                     ocolumn = 'field_2',
+                                     scolumns = 'field_2,field_4')
 
-    grass.run_command("db.droptable", table='t_segmentpoints_csv',
-                                     flags='f')
+    grass.run_command("db.droptable", table = 't_segmentpoints_csv',
+                                     flags = 'f')
 
-    grass.run_command("v.db.addcolumn", map=voutpoint,
-                                     layer=1,
-                                     columns="cat_2 integer,distance double,cat_line integer")
+    grass.run_command("v.db.addcolumn", map = voutpoint,
+                                     layer = 1,
+                                     columns = "cat_2 integer,distance double,cat_line integer")
 
-    grass.run_command("db.execute", sql="UPDATE %s SET cat_2 =  field_2" % (voutpoint))
-    grass.run_command("db.execute", sql="UPDATE %s SET distance =  field_4" % (voutpoint))
-    grass.run_command("db.execute", sql="UPDATE %s SET cat_line =  %d" % (voutpoint, int(vcat)))
-    grass.run_command("db.execute", sql="UPDATE %s SET distance =  %s WHERE cat = %s" % (voutpoint, vector_line_length, number_segmentpoints_with_end))
+    grass.run_command("db.execute", sql = "UPDATE %s SET cat_2 =  field_2" % (voutpoint))
+    grass.run_command("db.execute", sql = "UPDATE %s SET distance =  field_4" % (voutpoint))
+    grass.run_command("db.execute", sql = "UPDATE %s SET cat_line =  %d" % (voutpoint, int(vcat)))
+    grass.run_command("db.execute", sql = "UPDATE %s SET distance =  %s WHERE cat = %s" % (voutpoint, vector_line_length, number_segmentpoints_with_end))
 
-    grass.run_command("db.dropcolumn", table=voutpoint,
-                                     column='field_2',
-                                     flags='f')
+    grass.run_command("db.dropcolumn", table = voutpoint,
+                                     column = 'field_2',
+                                     flags = 'f')
 
-    grass.run_command("db.dropcolumn", table=voutpoint,
-                                     column='field_4',
-                                     flags='f')
+    grass.run_command("db.dropcolumn", table = voutpoint,
+                                     column = 'field_4',
+                                     flags = 'f')
 
     grass.message("Distance information added to attribute table.")
     grass.message("----")
@@ -215,9 +215,9 @@ def main():
 
     csv_to_export = os.path.join(directory, fpointscsv_export)
 
-    grass.run_command("db.out.ogr", input=voutpoint,
-                                     output='%s' % (csv_to_export),
-                                     format='CSV')
+    grass.run_command("db.out.ogr", input = voutpoint,
+                                     output = '%s' % (csv_to_export),
+                                     format = 'CSV')
 
     grass.message("Export done.")
     grass.message("----")
