@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: ISO-8859-15 -*-
+
 """
 @module  db.csw.harvest
 @brief   Module for creating metadata based on ISO for vector maps
@@ -50,13 +50,11 @@ import sys
 import os
 
 from grass.script import core as grass
+from grass.script.utils import set_path
 
-try:
-    from owslib.csw import CatalogueServiceWeb
-    from owslib.ows import ExceptionReport
-except:
-    sys.exit(
-        'owslib python library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
+set_path(modulename='wx.metadata', dirname='mdlib', path='..')
+
+from mdlib import globalvar
 
 #from __future__ import absolute_import
 #from __future__ import print_function
@@ -118,6 +116,17 @@ def _get_csw(catalog_url, timeout=10):
 
 
 def main():
+    try:
+        global CatalogueServiceWeb, ExceptionReport
+
+        from owslib.csw import CatalogueServiceWeb
+        from owslib.ows import ExceptionReport
+    except ModuleNotFoundError as e:
+        msg = e.msg
+        grass.fatal(globalvar.MODULE_NOT_FOUND.format(
+            lib=msg.split("'")[-2],
+            url=globalvar.MODULE_URL))
+
     if not _get_csw(options['source']):
         return
 

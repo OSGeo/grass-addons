@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: utf-8
+
 """
 @package mdgrass
 @module  v.info.iso, r.info.iso, g.gui.metadata
@@ -15,35 +15,21 @@ This program is free software under the GNU General Public License
 
 @author Matej Krejci <matejkrejci gmail.com> (GSoC 2014)
 """
-import sys
-import os
-try:
-    from owslib.iso import (
-        CI_Date, CI_OnlineResource, CI_ResponsibleParty, DQ_DataQuality,
-        EX_Extent, EX_GeographicBoundingBox, MD_Distribution,
-        MD_ReferenceSystem,
-    )
-except:
-    sys.exit('owslib library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
-try:
-    from jinja2 import Environment, FileSystemLoader
-except:
-    sys.exit('jinja2 library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 
-from grass.script import core as grass
-from grass.pygrass.utils import set_path
-
-set_path(modulename='wx.metadata', dirname='mdlib')
-
-from lxml import etree
 import io
+import os
+import sys
 import uuid
-from . import mdutil  # metadata lib
+from datetime import date, datetime
+from subprocess import PIPE
 
 from grass.pygrass.modules import Module
+from grass.script import core as grass
 from grass.script import parse_key_val
-from subprocess import PIPE
-from datetime import date, datetime
+
+from . import globalvar
+from . import mdutil  # metadata lib
+
 
 class GrassMD():
 
@@ -55,6 +41,24 @@ class GrassMD():
     '''
 
     def __init__(self, map, type):
+        try:
+            global CI_Date, CI_OnlineResource, CI_ResponsibleParty, \
+                DQ_DataQuality, EX_Extent, EX_GeographicBoundingBox, \
+                MD_Distribution, MD_ReferenceSystem, Environment, \
+                FileSystemLoader, etree
+            from owslib.iso import (
+                CI_Date, CI_OnlineResource, CI_ResponsibleParty,
+                DQ_DataQuality, EX_Extent, EX_GeographicBoundingBox,
+                MD_Distribution, MD_ReferenceSystem,
+            )
+            from jinja2 import Environment, FileSystemLoader
+            from lxml import etree
+        except ModuleNotFoundError as e:
+            msg = e.msg
+            sys.exit(globalvar.MODULE_NOT_FOUND.format(
+                lib=msg.split("'")[-2],
+                url=globalvar.MODULE_URL))
+
         self.map = map
         self.type = type
 

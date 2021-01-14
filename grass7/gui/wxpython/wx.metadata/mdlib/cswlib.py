@@ -11,42 +11,38 @@ This program is free software under the GNU General Public License
 @author Matej Krejci <matejkrejci gmail.com> (GSoC 2015)
 """
 
+import json
 import os
 import sys
-
-try:
-    from owslib.csw import CatalogueServiceWeb
-    from owslib.fes import BBox, PropertyIsLike
-    from owslib.ows import ExceptionReport
-except:
-    sys.exit(
-        'owslib python library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 import tempfile
+import webbrowser
+import xml.etree.ElementTree as ET
+from subprocess import PIPE
+from threading import Thread
+
+import grass.script as grass
+from grass.pygrass.modules import Module
+from grass.script import parse_key_val
+from grass.script.setup import set_gui_path
+
+set_gui_path()
+
+from core.gcmd import GError, GMessage, GWarning
+from gui_core.forms import GUI
+
+import wx
+import wx.html as html
+from wx import SplitterWindow
+from wx.html import EVT_HTML_LINK_CLICKED, HW_DEFAULT_STYLE, HW_SCROLLBAR_AUTO
+from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin
+
 from .cswutil import (
     get_connections_from_file, normalize_text, open_url, renderXML,
     render_template,
 )
-from .mdutil import yesNo, StaticContext
-import json
-import wx
-from wx import SplitterWindow
-import wx.html as html
-from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin
-import webbrowser
-from threading import Thread
-import xml.etree.ElementTree as ET
-from wx.html import EVT_HTML_LINK_CLICKED, HW_DEFAULT_STYLE, HW_SCROLLBAR_AUTO
-# import wx.html2 not supported in 2.8.12.1 (need for CSS support)
-from grass.script.setup import set_gui_path
-set_gui_path()
-from gui_core.forms import GUI
-from core.gcmd import GError, GMessage, GWarning
-from subprocess import PIPE
-from grass.pygrass.modules import Module
-import grass.script as grass
-from grass.script import parse_key_val
-
+from . import globalvar
 from .mdeditorfactory import ADD_RM_BUTTON_SIZE
+from .mdutil import StaticContext, yesNo
 
 
 class ConstraintsBuilder(wx.Panel):
@@ -98,6 +94,27 @@ Examples\n\
 class CSWBrowserPanel(wx.Panel):
     def __init__(self, parent, main, giface=None):
         wx.Panel.__init__(self, parent)
+
+        try:
+            global BBox, CatalogueServiceWeb, Environment, ExceptionReport, \
+                FileSystemLoader, HtmlFormatter, PropertyIsLike, XmlLexer, \
+                highlight
+
+            from jinja2 import Environment, FileSystemLoader
+
+            from owslib.csw import CatalogueServiceWeb
+            from owslib.fes import BBox, PropertyIsLike
+            from owslib.ows import ExceptionReport
+
+            from pygments import highlight
+            from pygments.formatters import HtmlFormatter
+            from pygments.lexers import XmlLexer
+        except ModuleNotFoundError as e:
+            msg = e.msg
+            sys.exit(globalvar.MODULE_NOT_FOUND.format(
+                lib=msg.split("'")[-2],
+                url=globalvar.MODULE_URL))
+
         self.context = StaticContext()
         self.giface = giface
         self.config = main.config
@@ -235,7 +252,7 @@ class CSWBrowserPanel(wx.Panel):
         """Check char pair count in the string
 
         param s: string
-        param start_char: start char
+ start_char: start char
         param end_char: end char
         param same_char: bool
 
@@ -974,6 +991,26 @@ class CSWBrowserPanel(wx.Panel):
 class CSWConnectionPanel(wx.Panel):
     def __init__(self, parent, main, cswBrowser=True):
         wx.Panel.__init__(self, parent)
+        try:
+            global BBox, CatalogueServiceWeb, Environment, ExceptionReport, \
+                FileSystemLoader, HtmlFormatter, PropertyIsLike, XmlLexer, \
+                highlight
+
+            from jinja2 import Environment, FileSystemLoader
+
+            from owslib.csw import CatalogueServiceWeb
+            from owslib.fes import BBox, PropertyIsLike
+            from owslib.ows import ExceptionReport
+
+            from pygments import highlight
+            from pygments.formatters import HtmlFormatter
+            from pygments.lexers import XmlLexer
+        except ModuleNotFoundError as e:
+            msg = e.msg
+            sys.exit(globalvar.MODULE_NOT_FOUND.format(
+                lib=msg.split("'")[-2],
+                url=globalvar.MODULE_URL))
+
         self.parent = main
         self.config = main.config
         self.cswBrowser = cswBrowser
@@ -1015,7 +1052,7 @@ class CSWConnectionPanel(wx.Panel):
     def OnHtmlKeyDown(self, event):
         if self._is_copy(event):
             self._add_selection_to_clipboard()
-        self.textMetadata.Parent.OnKey(event)
+        # self.textMetadata.Parent.OnKey(event)
         event.Skip()
 
     def _is_copy(self, event):

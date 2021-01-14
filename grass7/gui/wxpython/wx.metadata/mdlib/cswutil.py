@@ -10,16 +10,14 @@ This program is free software under the GNU General Public License
 
 @author Matej Krejci <matejkrejci gmail.com> (GSoC 2015)
 """
-from gettext import gettext, ngettext
-import os
-import webbrowser
-from xml.dom.minidom import parseString
-import xml.etree.ElementTree as etree
 
-from jinja2 import Environment, FileSystemLoader
-from pygments import highlight
-from pygments.lexers import XmlLexer
-from pygments.formatters import HtmlFormatter
+import os
+import sys
+import webbrowser
+import xml.etree.ElementTree as etree
+from gettext import gettext, ngettext
+from xml.dom.minidom import parseString
+
 
 def get_connections_from_file(filename):
     """load connections from connection file"""
@@ -44,9 +42,9 @@ def get_connections_from_file(filename):
 
 def render_template(language, context, data, template):
     """Renders HTML display of metadata XML"""
-
-    env = Environment(extensions=['jinja2.ext.i18n'],
-                      loader=FileSystemLoader(context.confDirPath))
+    jinja2 = sys.modules['jinja2']
+    env = jinja2.Environment(extensions=['jinja2.ext.i18n'],
+                      loader=jinja2.FileSystemLoader(context.confDirPath))
     env.globals.update(zip=zip)
 
     env.install_gettext_callables(gettext, ngettext, newstyle=True)
@@ -74,12 +72,15 @@ def encodeString(str):
 
 def highlight_xml(context, xml):
     """render XML as highlighted HTML"""
-
-    hformat = HtmlFormatter()
+    jinja2 = sys.modules['jinja2']
+    pygments = sys.modules['pygments']
+    hformat = pygments.formatters.HtmlFormatter()
     css = hformat.get_style_defs('.highlight')
-    body = highlight(prettify_xml(xml), XmlLexer(), hformat)
+    body = pygments.highlight(
+        prettify_xml(xml), pygments.lexers.XmlLexer(), hformat)
 
-    env = Environment(loader=FileSystemLoader(context.confDirPath))
+    env = jinja2.Environment(
+        loader=jinja2.FileSystemLoader(context.confDirPath))
 
     template_file = 'xml_highlight.html'
     template = env.get_template(template_file)
@@ -87,9 +88,13 @@ def highlight_xml(context, xml):
 
 
 def renderXML(context, xml):
-    hformat = HtmlFormatter()
-    body = highlight(prettify_xml(xml), XmlLexer(), hformat)
-    env = Environment(loader=FileSystemLoader(context.confDirPath))
+    jinja2 = sys.modules['jinja2']
+    pygments = sys.modules['pygments']
+    hformat = pygments.formatters.HtmlFormatter()
+    body = pygments.highlight(
+        prettify_xml(xml), pygments.XmlLexer(), hformat)
+    env = jinja2.Environment(
+        loader=jinja2.FileSystemLoader(context.confDirPath))
 
     template_file = 'xml_render.html'
     template = env.get_template(template_file)

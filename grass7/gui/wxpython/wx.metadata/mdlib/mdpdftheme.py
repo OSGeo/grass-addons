@@ -1,17 +1,10 @@
-from reportlab.lib.styles import ParagraphStyle, _baseFontNameB, _baseFontNameI, _baseFontNameBI
-from reportlab.lib.units import inch
-from reportlab.lib import colors
-from reportlab.rl_config import canvas_basefontname as _baseFontName
-from reportlab.lib.enums import TA_LEFT, TA_CENTER
 import io
+import sys
 import urllib.request
 import urllib.parse
 import urllib.error
-from reportlab.platypus.doctemplate import SimpleDocTemplate
-from reportlab.platypus.flowables import Image
-from reportlab.platypus import Paragraph, Spacer, KeepTogether
-from reportlab.platypus.tables import Table, TableStyle, LongTable
 
+from . import globalvar
 
 # Header levels
 H1, H2, H3, H4, H5, H6, T1, T2, T3, T4 = 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
@@ -29,6 +22,26 @@ class MySheet:
     _stylesheet1_undefined = object()
 
     def __init__(self):
+        try:
+            global ParagraphStyle, TA_CENTER, _baseFontName, \
+                _baseFontNameB, _baseFontNameBI, _baseFontNameI, colors, \
+                inch
+
+            from reportlab.lib.styles import (
+                ParagraphStyle, _baseFontNameB, _baseFontNameI,
+                _baseFontNameBI,
+            )
+            from reportlab.lib.units import inch
+            from reportlab.lib import colors
+            from reportlab.rl_config import canvas_basefontname as \
+                _baseFontName
+            from reportlab.lib.enums import TA_CENTER
+        except ModuleNotFoundError as e:
+            msg = e.msg
+            sys.exit(globalvar.MODULE_NOT_FOUND.format(
+                lib=msg.split("'")[-2],
+                url=globalvar.MODULE_URL))
+
         self.byName = {}
         self.byAlias = {}
 
@@ -216,50 +229,46 @@ class MySheet:
 
 
 class DefaultTheme(object):
-    s = MySheet()
-    _s = s.getSampleStyleSheet()
+    def __init__(self):
+        self.s = MySheet()
+        self._s = self.s.getSampleStyleSheet()
 
-    doc = {
-        'leftMargin': None,
-        'rightMargin': None,
-        'topMargin': None,
-        'bottomMargin': None
-    }
-    headers = {
-        H1: _s['Heading1'],
-        H2: _s['Heading2'],
-        H3: _s['Heading3'],
-        H4: _s['Heading4'],
-        H5: _s['Heading5'],
-        H6: _s['Heading6'],
-        T1: _s['Title'],
-        T2: _s['Title2'],
-        T3: _s['Title3'],
-        T4: _s['Title4']
-    }
+        self.doc = {
+            'leftMargin': None,
+            'rightMargin': None,
+            'topMargin': None,
+            'bottomMargin': None,
+        }
+        self.headers = {
+            H1: self._s['Heading1'],
+            H2: self._s['Heading2'],
+            H3: self._s['Heading3'],
+            H4: self._s['Heading4'],
+            H5: self._s['Heading5'],
+            H6: self._s['Heading6'],
+            T1: self._s['Title'],
+            T2: self._s['Title2'],
+            T3: self._s['Title3'],
+            T4: self._s['Title4']
+        }
 
-    paragraph = _s['Normal']
+        self.paragraph = self._s['Normal']
 
-    spacer_height = 0.25 * inch
-    table_style = [
-        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('FONT', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('LINEBELOW', (0, 0), (-1, 0), 1, colors.black),
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#C0C0C0')),
-        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#E0E0E0')])
-    ]
+        self.spacer_height = 0.25 * inch
+        self.table_style = [
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('FONT', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('LINEBELOW', (0, 0), (-1, 0), 1, colors.black),
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#C0C0C0')),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#E0E0E0')])
+        ]
 
-    @classmethod
-    def doc_template_args(cls):
-        return dict([(k, v) for k, v in list(cls.doc.items()) if v is not None])
+    def doc_template_args(self,):
+        return dict([(k, v) for k, v in list(self.doc.items()) if v is not None])
 
-    @classmethod
-    def header_for_level(cls, level):
-        return cls.headers[level]
-
-    def __new__(cls, *args, **kwargs):
-        raise TypeError("Theme classes may not be instantiated.")
+    def header_for_level(self, level):
+        return self.headers[level]
 
 
 def calc_table_col_widths(rows, table_width):
@@ -281,6 +290,20 @@ class Pdf(object):
     theme = DefaultTheme
 
     def __init__(self, title, author):
+        try:
+            global Image, KeepTogether, LongTable, Paragraph, \
+                SimpleDocTemplate, Spacer, Table
+
+            from reportlab.platypus.doctemplate import SimpleDocTemplate
+            from reportlab.platypus.flowables import Image
+            from reportlab.platypus import Paragraph, Spacer, KeepTogether
+            from reportlab.platypus.tables import Table, LongTable
+        except ModuleNotFoundError as e:
+            msg = e.msg
+            sys.exit(globalvar.MODULE_NOT_FOUND.format(
+                lib=msg.split("'")[-2],
+                url=globalvar.MODULE_URL))
+
         self.title = title
         self.author = author
 

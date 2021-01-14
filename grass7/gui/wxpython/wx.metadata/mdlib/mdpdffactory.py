@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
+
 """
 @module  mdpdffactory
 @brief   Pdf creator
@@ -15,30 +15,31 @@ Classes:
 import math
 import os
 import subprocess
+import sys
 import tempfile
 
 from core.gcmd import GWarning
 
 from grass.pygrass.modules.interface.env import G_debug
-from grass.pygrass.utils import set_path
 from grass.script import core as grass
 from grass.script.utils import get_lib_path
 
-from reportlab.platypus import Image, Paragraph, Table
-from reportlab.platypus import PageBreak
-
-set_path(modulename='wx.metadata', dirname='mdlib')
-from .mdpdftheme import CENTER, DefaultTheme, H1, H4, LEFT, Pdf, T1, \
-    T2, T3
+from . import globalvar
+from .mdpdftheme import (
+    CENTER, DefaultTheme, H1, H4, LEFT, Pdf, T1, T2, T3,
+)
 
 
 class MyTheme(DefaultTheme):
-    doc = {
-        'leftMargin': 25,
-        'rightMargin': 25,
-        'bottomMargin': 25,
-        'allowSplitting': False
-    }
+
+    def __init__(self):
+        super().__init__()
+        self.doc = {
+            'leftMargin': 25,
+            'rightMargin': 25,
+            'bottomMargin': 25,
+            'allowSplitting': False,
+        }
 
 
 class PdfCreator(object):
@@ -47,6 +48,17 @@ class PdfCreator(object):
         '''@:param MD_metadata- instance of metadata(owslib)
            @:param pdf_file- path and name of generated report
         '''
+        try:
+            global Image, PageBreak, Paragraph, Table
+
+            from reportlab.platypus import (
+                Image, PageBreak, Paragraph, Table,
+            )
+        except ModuleNotFoundError as e:
+            msg = e.msg
+            sys.exit(globalvar.MODULE_NOT_FOUND.format(
+                lib=msg.split("'")[-2],
+                url=globalvar.MODULE_URL))
 
         self.md = MD_metadata
         self.pdf_file = pdf_file
@@ -57,6 +69,7 @@ class PdfCreator(object):
         if self.profile is None:
             self.profile = 'custom iso profile'
         self.filename = filename
+        self.my_theme = MyTheme()
 
     def getMapPic(self):
         f = os.path.join(tempfile.gettempdir(), 'tmpPic.png')
@@ -110,7 +123,7 @@ class PdfCreator(object):
                 #value=self.chckTextValidity(value)
                 text = Paragraph("""
                 %s<br/>
-                """ % value, MyTheme.paragraph)
+                """ % value, self.my_theme.paragraph)
                 tmp.append(text)
             head.append(tmp)
             tmp = []
@@ -128,7 +141,7 @@ class PdfCreator(object):
             lines = ', '.join(tmp)
             text = Paragraph("""
             %s<br/>
-            """ % lines, MyTheme.paragraph)
+            """ % lines, self.my_theme.paragraph)
             self.doc.add_fparagraph(text)
             return
 
@@ -138,20 +151,20 @@ class PdfCreator(object):
                 if len(lines) > 400:
                     text = Paragraph("""
                                     %s<br/>
-                                    """ % lines, MyTheme.paragraph)
+                                    """ % lines, self.my_theme.paragraph)
                     self.doc.add_fparagraph(text)
                     lines = ''
         else:
             text = Paragraph("""
                             %s<br/>
-                            """ % val, MyTheme.paragraph)
+                            """ % val, self.my_theme.paragraph)
             self.doc.add_fparagraph(text)
 
     def createPDF(self, save=True):
         self.story = self._parseMDOWS()
         self.doc = Pdf('Metadata file', 'GRASS GIS')
 
-        self.doc.set_theme(MyTheme)
+        self.doc.set_theme(self.my_theme)
 
         lib_name = 'config'
         logo_path = get_lib_path("wx.metadata", lib_name)

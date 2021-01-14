@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: utf-8
+
 """
 @package editor
 @module g.gui.metadata
@@ -19,44 +19,35 @@ This program is free software under the GNU General Public License
 
 @author Matej Krejci <matejkrejci gmail.com> (GSoC 2014)
 """
-import re
+
+import contextlib
 import os
+import re
 import sys
 import tempfile
-import contextlib
-from lxml import etree
-
-import wx
-from wx import ID_ANY
-from wx import EVT_BUTTON
-import wx.lib.scrolledpanel as scrolled
-
-try:
-    from owslib.iso import (
-        CI_Date, CI_OnlineResource, CI_ResponsibleParty, DQ_DataQuality,
-        EX_Extent, EX_GeographicBoundingBox, MD_Distribution,
-        MD_ReferenceSystem,
-    )
-except:
-    sys.exit('owslib library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
-from .mdjinjaparser import JinjaTemplateParser
-try:
-    from jinja2 import Environment, FileSystemLoader
-except:
-    sys.exit('jinja2 library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
-
+from subprocess import PIPE
 
 from core.gcmd import GError, GMessage, RunCommand
-from gui_core.widgets import IntegerValidator, NTCValidator, SimpleValidator,\
-    TimeISOValidator, EmailValidator  # ,EmptyValidator
 
-from . import mdutil
-from subprocess import PIPE
 from grass.pygrass.modules import Module
+
+from gui_core.widgets import (
+    EmailValidator, IntegerValidator, NTCValidator, SimpleValidator,
+    TimeISOValidator,
+)
+
+import wx
+import wx.lib.scrolledpanel as scrolled
+
+from . import globalvar
+from . import mdutil
+from . mdjinjaparser import JinjaTemplateParser
+
 #=========================================================================
 # MD filework
 #=========================================================================
 ADD_RM_BUTTON_SIZE = (35, 35)
+
 
 class MdFileWork():
 
@@ -64,6 +55,17 @@ class MdFileWork():
     '''
 
     def __init__(self, pathToXml=None):
+        try:
+            global Environment, FileSystemLoader, etree
+
+            from jinja2 import Environment, FileSystemLoader
+            from lxml import etree
+        except ModuleNotFoundError as e:
+            msg = e.msg
+            sys.exit(globalvar.MODULE_NOT_FOUND.format(
+                lib=msg.split("'")[-2],
+                url=globalvar.MODULE_URL))
+
         self.path = pathToXml
         self.owslibInfo = None
 
@@ -176,7 +178,7 @@ class MdBox(wx.Panel):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
         self.label = label
         self.mdItems = list()
-        self.stbox = wx.StaticBox(self, label=label, id=ID_ANY, style=wx.RAISED_BORDER)
+        self.stbox = wx.StaticBox(self, label=label, id=wx.ID_ANY, style=wx.RAISED_BORDER)
         self.stbox.SetForegroundColour((0, 0, 0))
         self.stbox.SetBackgroundColour((200, 200, 200))
         self.stbox.SetFont(wx.Font(12, wx.NORMAL, wx.NORMAL, wx.NORMAL))
@@ -216,16 +218,16 @@ class MdBox(wx.Panel):
             self.stBoxSizer.AddSpacer(5)
 
         if multi:
-            self.addBoxButt = wx.Button(self, id=ID_ANY, size=ADD_RM_BUTTON_SIZE,
+            self.addBoxButt = wx.Button(self, id=wx.ID_ANY, size=ADD_RM_BUTTON_SIZE,
                                         label='+')
             self.boxButtonSizer.Add(self.addBoxButt, 0)
-            self.addBoxButt.Bind(EVT_BUTTON, self.duplicateBox)
+            self.addBoxButt.Bind(wx.EVT_BUTTON, self.duplicateBox)
 
         if rmMulti:
-            self.rmBoxButt = wx.Button(self, id=ID_ANY, size=ADD_RM_BUTTON_SIZE,
+            self.rmBoxButt = wx.Button(self, id=wx.ID_ANY, size=ADD_RM_BUTTON_SIZE,
                                        label='-')
             self.boxButtonSizer.Add(self.rmBoxButt, 0)
-            self.rmBoxButt.Bind(EVT_BUTTON, self.removeBox)
+            self.rmBoxButt.Bind(wx.EVT_BUTTON, self.removeBox)
 
     def addDuplicatedItem(self, item):
         self.stBoxSizer.Add(
@@ -386,7 +388,7 @@ class MdItem(wx.BoxSizer):
 
         if isFirstNum != 1 and item.multiplicity:
             rmMulti = True
-        self.tagText = wx.StaticText(parent=parent, id=ID_ANY, label=item.name)
+        self.tagText = wx.StaticText(parent=parent, id=wx.ID_ANY, label=item.name)
         if self.mdDescription.databaseAttr == 'language':
             self.fillComboDB('language')
             added = True
@@ -405,7 +407,7 @@ class MdItem(wx.BoxSizer):
 
         if self.chckBox is False and not added:
             if item.multiline is True:
-                self.valueCtrl = wx.TextCtrl(parent, id=ID_ANY, size=(0, 70),
+                self.valueCtrl = wx.TextCtrl(parent, id=wx.ID_ANY, size=(0, 70),
                                              validator=self.validators(item.type),
                                              style=wx.VSCROLL |
                                              wx.TE_MULTILINE | wx.TE_WORDWRAP |
@@ -417,7 +419,7 @@ class MdItem(wx.BoxSizer):
                                              wx.TAB_TRAVERSAL | wx.RAISED_BORDER | wx.HSCROLL)
         elif self.chckBox is True and not added:
             if item.multiline is True:
-                self.valueCtrl = wx.TextCtrl(parent, id=ID_ANY, size=(0, 70),
+                self.valueCtrl = wx.TextCtrl(parent, id=wx.ID_ANY, size=(0, 70),
                                              style=wx.VSCROLL |
                                              wx.TE_MULTILINE | wx.TE_WORDWRAP |
                                              wx.TAB_TRAVERSAL | wx.RAISED_BORDER)
@@ -433,12 +435,12 @@ class MdItem(wx.BoxSizer):
         if self.multiple:
             self.addItemButt = wx.Button(parent, -1, size=ADD_RM_BUTTON_SIZE,
                                          label='+')
-            self.addItemButt.Bind(EVT_BUTTON, self.duplicateItem)
+            self.addItemButt.Bind(wx.EVT_BUTTON, self.duplicateItem)
 
         if rmMulti:
             self.rmItemButt = wx.Button(parent, -1, size=ADD_RM_BUTTON_SIZE,
                                         label='-')
-            self.rmItemButt.Bind(EVT_BUTTON, self.removeItem)
+            self.rmItemButt.Bind(wx.EVT_BUTTON, self.removeItem)
 
         if self.chckBox:
             self.chckBoxEdit = wx.CheckBox(parent, -1, size=(30, 30))
@@ -682,11 +684,11 @@ class MdItemKeyword(wx.BoxSizer):
         self.isValid = False
         self.isChecked = False
         self.keywordObj = keywordObj
-        self.text = wx.StaticText(parent=parent, id=ID_ANY, label=text)
+        self.text = wx.StaticText(parent=parent, id=wx.ID_ANY, label=text)
         self.parent = parent
         self.rmItemButt = wx.Button(parent, -1, size=ADD_RM_BUTTON_SIZE,
                                     label='-')
-        self.rmItemButt.Bind(EVT_BUTTON, self.removeItem)
+        self.rmItemButt.Bind(wx.EVT_BUTTON, self.removeItem)
         self.keyword = keyword
         self.title = title
         #self.createInfo()
@@ -804,10 +806,10 @@ class MdKeywords(wx.BoxSizer):
         self.parent = parent
         self.keywordsOWSObject = mdOWS
 
-        self.comboKeysLabel = wx.StaticText(parent=self.parent,id=ID_ANY,label='Keywords from repositories')
-        self.comboKeys = wx.ComboBox(parent=self.parent, id=ID_ANY)
+        self.comboKeysLabel = wx.StaticText(parent=self.parent,id=wx.ID_ANY,label='Keywords from repositories')
+        self.comboKeys = wx.ComboBox(parent=self.parent, id=wx.ID_ANY)
 
-        self.keysList = wx.TreeCtrl(parent=self.parent, id=ID_ANY, size=(0, 120), style=wx.TR_FULL_ROW_HIGHLIGHT | wx.TR_DEFAULT_STYLE)
+        self.keysList = wx.TreeCtrl(parent=self.parent, id=wx.ID_ANY, size=(0, 120), style=wx.TR_FULL_ROW_HIGHLIGHT | wx.TR_DEFAULT_STYLE)
         self.box = MdBoxKeywords(parent=parent,parent2=self,label='Keywords')
         self.memKeys = set()
         self.comboKeys.Bind(wx.EVT_COMBOBOX,self.onSetVocabulary)
@@ -967,6 +969,22 @@ class MdMainEditor(wx.Panel):
         @param templateEditor: mode-creator of template
         '''
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
+        try:
+            global CI_Date, CI_OnlineResource, CI_ResponsibleParty, \
+                DQ_DataQuality, EX_Extent, EX_GeographicBoundingBox, \
+                MD_Distribution, MD_ReferenceSystem
+
+            from owslib.iso import (
+                CI_Date, CI_OnlineResource, CI_ResponsibleParty, \
+                DQ_DataQuality, EX_Extent, EX_GeographicBoundingBox, \
+                MD_Distribution, MD_ReferenceSystem
+            )
+        except ModuleNotFoundError as e:
+            msg = e.msg
+            sys.exit(globalvar.MODULE_NOT_FOUND.format(
+                lib=msg.split("'")[-2],
+                url=globalvar.MODULE_URL))
+
         self.mdo = MdFileWork()
         self.md = self.mdo.initMD(xmlMdPath)
         self.templateEditor = templateEditor

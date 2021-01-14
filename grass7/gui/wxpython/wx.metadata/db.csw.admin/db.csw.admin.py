@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: utf-8
+
 """
 @module  db.csw.admin
 @brief   Module for creating metadata based on ISO for vector maps
@@ -123,19 +123,24 @@ from grass.script.utils import set_path
 
 set_path(modulename='wx.metadata', dirname='mdlib', path='..')
 
-MODULE_URL = 'https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support'
+from mdlib import globalvar
 
 
 class CswAdmin():
-    try:
-        pycsw = 'pycsw'
-        pycsw_config = importlib.import_module('.core.config', pycsw)
-        pycsw_admin = importlib.import_module('.core.admin', pycsw)
-    except ImportError:
-        sys.exit('pycsw library is missing. Check requirements on the'
-                 ' manual page < {url} >'.format(url=MODULE_URL))
 
     def __init__(self):
+        try:
+            pycsw = 'pycsw'
+            self.pycsw_config = importlib.import_module(
+                '.core.config', pycsw)
+            self.pycsw_admin = importlib.import_module(
+                '.core.admin', pycsw)
+        except ModuleNotFoundError as e:
+            msg = e.msg
+            grass.fatal(globalvar.MODULE_NOT_FOUND.format(
+                lib=msg.split("'")[-2],
+                url=globalvar.MODULE_URL))
+
         self.COMMAND = None
         self.XML_DIRPATH = None
         self.CFG = None
