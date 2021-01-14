@@ -1076,7 +1076,10 @@ class MdDataCatalog(LocationMapTree):
         super(MdDataCatalog, self).__init__(parent=parent,
                                             style=wx.TR_MULTIPLE | wx.TR_HIDE_ROOT | wx.TR_HAS_BUTTONS |
                                                   wx.TR_FULL_ROW_HIGHLIGHT)
-        tgis.init(True)
+        try:
+            tgis.init(True)
+        except tgis.FatalError as e:
+            sys.exit(1)
         self.dbif = tgis.SQLDatabaseInterfaceConnection()
         self.dbif.connect()
         self.InitTreeItems()
@@ -1088,7 +1091,7 @@ class MdDataCatalog(LocationMapTree):
         """Close the database interface and stop the messenger and C-interface
            subprocesses.
         """
-        if self.dbif.connected is True:
+        if hasattr(self, 'dbif') and self.dbif.connected is True:
             self.dbif.close()
         if tgis:
             tgis.stop_subprocesses()
