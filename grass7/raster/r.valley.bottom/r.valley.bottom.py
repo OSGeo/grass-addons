@@ -97,7 +97,7 @@ COPYRIGHT: (C) 2018 by the GRASS Development Team
 #% key: min_cells
 #% description: Minimum number of cells in generalized DEM
 #% required: no
-#% answer: 1
+#% answer: 2
 #% end
 
 #%flag
@@ -172,8 +172,8 @@ def cell_padding(input, output, radius=3):
         GRASS raster map which has been expanded by radius cells
     """
 
-    g.region(grow=radius + 1)
-    r.grow(input=input, output=output, radius=radius + 1, quiet=True)
+    g.region(grow=radius)
+    r.grow(input=input, output=output, radius=radius, quiet=True)
     region = Region()
 
     return region
@@ -226,53 +226,41 @@ def focal_expr(radius, window_square=False):
 
 
 def elevation_percentile(input, radius=3, window_square=False):
-    """Calculates the percentile which is the ratio of the number of points of
+    """Calculates the percentile whichj is the ratio of the number of points of
     lower elevation to the total number of points in the surrounding region
-
-    Parameters
-    ----------
+    Args
+    ----
+    L : int
+        Processing step (level)
     input : str
-        GRASS raster map (elevation) to perform calculation on.
-            
+        GRASS raster map (elevation) to perform calculation on
     radius : int
-        Neighborhood radius (in pixels).
-        
+        Neighborhood radius (in pixels)
     window_square : bool. Optional (default is False)
         Boolean to use square or circular neighborhood
-
     Returns
     -------
     PCTL : str
         Name of GRASS cell-padded raster map with elevation percentile for
-        processing step L
-    """
-    # grow input
-    region = Region()
-    input_grown = rand_id("grown{}".format(L + 1))
-    cell_padding(input=input, output=input_grown, radius=radius)
-
+        processing step L"""
     # get offsets for given neighborhood radius
     offsets = focal_expr(radius=radius, window_square=window_square)
+
+    # generate grass mapcalc terms and execute
     n_pixels = float(len(offsets))
 
-    # create mapcalc expr
+    # create mapcalc expr focal function and fill null neighbors with centre cell
     PCTL = rand_id("PCTL{}".format(L + 1))
     TMP_RAST[L].append(PCTL)
 
     terms = []
     for d in offsets:
-        valid = ",".join(map(str, d))
-        terms.append("if({input}[{d}]<={input})".format(input=input_grown, d=valid))
+        valid = ','.join(map(str, d))        
+        terms.append("if( isnull({input}[{d}]), 1, {input}[{d}]<={input})".format(input=input, d=valid))
 
-    terms = " + ".join(terms)
+    terms = "+".join(terms)
     expr = "{x} = ({s}) / {n}".format(x=PCTL, s=terms, n=n_pixels)
-
-    # execute mapcalc statement
     gs.mapcalc(expr)
-
-    # remove grown and restore region
-    g.remove(type="raster", name=input_grown, flags="f", quiet=True)
-    region.write()
 
     return PCTL
 
@@ -514,6 +502,7 @@ def refine(input, region, method="bilinear"):
     TMP_RAST[L].append(refined)
 
     region.write()
+
     if method == "bilinear":
         r.resamp_interp(input=input_padded, output=refined, method="bilinear")
 
@@ -568,16 +557,22 @@ def main():
     ):
         gs.fatal("Parameter values cannot be <= 0")
 
-    if min_cells < 1:
-        gs.fatal("Minimum number of cells in generalized DEM cannot be less than 1")
+    if min_cells < 2:
+        gs.fatal("Minimum number of cells in generalized DEM cannot be less than 2")
 
     if min_cells > current_region.cells:
         gs.fatal(
             "Minimum number of cells in the generalized DEM cannot exceed the ungeneralized number of cells"
         )
-    
-    levels = -math.log(float(min_cells)/current_region.cells) / math.log(3) - 2
-    levels = int(levels)
+
+    # calculate the number of levels    
+    levels = 2
+    remaining_cells = current_region.cells
+    while remaining_cells >= min_cells:
+        levels += 1
+        g.region(nsres=Region().nsres*3, ewres=Region().ewres*3)
+        remaining_cells = Region().cells
+    current_region.write()
 
     if levels < 3:
         gs.fatal('MRVBF algorithm requires a greater level of generalization. Reduce number of min_cells or use a larger computational region.')
@@ -673,8 +668,8 @@ def main():
     # but at the dem resolution of the previous step
     remaining_cells = current_region.cells
 
-    while remaining_cells > min_cells:
-        L = L + 1
+    while remaining_cells >= min_cells:
+        L += 1
         TMP_RAST[L] = list()
         t_slope /= 2.0
         Xres_step.append(Xres_step[L - 1] * 3)
@@ -686,10 +681,9 @@ def main():
             if len(gs.find_file(tmap)["fullname"]) > 0:
                 g.remove(type="raster", name=tmap, flags="f", quiet=True)
 
-        # coarsen resolution to resolution of prevous step (step L-1) and smooth DEM
-        if L >= 3:
+        # coarsen resolution to resolution of previous step (step L-1) and smooth DEM
+        if L > 2:
             g.region(ewres=Xres_step[L - 1], nsres=Yres_step[L - 1])
-            remaining_cells = Region().cells
 
         step_message(L, Xres_step[L], Yres_step[L], remaining_cells, t_slope)
         DEM.append(smooth_dem(DEM[L - 1]))
@@ -698,11 +692,12 @@ def main():
         SLOPE.append(calc_slope(DEM[L]))
 
         # refine slope back to base resolution
-        if L >= 3:
+        if L > 2:
             SLOPE[L] = refine(SLOPE[L], current_region, method="bilinear")
 
         # coarsen resolution to current step L and calculate PCTL
         g.region(ewres=Xres_step[L], nsres=Yres_step[L])
+        remaining_cells = Region().cells
         DEM[L] = refine(DEM[L], Region(), method="average")
         PCTL.append(elevation_percentile(DEM[L], radius, moving_window_square))
 
