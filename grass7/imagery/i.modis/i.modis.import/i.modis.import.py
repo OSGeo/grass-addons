@@ -201,8 +201,8 @@ def confile(pm, opts, q, mosaik=False):
     try:
         # try to import pymodis (modis) and some classes for i.modis.download
         from rmodislib import resampling, product, projection
-    except:
-        grass.fatal("i.modis library is not installed")
+    except ImportError as e:
+        grass.fatal("Unable to load i.modis library: {}".format(e))
     # return projection and datum
     projObj = projection()
     proj = projObj.returned()
@@ -363,14 +363,14 @@ def single(options, remove, an, ow, fil):
     try:
         # try to import pymodis (modis) and some classes for i.modis.download
         from rmodislib import product, projection, get_proj
-    except:
-        grass.fatal("i.modis library is not installed")
+    except ImportError as e:
+        grass.fatal("Unable to load i.modis library: {}".format(e))
     try:
         from pymodis.convertmodis import convertModis
         from pymodis.convertmodis_gdal import convertModisGDAL
         from pymodis.parsemodis import parseModis
-    except:
-        grass.fatal("pymodis library is not installed")
+    except ImportError as e:
+        grass.fatal("Unable to import pymodis library: {}".format(e))
     listfile, basedir = list_files(options)
     if not listfile:
         grass.warning(_("No HDF files found"))
@@ -441,14 +441,14 @@ def mosaic(options, remove, an, ow, fil):
     try:
         # try to import pymodis (modis) and some classes for i.modis.download
         from rmodislib import product, projection, get_proj
-    except:
-        grass.fatal("i.modis library is not installed")
+    except ImportError as e:
+        grass.fatal("Unable to load i.modis library: {}".format(e))
     try:
         from pymodis.convertmodis import convertModis, createMosaic
         from pymodis.convertmodis_gdal import createMosaicGDAL, convertModisGDAL
         from pymodis.parsemodis import parseModis
-    except:
-        grass.fatal("pymodis library is not installed")
+    except ImportError as e:
+        grass.fatal("Unable to import pymodis library: {}".format(e))
     dictfile, targetdir = list_files(options, True)
     pid = str(os.getpid())
     # for each day
@@ -560,8 +560,8 @@ def main():
     if flags['l']:
         try:
             from rmodislib import product
-        except:
-            grass.fatal("i.modis library is not installed")
+        except ImportError as e:
+            grass.fatal("Unable to load i.modis library: {}".format(e))
         prod = product()
         prod.print_prods()
         return 0
