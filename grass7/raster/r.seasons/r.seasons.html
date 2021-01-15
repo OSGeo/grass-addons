@@ -82,16 +82,16 @@ text file with a new line separated list of raster map names.
 
 Determine occurrence/number of seasons with their respective start and 
 end dates (in the form of map indexes) in global NDVI data. Let's use 
-the example from <em>r.modis.import</em> to download and import NDVI 
+the example from <em>i.modis.import</em> to download and import NDVI
 global data and, create a time series with it:
 
 <div class="code"><pre>
 # download two years of data: MOD13C1, global NDVI, 16-days, 5600 m
-r.modis.download settings=~/.rmodis product=ndvi_terra_sixteen_5600 \
+i.modis.download settings=~/.rmodis product=ndvi_terra_sixteen_5600 \
   startday=2015-01-01 endday=2016-12-31 folder=$USER/data/ndvi_MOD13C1.006
 
 # import band 1 = NDVI
-r.modis.import -w files=$USER/data/ndvi_MOD13C1.006/listfileMOD13C1.006.txt \
+i.modis.import -w files=$USER/data/ndvi_MOD13C1.006/listfileMOD13C1.006.txt \
   spectral="( 1 )" method=bilinear outfile=$HOME/list_for_tregister.csv
 
 # create empty temporal DB
@@ -99,7 +99,7 @@ t.create type=strds temporaltype=absolute output=ndvi_16_5600m \
   title="Global NDVI 16 days MOD13C1" \
   description="MOD13C1 Global NDVI 16 days" semantictype=mean
 
-# register datasets (using outfile from r.modis.import -w)
+# register datasets (using outfile from i.modis.import -w)
 t.register input=ndvi_16_5600m file=$HOME/list_for_tregister.csv
 </pre></div>
 
