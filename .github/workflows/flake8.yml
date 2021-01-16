@@ -1,27 +1,35 @@
 name: Python code quality check
 
+# Controls when the action will run.
 on:
-- push
-- pull_request
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
 jobs:
+  # This workflow contains two job called "flake8-grass7-scripts" and "flake8-gui-wxgui-scripts"
+
   flake8-grass7-scripts:
     runs-on: ubuntu-20.04
 
-    cd grass7/${{ matrix.directory }}
     strategy:
       matrix:
         directory:
-        - db
-        - display
-        - general
-        - imagery
-        - misc
-        - raster
-        - raster3d
-        - temporal
-        - tools
-        - vector
+        - grass7/db
+        - grass7/display
+        - grass7/general
+        - grass7/imagery
+        - grass7/misc
+        - grass7/raster
+        - grass7/raster3d
+        - grass7/temporal
+        - grass7/tools
+        - grass7/vector
       fail-fast: false
 
     steps:
@@ -34,7 +42,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install flake8==3.8.0
-    - name: Run Flake8
+    - name: Run Flake8 in ${{ matrix.directory }}
       run: |
         flake8 --config=../.flake8 --count --statistics --show-source --jobs=$(nproc) .
 
@@ -53,7 +61,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8==3.8.0
     - name: Run Flake8
+      # use own local flake8 settings file
       run: |
         cd grass7/gui/wxpython/
-        flake8 --count --statistics --show-source --jobs=$(nproc) .
+        flake8 --config=.flake8 --count --statistics --show-source --jobs=$(nproc) .
 
