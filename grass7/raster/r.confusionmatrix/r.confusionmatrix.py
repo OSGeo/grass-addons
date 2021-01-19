@@ -362,7 +362,7 @@ def main():
     # write csv file
     if csv_filename:
         with open(csv_filename, 'w') as file:
-            writer = csv.writer(file)
+            writer = csv.writer(file, lineterminator='\n')
             for line in lines:
                 writer.writerow(line)
     if flags['m']:
