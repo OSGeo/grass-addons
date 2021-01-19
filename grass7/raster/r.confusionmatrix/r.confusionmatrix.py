@@ -178,7 +178,6 @@ def get_r_kappa(classification, reference):
     grass.run_command(
         'r.kappa', flags='wmh', classification=classification,
         reference=reference, output=tmp_csv, quiet=True)
-
     # read csv: error matrix
     errorlist = None
     with open(tmp_csv) as csvfile:
@@ -220,7 +219,7 @@ def convert_output(classified_classes, ref_classes, confusionmatrix, overall_acc
     line2.extend(confusionmatrix[0,:].tolist()[0])
     line2.extend([user_accuracy[classified_classes[0]], commission[classified_classes[0]]])
 
-    if len(classified_classes) == 1:
+    if len(ref_classes) == 1:
         line3 = [classification, '', '', '', '']
     else:
         line3 = [classification, classified_classes[1]]
@@ -367,14 +366,10 @@ def main():
             for line in lines:
                 writer.writerow(line)
     if flags['m']:
-        # fill up empty columns in first line
-        max_len = max([len(line) for line in lines])
-        lines[0].extend([''] * (max_len-len(lines[0])))
-        format_row = '{:<20} ' * (len(lines[0])+1)
         for line in lines:
-            print(format_row.format('', *line))
+            print(line)
 
-    if len(classified_classes) == 1:
+    if len(ref_classes) == 1:
         grass.warning(_('Only one class in reference dataset.'))
 
     # cleanup
