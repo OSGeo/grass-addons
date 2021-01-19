@@ -99,15 +99,16 @@ sys.path.append(path)
 if sys.version_info[0] >= 3:
     raw_input = input
 
-def check(home):
+def check_folder(folder):
     """ Check if a folder it is writable by the user that launch the process
     """
-    if os.access(home, os.W_OK):
-        return True
-    else:
-        grass.fatal(_("Folder to write downloaded files does not "
-                      "exist or is not writeable"))
+    if not os.path.exists(folder) or not os.path.isdir(folder):
+        grass.fatal(_("Folder {} does not exist").format(folder))
 
+    if not os.access(folder, os.W_OK):
+        grass.fatal(_("Folder {} is not writeable").format(folder))
+
+    return True
 
 def checkdate(options):
     """ Function to check the data and return the correct value to download the
@@ -177,7 +178,7 @@ def main():
     if not options['settings']:
         user = None
         passwd = None
-        if check(options['folder']):
+        if check_folder(options['folder']):
             fold = options['folder']
         else:
             grass.fatal(_("Set folder parameter when using stdin for passing "
@@ -185,7 +186,7 @@ def main():
     elif options['settings'] == '-':
         if options['folder'] != '':
             import getpass
-            if check(options['folder']):
+            if check_folder(options['folder']):
                 fold = options['folder']
             user = raw_input(_('Insert username: '))
             passwd = getpass.getpass(_('Insert password: '))
@@ -197,17 +198,15 @@ def main():
         # open the file and read the the user and password:
         # first line is username
         # second line is password
-        if check(options['settings']):
-            filesett = open(options['settings'], 'r')
-            fileread = filesett.readlines()
-            user = fileread[0].strip()
-            passwd = fileread[1].strip()
-            filesett.close()
-        else:
-            grass.fatal(_("File <%s> not found") % options['settings'])
-        # set the folder by option folder
+        try:
+            with open(options['settings'], 'r') as filesett:
+                fileread = filesett.readlines()
+                user = fileread[0].strip()
+                passwd = fileread[1].strip()
+        except (FileNotFoundError, PermissionError) as e:
+            grass.fatal(_("Unable to read settings: {}").format(e))
         if options['folder'] != '':
-            if check(options['folder']):
+            if check_folder(options['folder']):
                 fold = options['folder']
         # set the folder from path where settings file is stored
         else:
@@ -217,7 +216,7 @@ def main():
                 grass.warning(_("You are downloading data into a temporary "
                                 "directory. They will be deleted when you "
                                 "close this GRASS GIS session"))
-            if check(path):
+            if check_folder(path):
                 fold = path
     # check the version
     version = grass.core.version()
