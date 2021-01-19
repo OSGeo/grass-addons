@@ -194,13 +194,9 @@ def main():
 
     global rm_regions, rm_rasters, rm_vectors
 
-    ### check if the i.sentinel.download + i.sentinel.import addons are installed
+    ### check if the i.sentinel.download addons is installed
     if not grass.find_program('i.sentinel.download', '--help'):
         grass.fatal(_("The 'i.sentinel.download' module was not found, install it first:") +
-                    "\n" +
-                    "g.extension i.sentinel")
-    if not grass.find_program('i.sentinel.import', '--help'):
-        grass.fatal(_("The 'i.sentinel.import' module was not found, install it first:") +
                     "\n" +
                     "g.extension i.sentinel")
 
