@@ -97,6 +97,12 @@ This program is free software under the GNU General Public License
 #% required: no
 #%end
 
+#%option
+#% key: crs
+#% type: string
+#% description: A valid CRS string to pass at WCS request
+#% required: no
+#%end
 
 import os
 import sys
@@ -152,7 +158,7 @@ class WCSBase:
         '''
         self._debug("_initializeParameters", "started")
 
-        for key in ['url', 'coverage','output','location']:
+        for key in ['url', 'coverage','output','location', 'crs']:
             self.params[key] = options[key].strip()
 
         if not self.params['output']:
@@ -349,6 +355,10 @@ class WCSGdalDrv(WCSBase):
             userpwd = etree.SubElement(gdal_wcs,'UserPwd')
             userpwd.text = self.params['username']+':' + self.params['password']
 
+        if self.params['crs']:
+            crs = etree.SubElement(gdal_wcs,'supportedCRSs')
+            crs.text = self.params['crs']
+
         xml_file = self._tempfile()
 
         etree_gdal_wcs = etree.ElementTree(gdal_wcs)
@@ -375,7 +385,6 @@ class WCSGdalDrv(WCSBase):
         command = [str(i) for i in command]
 
         grass.verbose(' '.join(command))
-
         self.process = subprocess.Popen(command,
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.PIPE)
