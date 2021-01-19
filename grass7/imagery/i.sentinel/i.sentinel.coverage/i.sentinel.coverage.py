@@ -63,6 +63,15 @@
 #%end
 
 #%option
+#% key: producttype
+#% type: string
+#% description: Sentinel product type to filter
+#% required: no
+#% options: SLC,GRD,OCN,S2MSI1C,S2MSI2A,S2MSI2Ap
+#% guisection: Filter
+#%end
+
+#%option
 #% key: clouds
 #% type: integer
 #% required: no
@@ -207,7 +216,9 @@ def main():
     if not grass.find_file(area, element='vector')['file']:
         grass.fatal(_("Vector map <%s> not found") % area)
     type = options['type']
-    if type == 's1':
+    if options['producttype']:
+        producttype = options['producttype']
+    elif type == 's1':
         producttype = 'GRD'
     else:
         producttype = 'S2MSI2A'
