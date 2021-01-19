@@ -370,9 +370,8 @@ def main():
         # fill up empty columns in first line
         max_len = max([len(line) for line in lines])
         lines[0].extend([''] * (max_len-len(lines[0])))
-        format_row = '{:>20} ' * (len(lines[0])+1)
-        print(format_row.format('', *lines[0]))
-        for line in lines[1:]:
+        format_row = '{:<20} ' * (len(lines[0])+1)
+        for line in lines:
             print(format_row.format('', *line))
 
     if len(classified_classes) == 1:
