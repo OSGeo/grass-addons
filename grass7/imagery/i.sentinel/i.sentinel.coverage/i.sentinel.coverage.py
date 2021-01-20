@@ -52,13 +52,12 @@
 #%end
 
 #%option
-#% key: type
+#% key: producttype
 #% type: string
-#% description: Sentinel-1 or Sentinel-2
+#% description: Sentinel product type to filter
 #% required: no
-#% multiple: no
-#% options: s1,s2
-#% answer: s2
+#% options: SLC,GRD,OCN,S2MSI1C,S2MSI2A,S2MSI2Ap
+#% answer: S2MSI2A
 #% guisection: Filter
 #%end
 
@@ -128,7 +127,7 @@ def cleanup():
                 'g.remove', type='raster', name=rmrast, **kwargs)
 
 
-def scenename_split(scenename, sensor='s2'):
+def scenename_split(scenename):
     '''
     When using the query option in i.sentinel.coverage and defining
     specific filenames, the parameters Producttype, Start-Date, and End-Date
@@ -151,16 +150,16 @@ def scenename_split(scenename, sensor='s2'):
         ### get producttype
         name_split = scenename.split('_')
 
-        if sensor == 's2':
+        if name_split[0].startswith('S2'):
             type_string = name_split[1]
             level_string = type_string.split('L')[1]
             producttype = 'S2MSI' + level_string
             date_string = name_split[2].split('T')[0]
-        elif sensor == 's1':
+        elif name_split[0].startswith('S1'):
             producttype = name_split[2][:3]
             date_string = name_split[4].split('T')[0]
         else:
-            grass.fatal(_("Unknown sensor %s" % sensor))
+            grass.fatal(_("Sensor %s is not supported yet" % name_split[0]))
         dt_obj = datetime.strptime(date_string, "%Y%m%d")
         start_day_dt = dt_obj - timedelta(days=1)
         end_day_dt = dt_obj + timedelta(days=1)
@@ -194,13 +193,9 @@ def main():
 
     global rm_regions, rm_rasters, rm_vectors
 
-    ### check if the i.sentinel.download + i.sentinel.import addons are installed
+    ### check if the i.sentinel.download addons is installed
     if not grass.find_program('i.sentinel.download', '--help'):
         grass.fatal(_("The 'i.sentinel.download' module was not found, install it first:") +
-                    "\n" +
-                    "g.extension i.sentinel")
-    if not grass.find_program('i.sentinel.import', '--help'):
-        grass.fatal(_("The 'i.sentinel.import' module was not found, install it first:") +
                     "\n" +
                     "g.extension i.sentinel")
 
@@ -210,11 +205,7 @@ def main():
     area = options['area']
     if not grass.find_file(area, element='vector')['file']:
         grass.fatal(_("Vector map <%s> not found") % area)
-    type = options['type']
-    if type == 's1':
-        producttype = 'GRD'
-    else:
-        producttype = 'S2MSI2A'
+    producttype = options['producttype']
 
     grass.message(_("Retrieving Sentinel footprints from ESA hub ..."))
     fps = 'tmp_fps_%s' % str(os.getpid())
@@ -238,7 +229,7 @@ def main():
         name_list = []
         fp_list = []
         for name in options['names'].split(','):
-            real_producttype, start_day, end_day = scenename_split(name, type)
+            real_producttype, start_day, end_day = scenename_split(name)
             if real_producttype != producttype:
                 grass.fatal("Producttype of ")
             fpi = 'tmp_fps_%s_%s' % (name, str(os.getpid()))
