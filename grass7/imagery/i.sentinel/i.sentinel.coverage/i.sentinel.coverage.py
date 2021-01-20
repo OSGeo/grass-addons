@@ -127,7 +127,7 @@ def cleanup():
                 'g.remove', type='raster', name=rmrast, **kwargs)
 
 
-def scenename_split(scenename, sensor='s2'):
+def scenename_split(scenename):
     '''
     When using the query option in i.sentinel.coverage and defining
     specific filenames, the parameters Producttype, Start-Date, and End-Date
@@ -150,16 +150,16 @@ def scenename_split(scenename, sensor='s2'):
         ### get producttype
         name_split = scenename.split('_')
 
-        if sensor == 's2':
+        if name_split[0].startswith('S2'):
             type_string = name_split[1]
             level_string = type_string.split('L')[1]
             producttype = 'S2MSI' + level_string
             date_string = name_split[2].split('T')[0]
-        elif sensor == 's1':
+        elif name_split[0].startswith('S1'):
             producttype = name_split[2][:3]
             date_string = name_split[4].split('T')[0]
         else:
-            grass.fatal(_("Unknown sensor %s" % sensor))
+            grass.fatal(_("Sensor %s is not supported yet" % name_split[0]))
         dt_obj = datetime.strptime(date_string, "%Y%m%d")
         start_day_dt = dt_obj - timedelta(days=1)
         end_day_dt = dt_obj + timedelta(days=1)
@@ -229,7 +229,7 @@ def main():
         name_list = []
         fp_list = []
         for name in options['names'].split(','):
-            real_producttype, start_day, end_day = scenename_split(name, type)
+            real_producttype, start_day, end_day = scenename_split(name)
             if real_producttype != producttype:
                 grass.fatal("Producttype of ")
             fpi = 'tmp_fps_%s_%s' % (name, str(os.getpid()))
