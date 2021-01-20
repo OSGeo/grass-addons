@@ -178,7 +178,6 @@ def get_r_kappa(classification, reference):
     grass.run_command(
         'r.kappa', flags='wmh', classification=classification,
         reference=reference, output=tmp_csv, quiet=True)
-
     # read csv: error matrix
     errorlist = None
     with open(tmp_csv) as csvfile:
@@ -220,9 +219,12 @@ def convert_output(classified_classes, ref_classes, confusionmatrix, overall_acc
     line2.extend(confusionmatrix[0,:].tolist()[0])
     line2.extend([user_accuracy[classified_classes[0]], commission[classified_classes[0]]])
 
-    line3 = [classification, classified_classes[1]]
-    line3.extend(confusionmatrix[1,:].tolist()[0])
-    line3.extend([user_accuracy[classified_classes[1]], commission[classified_classes[1]]])
+    if len(ref_classes) == 1:
+        line3 = [classification, '', '', '', '']
+    else:
+        line3 = [classification, classified_classes[1]]
+        line3.extend(confusionmatrix[1,:].tolist()[0])
+        line3.extend([user_accuracy[classified_classes[1]], commission[classified_classes[1]]])
 
     lines = [["", "", "Reference Map", refname], line1, line2, line3]
     for i in range(2, confusionmatrix.shape[0]):
@@ -231,7 +233,7 @@ def convert_output(classified_classes, ref_classes, confusionmatrix, overall_acc
         linei.extend([user_accuracy[classified_classes[i]], commission[classified_classes[i]]])
         lines.append(linei)
     producer_accuracy_list = [producer_accuracy[rc] for rc in ref_classes]
-    commission_list = [commission[rc] for rc in classified_classes]
+    # commission_list = [commission[rc] for rc in classified_classes]
     lineend1 = ["", "Producer Accuracy"]
     lineend1.extend(producer_accuracy_list)
     lineend1.extend(['Overall Accuracy', overall_accuracy])
@@ -339,6 +341,17 @@ def main():
     if not flags['m']:
         grass.message("\nKappa coefficient: %f" % kappa)
 
+    # round values to two digits
+    for item in user_accuracy.items():
+        user_accuracy[item[0]] = round(item[1], 2)
+    for item in producer_accuracy.items():
+        producer_accuracy[item[0]] = round(item[1], 2)
+    for item in commission.items():
+        commission[item[0]] = round(item[1], 2)
+    for item in omission.items():
+        omission[item[0]] = round(item[1], 2)
+    overall_accuracy = round(overall_accuracy, 2)
+    kappa = round(kappa, 2)
     # in matrix style
     if flags['m'] or options['csvfile']:
         lines = convert_output(
@@ -349,13 +362,15 @@ def main():
     # write csv file
     if csv_filename:
         with open(csv_filename, 'w') as file:
-            writer = csv.writer(file)
+            writer = csv.writer(file, lineterminator='\n')
             for line in lines:
                 writer.writerow(line)
     if flags['m']:
         for line in lines:
-            # for stdout using print
             print(line)
+
+    if len(ref_classes) == 1:
+        grass.warning(_('Only one class in reference dataset.'))
 
     # cleanup
     if options['vector_reference']:
