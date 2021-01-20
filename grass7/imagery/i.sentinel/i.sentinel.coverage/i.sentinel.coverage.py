@@ -52,22 +52,12 @@
 #%end
 
 #%option
-#% key: type
-#% type: string
-#% description: Sentinel-1 or Sentinel-2
-#% required: no
-#% multiple: no
-#% options: s1,s2
-#% answer: s2
-#% guisection: Filter
-#%end
-
-#%option
 #% key: producttype
 #% type: string
 #% description: Sentinel product type to filter
 #% required: no
 #% options: SLC,GRD,OCN,S2MSI1C,S2MSI2A,S2MSI2Ap
+#% answer: S2MSI2A
 #% guisection: Filter
 #%end
 
@@ -215,13 +205,7 @@ def main():
     area = options['area']
     if not grass.find_file(area, element='vector')['file']:
         grass.fatal(_("Vector map <%s> not found") % area)
-    type = options['type']
-    if options['producttype']:
-        producttype = options['producttype']
-    elif type == 's1':
-        producttype = 'GRD'
-    else:
-        producttype = 'S2MSI2A'
+    producttype = options['producttype']
 
     grass.message(_("Retrieving Sentinel footprints from ESA hub ..."))
     fps = 'tmp_fps_%s' % str(os.getpid())
