@@ -102,7 +102,8 @@
 #% guisection: Print
 #%end
 #%rules
-#% excludes: -l, id, output
+#% exclusive: -l, id
+#% exclusive: -l, output
 #%end
 
 import os
@@ -166,7 +167,7 @@ def main():
     if not options["end"]:
         end_date = date.today().strftime("%Y-%m-%d")
 
-    outdir = ""
+#    outdir = ""
     if options["output"]:
         outdir = options["output"]
         if os.path.isdir(outdir):
@@ -207,6 +208,7 @@ def main():
             start_date=start_date,
             end_date=end_date,
             max_cloud_cover=options["clouds"],
+            max_results=50
         )
 
         if options["tier"]:
