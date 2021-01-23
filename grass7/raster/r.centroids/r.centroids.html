@@ -1,9 +1,8 @@
-<h2>DESCRIPTION</h2>
-
+<p>
 <em>r.centroids</em> is a wrapper function for <a href="https://grass.osgeo.org/grass-stable/manuals/r.volume.html">r.volume</a>
 that computes the center point of raster clumps of data (neighboring, same-valued pixels). The centroids will always fall within
 the clump so they may not be the true, mathematical centroid. The centroids will always fall at the center of a pixel.
-
+<p>
 
 <h3>Options and flags:</h3>
 
@@ -11,14 +10,16 @@ the clump so they may not be the true, mathematical centroid. The centroids will
 output of <a href="https://grass.osgeo.org/grass-stable/manuals/r.clump.html">r.clump</a>.
 
 <h2>EXAMPLES</h2>
-Find the centroids of the basins map (North Carolina sample dataset):<br>
+Find the centroids of the basins map (North Carolina sample dataset).
 
+First, set computational area.
 <div class="code"><pre>
-#Set computational area
-g.region raster=basin_50K@PERMANENT
+g.region raster=basin_50K
+</pre></div>
 
-#Compute centroids
-r.centroids input=basin_50K@PERMANENT output=centroids50K
+Then, compute the centroids.
+<div class="code"><pre></pre>
+r.centroids input=basin_50K output=centroids50K
 </pre></div>
 
 <center>
@@ -31,7 +32,7 @@ r.centroids input=basin_50K@PERMANENT output=centroids50K
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.volume.html">r.walk</a>
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.volume.html">r.volume</a>
 </em>
 <em>
 <a href="https://grass.osgeo.org/grass-stable/manuals/r.clump.html">r.clump</a>
