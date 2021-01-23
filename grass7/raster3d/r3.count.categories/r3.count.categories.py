@@ -18,7 +18,7 @@
 #% keyword: raster3d
 #% keyword: conversion
 #% keyword: raster
-#% keyword: categories
+#% keyword: category
 #% keyword: voxel
 #%end
 #%option G_OPT_R3_INPUT
