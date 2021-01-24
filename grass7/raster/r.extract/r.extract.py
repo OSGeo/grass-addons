@@ -1,5 +1,18 @@
 #!/usr/bin/env python
 
+############################################################################
+#
+# MODULE:       r.extract
+# AUTHOR(S):    Anna Petrasova
+# PURPOSE:      Extracts specified categories of an integer input map.
+# COPYRIGHT:    (c) 2021 by Anna Petrasova and the GRASS Development Team
+#
+#               This program is free software under the GNU General Public
+#               License (>=v2). Read the file COPYING that comes with GRASS
+#               for details.
+#
+#############################################################################
+
 #%module
 #% description: Extracts specified categories of an integer input map.
 #% keyword: raster
@@ -79,7 +92,7 @@ def main():
     rules = parse(original, cats)
     if flags["c"] and flags["s"]:
         gs.warning(
-            _("The extent of the output reclassified" " raster cannot be changed")
+            _("The extent of the output reclassified raster cannot be changed")
         )
 
     if flags["s"]:
