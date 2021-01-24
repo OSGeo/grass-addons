@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
 #%module
-#% label: Extracts specified categories of an integer input map
+#% description: Extracts specified categories of an integer input map.
 #% keyword: raster
 #% keyword: extract
 #% keyword: extent
+#% keyword: category
 #%end
 #%option G_OPT_R_INPUT
 #%end
