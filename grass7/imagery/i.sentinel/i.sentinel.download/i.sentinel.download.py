@@ -109,7 +109,7 @@
 #%end
 #%option
 #% key: sleep
-#% description: Sleep time in second before retry to download data from LTA
+#% description: Sleep time in second before retrying to download data from ESA LTA
 #% guisection: Filter
 #%end
 #%option
