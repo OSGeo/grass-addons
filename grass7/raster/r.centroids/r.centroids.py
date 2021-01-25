@@ -18,7 +18,7 @@
 #############################################################################
 
 #%module
-#% description: Creates vector map of centroids from raster of "clumps"
+#% description: Creates vector map of centroids from raster of "clumps".
 #% keyword: raster
 #% keyword: centroid
 #% keyword: clumps
