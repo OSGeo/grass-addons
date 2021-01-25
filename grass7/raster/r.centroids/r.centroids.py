@@ -4,7 +4,7 @@
 #
 # MODULE:    r.centroids
 #
-# AUTHOR(S): Caitlin Haedrich (caitlin dot haedrich gmail com) and 
+# AUTHOR(S): Caitlin Haedrich (caitlin dot haedrich gmail com) 
 #
 # PURPOSE:   Wrapper for r.volume. Creates vector map of centroids from a raster 
 #            of "clumps"; r.clumps creates "clumps" of data.
