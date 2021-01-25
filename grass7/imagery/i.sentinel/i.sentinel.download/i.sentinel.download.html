@@ -97,6 +97,14 @@ The <b>output</b> directory is created if not yet available.
 <p>
 The query string sent to ESA can be shown with <b>--verbose</b>.
 
+<h3>Long Term Archive (LTA)</h3>
+Access to the product URL for data that are no longer available online will automatically trigger
+the retrieval of the data from the LTA, the actual download may be initiated once the data are restored
+(within minutes to hours). Full details are available in the updated
+<a href="https://scihub.copernicus.eu/userguide/" target="_blank">user guides</a>. 
+
+To work with LTA you need to set up <b>sleep</b> parameter (and you can set the maximum number of retry with
+<b>retry</b> parameter) to retry to download after the <b>sleep</b> value. 
 
 <h2>EXAMPLES</h2>
 
