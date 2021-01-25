@@ -114,7 +114,7 @@
 #%end
 #%option
 #% key: retry
-#% description: Maximum number of retry before skip to the next scene
+#% description: Maximum number of retries before skipping to the next scene at ESA LTA
 #% answer: 5
 #% guisection: Filter
 #%end
