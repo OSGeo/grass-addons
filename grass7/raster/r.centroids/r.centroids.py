@@ -28,7 +28,7 @@
 
 #%option G_OPT_R_INPUT
 #% key: input
-#% description: Raster of clumps, cluster of same-valued pixels
+#% description: Raster map of clumps, cluster of same-valued pixels
 #% required: yes
 #%end
 
