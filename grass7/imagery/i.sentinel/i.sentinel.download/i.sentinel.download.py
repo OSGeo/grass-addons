@@ -109,7 +109,7 @@
 #%end
 #%option
 #% key: sleep
-#% description: Sleep time in second before retrying to download data from ESA LTA
+#% description: Sleep time in minutes before retrying to download data from ESA LTA
 #% guisection: Filter
 #%end
 #%option
@@ -345,7 +345,8 @@ class SentinelDownloader(object):
                 x = 1
                 online = out['Online']
                 while not online:
-                    time.sleep(int(sleep))
+                    # sleep is in minutes so multiply by 60 
+                    time.sleep(int(sleep) * 60)
                     out = self._api.download(self._products_df_sorted['uuid'][idx],
                                              output)
                     x += 1
