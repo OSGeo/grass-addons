@@ -108,6 +108,17 @@
 #% guisection: Filter
 #%end
 #%option
+#% key: sleep
+#% description: Sleep time in minutes before retrying to download data from ESA LTA
+#% guisection: Filter
+#%end
+#%option
+#% key: retry
+#% description: Maximum number of retries before skipping to the next scene at ESA LTA
+#% answer: 5
+#% guisection: Filter
+#%end
+#%option
 #% key: sort
 #% description: Sort by values in given order
 #% multiple: yes
@@ -140,7 +151,7 @@
 import os
 import sys
 import logging
-
+import time
 from collections import OrderedDict
 
 import grass.script as gs
@@ -315,7 +326,7 @@ class SentinelDownloader(object):
                 self._products_df_sorted['producttype'][idx],
             ))
 
-    def download(self, output):
+    def download(self, output, sleep=False, maxretry=False):
         if self._products_df_sorted is None:
             return
 
@@ -328,7 +339,19 @@ class SentinelDownloader(object):
                 os.path.join(output, self._products_df_sorted['identifier'][idx])
             ))
             # download
-            self._api.download(self._products_df_sorted['uuid'][idx], output)
+            out = self._api.download(self._products_df_sorted['uuid'][idx],
+                                     output)
+            if sleep:
+                x = 1
+                online = out['Online']
+                while not online:
+                    # sleep is in minutes so multiply by 60 
+                    time.sleep(int(sleep) * 60)
+                    out = self._api.download(self._products_df_sorted['uuid'][idx],
+                                             output)
+                    x += 1
+                    if x > maxretry:
+                        online = True
 
     def save_footprints(self, map_name):
         if self._products_df_sorted is None:
@@ -515,7 +538,8 @@ def main():
         downloader.list()
         return
 
-    downloader.download(options['output'])
+    downloader.download(options['output'], options['sleep'],
+                        int(options['retry']))
 
     return 0
 
