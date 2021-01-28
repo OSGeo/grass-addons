@@ -251,7 +251,7 @@ def main():
             fp_list.append(fpi)
             rm_vectors.append(fpi)
         except Exception as e:
-            grass.warning('%s was not found in %s' % (name, area))
+            grass.warning(_("%s was not found in %s") % (name, area))
 
     if len(fp_list) > 1:
         start_fp = fp_list[0]
