@@ -165,7 +165,8 @@ def scenename_split(scenename):
             producttype = name_split[2][:3]
             date_string = name_split[4].split('T')[0]
         else:
-            grass.fatal(_("Sensor %s is not supported yet" % name_split[0]))
+            grass.fatal(_(
+                "Sensor {} is not supported yet".format(name_split[0])))
         dt_obj = datetime.strptime(date_string, "%Y%m%d")
         start_day_dt = dt_obj - timedelta(days=1)
         end_day_dt = dt_obj + timedelta(days=1)
@@ -207,7 +208,7 @@ def main():
     output = options['output']
     area = options['area']
     if not grass.find_file(area, element='vector')['file']:
-        grass.fatal(_("Vector map <%s> not found") % area)
+        grass.fatal(_("Vector map <{}> not found".format(area)))
     producttype = options['producttype']
 
     grass.message(_("Retrieving Sentinel footprints from ESA hub ..."))
@@ -251,7 +252,7 @@ def main():
             fp_list.append(fpi)
             rm_vectors.append(fpi)
         except Exception as e:
-            grass.warning('%s was not found in %s' % (name, area))
+            grass.warning(_('{} was not found in {}'.format(name, area)))
 
     if len(fp_list) > 1:
         start_fp = fp_list[0]
@@ -282,10 +283,11 @@ def main():
         temp_overlay = fp_list[0]
     grass.run_command('g.rename', vector='%s,%s' % (temp_overlay, fps))
 
-    grass.message(_("Getting size of <%s> area ...") % area)
+    grass.message(_("Getting size of <{}> area ...".format(area)))
     areasize = get_size(area)
 
-    grass.message(_("Getting size of footprints in area <%s> ...") % area)
+    grass.message(_(
+        "Getting size of footprints in area <{}> ...".format(area)))
     fps_in_area = 'tmp_fps_in_area_%s' % str(os.getpid())
     rm_vectors.append(fps_in_area)
     grass.run_command(
@@ -314,20 +316,22 @@ def main():
     fpsize = get_size(fps_in_area_dis)
 
     percent = fpsize / areasize * 100.0
+    percent_rounded = round(percent, 2)
     grass.message(_(
-        "%.2f percent of the area <%s> is covered") % (percent, area))
+        "{} percent of the area <{}> is covered".format(
+            str(percent_rounded), area)))
     if options['minpercent']:
         if percent < int(options['minpercent']):
             grass.fatal(_(
-                "The percentage of coverage is too low (expected: %s)"
-                % options['minpercent']))
-
+                "The percentage of coverage is too low (expected: {})".format(
+                    str(options['minpercent']))))
     # save list of Sentinel names
     if output:
         with open(output, 'w') as f:
             f.write(','.join(name_list_updated))
         grass.message(_(
-            "Name of Sentinel scenes are written to file <%s>") % (output))
+            "Name of Sentinel scenes are written to file <{}>".format(
+                output)))
 
     # TODO Sentinel-1 select only "one" scene (no overlap)
 
