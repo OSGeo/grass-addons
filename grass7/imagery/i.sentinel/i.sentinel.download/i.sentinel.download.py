@@ -119,6 +119,13 @@
 #% guisection: Filter
 #%end
 #%option
+#% key: datasource
+#% description: Data-Hub to download S-2 scenes from
+#% options: ESA_COAH,USGS_EE
+#% answer: ESA_COAH
+#% guisection: Filter
+#%end
+#%option
 #% key: sort
 #% description: Sort by values in given order
 #% multiple: yes
@@ -155,6 +162,10 @@ import time
 from collections import OrderedDict
 
 import grass.script as gs
+try:
+    import pandas
+except ImportError as e:
+    gs.fatal(_("Module requires pandas library: {}").format(e))
 
 def get_aoi_box(vector=None):
     args = {}
@@ -224,27 +235,35 @@ def get_aoi(vector=None):
         return geom
 
 
+
 class SentinelDownloader(object):
     def __init__(self, user, password, api_url='https://scihub.copernicus.eu/dhus'):
-        try:
-            from sentinelsat import SentinelAPI
-        except ImportError as e:
-            gs.fatal(_("Module requires sentinelsat library: {}").format(e))
-        try:
-            import pandas
-        except ImportError as e:
-            gs.fatal(_("Module requires pandas library: {}").format(e))
+
+        self._apiname = api_url
+        self._user = user
+        self._password = password
 
         # init logger
         root = logging.getLogger()
         root.addHandler(logging.StreamHandler(
             sys.stderr
         ))
+        if self._apiname == 'https://scihub.copernicus.eu/dhus':
+            try:
+                from sentinelsat import SentinelAPI
+            except ImportError as e:
+                gs.fatal(_("Module requires sentinelsat library: {}").format(e))
+            # connect SciHub via API
+            self._api = SentinelAPI(self._user, self._password,
+                                    api_url=api_url
+                                    )
+        elif self._apiname == 'USGS_EE':
+            try:
+                import landsatxplore.api
+            except ImportError as e:
+                gs.fatal(_("Module requires landsatxplore library: {}").format(e))
 
-        # connect SciHub via API
-        self._api = SentinelAPI(user, password,
-                                api_url=api_url
-                                )
+            self._api = landsatxplore.api.API(self._user, self._password)
 
         self._products_df_sorted = None
 
@@ -311,20 +330,39 @@ class SentinelDownloader(object):
     def list(self):
         if self._products_df_sorted is None:
             return
-
-        for idx in range(len(self._products_df_sorted['uuid'])):
-            if 'cloudcoverpercentage' in self._products_df_sorted:
-                ccp = '{0:2.0f}%'.format(self._products_df_sorted['cloudcoverpercentage'][idx])
+        id_kw = ('uuid', 'entityId')
+        identifier_kw = ('identifier', 'displayId')
+        cloud_kw = ('cloudcoverpercentage', 'cloudCover')
+        time_kw = ('beginposition', 'acquisitionDate')
+        kw_idx = 1 if self._apiname == 'USGS_EE' else 0
+        for idx in range(len(self._products_df_sorted[id_kw[kw_idx]])):
+            if cloud_kw[kw_idx] in self._products_df_sorted:
+                ccp = '{0:2.0f}%'.format(
+                    float(self._products_df_sorted[cloud_kw[kw_idx]][idx]))
             else:
                 ccp = 'cloudcover_NA'
 
-            print('{0} {1} {2} {3} {4}'.format(
-                self._products_df_sorted['uuid'][idx],
-                self._products_df_sorted['identifier'][idx],
-                self._products_df_sorted['beginposition'][idx].strftime("%Y-%m-%dT%H:%M:%SZ"),
-                ccp,
-                self._products_df_sorted['producttype'][idx],
-            ))
+            print_str = '{0} {1}'.format(
+                self._products_df_sorted[id_kw[kw_idx]][idx],
+                self._products_df_sorted[identifier_kw[kw_idx]][idx])
+            if kw_idx == 1:
+                time_string = self._products_df_sorted[time_kw[kw_idx]][idx]
+            else:
+                time_string = self._products_df_sorted[
+                    time_kw[kw_idx]][idx].strftime("%Y-%m-%dT%H:%M:%SZ")
+            print_str += ' {0} {1}'.format(time_string, ccp)
+            if kw_idx == 0:
+                print_str += ' {0}'.format(
+                    self._products_df_sorted['producttype'][idx])
+
+            print(print_str)
+            # print('{0} {1} {2} {3} {4}'.format(
+            #     self._products_df_sorted[id_kw[kw_idx]][idx],
+            #     self._products_df_sorted[identifier_kw[kw_idx]][idx],
+            #     self._products_df_sorted['beginposition'][idx].strftime("%Y-%m-%dT%H:%M:%SZ"),
+            #     ccp,
+            #     self._products_df_sorted['producttype'][idx],
+            # ))
 
     def download(self, output, sleep=False, maxretry=False):
         if self._products_df_sorted is None:
@@ -333,25 +371,50 @@ class SentinelDownloader(object):
         if not os.path.exists(output):
             os.makedirs(output)
         gs.message(_('Downloading data into <{}>...').format(output))
-        for idx in range(len(self._products_df_sorted['uuid'])):
-            gs.message('{} -> {}.SAFE'.format(
-                self._products_df_sorted['uuid'][idx],
-                os.path.join(output, self._products_df_sorted['identifier'][idx])
-            ))
-            # download
-            out = self._api.download(self._products_df_sorted['uuid'][idx],
-                                     output)
-            if sleep:
-                x = 1
-                online = out['Online']
-                while not online:
-                    # sleep is in minutes so multiply by 60 
-                    time.sleep(int(sleep) * 60)
-                    out = self._api.download(self._products_df_sorted['uuid'][idx],
-                                             output)
-                    x += 1
-                    if x > maxretry:
-                        online = True
+
+        if self._apiname == 'USGS_EE':
+            from landsatxplore.earthexplorer import EarthExplorer
+            from zipfile import ZipFile
+            ee = EarthExplorer(self._user, self._password)
+            for idx in range(len(self._products_df_sorted['entityId'])):
+                scene = self._products_df_sorted['entityId'][idx]
+                identifier = self._products_df_sorted['displayId'][idx]
+                zip_file = os.path.join(output, '{}.zip'.format(identifier))
+                gs.message('Downloading {}...'.format(identifier))
+                ee.download(scene_id=scene, output_dir=output)
+                # extract .zip to get "usual" .SAFE
+                with ZipFile(zip_file, 'r') as zip:
+                    safe_name = zip.namelist()[0].split('/')[0]
+                    zip.extractall()
+                gs.message(_('Downloaded to <{}>'.format(os.path.join(output,
+                             safe_name))))
+                try:
+                    os.remove(zip_file)
+                except Exception as e:
+                    gs.warning(_('Unable to remove {0}:{1}'.format(
+                        zip_file, e)))
+                ee.logout()
+
+        else:
+            for idx in range(len(self._products_df_sorted['uuid'])):
+                gs.message('{} -> {}.SAFE'.format(
+                    self._products_df_sorted['uuid'][idx],
+                    os.path.join(output, self._products_df_sorted['identifier'][idx])
+                ))
+                # download
+                out = self._api.download(self._products_df_sorted['uuid'][idx],
+                                         output)
+                if sleep:
+                    x = 1
+                    online = out['Online']
+                    while not online:
+                        # sleep is in minutes so multiply by 60
+                        time.sleep(int(sleep) * 60)
+                        out = self._api.download(self._products_df_sorted['uuid'][idx],
+                                                 output)
+                        x += 1
+                        if x > maxretry:
+                            online = True
 
     def save_footprints(self, map_name):
         if self._products_df_sorted is None:
@@ -460,9 +523,74 @@ class SentinelDownloader(object):
                     self._products_df_sorted[k] = []
                 self._products_df_sorted[k].append(v)
 
+    def filter_USGS(self, area, area_relation, clouds=None, producttype=None,
+                    limit=None, query={}, start=None, end=None, sortby=[],
+                    asc=True, relativeorbitnumber=None):
+        if area_relation != 'Intersects':
+            gs.fatal(_(
+                'USGS Earth Explorer only supports area_relation'
+                ' "Intersects"'))
+        if query:
+            gs.fatal(_(
+                'USGS Earth Explorer does not support "query" option.'))
+        if relativeorbitnumber:
+            gs.fatal(_(
+                'USGS Earth Explorer does not support "relativeorbitnumber"'
+                ' option.'))
+        # get coordinate pairs from wkt string
+        str_1 = 'POLYGON(('
+        str_2 = '))'
+        coords = area[area.find(str_1)+len(str_1):area.rfind(str_2)].split(',')
+        # add one space to first pair for consistency
+        coords[0] = ' ' + coords[0]
+        lons = [float(pair.split(' ')[1]) for pair in coords]
+        lats = [float(pair.split(' ')[2]) for pair in coords]
+        usgs_args = {
+                     'dataset': 'SENTINEL_2A',
+                     'bbox': (min(lons), min(lats), max(lons), max(lats)),
+                     'start_date': start,
+                     'end_date': end
+        }
+        if clouds:
+            usgs_args['max_cloud_cover'] = clouds
+        if limit:
+            usgs_args['max_results'] = limit
+        scenes = self._api.search(**usgs_args)
+        if len(scenes) < 1:
+            gs.message(_('No product found'))
+            return
+        scenes_df = pandas.DataFrame.from_dict(scenes)
+
+        self._api.logout()
+        # sort and limit to first sorted product
+        if sortby:
+            # replace sortby keywords with USGS keywords
+            for idx, keyword in enumerate(sortby):
+                if keyword == 'cloudcoverpercentage':
+                    sortby[idx] = 'cloudCover'
+                    # turn cloudcover to float to make it sortable
+                    scenes_df['cloudCover'] = pandas.to_numeric(
+                        scenes_df['cloudCover'])
+                elif keyword == 'ingestiondate':
+                    sortby[idx] = 'acquisitionDate'
+                # what does sorting by footprint mean
+                elif keyword == 'footprint':
+                    sortby[idx] = 'displayId'
+            self._products_df_sorted = scenes_df.sort_values(
+                sortby,
+                ascending=[asc] * len(sortby), ignore_index=True
+            )
+        else:
+            self._products_df_sorted = scenes_df
+
+        gs.message(_('{} Sentinel product(s) found').format(len(self._products_df_sorted)))
+
 def main():
     user = password = None
-    api_url = 'https://scihub.copernicus.eu/dhus'
+    if options['datasource'] == 'ESA_COAH':
+        api_url = 'https://scihub.copernicus.eu/dhus'
+    else:
+        api_url = 'USGS_EE'
 
     if options['settings'] == '-':
         # stdin
@@ -516,20 +644,26 @@ def main():
                 for item in options['query'].split(','):
                     k, v = item.split('=')
                     query[k] = v
-            downloader.filter(area=map_box,
-                              area_relation=options['area_relation'],
-                              clouds=options['clouds'],
-                              producttype=options['producttype'],
-                              limit=options['limit'],
-                              query=query,
-                              start=options['start'],
-                              end=options['end'],
-                              sortby=sortby,
-                              asc=options['order'] == 'asc',
-                              relativeorbitnumber=options['relativeorbitnumber']
-                              )
+            filter_args = {
+                'area': map_box,
+                'area_relation': options['area_relation'],
+                'clouds': options['clouds'],
+                'producttype': options['producttype'],
+                'limit': options['limit'],
+                'query': query,
+                'start': options['start'],
+                'end': options['end'],
+                'sortby': sortby,
+                'asc': True if options['order'] == 'asc' else False,
+                'relativeorbitnumber': options['relativeorbitnumber']
+                }
+            if options['datasource'] == 'ESA_COAH':
+                downloader.filter(**filter_args)
+            elif options['datasource'] == 'USGS_EE':
+                downloader.filter_USGS(**filter_args)
     except Exception as e:
-        gs.fatal(_('Unable to connect Copernicus Open Access Hub: {}').format(e))
+        gs.fatal(_('Unable to connect to {0}: {1}').format(
+            options['datasource'], e))
 
     if options['footprints']:
         downloader.save_footprints(options['footprints'])
