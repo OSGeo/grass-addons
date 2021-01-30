@@ -26,11 +26,6 @@
 #% description: Name of input directory with downloaded Landsat data
 #% required: yes
 #%end
-#%option G_OPT_M_DIR
-#% key: unzip_dir
-#% description: Name of directory into which Landsat zip-files are extracted (default=input)
-#% required: no
-#%end
 #%option
 #% key: pattern
 #% description: Band name pattern to import
@@ -96,34 +91,32 @@ import os
 import sys
 import glob
 import re
-import shutil
+import tarfile
 from datetime import *
 import grass.script as gs
 from grass.exceptions import CalledModuleError
 
 
-def _untar(inputdir, untardir):
+def get_files_paths(inputdir):
 
     if not os.path.exists(inputdir):
         gs.fatal(_("Input directory <{}> does not exist").format(inputdir))
-
-    if untardir is None or untardir == "":
-        untardir = inputdir
-
-    if not os.path.exists(untardir):
-        gs.fatal(_("Directory <{}> does not exist").format(untardir))
 
     if options["pattern_file"]:
         filter_f = "*" + options["pattern_file"] + "*.tar.gz"
     else:
         filter_f = "*.tar.gz"
 
-    scenes_to_untar = glob.glob(os.path.join(inputdir, filter_f))
-    for scene in scenes_to_untar:
-        shutil.unpack_archive(scene, untardir)
+    scenes_to_read = glob.glob(os.path.join(inputdir, filter_f))
 
-    untared_tifs = glob.glob(os.path.join(untardir, "*.TIF"))
-    return untared_tifs
+    tifs = []
+    for scene in scenes_to_read:
+        with tarfile.open(name=scene, mode='r') as tar:
+            for filename in tar.getnames():
+                if filename.endswith(".TIF"):
+                    tifs = tifs + ["/vsitar/{}/{}".format(scene, filename)]
+
+    return tifs
 
 
 def _check_projection(filename):
@@ -251,9 +244,8 @@ def print_products(filenames):
 def main():
 
     inputdir = options["input"]
-    untardir = options["unzip_dir"]
 
-    files = _untar(inputdir, untardir)
+    files = get_files_paths(inputdir)
 
     if options["pattern"]:
         filter_p = r".*{}.*.TIF$".format(options["pattern"])
@@ -308,10 +300,6 @@ def main():
 
     if options['register_output']:
         write_register_file(files_to_import, options['register_output'])
-
-    # remove all tif files after import
-    for f in files:
-        os.remove(f)
 
 
 if __name__ == "__main__":
