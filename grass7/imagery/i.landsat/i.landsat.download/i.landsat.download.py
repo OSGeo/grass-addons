@@ -121,10 +121,10 @@ def get_bb(vector=None):
         gs.fatal("Unable to get bounding box: unprojected location not supported")
     if kv["+proj"] != "longlat":
         info = gs.parse_command("g.region", flags="uplg", **args)
-        return (info["sw_lat"], info["nw_long"], info["nw_lat"], info["ne_long"])
+        return (info["nw_long"], info["sw_lat"], info["ne_long"], info["nw_lat"])
     else:
         info = gs.parse_command("g.region", flags="upg", **args)
-        return (info["s"], info["w"], info["n"], info["e"])
+        return (info["w"], info["s"], info["e"], info["n"])
 
 
 def main():
