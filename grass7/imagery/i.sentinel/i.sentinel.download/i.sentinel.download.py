@@ -530,58 +530,66 @@ class SentinelDownloader(object):
             gs.fatal(_(
                 'USGS Earth Explorer only supports area_relation'
                 ' "Intersects"'))
-        if query:
-            gs.fatal(_(
-                'USGS Earth Explorer does not support "query" option.'))
         if relativeorbitnumber:
             gs.fatal(_(
                 'USGS Earth Explorer does not support "relativeorbitnumber"'
                 ' option.'))
-        # get coordinate pairs from wkt string
-        str_1 = 'POLYGON(('
-        str_2 = '))'
-        coords = area[area.find(str_1)+len(str_1):area.rfind(str_2)].split(',')
-        # add one space to first pair for consistency
-        coords[0] = ' ' + coords[0]
-        lons = [float(pair.split(' ')[1]) for pair in coords]
-        lats = [float(pair.split(' ')[2]) for pair in coords]
-        usgs_args = {
-                     'dataset': 'SENTINEL_2A',
-                     'bbox': (min(lons), min(lats), max(lons), max(lats)),
-                     'start_date': start,
-                     'end_date': end
-        }
-        if clouds:
-            usgs_args['max_cloud_cover'] = clouds
-        if limit:
-            usgs_args['max_results'] = limit
-        scenes = self._api.search(**usgs_args)
-        if len(scenes) < 1:
-            gs.message(_('No product found'))
-            return
-        scenes_df = pandas.DataFrame.from_dict(scenes)
+        if producttype and producttype != 'S2MSI1C':
+            gs.fatal(_(
+                'USGS Earth Explorer does only support producttype S2MSI1C'))
+        if query:
+            import pdb; pdb.set_trace()
+            if "filename" not in query:
+                gs.fatal(_(
+                'USGS Earth Explorer only supports "query" option "filename".'))
+            # build the USGS style S2-identifier
 
-        self._api.logout()
-        # sort and limit to first sorted product
-        if sortby:
-            # replace sortby keywords with USGS keywords
-            for idx, keyword in enumerate(sortby):
-                if keyword == 'cloudcoverpercentage':
-                    sortby[idx] = 'cloudCover'
-                    # turn cloudcover to float to make it sortable
-                    scenes_df['cloudCover'] = pandas.to_numeric(
-                        scenes_df['cloudCover'])
-                elif keyword == 'ingestiondate':
-                    sortby[idx] = 'acquisitionDate'
-                # what does sorting by footprint mean
-                elif keyword == 'footprint':
-                    sortby[idx] = 'displayId'
-            self._products_df_sorted = scenes_df.sort_values(
-                sortby,
-                ascending=[asc] * len(sortby), ignore_index=True
-            )
+        # get coordinate pairs from wkt string
         else:
-            self._products_df_sorted = scenes_df
+            str_1 = 'POLYGON(('
+            str_2 = '))'
+            coords = area[area.find(str_1)+len(str_1):area.rfind(str_2)].split(',')
+            # add one space to first pair for consistency
+            coords[0] = ' ' + coords[0]
+            lons = [float(pair.split(' ')[1]) for pair in coords]
+            lats = [float(pair.split(' ')[2]) for pair in coords]
+            usgs_args = {
+                         'dataset': 'SENTINEL_2A',
+                         'bbox': (min(lons), min(lats), max(lons), max(lats)),
+                         'start_date': start,
+                         'end_date': end
+            }
+            if clouds:
+                usgs_args['max_cloud_cover'] = clouds
+            if limit:
+                usgs_args['max_results'] = limit
+            scenes = self._api.search(**usgs_args)
+            if len(scenes) < 1:
+                gs.message(_('No product found'))
+                return
+            scenes_df = pandas.DataFrame.from_dict(scenes)
+
+            self._api.logout()
+            # sort and limit to first sorted product
+            if sortby:
+                # replace sortby keywords with USGS keywords
+                for idx, keyword in enumerate(sortby):
+                    if keyword == 'cloudcoverpercentage':
+                        sortby[idx] = 'cloudCover'
+                        # turn cloudcover to float to make it sortable
+                        scenes_df['cloudCover'] = pandas.to_numeric(
+                            scenes_df['cloudCover'])
+                    elif keyword == 'ingestiondate':
+                        sortby[idx] = 'acquisitionDate'
+                    # what does sorting by footprint mean
+                    elif keyword == 'footprint':
+                        sortby[idx] = 'displayId'
+                self._products_df_sorted = scenes_df.sort_values(
+                    sortby,
+                    ascending=[asc] * len(sortby), ignore_index=True
+                )
+            else:
+                self._products_df_sorted = scenes_df
 
         gs.message(_('{} Sentinel product(s) found').format(len(self._products_df_sorted)))
 
