@@ -403,7 +403,7 @@ class SentinelDownloader(object):
                 with ZipFile(zip_file, 'r') as zip:
                     safe_name = zip.namelist()[0].split('/')[0]
                     outpath = os.path.join(output, safe_name)
-                    zip.extractall(path=outpath)
+                    zip.extractall(path=output)
                 gs.message(_('Downloaded to <{}>'.format(outpath)))
                 try:
                     os.remove(zip_file)
