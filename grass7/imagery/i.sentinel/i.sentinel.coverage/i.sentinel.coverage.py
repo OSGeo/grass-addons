@@ -235,7 +235,8 @@ def main():
     for name in name_list_tmp:
         real_producttype, start_day, end_day = scenename_split(name)
         if real_producttype != producttype:
-            grass.fatal("Producttype of ")
+            grass.fatal(_
+                ("Producttype of {} not supported".format(real_producttype)))
         fpi = 'tmp_fps_%s_%s' % (name, str(os.getpid()))
         try:
             grass.run_command(
@@ -245,6 +246,7 @@ def main():
                 start=start_day,
                 end=end_day,
                 footprints=fpi,
+                producttype = producttype,
                 query="identifier=%s" % name,
                 flags='lb',
                 quiet=True)
