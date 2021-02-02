@@ -167,6 +167,7 @@ try:
 except ImportError as e:
     gs.fatal(_("Module requires pandas library: {}").format(e))
 
+
 def get_aoi_box(vector=None):
     args = {}
     if vector:
@@ -234,6 +235,29 @@ def get_aoi(vector=None):
     else:
         return geom
 
+
+def get_bbox_from_S2_UTMtile(tile):
+    import requests
+    import xml.etree.ElementTree as ET
+    # download and parse S2-UTM tilegrid kml
+    tile_kml_url = 'https://sentinel.esa.int/documents/247904/1955685/' \
+                   'S2A_OPER_GIP_TILPAR_MPC__20151209T095117_' \
+                   'V20150622T000000_21000101T000000_B00.kml/' \
+                   'ec05e22c-a2bc-4a13-9e84-02d5257b09a8'
+    r = requests.get(tile_kml_url, allow_redirects=True)
+    root = ET.fromstring(r.content)
+    r = None
+    # get center coordinates from tile
+    nsmap = {"kml": "http://www.opengis.net/kml/2.2"}
+    search_string = ".//*[kml:name='{}']//kml:Point//kml:coordinates".format(
+        tile)
+    kml_search = root.findall(search_string, nsmap)
+    coord_str = kml_search[0].text
+    lon = float(coord_str.split(',')[0])
+    lat = float(coord_str.split(',')[1])
+    # create a mini bbox around the center
+    bbox = (lon-0.001, lat-0.001, lon+0.001, lat+0.001)
+    return bbox
 
 
 class SentinelDownloader(object):
@@ -356,13 +380,6 @@ class SentinelDownloader(object):
                     self._products_df_sorted['producttype'][idx])
 
             print(print_str)
-            # print('{0} {1} {2} {3} {4}'.format(
-            #     self._products_df_sorted[id_kw[kw_idx]][idx],
-            #     self._products_df_sorted[identifier_kw[kw_idx]][idx],
-            #     self._products_df_sorted['beginposition'][idx].strftime("%Y-%m-%dT%H:%M:%SZ"),
-            #     ccp,
-            #     self._products_df_sorted['producttype'][idx],
-            # ))
 
     def download(self, output, sleep=False, maxretry=False):
         if self._products_df_sorted is None:
@@ -536,16 +553,26 @@ class SentinelDownloader(object):
                 ' option.'))
         if producttype and producttype != 'S2MSI1C':
             gs.fatal(_(
-                'USGS Earth Explorer does only support producttype S2MSI1C'))
+                'USGS Earth Explorer only supports producttype S2MSI1C'))
         if query:
-            import pdb; pdb.set_trace()
-            if "filename" not in query:
+            if not any(key in query for key in ['identifier', 'filename']):
                 gs.fatal(_(
-                'USGS Earth Explorer only supports "query" option "filename".'))
+                    'USGS Earth Explorer only supports query options'
+                    ' "filename" or "identifier".'))
+            if "filename" in query:
+                esa_id = query['filename'].replace('.SAFE','')
+            else:
+                esa_id = query['identifier']
+            utm_tile = esa_id.split('_')[-2]
+            acq_date = esa_id.split('_')[2].split('T')[0]
+            acq_date_string = '{0}-{1}-{2}'.format(
+                acq_date[:4], acq_date[4:6], acq_date[6:])
+            acq_time = esa_id.split('_')[2].split('T')[1]
+            start_date = end_date = acq_date_string
             # build the USGS style S2-identifier
-
-        # get coordinate pairs from wkt string
+            bbox = get_bbox_from_S2_UTMtile(utm_tile.replace('T',''))
         else:
+            # get coordinate pairs from wkt string
             str_1 = 'POLYGON(('
             str_2 = '))'
             coords = area[area.find(str_1)+len(str_1):area.rfind(str_2)].split(',')
@@ -553,43 +580,51 @@ class SentinelDownloader(object):
             coords[0] = ' ' + coords[0]
             lons = [float(pair.split(' ')[1]) for pair in coords]
             lats = [float(pair.split(' ')[2]) for pair in coords]
-            usgs_args = {
-                         'dataset': 'SENTINEL_2A',
-                         'bbox': (min(lons), min(lats), max(lons), max(lats)),
-                         'start_date': start,
-                         'end_date': end
-            }
-            if clouds:
-                usgs_args['max_cloud_cover'] = clouds
-            if limit:
-                usgs_args['max_results'] = limit
-            scenes = self._api.search(**usgs_args)
-            if len(scenes) < 1:
-                gs.message(_('No product found'))
-                return
-            scenes_df = pandas.DataFrame.from_dict(scenes)
-
-            self._api.logout()
-            # sort and limit to first sorted product
-            if sortby:
-                # replace sortby keywords with USGS keywords
-                for idx, keyword in enumerate(sortby):
-                    if keyword == 'cloudcoverpercentage':
-                        sortby[idx] = 'cloudCover'
-                        # turn cloudcover to float to make it sortable
-                        scenes_df['cloudCover'] = pandas.to_numeric(
-                            scenes_df['cloudCover'])
-                    elif keyword == 'ingestiondate':
-                        sortby[idx] = 'acquisitionDate'
-                    # what does sorting by footprint mean
-                    elif keyword == 'footprint':
-                        sortby[idx] = 'displayId'
-                self._products_df_sorted = scenes_df.sort_values(
-                    sortby,
-                    ascending=[asc] * len(sortby), ignore_index=True
-                )
-            else:
-                self._products_df_sorted = scenes_df
+            bbox = (min(lons), min(lats), max(lons), max(lats))
+            start_date = start
+            end_date = end
+        usgs_args = {
+                     'dataset': 'SENTINEL_2A',
+                     'bbox': bbox,
+                     'start_date': start_date,
+                     'end_date': end_date
+        }
+        if clouds:
+            usgs_args['max_cloud_cover'] = clouds
+        if limit:
+            usgs_args['max_results'] = limit
+        scenes = self._api.search(**usgs_args)
+        if len(scenes) < 1:
+            gs.message(_('No product found'))
+            return
+        scenes_df = pandas.DataFrame.from_dict(scenes)
+        if query:
+            # check if the UTM-Tile is correct, remove otherwise
+            for idx, row in scenes_df.iterrows():
+                usgs_id = row['displayId']
+                if usgs_id.split('_')[1] != utm_tile:
+                    scenes_df.drop([idx])
+        self._api.logout()
+        # sort and limit to first sorted product
+        if sortby:
+            # replace sortby keywords with USGS keywords
+            for idx, keyword in enumerate(sortby):
+                if keyword == 'cloudcoverpercentage':
+                    sortby[idx] = 'cloudCover'
+                    # turn cloudcover to float to make it sortable
+                    scenes_df['cloudCover'] = pandas.to_numeric(
+                        scenes_df['cloudCover'])
+                elif keyword == 'ingestiondate':
+                    sortby[idx] = 'acquisitionDate'
+                # what does sorting by footprint mean
+                elif keyword == 'footprint':
+                    sortby[idx] = 'displayId'
+            self._products_df_sorted = scenes_df.sort_values(
+                sortby,
+                ascending=[asc] * len(sortby), ignore_index=True
+            )
+        else:
+            self._products_df_sorted = scenes_df
 
         gs.message(_('{} Sentinel product(s) found').format(len(self._products_df_sorted)))
 
