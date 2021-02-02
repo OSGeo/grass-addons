@@ -402,9 +402,9 @@ class SentinelDownloader(object):
                 # extract .zip to get "usual" .SAFE
                 with ZipFile(zip_file, 'r') as zip:
                     safe_name = zip.namelist()[0].split('/')[0]
-                    zip.extractall()
-                gs.message(_('Downloaded to <{}>'.format(os.path.join(output,
-                             safe_name))))
+                    outpath = os.path.join(output, safe_name)
+                    zip.extractall(path=outpath)
+                gs.message(_('Downloaded to <{}>'.format(outpath)))
                 try:
                     os.remove(zip_file)
                 except Exception as e:
