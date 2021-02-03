@@ -35,19 +35,21 @@
 #%option G_OPT_V_OUTPUT
 #% key: footprints
 #% description: Name for output vector map with footprints
+#% label: Only supported for download from ESA_Copernicus Open Access Hub
 #% required: no
 #% guisection: Output
 #%end
 #%option G_OPT_V_MAP
-#% label: Name of input vector map to define Area of Interest (AOI)
 #% description: If not given then current computational extent is used
+#% label: Name of input vector map to define Area of Interest (AOI)
 #% required: no
 #% guisection: Region
 #%end
 #%option
 #% key: area_relation
 #% type: string
-#% description: Spatial reation of footprint to AOI
+#% description: Spatial relation of footprint to AOI
+#% label: ESA Copernicus Open Access Hub allows all three, USGS Earth Explorer only 'Intersects' option
 #% options: Intersects,Contains,IsWithin
 #% answer: Intersects
 #% required: no
@@ -64,6 +66,7 @@
 #% key: producttype
 #% type: string
 #% description: Sentinel product type to filter
+#% label: USGS Earth Explorer only supports S2MSI1C
 #% required: no
 #% options: SLC,GRD,OCN,S2MSI1C,S2MSI2A,S2MSI2Ap
 #% answer: S2MSI2A
@@ -91,6 +94,7 @@
 #% key: query
 #% type: string
 #% description: Extra search keywords to use in the query
+#% label: USGS Earth Explorer only supports query options "identifier" and "filename"
 #% guisection: Filter
 #%end
 #%option
@@ -98,6 +102,7 @@
 #% type: string
 #% multiple: yes
 #% description: List of UUID to download
+#% label:_Only supported by ESA Copernicus Open Access Hub. For download from USGS Earth Explorer use query option with "identifier" or "filename" instead
 #% guisection: Filter
 #%end
 #%option
@@ -105,6 +110,7 @@
 #% type: integer
 #% multiple: no
 #% description: Relative orbit number to download (Sentinel-1: from 1 to 175; Sentinel-2: from 1 to 143)
+#% label:_Only supported by ESA Copernicus Open Access Hub.
 #% guisection: Filter
 #%end
 #%option
@@ -120,7 +126,8 @@
 #%end
 #%option
 #% key: datasource
-#% description: Data-Hub to download S-2 scenes from
+#% description: Data-Hub to download scenes from.
+#% label: Default is ESA Copernicus Open Access Hub (ESA_COAH), but Sentinel-2 L1C data can also be acquired from USGS Earth Explorer (USGS_EE)
 #% options: ESA_COAH,USGS_EE
 #% answer: ESA_COAH
 #% guisection: Filter
@@ -436,7 +443,9 @@ class SentinelDownloader(object):
     def save_footprints(self, map_name):
         if self._products_df_sorted is None:
             return
-
+        if self._apiname == 'USGS_EE':
+            gs.fatal(_(
+                'USGS Earth Explorer does not support footprint download.'))
         try:
             from osgeo import ogr, osr
         except ImportError as e:
@@ -509,6 +518,11 @@ class SentinelDownloader(object):
 
         :param uuid: uuid to download
         """
+        if self._apiname == 'USGS_EE':
+            gs.fatal(_('USGS Earth Explorer does not support uuid option. '
+                       'Use query option with "identifier" or "filename" '
+                       'instead'))
+
         from sentinelsat.sentinel import SentinelAPIError
 
         self._products_df_sorted = {'uuid': []}
@@ -567,7 +581,6 @@ class SentinelDownloader(object):
             acq_date = esa_id.split('_')[2].split('T')[0]
             acq_date_string = '{0}-{1}-{2}'.format(
                 acq_date[:4], acq_date[4:6], acq_date[6:])
-            acq_time = esa_id.split('_')[2].split('T')[1]
             start_date = end_date = acq_date_string
             # build the USGS style S2-identifier
             bbox = get_bbox_from_S2_UTMtile(utm_tile.replace('T',''))
@@ -603,7 +616,7 @@ class SentinelDownloader(object):
             for idx, row in scenes_df.iterrows():
                 usgs_id = row['displayId']
                 if usgs_id.split('_')[1] != utm_tile:
-                    scenes_df.drop([idx])
+                    scenes_df = scenes_df.drop(index=idx)
         self._api.logout()
         # sort and limit to first sorted product
         if sortby:
@@ -628,7 +641,9 @@ class SentinelDownloader(object):
 
         gs.message(_('{} Sentinel product(s) found').format(len(self._products_df_sorted)))
 
+
 def main():
+
     user = password = None
     if options['datasource'] == 'ESA_COAH':
         api_url = 'https://scihub.copernicus.eu/dhus'
