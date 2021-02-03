@@ -94,7 +94,7 @@
 #% key: query
 #% type: string
 #% description: Extra search keywords to use in the query
-#% label: USGS Earth Explorer only supports query options "identifier" and "filename"
+#% label: USGS Earth Explorer only supports query options "identifier", "filename" (in ESA name format) or "usgs_identifier" (in USGS name format)
 #% guisection: Filter
 #%end
 #%option
@@ -102,7 +102,6 @@
 #% type: string
 #% multiple: yes
 #% description: List of UUID to download
-#% label:_Only supported by ESA Copernicus Open Access Hub. For download from USGS Earth Explorer use query option with "identifier" or "filename" instead
 #% guisection: Filter
 #%end
 #%option
@@ -511,6 +510,24 @@ class SentinelDownloader(object):
                        layer=map_name, snap=1e-10, quiet=True
                        )
 
+    def get_products_from_uuid_usgs(self, uuid_list):
+        metadata = self._api.metadata('SENTINEL_2A', uuid_list)
+        # build list of dictionaries consistent with result of filter_USGS()
+        scenes = []
+        for scene in metadata:
+            scene_dict = {
+                'entityId': scene['entityId'],
+                'displayId': scene['displayId'],
+                'acquisitionDate': scene['acquisitionDate']}
+            # get cloud cover from interior metadata dict
+            cloudcov_item = [dict for dict in scene['metadataFields']
+                             if dict['fieldName'] == 'Cloud Cover'][0]
+            cloudcov = cloudcov_item['value']
+            scene_dict['cloudCover'] = cloudcov
+            scenes.append(scene_dict)
+        scenes_df = pandas.DataFrame.from_dict(scenes)
+        self._products_df_sorted = scenes_df
+
     def set_uuid(self, uuid_list):
         """Set products by uuid.
 
@@ -519,40 +536,38 @@ class SentinelDownloader(object):
         :param uuid: uuid to download
         """
         if self._apiname == 'USGS_EE':
-            gs.fatal(_('USGS Earth Explorer does not support uuid option. '
-                       'Use query option with "identifier" or "filename" '
-                       'instead'))
+            self.get_products_from_uuid_usgs(uuid_list)
+        else:
+            from sentinelsat.sentinel import SentinelAPIError
 
-        from sentinelsat.sentinel import SentinelAPIError
-
-        self._products_df_sorted = {'uuid': []}
-        for uuid in uuid_list:
-            try:
-                odata = self._api.get_product_odata(uuid, full=True)
-            except SentinelAPIError as e:
-                gs.error('{0}. UUID {1} skipped'.format(e, uuid))
-                continue
-
-            for k, v in odata.items():
-                if k == 'id':
-                    k = 'uuid'
-                elif k == 'Sensing start':
-                    k = 'beginposition'
-                elif k == 'Product type':
-                    k = 'producttype'
-                elif k == 'Cloud cover percentage':
-                    k = 'cloudcoverpercentage'
-                elif k == 'Identifier':
-                    k = 'identifier'
-                elif k == 'Ingestion Date':
-                    k = 'ingestiondate'
-                elif k == 'footprint':
-                    pass
-                else:
+            self._products_df_sorted = {'uuid': []}
+            for uuid in uuid_list:
+                try:
+                    odata = self._api.get_product_odata(uuid, full=True)
+                except SentinelAPIError as e:
+                    gs.error('{0}. UUID {1} skipped'.format(e, uuid))
                     continue
-                if k not in self._products_df_sorted:
-                    self._products_df_sorted[k] = []
-                self._products_df_sorted[k].append(v)
+
+                for k, v in odata.items():
+                    if k == 'id':
+                        k = 'uuid'
+                    elif k == 'Sensing start':
+                        k = 'beginposition'
+                    elif k == 'Product type':
+                        k = 'producttype'
+                    elif k == 'Cloud cover percentage':
+                        k = 'cloudcoverpercentage'
+                    elif k == 'Identifier':
+                        k = 'identifier'
+                    elif k == 'Ingestion Date':
+                        k = 'ingestiondate'
+                    elif k == 'footprint':
+                        pass
+                    else:
+                        continue
+                    if k not in self._products_df_sorted:
+                        self._products_df_sorted[k] = []
+                    self._products_df_sorted[k].append(v)
 
     def filter_USGS(self, area, area_relation, clouds=None, producttype=None,
                     limit=None, query={}, start=None, end=None, sortby=[],
@@ -569,21 +584,38 @@ class SentinelDownloader(object):
             gs.fatal(_(
                 'USGS Earth Explorer only supports producttype S2MSI1C'))
         if query:
-            if not any(key in query for key in ['identifier', 'filename']):
+            if not any(key in query for key in ['identifier', 'filename',
+                                                'usgs_identifier']):
                 gs.fatal(_(
                     'USGS Earth Explorer only supports query options'
-                    ' "filename" or "identifier".'))
-            if "filename" in query:
-                esa_id = query['filename'].replace('.SAFE','')
+                    ' "filename", "identifier" or "usgs_identifier".'))
+            if 'usgs_identifier' in query:
+                # get entityId from usgs identifier and directly save results
+                usgs_id = query['usgs_identifier']
+                if not usgs_id.startswith('L1C'):
+                    gs.fatal(_('Query parameter "usgs_identifier" has to be in'
+                               ' format L1C_TUUUUU_AXXXXXX_YYYYMMDDTHHMMSS'))
+                entity_id = self._api.lookup('SENTINEL_2A', [usgs_id],
+                                             inverse=True)
+                self.get_products_from_uuid_usgs(entity_id)
+                return
             else:
-                esa_id = query['identifier']
-            utm_tile = esa_id.split('_')[-2]
-            acq_date = esa_id.split('_')[2].split('T')[0]
-            acq_date_string = '{0}-{1}-{2}'.format(
-                acq_date[:4], acq_date[4:6], acq_date[6:])
-            start_date = end_date = acq_date_string
-            # build the USGS style S2-identifier
-            bbox = get_bbox_from_S2_UTMtile(utm_tile.replace('T',''))
+                if "filename" in query:
+                    esa_id = query['filename'].replace('.SAFE', '')
+                else:
+                    esa_id = query['identifier']
+                if not esa_id.startswith('S2'):
+                    gs.fatal(_('Query parameters "identifier"/"filename" has'
+                               ' to be in format S2X_MSIL1C_YYYYMMDDTHHMMSS'
+                               '_NXXXX_RYYY_TUUUUU_YYYYMMDDTHHMMSS for '
+                               'usage with USGS Earth Explorer'))
+                utm_tile = esa_id.split('_')[-2]
+                acq_date = esa_id.split('_')[2].split('T')[0]
+                acq_date_string = '{0}-{1}-{2}'.format(
+                    acq_date[:4], acq_date[4:6], acq_date[6:])
+                start_date = end_date = acq_date_string
+                # build the USGS style S2-identifier
+                bbox = get_bbox_from_S2_UTMtile(utm_tile.replace('T', ''))
         else:
             # get coordinate pairs from wkt string
             str_1 = 'POLYGON(('
