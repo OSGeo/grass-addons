@@ -4,7 +4,7 @@ name: Python code quality check
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
-    branches: [ master, gh_action_flake8 ]
+    branches: [ master ]
   pull_request:
     branches: [ master ]
 
