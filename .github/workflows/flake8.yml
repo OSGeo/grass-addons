@@ -44,7 +44,7 @@ jobs:
         pip install flake8==3.8.0
     - name: Run Flake8 in ${{ matrix.directory }}
       run: |
-        flake8 --config=../.flake8 --count --statistics --show-source --jobs=$(nproc) ${{ matrix.directory }}
+        flake8 --config=grass7/.flake8 --count --statistics --show-source --jobs=$(nproc) ${{ matrix.directory }}
 
 
   flake8-gui-wxgui-scripts:
@@ -63,4 +63,4 @@ jobs:
     - name: Run Flake8
       # use own local flake8 settings file
       run: |
-        flake8 --config=grass7/gui/wxpython/.flake8 --count --statistics --show-source --jobs=$(nproc) ${{ matrix.directory }}
+        flake8 --config=grass7/gui/wxpython/.flake8 --count --statistics --show-source --jobs=$(nproc) grass7/gui
