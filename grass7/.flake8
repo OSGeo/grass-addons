@@ -45,6 +45,4 @@ exclude =
     ENV,
     env.bak,
     venv.bak,
-    ctypes,
-    pydispatch,
     testsuite,
