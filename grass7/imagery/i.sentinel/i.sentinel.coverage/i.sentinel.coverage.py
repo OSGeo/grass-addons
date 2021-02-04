@@ -173,8 +173,7 @@ def scenename_split(scenename):
         start_day = start_day_dt.strftime('%Y-%m-%d')
         end_day = end_day_dt.strftime('%Y-%m-%d')
     except Exception as e:
-        grass.fatal(_(
-            "The name of the scene must have a format of e.g."
+        grass.fatal(_("The name of the scene must have a format of e.g."
             + " S2A_MSIL1C_YYYYMMDDT155901_N0206_R097_T17SPV_20180822T212023"))
     return producttype, start_day, end_day
 
