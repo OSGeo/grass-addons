@@ -85,6 +85,15 @@
 #% answer: 1
 #%end
 
+#%option
+#% key: datasource
+#% description: Data-Hub to download scenes from.
+#% label: Default is ESA Copernicus Open Access Hub (ESA_COAH), but Sentinel-2 L1C data can also be acquired from USGS Earth Explorer (USGS_EE)
+#% options: ESA_COAH,USGS_EE
+#% answer: ESA_COAH
+#% guisection: Filter
+#%end
+
 #%flag
 #% key: s
 #% description: Use scenename/s instead of start/end/producttype to download specific S2 data (specify in the scene_name field)
@@ -100,7 +109,8 @@ import os
 import multiprocessing as mp
 import grass.script as grass
 from grass.pygrass.modules import Module, ParallelModuleQueue
-from datetime import datetime,timedelta
+from datetime import datetime, timedelta
+
 
 def scenename_split(scenename):
     '''
@@ -122,23 +132,24 @@ def scenename_split(scenename):
         query_string(string): string in the format "filename=..."
 
     '''
-    ### get producttype
+    # get producttype
     name_split = scenename.split('_')
     type_string = name_split[1]
     level_string = type_string.split('L')[1]
     producttype = 'S2MSI' + level_string
-    ### get dates
+    # get dates
     date_string = name_split[2].split('T')[0]
-    dt_obj = datetime.strptime(date_string,"%Y%m%d")
+    dt_obj = datetime.strptime(date_string, "%Y%m%d")
     start_day_dt = dt_obj - timedelta(days=1)
     end_day_dt = dt_obj + timedelta(days=1)
     start_day = start_day_dt.strftime('%Y-%m-%d')
     end_day = end_day_dt.strftime('%Y-%m-%d')
-    ### get query string
+    # get query string
     if not scenename.endswith('.SAFE'):
         scenename = scenename + '.SAFE'
     query_string = 'filename=%s' % (scenename)
     return producttype, start_day, end_day, query_string
+
 
 def main():
 
@@ -153,41 +164,50 @@ def main():
     use_scenenames = flags['s']
     ind_folder = flags['f']
 
-    ### check if we have the i.sentinel.download + i.sentinel.import addons
+    # check if we have the i.sentinel.download + i.sentinel.import addons
     if not grass.find_program('i.sentinel.download', '--help'):
-        grass.fatal(_("The 'i.sentinel.download' module was not found, install it first:") +
-                    "\n" +
-                    "g.extension i.sentinel")
+        grass.fatal(_("The 'i.sentinel.download' module was not found, "
+                      "install it first: \n g.extension i.sentinel"))
 
-    ### Test if all required data are there
+    # Test if all required data are there
     if not os.path.isfile(settings):
-        grass.fatal(_("Settings file <%s> not found" % (settings)))
+        grass.fatal(_("Settings file <{}> not found").format(settings))
 
-    ### set some common environmental variables, like:
+    # set some common environmental variables, like:
     os.environ.update(dict(GRASS_COMPRESS_NULLS='1',
                            GRASS_COMPRESSOR='ZSTD',
                            GRASS_MESSAGE_FORMAT='plain'))
 
-    ### test nprocs Settings
+    # test nprocs Settings
     if nprocs > mp.cpu_count():
-        grass.fatal("Using %d parallel processes but only %d CPUs available."
-                    % (nprocs,mp.cpu_count()))
+        grass.warning(_(
+            "Using {} parallel processes but only {} CPUs available."
+            'Setting nprocs to {}').format(
+                nprocs, mp.cpu_count(), mp.cpu_count()-1))
+        nprocs = mp.cpu_cound()-1
 
-    ### sentinelsat allows only three parallel downloads
-    elif nprocs > 2:
-        grass.message("Maximum number of parallel processes for Downloading" +
-                      " fixed to 2 due to sentinelsat API restrictions")
+    # sentinelsat allows only three parallel downloads
+    elif nprocs > 2 and options['datasource'] == 'ESA_COAH':
+        grass.message(_("Maximum number of parallel processes for Downloading"
+                        " fixed to 2 due to sentinelsat API restrictions"))
         nprocs = 2
+
+    # usgs allows maximum 10 parallel downloads
+    elif nprocs > 10 and options['dataseource'] == 'USGS_EE':
+        grass.message(_("Maximum number of parallel processes for Downloading"
+                        " fixed to 10 due to Earth Explorer restrictions"))
+        nprocs = 10
 
     if use_scenenames:
         scenenames = scene_names
-        ### check if the filename is valid
-        ### TODO: refine check, it's currently a very lazy check
-        if len(scenenames[0]) < 10:
-            grass.fatal("No scene names indicated. Please provide scenenames in \
-                        the format S2A_MSIL1C_20180822T155901_N0206_R097_T17SPV_20180822T212023.SAFE")
+        # check if the filename is valid
+        for scene in scenenames:
+            if len(scene) < 10 or not scene.startswith('S2'):
+                grass.fatal(_("Please provide scenenames in the format"
+                              " S2X_LLLLLL_YYYYMMDDTHHMMSS_"
+                              "NYYYY_RZZZ_TUUUUU_YYYYMMDDTHHMMSS.SAFE"))
     else:
-        ### get a list of scenenames to download
+        # get a list of scenenames to download
         i_sentinel_download_string = grass.parse_command(
             'i.sentinel.download',
             settings=settings,
@@ -200,18 +220,17 @@ def main():
         i_sentinel_keys = i_sentinel_download_string.keys()
         scenenames = [item.split(' ')[1] for item in i_sentinel_keys]
 
-    ### parallelize download
+    # parallelize download
     grass.message(_("Downloading Sentinel-2 data..."))
 
-    ### adapt nprocs to number of scenes
-    if len(scenenames) == 1:
-        nprocs = 1
+    # adapt nprocs to number of scenes
+    nprocs_final = min(len(scenenames), nprocs)
+    queue_download = ParallelModuleQueue(nprocs=nprocs_final)
 
-    queue_download = ParallelModuleQueue(nprocs=nprocs)
-
-    for idx,scenename in enumerate(scenenames):
-        producttype, start_date, end_date, query_string = scenename_split(scenename)
-        ### output into separate folders, easier to import in a parallel way:
+    for idx, scenename in enumerate(scenenames):
+        producttype, start_date, end_date, query_string = scenename_split(
+            scenename)
+        # output into separate folders, easier to import in a parallel way:
         if ind_folder:
             outpath = os.path.join(output, 'dl_s2_%s' % str(idx+1))
         else:
@@ -224,10 +243,12 @@ def main():
             producttype=producttype,
             query=query_string,
             output=outpath,
+            datasource=options['datasource'],
             run_=False
         )
         queue_download.put(i_sentinel_download)
     queue_download.wait()
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

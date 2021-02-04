@@ -290,11 +290,18 @@ class SentinelDownloader(object):
         elif self._apiname == 'USGS_EE':
             try:
                 import landsatxplore.api
+                from landsatxplore.exceptions import EarthExplorerError
             except ImportError as e:
                 gs.fatal(_("Module requires landsatxplore library: {}").format(e))
-
-            self._api = landsatxplore.api.API(self._user, self._password)
-
+            api_login = False
+            while api_login is False:
+                # avoid login conflict in possible parallel execution
+                try:
+                    self._api = landsatxplore.api.API(self._user,
+                                                      self._password)
+                    api_login = True
+                except EarthExplorerError as e:
+                    time.sleep(1)
         self._products_df_sorted = None
 
     def filter(self, area, area_relation,
@@ -397,26 +404,36 @@ class SentinelDownloader(object):
 
         if self._apiname == 'USGS_EE':
             from landsatxplore.earthexplorer import EarthExplorer
+            from landsatxplore.exceptions import EarthExplorerError
             from zipfile import ZipFile
-            ee = EarthExplorer(self._user, self._password)
+            ee_login = False
+            while ee_login is False:
+                # avoid login conflict in possible parallel execution
+                try:
+                    ee = EarthExplorer(self._user, self._password)
+                    ee_login = True
+                except EarthExplorerError as e:
+                    time.sleep(1)
             for idx in range(len(self._products_df_sorted['entityId'])):
                 scene = self._products_df_sorted['entityId'][idx]
                 identifier = self._products_df_sorted['displayId'][idx]
                 zip_file = os.path.join(output, '{}.zip'.format(identifier))
                 gs.message('Downloading {}...'.format(identifier))
+                # if not ee.logged_in():
+                #     ee = EarthExplorer(self._user, self._password)
                 ee.download(scene_id=scene, output_dir=output)
+                ee.logout()
                 # extract .zip to get "usual" .SAFE
                 with ZipFile(zip_file, 'r') as zip:
                     safe_name = zip.namelist()[0].split('/')[0]
                     outpath = os.path.join(output, safe_name)
                     zip.extractall(path=output)
-                gs.message(_('Downloaded to <{}>'.format(outpath)))
+                gs.message(_('Downloaded to <{}>').format(outpath))
                 try:
                     os.remove(zip_file)
                 except Exception as e:
-                    gs.warning(_('Unable to remove {0}:{1}'.format(
-                        zip_file, e)))
-                ee.logout()
+                    gs.warning(_('Unable to remove {0}:{1}').format(
+                        zip_file, e))
 
         else:
             for idx in range(len(self._products_df_sorted['uuid'])):
@@ -512,6 +529,7 @@ class SentinelDownloader(object):
 
     def get_products_from_uuid_usgs(self, uuid_list):
         metadata = self._api.metadata('SENTINEL_2A', uuid_list)
+        self._api.logout()
         # build list of dictionaries consistent with result of filter_USGS()
         scenes = []
         for scene in metadata:
@@ -527,6 +545,7 @@ class SentinelDownloader(object):
             scenes.append(scene_dict)
         scenes_df = pandas.DataFrame.from_dict(scenes)
         self._products_df_sorted = scenes_df
+        gs.message(_('{} Sentinel product(s) found').format(len(self._products_df_sorted)))
 
     def set_uuid(self, uuid_list):
         """Set products by uuid.
@@ -605,7 +624,7 @@ class SentinelDownloader(object):
                 else:
                     esa_id = query['identifier']
                 if not esa_id.startswith('S2'):
-                    gs.fatal(_('Query parameters "identifier"/"filename" has'
+                    gs.fatal(_('Query parameter "identifier"/"filename" has'
                                ' to be in format S2X_MSIL1C_YYYYMMDDTHHMMSS'
                                '_NXXXX_RYYY_TUUUUU_YYYYMMDDTHHMMSS for '
                                'usage with USGS Earth Explorer'))
@@ -670,7 +689,6 @@ class SentinelDownloader(object):
             )
         else:
             self._products_df_sorted = scenes_df
-
         gs.message(_('{} Sentinel product(s) found').format(len(self._products_df_sorted)))
 
 
