@@ -12,9 +12,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  # This workflow contains two job called "flake8-grass7-scripts" and "flake8-gui-wxgui-scripts"
 
   flake8-grass7-scripts:
+    name: flake8 ${{ matrix.directory }}
     runs-on: ubuntu-20.04
 
     strategy:
@@ -47,7 +47,8 @@ jobs:
         flake8 --config=grass7/.flake8 --count --statistics --show-source --jobs=$(nproc) ${{ matrix.directory }}
 
 
-  flake8-gui-wxgui-scripts:
+  flake8-gui-wxgui:
+    name: flake8 grass7/gui
     runs-on: ubuntu-20.04
 
     steps:
