@@ -415,7 +415,7 @@ def main():
     prod_extent = quote_plus(product_extent[0])
 
     # Create TNM API URL
-    base_TNM = "https://viewer.nationalmap.gov/tnmaccess/api/products?"
+    base_TNM = "https://tnmaccess.nationalmap.gov/api/v1/products?"
     datasets_TNM = "datasets={0}".format(datasets)
     bbox_TNM = "&bbox={0}".format(str_bbox)
     prod_format_TNM = "&prodFormats={0}".format(prod_format)
@@ -462,9 +462,6 @@ def main():
         TNM_file_titles.append(TNM_file_title)
         if product_is_zip:
             extract_zip_list.append(local_zip_path)
-        if f['datasets'][0] not in dataset_name:
-            if len(dataset_name) <= 1:
-                dataset_name.append(str(f['datasets'][0]))
 
     def exist_list():
         exist_TNM_titles.append(TNM_file_title)
@@ -483,7 +480,6 @@ def main():
     if tile_API_count > 0:
         dwnld_size = []
         dwnld_url = []
-        dataset_name = []
         TNM_file_titles = []
         exist_dwnld_url = []
         exist_TNM_titles = []
