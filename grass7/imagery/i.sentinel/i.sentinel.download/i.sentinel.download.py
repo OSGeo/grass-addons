@@ -266,6 +266,31 @@ def get_bbox_from_S2_UTMtile(tile):
     return bbox
 
 
+def check_s2l1c_identifier(identifier, source='esa'):
+    # checks beginning of identifier string for correct pattern
+    import re
+    if source == 'esa':
+        expression = '^(S2[A-B]_MSIL1C_20[0-9][0-9][0-9][1-9])'
+        test = re.match(expression, identifier)
+        if bool(test) is False:
+            gs.fatal(_('Query parameter "identifier"/"filename" has'
+                       ' to be in format S2X_MSIL1C_YYYYMMDDTHHMMSS'
+                       '_NXXXX_RYYY_TUUUUU_YYYYMMDDTHHMMSS for '
+                       'usage with USGS Earth Explorer'))
+    elif source == 'usgs':
+        # usgs can have two formats, depending on age
+        expression1 = '^(L1C_T[0-9][0-9][A-Z][A-Z][A-Z]_A[0-9])'
+        expression2 = '^(S2[A-B]_OPER_MSI_L1C_TL_EPA__2[0-9][0-9][0-9])'
+        test1 = re.match(expression1, identifier)
+        test2 = re.match(expression2, identifier)
+        if bool(test1) is False and bool(test2) is False:
+            gs.fatal(_('Query parameter "usgs_identifier" has to be either in'
+                       ' format L1C_TUUUUU_AXXXXXX_YYYYMMDDTHHMMSS or '
+                       'S2X_OPER_MSI_L1C_TL_EPA__YYYYMMDDTHHMMSS_'
+                       'YYYYMMDDTHHMMSS_AOOOOOO_TUUUUU_NXX_YY_ZZ'))
+    return
+
+
 class SentinelDownloader(object):
     def __init__(self, user, password, api_url='https://scihub.copernicus.eu/dhus'):
 
@@ -419,8 +444,6 @@ class SentinelDownloader(object):
                 identifier = self._products_df_sorted['displayId'][idx]
                 zip_file = os.path.join(output, '{}.zip'.format(identifier))
                 gs.message('Downloading {}...'.format(identifier))
-                # if not ee.logged_in():
-                #     ee = EarthExplorer(self._user, self._password)
                 ee.download(scene_id=scene, output_dir=output)
                 ee.logout()
                 # extract .zip to get "usual" .SAFE
@@ -545,7 +568,8 @@ class SentinelDownloader(object):
             scenes.append(scene_dict)
         scenes_df = pandas.DataFrame.from_dict(scenes)
         self._products_df_sorted = scenes_df
-        gs.message(_('{} Sentinel product(s) found').format(len(self._products_df_sorted)))
+        gs.message(_('{} Sentinel product(s) found').format(
+            len(self._products_df_sorted)))
 
     def set_uuid(self, uuid_list):
         """Set products by uuid.
@@ -611,9 +635,7 @@ class SentinelDownloader(object):
             if 'usgs_identifier' in query:
                 # get entityId from usgs identifier and directly save results
                 usgs_id = query['usgs_identifier']
-                if not usgs_id.startswith('L1C'):
-                    gs.fatal(_('Query parameter "usgs_identifier" has to be in'
-                               ' format L1C_TUUUUU_AXXXXXX_YYYYMMDDTHHMMSS'))
+                check_s2l1c_identifier(usgs_id, source='usgs')
                 entity_id = self._api.lookup('SENTINEL_2A', [usgs_id],
                                              inverse=True)
                 self.get_products_from_uuid_usgs(entity_id)
@@ -623,11 +645,7 @@ class SentinelDownloader(object):
                     esa_id = query['filename'].replace('.SAFE', '')
                 else:
                     esa_id = query['identifier']
-                if not esa_id.startswith('S2'):
-                    gs.fatal(_('Query parameter "identifier"/"filename" has'
-                               ' to be in format S2X_MSIL1C_YYYYMMDDTHHMMSS'
-                               '_NXXXX_RYYY_TUUUUU_YYYYMMDDTHHMMSS for '
-                               'usage with USGS Earth Explorer'))
+                check_s2l1c_identifier(esa_id, source='esa')
                 utm_tile = esa_id.split('_')[-2]
                 acq_date = esa_id.split('_')[2].split('T')[0]
                 acq_date_string = '{0}-{1}-{2}'.format(
@@ -658,18 +676,16 @@ class SentinelDownloader(object):
         if limit:
             usgs_args['max_results'] = limit
         scenes = self._api.search(**usgs_args)
+        self._api.logout()
+        if query:
+            # check if the UTM-Tile is correct, remove otherwise
+            for scene in scenes:
+                if scene['displayId'].split('_')[1] != utm_tile:
+                    scenes.remove(scene)
         if len(scenes) < 1:
             gs.message(_('No product found'))
             return
         scenes_df = pandas.DataFrame.from_dict(scenes)
-        if query:
-            # check if the UTM-Tile is correct, remove otherwise
-            for idx, row in scenes_df.iterrows():
-                usgs_id = row['displayId']
-                if usgs_id.split('_')[1] != utm_tile:
-                    scenes_df = scenes_df.drop(index=idx)
-        self._api.logout()
-        # sort and limit to first sorted product
         if sortby:
             # replace sortby keywords with USGS keywords
             for idx, keyword in enumerate(sortby):
@@ -784,6 +800,7 @@ def main():
                         int(options['retry']))
 
     return 0
+
 
 if __name__ == "__main__":
     options, flags = gs.parser()
