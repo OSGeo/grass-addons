@@ -975,8 +975,8 @@ class MdMainEditor(wx.Panel):
                 MD_Distribution, MD_ReferenceSystem
 
             from owslib.iso import (
-                CI_Date, CI_OnlineResource, CI_ResponsibleParty, \
-                DQ_DataQuality, EX_Extent, EX_GeographicBoundingBox, \
+                CI_Date, CI_OnlineResource, CI_ResponsibleParty,
+                DQ_DataQuality, EX_Extent, EX_GeographicBoundingBox,
                 MD_Distribution, MD_ReferenceSystem
             )
         except ModuleNotFoundError as e:
