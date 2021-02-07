@@ -345,7 +345,7 @@ class SentinelDownloader(object):
                 x = 1
                 online = out['Online']
                 while not online:
-                    # sleep is in minutes so multiply by 60 
+                    # sleep is in minutes so multiply by 60
                     time.sleep(int(sleep) * 60)
                     out = self._api.download(self._products_df_sorted['uuid'][idx],
                                              output)
