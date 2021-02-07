@@ -255,7 +255,7 @@ def elevation_percentile(input, radius=3, window_square=False):
 
     terms = []
     for d in offsets:
-        valid = ','.join(map(str, d))        
+        valid = ','.join(map(str, d))
         terms.append("if( isnull({input}[{d}]), 1, {input}[{d}]<={input})".format(input=input, d=valid))
 
     terms = "+".join(terms)
@@ -320,7 +320,7 @@ def flatness(slope, t, p):
 
 
 def prelim_flatness_valleys(F, PCTL, t, p):
-    """Transform elevation percentile to a local lowness value and multiply by 
+    """Transform elevation percentile to a local lowness value and multiply by
     flatness.
 
     Equation 3 (Gallant and Dowling, 2003):
@@ -565,7 +565,7 @@ def main():
             "Minimum number of cells in the generalized DEM cannot exceed the ungeneralized number of cells"
         )
 
-    # calculate the number of levels    
+    # calculate the number of levels
     levels = 2
     remaining_cells = current_region.cells
     while remaining_cells >= min_cells:
