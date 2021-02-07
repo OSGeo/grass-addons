@@ -143,7 +143,7 @@ def rand_id(prefix):
     ----------
     prefix : str
         Prefix for the temporary mapname.
-    
+
     Returns
     -------
     mapname : str
@@ -272,7 +272,7 @@ def calc_slope(elevation):
     ----------
     elevation : str
         Name of the GRASS raster map with the elevation data.
-    
+
     Returns
     -------
     slope : str
@@ -289,19 +289,19 @@ def calc_slope(elevation):
 
 def flatness(slope, t, p):
     """Calculates the flatness index (equation 2 of Gallant and Dowling, 2003)
-    
+
     Flatness F1 = 1 / (1 + pow ((slope / t), p)
 
     Parameters
     ----------
     slope : str
         Name of the GRASS raster map with slope in percent.
-    
+
     t : float
         The threshold parameter for the logistic transformation. This defines the mid-point
         value of the logistic function, which represents the threshold for when a pixel is
         considered flat.
-    
+
     p : float
         The shape parameter for the flatness transformation. This is the smoothness of
         the logistic function, i.e. large values cause a rapid transition from 0 -> 1
@@ -333,16 +333,16 @@ def prelim_flatness_valleys(F, PCTL, t, p):
     ----------
     F : str
         Name of GRASS raster map representing the flatness index.
-    
+
     PCTL : str
         Name of the GRASS raster map representing the elevation percentile
         metric.
-    
+
     t : float
         The threshold parameter for the logistic transformation. This defines the mid-point
         value of the logistic function, which represents the threshold for when a pixel is
         considered low or high.
-    
+
     p : float
         The shape parameter for the flatness transformation. This is the smoothness of
         the logistic function, i.e. large values cause a rapid transition from 0 -> 1
@@ -379,7 +379,7 @@ def prelim_flatness_ridges(F, PCTL, t, p):
 
 def valley_flatness(PVF, t, p):
     """Calculation of the valley flatness VF (equation 4, Gallant and Dowling, 2003)
-    
+
     Larger values of VF1 indicate increasing valley bottom character with values less
     than 0.5 considered not to be in valley bottoms.
 
@@ -387,12 +387,12 @@ def valley_flatness(PVF, t, p):
     ----------
     PVF : str
         Name of the GRASS raster map with the preliminary flatness index.
-    
+
     t : float
         The threshold parameter for the logistic transformation. This defines the mid-point
         value of the logistic function, which represents the threshold for when a pixel is
         considered to be in a valley bottom, or not.
-    
+
     p : float
         The shape parameter for the flatness transformation. This is the smoothness of
         the logistic function, i.e. large values cause a rapid transition from 0 -> 1
@@ -418,15 +418,15 @@ def calc_mrvbf(VF1, VF2, t):
     VF1 : str
         Name of the GRASS raster map representing the valley flatness index from the
         previous step (L-1).
-    
+
     VF2 : str
         Name of the GRASS raster map representing the valley flatness index from the
         current step.
-    
+
     t : float
         The threshold parameter for the logistic transformation. This defines the mid-point
         value of the logistic function.
-    
+
     Returns
     -------
     MRVBF : str
@@ -464,7 +464,7 @@ def combined_flatness(F1, F2):
     ----------
     F1 : str
         Name of the GRASS raster map with the flatness index from the previous step (L-1)
-    
+
     F2 : str
         Name of the GRASS raster map with the flatness index from the current step (L)
 
@@ -576,7 +576,7 @@ def main():
 
     if levels < 3:
         gs.fatal('MRVBF algorithm requires a greater level of generalization. Reduce number of min_cells or use a larger computational region.')
-    
+
     gs.message('Parameter Settings')
     gs.message('------------------')
     gs.message('min_cells = %d will result in %d generalization steps' % (min_cells, levels))
