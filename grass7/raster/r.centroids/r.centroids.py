@@ -6,8 +6,8 @@
 #
 # AUTHOR(S): Caitlin Haedrich (caitlin dot haedrich gmail com) 
 #
-# PURPOSE:   Wrapper for r.volume. Creates vector map of centroids from a raster 
-#            of "clumps"; r.clumps creates "clumps" of data.
+# PURPOSE:   Wrapper for r.volume. Creates vector map of centroids from a 
+#            raster of "clumps"; r.clumps creates "clumps" of data.
 #
 # COPYRIGHT: (C) 2021 by Caitlin Haedrich and the GRASS Development Team
 #
@@ -28,7 +28,7 @@
 
 #%option G_OPT_R_INPUT
 #% key: input
-#% description: Raster map of clumps, cluster of same-valued pixels
+#% description: Raster map of clumps, clusters of same-valued pixels
 #% required: yes
 #%end
 
@@ -38,13 +38,18 @@
 #%end
 
 import grass.script as gs
+import sys
 
-def main(options, flags):
+def main():
+    options, flags = gs.parser()
+
     # options and flags into variables
     ipl = options['input']
     opl = options['output']
-
-    gs.run_command('r.volume', input=ipl, clump=ipl, centroids=opl, errors="exit")
+    gs.run_command('r.volume', quiet=True, input=ipl, clump=ipl, 
+            centroids=opl, errors="exit")
+    gs.run_command('v.db.dropcolumn', map=opl, 
+            columns=['volume', 'sum', 'count', 'average'])
 
 if __name__ == "__main__":
-    main(gs.parser()[0], gs.parser()[1])
+    sys.exit(main())
