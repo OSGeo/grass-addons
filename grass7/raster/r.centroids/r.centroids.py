@@ -4,9 +4,9 @@
 #
 # MODULE:    r.centroids
 #
-# AUTHOR(S): Caitlin Haedrich (caitlin dot haedrich gmail com) 
+# AUTHOR(S): Caitlin Haedrich (caitlin dot haedrich gmail com)
 #
-# PURPOSE:   Wrapper for r.volume. Creates vector map of centroids from a 
+# PURPOSE:   Wrapper for r.volume. Creates vector map of centroids from a
 #            raster of "clumps"; r.clumps creates "clumps" of data.
 #
 # COPYRIGHT: (C) 2021 by Caitlin Haedrich and the GRASS Development Team
@@ -27,29 +27,34 @@
 #%end
 
 #%option G_OPT_R_INPUT
-#% key: input
 #% description: Raster map of clumps, clusters of same-valued pixels
-#% required: yes
 #%end
 
 #%option G_OPT_V_OUTPUT
-#% key: output
-#% required: yes
 #%end
 
 import grass.script as gs
 import sys
 
+
 def main():
     options, flags = gs.parser()
 
     # options and flags into variables
-    ipl = options['input']
-    opl = options['output']
-    gs.run_command('r.volume', quiet=True, input=ipl, clump=ipl, 
-            centroids=opl, errors="exit")
-    gs.run_command('v.db.dropcolumn', map=opl, 
-            columns=['volume', 'sum', 'count', 'average'])
+    ipl = options["input"]
+    opl = options["output"]
+    gs.run_command(
+        "r.volume",
+        quiet=True,
+        input=in_raster,
+        clump=in_raster,
+        centroids=out_vector,
+        errors="exit",
+    )
+    gs.run_command(
+        "v.db.dropcolumn", map=out_vector, columns=["volume", "sum", "count", "average"]
+    )
+
 
 if __name__ == "__main__":
     sys.exit(main())
