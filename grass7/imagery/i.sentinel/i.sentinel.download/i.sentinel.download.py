@@ -426,7 +426,6 @@ class SentinelDownloader(object):
         if not os.path.exists(output):
             os.makedirs(output)
         gs.message(_('Downloading data into <{}>...').format(output))
-
         if self._apiname == 'USGS_EE':
             from landsatxplore.earthexplorer import EarthExplorer
             from landsatxplore.exceptions import EarthExplorerError

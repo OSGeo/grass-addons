@@ -70,7 +70,8 @@ def getcols(names, types, skipnames=None, prefix='',
 
 def gettablecols(prefixes, allshpn, allshpt, skipshp,
                  allrstn, allrstt, skiprst):
-    def gettype(x): return NPY2COLTYPE[x]
+    def gettype(x):
+        return NPY2COLTYPE[x]
     # define the new columns
     cols = getcols(allshpn, allshpt, skipshp, gettype=gettype)
     for prfx in prefixes:

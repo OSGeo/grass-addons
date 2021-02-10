@@ -162,7 +162,8 @@ def main(opt, flg):
     rasters = opt['rasters'].split(',') if opt['rasters'] else []
     rprefix = opt['rprefix'].split(',') if opt['rprefix'] else []
 
-    def split(x): return x.split('@') if '@' in x else (x, '')
+    def split(x):
+        return x.split('@') if '@' in x else (x, '')
 
     vname, vmset = split(opt['vector'])
     shpcsv = opt['shpcsv'] if opt['shpcsv'] else vname + '.csv'
