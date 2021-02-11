@@ -95,10 +95,10 @@
 #%end
 
 #%rules
-#% required: names, output
 #% collective: start,end
 #% excludes: names,start,end,clouds,producttype
 #%end
+
 
 import atexit
 import os
@@ -182,7 +182,8 @@ def get_size(vector):
     tmpvector = 'tmp_getsize_%s' % str(os.getpid())
     rm_vectors.append(tmpvector)
     grass.run_command(
-        'g.copy', vector="%s,%s" % (vector, tmpvector), quiet=True)
+        'g.copy', vector="%s,%s" % (vector, tmpvector), overwrite=True,
+        quiet=True)
     if len(grass.vector_db(tmpvector)) == 0:
         grass.run_command('v.db.addtable', map=tmpvector, quiet=True)
     grass.run_command(
@@ -333,6 +334,9 @@ def main():
         grass.message(_(
             "Name of Sentinel scenes are written to file <{}>").format(
                 output))
+    else:
+        grass.message(_('The following scenes were found:'))
+        grass.message(_('\n'.join(name_list_updated)))
 
     # TODO Sentinel-1 select only "one" scene (no overlap)
 
