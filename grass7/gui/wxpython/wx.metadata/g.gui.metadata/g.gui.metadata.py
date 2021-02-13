@@ -42,7 +42,6 @@ from grass.script.setup import set_gui_path
 
 set_gui_path()
 from core.debug import Debug
-from core.gcmd import GError, GMessage, RunCommand
 # from datacatalog.tree import LocationMapTree
 from core.utils import GetListOfLocations, ListOfMapsets
 
@@ -72,6 +71,17 @@ class LocationMapTree(wx.TreeCtrl):
                  wx.TR_HAS_BUTTONS | wx.TR_FULL_ROW_HIGHLIGHT | wx.TR_SINGLE):
         """Location Map Tree constructor."""
         super(LocationMapTree, self).__init__(parent, id=wx.ID_ANY, style=style)
+
+        try:
+            global RunCommand
+
+            from core.gcmd import RunCommand
+        except ModuleNotFoundError as e:
+            msg = e.msg
+            sys.exit(globalvar.MODULE_NOT_FOUND.format(
+                lib=msg.split("'")[-2],
+                url=globalvar.MODULE_URL))
+
         self.showNotification = Signal('Tree.showNotification')
         self.parent = parent
         self.root = self.AddRoot('Catalog') # will not be displayed when we use TR_HIDE_ROOT flag
@@ -288,6 +298,17 @@ class MdMainFrame(wx.Frame):
         @var batch: if true multiple editing metadata of maps is ON
         '''
         wx.Frame.__init__(self, None, title="Metadata Editor", size=(650, 500))
+
+        try:
+            global GError, GMessage
+
+            from core.gcmd import GError, GMessage
+        except ModuleNotFoundError as e:
+            msg = e.msg
+            sys.exit(globalvar.MODULE_NOT_FOUND.format(
+                lib=msg.split("'")[-2],
+                url=globalvar.MODULE_URL))
+
         self.initDefaultPathStorageMetadata()
 
         self.config = wx.Config("g.gui.metadata")
@@ -1076,6 +1097,17 @@ class MdDataCatalog(LocationMapTree):
         super(MdDataCatalog, self).__init__(parent=parent,
                                             style=wx.TR_MULTIPLE | wx.TR_HIDE_ROOT | wx.TR_HAS_BUTTONS |
                                                   wx.TR_FULL_ROW_HIGHLIGHT)
+
+        try:
+            global GError
+
+            from core.gcmd import GError
+        except ModuleNotFoundError as e:
+            msg = e.msg
+            sys.exit(globalvar.MODULE_NOT_FOUND.format(
+                lib=msg.split("'")[-2],
+                url=globalvar.MODULE_URL))
+
         try:
             tgis.init(True)
         except tgis.FatalError as e:

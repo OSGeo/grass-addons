@@ -27,8 +27,6 @@ import sys
 import tempfile
 from subprocess import PIPE
 
-from core.gcmd import GError, GMessage, RunCommand
-
 from grass.pygrass.modules import Module
 
 from gui_core.widgets import (
@@ -55,11 +53,14 @@ class MdFileWork():
     '''
 
     def __init__(self, pathToXml=None):
+
         try:
-            global Environment, FileSystemLoader, etree
+            global Environment, FileSystemLoader, etree, GError, GMessage
 
             from jinja2 import Environment, FileSystemLoader
             from lxml import etree
+
+            from core.gcmd import GError, GMessage
         except ModuleNotFoundError as e:
             msg = e.msg
             sys.exit(globalvar.MODULE_NOT_FOUND.format(
@@ -802,6 +803,17 @@ class MdNotebookPage(scrolled.ScrolledPanel):
 class MdKeywords(wx.BoxSizer):
     def __init__(self,parent,mdObject,mdOWS):
         wx.BoxSizer.__init__(self, wx.VERTICAL)
+
+        try:
+            global GMessage
+
+            from core.gcmd import GMessage
+        except ModuleNotFoundError as e:
+            msg = e.msg
+            sys.exit(globalvar.MODULE_NOT_FOUND.format(
+                lib=msg.split("'")[-2],
+                url=globalvar.MODULE_URL))
+
         self.itemHolder = set()
         self.parent = parent
         self.keywordsOWSObject = mdOWS
@@ -969,16 +981,19 @@ class MdMainEditor(wx.Panel):
         @param templateEditor: mode-creator of template
         '''
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
+
         try:
             global CI_Date, CI_OnlineResource, CI_ResponsibleParty, \
                 DQ_DataQuality, EX_Extent, EX_GeographicBoundingBox, \
-                MD_Distribution, MD_ReferenceSystem
+                GError, MD_Distribution, MD_ReferenceSystem
 
             from owslib.iso import (
                 CI_Date, CI_OnlineResource, CI_ResponsibleParty,
                 DQ_DataQuality, EX_Extent, EX_GeographicBoundingBox,
                 MD_Distribution, MD_ReferenceSystem
             )
+
+            from core.gcmd import GError
         except ModuleNotFoundError as e:
             msg = e.msg
             sys.exit(globalvar.MODULE_NOT_FOUND.format(
