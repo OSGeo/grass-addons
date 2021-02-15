@@ -443,7 +443,7 @@ class SentinelDownloader(object):
                 identifier = self._products_df_sorted['displayId'][idx]
                 zip_file = os.path.join(output, '{}.zip'.format(identifier))
                 gs.message('Downloading {}...'.format(identifier))
-                ee.download(scene_id=scene, output_dir=output)
+                ee.download(scene_id=scene, output_dir=output, timeout=600)
                 ee.logout()
                 # extract .zip to get "usual" .SAFE
                 with ZipFile(zip_file, 'r') as zip:
