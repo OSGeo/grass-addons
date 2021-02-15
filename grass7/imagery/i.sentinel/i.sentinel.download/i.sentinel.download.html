@@ -243,13 +243,32 @@ all other filtering options.
 <p>
 Example of downloading a single Sentinel product by scene names (name of the SAFE.zip file).
 Importantly, the <b>producttype</b>, <b>start</b> and <b>end</b> date need to be specified to
-override the default settings (otherwise no product will be found):
+override the default settings (otherwise no product will be found). There are two query
+variants, either with <b>identifier</b> or <b>filename</b>:
 
 <div class="code"><pre>
 # North Carolina sample dataset example
+
+# Sentinel-1, identifier= without ".SAFE" in the name 
 i.sentinel.download settings=credentials.txt \
-  query='filename=S2A_MSIL1C_20180822T155901_N0206_R097_T17SPV_20180822T212023.SAFE' \
-  producttype=S2MSI1C start=2018-01-01 end=2018-12-31 output=s2_data/
+  query='identifier=S1A_IW_GRDH_1SDV_20210130T231425_20210130T231450_036374_0444CC_0EA9' \
+  producttype=GRD start=2021-01-01 end=2021-02-15 output=s1_data/
+
+# Sentinel-1, filename= requires ".SAFE" in the name 
+i.sentinel.download settings=credentials.txt \
+  query='filename=S1A_IW_GRDH_1SDV_20210130T231425_20210130T231450_036374_0444CC_0EA9.SAFE' \
+  producttype=GRD start=2021-01-01 end=2021-02-15 output=s1_data/
+
+
+# Sentinel-2, identifier= without ".SAFE" in the name 
+i.sentinel.download settings=credentials.txt \
+  query='identifier=S2B_MSIL2A_20210120T155559_N0214_R054_T17SPV_20210120T201821' \
+  producttype=S2MSI2A start=2021-01-01 end=2021-02-15 output=s2_data/
+
+# Sentinel-2, filename= requires ".SAFE" in the name 
+i.sentinel.download settings=credentials.txt \
+  query='filename=S2B_MSIL2A_20210120T155559_N0214_R054_T17SPV_20210120T201821.SAFE' \
+  producttype=S2MSI2A start=2021-01-01 end=2021-02-15 output=s2_data/
 <pre></div>
 
 <h2>REQUIREMENTS</h2>
