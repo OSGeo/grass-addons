@@ -475,6 +475,8 @@ def main():
     # Assign needed parameters from returned JSON
     tile_API_count = int(return_JSON['total'])
     tiles_needed_count = 0
+    # TODO: Make the tolerance configurable.
+    # Some combinations produce >10 byte differences.
     size_diff_tolerance = 5
     exist_dwnld_size = 0
     if tile_API_count > 0:
@@ -502,13 +504,25 @@ def main():
                 local_tile_path = os.path.join(work_dir, TNM_file_name)
             file_exists = os.path.exists(local_file_path)
             file_complete = None
-            # if file exists, but is incomplete, remove file and redownload
+            # If file exists, do not download,
+            # but if incomplete (e.g. interupted download), redownload.
             if file_exists:
                 existing_local_file_size = os.path.getsize(local_file_path)
                 # if local file is incomplete
                 if abs(existing_local_file_size - TNM_file_size) > size_diff_tolerance:
-                    # add file to cleanup list
-                    cleanup_list.append(local_file_path)
+                    gscript.verbose(_(
+                        "Size of local file {filename} ({local_size}) differs"
+                        " from a file size specified in the API ({api_size})"
+                        " by {difference} bytes"
+                        " which is more than tolerance ({tolerance})."
+                        " It will be downloaded again.").format(
+                            filename=local_file_path,
+                            local_size=existing_local_file_size,
+                            api_size=TNM_file_size,
+                            difference=abs(existing_local_file_size - TNM_file_size),
+                            tolerance=size_diff_tolerance,
+                        )
+                    )
                     # NLCD API query returns subsets that cannot be filtered before
                     # results are returned. gui_subset is used to filter results.
                     if not gui_subset:
@@ -565,10 +579,6 @@ def main():
     if exist_tile_list:
         exist_msg = _("\n{0} of {1} files/archive(s) exist locally and will be used by module.").format(len(exist_tile_list), tiles_needed_count)
         gscript.message(exist_msg)
-    # TODO: simply continue with whatever is needed to be done in this case
-    if cleanup_list:
-        cleanup_msg = _("\n{0} existing incomplete file(s) detected and removed. Run module again.").format(len(cleanup_list))
-        gscript.fatal(cleanup_msg)
 
     # formats JSON size from bites into needed units for combined file size
     if dwnld_size:
