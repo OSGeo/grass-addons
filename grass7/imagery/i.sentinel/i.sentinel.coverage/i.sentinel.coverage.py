@@ -248,7 +248,7 @@ def main():
             for i in range(0, len(resp)):
                 error_msg += resp[i].decode('utf-8')
             grass.fatal(
-                _("Error using i.sentinel.download: {}".format(error_msg)))
+                _("Error using i.sentinel.download: {}").format(error_msg))
 
         if len(s_list) == 0:
             grass.fatal('No products found')
