@@ -139,7 +139,7 @@ def main():
         y2 = mcdict['max'] + ',' + curvebreaks[1].split(',')[1]
     else:
         y2 = curvebreaks[1]
-    
+
     grass.message('STEP 2, Calculating "depth potential" across the landscape\n')
     #nested rescale of first slope (to percentage of maximum soil depth potential), and then curvature (to percentage offset from slope function), and then combining the two measures to make final estimation of soil depth potential. Final output depth potential map will be scaled between 0 and 1, which maps to lowest depth potential to highest depth potential.
     grass.mapcalc("${temprate}=eval(x=graph( ${slope}, 0,1 , ${x1}, ${x2}, 90,0), y=graph(${mc}, ${y1}, 0,0, ${y2}), z=if(y < 0, x+(x*y), x+((1-x)*y)), if(z < 0, 0, if(z > 1, 1, z)))", quiet = "True", temprate = temprate, slope = slope, x1 = slopebreaks[0], x2 = slopebreaks[1], mc = mc, y1 = y1, y2 = y2)
@@ -156,7 +156,7 @@ def main():
     #grab some stats if asked to
     if os.getenv('GIS_FLAG_s') == '1':
         depthdict = grass.parse_command('r.univar', flags = "ge", map=soildepth2, percentile=90)
-    
+
     grass.message('STEP 4, calculating bedrock elevation map\n')
     grass.mapcalc("${bedrock}=eval(x=(${elev} - ${soildepth}), if(isnull(x), ${elev}, x))", quiet = "True", bedrock = bedrock, elev = elev, soildepth = soildepth)
     grass.message('Cleaning up...')
@@ -176,7 +176,7 @@ def main():
             grass.message('%s=%s' % (key,  depthdict[key]))
         grass.message('Total volume of soil is %s cubic meters' % (float(depthdict['sum'])*res*res))
     return
-    
+
 # here is where the code in "main" actually gets executed. This way of programming is neccessary for the way g.parser needs to run.
 if __name__ == "__main__":
     if ( len(sys.argv) <= 1 or sys.argv[1] != "@ARGS_PARSED@" ):

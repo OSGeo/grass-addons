@@ -179,7 +179,7 @@ class IClass(MapFrame):
         self.statusbarWin['region'] = wx.CheckBox(parent=self.statusbar, id=wx.ID_ANY,
                                                   label=_("Show computational extent"))
         self.statusbar.Bind(wx.EVT_CHECKBOX, self.OnToggleShowRegion, self.statusbarWin['region'])
-        
+
         self.statusbarWin['region'].SetValue(False)
         self.statusbarWin['region'].Hide()
         self.statusbarWin['region'].SetToolTip(wx.ToolTip (_("Show/hide computational "
@@ -232,12 +232,12 @@ class IClass(MapFrame):
                                                                  "defined in GUI preferences dialog "
                                                                  "(tab 'Display')")))
         self.statusbarWin['projection'].Hide()
-        
+
         # mask
         self.statusbarWin['mask'] = wx.StaticText(parent = self.statusbar, id = wx.ID_ANY,
                                                   label = '')
         self.statusbarWin['mask'].SetForegroundColour(wx.Colour(255, 0, 0))
-        
+
         # on-render gauge
         self.statusbarWin['progress'] = wx.Gauge(parent=self.statusbar, id=wx.ID_ANY,
                                       range=0, style=wx.GA_HORIZONTAL)
@@ -273,7 +273,7 @@ class IClass(MapFrame):
         #self.Bind(wx.EVT_ACTIVATE, self.OnFocus)
         self.Bind(wx.EVT_CLOSE,    self.OnCloseWindow)
         #self.Bind(render.EVT_UPDATE_PRGBAR, self.OnUpdateProgress)
-        
+
         #
         # Update fancy gui style
         #
@@ -287,7 +287,7 @@ class IClass(MapFrame):
         # Init print module and classes
         #
         #self.printopt = disp_print.PrintOptions(self, self.MapWindow)
-        
+
         #
         # Initialization of digitization tool
         #
@@ -334,9 +334,9 @@ class IClass(MapFrame):
         self.Y = []
         self.tempX = [] 
         self.tempY = [] 
- 
+
         self.npoints = 0
-    
+
         self.VX = []
         self.VY = []
         self.perimeter_npoints = 0
@@ -365,11 +365,11 @@ class IClass(MapFrame):
       #      self.data_type = grass.G_raster_map_type(name[n], mapset)
        #     self.infd.append( grass.G_open_cell_old(name[n], mapset))
 
-     
 
 
 
-         
+
+
         # determine the inputmap type (CELL/FCELL/DCELL) */
         self.mapset ='landsat'
         self.mapset = c_char_p(self.mapset).value
@@ -385,7 +385,7 @@ class IClass(MapFrame):
         self.view()
         self.viewhistogram()
 
-        
+
         self.cellhd = grasslib.Cell_head()
 
 
@@ -404,7 +404,7 @@ class IClass(MapFrame):
 
 
         for b in xrange(6):
-    	    self.Band_sum.append(0.0)
+            self.Band_sum.append(0.0)
             self.Band_histo.append([])
             for b2 in xrange(256):
                 self.Band_Product.append([])
@@ -428,27 +428,27 @@ class IClass(MapFrame):
         MAX_HISTO_WIDTH = 11
 
 
-      
+
         if (b_or_a == 1):
-	        max_range = 1
-	        for b in xrange(nbands):
-	            if (inmax[b] - inmin[b] > max_range):
-		            max_range = inmax[b] - inmin[b]
-	            old_range = max_range
-        
+            max_range = 1
+            for b in xrange(nbands):
+                if (inmax[b] - inmin[b] > max_range):
+                    max_range = inmax[b] - inmin[b]
+                old_range = max_range
+
         else:
-        	max_range = old_range
+            max_range = old_range
 
         try:
             histo_width = (ncols - BORDER * 2) / max_range
         except:
             histo_width = ncols
         if (histo_width % 2 == 0):
-        	histo_width = histo_width - 1
+            histo_width = histo_width - 1
         if (histo_width < MIN_HISTO_WIDTH):
-        	histo_width = MIN_HISTO_WIDTH
+            histo_width = MIN_HISTO_WIDTH
         elif (histo_width > MAX_HISTO_WIDTH):
-	        histo_width = MAX_HISTO_WIDTH
+            histo_width = MAX_HISTO_WIDTH
 
         height = (nrows - BORDER * 2) / nbands
         width = (ncols - BORDER * 2) / histo_width * histo_width
@@ -462,19 +462,19 @@ class IClass(MapFrame):
 
         grand_max = 0;
         for b in xrange(nbands):
-        	for x1 in xrange(256):
-	            if (histo[b][x1] > grand_max):
-	            	grand_max = histo[b][x1]
+            for x1 in xrange(256):
+                if (histo[b][x1] > grand_max):
+                    grand_max = histo[b][x1]
 
 
         LEGEND_SPACE =  3 * (width/30)
         if (grand_max > 0):
-	        scale = (height - LEGEND_SPACE) / grand_max;
+            scale = (height - LEGEND_SPACE) / grand_max;
         else:
-        	scale = 0;
+            scale = 0;
 
 
- 
+
         for b in xrange(nbands):
 
             h_bottom = h_top + height - 1
@@ -504,7 +504,7 @@ class IClass(MapFrame):
                 x2 = x2+histo_width
 
 
-	        h_top = h_bottom + 1
+                h_top = h_bottom + 1
 
             self.polypen = wx.Pen(colour="GREEN", width=1, style=wx.SOLID)
             pdc = wx.PaintDC(self.MapWindow)
@@ -549,13 +549,13 @@ class IClass(MapFrame):
 
 
         if self.htop < SCREEN_TOP:
-        	self.htop = SCREEN_TOP
+            self.htop = SCREEN_TOP
         if self.hbottom > SCREEN_BOTTOM:
-	        self.hbottom = SCREEN_BOTTOM
+            self.hbottom = SCREEN_BOTTOM
         if self.hleft < SCREEN_LEFT:
-	        self.hleft = SCREEN_LEFT
+            self.hleft = SCREEN_LEFT
         if self.hright > SCREEN_RIGHT:
-        	self.hright = SCREEN_RIGHT
+            self.hright = SCREEN_RIGHT
 
         self.htop+=1
         self.hbottom-=1
@@ -584,34 +584,34 @@ class IClass(MapFrame):
             self.Bandbuf.append(raster.Rast_allocate_buf(self.data_type[n]))
             self.Bandbuf[n] = cast(c_void_p(self.Bandbuf[n]), ptype)
 
-    
 
-    
+
+
     def readbands(self,y):
         self.y = int(y)
         if self.y < 0:
             self.y = 0
 
         for n in range(0,6):
-                raster.Rast_get_row(self.infd[n], self.Bandbuf[n], self.y, self.data_type[n])
+            raster.Rast_get_row(self.infd[n], self.Bandbuf[n], self.y, self.data_type[n])
 
 
-        
+
     def prepare(self,nbands):
-        
+
         i = 1
 
-        
+
         self.nbands = nbands
         while(i < self.perimeter_npoints):
 
             y = self.perimeterY[i]
             self.readbands(y)
-            
+
             x0 = int(self.perimeterX[i-1] - 1)
             x1 = int(self.perimeterX[i] - 1)
             if x0 > x1 :
-                #print "error0"
+            #print "error0"
                 return -1
             x = x0
             while x <= x1:
@@ -683,17 +683,17 @@ class IClass(MapFrame):
 
 
         for cur in range(0,self.npoints):
-            
+
             if self.tempY[cur]!= self.tempY[prev]:
                 first = cur
                 break
-        
+
         skip = 0
         VN = 0
         cur = 0
 
         if skip == 0:
-           
+
             self.VX.append(self.tempX[cur])
             self.VY.append(self.tempY[cur])
             VN=VN + 1
@@ -706,16 +706,16 @@ class IClass(MapFrame):
         next = cur +1
         if next >= self.npoints:
             next = 0
-        
+
         skip = ((self.tempY[prev] == self.tempY[cur]) and (self.tempY[next] == self.tempY[cur]))
 
         while cur != first:
             if skip == 0:
-               
+
                 self.VX.append(self.tempX[cur])
                 self.VY.append(self.tempY[cur])
                 VN=VN + 1
-                
+
 
             cur = cur + 1
             prev = cur
@@ -729,7 +729,7 @@ class IClass(MapFrame):
             except:
                 pass
 
-        
+
         np = 0
         prev  = VN - 1
         for cur in range(0,self.npoints):
@@ -737,12 +737,12 @@ class IClass(MapFrame):
                 np= np + abs(self.VY[prev] - self.VY[cur])
             except:
                 pass
-        
+
         PN = 0
         prev = VN - 1
 
         cur = 0
-        
+
         while(cur< VN):
             self.edge(self.VX[prev], self.VY[prev],self.VX[cur],self.VY[cur])
 
@@ -756,10 +756,10 @@ class IClass(MapFrame):
         next = cur + 1
         if next>=VN :
             next = 0
-                
+
         if (((self.VY[prev]<self.VY[cur]) and (self.VY[next]<self.VY[cur])) or ((self.VY[prev]>self.VY[cur]) and (self.VY[next]>self.VY[cur]))) :
             skip = 1
-            
+
         elif (((self.VY[prev]<self.VY[cur]) and (self.VY[cur]<self. VY[next])) or ((self.VY[prev]>self.VY[cur]) and (self.VY[cur]>self. VY[next]))):
             skip = 0
         else:
@@ -767,7 +767,7 @@ class IClass(MapFrame):
             next +=1
             if next >= VN :
                 next = 0
-                        
+
             if (((self.VY[prev]<self.VY[cur]) and (self.VY[next]<self.VY[cur])) or ((self.VY[prev]>self.VY[cur]) and (self.VY[next]>self.VY[cur]))):
                 skip = 1
 
@@ -783,10 +783,10 @@ class IClass(MapFrame):
             next = cur + 1
             if next>=VN :
                 next = 0
-                    
+
             if (((self.VY[prev]<self.VY[cur]) and (self.VY[next]<self.VY[cur])) or ((self.VY[prev]>self.VY[cur]) and (self.VY[next]>self.VY[cur]))) :
                 skip = 1
-                
+
             elif (((self.VY[prev]<self.VY[cur]) and (self.VY[cur]<self. VY[next])) or ((self.VY[prev]>self.VY[cur]) and (self.VY[cur]>self. VY[next]))):
                 skip = 0
             else:
@@ -794,7 +794,7 @@ class IClass(MapFrame):
                 next +=1
                 if next >= VN :
                     next = 0
-                            
+
                 if (((self.VY[prev]<self.VY[cur]) and (self.VY[next]<self.VY[cur])) or ((self.VY[prev]>self.VY[cur]) and (self.VY[next]>self.VY[cur]))):
                     skip = 1
 
@@ -803,19 +803,19 @@ class IClass(MapFrame):
 
             cur = next
             prev = cur - 1
-        
+
 
         for i in range(0,len(self.perimeterX)):
             a = self.perimeterX[i]
             b = self.perimeterY[i]
             xy = a,b
             self.Region_perimeter.append(xy)
-           
-            
+
+
         self.Region_perimeter.sort()
 
 
-       
+
 
 
     def edge(self, x0, y0, x1, y1):
@@ -849,7 +849,7 @@ class IClass(MapFrame):
         n = self.perimeter_npoints  = self.perimeter_npoints + 1
         self.perimeterX.append(x)
         self.perimeterY.append(y)
-        
+
 
 
     def row_to_northing(self, row, location):
@@ -913,13 +913,13 @@ class IClass(MapFrame):
 
 
         if self.vtop < SCREEN_TOP:
-        	self.vtop = SCREEN_TOP
+            self.vtop = SCREEN_TOP
         if self.vbottom > SCREEN_BOTTOM:
-	        self.vbottom = SCREEN_BOTTOM
+            self.vbottom = SCREEN_BOTTOM
         if self.vleft < SCREEN_LEFT:
-	        self.vleft = SCREEN_LEFT
+            self.vleft = SCREEN_LEFT
         if self.vright > SCREEN_RIGHT:
-        	self.vright = SCREEN_RIGHT
+            self.vright = SCREEN_RIGHT
 
         self.vtop+=1
         self.vbottom-=1
@@ -943,18 +943,18 @@ class IClass(MapFrame):
         #self.outline()
 
 
-        
+
 
     def add_point(self,x, y):
 
         last = 0
         last = self.npoints - 1
         if last >= 0 	and x == self.X[last] and y == self.Y[last]:
-        	return 1
+            return 1
 
         if self.npoints >= 100 :
-	        print "Can't mark another point."
-	        return 0
+            print "Can't mark another point."
+            return 0
 
         xy=x,y
 
@@ -979,7 +979,7 @@ class BufferedWindow2(BufferedWindow):
                  style = wx.NO_FULL_REPAINT_ON_RESIZE, **kwargs):
         MapWindow.__init__(self, parent, id, Map, tree, lmgr, **kwargs)
         wx.Window.__init__(self, parent, id, style = style, **kwargs)
-        
+
         # flags
         self.resize = False # indicates whether or not a resize event has taken place
         self.dragimg = None # initialize variable for map panning
@@ -995,7 +995,7 @@ class BufferedWindow2(BufferedWindow):
         self.lineid = None
         # ID of poly line resulting from cumulative rubber band lines (e.g. measurement)
         self.plineid = None
-        
+
         # event bindings
         self.Bind(wx.EVT_PAINT,        self.OnPaint)
         self.Bind(wx.EVT_SIZE,         self.OnSize)
@@ -1008,9 +1008,9 @@ class BufferedWindow2(BufferedWindow):
 
 
 
-        
+
         self.processMouse = True
-        
+
         # render output objects
         self.mapfile = None   # image file to be rendered
         self.img     = None   # wx.Image object (self.mapfile)
@@ -1052,7 +1052,7 @@ class BufferedWindow2(BufferedWindow):
 
         self.Bind(wx.EVT_ERASE_BACKGROUND, lambda x:None)
 #        self.Bind(wx.EVT_KEY_DOWN , Bufferedwindow.OnKeyDown)
-        
+
         # vars for handling mouse clicks
         self.dragid   = -1
         self.lastpos  = (0, 0)
@@ -1071,45 +1071,45 @@ class BufferedWindow2(BufferedWindow):
         Debug.msg(4, "BufferedWindow.OnPaint(): redrawAll=%s" % self.redrawAll)
 
 
-        
+
         dc = wx.BufferedPaintDC(self, self.buffer)
-        
+
         ### dc.SetBackground(wx.Brush("White"))
         dc.Clear()
-        
+
         # use PrepareDC to set position correctly
         self.PrepareDC(dc)
-        
+
         # create a clipping rect from our position and size
         # and update region
         rgn = self.GetUpdateRegion().GetBox()
         dc.SetClippingRect(rgn)
-        
+
         switchDraw = False
         if self.redrawAll is None:
             self.redrawAll = True
             switchDraw = True
-        
+
         if self.redrawAll: # redraw pdc and pdcVector
             # draw to the dc using the calculated clipping rect
             self.pdc.DrawToDCClipped(dc, rgn)
-            
+
             # draw vector map layer
             if self.pdcVector:
-                # decorate with GDDC (transparency)
+            # decorate with GDDC (transparency)
                 try:
                     gcdc = wx.GCDC(dc)
                     self.pdcVector.DrawToDCClipped(gcdc, rgn)
                 except NotImplementedError, e:
                     print >> sys.stderr, e
                     self.pdcVector.DrawToDCClipped(dc, rgn)
-            
+
             self.bufferLast = None
         else: # do not redraw pdc and pdcVector
             if self.bufferLast is None:
                 # draw to the dc
                 self.pdc.DrawToDC(dc)
-                
+
                 if self.pdcVector:
                     # decorate with GDDC (transparency)
                     try:
@@ -1118,15 +1118,15 @@ class BufferedWindow2(BufferedWindow):
                     except NotImplementedError, e:
                         print >> sys.stderr, e
                         self.pdcVector.DrawToDC(dc)
-                        
+
                 # store buffered image
                 # self.bufferLast = wx.BitmapFromImage(self.buffer.ConvertToImage())
                 self.bufferLast = dc.GetAsBitmap(wx.Rect(0, 0, self.Map.width, self.Map.height))
-            
+
             pdcLast = self.PseudoDC(vdigit = False)
             pdcLast.DrawBitmap(self.bufferLast, 0, 0, False)
             pdcLast.DrawToDC(dc)
-        
+
         # draw decorations (e.g. region box)
         try:
             gcdc = wx.GCDC(dc)
@@ -1134,16 +1134,16 @@ class BufferedWindow2(BufferedWindow):
         except NotImplementedError, e:
             print >> sys.stderr, e
             self.pdcDec.DrawToDC(dc)
-        
+
         # draw temporary object on the foreground
         ### self.pdcTmp.DrawToDCClipped(dc, rgn)
         self.pdcTmp.DrawToDC(dc)
-        
+
         if switchDraw:
             self.redrawAll = False
 
         self.polypen = wx.Pen(colour="RED", width=1, style=wx.SOLID)
-        
+
         self.pdc.BeginDrawing()
         self.pdc.SetBrush(wx.Brush(wx.CYAN, wx.TRANSPARENT))
         self.pdc.SetPen(self.polypen)
@@ -1174,20 +1174,20 @@ class BufferedWindow2(BufferedWindow):
         """!
         Updates the canvas anytime there is a change to the
         underlaying images or to the geometry of the canvas.
-        
+
         @param render re-render map composition
         @param renderVector re-render vector map layer enabled for editing (used for digitizer)
         """
         start = time.clock()
-        
+
         self.resize = False
-        
+
         # if len(self.Map.GetListOfLayers()) == 0:
         #    return False
-        
+
         if self.img is None:
             render = True
-        
+
         #
         # initialize process bar (only on 'render')
         #
@@ -1195,19 +1195,19 @@ class BufferedWindow2(BufferedWindow):
             self.parent.statusbarWin['progress'].Show()
             if self.parent.statusbarWin['progress'].GetRange() > 0:
                 self.parent.statusbarWin['progress'].SetValue(1)
-        
+
         #
         # render background image if needed
         #
-        
+
         # update layer dictionary if there has been a change in layers
         if self.tree and self.tree.reorder == True:
             self.tree.ReorderLayers()
-        
+
         # reset flag for auto-rendering
         if self.tree:
             self.tree.rerender = False
-        
+
         if render:
             # update display size
             self.Map.ChangeMapSize(self.GetClientSize())
@@ -1220,9 +1220,9 @@ class BufferedWindow2(BufferedWindow):
                                            windres=windres)
         else:
             self.mapfile = self.Map.Render(force=False, mapWindow=self.parent)
-        
+
         self.img = self.GetImage() # id=99
-            
+
         #
         # clear pseudoDcs
         #
@@ -1231,7 +1231,7 @@ class BufferedWindow2(BufferedWindow):
                     self.pdcTmp):
             pdc.Clear()
             pdc.RemoveAll()
-        
+
         #
         # draw background map image to PseudoDC
         #
@@ -1244,7 +1244,7 @@ class BufferedWindow2(BufferedWindow):
                 return False
 
             self.Draw(self.pdc, self.img, drawid=id)
-        
+
         #
         # render vector map layer
         #
@@ -1263,24 +1263,24 @@ class BufferedWindow2(BufferedWindow):
         for id in self.textdict.keys():
             self.Draw(self.pdc, img=self.textdict[id], drawid=id,
                       pdctype='text', coords=[10, 10, 10, 10])
-        
+
         # optionally draw computational extent box
         self.DrawCompRegionExtent()
-        
+
         #
         # redraw pdcTmp if needed
         #
         if len(self.polycoords) > 0:
             self.DrawLines(self.pdcTmp)
-        
-       
+
+
         # 
         # clear measurement
         #
 
-            
+
         stop = time.clock()
-        
+
         #
         # hide process bar
         #
@@ -1296,10 +1296,10 @@ class BufferedWindow2(BufferedWindow):
             self.parent.statusbarWin['mask'].SetLabel(_('MASK'))
         else:
             self.parent.statusbarWin['mask'].SetLabel('')
-        
+
         Debug.msg (2, "BufferedWindow.UpdateMap(): render=%s, renderVector=%s -> time=%g" % \
                    (render, renderVector, (stop-start)))
-        
+
         return True
 
     def OnMotion(self, event):
@@ -1316,7 +1316,7 @@ class BufferedWindow2(BufferedWindow):
             except (TypeError, ValueError):
                 self.parent.statusbar.SetStatusText("", 0)
                 return
-            
+
             if self.parent.toolbars['vdigit'] and \
                     self.parent.toolbars['vdigit'].GetAction() == 'addLine' and \
                     self.parent.toolbars['vdigit'].GetAction('type') in ('line', 'boundary') and \
@@ -1343,7 +1343,7 @@ class BufferedWindow2(BufferedWindow):
                                                                                              key='statusbar',
                                                                                              subkey='proj4'),
                                                                   flags = 'd')
-                    
+
                         if coord:
                             e, n = coord
                             if proj in ('ll', 'latlong', 'longlat') and format == 'DMS':
@@ -1370,12 +1370,12 @@ class BufferedWindow2(BufferedWindow):
                        self.mouse["use"])
 
         self.mouse['end'] = event.GetPositionTuple()[:]
-        
+
         if self.mouse['use'] in ["zoom", "pan"]:
             # set region in zoom or pan
             begin = self.mouse['begin']
             end = self.mouse['end']
-            
+
             if self.mouse['use'] == 'zoom':
                 # set region for click (zero-width box)
                 if begin[0] - end[0] == 0 or \
@@ -1385,7 +1385,7 @@ class BufferedWindow2(BufferedWindow):
                              end[1] - self.Map.height / 4)
                     end   = (end[0] + self.Map.width / 4,
                              end[1] + self.Map.height / 4)
-            
+
             self.Zoom(begin, end, self.zoomtype)
 
             # redraw map

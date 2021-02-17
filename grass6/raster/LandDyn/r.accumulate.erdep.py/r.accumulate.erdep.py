@@ -113,8 +113,8 @@ def main():
                 grass.message('setting colors for statement for map ' + outmap)
                 grass.run_command('r.colors',  quiet = True,  map = outmap,  rules =  temp.name)
             if ( os.getenv("GIS_FLAG_e") == "1" ):
-                    grass.message('creating png image of map ' + outmap)
-                    grass.run_command('r.out.png',  quiet = True,  input = outmap,  output = outmap + '.png')
+                grass.message('creating png image of map ' + outmap)
+                grass.run_command('r.out.png',  quiet = True,  input = outmap,  output = outmap + '.png')
             if bool(os.getenv("GIS_OPT_statsout")) == True:
                 grass.message('calculating erosion/deposition statistics for map ' + outmap)
                 grass.mapcalc('temperosion=if(${map1} < 0 && ${map1} > -20, ${map1}, null())',  map1 = outmap)
@@ -157,7 +157,7 @@ def main():
         statsfile.close()
     temp.close()
     return
-        
+
 if __name__ == "__main__":
     if ( len(sys.argv) <= 1 or sys.argv[1] != "@ARGS_PARSED@" ):
         os.execvp("g.parser", [sys.argv[0]] + sys.argv)

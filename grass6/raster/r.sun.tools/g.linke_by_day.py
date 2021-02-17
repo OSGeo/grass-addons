@@ -48,17 +48,17 @@ def main():
     linke_data_wrap = numpy.concatenate((linke_data[9:12],
                                          linke_data,
                                          linke_data[0:3]))
-    
+
     monthDays = numpy.array ([0,31,28,31,30,31,30,31,31,30,31,30,31])
     #init empty
     midmonth_day = numpy.array ([0,0,0,0,0,0,0,0,0,0,0,0])
     for i in range(1, 12+1):
         midmonth_day[i-1] = 15 + sum(monthDays[0:i])
-    
+
     midmonth_day_wrap = numpy.concatenate((midmonth_day[9:12]-365, \
                                            midmonth_day,
                                            midmonth_day[0:3]+365))
-    
+
     linke = interpolate.interp1d(midmonth_day_wrap, 
                                  linke_data_wrap,
                                  kind='cubic')

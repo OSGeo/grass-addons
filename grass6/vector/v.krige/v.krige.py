@@ -124,7 +124,7 @@ try:
     import grass.script as grass
 except ImportError:
     sys.exit(_("No GRASS-python library found"))
-    
+
 # move other checks in functions, as R?
 
 # globals
@@ -141,7 +141,7 @@ rinterface = None
 # <2.5 class definition, without () - please test 
 class Controller:
     """ Executes analysis. For the moment, only with gstat functions."""
-    
+
     def ImportMap(self, map, column):
         """ Imports GRASS map as SpatialPointsDataFrame and adds x/y columns to attribute table.
         Checks for NULL values in the provided column and exits if they are present."""
@@ -158,7 +158,7 @@ class Controller:
             # match coordinates with data slot of SpatialPointsDataFrame - maptools function
             # match is done on row.names
             Rpointmap = robjects.r.spCbind(Rpointmap, coordinatesDF)
-            
+
         # GRASS checks for null values in the chosen column. R can hardly handle column as a variable,
         # looks for a hardcoded string.
         cols = grass.vector_columns(map=map, layer=1)
@@ -173,7 +173,7 @@ class Controller:
         if nulls > 0: 
             grass.fatal(_("%d NULL value(s) in the selected column - unable to perform kriging.") % nulls)
         return Rpointmap
-    
+
     def CreateGrid(self, inputdata):
         Region = grass.region()
         Grid = robjects.r.gmeta2grd()
@@ -187,7 +187,7 @@ class Controller:
                                                         data,
                                                         proj4string =  robjects.r.CRS(robjects.r.proj4string(inputdata)))
         return GridPredicted
-    
+
     def ComposeFormula(self, column, isblock, inputdata):
         if isblock is True:
             predictor = 'x+y'
@@ -196,19 +196,19 @@ class Controller:
         Formula = robjects.Formula(column + "~" + predictor)
         #print Formula
         return Formula
-    
+
     def FitVariogram(self, formula, inputdata, sill, nugget, range, model = ''):
         """ Fits variogram either automagically either specifying all parameters.
         Returns a list containing data and model variograms. """
-        
+
         Variograms = {}
-        
+
         if model is '':
             robjects.r.require('automap')
             DottedParams = {}
             #print (nugget.r_repr(), sill, range)
             DottedParams['fix.values'] = robjects.r.c(nugget, range, sill)
-            
+
             VariogramModel = robjects.r.autofitVariogram(formula, inputdata, **DottedParams)
             #print robjects.r.warnings()
             Variograms['datavariogram'] = VariogramModel.rx('exp_var')[0]
@@ -229,7 +229,7 @@ class Controller:
             Variograms['variogrammodel'] = VariogramModel
             Variograms['model'] = model
         return Variograms
-    
+
     def DoKriging(self, formula, inputdata, grid, model, block):
         DottedParams = {'debug.level': -1} # let krige() print percentage status
         if block is not '': #@FIXME(anne): but it's a string!! and krige accepts it!!
@@ -237,7 +237,7 @@ class Controller:
         #print DottedParams
         KrigingResult = robjects.r.krige(formula, inputdata, grid, model, **DottedParams)
         return KrigingResult
- 
+
     def ExportMap(self, map, column, name, overwrite, command, variograms):
         # add kriging parameters to raster map history
         robjects.r.writeRAST6(map, vname = name, zcol = column, overwrite = overwrite)
@@ -246,10 +246,10 @@ class Controller:
                           title = 'Kriging output',
                           history = 'Issued from command v.krige ' + command)
         if command.find('model') is -1: # if the command has no model option, add automap chosen model
-                    grass.run_command('r.support',
-                                      map = name,
-                                      history = 'Model chosen by automatic fitting: ' + variograms['model'])
-        
+            grass.run_command('r.support',
+                              map = name,
+                              history = 'Model chosen by automatic fitting: ' + variograms['model'])
+
     def Run(self, input, column, output, package, sill, nugget, range, logger, \
             overwrite, model, block, output_var, command, **kwargs):
         """ Wrapper for all functions above. """
@@ -261,9 +261,9 @@ class Controller:
         # and from here over, InputData refers to the global variable
         #print(robjects.r.slot(InputData, 'data').names)
         logger.message(_("Data successfully imported."))
-        
+
         GridPredicted = self.CreateGrid(InputData)
-        
+
         logger.message(_("Fitting variogram..."))
         isblock = block is not ''
         logger.message(column)
@@ -277,11 +277,11 @@ class Controller:
                                           nugget = nugget,
                                           range = range)
         logger.message(_("Variogram fitted."))
-        
+
         logger.message(_("Kriging..."))
         KrigingResult = self.DoKriging(Formula, InputData, GridPredicted, Variogram['variogrammodel'], block) # using global ones
         logger.message(_("Kriging performed."))
-        
+
         self.ExportMap(map = KrigingResult,
                        column='var1.pred',
                        name = output,
@@ -295,13 +295,13 @@ class Controller:
                            overwrite = overwrite,
                            command = command,
                            variograms = Variogram)
-        
+
 def main(argv = None):
     """ Main. Calls either GUI or CLI, depending on arguments provided. """
     #@FIXME: solve this double ifelse. the control should not be done twice.
-    
+
     controller = Controller()
-    
+
     if argv is None:
         importR()
         argv = sys.argv[1:] # stripping first item, the full name of this script
@@ -310,9 +310,9 @@ def main(argv = None):
         if not os.getenv("GRASS_WXBUNDLED"):
             globalvar.CheckForWx()
         import v_krige_wxGUI as GUI
-        
+
         import wx
-        
+
         app = wx.App()
         KrigingFrame = GUI.KrigingModule(parent = None,
                                          Rinstance = robjects,
@@ -320,16 +320,16 @@ def main(argv = None):
         KrigingFrame.Centre()
         KrigingFrame.Show()
         app.MainLoop()
-        
+
     else:
         #CLI
         options, flags = argv
         #@TODO: Work on verbosity. Sometimes it's too verbose (R), sometimes not enough.
         if grass.find_file(options['input'], element = 'vector')['fullname'] is '':
             grass.fatal(_("option: <input>: Vector map not found.")) #TODO cosmetics, insert real map name
-        
+
         #@TODO: elaborate input string, if contains mapset or not.. thanks again to Bob for testing on 64bit.
-        
+
         # create output map name, if not specified
         if options['output'] is '':
             try: # to strip mapset name from fullname. Ugh.
@@ -353,7 +353,7 @@ def main(argv = None):
         else:
             if options['sill'] is '' or options['nugget'] is '' or options['range'] is '':
                 grass.fatal(_("You have specified model, but forgot at least one of sill, nugget and range."))
-        
+
         #@TODO: let GRASS remount its commandstring. Until then, keep that 4 lines below.
         #print grass.write_command(argv)
         command = ""
@@ -363,14 +363,14 @@ def main(argv = None):
                 notnulloptions[k] = v
         command = command.join("%s=%s " % (k, v) for k, v in notnulloptions.items())
         #print command
-        
+
         # re-cast integers from strings, as parser() cast everything to string.
         for each in ("sill","nugget","range"):
             if options[each] is not '':
                 options[each] = int(options[each])
             else:
                 options[each] = robjects.r('''NA''')
-        
+
         #controller = Controller()
         controller.Run(input = options['input'],
                        column = options['column'],
@@ -385,7 +385,7 @@ def main(argv = None):
                        output_var = options['output_var'],
                        command = command,
                        logger = grass)
-    
+
 def importR():
     # R
     # unuseful since rpy2 will complain adequately.
@@ -394,7 +394,7 @@ def importR():
     #    grass.find_program('R')
     # except:
     #    sys.exit(_("R is not installed. Install it and re-run, or modify environment variables."))
-    
+
     # rpy2
     global robjects
     global rinterface
@@ -408,13 +408,13 @@ def importR():
         haveRpy2 = False
         if not haveRpy2:
             sys.exit(1)
-        
+
     # R packages check.
     # @FIXME: it leaves a Rtmpxxxx folder into the make tempfolder and causes make complain. [markus]
     for each in ["gstat", "spgrass6", "maptools"]:
         if not robjects.r.require(each, quietly = True)[0]:
             sys.exit(_("R package '%s' is missing. Install it and re-run v.krige.") % each)
-    
+
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         sys.exit(main(argv = grass.parser()))

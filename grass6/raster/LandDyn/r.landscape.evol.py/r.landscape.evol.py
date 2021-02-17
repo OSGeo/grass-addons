@@ -248,9 +248,9 @@ import grass.script as grass
 # First define two useful custom methods that we will need later on
 # m is a grass/bash command that will generate some info to stdout. You must invoke this command in the form of "variable to be made" = out2var('command')
 def out2var(m):
-        pn = subprocess.Popen('%s' % m, stdout=subprocess.PIPE, shell='bash')
-        return pn.stdout.read()
-    
+    pn = subprocess.Popen('%s' % m, stdout=subprocess.PIPE, shell='bash')
+    return pn.stdout.read()
+
 # Now define  "main",  our main block of code, here defined because of the way g.parser needs to be called with python codes for grass (see below)        
 # m = last iteration number, o = iteration number, p = prefx, q = statsout, r = resolution of input elev map
 def main(m, o, p, q, r):
@@ -361,7 +361,7 @@ def main(m, o, p, q, r):
         sys.exit(0)
     grass.message('\n*************************\n Year %s -- ' % o + 'step 3: calculating sediment transport rates (units variable depending upon process) \n*************************\n')  
     # This step calculates the force of the flowing water at every cell on the landscape using the proper transport process law for the specific point in the flow regime. For upper hillslopes (below cutoff point 1) this done by multiplying the diffusion coeficient by the accumulated flow/cell res width. For midslopes (between cutoff 1 and 2) this is done by multiplying slope by accumulated flow with the m and n exponents set to 1. For channel catchment heads (between cutoff 2 and 3), this is done by multiplying slope by accumulated flow with the m and n exponents set to 1.6 and 1.3 respectively. For Channelized flow in streams (above cutoff 3), this is done by calculating the reach average shear stress (hydraulic radius [here estimated for a cellular landscape simply as the depth of flow]  times  slope times accumulated flow [cells] times gravitatiopnal acceleration of water [9806.65 newtons], all raised to the appropriate exponant for the type of transport (bedload or suspended load), and then divided by the resolution. Depth of flow is calculated as a mean "instantaneous depth" during any given rain event, here estimated by the maximum depth of an idealized unit hydrograph with base equal to the duration of the storm, and area equal to the total accumulated excess rainfall during the storm. Then finally calculates the stream power or sediment carrying capacity (qs) of the water flowing at each part of the map by multiplying the reach average shear stress (channelized flow in streams) or the estimated flow force (overland flow) by the transport coeficient (estimated by R*K*C for hillslopes or kt for streams). This is a "Transport Limited" equation, however, we add some constraints on detachment by checking to see if the sediment supply has been exhausted: if the current soil depth is 0 or negative (checking for a negative value is kind of an error trap) then we make the transport coefficient small (0.000001) to simulate erosion on bedrock. Because diffusion and USPED require 2D divergence later on, we calculate these as vectors in the X and Y directions. Stream flow only needs 1D difference, so it's calulated in the direction of flow.
-    
+
     qsx4 = '%sQsx_diffusion%04d' % (p, o)
     qsy4 = '%sQsy_diffusion%04d' % (p, o)
     grass.mapcalc('${qsx4}=(${kappa} * sin(${slope}) * cos(${aspect}))', qsx4 = qsx4, kappa = kappa, slope = slope, aspect = aspect)
@@ -426,7 +426,7 @@ def main(m, o, p, q, r):
         qsydy1 = '%sDelta_Qsy_streams%04d' % (p, o)
         grass.run_command('r.slope.aspect',  quiet = True,  elevation = qsx1, dx = qsxdx1)
         grass.run_command('r.slope.aspect',  quiet = True,  elevation = qsy1, dy = qsydy1)
-    
+
     #This is the smoothing routine. First we calculate the rate of Erosion and Deposition by converting the Delta QS of the different processes to vertical meters by dividing by the soil denisity (with apropriate constants to get into the correct units, see UNIT CONVERSION note below), and for streams, also expand from the storm to the year level. All units of this initial (temporary) ED_rate map will be in m/cell/year. 
     #OUTPUT UNIT CONVERSIONS: In the case of the diffusion equation, the output units are in verticle meters of sediment per cell per year, so these will be left alone. In the case of stream flow, the output units are kg/m2/storm, so need to multiply by 1000 to get T/m2/storm, and then divide by the soil density (T/m3) to get verticle meters of sediment/cell/storm, and will be multiplied by the number of storms/year in order to get vertical meters of sediment/cell/year. In the case of USPED, the output is in T/Ha/year, so first multiply by 0.1 to get T/m2/year and then divide by soil density (T/m3) to get verticle meters of sediment/cell/year. 
     tempnetchange1 = '%sTEMPORARY_UNSMOOTHED_ED_rate%04d' % (p, o)
@@ -476,7 +476,7 @@ def main(m, o, p, q, r):
     depostats1 = grass.parse_command('r.univar', flags = 'ge', map = tmpdep)
     #Clean up temp maps
     grass.run_command('g.remove',  quiet = True, rast = tmperosion + ',' + tmpdep + ',' + tempnetchange1)
-    
+
     grass.message('\n*************************\n Year %s -- ' % o + 'step 5: calculating terrain evolution and new soil depths\n *************************\n\n')
     #Set up a temp dem, and then do initial addition of ED change to old DEM. This mapcalc statement first checks the amount of erodable soil in a given cell against the amount of erosion calculated, and keeps the cell from eroding past this amount (if there is soil, then if the amount of erosion is more than the amount of soil, just remove all the soil and stop, else remove the amount of caclulated erosion. It also runs an error catch that checks to make sure that soil depth is not negative (could happen, I suppose), and if it is, corrects it). 
     temp_dem = '%stemp_dem%04d' % (p, o)

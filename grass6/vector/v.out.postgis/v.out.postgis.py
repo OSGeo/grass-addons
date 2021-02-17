@@ -63,7 +63,7 @@ def main():
                                                     mapset = mapset)[mapset]
     else:
         map_input = [options['input']]
-    
+
     if not flags['a']:
         if not options['output']:
             map_output = map_input
@@ -78,12 +78,12 @@ def main():
                                  map = imap)
         if not ret:
             grass.fatal('Unable to get information about vector map <%s>' % imap)
-        
+
         info = {}
         for line in ret.splitlines():
             key, value = line.split('=')
             info[key.strip()] = int(value.strip())
-        
+
         # extension needed?
         fnum = 0
         if info['points'] > 0:
@@ -92,18 +92,18 @@ def main():
             fnum += 1
         if info['areas'] > 0:
             fnum += 1
-        
+
         for ftype in ('points', 'lines', 'areas'):
             if info[ftype] < 1:
                 continue
-            
+
             omap = map_output[i]
             if fnum != 1:
                 omap += '_' + ftype
-                
+
             grass.message('Converting <%s> to <%s> (%s)...' % \
                           (imap, omap, ftype))
-        
+
             if grass.overwrite():
                 grass.run_command('v.out.ogr',
                                   input = imap,
@@ -120,7 +120,7 @@ def main():
                                   olayer = omap,
                                   format = 'PostgreSQL')
         i += 1
-    
+
     return 0
 
 if __name__ == "__main__":

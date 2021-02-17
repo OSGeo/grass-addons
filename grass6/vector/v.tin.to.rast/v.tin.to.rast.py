@@ -72,17 +72,17 @@ def cleanup():
     if tmp:
         grass.run_command('g.remove', rast = '%s' % tmp,
                           quiet = True, stderr = nuldev)
-        
+
 def main():
-    
+
     global nuldev, tmp
     nuldev = file(os.devnull, 'w')
     tmp = "v_tin_to_rast_%d" % os.getpid()
 
-        
+
     input = options['input']
     output = options['output']
-    
+
     # initialize GRASS library
     G_gisinit('')
 
@@ -93,7 +93,7 @@ def main():
 
     # define map structure 
     map_info = pointer(Map_info())
-    
+
     # set vector topology to level 2 
     Vect_set_open_level(2)
 
@@ -101,7 +101,7 @@ def main():
     Vect_open_old(map_info, input, mapset)
 
     Vect_maptype_info(map_info, input, mapset)
-    
+
     # check if vector map is 3D
     if Vect_is_3d(map_info):
         grass.message("Vector map <%s> is 3D" % input)
@@ -121,7 +121,7 @@ def main():
     outrast = []
     for i in range(nrows):
         outrast[i:] = [G_allocate_d_raster_buf()]
-        
+
     # create new raster
     outfd = G_open_raster_new(output, DCELL_TYPE)
     if outfd < 0:
@@ -163,7 +163,7 @@ def main():
 
     # close vector
     Vect_close(map_info)
-    
+
     # cut output raster to TIN vertical range
     vtop = grass.read_command('v.info', flags = 'g',
                               map = input).rsplit()[4].split('=')[1]
@@ -191,4 +191,4 @@ if __name__ == "__main__":
     options, flags = grass.parser()
     atexit.register(cleanup)
     main()
-                        
+

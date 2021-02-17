@@ -188,7 +188,7 @@ def writeTransects( transects, output ):
     a.seek(0)
     a.close()
     grass.run_command('v.in.ascii', flags='n', input=temp_path, output=output, format='standard')
-    
+
 
 ####################################
 # writes areas 
@@ -271,7 +271,7 @@ def main():
     #JL Is the vector a line and does if have at least one feature?
     info = grass.parse_command('v.info', flags = 't', map = vector)
     if info['lines'] == '0':
-         grass.fatal(_("vector <%s> does not contain lines") % vector)
+        grass.fatal(_("vector <%s> does not contain lines") % vector)
 
     #################################
     v = loadVector( vector )
@@ -285,12 +285,12 @@ def main():
         writeQuads( transect_ends, temp_map )
     else:
         writePoints( transect_locs, temp_map )
- 
+
     grass.run_command( 'v.category', input=temp_map, output=output, type=shape )
     grass.run_command( 'g.remove', vect=temp_map )
 
 if __name__ == "__main__":
-   options, flags = grass.parser()
-   main()
+    options, flags = grass.parser()
+    main()
 
 

@@ -81,7 +81,7 @@ from preferences import globalSettings as UserSettings
 import dbm
 
 if grassversion.rfind("6.4") != 0:
-	import dbm_dialogs
+    import dbm_dialogs
 if grassversion.rfind("6.4") != 0:
     from units import ConvertValue as UnitsConvertValue
 from vdigit import GV_LINES as VDigit_Lines_Type
@@ -149,7 +149,7 @@ class MapFrame(wx.Panel,MapFrame):
         self.statusFlag = flag
         self.statusbar = None
 
-   
+
         #
         # available cursors
         #
@@ -200,7 +200,7 @@ class MapFrame(wx.Panel,MapFrame):
             self.statusbar.Bind(wx.EVT_CHECKBOX, self.OnToggleRender, self.autoRender)
             self.autoRender.SetValue(UserSettings.Get(group='display', key='autoRendering', subkey='enabled'))
             self.autoRender.SetToolTip(wx.ToolTip (_("Enable/disable auto-rendering")))
-            
+
             self.maskInfo = wx.StaticText(parent = self.statusbar, id = wx.ID_ANY,
                                                       label = '')
             self.maskInfo.SetForegroundColour(wx.Colour(255, 0, 0))
@@ -213,7 +213,7 @@ class MapFrame(wx.Panel,MapFrame):
             self.onRenderGauge = wx.Gauge(parent=self.statusbar, id=wx.ID_ANY,
                                           range=0, style=wx.GA_HORIZONTAL)
             self.onRenderGauge.Hide()
-        
+
             self.mapScale = wx.TextCtrl(parent=self.statusbar, id=wx.ID_ANY,
                                         value="", style=wx.TE_PROCESS_ENTER,
                                         size=(150, -1))
@@ -241,7 +241,7 @@ class MapFrame(wx.Panel,MapFrame):
                                                  "computational region, "
                                                  "computational region inside a display region "
                                                  "as a red box).")))
-            
+
 
         self.statusbarWin = dict()
         self.statusbarWin['toggle'] = wx.Choice(self.statusbar, wx.ID_ANY,
@@ -268,7 +268,7 @@ class MapFrame(wx.Panel,MapFrame):
 
 
         self.statusbar.Bind(wx.EVT_CHECKBOX, self.OnToggleShowRegion, self.statusbarWin['region'])
-        
+
         self.statusbarWin['region'].SetValue(False)
         self.statusbarWin['region'].Hide()
         self.statusbarWin['region'].SetToolTip(wx.ToolTip (_("Show/hide computational "
@@ -313,17 +313,17 @@ class MapFrame(wx.Panel,MapFrame):
                                                                  "defined in GUI preferences dialog "
                                                                  "(tab 'Display')")))
         self.statusbarWin['projection'].Hide()
-        
+
         # mask
         self.statusbarWin['mask'] = wx.StaticText(parent = self.statusbar, id = wx.ID_ANY,
                                                   label = '')
         self.statusbarWin['mask'].SetForegroundColour(wx.Colour(255, 0, 0))
-        
+
         # on-render gauge
         self.statusbarWin['progress'] = wx.Gauge(parent=self.statusbar, id=wx.ID_ANY,
                                       range=0, style=wx.GA_HORIZONTAL)
         self.statusbarWin['progress'].Hide()
-        
+
         self.StatusbarReposition() # reposition statusbar
 
         self.maskInfo = wx.StaticText(parent = self.statusbar, id = wx.ID_ANY,
@@ -339,7 +339,7 @@ class MapFrame(wx.Panel,MapFrame):
         self.gisdbase = self.gisrc['GISDBASE'] 
 
         parent1 = self.GetParent()
-        
+
         frame = parent1.GetParent()
 
         self.lmgr= frame
@@ -380,7 +380,7 @@ class MapFrame(wx.Panel,MapFrame):
         self.Bind(wx.EVT_ACTIVATE, self.OnFocus)
         self.Bind(wx.EVT_CLOSE,    self.OnCloseWindow)
         self.Bind(render.EVT_UPDATE_PRGBAR, self.OnUpdateProgress)
-        
+
         #
         # Update fancy gui style
         #
@@ -396,7 +396,7 @@ class MapFrame(wx.Panel,MapFrame):
         # Init print module and classes
         #
         self.printopt = disp_print.PrintOptions(self, self.MapWindow)
-        
+
         #
         # Initialization of digitization tool
         #
@@ -443,7 +443,7 @@ class MapFrame(wx.Panel,MapFrame):
 
         self.p = wx.Panel(self)
         #hb = wx.BoxSizer(wx.HORIZONTAL)
-       
+
         self.p.Bind(wx.EVT_PAINT,self.onPaint)
 
 
@@ -460,13 +460,13 @@ class MapFrame(wx.Panel,MapFrame):
 
 
 
- 
+
         self._mgr.AddPane(self.maptree, wx.aui.AuiPaneInfo().Left().
                                         Dockable(False).BestSize((400,300)).
                                         CloseButton(False).DestroyOnClose(True).
                                         Layer(0).Caption("Map Tree"))
 
-        
+
         self.previous = [0,0]
         self.current  = [0,0]
 
@@ -479,7 +479,7 @@ class MapFrame(wx.Panel,MapFrame):
 
         try:
             e, n = event.GetPositionTuple()
-	    #print e,n
+            #print e,n
 
         except AttributeError:
             return
@@ -490,17 +490,17 @@ class MapFrame(wx.Panel,MapFrame):
             self.moveFlag=True
             self.current = event.GetPositionTuple()[:]
 
-            
-        else:
-           self.moveFlag = False
-           self.previous = event.GetPositionTuple()[:]
-           #print self.current
-           #print self.previous
-           move = (self.current[0] - self.previous[0],
-                self.current[1] - self.previous[1])
-           self.MapWindow.DragMap(move)
 
-        
+        else:
+            self.moveFlag = False
+            self.previous = event.GetPositionTuple()[:]
+            #print self.current
+            #print self.previous
+            move = (self.current[0] - self.previous[0],
+                 self.current[1] - self.previous[1])
+            self.MapWindow.DragMap(move)
+
+
 
 
 
@@ -527,7 +527,7 @@ class MapFrame(wx.Panel,MapFrame):
             png = wx.Image(_(imageFile), wx.BITMAP_TYPE_ANY).Scale(210,160,wx.IMAGE_QUALITY_HIGH)
         except:
             pass
-    
+
         #self.hbitmap = wx.StaticBitmap(self.p, -1, png, (10, 5), (50,50))
         #self.hbitmap.SetCursor(wx.StockCursor(wx.CURSOR_MAGNIFIER))
 
@@ -551,24 +551,24 @@ class MapFrame(wx.Panel,MapFrame):
         self.dc.DrawRectangle(x, y, length, breadth)
 
     def read_gisrc(self):
-	    """
-	    Read variables gisrc file
-	    """
+        """
+        Read variables gisrc file
+        """
 
-	    rc = {}
+        rc = {}
 
-	    gisrc = os.getenv("GISRC")
+        gisrc = os.getenv("GISRC")
 
-	    if gisrc and os.path.isfile(gisrc):
-		    try:
-			    f = open(gisrc, "r")
-			    for line in f.readlines():
-				    key, val = line.split(":", 1)
-				    rc[key.strip()] = val.strip()
-		    finally:
-			    f.close()
+        if gisrc and os.path.isfile(gisrc):
+            try:
+                f = open(gisrc, "r")
+                for line in f.readlines():
+                    key, val = line.split(":", 1)
+                    rc[key.strip()] = val.strip()
+            finally:
+                f.close()
 
-	    return rc
+        return rc
 
 
 

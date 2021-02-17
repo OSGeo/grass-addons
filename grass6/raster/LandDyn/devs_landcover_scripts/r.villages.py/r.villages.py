@@ -61,8 +61,8 @@ import grass.script as grass
 
 # m is a grass/bash command that will generate some info to stdout. You must invoke this command in the form of "variable to be made" = out2var('command')
 def out2var(m):
-        pn = subprocess.Popen('%s' % m, stdout=subprocess.PIPE, shell='bash')
-        return pn.stdout.read()
+    pn = subprocess.Popen('%s' % m, stdout=subprocess.PIPE, shell='bash')
+    return pn.stdout.read()
 
 #main block of code starts here
 def main():
@@ -93,7 +93,7 @@ def main():
     colors.close()
     reclass.close()
     grass.message('\n\nDONE!\n')
-    
+
 # here is where the code in "main" actually gets executed. This way of programming is neccessary for the way g.parser needs to run.
 if __name__ == "__main__":
     if ( len(sys.argv) <= 1 or sys.argv[1] != "@ARGS_PARSED@" ):

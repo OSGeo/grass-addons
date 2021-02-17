@@ -90,8 +90,8 @@ def main():
             preferences[i]="none"
         outf.write("%s: %s\n" % (attributes[i], preferences[i]))
     outf.write("%s: gain\n" % decision)
-    
-    
+
+
     outf.write("\n**EXAMPLES\n")
     examples=[]
     MATRIX=[]
@@ -111,13 +111,13 @@ def main():
 
     MATRIX=[r for r in MATRIX if not '?' in r] #remove all rows with almost one "?"
     MATRIX=[list(i) for i in set(tuple(j) for j in MATRIX)] #remove duplicate example 
-                
+
     print "rows:%d - col:%d" %(len(MATRIX),len(MATRIX[0]))
     for r in range(len(MATRIX)):
         for c in range(len(MATRIX[0])):
             outf.write("%s " %  str(MATRIX[r][c]))
         outf.write("\n")
-       
+
     outf.write("**END")
     outf.close()
 

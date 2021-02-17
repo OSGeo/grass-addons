@@ -33,13 +33,13 @@ class BaseCapabilitiesTree(etree.ElementTree):
 
         if self.getroot() is None:
             raise etree.ParseError(_("Root node was not found.")) 
-        
+
 class WMSXMLNsHandler:
     def __init__(self, caps):
         """!Handle XML namespaces according to WMS version of capabilities.
         """
         self.namespace = "{http://www.opengis.net/wms}"
-        
+
         if caps.getroot().find("Service") is not None:
             self.use_ns = False
         elif caps.getroot().find(self.namespace + "Service") is not None:
@@ -47,7 +47,7 @@ class WMSXMLNsHandler:
         else:
             raise etree.ParseError(_("Unable to parse capabilities file.\n\
                                       Tag <%s> was not found.") % "Service")
-    
+
     def Ns(self, tag_name):
         """!Add namespace to tag_name according to version
         """
@@ -72,13 +72,13 @@ class WMSCapabilitiesTree(BaseCapabilitiesTree):
         self.xml_ns = WMSXMLNsHandler(self)
 
         grass.debug('Checking WMS capabilities tree.', 4)
-        
+
         if not "version" in self.getroot().attrib:
             raise etree.ParseError(_("Missing version attribute root node "
                                      "in Capabilities XML file"))
         else:
             wms_version = self.getroot().attrib["version"]
-        
+
         if wms_version == "1.3.0":
             self.proj_tag = "CRS"
         else:
@@ -102,19 +102,19 @@ class WMSCapabilitiesTree(BaseCapabilitiesTree):
         request = self._find(capability, "Request")
         get_map = self._find(request, "GetMap")
         formats = self._findall(get_map, "Format")
- 
+
     def _checkLayerTree(self, parent_layer, first = True):
         """!Recursively check layer tree and manage inheritance in the tree
         """
         if first:
             self._initLayer(parent_layer, None)
-        
+
         layers = parent_layer.findall((self.xml_ns.Ns("Layer")))
-        
+
         for l in layers:
             self._initLayer(l, parent_layer)
             self._checkLayerTree(l, False)
-        
+
     def _initLayer(self, layer, parent_layer):
         """Inherit elements from parent layer
 
@@ -127,21 +127,21 @@ class WMSCapabilitiesTree(BaseCapabilitiesTree):
                                   ["MinScaleDenominator", "replace"],
                                   ["MaxScaleDenominator", "replace"],
                                   ["AuthorityURL", "add"]]
-            
+
             for element in replaced_elements:
                 elems = layer.findall(self.xml_ns.Ns(element[0]))
 
                 if len(elems) != 0 or element[1] == "add":
                     for e in parent_layer.findall(self.xml_ns.Ns(element[0])):
                         layer.append(e)
-            
+
             inh_arguments = ["queryable", "cascaded", "opaque",
                              "noSubsets", "fixedWidth", "fixedHeight"]
-            
+
             for attr in parent_layer.attrib:
                 if attr not in layer.attrib and attr in inh_arguments:
                     layer.attrib[attr] = parent_layer.attrib[attr]
-            
+
             self._inhNotSame(self.proj_tag, "element_content", layer, parent_layer)
             self._inhNotSame("BoundingBox", "attribute", layer, parent_layer, self.proj_tag)
 
@@ -172,7 +172,7 @@ class WMSCapabilitiesTree(BaseCapabilitiesTree):
         parent_elems = []
         if parent_layer is not None:
             parent_elems = parent_layer.findall(self.xml_ns.Ns(element_name))
-        
+
         for par_elem in parent_elems:
             parent_cmp_text = None
             if cmp_type == "attribute":
@@ -181,35 +181,35 @@ class WMSCapabilitiesTree(BaseCapabilitiesTree):
 
             elif cmp_type == "element_content":
                 parent_cmp_text = par_elem.text
-                
+
             elif cmp_type == "child_element_content":
                 parent_cmp = par_elem.find(self.xml_ns.Ns(add_arg))
                 if parent_cmp is not None:
                     parent_cmp_text = parent_cmp.text
-            
+
             if parent_cmp_text is None:
                 continue
-            
+
             is_there = False
             for elem in elem:
                 cmp_text = None
                 if cmp_type == "attribute":
                     if add_arg in elem.attrib:
                         cmp_text = elem.attrib[add_arg]
-                
+
                 elif cmp_type == "element_content":
                     cmp_text = elem.text
-                
+
                 elif cmp_type == "child_element_content":
                     cmp = elem.find(self.xml_ns.Ns(add_arg))
                     if cmp is not None:
                         cmp_text = cmp.text
-                
+
                 if cmpt_text is None or \
                    cmp_text.lower() == parent_cmp_text.lower():
                     is_there = True
                     break
-            
+
             if not is_there:
                 layer.append(par_elem)
 
@@ -272,7 +272,7 @@ class WMTSCapabilitiesTree(BaseCapabilitiesTree):
         """
         BaseCapabilitiesTree.__init__(self, cap_file)
         self.xml_ns = WMTSXMLNsHandler()
-        
+
         grass.debug('Checking WMTS capabilities tree.', 4)
 
         contents = self._find(self.getroot(), 'Contents', self.xml_ns.NsWmts)
@@ -316,8 +316,8 @@ class WMTSCapabilitiesTree(BaseCapabilitiesTree):
 
         for t_mat in tile_mats:
             if not self._checkMat(t_mat):
-               grass.debug('Removed invalid <TileMatrix> element.', 4)
-               mat_set.remove(t_mat)
+                grass.debug('Removed invalid <TileMatrix> element.', 4)
+                mat_set.remove(t_mat)
 
         tile_mats = mat_set.findall(self.xml_ns.NsWmts('TileMatrix'))
         if not tile_mats:
@@ -347,7 +347,7 @@ class WMTSCapabilitiesTree(BaseCapabilitiesTree):
                         ['TileHeight', int]]:
             if not _checkElement(t_mat, e, func):
                 return False
-                        
+
         tile_mat_id = t_mat.find(self.xml_ns.NsOws('Identifier'))
         if tile_mat_id is None or not tile_mat_id.text:
             return False
@@ -366,7 +366,7 @@ class WMTSCapabilitiesTree(BaseCapabilitiesTree):
             except ValueError:
                 return False
         return True
-    
+
     def _checkLayer(self, layer):
         """!Check <Layer> element.
         """
@@ -429,7 +429,7 @@ class WMTSCapabilitiesTree(BaseCapabilitiesTree):
             if not tile_mat_limits:
                 grass.debug('Removed invalid <TileMatrixSetLimits> element.', 4)
                 link.remove(tile_mat_set_limits)
-          
+
         if not found:
             return False
 
@@ -522,7 +522,7 @@ class OnEarthCapabilitiesTree(BaseCapabilitiesTree):
                 grass.debug(('Removed invalid <%s> element.' % l.tag), 4)
                 parent_layer.remove(l)
             if l.tag == 'TiledGroups':
-               self._checkLayerTree(l, False)
+                self._checkLayerTree(l, False)
 
     def _find(self, etreeElement, tag):
         """!Find child element.
@@ -541,7 +541,7 @@ class OnEarthCapabilitiesTree(BaseCapabilitiesTree):
         """
         if layer.tag == 'TiledGroups':
             return True
-            
+
         name = layer.find('Name')
         if name is None or not name.text:
             return False

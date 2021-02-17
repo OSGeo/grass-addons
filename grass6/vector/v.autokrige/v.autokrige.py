@@ -123,7 +123,7 @@ from grass import core as grass
 #from dbgp.client import brk
 
 class AutoKrige():
-    
+
     def __init__(self, options, flags):
         ##options
         self.input = options['input']
@@ -146,7 +146,7 @@ class AutoKrige():
         logfilename = 'v.autokrige.py.log'
         self.logfile = os.path.join(os.getenv('LOGDIR'),logfilename) if os.getenv('LOGDIR') else logfilename
         grass.try_remove(self.logfile)
-            
+
     def __prepareRModelsString(self, models=None):
         """Create the R argument as expected in the R script.
         Used to avoid string manipulations with R."""
@@ -289,7 +289,7 @@ class AutoKrige():
         fileHandle.write(script)
         fileHandle.close()
         return RscriptFile
-    
+
     def __execRCommand(self, command, logFile = False):
         """R command execution method using Popen in shell mode."""
         if logFile is not False:
@@ -311,7 +311,7 @@ class AutoKrige():
                 lines = r.split(com[0])
             out = lines[-2].strip() + ":" + lines[-1].strip()
             raise AutoKrigeError(out)
-        
+
     def printMessage(self, message, type = 'info'):
         """Call grass message function corresponding to type."""
         if type == 'error':
@@ -320,7 +320,7 @@ class AutoKrige():
             grass.warning(message)
         elif type == 'info' and os.getenv('GRASS_VERBOSE') > 0:
             grass.info(message)
-    
+
     def checkLayers(self, input, output, testVarianceRast = False):
         """Preliminary checks before starting kriging.
         Note : for this to work with grass6.3, in find_file function from core.py,
@@ -348,7 +348,7 @@ Use the --o flag to overwrite.")
 Use the --o flag to overwrite.")
                 else:
                     self.printMessage("raster map " + output + '_var' + " will be overwritten.", type = 'warning')
-        
+
     def getGridCellSize(self, input, nbcell, adjustRegionToSites = True):
         """Define kriged grid cell size.
         Raster resolution but also computation time depends on it.
@@ -362,7 +362,7 @@ Use the --o flag to overwrite.")
         cellsize = float(regionParams['nsres']) if float(regionParams['nsres']) > float(regionParams['ewres']) \
         else float(regionParams['ewres'])
         return cellsize
-    
+
     def fixRegionResFromNumberOfCells(self, nbcell=100):
         """Adjust one of the two region dimensions so that we have a maximum of 'nbcell' cells in both."""
         regionParams = grass.region()
@@ -371,7 +371,7 @@ Use the --o flag to overwrite.")
         tmpRegionRes = nsResForGivenNbCell if nsResForGivenNbCell > ewResForGivenNbCell else ewResForGivenNbCell
         grass.use_temp_region
         grass.run_command("g.region", res = tmpRegionRes)
-    
+
     def finalizeOutput(self):
         """Final operations after successful kriging.
         We don't want to stop execution if an error occurs here.
@@ -386,7 +386,7 @@ Use the --o flag to overwrite.")
                 grass.run_command("r.colors", map = self.output + '_var', rules = self.colormap, quiet = True) 
         except:
             pass
-        
+
     def runAutoKrige(self):
         """Performs kriging process."""
         ##1)Necessary checks
@@ -412,7 +412,7 @@ Use the --o flag to overwrite.")
         self.__execRCommand(autoKrigeCommand, logFile=logFileArg)
         ##4)Final steps
         self.finalizeOutput()
-                                                                                  
+
 class AutoKrigeError(Exception):
     """Errors specific to Autokrige class."""
     def __init__(self, message=''):
@@ -449,5 +449,5 @@ if __name__ == "__main__":
         main()
     else:
         print "R required, please install R first"
-        
+
 

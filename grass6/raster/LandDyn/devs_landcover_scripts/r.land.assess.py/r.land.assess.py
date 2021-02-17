@@ -389,11 +389,11 @@ def main():
     sf_color = os.getenv('GIS_OPT_sf_color')
     lc_rules = os.getenv('GIS_OPT_lc_rules')
     lc_color = os.getenv('GIS_OPT_lc_color')
-    
+
     region = grass.region()
     cellperhectare = 100000 / (float(region['nsres']) * float(region['ewres']))
     cellpersqm = 1 / (float(region['nsres']) * float(region['ewres']))
-    
+
     #Setting names for some files
     slopeval = "tempry_Slope_Evaluation_Factor_map_" + prefix
     depthval = "tempry_Depth_Evaluation_Factor_map_" + prefix
@@ -462,7 +462,7 @@ def main():
                 masterlist[number]["houses"].append(item.split(','))
     #set up an output dictionary for the values that will get passed back to AP-Sim
     outputdict = {}
-    
+
     #------------------Do farming routine
     wimpactsmaplist = []
     bimpactsmaplist = []
@@ -762,8 +762,8 @@ def main():
     grass.mapcalc('${out_impacts}=${impacts_reclass}', quiet = "True", out_impacts = out_impacts, impacts_reclass = impacts_reclass)
     reclassrules.close()
     grass.run_command('g.remove',  quiet = "True", rast = impacts_reclass)
-    
-    
+
+
     #--------------------Do Landcover and Soil Fertilty Statistics Gathering Routine
     #First landcover
     #check if maxlcov is a map or a number
@@ -797,7 +797,7 @@ def main():
         f.close()
     else:
         pass
-    
+
     #------------------Clean up
     recodeto.close()
     recodefrom.close()
@@ -805,8 +805,8 @@ def main():
     if os.getenv('GIS_FLAG_b') == '1':
         pass
     else:
-         grass.run_command('g.remove', quiet = "True", rast = biomass)
-    
+        grass.run_command('g.remove', quiet = "True", rast = biomass)
+
     #------------------Send output string of info to standard out
     #first, get the output dict sorted back in numerical order of village numbers
     #outputdict.sort(key=itemgetter(2))

@@ -284,7 +284,7 @@ def setCPRJ(map):
 def makeoverview(input):
     print 'vector object should alredy have internal preview, make overview skipped'
     #os.system("ossim-img2rr %s" % input)
-    
+
 
 def makestile(outfile, brush, pen, size, fill, thickness):
     brush = brush.split(',')

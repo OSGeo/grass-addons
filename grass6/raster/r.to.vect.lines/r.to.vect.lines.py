@@ -74,7 +74,7 @@ def main():
     go_vert = flags['v']
 
     if go_vert:
-	sys.exit("Vertical lines are yet to do.")
+        sys.exit("Vertical lines are yet to do.")
 
     ##### Query the region
     region = Cell_head()
@@ -139,19 +139,19 @@ def main():
         # read a row of raster data into memory, then print it
         G_get_raster_row(in_fd, in_rast, row, data_type)
         #print row, in_rast[0:cols]
-	#print row, in_rast[0:5]
+        #print row, in_rast[0:5]
 
         # y-value
         coor_row_static = G_row_to_northing((row + 0.5), byref(region))
         # x-end nodes
         #coor_col_min = G_col_to_easting((0 + 0.5), byref(region))
-	#coor_col_max = G_col_to_easting((cols - 0.5), byref(region))
+        #coor_col_max = G_col_to_easting((cols - 0.5), byref(region))
         #print '  ',coor_row_static,coor_col_min,coor_col_max
 
         # reset
-	n = 0
+        n = 0
         for col in xrange(cols):
-	   xL[col] = yL[col] = zL[col] = 0
+            xL[col] = yL[col] = zL[col] = 0
 
         # TODO check for NULL
         for col in xrange(cols):
@@ -160,7 +160,7 @@ def main():
                 xL[n] = G_col_to_easting((col + 0.5), byref(region))
                 yL[n] = coor_row_static
                 zL[n] = in_rast[col]
-		n = n + 1
+                n = n + 1
 
         #print valid_cols,n
         Vect_cat_del(Cats, 1)
