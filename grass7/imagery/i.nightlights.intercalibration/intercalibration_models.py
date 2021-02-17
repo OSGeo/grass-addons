@@ -61,7 +61,7 @@ class CalibrationModel:
         Check if coefficients exist for requested year, satellite, author
         """
         # retrieve years from COEFFICIENTS dictionary
-        available_years = COEFFICIENTS[author][satellite].keys()
+        available_years = list(COEFFICIENTS[author][satellite].keys())
 
         # does the requested year exist?
         if year not in available_years:
@@ -168,7 +168,7 @@ class Elvidge(CalibrationModel):
         """
         msg = 'Calibration model proposed by Elvidge, '
         msg += str(self.version) + '\n  '
-        msg += '[DN adj. = C0 + C1\u00D7DN + C2\u00D7DN^2]\n'
+        msg += '[DN adj. = C0 + C1\\u00D7DN + C2\\u00D7DN^2]\n'
         return msg + '  ' + self._model + '\n'
 
     def set_coefficients(self):
@@ -250,7 +250,7 @@ class Liu2012(CalibrationModel):
         Return a string representation of the calibration model
         """
         msg = 'Calibration model by Liu, 2012: '
-        msg += 'DNc = a \u00D7 DN^2 + b \u00D7 DN + c\n'
+        msg += 'DNc = a \\u00D7 DN^2 + b \\u00D7 DN + c\n'
         return msg + '  ' + self._model + '\n'
 
     def set_coefficients(self):
@@ -299,7 +299,7 @@ class Liu2012(CalibrationModel):
         Return equation for GRASS GIS' mapcalc
         """
         formula = EQUATIONS[self.author].formula
-        print("FORMULA: ", formula)
+        print(("FORMULA: ", formula))
         self.mapcalc = formula.format(c0=self.c0, c1=self.c1,
                                       dummy=DUMMY_MAPCALC_STRING, c2=self.c2)
 
@@ -325,7 +325,7 @@ class Wu2013(CalibrationModel):
         """
         """
         msg = 'Calibration model by Wu, 2013: '
-        msg += 'DNc + 1 = a \u00D7 (DN + 1)^b\n'
+        msg += 'DNc + 1 = a \\u00D7 (DN + 1)^b\n'
         return msg + '  ' + self._model + '\n'
 
     def build_model(self):

@@ -14,7 +14,7 @@ import collections
 # PY2/PY3 compat
 import sys
 if sys.version_info.major >= 3:
-    unicode = str
+    str = str
 
 csvstring = """csvauthor|model|formula
 ELVIDGE2009|DNadj. = ({c0}) + ({c1}) * DN + ({c2}) * DN^2|({c0}) + ({c1})*{dummy} + ({c2})*{dummy}^2
@@ -23,7 +23,7 @@ LIU2012|DNadj. = {c0} + {c1} * DN + {c2} * DN^2|({c0}) + ({c1})*{dummy} +({c2})*
 WU2013|DNc + 1 = {a} * (DNm + 1)^{b}|({a}) * ({dummy} + 1)^({b})"""
 
 # fake it...
-csvfile = StringIO(unicode(csvstring))
+csvfile = StringIO(str(csvstring))
 
 
 def csv_to_dictionary(csvfile):
@@ -54,7 +54,7 @@ def csv_to_dictionary(csvfile):
         equations[author] = equations.get(author, strings)
 
     # apply helper function to all rows
-    map(transform, rows)
+    list(map(transform, rows))
 
     # return requestred dictionary
     return equations
@@ -84,7 +84,7 @@ def export_to_ascii(dictionary, filename, separator):
         asciif.close()
 
     else:
-        print('{f} already exists!'.format(f=filename))
+        print(('{f} already exists!'.format(f=filename)))
 
 
 def main():
