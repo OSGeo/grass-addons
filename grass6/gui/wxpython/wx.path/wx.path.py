@@ -112,7 +112,7 @@ class NetworkPath(MapFrame):
             "hand"    : wx.StockCursor(wx.CURSOR_HAND),
             "pencil"  : wx.StockCursor(wx.CURSOR_PENCIL),
             "sizenwse": wx.StockCursor(wx.CURSOR_SIZENWSE)
-            }
+        }
 
         wx.Frame.__init__(self, parent, id, title, pos, size, style)
         self.SetName("MapWindow")
