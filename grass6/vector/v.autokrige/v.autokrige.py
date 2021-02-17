@@ -415,6 +415,7 @@ Use the --o flag to overwrite.")
 
 class AutoKrigeError(Exception):
     """Errors specific to Autokrige class."""
+
     def __init__(self, message=''):
         self.details = '\nDetails:\n'
         exceptionType, exceptionValue, exceptionTraceback = sys.exc_info()

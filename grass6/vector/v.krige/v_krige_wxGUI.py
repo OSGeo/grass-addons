@@ -57,6 +57,7 @@ maxint = 1e6 # instead of sys.maxint, not working with SpinCtrl on 64bit [report
 
 class KrigingPanel(wx.Panel):
     """ Main panel. Contains all widgets except Menus and Statusbar. """
+
     def __init__(self, parent, Rinstance, controller, *args, **kwargs):
         wx.Panel.__init__(self, parent, *args, **kwargs)
 
@@ -263,6 +264,7 @@ class KrigingPanel(wx.Panel):
 
 class KrigingModule(wx.Frame):
     """ Kriging module for GRASS GIS. Depends on R and its packages gstat and geoR. """
+
     def __init__(self, parent, Rinstance, controller, *args, **kwargs):
         wx.Frame.__init__(self, parent, *args, **kwargs)
         # setting properties and all widgettery
@@ -278,6 +280,7 @@ class KrigingModule(wx.Frame):
 
 class Log:
     """ The log output is redirected to the status bar of the containing frame. """
+
     def __init__(self, parent):
         self.parent = parent
 
@@ -287,6 +290,7 @@ class Log:
 
 class RBookPanel(wx.Panel):
     """ Generic notebook page with shared widgets and empty kriging functions. """
+
     def __init__(self, parent, *args, **kwargs):
         wx.Panel.__init__(self, parent, *args, **kwargs)
 
@@ -379,6 +383,7 @@ class RBookPanel(wx.Panel):
 
 class RBookgstatPanel(RBookPanel):
     """ Subclass of RBookPanel, with specific gstat options and kriging functions. """
+
     def __init__(self, parent, Rinstance, controller, *args, **kwargs):
         RBookPanel.__init__(self, parent, *args, **kwargs)
 
@@ -490,6 +495,7 @@ class RBookgstatPanel(RBookPanel):
 
 class RBookgeoRPanel(RBookPanel):
     """ Subclass of RBookPanel, with specific geoR options and kriging functions. """
+
     def __init__(self, parent, *args, **kwargs):
         RBookPanel.__init__(self, parent, *args, **kwargs)
         #@TODO: change these two lines as soon as geoR f(x)s are integrated.

@@ -412,6 +412,7 @@ class BufferedWindow2(BufferedWindow):
     can also save the drawing to file by calling the
     SaveToFile(self,file_name,file_type) method.
     """
+
     def __init__(self, parent, id = wx.ID_ANY,
                  Map = None, tree = None, lmgr = None,
                  style = wx.NO_FULL_REPAINT_ON_RESIZE, **kwargs):

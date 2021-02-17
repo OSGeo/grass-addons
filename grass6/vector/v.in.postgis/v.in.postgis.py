@@ -420,6 +420,7 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
 
 class GrassPostGisImporterError(Exception):
     """Errors specific to GrassPostGisImporter class."""
+
     def __init__(self, message=''):
         self.details = '\nDetails:\n'
         exceptionType, exceptionValue, exceptionTraceback = sys.exc_info()

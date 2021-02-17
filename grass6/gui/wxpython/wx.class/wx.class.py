@@ -417,6 +417,7 @@ class IClass(MapFrame):
 #define AFTER_STD 1
 #define BEFORE_STD 0
 
+
     def histograms(self, nbands, bsum, histo,np,inmin,inmax,b_or_a):
 
         nrows = self.hnrows
@@ -974,6 +975,7 @@ class BufferedWindow2(BufferedWindow):
     can also save the drawing to file by calling the
     SaveToFile(self,file_name,file_type) method.
     """
+
     def __init__(self, parent, id = wx.ID_ANY,
                  Map = None, tree = None, lmgr = None,
                  style = wx.NO_FULL_REPAINT_ON_RESIZE, **kwargs):

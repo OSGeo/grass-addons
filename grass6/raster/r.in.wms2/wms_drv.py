@@ -219,6 +219,7 @@ class WMSDrv(WMSBase):
 class BaseRequestMgr:
     """!Base class for request managers. 
     """
+
     def _computeRequestData(self, bbox, tl_corner, tile_span, tile_size, mat_num_bbox):
         """!Initialize data needed for iteration through tiles. Used by WMTS_GRASS and OnEarth_GRASS drivers.
         """ 

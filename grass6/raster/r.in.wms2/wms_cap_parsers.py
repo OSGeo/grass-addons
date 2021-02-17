@@ -250,6 +250,7 @@ class WMSCapabilitiesTree(BaseCapabilitiesTree):
 class WMTSXMLNsHandler:
     """!Handle XML namespaces which are used in WMTS capabilities file.
     """
+
     def NsWmts(self, tag):
         """!Add namespace.
         """
