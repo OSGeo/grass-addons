@@ -102,9 +102,11 @@
 
 import atexit
 import os
+import subprocess
 from datetime import datetime, timedelta
 
 import grass.script as grass
+
 
 # initialize global vars
 rm_regions = []
@@ -214,17 +216,40 @@ def main():
     grass.message(_("Retrieving Sentinel footprints from ESA hub ..."))
     fps = 'tmp_fps_%s' % str(os.getpid())
     rm_vectors.append(fps)
+
+
     if not options['names']:
-        s_list = grass.parse_command(
-            'i.sentinel.download',
-            settings=settings,
-            map=area,
-            clouds=options['clouds'],
-            producttype=producttype,
-            start=options['start'],
-            end=options['end'],
-            flags='lb',
-            quiet=True)
+        i_sentinel_download_params = {
+            'settings': settings,
+            'map': area,
+            'clouds': options['clouds'],
+            'producttype': producttype,
+            'start': options['start'],
+            'end': options['end'],
+            'flags': 'lb',
+            'quiet': True}
+        i_sentinel_download_cmd = 'i.sentinel.download {}'.format(
+            ' '.join(["{!s}={!r}".format(k,v)
+            for (k,v) in i_sentinel_download_params.items()
+            if k not in ['flags', 'quiet']]))
+        if 'quiet' in i_sentinel_download_params:
+            i_sentinel_download_cmd += ' --q'
+        if 'flags' in i_sentinel_download_params:
+            i_sentinel_download_cmd += ' -{}'.format(
+                i_sentinel_download_params['flags'])
+        cmd = grass.Popen(
+            i_sentinel_download_cmd, shell=True,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        resp = cmd.communicate()
+        if resp[0] != b'':
+            s_list = resp[0].decode('utf-8').strip().splitlines()
+        else:
+            error_msg = ""
+            for i in range(0, len(resp)):
+                error_msg += resp[i].decode('utf-8')
+            grass.fatal(
+                _("Error using i.sentinel.download: {}").format(error_msg))
+
         if len(s_list) == 0:
             grass.fatal('No products found')
         name_list_tmp = [x.split(' ')[1] for x in s_list]
@@ -275,10 +300,12 @@ def main():
                               query_column='b_identifier',
                               where='a_identifier IS NULL',
                               quiet=True)
-            grass.run_command('v.db.dropcolumn', map=temp_overlay,
-                              columns='b_identifier', quiet=True)
             grass.run_command('v.db.renamecolumn', map=temp_overlay,
                               column='a_identifier,identifier', quiet=True)
+            columns_dict = grass.parse_command('v.info', map=temp_overlay, flags='c')
+            drop_columns = [col.split('|')[1] for col in columns_dict if col.split('|')[1] not in ['cat', 'identifier']]
+            grass.run_command('v.db.dropcolumn', map=temp_overlay,
+                              columns=drop_columns, quiet=True)
 
             start_fp = temp_overlay
     else:
