@@ -1,5 +1,8 @@
 [flake8]
 ignore =
+    E101, # indentation contains mixed spaces and tabs
+    E112, # expected an indented block
+    E114, # indentation is not a multiple of four (comment)
     E117, # over-indented
     E121, # continuation line under-indented for hanging indent
     E122, # continuation line missing indentation or outdented
