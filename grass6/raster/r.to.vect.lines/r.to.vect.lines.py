@@ -155,7 +155,7 @@ def main():
 
         # TODO check for NULL
         for col in xrange(cols):
-#            if not G_is_null_value(byref(in_rast[col]), data_type):
+            #            if not G_is_null_value(byref(in_rast[col]), data_type):
             if in_rast[col] > -2e9:
                 xL[n] = G_col_to_easting((col + 0.5), byref(region))
                 yL[n] = coor_row_static

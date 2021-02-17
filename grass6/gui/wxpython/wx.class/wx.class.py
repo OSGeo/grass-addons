@@ -611,7 +611,7 @@ class IClass(MapFrame):
             x0 = int(self.perimeterX[i-1] - 1)
             x1 = int(self.perimeterX[i] - 1)
             if x0 > x1 :
-            #print "error0"
+                #print "error0"
                 return -1
             x = x0
             while x <= x1:
@@ -1096,7 +1096,7 @@ class BufferedWindow2(BufferedWindow):
 
             # draw vector map layer
             if self.pdcVector:
-            # decorate with GDDC (transparency)
+                # decorate with GDDC (transparency)
                 try:
                     gcdc = wx.GCDC(dc)
                     self.pdcVector.DrawToDCClipped(gcdc, rgn)

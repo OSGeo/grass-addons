@@ -5,8 +5,8 @@
 #######################################################################
 
 def knowledgebase():
-#this function returns a huge here document, which is ingested by CLIPS instead or in addition to an external rulebase.
-# the string contains a rulebase containing demo rule-based actions in GRASS.
+    #this function returns a huge here document, which is ingested by CLIPS instead or in addition to an external rulebase.
+    # the string contains a rulebase containing demo rule-based actions in GRASS.
 
 
     payload="""
