@@ -98,14 +98,14 @@ def main():
     grass.mapcalc('${outmap}=if(isnull(${impacts}) && ${inmap} >= 100 - ${recovery}, 100, if(isnull(${impacts}), (${inmap} + ${recovery}), if(${inmap} >= ${impacts}, (${inmap} - ${impacts}), 0 )))', outmap =  outmap, inmap = inmap, recovery = recovery, impacts =impacts )
     grass.run_command('r.colors', quiet = 'True', map = outmap, rules = sf_color)
     #checking total area of updated cells
-    totarea = grass.read_command('r.stats',  flags = 'an', input = impacts, fs = ',', nsteps = '1').split(',')
+    totarea = grass.read_command('r.stats', flags = 'an', input = impacts, fs = ',', nsteps = '1').split(',')
 
     grass.message('\n\nTotal area of impacted zones = %s square meters\n\n' % totarea[1])
     #creating optional output text file of stats
     if os.getenv('GIS_FLAG_s') == '1':
         f = file(txtout, 'wt')
         f.write('Stats for ' + outmap+ '\n\nTotal area of impacted zones = ' + totarea[1] + ' square meters\n\nSoil Fertility Value,Area (sq. m)\n')
-        areadict = grass.parse_command('r.stats',  flags = 'an', input = impacts)
+        areadict = grass.parse_command('r.stats', flags = 'an', input = impacts)
         for key in areadict:
             f.write(key + '\n')
         f.close()

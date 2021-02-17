@@ -271,7 +271,7 @@ class IClass(MapFrame):
         # Bind various events
         #
         #self.Bind(wx.EVT_ACTIVATE, self.OnFocus)
-        self.Bind(wx.EVT_CLOSE,    self.OnCloseWindow)
+        self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
         #self.Bind(render.EVT_UPDATE_PRGBAR, self.OnUpdateProgress)
 
         #
@@ -997,9 +997,9 @@ class BufferedWindow2(BufferedWindow):
         self.plineid = None
 
         # event bindings
-        self.Bind(wx.EVT_PAINT,        self.OnPaint)
-        self.Bind(wx.EVT_SIZE,         self.OnSize)
-        self.Bind(wx.EVT_IDLE,         self.OnIdle)
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_SIZE, self.OnSize)
+        self.Bind(wx.EVT_IDLE, self.OnIdle)
         ### self.Bind(wx.EVT_MOTION,       self.MouseActions)
        # self.Bind(wx.EVT_MOUSE_EVENTS, self.MouseActions)
 

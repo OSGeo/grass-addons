@@ -358,7 +358,7 @@ class MapFrame(wx.Panel,MapFrame):
         if grassversion.rfind("6.4") == 0:
             self.MapWindow2D = BufferedWindow(self, id=wx.ID_ANY,Map=self.Map, tree=self.tree, gismgr=self.gismanager)
         else:
-            self.MapWindow2D = BufferedWindow(self, id=wx.ID_ANY,   Map=self.Map, tree=self.tree, lmgr=self._layerManager)
+            self.MapWindow2D = BufferedWindow(self, id=wx.ID_ANY, Map=self.Map, tree=self.tree, lmgr=self._layerManager)
 
         self.tree.MapWindow = self.MapWindow2D
         # default is 2D display mode
@@ -378,7 +378,7 @@ class MapFrame(wx.Panel,MapFrame):
         # Bind various events
         #
         self.Bind(wx.EVT_ACTIVATE, self.OnFocus)
-        self.Bind(wx.EVT_CLOSE,    self.OnCloseWindow)
+        self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
         self.Bind(render.EVT_UPDATE_PRGBAR, self.OnUpdateProgress)
 
         #

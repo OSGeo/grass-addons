@@ -200,7 +200,7 @@ def main():
 
 
     if options['barriers']:
-        tmp_map_rast = tmp_map_rast + ['density_below_barrier_tmp_','distance_barrier_tmp_', 'distance_barrier_downstream_tmp_','distance_from_point_within_segment_tmp_', 'distance_upstream_point_within_segment_tmp_', 'lower_distance_barrier_tmp_', 'upper_distance_barrier_tmp_', 'upstream_barrier_tmp_',  'upstream_density_tmp_', 'upstream_segment_tmp_']
+        tmp_map_rast = tmp_map_rast + ['density_below_barrier_tmp_','distance_barrier_tmp_', 'distance_barrier_downstream_tmp_','distance_from_point_within_segment_tmp_', 'distance_upstream_point_within_segment_tmp_', 'lower_distance_barrier_tmp_', 'upper_distance_barrier_tmp_', 'upstream_barrier_tmp_', 'upstream_density_tmp_', 'upstream_segment_tmp_']
         tmp_map_vect = tmp_map_vect + ["barriers_",'barriers_tmp_', 'point_within_segment_tmp_']
 
 

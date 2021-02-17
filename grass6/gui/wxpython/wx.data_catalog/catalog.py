@@ -229,7 +229,7 @@ class DataCatalog(GMFrame):
         # start radiobutton to activate - deactivate the mouse actions to send position to ossimplanet
         #
         self.options = ['on', 'off']
-        self.radiobox = wx.RadioBox(self.cmbPanel, wx.ID_ANY,  choices=self.options, style=wx.HORIZONTAL)
+        self.radiobox = wx.RadioBox(self.cmbPanel, wx.ID_ANY, choices=self.options, style=wx.HORIZONTAL)
         self.radiobox.SetSelection(1)
         self.treeExpand = wx.CheckBox(self.cmbPanel, wx.ID_ANY,"Expand All", wx.DefaultPosition, wx.DefaultSize)
         self.cmbLocation = wx.ComboBox(self.cmbPanel, value = "Select Location",size=wx.DefaultSize, choices=self.loclist)
@@ -346,7 +346,7 @@ class DataCatalog(GMFrame):
 
         self.disp_idx = self.disp_idx + 1
 
-        self.page = MapFrame(parent=self.notebook, id=wx.ID_ANY, Map=render.Map(),  size=globalvar.MAP_WINDOW_SIZE,frame=self)
+        self.page = MapFrame(parent=self.notebook, id=wx.ID_ANY, Map=render.Map(), size=globalvar.MAP_WINDOW_SIZE,frame=self)
         self.notebook.InsertPage(self.disp_idx,self.page, text="Display "+ str(self.disp_idx), select = True)
 
     def OnCloseWindow(self, event):
@@ -463,7 +463,7 @@ class DataCatalog(GMFrame):
         #Event bindings for combo boxes
         self.Bind(wx.EVT_COMBOBOX,self.OnMapsetChange,self.cmbMapset)
         self.Bind(wx.EVT_COMBOBOX,self.OnLocationChange,self.cmbLocation)
-        self.Bind(wx.EVT_CLOSE,    self.OnCloseWindow)
+        self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
 
 
     def doLayout(self):

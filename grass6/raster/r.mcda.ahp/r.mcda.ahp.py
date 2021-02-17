@@ -60,7 +60,7 @@ def calculateWeight(pairwise):
     weight=eigenvector[:, maxindex] #extract vector from eigenvector with max vaue in eigenvalues
     weight.tolist() #convert array(numpy)  to vector
     weight=[ w/sum(weight) for w in weight ]
-    return weight, eigenvalues,  eigenvector
+    return weight, eigenvalues, eigenvector
 
 def calculateMap(criteria, weight, outputMap):
     "Parser a formula for mapcalc and run grass.mapcalc"
@@ -98,7 +98,7 @@ def main():
     ncols = gregion['cols']
     ewres=int(gregion['ewres'])
     nsres=int(gregion['nsres'])
-    weight, eigenvalues,  eigenvector = calculateWeight(pairwise)
+    weight, eigenvalues, eigenvector = calculateWeight(pairwise)
     calculateMap(criteria, weight, outputMap)
     consistency=Consistency(weight,eigenvalues)
     ReportLog(eigenvalues,eigenvector, weight, consistency)

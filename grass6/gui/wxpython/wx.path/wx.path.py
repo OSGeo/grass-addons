@@ -242,7 +242,7 @@ class NetworkPath(MapFrame):
         self.MapWindow = self.MapWindow2D
 
         if grassversion.rfind("6.4") != 0:
-            self.Bind(wx.EVT_MOTION,       self.MapWindow.OnMotion)
+            self.Bind(wx.EVT_MOTION, self.MapWindow.OnMotion)
        # else:
 #            self.Bind(wx.EVT_MOTION,       self.MapWindow.OnMotion2)   
        # self.MapWindow.Bind(wx.EVT_MOTION, self.MapWindow.OnMotion)
@@ -263,7 +263,7 @@ class NetworkPath(MapFrame):
         # Bind various events
         #
         #self.Bind(wx.EVT_ACTIVATE, self.OnFocus)
-        self.Bind(wx.EVT_CLOSE,    self.OnCloseWindow)
+        self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
        # self.Bind(render.EVT_UPDATE_PRGBAR, self.OnUpdateProgress)
 
         #
@@ -376,7 +376,7 @@ please let me know. I will modify the code and update svn")
             return
 
         self.counter = self.counter + 1
-        coord =("%f %f" %  ( e,  n))
+        coord =("%f %f" %  ( e, n))
         self.coords.append(coord)
 
         if self.counter == 2:
@@ -435,14 +435,14 @@ class BufferedWindow2(BufferedWindow):
         self.plineid = None
 
         # event bindings
-        self.Bind(wx.EVT_PAINT,        self.OnPaint)
-        self.Bind(wx.EVT_SIZE,         self.OnSize)
-        self.Bind(wx.EVT_IDLE,         self.OnIdle)
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_SIZE, self.OnSize)
+        self.Bind(wx.EVT_IDLE, self.OnIdle)
         ### self.Bind(wx.EVT_MOTION,       self.MouseActions)
         self.Bind(wx.EVT_MOUSE_EVENTS, self.MouseActions)
 
         if grassversion.rfind("6.4") != 0:
-            self.Bind(wx.EVT_MOTION,       self.OnMotion)
+            self.Bind(wx.EVT_MOTION, self.OnMotion)
         #else:
             #self.Bind(wx.EVT_MOTION,       self.MapWindow.OnMotion2)        
 

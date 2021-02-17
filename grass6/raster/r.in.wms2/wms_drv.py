@@ -146,7 +146,7 @@ class WMSDrv(WMSBase):
                                                              tile_ref['sizeX'], tile_ref['sizeY'])
 
             temp_map_dataset.WriteRaster(tile_ref['t_cols_offset'], tile_ref['t_rows_offset'],
-                                         tile_ref['sizeX'],  tile_ref['sizeY'], tile_to_temp_map) 
+                                         tile_ref['sizeX'], tile_ref['sizeY'], tile_to_temp_map) 
 
             tile_dataset = None
             tile_dataset_info = None
@@ -386,7 +386,7 @@ class WMSRequestMgr(BaseRequestMgr):
             query_bbox = self._flipBbox(self.tile_bbox, self.proj_srs, self.version)
         else:
             query_bbox = self.tile_bbox
-        query_url = self.url + "&" + "BBOX=%s,%s,%s,%s" % ( query_bbox['minx'],  query_bbox['miny'],  query_bbox['maxx'],  query_bbox['maxy'])
+        query_url = self.url + "&" + "BBOX=%s,%s,%s,%s" % ( query_bbox['minx'], query_bbox['miny'], query_bbox['maxx'], query_bbox['maxy'])
 
         tile_ref['t_cols_offset'] = int(self.tile_cols * self.i_x)
         tile_ref['t_rows_offset'] = int(self.tile_rows * self.i_y)
@@ -502,7 +502,7 @@ class WMTSRequestMgr(BaseRequestMgr):
                     suitable_mat_sets.append([mat_set, link])
 
         if not suitable_mat_sets:
-            grass.fatal(_("Layer '%s' is not available with %s code.") % (layer_name,  "EPSG:" + str(srs)))
+            grass.fatal(_("Layer '%s' is not available with %s code.") % (layer_name, "EPSG:" + str(srs)))
 
         return suitable_mat_sets # [[TileMatrixSet, TileMatrixSetLink], ....]
 

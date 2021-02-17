@@ -363,7 +363,7 @@ class RBookPanel(wx.Panel):
 
         self.Sizer = wx.BoxSizer(wx.VERTICAL)
         self.Sizer.Add(self.VariogramSizer, proportion = 0, flag = wx.EXPAND | wx.ALL, border = parent.border)
-        self.Sizer.Add(self.KrigingSizer,  proportion = 0, flag = wx.EXPAND | wx.ALL, border = parent.border)
+        self.Sizer.Add(self.KrigingSizer, proportion = 0, flag = wx.EXPAND | wx.ALL, border = parent.border)
 
     def HideBlockOptions(self, event):
         self.BlockSpinBox.Enable(event.GetInt() == 1)

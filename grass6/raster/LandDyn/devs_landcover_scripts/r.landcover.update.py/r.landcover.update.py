@@ -133,9 +133,9 @@ def main():
     #setting initial conditions of map area
     grass.run_command('r.mask', quiet = True, input = inmap, maskcats = '*')
     # calculating rate of regrowth based on current soil fertility and depths. Recoding fertility (0 to 100) and depth (0 to >= 1) with a power regression curve from 0 to 1, then taking the mean of the two as the regrowth rate
-    grass.mapcalc('${out}=if(${map1} <= 1.0, ( ( ( (-0.000118528 * (exp(${map2},2.0))) + (0.0215056 * ${map2}) + 0.0237987 ) + ( ( -0.000118528 * (exp((100*${map1}),2.0))) + (0.0215056 * (100*${map1})) + 0.0237987 ) ) / 2.0 ), ( ( ( (-0.000118528 * (exp(${map2},2.0))) + (0.0215056 * ${map2}) + 0.0237987 ) + 1.0) / 2.0 ) )', out = temp_rate,  map1 = sdepth,  map2 = sfertil)
+    grass.mapcalc('${out}=if(${map1} <= 1.0, ( ( ( (-0.000118528 * (exp(${map2},2.0))) + (0.0215056 * ${map2}) + 0.0237987 ) + ( ( -0.000118528 * (exp((100*${map1}),2.0))) + (0.0215056 * (100*${map1})) + 0.0237987 ) ) / 2.0 ), ( ( ( (-0.000118528 * (exp(${map2},2.0))) + (0.0215056 * ${map2}) + 0.0237987 ) + 1.0) / 2.0 ) )', out = temp_rate, map1 = sdepth, map2 = sfertil)
     #updating raw landscape category numbers based on agent impacts and newly calculated regrowth rate
-    grass.mapcalc('${out}=if(${inm} == ${m} && isnull(${imp}), double(${m}), if(${inm} < ${m} && isnull(${imp}), (double(${inm}) + double(${tr})), if(${inm} > ${m}, (double(${m}) - double(${imp})), if(${inm} <= 0.0, 0.0, (double(${inm}) - double(${imp})) ) ) ) )',  out = temp_lcov, m = max, inm = inmap,  imp = impacts,  tr = temp_rate)
+    grass.mapcalc('${out}=if(${inm} == ${m} && isnull(${imp}), double(${m}), if(${inm} < ${m} && isnull(${imp}), (double(${inm}) + double(${tr})), if(${inm} > ${m}, (double(${m}) - double(${imp})), if(${inm} <= 0.0, 0.0, (double(${inm}) - double(${imp})) ) ) ) )', out = temp_lcov, m = max, inm = inmap, imp = impacts, tr = temp_rate)
     try:
         lc_rules
     except NameError:
@@ -144,31 +144,31 @@ def main():
         grass.message( "No Labels reclass rules specified, so no Labels map will be made")
     else:
         grass.message( 'Creating reclassed Lables map (' + reclass_out +') of text descriptions to raw landscape categories')
-        grass.run_command('r.reclass', quiet = True,  input = temp_lcov,  output = temp_reclass,  rules = lc_rules)
+        grass.run_command('r.reclass', quiet = True, input = temp_lcov, output = temp_reclass, rules = lc_rules)
         grass.mapcalc('${out}=${input}', out = reclass_out, input = temp_reclass)
-        grass.run_command('r.colors',  quiet = True,  map = reclass_out,  rules = lc_color)
+        grass.run_command('r.colors', quiet = True, map = reclass_out, rules = lc_color)
     #checking total area of updated cells
-    statdict = grass.parse_command('r.stats', quiet = True,  flags = 'Aan', input = impacts, fs = ':', nv ='*',  parse = (grass.parse_key_val, { 'sep' : ':' }))
+    statdict = grass.parse_command('r.stats', quiet = True, flags = 'Aan', input = impacts, fs = ':', nv ='*', parse = (grass.parse_key_val, { 'sep' : ':' }))
     sumofimpacts = 0.0
     for key in statdict:
         sumofimpacts = sumofimpacts + float(statdict[key])
     grass.message('Total area of impacted zones = %s square meters\n' % sumofimpacts)
     #creating optional output text file of stats
     if os.getenv('GIS_FLAG_s') == '1':
-        f = file(txtout,  'wt')
+        f = file(txtout, 'wt')
         f.write('Stats for ' + prfx + '_landcover\n\nTotal area of impacted zones = %s square meters\n\n\nLandcover class #, Landcover description, Area (sq. m)\n' % sumofimpacts)
-        p1 = grass.parse_command('r.stats', quiet = True, flags = 'aln', input = prfx + '_landuse1', fs = ':', nv ='*', nsteps = max,  parse = (grass.parse_key_val, { 'sep' : ':' }))
+        p1 = grass.parse_command('r.stats', quiet = True, flags = 'aln', input = prfx + '_landuse1', fs = ':', nv ='*', nsteps = max, parse = (grass.parse_key_val, { 'sep' : ':' }))
         for key in p1:
             f.write(str(key) + ',' + str(p1[key]))
         f.close()
-    grass.run_command('r.patch', quiet = True,  input = villages + ',' + temp_lcov, output= outmap)
-    grass.run_command('r.colors',  quiet = True,  map = outmap, rules = lc_color)
+    grass.run_command('r.patch', quiet = True, input = villages + ',' + temp_lcov, output= outmap)
+    grass.run_command('r.colors', quiet = True, map = outmap, rules = lc_color)
     grass.message('\nCleaning up\n')
     if os.getenv('GIS_FLAG_r') == '1':
-        grass.run_command('g.remove',  quiet =True, rast = 'MASK,temp_reclass,temp_lcov')
+        grass.run_command('g.remove', quiet =True, rast = 'MASK,temp_reclass,temp_lcov')
         grass.run_command('g.rename', quiet = True, rast='temp_rate,' + outmap +'_rate')
     else:
-        grass.run_command('g.remove',  quiet =True, rast = 'MASK,temp_rate,temp_reclass,temp_lcov')
+        grass.run_command('g.remove', quiet =True, rast = 'MASK,temp_rate,temp_reclass,temp_lcov')
     grass.message("\nDONE!\n")
     return
 

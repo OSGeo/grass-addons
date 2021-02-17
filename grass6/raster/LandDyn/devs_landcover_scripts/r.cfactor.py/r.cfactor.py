@@ -70,7 +70,7 @@ def main():
     cfact_color = os.getenv("GIS_OPT_cfact_color")
     #creating c-factor map and setting colors
     grass.run_command('r.recode', quiet = True, input = inmap, output = outcfact, rules = cfact_rules)
-    grass.run_command('r.colors',  quiet = True, map = outcfact, rules = cfact_color)
+    grass.run_command('r.colors', quiet = True, map = outcfact, rules = cfact_color)
     return
 
 # here is where the code in "main" actually gets executed. This way of programming is neccessary for the way g.parser needs to run.

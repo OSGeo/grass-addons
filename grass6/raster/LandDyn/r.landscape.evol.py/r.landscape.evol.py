@@ -315,10 +315,10 @@ def main(m, o, p, q, r):
         new_soil = '%s%s%04d' % (p, outsoil, o)
     if ( os.getenv("GIS_FLAG_p") == "1" ):
         grass.message('1) Calculating slope and curvatures')
-        grass.run_command('r.slope.aspect',  quiet = True, elevation = old_dem, slope = slope, pcurv = pc, tcurv = tc)
+        grass.run_command('r.slope.aspect', quiet = True, elevation = old_dem, slope = slope, pcurv = pc, tcurv = tc)
     else:
         grass.message('\n##################################################\n\n*************************\n Year %s -- ' % o + 'step 1: calculating slope\n*************************\n')
-        grass.run_command('r.slope.aspect',  quiet = True, elevation = old_dem, aspect = aspect, slope = slope)
+        grass.run_command('r.slope.aspect', quiet = True, elevation = old_dem, aspect = aspect, slope = slope)
     if ( os.getenv("GIS_FLAG_p") == "1" ):
         grass.message('2) Calculating map of rainfall excess')
     else:
@@ -332,9 +332,9 @@ def main(m, o, p, q, r):
         grass.message('3) Calculating accumulated flow (in numbers of upslope cells, scaled by runoff contribution')
     grass.message('Calculating overland flow accumulation per cell (total vertical depth of water that passes over each cell in one storm)')
     try:
-        grass.run_command('r.watershed',  quiet = True,  flags = 'fa',  elevation = old_dem, flow = rainexcess, accumulation = flacclargenums, drainage = flowdir, convergence = '5')
+        grass.run_command('r.watershed', quiet = True, flags = 'fa', elevation = old_dem, flow = rainexcess, accumulation = flacclargenums, drainage = flowdir, convergence = '5')
     except:
-        grass.run_command('r.watershed',  quiet = True,  flags = 'a',  elevation = old_dem, flow = rainexcess, accumulation = flacclargenums, drainage = flowdir, convergence = '5')
+        grass.run_command('r.watershed', quiet = True, flags = 'a', elevation = old_dem, flow = rainexcess, accumulation = flacclargenums, drainage = flowdir, convergence = '5')
     grass.mapcalc('${flowacc}=${flacclargenums}/100', flowacc = flowacc, flacclargenums = flacclargenums)
     if ( os.getenv("GIS_FLAG_k") == "1" ):
         pass
@@ -356,7 +356,7 @@ def main(m, o, p, q, r):
             grass.message('--Keeping the created maps (Flow Accumulation, Slope, Principle Curvature, Tangential Curvature)')
         else:
             grass.message('6) Cleaning up...')
-            grass.run_command('g.remove', quiet = True,  rast = slope + "," + pc + "," + tc + "," + flowacc)
+            grass.run_command('g.remove', quiet = True, rast = slope + "," + pc + "," + tc + "," + flowacc)
         grass.message('FINISHED. \nRandom sample points map "%s" created successfully.\n' % vout)
         sys.exit(0)
     grass.message('\n*************************\n Year %s -- ' % o + 'step 3: calculating sediment transport rates (units variable depending upon process) \n*************************\n')  
@@ -372,50 +372,50 @@ def main(m, o, p, q, r):
     else:
         qsx3 = '%sQsx_sheetwash%04d' % (p, o)
         qsy3 = '%sQsy_sheetwash%04d' % (p, o)
-        grass.mapcalc('${qsx3}=( (${R}*${K}*${C}*${flowacc}*${res}*sin(${slope})) * cos(${aspect}) )', qsx3 = qsx3, R = R, K = K, C =C, slope = slope, res = r, flowacc = flowacc, aspect = aspect,  sdensity = sdensity)
-        grass.mapcalc('${qsy3}=( (${R}*${K}*${C}*${flowacc}*${res}*sin(${slope})) * sin(${aspect}) )', qsy3 = qsy3, R = R, K = K, C =C, slope = slope, res = r, flowacc = flowacc, aspect = aspect,  sdensity = sdensity)
+        grass.mapcalc('${qsx3}=( (${R}*${K}*${C}*${flowacc}*${res}*sin(${slope})) * cos(${aspect}) )', qsx3 = qsx3, R = R, K = K, C =C, slope = slope, res = r, flowacc = flowacc, aspect = aspect, sdensity = sdensity)
+        grass.mapcalc('${qsy3}=( (${R}*${K}*${C}*${flowacc}*${res}*sin(${slope})) * sin(${aspect}) )', qsy3 = qsy3, R = R, K = K, C =C, slope = slope, res = r, flowacc = flowacc, aspect = aspect, sdensity = sdensity)
     if cutoff2 == cutoff3:
         qsx2 = qsx3
         qsy2 = qsy3
     else:
         qsx2 = '%sQsx_rills%04d' % (p, o)
         qsy2 = '%sQsy_rills%04d' % (p, o)
-        grass.mapcalc('${qsx2}=( (${R}*${K}*${C}*exp((${flowacc}*${res}),1.6000000)*exp(sin(${slope}),1.3000000)) * cos(${aspect}))', qsx2 = qsx2, R = R, K = K, C =C,  slope = slope, res = r, flowacc = flowacc, aspect = aspect,  sdensity = sdensity)
-        grass.mapcalc('${qsy2}=( (${R}*${K}*${C}*exp((${flowacc}*${res}),1.6000000)*exp(sin(${slope}),1.3000000)) * sin(${aspect}))', qsy2 = qsy2, R = R, K = K, C =C,  slope = slope, res = r, flowacc = flowacc, aspect = aspect,  sdensity = sdensity)
+        grass.mapcalc('${qsx2}=( (${R}*${K}*${C}*exp((${flowacc}*${res}),1.6000000)*exp(sin(${slope}),1.3000000)) * cos(${aspect}))', qsx2 = qsx2, R = R, K = K, C =C, slope = slope, res = r, flowacc = flowacc, aspect = aspect, sdensity = sdensity)
+        grass.mapcalc('${qsy2}=( (${R}*${K}*${C}*exp((${flowacc}*${res}),1.6000000)*exp(sin(${slope}),1.3000000)) * sin(${aspect}))', qsy2 = qsy2, R = R, K = K, C =C, slope = slope, res = r, flowacc = flowacc, aspect = aspect, sdensity = sdensity)
     if ( os.getenv("GIS_FLAG_1") == "1" ):
         #This is the 1D version
         qs1 = '%sQs_1D_streams%04d' % (p, o)
-        grass.mapcalc('${qs1}=(${Kt} * exp(9806.65*(((${rain}/1000)*${flowacc})/(0.595*${stormtimet}))*sin(${slope}), ${loadexp}) )',  qs1 = qs1, flowacc = flowacc, stormtimet = stormtimet, slope = slope, loadexp = loadexp,  Kt = Kt,  sdensity = sdensity) 
+        grass.mapcalc('${qs1}=(${Kt} * exp(9806.65*(((${rain}/1000)*${flowacc})/(0.595*${stormtimet}))*sin(${slope}), ${loadexp}) )', qs1 = qs1, flowacc = flowacc, stormtimet = stormtimet, slope = slope, loadexp = loadexp, Kt = Kt, sdensity = sdensity) 
     else:
         #This is the 2D version
         qsx1 = '%sQsx_streams%04d' % (p, o)
         qsy1 = '%sQsy_streams%04d' % (p, o)
-        grass.mapcalc('${qsx1}=(${Kt} * exp(9806.65*(((${rain}/1000)*${flowacc})/(0.595*${stormtimet}))*sin(${slope}), ${loadexp}) ) * cos(${aspect})',  qsx1 = qsx1, rain = rain, flowacc = flowacc, stormtimet = stormtimet, slope = slope, loadexp = loadexp,  Kt = Kt,  sdensity = sdensity, aspect = aspect) 
-        grass.mapcalc('${qsy1}=(${Kt} * exp(9806.65*(((${rain}/1000)*${flowacc})/(0.595*${stormtimet}))*sin(${slope}), ${loadexp}) ) * sin(${aspect})',  qsy1 = qsy1, rain = rain, flowacc = flowacc, stormtimet = stormtimet, slope = slope, loadexp = loadexp,  Kt = Kt,  sdensity = sdensity, aspect = aspect)
+        grass.mapcalc('${qsx1}=(${Kt} * exp(9806.65*(((${rain}/1000)*${flowacc})/(0.595*${stormtimet}))*sin(${slope}), ${loadexp}) ) * cos(${aspect})', qsx1 = qsx1, rain = rain, flowacc = flowacc, stormtimet = stormtimet, slope = slope, loadexp = loadexp, Kt = Kt, sdensity = sdensity, aspect = aspect) 
+        grass.mapcalc('${qsy1}=(${Kt} * exp(9806.65*(((${rain}/1000)*${flowacc})/(0.595*${stormtimet}))*sin(${slope}), ${loadexp}) ) * sin(${aspect})', qsy1 = qsy1, rain = rain, flowacc = flowacc, stormtimet = stormtimet, slope = slope, loadexp = loadexp, Kt = Kt, sdensity = sdensity, aspect = aspect)
 
     grass.message('\n*************************\n Year %s -- ' % o + 'step 4: calculating divergence/difference of sediment transport for each process and the actual amount of erosion or deposition in vertical meters/cell/year\n*************************\n\n')
     #Here is where we figure out the change in transport capacity, and thus the actual amount of erosion an deposition that would occur. There are two ways of doing this. On planar and convex surfaces (i.e., ridgetops, flats, hillslopes), it is better to take the 2D divergence of sediment flux (we use r.slope.aspect to calculate this), but on highly convex surfaces (i.e., in channels) it is better to take the 1D difference between one cell, and the cell that is immediately downstream from it. This all assumes that the system is always operating at Transport Capacity, or if it is not, then is still behaves as if it were (ie., that the actual differences in transported sediment between the cells would be proportional to the system operating at capacity). Thus, under this assumption, the divergence of capacity is equals to actual amount of sediment eroded/deposited.  
     #This is the way we implemnt this: First calculate, we calculate the divergence/differnce for EACH of the different flow processes on the ENTIRE map (i.e., make one map per process, difference for streams, divergence for USPED and diffusion). Then, we cut out the pieces of each of these maps that correspond to the correct landforms from each specific process (based on the user-input cutoffs in flow accumulation), and patch them together into a single map (NOTE: see output unit conversions section below to see how we get all the units to line up during this process). This counters the "boundary effect" that happens when running the differential equations for divergence across the boundary of two different flow processes.  Then we may still have to run a median smoother on the patched map to get rid of any latent spikes.
     qsxdx4 = '%sDelta_Qsx_diffusion%04d' % (p, o)
     qsydy4 = '%sDelta_Qsy_diffusion%04d' % (p, o)
-    grass.run_command('r.slope.aspect',  quiet = True,  elevation = qsx4, dx = qsxdx4)
-    grass.run_command('r.slope.aspect',  quiet = True,  elevation = qsy4, dy = qsydy4)
+    grass.run_command('r.slope.aspect', quiet = True, elevation = qsx4, dx = qsxdx4)
+    grass.run_command('r.slope.aspect', quiet = True, elevation = qsy4, dy = qsydy4)
     if cutoff1 == cutoff2:
         qsxdx3 = qsxdx4
         qsydy3 = qsydy4
     else:
         qsxdx3 = '%sDelta_Qsx_sheetwash%04d' % (p, o)
         qsydy3 = '%sDelta_Qsy_sheetwash%04d' % (p, o)
-        grass.run_command('r.slope.aspect',  quiet = True,  elevation = qsx3, dx = qsxdx3)
-        grass.run_command('r.slope.aspect',  quiet = True,  elevation = qsy3, dy = qsydy3)
+        grass.run_command('r.slope.aspect', quiet = True, elevation = qsx3, dx = qsxdx3)
+        grass.run_command('r.slope.aspect', quiet = True, elevation = qsy3, dy = qsydy3)
     if cutoff2 == cutoff3:
         qsxdx2 = qsxdx3
         qsydy2 = qsydy3
     else:
         qsxdx2 = '%sDelta_Qsx_rills%04d' % (p, o)
         qsydy2 = '%sDelta_Qsy_rills%04d' % (p, o)
-        grass.run_command('r.slope.aspect',  quiet = True,  elevation = qsx2, dx = qsxdx2)
-        grass.run_command('r.slope.aspect',  quiet = True,  elevation = qsy2, dy = qsydy2)
+        grass.run_command('r.slope.aspect', quiet = True, elevation = qsx2, dx = qsxdx2)
+        grass.run_command('r.slope.aspect', quiet = True, elevation = qsy2, dy = qsydy2)
     if ( os.getenv("GIS_FLAG_1") == "1" ):
         #this is the 1D difference for this process
         qsd1 = '%sDelta_Qs_1D_streams%04d' % (p, o)
@@ -424,16 +424,16 @@ def main(m, o, p, q, r):
         #this is the 2D version
         qsxdx1 = '%sDelta_Qsx_streams%04d' % (p, o)
         qsydy1 = '%sDelta_Qsy_streams%04d' % (p, o)
-        grass.run_command('r.slope.aspect',  quiet = True,  elevation = qsx1, dx = qsxdx1)
-        grass.run_command('r.slope.aspect',  quiet = True,  elevation = qsy1, dy = qsydy1)
+        grass.run_command('r.slope.aspect', quiet = True, elevation = qsx1, dx = qsxdx1)
+        grass.run_command('r.slope.aspect', quiet = True, elevation = qsy1, dy = qsydy1)
 
     #This is the smoothing routine. First we calculate the rate of Erosion and Deposition by converting the Delta QS of the different processes to vertical meters by dividing by the soil denisity (with apropriate constants to get into the correct units, see UNIT CONVERSION note below), and for streams, also expand from the storm to the year level. All units of this initial (temporary) ED_rate map will be in m/cell/year. 
     #OUTPUT UNIT CONVERSIONS: In the case of the diffusion equation, the output units are in verticle meters of sediment per cell per year, so these will be left alone. In the case of stream flow, the output units are kg/m2/storm, so need to multiply by 1000 to get T/m2/storm, and then divide by the soil density (T/m3) to get verticle meters of sediment/cell/storm, and will be multiplied by the number of storms/year in order to get vertical meters of sediment/cell/year. In the case of USPED, the output is in T/Ha/year, so first multiply by 0.1 to get T/m2/year and then divide by soil density (T/m3) to get verticle meters of sediment/cell/year. 
     tempnetchange1 = '%sTEMPORARY_UNSMOOTHED_ED_rate%04d' % (p, o)
     if ( os.getenv("GIS_FLAG_1") == "1" ):
-        grass.mapcalc('${tempnetchange1}=if(${flowacc} >= ${cutoff3}, ((${qsd1})/(${sdensity}*1000))*(${storms}*0.25*${stormtimet}), if(${flowacc} >= ${cutoff2} && ${flowacc} < ${cutoff3}, ((${qsxdx2}+${qsydy2})*0.1)/${sdensity}, if(${flowacc} >= ${cutoff1} && ${flowacc} < ${cutoff2}, ((${qsxdx3}+${qsydy3})*0.1)/${sdensity}, ${qsxdx4}+${qsydy4})))',  tempnetchange1 = tempnetchange1, qsd1 = qsd1, qsxdx2 = qsxdx2, qsydy2 = qsydy2, qsxdx3 = qsxdx3, qsydy3 = qsydy3, qsxdx4 = qsxdx4, qsydy4 = qsydy4, flowacc = flowacc, cutoff1 = cutoff1,  cutoff2 = cutoff2,  cutoff3 = cutoff3, sdensity = sdensity, storms = storms, stormtimet = stormtimet)
+        grass.mapcalc('${tempnetchange1}=if(${flowacc} >= ${cutoff3}, ((${qsd1})/(${sdensity}*1000))*(${storms}*0.25*${stormtimet}), if(${flowacc} >= ${cutoff2} && ${flowacc} < ${cutoff3}, ((${qsxdx2}+${qsydy2})*0.1)/${sdensity}, if(${flowacc} >= ${cutoff1} && ${flowacc} < ${cutoff2}, ((${qsxdx3}+${qsydy3})*0.1)/${sdensity}, ${qsxdx4}+${qsydy4})))', tempnetchange1 = tempnetchange1, qsd1 = qsd1, qsxdx2 = qsxdx2, qsydy2 = qsydy2, qsxdx3 = qsxdx3, qsydy3 = qsydy3, qsxdx4 = qsxdx4, qsydy4 = qsydy4, flowacc = flowacc, cutoff1 = cutoff1, cutoff2 = cutoff2, cutoff3 = cutoff3, sdensity = sdensity, storms = storms, stormtimet = stormtimet)
     else:
-        grass.mapcalc('${tempnetchange1}=if(${flowacc} >= ${cutoff3}, ((${qsxdx1} + ${qsydy1})/(${sdensity}*1000))*(${storms}*0.25*${stormtimet}), if(${flowacc} >= ${cutoff2} && ${flowacc} < ${cutoff3}, ((${qsxdx2}+${qsydy2})*0.1)/${sdensity}, if(${flowacc} >= ${cutoff1} && ${flowacc} < ${cutoff2}, ((${qsxdx3}+${qsydy3})*0.1)/${sdensity}, ${qsxdx4}+${qsydy4})))',  tempnetchange1 = tempnetchange1, qsxdx1 = qsxdx1, qsydy1 = qsydy1, qsxdx2 = qsxdx2, qsydy2 = qsydy2, qsxdx3 = qsxdx3, qsydy3 = qsydy3, qsxdx4 = qsxdx4, qsydy4 = qsydy4, flowacc = flowacc, cutoff1 = cutoff1,  cutoff2 = cutoff2,  cutoff3 = cutoff3, sdensity = sdensity, storms = storms, stormtimet = stormtimet)
+        grass.mapcalc('${tempnetchange1}=if(${flowacc} >= ${cutoff3}, ((${qsxdx1} + ${qsydy1})/(${sdensity}*1000))*(${storms}*0.25*${stormtimet}), if(${flowacc} >= ${cutoff2} && ${flowacc} < ${cutoff3}, ((${qsxdx2}+${qsydy2})*0.1)/${sdensity}, if(${flowacc} >= ${cutoff1} && ${flowacc} < ${cutoff2}, ((${qsxdx3}+${qsydy3})*0.1)/${sdensity}, ${qsxdx4}+${qsydy4})))', tempnetchange1 = tempnetchange1, qsxdx1 = qsxdx1, qsydy1 = qsydy1, qsxdx2 = qsxdx2, qsydy2 = qsydy2, qsxdx3 = qsxdx3, qsydy3 = qsydy3, qsxdx4 = qsxdx4, qsydy4 = qsydy4, flowacc = flowacc, cutoff1 = cutoff1, cutoff2 = cutoff2, cutoff3 = cutoff3, sdensity = sdensity, storms = storms, stormtimet = stormtimet)
     #Make some temp maps of just erosion rate and just deposition rate so we can grab some stats from them (If Smoothing is 'no', then we'll also use these stats later in the stats file)
     grass.message('Running soft-knee smoothing filter...')
     tmperosion = p + 'tmperosion%04d' % o
@@ -455,7 +455,7 @@ def main(m, o, p, q, r):
     #Check if additional smoothing is requested. 
     if len(os.getenv("GIS_OPT_smoothing")) is 2:
         grass.message('No additional modal smoothing was requested...')
-        grass.run_command('g.rename',  quiet = True, rast = tempnetchange2 + ',' + netchange)
+        grass.run_command('g.rename', quiet = True, rast = tempnetchange2 + ',' + netchange)
     elif len(os.getenv("GIS_OPT_smoothing")) is 3:
         grass.message('Enacting additional "low" smoothing: one pass of a 3x3 modal smoothing window.')
         grass.run_command('r.neighbors', quiet = True, input = tempnetchange2, output = netchange, method = 'mode', size = '3')
@@ -466,7 +466,7 @@ def main(m, o, p, q, r):
         grass.run_command('g.remove', quiet = 'True', rast = tempnetchange2)
     else:
         grass.message('There was a problem reading the median-smoothing variable, so maps will not be median-smoothed.')
-        grass.run_command('g.rename',  quiet = True, rast = tempnetchange2 + ',' + netchange)    
+        grass.run_command('g.rename', quiet = True, rast = tempnetchange2 + ',' + netchange)    
     #Set the netchange map colors to the rules we've provided above
     grass.run_command('r.colors', quiet = True, map = netchange, rules = nccolors.name)
     #Grab the stats from these new smoothed netchange maps and save them to dictionaries (Note that the temporary erosiona nd deposition maps made in this step are overwriting the two temporary maps made for gathering the stats for the soft-knee limiting filter)
@@ -475,16 +475,16 @@ def main(m, o, p, q, r):
     erosstats1 = grass.parse_command('r.univar', flags = 'ge', map = tmperosion)
     depostats1 = grass.parse_command('r.univar', flags = 'ge', map = tmpdep)
     #Clean up temp maps
-    grass.run_command('g.remove',  quiet = True, rast = tmperosion + ',' + tmpdep + ',' + tempnetchange1)
+    grass.run_command('g.remove', quiet = True, rast = tmperosion + ',' + tmpdep + ',' + tempnetchange1)
 
     grass.message('\n*************************\n Year %s -- ' % o + 'step 5: calculating terrain evolution and new soil depths\n *************************\n\n')
     #Set up a temp dem, and then do initial addition of ED change to old DEM. This mapcalc statement first checks the amount of erodable soil in a given cell against the amount of erosion calculated, and keeps the cell from eroding past this amount (if there is soil, then if the amount of erosion is more than the amount of soil, just remove all the soil and stop, else remove the amount of caclulated erosion. It also runs an error catch that checks to make sure that soil depth is not negative (could happen, I suppose), and if it is, corrects it). 
     temp_dem = '%stemp_dem%04d' % (p, o)
-    grass.mapcalc('${temp_dem}=eval(x=if(${old_soil} > 0.0 && (-1*${netchange}) <= ${old_soil}, ${netchange}, if((-1*${netchange}) > ${old_soil},   (-1*${old_soil}), 0)), ${old_dem} + x)', temp_dem = temp_dem, old_soil = old_soil, old_dem = old_dem,  netchange = netchange)
+    grass.mapcalc('${temp_dem}=eval(x=if(${old_soil} > 0.0 && (-1*${netchange}) <= ${old_soil}, ${netchange}, if((-1*${netchange}) > ${old_soil},   (-1*${old_soil}), 0)), ${old_dem} + x)', temp_dem = temp_dem, old_soil = old_soil, old_dem = old_dem, netchange = netchange)
     #Do patch-job to catch the shrinking edge problem (the edge cells have no upstream cell, so get turned null in the calculations in step 4)
-    grass.run_command('r.patch', quiet = True,  input = temp_dem + ',' + old_dem,  output= new_dem)
+    grass.run_command('r.patch', quiet = True, input = temp_dem + ',' + old_dem, output= new_dem)
     #Set colors for elevation map to match other dems and then get rid of the temp dem
-    grass.run_command('r.colors',  quiet = True, map = new_dem, rast = os.getenv("GIS_OPT_elev"))
+    grass.run_command('r.colors', quiet = True, map = new_dem, rast = os.getenv("GIS_OPT_elev"))
     grass.run_command('g.remove', quiet = True, rast = temp_dem)
     #calculate the new soildepth map and set colors
     grass.mapcalc('${new_soil}=if ((${new_dem} - ${initbdrk}) < 0, 0, (${new_dem} - ${initbdrk}))', new_soil = new_soil, new_dem = new_dem, initbdrk = initbdrk)
@@ -569,7 +569,7 @@ if __name__ == "__main__":
         # This is the loop!
         for x in range(int(years)):
             grass.message("Iteration = %s" % (x + 1))
-            main(x, (x + 1), prefx, statsout,  region1['nsres']);
+            main(x, (x + 1), prefx, statsout, region1['nsres']);
         #Since we are now done with the loop, close the stats file.
         f.close()
         grass.message('\nIterations complete!\n\nDone with everything')

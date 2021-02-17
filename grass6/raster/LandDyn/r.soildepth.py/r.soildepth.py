@@ -152,7 +152,7 @@ def main():
     unsmodict = grass.parse_command('r.univar', flags = "g", map=soildepth)
     grass.run_command('r.neighbors', quiet = "True", input=soildepth, output=tempsdepth, size=smoothingsize, method=smoothingtype)
     #fix shrinking edge caused by eighborhood operation (and r.slope.aspect above) by filling in the null areas. We do this by 0.98 * smax, since the null cells are all the cells of the actual drainage divide with slope basically = 0, and very mildly convex curvatures. This basically blends them in nicely with the neighboring cells.
-    grass.mapcalc('${soildepth_real}=if(isnull(${input_sdepth}) && isnull(${elev}), null(), if(isnull(${input_sdepth}), 0.98*${smax},${input_sdepth}))', quiet = 'True',  input_sdepth = tempsdepth , soildepth_real = soildepth2, elev = elev, smax = smax)
+    grass.mapcalc('${soildepth_real}=if(isnull(${input_sdepth}) && isnull(${elev}), null(), if(isnull(${input_sdepth}), 0.98*${smax},${input_sdepth}))', quiet = 'True', input_sdepth = tempsdepth , soildepth_real = soildepth2, elev = elev, smax = smax)
     #grab some stats if asked to
     if os.getenv('GIS_FLAG_s') == '1':
         depthdict = grass.parse_command('r.univar', flags = "ge", map=soildepth2, percentile=90)
@@ -173,7 +173,7 @@ def main():
     if os.getenv('GIS_FLAG_s') == '1':
         grass.message("min, max, and mean before smoothing: " + unsmodict['min']  + ", " + unsmodict['max'] + ", " + unsmodict['mean'])
         for key in depthdict.keys():
-            grass.message('%s=%s' % (key,  depthdict[key]))
+            grass.message('%s=%s' % (key, depthdict[key]))
         grass.message('Total volume of soil is %s cubic meters' % (float(depthdict['sum'])*res*res))
     return
 

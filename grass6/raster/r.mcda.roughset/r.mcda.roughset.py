@@ -279,7 +279,7 @@ def DominatedSet (infosystem):
     return Dominated
 
 
-def LowerApproximation (UnionClasses,  Dom, DecisionClass):
+def LowerApproximation (UnionClasses, Dom, DecisionClass):
     "Find Lower approximation and return a dictionaries list"
     c=0
     LowApprox=[]
@@ -296,7 +296,7 @@ def LowerApproximation (UnionClasses,  Dom, DecisionClass):
     return LowApprox
 
 
-def UpperApproximation (UnionClasses,  Dom, DecisionClass):
+def UpperApproximation (UnionClasses, Dom, DecisionClass):
     "Find Upper approximation and return a dictionaries list"
     c=0
     UppApprox=[]
@@ -331,7 +331,7 @@ def AccuracyOfApproximation(UppApprox, LowApprox):
     return len(LowApprox)/len(UppApprox)
 
 
-def QualityOfQpproximation(DownwardBoundary,  infosystem):
+def QualityOfQpproximation(DownwardBoundary, infosystem):
     "Defines the quality of approximation of the partition Cl or, briefly, the quality of sorting"
     UnionBoundary=set()
     U=set([i[0] for i in infosystem['examples']])
@@ -387,13 +387,13 @@ def FindBestCondition (best, elem, rules, selected, G, infosystem):
     return best
 
 
-def Type_one_rule (c,  e,  preference,  matrix):
+def Type_one_rule (c, e, preference, matrix):
     elem={'criterion':c,'condition':e, 'sign':preference[c-1],'class':'', \
     'objectsCovered':[r[0] for r in matrix if (((r[c] >= e ) and (preference[c-1] == 'gain')) \
                                                                                                                                                       or ((r[c] <= e ) and (preference[c-1] == 'cost' )))],'label':''}
     return elem
 
-def Type_three_rule (c,  e,  preference,  matrix):
+def Type_three_rule (c, e, preference, matrix):
     elem={'criterion':c,'condition':e, 'sign':preference[c-1],'class':'', \
     'objectsCovered':[r[0] for r in matrix if (((r[c] <= e ) and (preference[c-1] == 'gain')) \
                                                                                                             or ((r[c] >= e ) and (preference[c-1] == 'cost' )))],'label':''}
@@ -424,9 +424,9 @@ def Find_rules (B, infosystem, type_rule):
                 Cond=[r[c] for r in selected if  r[0] in S] #for each positive object from S create an elementary condition
                 for e in Cond:
                     if type_rule=='one':
-                        elem= Type_one_rule (c,  e,  preference,  matrix)
+                        elem= Type_one_rule (c, e, preference, matrix)
                     elif type_rule=='three':
-                        elem= Type_three_rule (c,  e,  preference,  matrix)
+                        elem= Type_three_rule (c, e, preference, matrix)
                     else:
                         elem={'criterion':'','condition':'','sign':'','class':'','objectsCovered':'','label':'', 'type':''}
                     best=FindBestCondition(best, elem, rules, selected, G, infosystem)
@@ -521,7 +521,7 @@ def Parser_mapcalc(RULES, outputMap):
     for R in RULES: 
         formula="if("
         for e in R[:-1]: #build a mapcalc formula
-            formula+= "(%s %s %.4f ) && " % (e['label'],  e['sign'] ,  e['condition'] )
+            formula+= "(%s %s %.4f ) && " % (e['label'], e['sign'] , e['condition'] )
         formula+= "(%s %s %.4f ),%d,null())" % (R[-1]['label'],R[-1]['sign'], R[-1]['condition'] ,i )
         mappa="r%d_%s_%d" % ( i, R[0]['type'], R[0]['class'] ) #build map name for mapcalc output
         category.append({'id':i, 'type': R[0]['type'], 'class':R[0]['class']}) #extract category name
@@ -558,8 +558,8 @@ def Parser_mapcalc(RULES, outputMap):
         grass.run_command("g.copy",vect=(mapslabels,outputMap))
 
     if not flags['l']:
-        grass.run_command("g.remove",  rast=mapstring)
-        grass.run_command("g.remove",  vect=mapstring)
+        grass.run_command("g.remove", rast=mapstring)
+        grass.run_command("g.remove", vect=mapstring)
 
     return 0
 
@@ -591,7 +591,7 @@ def main():
         Ld=LowerApproximation(DownwardUnionClass, Dominated, DecisionClass) # lower approximation of  downward union for type 3 rules
         Ud=UpperApproximation(DownwardUnionClass,Dominating, DecisionClass ) # upper approximation of  downward union 
         DownwardBoundary=Boundaries(Ud, Ld)
-        QualityOfQpproximation(DownwardBoundary,  infosystem)
+        QualityOfQpproximation(DownwardBoundary, infosystem)
         print "RULES extraction (*)" 
         RULES=Domlem(Lu,Ld, infosystem)
         Parser_mapcalc(RULES, outputMap)		   

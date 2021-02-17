@@ -447,7 +447,7 @@ def main():
     #NOTE: The following equation has landcover values HARDCODED to Mediterranean values. When reparammeterizing for non-Mediterranean environments, these will need to be recoded.
     grass.mapcalc("${grazereturnsname}=eval(x=if(${lcov} >= 40, 800-(10*${lcov}), if(${lcov} < 40 && ${lcov} >= 27, (27.27*${lcov})-663.64, if(${lcov} < 27 && ${lcov} >=4, (2.27*${lcov})+38.64, if(${lcov} < 4 && ${lcov} >=1, (12.5*${lcov}), 0)))), (x/${cellperhectare})*${ocdensity})", quiet = "True", grazereturnsname = grazereturnsname, lcov = lcov, cellperhectare = cellperhectare, ocdensity = ocdensity)
     #Calculate the standing biomass map (kg/sq m)
-    grass.run_command('r.recode', quiet = 'True',  input = lcov, output = biomass, rules = recodeto.name)
+    grass.run_command('r.recode', quiet = 'True', input = lcov, output = biomass, rules = recodeto.name)
     #Set up a master list of nested lists of villages, households, and input parameters. This list will be used to control everything. 
     ##Example structure of masterlist: [{'costmap': 'map1', 'houses': [[list of info], [list of info], [list of info]]}, {'costmap': 'map2', 'houses': [[list of info], [list of info], [list of info]]}, {'costmap': 'map3', 'houses': [[list of info], [list of info], [list of info]]}]. Each dictionary {} is a village.
     ##Key to "list of info" in any "house" of any "village": [0] HH Number, [1] Village number, [2] Population, [3] # Wheat Plots, [4] # Barley Plots, [5] # grazing plots
@@ -485,9 +485,9 @@ def main():
         #also note that -a flag is accounted for here. When flag is enabled, there will be no preference for plots with already reduced landcover (i.e., with no trees to cut down).
 
         if len(fimpactsmapslist) == 0:
-            grass.mapcalc("${agvalname}=if(${sfertil} == 0.0 || ${depthval} == 0.0 || ${slopeval} == 0.0, 0.0, if(${costmap} <= ${maxfarmcost} && isnull(${villageland}), ${slopeval} * (  (  ( (${sfertilweight} * ${sfertil}) + (${sdepthweight} * ${depthval}) ) / (${sfertilweight} + ${sdepthweight}) ) - (${fdistweight} * (${costmap} / ${maxcost}) ) ), null() ) )", quiet = "True", agvalname = agvalname, maxfarmcost = maxfarmcost, sfertil = sfertil, slopeval = slopeval, depthval = depthval, costmap = village["costmap"], maxcost = costdict["max"],  fdistweight = fdistweight, sfertilweight = sfertilweight, sdepthweight = sdepthweight, villageland = villageland)
+            grass.mapcalc("${agvalname}=if(${sfertil} == 0.0 || ${depthval} == 0.0 || ${slopeval} == 0.0, 0.0, if(${costmap} <= ${maxfarmcost} && isnull(${villageland}), ${slopeval} * (  (  ( (${sfertilweight} * ${sfertil}) + (${sdepthweight} * ${depthval}) ) / (${sfertilweight} + ${sdepthweight}) ) - (${fdistweight} * (${costmap} / ${maxcost}) ) ), null() ) )", quiet = "True", agvalname = agvalname, maxfarmcost = maxfarmcost, sfertil = sfertil, slopeval = slopeval, depthval = depthval, costmap = village["costmap"], maxcost = costdict["max"], fdistweight = fdistweight, sfertilweight = sfertilweight, sdepthweight = sdepthweight, villageland = villageland)
         else:
-            grass.mapcalc("${agvalname}=if(${sfertil} == 0.0 || ${depthval} == 0.0 || ${slopeval} == 0.0, 0.0, if(${costmap} <= ${maxfarmcost} && isnull(${villageland}) && isnull(${fimpactsmaps}), ${slopeval} * (  (  ( (${sfertilweight} * ${sfertil}) + (${sdepthweight} * ${depthval}) ) / (${sfertilweight} + ${sdepthweight}) ) - (${fdistweight} * (${costmap} / ${maxcost}) ) ), null() ))", quiet = "True", agvalname = agvalname, maxfarmcost = maxfarmcost, sfertil = sfertil, slopeval = slopeval, depthval = depthval, costmap = village["costmap"], maxcost = costdict["max"],  fdistweight = fdistweight, sfertilweight = sfertilweight, sdepthweight = sdepthweight, villageland = villageland, fimpactsmaps = " + ".join(fimpactsmapslist))
+            grass.mapcalc("${agvalname}=if(${sfertil} == 0.0 || ${depthval} == 0.0 || ${slopeval} == 0.0, 0.0, if(${costmap} <= ${maxfarmcost} && isnull(${villageland}) && isnull(${fimpactsmaps}), ${slopeval} * (  (  ( (${sfertilweight} * ${sfertil}) + (${sdepthweight} * ${depthval}) ) / (${sfertilweight} + ${sdepthweight}) ) - (${fdistweight} * (${costmap} / ${maxcost}) ) ), null() ))", quiet = "True", agvalname = agvalname, maxfarmcost = maxfarmcost, sfertil = sfertil, slopeval = slopeval, depthval = depthval, costmap = village["costmap"], maxcost = costdict["max"], fdistweight = fdistweight, sfertilweight = sfertilweight, sdepthweight = sdepthweight, villageland = villageland, fimpactsmaps = " + ".join(fimpactsmapslist))
         #Grab the x, y, and value of all cells in the farm value and wheat and barley returns maps for the village, and rank that list in order from least to most desireable
         agval1 = grass.read_command("r.stats", quiet = "True", flags = '1gn', input = agvalname + ',' + wheatreturnsname + ',' + barleyreturnsname, fs = ',').splitlines()
         agvalues = []
@@ -580,7 +580,7 @@ def main():
         grass.run_command('r.colors', quiet = "True", map = fimpactsmapname, color = 'bgyr')
     #Patch all the villages' impacts maps together to make a single maps for all villages...
     if len(fimpactsmapslist) > 1:
-        grass.run_command('r.patch',  quiet = "True",  input =  ",".join(fimpactsmapslist), output = fimpactsmap)
+        grass.run_command('r.patch', quiet = "True", input =  ",".join(fimpactsmapslist), output = fimpactsmap)
     elif len(fimpactsmapslist) == 1:
         fimpactsmap = fimpactsmapslist[0]
     else:
@@ -604,10 +604,10 @@ def main():
         costdict = {}
         costdict = grass.parse_command('r.univar', flags = 'g', map = village["costmap"])
         #Calculate the grazing land evaluation map for making decisions on. Note that grazing cannot take place on land that is being farmed, on land occupied by village buildings, or on land that it too far away. This logic is necessary b/c we are modeling an entire years' worth of decision in one single step. To compensate for this, we've randomize the order of the villages from year to year so that each village will have an equal chance to get the first pick in any given year.
-        grass.mapcalc("${grazevalname}=if(${costmap} <= ${maxgrazecost} && isnull(${villageland}) && isnull(${fimpactsmap}), if(${costmap} > 0 && ${lcovval} > 0, 100 * ( (${gdistweight} * (1-(${costmap}/${maxcost})) ) + (${lcovweight} * (${lcovval}/39))/(${lcovweight} + ${gdistweight}) ), 0), null())", quiet = "True", maxgrazecost = maxgrazecost, grazevalname = grazevalname, lcovval = lcovval, gdistweight = gdistweight, lcovweight = lcovweight, maxcost = costdict['max'],  costmap = village["costmap"], villageland = villageland, fimpactsmap = fimpactsmap)
+        grass.mapcalc("${grazevalname}=if(${costmap} <= ${maxgrazecost} && isnull(${villageland}) && isnull(${fimpactsmap}), if(${costmap} > 0 && ${lcovval} > 0, 100 * ( (${gdistweight} * (1-(${costmap}/${maxcost})) ) + (${lcovweight} * (${lcovval}/39))/(${lcovweight} + ${gdistweight}) ), 0), null())", quiet = "True", maxgrazecost = maxgrazecost, grazevalname = grazevalname, lcovval = lcovval, gdistweight = gdistweight, lcovweight = lcovweight, maxcost = costdict['max'], costmap = village["costmap"], villageland = villageland, fimpactsmap = fimpactsmap)
 
         #Calculate the woodgathering land evaluation map for making decisions on. Note that grazing cannot take place on land that is being farmed, on land occupied by village buildings, on land that does not have at least a moderate density of shrubs on it (lcov value above 8), or on land that it too far away. We are assuming that the maximum time cost for woodgathering (the maximum one-way time distance that a woodgatherer will travel to gather wood) is the same as the maximum time cost for grazing, so we will use "maxgrazcost" as the upper limit to define the wood gathering catchment. Also note that we are NOT forbidding agents from woodgathering on land already chosen for woodgathering by another village or that is being grazed on this year. This allows for "tragedy of the commons" type behavior, which is appropriate for woodgathering and grazing where the land isn't fully "owned" by any particular village (as opposed to farming, where households at least have a tenure on particular plots). In our scenario, we assume that the housholds in a village will try not to "double gather" from a plot. That is, within each village, agents will not gather more wood from an individual plot than is specified by the "intensity" parameter, but they will not avoid a plot if it has also been chosen by another village. 
-        grass.mapcalc("${gathervalname}=if((isnull(${villageland}) && isnull(${fimpactsmap}) && ${costmap} <= ${maxgrazecost} && ${lcov} >= 9), ( (2*${lcov}) + (100*${wooddistweight}*(1-(${costmap}/${maxcost}))) )/(1 + ${wooddistweight}), null())", quiet = "True", gathervalname = gathervalname, costmap = village["costmap"], maxcost = costdict['max'], maxgrazecost = maxgrazecost,  wooddistweight = wooddistweight, villageland = villageland, fimpactsmap = fimpactsmap, lcov = lcov)
+        grass.mapcalc("${gathervalname}=if((isnull(${villageland}) && isnull(${fimpactsmap}) && ${costmap} <= ${maxgrazecost} && ${lcov} >= 9), ( (2*${lcov}) + (100*${wooddistweight}*(1-(${costmap}/${maxcost}))) )/(1 + ${wooddistweight}), null())", quiet = "True", gathervalname = gathervalname, costmap = village["costmap"], maxcost = costdict['max'], maxgrazecost = maxgrazecost, wooddistweight = wooddistweight, villageland = villageland, fimpactsmap = fimpactsmap, lcov = lcov)
         #Grab the x, y, and value of all cells in the graze value and grazing returns maps for the village, and rank that list in order from least to most desireable
         grazeval1 = grass.read_command("r.stats", quiet = "True", flags = '1gn', input = grazevalname + ',' + grazereturnsname, fs = ',').splitlines()
         grazevalues = []
@@ -712,18 +712,18 @@ def main():
     #--------------------Do Landcover and Soil Fertility Updating Routine
 ##################################################
     # calculating rate of regrowth based on current soil fertility and depths. Recoding fertility (0 to 100) and depth (0 to >= 1) with a power regression curve from 0 to 1, then taking the mean of the two as the regrowth rate
-    grass.mapcalc('${temp_rate}=if(${sdepth} <= 1.0, ( ( ( (-0.000118528 * (exp(${sfertil},2.0))) + (0.0215056 * ${sfertil}) + 0.0237987 ) + ( ( -0.000118528 * (exp((100*${sdepth}),2.0))) + (0.0215056 * (100*${sdepth})) + 0.0237987 ) ) / 2.0 ), ( ( ( (-0.000118528 * (exp(${sfertil},2.0))) + (0.0215056 * ${sfertil}) + 0.0237987 ) + 1.0) / 2.0 ) )', quiet = "True", temp_rate = temp_rate,  sdepth = sdepth,  sfertil = sfertil)
+    grass.mapcalc('${temp_rate}=if(${sdepth} <= 1.0, ( ( ( (-0.000118528 * (exp(${sfertil},2.0))) + (0.0215056 * ${sfertil}) + 0.0237987 ) + ( ( -0.000118528 * (exp((100*${sdepth}),2.0))) + (0.0215056 * (100*${sdepth})) + 0.0237987 ) ) / 2.0 ), ( ( ( (-0.000118528 * (exp(${sfertil},2.0))) + (0.0215056 * ${sfertil}) + 0.0237987 ) + 1.0) / 2.0 ) )', quiet = "True", temp_rate = temp_rate, sdepth = sdepth, sfertil = sfertil)
     #use our recode rules to convert the woodgathering/grazing impacts map created above from units of kg biomass / sq m to units of landcover value per cell
     grass.run_command('r.recode', quiet = "True", input = gwimpactsmap_biomass, output = gwimpactsmap_lcov, rules = recodefrom.name)
     #updating the landcover based on all impacts. Note that grazed and woodgathered patches will regrow by their calcualted rates EVERY year, regardless of whether or not they've been used, but farm patches only regrow if they were not used this year. All land is limited by the value of maxlcov for each cell in the input maxlcov map (or by a single maxlcov numerical value, if entered that way). The ONLY time this rule is broken is if the maxlcov a patch is less than farmval, but the patch has been farmed in that year. If so, lcov is set == farmval in that patch for this year. If not subsequently farmed in the next year, then lcov will go back to == maxlcov for that patch.
     grass.mapcalc('${out_lcov}=eval(x=if(isnull(${villageland}) && isnull(${fimpactsmap}) && isnull(${gwimpactsmap_lcov}), (${lcov} + ${temp_rate}), if(isnull(${villageland}) && isnull(${fimpactsmap}), (${lcov} - ${gwimpactsmap_lcov} + ${temp_rate}), if(isnull(${villageland}), ${farmval}, ${villageland}) ) ), if(x < 0, 0, if(x > ${maxlcov} && isnull(${fimpactsmap}), ${maxlcov}, x)) )', quiet = "True", out_lcov = out_lcov, villageland = villageland, fimpactsmap = fimpactsmap, gwimpactsmap_lcov = gwimpactsmap_lcov, lcov = lcov, maxlcov = maxlcov, farmval = farmval, temp_rate = temp_rate)
     #set colors
     try:
-        grass.run_command('r.colors',  quiet = "True",  map = out_lcov, rules = lc_color)
+        grass.run_command('r.colors', quiet = "True", map = out_lcov, rules = lc_color)
     except:
         pass
     #updating fertility based on farming impacts
-    grass.mapcalc('${out_fertil}=eval(x=if(isnull(${fimpactsmap}), ${sfertil} + ${recovery}, ${sfertil} - ${degrade_rate}), if(x < 0, 0, if(x > 100, 100, x)) )',  quiet = "True", out_fertil = out_fertil, fimpactsmap = fimpactsmap, sfertil = sfertil, degrade_rate = degrade_rate, recovery = recovery)
+    grass.mapcalc('${out_fertil}=eval(x=if(isnull(${fimpactsmap}), ${sfertil} + ${recovery}, ${sfertil} - ${degrade_rate}), if(x < 0, 0, if(x > 100, 100, x)) )', quiet = "True", out_fertil = out_fertil, fimpactsmap = fimpactsmap, sfertil = sfertil, degrade_rate = degrade_rate, recovery = recovery)
     #set colors
     try:
         grass.run_command('r.colors', quiet = 'True', map = out_fertil, rules = sf_color)
@@ -731,14 +731,14 @@ def main():
         pass
     #if asked to, creat reclassed landcover labels map
     if bool(os.getenv('GIS_OPT_lc_rules')) is True:
-        grass.run_command('r.reclass', quiet = "True",  input = out_lcov,  output = temp_reclass,  rules = lc_rules)
+        grass.run_command('r.reclass', quiet = "True", input = out_lcov, output = temp_reclass, rules = lc_rules)
         grass.mapcalc('${out}=${input}', quiet = "True", out = reclass_out, input = temp_reclass)
         #set colors
         try:
-            grass.run_command('r.colors',  quiet = "True",  map = reclass_out,  rules = lc_color)
+            grass.run_command('r.colors', quiet = "True", map = reclass_out, rules = lc_color)
         except:
             pass
-        grass.run_command('g.remove',  quiet = "True", rast = temp_reclass)
+        grass.run_command('g.remove', quiet = "True", rast = temp_reclass)
     else:
         pass
     #Create out_impacts map. This map is mainly for display purposes.
@@ -746,8 +746,8 @@ def main():
     impacts_reclass = "tempry_reclassed_" + out_impacts
 
     if len(gimpactsmapslist) > 1:
-        grass.run_command('r.patch',  quiet = "True",  input =  ",".join(gimpactsmapslist), output = gimpactsmap)
-        grass.run_command('r.patch',  quiet = "True",  input =  ",".join(wimpactsmapslist), output = wimpactsmap)
+        grass.run_command('r.patch', quiet = "True", input =  ",".join(gimpactsmapslist), output = gimpactsmap)
+        grass.run_command('r.patch', quiet = "True", input =  ",".join(wimpactsmapslist), output = wimpactsmap)
     elif len(gimpactsmapslist) == 1:
         gimpactsmap = gimpactsmapslist[0]
         wimpactsmap = wimpactsmapslist[0]
@@ -758,10 +758,10 @@ def main():
     reclassrules = tempfile.NamedTemporaryFile()
     reclassrules.write('1 = 1 Wheat Farming\n2 = 2 Barley Farming\n3 = 3 Grazing\n4 = 4 Woodgathering\n5 = 5 Grazing AND Woodgathering')
     reclassrules.flush()
-    grass.run_command('r.reclass', quiet = "True",  input = impacts1,  output = impacts_reclass,  rules = reclassrules.name)
+    grass.run_command('r.reclass', quiet = "True", input = impacts1, output = impacts_reclass, rules = reclassrules.name)
     grass.mapcalc('${out_impacts}=${impacts_reclass}', quiet = "True", out_impacts = out_impacts, impacts_reclass = impacts_reclass)
     reclassrules.close()
-    grass.run_command('g.remove',  quiet = "True", rast = impacts_reclass)
+    grass.run_command('g.remove', quiet = "True", rast = impacts_reclass)
 
 
     #--------------------Do Landcover and Soil Fertilty Statistics Gathering Routine
@@ -776,7 +776,7 @@ def main():
         f = open(statsfile, 'a')
         if os.path.getsize(statsfile) == 0:
             f.write("Landcover Stats\n\nYear," + ",".join(str(i) for i in range(maxval + 1)) + "\n")
-        statdict = grass.parse_command('r.stats', quiet = "True",  flags = 'ani', input = out_lcov, fs = '=', nv ='*')
+        statdict = grass.parse_command('r.stats', quiet = "True", flags = 'ani', input = out_lcov, fs = '=', nv ='*')
         f.write(prefix + ",")
         for key in range(maxval + 1):
             try:

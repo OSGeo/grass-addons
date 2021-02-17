@@ -186,15 +186,15 @@ class LayerTree(layertree):
 
 
 
-        self.Bind(wx.EVT_TREE_ITEM_EXPANDING,   self.OnExpandNode)
-        self.Bind(wx.EVT_TREE_ITEM_COLLAPSED,   self.OnCollapseNode)
-        self.Bind(wx.EVT_TREE_ITEM_ACTIVATED,   self.OnActivateLayer)
-        self.Bind(wx.EVT_TREE_SEL_CHANGED,      self.OnChangeSel)
-        self.Bind(wx.EVT_TREE_DELETE_ITEM,      self.OnDeleteMap)
+        self.Bind(wx.EVT_TREE_ITEM_EXPANDING, self.OnExpandNode)
+        self.Bind(wx.EVT_TREE_ITEM_COLLAPSED, self.OnCollapseNode)
+        self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.OnActivateLayer)
+        self.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnChangeSel)
+        self.Bind(wx.EVT_TREE_DELETE_ITEM, self.OnDeleteMap)
         self.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.OnLayerContextMenu)
-        self.Bind(wx.EVT_TREE_END_DRAG,         self.OnEndDrag)
-        self.Bind(wx.EVT_KEY_UP,                self.OnKeyUp)
-        self.Bind(wx.EVT_IDLE,                  self.OnIdle)
+        self.Bind(wx.EVT_TREE_END_DRAG, self.OnEndDrag)
+        self.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
+        self.Bind(wx.EVT_IDLE, self.OnIdle)
         self.addon = os.getenv("integrated-gui")
 
   
@@ -300,7 +300,7 @@ class LayerTree(layertree):
                 self.popupMenu.Append(self.popupID6, text=_("Stop editing"))
                 self.popupMenu.Enable(self.popupID6, False)
                 self.Bind (wx.EVT_MENU, self.OnStartEditing, id=self.popupID5)
-                self.Bind (wx.EVT_MENU, self.OnStopEditing,  id=self.popupID6)
+                self.Bind (wx.EVT_MENU, self.OnStopEditing, id=self.popupID6)
 
                 layer = self.GetPyData(self.layer_selected)[0]['maplayer']
                 # enable editing only for vector map layers available in the current mapset

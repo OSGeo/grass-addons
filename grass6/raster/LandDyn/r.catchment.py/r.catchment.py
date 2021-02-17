@@ -192,7 +192,7 @@ def main():
         else:
             grass.message('Calculating for time costs only')
             frict = "temporary.friction"
-            grass.mapcalc("${out} = if(isnull(${rast1}), null(), 1)",  out = frict,  rast1 = elev)
+            grass.mapcalc("${out} = if(isnull(${rast1}), null(), 1)", out = frict, rast1 = elev)
         if os.getenv('GIS_FLAG_k') == '1':
             grass.message('Using Knight\'s move\n')
             #NOTE! because "lambda" is an internal python variable, it is impossible to enter the value for key "lambda" in r.walk. It ends up with a python error.
@@ -200,16 +200,16 @@ def main():
         else:
             grass.run_command('r.walk', quiet = True, elevation = elev, friction = frict, output = cost, start_points = vect, percent_memory = '100', nseg ='4', walk_coeff = w_coefs, slope_factor = slpfct)
         if bool(os.getenv('GIS_OPT_frict')) is False:
-            grass.run_command('g.remove', quiet = True,  rast = frict)
+            grass.run_command('g.remove', quiet = True, rast = frict)
 #################################################   
     if bool(os.getenv('GIS_OPT_sigma')) is True:
         grass.message('\n\nCreating optional slope mask\n')
         slope = "temporary.slope"
-        grass.run_command('r.slope.aspect', quiet = True, overwrite = True,  elevation = elev,  slope = slope)
+        grass.run_command('r.slope.aspect', quiet = True, overwrite = True, elevation = elev, slope = slope)
         if ismask == 2:
-            grass.mapcalc("MASK=if(${rast1} <= %s, 1, if(${tempmask}, 1, null()))" % sigma,  rast1 = slope,  tempmask = tempmask)
+            grass.mapcalc("MASK=if(${rast1} <= %s, 1, if(${tempmask}, 1, null()))" % sigma, rast1 = slope, tempmask = tempmask)
         else:
-            grass.mapcalc("MASK=if(${rast1} <= %s, 1, null())" % sigma,  rast1 = slope)
+            grass.mapcalc("MASK=if(${rast1} <= %s, 1, null())" % sigma, rast1 = slope)
     else:
         grass.message('No slope mask created')
 ##################################################
@@ -222,29 +222,29 @@ def main():
         #start the loop, and list the values
         for key in sorted(areadict):
             testarea = testarea +  int(float(areadict[key]))
-            grass.message("%s | %s" % (int(key),  testarea))
+            grass.message("%s | %s" % (int(key), testarea))
         if os.getenv('GIS_FLAG_c') == '1':
             if bool(os.getenv('GIS_OPT_incost')) is False:
-                grass.run_command('g.rename',  quiet = True,  rast = 'temporary.cost,%s_cost_surface' % (buffer))
+                grass.run_command('g.rename', quiet = True, rast = 'temporary.cost,%s_cost_surface' % (buffer))
                 grass.message('Cleaning up...(keeping cost map)')
-                grass.run_command('g.remove',  quiet = True, rast='cost.reclass')
+                grass.run_command('g.remove', quiet = True, rast='cost.reclass')
             else:
                 grass.message('Cleaning up...1')
-                grass.run_command('g.remove',  quiet = True, rast='cost.reclass')
+                grass.run_command('g.remove', quiet = True, rast='cost.reclass')
         else:
             if bool(os.getenv('GIS_OPT_incost')) is False:
                 grass.message('Cleaning up...2')
-                grass.run_command('g.remove',  quiet = True, rast = 'cost.reclass,temporary.cost')
+                grass.run_command('g.remove', quiet = True, rast = 'cost.reclass,temporary.cost')
             else:
                 grass.message('Cleaning up...3')
-                grass.run_command('g.remove',  quiet = True, rast = 'cost.reclass')
+                grass.run_command('g.remove', quiet = True, rast = 'cost.reclass')
         if bool(os.getenv('GIS_OPT_sigma')) is True:
-            grass.run_command('g.remove',  quiet = True, rast = slope)
+            grass.run_command('g.remove', quiet = True, rast = slope)
         if ismask == 2:
             grass.message('Reinstating original MASK...')
             grass.run_command('g.rename', quiet = "True", rast = tempmask +',MASK')
         elif ismask == 0 and bool(os.getenv('GIS_OPT_sigma')) is True:
-            grass.run_command('g.remove',  quiet = True, rast = 'MASK')
+            grass.run_command('g.remove', quiet = True, rast = 'MASK')
         elif ismask == 1:
             grass.message('Keeping original MASK')
         grass.message('     DONE!')
@@ -257,7 +257,7 @@ def main():
         for key in sorted(areadict):
             tot_area = tot_area + int(float(areadict[key]))
             maxcost = key
-        grass.message("Maximum cost distance value %s covers an area of %s square map units\n\nCommencing to find a catchment configuration.....\n\n" % (int(maxcost),  tot_area))
+        grass.message("Maximum cost distance value %s covers an area of %s square map units\n\nCommencing to find a catchment configuration.....\n\n" % (int(maxcost), tot_area))
         testarea = 0
         lastarea = 0
         lastkey = 0
@@ -274,39 +274,39 @@ def main():
         else:
             cutoff = lastkey
             displayarea = lastarea
-        grass.message("Catchment configuration found! Cost cutoff %s produces a catchment of %s square map units." % (int(cutoff),  displayarea))
+        grass.message("Catchment configuration found! Cost cutoff %s produces a catchment of %s square map units." % (int(cutoff), displayarea))
     ####################################################
         grass.message('\n\nCreating output map\n')
         temp = tempfile.NamedTemporaryFile()
-        temp.write('0 thru %s = %s\n' % (int(cutoff),  mapval))
+        temp.write('0 thru %s = %s\n' % (int(cutoff), mapval))
         temp.flush()
-        grass.run_command('r.reclass', overwrite = True,  input = cost,  output = 'cost.reclass',  rules = temp.name)
+        grass.run_command('r.reclass', overwrite = True, input = cost, output = 'cost.reclass', rules = temp.name)
         temp.close()
         grass.mapcalc("${out}=if(isnull(cost.reclass), null(), cost.reclass)", out = buffer)
         grass.message("\nThe output catchment map will be named %s" % buffer)
-        grass.run_command('r.colors', quiet = True,  map = buffer, color = 'ryb')
+        grass.run_command('r.colors', quiet = True, map = buffer, color = 'ryb')
         if os.getenv('GIS_FLAG_c') == '1':
             if bool(os.getenv('GIS_OPT_incost')) is False:
-                grass.run_command('g.rename',  quiet = True,  rast = 'temporary.cost,%s_cost_surface' % (buffer))
+                grass.run_command('g.rename', quiet = True, rast = 'temporary.cost,%s_cost_surface' % (buffer))
                 grass.message('Cleaning up...(keeping cost map)')
-                grass.run_command('g.remove',  quiet = True, rast='cost.reclass')
+                grass.run_command('g.remove', quiet = True, rast='cost.reclass')
             else:
                 grass.message('Cleaning up...1')
-                grass.run_command('g.remove',  quiet = True, rast='cost.reclass')
+                grass.run_command('g.remove', quiet = True, rast='cost.reclass')
         else:
             if bool(os.getenv('GIS_OPT_incost')) is False:
                 grass.message('Cleaning up...2')
-                grass.run_command('g.remove',  quiet = True, rast = 'cost.reclass,temporary.cost')
+                grass.run_command('g.remove', quiet = True, rast = 'cost.reclass,temporary.cost')
             else:
                 grass.message('Cleaning up...3')
-                grass.run_command('g.remove',  quiet = True, rast = 'cost.reclass')
+                grass.run_command('g.remove', quiet = True, rast = 'cost.reclass')
             if bool(os.getenv('GIS_OPT_sigma')) is True:
-                grass.run_command('g.remove',  quiet = True, rast = slope)
+                grass.run_command('g.remove', quiet = True, rast = slope)
             if ismask == 2:
                 grass.message('Reinstating original MASK...')
                 grass.run_command('g.rename', quiet = "True", rast = tempmask +',MASK')
             elif ismask == 0 and bool(os.getenv('GIS_OPT_sigma')) is True:
-                grass.run_command('g.remove',  quiet = True, rast = 'MASK')
+                grass.run_command('g.remove', quiet = True, rast = 'MASK')
             elif ismask == 1:
                 grass.message('Keeping original MASK')
         grass.message('     DONE!')
