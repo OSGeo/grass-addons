@@ -95,7 +95,7 @@ def main():
     # MTI threshold
     mti_th = 10.89 * n + 2.282
     grass.message("MTI threshold : %s " % mti_th) 
-    
+
     # MTI map
     grass.message("Calculating MTI raster map.. ")
     grass.mapcalc("$r_mti = log((exp((($rast1+1)*$resolution) , $n)) / (tan($rast2+0.001)))", 
@@ -122,7 +122,7 @@ def main():
     grass.run_command('r.clump', input = 'r_flood', 
                                  output = 'r_clump', 
                                  overwrite = 'True')
-    
+
     # Delete areas of less than a threshold of cells (corresponding to 1 square kilometer)
     # Calculating threshold
     th = int(1000000 / resolution**2)

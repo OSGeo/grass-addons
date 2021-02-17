@@ -101,27 +101,27 @@ def main():
             tempmap = "temp_cum_netchange_before_smoothing_%s" % (x + 1)
             if (x + 1) == startnum:
                 outmap = "%s%s%s" % (pattern, infix, str(startnum).zfill(digits))
-                grass.run_command('g.copy',  quiet = True,  rast = '%s%s,%s' % (pattern, str(startnum).zfill(digits), outmap))
-                grass.run_command('r.colors',  quiet = True,  map = outmap,  rules =  temp.name)
+                grass.run_command('g.copy', quiet = True, rast = '%s%s,%s' % (pattern, str(startnum).zfill(digits), outmap))
+                grass.run_command('r.colors', quiet = True, map = outmap, rules =  temp.name)
             else:
                 mapone = "%s%s%s" % (pattern, infix, str(x).zfill(digits))
                 maptwo = "%s%s" % (pattern, str(x + 1).zfill(digits))
                 outmap = "%s%s%s" % (pattern, infix, str(x + 1).zfill(digits))
                 grass.message('doing mapcalc statement for cum netchange map of year %s' % (str(x + 1).zfill(digits)))
-                grass.mapcalc('${out}=if(abs(${map1} + ${map2}) < 20, ${map1} + ${map2}, 20) ',  out = tempmap,  map1 = mapone, map2=maptwo)
+                grass.mapcalc('${out}=if(abs(${map1} + ${map2}) < 20, ${map1} + ${map2}, 20) ', out = tempmap, map1 = mapone, map2=maptwo)
                 grass.run_command('r.neighbors', quiet = True, input = tempmap, output = outmap, method = 'mode', size = '5')
                 grass.message('setting colors for statement for map ' + outmap)
-                grass.run_command('r.colors',  quiet = True,  map = outmap,  rules =  temp.name)
+                grass.run_command('r.colors', quiet = True, map = outmap, rules =  temp.name)
             if ( os.getenv("GIS_FLAG_e") == "1" ):
-                    grass.message('creating png image of map ' + outmap)
-                    grass.run_command('r.out.png',  quiet = True,  input = outmap,  output = outmap + '.png')
+                grass.message('creating png image of map ' + outmap)
+                grass.run_command('r.out.png', quiet = True, input = outmap, output = outmap + '.png')
             if bool(os.getenv("GIS_OPT_statsout")) == True:
                 grass.message('calculating erosion/deposition statistics for map ' + outmap)
-                grass.mapcalc('temperosion=if(${map1} < 0 && ${map1} > -20, ${map1}, null())',  map1 = outmap)
-                grass.mapcalc('tempdep=if(${map1} > 0 && ${map1} < 20, ${map1}, null())',  map1 = outmap)
-                dict1 = grass.parse_command('r.univar',  flags = 'ge',  map = 'temperosion',  percentile = '1')
-                dict2 = grass.parse_command('r.univar',  flags = 'ge',  map = 'tempdep',  percentile = '99')
-                grass.run_command('g.remove',  quiet = True,  flags = 'f',  rast = 'temperosion,tempdep,' + tempmap)
+                grass.mapcalc('temperosion=if(${map1} < 0 && ${map1} > -20, ${map1}, null())', map1 = outmap)
+                grass.mapcalc('tempdep=if(${map1} > 0 && ${map1} < 20, ${map1}, null())', map1 = outmap)
+                dict1 = grass.parse_command('r.univar', flags = 'ge', map = 'temperosion', percentile = '1')
+                dict2 = grass.parse_command('r.univar', flags = 'ge', map = 'tempdep', percentile = '99')
+                grass.run_command('g.remove', quiet = True, flags = 'f', rast = 'temperosion,tempdep,' + tempmap)
                 statsfile.write('%s,%s,%s,%s,%s,,%s,%s,%s,%s,%s\n' % (dict1['max'], dict1['min'], dict1['mean'], dict1['stddev'], dict1['percentile_1'], dict2['max'], dict2['min'], dict2['mean'], dict2['stddev'], dict2['percentile_99']))
     else:
         suffix = os.getenv("GIS_OPT_suffix")
@@ -132,32 +132,32 @@ def main():
                 outmap = "%s%s%s%s" % (pattern, str(startnum).zfill(digits), infix, suffix)
                 grass.run_command('r.neighbors', input = '%s%s%s' % (pattern, str(startnum).zfill(digits), suffix), output = outmap, method = 'mode', size = '5')
                 #grass.run_command('g.copy',  quiet = True,  rast = '%s%s%s,%s' % (pattern, str(startnum).zfill(digits), suffix, outmap))
-                grass.run_command('r.colors',  quiet = True,  map = outmap,  rules =  temp.name)
+                grass.run_command('r.colors', quiet = True, map = outmap, rules =  temp.name)
             else:
                 mapone = "%s%s%s%s" % (pattern, str(x).zfill(digits), infix, suffix)
                 maptwo = "%s%s%s" % (pattern, str(x + 1).zfill(digits), suffix)
                 outmap = "%s%s%s%s" % (pattern, str(x + 1).zfill(digits), infix, suffix)
                 grass.message('doing mapcalc statement for cum netchange map of year %s' % (str(x + 1).zfill(digits)))
                 grass.run_command('r.neighbors', input = maptwo, output = tempmap, method = 'mode', size = '5')
-                grass.mapcalc('${out}=${map1} + ${map2}',  out = outmap,  map1 = mapone, map2=tempmap)
+                grass.mapcalc('${out}=${map1} + ${map2}', out = outmap, map1 = mapone, map2=tempmap)
                 grass.message('setting colors for statement for map %s' % outmap)
-                grass.run_command('r.colors',  quiet = True,  map = outmap,  rules =  temp.name)
+                grass.run_command('r.colors', quiet = True, map = outmap, rules =  temp.name)
             if ( os.getenv("GIS_FLAG_e") == "1" ):
                 grass.message('creating png image of map ' + outmap)
-                grass.run_command('r.out.png',  quiet = True,  input = outmap,  output = outmap + '.png')
+                grass.run_command('r.out.png', quiet = True, input = outmap, output = outmap + '.png')
             if bool(os.getenv("GIS_OPT_statsout")) == True:
                 grass.message('calculating erosion/deposition statistics for map ' + outmap)
-                grass.mapcalc('temperosion=if(${map1} < -0, ${map1}, null())',  map1 = outmap)
-                grass.mapcalc('tempdep=if(${map1} > 0, ${map1}, null())',  map1 = outmap)
-                dict1 = grass.parse_command('r.univar',  flags = 'ge',  map = 'temperosion',  percentile = '1')
-                dict2 = grass.parse_command('r.univar',  flags = 'ge',  map = 'tempdep',  percentile = '99')
-                grass.run_command('g.remove',  quiet = True,  flags = 'f',  rast = 'temperosion,tempdep,' + tempmap)
+                grass.mapcalc('temperosion=if(${map1} < -0, ${map1}, null())', map1 = outmap)
+                grass.mapcalc('tempdep=if(${map1} > 0, ${map1}, null())', map1 = outmap)
+                dict1 = grass.parse_command('r.univar', flags = 'ge', map = 'temperosion', percentile = '1')
+                dict2 = grass.parse_command('r.univar', flags = 'ge', map = 'tempdep', percentile = '99')
+                grass.run_command('g.remove', quiet = True, flags = 'f', rast = 'temperosion,tempdep,' + tempmap)
                 statsfile.write('%s,%s,%s,%s,%s,,%s,%s,%s,%s,%s\n' % (dict1['max'], dict1['min'], dict1['mean'], dict1['stddev'], dict1['percentile_1'], dict2['max'], dict2['min'], dict2['mean'], dict2['stddev'], dict2['percentile_99']))
     if bool(os.getenv("GIS_OPT_statsout")) == True:
         statsfile.close()
     temp.close()
     return
-        
+
 if __name__ == "__main__":
     if ( len(sys.argv) <= 1 or sys.argv[1] != "@ARGS_PARSED@" ):
         os.execvp("g.parser", [sys.argv[0]] + sys.argv)

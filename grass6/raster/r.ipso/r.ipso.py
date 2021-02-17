@@ -144,10 +144,10 @@ def plotImage(x,y,image,type,xlabel,ylabel,title):
     plt.grid(True)
     plt.savefig(image)
     plt.close('all') 
-    
+
 if __name__ == "__main__":
-	options, flags = grass.parser()
-	sys.exit(main())
+    options, flags = grass.parser()
+    sys.exit(main())
 
 
 

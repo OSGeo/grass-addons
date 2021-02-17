@@ -66,138 +66,138 @@ tmp_map_rast = None
 tmp_map_vect = None
 
 def cleanup():
-	if (tmp_map_rast or tmp_map_vect):
-	   grass.run_command("g.remove", 
-			   rast = tmp_map_rast,
-			   vect = tmp_map_vect,
-			   quiet = True)
+    if (tmp_map_rast or tmp_map_vect):
+        grass.run_command("g.remove", 
+                        rast = tmp_map_rast,
+                        vect = tmp_map_vect,
+                        quiet = True)
 
 
 
 
 def main():	 
-	#defining temporary maps
-	tmp_map_rast = ["tmp"+str(os.getpid()),"distance_mask"+str(os.getpid()),"masked_map"+str(os.getpid())]
-	tmp_map_vect = ["point_tmp"+str(os.getpid())]
+    #defining temporary maps
+    tmp_map_rast = ["tmp"+str(os.getpid()),"distance_mask"+str(os.getpid()),"masked_map"+str(os.getpid())]
+    tmp_map_vect = ["point_tmp"+str(os.getpid())]
 
-	# check if db is connected if not create a connection!
-	if grass.read_command("db.connect", flags="p").split()[1].split(":")[1]:
-		grass.message("DB is set")
-	else:
-		grass.run_command("db.connect",driver = "sqlite",database = "$GISDBASE/$LOCATION_NAME/$MAPSET/sqlite.db")
-
-
-	# Getting resolution of raster map
-	res = int(grass.read_command("g.region", flags = "m").strip().split('\n')[4].split('=')[1])  
-
- 
-	# Defining variables
-	input_map = options['input']
-	distance = options['distance']
-	stop_points = options['stop_points']
-	if options['output']:
-		output_map = str(options['output'])
-	else:
-		output_map = "d"+str(distance)+"_"+str(input_map)
+    # check if db is connected if not create a connection!
+    if grass.read_command("db.connect", flags="p").split()[1].split(":")[1]:
+        grass.message("DB is set")
+    else:
+        grass.run_command("db.connect",driver = "sqlite",database = "$GISDBASE/$LOCATION_NAME/$MAPSET/sqlite.db")
 
 
-	# creating temporary map
-	grass.mapcalc("$tmp = if($raster>=0,$res,null())",	
-					tmp = "tmp"+str(os.getpid()),
-					res = res,
-					raster = input_map)
+    # Getting resolution of raster map
+    res = int(grass.read_command("g.region", flags = "m").strip().split('\n')[4].split('=')[1])  
 
 
-	# make points from raster
-	grass.run_command("r.to.vect",
-					overwrite = True,
-					input = "tmp"+str(os.getpid()),
-					output = "point_tmp"+str(os.getpid()),
-					feature = "point")
-
-	# Get coordinates for each point
-	grass.run_command("v.db.addcol",
-					map = "point_tmp"+str(os.getpid()),
-					columns = "X DOUBLE, Y DOUBLE, univar DOUBLE")					
-	grass.run_command("v.to.db",
-					map = "point_tmp"+str(os.getpid()),
-					type = "point",
-					option = "coor",
-					columns = "X,Y")
-	
-
-	# Get "list" of coordinates
-	pointcoords = grass.read_command("v.db.select",
-					flags = "c",
-					fs ="|",
-					map = "point_tmp"+str(os.getpid()),
-					columns = "cat,X,Y")
-		
-	for line in pointcoords.split():
-			
-		cat,X,Y = line.split('|')
-			
-		#creating coordinates
-		coors = str(X)+","+str(Y)
+    # Defining variables
+    input_map = options['input']
+    distance = options['distance']
+    stop_points = options['stop_points']
+    if options['output']:
+        output_map = str(options['output'])
+    else:
+        output_map = "d"+str(distance)+"_"+str(input_map)
 
 
-		
-		# creating "focal distance mask" (using r.cost with a specified distance as input)
-		if options['stop_points']:
-			grass.run_command("r.cost",
-						flags = 'n',
-						overwrite = True,
-						max_cost = distance,
-						stop_points = stop_points,
-						input = "tmp"+str(os.getpid()),
-						output = "distance_mask"+str(os.getpid()),
-						coordinate = coors)
-		else:			
-			grass.run_command("r.cost",
-						flags = 'n',
-						overwrite = True,
-						max_cost = distance,
-						input = "tmp"+str(os.getpid()),
-						output = "distance_mask"+str(os.getpid()),
-						coordinate = coors)
-			
-		# creating "masked map" based on input
-		grass.mapcalc("$masked_map= if(!isnull($distance_mask),$input_map,null())",
-					masked_map = "masked_map"+str(os.getpid()),
-					input_map = input_map,
-					distance_mask = "distance_mask"+str(os.getpid()))
-	
-			
-		# Getting focal statistics (e.g. mean) for masked_map
-		univar = grass.read_command("r.univar", map = "masked_map"+str(os.getpid()), flags = 'e')
-		d = {'min': 6, 'max': 7, 'mean': 9, 'sum': 14, 'median':16, 'range':8}
-		stat = float(univar.split('\n')[d[str(options['stat'])]].split(':')[1])
+    # creating temporary map
+    grass.mapcalc("$tmp = if($raster>=0,$res,null())",	
+                                    tmp = "tmp"+str(os.getpid()),
+                                    res = res,
+                                    raster = input_map)
 
-			
-		#update point map with new stat value
-		grass.write_command("db.execute", stdin = 'UPDATE point_tmp%s SET univar=%s WHERE cat = %d' % (str(os.getpid()),str(stat),int(cat)))
 
-	
-		# Remove temp maps of loop
-		grass.run_command("g.remove",rast = ["masked_map"+str(os.getpid()),"distance_mask"+str(os.getpid())])
-	
-		# End of loop
+    # make points from raster
+    grass.run_command("r.to.vect",
+                                    overwrite = True,
+                                    input = "tmp"+str(os.getpid()),
+                                    output = "point_tmp"+str(os.getpid()),
+                                    feature = "point")
 
-	# Create new raster from the temporary point vector with the newly generated values
-	grass.run_command("v.to.rast",
-					input = "point_tmp"+str(os.getpid()),
-					output = output_map,
-					use = "attr",
-					column= "univar") 
-		
-	grass.run_command("g.remove", vect = "point_tmp"+str(os.getpid()))
-	grass.run_command("g.remove", rast = "tmp"+str(os.getpid()))
+    # Get coordinates for each point
+    grass.run_command("v.db.addcol",
+                                    map = "point_tmp"+str(os.getpid()),
+                                    columns = "X DOUBLE, Y DOUBLE, univar DOUBLE")					
+    grass.run_command("v.to.db",
+                                    map = "point_tmp"+str(os.getpid()),
+                                    type = "point",
+                                    option = "coor",
+                                    columns = "X,Y")
 
-				
-	return 0
+
+    # Get "list" of coordinates
+    pointcoords = grass.read_command("v.db.select",
+                                    flags = "c",
+                                    fs ="|",
+                                    map = "point_tmp"+str(os.getpid()),
+                                    columns = "cat,X,Y")
+
+    for line in pointcoords.split():
+
+        cat,X,Y = line.split('|')
+
+        #creating coordinates
+        coors = str(X)+","+str(Y)
+
+
+
+        # creating "focal distance mask" (using r.cost with a specified distance as input)
+        if options['stop_points']:
+            grass.run_command("r.cost",
+                                    flags = 'n',
+                                    overwrite = True,
+                                    max_cost = distance,
+                                    stop_points = stop_points,
+                                    input = "tmp"+str(os.getpid()),
+                                    output = "distance_mask"+str(os.getpid()),
+                                    coordinate = coors)
+        else:			
+            grass.run_command("r.cost",
+                                    flags = 'n',
+                                    overwrite = True,
+                                    max_cost = distance,
+                                    input = "tmp"+str(os.getpid()),
+                                    output = "distance_mask"+str(os.getpid()),
+                                    coordinate = coors)
+
+        # creating "masked map" based on input
+        grass.mapcalc("$masked_map= if(!isnull($distance_mask),$input_map,null())",
+                                masked_map = "masked_map"+str(os.getpid()),
+                                input_map = input_map,
+                                distance_mask = "distance_mask"+str(os.getpid()))
+
+
+        # Getting focal statistics (e.g. mean) for masked_map
+        univar = grass.read_command("r.univar", map = "masked_map"+str(os.getpid()), flags = 'e')
+        d = {'min': 6, 'max': 7, 'mean': 9, 'sum': 14, 'median':16, 'range':8}
+        stat = float(univar.split('\n')[d[str(options['stat'])]].split(':')[1])
+
+
+        #update point map with new stat value
+        grass.write_command("db.execute", stdin = 'UPDATE point_tmp%s SET univar=%s WHERE cat = %d' % (str(os.getpid()),str(stat),int(cat)))
+
+
+        # Remove temp maps of loop
+        grass.run_command("g.remove",rast = ["masked_map"+str(os.getpid()),"distance_mask"+str(os.getpid())])
+
+        # End of loop
+
+    # Create new raster from the temporary point vector with the newly generated values
+    grass.run_command("v.to.rast",
+                                    input = "point_tmp"+str(os.getpid()),
+                                    output = output_map,
+                                    use = "attr",
+                                    column= "univar") 
+
+    grass.run_command("g.remove", vect = "point_tmp"+str(os.getpid()))
+    grass.run_command("g.remove", rast = "tmp"+str(os.getpid()))
+
+
+    return 0
 
 
 if __name__ == "__main__":
-	options, flags = grass.parser()
-	atexit.register(cleanup)
-	sys.exit(main())
+    options, flags = grass.parser()
+    atexit.register(cleanup)
+    sys.exit(main())

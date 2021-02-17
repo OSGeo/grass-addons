@@ -5,11 +5,11 @@
 #######################################################################
 
 def knowledgebase():
-#this function returns a huge here document, which is ingested by CLIPS instead or in addition to an external rulebase.
-# the string contains a rulebase containing demo rule-based actions in GRASS.
+    #this function returns a huge here document, which is ingested by CLIPS instead or in addition to an external rulebase.
+    # the string contains a rulebase containing demo rule-based actions in GRASS.
 
-	
-	payload="""
+
+    payload="""
 	;(assert (attract mode))
 ;attract mode sollte ein "fallback fact" werden, damit der user die KB wiederholt starten kann
 
@@ -533,5 +533,5 @@ def knowledgebase():
 
 
 	"""
-	return payload
+    return payload
 

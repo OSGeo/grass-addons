@@ -186,7 +186,7 @@ def main():
         grass.message('Calculating viewshed for location %s,%s (point name = %s)\n' % (site[0], site[1], site[2]))
         tempry = "vshed_%s" % site[2]
         vshed_list.append(tempry)
-        grass.run_command("r.viewshed", quiet = "True",  flags = flagstring,  input = elev, output = tempry, coordinate = site[0] + "," + site[1], obs_elev = obs_elev, tgt_elev = tgt_elev, max_dist = max_dist, mem = mem,  refraction_coef = refraction_coef)
+        grass.run_command("r.viewshed", quiet = "True", flags = flagstring, input = elev, output = tempry, coordinate = site[0] + "," + site[1], obs_elev = obs_elev, tgt_elev = tgt_elev, max_dist = max_dist, mem = mem, refraction_coef = refraction_coef)
     #now make a mapcalc statement to add all the viewsheds together to make the outout cumulative viewsheds map
     grass.message("Calculating \"Cumulative Viewshed\" map")
     #grass.mapcalc("${output}=${command_string}", quiet = "True", output = out, command_string = ("+").join(vshed_list))
@@ -196,9 +196,9 @@ def main():
         grass.message("Temporary viewshed maps will not removed")
     else:
         grass.message("Removing temporary viewshed maps")
-        grass.run_command("g.remove",  quiet = "True",  rast = (",").join(vshed_list))
+        grass.run_command("g.remove", quiet = "True", rast = (",").join(vshed_list))
     return
-    
+
 # here is where the code in "main" actually gets executed. This way of programming is neccessary for the way g.parser needs to run.
 if __name__ == "__main__":
     if ( len(sys.argv) <= 1 or sys.argv[1] != "@ARGS_PARSED@" ):

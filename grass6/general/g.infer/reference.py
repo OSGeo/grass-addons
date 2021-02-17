@@ -5,11 +5,11 @@
 #######################################################################
 
 def knowledgebase():
-#this function returns a huge here document, which is ingested by CLIPS instead or in addition to an external rulebase.
-# the string contains a rulebase containing demo rule-based actions in GRASS.
-# Some of these actions require a specific GRASS LOcation and will refuse to work otherwise [tbd]
-	
-	payload="""
+    #this function returns a huge here document, which is ingested by CLIPS instead or in addition to an external rulebase.
+    # the string contains a rulebase containing demo rule-based actions in GRASS.
+    # Some of these actions require a specific GRASS LOcation and will refuse to work otherwise [tbd]
+
+    payload="""
    (deffacts startup "Set the attract mode" (attract mode))
 	(assert (attract mode))
 
@@ -731,5 +731,5 @@ Comparison: any tpye: eq neq  numeric:  = <> <= >= > <
 
 
 	"""
-	return payload
+    return payload
 

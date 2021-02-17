@@ -112,7 +112,7 @@ class NetworkPath(MapFrame):
             "hand"    : wx.StockCursor(wx.CURSOR_HAND),
             "pencil"  : wx.StockCursor(wx.CURSOR_PENCIL),
             "sizenwse": wx.StockCursor(wx.CURSOR_SIZENWSE)
-            }
+        }
 
         wx.Frame.__init__(self, parent, id, title, pos, size, style)
         self.SetName("MapWindow")
@@ -165,7 +165,7 @@ class NetworkPath(MapFrame):
         self.statusbarWin['region'] = wx.CheckBox(parent=self.statusbar, id=wx.ID_ANY,
                                                   label=_("Show computational extent"))
         self.statusbar.Bind(wx.EVT_CHECKBOX, self.OnToggleShowRegion, self.statusbarWin['region'])
-        
+
         self.statusbarWin['region'].SetValue(False)
         self.statusbarWin['region'].Hide()
 
@@ -221,17 +221,17 @@ class NetworkPath(MapFrame):
                                                                  "defined in GUI preferences dialog "
                                                                  "(tab 'Display')")))
         self.statusbarWin['projection'].Hide()
-        
+
         # mask
         self.statusbarWin['mask'] = wx.StaticText(parent = self.statusbar, id = wx.ID_ANY,
                                                   label = '')
         self.statusbarWin['mask'].SetForegroundColour(wx.Colour(255, 0, 0))
-        
+
         # on-render gauge
         self.statusbarWin['progress'] = wx.Gauge(parent=self.statusbar, id=wx.ID_ANY,
                                       range=0, style=wx.GA_HORIZONTAL)
         self.statusbarWin['progress'].Hide()
-        
+
         self.StatusbarReposition() # reposition statusbar
         #
         # Init map display (buffered DC & set default cursor)
@@ -242,7 +242,7 @@ class NetworkPath(MapFrame):
         self.MapWindow = self.MapWindow2D
 
         if grassversion.rfind("6.4") != 0:
-            self.Bind(wx.EVT_MOTION,       self.MapWindow.OnMotion)
+            self.Bind(wx.EVT_MOTION, self.MapWindow.OnMotion)
        # else:
 #            self.Bind(wx.EVT_MOTION,       self.MapWindow.OnMotion2)   
        # self.MapWindow.Bind(wx.EVT_MOTION, self.MapWindow.OnMotion)
@@ -263,9 +263,9 @@ class NetworkPath(MapFrame):
         # Bind various events
         #
         #self.Bind(wx.EVT_ACTIVATE, self.OnFocus)
-        self.Bind(wx.EVT_CLOSE,    self.OnCloseWindow)
+        self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
        # self.Bind(render.EVT_UPDATE_PRGBAR, self.OnUpdateProgress)
-        
+
         #
         # Update fancy gui style
         #
@@ -279,7 +279,7 @@ class NetworkPath(MapFrame):
         # Init print module and classes
         #
         #self.printopt = disp_print.PrintOptions(self, self.MapWindow)
-        
+
         #
         # Initialization of digitization tool
         #
@@ -307,12 +307,12 @@ class NetworkPath(MapFrame):
         #
         # Re-use dialogs
         #
-	wx.MessageBox("Currently Works for spearfish data. \nIf you need this to work with other grass data.\
+        wx.MessageBox("Currently Works for spearfish data. \nIf you need this to work with other grass data.\
 please let me know. I will modify the code and update svn")
-	self.mapname = 'roads@' + grass.gisenv()['MAPSET']
-	self.cmd= ['d.vect', str("map=" + self.mapname),'width=1']
-	self.Map.AddLayer(type='vector', name=self.mapname, command=self.cmd)
-	self.MapWindow.UpdateMap(render=True)  
+        self.mapname = 'roads@' + grass.gisenv()['MAPSET']
+        self.cmd= ['d.vect', str("map=" + self.mapname),'width=1']
+        self.Map.AddLayer(type='vector', name=self.mapname, command=self.cmd)
+        self.MapWindow.UpdateMap(render=True)  
 
         self.dialogs = {}
         self.dialogs['attributes'] = None
@@ -323,8 +323,8 @@ please let me know. I will modify the code and update svn")
         self.decorationDialog = None # decoration/overlays
 
         #self.Maximize()
-	self.coords = []
-	self.points = []
+        self.coords = []
+        self.points = []
 
     def OnMotion2(self, event):
         """
@@ -353,7 +353,7 @@ please let me know. I will modify the code and update svn")
                     self.statusbar.SetStatusText("%s" % utils.Deg2DMS(e, n), 0)
                 else:
                     self.statusbar.SetStatusText("%.2f, %.2f" % (e, n), 0)
-        
+
             event.Skip()
 
 
@@ -371,27 +371,27 @@ please let me know. I will modify the code and update svn")
 
         try:
             e, n = self.MapWindow.Pixel2Cell(event.GetPositionTuple())
-	    print e,n
+            print e,n
         except AttributeError:
             return
-        
+
         self.counter = self.counter + 1
-        coord =("%f %f" %  ( e,  n))
+        coord =("%f %f" %  ( e, n))
         self.coords.append(coord)
 
         if self.counter == 2:
-	    self.points.append("1 ")
-       	    for p in self.coords:
-               self.points.append(p)
+            self.points.append("1 ")
+            for p in self.coords:
+                self.points.append(p)
             f =open("tmp",'w')
             for p in self.points:
-               f.write("%s " % p)
+                f.write("%s " % p)
             f.close()
 
 
-            
-	    command=["v.net.path", 'input=roads', 'output=path','file=tmp','--overwrite']
-    	    gcmd.CommandThread(command,stdout=None,stderr=None).run()
+
+            command=["v.net.path", 'input=roads', 'output=path','file=tmp','--overwrite']
+            gcmd.CommandThread(command,stdout=None,stderr=None).run()
 
 
             self.mapname = 'path@'+ grass.gisenv()['MAPSET']
@@ -400,7 +400,7 @@ please let me know. I will modify the code and update svn")
             self.MapWindow.UpdateMap(render=True)
             self.counter =0
             self.coords=[]
-	    self.points=[]
+            self.points=[]
 
 
 
@@ -412,12 +412,13 @@ class BufferedWindow2(BufferedWindow):
     can also save the drawing to file by calling the
     SaveToFile(self,file_name,file_type) method.
     """
+
     def __init__(self, parent, id = wx.ID_ANY,
                  Map = None, tree = None, lmgr = None,
                  style = wx.NO_FULL_REPAINT_ON_RESIZE, **kwargs):
         MapWindow.__init__(self, parent, id, Map, tree, lmgr, **kwargs)
         wx.Window.__init__(self, parent, id, style = style, **kwargs)
-        
+
         # flags
         self.resize = False # indicates whether or not a resize event has taken place
         self.dragimg = None # initialize variable for map panning
@@ -433,24 +434,24 @@ class BufferedWindow2(BufferedWindow):
         self.lineid = None
         # ID of poly line resulting from cumulative rubber band lines (e.g. measurement)
         self.plineid = None
-        
+
         # event bindings
-        self.Bind(wx.EVT_PAINT,        self.OnPaint)
-        self.Bind(wx.EVT_SIZE,         self.OnSize)
-        self.Bind(wx.EVT_IDLE,         self.OnIdle)
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_SIZE, self.OnSize)
+        self.Bind(wx.EVT_IDLE, self.OnIdle)
         ### self.Bind(wx.EVT_MOTION,       self.MouseActions)
         self.Bind(wx.EVT_MOUSE_EVENTS, self.MouseActions)
 
         if grassversion.rfind("6.4") != 0:
-            self.Bind(wx.EVT_MOTION,       self.OnMotion)
+            self.Bind(wx.EVT_MOTION, self.OnMotion)
         #else:
             #self.Bind(wx.EVT_MOTION,       self.MapWindow.OnMotion2)        
 
 
 
-        
+
         self.processMouse = True
-        
+
         # render output objects
         self.mapfile = None   # image file to be rendered
         self.img     = None   # wx.Image object (self.mapfile)
@@ -494,7 +495,7 @@ class BufferedWindow2(BufferedWindow):
 
         self.Bind(wx.EVT_ERASE_BACKGROUND, lambda x:None)
 #        self.Bind(wx.EVT_KEY_DOWN , Bufferedwindow.OnKeyDown)
-        
+
         # vars for handling mouse clicks
         self.dragid   = -1
         self.lastpos  = (0, 0)
@@ -513,29 +514,29 @@ class BufferedWindow2(BufferedWindow):
         Debug.msg(4, "BufferedWindow.OnPaint(): redrawAll=%s" % self.redrawAll)
 
 
-        
+
         dc = wx.BufferedPaintDC(self, self.buffer)
-        
+
         ### dc.SetBackground(wx.Brush("White"))
         dc.Clear()
-        
+
         # use PrepareDC to set position correctly
         self.PrepareDC(dc)
-        
+
         # create a clipping rect from our position and size
         # and update region
         rgn = self.GetUpdateRegion().GetBox()
         dc.SetClippingRect(rgn)
-        
+
         switchDraw = False
         if self.redrawAll is None:
             self.redrawAll = True
             switchDraw = True
-        
+
         if self.redrawAll: # redraw pdc and pdcVector
             # draw to the dc using the calculated clipping rect
             self.pdc.DrawToDCClipped(dc, rgn)
-            
+
             # draw vector map layer
             if self.pdcVector:
                 # decorate with GDDC (transparency)
@@ -545,13 +546,13 @@ class BufferedWindow2(BufferedWindow):
                 except NotImplementedError, e:
                     print >> sys.stderr, e
                     self.pdcVector.DrawToDCClipped(dc, rgn)
-            
+
             self.bufferLast = None
         else: # do not redraw pdc and pdcVector
             if self.bufferLast is None:
                 # draw to the dc
                 self.pdc.DrawToDC(dc)
-                
+
                 if self.pdcVector:
                     # decorate with GDDC (transparency)
                     try:
@@ -560,15 +561,15 @@ class BufferedWindow2(BufferedWindow):
                     except NotImplementedError, e:
                         print >> sys.stderr, e
                         self.pdcVector.DrawToDC(dc)
-                        
+
                 # store buffered image
                 # self.bufferLast = wx.BitmapFromImage(self.buffer.ConvertToImage())
                 self.bufferLast = dc.GetAsBitmap(wx.Rect(0, 0, self.Map.width, self.Map.height))
-            
+
             pdcLast = self.PseudoDC(vdigit = False)
             pdcLast.DrawBitmap(self.bufferLast, 0, 0, False)
             pdcLast.DrawToDC(dc)
-        
+
         # draw decorations (e.g. region box)
         try:
             gcdc = wx.GCDC(dc)
@@ -576,16 +577,16 @@ class BufferedWindow2(BufferedWindow):
         except NotImplementedError, e:
             print >> sys.stderr, e
             self.pdcDec.DrawToDC(dc)
-        
+
         # draw temporary object on the foreground
         ### self.pdcTmp.DrawToDCClipped(dc, rgn)
         self.pdcTmp.DrawToDC(dc)
-        
+
         if switchDraw:
             self.redrawAll = False
 
         self.polypen = wx.Pen(colour="RED", width=1, style=wx.SOLID)
-        
+
         self.pdc.BeginDrawing()
         self.pdc.SetBrush(wx.Brush(wx.CYAN, wx.TRANSPARENT))
         self.pdc.SetPen(self.polypen)
@@ -616,20 +617,20 @@ class BufferedWindow2(BufferedWindow):
         """!
         Updates the canvas anytime there is a change to the
         underlaying images or to the geometry of the canvas.
-        
+
         @param render re-render map composition
         @param renderVector re-render vector map layer enabled for editing (used for digitizer)
         """
         start = time.clock()
-        
+
         self.resize = False
-        
+
         # if len(self.Map.GetListOfLayers()) == 0:
         #    return False
-        
+
         if self.img is None:
             render = True
-        
+
         #
         # initialize process bar (only on 'render')
         #
@@ -637,19 +638,19 @@ class BufferedWindow2(BufferedWindow):
             self.parent.statusbarWin['progress'].Show()
             if self.parent.statusbarWin['progress'].GetRange() > 0:
                 self.parent.statusbarWin['progress'].SetValue(1)
-        
+
         #
         # render background image if needed
         #
-        
+
         # update layer dictionary if there has been a change in layers
         if self.tree and self.tree.reorder == True:
             self.tree.ReorderLayers()
-        
+
         # reset flag for auto-rendering
         if self.tree:
             self.tree.rerender = False
-        
+
         if render:
             # update display size
             self.Map.ChangeMapSize(self.GetClientSize())
@@ -662,9 +663,9 @@ class BufferedWindow2(BufferedWindow):
                                            windres=windres)
         else:
             self.mapfile = self.Map.Render(force=False, mapWindow=self.parent)
-        
+
         self.img = self.GetImage() # id=99
-            
+
         #
         # clear pseudoDcs
         #
@@ -673,7 +674,7 @@ class BufferedWindow2(BufferedWindow):
                     self.pdcTmp):
             pdc.Clear()
             pdc.RemoveAll()
-        
+
         #
         # draw background map image to PseudoDC
         #
@@ -686,7 +687,7 @@ class BufferedWindow2(BufferedWindow):
                 return False
 
             self.Draw(self.pdc, self.img, drawid=id)
-        
+
         #
         # render vector map layer
         #
@@ -705,24 +706,24 @@ class BufferedWindow2(BufferedWindow):
         for id in self.textdict.keys():
             self.Draw(self.pdc, img=self.textdict[id], drawid=id,
                       pdctype='text', coords=[10, 10, 10, 10])
-        
+
         # optionally draw computational extent box
         self.DrawCompRegionExtent()
-        
+
         #
         # redraw pdcTmp if needed
         #
         if len(self.polycoords) > 0:
             self.DrawLines(self.pdcTmp)
-        
-       
+
+
         # 
         # clear measurement
         #
 
-            
+
         stop = time.clock()
-        
+
         #
         # hide process bar
         #
@@ -738,10 +739,10 @@ class BufferedWindow2(BufferedWindow):
             self.parent.statusbarWin['mask'].SetLabel(_('MASK'))
         else:
             self.parent.statusbarWin['mask'].SetLabel('')
-        
+
         Debug.msg (2, "BufferedWindow.UpdateMap(): render=%s, renderVector=%s -> time=%g" % \
                    (render, renderVector, (stop-start)))
-        
+
         return True
 
 
@@ -760,7 +761,7 @@ class BufferedWindow2(BufferedWindow):
             except (TypeError, ValueError):
                 self.parent.statusbar.SetStatusText("", 0)
                 return
-            
+
             if self.parent.toolbars['vdigit'] and \
                     self.parent.toolbars['vdigit'].GetAction() == 'addLine' and \
                     self.parent.toolbars['vdigit'].GetAction('type') in ('line', 'boundary') and \
@@ -787,7 +788,7 @@ class BufferedWindow2(BufferedWindow):
                                                                                              key='statusbar',
                                                                                              subkey='proj4'),
                                                                   flags = 'd')
-                    
+
                         if coord:
                             e, n = coord
                             if proj in ('ll', 'latlong', 'longlat') and format == 'DMS':
@@ -814,12 +815,12 @@ class BufferedWindow2(BufferedWindow):
                        self.mouse["use"])
 
         self.mouse['end'] = event.GetPositionTuple()[:]
-        
+
         if self.mouse['use'] in ["zoom", "pan"]:
             # set region in zoom or pan
             begin = self.mouse['begin']
             end = self.mouse['end']
-            
+
             if self.mouse['use'] == 'zoom':
                 # set region for click (zero-width box)
                 if begin[0] - end[0] == 0 or \
@@ -829,7 +830,7 @@ class BufferedWindow2(BufferedWindow):
                              end[1] - self.Map.height / 4)
                     end   = (end[0] + self.Map.width / 4,
                              end[1] + self.Map.height / 4)
-            
+
             self.Zoom(begin, end, self.zoomtype)
 
             # redraw map
@@ -840,7 +841,7 @@ class BufferedWindow2(BufferedWindow):
 
 
 
-	
+
 
 class PathApp(wx.App):
     """

@@ -117,6 +117,6 @@ if __name__ == "__main__":
                         default=False, help='Check for tests')
     parser.add_argument('-r', dest='r', action='store_true',
                         default=False, help='Check recursively')
-    
+
     args = parser.parse_args()
     main(args.__dict__)

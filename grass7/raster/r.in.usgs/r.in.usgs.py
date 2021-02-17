@@ -521,7 +521,7 @@ def main():
                             api_size=TNM_file_size,
                             difference=abs(existing_local_file_size - TNM_file_size),
                             tolerance=size_diff_tolerance,
-                        )
+                    )
                     )
                     # NLCD API query returns subsets that cannot be filtered before
                     # results are returned. gui_subset is used to filter results.
