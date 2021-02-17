@@ -56,7 +56,7 @@ def test_model(author):
 
     # -----------------------------------------------------------------------
     # set required values
-    print(" >> Pre-Setting (randomely) required values for testing purposes:")
+    print(" >> Pre-Setting (randomly) required values for testing purposes:")
     print(" * Assigning author and model version...")
     version = ''
     if not author:
@@ -68,11 +68,11 @@ def test_model(author):
     print(author)
 
     print(" * Assigning a random satellite...")
-    satellite = random.choice(COEFFICIENTS[author].keys())
+    satellite = random.choice(list(COEFFICIENTS[author].keys()))
     print(satellite)
 
     print(" * Assiging a random year...")
-    year = random.choice(COEFFICIENTS[author][satellite].keys())
+    year = random.choice(list(COEFFICIENTS[author][satellite].keys()))
     print(year)
 
     print(" * Assiging a random c0 coefficient...")
