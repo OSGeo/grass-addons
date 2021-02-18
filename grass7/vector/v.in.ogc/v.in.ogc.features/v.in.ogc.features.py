@@ -58,39 +58,27 @@ def main():
         )
 
     feats = Features(options["url"])
+    collections = feats.feature_collections()
     if flags["l"]:
-        collections = feats.collections()
-        for coll in collections["collections"]:
-            if "layerDataType" in coll.keys():
-                colltype = coll["layerDataType"]
-            elif "itemType" in coll.keys():
-                colltype = coll["itemType"]
-            if colltype in ["Feature", "Vector"]:
-                try:
-                    print("{}: {}".format(coll["id"], coll["title"]))
-                except:
-                    print("{}: {}".format(coll["name"], coll["title"]))
+        for coll in collections:
+            print("{}".format(coll))
         return
     if not options["layer"]:
         grass.fatal(
-            _("Required parameter <layer> not set:" "(Name for input vector map layer)")
+            _("Required parameter <layer> not set: (Name for input vector map layer)")
         )
+    elif options["layer"] not in collections:
+        grass.fatal(_("Layer {} is not a Feature layer"))
     if not options["output"]:
         grass.fatal(
-            _("Required parameter <output> not set:" "(Name for output vector map)")
+            _("Required parameter <output> not set: (Name for output vector map)")
         )
-    coll = feats.collection(options["layer"])
-    if "layerDataType" in coll.keys():
-        colltype = coll["layerDataType"]
-    elif "itemType" in coll.keys():
-        colltype = coll["itemType"]
-    if colltype not in ["Feature", "Vector"]:
-        grass.warning("The layer '{}' could not be a Feature object")
+
     try:
         layer = feats.collection_items(options["layer"])
     except Exception as e:
         grass.fatal(
-            _("Problem retriving data from the server. " "The error was: {}".format(e))
+            _("Problem retriving data from the server. The error was: {}".format(e))
         )
     tmpfile = grass.tempfile()
     with open(tmpfile, "w") as f:
