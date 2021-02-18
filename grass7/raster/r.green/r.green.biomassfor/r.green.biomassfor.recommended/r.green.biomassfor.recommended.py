@@ -21,12 +21,12 @@
 #%End
 #%option G_OPT_R_INPUT
 #% key: hfmap
-#% description: Bioenergy potential map for High Forest in MWh/m³
+#% description: Bioenergy potential map for High Forest in MWh/m3
 #%end
 #%option G_OPT_R_INPUT
 #% key: cmap
 #% type: string
-#% description: Bioenergy potential map for Coppice in MWh/m³
+#% description: Bioenergy potential map for Coppice in MWh/m3
 #% required : yes
 #%end
 #%option
@@ -81,21 +81,21 @@
 #%option
 #% key: energy_tops_hf
 #% type: double
-#% description: Energy for tops and branches in high forest in MWh/m³
+#% description: Energy for tops and branches in high forest in MWh/m3
 #% answer: 0.49
 #% guisection: Energy
 #%end
 #%option
 #% key: energy_cormometric_vol_hf
 #% type: double
-#% description: Energy for tops and branches for high forest in MWh/m³
+#% description: Energy for tops and branches for high forest in MWh/m3
 #% answer: 1.97
 #% guisection: Energy
 #%end
 #%option
 #% key: energy_tops_cop
 #% type: double
-#% description: Energy for tops and branches for Coppices in MWh/m³
+#% description: Energy for tops and branches for Coppices in MWh/m3
 #% answer: 0.55
 #% guisection: Energy
 #%end
