@@ -66,7 +66,7 @@
 
 #%option G_OPT_R_INPUT
 #% key: ground_capacity_raster
-#% description: Raster with depth-averaged ground thermal capacity rho_c  [MJ m-3 K-1]
+#% description: Raster with depth-averaged ground thermal capacity rho_c [MJ m-3 K-1]
 #% required: no
 #% guisection: Ground
 #%end
@@ -75,7 +75,7 @@
 #% key: ground_capacity_value
 #% type: double
 #% key_desc: double
-#% description: Value with depth-averaged ground thermal capacity rho_c  [MJ m-3 K-1]
+#% description: Value with depth-averaged ground thermal capacity rho_c [MJ m-3 K-1]
 #% required: no
 #% answer: 2.5
 #% guisection: Ground
