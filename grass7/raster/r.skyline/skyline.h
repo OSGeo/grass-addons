@@ -1,10 +1,12 @@
+
 /***********************************************************************/
 /*
-  skyline.h
+   skyline.h
 
-  Written by Mark Lake, 28/07/20017, for r.skyline in GRASS 7.x
+   Written by Mark Lake, 28/07/20017, for r.skyline in GRASS 7.x
 
-*/
+ */
+
 /***********************************************************************/
 
 
@@ -19,12 +21,11 @@
 
 /***********************************************************************/
 /* Public functions                                                    */
+
 /***********************************************************************/
 
-double compute_skyline_index (int, int, double, struct node *, struct node *,
-			       struct node *, struct node *, struct node *);
+double compute_skyline_index(int, int, double, struct node *, struct node *,
+                             struct node *, struct node *, struct node *);
 
-double compute_skyline_index_simple (int, int, double, struct node *);
+double compute_skyline_index_simple(int, int, double, struct node *);
 #endif
-
-

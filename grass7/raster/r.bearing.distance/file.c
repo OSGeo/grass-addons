@@ -2,33 +2,33 @@
 
 /**************************************************************************/
 
-FILE* Create_file (char *name, char *suffix, char *message, int overwrite)
+FILE *Create_file(char *name, char *suffix, char *message, int overwrite)
 {
-  FILE* stream;
+    FILE *stream;
 
-  strcat (name, suffix);
-  stream = fopen (name, "r");
-  if ((stream != NULL) && (!overwrite))
-    {
-      sprintf (message, "File %s exits ", name);
-      fclose (stream);
-      return NULL;
+    strcat(name, suffix);
+    stream = fopen(name, "r");
+    if ((stream != NULL) && (!overwrite)) {
+        /* message passed to G_message or G_warning in main.c) */
+        sprintf(message, _("File <%s> exits "), name);
+        fclose(stream);
+        return NULL;
     }
-  else
-    {
-      stream = fopen (name, "w");
-      if (stream == NULL)
-	  sprintf (message, "Can't create file %s ", name);
+    else {
+        stream = fopen(name, "w");
+        /* message passed to G_message or G_warning in main.c) */
+        if (stream == NULL)
+            sprintf(message, _("Can't create file <%s> "), name);
     }
-  
-  return (stream);
+
+    return (stream);
 }
 
 
 /**************************************************************************/
 
 /* void Functional_print (FILE *stream, tRecord *record, */
-/* 		       int k, float *coef) */
+/*                     int k, float *coef) */
 /* { */
 /*   int m; */
 
@@ -36,27 +36,26 @@ FILE* Create_file (char *name, char *suffix, char *message, int overwrite)
 /*   for (m = 0; m <= k; m ++) */
 /*     { */
 /*       if (record [m].size != 0) */
-/* 	{ */
-/* 	  fprintf (stream, "\n%12lu ", (unsigned long int) (pow (2, k - m))); */
-/* 	  fprintf (stream, "%12lu ", record [m].occupied); */
-/* 	  fprintf (stream, "           %6.3f ", record [m].log_reciprocal_size); */
-/* 	  fprintf (stream, "       %6.3f", record [m].log_occupied); */
-	  
-/* 	  /\* Fractal dimension only calculated for pairs */
-/* 	     of points... *\/ */
+/*      { */
+/*        fprintf (stream, "\n%12lu ", (unsigned long int) (pow (2, k - m))); */
+/*        fprintf (stream, "%12lu ", record [m].occupied); */
+/*        fprintf (stream, "           %6.3f ", record [m].log_reciprocal_size); */
+/*        fprintf (stream, "       %6.3f", record [m].log_occupied); */
 
-/* 	  if (m < k) */
-/* 	    fprintf (stream, "  %6.3f", record [m].d); */
-/* 	  else */
+/*        /\* Fractal dimension only calculated for pairs */
+/*           of points... *\/ */
 
-/* 	    /\* ...so skip the last one and print a dummy value *\/ */
+/*        if (m < k) */
+/*          fprintf (stream, "  %6.3f", record [m].d); */
+/*        else */
 
-/* 	    fprintf (stream, "  %6.3f", 99.999); */
-/* 	} */
+/*          /\* ...so skip the last one and print a dummy value *\/ */
+
+/*          fprintf (stream, "  %6.3f", 99.999); */
+/*      } */
 /*     } */
 /*   fflush (stream); */
 /* } */
 
 
 /**************************************************************************/
-

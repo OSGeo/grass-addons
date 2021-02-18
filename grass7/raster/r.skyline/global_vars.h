@@ -1,17 +1,19 @@
+
 /***********************************************************************/
 /*
-  global_vars.h
+   global_vars.h
 
-  Revised by Mark Lake, 28/07/20017, for r.skyline in GRASS 7.x
-  Revised by Mark Lake, 26/07/20017, for r.horizon in GRASS 7.x
-  Revised by Mark Lake, 16/07/2007, for r.horizon in GRASS 6.x
-  Written by Mark Lake, 15/07/2002, for r.horizon in GRASS 5.x
+   Revised by Mark Lake, 28/07/20017, for r.skyline in GRASS 7.x
+   Revised by Mark Lake, 26/07/20017, for r.horizon in GRASS 7.x
+   Revised by Mark Lake, 16/07/2007, for r.horizon in GRASS 6.x
+   Written by Mark Lake, 15/07/2002, for r.horizon in GRASS 5.x
 
-  NOTES
-  #define DEBUG in this file to enable debug functions in sort.c
-  list.c
+   NOTES
+   #define DEBUG in this file to enable debug functions in sort.c
+   list.c
 
-*/
+ */
+
 /***********************************************************************/
 
 
@@ -48,6 +50,5 @@ GLOBAL int e_col;
 GLOBAL int w_col;
 GLOBAL int n_row;
 GLOBAL int s_row;
-GLOBAL struct Cell_head window;   /* Region info used for sites 
-				     option */
-
+GLOBAL struct Cell_head window; /* Region info used for sites 
+                                   option */

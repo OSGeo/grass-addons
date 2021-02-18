@@ -1,13 +1,15 @@
+
 /***********************************************************************/
 /*
-  vector.h
+   vector.h
 
-  Revised by Mark Lake, 20/02/2018, for r.percolate in GRASS 7.x
-  Written by Mark Lake and Theo Brown
+   Revised by Mark Lake, 20/02/2018, for r.percolate in GRASS 7.x
+   Written by Mark Lake and Theo Brown
 
-  NOTES
+   NOTES
 
-*/
+ */
+
 /***********************************************************************/
 
 #include <stdlib.h>
@@ -31,8 +33,9 @@
 
 /***********************************************************************/
 /* Public functions                                                    */
+
 /***********************************************************************/
 
-long int read_input_vector (char*, char*);
-  
+long int read_input_vector(char *, char *);
+
 #endif

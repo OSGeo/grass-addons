@@ -1,13 +1,15 @@
+
 /***********************************************************************/
 /*
-  azimuth.h
+   azimuth.h
 
-  Revised by Mark Lake, 16/07/2007, for r.horizon in GRASS 6.x
-  Written by Mark Lake, 17/08/2000, for r.horizon in GRASS 5.x
+   Revised by Mark Lake, 16/07/2007, for r.horizon in GRASS 6.x
+   Written by Mark Lake, 17/08/2000, for r.horizon in GRASS 5.x
 
-  NOTES
+   NOTES
 
-*/
+ */
+
 /***********************************************************************/
 
 
@@ -17,9 +19,11 @@
 
 /***********************************************************************/
 /* Public functions                                                    */
+
 /***********************************************************************/
 
-void  calc_azimuth (int, int, int*, int*, double*, double*, double*, double*);
+void calc_azimuth(int, int, int *, int *, double *, double *, double *,
+                  double *);
 /* calc_azimuth (row, col, axis, quadrant, smallest azimuth, centre azimuth,
    largest azimuth, distance) */
 

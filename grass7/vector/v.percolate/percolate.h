@@ -1,13 +1,15 @@
+
 /***********************************************************************/
 /*
-  percolate.h
+   percolate.h
 
-  Revised by Mark Lake, 20/02/2018, for r.percolate in GRASS 7.x
-  Written by Mark Lake and Theo Brown
+   Revised by Mark Lake, 20/02/2018, for r.percolate in GRASS 7.x
+   Written by Mark Lake and Theo Brown
 
-  NOTES
+   NOTES
 
-*/
+ */
+
 /***********************************************************************/
 
 #include <stdlib.h>
@@ -32,9 +34,11 @@
 
 /***********************************************************************/
 /* Public functions                                                    */
+
 /***********************************************************************/
 
-void percolate (float, float, float, long int, char*, char*, int);
+void percolate(float, float, float, long int, char *, char *, int);
+
 /* void percolateOneDistance (mindist, interval, maxdist, numpoints, 
    text_file_name, group_text_file_name, Modulo) */
 #endif

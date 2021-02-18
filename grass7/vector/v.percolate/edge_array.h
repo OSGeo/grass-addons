@@ -1,13 +1,15 @@
+
 /***********************************************************************/
 /*
-  edge_array.h
+   edge_array.h
 
-  Revised by Mark Lake, 20/02/2018, for r.percolate in GRASS 7.x
-  Written by Mark Lake and Theo Brown
+   Revised by Mark Lake, 20/02/2018, for r.percolate in GRASS 7.x
+   Written by Mark Lake and Theo Brown
 
-  NOTES
+   NOTES
 
-*/
+ */
+
 /***********************************************************************/
 
 
@@ -30,19 +32,18 @@
 
 /***********************************************************************/
 /* Public functions                                                    */
+
 /***********************************************************************/
 
-edge* initialiseEdgeArray (long int);
-long int constructEdgeArray (edge*, float**, long int);
-void copyEdgeArrayItem (edge*, edge*);
-void printEdgeArrayWithNodeIndices (edge*, long int);
-void printEdgeArrayWithNodeCats (edge*, long int, node*);
-void printEdgeArrayWithNodeNames (edge*, long int, node*);
-void sortEdgeArray (edge*);
-/*void CSVoutput (node*, long int);*/
+edge *initialiseEdgeArray(long int);
+long int constructEdgeArray(edge *, float **, long int);
+void copyEdgeArrayItem(edge *, edge *);
+void printEdgeArrayWithNodeIndices(edge *, long int);
+void printEdgeArrayWithNodeCats(edge *, long int, node *);
+void printEdgeArrayWithNodeNames(edge *, long int, node *);
+void sortEdgeArray(edge *);
+
+/*void CSVoutput (node*, long int); */
 
 
 #endif
-
-
-
