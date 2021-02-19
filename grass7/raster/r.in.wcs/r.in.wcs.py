@@ -120,15 +120,6 @@ except ImportError:
     from http.client import HTTPException
 import subprocess
 
-try:
-    import lxml.etree as etree
-    LXML_AVAILABLE = True
-except ImportError:
-    # this fallback is not thoroughly tested but works when
-    # just starting the module and lxml is not available
-    import xml.etree.ElementTree as etree
-    LXML_AVAILABLE = False
-
 
 class WCSBase:
     def __init__(self):
@@ -468,6 +459,12 @@ class WCSGdalDrv(WCSBase):
 
 
 def main():
+
+    try:
+        import lxml.etree as etree
+    except ImportError:
+        grass.fatal("lxml Python library was not found. Please install it.")
+
     url = options['url']
     coverage = options['coverage']
     output = options['output']
@@ -479,10 +476,6 @@ def main():
     flag_c = flags['c']
 
     options['version'] = "1.0.0" # right now only supported version, therefore not in GUI
-
-    if not LXML_AVAILABLE:
-        grass.warning("The Python lxml is not installed."
-                      " The functionality may be limited.")
 
     grass.debug("Using GDAL WCS driver")
     wcs = WCSGdalDrv()  # only supported driver
