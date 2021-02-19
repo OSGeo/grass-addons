@@ -1,0 +1,178 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.skyline</em> takes a viewshed map as input and analyses the
+horizon.  It has two main functions:
+
+  <ol>
+    <li> Given 2 viewshed maps containing inclination values it can
+    determine whether the original viewpoint appears below, on, or
+    above the horizon when viewed from each cell that falls in the
+    viewshed (see below for important information about how the
+    viewsheds should be calculated in order to support this function);
+    <li> More generally, given any single viewshed map in which cells
+    are coded either NULL (not visible from the viewpoint) or non-NULL
+    (visible) it identifies cells that fall on 'near' or 'far'
+    horizons (see <b>edges</b>), and determines which of those cells
+    may not truly fall on the real horizon because they are on the
+    edge of the computational region or fall at the maximum viewing
+    distance specified when creating the original viewshed.
+  </ol>
+  
+<p><em>r.skyline</em> can output up to 5 raster maps and 1 plain text
+CSV file, as described here.
+
+<p>The <b>skyline_index</b> map records, for each cell in the
+viewshed, the difference between the inclination of the line-of-sight
+from that cell back towards the viewpoint and the inclination of the
+line-of-sight from the viewpoint towards the point on the horizon
+opposite the cell in question.  If this skyline index is positive,
+then the viewpoint would appear to be raised above the skyline,
+whereas if it is negative then it would appear below the skyline.
+This option requires two input viewshed maps, <b>viewshed</b>
+and <b>viewshed2</b>, which must both record inclination values (the
+default output from <em>r.viewshed</em> and the only ouput from the
+older <em>r.los</em>).  Note that the validity of the skyline index
+depends upon the user setting appropriate observer (viewpoint) and
+target offsets when creating the input viewsheds - see NOTES for
+important information about how to use this function.
+  
+<p>The <b>hoz_azimuth</b> map identifies the cells that fall on the
+horizon and records the azimuth at which they appear from the
+viewpoint. The horizon depicted on this map may include cells that
+occur at the maximum viewing distance from the viewpoint and/or at the
+edge of the current region.  Since such cells may not really represent
+the point beyond which no more land is visible it may be prudent,
+depending on the purpose of the analysis, to generate
+a <b>hoz_type</b> map.
+
+<p>The <b>hoz_inclination</b> map identifies the cells that fall on
+the horizon and records additional data derived from the input
+viewshed map.  If that map was computed with
+<em><a href="r.viewshed.html">r.viewshed</a></em> then
+the <b>hoz_inclination</b> map will record either the inclination
+(<em>r.viewshed</em> default), simply '1' meaning that the cell was
+visible (<em>r.viewshed</em> <b>-b</b> flag), or the elevation
+difference between the viewpoint and horizon cell
+(<em>r.viewshed</em> <b>-e</b> flag). If the input viewshed map was
+computed with the older<em><a href="r.los.html">r.los</a></em> then
+the <b>hoz_inclination</b> map will record the inclination at which
+the horizon cells appear from the viewpoint.  Note that in all cases
+the horizon depicted on this map may include cells that occur at the
+maximum viewing distance from the viewpoint and/or at the edge of the
+current region.  Since such cells may not really represent the point
+beyond which no more land is visible it may be prudent, depending on
+the purpose of the analysis, to generate a
+<b>hoz_type</b> map.
+
+<p>The <b>hoz_type</b> map records the kind of horizon represented by
+each horizon cell.  This distinguishes horizon cells as follows:
+  <ul>
+    <li>1 = cell falls on true far horizon;
+    <li>2 = cell falls at maximum viewing distance;
+    <li>3 = cell falls at edge of current region.
+    <li>NULL = cell does not fall on the horizon (or falls on the
+    original viewpoint).
+  </ul>
+
+<p>Note that type 1 horizon cells might not really fall on the true
+horizon if increasing the maximum viewing distance used when
+calculating the viewshed would also increase the viewshed size.  Type
+2 and 3 horizon cells might or might not fall on the true horizon -
+there is no way for this module to determine that.
+
+<p>The <b>edges</b> map records all viewshed edges, which may be of
+interest when the viewshed in not contiguous (i.e. there is more than
+one 'patch' of visible land).  In this case a marked cell may
+represent one of the following: the point at which land becomes
+visible; the point at which land becomes temporarily invisible before
+becoming visible again; the point beyond which no more land is
+visible.  We refer to case 2 as a 'near horizon' and case 3 as a 'far
+horizon'.  The <b>hoz_azimuth</b>, <b>hoz_type</b>
+and <b>hoz_inclination</b> maps, and the <b>profile</b> only record
+'far horizon' cells.  The <b>edges</b> map uses the same coding scheme
+as the
+<b>hoz_type</b> map.
+
+<p>The plain text CSV file <b>profile</b> records various properties
+of the 'far' horizon cells.  This is sorted by increasing azimuth, so
+is useful for plotting horizon profiles clockwise from North.
+
+  
+<h2>NOTES</h2>
+
+In order to use <em>r.skyline</em> it is necessary to know the
+coordinates of the viewpoint and the maximum viewing distance
+specified when computing the input viewshed(s).  <b>coordinate</b>
+and <b>max_dist</b> should be set to these values.
+
+<p>It is <i>important to understand</i> that the validity of the
+skyline index requires careful consideration of the observer
+(viewpoint) and target offsets used to create the two input viewshed
+maps.  <em>r.skyline</em> supports the use of 2 different viewshed
+maps to ensure that the correct inclination values are used for the
+horizon and line-of-sight back towards the 'viewpoint'. The following
+example explains how these may be used.  Suppose you wish to calculate
+the skyline index for all locations in the landscape from which a 3m
+high building is visible, in other words whether the top of that
+building appears above, on or below the horizon behind it.  There are
+three steps:
+<ol>
+  <li>Compute the viewshed that will be used to calculate the
+  inclination of the line-of-site to the horizon from the top of the
+  building (<b>viewshed</b>). This would be achieved by treating the
+  building as the viewpoint and setting the viewpoint offset (height
+  above the ground of the viewing position) to the height of the
+  building (3m) and the target offset (height above the ground of
+  whatever the viewer is looking at) to zero.
+  <li>Compute the viewshed that will be used to calculate the
+  inclination of the line-of-sight towards the building from all
+  locations from which it can be seen (<b>viewshed2</b>).  This would
+  be achieved by swapping appropriate viewpoint and target offsets to
+  ensure that the visibility module computes the correct
+  line-of-sight, so in this case we would set the viewpoint offset to
+  the height of the building (3m) and the target offset to the height
+  of a person looking at the building (say 1.75m).
+  <li>Finally, use <em>r.skyline</em> to compute the skyline index by
+  specifying <b>viewshed</b> and <b>viewshed2</b> as the input
+  viewsheds.  Be sure also to set <b>coordinate</b>
+  and <b>max_dist</b> to the values that were used to generate the two
+  input viewsheds.
+</ol>
+
+<p>The code does not deal with Lat/Long databases.
+
+<p>The module only runs when the current region has integer resolution
+(since the algorithm is not robust in cases where resolution is
+non-integer).
+
+
+<h2>REFERENCES</h2>
+
+  <ul>
+    <li>Harris, B. and Lake, M. (in prep.) The influence of visibility
+    on the territorial packing of Neolithic long barrows in central
+    southern England.  For submission to <i>Journal of Archaeological
+    Method and Theory</i>.
+  </ul>
+
+  
+<h2>SEE ALSO</h2>
+     
+<em><a href="r.bearing.distance.html">r.bearing.distance</a></em>, <em><a href="r.los.html">r.los</a></em>, <em><a href="r.viewshed.html">r.viewshed</a></em>.
+
+
+<h2>AUTHOR</h2>
+
+Mark Lake, UCL Institute of Archaeology, University College London, UK
+(the author).
+
+
+<h2>ACKNOWLEDGEMENTS</h2>
+
+Uses mergesort algorithm from R. Sedgewick, 1990, <i>Algorithms in
+C</i>, Reading, MA: Addison Wesley.
+
+<p>The skyline index emerged out of conversations with Barney Harris,
+UCL Institute of Archaeology, University College London, UK.
+
+
