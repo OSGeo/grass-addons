@@ -310,8 +310,11 @@ class WCSBase:
         cov_offering = []
         for label in root.iter('{*}CoverageOfferingBrief'):
             cov_offering.append(label.find('{*}name').text + " : " + label.find('{*}label').text)
-        grass.message("Available layers:")
-        grass.message('\n'.join(cov_offering))
+        if cov_offering:
+            grass.message("Available layers:")
+            grass.message("\n".join(cov_offering))
+        else:
+            grass.message("No layers available")
         self._debug("GetCapabilities", "finished")
 
 
