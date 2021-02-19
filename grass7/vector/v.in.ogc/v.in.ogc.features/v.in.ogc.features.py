@@ -53,7 +53,7 @@ def main():
     except:
         grass.fatal(
             _(
-                "OSWLib can not be found. Install OSWLib (http://geopython.github.com/OWSLib/)."
+                "OSWLib was not found. Install OSWLib (http://geopython.github.com/OWSLib/)."
             )
         )
 
