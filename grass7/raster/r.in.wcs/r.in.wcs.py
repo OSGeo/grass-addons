@@ -123,10 +123,15 @@ import subprocess
 
 class WCSBase:
     def __init__(self):
+        try:
+            import lxml.etree as etree
+        except ImportError:
+            grass.fatal("lxml Python library was not found. Please install it.")
         # these variables are information for destructor
         self.temp_files_to_cleanup = []
         self.params = {}
         self.temp_map = None
+        self.etree = etree
 
     def __del__(self):
 
@@ -297,7 +302,7 @@ class WCSBase:
         self._debug("GetCapabilities", "started")
 
         cap  = self._fetchCapabilities(options,flags)
-        root = etree.fromstringlist(cap.readlines())
+        root = self.etree.fromstringlist(cap.readlines())
         cov_offering = []
         for label in root.iter('{*}CoverageOfferingBrief'):
             cov_offering.append(label.find('{*}name').text + " : " + label.find('{*}label').text)
@@ -335,29 +340,29 @@ class WCSGdalDrv(WCSBase):
         """
         self._debug("_createXML", "started")
 
-        gdal_wcs = etree.Element("WCS_GDAL")
-        server_url = etree.SubElement(gdal_wcs, "ServiceUrl")
+        gdal_wcs = self.etree.Element("WCS_GDAL")
+        server_url = self.etree.SubElement(gdal_wcs, "ServiceUrl")
         server_url.text = self.params['url']
 
-        version = etree.SubElement(gdal_wcs, "Version")
+        version = self.etree.SubElement(gdal_wcs, "Version")
         version.text = self.params['version']
 
-        coverage = etree.SubElement(gdal_wcs, "CoverageName")
+        coverage = self.etree.SubElement(gdal_wcs, "CoverageName")
         coverage.text = self.params['coverage']
 
         if self.params['username']:
-            userpwd = etree.SubElement(gdal_wcs,'UserPwd')
+            userpwd = self.etree.SubElement(gdal_wcs,'UserPwd')
             userpwd.text = self.params['username']+':' + self.params['password']
 
         if self.params['crs']:
-            crs = etree.SubElement(gdal_wcs,'supportedCRSs')
+            crs = self.etree.SubElement(gdal_wcs,'supportedCRSs')
             crs.text = self.params['crs']
 
         xml_file = self._tempfile()
 
-        etree_gdal_wcs = etree.ElementTree(gdal_wcs)
+        etree_gdal_wcs = self.etree.ElementTree(gdal_wcs)
         grass.debug(etree_gdal_wcs)
-        etree.ElementTree(gdal_wcs).write(xml_file)
+        self.etree.ElementTree(gdal_wcs).write(xml_file)
 
         self._debug("_createXML", "finished -> %s" % xml_file)
 
@@ -459,20 +464,6 @@ class WCSGdalDrv(WCSBase):
 
 
 def main():
-
-    try:
-        import lxml.etree as etree
-    except ImportError:
-        grass.fatal("lxml Python library was not found. Please install it.")
-
-    url = options['url']
-    coverage = options['coverage']
-    output = options['output']
-    location = options['location']
-    region = options['region']
-    urlparams = options['urlparams']
-    username = options['username']
-    password = options['password']
     flag_c = flags['c']
 
     options['version'] = "1.0.0" # right now only supported version, therefore not in GUI
