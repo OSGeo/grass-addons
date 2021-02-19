@@ -52,7 +52,7 @@ def main():
     except:
         grass.fatal(
             _(
-                "OSWLib can not be found. Install OSWLib (http://geopython.github.com/OWSLib/)."
+                "OSWLib was not found. Install OSWLib (http://geopython.github.com/OWSLib/)."
             )
         )
 
@@ -77,7 +77,7 @@ def main():
         layer = feats.coverage(options["layer"])
     except Exception as e:
         grass.fatal(
-            _("Problem retriving data from the server. The error was: {}".format(e))
+            _("Problem retrieving data from the server. The error was: {}".format(e))
         )
     tmpfile = grass.tempfile()
     with open(tmpfile, "wb") as f:
