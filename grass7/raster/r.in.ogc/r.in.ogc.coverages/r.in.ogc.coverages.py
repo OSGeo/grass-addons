@@ -35,7 +35,7 @@ This program is free software under the GNU General Public License
 
 #%option G_OPT_R_OUTPUT
 #% description: Name for output raster map
-#% required: no 
+#% required: no
 #%end
 
 #%flag
@@ -45,11 +45,16 @@ This program is free software under the GNU General Public License
 import sys
 import grass.script as grass
 
+
 def main():
     try:
         from owslib.ogcapi.coverages import Coverages
     except:
-        grass.fatal(_("OSWLib can not be found. Install OSWLib (http://geopython.github.com/OWSLib/)."))
+        grass.fatal(
+            _(
+                "OSWLib can not be found. Install OSWLib (http://geopython.github.com/OWSLib/)."
+            )
+        )
 
     feats = Coverages(options["url"])
     collections = feats.coverages()
@@ -75,9 +80,10 @@ def main():
             _("Problem retriving data from the server. The error was: {}".format(e))
         )
     tmpfile = grass.tempfile()
-    with open(tmpfile, 'wb') as f:
+    with open(tmpfile, "wb") as f:
         f.write(layer.getbuffer())
-    grass.run_command('r.import', input=tmpfile, output=options["output"])
+    grass.run_command("r.import", input=tmpfile, output=options["output"])
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()
