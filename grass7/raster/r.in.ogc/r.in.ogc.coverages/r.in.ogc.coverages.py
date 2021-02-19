@@ -49,7 +49,7 @@ def main():
     try:
         from owslib.ogcapi.coverages import Coverages
     except:
-        grass.fatal(_("OSWLib can not be found. Install OSWLib (http://geopython.github.com/OWSLib/)."))
+        grass.fatal(_("OSWLib was not found. Install OSWLib (http://geopython.github.com/OWSLib/)."))
 
     feats = Coverages(options["url"])
     collections = feats.coverages()
