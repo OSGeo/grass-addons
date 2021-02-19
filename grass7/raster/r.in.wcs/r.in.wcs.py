@@ -124,6 +124,8 @@ except ImportError:
 
 
 class WCSBase:
+    """Base class tp get WCS layer"""
+
     def __init__(self):
         try:
             import lxml.etree as etree
@@ -144,6 +146,7 @@ class WCSBase:
             grass.try_remove(temp_file)
 
     def _debug(self, fun, msg):
+        """Print debug messages"""
         grass.debug("%s.%s: %s" % (self.__class__.__name__, fun, msg))
 
     def _initializeParameters(self, options, flags):
@@ -163,8 +166,8 @@ class WCSBase:
                 result = grass.find_file(name=self.params["output"], element="cell")
                 if result["file"]:
                     grass.fatal(
-                        "Raster map <%s> does already exist. Choose other output name or toggle flag --o."
-                        % self.params["output"]
+                        "Raster map <%s> does already exist. Choose other "
+                        "output name or toggle flag --o." % self.params["output"]
                     )
 
         for key in ["password", "username", "version", "region"]:
@@ -183,7 +186,7 @@ class WCSBase:
 
         # configure region extent (specified name or current region)
         self.params["region"] = self._getRegionParams(options["region"])
-        self.params["boundingbox"] = self._computeBbox(self.params["region"])
+        self.params["boundingbox"] = self._computeBbox()
         self.params["rimport"] = flags["r"]
         self._debug("_initializeParameters", "finished")
 
@@ -234,7 +237,7 @@ class WCSBase:
         self._debug("_computeBbox", "finished")
         return boundingbox
 
-    def GetMap(self, options, flags):
+    def getMap(self, options, flags):
         """!Download data from WCS server.
 
         @return mapname with downloaded data
@@ -246,11 +249,10 @@ class WCSBase:
 
         if p != 0:
             grass.fatal("Download or import of WCS data failed.")
-            return
 
         return self.params["output"]
 
-    def _fetchCapabilities(self, options, flags):
+    def _fetchCapabilities(self, options):
         """!Download capabilities from WCS server
 
         @return cap (instance of method _fetchDataFromServer)
@@ -312,13 +314,13 @@ class WCSBase:
 
         self._debug("_fetchDataFromServer", "finished")
 
-    def GetCapabilities(self, options, flags):
+    def getCapabilities(self, options, flags):
         """!Get capabilities from WCS server and print to stdout
 
         """
         self._debug("GetCapabilities", "started")
 
-        cap = self._fetchCapabilities(options, flags)
+        cap = self._fetchCapabilities(options)
         root = self.etree.fromstringlist(cap.readlines())
         cov_offering = []
         for label in root.iter("{*}CoverageOfferingBrief"):
@@ -351,6 +353,15 @@ class WCSBase:
 
 
 class WCSGdalDrv(WCSBase):
+    """Class for WCS GDAL using VirtulRaster"""
+
+    def __init__(self):
+        super(WCSGdalDrv, self).__init__()
+        self.out = ""
+        self.err = ""
+        self.xml_file = ""
+        self.vrt_file = ""
+
     def _createXML(self):
         """!Create XML for GDAL WCS driver
 
@@ -383,8 +394,7 @@ class WCSGdalDrv(WCSBase):
         self.etree.ElementTree(gdal_wcs).write(xml_file)
 
         self._debug("_createXML", "finished -> %s" % xml_file)
-        self.out = ""
-        self.err = ""
+
         return xml_file
 
     def _createVRT(self):
@@ -403,10 +413,10 @@ class WCSGdalDrv(WCSBase):
         command = [str(i) for i in command]
 
         grass.verbose(" ".join(command))
-        self.process = subprocess.Popen(
+        process = subprocess.Popen(
             command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
-        self.out, self.err = self.process.communicate()
+        self.out, self.err = process.communicate()
         self.out, self.err = grass.decode(self.out), grass.decode(self.err)
         grass.verbose(self.out)
 
@@ -505,11 +515,11 @@ def main():
     wcs = WCSGdalDrv()  # only supported driver
 
     if flag_c:
-        wcs.GetCapabilities(options, flags)
+        wcs.getCapabilities(options, flags)
 
     else:
         grass.message("Importing raster map into GRASS...")
-        fetched_map = wcs.GetMap(options, flags)
+        fetched_map = wcs.getMap(options, flags)
         if not fetched_map:
             grass.warning(
                 _("Nothing imported.\n Data not has been downloaded from wcs server.")
