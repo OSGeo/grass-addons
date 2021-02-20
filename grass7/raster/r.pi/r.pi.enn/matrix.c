@@ -35,11 +35,8 @@ int writeDistMatrixAndID(char *name, Coords ** frags, int count)
 	/* open the new cellfile */
 	out_fd = Rast_open_new(name, DCELL_TYPE);
 	if (out_fd < 0) {
-	    char msg[200];
-
-	    sprintf(msg, "can't create new cell file <%s> in mapset %s\n",
-		    name, mapset);
-	    G_fatal_error(msg);
+	    G_fatal_error(_("can't create new cell file <%s> in mapset %s\n"),
+                      name, G_mapset());
 	    res = 1;
 	}
 	else {
