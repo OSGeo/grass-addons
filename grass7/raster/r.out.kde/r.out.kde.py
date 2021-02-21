@@ -48,7 +48,6 @@ import os
 import tempfile
 import atexit
 import shutil
-from PIL import Image
 from math import exp
 import grass.script as gscript
 
@@ -63,6 +62,12 @@ def cleanup():
 
 
 def main(rinput, background, output, method):
+    try:
+        from PIL import Image
+    except ImportError:
+        gscript.fatal("Cannot import PIL."
+                      " Please install the Python pillow package.")
+
     if '@' in rinput:
         rinput = rinput.split('@')[0]
     suffix = '_' + os.path.basename(gscript.tempfile(False))

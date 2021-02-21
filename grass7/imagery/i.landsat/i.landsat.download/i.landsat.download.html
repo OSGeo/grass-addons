@@ -1,0 +1,108 @@
+<h2>DESCRIPTION</h2>
+
+<em>i.landsat.download</em> allows to search and download Landsat TM, ETM and OLI data
+from USGS <a href="https://earthexplorer.usgs.gov/">EarthExplorer</a> through
+the <a href="https://github.com/yannforget/landsatxplore">landsatxplore</a>
+Python library. Datasets currently supported include: Landsat 5 TM (LANDSAT_TM_C1),
+Landsat 7 ETM (LANDSAT_ETM_C1) and Landsat 8 OLI (LANDSAT_8_C1) from
+<a href="https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-1?qt-science_support_page_related_con=1#qt-science_support_page_related_con">Collection 1</a>.
+
+<p>
+To connect to EarthExplorer both a <em>user</em> name and <em>password</em>
+are required. See the <a href="https://ers.cr.usgs.gov/register">register</a>
+page for signing up.
+
+<p>
+<em>i.landsat.download</em> reads the user credentials either from the
+terminal or from the <b>settings</b> file. This file must contain two
+lines:
+
+<div class="code"><pre>
+myusername
+mypassword
+</pre></div>
+
+<p>
+User credentials can be also defined interactively when <b>settings=-</b>
+is given. Note that interactive prompt does not work in the graphical
+user interface.
+
+<div class="code"><pre>
+Insert username: myusername
+Insert password:
+</pre></div>
+
+<p>
+By default, only products which footprint intersects current computation
+region extent (area of interest, AOI) are filtered. The AOI can be optionally
+defined by a vector <b>map</b>. In this case, the vector extent will
+be used as AOI.
+
+<p>
+To only list available scenes, <b>l</b> flag must be set. If no <b>start</b>
+or <b>end</b> dates are provided, the module will search scenes from the
+past 60 days.
+
+<p>
+To download all scenes found within the time frame provided, the user must
+remove the <b>l</b> flag and provide an <b>output</b> directory. Otherwise,
+files will be downloaded into <em>/tmp</em> directory.
+To download only selected scenes, one or more IDs must be provided
+through the <b>id</b> option, along with the <b>settings</b> file and an
+<b>output</b> directory.
+
+<h2>EXAMPLES</h2>
+
+Search available scenes:
+
+<div class="code"><pre>
+i.landsat.download -l settings=credentials.txt \
+    dataset=LANDSAT_8_C1 clouds=15 \
+    start='2018-08-24' end='2018-12-21'
+<pre></div>
+
+Download all available scenes:
+
+<div class="code"><pre>
+i.landsat.download settings=credentials.txt \
+    dataset=LANDSAT_8_C1 clouds=15 \
+    start='2018-08-24' end='2018-12-21'
+<pre></div>
+
+Download selected scenes by ID:
+
+<div class="code"><pre>
+i.landsat.download settings=credentials.txt \
+    id=LC81391162018338LGN00,LC81301172018339LGN00 \
+    output=/tmp
+<pre></div>
+
+<h2>REQUIREMENTS</h2>
+
+<ul>
+    <li><a href="https://github.com/yannforget/landsatxplore">landsatxplore library</a> (install with <code>pip install landsatxplore</code>)</li>
+</ul>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="i.landsat.html">Overview of i.landsat tools</a>
+</em>
+<p>
+<em>
+<a href="i.landsat.import.html">i.landsat.import</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/i.landsat.toar.html">i.landsat.toar</a>
+</em>
+<p>
+<em>
+<a href="https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-1?qt-science_support_page_related_con=1#qt-science_support_page_related_con">Landsat Collection 1 info</a>
+</em>
+
+<h2>AUTHOR</h2>
+
+<a href="https://veroandreo.gitlab.io/" target="_blank">Veronica Andreo</a>, CONICET, Argentina.
+
+<!--
+<p>
+<i>Last changed: $Date$</i>
+-->

@@ -70,15 +70,15 @@ def main():
     # define variables
     #
 
-    overwrite   = False
-    mapset      = options['mapset'] # prefix for copied maps
-    datatype    = options['datatype'] # prefix for copied maps
-    filter      = options['filter'] # prefix for copied maps
+    overwrite = False
+    mapset = options['mapset'] # prefix for copied maps
+    datatype = options['datatype'] # prefix for copied maps
+    filter = options['filter'] # prefix for copied maps
     filter_type = options['filter_type'] # prefix for copied maps
-    prefix      = options['output_prefix'] # prefix for copied maps
-    datalist    = []  # list of GRASS data files to copy
-    input       = ''
-    output      = ''
+    prefix = options['output_prefix'] # prefix for copied maps
+    datalist = []  # list of GRASS data files to copy
+    input = ''
+    output = ''
     if grass.overwrite():
         overwrite = True
 

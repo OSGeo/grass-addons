@@ -100,7 +100,7 @@ class BufferedWindow2(MapWindow, wx.Window):
 
         # render output objects
         self.mapfile = None   # image file to be rendered
-        self.img     = None   # wx.Image object (self.mapfile)
+        self.img = None   # wx.Image object (self.mapfile)
         # decoration overlays
         self.overlays = overlays
         # images and their PseudoDC ID's for painting and dragging
@@ -110,10 +110,10 @@ class BufferedWindow2(MapWindow, wx.Window):
         self.currtxtid = None # PseudoDC id for currently selected text
 
         # zoom objects
-        self.zoomhistory  = [] # list of past zoom extents
-        self.currzoom     = 0  # current set of extents in zoom history being used
-        self.zoomtype     = 1  # 1 zoom in, 0 no zoom, -1 zoom out
-        self.hitradius    = 10 # distance for selecting map decorations
+        self.zoomhistory = [] # list of past zoom extents
+        self.currzoom = 0  # current set of extents in zoom history being used
+        self.zoomtype = 1  # 1 zoom in, 0 no zoom, -1 zoom out
+        self.hitradius = 10 # distance for selecting map decorations
         self.dialogOffset = 5  # offset for dialog (e.g. DisplayAttributesDialog)
 
         # OnSize called to make sure the buffer is initialized.
@@ -131,8 +131,8 @@ class BufferedWindow2(MapWindow, wx.Window):
         self.Bind(wx.EVT_ERASE_BACKGROUND, lambda x:None)
 
         # vars for handling mouse clicks
-        self.dragid   = -1
-        self.lastpos  = (0, 0)
+        self.dragid = -1
+        self.lastpos = (0, 0)
 
         # list for registration of graphics to draw
         self.graphicsSetList = []
@@ -864,7 +864,7 @@ class BufferedWindow2(MapWindow, wx.Window):
         if begin is None:
             begin = self.mouse['begin']
         if end is None:
-            end   = self.mouse['end']
+            end = self.mouse['end']
 
         Debug.msg (5, "BufferedWindow2.MouseDraw(): use=%s, box=%s, begin=%f,%f, end=%f,%f" %
                        (self.mouse['use'], self.mouse['box'],
@@ -983,7 +983,7 @@ class BufferedWindow2(MapWindow, wx.Window):
         if zoomtype > 0:
             begin = (position[0] - self.Map.width / 4,
                      position[1] - self.Map.height / 4)
-            end   = (position[0] + self.Map.width / 4,
+            end = (position[0] + self.Map.width / 4,
                      position[1] + self.Map.height / 4)
         else:
             begin = ((self.Map.width - position[0]) / 2,
@@ -1051,7 +1051,7 @@ class BufferedWindow2(MapWindow, wx.Window):
             return
 
         self.processMouse = False
-        current  = event.GetPositionTuple()[:]
+        current = event.GetPositionTuple()[:]
         wheel = event.GetWheelRotation()
         Debug.msg (5, "BufferedWindow2.MouseAction(): wheel=%d" % wheel)
 
@@ -1089,7 +1089,7 @@ class BufferedWindow2(MapWindow, wx.Window):
         """!Mouse dragging
         """
         Debug.msg (5, "BufferedWindow2.MouseAction(): Dragging")
-        current  = event.GetPositionTuple()[:]
+        current = event.GetPositionTuple()[:]
         previous = self.mouse['begin']
         move = (current[0] - previous[0],
                 current[1] - previous[1])
@@ -1270,7 +1270,7 @@ class BufferedWindow2(MapWindow, wx.Window):
                      hasattr(self, "digit")):
                # select overlay decoration options dialog
             clickposition = event.GetPositionTuple()[:]
-            idlist  = self.pdc.FindObjects(clickposition[0], clickposition[1], self.hitradius)
+            idlist = self.pdc.FindObjects(clickposition[0], clickposition[1], self.hitradius)
             if idlist == []:
                 return
             self.dragid = idlist[0]
@@ -1325,7 +1325,7 @@ class BufferedWindow2(MapWindow, wx.Window):
 
         # set region in zoom or pan
         begin = self.mouse['begin']
-        end   = self.mouse['end']
+        end = self.mouse['end']
 
         self.Zoom(begin, end, 0) # no zoom
 
@@ -1416,7 +1416,7 @@ class BufferedWindow2(MapWindow, wx.Window):
         w = self.Map.region["center_easting"] - (self.Map.width / 2) * res
         n = self.Map.region["center_northing"] + (self.Map.height / 2) * res
 
-        east  = w + x * res
+        east = w + x * res
         north = n - y * res
 
         return (east, north)
@@ -1425,7 +1425,7 @@ class BufferedWindow2(MapWindow, wx.Window):
         """!Convert real word coordinates to image coordinates
         """
         try:
-            east  = float(east)
+            east = float(east)
             north = float(north)
         except:
             return None
@@ -1438,7 +1438,7 @@ class BufferedWindow2(MapWindow, wx.Window):
         w = self.Map.region["center_easting"] - (self.Map.width / 2) * res
         n = self.Map.region["center_northing"] + (self.Map.height / 2) * res
 
-        x = (east  - w) / res
+        x = (east - w) / res
         y = (n - north) / res
 
         return (x, y)
@@ -1466,8 +1466,8 @@ class BufferedWindow2(MapWindow, wx.Window):
             # zoom out
             elif zoomtype < 0:
                 newreg['w'], newreg['n'] = self.Pixel2Cell((-x1 * 2, -y1 * 2))
-                newreg['e'], newreg['s'] = self.Pixel2Cell((self.Map.width  + 2 *
-                                                                (self.Map.width  - x2),
+                newreg['e'], newreg['s'] = self.Pixel2Cell((self.Map.width + 2 *
+                                                                (self.Map.width - x2),
                                                             self.Map.height + 2 *
                                                                 (self.Map.height - y2)))
         # pan
@@ -1478,7 +1478,7 @@ class BufferedWindow2(MapWindow, wx.Window):
                 dx = x1 - self.Map.width / 2
                 dy = y1 - self.Map.height / 2
             newreg['w'], newreg['n'] = self.Pixel2Cell((dx, dy))
-            newreg['e'], newreg['s'] = self.Pixel2Cell((self.Map.width  + dx,
+            newreg['e'], newreg['s'] = self.Pixel2Cell((self.Map.width + dx,
                                                         self.Map.height + dy))
 
         # if new region has been calculated, set the values
@@ -1814,7 +1814,7 @@ class BufferedWindow2(MapWindow, wx.Window):
             e1, n1 = beginpt
             e2, n2 = endpt
 
-        dEast  = (e2 - e1)
+        dEast = (e2 - e1)
         dNorth = (n2 - n1)
 
         if self.frame.Map.projinfo['proj'] == 'll' and haveCtypes:
@@ -1896,9 +1896,9 @@ class GraphicsSet:
         # list contains instances of GraphicsSetItem
         self.itemsList = []
 
-        self.properties    = {}
-        self.graphicsType  = graphicsType
-        self.parentMapWin  = parentMapWin
+        self.properties = {}
+        self.graphicsType = graphicsType
+        self.parentMapWin = parentMapWin
         self.setStatusFunc = setStatusFunc
 
         if drawFunc:
@@ -1933,7 +1933,7 @@ class GraphicsSet:
                 itemOrderNum += 1
                 continue
 
-            if self.graphicsType  == "point":
+            if self.graphicsType == "point":
                 if item.GetPropertyVal("penName"):
                     self.parentMapWin.pen = self.pens[item.GetPropertyVal("penName")]
                 else:

@@ -5,7 +5,7 @@ from math import sin, cos, atan2, degrees, tan, sqrt
 from datetime import datetime
 from datetime import timedelta
 import shutil
-import psycopg2
+import importlib
 import time
 import math
 import sys
@@ -16,7 +16,6 @@ from pgwrapper      import pgwrapper as pg
 from core.gcmd      import RunCommand
 from grass.pygrass.modules import Module
 import grass.script as grass
-import numpy as np
 from mw_util import *
 
 timeMes = MeasureTime()
@@ -24,6 +23,13 @@ import logging
 logger = logging.getLogger('mwprecip.Computing')
 
 class PointInterpolation():
+    try:
+        psycopg2 = importlib.import_module('psycopg2')
+    except ModuleNotFoundError as e:
+        msg = e.msg
+        grass.fatal(_("Unable to load python <{0}> lib (requires lib "
+                      "<{0}> being installed).".format(msg.split("'")[-2])))
+
     def __init__(self, database, step, methodDist=False):
         timeMes.timeMsg("Interpolating points along lines...")
         self.step = float(step)
@@ -523,6 +529,13 @@ class TimeWindows():
         grass.warning(msg)
 
 class Computor():
+    try:
+        np = importlib.import_module('numpy')
+    except ModuleNotFoundError as e:
+        msg = e.msg
+        grass.fatal(_("Unable to load python <{0}> lib (requires lib "
+                      "<{0}> being installed).".format(msg.split("'")[-2])))
+
     def __init__(self, baseline, timeWin, database, exportData):
         self.awConst = baseline.aw
         self.database = database
@@ -851,9 +864,9 @@ class Computor():
             Returns the q'th percentile of the distribution given in the argument
             'data'. Uses the 'precision' parameter to control the noise level.
             """
-            #data = np.random.normal(size=2000000)
+            #data = self.np.random.normal(size=2000000)
             q = float(q)/100
-            N, bins = np.histogram(data, bins=precision*np.sqrt(len(data)))
+            N, bins = self.np.histogram(data, bins=precision*self.np.sqrt(len(data)))
             norm_cumul = 1.0*N.cumsum() / len(data)
             ret = bins[norm_cumul > q][0]
            # print "error in  %s quantile"%q, ((1.0*(data < ret).sum() / len(data)) -q)
@@ -869,12 +882,12 @@ class Computor():
                 linkid = linkid[0]
                 sql = "SELECT a from %s where linkid=%s" % (recordTable, linkid)
                 resu = database.connection.executeSql(sql, True, True)
-                data = np.array(resu)
+                data = self.np.array(resu)
                 #data=[item for sublist in data for item in sublist]#merge lists
                 #print data
                 #quantileRes=Quantile(data, baseline.quantile)
 
-                quantileRes = np.percentile(data, (100-float(baseline.quantile))/100)
+                quantileRes = self.np.percentile(data, (100-float(baseline.quantile))/100)
                 tmp.append(str(linkid) + ',' + str(quantileRes) + '\n')
             io0 = open(os.path.join(database.pathworkSchemaDir, "baseline"), 'w+')
             io0.writelines(tmp)
@@ -1433,7 +1446,7 @@ class Database():
         '''
 
     def grassConnectionRemote(self):
-        self.dbConnStr  = self.dbName
+        self.dbConnStr = self.dbName
 
         if self.user and not self.password:
             grass.run_command('db.login',
@@ -1495,7 +1508,7 @@ class Database():
                 conninfo['port'] = self.port
             self.connection = pg(**conninfo)
 
-        except psycopg2.OperationalError as e:
+        except self.psycopg2.OperationalError as e:
             grass.warning("Unable to connect to the database <%s>. %s" % (self.dbName, e))
 
     def firstPreparation(self):

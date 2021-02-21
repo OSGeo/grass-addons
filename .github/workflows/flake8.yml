@@ -1,0 +1,64 @@
+name: Python Flake8 Code Quality
+
+on:
+- push
+- pull_request
+
+jobs:
+
+  flake8-grass7-scripts:
+    name: ${{ matrix.directory }}
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        directory:
+        - grass7/db
+        - grass7/display
+        - grass7/general
+        - grass7/imagery
+        - grass7/misc
+        - grass7/raster
+        - grass7/raster3d
+        - grass7/temporal
+        - grass7/tools
+        - grass7/vector
+      fail-fast: false
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - name: Install
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8==3.8.4
+
+    - name: Run Flake8 in ${{ matrix.directory }}
+      run: |
+        cd ${{ matrix.directory }}
+        flake8 --config=../.flake8 --count --statistics --show-source --jobs=$(nproc) .
+
+
+  flake8-gui-wxgui:
+    name: grass7/gui
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - name: Install
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8==3.8.4
+    - name: Run Flake8
+      # use own local flake8 settings file
+      run: |
+        cd grass7/gui/wxpython/
+        flake8 --config=./.flake8 --count --statistics --show-source --jobs=$(nproc) .

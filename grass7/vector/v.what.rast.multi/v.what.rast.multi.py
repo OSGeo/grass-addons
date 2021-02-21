@@ -145,13 +145,13 @@ def main():
 
         # Sample using v.what.rast
         v.what_rast(
-          map=vmap,
-          layer=layer,
-          type=vtype,
-          raster=r,
-          column=c,
-          where=where,
-          flags=fl
+            map=vmap,
+            layer=layer,
+            type=vtype,
+            raster=r,
+            column=c,
+            where=where,
+            flags=fl
         )
 
     return 0

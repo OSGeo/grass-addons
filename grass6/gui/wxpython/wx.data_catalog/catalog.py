@@ -139,9 +139,9 @@ class DataCatalog(GMFrame):
 
         wx.Frame.__init__(self, parent, id, title, pos=pos, size=size)
         self.SetName("LayerManager")
-        
+
         self._auimgr=wx.aui.AuiManager(self)
- 
+
         self.gisbase  = os.getenv("GISBASE")
         self.gisrc  = self.read_gisrc()
         self.viewInfo = True        #to display v/r.info on mapdisplay
@@ -166,7 +166,7 @@ class DataCatalog(GMFrame):
         self.dialogs['atm'] = list()
 
         #print os.getenv("integrated-gui")
-        
+
         # creating widgets
         if grassversion.rfind("6.4") != 0:
             self.menubar = menu.Menu(parent = self, data = menudata.ManagerData())
@@ -221,7 +221,7 @@ class DataCatalog(GMFrame):
         self.cb_loclist = []
         self.cb_maplist = []
         self.cb_mapfile = []
-        
+
         #creating controls
 
         self.mInfo = wx.TextCtrl(self.cmbPanel, wx.ID_ANY, style = wx.TE_READONLY,size=(300,30))
@@ -229,7 +229,7 @@ class DataCatalog(GMFrame):
         # start radiobutton to activate - deactivate the mouse actions to send position to ossimplanet
         #
         self.options = ['on', 'off']
-        self.radiobox = wx.RadioBox(self.cmbPanel, wx.ID_ANY,  choices=self.options, style=wx.HORIZONTAL)
+        self.radiobox = wx.RadioBox(self.cmbPanel, wx.ID_ANY, choices=self.options, style=wx.HORIZONTAL)
         self.radiobox.SetSelection(1)
         self.treeExpand = wx.CheckBox(self.cmbPanel, wx.ID_ANY,"Expand All", wx.DefaultPosition, wx.DefaultSize)
         self.cmbLocation = wx.ComboBox(self.cmbPanel, value = "Select Location",size=wx.DefaultSize, choices=self.loclist)
@@ -240,12 +240,12 @@ class DataCatalog(GMFrame):
 
         self.notebook  = self.__createNoteBook()
         self.curr_page = self.notebook.GetCurrentPage()    
- 
+
 
         self.cmbLocation.SetValue(grass.gisenv()['LOCATION_NAME'])
         self.cmbMapset.SetValue(grass.gisenv()['MAPSET'])
 
-        
+
         self.doBindings()
         self.doLayout()
 
@@ -265,7 +265,7 @@ class DataCatalog(GMFrame):
             else:
                 message = _("Do you want to store current settings "
                             "to workspace file?")
-            
+
             # ask user to save current settings
             if maptree.GetCount() > 0:
                 dlg = wx.MessageDialog(self,
@@ -284,7 +284,7 @@ class DataCatalog(GMFrame):
                     dlg.Destroy()
                     return
                 dlg.Destroy()
-        
+
         # don't ask any more...
         UserSettings.Set(group = 'manager', key = 'askOnQuit', subkey = 'enabled',
                          value = False)
@@ -293,10 +293,10 @@ class DataCatalog(GMFrame):
             self.gm_cb.GetPage(0).maptree.mapdisplay.OnCloseWindow(event)
 
         self.gm_cb.DeleteAllPages()
-        
+
         self._auimgr.UnInit()
         self.Destroy()
-        
+
 
 
     def __createNoteBook(self):
@@ -307,19 +307,19 @@ class DataCatalog(GMFrame):
             FN.FNB_BOTTOM | \
             FN.FNB_NO_NAV_BUTTONS | \
             FN.FNB_NO_X_BUTTON
-        
+
 
         self.disp_idx = -1
-  
+
 
         # create displays notebook widget and add it to main notebook page
         cbStyle = globalvar.FNPageStyle
         self.notebook = FN.FlatNotebook(parent=self, id=wx.ID_ANY, style=cbStyle)
-        
+
         self.notebook.SetTabAreaColour(globalvar.FNPageColor)
 
         self.pg_panel = MapFrame(parent=self.notebook, id=wx.ID_ANY, Map=render.Map(), size=globalvar.MAP_WINDOW_SIZE,flag=False,frame=self)
-        
+
         self.disp_idx = self.disp_idx + 1
         self.notebook.AddPage(self.pg_panel, text="Display "+ str(self.disp_idx), select = True)
 
@@ -332,8 +332,8 @@ class DataCatalog(GMFrame):
 
         return self.notebook
 
-        
- 
+
+
     def NewDisplay(self, show=True):
         """!Create new layer tree, which will
         create an associated map display frame
@@ -343,10 +343,10 @@ class DataCatalog(GMFrame):
         @return reference to mapdisplay intance
         """
         Debug.msg(1, "GMFrame.NewDisplay(): idx=%d" % self.disp_idx)
-        
+
         self.disp_idx = self.disp_idx + 1
-        
-        self.page = MapFrame(parent=self.notebook, id=wx.ID_ANY, Map=render.Map(),  size=globalvar.MAP_WINDOW_SIZE,frame=self)
+
+        self.page = MapFrame(parent=self.notebook, id=wx.ID_ANY, Map=render.Map(), size=globalvar.MAP_WINDOW_SIZE,frame=self)
         self.notebook.InsertPage(self.disp_idx,self.page, text="Display "+ str(self.disp_idx), select = True)
 
     def OnCloseWindow(self, event):
@@ -355,7 +355,7 @@ class DataCatalog(GMFrame):
             self._auimgr.UnInit()
             self.Destroy()
             return
-        
+
         maptree = self.curr_page.maptree
         if self.workspaceChanged and \
                 UserSettings.Get(group='manager', key='askOnQuit', subkey='enabled'):
@@ -364,7 +364,7 @@ class DataCatalog(GMFrame):
             else:
                 message = _("Do you want to store current settings "
                             "to workspace file?")
-            
+
             # ask user to save current settings
             if maptree.GetCount() > 0:
                 dlg = wx.MessageDialog(self,
@@ -383,7 +383,7 @@ class DataCatalog(GMFrame):
                     dlg.Destroy()
                     return
                 dlg.Destroy()
-        
+
         # don't ask any more...
         UserSettings.Set(group = 'manager', key = 'askOnQuit', subkey = 'enabled',
                          value = False)
@@ -392,7 +392,7 @@ class DataCatalog(GMFrame):
             self.notebook.GetPage(0).maptree.mapdisplay.OnCloseWindow(event)
 
         self.notebook.DeleteAllPages()
-        
+
         self._auimgr.UnInit()
         self.Destroy()
 
@@ -401,25 +401,25 @@ class DataCatalog(GMFrame):
         Create the tree nodes based on selected location and mapset.
         Also update gisrc and grassrc files.
         """
-       
+
         self.page = self.notebook.GetCurrentPage()
-       
+
         self.gisrc['LOCATION_NAME'] = str(self.cmbLocation.GetValue())
         self.gisrc['MAPSET'] = str(self.cmbMapset.GetValue())
         self.update_grassrc(self.gisrc)
-        
+
 
         self.page = self.notebook.GetPage(self.notebook.GetSelection())
         self.page.Map.__init__()	
         self.page.Map.region = self.page.Map.GetRegion()
-        
+
         if grassversion != "6.4.0svn":
             self.page.Map.projinfo = self.page.Map._projInfo()
         else:
             self.page.Map.projinfo = self.page.Map.ProjInfo()
 
         self.page.Map.wind = self.page.Map.GetWindow()
-        
+
         if self.locationchange == True:
             self.cb_loclist.append( str(self.cmbLocation.GetValue()) )
             self.cb_maplist.append( str(self.cmbMapset.GetValue()) )
@@ -434,7 +434,7 @@ class DataCatalog(GMFrame):
 
         maplists = self.GetMapsets(self.cmbLocation.GetValue())
         for mapsets in maplists:
-	        self.cmbMapset.Append(str(mapsets))
+            self.cmbMapset.Append(str(mapsets))
 
     def GetMapsets(self,location):
         """
@@ -443,32 +443,32 @@ class DataCatalog(GMFrame):
 
         maplist = []
         for mapset in glob.glob(os.path.join(self.gisdbase, location, "*")):
-	        if os.path.isdir(mapset) and os.path.isfile(os.path.join(self.gisdbase, location, mapset, "WIND")):
-		        maplist.append(os.path.basename(mapset))
+            if os.path.isdir(mapset) and os.path.isfile(os.path.join(self.gisdbase, location, mapset, "WIND")):
+                maplist.append(os.path.basename(mapset))
         return maplist
 
     def GetLocations(self):
-	    """
-	    Read and returns all locations int GRASS data directory.
-	    """
-	    loclist = []
-	    for location in glob.glob(os.path.join(self.gisdbase, "*")):
-		    if os.path.join(location, "PERMANENT") in glob.glob(os.path.join(location, "*")):
-			    loclist.append(os.path.basename(location))
-	    return loclist
+        """
+        Read and returns all locations int GRASS data directory.
+        """
+        loclist = []
+        for location in glob.glob(os.path.join(self.gisdbase, "*")):
+            if os.path.join(location, "PERMANENT") in glob.glob(os.path.join(location, "*")):
+                loclist.append(os.path.basename(location))
+        return loclist
 
 
     def doBindings(self):
-        
-	    #Event bindings for combo boxes
+
+        #Event bindings for combo boxes
         self.Bind(wx.EVT_COMBOBOX,self.OnMapsetChange,self.cmbMapset)
         self.Bind(wx.EVT_COMBOBOX,self.OnLocationChange,self.cmbLocation)
-        self.Bind(wx.EVT_CLOSE,    self.OnCloseWindow)
+        self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
 
- 
+
     def doLayout(self):
 
-	    #combo panel sizers
+        #combo panel sizers
         self.cmbSizer.Add(self.cmbLocation)
         self.cmbSizer.Add(self.cmbMapset)
         self.cmbSizer.Add(self.mInfo)
@@ -482,24 +482,24 @@ class DataCatalog(GMFrame):
 
 
     def read_gisrc(self):
-	    """
-	    Read variables gisrc file
-	    """
+        """
+        Read variables gisrc file
+        """
 
-	    rc = {}
+        rc = {}
 
-	    gisrc = os.getenv("GISRC")
+        gisrc = os.getenv("GISRC")
 
-	    if gisrc and os.path.isfile(gisrc):
-		    try:
-			    f = open(gisrc, "r")
-			    for line in f.readlines():
-				    key, val = line.split(":", 1)
-				    rc[key.strip()] = val.strip()
-		    finally:
-			    f.close()
+        if gisrc and os.path.isfile(gisrc):
+            try:
+                f = open(gisrc, "r")
+                for line in f.readlines():
+                    key, val = line.split(":", 1)
+                    rc[key.strip()] = val.strip()
+            finally:
+                f.close()
 
-	    return rc
+        return rc
 
     def update_grassrc(self,gisrc):
         """
@@ -519,33 +519,33 @@ class DataCatalog(GMFrame):
 
         if rc and os.path.isfile(rc):
             try:
-	            f = open(rc, 'w')
-	            for key, val in gisrc.iteritems():
-	                f.write("%s: %s\n" % (key, val))
+                f = open(rc, 'w')
+                for key, val in gisrc.iteritems():
+                    f.write("%s: %s\n" % (key, val))
             finally:
-	            f.close()
+                f.close()
 
         if grassrc and os.path.isfile(grassrc):
             try:
-	            g = open(grassrc, 'w')
-	            for key, val in gisrc.iteritems():
-	                g.write("%s: %s\n" % (key, val))
+                g = open(grassrc, 'w')
+                for key, val in gisrc.iteritems():
+                    g.write("%s: %s\n" % (key, val))
             finally:
-	                g.close()
+                g.close()
 
 
 
 #End of DataCatalog class
 
 
-    
+
 class CatalogApp(wx.App):
 
     def OnInit(self):
         self.catalog = DataCatalog()
         self.catalog.Show()
         self.catalog.Maximize()
-	return 1
+        return 1
 
 
 # end of class MapApp
@@ -559,13 +559,13 @@ if __name__ == "__main__":
     #print gc.garbage
     #gc.collect()
 
-    
+
     g_catalog = CatalogApp(0)
 
     g_catalog.MainLoop()
 
     #sys.exit(0)	
-    
+
 
 
 

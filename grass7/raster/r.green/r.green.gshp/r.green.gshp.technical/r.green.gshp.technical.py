@@ -28,7 +28,7 @@
 ##
 #%option G_OPT_R_INPUT
 #% key: ground_conductivity
-#% description: Raster with depth-averaged ground thermal conductivity λ [W m-1 K-1]
+#% description: Raster with depth-averaged ground thermal conductivity lambda [W m-1 K-1]
 #% required: yes
 #%end
 
@@ -57,7 +57,7 @@
 
 #%option G_OPT_R_INPUT
 #% key: ground_temp_rast
-#% description: Raster with the initial ground temperature T0 [°C]
+#% description: Raster with the initial ground temperature T0 [degrees C]
 #% required: no
 #% guisection: Ground
 #%end
@@ -65,7 +65,7 @@
 #% key: ground_temp_value
 #% type: double
 #% key_desc: double
-#% description: Value with the initial ground temperature T0 [°C]
+#% description: Value with the initial ground temperature T0 [degrees C]
 #% required: no
 #% answer: 10.
 #% guisection: Ground
@@ -148,7 +148,7 @@
 #% key: fluid_inlettemp
 #% type: double
 #% key_desc: double
-#% description: Inlet temperature  [°C]
+#% description: Inlet temperature  [degrees C]
 #% required: no
 #% answer: 2.
 #% guisection: Fluid
@@ -329,7 +329,7 @@ def main(opts, flgs):
         thermal conductivity
     ground_diffusivity: α [m2 day-1]
         thermal diffusivity
-    ground_temperature: Tg [°C]
+    ground_temperature: Tg [degrees C]
         Undisturbed ground temperature
     g_loads_6h [W]
         Peak of 6 hours ground load
@@ -341,7 +341,7 @@ def main(opts, flgs):
         Thermal heat capacity of the fluid
     fluid_massflow: mfls [kg s-1 kW-1]
         total mass flow rate per kW of peak hourly ground load
-    fluid_inlettemp: TinHP [°C]
+    fluid_inlettemp: TinHP [degrees C]
         max/min heat pump inlet temperature
     bh_radius: radius [m]
         borehole radius

@@ -202,70 +202,70 @@
 #%option
 #% key: price_energy_woodchips
 #% type: double
-#% description: Price for energy from woodchips €/MWh
+#% description: Price for energy from woodchips EUR/MWh
 #% answer: 19.50
 #% guisection: Prices
 #%end
 #%option
 #% key: cost_chainsaw
 #% type: double
-#% description: Felling and/or felling-processing cost with chainsaw €/h
+#% description: Felling and/or felling-processing cost with chainsaw EUR/h
 #% answer: 13.17
 #% guisection: Costs
 #%end
 #%option
 #% key: cost_processor
 #% type: double
-#% description: Processing cost with processor €/h
+#% description: Processing cost with processor EUR/h
 #% answer: 87.42
 #% guisection: Costs
 #%end
 #%option
 #% key: cost_harvester
 #% type: double
-#% description: Felling and processing cost with harvester €/h
+#% description: Felling and processing cost with harvester EUR/h
 #% answer: 96.33
 #% guisection: Costs
 #%end
 #%option
 #% key: cost_cablehf
 #% type: double
-#% description: Extraction cost with high power cable crane €/h
+#% description: Extraction cost with high power cable crane EUR/h
 #% answer: 111.44
 #% guisection: Costs
 #%end
 #%option
 #% key: cost_cablec
 #% type: double
-#% description: Extraction cost with medium power cable crane €/h
+#% description: Extraction cost with medium power cable crane EUR/h
 #% answer: 104.31
 #% guisection: Costs
 #%end
 #%option
 #% key: cost_forwarder
 #% type: double
-#% description: Extraction cost with forwarder €/h
+#% description: Extraction cost with forwarder EUR/h
 #% answer: 70.70
 #% guisection: Costs
 #%end
 #%option
 #% key: cost_skidder
 #% type: double
-#% description: Extraction cost with skidder €/h
+#% description: Extraction cost with skidder EUR/h
 #% answer: 64.36
 #% guisection: Costs
 #%end
 #%option
 #% key: cost_chipping
 #% type: double
-#% description: Chipping cost €/h
+#% description: Chipping cost EUR/h
 #% answer: 150.87
 #% guisection: Costs
 #%end
 #%option
 #% key: cost_transport
 #% type: double
-#% description: Transport with truck €/h
+#% description: Transport with truck EUR/h
 #% answer: 64.90
 #% guisection: Costs
 #%end
@@ -279,14 +279,14 @@
 #%option
 #% key: ton_vol_hf
 #% type: double
-#% description: BEF for the whole tree in high forest (tops, branches and stem) in ton/m³
+#% description: BEF for the whole tree in high forest (tops, branches and stem) in ton/m3
 #% answer: 1
 #% guisection: Forest
 #%end
 #%option
 #% key: ton_tops_cop
 #% type: double
-#% description: BEF for tops and branches for Coppices in ton/m³
+#% description: BEF for tops and branches for Coppices in ton/m3
 #% answer: 0.28
 #% guisection: Forest
 #%end
@@ -306,7 +306,7 @@
 #% key: net_revenues
 #% type: string
 #% key_desc: name
-#% description: Name of raster map with the net present value [€/year]
+#% description: Name of raster map with the net present value [EUR/year]
 #% required: yes
 #% answer: net_revenues
 #% guisection: Output maps
@@ -315,7 +315,7 @@
 #% key: total_revenues
 #% type: string
 #% key_desc: name
-#% description: Name of raster map with the total revenues [€/year]
+#% description: Name of raster map with the total revenues [EUR/year]
 #% required: no
 #% guisection: Output maps
 #%end
@@ -323,7 +323,7 @@
 #% key: total_cost
 #% type: string
 #% key_desc: name
-#% description: Name of raster map with the total cost [€/year]
+#% description: Name of raster map with the total cost [EUR/year]
 #% required: no
 #% guisection: Output maps
 #%end

@@ -322,6 +322,7 @@ class WCSBase:
 
         cap = self._fetchCapabilities(options)
         root = self.etree.fromstringlist(cap.readlines())
+
         cov_offering = []
         for label in root.iter("{*}CoverageOfferingBrief"):
             cov_offering.append(

@@ -57,7 +57,7 @@
 #% multiple: no
 #% answer: savgol
 #% description: Used method
-#% descriptions: savgol; Savitzky–Golay filter; median; Median filter
+#% descriptions: savgol; Savitzky-Golay filter; median; Median filter
 #%end
 #%option
 #% key: winsize

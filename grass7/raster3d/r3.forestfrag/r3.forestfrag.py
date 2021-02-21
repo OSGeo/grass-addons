@@ -240,7 +240,7 @@ def main(options, flags):
     ipl = options['input']
     raster_exists(ipl)
     opl = options['output']
-    size  = int(options['size'])
+    size = int(options['size'])
     if size % 2 == 0:
         gs.fatal("Please provide an odd number for the moving window")
 

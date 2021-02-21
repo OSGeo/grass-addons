@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 """
 @package mdgrass
@@ -22,29 +21,24 @@ This program is free software under the GNU General Public License
 @author Matej Krejci <matejkrejci gmail.com> (GSoC 2014)
 """
 
+import importlib
 import os
 import string
 import sys
 from subprocess import PIPE
 
-try:
-    from owslib.iso import (
-        MD_DataIdentification, MD_Metadata, namespaces,
-        SV_ServiceIdentification,
-    )
-except ImportError:
-    sys.exit('owslib library is missing. Check requirements on the '
-             'manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE '
-             'Metadata_Support >')
-
 from grass.pygrass.modules import Module
 from grass.pygrass.utils import get_lib_path
 from grass.script import core as grass
 
-
 from owslib import util
 
 import wx
+
+
+class Owslib():
+    """Lazy import of 'owslib.iso' module"""
+    iso = importlib.import_module('owslib.iso', 'owslib')
 
 
 class StaticContext(object):
@@ -240,7 +234,7 @@ def grassProfileValidator(md):
            (
                md.identification.temporalextent_start is (None or '') or
                md.identification.temporalextent_end is (None or '')
-           )):
+        )):
 
             result["errors"].append(
                 "Both gmd:EX_TemporalExtent and gmd:CI_Date are missing")
@@ -557,9 +551,11 @@ def isnpireValidator(md):
     return result
 
 
-class MD_DataIdentification_MOD(MD_DataIdentification):
+class MD_DataIdentification_MOD(Owslib.iso.MD_DataIdentification):
     def __init__(self, md=None, identtype=None):
-        MD_DataIdentification.__init__(self, md, identtype)
+        Owslib.iso.MD_DataIdentification.__init__(
+            self, md, identtype,
+        )
         if md is None:
             self.timeUnit = None
             self.temporalType = None
@@ -572,11 +568,11 @@ class MD_DataIdentification_MOD(MD_DataIdentification):
             val3 = None
             val4 = None
             extents = md.findall(
-                util.nspath_eval('gmd:extent', namespaces),
+                util.nspath_eval('gmd:extent', Owslib.iso.namespaces),
             )
             extents.extend(
                 md.findall(
-                    util.nspath_eval('srv:extent', namespaces),
+                    util.nspath_eval('srv:extent', Owslib.iso.namespaces),
                 ),
             )
             for extent in extents:
@@ -587,7 +583,7 @@ class MD_DataIdentification_MOD(MD_DataIdentification):
                     val2 = extent.find(
                         util.nspath_eval(
                             duration,
-                            namespaces,
+                            Owslib.iso.namespaces,
                         ),
                     )  # TODO
                 self.temporalType = util.testXMLValue(val2)
@@ -600,7 +596,7 @@ class MD_DataIdentification_MOD(MD_DataIdentification):
                     val1 = extent.find(
                         util.nspath_eval(
                             time_unit_type,
-                            namespaces,
+                            Owslib.iso.namespaces,
                         ),
                     )
                 self.timeUnit = util.testXMLValue(val1)
@@ -612,7 +608,7 @@ class MD_DataIdentification_MOD(MD_DataIdentification):
                     val3 = extent.find(
                         util.nspath_eval(
                             positive_int,
-                            namespaces,
+                            Owslib.iso.namespaces,
                         ),
                     )
                 self.radixT = util.testXMLValue(val3)
@@ -625,28 +621,28 @@ class MD_DataIdentification_MOD(MD_DataIdentification):
                     val4 = extent.find(
                         util.nspath_eval(
                             integer,
-                            namespaces,
+                            Owslib.iso.namespaces,
                         ),
                     )
                 self.factor = util.testXMLValue(val4)
 
 
-class MD_MetadataMOD(MD_Metadata):
+class MD_MetadataMOD(Owslib.iso.MD_Metadata):
     """ Process gmd:MD_Metadata """
 
     def __init__(self, md=None):
-        MD_Metadata.__init__(self, md)
+        Owslib.iso.MD_Metadata.__init__(self, md)
         if md is not None:
             val = md.find(
                 util.nspath_eval(
                     'gmd:identificationInfo/gmd:MD_DataIdentification',
-                    namespaces,
+                    Owslib.iso.namespaces,
                 ),
             )
             val2 = md.find(
                 util.nspath_eval(
                     'gmd:identificationInfo/srv:SV_ServiceIdentification',
-                    namespaces,
+                    Owslib.iso.namespaces,
                 ),
             )
 
@@ -657,7 +653,8 @@ class MD_MetadataMOD(MD_Metadata):
                 self.identification = MD_DataIdentification_MOD(
                     val2, 'service',
                 )
-                self.serviceidentification = SV_ServiceIdentification(val2)
+                self.serviceidentification = Owslib.iso.\
+                    SV_ServiceIdentification(val2)
             else:
                 self.identification = None
                 self.serviceidentification = None
@@ -666,7 +663,7 @@ class MD_MetadataMOD(MD_Metadata):
             for idinfo in md.findall(
                     util.nspath_eval(
                         'gmd:identificationInfo',
-                        namespaces,
+                        Owslib.iso.namespaces,
                     ),
             ):
                 val = list(idinfo)[0]
@@ -681,12 +678,12 @@ class MD_MetadataMOD(MD_Metadata):
                     )
                 elif tagval == 'SV_ServiceIdentification':
                     self.identificationinfo.append(
-                        SV_ServiceIdentification(val),
+                        Owslib.iso.SV_ServiceIdentification(val),
                     )
 
             val = md.find(
                 util.nspath_eval(
                     'gmd:distributionInfo/gmd:MD_Distribution',
-                    namespaces,
+                    Owslib.iso.namespaces,
                 ),
             )

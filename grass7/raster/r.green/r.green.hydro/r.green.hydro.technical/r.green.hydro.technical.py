@@ -384,8 +384,8 @@ def losses_Strickler(discharge, length, diameter, theta, velocity, ks=75):
         #import ipdb
         #ipdb.set_trace()
 
-    # i = v**2 / (ks**2 * Rh ** (4/3))
-    # hs = i * l
+        # i = v**2 / (ks**2 * Rh ** (4/3))
+        # hs = i * l
     return velocity**2 / (ks**2 * Rh**(4./3.)) * length
 
 

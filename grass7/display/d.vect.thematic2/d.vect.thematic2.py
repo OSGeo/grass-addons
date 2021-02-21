@@ -358,14 +358,14 @@ def main():
         grass.fatal(_("Unable to calculate statistics for vector map <%s> "
                       "(missing minimum/maximum value)" % map))
 
-    min  = float(stats['min'])
-    max  = float(stats['max'])
+    min = float(stats['min'])
+    max = float(stats['max'])
     mean = float(stats['mean'])
-    sd   = float(stats['population_stddev'])
-    q1   = float(stats['first_quartile'])
-    q2   = float(stats['median'])
-    q3   = float(stats['third_quartile'])
-    q4   = max
+    sd = float(stats['population_stddev'])
+    q1 = float(stats['first_quartile'])
+    q2 = float(stats['median'])
+    q3 = float(stats['third_quartile'])
+    q4 = max
 
     ptsize = size
 
@@ -440,8 +440,8 @@ end
     msg(locals(), _("Value range: $min - $max"))
 
     colorschemes = {
-        "blue-red":  ("0:0:255", "255:0:0"),
-        "red-blue":  ("255:0:0", "0:0:255"),
+        "blue-red": ("0:0:255", "255:0:0"),
+        "red-blue": ("255:0:0", "0:0:255"),
         "green-red": ("0:255:0", "255:0:0"),
         "red-green": ("255:0:0", "0:255:0"),
         "blue-green": ("0:0:255", "0:255:0"),

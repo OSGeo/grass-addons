@@ -54,11 +54,11 @@ class Test (unittest.TestCase):
 
     def test_dist_to_closest(self):
         # 5 samples
-        a = [1,  3]
-        b = [0,  4]
-        c = [2,  5]
-        d = [-1,  2]
-        e = [-1,  2]
+        a = [1, 3]
+        b = [0, 4]
+        c = [2, 5]
+        d = [-1, 2]
+        e = [-1, 2]
         samples = np.array([a, b, c, d, e])
 
         dist = al.distance_to_closest(samples)
@@ -71,9 +71,9 @@ class Test (unittest.TestCase):
 
     def test_average_dist(self):
         # 3 samples
-        a = [1,  3]
-        b = [0,  4]
-        c = [2,  5]
+        a = [1, 3]
+        b = [0, 4]
+        c = [2, 5]
         samples = np.array([a, b, c])
         dist = al.average_distance(samples)
 
@@ -87,16 +87,16 @@ class Test (unittest.TestCase):
 
     def test_diversity_criterion(self):
         # 9 samples -> plot them for a better visualization (e.g. with GeoGebra)
-        a = [2,  4]
-        b = [4,  1]
-        b_bis = [4,  1]
-        c = [-2,  1]
-        d = [-1,  5]
-        e = [1.6,  3.6]
-        f = [3,  1]
-        g = [1,  2]
-        h = [9,  5]
-        i = [49,  4] # This sample is not sent to the diversity filter
+        a = [2, 4]
+        b = [4, 1]
+        b_bis = [4, 1]
+        c = [-2, 1]
+        d = [-1, 5]
+        e = [1.6, 3.6]
+        f = [3, 1]
+        g = [1, 2]
+        h = [9, 5]
+        i = [49, 4] # This sample is not sent to the diversity filter
         samples = np.array([a, b, b_bis, c, d, e, f, g, h, i])
 
         selected_samples = al.diversity_filter(samples, np.arange(9), 4)

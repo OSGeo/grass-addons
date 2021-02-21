@@ -37,7 +37,7 @@ else:
         os.makedirs(outputfolder)
 
 df = pd.read_csv(csvfile)
-df_numpy  = df.to_numpy()
+df_numpy = df.to_numpy()
 
 # fieldnames = ['nprocs', 'resolution', 'weight-height', 'number of cells', 'time_rmapcalc', 'time_rmapcalctiled']
 nprocs = df_numpy[0,0]

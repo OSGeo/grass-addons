@@ -42,7 +42,7 @@ import grass.script as grass
 if not os.environ.has_key("GISBASE"):
     grass.message( "You must be in GRASS GIS to run this program." )
     sys.exit(1)
-    
+
 def main():    
     r_acc = options['acc']
     th = options['th']
@@ -52,7 +52,7 @@ def main():
     tmp.write('*:' + th + ':0' + '\n')
     tmp.write(th + ':*:1')
     tmp.close()
-    
+
     # recode
     grass.run_command('r.recode', input = r_acc,
                                   output = 'r_preview',

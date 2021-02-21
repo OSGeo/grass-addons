@@ -16,19 +16,19 @@ def parseTCPconf():
     else :
         print 'tcpHost not found'
         tcpconf['tcpHost'] = 'None'
-        
+
     if planetsashaconf.childNodes[1].childNodes[3].firstChild is not None:
         tcpconf['tcpDport'] = planetsashaconf.childNodes[1].childNodes[3].firstChild.data
     else :
         print 'tcpDport not found'
         tcpconf['tcpDport'] = 'None'
-        
+
     if planetsashaconf.childNodes[1].childNodes[5].firstChild is not None:
         tcpconf['tcpPport'] = planetsashaconf.childNodes[1].childNodes[5].firstChild.data
     else :
         print 'tcpPport not found'
         tcpconf['tcpPport'] = 'None'
-           
+
     return tcpconf	
 
 
@@ -55,7 +55,7 @@ def addfile(output):
     except :
         print "Connection error"
 
-	
+
 def zoomto(lon,lat,distance):
     host = setparamconnection()[0]
     pport = setparamconnection()[1]
@@ -68,7 +68,7 @@ def zoomto(lon,lat,distance):
     except :
         print "Connection error"
 
-	
+
 def removefile(output):
     host = setparamconnection()[0]
     dport = setparamconnection()[2]
@@ -80,11 +80,11 @@ def removefile(output):
         ossimdata.close()
     except :
         print 'Connection error'
-	
-	
+
+
 def addzoom(output,lon,lat,distance):
-	addfile(output)
-	zoomto(lon,lat,distance)
+    addfile(output)
+    zoomto(lon,lat,distance)
 
 
 #addzoom('/Users/sasha/Desktop/rgb.tif',-81.0009,29.0009,15000)

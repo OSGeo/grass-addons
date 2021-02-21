@@ -325,39 +325,39 @@ def landscapeEvol(m, o, p, q, res, s, f):
     pid = os.getpid()
 
     # Get variables from user input
-    elev        = options["elev"]
-    transp_eq   = options["transp_eq"]
-    initbdrk    = options["initbdrk"]
-    outdem      = options["outdem"]
-    outsoil     = options["outsoil"]
-    sdensity    = options["sdensity"]
-    K           = options["k"]
-    P           = options["p"]
-    C           = options["c"]
-    exp_m       = options["exp_m"].split(',')
-    exp_n       = options["exp_n"].split(',')
+    elev = options["elev"]
+    transp_eq = options["transp_eq"]
+    initbdrk = options["initbdrk"]
+    outdem = options["outdem"]
+    outsoil = options["outsoil"]
+    sdensity = options["sdensity"]
+    K = options["k"]
+    P = options["p"]
+    C = options["c"]
+    exp_m = options["exp_m"].split(',')
+    exp_n = options["exp_n"].split(',')
     flowcontrib = options["flowcontrib"]
     convergence = options["convergence"]
-    manningn    = options["manningn"]
-    p           = options["prefx"]
+    manningn = options["manningn"]
+    p = options["prefx"]
 
     # Make some variables for temporary map names
-    aspect          = '%saspect%04d' % (p, o)
-    flowacc         = '%sflowacc%04d' % (p, o)
-    flowdir         = '%sflowdir%04d' % (p, o)
-    flacclargenum   = '%sflowacclargenum%04d' % (p, o)
-    pc              = '%spc%04d' % (p, o)
-    tc              = '%stc%04d' % (p, o)
-    qsx             = "%sQsx_%04d" % (p,o)
-    qsy             = "%sQsy_%04d" % (p,o)
-    qsxdx           = '%sDelta_Qsx_%04d' % (p, o)
-    qsydy           = '%sDelta_Qsy_%04d' % (p, o)
-    rainexcess      = "%s_rainfall_excess_map_%04d" % (p, o)
-    tmpnetchange    = 'tmp%s_netchange%04d' % (pid, o)
-    tmp90qle       = 'tmp%s_netchange_90qle%04d' % (pid, o)
-    tmp10qle       = 'tmp%s_netchange_10qle%04d' % (pid, o)
-    tmperosion      = 'tmp%s_erosion%04d' % (pid, o)
-    tmpdep          = 'tmp%s_deposition%04d' % (pid, o)
+    aspect = '%saspect%04d' % (p, o)
+    flowacc = '%sflowacc%04d' % (p, o)
+    flowdir = '%sflowdir%04d' % (p, o)
+    flacclargenum = '%sflowacclargenum%04d' % (p, o)
+    pc = '%spc%04d' % (p, o)
+    tc = '%stc%04d' % (p, o)
+    qsx = "%sQsx_%04d" % (p,o)
+    qsy = "%sQsy_%04d" % (p,o)
+    qsxdx = '%sDelta_Qsx_%04d' % (p, o)
+    qsydy = '%sDelta_Qsy_%04d' % (p, o)
+    rainexcess = "%s_rainfall_excess_map_%04d" % (p, o)
+    tmpnetchange = 'tmp%s_netchange%04d' % (pid, o)
+    tmp90qle = 'tmp%s_netchange_90qle%04d' % (pid, o)
+    tmp10qle = 'tmp%s_netchange_10qle%04d' % (pid, o)
+    tmperosion = 'tmp%s_erosion%04d' % (pid, o)
+    tmpdep = 'tmp%s_deposition%04d' % (pid, o)
 
     # List of temp maps to remove unless user wants to keep them all
     mapstoremove = [aspect,
@@ -375,19 +375,19 @@ def landscapeEvol(m, o, p, q, res, s, f):
 
     # Variables that come in as a list of lists and can update with each iteration
     # masterlist = [R2,rain2,stormlength2,storms2,stormi2]
-    R               = s[0][m]
-    rain            = s[1][m]
-    stormtimet      = float(s[2][m])*3600.00 # Convert storm length to seconds
-    storms          = s[3][m]
-    stormi          = float(s[4][m])*stormtimet    # Calculate the length of time at peak flow depth
+    R = s[0][m]
+    rain = s[1][m]
+    stormtimet = float(s[2][m])*3600.00 # Convert storm length to seconds
+    storms = s[3][m]
+    stormi = float(s[4][m])*stormtimet    # Calculate the length of time at peak flow depth
 
     # Maps that will update at each iteration to record state of landscape
-    old_dem   = '%s%s%04d' % (p, outdem, m)
-    old_soil  = '%s%s%04d' % (p, outsoil, m)
-    slope     = '%sslope%04d' % (p, o)
+    old_dem = '%s%s%04d' % (p, outdem, m)
+    old_soil = '%s%s%04d' % (p, outsoil, m)
+    slope = '%sslope%04d' % (p, o)
     netchange = '%sED_rate%04d' % (p, o)
-    new_dem   = '%s%s%04d' % (p, outdem, o)
-    new_soil  = '%s%s%04d' % (p, outsoil, o)
+    new_dem = '%s%s%04d' % (p, outdem, o)
+    new_soil = '%s%s%04d' % (p, outsoil, o)
 
     # If first iteration, use input maps. Otherwise, use maps generated from
     # previous iterations

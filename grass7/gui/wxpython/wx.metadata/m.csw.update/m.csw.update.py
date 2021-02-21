@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 ############################################################################
 #
@@ -171,6 +170,8 @@ from grass.script.utils import set_path
 
 set_path(modulename='wx.metadata', dirname='mdlib', path='..')
 
+from mdlib import globalvar
+
 HEADERS = {}
 
 HTTP_STATUS_CODES = list(http.HTTPStatus)
@@ -276,6 +277,33 @@ class UpdateConnectionsResources:
             not_valid_csw_url=False, valid_xml=False,
             active_xml_csw_url=False, not_valid_xml_csw_url=False,
     ):
+
+        from mdlib.dependency import check_dependencies
+        module_not_found = []
+        for module in MODULES:
+            if not check_dependencies(module):
+                module_not_found.append(True)
+        if module_not_found:
+            sys.exit(1)
+
+        try:
+            global CatalogueServiceWeb, etree, ExceptionReport, get_data, \
+                validators
+
+            import lxml.etree as etree
+
+            from owslib.csw import CatalogueServiceWeb
+            from owslib.ows import ExceptionReport
+
+            from pyexcel_ods3 import get_data
+
+            import validators
+        except ModuleNotFoundError as e:
+            msg = e.msg
+            gscript.fatal(globalvar.MODULE_NOT_FOUND.format(
+                lib=msg.split("'")[-2],
+                url=globalvar.MODULE_URL))
+
         self._spreadsheet_file_url_type = None
         self._spreadsheet_file_url = spreadsheet_file_url
 
@@ -304,7 +332,7 @@ class UpdateConnectionsResources:
         self._file_data_key = 'API_Cases'
         self._not_valid_csw_urls = []
         self._not_active_csw_urls = []
-        self._xml_parser = lxml.etree.XMLParser(remove_blank_text=True)
+        self._xml_parser = etree.XMLParser(remove_blank_text=True)
         self._progress_message = 'Percent complete...'
 
         # Process csw connections resources xml file
@@ -693,16 +721,16 @@ class UpdateConnectionsResources:
         :param str xml: xml file path
         :param str xsd: xsd file path
         """
-        _xsd = lxml.etree.parse(xsd)
-        xsd_schema = lxml.etree.XMLSchema(_xsd)
-        if not xsd_schema.validate(lxml.etree.parse(xml)):
+        _xsd = etree.parse(xsd)
+        xsd_schema = etree.XMLSchema(_xsd)
+        if not xsd_schema.validate(etree.parse(xml)):
             gscript.fatal(
                 _(
                     "Connnections resources xml file '{xml}' "
                     "is not valid.\n\n{xsd_schema}".format(
                         xml=xml,
                         xsd_schema=gscript.decode(
-                            lxml.etree.tostring(
+                            etree.tostring(
                                 _xsd,
                                 pretty_print=True,
                             ),
@@ -716,12 +744,12 @@ class UpdateConnectionsResources:
 
         :param str xml_string: xml string
         """
-        xsd = lxml.etree.parse(self._conns_resrs_xsd)
-        xml_schema = lxml.etree.XMLSchema(xsd)
-        parser = lxml.etree.XMLParser(schema=xml_schema)
+        xsd = etree.parse(self._conns_resrs_xsd)
+        xml_schema = etree.XMLSchema(xsd)
+        parser = etree.XMLParser(schema=xml_schema)
         try:
-            lxml.etree.fromstring(xml_string, parser)
-        except lxml.etree.XMLSyntaxError:
+            etree.fromstring(xml_string, parser)
+        except etree.XMLSyntaxError:
             gscript.fatal(
                 _(
                     "Can't parse connection xml item string '{}'. "
@@ -925,7 +953,7 @@ class UpdateConnectionsResources:
 
     def _parse_xml(self):
         """Parse connections resources xml file"""
-        self._xml_tree = lxml.etree.parse(
+        self._xml_tree = etree.parse(
             source=self._conns_resrs_xml,
             parser=self._xml_parser,
         )
@@ -952,11 +980,11 @@ class UpdateConnectionsResources:
         :param str data_row: xml csw resource connection xml item string
         """
         def append_csw():
-            st = lxml.etree.Element("csw", name=name, url=url)
+            st = etree.Element("csw", name=name, url=url)
             self._validate_xml_at_parse_time(
                 xml_string=self._get_root_tag().format(
                     tag=self._xml_root.tag,
-                    csw_element=lxml.etree.tostring(st).decode(),
+                    csw_element=etree.tostring(st).decode(),
                 ),
             )
             self._xml_root.append(st)
@@ -1388,21 +1416,4 @@ def main():
 
 
 if __name__ == "__main__":
-    from mdlib.dependency import check_dependencies
-    module_not_found = []
-    for module in MODULES:
-        if not check_dependencies(module):
-            module_not_found.append(True)
-    if module_not_found:
-        sys.exit(1)
-
-    import lxml.etree
-
-    from owslib.csw import CatalogueServiceWeb
-    from owslib.ows import ExceptionReport
-
-    from pyexcel_ods3 import get_data
-
-    import validators
-
     sys.exit(main())

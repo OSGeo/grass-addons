@@ -93,27 +93,27 @@
 #%option
 #% key: energy_tops_hf
 #% type: double
-#% description: Energy for tops and branches in high forest in MWh/m³
+#% description: Energy for tops and branches in high forest in MWh/m3
 #% answer: 0.49
 #% guisection: Energy
 #%end
 #%option
 #% key: energy_cormometric_vol_hf
 #% type: double
-#% description: Energy for tops and branches for high forest in MWh/m³
+#% description: Energy for tops and branches for high forest in MWh/m3
 #% answer: 1.97
 #% guisection: Energy
 #%end
 #%option
 #% key: energy_tops_cop
 #% type: double
-#% description: Energy for tops and branches for Coppices in MWh/m³
+#% description: Energy for tops and branches for Coppices in MWh/m3
 #% answer: 0.55
 #% guisection: Energy
 #%end
 #%option G_OPT_R_INPUT
 #% key: energy_map
-#% description: Bioenergy map in MWh/m³
+#% description: Bioenergy map in MWh/m3
 #% required : yes
 #%end
 #%option G_OPT_V_INPUT
@@ -555,7 +555,7 @@ def soil_water_protection(opts, flgs):
     run_command("r.mapcalc", overwrite=ow,
                 expression=expr_sw6 % (energy_tops_hf, energy_cormometric_vol_hf, energy_tops_hf, energy_cormometric_vol_hf))
     run_command("r.mapcalc", overwrite=ow,
-                expression=expr_sw7  % (energy_tops_hf, energy_cormometric_vol_hf, energy_tops_hf, energy_cormometric_vol_hf))
+                expression=expr_sw7 % (energy_tops_hf, energy_cormometric_vol_hf, energy_tops_hf, energy_cormometric_vol_hf))
     run_command("r.mapcalc", overwrite=ow,
                 expression=expr_sw8 % (energy_tops_hf, energy_cormometric_vol_hf, energy_tops_hf))
 

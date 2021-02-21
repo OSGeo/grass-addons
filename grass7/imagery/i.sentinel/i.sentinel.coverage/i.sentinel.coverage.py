@@ -52,13 +52,12 @@
 #%end
 
 #%option
-#% key: type
+#% key: producttype
 #% type: string
-#% description: Sentinel-1 or Sentinel-2
+#% description: Sentinel product type to filter
 #% required: no
-#% multiple: no
-#% options: s1,s2
-#% answer: s2
+#% options: SLC,GRD,OCN,S2MSI1C,S2MSI2A,S2MSI2Ap
+#% answer: S2MSI2A
 #% guisection: Filter
 #%end
 
@@ -95,11 +94,19 @@
 #% required: no
 #%end
 
+#%rules
+#% collective: start,end
+#% excludes: names,start,end,clouds,producttype
+#%end
+
+
 import atexit
 import os
+import subprocess
 from datetime import datetime, timedelta
 
 import grass.script as grass
+
 
 # initialize global vars
 rm_regions = []
@@ -128,7 +135,7 @@ def cleanup():
                 'g.remove', type='raster', name=rmrast, **kwargs)
 
 
-def scenename_split(scenename, sensor='s2'):
+def scenename_split(scenename):
     '''
     When using the query option in i.sentinel.coverage and defining
     specific filenames, the parameters Producttype, Start-Date, and End-Date
@@ -148,26 +155,28 @@ def scenename_split(scenename, sensor='s2'):
 
     '''
     try:
-        ### get producttype
+        # get producttype
         name_split = scenename.split('_')
 
-        if sensor == 's2':
+        if name_split[0].startswith('S2'):
             type_string = name_split[1]
             level_string = type_string.split('L')[1]
             producttype = 'S2MSI' + level_string
             date_string = name_split[2].split('T')[0]
-        elif sensor == 's1':
+        elif name_split[0].startswith('S1'):
             producttype = name_split[2][:3]
             date_string = name_split[4].split('T')[0]
         else:
-            grass.fatal(_("Unknown sensor %s" % sensor))
+            grass.fatal(_(
+                "Sensor {} is not supported yet").format(name_split[0]))
         dt_obj = datetime.strptime(date_string, "%Y%m%d")
         start_day_dt = dt_obj - timedelta(days=1)
         end_day_dt = dt_obj + timedelta(days=1)
         start_day = start_day_dt.strftime('%Y-%m-%d')
         end_day = end_day_dt.strftime('%Y-%m-%d')
-    except:
-        grass.fatal("The name of the scene must have a format of e.g. S2A_MSIL1C_YYYYMMDDT155901_N0206_R097_T17SPV_20180822T212023")
+    except Exception as e:
+        grass.fatal(_("The name of the scene must have a format of e.g."
+            + " S2A_MSIL1C_YYYYMMDDT155901_N0206_R097_T17SPV_20180822T212023"))
     return producttype, start_day, end_day
 
 
@@ -175,7 +184,8 @@ def get_size(vector):
     tmpvector = 'tmp_getsize_%s' % str(os.getpid())
     rm_vectors.append(tmpvector)
     grass.run_command(
-        'g.copy', vector="%s,%s" % (vector, tmpvector), quiet=True)
+        'g.copy', vector="%s,%s" % (vector, tmpvector), overwrite=True,
+        quiet=True)
     if len(grass.vector_db(tmpvector)) == 0:
         grass.run_command('v.db.addtable', map=tmpvector, quiet=True)
     grass.run_command(
@@ -185,7 +195,8 @@ def get_size(vector):
         'v.to.db', map=tmpvector, columns='tmparea', option='area',
         units='meters', quiet=True, overwrite=True)
     sizeselected = grass.parse_command('v.db.select', map=tmpvector, flags="v")
-    sizesstr = [x.split('|')[1:] for x in sizeselected if x.startswith('tmparea|')][0]
+    sizesstr = [
+        x.split('|')[1:] for x in sizeselected if x.startswith('tmparea|')][0]
     sizes = [float(x) for x in sizesstr]
     return sum(sizes)
 
@@ -194,77 +205,118 @@ def main():
 
     global rm_regions, rm_rasters, rm_vectors
 
-    ### check if the i.sentinel.download + i.sentinel.import addons are installed
-    if not grass.find_program('i.sentinel.download', '--help'):
-        grass.fatal(_("The 'i.sentinel.download' module was not found, install it first:") +
-                    "\n" +
-                    "g.extension i.sentinel")
-    if not grass.find_program('i.sentinel.import', '--help'):
-        grass.fatal(_("The 'i.sentinel.import' module was not found, install it first:") +
-                    "\n" +
-                    "g.extension i.sentinel")
-
     # parameters
     settings = options['settings']
     output = options['output']
     area = options['area']
     if not grass.find_file(area, element='vector')['file']:
-        grass.fatal(_("Vector map <%s> not found") % area)
-    type = options['type']
-    if type == 's1':
-        producttype = 'GRD'
-    else:
-        producttype = 'S2MSI2A'
+        grass.fatal(_("Vector map <{}> not found").format(area))
+    producttype = options['producttype']
 
     grass.message(_("Retrieving Sentinel footprints from ESA hub ..."))
     fps = 'tmp_fps_%s' % str(os.getpid())
     rm_vectors.append(fps)
+
+
     if not options['names']:
-        s_list = grass.parse_command(
-            'i.sentinel.download',
-            settings=settings,
-            map=area,
-            clouds=options['clouds'],
-            producttype=producttype,
-            start=options['start'],
-            end=options['end'],
-            footprints=fps,
-            flags='lb',
-            quiet=True)
+        i_sentinel_download_params = {
+            'settings': settings,
+            'map': area,
+            'clouds': options['clouds'],
+            'producttype': producttype,
+            'start': options['start'],
+            'end': options['end'],
+            'flags': 'lb',
+            'quiet': True}
+        i_sentinel_download_cmd = 'i.sentinel.download {}'.format(
+            ' '.join(["{!s}={!r}".format(k,v)
+            for (k,v) in i_sentinel_download_params.items()
+            if k not in ['flags', 'quiet']]))
+        if 'quiet' in i_sentinel_download_params:
+            i_sentinel_download_cmd += ' --q'
+        if 'flags' in i_sentinel_download_params:
+            i_sentinel_download_cmd += ' -{}'.format(
+                i_sentinel_download_params['flags'])
+        cmd = grass.Popen(
+            i_sentinel_download_cmd, shell=True,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        resp = cmd.communicate()
+        if resp[0] != b'':
+            s_list = resp[0].decode('utf-8').strip().splitlines()
+        else:
+            error_msg = ""
+            for i in range(0, len(resp)):
+                error_msg += resp[i].decode('utf-8')
+            grass.fatal(
+                _("Error using i.sentinel.download: {}").format(error_msg))
+
         if len(s_list) == 0:
             grass.fatal('No products found')
-        name_list = [x.split(' ')[1] for x in s_list]
+        name_list_tmp = [x.split(' ')[1] for x in s_list]
     else:
-        name_list = []
-        fp_list = []
-        for name in options['names'].split(','):
-            real_producttype, start_day, end_day = scenename_split(name, type)
-            if real_producttype != producttype:
-                grass.fatal("Producttype of ")
-            fpi = 'tmp_fps_%s_%s' % (name, str(os.getpid()))
-            try:
-                grass.run_command(
-                    'i.sentinel.download',
-                    settings=settings,
-                    map=area,
-                    producttype=producttype,
-                    footprints=fpi,
-                    start=start_day,
-                    end=end_day,
-                    flags='bl',
-                    quiet=True)
-                name_list.append(name)
-                fp_list.append(fpi)
-                rm_vectors.append(fpi)
-            except:
-                grass.warning('%s was not found in %s' % (name, area))
-        grass.run_command(
-            'v.patch', input=','.join(fp_list), output=fps, quiet=True)
+        name_list_tmp = options['names'].split(',')
+    name_list = []
+    fp_list = []
+    for name in name_list_tmp:
+        real_producttype, start_day, end_day = scenename_split(name)
+        if real_producttype != producttype:
+            grass.fatal(_(
+                "Producttype of {} not supported").format(real_producttype))
+        fpi = 'tmp_fps_%s_%s' % (name, str(os.getpid()))
+        try:
+            grass.run_command(
+                'i.sentinel.download',
+                settings=settings,
+                map=area,
+                start=start_day,
+                end=end_day,
+                footprints=fpi,
+                producttype=producttype,
+                query="identifier=%s" % name,
+                flags='lb',
+                quiet=True)
+            name_list.append(name)
+            fp_list.append(fpi)
+            rm_vectors.append(fpi)
+        except Exception as e:
+            grass.warning(_('{} was not found in {}').format(name, area))
 
-    grass.message(_("Getting size of <%s> area ...") % area)
+    if len(fp_list) > 1:
+        start_fp = fp_list[0]
+        for idx, fp in enumerate(fp_list[1:]):
+            temp_overlay = 'tmp_fp_overlay_%d' % idx
+            rm_vectors.append(temp_overlay)
+            grass.run_command('v.overlay', ainput=start_fp, binput=fp,
+                              operator='or', output=temp_overlay, quiet=True)
+            grass.run_command('v.db.update', map=temp_overlay,
+                              column='a_identifier',
+                              query_column='a_identifier || "+" '
+                              + '|| b_identifier',
+                              where='a_identifier NOT NULL AND '
+                              + 'b_identifier NOT NULL',
+                              quiet=True)
+            grass.run_command('v.db.update', map=temp_overlay,
+                              column='a_identifier',
+                              query_column='b_identifier',
+                              where='a_identifier IS NULL',
+                              quiet=True)
+            grass.run_command('v.db.renamecolumn', map=temp_overlay,
+                              column='a_identifier,identifier', quiet=True)
+            columns_dict = grass.parse_command('v.info', map=temp_overlay, flags='c')
+            drop_columns = [col.split('|')[1] for col in columns_dict if col.split('|')[1] not in ['cat', 'identifier']]
+            grass.run_command('v.db.dropcolumn', map=temp_overlay,
+                              columns=drop_columns, quiet=True)
+
+            start_fp = temp_overlay
+    else:
+        temp_overlay = fp_list[0]
+    grass.run_command('g.rename', vector='%s,%s' % (temp_overlay, fps))
+
+    grass.message(_("Getting size of <{}> area ...").format(area))
     areasize = get_size(area)
 
-    grass.message(_("Getting size of footprints in area <%s> ...") % area)
+    grass.message(_(
+        "Getting size of footprints in area <{}> ...").format(area))
     fps_in_area = 'tmp_fps_in_area_%s' % str(os.getpid())
     rm_vectors.append(fps_in_area)
     grass.run_command(
@@ -275,11 +327,14 @@ def main():
     grass.run_command(
         'v.db.update', map=fps_in_area, column='tmp', value=1, quiet=True)
     # list of scenes that actually intersect with bbox
-    name_list_updated = list(grass.parse_command('v.db.select',
-                                                 map=fps_in_area,
-                                                 column='a_identifier',
-                                                 flags='c').keys())
+    name_list_updated_tmp = list(grass.parse_command('v.db.select',
+                                                     map=fps_in_area,
+                                                     column='a_identifier',
+                                                     flags='c').keys())
 
+    # split along '+' and remove duplicates
+    name_list_updated = list(set([
+        item2 for item in name_list_updated_tmp for item2 in item.split('+')]))
     fps_in_area_dis = 'tmp_fps_in_area_dis_%s' % str(os.getpid())
     rm_vectors.append(fps_in_area_dis)
     grass.run_command(
@@ -290,18 +345,25 @@ def main():
     fpsize = get_size(fps_in_area_dis)
 
     percent = fpsize / areasize * 100.0
-    grass.message(_("%.2f percent of the area <%s> is covered") % (percent, area))
-
+    percent_rounded = round(percent, 2)
+    grass.message(_(
+        "{} percent of the area <{}> is covered").format(
+            str(percent_rounded), area))
     if options['minpercent']:
         if percent < int(options['minpercent']):
-            grass.fatal("The percentage of coverage is too low (expected: %s)" % options['minpercent'])
-
+            grass.fatal(_(
+                "The percentage of coverage is too low (expected: {})").format(
+                    str(options['minpercent'])))
     # save list of Sentinel names
     if output:
         with open(output, 'w') as f:
             f.write(','.join(name_list_updated))
         grass.message(_(
-            "Name of Sentinel scenes are written to file <%s>") % (output))
+            "Name of Sentinel scenes are written to file <{}>").format(
+                output))
+    else:
+        grass.message(_('The following scenes were found:'))
+        grass.message(_('\n'.join(name_list_updated)))
 
     # TODO Sentinel-1 select only "one" scene (no overlap)
 

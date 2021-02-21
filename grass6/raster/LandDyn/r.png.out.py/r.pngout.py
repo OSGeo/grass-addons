@@ -45,8 +45,8 @@ import subprocess
 
 # m is a message (as a string) one wishes to have printed in the output window
 def grass_print(m):
-	subprocess.Popen('g.message message="%s"' % m, shell='bash').wait()
-	return
+    subprocess.Popen('g.message message="%s"' % m, shell='bash').wait()
+    return
 
 def main():
     os.environ['GRASS_PNGFILE'] =  os.getenv("GIS_OPT_outpath")

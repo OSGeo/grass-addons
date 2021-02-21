@@ -62,21 +62,21 @@ def main():
 
     for i in range(len(stats)):
         if i == 0:
-            zn[i,0],  zn[i,1] = map(float, stats[i].split(' '))
+            zn[i,0], zn[i,1] = map(float, stats[i].split(' '))
             zn[i,1] = zn[i,1]
             zn[i,2] = zn[i,1] * res
         if i != 0:
-            zn[i,0],  zn[i,1] = map(float, stats[i].split(' '))
+            zn[i,0], zn[i,1] = map(float, stats[i].split(' '))
             zn[i,2] = zn[i,1] + zn[i-1,2] 
             zn[i,3] = zn[i,1] * (res**2)
-            
+
     totcell = sum(zn[:,1])
     print "Tot. cells", totcell
     totarea = totcell * (res**2)
     print "Tot. area", totarea
     maxdist = max(zn[:,0])
     print "Max distance", maxdist
- 
+
     for i in range(len(stats)):
         kl[i,0] = zn[i,0] 
         kl[i,1] = zn[i,2] / totcell 
@@ -91,7 +91,7 @@ def main():
     prc[6,0] , prc[6,1] = findint(kl,0.7) , 0.7
     prc[7,0] , prc[7,1] = findint(kl,0.85) , 0.85
     prc[8,0] , prc[8,1] = findint(kl,0.95) , 0.95
- 
+
     # plot
     plotImage(zn[:,0], zn[:,3], options['image']+'_width_function.png','-','x','W(x)','Width Function')
 

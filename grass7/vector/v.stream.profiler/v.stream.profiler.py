@@ -220,7 +220,7 @@ def main():
     elif options['direction'] == 'upstream':
         #terminalCATS = list(options['cat'])
         #while terminalCATS:
-            #
+        #
         print("Upstream direction not yet active!")
         return
         """

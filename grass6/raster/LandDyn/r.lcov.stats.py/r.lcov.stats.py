@@ -91,106 +91,106 @@ import os
 import subprocess
 
 def grass_print(m):
-	return subprocess.Popen("g.message message='"'%s'"'" % m, shell='bash').wait()
+    return subprocess.Popen("g.message message='"'%s'"'" % m, shell='bash').wait()
 
 def main():
-	pattern = os.getenv("GIS_OPT_pattern")
-	startnum = int(os.getenv("GIS_OPT_startnum"))
-	endnum = int(os.getenv("GIS_OPT_endnum"))
-	categories = int(os.getenv("GIS_OPT_categories"))
-	digits = int(os.getenv("GIS_OPT_digits"))
-	        
-	msp = subprocess.Popen('g.gisenv get=MAPSET store=gisrc --quiet', stdout=subprocess.PIPE, shell='bash')
-	mapset = msp.stdout.read().replace('\n','')
-	if os.getenv("GIS_FLAG_n") == "1":
-		statsout = 'lc_stats_%s_%s.csv' % (mapset,pattern)
-	else:
-		statsout = os.getenv("GIS_OPT_statsout")
-        f = open(statsout, 'w')
-        l = [str(x) for x in range(0,categories+1)]
-        md = {}
-	if bool(os.getenv("GIS_OPT_suffix")) == False:
-		grass_print("Numbers are suffixes to prefix: %s" % pattern)
-		for number in range(startnum, endnum+1):
-		    outmap = '%s%s' % (pattern, str(number).zfill(digits))
-		    p = subprocess.Popen('r.stats -a -n input=%s fs=space nv=* nsteps=255 --quiet' % outmap, stdout=subprocess.PIPE, shell='bash')
-		    out = p.stdout.readlines()
-		    dict1 = {}
-		    for x in out:
-			x0,x1 = x.split()
-			dict1[x0] = x1
-		    mdlist = []
-		    for key in l:
-			if dict1.has_key(key):
-			    mdlist.append(dict1[key])
-			else:
-			    mdlist.append('0')
-		    md[number] = mdlist
-		    if ( os.getenv("GIS_FLAG_e") == "1" ):
-			subprocess.Popen('r.out.png --quiet quiet input=%s output=%s.png' % (outmap, outmap), shell='bash').wait()
-		
-		
-		if os.getenv("GIS_FLAG_r") == "1":
-			f.write('north: %s\nsouth: %s\neast: %s\nwest: 1\ncols: %s\nrows: %s\n' % (endnum,startnum,categories,categories,endnum))
-			stat_list = []
-			for key in md.iterkeys():
-				stats = md[key]
-				stat_list.append('%s\n' % (','.join(stats)))
-			stat_list.reverse()
-			grass_print(stat_list)
-			f.writelines(stat_list)
-			f.close()
-		else:
-			f.write('Landcover Category,%s\n' % ','.join(l))
-			for key in md.iterkeys():
-				stats = md.get(key, [])
-				stat_str = 'Year %s,%s\n' % (key, ','.join(stats))
-				f.write(stat_str)
-	else:
-		suffix = os.getenv("GIS_OPT_suffix")
-		grass_print("Numbers are infixes between prefix: %s and suffix: %s" % (pattern, suffix))
-		for number in range(startnum, endnum+1):
-		    outmap = '%s%s%s' % (pattern, str(number).zfill(digits), suffix)
-		    p = subprocess.Popen('r.stats -a -n input=%s fs=space nv=* nsteps=255 --quiet' % outmap, stdout=subprocess.PIPE, shell='bash')
-		    out = p.stdout.readlines()
-		    dict1 = {}
-		    for x in out:
-			x0,x1 = x.split()
-			dict1[x0] = x1
-		    mdlist = []
-		    for key in l:
-			if dict1.has_key(key):
-			    mdlist.append(dict1[key])
-			else:
-			    mdlist.append('0')
-		    md[number] = mdlist
-		    if ( os.getenv("GIS_FLAG_e") == "1" ):
-			subprocess.Popen('r.out.png --quiet quiet input=%s output=%s.png' % (outmap, outmap), shell='bash').wait()
-		
-		if os.getenv("GIS_FLAG_r") == "1":
-			f.write('north: %s\nsouth: %s\neast: %s\nwest: 1\ncols: %s\nrows: %s\n' % (endnum,startnum,categories,categories,endnum))
-			stat_list = []
-			for key in md.iterkeys():
-				stats = md[key]
-				stat_list.append('%s\n' % (','.join(stats)))
-			stat_list.reverse()
-			grass_print(stat_list)
-			f.writelines(stat_list)
-			f.close()
-		else:
-			f.write('Landcover Category,%s\n' % ','.join(l))
-			for key in md.iterkeys():
-				stats = md.get(key, [])
-				stat_str = 'Year %s,%s\n' % (key, ','.join(stats))
-				f.write(stat_str)
-        f.close()
-        return
-        
+    pattern = os.getenv("GIS_OPT_pattern")
+    startnum = int(os.getenv("GIS_OPT_startnum"))
+    endnum = int(os.getenv("GIS_OPT_endnum"))
+    categories = int(os.getenv("GIS_OPT_categories"))
+    digits = int(os.getenv("GIS_OPT_digits"))
+
+    msp = subprocess.Popen('g.gisenv get=MAPSET store=gisrc --quiet', stdout=subprocess.PIPE, shell='bash')
+    mapset = msp.stdout.read().replace('\n','')
+    if os.getenv("GIS_FLAG_n") == "1":
+        statsout = 'lc_stats_%s_%s.csv' % (mapset,pattern)
+    else:
+        statsout = os.getenv("GIS_OPT_statsout")
+    f = open(statsout, 'w')
+    l = [str(x) for x in range(0,categories+1)]
+    md = {}
+    if bool(os.getenv("GIS_OPT_suffix")) == False:
+        grass_print("Numbers are suffixes to prefix: %s" % pattern)
+        for number in range(startnum, endnum+1):
+            outmap = '%s%s' % (pattern, str(number).zfill(digits))
+            p = subprocess.Popen('r.stats -a -n input=%s fs=space nv=* nsteps=255 --quiet' % outmap, stdout=subprocess.PIPE, shell='bash')
+            out = p.stdout.readlines()
+            dict1 = {}
+            for x in out:
+                x0,x1 = x.split()
+                dict1[x0] = x1
+            mdlist = []
+            for key in l:
+                if dict1.has_key(key):
+                    mdlist.append(dict1[key])
+                else:
+                    mdlist.append('0')
+            md[number] = mdlist
+            if ( os.getenv("GIS_FLAG_e") == "1" ):
+                subprocess.Popen('r.out.png --quiet quiet input=%s output=%s.png' % (outmap, outmap), shell='bash').wait()
+
+
+        if os.getenv("GIS_FLAG_r") == "1":
+            f.write('north: %s\nsouth: %s\neast: %s\nwest: 1\ncols: %s\nrows: %s\n' % (endnum,startnum,categories,categories,endnum))
+            stat_list = []
+            for key in md.iterkeys():
+                stats = md[key]
+                stat_list.append('%s\n' % (','.join(stats)))
+            stat_list.reverse()
+            grass_print(stat_list)
+            f.writelines(stat_list)
+            f.close()
+        else:
+            f.write('Landcover Category,%s\n' % ','.join(l))
+            for key in md.iterkeys():
+                stats = md.get(key, [])
+                stat_str = 'Year %s,%s\n' % (key, ','.join(stats))
+                f.write(stat_str)
+    else:
+        suffix = os.getenv("GIS_OPT_suffix")
+        grass_print("Numbers are infixes between prefix: %s and suffix: %s" % (pattern, suffix))
+        for number in range(startnum, endnum+1):
+            outmap = '%s%s%s' % (pattern, str(number).zfill(digits), suffix)
+            p = subprocess.Popen('r.stats -a -n input=%s fs=space nv=* nsteps=255 --quiet' % outmap, stdout=subprocess.PIPE, shell='bash')
+            out = p.stdout.readlines()
+            dict1 = {}
+            for x in out:
+                x0,x1 = x.split()
+                dict1[x0] = x1
+            mdlist = []
+            for key in l:
+                if dict1.has_key(key):
+                    mdlist.append(dict1[key])
+                else:
+                    mdlist.append('0')
+            md[number] = mdlist
+            if ( os.getenv("GIS_FLAG_e") == "1" ):
+                subprocess.Popen('r.out.png --quiet quiet input=%s output=%s.png' % (outmap, outmap), shell='bash').wait()
+
+        if os.getenv("GIS_FLAG_r") == "1":
+            f.write('north: %s\nsouth: %s\neast: %s\nwest: 1\ncols: %s\nrows: %s\n' % (endnum,startnum,categories,categories,endnum))
+            stat_list = []
+            for key in md.iterkeys():
+                stats = md[key]
+                stat_list.append('%s\n' % (','.join(stats)))
+            stat_list.reverse()
+            grass_print(stat_list)
+            f.writelines(stat_list)
+            f.close()
+        else:
+            f.write('Landcover Category,%s\n' % ','.join(l))
+            for key in md.iterkeys():
+                stats = md.get(key, [])
+                stat_str = 'Year %s,%s\n' % (key, ','.join(stats))
+                f.write(stat_str)
+    f.close()
+    return
+
 if __name__ == "__main__":
     if ( len(sys.argv) <= 1 or sys.argv[1] != "@ARGS_PARSED@" ):
         os.execvp("g.parser", [sys.argv[0]] + sys.argv)
     else:
         grass_print("Starting the process, hold on!")
-	grass_print("It is not done until you see DONE WITH EVERYTHING!")
+        grass_print("It is not done until you see DONE WITH EVERYTHING!")
         main();
         grass_print("DONE WITH EVERYTHING!")

@@ -94,7 +94,7 @@ def main():
     grassenv = grass.gisenv()
     mappa = options['map'].replace("@"," ")
     mappa = mappa.split()
-    
+
     nflags = len(filter(None, [add, remove, orthoigen]))
     if nflags > 1:
         grass.run_command('g.message' , message = 'Cannot add & remove a map or use orthoigen at the same time.')
@@ -181,7 +181,7 @@ def zoomto(lon,lat,distance,host,pport):
     ossimposition.connect((host, int(pport)))  
     ossimposition.send(ossim_zoom_xml)
     ossimposition.close()
-    
+
 def removefile(output,host,dport):
     ossimdata = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     ossimdata.connect((host, int(dport)))

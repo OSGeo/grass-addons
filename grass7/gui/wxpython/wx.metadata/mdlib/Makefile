@@ -17,7 +17,7 @@ install:
 	@cp -rL $(DSTDIR) $(INST_DIR)/etc/wx.metadata
 
 $(DSTDIR):
-	$(MKDIR) -p $@
+	$(MKDIR) $@
 
 $(DSTDIR)/%: % | $(DSTDIR)
 	$(INSTALL_DATA) $< $@

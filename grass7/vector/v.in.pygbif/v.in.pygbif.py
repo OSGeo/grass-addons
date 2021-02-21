@@ -182,8 +182,6 @@ import sys
 
 # import os
 import math
-from osgeo import ogr, osr
-from osgeo import __version__ as gdal_version
 import grass.script as grass
 from grass.pygrass.vector import Vector
 from grass.pygrass.vector import VectorTopo
@@ -210,6 +208,13 @@ def set_output_encoding(encoding="utf-8"):
 def main():
     from dateutil.parser import parse
 
+    try:
+        from osgeo import ogr, osr
+        from osgeo import __version__ as gdal_version
+    except ImportError:
+        grass.fatal(_("Unable to load GDAL Python bindings (requires "
+                      "package 'python-gdal' or Python library GDAL "
+                      "to be installed)."))
     try:
         from pygbif import occurrences
         from pygbif import species

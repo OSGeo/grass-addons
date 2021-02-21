@@ -230,12 +230,12 @@ def main():
                 'ned1sec': (1. / 3600, 30, 100),
                 'ned13sec': (1. / 3600 / 3, 10, 30),
                 'ned19sec': (1. / 3600 / 9, 3, 10)
-                },
+            },
             'subset': {},
             'extent': [
                 '1 x 1 degree',
                 '15 x 15 minute'
-                ],
+            ],
             'format': 'IMG',
             'extension': 'img',
             'zip': True,
@@ -250,12 +250,12 @@ def main():
                 'National Land Cover Database (NLCD) - 2001': (1. / 3600, 30, 100),
                 'National Land Cover Database (NLCD) - 2006': (1. / 3600, 30, 100),
                 'National Land Cover Database (NLCD) - 2011': (1. / 3600, 30, 100)
-                },
+            },
             'subset': {
                 'Percent Developed Imperviousness',
                 'Percent Tree Canopy',
                 'Land Cover'
-                },
+            },
             'extent': ['3 x 3 degree'],
             'format': 'GeoTIFF',
             'extension': 'tif',
@@ -272,7 +272,7 @@ def main():
             'subset': {},
             'extent': [
                 '3.75 x 3.75 minute',
-                ],
+            ],
             'format': 'JPEG2000',
             'extension': 'jp2',
             'zip': False,
@@ -415,7 +415,7 @@ def main():
     prod_extent = quote_plus(product_extent[0])
 
     # Create TNM API URL
-    base_TNM = "https://viewer.nationalmap.gov/tnmaccess/api/products?"
+    base_TNM = "https://tnmaccess.nationalmap.gov/api/v1/products?"
     datasets_TNM = "datasets={0}".format(datasets)
     bbox_TNM = "&bbox={0}".format(str_bbox)
     prod_format_TNM = "&prodFormats={0}".format(prod_format)
@@ -462,9 +462,6 @@ def main():
         TNM_file_titles.append(TNM_file_title)
         if product_is_zip:
             extract_zip_list.append(local_zip_path)
-        if f['datasets'][0] not in dataset_name:
-            if len(dataset_name) <= 1:
-                dataset_name.append(str(f['datasets'][0]))
 
     def exist_list():
         exist_TNM_titles.append(TNM_file_title)
@@ -478,12 +475,13 @@ def main():
     # Assign needed parameters from returned JSON
     tile_API_count = int(return_JSON['total'])
     tiles_needed_count = 0
+    # TODO: Make the tolerance configurable.
+    # Some combinations produce >10 byte differences.
     size_diff_tolerance = 5
     exist_dwnld_size = 0
     if tile_API_count > 0:
         dwnld_size = []
         dwnld_url = []
-        dataset_name = []
         TNM_file_titles = []
         exist_dwnld_url = []
         exist_TNM_titles = []
@@ -506,13 +504,25 @@ def main():
                 local_tile_path = os.path.join(work_dir, TNM_file_name)
             file_exists = os.path.exists(local_file_path)
             file_complete = None
-            # if file exists, but is incomplete, remove file and redownload
+            # If file exists, do not download,
+            # but if incomplete (e.g. interupted download), redownload.
             if file_exists:
                 existing_local_file_size = os.path.getsize(local_file_path)
                 # if local file is incomplete
                 if abs(existing_local_file_size - TNM_file_size) > size_diff_tolerance:
-                    # add file to cleanup list
-                    cleanup_list.append(local_file_path)
+                    gscript.verbose(_(
+                        "Size of local file {filename} ({local_size}) differs"
+                        " from a file size specified in the API ({api_size})"
+                        " by {difference} bytes"
+                        " which is more than tolerance ({tolerance})."
+                        " It will be downloaded again.").format(
+                            filename=local_file_path,
+                            local_size=existing_local_file_size,
+                            api_size=TNM_file_size,
+                            difference=abs(existing_local_file_size - TNM_file_size),
+                            tolerance=size_diff_tolerance,
+                    )
+                    )
                     # NLCD API query returns subsets that cannot be filtered before
                     # results are returned. gui_subset is used to filter results.
                     if not gui_subset:
@@ -569,10 +579,6 @@ def main():
     if exist_tile_list:
         exist_msg = _("\n{0} of {1} files/archive(s) exist locally and will be used by module.").format(len(exist_tile_list), tiles_needed_count)
         gscript.message(exist_msg)
-    # TODO: simply continue with whatever is needed to be done in this case
-    if cleanup_list:
-        cleanup_msg = _("\n{0} existing incomplete file(s) detected and removed. Run module again.").format(len(cleanup_list))
-        gscript.fatal(cleanup_msg)
 
     # formats JSON size from bites into needed units for combined file size
     if dwnld_size:

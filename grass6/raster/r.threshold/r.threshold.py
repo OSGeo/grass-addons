@@ -42,12 +42,12 @@ def main():
     stats = grass.read_command('r.stats', input = options['acc'], fs = 'space', nv = '*', nsteps = '1000', flags = 'Anc').split('\n')[:-1]
 
     mappatella = np.zeros((len(stats),3),float)
-    
+
     ''' mappatella is a matrix, in the first column the value of upslope area is stored, 
 in the second the number of cells, in the third the distance from origin is calculated '''
- 
+
     for i in range(len(stats)):
-        mappatella[i,0],  mappatella[i,1] = map(float, stats[i].split(' '))
+        mappatella[i,0], mappatella[i,1] = map(float, stats[i].split(' '))
 
         # calculating distance from origin of each point; origin of the plot is in low left point 
 

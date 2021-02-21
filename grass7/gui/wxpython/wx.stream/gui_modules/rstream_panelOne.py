@@ -111,14 +111,14 @@ class CoorWindow(wx.Dialog):
         infoRegion = grass.read_command('g.region',
                         flags = 'p')
         dictRegion = grass.parse_key_val(infoRegion, ':')
-        original_rows  = int(dictRegion['rows'])
-        original_cols  = int(dictRegion['cols'])
+        original_rows = int(dictRegion['rows'])
+        original_cols = int(dictRegion['cols'])
         original_nsres = float(dictRegion['nsres'])
         original_ewres = float(dictRegion['ewres'])
-        original_e     = float(dictRegion['east'])
-        original_n     = float(dictRegion['north'])
-        original_s     = float(dictRegion['south'])
-        original_w     = float(dictRegion['west'])
+        original_e = float(dictRegion['east'])
+        original_n = float(dictRegion['north'])
+        original_s = float(dictRegion['south'])
+        original_w = float(dictRegion['west'])
 
         print original_rows, original_cols, original_nsres, original_ewres, original_e, original_n, original_s, original_w
 
@@ -577,16 +577,16 @@ class TabPanelOne(wx.Panel):
             self.mapdisp.OnRender(None)
 
             # Call CoorWindow
-            coorWin = CoorWindow(parent    = self,
+            coorWin = CoorWindow(parent = self,
                                  mapwindow = self.mapdisp,
-                                 rad2      = self.radioval2,
-                                 rad3      = self.radioval3,
-                                 elev      = self.r_elev,
-                                 acc       = self.r_acc,
-                                 thre      = self.thre,
+                                 rad2 = self.radioval2,
+                                 rad3 = self.radioval3,
+                                 elev = self.r_elev,
+                                 acc = self.r_acc,
+                                 thre = self.thre,
                                  #stre      = self.stre,
-                                 net       = self.v_net,
-                                 drain     = self.r_drain)
+                                 net = self.v_net,
+                                 drain = self.r_drain)
 
             coorWin.Show()
 

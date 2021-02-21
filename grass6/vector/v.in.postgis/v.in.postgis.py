@@ -76,7 +76,7 @@ import grass.script as grass
 import unittest
 
 class GrassPostGisImporter():
-    
+
     def __init__(self, options, flags):
         ##options
         self.query = options['query']
@@ -101,7 +101,7 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
         self.cursor = self.db.cursor()
         ## uncomment if not default
         #dbapi2.paramstyle = 'pyformat' 
-            
+
     def __writeLog(self, log=''):
         """Write the 'log' string to log file."""
         if self.logfile is not None:
@@ -109,7 +109,7 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
             log = log + '\n'
             fileHandle.write(log)
             fileHandle.close()
-            
+
     def __getDbInfos(self):
         """Create a dictionnary with all db params needed by v.in.ogr."""
         try:
@@ -128,7 +128,7 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
             return dbParamsDict
         except:
             raise GrassPostGisImporterError("Error while trying to retrieve database information.")
-    
+
     def executeCommand(self, *args, **kwargs):
         """Command execution method using Popen in two modes : shell mode or not."""
         p = None
@@ -167,7 +167,7 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
             return message
         else:
             raise GrassPostGisImporterError(message)
-        
+
     def printMessage(self, message, type = 'info'):
         """Call grass message function corresponding to type."""
         if type == 'error':
@@ -178,7 +178,7 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
             grass.info(message)
         if self.logOutput is True:
             self.__writeLog(message)
-        
+
     def checkLayers(self, output):
         """Test if the grass layer 'output' already exists.
         Note : for this to work with grass6.3, in find_file function from core.py,
@@ -195,7 +195,7 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
             else:
                 self.printMessage("Vector map " + output + " will be overwritten.", type = 'warning')
         return True
-        
+
     def checkComment(self, output):
         """Test if a table with the 'output' existing in PostGis have been created by the importer."""
         testIfTableNameAlreadyExistsQuery = "SELECT CAST(tablename AS text) FROM pg_tables \
@@ -216,7 +216,7 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
                 raise GrassPostGisImporterError("ERROR: a table with the name " + output + " already exists \
                                                 and was not created by this script.")
         return True
-    
+
     def createPostgresTableFromQuery(self, output, query):
         """Create a table in postgresql populated with results from the query, and tag it.
         We will later be able to figure out if this table was created by the importer (see checkLayers())
@@ -240,7 +240,7 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
             ##query execution error
             raise GrassPostGisImporterError("An error occurred during sql import. Check your connection \
                                             to the database and your sql query.")
-    
+
     def addCategory(self, output):
         """Add a category column in the result table.
         With the pg driver (not the dbf one), v.in.ogr need a 'cat' column for index creation 
@@ -258,7 +258,7 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
             raise GrassPostGisImporterError("Unable to add a 'cat' column. A column named 'CAT' \
                                             or 'cat' may be present in your input data. \
                                             This column is reserved for Grass to store categories.")
-    
+
     def getGeometryInfo(self, output, geometryfield):
         """Retrieve geometry parameters of the result.
         We need to use the postgis AddGeometryColumn function so that v.in.ogr will work.
@@ -303,7 +303,7 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
             raise GrassPostGisImporterError("Unable to retrieve geometry parameters.")
         geoParamsDict = {'type':type, 'ndims':ndims, 'srid':srid}
         return geoParamsDict
-        
+
     def addGeometry(self, output, geometryField, geoParams, addGistIndex=False):
         """Create geometry for result."""
         try:
@@ -338,7 +338,7 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
                                     USING GIST (" + geometryField + " GIST_GEOMETRY_OPS);")
         except:
             raise GrassPostGisImporterError("An error occured during geometry insertion.")
-            
+
     def importToGrass(self, output, geometryField, geoParams, toDbf = False, overrideProj = False):
         """Wrapper for import with v.in.ogr and db connection of the result.
         Note : for grass.gisenv() to work with grass6.3, in gisenv function from core.py,
@@ -379,16 +379,16 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
             ##can cause segfaults if mapset name is too long:
             cmd = self.executeCommand("v.db.connect", map = output, table = output, flags = 'o', \
                                       toLog = self.logOutput)
-        
+
         ##delete temporary data in geometry_columns table
         #self.cursor.execute("DELETE FROM geometry_columns WHERE f_table_name = '" + output + "'")
         self.removeImportData(False, True)
         pass
-            
+
     def commitChanges(self):
         """Commit current transaction."""
         self.db.commit()
-    
+
     def removeImportData(self, removeTable = True, removeGeometryColumnsRecord = True):
         """Cleanup method"""
         if removeTable is True:
@@ -396,7 +396,7 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
         if removeGeometryColumnsRecord is True:
             self.cursor.execute("DELETE FROM geometry_columns WHERE f_table_name = '" + self.output + "'")
         self.commitChanges()
-    
+
     def makeSqlImport(self):
         """GrassPostGisImporter main sequence."""
         ##1)check layers before starting
@@ -417,9 +417,10 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
                             overrideProj = self.overrideprojFlag)
         ##process is ok
         self.commitChanges()
-                                                                                  
+
 class GrassPostGisImporterError(Exception):
     """Errors specific to GrassPostGisImporter class."""
+
     def __init__(self, message=''):
         self.details = '\nDetails:\n'
         exceptionType, exceptionValue, exceptionTraceback = sys.exc_info()
@@ -476,17 +477,17 @@ class GrassPostGisImporterTests(unittest.TestCase):
 
     def setUp(self): 
         grass.run_command("db.connect", driver = 'pg', database = 'host=' + host + ",dbname=" + dbname)
-    
+
     def tearDown(self):
         cleanUpQueryTable()
-    
+
     def testGetDbInfos(self):
         """Test if the importer is able to retrieve correctly the parameters dictionnary for current connection."""
         self.assertEqual(importer.dbparams['host'],host)
         self.assertEqual(importer.dbparams['db'],dbname)
         self.assertEqual(importer.dbparams['user'],user)
         self.assertEqual(importer.dbparams['pwd'],pwd)
-    
+
     def testCheckLayers(self):
         """Test if overwrite is working correctly."""
         os.environ['GRASS_OVERWRITE'] = '0'
@@ -509,7 +510,7 @@ class GrassPostGisImporterTests(unittest.TestCase):
             importer.checkLayers(queryTableName)
         except GrassPostGisImporterError:
             self.fail("CheckLayers was expected to be successful with --o flag.")
-    
+
     def testNoResult(self):
         """Test if importer raise an error if query has no result."""
         noResultQuery = 'select * from ' + testTableName + ' where id>3'
@@ -517,12 +518,12 @@ class GrassPostGisImporterTests(unittest.TestCase):
                           importer.createPostgresTableFromQuery, queryTableName, noResultQuery)
         ##needed
         importer.commitChanges()
-    
+
     def testCheckComment(self):
         """Test that we can't drop a table with the output name if it was not created by the importer."""
         os.environ['GRASS_OVERWRITE'] = '1'
         self.assertRaises(GrassPostGisImporterError, importer.checkComment, testTableName)
-    
+
     def testImportGrassLayer(self):
         """Test import sequence result in GRASS."""
         ##preparation
@@ -575,7 +576,7 @@ class GrassPostGisImporterTests(unittest.TestCase):
         def validrecord(l): return len(str(l).strip()) > 0
         result = filter(validrecord, lines)
         self.assertEquals(len(result), 2)
-        
+
     def testGetGeometryInfos(self):
         """Test that we correctly retrieve geometry parameters from PostGis result table."""
         createQueryTable()
@@ -585,10 +586,10 @@ class GrassPostGisImporterTests(unittest.TestCase):
         self.assertEquals(params['srid'], geoparams['srid'])
         ##needed
         importer.commitChanges()
-    
+
     def testAddingCategoryWithPgDriverIsNecessary(self):
         """Test is the cat column addition is working and is still necessary with pg driver import.
-        
+
         cat column is necessary for GRASS to store categories.
         For now, the pg driver for v.in.ogr doesn't doesn't add automatically this
         cat column, whereas the dbf driver does. So the importer has a specific addCategory()
@@ -648,7 +649,7 @@ class GrassPostGisImporterTests(unittest.TestCase):
 def createQueryTable():
     importer.createPostgresTableFromQuery(queryTableName, query)
     importer.commitChanges()
-    
+
 def cleanUpQueryTable():
     db.rollback()
     try:
@@ -664,7 +665,7 @@ def cleanUpQueryTable():
     except:
         pass
     db.commit()
-    
+
 def cleanUp():
     db.rollback()
     cleanUpQueryTable()
@@ -719,7 +720,7 @@ def tests():
         cleanUp()
         sys.exit(0)
 
-    
+
 if __name__ == "__main__":
     ### DEBUG : uncomment to start local debugging session
     #brk(host="localhost", port=9000)
