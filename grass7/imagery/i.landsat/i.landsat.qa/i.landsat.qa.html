@@ -1,0 +1,185 @@
+<h2>DESCRIPTION</h2>
+
+Removing unreliable pixels is a fundamental and one of the first steps in 
+remote sensing. Landsat imagery provides a Quality Assessment (QA) band which 
+can be used for this purpose.
+
+<p>The <em>i.landsat.qa</em> module generates reclassification rule files which
+ can be used in <a href="https://grass.osgeo.org/grass-stable/manuals/r.reclass.html">r.reclass</a> for filtering the 
+ QA band according to pixel quality characteristics the user defines as 
+ unacceptable.</p>
+
+<p>Values defined as unacceptable for a given condition will be set to NULL
+in the output raster map. All other values will be set to 1.</p>
+
+<p>The Quality Assessment (QA) band from Landsat contains 16bit integer 
+values that represent "bit-packed combinations of surface, atmosphere, and 
+sensor conditions that can affect the overall usefulness of a given pixel". 
+<br>
+
+<p>The following quality relevant conditions are represented as "single bits" 
+in the Landsat8 QA band:</p>
+
+<table border="1" padding="0" spacing="1">
+  <tr>
+    <td>Condition</td>
+    <td>QA Bit Position</td>
+  </tr>
+  <tr>
+    <td>Designated Fill</td>
+    <td>0</td>
+  </tr>
+  <tr>
+    <td>Dropped Frame</td>
+    <td>1</td>
+  </tr>
+  <tr>
+    <td>Terrain Occlusion</td>
+    <td>2</td>
+  </tr>
+  <tr>
+    <td>Reserved (not currently used)</td>
+    <td>3</td>
+  </tr>
+</table>
+
+<p>Possible choices for the "single bits" are:</p>
+
+<table border="1" padding="0" spacing="1">
+  <tr>
+    <td>Value</td>
+	<td>Description</td>
+	<td>Bit representation</td>
+  </tr>
+  <tr>
+    <td>No</td>
+	<td>This condition does not exist</td>
+	<td>0</td>
+  </tr>
+  <tr>
+    <td>Yes</td>
+	<td>This condition exists</td>
+	<td>1</td>
+  </tr>
+</table>
+
+<p>The following quality relevant conditions are represented as "double bits" 
+in the Landsat QA band:</p>
+
+<table border="1" padding="0" spacing="1">
+  <tr>
+    <td>Condition</td>
+    <td>QA Bit Position</td>
+  </tr>
+  <tr>
+    <td>Water Confidence</td>
+    <td>4-5</td>
+  </tr>
+  <tr>
+    <td>Reserved (not currently used)</td>
+    <td>6-7</td>
+  </tr>
+  <tr>
+    <td>Vegetation Confidence</td>
+    <td>8-9</td>
+  </tr>
+  <tr>
+    <td>Snow/Ice Confidence</td>
+    <td>10-11</td>
+  </tr>
+  <tr>
+    <td>Cirrus Confidence</td>
+    <td>12-13</td>
+  </tr>
+  <tr>
+    <td>14-15</td>
+    <td>Cloud Confidence</td>
+  </tr>
+</table>
+
+<p>Possible choices for the "double bits" are:</p>
+
+<table border="1" padding="0" spacing="1">
+  <tr>
+    <td>Value</td>
+	<td>Description</td>
+	<td>Bit representation</td>
+  </tr>
+  <tr>
+    <td>Not Determined</td>
+	<td>Algorithm did not determine the status of this condition</td>
+	<td>00</td>
+  </tr>
+  <tr>
+    <td>No</td>
+	<td>Algorithm has low to no confidence that this condition exists 
+	(0-33 percent confidence)</td>
+	<td>01</td>
+  </tr>
+  <tr>
+    <td>Maybe</td>
+	<td>Algorithm has medium confidence that this condition exists 
+	(34-66 percent confidence)</td>
+	<td>10</td>
+  </tr>
+  <tr>
+    <td>Yes</td>
+	<td>Algorithm has high confidence that this condition exists 
+	(67-100 percent confidence)</td>
+	<td>11</td>
+  </tr>
+</table>
+
+<h2>NOTES</h2>
+
+The Landsat Quality Assessment band is an artificial band which represents 
+an analysis based on <a href=https://landsat.usgs.gov/documents/LDCM_CVT_ADD.pdf>
+defined algorithms</a>. The USGS provides the users with the following note on 
+how the QA band should be used:
+
+<p>"Rigorous science applications seeking to optimize the value of pixels used 
+in a study will find QA bits useful as a first level indicator of certain 
+conditions. Otherwise, users are advised that this file contains information 
+that can be easily misinterpreted and it is not recommended for general use."</p>
+
+<h2>EXAMPLE</h2>
+
+<div class="code"><pre>
+#Create a cloud mask:
+i.landsat.qa --overwrite --verbose cloud="Maybe,Yes" \
+    output=./Cloud_Mask_rules.txt
+r.reclass input=LC81980182015183LGN00_BQA \
+    output=LC81980182015183LGN00_Cloud_Mask rules=./Cloud_Mask_rules.txt
+
+#Create a water mask:
+i.landsat.qa --overwrite --verbose water="Maybe,Yes" \
+    output=./Water_Mask_rules.txt
+r.reclass input=LC81980182015183LGN00_BQA \
+    output=LC81980182015183LGN00_Water_Mask rules=./Water_Mask_rules.txt
+
+</pre></div>
+
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.reclass.html">r.reclass</a>,
+<a href="i.modis.qc.html">i.modis.qc</a>,
+<a href="r.bitpattern.html">r.bitpattern</a>,
+<a href="i.landsat.html">i.landsat</a>
+<a href="i.landsat8.swlst.html">i.landsat8.swlst</a>
+</em>
+
+<h2>REFERENCES</h2>
+
+<em><a href=http://landsat.usgs.gov/qualityband.php>http://landsat.usgs.gov/qualityband.php</a>
+<a href=https://landsat.usgs.gov/documents/LDCM_CVT_ADD.pdf>https://landsat.usgs.gov/documents/LDCM_CVT_ADD.pdf</a></em>
+
+<h2>AUTHOR</h2>
+
+<p>Stefan Blumentrath, Norwegian Institute for Nature Research, Oslo (Norway)</p>
+
+<!--
+<p>
+<i>Last changed: $Date$</i>
+-->
