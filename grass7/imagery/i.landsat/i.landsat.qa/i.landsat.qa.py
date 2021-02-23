@@ -60,22 +60,6 @@
 #%end
 
 #%option
-#% key: terrain_occlusion
-#% multiple: No
-#% description: Unacceptable conditions for Terrain Occlusion / Dropped Pixels
-#% options: No, Yes
-#% required : no
-#%end
-
-#%option
-#% key: radiometric_saturation
-#% multiple: No
-#% description: Unacceptable conditions for Radiometric Saturation
-#% options: Not Determined, Low, Medium, High
-#% required : no
-#%end
-
-#%option
 #% key: cloud
 #% multiple: No
 #% description: Unacceptable conditions for Clouds
@@ -115,6 +99,50 @@
 #% required : no
 #%end
 
+#%option
+#% key: dilated_cloud
+#% description: Unacceptable conditions for Pixels with Dilated Clouds (only collection 2)
+#% options: No, Yes
+#% required : no
+#%end
+
+#%option
+#% key: snow
+#% description: Unacceptable conditions for Snow Pixels (only collection 2)
+#% options: No, Yes
+#% required : no
+#%end
+
+#%option
+#% key: clear
+#% description: Unacceptable conditions for Clear Pixels (only collection 2)
+#% options: No, Yes
+#% required : no
+#%end
+
+#%option
+#% key: water
+#% description: Unacceptable conditions for Water Pixels (only collection 2)
+#% options: No, Yes
+#% required : no
+#%end
+
+#%option
+#% key: terrain_occlusion
+#% multiple: No
+#% description: Unacceptable conditions for Terrain Occlusion / Dropped Pixels (only collection 1)
+#% options: No, Yes
+#% required : no
+#%end
+
+#%option
+#% key: radiometric_saturation
+#% multiple: No
+#% description: Unacceptable conditions for Radiometric Saturation (only collection 1)
+#% options: Not Determined, Low, Medium, High
+#% required : no
+#%end
+
 #%rules
 #% required: designated_fill,terrain_occlusion,radiometric_saturation,cloud,cloud_confidence,cloud_shadow_confidence,snow_ice_confidence,cirrus_confidence
 #%end
@@ -138,9 +166,14 @@ def main():
     collection = options["collection"]
     sensor = options["sensor"]
 
+    collection_unsupported = {
+        "1": ["dilated_cloud", "snow", "clear", "water"],
+        "2": ["terrain_occlusion", "radiometric_saturation"],
+    }
+
     # Extract bitpattern filter from user input
     bit_filter = []
-    for f in options.keys():
+    for f in options:
         if options[f] and f not in ["output", "collection", "sensor"]:
             bit_filter.append(f)
 
@@ -148,32 +181,55 @@ def main():
     for o in bit_filter:
         if len(options[o].split(",")) >= 4:
             grass.fatal(
-                """All conditions for {} specified as
+                _(
+                    """All conditions for {} specified as
             unacceptable, this will result in an empty map.""".format(
-                    o
+                        o
+                    )
+                )
+            )
+        # Check if valid combination of options if provided
+        if o in collection_unsupported[collection]:
+            grass.warning(
+                _(
+                    "Condition {condition} is unsupported in Collection {collection}".format(
+                        condition=o, collection=collection
+                    )
                 )
             )
 
     # Define length of Landsat8 QA bitpattern
-    number_of_bits = 16
-
-    # Get maximum integer representation
-    max_int = int("".join([str(1)] * number_of_bits), 2)
+    max_bits_used = {
+        "1": {
+            "Landsat 8 OLI": 13,
+            "Landsat 8 OLI/TIRS": 13,
+            "Landsat 1-5 MSS": 7,
+            "Landsat 7 ETM+": 13,
+            "Landsat 4-5 TM": 11,
+        },
+        "2": {
+            "Landsat 8 OLI": 16,
+            "Landsat 8 OLI/TIRS": 16,
+            "Landsat 1-5 MSS": 10,
+            "Landsat 7 ETM+": 14,
+            "Landsat 4-5 TM": 14,
+        },
+    }
 
     # Define bitpattern characteristics according to
     # http://landsat.usgs.gov/qualityband.php
-    """
-    Populated bits:
 
-    0		Designated Fill
-    1		Terrain Occlusion
-    2-3		Radiometric saturation
-    4		Cloud
-    5-6		Cloud confidence
-    7-8		Cloud shaddow confidence
-    9-10	Snow/Ice confidence
-    11-12	Cirrus confidence
-    """
+    # Populated bits
+    # Collection 1:
+
+    # 0		Designated Fill
+    # 1		Terrain Occlusion
+    # 2-3	Radiometric saturation
+    # 4		Cloud
+    # 5-6	Cloud confidence
+    # 7-8	Cloud shaddow confidence
+    # 9-10	Snow/Ice confidence
+    # 11-12	Cirrus confidence
 
     # Define bit length (single or double bits)
     bit_length = {
@@ -186,7 +242,21 @@ def main():
             "cloud_shadow_confidence": 2,
             "snow_ice_confidence": 2,
             "cirrus_confidence": 2,
-        }
+        },
+        "2": {
+            "designated_fill": 1,
+            "dilated_cloud": 1,
+            "cirrus": 1,
+            "cloud": 1,
+            "cloud_shadow": 1,
+            "snow": 1,
+            "clear": 1,
+            "water": 1,
+            "cloud_confidence": 2,
+            "cloud_shadow_confidence": 2,
+            "snow_ice_confidence": 2,
+            "cirrus_confidence": 2,
+        },
     }
 
     # Define bit position start
@@ -200,32 +270,44 @@ def main():
             "cloud_shadow_confidence": 7,
             "snow_ice_confidence": 9,
             "cirrus_confidence": 11,
-        }
+        },
+        "2": {
+            "designated_fill": 0,
+            "dilated_cloud": 1,
+            "cirrus": 2,
+            "cloud": 3,
+            "cloud_shadow": 4,
+            "snow": 5,
+            "clear": 6,
+            "water": 7,
+            "cloud_confidence": 8,
+            "cloud_shadow_confidence": 10,
+            "snow_ice_confidence": 12,
+            "cirrus_confidence": 14,
+        },
     }
 
-    """
-    For the single bits (0, 1, 2, and 3):
-        0 = No, this condition does not exist
-        1 = Yes, this condition exists.
-    """
-
     # Define single bits dictionary
+
+    # For the single bits (0, 1, 2, and 3):
+    #     0 = No, this condition does not exist
+    #     1 = Yes, this condition exists.
+
     single_bits = {"No": "0", "Yes": "1"}
 
-    """
-    The double bits (2-3, 5-6, 7-8, 9-10, and 11-12), read from left to
-    right, represent levels of confidence that a condition exists:
-    00 = 'Not Determined' = Algorithm did not determine the status
-                            of this condition
-    01 = 'Low' = Algorithm has low to no confidence that this condition exists
-                (0-33 percent confidence)
-    10 = 'Medium' = Algorithm has medium confidence that this condition exists
-                (34-66 percent confidence)
-    11 = 'High' = Algorithm has high confidence that this condition exists
-                (67-100 percent confidence).
-    """
-
     # Define double bits dictionary
+
+    # The double bits (2-3, 5-6, 7-8, 9-10, and 11-12), read from left to
+    # right, represent levels of confidence that a condition exists:
+    # 00 = 'Not Determined' = Algorithm did not determine the status
+    #                         of this condition
+    # 01 = 'Low' = Algorithm has low to no confidence that this condition exists
+    #             (0-33 percent confidence)
+    # 10 = 'Medium' = Algorithm has medium confidence that this condition exists
+    #             (34-66 percent confidence)
+    # 11 = 'High' = Algorithm has high confidence that this condition exists
+    #             (67-100 percent confidence).
+
     double_bits = {"Not Determined": "00", "Low": "01", "Medium": "10", "High": "11"}
 
     bit_position = bit_position[collection]
@@ -236,8 +318,9 @@ def main():
 
     # Loop over all possible integer representations of a 16-bit bitpattern
     # given as category values in the QA band
-    print(bit_filter)
-    for cat in range(max_int + 1):
+
+    # Get maximum integer representation
+    for cat in range(int("".join([str(1)] * max_bits_used[collection][sensor]), 2) + 1):
         # Get the binary equivalent of the integer value
         bin_cat = "{0:016b}".format(cat)
 
