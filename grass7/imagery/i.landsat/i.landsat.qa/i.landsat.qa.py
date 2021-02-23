@@ -134,27 +134,31 @@ def main():
     """
 
     # Parse options
-    output = options['output']
-    collection = options['collection']
-    sensor = options['sensor']
+    output = options["output"]
+    collection = options["collection"]
+    sensor = options["sensor"]
 
     # Extract bitpattern filter from user input
     bit_filter = []
     for f in options.keys():
-        if options[f] and f not in ['output', 'collection', 'sensor']:
+        if options[f] and f not in ["output", "collection", "sensor"]:
             bit_filter.append(f)
 
     # Check if propper input is provided:
     for o in bit_filter:
-        if len(options[o].split(',')) >= 4:
-            grass.fatal("""All conditions for {} specified as
-            unacceptable, this will result in an empty map.""".format(o))
+        if len(options[o].split(",")) >= 4:
+            grass.fatal(
+                """All conditions for {} specified as
+            unacceptable, this will result in an empty map.""".format(
+                    o
+                )
+            )
 
     # Define length of Landsat8 QA bitpattern
     number_of_bits = 16
 
     # Get maximum integer representation
-    max_int = int(''.join([str(1)] * number_of_bits), 2)
+    max_int = int("".join([str(1)] * number_of_bits), 2)
 
     # Define bitpattern characteristics according to
     # http://landsat.usgs.gov/qualityband.php
@@ -172,26 +176,32 @@ def main():
     """
 
     # Define bit length (single or double bits)
-    bit_length = {'1': {'designated_fill': 1,
-          'terrain_occlusion': 1,
-          'radiometric_saturation': 2,
-          'cloud': 1,
-          'cloud_confidence': 2,
-          'cloud_shadow_confidence': 2,
-          'snow_ice_confidence': 2,
-          'cirrus_confidence': 2,
-          }}
+    bit_length = {
+        "1": {
+            "designated_fill": 1,
+            "terrain_occlusion": 1,
+            "radiometric_saturation": 2,
+            "cloud": 1,
+            "cloud_confidence": 2,
+            "cloud_shadow_confidence": 2,
+            "snow_ice_confidence": 2,
+            "cirrus_confidence": 2,
+        }
+    }
 
     # Define bit position start
-    bit_position = {'1': {'designated_fill': 0,
-          'terrain_occlusion': 1,
-          'radiometric_saturation': 2,
-          'cloud': 4,
-          'cloud_confidence': 5,
-          'cloud_shadow_confidence': 7,
-          'snow_ice_confidence': 9,
-          'cirrus_confidence': 11,
-          }}
+    bit_position = {
+        "1": {
+            "designated_fill": 0,
+            "terrain_occlusion": 1,
+            "radiometric_saturation": 2,
+            "cloud": 4,
+            "cloud_confidence": 5,
+            "cloud_shadow_confidence": 7,
+            "snow_ice_confidence": 9,
+            "cirrus_confidence": 11,
+        }
+    }
 
     """
     For the single bits (0, 1, 2, and 3):
@@ -200,8 +210,7 @@ def main():
     """
 
     # Define single bits dictionary
-    single_bits = {'No': '0',
-                   'Yes': '1'}
+    single_bits = {"No": "0", "Yes": "1"}
 
     """
     The double bits (2-3, 5-6, 7-8, 9-10, and 11-12), read from left to
@@ -217,10 +226,7 @@ def main():
     """
 
     # Define double bits dictionary
-    double_bits = {'Not Determined': '00',
-                   'Low': '01',
-                   'Medium': '10',
-                   'High': '11'}
+    double_bits = {"Not Determined": "00", "Low": "01", "Medium": "10", "High": "11"}
 
     bit_position = bit_position[collection]
     bit_length = bit_length[collection]
@@ -233,7 +239,7 @@ def main():
     print(bit_filter)
     for cat in range(max_int + 1):
         # Get the binary equivalent of the integer value
-        bin_cat = '{0:016b}'.format(cat)
+        bin_cat = "{0:016b}".format(cat)
 
         # Loop over user-defined the bitpattern filter (bit_filter) elements
         for k in bit_filter:
@@ -241,7 +247,7 @@ def main():
             bpe = bit_position[k] + bit_length[k]
 
             # Extract unnacceptable bitpatterns (bp) form bitpattern filter
-            for bp in options[k].split(','):
+            for bp in options[k].split(","):
 
                 if bit_length[k] == 1:
                     bits = single_bits[bp]
@@ -249,23 +255,24 @@ def main():
                     bits = double_bits[bp]
 
                 # Check if bitpattern of the category should be filtered
-                if bits == bin_cat[len(bin_cat) - bpe:len(bin_cat) - bit_position[k]]:
+                if bits == bin_cat[len(bin_cat) - bpe : len(bin_cat) - bit_position[k]]:
                     # Add category to recassification rule
-                    rc.append(str(cat) + ' = NULL')
+                    rc.append(str(cat) + " = NULL")
                     break
             # Avoid duplicates in reclass rules when several filter are applied
-            if bits == bin_cat[len(bin_cat) - bpe:len(bin_cat) - bit_position[k]]:
+            if bits == bin_cat[len(bin_cat) - bpe : len(bin_cat) - bit_position[k]]:
                 break
 
     # Construct rules for reclassification
-    rules = '\n'.join(rc) + '\n* = 1\n'
+    rules = "\n".join(rc) + "\n* = 1\n"
 
     # Print to stdout if no output file is specified
-    if not options['output']:
+    if not options["output"]:
         sys.stdout.write(rules)
     else:
-        with open(output, 'w') as o:
+        with open(output, "w") as o:
             o.write(rules)
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()
