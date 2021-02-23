@@ -18,7 +18,7 @@ sensor conditions that can affect the overall usefulness of a given pixel".
 <br>
 
 <p>The following quality relevant conditions are represented as "single bits" 
-in the Landsat8 QA band:</p>
+in the Landsat QA band:</p>
 
 <table border="1" padding="0" spacing="1">
   <tr>
@@ -30,16 +30,12 @@ in the Landsat8 QA band:</p>
     <td>0</td>
   </tr>
   <tr>
-    <td>Dropped Frame</td>
+    <td>Terrain Occlusion / Dropped Pixels</td>
     <td>1</td>
   </tr>
   <tr>
-    <td>Terrain Occlusion</td>
-    <td>2</td>
-  </tr>
-  <tr>
-    <td>Reserved (not currently used)</td>
-    <td>3</td>
+    <td>Cloud</td>
+    <td>4</td>
   </tr>
 </table>
 
@@ -72,28 +68,24 @@ in the Landsat QA band:</p>
     <td>QA Bit Position</td>
   </tr>
   <tr>
-    <td>Water Confidence</td>
-    <td>4-5</td>
+    <td>Radiometric saturation</td>
+    <td>2</td>
   </tr>
   <tr>
-    <td>Reserved (not currently used)</td>
-    <td>6-7</td>
+    <td>Cloud Confidence</td>
+    <td>5-6</td>
   </tr>
   <tr>
-    <td>Vegetation Confidence</td>
-    <td>8-9</td>
+    <td>Cloud Shadow Confidence</td>
+    <td>7-8</td>
   </tr>
   <tr>
     <td>Snow/Ice Confidence</td>
-    <td>10-11</td>
+    <td>9-10</td>
   </tr>
   <tr>
     <td>Cirrus Confidence</td>
-    <td>12-13</td>
-  </tr>
-  <tr>
-    <td>14-15</td>
-    <td>Cloud Confidence</td>
+    <td>11-12</td>
   </tr>
 </table>
 
@@ -111,19 +103,19 @@ in the Landsat QA band:</p>
 	<td>00</td>
   </tr>
   <tr>
-    <td>No</td>
+    <td>Low</td>
 	<td>Algorithm has low to no confidence that this condition exists 
 	(0-33 percent confidence)</td>
 	<td>01</td>
   </tr>
   <tr>
-    <td>Maybe</td>
+    <td>Medium</td>
 	<td>Algorithm has medium confidence that this condition exists 
 	(34-66 percent confidence)</td>
 	<td>10</td>
   </tr>
   <tr>
-    <td>Yes</td>
+    <td>High</td>
 	<td>Algorithm has high confidence that this condition exists 
 	(67-100 percent confidence)</td>
 	<td>11</td>
