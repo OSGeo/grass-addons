@@ -260,7 +260,7 @@ def main():
                     rc.append(str(cat) + " = NULL")
                     break
             # Avoid duplicates in reclass rules when several filter are applied
-            if bits == bin_cat[len(bin_cat) - bpe : len(bin_cat) - bit_position[k]]:
+            if bits == bin_cat[len(bin_cat) - bpe: len(bin_cat) - bit_position[k]]:
                 break
 
     # Construct rules for reclassification
