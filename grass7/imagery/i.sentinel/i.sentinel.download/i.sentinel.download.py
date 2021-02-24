@@ -668,10 +668,10 @@ class SentinelDownloader(object):
             start_date = start
             end_date = end
         usgs_args = {
-                     'dataset': 'SENTINEL_2A',
-                     'bbox': bbox,
-                     'start_date': start_date,
-                     'end_date': end_date
+            'dataset': 'SENTINEL_2A',
+            'bbox': bbox,
+            'start_date': start_date,
+            'end_date': end_date
         }
         if clouds:
             usgs_args['max_cloud_cover'] = clouds
@@ -782,7 +782,7 @@ def main():
                 'sortby': sortby,
                 'asc': True if options['order'] == 'asc' else False,
                 'relativeorbitnumber': options['relativeorbitnumber']
-                }
+            }
             if options['datasource'] == 'ESA_COAH':
                 downloader.filter(**filter_args)
             elif options['datasource'] == 'USGS_EE':
