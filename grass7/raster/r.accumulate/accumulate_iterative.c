@@ -33,7 +33,7 @@ static struct neighbor *get_up(struct neighbor_stack *, int);
 void accumulate_iterative(struct cell_map *dir_buf,
                           struct raster_map *weight_buf,
                           struct raster_map *accum_buf, char **done, char neg,
-                          char null)
+                          char zero)
 {
     int row, col;
 
@@ -46,7 +46,7 @@ void accumulate_iterative(struct cell_map *dir_buf,
         for (col = 0; col < ncols; col++)
             if (dir_buf->c[row][col])
                 trace_up(dir_buf, weight_buf, accum_buf, done, neg, row, col);
-            else if (null)
+            else if (!zero)
                 set_null(accum_buf, row, col);
     }
     G_percent(1, 1, 1);

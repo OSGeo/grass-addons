@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
     struct
     {
         struct Flag *neg_accum;
-        struct Flag *null_accum;
+        struct Flag *zero_accum;
         struct Flag *accum_lfp;
         struct Flag *conf_stream;
         struct Flag *recur;
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
     double dir_format, thresh;
     struct Range dir_range;
     CELL dir_min, dir_max;
-    char neg_accum, null_accum, accum_lfp, conf_stream, recur;
+    char neg_accum, zero_accum, accum_lfp, conf_stream, recur;
     struct cell_map dir_buf;
     struct raster_map accum_buf;
     int nrows, ncols, row, col;
@@ -198,10 +198,10 @@ int main(int argc, char *argv[])
     flag.neg_accum->label =
         _("Use negative flow accumulation for likely underestimates");
 
-    flag.null_accum = G_define_flag();
-    flag.null_accum->key = 'N';
-    flag.null_accum->label =
-        _("Use nulls instead of 0s for no flow accumulation (looks good, but slow)");
+    flag.zero_accum = G_define_flag();
+    flag.zero_accum->key = '0';
+    flag.zero_accum->label =
+        _("Use 0s instead of nulls for no flow accumulation (faster)");
 
     flag.accum_lfp = G_define_flag();
     flag.accum_lfp->key = 'a';
@@ -260,16 +260,16 @@ int main(int argc, char *argv[])
      * these outputs */
     G_option_requires(flag.neg_accum, opt.accum, opt.subaccum, opt.stream,
                       opt.lfp, NULL);
-    /* null accumulation is needed only to calculate one of these outputs */
-    G_option_requires(flag.null_accum, opt.accum, opt.subaccum, opt.stream,
+    /* zero accumulation is needed only to calculate one of these outputs */
+    G_option_requires(flag.zero_accum, opt.accum, opt.subaccum, opt.stream,
                       opt.lfp, NULL);
     /* negative accumulation cannot be done when either accumulation or
      * subaccumulation is given as input */
     G_option_excludes(flag.neg_accum, opt.input_accum, opt.input_subaccum,
                       NULL);
-    /* null accumulation cannot be done when either accumulation or
+    /* zero accumulation cannot be done when either accumulation or
      * subaccumulation is given as input */
-    G_option_excludes(flag.null_accum, opt.input_accum, opt.input_subaccum,
+    G_option_excludes(flag.zero_accum, opt.input_accum, opt.input_subaccum,
                       NULL);
     /* accumulated lfp requires longest flow paths */
     G_option_requires(flag.accum_lfp, opt.lfp, NULL);
@@ -448,7 +448,7 @@ int main(int argc, char *argv[])
 
     thresh = opt.thresh->answer ? atof(opt.thresh->answer) : 0.0;
     neg_accum = flag.neg_accum->answer;
-    null_accum = flag.null_accum->answer;
+    zero_accum = flag.zero_accum->answer;
     accum_lfp = flag.accum_lfp->answer;
     conf_stream = flag.conf_stream->answer;
     recur = flag.recur->answer;
@@ -550,10 +550,10 @@ int main(int argc, char *argv[])
 
             if (recur)
                 accumulate_recursive(&dir_buf, &weight_buf, &accum_buf, done,
-                                     neg_accum, null_accum);
+                                     neg_accum, zero_accum);
             else
                 accumulate_iterative(&dir_buf, &weight_buf, &accum_buf, done,
-                                     neg_accum, null_accum);
+                                     neg_accum, zero_accum);
 
             for (row = 0; row < nrows; row++)
                 G_free(done[row]);
