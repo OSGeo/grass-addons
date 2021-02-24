@@ -638,7 +638,7 @@ def main():
     # outer resampling method (cv=cv)
     if cv > 1:
         if group_id is None and mode == "classification":
-            outer = StratifiedKFold(n_splits=cv, random_state=random_state)
+            outer = StratifiedKFold(n_splits=cv, random_state=random_state, shuffle=True)
         elif group_id is None and mode == "regression":
             outer = KFold(n_splits=cv, random_state=random_state)
         else:
