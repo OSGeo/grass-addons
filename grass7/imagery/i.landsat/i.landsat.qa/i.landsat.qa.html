@@ -5,9 +5,11 @@ remote sensing. Landsat imagery provides a Quality Assessment (QA) band which
 can be used for this purpose.
 
 <p>The <em>i.landsat.qa</em> module generates reclassification rule files which
- can be used in <a href="https://grass.osgeo.org/grass-stable/manuals/r.reclass.html">r.reclass</a> for filtering the 
- QA band according to pixel quality characteristics the user defines as 
- unacceptable.</p>
+can be used in <a href="https://grass.osgeo.org/grass-stable/manuals/r.reclass.html">r.reclass</a> for filtering the 
+QA band according to pixel quality characteristics the user defines as 
+unacceptable. It works with both Collection 1 and Collection 2 data from 
+Landsat 8 OLI/TIRS, 4-7 TM/ETM+, and 1-5 MSS sensors. 
+</p>
 
 <p>Values defined as unacceptable for a given condition will be set to NULL
 in the output raster map. All other values will be set to 1.</p>
@@ -137,14 +139,16 @@ that can be easily misinterpreted and it is not recommended for general use."</p
 <h2>EXAMPLE</h2>
 
 <div class="code"><pre>
-#Create a cloud mask:
-i.landsat.qa --overwrite --verbose cloud="Maybe,Yes" \
+# Create a cloud mask:
+i.landsat.qa --overwrite --verbose cloud="Medium,High" \
+    collection=1 sensor="Landsat_8_OLI/TIRS" \
     output=./Cloud_Mask_rules.txt
 r.reclass input=LC81980182015183LGN00_BQA \
     output=LC81980182015183LGN00_Cloud_Mask rules=./Cloud_Mask_rules.txt
 
-#Create a water mask:
-i.landsat.qa --overwrite --verbose water="Maybe,Yes" \
+# Create a water mask (only available for collection 2):
+i.landsat.qa --overwrite --verbose water="Yes" \
+    collection=1 sensor="Landsat_8_OLI/TIRS" \
     output=./Water_Mask_rules.txt
 r.reclass input=LC81980182015183LGN00_BQA \
     output=LC81980182015183LGN00_Water_Mask rules=./Water_Mask_rules.txt
@@ -163,9 +167,10 @@ r.reclass input=LC81980182015183LGN00_BQA \
 </em>
 
 <h2>REFERENCES</h2>
-
-<em><a href=http://landsat.usgs.gov/qualityband.php>http://landsat.usgs.gov/qualityband.php</a>
-<a href=https://landsat.usgs.gov/documents/LDCM_CVT_ADD.pdf>https://landsat.usgs.gov/documents/LDCM_CVT_ADD.pdf</a></em>
+<em><a href=https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-1-level-1-quality-assessment-band>
+Landsat Collection 1 Level 1 Quality Assessment bands</a>
+<a href=https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2-quality-assessment-bands>
+Landsat Collection 2 Level 1 Quality Assessment bands</a></em>
 
 <h2>AUTHOR</h2>
 
