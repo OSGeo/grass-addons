@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
- MODULE:       i.landsat8.qa
+ MODULE:       i.landsat.qa
 
  AUTHOR(S):    Stefan Blumentrath <stefan.blumentrath@nina.no>
 
@@ -38,7 +38,7 @@
 #% multiple: No
 #% description: Landsat Collection (1 or 2)
 #% options: 1, 2
-#% answer: 1
+#% answer: 2
 #% required : no
 #%end
 
@@ -46,8 +46,8 @@
 #% key: sensor
 #% multiple: No
 #% description: Landsat Collection (1 or 2)
-#% options: Landsat 8 OLI, Landsat 8 OLI/TIRS, Landsat 1-5 MSS, Landsat 7 ETM+, Landsat 4-5 TM
-#% answer: 1
+#% options: Landsat_8_OLI/TIRS, Landsat_8_OLI, Landsat_1-5_MSS, Landsat_7_ETM+, Landsat_4-5_TM
+#% answer: Landsat_8_OLI/TIRS
 #% required : no
 #%end
 
@@ -101,6 +101,7 @@
 
 #%option
 #% key: dilated_cloud
+#% multiple: No
 #% description: Unacceptable conditions for Pixels with Dilated Clouds (only collection 2)
 #% options: No, Yes
 #% required : no
@@ -108,6 +109,7 @@
 
 #%option
 #% key: snow
+#% multiple: No
 #% description: Unacceptable conditions for Snow Pixels (only collection 2)
 #% options: No, Yes
 #% required : no
@@ -115,6 +117,7 @@
 
 #%option
 #% key: clear
+#% multiple: No
 #% description: Unacceptable conditions for Clear Pixels (only collection 2)
 #% options: No, Yes
 #% required : no
@@ -137,7 +140,7 @@
 
 #%option
 #% key: radiometric_saturation
-#% multiple: No
+#% multiple: yes
 #% description: Unacceptable conditions for Radiometric Saturation (only collection 1)
 #% options: Not Determined, Low, Medium, High
 #% required : no
@@ -152,8 +155,44 @@ import sys
 import grass.script as grass
 
 if "GISBASE" not in os.environ:
-    print("You must be in GRASS GIS to run this program.")
+    print(_("You must be in GRASS GIS to run this program."))
     sys.exit(1)
+
+
+def check_user_input(user_input):
+    """Checks user input for consistency"""
+    collection_unsupported = {
+        "1": ["dilated_cloud", "snow", "clear", "water"],
+        "2": ["terrain_occlusion", "radiometric_saturation"],
+    }
+
+    # Extract bitpattern filter from user input
+    bit_filter = []
+    for f in user_input:
+        if user_input[f] and f not in ["output", "collection", "sensor"]:
+            bit_filter.append(f)
+
+    # Check if propper input is provided:
+    for o in bit_filter:
+        if len(user_input[o].split(",")) >= 4:
+            grass.fatal(
+                _(
+                    """All conditions for {} specified as
+            unacceptable, this will result in an empty map.""".format(
+                        o
+                    )
+                )
+            )
+        # Check if valid combination of options if provided
+        if o in collection_unsupported[user_input['collection']]:
+            grass.warning(
+                _(
+                    "Condition {condition} is unsupported in Collection {collection}".format(
+                        condition=o, collection=user_input['collection']
+                    )
+                )
+            )
+    return bit_filter
 
 
 def main():
@@ -166,58 +205,30 @@ def main():
     collection = options["collection"]
     sensor = options["sensor"]
 
-    collection_unsupported = {
-        "1": ["dilated_cloud", "snow", "clear", "water"],
-        "2": ["terrain_occlusion", "radiometric_saturation"],
-    }
-
-    # Extract bitpattern filter from user input
-    bit_filter = []
-    for f in options:
-        if options[f] and f not in ["output", "collection", "sensor"]:
-            bit_filter.append(f)
-
-    # Check if propper input is provided:
-    for o in bit_filter:
-        if len(options[o].split(",")) >= 4:
-            grass.fatal(
-                _(
-                    """All conditions for {} specified as
-            unacceptable, this will result in an empty map.""".format(
-                        o
-                    )
-                )
-            )
-        # Check if valid combination of options if provided
-        if o in collection_unsupported[collection]:
-            grass.warning(
-                _(
-                    "Condition {condition} is unsupported in Collection {collection}".format(
-                        condition=o, collection=collection
-                    )
-                )
-            )
-
-    # Define length of Landsat8 QA bitpattern
-    max_bits_used = {
-        "1": {
-            "Landsat 8 OLI": 13,
-            "Landsat 8 OLI/TIRS": 13,
-            "Landsat 1-5 MSS": 7,
-            "Landsat 7 ETM+": 13,
-            "Landsat 4-5 TM": 11,
-        },
-        "2": {
-            "Landsat 8 OLI": 16,
-            "Landsat 8 OLI/TIRS": 16,
-            "Landsat 1-5 MSS": 10,
-            "Landsat 7 ETM+": 14,
-            "Landsat 4-5 TM": 14,
-        },
-    }
+    bit_filter = check_user_input(options)
 
     # Define bitpattern characteristics according to
-    # http://landsat.usgs.gov/qualityband.php
+    # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-1-level-1-quality-assessment-band
+    # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2-quality-assessment-bands
+
+
+    # Define length of Landsat QA bitpattern
+    max_bits_used = {
+        "1": {
+            "Landsat_8_OLI/TIRS": 13,
+            "Landsat_8_OLI": 13,
+            "Landsat_7_ETM+": 13,
+            "Landsat_4-5_TM": 11,
+            "Landsat_1-5_MSS": 7,
+        },
+        "2": {
+            "Landsat_8_OLI/TIRS": 16,
+            "Landsat_8_OLI": 16,
+            "Landsat_7_ETM+": 14,
+            "Landsat_4-5_TM": 14,
+            "Landsat_1-5_MSS": 10,
+        },
+    }
 
     # Populated bits
     # Collection 1:
