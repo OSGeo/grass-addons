@@ -627,7 +627,7 @@ def main():
 
     if any(param_grid) is True:
         if group_id is None and mode == "classification":
-            inner = StratifiedKFold(n_splits=2, random_state=random_state)
+            inner = StratifiedKFold(n_splits=2, random_state=random_state, shuffle=True)
         elif group_id is None and mode == "regression":
             inner = KFold(n_splits=2, random_state=random_state)
         else:
