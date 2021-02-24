@@ -94,6 +94,14 @@
 #% guisection: Filter
 #%end
 
+#%option
+#% key: limit
+#% type: integer
+#% description: Maximum number of scenes to filter/download
+#% required: no
+#% guisection: Filter
+#%end
+
 #%flag
 #% key: s
 #% description: Use scenename/s instead of start/end/producttype to download specific S2 data (specify in the scene_name field)
@@ -233,16 +241,19 @@ def main():
                                   "NYYYY_RZZZ_TUUUUU_YYYYMMDDTHHMMSS.SAFE"))
     else:
         # get a list of scenenames to download
+        download_args = {
+            'settings': settings,
+            'producttype': producttype,
+            'start': start,
+            'end': end,
+            'clouds': clouds,
+            'datasource': datasource,
+            'flags': 'l'
+        }
+        if options['limit']:
+            download_args['limit'] = options['limit']
         i_sentinel_download_string = grass.parse_command(
-            'i.sentinel.download',
-            settings=settings,
-            producttype=producttype,
-            start=start,
-            end=end,
-            clouds=clouds,
-            datasource=datasource,
-            flags='l'
-        )
+            'i.sentinel.download', **download_args)
         i_sentinel_keys = i_sentinel_download_string.keys()
         scenenames = [item.split(' ')[1] for item in i_sentinel_keys]
     # parallelize download
