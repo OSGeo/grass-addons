@@ -149,6 +149,14 @@
 #% required: designated_fill,terrain_occlusion,radiometric_saturation,cloud,cloud_confidence,cloud_shadow_confidence,snow_ice_confidence,cirrus_confidence
 #%end
 
+# To do:
+# - implement other quality bands of esp. collection 2
+#   - QA_RADSAT
+#   - SR_QA_AEORSOL
+#   - SR_Cloud_QA
+# - remove unsupported conditions from bitpattern check
+# - Add tests
+
 import os
 import sys
 import grass.script as grass
@@ -209,7 +217,6 @@ def main():
     # Define bitpattern characteristics according to
     # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-1-level-1-quality-assessment-band
     # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2-quality-assessment-bands
-
 
     # Define length of Landsat QA bitpattern
     max_bits_used = {
