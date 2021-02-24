@@ -32,7 +32,6 @@
 #% required: no
 #%end
 
-
 #%option
 #% key: collection
 #% multiple: No
@@ -45,7 +44,7 @@
 #%option
 #% key: sensor
 #% multiple: No
-#% description: Landsat Collection (1 or 2)
+#% description: Landsat Sensor
 #% options: Landsat_8_OLI/TIRS, Landsat_8_OLI, Landsat_1-5_MSS, Landsat_7_ETM+, Landsat_4-5_TM
 #% answer: Landsat_8_OLI/TIRS
 #% required : no
