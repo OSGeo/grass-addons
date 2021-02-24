@@ -191,11 +191,11 @@ def check_user_input(user_input):
                 )
             )
         # Check if valid combination of options if provided
-        if o in collection_unsupported[user_input['collection']]:
+        if o in collection_unsupported[user_input["collection"]]:
             grass.warning(
                 _(
                     "Condition {condition} is unsupported in Collection {collection}".format(
-                        condition=o, collection=user_input['collection']
+                        condition=o, collection=user_input["collection"]
                     )
                 )
             )
