@@ -21,21 +21,25 @@
 #% keyword: Landsat
 #% keyword: import
 #%end
+
 #%option G_OPT_M_DIR
 #% key: input
 #% description: Name of input directory with downloaded Landsat data
 #% required: yes
 #%end
+
 #%option
 #% key: pattern
 #% description: Band name pattern to import
 #% guisection: Filter
 #%end
+
 #%option
 #% key: pattern_file
 #% description: File name pattern to import
 #% guisection: Filter
 #%end
+
 #%option
 #% key: extent
 #% type: string
@@ -47,6 +51,7 @@
 #% descriptions: region;extent of current region;input;extent of input map
 #% guisection: Filter
 #%end
+
 #%option
 #% key: memory
 #% type: integer
@@ -56,31 +61,37 @@
 #% description: Cache size for raster rows
 #% answer: 300
 #%end
+
 #%option G_OPT_F_OUTPUT
 #% key: register_output
 #% description: Name for output file to use with t.register
 #% required: no
 #%end
+
 #%flag
 #% key: r
 #% description: Reproject raster data using r.import if needed
 #% guisection: Settings
 #%end
+
 #%flag
 #% key: l
 #% description: Link raster data instead of importing
 #% guisection: Settings
 #%end
+
 #%flag
 #% key: o
 #% description: Override projection check (use current location's projection)
 #% guisection: Settings
 #%end
+
 #%flag
 #% key: p
 #% description: Print raster data to be imported and exit
 #% guisection: Print
 #%end
+
 #%rules
 #% exclusive: -l,-r,-p
 #% exclusive: -o,-r

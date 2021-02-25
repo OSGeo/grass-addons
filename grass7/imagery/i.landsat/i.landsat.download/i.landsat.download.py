@@ -21,23 +21,27 @@
 #% keyword: Landsat
 #% keyword: download
 #%end
+
 #%option G_OPT_F_INPUT
 #% key: settings
 #% label: Full path to settings file (user, password)
 #% description: '-' for standard input
 #%end
+
 #%option G_OPT_M_DIR
 #% key: output
 #% description: Name for output directory where to store downloaded Landsat data
 #% required: no
 #% guisection: Output
 #%end
+
 #%option G_OPT_V_MAP
 #% label: Name of input vector map to define Area of Interest (AOI)
 #% description: If not given then current computational extent is used
 #% required: no
 #% guisection: Region
 #%end
+
 #%option
 #% key: clouds
 #% type: integer
@@ -45,27 +49,31 @@
 #% required: no
 #% guisection: Filter
 #%end
+
 #%option
 #% key: dataset
 #% type: string
 #% description: Landsat dataset to search for
 #% required: no
-#% options: LANDSAT_TM_C1, LANDSAT_ETM_C1, LANDSAT_8_C1
-#% answer: LANDSAT_8_C1
+#% options: landsat_tm_c1, landsat_etm_c1, landsat_8_c1, landsat_tm_c2_l1, landsat_tm_c2_l2, landsat_etm_c2_l1, landsat_etm_c2_l2, landsat_ot_c2_l1, landsat_ot_c2_l2
+#% answer: landsat_8_c1
 #% guisection: Filter
 #%end
+
 #%option
 #% key: start
 #% type: string
 #% description: Start date ('YYYY-MM-DD')
 #% guisection: Filter
 #%end
+
 #%option
 #% key: end
 #% type: string
 #% description: End date ('YYYY-MM-DD')
 #% guisection: Filter
 #%end
+
 #%option
 #% key: id
 #% type: string
@@ -73,6 +81,7 @@
 #% description: List of scenes IDs to download
 #% guisection: Filter
 #%end
+
 #%option
 #% key: tier
 #% type: string
@@ -81,14 +90,16 @@
 #% options: RT, T1, T2
 #% guisection: Filter
 #%end
+
 #%option
 #% key: sort
 #% description: Sort by values in given order
 #% multiple: yes
-#% options: acquisitionDate,cloudCover
-#% answer: cloudCover,acquisitionDate
+#% options: publishDate,cloudCover
+#% answer: cloudCover,publishDate
 #% guisection: Sort
 #%end
+
 #%option
 #% key: order
 #% description: Sort order (see sort parameter)
@@ -96,11 +107,13 @@
 #% answer: asc
 #% guisection: Sort
 #%end
+
 #%flag
 #% key: l
 #% description: List filtered products and exit
 #% guisection: Print
 #%end
+
 #%rules
 #% exclusive: -l, id
 #% exclusive: -l, output
@@ -238,7 +251,7 @@ def main():
                 print(
                     scene["entityId"],
                     scene["displayId"],
-                    scene["acquisitionDate"],
+                    scene["publishDate"],
                     scene["cloudCover"],
                 )
 
