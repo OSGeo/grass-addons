@@ -4,6 +4,7 @@ PGM = i.landsat
 
 SUBDIRS = i.landsat.download \
         i.landsat.import \
+        i.landsat.qa \
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
