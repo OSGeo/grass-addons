@@ -95,7 +95,8 @@ def main():
         import joblib
 
         if sklearn.__version__ < "0.20":
-            gs.fatal("Package python3-scikit-learn 0.20 or newer is not installed")
+            gs.fatal(
+                "Package python3-scikit-learn 0.20 or newer is not installed")
 
     except ImportError:
         gs.fatal("Package python3-scikit-learn 0.20 or newer is not installed")

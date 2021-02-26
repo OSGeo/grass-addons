@@ -5,19 +5,7 @@
 with passing pre-defined scikit learn classifiers
 and other utilities for loading/saving training data."""
 
-import grass.script as gs
 import numpy as np
-import os
-from copy import deepcopy
-from copy import deepcopy
-import sqlite3
-import tempfile
-from grass.pygrass.modules.shortcuts import database as db
-from grass.pygrass.modules.shortcuts import vector as gvect
-from grass.pygrass.modules.shortcuts import raster as grast
-from grass.pygrass.modules.shortcuts import general as g
-from grass.pygrass.vector import VectorTopo
-from grass.pygrass.vector.geometry import Point
 
 
 def option_to_list(x, dtype=None):
@@ -81,7 +69,8 @@ def predefined_estimators(estimator, random_state, n_jobs, p):
         Scikit-learn classifier object
 
     mode : str
-        Flag to indicate whether classifier performs classification or regression.
+        Flag to indicate whether classifier performs classification or
+        regression.
     """
     try:
         from sklearn.experimental import enable_hist_gradient_boosting
@@ -104,7 +93,8 @@ def predefined_estimators(estimator, random_state, n_jobs, p):
         ExtraTreesClassifier,
         ExtraTreesRegressor,
     )
-    from sklearn.ensemble import GradientBoostingClassifier, GradientBoostingRegressor
+    from sklearn.ensemble import (GradientBoostingClassifier,
+                                  GradientBoostingRegressor)
     from sklearn.svm import SVC, SVR
     from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
     from sklearn.neural_network import MLPClassifier, MLPRegressor
@@ -120,7 +110,8 @@ def predefined_estimators(estimator, random_state, n_jobs, p):
             n_jobs=1,
             fit_intercept=True,
         ),
-        "LinearRegression": LinearRegression(n_jobs=n_jobs, fit_intercept=True),
+        "LinearRegression": LinearRegression(
+            n_jobs=n_jobs, fit_intercept=True),
         "SGDClassifier": SGDClassifier(
             penalty=p["penalty"],
             alpha=p["alpha"],
@@ -320,10 +311,11 @@ def scoring_metrics(mode):
 
         search_scorer = make_scorer(metrics.r2_score)
 
-    return (scoring, search_scorer)
+    return scoring, search_scorer
 
 
-def save_training_data(file, X, y, cat, class_labels=None, groups=None, names=None):
+def save_training_data(file, X, y, cat, class_labels=None, groups=None,
+                       names=None):
     """
     Saves any extracted training data to a csv file.
 
@@ -370,7 +362,8 @@ def save_training_data(file, X, y, cat, class_labels=None, groups=None, names=No
         groups[:] = np.nan
 
     if class_labels:
-        labels_arr = np.asarray([class_labels[yi] for yi in y]).astype(np.object)
+        labels_arr = np.asarray(
+            [class_labels[yi] for yi in y]).astype(np.object)
     else:
         labels_arr = np.empty((y.shape[0]))
         labels_arr[:] = np.nan
@@ -417,222 +410,7 @@ def load_training_data(file):
 
     cat = training_data.cat.values.astype(np.int64)
     y = training_data.response.values
-    X = training_data.drop(columns=["groups", "class_labels", "cat", "response"]).values
+    X = training_data.drop(
+        columns=["groups", "class_labels", "cat", "response"]).values
 
-    return (X, y, cat, class_labels, groups)
-
-
-def grass_read_vect_sql(vect):
-    """
-    Read a GRASS GIS vector map containing point geometries into a geopandas
-    GeoDataFrame
-
-    Currently only Point geometries are supported
-
-    Parameters
-    ----------
-    vect : str
-        Name of GRASS GIS vector map
-
-    Returns
-    -------
-    geopandas.GeoDataFrame
-    """
-
-    try:
-        from shapely.geometry import Point
-        import pandas as pd
-        import geopandas as gpd
-    except ImportError:
-        gs.fatal(
-            "Reading GRASS GIS point data into geopandas requires the ",
-            "shapely and geopandas python packages to be installed",
-        )
-
-    with VectorTopo(vect) as points:
-        df = pd.read_sql_query(
-            sql="select * from {vect}".format(vect=vect), con=points.table.conn
-        )
-
-        coords = [(p.cat, deepcopy(p.coords())) for p in points]
-        coords = pd.DataFrame(coords, columns=["cat", "geometry"])
-
-        df = df.join(other=coords, how="right", rsuffix=".y")
-
-        df.geometry = [Point(p) for p in df.geometry]
-        df = gpd.GeoDataFrame(df)
-
-    df = df.drop(columns=["cat.y"])
-
-    return df
-
-
-def grass_write_vect_sql(gpdf, x="x_crd", y="y_crd", output=None, overwrite=False):
-    """
-    Write a geopandas.GeodataFrame of Point geometries into a GRASS GIS
-    vector map
-
-    Currently only point geometries are supported
-
-    Parameters
-    ----------
-    gpdf : geopandas.GeoDataFrame
-        Containing point geometries
-
-    x, y : str
-        Name of coordinate fields to use in GRASS table
-
-    output : str
-        Name of output GRASS GIS vector map
-    """
-
-    if overwrite is True:
-        try:
-            db.droptable(table=output + "_table", flags="f")
-            g.remove(name=output, type="vector", flags="f")
-        except:
-            pass
-
-    sqlpath = gs.read_command("db.databases", driver="sqlite").strip(os.linesep)
-    con = sqlite3.connect(sqlpath)
-
-    gpdf[x] = gpdf.geometry.bounds.iloc[:, 0]
-    gpdf[y] = gpdf.geometry.bounds.iloc[:, 1]
-
-    (
-        gpdf.drop(labels=["geometry"], axis=1).to_sql(
-            output + "_table", con, index=True, index_label="cat", if_exists="replace"
-        )
-    )
-
-    con.close()
-
-    gvect.in_db(table=output + "_table", x=x, y=y, output=output, flags="t", key="cat")
-
-
-def grass_read_vect(vect):
-    """
-    Read a GRASS GIS vector map into a Geopandas GeoDataFrame
-
-    Occurs via an intermediate tempfile
-
-    Parameters
-    ----------
-    vect : str
-        Name of GRASS GIS vector map
-
-    Returns
-    -------
-    geopandas.GeoDataFrame
-    """
-    try:
-        import geopandas as gpd
-    except ImportError:
-        gs.fatal("Geopandas python package is required")
-
-    temp_out = ".".join([tempfile.NamedTemporaryFile().name, "gpkg"])
-    gvect.out_ogr(input=vect, output=temp_out, format="GPKG")
-
-    return gpd.read_file(temp_out)
-
-
-def grass_write_vect(gpdf, output, overwrite=False, flags=""):
-    """
-    Write a Geopandas GeoDataFrame object to the GRASS GIS db
-
-    Occurs via an intermediate tempfile
-
-    Parameters
-    ----------
-    gpdf : geopandas.GeoDataFrame
-        Geodataframe to write to GRASS
-
-    output : str
-        Name to use to store the dataset in GRASS
-
-    overwrite : bool
-        Whether to overwrite existing datasets
-
-    flags : str, list, tuple
-        Flags to pass to GRASS v.in.ogr command
-    """
-
-    try:
-        import geopandas as gpd
-    except ImportError:
-        import geopandas as gpd
-
-    temp_out = ".".join([tempfile.NamedTemporaryFile().name, "gpkg"])
-    gpdf.to_file(temp_out, driver="GPKG")
-
-    gvect.in_ogr(input=temp_out, output=output, overwrite=overwrite, flags=flags)
-
-
-def euclidean_distance_fields(prefix, region, overwrite=False):
-    """
-    Generate euclidean distance fields from map corner and centre coordinates
-
-    Parameters
-    ----------
-    prefix : str
-        Name to use as prefix to save distance maps
-
-    region : grass.pygrass.gis.region.Region
-        Region
-
-    overwrite : bool
-        Whether to overwrite existing maps
-    """
-
-    point_topleft = Point(
-        region.west + region.ewres / 2, region.north - region.nsres / 2
-    )
-    point_topright = Point(
-        region.east - region.ewres / 2, region.north - region.nsres / 2
-    )
-    point_lowerleft = Point(
-        region.west + region.ewres / 2, region.south + region.nsres / 2
-    )
-    point_lowerright = Point(
-        region.east - region.ewres / 2, region.south + region.nsres / 2
-    )
-    point_centre = Point(
-        region.west + (region.east - region.west) / 2,
-        region.south + (region.north - region.south) / 2,
-    )
-
-    points = {
-        "topleft": point_topleft,
-        "topright": point_topright,
-        "lowerleft": point_lowerleft,
-        "lowerright": point_lowerright,
-        "centre": point_centre,
-    }
-
-    for name, p in points.items():
-
-        point_name = "_".join([prefix, name])
-
-        vect = VectorTopo(name=point_name)
-        vect.open(
-            mode="w",
-            tab_name=point_name,
-            tab_cols=[("cat", "INTEGER PRIMARY KEY"), ("name", "TEXT")],
-        )
-        vect.write(p, ("point",))
-        vect.table.conn.commit()
-        vect.close()
-
-        gvect.to_rast(
-            input=point_name,
-            type="point",
-            use="val",
-            output=point_name,
-            overwrite=overwrite,
-        )
-        grast.grow_distance(
-            point_name, distance="distance_to_" + point_name, overwrite=overwrite
-        )
-
-        g.remove(name=point_name, type="raster", flags="f")
-        g.remove(name=point_name, type="raster", flags="f")
+    return X, y, cat, class_labels, groups

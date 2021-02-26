@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -- coding: utf-8 --
 
-"""The statistics module contains simple wrappers around GRASS modules for statistical functions
-on raster maps"""
+"""The statistics module contains simple wrappers around GRASS modules for
+statistical functions on raster maps"""
 
 import os
 import numpy as np
@@ -14,7 +14,8 @@ from grass.script.utils import parse_key_val
 class StatisticsMixin(object):
     def covar(self, correlation=False):
         """
-        Outputs a covariance or correlation matrix for the layers within the RasterStack object
+        Outputs a covariance or correlation matrix for the layers within the
+        RasterStack object
 
         Parameters
         ----------
@@ -24,8 +25,8 @@ class StatisticsMixin(object):
         Returns
         -------
         numpy.ndarray
-            Covariance/correlation matrix of the layers within the RasterStack with diagonal and
-            upper triangle positions set to nan.
+            Covariance/correlation matrix of the layers within the RasterStack
+            with diagonal and upper triangle positions set to nan.
         """
 
         if correlation is True:
@@ -51,8 +52,8 @@ class StatisticsMixin(object):
         Parameters
         ----------
         x : str
-            Name of GRASS GIS raster map to use as the x-variable. Has to be within the RasterStack
-            object.
+            Name of GRASS GIS raster map to use as the x-variable. Has to be
+            within the RasterStack object.
 
         y : str
             Name of GRASS GIS raster map to use as the y-variable.
@@ -80,14 +81,15 @@ class StatisticsMixin(object):
         Parameters
         ----------
         x : str
-            Name of GRASS GIS raster map to use as the x-variable. Has to be within the RasterStack
-            object.
+            Name of GRASS GIS raster map to use as the x-variable. Has to be
+            within the RasterStack object.
 
         y : str
             Name of GRASS GIS raster map to use as the y-variable.
 
         estimates : str (opt)
-            Optionally specify a name to create a raster map of the regression estimate.
+            Optionally specify a name to create a raster map of the regression
+            estimate.
 
         residuals : str (opt)
             Optionally specify a name to create a raste rmap of the residuals.

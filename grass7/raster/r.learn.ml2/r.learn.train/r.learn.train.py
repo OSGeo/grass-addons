@@ -73,6 +73,7 @@
 #% options: LogisticRegression,LinearRegression,SGDClassifier,SGDRegressor,LinearDiscriminantAnalysis,QuadraticDiscriminantAnalysis,KNeighborsClassifier,KNeighborsRegressor,GaussianNB,DecisionTreeClassifier,DecisionTreeRegressor,RandomForestClassifier,RandomForestRegressor,ExtraTreesClassifier,ExtraTreesRegressor,GradientBoostingClassifier,GradientBoostingRegressor,HistGradientBoostingClassifier,HistGradientBoostingRegressor,SVC,SVR,MLPClassifier,MLPRegressor
 #% guisection: Estimator settings
 #% required: no
+#% multiple: no
 #%end
 
 #%option string
@@ -341,11 +342,10 @@ import warnings
 from copy import deepcopy
 
 import grass.script as gs
-from grass.pygrass.raster import RasterRow
 import numpy as np
+from grass.pygrass.raster import RasterRow
 
-gs.utils.set_path(modulename='r.learn.ml2', dirname='rlearnlib',
-                  path='..')
+gs.utils.set_path(modulename='r.learn.ml2', dirname='rlearnlib', path='..')
 
 from rlearnlib.utils import (
     predefined_estimators,
@@ -357,14 +357,14 @@ from rlearnlib.utils import (
 )
 from rlearnlib.raster import RasterStack
 
-
 tmp_rast = []
 
 
 def cleanup():
     """Remove any intermediate rasters if execution fails"""
     for rast in tmp_rast:
-        gs.run_command("g.remove", name=rast, type="raster", flags="f", quiet=True)
+        gs.run_command("g.remove", name=rast, type="raster", flags="f",
+                       quiet=True)
 
 
 def warn(*args, **kwargs):
@@ -376,7 +376,8 @@ warnings.warn = warn
 
 
 def wrap_named_step(param_grid):
-    """Function to rename the keys of a parameter grid dict after it is used in a Pipeline"""
+    """Function to rename the keys of a parameter grid dict after it is used in
+    a Pipeline"""
     translate = {}
 
     for k, v in param_grid.items():
@@ -390,15 +391,17 @@ def wrap_named_step(param_grid):
 
 
 def process_hidden(val):
-    """Process the syntax for multiple hidden layers in the MLPClassifier/MLPRegressor"""
+    """Process the syntax for multiple hidden layers in the
+    MLPClassifier/MLPRegressor"""
     val = re.sub(r"[\(\)]", "", val)
     val = [int(i.strip()) for i in val.split(";")]
     return val
 
 
 def process_param_grid(hyperparams):
-    """Process the GRASS options for hyperparameters by assigning default parameters to the hyperparams dict, and
-    splitting any comma-separated lists into the param_grid dict
+    """Process the GRASS options for hyperparameters by assigning default
+    parameters to the hyperparams dict, and splitting any comma-separated lists
+    into the param_grid dict
     """
     hyperparams_type = dict.fromkeys(hyperparams, int)
     hyperparams_type["penalty"] = str
@@ -442,7 +445,8 @@ def main():
         import sklearn
 
         if sklearn.__version__ < "0.20":
-            gs.fatal("Package python3-scikit-learn 0.20 or newer is not installed")
+            gs.fatal(
+                "Package python3-scikit-learn 0.20 or newer is not installed")
 
     except ImportError:
         gs.fatal("Package python3-scikit-learn 0.20 or newer is not installed")
@@ -453,7 +457,7 @@ def main():
     except ImportError:
         gs.fatal("Package python3-pandas 0.25 or newer is not installed")
 
-    # parser options ---------------------------------------------------------------------------------------------------
+    # parser options ----------------------------------------------------------
     group = options["group"]
     training_map = options["training_map"]
     training_points = options["training_points"]
@@ -491,7 +495,7 @@ def main():
     balance = flags["b"]
     category_maps = option_to_list(options["category_maps"])
 
-    # define estimator -------------------------------------------------------------------------------------------------
+    # define estimator --------------------------------------------------------
     hyperparams, param_grid = process_param_grid(hyperparams)
     estimator, mode = predefined_estimators(
         model_name, random_state, n_jobs, hyperparams
@@ -500,59 +504,64 @@ def main():
     # remove dict keys that are incompatible for the selected estimator
     estimator_params = estimator.get_params()
     param_grid = {
-        key: value for key, value in param_grid.items() if key in estimator_params
+        key: value for key, value in param_grid.items()
+        if key in estimator_params
     }
     scoring, search_scorer = scoring_metrics(mode)
 
-    # checks of input options ------------------------------------------------------------------------------------------
-    if (
-        mode == "classification"
-        and balance is True
-        and model_name not in check_class_weights()
-    ):
-
+    # checks of input options -------------------------------------------------
+    if (mode == "classification" and balance is True and
+            model_name not in check_class_weights()):
         gs.warning(model_name + " does not support class weights")
         balance = False
 
     if mode == "regression" and balance is True:
-        gs.warning("Balancing of class weights is only possible for classification")
+        gs.warning(
+            "Balancing of class weights is only possible for classification")
         balance = False
 
     if classif_file:
         if cv <= 1:
-            gs.fatal(
-                "Output of cross-validation global accuracy requires cross-validation cv > 1"
-            )
+            gs.fatal("Output of cross-validation global accuracy requires "
+                     "cross-validation cv > 1")
+
         if not os.path.exists(os.path.dirname(classif_file)):
-            gs.fatal("Directory for output file {} does not exist".format(classif_file))
+            gs.fatal("Directory for output file {} does not exist".format(
+                classif_file))
 
     # feature importance file selected but no cross-validation scheme used
     if importances:
         if sklearn.__version__ < "0.22":
-            gs.fatal("Feature importances calculation requires scikit-learn version >= 0.22")
+            gs.fatal("Feature importances calculation requires scikit-learn "
+                     "version >= 0.22")
 
     if fimp_file:
         if importances is False:
-            gs.fatal('Output of feature importance requires the "f" flag to be set')
+            gs.fatal(
+                'Output of feature importance requires the "f" flag to be set')
+
         if not os.path.exists(os.path.dirname(fimp_file)):
-            gs.fatal("Directory for output file {} does not exist".format(fimp_file))
+            gs.fatal(
+                "Directory for output file {} does not exist".format(
+                    fimp_file))
 
     # predictions file selected but no cross-validation scheme used
     if preds_file:
         if cv <= 1:
-            gs.fatal(
-                "Output of cross-validation predictions requires cross-validation cv > 1"
-            )
-        if not os.path.exists(os.path.dirname(preds_file)):
-            gs.fatal("Directory for output file {} does not exist".format(preds_file))
+            gs.fatal("Output of cross-validation predictions requires "
+                     "cross-validation cv > 1")
 
-    # define RasterStack -----------------------------------------------------------------------------------------------
+        if not os.path.exists(os.path.dirname(preds_file)):
+            gs.fatal("Directory for output file {} does not exist".format(
+                preds_file))
+
+    # define RasterStack ------------------------------------------------------
     stack = RasterStack(group=group)
 
     if category_maps is not None:
         stack.categorical = category_maps
 
-    # extract training data --------------------------------------------------------------------------------------------
+    # extract training data ---------------------------------------------------
     if load_training != "":
         X, y, cat, class_labels, group_id = load_training_data(load_training)
 
@@ -575,7 +584,7 @@ def main():
 
                 if mode == "classification":
                     src_cats = {v: k for (k, v, m) in src.cats}
-                    class_labels = {k:k for k in np.unique(y)}
+                    class_labels = {k: k for k in np.unique(y)}
                     class_labels.update(src_cats)
                 else:
                     class_labels = None
@@ -602,10 +611,8 @@ def main():
 
         # check for labelled pixels and training data
         if y.shape[0] == 0 or X.shape[0] == 0:
-            gs.fatal(
-                "No training pixels or pixels in imagery group "
-                "...check computational region"
-            )
+            gs.fatal("No training pixels or pixels in imagery group ...check "
+                     "computational region")
 
         from sklearn.utils import shuffle
 
@@ -621,41 +628,46 @@ def main():
                 save_training, X, y, cat, class_labels, group_id, stack.names
             )
 
-    # cross validation settings ----------------------------------------------------------------------------------------
+    # cross validation settings -----------------------------------------------
     # inner resampling method (cv=2)
-    from sklearn.model_selection import GridSearchCV, StratifiedKFold, GroupKFold, KFold
+    from sklearn.model_selection import (GridSearchCV, StratifiedKFold,
+                                         GroupKFold, KFold)
 
     if any(param_grid) is True:
         if group_id is None and mode == "classification":
-            inner = StratifiedKFold(n_splits=2, random_state=random_state)
+            inner = StratifiedKFold(n_splits=3)
         elif group_id is None and mode == "regression":
-            inner = KFold(n_splits=2, random_state=random_state)
+            inner = KFold(n_splits=3)
         else:
-            inner = GroupKFold(n_splits=2)
+            inner = GroupKFold(n_splits=3)
     else:
         inner = None
 
     # outer resampling method (cv=cv)
     if cv > 1:
         if group_id is None and mode == "classification":
-            outer = StratifiedKFold(n_splits=cv, random_state=random_state)
+            outer = StratifiedKFold(n_splits=cv)
         elif group_id is None and mode == "regression":
-            outer = KFold(n_splits=cv, random_state=random_state)
+            outer = KFold(n_splits=cv)
         else:
             outer = GroupKFold(n_splits=cv)
 
-    # modify estimators that take sample_weights -----------------------------------------------------------------------
+    # modify estimators that take sample_weights ------------------------------
     if balance is True:
         from sklearn.utils import compute_class_weight
 
-        class_weights = compute_class_weight(class_weight="balanced", classes=(y), y=y)
+        class_weights = compute_class_weight(
+            class_weight="balanced",
+            classes=(y),
+            y=y
+        )
         fit_params = {"sample_weight": class_weights}
 
     else:
         class_weights = None
         fit_params = {}
 
-    # preprocessing ----------------------------------------------------------------------------------------------------
+    # preprocessing -----------------------------------------------------------
     from sklearn.pipeline import Pipeline
     from sklearn.compose import ColumnTransformer
     from sklearn.preprocessing import StandardScaler, OneHotEncoder
@@ -672,7 +684,8 @@ def main():
     elif norm_data is False and category_maps is not None:
         enc = OneHotEncoder(handle_unknown="ignore", sparse=False)
         trans = ColumnTransformer(
-            remainder="passthrough", transformers=[("onehot", enc, stack.categorical)]
+            remainder="passthrough", transformers=[
+                ("onehot", enc, stack.categorical)]
         )
 
     # standardization and one-hot encoding
@@ -690,20 +703,19 @@ def main():
 
     # combine transformers
     if norm_data is True or category_maps is not None:
-        estimator = Pipeline([("preprocessing", trans), ("estimator", estimator)])
+        estimator = Pipeline([
+            ("preprocessing", trans),
+            ("estimator", estimator)
+        ])
         param_grid = wrap_named_step(param_grid)
         fit_params = wrap_named_step(fit_params)
 
     if any(param_grid) is True:
-        estimator = GridSearchCV(
-            estimator=estimator,
-            param_grid=param_grid,
-            scoring=search_scorer,
-            n_jobs=n_jobs,
-            cv=inner,
-        )
+        estimator = GridSearchCV(estimator=estimator, param_grid=param_grid,
+                                 scoring=search_scorer, n_jobs=n_jobs,
+                                 cv=inner)
 
-    # estimator training -----------------------------------------------------------------------------------------------
+    # estimator training ------------------------------------------------------
     gs.message(os.linesep)
     gs.message(("Fitting model using " + model_name))
     if balance is True and group_id is not None:
@@ -719,7 +731,8 @@ def main():
         gs.message("Best parameters:")
 
         optimal_pars = [
-            (k.replace("estimator__", "").replace("selection__", "") + " = " + str(v))
+            (k.replace("estimator__", "").replace("selection__",
+                                                  "") + " = " + str(v))
             for (k, v) in estimator.best_params_.items()
         ]
 
@@ -730,46 +743,52 @@ def main():
             param_df = pd.DataFrame(estimator.cv_results_)
             param_df.to_csv(param_file)
 
-    # cross-validation -------------------------------------------------------------------------------------------------
+    # cross-validation --------------------------------------------------------
     if cv > 1:
         from sklearn.metrics import classification_report
         from sklearn import metrics
 
         if (
-            mode == "classification"
-            and cv > np.histogram(y, bins=np.unique(y))[0].min()
+                mode == "classification"
+                and cv > np.histogram(y, bins=np.unique(y))[0].min()
         ):
             gs.message(os.linesep)
             gs.fatal(
-                "Number of cv folds is greater than number of "
-                "samples in some classes"
+                "Number of cv folds is greater than number of samples in "
+                "some classes "
             )
 
         gs.message(os.linesep)
         gs.message("Cross validation global performance measures......:")
 
         if (
-            mode == "classification"
-            and len(np.unique(y)) == 2
-            and all([0, 1] == np.unique(y))
+                mode == "classification"
+                and len(np.unique(y)) == 2
+                and all([0, 1] == np.unique(y))
         ):
             scoring["roc_auc"] = metrics.roc_auc_score
 
         from sklearn.model_selection import cross_val_predict
 
         preds = cross_val_predict(
-            estimator, X, y, group_id, cv=outer, n_jobs=n_jobs, fit_params=fit_params
+            estimator, X, y, group_id, cv=outer, n_jobs=n_jobs,
+            fit_params=fit_params
         )
 
         test_idx = [test for train, test in outer.split(X, y)]
         n_fold = np.zeros((0,))
 
         for fold in range(outer.get_n_splits()):
-            n_fold = np.hstack((n_fold, np.repeat(fold, test_idx[fold].shape[0])))
+            n_fold = np.hstack(
+                (n_fold, np.repeat(fold, test_idx[fold].shape[0]))
+            )
 
         preds = {"y_pred": preds, "y_true": y, "cat": cat, "fold": n_fold}
 
-        preds = pd.DataFrame(data=preds, columns=["y_pred", "y_true", "cat", "fold"])
+        preds = pd.DataFrame(
+            data=preds,
+            columns=["y_pred", "y_true", "cat", "fold"]
+        )
         gs.message(os.linesep)
         gs.message("Global cross validation scores...")
         gs.message(os.linesep)
@@ -778,18 +797,20 @@ def main():
         for name, func in scoring.items():
             score_mean = (
                 preds.groupby("fold")
-                .apply(lambda x: func(x["y_true"], x["y_pred"]))
-                .mean()
+                    .apply(lambda x: func(x["y_true"], x["y_pred"]))
+                    .mean()
             )
 
             score_std = (
                 preds.groupby("fold")
-                .apply(lambda x: func(x["y_true"], x["y_pred"]))
-                .std()
+                    .apply(lambda x: func(x["y_true"], x["y_pred"]))
+                    .std()
             )
 
             gs.message(
-                name + "\t" + str(score_mean.round(3)) + "\t" + str(score_std.round(3))
+                name + "\t" +
+                str(score_mean.round(3)) + "\t" +
+                str(score_std.round(3))
             )
 
         if mode == "classification":
@@ -823,19 +844,13 @@ def main():
             text_file.write('"Real", "Real", "integer", "integer"')
             text_file.close()
 
-    # feature importances ----------------------------------------------------------------------------------------------
+    # feature importances -----------------------------------------------------
     if importances is True:
         from sklearn.inspection import permutation_importance
 
-        fimp = permutation_importance(
-            estimator,
-            X,
-            y,
-            scoring=search_scorer,
-            n_repeats=5,
-            n_jobs=n_jobs,
-            random_state=random_state,
-        )
+        fimp = permutation_importance(estimator, X, y, scoring=search_scorer,
+                                      n_repeats=5, n_jobs=n_jobs,
+                                      random_state=random_state)
 
         feature_names = deepcopy(stack.names)
         feature_names = [i.split("@")[0] for i in feature_names]
@@ -854,7 +869,9 @@ def main():
 
         for index, row in fimp.iterrows():
             gs.message(
-                row["feature"] + "\t" + str(row["importance"]) + "\t" + str(row["std"])
+                row["feature"] + "\t" +
+                str(row["importance"]) + "\t" +
+                str(row["std"])
             )
 
         if fimp_file != "":

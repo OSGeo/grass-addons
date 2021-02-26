@@ -46,8 +46,8 @@ class TestGridSearch(TestCase):
     def setUpClass(cls):
         """Setup that is required for all tests
 
-        Uses a temporary region for testing and creates an imagery group and randomly samples a
-        categorical map to use as training pixels
+        Uses a temporary region for testing and creates an imagery group and
+        randomly samples a categorical map to use as training pixels
         """
         cls.use_temp_region()
         cls.runModule("g.region", raster=cls.classif_map)
@@ -75,7 +75,8 @@ class TestGridSearch(TestCase):
     def tearDownClass(cls):
         """Remove the temporary region (and anything else we created)"""
         cls.del_temp_region()
-        cls.runModule("g.remove", flags="f", type="raster", name=cls.labelled_pixels)
+        cls.runModule("g.remove", flags="f", type="raster",
+                      name=cls.labelled_pixels)
         cls.runModule("g.remove", flags="f", type="group", name=cls.group)
 
     def tearDown(self):

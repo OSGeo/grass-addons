@@ -51,15 +51,16 @@ class TestRegression(TestCase):
     def setUpClass(cls):
         """Setup that is required for all tests
 
-        Uses a temporary region for testing and creates an imagery group and randomly samples a
-        categorical map to use as training pixels/points
+        Uses a temporary region for testing and creates an imagery group and
+        randomly samples a categorical map to use as training pixels/points
         """
         cls.use_temp_region()
         cls.runModule("g.region", raster=cls.input_map)
         cls.runModule(
             "i.group",
             group=cls.group,
-            input=[cls.band1, cls.band2, cls.band3, cls.band4, cls.band5, cls.band7],
+            input=[cls.band1, cls.band2, cls.band3, cls.band4, cls.band5,
+                   cls.band7],
         )
         cls.runModule(
             "r.random",
@@ -73,13 +74,15 @@ class TestRegression(TestCase):
     def tearDownClass(cls):
         """Remove the temporary region (and anything else we created)"""
         cls.del_temp_region()
-        cls.runModule("g.remove", flags="f", type="vector", name=cls.training_points)
+        cls.runModule("g.remove", flags="f", type="vector",
+                      name=cls.training_points)
         cls.runModule("g.remove", flags="f", type="group", name=cls.group)
 
     def tearDown(self):
         """Remove the output created from the tests
         (reuse the same name for all the test functions)"""
-        self.runModule("g.remove", flags="f", type="raster", name=[self.output])
+        self.runModule("g.remove", flags="f", type="raster",
+                       name=[self.output])
 
         try:
             os.remove(self.model_file)
