@@ -701,7 +701,6 @@ class SentinelDownloader(object):
             gs.message(_('No product found'))
             return
         scenes_df = pandas.DataFrame.from_dict(scenes)
-        import pdb; pdb.set_trace()
         if sortby:
             # replace sortby keywords with USGS keywords
             for idx, keyword in enumerate(sortby):
