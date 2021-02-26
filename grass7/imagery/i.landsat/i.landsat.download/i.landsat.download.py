@@ -95,8 +95,8 @@
 #% key: sort
 #% description: Sort by values in given order
 #% multiple: yes
-#% options: publishDate,cloudCover
-#% answer: cloudCover,publishDate
+#% options: acquisitionDate,cloudCover
+#% answer: cloudCover,acquisitionDate
 #% guisection: Sort
 #%end
 
@@ -106,6 +106,14 @@
 #% options: asc,desc
 #% answer: asc
 #% guisection: Sort
+#%end
+
+#%option
+#% key: timeout
+#% type: integer
+#% description: Download timeout in seconds
+#% answer: 300
+#% guisection: Optional
 #%end
 
 #%flag
@@ -202,7 +210,7 @@ def main():
 
             try:
 
-                ee.download(scene_id=i, output_dir=outdir)
+                ee.download(scene_id=i, output_dir=outdir, timeout=options["timeout"])
 
             except OSError:
 
@@ -236,10 +244,26 @@ def main():
         if options["order"] == "desc":
             reverse = True
 
-        # Sort scenes
-        sorted_scenes = sorted(
-            scenes, key=lambda i: (i[sort_vars[0]], i[sort_vars[1]]), reverse=reverse
+        # auxiliary list of dictionaries with the entries we need
+        scenes_extracted = []
+        for idx,scene in enumerate(scenes):
+            scene_dict = {
+                'idx': idx,
+                'cloudCover': float(scene['cloudCover']),
+                'acquisitionDate': datetime.strptime(scene['temporalCoverage']['startDate'], '%Y-%m-%d %H:%M:%S')
+            }
+            scenes_extracted.append(scene_dict)
+
+        # sort auxiliary list of dictionaries and apply order to original scenes-list
+        scenes_extracted_sorted = sorted(
+            scenes_extracted, key=lambda i: (i[sort_vars[0]], i[sort_vars[1]]), reverse=reverse
         )
+        sorted_idcs = [scene['idx'] for scene in scenes_extracted_sorted]
+        sorted_scenes = [scenes[i] for i in sorted_idcs]
+        # # Sort scenes
+        # sorted_scenes = sorted(
+        #     scenes, key=lambda i: (i[sort_vars[0]], i[sort_vars[1]]), reverse=reverse
+        # )
 
         landsat_api.logout()
 
@@ -251,7 +275,7 @@ def main():
                 print(
                     scene["entityId"],
                     scene["displayId"],
-                    scene["publishDate"],
+                    scene['temporalCoverage']['startDate'],
                     scene["cloudCover"],
                 )
 
