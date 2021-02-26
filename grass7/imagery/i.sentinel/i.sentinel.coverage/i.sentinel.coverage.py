@@ -165,7 +165,11 @@ def scenename_split(scenename):
             date_string = name_split[2].split('T')[0]
         elif name_split[0].startswith('S1'):
             producttype = name_split[2][:3]
-            date_string = name_split[4].split('T')[0]
+            if producttype == 'SLC':
+                date_string = name_split[5].split('T')[0]
+            else:
+                date_string = name_split[4].split('T')[0]
+
         else:
             grass.fatal(_(
                 "Sensor {} is not supported yet").format(name_split[0]))
