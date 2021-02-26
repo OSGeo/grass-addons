@@ -315,7 +315,7 @@ class SentinelDownloader(object):
         elif self._apiname == 'USGS_EE':
             try:
                 import landsatxplore.api
-                from landsatxplore.exceptions import EarthExplorerError
+                from landsatxplore.errors import EarthExplorerError
             except ImportError as e:
                 gs.fatal(_("Module requires landsatxplore library: {}").format(e))
             api_login = False
@@ -395,7 +395,7 @@ class SentinelDownloader(object):
         id_kw = ('uuid', 'entityId')
         identifier_kw = ('identifier', 'displayId')
         cloud_kw = ('cloudcoverpercentage', 'cloudCover')
-        time_kw = ('beginposition', 'acquisitionDate')
+        time_kw = ('beginposition', 'acquisition_date_end')
         kw_idx = 1 if self._apiname == 'USGS_EE' else 0
         for idx in range(len(self._products_df_sorted[id_kw[kw_idx]])):
             if cloud_kw[kw_idx] in self._products_df_sorted:
@@ -428,7 +428,8 @@ class SentinelDownloader(object):
         gs.message(_('Downloading data into <{}>...').format(output))
         if self._apiname == 'USGS_EE':
             from landsatxplore.earthexplorer import EarthExplorer
-            from landsatxplore.exceptions import EarthExplorerError
+            #from landsatxplore.exceptions import EarthExplorerError
+            from landsatxplore.errors import EarthExplorerError
             from zipfile import ZipFile
             ee_login = False
             while ee_login is False:
@@ -553,25 +554,36 @@ class SentinelDownloader(object):
                        )
 
     def get_products_from_uuid_usgs(self, uuid_list):
-        metadata = self._api.metadata('SENTINEL_2A', uuid_list)
-        self._api.logout()
-        # build list of dictionaries consistent with result of filter_USGS()
         scenes = []
-        for scene in metadata:
-            scene_dict = {
-                'entityId': scene['entityId'],
-                'displayId': scene['displayId'],
-                'acquisitionDate': scene['acquisitionDate']}
-            # get cloud cover from interior metadata dict
-            cloudcov_item = [dict for dict in scene['metadataFields']
-                             if dict['fieldName'] == 'Cloud Cover'][0]
-            cloudcov = cloudcov_item['value']
-            scene_dict['cloudCover'] = cloudcov
-            scenes.append(scene_dict)
+        for uuid in uuid_list:
+            metadata = self._api.metadata(uuid,'SENTINEL_2A')
+            scenes.append(metadata)
         scenes_df = pandas.DataFrame.from_dict(scenes)
         self._products_df_sorted = scenes_df
         gs.message(_('{} Sentinel product(s) found').format(
             len(self._products_df_sorted)))
+        # #metadata = self._api.metadata('SENTINEL_2A', uuid_list)
+        # metadata = self._api.metadata(uuid_list,'SENTINEL_2A')
+        # self._api.logout()
+        # # build list of dictionaries consistent with result of filter_USGS()
+        # scenes = []
+        # import pdb; pdb.set_trace()
+        # for scene in metadata:
+        #     scene_dict = {
+        #         'entityId': scene['entityId'],
+        #         'displayId': scene['displayId'],
+        #         #'acquisitionDate': scene['acquisitionDate']}
+        #         'acquisition_date_start': scene['acquisition_date_start']}
+        #     # get cloud cover from interior metadata dict
+        #     cloudcov_item = [dict for dict in scene['metadataFields']
+        #                      if dict['fieldName'] == 'Cloud Cover'][0]
+        #     cloudcov = cloudcov_item['value']
+        #     scene_dict['cloudCover'] = cloudcov
+        #     scenes.append(scene_dict)
+        # scenes_df = pandas.DataFrame.from_dict(scenes)
+        # self._products_df_sorted = scenes_df
+        # gs.message(_('{} Sentinel product(s) found').format(
+        #     len(self._products_df_sorted)))
 
     def set_uuid(self, uuid_list):
         """Set products by uuid.
@@ -638,8 +650,9 @@ class SentinelDownloader(object):
                 # get entityId from usgs identifier and directly save results
                 usgs_id = query['usgs_identifier']
                 check_s2l1c_identifier(usgs_id, source='usgs')
-                entity_id = self._api.lookup('SENTINEL_2A', [usgs_id],
-                                             inverse=True)
+                # entity_id = self._api.lookup('SENTINEL_2A', [usgs_id],
+                #                              inverse=True)
+                entity_id = self._api.get_scene_id([usgs_id], 'SENTINEL_2A')
                 self.get_products_from_uuid_usgs(entity_id)
                 return
             else:
@@ -688,6 +701,7 @@ class SentinelDownloader(object):
             gs.message(_('No product found'))
             return
         scenes_df = pandas.DataFrame.from_dict(scenes)
+        import pdb; pdb.set_trace()
         if sortby:
             # replace sortby keywords with USGS keywords
             for idx, keyword in enumerate(sortby):
@@ -697,7 +711,7 @@ class SentinelDownloader(object):
                     scenes_df['cloudCover'] = pandas.to_numeric(
                         scenes_df['cloudCover'])
                 elif keyword == 'ingestiondate':
-                    sortby[idx] = 'acquisitionDate'
+                    sortby[idx] = 'acquisition_date_end'
                 # what does sorting by footprint mean
                 elif keyword == 'footprint':
                     sortby[idx] = 'displayId'
