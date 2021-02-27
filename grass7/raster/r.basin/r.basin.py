@@ -280,7 +280,8 @@ def main():
                                  qlayer = 1,
                                  option = 'perimeter',
                                  units = 'kilometers',
-                                 columns = 'perimeter')
+                                 columns = 'perimeter',
+                                 overwrite = True)
 
         # Read perimeter
         tmp = grass.read_command('v.to.db', map = v_basin,
@@ -300,7 +301,8 @@ def main():
                                  qlayer = 1,
                                  option = 'area',
                                  units = 'kilometers',
-                                 columns = 'area')
+                                 columns = 'area',
+                                 overwrite = True)
 
         # Read area
         tmp = grass.read_command('v.to.db', map = v_basin,
@@ -449,7 +451,8 @@ def main():
 
         grass.run_command('v.to.db', map = v_outlet_snap,
                                      option = "coor",
-                                     col = "x,y")
+                                     col = "x,y",
+                                     overwrite = True)
 
         namefile = os.path.join(directory, prefix + '_outlet_coors.txt')
 
