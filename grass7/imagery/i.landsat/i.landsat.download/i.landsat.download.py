@@ -210,7 +210,7 @@ def main():
 
             try:
 
-                ee.download(scene_id=i, output_dir=outdir, timeout=options["timeout"])
+                ee.download(scene_id=i, output_dir=outdir, timeout=int(options["timeout"]))
 
             except OSError:
 
