@@ -80,17 +80,17 @@ as <em>hT/lT</em>) between 2 and 3 [Sonka1999].
 # set the region (resolution) to Landsat image
 g.region raster=lsat7_2000_20@landsat
 
-# set the region to experimetal area
+# set the region to experimental area
 g.region n=224016 s=220981 w=637589 e=641223
 
 # compute PCA for all Landsat maps for year 2002
 i.pca input=`g.list pattern="lsat7_2002*" type=rast sep=,` output_prefix=lsat_pca
 
 # run edge detection on first component
-i.edge input=lsat_pca.1@PERMANENT output=lsat_pca_1_edges
+i.edge input=lsat_pca.1 output=lsat_pca_1_edges
 
 # set no edges areas to NULL (for visualization)
-r.null map=lsat_pca_1_edges@PERMANENT setnull=0
+r.null map=lsat_pca_1_edges setnull=0
 </pre></div>
 
 
