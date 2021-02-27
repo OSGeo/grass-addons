@@ -7,7 +7,7 @@
  *
  * PURPOSE:      Edge detection in raster images.
  *
- * COPYRIGHT:    (C) 2012 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2012-2021 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
@@ -38,13 +38,9 @@ static void readMap(const char *name, const char *mapset, int nrows,
 {
 
     int r, c;
-
     int map_fd;
-
     int check_reading;
-
     DCELL *row_buffer;
-
     DCELL cell_value;
 
     row_buffer = Rast_allocate_d_input_buf();
@@ -59,9 +55,11 @@ static void readMap(const char *name, const char *mapset, int nrows,
 
     G_debug(1, "fd %d %s %s", map_fd, name, mapset);
 
-    //    if ((first_map_R_type =
-    //         Rast_map_type(templName, mapset)) < 0)
-    //        G_fatal_error(_("Error getting first raster map type"));
+    /*
+        if ((first_map_R_type =
+             Rast_map_type(templName, mapset)) < 0)
+            G_fatal_error(_("Error getting first raster map type"));
+    */
 
     for (r = 0; r < nrows; r++) {
 	Rast_get_row(map_fd, row_buffer, r, DCELL_TYPE);
@@ -82,7 +80,7 @@ static void readMap(const char *name, const char *mapset, int nrows,
     G_free(row_buffer);
 
     if (!check_reading)
-	G_fatal_error(_("Nothing read from map %d"), check_reading);
+	G_fatal_error(_("Input map contains no data"));
 
     Rast_close(map_fd);
 }
@@ -127,28 +125,21 @@ int main(int argc, char *argv[])
     struct Cell_head cell_head; /* it stores region information,
   and header information of rasters */
     char *name; /* input raster name */
-
     char *mapset; /* mapset name */
-
     int kernelWidth;
-
     double kernelRadius;
-
     char *result; /* output raster name */
     char *anglesMapName;
 
     static const double GAUSSIAN_CUT_OFF = 0.005;
-
     static const int MAGNITUDE_SCALE = 100;
-
     static const int MAGNITUDE_LIMIT = 1000;
 
     int lowThreshold, highThreshold, low, high;
-
     int nrows, ncols;
     size_t dim_2;
 
-//    struct History history; /* holds meta-data (title, comments,..) */
+    struct History history; /* holds meta-data (title, comments,..) */
     struct GModule *module; /* GRASS module for parsing arguments */
 
     /* options */
@@ -186,7 +177,7 @@ int main(int argc, char *argv[])
     lowThresholdOption->multiple = NO;
     lowThresholdOption->description = _("Low treshold for edges in Canny");
     lowThresholdOption->answer = "3";
-    //    lowThresholdOption->options = "1-10";
+    /*    lowThresholdOption->options = "1-10"; */
 
     highThresholdOption = G_define_option();
     highThresholdOption->key = "high_threshold";
@@ -195,7 +186,7 @@ int main(int argc, char *argv[])
     highThresholdOption->multiple = NO;
     highThresholdOption->description = _("High treshold for edges in Canny");
     highThresholdOption->answer = "10";
-    //    lowThresholdOption->options = "1-10";
+    /*    lowThresholdOption->options = "1-10"; */
 
     sigmaOption = G_define_option();
     sigmaOption->key = "sigma";
@@ -235,24 +226,19 @@ int main(int argc, char *argv[])
     //data_type = Rast_map_type(name, mapset);
 
     /* Rast_open_old - returns file destriptor (>0) */
-    //    infd = Rast_open_old(name, mapset);
+    /*    infd = Rast_open_old(name, mapset); */
 
+    /*    struct Cell_head templCellhd; */
 
-
-    //    struct Cell_head templCellhd;
-
-    //    Rast_get_cellhd(name, mapset, &cellhd);
-    //    Rast_get_cellhd(first_map_R_name, first_map_R_mapset, &cellhd_zoom1);
+    /*    Rast_get_cellhd(name, mapset, &cellhd); */
+    /*    Rast_get_cellhd(first_map_R_name, first_map_R_mapset, &cellhd_zoom1); */
 
     /* controlling, if we can open input raster */
     Rast_get_cellhd(name, mapset, &cell_head);
-
     G_debug(3, "number of rows %d", cell_head.rows);
 
     nrows = Rast_window_rows();
-
     ncols = Rast_window_cols();
-
     dim_2 = (size_t) nrows * ncols;
 
     DCELL *mat1;
@@ -260,16 +246,16 @@ int main(int argc, char *argv[])
     /* Memory allocation for map_1: */
     mat1 = (DCELL *) G_calloc((dim_2), sizeof(DCELL));
 
-
-    // FIXME: it is necessary?
+    /* FIXME: it is necessary? */
     for (r = 0; r < dim_2; r++) {
 	mat1[r] = 0.0;
     }
 
-    //    if ((first_map_R_type =
-    //         Rast_map_type(templName, mapset)) < 0)
-    //        G_fatal_error(_("Error getting first raster map type"));
-
+    /*
+        if ((first_map_R_type =
+             Rast_map_type(templName, mapset)) < 0)
+            G_fatal_error(_("Error getting first raster map type"));
+    */
 
     readMap(name, mapset, nrows, ncols, mat1);
 
@@ -278,16 +264,13 @@ int main(int argc, char *argv[])
     kernelWidth = getKernelWidth(kernelRadius, GAUSSIAN_CUT_OFF);
 
     DCELL *kernel;
-
     DCELL *diffKernel;
 
     kernel = (DCELL *) G_calloc((kernelWidth), sizeof(DCELL));
     diffKernel = (DCELL *) G_calloc((kernelWidth), sizeof(DCELL));
     gaussKernel(kernel, diffKernel, kernelWidth, kernelRadius);
 
-
     DCELL *yConv = (DCELL *) G_calloc((dim_2), sizeof(DCELL));
-
     DCELL *xConv = (DCELL *) G_calloc((dim_2), sizeof(DCELL));
 
     for (r = 0; r < dim_2; r++) {
@@ -295,21 +278,17 @@ int main(int argc, char *argv[])
     }
     gaussConvolution(mat1, kernel, xConv, yConv, nrows, ncols, kernelWidth);
 
-
     DCELL *yGradient = (DCELL *) G_calloc((dim_2), sizeof(DCELL));
-
     DCELL *xGradient = (DCELL *) G_calloc((dim_2), sizeof(DCELL));
 
     for (r = 0; r < dim_2; r++) {
 	yGradient[r] = xGradient[r] = 0;
     }
 
-
     computeXGradients(diffKernel, yConv, xGradient, nrows, ncols,
 		      kernelWidth);
     computeYGradients(diffKernel, xConv, yGradient, nrows, ncols,
 		      kernelWidth);
-
 
     CELL *magnitude = (CELL *) G_calloc((dim_2), sizeof(CELL));
 
@@ -349,12 +328,10 @@ int main(int argc, char *argv[])
     G_free(diffKernel);
     G_free(name);
 
-
-//    /* add command line incantation to history file */
-//    Rast_short_history(result, "raster", &history);
-//    Rast_command_history(&history);
-//    Rast_write_history(result, &history);
-
+    /* add command line incantation to history file */
+    Rast_short_history(result, "raster", &history);
+    Rast_command_history(&history);
+    Rast_write_history(result, &history);
 
     exit(EXIT_SUCCESS);
 }
