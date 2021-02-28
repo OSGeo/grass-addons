@@ -25,7 +25,7 @@ def get_fullname(name):
         Name of a GRASS map with the mapset appended as name@mapset is the
         mapset is not explicitly provided.
     """
-    if not "@" in name:
+    if "@" not in name:
         name = "@".join([name, get_mapset_raster(name)])
 
     return name
