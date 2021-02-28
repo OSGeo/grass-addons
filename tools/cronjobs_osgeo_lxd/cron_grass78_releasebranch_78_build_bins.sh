@@ -14,6 +14,7 @@
 # Thu 16 Jan 2020 08:17:43 AM UTC
 # Fri 19 Jun 2020 07:56:20 PM UTC
 # Fri 20 Nov 2020 12:55:19 AM CET
+# Fri Jan  1 05:47:36 PM CET 2021
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
@@ -25,12 +26,13 @@
 #
 ###################################################################
 # how it works:
-# - it updates the GRASS source code from github server
+# - it updates locally the GRASS source code from github server
 # - configures, compiles
 # - packages the binaries
 # - generated the install scripts
 # - generates the pyGRASS HTML manual
 # - generates the user HTML manuals
+# - injects DuckDuckGo search field
 
 # Preparations:
 #  - Install PROJ: http://trac.osgeo.org/proj/ incl Datum shift grids
@@ -174,6 +176,9 @@ rm -f $TARGETHTMLDIR/*.*
 
 cp -rp dist.$ARCH/docs/html/* $TARGETHTMLDIR/
 echo "Copied pygrass progman to http://grass.osgeo.org/grass${VERSION}/manuals/libpython/"
+
+echo "Injecting DuckDuckGo search field into manual main page..."
+(cd $TARGETHTMLDIR/ ; sed -i -e "s+</table>+</table><\!\-\- injected in cron_grass78_releasebranch_78_build_bins.sh \-\-> <center><iframe src=\"https://duckduckgo.com/search.html?site=grass.osgeo.org\&prefill=Search manual pages at DuckDuckGo\" style=\"overflow:hidden;margin:0;padding:0;width:410px;height:40px;\" frameborder=\"0\"></iframe></center>+g" index.html)
 
 cp -p AUTHORS CHANGES CITING COPYING GPL.TXT INSTALL REQUIREMENTS.html $TARGETDIR/
 
