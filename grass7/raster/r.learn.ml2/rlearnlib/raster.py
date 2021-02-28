@@ -216,7 +216,7 @@ class RasterStack(StatisticsMixin):
                     self.loc[fullname] = src
                     self.mtypes.update({fullname: src.mtype})
 
-                    if not "." in ras_name:
+                    if "." not in ras_name:
                         setattr(self, ras_name, src)
 
                 else:
