@@ -6,7 +6,29 @@ with passing pre-defined scikit learn classifiers
 and other utilities for loading/saving training data."""
 
 import numpy as np
+from grass.pygrass.utils import get_mapset_raster
 
+
+def get_fullname(name):
+    """
+    Return a fullname for a raster if only a string with the mapname
+    is provided.
+
+    Parameters
+    ----------
+    name : str
+        Name of a GRASS map
+
+    Returns
+    -------
+    name : str
+        Name of a GRASS map with the mapset appended as name@mapset is the
+        mapset is not explicitly provided.
+    """
+    if not "@" in name:
+        name = "@".join([name, get_mapset_raster(name)])
+
+    return name
 
 def option_to_list(x, dtype=None):
     """
@@ -254,6 +276,10 @@ def predefined_estimators(estimator, random_state, n_jobs, p):
 
 
 def check_class_weights():
+    """
+    Returns a list of scikit-learn models that support class weights
+    in their fit methods
+    """
 
     support = [
         "LogisticRegression",

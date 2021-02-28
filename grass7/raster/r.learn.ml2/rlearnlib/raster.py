@@ -1,23 +1,25 @@
 #!/usr/bin/env python
-import os
 import itertools
+import os
 from subprocess import PIPE
 
 import grass.script as gs
 import numpy as np
 import pandas as pd
 from grass.pygrass.gis.region import Region
+from grass.pygrass.modules.shortcuts import general as g
 from grass.pygrass.modules.shortcuts import imagery as im
 from grass.pygrass.modules.shortcuts import raster as r
 from grass.pygrass.modules.shortcuts import vector as v
-from grass.pygrass.modules.shortcuts import general as g
 from grass.pygrass.raster import RasterRow, numpy2raster
 from grass.pygrass.raster.buffer import Buffer
 from grass.pygrass.utils import get_mapset_raster
 from grass.pygrass.vector import VectorTopo
+
 from .indexing import _LocIndexer, _ILocIndexer
 from .stats import StatisticsMixin
 from .transformers import CategoryEncoder
+from .utils import get_fullname
 
 
 class RasterStack(StatisticsMixin):
@@ -105,11 +107,13 @@ class RasterStack(StatisticsMixin):
 
         selected = []
 
-        for i in label:
-            if i in self.names is False:
+        for name in label:
+            name = get_fullname(name)
+
+            if name in self.names is False:
                 raise KeyError("layername not present in Raster object")
             else:
-                selected.append(self.loc[i].fullname())
+                selected.append(self.loc[name].fullname())
 
         return RasterStack(selected)
 
@@ -127,7 +131,7 @@ class RasterStack(StatisticsMixin):
         value : grass.pygrass.raster.RasterRow
             RasterRow to use for replacement.
         """
-
+        key = get_fullname(key)
         self.loc[key] = value
 
     def __iter__(self):
@@ -142,7 +146,8 @@ class RasterStack(StatisticsMixin):
         names = []
 
         for src in self.loc.values():
-            names.append(src.fullname())
+            fullname = src.fullname()
+            names.append(fullname)
 
         return list(names)
 
@@ -166,8 +171,11 @@ class RasterStack(StatisticsMixin):
             mapnames = [mapnames]
 
         # reset existing attributes
-        for name in list(self.layers.keys()):
-            delattr(self, name)
+        for src in list(self.loc.values()):
+            try:
+                delattr(self, src.name)
+            except AttributeError:
+                pass
 
         self.loc = _LocIndexer(self)
         self.iloc = _ILocIndexer(self, self.loc)
@@ -182,8 +190,8 @@ class RasterStack(StatisticsMixin):
             missing_idx = mapset_names.index(None)
             missing_rasters = raster_names[missing_idx]
             gs.fatal(
-                "GRASS GIS raster(s) {x} is not found in any mapsets".format(
-                    x=missing_rasters
+                "GRASS GIS raster(s) {} is not found in any mapsets".format(
+                    missing_rasters
                 )
             )
 
@@ -194,24 +202,25 @@ class RasterStack(StatisticsMixin):
 
                 if src.exist() is True:
 
-                    ras_name = src.name.split("@")[0]  # name sans mapset
-                    full_name = src.name_mapset()  # name with mapset
-                    valid_name = ras_name.replace(".", "_")
+                    # get mapname and mapset
+                    ras_name = src.name
+                    fullname = src.fullname()
 
-                    # grass gis raster could have same name if in diff mapset
-                    if valid_name in list(self.layers.keys()):
-                        raise ValueError(
-                            "Cannot append map {name} to the "
-                            "RasterStack because a map with the same name "
-                            "already exists".format(name=ras_name)
-                        )
+                    # check if the same layer (and key) already exists
+                    if fullname in list(self.layers.keys()):
+                        raise ValueError("Cannot include raster {} because "
+                                         "it already exists in the "
+                                         "RasterStack".format(fullname))
 
-                    self.mtypes.update({full_name: src.mtype})
-                    self.loc[valid_name] = src
-                    setattr(self, valid_name, src)
+                    # update the indexer, metadata and attributes
+                    self.loc[fullname] = src
+                    self.mtypes.update({fullname: src.mtype})
+
+                    if not "." in ras_name:
+                        setattr(self, ras_name, src)
 
                 else:
-                    gs.fatal("GRASS raster map " + r + " does not exist")
+                    gs.fatal("GRASS raster map {} does not exist".format(name))
 
     @property
     def categorical(self):
@@ -228,6 +237,7 @@ class RasterStack(StatisticsMixin):
 
         # check that each category map is also in the imagery group
         for n in names:
+            n = get_fullname(n)
 
             try:
                 indexes.append(self.names.index(n))
@@ -260,11 +270,29 @@ class RasterStack(StatisticsMixin):
         if isinstance(other, str):
             other = [other]
 
+        # check that 'other' exists
+        raster_names = [i.split("@")[0] for i in other]
+        mapset_names = [get_mapset_raster(i) for i in other]
+        other_fullnames = list()
+
+        for name, mapset in zip(raster_names, mapset_names):
+            with RasterRow(name=name, mapset=mapset) as src:
+                if src.exist() is True:
+                    fullname = src.fullname()
+                    other_fullnames.append(fullname)
+                else:
+                    raise ValueError(
+                        "grass raster {} does not exist".format(other))
+
+        # get names of raster in existing stack
+        existing_fullnames = [i.fullname() for i in self.loc.values()]
+
         if in_place is True:
-            self.layers = list(self.layers.keys()) + other
+            self.layers = existing_fullnames + other_fullnames
 
         else:
-            new_raster = RasterStack(rasters=[i for i in self.names] + other)
+            new_raster = RasterStack(
+                rasters=existing_fullnames + other_fullnames)
             return new_raster
 
     def drop(self, labels, in_place=True):
@@ -292,11 +320,9 @@ class RasterStack(StatisticsMixin):
         if isinstance(labels, str):
             labels = [labels]
 
-        subset_names = [
-            fullname
-            for fullname, mapname in zip(self.names, self.loc.keys())
-            if mapname not in labels
-        ]
+        labels = [get_fullname(label) for label in labels]
+        subset_names = [fullname for fullname in self.names if
+                        fullname not in labels]
 
         if in_place is True:
             self.layers = [i for i in subset_names]
@@ -978,23 +1004,33 @@ class RasterStack(StatisticsMixin):
 
         return df
 
-    def head(self):
+    def head(self, n=10):
         """Show the head (first rows, first columns) or tail (last rows, last
         columns) of the cells of a Raster object.
+
+        Parameters
+        ----------
+        n : int, default = 10
+            Number of first rows to show.
 
         Returns
         -------
         ndarray
         """
 
-        rows = (1, 10)
+        rows = (1, n)
         arr = self.read(rows=rows)
 
         return arr
 
-    def tail(self):
+    def tail(self, n=10):
         """Show the head (first rows, first columns) or tail (last rows, last
         columns) of the cells of a Raster object
+
+        Parameters
+        ----------
+        n : int, default = 10
+            Number of last rows to show.
 
         Returns
         -------
@@ -1002,7 +1038,7 @@ class RasterStack(StatisticsMixin):
         """
 
         reg = Region()
-        rows = (reg.rows - 10, reg.rows)
+        rows = (reg.rows - n, reg.rows)
         arr = self.read(rows=rows)
 
         return arr

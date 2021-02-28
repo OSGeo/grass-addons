@@ -8,6 +8,8 @@ from collections import OrderedDict
 
 from grass.pygrass.raster import RasterRow
 
+from .utils import get_fullname
+
 
 class _LocIndexer(Mapping):
     """
@@ -59,15 +61,18 @@ class _LocIndexer(Mapping):
         # some checks
         # check equal number of keys and values
         if len(key) != len(value):
-            raise ValueError("Cannot set layers using a different number of keys and values")
+            raise ValueError("Cannot set layers using a different number of "
+                             "keys and values")
 
         # check types
         for k, v in zip(key, value):
             if not isinstance(k, str):
-                raise ValueError("Label for new layer in the RasterStack has to be a string")
+                raise ValueError("Label for new layer in the RasterStack has "
+                                 "to be a string")
 
             if not isinstance(v, RasterRow):
-                raise ValueError("Setting a layer on something other than a RasterRow object is not allowed")
+                raise ValueError("Setting a layer on something other than a "
+                                 "RasterRow object is not allowed")
 
         # check for duplicated keys
         if len(key) != len(set(key)):
@@ -75,12 +80,15 @@ class _LocIndexer(Mapping):
 
         # update
         for k, v in zip(key, value):
+            k = get_fullname(k)
+
             if k in self.keys():
                 self.update(k, v)
 
             else:
+                shortname = v.name.split("@")[0]
                 self._dict[k] = v
-                setattr(self.parent, k, v)
+                setattr(self.parent, shortname, v)
                 self.parent.mtypes.update({k: v.mtype})
 
     def __iter__(self):
@@ -90,6 +98,8 @@ class _LocIndexer(Mapping):
         return len(self._dict)
 
     def pop(self, key):
+        key = get_fullname(key)
+
         # pop key, value pair from LocIndexer
         popped = self._dict.pop(key)
 
@@ -112,6 +122,7 @@ class _LocIndexer(Mapping):
         Instead the update method updates the dict value and replaces its key
         with the name of the RasterRow object
         """
+        key = get_fullname(key)
         oldkey = key
 
         # replace value of dict
@@ -165,21 +176,27 @@ class _ILocIndexer(object):
         """
 
         if isinstance(index, int):
-            # get dict key based on the index position
-            oldkey = list(self._index.keys())[index]
-
-            # update replacing both key and value
-            self._index.update(oldkey, value)
-
+            key = list(self._index.keys())[index]
+            self._index.update(key, value)
 
         if isinstance(index, slice):
-            index = list(range(index.start, index.stop))
+            start = index.start
+            stop = index.stop
+            step = index.step
+
+            if start is None:
+                start = 0
+            if stop is None:
+                stop = self.raster.count
+            if step is None:
+                step = 1
+
+            index = list(range(start, stop, step))
 
         if isinstance(index, (list, tuple)):
-            for idx, val in zip(index, value):
-
-                oldkey = list(self._index.keys())[idx]
-                self._index.update(oldkey, val)
+            for i, v in zip(index, value):
+                key = list(self._index.keys())[i]
+                self._index.update(key, v)
 
     def __getitem__(self, index):
         """
@@ -202,14 +219,18 @@ class _ILocIndexer(object):
         if isinstance(index, slice):
             start = index.start
             stop = index.stop
+            step = index.step
 
             if start is None:
                 start = 0
 
             if stop is None:
-                stop = self.parent.count
+                stop = self.raster.count
 
-            index = list(range(start, stop))
+            if step is None:
+                step = 1
+
+            index = list(range(start, stop, step))
 
         if isinstance(index, (list, tuple)):
             key = []

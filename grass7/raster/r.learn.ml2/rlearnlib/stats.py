@@ -5,8 +5,9 @@
 statistical functions on raster maps"""
 
 import os
-import numpy as np
 from subprocess import PIPE
+
+import numpy as np
 from grass.pygrass.modules.shortcuts import raster as r
 from grass.script.utils import parse_key_val
 
@@ -73,7 +74,7 @@ class StatisticsMixin(object):
         return regr
 
     def multiple_regression(
-        self, xs, y, estimates=None, residuals=None, overwrite=False
+            self, xs, y, estimates=None, residuals=None, overwrite=False
     ):
         """
         Simple wrapper around the GRASS GIS module r.regression.multi
