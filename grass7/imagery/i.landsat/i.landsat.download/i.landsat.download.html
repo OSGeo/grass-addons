@@ -56,7 +56,7 @@ and
 </table>
 
 <p>
-To connect to EarthExplorer both a <em>user</em> name and <em>password</em>
+To connect to EarthExplorer both a <em>user</em> name and a <em>password</em>
 are required. See the <a href="https://ers.cr.usgs.gov/register">register</a>
 page for signing up.
 
@@ -97,7 +97,9 @@ remove the <b>l</b> flag and provide an <b>output</b> directory. Otherwise,
 files will be downloaded into <em>/tmp</em> directory.
 To download only selected scenes, one or more IDs must be provided
 through the <b>id</b> option, along with the <b>settings</b> file and an
-<b>output</b> directory.
+<b>output</b> directory. In addition, a <em>timeout</em> (in seconds)
+can be set to define how long a request should wait for a response before
+aborting (default is 300 seconds).
 
 <h2>EXAMPLES</h2>
 
@@ -105,7 +107,7 @@ Search available scenes:
 
 <div class="code"><pre>
 i.landsat.download -l settings=credentials.txt \
-    dataset=LANDSAT_8_C1 clouds=15 \
+    dataset=landsat_8_c1 clouds=15 \
     start='2018-08-24' end='2018-12-21'
 <pre></div>
 
@@ -113,8 +115,9 @@ Download all available scenes:
 
 <div class="code"><pre>
 i.landsat.download settings=credentials.txt \
-    dataset=LANDSAT_8_C1 clouds=15 \
-    start='2018-08-24' end='2018-12-21'
+    dataset=landsat_8_c1 clouds=15 \
+    start='2018-08-24' end='2018-12-21' \
+    timeout=600
 <pre></div>
 
 Download selected scenes by ID:
@@ -139,6 +142,7 @@ i.landsat.download settings=credentials.txt \
 <p>
 <em>
 <a href="i.landsat.import.html">i.landsat.import</a>,
+<a href="i.landsat.qa.html">i.landsat.qa</a>,
 <a href="https://grass.osgeo.org/grass-stable/manuals/i.landsat.toar.html">i.landsat.toar</a>
 </em>
 <p>
