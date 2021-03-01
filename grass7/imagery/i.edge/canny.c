@@ -337,7 +337,7 @@ void performHysteresis(CELL * edges, CELL * magnitude, int low, int high,
 
 void thresholdEdges(CELL * edges, int rows, int cols)
 {
-    int i;
+    size_t i;
     size_t max = (size_t)rows * cols;
 
     for (i = 0; i < max; i++) {
