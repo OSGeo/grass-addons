@@ -42,7 +42,7 @@
 #include <math.h>
 
 void computeXGradients(DCELL * diffKernel, DCELL * yConv, DCELL * xGradient,
-		       int rows, int cols, int kernelWidth)
+                       int rows, int cols, int kernelWidth)
 {
     int initX = kernelWidth - 1;
 
@@ -50,7 +50,7 @@ void computeXGradients(DCELL * diffKernel, DCELL * yConv, DCELL * xGradient,
 
     int initY = cols * (kernelWidth - 1);
 
-    size_t maxY = (size_t) cols * (rows - (kernelWidth - 1));
+    size_t maxY = (size_t)cols * (rows - (kernelWidth - 1));
 
     int x;
 
@@ -59,26 +59,26 @@ void computeXGradients(DCELL * diffKernel, DCELL * yConv, DCELL * xGradient,
     int i;
 
     for (x = initX; x < maxX; x++) {
-	for (y = initY; y < maxY; y += cols) {
-	    double sum = 0.;
+        for (y = initY; y < maxY; y += cols) {
+            double sum = 0.;
 
-	    size_t index = x + y;
+            size_t index = x + y;
 
-	    for (i = 1; i < kernelWidth; i++) {
-		sum += diffKernel[i] * (yConv[index - i] - yConv[index + i]);
-	    }
-	    xGradient[index] = sum;
-	}
+            for (i = 1; i < kernelWidth; i++) {
+                sum += diffKernel[i] * (yConv[index - i] - yConv[index + i]);
+            }
+            xGradient[index] = sum;
+        }
     }
 }
 
 
 void computeYGradients(DCELL * diffKernel, DCELL * xConv, DCELL * yGradient,
-		       int rows, int cols, int kernelWidth)
+                       int rows, int cols, int kernelWidth)
 {
     int initY = cols * (kernelWidth - 1);
 
-    size_t maxY = (size_t) cols * (rows - (kernelWidth - 1));
+    size_t maxY = (size_t)cols * (rows - (kernelWidth - 1));
 
     int x;
 
@@ -87,21 +87,21 @@ void computeYGradients(DCELL * diffKernel, DCELL * xConv, DCELL * yGradient,
     int i;
 
     for (x = kernelWidth; x < cols - kernelWidth; x++) {
-	for (y = initY; y < maxY; y += cols) {
-	    double sum = 0.0;
+        for (y = initY; y < maxY; y += cols) {
+            double sum = 0.0;
 
-	    size_t index = x + y;
+            size_t index = x + y;
 
-	    int yOffset = cols;
+            int yOffset = cols;
 
-	    for (i = 1; i < kernelWidth; i++) {
-		sum +=
-		    diffKernel[i] * (xConv[index - yOffset] -
-				     xConv[index + yOffset]);
-		yOffset += cols;
-	    }
-	    yGradient[index] = sum;
-	}
+            for (i = 1; i < kernelWidth; i++) {
+                sum +=
+                    diffKernel[i] * (xConv[index - yOffset] -
+                                     xConv[index + yOffset]);
+                yOffset += cols;
+            }
+            yGradient[index] = sum;
+        }
     }
 }
 
@@ -113,15 +113,15 @@ static double custom_hypot(double x, double y)
     y = fabs(y);
 
     if (x < y) {
-	t = x;
-	x = y;
-	y = t;
+        t = x;
+        x = y;
+        y = t;
     }
 
     if (x == 0.0)
-	return 0.0;
+        return 0.0;
     if (y == 0.0)
-	return x;
+        return x;
     return x * sqrt(1 + (y / x) * (y / x));
 }
 
@@ -154,45 +154,45 @@ static double custom_hypot(double x, double y)
  *
  */
 static int isLocalMax(double xGrad, double yGrad, double gradMag,
-		      double neMag, double seMag, double swMag, double nwMag,
-		      double nMag, double eMag, double sMag, double wMag)
+                      double neMag, double seMag, double swMag, double nwMag,
+                      double nMag, double eMag, double sMag, double wMag)
 {
     double tmp, tmp1, tmp2;
 
     if (xGrad * yGrad <= 0.0f) {
-	if (fabs(xGrad) >= fabs(yGrad)) {
-	    tmp = fabs(xGrad * gradMag);
-	    tmp1 = fabs(yGrad * neMag - (xGrad + yGrad) * eMag) /*(3) */ ;
-	    tmp2 = fabs(yGrad * swMag - (xGrad + yGrad) * wMag) /*(4) */ ;
-	}
-	else {
-	    tmp = fabs(yGrad * gradMag);
-	    tmp1 = fabs(xGrad * neMag - (yGrad + xGrad) * nMag) /*(3) */ ;
-	    tmp2 = fabs(xGrad * swMag - (yGrad + xGrad) * sMag) /*(4) */ ;
-	}
+        if (fabs(xGrad) >= fabs(yGrad)) {
+            tmp = fabs(xGrad * gradMag);
+            tmp1 = fabs(yGrad * neMag - (xGrad + yGrad) * eMag) /*(3) */ ;
+            tmp2 = fabs(yGrad * swMag - (xGrad + yGrad) * wMag) /*(4) */ ;
+        }
+        else {
+            tmp = fabs(yGrad * gradMag);
+            tmp1 = fabs(xGrad * neMag - (yGrad + xGrad) * nMag) /*(3) */ ;
+            tmp2 = fabs(xGrad * swMag - (yGrad + xGrad) * sMag) /*(4) */ ;
+        }
     }
     else {
-	if (fabs(xGrad) >= fabs(yGrad) /*(2) */ ) {
-	    tmp = fabs(xGrad * gradMag);
-	    tmp1 = fabs(yGrad * seMag + (xGrad - yGrad) * eMag) /*(3) */ ;
-	    tmp2 = fabs(yGrad * nwMag + (xGrad - yGrad) * wMag) /*(4) */ ;
-	}
-	else {
-	    tmp = fabs(yGrad * gradMag);
-	    tmp1 = fabs(xGrad * seMag + (yGrad - xGrad) * sMag) /*(3) */ ;
-	    tmp2 = fabs(xGrad * nwMag + (yGrad - xGrad) * nMag) /*(4) */ ;
-	}
+        if (fabs(xGrad) >= fabs(yGrad) /*(2) */ ) {
+            tmp = fabs(xGrad * gradMag);
+            tmp1 = fabs(yGrad * seMag + (xGrad - yGrad) * eMag) /*(3) */ ;
+            tmp2 = fabs(yGrad * nwMag + (xGrad - yGrad) * wMag) /*(4) */ ;
+        }
+        else {
+            tmp = fabs(yGrad * gradMag);
+            tmp1 = fabs(xGrad * seMag + (yGrad - xGrad) * sMag) /*(3) */ ;
+            tmp2 = fabs(xGrad * nwMag + (yGrad - xGrad) * nMag) /*(4) */ ;
+        }
     }
     if (tmp >= tmp1 && tmp > tmp2) {
-	return 1;
+        return 1;
     }
     return 0;
 }
 
 void nonmaxSuppresion(DCELL * xGradient, DCELL * yGradient, CELL * magnitude,
-		      CELL *angle,
-		      int rows, int cols, int kernelWidth,
-		      int magnitudeScale, int magnitudeLimit)
+                      CELL * angle,
+                      int rows, int cols, int kernelWidth,
+                      int magnitudeScale, int magnitudeLimit)
 {
     int initX = kernelWidth;
 
@@ -209,78 +209,78 @@ void nonmaxSuppresion(DCELL * xGradient, DCELL * yGradient, CELL * magnitude,
     int MAGNITUDE_MAX = magnitudeScale * magnitudeLimit;
 
     for (x = initX; x < maxX; x++) {
-	for (y = initY; y < maxY; y += cols) {
-	    size_t index = x + y;
+        for (y = initY; y < maxY; y += cols) {
+            size_t index = x + y;
 
-	    int indexN = index - cols;
+            int indexN = index - cols;
 
-	    int indexS = index + cols;
+            int indexS = index + cols;
 
-	    int indexW = index - 1;
+            int indexW = index - 1;
 
-	    int indexE = index + 1;
+            int indexE = index + 1;
 
-	    int indexNW = indexN - 1;
+            int indexNW = indexN - 1;
 
-	    int indexNE = indexN + 1;
+            int indexNE = indexN + 1;
 
-	    int indexSW = indexS - 1;
+            int indexSW = indexS - 1;
 
-	    int indexSE = indexS + 1;
+            int indexSE = indexS + 1;
 
-	    double xGrad = xGradient[index];
+            double xGrad = xGradient[index];
 
-	    double yGrad = yGradient[index];
+            double yGrad = yGradient[index];
 
-	    double gradMag = custom_hypot(xGrad, yGrad);
+            double gradMag = custom_hypot(xGrad, yGrad);
 
-	    /* perform non-maximal supression */
-	    double nMag = custom_hypot(xGradient[indexN], yGradient[indexN]);
+            /* perform non-maximal supression */
+            double nMag = custom_hypot(xGradient[indexN], yGradient[indexN]);
 
-	    double sMag = custom_hypot(xGradient[indexS], yGradient[indexS]);
+            double sMag = custom_hypot(xGradient[indexS], yGradient[indexS]);
 
-	    double wMag = custom_hypot(xGradient[indexW], yGradient[indexW]);
+            double wMag = custom_hypot(xGradient[indexW], yGradient[indexW]);
 
-	    double eMag = custom_hypot(xGradient[indexE], yGradient[indexE]);
+            double eMag = custom_hypot(xGradient[indexE], yGradient[indexE]);
 
-	    double neMag =
-		custom_hypot(xGradient[indexNE], yGradient[indexNE]);
+            double neMag =
+                custom_hypot(xGradient[indexNE], yGradient[indexNE]);
 
-	    double seMag =
-		custom_hypot(xGradient[indexSE], yGradient[indexSE]);
+            double seMag =
+                custom_hypot(xGradient[indexSE], yGradient[indexSE]);
 
-	    double swMag =
-		custom_hypot(xGradient[indexSW], yGradient[indexSW]);
+            double swMag =
+                custom_hypot(xGradient[indexSW], yGradient[indexSW]);
 
-	    double nwMag =
-		custom_hypot(xGradient[indexNW], yGradient[indexNW]);
+            double nwMag =
+                custom_hypot(xGradient[indexNW], yGradient[indexNW]);
 
-	    if (isLocalMax(xGrad, yGrad, gradMag, neMag, seMag, swMag, nwMag,
-			   nMag, eMag, sMag, wMag)) {
-		magnitude[index] =
-		    gradMag >=
-		    magnitudeLimit ? MAGNITUDE_MAX : (int)(magnitudeScale *
-							   gradMag + 0.5);
-		/*
-		   NOTE: The orientation of the edge is not employed by this
-		   implementation. It is a simple matter to compute it at
-		   this point as: Math.atan2(yGrad, xGrad);
-		 */
-		if (angle != NULL)
-		{
-		    // angle of gradient (mathematical axes)
-		    angle[index] = (int) (-atan2(yGrad, xGrad) * 180 / M_PI + 0.5);
-		}
-	    }
-	    else {
-		magnitude[index] = 0;
-	    }
-	}
+            if (isLocalMax(xGrad, yGrad, gradMag, neMag, seMag, swMag, nwMag,
+                           nMag, eMag, sMag, wMag)) {
+                magnitude[index] =
+                    gradMag >=
+                    magnitudeLimit ? MAGNITUDE_MAX : (int)(magnitudeScale *
+                                                           gradMag + 0.5);
+                /*
+                   NOTE: The orientation of the edge is not employed by this
+                   implementation. It is a simple matter to compute it at
+                   this point as: Math.atan2(yGrad, xGrad);
+                 */
+                if (angle != NULL) {
+                    /* angle of gradient (mathematical axes) */
+                    angle[index] =
+                        (int)(-atan2(yGrad, xGrad) * 180 / M_PI + 0.5);
+                }
+            }
+            else {
+                magnitude[index] = 0;
+            }
+        }
     }
 }
 
 static void follow(CELL * edges, CELL * magnitude, int x1, int y1, int i1,
-		   int threshold, int rows, int cols)
+                   int threshold, int rows, int cols)
 {
     int x0 = x1 == 0 ? x1 : x1 - 1;
 
@@ -296,21 +296,21 @@ static void follow(CELL * edges, CELL * magnitude, int x1, int y1, int i1,
 
     edges[i1] = magnitude[i1];
     for (x = x0; x <= x2; x++) {
-	for (y = y0; y <= y2; y++) {
-	    int i2 = x + y * cols;
+        for (y = y0; y <= y2; y++) {
+            int i2 = x + y * cols;
 
-	    if ((y != y1 || x != x1) && edges[i2] == 0
-		&& magnitude[i2] >= threshold) {
-		follow(edges, magnitude, x, y, i2, threshold, rows, cols);
-		return;
-	    }
-	}
+            if ((y != y1 || x != x1) && edges[i2] == 0
+                && magnitude[i2] >= threshold) {
+                follow(edges, magnitude, x, y, i2, threshold, rows, cols);
+                return;
+            }
+        }
     }
 }
 
 /* edges.fill(0) */
 void performHysteresis(CELL * edges, CELL * magnitude, int low, int high,
-		       int rows, int cols)
+                       int rows, int cols)
 {
     /*
        NOTE: this implementation reuses the data array to store both
@@ -326,21 +326,21 @@ void performHysteresis(CELL * edges, CELL * magnitude, int low, int high,
     int offset = 0;
 
     for (y = 0; y < rows; y++) {
-	for (x = 0; x < cols; x++) {
-	    if (edges[offset] == 0 && magnitude[offset] >= high) {
-		follow(edges, magnitude, x, y, offset, low, rows, cols);
-	    }
-	    offset++;
-	}
+        for (x = 0; x < cols; x++) {
+            if (edges[offset] == 0 && magnitude[offset] >= high) {
+                follow(edges, magnitude, x, y, offset, low, rows, cols);
+            }
+            offset++;
+        }
     }
 }
 
 void thresholdEdges(CELL * edges, int rows, int cols)
 {
     int i;
-    size_t max = (size_t) rows * cols;
+    size_t max = (size_t)rows * cols;
 
     for (i = 0; i < max; i++) {
-	edges[i] = edges[i] > 0 ? 1 : 0;
+        edges[i] = edges[i] > 0 ? 1 : 0;
     }
 }

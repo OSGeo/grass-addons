@@ -6,7 +6,7 @@
 
 int getKernelWidth(const double sigma, double gaussianCutOff)
 {
-    return (int) ceil(sqrt(-2 * sigma * sigma * log(gaussianCutOff)));
+    return (int)ceil(sqrt(-2 * sigma * sigma * log(gaussianCutOff)));
 }
 
 static double gaussian(double x, double sigma)
@@ -26,15 +26,15 @@ void gaussKernel(DCELL * gaussKernel, DCELL * diffKernel,
 
         double g3 = gaussian(kwidth + 0.5, kernelRadius);
 
-	gaussKernel[kwidth] =
-	    (g1 + g2 +
-	     g3) / 3. / (2.0 * (double)M_PI * kernelRadius * kernelRadius);
-	diffKernel[kwidth] = g3 - g2;
+        gaussKernel[kwidth] =
+            (g1 + g2 +
+             g3) / 3. / (2.0 * (double)M_PI * kernelRadius * kernelRadius);
+        diffKernel[kwidth] = g3 - g2;
     }
 }
 
 void gaussConvolution(DCELL * image, DCELL * kernel, DCELL * xConv,
-		      DCELL * yConv, int rows, int cols, int kernelWidth)
+                      DCELL * yConv, int rows, int cols, int kernelWidth)
 {
     int x;
     size_t y;
@@ -45,33 +45,33 @@ void gaussConvolution(DCELL * image, DCELL * kernel, DCELL * xConv,
 
     int initY = cols * (kernelWidth - 1);
 
-    size_t maxY = (size_t) cols * (rows - (kernelWidth - 1));
+    size_t maxY = (size_t)cols * (rows - (kernelWidth - 1));
 
-    //perform convolution in x and y directions
+    /* perform convolution in x and y directions */
     for (x = initX; x < maxX; x++) {
-	for (y = initY; y < maxY; y += cols) {
-	    size_t index = x + y;
+        for (y = initY; y < maxY; y += cols) {
+            size_t index = x + y;
 
-	    double sumX = image[index] * kernel[0];
+            double sumX = image[index] * kernel[0];
 
-	    double sumY = sumX;
+            double sumY = sumX;
 
-	    int xOffset = 1;
+            int xOffset = 1;
 
-	    int yOffset = cols;
+            int yOffset = cols;
 
-	    for (; xOffset < kernelWidth;) {
-		sumY +=
-		    kernel[xOffset] * (image[index - yOffset] +
-				       image[index + yOffset]);
-		sumX +=
-		    kernel[xOffset] * (image[index - xOffset] +
-				       image[index + xOffset]);
-		yOffset += cols;
-		xOffset++;
-	    }
-	    yConv[index] = sumY;
-	    xConv[index] = sumX;
-	}
+            for (; xOffset < kernelWidth;) {
+                sumY +=
+                    kernel[xOffset] * (image[index - yOffset] +
+                                       image[index + yOffset]);
+                sumX +=
+                    kernel[xOffset] * (image[index - xOffset] +
+                                       image[index + xOffset]);
+                yOffset += cols;
+                xOffset++;
+            }
+            yConv[index] = sumY;
+            xConv[index] = sumX;
+        }
     }
 }
