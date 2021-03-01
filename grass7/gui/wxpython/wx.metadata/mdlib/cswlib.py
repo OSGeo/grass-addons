@@ -27,7 +27,6 @@ from grass.script.setup import set_gui_path
 
 set_gui_path()
 
-from core.gcmd import GError, GMessage, GWarning
 from gui_core.forms import GUI
 
 import wx
@@ -97,8 +96,8 @@ class CSWBrowserPanel(wx.Panel):
 
         try:
             global BBox, CatalogueServiceWeb, Environment, ExceptionReport, \
-                FileSystemLoader, HtmlFormatter, PropertyIsLike, XmlLexer, \
-                highlight
+                FileSystemLoader, GError, GMessage, GWarning, HtmlFormatter, \
+                PropertyIsLike, XmlLexer, highlight
 
             from jinja2 import Environment, FileSystemLoader
 
@@ -109,6 +108,8 @@ class CSWBrowserPanel(wx.Panel):
             from pygments import highlight
             from pygments.formatters import HtmlFormatter
             from pygments.lexers import XmlLexer
+
+            from core.gcmd import GError, GMessage, GWarning
         except ModuleNotFoundError as e:
             msg = e.msg
             sys.exit(globalvar.MODULE_NOT_FOUND.format(
@@ -993,8 +994,8 @@ class CSWConnectionPanel(wx.Panel):
         wx.Panel.__init__(self, parent)
         try:
             global BBox, CatalogueServiceWeb, Environment, ExceptionReport, \
-                FileSystemLoader, HtmlFormatter, PropertyIsLike, XmlLexer, \
-                highlight
+                FileSystemLoader, GError, GMessage, GWarning, HtmlFormatter, \
+                PropertyIsLike, XmlLexer, highlight
 
             from jinja2 import Environment, FileSystemLoader
 
@@ -1005,6 +1006,8 @@ class CSWConnectionPanel(wx.Panel):
             from pygments import highlight
             from pygments.formatters import HtmlFormatter
             from pygments.lexers import XmlLexer
+
+            from core.gcmd import GError, GMessage, GWarning
         except ModuleNotFoundError as e:
             msg = e.msg
             sys.exit(globalvar.MODULE_NOT_FOUND.format(

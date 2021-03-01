@@ -15,7 +15,10 @@ This program is free software under the GNU General Public License
 
 @author Matej Krejci <matejkrejci gmail.com> (GSoC 2014)
 """
-from core.gcmd import GError
+
+import sys
+
+from . import globalvar
 from .mdutil import findBetween
 
 
@@ -117,6 +120,17 @@ class JinjaTemplateParser():
         @var mdOWSTagStr: string representing OWSLib tags from template (per line)
         @var mdOWSTagStrList: on each index of list is one line with parsed OWSLib tag
         '''
+
+        try:
+            global GError
+
+            from core.gcmd import GError
+        except ModuleNotFoundError as e:
+            msg = e.msg
+            sys.exit(globalvar.MODULE_NOT_FOUND.format(
+                lib=msg.split("'")[-2],
+                url=globalvar.MODULE_URL))
+
         self.mdDescription = []
         self.mdOWSTag = []
         self.template = template
