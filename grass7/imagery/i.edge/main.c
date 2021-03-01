@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
     static const int MAGNITUDE_LIMIT = 1000;
 
     int lowThreshold, highThreshold, low, high;
-    int nrows, ncols;
+    int nrows, ncols, i;
     size_t dim_2;
     DCELL *mat1;
 
@@ -270,7 +270,7 @@ int main(int argc, char *argv[])
 
 	    outrast = Rast_allocate_buf(CELL_TYPE);
 	    Rast_set_c_null_value(outrast, ncols);
-	    for (r = 0; r < nrows; r++) {
+	    for (i = 0; i < nrows; i++) {
 		Rast_put_row(outfd, outrast, CELL_TYPE);
 	    }
 
@@ -283,7 +283,7 @@ int main(int argc, char *argv[])
 	    if (anglesMapName) {
 		outfd = Rast_open_new(anglesMapName, CELL_TYPE);
 
-		for (r = 0; r < nrows; r++) {
+		for (i = 0; i < nrows; i++) {
 		    Rast_put_row(outfd, outrast, CELL_TYPE);
 		}
 
