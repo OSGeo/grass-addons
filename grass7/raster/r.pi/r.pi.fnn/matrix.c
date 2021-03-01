@@ -4,7 +4,6 @@ int writeDistMatrixAndID(char *name, Coords ** frags, int count)
 {
     FILE *out_fp;
     int res = 0;
-    const char *mapset;
     int out_fd;
     int row, col, i;
     DCELL *result;
@@ -32,7 +31,6 @@ int writeDistMatrixAndID(char *name, Coords ** frags, int count)
 	    G_warning(_("<%s> is an illegal file name"), name);
 	    res = 1;
 	}
-	mapset = G_mapset();
 
 	/* open the new cellfile */
 	out_fd = Rast_open_new(name, DCELL_TYPE);

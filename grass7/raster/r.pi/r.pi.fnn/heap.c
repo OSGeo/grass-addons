@@ -3,7 +3,7 @@
 #include <grass/stats.h>
 #include "local_proto.h"
 
-inline void exchange(int p1, int p2)
+static void exchange(int p1, int p2)
 {
     Path_Coords tmp = heap[p1];
 
