@@ -206,6 +206,8 @@ def main():
             sqlstat = "UPDATE " + table_name + " SET label='" + catlab[str(i)] + "' WHERE " + column_names[0] + " == " + str(i)
             gscript.run_command("db.execute", sql=sqlstat)
 
+    gscript.vector_history(points, replace=True)
+
 
 if __name__ == '__main__':
     main()
