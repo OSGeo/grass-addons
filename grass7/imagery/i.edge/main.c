@@ -34,7 +34,7 @@
   \param[out] mat map in a matrix (row order), field have to be allocated
   */
 static void readMap(const char *name, const char *mapset, int nrows,
-		    int ncols, DCELL * mat)
+                    int ncols, DCELL * mat)
 {
 
     int r, c;
@@ -50,37 +50,37 @@ static void readMap(const char *name, const char *mapset, int nrows,
     /* load map */
     map_fd = Rast_open_old(name, mapset);
     if (map_fd < 0) {
-	G_fatal_error(_("Error opening first raster map <%s>"), name);
+        G_fatal_error(_("Error opening first raster map <%s>"), name);
     }
 
     G_debug(1, "fd %d %s %s", map_fd, name, mapset);
 
     /*
-        if ((first_map_R_type =
-             Rast_map_type(templName, mapset)) < 0)
-            G_fatal_error(_("Error getting first raster map type"));
-    */
+       if ((first_map_R_type =
+       Rast_map_type(templName, mapset)) < 0)
+       G_fatal_error(_("Error getting first raster map type"));
+     */
 
     for (r = 0; r < nrows; r++) {
-	Rast_get_row(map_fd, row_buffer, r, DCELL_TYPE);
+        Rast_get_row(map_fd, row_buffer, r, DCELL_TYPE);
 
-	for (c = 0; c < ncols; c++) {
-	    cell_value = row_buffer[c];
-	    size_t index = ((size_t) ncols * r) + c;
+        for (c = 0; c < ncols; c++) {
+            cell_value = row_buffer[c];
+            size_t index = ((size_t)ncols * r) + c;
 
-	    if (!Rast_is_d_null_value(&cell_value))
-		mat[index] = cell_value;
-	    else
-		mat[index] = 0.0;
+            if (!Rast_is_d_null_value(&cell_value))
+                mat[index] = cell_value;
+            else
+                mat[index] = 0.0;
 
-	    if (mat[index])
-		check_reading = 1;
-	}
+            if (mat[index])
+                check_reading = 1;
+        }
     }
     G_free(row_buffer);
 
     if (!check_reading)
-	G_fatal_error(_("Input map contains no data"));
+        G_fatal_error(_("Input map contains no data"));
 
     Rast_close(map_fd);
 }
@@ -91,23 +91,23 @@ static void readMap(const char *name, const char *mapset, int nrows,
   */
 static void writeMap(const char *name, int nrows, int ncols, CELL * map)
 {
-    unsigned char *outrast;	/* output buffer */
+    unsigned char *outrast;     /* output buffer */
 
     int outfd;
 
-    outfd = Rast_open_new(name, CELL_TYPE);	// FIXME: using both open old and open new
+    outfd = Rast_open_new(name, CELL_TYPE);     /* FIXME: using both open old and open new */
     int r, c;
 
     outrast = Rast_allocate_buf(CELL_TYPE);
     for (r = 0; r < nrows; r++) {
-	for (c = 0; c < ncols; c++) {
-	    size_t index = (size_t) r * ncols + c;
+        for (c = 0; c < ncols; c++) {
+            size_t index = (size_t)r * ncols + c;
 
-	    CELL value = map[index];
+            CELL value = map[index];
 
-	    ((CELL *) outrast)[c] = value;
-	}
-	Rast_put_row(outfd, outrast, CELL_TYPE);
+            ((CELL *) outrast)[c] = value;
+        }
+        Rast_put_row(outfd, outrast, CELL_TYPE);
     }
     G_free(outrast);
 
@@ -123,12 +123,12 @@ static void writeMap(const char *name, int nrows, int ncols, CELL * map)
 int main(int argc, char *argv[])
 {
     struct Cell_head cell_head; /* it stores region information,
-  and header information of rasters */
-    char *name; /* input raster name */
-    char *mapset; /* mapset name */
+                                   and header information of rasters */
+    char *name;                 /* input raster name */
+    char *mapset;               /* mapset name */
     int kernelWidth;
     double kernelRadius;
-    char *result; /* output raster name */
+    char *result;               /* output raster name */
     char *anglesMapName;
 
     static const double GAUSSIAN_CUT_OFF = 0.005;
@@ -139,25 +139,24 @@ int main(int argc, char *argv[])
     int nrows, ncols;
     size_t dim_2;
 
-    struct History history; /* holds meta-data (title, comments,..) */
-    struct GModule *module; /* GRASS module for parsing arguments */
+    struct History history;     /* holds meta-data (title, comments,..) */
+    struct GModule *module;     /* GRASS module for parsing arguments */
 
     /* options */
     struct Option *input, *output, *angleOutput,
-	*lowThresholdOption, *highThresholdOption, *sigmaOption;
+        *lowThresholdOption, *highThresholdOption, *sigmaOption;
 
     size_t r;
 
     /* initialize GIS environment */
-    G_gisinit(argv[0]); /* reads grass env, stores program name to G_program_name() */
+    G_gisinit(argv[0]);         /* reads grass env, stores program name to G_program_name() */
 
     /* initialize module */
     module = G_define_module();
     G_add_keyword(_("raster"));
     G_add_keyword(_("canny"));
     G_add_keyword(_("edge detection"));
-    module->description =
-        _("Canny edge detector.");
+    module->description = _("Canny edge detector.");
 
     /* Define the different options as defined in gis.h */
     input = G_define_standard_option(G_OPT_R_INPUT);
@@ -198,13 +197,13 @@ int main(int argc, char *argv[])
 
     /* options and flags parser */
     if (G_parser(argc, argv))
-	exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
 
-    lowThreshold = (int) (atof(lowThresholdOption->answer) + 0.5);
-    highThreshold = (int) (atof(highThresholdOption->answer) + 0.5);
+    lowThreshold = (int)(atof(lowThresholdOption->answer) + 0.5);
+    highThreshold = (int)(atof(highThresholdOption->answer) + 0.5);
 
-    low = (int) ((lowThreshold * MAGNITUDE_SCALE) + 0.5);
-    high = (int) ((highThreshold * MAGNITUDE_SCALE) + 0.5);
+    low = (int)((lowThreshold * MAGNITUDE_SCALE) + 0.5);
+    high = (int)((highThreshold * MAGNITUDE_SCALE) + 0.5);
 
 
     kernelRadius = atoi(sigmaOption->answer);
@@ -220,10 +219,10 @@ int main(int argc, char *argv[])
      * mapset name otherwise */
     mapset = (char *)G_find_raster2(name, "");
     if (mapset == NULL)
-	G_fatal_error(_("Raster map <%s> not found"), name);
+        G_fatal_error(_("Raster map <%s> not found"), name);
 
     /* determine the inputmap type (CELL/FCELL/DCELL) */
-    //data_type = Rast_map_type(name, mapset);
+    /* data_type = Rast_map_type(name, mapset); */
 
     /* Rast_open_old - returns file destriptor (>0) */
     /*    infd = Rast_open_old(name, mapset); */
@@ -239,7 +238,7 @@ int main(int argc, char *argv[])
 
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
-    dim_2 = (size_t) nrows * ncols;
+    dim_2 = (size_t)nrows *ncols;
 
     DCELL *mat1;
 
@@ -248,14 +247,14 @@ int main(int argc, char *argv[])
 
     /* FIXME: it is necessary? */
     for (r = 0; r < dim_2; r++) {
-	mat1[r] = 0.0;
+        mat1[r] = 0.0;
     }
 
     /*
-        if ((first_map_R_type =
-             Rast_map_type(templName, mapset)) < 0)
-            G_fatal_error(_("Error getting first raster map type"));
-    */
+       if ((first_map_R_type =
+       Rast_map_type(templName, mapset)) < 0)
+       G_fatal_error(_("Error getting first raster map type"));
+     */
 
     readMap(name, mapset, nrows, ncols, mat1);
 
@@ -274,7 +273,7 @@ int main(int argc, char *argv[])
     DCELL *xConv = (DCELL *) G_calloc((dim_2), sizeof(DCELL));
 
     for (r = 0; r < dim_2; r++) {
-	yConv[r] = xConv[r] = 0;
+        yConv[r] = xConv[r] = 0;
     }
     gaussConvolution(mat1, kernel, xConv, yConv, nrows, ncols, kernelWidth);
 
@@ -282,32 +281,32 @@ int main(int argc, char *argv[])
     DCELL *xGradient = (DCELL *) G_calloc((dim_2), sizeof(DCELL));
 
     for (r = 0; r < dim_2; r++) {
-	yGradient[r] = xGradient[r] = 0;
+        yGradient[r] = xGradient[r] = 0;
     }
 
     computeXGradients(diffKernel, yConv, xGradient, nrows, ncols,
-		      kernelWidth);
+                      kernelWidth);
     computeYGradients(diffKernel, xConv, yGradient, nrows, ncols,
-		      kernelWidth);
+                      kernelWidth);
 
     CELL *magnitude = (CELL *) G_calloc((dim_2), sizeof(CELL));
 
     CELL *angle = NULL;
-    if (anglesMapName != NULL)
-    {
+
+    if (anglesMapName != NULL) {
         angle = (CELL *) G_calloc((dim_2), sizeof(CELL));
         Rast_set_null_value(angle, dim_2, CELL_TYPE);
     }
 
     nonmaxSuppresion(xGradient, yGradient, magnitude, angle,
-		     nrows, ncols, kernelWidth,
-		     MAGNITUDE_SCALE, MAGNITUDE_LIMIT);
+                     nrows, ncols, kernelWidth,
+                     MAGNITUDE_SCALE, MAGNITUDE_LIMIT);
 
 
     CELL *edges = (CELL *) G_calloc((dim_2), sizeof(CELL));
 
     for (r = 0; r < dim_2; r++) {
-	edges[r] = 0;
+        edges[r] = 0;
     }
 
     performHysteresis(edges, magnitude, low, high, nrows, ncols);
@@ -316,8 +315,7 @@ int main(int argc, char *argv[])
 
     writeMap(result, nrows, ncols, edges);
 
-    if (angle != NULL)
-    {
+    if (angle != NULL) {
         writeMap(anglesMapName, nrows, ncols, angle);
     }
 
