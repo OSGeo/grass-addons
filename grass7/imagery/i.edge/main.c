@@ -295,6 +295,8 @@ int main(int argc, char *argv[])
 	    }
 
 	    G_free(outrast);
+
+	    exit(EXIT_SUCCESS);
 	}
     }
 
