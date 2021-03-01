@@ -241,7 +241,7 @@ def main():
     temp_edge_map = "temp_icutlines_edgemap_%d" % os.getpid()
     temp_maps.append([temp_edge_map, r])
 
-    gscript.message(_("Creating edge map"))
+    gscript.message(_("Creating edge map using <%s> edgedetection algorithm") % edge_detection_algorithm)
     if edge_detection_algorithm == 'zc':
         kwargs = {'input': inputraster,
                   'output': temp_edge_map,
@@ -284,10 +284,12 @@ def main():
                              overlap=overlap,
                              processes=processes,
                              split=False,
+                             flags='n',
                              **kwargs)
             grd.run()
         else:
             gscript.run_command('i.edge',
+                                flags='n',
                                 **kwargs)
 
     else:
