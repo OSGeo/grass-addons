@@ -61,26 +61,51 @@ Until GRASS GIS version 7.4 included, there was a parameter name conflict betwee
 GridModule class in pygrass. For older GRASS GIS versions tiled edge 
 detection is thus only possible with <a href="i.edge.html">i.edge</a>.
 
-<h2>EXAMPLE</h2>
+<h2>EXAMPLES</h2>
 
-Using default <a href="https://grass.osgeo.org/grass-stable/manuals/i.zc.html">i.zc</a> edge detection without tiling, 
+<h3>Zero-crossing edge detection </h3>
+
+Using the default <a href="https://grass.osgeo.org/grass-stable/manuals/i.zc.html">i.zc</a>
+edge detection without tiling,
 default parameters and 10 horizontal and 10 vertical cutlines, creating
 vector polygon output:
 
 <div class="code"><pre> 
-g.region rast=ortho_2001_t792_1m -p
-i.cutlines ortho_2001_t792_1m number_lines=10 output=ortho_tiles 
+# ortho photo subarea
+g.region raster=ortho_2001_t792_1m n=221070 s=219730 -p
+i.cutlines input=ortho_2001_t792_1m number_lines=10 output=ortho_tiles_zc
 </pre></div>
 
 <center>
-<img src="i_cutlines_default.png" width="600" height="294" border="1"><br>
-Irregular vector tiles created for the NC demo data set orthophoto
+<a href="i_cutlines_default.png"><img src="i_cutlines_default.png" width="600" height="264" border="1"></a><br>
+Irregular vector tiles created for the NC demo data set orthophoto (default setting)
 </center>
 
+<h3>Canny edge detection </h3>
+
+Using the <a href="https://grass.osgeo.org/grass-stable/manuals/i.edge.html">i.edge</a>
+Canny edge detection with tiling and (needed) tile overlap, increased memory,
+two parallel processes and 10 horizontal and 10 vertical cutlines, creating
+vector polygon output:
+
+<div class="code"><pre>
+# ortho photo subarea
+g.region raster=ortho_2001_t792_1m n=221070 s=219730 -p
+i.cutlines input=ortho_2001_t792_1m number_lines=10 edge_detection=canny \
+  tile_width=500 tile_height=500 overlap=10 memory=2000 processes=2 output=ortho_tiles_canny
+</pre></div>
+
+<center>
+<a href="i_cutlines_canny.png"><img src="i_cutlines_canny.png" width="600" height="264" border="1"></a><br>
+Irregular vector tiles created for the NC demo data set orthophoto (Canny edge detection)
+</center>
 
 <h2>REFERENCES</h2>
 
-Soares, Anderson Reis, Thales Sehn K&ouml;rting, and Leila Maria Garcia Fonseca. 2016. "Improvements of the Divide and Segment Method for Parallel Image Segmentation." Revista Brasileira de Cartografia 68 (6), http://www.lsie.unb.br/rbc/index.php/rbc/article/view/1602.
+Soares, Anderson Reis, Thales Sehn K&ouml;rting, and Leila Maria Garcia Fonseca. 2016.
+"Improvements of the Divide and Segment Method for Parallel Image Segmentation."
+Revista Brasileira de Cartografia 68 (6),
+<a href="http://www.lsie.unb.br/rbc/index.php/rbc/article/view/1602">http://www.lsie.unb.br/rbc/index.php/rbc/article/view/1602</a>
 
 <h2>SEE ALSO</h2>
 
