@@ -295,7 +295,7 @@ def main():
 
                 gs.message(_("Downloading scene <{}> ...").format(scene["entityId"]))
 
-                ee.download(scene_id=scene["entityId"], output_dir=outdir)
+                ee.download(scene_id=scene["entityId"], output_dir=outdir, timeout=int(options["timeout"]))
 
             ee.logout()
 
