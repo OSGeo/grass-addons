@@ -29,14 +29,14 @@
 #include "canny.h"
 #include "gauss.h"
 
+
 /** Loads map into memory.
 
   \param[out] mat map in a matrix (row order), field have to be allocated
   */
-static void readMap(const char *name, const char *mapset, int nrows,
+static int readMap(const char *name, const char *mapset, int nrows,
                     int ncols, DCELL * mat)
 {
-
     int r, c;
     int map_fd;
     int check_reading;
@@ -45,7 +45,6 @@ static void readMap(const char *name, const char *mapset, int nrows,
 
     row_buffer = Rast_allocate_d_input_buf();
     check_reading = 0;
-
 
     /* load map */
     map_fd = Rast_open_old(name, mapset);
@@ -79,11 +78,11 @@ static void readMap(const char *name, const char *mapset, int nrows,
     }
     G_free(row_buffer);
 
-    if (!check_reading)
-        G_fatal_error(_("Input map contains no data"));
-
     Rast_close(map_fd);
+
+    return check_reading;
 }
+
 
 /** Writes map from memory into the file.
 
@@ -92,11 +91,10 @@ static void readMap(const char *name, const char *mapset, int nrows,
 static void writeMap(const char *name, int nrows, int ncols, CELL * map)
 {
     unsigned char *outrast;     /* output buffer */
-
     int outfd;
+    int r, c;
 
     outfd = Rast_open_new(name, CELL_TYPE);     /* FIXME: using both open old and open new */
-    int r, c;
 
     outrast = Rast_allocate_buf(CELL_TYPE);
     for (r = 0; r < nrows; r++) {
@@ -138,6 +136,7 @@ int main(int argc, char *argv[])
     int lowThreshold, highThreshold, low, high;
     int nrows, ncols;
     size_t dim_2;
+    DCELL *mat1;
 
     struct History history;     /* holds meta-data (title, comments,..) */
     struct GModule *module;     /* GRASS module for parsing arguments */
@@ -145,6 +144,7 @@ int main(int argc, char *argv[])
     /* options */
     struct Option *input, *output, *angleOutput,
         *lowThresholdOption, *highThresholdOption, *sigmaOption;
+    struct Flag *nullflag;
 
     size_t r;
 
@@ -195,6 +195,11 @@ int main(int argc, char *argv[])
     sigmaOption->description = _("Kernel radius");
     sigmaOption->answer = "2";
 
+    nullflag = G_define_flag();
+    nullflag->key = 'n';
+    nullflag->label = _("Create empty output if input map is empty");
+    nullflag->description = _("Default: no output and ERROR");
+
     /* options and flags parser */
     if (G_parser(argc, argv))
         exit(EXIT_FAILURE);
@@ -240,8 +245,6 @@ int main(int argc, char *argv[])
     ncols = Rast_window_cols();
     dim_2 = (size_t)nrows *ncols;
 
-    DCELL *mat1;
-
     /* Memory allocation for map_1: */
     mat1 = (DCELL *) G_calloc((dim_2), sizeof(DCELL));
 
@@ -256,7 +259,44 @@ int main(int argc, char *argv[])
        G_fatal_error(_("Error getting first raster map type"));
      */
 
-    readMap(name, mapset, nrows, ncols, mat1);
+    if (!readMap(name, mapset, nrows, ncols, mat1)) {
+	if (!nullflag->answer)
+	    G_fatal_error(_("Input map contains no data"));
+	else {
+	    int outfd;
+	    CELL *outrast;     /* output buffer */
+
+	    outfd = Rast_open_new(result, CELL_TYPE);
+
+	    outrast = Rast_allocate_buf(CELL_TYPE);
+	    Rast_set_c_null_value(outrast, ncols);
+	    for (r = 0; r < nrows; r++) {
+		Rast_put_row(outfd, outrast, CELL_TYPE);
+	    }
+
+	    Rast_close(outfd);
+	    /* add command line incantation to history file */
+	    Rast_short_history(result, "raster", &history);
+	    Rast_command_history(&history);
+	    Rast_write_history(result, &history);
+
+	    if (anglesMapName) {
+		outfd = Rast_open_new(anglesMapName, CELL_TYPE);
+
+		for (r = 0; r < nrows; r++) {
+		    Rast_put_row(outfd, outrast, CELL_TYPE);
+		}
+
+		Rast_close(outfd);
+		/* add command line incantation to history file */
+		Rast_short_history(anglesMapName, "raster", &history);
+		Rast_command_history(&history);
+		Rast_write_history(anglesMapName, &history);
+	    }
+
+	    G_free(outrast);
+	}
+    }
 
     /* **** */
 
