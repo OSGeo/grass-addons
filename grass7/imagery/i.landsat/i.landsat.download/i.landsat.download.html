@@ -8,6 +8,28 @@ Python library. Datasets currently supported include
 and 
 <a href="https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2?qt-science_support_page_related_con=2#qt-science_support_page_related_con">Collection 2</a>.
 
+<p>
+Landsat data are organized in tiers: Newly-acquired Landsat scenes are
+placed in the Real-Time (RT) tier. After reprocessing they are transitioned
+to either Tier 1 (T1; scenes with the highest available data quality,
+considered suitable for time-series analysis) or Tier 2 (T2; less accurate
+geometry). The Tier designation (T1, T2, RT) is indicated at the end of the
+Landsat Product Identifier.
+
+<p>
+The supported Landsat satellites include (see also
+<a href="https://en.wikipedia.org/wiki/Landsat_program#Satellite_chronology">Landsat satellite chronology</a>):
+
+<ul>
+<li>Landsat 5 (TM): 1984 to 2013</li>
+<li>Landsat 7 (ETM+): 1999 to present (note:
+  <a href="https://www.usgs.gov/core-science-systems/nli/landsat/landsat-7">Landsat 7 ETM+ SLC-off error</a>
+  after May 31, 2003)</li>
+<li>Landsat 8 (OLI): 2013 to present</li>
+</ul>
+
+The dataset names and IDs are:
+
 <table border="1">
 <thead>
 <tr>
