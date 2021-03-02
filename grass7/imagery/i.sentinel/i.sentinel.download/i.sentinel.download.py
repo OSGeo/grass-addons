@@ -392,10 +392,10 @@ class SentinelDownloader(object):
     def list(self):
         if self._products_df_sorted is None:
             return
-        id_kw = ('uuid', 'entityId')
-        identifier_kw = ('identifier', 'displayId')
-        cloud_kw = ('cloudcoverpercentage', 'cloudCover')
-        time_kw = ('beginposition', 'acquisition_date_end')
+        id_kw = ('uuid', 'entity_id')
+        identifier_kw = ('identifier', 'display_id')
+        cloud_kw = ('cloudcoverpercentage', 'cloud_cover')
+        time_kw = ('beginposition', 'acquisition_date')
         kw_idx = 1 if self._apiname == 'USGS_EE' else 0
         for idx in range(len(self._products_df_sorted[id_kw[kw_idx]])):
             if cloud_kw[kw_idx] in self._products_df_sorted:
@@ -439,13 +439,13 @@ class SentinelDownloader(object):
                     ee_login = True
                 except EarthExplorerError as e:
                     time.sleep(1)
-            for idx in range(len(self._products_df_sorted['entityId'])):
-                scene = self._products_df_sorted['entityId'][idx]
-                identifier = self._products_df_sorted['displayId'][idx]
+            for idx in range(len(self._products_df_sorted['entity_id'])):
+                scene = self._products_df_sorted['entity_id'][idx]
+                identifier = self._products_df_sorted['display_id'][idx]
                 zip_file = os.path.join(output, '{}.zip'.format(identifier))
                 gs.message('Downloading {}...'.format(identifier))
                 try:
-                    ee.download(scene_id=scene, output_dir=output, timeout=600)
+                    ee.download(identifier=identifier, output_dir=output, timeout=600)
                 except EarthExplorerError as e:
                     gs.fatal(_(e))
                 ee.logout()
@@ -556,34 +556,12 @@ class SentinelDownloader(object):
     def get_products_from_uuid_usgs(self, uuid_list):
         scenes = []
         for uuid in uuid_list:
-            metadata = self._api.metadata(uuid,'SENTINEL_2A')
+            metadata = self._api.metadata(uuid, 'SENTINEL_2A')
             scenes.append(metadata)
         scenes_df = pandas.DataFrame.from_dict(scenes)
         self._products_df_sorted = scenes_df
         gs.message(_('{} Sentinel product(s) found').format(
             len(self._products_df_sorted)))
-        # #metadata = self._api.metadata('SENTINEL_2A', uuid_list)
-        # metadata = self._api.metadata(uuid_list,'SENTINEL_2A')
-        # self._api.logout()
-        # # build list of dictionaries consistent with result of filter_USGS()
-        # scenes = []
-        # import pdb; pdb.set_trace()
-        # for scene in metadata:
-        #     scene_dict = {
-        #         'entityId': scene['entityId'],
-        #         'displayId': scene['displayId'],
-        #         #'acquisitionDate': scene['acquisitionDate']}
-        #         'acquisition_date_start': scene['acquisition_date_start']}
-        #     # get cloud cover from interior metadata dict
-        #     cloudcov_item = [dict for dict in scene['metadataFields']
-        #                      if dict['fieldName'] == 'Cloud Cover'][0]
-        #     cloudcov = cloudcov_item['value']
-        #     scene_dict['cloudCover'] = cloudcov
-        #     scenes.append(scene_dict)
-        # scenes_df = pandas.DataFrame.from_dict(scenes)
-        # self._products_df_sorted = scenes_df
-        # gs.message(_('{} Sentinel product(s) found').format(
-        #     len(self._products_df_sorted)))
 
     def set_uuid(self, uuid_list):
         """Set products by uuid.
@@ -652,7 +630,7 @@ class SentinelDownloader(object):
                 check_s2l1c_identifier(usgs_id, source='usgs')
                 # entity_id = self._api.lookup('SENTINEL_2A', [usgs_id],
                 #                              inverse=True)
-                entity_id = self._api.get_scene_id([usgs_id], 'SENTINEL_2A')
+                entity_id = self._api.get_entity_id([usgs_id], 'SENTINEL_2A')
                 self.get_products_from_uuid_usgs(entity_id)
                 return
             else:
@@ -695,7 +673,7 @@ class SentinelDownloader(object):
         if query:
             # check if the UTM-Tile is correct, remove otherwise
             for scene in scenes:
-                if scene['displayId'].split('_')[1] != utm_tile:
+                if scene['display_id'].split('_')[1] != utm_tile:
                     scenes.remove(scene)
         if len(scenes) < 1:
             gs.message(_('No product found'))
@@ -705,15 +683,15 @@ class SentinelDownloader(object):
             # replace sortby keywords with USGS keywords
             for idx, keyword in enumerate(sortby):
                 if keyword == 'cloudcoverpercentage':
-                    sortby[idx] = 'cloudCover'
+                    sortby[idx] = 'cloud_cover'
                     # turn cloudcover to float to make it sortable
-                    scenes_df['cloudCover'] = pandas.to_numeric(
-                        scenes_df['cloudCover'])
+                    scenes_df['cloud_cover'] = pandas.to_numeric(
+                        scenes_df['cloud_cover'])
                 elif keyword == 'ingestiondate':
-                    sortby[idx] = 'acquisition_date_end'
+                    sortby[idx] = 'acquisition_date'
                 # what does sorting by footprint mean
                 elif keyword == 'footprint':
-                    sortby[idx] = 'displayId'
+                    sortby[idx] = 'display_id'
             self._products_df_sorted = scenes_df.sort_values(
                 sortby,
                 ascending=[asc] * len(sortby), ignore_index=True
