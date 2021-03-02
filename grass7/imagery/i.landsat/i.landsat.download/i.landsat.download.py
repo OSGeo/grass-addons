@@ -95,8 +95,8 @@
 #% key: sort
 #% description: Sort by values in given order
 #% multiple: yes
-#% options: acquisitionDate,cloudCover
-#% answer: cloudCover,acquisitionDate
+#% options: acquisition_date,cloud_cover
+#% answer: cloud_cover,acquisition_date
 #% guisection: Sort
 #%end
 
@@ -210,7 +210,7 @@ def main():
 
             try:
 
-                ee.download(scene_id=i, output_dir=outdir, timeout=int(options["timeout"]))
+                ee.download(identifier=i, output_dir=outdir, timeout=int(options["timeout"]))
 
             except OSError:
 
@@ -233,7 +233,7 @@ def main():
         )
 
         if options["tier"]:
-            scenes = list(filter(lambda s: options["tier"] in s["displayId"], scenes))
+            scenes = list(filter(lambda s: options["tier"] in s["display_id"], scenes))
 
         # Output number of scenes found
         gs.message(_("{} scenes found.".format(len(scenes))))
@@ -244,39 +244,23 @@ def main():
         if options["order"] == "desc":
             reverse = True
 
-        # auxiliary list of dictionaries with the entries we need
-        scenes_extracted = []
-        for idx,scene in enumerate(scenes):
-            scene_dict = {
-                'idx': idx,
-                'cloudCover': float(scene['cloudCover']),
-                'acquisitionDate': datetime.strptime(scene['temporalCoverage']['startDate'], '%Y-%m-%d %H:%M:%S')
-            }
-            scenes_extracted.append(scene_dict)
-
-        # sort auxiliary list of dictionaries and apply order to original scenes-list
-        scenes_extracted_sorted = sorted(
-            scenes_extracted, key=lambda i: (i[sort_vars[0]], i[sort_vars[1]]), reverse=reverse
+        # Sort scenes
+        sorted_scenes = sorted(
+            scenes, key=lambda i: (i[sort_vars[0]], i[sort_vars[1]]), reverse=reverse
         )
-        sorted_idcs = [scene['idx'] for scene in scenes_extracted_sorted]
-        sorted_scenes = [scenes[i] for i in sorted_idcs]
-        # # Sort scenes
-        # sorted_scenes = sorted(
-        #     scenes, key=lambda i: (i[sort_vars[0]], i[sort_vars[1]]), reverse=reverse
-        # )
 
         landsat_api.logout()
 
         if flags["l"]:
 
             # Output sorted list of scenes found
-            # print('ID', 'DisplayID', 'Date', 'Clouds')
+            # print('id', 'display_id', 'acquisition_date', 'cloud_cover')
             for scene in sorted_scenes:
                 print(
-                    scene["entityId"],
-                    scene["displayId"],
-                    scene['temporalCoverage']['startDate'],
-                    scene["cloudCover"],
+                    scene["entity_id"],
+                    scene["display_id"],
+                    scene["acquisition_date"].strftime('%Y-%m-%d'),
+                    scene["cloud_cover"],
                 )
 
             gs.message(
@@ -293,9 +277,9 @@ def main():
 
             for scene in sorted_scenes:
 
-                gs.message(_("Downloading scene <{}> ...").format(scene["entityId"]))
+                gs.message(_("Downloading scene <{}> ...").format(scene["entity_id"]))
 
-                ee.download(scene_id=scene["entityId"], output_dir=outdir, timeout=int(options["timeout"]))
+                ee.download(identifier=scene["entity_id"], output_dir=outdir, timeout=int(options["timeout"]))
 
             ee.logout()
 
