@@ -2,9 +2,14 @@
 
 The <em>i.sentinel.download</em> allows downloading Sentinel satellite products
 from the <a href="https://scihub.copernicus.eu/">Copernicus Open Access Hub</a>.
+Sentinel-2 Level-1C data can also be downloaded from the <a href="https://earthexplorer.usgs.gov/">USGS Earth Explorer</a>.
 
+<h3>Copernicus Open Access Hub</h3>
 <p>
-The following product types (parameter <b>producttype</b>) are currently supported:
+Using the Copernicus Open Access Hub for searching and downloading Copernicus
+Sentinel data is the default option.
+The following product types (parameter <b>producttype</b>) are currently supported
+for download from the <b>Copernicus Open Access Hub</b>:
 <ul>
   <li>Sentinel-1 (SAR)
   (SAR) <a href="https://sentinel.esa.int/web/sentinel/missions/sentinel-1/data-products">products</a>:
@@ -30,6 +35,25 @@ and <em>password</em> are required;
 see <a href="https://scihub.copernicus.eu/dhus/#/self-registration">Register
 new account</a> page for signing up.
 
+<h3>USGS Earth Explorer</h3>
+<p>
+The following product types (parameter <b>producttype</b>) are currently supported
+for download from the <b>USGS Earth Explorer</b>:
+<ul>
+  <li>Sentinel-2 (optical and infrared):
+  <ul>
+    <li>S2MSI1C: Top-Of-Atmosphere reflectances in cartographic geometry (Level-1C)</li>
+  </ul>
+  </li>
+</ul>
+
+<p>
+To connect to the USGS Earth Explorer both a <em>user</em> name
+and <em>password</em> are required;
+see <a href="https://ers.cr.usgs.gov/register">EROS Registration System</a>
+page for signing up.
+
+<h3>Credentials file</h3>
 <p><em>i.sentinel.download</em> reads the user credentials
 from the <b>settings</b> file. The file must contain at least two lines:
 
@@ -43,13 +67,17 @@ empty lines in settings file are silently skipped.
 
 <h2>NOTES</h2>
 
+The data hub to download from can be indicated with the <b>datasource</b>
+option. ESA's Copernicus Open Access Hub is the default option.
+
+<p>
 User credentials can be also defined interactively
 when <b>settings=-</b> is given. Note that interactive prompt does not
 work in the graphical user interface.
 
 <div class="code"><pre>
 Insert username: myusername
-Insert password: 
+Insert password:
 Insert API URL (leave empty for https://scihub.copernicus.eu/dhus):
 </pre></div>
 
@@ -62,9 +90,9 @@ defined also by vector <b>map</b>. In addition the spatial relation
 between AOI and the footprint (<b>area_relation</b>) can be set to
 <ul>
 <li><i>Contains</i>: to only return scenes where the AOI is contained
-inside the footprint</li>
+inside the footprint (Only supported by Copernicus Open Access Hub)</li>
 <li><i>IsWithin</i>: to only return scenes where the footprint is
-contained inside the AOI</li>
+contained inside the AOI (Only supported by Copernicus Open Access Hub)</li>
 <li><i>Intersects</i>: to return all scenes where the footprint
 intersects the AOI (default)</li>
 </ul>
@@ -84,7 +112,18 @@ Extra search keywords can be specified with <b>query</b>. Multiple keywords
 can be listed separated with comma (e.g. 'polarisationmode=VV,orbitdirection=Ascending').
 Note that ESA maintains a
 <a href="https://scihub.copernicus.eu/twiki/do/view/SciHubUserGuide/FullTextSearch">list of valid search keywords</a>
-that can be used with <b>query</b>.
+that can be used with <b>query</b>. Usage of the <b>query</b> option for searching
+and downloading from the <b>USGS Earth Explorer</b> allows the keywords
+<i>identifier</i> and <i>filename</i>, both in ESA format. Additionally,
+the keyword <i>usgs_identifier</i> can be used to search for a specific scene
+in USGS name format (see <a href="https://lta.cr.usgs.gov/DD/Sentinel2.html#entity_id">USGS Entity ID</a>)
+
+<p>
+<em>i.sentinel.download</em> also allows downloading of Sentinel products
+by specifying a (list of) UUID. This operation is performed by the <b>uuid</b>
+option. Note that this option is mutually exclusive with all other
+filtering options. The format of UUID differs between the Copernicus Open Access
+Hub and the USGS Earth Explorer (see examples below).
 
 <p>
 In case a Sentinel data download was interrupted, <em>i.sentinel.download</em>
@@ -93,12 +132,12 @@ downloaded file (with <tt>.incomplete</tt> file extention) still present.
 
 <p>
 The <b>output</b> directory is created if not yet available.
-  
+
 <p>
 The query string sent to ESA can be shown with <b>--verbose</b>.
 
 <h3>Long Term Archive (LTA)</h3>
-Access to the product URL for data that are no longer available online will automatically trigger
+Access to the product URL for data that are no longer available online in the Copernicus Open Access Hub will automatically trigger
 the retrieval of the data from the LTA, the actual download may be initiated once the data are restored
 (within minutes to hours). Full details are available in the updated
 <a href="https://scihub.copernicus.eu/userguide/" target="_blank">user guide</a>,
@@ -114,6 +153,11 @@ it is stated (as of 2020):<br>
 
 To work with LTA you need to define the <b>sleep</b> parameter (and you can set the maximum number of retries with
 the <b>retry</b> parameter) to retry a download after the <b>sleep</b> value in minutes.
+
+<p>
+As an alternative to triggering re-upload Sentinel-2 data from the LTA, scenes can be downloaded
+from the <b>USGS Earth Explorer</b> where all data remain online and directly accessible.
+However, this applies only to Sentinel-2 S2MSI1C (Level-1C) data.
 
 <h2>EXAMPLES</h2>
 
@@ -182,7 +226,6 @@ a83ad139-c420-4433-bd21-f7ed35536e69 2018-11-10T10:12:39Z 14% S2MSI1C
 ...
 </pre></div>
 
-
 <p>
 Find Sentinel-1 products by one or several specified <b>UUID</b>s:
 
@@ -205,6 +248,34 @@ fc6107a5-9daf-45cc-a40a-0e5502c464b6 2018-01-22T23:14:05Z cloudcover_NA SLC
 [...]
 </pre></div>
 
+<p>
+Find Sentinel-2 L1C products (S2MSI1C) covering an exemplary region in Germany with
+temporal and cloud filter from the <b>USGS Earth Explorer</b>. Note the different
+formats of <i>UUID</i> and <i>identifier</i> used by the <b>USGS Earth Explorer</b>
+(first two result columns):
+<div class="code"><pre>
+g.region n=51 w=6 s=50 e=7 res=0:01 -p
+
+i.sentinel.download datasource=USGS_EE start=2017-09-01 end=2017-12-01 clouds=10 producttype=S2MSI1C settings=credentials.txt -l
+20 Sentinel product(s) found
+2177169 L1C_T31UGR_A011488_20170903T105515 2017-09-03  0%
+2115539 L1C_T31UGR_A011631_20170913T105335 2017-09-13  0%
+2184043 L1C_T31UGR_A011774_20170923T105022 2017-09-23  0%
+2228254 L1C_T31UGR_A011917_20171003T105024 2017-10-03  0%
+2277543 L1C_T31UGR_A012060_20171013T105315 2017-10-13  0%
+5594498 L1C_T32ULB_A003180_20171015T104525 2017-10-15  0%
+[...]
+</pre></div>
+
+<p>
+Find Sentinel-2 L1C products (S2MSI1C) with specific UUIDs from the <b>USGS Earth Explorer</b>:
+<div class="code"><pre>
+i.sentinel.download datasource=USGS_EE uuid=2177169,2115539 settings=credentials.txt -l
+2 Sentinel product(s) found
+2177169 L1C_T31UGR_A011488_20170903T105515 2017-09-03  0%
+2115539 L1C_T31UGR_A011631_20170913T105335 2017-09-13  0%
+</pre></div>
+
 
 <h3>Download Sentinel products</h3>
 
@@ -221,16 +292,17 @@ module.
 
 <h3>Download Sentinel products by UUID</h3>
 
-<em>i.sentinel.download</em> also allows downloading of Sentinel products
-by specifying a (list of) UUID. This operation is performed by the <b>uuid</b>
-option. Note that this option is mutually exclusive with all other
-filtering options.
-
-<p>
 Example of downloading a single Sentinel product by UUID:
 
 <div class="code"><pre>
 i.sentinel.download settings=credentials.txt uuid=6a10da0f-7777-4818-bc2c-4680e82297ac output=s2_data/
+<pre></div>
+
+<p>
+Example of downloading a single Sentinel product by UUID from the <b>USGS Earth Explorer</b>:
+
+<div class="code"><pre>
+i.sentinel.download datasource=USGS_EE settings=credentials.txt uuid=2177169 output=s2_data/
 <pre></div>
 
 <h3>Download Sentinel products by scene name</h3>
@@ -271,11 +343,31 @@ i.sentinel.download settings=credentials.txt \
   producttype=S2MSI2A start=2021-01-01 end=2021-02-15 output=s2_data/
 <pre></div>
 
+<p>
+Example of downloading a single Sentinel product from <b>USGS Earth Explorer</b>
+by the USGS-identifier.
+<div class="code"><pre>
+i.sentinel.download datasource=USGS_EE start=2017-09-01 end=2017-12-01 producttype=S2MSI1C \
+  query="usgs_identifier=L1C_T32ULA_A003180_20171015T104525" settings=credentials.txt \
+  output=s2_data/
+<pre></div>
+
+<p>
+It is also possible to use the keywords filename/identifier in ESA formatting in <b>query</b>
+when downloading from the <b>USGS Earth Explorer</b>:
+<div class="code"><pre>
+i.sentinel.download datasource=USGS_EE start=2017-10-01 end=2017-11-01 producttype=S2MSI1C \
+  query='filename=S2B_MSIL1C_20171015T104009_N0205_R008_T32ULA_20171015T104525' settings=credentials.txt \
+  output=s2_data/
+<pre></div>
+
+
 <h2>REQUIREMENTS</h2>
 
 <ul>
   <li><a href="https://pypi.python.org/pypi/sentinelsat">Sentinelsat library</a></li>
   <li><a href="https://pypi.python.org/pypi/pandas">Pandas library</a></li>
+  <li><a href="https://pypi.python.org/pypi/landsatxplore">landsatxplore library</a></li>
 </ul>
 
 <h2>SEE ALSO</h2>
@@ -309,7 +401,8 @@ GIS Workshop in Jena</a> for usage examples.
 Martin Landa, <a href="http://geomatics.fsv.cvut.cz/research/geoforall/">GeoForAll
 Lab</a>, CTU in Prague, Czech Republic with support
 of <a href="https://opengeolabs.cz/en/home/">OpenGeoLabs</a> company
-
+<br>
+Guido Riembauer, <a href="https://www.mundialis.de/">mundialis</a> (USGS provider support)
 <!--
 <p>
 <i>Last changed: $Date$</i>
