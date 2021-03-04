@@ -100,7 +100,6 @@ import sys
 import uuid
 import atexit
 import tempfile
-import string
 import grass.script as gs
 # neutral naming for better compatibility between 2D and 3D version
 from grass.script.raster import mapcalc

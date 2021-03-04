@@ -112,22 +112,14 @@
 #%end
 
 #%flag
-#% key: s
-#% description: Run r.report on output map
-#%end
-
-#%flag
 #% key: a
 #% description: Trim the output map to avoid border effects
 #%end
 
 
-import os
 import sys
 import uuid
 import atexit
-import tempfile
-import string
 import grass.script as gs
 # neutral naming for better compatibility with 2D version
 from grass.script.raster3d import mapcalc3d as mapcalc
@@ -200,7 +192,7 @@ def tmpname(prefix):
     Use only for raster maps.
     """
     tmpf = prefix + str(uuid.uuid4())
-    tmpf = string.replace(tmpf, '-', '_')
+    tmpf = tmpf.replace('-', '_')
     CLEAN_RAST.append(tmpf)
     return tmpf
 
@@ -264,7 +256,6 @@ def main(options, flags):
     user_pf = options['pf']
     user_pff = options['pff']
     flag_r = flags['r']
-    flag_s = flags['s']
     clip_output = flags['a']
 
     # set to current input map region if requested by the user
