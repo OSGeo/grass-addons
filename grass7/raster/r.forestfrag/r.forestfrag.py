@@ -7,7 +7,7 @@
 #
 # AUTHOR(S): Emmanuel Sambale (original shell version)
 #            Stefan Sylla (original shell version)
-#            Paulo van Breugel (Python version, paulo@ecodiv.org)
+#            Paulo van Breugel (Python version, paulo at ecodiv dot earth)
 #            Vaclav Petras (major code clean up, wenzeslaus gmail com)
 #
 # PURPOSE:   Creates forest fragmentation index map from a
