@@ -1,4 +1,3 @@
-GDAL
 matplotlib
 numpy
 six
