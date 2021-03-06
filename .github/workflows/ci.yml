@@ -85,6 +85,19 @@ jobs:
         GRASS_INSTALL=$HOME/install/grass*
         make MODULE_TOPDIR=$GRASS_INSTALL
 
+    - name: Get extra Python dependencies
+      run: |
+        pip install -r grass-addons/.github/workflows/extra_requirements.txt
+
+    - name: Set up R
+      uses: r-lib/actions/setup-r@v1
+      with:
+        r-version: "4.0.4"
+
+    - name: Get R dependencies
+      run: |
+        grass-addons/.github/workflows/install_r_packages.R
+
     - name: Run tests
       run: |
         cd grass-addons/grass7
