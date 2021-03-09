@@ -117,23 +117,22 @@ from grass.exceptions import CalledModuleError
 def _untar(inputdir, untardir):
 
     if not os.path.exists(inputdir):
-        gs.fatal(_("Input directory <{}> does not exist").format(inputdir))
+        gs.fatal(_("Directory <{}> does not exist").format(inputdir))
     if  not os.is_dir(inputdir):
         gs.fatal(_("<{}> is not a directory").format(inputdir))
-    elif not os.access(untardir, os.W_OK):
+    elif not os.access(inputdir, os.W_OK):
             gs.fatal(_("Directory <{}> is not writable.").format(inputdir))
 
     if untardir is None or untardir == "":
         untardir = inputdir
-
-        
     else:
         if not os.path.exists(untardir):
             gs.fatal(_("Directory <{}> does not exist").format(untardir))
         if not os.is_dir(untardir):
-           gs.fatal(_("<{}> is not a directory").format(inputdir))
+            gs.fatal(_("<{}> is not a directory").format(untardir))
         elif not os.access(untardir, os.W_OK):
-            gs.fatal(_("Directory <{}> is not writable.").format(inputdir))
+            gs.fatal(_("Directory <{}> is not writable.").format(untardir))
+
     if options["pattern_file"]:
         filter_f = "*" + options["pattern_file"] + "*.tar.gz"
     else:
