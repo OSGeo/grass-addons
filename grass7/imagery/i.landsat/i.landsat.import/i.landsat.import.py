@@ -55,7 +55,19 @@
 #% answer: input
 #% description: Output raster map extent
 #% descriptions: region;extent of current region;input;extent of input map
-#% guisection: Filter
+#% guisection: Output
+#%end
+
+#%option
+#% key: resample
+#% type: string
+#% required: no
+#% multiple: no
+#% options: nearest,bilinear,bicubic,lanczos,bilinear_f,bicubic_f,lanczos_f
+#% description: Resampling method to use for reprojection
+#% descriptions: nearest;nearest neighbor;bilinear;bilinear interpolation;bicubic;bicubic interpolation;lanczos;lanczos filter;bilinear_f;bilinear interpolation with fallback;bicubic_f;bicubic interpolation with fallback;lanczos_f;lanczos filter with fallback
+#% answer: nearest
+#% guisection: Output
 #%end
 
 #%option
@@ -66,12 +78,14 @@
 #% label: Maximum memory to be used (in MB)
 #% description: Cache size for raster rows
 #% answer: 300
+#% guisection: Settings
 #%end
 
 #%option G_OPT_F_OUTPUT
 #% key: register_output
 #% description: Name for output file to use with t.register
 #% required: no
+#% guisection: Output
 #%end
 
 #%flag
@@ -307,7 +321,7 @@ def main():
             args["memory"] = options["memory"]
             if flags["r"]:
                 module = "r.import"
-                args["resample"] = "bilinear"
+                args["resample"] = options["resample"]
                 args["extent"] = options["extent"]
             else:
                 module = "r.in.gdal"
