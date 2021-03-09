@@ -28,6 +28,12 @@
 #% required: yes
 #%end
 
+#%option G_OPT_M_DIR
+#% key: unzip_dir
+#% description: Name of directory into which Landsat zip-files are extracted (default=input)
+#% required: no
+#%end
+
 #%option
 #% key: pattern
 #% description: Band name pattern to import
@@ -108,26 +114,38 @@ import grass.script as gs
 from grass.exceptions import CalledModuleError
 
 
-def get_files_paths(inputdir):
+def _untar(inputdir, untardir):
 
     if not os.path.exists(inputdir):
-        gs.fatal(_("Input directory <{}> does not exist").format(inputdir))
+        gs.fatal(_("Directory <{}> does not exist").format(inputdir))
+    if  not os.is_dir(inputdir):
+        gs.fatal(_("<{}> is not a directory").format(inputdir))
+    elif not os.access(inputdir, os.W_OK):
+            gs.fatal(_("Directory <{}> is not writable.").format(inputdir))
+
+    if untardir is None or untardir == "":
+        untardir = inputdir
+    else:
+        if not os.path.exists(untardir):
+            gs.fatal(_("Directory <{}> does not exist").format(untardir))
+        if not os.is_dir(untardir):
+            gs.fatal(_("<{}> is not a directory").format(untardir))
+        elif not os.access(untardir, os.W_OK):
+            gs.fatal(_("Directory <{}> is not writable.").format(untardir))
 
     if options["pattern_file"]:
         filter_f = "*" + options["pattern_file"] + "*.tar.gz"
     else:
         filter_f = "*.tar.gz"
 
-    scenes_to_read = glob.glob(os.path.join(inputdir, filter_f))
+    scenes_to_untar = glob.glob(os.path.join(inputdir, filter_f))
 
-    tifs = []
-    for scene in scenes_to_read:
+    for scene in scenes_to_untar:
         with tarfile.open(name=scene, mode='r') as tar:
-            for filename in tar.getnames():
-                if filename.endswith(".TIF"):
-                    tifs = tifs + ["/vsitar/{}/{}".format(scene, filename)]
+            tar.extractall(untardir)
 
-    return tifs
+    untared_tifs = glob.glob(os.path.join(untardir, "*.TIF"))
+    return untared_tifs
 
 
 def _check_projection(filename):
@@ -255,8 +273,9 @@ def print_products(filenames):
 def main():
 
     inputdir = options["input"]
+    untardir = options["unzip_dir"]
 
-    files = get_files_paths(inputdir)
+    files = _untar(inputdir, untardir)
 
     if options["pattern"]:
         filter_p = r".*{}.*.TIF$".format(options["pattern"])
@@ -311,6 +330,10 @@ def main():
 
     if options['register_output']:
         write_register_file(files_to_import, options['register_output'])
+
+    # remove all tif files after import
+    for f in files:
+        os.remove(f)
 
 
 if __name__ == "__main__":
