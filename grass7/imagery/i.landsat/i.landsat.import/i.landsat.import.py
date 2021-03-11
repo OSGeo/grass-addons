@@ -132,7 +132,7 @@ def _untar(inputdir, untardir):
 
     if not os.path.exists(inputdir):
         gs.fatal(_("Directory <{}> does not exist").format(inputdir))
-    if  not os.is_dir(inputdir):
+    if  not os.path.isdir(inputdir):
         gs.fatal(_("<{}> is not a directory").format(inputdir))
     elif not os.access(inputdir, os.W_OK):
             gs.fatal(_("Directory <{}> is not writable.").format(inputdir))
@@ -142,7 +142,7 @@ def _untar(inputdir, untardir):
     else:
         if not os.path.exists(untardir):
             gs.fatal(_("Directory <{}> does not exist").format(untardir))
-        if not os.is_dir(untardir):
+        if not os.path.isdir(untardir):
             gs.fatal(_("<{}> is not a directory").format(untardir))
         elif not os.access(untardir, os.W_OK):
             gs.fatal(_("Directory <{}> is not writable.").format(untardir))
