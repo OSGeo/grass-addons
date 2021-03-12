@@ -78,7 +78,7 @@ work in the graphical user interface.
 <div class="code"><pre>
 Insert username: myusername
 Insert password:
-Insert API URL (leave empty for https://scihub.copernicus.eu/dhus):
+Insert API URL (leave empty for https://scihub.copernicus.eu/apihub):
 </pre></div>
 
 <p>
@@ -321,23 +321,23 @@ variants, either with <b>identifier</b> or <b>filename</b>:
 <div class="code"><pre>
 # North Carolina sample dataset example
 
-# Sentinel-1, identifier= without ".SAFE" in the name 
+# Sentinel-1, identifier= without ".SAFE" in the name
 i.sentinel.download settings=credentials.txt \
   query='identifier=S1A_IW_GRDH_1SDV_20210130T231425_20210130T231450_036374_0444CC_0EA9' \
   producttype=GRD start=2021-01-01 end=2021-02-15 output=s1_data/
 
-# Sentinel-1, filename= requires ".SAFE" in the name 
+# Sentinel-1, filename= requires ".SAFE" in the name
 i.sentinel.download settings=credentials.txt \
   query='filename=S1A_IW_GRDH_1SDV_20210130T231425_20210130T231450_036374_0444CC_0EA9.SAFE' \
   producttype=GRD start=2021-01-01 end=2021-02-15 output=s1_data/
 
 
-# Sentinel-2, identifier= without ".SAFE" in the name 
+# Sentinel-2, identifier= without ".SAFE" in the name
 i.sentinel.download settings=credentials.txt \
   query='identifier=S2B_MSIL2A_20210120T155559_N0214_R054_T17SPV_20210120T201821' \
   producttype=S2MSI2A start=2021-01-01 end=2021-02-15 output=s2_data/
 
-# Sentinel-2, filename= requires ".SAFE" in the name 
+# Sentinel-2, filename= requires ".SAFE" in the name
 i.sentinel.download settings=credentials.txt \
   query='filename=S2B_MSIL2A_20210120T155559_N0214_R054_T17SPV_20210120T201821.SAFE' \
   producttype=S2MSI2A start=2021-01-01 end=2021-02-15 output=s2_data/

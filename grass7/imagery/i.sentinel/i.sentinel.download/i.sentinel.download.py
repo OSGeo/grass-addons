@@ -292,7 +292,7 @@ def check_s2l1c_identifier(identifier, source='esa'):
 
 
 class SentinelDownloader(object):
-    def __init__(self, user, password, api_url='https://scihub.copernicus.eu/dhus'):
+    def __init__(self, user, password, api_url='https://scihub.copernicus.eu/apihub'):
 
         self._apiname = api_url
         self._user = user
@@ -303,14 +303,14 @@ class SentinelDownloader(object):
         root.addHandler(logging.StreamHandler(
             sys.stderr
         ))
-        if self._apiname == 'https://scihub.copernicus.eu/dhus':
+        if self._apiname == 'https://scihub.copernicus.eu/apihub':
             try:
                 from sentinelsat import SentinelAPI
             except ImportError as e:
                 gs.fatal(_("Module requires sentinelsat library: {}").format(e))
             # connect SciHub via API
             self._api = SentinelAPI(self._user, self._password,
-                                    api_url=api_url
+                                    api_url=self._apiname
                                     )
         elif self._apiname == 'USGS_EE':
             try:
@@ -705,7 +705,7 @@ def main():
 
     user = password = None
     if options['datasource'] == 'ESA_COAH':
-        api_url = 'https://scihub.copernicus.eu/dhus'
+        api_url = 'https://scihub.copernicus.eu/apihub'
     else:
         api_url = 'USGS_EE'
 
