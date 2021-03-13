@@ -150,6 +150,7 @@ def main():
 
     epsg = options['epsg']
     pathwkt = options['wkt']
+
     if epsg and pathwkt:
         grass.error('Only one type of conversions can be processed concurrently')
 
