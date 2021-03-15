@@ -677,6 +677,12 @@ class SentinelDownloader(object):
             for scene in scenes:
                 if scene['display_id'].split('_')[1] != utm_tile:
                     scenes.remove(scene)
+            # remove redundant scene
+            if len(scenes) == 2:
+                start_dates = [scene['acquisition_start_date']
+                               for scene in scenes]
+                min_idx = start_dates.index(min(start_dates))
+                scenes.pop(min_idx)
         if len(scenes) < 1:
             gs.message(_('No product found'))
             return
