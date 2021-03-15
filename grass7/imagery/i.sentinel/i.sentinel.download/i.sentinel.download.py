@@ -270,7 +270,7 @@ def check_s2l1c_identifier(identifier, source='esa'):
     # checks beginning of identifier string for correct pattern
     import re
     if source == 'esa':
-        expression = '^(S2[A-B]_MSIL1C_20[0-9][0-9][0-9][1-9])'
+        expression = '^(S2[A-B]_MSIL1C_20[0-9][0-9][0-9][0-9])'
         test = re.match(expression, identifier)
         if bool(test) is False:
             gs.fatal(_('Query parameter "identifier"/"filename" has'
