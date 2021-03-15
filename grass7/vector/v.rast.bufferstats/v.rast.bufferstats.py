@@ -614,7 +614,8 @@ def main():
                             out_str += '{1}{0}{2}{0}{3}{0}{4}{0}{5}{6}'.format(sep, cat, prefix, buf, 'area {}'.format(rcat), area, os.linesep)
                             if rcat != 'null':
                                 area_tot = area_tot + float(l.rstrip('%').split('= ')[1])
-                        out_str += '{1}{0}{2}{0}{3}{0}{4}{0}{5}{6}'.format(sep, cat, prefix, buf, 'area_tot', area_tot, os.linesep)
+                        if not percent:
+                            out_str += '{1}{0}{2}{0}{3}{0}{4}{0}{5}{6}'.format(sep, cat, prefix, buf, 'area_tot', area_tot, os.linesep)
 
                         if output == '-':
                             print(out_str.rstrip(os.linesep))
