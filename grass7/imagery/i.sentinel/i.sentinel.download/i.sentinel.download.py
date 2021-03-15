@@ -645,7 +645,9 @@ class SentinelDownloader(object):
                     acq_date[:4], acq_date[4:6], acq_date[6:])
                 start_date = end_date = acq_date_string
                 # build the USGS style S2-identifier
-                bbox = get_bbox_from_S2_UTMtile(utm_tile.replace('T', ''))
+                if utm_tile.startswith('T'):
+                    utm_tile_base = utm_tile[1:]
+                bbox = get_bbox_from_S2_UTMtile(utm_tile_base)
         else:
             # get coordinate pairs from wkt string
             str_1 = 'POLYGON(('
