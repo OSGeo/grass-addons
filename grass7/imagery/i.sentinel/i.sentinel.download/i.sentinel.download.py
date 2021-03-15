@@ -639,6 +639,7 @@ class SentinelDownloader(object):
                 else:
                     esa_id = query['identifier']
                 check_s2l1c_identifier(esa_id, source='esa')
+                esa_prod_id = esa_id.split('_')[-1]
                 utm_tile = esa_id.split('_')[-2]
                 acq_date = esa_id.split('_')[2].split('T')[0]
                 acq_date_string = '{0}-{1}-{2}'.format(
@@ -679,10 +680,10 @@ class SentinelDownloader(object):
                     scenes.remove(scene)
             # remove redundant scene
             if len(scenes) == 2:
-                start_dates = [scene['acquisition_start_date']
-                               for scene in scenes]
-                min_idx = start_dates.index(min(start_dates))
-                scenes.pop(min_idx)
+                for scene in scenes:
+                    prod_id = scene['display_id'].split('_')[-1]
+                    if prod_id != esa_prod_id:
+                        scenes.remove(scene)
         if len(scenes) < 1:
             gs.message(_('No product found'))
             return
