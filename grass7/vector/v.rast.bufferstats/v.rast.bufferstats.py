@@ -431,6 +431,7 @@ def main():
         stats.inputs.sort = 'desc'
         stats.inputs.null_value = 'null'
         stats.flags.quiet = True
+        stats.flags.l = True
         if percent:
             stats.flags.p = True
             stats.flags.n = True
@@ -595,7 +596,14 @@ def main():
 
                         area_tot = 0
                         for l in t_stats:
-                            updates.append('\t{}_{}'.format(prefix, l.rstrip('%')))
+                            # check if raster maps has category or not
+                            if len(l.split('=')) == 2:
+                                updates.append('\t{}_{}'.format(prefix, l.rstrip('%')))
+                            else:
+                                vals = l.split("=")
+                                updates.append('\t{}_{} = {}'.format(prefix,
+                                                                     vals[-2].strip(),
+                                                                     vals[-1].strip().rstrip('%')))
                             if l.split('_b{} ='.format(b_str))[0].split('_')[-1] != 'null':
                                 area_tot = area_tot + float(l.rstrip('%').split('= ')[1])
                         if not percent:
