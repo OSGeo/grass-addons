@@ -249,7 +249,7 @@ def main():
             s_list = resp[0].decode('utf-8').strip().splitlines()
         else:
             if set(resp) == {b''}:
-                grass.fatal('No products found')
+                grass.fatal(_("No products found"))
             else:
                 error_msg = ""
                 for i in range(0, len(resp)):
