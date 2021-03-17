@@ -270,7 +270,7 @@ def check_s2l1c_identifier(identifier, source='esa'):
     # checks beginning of identifier string for correct pattern
     import re
     if source == 'esa':
-        expression = '^(S2[A-B]_MSIL1C_20[0-9][0-9][0-9][1-9])'
+        expression = '^(S2[A-B]_MSIL1C_20[0-9][0-9][0-9][0-9])'
         test = re.match(expression, identifier)
         if bool(test) is False:
             gs.fatal(_('Query parameter "identifier"/"filename" has'
@@ -639,13 +639,16 @@ class SentinelDownloader(object):
                 else:
                     esa_id = query['identifier']
                 check_s2l1c_identifier(esa_id, source='esa')
+                esa_prod_id = esa_id.split('_')[-1]
                 utm_tile = esa_id.split('_')[-2]
                 acq_date = esa_id.split('_')[2].split('T')[0]
                 acq_date_string = '{0}-{1}-{2}'.format(
                     acq_date[:4], acq_date[4:6], acq_date[6:])
                 start_date = end_date = acq_date_string
                 # build the USGS style S2-identifier
-                bbox = get_bbox_from_S2_UTMtile(utm_tile.replace('T', ''))
+                if utm_tile.startswith('T'):
+                    utm_tile_base = utm_tile[1:]
+                bbox = get_bbox_from_S2_UTMtile(utm_tile_base)
         else:
             # get coordinate pairs from wkt string
             str_1 = 'POLYGON(('
@@ -675,6 +678,12 @@ class SentinelDownloader(object):
             for scene in scenes:
                 if scene['display_id'].split('_')[1] != utm_tile:
                     scenes.remove(scene)
+            # remove redundant scene
+            if len(scenes) == 2:
+                for scene in scenes:
+                    prod_id = scene['display_id'].split('_')[-1]
+                    if prod_id != esa_prod_id:
+                        scenes.remove(scene)
         if len(scenes) < 1:
             gs.message(_('No product found'))
             return
