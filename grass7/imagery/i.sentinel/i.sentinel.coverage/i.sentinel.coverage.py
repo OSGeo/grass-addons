@@ -248,14 +248,14 @@ def main():
         if resp[0] != b'':
             s_list = resp[0].decode('utf-8').strip().splitlines()
         else:
-            error_msg = ""
-            for i in range(0, len(resp)):
-                error_msg += resp[i].decode('utf-8')
-            grass.fatal(
-                _("Error using i.sentinel.download: {}").format(error_msg))
-
-        if len(s_list) == 0:
-            grass.fatal('No products found')
+            if set(resp) == {b''}:
+                grass.fatal(_("No products found"))
+            else:
+                error_msg = ""
+                for i in range(0, len(resp)):
+                    error_msg += resp[i].decode('utf-8')
+                grass.fatal(
+                    _("Error using i.sentinel.download: {}").format(error_msg))
         name_list_tmp = [x.split(' ')[1] for x in s_list]
     else:
         name_list_tmp = options['names'].split(',')
