@@ -54,7 +54,7 @@ def csv_to_dictionary(csvfile):
         equations[author] = equations.get(author, strings)
 
     # apply helper function to all rows
-    map(transform, rows)
+    list(map(transform, rows))
 
     # return requestred dictionary
     return equations
