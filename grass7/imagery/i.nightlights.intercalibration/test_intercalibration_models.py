@@ -52,12 +52,12 @@ def test_model(author):
     """
     Testing the "?" model
     """
-    print ">>> Testing -----------------------------------------------------\n"
+    print(">>> Testing -----------------------------------------------------\n")
 
     # -----------------------------------------------------------------------
     # set required values
-    print " >> Pre-Setting (randomely) required values for testing purposes:"
-    print " * Assigning author and model version...",
+    print(" >> Pre-Setting (randomly) required values for testing purposes:")
+    print(" * Assigning author and model version...")
     version = ''
     if not author:
         version = random.choice(['2009', '2014'])
@@ -65,44 +65,44 @@ def test_model(author):
     else:
         version = author[7:]
 
-    print author
+    print(author)
 
-    print " * Assigning a random satellite...",
-    satellite = random.choice(COEFFICIENTS[author].keys())
-    print satellite
+    print(" * Assigning a random satellite...")
+    satellite = random.choice(list(COEFFICIENTS[author].keys()))
+    print(satellite)
 
-    print " * Assiging a random year...",
-    year = random.choice(COEFFICIENTS[author][satellite].keys())
-    print year
+    print(" * Assiging a random year...")
+    year = random.choice(list(COEFFICIENTS[author][satellite].keys()))
+    print(year)
 
-    print " * Assiging a random c0 coefficient...",
+    print(" * Assiging a random c0 coefficient...")
     c0 = COEFFICIENTS[author][satellite][year][0]
-    print " Random coefficient c0: ", c0
+    print(" Random coefficient c0: ", c0)
 
-    print " * Assiging a random c1 coefficient...",
+    print(" * Assiging a random c1 coefficient...")
     c1 = COEFFICIENTS[author][satellite][year][1]
-    print " Random coefficient c1: ", c1
+    print(" Random coefficient c1: ", c1)
 
     c2 = float()
     if 'WU' not in author:
-        print " * Assiging a random c2 coefficient..."
+        print(" * Assiging a random c2 coefficient...")
         c2 = COEFFICIENTS[author][satellite][year][2]
-        print " Random coefficient c2: ", c2
+        print(" Random coefficient c2: ", c2)
 
 #    R2 = coefficients[author][satellite][year][3]
 #    print " Associated R^2 value: ", R2
-    print
+    print()
 
     # -----------------------------------------------------------------------
-    print " >> Testing ? class:"
-    print
+    print(" >> Testing ? class:")
+    print()
     print (' [ Usage:  ?(satellite, year, model version)\n\n'
            '   where:  DN: input Digital Number value (integer)\n'
            '           Coefficients: a pair or triplet of floating point '
 
            'values (tuple)\n\n'
            '   eg:     ? = Liu2012(F10, 1992, 2009) ]')
-    print
+    print()
     if 'ELVIDGE' in author:
         test_model = Elvidge(satellite, year, version)
     elif 'LIU' in author:
@@ -110,47 +110,47 @@ def test_model(author):
     elif 'WU' in author:
         test_model = Wu2013(satellite, year)
 
-    print " * Testing 'citation'  method:\n\n", test_model.citation
-    print
-    print " * Testing '__str__' of class:\n\n ", test_model
-    print " * Testing 'satellite': ", test_model.satellite
-    print " * Testing 'year':      ", test_model.year
-    print " * Testing 'veify_year': ", test_model.verify_year(author,
-                                                              satellite, year)
-    print " * Testing 'coefficients': ", test_model.coefficients
-    print " * Testing 'r2': ", test_model.r2
-    print " * Testing 'report_r2' method: ", test_model.report_r2()
+    print(" * Testing 'citation'  method:\n\n", test_model.citation)
+    print()
+    print(" * Testing '__str__' of class:\n\n ", test_model)
+    print(" * Testing 'satellite': ", test_model.satellite)
+    print(" * Testing 'year':      ", test_model.year)
+    print(" * Testing 'veify_year': ", test_model.verify_year(author,
+                                                              satellite, year))
+    print(" * Testing 'coefficients': ", test_model.coefficients)
+    print(" * Testing 'r2': ", test_model.r2)
+    print(" * Testing 'report_r2' method: ", test_model.report_r2())
     dn = random_digital_number()
-    print " > A random digital number: ", dn
-    print " * Testing 'is_dn_valid': ", test_model.is_dn_valid(dn)
-    print " * Testing 'calibrate' method:  ", test_model.calibrate(dn)
-    print " * Testing '_model' (hidden): ", test_model._model
-    print " * Testing 'mapcalc': ", test_model.mapcalc
-    print " * Testing 'get_mapcalc': ", test_model.get_mapcalc()
-    print
+    print(" > A random digital number: ", dn)
+    print(" * Testing 'is_dn_valid': ", test_model.is_dn_valid(dn))
+    print(" * Testing 'calibrate' method:  ", test_model.calibrate(dn))
+    print(" * Testing '_model' (hidden): ", test_model._model)
+    print(" * Testing 'mapcalc': ", test_model.mapcalc)
+    print(" * Testing 'get_mapcalc': ", test_model.get_mapcalc())
+    print()
 
     # -----------------------------------------------------------------------
-    print " >> Testing helper functions: "
+    print(" >> Testing helper functions: ")
     dn = random_digital_number()
-    print (" * Testing 'random_digital_number()' method (and type()): ",
-           dn, "|", type(dn))
-    print (" * Testing 'calibrate_digital_number' method: ",
-           calibrate_digital_number(dn, c0, c1, c2))
-    print
+    print((" * Testing 'random_digital_number()' method (and type()): ",
+           dn, "|", type(dn)))
+    print((" * Testing 'calibrate_digital_number' method: ",
+           calibrate_digital_number(dn, c0, c1, c2)))
+    print()
 
     # -----------------------------------------------------------------------
-    print " * Testing three random Digital number values:\n"
+    print(" * Testing three random Digital number values:\n")
     for dn in random_digital_numbers(3):
-        print "   (Random) DN: ", dn
-        print "   Coefficients: ", test_model.coefficients
-        print "   Model: ", test_model.calibrate(dn), "\n"
+        print("   (Random) DN: ", dn)
+        print("   Coefficients: ", test_model.coefficients)
+        print("   Model: ", test_model.calibrate(dn), "\n")
 
 
 # reusable & stand-alone
 if __name__ == "__main__":
     print ('Testing classes for calibration models for DMSP-OLS NightTime '
            'Lights Time Series')
-    print
+    print()
 
     # uncomment to test
     test_model('ELVIDGE2009')
