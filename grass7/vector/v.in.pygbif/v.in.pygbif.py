@@ -472,7 +472,7 @@ def main():
     target = osr.SpatialReference()
 
     # Prefer EPSG CRS definitions
-    if proj_info["epsg"]:
+    if proj_info.get("epsg"):
         target.ImportFromEPSG(int(proj_info["epsg"]))
     else:
         target.ImportFromProj4(target_crs)

@@ -87,6 +87,7 @@ jobs:
 
     - name: Get extra Python dependencies
       run: |
+        export GDAL_VERSION=$(gdal-config --version)
         pip install -r grass-addons/.github/workflows/extra_requirements.txt
 
     - name: Set up R
