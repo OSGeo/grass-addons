@@ -15,6 +15,7 @@ then
 fi
 
 export INSTALL_PREFIX=$1
+export GDAL_VERSION=$(gdal-config --version)
 
 # GRASS GIS
 

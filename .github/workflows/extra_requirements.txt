@@ -1,5 +1,5 @@
 scipy
 pandas
 scikit-learn
-GDAL==$(gdal-config --version)
+GDAL==${GDAL_VERSION}
 pygbif
