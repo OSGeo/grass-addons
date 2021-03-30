@@ -103,3 +103,10 @@ jobs:
       run: |
         cd grass-addons/grass7
         ../.github/workflows/test.sh
+
+    - name: Make HTML test report available
+      uses: actions/upload-artifact@v2
+      with:
+        name: testreport-grass-${{ matrix.grass-version }}-python-${{ matrix.python-version }}
+        path: grass-addons/grass7/testreport
+        retention-days: 3
