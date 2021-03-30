@@ -358,8 +358,14 @@ def download_gcs(scene, output):
     hrefs = [file['href'] for file in files_list]
     hrefs_heads = [os.path.split(path)[0] for path in hrefs]
     required_rel_folders = list(set(hrefs_heads))
-    required_abs_folders = [item.replace('.', final_scene_dir) for item
-                            in required_rel_folders if item != '.']
+    # some paths inconsistently start with "." and some don't
+    if any([not folder.startswith('.') for folder in required_rel_folders]):
+        required_abs_folders = [os.path.join(final_scene_dir, item) for item
+                                in required_rel_folders if item != '.']
+
+    else:
+        required_abs_folders = [item.replace('.', final_scene_dir) for item
+                                in required_rel_folders if item != '.']
     # two folders are not in the manifest.safe and need manual addition
     rest_folders = [os.path.join(final_scene_dir, 'rep_info'),
                     os.path.join(final_scene_dir, 'AUX_DATA')]
@@ -372,11 +378,13 @@ def download_gcs(scene, output):
                 os.makedirs(folder)
             except Exception as e:
                 gs.warning(_('Unable to create folder {}').format(folder))
-
     failed_downloads = []
     for dl_file in files_list:
         # remove the '.' for relative path in the URLS
-        href_url = dl_file['href'][1:]
+        if dl_file['href'].startswith('.'):
+            href_url = dl_file['href'][1:]
+        else:
+            href_url = '/{}'.format(dl_file['href'])
         # no .html files are available on GCS
         if href_url.startswith('/HTML'):
             continue
