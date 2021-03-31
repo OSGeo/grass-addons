@@ -165,6 +165,7 @@ import hashlib
 import os
 import requests
 import xml.etree.ElementTree as ET
+import shutil
 import sys
 import logging
 import time
@@ -341,7 +342,6 @@ def download_gcs(scene, output):
         gs.fatal(_('Scene {} was not found on Google Cloud').format(scene))
     root_manifest = ET.fromstring(r_safe.content)
     open(output_path_safe, 'wb').write(r_safe.content)
-
     # parse manifest.safe for the rest of the data
     files_list = []
     for elem in root_manifest.findall(".//dataObjectSection/dataObject"):
@@ -349,6 +349,17 @@ def download_gcs(scene, output):
         for subelem in elem:
             for subsubelem in subelem:
                 subsubelem_dict = subsubelem.attrib
+                if subsubelem.tag == 'fileLocation':
+                    # some scenes (L2A summer 2018) have an inconsistent,
+                    # very long url with "PHOEBUS" in it...
+                    if "PHOEBUS" in subsubelem_dict["href"]:
+                        for subfolder in ["DATASTRIP", "GRANULE"]:
+                            if subfolder in subsubelem_dict["href"]:
+                                path_end = subsubelem_dict["href"].split(
+                                    subfolder)[-1]
+                                href_corrected = '{}{}'.format(
+                                    subfolder, path_end)
+                                subsubelem_dict["href"] = href_corrected
                 elem_dict.update(subsubelem_dict)
                 if subsubelem.tag == 'checksum':
                     elem_dict.update({'checksum': subsubelem.text})
@@ -372,14 +383,19 @@ def download_gcs(scene, output):
     required_abs_folders.extend(rest_folders)
 
     # create folders
+    folder_fail = False
     for folder in required_abs_folders:
         if not os.path.isdir(folder):
             try:
                 os.makedirs(folder)
             except Exception as e:
-                gs.warning(_('Unable to create folder {}').format(folder))
+                gs.verbose(_('Unable to create folder {}').format(folder))
+                folder_fail = True
+    if folder_fail is True:
+        gs.warning(_('Creation of local folders failed for scene {}').format(
+            scene))
+        return 1
     failed_downloads = []
-    failed_scenes = []
     for dl_file in files_list:
         # remove the '.' for relative path in the URLS
         if dl_file['href'].startswith('.'):
@@ -401,19 +417,19 @@ def download_gcs(scene, output):
                 gs.verbose(_("Checksumming not successful for {}").format(
                     output_path_file))
                 failed_downloads.append(dl_url)
-                failed_scenes.append(scene)
 
         except Exception as e:
             gs.verbose(_('There was a problem downloading {}').format(dl_url))
             failed_downloads.append(dl_url)
-            failed_scenes.append(scene)
 
-    failed_scenes_unique = list(set(failed_scenes))
     if len(failed_downloads) > 0:
         gs.verbose(_('Downloading was not successful for urls \n{}').format(
             '\n'.join(failed_downloads)))
-        gs.warning(_('Downloading was not successful for scene \n{}').format(
-            '\n'.join(failed_scenes_unique)))
+        gs.warning(_('Downloading was not successful for scene {}').format(
+            scene))
+        return 1
+    else:
+        return 0
 
 
 class SentinelDownloader(object):
@@ -608,10 +624,19 @@ class SentinelDownloader(object):
         elif datasource == 'GCS':
             for scene_id in self._products_df_sorted['identifier']:
                 gs.message(_('Downloading {}...').format(scene_id))
-                download_gcs(scene_id, output)
-                gs.message(_('Downloaded to {}').format(
-                    os.path.join(output, '{}.SAFE'.format(scene_id))))
-
+                dl_code = download_gcs(scene_id, output)
+                if dl_code == 0:
+                    gs.message(_('Downloaded to {}').format(
+                        os.path.join(output, '{}.SAFE'.format(scene_id))))
+                else:
+                # remove incomplete file
+                    del_folder = os.path.join(output,
+                                              '{}.SAFE'.format(scene_id))
+                    try:
+                        shutil.rmtree(del_folder)
+                    except Exception as e:
+                        gs.warning(_('Unable to removed unfinished '
+                                     'download {}'.format(del_folder)))
 
     def save_footprints(self, map_name):
         if self._products_df_sorted is None:
