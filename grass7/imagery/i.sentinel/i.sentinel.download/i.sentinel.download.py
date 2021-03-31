@@ -379,6 +379,7 @@ def download_gcs(scene, output):
             except Exception as e:
                 gs.warning(_('Unable to create folder {}').format(folder))
     failed_downloads = []
+    failed_scenes = []
     for dl_file in files_list:
         # remove the '.' for relative path in the URLS
         if dl_file['href'].startswith('.'):
@@ -397,17 +398,22 @@ def download_gcs(scene, output):
             checksum_function = dl_file['checksumName'].lower()
             sum_dl = get_checksum(output_path_file, checksum_function)
             if sum_dl != dl_file['checksum']:
-                gs.warning(_("Checksumming not successful for {}").format(
+                gs.verbose(_("Checksumming not successful for {}").format(
                     output_path_file))
                 failed_downloads.append(dl_url)
+                failed_scenes.append(scene)
 
         except Exception as e:
-            gs.warning(_('There was a problem downloading {}').format(dl_url))
+            gs.verbose(_('There was a problem downloading {}').format(dl_url))
             failed_downloads.append(dl_url)
+            failed_scenes.append(scene)
 
+    failed_scenes_unique = list(set(failed_scenes))
     if len(failed_downloads) > 0:
-        gs.warning(_('Downloading was not successful for urls \n{}').format(
+        gs.verbose(_('Downloading was not successful for urls \n{}').format(
             '\n'.join(failed_downloads)))
+        gs.warning(_('Downloading was not successful for scene \n{}').format(
+            '\n'.join(failed_scenes_unique)))
 
 
 class SentinelDownloader(object):
@@ -836,7 +842,6 @@ class SentinelDownloader(object):
 
 
 def main():
-
     user = password = None
     if options['datasource'] == 'ESA_COAH' or options['datasource'] == 'GCS':
         api_url = 'https://scihub.copernicus.eu/apihub'

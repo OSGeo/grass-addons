@@ -88,8 +88,8 @@
 #%option
 #% key: datasource
 #% description: Data-Hub to download scenes from
-#% label: Default is ESA Copernicus Open Access Hub (ESA_COAH), but Sentinel-2 L1C data can also be acquired from USGS Earth Explorer (USGS_EE). Download from USGS is currently only available when used together with the scene_name option.
-#% options: ESA_COAH,USGS_EE
+#% label: Default is ESA Copernicus Open Access Hub (ESA_COAH), but Sentinel-2 L1C data can also be acquired from USGS Earth Explorer (USGS_EE) or Google Cloud Storage (GCS)
+#% options: ESA_COAH,USGS_EE,GCS
 #% answer: ESA_COAH
 #% guisection: Filter
 #%end
@@ -151,7 +151,8 @@ def scenename_split(scenename, datasource, esa_name_for_usgs=False):
         query_string(string): string in the format "filename=..."
 
     '''
-    if datasource == "ESA_COAH" or esa_name_for_usgs is True:
+    if (datasource == "ESA_COAH" or datasource == "GCS" or
+            esa_name_for_usgs is True):
         # get producttype
         name_split = scenename.split('_')
         type_string = name_split[1]
@@ -194,6 +195,9 @@ def main():
     if datasource == "USGS_EE" and producttype != "S2MSI1C":
         grass.fatal(_('Download from USGS Earth Explorer only supports '
                       'Sentinel-2 Level 1C data (S2MSI1C)'))
+    elif datasource == "GCS" and producttype not in ["S2MSI2A", "S2MSI1C"]:
+        grass.fatal(_("Download from GCS only supports Sentinel-2 Level"
+                      "1C (S2MSI1C) or 2A (S2MSI2A)"))
 
     # check if we have the i.sentinel.download + i.sentinel.import addons
     if not grass.find_program('i.sentinel.download', '--help'):
@@ -262,7 +266,6 @@ def main():
     # adapt nprocs to number of scenes
     nprocs_final = min(len(scenenames), nprocs)
     queue_download = ParallelModuleQueue(nprocs=nprocs_final)
-
     for idx, scenename in enumerate(scenenames):
         producttype, start_date, end_date, query_string = scenename_split(
             scenename, datasource, flags['e'])
