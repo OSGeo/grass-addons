@@ -4,8 +4,8 @@
 #
 # MODULE:      i.sentinel.download
 # AUTHOR(S):   Martin Landa
-# PURPOSE:     Downloads Sentinel data from Copernicus Open Access Hub
-#              and USGS Earth Explorer using sentinelsat library.
+# PURPOSE:     Downloads Sentinel data from Copernicus Open Access Hub,
+#              USGS Earth Explorer or Google Cloud Storage.
 # COPYRIGHT:   (C) 2018-2021 by Martin Landa, and the GRASS development team
 #
 #              This program is free software under the GNU General Public
@@ -15,7 +15,7 @@
 #############################################################################
 
 #%module
-#% description: Downloads Sentinel satellite data from Copernicus Open Access Hub and USGS Earth Explorer.
+#% description: Downloads Sentinel satellite data from Copernicus Open Access Hub, USGS Earth Explorer, or Google Cloud Storage.
 #% keyword: imagery
 #% keyword: satellite
 #% keyword: Sentinel
