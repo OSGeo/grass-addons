@@ -178,6 +178,18 @@ except ImportError as e:
     gs.fatal(_("Module requires pandas library: {}").format(e))
 
 
+def create_dir(dir):
+    if not os.path.isdir(dir):
+        try:
+            os.makedirs(dir)
+            return 0
+        except Exception as e:
+            gs.warning(_('Could not create directory {}').format(dir))
+            return 1
+    else:
+        gs.verbose(_('Directory {} already exists').format(dir))
+        return 0
+
 def get_aoi_box(vector=None):
     args = {}
     if vector:
@@ -293,6 +305,35 @@ def check_s2l1c_identifier(identifier, source='esa'):
     return
 
 
+def parse_manifest_gcs(root):
+    """Parses the GCS manifest.safe for files to download and corrects urls
+       if necessary.
+       Returns: List of dictionaries with file information
+    """
+    files_list = []
+    for elem in root.findall(".//dataObjectSection/dataObject"):
+        elem_dict = elem.attrib
+        for subelem in elem:
+            for subsubelem in subelem:
+                subsubelem_dict = subsubelem.attrib
+                if subsubelem.tag == 'fileLocation':
+                    # some scenes (L2A summer 2018) have an inconsistent,
+                    # very long url with "PHOEBUS" in it...
+                    if "PHOEBUS" in subsubelem_dict["href"]:
+                        for subfolder in ["DATASTRIP", "GRANULE"]:
+                            if subfolder in subsubelem_dict["href"]:
+                                path_end = subsubelem_dict["href"].split(
+                                    subfolder)[-1]
+                                href_corrected = '{}{}'.format(
+                                    subfolder, path_end)
+                                subsubelem_dict["href"] = href_corrected
+                elem_dict.update(subsubelem_dict)
+                if subsubelem.tag == 'checksum':
+                    elem_dict.update({'checksum': subsubelem.text})
+        files_list.append(elem_dict)
+    return files_list
+
+
 def get_checksum(filename, hash_function='md5'):
     """Generate checksum for file based on hash function (MD5 or SHA256).
        Source: https://onestopdataanalysis.com/checksum/
@@ -311,13 +352,35 @@ def get_checksum(filename, hash_function='md5'):
     return readable_hash
 
 
+def download_gcs_file(url, destination, checksum_function, checksum):
+    """Downloads a single file from GCS and performs checksumming.
+    """
+    # if file exists, check if checksum is ok, download again otherwise
+    if os.path.isfile(destination):
+        sum_existing = get_checksum(destination, checksum_function)
+        if sum_existing == checksum:
+            return 0
+    try:
+        r_file = requests.get(url, allow_redirects=True)
+        open(destination, 'wb').write(r_file.content)
+        sum_dl = get_checksum(destination, checksum_function)
+        if sum_dl != checksum:
+            gs.verbose(_("Checksumming not successful for {}").format(
+                destination))
+            return 1
+        else:
+            return 0
+
+    except Exception as e:
+        gs.verbose(_('There was a problem downloading {}').format(url))
+        return 1
+
+
 def download_gcs(scene, output):
+    """Downloads a single S2 scene from Google Cloud Storage.
+    """
     final_scene_dir = os.path.join(output, '{}.SAFE'.format(scene))
-    if not os.path.isdir(final_scene_dir):
-        try:
-            os.makedirs(final_scene_dir)
-        except Exception as e:
-            gs.warning(_('Could not create {}').format(final_scene_dir))
+    create_dir(final_scene_dir)
     level = scene.split('_')[1]
     if level == 'MSIL1C':
         baseurl = ('https://storage.googleapis.com/'
@@ -339,31 +402,12 @@ def download_gcs(scene, output):
     output_path_safe = os.path.join(final_scene_dir, safe_file)
     r_safe = requests.get(safe_url, allow_redirects=True)
     if r_safe.status_code != 200:
-        gs.fatal(_('Scene {} was not found on Google Cloud').format(scene))
+        gs.warning(_('Scene <{}> was not found on Google Cloud').format(scene))
+        return 1
     root_manifest = ET.fromstring(r_safe.content)
     open(output_path_safe, 'wb').write(r_safe.content)
     # parse manifest.safe for the rest of the data
-    files_list = []
-    for elem in root_manifest.findall(".//dataObjectSection/dataObject"):
-        elem_dict = elem.attrib
-        for subelem in elem:
-            for subsubelem in subelem:
-                subsubelem_dict = subsubelem.attrib
-                if subsubelem.tag == 'fileLocation':
-                    # some scenes (L2A summer 2018) have an inconsistent,
-                    # very long url with "PHOEBUS" in it...
-                    if "PHOEBUS" in subsubelem_dict["href"]:
-                        for subfolder in ["DATASTRIP", "GRANULE"]:
-                            if subfolder in subsubelem_dict["href"]:
-                                path_end = subsubelem_dict["href"].split(
-                                    subfolder)[-1]
-                                href_corrected = '{}{}'.format(
-                                    subfolder, path_end)
-                                subsubelem_dict["href"] = href_corrected
-                elem_dict.update(subsubelem_dict)
-                if subsubelem.tag == 'checksum':
-                    elem_dict.update({'checksum': subsubelem.text})
-        files_list.append(elem_dict)
+    files_list = parse_manifest_gcs(root_manifest)
 
     # get all required folders
     hrefs = [file['href'] for file in files_list]
@@ -383,17 +427,9 @@ def download_gcs(scene, output):
     required_abs_folders.extend(rest_folders)
 
     # create folders
-    folder_fail = False
     for folder in required_abs_folders:
-        if not os.path.isdir(folder):
-            try:
-                os.makedirs(folder)
-            except Exception as e:
-                gs.verbose(_('Unable to create folder {}').format(folder))
-                folder_fail = True
-    if folder_fail is True:
-        gs.warning(_('Creation of local folders failed for scene {}').format(
-            scene))
+        req_folder_code = create_dir(folder)
+    if req_folder_code != 0:
         return 1
     failed_downloads = []
     for dl_file in files_list:
@@ -408,24 +444,17 @@ def download_gcs(scene, output):
         # neither os.path.join nor urljoin join these properly...
         dl_url = '{}{}'.format(url_scene, href_url)
         output_path_file = '{}{}'.format(final_scene_dir, href_url)
-        try:
-            r_file = requests.get(dl_url, allow_redirects=True)
-            open(output_path_file, 'wb').write(r_file.content)
-            checksum_function = dl_file['checksumName'].lower()
-            sum_dl = get_checksum(output_path_file, checksum_function)
-            if sum_dl != dl_file['checksum']:
-                gs.verbose(_("Checksumming not successful for {}").format(
-                    output_path_file))
-                failed_downloads.append(dl_url)
-
-        except Exception as e:
-            gs.verbose(_('There was a problem downloading {}').format(dl_url))
+        checksum_function = dl_file['checksumName'].lower()
+        dl_code = download_gcs_file(url=dl_url, destination=output_path_file,
+                                    checksum_function=checksum_function,
+                                    checksum=dl_file["checksum"])
+        if dl_code != 0:
             failed_downloads.append(dl_url)
 
     if len(failed_downloads) > 0:
         gs.verbose(_('Downloading was not successful for urls \n{}').format(
             '\n'.join(failed_downloads)))
-        gs.warning(_('Downloading was not successful for scene {}').format(
+        gs.warning(_('Downloading was not successful for scene <{}>').format(
             scene))
         return 1
     else:
@@ -564,8 +593,7 @@ class SentinelDownloader(object):
         if self._products_df_sorted is None:
             return
 
-        if not os.path.exists(output):
-            os.makedirs(output)
+        create_dir(output)
         gs.message(_('Downloading data into <{}>...').format(output))
         if datasource == 'USGS_EE':
             from landsatxplore.earthexplorer import EarthExplorer
@@ -629,7 +657,7 @@ class SentinelDownloader(object):
                     gs.message(_('Downloaded to {}').format(
                         os.path.join(output, '{}.SAFE'.format(scene_id))))
                 else:
-                # remove incomplete file
+                    # remove incomplete file
                     del_folder = os.path.join(output,
                                               '{}.SAFE'.format(scene_id))
                     try:
