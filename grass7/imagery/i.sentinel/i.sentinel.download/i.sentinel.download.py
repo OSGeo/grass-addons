@@ -167,6 +167,7 @@ import requests
 import xml.etree.ElementTree as ET
 import shutil
 import sys
+from tqdm import tqdm
 import logging
 import time
 from collections import OrderedDict
@@ -421,7 +422,8 @@ def download_gcs(scene, output):
     else:
         required_abs_folders = [item.replace('.', final_scene_dir) for item
                                 in required_rel_folders if item != '.']
-    # two folders are not in the manifest.safe and need manual addition
+    # two folders are not in the manifest.safe, but the empty folders may
+    # be required for other software (e.g. sen2cor)
     rest_folders = [os.path.join(final_scene_dir, 'rep_info'),
                     os.path.join(final_scene_dir, 'AUX_DATA')]
     required_abs_folders.extend(rest_folders)
@@ -432,15 +434,14 @@ def download_gcs(scene, output):
     if req_folder_code != 0:
         return 1
     failed_downloads = []
-    for dl_file in files_list:
+    # no .html files are available on GCS but the folder might be required
+    files_list_dl = [file for file in files_list if "HTML" not in file["href"]]
+    for dl_file in tqdm(files_list_dl):
         # remove the '.' for relative path in the URLS
         if dl_file['href'].startswith('.'):
             href_url = dl_file['href'][1:]
         else:
             href_url = '/{}'.format(dl_file['href'])
-        # no .html files are available on GCS
-        if href_url.startswith('/HTML'):
-            continue
         # neither os.path.join nor urljoin join these properly...
         dl_url = '{}{}'.format(url_scene, href_url)
         output_path_file = '{}{}'.format(final_scene_dir, href_url)
