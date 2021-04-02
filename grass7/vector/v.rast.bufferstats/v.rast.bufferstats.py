@@ -21,6 +21,7 @@ To Dos:
 - add neighborhood stats ???
 - silence r.category
 - add where clause
+- implement usage of labels
 
 /#%option G_OPT_DB_WHERE
 /#% required: no
@@ -280,13 +281,13 @@ def raster_type(raster, tabulate, use_lable):
                 rcats = []
             if len(rcats) == 0:
                 rcats = grass.read_command("r.category", map=raster).rstrip('\n').split('\n')
-                rcats = [tuple((rcat.split('\t')[1], rcat.split('\t')[1], None)) for rcat in rcats]
-            cat_list = [rcat[0] for rcat in rcats]
-            lable_list = [rcat[1] for rcat in rcats]
-            if use_lable:
-                racts = lable_list if len(set(cat_list)) == len(set(lable_list)) else cat_list
-            else:
-                racts = cat_list
+                rcats = [tuple((rcat.split('\t')[0], rcat.split('\t')[1], None)) for rcat in rcats]
+            # cat_list = [rcat[0] for rcat in rcats]
+            # lable_list = [rcat[1] for rcat in rcats]
+            # if use_lable:
+            #     rcats = lable_list if len(set(cat_list)) == len(set(lable_list)) else cat_list
+            # else:
+            #    rcats = cat_list
         else:
             r_map.close()
 
