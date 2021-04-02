@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
+
 """
 MODULE:       v.mapcalc
 AUTHOR(S):    Thomas Leppelt, Soeren Gebbert, Thünen Institut Germany,

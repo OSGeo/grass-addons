@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
+
 
 #%module
 #% description: The module for processing row data of microwave links to precipitation.
