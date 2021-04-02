@@ -231,8 +231,8 @@ def main():
         # temporal conditions
         if not rows and tempwhere:
             dbif.close()
-            grass.fatal(_("No maps selected from Space time raster dataset \
-                          <%s>".format(cur_strds.get_id())))
+            grass.fatal(_("No maps selected from Space time raster dataset "
+                          "{}".format(cur_strds.get_id())))
 
         # Include temporal condition into where clause
         where_clause = '({}) AND '.format(where) if where else ''
