@@ -1,5 +1,4 @@
-#!/usr/bin/python\<nl>\
-
+#!/usr/bin/env python
 
 """
 @author nik |
