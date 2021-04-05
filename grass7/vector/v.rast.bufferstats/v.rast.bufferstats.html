@@ -28,12 +28,15 @@ v.clip --o -r input=bridges output=bridges_wake
 
 # Tabulate area of land cover map
 g.region -p raster=elevation,geology_30m align=geology_30m
-v.rast.bufferstats -t input=bridges_wake raster=geology_30m buffers=100,250,500 column_prefix=geology
+v.rast.bufferstats -t input=bridges_wake raster=geology_30m \
+buffers=100,250,500 column_prefix=geology
 
 # Compute terrain statistics
 g.region -p raster=elevation,geology_30m align=elevation
 r.slope.aspect elevation=elevation slope=slope aspect=aspect
-v.rast.bufferstats input= raster=altitude,slope,aspect buffers=100,250,500 column_prefix=altitude,slope,aspect methods=minimum,maximum,average,stddev percentile=5,95
+v.rast.bufferstats input=bridges_wake raster=elevation,slope,aspect \
+buffers=100,250,500 column_prefix=altitude,slope,aspect \
+methods=minimum,maximum,average,stddev percentile=5,95
 
 </pre></div>
 
