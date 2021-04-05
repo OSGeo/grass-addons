@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 """
 Sample Python script to access vector data using GRASS Ctypes

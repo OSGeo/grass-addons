@@ -1,5 +1,5 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python
+
 
 """
 Determining atmospheric column water vapor based on
