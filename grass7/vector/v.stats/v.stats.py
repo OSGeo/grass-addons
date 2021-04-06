@@ -177,6 +177,8 @@ def main(opt, flg):
         if len(rasters) != len(rstcsv):
             raise
         prefixes = rprefix if rprefix else rasters
+    else:
+        prefixes = None
 
     skipshp = opt['skipshape'].split(',') if opt['skipshape'] else []
     skiprst = opt['skipunivar'].split(',') if opt['skipunivar'] else []
