@@ -161,6 +161,7 @@
 #% excludes: uuid,map,area_relation,clouds,producttype,start,end,limit,query,sort,order
 #%end
 
+import fnmatch
 import hashlib
 import os
 import requests
@@ -425,10 +426,23 @@ def download_gcs(scene, output):
     else:
         required_abs_folders = [item.replace('.', final_scene_dir) for item
                                 in required_rel_folders if item != '.']
+
+    # some scenes don't have additional metadata (GRANULE/.../AUX_DATA or
+    # DATASTRIP/.../QI_DATA) but sen2cor seems to require at least the empty folder
+    rest_folders = []
+    check_folders = [("GRANULE", "AUX_DATA"), ("DATASTRIP", "QI_DATA")]
+    for check_folder in check_folders:
+        if len(fnmatch.filter(required_abs_folders, '*{}*/{}*'.format(
+                check_folder[0], check_folder[1]))) == 0:
+            # get required path
+            basepath = min([fol for fol in required_abs_folders
+                            if check_folder[0] in fol], key=len)
+            rest_folders.append(os.path.join(basepath, check_folder[1]))
+
     # two folders are not in the manifest.safe, but the empty folders may
     # be required for other software (e.g. sen2cor)
-    rest_folders = [os.path.join(final_scene_dir, 'rep_info'),
-                    os.path.join(final_scene_dir, 'AUX_DATA')]
+    rest_folders.extend([os.path.join(final_scene_dir, 'rep_info'),
+                         os.path.join(final_scene_dir, 'AUX_DATA')])
     required_abs_folders.extend(rest_folders)
 
     # create folders
