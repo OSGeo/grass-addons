@@ -81,12 +81,14 @@ int export2csv(int length)
 	
 	G_debug(2, "Open the file to write the results.");
 	if (options.out != NULL && strcmp(options.out, "-") != 0) {
-		fp = freopen(options.out, "w", stdout);
+		fp = fopen(options.out, "w");
 		if (fp == NULL) {
 			G_fatal_error(_("Unable to open file <%s> for writing"), 
 						  options.out);
 		}
     }
+	else
+	    fp = stdout;
 
     G_debug(2, "Start copying the results.");
 	for (idx = 1; idx <= length; idx++) {
@@ -94,12 +96,13 @@ int export2csv(int length)
 			get_vals(str_vals, Values[idx]);
 			buf = join(options.separator, str_vals, LENVALS, buf);
 			G_debug(3, "buf:%s", buf);
-			/* printf(buf); */
+			fprintf(fp, buf);
 		}
 	}
 
-	/* fclose(fp); */
-	
+	if (fp != stdout)
+	    fclose(fp);
+
 	/* free string list */
 	G_free((void *) str_vals);
 	G_free((void *) buf);
