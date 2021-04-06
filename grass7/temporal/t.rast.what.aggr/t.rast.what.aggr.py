@@ -34,14 +34,22 @@
 
 #%option G_OPT_DB_COLUMN
 #% key: date_column
-#% description: Name of the input column containing dates for aggregates
+#% description: Name of the starting column containing dates for aggregates
 #% required: no
 #%end
 
 #%option
 #% key: date
 #% type: string
-#% description: The date for aggregates
+#% description: The starting date for aggregation
+#% required: no
+#% multiple: no
+#%end
+
+#%option
+#% key: final_date
+#% type: string
+#% description: The end date for aggregation, require date option
 #% required: no
 #% multiple: no
 #%end
@@ -53,13 +61,18 @@
 #%end
 
 #%option G_OPT_DB_COLUMNS
+#% key: final_date_column
+#% description: Column with ending date for aggregation, require date_columns option
+#%end
+
+#%option G_OPT_DB_COLUMNS
 #%end
 
 #%option
 #% key: granularity
 #% type: string
 #% description: Aggregation granularity, format absolute time "x years, x months, x weeks, x days, x hours, x minutes, x seconds" or an integer value for relative time
-#% required: yes
+#% required: no
 #% multiple: no
 #%end
 
@@ -109,6 +122,26 @@
 #% key: c
 #% label: Create new columns, it combine STRDS and method names
 #% description: Create new columns for the selected methods, it combine STRDS and method names
+#%end
+
+#%rules
+#% exclusive: date,date_column
+#%end
+
+#%rules
+#% requires: date, final_date, granularity
+#%end
+
+#%rules
+#% requires: date_column, final_date_column, granularity
+#%end
+
+#%rules
+#% requires: final_date, date
+#%end
+
+#%rules
+#% requires: final_date_column, date_column
 #%end
 
 from datetime import datetime
@@ -161,6 +194,8 @@ def main(options, flags):
         invect = invect.split('@')[0]
     incol = options["date_column"]
     indate = options["date"]
+    endcol = options["final_date_column"]
+    enddate = options["final_date"]
     strds = options["strds"]
     if strds.find('@') != -1:
         strds_name = strds.split('@')[0]
@@ -205,19 +240,22 @@ def main(options, flags):
     sp = tgis.open_old_stds(strds, "strds", dbif)
 
     if sp.get_temporal_type() == 'absolute':
-        delta = int(tgis.gran_to_gran(gran, sp.get_granularity(), True))
-        if tgis.gran_singular_unit(gran) in ['year', 'month']:
-            delta = int(tgis.gran_to_gran(gran, '1 day', True))
-            td = timedelta(delta)
-        elif tgis.gran_singular_unit(gran) == 'day':
-            delta = tgis.gran_to_gran(gran, sp.get_granularity(), True)
-            td = timedelta(delta)
-        elif tgis.gran_singular_unit(gran) == 'hour':
-            td = timedelta(hours=delta)
-        elif tgis.gran_singular_unit(gran) == 'minute':
-            td = timedelta(minutes=delta)
-        elif tgis.gran_singular_unit(gran) == 'second':
-            td = timedelta(seconds=delta)
+        if gran:
+            delta = int(tgis.gran_to_gran(gran, sp.get_granularity(), True))
+            if tgis.gran_singular_unit(gran) in ['year', 'month']:
+                delta = int(tgis.gran_to_gran(gran, '1 day', True))
+                td = timedelta(delta)
+            elif tgis.gran_singular_unit(gran) == 'day':
+                delta = tgis.gran_to_gran(gran, sp.get_granularity(), True)
+                td = timedelta(delta)
+            elif tgis.gran_singular_unit(gran) == 'hour':
+                td = timedelta(hours=delta)
+            elif tgis.gran_singular_unit(gran) == 'minute':
+                td = timedelta(minutes=delta)
+            elif tgis.gran_singular_unit(gran) == 'second':
+                td = timedelta(seconds=delta)
+        else:
+            td = None
     else:
         if sp.get_granularity() >= int(gran):
             gscript.fatal(_("Input granularity is smaller or equal to the {iv}"
@@ -227,16 +265,24 @@ def main(options, flags):
         gscript.fatal(_("Cannot combine 'date_column' and 'date' options"))
     elif not incol and not indate:
         gscript.fatal(_("You have to fill 'date_column' or 'date' option"))
-    elif incol:
+    if incol:
+        if endcol:
+            mysql = "SELECT DISTINCT {dc},{ec} from {vmap} order by " \
+                    "{dc}".format(vmap=invect, dc=incol, ec=endcol)
+        else:
+            mysql = "SELECT DISTINCT {dc} from {vmap} order by " \
+                  "{dc}".format(vmap=invect, dc=incol)
         try:
             dates = pymod.Module("db.select", flags='c', stdout_=PI,
-                                 stderr_=PI, sql="SELECT DISTINCT {dc} from "
-                                   "{vmap} order by {dc}".format(vmap=invect,
-                                                                 dc=incol))
+                                 stderr_=PI, sql=mysql)
             mydates = dates.outputs["stdout"].value.splitlines()
         except CalledModuleError:
             gscript.fatal(_("db.select return an error"))
     elif indate:
+        if endate:
+            mydates = ["{ida}|{eda}".format(ida=indate, eda=enddate)]
+        else:
+            mydates = [indate]
         mydates = [indate]
         pymap = VectorTopo(invect)
         pymap.open('r')
@@ -257,18 +303,24 @@ def main(options, flags):
     if stdout:
         outtxt = ''
     for data in mydates:
+        try:
+            start, final = data.split("|")
+        except ValueError:
+            start = data
+            final = None
         if sp.get_temporal_type() == 'absolute':
-            fdata = datetime.strptime(data, dateformat)
+            fdata = datetime.strptime(start, dateformat)
         else:
-            fdata = int(data)
-        if flags['a']:
+            fdata = int(start)
+        if final:
+            sdata = final
+        elif flags['a']:
             sdata = fdata + td
-            mwhere = "start_time >= '{inn}' and end_time < " \
-                   "'{out}'".format(inn=fdata, out=sdata)
         else:
-            sdata = fdata - td
-            mwhere = "start_time >= '{inn}' and end_time < " \
-                   "'{out}'".format(inn=sdata, out=fdata)
+            sdata = fdata
+            fdata = sdata - td
+        mwhere = "start_time >= '{inn}' and end_time < " \
+               "'{out}'".format(inn=fdata, out=sdata)
         lines = None
         try:
             r_what = pymod.Module("t.rast.what", points=invect, strds=strds,
@@ -279,19 +331,26 @@ def main(options, flags):
         except CalledModuleError:
             pass
         if incol:
+            if endcol:
+                mysql = "SELECT DISTINCT cat from {vmap} where {dc}='{da}' " \
+                        "AND {ec}='{ed}' order by cat".format(vmap=invect,
+                                                              da=start,
+                                                              dc=incol,
+                                                              ed=final,
+                                                              ec=endcol)
+            else:
+                mysql = "SELECT DISTINCT cat from {vmap} where {dc}='{da}' " \
+                        "order by cat".format(vmap=invect, da=start, dc=incol)
             try:
                 qfeat = pymod.Module("db.select", flags='c', stdout_=PI,
-                                     stderr_=PI, sql="SELECT DISTINCT cat from"
-                                     " {vmap} where {dc}='{da}' order by "
-                                     "cat".format(vmap=invect, da=data,
-                                                  dc=incol))
+                                     stderr_=PI, sql=mysql)
                 myfeats = qfeat.outputs["stdout"].value.splitlines()
             except CalledModuleError:
                 gscript.fatal(_("db.select returned an error for date "
-                                "{da}".format(da=data)))
+                                "{da}".format(da=start)))
         if not lines and stdout:
             for feat in myfeats:
-                outtxt += "{di}{sep}{da}".format(di=feat, da=data,
+                outtxt += "{di}{sep}{da}".format(di=feat, da=start,
                                                    sep=separator)
                 for n in range(len(mets)):
                     outtxt += "{sep}{val}".format(val='*', sep=separator)
@@ -307,7 +366,7 @@ def main(options, flags):
                 except ValueError:
                     if stdout:
                         outtxt += "{di}{sep}{da}".format(di=vals[0],
-                                                         da=data,
+                                                         da=start,
                                                          sep=separator)
                         for n in range(len(mets)):
                             outtxt += "{sep}{val}".format(val='*',
@@ -315,7 +374,7 @@ def main(options, flags):
                         outtxt += "\n"
                     continue
                 if stdout:
-                    outtxt += "{di}{sep}{da}".format(di=vals[0], da=data,
+                    outtxt += "{di}{sep}{da}".format(di=vals[0], da=start,
                                                      sep=separator)
                 for n in range(len(mets)):
                     result = return_value(nvals, mets[n])
@@ -325,11 +384,16 @@ def main(options, flags):
                     else:
                         try:
                             if incol:
+                                mywhe = "{dc}='{da}' AND ".format(da=start, dc=incol)
+                                if endcol:
+                                    mywhe += "{dc}='{da}' AND ".format(da=final,
+                                                                       dc=endncol)
+                                    
+                                mywhe += "cat={ca}".format(ca=vals[0])
+                                
                                 pymod.Module("v.db.update", map=output,
                                              column=cols[n], value=str(result),
-                                             where="{dc}='{da}' AND cat="
-                                             "{ca}".format(da=data, ca=vals[0],
-                                                           dc=incol))
+                                             where=mywhe)
                             else:
                                 pymod.Module("v.db.update", map=output,
                                              column=cols[n], value=str(result),
