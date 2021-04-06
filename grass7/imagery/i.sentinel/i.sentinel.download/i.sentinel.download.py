@@ -185,11 +185,12 @@ def create_dir(dir):
             os.makedirs(dir)
             return 0
         except Exception as e:
-            gs.warning(_('Could not create directory {}').format(dir))
+            gs.warning(_("Could not create directory {}").format(dir))
             return 1
     else:
-        gs.verbose(_('Directory {} already exists').format(dir))
+        gs.verbose(_("Directory {} already exists").format(dir))
         return 0
+
 
 def get_aoi_box(vector=None):
     args = {}
@@ -200,7 +201,7 @@ def get_aoi_box(vector=None):
     s = gs.read_command("g.proj", flags='j')
     kv = gs.parse_key_val(s)
     if '+proj' not in kv:
-        gs.fatal('Unable to get AOI bounding box: unprojected location not supported')
+        gs.fatal(_("Unable to get AOI bounding box: unprojected location not supported"))
     if kv['+proj'] != 'longlat':
         info = gs.parse_command('g.region', flags='uplg', **args)
         return 'POLYGON(({nw_lon} {nw_lat}, {ne_lon} {ne_lat}, {se_lon} {se_lat}, {sw_lon} {sw_lat}, {nw_lon} {nw_lat}))'.format(
@@ -230,7 +231,7 @@ def get_aoi(vector=None):
     s = gs.read_command("g.proj", flags='j')
     kv = gs.parse_key_val(s)
     if '+proj' not in kv:
-        gs.fatal('Unable to get AOI: unprojected location not supported')
+        gs.fatal(_("Unable to get AOI: unprojected location not supported"))
     geom_dict = gs.parse_command('v.out.ascii', format='wkt', **args)
     num_vertices = len(str(geom_dict.keys()).split(','))
     geom = [key for key in geom_dict][0]
@@ -288,10 +289,10 @@ def check_s2l1c_identifier(identifier, source='esa'):
         expression = '^(S2[A-B]_MSIL1C_20[0-9][0-9][0-9][0-9])'
         test = re.match(expression, identifier)
         if bool(test) is False:
-            gs.fatal(_('Query parameter "identifier"/"filename" has'
-                       ' to be in format S2X_MSIL1C_YYYYMMDDTHHMMSS'
-                       '_NXXXX_RYYY_TUUUUU_YYYYMMDDTHHMMSS for '
-                       'usage with USGS Earth Explorer'))
+            gs.fatal(_("Query parameter 'identifier'/'filename' has"
+                       " to be in format S2X_MSIL1C_YYYYMMDDTHHMMSS"
+                       "_NXXXX_RYYY_TUUUUU_YYYYMMDDTHHMMSS for "
+                       "usage with USGS Earth Explorer"))
     elif source == 'usgs':
         # usgs can have two formats, depending on age
         expression1 = '^(L1C_T[0-9][0-9][A-Z][A-Z][A-Z]_A[0-9])'
@@ -299,10 +300,10 @@ def check_s2l1c_identifier(identifier, source='esa'):
         test1 = re.match(expression1, identifier)
         test2 = re.match(expression2, identifier)
         if bool(test1) is False and bool(test2) is False:
-            gs.fatal(_('Query parameter "usgs_identifier" has to be either in'
-                       ' format L1C_TUUUUU_AXXXXXX_YYYYMMDDTHHMMSS or '
-                       'S2X_OPER_MSI_L1C_TL_EPA__YYYYMMDDTHHMMSS_'
-                       'YYYYMMDDTHHMMSS_AOOOOOO_TUUUUU_NXX_YY_ZZ'))
+            gs.fatal(_("Query parameter 'usgs_identifier' has to be either in"
+                       " format L1C_TUUUUU_AXXXXXX_YYYYMMDDTHHMMSS or "
+                       "S2X_OPER_MSI_L1C_TL_EPA__YYYYMMDDTHHMMSS_"
+                       "YYYYMMDDTHHMMSS_AOOOOOO_TUUUUU_NXX_YY_ZZ"))
     return
 
 
@@ -348,7 +349,9 @@ def get_checksum(filename, hash_function='md5'):
         elif hash_function == "sha256":
             readable_hash = hashlib.sha256(bytes).hexdigest()
         else:
-            raise Exception("{} is an invalid hash function. Please Enter MD5 or SHA256".format(hash_function))
+            raise Exception(("{} is an invalid hash function. "
+                             "Please Enter MD5 or SHA256").format(
+                            hash_function))
 
     return readable_hash
 
@@ -373,7 +376,7 @@ def download_gcs_file(url, destination, checksum_function, checksum):
             return 0
 
     except Exception as e:
-        gs.verbose(_('There was a problem downloading {}').format(url))
+        gs.verbose(_("There was a problem downloading {}").format(url))
         return 1
 
 
@@ -403,7 +406,7 @@ def download_gcs(scene, output):
     output_path_safe = os.path.join(final_scene_dir, safe_file)
     r_safe = requests.get(safe_url, allow_redirects=True)
     if r_safe.status_code != 200:
-        gs.warning(_('Scene <{}> was not found on Google Cloud').format(scene))
+        gs.warning(_("Scene <{}> was not found on Google Cloud").format(scene))
         return 1
     root_manifest = ET.fromstring(r_safe.content)
     open(output_path_safe, 'wb').write(r_safe.content)
@@ -453,9 +456,9 @@ def download_gcs(scene, output):
             failed_downloads.append(dl_url)
 
     if len(failed_downloads) > 0:
-        gs.verbose(_('Downloading was not successful for urls \n{}').format(
+        gs.verbose(_("Downloading was not successful for urls \n{}").format(
             '\n'.join(failed_downloads)))
-        gs.warning(_('Downloading was not successful for scene <{}>').format(
+        gs.warning(_("Downloading was not successful for scene <{}>").format(
             scene))
         return 1
     else:
@@ -510,7 +513,7 @@ class SentinelDownloader(object):
             if producttype.startswith('S2') and int(relativeorbitnumber) > 143:
                 gs.warning("This relative orbit number is out of range")
             elif int(relativeorbitnumber) > 175:
-                gs.warning("This relative orbit number is out of range")
+                gs.warning(_("This relative orbit number is out of range"))
         if producttype:
             args['producttype'] = producttype
             if producttype.startswith('S2'):
@@ -528,11 +531,11 @@ class SentinelDownloader(object):
         if query:
             redefined = [value for value in args.keys() if value in query.keys()]
             if redefined:
-                gs.warning("Query overrides already defined options ({})".format(
+                gs.warning(_("Query overrides already defined options ({})").format(
                     ','.join(redefined)
                 ))
             args.update(query)
-        gs.verbose("Query: area={} area_relation={} date=({}, {}) args={}".format(
+        gs.verbose(_("Query: area={} area_relation={} date=({}, {}) args={}").format(
             area, area_relation, start, end, args
         ))
         products = self._api.query(
@@ -542,7 +545,7 @@ class SentinelDownloader(object):
         )
         products_df = self._api.to_dataframe(products)
         if len(products_df) < 1:
-            gs.message(_('No product found'))
+            gs.message(_("No product found"))
             return
 
         # sort and limit to first sorted product
@@ -557,7 +560,7 @@ class SentinelDownloader(object):
         if limit:
             self._products_df_sorted = self._products_df_sorted.head(int(limit))
 
-        gs.message(_('{} Sentinel product(s) found').format(len(self._products_df_sorted)))
+        gs.message(_("{} Sentinel product(s) found").format(len(self._products_df_sorted)))
 
     def list(self):
         if self._products_df_sorted is None:
@@ -595,7 +598,7 @@ class SentinelDownloader(object):
             return
 
         create_dir(output)
-        gs.message(_('Downloading data into <{}>...').format(output))
+        gs.message(_("Downloading data into <{}>...").format(output))
         if datasource == 'USGS_EE':
             from landsatxplore.earthexplorer import EarthExplorer
             from landsatxplore.errors import EarthExplorerError
@@ -612,7 +615,7 @@ class SentinelDownloader(object):
                 scene = self._products_df_sorted['entity_id'][idx]
                 identifier = self._products_df_sorted['display_id'][idx]
                 zip_file = os.path.join(output, '{}.zip'.format(identifier))
-                gs.message('Downloading {}...'.format(identifier))
+                gs.message(_("Downloading {}...").format(identifier))
                 try:
                     ee.download(identifier=identifier, output_dir=output, timeout=600)
                 except EarthExplorerError as e:
@@ -623,11 +626,11 @@ class SentinelDownloader(object):
                     safe_name = zip.namelist()[0].split('/')[0]
                     outpath = os.path.join(output, safe_name)
                     zip.extractall(path=output)
-                gs.message(_('Downloaded to <{}>').format(outpath))
+                gs.message(_("Downloaded to <{}>").format(outpath))
                 try:
                     os.remove(zip_file)
                 except Exception as e:
-                    gs.warning(_('Unable to remove {0}:{1}').format(
+                    gs.warning(_("Unable to remove {0}:{1}").format(
                         zip_file, e))
 
         elif datasource == "ESA_COAH":
@@ -652,10 +655,10 @@ class SentinelDownloader(object):
                             online = True
         elif datasource == 'GCS':
             for scene_id in self._products_df_sorted['identifier']:
-                gs.message(_('Downloading {}...').format(scene_id))
+                gs.message(_("Downloading {}...").format(scene_id))
                 dl_code = download_gcs(scene_id, output)
                 if dl_code == 0:
-                    gs.message(_('Downloaded to {}').format(
+                    gs.message(_("Downloaded to {}").format(
                         os.path.join(output, '{}.SAFE'.format(scene_id))))
                 else:
                     # remove incomplete file
@@ -664,15 +667,15 @@ class SentinelDownloader(object):
                     try:
                         shutil.rmtree(del_folder)
                     except Exception as e:
-                        gs.warning(_('Unable to removed unfinished '
-                                     'download {}'.format(del_folder)))
+                        gs.warning(_("Unable to removed unfinished "
+                                     "download {}".format(del_folder)))
 
     def save_footprints(self, map_name):
         if self._products_df_sorted is None:
             return
         if self._apiname == 'USGS_EE':
             gs.fatal(_(
-                'USGS Earth Explorer does not support footprint download.'))
+                "USGS Earth Explorer does not support footprint download."))
         try:
             from osgeo import ogr, osr
         except ImportError as e:
@@ -745,7 +748,7 @@ class SentinelDownloader(object):
             scenes.append(metadata)
         scenes_df = pandas.DataFrame.from_dict(scenes)
         self._products_df_sorted = scenes_df
-        gs.message(_('{} Sentinel product(s) found').format(
+        gs.message(_("{} Sentinel product(s) found").format(
             len(self._products_df_sorted)))
 
     def set_uuid(self, uuid_list):
@@ -765,7 +768,7 @@ class SentinelDownloader(object):
                 try:
                     odata = self._api.get_product_odata(uuid, full=True)
                 except SentinelAPIError as e:
-                    gs.error('{0}. UUID {1} skipped'.format(e, uuid))
+                    gs.error(_("{0}. UUID {1} skipped".format(e, uuid)))
                     continue
 
                 for k, v in odata.items():
@@ -794,21 +797,21 @@ class SentinelDownloader(object):
                     asc=True, relativeorbitnumber=None):
         if area_relation != 'Intersects':
             gs.fatal(_(
-                'USGS Earth Explorer only supports area_relation'
-                ' "Intersects"'))
+                "USGS Earth Explorer only supports area_relation"
+                " 'Intersects'"))
         if relativeorbitnumber:
             gs.fatal(_(
-                'USGS Earth Explorer does not support "relativeorbitnumber"'
-                ' option.'))
+                "USGS Earth Explorer does not support 'relativeorbitnumber'"
+                " option."))
         if producttype and producttype != 'S2MSI1C':
             gs.fatal(_(
-                'USGS Earth Explorer only supports producttype S2MSI1C'))
+                "USGS Earth Explorer only supports producttype S2MSI1C"))
         if query:
             if not any(key in query for key in ['identifier', 'filename',
                                                 'usgs_identifier']):
                 gs.fatal(_(
-                    'USGS Earth Explorer only supports query options'
-                    ' "filename", "identifier" or "usgs_identifier".'))
+                    "USGS Earth Explorer only supports query options"
+                    " 'filename', 'identifier' or 'usgs_identifier'."))
             if 'usgs_identifier' in query:
                 # get entityId from usgs identifier and directly save results
                 usgs_id = query['usgs_identifier']
@@ -870,7 +873,7 @@ class SentinelDownloader(object):
                     if prod_id != esa_prod_id:
                         scenes.remove(scene)
         if len(scenes) < 1:
-            gs.message(_('No product found'))
+            gs.message(_("No product found"))
             return
         scenes_df = pandas.DataFrame.from_dict(scenes)
         if sortby:
@@ -892,7 +895,8 @@ class SentinelDownloader(object):
             )
         else:
             self._products_df_sorted = scenes_df
-        gs.message(_('{} Sentinel product(s) found').format(len(self._products_df_sorted)))
+        gs.message(_("{} Sentinel product(s) found").format(
+            len(self._products_df_sorted)))
 
 
 def main():
@@ -903,8 +907,8 @@ def main():
         api_url = 'USGS_EE'
     if options['datasource'] == 'GCS' and (options['producttype'] not in
        ['S2MSI2A','S2MSI1C']):
-        gs.fatal(_('Download from GCS only supports producttypes S2MSI2A '
-                   'or S2MSI1C'))
+        gs.fatal(_("Download from GCS only supports producttypes S2MSI2A "
+                   "or S2MSI1C"))
 
     if options['settings'] == '-':
         # stdin
@@ -938,10 +942,9 @@ def main():
     sortby = options['sort'].split(',')
     if options['producttype'] in ('SLC', 'GRD', 'OCN'):
         if options['clouds']:
-            gs.info("Option <{}> ignored: cloud cover percentage "
-                    "is not defined for product type {}".format(
-                        "clouds", options['producttype']
-                    ))
+            gs.info(_("Option <{}> ignored: cloud cover percentage "
+                    "is not defined for product type {}").format(
+                        "clouds", options['producttype']))
             options['clouds'] = None
         try:
             sortby.remove('cloudcoverpercentage')
@@ -976,7 +979,7 @@ def main():
             elif options['datasource'] == 'USGS_EE':
                 downloader.filter_USGS(**filter_args)
     except Exception as e:
-        gs.fatal(_('Unable to connect to {0}: {1}').format(
+        gs.fatal(_("Unable to connect to {0}: {1}").format(
             options['datasource'], e))
 
     if options['footprints']:
