@@ -20,7 +20,7 @@ def get_shp_csv(vector, csv=None, overwrite=False, separator=';'):
 
 def get_zones(vector, zones, layer=1, overwrite=False):
     v2rast = Module('v.to.rast', input=vector, layer=str(layer), type='area',
-                    output=zones, overwrite=overwrite, rows=65536, use='cat')
+                    output=zones, overwrite=overwrite, use='cat')
     rclr = Module("r.colors", map=zones, color="random")
 
 
