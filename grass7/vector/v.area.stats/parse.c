@@ -67,7 +67,7 @@ int parse_command_line(int argc, char *argv[])
 	
 	options.out = parms.output->answer;
 	options.separator = ";"; /* G_option_to_separator(parms.separator); */
-	printf("The separator is: <%s>", options.separator);
+	G_debug(1, _("The separator is: <%s>"), options.separator);
 
 	return 0;
 }
