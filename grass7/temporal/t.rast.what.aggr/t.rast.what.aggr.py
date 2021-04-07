@@ -197,6 +197,7 @@ def main(options, flags):
     endcol = options["final_date_column"]
     enddate = options["final_date"]
     strds = options["strds"]
+    nprocs = options["nprocs"]
     if strds.find('@') != -1:
         strds_name = strds.split('@')[0]
     else:
@@ -313,7 +314,7 @@ def main(options, flags):
         else:
             fdata = int(start)
         if final:
-            sdata = final
+            sdata = datetime.strptime(final, dateformat)
         elif flags['a']:
             sdata = fdata + td
         else:
@@ -326,7 +327,7 @@ def main(options, flags):
             r_what = pymod.Module("t.rast.what", points=invect, strds=strds,
                                   layout='timerow', separator=separator,
                                   flags="v", where=mwhere, quiet=True,
-                                  stdout_=PI, stderr_=PI)
+                                  stdout_=PI, stderr_=PI, nprocs=nprocs)
             lines = r_what.outputs["stdout"].value.splitlines()
         except CalledModuleError:
             pass
@@ -388,9 +389,9 @@ def main(options, flags):
                                 if endcol:
                                     mywhe += "{dc}='{da}' AND ".format(da=final,
                                                                        dc=endncol)
-                                    
+
                                 mywhe += "cat={ca}".format(ca=vals[0])
-                                
+
                                 pymod.Module("v.db.update", map=output,
                                              column=cols[n], value=str(result),
                                              where=mywhe)
