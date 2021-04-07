@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-
 """
  MODULE:       i.landsat.qa
 
@@ -33,21 +32,13 @@
 #%end
 
 #%option
-#% key: collection
-#% multiple: No
-#% description: Landsat Collection (1 or 2)
-#% options: 1, 2
-#% answer: 2
-#% required : no
-#%end
-
-#%option
-#% key: sensor
-#% multiple: No
-#% description: Landsat Sensor
-#% options: Landsat_8_OLI/TIRS, Landsat_8_OLI, Landsat_1-5_MSS, Landsat_7_ETM+, Landsat_4-5_TM
-#% answer: Landsat_8_OLI/TIRS
-#% required : no
+#% key: dataset
+#% type: string
+#% description: Landsat dataset to search for
+#% required: no
+#% options: landsat_tm_c1, landsat_etm_c1, landsat_8_c1, landsat_tm_c2_l1, landsat_tm_c2_l2, landsat_etm_c2_l1, landsat_etm_c2_l2, landsat_ot_c2_l1, landsat_ot_c2_l2
+#% answer: landsat_8_c1
+#% guisection: Filter
 #%end
 
 #%option
@@ -146,7 +137,7 @@
 #%end
 
 #%rules
-#% required: designated_fill,terrain_occlusion,radiometric_saturation,cloud,cloud_confidence,cloud_shadow_confidence,snow_ice_confidence,cirrus_confidence
+#% required: designated_fill,terrain_occlusion,radiometric_saturation,cloud,cloud_confidence,cloud_shadow_confidence,snow_ice_confidence,cirrus_confidence,dilated_cloud,snow,clear,water,terrain_occlusion,radiometric_saturation
 #%end
 
 # To do:
@@ -169,14 +160,16 @@ if "GISBASE" not in os.environ:
 def check_user_input(user_input):
     """Checks user input for consistency"""
     collection_unsupported = {
-        "1": ["dilated_cloud", "snow", "clear", "water"],
-        "2": ["terrain_occlusion", "radiometric_saturation"],
+        "c1": ["dilated_cloud", "snow", "clear", "water"],
+        "c2": ["terrain_occlusion", "radiometric_saturation"],
     }
+
+    sensor, collection = user_input["dataset"].split("_")[1:3]
 
     # Extract bitpattern filter from user input
     bit_filter = []
     for f in user_input:
-        if user_input[f] and f not in ["output", "collection", "sensor"]:
+        if user_input[f] and f not in ["output", "dataset"]:
             bit_filter.append(f)
 
     # Check if propper input is provided:
@@ -191,7 +184,7 @@ def check_user_input(user_input):
                 )
             )
         # Check if valid combination of options if provided
-        if o in collection_unsupported[user_input["collection"]]:
+        if o in collection_unsupported[collection]:
             grass.warning(
                 _(
                     "Condition {condition} is unsupported in Collection {collection}".format(
@@ -199,7 +192,7 @@ def check_user_input(user_input):
                     )
                 )
             )
-    return bit_filter
+    return sensor, collection, bit_filter
 
 
 def main():
@@ -209,10 +202,9 @@ def main():
 
     # Parse options
     output = options["output"]
-    collection = options["collection"]
-    sensor = options["sensor"]
+    dataset = options["dataset"]
 
-    bit_filter = check_user_input(options)
+    sensor, collection, bit_filter = check_user_input(options)
 
     # Define bitpattern characteristics according to
     # https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-1-level-1-quality-assessment-band
@@ -220,18 +212,18 @@ def main():
 
     # Define length of Landsat QA bitpattern
     max_bits_used = {
-        "1": {
-            "Landsat_8_OLI/TIRS": 13,
-            "Landsat_8_OLI": 13,
-            "Landsat_7_ETM+": 13,
-            "Landsat_4-5_TM": 11,
+        "c1": {
+            "ot": 13,
+            "8": 13,
+            "etm": 13,
+            "tm": 11,
             "Landsat_1-5_MSS": 7,
         },
-        "2": {
-            "Landsat_8_OLI/TIRS": 16,
-            "Landsat_8_OLI": 16,
-            "Landsat_7_ETM+": 14,
-            "Landsat_4-5_TM": 14,
+        "c2": {
+            "ot": 16,
+            "8": 16,
+            "etm": 14,
+            "tm": 14,
             "Landsat_1-5_MSS": 10,
         },
     }
@@ -250,7 +242,7 @@ def main():
 
     # Define bit length (single or double bits)
     bit_length = {
-        "1": {
+        "c1": {
             "designated_fill": 1,
             "terrain_occlusion": 1,
             "radiometric_saturation": 2,
@@ -260,7 +252,7 @@ def main():
             "snow_ice_confidence": 2,
             "cirrus_confidence": 2,
         },
-        "2": {
+        "c2": {
             "designated_fill": 1,
             "dilated_cloud": 1,
             "cirrus": 1,
@@ -278,7 +270,7 @@ def main():
 
     # Define bit position start
     bit_position = {
-        "1": {
+        "c1": {
             "designated_fill": 0,
             "terrain_occlusion": 1,
             "radiometric_saturation": 2,
@@ -288,7 +280,7 @@ def main():
             "snow_ice_confidence": 9,
             "cirrus_confidence": 11,
         },
-        "2": {
+        "c2": {
             "designated_fill": 0,
             "dilated_cloud": 1,
             "cirrus": 2,
@@ -329,6 +321,22 @@ def main():
 
     bit_position = bit_position[collection]
     bit_length = bit_length[collection]
+
+    # Check if valid bitpattern input is given
+    for pattern in options:
+        if pattern in bit_length.keys() and options[pattern]:
+            bit_keys = (
+                single_bits.keys() if bit_length[pattern] == 1 else double_bits.keys()
+            )
+            if not set(options[pattern].split(",")).issubset(set(bit_keys)):
+                grass.fatal(
+                    _(
+                        "Invalid input for option <{opt}>.\
+                only the following are allowed: {valid}".format(
+                            opt=pattern, valid=",".join(bit_keys)
+                        )
+                    )
+                )
 
     # List for categories representing pixels of unacceptable quality
     rc = []
