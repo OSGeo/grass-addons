@@ -451,7 +451,10 @@ class SentinelImporter(object):
                     continue
 
                 timestamp = meta['timestamp']
-                timestamp_str = timestamp.strftime("%-d %b %Y %H:%M:%S.%f")
+                try:
+                    timestamp_str = timestamp.strftime("%d %b %Y %H:%M:%S.%f")
+                except ValueError as e:
+                    gs.fatal("{}: {}".format(timestamp, e))
                 descr_list = []
                 for dkey in meta.keys():
                     if dkey != 'timestamp':
