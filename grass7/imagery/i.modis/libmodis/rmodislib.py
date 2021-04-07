@@ -81,6 +81,8 @@ class product:
         # values of vi product:
         vi_spec = '( 1 1 0 0 0 0 0 0 0 0 0 0 )'
         vi_specqa = '( 1 1 1 0 0 0 0 0 0 0 0 1 )'
+        vi_1km_month_spec = '( 1 1 0 0 0 0 0 0 0 0 0 )'
+        vi_1km_month_specqa = '( 1 1 1 0 0 0 0 0 0 0 1 )'
         vi_5600m_spec = '( 1 1 0 0 0 0 0 0 0 0 0 0 0 )'
         vi_5600m_specqa = '( 1 1 1 0 0 0 0 0 0 0 0 0 1 )'
         vi_color = ['ndvi', 'evi']
@@ -90,6 +92,8 @@ class product:
                        '.500m_16_days_EVI': '.500m_16_days_VI_Quality'}
         vi1km_suff = {'.1_km_16_days_NDVI': '.1_km_16_days_VI_Quality',
                       '.1_km_16_days_EVI': '.1_km_16_days_VI_Quality'}
+        vi1km_month_suff = {'.1_km_monthly_NDVI': '.1_km_monthly_VI_Quality',
+                      '.1_km_monthly_EVI': '.1_km_monthly_VI_Quality'}
         vi6km_suff = {'.5600m_16_days_NDVI': '.5600m_16_days_VI_Quality',
                       '.5600m_16_days_EVI': '.5600m_16_days_VI_Quality'},
         vi6km_month_suff = {'.5600m_monthly_NDVI': '.5600m_monthly_VI_Quality',
@@ -209,6 +213,16 @@ class product:
                                          'spec': vi_5600m_spec, 'spec_qa': vi_5600m_specqa,
                                          'suff': vi6km_suff, 'res': 5600,
                                          'color': vi_color, 'days': sixteen},
+              'ndvi_terra_monthly_1000':{'url': urlbase, 'folder': 'MOLT/',
+                                         'prod': 'MOD13A3.006',
+                                         'spec': vi_1km_month_spec, 'spec_qa': vi_1km_month_specqa,
+                                         'suff': vi1km_month_suff, 'res': 1000,
+                                         'color': vi_color, 'days': monthly},
+              'ndvi_aqua_monthly_1000': {'url': urlbase, 'folder': 'MOLA/',
+                                          'prod': 'MYD13A3.006',
+                                          'spec': vi_1km_month_spec, 'spec_qa': vi_1km_month_specqa,
+                                          'suff': vi1km_month_suff, 'res': 1000,
+                                          'color': vi_color, 'days': monthly},
               'ndvi_terra_monthly_5600': {'url': urlbase, 'folder': 'MOLT/',
                                           'prod': 'MOD13C2.006',
                                           'spec': vi_5600m_spec, 'spec_qa': vi_5600m_specqa,
