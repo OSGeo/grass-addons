@@ -8,7 +8,8 @@ can be used for this purpose.
 can be used in <a href="https://grass.osgeo.org/grass-stable/manuals/r.reclass.html">r.reclass</a> for filtering the 
 QA band according to pixel quality characteristics the user defines as 
 unacceptable. It works with both Collection 1 and Collection 2 data from 
-Landsat 8 OLI/TIRS, 4-7 TM/ETM+, and 1-5 MSS sensors. 
+Landsat 8 OLI/TIRS, 4-7 TM/ETM+. The <b>dataset</b> the QA band belongs to 
+is specified like in <a href="ihttps://grass.osgeo.org/grass-stable/manuals/addons/i.landsat.download.html">i.landsat.download</a>. 
 </p>
 
 <p>Values defined as unacceptable for a given condition will be set to NULL
@@ -164,15 +165,15 @@ that can be easily misinterpreted and it is not recommended for general use."</p
 
 <div class="code"><pre>
 # Create a cloud mask:
-i.landsat.qa --overwrite --verbose cloud="Medium,High" \
-    collection=1 sensor="Landsat_8_OLI/TIRS" \
+i.landsat.qa --overwrite --verbose cloud_confidence="Medium,High" \
+    dataset="landsat_ot_c2_l2" \
     output=./Cloud_Mask_rules.txt
 r.reclass input=LC81980182015183LGN00_BQA \
     output=LC81980182015183LGN00_Cloud_Mask rules=./Cloud_Mask_rules.txt
 
 # Create a water mask (only available for collection 2):
 i.landsat.qa --overwrite --verbose water="Yes" \
-    collection=1 sensor="Landsat_8_OLI/TIRS" \
+    dataset="landsat_ot_c2_l2" \
     output=./Water_Mask_rules.txt
 r.reclass input=LC81980182015183LGN00_BQA \
     output=LC81980182015183LGN00_Water_Mask rules=./Water_Mask_rules.txt
