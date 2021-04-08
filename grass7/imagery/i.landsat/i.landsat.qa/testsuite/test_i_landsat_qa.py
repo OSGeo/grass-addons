@@ -8,7 +8,7 @@ for details.
 @author Stefan Blumentrath
 
 Using examples from the manual
-i.landsat.qa --overwrite --verbose cloud="Medium,High" \
+i.landsat.qa --overwrite --verbose cloud_confidence="Medium,High" \
     dataset="landsat_ot_c2_l2" \
     output=./Cloud_Mask_rules.txt
 
