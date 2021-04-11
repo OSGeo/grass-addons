@@ -263,7 +263,12 @@ def createTMPlocation(epsg=4326):
 
     # switch to temp location
     os.environ['GISRC'] = str(SRCGISRC)
-    srid = grass.parse_command('g.proj', flags='g')['srid']
+    proj = grass.parse_command('g.proj', flags='g')
+    if 'epsg' in proj:
+        currepsg = proj['epsg']
+    else:
+        currepsg = proj['srid'].split('EPSG:')[1]
+
     currepsg = ":".join(srid.split(":")[-1:])
     if currepsg != str(epsg):
         grass.fatal("Creation of temporary location failed!")
