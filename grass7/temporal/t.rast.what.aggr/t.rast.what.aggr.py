@@ -154,35 +154,37 @@ from grass.exceptions import CalledModuleError
 
 def return_value(vals, met):
     """Return the value according the choosen method"""
-    if met == 'average':
+    if met == "average":
         return vals.mean()
-    elif met == 'median':
+    elif met == "median":
         return np.median(vals)
-    elif met == 'mode':
+    elif met == "mode":
         try:
             from scipy import stats
+
             m = stats.mode(vals)
             return m.mode[0]
         except ImportError:
             gscript.fatal(_("For method 'mode' you need to install scipy"))
-    elif met == 'minimum':
+    elif met == "minimum":
         return vals.min()
-    elif met == 'maximum':
+    elif met == "maximum":
         return vals.max()
-    elif met == 'stddev':
+    elif met == "stddev":
         return vals.std()
-    elif met == 'sum':
+    elif met == "sum":
         return vals.sum()
-    elif met == 'variance':
+    elif met == "variance":
         return vals.var()
-    elif met == 'quart1':
+    elif met == "quart1":
         return np.percentile(vals, 25)
-    elif met == 'quart3':
+    elif met == "quart3":
         return np.percentile(vals, 75)
-    elif met == 'perc90':
+    elif met == "perc90":
         return np.percentile(vals, 90)
-    elif met == 'quantile':
+    elif met == "quantile":
         return
+
 
 def main(options, flags):
     import grass.pygrass.modules as pymod
@@ -190,77 +192,89 @@ def main(options, flags):
     from grass.pygrass.vector import VectorTopo
 
     invect = options["input"]
-    if invect.find('@') != -1:
-        invect = invect.split('@')[0]
+    if invect.find("@") != -1:
+        invect = invect.split("@")[0]
     incol = options["date_column"]
     indate = options["date"]
     endcol = options["final_date_column"]
     enddate = options["final_date"]
     strds = options["strds"]
     nprocs = options["nprocs"]
-    if strds.find('@') != -1:
-        strds_name = strds.split('@')[0]
+    if strds.find("@") != -1:
+        strds_name = strds.split("@")[0]
     else:
         strds_name = strds
     output = options["output"]
-    cols = options["columns"].split(',')
-    mets = options["method"].split(',')
+    cols = options["columns"].split(",")
+    mets = options["method"].split(",")
     gran = options["granularity"]
     dateformat = options["date_format"]
     separator = gscript.separator(options["separator"])
 
     stdout = False
-    if output != '-' and flags['u']:
+    if output != "-" and flags["u"]:
         gscript.fatal(_("Cannot combine 'output' option and 'u' flag"))
-    elif output != '-' and flags['c']:
+    elif output != "-" and flags["c"]:
         gscript.fatal(_("Cannot combine 'output' option and 'c' flag"))
-    elif output == '-' and (flags['u'] or flags['c']):
+    elif output == "-" and (flags["u"] or flags["c"]):
         output = invect
-        gscript.warning(_("Attribute table of vector {name} will be updated"
-                          "...").format(name=invect))
+        gscript.warning(
+            _("Attribute table of vector {name} will be updated" "...").format(
+                name=invect
+            )
+        )
     else:
         stdout = True
-    if flags['c']:
+    if flags["c"]:
         cols = []
         for m in mets:
             colname = "{st}_{me}".format(st=strds_name, me=m)
             cols.append(colname)
             try:
-                pymod.Module("v.db.addcolumn", map=invect, columns="{col} "
-                             "double precision".format(col=colname))
+                pymod.Module(
+                    "v.db.addcolumn",
+                    map=invect,
+                    columns="{col} " "double precision".format(col=colname),
+                )
             except CalledModuleError:
-                gscript.fatal(_("Not possible to create column "
-                                "{col}".format(col=colname)))
+                gscript.fatal(
+                    _("Not possible to create column " "{col}".format(col=colname))
+                )
 
-    if output != '-' and len(cols) != len(mets):
-        gscript.fatal(_("'columns' and 'method' options must have the same "
-                        "number of elements"))
+    if output != "-" and len(cols) != len(mets):
+        gscript.fatal(
+            _("'columns' and 'method' options must have the same " "number of elements")
+        )
     tgis.init()
     dbif = tgis.SQLDatabaseInterfaceConnection()
     dbif.connect()
     sp = tgis.open_old_stds(strds, "strds", dbif)
 
-    if sp.get_temporal_type() == 'absolute':
+    if sp.get_temporal_type() == "absolute":
         if gran:
             delta = int(tgis.gran_to_gran(gran, sp.get_granularity(), True))
-            if tgis.gran_singular_unit(gran) in ['year', 'month']:
-                delta = int(tgis.gran_to_gran(gran, '1 day', True))
+            if tgis.gran_singular_unit(gran) in ["year", "month"]:
+                delta = int(tgis.gran_to_gran(gran, "1 day", True))
                 td = timedelta(delta)
-            elif tgis.gran_singular_unit(gran) == 'day':
+            elif tgis.gran_singular_unit(gran) == "day":
                 delta = tgis.gran_to_gran(gran, sp.get_granularity(), True)
                 td = timedelta(delta)
-            elif tgis.gran_singular_unit(gran) == 'hour':
+            elif tgis.gran_singular_unit(gran) == "hour":
                 td = timedelta(hours=delta)
-            elif tgis.gran_singular_unit(gran) == 'minute':
+            elif tgis.gran_singular_unit(gran) == "minute":
                 td = timedelta(minutes=delta)
-            elif tgis.gran_singular_unit(gran) == 'second':
+            elif tgis.gran_singular_unit(gran) == "second":
                 td = timedelta(seconds=delta)
         else:
             td = None
     else:
         if sp.get_granularity() >= int(gran):
-            gscript.fatal(_("Input granularity is smaller or equal to the {iv}"
-                            " STRDS granularity".format(iv=strds)))
+            gscript.fatal(
+                _(
+                    "Input granularity is smaller or equal to the {iv}"
+                    " STRDS granularity".format(iv=strds)
+                )
+            )
         td = int(gran)
     if incol and indate:
         gscript.fatal(_("Cannot combine 'date_column' and 'date' options"))
@@ -268,14 +282,17 @@ def main(options, flags):
         gscript.fatal(_("You have to fill 'date_column' or 'date' option"))
     if incol:
         if endcol:
-            mysql = "SELECT DISTINCT {dc},{ec} from {vmap} order by " \
-                    "{dc}".format(vmap=invect, dc=incol, ec=endcol)
+            mysql = "SELECT DISTINCT {dc},{ec} from {vmap} order by " "{dc}".format(
+                vmap=invect, dc=incol, ec=endcol
+            )
         else:
-            mysql = "SELECT DISTINCT {dc} from {vmap} order by " \
-                  "{dc}".format(vmap=invect, dc=incol)
+            mysql = "SELECT DISTINCT {dc} from {vmap} order by " "{dc}".format(
+                vmap=invect, dc=incol
+            )
         try:
-            dates = pymod.Module("db.select", flags='c', stdout_=PI,
-                                 stderr_=PI, sql=mysql)
+            dates = pymod.Module(
+                "db.select", flags="c", stdout_=PI, stderr_=PI, sql=mysql
+            )
             mydates = dates.outputs["stdout"].value.splitlines()
         except CalledModuleError:
             gscript.fatal(_("db.select return an error"))
@@ -286,75 +303,90 @@ def main(options, flags):
             mydates = [indate]
         mydates = [indate]
         pymap = VectorTopo(invect)
-        pymap.open('r')
+        pymap.open("r")
         if len(pymap.dblinks) == 0:
             try:
                 pymap.close()
                 pymod.Module("v.db.addtable", map=invect)
             except CalledModuleError:
                 dbif.close()
-                gscript.fatal(_("Unable to add table <%s> to vector map "
-                                "<%s>" % invect))
+                gscript.fatal(
+                    _("Unable to add table <%s> to vector map " "<%s>" % invect)
+                )
         if pymap.is_open():
             pymap.close()
-        qfeat = pymod.Module("v.category", stdout_=PI, stderr_=PI,
-                             input=invect, option='print')
+        qfeat = pymod.Module(
+            "v.category", stdout_=PI, stderr_=PI, input=invect, option="print"
+        )
         myfeats = qfeat.outputs["stdout"].value.splitlines()
 
     if stdout:
-        outtxt = ''
+        outtxt = ""
     for data in mydates:
         try:
             start, final = data.split("|")
         except ValueError:
             start = data
             final = None
-        if sp.get_temporal_type() == 'absolute':
+        if sp.get_temporal_type() == "absolute":
             fdata = datetime.strptime(start, dateformat)
         else:
             fdata = int(start)
         if final:
             sdata = datetime.strptime(final, dateformat)
-        elif flags['a']:
+        elif flags["a"]:
             sdata = fdata + td
         else:
             sdata = fdata
             fdata = sdata - td
-        mwhere = "start_time >= '{inn}' and end_time < " \
-               "'{out}'".format(inn=fdata, out=sdata)
+        mwhere = "start_time >= '{inn}' and end_time < " "'{out}'".format(
+            inn=fdata, out=sdata
+        )
         lines = None
         try:
-            r_what = pymod.Module("t.rast.what", points=invect, strds=strds,
-                                  layout='timerow', separator=separator,
-                                  flags="v", where=mwhere, quiet=True,
-                                  stdout_=PI, stderr_=PI, nprocs=nprocs)
+            r_what = pymod.Module(
+                "t.rast.what",
+                points=invect,
+                strds=strds,
+                layout="timerow",
+                separator=separator,
+                flags="v",
+                where=mwhere,
+                quiet=True,
+                stdout_=PI,
+                stderr_=PI,
+                nprocs=nprocs,
+            )
             lines = r_what.outputs["stdout"].value.splitlines()
         except CalledModuleError:
             pass
         if incol:
             if endcol:
-                mysql = "SELECT DISTINCT cat from {vmap} where {dc}='{da}' " \
-                        "AND {ec}='{ed}' order by cat".format(vmap=invect,
-                                                              da=start,
-                                                              dc=incol,
-                                                              ed=final,
-                                                              ec=endcol)
+                mysql = (
+                    "SELECT DISTINCT cat from {vmap} where {dc}='{da}' "
+                    "AND {ec}='{ed}' order by cat".format(
+                        vmap=invect, da=start, dc=incol, ed=final, ec=endcol
+                    )
+                )
             else:
-                mysql = "SELECT DISTINCT cat from {vmap} where {dc}='{da}' " \
-                        "order by cat".format(vmap=invect, da=start, dc=incol)
+                mysql = (
+                    "SELECT DISTINCT cat from {vmap} where {dc}='{da}' "
+                    "order by cat".format(vmap=invect, da=start, dc=incol)
+                )
             try:
-                qfeat = pymod.Module("db.select", flags='c', stdout_=PI,
-                                     stderr_=PI, sql=mysql)
+                qfeat = pymod.Module(
+                    "db.select", flags="c", stdout_=PI, stderr_=PI, sql=mysql
+                )
                 myfeats = qfeat.outputs["stdout"].value.splitlines()
             except CalledModuleError:
-                gscript.fatal(_("db.select returned an error for date "
-                                "{da}".format(da=start)))
+                gscript.fatal(
+                    _("db.select returned an error for date " "{da}".format(da=start))
+                )
         if not lines and stdout:
             for feat in myfeats:
-                outtxt += "{di}{sep}{da}".format(di=feat, da=start,
-                                                   sep=separator)
+                outtxt += "{di}{sep}{da}".format(di=feat, da=start, sep=separator)
                 for n in range(len(mets)):
-                    outtxt += "{sep}{val}".format(val='*', sep=separator)
+                    outtxt += "{sep}{val}".format(val="*", sep=separator)
                 outtxt += "\n"
         if not lines:
             continue
@@ -366,39 +398,47 @@ def main(options, flags):
                     nvals = np.array(vals[4:]).astype(np.float)
                 except ValueError:
                     if stdout:
-                        outtxt += "{di}{sep}{da}".format(di=vals[0],
-                                                         da=start,
-                                                         sep=separator)
+                        outtxt += "{di}{sep}{da}".format(
+                            di=vals[0], da=start, sep=separator
+                        )
                         for n in range(len(mets)):
-                            outtxt += "{sep}{val}".format(val='*',
-                                                          sep=separator)
+                            outtxt += "{sep}{val}".format(val="*", sep=separator)
                         outtxt += "\n"
                     continue
                 if stdout:
-                    outtxt += "{di}{sep}{da}".format(di=vals[0], da=start,
-                                                     sep=separator)
+                    outtxt += "{di}{sep}{da}".format(
+                        di=vals[0], da=start, sep=separator
+                    )
                 for n in range(len(mets)):
                     result = return_value(nvals, mets[n])
                     if stdout:
-                        outtxt += "{sep}{val}".format(val=result,
-                                                      sep=separator)
+                        outtxt += "{sep}{val}".format(val=result, sep=separator)
                     else:
                         try:
                             if incol:
                                 mywhe = "{dc}='{da}' AND ".format(da=start, dc=incol)
                                 if endcol:
-                                    mywhe += "{dc}='{da}' AND ".format(da=final,
-                                                                       dc=endncol)
+                                    mywhe += "{dc}='{da}' AND ".format(
+                                        da=final, dc=endncol
+                                    )
 
                                 mywhe += "cat={ca}".format(ca=vals[0])
 
-                                pymod.Module("v.db.update", map=output,
-                                             column=cols[n], value=str(result),
-                                             where=mywhe)
+                                pymod.Module(
+                                    "v.db.update",
+                                    map=output,
+                                    column=cols[n],
+                                    value=str(result),
+                                    where=mywhe,
+                                )
                             else:
-                                pymod.Module("v.db.update", map=output,
-                                             column=cols[n], value=str(result),
-                                             where="cat={ca}".format(ca=vals[0]))
+                                pymod.Module(
+                                    "v.db.update",
+                                    map=output,
+                                    column=cols[n],
+                                    value=str(result),
+                                    where="cat={ca}".format(ca=vals[0]),
+                                )
                         except CalledModuleError:
                             gscript.fatal(_("v.db.update return an error"))
                 if stdout:
@@ -409,6 +449,7 @@ def main(options, flags):
                     x += 1
     if stdout:
         print(outtxt)
+
 
 if __name__ == "__main__":
     options, flags = gscript.parser()
