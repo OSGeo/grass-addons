@@ -686,7 +686,7 @@ def landscapeEvol(m, o, p, q, res, s, f):
                 '6% 194:84:171',
                 '0% 227:174:217']
     sdc = grass.feed_command('r.colors', quiet = True, map = new_soil, rules = "-")
-    sdc.stdin.write('\n'.join(sdcolors))
+    sdc.stdin.write(b'\n'.join(sdcolors))
     sdc.stdin.close()
 
     nccolors = ['100 127:0:255',
@@ -699,7 +699,7 @@ def landscapeEvol(m, o, p, q, res, s, f):
                 '-1 255:0:0',
                 '-100 127:0:255']
     ncc = grass.feed_command('r.colors', quiet = True, map = netchange, rules = "-")
-    ncc.stdin.write('\n'.join(nccolors))
+    ncc.stdin.write(b'\n'.join(nccolors))
     ncc.stdin.close()
 
     sdc.wait()
