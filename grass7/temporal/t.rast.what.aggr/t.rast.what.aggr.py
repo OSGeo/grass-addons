@@ -255,7 +255,7 @@ def main(options, flags):
         for col in cols:
             if col not in colexist:
                 gscript.fatal(
-                    _("Column '{}' does not exists, please create it first".format(col))
+                    _("Column '{}' does not exist, please create it first".format(col))
                 )
         gscript.warning(
             _("Attribute table of vector {name} will be updated" "...").format(
