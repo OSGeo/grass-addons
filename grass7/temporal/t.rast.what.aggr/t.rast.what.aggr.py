@@ -297,7 +297,7 @@ def main(options, flags):
         except CalledModuleError:
             gscript.fatal(_("db.select return an error"))
     elif indate:
-        if endate:
+        if enddate:
             mydates = ["{ida}|{eda}".format(ida=indate, eda=enddate)]
         else:
             mydates = [indate]
@@ -419,7 +419,7 @@ def main(options, flags):
                                 mywhe = "{dc}='{da}' AND ".format(da=start, dc=incol)
                                 if endcol:
                                     mywhe += "{dc}='{da}' AND ".format(
-                                        da=final, dc=endncol
+                                        da=final, dc=endcol
                                     )
 
                                 mywhe += "cat={ca}".format(ca=vals[0])
