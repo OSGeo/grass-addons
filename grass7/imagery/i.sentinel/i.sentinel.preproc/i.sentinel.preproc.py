@@ -446,13 +446,13 @@ def main ():
         i_col = []
         coll = []
         wl = []
-        for row in file(aeronet_file):
+        for row in open(aeronet_file):
             count += 1
             if count == 4:
                 columns = row.split(',')
         # Search for the closest date and time to the acquisition one
         count = 0
-        for row in file(aeronet_file):
+        for row in open(aeronet_file):
             count += 1
             if count >= 5:
                 columns = row.split(',')
@@ -469,7 +469,7 @@ def main ():
             timedelta = abs(closest - b_d)
         # Search for the closest wavelengths (upper and lower) to 550
         count = 0
-        for row in file(aeronet_file):
+        for row in open(aeronet_file):
             count += 1
             if count == 4:
                 t_columns = row.split(',')
@@ -486,7 +486,7 @@ def main ():
         lower = min([i for i in wl if i < aot_req], key=lambda x:abs(x-aot_req))
 
         count = 0
-        for row in file(aeronet_file):
+        for row in open(aeronet_file):
             count += 1
             if count == dates.index(closest)+5:
                 t_columns = row.split(',')
