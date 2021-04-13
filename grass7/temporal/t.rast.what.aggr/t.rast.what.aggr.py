@@ -62,7 +62,7 @@
 
 #%option G_OPT_DB_COLUMNS
 #% key: final_date_column
-#% description: Column with ending date for aggregation, require date_columns option
+#% description: Column with ending date for aggregation, requires date_columns option
 #%end
 
 #%option G_OPT_DB_COLUMNS
