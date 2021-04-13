@@ -34,7 +34,7 @@
 
 #%option G_OPT_DB_COLUMN
 #% key: date_column
-#% description: Name of the starting column containing dates for aggregates
+#% description: Name of the column containing starting dates for aggregates
 #% required: no
 #%end
 
