@@ -49,7 +49,7 @@
 #%option
 #% key: final_date
 #% type: string
-#% description: The end date for aggregation, require date option
+#% description: The end date for aggregation, requires date option
 #% required: no
 #% multiple: no
 #%end
