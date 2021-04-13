@@ -205,27 +205,30 @@ def main(options, flags):
     else:
         strds_name = strds
     output = options["output"]
-    cols = options["columns"].split(",")
+    if options["columns"]:
+        cols = options["columns"].split(",")
+    else:
+        cols = []
     mets = options["method"].split(",")
     gran = options["granularity"]
     dateformat = options["date_format"]
     separator = gscript.separator(options["separator"])
+    update = flags["u"]
+    create = flags["c"]
 
     stdout = False
-    if output != "-" and flags["u"]:
+    if output != "-" and update:
         gscript.fatal(_("Cannot combine 'output' option and 'u' flag"))
-    elif output != "-" and flags["c"]:
+    elif output != "-" and create:
         gscript.fatal(_("Cannot combine 'output' option and 'c' flag"))
-    elif output == "-" and (flags["u"] or flags["c"]):
+    elif output == "-" and (update or create):
+        if update and not cols:
+            gscript.fatal(_("Please set 'columns' option"))
         output = invect
-        gscript.warning(
-            _("Attribute table of vector {name} will be updated" "...").format(
-                name=invect
-            )
-        )
     else:
         stdout = True
-    if flags["c"]:
+
+    if create:
         cols = []
         for m in mets:
             colname = "{st}_{me}".format(st=strds_name, me=m)
@@ -240,6 +243,25 @@ def main(options, flags):
                 gscript.fatal(
                     _("Not possible to create column " "{col}".format(col=colname))
                 )
+        gscript.warning(
+            _("Attribute table of vector {name} will be updated" "...").format(
+                name=invect
+            )
+        )
+    elif update:
+        colexist = pymod.Module(
+            "db.columns", table=invect, stdout_=PI
+        ).outputs.stdout.splitlines()
+        for col in cols:
+            if col not in colexist:
+                gscript.fatal(
+                    _("Column '{}' does not exists, please create it first".format(col))
+                )
+        gscript.warning(
+            _("Attribute table of vector {name} will be updated" "...").format(
+                name=invect
+            )
+        )
 
     if output != "-" and len(cols) != len(mets):
         gscript.fatal(
