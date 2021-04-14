@@ -9,7 +9,7 @@
 #
 # PURPOSE:      Create a DEM from 1 arcsec NASADEM tiles
 #
-# COPYRIGHT:    (C) 2020 GRASS development team
+# COPYRIGHT:    (C) 2020-2021 GRASS development team
 #
 #               This program is free software under the GNU General
 #               Public License (>=v2). Read the file COPYING that
@@ -339,7 +339,14 @@ def createTMPlocation(epsg=4326):
 
     # switch to temp location
     os.environ['GISRC'] = str(SRCGISRC)
-    if grass.parse_command('g.proj', flags='g')['epsg'] != str(epsg):
+    proj = grass.parse_command('g.proj', flags='g')
+    if 'epsg' in proj:
+        currepsg = proj['epsg']
+    else:
+        currepsg = proj['srid'].split('EPSG:')[1]
+
+    currepsg = ":".join(srid.split(":")[-1:])
+    if currepsg != str(epsg):
         grass.fatal("Creation of temporary location failed!")
 
     return SRCGISRC, TMPLOC

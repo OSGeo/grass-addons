@@ -9,7 +9,7 @@
 #
 # PURPOSE:      Create a DEM from 3 arcsec SRTM v2.1 or 1 arcsec SRTM v3 tiles
 #
-# COPYRIGHT:    (C) 2011-2019 GRASS development team
+# COPYRIGHT:    (C) 2011-2021 GRASS development team
 #
 #               This program is free software under the GNU General
 #               Public License (>=v2). Read the file COPYING that
@@ -263,7 +263,14 @@ def createTMPlocation(epsg=4326):
 
     # switch to temp location
     os.environ['GISRC'] = str(SRCGISRC)
-    if grass.parse_command('g.proj', flags='g')['epsg'] != str(epsg):
+    proj = grass.parse_command('g.proj', flags='g')
+    if 'epsg' in proj:
+        currepsg = proj['epsg']
+    else:
+        currepsg = proj['srid'].split('EPSG:')[1]
+
+    currepsg = ":".join(srid.split(":")[-1:])
+    if currepsg != str(epsg):
         grass.fatal("Creation of temporary location failed!")
 
     return SRCGISRC, TMPLOC
@@ -597,6 +604,7 @@ def main():
     grass.try_remove(tmphist)
 
     grass.message(_("Done: generated map <%s>") % output)
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()
