@@ -361,7 +361,7 @@ def main(options, flags):
         else:
             sdata = fdata
             fdata = sdata - td
-        mwhere = "start_time >= '{inn}' and end_time < " "'{out}'".format(
+        mwhere = "start_time >= '{inn}' and start_time < " "'{out}'".format(
             inn=fdata, out=sdata
         )
         lines = None
@@ -381,6 +381,7 @@ def main(options, flags):
             )
             lines = r_what.outputs["stdout"].value.splitlines()
         except CalledModuleError:
+            gscript.warning("t.rast.what faild with where='{}'".format(mwhere))
             pass
         if incol:
             if endcol:
@@ -417,7 +418,7 @@ def main(options, flags):
             vals = line.split(separator)
             if vals[0] in myfeats:
                 try:
-                    nvals = np.array(vals[4:]).astype(np.float)
+                    nvals = np.array(vals[3:]).astype(float)
                 except ValueError:
                     if stdout:
                         outtxt += "{di}{sep}{da}".format(
@@ -432,8 +433,14 @@ def main(options, flags):
                         di=vals[0], da=start, sep=separator
                     )
                 for n in range(len(mets)):
-                    result = return_value(nvals, mets[n])
+                    result = None
+                    if len(nvals) == 1:
+                        result = nvals[0]
+                    elif len(nvals) > 1:
+                        result = return_value(nvals, mets[n])
                     if stdout:
+                        if not result:
+                            result="*"
                         outtxt += "{sep}{val}".format(val=result, sep=separator)
                     else:
                         try:
