@@ -1,8 +1,9 @@
 <h2>DESCRIPTION</h2>
 
-The <em>i.sentinel.download</em> allows downloading Sentinel satellite products
-from the <a href="https://scihub.copernicus.eu/">Copernicus Open Access Hub</a>.
-Sentinel-2 Level-1C data can also be downloaded from the <a href="https://earthexplorer.usgs.gov/">USGS Earth Explorer</a>.
+The <em>i.sentinel.download</em> addon allows downloading Sentinel satellite products
+from the <a href="https://scihub.copernicus.eu/">Copernicus Open Access Hub</a>,
+<a href="https://earthexplorer.usgs.gov/">USGS Earth Explorer</a>, or
+<a href="https://cloud.google.com/storage/docs/public-datasets/sentinel-2?hl=en">Google Cloud Storage</a>.
 
 <h3>Copernicus Open Access Hub</h3>
 <p>
@@ -52,6 +53,30 @@ To connect to the USGS Earth Explorer both a <em>user</em> name
 and <em>password</em> are required;
 see <a href="https://ers.cr.usgs.gov/register">EROS Registration System</a>
 page for signing up.
+
+<h3>Google Cloud Storage</h3>
+<p>
+The following product types (parameter <b>producttype</b>) are currently supported
+for download from <b>Google Cloud Storage</b>:
+<ul>
+  <li>Sentinel-2 (optical and infrared):
+  <ul>
+    <li>S2MSI2A: operational Bottom-Of-Atmosphere reflectances in cartographic geometry Level-2A)</li>
+  </ul>
+  <ul>
+    <li>S2MSI1C: Top-Of-Atmosphere reflectances in cartographic geometry (Level-1C)</li>
+  </ul>
+  </li>
+</ul>
+Querying and filtering data on Google Cloud Storage requires the fee-based usage of
+<a href="https://cloud.google.com/bigquery/external-data-cloud-storage?hl=en">BigQuery</a>, which
+is currently not supported by <em>i.sentinel.download</em>. Instead, when using the <b>datasource=GCS</b>
+option, querying is performed using the <a href="https://scihub.copernicus.eu/">Copernicus Open Access Hub</a>
+interface, while only the download step makes use of Google Cloud Storage (download links are
+automatically generated from the respective Sentinel-2 identifier). As a consequence, a <b>settings</b> file
+with valid credentials for the Copernicus Open Access Hub is required for downloading
+from Google Cloud Storage in <em>i.sentinel.download</em>.
+
 
 <h3>Credentials file</h3>
 <p><em>i.sentinel.download</em> reads the user credentials
@@ -156,8 +181,8 @@ the <b>retry</b> parameter) to retry a download after the <b>sleep</b> value in 
 
 <p>
 As an alternative to triggering re-upload Sentinel-2 data from the LTA, scenes can be downloaded
-from the <b>USGS Earth Explorer</b> where all data remain online and directly accessible.
-However, this applies only to Sentinel-2 S2MSI1C (Level-1C) data.
+from <b>USGS Earth Explorer</b> or <b>Google Cloud Storage</b> where all data remain online and directly accessible.
+However, this applies only to Sentinel-2 data in levels 1C (USGS and GCS) and 2A (only GCS).
 
 <h2>EXAMPLES</h2>
 
@@ -286,6 +311,11 @@ g.region n=42 w=12 s=41 e=13 res=0:01 -p
 i.sentinel.download settings=credentials.txt producttype=S2MSI2A start=2018-05-01 end=2018-05-31 limit=1 output=s2_L2A_may2018/
 </pre></div>
 
+Download first (<b>limit=1</b>) S2MSI2A product found from <b>Google Cloud Storage</b>:
+<div class="code"><pre>
+i.sentinel.download settings=credentials.txt producttype=S2MSI2A start=2018-05-01 end=2018-05-31 limit=1 output=s2_L2A_may2018/ datasource=GCS
+</pre></div>
+
 The downloaded Sentinel data can subsequently be easily imported into GRASS GIS
 using <em><a href="i.sentinel.import.html">i.sentinel.import</a></em>
 module.
@@ -296,6 +326,12 @@ Example of downloading a single Sentinel product by UUID:
 
 <div class="code"><pre>
 i.sentinel.download settings=credentials.txt uuid=6a10da0f-7777-4818-bc2c-4680e82297ac output=s2_data/
+<pre></div>
+
+<p>
+Example of downloading a single Sentinel product by UUID from <b>Google Cloud Storage</b>
+<div class="code"><pre>
+i.sentinel.download datasource=GCS settings=credentials.txt uuid=6a10da0f-7777-4818-bc2c-4680e82297ac output=s2_data/
 <pre></div>
 
 <p>
@@ -344,8 +380,17 @@ i.sentinel.download settings=credentials.txt \
 <pre></div>
 
 <p>
+Example of downloading a single Sentinel product by scene name from
+<b>Google Cloud Storage</b>:
+<div class="code"><pre>
+i.sentinel.download datasource=GCS start=2021-01-01 end=2021-02-15 producttype=S2MSI2A \
+  query="filename=S2B_MSIL2A_20210120T155559_N0214_R054_T17SPV_20210120T201821.SAFE" settings=credentials.txt \
+  output=s2_data/
+<pre></div>
+
+<p>
 Example of downloading a single Sentinel product from <b>USGS Earth Explorer</b>
-by the USGS-identifier.
+by the USGS-identifier:
 <div class="code"><pre>
 i.sentinel.download datasource=USGS_EE start=2017-09-01 end=2017-12-01 producttype=S2MSI1C \
   query="usgs_identifier=L1C_T32ULA_A003180_20171015T104525" settings=credentials.txt \
@@ -367,7 +412,7 @@ i.sentinel.download datasource=USGS_EE start=2017-10-01 end=2017-11-01 productty
 <ul>
   <li><a href="https://pypi.python.org/pypi/sentinelsat">Sentinelsat library</a></li>
   <li><a href="https://pypi.python.org/pypi/pandas">Pandas library</a></li>
-  <li><a href="https://pypi.python.org/pypi/landsatxplore">landsatxplore library</a></li>
+  <li><a href="https://pypi.python.org/pypi/landsatxplore">landsatxplore library</a></li> for downloading from USGS Earth Explorer
 </ul>
 
 <h2>SEE ALSO</h2>
@@ -402,7 +447,7 @@ Martin Landa, <a href="http://geomatics.fsv.cvut.cz/research/geoforall/">GeoForA
 Lab</a>, CTU in Prague, Czech Republic with support
 of <a href="https://opengeolabs.cz/en/home/">OpenGeoLabs</a> company
 <br>
-Guido Riembauer, <a href="https://www.mundialis.de/">mundialis</a> (USGS provider support)
+Guido Riembauer, <a href="https://www.mundialis.de/">mundialis</a> (USGS and GCS provider support)
 <!--
 <p>
 <i>Last changed: $Date$</i>

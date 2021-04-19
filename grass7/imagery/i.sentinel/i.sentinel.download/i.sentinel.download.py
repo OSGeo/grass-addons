@@ -4,8 +4,8 @@
 #
 # MODULE:      i.sentinel.download
 # AUTHOR(S):   Martin Landa
-# PURPOSE:     Downloads Sentinel data from Copernicus Open Access Hub
-#              and USGS Earth Explorer using sentinelsat library.
+# PURPOSE:     Downloads Sentinel data from Copernicus Open Access Hub,
+#              USGS Earth Explorer or Google Cloud Storage.
 # COPYRIGHT:   (C) 2018-2021 by Martin Landa, and the GRASS development team
 #
 #              This program is free software under the GNU General Public
@@ -15,7 +15,7 @@
 #############################################################################
 
 #%module
-#% description: Downloads Sentinel satellite data from Copernicus Open Access Hub and USGS Earth Explorer.
+#% description: Downloads Sentinel satellite data from Copernicus Open Access Hub, USGS Earth Explorer, or Google Cloud Storage.
 #% keyword: imagery
 #% keyword: satellite
 #% keyword: Sentinel
@@ -126,8 +126,8 @@
 #%option
 #% key: datasource
 #% description: Data-Hub to download scenes from.
-#% label: Default is ESA Copernicus Open Access Hub (ESA_COAH), but Sentinel-2 L1C data can also be acquired from USGS Earth Explorer (USGS_EE)
-#% options: ESA_COAH,USGS_EE
+#% label: Default is ESA Copernicus Open Access Hub (ESA_COAH), but Sentinel-2 L1C data can also be acquired from USGS Earth Explorer (USGS_EE) or Google Cloud Storage (GCS)
+#% options: ESA_COAH,USGS_EE,GCS
 #% answer: ESA_COAH
 #% guisection: Filter
 #%end
@@ -161,8 +161,14 @@
 #% excludes: uuid,map,area_relation,clouds,producttype,start,end,limit,query,sort,order
 #%end
 
+import fnmatch
+import hashlib
 import os
+import requests
+import xml.etree.ElementTree as ET
+import shutil
 import sys
+from tqdm import tqdm
 import logging
 import time
 from collections import OrderedDict
@@ -174,6 +180,19 @@ except ImportError as e:
     gs.fatal(_("Module requires pandas library: {}").format(e))
 
 
+def create_dir(dir):
+    if not os.path.isdir(dir):
+        try:
+            os.makedirs(dir)
+            return 0
+        except Exception as e:
+            gs.warning(_("Could not create directory {}").format(dir))
+            return 1
+    else:
+        gs.verbose(_("Directory {} already exists").format(dir))
+        return 0
+
+
 def get_aoi_box(vector=None):
     args = {}
     if vector:
@@ -183,7 +202,7 @@ def get_aoi_box(vector=None):
     s = gs.read_command("g.proj", flags='j')
     kv = gs.parse_key_val(s)
     if '+proj' not in kv:
-        gs.fatal('Unable to get AOI bounding box: unprojected location not supported')
+        gs.fatal(_("Unable to get AOI bounding box: unprojected location not supported"))
     if kv['+proj'] != 'longlat':
         info = gs.parse_command('g.region', flags='uplg', **args)
         return 'POLYGON(({nw_lon} {nw_lat}, {ne_lon} {ne_lat}, {se_lon} {se_lat}, {sw_lon} {sw_lat}, {nw_lon} {nw_lat}))'.format(
@@ -213,7 +232,7 @@ def get_aoi(vector=None):
     s = gs.read_command("g.proj", flags='j')
     kv = gs.parse_key_val(s)
     if '+proj' not in kv:
-        gs.fatal('Unable to get AOI: unprojected location not supported')
+        gs.fatal(_("Unable to get AOI: unprojected location not supported"))
     geom_dict = gs.parse_command('v.out.ascii', format='wkt', **args)
     num_vertices = len(str(geom_dict.keys()).split(','))
     geom = [key for key in geom_dict][0]
@@ -243,8 +262,6 @@ def get_aoi(vector=None):
 
 
 def get_bbox_from_S2_UTMtile(tile):
-    import requests
-    import xml.etree.ElementTree as ET
     # download and parse S2-UTM tilegrid kml
     tile_kml_url = 'https://sentinel.esa.int/documents/247904/1955685/' \
                    'S2A_OPER_GIP_TILPAR_MPC__20151209T095117_' \
@@ -273,10 +290,10 @@ def check_s2l1c_identifier(identifier, source='esa'):
         expression = '^(S2[A-B]_MSIL1C_20[0-9][0-9][0-9][0-9])'
         test = re.match(expression, identifier)
         if bool(test) is False:
-            gs.fatal(_('Query parameter "identifier"/"filename" has'
-                       ' to be in format S2X_MSIL1C_YYYYMMDDTHHMMSS'
-                       '_NXXXX_RYYY_TUUUUU_YYYYMMDDTHHMMSS for '
-                       'usage with USGS Earth Explorer'))
+            gs.fatal(_("Query parameter 'identifier'/'filename' has"
+                       " to be in format S2X_MSIL1C_YYYYMMDDTHHMMSS"
+                       "_NXXXX_RYYY_TUUUUU_YYYYMMDDTHHMMSS for "
+                       "usage with USGS Earth Explorer"))
     elif source == 'usgs':
         # usgs can have two formats, depending on age
         expression1 = '^(L1C_T[0-9][0-9][A-Z][A-Z][A-Z]_A[0-9])'
@@ -284,16 +301,186 @@ def check_s2l1c_identifier(identifier, source='esa'):
         test1 = re.match(expression1, identifier)
         test2 = re.match(expression2, identifier)
         if bool(test1) is False and bool(test2) is False:
-            gs.fatal(_('Query parameter "usgs_identifier" has to be either in'
-                       ' format L1C_TUUUUU_AXXXXXX_YYYYMMDDTHHMMSS or '
-                       'S2X_OPER_MSI_L1C_TL_EPA__YYYYMMDDTHHMMSS_'
-                       'YYYYMMDDTHHMMSS_AOOOOOO_TUUUUU_NXX_YY_ZZ'))
+            gs.fatal(_("Query parameter 'usgs_identifier' has to be either in"
+                       " format L1C_TUUUUU_AXXXXXX_YYYYMMDDTHHMMSS or "
+                       "S2X_OPER_MSI_L1C_TL_EPA__YYYYMMDDTHHMMSS_"
+                       "YYYYMMDDTHHMMSS_AOOOOOO_TUUUUU_NXX_YY_ZZ"))
     return
+
+
+def parse_manifest_gcs(root):
+    """Parses the GCS manifest.safe for files to download and corrects urls
+       if necessary.
+       Returns: List of dictionaries with file information
+    """
+    files_list = []
+    for elem in root.findall(".//dataObjectSection/dataObject"):
+        elem_dict = elem.attrib
+        for subelem in elem:
+            for subsubelem in subelem:
+                subsubelem_dict = subsubelem.attrib
+                if subsubelem.tag == 'fileLocation':
+                    # some scenes (L2A summer 2018) have an inconsistent,
+                    # very long url with "PHOEBUS" in it...
+                    if "PHOEBUS" in subsubelem_dict["href"]:
+                        for subfolder in ["DATASTRIP", "GRANULE"]:
+                            if subfolder in subsubelem_dict["href"]:
+                                path_end = subsubelem_dict["href"].split(
+                                    subfolder)[-1]
+                                href_corrected = '{}{}'.format(
+                                    subfolder, path_end)
+                                subsubelem_dict["href"] = href_corrected
+                elem_dict.update(subsubelem_dict)
+                if subsubelem.tag == 'checksum':
+                    elem_dict.update({'checksum': subsubelem.text})
+        files_list.append(elem_dict)
+    return files_list
+
+
+def get_checksum(filename, hash_function='md5'):
+    """Generate checksum for file based on hash function (MD5 or SHA256).
+       Source: https://onestopdataanalysis.com/checksum/
+    """
+    hash_function = hash_function.lower()
+
+    with open(filename, "rb") as f:
+        bytes = f.read()  # read file as bytes
+        if hash_function == "md5":
+            readable_hash = hashlib.md5(bytes).hexdigest()
+        elif hash_function == "sha256":
+            readable_hash = hashlib.sha256(bytes).hexdigest()
+        else:
+            raise Exception(("{} is an invalid hash function. "
+                             "Please Enter MD5 or SHA256").format(
+                            hash_function))
+
+    return readable_hash
+
+
+def download_gcs_file(url, destination, checksum_function, checksum):
+    """Downloads a single file from GCS and performs checksumming.
+    """
+    # if file exists, check if checksum is ok, download again otherwise
+    if os.path.isfile(destination):
+        sum_existing = get_checksum(destination, checksum_function)
+        if sum_existing == checksum:
+            return 0
+    try:
+        r_file = requests.get(url, allow_redirects=True)
+        open(destination, 'wb').write(r_file.content)
+        sum_dl = get_checksum(destination, checksum_function)
+        if sum_dl != checksum:
+            gs.verbose(_("Checksumming not successful for {}").format(
+                destination))
+            return 1
+        else:
+            return 0
+
+    except Exception as e:
+        gs.verbose(_("There was a problem downloading {}").format(url))
+        return 1
+
+
+def download_gcs(scene, output):
+    """Downloads a single S2 scene from Google Cloud Storage.
+    """
+    final_scene_dir = os.path.join(output, '{}.SAFE'.format(scene))
+    create_dir(final_scene_dir)
+    level = scene.split('_')[1]
+    if level == 'MSIL1C':
+        baseurl = ('https://storage.googleapis.com/'
+                   'gcp-public-data-sentinel-2/tiles')
+    elif level == 'MSIL2A':
+        baseurl = ('https://storage.googleapis.com/'
+                   'gcp-public-data-sentinel-2/L2/tiles')
+    tile_block = scene.split('_')[-2]
+    tile_no = tile_block[1:3]
+    tile_first_letter = tile_block[3]
+    tile_last_letters = tile_block[4:]
+
+    url_scene = os.path.join(baseurl, tile_no, tile_first_letter,
+                             tile_last_letters, '{}.SAFE'.format(scene))
+
+    # download the manifest.safe file
+    safe_file = 'manifest.safe'
+    safe_url = os.path.join(url_scene, safe_file)
+    output_path_safe = os.path.join(final_scene_dir, safe_file)
+    r_safe = requests.get(safe_url, allow_redirects=True)
+    if r_safe.status_code != 200:
+        gs.warning(_("Scene <{}> was not found on Google Cloud").format(scene))
+        return 1
+    root_manifest = ET.fromstring(r_safe.content)
+    open(output_path_safe, 'wb').write(r_safe.content)
+    # parse manifest.safe for the rest of the data
+    files_list = parse_manifest_gcs(root_manifest)
+
+    # get all required folders
+    hrefs = [file['href'] for file in files_list]
+    hrefs_heads = [os.path.split(path)[0] for path in hrefs]
+    required_rel_folders = list(set(hrefs_heads))
+    # some paths inconsistently start with "." and some don't
+    if any([not folder.startswith('.') for folder in required_rel_folders]):
+        required_abs_folders = [os.path.join(final_scene_dir, item) for item
+                                in required_rel_folders if item != '.']
+
+    else:
+        required_abs_folders = [item.replace('.', final_scene_dir) for item
+                                in required_rel_folders if item != '.']
+
+    # some scenes don't have additional metadata (GRANULE/.../AUX_DATA or
+    # DATASTRIP/.../QI_DATA) but sen2cor seems to require at least the empty folder
+    rest_folders = []
+    check_folders = [("GRANULE", "AUX_DATA"), ("DATASTRIP", "QI_DATA")]
+    for check_folder in check_folders:
+        if len(fnmatch.filter(required_abs_folders, '*{}*/{}*'.format(
+                check_folder[0], check_folder[1]))) == 0:
+            # get required path
+            basepath = min([fol for fol in required_abs_folders
+                            if check_folder[0] in fol], key=len)
+            rest_folders.append(os.path.join(basepath, check_folder[1]))
+
+    # two folders are not in the manifest.safe, but the empty folders may
+    # be required for other software (e.g. sen2cor)
+    rest_folders.extend([os.path.join(final_scene_dir, 'rep_info'),
+                         os.path.join(final_scene_dir, 'AUX_DATA')])
+    required_abs_folders.extend(rest_folders)
+
+    # create folders
+    for folder in required_abs_folders:
+        req_folder_code = create_dir(folder)
+    if req_folder_code != 0:
+        return 1
+    failed_downloads = []
+    # no .html files are available on GCS but the folder might be required
+    files_list_dl = [file for file in files_list if "HTML" not in file["href"]]
+    for dl_file in tqdm(files_list_dl):
+        # remove the '.' for relative path in the URLS
+        if dl_file['href'].startswith('.'):
+            href_url = dl_file['href'][1:]
+        else:
+            href_url = '/{}'.format(dl_file['href'])
+        # neither os.path.join nor urljoin join these properly...
+        dl_url = '{}{}'.format(url_scene, href_url)
+        output_path_file = '{}{}'.format(final_scene_dir, href_url)
+        checksum_function = dl_file['checksumName'].lower()
+        dl_code = download_gcs_file(url=dl_url, destination=output_path_file,
+                                    checksum_function=checksum_function,
+                                    checksum=dl_file["checksum"])
+        if dl_code != 0:
+            failed_downloads.append(dl_url)
+
+    if len(failed_downloads) > 0:
+        gs.verbose(_("Downloading was not successful for urls \n{}").format(
+            '\n'.join(failed_downloads)))
+        gs.warning(_("Downloading was not successful for scene <{}>").format(
+            scene))
+        return 1
+    else:
+        return 0
 
 
 class SentinelDownloader(object):
     def __init__(self, user, password, api_url='https://scihub.copernicus.eu/apihub'):
-
         self._apiname = api_url
         self._user = user
         self._password = password
@@ -340,7 +527,7 @@ class SentinelDownloader(object):
             if producttype.startswith('S2') and int(relativeorbitnumber) > 143:
                 gs.warning("This relative orbit number is out of range")
             elif int(relativeorbitnumber) > 175:
-                gs.warning("This relative orbit number is out of range")
+                gs.warning(_("This relative orbit number is out of range"))
         if producttype:
             args['producttype'] = producttype
             if producttype.startswith('S2'):
@@ -358,11 +545,11 @@ class SentinelDownloader(object):
         if query:
             redefined = [value for value in args.keys() if value in query.keys()]
             if redefined:
-                gs.warning("Query overrides already defined options ({})".format(
+                gs.warning(_("Query overrides already defined options ({})").format(
                     ','.join(redefined)
                 ))
             args.update(query)
-        gs.verbose("Query: area={} area_relation={} date=({}, {}) args={}".format(
+        gs.verbose(_("Query: area={} area_relation={} date=({}, {}) args={}").format(
             area, area_relation, start, end, args
         ))
         products = self._api.query(
@@ -372,7 +559,7 @@ class SentinelDownloader(object):
         )
         products_df = self._api.to_dataframe(products)
         if len(products_df) < 1:
-            gs.message(_('No product found'))
+            gs.message(_("No product found"))
             return
 
         # sort and limit to first sorted product
@@ -387,7 +574,7 @@ class SentinelDownloader(object):
         if limit:
             self._products_df_sorted = self._products_df_sorted.head(int(limit))
 
-        gs.message(_('{} Sentinel product(s) found').format(len(self._products_df_sorted)))
+        gs.message(_("{} Sentinel product(s) found").format(len(self._products_df_sorted)))
 
     def list(self):
         if self._products_df_sorted is None:
@@ -419,16 +606,15 @@ class SentinelDownloader(object):
 
             print(print_str)
 
-    def download(self, output, sleep=False, maxretry=False):
+    def download(self, output, sleep=False, maxretry=False,
+                 datasource='ESA_COAH'):
         if self._products_df_sorted is None:
             return
 
-        if not os.path.exists(output):
-            os.makedirs(output)
-        gs.message(_('Downloading data into <{}>...').format(output))
-        if self._apiname == 'USGS_EE':
+        create_dir(output)
+        gs.message(_("Downloading data into <{}>...").format(output))
+        if datasource == 'USGS_EE':
             from landsatxplore.earthexplorer import EarthExplorer
-            #from landsatxplore.exceptions import EarthExplorerError
             from landsatxplore.errors import EarthExplorerError
             from zipfile import ZipFile
             ee_login = False
@@ -443,7 +629,7 @@ class SentinelDownloader(object):
                 scene = self._products_df_sorted['entity_id'][idx]
                 identifier = self._products_df_sorted['display_id'][idx]
                 zip_file = os.path.join(output, '{}.zip'.format(identifier))
-                gs.message('Downloading {}...'.format(identifier))
+                gs.message(_("Downloading {}...").format(identifier))
                 try:
                     ee.download(identifier=identifier, output_dir=output, timeout=600)
                 except EarthExplorerError as e:
@@ -454,14 +640,14 @@ class SentinelDownloader(object):
                     safe_name = zip.namelist()[0].split('/')[0]
                     outpath = os.path.join(output, safe_name)
                     zip.extractall(path=output)
-                gs.message(_('Downloaded to <{}>').format(outpath))
+                gs.message(_("Downloaded to <{}>").format(outpath))
                 try:
                     os.remove(zip_file)
                 except Exception as e:
-                    gs.warning(_('Unable to remove {0}:{1}').format(
+                    gs.warning(_("Unable to remove {0}:{1}").format(
                         zip_file, e))
 
-        else:
+        elif datasource == "ESA_COAH":
             for idx in range(len(self._products_df_sorted['uuid'])):
                 gs.message('{} -> {}.SAFE'.format(
                     self._products_df_sorted['uuid'][idx],
@@ -481,13 +667,29 @@ class SentinelDownloader(object):
                         x += 1
                         if x > maxretry:
                             online = True
+        elif datasource == 'GCS':
+            for scene_id in self._products_df_sorted['identifier']:
+                gs.message(_("Downloading {}...").format(scene_id))
+                dl_code = download_gcs(scene_id, output)
+                if dl_code == 0:
+                    gs.message(_("Downloaded to {}").format(
+                        os.path.join(output, '{}.SAFE'.format(scene_id))))
+                else:
+                    # remove incomplete file
+                    del_folder = os.path.join(output,
+                                              '{}.SAFE'.format(scene_id))
+                    try:
+                        shutil.rmtree(del_folder)
+                    except Exception as e:
+                        gs.warning(_("Unable to removed unfinished "
+                                     "download {}".format(del_folder)))
 
     def save_footprints(self, map_name):
         if self._products_df_sorted is None:
             return
         if self._apiname == 'USGS_EE':
             gs.fatal(_(
-                'USGS Earth Explorer does not support footprint download.'))
+                "USGS Earth Explorer does not support footprint download."))
         try:
             from osgeo import ogr, osr
         except ImportError as e:
@@ -560,7 +762,7 @@ class SentinelDownloader(object):
             scenes.append(metadata)
         scenes_df = pandas.DataFrame.from_dict(scenes)
         self._products_df_sorted = scenes_df
-        gs.message(_('{} Sentinel product(s) found').format(
+        gs.message(_("{} Sentinel product(s) found").format(
             len(self._products_df_sorted)))
 
     def set_uuid(self, uuid_list):
@@ -580,7 +782,7 @@ class SentinelDownloader(object):
                 try:
                     odata = self._api.get_product_odata(uuid, full=True)
                 except SentinelAPIError as e:
-                    gs.error('{0}. UUID {1} skipped'.format(e, uuid))
+                    gs.error(_("{0}. UUID {1} skipped".format(e, uuid)))
                     continue
 
                 for k, v in odata.items():
@@ -609,21 +811,21 @@ class SentinelDownloader(object):
                     asc=True, relativeorbitnumber=None):
         if area_relation != 'Intersects':
             gs.fatal(_(
-                'USGS Earth Explorer only supports area_relation'
-                ' "Intersects"'))
+                "USGS Earth Explorer only supports area_relation"
+                " 'Intersects'"))
         if relativeorbitnumber:
             gs.fatal(_(
-                'USGS Earth Explorer does not support "relativeorbitnumber"'
-                ' option.'))
+                "USGS Earth Explorer does not support 'relativeorbitnumber'"
+                " option."))
         if producttype and producttype != 'S2MSI1C':
             gs.fatal(_(
-                'USGS Earth Explorer only supports producttype S2MSI1C'))
+                "USGS Earth Explorer only supports producttype S2MSI1C"))
         if query:
             if not any(key in query for key in ['identifier', 'filename',
                                                 'usgs_identifier']):
                 gs.fatal(_(
-                    'USGS Earth Explorer only supports query options'
-                    ' "filename", "identifier" or "usgs_identifier".'))
+                    "USGS Earth Explorer only supports query options"
+                    " 'filename', 'identifier' or 'usgs_identifier'."))
             if 'usgs_identifier' in query:
                 # get entityId from usgs identifier and directly save results
                 usgs_id = query['usgs_identifier']
@@ -685,7 +887,7 @@ class SentinelDownloader(object):
                     if prod_id != esa_prod_id:
                         scenes.remove(scene)
         if len(scenes) < 1:
-            gs.message(_('No product found'))
+            gs.message(_("No product found"))
             return
         scenes_df = pandas.DataFrame.from_dict(scenes)
         if sortby:
@@ -707,16 +909,20 @@ class SentinelDownloader(object):
             )
         else:
             self._products_df_sorted = scenes_df
-        gs.message(_('{} Sentinel product(s) found').format(len(self._products_df_sorted)))
+        gs.message(_("{} Sentinel product(s) found").format(
+            len(self._products_df_sorted)))
 
 
 def main():
-
     user = password = None
-    if options['datasource'] == 'ESA_COAH':
+    if options['datasource'] == 'ESA_COAH' or options['datasource'] == 'GCS':
         api_url = 'https://scihub.copernicus.eu/apihub'
     else:
         api_url = 'USGS_EE'
+    if options['datasource'] == 'GCS' and (options['producttype'] not in
+       ['S2MSI2A','S2MSI1C']):
+        gs.fatal(_("Download from GCS only supports producttypes S2MSI2A "
+                   "or S2MSI1C"))
 
     if options['settings'] == '-':
         # stdin
@@ -750,10 +956,9 @@ def main():
     sortby = options['sort'].split(',')
     if options['producttype'] in ('SLC', 'GRD', 'OCN'):
         if options['clouds']:
-            gs.info("Option <{}> ignored: cloud cover percentage "
-                    "is not defined for product type {}".format(
-                        "clouds", options['producttype']
-                    ))
+            gs.info(_("Option <{}> ignored: cloud cover percentage "
+                    "is not defined for product type {}").format(
+                        "clouds", options['producttype']))
             options['clouds'] = None
         try:
             sortby.remove('cloudcoverpercentage')
@@ -783,12 +988,12 @@ def main():
                 'asc': True if options['order'] == 'asc' else False,
                 'relativeorbitnumber': options['relativeorbitnumber']
             }
-            if options['datasource'] == 'ESA_COAH':
+            if options['datasource'] == 'ESA_COAH' or options['datasource'] == 'GCS':
                 downloader.filter(**filter_args)
             elif options['datasource'] == 'USGS_EE':
                 downloader.filter_USGS(**filter_args)
     except Exception as e:
-        gs.fatal(_('Unable to connect to {0}: {1}').format(
+        gs.fatal(_("Unable to connect to {0}: {1}").format(
             options['datasource'], e))
 
     if options['footprints']:
@@ -799,7 +1004,7 @@ def main():
         return
 
     downloader.download(options['output'], options['sleep'],
-                        int(options['retry']))
+                        int(options['retry']), options['datasource'])
 
     return 0
 
