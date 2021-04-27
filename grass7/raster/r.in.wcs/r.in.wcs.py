@@ -325,9 +325,13 @@ class WCSBase:
 
         cov_offering = []
         for label in root.iter("{*}CoverageOfferingBrief"):
-            cov_offering.append(
-                label.find("{*}name").text + " : " + label.find("{*}label").text
-            )
+            text = label.find("{*}name").text + " : "
+            # label could be missing for a working WCS service
+            try:
+                text += label.find("{*}label").text
+            except AttributeError:
+                pass
+            cov_offering.append(text)
         if cov_offering:
             grass.message("Available layers:")
             grass.message("\n".join(cov_offering))
