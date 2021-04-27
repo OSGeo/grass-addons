@@ -61,7 +61,7 @@ else:
     from grass.lib.raster import *
 
 def cleanup():
-    nuldev = file(os.devnull, 'w')
+    nuldev = open(os.devnull, 'w')
     if tmp:
         grass.run_command('g.remove', type = 'raster',
                           name = '%s' % tmp,
@@ -70,7 +70,7 @@ def cleanup():
 def main():
 
     global nuldev, tmp
-    nuldev = file(os.devnull, 'w')
+    nuldev = open(os.devnull, 'w')
     tmp = "v_tin_to_rast_%d" % os.getpid()
 
 
