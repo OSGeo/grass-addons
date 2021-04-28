@@ -18,7 +18,7 @@
 #             and the GRASS Development Team
 #
 #             This program is free software under the GNU General
-#             Public License (>=v2). Read the file COPYING that
+#             Public License (>=v2). Read the COPYING that
 #             comes with GRASS for details.
 #
 ############################################################################
@@ -71,7 +71,7 @@ def cleanup():
 def main():
 
     global nuldev, tmp
-    nuldev = file(os.devnull, 'w')
+    nuldev = open(os.devnull, 'w')
     tmp = "v_tin_to_rast_%d" % os.getpid()
 
 
