@@ -16,14 +16,16 @@
 #
 #############################################################################
 
+# Dependencies
 from grass.gunittest.case import TestCase
 from grass.gunittest.main import test
 from grass.script.core import read_command
 import os
 
+# Expected outcome
 CENTROIDS_TABLE = """642375|226865|2\r\r\n643425|223335|4\r\r\n642175|222595|6\r\r\n640185|225145|8\r\r\n641555|222725|10\r\r\n635555|224365|12\r\r\n638965|221925|14\r\r\n641785|220725|16\r\r\n635085|217465|18\r\r\n632215|220135|20\r\r\n632285|216115|22\r\r\n637495|216175|24\r\r\n640835|217145|26\r\r\n636595|219745|28\r\r\n639795|219545|30\r\r\n"""
 
-# test case class must be derived from grass.gunittest.TestCase
+# Tests
 class TestCentroids(TestCase):
     # Setup variables to be used for outputs
     centroids = "test_centroids"
@@ -45,7 +47,7 @@ class TestCentroids(TestCase):
     @classmethod
     def tearDown(self):
         """
-        Remove the outputs created from the watershed module
+        Remove the outputs created from the centroids module
         This is executed after each test run.
         """
         self.runModule(
