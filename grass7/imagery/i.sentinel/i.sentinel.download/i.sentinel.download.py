@@ -480,7 +480,7 @@ def download_gcs(scene, output):
 
 
 class SentinelDownloader(object):
-    def __init__(self, user, password, api_url='https://scihub.copernicus.eu/apihub'):
+    def __init__(self, user, password, api_url='https://apihub.copernicus.eu/apihub'):
         self._apiname = api_url
         self._user = user
         self._password = password
@@ -490,7 +490,7 @@ class SentinelDownloader(object):
         root.addHandler(logging.StreamHandler(
             sys.stderr
         ))
-        if self._apiname == 'https://scihub.copernicus.eu/apihub':
+        if self._apiname == 'https://apihub.copernicus.eu/apihub':
             try:
                 from sentinelsat import SentinelAPI
             except ImportError as e:
@@ -916,7 +916,7 @@ class SentinelDownloader(object):
 def main():
     user = password = None
     if options['datasource'] == 'ESA_COAH' or options['datasource'] == 'GCS':
-        api_url = 'https://scihub.copernicus.eu/apihub'
+        api_url = 'https://apihub.copernicus.eu/apihub'
     else:
         api_url = 'USGS_EE'
     if options['datasource'] == 'GCS' and (options['producttype'] not in
