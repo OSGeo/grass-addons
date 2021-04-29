@@ -208,7 +208,7 @@ class WFSBase:
             temp_warpmap = self._temp()
 
             if int(os.getenv('GRASS_VERBOSE', '2')) <= 2:
-                nuldev = file(os.devnull, 'w+')
+                nuldev = open(os.devnull, "w+")
             else:
                 nuldev = None
 

@@ -256,11 +256,11 @@ def main():
             outstr = 'discharge_pt: row_i '+_y+' col_i '+_x
             if (len(bc_cell) > 0):
                 outstr += '\n'
-            outfile = file(out_pour_point_boundary+'.txt', 'w')
+            outfile = open(out_pour_point_boundary + ".txt", "w")
             outfile.write(outstr)
         # Bounadry condition
         if (len(bc_cell) > 0):
-            outfile = file(out_pour_point_boundary+'.txt', 'a')
+            outfile = open(out_pour_point_boundary + ".txt", "a")
             _xys = np.squeeze(gscript.db_select(sql='SELECT row,col FROM ' +
                                 bc_cell))
             # if only one point (so was on N-S, W-E direct connection),

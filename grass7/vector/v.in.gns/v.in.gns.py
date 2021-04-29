@@ -98,8 +98,8 @@ def main():
 
     header = None
     num_places = 0
-    inf = file(fileorig)
-    outf = file(tmpfile, 'wb')
+    inf = open(fileorig)
+    outf = open(tmpfile, "wb")
     for line in inf:
         fields = line.rstrip('\r\n').split('\t')
         if not header:
