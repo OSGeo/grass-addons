@@ -61,16 +61,17 @@ else:
     from grass.lib.raster import *
 
 def cleanup():
-    nuldev = file(os.devnull, 'w')
     if tmp:
-        grass.run_command('g.remove', type = 'raster',
-                          name = '%s' % tmp,
-                          quiet = True, stderr = nuldev)
+        grass.run_command(
+            "g.remove", type="raster", name="%s" % tmp, quiet=True, stderr=nuldev
+        )
+
+    nuldev.close()
 
 def main():
 
     global nuldev, tmp
-    nuldev = file(os.devnull, 'w')
+    nuldev = open(os.devnull, "w")
     tmp = "v_tin_to_rast_%d" % os.getpid()
 
 
@@ -165,12 +166,17 @@ def main():
                                  map = input).rsplit()[5].split('=')[1]
 
     tmp = "v_tin_to_rast_%d" % os.getpid()
-    grass.mapcalc("$tmp = if($vbottom < $output && $output < $vtop, $output, null())",
-                  tmp = tmp, output = output, vbottom = vbottom, vtop = vtop,
-                  quiet = True, stderr = nuldev)
-
-    grass.parse_command('g.rename', rast = (tmp, output),
-                      quiet = True, stderr = nuldev)
+    grass.mapcalc(
+        "$tmp = if($vbottom < $output && $output < $vtop, $output, null())",
+        tmp=tmp,
+        output=output,
+        vbottom=vbottom,
+        vtop=vtop,
+        quiet=True,
+        stderr=nuldev,
+    )
+    
+    grass.parse_command("g.rename", rast=(tmp, output), quiet=True, stderr=nuldev)
 
     # write cmd history:
     grass.run_command('r.support', map = output,
