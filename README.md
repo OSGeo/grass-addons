@@ -24,7 +24,7 @@ git clone https://github.com/OSGeo/grass-addons.git grass_addons
 
 The simplest way to install GRASS GIS AddOns is to use the `g.extension`
 module:
-<https://grass.osgeo.org/grass78/manuals/g.extension.html>
+<https://grass.osgeo.org/grass-stable/manuals/g.extension.html>
 
 ## How to compile AddOn code
 
