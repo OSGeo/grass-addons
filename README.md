@@ -30,7 +30,7 @@ module:
 
 ### C code/Scripts, with GRASS source code on your computer
 
-Preparations (assuming source code in $HOME/grass78/):
+Preparations (assuming the source code in $HOME/grass78/):
 (if you have already built GRASS from source you don't need to do this
 again. If adding to a binary install the versions must match exactly.
 For a git clone this means that the main GRASS binary and source
