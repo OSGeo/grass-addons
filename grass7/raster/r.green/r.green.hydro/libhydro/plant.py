@@ -131,6 +131,7 @@ def read_plants(hydro, elev=None, restitution='restitution', intake='intake',
     skipped = []
     for pnt in hydro:
         if pnt is None:
+            pass
             #import ipdb
             #ipdb.set_trace()
         if elev is None:
