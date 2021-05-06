@@ -347,16 +347,6 @@ from grass.pygrass.raster import RasterRow
 
 gs.utils.set_path(modulename='r.learn.ml2', dirname='rlearnlib', path='..')
 
-from rlearnlib.utils import (
-    predefined_estimators,
-    load_training_data,
-    save_training_data,
-    option_to_list,
-    scoring_metrics,
-    check_class_weights,
-)
-from rlearnlib.raster import RasterStack
-
 tmp_rast = []
 
 
@@ -441,6 +431,18 @@ def process_param_grid(hyperparams):
 
 
 def main():
+
+    # Lazy import libraries
+    from rlearnlib.utils import (
+        predefined_estimators,
+        load_training_data,
+        save_training_data,
+        option_to_list,
+        scoring_metrics,
+        check_class_weights,
+    )
+    from rlearnlib.raster import RasterStack
+
     try:
         import sklearn
 
