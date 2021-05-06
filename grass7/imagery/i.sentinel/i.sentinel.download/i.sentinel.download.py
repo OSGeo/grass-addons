@@ -164,7 +164,6 @@
 import fnmatch
 import hashlib
 import os
-import requests
 import xml.etree.ElementTree as ET
 import shutil
 import sys
@@ -174,11 +173,6 @@ import time
 from collections import OrderedDict
 
 import grass.script as gs
-try:
-    import pandas
-except ImportError as e:
-    gs.fatal(_("Module requires pandas library: {}").format(e))
-
 
 def create_dir(dir):
     if not os.path.isdir(dir):
@@ -914,6 +908,19 @@ class SentinelDownloader(object):
 
 
 def main():
+
+    # Lazy import nonstandard modules
+    try:
+        import pandas
+    except ImportError as e:
+        gs.fatal(_("Module requires pandas library: {}").format(e))
+
+    try:
+        import requests
+    except ImportError as e:
+        gs.fatal(_("Module requires requests library: {}").format(e))
+
+
     user = password = None
     if options['datasource'] == 'ESA_COAH' or options['datasource'] == 'GCS':
         api_url = 'https://apihub.copernicus.eu/apihub'
