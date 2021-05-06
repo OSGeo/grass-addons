@@ -231,7 +231,6 @@ from grass.pygrass.raster.history import History
 from grass.pygrass.vector.geometry import Centroid
 from grass.pygrass.vector.geometry import Point
 from grass.pygrass.vector.geometry import Line
-from osgeo import ogr
 
 # check if GRASS is running or not
 if "GISBASE" not in os.environ:
@@ -258,6 +257,12 @@ def cleanup():
 def main():
     """Do the main processing
     """
+
+    # Lazy import GDAL python bindings
+    try:
+        from osgeo import gdal, osr
+    except ImportError as e:
+        grass.fatal(_("Module requires GDAL python bindings: {}").format(e))
 
     # Parse input options:
     patch_map = options['input']
