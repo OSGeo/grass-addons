@@ -89,8 +89,6 @@ import grass.script as gscript
 from grass.script.utils import get_lib_path
 import grass.script.array as garray
 
-from osgeo import gdal, osr
-
 path = get_lib_path(modname='maskrcnn', libname='model')
 if path is None:
     gscript.fatal('Not able to find the maskrcnn library directory.')
@@ -98,6 +96,12 @@ sys.path.append(path)
 
 
 def main(options, flags):
+
+    # Lazy import GDAL python bindings
+    try:
+        from osgeo import gdal, osr
+    except ImportError as e:
+        gscript.fatal(_("Module requires GDAL python bindings: {}").format(e))
 
     import model as modellib
     from config import ModelConfig
