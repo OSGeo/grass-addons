@@ -71,7 +71,7 @@ def main():
     nsres = int(gregion['nsres'])
     print(nrows, ncols, ewres,nsres)
 
-    outf = file(output,"w")
+    outf = open(output, "w")
     outf.write("**ATTRIBUTES\n")
     for i in range(len(attributes)):
         outf.write("+ %s: (continuous)\n" % attributes[i])

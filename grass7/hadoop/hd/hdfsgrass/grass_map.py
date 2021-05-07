@@ -24,7 +24,7 @@ class VectorDBInfo:
 
     def _CheckDBConnection(self):
         """Check DB connection"""
-        nuldev = file(os.devnull, 'w+')
+        nuldev = open(os.devnull, "w+")
         # if map is not defined (happens with vnet initialization) or it doesn't exist
         try:
             self.layers = grass.vector_db(map=self.map, stderr=nuldev)

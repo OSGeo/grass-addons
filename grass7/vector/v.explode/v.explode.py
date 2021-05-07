@@ -64,30 +64,46 @@ except:
 
 
 def cleanup():
-    nuldev = file(os.devnull, 'w')
-    grass.run_command('g.remove', type_ = 'vect', pattern = 'v_explode*', flags = 'f',
-                      quiet = True, stderr = nuldev)
+    with open(os.devnull, "w") as nuldev:
+        grass.run_command(
+            "g.remove",
+            type_="vect",
+            pattern="v_explode*",
+            flags="f",
+            quiet=True,
+            stderr=nuldev,
+        )
+
 
 def main():
-    inmap = options['input']
-    outmap = options['output']
-
-    global nuldev
-    nuldev = None
+    inmap = options["input"]
+    outmap = options["output"]
 
     # check if input file exists
-    if not grass.find_file(inmap, element = 'vector')['file']:
+    if not grass.find_file(inmap, element="vector")["file"]:
         grass.fatal(_("<%s> does not exist.") % inmap)
 
-
-    out_split = 'v_explode' + '_' + 'split'
-    grass.run_command('v.split', input_ = inmap, vertices = 2,
-                          out = out_split, quiet = True, stderr = nuldev)
-    out_catdel = 'v_explode' + '_' + 'catdel'
-    grass.run_command('v.category', input_ = out_split, opt = 'del',
-                      output = out_catdel, quiet = True, stderr = nuldev)
-    grass.run_command('v.category', input_ = out_catdel, opt = 'add',
-                      output = outmap, quiet = True, stderr = nuldev)
+    out_split = "v_explode" + "_" + "split"
+    grass.run_command(
+        "v.split", input_=inmap, vertices=2, out=out_split, quiet=True, stderr=None
+    )
+    out_catdel = "v_explode" + "_" + "catdel"
+    grass.run_command(
+        "v.category",
+        input_=out_split,
+        opt="del",
+        output=out_catdel,
+        quiet=True,
+        stderr=None,
+    )
+    grass.run_command(
+        "v.category",
+        input_=out_catdel,
+        opt="add",
+        output=outmap,
+        quiet=True,
+        stderr=None,
+    )
 
 
 if __name__ == "__main__":
