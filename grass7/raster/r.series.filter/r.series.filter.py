@@ -165,7 +165,7 @@ def close_rasters(raster_list):
 def _filter_up(method, arr, winsize, order):
     """Filter array using algorithm from the next article:
         Chen, Jin, et al. "A simple method for reconstructing a high-quality
-        NDVI time-series data set based on the Savitzky–Golay filter."
+        NDVI time-series data set based on the Savitzky-Golay filter."
         Remote sensing of Environment 91.3 (2004): 332-344.
     """
 

@@ -299,7 +299,7 @@ def losses_Colebrooke(discharge, length, diameter, epsilon=0.015):
 
         Parameters
         -----------
-        discharge: float [m³/s]
+        discharge: float [m^3/s]
             Design discharge
         length: float [m]
             Design length of the pipe/derivation
@@ -321,7 +321,7 @@ def losses_Colebrooke(discharge, length, diameter, epsilon=0.015):
         Solve the Colebrook-White formula and return 1/radq(f)
         Parameters
         -----------
-        discharge: float [m³/s]
+        discharge: float [m^3/s]
             Design discharge
         diameter: float [m]
             Design diameter for the derivation pipe
@@ -351,7 +351,7 @@ def losses_Strickler(discharge, length, diameter, theta, velocity, ks=75):
     Parameters
     -----------
 
-    discharge: float [m³/s]
+    discharge: float [m^3/s]
         Design discharge
     length: float [m]
         Design length of the pipe/derivation

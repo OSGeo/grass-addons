@@ -1100,9 +1100,9 @@ class Computor():
     def computeAlphaK(self, freq, polarization):
         """@RECOMMENDATION ITU-R P.838-3
         Specific attenuation model for rain for use in prediction methods
-        γR = kR^α
-        return kv and αv (vertical polarization)
-        return kh and αh (horizontal polarization)
+        gamma_R = kR^alpha
+        return kv and alpha_v (vertical polarization)
+        return kh and alpha_h (horizontal polarization)
         """
         freq /= 1000000
 

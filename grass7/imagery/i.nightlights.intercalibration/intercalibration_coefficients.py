@@ -5,7 +5,7 @@
 Regression coefficients derived from models for
 Inter-Satellite Calibration  of  DMSP-OLS Night-Time Light Time Series
 
-Elvidge 2009, 2014:  dn_adjusted = C0 + C1 × dn + C2 × dn^2
+Elvidge 2009, 2014:  dn_adjusted = C0 + C1 * dn + C2 * dn^2
 Liu 2012:  dn_calibrated = a * dn^2 + b * dn + c
 Wu 2013:  dn_calibrated + 1 = a * (dn + 1)^b
 """
@@ -16,7 +16,7 @@ CITATIONS = {
          'Kimberly E. Baugh, Benjamin T. Tuttle, Tilottama Ghosh, Dee W. Pack, '
          'Edward H. Erwin, and Mikhail Zhizhin. "A Fifteen Year Record of '
          'Global Natural Gas Flaring Derived from Satellite Data." Energies 2, '
-         'no. 2 (August 7, 2009): 595–622.'),
+         'no. 2 (August 7, 2009): 595-622.'),
     'ELVIDGE2014':
         ('Elvidge, Christopher D., Feng-Chi Hsu, '
          'Kimberly E. Baugh, and Tilottama Ghosh. "National Trends in '

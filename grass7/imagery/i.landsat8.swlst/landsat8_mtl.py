@@ -145,11 +145,11 @@ class Landsat8_MTL():
         can be converted to TOA spectral radiance using the radiance rescaling
         factors provided in the metadata file:
 
-        Lλ = ML * Qcal + AL
+        L_lambda = ML * Qcal + AL
 
         where:
 
-        - Lλ = TOA spectral radiance (Watts/( m2 * srad * μm))
+        - L_lambda = TOA spectral radiance (Watts/( m2 * srad * micrometer))
 
         - ML = Band-specific multiplicative rescaling factor from the metadata
         (RADIANCE_MULT_BAND_x, where x is the band number)
@@ -188,12 +188,12 @@ class Landsat8_MTL():
         equation is used to convert DN values to TOA reflectance for OLI data
         as follows:
 
-                ρλ' = MρQcal + Aρ
+                ρ_lambda' = MρQcal + Aρ
 
         where:
 
-        - ρλ' = TOA planetary reflectance, without correction for solar angle.
-          Note that ρλ' does not contain a correction for the sun angle.
+        - ρ_lambda' = TOA planetary reflectance, without correction for solar angle.
+          Note that ρ_lambda' does not contain a correction for the sun angle.
 
         - Mρ  = Band-specific multiplicative rescaling factor from the metadata
           (REFLECTANCE_MULT_BAND_x, where x is the band number)
@@ -205,12 +205,12 @@ class Landsat8_MTL():
 
         TOA reflectance with a correction for the sun angle is then:
 
-        ρλ = ρλ' = ρλ'  ### Fix This!
+        ρ_lambda = ρ_lambda' = ρ_lambda'  ### Fix This!
         cos(θSZ) sin(θSE) ### Fix This!
 
         where:
 
-        - ρλ = TOA planetary reflectance
+        - ρ_lambda = TOA planetary reflectance
         - θSE = Local sun elevation angle. The scene center sun elevation angle
           in degrees is provided in the metadata (SUN_ELEVATION).
         - θSZ = Local solar zenith angle;
@@ -232,13 +232,13 @@ class Landsat8_MTL():
         TIRS band data can be converted from spectral radiance to brightness
         temperature using the thermal constants provided in the metadata file:
 
-        T = K2 / ln( (K1/Lλ) + 1 )
+        T = K2 / ln( (K1/L_lambda) + 1 )
 
         where:
 
         - T = At-satellite brightness temperature (K)
 
-        - Lλ = TOA spectral radiance (Watts/( m2 * srad * μm)), below
+        - L_lambda = TOA spectral radiance (Watts/( m2 * srad * μm)), below
           'DUMMY_RADIANCE'
 
         - K1 = Band-specific thermal conversion constant from the metadata

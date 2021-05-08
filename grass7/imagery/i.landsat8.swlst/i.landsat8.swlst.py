@@ -69,7 +69,7 @@
                [1] [Look below for the publised paper!] Huazhong Ren, Chen Du,
                Qiming Qin, Rongyuan Liu, Jinjie Meng, and Jing Li. "Atmospheric
                Water Vapor Retrieval from Landsat 8 and Its Validation."
-               3045–3048. IEEE, 2014.
+               3045-3048. IEEE, 2014.
 
                [2] Ren, H., Du, C., Liu, R., Qin, Q., Yan, G., Li, Z. L., &
                Meng, J. (2015). Atmospheric water vapor retrieval from Landsat

@@ -129,9 +129,9 @@ References
 
 - Gangkofner, U. G., Pradhan, P. S., and Holcomb, D. W. (2008). Optimizing
 the high-pass filter addition technique for image fusion.
-PHOTOGRAMMETRIC ENGINEERING & REMOTE SENSING, 74(9):1107–1118.
+PHOTOGRAMMETRIC ENGINEERING & REMOTE SENSING, 74(9):1107-1118.
 
-- “ERDAS IMAGINE.” Accessed March 19, 2015. http://doc.hexagongeospatial.com/ERDAS%20IMAGINE/ERDAS_IMAGINE_Help/#ii_hpfmerge_mergedialog.htm.
+- "ERDAS IMAGINE." Accessed March 19, 2015. http://doc.hexagongeospatial.com/ERDAS%20IMAGINE/ERDAS_IMAGINE_Help/#ii_hpfmerge_mergedialog.htm.
 
 
 - Aniruddha Ghosh & P.K. Joshi (2013) Assessment of pan-sharpened very high-resolution WorldView-2 images, International Journal of Remote Sensing, 34:23, 8336-8359

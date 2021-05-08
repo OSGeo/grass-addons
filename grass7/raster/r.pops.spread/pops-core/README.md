@@ -23,7 +23,7 @@ If you use this software or code, please cite the following papers:
 * Ross K. Meentemeyer, Nik J. Cunniffe, Alex R. Cook, Joao A. N. Filipe,
   Richard D. Hunter, David M. Rizzo, and Christopher A. Gilligan, 2011.
   Epidemiological modeling of invasion in heterogeneous landscapes:
-  spread of sudden oak death in California (1990–2030).
+  spread of sudden oak death in California (1990-2030).
   *Ecosphere* 2:art17.
   [DOI: 10.1890/ES10-00192.1](https://doi.org/10.1890/ES10-00192.1)
 

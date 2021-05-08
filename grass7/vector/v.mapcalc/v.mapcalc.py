@@ -2,7 +2,7 @@
 
 """
 MODULE:       v.mapcalc
-AUTHOR(S):    Thomas Leppelt, Soeren Gebbert, Thünen Institut Germany,
+AUTHOR(S):    Thomas Leppelt, Soeren Gebbert, Thuenen Institut Germany,
 
 PURPOSE:      Vector map algebra
 COPYRIGHT:    (C) 2013-2015 by the GRASS Development Team

@@ -50,7 +50,7 @@ class SplitWindowLST():
 
     The algorithm removes the atmospheric effect through differential
     atmospheric absorption in the two adjacent thermal infrared channels
-    centered at about 11 and 12 μm.
+    centered at about 11 and 12 micrometer.
 
     The linear or non-linear combination of the brightness temperatures is
     finally applied for LST estimation based on the equation:
@@ -77,7 +77,7 @@ class SplitWindowLST():
 
     For example, the LST pixel with a CWV of 2.1 g/cm2 is estimated by using
     the coefficients of [0.0, 2.5] and [2.0, 3.5]. This process initially
-    reduces the δLSTinc and improves the spatial continuity of the LST product.
+    reduces the delta-LSTinc and improves the spatial continuity of the LST product.
     """
 
     def __init__(self, landcover):

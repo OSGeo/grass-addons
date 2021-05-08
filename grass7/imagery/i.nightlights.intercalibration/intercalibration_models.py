@@ -133,7 +133,7 @@ class Elvidge(CalibrationModel):
     """
     Empirical second order, DMSP-OLS inter-satellite, calibration model
     proposed by Elvidge, 2009  or  Elvidge, 2014.
-    DN adj. = C0 + C1×DN + C2×DN^2
+    DN adj. = C0 + C1*DN + C2*DN^2
     """
 
     def __init__(self, satellite, year, version):
@@ -226,7 +226,7 @@ class Elvidge(CalibrationModel):
 class Liu2012(CalibrationModel):
     """
     Empirical second order calibration model (& optimal threshold method)
-    proposed by Liu, 2012.  DNc = a × DN^2 + b × DN + c, where:
+    proposed by Liu, 2012.  DNc = a * DN^2 + b * DN + c, where:
     - DNc:
     - DN:
     - a:
@@ -307,7 +307,7 @@ class Liu2012(CalibrationModel):
 class Wu2013(CalibrationModel):
     """
     Power calibration model proposed by Wu 2013.
-    DNc + 1 = a × (DN + 1)^b
+    DNc + 1 = a * (DN + 1)^b
     Subclass, inheriting from CalibrationModel
     """
 

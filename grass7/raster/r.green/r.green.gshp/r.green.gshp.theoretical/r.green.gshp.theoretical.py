@@ -267,9 +267,9 @@ def main(opts, flgs):
     borehole_length: [m]
         Borehole length, default: 100m
     ground_temperature: [°C]
-        Initial ground temperature, default: 10 °C
+        Initial ground temperature, default: 10 deg C
     fluid_limit_temperature: [°C]
-        Minimum or maximum fluid temperature, default: -2 °C
+        Minimum or maximum fluid temperature, default: -2 deg C
     """
     pid = os.getpid()
     DEBUG = flags['d']

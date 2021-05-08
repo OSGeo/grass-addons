@@ -33,7 +33,7 @@ PURPOSE:        Performing inter-satellite calibration on DMSP-OLS Nighttime
                 - Liu (2012)
 
                   Empirical second order polynomial regression model & optimal
-                  threshold method:  DNc = a × DN^2 + b × DN + c
+                  threshold method:  DNc = a * DN^2 + b * DN + c
 
                   where:
 
@@ -46,7 +46,7 @@ PURPOSE:        Performing inter-satellite calibration on DMSP-OLS Nighttime
 
                 - Wu (2013)
 
-                  Power calibration model:  DNc + 1 = a × (DN + 1)^b
+                  Power calibration model:  DNc + 1 = a * (DN + 1)^b
 
                   where:
 
@@ -71,11 +71,11 @@ PURPOSE:        Performing inter-satellite calibration on DMSP-OLS Nighttime
    |              |                                                       |
    | +--Regression+Models-----------------------------------------------+ |
    | |                                                                  | |
-   | |  Elvidge, 2009/2014:  DNc = C0 + C1×DN + C2×DNv2                 | |
+   | |  Elvidge, 2009/2014:  DNc = C0 + C1*DN + C2*DNv2                 | |
    | |                                                                  | |
    | |  Liu, 2012:  based on Elvidge's model + optimal threshold method | |
    | |                                                                  | |
-   | |  Wu, 2014:            DNc + 1 = a×(DN + 1)^b                     | |
+   | |  Wu, 2014:            DNc + 1 = a*(DN + 1)^b                     | |
    | |                                                                  | |
    | |  Others?                                                         | |
    | |                                                                  | |

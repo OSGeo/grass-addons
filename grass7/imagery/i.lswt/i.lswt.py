@@ -17,7 +17,7 @@
 # The satellite specific split-window coefficients are taken from:
 # Jimenez-Munoz, J.-C., Sobrino, J.A., 2008. Split-Window Coefficients for
 # Land Surface Temperature Retrieval From Low-Resolution Thermal Infrared Sensors.
-# IEEE Geoscience and Remote Sensing Letters 5, 806–809. doi:10.1109/LGRS.2008.2001636
+# IEEE Geoscience and Remote Sensing Letters 5, 806-809. doi:10.1109/LGRS.2008.2001636
 #
 # A new method to develop continuos time series of LSWT from historical AVHRR
 # is explained below, uses the same split window technique implemented here:

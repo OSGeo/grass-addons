@@ -48,10 +48,10 @@ class Column_Water_Vapor():
 
     - c0, c1 and c2 are coefficients obtained from simulated data;
 
-    - τ is the band effective atmospheric transmittance;
+    - tau is the band effective atmospheric transmittance;
 
     - N is the number of adjacent pixels (excluding water and cloud pixels)
-    in a spatial window of size n (i.e., N = n × n);
+    in a spatial window of size n (i.e., N = n * n);
 
     - Ti,k and Tj,k are Top of Atmosphere brightness temperatures (K) of
     bands i and j for the kth pixel;
@@ -102,7 +102,7 @@ class Column_Water_Vapor():
     Ren, H.; Du, C.; Qin, Q.; Liu, R.; Meng, J.; Li, J. Atmospheric water vapor
     retrieval from landsat 8 and its validation. In Proceedings of the IEEE
     International Geosciene and Remote Sensing Symposium (IGARSS), Quebec, QC,
-    Canada, July 2014; pp. 3045–3048.
+    Canada, July 2014; pp. 3045-3048.
     """
 
     def __init__(self, window_size, ti, tj):

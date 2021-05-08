@@ -7,7 +7,7 @@
 # AUTHOR(S):    Paulo van Breugel <paulo ecodiv earth>
 # PURPOSE:      Calculate the multivariate environmental similarity
 #               surface (MESS) as proposed by Elith et al., 2010,
-#               Methods in Ecology & Evolution, 1(330–342).
+#               Methods in Ecology & Evolution, 1(330-342).
 #
 # COPYRIGHT: (C) 2014-2017 by Paulo van Breugel and the GRASS Development Team
 #

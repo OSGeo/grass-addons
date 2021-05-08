@@ -27,7 +27,7 @@ double free_air(h){
 /*# Bouguer Correction*/
 double delta_g_bouguer(double rho,double h){
  /* Bouguer Correction (mGal)
- G=gravity constant 6.67398 × 10^-11 [m3 kg-1 s-2]
+ G=gravity constant 6.67398 * 10^-11 [m3 kg-1 s-2]
  rho=density of slab (Mg/m3)
  h=height (m)*/
  return (2*M_PI*6.67398*pow(10,-11)*rho*h);

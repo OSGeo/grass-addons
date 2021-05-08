@@ -14,7 +14,7 @@ Sources:
 - "Optimizing the High-Pass Filter Addition Technique for Image Fusion",
 Ute G. Gangkofner, Pushkar S. Pradhan, and Derrold W. Holcomb (2008).
 
-- “ERDAS IMAGINE.” Accessed March 19, 2015.
+- "ERDAS IMAGINE." Accessed March 19, 2015.
 http://doc.hexagongeospatial.com/ERDAS%20IMAGINE/ERDAS_IMAGINE_Help/#ii_hpfmerge_mergedialog.htm.
 
 """
