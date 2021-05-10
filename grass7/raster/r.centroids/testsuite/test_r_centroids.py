@@ -19,10 +19,6 @@
 # Dependencies
 from grass.gunittest.case import TestCase
 from grass.gunittest.main import test
-from grass.script.core import read_command
-
-# Expected outcome
-CENTROIDS_TABLE = """642375|226865|2\r\r\n643425|223335|4\r\r\n642175|222595|6\r\r\n640185|225145|8\r\r\n641555|222725|10\r\r\n635555|224365|12\r\r\n638965|221925|14\r\r\n641785|220725|16\r\r\n635085|217465|18\r\r\n632215|220135|20\r\r\n632285|216115|22\r\r\n637495|216175|24\r\r\n640835|217145|26\r\r\n636595|219745|28\r\r\n639795|219545|30\r\r\n"""
 
 # Tests
 class TestCentroids(TestCase):
@@ -35,7 +31,7 @@ class TestCentroids(TestCase):
         # to not override mapset's region (which might be used by other tests)
         cls.use_temp_region()
         # cls.runModule or self.runModule is used for general module calls
-        cls.runModule("g.region", raster="elevation")
+        cls.runModule("g.region", raster="basins")
 
     @classmethod
     def tearDownClass(cls):
@@ -58,11 +54,7 @@ class TestCentroids(TestCase):
             "r.centroids", input="basins", output=self.centroids, overwrite=True
         )
 
-        test_centroid_table = read_command(
-            "v.out.ascii", input=self.centroids, format="point"
-        )
-
-        self.assertEqual(CENTROIDS_TABLE, test_centroid_table)
+        self.assertVectorEqualsAscii(self.centroids, "data/r_centroids_reference.txt", digits=6, precision=1)
 
 
 if __name__ == "__main__":

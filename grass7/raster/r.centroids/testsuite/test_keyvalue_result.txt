@@ -1,4 +1,4 @@
-time=2.228s
+time=2.251s
 status=succeeded
 total=1
 failures=0
