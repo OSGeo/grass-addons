@@ -168,7 +168,6 @@ import requests
 import xml.etree.ElementTree as ET
 import shutil
 import sys
-from tqdm import tqdm
 import logging
 import time
 from collections import OrderedDict
@@ -178,6 +177,11 @@ try:
     import pandas
 except ImportError as e:
     gs.fatal(_("Module requires pandas library: {}").format(e))
+
+try:
+    from tqdm import tqdm
+except ImportError as e:
+    gs.fatal(_("Module requires tqdm library: {}").format(e))
 
 
 def create_dir(dir):
