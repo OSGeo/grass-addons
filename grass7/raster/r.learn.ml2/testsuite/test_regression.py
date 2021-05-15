@@ -16,7 +16,6 @@ for details.
 import tempfile
 import os
 
-import grass.script as gs
 
 from grass.gunittest.case import TestCase
 from grass.gunittest.main import test
