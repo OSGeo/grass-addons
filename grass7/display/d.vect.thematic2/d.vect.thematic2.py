@@ -340,7 +340,7 @@ def main():
     if not group:
         group = "themes"
 
-    f_group = file(tmp_group, 'w')
+    f_group = open(tmp_group, "w")
     f_group.write("Group %s\n" % group)
 
     # Calculate statistics for thematic intervals
@@ -410,7 +410,7 @@ def main():
         xlower = 0
 
     # legend title
-    f_graph = file(tmp_graph, 'w')
+    f_graph = open(tmp_graph, "w")
     out(f_graph, locals(), """\
 color 0:0:0
 size 2 2
@@ -421,12 +421,12 @@ move 4 90
 text Value range: $min - $max
 """)
 
-    f_gisleg = file(tmp_gisleg, 'w')
+    f_gisleg = open(tmp_gisleg, "w")
     out(f_gisleg, locals(), """\
 title - - - {Thematic map legend for column $column of map $map}
 """)
 
-    f_psleg = file(tmp_psleg, 'w')
+    f_psleg = open(tmp_psleg, "w")
     out(f_psleg, locals(), """\
 text 1% 95% Thematic map legend for column $column of map $map
   ref bottom left
@@ -452,7 +452,7 @@ end
     }
 
     # open file for psmap instructions
-    f_psmap = file(tmp_psmap, 'w')
+    f_psmap = open(tmp_psmap, "w")
 
     # graduated color thematic mapping
     if themetype == "graduated_colors":

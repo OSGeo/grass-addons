@@ -78,7 +78,7 @@ from functools import reduce
 
 def BuildFileISF(attributes, preferences, decision, outputMap, outputTxt):
     outputTxt = outputTxt+".isf"
-    outf = file(outputTxt,"w")
+    outf = open(outputTxt, "w")
     outf.write("**ATTRIBUTES\n")
     for i in range(len(attributes)):
         outf.write("+ %s: (continuous)\n" % attributes[i])

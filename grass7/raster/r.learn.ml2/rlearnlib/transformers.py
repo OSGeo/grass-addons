@@ -1,11 +1,16 @@
 import importlib
 
 import numpy as np
+import grass.script as gs
 
 
 class ImportSklearnModule():
     """Lazy import of 'sklearn' module"""
-    sklearn_base = importlib.import_module('sklearn.base')
+    try:
+        sklearn_base = importlib.import_module('sklearn.base')
+    except:
+        gs.fatal(
+            "Package python3-scikit-learn 0.20 or newer is not installed")
 
 
 class CategoryEncoder(ImportSklearnModule.sklearn_base.BaseEstimator,

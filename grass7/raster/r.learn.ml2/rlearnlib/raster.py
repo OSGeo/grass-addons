@@ -5,7 +5,6 @@ from subprocess import PIPE
 
 import grass.script as gs
 import numpy as np
-import pandas as pd
 from grass.pygrass.gis.region import Region
 from grass.pygrass.modules.shortcuts import general as g
 from grass.pygrass.modules.shortcuts import imagery as im
@@ -53,6 +52,11 @@ class RasterStack(StatisticsMixin):
         count : int
             Number of RasterRow objects within the RasterStack.
         """
+        try:
+            import pandas as pd
+
+        except ImportError:
+            gs.fatal("Package python3-pandas 0.25 or newer is not installed")
 
         self.loc = _LocIndexer(self)
         self.iloc = _ILocIndexer(self, self.loc)

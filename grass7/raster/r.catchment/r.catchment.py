@@ -322,7 +322,7 @@ def main():
     ####################################################
         grass.verbose('Creating output map')
         t = grass.tempfile()
-        temp = file(t, 'w+')
+        temp = open(t, "w+")
         temp.write('0 thru %s = %s\n' % (int(cutoff), mapval))
         temp.flush()
         grass.run_command('r.reclass', overwrite=grass.overwrite(), input=cost,
