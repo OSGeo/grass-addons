@@ -61,8 +61,6 @@ def main():
     global rm_region
     rm_region = "i_zero2null_region_" + str(os.getpid())
     gscript.run_command('g.region', save=rm_region)
-
-
     gisenv = gscript.gisenv()
 
     for inmap in inmaps:
@@ -75,7 +73,14 @@ def main():
             continue
 
         # set current region to map
-        gscript.run_command('g.region', raster=inmap)
+        gscript.run_command('g.region', raster=inmap, zoom=inmap)
+
+        # save current null() cells to raster
+        null_cells_default = "{}_nullcells".format(inmap)
+        rm_rasters.append(null_cells_default)
+        null_cells_exp = "{} = if(isnull({}),1,null())".format(
+            null_cells_default, inmap)
+        gscript.run_command("r.mapcalc", expression=null_cells_exp, quiet=True)
 
         # check if there are any zero cells
         rinfo = gscript.raster_info(inmap)
@@ -87,7 +92,7 @@ def main():
             gscript.message("No zero cells in input map <%s>, nothing to do." % inmap)
             continue
 
-        gscript.run_command('g.region', raster=inmap)
+        gscript.run_command('g.region', raster=inmap, zoom=inmap)
 
         # create clumps of zero cells
         # reclass rules
@@ -185,16 +190,21 @@ def main():
             gscript.try_remove(tmpfile)
             rm_rasters.append(inmap + "_nodatamask")
 
-            exp = "%(inmap)s_null = if(isnull(%(inmap)s_nodatamask), %(maptomask)s, null())" % \
+            exp = "%(inmap)s_null_tmp = if(isnull(%(inmap)s_nodatamask), %(maptomask)s, null())" % \
                   {"inmap": inmap, "maptomask": maptomask}
             gscript.mapcalc(exp)
         else:
             if maptomask != inmap:
                 gscript.run_command('g.rename',
-                                    raster="%(maptomask)s,%(inmap)s_null" %
+                                    raster="%(maptomask)s,%(inmap)s_null_tmp" %
                                            {"maptomask": maptomask,
                                             "inmap": inmap},
                                     quiet=True)
+        rm_rasters.append("{}_null_tmp".format(inmap))
+        # remove initial nodata areas from result too
+        exp_null = "{inmap}_null = if(isnull({nodata_ref}),{inmap}_null_tmp,null())".format(
+            inmap=inmap, nodata_ref=null_cells_default)
+        gscript.run_command("r.mapcalc", expression=exp_null, quiet=True)
 
         # *_rcl_clump are base maps for reclassed maps, need to be removed last
         rm_rasters.append(inmap + "_rcl_clump")
