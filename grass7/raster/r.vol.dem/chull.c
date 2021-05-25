@@ -27,6 +27,12 @@
 
 #include "globals.h"
 
+#ifndef __bool_true_false_are_defined
+/* Define Boolean type for pre-7.8.6 compatibility */
+typedef enum
+{ false = FALSE, true = TRUE } bool;
+#endif
+
 /* Define vertex indices. */
 #define X   0
 #define Y   1
