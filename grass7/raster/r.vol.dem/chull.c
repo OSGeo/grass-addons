@@ -27,9 +27,11 @@
 
 #include "globals.h"
 
-/*Define Boolean type */
+#ifndef __bool_true_false_are_defined
+/* Define Boolean type for pre-7.8.6 compatibility */
 typedef enum
-{ BFALSE, BTRUE } bool;
+{ false = FALSE, true = TRUE } bool;
+#endif
 
 /* Define vertex indices. */
 #define X   0
@@ -74,18 +76,18 @@ struct tFaceStructure
 };
 
 /* Define flags */
-#define ONHULL   	BTRUE
-#define REMOVED  	BTRUE
-#define VISIBLE  	BTRUE
-#define PROCESSED	BTRUE
+#define ONHULL   	true
+#define REMOVED  	true
+#define VISIBLE  	true
+#define PROCESSED	true
 #define SAFE		2000000000	/* Range of safe coord values. */
 
 /* Global variable definitions */
 tVertex vertices = NULL;
 tEdge edges = NULL;
 tFace faces = NULL;
-bool debug = BFALSE;
-bool check = BFALSE;
+bool debug = false;
+bool check = false;
 
 /* Function declarations */
 tVertex MakeNullVertex(void);
@@ -199,13 +201,13 @@ int make3DHull(long int *px, long int *py, long int *pz, int num_points,
 {
     int error;
 
-    check = BFALSE;
-    debug = BFALSE;
+    check = false;
+    debug = false;
 
     if (DEBUG > 1)
-	check = BTRUE;
+	check = true;
     if (DEBUG > 2)
-	debug = BTRUE;
+	debug = true;
 
     ReadVertices(px, py, pz, num_points);
 
@@ -362,7 +364,7 @@ void Dump(FILE * tmpfile)
 
     if (DEBUG > 0) {
 	fprintf(stdout, "3D Convex hull check (Euler):\n");
-	check = BTRUE;
+	check = true;
 	CheckEuler(V, E, F);
     }
 
@@ -486,7 +488,7 @@ void Print(void)
 
     if (DEBUG > 0) {
 	fprintf(stdout, "3D Convex hull check (Euler):\n");
-	check = BTRUE;
+	check = true;
 	CheckEuler(V, E, F);
     }
 
@@ -647,7 +649,7 @@ bool AddOne(tVertex p)
     tFace f;
     tEdge e, temp;
     long int vol;
-    bool vis = BFALSE;
+    bool vis = false;
 
     if (debug) {
 	fprintf(stderr, "AddOne: starting to add v%d.\n", p->vnum);
@@ -664,7 +666,7 @@ bool AddOne(tVertex p)
 		    (unsigned int)p, vol);
 	if (vol < 0) {
 	    f->visible = VISIBLE;
-	    vis = BTRUE;
+	    vis = true;
 	}
 	f = f->next;
     } while (f != faces);
@@ -672,7 +674,7 @@ bool AddOne(tVertex p)
     /* If no faces are visible from p, then p is inside the hull. */
     if (!vis) {
 	p->onhull = !ONHULL;
-	return BFALSE;
+	return false;
     }
 
     /* Mark edges in interior of visible region for deletion.
@@ -688,7 +690,7 @@ bool AddOne(tVertex p)
 	    e->newface = MakeConeFace(e, p);
 	e = temp;
     } while (e != edges);
-    return BTRUE;
+    return true;
 }
 
 /*---------------------------------------------------------------------
