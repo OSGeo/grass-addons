@@ -817,7 +817,7 @@ def main():
         radiuses = [float(x) for x in options['radiuses'].split(',')]
     if options['radius_step']:
         step = float(options['radius_step'])
-        start = float(options['radiues_start'])
+        start = float(options['radius_start'])
         stop = float(options['radius_stop'])
         iter_radiuses = drange(start, stop, step)
         # We want to keep a specific precision, so we go through string
