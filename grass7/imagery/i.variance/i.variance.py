@@ -26,6 +26,11 @@
 #% keyword: resolution
 #%end
 #
+#%flag
+#%  key: w
+#%  description: Weight according to area (slower)
+#%end
+#
 #%option G_OPT_R_INPUT
 #% description: Raster band  on which to perform analysis of variation of variance
 #%end
@@ -111,6 +116,11 @@ def main():
     matplotlib.use('wxAGG')  # required by windows
     import matplotlib.pyplot as plt
 
+    if flags['w']:
+        resampling_flags = 'w'
+    else:
+        resampling_flags = ''
+
     input = options['input']
     output = None
     if options['csv_output']:
@@ -127,7 +137,7 @@ def main():
     step = float(options['step'])
 
     global temp_resamp_map, temp_variance_map
-    temp_resamp_map = "temp_resamp_map_%d" % os.getpid()
+    temp_resamp_map = str()  # define when running the 'base case'
     temp_variance_map = "temp_variance_map_%d" % os.getpid()
     resolutions = []
     variances = []
@@ -161,14 +171,32 @@ def main():
     gscript.use_temp_region()
 
     gscript.message(_("Calculating variance at different resolutions"))
+    counter = 1
     while res <= target_res:
         gscript.percent(res, target_res, step)
-        gscript.run_command('r.resamp.stats',
+
+        # base case
+        if not temp_resamp_map:
+            temp_resamp_map = "temp_resamp_map_%d" % os.getpid()
+            # print('Base case', counter)
+            gscript.run_command('r.resamp.stats',
                             input=input,
                             output=temp_resamp_map,
                             method='average',
+                            flags=resampling_flags,
                             quiet=True,
                             overwrite=True)
+        else:
+            counter += 1
+            # print('Existing resampled map', counter)
+            gscript.run_command('r.resamp.stats',
+                            input=temp_resamp_map,
+                            output=temp_resamp_map,
+                            method='average',
+                            flags=resampling_flags,
+                            quiet=True,
+                            overwrite=True)
+
         gscript.run_command('r.neighbors',
                             input=temp_resamp_map,
                             method='variance',
@@ -189,6 +217,7 @@ def main():
                             w=west,
                             e=east,
                             flags='ag')
+        gscript.verbose('resolution (step {}): {}'.format(counter, res))
         cells = int(region['cells'])
 
     indices, differences = FindMaxima(variances)
