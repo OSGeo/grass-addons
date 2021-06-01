@@ -88,6 +88,7 @@ import grass.pygrass.modules as pymod
 
 ############################################################################
 
+
 def main(options, flags):
 
     # Get the options
@@ -100,9 +101,9 @@ def main(options, flags):
 
     write_header = flags["n"]
 
-    #output_cat_label = flags["f"]
-    #output_color = flags["r"]
-    #output_cat = flags["i"]
+    # output_cat_label = flags["f"]
+    # output_color = flags["r"]
+    # output_cat = flags["i"]
 
     overwrite = gscript.overwrite()
 
@@ -126,13 +127,11 @@ def main(options, flags):
     if separator == "newline":
         separator = "\n"
 
-
-    r_what = gcore.read_command("r.what", map="dummy",
-                                    output="-",
-                                    separator=separator,
-                                    quiet=True)
+    r_what = gcore.read_command(
+        "r.what", map="dummy", output="-", separator=separator, quiet=True
+    )
     if len(s) == 0:
-        gcore.fatal(_('No data returned from query'))
+        gcore.fatal(_("No data returned from query"))
 
     reader = csv.reader(open(csv_file, "r"), delimiter=separator)
 
@@ -140,19 +139,17 @@ def main(options, flags):
         id_, x, y, timestamp = line
 
         start = tgis.string_to_datetime(timestamp)
-        where = "start_time <= \'" + str(start) + "\' AND end_time > \'" + str(start) + "\'"
-        rows = sp.get_registered_maps(columns="id", where=where,
-                                      dbif=dbif)
+        where = "start_time <= '" + str(start) + "' AND end_time > '" + str(start) + "'"
+        rows = sp.get_registered_maps(columns="id", where=where, dbif=dbif)
         for entry in rows:
             r_what.inputs.map = entry[0]
-            r_what.inputs.coordinates = [x,y]
+            r_what.inputs.coordinates = [x, y]
             r_what.run()
             out = "%s%s%s" % (id_, separator, r_what.outputs.stdout)
 
             sys.stdout.write(out)
 
     dbif.close()
-
 
 
 if __name__ == "__main__":
