@@ -11,6 +11,9 @@ What follows are usage and contributing instruction written for
 GRASS GIS 7 rather than 6. New contributions should go to the
 current version.
 
+The repository was restructured for archival, i.e., it is not meant
+to be consumed by GRASS GIS 6 in any way except for manual compilation.
+
 ## How to get write access here
 
 Read access is granted to the public, write access
