@@ -90,6 +90,7 @@ import grass.script as gs
 try:
     from grass.script import legalize_vector_name as make_name_sql_compliant
 except ImportError:
+
     def make_name_sql_compliant(name, fallback_prefix="x"):
         """Make *name* usable for vectors, tables, and columns
 
@@ -126,6 +127,7 @@ def minimize_whitespace(text):
     """
     return collapse_whitespace(text).strip()
 
+
 def reformat_date(detect_dates, date_format, date):
     """Reformats date into a desired format
 
@@ -140,6 +142,7 @@ def reformat_date(detect_dates, date_format, date):
             # We assume the value is not a date, so we don't touch it.
             pass
     return date
+
 
 def main():
     options, flags = gs.parser()
@@ -156,13 +159,22 @@ def main():
     # TODO: lowercase the column names
 
     if prefix and re.match("[^A-Za-z]", prefix[0]):
-        gs.fatal(_("Prefix (now <{prefix}>) must start with an ASCII letter (a-z or A-Z in English alphabeth)"), prefix=prefix)
+        gs.fatal(
+            _(
+                "Prefix (now <{prefix}>) must start with an ASCII letter (a-z or A-Z in English alphabeth)"
+            ),
+            prefix=prefix,
+        )
 
-    with open(in_filename, "r", newline="") as infile, open(out_filename, "w", newline="") as outfile:
+    with open(in_filename, "r", newline="") as infile, open(
+        out_filename, "w", newline=""
+    ) as outfile:
         # TODO: Input format to parameters (important)
         # TODO: Output format to parameters (somewhat less important)
         input_csv = csv.reader(infile, delimiter=input_separator, quotechar='"')
-        output_csv = csv.writer(outfile, delimiter=",", quotechar='"', lineterminator="\n")
+        output_csv = csv.writer(
+            outfile, delimiter=",", quotechar='"', lineterminator="\n"
+        )
         for i, row in enumerate(input_csv):
             # TODO: Optionally remove newlines from cells.
             # In header and body replace by space (and turns into underscore for header).
@@ -205,7 +217,7 @@ def main():
                         row_has_content = True
                     # TODO: Use bools for this, perhaps a dedicated class for this type of option.
                     # This is an experiment with extremely aggressive replacemt of flags by options.
-                    if "collapse_whitespace" in  options["cell_clean"]:
+                    if "collapse_whitespace" in options["cell_clean"]:
                         column = collapse_whitespace(column)
                     if "strip_whitespace" in options["cell_clean"]:
                         column = column.strip()
