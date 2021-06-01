@@ -39,26 +39,26 @@ import sys
 from grass.script import parser
 from grass.script.utils import set_path
 
-set_path(modulename='wx.metadata', dirname='mdlib', path='..')
+set_path(modulename="wx.metadata", dirname="mdlib", path="..")
 
 
 def main():
     # Load metadata library
     from mdlib.mdgrass import GrassMD
 
-    if not options['output']:
+    if not options["output"]:
         destination = None
         name = None
     else:
-        destination, name = os.path.split(options['output'])
+        destination, name = os.path.split(options["output"])
 
-    md = GrassMD(options['map'], 'vector')
-    if options['profile'] == 'inspire':
+    md = GrassMD(options["map"], "vector")
+    if options["profile"] == "inspire":
         md.createGrassInspireISO()
         xml_file = md.saveXML(
             path=destination,
             xml_out_name=name,
-            overwrite=os.getenv('GRASS_OVERWRITE', False),
+            overwrite=os.getenv("GRASS_OVERWRITE", False),
         )
 
         if xml_file is not False:
@@ -70,7 +70,7 @@ def main():
         xml_file = md.saveXML(
             path=destination,
             xml_out_name=name,
-            overwrite=os.getenv('GRASS_OVERWRITE', False),
+            overwrite=os.getenv("GRASS_OVERWRITE", False),
         )
 
         if xml_file is not False:

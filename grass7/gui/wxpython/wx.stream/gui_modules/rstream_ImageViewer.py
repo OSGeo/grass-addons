@@ -39,11 +39,10 @@ import menuform
 
 
 class ImgPanel(wx.Panel):
-    """!Display selected image in the main window
-    """
+    """!Display selected image in the main window"""
 
     def __init__(self, parent, img):
-        """"""
+        """ """
         wx.Panel.__init__(self, parent)
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.staticBitmap = wx.StaticBitmap(self, -1, img)
@@ -53,12 +52,11 @@ class ImgPanel(wx.Panel):
         self.sizer.Layout()
 
 
-
 class ListImg(wx.Listbook):
     """!Load png files *from current folder* and convert to bitmap"""
 
     def __init__(self, parent):
-        """"""
+        """ """
         wx.Listbook.__init__(self, parent, style=wx.BK_BOTTOM)
         self.pages = []
         pathname = "*.png"
@@ -77,34 +75,28 @@ class ListImg(wx.Listbook):
         self.Bind(wx.EVT_LISTBOOK_PAGE_CHANGED, self.OnPageChanged)
         self.Bind(wx.EVT_LISTBOOK_PAGE_CHANGING, self.OnPageChanging)
 
-
     def OnPageChanged(self, event):
         old = event.GetOldSelection()
         new = event.GetSelection()
         sel = self.GetSelection()
-        print('OnPageChanged,  old:%d, new:%d, sel:%d\n' % (old, new, sel))
+        print("OnPageChanged,  old:%d, new:%d, sel:%d\n" % (old, new, sel))
         event.Skip()
-
 
     def OnPageChanging(self, event):
         old = event.GetOldSelection()
         new = event.GetSelection()
         sel = self.GetSelection()
-        print('OnPageChanging, old:%d, new:%d, sel:%d\n' % (old, new, sel))
+        print("OnPageChanging, old:%d, new:%d, sel:%d\n" % (old, new, sel))
         event.Skip()
 
 
 class ImgFrame(wx.Frame):
-    """!Main frame
-    """
+    """!Main frame"""
 
     def __init__(self, pat):
-        """"""
+        """ """
 
-        wx.Frame.__init__(self, None, wx.ID_ANY,
-                          "Image Viewer",
-                          size=(800,600)
-                          )
+        wx.Frame.__init__(self, None, wx.ID_ANY, "Image Viewer", size=(800, 600))
 
         directory = pat
         panel = wx.Panel(self)
@@ -119,7 +111,7 @@ class ImgFrame(wx.Frame):
         self.Show()
 
 
-#if __name__ == "__main__":
-    #app = wx.PySimpleApp()
-    #frame = ImgFrame()
-    #app.MainLoop()
+# if __name__ == "__main__":
+# app = wx.PySimpleApp()
+# frame = ImgFrame()
+# app.MainLoop()

@@ -20,7 +20,7 @@ This program is free software under the GNU General Public License
 import grass.script as grass
 from grass.script.setup import set_gui_path
 
-grass.utils.set_path(modulename='wx.metadata', dirname='mdlib', path='..')
+grass.utils.set_path(modulename="wx.metadata", dirname="mdlib", path="..")
 
 from mdlib import globalvar
 from mdlib.cswlib import CSWBrowserPanel, CSWConnectionPanel
@@ -31,7 +31,7 @@ set_gui_path()
 
 
 class CswBrowserMainDialog(wx.Frame):
-    def __init__(self,giface=None):
+    def __init__(self, giface=None):
         wx.Frame.__init__(self, None, title="Metadata browser", size=(1024, 760))
 
         self.mainNotebook = wx.Notebook(self, wx.ID_ANY)
@@ -39,14 +39,19 @@ class CswBrowserMainDialog(wx.Frame):
 
         self.BrowserPanel = CSWBrowserPanel(self.mainNotebook, self, giface)
         self.connectionPanel = CSWConnectionPanel(self.mainNotebook, self)
-        self.mainNotebook.AddPage(self.BrowserPanel, text='Find')
-        self.mainNotebook.AddPage(self.connectionPanel, text='Configure')
+        self.mainNotebook.AddPage(self.BrowserPanel, text="Find")
+        self.mainNotebook.AddPage(self.connectionPanel, text="Configure")
         self._layout()
 
     def _layout(self):
         self.mainsizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainsizer.Add(self.mainNotebook, 1, wx.EXPAND, )
+        self.mainsizer.Add(
+            self.mainNotebook,
+            1,
+            wx.EXPAND,
+        )
         self.SetSizer(self.mainsizer)
+
 
 def main(giface=None):
     app = wx.App()
@@ -54,6 +59,7 @@ def main(giface=None):
     a.Show()
     app.MainLoop()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     grass.parser()
     main()

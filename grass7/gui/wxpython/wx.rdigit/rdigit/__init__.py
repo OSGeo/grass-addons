@@ -1,6 +1,6 @@
 all = [
-    'mapwindow',
-    'main',
-    'toolbars',
-    'wxdigit',
+    "mapwindow",
+    "main",
+    "toolbars",
+    "wxdigit",
 ]

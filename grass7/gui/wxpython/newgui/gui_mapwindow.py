@@ -21,9 +21,10 @@ This program is free software under the GNU General Public License
 import wx
 
 from core.settings import UserSettings
-from core.gcmd     import GError
+from core.gcmd import GError
 
 from grass.script import core as grass
+
 
 class MapWindow(object):
     """!Abstract map display window class
@@ -47,10 +48,10 @@ class MapWindow(object):
         # mouse attributes -- position on the screen, begin and end of
         # dragging, and type of drawing
         self.mouse = {
-            'begin': [0, 0], # screen coordinates
-            'end': [0, 0],
-            'use': "pointer",
-            'box': "point"
+            "begin": [0, 0],  # screen coordinates
+            "end": [0, 0],
+            "use": "pointer",
+            "box": "point",
         }
         # last east, north coordinates, changes on mouse motion
         self.lastEN = None
@@ -74,7 +75,7 @@ class MapWindow(object):
             wx.EVT_ENTER_WINDOW: [],
             wx.EVT_LEAVE_WINDOW: [],
             wx.EVT_MOUSEWHEEL: [],
-            wx.EVT_MOUSE_EVENTS: []
+            wx.EVT_MOUSE_EVENTS: [],
         }
 
         wx.CallAfter(self.InitBinding)
@@ -84,13 +85,13 @@ class MapWindow(object):
 
     def InitBinding(self):
         """!Binds helper functions, which calls all handlers
-           registered to events with the events
+        registered to events with the events
         """
         for ev, handlers in self.handlersContainer.iteritems():
             self.Bind(ev, self.EventTypeHandler(handlers))
 
     def EventTypeHandler(self, evHandlers):
-        return lambda event:self.HandlersCaller(event, evHandlers)
+        return lambda event: self.HandlersCaller(event, evHandlers)
 
     def HandlersCaller(self, event, handlers):
         """!Hepler function which calls all handlers registered for
@@ -101,13 +102,18 @@ class MapWindow(object):
                 handler(event)
             except:
                 handlers.remove(handler)
-                GError(parent = self,
-                       message=_("Error occured during calling of handler: %s \n"
-                                 "Handler was unregistered.") % handler.__name__)
+                GError(
+                    parent=self,
+                    message=_(
+                        "Error occured during calling of handler: %s \n"
+                        "Handler was unregistered."
+                    )
+                    % handler.__name__,
+                )
 
         event.Skip()
 
-    def RegisterMouseEventHandler(self, event, handler, cursor = None):
+    def RegisterMouseEventHandler(self, event, handler, cursor=None):
         """!Binds event handler
 
         Call event.Skip() in handler to allow default processing in MapWindow.
@@ -149,8 +155,8 @@ class MapWindow(object):
             if event == containerEv:
                 handlers.append(handler)
 
-        self.mouse['useBeforeGenericEvent'] = self.mouse['use']
-        self.mouse['use'] = 'genericEvent'
+        self.mouse["useBeforeGenericEvent"] = self.mouse["use"]
+        self.mouse["use"] = "genericEvent"
 
         if cursor:
             self._overriddenCursor = self.GetCursor()
@@ -170,9 +176,14 @@ class MapWindow(object):
                     handler("unregistered")
                     handlers.remove(handler)
                 except:
-                    GError(parent = self,
-                           message = _("Error occured during unregistration of handler: %s \n \
-                                       Handler was unregistered.") % handler.__name__)
+                    GError(
+                        parent=self,
+                        message=_(
+                            "Error occured during unregistration of handler: %s \n \
+                                       Handler was unregistered."
+                        )
+                        % handler.__name__,
+                    )
                     handlers.remove(handler)
 
     def UnregisterMouseEventHandler(self, event, handler):
@@ -196,16 +207,22 @@ class MapWindow(object):
                 if handler in handlers:
                     handlers.remove(handler)
                 else:
-                    grass.warning(_("Handler: %s was not registered")
-                                      % handler.__name__)
+                    grass.warning(
+                        _("Handler: %s was not registered") % handler.__name__
+                    )
             except:
-                GError(parent = self,
-                       message = _("Error occured during unregistration of handler: %s \n \
-                                       Handler was unregistered") % handler.__name__)
+                GError(
+                    parent=self,
+                    message=_(
+                        "Error occured during unregistration of handler: %s \n \
+                                       Handler was unregistered"
+                    )
+                    % handler.__name__,
+                )
                 handlers.remove(handler)
 
         # restore mouse use (previous state)
-        self.mouse['use'] = self.mouse['useBeforeGenericEvent']
+        self.mouse["use"] = self.mouse["useBeforeGenericEvent"]
 
         # restore overridden cursor
         if self._overriddenCursor:
@@ -229,16 +246,16 @@ class MapWindow(object):
         except (ValueError):
             self.lastEN = None
         # FIXME: special case for vdigit and access to statusbarManager
-#rashad        if self.frame.statusbarManager.GetMode() == 0: # Coordinates
-#            updated = False
-#            if hasattr(self, "digit"):
-#                precision = int(UserSettings.Get(group = 'projection', key = 'format',
-#                                             subkey = 'precision'))
-#                updated = self._onMotion(self.lastEN, precision)
+        # rashad        if self.frame.statusbarManager.GetMode() == 0: # Coordinates
+        #            updated = False
+        #            if hasattr(self, "digit"):
+        #                precision = int(UserSettings.Get(group = 'projection', key = 'format',
+        #                                             subkey = 'precision'))
+        #                updated = self._onMotion(self.lastEN, precision)
 
-#            if not updated:
-#                self.frame.CoordinatesChanged()
-#
+        #            if not updated:
+        #                self.frame.CoordinatesChanged()
+        #
         event.Skip()
 
     def GetLastEN(self):

@@ -52,17 +52,17 @@ import os
 from grass.script import core as grass
 from grass.script.utils import set_path
 
-set_path(modulename='wx.metadata', dirname='mdlib', path='..')
+set_path(modulename="wx.metadata", dirname="mdlib", path="..")
 
 from mdlib import globalvar
 
-#from __future__ import absolute_import
-#from __future__ import print_function
+# from __future__ import absolute_import
+# from __future__ import print_function
 
 
 def harvest(source, dst):
-    maxrecords = options['max']
-    if options['max'] == 0 or None:
+    maxrecords = options["max"]
+    if options["max"] == 0 or None:
         maxrecords = 10
     stop = 0
     flag = 0
@@ -74,26 +74,29 @@ def harvest(source, dst):
         if flag == 0:  # first run, start from 0
             startposition = 0
         else:  # subsequent run, startposition is now paged
-            startposition = src.results['nextrecord']
+            startposition = src.results["nextrecord"]
 
-        src.getrecords(esn='brief', startposition=startposition, maxrecords=maxrecords)
+        src.getrecords(esn="brief", startposition=startposition, maxrecords=maxrecords)
 
         print(src.results)
 
-        if src.results['nextrecord'] == 0 \
-                or src.results['returned'] == 0 \
-                or src.results['nextrecord'] > src.results['matches']:  # end the loop, exhausted all records
+        if (
+            src.results["nextrecord"] == 0
+            or src.results["returned"] == 0
+            or src.results["nextrecord"] > src.results["matches"]
+        ):  # end the loop, exhausted all records
             stop = 1
             break
 
         # harvest each record to destination CSW
         for i in list(src.records):
-            source = '%s?service=CSW&version=2.0.2&request=GetRecordById&id=%s' % \
-                     (sys.argv[1], i)
-            dest.harvest(source=source,
-                         resourcetype='http://www.isotc211.org/2005/gmd')
-            #print dest.request
-            #print dest.response
+            source = "%s?service=CSW&version=2.0.2&request=GetRecordById&id=%s" % (
+                sys.argv[1],
+                i,
+            )
+            dest.harvest(source=source, resourcetype="http://www.isotc211.org/2005/gmd")
+            # print dest.request
+            # print dest.response
 
         flag = 1
 
@@ -105,12 +108,12 @@ def _get_csw(catalog_url, timeout=10):
         catalog = CatalogueServiceWeb(catalog_url, timeout=timeout)
         return catalog
     except ExceptionReport as err:
-        msg = 'Error connecting to service: %s' % err
+        msg = "Error connecting to service: %s" % err
     except ValueError as err:
-        msg = 'Value Error: %s' % err
+        msg = "Value Error: %s" % err
     except Exception as err:
-        msg = 'Unknown Error: %s' % err
-    grass.error('CSW Connection error: %s' % msg)
+        msg = "Unknown Error: %s" % err
+    grass.error("CSW Connection error: %s" % msg)
 
     return False
 
@@ -123,14 +126,17 @@ def main():
         from owslib.ows import ExceptionReport
     except ModuleNotFoundError as e:
         msg = e.msg
-        grass.fatal(globalvar.MODULE_NOT_FOUND.format(
-            lib=msg.split("'")[-2],
-            url=globalvar.MODULE_URL))
+        grass.fatal(
+            globalvar.MODULE_NOT_FOUND.format(
+                lib=msg.split("'")[-2], url=globalvar.MODULE_URL
+            )
+        )
 
-    if not _get_csw(options['source']):
+    if not _get_csw(options["source"]):
         return
 
-    harvest(options['source'], options['destination'])
+    harvest(options["source"], options["destination"])
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()
