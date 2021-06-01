@@ -91,9 +91,7 @@ def main():
 
     rules = parse(original, cats)
     if flags["c"] and flags["s"]:
-        gs.warning(
-            _("The extent of the output reclassified raster cannot be changed")
-        )
+        gs.warning(_("The extent of the output reclassified raster cannot be changed"))
 
     if flags["s"]:
         reclass(original, output, rules)

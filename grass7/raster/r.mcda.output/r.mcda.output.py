@@ -55,21 +55,23 @@
 
 
 import sys
+
 ##from grass.script import core as grass
 import grass.script as grass
 
+
 def main():
-    attributes = options['attributes'].split(',')
-    preferences = options['preferences'].split(',')
-    decision = options['decision']
-    output = options['output']
+    attributes = options["attributes"].split(",")
+    preferences = options["preferences"].split(",")
+    decision = options["decision"]
+    output = options["output"]
 
     gregion = grass.region()
-    nrows = gregion['rows']
-    ncols = gregion['cols']
-    ewres = int(gregion['ewres'])
-    nsres = int(gregion['nsres'])
-    print(nrows, ncols, ewres,nsres)
+    nrows = gregion["rows"]
+    ncols = gregion["cols"]
+    ewres = int(gregion["ewres"])
+    nsres = int(gregion["nsres"])
+    print(nrows, ncols, ewres, nsres)
 
     outf = open(output, "w")
     outf.write("**ATTRIBUTES\n")
@@ -77,43 +79,46 @@ def main():
         outf.write("+ %s: (continuous)\n" % attributes[i])
     outf.write("+ %s: [" % decision)
     value = []
-    value = grass.read_command("r.describe", flags = "1n", map = decision)
+    value = grass.read_command("r.describe", flags="1n", map=decision)
     v = value.split()
 
-    for i in range(len(v)-1):
+    for i in range(len(v) - 1):
         outf.write("%s, " % str(v[i]))
-    outf.write("%s]\n" % str(v[len(v)-1]))
+    outf.write("%s]\n" % str(v[len(v) - 1]))
     outf.write("decision: %s\n" % decision)
 
     outf.write("\n**PREFERENCES\n")
     for i in range(len(attributes)):
-        if(preferences[i] == ""):
+        if preferences[i] == "":
             preferences[i] = "none"
         outf.write("%s: %s\n" % (attributes[i], preferences[i]))
     outf.write("%s: gain\n" % decision)
-
 
     outf.write("\n**EXAMPLES\n")
     examples = []
     MATRIX = []
     for i in range(len(attributes)):
-        grass.mapcalc("rast=if(isnull(${decision})==0,${attribute},null())",
-                         rast="rast",
-                         decision=decision,
-                         attribute=attributes[i])
-        tmp = grass.read_command("r.stats", flags = "1n", nv="?", input = "rast")
+        grass.mapcalc(
+            "rast=if(isnull(${decision})==0,${attribute},null())",
+            rast="rast",
+            decision=decision,
+            attribute=attributes[i],
+        )
+        tmp = grass.read_command("r.stats", flags="1n", nv="?", input="rast")
         example = tmp.split()
         examples.append(example)
-    tmp = grass.read_command("r.stats", flags = "1n", nv="?", input = decision)
+    tmp = grass.read_command("r.stats", flags="1n", nv="?", input=decision)
     example = tmp.split()
 
     examples.append(example)
-    MATRIX = list(map(list,list(zip(*examples))))
+    MATRIX = list(map(list, list(zip(*examples))))
 
-    MATRIX = [r for r in MATRIX if '?' not in r]  # remove all rows with almost one "?"
-    MATRIX = [list(i) for i in set(tuple(j) for j in MATRIX)]  # remove duplicate example
+    MATRIX = [r for r in MATRIX if "?" not in r]  # remove all rows with almost one "?"
+    MATRIX = [
+        list(i) for i in set(tuple(j) for j in MATRIX)
+    ]  # remove duplicate example
 
-    print("rows:%d - col:%d" % (len(MATRIX),len(MATRIX[0])))
+    print("rows:%d - col:%d" % (len(MATRIX), len(MATRIX[0])))
     for r in range(len(MATRIX)):
         for c in range(len(MATRIX[0])):
             outf.write("%s " % str(MATRIX[r][c]))

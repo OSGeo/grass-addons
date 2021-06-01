@@ -25,15 +25,16 @@ from .distance import (
 )
 from .components import append_map_to_component
 
+
 def build_water_component(
-        water,
-        lakes,
-        lakes_coefficients,
-        coastline,
-        coast_geomorphology,
-        bathing_water,
-        bathing_water_coefficients,
-    ):
+    water,
+    lakes,
+    lakes_coefficients,
+    coastline,
+    coast_geomorphology,
+    bathing_water,
+    bathing_water_coefficients,
+):
     """
     Build and return the 'water' component
     """

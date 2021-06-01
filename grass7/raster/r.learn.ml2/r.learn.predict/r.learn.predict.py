@@ -75,7 +75,7 @@ import math
 from grass.pygrass.gis.region import Region
 from grass.pygrass.modules.shortcuts import raster as r
 
-gs.utils.set_path(modulename='r.learn.ml2', dirname='rlearnlib', path='..')
+gs.utils.set_path(modulename="r.learn.ml2", dirname="rlearnlib", path="..")
 
 from rlearnlib.raster import RasterStack
 
@@ -95,8 +95,7 @@ def main():
         import joblib
 
         if sklearn.__version__ < "0.20":
-            gs.fatal(
-                "Package python3-scikit-learn 0.20 or newer is not installed")
+            gs.fatal("Package python3-scikit-learn 0.20 or newer is not installed")
 
     except ImportError:
         gs.fatal("Package python3-scikit-learn 0.20 or newer is not installed")

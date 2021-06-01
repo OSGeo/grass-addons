@@ -43,6 +43,7 @@
 ##################
 # PYTHON
 import numpy as np
+
 # GRASS
 from grass import script as gscript
 from grass.script import array as garray
@@ -52,6 +53,7 @@ from grass.pygrass.modules.shortcuts import general as g
 # MAIN MODULE #
 ###############
 
+
 def main():
     """
     RichDEM flat resolution: give a gentle slope
@@ -60,17 +62,22 @@ def main():
     try:
         import richdem as rd
     except:
-        g.message(flags='e', message=('RichDEM not detected. Install pip3 and ' +
-                                      'then type at the command prompt: ' +
-                                      '"pip3 install richdem".'))
+        g.message(
+            flags="e",
+            message=(
+                "RichDEM not detected. Install pip3 and "
+                + "then type at the command prompt: "
+                + '"pip3 install richdem".'
+            ),
+        )
 
-    _input = options['input']
-    _output = options['output']
+    _input = options["input"]
+    _output = options["output"]
 
     # Check for overwrite
-    _rasters = np.array(gscript.parse_command('g.list', type='raster').keys())
+    _rasters = np.array(gscript.parse_command("g.list", type="raster").keys())
     if (_rasters == _output).any():
-        g.message(flags='e', message="output would overwrite "+_output)
+        g.message(flags="e", message="output would overwrite " + _output)
 
     dem = garray.array()
     dem.read(_input, null=np.nan)
@@ -80,6 +87,7 @@ def main():
 
     dem[:] = rd_output[:]
     dem.write(_output, overwrite=gscript.overwrite())
+
 
 if __name__ == "__main__":
     options, flags = gscript.parser()

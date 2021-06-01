@@ -8,9 +8,9 @@
 #               as input "viewing" locations, using r.viewshed to calculate the individual viewsheds.
 # COPYRIGHT:    (C) 2015 by Isaac Ullah
 # REFERENCES:   r.viewshed
-#		This program is free software under the GNU General Public
-#		License (>=v2). Read the file COPYING that comes with GRASS
-#		for details.
+# 		This program is free software under the GNU General Public
+# 		License (>=v2). Read the file COPYING that comes with GRASS
+# 		for details.
 #
 #############################################################################
 
@@ -122,71 +122,118 @@ def main():
     elev = options["input"]
     vect = options["vector"]
     viewshed_options = {}
-    for option in ('observer_elevation', 'target_elevation', 'max_distance', 'memory', 'refraction_coeff'):
+    for option in (
+        "observer_elevation",
+        "target_elevation",
+        "max_distance",
+        "memory",
+        "refraction_coeff",
+    ):
         viewshed_options[option] = options[option]
     out = options["output"]
     # assemble flag string
-    flagstring = ''
-    if flags['r']:
-        flagstring += 'r'
-    if flags['c']:
-        flagstring += 'c'
-    if flags['b']:
-        flagstring += 'b'
-    if flags['e']:
-        flagstring += 'e'
+    flagstring = ""
+    if flags["r"]:
+        flagstring += "r"
+    if flags["c"]:
+        flagstring += "c"
+    if flags["b"]:
+        flagstring += "b"
+    if flags["e"]:
+        flagstring += "e"
 
     # check if vector map exists
-    gfile = grass.find_file(vect, element='vector')
-    if not gfile['name']:
+    gfile = grass.find_file(vect, element="vector")
+    if not gfile["name"]:
         grass.fatal(_("Vector map <%s> not found") % vect)
 
     # get the coords from the vector map, and check if we want to name them
-    if flags['k'] and options["name_column"] != '':
+    if flags["k"] and options["name_column"] != "":
         # note that the "r" flag will constrain to points in the current geographic region.
-        output_points = grass.read_command("v.out.ascii", flags='r', input=vect, type="point",
-                                           format="point", separator=",", columns=options["name_column"]).strip()
+        output_points = grass.read_command(
+            "v.out.ascii",
+            flags="r",
+            input=vect,
+            type="point",
+            format="point",
+            separator=",",
+            columns=options["name_column"],
+        ).strip()
     else:
         # note that the "r" flag will constrain to points in the current geographic region.
-        output_points = grass.read_command("v.out.ascii", flags='r', input=vect, type="point",
-                                           format="point", separator=",").strip()
-    grass.message(_("Note that the routine is constrained to points in the current geographic region."))
+        output_points = grass.read_command(
+            "v.out.ascii",
+            flags="r",
+            input=vect,
+            type="point",
+            format="point",
+            separator=",",
+        ).strip()
+    grass.message(
+        _(
+            "Note that the routine is constrained to points in the current geographic region."
+        )
+    )
     # read the coordinates, and parse them up.
     masterlist = []
     for line in output_points.splitlines():
         if line:  # see ticket #3155
-            masterlist.append(line.strip().split(','))
+            masterlist.append(line.strip().split(","))
     # now, loop through the master list and run r.viewshed for each of the sites,
     # and append the viewsheds to a list (so we can work with them later)
     vshed_list = []
     counter = 0
     for site in masterlist:
-        if flags['k'] and options["name_column"] != '':
+        if flags["k"] and options["name_column"] != "":
             ptname = site[3]
         else:
             ptname = site[2]
-        grass.verbose(_('Calculating viewshed for location %s,%s (point name = %s)') % (site[0], site[1], ptname))
+        grass.verbose(
+            _("Calculating viewshed for location %s,%s (point name = %s)")
+            % (site[0], site[1], ptname)
+        )
         # need additional number for cases when points have the same category (e.g. from v.to.points)
         tempry = "vshed_{ptname}_{c}".format(ptname=ptname, c=counter)
         counter += 1
         vshed_list.append(tempry)
-        grass.run_command("r.viewshed", quiet=True, overwrite=grass.overwrite(), flags=flagstring,
-                          input=elev, output=tempry, coordinates=site[0] + "," + site[1], **viewshed_options)
+        grass.run_command(
+            "r.viewshed",
+            quiet=True,
+            overwrite=grass.overwrite(),
+            flags=flagstring,
+            input=elev,
+            output=tempry,
+            coordinates=site[0] + "," + site[1],
+            **viewshed_options
+        )
     # now make a mapcalc statement to add all the viewsheds together to make the outout cumulative viewsheds map
     grass.message(_("Calculating cumulative viewshed map <%s>") % out)
     # when binary viewshed, r.series has to use sum instead of count
-    rseries_method = 'sum' if 'b' in flagstring else 'count'
-    grass.run_command("r.series", quiet=True, overwrite=grass.overwrite(),
-                      input=(",").join(vshed_list), output=out, method=rseries_method)
-    if flags['e']:
-        grass.run_command("r.null", quiet=True, map=out, setnull='0')
+    rseries_method = "sum" if "b" in flagstring else "count"
+    grass.run_command(
+        "r.series",
+        quiet=True,
+        overwrite=grass.overwrite(),
+        input=(",").join(vshed_list),
+        output=out,
+        method=rseries_method,
+    )
+    if flags["e"]:
+        grass.run_command("r.null", quiet=True, map=out, setnull="0")
     # Clean up temporary maps, if requested
-    if flags['k']:
+    if flags["k"]:
         grass.message(_("Temporary viewshed maps will not removed"))
     else:
         grass.message(_("Removing temporary viewshed maps"))
-        grass.run_command("g.remove", quiet=True, flags='f', type='raster', name=(",").join(vshed_list))
+        grass.run_command(
+            "g.remove",
+            quiet=True,
+            flags="f",
+            type="raster",
+            name=(",").join(vshed_list),
+        )
     return
+
 
 # here is where the code in "main" actually gets executed. This way of programming is neccessary for the way g.parser needs to run.
 if __name__ == "__main__":

@@ -296,9 +296,7 @@ class WCSBase:
         return cap
 
     def _fetchDataFromServer(self, url, username=None, password=None):
-        """!Fetch data from server
-
-        """
+        """!Fetch data from server"""
         self._debug("_fetchDataFromServer", "started")
         request = Request(url=url)
         if username and password:
@@ -315,9 +313,7 @@ class WCSBase:
         self._debug("_fetchDataFromServer", "finished")
 
     def getCapabilities(self, options, flags):
-        """!Get capabilities from WCS server and print to stdout
-
-        """
+        """!Get capabilities from WCS server and print to stdout"""
         self._debug("GetCapabilities", "started")
 
         cap = self._fetchCapabilities(options)

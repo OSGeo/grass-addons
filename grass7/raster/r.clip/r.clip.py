@@ -30,16 +30,17 @@ import grass.script as gs
 def main():
     options, flags = gs.parser()
 
-    original = options['input']
-    clipped = options['output']
+    original = options["input"]
+    clipped = options["output"]
 
     # set region res and grid to match raster to avoid resampling
-    if not flags['r']:
+    if not flags["r"]:
         gs.use_temp_region()
         atexit.register(gs.del_temp_region)
-        gs.run_command('g.region', align=original)
+        gs.run_command("g.region", align=original)
 
     gs.mapcalc("$clipped = $original", clipped=clipped, original=original)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     sys.exit(main())

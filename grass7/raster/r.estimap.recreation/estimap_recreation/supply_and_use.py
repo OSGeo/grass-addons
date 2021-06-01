@@ -72,22 +72,22 @@ def compile_use_table(supply):
 
 
 def compute_supply(
-        base,
-        recreation_spectrum,
-        highest_spectrum,
-        base_reclassification_rules,
-        reclassified_base,
-        reclassified_base_title,
-        flow,
-        aggregation,
-        ns_resolution,
-        ew_resolution,
-        print_only=False,
-        flow_column_name=None,
-        vector=None,
-        supply_filename=None,
-        use_filename=None,
-    ):
+    base,
+    recreation_spectrum,
+    highest_spectrum,
+    base_reclassification_rules,
+    reclassified_base,
+    reclassified_base_title,
+    flow,
+    aggregation,
+    ns_resolution,
+    ew_resolution,
+    print_only=False,
+    flow_column_name=None,
+    vector=None,
+    supply_filename=None,
+    use_filename=None,
+):
     """
     Parameters
     ----------
@@ -303,11 +303,12 @@ def compute_supply(
         )
 
         # Reassign cell category labels
-        r.category(map=cells,
-                rules="-",
-                stdin=cells_rules,
-                separator=":",
-                   )
+        r.category(
+            map=cells,
+            rules="-",
+            stdin=cells_rules,
+            separator=":",
+        )
 
         # Compute extent of each land category
         extent_expression = "@{cells} * area()"
@@ -374,10 +375,8 @@ def compute_supply(
             quiet=True,
         )
         g.rename(
-            raster=(weighted_figures_as_labels, weighted),
-            overwrite=True,
-            quiet=True)
-
+            raster=(weighted_figures_as_labels, weighted), overwrite=True, quiet=True
+        )
 
         # Get weighted extents in a dictionary
         weighted_extents = grass.parse_command(
@@ -522,10 +521,10 @@ def compute_supply(
         if not print_only:
 
             if flow_column_name:
-                flow_column_prefix = flow_column_name + '_' + category
+                flow_column_prefix = flow_column_name + "_" + category
             else:
                 flow_column_name = "flow"
-                flow_column_prefix = flow_column_name + '_' + category
+                flow_column_prefix = flow_column_name + "_" + category
 
             # Produce vector map(s)
             if vector:

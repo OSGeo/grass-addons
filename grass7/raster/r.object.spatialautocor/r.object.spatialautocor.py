@@ -15,9 +15,9 @@
 #############################################################################
 # References:
 #
-#Moran, P.A.P., 1950. Notes on Continuous Stochastic Phenomena. Biometrika 37,
+# Moran, P.A.P., 1950. Notes on Continuous Stochastic Phenomena. Biometrika 37,
 # 17-23. https://dx.doi.org/10.2307%2F2332142
-#Geary, R.C., 1954. The Contiguity Ratio and Statistical Mapping. The
+# Geary, R.C., 1954. The Contiguity Ratio and Statistical Mapping. The
 # Incorporated Statistician 5, 115. https://dx.doi.org/10.2307%2F2986645
 #############################################################################
 
@@ -61,35 +61,38 @@ import grass.script as gscript
 # check requirements
 def check_progs():
     found_missing = False
-    for prog in ['r.neighborhoodmatrix']:
-        if not gscript.find_program(prog, '--help'):
+    for prog in ["r.neighborhoodmatrix"]:
+        if not gscript.find_program(prog, "--help"):
             found_missing = True
-            gscript.warning(_("'%s' required. Please install '%s' first using 'g.extension %s'") % (prog, prog, prog))
+            gscript.warning(
+                _("'%s' required. Please install '%s' first using 'g.extension %s'")
+                % (prog, prog, prog)
+            )
     if found_missing:
         gscript.fatal(_("An ERROR occurred running i.segment.uspo"))
 
 
-def get_nb_matrix (mapname, diagonal):
-    """ Create a dictionary with neighbors per segment"""
+def get_nb_matrix(mapname, diagonal):
+    """Create a dictionary with neighbors per segment"""
 
     if diagonal:
-        res = gscript.read_command('r.neighborhoodmatrix',
-                                   input_=mapname,
-                                   output='-',
-                                   sep='comma',
-                                   flags='d',
-                                   quiet=True)
+        res = gscript.read_command(
+            "r.neighborhoodmatrix",
+            input_=mapname,
+            output="-",
+            sep="comma",
+            flags="d",
+            quiet=True,
+        )
     else:
-        res = gscript.read_command('r.neighborhoodmatrix',
-                                   input_=mapname,
-                                   output='-',
-                                   sep='comma',
-                                   quiet=True)
+        res = gscript.read_command(
+            "r.neighborhoodmatrix", input_=mapname, output="-", sep="comma", quiet=True
+        )
 
     neighbordict = {}
     for line in res.splitlines():
-        n1 = line.split(',')[0]
-        n2 = line.split(',')[1]
+        n1 = line.split(",")[0]
+        n2 = line.split(",")[1]
         if n1 in neighbordict:
             neighbordict[n1].append(n2)
         else:
@@ -98,36 +101,35 @@ def get_nb_matrix (mapname, diagonal):
     return neighbordict
 
 
-def get_autocorrelation (mapname, raster, neighbordict, method):
-    """ Calculate either Moran's I or Geary's C for values of the given raster """
+def get_autocorrelation(mapname, raster, neighbordict, method):
+    """Calculate either Moran's I or Geary's C for values of the given raster"""
 
-    raster_vars = gscript.parse_command('r.univar',
-                    map_=raster,
-                    flags='g',
-                    quiet=True)
-    global_mean = float(raster_vars['mean'])
+    raster_vars = gscript.parse_command("r.univar", map_=raster, flags="g", quiet=True)
+    global_mean = float(raster_vars["mean"])
 
-    univar_res = gscript.read_command('r.univar',
-                    flags='t',
-                    map_=raster,
-                    zones=mapname,
-                    out='-',
-                    sep='comma',
-                    quiet=True)
+    univar_res = gscript.read_command(
+        "r.univar",
+        flags="t",
+        map_=raster,
+        zones=mapname,
+        out="-",
+        sep="comma",
+        quiet=True,
+    )
 
     means = {}
     mean_diffs = {}
     firstline = True
     for line in univar_res.splitlines():
-        l = line.split(',')
+        l = line.split(",")
         if firstline:
-            i = l.index('mean')
+            i = l.index("mean")
             firstline = False
         else:
             means[l[0]] = float(l[i])
             mean_diffs[l[0]] = float(l[i]) - global_mean
 
-    sum_sq_mean_diffs = sum(x**2 for x in mean_diffs.values())
+    sum_sq_mean_diffs = sum(x ** 2 for x in mean_diffs.values())
 
     total_nb_neighbors = 0
     for region in neighbordict:
@@ -145,24 +147,29 @@ def get_autocorrelation (mapname, raster, neighbordict, method):
             sum_products += region_value * neighbor_value
             sum_squared_differences = (means[region] - means[neighbor]) ** 2
 
-    if method == 'moran':
-        autocor = ((float(N) / total_nb_neighbors) * (float(sum_products) / sum_sq_mean_diffs))
-    elif method == 'geary':
-        autocor = (float(N - 1) / (2 * total_nb_neighbors)) * (float(sum_squared_differences) / sum_sq_mean_diffs)
+    if method == "moran":
+        autocor = (float(N) / total_nb_neighbors) * (
+            float(sum_products) / sum_sq_mean_diffs
+        )
+    elif method == "geary":
+        autocor = (float(N - 1) / (2 * total_nb_neighbors)) * (
+            float(sum_squared_differences) / sum_sq_mean_diffs
+        )
 
     return autocor
+
 
 def main():
 
     check_progs()
 
-    object_map = options['object_map']
-    variable_map = options['variable_map']
-    method = options['method']
-    diagonal = flags['d']
+    object_map = options["object_map"]
+    variable_map = options["variable_map"]
+    method = options["method"]
+    diagonal = flags["d"]
 
     nb_matrix = get_nb_matrix(object_map, diagonal)
-    autocor = get_autocorrelation (object_map, variable_map, nb_matrix, method)
+    autocor = get_autocorrelation(object_map, variable_map, nb_matrix, method)
     print("%.7f" % autocor)
 
 

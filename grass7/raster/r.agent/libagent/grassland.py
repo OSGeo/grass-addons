@@ -32,12 +32,11 @@ class Grassland(playground.Playground):
         self.layers = dict()
         self.grassmapnames = dict()
         self.region = grass.region()
-        if self.region['ewres'] != self.region['nsres']:
-            raise error.DataError(Grassland.ME,
-                                    "Only square raster cells make sense.")
+        if self.region["ewres"] != self.region["nsres"]:
+            raise error.DataError(Grassland.ME, "Only square raster cells make sense.")
 
-#    def grassinfo(self, msg):
-#        grass.info(msg)
+    #    def grassinfo(self, msg):
+    #        grass.info(msg)
 
     def setgrasslayer(self, layername, grassmapname, force=False):
         """
@@ -48,13 +47,14 @@ class Grassland(playground.Playground):
         """
         layer = garray.array()
         # fill the new grass array with the contents from the map (must exist)
-        if grassmapname in grass.list_strings('rast'):
+        if grassmapname in grass.list_strings("rast"):
             layer.read(grassmapname)
             self.grassmapnames[layername] = grassmapname
             self.setlayer(layername, layer, force)
         else:
-            raise error.DataError(Grassland.ME,
-                                    "Grass Map was missing: " + grassmapname)
+            raise error.DataError(
+                Grassland.ME, "Grass Map was missing: " + grassmapname
+            )
 
     def createlayer(self, layername, grassmapname=False, force=False):
         """
@@ -89,16 +89,13 @@ class Grassland(playground.Playground):
             if layername in self.grassmapnames:
                 grassmapname = self.grassmapnames[layername]
             else:
-                raise error.DataError(Grassland.ME,
-                                        "Grass Map name is empty.")
+                raise error.DataError(Grassland.ME, "Grass Map name is empty.")
         if layername in self.layers:
-            if grassmapname in \
-                    grass.list_strings('rast'):
+            if grassmapname in grass.list_strings("rast"):
                 if force:
                     force = "force"
                 else:
-                    raise error.DataError(Grassland.ME,
-                                        "Grass map already exists.")
+                    raise error.DataError(Grassland.ME, "Grass map already exists.")
             self.layers[layername].write(grassmapname, overwrite=force)
         else:
             raise error.DataError(Grassland.ME, "Layer is not in list.")
@@ -113,20 +110,18 @@ class Grassland(playground.Playground):
         @param boolean optional, whether an existing file may be overwritten
         """
         vectors = []
-        if grassmapname in grass.list_strings('vect'):
-            layer = grass.vector_db_select(grassmapname)['values']
+        if grassmapname in grass.list_strings("vect"):
+            layer = grass.vector_db_select(grassmapname)["values"]
             # TODO only points are supported, ask some expert how to test this
             # TODO indexing seems to start at "1".. verify!
             for v in layer.values():
                 # TODO do they all look like this??
                 if len(v) == 4 and v[0] == v[3]:
-                    p = self.stringcoordinate(v[1],v[2])
+                    p = self.stringcoordinate(v[1], v[2])
                     # TODO - as with grass numpy array it seems that
                     # [0,0] is north-most west-most..
-                    p[0] = int(round(
-                        (self.region["n"] - p[0]) / self.region["nsres"]))
-                    p[1] = int(round(
-                        (p[1] - self.region["w"]) / self.region["ewres"]))
+                    p[0] = int(round((self.region["n"] - p[0]) / self.region["nsres"]))
+                    p[1] = int(round((p[1] - self.region["w"]) / self.region["ewres"]))
                     vectors.append(p)
                     self.layers[layername][p[0]][p[1]] = value
         return vectors
@@ -141,10 +136,9 @@ class Grassland(playground.Playground):
         @param long minimum value to keep on cell
         """
         if halflife > 0:
-            self.layers[layername] = self.layers[layername]*0.5**(1.0/halflife)
-            #TODO find out why 'filename' is lost - numpy vs. garray..
-        #TODO think about moving 'minimum' to a predifined matrix in anthill
+            self.layers[layername] = self.layers[layername] * 0.5 ** (1.0 / halflife)
+            # TODO find out why 'filename' is lost - numpy vs. garray..
+        # TODO think about moving 'minimum' to a predifined matrix in anthill
         if minimum > 0:
             mask = garray.numpy.ones_like(self.layers[layername]) - 1 + minimum
-            self.layers[layername] = \
-                    garray.numpy.maximum(self.layers[layername], mask)
+            self.layers[layername] = garray.numpy.maximum(self.layers[layername], mask)

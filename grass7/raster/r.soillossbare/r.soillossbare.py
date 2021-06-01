@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-#-*- coding: utf-8 -*-
-'''
+# -*- coding: utf-8 -*-
+"""
 MODULE:   	r.soillossbare.py
 
 AUTHOR(S):  Martin Zbinden
@@ -22,7 +22,7 @@ COPYRIGHT:  (C) 2014 Martin Zbinden and by the GRASS Development Team
 
 This program is free software under the GNU General Public License
 (>=v2). Read the file COPYING that comes with GRASS for details.
-'''
+"""
 
 #%Module
 #% description: Calculates annual soil loss [t/(ha*a)] for bare soil. Use r.soillosscropland.py afterwards for grown soil.
@@ -139,10 +139,6 @@ This program is free software under the GNU General Public License
 #%end
 
 
-
-
-
-
 import sys
 import os
 import grass.script as g
@@ -160,9 +156,7 @@ class rusle_base(object):
         self.tmp_rast = []
 
     def _debug(self, fn, msg):
-        g.debug("%s.%s: %s" %
-                    (self.__class__.__name__, fn, msg))
-
+        g.debug("%s.%s: %s" % (self.__class__.__name__, fn, msg))
 
     def __del__(self):
         # tries to remove temporary files, all files should be
@@ -217,11 +211,9 @@ class rusle_base(object):
         for tmprast in self.tmp_rast:
             g.message('Removing "%s"' % tmprast)
             try:
-                g.run_command('g.remove',
-                              flags = 'f',
-                              type = 'raster',
-                              name = tmprast,
-                              quiet = True)
+                g.run_command(
+                    "g.remove", flags="f", type="raster", name=tmprast, quiet=True
+                )
             except CalledModuleError:
                 g.warning(_("Removing temporary raster maps failed"))
 
@@ -232,9 +224,9 @@ class rusle_base(object):
         @return soillossbare name of output raster map
         """
 
-        flowacc = outprefix + 'flowacc'
-        slope = outprefix + 'slope'
-        lsfactor = outprefix + 'lsfactor'
+        flowacc = outprefix + "flowacc"
+        slope = outprefix + "slope"
+        lsfactor = outprefix + "lsfactor"
 
         self.tmp_rast.append(flowacc)
         self.tmp_rast.append(slope)
@@ -244,75 +236,73 @@ class rusle_base(object):
         if not fieldblock:
             if fieldblockvect:
                 fieldblock = outprefix + "fieldblock"
-                g.run_command("v.to.rast",
-                        input=fieldblockvect,
-                        output= fieldblock,
-                        use="val",
-                        value="1",
-                        quiet=quiet
-                              )
+                g.run_command(
+                    "v.to.rast",
+                    input=fieldblockvect,
+                    output=fieldblock,
+                    use="val",
+                    value="1",
+                    quiet=quiet,
+                )
         if fieldblock:
             g.verbose('Raster map fieldblock is in "%s"' % fieldblock)
         else:
             fieldblock = ""
 
-
-        if not options['flowacc']:
-            self._getFlowacc(elevation,flowacc,fieldblock)
+        if not options["flowacc"]:
+            self._getFlowacc(elevation, flowacc, fieldblock)
             g.verbose('Raster map flowacc is in "%s".' % flowacc)
         else:
             g.verbose('Raster map flowacc taken from "%s".' % flowacc)
 
-
-        self._getSlope(elevation,slope)
+        self._getSlope(elevation, slope)
         g.verbose('Raster map slope is in  "%s"' % slope)
 
-        self._getLsfac(flowacc,slope,lsfactor)
+        self._getLsfac(flowacc, slope, lsfactor)
         g.verbose('Raster map lsfactor is in  "%s"' % lsfactor)
 
-        self._getSoillossbare(lsfactor,kfactor,rfactor,soillossbare)
+        self._getSoillossbare(lsfactor, kfactor, rfactor, soillossbare)
         g.message('Soilloss for bare soil in map "%s".' % soillossbare)
 
-        stats = g.parse_command('r.univar', flags="g", map=soillossbare, delimiter = '=')
-        g.message('mean = %s \n stddev = %s \n min = %s \n max = %s' % (stats['mean'],stats['stddev'], stats['min'], stats['max']))
+        stats = g.parse_command("r.univar", flags="g", map=soillossbare, delimiter="=")
+        g.message(
+            "mean = %s \n stddev = %s \n min = %s \n max = %s"
+            % (stats["mean"], stats["stddev"], stats["min"], stats["max"])
+        )
 
         return soillossbare
 
-
-
-
-    def _getBarrier(self,fieldblock,barrier):
+    def _getBarrier(self, fieldblock, barrier):
         formula = "$barrier = if(isnull($fieldblock),1,0)"
-        g.mapcalc(formula, barrier=barrier, fieldblock=fieldblock,quiet=quiet)
+        g.mapcalc(formula, barrier=barrier, fieldblock=fieldblock, quiet=quiet)
         g.verbose('Raster map barrier is in "%s"' % barrier)
         return barrier
 
-
-    def _getElevationFieldblock(self,elevation,fieldblock,elevationfieldblock):
+    def _getElevationFieldblock(self, elevation, fieldblock, elevationfieldblock):
         formula = "$elevationfieldblock = if(isnull($fieldblock),null(),$elevation)"
-        g.mapcalc(formula, elevationfieldblock = elevationfieldblock,
-                    elevation = elevation, fieldblock=fieldblock, quiet=quiet)
+        g.mapcalc(
+            formula,
+            elevationfieldblock=elevationfieldblock,
+            elevation=elevation,
+            fieldblock=fieldblock,
+            quiet=quiet,
+        )
         g.verbose('Raster map elevationfieldblock is in "%s"' % elevationfieldblock)
         return elevationfieldblock
 
-
-    def _getSlope(self,elevation,slope):
+    def _getSlope(self, elevation, slope):
         """Hangneigung berechnen
 
         @return raster map name with slope
         """
-        #Slope and aspect were computed using GRASS GIS 6.4.1 r.slope.aspect using a 2FD
-        #algorithm (Zhou, 2004) and 3x3 pixels neighborhood, which is suitable for smoothed DEMs.
+        # Slope and aspect were computed using GRASS GIS 6.4.1 r.slope.aspect using a 2FD
+        # algorithm (Zhou, 2004) and 3x3 pixels neighborhood, which is suitable for smoothed DEMs.
 
-        g.run_command('r.slope.aspect',
-                      elevation = elevation,
-                      slope = slope,
-                      quiet=quiet)
+        g.run_command("r.slope.aspect", elevation=elevation, slope=slope, quiet=quiet)
 
         return slope
 
-
-    def _getLsfac(self,flowacc,slope,lsfactor):
+    def _getLsfac(self, flowacc, slope, lsfactor):
         """! Calculate LS factor
         flowaccumulation and slope are combined to LS-factor
 
@@ -329,23 +319,29 @@ class rusle_base(object):
         @return raster map name with lsfac
         """
 
-        constant_m = options['constant_m'] # default 0.4
-        constant_n = options['constant_n'] # default 1.3
-        resolution = options['resolution'] # default 2
+        constant_m = options["constant_m"]  # default 0.4
+        constant_n = options["constant_n"]  # default 1.3
+        resolution = options["resolution"]  # default 2
 
-        #formula_lsfactor = "$lsfactor = 1.4*exp($flowacc* $resolution /22.1,$m)*exp(sin($slope)/0.09,$n)"
+        # formula_lsfactor = "$lsfactor = 1.4*exp($flowacc* $resolution /22.1,$m)*exp(sin($slope)/0.09,$n)"
         # /22.13 nach Renard et al. 1997
 
         formula_lsfactor = "$lsfactor = (1+$m)*exp($flowacc * $resolution /22.1,$m)*exp(sin($slope)/0.09,$n)"
 
-
-        g.mapcalc(formula_lsfactor, lsfactor = lsfactor, flowacc = flowacc,
-                      slope = slope, resolution=resolution,
-                      m = constant_m, n = constant_n, quiet=quiet)
+        g.mapcalc(
+            formula_lsfactor,
+            lsfactor=lsfactor,
+            flowacc=flowacc,
+            slope=slope,
+            resolution=resolution,
+            m=constant_m,
+            n=constant_n,
+            quiet=quiet,
+        )
 
         return lsfactor
 
-    def _getSoillossbare(self,lsfactor,kfactor,rfactor,soillossbare):
+    def _getSoillossbare(self, lsfactor, kfactor, rfactor, soillossbare):
         """!Calculate soilloss on bare soil
         A = R * K * LS
         A potential soil loss t/(ha*a) for bare soil
@@ -356,37 +352,39 @@ class rusle_base(object):
         @return
         """
         formula_soillossbare = "$soillossbare = $lsfactor * $kfactor * $rfactor"
-        g.mapcalc(formula_soillossbare, soillossbare = soillossbare,
-                      lsfactor = lsfactor, kfactor = kfactor,
-                      rfactor = rfactor, quiet=quiet)
+        g.mapcalc(
+            formula_soillossbare,
+            soillossbare=soillossbare,
+            lsfactor=lsfactor,
+            kfactor=kfactor,
+            rfactor=rfactor,
+            quiet=quiet,
+        )
 
-        rules = '\n '.join([
-            "0.0000    37:114:0",
-            "20.0000   88:169:1",
-            "30.0000   207:229:3",
-            "40.0000   254:254:0",
-            "55.0000   240:60:1",
-            "100.0000  254:0:2",
-            "150.0000  169:0:1",
-            "250.0000  115:0:0",
-            "500.0000  87:0:0",
-            "50000.0000  87:0:0",
-        ])
+        rules = "\n ".join(
+            [
+                "0.0000    37:114:0",
+                "20.0000   88:169:1",
+                "30.0000   207:229:3",
+                "40.0000   254:254:0",
+                "55.0000   240:60:1",
+                "100.0000  254:0:2",
+                "150.0000  169:0:1",
+                "250.0000  115:0:0",
+                "500.0000  87:0:0",
+                "50000.0000  87:0:0",
+            ]
+        )
 
-        g.write_command("r.colors",
-                                map = soillossbare,
-                                rules = '-',
-                                stdin = rules,
-                        quiet = quiet)
+        g.write_command(
+            "r.colors", map=soillossbare, rules="-", stdin=rules, quiet=quiet
+        )
 
         return soillossbare
 
 
-
-
-
 class rusle_flow(rusle_base):
-    def _getFlowacc(self,elevation,flowacc,fieldblock):
+    def _getFlowacc(self, elevation, flowacc, fieldblock):
         """!Flowaccumulation by module r.flow using SFD-algorithm
 
         @return flowacc raster map with upslope contributing area per cell width
@@ -394,17 +392,25 @@ class rusle_flow(rusle_base):
         if fieldblock:
             barrier = outprefix + "barrier"
             self.tmp_rast.append(barrier)
-            barrier = self._getBarrier(fieldblock,barrier)
-            g.run_command('r.flow', elevation = elevation, barrier = barrier, flowaccumulation = flowacc, quiet=quiet)
+            barrier = self._getBarrier(fieldblock, barrier)
+            g.run_command(
+                "r.flow",
+                elevation=elevation,
+                barrier=barrier,
+                flowaccumulation=flowacc,
+                quiet=quiet,
+            )
 
         else:
-            g.run_command('r.flow', elevation = elevation, flowaccumulation = flowacc, quiet=quiet)
+            g.run_command(
+                "r.flow", elevation=elevation, flowaccumulation=flowacc, quiet=quiet
+            )
 
         return flowacc
 
 
 class rusle_watershed(rusle_base):
-    def _getFlowacc(self,elevation,flowacc, fieldblock):
+    def _getFlowacc(self, elevation, flowacc, fieldblock):
         """!Flowaccumulation by module r.watershed
 
         @return flowacc raster map with upslope contributing area per cell width
@@ -416,18 +422,21 @@ class rusle_watershed(rusle_base):
             self._getElevationFieldblock(elevation, fieldblock, elevationfieldblock)
             elevation = elevationfieldblock
 
-        g.run_command('r.watershed',
-                          flags='a',
-                          elevation = elevation,
-                          accumulation = flowacc,
-                          #threshold=10,
-                          #convergence = 10,
-                          quiet=quiet)
+        g.run_command(
+            "r.watershed",
+            flags="a",
+            elevation=elevation,
+            accumulation=flowacc,
+            # threshold=10,
+            # convergence = 10,
+            quiet=quiet,
+        )
         self._debug("_getFlowacc", "finished")
         return flowacc
 
+
 class rusle_terraflow(rusle_base):
-    def _getFlowacc(self,elevation,flowacc,fieldblock):
+    def _getFlowacc(self, elevation, flowacc, fieldblock):
         """!Flowaccumulation by module r.terraflow using MFD-algorithm
 
         @return flowacc raster map with upslope contributing area per cell width
@@ -447,32 +456,34 @@ class rusle_terraflow(rusle_base):
         statsfile = self._tempfile()
         streamdir = self._tempdir()
 
+        g.run_command(
+            "r.terraflow",
+            elevation=elevation,
+            filled=raster["filled"],
+            direction=raster["direction"],
+            swatershed=raster["swatershed"],
+            accumulation=flowacc,
+            tci=raster["tci"],
+            stats=statsfile,
+            stream_dir=streamdir,
+            quiet=quiet,
+        )
 
-        g.run_command('r.terraflow',
-                          elevation = elevation,
-                          filled = raster['filled'],
-                          direction = raster['direction'],
-                          swatershed = raster['swatershed'],
-                          accumulation = flowacc,
-                          tci = raster['tci'],
-                          stats = statsfile,
-                          stream_dir=streamdir,
-                          quiet=quiet)
-
-        g.mapcalc("$flowacc = $flowacc / $resolution", overwrite=True, flowacc = flowacc, resolution = resolution)
+        g.mapcalc(
+            "$flowacc = $flowacc / $resolution",
+            overwrite=True,
+            flowacc=flowacc,
+            resolution=resolution,
+        )
         self._debug("_getFlowacc", "finished")
         return flowacc
 
 
-
-
-
 def main():
-    '''
+    """
     begin main
 
-    '''
-
+    """
 
     global soillossbare
     global outprefix
@@ -491,22 +502,19 @@ def main():
     global options
     global flags
 
+    soillossbare = options["soillossbare"]
+    outprefix = soillossbare + "_"
+    flowaccmethod = options["flowaccmethod"]
+    flowacc = options["flowacc"]
+    elevation = options["elevation"]
+    kfactor = options["kfactor"]
+    rfactor = options["rfactor"]
+    resolution = options["resolution"]
+    # fieldblock = None
+    fieldblock = options["fieldblock"]
+    fieldblockvect = options["map"]
 
-    soillossbare = options['soillossbare']
-    outprefix = soillossbare + '_'
-    flowaccmethod = options['flowaccmethod']
-    flowacc = options['flowacc']
-    elevation = options['elevation']
-    kfactor = options['kfactor']
-    rfactor = options['rfactor']
-    resolution = options['resolution']
-    #fieldblock = None
-    fieldblock = options['fieldblock']
-    fieldblockvect = options['map']
-
-    flag_r = flags['r']     # remove temp maps
-
-
+    flag_r = flags["r"]  # remove temp maps
 
     quiet = True
     if g.verbosity() > 2:
@@ -536,8 +544,6 @@ def main():
         remove = ruslealg.removeTempRasters()
 
     return
-
-
 
 
 if __name__ == "__main__":

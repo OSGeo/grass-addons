@@ -89,9 +89,9 @@ import grass.script as gscript
 
 def values_to_rule(value, red, green, blue, percent):
     """Return textual representation of one color rule line"""
-    return "{v:.3f}{p} {r}:{g}:{b}".format(v=value,
-                                           p='%' if percent else '',
-                                           r=red, g=green, b=blue)
+    return "{v:.3f}{p} {r}:{g}:{b}".format(
+        v=value, p="%" if percent else "", r=red, g=green, b=blue
+    )
 
 
 # sync with r.colors.cubehelix
@@ -124,34 +124,32 @@ def mpl_cmap_to_rules(cmap, n_colors=None, discrete=False, comments=None):
         r1 = int(r1 * 255.999)
         g1 = int(g1 * 255.999)
         b1 = int(b1 * 255.999)
-        rules.append(values_to_rule(value=v1, red=r1, green=g1,
-                                    blue=b1, percent=True))
+        rules.append(values_to_rule(value=v1, red=r1, green=g1, blue=b1, percent=True))
         if discrete:
-            rules.append(values_to_rule(value=v2, red=r1, green=g1,
-                                        blue=b1, percent=True))
-    return '\n'.join(rules)
+            rules.append(
+                values_to_rule(value=v2, red=r1, green=g1, blue=b1, percent=True)
+            )
+    return "\n".join(rules)
 
 
 def main(options, flags):
     import matplotlib.cm as cm
 
-    name = options['color']
-    n_colors = int(options['ncolors'])
-    discrete = flags['d']
+    name = options["color"]
+    n_colors = int(options["ncolors"])
+    discrete = flags["d"]
 
-    if flags['n']:
-        name += '_r'
-
+    if flags["n"]:
+        name += "_r"
 
     if os.path.isfile(name):
-        ns = {'__name__': '',
-              '__file__': os.path.basename(name),
-              }
+        ns = {
+            "__name__": "",
+            "__file__": os.path.basename(name),
+        }
 
         with open(name) as f:
-            code = compile(f.read(),
-                           os.path.basename(name),
-                           'exec')
+            code = compile(f.read(), os.path.basename(name), "exec")
             exec(code, globals(), ns)
         cmap = ns.get("test_cm", None)
         # we ignore user input since we need to use whatever the
@@ -162,39 +160,46 @@ def main(options, flags):
         # datad might be potentially better way of getting the table
         # it contains the raw data, but on the other hand it might not be
         # clear if you can interpolate linearly in between (but likely yes)
-        if hasattr(cm, 'datad') and name not in cm.datad.keys():
+        if hasattr(cm, "datad") and name not in cm.datad.keys():
             import matplotlib as mpl
-            gscript.fatal(_("Matplotlib {v} does not contain color table"
-                            " <{n}>").format(v=mpl.__version__, n=name))
+
+            gscript.fatal(
+                _("Matplotlib {v} does not contain color table" " <{n}>").format(
+                    v=mpl.__version__, n=name
+                )
+            )
         cmap = cm.get_cmap(name, lut=n_colors)
 
     comments = []
-    comments.append(
-        "Generated from Matplotlib color table <{}>".format(name))
-    comments.append(
-        "using:")
+    comments.append("Generated from Matplotlib color table <{}>".format(name))
+    comments.append("using:")
     command = [sys.argv[0].split(os.path.sep)[-1]]
     command.extend(sys.argv[1:])
-    comments.append(
-        "  {}".format(' '.join(command)))
+    comments.append("  {}".format(" ".join(command)))
 
-    rules = mpl_cmap_to_rules(cmap, n_colors=n_colors,
-                              discrete=discrete, comments=comments)
+    rules = mpl_cmap_to_rules(
+        cmap, n_colors=n_colors, discrete=discrete, comments=comments
+    )
 
-    if options['map']:
-        rcf = ''
-        for char in 'gae':
+    if options["map"]:
+        rcf = ""
+        for char in "gae":
             if flags[char]:
                 rcf += char
-        gscript.write_command('r.colors', map=options['map'], flags=rcf,
-                              rules='-', stdin=rules,)
-    if options['output']:
-        with open(options['output'], 'w') as f:
+        gscript.write_command(
+            "r.colors",
+            map=options["map"],
+            flags=rcf,
+            rules="-",
+            stdin=rules,
+        )
+    if options["output"]:
+        with open(options["output"], "w") as f:
             f.write(rules)
-            f.write('\n')
-    elif not options['map']:
+            f.write("\n")
+    elif not options["map"]:
         print(rules)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main(*gscript.parser()))

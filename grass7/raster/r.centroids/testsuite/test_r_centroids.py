@@ -54,7 +54,9 @@ class TestCentroids(TestCase):
             "r.centroids", input="basins", output=self.centroids, overwrite=True
         )
 
-        self.assertVectorEqualsAscii(self.centroids, "data/r_centroids_reference.txt", digits=6, precision=1)
+        self.assertVectorEqualsAscii(
+            self.centroids, "data/r_centroids_reference.txt", digits=6, precision=1
+        )
 
 
 if __name__ == "__main__":

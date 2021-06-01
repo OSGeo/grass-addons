@@ -139,77 +139,92 @@ from grass.script.utils import set_path
 
 try:
     # set python path to the shared r.green libraries
-    set_path('r.green', 'libhydro', '..')
-    set_path('r.green', 'libgreen', os.path.join('..', '..'))
+    set_path("r.green", "libhydro", "..")
+    set_path("r.green", "libgreen", os.path.join("..", ".."))
     from libhydro.optimal import conv_segpoints
     from libhydro.plant import read_plants, write_structures
-    from libgreen.checkparameter import check_required_columns, \
-        exception2error
+    from libgreen.checkparameter import check_required_columns, exception2error
     from libgreen.utils import cleanup
 except ImportError:
     try:
-        set_path('r.green', 'libhydro', os.path.join('..', 'etc', 'r.green'))
-        set_path('r.green', 'libgreen', os.path.join('..', 'etc', 'r.green'))
+        set_path("r.green", "libhydro", os.path.join("..", "etc", "r.green"))
+        set_path("r.green", "libgreen", os.path.join("..", "etc", "r.green"))
         from libhydro.optimal import conv_segpoints
         from libhydro.plant import read_plants, write_structures
-        from libgreen.checkparameter import check_required_columns, \
-            exception2error
+        from libgreen.checkparameter import check_required_columns, exception2error
         from libgreen.utils import cleanup
     except ImportError:
-        warning('libgreen and libhydro not in the python path!')
-
+        warning("libgreen and libhydro not in the python path!")
 
 
 def main(opts, flgs):
     TMPVECT = []
-    DEBUG = True if flgs['d'] else False
+    DEBUG = True if flgs["d"] else False
     atexit.register(cleanup, vector=TMPVECT, debug=DEBUG)
 
     # check input maps
-    plant = [opts['plant_column_discharge'], opts['plant_column_elevup'],
-             opts['plant_column_elevdown'], opts['plant_column_point_id'],
-             opts['plant_column_plant_id'], opts['plant_column_power'],
-             opts['plant_column_stream_id']]
+    plant = [
+        opts["plant_column_discharge"],
+        opts["plant_column_elevup"],
+        opts["plant_column_elevdown"],
+        opts["plant_column_point_id"],
+        opts["plant_column_plant_id"],
+        opts["plant_column_power"],
+        opts["plant_column_stream_id"],
+    ]
     ovwr = overwrite()
 
     try:
-        plnt = check_required_columns(opts['plant'], int(opts['plant_layer']),
-                                      plant, 'plant')
+        plnt = check_required_columns(
+            opts["plant"], int(opts["plant_layer"]), plant, "plant"
+        )
     except ParameterError as exc:
         exception2error(exc)
         return
 
-    if not opts['output_point']:
-        output_point = 'tmp_output_point'
+    if not opts["output_point"]:
+        output_point = "tmp_output_point"
         TMPVECT.append(output_point)
     else:
-        output_point = opts['output_point']
+        output_point = opts["output_point"]
 
-    plnt = conv_segpoints(opts['plant'], output_point)
+    plnt = conv_segpoints(opts["plant"], output_point)
 
-    el, mset = (opts['elevation'].split('@') if '@' in opts['elevation']
-                else (opts['elevation'], ''))
+    el, mset = (
+        opts["elevation"].split("@")
+        if "@" in opts["elevation"]
+        else (opts["elevation"], "")
+    )
 
     elev = RasterRow(name=el, mapset=mset)
-    elev.open('r')
-    plnt.open('r')
+    elev.open("r")
+    plnt.open("r")
 
-    plants, skipped = read_plants(plnt, elev=elev,
-                                  restitution='restitution',
-                                  intake='intake',
-                                  ckind_label='kind_label',
-                                  cdischarge='discharge',
-                                  celevation='elevation',
-                                  cid_point='cat',
-                                  cid_plant='plant_id')
+    plants, skipped = read_plants(
+        plnt,
+        elev=elev,
+        restitution="restitution",
+        intake="intake",
+        ckind_label="kind_label",
+        cdischarge="discharge",
+        celevation="elevation",
+        cid_point="cat",
+        cid_plant="plant_id",
+    )
 
     plnt.close()
 
     # contour options
-    resolution = float(opts['resolution']) if opts['resolution'] else None
-    write_structures(plants, opts['output_struct'], elev,
-                     ndigits=int(opts['ndigits']), resolution=resolution,
-                     contour=opts['contour'], overwrite=ovwr)
+    resolution = float(opts["resolution"]) if opts["resolution"] else None
+    write_structures(
+        plants,
+        opts["output_struct"],
+        elev,
+        ndigits=int(opts["ndigits"]),
+        resolution=resolution,
+        contour=opts["contour"],
+        overwrite=ovwr,
+    )
     elev.close()
 
 

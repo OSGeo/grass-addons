@@ -25,6 +25,7 @@ class World(object):
     (e.g. attractors) or vector-coordinates to indicate points
     on the playground...
     """
+
     # walking constants
     ## agents default ability to move
     FREEDOM = 8
@@ -32,7 +33,7 @@ class World(object):
     ### while walking straight we assume
     STRAIGHT = 0
     ### theoretical fix penalty value for diagonal walking
-    DIAGONAL = sqrt(2)-1
+    DIAGONAL = sqrt(2) - 1
 
     def __init__(self, pg=None, agenttype=None):
         """
@@ -52,7 +53,7 @@ class World(object):
             self.agenttype = agenttype
         # list of agents
         self.agents = []
-        #self.artefacts = []
+        # self.artefacts = []
 
     def addlayertopg(self, layername):
         """
@@ -102,8 +103,9 @@ class World(object):
         """
         position = self.findposition(position)
         if not position:
-            raise error.DataError("r.agent::libagent.world.World.bear()",
-                                  "invalid position")
+            raise error.DataError(
+                "r.agent::libagent.world.World.bear()", "invalid position"
+            )
         agent = self.agenttype(timetolive, self, position)
         self.agents.append(agent)
         return agent
@@ -116,8 +118,9 @@ class World(object):
         """
         position = self.findposition(position)
         if not position:
-            raise error.DataError("r.agent::libagent.world.World.move()",
-                                  "invalid position")
+            raise error.DataError(
+                "r.agent::libagent.world.World.move()", "invalid position"
+            )
         agent.setposition(position)
 
     def getneighbourpositions(self, position, freedom=None):

@@ -33,7 +33,7 @@ class TestAppend(unittest.TestCase):
             "lsat7_2002_30@PERMANENT",
             "lsat7_2002_40@PERMANENT",
             "lsat7_2002_50@PERMANENT",
-            "lsat7_2002_70@PERMANENT"
+            "lsat7_2002_70@PERMANENT",
         ]
 
         # create duplicate of a landsat band in a different mapset
@@ -82,5 +82,5 @@ class TestAppend(unittest.TestCase):
         stack.append(self.other, in_place=True)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

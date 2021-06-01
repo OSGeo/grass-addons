@@ -57,7 +57,9 @@ TMPDIR = tempfile.mkdtemp()
 
 
 def cleanup():
-    gscript.run_command('g.remove', name=','.join(TMPRAST), flags='f', type='raster', quiet=True)
+    gscript.run_command(
+        "g.remove", name=",".join(TMPRAST), flags="f", type="raster", quiet=True
+    )
     shutil.rmtree(TMPDIR)
 
 
@@ -65,40 +67,47 @@ def main(rinput, background, output, method):
     try:
         from PIL import Image
     except ImportError:
-        gscript.fatal("Cannot import PIL."
-                      " Please install the Python pillow package.")
+        gscript.fatal("Cannot import PIL." " Please install the Python pillow package.")
 
-    if '@' in rinput:
-        rinput = rinput.split('@')[0]
-    suffix = '_' + os.path.basename(gscript.tempfile(False))
+    if "@" in rinput:
+        rinput = rinput.split("@")[0]
+    suffix = "_" + os.path.basename(gscript.tempfile(False))
     tmpname = rinput + suffix
-    gscript.run_command('g.copy', raster=[rinput, tmpname])
+    gscript.run_command("g.copy", raster=[rinput, tmpname])
     TMPRAST.append(tmpname)
-    gscript.run_command('r.colors', map=tmpname, color='grey')
+    gscript.run_command("r.colors", map=tmpname, color="grey")
 
     reg = gscript.region()
-    width = reg['cols']
-    height = reg['rows']
+    width = reg["cols"]
+    height = reg["rows"]
 
-    fg_out = os.path.join(TMPDIR, 'foreground.png')
-    bg_out = os.path.join(TMPDIR, 'background.png')
-    intensity_tmp = os.path.join(TMPDIR, 'intensity.png')
-    gscript.run_command('d.mon', start='cairo', output=fg_out,
-                        width=width, height=height, bgcolor='black')
-    gscript.run_command('d.rast', map=rinput)
-    gscript.run_command('d.mon', stop='cairo')
+    fg_out = os.path.join(TMPDIR, "foreground.png")
+    bg_out = os.path.join(TMPDIR, "background.png")
+    intensity_tmp = os.path.join(TMPDIR, "intensity.png")
+    gscript.run_command(
+        "d.mon",
+        start="cairo",
+        output=fg_out,
+        width=width,
+        height=height,
+        bgcolor="black",
+    )
+    gscript.run_command("d.rast", map=rinput)
+    gscript.run_command("d.mon", stop="cairo")
 
     # background
-    gscript.run_command('d.mon', start='cairo', output=bg_out,
-                        width=width, height=height)
-    gscript.run_command('d.rast', map=background)
-    gscript.run_command('d.mon', stop='cairo')
+    gscript.run_command(
+        "d.mon", start="cairo", output=bg_out, width=width, height=height
+    )
+    gscript.run_command("d.rast", map=background)
+    gscript.run_command("d.mon", stop="cairo")
 
     # greyscale
-    gscript.run_command('d.mon', start='cairo', output=intensity_tmp,
-                        width=width, height=height)
-    gscript.run_command('d.rast', map=tmpname)
-    gscript.run_command('d.mon', stop='cairo')
+    gscript.run_command(
+        "d.mon", start="cairo", output=intensity_tmp, width=width, height=height
+    )
+    gscript.run_command("d.rast", map=tmpname)
+    gscript.run_command("d.mon", stop="cairo")
 
     # put together with transparency
     foreground = Image.open(fg_out)
@@ -114,8 +123,14 @@ def main(rinput, background, output, method):
         if intens == 0:
             newData.append((data_f[i][0], data_f[i][1], data_f[i][2], 0))
         else:
-            newData.append((data_f[i][0], data_f[i][1], data_f[i][2],
-                            scale(0, 255, intens, method)))
+            newData.append(
+                (
+                    data_f[i][0],
+                    data_f[i][1],
+                    data_f[i][2],
+                    scale(0, 255, intens, method),
+                )
+            )
     foreground.putdata(newData)
     background.paste(foreground, (0, 0), foreground)
     background.save(output)
@@ -124,17 +139,17 @@ def main(rinput, background, output, method):
 def scale(cmin, cmax, intens, method):
     # scale to 0 - 1
     val = (intens - cmin) / float((cmax - cmin))
-    if method == 'logistic':
-        val = 1. / (1 + exp(-10 * (val - 0.5)))
+    if method == "logistic":
+        val = 1.0 / (1 + exp(-10 * (val - 0.5)))
     val *= 255
     return int(val)
 
 
 if __name__ == "__main__":
     options, flags = gscript.parser()
-    rinput = options['input']
-    bg = options['background']
-    output = options['output']
-    method = options['method']
+    rinput = options["input"]
+    bg = options["background"]
+    output = options["output"]
+    method = options["method"]
     atexit.register(cleanup)
     main(rinput, bg, output, method)

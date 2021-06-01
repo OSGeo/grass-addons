@@ -45,43 +45,56 @@ import sys
 import grass.script as gs
 from grass.exceptions import CalledModuleError
 
+
 def main():
     options, flags = gs.parser()
 
-    vector = options['input']
+    vector = options["input"]
     layer = 1
-    raster = options['output']
-    method = options['method']
+    raster = options["output"]
+    method = options["method"]
     z = 3
-    sep = 'pipe'
+    sep = "pipe"
     out_args = {}
 
-    if not gs.find_file(vector, element='vector')['fullname']:
-        gs.fatal('Vector map <{0}> not found'.format(vector))
+    if not gs.find_file(vector, element="vector")["fullname"]:
+        gs.fatal("Vector map <{0}> not found".format(vector))
 
-    if options['column']:
+    if options["column"]:
         z = 4
-        out_args['column'] = options['column']
-        out_args['where'] = '{0} IS NOT NULL'.format(options['column'])
+        out_args["column"] = options["column"]
+        out_args["where"] = "{0} IS NOT NULL".format(options["column"])
 
         columns = gs.vector_columns(vector)
 
-        if options['column'] not in columns:
-            gs.fatal(_('Column <{0}> not found'.format(options['column'])))
-        if columns[options['column']]['type'] not in ('INTEGER', 'DOUBLE PRECISION'):
-            gs.fatal(_('Column <{0}> is not numeric'.format(options['column'])))
-
+        if options["column"] not in columns:
+            gs.fatal(_("Column <{0}> not found".format(options["column"])))
+        if columns[options["column"]]["type"] not in ("INTEGER", "DOUBLE PRECISION"):
+            gs.fatal(_("Column <{0}> is not numeric".format(options["column"])))
 
     out_process = gs.pipe_command(
-        'v.out.ascii', input=vector, layer=layer, format='point',
-        separator=sep, flags='r', **out_args)
+        "v.out.ascii",
+        input=vector,
+        layer=layer,
+        format="point",
+        separator=sep,
+        flags="r",
+        **out_args
+    )
     in_process = gs.start_command(
-        'r.in.xyz', input='-', output=raster, method=method, z=z,
-        separator=sep, stdin=out_process.stdout)
+        "r.in.xyz",
+        input="-",
+        output=raster,
+        method=method,
+        z=z,
+        separator=sep,
+        stdin=out_process.stdout,
+    )
     in_process.communicate()
     out_process.wait()
 
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())
