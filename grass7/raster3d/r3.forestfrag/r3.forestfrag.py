@@ -121,6 +121,7 @@ import sys
 import uuid
 import atexit
 import grass.script as gs
+
 # neutral naming for better compatibility with 2D version
 from grass.script.raster3d import mapcalc3d as mapcalc
 
@@ -174,14 +175,13 @@ def cleanup():
     """Remove temporary maps specified in the global list"""
     cleanrast = list(reversed(CLEAN_RAST))
     for rast in cleanrast:
-        gs.run_command("g.remove", flags="f", type="raster3d", name=rast,
-                       quiet=True)
+        gs.run_command("g.remove", flags="f", type="raster3d", name=rast, quiet=True)
 
 
 def raster_exists(name):
     """Check if the raster map exists, call GRASS fatal otherwise"""
-    ffile = gs.find_file(name, element='grid3')
-    if not ffile['fullname']:
+    ffile = gs.find_file(name, element="grid3")
+    if not ffile["fullname"]:
         gs.fatal(_("Raster map <%s> not found") % name)
 
 
@@ -192,7 +192,7 @@ def tmpname(prefix):
     Use only for raster maps.
     """
     tmpf = prefix + str(uuid.uuid4())
-    tmpf = tmpf.replace('-', '_')
+    tmpf = tmpf.replace("-", "_")
     CLEAN_RAST.append(tmpf)
     return tmpf
 
@@ -212,36 +212,45 @@ def pairs_expression(map_name, max_index, combine_op, aggregate_op="+"):
     for j in range(-s, s + 1):
         for k in range(-s, s + 1):
             for i in range(-s, s):
-                expr.append(base_expr.format(
-                    m=map_name, o=combine_op, a=i, b=j, c=k, d=i + 1, e=j, f=k))
+                expr.append(
+                    base_expr.format(
+                        m=map_name, o=combine_op, a=i, b=j, c=k, d=i + 1, e=j, f=k
+                    )
+                )
     for k in range(-s, s + 1):
         for i in range(-s, s + 1):
             for j in range(-s, s):
-                expr.append(base_expr.format(
-                    m=map_name, o=combine_op, a=i, b=j, c=k, d=i, e=j + 1, f=k))
+                expr.append(
+                    base_expr.format(
+                        m=map_name, o=combine_op, a=i, b=j, c=k, d=i, e=j + 1, f=k
+                    )
+                )
     for i in range(-s, s + 1):
         for j in range(-s, s + 1):
             for k in range(-s, s):
-                expr.append(base_expr.format(
-                    m=map_name, o=combine_op, a=i, b=j, c=k, d=i, e=j, f=k + 1))
+                expr.append(
+                    base_expr.format(
+                        m=map_name, o=combine_op, a=i, b=j, c=k, d=i, e=j, f=k + 1
+                    )
+                )
     return aggregate_op.join(expr)
 
 
 def main(options, flags):
     # options and flags into variables
-    ipl = options['input']
+    ipl = options["input"]
     raster_exists(ipl)
-    opl = options['output']
-    size = int(options['size'])
+    opl = options["output"]
+    size = int(options["size"])
     if size % 2 == 0:
         gs.fatal("Please provide an odd number for the moving window")
 
-    transitional_limit = float(options['transitional_limit'])
-    patch_limit = float(options['patch_limit'])
+    transitional_limit = float(options["transitional_limit"])
+    patch_limit = float(options["patch_limit"])
     if patch_limit >= transitional_limit:
         gs.fatal("Patch limit must be lower than transitional limit")
-    if options['interior_limit']:
-        interior_limit = float(options['interior_limit'])
+    if options["interior_limit"]:
+        interior_limit = float(options["interior_limit"])
     else:
         # we choose high value just to be sure
         float_epsilon = 2.0e-06
@@ -253,10 +262,10 @@ def main(options, flags):
     interior_circle_test = True
     interior_limit = "{:.7f}".format(interior_limit)
     # user wants pf or pff
-    user_pf = options['pf']
-    user_pff = options['pff']
-    flag_r = flags['r']
-    clip_output = flags['a']
+    user_pf = options["pf"]
+    user_pff = options["pff"]
+    flag_r = flags["r"]
+    clip_output = flags["a"]
 
     # set to current input map region if requested by the user
     # default is (and should be) the current region
@@ -264,7 +273,7 @@ def main(options, flags):
     # it makes sense to use it from now on (but we should reconsider)
     if flag_r:
         gs.message(_("Setting region to input map..."))
-        gs.run_command('g.region', raster3d=ipl, quiet=True)
+        gs.run_command("g.region", raster3d=ipl, quiet=True)
 
     # TODO: check if map values are limited to 1 and 0
 
@@ -278,9 +287,14 @@ def main(options, flags):
     if user_pf:
         pf = user_pf
     else:
-        pf = tmpname('tmpA03_')
-    gs.run_command("r3.neighbors", input=ipl, output=pf,
-                      method="average", window=(size, size, size))
+        pf = tmpname("tmpA03_")
+    gs.run_command(
+        "r3.neighbors",
+        input=ipl,
+        output=pf,
+        method="average",
+        window=(size, size, size),
+    )
 
     # computing pff values
     # Considering pairs of pixels in cardinal directions in
@@ -291,25 +305,22 @@ def main(options, flags):
     gs.info(_("Step 2: Computing Pff values..."))
 
     # create copy of forest map and convert NULL to 0 (if any)
-    tmpC4 = tmpname('tmpA04_')
+    tmpC4 = tmpname("tmpA04_")
     gs.run_command("g.copy", raster3d=[ipl, tmpC4], quiet=True)
     gs.run_command("r3.null", map=tmpC4, null=0, quiet=True)
 
     # window dimensions
     max_index = int((size - 1) / 2)
     # number of 'forest-forest' pairs
-    expr1 = pairs_expression(map_name=tmpC4, max_index=max_index,
-                             combine_op='&')
+    expr1 = pairs_expression(map_name=tmpC4, max_index=max_index, combine_op="&")
     # number of 'nonforest-forest' pairs
-    expr2 = pairs_expression(map_name=tmpC4, max_index=max_index,
-                             combine_op='|')
+    expr2 = pairs_expression(map_name=tmpC4, max_index=max_index, combine_op="|")
     # create pff map
     if user_pff:
         pff = user_pff
     else:
-        pff = tmpname('tmpA07_')
-    mapcalc("$pff = float($e1) / float($e2)",
-            pff=pff, e1=expr1, e2=expr2)
+        pff = tmpname("tmpA07_")
+    mapcalc("$pff = float($e1) / float($e2)", pff=pff, e1=expr1, e2=expr2)
 
     # computing fragmentation index
     # (a b) name, condition
@@ -335,7 +346,7 @@ def main(options, flags):
         interior_eq = "$pf == 1"
 
     if clip_output:
-        indexfin2 = tmpname('tmpA16_')
+        indexfin2 = tmpname("tmpA16_")
     else:
         indexfin2 = opl
     expression = (
@@ -363,24 +374,30 @@ def main(options, flags):
         ")\n"
         # mask result by non-forest (according to the input)
         # removes the nonsense data created in the non-forested areas
-        "$out = all * $binary_forest")
+        "$out = all * $binary_forest"
+    )
     gs.debug(expression)
-    mapcalc(expression,
-        out=indexfin2, binary_forest=ipl, pf=pf, pff=pff,
-        tr_limit=transitional_limit, pa_limit=patch_limit,
-        in_limit=interior_limit)
+    mapcalc(
+        expression,
+        out=indexfin2,
+        binary_forest=ipl,
+        pf=pf,
+        pff=pff,
+        tr_limit=transitional_limit,
+        pa_limit=patch_limit,
+        in_limit=interior_limit,
+    )
 
     # TODO: create categories
 
     # create color table
-    if options['color'] == 'riitters':
+    if options["color"] == "riitters":
         colors = COLORS_RIITTERS
-    if options['color'] == 'perceptual':
+    if options["color"] == "perceptual":
         colors = COLORS_PERCEPTUAL
     else:
         colors = COLORS_SAMBALE
-    gs.write_command("r3.colors", map=opl, rules='-',
-                     stdin=colors, quiet=True)
+    gs.write_command("r3.colors", map=opl, rules="-", stdin=colors, quiet=True)
 
     gs.info(_("The following layers were created"))
     gs.info(_("The fragmentation index: %s") % opl)
