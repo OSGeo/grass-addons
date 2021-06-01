@@ -11,9 +11,9 @@
 #
 # COPYRIGHT:	(C) 2002-2012 by the GRASS Development Team
 #
-#		This program is free software under the GNU General Public
-#		License (>=v2). Read the file COPYING that comes with GRASS
-#		for details.
+# 		This program is free software under the GNU General Public
+# 		License (>=v2). Read the file COPYING that comes with GRASS
+# 		for details.
 #
 #
 #############################################################################
@@ -65,38 +65,46 @@
 
 import grass.script as grass
 
+
 def main():
     #
     # define variables
     #
 
     overwrite = False
-    mapset = options['mapset'] # prefix for copied maps
-    datatype = options['datatype'] # prefix for copied maps
-    filter = options['filter'] # prefix for copied maps
-    filter_type = options['filter_type'] # prefix for copied maps
-    prefix = options['output_prefix'] # prefix for copied maps
+    mapset = options["mapset"]  # prefix for copied maps
+    datatype = options["datatype"]  # prefix for copied maps
+    filter = options["filter"]  # prefix for copied maps
+    filter_type = options["filter_type"]  # prefix for copied maps
+    prefix = options["output_prefix"]  # prefix for copied maps
     datalist = []  # list of GRASS data files to copy
-    input = ''
-    output = ''
+    input = ""
+    output = ""
     if grass.overwrite():
         overwrite = True
 
-    if filter_type == 'select all':
-        filter = '*'
+    if filter_type == "select all":
+        filter = "*"
 
-    filterflag = ''
-    if filter_type == 'regular expressions':
-        filterflag = 'r'
-    if filter_type == 'extended regular expressions':
-        filterflag = 'e'
+    filterflag = ""
+    if filter_type == "regular expressions":
+        filterflag = "r"
+    if filter_type == "extended regular expressions":
+        filterflag = "e"
 
     #
     # first run g.list to get list of maps to parse
     #
-    l = grass.list_grouped(type=datatype, pattern=filter, check_search_path = True, flag=filterflag)
+    l = grass.list_grouped(
+        type=datatype, pattern=filter, check_search_path=True, flag=filterflag
+    )
     if mapset not in l:
-        grass.warning(_('You do not have access to mapset %s. Run g.mapsets (under settings menu) to change mapset access') % mapset)
+        grass.warning(
+            _(
+                "You do not have access to mapset %s. Run g.mapsets (under settings menu) to change mapset access"
+            )
+            % mapset
+        )
         return
 
     datalist = l[mapset]
@@ -106,15 +114,16 @@ def main():
     #
     for input in datalist:
         if prefix:
-            output = '%s_%s' % (prefix, input)
+            output = "%s_%s" % (prefix, input)
         else:
             output = input
 
-        params = {datatype: '%s@%s,%s' % (input, mapset, output)}
-        grass.run_command('g.copy', overwrite=overwrite, **params)
+        params = {datatype: "%s@%s,%s" % (input, mapset, output)}
+        grass.run_command("g.copy", overwrite=overwrite, **params)
 
-        if datatype == 'vector' and flags['t']:
-            grass.run_command('v.build', map=output)
+        if datatype == "vector" and flags["t"]:
+            grass.run_command("v.build", map=output)
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()
