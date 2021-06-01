@@ -3,28 +3,31 @@ from utils import string2dict, find_ST_fnc
 import sys
 import os
 
+
 class HiveBaseTable(object):
     """
     Base class for creating Hive tables - table factory
     """
 
-    def __init__(self,
-                name,
-                col,
-                temporary = False,
-                external = False,
-                exists = True,
-                db_name = None,
-                comment = None,
-                partitioned= None,
-                clustered = None,
-                sorted = None,
-                skewed = None,
-                row_format=None,
-                stored=None,
-                outputformat=None,
-                location = None,
-                tbl_properties = None):
+    def __init__(
+        self,
+        name,
+        col,
+        temporary=False,
+        external=False,
+        exists=True,
+        db_name=None,
+        comment=None,
+        partitioned=None,
+        clustered=None,
+        sorted=None,
+        skewed=None,
+        row_format=None,
+        stored=None,
+        outputformat=None,
+        location=None,
+        tbl_properties=None,
+    ):
 
         self.db_name = db_name
         self.name = name
@@ -43,7 +46,7 @@ class HiveBaseTable(object):
         self.location = location
         self.tbl_properties = tbl_properties
 
-        self.hql = ''
+        self.hql = ""
 
     def get_table(self):
         self._base()
@@ -58,32 +61,32 @@ class HiveBaseTable(object):
         return self.hql
 
     def _base(self):
-        self.hql = 'CREATE'
+        self.hql = "CREATE"
         if self.temporary:
-            self.hql += ' TEMPORARY'
+            self.hql += " TEMPORARY"
         if self.external:
-            self.hql += ' EXTERNAL'
-        self.hql += ' TABLE'
+            self.hql += " EXTERNAL"
+        self.hql += " TABLE"
         if self.exists:
-            self.hql += ' IF NOT EXISTS'
+            self.hql += " IF NOT EXISTS"
         if self.db_name:
-            self.hql += " %s.%s" % (self.db_name,self.name)
+            self.hql += " %s.%s" % (self.db_name, self.name)
         else:
             self.hql += " %s" % self.name
 
     def _col(self):
 
-        self.hql += ' (%s)' % self.col
+        self.hql += " (%s)" % self.col
 
     def _partitioned(self):
         if self.partitioned:
-            self.hql += ' PARTITIONED BY (%s)' % self.partitioned
+            self.hql += " PARTITIONED BY (%s)" % self.partitioned
 
     def _cluster(self):
         if self.clustered:
-            self.hql += ' CLUSTERED BY (%s)' % self.clustered
+            self.hql += " CLUSTERED BY (%s)" % self.clustered
 
-    #def _skewed(self):
+    # def _skewed(self):
     #    if self.skewed:
     #        self.hql+=' SKEWED BY (%s)'%self.skewed
     def _row_format(self):
@@ -91,7 +94,7 @@ class HiveBaseTable(object):
             self.hql += " ROW FORMAT '%s'" % self.row_format
 
     def _stored(self):
-        #hint
+        # hint
         # STORED AS INPUTFORMAT 'com.esri.json.hadoop.UnenclosedJsonInputFormat'
         # OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat';
         if self.stored:
@@ -103,11 +106,11 @@ class HiveBaseTable(object):
 
     def _location(self):
         if self.location:
-            self.hql += ' LOCATION %s' % self.location
+            self.hql += " LOCATION %s" % self.location
 
     def _tbl_prop(self):
         if self.tbl_properties:
-            self.hql += ' TBLPROPERTIES (%s)' % self.tbl_properties
+            self.hql += " TBLPROPERTIES (%s)" % self.tbl_properties
 
 
 class HiveJsonTable(HiveBaseTable):
@@ -115,41 +118,44 @@ class HiveJsonTable(HiveBaseTable):
     Table factory for Json tables
     """
 
-    def __init__(self,
-                name,
-                col,
-                db_name = None,
-                temporary = False,
-                external = False,
-                exists = True,
-                comment = None,
-                partitioned= None,
-                clustered = None,
-                sorted = None,
-                skewed = None,
-                row_format=None,
-                stored=None,
-                location = None,
-                outputformat=None,
-                tbl_properties = None):
+    def __init__(
+        self,
+        name,
+        col,
+        db_name=None,
+        temporary=False,
+        external=False,
+        exists=True,
+        comment=None,
+        partitioned=None,
+        clustered=None,
+        sorted=None,
+        skewed=None,
+        row_format=None,
+        stored=None,
+        location=None,
+        outputformat=None,
+        tbl_properties=None,
+    ):
 
-        super(HiveJsonTable,self).__init__(name=name,
-                                      col=col,
-                                      db_name=db_name,
-                                      temporary=temporary,
-                                      external=external,
-                                      exists=exists,
-                                      comment=comment,
-                                      partitioned=partitioned,
-                                      clustered=clustered,
-                                      stored=sorted,
-                                      skewed=skewed,
-                                      row_format=row_format,
-                                      location=location,
-                                      sorted=sorted,
-                                      outputformat=outputformat,
-
-                                      tbl_properties=tbl_properties)
+        super(HiveJsonTable, self).__init__(
+            name=name,
+            col=col,
+            db_name=db_name,
+            temporary=temporary,
+            external=external,
+            exists=exists,
+            comment=comment,
+            partitioned=partitioned,
+            clustered=clustered,
+            stored=sorted,
+            skewed=skewed,
+            row_format=row_format,
+            location=location,
+            sorted=sorted,
+            outputformat=outputformat,
+            tbl_properties=tbl_properties,
+        )
         self.outputformat = outputformat
 
     def get_table(self):
@@ -166,46 +172,51 @@ class HiveJsonTable(HiveBaseTable):
         if self.row_format:
             self.hql += " ROW FORMAT SERDE '%s'" % self.row_format
 
+
 class HiveCsvTable(HiveBaseTable):
     """
     Table factory for CSV tables
     """
 
-    def __init__(self,
-                name,
-                col,
-                db_name = None,
-                temporary = False,
-                external = False,
-                exists = True,
-                comment = None,
-                partitioned= None,
-                clustered = None,
-                sorted = None,
-                skewed = None,
-                row_format=None,
-                stored=None,
-                outputformat=None,
-                location = None,
-                delimeter=',',
-                tbl_properties = None):
+    def __init__(
+        self,
+        name,
+        col,
+        db_name=None,
+        temporary=False,
+        external=False,
+        exists=True,
+        comment=None,
+        partitioned=None,
+        clustered=None,
+        sorted=None,
+        skewed=None,
+        row_format=None,
+        stored=None,
+        outputformat=None,
+        location=None,
+        delimeter=",",
+        tbl_properties=None,
+    ):
 
-        super(HiveCsvTable,self).__init__(name=name,
-                                      col=col,
-                                      db_name=db_name,
-                                      temporary=temporary,
-                                      external=external,
-                                      exists=exists,
-                                      comment=comment,
-                                      partitioned=partitioned,
-                                      clustered=clustered,
-                                      outputformat=outputformat,
-                                      stored=sorted,
-                                      skewed=skewed,
-                                      row_format=row_format,
-                                      location=location,
-                                      sorted=sorted,
-                                      tbl_properties=tbl_properties)
+        super(HiveCsvTable, self).__init__(
+            name=name,
+            col=col,
+            db_name=db_name,
+            temporary=temporary,
+            external=external,
+            exists=exists,
+            comment=comment,
+            partitioned=partitioned,
+            clustered=clustered,
+            outputformat=outputformat,
+            stored=sorted,
+            skewed=skewed,
+            row_format=row_format,
+            location=location,
+            sorted=sorted,
+            tbl_properties=tbl_properties,
+        )
         self.delimeter = delimeter
 
     def get_table(self):
@@ -221,10 +232,12 @@ class HiveCsvTable(HiveBaseTable):
 
     def _row_format(self):
         if not self.row_format:
-            self.hql += (" ROW FORMAT DELIMITED FIELDS TERMINATED"
-                       " BY '%s'" % self.delimeter)
+            self.hql += (
+                " ROW FORMAT DELIMITED FIELDS TERMINATED" " BY '%s'" % self.delimeter
+            )
         else:
-            self.hql += ' ROW FORMAT %s' % self.row_format
+            self.hql += " ROW FORMAT %s" % self.row_format
+
 
 class HiveSpatial(object):
     """
@@ -235,14 +248,14 @@ class HiveSpatial(object):
         NotImplementedError()
 
     def show_tables(self):
-        hql = 'show tables'
+        hql = "show tables"
         res = self.execute(hql, True)
         if res:
-            print('***' * 30)
-            print('   show tables:')
+            print("***" * 30)
+            print("   show tables:")
             for i in res:
-                print('         %s' % i[0])
-            print('***' * 30)
+                print("         %s" % i[0])
+            print("***" * 30)
 
     def add_functions(self, fce_dict, temporary=False):
         """
@@ -253,7 +266,7 @@ class HiveSpatial(object):
         :return:
         :rtype:
         """
-        hql = ''
+        hql = ""
         for key, val in fce_dict.iteritems():
             if temporary:
                 hql += "CREATE TEMPORARY FUNCTION %s as '%s'\n" % (key, val)
@@ -272,25 +285,25 @@ class HiveSpatial(object):
     def find_table_location(self, table):
 
         out = self.describe_table(table)
-        #print out
+        # print out
         if out:
             for cell in out:
-                if 'Location:' in cell[0]:
+                if "Location:" in cell[0]:
                     logging.info("Location of file in hdfs:  %s" % cell[1])
-                    path = cell[1].split('/')
-                    #print path
+                    path = cell[1].split("/")
+                    # print path
 
-                    path = '/'+'/'.join(path[3:])  # todo windows
+                    path = "/" + "/".join(path[3:])  # todo windows
                     logging.info("path to table {} ".format(path))
                     return path
         return None
 
     def esri_query(self, hsql, temporary=True):
-        STfce = ''
+        STfce = ""
         ST = find_ST_fnc(hsql)
-        tmp = ''
+        tmp = ""
         if temporary:
-            tmp = 'temporary'
+            tmp = "temporary"
 
         for key, vals in ST.iteritems():
             STfce += "create {tmp} function {key} as '{vals}' \n"
@@ -298,21 +311,21 @@ class HiveSpatial(object):
         hql = STfce.format(**locals())
         logging.info(hql)
 
-        hsqlexe = '%s\n%s' % (STfce, hsql)
+        hsqlexe = "%s\n%s" % (STfce, hsql)
 
         self.execute(hsqlexe)
 
     def test(self):
-        hql = 'show databases'
+        hql = "show databases"
         try:
-            print('***' * 30)
+            print("***" * 30)
             res = self.execute(hql, True)
             print("\n     Test connection (show databases;) \n       %s\n" % res)
-            print('***' * 30)
+            print("***" * 30)
             return True
         except Exception, e:
             print("     EROOR: connection can not be established:\n       %s\n" % e)
-            print('***' * 30)
+            print("***" * 30)
             return False
 
     def add_jar(self, jar_list, path=False):
@@ -326,40 +339,42 @@ class HiveSpatial(object):
         :return:
         :rtype:
         """
-        hql = ''
+        hql = ""
         for jar in jar_list:
             if jar:
 
                 if not path:
-                    hql += 'ADD JAR /usr/local/spatial/jar/%s ' % jar
+                    hql += "ADD JAR /usr/local/spatial/jar/%s " % jar
                 else:
-                    hql += 'ADD JAR %s ' % jar
+                    hql += "ADD JAR %s " % jar
                 logging.info(hql)
-        hql += '\n'
+        hql += "\n"
         return hql
 
-    def create_geom_table(self,
-                          table,
-                          field=None,
-                          serde='org.openx.data.jsonserde.JsonSerDe',
-                          outputformat=None,
-                          stored=None,
-                          external=False,
-                          recreate=False,
-                          filepath=None,
-                          overwrite=None,
-                          partitioned=None,
-                          ):
+    def create_geom_table(
+        self,
+        table,
+        field=None,
+        serde="org.openx.data.jsonserde.JsonSerDe",
+        outputformat=None,
+        stored=None,
+        external=False,
+        recreate=False,
+        filepath=None,
+        overwrite=None,
+        partitioned=None,
+    ):
 
-        tbl = HiveJsonTable(name=table,
-                          col=field,
-                          row_format=serde,
-                          stored=stored,
-                          exists=recreate,
-                          external=external,
-                          partitioned=partitioned,
-                          outputformat=outputformat
-                            )
+        tbl = HiveJsonTable(
+            name=table,
+            col=field,
+            row_format=serde,
+            stored=stored,
+            exists=recreate,
+            external=external,
+            partitioned=partitioned,
+            outputformat=outputformat,
+        )
 
         hql = tbl.get_table()
 
@@ -371,7 +386,6 @@ class HiveSpatial(object):
 
         logging.info(hql)
         self.execute(hql)
-
 
     def data2table(self, filepath, table, overwrite, partition=False):
         """
@@ -394,28 +408,28 @@ class HiveSpatial(object):
         hql += "INTO TABLE {table} "
 
         if partition:
-            pvals = ", ".join(
-                ["{0}='{1}'".format(k, v) for k, v in partition.items()])
+            pvals = ", ".join(["{0}='{1}'".format(k, v) for k, v in partition.items()])
             hql += "PARTITION ({pvals})"
         hql = hql.format(**locals())
         logging.info(hql)
         self.execute(hql)
 
     def create_csv_table(
-            self,
-            filepath,
-            table,
-            delimiter=",",
-            field=None,
-            stored=None,
-            outputformat=None,
-            create=True,
-            serde=None,
-            external=False,
-            overwrite=True,
-            partition=None,
-            tblproperties=None,
-            recreate=False):
+        self,
+        filepath,
+        table,
+        delimiter=",",
+        field=None,
+        stored=None,
+        outputformat=None,
+        create=True,
+        serde=None,
+        external=False,
+        overwrite=True,
+        partition=None,
+        tblproperties=None,
+        recreate=False,
+    ):
         """
         Loads a local file into Hive
 
@@ -426,17 +440,18 @@ class HiveSpatial(object):
         stage the data into a temporary table before loading it into its
         final destination using a ``HiveOperator``.
         """
-        tbl = HiveCsvTable(name=table,
-                          col=field,
-                          row_format=serde,
-                          stored=stored,
-                          exists=recreate,
-                          external=external,
-                          outputformat=outputformat,
-                          partitioned=partition,
-                          delimeter=delimiter,
-                          tbl_properties = tblproperties
-                           )
+        tbl = HiveCsvTable(
+            name=table,
+            col=field,
+            row_format=serde,
+            stored=stored,
+            exists=recreate,
+            external=external,
+            outputformat=outputformat,
+            partitioned=partition,
+            delimeter=delimiter,
+            tbl_properties=tblproperties,
+        )
 
         hql = tbl.get_table()
 
@@ -449,6 +464,5 @@ class HiveSpatial(object):
         logging.info(hql)
         self.execute(hql)
 
-
     def drop_table(self, name):
-        self.execute('DROP TABLE IF EXISTS %s' % name)
+        self.execute("DROP TABLE IF EXISTS %s" % name)

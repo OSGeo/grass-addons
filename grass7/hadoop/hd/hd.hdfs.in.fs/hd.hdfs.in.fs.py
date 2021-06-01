@@ -47,15 +47,15 @@ from hdfsgrass.hdfs_grass_lib import GrassHdfs
 
 
 def main():
-    if options['hdfs'] == '@grass_data_hdfs':
-        LOCATION_NAME = grass.gisenv()['LOCATION_NAME']
-        MAPSET = grass.gisenv()['MAPSET']
-        MAPSET_PATH = os.path.join('grass_data_hdfs', LOCATION_NAME, MAPSET, 'external')
-        options['hdfs'] = MAPSET_PATH
+    if options["hdfs"] == "@grass_data_hdfs":
+        LOCATION_NAME = grass.gisenv()["LOCATION_NAME"]
+        MAPSET = grass.gisenv()["MAPSET"]
+        MAPSET_PATH = os.path.join("grass_data_hdfs", LOCATION_NAME, MAPSET, "external")
+        options["hdfs"] = MAPSET_PATH
 
-    if options['local']:
-        transf = GrassHdfs(options['driver'])
-        transf.upload(options['local'], options['hdfs'])
+    if options["local"]:
+        transf = GrassHdfs(options["driver"])
+        transf.upload(options["local"], options["hdfs"])
 
 
 if __name__ == "__main__":
