@@ -19,6 +19,7 @@ for details.
 # generic imports
 import os
 import sys
+
 # from tempfile import gettempdir
 import time
 import _thread
@@ -31,7 +32,7 @@ try:
 except ImportError:
     sys.exit(_("No GRASS-python library found."))
 
-sys.path.append(os.path.join(os.getenv('GISBASE'), 'gui', 'wxpython'))
+sys.path.append(os.path.join(os.getenv("GISBASE"), "gui", "wxpython"))
 from core import globalvar
 from gui_core import gselect
 from core import gconsole
@@ -43,6 +44,7 @@ from gui_core.wrap import SpinCtrl
 from core.gcmd import GError
 
 import wx
+
 # import wx.lib.plot as plot # for plotting the variogram.
 import rpy2.robjects as robjects
 import rpy2.rinterface as rinterface
@@ -56,7 +58,7 @@ maxint = 1e6
 
 
 class KrigingPanel(wx.Panel):
-    """Main panel. Contains all widgets except Menus and Statusbar. """
+    """Main panel. Contains all widgets except Menus and Statusbar."""
 
     def __init__(self, parent, Rinstance, controller, *args, **kwargs):
         wx.Panel.__init__(self, parent, *args, **kwargs)
@@ -66,24 +68,20 @@ class KrigingPanel(wx.Panel):
 
         #    1. Input data
         InputBoxSizer = wx.StaticBoxSizer(
-            wx.StaticBox(
-                self,
-                id=wx.ID_ANY,
-                label=_("Input Data")),
-            orient=wx.HORIZONTAL)
+            wx.StaticBox(self, id=wx.ID_ANY, label=_("Input Data")),
+            orient=wx.HORIZONTAL,
+        )
 
         flexSizer = wx.FlexGridSizer(cols=3, hgap=5, vgap=5)
         flexSizer.AddGrowableCol(1)
 
         flexSizer.Add(
-            wx.StaticText(
-                self,
-                id=wx.ID_ANY,
-                label=_("Point dataset:")),
-            flag=wx.ALIGN_CENTER_VERTICAL)
-        self.InputDataMap = gselect.VectorSelect(parent=self,
-                                                 ftype='points',
-                                                 updateOnPopup=False)
+            wx.StaticText(self, id=wx.ID_ANY, label=_("Point dataset:")),
+            flag=wx.ALIGN_CENTER_VERTICAL,
+        )
+        self.InputDataMap = gselect.VectorSelect(
+            parent=self, ftype="points", updateOnPopup=False
+        )
         self.InputDataMap.SetFocus()
         flexSizer.Add(self.InputDataMap, flag=wx.ALIGN_CENTER_VERTICAL)
 
@@ -92,113 +90,103 @@ class KrigingPanel(wx.Panel):
         flexSizer.Add(RefreshButton, flag=wx.ALIGN_CENTER_VERTICAL)
 
         flexSizer.Add(
-            wx.StaticText(
-                self,
-                id=wx.ID_ANY,
-                label=_("Numeric column:")),
-            flag=wx.ALIGN_CENTER_VERTICAL)
+            wx.StaticText(self, id=wx.ID_ANY, label=_("Numeric column:")),
+            flag=wx.ALIGN_CENTER_VERTICAL,
+        )
         self.InputDataColumn = gselect.ColumnSelect(self, id=wx.ID_ANY)
         flexSizer.Add(self.InputDataColumn)
 
-        self.InputDataMap.GetChildren()[0].Bind(
-            wx.EVT_TEXT, self.OnInputMapChanged)
+        self.InputDataMap.GetChildren()[0].Bind(wx.EVT_TEXT, self.OnInputMapChanged)
         self.InputDataColumn.GetChildren()[0].Bind(
-            wx.EVT_TEXT, self.OnInputColumnChanged)
+            wx.EVT_TEXT, self.OnInputColumnChanged
+        )
 
         InputBoxSizer.Add(flexSizer)
 
         # 2. Kriging. In book pages one for each R package. Includes variogram
         # fit.
         KrigingSizer = wx.StaticBoxSizer(
-            wx.StaticBox(
-                self,
-                id=wx.ID_ANY,
-                label=_("Kriging")),
-            wx.HORIZONTAL)
+            wx.StaticBox(self, id=wx.ID_ANY, label=_("Kriging")), wx.HORIZONTAL
+        )
 
-        self.RPackagesBook = GNotebook(
-            parent=self, style=globalvar.FNPageDStyle)
+        self.RPackagesBook = GNotebook(parent=self, style=globalvar.FNPageDStyle)
 
         # , "geoR"]: #@TODO: enable it if/when it'll be implemented.
         for Rpackage in ["gstat"]:
             self.CreatePage(
-                package=Rpackage,
-                Rinstance=Rinstance,
-                controller=controller)
+                package=Rpackage, Rinstance=Rinstance, controller=controller
+            )
 
         # Command output. From menuform module, cmdPanel class
         self._gconsole = gconsole.GConsole(guiparent=self)
         self.goutput = goutput.GConsoleWindow(
-            parent=self, gconsole=self._gconsole, margin=False)
+            parent=self, gconsole=self._gconsole, margin=False
+        )
         self.goutputId = self.RPackagesBook.GetPageCount()
         self.outpage = self.RPackagesBook.AddPage(
-            page=self.goutput, text=_("Command output"), name='output')
+            page=self.goutput, text=_("Command output"), name="output"
+        )
         self._gconsole.Bind(
             gconsole.EVT_CMD_RUN,
             lambda event: self._switchPageHandler(
-                event=event,
-                notification=Notification.MAKE_VISIBLE))
+                event=event, notification=Notification.MAKE_VISIBLE
+            ),
+        )
         self._gconsole.Bind(
             gconsole.EVT_CMD_DONE,
             lambda event: self._switchPageHandler(
-                event=event,
-                notification=Notification.RAISE_WINDOW))
+                event=event, notification=Notification.RAISE_WINDOW
+            ),
+        )
         self.RPackagesBook.SetSelection(0)
         KrigingSizer.Add(self.RPackagesBook, proportion=1, flag=wx.EXPAND)
 
         #    3. Output Parameters.
         OutputSizer = wx.StaticBoxSizer(
-            wx.StaticBox(
-                self,
-                id=wx.ID_ANY,
-                label=_("Output")),
-            wx.HORIZONTAL)
+            wx.StaticBox(self, id=wx.ID_ANY, label=_("Output")), wx.HORIZONTAL
+        )
 
         OutputParameters = wx.GridBagSizer(hgap=5, vgap=5)
         OutputParameters.Add(
             wx.StaticText(
-                self, id=wx.ID_ANY,
-                label=_("Name for the output raster map:")),
-            flag=wx.ALIGN_CENTER_VERTICAL, pos=(0, 0))
-        self.OutputMapName = gselect.Select(parent=self, id=wx.ID_ANY,
-                                            type='raster',
-                                            mapsets=[grass.gisenv()['MAPSET']])
-        OutputParameters.Add(self.OutputMapName, flag=wx.EXPAND | wx.ALL,
-                             pos=(0, 1))
+                self, id=wx.ID_ANY, label=_("Name for the output raster map:")
+            ),
+            flag=wx.ALIGN_CENTER_VERTICAL,
+            pos=(0, 0),
+        )
+        self.OutputMapName = gselect.Select(
+            parent=self, id=wx.ID_ANY, type="raster", mapsets=[grass.gisenv()["MAPSET"]]
+        )
+        OutputParameters.Add(self.OutputMapName, flag=wx.EXPAND | wx.ALL, pos=(0, 1))
         self.VarianceRasterCheckbox = wx.CheckBox(
-            self, id=wx.ID_ANY, label=_("Export variance map as well: "))
+            self, id=wx.ID_ANY, label=_("Export variance map as well: ")
+        )
         self.VarianceRasterCheckbox.SetValue(state=True)
-        OutputParameters.Add(self.VarianceRasterCheckbox,
-                             flag=wx.ALIGN_CENTER_VERTICAL,
-                             pos=(1, 0))
-        self.OutputVarianceMapName = gselect.Select(
-            parent=self, id=wx.ID_ANY, type='raster',
-            mapsets=[grass.gisenv()['MAPSET']])
-        self.VarianceRasterCheckbox.Bind(
-            wx.EVT_CHECKBOX, self.OnVarianceCBChecked)
         OutputParameters.Add(
-            self.OutputVarianceMapName,
-            flag=wx.EXPAND | wx.ALL,
-            pos=(
-                1,
-                1))
+            self.VarianceRasterCheckbox, flag=wx.ALIGN_CENTER_VERTICAL, pos=(1, 0)
+        )
+        self.OutputVarianceMapName = gselect.Select(
+            parent=self, id=wx.ID_ANY, type="raster", mapsets=[grass.gisenv()["MAPSET"]]
+        )
+        self.VarianceRasterCheckbox.Bind(wx.EVT_CHECKBOX, self.OnVarianceCBChecked)
+        OutputParameters.Add(
+            self.OutputVarianceMapName, flag=wx.EXPAND | wx.ALL, pos=(1, 1)
+        )
 
-        self.OverwriteCheckBox = wx.CheckBox(self, id=wx.ID_ANY, label=_(
-            "Allow output files to overwrite existing files"))
+        self.OverwriteCheckBox = wx.CheckBox(
+            self,
+            id=wx.ID_ANY,
+            label=_("Allow output files to overwrite existing files"),
+        )
         self.OverwriteCheckBox.SetValue(
-            UserSettings.Get(
-                group='cmd',
-                key='overwrite',
-                subkey='enabled'))
-        OutputParameters.Add(self.OverwriteCheckBox,
-                             pos=(2, 0), span=(1, 2))
+            UserSettings.Get(group="cmd", key="overwrite", subkey="enabled")
+        )
+        OutputParameters.Add(self.OverwriteCheckBox, pos=(2, 0), span=(1, 2))
 
         OutputParameters.AddGrowableCol(1)
         OutputSizer.Add(
-            OutputParameters,
-            proportion=0,
-            flag=wx.EXPAND | wx.ALL,
-            border=self.border)
+            OutputParameters, proportion=0, flag=wx.EXPAND | wx.ALL, border=self.border
+        )
 
         #    4. Run Button and Quit Button
         ButtonSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -212,43 +200,32 @@ class KrigingPanel(wx.Panel):
         # disable it on loading the interface, as input map is not set
         self.RunButton.Enable(False)
         ButtonSizer.Add(
-            HelpButton,
-            proportion=0,
-            flag=wx.ALIGN_LEFT | wx.ALL,
-            border=self.border)
+            HelpButton, proportion=0, flag=wx.ALIGN_LEFT | wx.ALL, border=self.border
+        )
         ButtonSizer.Add(
-            QuitButton,
-            proportion=0,
-            flag=wx.ALIGN_RIGHT | wx.ALL,
-            border=self.border)
+            QuitButton, proportion=0, flag=wx.ALIGN_RIGHT | wx.ALL, border=self.border
+        )
         ButtonSizer.Add(
             self.RunButton,
             proportion=0,
             flag=wx.ALIGN_RIGHT | wx.ALL,
-            border=self.border)
+            border=self.border,
+        )
 
         #    Main Sizer. Add each child sizer as soon as it is ready.
         Sizer = wx.BoxSizer(wx.VERTICAL)
         Sizer.Add(
-            InputBoxSizer,
-            proportion=0,
-            flag=wx.EXPAND | wx.ALL,
-            border=self.border)
+            InputBoxSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=self.border
+        )
         Sizer.Add(
-            KrigingSizer,
-            proportion=1,
-            flag=wx.EXPAND | wx.ALL,
-            border=self.border)
+            KrigingSizer, proportion=1, flag=wx.EXPAND | wx.ALL, border=self.border
+        )
         Sizer.Add(
-            OutputSizer,
-            proportion=0,
-            flag=wx.EXPAND | wx.ALL,
-            border=self.border)
+            OutputSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=self.border
+        )
         Sizer.Add(
-            ButtonSizer,
-            proportion=0,
-            flag=wx.ALIGN_RIGHT | wx.ALL,
-            border=self.border)
+            ButtonSizer, proportion=0, flag=wx.ALIGN_RIGHT | wx.ALL, border=self.border
+        )
         self.SetSizerAndFit(Sizer)
 
         # last action of __init__: update imput data list.
@@ -257,30 +234,26 @@ class KrigingPanel(wx.Panel):
         self.InputDataMap.GetElementList()
 
     def CreatePage(self, package, Rinstance, controller):
-        """Creates the three notebook pages, one for each R package """
+        """Creates the three notebook pages, one for each R package"""
         for package in [
-                "gstat"]:  # @TODO add here other packages when they will be implemented
+            "gstat"
+        ]:  # @TODO add here other packages when they will be implemented
             classobj = eval("RBook" + package + "Panel")
             setattr(
                 self,
-                "RBook" +
-                package +
-                "Panel",
-                (classobj(
-                    self,
-                    id=wx.ID_ANY,
-                    Rinstance=Rinstance,
-                    controller=controller)))
+                "RBook" + package + "Panel",
+                (
+                    classobj(
+                        self, id=wx.ID_ANY, Rinstance=Rinstance, controller=controller
+                    )
+                ),
+            )
             self.RPackagesBook.AddPage(
-                page=getattr(
-                    self,
-                    "RBook" +
-                    package +
-                    "Panel"),
-                text=package)
+                page=getattr(self, "RBook" + package + "Panel"), text=package
+            )
 
     def OnButtonRefresh(self, event):
-        """Forces refresh of list of available layers. """
+        """Forces refresh of list of available layers."""
         self.InputDataMap.GetElementList()
 
     def OnCloseWindow(self, event):
@@ -289,18 +262,21 @@ class KrigingPanel(wx.Panel):
         event.Skip()
 
     def OnHelpButton(self, event):
-        grass.run_command('g.manual', entry='v.krige')
+        grass.run_command("g.manual", entry="v.krige")
         event.Skip()
 
     def OnInputMapChanged(self, event):
         """Refreshes list of columns."""
         MapName = event.GetString()
         self.InputDataColumn.InsertColumns(
-            vector=MapName, layer=1, excludeKey=False,
-            type=['integer', 'double precision'])
+            vector=MapName,
+            layer=1,
+            excludeKey=False,
+            type=["integer", "double precision"],
+        )
 
     def OnInputColumnChanged(self, event):
-        """Fills output map name TextCtrl """
+        """Fills output map name TextCtrl"""
         MapName = self.InputDataMap.GetValue()
         enable = bool(self.InputDataColumn.GetValue())
         self.RunButton.Enable(enable)
@@ -308,14 +284,13 @@ class KrigingPanel(wx.Panel):
 
         if enable:
             self.OutputMapName.SetValue(MapName.split("@")[0] + "_kriging")
-            self.OutputVarianceMapName.SetValue(
-                MapName.split("@")[0] + "_kriging.var")
+            self.OutputVarianceMapName.SetValue(MapName.split("@")[0] + "_kriging.var")
         else:
-            self.OutputMapName.SetValue('')
-            self.OutputVarianceMapName.SetValue('')
+            self.OutputMapName.SetValue("")
+            self.OutputVarianceMapName.SetValue("")
 
     def OnRunButton(self, event):
-        """Execute R analysis. """
+        """Execute R analysis."""
         # @FIXME: send data to main method instead of running it here.
 
         # -1: get the selected notebook page. The user shall know that [s]he can modify settings in all
@@ -323,53 +298,48 @@ class KrigingPanel(wx.Panel):
         # pressed.
         SelectedPanel = self.RPackagesBook.GetCurrentPage()
 
-        if self.RPackagesBook.GetPageText(
-                self.RPackagesBook.GetSelection()) == 'Command output':
+        if (
+            self.RPackagesBook.GetPageText(self.RPackagesBook.GetSelection())
+            == "Command output"
+        ):
             self._gconsole.WriteError(
-                "No parameters for running. Please select \"gstat\" tab, check parameters and re-run.")
+                'No parameters for running. Please select "gstat" tab, check parameters and re-run.'
+            )
             return False  # no break invoked by above function
 
         # mount command string as it would have been written on CLI
         command = [
             "v.krige",
-            "input=" +
-            self.InputDataMap.GetValue(),
-            "column=" +
-            self.InputDataColumn.GetValue(),
-            "output=" +
-            self.OutputMapName.GetValue(),
-            "package=" +
-            '%s' %
-            self.RPackagesBook.GetPageText(
-                self.RPackagesBook.GetSelection())]
+            "input=" + self.InputDataMap.GetValue(),
+            "column=" + self.InputDataColumn.GetValue(),
+            "output=" + self.OutputMapName.GetValue(),
+            "package="
+            + "%s" % self.RPackagesBook.GetPageText(self.RPackagesBook.GetSelection()),
+        ]
 
-        if not hasattr(
-                SelectedPanel, 'VariogramCheckBox') or not SelectedPanel.VariogramCheckBox.IsChecked():
+        if (
+            not hasattr(SelectedPanel, "VariogramCheckBox")
+            or not SelectedPanel.VariogramCheckBox.IsChecked()
+        ):
             command.append(
-                "model=" + '%s' %
-                SelectedPanel.ModelChoicebox.GetStringSelection().split(" ")[0])
+                "model="
+                + "%s" % SelectedPanel.ModelChoicebox.GetStringSelection().split(" ")[0]
+            )
 
-        for i in ['Psill', 'Nugget', 'Range', 'Kappa']:
+        for i in ["Psill", "Nugget", "Range", "Kappa"]:
             if getattr(SelectedPanel, i + "ChextBox").IsChecked():
                 command.append(
-                    i.lower() +
-                    "=" +
-                    '%s' %
-                    getattr(
-                        SelectedPanel,
-                        i +
-                        'Ctrl').GetValue())
+                    i.lower()
+                    + "="
+                    + "%s" % getattr(SelectedPanel, i + "Ctrl").GetValue()
+                )
 
         if SelectedPanel.KrigingRadioBox.GetStringSelection() == "Block kriging":
-            command.append(
-                "block=" + '%s' %
-                SelectedPanel.BlockSpinBox.GetValue())
+            command.append("block=" + "%s" % SelectedPanel.BlockSpinBox.GetValue())
         if self.OverwriteCheckBox.IsChecked():
             command.append("--overwrite")
         if self.VarianceRasterCheckbox.IsChecked():
-            command.append(
-                "output_var=" +
-                self.OutputVarianceMapName.GetValue())
+            command.append("output_var=" + self.OutputVarianceMapName.GetValue())
 
         # give it to the output console
         # @FIXME: it runs the command as a NEW instance. Reimports data, recalculates variogram fit..
@@ -386,17 +356,17 @@ class KrigingPanel(wx.Panel):
     def _switchPage(self, notification):
         """Manages @c 'output' notebook page according to event notification."""
         if notification == Notification.HIGHLIGHT:
-            self.RPackagesBook.HighlightPageByName('output')
+            self.RPackagesBook.HighlightPageByName("output")
         if notification == Notification.MAKE_VISIBLE:
-            self.RPackagesBook.SetSelectionByName('output')
+            self.RPackagesBook.SetSelectionByName("output")
         if notification == Notification.RAISE_WINDOW:
-            self.RPackagesBook.SetSelectionByName('output')
+            self.RPackagesBook.SetSelectionByName("output")
             self.SetFocus()
             self.Raise()
 
 
 class KrigingModule(wx.Frame):
-    """Kriging module for GRASS GIS. Depends on R and its packages gstat and geoR. """
+    """Kriging module for GRASS GIS. Depends on R and its packages gstat and geoR."""
 
     def __init__(self, parent, Rinstance, controller, *args, **kwargs):
         wx.Frame.__init__(self, parent, *args, **kwargs)
@@ -404,10 +374,9 @@ class KrigingModule(wx.Frame):
         self.SetTitle(_("Kriging Module"))
         self.SetIcon(
             wx.Icon(
-                os.path.join(
-                    globalvar.ICONDIR,
-                    'grass_dialog.ico'),
-                wx.BITMAP_TYPE_ICO))
+                os.path.join(globalvar.ICONDIR, "grass_dialog.ico"), wx.BITMAP_TYPE_ICO
+            )
+        )
         self.log = Log(self)
         self.CreateStatusBar()
         self.log.message(_("Ready."))
@@ -418,18 +387,18 @@ class KrigingModule(wx.Frame):
 
 
 class Log:
-    """The log output is redirected to the status bar of the containing frame. """
+    """The log output is redirected to the status bar of the containing frame."""
 
     def __init__(self, parent):
         self.parent = parent
 
     def message(self, text_string):
-        """Updates status bar """
+        """Updates status bar"""
         self.parent.SetStatusText(text_string.strip())
 
 
 class RBookPanel(wx.Panel):
-    """Generic notebook page with shared widgets and empty kriging functions. """
+    """Generic notebook page with shared widgets and empty kriging functions."""
 
     def __init__(self, parent, *args, **kwargs):
         wx.Panel.__init__(self, parent, *args, **kwargs)
@@ -437,43 +406,37 @@ class RBookPanel(wx.Panel):
         self.parent = parent
 
         self.VariogramSizer = wx.StaticBoxSizer(
-            wx.StaticBox(
-                self,
-                id=wx.ID_ANY,
-                label=_("Variogram fitting")),
-            wx.HORIZONTAL)
+            wx.StaticBox(self, id=wx.ID_ANY, label=_("Variogram fitting")),
+            wx.HORIZONTAL,
+        )
         self.LeftSizer = wx.BoxSizer(wx.VERTICAL)
         self.RightSizer = wx.BoxSizer(wx.VERTICAL)
         self.ParametersSizer = wx.GridBagSizer(vgap=5, hgap=5)
 
         self.VariogramSizer.Add(
-            self.LeftSizer,
-            proportion=0,
-            flag=wx.EXPAND | wx.ALL,
-            border=parent.border)
+            self.LeftSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=parent.border
+        )
         self.VariogramSizer.Add(
-            self.RightSizer,
-            proportion=0,
-            flag=wx.EXPAND | wx.ALL,
-            border=parent.border)
+            self.RightSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=parent.border
+        )
 
         # left side of Variogram fitting. The checkboxes and spinctrls.
         # no stock ID for Run button..
         self.PlotButton = wx.Button(
-            self, id=wx.ID_ANY, label=_("Plot/refresh variogram"))
+            self, id=wx.ID_ANY, label=_("Plot/refresh variogram")
+        )
         self.PlotButton.Bind(wx.EVT_BUTTON, self.OnPlotButton)
         # grey it out until a suitable layer is available
         self.PlotButton.Enable(False)
         self.LeftSizer.Add(
-            self.PlotButton,
-            proportion=0,
-            flag=wx.ALL,
-            border=parent.border)
+            self.PlotButton, proportion=0, flag=wx.ALL, border=parent.border
+        )
         self.LeftSizer.Add(
             self.ParametersSizer,
             proportion=0,
             flag=wx.EXPAND | wx.ALL,
-            border=parent.border)
+            border=parent.border,
+        )
 
         self.ParametersList = ["Psill", "Nugget", "Range", "Kappa"]
         MinValues = [0, 0, 0.01, 0.01]
@@ -482,33 +445,36 @@ class RBookPanel(wx.Panel):
             setattr(
                 self,
                 n + "ChextBox",
-                wx.CheckBox(
-                    self,
-                    id=self.ParametersList.index(n),
-                    label=_(
-                        n + ":")))
+                wx.CheckBox(self, id=self.ParametersList.index(n), label=_(n + ":")),
+            )
             setattr(
                 self,
                 n + "Ctrl",
-                (wx.SpinCtrlDouble(
-                    self,
-                    id=wx.ID_ANY,
-                    min=MinValues[
-                        self.ParametersList.index(n)],
-                    max=maxint,
-                    inc=0.1,
-                    initial=InitialValues[
-                        self.ParametersList.index(n)])))
-            getattr(self, n + "ChextBox").Bind(wx.EVT_CHECKBOX,
-                                               self.UseValue,
-                                               id=self.ParametersList.index(n))
+                (
+                    wx.SpinCtrlDouble(
+                        self,
+                        id=wx.ID_ANY,
+                        min=MinValues[self.ParametersList.index(n)],
+                        max=maxint,
+                        inc=0.1,
+                        initial=InitialValues[self.ParametersList.index(n)],
+                    )
+                ),
+            )
+            getattr(self, n + "ChextBox").Bind(
+                wx.EVT_CHECKBOX, self.UseValue, id=self.ParametersList.index(n)
+            )
             setattr(self, n + "Sizer", (wx.BoxSizer(wx.HORIZONTAL)))
-            self.ParametersSizer.Add(getattr(self, n + "ChextBox"),
-                                     flag=wx.ALIGN_CENTER_VERTICAL,
-                                     pos=(self.ParametersList.index(n), 0))
-            self.ParametersSizer.Add(getattr(self, n + "Ctrl"),
-                                     flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL,
-                                     pos=(self.ParametersList.index(n), 1))
+            self.ParametersSizer.Add(
+                getattr(self, n + "ChextBox"),
+                flag=wx.ALIGN_CENTER_VERTICAL,
+                pos=(self.ParametersList.index(n), 0),
+            )
+            self.ParametersSizer.Add(
+                getattr(self, n + "Ctrl"),
+                flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL,
+                pos=(self.ParametersList.index(n), 1),
+            )
 
         # right side of the Variogram fitting. The plot area.
         # Plot = wx.StaticText(self, id= wx.ID_ANY, label = "Check Plot Variogram to interactively fit model.")
@@ -518,25 +484,25 @@ class RBookPanel(wx.Panel):
         # self.RightSizer.Add(PlotPanel, proportion=0, flag= wx.EXPAND|wx.ALL, border=parent.border)
 
         self.KrigingSizer = wx.StaticBoxSizer(
-            wx.StaticBox(
-                self,
-                id=wx.ID_ANY,
-                label=_("Kriging techniques")),
-            wx.VERTICAL)
+            wx.StaticBox(self, id=wx.ID_ANY, label=_("Kriging techniques")), wx.VERTICAL
+        )
 
         # , "Universal kriging"] #@FIXME: i18n on the list?
         KrigingList = ["Ordinary kriging", "Block kriging"]
-        self.KrigingRadioBox = wx.RadioBox(self,
-                                           id=wx.ID_ANY,
-                                           choices=KrigingList,
-                                           majorDimension=1,
-                                           style=wx.RA_SPECIFY_COLS)
+        self.KrigingRadioBox = wx.RadioBox(
+            self,
+            id=wx.ID_ANY,
+            choices=KrigingList,
+            majorDimension=1,
+            style=wx.RA_SPECIFY_COLS,
+        )
         self.KrigingRadioBox.Bind(wx.EVT_RADIOBOX, self.HideBlockOptions)
         self.KrigingSizer.Add(
             self.KrigingRadioBox,
             proportion=0,
             flag=wx.EXPAND | wx.ALL,
-            border=parent.border)
+            border=parent.border,
+        )
 
         # block kriging parameters. Size.
         BlockSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -545,45 +511,48 @@ class RBookPanel(wx.Panel):
         # default choice is Ordinary kriging so block param is disabled
         self.BlockSpinBox.Enable(False)
         BlockSizer.Add(
-            BlockLabel,
-            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL,
-            border=parent.border)
+            BlockLabel, flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=parent.border
+        )
         BlockSizer.Add(
             self.BlockSpinBox,
             flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL,
-            border=parent.border)
+            border=parent.border,
+        )
         self.KrigingSizer.Add(
             BlockSizer,
             flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL,
-            border=parent.border)
+            border=parent.border,
+        )
 
         self.Sizer = wx.BoxSizer(wx.VERTICAL)
         self.Sizer.Add(
             self.VariogramSizer,
             proportion=0,
             flag=wx.EXPAND | wx.ALL,
-            border=parent.border)
+            border=parent.border,
+        )
         self.Sizer.Add(
             self.KrigingSizer,
             proportion=0,
             flag=wx.EXPAND | wx.ALL,
-            border=parent.border)
+            border=parent.border,
+        )
 
     def HideBlockOptions(self, event):
         self.BlockSpinBox.Enable(event.GetInt() == 1)
 
     def OnPlotButton(self, event):
-        """Plots variogram with current options. """
+        """Plots variogram with current options."""
         pass
 
     def UseValue(self, event):
-        """Enables/Disables the SpinCtrl in respect of the checkbox. """
+        """Enables/Disables the SpinCtrl in respect of the checkbox."""
         n = self.ParametersList[event.GetId()]
         getattr(self, n + "Ctrl").Enable(event.IsChecked())
 
 
 class RBookgstatPanel(RBookPanel):
-    """Subclass of RBookPanel, with specific gstat options and kriging functions. """
+    """Subclass of RBookPanel, with specific gstat options and kriging functions."""
 
     def __init__(self, parent, Rinstance, controller, *args, **kwargs):
         RBookPanel.__init__(self, parent, *args, **kwargs)
@@ -592,15 +561,17 @@ class RBookgstatPanel(RBookPanel):
         robjects = Rinstance
         self.controller = controller
 
-        if robjects.r.require('automap')[0]:
+        if robjects.r.require("automap")[0]:
             self.VariogramCheckBox = wx.CheckBox(
-                self, id=wx.ID_ANY, label=_("Auto-fit variogram"))
+                self, id=wx.ID_ANY, label=_("Auto-fit variogram")
+            )
             self.LeftSizer.Insert(
                 0,
                 self.VariogramCheckBox,
                 proportion=0,
                 flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL,
-                border=4)
+                border=4,
+            )
             self.SetSizerAndFit(self.Sizer)
             self.VariogramCheckBox.Bind(wx.EVT_CHECKBOX, self.HideOptions)
             self.VariogramCheckBox.SetValue(state=True)  # check it by default
@@ -620,14 +591,14 @@ class RBookgstatPanel(RBookPanel):
         self.ModelChoicebox.Enable(False)
 
         VariogramSubSizer = wx.BoxSizer(wx.HORIZONTAL)
-        VariogramSubSizer.Add(wx.StaticText(self,
-                                            id=wx.ID_ANY,
-                                            label=_("Model: ")),
-                              flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL,
-                              border=4)
-        VariogramSubSizer.Add(self.ModelChoicebox,
-                              flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL,
-                              border=4)
+        VariogramSubSizer.Add(
+            wx.StaticText(self, id=wx.ID_ANY, label=_("Model: ")),
+            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL,
+            border=4,
+        )
+        VariogramSubSizer.Add(
+            self.ModelChoicebox, flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=4
+        )
 
         self.LeftSizer.Insert(2, item=VariogramSubSizer)
 
@@ -648,7 +619,7 @@ class RBookgstatPanel(RBookPanel):
         # @FIXME: was for n in self.ParametersSizer.GetChildren(): n.Enable(False) but doesn't work
 
     def OnPlotButton(self, event):
-        """Plots variogram with current options. """
+        """Plots variogram with current options."""
         # BIG WARNING: smell of code duplication. Fix this asap. emminchia!
         # controller = Controller() # sed, if needed,
         # controller = self.controller
@@ -658,65 +629,69 @@ class RBookgstatPanel(RBookPanel):
         # import data or pick them up
         if self.controller.InputData is None:
             self.controller.InputData = self.controller.ImportMap(
-                map=map, column=column)
+                map=map, column=column
+            )
         # fit the variogram or pick it up
         # ~ Formula = self.controller.ComposeFormula(column = column,
-            # ~ isblock = self.KrigingRadioBox.GetStringSelection() == "Block kriging")
-        if hasattr(
-                self, 'VariogramCheckBox') and self.VariogramCheckBox.IsChecked():
-            self.model = ''
+        # ~ isblock = self.KrigingRadioBox.GetStringSelection() == "Block kriging")
+        if hasattr(self, "VariogramCheckBox") and self.VariogramCheckBox.IsChecked():
+            self.model = ""
             for each in ("Psill", "Nugget", "Range", "Kappa"):
-                if getattr(self, each + 'ChextBox').IsChecked():
-                    setattr(
-                        self, each.lower(), getattr(
-                            self, each + "Ctrl").GetValue())
+                if getattr(self, each + "ChextBox").IsChecked():
+                    setattr(self, each.lower(), getattr(self, each + "Ctrl").GetValue())
                 else:
-                    setattr(self, each.lower(), robjects.r('''NA'''))
+                    setattr(self, each.lower(), robjects.r("""NA"""))
 
         else:
-            self.model = self.ModelListShort[
-                self.ModelChoicebox.GetSelection()]
+            self.model = self.ModelListShort[self.ModelChoicebox.GetSelection()]
             for each in ("Psill", "Nugget", "Range", "Kappa"):
                 # @FIXME will be removed when chextboxes will be frozen
-                if getattr(self, each + 'ChextBox').IsChecked():
-                    setattr(
-                        self, each.lower(), getattr(
-                            self, each + "Ctrl").GetValue())
+                if getattr(self, each + "ChextBox").IsChecked():
+                    setattr(self, each.lower(), getattr(self, each + "Ctrl").GetValue())
                 else:
-                    GError(message=_("Variogram autofitting not enabled or R module \"automap\" is missing.\n\n" +
-                        "Parameter \"%s\" must be provided") % each, showTraceback=False)
+                    GError(
+                        message=_(
+                            'Variogram autofitting not enabled or R module "automap" is missing.\n\n'
+                            + 'Parameter "%s" must be provided'
+                        )
+                        % each,
+                        showTraceback=False,
+                    )
                     return False
 
         isblock = self.KrigingRadioBox.GetStringSelection() == "Block kriging"
-        if isblock is not '':
-            self.predictor = 'x+y'
+        if isblock is not "":
+            self.predictor = "x+y"
         else:
-            self.predictor = '1'
+            self.predictor = "1"
 
         self.controller.Variogram = self.controller.FitVariogram(
             robjects.Formula(str(column) + "~" + self.predictor),
-            self.controller.InputData, model=self.model, psill=self.psill,
-            nugget=self.nugget, range=self.range, kappa=self.kappa)
+            self.controller.InputData,
+            model=self.model,
+            psill=self.psill,
+            nugget=self.nugget,
+            range=self.range,
+            kappa=self.kappa,
+        )
 
-        ''' Fill parameters with autofitted values '''
-        if hasattr(
-                self, 'VariogramCheckBox') and self.VariogramCheckBox.IsChecked():
+        """ Fill parameters with autofitted values """
+        if hasattr(self, "VariogramCheckBox") and self.VariogramCheckBox.IsChecked():
             for i in range(len(self.ModelListShort)):
-                if self.ModelListShort[
-                        i] == self.controller.Variogram['model']:
+                if self.ModelListShort[i] == self.controller.Variogram["model"]:
                     self.ModelChoicebox.SetSelection(i)
                     break
-            if not getattr(self, 'PsillChextBox').IsChecked():
-                self.psill = self.controller.Variogram['variogrammodel'][1][1]
+            if not getattr(self, "PsillChextBox").IsChecked():
+                self.psill = self.controller.Variogram["variogrammodel"][1][1]
                 self.PsillCtrl.SetValue(self.psill)
-            if not getattr(self, 'NuggetChextBox').IsChecked():
-                self.nugget = self.controller.Variogram['variogrammodel'][1][0]
+            if not getattr(self, "NuggetChextBox").IsChecked():
+                self.nugget = self.controller.Variogram["variogrammodel"][1][0]
                 self.NuggetCtrl.SetValue(self.nugget)
-            if not getattr(self, 'RangeChextBox').IsChecked():
-                self.range = self.controller.Variogram['variogrammodel'][2][1]
+            if not getattr(self, "RangeChextBox").IsChecked():
+                self.range = self.controller.Variogram["variogrammodel"][2][1]
                 self.RangeCtrl.SetValue(self.range)
-            if not getattr(self, 'KappaChextBox').IsChecked():
-                self.kappa = self.controller.Variogram['variogrammodel'][3][1]
+            if not getattr(self, "KappaChextBox").IsChecked():
+                self.kappa = self.controller.Variogram["variogrammodel"][3][1]
                 self.KappaCtrl.SetValue(self.kappa)
 
         # use R plot function, in a separate window.
@@ -725,8 +700,10 @@ class RBookgstatPanel(RBookPanel):
     def plot(self):
         # robjects.r.X11()
         # robjects.r.png("variogram.png")
-        textplot = robjects.r.plot(self.controller.Variogram['datavariogram'],
-                                   self.controller.Variogram['variogrammodel'])
+        textplot = robjects.r.plot(
+            self.controller.Variogram["datavariogram"],
+            self.controller.Variogram["variogrammodel"],
+        )
         print(textplot)
         self.refresh()
         # robjects.r['dev.off']()
@@ -738,7 +715,7 @@ class RBookgstatPanel(RBookPanel):
 
 
 class RBookgeoRPanel(RBookPanel):
-    """Subclass of RBookPanel, with specific geoR options and kriging functions. """
+    """Subclass of RBookPanel, with specific geoR options and kriging functions."""
 
     def __init__(self, parent, *args, **kwargs):
         RBookPanel.__init__(self, parent, *args, **kwargs)
@@ -749,5 +726,7 @@ class RBookgeoRPanel(RBookPanel):
             wx.StaticText(
                 self,
                 id=wx.ID_ANY,
-                label=_("Work in progress! No functionality provided.")))
+                label=_("Work in progress! No functionality provided."),
+            )
+        )
         self.SetSizerAndFit(self.Sizer)

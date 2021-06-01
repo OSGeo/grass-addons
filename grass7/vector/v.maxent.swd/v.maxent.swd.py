@@ -156,9 +156,9 @@
 #% required: no
 #%end
 
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Standard
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 # import libraries
 import os
@@ -170,191 +170,271 @@ import uuid
 import atexit
 import tempfile
 
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Standard
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 # create set to store names of temporary maps to be deleted upon exit
 clean_rast = set()
+
 
 def cleanup():
     for rast in clean_rast:
         grass.run_command("g.remove", type="rast", name=rast, quiet=True)
 
-#----------------------------------------------------------------------------
+
+# ----------------------------------------------------------------------------
 # Functions
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 # Create temporary name
 def tmpname(name):
     tmpf = name + "_" + str(uuid.uuid4())
-    tmpf = string.replace(tmpf, '-', '_')
+    tmpf = string.replace(tmpf, "-", "_")
     clean_rast.add(tmpf)
     return tmpf
+
 
 def CreateFileName(outputfile):
     flname = outputfile
     k = 0
     while os.path.isfile(flname):
         k = k + 1
-        fn = flname.split('.')
+        fn = flname.split(".")
         if len(fn) == 1:
             flname = fn[0] + "_" + str(k)
         else:
             flname = fn[0] + "_" + str(k) + "." + fn[1]
     return flname
 
-#----------------------------------------------------------------------------
+
+# ----------------------------------------------------------------------------
 # Main
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+
 
 def main():
 
-    #options = {"species":"species1@plantspecies,species2","species_name":"", "evp_maps":"bio_1@climate,bio_2@climate,bio_3@climate", "alias_names":"BIO1,BIO2,bio3", "evp_cat":"tmpcategory@plantspecies","alias_cat":"categ","bgr_output":"swd_bgr.csv", "species_output":"swd_spec.csv", "nbgp":1000, "bgp":"", "nodata":-9999}
-    #flags = {"e":False, "h":False}
+    # options = {"species":"species1@plantspecies,species2","species_name":"", "evp_maps":"bio_1@climate,bio_2@climate,bio_3@climate", "alias_names":"BIO1,BIO2,bio3", "evp_cat":"tmpcategory@plantspecies","alias_cat":"categ","bgr_output":"swd_bgr.csv", "species_output":"swd_spec.csv", "nbgp":1000, "bgp":"", "nodata":-9999}
+    # flags = {"e":False, "h":False}
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Variables
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     # variables
-    specs = options['species']
-    specs = specs.split(',')
-    specsn = options['species_name']
-    if specsn == '':
-        specsn = [z.split('@')[0] for z in specs]
+    specs = options["species"]
+    specs = specs.split(",")
+    specsn = options["species_name"]
+    if specsn == "":
+        specsn = [z.split("@")[0] for z in specs]
     else:
-        specsn = specsn.split(',')
-    evp = options['evp_maps']
-    evp = evp.split(',')
-    evpn = options['alias_names']
-    bgrout = options['bgr_output']
+        specsn = specsn.split(",")
+    evp = options["evp_maps"]
+    evp = evp.split(",")
+    evpn = options["alias_names"]
+    bgrout = options["bgr_output"]
     if os.path.isfile(bgrout):
         bgrout2 = CreateFileName(bgrout)
-        grass.message("The file " + bgrout + " already exist. Using " +
-        bgrout2 + " instead")
+        grass.message(
+            "The file " + bgrout + " already exist. Using " + bgrout2 + " instead"
+        )
         bgrout = bgrout2
-    specout = options['species_output']
-    bgp = options['bgp']
-    bgpn = options['nbgp']
-    nodata = options['nodata']
-    flag_e = flags['e']
-    flag_h = flags['h']
+    specout = options["species_output"]
+    bgp = options["bgp"]
+    bgpn = options["nbgp"]
+    nodata = options["nodata"]
+    flag_e = flags["e"]
+    flag_h = flags["h"]
     if flag_h:
-        header = 'c'
+        header = "c"
     else:
-        header = ''
+        header = ""
 
     # Create list with environmental layers and list with their (alias) names
-    if evpn == '':
-        evpn = [z.split('@')[0] for z in evp]
+    if evpn == "":
+        evpn = [z.split("@")[0] for z in evp]
     else:
-        evpn = evpn.split(',')
+        evpn = evpn.split(",")
     if len(evp) != len(evpn):
         grass.fatal("Number of environmental layers does not match number of aliases")
     evp_cols = [s + " DOUBLE PRECISION" for s in evpn]
-    evpc = options['evp_cat']
-    if evpc != '':
-        evpc = evpc.split(',')
+    evpc = options["evp_cat"]
+    if evpc != "":
+        evpc = evpc.split(",")
         for k in range(len(evpc)):
-            laytype = grass.raster_info(evpc[k])['datatype']
-            if laytype != 'CELL':
+            laytype = grass.raster_info(evpc[k])["datatype"]
+            if laytype != "CELL":
                 grass.fatal("Categorical variables need to be of type CELL (integer)")
-        evpcn = options['alias_cat']
-        if evpcn == '':
-            evpcn = [z.split('@')[0] for z in evpc]
+        evpcn = options["alias_cat"]
+        if evpcn == "":
+            evpcn = [z.split("@")[0] for z in evpc]
         else:
-            evpcn = evpcn.split(',')
+            evpcn = evpcn.split(",")
         evpcn = ["cat_" + s for s in evpcn]
         evpc_cols = [s + " INTEGER" for s in evpcn]
         evp = evp + evpc
         evpn = evpn + evpcn
         evp_cols = evp_cols + evpc_cols
-    evp_cols = ['species VARCHAR(250)', 'Long DOUBLE PRECISION', 'Lat DOUBLE PRECISION'] + evp_cols
+    evp_cols = [
+        "species VARCHAR(250)",
+        "Long DOUBLE PRECISION",
+        "Lat DOUBLE PRECISION",
+    ] + evp_cols
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Background points
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     # Create / copy to tmp layer
     bgpname = tmpname("bgp")
-    if bgp == '':
-        grass.run_command("r.random", input=evp[0], npoints=bgpn, vector=bgpname, quiet=True)
+    if bgp == "":
+        grass.run_command(
+            "r.random", input=evp[0], npoints=bgpn, vector=bgpname, quiet=True
+        )
         grass.run_command("v.db.droptable", flags="f", map=bgpname, quiet=True)
         grass.run_command("v.db.addtable", map=bgpname, table=bgpname, quiet=True)
     else:
-        grass.run_command("g.copy", vector=[bgpn,bgpname], quiet=True)
+        grass.run_command("g.copy", vector=[bgpn, bgpname], quiet=True)
     grass.run_command("v.db.addcolumn", map=bgpname, columns=evp_cols, quiet=True)
 
     # Upload environmental values for point locations to attribute table
     for j in range(len(evpn)):
-        grass.run_command("v.what.rast", map=bgpname, raster=evp[j], column=evpn[j], quiet=True)
-        sqlst = "update " + bgpname + " SET " + evpn[j] + " = " + \
-            str(nodata) + " WHERE " + evpn[j] + " ISNULL"
+        grass.run_command(
+            "v.what.rast", map=bgpname, raster=evp[j], column=evpn[j], quiet=True
+        )
+        sqlst = (
+            "update "
+            + bgpname
+            + " SET "
+            + evpn[j]
+            + " = "
+            + str(nodata)
+            + " WHERE "
+            + evpn[j]
+            + " ISNULL"
+        )
         grass.run_command("db.execute", sql=sqlst, quiet=True)
     sqlst = "update " + bgpname + " SET species = 'background'"
     grass.run_command("db.execute", sql=sqlst, quiet=True)
 
     # Upload x and y coordinates
-    grass.run_command("v.to.db", map=bgpname, option="coor", columns="Long,Lat", quiet=True)
+    grass.run_command(
+        "v.to.db", map=bgpname, option="coor", columns="Long,Lat", quiet=True
+    )
 
     # Export the data to csv file and remove temporary file
     if flag_e:
-        grass.run_command("v.db.select", flags=header, map=bgpname,
-                          columns="*", separator=",", file=bgrout, quiet=True)
+        grass.run_command(
+            "v.db.select",
+            flags=header,
+            map=bgpname,
+            columns="*",
+            separator=",",
+            file=bgrout,
+            quiet=True,
+        )
     else:
-        cols = ['Long', 'Lat', 'species'] + evpn
-        grass.run_command("v.db.select", flags=header, map=bgpname,
-                          columns=cols, separator=",", file=bgrout, quiet=True)
+        cols = ["Long", "Lat", "species"] + evpn
+        grass.run_command(
+            "v.db.select",
+            flags=header,
+            map=bgpname,
+            columns=cols,
+            separator=",",
+            file=bgrout,
+            quiet=True,
+        )
     grass.run_command("g.remove", type="vector", name=bgpname, flags="f", quiet=True)
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Presence points
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     bgrdir = tempfile.mkdtemp()
     for i in range(len(specs)):
         specname = tmpname("sp")
-        bgrtmp = bgrdir + '/prespoints' + str(i)
-        grass.run_command("g.copy", vector=[specs[i],specname], quiet=True)
+        bgrtmp = bgrdir + "/prespoints" + str(i)
+        grass.run_command("g.copy", vector=[specs[i], specname], quiet=True)
         grass.run_command("v.db.addcolumn", map=specname, columns=evp_cols, quiet=True)
 
         # Upload environmental values for point locations to attribute table
         for j in range(len(evpn)):
-            grass.run_command("v.what.rast", map=specname, raster=evp[j], column=evpn[j], quiet=True)
-            sqlst = "update " + specname + " SET " + evpn[j] + " = " + \
-                str(nodata) + " WHERE " + evpn[j] + " ISNULL"
+            grass.run_command(
+                "v.what.rast", map=specname, raster=evp[j], column=evpn[j], quiet=True
+            )
+            sqlst = (
+                "update "
+                + specname
+                + " SET "
+                + evpn[j]
+                + " = "
+                + str(nodata)
+                + " WHERE "
+                + evpn[j]
+                + " ISNULL"
+            )
             grass.run_command("db.execute", sql=sqlst, quiet=True)
         sqlst = "update " + specname + " SET species = '" + specsn[i] + "'"
         grass.run_command("db.execute", sql=sqlst, quiet=True)
 
         # Upload x and y coordinates
-        grass.run_command("v.to.db", map=specname, option="coor", columns="Long,Lat", quiet=True)
+        grass.run_command(
+            "v.to.db", map=specname, option="coor", columns="Long,Lat", quiet=True
+        )
 
         # Export the data to csv file and remove temporary file
         if flag_e:
             if flag_h and i == 0:
-                grass.run_command("v.db.select", map=specname,
-                          columns='*', separator=",", file=bgrtmp, quiet=True)
+                grass.run_command(
+                    "v.db.select",
+                    map=specname,
+                    columns="*",
+                    separator=",",
+                    file=bgrtmp,
+                    quiet=True,
+                )
             else:
-                grass.run_command("v.db.select", flags='c', map=specname,
-                              columns='*', separator=",", file=bgrtmp, quiet=True)
+                grass.run_command(
+                    "v.db.select",
+                    flags="c",
+                    map=specname,
+                    columns="*",
+                    separator=",",
+                    file=bgrtmp,
+                    quiet=True,
+                )
         else:
-            cols = ['species'] + evpn
-            if header == '' and i == 0:
-                grass.run_command("v.db.select", map=specname,
-                              columns=cols, separator=",", file=bgrtmp, quiet=True)
+            cols = ["species"] + evpn
+            if header == "" and i == 0:
+                grass.run_command(
+                    "v.db.select",
+                    map=specname,
+                    columns=cols,
+                    separator=",",
+                    file=bgrtmp,
+                    quiet=True,
+                )
             else:
-                grass.run_command("v.db.select", flags='c', map=specname,
-                              columns=cols, separator=",", file=bgrtmp, quiet=True)
-        grass.run_command("g.remove", type="vector", name=specname, flags="f", quiet=True)
+                grass.run_command(
+                    "v.db.select",
+                    flags="c",
+                    map=specname,
+                    columns=cols,
+                    separator=",",
+                    file=bgrtmp,
+                    quiet=True,
+                )
+        grass.run_command(
+            "g.remove", type="vector", name=specname, flags="f", quiet=True
+        )
 
     # Combine csv files
-    filenames = bgrdir + '/prespoints'
+    filenames = bgrdir + "/prespoints"
     filenames = [filenames + str(i) for i in range(len(specs))]
-    with open(specout, 'w') as outfile:
+    with open(specout, "w") as outfile:
         for fname in filenames:
             with open(fname) as infile:
-                outfile.write(infile.read().rstrip() + '\n')
+                outfile.write(infile.read().rstrip() + "\n")
 
     # Remove temporary text files
     for m in filenames:

@@ -43,11 +43,18 @@ from grass.exceptions import CalledModuleError
 
 def cleanup():
     if rastertmp1:
-        grass.run_command('g.remove', flags='f', type='raster', name= rastertmp1, quiet = True)
+        grass.run_command(
+            "g.remove", flags="f", type="raster", name=rastertmp1, quiet=True
+        )
     if rastertmp2:
-        grass.run_command('g.remove', flags='f', type='raster', name= rastertmp2, quiet = True)
+        grass.run_command(
+            "g.remove", flags="f", type="raster", name=rastertmp2, quiet=True
+        )
     if rastertmp3:
-        grass.run_command('g.remove', flags='f', type='raster', name= rastertmp3, quiet = True)
+        grass.run_command(
+            "g.remove", flags="f", type="raster", name=rastertmp3, quiet=True
+        )
+
 
 def main():
     global tmp, tmpname, rastertmp1, rastertmp2, rastertmp3
@@ -60,30 +67,32 @@ def main():
     # we need a random name
     tmpname = grass.basename(tmp)
 
-    vector = options['vector']
-    layer = options['layer']
-    column = options['column']
-    weight = options['weight']
-    output = options['output']
+    vector = options["vector"]
+    layer = options["layer"]
+    column = options["column"]
+    weight = options["weight"]
+    output = options["output"]
 
     # vector exists?
-    result = grass.find_file(vector, element='vector')
-    if len(result['name']) == 0:
+    result = grass.find_file(vector, element="vector")
+    if len(result["name"]) == 0:
         grass.fatal(_("Input vector <%s> not found") % vector)
 
     # raster exists?
-    result = grass.find_file(weight, element='cell')
-    if len(result['name']) == 0:
+    result = grass.find_file(weight, element="cell")
+    if len(result["name"]) == 0:
         grass.fatal(_("Input weight raster <%s> not found") % weight)
 
     # column exists ?
     if column not in grass.vector_columns(vector, layer).keys():
-        grass.fatal(_("Column does not exist for vector <%s>, layer %s") % (vector, layer))
+        grass.fatal(
+            _("Column does not exist for vector <%s>, layer %s") % (vector, layer)
+        )
 
     # is column numeric?
-    coltype = grass.vector_columns(vector, layer)[column]['type']
+    coltype = grass.vector_columns(vector, layer)[column]["type"]
 
-    if coltype not in ('INTEGER', 'DOUBLE PRECISION'):
+    if coltype not in ("INTEGER", "DOUBLE PRECISION"):
         grass.fatal(_("Column must be numeric"))
 
     # rasterize with cats (will be base layer)
@@ -91,38 +100,50 @@ def main():
     vector_basename = vector.split("@")[0]
     rastertmp1 = "%s_%s_1" % (vector_basename, tmpname)
     try:
-        grass.run_command('v.to.rast', input=vector, output=rastertmp1,
-                          use='cat', quiet=True)
+        grass.run_command(
+            "v.to.rast", input=vector, output=rastertmp1, use="cat", quiet=True
+        )
     except CalledModuleError:
         grass.fatal(_("An error occurred while converting vector to raster"))
 
     # rasterize with column
     rastertmp2 = "%s_%s_2" % (vector_basename, tmpname)
     try:
-        grass.run_command('v.to.rast', input=vector, output=rastertmp2,
-                          use='attr', layer=layer, attrcolumn=column,
-                          quiet=True)
+        grass.run_command(
+            "v.to.rast",
+            input=vector,
+            output=rastertmp2,
+            use="attr",
+            layer=layer,
+            attrcolumn=column,
+            quiet=True,
+        )
     except CalledModuleError:
         grass.fatal(_("An error occurred while converting vector to raster"))
 
     # zonal statistics
     rastertmp3 = "%s_%s_3" % (vector_basename, tmpname)
     try:
-        grass.run_command('r.stats.zonal', base=rastertmp1, cover=weight,
-                          method='sum', output=rastertmp3, quiet=True)
+        grass.run_command(
+            "r.stats.zonal",
+            base=rastertmp1,
+            cover=weight,
+            method="sum",
+            output=rastertmp3,
+            quiet=True,
+        )
     except CalledModuleError:
         grass.fatal(_("An error occurred while calculating zonal statistics"))
 
     # weighted interpolation
     exp = "$output = if($sumweight == 0, if(isnull($area_val), null(), 0), double($area_val) * $weight / $sumweight)"
 
-    grass.mapcalc(exp,
-                  output = output,
-                  sumweight = rastertmp3,
-                  area_val = rastertmp2,
-                  weight = weight)
+    grass.mapcalc(
+        exp, output=output, sumweight=rastertmp3, area_val=rastertmp2, weight=weight
+    )
 
     sys.exit(0)
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

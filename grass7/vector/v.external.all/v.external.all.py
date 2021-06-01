@@ -37,36 +37,38 @@ from grass.exceptions import CalledModuleError
 
 
 def list_layers(dsn):
-    ret = grass.read_command('v.external',
-                             flags = 'l',
-                             input = dsn)
+    ret = grass.read_command("v.external", flags="l", input=dsn)
     if not ret:
         sys.exit(1)
 
     return ret.splitlines()
 
+
 def make_links(dsn):
     layers = list_layers(dsn)
 
     for layer in layers:
-        oname = layer.replace('.', '_')
-        grass.message(_("%s\nCreating link for OGR layer <%s> as <%s>...\n%s") %
-                          ('-' * 80, layer, oname, '-' * 80))
+        oname = layer.replace(".", "_")
+        grass.message(
+            _("%s\nCreating link for OGR layer <%s> as <%s>...\n%s")
+            % ("-" * 80, layer, oname, "-" * 80)
+        )
         try:
-            grass.run_command('v.external',
-                              input = dsn, layer = layer, output = oname)
+            grass.run_command("v.external", input=dsn, layer=layer, output=oname)
         except CalledModuleError:
             grass.warning(_("Unable to create link for OGR layer <%s>") % layer)
 
+
 def main():
-    if flags['l']:
-        ret = list_layers(options['input'])
+    if flags["l"]:
+        ret = list_layers(options["input"])
         sys.stdout.write(os.linesep.join(ret))
         sys.stdout.write(os.linesep)
     else:
-        make_links(options['input'])
+        make_links(options["input"])
 
     return 0
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

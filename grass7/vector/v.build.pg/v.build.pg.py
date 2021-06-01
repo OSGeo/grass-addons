@@ -54,18 +54,18 @@ import grass.script as grass
 from grass.exceptions import CalledModuleError
 
 
-def execute(sql, msg = None, useSelect = True):
+def execute(sql, msg=None, useSelect=True):
     if useSelect:
-        cmd = 'select'
+        cmd = "select"
     else:
-        cmd = 'execute'
+        cmd = "execute"
 
-    if flags['p']:
+    if flags["p"]:
         sys.stdout.write("\n%s\n\n" % sql)
         return
 
     try:
-        grass.run_command('db.%s' % cmd, sql=sql, **pg_conn)
+        grass.run_command("db.%s" % cmd, sql=sql, **pg_conn)
     except CalledModuleError:
         if msg:
             grass.fatal(msg)
@@ -74,10 +74,9 @@ def execute(sql, msg = None, useSelect = True):
 
 
 def main():
-    vmap = options['map']
-    curr_mapset = grass.gisenv()['MAPSET']
-    mapset = grass.find_file(name = vmap,
-                             element = 'vector')['mapset']
+    vmap = options["map"]
+    curr_mapset = grass.gisenv()["MAPSET"]
+    mapset = grass.find_file(name=vmap, element="vector")["mapset"]
 
     # check if map exists in the current mapset
     if not mapset:
@@ -87,62 +86,93 @@ def main():
 
     # check for format
     vInfo = grass.vector_info(vmap)
-    if vInfo['format'] != 'PostGIS,PostgreSQL':
+    if vInfo["format"] != "PostGIS,PostgreSQL":
         grass.fatal(_("Vector map <%s> is not a PG-link") % vmap)
 
     # default connection
     global pg_conn
-    pg_conn = {'driver': 'pg',
-                'database': vInfo['pg_dbname']}
+    pg_conn = {"driver": "pg", "database": vInfo["pg_dbname"]}
 
     # default topo schema
-    if not options['topo_schema']:
-        options['topo_schema'] = 'topo_%s' % options['map']
+    if not options["topo_schema"]:
+        options["topo_schema"] = "topo_%s" % options["map"]
 
     # check if topology schema already exists
     topo_found = False
-    ret = grass.db_select(sql = "SELECT COUNT(*) FROM topology.topology "
-                              "WHERE name = '%s'" % options['topo_schema'],
-                          **pg_conn)
+    ret = grass.db_select(
+        sql="SELECT COUNT(*) FROM topology.topology "
+        "WHERE name = '%s'" % options["topo_schema"],
+        **pg_conn
+    )
 
     if not ret or int(ret[0][0]) == 1:
         topo_found = True
 
     if topo_found:
-        if int(os.getenv('GRASS_OVERWRITE', '0')) == 1:
+        if int(os.getenv("GRASS_OVERWRITE", "0")) == 1:
             # -> overwrite
-            grass.warning(_("Topology schema <%s> already exists and will be overwritten") %
-                              options['topo_schema'])
+            grass.warning(
+                _("Topology schema <%s> already exists and will be overwritten")
+                % options["topo_schema"]
+            )
         else:
-            grass.fatal(_("option <%s>: <%s> exists.") %
-                            ('topo_schema', options['topo_schema']))
+            grass.fatal(
+                _("option <%s>: <%s> exists.") % ("topo_schema", options["topo_schema"])
+            )
 
         # drop topo schema if exists
-        execute(sql = "SELECT topology.DropTopology('%s')" % options['topo_schema'],
-                msg = _("Unable to remove topology schema"))
+        execute(
+            sql="SELECT topology.DropTopology('%s')" % options["topo_schema"],
+            msg=_("Unable to remove topology schema"),
+        )
 
     # create topo schema
-    schema, table = vInfo['pg_table'].split('.')
+    schema, table = vInfo["pg_table"].split(".")
     grass.message(_("Creating new topology schema..."))
-    execute("SELECT topology.createtopology('%s', find_srid('%s', '%s', '%s'), %s)" %
-                (options['topo_schema'], schema, table, vInfo['geometry_column'], options['tolerance']))
+    execute(
+        "SELECT topology.createtopology('%s', find_srid('%s', '%s', '%s'), %s)"
+        % (
+            options["topo_schema"],
+            schema,
+            table,
+            vInfo["geometry_column"],
+            options["tolerance"],
+        )
+    )
 
     # add topo column to the feature table
     grass.message(_("Adding new topology column..."))
-    execute("SELECT topology.AddTopoGeometryColumn('%s', '%s', '%s', '%s', '%s')" %
-                (options['topo_schema'], schema, table, options['topo_column'], vInfo['feature_type']))
+    execute(
+        "SELECT topology.AddTopoGeometryColumn('%s', '%s', '%s', '%s', '%s')"
+        % (
+            options["topo_schema"],
+            schema,
+            table,
+            options["topo_column"],
+            vInfo["feature_type"],
+        )
+    )
 
     # build topology
     grass.message(_("Building PostGIS topology..."))
-    execute("UPDATE %s.%s SET %s = topology.toTopoGeom(%s, '%s', 1, %s)" %
-                (schema, table, options['topo_column'], vInfo['geometry_column'],
-                 options['topo_schema'], options['tolerance']),
-            useSelect = False)
+    execute(
+        "UPDATE %s.%s SET %s = topology.toTopoGeom(%s, '%s', 1, %s)"
+        % (
+            schema,
+            table,
+            options["topo_column"],
+            vInfo["geometry_column"],
+            options["topo_schema"],
+            options["tolerance"],
+        ),
+        useSelect=False,
+    )
 
     # report summary
-    execute("SELECT topology.TopologySummary('%s')" % options['topo_schema'])
+    execute("SELECT topology.TopologySummary('%s')" % options["topo_schema"])
 
     return 0
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

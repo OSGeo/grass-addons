@@ -166,6 +166,7 @@ TMPLOC = None
 SRCGISRC = None
 GISDBASE = None
 
+
 def cleanup():
     # remove temp location
     if TMPLOC:
@@ -173,136 +174,178 @@ def cleanup():
     if SRCGISRC:
         grass.try_remove(SRCGISRC)
 
+
 def main():
-    indsn = options['input']
-    inlayer = options['layer']
-    inwhere = options['where']
-    inenc = options['encoding']
-    inkey = options['key']
-    ingeom = options['geometry']
-    listlayers = flags['l']
+    indsn = options["input"]
+    inlayer = options["layer"]
+    inwhere = options["where"]
+    inenc = options["encoding"]
+    inkey = options["key"]
+    ingeom = options["geometry"]
+    listlayers = flags["l"]
 
-    min_area = options['min_area']
+    min_area = options["min_area"]
 
-    outdsn = options['output']
-    outformat = options['format']
+    outdsn = options["output"]
+    outformat = options["format"]
     outclean = "%s_clean" % inlayer
     outoverlaps = "%s_overlaps" % inlayer
 
     overwrite = grass.overwrite()
 
     # list input layers
-    if flags['l']:
+    if flags["l"]:
         try:
-            grass.run_command('v.in.ogr', input=indsn, flags = 'l')
+            grass.run_command("v.in.ogr", input=indsn, flags="l")
         except CalledModuleError:
             grass.fatal(_("Unable to list layers in OGR datasource <%s>") % indsn)
         return 0
 
     # list output formats
-    if flags['f']:
-        grass.run_command('v.out.ogr', flags = 'l')
+    if flags["f"]:
+        grass.run_command("v.out.ogr", flags="l")
         return 0
 
     # import options
     vopts = {}
-    if options['encoding']:
-        vopts['encoding'] = options['encoding']
-    if options['where']:
-        vopts['where'] = options['where']
-    if options['geometry']:
-        vopts['geometry'] = options['geometry']
-    if options['key']:
-        vopts['key'] = options['key']
-    if options['snap']:
-        vopts['snap'] = options['snap']
+    if options["encoding"]:
+        vopts["encoding"] = options["encoding"]
+    if options["where"]:
+        vopts["where"] = options["where"]
+    if options["geometry"]:
+        vopts["geometry"] = options["geometry"]
+    if options["key"]:
+        vopts["key"] = options["key"]
+    if options["snap"]:
+        vopts["snap"] = options["snap"]
 
     # create temp location from input without import
     grassenv = grass.gisenv()
-    tgtloc = grassenv['LOCATION_NAME']
-    tgtmapset = grassenv['MAPSET']
-    GISDBASE = grassenv['GISDBASE']
-    tgtgisrc = os.environ['GISRC']
+    tgtloc = grassenv["LOCATION_NAME"]
+    tgtmapset = grassenv["MAPSET"]
+    GISDBASE = grassenv["GISDBASE"]
+    tgtgisrc = os.environ["GISRC"]
     SRCGISRC = grass.tempfile()
 
-    TMPLOC = 'temp_import_location_' + str(os.getpid())
+    TMPLOC = "temp_import_location_" + str(os.getpid())
 
-    f = open(SRCGISRC, 'w')
-    f.write('MAPSET: PERMANENT\n')
-    f.write('GISDBASE: %s\n' % GISDBASE)
-    f.write('LOCATION_NAME: %s\n' % TMPLOC)
-    f.write('GUI: text\n')
+    f = open(SRCGISRC, "w")
+    f.write("MAPSET: PERMANENT\n")
+    f.write("GISDBASE: %s\n" % GISDBASE)
+    f.write("LOCATION_NAME: %s\n" % TMPLOC)
+    f.write("GUI: text\n")
     f.close()
 
     grass.verbose(_("Creating temporary location for <%s>...") % indsn)
     try:
-        grass.run_command('v.in.ogr', input=indsn,
-                          location=TMPLOC, flags='i', quiet=True, overwrite=overwrite, **vopts)
+        grass.run_command(
+            "v.in.ogr",
+            input=indsn,
+            location=TMPLOC,
+            flags="i",
+            quiet=True,
+            overwrite=overwrite,
+            **vopts
+        )
     except CalledModuleError:
         grass.fatal(_("Unable to create location from OGR datasource <%s>") % indsn)
 
     # switch to temp location
-    os.environ['GISRC'] = str(SRCGISRC)
+    os.environ["GISRC"] = str(SRCGISRC)
 
-    outvect = 'vector_clean'
-    outvect_tmp = 'vector_clean'
+    outvect = "vector_clean"
+    outvect_tmp = "vector_clean"
     if float(min_area) > 0:
-        outvect_tmp = 'vector_clean_import'
+        outvect_tmp = "vector_clean_import"
 
     # import into temp location
     grass.message(_("Importing <%s>, layer <%s> ...") % (indsn, inlayer))
     try:
-        grass.run_command('v.in.ogr', input=indsn, layer=inlayer,
-                          output=outvect_tmp, overwrite=overwrite, **vopts)
+        grass.run_command(
+            "v.in.ogr",
+            input=indsn,
+            layer=inlayer,
+            output=outvect_tmp,
+            overwrite=overwrite,
+            **vopts
+        )
     except CalledModuleError:
         grass.fatal(_("Unable to import OGR datasource <%s>") % indsn)
 
     # remove small areas
     if float(min_area) > 0:
-        grass.message(_("Removing small areas in data source <%s>, layer <%s> ...") % (indsn, inlayer))
+        grass.message(
+            _("Removing small areas in data source <%s>, layer <%s> ...")
+            % (indsn, inlayer)
+        )
         try:
-            grass.run_command('v.clean', input=outvect_tmp, output=outvect,
-                      type='area', tool='rmarea', threshold=min_area, overwrite=overwrite)
+            grass.run_command(
+                "v.clean",
+                input=outvect_tmp,
+                output=outvect,
+                type="area",
+                tool="rmarea",
+                threshold=min_area,
+                overwrite=overwrite,
+            )
         except CalledModuleError:
-            grass.fatal(_("Removing small areas in data source <%s>, layer <%s> failed") % (indsn, inlayer))
+            grass.fatal(
+                _("Removing small areas in data source <%s>, layer <%s> failed")
+                % (indsn, inlayer)
+            )
 
     # export
-    oflags = 'sm'
-    if flags['u']:
-        oflags = 'smu'
+    oflags = "sm"
+    if flags["u"]:
+        oflags = "smu"
         overwrite = True
 
-    outlayer = '%s_clean' % inlayer
-    grass.message = (_("Exporting cleaned layer as <%s>") % outlayer)
+    outlayer = "%s_clean" % inlayer
+    grass.message = _("Exporting cleaned layer as <%s>") % outlayer
     try:
-        grass.run_command('v.out.ogr', input=outvect, layer='1', output=outdsn,
-                        output_layer=outlayer, format=outformat, flags=oflags,
-                        overwrite=overwrite)
+        grass.run_command(
+            "v.out.ogr",
+            input=outvect,
+            layer="1",
+            output=outdsn,
+            output_layer=outlayer,
+            format=outformat,
+            flags=oflags,
+            overwrite=overwrite,
+        )
     except CalledModuleError:
         grass.fatal(_("Unable to export to OGR datasource <%s>") % outdsn)
 
     # export any overlaps
-    outlayers = grass.read_command('v.category', input=outvect, option='layers')
+    outlayers = grass.read_command("v.category", input=outvect, option="layers")
 
     nlayers = len(outlayers.splitlines())
-    #for layer in outlayers.splitlines():
+    # for layer in outlayers.splitlines():
     #    nlayers += 1
 
     if nlayers == 2:
-        outlayer = '%s_overlaps' % inlayer
-        oflags = 'smu'
-        grass.message = (_("Exporting overlaps as <%s>") % outlayer)
+        outlayer = "%s_overlaps" % inlayer
+        oflags = "smu"
+        grass.message = _("Exporting overlaps as <%s>") % outlayer
         try:
-            grass.run_command('v.out.ogr', input=outvect, layer='2', output=outdsn,
-                      output_layer=outlayer, format=outformat, flags=oflags,
-                      overwrite=True)
+            grass.run_command(
+                "v.out.ogr",
+                input=outvect,
+                layer="2",
+                output=outdsn,
+                output_layer=outlayer,
+                format=outformat,
+                flags=oflags,
+                overwrite=True,
+            )
         except CalledModuleError:
             grass.fatal(_("Unable to export to OGR datasource <%s>") % outdsn)
 
     # switch to target location
-    os.environ['GISRC'] = str(tgtgisrc)
+    os.environ["GISRC"] = str(tgtgisrc)
 
     return 0
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

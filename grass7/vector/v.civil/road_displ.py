@@ -9,26 +9,28 @@ Created on Sat Aug  2 16:52:30 2014
 # import pygrass modules
 #
 import math
+
 # import grass.script as grass
 import re
 from grass.pygrass.vector import VectorTopo
 import road_base as Base
 from road_plant import Aligns
+
 # from grass.pygrass.vector.geometry import Point
 from grass.pygrass.vector.geometry import Line
+
 # from grass.pygrass.vector.geometry import Boundary
 # from grass.pygrass.vector.geometry import Area
 import road_plant as Plant
 
 
 def write_objs(allrectas, radio):
-    """ R
-    """
-    new2 = VectorTopo('AACC__' + str(int(radio)))
+    """R"""
+    new2 = VectorTopo("AACC__" + str(int(radio)))
     # cols = [(u'cat',       'INTEGER PRIMARY KEY'),
     #        (u'elev',      'INTEGER')]
 
-    new2.open('w')
+    new2.open("w")
     for obj in allrectas:
         new2.write(obj)
     # new2.table.conn.commit()
@@ -39,13 +41,12 @@ def write_objs(allrectas, radio):
 # Parallel
 # =============================================
 
+
 class Parallel(Base.RoadObj, object):
-    """ Return
-    """
+    """Return"""
 
     def __init__(self, pk1, pk2, dist1, dist2, g90, plant=None):
-        """ Return
-        """
+        """Return"""
         self.pk1 = pk1
         self.dist1 = dist1
         self.pk2 = pk2
@@ -59,47 +60,63 @@ class Parallel(Base.RoadObj, object):
         super(Parallel, self).__init__(self.length())
 
     def __str__(self):
-        return ("PARALLEL(" + str(self.pk1) + ", " + str(self.pk2) +
-                ", " + str(self.dist1) + ", " + str(self.dist2) + ", " +
-                str(self.g90) + ")")
+        return (
+            "PARALLEL("
+            + str(self.pk1)
+            + ", "
+            + str(self.pk2)
+            + ", "
+            + str(self.dist1)
+            + ", "
+            + str(self.dist2)
+            + ", "
+            + str(self.g90)
+            + ")"
+        )
 
     def __repr__(self):
 
-        return ("Parallel(" + str(self.pk1) + ", " + str(self.pk2) +
-                ", " + str(self.dist1) + ", " + str(self.dist2) + ", " +
-                str(self.g90) + ")")
+        return (
+            "Parallel("
+            + str(self.pk1)
+            + ", "
+            + str(self.pk2)
+            + ", "
+            + str(self.dist1)
+            + ", "
+            + str(self.dist2)
+            + ", "
+            + str(self.g90)
+            + ")"
+        )
 
     def length(self):
-        """ Return
-        """
+        """Return"""
         if self.line:
             return self.line.length()
         else:
             return -1
 
     def param(self):
-        """ Return
-        """
-        return 'L=' + str(round(self.length(), 3))
+        """Return"""
+        return "L=" + str(round(self.length(), 3))
 
     def get_roadpoint(self, start, r_pnt=None):
-        """ Return
-        """
-        distx = self.dist1 + ((start - self.pk1) *
-                              (self.dist2 - self.dist1)) / (self.pk2 -
-                                                            self.pk1)
+        """Return"""
+        distx = self.dist1 + ((start - self.pk1) * (self.dist2 - self.dist1)) / (
+            self.pk2 - self.pk1
+        )
         if not r_pnt:
             r_pnt = self.plant.get_roadpoint(start)
         if r_pnt.azi == 0:
-            r_pnt.azi = math.pi/2
+            r_pnt.azi = math.pi / 2
         r_pnt_d = r_pnt.parallel(distx, self.g90)
 
         r_pnt_d.dist_displ = distx
         return [r_pnt_d]
 
     def get_roadpnts(self, start, end, interv):
-        """ Return
-        """
+        """Return"""
         if start == 0:
             start = int(self.pk1)
         if end == -1:
@@ -111,8 +128,7 @@ class Parallel(Base.RoadObj, object):
         return list_pts
 
     def find_cutoff(self, r_pnt):
-        """ Return
-        """
+        """Return"""
         return self.get_roadpoint(r_pnt.npk, r_pnt)[0]
 
 
@@ -120,16 +136,16 @@ class Parallel(Base.RoadObj, object):
 # Parallel
 # =============================================
 
+
 class DisplLine(Aligns, object):
-    """ Return
-    """
+    """Return"""
+
     contador = 0
     contador_left = 0
     contador_right = 0
 
     def __init__(self, lists, left=True, polygon=None, plant=None):
-        """ Return
-        """
+        """Return"""
         DisplLine.contador += 1
         if left:
             DisplLine.contador_left += 1
@@ -160,27 +176,24 @@ class DisplLine(Aligns, object):
         super(DisplLine, self).__init__(d_alings)
 
     def __str__(self):
-        """ Return
-        """
+        """Return"""
         return str(self.dist)
 
-#    @staticmethod
-#    def total():
-#        """ Return
-#        """
-#        return DisplLine.contador
+    #    @staticmethod
+    #    def total():
+    #        """ Return
+    #        """
+    #        return DisplLine.contador
 
     def _intbool(self):
-        """Return
-        """
+        """Return"""
         if self.left is True:
             return -1
         else:
             return 1
 
     def _fix_line(self):
-        """ Return
-        """
+        """Return"""
         dist = []
         pks = []
         elev = []
@@ -201,11 +214,10 @@ class DisplLine(Aligns, object):
         self.typeline = typeline
 
     def _polyg_parall(self, dist):
-        """ Return
-        """
-#        line = self.polygon.read(1)
-        self.polygon.open('r')
-        line = self.polygon.cat(1, 'lines', 1)[0]
+        """Return"""
+        #        line = self.polygon.read(1)
+        self.polygon.open("r")
+        line = self.polygon.cat(1, "lines", 1)[0]
         self.polygon.close()
 
         pnts = []
@@ -221,10 +233,9 @@ class DisplLine(Aligns, object):
         return parallel
 
     def _table_parall(self, dist):
-        """ Return
-        """
+        """Return"""
         layer = 2
-        self.polygon.open('r')
+        self.polygon.open("r")
         tabla_plant = self.polygon.dblinks.by_layer(layer).table()
         tabla_plant_sql = "SELECT * FROM {name};".format(name=tabla_plant.name)
         tabla_plant_iter = tabla_plant.execute(tabla_plant_sql)
@@ -240,10 +251,19 @@ class DisplLine(Aligns, object):
             cat, pk, radio, ain, aout, sobre, superelev, dc, lr = dat
 
             if radio == 0:
-                tabla.append({'a_out': 0, 'dc_': 0, 'cat2': cat,
-                              'radio': 0, 'pk_eje': 0,
-                              'superelev': superelev, 'a_in': 0,
-                              'lr_': 0, 'widening': sobre})
+                tabla.append(
+                    {
+                        "a_out": 0,
+                        "dc_": 0,
+                        "cat2": cat,
+                        "radio": 0,
+                        "pk_eje": 0,
+                        "superelev": superelev,
+                        "a_in": 0,
+                        "lr_": 0,
+                        "widening": sobre,
+                    }
+                )
                 continue
 
             local_in = Base.cloth_local(abs(radio), ain)
@@ -259,22 +279,32 @@ class DisplLine(Aligns, object):
                 radio = radio - dist + (contador * sobre)
 
             if ain != 0:
-                ain = Base.clotoide_get_a(radio, local_in['y_o'],
-                                          contador * sobre, self.left)
+                ain = Base.clotoide_get_a(
+                    radio, local_in["y_o"], contador * sobre, self.left
+                )
             if aout != 0:
-                aout = Base.clotoide_get_a(radio, local_out['y_o'],
-                                           contador * sobre, self.left)
+                aout = Base.clotoide_get_a(
+                    radio, local_out["y_o"], contador * sobre, self.left
+                )
 
-#            tabla.append((0, 0, radio, ain, aout, sobre, ''))
-            tabla.append({'a_out': aout, 'dc_': 0, 'cat2': cat,
-                          'radio': radio, 'pk_eje': 0,
-                          'superelev': superelev, 'a_in': ain,
-                          'lr_': 0, 'widening': sobre})
+            #            tabla.append((0, 0, radio, ain, aout, sobre, ''))
+            tabla.append(
+                {
+                    "a_out": aout,
+                    "dc_": 0,
+                    "cat2": cat,
+                    "radio": radio,
+                    "pk_eje": 0,
+                    "superelev": superelev,
+                    "a_in": ain,
+                    "lr_": 0,
+                    "widening": sobre,
+                }
+            )
         return tabla
 
     def _get_limits_plant(self, plant_d):
-        """ Return
-        """
+        """Return"""
         list_pnts = []
         pnts_charc = plant_d.get_charact()
 
@@ -300,8 +330,7 @@ class DisplLine(Aligns, object):
         return list_pnts
 
     def _mode_exact(self, index):
-        """ Return
-        """
+        """Return"""
         polyg = self._polyg_parall(self.dist[index])
         table = self._table_parall(self.dist[index])
 
@@ -318,8 +347,7 @@ class DisplLine(Aligns, object):
         return d_alings
 
     def _distx(self, rad, pc_d, pstart):
-        """ Return
-        """
+        """Return"""
         recta_pnt = pstart.normal(math.pi / 2)
         recta_c = Base.Straight(pc_d, None, pstart.azi, 10)
         pto_corte = recta_pnt.cutoff(recta_c)
@@ -329,8 +357,7 @@ class DisplLine(Aligns, object):
         return distx
 
     def _mode_curve(self, index):
-        """ Return
-        """
+        """Return"""
         rad, center = self.typeline[index].split(",")
 
         rad = float(rad[1:])
@@ -361,8 +388,7 @@ class DisplLine(Aligns, object):
         return curve
 
     def _init_aligns(self):
-        """ Return
-        """
+        """Return"""
         d_alings = []
         for i in range(len(self.dist) - 1):
 
@@ -372,38 +398,44 @@ class DisplLine(Aligns, object):
                 d_alings.append(None)
                 continue
 
-            if self.typeline[i] == 'e':
+            if self.typeline[i] == "e":
                 self.list_lim.append(self.pks[i])
                 self.elev_lim.append(self.elev[i])
                 d_alings.extend(self._mode_exact(i))
 
-            elif self.typeline[i] == 'l':
+            elif self.typeline[i] == "l":
                 self.list_lim.append(self.pks[i])
                 self.elev_lim.append(self.elev[i])
 
-                paral = Parallel(self.pks[i], self.pks[i + 1], self.dist[i],
-                                 self.dist[i + 1], self.g90, self.plant)
+                paral = Parallel(
+                    self.pks[i],
+                    self.pks[i + 1],
+                    self.dist[i],
+                    self.dist[i + 1],
+                    self.g90,
+                    self.plant,
+                )
                 d_alings.append(paral)
 
-            elif self.typeline[i] == 's':
-                raise ValueError('s')
-#                pstart = plant.get_roadpoint(self.pks[i])
-#                p1_x = pstart.x + self.dist[i]*math.sin(pstart.azi+self.g90)
-#                p1_y = pstart.y + self.dist[i]*math.cos(pstart.azi+self.g90)
-#
-#                pend = plant.get_roadpoint(self.pks[i+1])
-#                p2_x = pend.x + self.dist[i]*math.sin(pend.azi+self.g90)
-#                p2_y = pend.y + self.dist[i]*math.cos(pend.azi+self.g90)
-#
-#                recta = Base.Straight(Point(p1_x, p1_y), Point(p2_x, p2_y))
+            elif self.typeline[i] == "s":
+                raise ValueError("s")
+            #                pstart = plant.get_roadpoint(self.pks[i])
+            #                p1_x = pstart.x + self.dist[i]*math.sin(pstart.azi+self.g90)
+            #                p1_y = pstart.y + self.dist[i]*math.cos(pstart.azi+self.g90)
+            #
+            #                pend = plant.get_roadpoint(self.pks[i+1])
+            #                p2_x = pend.x + self.dist[i]*math.sin(pend.azi+self.g90)
+            #                p2_y = pend.y + self.dist[i]*math.cos(pend.azi+self.g90)
+            #
+            #                recta = Base.Straight(Point(p1_x, p1_y), Point(p2_x, p2_y))
 
-            elif re.search(r'^r', self.typeline[i]):
+            elif re.search(r"^r", self.typeline[i]):
                 self.list_lim.append(self.pks[i])
                 self.elev_lim.append(self.elev[i])
                 d_alings.append(self._mode_curve(i))
 
             else:
-                raise ValueError('Type not suported:' + self.typeline[i])
+                raise ValueError("Type not suported:" + self.typeline[i])
 
         if self.pks[-1] not in self.list_lim:
             self.list_lim.append(self.pks[-1])
@@ -412,16 +444,14 @@ class DisplLine(Aligns, object):
         return d_alings
 
     def get_left(self):
-        """ Return
-        """
+        """Return"""
         if self.left:
-            return 'left'
+            return "left"
         else:
-            return 'right'
+            return "right"
 
     def _find_superelev(self, r_pnt, elev, dist_displ):
-        """Return
-        """
+        """Return"""
         for line in self.plant.superelev_lim:
 
             if line == []:
@@ -433,22 +463,28 @@ class DisplLine(Aligns, object):
             if pks_1[0] < r_pnt.npk < pks_1[-1]:
                 break
 
-#        pend_1 = [-bom1, 0, bom1, peralte, peralte, bom2, 0, -bom2]
-#        pend_2 = [-bom1, -bom1, -bom1, -peralte, -peralte, -bom2, -bom2, -bom2]
+        #        pend_1 = [-bom1, 0, bom1, peralte, peralte, bom2, 0, -bom2]
+        #        pend_2 = [-bom1, -bom1, -bom1, -peralte, -peralte, -bom2, -bom2, -bom2]
 
-#        elev2 = elev / dist_displ
+        #        elev2 = elev / dist_displ
         bom1 = bom1 * dist_displ * 0.01
         bom2 = bom2 * dist_displ * 0.01
         peralte = peralte * dist_displ * 0.01
-        pend_11 = [elev, elev + bom1, elev + bom1 + bom1,
-                   elev + bom1 + peralte, elev + bom1 + peralte,
-                   elev + bom2 + bom2, elev + bom2, elev]
-        pend_22 = [elev, elev, elev, elev - peralte, elev - peralte,
-                   elev, elev, elev]
+        pend_11 = [
+            elev,
+            elev + bom1,
+            elev + bom1 + bom1,
+            elev + bom1 + peralte,
+            elev + bom1 + peralte,
+            elev + bom2 + bom2,
+            elev + bom2,
+            elev,
+        ]
+        pend_22 = [elev, elev, elev, elev - peralte, elev - peralte, elev, elev, elev]
 
         pkini, pkfin = 0, 1
-#        z_1 = - bombeo * dist_displ * 0.01
-#        z_2 = - bombeo * dist_displ * 0.01
+        #        z_1 = - bombeo * dist_displ * 0.01
+        #        z_2 = - bombeo * dist_displ * 0.01
         z_1 = elev
         z_2 = elev
 
@@ -477,18 +513,17 @@ class DisplLine(Aligns, object):
         return z_x
 
     def get_elev(self, index, r_pnt, dist_displ):
-        """ Return
-        """
-#        calzadas = 1
-#        if self.plant.bombeo:
-#            elev = self._find_superelev(index, r_pnt, self.plant.bombeo,
-#                                        dist_displ)
-#
-#        else:
-        elev = self.elev_lim[index] + \
-            ((r_pnt.npk - self.list_lim[index]) *
-             (self.elev_lim[index + 1] - self.elev_lim[index])) / \
-            (self.list_lim[index + 1] - self.list_lim[index])
+        """Return"""
+        #        calzadas = 1
+        #        if self.plant.bombeo:
+        #            elev = self._find_superelev(index, r_pnt, self.plant.bombeo,
+        #                                        dist_displ)
+        #
+        #        else:
+        elev = self.elev_lim[index] + (
+            (r_pnt.npk - self.list_lim[index])
+            * (self.elev_lim[index + 1] - self.elev_lim[index])
+        ) / (self.list_lim[index + 1] - self.list_lim[index])
 
         if self.plant.bombeo:
             elev = self._find_superelev(r_pnt, elev, dist_displ)
@@ -496,8 +531,7 @@ class DisplLine(Aligns, object):
         return elev
 
     def find_cutoff(self, r_pnt):
-        """ Return
-        """
+        """Return"""
 
         for i in range(len(self.list_lim) - 1):
             if isinstance(self.list_aligns[i], Base.Curve):
@@ -511,22 +545,20 @@ class DisplLine(Aligns, object):
                     r_pnt_d = self.list_aligns[i].find_cutoff(r_pnt)
 
                     if r_pnt_d is not None:
-                        r_pnt_d.dist_displ = \
-                            round(r_pnt_d.distance2(r_pnt.point2d), 4)
+                        r_pnt_d.dist_displ = round(r_pnt_d.distance2(r_pnt.point2d), 4)
                         elev = self.get_elev(i, r_pnt, r_pnt_d.dist_displ)
                         r_pnt_d.z = elev + r_pnt.z
                         if r_pnt_d.dist_displ == 0:
                             r_pnt_d.incli = 0
                         else:
-                            r_pnt_d.incli = math.atan(elev/r_pnt_d.dist_displ)
+                            r_pnt_d.incli = math.atan(elev / r_pnt_d.dist_displ)
 
                         r_pnt_d.acum_pk = self.list_lim[i] + r_pnt_d.npk
 
                     return r_pnt_d
 
     def get_pnts_displ(self, list_r_pnts, line=False):
-        """ Return a displaced line of a given axis
-        """
+        """Return a displaced line of a given axis"""
         list_pnts_d = []
 
         for r_pnt in list_r_pnts:
@@ -538,27 +570,30 @@ class DisplLine(Aligns, object):
             return list_pnts_d
 
     def set_roadline(self, roadline):
-        """ Return
-        """
+        """Return"""
         puntos = self.get_pnts_displ(roadline, line=False)
 
         # Name lenght type param rgb
-        attrs = ['Displ_' + str(self.num), self.length(), self.get_left(),
-                 self.num, '0:128:128']
-        self.roadline = Base.RoadLine(puntos, attrs, 'Displ_' + str(self.num))
+        attrs = [
+            "Displ_" + str(self.num),
+            self.length(),
+            self.get_left(),
+            self.num,
+            "0:128:128",
+        ]
+        self.roadline = Base.RoadLine(puntos, attrs, "Displ_" + str(self.num))
 
 
 # =============================================
 # Parallel
 # =============================================
 
+
 class Displaced(object):
-    """ Return
-    """
+    """Return"""
 
     def __init__(self, polygon, tabla_iter, plant):
-        """ Return
-        """
+        """Return"""
         self.polygon = polygon
         self.tabla_iter = tabla_iter
         self.plant = plant
@@ -583,13 +618,11 @@ class Displaced(object):
         return len(self.displines)
 
     def __str__(self):
-        """ Return
-        """
+        """Return"""
         return "LINESTRING(%s)"
 
     def _init_displ(self):
-        """ Return
-        """
+        """Return"""
         d_left = []
         type_left = []
         d_right = []
@@ -597,37 +630,38 @@ class Displaced(object):
 
         for i, dat in enumerate(self.tabla_iter):
 
-            self.pks.append(dat['pk'])
-            if ';' in dat['sec_left']:
-                d_left.append(dat['sec_left'].split(';'))
+            self.pks.append(dat["pk"])
+            if ";" in dat["sec_left"]:
+                d_left.append(dat["sec_left"].split(";"))
             else:
-                d_left.append(dat['sec_left'])
+                d_left.append(dat["sec_left"])
 
-            if ';' in dat['sec_right']:
-                d_right.append(dat['sec_right'].split(';'))
+            if ";" in dat["sec_right"]:
+                d_right.append(dat["sec_right"].split(";"))
             else:
-                d_right.append(dat['sec_right'])
+                d_right.append(dat["sec_right"])
 
-            if dat['type_left'] != '':
-                type_left.append(dat['type_left'].split(';'))
+            if dat["type_left"] != "":
+                type_left.append(dat["type_left"].split(";"))
             else:
-                type_left.append(['l'] * len(d_left[i]))
+                type_left.append(["l"] * len(d_left[i]))
 
-            if dat['type_right'] != '':
-                type_right.append(dat['type_right'].split(';'))
+            if dat["type_right"] != "":
+                type_right.append(dat["type_right"].split(";"))
             else:
-                type_right.append(['l'] * len(d_right[i]))
+                type_right.append(["l"] * len(d_right[i]))
 
         self._generate(d_left, type_left, left=True)
         self._generate(d_right, type_right, left=False)
 
     def _generate(self, disp, types, left):
-        """ Return
-        """
+        """Return"""
         rango1 = range(len(types[0]))
 
-        disp = [[[float(p) for p in row[i].split()] for row in disp]
-                for i in range(len(disp[0]))]
+        disp = [
+            [[float(p) for p in row[i].split()] for row in disp]
+            for i in range(len(disp[0]))
+        ]
         types = [[row[i] for row in types] for i in rango1]
 
         if left:
@@ -638,8 +672,12 @@ class Displaced(object):
             types2 = types[:]
             lin2 = [[row[j] for row in lin] for j in range(len(lin[0]))]
 
-            displine = DisplLine([self.pks[:], lin2[0], lin2[1], types2[i][:]],
-                                 left, self.polygon, self.plant)
+            displine = DisplLine(
+                [self.pks[:], lin2[0], lin2[1], types2[i][:]],
+                left,
+                self.polygon,
+                self.plant,
+            )
 
             self.displines.append(displine)
             if left:
@@ -648,8 +686,7 @@ class Displaced(object):
                 self.displines_right.append(displine)
 
     def find_cutoff(self, r_pnt):
-        """ Return all displaced points of a given axis point
-        """
+        """Return all displaced points of a given axis point"""
         list_pnts_d_left = []
         list_pnts_d_right = []
         for d_line in self.displines:
@@ -663,16 +700,14 @@ class Displaced(object):
         return [list_pnts_d_left, list_pnts_d_right]
 
     def get_pnts_trans(self, list_r_pnts):
-        """ Return
-        """
+        """Return"""
         list_pnts_d = []
         for r_pnt in list_r_pnts:
             list_pnts_d.append(self.find_cutoff(r_pnt))
         return list_pnts_d
 
     def get_lines(self):
-        """ Return
-        """
+        """Return"""
         list_attrs = []
         list_lines = []
         for i, displ in enumerate(self.displines):
@@ -683,40 +718,40 @@ class Displaced(object):
         return list_lines, list_attrs
 
     def get_charact(self):
-        """ Return
-        """
+        """Return"""
         list_lines = []
         list_attrs = []
         for i, displ in enumerate(self.displines):
             obj, attr = displ.get_charact_pnts()
             list_lines.extend(obj)
             for att in attr:
-                att.append('Displ=' + str(i + 1))
+                att.append("Displ=" + str(i + 1))
             list_attrs.extend(attr)
         return list_lines, list_attrs
 
     def set_roadlines(self, roadline):
-        """ Return
-        """
+        """Return"""
         for displ in self.displines:
             displ.set_roadline(roadline)
 
     def get_areas(self, opts):
-        """ Return
-        """
-        opts = [opt.split('-') for opt in opts.split(',') if ',' in opts]
+        """Return"""
+        opts = [opt.split("-") for opt in opts.split(",") if "," in opts]
 
         list_lines = []
         list_attrs = []
         for j, opt in enumerate(opts):
 
             lines = self[int(opt[0]) - 1].roadline.get_area(
-                self[int(opt[1]) - 1].roadline)
+                self[int(opt[1]) - 1].roadline
+            )
             list_attrs.extend([str(j + 1) for _ in range(len(lines))])
             list_lines.extend(lines)
 
         return list_lines, list_attrs
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

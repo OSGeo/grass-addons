@@ -87,34 +87,52 @@ import os.path
 tmpdir = tempfile.mkdtemp()
 tmptable = "mrmrdat.csv"
 
+
 def cleanup():
     shutil.rmtree(tmpdir)
     return 0
 
+
 def main():
-    table = options['table']
-    layer = options['layer']
-    threshold = options['threshold']
-    nfeatures = options['nfeatures']
-    maxvar = options['maxvar']
-    nsamples = options['nsamples']
-    method = options['method']
+    table = options["table"]
+    layer = options["layer"]
+    threshold = options["threshold"]
+    nfeatures = options["nfeatures"]
+    maxvar = options["maxvar"]
+    nsamples = options["nsamples"]
+    method = options["method"]
 
     os.chdir(tmpdir)
 
-    grass.run_command("v.out.ogr",
-                      input = table,
-                      layer= layer,
-                      type = 'auto',
-                      output = tmpdir + '/' + tmptable,
-                      format = 'CSV',
-                      flags = 's')
+    grass.run_command(
+        "v.out.ogr",
+        input=table,
+        layer=layer,
+        type="auto",
+        output=tmpdir + "/" + tmptable,
+        format="CSV",
+        flags="s",
+    )
 
-    mrmrcmd = 'mrmr -i ' + tmptable + ' -m ' + method + ' -t ' + threshold + ' -n ' + nfeatures + ' -s ' + nsamples + ' -v ' + maxvar
+    mrmrcmd = (
+        "mrmr -i "
+        + tmptable
+        + " -m "
+        + method
+        + " -t "
+        + threshold
+        + " -n "
+        + nfeatures
+        + " -s "
+        + nsamples
+        + " -v "
+        + maxvar
+    )
 
     subprocess.call(mrmrcmd, shell=True)
 
     return 0
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

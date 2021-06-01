@@ -102,27 +102,32 @@ This program is free software under the GNU General Public License
 
 import os
 import sys
-sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'v.in.wfs2'))
+
+sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), "etc", "v.in.wfs2"))
 
 import grass.script as grass
 
+
 def main():
 
-    if options['driver'] == 'WFS_GRASS':
+    if options["driver"] == "WFS_GRASS":
         grass.debug("Using GRASS driver")
         from wfs_drv import WFSDrv
+
         wfs = WFSDrv()
     else:
         grass.debug("Using OSWLib driver")
         from wfs_owslib_drv import WFSOwsLibDrv
+
         wfs = WFSOwsLibDrv()
 
-    if flags['c']:
+    if flags["c"]:
         wfs.GetCapabilities(options)
     else:
         wfs.GetFeature(options, flags)
 
     return 0
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

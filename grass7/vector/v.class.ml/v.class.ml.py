@@ -310,7 +310,7 @@
 #% required: no
 #% answer: %s
 #%end
-#-----------------------------------------------------
+# -----------------------------------------------------
 #%flag
 #% key: e
 #% description: Extract the training set from the vtraining map
@@ -359,9 +359,8 @@
 #% key: a
 #% description: append the classification results
 #%end
-#-----------------------------------------------------
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+# -----------------------------------------------------
+from __future__ import absolute_import, division, print_function, unicode_literals
 from importlib.machinery import SourceFileLoader
 import sys
 import os
@@ -376,7 +375,7 @@ from grass.pygrass.vector import Vector
 from grass.pygrass.modules import Module
 from grass.script.core import parser, overwrite
 
-set_path('v.class.ml')
+set_path("v.class.ml")
 
 from training_extraction import extract_training
 from sqlite2npy import save2npy
@@ -388,21 +387,30 @@ DECMP = {}
 
 def load_decompositions():
     """Import decompositions and update dictionary which stores them"""
-    from sklearn.decomposition import (PCA, KernelPCA, ProbabilisticPCA,
-                                   RandomizedPCA, FastICA, TruncatedSVD)
+    from sklearn.decomposition import (
+        PCA,
+        KernelPCA,
+        ProbabilisticPCA,
+        RandomizedPCA,
+        FastICA,
+        TruncatedSVD,
+    )
     from sklearn.lda import LDA
-    DECMP.update({
-        'PCA': PCA,
-        'KernelPCA': KernelPCA,
-        'ProbabilisticPCA': ProbabilisticPCA,
-        'RandomizedPCA': RandomizedPCA,
-        'FastICA': FastICA,
-        'TruncatedSVD': TruncatedSVD,
-        'LDA': LDA
-    })
+
+    DECMP.update(
+        {
+            "PCA": PCA,
+            "KernelPCA": KernelPCA,
+            "ProbabilisticPCA": ProbabilisticPCA,
+            "RandomizedPCA": RandomizedPCA,
+            "FastICA": FastICA,
+            "TruncatedSVD": TruncatedSVD,
+            "LDA": LDA,
+        }
+    )
 
 
-def get_indexes(string, sep=',', rangesep='-'):
+def get_indexes(string, sep=",", rangesep="-"):
     """
     >>> indx = '1-5,34-36,40'
     >>> [i for i in get_indexes(indx)]
@@ -418,9 +426,9 @@ def get_indexes(string, sep=',', rangesep='-'):
 
 
 def get_colors(vtraining):
-    vect, mset = vtraining.split('@') if '@' in vtraining else (vtraining, '')
-    with Vector(vect, mapset=mset, mode='r') as vct:
-        cur = vct.table.execute('SELECT cat, color FROM %s;' % vct.name)
+    vect, mset = vtraining.split("@") if "@" in vtraining else (vtraining, "")
+    with Vector(vect, mapset=mset, mode="r") as vct:
+        cur = vct.table.execute("SELECT cat, color FROM %s;" % vct.name)
         return dict([c for c in cur.fetchall()])
 
 
@@ -437,32 +445,34 @@ def convert(string):
 
 def get_rules(string):
     res = {}
-    pairs = [s.strip().split(':') for s in string.strip().split(',')]
+    pairs = [s.strip().split(":") for s in string.strip().split(",")]
     for key, val in pairs:
         res[key] = convert(val)
     return res
 
 
-def find_special_cols(array, cols, report=True,
-                      special=('nan', 'inf', 'neginf', 'posinf')):
+def find_special_cols(
+    array, cols, report=True, special=("nan", "inf", "neginf", "posinf")
+):
     sp = {key: [] for key in special}
     cntr = {key: [] for key in special}
     for i in range(len(cols)):
         for key in special:
-            barray = getattr(np, 'is%s' % key)(array[:, i])
+            barray = getattr(np, "is%s" % key)(array[:, i])
             if barray.any():
                 sp[key].append(i)
                 cntr[key].append(barray.sum())
     if report:
-        indent = '    '
+        indent = "    "
         tot = len(array)
         for k in special:
-            fmt = '- %15s (%3d/%d, %4.3f%%)'
+            fmt = "- %15s (%3d/%d, %4.3f%%)"
             if sp[k]:
-                strs = [fmt % (col, cnt, tot, cnt/float(tot)*100)
-                        for col, cnt in zip(cols[np.array(sp[k])], cntr[k])]
-                print('%s:\n%s' % (k, indent), ('\n%s' % indent).join(strs),
-                      sep='')
+                strs = [
+                    fmt % (col, cnt, tot, cnt / float(tot) * 100)
+                    for col, cnt in zip(cols[np.array(sp[k])], cntr[k])
+                ]
+                print("%s:\n%s" % (k, indent), ("\n%s" % indent).join(strs), sep="")
     return sp
 
 
@@ -475,100 +485,130 @@ def substitute(X, rules, cols):
         for i in special_cols[key]:
             for rule in rules[key]:
                 if fnmatch(cols[i], rule):
-                    indx = getattr(np, 'is%s' % key)(X[:, i])
-                    val = (rules[key][rule] if np.isscalar(rules[key][rule])
-                           else rules[key][rule](X[:, i][~indx]))
+                    indx = getattr(np, "is%s" % key)(X[:, i])
+                    val = (
+                        rules[key][rule]
+                        if np.isscalar(rules[key][rule])
+                        else rules[key][rule](X[:, i][~indx])
+                    )
                     X[:, i][indx] = val
                     vals[key][cols[i]] = val
     return X, vals
 
 
 def extract_classes(vect, layer):
-    vect, mset = vect.split('@') if '@' in vect else (vect, '')
-    with Vector(vect, mapset=mset, layer=layer, mode='r') as vct:
-        vct.table.filters.select('cat', 'class')
+    vect, mset = vect.split("@") if "@" in vect else (vect, "")
+    with Vector(vect, mapset=mset, layer=layer, mode="r") as vct:
+        vct.table.filters.select("cat", "class")
         return {key: val for key, val in vct.table.execute()}
 
 
 def main(opt, flg):
     # import functions which depend on sklearn only after parser run
-    from ml_functions import (balance, explorer_clsfiers, run_classifier,
-                          optimize_training, explore_SVC, plot_grid)
+    from ml_functions import (
+        balance,
+        explorer_clsfiers,
+        run_classifier,
+        optimize_training,
+        explore_SVC,
+        plot_grid,
+    )
     from features import importances, tocsv
 
     msgr = get_msgr()
     indexes = None
-    vect = opt['vector']
-    vtraining = opt['vtraining'] if opt['vtraining'] else None
+    vect = opt["vector"]
+    vtraining = opt["vtraining"] if opt["vtraining"] else None
     scaler, decmp = None, None
-    vlayer = opt['vlayer'] if opt['vlayer'] else vect + '_stats'
-    tlayer = opt['tlayer'] if opt['tlayer'] else vect + '_training'
-    rlayer = opt['rlayer'] if opt['rlayer'] else vect + '_results'
+    vlayer = opt["vlayer"] if opt["vlayer"] else vect + "_stats"
+    tlayer = opt["tlayer"] if opt["tlayer"] else vect + "_training"
+    rlayer = opt["rlayer"] if opt["rlayer"] else vect + "_results"
 
     labels = extract_classes(vtraining, 1)
     pprint(labels)
 
-    if opt['scalar']:
-        scapar = opt['scalar'].split(',')
+    if opt["scalar"]:
+        scapar = opt["scalar"].split(",")
         from sklearn.preprocessing import StandardScaler
-        scaler = StandardScaler(with_mean='with_mean' in scapar,
-                                with_std='with_std' in scapar)
 
-    if opt['decomposition']:
-        dec, params = (opt['decomposition'].split('|')
-                       if '|' in opt['decomposition']
-                       else (opt['decomposition'], ''))
-        kwargs = ({k: v for k, v in (p.split('=') for p in params.split(','))}
-                  if params else {})
+        scaler = StandardScaler(
+            with_mean="with_mean" in scapar, with_std="with_std" in scapar
+        )
+
+    if opt["decomposition"]:
+        dec, params = (
+            opt["decomposition"].split("|")
+            if "|" in opt["decomposition"]
+            else (opt["decomposition"], "")
+        )
+        kwargs = (
+            {k: v for k, v in (p.split("=") for p in params.split(","))}
+            if params
+            else {}
+        )
         load_decompositions()
         decmp = DECMP[dec](**kwargs)
 
     # if training extract training
-    if vtraining and flg['e']:
+    if vtraining and flg["e"]:
         msgr.message("Extract training from: <%s> to <%s>." % (vtraining, vect))
         extract_training(vect, vtraining, tlayer)
-        flg['n'] = True
+        flg["n"] = True
 
-    if flg['n']:
+    if flg["n"]:
         msgr.message("Save arrays to npy files.")
-        save2npy(vect, vlayer, tlayer,
-                 fcats=opt['npy_cats'], fcols=opt['npy_cols'],
-                 fdata=opt['npy_data'], findx=opt['npy_index'],
-                 fclss=opt['npy_tclasses'], ftdata=opt['npy_tdata'])
+        save2npy(
+            vect,
+            vlayer,
+            tlayer,
+            fcats=opt["npy_cats"],
+            fcols=opt["npy_cols"],
+            fdata=opt["npy_data"],
+            findx=opt["npy_index"],
+            fclss=opt["npy_tclasses"],
+            ftdata=opt["npy_tdata"],
+        )
 
     # define the classifiers to use/test
-    if opt['pyclassifiers'] and opt['pyvar']:
+    if opt["pyclassifiers"] and opt["pyvar"]:
         # import classifiers to use
-        mycls = SourceFileLoader("mycls", opt['pyclassifiers']).load_module()
-        classifiers = getattr(mycls, opt['pyvar'])
+        mycls = SourceFileLoader("mycls", opt["pyclassifiers"]).load_module()
+        classifiers = getattr(mycls, opt["pyvar"])
     else:
         from ml_classifiers import CLASSIFIERS
+
         classifiers = CLASSIFIERS
 
     # Append the SVC classifier
-    if opt['svc_c'] and opt['svc_gamma']:
+    if opt["svc_c"] and opt["svc_gamma"]:
         from sklearn.svm import SVC
-        svc = {'name': 'SVC', 'classifier': SVC,
-               'kwargs': {'C': float(opt['svc_c']),
-                          'gamma': float(opt['svc_gamma']),
-                          'kernel': opt['svc_kernel']}}
+
+        svc = {
+            "name": "SVC",
+            "classifier": SVC,
+            "kwargs": {
+                "C": float(opt["svc_c"]),
+                "gamma": float(opt["svc_gamma"]),
+                "kernel": opt["svc_kernel"],
+            },
+        }
         classifiers.append(svc)
 
     # extract classifiers from pyindx
-    if opt['pyindx']:
-        indexes = [i for i in get_indexes(opt['pyindx'])]
+    if opt["pyindx"]:
+        indexes = [i for i in get_indexes(opt["pyindx"])]
         classifiers = [classifiers[i] for i in indexes]
 
-    num = int(opt['n_training']) if opt['n_training'] else None
+    num = int(opt["n_training"]) if opt["n_training"] else None
 
     # load fron npy files
-    Xt = np.load(opt['npy_tdata'])
-    Yt = np.load(opt['npy_tclasses'])
-    cols = np.load(opt['npy_cols'])
+    Xt = np.load(opt["npy_tdata"])
+    Yt = np.load(opt["npy_tclasses"])
+    cols = np.load(opt["npy_cols"])
 
     # Define rules to substitute NaN, Inf, posInf, negInf values
     rules = {}
-    for key in ('nan', 'inf', 'neginf', 'posinf'):
+    for key in ("nan", "inf", "neginf", "posinf"):
         if opt[key]:
             rules[key] = get_rules(opt[key])
     pprint(rules)
@@ -590,41 +630,55 @@ def main(opt, flg):
         Xt = decmp.transform(Xt)
 
     # Feature importances with forests of trees
-    if flg['f']:
-        np.save('training_transformed.npy', Xt)
-        importances(Xt, Yt, cols[1:],
-                    csv=opt['imp_csv'], img=opt['imp_fig'],
-                    # default parameters to save the matplotlib figure
-                    **dict(dpi=300, transparent=False, bbox_inches='tight'))
+    if flg["f"]:
+        np.save("training_transformed.npy", Xt)
+        importances(
+            Xt,
+            Yt,
+            cols[1:],
+            csv=opt["imp_csv"],
+            img=opt["imp_fig"],
+            # default parameters to save the matplotlib figure
+            **dict(dpi=300, transparent=False, bbox_inches="tight")
+        )
 
     # optimize the training set
-    if flg['o']:
-        ind_optimize = (int(opt['pyindx_optimize']) if opt['pyindx_optimize']
-                        else 0)
+    if flg["o"]:
+        ind_optimize = int(opt["pyindx_optimize"]) if opt["pyindx_optimize"] else 0
         cls = classifiers[ind_optimize]
         msgr.message("Find the optimum training set.")
-        best, Xbt, Ybt = optimize_training(cls, Xt, Yt,
-                                           labels,  # {v: k for k, v in labels.items()},
-                                           scaler, decmp,
-                                           num=num, maxiterations=1000)
+        best, Xbt, Ybt = optimize_training(
+            cls,
+            Xt,
+            Yt,
+            labels,  # {v: k for k, v in labels.items()},
+            scaler,
+            decmp,
+            num=num,
+            maxiterations=1000,
+        )
         msg = "    - save the optimum training data set to: %s."
-        msgr.message(msg % opt['npy_btdata'])
-        np.save(opt['npy_btdata'], Xbt)
+        msgr.message(msg % opt["npy_btdata"])
+        np.save(opt["npy_btdata"], Xbt)
         msg = "    - save the optimum training classes set to: %s."
-        msgr.message(msg % opt['npy_btclasses'])
-        np.save(opt['npy_btclasses'], Ybt)
+        msgr.message(msg % opt["npy_btclasses"])
+        np.save(opt["npy_btclasses"], Ybt)
 
     # balance the data
-    if flg['b']:
+    if flg["b"]:
         msg = "Balancing the training data set, each class have <%d> samples."
         msgr.message(msg % num)
         Xbt, Ybt = balance(Xt, Yt, num)
     else:
-        if not flg['o']:
-            Xbt = (np.load(opt['npy_btdata'])
-                   if os.path.isfile(opt['npy_btdata']) else Xt)
-            Ybt = (np.load(opt['npy_btclasses'])
-                   if os.path.isfile(opt['npy_btclasses']) else Yt)
+        if not flg["o"]:
+            Xbt = (
+                np.load(opt["npy_btdata"]) if os.path.isfile(opt["npy_btdata"]) else Xt
+            )
+            Ybt = (
+                np.load(opt["npy_btclasses"])
+                if os.path.isfile(opt["npy_btclasses"])
+                else Yt
+            )
 
     # scale the data
     if scaler:
@@ -633,48 +687,56 @@ def main(opt, flg):
         Xt = scaler.transform(Xt)
         Xbt = scaler.transform(Xbt)
 
-    if flg['d']:
-        C_range = [float(c) for c in opt['svc_c_range'].split(',') if c]
-        gamma_range = [float(g) for g in opt['svc_gamma_range'].split(',') if g]
-        kernel_range = [str(s) for s in opt['svc_kernel_range'].split(',') if s]
-        poly_range = [int(i) for i in opt['svc_poly_range'].split(',') if i]
-        allkwargs = dict(C=C_range, gamma=gamma_range,
-                         kernel=kernel_range, degree=poly_range)
+    if flg["d"]:
+        C_range = [float(c) for c in opt["svc_c_range"].split(",") if c]
+        gamma_range = [float(g) for g in opt["svc_gamma_range"].split(",") if g]
+        kernel_range = [str(s) for s in opt["svc_kernel_range"].split(",") if s]
+        poly_range = [int(i) for i in opt["svc_poly_range"].split(",") if i]
+        allkwargs = dict(
+            C=C_range, gamma=gamma_range, kernel=kernel_range, degree=poly_range
+        )
         kwargs = {}
         for k in allkwargs:
             if allkwargs[k]:
                 kwargs[k] = allkwargs[k]
         msgr.message("Exploring the SVC domain.")
-        grid = explore_SVC(Xbt, Ybt, n_folds=5, n_jobs=int(opt['svc_n_jobs']),
-                           **kwargs)
+        grid = explore_SVC(Xbt, Ybt, n_folds=5, n_jobs=int(opt["svc_n_jobs"]), **kwargs)
         import pickle
-        krnlstr = '_'.join(s for s in opt['svc_kernel_range'].split(',') if s)
-        pkl = open('grid%s.pkl' % krnlstr, 'w')
+
+        krnlstr = "_".join(s for s in opt["svc_kernel_range"].split(",") if s)
+        pkl = open("grid%s.pkl" % krnlstr, "w")
         pickle.dump(grid, pkl)
         pkl.close()
-#        pkl = open('grid.pkl', 'r')
-#        grid = pickle.load(pkl)
-#        pkl.close()
-        plot_grid(grid, save=opt['svc_img'])
+        #        pkl = open('grid.pkl', 'r')
+        #        grid = pickle.load(pkl)
+        #        pkl.close()
+        plot_grid(grid, save=opt["svc_img"])
 
     # test the accuracy of different classifiers
-    if flg['t']:
+    if flg["t"]:
         # test different classifiers
         msgr.message("Exploring different classifiers.")
         msgr.message("cls_id   cls_name          mean     max     min     std")
 
-        res = explorer_clsfiers(classifiers, Xt, Yt, labels=labels,
-                                indexes=indexes, n_folds=5,
-                                bv=flg['v'], extra=flg['x'])
+        res = explorer_clsfiers(
+            classifiers,
+            Xt,
+            Yt,
+            labels=labels,
+            indexes=indexes,
+            n_folds=5,
+            bv=flg["v"],
+            extra=flg["x"],
+        )
         # TODO: sort(order=...) is working only in the terminal, why?
-        #res.sort(order='mean')
-        with open(opt['csv_test_cls'], 'w') as csv:
+        # res.sort(order='mean')
+        with open(opt["csv_test_cls"], "w") as csv:
             csv.write(tocsv(res))
 
-    if flg['c']:
+    if flg["c"]:
         # classify
-        data = np.load(opt['npy_data'])
-        indx = np.load(opt['npy_index'])
+        data = np.load(opt["npy_data"])
+        indx = np.load(opt["npy_index"])
 
         # Substitute using column values
         data, dummy = substitute(data, rules, cols[1:])
@@ -692,46 +754,64 @@ def main(opt, flg):
             Xt = decmp.transform(Xt)
             msgr.message("Decompose the whole data set.")
             data = decmp.transform(data)
-        cats = np.load(opt['npy_cats'])
+        cats = np.load(opt["npy_cats"])
 
-        np.save('data_filled_scaled.npy', data)
+        np.save("data_filled_scaled.npy", data)
         tcols = []
         for cls in classifiers:
-            report = (open(opt['report_class'], "w")
-                      if opt['report_class'] else sys.stdout)
-            run_classifier(cls, Xt, Yt, Xt, Yt, labels, data,
-                           report=report)
-            tcols.append((cls['name'], 'INTEGER'))
+            report = (
+                open(opt["report_class"], "w") if opt["report_class"] else sys.stdout
+            )
+            run_classifier(cls, Xt, Yt, Xt, Yt, labels, data, report=report)
+            tcols.append((cls["name"], "INTEGER"))
 
         import pickle
-        with open('classification_results.pkl', 'w') as res:
-            pickle.dump(classifiers, res)
-        #classifiers = pickle.load(res)
-        msgr.message("Export the results to layer: <%s>" % str(rlayer))
-        export_results(vect, classifiers, cats, rlayer, vtraining, tcols,
-                       overwrite(), pkl='res.pkl', append=flg['a'])
-#        res.close()
 
-    if flg['r']:
-        rules = ('\n'.join(['%d %s' % (k, v)
-                            for k, v in get_colors(vtraining).items()])
-                 if vtraining else None)
+        with open("classification_results.pkl", "w") as res:
+            pickle.dump(classifiers, res)
+        # classifiers = pickle.load(res)
+        msgr.message("Export the results to layer: <%s>" % str(rlayer))
+        export_results(
+            vect,
+            classifiers,
+            cats,
+            rlayer,
+            vtraining,
+            tcols,
+            overwrite(),
+            pkl="res.pkl",
+            append=flg["a"],
+        )
+    #        res.close()
+
+    if flg["r"]:
+        rules = (
+            "\n".join(["%d %s" % (k, v) for k, v in get_colors(vtraining).items()])
+            if vtraining
+            else None
+        )
 
         msgr.message("Export the layer with results to raster")
-        with Vector(vect, mode='r') as vct:
+        with Vector(vect, mode="r") as vct:
             tab = vct.dblinks.by_name(rlayer).table()
             rasters = [c for c in tab.columns]
             rasters.remove(tab.key)
 
-        v2rst = Module('v.to.rast')
-        rclrs = Module('r.colors')
+        v2rst = Module("v.to.rast")
+        rclrs = Module("r.colors")
         for rst in rasters:
-            v2rst(input=vect, layer=rlayer, type='area',
-                  use='attr', attrcolumn=rst.encode(),
-                  output=(opt['rst_names'] % rst).encode(),
-                  memory=1000, overwrite=overwrite())
+            v2rst(
+                input=vect,
+                layer=rlayer,
+                type="area",
+                use="attr",
+                attrcolumn=rst.encode(),
+                output=(opt["rst_names"] % rst).encode(),
+                memory=1000,
+                overwrite=overwrite(),
+            )
             if rules:
-                rclrs(map=rst.encode(), rules='-', stdin_=rules)
+                rclrs(map=rst.encode(), rules="-", stdin_=rules)
 
 
 if __name__ == "__main__":

@@ -90,11 +90,13 @@ ORDER_SCHEIDEGGER = 3
 ORDER_DRWAL = 4
 ORDER_HORTON = 5
 
-ORDER_DICT = {ORDER_STRAHLER: "strahler",
-              ORDER_SHREVE: "shreve",
-              ORDER_SCHEIDEGGER: "scheidegger",
-              ORDER_DRWAL: "drwal",
-              ORDER_HORTON: "horton"}
+ORDER_DICT = {
+    ORDER_STRAHLER: "strahler",
+    ORDER_SHREVE: "shreve",
+    ORDER_SCHEIDEGGER: "scheidegger",
+    ORDER_DRWAL: "drwal",
+    ORDER_HORTON: "horton",
+}
 
 
 class GraphEdge(object):
@@ -102,9 +104,7 @@ class GraphEdge(object):
     This class defines a single edge of the stream network graph
     """
 
-    def __init__(self, id_, id_pol, start, end,
-                 start_edges, end_edges,
-                 reverse=False):
+    def __init__(self, id_, id_pol, start, end, start_edges, end_edges, reverse=False):
         self.id = id_  # Line id
         self.id_pol = id_pol  # Polarity of line positive integer or negative integer
         self.start = start  # Start Node id
@@ -112,19 +112,29 @@ class GraphEdge(object):
         self.start_edges = start_edges  # A list of edge ids at the start node
         self.end_edges = end_edges  # A list of edge ids at the end node
         self.reverse = reverse  # If the edge should be reversed
-        self.stream_order = {ORDER_STRAHLER: 0,
-                             ORDER_SHREVE: 0,
-                             ORDER_SCHEIDEGGER: 0,
-                             ORDER_DRWAL: 0}  # stream_order for each algorithm
+        self.stream_order = {
+            ORDER_STRAHLER: 0,
+            ORDER_SHREVE: 0,
+            ORDER_SCHEIDEGGER: 0,
+            ORDER_DRWAL: 0,
+        }  # stream_order for each algorithm
 
     def __str__(self):
-        return "Line id: %i (%i) start node: %i " \
-               "end node: %i num start edges %i " \
-               "num end edges %i   reverse: %s stream_order: %s" % (self.id, self.id_pol,
-                                                                    self.start, self.end,
-                                                                    len(self.start_edges),
-                                                                    len(self.end_edges),
-                                                                    self.reverse, str(self.stream_order))
+        return (
+            "Line id: %i (%i) start node: %i "
+            "end node: %i num start edges %i "
+            "num end edges %i   reverse: %s stream_order: %s"
+            % (
+                self.id,
+                self.id_pol,
+                self.start,
+                self.end,
+                len(self.start_edges),
+                len(self.end_edges),
+                self.reverse,
+                str(self.stream_order),
+            )
+        )
 
 
 class GraphNode(object):
@@ -140,12 +150,13 @@ class GraphNode(object):
         return "Node id: %i line ids: %s" % (self.id, self.edge_ids)
 
 
-def traverse_graph_create_stream_order(start_id,
-                                       edges,
-                                       checked_edges,
-                                       reversed_edges,
-                                       order_types=[ORDER_STRAHLER,
-                                                    ORDER_SHREVE]):
+def traverse_graph_create_stream_order(
+    start_id,
+    edges,
+    checked_edges,
+    reversed_edges,
+    order_types=[ORDER_STRAHLER, ORDER_SHREVE],
+):
     """
     Traverse the graph, reverse lines that are not in
     the outflow direction and compute the required orders
@@ -188,21 +199,21 @@ def traverse_graph_create_stream_order(start_id,
             current_edge.stream_order[order] = 1
         return
 
-    stream_orders = {ORDER_STRAHLER: [],
-                     ORDER_SHREVE: [],
-                     ORDER_SCHEIDEGGER: [],
-                     ORDER_HORTON: [],
-                     ORDER_DRWAL: []}
+    stream_orders = {
+        ORDER_STRAHLER: [],
+        ORDER_SHREVE: [],
+        ORDER_SCHEIDEGGER: [],
+        ORDER_HORTON: [],
+        ORDER_DRWAL: [],
+    }
 
     # Traverse the graph if its not a leaf
     for edge_id in current_edge.start_edges:
         if edge_id not in checked_edges:
             checked_edges.append(edge_id)
-            traverse_graph_create_stream_order(edge_id,
-                                               edges,
-                                               checked_edges,
-                                               reversed_edges,
-                                               order_types)
+            traverse_graph_create_stream_order(
+                edge_id, edges, checked_edges, reversed_edges, order_types
+            )
 
         for order in order_types:
             stream_orders[order].append(edges[edge_id].stream_order[order])
@@ -217,7 +228,9 @@ def traverse_graph_create_stream_order(start_id,
     if ORDER_SHREVE in order_types:
         current_edge.stream_order[ORDER_SHREVE] = sum(stream_orders[ORDER_SHREVE])
     if ORDER_SCHEIDEGGER in order_types:
-        current_edge.stream_order[ORDER_SCHEIDEGGER] = sum(stream_orders[ORDER_SCHEIDEGGER])
+        current_edge.stream_order[ORDER_SCHEIDEGGER] = sum(
+            stream_orders[ORDER_SCHEIDEGGER]
+        )
     if ORDER_DRWAL in order_types:
         current_edge.stream_order[ORDER_DRWAL] = sum(stream_orders[ORDER_DRWAL])
     # Horton is wrong implemented
@@ -256,13 +269,15 @@ def traverse_network_create_graph(vector, start_node, graph_nodes, graph_edges):
             start_edges.remove(line_id_abs)
             end_edges.remove(line_id_abs)
 
-            e = GraphEdge(line_id_abs,
-                          line_id,
-                          nodes[0].id,
-                          nodes[1].id,
-                          start_edges,
-                          end_edges,
-                          False)
+            e = GraphEdge(
+                line_id_abs,
+                line_id,
+                nodes[0].id,
+                nodes[1].id,
+                start_edges,
+                end_edges,
+                False,
+            )
             graph_edges[line_id_abs] = e
 
         # For start and end node
@@ -270,17 +285,16 @@ def traverse_network_create_graph(vector, start_node, graph_nodes, graph_edges):
             # If the node was not yet discovered, put it
             # into the node dict and call traverse
             if node.id not in graph_nodes:
-                graph_nodes[node.id] = GraphNode(node.id,
-                                                 [lid for lid in node.ilines()])
+                graph_nodes[node.id] = GraphNode(
+                    node.id, [lid for lid in node.ilines()]
+                )
                 # Recursive call
-                traverse_network_create_graph(vector, node,
-                                              graph_nodes,
-                                              graph_edges)
+                traverse_network_create_graph(vector, node, graph_nodes, graph_edges)
 
 
-def graph_to_vector(name, mapset, graphs,
-                    output, order_types,
-                    outlet_cats, copy_columns):
+def graph_to_vector(
+    name, mapset, graphs, output, order_types, outlet_cats, copy_columns
+):
     """
     Write the Graph as vector map. Attach the network id,
     the streams orders, the reverse falg, the original
@@ -300,10 +314,12 @@ def graph_to_vector(name, mapset, graphs,
     streams.open("r")
 
     # Specifiy all columns that should be created
-    cols = [("cat", "INTEGER PRIMARY KEY"),
-            ("outlet_cat", "INTEGER"),
-            ("network", "INTEGER"),
-            ("reversed", "INTEGER")]
+    cols = [
+        ("cat", "INTEGER PRIMARY KEY"),
+        ("outlet_cat", "INTEGER"),
+        ("network", "INTEGER"),
+        ("reversed", "INTEGER"),
+    ]
 
     for order in order_types:
         cols.append((ORDER_DICT[order], "INTEGER"))
@@ -322,8 +338,12 @@ def graph_to_vector(name, mapset, graphs,
         outlet_cat = outlet_cats[count]
         count += 1
 
-        grass.message(_("Writing network %i from %i with "
-                        "outlet category %i" % (count, len(graphs), outlet_cat)))
+        grass.message(
+            _(
+                "Writing network %i from %i with "
+                "outlet category %i" % (count, len(graphs), outlet_cat)
+            )
+        )
 
         # Write each edge as line
         for edge_id in graph:
@@ -339,8 +359,9 @@ def graph_to_vector(name, mapset, graphs,
                 edge.stream_order[ORDER_SCHEIDEGGER] *= 2
             if ORDER_DRWAL in order_types:
                 if edge.stream_order[ORDER_DRWAL] != 0:
-                    edge.stream_order[ORDER_DRWAL] = \
-                        int(math.log(edge.stream_order[ORDER_DRWAL], 2) + 1)
+                    edge.stream_order[ORDER_DRWAL] = int(
+                        math.log(edge.stream_order[ORDER_DRWAL], 2) + 1
+                    )
 
             # Create attributes
             attrs = []
@@ -372,8 +393,9 @@ def graph_to_vector(name, mapset, graphs,
     streams.close()
 
 
-def detect_compute_networks(vname, vmapset, pname, pmapset,
-                            output, order, columns, threshold):
+def detect_compute_networks(
+    vname, vmapset, pname, pmapset, output, order, columns, threshold
+):
     """
     Detect the start edges and nodes, compute the stream networks
     and stream orders, reverse edges and write everything into the
@@ -435,20 +457,28 @@ def detect_compute_networks(vname, vmapset, pname, pmapset,
                     suffix = ""
                     while True:
                         suffix = "_%i" % number
-                        if column + suffix not in new_column_names and \
-                           column + suffix not in columns.split(","):
+                        if (
+                            column + suffix not in new_column_names
+                            and column + suffix not in columns.split(",")
+                        ):
                             break
                         number += 1
 
-                    grass.warning(_("Column name conflict: Renaming column "
-                                    "<%(col)s> from input map into %(col)s%(ap)s "
-                                    "in output map" % {"col": column, "ap": suffix}))
+                    grass.warning(
+                        _(
+                            "Column name conflict: Renaming column "
+                            "<%(col)s> from input map into %(col)s%(ap)s "
+                            "in output map" % {"col": column, "ap": suffix}
+                        )
+                    )
                     column += suffix
                 copy_columns.append((col_index, column, col_type))
             else:
                 v.close()
                 p.close()
-                grass.fatal(_("Column %s is not in attribute table of <%s>" % (column, vname)))
+                grass.fatal(
+                    _("Column %s is not in attribute table of <%s>" % (column, vname))
+                )
 
     # Detect closest edges and nodes to the outflow points
     # But why nodes, arent edges sufficient?
@@ -462,8 +492,7 @@ def detect_compute_networks(vname, vmapset, pname, pmapset,
     for point in p:
         p_coords = point.coords()
 
-        line = v.find_by_point.geo(point=point, maxdist=float(threshold),
-                                   type="line")
+        line = v.find_by_point.geo(point=point, maxdist=float(threshold), type="line")
 
         if line:
             n1, n2 = line.nodes()
@@ -472,18 +501,21 @@ def detect_compute_networks(vname, vmapset, pname, pmapset,
             n2_coords = n2.coords()
 
             # Compute closest node to the outflow point
-            dist1 = math.sqrt((p_coords[0] - n1_coords[0]) ** 2 +
-                              (p_coords[1] - n1_coords[1]) ** 2)
-            dist2 = math.sqrt((p_coords[0] - n2_coords[0]) ** 2 +
-                              (p_coords[1] - n2_coords[1]) ** 2)
+            dist1 = math.sqrt(
+                (p_coords[0] - n1_coords[0]) ** 2 + (p_coords[1] - n1_coords[1]) ** 2
+            )
+            dist2 = math.sqrt(
+                (p_coords[0] - n2_coords[0]) ** 2 + (p_coords[1] - n2_coords[1]) ** 2
+            )
 
             if dist1 < dist2:
                 closest_node = n1
             else:
                 closest_node = n2
 
-            grass.verbose(_("Detect edge <%i> for outflow point %s" % (line.id,
-                                                                       point.to_wkt())))
+            grass.verbose(
+                _("Detect edge <%i> for outflow point %s" % (line.id, point.to_wkt()))
+            )
 
             # Ignore identical starting points to avoid
             # redundant networks in the output
@@ -541,15 +573,14 @@ def detect_compute_networks(vname, vmapset, pname, pmapset,
         edge_id = start_edges[i]
         checked_edges = []
         reversed_edges = []
-        traverse_graph_create_stream_order(edge_id, graphs[i],
-                                           checked_edges,
-                                           reversed_edges,
-                                           order_types)
+        traverse_graph_create_stream_order(
+            edge_id, graphs[i], checked_edges, reversed_edges, order_types
+        )
 
     # Write the graphs as vector map
-    graph_to_vector(vname, vmapset, graphs,
-                    output, order_types,
-                    outlet_cats, copy_columns)
+    graph_to_vector(
+        vname, vmapset, graphs, output, order_types, outlet_cats, copy_columns
+    )
 
 
 def main():
@@ -580,8 +611,9 @@ def main():
     if "@" in points:
         pname, pmapset = points.split("@")
 
-    detect_compute_networks(vname, vmapset, pname, pmapset, output, order,
-                            columns, threshold)
+    detect_compute_networks(
+        vname, vmapset, pname, pmapset, output, order, columns, threshold
+    )
 
 
 if __name__ == "__main__":

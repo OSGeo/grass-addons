@@ -18,69 +18,72 @@ import math
 
 
 class Marks(object):
-    """ Return
-    """
+    """Return"""
 
     def __init__(self, polygon, tabla, plant, vert):
-        """ Return
-        """
+        """Return"""
         self.polygon = polygon
-#        self.tabla_iter = tabla_iter
+        #        self.tabla_iter = tabla_iter
         self.plant = plant
         self.vert = vert
 
         self.tabla = tabla
-#        self.init_marks()
+
+    #        self.init_marks()
 
     def __str__(self):
-        """ Return
-        """
+        """Return"""
         return "TransLine(" + str(self.tabla) + ")"
 
-#    def init_marks(self):
-#        """ Return
-#        """
-#        for dats in self.tabla_iter:
-#
-#            if dats[5] is not None:
-#                self.list_dats.append(dict(zip(['pk', 'dist', 'elev', 'azi',
-#                                                'name', 'cod'], dats[1:7])))
+    #    def init_marks(self):
+    #        """ Return
+    #        """
+    #        for dats in self.tabla_iter:
+    #
+    #            if dats[5] is not None:
+    #                self.list_dats.append(dict(zip(['pk', 'dist', 'elev', 'azi',
+    #                                                'name', 'cod'], dats[1:7])))
 
     def num_marks(self):
-        """ Return
-        """
+        """Return"""
 
     def get_pnts(self):
-        """ Return
-        """
+        """Return"""
         list_pnts = []
         list_attrs = []
         for i, dats in enumerate(self.tabla):
 
-            r_pnt = self.plant.get_roadpoint(dats['pk'])
+            r_pnt = self.plant.get_roadpoint(dats["pk"])
 
             self.vert.set_elev(r_pnt)
 
-            if ',' in dats['dist']:
-                distances = dats['dist'].split(',')
-                elevations = dats['elev'].split(',')
+            if "," in dats["dist"]:
+                distances = dats["dist"].split(",")
+                elevations = dats["elev"].split(",")
             else:
-                distances = dats['dist']
-                elevations = dats['elev']
+                distances = dats["dist"]
+                elevations = dats["elev"]
 
-            if dats['azi'] != '':
-                azi = dats['azi'].split(',')
+            if dats["azi"] != "":
+                azi = dats["azi"].split(",")
             else:
-                azi = ['1'] * len(distances)
+                azi = ["1"] * len(distances)
 
             for i, dist in enumerate(distances):
                 m_pnt = r_pnt.parallel(float(dist), math.pi / 2)
                 m_pnt.z = r_pnt.z + float(elevations[i])
                 m_pnt.dist_displ = dist
-                if azi[i] == '-1':
+                if azi[i] == "-1":
                     m_pnt.azi = m_pnt.azi + math.pi
                 list_pnts.append(m_pnt)
-                list_attrs.append([m_pnt.npk, round(90-m_pnt.azi * 180 / math.pi+360+90,
-                                                    4), dats['name'],
-                                   dats['cod'], m_pnt.dist_displ, m_pnt.z])
+                list_attrs.append(
+                    [
+                        m_pnt.npk,
+                        round(90 - m_pnt.azi * 180 / math.pi + 360 + 90, 4),
+                        dats["name"],
+                        dats["cod"],
+                        m_pnt.dist_displ,
+                        m_pnt.z,
+                    ]
+                )
         return list_pnts, list_attrs
