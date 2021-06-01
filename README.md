@@ -1,4 +1,15 @@
-# GRASS Addons git repository
+# GRASS GIS 6 Addons legacy repository
+
+This is legacy code used with GRASS GIS 6.
+It is useful for finding code for that old addon module which was not
+ported to GRASS GIS 7 or for comparing the current version with the
+old one which is possibly written in a different language or with
+a very different API. Most addon modules, especially the most useful
+ones were ported to GRASS GIS 7, so you should use the current version.
+
+What follows are usage and contributing instruction written for
+GRASS GIS 7 rather than 6. New contributions should go to the
+current version.
 
 ## How to get write access here
 
@@ -37,7 +48,7 @@ For a git clone this means that the main GRASS binary and source
 code versions (GRASS GIS 6 or 7) must match.)
 
 ```
-./configure # [opionally flags]
+./configure # [optionally flags]
 make libs
 ```
 
@@ -59,7 +70,7 @@ Install then into your existing GRASS installation with
 make MODULE_TOPDIR=$HOME/grass78/ install
 ```
 
-For system-wide installation this usually requires "root" priviledges
+For system-wide installation this usually requires "root" privileges
 (so, also 'sudo' may help).
 
 ### C code/Scripts, with GRASS binaries on your computer
@@ -86,3 +97,7 @@ and RFC2 (Legal aspects of submission):
 Also read submitting instructions before committing any changes!
 
 <https://trac.osgeo.org/grass/wiki/Submitting>
+
+## License
+
+The code is under GNU General Public License v2.0 or later (GPL-2.0-or-later).
