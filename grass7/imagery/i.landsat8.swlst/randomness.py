@@ -1,5 +1,6 @@
 import random
 
+
 def random_digital_numbers(count=2):
     """
     Return a user-requested amount of random Digital Number values for testing
@@ -8,7 +9,7 @@ def random_digital_numbers(count=2):
     digital_numbers = []
 
     for dn in range(0, count):
-        digital_numbers.append(random.randint(1, 2**12))
+        digital_numbers.append(random.randint(1, 2 ** 12))
 
     if count == 1:
         return digital_numbers[0]
@@ -57,21 +58,18 @@ def random_adjacent_pixel_values(pixel_modifiers):
     Kelvin
     """
     import random
-    return [random.randint(250, 350) for dummy_idx in
-            range(len(pixel_modifiers))]
+
+    return [random.randint(250, 350) for dummy_idx in range(len(pixel_modifiers))]
 
 
 def random_window_size():
-    """
-    """
+    """ """
     return random.randint(7, 21)
 
 
 def random_adjacent_pixel_values(pixel_modifiers):
-    """
-    """
-    return [random.randint(250, 350) for dummy_idx in
-            range(len(pixel_modifiers))]
+    """ """
+    return [random.randint(250, 350) for dummy_idx in range(len(pixel_modifiers))]
 
 
 def random_brightness_temperature_values(count=2):

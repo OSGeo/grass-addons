@@ -92,29 +92,29 @@ def main():
         sys.exit(1)
 
     # input raster map
-    map_in = options['input']
+    map_in = options["input"]
     # output raster map
-    map_out = options['output']
+    map_out = options["output"]
     # vector tiles map
-    map_tiles = options['tiles']
+    map_tiles = options["tiles"]
     # location's field
-    field = options['field']
-    if field == '':
-        field = 'location'
+    field = options["field"]
+    if field == "":
+        field = "location"
     # orthophoto suffix
-    ortho = options['osuffix']
-    if ortho == '':
-        ortho = '.ortho'
+    ortho = options["osuffix"]
+    if ortho == "":
+        ortho = ".ortho"
     # camera angle suffix
-    camera = options['csuffix']
-    if camera == '':
-        camera = '.camera_angle'
+    camera = options["csuffix"]
+    if camera == "":
+        camera = ".camera_angle"
     # check if the ortho and camera angle suffix
     if ortho == camera:
         print("Ortho and camera suffix can't be the same.")
     sys.exit(1)
 
-    ex_pattern = options['exclude']
+    ex_pattern = options["exclude"]
     # return the points
     points = controlPoints(map_in)
     # the tiles near input map
@@ -125,7 +125,7 @@ def main():
 
 
 def controlPoints(inputmap):
-    """ This function serve to return the coordinates of the photo's four
+    """This function serve to return the coordinates of the photo's four
     vertex
 
     :param str inpumap: the input raster map's name
@@ -133,33 +133,33 @@ def controlPoints(inputmap):
 
     # return r.info about input file
     rinfo = grass.raster_info(inputmap)
-    nsres = rinfo['nsres']
-    ewres = rinfo['ewres']
+    nsres = rinfo["nsres"]
+    ewres = rinfo["ewres"]
     # create a dictionary for Nord East
-    NE = [rinfo['east'] - 2 * ewres, rinfo["north"] - 2 * nsres]
+    NE = [rinfo["east"] - 2 * ewres, rinfo["north"] - 2 * nsres]
     # create a dictionary for Nord West
-    NW = [rinfo['west'] + 2 * ewres, rinfo["north"] - 2 * nsres]
+    NW = [rinfo["west"] + 2 * ewres, rinfo["north"] - 2 * nsres]
     # create a dictionary for Sud East
-    SE = [rinfo['east'] - 2 * ewres, rinfo["south"] + 2 * nsres]
+    SE = [rinfo["east"] - 2 * ewres, rinfo["south"] + 2 * nsres]
     # create a dictionary for Sud West
-    SW = [rinfo['west'] + 2 * ewres, rinfo["south"] + 2 * nsres]
+    SW = [rinfo["west"] + 2 * ewres, rinfo["south"] + 2 * nsres]
     ## create a dictionary for Nord Center
-    #NC = {'x':rinfo['east']-(rinfo['east']-rinfo['west'])/2, 'y':rinfo["north"]-2*nsres}
+    # NC = {'x':rinfo['east']-(rinfo['east']-rinfo['west'])/2, 'y':rinfo["north"]-2*nsres}
     ## create a dictionary for Sud Center
-    #SC = {'x':rinfo['east']-(rinfo['east']-rinfo['west'])/2,'y':rinfo["south"]+2*nsres}
+    # SC = {'x':rinfo['east']-(rinfo['east']-rinfo['west'])/2,'y':rinfo["south"]+2*nsres}
     ## create a dictionary for West Center
-    #WC = {'x':rinfo['west']+2*ewres, 'y':rinfo["north"] - (rinfo["north"] - rinfo["south"]) / 2 }
+    # WC = {'x':rinfo['west']+2*ewres, 'y':rinfo["north"] - (rinfo["north"] - rinfo["south"]) / 2 }
     ## create a dictionary for East Center
-    #EC = {'x':rinfo['east']-2*ewres, 'y':rinfo["north"]- (rinfo["north"] - rinfo["south"]) / 2}
+    # EC = {'x':rinfo['east']-2*ewres, 'y':rinfo["north"]- (rinfo["north"] - rinfo["south"]) / 2}
     # create a dictionary to return the four point
-    retDict = {'NE': NE, 'NW': NW, 'SE': SE, 'SW': SW}  # 'NC' : NC,'SC' : SC,
+    retDict = {"NE": NE, "NW": NW, "SE": SE, "SW": SW}  # 'NC' : NC,'SC' : SC,
     # 'WC' : WC, 'EC' : EC}
     # return the dictionary
     return retDict
 
 
 def mapTile(points, inputmap, tilemap, field):
-    """ This function serve to return the name of the near maps of the
+    """This function serve to return the name of the near maps of the
     input map
 
     :param points: the points returned by controlPoints function
@@ -175,7 +175,7 @@ def mapTile(points, inputmap, tilemap, field):
         # query the tiles vector map
         what = vector_what(tilemap, v)
         for l, m in what.items():
-            if l != 'general':
+            if l != "general":
                 # create the name for path
                 nameFile = os.path.basename(m[field])
                 if nameFiles.count(nameFile) == 0:
@@ -198,7 +198,7 @@ def vector_what(map, coor):
 
     result = {}
     # create string for east_north param
-    fields = grass.read_command('v.what', flags='ag', map=map, east_north=coor)
+    fields = grass.read_command("v.what", flags="ag", map=map, east_north=coor)
     # split lines
     fields = fields.splitlines()
     # value for number of features
@@ -208,16 +208,16 @@ def vector_what(map, coor):
     # for each line
     for field in fields:
         # split key and value
-        kv = field.split('=', 1)
+        kv = field.split("=", 1)
         if len(kv) > 1:
             # Start the new feature
-            if kv[0].strip() == 'Driver':
+            if kv[0].strip() == "Driver":
                 # if value is 0 dictionary contain general information about map
                 if value == 0:
-                    result['general'] = temp_dic
+                    result["general"] = temp_dic
                 # else features
                 else:
-                    result['feature'+str(value)] = temp_dic
+                    result["feature" + str(value)] = temp_dic
                 # value for the new feature
                 value = value + 1
                 # create a new temporary dictionary
@@ -228,26 +228,25 @@ def vector_what(map, coor):
                 # add value to the dictionary
                 temp_dic[kv[0].strip()] = str(kv[1])
     # add the last feature
-    result['feature'+str(value)] = temp_dic
+    result["feature" + str(value)] = temp_dic
     return result
 
 
 def calcMap(inmap, outmap, tiles, osuffix, csuffix, exclude):
-    """ Calculate the map of minimum of the other camera maps
-    """
+    """Calculate the map of minimum of the other camera maps"""
     maxValue = 30
     # input map
     prefix_input = inmap.strip(osuffix)
     camera_input = prefix_input + csuffix
     # set the re
-    if exclude != '':
+    if exclude != "":
         r = re.compile(exclude)
     # set the outmap if it isn't passed by user
-    if outmap == '':
-        outmap = prefix_input + '.ortho_corr'
+    if outmap == "":
+        outmap = prefix_input + ".ortho_corr"
     # check for each map the best cameta angle
     for i in range(0, len(tiles)):
-        if exclude != '':
+        if exclude != "":
             exclude_tile = r.search(tiles[i])
             if exclude_tile:
                 continue
@@ -255,32 +254,48 @@ def calcMap(inmap, outmap, tiles, osuffix, csuffix, exclude):
         camera_tile = prefix_tile + csuffix
         # first tile start the new map
         if i == 0:
-            grass.mapcalc("${out} = if(isnull(${c_tile}), ${in_map}, "
-                          "if(${c_input} >= ${maxV}, ${in_map}, "
-                          "if(${c_tile} >= ${maxV}, ${tile}, ${in_map})))",
-                          out=outmap, c_input=camera_input,
-                          c_tile=camera_tile, in_map=inmap, tile=tiles[i],
-                          maxV=maxValue)
+            grass.mapcalc(
+                "${out} = if(isnull(${c_tile}), ${in_map}, "
+                "if(${c_input} >= ${maxV}, ${in_map}, "
+                "if(${c_tile} >= ${maxV}, ${tile}, ${in_map})))",
+                out=outmap,
+                c_input=camera_input,
+                c_tile=camera_tile,
+                in_map=inmap,
+                tile=tiles[i],
+                maxV=maxValue,
+            )
 
-            grass.mapcalc("temp_camera = if(isnull(${c_tile}), ${c_input}, "
-                          "if(${c_input} >= ${maxV}, ${c_input}, "
-                          "if(${c_tile} >= ${maxV}, ${c_tile}, ${c_input})))",
-                          c_input=camera_input, c_tile=camera_tile,
-                          maxV=maxValue)
+            grass.mapcalc(
+                "temp_camera = if(isnull(${c_tile}), ${c_input}, "
+                "if(${c_input} >= ${maxV}, ${c_input}, "
+                "if(${c_tile} >= ${maxV}, ${c_tile}, ${c_input})))",
+                c_input=camera_input,
+                c_tile=camera_tile,
+                maxV=maxValue,
+            )
         # for the other tile check the outmap
         else:
-            grass.mapcalc("${out} = if(isnull(${c_tile}), ${out}, "
-                          "if(temp_camera >= ${maxV},${out}, "
-                          "if(${c_tile} >= ${maxV}, ${tile}, ${out})))",
-                          out=outmap, c_tile=camera_tile, tile=tiles[i],
-                          maxV=maxValue)
+            grass.mapcalc(
+                "${out} = if(isnull(${c_tile}), ${out}, "
+                "if(temp_camera >= ${maxV},${out}, "
+                "if(${c_tile} >= ${maxV}, ${tile}, ${out})))",
+                out=outmap,
+                c_tile=camera_tile,
+                tile=tiles[i],
+                maxV=maxValue,
+            )
 
-            grass.mapcalc("temp_camera = if(isnull(${c_tile}), temp_camera, "
-                          "if(temp_camera >= ${maxV}, ${c_input}, "
-                          "if(${c_tile} >= ${maxV}, ${c_tile},${c_input})))",
-                          c_input=camera_input, c_tile=camera_tile,
-                          maxV=maxValue)
+            grass.mapcalc(
+                "temp_camera = if(isnull(${c_tile}), temp_camera, "
+                "if(temp_camera >= ${maxV}, ${c_input}, "
+                "if(${c_tile} >= ${maxV}, ${c_tile},${c_input})))",
+                c_input=camera_input,
+                c_tile=camera_tile,
+                maxV=maxValue,
+            )
     return 0
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

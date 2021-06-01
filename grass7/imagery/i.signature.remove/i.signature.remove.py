@@ -8,9 +8,9 @@
 # PURPOSE:	Removes signature file from a group/subgroup
 # COPYRIGHT:	(C) 2018 by the GRASS Development Team
 #
-#		This program is free software under the GNU General Public
-#		License (>=v2). Read the file COPYING that comes with GRASS
-#		for details.
+# 		This program is free software under the GNU General Public
+# 		License (>=v2). Read the file COPYING that comes with GRASS
+# 		for details.
 #
 #############################################################################
 
@@ -52,45 +52,52 @@ import os
 import sys
 import grass.script as grass
 
+
 def main():
-    group = options['group']
-    sub = options['subgroup']
-    signs = options['signature']
-    rem = flags['f']
+    group = options["group"]
+    sub = options["subgroup"]
+    signs = options["signature"]
+    rem = flags["f"]
 
     gisenv = grass.gisenv()
 
     try:
-        name, mapset = group.split('@', 1)
+        name, mapset = group.split("@", 1)
     except ValueError:
         name = group
-        mapset = gisenv['MAPSET']
+        mapset = gisenv["MAPSET"]
 
     output_str = "The following signature files would be deleted:\n"
-    for sign in signs.split(','):
-        path = os.path.join(gisenv['GISDBASE'], gisenv['LOCATION_NAME'])
-        path = os.path.join(path, mapset, 'group', name, 'subgroup', sub,
-                            'sig', sign)
+    for sign in signs.split(","):
+        path = os.path.join(gisenv["GISDBASE"], gisenv["LOCATION_NAME"])
+        path = os.path.join(path, mapset, "group", name, "subgroup", sub, "sig", sign)
         if not os.path.exists(path):
-            grass.fatal(_("Signature file <{pa}> does not exist for group "
-                          "<{gr}> and subgroup <{su}>".format(pa=sign,
-                                                              gr=group,
-                                                              su=sub)))
+            grass.fatal(
+                _(
+                    "Signature file <{pa}> does not exist for group "
+                    "<{gr}> and subgroup <{su}>".format(pa=sign, gr=group, su=sub)
+                )
+            )
         if rem:
             try:
                 os.remove(path)
                 print(_("Removing signature file <{si}>".format(si=sign)))
             except:
-                grass.warning(_("Signature file <{pa}> was not "
-                                "removed".format(pa=sign)))
+                grass.warning(
+                    _("Signature file <{pa}> was not " "removed".format(pa=sign))
+                )
         else:
-            output_str += "{gr}/{su}/{sig}\n".format(gr=group, su=sub,
-                                                     sig=sign)
+            output_str += "{gr}/{su}/{sig}\n".format(gr=group, su=sub, sig=sign)
 
     if not rem:
         print(output_str.rstrip())
-        grass.warning(_("Nothing removed. You must use the force flag (-f) "
-                        "to actually remove them. Exiting."))
+        grass.warning(
+            _(
+                "Nothing removed. You must use the force flag (-f) "
+                "to actually remove them. Exiting."
+            )
+        )
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

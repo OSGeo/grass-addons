@@ -6,7 +6,13 @@
 """
 
 import os
-from constants import MATRIX_PROPERTIES, CENTER_CELL, MODULATOR, MODULATOR_2, FILTER_TEMPLATE
+from constants import (
+    MATRIX_PROPERTIES,
+    CENTER_CELL,
+    MODULATOR,
+    MODULATOR_2,
+    FILTER_TEMPLATE,
+)
 
 
 def get_kernel_size(ratio):
@@ -80,7 +86,7 @@ def get_modulator_factor2(modulation):
 
 
 def get_row(size):
-    """ Return a matrix row consisting of -1. """
+    """Return a matrix row consisting of -1."""
     row = [-1] * size
     return row
 
@@ -125,7 +131,7 @@ def matrix_to_string(matrix):
     return string
 
 
-def get_high_pass_filter(ratio, level='Low', divisor=1, type='P'):
+def get_high_pass_filter(ratio, level="Low", divisor=1, type="P"):
     """
     Return a filter suitable for applying the High-Pass Filter Addition
     Technique for Image Fusion using GRASS-GIS' `r.mfilter` module.

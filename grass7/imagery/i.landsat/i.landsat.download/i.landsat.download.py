@@ -188,7 +188,7 @@ def main():
     if not options["end"]:
         end_date = date.today().strftime("%Y-%m-%d")
 
-#    outdir = ""
+    #    outdir = ""
     if options["output"]:
         outdir = options["output"]
         if os.path.isdir(outdir):
@@ -210,7 +210,9 @@ def main():
 
             try:
 
-                ee.download(identifier=i, output_dir=outdir, timeout=int(options["timeout"]))
+                ee.download(
+                    identifier=i, output_dir=outdir, timeout=int(options["timeout"])
+                )
 
             except OSError:
 
@@ -229,7 +231,7 @@ def main():
             start_date=start_date,
             end_date=end_date,
             max_cloud_cover=options["clouds"],
-            max_results=50
+            max_results=50,
         )
 
         if options["tier"]:
@@ -259,7 +261,7 @@ def main():
                 print(
                     scene["entity_id"],
                     scene["display_id"],
-                    scene["acquisition_date"].strftime('%Y-%m-%d'),
+                    scene["acquisition_date"].strftime("%Y-%m-%d"),
                     scene["cloud_cover"],
                 )
 
@@ -279,7 +281,11 @@ def main():
 
                 gs.message(_("Downloading scene <{}> ...").format(scene["entity_id"]))
 
-                ee.download(identifier=scene["entity_id"], output_dir=outdir, timeout=int(options["timeout"]))
+                ee.download(
+                    identifier=scene["entity_id"],
+                    output_dir=outdir,
+                    timeout=int(options["timeout"]),
+                )
 
             ee.logout()
 
