@@ -16,7 +16,7 @@ def get_pages(path):
     matches = []
     for root, dirnames, filenames in os.walk(path):
         for filename in filenames:
-            if filename.endswith('.html'):
+            if filename.endswith(".html"):
                 matches.append(filename)
     return matches
 
@@ -33,16 +33,16 @@ def main(htmlfile, prefix, html_directory):
     pos = []
 
     # find URIs
-    pattern = r'''<a href="([^"]+)">([^>]+)</a>'''
+    pattern = r"""<a href="([^"]+)">([^>]+)</a>"""
     addon_pages = get_pages(html_directory)
     for match in re.finditer(pattern, shtml):
         # most common URLs
-        if match.group(1).startswith('http://'):
+        if match.group(1).startswith("http://"):
             continue
-        if match.group(1).startswith('https://'):
+        if match.group(1).startswith("https://"):
             continue
         # protocol-relative URL
-        if match.group(1).startswith('//'):
+        if match.group(1).startswith("//"):
             continue
         # TODO: perhaps we could match any *://
         # link to other addon
@@ -54,14 +54,14 @@ def main(htmlfile, prefix, html_directory):
         return  # no match
 
     # replace file URIs
-    ohtml = shtml[:pos[0]]
+    ohtml = shtml[: pos[0]]
     for i in range(1, len(pos)):
-        ohtml += prefix + '/' + shtml[pos[i-1]:pos[i]]
-    ohtml += prefix + '/' + shtml[pos[-1]:]
+        ohtml += prefix + "/" + shtml[pos[i - 1] : pos[i]]
+    ohtml += prefix + "/" + shtml[pos[-1] :]
 
     # write updated html file
     try:
-        f = open(htmlfile, 'w')
+        f = open(htmlfile, "w")
         f.write(ohtml)
     except IOError as e:
         sys.exit("Unable for write manual page: %s" % e)
