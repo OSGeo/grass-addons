@@ -75,9 +75,9 @@ jobs:
       run: |
         echo "$HOME/install/bin" >> $GITHUB_PATH
 
-    - name: Make simple grass command available
+    - name: Make simple grass command available (not needed in G8)
       run: |
-        ln -s $HOME/install/bin/grass* $HOME/install/bin/grass
+        if [ ! -e $HOME/install/bin/grass ] ; then ln -s $HOME/install/bin/grass* $HOME/install/bin/grass ; fi
 
     - name: Build addons
       run: |
