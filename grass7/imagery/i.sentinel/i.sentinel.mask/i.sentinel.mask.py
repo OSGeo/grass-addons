@@ -498,12 +498,14 @@ def main ():
                 gscript.run_command('v.centroids',
                     input=tmp["shadow_temp_mask"],
                     output=tmp["centroid"], quiet=True)
-                gscript.run_command('v.db.droptable',
-                    map=tmp["centroid"],
-                    flags='f', quiet=True)
+                # drop table only if it exists
+                if len(gscript.parse_command("v.db.connect", flags="p", map=tmp["centroid"])) > 0:
+                    gscript.run_command('v.db.droptable',
+                        map=tmp["centroid"],
+                        flags='f', quiet=True)
                 gscript.run_command('v.db.addtable',
                     map=tmp["centroid"],
-                    columns='value', quiet=True)
+                    columns='value integer', quiet=True)
                 gscript.run_command('v.db.update',
                     map=tmp["centroid"],
                     layer=1,
@@ -527,22 +529,25 @@ def main ():
                     output=tmp["addcat"],
                     option='add',
                     quiet=True)
-                gscript.run_command('v.db.droptable',
-                    map=tmp["addcat"],
-                    flags='f', quiet=True)
+                # drop table only if it exists
+                if len(gscript.parse_command("v.db.connect", flags="p", map=tmp["addcat"])) > 0:
+                    gscript.run_command('v.db.droptable',
+                        map=tmp["addcat"],
+                        flags='f', quiet=True)
                 gscript.run_command('v.db.addtable',
                     map=tmp["addcat"],
-                    columns='value', quiet=True)
+                    columns='value integer', quiet=True)
 
                 # End shadow mask preparation
                 # Start cloud mask preparation
-
-                gscript.run_command('v.db.droptable',
-                    map=cloud_mask,
-                    flags='f', quiet=True)
+                # drop table only if it exists
+                if len(gscript.parse_command("v.db.connect", flags="p", map=cloud_mask)) > 0:
+                    gscript.run_command('v.db.droptable',
+                        map=cloud_mask,
+                        flags='f', quiet=True)
                 gscript.run_command('v.db.addtable',
                     map=cloud_mask,
-                    columns='value', quiet=True)
+                    columns='value integer', quiet=True)
 
                 # End cloud mask preparation
                 # Shift cloud mask using dE e dN
@@ -617,10 +622,6 @@ def main ():
                         output=tmp["overlay"],
                         overwrite=True,
                         quiet=True, stderr=subprocess.DEVNULL)
-                    gscript.run_command('v.db.addcolumn',
-                        map=tmp["overlay"],
-                        columns='area double',
-                        quiet=True)
                     area = gscript.read_command('v.to.db',
                         map=tmp["overlay"],
                         option='area',
