@@ -17,6 +17,7 @@ COPYRIGHT: (C) 2018 by the GRASS Development Team
 
 
 To Dos:
+- parallelize
 - consider adding distance weights
 - add neighborhood stats ???
 - silence r.category
@@ -117,6 +118,11 @@ To Dos:
 #%flag
 #% key: r
 #% description: Remove columns without data
+#%end
+
+#%flag
+#% key: l
+#% description: Use labels for column names if possible
 #%end
 
 #%option G_OPT_F_OUTPUT
@@ -248,16 +254,16 @@ def random_name(length):
     return randomname
 
 
-def raster_type(raster, tabulate, use_lable):
+def raster_type(raster, tabulate, use_label):
     """Check raster map type (int or double) and return categories for int maps
 
     :param raster: name of the raster map to check
     :type raster: string
     :param tabulate: check categories for tabulation
     :type tabulate: bool
-    :param use_lable: use label strings instead of category numbers
-    :type use_lable: bool
-    :returns: string with raster map type and list of categories with lables
+    :param use_label: use label strings instead of category numbers
+    :type use_label: bool
+    :returns: string with raster map type and list of categories with labels
     :rmap_type: string
     :rcats: list of category tuples
     :Example:
@@ -282,9 +288,9 @@ def raster_type(raster, tabulate, use_lable):
                 rcats = grass.read_command("r.category", map=raster).rstrip('\n').split('\n')
                 rcats = [tuple((rcat.split('\t')[1], rcat.split('\t')[1], None)) for rcat in rcats]
             cat_list = [rcat[0] for rcat in rcats]
-            lable_list = [rcat[1] for rcat in rcats]
-            if use_lable:
-                racts = lable_list if len(set(cat_list)) == len(set(lable_list)) else cat_list
+            label_list = [rcat[1] for rcat in rcats]
+            if use_label:
+                racts = label_list if len(set(cat_list)) == len(set(label_list)) else cat_list
             else:
                 racts = cat_list
         else:
@@ -312,7 +318,7 @@ def main():
     tabulate = flags['t']
     percent = flags['p']
     remove = flags['r']
-    use_lable = False
+    use_label = flags['l']
 
     empty_buffer_warning = 'No data in raster map {} within buffer {} around geometry {}'
 
@@ -385,7 +391,7 @@ def main():
     col_names = []
     col_types = []
     for p in column_prefix:
-        rmaptype, rcats = raster_type(raster_maps[column_prefix.index(p)], tabulate, use_lable)
+        rmaptype, rcats = raster_type(raster_maps[column_prefix.index(p)], tabulate, use_label)
         for b in buffers:
             b_str = str(b).replace('.', '_')
             if tabulate:
@@ -400,10 +406,10 @@ def main():
                 col_names.append('{}_{}_b{}'.format(p, 'area_tot', b_str))
                 col_types.append('double precision')
                 for rcat in rcats:
-                    if use_lable:
-                        rcat = rcat[1].replace(" ", "_")
+                    if use_label:
+                        rcat = rcat[0].replace(" ", "_")
                     else:
-                        rcat = rcat[0]
+                        rcat = rcat[1]
                     col_names.append('{}_{}_b{}'.format(p, rcat, b_str))
                     col_types.append('double precision')
             else:
@@ -523,11 +529,14 @@ def main():
             # Create temporary vector map with buffered geometry
             tmp_vect = VectorTopo(tmp_map, quiet=True)
             tmp_vect.open(mode='w')
-            #print(int(cat))
             tmp_vect.write(Boundary(points=buffer_geom[0].to_list()))
             # , c_cats=int(cat), set_cats=True
-            tmp_vect.write(Centroid(x=buffer_geom[1].x,
-                                    y=buffer_geom[1].y), cat=int(cat))
+            if callable(buffer_geom[1]):
+                tmp_vect.write(Centroid(x=buffer_geom[1]().x,
+                                        y=buffer_geom[1]().y), cat=int(cat))
+            else:
+                tmp_vect.write(Centroid(x=buffer_geom[1].x,
+                                        y=buffer_geom[1].y), cat=int(cat))
 
             #################################################
             # How to silence VectorTopo???
@@ -700,7 +709,8 @@ def main():
                 dropcols.append(i)
         grass.debug("Columns to delete: {}".format(', '.join(dropcols)),
                     debug=2)
-        grass.run_command('v.db.dropcolumn', map=in_vector, columns=dropcols)
+        if dropcols:
+            grass.run_command('v.db.dropcolumn', map=in_vector, columns=dropcols)
 
 
 # Run the module
