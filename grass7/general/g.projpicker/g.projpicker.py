@@ -220,7 +220,12 @@ def main():
             cat = i + 1
             grass.run_command(
                 "db.execute",
-                sql=f"""UPDATE {bbox_map} SET srid='{srid}', name='{b.crs_name.replace("'", "''")}' WHERE cat={cat}""",
+                sql=(
+                    f"UPDATE {bbox_map} "
+                    f"SET srid='{srid}', "
+                    f"""name='{b.crs_name.replace("'", "''")}' """
+                    f"WHERE cat={cat}"
+                ),
             )
 
 
