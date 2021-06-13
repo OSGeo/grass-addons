@@ -95,7 +95,7 @@ import sys
 import numpy as np
 
 if "GISBASE" not in os.environ:
-    sys.stderr.write("You must be in GRASS GIS to run this program.\n")
+    sys.stderr.write(_("You must be in GRASS GIS to run this program.\n"))
     sys.exit(1)
 
 import grass.script as grass
@@ -112,7 +112,7 @@ def gabor2d(win_size, orientation=0, wavelength=5, aspect=0.5, offset=0, ntype="
 
     # Check to make sure wave length is not greater than half the window size
     if wavelength >= xy:
-        grass.fatal("A wavelength smaller than w / 2 is needed")
+        grass.fatal(_("A wavelength smaller than w / 2 is needed"))
 
     # Convert degrees to radians
     orientation = deg_to_radians(orientation)
@@ -160,7 +160,7 @@ def main():
 
     if flags["q"]:
         if not threshold:
-            grass.fatal("A percentile threshold is needed to quantify.")
+            grass.fatal(_("A percentile threshold is needed to quantify."))
         q = [2 ** i for i in range(len(orientation))]
     else:
         q = 0
@@ -198,7 +198,7 @@ if __name__ == "__main__":
     try:
         from scipy.signal import fftconvolve
     except ImportError:
-        grass.fatal("Cannot import fftconvolve from scipy")
+        grass.fatal(_("Cannot import fftconvolve from scipy"))
 
     options, flags = grass.parser()
     sys.exit(main())
