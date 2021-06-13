@@ -138,15 +138,18 @@ def main():
             if m:
                 geoms[i] = m[1] + m[3]
                 quote = m[2]
-                for j in range(i + 1, n):
-                    idx.append(j)
-                    m = re.match(f"^(.*){quote}$", geoms[j])
-                    if m:
-                        geoms[i] += f" {m[1]}"
-                        break
-                    else:
-                        geoms[i] += f" {geoms[j]}"
-                i = j
+                if geoms[i].endswith(quote):
+                    geoms[i] = geoms[i][:-len(quote)]
+                else:
+                    for j in range(i + 1, n):
+                        idx.append(j)
+                        m = re.match(f"^(.*){quote}$", geoms[j])
+                        if m:
+                            geoms[i] += f" {m[1]}"
+                            break
+                        else:
+                            geoms[i] += f" {geoms[j]}"
+                    i = j
             i += 1
         for i in reversed(idx):
             del geoms[i]

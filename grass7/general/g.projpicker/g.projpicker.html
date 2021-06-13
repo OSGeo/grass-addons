@@ -321,9 +321,26 @@ For the other output <b>format</b>s, the column names are used as keys.
 
 <h2>EXAMPLES</h2>
 
-This command finds projections in US foot that contains 34.2348,-83.8677, but not 33.7490,-84.3880:
+These equivalent commands find projections in US foot that contains
+34.2348,-83.8677, but not 33.7490,-84.3880:
 <div class="code"><pre>
 g.projpicker query="postfix unit='US foot' 34.2348,-83.8677 33.7490,-84.3880 not and"
+
+g.projpicker query="postfix unit='US foot' '34.2348 -83.8677' '33.7490 -84.3880' not and"
+
+g.projpicker input=- &lt;&lt;EOT
+postfix
+unit=US foot
+34.2348,-83.8677
+33.7490,-84.3880
+EOT
+
+g.projpicker input=- &lt;&lt;EOT
+postfix
+unit=US foot
+34.2348 -83.8677
+33.7490 -84.3880
+EOT
 </pre></div>
 
 <h2>AUTHOR</h2>
