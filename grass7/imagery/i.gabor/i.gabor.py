@@ -191,7 +191,7 @@ def main():
         for name in filters.keys():
             outarr = garray.array()
             outarr[...] = gabor_convolve(inarr, filters[name], threshold)
-            outarr.write(f"{name.replace('.', '')}_{output}")
+            outarr.write(f"{output}_{name.replace('.', '')}")
 
 
 if __name__ == "__main__":
