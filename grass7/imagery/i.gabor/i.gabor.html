@@ -21,6 +21,12 @@ Analysis (OBIA) and edge detection algorithms.
 
 
 <h2>NOTES</h2>
+
+<em>i.gabor</em> uses <a href="https://numpy.org/">NumPy</a> to handle the
+entire raster map in memory.
+This can result in a bottleneck when processing large raster maps.
+Additionally, <a href="https://www.scipy.org/">SciPy</a> is used for fast fourier convolution of the each filter.
+
 The module can either produce individual rasters with the suffix of
 <b>windowsize_orientation_wavelength_offset_aspect</b> for each filter in the
 bank or a single combined (<b>-c</b>) raster outputting with only the basename.
