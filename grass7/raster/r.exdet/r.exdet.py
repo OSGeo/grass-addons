@@ -145,7 +145,7 @@ def tmpname(prefix):
     Use only for raster maps.
     """
     tmpf = prefix + str(uuid.uuid4())
-    tmpf = string.replace(tmpf, '-', '_')
+    tmpf = tmpf.replace('-', '_')
     CLEAN_LAY.append(tmpf)
     return tmpf
 
@@ -211,8 +211,8 @@ def main(options, flags):
                    "projection variables") % (len(REF), len(PRO)))
 
     # Text for history in metadata
-    opt2 = dict((k, v) for k, v in options.iteritems() if v)
-    hist = ' '.join("{!s}={!r}".format(k, v) for (k, v) in opt2.iteritems())
+    opt2 = dict((k, v) for k, v in options.items() if v)
+    hist = ' '.join("{!s}={!r}".format(k, v) for (k, v) in opt2.items())
     hist = "r.exdet {}".format(hist)
     unused, tmphist = tempfile.mkstemp()
     with open(tmphist, "w") as text_file:
@@ -295,7 +295,7 @@ def main(options, flags):
     # Compute NT1
     tmplay = tmpname(out)
     mnames = [None] * len(REF)
-    for i in xrange(len(REF)):
+    for i in range(len(REF)):
         tmpout = tmpname("exdet")
         # TODO: computations below sometimes result in very small negative
         # numbers, which are not 'real', but rather due to some differences
@@ -304,7 +304,7 @@ def main(options, flags):
         gs.mapcalc("eval("
                    "tmp = min(($prolay - $refmin), ($refmax - $prolay),0) / "
                    "($refmax - $refmin))\n"
-                   "$Dij = if(tmp > -0.000000001, 0, tmp)",
+                   "$Dij = if(tmp > -0.00000000001, 0, tmp)",
                    Dij=tmpout, prolay=PRO[i], refmin=stat_min[i],
                    refmax=stat_max[i], quiet=True)
         mnames[i] = tmpout
@@ -384,7 +384,7 @@ def main(options, flags):
         tmpcat = tempfile.mkstemp()
         with open(tmpcat[1], "w") as text_file:
             text_file.write("-1:None\n")
-            for cats in xrange(len(opn)):
+            for cats in range(len(opn)):
                 text_file.write("{}:{}\n".format(cats, opn[cats]))
         gs.run_command("r.category", quiet=True, map=mic12, rules=tmpcat[1],
                        separator=":")
