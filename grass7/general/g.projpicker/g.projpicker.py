@@ -6,7 +6,7 @@
 #
 # AUTHOR(S):    Huidae Cho
 #
-# PURPOSE:      Queries projection information spatially; This module is a
+# PURPOSE:      Queries projection information spatially. This module is a
 #               wrapper around ProjPicker
 #               <https://pypi.org/project/projpicker/>.
 #
@@ -45,27 +45,23 @@
 # %end
 # %option G_OPT_F_OUTPUT
 # % answer: -
-# % description: Name for output file (default: - for stdout)
+# % description: Name for output file (- for stdout)
 # % required: no
 # %end
 # %option
 # % key: format
 # % type: string
-# % options: plain,json,pretty,sqlite
+# % options: plain,json,pretty,sqlite,srid
 # % answer: plain
 # % description: Output file format
 # %end
 # %option G_OPT_F_SEP
-# % answer: pipe
-# % label: Separator for plain output format; some projection names contain commas
+# % answer: pipe for plain; newline for srid
+# % label: Separator for plain and srid output formats; some projection names contain commas
 # %end
 # %flag
 # % key: l
 # % description: Coordinates in latitude and longitude instead of x and y
-# %end
-# %flag
-# % key: s
-# % description: Print SRIDs only to stdout
 # %end
 # %flag
 # % key: p
@@ -87,9 +83,7 @@
 # % required: coordinates, query, input
 # % exclusive: coordinates, query, input
 # % exclusive: -l, query, input
-# % exclusive: -s, -p
 # % excludes: operator, query, input
-# % excludes: -s, output, format
 # % requires: -1, -g
 # %end
 
@@ -106,11 +100,10 @@ def main():
     infile = options["input"]
     outfile = options["output"]
     fmt = options["format"]
-    separator = grass.utils.separator(options["separator"])
+    separator = options["separator"]
     overwrite = grass.overwrite()
 
     latlon = flags["l"]
-    print_srids = flags["s"]
     print_geoms = flags["p"]
     no_header = flags["n"]
     single = flags["1"]
@@ -139,7 +132,7 @@ def main():
                 geoms[i] = m[1] + m[3]
                 quote = m[2]
                 if geoms[i].endswith(quote):
-                    geoms[i] = geoms[i][:-len(quote)]
+                    geoms[i] = geoms[i][: -len(quote)]
                 else:
                     for j in range(i + 1, n):
                         idx.append(j)
@@ -154,10 +147,15 @@ def main():
         for i in reversed(idx):
             del geoms[i]
 
-    if print_srids:
-        outfile = None
+    if separator == "pipe for plain; newline for srid":
+        if fmt == "plain":
+            separator = "|"
+        elif fmt == "srid":
+            separator = "\n"
+    else:
+        separator = grass.utils.separator(separator)
 
-    bbox = ppik.projpicker(
+    ppik.projpicker(
         geoms=geoms,
         outfile=outfile,
         fmt=fmt,
@@ -168,10 +166,6 @@ def main():
         start_gui=start_gui,
         single=single,
     )
-
-    if print_srids:
-        for b in bbox:
-            print(f"{b.crs_auth_name}:{b.crs_code}")
 
 
 if __name__ == "__main__":
