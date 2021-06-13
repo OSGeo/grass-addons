@@ -59,6 +59,11 @@
 # % answer: pipe for plain; newline for srid
 # % label: Separator for plain and srid output formats; some projection names contain commas
 # %end
+# %option G_OPT_V_OUTPUT
+# % key: bbox_map
+# % description: Name for output vector map with bounding box lines (EXPERIMENTAL)
+# % required: no
+# %end
 # %flag
 # % key: l
 # % description: Coordinates in latitude and longitude instead of x and y
@@ -101,6 +106,7 @@ def main():
     outfile = options["output"]
     fmt = options["format"]
     separator = options["separator"]
+    bbox_map = options["bbox_map"]
     overwrite = grass.overwrite()
 
     latlon = flags["l"]
@@ -155,7 +161,7 @@ def main():
     else:
         separator = grass.utils.separator(separator)
 
-    ppik.projpicker(
+    bbox = ppik.projpicker(
         geoms=geoms,
         outfile=outfile,
         fmt=fmt,
@@ -166,6 +172,56 @@ def main():
         start_gui=start_gui,
         single=single,
     )
+
+    if bbox_map:
+        p = grass.feed_command(
+            "v.in.ascii",
+            input="-",
+            output=bbox_map,
+            format="standard",
+            flags="n",
+        )
+        for i in range(0, len(bbox)):
+            b = bbox[i]
+            cat = i + 1
+            s = b.south_lat
+            n = b.north_lat
+            w = b.west_lon
+            e = b.east_lon
+            x = (w + e) / 2
+            y = (s + n) / 2
+            line = (
+                f"L 5 1\n{w} {s}\n{w} {n}\n{e} {n}\n{e} {s}\n{w} {s}\n"
+                f"1 {cat}\n"
+            )
+            # XXX: these two lines don't work probably because areas overlap?
+            # line = (
+            #    f"B 5 1\n{w} {s}\n{w} {n}\n{e} {n}\n{e} {s}\n{w} {s}\n"
+            #    f"1 {cat}\nC 1 1\n{x} {y}\n1 {cat}\n"
+            # )
+            # line = (
+            #    f"B 5\n{w} {s}\n{w} {n}\n{e} {n}\n{e} {s}\n{w} {s}\n"
+            #    f"C 1 1\n{x} {y}\n1 {cat}\n"
+            # )
+            line = line.encode()
+            p.stdin.write(line)
+        p.stdin.close()
+        p.wait()
+
+        if p.returncode != 0:
+            grass.fatal(_("Error creating output vector map %s") % bbox_map)
+
+        grass.run_command(
+            "v.db.addtable", map=bbox_map, columns="srid text, name text"
+        )
+        for i in range(0, len(bbox)):
+            b = bbox[i]
+            srid = f"{b.crs_auth_name}:{b.crs_code}"
+            cat = i + 1
+            grass.run_command(
+                "db.execute",
+                sql=f"""UPDATE {bbox_map} SET srid='{srid}', name='{b.crs_name.replace("'", "''")}' WHERE cat={cat}""",
+            )
 
 
 if __name__ == "__main__":
