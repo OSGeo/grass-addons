@@ -44,7 +44,8 @@
 # OPTIONS
 # %option G_OPT_R_INPUT
 # %end
-# %option G_OPT_R_OUTPUT
+# %option G_OPT_R_BASENAME_OUTPUT
+# % description: Basename for filter bank outputs, unless -c flag (single output).
 # %end
 # %option
 # % key: size
