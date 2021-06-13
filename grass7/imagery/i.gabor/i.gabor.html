@@ -5,6 +5,9 @@
 filter bank and raster map.
 The 2 dimensional Gabor filter is an orientation sensitive filter which mimics
 the cells within the human visual cortex.
+The module can either produce individual rasters for with the prefix of
+<b>windowsize_orientation_wavelength_offset_aspect</b> for each filter in the
+bank or a single combined (<b>-c</b>) raster outputting with only the basename.
 
 <p>
 The default orientations computed will be 0 (East/West), 45
@@ -23,8 +26,8 @@ component can be computed by using the flag <b>-i</b>.
 
 <p>
 By default <em>i.gabor</em> outputs each Gabor filter convolved raster map as
-individual raster maps with the prefix of <i>windowsize_orientation_wavelength_
-offset_aspect</i> with each part corresponding to its specified value.
+individual raster maps
+with each part corresponding to its specified value.
 The <b>-c</b> flag can be used to create a singular combined raster map as the
 output.
 <p>
@@ -77,6 +80,19 @@ and 256.
     <img src="i_gabor_ortho.png" border=1><br>
     <p>North Carolina demo data - ortho_2001_t792_1m
 </center>
+
+<div class="code"><pre>
+g.region n=220272 s=219585 w=638335 e=639313 res=1
+i.gabor input=ortho_2001_t792_1m output=ortho_i \
+	orientation=0,22.5,45,67.5,90,112.5,135,157.5 size=41 wavelength=6 \
+	threshold=90 -i
+</pre></div>
+
+<center>
+    <img src="i_gabor_individual.png" border=1><br>
+    <p>The individual imaginary outputs at the orientations 0, 45, 90, and 135 degrees. Created without <b>-c</b> flag.
+</center>
+
 
 <div class="code"><pre>
 g.region n=220272 s=219585 w=638335 e=639313 res=1
