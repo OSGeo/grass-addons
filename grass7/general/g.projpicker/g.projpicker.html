@@ -319,6 +319,18 @@ CREATE TABLE bbox (
 
 For the other output <b>format</b>s, the column names are used as keys.
 
+<h2>EXAMPLES</h2>
+
+This command finds projections in US foot that contains 34.2348,-83.8677, but not 33.7490,-84.3880:
+<div class="code"><pre>
+g.projpicker query="postfix unit='US foot' 34.2348,-83.8677 33.7490,-84.3880 not and"
+</pre></div>
+
 <h2>AUTHOR</h2>
 
 <a href="mailto:grass4u@gmail com">Huidae Cho</a>
+
+<!--
+<p>
+<i>Last changed: $Date$</i>
+-->
