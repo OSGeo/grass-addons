@@ -134,7 +134,7 @@ def main():
         idx = []
         i = 0
         while i < n - 1:
-            m = re.match("""^(unit=)(["'])(.*)$""", geoms[i])
+            m = re.match("""^(|unit=)(["'])(.*)$""", geoms[i])
             if m:
                 geoms[i] = m[1] + m[3]
                 quote = m[2]
