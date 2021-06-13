@@ -55,11 +55,11 @@
 # %end
 # %option
 # % key: orientation
-# % type: integer
+# % type: double
 # % required: no
 # % multiple: yes
 # % description: List of orientations in degrees
-# % answer: 0, 45, 90, 135
+# % answer: 0,45,90,135
 # %end
 # %option
 # % key: wavelength

@@ -74,27 +74,27 @@ For the quantified raster map, the bit values will be 1, 2, 4, 8, 16, 32, 64,
 and 256.
 
 <center>
-	<img src="i_gabor_ortho.png" border=1><br>
+    <img src="i_gabor_ortho.png" border=1><br>
     <p>North Carolina demo data - ortho_2001_t792_1m
 </center>
 
 <div class="code"><pre>
-i.gabor.py input="ortho_2001_t792_1m@user1" output="ortho_i_8o_41_5_q@user1"
-orientation='0, 22.5, 45, 67.5, 90, 112.5, 135, 157.5' size=41 wavelength=6
-threshold=90 -c -i -q
-</div></pre>
+i.gabor input=ortho_2001_t792_1m output=ortho_i_8o_41_5_q \
+	orientation=0,22.5,45,67.5,90,112.5,135,157.5 size=41 wavelength=6 \
+	threshold=90 -c -i -q
+</pre></div>
 <center>
     <img src="i_gabor_imaginary.png" border=1><br>
     <p>Imaginary component of Gabor filter bank with 8 orientations.
 </center>
 
 <div class="code"><pre>
-i.gabor.py input="ortho_2001_t792_1m@user1" output="ortho_i_8o_41_5_q@user1"
-orientation='0, 22.5, 45, 67.5, 90, 112.5, 135, 157.5' size=41 wavelength=6
-threshold=90 -c -i -q
-</div></pre>
+i.gabor input=ortho_2001_t792_1m output=ortho_i_8o_41_5_q \
+	orientation=0,22.5,45,67.5,90,112.5,135,157.5 size=41 wavelength=6 \
+	threshold=90 -c -i -q
+</pre></div>
 <center>
-	<img src="i_gabor_quant.png" border=1><br>
+    <img src="i_gabor_quant.png" border=1><br>
     <p>Bitwise quantification of imaginary component. Each pixels orientation
     responses can be extracted.
 </center>
