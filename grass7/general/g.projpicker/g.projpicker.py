@@ -94,6 +94,7 @@
 # %end
 
 import sys
+import re
 import grass.script as grass
 import projpicker as ppik
 
@@ -129,6 +130,23 @@ def main():
         geoms = ppik.read_file(infile)
     else:
         geoms = query.split()
+        n = len(geoms)
+        idx = []
+        for i in range(n-1):
+            m = re.match("""^(unit=)(["'])(.*)$""", geoms[i])
+            if m:
+                geoms[i] = m[1] + m[3]
+                quote = m[2]
+                for j in range(i+1, n):
+                    idx.append(j)
+                    m = re.match(f"""^(.*){quote}$""", geoms[j])
+                    if m:
+                        geoms[i] += f" {m[1]}"
+                        break
+                    else:
+                        geoms[i] += f" {geoms[j]}"
+        for i in reversed(idx):
+            del geoms[i]
 
     if print_srids:
         outfile = None
