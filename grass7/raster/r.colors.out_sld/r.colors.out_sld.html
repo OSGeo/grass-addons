@@ -1,34 +1,33 @@
-<h2>DESCRIPTION:</h2>
+<h2>DESCRIPTION</h2>
 
 The module <em>r.colors.out_sld</em> exports the colors of a raster map into
 the Styled Layer Description (SLD) format according to OGC standard.
 
-<p>For raster maps of tyoe CELL also lables are exported. The export if lables
-requires that the input map is read and may thus take a bit longer than the
-export of contious color rules (ramp).
+<p>For raster maps of type CELL also lables are exported. The export of lables
+requires that the input map is entirely read and may thus take a bit longer than the
+export of continous color rules (ramp).
 
-<p> Only if the flag <b>n<\b> is given, the NaN values are written into the
+<p>Only if the flag <b>n</b> is given, the NaN values are written into the
 generated SLD file which leads e.g. in GeoServer to an error when using such SLD.
 
 <p>Currently only SLD v1.0.0 is implemented.
 
-<h2>EXAMPLES:</h2>
+<h2>EXAMPLES</h2>
 
-<div class="code">
-<pre># Exporting a color ramp
-r.out.colors_sld map=Testmap style_name=Celsius</pre>
+<div class="code"><pre>
+# Exporting a color ramp
+r.out.colors_sld map=testmap style_name=Celsius</pre>
 </div>
 
-<h2>SEE ALSO:</h2>
+<h2>SEE ALSO</h2>
 
 <a href="https://grass.osgeo.org/grass-stable/manuals/r.colors.out.html">r.colors.out</a>
 
-<h2>REFERENCES:</h2>
+<h2>REFERENCES</h2>
 
-<a href="http://www.opengeospatial.org/standards/sld">
-http://www.opengeospatial.org/standards/sld</a><br>
+<a href="http://www.opengeospatial.org/standards/sld">http://www.opengeospatial.org/standards/sld</a>
 
-<h2>AUTHORS:</h2>
+<h2>AUTHORS</h2>
 
 Hamish Bowman<br>
-Stefan Blumentrath, Norwegian Institute for Nature Research, Oslo, Norway<br>
+Stefan Blumentrath, Norwegian Institute for Nature Research, Oslo, Norway
