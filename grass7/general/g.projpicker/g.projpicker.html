@@ -213,8 +213,8 @@ D
 <h3>Postfix logical operations</h3>
 
 If the first word is <em>prefix</em> in the query string, <em>and</em>,
-<em>or</em>, <em>xor</em>, and <em>not</em> operations can be performed in a
-postfix notation.
+<em>or</em>, <em>xor</em>, <em>not</em>, and <em>match</em> operations can be
+performed in a postfix notation.
 
 <p>This query string returns all projections that completely contain geometry
 A, but not B:
@@ -288,6 +288,32 @@ and		# A and (all projections not in degree);
 		# all projections not in degree that contain A
 </pre></div>
 
+<p>This query string returns all CRSs in <em>xy</em> that contain A that can be
+transformed to B in EPSG:4326 within a <em>match_tol</em> distance tolerance in
+<em>xy</em> (default 1):
+<div class="code"><pre>
+postfix
+match_tol=200	# error tolerance in an xy unit for distance matching
+A		# known coordinates in an unknown CRS and unit
+latlon
+B		# known coordinates in latlon that should match A
+match		# find CRSs in xy that contain A that matches B in latlon
+</pre></div>
+
+<p>This operator requires the <a href="https://pypi.org/project/pyproj/">pyproj</a>
+module and is slow because it has to transform B to many CRSs that contain both
+A and B. To save time and just return the first match, use <em>match_max</em>
+(default 0 for all):
+<div class="code"><pre>
+postfix
+match_tol=200	# error tolerance in an xy unit for distance matching
+match_max=1	# return the first match only and quit
+A		# known coordinates in an unknown CRS and unit
+latlon
+B		# known coordinates in latlon that should match A
+match		# find CRSs in xy that contain A that matches B in latlon
+</pre></div>
+
 <h3>Output schema</h3>
 
 The output schema for the <em>sqlite</em> <b>format</b> is as follows:
@@ -331,12 +357,14 @@ and 33.7490,-84.3880 in <em>latlon</em>:
 g.projpicker -l 34.2348,-83.8677,33.7490,-84.3880
 </pre></div>
 
-This command finds CRSs that completely contain two poly geometries separated by a comma:
+<p>This command finds CRSs that completely contain two poly geometries
+separated by a comma:
 <div class="code"><pre>
 g.projpicker query="poly -10,0 10,0 10,10 10,0 , 10,20 30,40"
 </pre></div>
 
-This command finds CRSs that completely contain two bounding boxes in bottom, top, left, and right:
+<p>This command finds CRSs that completely contain two bounding boxes in
+bottom, top, left, and right:
 <div class="code"><pre>
 g.projpicker query="bbox 0,0,10,10 20,20,50,50"
 </pre></div>
@@ -364,7 +392,7 @@ with an error tolerance of 200 unknown <em>xy</em> units for distance matching:
 g.projpicker query="postfix match_tol=200 33.7490,-84.3880 xy 432697.24,1363705.31 match"
 </pre></div>
 
-This process is slow because it has to transform the geometry in
+<p>This process is slow because it has to transform the geometry in
 <em>latlon</em> to many different CRSs. Just to return the first match to save
 time:
 <div class="code"><pre>
