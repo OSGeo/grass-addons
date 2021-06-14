@@ -62,8 +62,8 @@ These products are currently supported:
       surface reflectance, observation, and quality bands are a set of ten 1 kilometer
       observation bands and geolocation flags. The reflectance layers from MOD09GA and MYD09GA
       are used as the source data for many of the MODIS land products.
-      (related <a href="https://lpdaac.usgs.gov/products/mod09gav061/">MOD09GA</a> and
-      <a href="https://lpdaac.usgs.gov/products/myd09gav061/">MYD09GA</a>
+      (related <a href="https://lpdaac.usgs.gov/products/mod09gav006/">MOD09GA</a> and
+      <a href="https://lpdaac.usgs.gov/products/myd09gav006/">MYD09GA</a>
       product pages)</li>
   <li><b>Surface spectral reflectance eight day 500 m (Terra/Aqua)</b>: Bands 1 through 7
       corrected for atmospheric conditions such as gasses, aerosols, and Rayleigh
@@ -73,8 +73,8 @@ These products are currently supported:
       composite period. The criteria for the pixel choice include cloud and solar
       zenith. When several acquisitions meet the criteria, the pixel with the minimum
       channel 3 (blue) value is used.
-      (related <a href="https://lpdaac.usgs.gov/products/mod09a1v061/">MOD09A1</a> and
-      <a href="https://lpdaac.usgs.gov/products/myd09a1v061/">MYD09A1</a>
+      (related <a href="https://lpdaac.usgs.gov/products/mod09a1v006/">MOD09A1</a> and
+      <a href="https://lpdaac.usgs.gov/products/myd09a1v006/">MYD09A1</a>
       product pages)</li>
 </ul>
 
@@ -86,7 +86,7 @@ These products are currently supported:
       The MODIS/Terra-Aqua LST/E Daily L3 Global 1 km Grid product (MOD11A1/MYD11A1), is tile-based
       and gridded in the Sinusoidal projection, and produced daily at 1 km spatial resolution.
       (related <a href="https://lpdaac.usgs.gov/products/mod11a1v006/">MOD11A1</a> and
-      <a href="https://lpdaac.usgs.gov/products/myd11a1v006/">MYD11A1</a> 
+      <a href="https://lpdaac.usgs.gov/products/myd11a1v006/">MYD11A1</a>
       product pages)</li>
   <li><b>Land Surface Temperature eight day 1 km (Terra/Aqua)</b>: data are composed from the daily
       1-kilometer LST product (MOD11A1/MYD11A1) and stored on a 1-km Sinusoidal grid as the
@@ -95,7 +95,7 @@ These products are currently supported:
       observation times, view angles, bits of clear sky days and nights, and
       emissivities estimated in Bands 31 and 32 from land cover types
       (related <a href="https://lpdaac.usgs.gov/products/mod11a2v006/">MOD11A2</a> and
-      <a href="https://lpdaac.usgs.gov/products/myd11a2v006/">MYD11A2</a> 
+      <a href="https://lpdaac.usgs.gov/products/myd11a2v006/">MYD11A2</a>
       product pages)</li>
   <li><b>Land Surface Temperature eight day ~6 km (Terra/Aqua)</b>: products provide per-pixel
       temperature and emissivity values in a sequence of swath-based to grid-based
@@ -103,7 +103,22 @@ These products are currently supported:
       (Short name: MOD11B1/MYD11B1), is tile-based and gridded in the Sinusoidal projection,
       and produced daily at 5600m spatial resolution
       (related <a href="https://lpdaac.usgs.gov/products/mod11b1v006/">MOD11B1</a> and
-      <a href="https://lpdaac.usgs.gov/products/myd11b1v006/">MYD11B1</a> 
+      <a href="https://lpdaac.usgs.gov/products/myd11b1v006/">MYD11B1</a>
+      product pages)</li>
+  <li><b>Land Surface Temperature monthly ~6 km (Terra/Aqua)</b>: products provide per-pixel
+      temperature and emissivity values in a sequence of swath-based to grid-based global
+      products with a pixel size of 5,600 meters. Each LST&amp;E pixel value in the MOD11B3
+      is a simple average of all the corresponding values from the MOD11B1 collected during
+      the month period. Each MOD11B3 granule consists of 19 layers including daytime and
+      nighttime layers for LSTs, quality control assessments, observation times, view
+      zenith angles, and number of clear sky observations along with percentage of land
+      in the tile and emissivities from bands 20, 22, 23, 29, 31, and 32. Unique to the
+      MOD11B products are additional day and night LST layers generated from band 31 of
+      the corresponding 1 km
+      <a href="https://lpdaac.usgs.gov/products/mod11_l2v006/">MOD11_L2 swath product</a>
+      aggregated to the 6 km grid.
+      (related <a href="https://lpdaac.usgs.gov/products/mod11b3v006/">MOD11B3</a> and
+      <a href="https://lpdaac.usgs.gov/products/myd11b3v006/">MYD11B3</a>
       product pages)</li>
 </ul>
 
@@ -129,7 +144,7 @@ These products are currently supported:
       blue band, the EVI algorithm uses the 500m blue band to correct for residual
       atmospheric effects, with negligible spatial artifacts
       (related <a href="https://lpdaac.usgs.gov/products/mod13q1v006/">MOD13Q1</a> and
-      <a href="https://lpdaac.usgs.gov/products/myd13q1v006/">MYD13Q1</a> 
+      <a href="https://lpdaac.usgs.gov/products/myd13q1v006/">MYD13Q1</a>
       product pages)</li>
   <li><b>VI sixteen days 500 m (Terra/Aqua)</b>: Global MOD13A1/MYD13A1 MODIS vegetation indices
       are designed to provide consistent spatial and temporal comparisons of vegetation
@@ -155,7 +170,22 @@ These products are currently supported:
       be used for characterizing land surface biophysical properties and processes,
       including primary production and land cover conversion
       (related <a href="https://lpdaac.usgs.gov/products/mod13a1v006/">MOD13A1</a> and
-      <a href="https://lpdaac.usgs.gov/products/myd13a1v006/">MYD13A1</a> 
+      <a href="https://lpdaac.usgs.gov/products/myd13a1v006/">MYD13A1</a>
+      product pages)</li>
+  <li><b>VI sixteen days 250 m (Terra/Aqua)</b>:
+      The MOD13Q1 product provides two primary vegetation layers. The first is the
+      Normalized Difference Vegetation Index (NDVI) which is referred to as the continuity
+      index to the existing National Oceanic and Atmospheric Administration-Advanced
+      Very High Resolution Radiometer (NOAA-AVHRR) derived NDVI. The second vegetation
+      layer is the Enhanced Vegetation Index (EVI), which has improved sensitivity
+      over high biomass regions. The algorithm chooses the best available pixel value
+      from all the acquisitions from the 16 day period. The criteria used is low
+      clouds, low view angle, and the highest NDVI/EVI value. Along with the vegetation
+      layers and the two quality layers, the HDF file will have MODIS reflectance
+      bands 1 (red), 2 (near-infrared), 3 (blue), and 7 (mid-infrared), as well as
+      four observation layers.
+      (related <a href="https://lpdaac.usgs.gov/products/mod13q1v006/">MOD13Q1</a> and
+      <a href="https://lpdaac.usgs.gov/products/myd13q1v006/">MYD13Q1</a>
       product pages)</li>
   <li><b>VI sixteen days 1 km (Terra/Aqua)</b>:
       The MOD13A2 product provides a Vegetation Index (VI) value at a per pixel basis. There
@@ -164,9 +194,22 @@ These products are currently supported:
       Administration-Advanced Very High Resolution Radiometer (NOAA-AVHRR) derived NDVI. The second
       vegetation layer is the Enhanced Vegetation Index (EVI), which has improved sensitivity over
       high biomass regions. The data are provided at 1000 m resolution as a gridded level-3 product
-      in the Sinusoidal projection
+      in the Sinusoidal projection.
       (related <a href="https://lpdaac.usgs.gov/products/mod13a2v006/">MOD13A2</a> and
-      <a href="https://lpdaac.usgs.gov/products/myd13a2v006/">MYD13A2</a> 
+      <a href="https://lpdaac.usgs.gov/products/myd13a2v006/">MYD13A2</a>
+      product pages)</li>
+  <li><b>VI monthly 1 km (Terra/Aqua)</b>:
+      The MOD13A3 product provides a Vegetation Index (VI) value at a per pixel basis. There
+      are 2 primary vegetation layers. The first is the Normalized Difference Vegetation Index (NDVI)
+      which is referred to as the continuity index to the existing National Oceanic and Atmospheric
+      Administration-Advanced Very High Resolution Radiometer (NOAA-AVHRR) derived NDVI. The second
+      vegetation layer is the Enhanced Vegetation Index (EVI), which has improved sensitivity over
+      high biomass regions. The data are provided at 1000 m resolution as a gridded level-3 product
+      in the Sinusoidal projection. Provided along with the vegetation layers and the two quality
+      assurance (QA) layers are reflectance bands 1 (red), 2 (near-infrared), 3 (blue), and 7
+      (mid-infrared), as well as three observation layers.
+      (related <a href="https://lpdaac.usgs.gov/products/mod13a3v006/">MOD13A3</a> and
+      <a href="https://lpdaac.usgs.gov/products/myd13a3v006/">MYD13A3</a>
       product pages)</li>
   <li><b>VI sixteen days Global 0.05Deg CMG (Terra/Aqua)</b>:
       The MOD13C1 product provides a Vegetation Index (VI) value at a per pixel basis. There
@@ -176,41 +219,19 @@ These products are currently supported:
       vegetation layer is the Enhanced Vegetation Index (EVI), which has improved sensitivity over
       high biomass regions. The Climate Modeling Grid (CMG) consists 3600 rows and 7200 columns
       of 5600 m pixels and is provided as a global latitude/longitude grid
-      (related <a href="https://lpdaac.usgs.gov/products/mod13q1v006/">MOD13C1</a> and
-      <a href="https://lpdaac.usgs.gov/products/myd13q1v006/">MYD13C1</a> 
+      (related <a href="https://lpdaac.usgs.gov/products/mod13c1v006/">MOD13C1</a> and
+      <a href="https://lpdaac.usgs.gov/products/myd13c1v006/">MYD13C1</a>
       product pages)</li>
-</ul>
-
-<h3>MODIS Snow</h3>
-<ul>
-  <li><b>Snow eight days 500 m (Terra/Aqua)</b>: The MOD10A2 and MYD10A2 products
-      are composites of eight days of snow maps in the sinusoidal grid.
-      An eight-day compositing period was chosen because that is the exact ground
-      track repeat period of the Terra and Aqua platforms. Snow cover over eight
-      days is mapped as maximum snow extent in one SDS and as a chronology of
-      observations in the other SDS. Eight-day periods begin on the first day of
-      the year and extend into the next year. The product can be produced with
-      two to eight days of input. There may not always be eight days of input,
-      because of various reasons, so the user should check the attributes to
-      determine on what days observations were obtained. See the validation webpage
-      for details on the validation and validation definitions
-      (related <a href="https://nsidc.org/data/MOD10A2">MOD10A2</a> and
-      <a href="https://nsidc.org/data/MYD10A2">MYD10A2</a> 
-      product pages)</li>
-  <li><b>Snow daily 500 m (Terra/Aqua)</b>: MOD10A1 and MYD10A1 are tiles of daily
-      snow cover at 500 m spatial resolution. The daily observation selected from
-      multiple observations in a MOD10A1 (or MYD10A1) cell is the observation
-      acquired nearest nadir and having the greatest coverage of the grid cell.
-      The daily MOD10A1 and MYD10A1 snow products are tiles of data gridded in the
-      sinusoidal projection. Tiles are approximately 1200 x 1200 km in area. A
-      single scientific data set (SDS) of snow cover and a single SDS of QA data
-      along with local and global attributes comprise the data product file. The
-      daily level 3 snow product is the result of selecting an observation from
-      the multiple observations mapped to a cell of the MOD10_L2G (or MYD10_L2G)
-      product. See the validation webpage for details on the validation and
-      validation definitions
-      (related <a href="https://nsidc.org/data/MOD10A1">MOD10A1</a> and
-      <a href="https://nsidc.org/data/MYD10A1">MYD10A1</a> 
+  <li><b>VI monthly Global 0.05Deg CMG (Terra/Aqua)</b>:
+      The MOD13C2 product provides a Vegetation Index (VI) value at a per pixel basis. There
+      are 2 primary vegetation layers. The first is the Normalized Difference Vegetation Index (NDVI)
+      which is referred to as the continuity index to the existing National Oceanic and Atmospheric
+      Administration-Advanced Very High Resolution Radiometer (NOAA-AVHRR) derived NDVI. The second
+      vegetation layer is the Enhanced Vegetation Index (EVI), which has improved sensitivity over
+      high biomass regions. The Climate Modeling Grid (CMG) consists 3600 rows and 7200 columns
+      of 5600 m pixels and is provided as a global latitude/longitude grid
+      (related <a href="https://lpdaac.usgs.gov/products/mod13c2v006/">MOD13C2</a> and
+      <a href="https://lpdaac.usgs.gov/products/myd13c2v006/">MYD13C2</a>
       product pages)</li>
 </ul>
 
@@ -238,6 +259,59 @@ These products are currently supported:
     product pages).
   </li>
 </ul>
+
+
+<h3>MODIS Snow</h3>
+<ul>
+  <li><b>Snow daily 500 m (Terra/Aqua)</b>: MOD10A1 and MYD10A1 are tiles of daily
+      snow cover at 500 m spatial resolution. The daily observation selected from
+      multiple observations in a MOD10A1 (or MYD10A1) cell is the observation
+      acquired nearest nadir and having the greatest coverage of the grid cell.
+      The daily MOD10A1 and MYD10A1 snow products are tiles of data gridded in the
+      sinusoidal projection. Tiles are approximately 1200 x 1200 km in area. A
+      single scientific data set (SDS) of snow cover and a single SDS of QA data
+      along with local and global attributes comprise the data product file. The
+      daily level 3 snow product is the result of selecting an observation from
+      the multiple observations mapped to a cell of the MOD10_L2G (or MYD10_L2G)
+      product. See the validation webpage for details on the validation and
+      validation definitions
+      (related <a href="https://nsidc.org/data/MOD10A1">MOD10A1</a> and
+      <a href="https://nsidc.org/data/MYD10A1">MYD10A1</a>
+      product pages)</li>
+  <li><b>Snow eight days 500 m (Terra/Aqua)</b>: The MOD10A2 and MYD10A2 products
+      are composites of eight days of snow maps in the sinusoidal grid.
+      An eight-day compositing period was chosen because that is the exact ground
+      track repeat period of the Terra and Aqua platforms. Snow cover over eight
+      days is mapped as maximum snow extent in one SDS and as a chronology of
+      observations in the other SDS. Eight-day periods begin on the first day of
+      the year and extend into the next year. The product can be produced with
+      two to eight days of input. There may not always be eight days of input,
+      because of various reasons, so the user should check the attributes to
+      determine on what days observations were obtained. See the validation webpage
+      for details on the validation and validation definitions
+      (related <a href="https://nsidc.org/data/MOD10A2">MOD10A2</a> and
+      <a href="https://nsidc.org/data/MYD10A2">MYD10A2</a>
+      product pages)</li>
+</ul>
+
+
+<h3>MODIS Land Water Mask</h3>
+<ul>
+  <li><b>Land Water Mask 250 m (Terra)</b>: The Version 6 data product provides a global
+  map of surface water at 250 meter (m) spatial resolution. The data are available annually
+  from 2000 to 2015. MOD44W Version 6 is derived using a decision tree classifier trained
+  with MODIS data and validated with the Version 5 MOD44W data product. A series of masks
+  are applied to address known issues caused by terrain shadow, burn scars, cloudiness,
+  or ice cover in oceans. A primary improvement in Version 6 is the generation of time
+  series data rather than a simple static representation of water, given that water
+  bodies fluctuate in size and location over time due to both natural and anthropogenic
+  causes. Provided in each MOD44W Version 6 Hierarchical Data Format 4 (HDF4) file are
+  layers for land, water, no data, and an associated per pixel quality assurance (QA)
+  layer that provides users with information on the determination of water.
+  (related <a href="https://lpdaac.usgs.gov/products/mod44wv006/">MOD44W</a>
+  product page)</li>
+</ul>
+
 
 <h2>NOTES</h2>
 
