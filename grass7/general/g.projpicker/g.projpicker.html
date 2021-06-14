@@ -17,14 +17,16 @@ must be defined per line. Otherwise, invalid lines will be ignored. The
 
 <h3>Coordinate systems</h3>
 
-The projection of the current location is not used for queries. Instead,
+The projection of the current GRASS location is not used for queries. Instead,
 non-latitude/longitude coordinates are considered x and y in an unknown unit
 that needs to be queried. The <b>coordinates</b> option takes
 longitude,latitude (without the <b>-l</b> flag) or latitude,longitude pairs
 (with the <b>-l</b> flag) in degrees. To use x-y coordinates, either the
 <b>query</b> or <b>input</b> option must be used. Two keywords (<em>latlon</em>
 and <em>xy</em>) can be used to switch between coordinate systems. By default,
-<em>latlon</em> is assumed. The query syntax is case-sensitive.
+<em>latlon</em> is assumed and longitude,latitude as in the <b>coordinates</b>
+options is not supported in the <b>query</b> and <b>input</b> options. The
+query syntax is case-sensitive.
 
 <h3>Coordinate formats</h3>
 
@@ -321,8 +323,56 @@ For the other output <b>format</b>s, the column names are used as keys.
 
 <h2>EXAMPLES</h2>
 
-These equivalent commands find projections in US foot that contains
-34.2348,-83.8677, but not 33.7490,-84.3880:
+<h3>Simple queries</h3>
+
+This command finds CRSs that completely contain both points at 34.2348,-83.8677 and 33.7490,-84.3880 in <em>latlon</em>:
+<div class="code"><pre>
+g.projpicker -l 34.2348,-83.8677,33.7490,-84.3880
+</pre></div>
+
+This command finds CRSs that completely contain two poly geometries separated by a comma:
+<div class="code"><pre>
+g.projpicker query="poly -10,0 10,0 10,10 10,0 , 10,20 30,40"
+</pre></div>
+
+This command finds CRSs that completely contain two bounding boxes in bottom, top, left, and right:
+<div class="code"><pre>
+g.projpicker query="bbox 0,0,10,10 20,20,50,50"
+</pre></div>
+
+<h3>Finding missing projection</h3>
+
+Some GIS data is missing projection information. In this example, we have a
+Shapefile without its .PRJ file, so we don't have the correct projeciton. We
+just know the general location of this data (Atlanta, GA or
+33.7490°N,84.3880°W). We can stil check the extent of the data in an unknown
+projection and unit (1323252,1374239,396255,434290 in SNWE). Let's figure out
+what the projections of the data can be:
+<div class="code"><pre>
+g.projpicker query="33.7490°N,84.3880°W xy bbox 1323252,1374239,396255,434290"
+</pre></div>
+
+<h3>Matching coordinates</h3>
+
+In this example, we know the xy coordinates of a location
+(432697.24,1363705.31) in an unknown CRS and its name (Georgia State Governor's
+Office). We can search for its approximate longitude and latitude by name
+(33.7490, -84.3880). Let's find out the correct CRS of the xy data with an
+error tolerance of 200 unknown xy units for distance matching:
+<div class="code"><pre>
+g.projpicker query="postfix match_tol=200 33.7490,-84.3880 xy 432697.24,1363705.31 match"
+</pre></div>
+
+This process is slow because it has to transform the latitude and longitude to
+many different CRSs. Just to return the first match to save time:
+<div class="code"><pre>
+g.projpicker query="postfix match_max=1 match_tol=200 33.7490,-84.3880 xy 432697.24,1363705.31 match"
+</pre></div>
+
+<h3>Set-theoretic logical queries using postfix</h3>
+
+These equivalent commands find CRSs in US foot that contains
+34.2348,-83.8677, but not 33.7490,-84.3880 in <em>latlon</em>:
 <div class="code"><pre>
 g.projpicker query="postfix unit='US foot' 34.2348,-83.8677 33.7490,-84.3880 not and"
 
