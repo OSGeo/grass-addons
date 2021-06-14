@@ -61,7 +61,7 @@
 # %end
 # %option G_OPT_V_OUTPUT
 # % key: bbox_map
-# % description: Name for output vector map with bounding box lines (EXPERIMENTAL)
+# % description: Name for output vector map with bounding box lines
 # % required: no
 # %end
 # %flag
