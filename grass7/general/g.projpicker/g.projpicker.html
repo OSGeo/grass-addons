@@ -346,11 +346,11 @@ g.projpicker query="bbox 0,0,10,10 20,20,50,50"
 Some GIS data is missing projection information. In this example, we have a
 Shapefile without its .PRJ file, so we don't have the correct projeciton. We
 just know the general location of this data (Atlanta, GA or
-33.7490°N,84.3880°W). We can stil check the <em>xy</em> extent of the data in
-an unknown projection and unit (1323252,1374239,396255,434290 in SNWE). Let's
-figure out what the projections of the data can be:
+33.7490&deg;N,84.3880&deg;W). We can stil check the <em>xy</em> extent of the
+data in an unknown projection and unit (1323252,1374239,396255,434290 in SNWE).
+Let's figure out what the projections of the data can be:
 <div class="code"><pre>
-g.projpicker query="33.7490°N,84.3880°W xy bbox 1323252,1374239,396255,434290"
+g.projpicker query="33.7490&deg;N,84.3880&deg;W xy bbox 1323252,1374239,396255,434290"
 </pre></div>
 
 <h3>Matching coordinates</h3>
