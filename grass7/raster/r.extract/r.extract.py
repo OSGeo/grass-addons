@@ -45,9 +45,10 @@
 
 import sys
 import atexit
+import random
+import string
 
 import grass.script as gs
-from grass.script import utils
 
 
 TMP = []
@@ -99,7 +100,9 @@ def main():
     if flags["s"]:
         reclass(original, output, rules)
     else:
-        output_tmp = utils.append_random("tmp", 8)
+        allowed_chars = string.ascii_lowercase + string.digits
+        suffix = "".join(random.choice(allowed_chars) for _ in range(5))
+        output_tmp = "tmp_{}".format(suffix)
         TMP.append(output_tmp)
         reclass(original, output_tmp, rules)
         if flags["c"]:
