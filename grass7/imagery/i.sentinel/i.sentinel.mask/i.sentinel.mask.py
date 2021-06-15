@@ -187,7 +187,9 @@ def main ():
     mapset2 = '@{}'.format(mapset)
     processid = os.getpid()
     processid = str(processid)
+    tmp["shadow_temp_raw"] = "shadow_temp_raw" + processid
     tmp["shadow_temp"] = "shadow_temp" + processid
+    tmp["cloud_raster_temp"] = "cloud_raster_temp_" + processid
     tmp["cloud_v"] = "cloud_v_" + processid
     tmp["shadow_temp_v"] = "shadow_temp_v_" + processid
     tmp["shadow_temp_mask"] = "shadow_temp_mask_" + processid
@@ -397,36 +399,49 @@ def main ():
         fourth_rule,
         fifth_rule)
     expr_c = '{} = if({}, 0, null())'.format(
-        cloud_raster,
+        tmp["cloud_raster_temp"],
         cloud_rules)
     gscript.mapcalc(expr_c, overwrite=True)
+    # convert the min size to ha
+    size_thresh = float(float(cloud_threshold) / 10000)
+    try:
+        gscript.run_command("r.reclass.area", input=tmp["cloud_raster_temp"],
+                            output=cloud_raster, value=size_thresh, mode="greater",
+                            method="reclass")
+    except Exception as e:
+        gscript.message(_('No clouds larger than %s ha detected. Image is considered cloudfree.' % size_thresh))
+        exp_null = '%s = null()' % cloud_raster
+        gscript.run_command('r.mapcalc', expression=exp_null,
+                          quiet=True)
     gscript.message(_('--- Converting raster cloud mask into vector map ---'))
     gscript.run_command('r.to.vect',
-        input=cloud_raster,
-        output=tmp["cloud_v"],
-        type='area',
-        flags='s')
+                        input=cloud_raster,
+                        #output=tmp["cloud_v"],
+                        output = cloud_mask,
+                        type='area',
+                        flags='s')
     info_c = gscript.parse_command('v.info',
-        map=tmp["cloud_v"],
-        flags='t')
+                                   map=tmp["cloud_v"],
+                                   flags='t')
     if info_c['areas'] == '0':
         gscript.warning(_('No clouds have been detected'))
         check_cloud = 0
     else:
-        gscript.message(_('--- Cleaning geometries ---'))
-        gscript.run_command('v.clean',
-            input=tmp["cloud_v"],
-            output=cloud_mask,
-            tool='rmarea',
-            threshold=cloud_threshold)
-        info_c_clean = gscript.parse_command('v.info',
-            map=cloud_mask,
-            flags='t')
-        if info_c_clean['areas'] == '0':
-            gscript.warning(_('No clouds have been detected'))
-            check_cloud = 0
-        else:
-            check_cloud = 1
+        check_cloud = 1
+        # # gscript.message(_('--- Cleaning geometries ---'))
+        # # gscript.run_command('v.clean',
+        # #     input=tmp["cloud_v"],
+        # #     output=cloud_mask,
+        # #     tool='rmarea',
+        # #     threshold=cloud_threshold)
+        # info_c_clean = gscript.parse_command('v.info',
+        #     map=cloud_mask,
+        #     flags='t')
+        # if info_c_clean['areas'] == '0':
+        #     gscript.warning(_('No clouds have been detected'))
+        #     check_cloud = 0
+        # else:
+        #     check_cloud = 1
     gscript.message(_('--- Finish cloud detection procedure ---'))
     # End of Clouds detection
 
@@ -456,10 +471,13 @@ def main ():
             sixth_rule,
             seventh_rule)
         expr_s = '{} = if({}, 0, null())'.format(
-            tmp["shadow_temp"],
+            tmp["shadow_temp_raw"],
             shadow_rules)
         gscript.mapcalc(expr_s, overwrite=True)
         gscript.message(_('--- Converting raster shadow mask into vector map ---'))
+        # clean shadow raster
+
+        clean_raster(tmp["shadow_temp_raw"], tmp["shadow_temp"], 2)
         gscript.run_command('r.to.vect',
             input=tmp["shadow_temp"],
             output=tmp["shadow_temp_v"],
@@ -498,12 +516,14 @@ def main ():
                 gscript.run_command('v.centroids',
                     input=tmp["shadow_temp_mask"],
                     output=tmp["centroid"], quiet=True)
-                gscript.run_command('v.db.droptable',
-                    map=tmp["centroid"],
-                    flags='f', quiet=True)
+                # drop table only if it exists
+                if len(gscript.parse_command("v.db.connect", flags="p", map=tmp["centroid"])) > 0:
+                    gscript.run_command('v.db.droptable',
+                        map=tmp["centroid"],
+                        flags='f', quiet=True)
                 gscript.run_command('v.db.addtable',
                     map=tmp["centroid"],
-                    columns='value', quiet=True)
+                    columns='value integer', quiet=True)
                 gscript.run_command('v.db.update',
                     map=tmp["centroid"],
                     layer=1,
@@ -527,22 +547,25 @@ def main ():
                     output=tmp["addcat"],
                     option='add',
                     quiet=True)
-                gscript.run_command('v.db.droptable',
-                    map=tmp["addcat"],
-                    flags='f', quiet=True)
+                # drop table only if it exists
+                if len(gscript.parse_command("v.db.connect", flags="p", map=tmp["addcat"])) > 0:
+                    gscript.run_command('v.db.droptable',
+                        map=tmp["addcat"],
+                        flags='f', quiet=True)
                 gscript.run_command('v.db.addtable',
                     map=tmp["addcat"],
-                    columns='value', quiet=True)
+                    columns='value integer', quiet=True)
 
                 # End shadow mask preparation
                 # Start cloud mask preparation
-
-                gscript.run_command('v.db.droptable',
-                    map=cloud_mask,
-                    flags='f', quiet=True)
+                # drop table only if it exists
+                if len(gscript.parse_command("v.db.connect", flags="p", map=cloud_mask)) > 0:
+                    gscript.run_command('v.db.droptable',
+                        map=cloud_mask,
+                        flags='f', quiet=True)
                 gscript.run_command('v.db.addtable',
                     map=cloud_mask,
-                    columns='value', quiet=True)
+                    columns='value integer', quiet=True)
 
                 # End cloud mask preparation
                 # Shift cloud mask using dE e dN
@@ -617,10 +640,6 @@ def main ():
                         output=tmp["overlay"],
                         overwrite=True,
                         quiet=True, stderr=subprocess.DEVNULL)
-                    gscript.run_command('v.db.addcolumn',
-                        map=tmp["overlay"],
-                        columns='area double',
-                        quiet=True)
                     area = gscript.read_command('v.to.db',
                         map=tmp["overlay"],
                         option='area',
@@ -679,6 +698,19 @@ def main ():
     else:
         if shadow_mask != '':
             gscript.warning(_('No shadow mask will be computed'))
+
+
+def clean_raster(raster, output, cells):
+    """Cleans raster by first shrinking and then growing <cells> cells"""
+    global tmp
+    tmp_shrunk = "{}_shrunk_{}".format(raster, cells)
+    tmp["{}_shrunk".format(raster)] = tmp_shrunk
+    gscript.run_command("r.grow", input=raster, output=tmp_shrunk,
+                        radius="-{}".format(cells), quiet=True)
+    gscript.run_command("r.grow", input=tmp_shrunk, output=output,
+                        radius=cells, quiet=True)
+    return 0
+
 
 def cleanup():
     if flags["r"]:
