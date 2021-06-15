@@ -261,7 +261,7 @@ def main():
         modisOgg.connect()
         if modisOgg.nconnection <= 20:
             # download tha tiles
-            grass.message(_("Downloading MODIS product <%s>..." % produ))
+            grass.message(_("Downloading MODIS product <%s> (%s)..." % (produ, prod['prod'])))
             modisOgg.downloadsAllDay()
             filesize = int(os.path.getsize(modisOgg.filelist.name))
             if flags['g'] and filesize != 0:
