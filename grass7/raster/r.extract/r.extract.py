@@ -47,6 +47,7 @@ import sys
 import atexit
 
 import grass.script as gs
+from grass.script import utils
 
 
 TMP = []
@@ -98,7 +99,7 @@ def main():
     if flags["s"]:
         reclass(original, output, rules)
     else:
-        output_tmp = gs.append_random("tmp", 8)
+        output_tmp = utils.append_random("tmp", 8)
         TMP.append(output_tmp)
         reclass(original, output_tmp, rules)
         if flags["c"]:
