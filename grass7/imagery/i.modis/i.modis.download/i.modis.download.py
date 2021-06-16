@@ -8,7 +8,8 @@
 # PURPOSE:       i.modis.download is an interface to pyModis for download
 #                several tiles of MODIS produts from NASA ftp
 #
-# COPYRIGHT:        (C) 2011-2017 by Luca Delucchi
+# COPYRIGHT:     (C) 2011-2021 by Luca Delucchi
+#                Fixes by Anika Weinmann, Markus Neteler
 #
 #                This program is free software under the GNU General Public
 #                License (>=v2). Read the file COPYING that comes with GRASS
@@ -103,10 +104,10 @@ def check_folder(folder):
     """ Check if a folder it is writable by the user that launch the process
     """
     if not os.path.exists(folder) or not os.path.isdir(folder):
-        grass.fatal(_("Folder {} does not exist").format(folder))
+        grass.fatal(_("Folder <{}> does not exist").format(folder))
 
     if not os.access(folder, os.W_OK):
-        grass.fatal(_("Folder {} is not writeable").format(folder))
+        grass.fatal(_("Folder <{}> is not writeable").format(folder))
 
     return True
 
@@ -174,6 +175,10 @@ def main():
         prod = product()
         prod.print_prods()
         return 0
+    # empty settings and folder would collide
+    if not options['settings'] and not options['folder']:
+        grass.fatal(_("With empty settings parameter (to use the .netrc file) "
+                      "the folder parameter needs to be specified"))
     # set username, password and folder if settings are insert by stdin
     if not options['settings']:
         user = None
@@ -195,6 +200,8 @@ def main():
                           "the username and password"))
     # set username, password and folder by file
     else:
+        if not os.path.isfile(options['settings']):
+            grass.fatal(_("The settings parameter <{}> is not a file").format(options['settings']))
         # open the file and read the the user and password:
         # first line is username
         # second line is password
@@ -218,12 +225,6 @@ def main():
                                 "close this GRASS GIS session"))
             if check_folder(path):
                 fold = path
-    # check the version
-    version = grass.core.version()
-    # this is would be set automatically
-    if version['version'].find('7.') == -1:
-        grass.fatal(_('GRASS GIS version 7 required'))
-        return 0
     # the product
     products = options['product'].split(',')
     # first date and delta
@@ -231,7 +232,7 @@ def main():
     # set tiles
     if options['tiles'] == '':
         tiles = None
-        grass.warning(_("Option 'tiles' not set. Downloading all available tiles"))
+        grass.warning(_("Option 'tiles' not set. Downloading all available tiles to <{}>").format(fold))
     else:
         tiles = options['tiles']
     # set the debug
@@ -255,7 +256,7 @@ def main():
         modisOgg.connect()
         if modisOgg.nconnection <= 20:
             # download tha tiles
-            grass.message(_("Downloading MODIS product <%s>..." % produ))
+            grass.message(_("Downloading MODIS product <{}> ({})...".format(produ, prod['prod'])))
             modisOgg.downloadsAllDay()
             filesize = int(os.path.getsize(modisOgg.filelist.name))
             if flags['g'] and filesize != 0:
