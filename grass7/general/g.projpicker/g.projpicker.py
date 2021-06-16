@@ -95,10 +95,11 @@
 import sys
 import re
 import grass.script as grass
-import projpicker as ppik
 
 
 def main():
+    import projpicker as ppik
+
     coords = options["coordinates"]
     operator = options["operator"]
     query = options["query"]
