@@ -97,6 +97,10 @@ import re
 import grass.script as grass
 
 
+def message(msg="", end=None):
+    print(msg, end=end, file=sys.stderr, flush=True)
+
+
 def main():
     import projpicker as ppik
 
@@ -115,6 +119,12 @@ def main():
     no_header = flags["n"]
     single = flags["1"]
     start_gui = flags["g"]
+
+    if (
+        bbox_map
+        and grass.parse_command("g.proj", flags="g")["unit"] != "degree"
+    ):
+        grass.fatal(_("Cannot create vector in degree in a non-degree mapset"))
 
     # ppik.projpicker() appends input file contents to geometries from
     # arguments, but it can be confusing and is not supported in this module
@@ -182,7 +192,8 @@ def main():
             format="standard",
             flags="n",
         )
-        for i in range(0, len(bbox)):
+        nbbox = len(bbox)
+        for i in range(0, nbbox):
             b = bbox[i]
             cat = i + 1
             s = b.south_lat
@@ -215,7 +226,8 @@ def main():
         grass.run_command(
             "v.db.addtable", map=bbox_map, columns="srid text, name text"
         )
-        for i in range(0, len(bbox)):
+        for i in range(0, nbbox):
+            message("\b"*80+_("Populating table...")+f" {i+1}/{nbbox}", "")
             b = bbox[i]
             srid = f"{b.crs_auth_name}:{b.crs_code}"
             cat = i + 1
@@ -228,6 +240,7 @@ def main():
                     f"WHERE cat={cat}"
                 ),
             )
+        message()
 
 
 if __name__ == "__main__":
