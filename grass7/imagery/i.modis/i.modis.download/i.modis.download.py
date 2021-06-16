@@ -225,12 +225,6 @@ def main():
                                 "close this GRASS GIS session"))
             if check_folder(path):
                 fold = path
-    # check the version
-    version = grass.core.version()
-    # this is would be set automatically
-    if version['version'].find('7.') == -1:
-        grass.fatal(_('GRASS GIS version 7 required'))
-        return 0
     # the product
     products = options['product'].split(',')
     # first date and delta
