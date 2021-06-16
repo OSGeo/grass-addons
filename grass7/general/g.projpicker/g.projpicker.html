@@ -288,30 +288,30 @@ and		# A and (all projections not in degree);
 		# all projections not in degree that contain A
 </pre></div>
 
-<p>This query string returns all CRSs in <em>xy</em> that contain A that can be
-transformed to B in EPSG:4326 within a <em>match_tol</em> distance tolerance in
-<em>xy</em> (default 1):
+<p>This query string returns all projections in <em>xy</em> that contain A that
+can be transformed to B in EPSG:4326 within a <em>match_tol</em> distance
+tolerance in <em>xy</em> (default 1):
 <div class="code"><pre>
 postfix
 match_tol=200	# error tolerance in an xy unit for distance matching
-A		# known coordinates in an unknown CRS and unit
+A		# known coordinates in an unknown projection and unit
 latlon
 B		# known coordinates in latlon that should match A
-match		# find CRSs in xy that contain A that matches B in latlon
+match		# find projections in xy that contain A that matches B in latlon
 </pre></div>
 
 <p>This operator requires the <a href="https://pypi.org/project/pyproj/">pyproj</a>
-module and is slow because it has to transform B to many CRSs that contain both
-A and B. To save time and just return the first match, use <em>match_max</em>
-(default 0 for all):
+module and is slow because it has to transform B to many projections that
+contain both A and B. To save time and just return the first match, use
+<em>match_max</em> (default 0 for all):
 <div class="code"><pre>
 postfix
 match_tol=200	# error tolerance in an xy unit for distance matching
 match_max=1	# return the first match only and quit
-A		# known coordinates in an unknown CRS and unit
+A		# known coordinates in an unknown projection and unit
 latlon
 B		# known coordinates in latlon that should match A
-match		# find CRSs in xy that contain A that matches B in latlon
+match		# find projections in xy that contain A that matches B in latlon
 </pre></div>
 
 <h3>Output schema</h3>
@@ -351,19 +351,19 @@ For the other output <b>format</b>s, the column names are used as keys.
 
 <h3>Simple queries</h3>
 
-This command finds CRSs that completely contain both points at 34.2348,-83.8677
-and 33.7490,-84.3880 in <em>latlon</em>:
+This command finds projections that completely contain both points at
+34.2348,-83.8677 and 33.7490,-84.3880 in <em>latlon</em>:
 <div class="code"><pre>
 g.projpicker -l 34.2348,-83.8677,33.7490,-84.3880
 </pre></div>
 
-<p>This command finds CRSs that completely contain two poly geometries
+<p>This command finds projections that completely contain two poly geometries
 separated by a comma:
 <div class="code"><pre>
 g.projpicker query="poly -10,0 10,0 10,10 10,0 , 10,20 30,40"
 </pre></div>
 
-<p>This command finds CRSs that completely contain two bounding boxes in
+<p>This command finds projections that completely contain two bounding boxes in
 bottom, top, left, and right:
 <div class="code"><pre>
 g.projpicker query="bbox 0,0,10,10 20,20,50,50"
@@ -384,24 +384,25 @@ g.projpicker query="33.7490&deg;N,84.3880&deg;W xy bbox 1323252,1374239,396255,4
 <h3>Matching coordinates</h3>
 
 In this example, we know the <em>xy</em> coordinates of a location
-(432697.24,1363705.31) in an unknown CRS and its name (Georgia State Governor's
-Office). We can search for its approximate longitude and latitude by name
-(33.7490, -84.3880). Let's find out the correct CRS of the <em>xy</em> data
-with an error tolerance of 200 unknown <em>xy</em> units for distance matching:
+(432697.24,1363705.31) in an unknown projection and its name (Georgia State
+Governor's Office). We can search for its approximate longitude and latitude by
+name (33.7490, -84.3880). Let's find out the correct projection of the
+<em>xy</em> data with an error tolerance of 200 unknown <em>xy</em> units for
+distance matching:
 <div class="code"><pre>
 g.projpicker query="postfix match_tol=200 33.7490,-84.3880 xy 432697.24,1363705.31 match"
 </pre></div>
 
 <p>This process is slow because it has to transform the geometry in
-<em>latlon</em> to many different CRSs. Just to return the first match to save
-time:
+<em>latlon</em> to many different projections. Just to return the first match
+to save time:
 <div class="code"><pre>
 g.projpicker query="postfix match_max=1 match_tol=200 33.7490,-84.3880 xy 432697.24,1363705.31 match"
 </pre></div>
 
 <h3>Set-theoretic logical queries using postfix</h3>
 
-These equivalent commands find CRSs in US foot that contains
+These equivalent commands find projections in US foot that contains
 34.2348,-83.8677, but not 33.7490,-84.3880 in <em>latlon</em>:
 <div class="code"><pre>
 g.projpicker query="postfix unit='US foot' 34.2348,-83.8677 33.7490,-84.3880 not and"
