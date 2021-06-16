@@ -199,7 +199,7 @@ def main():
                           "the username and password"))
     # set username, password and folder by file
     else:
-        if os.path.isdir(options['settings']):
+        if not os.path.isfile(options['settings']):
             grass.fatal(_("The settings parameter <{}> is not a file").format(options['settings']))
         # open the file and read the the user and password:
         # first line is username
