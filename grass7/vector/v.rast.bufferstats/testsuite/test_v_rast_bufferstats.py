@@ -1,10 +1,10 @@
 """
 Name:       v.rast.bufferstats test
 Purpose:    Tests v.rast.bufferstats with different input.
-            Uses NC Basic data set.
+            Uses nc_spm_full_alpha2 data set.
 
-Author:     Luca Delucchi
-Copyright:  (C) 2017 by Luca Delucchi and the GRASS Development Team
+Author:     Stefan Blumentrath
+Copyright:  (C) 2021 by Stefan Blumentrath and the GRASS Development Team
 Licence:    This program is free software under the GNU General Public
             License (>=v2). Read the file COPYING that comes with GRASS
             for details.
