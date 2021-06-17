@@ -66,7 +66,7 @@
 # %end
 # %flag
 # % key: l
-# % description: Coordinates in latitude and longitude instead of x and y
+# % description: Coordinates in latitude and longitude instead of east and north
 # %end
 # %flag
 # % key: p
