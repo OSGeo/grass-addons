@@ -32,7 +32,7 @@
 # % type: string
 # % options: and,or,xor
 # % answer: and
-# % description: Logical operator
+# % description: Logical operator for coordinates
 # %end
 # %option
 # % key: query
@@ -87,8 +87,8 @@
 # %rules
 # % required: coordinates, query, input
 # % exclusive: coordinates, query, input
-# % exclusive: -l, query, input
-# % excludes: operator, query, input
+# % requires: operator, coordinates
+# % requires: -l, coordinates
 # % requires: -1, -g
 # %end
 
