@@ -1,5 +1,0 @@
-scipy
-pandas
-scikit-learn
-GDAL==${GDAL_VERSION}
-pygbif

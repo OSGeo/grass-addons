@@ -1,4 +1,18 @@
-# GRASS Addons git repository
+# GRASS GIS 6 Addons legacy repository
+
+This is legacy code used with GRASS GIS 6.
+It is useful for finding code for that old addon module which was not
+ported to GRASS GIS 7 or for comparing the current version with the
+old one which is possibly written in a different language or with
+a very different API. Most addon modules, especially the most useful
+ones were ported to GRASS GIS 7, so you should use the current version.
+
+What follows are usage and contributing instruction written for
+GRASS GIS 7 rather than 6. New contributions should go to the
+current version.
+
+The repository was restructured for archival, i.e., it is not meant
+to be consumed by GRASS GIS 6 in any way except for manual compilation.
 
 ## How to get write access here
 
@@ -30,14 +44,14 @@ module:
 
 ### C code/Scripts, with GRASS source code on your computer
 
-Preparations (assuming the source code in $HOME/grass78/):
+Preparations (assuming the source code in $HOME/grass64/):
 (if you have already built GRASS from source you don't need to do this
 again. If adding to a binary install the versions must match exactly.
 For a git clone this means that the main GRASS binary and source
 code versions (GRASS GIS 6 or 7) must match.)
 
 ```
-./configure # [opionally flags]
+./configure # [optionally flags]
 make libs
 ```
 
@@ -46,20 +60,20 @@ is by setting MODULE_TOPDIR on the fly to tell 'make' where to
 find the prepared GRASS source code:
 
 ```
-make MODULE_TOPDIR=$HOME/grass78/
+make MODULE_TOPDIR=$HOME/grass64/
 ```
 
-(adapt to your /path/to/grass78/). Each module/script in the GRASS
+(adapt to your /path/to/grass64/). Each module/script in the GRASS
 AddOns git repository should have a Makefile to support easy
 installation.
 
 Install then into your existing GRASS installation with
 
 ```
-make MODULE_TOPDIR=$HOME/grass78/ install
+make MODULE_TOPDIR=$HOME/grass64/ install
 ```
 
-For system-wide installation this usually requires "root" priviledges
+For system-wide installation this usually requires "root" privileges
 (so, also 'sudo' may help).
 
 ### C code/Scripts, with GRASS binaries on your computer
@@ -68,7 +82,7 @@ compile GRASS AddOns modules into your GRASS code by setting
 MODULE_TOPDIR to where to the GRASS binaries are located:
 
 ```
-make MODULE_TOPDIR=/usr/lib/grass78/
+make MODULE_TOPDIR=/usr/lib/grass64/
 ```
 
 ## How to submit contributions
@@ -86,3 +100,7 @@ and RFC2 (Legal aspects of submission):
 Also read submitting instructions before committing any changes!
 
 <https://trac.osgeo.org/grass/wiki/Submitting>
+
+## License
+
+The code is under GNU General Public License v2.0 or later (GPL-2.0-or-later).

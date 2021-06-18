@@ -1,3 +1,0 @@
-/E/ {i=0;sum=0.0;print}
-/V/ {i++;V[i]=$2;sum += $2*$2;print;n=0}
-/N/ {n++; print $0, V[n] / sqrt(sum), sqrt(sum)}

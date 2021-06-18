@@ -1,6 +1,0 @@
-self.md.identification = mdutil.Owslib.iso.MD_DataIdentification()
-self.md.dataquality = DQ_DataQuality()
-self.md.distribution = MD_Distribution()
-self.md.identification.extent = EX_Extent()
-self.md.identification.extent.boundingBox = EX_GeographicBoundingBox()
-self.md.referencesystem=MD_ReferenceSystem(None)
