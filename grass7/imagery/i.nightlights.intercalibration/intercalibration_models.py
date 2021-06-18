@@ -8,7 +8,7 @@ from intercalibration_coefficients import CITATIONS, COEFFICIENTS
 import intercalibration_equations
 
 # globals
-DUMMY_MAPCALC_STRING = 'Input'
+DUMMY_MAPCALC_STRING = "Input"
 EQUATIONS = intercalibration_equations.main()
 
 
@@ -40,8 +40,7 @@ class CalibrationModel:
         self.citation = CITATIONS[self.author]
 
         # check...
-        self.verify_year(author=self.author, satellite=self.satellite,
-                         year=self.year)
+        self.verify_year(author=self.author, satellite=self.satellite, year=self.year)
 
         # load coefficients and R^2 in tuple, float
         self.set_coefficients()
@@ -52,9 +51,9 @@ class CalibrationModel:
         self._mapcalc()
 
     def __str__(self):
-        msg = 'Calibration model by ... : '
-        msg += '...mode...\n'
-        return msg + '  ' + self._model + '\n'
+        msg = "Calibration model by ... : "
+        msg += "...mode...\n"
+        return msg + "  " + self._model + "\n"
 
     def verify_year(self, author, satellite, year):
         """
@@ -65,8 +64,10 @@ class CalibrationModel:
 
         # does the requested year exist?
         if year not in available_years:
-            raise ValueError('The selected model does not know about '
-                             'this combination of Satellite + Year!')
+            raise ValueError(
+                "The selected model does not know about "
+                "this combination of Satellite + Year!"
+            )
         else:
             return True
 
@@ -102,12 +103,13 @@ class CalibrationModel:
         Control whether the given DN is valid
         """
         if not isinstance(dn, int):
-            raise ValueError('The provided Digital Number value is NOT an '
-                             'integer!')
+            raise ValueError("The provided Digital Number value is NOT an " "integer!")
 
         if 0 > dn or dn > 63:
-            raise ValueError('The provided Digital Number value is out of the '
-                             'expected range [0,63]')
+            raise ValueError(
+                "The provided Digital Number value is out of the "
+                "expected range [0,63]"
+            )
         else:
             return True
 
@@ -129,6 +131,7 @@ class CalibrationModel:
     def get_mapcalc(self):
         return self.mapcalc
 
+
 class Elvidge(CalibrationModel):
     """
     Empirical second order, DMSP-OLS inter-satellite, calibration model
@@ -142,11 +145,11 @@ class Elvidge(CalibrationModel):
         proposed by Elvidge 2009/2014
         """
         # set key for MODEL, MAPCALC, COEFFICIENTS, CITATIONS
-        author = str('ELVIDGE')
+        author = str("ELVIDGE")
 
         # which version of Elvidge's model?
         if not version:
-            self.version = '2014'  # alternative coefficients: Elvidge 2009
+            self.version = "2014"  # alternative coefficients: Elvidge 2009
         else:
             self.version = version
 
@@ -157,19 +160,19 @@ class Elvidge(CalibrationModel):
         CalibrationModel.__init__(self, author, satellite, year)
 
     def _citation(self):
-        if self.version == '2014':
+        if self.version == "2014":
             self.citation = self._citation_2014
-        elif self.version == '2009':
+        elif self.version == "2009":
             self.citation = self._citation_2009
 
     def __str__(self):
         """
         Return a string representation of the calibration model
         """
-        msg = 'Calibration model proposed by Elvidge, '
-        msg += str(self.version) + '\n  '
-        msg += '[DN adj. = C0 + C1\u00D7DN + C2\u00D7DN^2]\n'
-        return msg + '  ' + self._model + '\n'
+        msg = "Calibration model proposed by Elvidge, "
+        msg += str(self.version) + "\n  "
+        msg += "[DN adj. = C0 + C1\u00D7DN + C2\u00D7DN^2]\n"
+        return msg + "  " + self._model + "\n"
 
     def set_coefficients(self):
         """
@@ -207,10 +210,9 @@ class Elvidge(CalibrationModel):
         build a calibration equation for the requested satellite and year.
         """
         if self.is_dn_valid(dn):
-            cdn = self.c0 + (self.c1 * dn) + (self.c2 * (dn**2))
+            cdn = self.c0 + (self.c1 * dn) + (self.c2 * (dn ** 2))
         model = EQUATIONS[self.author].model  # look in equations.py
-        self._model = model.format(dn=dn, cdn=cdn, c0=self.c0,
-                                   c1=self.c1, c2=self.c2)
+        self._model = model.format(dn=dn, cdn=cdn, c0=self.c0, c1=self.c1, c2=self.c2)
         return cdn
 
     def _mapcalc(self):
@@ -219,8 +221,9 @@ class Elvidge(CalibrationModel):
         """
         # formula = '{c0} + {c1}*{dummy} + {c2}*{dummy}^2'
         formula = EQUATIONS[self.author].formula  # look in equations.py
-        self.mapcalc = formula.format(c0=self.c0, c1=self.c1,
-                                      dummy=DUMMY_MAPCALC_STRING, c2=self.c2)
+        self.mapcalc = formula.format(
+            c0=self.c0, c1=self.c1, dummy=DUMMY_MAPCALC_STRING, c2=self.c2
+        )
 
 
 class Liu2012(CalibrationModel):
@@ -240,7 +243,7 @@ class Liu2012(CalibrationModel):
         proposed by Elvidge 2009/2014
         """
         # set key for MODEL, MAPCALC, COEFFICIENTS, CITATIONS
-        author = str('LIU2012')
+        author = str("LIU2012")
 
         # initialise object attributes from the Super-Class
         CalibrationModel.__init__(self, author, satellite, year)
@@ -249,9 +252,9 @@ class Liu2012(CalibrationModel):
         """
         Return a string representation of the calibration model
         """
-        msg = 'Calibration model by Liu, 2012: '
-        msg += 'DNc = a \u00D7 DN^2 + b \u00D7 DN + c\n'
-        return msg + '  ' + self._model + '\n'
+        msg = "Calibration model by Liu, 2012: "
+        msg += "DNc = a \u00D7 DN^2 + b \u00D7 DN + c\n"
+        return msg + "  " + self._model + "\n"
 
     def set_coefficients(self):
         """
@@ -286,12 +289,11 @@ class Liu2012(CalibrationModel):
         build a calibration equation for the requested satellite and year.
         """
         if self.is_dn_valid(dn):
-            cdn = self.c0 + (self.c1 * dn) + (self.c2 * (dn**2))
+            cdn = self.c0 + (self.c1 * dn) + (self.c2 * (dn ** 2))
 
         # Update _model as well!
-        model = '{cdn} = ({c0}) + ({c1}) * {dn} + ({c2}) * {dn}^2'
-        self._model = model.format(dn=dn, cdn=cdn, c0=self.c0,
-                                   c1=self.c1, c2=self.c2)
+        model = "{cdn} = ({c0}) + ({c1}) * {dn} + ({c2}) * {dn}^2"
+        self._model = model.format(dn=dn, cdn=cdn, c0=self.c0, c1=self.c1, c2=self.c2)
         return cdn
 
     def _mapcalc(self):
@@ -300,8 +302,9 @@ class Liu2012(CalibrationModel):
         """
         formula = EQUATIONS[self.author].formula
         print("FORMULA: ", formula)
-        self.mapcalc = formula.format(c0=self.c0, c1=self.c1,
-                                      dummy=DUMMY_MAPCALC_STRING, c2=self.c2)
+        self.mapcalc = formula.format(
+            c0=self.c0, c1=self.c1, dummy=DUMMY_MAPCALC_STRING, c2=self.c2
+        )
 
 
 class Wu2013(CalibrationModel):
@@ -316,21 +319,19 @@ class Wu2013(CalibrationModel):
         Create object for the power calibration model
         proposed by Wu, 2013
         """
-        author = str('WU2013')
+        author = str("WU2013")
 
         # initialise object attributes from the Super-Class
         CalibrationModel.__init__(self, author, satellite, year)
 
     def __str__(self):
-        """
-        """
-        msg = 'Calibration model by Wu, 2013: '
-        msg += 'DNc + 1 = a \u00D7 (DN + 1)^b\n'
-        return msg + '  ' + self._model + '\n'
+        """ """
+        msg = "Calibration model by Wu, 2013: "
+        msg += "DNc + 1 = a \u00D7 (DN + 1)^b\n"
+        return msg + "  " + self._model + "\n"
 
     def build_model(self):
-        """
-        """
+        """ """
         model = EQUATIONS[self.author].model
         self._model = model.format(a=self.a, b=self.b)
 
@@ -338,23 +339,22 @@ class Wu2013(CalibrationModel):
         """
         Calibrate a clean average visible band Digital Number value
         """
-        cdn = self.a * (dn + 1)**self.b
+        cdn = self.a * (dn + 1) ** self.b
 
         # Update _model as well!
-        model = '{cdn} = {a} * ({dn} + 1)^{b})'
-        self._model = model.format(dn=dn, cdn=cdn, a=self.a,
-                                   b=self.b)
+        model = "{cdn} = {a} * ({dn} + 1)^{b})"
+        self._model = model.format(dn=dn, cdn=cdn, a=self.a, b=self.b)
         return cdn
 
     def _mapcalc(self):
-        """
-        """
+        """ """
         formula = EQUATIONS[self.author].formula
-        self.mapcalc = formula.format(a=self.a, dummy=DUMMY_MAPCALC_STRING,
-                                      b=self.b)
+        self.mapcalc = formula.format(a=self.a, dummy=DUMMY_MAPCALC_STRING, b=self.b)
 
 
 # reusable & stand-alone
 if __name__ == "__main__":
-    print ('Calibration models for DMSP-OLS NightTime Lights Time Series'
-           ' (Running as stand-alone tool?)\n')
+    print(
+        "Calibration models for DMSP-OLS NightTime Lights Time Series"
+        " (Running as stand-alone tool?)\n"
+    )

@@ -1,5 +1,6 @@
 import functools
 
+
 def replace_dummies(string, *args, **kwargs):
     """
     Replace DUMMY_MAPCALC_STRINGS (see SplitWindowLST class for it)
@@ -18,80 +19,97 @@ def replace_dummies(string, *args, **kwargs):
 
     (Idea sourced from: <http://stackoverflow.com/a/9479972/1172302>)
     """
-    inout = set(['instring', 'outstring'])
+    inout = set(["instring", "outstring"])
     # if inout.issubset(set(kwargs)):  # alternative
     if inout == set(kwargs):
-        instring = kwargs.get('instring', 'None')
-        outstring = kwargs.get('outstring', 'None')
+        instring = kwargs.get("instring", "None")
+        outstring = kwargs.get("outstring", "None")
 
         # end comma important!
-        replacements = (str(instring), str(outstring)),
+        replacements = ((str(instring), str(outstring)),)
 
-    in_tij_out = set(['in_ti', 'out_ti', 'in_tj', 'out_tj'])
+    in_tij_out = set(["in_ti", "out_ti", "in_tj", "out_tj"])
 
     if in_tij_out == set(kwargs):
-        in_ti = kwargs.get('in_ti', 'None')
-        out_ti = kwargs.get('out_ti', 'None')
-        in_tj = kwargs.get('in_tj', 'None')
-        out_tj = kwargs.get('out_tj', 'None')
+        in_ti = kwargs.get("in_ti", "None")
+        out_ti = kwargs.get("out_ti", "None")
+        in_tj = kwargs.get("in_tj", "None")
+        out_tj = kwargs.get("out_tj", "None")
 
-        replacements = (in_ti, str(out_ti)), \
-                       (in_tj, str(out_tj))
+        replacements = (in_ti, str(out_ti)), (in_tj, str(out_tj))
 
-    in_tijm_out = set(['in_ti', 'out_ti', 'in_tj', 'out_tj',
-                       'in_tim', 'out_tim', 'in_tjm', 'out_tjm'])
+    in_tijm_out = set(
+        ["in_ti", "out_ti", "in_tj", "out_tj", "in_tim", "out_tim", "in_tjm", "out_tjm"]
+    )
 
     if in_tijm_out == set(kwargs):
-        in_ti = kwargs.get('in_ti', 'None')
-        out_ti = kwargs.get('out_ti', 'None')
-        in_tj = kwargs.get('in_tj', 'None')
-        out_tj = kwargs.get('out_tj', 'None')
-        in_tim = kwargs.get('in_tim', 'None')
-        out_tim = kwargs.get('out_tim', 'None')
-        in_tjm = kwargs.get('in_tjm', 'None')
-        out_tjm = kwargs.get('out_tjm', 'None')
+        in_ti = kwargs.get("in_ti", "None")
+        out_ti = kwargs.get("out_ti", "None")
+        in_tj = kwargs.get("in_tj", "None")
+        out_tj = kwargs.get("out_tj", "None")
+        in_tim = kwargs.get("in_tim", "None")
+        out_tim = kwargs.get("out_tim", "None")
+        in_tjm = kwargs.get("in_tjm", "None")
+        out_tjm = kwargs.get("out_tjm", "None")
 
-        replacements = (in_ti, str(out_ti)), \
-                       (in_tj, str(out_tj)), \
-                       (in_tim, str(out_tim)), \
-                       (in_tjm, str(out_tjm))
+        replacements = (
+            (in_ti, str(out_ti)),
+            (in_tj, str(out_tj)),
+            (in_tim, str(out_tim)),
+            (in_tjm, str(out_tjm)),
+        )
 
-    in_cwv_out = set(['in_ti', 'out_ti', 'in_tj', 'out_tj', 'in_cwv',
-                      'out_cwv'])
+    in_cwv_out = set(["in_ti", "out_ti", "in_tj", "out_tj", "in_cwv", "out_cwv"])
 
     if in_cwv_out == set(kwargs):
-        in_cwv = kwargs.get('in_cwv', 'None')
-        out_cwv = kwargs.get('out_cwv', 'None')
-        in_ti = kwargs.get('in_ti', 'None')
-        out_ti = kwargs.get('out_ti', 'None')
-        in_tj = kwargs.get('in_tj', 'None')
-        out_tj = kwargs.get('out_tj', 'None')
+        in_cwv = kwargs.get("in_cwv", "None")
+        out_cwv = kwargs.get("out_cwv", "None")
+        in_ti = kwargs.get("in_ti", "None")
+        out_ti = kwargs.get("out_ti", "None")
+        in_tj = kwargs.get("in_tj", "None")
+        out_tj = kwargs.get("out_tj", "None")
 
-        replacements = (in_ti, str(out_ti)), \
-                       (in_tj, str(out_tj)), \
-                       (in_cwv, str(out_cwv))
+        replacements = (
+            (in_ti, str(out_ti)),
+            (in_tj, str(out_tj)),
+            (in_cwv, str(out_cwv)),
+        )
 
-    in_lst_out = set(['in_ti', 'out_ti', 'in_tj', 'out_tj', 'in_cwv',
-                      'out_cwv', 'in_avg_lse', 'out_avg_lse', 'in_delta_lse',
-                      'out_delta_lse'])
+    in_lst_out = set(
+        [
+            "in_ti",
+            "out_ti",
+            "in_tj",
+            "out_tj",
+            "in_cwv",
+            "out_cwv",
+            "in_avg_lse",
+            "out_avg_lse",
+            "in_delta_lse",
+            "out_delta_lse",
+        ]
+    )
 
     if in_lst_out == set(kwargs):
-        in_cwv = kwargs.get('in_cwv', 'None')
-        out_cwv = kwargs.get('out_cwv', 'None')
-        in_ti = kwargs.get('in_ti', 'None')
-        out_ti = kwargs.get('out_ti', 'None')
-        in_tj = kwargs.get('in_tj', 'None')
-        out_tj = kwargs.get('out_tj', 'None')
-        in_avg_lse = kwargs.get('in_avg_lse', 'None')
-        out_avg_lse = kwargs.get('out_avg_lse', 'None')
-        in_delta_lse = kwargs.get('in_delta_lse', 'None')
-        out_delta_lse = kwargs.get('out_delta_lse', 'None')
+        in_cwv = kwargs.get("in_cwv", "None")
+        out_cwv = kwargs.get("out_cwv", "None")
+        in_ti = kwargs.get("in_ti", "None")
+        out_ti = kwargs.get("out_ti", "None")
+        in_tj = kwargs.get("in_tj", "None")
+        out_tj = kwargs.get("out_tj", "None")
+        in_avg_lse = kwargs.get("in_avg_lse", "None")
+        out_avg_lse = kwargs.get("out_avg_lse", "None")
+        in_delta_lse = kwargs.get("in_delta_lse", "None")
+        out_delta_lse = kwargs.get("out_delta_lse", "None")
 
-        replacements = (in_ti, str(out_ti)), \
-                       (in_tj, str(out_tj)), \
-                       (in_cwv, str(out_cwv)), \
-                       (in_avg_lse, str(out_avg_lse)), \
-                       (in_delta_lse, str(out_delta_lse))
+        replacements = (
+            (in_ti, str(out_ti)),
+            (in_tj, str(out_tj)),
+            (in_cwv, str(out_cwv)),
+            (in_avg_lse, str(out_avg_lse)),
+            (in_delta_lse, str(out_delta_lse)),
+        )
 
-    return functools.reduce(lambda alpha, omega: alpha.replace(*omega),
-                  replacements, string)
+    return functools.reduce(
+        lambda alpha, omega: alpha.replace(*omega), replacements, string
+    )

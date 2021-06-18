@@ -65,6 +65,7 @@
 ##################
 # PYTHON
 import numpy as np
+
 # GRASS
 from grass import script as gscript
 from grass.script import array as garray
@@ -74,6 +75,7 @@ from grass.pygrass.modules.shortcuts import general as g
 # MAIN MODULE #
 ###############
 
+
 def main():
     """
     RichDEM depression filling
@@ -82,16 +84,21 @@ def main():
     try:
         import richdem as rd
     except:
-        g.message(flags='e', message=('RichDEM not detected. Install pip3 and ' +
-                                      'then type at the command prompt: ' +
-                                      '"pip3 install richdem".'))
+        g.message(
+            flags="e",
+            message=(
+                "RichDEM not detected. Install pip3 and "
+                + "then type at the command prompt: "
+                + '"pip3 install richdem".'
+            ),
+        )
 
-    _input = options['input']
-    _output = options['output']
-    _epsilon = options['epsilon']
-    _topology = options['topology']
+    _input = options["input"]
+    _output = options["output"]
+    _epsilon = options["epsilon"]
+    _topology = options["topology"]
 
-    if _epsilon == 'true':
+    if _epsilon == "true":
         epsilon = True
     else:
         epsilon = False
@@ -100,11 +107,11 @@ def main():
     dem.read(_input, null=np.nan)
 
     rd_inout = rd.rdarray(dem, no_data=np.nan)
-    rd.FillDepressions(dem=rd_inout, epsilon=epsilon, in_place=True,
-                       topology=_topology)
+    rd.FillDepressions(dem=rd_inout, epsilon=epsilon, in_place=True, topology=_topology)
 
     dem[:] = rd_inout[:]
     dem.write(_output, overwrite=gscript.overwrite())
+
 
 if __name__ == "__main__":
     options, flags = gscript.parser()

@@ -65,7 +65,11 @@ def nested_dictionary_to_csv(filename, dictionary):
     """
 
     # write a header
-    rows = [",".join(["base", "base_label", "cover", "cover_label", "area", "count", "percents"])]
+    rows = [
+        ",".join(
+            ["base", "base_label", "cover", "cover_label", "area", "count", "percents"]
+        )
+    ]
 
     # terminology: from 'base' and 'cover' maps
     for base_key, inner_dictionary in dictionary.items():
@@ -79,15 +83,17 @@ def nested_dictionary_to_csv(filename, dictionary):
             area = inner_value[1]
             pixel_count = inner_value[2]
             pixel_percentage = inner_value[3]
-            row = ",".join([
-                base_category,
-                base_label,
-                cover_category,
-                cover_label,
-                area,
-                pixel_count,
-                pixel_percentage,
-            ])
+            row = ",".join(
+                [
+                    base_category,
+                    base_label,
+                    cover_category,
+                    cover_label,
+                    area,
+                    pixel_count,
+                    pixel_percentage,
+                ]
+            )
             rows.append(row)
 
         with open(filename, "w") as fh:

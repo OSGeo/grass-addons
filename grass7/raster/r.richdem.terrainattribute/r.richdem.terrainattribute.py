@@ -60,6 +60,7 @@
 ##################
 # PYTHON
 import numpy as np
+
 # GRASS
 from grass import script as gscript
 from grass.script import array as garray
@@ -69,6 +70,7 @@ from grass.pygrass.modules.shortcuts import general as g
 # MAIN MODULE #
 ###############
 
+
 def main():
     """
     RichDEM flat resolution: give a gentle slope
@@ -77,26 +79,31 @@ def main():
     try:
         import richdem as rd
     except:
-        g.message(flags='e', message=('RichDEM not detected. Install pip3 and ' +
-                                      'then type at the command prompt: ' +
-                                      '"pip3 install richdem".'))
+        g.message(
+            flags="e",
+            message=(
+                "RichDEM not detected. Install pip3 and "
+                + "then type at the command prompt: "
+                + '"pip3 install richdem".'
+            ),
+        )
 
-    _input = options['input']
-    _output = options['output']
-    _attribute = options['attribute']
-    _zscale = float(options['zscale'])
+    _input = options["input"]
+    _output = options["output"]
+    _attribute = options["attribute"]
+    _zscale = float(options["zscale"])
 
     dem = garray.array()
     dem.read(_input, null=np.nan)
 
     rd_input = rd.rdarray(dem, no_data=np.nan)
     del dem
-    rd_output = rd.TerrainAttribute(dem=rd_input, attrib=_attribute,
-                                    zscale=_zscale)
+    rd_output = rd.TerrainAttribute(dem=rd_input, attrib=_attribute, zscale=_zscale)
 
     outarray = garray.array()
     outarray[:] = rd_output[:]
     outarray.write(_output, overwrite=gscript.overwrite())
+
 
 if __name__ == "__main__":
     options, flags = gscript.parser()

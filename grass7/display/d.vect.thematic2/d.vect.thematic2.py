@@ -9,9 +9,9 @@
 #               or graduated points and line thickneses
 # COPYRIGHT:	(C) 2006-2014 by the GRASS Development Team
 #
-#		This program is free software under the GNU General Public
-#		License (>=v2). Read the file COPYING that comes with GRASS
-#		for details.
+# 		This program is free software under the GNU General Public
+# 		License (>=v2). Read the file COPYING that comes with GRASS
+# 		for details.
 #
 #############################################################################
 
@@ -215,17 +215,21 @@ tmp_psmap = None
 tmp_psleg = None
 tmp_gisleg = None
 
+
 def cleanup():
     for file in [tmp_graph, tmp_group, tmp_psmap, tmp_psleg, tmp_gisleg]:
         if file:
             grass.try_remove(file)
 
+
 # hard-coded parameter: the maximum number of legend items before
 # we strip them using a middle ellipsis
 max_leg_items = 18
 
+
 def subs(vars, tmpl):
     return string.Template(tmpl).substitute(vars)
+
 
 def msg(vars, tmpl, verbose=False):
     if not verbose:
@@ -233,66 +237,81 @@ def msg(vars, tmpl, verbose=False):
     else:
         grass.verbose(subs(vars, tmpl))
 
+
 def out(fh, vars, tmpl):
     fh.write(subs(vars, tmpl))
+
 
 def main():
     global tmp_graph, tmp_group, tmp_psmap, tmp_psleg, tmp_gisleg
 
-    breakpoints = options['breakpoints']
-    colorscheme = options['colorscheme']
-    column = options['column']
-    endcolor = options['end_color']
-    group = options['group']
-    layer = options['layer']
-    linecolor = options['line_color']
-    map = options['map']
-    maxsize = options['maxsize']
-    monitor = options['monitor']
-    nint = options['nint']
-    pointcolor = options['point_color']
-    psmap = options['psmap']
-    size = options['size']
-    startcolor = options['start_color']
-    themecalc = options['themecalc']
-    themetype = options['themetype']
-    type = options['type']
-    where = options['where']
-    icon = options['icon']
-    rgb_column = options['rgb_column']
+    breakpoints = options["breakpoints"]
+    colorscheme = options["colorscheme"]
+    column = options["column"]
+    endcolor = options["end_color"]
+    group = options["group"]
+    layer = options["layer"]
+    linecolor = options["line_color"]
+    map = options["map"]
+    maxsize = options["maxsize"]
+    monitor = options["monitor"]
+    nint = options["nint"]
+    pointcolor = options["point_color"]
+    psmap = options["psmap"]
+    size = options["size"]
+    startcolor = options["start_color"]
+    themecalc = options["themecalc"]
+    themetype = options["themetype"]
+    type = options["type"]
+    where = options["where"]
+    icon = options["icon"]
+    rgb_column = options["rgb_column"]
 
-    flag_f = flags['f']
-    flag_g = flags['g']
-    flag_l = flags['l']
-    flag_m = flags['m']
-    flag_s = flags['s']
+    flag_f = flags["f"]
+    flag_g = flags["g"]
+    flag_l = flags["l"]
+    flag_m = flags["m"]
+    flag_s = flags["s"]
 
     layer = int(layer)
     nint = int(nint)
     size = float(size)
     maxsize = float(maxsize)
 
-    if 'MONITOR' not in grass.gisenv().keys() and \
-       'GRASS_RENDER_IMMEDIATE' not in os.environ:
-        grass.fatal(_("Neither MONITOR (managed by d.mon command) nor GRASS_RENDER_IMMEDIATE "
-                      "(used for direct rendering) defined)"))
+    if (
+        "MONITOR" not in grass.gisenv().keys()
+        and "GRASS_RENDER_IMMEDIATE" not in os.environ
+    ):
+        grass.fatal(
+            _(
+                "Neither MONITOR (managed by d.mon command) nor GRASS_RENDER_IMMEDIATE "
+                "(used for direct rendering) defined)"
+            )
+        )
 
-    mapset = grass.find_file(map, element='vector')['mapset']
+    mapset = grass.find_file(map, element="vector")["mapset"]
     if not mapset:
         grass.fatal(_("Vector map <%s> not found") % map)
-    if rgb_column and mapset != grass.gisenv()['MAPSET']:
-        grass.warning(_("Vector map <%s> not found in the current mapset. "
-                        "Updating RGB values <%s> skipped.") % (map, "rgb_column"))
+    if rgb_column and mapset != grass.gisenv()["MAPSET"]:
+        grass.warning(
+            _(
+                "Vector map <%s> not found in the current mapset. "
+                "Updating RGB values <%s> skipped."
+            )
+            % (map, "rgb_column")
+        )
         rgb_column = None
 
     # check column type
     inf = grass.vector_columns(map, layer)
     if column not in inf:
         grass.fatal(_("No such column <%s>") % column)
-    coltype = inf[column]['type'].lower()
+    coltype = inf[column]["type"].lower()
 
     if coltype not in ["integer", "double precision"]:
-        grass.fatal(_("Column <%s> is of type <%s> which is not numeric.") % (column, coltype))
+        grass.fatal(
+            _("Column <%s> is of type <%s> which is not numeric.") % (column, coltype)
+        )
 
     # create temporary file to hold d.graph commands for legend
     tmp_graph = grass.tempfile()
@@ -317,24 +336,28 @@ def main():
         flag_l = False
         # if running in GUI, turn off immediate mode rendering so that the
         # iterated d.vect commands will composite using the display driver
-        os.environ['GRASS_RENDER_FILE_READ'] = 'TRUE'
-        os.environ['GRASS_PNG_AUTO_WRITE'] = 'FALSE'
+        os.environ["GRASS_RENDER_FILE_READ"] = "TRUE"
+        os.environ["GRASS_PNG_AUTO_WRITE"] = "FALSE"
 
     db = grass.vector_db(map)[1]
-    if not db or not db['table']:
+    if not db or not db["table"]:
         grass.fatal(_("No table connected or layer <%s> does not exist.") % layer)
-    table = db['table']
-    database = db['database']
-    driver = db['driver']
+    table = db["table"]
+    database = db["database"]
+    driver = db["driver"]
 
     # update color values to the table?
     if rgb_column:
         # test, if the rgb column is in the table
-        s = grass.read_command('db.columns', table = table, database = database, driver = driver)
+        s = grass.read_command(
+            "db.columns", table=table, database=database, driver=driver
+        )
         if rgb_column not in s.splitlines():
             msg(locals(), _("Creating column <$rgb_column> in table <$table>"))
             sql = "ALTER TABLE %s ADD COLUMN %s varchar(11)" % (table, rgb_column)
-            grass.write_command('db.execute', database = database, driver = driver, input = '-', stdin = sql)
+            grass.write_command(
+                "db.execute", database=database, driver=driver, input="-", stdin=sql
+            )
 
     # Group name
     if not group:
@@ -350,21 +373,33 @@ def main():
         stype = ["point", "centroid"]
 
     grass.message(_("Calculating statistics..."))
-    stats = grass.read_command('v.univar', flags = 'eg', map = map, type = stype, column = column, where = where, layer = layer)
+    stats = grass.read_command(
+        "v.univar",
+        flags="eg",
+        map=map,
+        type=stype,
+        column=column,
+        where=where,
+        layer=layer,
+    )
     if not stats:
         grass.fatal(_("Unable to calculate statistics for vector map <%s>" % map))
     stats = grass.parse_key_val(stats)
-    if 'min' not in stats:
-        grass.fatal(_("Unable to calculate statistics for vector map <%s> "
-                      "(missing minimum/maximum value)" % map))
+    if "min" not in stats:
+        grass.fatal(
+            _(
+                "Unable to calculate statistics for vector map <%s> "
+                "(missing minimum/maximum value)" % map
+            )
+        )
 
-    min = float(stats['min'])
-    max = float(stats['max'])
-    mean = float(stats['mean'])
-    sd = float(stats['population_stddev'])
-    q1 = float(stats['first_quartile'])
-    q2 = float(stats['median'])
-    q3 = float(stats['third_quartile'])
+    min = float(stats["min"])
+    max = float(stats["max"])
+    mean = float(stats["mean"])
+    sd = float(stats["population_stddev"])
+    q1 = float(stats["first_quartile"])
+    q2 = float(stats["median"])
+    q3 = float(stats["third_quartile"])
     q4 = max
 
     ptsize = size
@@ -381,8 +416,20 @@ def main():
     elif themecalc == "std_deviation":
         # 2 standard deviation units on either side of mean,
         # plus min to -2 sd units and +2 sd units to max, if applicable
-        breakpoints = [min] + [i for i in [(mean + i * sd) for i in [-2,-1,0,1,2]] if min < i < max] + [max]
-        annotations = [""] + [("%dsd" % i) for (i, j) in [(i, mean + i * sd) for i in [-2,-1,0,1,2]] if (min < j < max)] + [""]
+        breakpoints = (
+            [min]
+            + [i for i in [(mean + i * sd) for i in [-2, -1, 0, 1, 2]] if min < i < max]
+            + [max]
+        )
+        annotations = (
+            [""]
+            + [
+                ("%dsd" % i)
+                for (i, j) in [(i, mean + i * sd) for i in [-2, -1, 0, 1, 2]]
+                if (min < j < max)
+            ]
+            + [""]
+        )
         annotations = ";".join(annotations)
         numint = len(breakpoints) - 1
     elif themecalc == "quartiles":
@@ -411,7 +458,10 @@ def main():
 
     # legend title
     f_graph = open(tmp_graph, "w")
-    out(f_graph, locals(), """\
+    out(
+        f_graph,
+        locals(),
+        """\
 color 0:0:0
 size 2 2
 move 1 95
@@ -419,24 +469,37 @@ text Thematic map legend for column $column of map $map
 size 1.5 1.8
 move 4 90
 text Value range: $min - $max
-""")
+""",
+    )
 
     f_gisleg = open(tmp_gisleg, "w")
-    out(f_gisleg, locals(), """\
+    out(
+        f_gisleg,
+        locals(),
+        """\
 title - - - {Thematic map legend for column $column of map $map}
-""")
+""",
+    )
 
     f_psleg = open(tmp_psleg, "w")
-    out(f_psleg, locals(), """\
+    out(
+        f_psleg,
+        locals(),
+        """\
 text 1% 95% Thematic map legend for column $column of map $map
   ref bottom left
 end
 text 4% 90% Value range: $min - $max
   ref bottom left
 end
-""")
+""",
+    )
 
-    msg(locals(), _("Thematic map legend for column <$column> of map <$map>"), verbose=True)
+    msg(
+        locals(),
+        _("Thematic map legend for column <$column> of map <$map>"),
+        verbose=True,
+    )
     msg(locals(), _("Value range: $min - $max"))
 
     colorschemes = {
@@ -448,7 +511,7 @@ end
         "green-blue": ("0:255:0", "0:0:255"),
         "cyan-yellow": ("0:255:255", "255:255:0"),
         "yellow-cyan": ("255:255:0", "0:255:255"),
-        "custom_gradient": (startcolor, endcolor)
+        "custom_gradient": (startcolor, endcolor),
     }
 
     # open file for psmap instructions
@@ -465,12 +528,15 @@ end
             else:
                 startc = endc = pointcolor
         else:
-            grass.fatal(_("This should not happen: parser error. Unknown color scheme %s") % colorscheme)
+            grass.fatal(
+                _("This should not happen: parser error. Unknown color scheme %s")
+                % colorscheme
+            )
 
         color = __builtins__.map(int, startc.split(":"))
         endcolor = __builtins__.map(int, endc.split(":"))
 
-        #The number of color steps is one less then the number of classes
+        # The number of color steps is one less then the number of classes
         nclrstep = numint - 1
         clrstep = [(a - b) / nclrstep for a, b in zip(color, endcolor)]
 
@@ -478,62 +544,99 @@ end
 
         # display graduated color themes
         if themecalc == "interval":
-            out(f_graph, locals(), """\
+            out(
+                f_graph,
+                locals(),
+                """\
 move 4 87
 text Mapped by $numint intervals of $step
-""")
+""",
+            )
 
-            out(f_gisleg, locals(), """\
+            out(
+                f_gisleg,
+                locals(),
+                """\
 subtitle - - - {Mapped by $numint intervals of $step}
-""")
+""",
+            )
 
-            out(f_psleg, locals(), """\
+            out(
+                f_psleg,
+                locals(),
+                """\
 text 4% 87% Mapped by $numint intervals of $step
   ref bottom left
 end
-""")
+""",
+            )
 
             msg(locals(), _("Mapped by $numint intervals of $step"))
 
         # display graduated color themes for standard deviation units
         if themecalc == "std_deviation":
-            out(f_graph, locals(), """\
+            out(
+                f_graph,
+                locals(),
+                """\
 move 4 87
 text Mapped by standard deviation units of $sd (mean = $mean)
-""")
+""",
+            )
 
-            out(f_gisleg, locals(), """\
+            out(
+                f_gisleg,
+                locals(),
+                """\
 subtitle - - - {Mapped by standard deviation units of $sd (mean = $mean)}
-""")
+""",
+            )
 
-            out(f_psleg, locals(), """\
+            out(
+                f_psleg,
+                locals(),
+                """\
 text 4% 87% Mapped by standard deviation units of $sd (mean = $mean)
   ref bottom left
 end
-""")
+""",
+            )
 
             msg(locals(), _("Mapped by standard deviation units of $sd (mean = $mean)"))
 
         # display graduated color themes for quartiles
         if themecalc == "quartiles":
-            out(f_graph, locals(), """\
+            out(
+                f_graph,
+                locals(),
+                """\
 move 4 87
 text Mapped by quartiles (median = $q2)
-""")
+""",
+            )
 
-            out(f_gisleg, locals(), """\
+            out(
+                f_gisleg,
+                locals(),
+                """\
 subtitle - - - {Mapped by quartiles (median = $q2)}
-""")
+""",
+            )
 
-            out(f_psleg, locals(), """\
+            out(
+                f_psleg,
+                locals(),
+                """\
 text 4% 87% Mapped by quartiles (median = $q2)
   ref bottom left
 end
-""")
+""",
+            )
 
             msg(locals(), _("Mapped by quartiles (median = $q2)"))
 
-        f_graph.write("""\
+        f_graph.write(
+            """\
 move 4 83
 text Color
 move 14 83
@@ -542,9 +645,11 @@ move 4 80
 text =====
 move 14 80
 text ============
-""")
+"""
+        )
 
-        f_psleg.write("""\
+        f_psleg.write(
+            """\
 text 4% 83% Color
   ref bottom left
 end
@@ -557,7 +662,8 @@ end
 text 14% 80% ============
   ref bottom left
 end
-""")
+"""
+        )
 
         grass.message("")
         grass.message(_("Color(R:G:B)\tValue"))
@@ -590,7 +696,7 @@ end
                 else:
                     mincomparison = ">"
 
-            themecolor = ":".join(__builtins__.map(str,color))
+            themecolor = ":".join(__builtins__.map(str, color))
             if flag_f:
                 linecolor = "none"
             else:
@@ -603,7 +709,7 @@ end
             ### rangemin = __builtins__.min(breakpoints)
             ### rangemax = __builtins__.max(breakpoints)
             rangemin = breakpoints[i]
-            rangemax = breakpoints[i+1]
+            rangemax = breakpoints[i + 1]
 
             if not annotations:
                 extranote = ""
@@ -613,7 +719,10 @@ end
             if i < xlower or i >= xupper:
                 xline1 = line2 + 2
                 xline3 = line2 - 1
-                out(f_graph, locals(), """\
+                out(
+                    f_graph,
+                    locals(),
+                    """\
 color $themecolor
 polygon
 5 $xline1
@@ -629,34 +738,50 @@ draw 5 $xline1
 move 14 $line2
 color 0:0:0
 text $openbracket$rangemin - $rangemax$closebracket $extranote
-""")
+""",
+                )
             else:
                 if i == xlower:
-                    out(f_graph, locals(), """\
+                    out(
+                        f_graph,
+                        locals(),
+                        """\
 color 0:0:0
 move 10 $line2
 text ...
-""")
+""",
+                    )
                 else:
-                    #undo next increment
+                    # undo next increment
                     line2 += 4
 
             if i < xlower or i >= xupper:
-                out(f_gisleg, locals(), """\
+                out(
+                    f_gisleg,
+                    locals(),
+                    """\
 area $themecolor $linecolor - {$openbracket$rangemin - $rangemax$closebracket $extranote}
-""")
+""",
+                )
 
                 if type in ["line", "boundary"]:
-                    out(f_psleg, locals(), """\
+                    out(
+                        f_psleg,
+                        locals(),
+                        """\
 line 5% $xline1% 8% $xline1%
   color $linecolor
 end
 text 14% $xline1% $openbracket$rangemin - $rangemax$closebracket $extranote
   ref center left
 end
-""")
+""",
+                    )
                 elif type in ["point", "centroid"]:
-                    out(f_psleg, locals(), """\
+                    out(
+                        f_psleg,
+                        locals(),
+                        """\
 point 8% $xline1%
   color $linecolor
   fcolor $themecolor
@@ -666,9 +791,13 @@ end
 text 14% $xline1% $openbracket$rangemin - $rangemax$closebracket $extranote
   ref center left
 end
-""")
+""",
+                    )
                 else:
-                    out(f_psleg, locals(), """\
+                    out(
+                        f_psleg,
+                        locals(),
+                        """\
 rectangle 5% $xline1% 8% $xline3%
   color 0:0:0
   fcolor $themecolor
@@ -676,43 +805,66 @@ end
 text 14% $xline3% $openbracket$rangemin - $rangemax$closebracket DCADCA $extranote
   ref bottom left
 end
-""")
+""",
+                    )
             else:
                 if i == xlower:
-                    out(f_psleg, locals(), """\
+                    out(
+                        f_psleg,
+                        locals(),
+                        """\
 color 0:0:0
 text 14% $xline3% ...
   ref bottom left
 end
-""")
+""",
+                    )
 
                 f_gisleg.write("text - - - {...}\n")
 
-            grass.message("%-15s %s%.3f - %.3f%s %s" % (themecolor, openbracket, rangemin, rangemax, closebracket, extranote))
+            grass.message(
+                "%-15s %s%.3f - %.3f%s %s"
+                % (themecolor, openbracket, rangemin, rangemax, closebracket, extranote)
+            )
             if not where:
-                sqlwhere = subs(locals(), "$column $mincomparison $rangemin AND $column <= $rangemax")
+                sqlwhere = subs(
+                    locals(),
+                    "$column $mincomparison $rangemin AND $column <= $rangemax",
+                )
             else:
-                sqlwhere = subs(locals(), "$column $mincomparison $rangemin AND $column <= $rangemax AND $where")
+                sqlwhere = subs(
+                    locals(),
+                    "$column $mincomparison $rangemin AND $column <= $rangemax AND $where",
+                )
 
             # update color to database?
             if rgb_column:
-                sql = subs(locals(), "UPDATE $table SET $rgb_column = '$themecolor' WHERE $sqlwhere")
-                grass.write_command('db.execute', database = database, driver = driver, input = '-', stdin = sql)
+                sql = subs(
+                    locals(),
+                    "UPDATE $table SET $rgb_column = '$themecolor' WHERE $sqlwhere",
+                )
+                grass.write_command(
+                    "db.execute", database=database, driver=driver, input="-", stdin=sql
+                )
 
             # Create group for GIS Manager
             if flag_g:
                 # change rgb colors to hex
-                xthemecolor = "#%02X%02X%02X" % tuple(__builtins__.map(int, themecolor.split(":")))
-                #xlinecolor=`echo $linecolor | awk -F: '{printf("#%02X%02X%02X\n",$1,$2,$3)}'`
+                xthemecolor = "#%02X%02X%02X" % tuple(
+                    __builtins__.map(int, themecolor.split(":"))
+                )
+                # xlinecolor=`echo $linecolor | awk -F: '{printf("#%02X%02X%02X\n",$1,$2,$3)}'`
 
                 if "$linecolor" == "black":
                     xlinecolor = "#000000"
                 else:
                     xlinecolor = xthemecolor
 
-
                 # create group entry
-                out(f_group, locals(), """\
+                out(
+                    f_group,
+                    locals(),
+                    """\
   _check 1
   Vector $column = $rangemin - $rangemax
     _check 1
@@ -751,17 +903,29 @@ end
     maxreg
     _width 0.1
   End
-""")
+""",
+                )
 
             # display theme vector map
 
-            grass.run_command('d.vect', map = map, type = type, layer = layer,
-                              where = sqlwhere,
-                              color = linecolor, fcolor = themecolor, icon = icon, size = ptsize,
-                              quiet = True)
+            grass.run_command(
+                "d.vect",
+                map=map,
+                type=type,
+                layer=layer,
+                where=sqlwhere,
+                color=linecolor,
+                fcolor=themecolor,
+                icon=icon,
+                size=ptsize,
+                quiet=True,
+            )
 
             if type in ["line", "boundary"]:
-                out(f_psmap, locals(), """\
+                out(
+                    f_psmap,
+                    locals(),
+                    """\
 vlines $map
   type $type
   layer $layer
@@ -769,9 +933,13 @@ vlines $map
   color $linecolor
   label $rangemin - $rangemax
 end
-""")
+""",
+                )
             elif type in ["point", "centroid"]:
-                out(f_psmap, locals(), """\
+                out(
+                    f_psmap,
+                    locals(),
+                    """\
 vpoints $map
   type $type
   layer $layer
@@ -781,9 +949,13 @@ vpoints $map
   symbol $icon
   label $rangemin - $rangemax
 end
-""")
+""",
+                )
             else:
-                out(f_psmap, locals(), """\
+                out(
+                    f_psmap,
+                    locals(),
+                    """\
 vareas $map
   layer $layer
   where $sqlwhere
@@ -791,7 +963,8 @@ vareas $map
   fcolor $themecolor
   label $rangemin - $rangemax
 end
-""")
+""",
+                )
 
             # increment for next theme
             i += 1
@@ -803,73 +976,112 @@ end
             line2 -= 4
             line3 -= 4
 
-    #graduated points and line widths thematic mapping
+    # graduated points and line widths thematic mapping
 
     if themetype in ["graduated_points", "graduated_lines"]:
 
-        #display graduated points/lines by intervals
+        # display graduated points/lines by intervals
         if themecalc == "interval":
-            out(f_graph, locals(), """\
+            out(
+                f_graph,
+                locals(),
+                """\
 move 4 87
 text Mapped by $numint intervals of $step
-""")
+""",
+            )
 
-            out(f_gisleg, locals(), """\
+            out(
+                f_gisleg,
+                locals(),
+                """\
 subtitle - - - {Mapped by $numint intervals of $step}
-""")
+""",
+            )
 
-            out(f_psleg, locals(), """\
+            out(
+                f_psleg,
+                locals(),
+                """\
 text 4% 87% Mapped by $numint intervals of $step
   ref bottom left
 end
-""")
+""",
+            )
 
             msg(locals(), _("Mapped by $numint intervals of $step"))
 
         # display graduated points/lines for standard deviation units
         if themecalc == "std_deviation":
 
-            out(f_graph, locals(), """\
+            out(
+                f_graph,
+                locals(),
+                """\
 move 4 87
 text Mapped by standard deviation units of $sd (mean = $mean)
-""")
+""",
+            )
 
-            out(f_gisleg, locals(), """\
+            out(
+                f_gisleg,
+                locals(),
+                """\
 subtitle - - - {Mapped by standard deviation units of $sd (mean = $mean)}
-""")
+""",
+            )
 
-            out(f_psleg, locals(), """\
+            out(
+                f_psleg,
+                locals(),
+                """\
 text 4% 87% Mapped by standard deviation units of $sd (mean = $mean)
   ref bottom left
 end
-""")
+""",
+            )
 
             msg(locals(), _("Mapped by standard deviation units of $sd (mean = $mean)"))
 
         # display graduated points/lines for quartiles
         if themecalc == "quartiles":
 
-            out(f_graph, locals(), """\
+            out(
+                f_graph,
+                locals(),
+                """\
 move 4 87
 text Mapped by quartiles (median = $q2)
-""")
+""",
+            )
 
-            out(f_gisleg, locals(), """\
+            out(
+                f_gisleg,
+                locals(),
+                """\
 subtitle - - - {Mapped by quartiles (median = $q2)}
-""")
+""",
+            )
 
-            out(f_psleg, locals(), """\
+            out(
+                f_psleg,
+                locals(),
+                """\
 text 4% 87% Mapped by quartiles (median = $q2)
   ref bottom left
 end
-""")
+""",
+            )
 
             msg(locals(), _("Mapped by quartiles (median = $q2)"))
 
         line1 = 76
         line2 = 75
 
-        out(f_graph, locals(), """\
+        out(
+            f_graph,
+            locals(),
+            """\
 move 4 83
 text Size/width
 move 25 83
@@ -878,9 +1090,13 @@ move 4 80
 text ==============
 move 25 80
 text ==============
-""")
+""",
+        )
 
-        out(f_psleg, locals(), """\
+        out(
+            f_psleg,
+            locals(),
+            """\
 text 4% 83% Icon size
   ref bottom left
 end
@@ -893,8 +1109,8 @@ end
 text 25% 80% ============
   ref bottom left
 end
-""")
-
+""",
+        )
 
         grass.message("")
         grass.message(_("Size/width\tValue"))
@@ -935,7 +1151,7 @@ end
             ### ???
             ### rangemin = __builtins__.min(breakpoints)
             ### rangemax = __builtins__.max(breakpoints)
-            rangemin = breakpoints[i-1]
+            rangemin = breakpoints[i - 1]
             rangemax = breakpoints[i]
 
             if not annotations:
@@ -950,46 +1166,77 @@ end
 
             if i < xlower or i >= xupper:
                 if themetype == "graduated_lines":
-                    out(f_graph, locals(), """\
+                    out(
+                        f_graph,
+                        locals(),
+                        """\
 color $linecolor
-""")
+""",
+                    )
 
-                    out(f_gisleg, locals(), """\
+                    out(
+                        f_gisleg,
+                        locals(),
+                        """\
 line $themecolor $linecolor $ptsize {$openbracket$rangemin - $rangemax$closebracket $extranote}
-""")
+""",
+                    )
                 else:
-                    out(f_graph, locals(), """\
+                    out(
+                        f_graph,
+                        locals(),
+                        """\
 color $themecolor
-""")
-                    out(f_gisleg, locals(), """\
+""",
+                    )
+                    out(
+                        f_gisleg,
+                        locals(),
+                        """\
 point $themecolor $linecolor $ptsize {$openbracket$rangemin - $rangemax$closebracket $extranote}
-""")
+""",
+                    )
 
-                out(f_graph, locals(), """\
+                out(
+                    f_graph,
+                    locals(),
+                    """\
 icon + $iconsize 5 $line1
 color 0:0:0
 move 10 $line2
 text $ptsize pts
 move 25 $line2
 text $openbracket$rangemin - $rangemax$closebracket $extranote
-""")
+""",
+                )
             else:
                 if i == xlower:
-                    out(f_graph, locals(), """\
+                    out(
+                        f_graph,
+                        locals(),
+                        """\
 color 0:0:0
 move 10 $line2
 text ...
-""")
+""",
+                    )
 
-                    out(f_gisleg, locals(), """\
+                    out(
+                        f_gisleg,
+                        locals(),
+                        """\
 text - - - ...
-""")
+""",
+                    )
                 else:
                     # undo future line increment
                     line2 += lineht
 
             if i < xlower or i >= xupper:
-                out(f_psleg, locals(), """\
+                out(
+                    f_psleg,
+                    locals(),
+                    """\
 point 8% $line1%
   color $linecolor
   fcolor $themecolor
@@ -999,36 +1246,59 @@ end
 text 25% $line1% $openbracket$rangemin - $rangemax$closebracket $extranote
   ref center left
 end
-""")
+""",
+                )
             else:
                 if i == xlower:
-                    out(f_psleg, locals(), """\
+                    out(
+                        f_psleg,
+                        locals(),
+                        """\
 text 25% $xline1% ...
    ref center left
 end
-""")
+""",
+                    )
 
-            grass.message("%-15d %s%.3f - %.3f%s %s" %
-                          (ptsize, openbracket, rangemin, rangemax, closebracket, extranote))
+            grass.message(
+                "%-15d %s%.3f - %.3f%s %s"
+                % (ptsize, openbracket, rangemin, rangemax, closebracket, extranote)
+            )
 
             if not where:
-                sqlwhere = subs(locals(), "$column $mincomparison $rangemin AND $column <= $rangemax")
+                sqlwhere = subs(
+                    locals(),
+                    "$column $mincomparison $rangemin AND $column <= $rangemax",
+                )
             else:
-                sqlwhere = subs(locals(), "$column $mincomparison $rangemin AND $column <= $rangemax AND $where")
+                sqlwhere = subs(
+                    locals(),
+                    "$column $mincomparison $rangemin AND $column <= $rangemax AND $where",
+                )
 
             # update color to database?
             if rgb_column:
-                sql = subs(locals(), "UPDATE $table SET $rgb_column = '$themecolor' WHERE $sqlwhere")
-                grass.write_command('db.execute', database = database, driver = driver, input = '-', stdin = sql)
+                sql = subs(
+                    locals(),
+                    "UPDATE $table SET $rgb_column = '$themecolor' WHERE $sqlwhere",
+                )
+                grass.write_command(
+                    "db.execute", database=database, driver=driver, input="-", stdin=sql
+                )
 
             # Create group for GIS Manager
             if flag_g:
                 # change rgb colors to hex
-                xthemecolor = "#%02X%02X%02X" % tuple(__builtins__.map(int,themecolor.split(":")))
+                xthemecolor = "#%02X%02X%02X" % tuple(
+                    __builtins__.map(int, themecolor.split(":"))
+                )
                 xlinecolor = "#000000"
 
                 # create group entry
-                out(f_group, locals(), """\
+                out(
+                    f_group,
+                    locals(),
+                    """\
   _check 1
   Vector $column = $rangemin - $rangemax
     _check 1
@@ -1067,21 +1337,34 @@ end
     maxreg
     _width 0.1
   End
-""")
+""",
+                )
 
-            #graduates line widths or point sizes
+            # graduates line widths or point sizes
 
             kwargs = {}
             if themetype == "graduated_lines":
-                kwargs['width'] = ptsize
+                kwargs["width"] = ptsize
 
-            grass.run_command('d.vect', map = map, type = type, layer = layer,
-                              where = sqlwhere,
-                              color = linecolor, fcolor = themecolor, icon = icon,
-                              size = ptsize, quiet = True, **kwargs)
+            grass.run_command(
+                "d.vect",
+                map=map,
+                type=type,
+                layer=layer,
+                where=sqlwhere,
+                color=linecolor,
+                fcolor=themecolor,
+                icon=icon,
+                size=ptsize,
+                quiet=True,
+                **kwargs
+            )
 
             if themetype != "graduated_lines":
-                out(f_psmap, locals(), """\
+                out(
+                    f_psmap,
+                    locals(),
+                    """\
 vpoints $map
   type $type
   layer $layer
@@ -1092,7 +1375,8 @@ vpoints $map
   size $ptsize
   label $rangemin - $rangemax
 end
-""")
+""",
+                )
 
             ptsize -= pointstep
 
@@ -1103,8 +1387,8 @@ end
     # Create graphic legend
     f_graph.close()
     if flag_l:
-        grass.run_command('d.erase')
-        grass.run_command('d.graph', input = tmp_graph)
+        grass.run_command("d.erase")
+        grass.run_command("d.graph", input=tmp_graph)
 
     # Create group file for GIS Manager
     f_group.write("End\n")
@@ -1130,6 +1414,7 @@ end
         tmpdir = os.path.dirname(tmp_gisleg)
         tlegfile = os.path.join(tmpdir, "gismlegend.txt")
         shutil.copyfile(tmp_gisleg, tlegfile)
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

@@ -58,12 +58,12 @@ from grass.pygrass.raster.buffer import Buffer
 
 def calculateOblique(reg, mi, ma, perc):
     """Calculate the oblique gradient"""
-    cols = reg['cols']
-    rows = reg['rows']
-    first_perc = ma * float(perc) / 100.
-    dif_cols_first = (first_perc - mi) / float(cols-1)
-    dif_rows_first = (first_perc - mi) / float(rows-1)
-    dif_rows_last = (ma - first_perc) / float(rows-1)
+    cols = reg["cols"]
+    rows = reg["rows"]
+    first_perc = ma * float(perc) / 100.0
+    dif_cols_first = (first_perc - mi) / float(cols - 1)
+    dif_rows_first = (first_perc - mi) / float(rows - 1)
+    dif_rows_last = (ma - first_perc) / float(rows - 1)
     matrix = []
     for r in range(rows):
         row = []
@@ -86,12 +86,12 @@ def calculateOblique(reg, mi, ma, perc):
 def createRast(name, matrix, inverse=False):
     """Create the new raster map using the output matrix of calculateOblique"""
     newscratch = RasterRow(name)
-    newscratch.open('w', overwrite=True)
+    newscratch.open("w", overwrite=True)
     try:
         for r in matrix:
             if inverse:
                 r.reverse()
-            newrow = Buffer((len(r),), mtype='FCELL')
+            newrow = Buffer((len(r),), mtype="FCELL")
             for c in range(len(r)):
                 newrow[c] = r[c]
             newscratch.put_row(newrow)
@@ -103,50 +103,77 @@ def createRast(name, matrix, inverse=False):
 
 def checkPercentile(per, di):
     """Check if percentile option is set with the oblique directions"""
-    if not per and di in ['NW-SE', 'NE-SW', 'SW-NE', 'SE-NW']:
-        grass.fatal("Percentile option has to be set with {dire} direction". format(dire=di))
+    if not per and di in ["NW-SE", "NE-SW", "SW-NE", "SE-NW"]:
+        grass.fatal(
+            "Percentile option has to be set with {dire} direction".format(dire=di)
+        )
 
 
 def main():
     """Main function"""
     regiondict = grass.region()
 
-    output = options['output']
-    values = options['range'].split(',')
+    output = options["output"]
+    values = options["range"].split(",")
     NewMin = int(values[0].strip())
     NewMax = int(values[1].strip())
-    percentile = options['percentile']
-    direction = options['direction']
+    percentile = options["percentile"]
+    direction = options["direction"]
 
     checkPercentile(percentile, direction)
     # And now we can calculate the graded rasters
     # for gradient of rows
-    if direction == 'N-S':
-        grass.mapcalc("$newmap = (((row() - $OldMin) * ($NewMax - $NewMin)) / "
-                      "($OldMax - $OldMin)) + $NewMin",
-                      newmap=output, NewMin=NewMin, NewMax=NewMax, OldMin=1,
-                      OldMax=regiondict["rows"], overwrite=True)
-    elif direction == 'S-N':
-        grass.mapcalc("$newmap = (((row() - $OldMin) * ($NewMax - $NewMin)) / "
-                      "($OldMax - $OldMin)) + $NewMin",
-                      newmap=output, NewMin=NewMax, NewMax=NewMin, OldMin=1,
-                      OldMax=regiondict["rows"], overwrite=True)
-    elif direction == 'W-E':
-        grass.mapcalc("$newmap = (((col() - $OldMin) * ($NewMax - $NewMin)) / "
-                      "($OldMax - $OldMin)) + $NewMin",
-                      newmap=output, NewMin=NewMin, NewMax=NewMax, OldMin=1,
-                      OldMax=regiondict["cols"], overwrite=True)
-    elif direction == 'E-W':
-        grass.mapcalc("$newmap = (((col() - $OldMin) * ($NewMax - $NewMin)) / "
-                      "($OldMax - $OldMin)) + $NewMin",
-                      newmap=output, NewMin=NewMax, NewMax=NewMin, OldMin=1,
-                      OldMax=regiondict["cols"], overwrite=True)
-    elif direction == 'NW-SE':
+    if direction == "N-S":
+        grass.mapcalc(
+            "$newmap = (((row() - $OldMin) * ($NewMax - $NewMin)) / "
+            "($OldMax - $OldMin)) + $NewMin",
+            newmap=output,
+            NewMin=NewMin,
+            NewMax=NewMax,
+            OldMin=1,
+            OldMax=regiondict["rows"],
+            overwrite=True,
+        )
+    elif direction == "S-N":
+        grass.mapcalc(
+            "$newmap = (((row() - $OldMin) * ($NewMax - $NewMin)) / "
+            "($OldMax - $OldMin)) + $NewMin",
+            newmap=output,
+            NewMin=NewMax,
+            NewMax=NewMin,
+            OldMin=1,
+            OldMax=regiondict["rows"],
+            overwrite=True,
+        )
+    elif direction == "W-E":
+        grass.mapcalc(
+            "$newmap = (((col() - $OldMin) * ($NewMax - $NewMin)) / "
+            "($OldMax - $OldMin)) + $NewMin",
+            newmap=output,
+            NewMin=NewMin,
+            NewMax=NewMax,
+            OldMin=1,
+            OldMax=regiondict["cols"],
+            overwrite=True,
+        )
+    elif direction == "E-W":
+        grass.mapcalc(
+            "$newmap = (((col() - $OldMin) * ($NewMax - $NewMin)) / "
+            "($OldMax - $OldMin)) + $NewMin",
+            newmap=output,
+            NewMin=NewMax,
+            NewMax=NewMin,
+            OldMin=1,
+            OldMax=regiondict["cols"],
+            overwrite=True,
+        )
+    elif direction == "NW-SE":
         mat = calculateOblique(regiondict, NewMin, NewMax, percentile)
         createRast(output, mat)
-    elif direction == 'NE-SW':
+    elif direction == "NE-SW":
         mat = calculateOblique(regiondict, NewMin, NewMax, percentile)
         createRast(output, mat, True)
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

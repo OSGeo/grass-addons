@@ -60,12 +60,13 @@ import grass.temporal as tgis
 import grass.script as gscript
 import grass.pygrass.modules as pymod
 
+
 def main():
     strds = options["input"]
     where = options["where"]
     nprocs = int(options["nprocs"])
 
-    nullmod = pymod.Module('r.null')
+    nullmod = pymod.Module("r.null")
     nullmod.flags.quiet = True
     if options["null"]:
         nullmod.inputs.null = options["null"]
@@ -82,8 +83,9 @@ def main():
     sp = tgis.open_old_stds(strds, "strds", dbif)
     maps = sp.get_registered_maps_as_objects(where, "start_time", None)
     if maps is None:
-        gscript.fatal(_("Space time raster dataset {st} seems to be "
-                        "empty".format(st=strds)))
+        gscript.fatal(
+            _("Space time raster dataset {st} seems to be " "empty".format(st=strds))
+        )
         return 1
     # module queue for parallel execution
     process_queue = pymod.ParallelModuleQueue(int(nprocs))
@@ -102,6 +104,7 @@ def main():
 
     # Wait for unfinished processes
     process_queue.wait()
+
 
 if __name__ == "__main__":
     options, flags = gscript.parser()

@@ -38,14 +38,14 @@ def calibrate_digital_number(dn, c0, c1, c2):
     polynomial model
     """
     if not isinstance(dn, int):
-        raise ValueError('The provided Digital Number value is NOT an '
-                         'integer!')
+        raise ValueError("The provided Digital Number value is NOT an " "integer!")
 
     if 0 > dn or dn > 63:
-        raise ValueError('The provided Digital Number value is out of the '
-                         'expected range [0, 63]')
+        raise ValueError(
+            "The provided Digital Number value is out of the " "expected range [0, 63]"
+        )
 
-    return c0 + (c1 * dn) + (c2 * (dn**2))
+    return c0 + (c1 * dn) + (c2 * (dn ** 2))
 
 
 def test_model(author):
@@ -60,10 +60,10 @@ def test_model(author):
     print()
 
     print(" * Assigning (random) author, model version and parameters...")
-    version = ''
+    version = ""
     if not author:
-        version = random.choice(['2009', '2014'])
-        author = 'ELVIDGE' + str(version)
+        version = random.choice(["2009", "2014"])
+        author = "ELVIDGE" + str(version)
     else:
         version = author[7:]
 
@@ -72,37 +72,39 @@ def test_model(author):
     c0 = COEFFICIENTS[author][satellite][year][0]
     c1 = COEFFICIENTS[author][satellite][year][1]
 
-    print(f'   Author: {author}')
-    print(f'   Version: {version}')
-    print(f'   Satellite: {satellite}')
-    print(f'   Year: {year}')
-    print(f'   c0: {c0}')
-    print(f'   c1: {c1}')
+    print(f"   Author: {author}")
+    print(f"   Version: {version}")
+    print(f"   Satellite: {satellite}")
+    print(f"   Year: {year}")
+    print(f"   c0: {c0}")
+    print(f"   c1: {c1}")
 
     c2 = float()
-    if 'WU' not in author:
+    if "WU" not in author:
         print()
         print(" * Assiging a random c2 coefficient...")
         c2 = COEFFICIENTS[author][satellite][year][2]
-        print(f'   {c2}')
+        print(f"   {c2}")
 
-#    R2 = coefficients[author][satellite][year][3]
-#    print " Associated R^2 value: ", R2
+    #    R2 = coefficients[author][satellite][year][3]
+    #    print " Associated R^2 value: ", R2
     print()
 
     # -----------------------------------------------------------------------
     print(" >> Testing model class:")
     print()
-    print ('   Usage:  <ModelName>(satellite, year, model version)\n'
-           '   where:  DN: input Digital Number value (integer)\n'
-           '           Coefficients: a pair or triplet of floating point values (tuple)\n'
-           '   eg:     liu2010_model = Liu2012(F10, 1992, 2009)')
+    print(
+        "   Usage:  <ModelName>(satellite, year, model version)\n"
+        "   where:  DN: input Digital Number value (integer)\n"
+        "           Coefficients: a pair or triplet of floating point values (tuple)\n"
+        "   eg:     liu2010_model = Liu2012(F10, 1992, 2009)"
+    )
     print()
-    if 'ELVIDGE' in author:
+    if "ELVIDGE" in author:
         test_model = Elvidge(satellite, year, version)
-    elif 'LIU' in author:
+    elif "LIU" in author:
         test_model = Liu2012(satellite, year)
-    elif 'WU' in author:
+    elif "WU" in author:
         test_model = Wu2013(satellite, year)
 
     print(" * Testing 'citation'  method:\n\n  ", test_model.citation)
@@ -110,8 +112,7 @@ def test_model(author):
     print(" * Testing '__str__' of class:\n\n  ", test_model)
     print(" * Testing 'satellite': ", test_model.satellite)
     print(" * Testing 'year':      ", test_model.year)
-    print(" * Testing 'veify_year': ", test_model.verify_year(author,
-                                                              satellite, year))
+    print(" * Testing 'veify_year': ", test_model.verify_year(author, satellite, year))
     print(" * Testing 'coefficients': ", test_model.coefficients)
     print(" * Testing 'r2': ", test_model.r2)
     print(" * Testing 'report_r2' method: ", test_model.report_r2())
@@ -128,10 +129,13 @@ def test_model(author):
     print(" >> Testing helper functions: ")
     print()
     dn = random_digital_number()
-    print(" * Testing 'random_digital_number()' method (and type()): ",
-           dn, "|", type(dn))
-    print(" * Testing 'calibrate_digital_number' method: ",
-           calibrate_digital_number(dn, c0, c1, c2))
+    print(
+        " * Testing 'random_digital_number()' method (and type()): ", dn, "|", type(dn)
+    )
+    print(
+        " * Testing 'calibrate_digital_number' method: ",
+        calibrate_digital_number(dn, c0, c1, c2),
+    )
     # -----------------------------------------------------------------------
     print(" * Testing three random Digital number values:\n")
     for dn in random_digital_numbers(3):
@@ -142,12 +146,14 @@ def test_model(author):
 
 # reusable & stand-alone
 if __name__ == "__main__":
-    print ('Testing classes for calibration models for DMSP-OLS NightTime '
-           'Lights Time Series')
+    print(
+        "Testing classes for calibration models for DMSP-OLS NightTime "
+        "Lights Time Series"
+    )
     print()
 
     # uncomment to test
-    test_model('ELVIDGE2009')
-    test_model('ELVIDGE2014')
-    test_model('LIU2012')
-    test_model('WU2013')
+    test_model("ELVIDGE2009")
+    test_model("ELVIDGE2014")
+    test_model("LIU2012")
+    test_model("WU2013")

@@ -139,16 +139,18 @@ def main(options, flags):
     following some hard-coded names -- review and remove!
     """
 
-    land = options["land"].split('@')[0]
+    land = options["land"].split("@")[0]
 
-    water = options["water"].split('@')[0]
+    water = options["water"].split("@")[0]
     water_component_map_name = temporary_filename(filename="water_component")
 
-    natural = options["natural"].split('@')[0]
+    natural = options["natural"].split("@")[0]
     natural_component_map_name = temporary_filename(filename="natural_component")
 
-    infrastructure = options["infrastructure"].split('@')[0]
-    infrastructure_component_map_name = temporary_filename(filename="infrastructure_component")
+    infrastructure = options["infrastructure"].split("@")[0]
+    infrastructure_component_map_name = temporary_filename(
+        filename="infrastructure_component"
+    )
 
     """Processing"""
 
@@ -162,9 +164,8 @@ def main(options, flags):
     landcover_reclassification_rules = options["land_classes"]
 
     # if the given 'rules' file(name) does not exist
-    if (
-            landcover_reclassification_rules
-            and not os.path.exists(landcover_reclassification_rules)
+    if landcover_reclassification_rules and not os.path.exists(
+        landcover_reclassification_rules
     ):
         missing_absolute_filename = os.path.abspath(landcover_reclassification_rules)
         raise ValueError(FILE_NOT_FOUND.format(f=missing_absolute_filename))
@@ -191,7 +192,6 @@ def main(options, flags):
     roads = options["roads"]
     roads_distance_categories = options["roads_distances"]
 
-
     """Aggregational boundaries"""
 
     base = options["base"]
@@ -213,7 +213,9 @@ def main(options, flags):
 
     opportunity_title = RECREATION_OPPORTUNITY_TITLE
     recreation_opportunity = options["opportunity"]
-    recreation_opportunity_map_name = temporary_filename(filename="recreation_opportunity")
+    recreation_opportunity_map_name = temporary_filename(
+        filename="recreation_opportunity"
+    )
 
     spectrum_title = RECREATION_SPECTRUM_TITLE
     # if options['spectrum']:
@@ -227,8 +229,7 @@ def main(options, flags):
     if ":" in spectrum_distance_categories:
         temporary_recreation_spectrum = temporary_filename(filename=recreation_spectrum)
         spectrum_distance_categories = string_to_file(
-            spectrum_distance_categories,
-            filename=temporary_recreation_spectrum
+            spectrum_distance_categories, filename=temporary_recreation_spectrum
         )
         remove_files_at_exit(spectrum_distance_categories)
 
@@ -301,12 +302,12 @@ def main(options, flags):
     if normalise_land_component and average_filter:
         smooth_component(
             normalise_land_component,
-            method='average',
+            method="average",
             size=7,
         )
     recreation_potential_component.extend(normalised_land_component)
 
-    '''Water'''
+    """Water"""
     if len(water_component) > 1:
         grass.verbose(_(MESSAGE_NORMALISING.format(component=WATER_COMPONENT)))
         zerofy_and_normalise_component(
@@ -320,7 +321,7 @@ def main(options, flags):
 
     remove_map_at_exit(water_component_map_name)
 
-    '''Natural'''
+    """Natural"""
     if len(natural_component) > 1:
         grass.verbose(_(MESSAGE_NORMALISING.format(component=NATURAL_COMPONENT)))
         zerofy_and_normalise_component(
@@ -338,7 +339,9 @@ def main(options, flags):
     remove_map_at_exit(natural_component_map_name)
 
     """ Recreation Potential [Output] """
-    tmp_recreation_potential = temporary_filename(filename=recreation_potential_map_name)
+    tmp_recreation_potential = temporary_filename(
+        filename=recreation_potential_map_name
+    )
 
     msg = COMPUTING_INTERMEDIATE_POTENTIAL_MAP
     grass.verbose(_(msg.format(potential=tmp_recreation_potential)))
@@ -351,7 +354,9 @@ def main(options, flags):
     )
 
     # recode recreation_potential
-    tmp_recreation_potential_categories = temporary_filename(filename=recreation_potential)
+    tmp_recreation_potential_categories = temporary_filename(
+        filename=recreation_potential
+    )
 
     msg = CLASSIFYING_POTENTIAL_MAP.format(potential=tmp_recreation_potential)
     grass.verbose(_(msg))
@@ -379,7 +384,7 @@ def main(options, flags):
     # Required for recreation opportunity and successively recreation spectrum
 
     if infrastructure and not any(
-            [recreation_opportunity, recreation_spectrum, demand, flow, supply]
+        [recreation_opportunity, recreation_spectrum, demand, flow, supply]
     ):
         grass.warning(_(INFRASTRUCTURE_NOT_REQUIRED))
 
@@ -395,7 +400,6 @@ def main(options, flags):
             artificial_proximity_map_name="artificial_proximity",
             artificial_accessibility_map_name="artificial_accessibility",
         )
-
 
     # # Recreational facilities, amenities, services
 
@@ -432,11 +436,15 @@ def main(options, flags):
         # intermediate
 
         # REVIEW --------------------------------------------------------------
-        tmp_recreation_opportunity = temporary_filename(filename=recreation_opportunity_map_name)
+        tmp_recreation_opportunity = temporary_filename(
+            filename=recreation_opportunity_map_name
+        )
         msg = COMPUTING_INTERMEDIATE_OPPORTUNITY_MAP
         grass.debug(_(msg.format(opportunity=tmp_recreation_opportunity)))
 
-        grass.verbose(_(MESSAGE_NORMALISING.format(component=RECREATION_OPPORTUNITY_COMPONENT)))
+        grass.verbose(
+            _(MESSAGE_NORMALISING.format(component=RECREATION_OPPORTUNITY_COMPONENT))
+        )
         grass.debug(_("*** Maps: {maps}".format(maps=recreation_opportunity_component)))
 
         zerofy_and_normalise_component(
@@ -452,7 +460,9 @@ def main(options, flags):
         grass.verbose(msg.format(opportunity=recreation_opportunity_map_name))
 
         # recode opportunity_component
-        tmp_recreation_opportunity_categories = temporary_filename(filename=recreation_opportunity)
+        tmp_recreation_opportunity_categories = temporary_filename(
+            filename=recreation_opportunity
+        )
         classify_recreation_component(
             component=tmp_recreation_opportunity,
             rules=RECREATION_OPPORTUNITY_CATEGORIES,
@@ -476,10 +486,7 @@ def main(options, flags):
 
         # Recreation Spectrum: Potential + Opportunity [Output]
 
-        if (
-            not recreation_spectrum
-            and any([demand, flow, supply])
-        ):
+        if not recreation_spectrum and any([demand, flow, supply]):
             recreation_spectrum = temporary_filename(filename="recreation_spectrum")
             remove_map_at_exit(recreation_spectrum)
 
@@ -569,7 +576,9 @@ def main(options, flags):
             output=distance_categories_to_highest_spectrum,
         )
 
-        temporary_distance_categories_to_highest_spectrum = temporary_filename(filename=distance_categories_to_highest_spectrum)
+        temporary_distance_categories_to_highest_spectrum = temporary_filename(
+            filename=distance_categories_to_highest_spectrum
+        )
         spectrum_distance_category_labels = string_to_file(
             SPECTRUM_DISTANCE_CATEGORY_LABELS,
             filename=temporary_distance_categories_to_highest_spectrum,
@@ -603,16 +612,13 @@ def main(options, flags):
 
         if info:
             population_statistics = get_univariate_statistics(population)
-            population_total = population_statistics['sum']
+            population_total = population_statistics["sum"]
             msg = POPULATION_STATISTICS.format(s=population_total)
             grass.verbose(_(msg))
 
         """Demand Distribution"""
 
-        if (
-            any([flow, supply, aggregation])
-            and not demand
-        ):
+        if any([flow, supply, aggregation]) and not demand:
             demand = temporary_filename(filename="demand")
 
         compute_demand(
@@ -624,7 +630,6 @@ def main(options, flags):
             vector_methods=METHODS,
             vector_column_prefix=COLUMN_PREFIX_DEMAND,
         )
-
 
         """Unmet Demand"""
 
@@ -641,7 +646,6 @@ def main(options, flags):
                 vector_methods=METHODS,
                 vector_column_prefix=COLUMN_PREFIX_UNMET,
             )
-
 
         """Mobility function"""
 

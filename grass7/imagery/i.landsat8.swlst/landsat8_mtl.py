@@ -9,9 +9,9 @@ from collections import namedtuple
 
 
 # globals
-MTLFILE = ''
-DUMMY_MAPCALC_STRING_RADIANCE = 'Radiance'
-DUMMY_MAPCALC_STRING_DN = 'DigitalNumber'
+MTLFILE = ""
+DUMMY_MAPCALC_STRING_RADIANCE = "Radiance"
+DUMMY_MAPCALC_STRING_DN = "DigitalNumber"
 
 
 # helper functions
@@ -25,7 +25,7 @@ def set_mtlfile():
         return False
 
 
-class Landsat8_MTL():
+class Landsat8_MTL:
     """
     Retrieve metadata from a Landsat8 MTL file.
     See <http://landsat.usgs.gov/Landsat8_Using_Product.php>.
@@ -43,15 +43,15 @@ class Landsat8_MTL():
         Initialise class object based on a Landsat8 MTL filename.
         """
         # read lines
-        with open(mtl_filename, 'r') as mtl_file:
+        with open(mtl_filename, "r") as mtl_file:
             mtl_lines = mtl_file.readlines()
 
         # close and remove 'mtl_file'
         mtl_file.close()
-        del(mtl_file)
+        del mtl_file
 
         # clean and convert MTL lines in to a named tuple
-        self.mtl = self._to_namedtuple(mtl_lines, 'metadata')
+        self.mtl = self._to_namedtuple(mtl_lines, "metadata")
         self._set_attributes()
 
         # shorten LANDSAT_SCENE_ID, SENSOR_ID
@@ -59,14 +59,22 @@ class Landsat8_MTL():
         self.sensor = self.mtl.SENSOR_ID
 
         # bounding box related
-        self.corner_ul = (self.mtl.CORNER_UL_LAT_PRODUCT,
-                          self.mtl.CORNER_UL_LON_PRODUCT)
-        self.corner_lr = (self.mtl.CORNER_LR_LAT_PRODUCT,
-                          self.mtl.CORNER_LR_LON_PRODUCT)
-        self.corner_ul_projection = (self.mtl.CORNER_UL_PROJECTION_X_PRODUCT,
-                                     self.mtl.CORNER_UL_PROJECTION_Y_PRODUCT)
-        self.corner_lr_projection = (self.mtl.CORNER_LR_PROJECTION_X_PRODUCT,
-                                     self.mtl.CORNER_LR_PROJECTION_Y_PRODUCT)
+        self.corner_ul = (
+            self.mtl.CORNER_UL_LAT_PRODUCT,
+            self.mtl.CORNER_UL_LON_PRODUCT,
+        )
+        self.corner_lr = (
+            self.mtl.CORNER_LR_LAT_PRODUCT,
+            self.mtl.CORNER_LR_LON_PRODUCT,
+        )
+        self.corner_ul_projection = (
+            self.mtl.CORNER_UL_PROJECTION_X_PRODUCT,
+            self.mtl.CORNER_UL_PROJECTION_Y_PRODUCT,
+        )
+        self.corner_lr_projection = (
+            self.mtl.CORNER_LR_PROJECTION_X_PRODUCT,
+            self.mtl.CORNER_LR_PROJECTION_Y_PRODUCT,
+        )
         self.cloud_cover = self.mtl.CLOUD_COVER
 
     def _to_namedtuple(self, list_of_lines, name_for_tuple):
@@ -80,12 +88,15 @@ class Landsat8_MTL():
         import string
 
         # exclude lines containing 'GROUP', 'END'
-        lines = [line.strip() for line in list_of_lines
-                 if not any(x in line for x in ('GROUP', 'END'))]
+        lines = [
+            line.strip()
+            for line in list_of_lines
+            if not any(x in line for x in ("GROUP", "END"))
+        ]
 
         # keep a copy, maybe useful?
         self._mtl_lines = lines
-        del(list_of_lines)
+        del list_of_lines
 
         # empty variables to hold values
         field_names = []
@@ -96,13 +107,13 @@ class Landsat8_MTL():
 
             # split line in '='
             line = lines[idx]
-            line_split = line.split('=')
+            line_split = line.split("=")
 
             # get field name & field value, clean whitespaces and "
             field_name = line_split[0].strip()
             field_names.append(field_name)
             field_value = line_split[1].strip()
-            translation_table = str.maketrans('', '', '"')
+            translation_table = str.maketrans("", "", '"')
             field_value = field_value.translate(translation_table)
             field_values.append(field_value)
 
@@ -126,8 +137,8 @@ class Landsat8_MTL():
         """
         Return a string representation of the scene's id.
         """
-        msg = 'Landsat8 scene ID:'
-        return msg + ' ' + self.scene_id
+        msg = "Landsat8 scene ID:"
+        return msg + " " + self.scene_id
 
     def _get_mtl_lines(self):
         """
@@ -162,18 +173,20 @@ class Landsat8_MTL():
         Some code borrowed from
         <https://github.com/micha-silver/grass-landsat8/blob/master/r.in.landsat8.py>
         """
-        multiplicative_factor = getattr(self.mtl, ('RADIANCE_MULT_BAND_' +
-                                        str(bandnumber)))
+        multiplicative_factor = getattr(
+            self.mtl, ("RADIANCE_MULT_BAND_" + str(bandnumber))
+        )
         # print "ML:", multiplicative_factor
 
-        additive_factor = getattr(self.mtl, 'RADIANCE_ADD_BAND_' +
-                                  str(bandnumber))
+        additive_factor = getattr(self.mtl, "RADIANCE_ADD_BAND_" + str(bandnumber))
         # print "AL:", additive_factor
 
-        formula = '{ML}*{DUMMY_DN} + {AL}'
-        mapcalc = formula.format(ML=multiplicative_factor,
-                                 DUMMY_DN=DUMMY_MAPCALC_STRING_DN,
-                                 AL=additive_factor)
+        formula = "{ML}*{DUMMY_DN} + {AL}"
+        mapcalc = formula.format(
+            ML=multiplicative_factor,
+            DUMMY_DN=DUMMY_MAPCALC_STRING_DN,
+            AL=additive_factor,
+        )
 
         return mapcalc
 
@@ -247,13 +260,13 @@ class Landsat8_MTL():
         - K2 = Band-specific thermal conversion constant from the metadata
           (K2_CONSTANT_BAND_x, where x is the band number, 10 or 11)
         """
-        k2 = getattr(self.mtl, ('K2_CONSTANT_BAND_' + str(bandnumber)))
-        k1 = getattr(self.mtl, ('K1_CONSTANT_BAND_' + str(bandnumber)))
+        k2 = getattr(self.mtl, ("K2_CONSTANT_BAND_" + str(bandnumber)))
+        k1 = getattr(self.mtl, ("K1_CONSTANT_BAND_" + str(bandnumber)))
 
-        formula = '{K2} / ( log({K1} / {DUMMY_RADIANCE} + 1))'
-        mapcalc = formula.format(K2=k2,
-                                 K1=k1,
-                                 DUMMY_RADIANCE=DUMMY_MAPCALC_STRING_RADIANCE)
+        formula = "{K2} / ( log({K1} / {DUMMY_RADIANCE} + 1))"
+        mapcalc = formula.format(
+            K2=k2, K1=k1, DUMMY_RADIANCE=DUMMY_MAPCALC_STRING_RADIANCE
+        )
 
         return mapcalc
 
@@ -266,7 +279,7 @@ def main():
         MTLFILE = set_mtlfile()
         print("| Reading metadata from:", MTLFILE)
     else:
-        MTLFILE = ''
+        MTLFILE = ""
 
 
 if __name__ == "__main__":

@@ -9,9 +9,9 @@
 #               to allow parallel processing
 # COPYRIGHT:	(C) 2019 by the GRASS Development Team
 #
-#		This program is free software under the GNU General Public
-#		License (>=v2). Read the file COPYING that comes with GRASS
-#		for details.
+# 		This program is free software under the GNU General Public
+# 		License (>=v2). Read the file COPYING that comes with GRASS
+# 		for details.
 #############################################################################
 
 #%Module
@@ -78,6 +78,7 @@ import math
 import grass.script as gscript
 from grass.pygrass.modules.grid.grid import *
 
+
 class MyGridModule(GridModule):
     """inherit GridModule, but handle the fact that the output name is in the expression"""
 
@@ -88,46 +89,53 @@ class MyGridModule(GridModule):
         mset = loc[self.mset.name]
         mset.visible.extend(loc.mapsets())
         output_map = self.out_prefix[:]
-        self.out_prefix = ''
-        rpatch_map(output_map,
-                   self.mset.name, self.msetstr, bboxes,
-                   self.module.flags.overwrite,
-                   self.start_row, self.start_col, self.out_prefix)
+        self.out_prefix = ""
+        rpatch_map(
+            output_map,
+            self.mset.name,
+            self.msetstr,
+            bboxes,
+            self.module.flags.overwrite,
+            self.start_row,
+            self.start_col,
+            self.out_prefix,
+        )
 
 
 def main():
 
-    expression = options['expression']
-    width = int(options['width'])
-    height = int(options['height'])
-    overlap = int(options['overlap'])
-    processes = int(options['processes'])
+    expression = options["expression"]
+    width = int(options["width"])
+    height = int(options["height"])
+    overlap = int(options["overlap"])
+    processes = int(options["processes"])
     output = None
-    if options['output']:
-        output = options['output']
+    if options["output"]:
+        output = options["output"]
     mapset_prefix = None
-    if options['mapset_prefix']:
-        mapset_prefix = options['mapset_prefix']
+    if options["mapset_prefix"]:
+        mapset_prefix = options["mapset_prefix"]
 
-
-    kwargs = {'expression': expression,
-              'quiet': True}
+    kwargs = {"expression": expression, "quiet": True}
 
     if output:
         output_mapname = output
     else:
-        output_mapname = expression.split('=')[0].strip()
+        output_mapname = expression.split("=")[0].strip()
 
-    grd = MyGridModule('r.mapcalc',
-                       width=width,
-                       height=height,
-                       overlap=overlap,
-                       processes=processes,
-                       split=False,
-                       mapset_prefix=mapset_prefix,
-                       out_prefix=output_mapname,
-                       **kwargs)
+    grd = MyGridModule(
+        "r.mapcalc",
+        width=width,
+        height=height,
+        overlap=overlap,
+        processes=processes,
+        split=False,
+        mapset_prefix=mapset_prefix,
+        out_prefix=output_mapname,
+        **kwargs
+    )
     grd.run()
+
 
 if __name__ == "__main__":
     options, flags = gscript.parser()

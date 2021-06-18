@@ -101,13 +101,14 @@
 ##################
 # PYTHON
 import numpy as np
+
 # GRASS
 from grass.pygrass.modules.shortcuts import general as g
 from grass.pygrass.modules.shortcuts import raster as r
 from grass.pygrass.modules.shortcuts import vector as v
 from grass.pygrass.modules.shortcuts import miscellaneous as m
 from grass.pygrass.gis import region
-from grass.pygrass import vector # Change to "v"?
+from grass.pygrass import vector  # Change to "v"?
 from grass.script import vector_db_select
 from grass.pygrass.vector import Vector, VectorTopo
 from grass.pygrass.raster import RasterRow
@@ -117,6 +118,7 @@ from grass import script as gscript
 ###############
 # MAIN MODULE #
 ###############
+
 
 def main():
     """
@@ -131,91 +133,115 @@ def main():
     options, flags = gscript.parser()
 
     # Parsing
-    if options['attrtype'] == 'int':
-        attrtype = 'integer'
-    elif options['attrtype'] == 'float':
-        attrtype = 'double precision'
-    elif options['attrtype'] == 'string':
-        attrtype = 'varchar'
+    if options["attrtype"] == "int":
+        attrtype = "integer"
+    elif options["attrtype"] == "float":
+        attrtype = "double precision"
+    elif options["attrtype"] == "string":
+        attrtype = "varchar"
     else:
-        attrtype = ''
+        attrtype = ""
 
     ########################################
     # PROCESS AND UPLOAD TO DATABASE TABLE #
     ########################################
 
-    if options['vector_area'] is not '':
+    if options["vector_area"] is not "":
         gscript.use_temp_region()
-        g.region(vector=options['map'], res=options['dxy'])
-        v.to_rast(input=options['vector_area'], output='tmp___tmp',
-                  use='attr', attribute_column=options['from_column'],
-                  quiet=True, overwrite=True)
+        g.region(vector=options["map"], res=options["dxy"])
+        v.to_rast(
+            input=options["vector_area"],
+            output="tmp___tmp",
+            use="attr",
+            attribute_column=options["from_column"],
+            quiet=True,
+            overwrite=True,
+        )
         try:
             gscript.message("Checking for existing column to overwrite")
-            v.db_dropcolumn(map=options['map'],
-                            columns=options['column'],
-                            quiet=True)
+            v.db_dropcolumn(map=options["map"], columns=options["column"], quiet=True)
         except:
             pass
-        if attrtype is 'double precision':
+        if attrtype is "double precision":
             try:
                 gscript.message("Checking for existing column to overwrite")
-                v.db_dropcolumn(map=options['map'],
-                                columns='tmp_average',
-                                quiet=True)
+                v.db_dropcolumn(map=options["map"], columns="tmp_average", quiet=True)
             except:
                 pass
-            v.rast_stats(map=options['map'], raster='tmp___tmp',
-                         column_prefix='tmp', method='average', flags='c',
-                         quiet=True)
-            g.remove(type='raster', name='tmp___tmp', flags='f', quiet=True)
-            v.db_renamecolumn(map=options['map'],
-                              column=['tmp_average',options['column']],
-                              quiet=True)
+            v.rast_stats(
+                map=options["map"],
+                raster="tmp___tmp",
+                column_prefix="tmp",
+                method="average",
+                flags="c",
+                quiet=True,
+            )
+            g.remove(type="raster", name="tmp___tmp", flags="f", quiet=True)
+            v.db_renamecolumn(
+                map=options["map"],
+                column=["tmp_average", options["column"]],
+                quiet=True,
+            )
 
         else:
             try:
-                v.db_addcolumn(map=options['map'],
-                               columns=options['column']+' '+attrtype,
-                               quiet=True)
+                v.db_addcolumn(
+                    map=options["map"],
+                    columns=options["column"] + " " + attrtype,
+                    quiet=True,
+                )
             except:
                 pass
-            gscript.run_command('v.distance', from_=options['map'],
-                                to=options['vector_area'],
-                                upload='to_attr',
-                                to_column=options['from_column'],
-                                column=options['column'], quiet=True)
-    elif options['vector_points'] is not '':
+            gscript.run_command(
+                "v.distance",
+                from_=options["map"],
+                to=options["vector_area"],
+                upload="to_attr",
+                to_column=options["from_column"],
+                column=options["column"],
+                quiet=True,
+            )
+    elif options["vector_points"] is not "":
         try:
             gscript.message("Checking for existing column to overwrite")
-            v.db_dropcolumn(map=options['map'],
-                            columns = options['column'],
-                            quiet=True)
-            v.db_addcolumn(map=options['map'],
-                           columns=options['column']+' '+attrtype,
-                           quiet=True)
+            v.db_dropcolumn(map=options["map"], columns=options["column"], quiet=True)
+            v.db_addcolumn(
+                map=options["map"],
+                columns=options["column"] + " " + attrtype,
+                quiet=True,
+            )
         except:
             pass
-        gscript.run_command('v.distance', from_=options['map'],
-                            to=options['vector_points'],
-                            upload='to_attr', to_column=options['from_column'],
-                            column=options['column'], quiet=True)
+        gscript.run_command(
+            "v.distance",
+            from_=options["map"],
+            to=options["vector_points"],
+            upload="to_attr",
+            to_column=options["from_column"],
+            column=options["column"],
+            quiet=True,
+        )
 
-    elif options['raster'] is not '':
+    elif options["raster"] is not "":
         try:
             gscript.message("Checking for existing column to overwrite")
-            v.db_dropcolumn(map=options['map'],
-                            columns=options['column'],
-                            quiet=True)
+            v.db_dropcolumn(map=options["map"], columns=options["column"], quiet=True)
         except:
             pass
-        v.rast_stats(map=options['map'], raster=options['raster'],
-                     column_prefix='tmp', method='average', flags='c',
-                     quiet=True)
-        v.db_renamecolumn(map=options['map'],
-                          column=['tmp_average',options['column']], quiet=True)
+        v.rast_stats(
+            map=options["map"],
+            raster=options["raster"],
+            column_prefix="tmp",
+            method="average",
+            flags="c",
+            quiet=True,
+        )
+        v.db_renamecolumn(
+            map=options["map"], column=["tmp_average", options["column"]], quiet=True
+        )
 
     gscript.message("Done.")
+
 
 if __name__ == "__main__":
     main()

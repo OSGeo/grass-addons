@@ -7,8 +7,10 @@ def check_t1x_range(number):
     actual data quantisation though is 12-bit.
     """
     if number < 200 or number > 330:
-        raise ValueError('The input value {t1x} for T1x is out of a '
-                         'reasonable range [200, 330]'.format(t1x=number))
+        raise ValueError(
+            "The input value {t1x} for T1x is out of a "
+            "reasonable range [200, 330]".format(t1x=number)
+        )
     else:
         return True
 
@@ -25,8 +27,10 @@ def check_cwv(cwv):
           for +-.5
 
     """
-    if cwv < 0.0 - .5 or cwv > 6.3 + .5:
-        raise ValueError('The column water vapor estimation is out of the '
-                         'expected range [0.0, 6.3]')
+    if cwv < 0.0 - 0.5 or cwv > 6.3 + 0.5:
+        raise ValueError(
+            "The column water vapor estimation is out of the "
+            "expected range [0.0, 6.3]"
+        )
     else:
         return True

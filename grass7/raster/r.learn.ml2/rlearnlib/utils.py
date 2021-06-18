@@ -30,6 +30,7 @@ def get_fullname(name):
 
     return name
 
+
 def option_to_list(x, dtype=None):
     """
     Parses a multiple choice option from into a list
@@ -115,8 +116,7 @@ def predefined_estimators(estimator, random_state, n_jobs, p):
         ExtraTreesClassifier,
         ExtraTreesRegressor,
     )
-    from sklearn.ensemble import (GradientBoostingClassifier,
-                                  GradientBoostingRegressor)
+    from sklearn.ensemble import GradientBoostingClassifier, GradientBoostingRegressor
     from sklearn.svm import SVC, SVR
     from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
     from sklearn.neural_network import MLPClassifier, MLPRegressor
@@ -132,8 +132,7 @@ def predefined_estimators(estimator, random_state, n_jobs, p):
             n_jobs=1,
             fit_intercept=True,
         ),
-        "LinearRegression": LinearRegression(
-            n_jobs=n_jobs, fit_intercept=True),
+        "LinearRegression": LinearRegression(n_jobs=n_jobs, fit_intercept=True),
         "SGDClassifier": SGDClassifier(
             penalty=p["penalty"],
             alpha=p["alpha"],
@@ -340,8 +339,7 @@ def scoring_metrics(mode):
     return scoring, search_scorer
 
 
-def save_training_data(file, X, y, cat, class_labels=None, groups=None,
-                       names=None):
+def save_training_data(file, X, y, cat, class_labels=None, groups=None, names=None):
     """
     Saves any extracted training data to a csv file.
 
@@ -388,8 +386,7 @@ def save_training_data(file, X, y, cat, class_labels=None, groups=None,
         groups[:] = np.nan
 
     if class_labels:
-        labels_arr = np.asarray(
-            [class_labels[yi] for yi in y]).astype(np.object)
+        labels_arr = np.asarray([class_labels[yi] for yi in y]).astype(np.object)
     else:
         labels_arr = np.empty((y.shape[0]))
         labels_arr[:] = np.nan
@@ -436,7 +433,6 @@ def load_training_data(file):
 
     cat = training_data.cat.values.astype(np.int64)
     y = training_data.response.values
-    X = training_data.drop(
-        columns=["groups", "class_labels", "cat", "response"]).values
+    X = training_data.drop(columns=["groups", "class_labels", "cat", "response"]).values
 
     return X, y, cat, class_labels, groups

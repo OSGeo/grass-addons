@@ -9,6 +9,7 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
               for details.
 """
 
+
 class Error(Exception):
     """Base class for exceptions in this module.
 
@@ -24,6 +25,7 @@ class Error(Exception):
     def __str__(self):
         return self.expr + " '" + self.msg + "'"
 
+
 class EnvError(Error):
     """Exception raised for missing GRASS environement.
 
@@ -31,6 +33,7 @@ class EnvError(Error):
         expr -- Context expression in which the error occurred
         msg  -- explanation of the error
     """
+
 
 class DataError(Error):
     """Exception raised for errors in the input.

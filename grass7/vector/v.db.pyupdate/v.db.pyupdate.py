@@ -302,7 +302,12 @@ def main():
         sep = "|"  # Only one char sep for Python csv package.
         null = "NULL"
         csv_text = gs.read_command(
-            "v.db.select", map=vector, layer=layer, separator=sep, null=null, where=where
+            "v.db.select",
+            map=vector,
+            layer=layer,
+            separator=sep,
+            null=null,
+            where=where,
         )
         table_contents = csv_loads(csv_text, delimeter=sep, null=null)
     else:

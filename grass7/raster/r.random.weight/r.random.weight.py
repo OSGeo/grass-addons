@@ -90,12 +90,12 @@ import grass.script as gs
 
 CLEAN_RAST = []
 
+
 def cleanup():
     """Remove temporary maps specified in the global list"""
     cleanrast = list(reversed(CLEAN_RAST))
     for rast in cleanrast:
-        gs.run_command("g.remove", flags="f", type="all",
-                       name=rast, quiet=True)
+        gs.run_command("g.remove", flags="f", type="all", name=rast, quiet=True)
 
 
 # Create temporary name
@@ -105,7 +105,7 @@ def tmpname(name):
     Use only for raster maps.
     """
     tmpf = name + "_" + str(uuid.uuid4())
-    tmpf = string.replace(tmpf, '-', '_')
+    tmpf = string.replace(tmpf, "-", "_")
     CLEAN_RAST.append(tmpf)
     return tmpf
 
@@ -118,81 +118,115 @@ def main(options, flags):
         gs.fatal("You must be in GRASS GIS to run this program")
 
     # input raster map and parameters
-    minval = options['start']
-    maxval = options['end']
-    weight = options['weights']
-    outmap = options['output']
-    subsample = options['subsample']
-    seed = options['seed']
-    flag_n = flags['n']
+    minval = options["start"]
+    maxval = options["end"]
+    weight = options["weights"]
+    outmap = options["output"]
+    subsample = options["subsample"]
+    seed = options["seed"]
+    flag_n = flags["n"]
 
     # Compute minimum and maximum value raster
-    minmax = gs.parse_command('r.univar', map=weight, flags='g', quiet=True)
+    minmax = gs.parse_command("r.univar", map=weight, flags="g", quiet=True)
 
     # Set min and max if not set, and check set min/max against map min and max
-    if minval == '':
-        minval = minmax['min']
-    if maxval == '':
-        maxval = minmax['max']
-    if minval > minmax['min'] or maxval < minmax['max']:
-        ms = ("\nYou defined the minimum and maximum weights\nas "
-        + minval + " and " + maxval +
-        " respectively. Note that the\nvalue range of weight raster is "
-        + minmax['min'] + " - " + minmax['max'] + ".\nContinuing...\n\n")
+    if minval == "":
+        minval = minmax["min"]
+    if maxval == "":
+        maxval = minmax["max"]
+    if minval > minmax["min"] or maxval < minmax["max"]:
+        ms = (
+            "\nYou defined the minimum and maximum weights\nas "
+            + minval
+            + " and "
+            + maxval
+            + " respectively. Note that the\nvalue range of weight raster is "
+            + minmax["min"]
+            + " - "
+            + minmax["max"]
+            + ".\nContinuing...\n\n"
+        )
         gs.message(ms)
 
     # setup temporary files and seed
-    tmp_map1 = tmpname('r_w_rand1')
-    tmp_map2 = tmpname('r_w_rand2')
+    tmp_map1 = tmpname("r_w_rand1")
+    tmp_map2 = tmpname("r_w_rand2")
 
     if seed == "auto":
-        gs.mapcalc("$tmp_map1 = rand(float(${minval}),float(${maxval}))",
-                   seed='auto', minval=minval, maxval=maxval,
-                   tmp_map1=tmp_map1, quiet=True)
+        gs.mapcalc(
+            "$tmp_map1 = rand(float(${minval}),float(${maxval}))",
+            seed="auto",
+            minval=minval,
+            maxval=maxval,
+            tmp_map1=tmp_map1,
+            quiet=True,
+        )
     else:
-        gs.mapcalc("$tmp_map1 = rand(float(${minval}),float(${maxval}))",
-                   seed=int(seed), minval=minval, maxval=maxval,
-                   tmp_map1=tmp_map1, quiet=True)
+        gs.mapcalc(
+            "$tmp_map1 = rand(float(${minval}),float(${maxval}))",
+            seed=int(seed),
+            minval=minval,
+            maxval=maxval,
+            tmp_map1=tmp_map1,
+            quiet=True,
+        )
     if flag_n:
-        gs.mapcalc("${outmap} = if($tmp_map1 <= ${weight},1,0)",
-                   weight=weight, outmap=tmp_map2, tmp_map1=tmp_map1,
-                   quiet=True)
+        gs.mapcalc(
+            "${outmap} = if($tmp_map1 <= ${weight},1,0)",
+            weight=weight,
+            outmap=tmp_map2,
+            tmp_map1=tmp_map1,
+            quiet=True,
+        )
     else:
-        gs.mapcalc("${outmap} = if($tmp_map1 <= ${weight},1,null())",
-                   weight=weight, outmap=tmp_map2, tmp_map1=tmp_map1,
-                   quiet=True)
+        gs.mapcalc(
+            "${outmap} = if($tmp_map1 <= ${weight},1,null())",
+            weight=weight,
+            outmap=tmp_map2,
+            tmp_map1=tmp_map1,
+            quiet=True,
+        )
 
-    if subsample == '':
+    if subsample == "":
         gs.run_command("g.copy", raster=[tmp_map2, outmap], quiet=True)
     else:
-        gs.run_command('r.null', map=tmp_map2, setnull=0, quiet=True)
-        gs.run_command('r.random', input=tmp_map2, n=subsample, raster=outmap,
-                       quiet=True)
+        gs.run_command("r.null", map=tmp_map2, setnull=0, quiet=True)
+        gs.run_command(
+            "r.random", input=tmp_map2, n=subsample, raster=outmap, quiet=True
+        )
         if flag_n:
-            gs.run_command('r.null', map=outmap, null=0, quiet=True)
+            gs.run_command("r.null", map=outmap, null=0, quiet=True)
 
     # Add history
     if flag_n:
         nflag = "\n\t-n"
     else:
         nflag = ""
-    desctxt = ("\n\nr.random.weight \n    weight={} \n    output={}"
-               "    start={} \n    end={} \n    subsample={}"
-               "\n    seed={}{}\n").format(weight, outmap, minval, maxval,
-                                           subsample, seed, nflag)
+    desctxt = (
+        "\n\nr.random.weight \n    weight={} \n    output={}"
+        "    start={} \n    end={} \n    subsample={}"
+        "\n    seed={}{}\n"
+    ).format(weight, outmap, minval, maxval, subsample, seed, nflag)
     if flag_n:
         bso = "selected: 1/0"
     else:
         bso = "1 (selected)"
-    gs.run_command("r.support", map=outmap, title="Weighted random sample",
-                   units=bso, source1="", source2="",
-                   description="Random sample points",
-                   history=desctxt)
+    gs.run_command(
+        "r.support",
+        map=outmap,
+        title="Weighted random sample",
+        units=bso,
+        source1="",
+        source2="",
+        description="Random sample points",
+        history=desctxt,
+    )
 
     gs.message("\n")
     gs.message("Ready!")
     gs.message("The name of the output raster is " + outmap + "\n")
     gs.message("\n")
+
 
 if __name__ == "__main__":
     atexit.register(cleanup)

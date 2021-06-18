@@ -47,37 +47,46 @@
 import sys
 import grass.script as gscript
 
+
 def main():
     import matplotlib  # required by windows
-    matplotlib.use('wxAGG')  # required by windows
+
+    matplotlib.use("wxAGG")  # required by windows
     import matplotlib.pyplot as plt
 
-    vector = options['map']
-    layer = options['layer']
-    column = options['column']
-    bins = int(options['bins'])
-    plot_output = options['plot_output']
-    where = options['where'] if options['where'] else None
+    vector = options["map"]
+    layer = options["layer"]
+    column = options["column"]
+    bins = int(options["bins"])
+    plot_output = options["plot_output"]
+    where = options["where"] if options["where"] else None
 
     if where:
-        data = [float(x) for x in gscript.read_command('v.db.select',
-                                                     map_=vector,
-                                                     layer=layer,
-                                                     column=column,
-                                                     where=where,
-                                                     flags='c').splitlines()]
+        data = [
+            float(x)
+            for x in gscript.read_command(
+                "v.db.select",
+                map_=vector,
+                layer=layer,
+                column=column,
+                where=where,
+                flags="c",
+            ).splitlines()
+        ]
     else:
-        data = [float(x) for x in gscript.read_command('v.db.select',
-                                                     map_=vector,
-                                                     layer=layer,
-                                                     column=column,
-                                                     flags='c').splitlines()]
+        data = [
+            float(x)
+            for x in gscript.read_command(
+                "v.db.select", map_=vector, layer=layer, column=column, flags="c"
+            ).splitlines()
+        ]
 
     plt.hist(data, bins=bins)
-    if plot_output == '-':
+    if plot_output == "-":
         plt.show()
     else:
         plt.savefig(plot_output)
+
 
 if __name__ == "__main__":
     options, flags = gscript.parser()

@@ -124,50 +124,51 @@ from hdfsgrass.hdfs_grass_lib import ConnectionManager
 def main():
     # add new connection
     conn = ConnectionManager()
-    if options['connectionuri']:
-        conn.set_connection_uri(options['connectionuri'])
+    if options["connectionuri"]:
+        conn.set_connection_uri(options["connectionuri"])
         conn.add_connection()
         conn.test_connection()
         return
 
-    if options['host'] and options['driver'] and options['conn_id']:
-        conn.set_connection(conn_type=options['driver'],
-                            conn_id=options['conn_id'],
-                            host=options['host'],
-                            port=options['port'],
-                            login=options['login'],
-                            password=options['passwd'],
-                            schema=options['schema']
-                            )
+    if options["host"] and options["driver"] and options["conn_id"]:
+        conn.set_connection(
+            conn_type=options["driver"],
+            conn_id=options["conn_id"],
+            host=options["host"],
+            port=options["port"],
+            login=options["login"],
+            password=options["passwd"],
+            schema=options["schema"],
+        )
         conn.add_connection()
         conn.test_connection()
         return
 
-    if options['rmid']:
-        conn.remove_conn_Id(options['rmid'])
+    if options["rmid"]:
+        conn.remove_conn_Id(options["rmid"])
         return
     # print table of connection
-    elif flags['c']:
+    elif flags["c"]:
         conn.show_connections()
         return
     # drop table with connections
-    elif flags['r']:
+    elif flags["r"]:
         conn.drop_connection_table()
         conn.show_connections()
         return
     # print active connection
-    elif flags['p']:
+    elif flags["p"]:
         conn.show_active_connections()
         return
-    elif flags['t']:
-        if options['driver']:
-            conn.test_connection(options['driver'])
+    elif flags["t"]:
+        if options["driver"]:
+            conn.test_connection(options["driver"])
         else:
-            print('< driver > is not set')
+            print("< driver > is not set")
         return
-    elif flags['a']:
-        if not options['driver'] and options['conn_id']:
-            conn.set_active_connection(options['driver'], options['conn_id'])
+    elif flags["a"]:
+        if not options["driver"] and options["conn_id"]:
+            conn.set_active_connection(options["driver"], options["conn_id"])
         else:
             grass.fatal("ERROR parameter < driver > and 'conn_id' must be set")
 

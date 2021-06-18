@@ -101,6 +101,7 @@ import uuid
 import atexit
 import tempfile
 import grass.script as gs
+
 # neutral naming for better compatibility between 2D and 3D version
 from grass.script.raster import mapcalc
 
@@ -133,14 +134,13 @@ def cleanup():
     """Remove temporary maps specified in the global list"""
     cleanrast = list(reversed(CLEAN_RAST))
     for rast in cleanrast:
-        gs.run_command("g.remove", flags="f", type="raster", name=rast,
-                       quiet=True)
+        gs.run_command("g.remove", flags="f", type="raster", name=rast, quiet=True)
 
 
 def raster_exists(name):
     """Check if the raster map exists, call GRASS fatal otherwise"""
-    ffile = gs.find_file(name, element='cell')
-    if not ffile['fullname']:
+    ffile = gs.find_file(name, element="cell")
+    if not ffile["fullname"]:
         gs.fatal(_("Raster map <%s> not found") % name)
 
 
@@ -151,7 +151,7 @@ def tmpname(prefix):
     Use only for raster maps.
     """
     tmpf = prefix + str(uuid.uuid4())
-    tmpf = tmpf.replace('-', '_')
+    tmpf = tmpf.replace("-", "_")
     CLEAN_RAST.append(tmpf)
     return tmpf
 
@@ -170,51 +170,55 @@ def pairs_expression(map_name, max_index, combine_op, aggregate_op="+"):
     expr = []
     for j in range(-s, s + 1):
         for i in range(-s, s):
-            expr.append(base_expr.format(
-                m=map_name, o=combine_op, a=i, b=j, c=i + 1, d=j))
+            expr.append(
+                base_expr.format(m=map_name, o=combine_op, a=i, b=j, c=i + 1, d=j)
+            )
     for i in range(-s, s + 1):
         for j in range(-s, s):
-            expr.append(base_expr.format(
-                m=map_name, o=combine_op, a=i, b=j, c=i, d=j + 1))
+            expr.append(
+                base_expr.format(m=map_name, o=combine_op, a=i, b=j, c=i, d=j + 1)
+            )
     return aggregate_op.join(expr)
 
 
 def main(options, flags):
     # options and flags into variables
-    ipl = options['input']
+    ipl = options["input"]
     raster_exists(ipl)
-    opl = options['output']
+    opl = options["output"]
     # size option backwards compatibility with window
-    if not options['size'] and not options['window']:
-        gs.fatal(_("Required parameter <%s> not set") % 'size')
-    if options['size']:
-        wz = int(options['size'])
-    if options['window']:
-        gs.warning(_("The window option is deprecated, use the option"
-                     " size instead"))
-        wz = int(options['window'])
-    if options['size'] and options['size'] != '3' and options['window']:
-        gs.warning(_("When the obsolete window option is used, the"
-                     " new size option is ignored"))
+    if not options["size"] and not options["window"]:
+        gs.fatal(_("Required parameter <%s> not set") % "size")
+    if options["size"]:
+        wz = int(options["size"])
+    if options["window"]:
+        gs.warning(_("The window option is deprecated, use the option" " size instead"))
+        wz = int(options["window"])
+    if options["size"] and options["size"] != "3" and options["window"]:
+        gs.warning(
+            _(
+                "When the obsolete window option is used, the"
+                " new size option is ignored"
+            )
+        )
     if wz % 2 == 0:
-        gs.fatal(_("Please provide an odd number for the moving"
-                   " window size, not %d") % wz)
+        gs.fatal(
+            _("Please provide an odd number for the moving" " window size, not %d") % wz
+        )
     # user wants pf or pff
-    user_pf = options['pf']
-    user_pff = options['pff']
+    user_pf = options["pf"]
+    user_pff = options["pff"]
     # backwards compatibility
-    if flags['t']:
-        gs.warning(_("The -t flag is deprecated, use pf and pff options"
-                     " instead"))
-    if not user_pf and not user_pff and flags['t']:
-        user_pf = opl + '_pf'
-        user_pff = opl + '_pff'
-    elif flags['t']:
-        gs.warning(_("When pf or pff option is used, the -t flag"
-                     " is ignored"))
-    flag_r = flags['r']
-    flag_s = flags['s']
-    clip_output = flags['a']
+    if flags["t"]:
+        gs.warning(_("The -t flag is deprecated, use pf and pff options" " instead"))
+    if not user_pf and not user_pff and flags["t"]:
+        user_pf = opl + "_pf"
+        user_pff = opl + "_pff"
+    elif flags["t"]:
+        gs.warning(_("When pf or pff option is used, the -t flag" " is ignored"))
+    flag_r = flags["r"]
+    flag_s = flags["s"]
+    clip_output = flags["a"]
 
     # set to current input map region if requested by the user
     # default is (and should be) the current region
@@ -222,20 +226,23 @@ def main(options, flags):
     # it makes sense to use it from now on (but we should reconsider)
     if flag_r:
         gs.message(_("Setting region to input map..."))
-        gs.run_command('g.region', raster=ipl, quiet=True)
+        gs.run_command("g.region", raster=ipl, quiet=True)
 
     # check if map values are limited to 1 and 0
     input_info = gs.raster_info(ipl)
     # we know what we are doing only when input is integer
-    if input_info['datatype'] != 'CELL':
-        gs.fatal(_("The input raster map must have type CELL"
-                   " (integer)"))
+    if input_info["datatype"] != "CELL":
+        gs.fatal(_("The input raster map must have type CELL" " (integer)"))
     # for integer, we just need to text min and max
-    if input_info['min'] != 0 or input_info['max'] != 1:
-        gs.fatal(_("The input raster map must be a binary raster,"
-                   " i.e. it should contain only values 0 and 1"
-                   " (now the minimum is %d and maximum is %d)")
-                 % (input_info['min'], input_info['max']))
+    if input_info["min"] != 0 or input_info["max"] != 1:
+        gs.fatal(
+            _(
+                "The input raster map must be a binary raster,"
+                " i.e. it should contain only values 0 and 1"
+                " (now the minimum is %d and maximum is %d)"
+            )
+            % (input_info["min"], input_info["max"])
+        )
 
     # computing pf values
     # let forested pixels be x and number of all pixels in moving window
@@ -245,18 +252,29 @@ def main(options, flags):
 
     # generate grid with pixel-value=number of forest-pixels in window
     # generate grid with pixel-value=number of pixels in moving window:
-    tmpA2 = tmpname('tmpA01_')
-    tmpC3 = tmpname('tmpA02_')
-    gs.run_command("r.neighbors", quiet=True, input=ipl,
-                   output=[tmpA2, tmpC3], method=["sum", "count"], size=wz)
+    tmpA2 = tmpname("tmpA01_")
+    tmpC3 = tmpname("tmpA02_")
+    gs.run_command(
+        "r.neighbors",
+        quiet=True,
+        input=ipl,
+        output=[tmpA2, tmpC3],
+        method=["sum", "count"],
+        size=wz,
+    )
 
     # create pf map
     if user_pf:
         pf = user_pf
     else:
-        pf = tmpname('tmpA03_')
-    mapcalc("$pf = if( $ipl >=0, float($tmpA2) / float($tmpC3))",
-            ipl=ipl, pf=pf, tmpA2=tmpA2, tmpC3=tmpC3)
+        pf = tmpname("tmpA03_")
+    mapcalc(
+        "$pf = if( $ipl >=0, float($tmpA2) / float($tmpC3))",
+        ipl=ipl,
+        pf=pf,
+        tmpA2=tmpA2,
+        tmpC3=tmpC3,
+    )
 
     # computing pff values
     # Considering pairs of pixels in cardinal directions in
@@ -267,26 +285,29 @@ def main(options, flags):
     gs.info(_("Step 2: Computing Pff values..."))
 
     # create copy of forest map and convert NULL to 0 (if any)
-    tmpC4 = tmpname('tmpA04_')
+    tmpC4 = tmpname("tmpA04_")
     gs.run_command("g.copy", raster=[ipl, tmpC4], quiet=True)
     gs.run_command("r.null", map=tmpC4, null=0, quiet=True)
 
     # window dimensions
     max_index = int((wz - 1) / 2)
     # number of 'forest-forest' pairs
-    expr1 = pairs_expression(map_name=tmpC4, max_index=max_index,
-                             combine_op='&')
+    expr1 = pairs_expression(map_name=tmpC4, max_index=max_index, combine_op="&")
     # number of 'nonforest-forest' pairs
-    expr2 = pairs_expression(map_name=tmpC4, max_index=max_index,
-                             combine_op='|')
+    expr2 = pairs_expression(map_name=tmpC4, max_index=max_index, combine_op="|")
     # create pff map
     if user_pff:
         pff = user_pff
     else:
-        pff = tmpname('tmpA07_')
+        pff = tmpname("tmpA07_")
     # potentially this can be split and parallelized
-    mapcalc("$pff = if($ipl >= 0, float($tmpl4) / float($tmpl5))",
-            ipl=ipl, tmpl4=expr1, tmpl5=expr2, pff=pff)
+    mapcalc(
+        "$pff = if($ipl >= 0, float($tmpl4) / float($tmpl5))",
+        ipl=ipl,
+        tmpl4=expr1,
+        tmpl5=expr2,
+        pff=pff,
+    )
 
     # computing fragmentation index
     # (a b) name, condition
@@ -303,12 +324,11 @@ def main(options, flags):
     gs.info(_("Step 3: Computing fragmentation index..."))
 
     if clip_output:
-        indexfin2 = tmpname('tmpA16_')
+        indexfin2 = tmpname("tmpA16_")
     else:
         indexfin2 = opl
     mapcalc(
-        "eval("
-        "dpf = $pf - $pff,"
+        "eval(" "dpf = $pf - $pff,"
         # individual classes
         "patch = if($pf < 0.4, 1, 0),"
         "transitional = if($pf >= 0.4 && $pf < 0.6, 2, 0),"
@@ -331,50 +351,61 @@ def main(options, flags):
         # mask result by non-forest (according to the input)
         # removes the nonsense data created in the non-forested areas
         "$out = all * $binary_forest",
-        out=indexfin2, binary_forest=ipl, pf=pf, pff=pff)
+        out=indexfin2,
+        binary_forest=ipl,
+        pf=pf,
+        pff=pff,
+    )
 
     # shrink the region
     if clip_output:
         gs.use_temp_region()
         reginfo = gs.parse_command("g.region", flags="gp")
-        nscor = max_index * float(reginfo['nsres'])
-        ewcor = max_index * float(reginfo['ewres'])
-        gs.run_command("g.region",
-                       n=float(reginfo['n']) - nscor,
-                       s=float(reginfo['s']) + nscor,
-                       e=float(reginfo['e']) - ewcor,
-                       w=float(reginfo['w']) + ewcor,
-                       quiet=True)
+        nscor = max_index * float(reginfo["nsres"])
+        ewcor = max_index * float(reginfo["ewres"])
+        gs.run_command(
+            "g.region",
+            n=float(reginfo["n"]) - nscor,
+            s=float(reginfo["s"]) + nscor,
+            e=float(reginfo["e"]) - ewcor,
+            w=float(reginfo["w"]) + ewcor,
+            quiet=True,
+        )
         mapcalc("$opl = $if3", opl=opl, if3=indexfin2, quiet=True)
 
     # create categories
     # TODO: parametrize classes (also in r.mapcalc, r.colors and desc)?
     # TODO: translatable labels?
     labels = LABELS
-    gs.write_command("r.category", quiet=True, map=opl,
-                     rules='-', stdin=labels, separator='space')
+    gs.write_command(
+        "r.category", quiet=True, map=opl, rules="-", stdin=labels, separator="space"
+    )
 
     # create color table
     colors = COLORS_SAMBALE
-    gs.write_command("r.colors", map=opl, rules='-',
-                     stdin=colors, quiet=True)
+    gs.write_command("r.colors", map=opl, rules="-", stdin=colors, quiet=True)
 
     # write metadata for main layer
-    gs.run_command("r.support", map=opl,
-                   title="Forest fragmentation",
-                   source1="Based on %s" % ipl,
-                   description="Forest fragmentation index (6 classes)")
+    gs.run_command(
+        "r.support",
+        map=opl,
+        title="Forest fragmentation",
+        source1="Based on %s" % ipl,
+        description="Forest fragmentation index (6 classes)",
+    )
     gs.raster_history(opl)
 
     # write metadata for intermediate layers
     if user_pf:
         # pf layer
-        gs.run_command("r.support", map=pf,
-                       title="Proportion forested",
-                       units="Proportion",
-                       source1="Based on %s" % ipl,
-                       description="Proportion of pixels in the moving"
-                                   " window that is forested")
+        gs.run_command(
+            "r.support",
+            map=pf,
+            title="Proportion forested",
+            units="Proportion",
+            source1="Based on %s" % ipl,
+            description="Proportion of pixels in the moving" " window that is forested",
+        )
         gs.raster_history(pf)
 
     if user_pff:
@@ -389,22 +420,24 @@ pixel of forest, its neighbor is also forest.
 """
         text_file.write(long_description)
         text_file.close()
-        gs.run_command("r.support", map=pff,
-                       title="Conditional probability neighboring cell"
-                             " is forest",
-                       units="Proportion",
-                       source1="Based on %s" % ipl,
-                       description="Probability neighbor of forest cell"
-                                   " is forest",
-                       loadhistory=tmphist)
+        gs.run_command(
+            "r.support",
+            map=pff,
+            title="Conditional probability neighboring cell" " is forest",
+            units="Proportion",
+            source1="Based on %s" % ipl,
+            description="Probability neighbor of forest cell" " is forest",
+            loadhistory=tmphist,
+        )
         gs.raster_history(pff)
         os.remove(tmphist)
 
     # report fragmentation index and names of layers created
 
     if flag_s:
-        gs.run_command("r.report", map=opl, units=["h", "p"],
-                       flags="n", page_width=50, quiet=True)
+        gs.run_command(
+            "r.report", map=opl, units=["h", "p"], flags="n", page_width=50, quiet=True
+        )
 
     gs.info(_("The following layers were created"))
     gs.info(_("The fragmentation index: %s") % opl)

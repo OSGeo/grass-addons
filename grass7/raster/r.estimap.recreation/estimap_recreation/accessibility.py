@@ -12,43 +12,44 @@ from grass.pygrass.modules.shortcuts import raster as r
 from grass.pygrass.modules.shortcuts import vector as v
 from .constants import EQUATION
 
+
 def artificial_accessibility_expression(artificial_proximity, roads_proximity):
     """
-    Build an r.mapcalc compatible expression to compute accessibility to
-    artificial surfaces based on the following accessibility classification
-    rules for artificial surfaces:
+        Build an r.mapcalc compatible expression to compute accessibility to
+        artificial surfaces based on the following accessibility classification
+        rules for artificial surfaces:
 
-|-------------------+-------+------------+-------------+--------------+---------|
-| Anthropic \ Roads | < 500 | 500 - 1000 | 1000 - 5000 | 5000 - 10000 | > 10000 |
-|-------------------+-------+------------+-------------+--------------+---------|
-| < 500             | 1     | 1          | 2           | 3            | 4       |
-|-------------------+-------+------------+-------------+--------------+---------|
-| 500 - 1000        | 1     | 1          | 2           | 3            | 4       |
-|-------------------+-------+------------+-------------+--------------+---------|
-| 1000 - 5000       | 2     | 2          | 2           | 4            | 5       |
-|-------------------+-------+------------+-------------+--------------+---------|
-| 5000 - 10000      | 3     | 3          | 4           | 5            | 5       |
-|-------------------+-------+------------+-------------+--------------+---------|
-| > 10000           | 3     | 4          | 4           | 5            | 5       |
-|-------------------+-------+------------+-------------+--------------+---------|
+    |-------------------+-------+------------+-------------+--------------+---------|
+    | Anthropic \ Roads | < 500 | 500 - 1000 | 1000 - 5000 | 5000 - 10000 | > 10000 |
+    |-------------------+-------+------------+-------------+--------------+---------|
+    | < 500             | 1     | 1          | 2           | 3            | 4       |
+    |-------------------+-------+------------+-------------+--------------+---------|
+    | 500 - 1000        | 1     | 1          | 2           | 3            | 4       |
+    |-------------------+-------+------------+-------------+--------------+---------|
+    | 1000 - 5000       | 2     | 2          | 2           | 4            | 5       |
+    |-------------------+-------+------------+-------------+--------------+---------|
+    | 5000 - 10000      | 3     | 3          | 4           | 5            | 5       |
+    |-------------------+-------+------------+-------------+--------------+---------|
+    | > 10000           | 3     | 4          | 4           | 5            | 5       |
+    |-------------------+-------+------------+-------------+--------------+---------|
 
-    Parameters
-    ----------
-    artificial :
-        Proximity to artificial surfaces
+        Parameters
+        ----------
+        artificial :
+            Proximity to artificial surfaces
 
-    roads :
-        Proximity to roads
+        roads :
+            Proximity to roads
 
-    Returns
-    -------
-    expression
-        Valid r.mapcalc expression
+        Returns
+        -------
+        expression
+            Valid r.mapcalc expression
 
 
-    Examples
-    --------
-    ...
+        Examples
+        --------
+        ...
     """
     expression = (
         "if( {artificial} <= 2 && {roads} <= 2, 1,"

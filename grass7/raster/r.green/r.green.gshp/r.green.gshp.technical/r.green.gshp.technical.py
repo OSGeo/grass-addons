@@ -233,7 +233,6 @@
 #%end
 
 
-
 ###############################
 ## Borehole filed properties ##
 ###############################
@@ -300,24 +299,38 @@ from grass.script.utils import set_path
 
 try:
     # set python path to the shared r.green libraries
-    set_path('r.green', 'libgshp', '..')
-    set_path('r.green', 'libgreen', os.path.join('..', '..'))
+    set_path("r.green", "libgshp", "..")
+    set_path("r.green", "libgreen", os.path.join("..", ".."))
     from libgreen.utils import cleanup, rast_or_numb
-    from libgshp.ashrae import (GroundProperties, GroundLoads,
-                                FluidProperties, Borehole,
-                                BoreholeExchanger, BoreholeField,
-                                get_vars, r_bhe_length, r_field_length)
+    from libgshp.ashrae import (
+        GroundProperties,
+        GroundLoads,
+        FluidProperties,
+        Borehole,
+        BoreholeExchanger,
+        BoreholeField,
+        get_vars,
+        r_bhe_length,
+        r_field_length,
+    )
 except ImportError:
     try:
-        set_path('r.green', 'libgshp', os.path.join('..', 'etc', 'r.green'))
-        set_path('r.green', 'libgreen', os.path.join('..', 'etc', 'r.green'))
+        set_path("r.green", "libgshp", os.path.join("..", "etc", "r.green"))
+        set_path("r.green", "libgreen", os.path.join("..", "etc", "r.green"))
         from libgreen.utils import cleanup, rast_or_numb
-        from libgshp.ashrae import (GroundProperties, GroundLoads,
-                                    FluidProperties, Borehole,
-                                    BoreholeExchanger, BoreholeField,
-                                    get_vars, r_bhe_length, r_field_length)
+        from libgshp.ashrae import (
+            GroundProperties,
+            GroundLoads,
+            FluidProperties,
+            Borehole,
+            BoreholeExchanger,
+            BoreholeField,
+            get_vars,
+            r_bhe_length,
+            r_field_length,
+        )
     except ImportError:
-        gcore.warning('libgreen and libgshp not in the python path!')
+        gcore.warning("libgreen and libgshp not in the python path!")
 
 
 def main(opts, flgs):
@@ -382,60 +395,71 @@ def main(opts, flgs):
     >>> infovars = InfoVars('l_term', 'm_term', 's_term', 'f_temp', 'res')
     >>> r_bhe_length('bhe_length', bhe, infovars, execute=False)
     """
-    DEBUG = flags['d']
+    DEBUG = flags["d"]
     OVER = gcore.overwrite()
     tmpbase = "tmprgreen_%i" % os.getpid()
-    atexit.register(cleanup, pattern=(tmpbase + '*'), debug=DEBUG)
+    atexit.register(cleanup, pattern=(tmpbase + "*"), debug=DEBUG)
 
     # ================================================
     # GROUND
     # get raster or scalar value
-    ground = GroundProperties(opts['ground_conductivity'],
-                              rast_or_numb('ground_diffusivity_rast',
-                                           'ground_diffusivity_value', opts),
-                              rast_or_numb('ground_temp_rast',
-                                           'ground_temp_value', opts))
+    ground = GroundProperties(
+        opts["ground_conductivity"],
+        rast_or_numb("ground_diffusivity_rast", "ground_diffusivity_value", opts),
+        rast_or_numb("ground_temp_rast", "ground_temp_value", opts),
+    )
 
     # ================================================
     # GROUND LOADS
     ground_loads = GroundLoads(
-        rast_or_numb('g_loads_6h_rast', 'g_loads_6h_value', opts),
-        rast_or_numb('g_loads_1m_rast', 'g_loads_1m_value', opts),
-        rast_or_numb('g_loads_1y_rast', 'g_loads_1y_value', opts))
+        rast_or_numb("g_loads_6h_rast", "g_loads_6h_value", opts),
+        rast_or_numb("g_loads_1m_rast", "g_loads_1m_value", opts),
+        rast_or_numb("g_loads_1y_rast", "g_loads_1y_value", opts),
+    )
 
     # ================================================
     # FLUID
-    fluid = FluidProperties(float(opts['fluid_capacity']),
-                            float(opts['fluid_massflow']),
-                            float(opts['fluid_inlettemp']))
+    fluid = FluidProperties(
+        float(opts["fluid_capacity"]),
+        float(opts["fluid_massflow"]),
+        float(opts["fluid_inlettemp"]),
+    )
 
     # ================================================
     # BOREHOLE
-    borehole = Borehole(radius=float(opts['bh_radius']),
-                        pipe_inner_radius=float(opts['pipe_inner_radius']),
-                        pipe_outer_radius=float(opts['pipe_outer_radius']),
-                        k_pipe=float(opts['k_pipe']),
-                        k_grout=float(opts['k_grout']),
-                        distance=float(opts['pipe_distance']),
-                        convection=float(opts['bh_convection']))
+    borehole = Borehole(
+        radius=float(opts["bh_radius"]),
+        pipe_inner_radius=float(opts["pipe_inner_radius"]),
+        pipe_outer_radius=float(opts["pipe_outer_radius"]),
+        k_pipe=float(opts["k_pipe"]),
+        k_grout=float(opts["k_grout"]),
+        distance=float(opts["pipe_distance"]),
+        convection=float(opts["bh_convection"]),
+    )
 
     bhe = BoreholeExchanger(ground_loads, ground, fluid, borehole)
 
-    field = BoreholeField(float(opts['field_distance']),
-                          float(opts['field_number']),
-                          float(opts['field_ratio']),
-                          bhe)
+    field = BoreholeField(
+        float(opts["field_distance"]),
+        float(opts["field_number"]),
+        float(opts["field_ratio"]),
+        bhe,
+    )
 
     # ================================================
     # START COMPUTATIONS
-    infovars = get_vars(opts['bhe_length'], bhe, tmpbase, execute=True,
-                        overwrite=OVER)
+    infovars = get_vars(opts["bhe_length"], bhe, tmpbase, execute=True, overwrite=OVER)
 
-    r_bhe_length(opts['bhe_length'], bhe, infovars, execute=True,
-                 overwrite=OVER)
-    r_field_length(opts['bhe_field_length'], field, infovars, basename=tmpbase,
-                   length_single=opts['bhe_length'],
-                   execute=True, overwrite=OVER)
+    r_bhe_length(opts["bhe_length"], bhe, infovars, execute=True, overwrite=OVER)
+    r_field_length(
+        opts["bhe_field_length"],
+        field,
+        infovars,
+        basename=tmpbase,
+        length_single=opts["bhe_length"],
+        execute=True,
+        overwrite=OVER,
+    )
 
 
 if __name__ == "__main__":

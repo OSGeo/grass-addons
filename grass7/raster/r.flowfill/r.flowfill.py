@@ -110,6 +110,7 @@ from grass.pygrass.modules.shortcuts import general as g
 # MAIN MODULE #
 ###############
 
+
 def main():
     """
     FlowFill
@@ -118,20 +119,25 @@ def main():
     try:
         from netCDF4 import Dataset
     except:
-        g.message(flags='e', message=('netCDF4 not detected. Install pip3 and ' +
-                                      'then type at the command prompt: ' +
-                                      '"pip3 install netCDF4".'))
+        g.message(
+            flags="e",
+            message=(
+                "netCDF4 not detected. Install pip3 and "
+                + "then type at the command prompt: "
+                + '"pip3 install netCDF4".'
+            ),
+        )
 
     options, flags = gscript.parser()
-    _input = options['input']
-    _np = options['np']
-    _threshold = options['threshold']
-    _h_runoff = options['h_runoff']
-    _h_runoff_raster = options['h_runoff_raster']
-    _ties = options['ties']
-    _ffpath = options['ffpath']
-    _output = options['output']
-    _water = options['water']
+    _input = options["input"]
+    _np = options["np"]
+    _threshold = options["threshold"]
+    _h_runoff = options["h_runoff"]
+    _h_runoff_raster = options["h_runoff_raster"]
+    _ties = options["ties"]
+    _ffpath = options["ffpath"]
+    _output = options["output"]
+    _water = options["water"]
 
     """
     import os
@@ -158,42 +164,45 @@ def main():
     """
 
     # Check for overwrite -- should be unnecessary thanks to GRASS parser
-    _rasters = np.array(gscript.parse_command('g.list', type='raster').keys())
+    _rasters = np.array(gscript.parse_command("g.list", type="raster").keys())
     if (_rasters == _output).any() or (_water == _output).any():
         if gscript.overwrite() is False:
-            g.message(flags='e', message="output would overwrite "+_output)
+            g.message(flags="e", message="output would overwrite " + _output)
 
     # Check for proper number of processors
     try:
         _np = int(_np)
     except:
-        g.message(flags='e', message="Number of processors must be an integer.")
+        g.message(flags="e", message="Number of processors must be an integer.")
 
     if _np < 3:
-        g.message(flags='e', message="FlowFill requires 3 or more processors.")
+        g.message(flags="e", message="FlowFill requires 3 or more processors.")
 
     # Check for proper option set
-    if _h_runoff is not '': # ????? possible ?????
-        if _h_runoff_raster is not '':
-            g.message(flags='e', message='Only one of "h_runoff" and ' +
-                                         '"h_runoff_raster" may be set')
-    elif _h_runoff_raster is '':
-        g.message(flags='e', message='Either "h_runoff" or ' +
-                                     '"h_runoff_raster" must be set')
+    if _h_runoff is not "":  # ????? possible ?????
+        if _h_runoff_raster is not "":
+            g.message(
+                flags="e",
+                message='Only one of "h_runoff" and ' + '"h_runoff_raster" may be set',
+            )
+    elif _h_runoff_raster is "":
+        g.message(
+            flags="e", message='Either "h_runoff" or ' + '"h_runoff_raster" must be set'
+        )
 
-    if _output is '' and _water is '':
-        g.message(flags='w', message='No output is set.')
+    if _output is "" and _water is "":
+        g.message(flags="w", message="No output is set.")
 
     # Set up runoff options
-    if _h_runoff_raster is not '':
-        _runoff_bool = 'Y'
+    if _h_runoff_raster is not "":
+        _runoff_bool = "Y"
     else:
         _h_runoff = float(_h_runoff)
-        _runoff_bool = 'N'
+        _runoff_bool = "N"
 
     # Get computational region
-    n_columns = gscript.region()['cols']
-    n_rows = gscript.region()['rows']
+    n_columns = gscript.region()["cols"]
+    n_rows = gscript.region()["rows"]
 
     # Output DEM as temporary file for FORTRAN
     temp_FlowFill_input_file = gscript.tempfile(create=False)
@@ -202,87 +211,108 @@ def main():
     dem_array = np.array(dem[:]).astype(np.float32)
     del dem
     newnc = Dataset(temp_FlowFill_input_file, "w", format="NETCDF4")
-    newnc.createDimension('x', n_columns)
-    newnc.createDimension('y', n_rows)
-    newnc.createVariable('value', 'f4', ('y', 'x')) # z
-    newnc.variables['value'][:] = dem_array
+    newnc.createDimension("x", n_columns)
+    newnc.createDimension("y", n_rows)
+    newnc.createVariable("value", "f4", ("y", "x"))  # z
+    newnc.variables["value"][:] = dem_array
     newnc.close()
     del newnc
-    #r.out_gdal(input=_input, output=temp_DEM_input_file, format='netCDF',
+    # r.out_gdal(input=_input, output=temp_DEM_input_file, format='netCDF',
     #           overwrite=True)
 
     # Output runoff raster as temporary file for FORTRAN
-    if _h_runoff_raster is not '':
+    if _h_runoff_raster is not "":
         temp_FlowFill_runoff_file = gscript.tempfile(create=False)
         rr = garray.array()
         rr.read(_h_runoff_raster, null=0.0)
         rr_array = np.array(rr[:]).astype(np.float32)
         del rr
         newnc = Dataset(temp_FlowFill_runoff_file, "w", format="NETCDF4")
-        newnc.createDimension('x', n_columns)
-        newnc.createDimension('y', n_rows)
-        newnc.createVariable('value', 'f4', ('y', 'x')) # z
-        newnc.variables['value'][:] = rr_array
+        newnc.createDimension("x", n_columns)
+        newnc.createDimension("y", n_rows)
+        newnc.createVariable("value", "f4", ("y", "x"))  # z
+        newnc.variables["value"][:] = rr_array
         newnc.close()
         # Get the mean value for the floating-point depressions correction
         _h_runoff = np.mean(rr_array[dem_array != -999999])
     else:
-        _h_runoff_raster = 'NoRaster' # A dummy value for the parser
-        temp_FlowFill_runoff_file = ''
+        _h_runoff_raster = "NoRaster"  # A dummy value for the parser
+        temp_FlowFill_runoff_file = ""
 
     # Run FlowFill
     temp_FlowFill_output_file = gscript.tempfile(create=False)
-    mpirunstr = 'mpirun -np '+str(_np)+' '+_ffpath+' ' +\
-              str(_h_runoff)+' '+temp_FlowFill_input_file+' ' +\
-              str(n_columns)+' '+str(n_rows)+' ' +\
-              str(_threshold)+' '+temp_FlowFill_output_file+' ' +\
-              _runoff_bool+' '+temp_FlowFill_runoff_file+' '+_ties
-    print('')
-    print('Sending command to FlowFill:')
+    mpirunstr = (
+        "mpirun -np "
+        + str(_np)
+        + " "
+        + _ffpath
+        + " "
+        + str(_h_runoff)
+        + " "
+        + temp_FlowFill_input_file
+        + " "
+        + str(n_columns)
+        + " "
+        + str(n_rows)
+        + " "
+        + str(_threshold)
+        + " "
+        + temp_FlowFill_output_file
+        + " "
+        + _runoff_bool
+        + " "
+        + temp_FlowFill_runoff_file
+        + " "
+        + _ties
+    )
+    print("")
+    print("Sending command to FlowFill:")
     print(mpirunstr)
-    print('')
+    print("")
 
     _mpirun_error_flag = False
 
-    popen = subprocess.Popen(mpirunstr, stdout=subprocess.PIPE,
-                             shell=True, universal_newlines=True)
+    popen = subprocess.Popen(
+        mpirunstr, stdout=subprocess.PIPE, shell=True, universal_newlines=True
+    )
     for stdout_line in iter(popen.stdout.readline, ""):
         print(stdout_line),
-        if 'mpirun was unable to find the specified executable file' in \
-                                      stdout_line:
+        if "mpirun was unable to find the specified executable file" in stdout_line:
             _mpirun_error_flag = True
     popen.stdout.close()
     if _mpirun_error_flag:
-        print('')
-        g.message(flags='e', message='FlowFill executable not found.\n' +
-              'If you have not installed FlowFill, please download it ' +
-              'from https://github.com/KCallaghan/FlowFill, ' +
-              'and follow the directions in the README to compile and ' +
-              'install it on your system.\n' +
-              'This should then work with the default "ffpath". ' +
-              'Otherwise, you may have simply have typed in an incorrect ' +
-              '"ffpath".')
+        print("")
+        g.message(
+            flags="e",
+            message="FlowFill executable not found.\n"
+            + "If you have not installed FlowFill, please download it "
+            + "from https://github.com/KCallaghan/FlowFill, "
+            + "and follow the directions in the README to compile and "
+            + "install it on your system.\n"
+            + 'This should then work with the default "ffpath". '
+            + "Otherwise, you may have simply have typed in an incorrect "
+            + '"ffpath".',
+        )
 
-
-    #_stdout = subprocess.Popen(mpirunstr, shell=True, stdout=subprocess.PIPE)
+    # _stdout = subprocess.Popen(mpirunstr, shell=True, stdout=subprocess.PIPE)
     #
-    #if 'mpirun was unable to find the specified executable file' in \
+    # if 'mpirun was unable to find the specified executable file' in \
     #                              ''.join(_stdout.stdout.readlines()):
-    #else:
+    # else:
     #    g.message('FlowFill Executable Found.')
     #    print('')
 
-
-    #subprocess.Popen(mpirunstr, shell=True).wait()
-    #os.system(mpirunstr)
-    #subprocess.Popen(mpirunstr, shell=True)
+    # subprocess.Popen(mpirunstr, shell=True).wait()
+    # os.system(mpirunstr)
+    # subprocess.Popen(mpirunstr, shell=True)
 
     # Import the output -- padded by two cells (remove these)
-    outrast = np.fromfile(temp_FlowFill_output_file+'.dat', dtype=np.float32)
-    outrast_water = np.fromfile(temp_FlowFill_output_file+'_water.dat',
-                                dtype=np.float32)
-    outrast = outrast.reshape(n_rows+2, n_columns+2)[:-2, 1:-1]
-    outrast_water = outrast_water.reshape(n_rows+2, n_columns+2)[:-2, 1:-1]
+    outrast = np.fromfile(temp_FlowFill_output_file + ".dat", dtype=np.float32)
+    outrast_water = np.fromfile(
+        temp_FlowFill_output_file + "_water.dat", dtype=np.float32
+    )
+    outrast = outrast.reshape(n_rows + 2, n_columns + 2)[:-2, 1:-1]
+    outrast_water = outrast_water.reshape(n_rows + 2, n_columns + 2)[:-2, 1:-1]
 
     # Mask to return NAN to NAN in GRASS -- FIX SHIFT ISSUE WITH KERRY
     dem_array_mask = dem_array.copy()
@@ -298,6 +328,7 @@ def main():
     dem[:] = outrast_water
     dem.write(_water, overwrite=gscript.overwrite())
     del dem
+
 
 if __name__ == "__main__":
     main()

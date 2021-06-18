@@ -109,10 +109,6 @@
 #%end
 
 
-
-
-
-
 import os
 import sys
 
@@ -127,10 +123,11 @@ from grass.exceptions import OpenError
 from grass.pygrass.gis.region import Region
 
 import numpy as np
+
 # lazy import scipy at the end of the file
 
 CNULL = -2147483648  # null value for CELL maps
-FNULL = np.nan       # null value for FCELL and DCELL maps
+FNULL = np.nan  # null value for FCELL and DCELL maps
 
 
 def init_rasters(names, mapset=""):
@@ -149,47 +146,49 @@ def open_rasters(raster_list, write=False):
         try:
             if write:
                 if r.exist():
-                    r.open('w', 'DCELL', overwrite=grass.overwrite())
+                    r.open("w", "DCELL", overwrite=grass.overwrite())
                 else:
-                    r.open('w', 'DCELL')
+                    r.open("w", "DCELL")
             else:
                 r.open()
         except OpenError:
-            grass.fatal("Can't open raster %s" % (r.name, ))
+            grass.fatal("Can't open raster %s" % (r.name,))
+
 
 def close_rasters(raster_list):
     for r in raster_list:
         if r.is_open():
             r.close()
 
+
 def _filter_up(method, arr, winsize, order):
     """Filter array using algorithm from the next article:
-        Chen, Jin, et al. "A simple method for reconstructing a high-quality
-        NDVI time-series data set based on the Savitzky–Golay filter."
-        Remote sensing of Environment 91.3 (2004): 332-344.
+    Chen, Jin, et al. "A simple method for reconstructing a high-quality
+    NDVI time-series data set based on the Savitzky–Golay filter."
+    Remote sensing of Environment 91.3 (2004): 332-344.
     """
 
     size = len(arr)
 
-    old_f = np.inf     # Filter fitting index for previose iteration
-    cur_f = np.inf     # Filter fitting index for current iteration
-    wk = np.empty(size)     # Weights array
+    old_f = np.inf  # Filter fitting index for previose iteration
+    cur_f = np.inf  # Filter fitting index for current iteration
+    wk = np.empty(size)  # Weights array
     init_arr = np.copy(arr)
 
     while winsize > order + 2:  # We don't want fit for too small window size
-        if method == 'savgol':
-            trend = savgol_filter(arr, winsize, order, mode='nearest')
-        elif method == 'median':
+        if method == "savgol":
+            trend = savgol_filter(arr, winsize, order, mode="nearest")
+        elif method == "median":
             trend = medfilt(arr, kernel_size=winsize)
         else:
-            grass.fatal('The method is not implemented')
+            grass.fatal("The method is not implemented")
 
         # Weights
         # import ipdb; ipdb.set_trace()
         difference = trend - init_arr
         max_diff = np.max(difference)
         for i in range(size):
-            wk[i] = 1.0 if difference[i] <= 0 else 1.0 - difference[i]/max_diff
+            wk[i] = 1.0 if difference[i] <= 0 else 1.0 - difference[i] / max_diff
 
         old_arr = np.copy(arr)
         for i in range(size):
@@ -218,20 +217,22 @@ def _filter(method, row_data, winsize, order, itercount, fit_up):
             if fit_up:
                 arr = _filter_up(method, arr, winsize, order)
             else:
-                if method == 'savgol':
+                if method == "savgol":
                     for j in range(itercount):
-                        arr = savgol_filter(arr, winsize, order, mode='nearest')
-                elif method == 'median':
+                        arr = savgol_filter(arr, winsize, order, mode="nearest")
+                elif method == "median":
                     for j in range(itercount):
                         arr = medfilt(arr, kernel_size=winsize)
                 else:
-                    grass.fatal('The method is not implemented')
+                    grass.fatal("The method is not implemented")
         result[:, i] = arr
 
     return result
 
+
 def _non_zero(x):
     return x.nonzero()[0]
+
 
 def _fill_nulls(arr):
     """Fill no-data values in arr
@@ -242,6 +243,7 @@ def _fill_nulls(arr):
         arr[nans] = np.interp(_non_zero(nans), _non_zero(~nans), arr[~nans])
 
     return arr
+
 
 def fitting_quality(input_data, fitted_data, diff_penalty=1.0, deriv_penalty=1.0):
     """Returns penalty for fitted curves:
@@ -258,8 +260,8 @@ def fitting_quality(input_data, fitted_data, diff_penalty=1.0, deriv_penalty=1.0
 
 def optimize_params(method, names, npoints, diff_penalty, deriv_penalty, itercount):
     """Perform crossvalidation:
-        take 'npoints' random points,
-        find winsize and order that minimize the quality function
+    take 'npoints' random points,
+    find winsize and order that minimize the quality function
     """
 
     reg = Region()
@@ -281,7 +283,9 @@ def optimize_params(method, names, npoints, diff_penalty, deriv_penalty, itercou
                 attempt = 0
             else:
                 attempt += 1
-                grass.warning('Selected point contains NULL values in all input maps. Performing of selection another point.')
+                grass.warning(
+                    "Selected point contains NULL values in all input maps. Performing of selection another point."
+                )
                 if attempt >= npoints:
                     grass.fatal("Can't find points with non NULL data.")
 
@@ -290,14 +294,16 @@ def optimize_params(method, names, npoints, diff_penalty, deriv_penalty, itercou
 
     # Find the optima
     best_winsize = best_order = None
-    if method == 'savgol':
-        best_winsize, best_order = _optimize_savgol(input_data, diff_penalty,
-                                                    deriv_penalty, itercount)
-    elif method == 'median':
-        best_winsize = _optimize_median(input_data,
-                                        diff_penalty, deriv_penalty, itercount)
+    if method == "savgol":
+        best_winsize, best_order = _optimize_savgol(
+            input_data, diff_penalty, deriv_penalty, itercount
+        )
+    elif method == "median":
+        best_winsize = _optimize_median(
+            input_data, diff_penalty, deriv_penalty, itercount
+        )
     else:
-        grass.fatal('The method is not implemented')
+        grass.fatal("The method is not implemented")
 
     return best_winsize, best_order
 
@@ -310,17 +316,21 @@ def _optimize_savgol(input_data, diff_penalty, deriv_penalty, itercount):
     map_count, npoints = input_data.shape
     best = np.inf
     best_winsize = best_order = None
-    for winsize in range(5, map_count/2, 2):
-        for order in range(2, min(winsize - 2, 10)):    # 10 is a 'magic' number: we don't want very hight polynomyal fitting usually
+    for winsize in range(5, map_count / 2, 2):
+        for order in range(
+            2, min(winsize - 2, 10)
+        ):  # 10 is a 'magic' number: we don't want very hight polynomyal fitting usually
             test_data = np.copy(input_data)
-            test_data = _filter('savgol', test_data, winsize, order, itercount, False)
-            penalty = fitting_quality(input_data, test_data,
-                                      diff_penalty, deriv_penalty)
+            test_data = _filter("savgol", test_data, winsize, order, itercount, False)
+            penalty = fitting_quality(
+                input_data, test_data, diff_penalty, deriv_penalty
+            )
             if penalty < best:
                 best = penalty
                 best_winsize, best_order = winsize, order
 
     return best_winsize, best_order
+
 
 def _optimize_median(input_data, diff_penalty, deriv_penalty, itercount):
     """Find optimal params for median filter.
@@ -330,11 +340,10 @@ def _optimize_median(input_data, diff_penalty, deriv_penalty, itercount):
     map_count, npoints = input_data.shape
     best = np.inf
     best_winsize = order = None
-    for winsize in range(3, map_count/2, 2):
+    for winsize in range(3, map_count / 2, 2):
         test_data = np.copy(input_data)
-        test_data = _filter('median', test_data, winsize, order, itercount, False)
-        penalty = fitting_quality(input_data, test_data,
-                                  diff_penalty, deriv_penalty)
+        test_data = _filter("median", test_data, winsize, order, itercount, False)
+        penalty = fitting_quality(input_data, test_data, diff_penalty, deriv_penalty)
         if penalty < best:
             best = penalty
             best_winsize = winsize
@@ -344,7 +353,7 @@ def _optimize_median(input_data, diff_penalty, deriv_penalty, itercount):
 
 def filter(method, names, winsize, order, prefix, itercount, fit_up):
 
-    current_mapset = grass.read_command('g.mapset', flags='p')
+    current_mapset = grass.read_command("g.mapset", flags="p")
     current_mapset = current_mapset.strip()
 
     inputs = init_rasters(names)
@@ -381,48 +390,51 @@ def get_val_or_nan(map, row, col):
 
 def _get_row_or_nan(raster, row_num):
     row = raster.get_row(row_num)
-    if raster.mtype != 'CELL':
+    if raster.mtype != "CELL":
         return row
-    nans = (row == CNULL)
+    nans = row == CNULL
     row = row.astype(np.float64)
     row[nans.astype(np.bool)] = np.nan
     return row
 
+
 def main(options, flags):
 
-    optimize = flags['c']
-    fit_up = flags['u']
+    optimize = flags["c"]
+    fit_up = flags["u"]
     if optimize and fit_up:
         grass.fatal("Sorry, flags 'c' and 'u' can't be used together.")
 
-    method = options['method']
+    method = options["method"]
 
-    xnames = options['input']
-    xnames = xnames.split(',')
+    xnames = options["input"]
+    xnames = xnames.split(",")
 
-    winsize = options['winsize']
+    winsize = options["winsize"]
     winsize = int(winsize)
 
-    order = options['order']
+    order = options["order"]
     order = int(order)
 
-    opt_points = options['opt_points']
+    opt_points = options["opt_points"]
     opt_points = int(opt_points)
 
-    diff_penalty = options['diff_penalty']
+    diff_penalty = options["diff_penalty"]
     diff_penalty = float(diff_penalty)
 
-    deriv_penalty = options['deriv_penalty']
+    deriv_penalty = options["deriv_penalty"]
     deriv_penalty = float(deriv_penalty)
 
-    itercount = options['iterations']
+    itercount = options["iterations"]
     itercount = int(itercount)
 
-    res_prefix = options['result_prefix']
+    res_prefix = options["result_prefix"]
 
     N = len(xnames)
     if N < winsize:
-        grass.fatal("The used running window size is to big. Decrease the paramether or add more rasters to the series.")
+        grass.fatal(
+            "The used running window size is to big. Decrease the paramether or add more rasters to the series."
+        )
 
     _, rem = divmod(winsize, 2)
     if rem == 0:
@@ -432,12 +444,14 @@ def main(options, flags):
         grass.fatal("Order of the filter must be less than window length")
 
     if optimize:
-        winsize, order = optimize_params(method, xnames, opt_points,
-                                         diff_penalty, deriv_penalty, itercount)
+        winsize, order = optimize_params(
+            method, xnames, opt_points, diff_penalty, deriv_penalty, itercount
+        )
         if winsize is None:
             grass.fatal("Optimization procedure doesn't convergence.")
 
     filter(method, xnames, winsize, order, res_prefix, itercount, fit_up)
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()
@@ -446,9 +460,11 @@ if __name__ == "__main__":
     try:
         from scipy.signal import savgol_filter
     except ImportError:
-        grass.fatal("Cannot import savgol_filter from scipy."
-                    " Install python-scipy package version"
-                    " 0.14 or later first")
+        grass.fatal(
+            "Cannot import savgol_filter from scipy."
+            " Install python-scipy package version"
+            " 0.14 or later first"
+        )
     from scipy.signal import medfilt
 
     main(options, flags)

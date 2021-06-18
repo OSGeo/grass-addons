@@ -56,8 +56,7 @@ class TestProbabilties(TestCase):
         cls.runModule(
             "i.group",
             group=cls.group,
-            input=[cls.band1, cls.band2, cls.band3, cls.band4, cls.band5,
-                   cls.band7],
+            input=[cls.band1, cls.band2, cls.band3, cls.band4, cls.band5, cls.band7],
         )
         cls.runModule(
             "r.random",
@@ -71,16 +70,13 @@ class TestProbabilties(TestCase):
     def tearDownClass(cls):
         """Remove the temporary region (and anything else we created)"""
         cls.del_temp_region()
-        cls.runModule("g.remove", flags="f", type="raster",
-                      name=cls.labelled_pixels)
-        cls.runModule("g.remove", flags="f", type="group",
-                      name=cls.group)
+        cls.runModule("g.remove", flags="f", type="raster", name=cls.labelled_pixels)
+        cls.runModule("g.remove", flags="f", type="group", name=cls.group)
 
     def tearDown(self):
         """Remove the output created from the tests
         (reuse the same name for all the test functions)"""
-        self.runModule("g.remove", flags="f", type="raster",
-                       name=self.output_probs)
+        self.runModule("g.remove", flags="f", type="raster", name=self.output_probs)
         os.remove(self.model_file)
 
     def test_probabilities(self):
@@ -101,20 +97,13 @@ class TestProbabilties(TestCase):
             group=self.group,
             load_model=self.model_file,
             output=self.output,
-            flags="pz"
+            flags="pz",
         )
 
-        self.assertRasterExists(self.output_probs[0],
-                                msg="Output was not created")
-        self.assertRasterExists(self.output_probs[1],
-                                msg="Output was not created")
-        self.assertRasterExists(self.output_probs[2],
-                                msg="Output was not created")
-        self.assertRasterExists(self.output_probs[3],
-                                msg="Output was not created")
-        self.assertRasterExists(self.output_probs[4],
-                                msg="Output was not created")
-        self.assertRasterExists(self.output_probs[5],
-                                msg="Output was not created")
-        self.assertRasterExists(self.output_probs[6],
-                                msg="Output was not created")
+        self.assertRasterExists(self.output_probs[0], msg="Output was not created")
+        self.assertRasterExists(self.output_probs[1], msg="Output was not created")
+        self.assertRasterExists(self.output_probs[2], msg="Output was not created")
+        self.assertRasterExists(self.output_probs[3], msg="Output was not created")
+        self.assertRasterExists(self.output_probs[4], msg="Output was not created")
+        self.assertRasterExists(self.output_probs[5], msg="Output was not created")
+        self.assertRasterExists(self.output_probs[6], msg="Output was not created")

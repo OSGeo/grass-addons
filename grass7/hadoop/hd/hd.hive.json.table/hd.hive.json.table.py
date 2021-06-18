@@ -89,21 +89,23 @@ from hdfsgrass.hdfs_grass_lib import ConnectionManager
 
 
 def main():
-    if not options['columns'] and not options['struct']:
+    if not options["columns"] and not options["struct"]:
         grass.fatal("Must be defined <attributes> or <struct> parameter")
 
     conn = ConnectionManager()
     conn.get_current_connection(options["driver"])
     hive = conn.get_hook()
-    hive.create_geom_table(table=options['table'],
-                           field=options['columns'],
-                           stored=options['stored'],
-                           serde=options['serde'],
-                           outputformat=options['outformat'],
-                           external=flags['e'],
-                           recreate=flags['d'],
-                           filepath=options['jsonpath'],
-                           overwrite=flags['o'])
+    hive.create_geom_table(
+        table=options["table"],
+        field=options["columns"],
+        stored=options["stored"],
+        serde=options["serde"],
+        outputformat=options["outformat"],
+        external=flags["e"],
+        recreate=flags["d"],
+        filepath=options["jsonpath"],
+        overwrite=flags["o"],
+    )
 
 
 if __name__ == "__main__":

@@ -36,7 +36,10 @@ from wx.html import EVT_HTML_LINK_CLICKED, HW_DEFAULT_STYLE, HW_SCROLLBAR_AUTO
 from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin
 
 from .cswutil import (
-    get_connections_from_file, normalize_text, open_url, renderXML,
+    get_connections_from_file,
+    normalize_text,
+    open_url,
+    renderXML,
     render_template,
 )
 from . import globalvar
@@ -45,9 +48,12 @@ from .mdutil import StaticContext, yesNo
 
 
 class ConstraintsBuilder(wx.Panel):
-    def __init__(self, parent, settings=''):
+    def __init__(self, parent, settings=""):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
-        self.label = wx.StaticText(self, -1, label="Manual for creating constraints:\n\
+        self.label = wx.StaticText(
+            self,
+            -1,
+            label="Manual for creating constraints:\n\
 *Constraints must be in brackets([]) \n\
 *Constraints must be in quotation marks(') \n\
 Examples\n\
@@ -61,31 +67,35 @@ Examples\n\
       \n\
       More expressions \n\
       (a && b) || c || d || e\n\
-      [['a','b'],['c'],['d'],['e']] or [['a','b'],'c','d','e']")
+      [['a','b'],['c'],['d'],['e']] or [['a','b'],'c','d','e']",
+        )
 
         self.constrCtrl = wx.TextCtrl(self, -1)
-        self.applyBtt = wx.Button(self, -1, label='Apply')
-        self.cancelBtt = wx.Button(self, -1, label='Cancel')
+        self.applyBtt = wx.Button(self, -1, label="Apply")
+        self.cancelBtt = wx.Button(self, -1, label="Cancel")
 
         self.constrCtrl.SetValue(settings)
         self._layout()
 
     def _layout(self):
         panelSizer = wx.BoxSizer(wx.VERTICAL)
-        sb = wx.StaticBox(self, label='Constraints')
+        sb = wx.StaticBox(self, label="Constraints")
         sbs = wx.StaticBoxSizer(sb, orient=wx.VERTICAL)
         sbs.Add(self.label, flag=wx.TOP | wx.LEFT | wx.RIGHT, border=10)
         sbs.Add(10, 10, 1, wx.EXPAND)
-        sbs.Add(self.constrCtrl, 1, flag=wx.EXPAND | wx.LEFT | wx.RIGHT |
-                wx.BOTTOM, border=10)
+        sbs.Add(
+            self.constrCtrl,
+            1,
+            flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM,
+            border=10,
+        )
         panelSizer.Add(sbs, flag=wx.ALL, border=10)
 
         horSizer = wx.BoxSizer(wx.HORIZONTAL)
         horSizer.Add(self.applyBtt)
         horSizer.Add(self.cancelBtt, flag=wx.LEFT, border=5)
         panelSizer.Add(10, 10, 1, wx.EXPAND)
-        panelSizer.Add(horSizer, flag=wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM,
-                       border=10)
+        panelSizer.Add(horSizer, flag=wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, border=10)
 
         self.SetSizerAndFit(panelSizer)
 
@@ -95,9 +105,7 @@ class CSWBrowserPanel(wx.Panel):
         wx.Panel.__init__(self, parent)
 
         try:
-            global BBox, CatalogueServiceWeb, Environment, ExceptionReport, \
-                FileSystemLoader, GError, GMessage, GWarning, HtmlFormatter, \
-                PropertyIsLike, XmlLexer, highlight
+            global BBox, CatalogueServiceWeb, Environment, ExceptionReport, FileSystemLoader, GError, GMessage, GWarning, HtmlFormatter, PropertyIsLike, XmlLexer, highlight
 
             from jinja2 import Environment, FileSystemLoader
 
@@ -112,9 +120,11 @@ class CSWBrowserPanel(wx.Panel):
             from core.gcmd import GError, GMessage, GWarning
         except ModuleNotFoundError as e:
             msg = e.msg
-            sys.exit(globalvar.MODULE_NOT_FOUND.format(
-                lib=msg.split("'")[-2],
-                url=globalvar.MODULE_URL))
+            sys.exit(
+                globalvar.MODULE_NOT_FOUND.format(
+                    lib=msg.split("'")[-2], url=globalvar.MODULE_URL
+                )
+            )
 
         self.context = StaticContext()
         self.giface = giface
@@ -124,42 +134,66 @@ class CSWBrowserPanel(wx.Panel):
         self.constraintsWidgets1 = []
         self.constraintsAdvanced = False
         self.idResults = []
-        self.constString = ''
-        self.outpoutschema = 'dc'
+        self.constString = ""
+        self.outpoutschema = "dc"
         self.warns = True
         sizeConst = 55
-        self.splitterBrowser = SplitterWindow(self, style=wx.SP_3D | wx.SP_LIVE_UPDATE | wx.SP_BORDER)
+        self.splitterBrowser = SplitterWindow(
+            self, style=wx.SP_3D | wx.SP_LIVE_UPDATE | wx.SP_BORDER
+        )
         self.context = StaticContext()
-        self.connectionFilePath = os.path.join(self.context.lib_path, 'connections_resources.xml')
+        self.connectionFilePath = os.path.join(
+            self.context.lib_path, "connections_resources.xml"
+        )
         self.pnlLeft = wx.Panel(self.splitterBrowser, id=wx.ID_ANY)
         self.pnlRight = wx.Panel(self.splitterBrowser, -1)
 
-        self.keywordLbl = wx.StaticText(self.pnlLeft, -1, 'Keywords')
-        self.numResultsLbl = wx.StaticText(self.pnlLeft, -1, 'Max')
-        self.catalogLbl = wx.StaticText(self.pnlLeft, -1, 'Catalog')
-        self.findResNumLbl = wx.StaticText(self.pnlLeft, -1, '')
+        self.keywordLbl = wx.StaticText(self.pnlLeft, -1, "Keywords")
+        self.numResultsLbl = wx.StaticText(self.pnlLeft, -1, "Max")
+        self.catalogLbl = wx.StaticText(self.pnlLeft, -1, "Catalog")
+        self.findResNumLbl = wx.StaticText(self.pnlLeft, -1, "")
 
-        self.advanceChck = wx.CheckBox(self.pnlLeft, label='Advanced')
+        self.advanceChck = wx.CheckBox(self.pnlLeft, label="Advanced")
         self.advanceChck.Bind(wx.EVT_CHECKBOX, self.OnKeywordDialog)
-        self.stbFind = wx.StaticBox(self.pnlLeft, -1, 'Filter')
-        self.stbSearch = wx.StaticBox(self.pnlLeft, -1, 'Search settings')
+        self.stbFind = wx.StaticBox(self.pnlLeft, -1, "Filter")
+        self.stbSearch = wx.StaticBox(self.pnlLeft, -1, "Search settings")
 
         self.catalogCmb = wx.ComboBox(self.pnlLeft, id=-1, pos=wx.DefaultPosition)
         self.keywordCtr = wx.TextCtrl(self.pnlLeft)
         self.catalogCmb.Bind(wx.EVT_COMBOBOX, self.OnSetCatalog)
         w, self.h = self.keywordCtr.GetSize()
-        self.numResultsSpin = wx.SpinCtrl(self.pnlLeft, min=1, max=100, initial=20, size=(sizeConst, self.h),
-                                          style=wx.ALIGN_RIGHT | wx.SP_ARROW_KEYS)
+        self.numResultsSpin = wx.SpinCtrl(
+            self.pnlLeft,
+            min=1,
+            max=100,
+            initial=20,
+            size=(sizeConst, self.h),
+            style=wx.ALIGN_RIGHT | wx.SP_ARROW_KEYS,
+        )
 
-        self.addKeywordCtr = wx.Button(self.pnlLeft, -1, '+',
-                                       size=ADD_RM_BUTTON_SIZE)
+        self.addKeywordCtr = wx.Button(self.pnlLeft, -1, "+", size=ADD_RM_BUTTON_SIZE)
         self.addKeywordCtr.Bind(wx.EVT_BUTTON, self.addKeyWidget)
-        self.findBtt = wx.Button(self.pnlLeft, size=(sizeConst, self.h), label='Search')
+        self.findBtt = wx.Button(self.pnlLeft, size=(sizeConst, self.h), label="Search")
         self.findBtt.SetBackgroundColour((255, 127, 80))
-        qtyp = ['All', 'Collection', 'Dataset', 'Event', 'Image', 'InteractiveResource',
-                'MovingImage', 'PhysicalObject', 'Service', 'Software', 'Sound', 'StillImage', 'Text']
+        qtyp = [
+            "All",
+            "Collection",
+            "Dataset",
+            "Event",
+            "Image",
+            "InteractiveResource",
+            "MovingImage",
+            "PhysicalObject",
+            "Service",
+            "Software",
+            "Sound",
+            "StillImage",
+            "Text",
+        ]
 
-        self.qtypeCb = wx.ComboBox(self.pnlLeft, id=-1, pos=wx.DefaultPosition, choices=qtyp)
+        self.qtypeCb = wx.ComboBox(
+            self.pnlLeft, id=-1, pos=wx.DefaultPosition, choices=qtyp
+        )
         self.qtypeCb.SetValue("All")
         self.qtypeCb.Disable()
         # -----Results---
@@ -179,22 +213,22 @@ class CSWBrowserPanel(wx.Panel):
         self.refreshResultList()
 
         # -----BB---------
-        self.stbBB = wx.StaticBox(self.pnlLeft, -1, 'Extent')
-        self.bbWestLb = wx.StaticText(self.pnlLeft, -1, 'Xmin')
-        self.bbSouthLb = wx.StaticText(self.pnlLeft, -1, 'Ymin')
-        self.bbEastLb = wx.StaticText(self.pnlLeft, -1, 'Xmax')
-        self.bbNorthLb = wx.StaticText(self.pnlLeft, -1, 'Ymax')
+        self.stbBB = wx.StaticBox(self.pnlLeft, -1, "Extent")
+        self.bbWestLb = wx.StaticText(self.pnlLeft, -1, "Xmin")
+        self.bbSouthLb = wx.StaticText(self.pnlLeft, -1, "Ymin")
+        self.bbEastLb = wx.StaticText(self.pnlLeft, -1, "Xmax")
+        self.bbNorthLb = wx.StaticText(self.pnlLeft, -1, "Ymax")
 
         self.bbWest = wx.TextCtrl(self.pnlLeft)
         self.bbSouth = wx.TextCtrl(self.pnlLeft)
         self.bbEast = wx.TextCtrl(self.pnlLeft)
         self.bbNorth = wx.TextCtrl(self.pnlLeft)
-        '''
+        """
         self.bbWest.Bind(wx.EVT_TEXT_ENTER, self.OnTypeBB)
         self.bbSouth.Bind(wx.EVT_TEXT_ENTER, self.OnTypeBB)
         self.bbEast.Bind(wx.EVT_TEXT_ENTER, self.OnTypeBB)
         self.bbNorth.Bind(wx.EVT_TEXT_ENTER, self.OnTypeBB)
-        '''
+        """
         self.bbSetGlobalBtt1 = wx.Button(self.pnlLeft, label="Global")
         self.bbSetMapExtendBtt1 = wx.Button(self.pnlLeft, label="Map extent")
         self.bbSetGlobalBtt1.Bind(wx.EVT_BUTTON, self.setBBoxGlobal)
@@ -215,12 +249,14 @@ class CSWBrowserPanel(wx.Panel):
         self.bttViewRequestXml.Bind(wx.EVT_BUTTON, self.OnShowReguest)
         self.bttViewResponseXml.Bind(wx.EVT_BUTTON, self.OnShowResponse)
 
-        self.htmlView = html.HtmlWindow(self.pnlRight,
-                                        id=-1,
-                                        pos=wx.DefaultPosition,
-                                        size=wx.DefaultSize,
-                                        style=HW_DEFAULT_STYLE | HW_SCROLLBAR_AUTO,
-                                        name="metadata")
+        self.htmlView = html.HtmlWindow(
+            self.pnlRight,
+            id=-1,
+            pos=wx.DefaultPosition,
+            size=wx.DefaultSize,
+            style=HW_DEFAULT_STYLE | HW_SCROLLBAR_AUTO,
+            name="metadata",
+        )
         self.htmlView.SetBorders(5)
         self.htmlView.Bind(EVT_HTML_LINK_CLICKED, self.onHtmlLinkClicked)
         # self.htmlView=wx.html2.WebView.New(self.pnlRight, not supported in wx 2.8.12.1
@@ -229,11 +265,14 @@ class CSWBrowserPanel(wx.Panel):
 
     def OnKeywordDialog(self, evt):
         if self.advanceChck.GetValue():
-            self.geDialog = wx.Dialog(self, id=wx.ID_ANY,
-                                      title='constraints builder',
-                                      style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER,
-                                      size=wx.DefaultSize,
-                                      pos=wx.DefaultPosition)
+            self.geDialog = wx.Dialog(
+                self,
+                id=wx.ID_ANY,
+                title="constraints builder",
+                style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER,
+                size=wx.DefaultSize,
+                pos=wx.DefaultPosition,
+            )
 
             self.geDialog.SetSize((500, 500))
             self.constrPnl = ConstraintsBuilder(self.geDialog, self.constString)
@@ -248,17 +287,16 @@ class CSWBrowserPanel(wx.Panel):
         self.advanceChck.SetValue(False)
         self.geDialog.Destroy()
 
-    def check_char_pair(self, s, start_char='[', end_char=']',
-                        same_char=False):
+    def check_char_pair(self, s, start_char="[", end_char="]", same_char=False):
         """Check char pair count in the string
 
-        param s: string
- start_char: start char
-        param end_char: end char
-        param same_char: bool
+               param s: string
+        start_char: start char
+               param end_char: end char
+               param same_char: bool
 
-        :return: bool (count of start char is equal or not equal to
-        the count of end char)
+               :return: bool (count of start char is equal or not equal to
+               the count of end char)
         """
         a = 0
         for i in range(len(s)):
@@ -272,18 +310,19 @@ class CSWBrowserPanel(wx.Panel):
             return True if a % 2 == 0 else False
 
     def OnSetAdvancedConstraints(self, evt):
-        error_message = 'Constraints syntax error'
+        error_message = "Constraints syntax error"
         self.constString = self.constrPnl.constrCtrl.GetValue()
-        if (self.constString == '' or not
-            (self.constString.startswith('[')
-             and self.constString.endswith(']'))):
+        if self.constString == "" or not (
+            self.constString.startswith("[") and self.constString.endswith("]")
+        ):
             GMessage(error_message)
             return
         if not self.check_char_pair(self.constString):
             GMessage(error_message)
             return
-        if not self.check_char_pair(self.constString, start_char='\'',
-                                    end_char='\'', same_char=True):
+        if not self.check_char_pair(
+            self.constString, start_char="'", end_char="'", same_char=True
+        ):
             GMessage(error_message)
             return
         self.constraintsAdvanced = True
@@ -291,10 +330,9 @@ class CSWBrowserPanel(wx.Panel):
 
     def addKeyWidget(self, evt):
         name = evt.GetEventObject().GetLabel()
-        if name == '+':
+        if name == "+":
             kw = wx.TextCtrl(self.pnlLeft)
-            addKeywordCtr = wx.Button(self.pnlLeft, -1, '-',
-                                      size=ADD_RM_BUTTON_SIZE)
+            addKeywordCtr = wx.Button(self.pnlLeft, -1, "-", size=ADD_RM_BUTTON_SIZE)
             addKeywordCtr.Bind(wx.EVT_BUTTON, self.addKeyWidget)
 
             self.constraintsWidgets.append(kw)
@@ -316,34 +354,36 @@ class CSWBrowserPanel(wx.Panel):
 
     def OnShowReguest(self, evt):
         # request_html = encodeString(highlight_xml(self.context, self.catalog.request,False))
-        path = os.path.join(tempfile.gettempdir(), 'htmlRequest.xml')
+        path = os.path.join(tempfile.gettempdir(), "htmlRequest.xml")
         request = grass.decode(self.catalog.request)
         if os.path.exists(path):
             os.remove(path)
-        f = open(path, 'w')
+        f = open(path, "w")
         f.writelines(request)
         f.close()
-        if yesNo(self, 'Do you want to open <request> in default browser', 'Open file'):
+        if yesNo(self, "Do you want to open <request> in default browser", "Open file"):
             open_url(path)
         else:
             self.htmlView.SetPage((renderXML(self.context, request)))
 
     def OnShowResponse(self, evt):
         # response_html = encodeString(highlight_xml(self.context, self.catalog.response,False))
-        path = os.path.join(tempfile.gettempdir(), 'htmlResponse.xml')
+        path = os.path.join(tempfile.gettempdir(), "htmlResponse.xml")
         response = grass.decode(self.catalog.response)
         if os.path.exists(path):
             os.remove(path)
-        f = open(path, 'w')
+        f = open(path, "w")
         f.write(response)
         f.close()
-        if yesNo(self, 'Do you want to open <response> in default browser', 'Open file'):
+        if yesNo(
+            self, "Do you want to open <response> in default browser", "Open file"
+        ):
             open_url(path)
         else:
             self.htmlView.SetPage((renderXML(self.context, response)))
 
     def getTmpConnection(self, name):
-        key = '/connections/%s/url' % name
+        key = "/connections/%s/url" % name
         return self.config.Read(key)
 
     def OnRecord(self, evt):
@@ -351,58 +391,59 @@ class CSWBrowserPanel(wx.Panel):
 
         self.refreshServiceButt()
         curr = 0
-        idx = self.resultList.GetNextItem(curr, wx.LIST_NEXT_ALL,
-                                          wx.LIST_STATE_SELECTED)
+        idx = self.resultList.GetNextItem(
+            curr, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED
+        )
         if not idx:
             return
 
-        if self.outpoutschema == 'gmd':
+        if self.outpoutschema == "gmd":
             startfr = self.startfrom + idx + 1
             cat = CatalogueServiceWeb(self.catalog_url, timeout=self.timeout)
             try:
-                cat.getrecords2(constraints=self.constraints,
-                                maxrecords=1,
-                                startposition=startfr,
-                                outputschema='http://www.isotc211.org/2005/gmd')
+                cat.getrecords2(
+                    constraints=self.constraints,
+                    maxrecords=1,
+                    startposition=startfr,
+                    outputschema="http://www.isotc211.org/2005/gmd",
+                )
             except ExceptionReport as err:
-                GWarning('Error getting response: %s' % err)
+                GWarning("Error getting response: %s" % err)
                 return
             except KeyError as err:
-                GWarning('Record parsing error, unable to locate record identifier')
+                GWarning("Record parsing error, unable to locate record identifier")
                 return
 
             if self.catalog:
                 md = list(cat.records.values())[0]
-                path = 'record_metadata_gmd.html'
-                metadata = render_template('en', self.context, md, path)
+                path = "record_metadata_gmd.html"
+                metadata = render_template("en", self.context, md, path)
 
             self.htmlView.SetPage(metadata)
 
         else:
-            identifier = self.get_item_data(idx, 'identifier')
+            identifier = self.get_item_data(idx, "identifier")
             cat = CatalogueServiceWeb(self.catalog_url, timeout=self.timeout)
             try:
                 cat.getrecordbyid([self.catalog.records[identifier].identifier])
             except ExceptionReport as err:
-                GWarning('Error getting response: %s' % err)
+                GWarning("Error getting response: %s" % err)
                 return
             except KeyError as err:
-                GWarning('Record parsing error, unable to locate record identifier')
+                GWarning("Record parsing error, unable to locate record identifier")
                 return
 
             record = cat.records[identifier]
             record.xml_url = cat.request
 
             if self.catalog:
-                path = 'record_metadata_dc.html'
-                metadata = render_template('en', self.context,
-                                           record,
-                                           path)
+                path = "record_metadata_dc.html"
+                metadata = render_template("en", self.context, record, path)
 
             try:
                 record = self.catalog.records[identifier]
             except KeyError as err:
-                GWarning('@!Record parsing error, unable to locate record identifier')
+                GWarning("@!Record parsing error, unable to locate record identifier")
                 return
 
             self.htmlView.SetPage(metadata)
@@ -412,37 +453,37 @@ class CSWBrowserPanel(wx.Panel):
         """scan record for WMS/WMTS|WFS|WCS endpoints"""
         links = record.uris + record.references
         WMSWMST_LINK_TYPES = [
-            'OGC:WMS',
-            'OGC:WMTS',
-            'OGC:WMS-1.1.1-http-get-map',
-            'OGC:WMS-1.1.1-http-get-capabilities',
-            'OGC:WMS-1.3.0-http-get-map',
-            'OGC:WMS-1.3.0-http-get-capabilities',
-            'urn:x-esri:specification:ServiceType:wms:url',
-            'urn:x-esri:specification:ServiceType:Gmd:URL.wms'
+            "OGC:WMS",
+            "OGC:WMTS",
+            "OGC:WMS-1.1.1-http-get-map",
+            "OGC:WMS-1.1.1-http-get-capabilities",
+            "OGC:WMS-1.3.0-http-get-map",
+            "OGC:WMS-1.3.0-http-get-capabilities",
+            "urn:x-esri:specification:ServiceType:wms:url",
+            "urn:x-esri:specification:ServiceType:Gmd:URL.wms",
         ]
 
         WFS_LINK_TYPES = [
-            'OGC:WFS',
-            'OGC:WFS-1.0.0-http-get-capabilities',
-            'OGC:WFS-1.1.0-http-get-capabilities',
-            'urn:x-esri:specification:ServiceType:wfs:url',
-            'urn:x-esri:specification:ServiceType:Gmd:URL.wfs'
+            "OGC:WFS",
+            "OGC:WFS-1.0.0-http-get-capabilities",
+            "OGC:WFS-1.1.0-http-get-capabilities",
+            "urn:x-esri:specification:ServiceType:wfs:url",
+            "urn:x-esri:specification:ServiceType:Gmd:URL.wfs",
         ]
 
         WCS_LINK_TYPES = [
-            'OGC:WCS',
-            'OGC:WCS-1.1.0-http-get-capabilities',
-            'urn:x-esri:specification:ServiceType:wcs:url',
-            'urn:x-esri:specification:ServiceType:Gmd:URL.wcs'
+            "OGC:WCS",
+            "OGC:WCS-1.1.0-http-get-capabilities",
+            "urn:x-esri:specification:ServiceType:wcs:url",
+            "urn:x-esri:specification:ServiceType:Gmd:URL.wcs",
         ]
         services = {}
         for link in links:
 
-            if 'scheme' in link:
-                link_type = link['scheme']
-            elif 'protocol' in link:
-                link_type = link['protocol']
+            if "scheme" in link:
+                link_type = link["scheme"]
+            elif "protocol" in link:
+                link_type = link["protocol"]
             else:
                 link_type = None
 
@@ -455,20 +496,23 @@ class CSWBrowserPanel(wx.Panel):
 
             # if the link type exists, and it is one of the acceptable
             # interactive link types, then set
-            if all([link_type is not None,
-                    link_type in wmswmst_link_types + wfs_link_types +
-                            wcs_link_types]):
+            if all(
+                [
+                    link_type is not None,
+                    link_type in wmswmst_link_types + wfs_link_types + wcs_link_types,
+                ]
+            ):
                 if link_type in wmswmst_link_types:
-                    services['wms'] = link['url']
+                    services["wms"] = link["url"]
                     self.bttAddWms.Enable()
                 if link_type in wfs_link_types:
-                    services['wfs'] = link['url']
+                    services["wfs"] = link["url"]
                     self.bttAddWfs.Enable()
                 if link_type in wcs_link_types:
-                    services['wcs'] = link['url']
+                    services["wcs"] = link["url"]
                     self.bttAddWcs.Enable()
 
-            self.set_item_data(item, 'link', json.dumps(services))
+            self.set_item_data(item, "link", json.dumps(services))
 
     def refreshNavigationButt(self, stat=False):
         if stat:
@@ -502,46 +546,53 @@ class CSWBrowserPanel(wx.Panel):
     def OnNavigate(self, evt):
 
         name = evt.GetEventObject().GetLabel()
-        if name == '<<':
+        if name == "<<":
             self.startfrom = 0
-        elif name == '>>':
-            self.startfrom = self.catalog.results['matches'] - self.maxrecords
-        elif name == '>':
+        elif name == ">>":
+            self.startfrom = self.catalog.results["matches"] - self.maxrecords
+        elif name == ">":
             self.startfrom += self.maxrecords
             if self.startfrom >= self.catalog.results["matches"]:
-                msg = 'End of results. Go to start?'
-                if yesNo(self, msg, 'End of results'):
+                msg = "End of results. Go to start?"
+                if yesNo(self, msg, "End of results"):
                     self.startfrom = 0
                 else:
                     return
-        elif name == '<':
+        elif name == "<":
             self.startfrom -= self.maxrecords
             if self.startfrom < 0:
-                msg = 'Start of results. Go to end?'
-                if yesNo(self, msg, 'Navigation'):
-                    self.startfrom = (self.catalog.results['matches'] - self.maxrecords)
+                msg = "Start of results. Go to end?"
+                if yesNo(self, msg, "Navigation"):
+                    self.startfrom = self.catalog.results["matches"] - self.maxrecords
                 else:
                     return
 
         self.loadConstraints()
 
         try:
-            if self.outpoutschema == 'gmd':
-                self.catalog.getrecords2(constraints=self.constraints,
-                                         maxrecords=self.maxrecords, esn='full', startposition=self.startfrom,
-                                         outputschema='http://www.isotc211.org/2005/gmd')
+            if self.outpoutschema == "gmd":
+                self.catalog.getrecords2(
+                    constraints=self.constraints,
+                    maxrecords=self.maxrecords,
+                    esn="full",
+                    startposition=self.startfrom,
+                    outputschema="http://www.isotc211.org/2005/gmd",
+                )
             else:
-                self.catalog.getrecords2(constraints=self.constraints,
-                                         maxrecords=self.maxrecords,
-                                         startposition=self.startfrom, esn='full')
+                self.catalog.getrecords2(
+                    constraints=self.constraints,
+                    maxrecords=self.maxrecords,
+                    startposition=self.startfrom,
+                    esn="full",
+                )
         except ExceptionReport as err:
-            GWarning('Search error: %s' % err)
+            GWarning("Search error: %s" % err)
             return
         except Exception as err:
-            GWarning('Connection error: %s' % err)
+            GWarning("Connection error: %s" % err)
             return
 
-        if self.outpoutschema == 'gmd':
+        if self.outpoutschema == "gmd":
             self.displyResultsGMD()
             return
 
@@ -549,10 +600,10 @@ class CSWBrowserPanel(wx.Panel):
 
     def OnSetCatalog(self, evt):
         val = evt.GetSelection()
-        self.config.WriteInt('/guiSearch/catalog', val)
+        self.config.WriteInt("/guiSearch/catalog", val)
 
     def loadSettings(self):
-        n = self.config.ReadInt('/guiSearch/catalog', 0)
+        n = self.config.ReadInt("/guiSearch/catalog", 0)
         self.catalogCmb.SetSelection(n)
 
     def setTooltip(self, evt):
@@ -563,50 +614,49 @@ class CSWBrowserPanel(wx.Panel):
             self.resultList.SetToolTip(wx.ToolTip(text))
 
     def setBBoxGRASS(self, evt=None):
-        vdb = Module('g.region', flags='bg', stdout_=PIPE)
+        vdb = Module("g.region", flags="bg", stdout_=PIPE)
         vdb = parse_key_val(vdb.outputs.stdout)
-        self.bbNorth.SetValue(vdb['ll_n'])
-        self.bbSouth.SetValue(vdb['ll_s'])
-        self.bbWest.SetValue(vdb['ll_w'])
-        self.bbEast.SetValue(vdb['ll_e'])
+        self.bbNorth.SetValue(vdb["ll_n"])
+        self.bbSouth.SetValue(vdb["ll_s"])
+        self.bbWest.SetValue(vdb["ll_w"])
+        self.bbEast.SetValue(vdb["ll_e"])
 
     def setBBoxGlobal(self, evt=None):
-        self.bbNorth.SetValue('90')
-        self.bbSouth.SetValue('-90')
-        self.bbWest.SetValue('-180')
-        self.bbEast.SetValue('180')
+        self.bbNorth.SetValue("90")
+        self.bbSouth.SetValue("-90")
+        self.bbWest.SetValue("-180")
+        self.bbEast.SetValue("180")
 
     def _get_csw(self):
         """function to init owslib.csw.CatalogueServiceWeb"""
         # connect to the server
         try:
-            self.catalog = CatalogueServiceWeb(self.catalog_url,
-                                               timeout=self.timeout)
+            self.catalog = CatalogueServiceWeb(self.catalog_url, timeout=self.timeout)
             return True
         except ExceptionReport as err:
-            msg = 'Error connecting to service: %s' % err
+            msg = "Error connecting to service: %s" % err
         except ValueError as err:
-            msg = 'Value Error: %s' % err
+            msg = "Value Error: %s" % err
         except Exception as err:
-            msg = 'Unknown Error: %s' % err
-            GMessage('CSW Connection error: %s' % msg)
+            msg = "Unknown Error: %s" % err
+            GMessage("CSW Connection error: %s" % msg)
         return False
 
     def refreshResultList(self):
         self.resultList.ClearAll()
-        self.resultList.InsertColumn(0, 'Type', width=wx.LIST_AUTOSIZE)
-        self.resultList.InsertColumn(1, 'Service', width=300)
+        self.resultList.InsertColumn(0, "Type", width=wx.LIST_AUTOSIZE)
+        self.resultList.InsertColumn(1, "Service", width=300)
 
     def loadConstraints(self):
         if not self.advanceChck.GetValue():
             self.constraints = []
             kw = self.keywordCtr.GetValue()
             if kw:
-                self.constraints.append(PropertyIsLike('csw:AnyText', kw))
+                self.constraints.append(PropertyIsLike("csw:AnyText", kw))
             for constraint in self.constraintsWidgets:
                 kw = constraint.GetValue()
-                if kw != '':
-                    self.constraints.append(PropertyIsLike('csw:AnyText', kw))
+                if kw != "":
+                    self.constraints.append(PropertyIsLike("csw:AnyText", kw))
             if len(self.constraints) > 1:  # exclusive search (a && b)
                 self.constraints = [self.constraints]
         else:
@@ -615,50 +665,52 @@ class CSWBrowserPanel(wx.Panel):
             for x, constraint in enumerate(tmpConstraints):
                 if isinstance(constraint, list):
                     for y, const in enumerate(constraint):
-                        self.constraints[x][y] = PropertyIsLike('csw:AnyText', const)
+                        self.constraints[x][y] = PropertyIsLike("csw:AnyText", const)
                     continue
-                self.constraints[x] = PropertyIsLike('csw:AnyText', constraint)
+                self.constraints[x] = PropertyIsLike("csw:AnyText", constraint)
 
     def _openWebServiceDiag(self, data_url):
         from web_services.dialogs import AddWSDialog
+
         if self.giface:
             self.WSDialog = AddWSDialog(self.parent, giface=self.giface)
-            self.WSDialog.OnSettingsChanged([data_url, '', ''])
+            self.WSDialog.OnSettingsChanged([data_url, "", ""])
             self.WSDialog.Show()
         else:
             GMessage(_("No access to layer tree. Run g.gui.cswbroswer from g.gui"))
 
     def OnService(self, evt):
         def strip_str(s):
-            return s.strip().replace('"', '').replace('\'', '')
+            return s.strip().replace('"', "").replace("'", "")
 
         name = evt.GetEventObject().GetLabel()
-        idx = self.resultList.GetNextItem(0, wx.LIST_NEXT_ALL,
-                                          wx.LIST_STATE_SELECTED)
+        idx = self.resultList.GetNextItem(0, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
         if not idx:
             return
         cmd = []
         # Strip { }
-        data = self.get_item_data(idx, 'link')[1:-1]
+        data = self.get_item_data(idx, "link")[1:-1]
         item_data = dict(
             (strip_str(k), strip_str(v))
-            for k, v in (item.split(':', 1)
-                         for item in
-                         data.split(', ')))
+            for k, v in (item.split(":", 1) for item in data.split(", "))
+        )
 
         if name == "Add WMS":
-            data_url = item_data['wms']
-            service = ['r.in.wms', 'Add web service layer']
+            data_url = item_data["wms"]
+            service = ["r.in.wms", "Add web service layer"]
             dlg = wx.SingleChoiceDialog(
-                self, 'Choice of module for WMS ', 'Web Service selection',
+                self,
+                "Choice of module for WMS ",
+                "Web Service selection",
                 service,
-                wx.CHOICEDLG_STYLE)
+                wx.CHOICEDLG_STYLE,
+            )
 
             if dlg.ShowModal() == wx.ID_OK:
                 selected_module = dlg.GetStringSelection()
                 if selected_module == service[0]:
-                    cmd.append('r.in.wms')
-                    cmd.append('url=%s' % data_url)
+                    cmd.append("r.in.wms")
+                    cmd.append("url=%s" % data_url)
                     GUI(parent=self, show=True, modal=True).ParseCommand(cmd=cmd)
                 elif selected_module == service[1]:
                     self._openWebServiceDiag(data_url)
@@ -666,19 +718,21 @@ class CSWBrowserPanel(wx.Panel):
             dlg.Destroy()
 
         elif name == "Add WFS":
-            data_url = item_data['wfs']
-            service = ['v.in.wfs', 'Add web service layer']
+            data_url = item_data["wfs"]
+            service = ["v.in.wfs", "Add web service layer"]
             dlg = wx.SingleChoiceDialog(
-                self, 'Choice of module for WFS ', 'Web Service selection',
+                self,
+                "Choice of module for WFS ",
+                "Web Service selection",
                 service,
-                wx.CHOICEDLG_STYLE
+                wx.CHOICEDLG_STYLE,
             )
 
             if dlg.ShowModal() == wx.ID_OK:
                 selected_module = dlg.GetStringSelection()
                 if selected_module == service[0]:
-                    cmd.append('v.in.wfs')
-                    cmd.append('url=%s' % data_url)
+                    cmd.append("v.in.wfs")
+                    cmd.append("url=%s" % data_url)
                     GUI(parent=self, show=True, modal=True).ParseCommand(cmd=cmd)
                 elif selected_module == service[1]:
                     self._openWebServiceDiag(data_url)
@@ -689,7 +743,7 @@ class CSWBrowserPanel(wx.Panel):
 
     def GetQtype(self):  # TODO need to implement
         val = self.qtypeCb.GetValue()
-        if val == 'All':
+        if val == "All":
             return None
         else:
             return val
@@ -706,8 +760,8 @@ class CSWBrowserPanel(wx.Panel):
         self.findResNumLbl.SetLabel("")
 
         current_text = self.catalogCmb.GetValue()
-        if current_text == '':
-            GMessage('Please set catalog')
+        if current_text == "":
+            GMessage("Please set catalog")
             wx.EndBusyCursor()
             return
 
@@ -727,7 +781,7 @@ class CSWBrowserPanel(wx.Panel):
         maxy = self.bbNorth.GetValue()
         bbox = [minx, miny, maxx, maxy]
 
-        if bbox != ['-180', '-90', '180', '90']:
+        if bbox != ["-180", "-90", "180", "90"]:
             self.constraints.append(BBox(bbox))
 
         if not self._get_csw():
@@ -737,48 +791,53 @@ class CSWBrowserPanel(wx.Panel):
         # TODO: allow users to select resources types
         # to find ('service', 'dataset', etc.)
         try:
-            self.catalog.getrecords2(constraints=self.constraints,
-                                     maxrecords=self.maxrecords, esn='full')
-            self.outpoutschema = 'dc'
+            self.catalog.getrecords2(
+                constraints=self.constraints, maxrecords=self.maxrecords, esn="full"
+            )
+            self.outpoutschema = "dc"
         except ExceptionReport as err:
-            GError('Search error: %s' % err)
+            GError("Search error: %s" % err)
             wx.EndBusyCursor()
             return
         except Exception as err:
-            GError('Connection error: %s' % err)
+            GError("Connection error: %s" % err)
             wx.EndBusyCursor()
             return
 
         ###work around for GMD records
-        if len(self.catalog.records) == 0 and self.catalog.results['matches'] != 0:
+        if len(self.catalog.records) == 0 and self.catalog.results["matches"] != 0:
             try:
-                self.catalog.getrecords2(constraints=self.constraints,
-                                         maxrecords=self.maxrecords, esn='full',
-                                         outputschema='http://www.isotc211.org/2005/gmd')
-                self.outpoutschema = 'gmd'
+                self.catalog.getrecords2(
+                    constraints=self.constraints,
+                    maxrecords=self.maxrecords,
+                    esn="full",
+                    outputschema="http://www.isotc211.org/2005/gmd",
+                )
+                self.outpoutschema = "gmd"
                 if self.warns:
                     GWarning(
-                        "Endopoint of service is not setup properly. Server returns ISO metadata(http://www.isotc211.org/2005/gmd) instead of CSW records(http://schemas.opengis.net/csw/2.0.2/record.xsd). CSW browser may work incorrectly.")
+                        "Endopoint of service is not setup properly. Server returns ISO metadata(http://www.isotc211.org/2005/gmd) instead of CSW records(http://schemas.opengis.net/csw/2.0.2/record.xsd). CSW browser may work incorrectly."
+                    )
                     self.warns = False
 
             except ExceptionReport as err:
-                GError('Search error: %s' % err)
+                GError("Search error: %s" % err)
                 wx.EndBusyCursor()
                 return
             except Exception as err:
-                GError('Connection error: %s' % err)
+                GError("Connection error: %s" % err)
                 wx.EndBusyCursor()
                 return
         ###work around for GMD records- END
 
-        if self.catalog.results['matches'] == 0:
-            self.findResNumLbl.SetLabel('0 results')
+        if self.catalog.results["matches"] == 0:
+            self.findResNumLbl.SetLabel("0 results")
             self.refreshNavigationButt(True)
             return
 
         self.refreshNavigationButt(True)
         # parsing for another html template(GMD)
-        if self.outpoutschema == 'gmd':
+        if self.outpoutschema == "gmd":
             self.displyResultsGMD()
             return
 
@@ -786,10 +845,10 @@ class CSWBrowserPanel(wx.Panel):
         wx.EndBusyCursor()
 
     def get_item_data(self, index, field):
-        if field == 'identifier':
-            return self.idResults[index]['identifier']
+        if field == "identifier":
+            return self.idResults[index]["identifier"]
         else:
-            return self.idResults[index]['link']
+            return self.idResults[index]["link"]
 
     def set_item_data(self, index, field, value):
         """set identifier"""
@@ -802,23 +861,25 @@ class CSWBrowserPanel(wx.Panel):
 
         if idx:
             if field == "identifier":
-                self.idResults[index]['identifier'] = value
+                self.idResults[index]["identifier"] = value
             if field == "link":
-                self.idResults[index]['link'] = value
+                self.idResults[index]["link"] = value
         else:
             d = {}
             if field == "identifier":
-                d['identifier'] = value
+                d["identifier"] = value
             if field == "link":
-                d[index]['link'] = value
+                d[index]["link"] = value
             self.idResults.insert(index, d)
 
     def displyResultsGMD(self):
         self.refreshResultList()
-        position = self.catalog.results['returned'] + self.startfrom
-        msg = 'Showing %s - %s of %s result(s)' % (self.startfrom + 1,
-                                                   position,
-                                                   self.catalog.results['matches'])
+        position = self.catalog.results["returned"] + self.startfrom
+        msg = "Showing %s - %s of %s result(s)" % (
+            self.startfrom + 1,
+            position,
+            self.catalog.results["matches"],
+        )
 
         self.findResNumLbl.SetLabel(msg)
         index = 0
@@ -826,16 +887,23 @@ class CSWBrowserPanel(wx.Panel):
 
             if self.catalog.records[rec].identification.identtype:
                 item = wx.ListItem()
-                self.resultList.InsertStringItem(index,
-                                                 normalize_text(self.catalog.records[rec].identification.identtype))
+                self.resultList.InsertStringItem(
+                    index,
+                    normalize_text(self.catalog.records[rec].identification.identtype),
+                )
             else:
-                self.resultList.SetItem(index, 0, 'unknown')
+                self.resultList.SetItem(index, 0, "unknown")
             if self.catalog.records[rec].identification.title:
-                self.resultList.SetItem(index, 1, normalize_text(self.catalog.records[rec].identification.title))
+                self.resultList.SetItem(
+                    index,
+                    1,
+                    normalize_text(self.catalog.records[rec].identification.title),
+                )
 
             if self.catalog.records[rec].identification.title:
-                self.set_item_data(index, 'identifier',
-                                   self.catalog.records[rec].identification.title)
+                self.set_item_data(
+                    index, "identifier", self.catalog.records[rec].identification.title
+                )
             if index % 2:
                 self.resultList.SetItemBackgroundColour(index, "LIGHT GREY")
             index += 1
@@ -846,10 +914,12 @@ class CSWBrowserPanel(wx.Panel):
         """display search results"""
 
         self.refreshResultList()
-        position = self.catalog.results['returned'] + self.startfrom
-        msg = 'Showing %s - %s of %s result(s)' % (self.startfrom + 1,
-                                                   position,
-                                                   self.catalog.results['matches'])
+        position = self.catalog.results["returned"] + self.startfrom
+        msg = "Showing %s - %s of %s result(s)" % (
+            self.startfrom + 1,
+            position,
+            self.catalog.results["matches"],
+        )
 
         self.findResNumLbl.SetLabel(msg)
         index = 0
@@ -857,16 +927,19 @@ class CSWBrowserPanel(wx.Panel):
             if self.catalog.records[rec].type:
                 item = wx.ListItem()
                 self.resultList.InsertItem(
-                    index, normalize_text(self.catalog.records[rec].type))
+                    index, normalize_text(self.catalog.records[rec].type)
+                )
             else:
-                self.resultList.InsertItem(index, 'unknown')
+                self.resultList.InsertItem(index, "unknown")
             if self.catalog.records[rec].title:
                 self.resultList.SetItem(
-                    index, 1, normalize_text(self.catalog.records[rec].title))
+                    index, 1, normalize_text(self.catalog.records[rec].title)
+                )
 
             if self.catalog.records[rec].identifier:
-                self.set_item_data(index, 'identifier',
-                                   self.catalog.records[rec].identifier)
+                self.set_item_data(
+                    index, "identifier", self.catalog.records[rec].identifier
+                )
             if index % 2:
                 self.resultList.SetItemBackgroundColour(index, "LIGHT GREY")
             index += 1
@@ -874,15 +947,12 @@ class CSWBrowserPanel(wx.Panel):
         self.Fit()
 
     def onHtmlLinkClicked(self, event):
-        Thread(
-            target=webbrowser.open,
-            args=(event.GetLinkInfo().GetHref(), 0)
-        ).start()
+        Thread(target=webbrowser.open, args=(event.GetLinkInfo().GetHref(), 0)).start()
 
     def updateCatalogBox(self, evt=None):
         if self.catalogCmb.GetCount() == 0:
-            msg = 'No services/connections defined.'
-            self.htmlView.SetPage('<p><h3>%s</h3></p>' % msg)
+            msg = "No services/connections defined."
+            self.htmlView.SetPage("<p><h3>%s</h3></p>" % msg)
 
     def _layout(self):
         self.mainsizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -993,9 +1063,7 @@ class CSWConnectionPanel(wx.Panel):
     def __init__(self, parent, main, cswBrowser=True):
         wx.Panel.__init__(self, parent)
         try:
-            global BBox, CatalogueServiceWeb, Environment, ExceptionReport, \
-                FileSystemLoader, GError, GMessage, GWarning, HtmlFormatter, \
-                PropertyIsLike, XmlLexer, highlight
+            global BBox, CatalogueServiceWeb, Environment, ExceptionReport, FileSystemLoader, GError, GMessage, GWarning, HtmlFormatter, PropertyIsLike, XmlLexer, highlight
 
             from jinja2 import Environment, FileSystemLoader
 
@@ -1010,36 +1078,46 @@ class CSWConnectionPanel(wx.Panel):
             from core.gcmd import GError, GMessage, GWarning
         except ModuleNotFoundError as e:
             msg = e.msg
-            sys.exit(globalvar.MODULE_NOT_FOUND.format(
-                lib=msg.split("'")[-2],
-                url=globalvar.MODULE_URL))
+            sys.exit(
+                globalvar.MODULE_NOT_FOUND.format(
+                    lib=msg.split("'")[-2], url=globalvar.MODULE_URL
+                )
+            )
 
         self.parent = main
         self.config = main.config
         self.cswBrowser = cswBrowser
-        self.splitterConn = SplitterWindow(self, style=wx.SP_3D |
-                                                       wx.SP_LIVE_UPDATE | wx.SP_BORDER)
+        self.splitterConn = SplitterWindow(
+            self, style=wx.SP_3D | wx.SP_LIVE_UPDATE | wx.SP_BORDER
+        )
         self.panelLeft = wx.Panel(self.splitterConn, id=wx.ID_ANY)
-        self.stBoxConnections = wx.StaticBox(self.panelLeft, -1, 'Connections list')
-        self.stBoxConnections1 = wx.StaticBox(self.panelLeft, -1, 'Connection manager')
+        self.stBoxConnections = wx.StaticBox(self.panelLeft, -1, "Connections list")
+        self.stBoxConnections1 = wx.StaticBox(self.panelLeft, -1, "Connection manager")
         self.panelRight = wx.Panel(self.splitterConn, -1)
         self.connectionLBox = wx.ListBox(self.panelLeft, id=-1, pos=wx.DefaultPosition)
-        self.timeoutSpin = wx.SpinCtrl(self.panelLeft, min=1, max=100, initial=10,
-                                       style=wx.ALIGN_RIGHT | wx.SP_ARROW_KEYS)
+        self.timeoutSpin = wx.SpinCtrl(
+            self.panelLeft,
+            min=1,
+            max=100,
+            initial=10,
+            style=wx.ALIGN_RIGHT | wx.SP_ARROW_KEYS,
+        )
         self.context = StaticContext()
         self.connectionFilePath = self.context.connResources
-        self.servicePath = 'service_metadata.html'
-        self.serviceInfoBtt = wx.Button(self.panelLeft, -1, label='Service info')
-        self.newBtt = wx.Button(self.panelLeft, label='New')
-        self.removeBtt = wx.Button(self.panelLeft, label='Remove')
-        self.setDefaultFile = wx.Button(self.panelLeft, label='Load catalog list')
+        self.servicePath = "service_metadata.html"
+        self.serviceInfoBtt = wx.Button(self.panelLeft, -1, label="Service info")
+        self.newBtt = wx.Button(self.panelLeft, label="New")
+        self.removeBtt = wx.Button(self.panelLeft, label="Remove")
+        self.setDefaultFile = wx.Button(self.panelLeft, label="Load catalog list")
         self.setDefaultFile.Bind(wx.EVT_BUTTON, self.onOpenConnFile)
-        self.textMetadata = html.HtmlWindow(self.panelRight,
-                                            id=-1,
-                                            pos=wx.DefaultPosition,
-                                            size=wx.DefaultSize,
-                                            style=HW_DEFAULT_STYLE | HW_SCROLLBAR_AUTO,
-                                            name="metadata")
+        self.textMetadata = html.HtmlWindow(
+            self.panelRight,
+            id=-1,
+            pos=wx.DefaultPosition,
+            size=wx.DefaultSize,
+            style=HW_DEFAULT_STYLE | HW_SCROLLBAR_AUTO,
+            name="metadata",
+        )
 
         self.addDefaultConnections()
         self.connectionLBox.Bind(wx.EVT_LISTBOX_DCLICK, self.onServiceInfo)
@@ -1059,7 +1137,7 @@ class CSWConnectionPanel(wx.Panel):
         event.Skip()
 
     def _is_copy(self, event):
-        return event.GetKeyCode() == ord('C') and event.CmdDown()
+        return event.GetKeyCode() == ord("C") and event.CmdDown()
 
     def _add_selection_to_clipboard(self):
         wx.TheClipboard.Open()
@@ -1068,15 +1146,15 @@ class CSWConnectionPanel(wx.Panel):
 
     def onNewconnection(self, evt=None, cancel=False):
         if self.newBtt.GetLabel() == "New":
-            self.newBtt.SetLabel('Save')
+            self.newBtt.SetLabel("Save")
             self.newBtt.Disable()
 
             self.connNameNew = wx.TextCtrl(self.panelLeft)
-            self.connNameNewLabel = wx.StaticText(self.panelLeft, label='Name')
+            self.connNameNewLabel = wx.StaticText(self.panelLeft, label="Name")
             self.connNameNew.Bind(wx.EVT_TEXT, self.validateNewConn)
 
             self.connUrlNew = wx.TextCtrl(self.panelLeft)
-            self.connUrlNewLabel = wx.StaticText(self.panelLeft, label='Url')
+            self.connUrlNewLabel = wx.StaticText(self.panelLeft, label="Url")
             self.connUrlNew.Bind(wx.EVT_TEXT, self.validateNewConn)
 
             self.cancelBtt = wx.Button(self.panelLeft, label="Cancel")
@@ -1092,7 +1170,7 @@ class CSWConnectionPanel(wx.Panel):
             # test validity of connection
             url = self.connUrlNew.GetValue()
             if cancel:
-                self.newBtt.SetLabel('New')
+                self.newBtt.SetLabel("New")
                 self.newBtt.Enable()
                 self.connNameNew.Destroy()
                 self.connNameNewLabel.Destroy()
@@ -1107,7 +1185,7 @@ class CSWConnectionPanel(wx.Panel):
                 if not self.addConection(name, url):
                     return
                 self.updateConnectionList()
-                self.newBtt.SetLabel('New')
+                self.newBtt.SetLabel("New")
                 self.newBtt.Enable()
                 self.connNameNew.Destroy()
                 self.connNameNewLabel.Destroy()
@@ -1116,7 +1194,7 @@ class CSWConnectionPanel(wx.Panel):
                 self.stBoxConnections1Sizer.Show(1)
                 self.cancelBtt.Destroy()
             else:
-                GMessage('Url is not valid')
+                GMessage("Url is not valid")
 
         self.Fit()
 
@@ -1124,24 +1202,30 @@ class CSWConnectionPanel(wx.Panel):
         self.onNewconnection(cancel=True)
 
     def validateNewConn(self, evt):
-        if self.connNameNew.GetValue() != '' and self.connUrlNew.GetValue() != '':
+        if self.connNameNew.GetValue() != "" and self.connUrlNew.GetValue() != "":
             self.newBtt.Enable()
         else:
             self.newBtt.Disable()
 
     def onRemoveConnection(self, evt):
         if self.connectionLBox.GetSelection() == wx.NOT_FOUND:
-            GMessage('Please select catalog')
+            GMessage("Please select catalog")
             return
         name = self.connectionLBox.GetString(self.connectionLBox.GetSelection())
-        if yesNo(self, "Do you want to remove < %s > from list " % name, "Remove connection"):
-            key = '/connections/%s' % name
+        if yesNo(
+            self, "Do you want to remove < %s > from list " % name, "Remove connection"
+        ):
+            key = "/connections/%s" % name
             self.config.DeleteGroup(key)
-        if yesNo(self, "Do you want to remove < %s > from default connection file " % name, "Remove connection"):
+        if yesNo(
+            self,
+            "Do you want to remove < %s > from default connection file " % name,
+            "Remove connection",
+        ):
             tree = ET.parse(self.connectionFilePath)
             root = tree.getroot()
-            for bad in root.findall('csw'):
-                if bad.attrib['name'] == name:
+            for bad in root.findall("csw"):
+                if bad.attrib["name"] == name:
                     root.remove(bad)
 
             tree.write(self.connectionFilePath)
@@ -1150,7 +1234,7 @@ class CSWConnectionPanel(wx.Panel):
     def publishCSW(self, path):
         """show connection info"""
         if self.connectionLBox.GetSelection() == wx.NOT_FOUND:
-            GMessage('Please select catalog')
+            GMessage("Please select catalog")
             return
         current_text = self.connectionLBox.GetString(self.connectionLBox.GetSelection())
         self.catalog_url = self.getTmpConnection(current_text)
@@ -1159,29 +1243,28 @@ class CSWConnectionPanel(wx.Panel):
             return
 
         if self.catalog:  # display service metadata
-            metadata = render_template('en', self.context,
-                                       self.catalog,
-                                       self.servicePath)
+            metadata = render_template(
+                "en", self.context, self.catalog, self.servicePath
+            )
 
         try:
-            self.catalog.transaction(ttype='insert', typename='gmd:MD_Metadata', record=open(path).read())
+            self.catalog.transaction(
+                ttype="insert", typename="gmd:MD_Metadata", record=open(path).read()
+            )
         except Exception as e:
-            GWarning('Transaction error: <%s>' % e)
+            GWarning("Transaction error: <%s>" % e)
 
     def onHtmlLinkClicked(self, event):
-        Thread(
-            target=webbrowser.open,
-            args=(event.GetLinkInfo().GetHref(), 0)
-        ).start()
+        Thread(target=webbrowser.open, args=(event.GetLinkInfo().GetHref(), 0)).start()
 
     def checkURLCSWvalidity(self, url):
         self.catalog_url = url
         if not self._get_csw():
             return False
         if self.catalog:
-            metadata = render_template('en', self.context,
-                                       self.catalog,
-                                       self.servicePath)
+            metadata = render_template(
+                "en", self.context, self.catalog, self.servicePath
+            )
             if self.textMetadata.SetPage(metadata):
                 return True
         return False
@@ -1189,7 +1272,7 @@ class CSWConnectionPanel(wx.Panel):
     def onServiceInfo(self, evt=None):
         """show connection info"""
         if self.connectionLBox.GetSelection() == wx.NOT_FOUND:
-            GMessage('Please select catalog')
+            GMessage("Please select catalog")
             return
         current_text = self.connectionLBox.GetString(self.connectionLBox.GetSelection())
 
@@ -1202,26 +1285,27 @@ class CSWConnectionPanel(wx.Panel):
             return
 
         if self.catalog:  # display service metadata
-            metadata = render_template('en', self.context,
-                                       self.catalog,
-                                       self.servicePath)
+            metadata = render_template(
+                "en", self.context, self.catalog, self.servicePath
+            )
             self.textMetadata.SetPage(metadata)
 
     def _get_csw(self):
         """function to init owslib.csw.CatalogueServiceWeb"""
         # connect to the server
         try:
-            self.catalog = CatalogueServiceWeb(self.catalog_url,
-                                               timeout=self.timeoutSpin.GetValue())
+            self.catalog = CatalogueServiceWeb(
+                self.catalog_url, timeout=self.timeoutSpin.GetValue()
+            )
             return True
         except ExceptionReport as err:
-            msg = 'Error connecting to service: %s' % err
+            msg = "Error connecting to service: %s" % err
         except ValueError as err:
-            msg = 'Value Error: %s' % err
+            msg = "Value Error: %s" % err
         except Exception as err:
-            msg = 'Unknown Error: %s' % err
+            msg = "Unknown Error: %s" % err
 
-            GMessage('CSW Connection error: %s' % msg)
+            GMessage("CSW Connection error: %s" % msg)
         return False
 
     def addDefaultConnections(self, path=None):
@@ -1229,8 +1313,12 @@ class CSWConnectionPanel(wx.Panel):
 
         if path is not None:
             self.connectionFilePath = path
-            if yesNo(self, "Do you want to remove temporary connections?", "Remove tmp connections"):
-                self.config.DeleteGroup('/connections')
+            if yesNo(
+                self,
+                "Do you want to remove temporary connections?",
+                "Remove tmp connections",
+            ):
+                self.config.DeleteGroup("/connections")
 
         noerr, doc = get_connections_from_file(self.connectionFilePath)
         if not noerr:
@@ -1239,24 +1327,27 @@ class CSWConnectionPanel(wx.Panel):
         if doc is None:
             return
 
-        for server in doc.findall('csw'):
-            name = server.attrib.get('name')
-            url = server.attrib.get('url')
+        for server in doc.findall("csw"):
+            name = server.attrib.get("name")
+            url = server.attrib.get("url")
             self.addTmpConnection(name, url)
 
         self.updateConnectionList()
 
     def addTmpConnection(self, name, url):
-        self.config.SetPath('/connections')
-        key = '/connections/%s/url' % name
+        self.config.SetPath("/connections")
+        key = "/connections/%s/url" % name
         self.config.Write(key, url)
 
     def getTmpConnection(self, name):
-        key = '/connections/%s/url' % name
+        key = "/connections/%s/url" % name
         return self.config.Read(key)
 
     def addConection(self, name, url):
-        conns = [self.connectionLBox.GetString(i) for i in range(self.connectionLBox.GetCount())]
+        conns = [
+            self.connectionLBox.GetString(i)
+            for i in range(self.connectionLBox.GetCount())
+        ]
         if name in conns:
             GMessage("Name of catalog is exists, new catalog is not saved")
             n = self.connectionLBox.FindString(name)
@@ -1265,7 +1356,11 @@ class CSWConnectionPanel(wx.Panel):
 
         self.addTmpConnection(name, url)
 
-        if yesNo(self, "Do you want to add connection to default configuration file", "Default connection"):
+        if yesNo(
+            self,
+            "Do you want to add connection to default configuration file",
+            "Default connection",
+        ):
             tree = ET.parse(self.connectionFilePath)
             root = tree.getroot()
 
@@ -1290,14 +1385,20 @@ class CSWConnectionPanel(wx.Panel):
             more, value, index = self.config.GetNextGroup(index)
         self.connectionLBox.Append(first)
         if self.connectionLBox.GetCount() == 0:
-            msg = 'No services/connections defined.'
-            self.textMetadata.SetPage('<p><h3>%s</h3></p>' % msg)
+            msg = "No services/connections defined."
+            self.textMetadata.SetPage("<p><h3>%s</h3></p>" % msg)
         if self.cswBrowser:
             self.parent.BrowserPanel.loadSettings()
 
     def onOpenConnFile(self, event):
-        openFileDialog = wx.FileDialog(self, "Open catalog file", "", "",
-                                       "XML files (*.xml)|*.xml", wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+        openFileDialog = wx.FileDialog(
+            self,
+            "Open catalog file",
+            "",
+            "",
+            "XML files (*.xml)|*.xml",
+            wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
+        )
         if openFileDialog.ShowModal() == wx.ID_CANCEL:
             return
         input_stream = openFileDialog.GetPath()
@@ -1308,17 +1409,23 @@ class CSWConnectionPanel(wx.Panel):
 
         rightPanelSizer = wx.BoxSizer(wx.VERTICAL)
         self.configureSizer = wx.BoxSizer(wx.VERTICAL)
-        self.stBoxConnectionsSizer = wx.StaticBoxSizer(self.stBoxConnections, wx.VERTICAL)
+        self.stBoxConnectionsSizer = wx.StaticBoxSizer(
+            self.stBoxConnections, wx.VERTICAL
+        )
         self.stBoxConnectionsSizer.Add(self.connectionLBox, 1, wx.EXPAND)
         self.stBoxConnectionsSizer.Add(20, 10, 1, wx.EXPAND)
-        self.stBoxConnectionsSizer.Add(wx.StaticText(self.panelLeft, label='Timeout'), 0)
+        self.stBoxConnectionsSizer.Add(
+            wx.StaticText(self.panelLeft, label="Timeout"), 0
+        )
         self.stBoxConnectionsSizer.Add(self.timeoutSpin, 0)
 
         self.stBoxConnectionsSizer.Add(self.serviceInfoBtt, 0, wx.EXPAND)
         self.configureSizer.Add(self.stBoxConnectionsSizer, 1, wx.EXPAND)
 
         self.configureSizer.Add(20, 10, 1, wx.EXPAND)
-        self.stBoxConnections1Sizer = wx.StaticBoxSizer(self.stBoxConnections1, wx.VERTICAL)
+        self.stBoxConnections1Sizer = wx.StaticBoxSizer(
+            self.stBoxConnections1, wx.VERTICAL
+        )
         self.stBoxConnections1Sizer.Add(self.newBtt, 0, wx.EXPAND)
         self.stBoxConnections1Sizer.Add(self.removeBtt, 0, wx.EXPAND)
 
@@ -1329,7 +1436,9 @@ class CSWConnectionPanel(wx.Panel):
         self.panelRight.SetSizer(rightPanelSizer)
         self.panelLeft.SetSizer(self.configureSizer)
 
-        self.splitterConn.SplitVertically(self.panelLeft, self.panelRight, sashPosition=0.8)
+        self.splitterConn.SplitVertically(
+            self.panelLeft, self.panelRight, sashPosition=0.8
+        )
         self.splitterConn.SetSashGravity(0.2)
         self.splitterConn.SetMinimumPaneSize(200)
         self.mainsizer.Add(self.splitterConn, 1, wx.EXPAND)

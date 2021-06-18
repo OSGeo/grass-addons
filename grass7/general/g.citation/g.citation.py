@@ -119,13 +119,16 @@ def remove_empty_values_from_dict(d):
     untouched.
     """
     if isinstance(d, dict):
-        return {k: remove_empty_values_from_dict(v)
-                for k, v in d.items() if v or isinstance(v, bool)}
+        return {
+            k: remove_empty_values_from_dict(v)
+            for k, v in d.items()
+            if v or isinstance(v, bool)
+        }
     elif isinstance(d, list):
-        return [remove_empty_values_from_dict(i)
-                for i in d if i or isinstance(v, bool)]
+        return [remove_empty_values_from_dict(i) for i in d if i or isinstance(v, bool)]
     else:
         return d
+
 
 # TODO: copied from g.manual, possibly move to library
 # (lib has also online ones)
@@ -134,12 +137,12 @@ def documentation_filename(entry):
 
     Calls fatal when page is not found.
     """
-    gisbase = os.environ['GISBASE']
-    path = os.path.join(gisbase, 'docs', 'html', entry + '.html')
-    if not os.path.exists(path) and os.getenv('GRASS_ADDON_BASE'):
+    gisbase = os.environ["GISBASE"]
+    path = os.path.join(gisbase, "docs", "html", entry + ".html")
+    if not os.path.exists(path) and os.getenv("GRASS_ADDON_BASE"):
         path = os.path.join(
-            os.getenv('GRASS_ADDON_BASE'), 'docs', 'html',
-            entry + '.html')
+            os.getenv("GRASS_ADDON_BASE"), "docs", "html", entry + ".html"
+        )
 
     if not os.path.exists(path):
         raise RuntimeError(_("No HTML manual page entry for '%s'") % entry)
@@ -192,9 +195,10 @@ def get_year_from_documentation(text):
     """
     # we try to capture even when not properly worded (same below)
     # offending modules: grep -IrnE '\$Date: ' | grep -v "Last changed:"
-    year_capture = r"<p>\s*<(i|em)>(Last changed: )?\$Date: ([\d]+)-\d\d-\d\d .*\$</(i|em)>"
-    match = re.search(year_capture, text,
-                      re.MULTILINE | re.DOTALL | re.IGNORECASE)
+    year_capture = (
+        r"<p>\s*<(i|em)>(Last changed: )?\$Date: ([\d]+)-\d\d-\d\d .*\$</(i|em)>"
+    )
+    match = re.search(year_capture, text, re.MULTILINE | re.DOTALL | re.IGNORECASE)
     if match:
         return int(match.group(3))
     else:
@@ -229,11 +233,15 @@ def get_email(text):
     if match:
         email = match.group(1)
     else:
-        for domain in ['com', 'es', 'it']:
-            email_re = re.compile(r"\(([^ ]+) ([^ ]+) ({})\)".format(domain), re.IGNORECASE)
+        for domain in ["com", "es", "it"]:
+            email_re = re.compile(
+                r"\(([^ ]+) ([^ ]+) ({})\)".format(domain), re.IGNORECASE
+            )
             match = re.search(email_re, text)
             if match:
-                email = "{name}@{service}.{domain}".format(name=match.group(1), service=match.group(2), domain=match.group(3))
+                email = "{name}@{service}.{domain}".format(
+                    name=match.group(1), service=match.group(2), domain=match.group(3)
+                )
                 break
     text = re.sub(email_re, "", text).strip()
     return (email, text)
@@ -289,10 +297,13 @@ def get_authors_from_documentation(text):
     # HTML tags or section name can theoretically be different case.
     # The "last changed" part might be missing.
     # The i and em could be exchanged.
-    author_section_capture = r"<h2>.*AUTHOR.*</h2>(.*)<p>\s*<(i|em)>(Last changed:|\$Date:)"
+    author_section_capture = (
+        r"<h2>.*AUTHOR.*</h2>(.*)<p>\s*<(i|em)>(Last changed:|\$Date:)"
+    )
 
-    match = re.search(author_section_capture, text,
-                      re.MULTILINE | re.DOTALL | re.IGNORECASE)
+    match = re.search(
+        author_section_capture, text, re.MULTILINE | re.DOTALL | re.IGNORECASE
+    )
     if match:
         author_section = match.group(1)
     else:
@@ -300,7 +311,10 @@ def get_authors_from_documentation(text):
 
     raw_author_lines = [
         line.strip()
-        for line in author_section.strip().replace("\n", " ").replace("<p>", "<br>").split("<br>")
+        for line in author_section.strip()
+        .replace("\n", " ")
+        .replace("<p>", "<br>")
+        .split("<br>")
         if line.strip()
     ]
 
@@ -346,11 +360,16 @@ def get_authors_from_documentation(text):
             # drop academic titles from name
             for title in ["Dr. ", "Prof. "]:
                 if name.startswith(title):
-                    name = name[len(title):]
-            authors.append({
-                'name': name, 'institute': institute,
-                'feature': feature, 'email': email,
-                'orcid': orcid})
+                    name = name[len(title) :]
+            authors.append(
+                {
+                    "name": name,
+                    "institute": institute,
+                    "feature": feature,
+                    "email": email,
+                    "orcid": orcid,
+                }
+            )
         # TODO: handle unknown/Unknown author
     return authors
 
@@ -366,8 +385,7 @@ def get_code_urls_from_documentation(text):
     ('http://osgeo.org/r.spread', 'http://osgeo.org/log/r.spread')
     """
     capture = r'<h2>SOURCE CODE</h2>.*<a href="(.+)">[^<]*source code</a>\s+\(<a href="(.+)">history</a>\)'
-    match = re.search(capture, text,
-                      re.MULTILINE | re.DOTALL | re.IGNORECASE)
+    match = re.search(capture, text, re.MULTILINE | re.DOTALL | re.IGNORECASE)
     if match:
         return match.group(1), match.group(2)
     else:
@@ -378,27 +396,23 @@ def get_code_urls_from_documentation(text):
 def remove_dots_from_module_name(name):
     # TODO: make this an option or perhaps a flag to replace with nothing
     # is sufficient to cover most needs
-    return name.replace('.', '_')
+    return name.replace(".", "_")
 
 
 def internal_to_csl_json(citation):
     """Returns the JSON structure as objects (not as one string)"""
     authors = []
-    for author in citation['authors']:
-        name = author_name_to_cff(author['name'])
-        authors.append({
-            'family': name['family'],
-            'given': name['given']
-        })
+    for author in citation["authors"]:
+        name = author_name_to_cff(author["name"])
+        authors.append({"family": name["family"], "given": name["given"]})
     return {
-        'id': citation['module'],
-        'issued': {
-            'date-parts': [[citation['year'], "1", "1"]]
-        },
-        'title': "GRASS GIS: " + citation['module'] + " module",
-        'type': "software",
-        'author': authors,
+        "id": citation["module"],
+        "issued": {"date-parts": [[citation["year"], "1", "1"]]},
+        "title": "GRASS GIS: " + citation["module"] + " module",
+        "type": "software",
+        "author": authors,
     }
+
 
 try:
     # can't be inside the function
@@ -417,8 +431,9 @@ def print_using_citeproc(csl_json, keys, style):
     from citeproc.source.json import CiteProcJSON
 
     def warn(citation_item):
-        raise RuntimeError("Reference with key '{}' not found"
-            .format(citation_item.key))
+        raise RuntimeError(
+            "Reference with key '{}' not found".format(citation_item.key)
+        )
 
     bib_source = CiteProcJSON([csl_json])
     bib_style = CitationStylesStyle(style, validate=False)
@@ -430,7 +445,7 @@ def print_using_citeproc(csl_json, keys, style):
         bibliography.register(citation)
         citations.append(citation)
     for citation in citations:
-        #unused = bibliography.cite(citation, warn_missing_key)
+        # unused = bibliography.cite(citation, warn_missing_key)
         unused = bibliography.cite(citation, warn)
     for item in bibliography.bibliography():
         print(str(item))
@@ -475,11 +490,12 @@ def author_name_to_cff(text):
 
     def is_middle_initial(text):
         if text.isupper():
-            if  len(text) == 2 and text.endswith('.'):
+            if len(text) == 2 and text.endswith("."):
                 return True
             elif len(text) == 1:
                 return True
         return False
+
     names = text.split(" ")
     # given and family required by CFF 1.0.3
     particle = None
@@ -503,7 +519,11 @@ def author_name_to_cff(text):
         else:
             # TODO: since this is for legacy code, we could just
             # hardcode the "known" authors such as Maria Antonia Brovelli
-            raise NotImplementedError("Not sure if <{n}> is family or middle name in <{t}>".format(n=names[1], t=text))
+            raise NotImplementedError(
+                "Not sure if <{n}> is family or middle name in <{t}>".format(
+                    n=names[1], t=text
+                )
+            )
     elif len(names) == 4:
         # assuming that if you have suffix, you have a middle name
         if is_suffix(names[3]):
@@ -514,8 +534,8 @@ def author_name_to_cff(text):
             raise NotImplementedError("Not sure how to split <{}>".format(text))
     else:
         raise RuntimeError(_("Cannot split name <{}> correctly".format(text)))
-    return {'given': given, 'particle': particle, 'family': family,
-            'suffix': suffix}
+    return {"given": given, "particle": particle, "family": family, "suffix": suffix}
+
 
 def print_cff(citation):
     """Create Citation File Format file from citation dictionary
@@ -537,60 +557,62 @@ def print_cff(citation):
     license: GPL-2.0-or-later
     """
     print("cff-version: 1.0.3")
-    print("message: \"If you use this software, please cite it as below.\"")
+    print('message: "If you use this software, please cite it as below."')
     print("authors:")
-    for author in citation['authors']:
+    for author in citation["authors"]:
         # note: CFF 1.0.3 specifies mandatory family, mandatory given,
         # optional particle (e.g. van), and optional suffix (e.g. III),
         # best shot should be taken for names which don't include family
         # or given or which have different order
         # here we just split based on first space into given and family
-        name = author_name_to_cff(author['name'])
-        print("  - family-names:", name['family'])
-        print("    given-names:", name['given'])
-        if author['orcid']:
-            print("    orcid:", author['orcid'])
-    print("title: \"GRASS GIS: ", citation['module'], " module\"", sep="")
-    print("version:", citation['grass-version'])
+        name = author_name_to_cff(author["name"])
+        print("  - family-names:", name["family"])
+        print("    given-names:", name["given"])
+        if author["orcid"]:
+            print("    orcid:", author["orcid"])
+    print('title: "GRASS GIS: ', citation["module"], ' module"', sep="")
+    print("version:", citation["grass-version"])
     # CFF 1.0.3 does not say expplicitely except for Date (so not any
     # string), so assuming YAML timestamp
     # (http://yaml.org/type/timestamp.html)
     # now we have only the year, so using Jan 1
-    print("date-released:", citation['grass-build-date'])
+    print("date-released:", citation["grass-build-date"])
     # license string according to https://spdx.org/licenses/
     # we know license of GRASS modules should be GPL>=2
     print("license: GPL-2.0-or-later")
-    if citation.get('keywords', None):
+    if citation.get("keywords", None):
         print("keywords:")
-        for keyword in citation['keywords']:
+        for keyword in citation["keywords"]:
             print("  -", keyword)
-    if citation.get('references', None):
+    if citation.get("references", None):
         print("references:")
-        for reference in citation['references']:
+        for reference in citation["references"]:
             # making sure scope, type, and title are first
-            if reference.get('scope', None):
-                print("  - scope:", reference['scope'])
-                print("    type:", reference['type'])
+            if reference.get("scope", None):
+                print("  - scope:", reference["scope"])
+                print("    type:", reference["type"])
             else:
-                print("  - type:", reference['type'])
-            print("    title:", reference['title'])
+                print("  - type:", reference["type"])
+            print("    title:", reference["title"])
             for key, value in reference.iteritems():
-                if key in ['scope', 'type', 'title']:
+                if key in ["scope", "type", "title"]:
                     continue  # already handled
                 # TODO: add general serialization to YAML
-                elif key == 'authors':
+                elif key == "authors":
                     print("    authors:")
                     for author in value:
                         # special order for the name of entity
-                        if 'name' in author:
+                        if "name" in author:
                             print("      - name: {name}".format(**author))
-                        elif 'family-names' in author:
-                            print("      - family-names: {family-names}".format(**author))
+                        elif "family-names" in author:
+                            print(
+                                "      - family-names: {family-names}".format(**author)
+                            )
                         for akey, avalue in author.iteritems():
-                            if akey == 'name':
+                            if akey == "name":
                                 continue
                             print("        {akey}: {avalue}".format(**locals()))
-                elif key == 'keywords':
+                elif key == "keywords":
                     print("    keywords:")
                     for keyword in value:
                         print("      - {keyword}".format(**locals()))
@@ -610,14 +632,14 @@ def print_bibtex(citation):
     """
     # TODO: make this an option to allow for software in case it is supported
     entry_type = "misc"
-    key = remove_dots_from_module_name(citation['module'])
+    key = remove_dots_from_module_name(citation["module"])
     print("@", entry_type, "{", key, ",", sep="")
 
-    print("  title = {{", "GRASS GIS: ", citation['module'], " module}},", sep="")
+    print("  title = {{", "GRASS GIS: ", citation["module"], " module}},", sep="")
 
-    author_names = [author['name'] for author in citation['authors']]
+    author_names = [author["name"] for author in citation["authors"]]
     print("  author = {", " and ".join(author_names), "},", sep="")
-    print("  year = {", citation['year'], "}", sep="")
+    print("  year = {", citation["year"], "}", sep="")
 
     print("}")
 
@@ -627,7 +649,7 @@ def print_json(citation):
     cleaned = remove_empty_values_from_dict(citation)
     # since the format is already compact, let's make it even more
     # compact by omitting the spaces after separators
-    print(json.dumps(cleaned, separators=(',', ':')))
+    print(json.dumps(cleaned, separators=(",", ":")))
 
 
 def print_pretty_json(citation):
@@ -637,8 +659,7 @@ def print_pretty_json(citation):
     # of each line, so providing a custom one
     # only small indent needed, so using 2
     # sorting keys because only that can provide consistent output
-    print(json.dumps(cleaned, separators=(',', ': '), indent=2,
-                     sort_keys=True))
+    print(json.dumps(cleaned, separators=(",", ": "), indent=2, sort_keys=True))
 
 
 def print_csl_json(citation):
@@ -648,24 +669,24 @@ def print_csl_json(citation):
     # of each line, so providing a custom one
     # only small indent needed, so using 2
     # sorting keys because only that can provide consistent output
-    print(json.dumps(csl, separators=(',', ': '), indent=2,
-                     sort_keys=True))
+    print(json.dumps(csl, separators=(",", ": "), indent=2, sort_keys=True))
 
 
 def print_chicago_footnote(citation):
-    num_authors = len(citation['authors'])
+    num_authors = len(citation["authors"])
     authors_text = ""
-    for i, author in enumerate(citation['authors']):
-        authors_text += author['name']
+    for i, author in enumerate(citation["authors"]):
+        authors_text += author["name"]
         if i < num_authors - 2:
             authors_text += ", "
         elif i < num_authors - 1:
             # likely with comma but unclear for footnote style
             authors_text += ", and "
-    title = "GRASSS GIS module {}".format(citation['module'])
-    print("{authors_text}, {title} ({grass-version}), computer software"
-          " ({year}).".format(
-              authors_text=authors_text, title=title, **citation))
+    title = "GRASSS GIS module {}".format(citation["module"])
+    print(
+        "{authors_text}, {title} ({grass-version}), computer software"
+        " ({year}).".format(authors_text=authors_text, title=title, **citation)
+    )
 
 
 def print_plain(citation):
@@ -675,16 +696,16 @@ def print_plain(citation):
     GRASS GIS module g.tst
     Joe Doe
     """
-    print("GRASS GIS module", citation['module'])
-    num_authors = len(citation['authors'])
+    print("GRASS GIS module", citation["module"])
+    num_authors = len(citation["authors"])
     authors_text = ""
-    for i, author in enumerate(citation['authors']):
-        authors_text += author['name']
+    for i, author in enumerate(citation["authors"]):
+        authors_text += author["name"]
         # TODO: not defined if we need institute etc. or not, perhaps
         # use default dict
-        if 'institute' in author and author['institute']:
+        if "institute" in author and author["institute"]:
             authors_text += ", {institute}".format(**author)
-        if 'feature' in author and author['feature']:
+        if "feature" in author and author["feature"]:
             authors_text += " ({feature})".format(**author)
         if i < num_authors - 1:
             authors_text += "\n"
@@ -694,14 +715,14 @@ def print_plain(citation):
 # private dict for format name to function call
 # use print_citation()
 _FORMAT_FUNCTION = {
-    'bibtex': print_bibtex,
-    'cff': print_cff,
-    'json': print_json,
-    'pretty-json': print_pretty_json,
-    'csl-json': print_csl_json,
-    'chicago-footnote': print_chicago_footnote,
-    'plain': print_plain,
-    'dict': lambda d: pprint(dict(d)),  # only plain dict pretty prints
+    "bibtex": print_bibtex,
+    "cff": print_cff,
+    "json": print_json,
+    "pretty-json": print_pretty_json,
+    "csl-json": print_csl_json,
+    "chicago-footnote": print_chicago_footnote,
+    "plain": print_plain,
+    "dict": lambda d: pprint(dict(d)),  # only plain dict pretty prints
 }
 
 
@@ -711,10 +732,10 @@ def print_citation(citation, format):
 
     # funs with special handling of parameters first
     # (alternatively all funs can have the most rich unified interface)
-    if format == 'citeproc':
+    if format == "citeproc":
         print_using_citeproc(
-            internal_to_csl_json(citation),
-            [citation['module']], style='harvard1')
+            internal_to_csl_json(citation), [citation["module"]], style="harvard1"
+        )
         return
     try:
         function = _FORMAT_FUNCTION[format]
@@ -732,23 +753,24 @@ def grass_cff_reference(grass_version, scope=None):
     """
     citation = {}
     if scope:
-        citation['scope'] = scope
-    citation['type'] = 'software'
+        citation["scope"] = scope
+    citation["type"] = "software"
     # the team as an entity
-    citation['authors'] = [
-        {'name': "The GRASS Development Team",
-         'website': "http://grass.osgeo.org/"}
+    citation["authors"] = [
+        {"name": "The GRASS Development Team", "website": "http://grass.osgeo.org/"}
     ]
-    citation['title'] = "GRASS GIS {version}".format(**grass_version)
-    citation['version'] = grass_version['version']
+    citation["title"] = "GRASS GIS {version}".format(**grass_version)
+    citation["version"] = grass_version["version"]
     # approximation
-    citation['date-released'] = grass_version['build_date']
-    citation['year'] = grass_version['date']
-    citation['keywords'] = [
-        "GIS", "geospatial analysis", "remote sensing",
-        "image processing"
+    citation["date-released"] = grass_version["build_date"]
+    citation["year"] = grass_version["date"]
+    citation["keywords"] = [
+        "GIS",
+        "geospatial analysis",
+        "remote sensing",
+        "image processing",
     ]
-    citation['license'] = 'GPL-2.0-or-later'
+    citation["license"] = "GPL-2.0-or-later"
     return citation
 
 
@@ -766,20 +788,18 @@ def citation_for_module(name, add_grass=False):
     # using default empty value, this way we use just if d['k']
     # to check presence and non-emptiness at the same time
     citation = defaultdict(str)
-    citation['module'] = name
-    citation['grass-version'] = g_version['version']
-    citation['grass-build-date'] = g_version['build_date']
-    citation['authors'] = get_authors_from_documentation(text)
-    citation['year'] = get_year_from_documentation(text)
+    citation["module"] = name
+    citation["grass-version"] = g_version["version"]
+    citation["grass-build-date"] = g_version["build_date"]
+    citation["authors"] = get_authors_from_documentation(text)
+    citation["year"] = get_year_from_documentation(text)
     code_url, code_history_url = get_code_urls_from_documentation(text)
-    citation['code-url'] = code_url
-    citation['url-code-history'] = code_history_url
+    citation["code-url"] = code_url
+    citation["url-code-history"] = code_history_url
 
     if add_grass:
         scope = "Use the following to cite the whole GRASS GIS"
-        citation['references'] = [
-            grass_cff_reference(g_version, scope=scope)
-        ]
+        citation["references"] = [grass_cff_reference(g_version, scope=scope)]
 
     return citation
 
@@ -797,35 +817,37 @@ def main(options, flags):
     functions.
     """
 
-    if options['module']:
-        names = options['module'].split(',')
-    if flags['a']:
+    if options["module"]:
+        names = options["module"].split(",")
+    if flags["a"]:
         names = get_core_modules()
-    output_format = options['format']
-    if output_format == 'citeproc':
-        if not options['style']:
-            gs.fatal(_("Option format=citeproc requires also"
-                       " the option style to be set"))
-    vertical_separator = options['vertical_separator']
+    output_format = options["format"]
+    if output_format == "citeproc":
+        if not options["style"]:
+            gs.fatal(
+                _("Option format=citeproc requires also" " the option style to be set")
+            )
+    vertical_separator = options["vertical_separator"]
 
     error_count = 0
     for name in names:
         try:
-            citation = citation_for_module(name, add_grass=flags['d'])
+            citation = citation_for_module(name, add_grass=flags["d"])
             if vertical_separator:
                 # TODO: decide if we want the newline here or not
                 print(vertical_separator)
             print_citation(citation, output_format)
         except RuntimeError as error:
             message = _("Module {name}: {error}".format(**locals()))
-            if flags['s']:
+            if flags["s"]:
                 gs.warning(message)
                 error_count += 1
                 continue
             else:
                 gs.fatal(message)
-    if flags['s'] and len(names) > 1:
+    if flags["s"] and len(names) > 1:
         gs.warning(_("Errors in parsing {} modules").format(error_count))
+
 
 # TODO: consider "Extended by" versus original authors
 
@@ -852,11 +874,12 @@ def doc_test():
     """
     import doctest
     from grass.gunittest.utils import do_doctest_gettext_workaround
+
     do_doctest_gettext_workaround()
     return doctest.testmod().failed
 
 
-if __name__ == '__main__':
-    if '--doctest' in sys.argv:
+if __name__ == "__main__":
+    if "--doctest" in sys.argv:
         sys.exit(doc_test())
     sys.exit(main(*gs.parser()))

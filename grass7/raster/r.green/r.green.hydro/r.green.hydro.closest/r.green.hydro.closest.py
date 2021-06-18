@@ -59,27 +59,27 @@ def get_new_points(points, lines, output, maxdist=50):
     skipped = []
     ovwr = gcore.overwrite()
     msgr = get_msgr()
-    points, pmset = points.split('@') if '@' in points else (points, '')
-    lines, lmset = lines.split('@') if '@' in lines else (lines, '')
-    with VectorTopo(points, mapset=pmset, mode='r') as pts:
+    points, pmset = points.split("@") if "@" in points else (points, "")
+    lines, lmset = lines.split("@") if "@" in lines else (lines, "")
+    with VectorTopo(points, mapset=pmset, mode="r") as pts:
         cols = list(pts.table.columns.items()) if pts.table else None
-        with VectorTopo(lines, mapset=lmset, mode='r') as lns:
-            with VectorTopo(output, mode='w', tab_cols=cols,
-                            overwrite=ovwr) as out:
+        with VectorTopo(lines, mapset=lmset, mode="r") as lns:
+            with VectorTopo(output, mode="w", tab_cols=cols, overwrite=ovwr) as out:
                 for pnt in pts:
-                    line = lns.find['by_point'].geo(pnt, maxdist=maxdist)
+                    line = lns.find["by_point"].geo(pnt, maxdist=maxdist)
                     if line is None:
-                        msg = ("Not found any line in the radius of %.2f "
-                               "for the point with cat: %d. The point "
-                               "will be skipped!")
+                        msg = (
+                            "Not found any line in the radius of %.2f "
+                            "for the point with cat: %d. The point "
+                            "will be skipped!"
+                        )
                         msgr.warning(msg % (maxdist, pnt.cat))
                         skipped.append(pnt.cat)
                         continue
                     # find the new point
                     newpnt, dist, _, _ = line.distance(pnt)
                     # get the attributes
-                    attrs = (None if pnt.attrs is None
-                             else list(pnt.attrs.values())[1:])
+                    attrs = None if pnt.attrs is None else list(pnt.attrs.values())[1:]
                     # write the new point in the new vector map
                     out.write(newpnt, attrs)
                 # save the changes on the output table
@@ -87,8 +87,9 @@ def get_new_points(points, lines, output, maxdist=50):
 
 
 def main(opts, flgs):
-    get_new_points(opts['points'], opts['lines'], opts['output'],
-                   float(opts['max_dist']))
+    get_new_points(
+        opts["points"], opts["lines"], opts["output"], float(opts["max_dist"])
+    )
 
 
 if __name__ == "__main__":

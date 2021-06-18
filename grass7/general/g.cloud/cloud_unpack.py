@@ -25,19 +25,18 @@ from grass.exceptions import CalledModuleError
 # the home of the user
 homeServer = os.getcwd()
 
-f = open(os.path.join(homeServer, 'unpackwrite.log'), 'w')
+f = open(os.path.join(homeServer, "unpackwrite.log"), "w")
 
-LOG_FILENAME = os.path.join(homeServer, 'unpack.log')
-LOGGING_FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
-logging.basicConfig(filename=LOG_FILENAME, level=logging.DEBUG,
-                    format=LOGGING_FORMAT)
+LOG_FILENAME = os.path.join(homeServer, "unpack.log")
+LOGGING_FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
+logging.basicConfig(filename=LOG_FILENAME, level=logging.DEBUG, format=LOGGING_FORMAT)
 
 if len(sys.argv) != 2:
-    logging.error('Usage: python %s GISDBASE' % sys.argv[0])
-    f.write('Usage: python %s GISDBASE' % sys.argv[0])
+    logging.error("Usage: python %s GISDBASE" % sys.argv[0])
+    f.write("Usage: python %s GISDBASE" % sys.argv[0])
 
 # the full path to GISDBASE, LOCATION_NAME, MAPSET
-dbaselocatmap = sys.argv[1].strip('').rstrip('\/')
+dbaselocatmap = sys.argv[1].strip("").rstrip("\/")
 mapset = os.path.split(dbaselocatmap)[1]
 location = os.path.split(os.path.split(dbaselocatmap)[0])[1]
 dbase = os.path.split(os.path.split(dbaselocatmap)[0])[0]
@@ -46,9 +45,9 @@ logging.debug("Unpacking in <%s/%s/%s>" % (dbase, location, mapset))
 f.write("Unpacking in <%s/%s/%s>" % (dbase, location, mapset))
 
 # read for grass70 executable the path to gisbase
-for line in open(which.which('grass70')).readlines():
+for line in open(which.which("grass70")).readlines():
     if line.startswith('    gisbase = "'):
-        gisbase = line.split('=')[-1].split('"')[1]
+        gisbase = line.split("=")[-1].split('"')[1]
 # look for raster and vector pack
 raster = glob.glob1(homeServer, "rastertarpack")
 vector = glob.glob1(homeServer, "vectortarpack")
@@ -56,41 +55,43 @@ vector = glob.glob1(homeServer, "vectortarpack")
 logging.debug("Found: %s raster pack, %s vector pack" % (raster, vector))
 f.write("Found: %s raster pack, %s vector pack" % (raster, vector))
 ## add some environment variables
-os.environ['GISBASE'] = gisbase
+os.environ["GISBASE"] = gisbase
 
-sys.path.append(os.path.join(gisbase, "etc","python"))
+sys.path.append(os.path.join(gisbase, "etc", "python"))
 
 import grass.script as grass
 import grass.script.setup as gsetup
 
 gsetup.init(gisbase, dbase, location, mapset)
 
-grass.run_command('db.connect', flags='p')
+grass.run_command("db.connect", flags="p")
 kv = grass.db_connection()
-database = kv['database']
-driver = kv['driver']
+database = kv["database"]
+driver = kv["driver"]
 logging.debug("db.connect: driver: %s, database %s" % (driver, database))
 
 # unpack raster and vector maps
 if len(raster) != 0:
     try:
-        tar = tarfile.TarFile.open(name = 'rastertarpack', mode = 'r')
+        tar = tarfile.TarFile.open(name="rastertarpack", mode="r")
         tar.extractall()
         rasters = glob.glob1(homeServer, "*.rasterpack")
     except:
         logging.error("Error unpacking rastertarpack")
         f.write("Error unpacking rastertarpack")
     for i in rasters:
-        logging.debug("Unpacking raster map <%s>" % os.path.join(homeServer,i))
+        logging.debug("Unpacking raster map <%s>" % os.path.join(homeServer, i))
         try:
-            grass.run_command('r.unpack',input=os.path.join(homeServer,i))
+            grass.run_command("r.unpack", input=os.path.join(homeServer, i))
         except CalledModuleError:
-            logging.error("Error unpacking raster map <%s>" % os.path.join(homeServer,i))
-        #os.remove(os.path.join(homeServer,i)) TO UNCOMMENT WHEN ALL WILL BE OK
+            logging.error(
+                "Error unpacking raster map <%s>" % os.path.join(homeServer, i)
+            )
+        # os.remove(os.path.join(homeServer,i)) TO UNCOMMENT WHEN ALL WILL BE OK
 
 if len(vector) != 0:
     try:
-        tar = tarfile.TarFile.open(name = 'vectortarpack', mode = 'r')
+        tar = tarfile.TarFile.open(name="vectortarpack", mode="r")
         tar.extractall()
         vectors = glob.glob1(homeServer, "*.vectorpack")
     except:
@@ -98,9 +99,11 @@ if len(vector) != 0:
         f.write("Error unpacking vectortarpack")
 
     for i in vectors:
-        logging.debug("Unpacking vector map <%s>" % os.path.join(homeServer,i))
+        logging.debug("Unpacking vector map <%s>" % os.path.join(homeServer, i))
         try:
-            grass.run_command('v.unpack',input=os.path.join(homeServer,i))
+            grass.run_command("v.unpack", input=os.path.join(homeServer, i))
         except CalledModuleError:
-            logging.error("Error unpacking raster map <%s>" % os.path.join(homeServer,i))
-        #os.remove(os.path.join(homeServer,i)) TO UNCOMMENT WHEN ALL WILL BE OK
+            logging.error(
+                "Error unpacking raster map <%s>" % os.path.join(homeServer, i)
+            )
+        # os.remove(os.path.join(homeServer,i)) TO UNCOMMENT WHEN ALL WILL BE OK

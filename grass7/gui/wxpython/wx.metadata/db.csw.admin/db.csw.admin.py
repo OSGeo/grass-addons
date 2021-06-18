@@ -121,25 +121,24 @@ import sys
 from grass.script import core as grass
 from grass.script.utils import set_path
 
-set_path(modulename='wx.metadata', dirname='mdlib', path='..')
+set_path(modulename="wx.metadata", dirname="mdlib", path="..")
 
 from mdlib import globalvar
 
 
-class CswAdmin():
-
+class CswAdmin:
     def __init__(self):
         try:
-            pycsw = 'pycsw'
-            self.pycsw_config = importlib.import_module(
-                '.core.config', pycsw)
-            self.pycsw_admin = importlib.import_module(
-                '.core.admin', pycsw)
+            pycsw = "pycsw"
+            self.pycsw_config = importlib.import_module(".core.config", pycsw)
+            self.pycsw_admin = importlib.import_module(".core.admin", pycsw)
         except ModuleNotFoundError as e:
             msg = e.msg
-            grass.fatal(globalvar.MODULE_NOT_FOUND.format(
-                lib=msg.split("'")[-2],
-                url=globalvar.MODULE_URL))
+            grass.fatal(
+                globalvar.MODULE_NOT_FOUND.format(
+                    lib=msg.split("'")[-2], url=globalvar.MODULE_URL
+                )
+            )
 
         self.COMMAND = None
         self.XML_DIRPATH = None
@@ -158,82 +157,92 @@ class CswAdmin():
         self.TABLE = None
         self.CONTEXT = self.pycsw_config.StaticContext()
 
-    def argParser(self, defaultConf, load_records,
-                  loadRecurs, setupDB,
-                  exportRecord, indexes,
-                  optimize, harvest,
-                  siteOut, deleteAll,
-                  cswURL, cswXML, force):
+    def argParser(
+        self,
+        defaultConf,
+        load_records,
+        loadRecurs,
+        setupDB,
+        exportRecord,
+        indexes,
+        optimize,
+        harvest,
+        siteOut,
+        deleteAll,
+        cswURL,
+        cswXML,
+        force,
+    ):
         if defaultConf is None:
-            grass.error('Configure file is not exist')
+            grass.error("Configure file is not exist")
         args = []
-        args.append('-c')
+        args.append("-c")
 
         if load_records:
-            args.append('load_records')
-            args.append('-p')
+            args.append("load_records")
+            args.append("-p")
             args.append(load_records)
             if loadRecurs:
-                args.append('-r')
+                args.append("-r")
             if force:
-                args.append('y')
+                args.append("y")
             return args
 
         if setupDB:
-            args.append('setup_db')
-            args.append('-f')
+            args.append("setup_db")
+            args.append("-f")
             args.append(defaultConf)
             return args
 
         if exportRecord:
-            args.append('export_records')
-            args.append('-p')
+            args.append("export_records")
+            args.append("-p")
             args.append(exportRecord)
-            args.append('-f')
+            args.append("-f")
             args.append(defaultConf)
             return args
 
         if indexes:
-            args.append('rebuild_db_indexes')
-            args.append('-f')
+            args.append("rebuild_db_indexes")
+            args.append("-f")
             args.append(defaultConf)
             return args
 
         if optimize:
-            args.append('optimize_db')
-            args.append('-f')
+            args.append("optimize_db")
+            args.append("-f")
             args.append(defaultConf)
             return args
 
         if harvest:
-            args.append('refresh_harvested_records')
-            args.append('-f')
+            args.append("refresh_harvested_records")
+            args.append("-f")
             args.append(defaultConf)
             return args
 
         if siteOut:
-            args.append('gen_sitemaps')
-            args.append('-o')
+            args.append("gen_sitemaps")
+            args.append("-o")
             args.append(siteOut)
-            args.append('-f')
+            args.append("-f")
             args.append(defaultConf)
             return args
 
         if deleteAll:
-            args.append('delete_records')
-            args.append('-f')
+            args.append("delete_records")
+            args.append("-f")
             args.append(defaultConf)
             if force:
-                args.append('y')
+                args.append("y")
             return args
 
         if cswURL and cswXML:
-            args.append('post_xml')
-            args.append('-u')
+            args.append("post_xml")
+            args.append("-u")
             args.append(cswURL)
-            args.append('-x')
+            args.append("-x")
             args.append(cswXML)
-            args.append('-f')
+            args.append("-f")
             args.append(defaultConf)
             return args
 
@@ -242,78 +251,92 @@ class CswAdmin():
     def run(self, argv):
 
         if len(argv) == 0:
-            grass.error('Nothing to do. Set args')
+            grass.error("Nothing to do. Set args")
             return
         try:
-            OPTS, ARGS = getopt.getopt(argv, 'c:f:ho:p:ru:x:s:t:y')
+            OPTS, ARGS = getopt.getopt(argv, "c:f:ho:p:ru:x:s:t:y")
         except getopt.GetoptError as err:
-            grass.error('\nERROR: %s' % err)
+            grass.error("\nERROR: %s" % err)
 
         for o, a in OPTS:
-            if o == '-c':
+            if o == "-c":
                 self.COMMAND = a
-            if o == '-f':
+            if o == "-f":
                 self.CFG = a
-            if o == '-o':
+            if o == "-o":
                 self.OUTPUT_FILE = a
-            if o == '-p':
+            if o == "-p":
                 self.XML_DIRPATH = a
-            if o == '-r':
+            if o == "-r":
                 self.RECURSIVE = True
-            if o == '-u':
+            if o == "-u":
                 self.CSW_URL = a
-            if o == '-x':
+            if o == "-x":
                 self.XML = a
-            if o == '-t':
+            if o == "-t":
                 self.TIMEOUT = int(a)
-            if o == '-y':
+            if o == "-y":
                 self.FORCE_CONFIRM = True
 
-        if self.CFG is None and self.COMMAND not in ['post_xml']:
-            print('ERROR: -f <cfg> is a required argument')
+        if self.CFG is None and self.COMMAND not in ["post_xml"]:
+            print("ERROR: -f <cfg> is a required argument")
 
-        if self.COMMAND not in ['post_xml']:
+        if self.COMMAND not in ["post_xml"]:
             SCP = configparser.SafeConfigParser()
             SCP.readfp(open(self.CFG))
 
-            self.DATABASE = SCP.get('repository', 'database')
-            self.URL = SCP.get('server', 'url')
-            self.HOME = SCP.get('server', 'home')
-            self.METADATA = dict(SCP.items('metadata:main'))
+            self.DATABASE = SCP.get("repository", "database")
+            self.URL = SCP.get("server", "url")
+            self.HOME = SCP.get("server", "home")
+            self.METADATA = dict(SCP.items("metadata:main"))
             try:
-                self.TABLE = SCP.get('repository', 'table')
+                self.TABLE = SCP.get("repository", "table")
             except configparser.NoOptionError:
-                self.TABLE = 'records'
+                self.TABLE = "records"
 
-        if self.COMMAND == 'setup_db':
+        if self.COMMAND == "setup_db":
             try:
                 self.pycsw_admin.setup_db(self.DATABASE, self.TABLE, self.HOME)
             except Exception as err:
                 print(err)
-                print('ERROR: DB creation error.  Database tables already exist')
-                print('Delete tables or database to reinitialize')
+                print("ERROR: DB creation error.  Database tables already exist")
+                print("Delete tables or database to reinitialize")
 
-        elif self.COMMAND == 'load_records':
-            self.pycsw_admin.load_records(self.CONTEXT, self.DATABASE, self.TABLE, self.XML_DIRPATH, self.RECURSIVE,
-                               self.FORCE_CONFIRM)
-        elif self.COMMAND == 'export_records':
-            self.pycsw_admin.export_records(self.CONTEXT, self.DATABASE, self.TABLE, self.XML_DIRPATH)
-        elif self.COMMAND == 'rebuild_db_indexes':
+        elif self.COMMAND == "load_records":
+            self.pycsw_admin.load_records(
+                self.CONTEXT,
+                self.DATABASE,
+                self.TABLE,
+                self.XML_DIRPATH,
+                self.RECURSIVE,
+                self.FORCE_CONFIRM,
+            )
+        elif self.COMMAND == "export_records":
+            self.pycsw_admin.export_records(
+                self.CONTEXT, self.DATABASE, self.TABLE, self.XML_DIRPATH
+            )
+        elif self.COMMAND == "rebuild_db_indexes":
             self.pycsw_admin.rebuild_db_indexes(self.DATABASE, self.TABLE)
-        elif self.COMMAND == 'optimize_db':
+        elif self.COMMAND == "optimize_db":
             self.pycsw_admin.optimize_db(self.CONTEXT, self.DATABASE, self.TABLE)
-        elif self.COMMAND == 'refresh_harvested_records':
-            self.pycsw_admin.refresh_harvested_records(self.CONTEXT, self.DATABASE, self.TABLE, self.URL)
-        elif self.COMMAND == 'gen_sitemap':
-            self.pycsw_admin.gen_sitemap(self.CONTEXT, self.DATABASE, self.TABLE, self.URL, self.OUTPUT_FILE)
-        elif self.COMMAND == 'post_xml':
-            grass.message(self.pycsw.core.admin.post_xml(self.CSW_URL, self.XML, self.TIMEOUT))
+        elif self.COMMAND == "refresh_harvested_records":
+            self.pycsw_admin.refresh_harvested_records(
+                self.CONTEXT, self.DATABASE, self.TABLE, self.URL
+            )
+        elif self.COMMAND == "gen_sitemap":
+            self.pycsw_admin.gen_sitemap(
+                self.CONTEXT, self.DATABASE, self.TABLE, self.URL, self.OUTPUT_FILE
+            )
+        elif self.COMMAND == "post_xml":
+            grass.message(
+                self.pycsw.core.admin.post_xml(self.CSW_URL, self.XML, self.TIMEOUT)
+            )
 
-        elif self.COMMAND == 'delete_records':
+        elif self.COMMAND == "delete_records":
             self.pycsw_admin.delete_records(self.CONTEXT, self.DATABASE, self.TABLE)
 
 
-'''#TODO
+"""#TODO
     def initDatabase(self):
         driverDB = Module('db.connect',
                           flags='pg',
@@ -357,48 +380,50 @@ class CswAdmin():
         if self.database['driver'] == 'sqlite':
             if not os.access(DATABASE, os.W_OK):
                 grass.error('Cannot acces databaase < %s >'%DATABASE)
-'''
-'''
+"""
+"""
 #%flag
 #% key: a
 #% label: Automatic configuration
 #% description: Set database according GRASS default and confugure server
 #% guisection: Auto Config
 #%end
-'''
+"""
 
 
 def main():
-    defaultConf = options['configure']
-    load_records = options['load_records']
-    loadRecurs = flags['r']
-    setupDB = flags['s']
-    exportRecord = options['export_records']
-    indexes = flags['i']
-    optimize = flags['o']
-    harvest = flags['h']
-    siteOut = options['gen_sitemap']
-    deleteAll = flags['d']
-    cswURL = options['url_csw']
-    cswXML = options['file_xml']
-    force = flags['f']
+    defaultConf = options["configure"]
+    load_records = options["load_records"]
+    loadRecurs = flags["r"]
+    setupDB = flags["s"]
+    exportRecord = options["export_records"]
+    indexes = flags["i"]
+    optimize = flags["o"]
+    harvest = flags["h"]
+    siteOut = options["gen_sitemap"]
+    deleteAll = flags["d"]
+    cswURL = options["url_csw"]
+    cswXML = options["file_xml"]
+    force = flags["f"]
 
     csw = CswAdmin()
-    #if flags['a']:
-    #csw.initDatabase()
-    args = csw.argParser(defaultConf,
-                         load_records,
-                         loadRecurs,
-                         setupDB,
-                         exportRecord,
-                         indexes,
-                         optimize,
-                         harvest,
-                         siteOut,
-                         deleteAll,
-                         cswURL,
-                         cswXML,
-                         force)
+    # if flags['a']:
+    # csw.initDatabase()
+    args = csw.argParser(
+        defaultConf,
+        load_records,
+        loadRecurs,
+        setupDB,
+        exportRecord,
+        indexes,
+        optimize,
+        harvest,
+        siteOut,
+        deleteAll,
+        cswURL,
+        cswXML,
+        force,
+    )
     if args:
         csw.run(args)
 

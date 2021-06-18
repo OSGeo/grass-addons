@@ -58,14 +58,13 @@ def main():
     conn.get_current_connection(options["driver"])
     hive = conn.get_hook()
 
-    if not options['schema']:
-        options['schema'] = 'default'
+    if not options["schema"]:
+        options["schema"] = "default"
 
-    out = hive.get_results(hql=options['hql'],
-                           schema=options['schema'])
+    out = hive.get_results(hql=options["hql"], schema=options["schema"])
 
-    if options['out']:
-        with open(out, 'rw') as io:
+    if options["out"]:
+        with open(out, "rw") as io:
             io.writelines(out)
             io.close()
     else:

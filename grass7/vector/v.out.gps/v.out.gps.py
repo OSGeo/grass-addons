@@ -99,13 +99,16 @@ def cleanup():
 
     # only try to remove map if it exists to avoid ugly warnings
     if tmp_vogb:
-        if grass.find_file(tmp_vogb, element = 'vector')['name']:
-            grass.run_command('g.remove', flags = 'f', type = 'vector',
-                          name = tmp_vogb, quiet = True)
+        if grass.find_file(tmp_vogb, element="vector")["name"]:
+            grass.run_command(
+                "g.remove", flags="f", type="vector", name=tmp_vogb, quiet=True
+            )
     if tmp_extr:
-        if grass.find_file(tmp_extr, element = 'vector')['name']:
-            grass.run_command('g.remove', flags = 'f', type = 'vector',
-                          name = tmp_vogb, quiet = True)
+        if grass.find_file(tmp_extr, element="vector")["name"]:
+            grass.run_command(
+                "g.remove", flags="f", type="vector", name=tmp_vogb, quiet=True
+            )
+
 
 tmp = None
 tmp_proj = None
@@ -113,18 +116,19 @@ tmp_gpx = None
 tmp_extr = None
 tmp_vogb = None
 
+
 def main():
     global tmp, tmp_proj, tmp_gpx, tmp_extr, tmp_vogb
 
-    format = options['format']
-    input = options['input']
-    layer = options['layer']
-    output = options['output']
-    type = options['type']
-    where = options['where']
-    wpt = flags['w']
-    rte = flags['r']
-    trk = flags['t']
+    format = options["format"]
+    input = options["input"]
+    layer = options["layer"]
+    output = options["output"]
+    type = options["type"]
+    where = options["where"]
+    wpt = flags["w"]
+    rte = flags["r"]
+    trk = flags["t"]
 
     nflags = len(filter(None, [wpt, rte, trk]))
     if nflags > 1:
@@ -135,20 +139,24 @@ def main():
     # set some reasonable defaults
     if not type:
         if wpt:
-            type = 'point'
+            type = "point"
         else:
-            type = 'line'
+            type = "line"
 
     #### check for gpsbabel
     ### FIXME: may need --help or similar?
     if not grass.find_program("gpsbabel"):
-        grass.fatal(_("The gpsbabel program was not found, please install it first.\n") +
-                    "http://gpsbabel.sourceforge.net")
+        grass.fatal(
+            _("The gpsbabel program was not found, please install it first.\n")
+            + "http://gpsbabel.sourceforge.net"
+        )
 
     #### check for cs2cs
     if not grass.find_program("cs2cs"):
-        grass.fatal(_("The cs2cs program was not found, please install it first.\n") +
-                    "http://proj.osgeo.org")
+        grass.fatal(
+            _("The cs2cs program was not found, please install it first.\n")
+            + "http://proj.osgeo.org"
+        )
 
     # check if we will overwrite data
     if os.path.exists(output) and not grass.overwrite():
@@ -162,14 +170,20 @@ def main():
         grass.verbose("Extracting data ...")
         tmp_extr = "tmp_vogb_extr_%d" % os.getpid()
         try:
-            grass.run_command('v.extract', input="$GIS_OPT_INPUT",
-                              output=tmp_extr, type=type, layer=layer,
-                              where=where, quiet=True)
+            grass.run_command(
+                "v.extract",
+                input="$GIS_OPT_INPUT",
+                output=tmp_extr,
+                type=type,
+                layer=layer,
+                where=where,
+                quiet=True,
+            )
         except CalledModuleError:
             grass.fatal(_("Error executing SQL query"))
 
         kv = grass.vector_info_topo(tmp_extr)
-        if kv['primitives'] == 0:
+        if kv["primitives"] == 0:
             grass.fatal(_("SQL query returned an empty map (no %s features?)") % type)
 
         inmap = tmp_extr
@@ -188,17 +202,17 @@ def main():
     # reproject to lat/lon WGS84
     grass.verbose("Reprojecting data ...")
 
-    re1 = re.compile(r'^\([PLBCFKA]\)')
-    re2 = re.compile(r'^ 1     ')
+    re1 = re.compile(r"^\([PLBCFKA]\)")
+    re2 = re.compile(r"^ 1     ")
 
-    re3 = re.compile(r'\t\([-\.0-9]*\) .*')
-    re4 = re.compile(r'^\([-\.0-9]\)')
-    re5 = re.compile(r'^#')
+    re3 = re.compile(r"\t\([-\.0-9]*\) .*")
+    re4 = re.compile(r"^\([-\.0-9]\)")
+    re5 = re.compile(r"^#")
 
     tmp_proj = tmp + ".proj"
-    tf = open(tmp_proj, 'w')
-    p1 = grass.pipe_command('v.out.ascii', input = inmap, format = 'standard')
-    p2 = grass.feed_command('m.proj', input = '-', flags = 'od', quiet = True, stdout = tf)
+    tf = open(tmp_proj, "w")
+    p1 = grass.pipe_command("v.out.ascii", input=inmap, format="standard")
+    p2 = grass.feed_command("m.proj", input="-", flags="od", quiet=True, stdout=tf)
     tf.close()
 
     lineno = 0
@@ -206,8 +220,8 @@ def main():
         lineno += 1
         if lineno < 11:
             continue
-        line = re1.sub(r'#\1', line)
-        line = re2.sub(r'# 1  ', line)
+        line = re1.sub(r"#\1", line)
+        line = re2.sub(r"# 1  ", line)
         p2.stdin.write(line)
 
     p2.stdin.close()
@@ -218,13 +232,15 @@ def main():
         grass.fatal(_("Error reprojecting data"))
 
     tmp_vogb = "tmp_vogb_epsg4326_%d" % os.getpid()
-    p3 = grass.feed_command('v.in.ascii', out = tmp_vogb, format = 'standard', flags = 'n', quiet = True)
-    tf = open(tmp_proj, 'r')
+    p3 = grass.feed_command(
+        "v.in.ascii", out=tmp_vogb, format="standard", flags="n", quiet=True
+    )
+    tf = open(tmp_proj, "r")
 
     for line in tf:
-        line = re3.sub(r' \1', line)
-        line = re4.sub(r' \1', line)
-        line = re5.sub('', line)
+        line = re3.sub(r" \1", line)
+        line = re4.sub(r" \1", line)
+        line = re5.sub("", line)
         p3.stdin.write(line)
 
     p3.stdin.close()
@@ -240,23 +256,24 @@ def main():
     if layer in kv:
         db_params = kv[layer]
 
-        db_table = db_params['table']
-        db_key = db_params['key']
-        db_database = db_params['database']
-        db_driver = db_params['driver']
+        db_table = db_params["table"]
+        db_key = db_params["key"]
+        db_database = db_params["database"]
+        db_driver = db_params["driver"]
 
         try:
-            grass.run_command('db.copy',
-                              from_driver=db_driver,
-                              from_database=db_database,
-                              from_table=db_table,
-                              to_table=tmp_vogb)
+            grass.run_command(
+                "db.copy",
+                from_driver=db_driver,
+                from_database=db_database,
+                from_table=db_table,
+                to_table=tmp_vogb,
+            )
         except CalledModuleError:
             grass.fatal(_("Error copying temporary DB"))
 
         try:
-            grass.run_command('v.db.connect',
-                              map=tmp_vogb, table=tmp_vogb, quiet=True)
+            grass.run_command("v.db.connect", map=tmp_vogb, table=tmp_vogb, quiet=True)
         except CalledModuleError:
             grass.fatal(_("Error reconnecting temporary DB"))
 
@@ -281,13 +298,20 @@ def main():
 
     tmp_gpx = tmp + ".gpx"
     try:
-        grass.run_command('v.out.ogr', input=tmp_vogb, output=tmp_gpx,
-                          type=type, format='GPX', lco=linetype,
-                          dsco="GPX_USE_EXTENSIONS=YES", quiet=True)
+        grass.run_command(
+            "v.out.ogr",
+            input=tmp_vogb,
+            output=tmp_gpx,
+            type=type,
+            format="GPX",
+            lco=linetype,
+            dsco="GPX_USE_EXTENSIONS=YES",
+            quiet=True,
+        )
     except CalledModuleError:
         grass.fatal(_("Error exporting data"))
 
-    if format == 'gpx':
+    if format == "gpx":
         # short circuit, we have what we came for.
         grass.try_remove(output)
         os.rename(tmp_gpx, output)
@@ -296,27 +320,25 @@ def main():
 
     # run gpsbabel
     if wpt:
-        gtype = '-w'
+        gtype = "-w"
     elif trk:
-        gtype = '-t'
+        gtype = "-t"
     elif rte:
-        gtype = '-r'
+        gtype = "-r"
     else:
-        gtype = ''
+        gtype = ""
 
     grass.verbose("Running GPSBabel ...")
 
-    ret = grass.call(['gpsbabel',
-                      gtype,
-                      '-i', 'gpx',
-                      '-f', tmp + '.gpx',
-                      '-o', format,
-                      '-F', output])
+    ret = grass.call(
+        ["gpsbabel", gtype, "-i", "gpx", "-f", tmp + ".gpx", "-o", format, "-F", output]
+    )
 
     if ret != 0:
         grass.fatal(_("Error running GPSBabel"))
 
     grass.verbose("Done.")
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

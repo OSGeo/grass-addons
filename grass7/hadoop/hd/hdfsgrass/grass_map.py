@@ -5,6 +5,7 @@ from grass.pygrass.modules import Module
 from grass.script import parse_key_val
 from subprocess import PIPE
 
+
 class VectorDBInfo:
     """Class providing information about attribute tables
     linked to a vector map"""
@@ -17,10 +18,10 @@ class VectorDBInfo:
         # dictionary of table and associated columns (type, length, values, ids)
         self.tables = {}
 
-        if not self._CheckDBConnection(): # -> self.layers
+        if not self._CheckDBConnection():  # -> self.layers
             return
 
-        self._DescribeTables() # -> self.tables
+        self._DescribeTables()  # -> self.tables
 
     def _CheckDBConnection(self):
         """Check DB connection"""
@@ -40,11 +41,13 @@ class VectorDBInfo:
         for layer in self.layers.keys():
             # determine column names and types
             table = self.layers[layer]["table"]
-            columns = {} # {name: {type, length, [values], [ids]}}
+            columns = {}  # {name: {type, length, [values], [ids]}}
             i = 0
-            for item in grass.db_describe(table = self.layers[layer]["table"],
-                                          driver = self.layers[layer]["driver"],
-                                          database = self.layers[layer]["database"])['cols']:
+            for item in grass.db_describe(
+                table=self.layers[layer]["table"],
+                driver=self.layers[layer]["driver"],
+                database=self.layers[layer]["database"],
+            )["cols"]:
                 name, type, length = item
                 # FIXME: support more datatypes
                 if type.lower() == "integer":
@@ -54,12 +57,14 @@ class VectorDBInfo:
                 else:
                     ctype = str
 
-                columns[name.strip()] = {'index': i,
-                                          'type': type.lower(),
-                                          'ctype': ctype,
-                                          'length': int(length),
-                                          'values': [],
-                                          'ids': []}
+                columns[name.strip()] = {
+                    "index": i,
+                    "type": type.lower(),
+                    "ctype": ctype,
+                    "length": int(length),
+                    "values": [],
+                    "ids": [],
+                }
                 i += 1
 
             # check for key column
@@ -77,10 +82,10 @@ class VectorDBInfo:
     def Reset(self):
         """Reset"""
         for layer in self.layers:
-            table = self.layers[layer]["table"] # get table desc
+            table = self.layers[layer]["table"]  # get table desc
             for name in self.tables[table].keys():
-                self.tables[table][name]['values'] = []
-                self.tables[table][name]['ids'] = []
+                self.tables[table][name]["values"] = []
+                self.tables[table][name]["ids"] = []
 
     def GetName(self):
         """Get vector name"""
@@ -91,14 +96,14 @@ class VectorDBInfo:
 
         :param layer: vector layer number
         """
-        return str(self.layers[layer]['key'])
+        return str(self.layers[layer]["key"])
 
     def GetTable(self, layer):
         """Get table name of given layer
 
         :param layer: vector layer number
         """
-        return self.layers[layer]['table']
+        return self.layers[layer]["table"]
 
     def GetDbSettings(self, layer):
         """Get database settins
@@ -107,7 +112,7 @@ class VectorDBInfo:
 
         :return: (driver, database)
         """
-        return self.layers[layer]['driver'], self.layers[layer]['database']
+        return self.layers[layer]["driver"], self.layers[layer]["database"]
 
     def GetTableDesc(self, table):
         """Get table columns
@@ -118,14 +123,10 @@ class VectorDBInfo:
 
 
 class GrassMap(object):
-    def __init__(self,map):
+    def __init__(self, map):
         self.map = map
 
-    def get_topology(self,map):
-        vinfo = Module('v.info',
-                        self.map,
-                        flags='t',
-                        quiet=True,
-                        stdout_=PIPE)
+    def get_topology(self, map):
+        vinfo = Module("v.info", self.map, flags="t", quiet=True, stdout_=PIPE)
 
         features = parse_key_val(vinfo.outputs.stdout)

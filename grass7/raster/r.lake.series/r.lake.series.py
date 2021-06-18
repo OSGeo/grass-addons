@@ -124,7 +124,7 @@ from grass.exceptions import CalledModuleError
 
 
 def format_time(time):
-    return '%05.2f' % time
+    return "%05.2f" % time
 
 
 def format_order(number, zeros):
@@ -139,92 +139,120 @@ def frange(x, y, step):
 
 def check_maps_exist(maps, mapset):
     for map_ in maps:
-        if gcore.find_file(map_, element='cell', mapset=mapset)['file']:
-            gcore.fatal(_("Raster map <%s> already exists. Change the base name or allow overwrite.") % map_)
+        if gcore.find_file(map_, element="cell", mapset=mapset)["file"]:
+            gcore.fatal(
+                _(
+                    "Raster map <%s> already exists. Change the base name or allow overwrite."
+                )
+                % map_
+            )
 
 
 def remove_raster_maps(maps, quiet=False):
     for map_ in maps:
-        gcore.run_command('g.remove', flags='f', type='raster', name=map_, quiet=quiet)
+        gcore.run_command("g.remove", flags="f", type="raster", name=map_, quiet=quiet)
 
 
 def main():
     options, flags = gcore.parser()
 
-    elevation = options['elevation']
-    strds = options['output']
+    elevation = options["elevation"]
+    strds = options["output"]
     basename = strds
-    start_water_level = float(options['start_water_level'])
-    end_water_level = float(options['end_water_level'])
-    water_level_step = float(options['water_level_step'])
-    #if options['coordinates']:
+    start_water_level = float(options["start_water_level"])
+    end_water_level = float(options["end_water_level"])
+    water_level_step = float(options["water_level_step"])
+    # if options['coordinates']:
     #    options['coordinates'].split(',')
     # passing coordinates parameter as is
-    coordinates = options['coordinates']
-    seed_raster = options['seed_raster']
+    coordinates = options["coordinates"]
+    seed_raster = options["seed_raster"]
     if seed_raster and coordinates:
-        gcore.fatal(_("Both seed raster and coordinates cannot be specified"
-                      " together, please specify only one of them."))
+        gcore.fatal(
+            _(
+                "Both seed raster and coordinates cannot be specified"
+                " together, please specify only one of them."
+            )
+        )
 
-    time_unit = options['time_unit']
-    time_step = options['time_step']  # temporal fucntions accepts only string now
+    time_unit = options["time_unit"]
+    time_step = options["time_step"]  # temporal fucntions accepts only string now
     if int(time_step) <= 0:
-        gcore.fatal(_("Time step must be greater than zero."
-                      " Please specify number > 0."))
+        gcore.fatal(
+            _("Time step must be greater than zero." " Please specify number > 0.")
+        )
 
-    mapset = gcore.gisenv()['MAPSET']
+    mapset = gcore.gisenv()["MAPSET"]
     title = _("r.lake series")
     desctiption = _("r.lake series")
 
-    water_levels = [step for step in frange(start_water_level,
-                                            end_water_level, water_level_step)]
-    outputs = ['%s%s%s' % (basename, '_', water_level)
-               for water_level in water_levels]
+    water_levels = [
+        step for step in frange(start_water_level, end_water_level, water_level_step)
+    ]
+    outputs = ["%s%s%s" % (basename, "_", water_level) for water_level in water_levels]
 
     if not gcore.overwrite():
         check_maps_exist(outputs, mapset)
 
     kwargs = {}
     if seed_raster:
-        kwargs['seed'] = seed_raster
+        kwargs["seed"] = seed_raster
     elif coordinates:
-        kwargs['coordinates'] = coordinates
+        kwargs["coordinates"] = coordinates
 
-    if flags['n']:
-        pass_flags = 'n'
+    if flags["n"]:
+        pass_flags = "n"
     else:
         pass_flags = None
 
     for i, water_level in enumerate(water_levels):
         try:
-            gcore.run_command('r.lake',
-                    flags=pass_flags,
-                    elevation=elevation,
-                    lake=outputs[i],
-                    water_level=water_level,
-                    overwrite=gcore.overwrite(),  # TODO: really works? Its seems that hardcoding here False does not prevent overwriting.
-                              **kwargs)
+            gcore.run_command(
+                "r.lake",
+                flags=pass_flags,
+                elevation=elevation,
+                lake=outputs[i],
+                water_level=water_level,
+                overwrite=gcore.overwrite(),  # TODO: really works? Its seems that hardcoding here False does not prevent overwriting.
+                **kwargs
+            )
         except CalledModuleError:
             # remove maps created so far, try to remove also i-th map
             remove_raster_maps(outputs[:i], quiet=True)
-            gcore.fatal(_("r.lake command failed. Check above error messages."
-                          " Try different water levels or seed points."))
+            gcore.fatal(
+                _(
+                    "r.lake command failed. Check above error messages."
+                    " Try different water levels or seed points."
+                )
+            )
     gcore.info(_("Registering created maps into temporal dataset..."))
 
     # Make sure the temporal database exists
     tgis.init()
 
-    tgis.open_new_stds(strds, type='strds',
-                       temporaltype='relative',
-                       title=title, descr=desctiption,
-                       semantic='sum', dbif=None,
-                       overwrite=gcore.overwrite())
+    tgis.open_new_stds(
+        strds,
+        type="strds",
+        temporaltype="relative",
+        title=title,
+        descr=desctiption,
+        semantic="sum",
+        dbif=None,
+        overwrite=gcore.overwrite(),
+    )
     # TODO: we must start from 1 because there is a bug in register_maps_in_space_time_dataset
     tgis.register_maps_in_space_time_dataset(
-        type='raster', name=basename, maps=','.join(outputs),
-        start=str(1), end=None, unit=time_unit, increment=time_step,
-        interval=False, dbif=None)
+        type="raster",
+        name=basename,
+        maps=",".join(outputs),
+        start=str(1),
+        end=None,
+        unit=time_unit,
+        increment=time_step,
+        interval=False,
+        dbif=None,
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

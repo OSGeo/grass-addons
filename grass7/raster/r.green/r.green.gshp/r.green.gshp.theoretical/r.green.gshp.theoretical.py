@@ -227,18 +227,18 @@ from grass.script import mapcalc
 
 try:
     # set python path to the shared r.green libraries
-    set_path('r.green', 'libgshp', '..')
-    set_path('r.green', 'libgreen', os.path.join('..', '..'))
+    set_path("r.green", "libgshp", "..")
+    set_path("r.green", "libgreen", os.path.join("..", ".."))
     from libgreen.utils import cleanup, rast_or_numb
     from libgshp import gpot
 except ImportError:
     try:
-        set_path('r.green', 'libgshp', os.path.join('..', 'etc', 'r.green'))
-        set_path('r.green', 'libgreen', os.path.join('..', 'etc', 'r.green'))
+        set_path("r.green", "libgshp", os.path.join("..", "etc", "r.green"))
+        set_path("r.green", "libgreen", os.path.join("..", "etc", "r.green"))
         from libgreen.utils import cleanup, rast_or_numb
         from libgshp import gpot
     except ImportError:
-        gcore.warning('libgreen and libgshp not in the python path!')
+        gcore.warning("libgreen and libgshp not in the python path!")
 
 
 def main(opts, flgs):
@@ -272,72 +272,89 @@ def main(opts, flgs):
         Minimum or maximum fluid temperature, default: -2 °C
     """
     pid = os.getpid()
-    DEBUG = flags['d']
+    DEBUG = flags["d"]
     OVER = gcore.overwrite()
     tmpbase = "tmprgreen_%i" % pid
-    atexit.register(cleanup, pattern=(tmpbase + '*'), debug=DEBUG)
+    atexit.register(cleanup, pattern=(tmpbase + "*"), debug=DEBUG)
 
-    heating_season = rast_or_numb('heating_season_raster',
-                                  'heating_season_value', opts)
-    lifetime = float(opts['lifetime']) * 365 * 24 * 60 * 60
+    heating_season = rast_or_numb("heating_season_raster", "heating_season_value", opts)
+    lifetime = float(opts["lifetime"]) * 365 * 24 * 60 * 60
 
     # ================================================
     # GROUND
     # get raster or scalar value
-    ground_conductivity = opts['ground_conductivity']
-    ground_capacity = rast_or_numb('ground_capacity_raster',
-                                   'ground_capacity_value', opts)
-    ground_temperature = rast_or_numb('ground_temp_raster',
-                                      'ground_temp_value', opts)
+    ground_conductivity = opts["ground_conductivity"]
+    ground_capacity = rast_or_numb(
+        "ground_capacity_raster", "ground_capacity_value", opts
+    )
+    ground_temperature = rast_or_numb("ground_temp_raster", "ground_temp_value", opts)
 
     # ================================================
     # BHE
-    pipe_radius = float(opts['pipe_radius'])
-    number_pipes = float(opts['number_pipes'])
-    grout_conductivity = float(opts['grout_conductivity'])
-    fluid_limit_temperature = float(opts['fluid_limit_temperature'])
+    pipe_radius = float(opts["pipe_radius"])
+    number_pipes = float(opts["number_pipes"])
+    grout_conductivity = float(opts["grout_conductivity"])
+    fluid_limit_temperature = float(opts["fluid_limit_temperature"])
 
     # ================================================s
     # BOREHOLE
-    borehole_radius = float(opts['borehole_radius'])
-    borehole_length = float(opts['borehole_length'])
-    if opts['borehole_resistence'] == 'nan':
-        borehole_resistence = gpot.get_borehole_resistence(borehole_radius,
-                                                           pipe_radius,
-                                                           number_pipes,
-                                                           grout_conductivity)
+    borehole_radius = float(opts["borehole_radius"])
+    borehole_length = float(opts["borehole_length"])
+    if opts["borehole_resistence"] == "nan":
+        borehole_resistence = gpot.get_borehole_resistence(
+            borehole_radius, pipe_radius, number_pipes, grout_conductivity
+        )
     else:
-        borehole_resistence = float(opts['borehole_resistence'])
+        borehole_resistence = float(opts["borehole_resistence"])
 
     # START COMPUTATIONS
-    uc = tmpbase + '_uc'
-    season_temp = tmpbase + '_season_sec'
-    mapcalc('{}={}*24*3600'.format(season_temp, heating_season),
-            overwrite=True)
-    gpot.r_norm_time(uc, season_temp, borehole_radius,
-                     ground_conductivity, ground_capacity, execute=True,
-                     overwrite=OVER)
-    us = tmpbase + '_us'
-    gpot.r_norm_time(us, lifetime, borehole_radius,
-                     ground_conductivity, ground_capacity, execute=True,
-                     overwrite=OVER)
+    uc = tmpbase + "_uc"
+    season_temp = tmpbase + "_season_sec"
+    mapcalc("{}={}*24*3600".format(season_temp, heating_season), overwrite=True)
+    gpot.r_norm_time(
+        uc,
+        season_temp,
+        borehole_radius,
+        ground_conductivity,
+        ground_capacity,
+        execute=True,
+        overwrite=OVER,
+    )
+    us = tmpbase + "_us"
+    gpot.r_norm_time(
+        us,
+        lifetime,
+        borehole_radius,
+        ground_conductivity,
+        ground_capacity,
+        execute=True,
+        overwrite=OVER,
+    )
 
-    tc = tmpbase + '_tc'
+    tc = tmpbase + "_tc"
     gpot.r_tc(tc, heating_season)
 
-    gmax = tmpbase + '_gmax'
-    gpot.r_norm_thermal_alteration(gmax, tc, uc, us, execute=True,
-                                   overwrite=OVER)
+    gmax = tmpbase + "_gmax"
+    gpot.r_norm_thermal_alteration(gmax, tc, uc, us, execute=True, overwrite=OVER)
 
-    power = opts['power']
-    gpot.r_power(power, tc, ground_conductivity, ground_temperature,
-                 fluid_limit_temperature, borehole_length, borehole_resistence,
-                 gmax, execute=True, overwrite=OVER)
+    power = opts["power"]
+    gpot.r_power(
+        power,
+        tc,
+        ground_conductivity,
+        ground_temperature,
+        fluid_limit_temperature,
+        borehole_length,
+        borehole_resistence,
+        gmax,
+        execute=True,
+        overwrite=OVER,
+    )
     command = "{new} = if({old}<0, null(), {old})".format(old=power, new=power)
     mapcalc(command, overwrite=True)
     # TODO: add warning
 
-    energy = opts['energy']
+    energy = opts["energy"]
     gpot.r_energy(energy, power, execute=True, overwrite=OVER)
 
 

@@ -22,57 +22,66 @@ import copy
 import tempfile
 
 if __name__ == "__main__":
-    sys.path.append(os.path.join(os.environ['GISBASE'], "etc", "gui", "wxpython"))
+    sys.path.append(os.path.join(os.environ["GISBASE"], "etc", "gui", "wxpython"))
 
 import wx
 
 from ctypes import *
 import grass.script as grass
 from core import globalvar
-from core.gcmd          import GError, GMessage
-from mapdisp            import statusbar as sb
-from mapdisp.mapwindow  import BufferedWindow
-from gui_core.mapdisp   import SingleMapFrame
-from core.render        import Map, MapLayer
-from core.gcmd          import RunCommand, GMessage
-from iclass.dialogs     import IClassMapDialog
+from core.gcmd import GError, GMessage
+from mapdisp import statusbar as sb
+from mapdisp.mapwindow import BufferedWindow
+from gui_core.mapdisp import SingleMapFrame
+from core.render import Map, MapLayer
+from core.gcmd import RunCommand, GMessage
+from iclass.dialogs import IClassMapDialog
 
-from toolbars    import RDigitMapToolbar, RDigitMapManagerToolbar
+from toolbars import RDigitMapToolbar, RDigitMapManagerToolbar
 
 from rdigit.mapwindow import RDigitWindow
-from rdigit.toolbars    import RDigitToolbar
+from rdigit.toolbars import RDigitToolbar
 from rdigit.main import haveRDigit, RDigit
+
 
 class RDigitMapFrame(SingleMapFrame):
     """! RDigitMapFrame main frame
     This is the raster digitizer main window. It holds a minimal layer manager from wxIClass
     """
 
-    def __init__(self, parent = None, giface = None, title = _("Raster Digitizer"),
-                 toolbars = ["digitMap","rdigit"],
-                 size = (875, 600), name = 'RDigitWindow', **kwargs):
+    def __init__(
+        self,
+        parent=None,
+        giface=None,
+        title=_("Raster Digitizer"),
+        toolbars=["digitMap", "rdigit"],
+        size=(875, 600),
+        name="RDigitWindow",
+        **kwargs
+    ):
         """!
         @param parent (no parent is expected)
         @param title window title
         @param toolbars dictionary of active toolbars (defalult value represents all toolbars)
         @param size default size
         """
-        SingleMapFrame.__init__(self, parent = parent, title = title, name = name, Map = Map(), **kwargs)
+        SingleMapFrame.__init__(
+            self, parent=parent, title=title, name=name, Map=Map(), **kwargs
+        )
         self._giface = giface
 
-        self.MapWindow = RDigitWindow(parent = self, giface = self._giface,
-                                                id = wx.ID_ANY, frame = self,
-                                                Map = self.Map)
+        self.MapWindow = RDigitWindow(
+            parent=self, giface=self._giface, id=wx.ID_ANY, frame=self, Map=self.Map
+        )
         self.outMapName = None
 
-        self.mapManager = MapManager(self, mapWindow = self.MapWindow,
-                                             Map = self.GetMap())
+        self.mapManager = MapManager(self, mapWindow=self.MapWindow, Map=self.GetMap())
         self.SetSize(size)
-        #MapWindowRDigit
+        # MapWindowRDigit
 
         # Add toolbars
         toolbarsCopy = toolbars[:]
-        if sys.platform == 'win32':
+        if sys.platform == "win32":
             self.AddToolbar(toolbarsCopy.pop(1))
             toolbarsCopy.reverse()
         else:
@@ -83,26 +92,34 @@ class RDigitMapFrame(SingleMapFrame):
         self.GetMapToolbar().Bind(wx.EVT_CHOICE, self.OnUpdateActive)
 
         # items for choice
-        self.statusbarItems = [sb.SbCoordinates,
-                               sb.SbRegionExtent,
-                               sb.SbCompRegionExtent,
-                               sb.SbShowRegion,
-                               sb.SbAlignExtent,
-                               sb.SbResolution,
-                               sb.SbDisplayGeometry,
-                               sb.SbMapScale,
-                               sb.SbGoTo,
-                               sb.SbProjection]
+        self.statusbarItems = [
+            sb.SbCoordinates,
+            sb.SbRegionExtent,
+            sb.SbCompRegionExtent,
+            sb.SbShowRegion,
+            sb.SbAlignExtent,
+            sb.SbResolution,
+            sb.SbDisplayGeometry,
+            sb.SbMapScale,
+            sb.SbGoTo,
+            sb.SbProjection,
+        ]
 
         # create statusbar and its manager
-        statusbar = self.CreateStatusBar(number = 4, style = 0)
+        statusbar = self.CreateStatusBar(number=4, style=0)
         statusbar.SetStatusWidths([-5, -2, -1, -1])
-        self.statusbarManager = sb.SbManager(mapframe = self, statusbar = statusbar)
+        self.statusbarManager = sb.SbManager(mapframe=self, statusbar=statusbar)
 
         # fill statusbar manager
-        self.statusbarManager.AddStatusbarItemsByClass(self.statusbarItems, mapframe = self, statusbar = statusbar)
-        self.statusbarManager.AddStatusbarItem(sb.SbMask(self, statusbar = statusbar, position = 2))
-        self.statusbarManager.AddStatusbarItem(sb.SbRender(self, statusbar = statusbar, position = 3))
+        self.statusbarManager.AddStatusbarItemsByClass(
+            self.statusbarItems, mapframe=self, statusbar=statusbar
+        )
+        self.statusbarManager.AddStatusbarItem(
+            sb.SbMask(self, statusbar=statusbar, position=2)
+        )
+        self.statusbarManager.AddStatusbarItem(
+            sb.SbRender(self, statusbar=statusbar, position=3)
+        )
         self.statusbarManager.Update()
 
         self.changes = False
@@ -110,10 +127,10 @@ class RDigitMapFrame(SingleMapFrame):
         self._addPanes()
         self._mgr.Update()
 
-        self.mapManager.SetToolbar(self.toolbars['digitMap'])
+        self.mapManager.SetToolbar(self.toolbars["digitMap"])
 
         # default action
-        self.OnPan(event = None)
+        self.OnPan(event=None)
 
         self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
 
@@ -130,71 +147,103 @@ class RDigitMapFrame(SingleMapFrame):
         """!Show help page"""
         helpInProgress = True
 
-    def GetToolbar(self,name):
+    def GetToolbar(self, name):
         if name in self.toolbars:
             return self.toolbars[name]
 
         return None
 
     def AddToolbar(self, name):
-        """!Add toolbars to the frame
-        """
+        """!Add toolbars to the frame"""
         if name == "digitMap":
             self.toolbars[name] = RDigitMapToolbar(self)
 
-            self._mgr.AddPane(self.toolbars[name],
-                              wx.aui.AuiPaneInfo().
-                              Name(name).Caption(_("Map Toolbar")).
-                              ToolbarPane().Top().
-                              LeftDockable(False).RightDockable(False).
-                              BottomDockable(False).TopDockable(True).
-                              CloseButton(False).Layer(2).Row(1).
-                              BestSize((self.toolbars[name].GetBestSize())))
+            self._mgr.AddPane(
+                self.toolbars[name],
+                wx.aui.AuiPaneInfo()
+                .Name(name)
+                .Caption(_("Map Toolbar"))
+                .ToolbarPane()
+                .Top()
+                .LeftDockable(False)
+                .RightDockable(False)
+                .BottomDockable(False)
+                .TopDockable(True)
+                .CloseButton(False)
+                .Layer(2)
+                .Row(1)
+                .BestSize((self.toolbars[name].GetBestSize())),
+            )
 
         elif name == "rdigit":
-            self.toolbars[name] = RDigitToolbar(parent = self, MapWindow = self.MapWindow,
-                                               digitClass = RDigit, layerTree = self.mapManager)
+            self.toolbars[name] = RDigitToolbar(
+                parent=self,
+                MapWindow=self.MapWindow,
+                digitClass=RDigit,
+                layerTree=self.mapManager,
+            )
 
-            self._mgr.AddPane(self.toolbars[name],
-                            wx.aui.AuiPaneInfo().
-                            Name("rdigittoolbar").Caption(_("Raster Digitizer Toolbar")).
-                            ToolbarPane().Top().Row(1).
-                            LeftDockable(False).RightDockable(False).
-                            BottomDockable(False).TopDockable(True).
-                            CloseButton(False).Layer(0).
-                            BestSize((self.toolbars['rdigit'].GetBestSize())))
+            self._mgr.AddPane(
+                self.toolbars[name],
+                wx.aui.AuiPaneInfo()
+                .Name("rdigittoolbar")
+                .Caption(_("Raster Digitizer Toolbar"))
+                .ToolbarPane()
+                .Top()
+                .Row(1)
+                .LeftDockable(False)
+                .RightDockable(False)
+                .BottomDockable(False)
+                .TopDockable(True)
+                .CloseButton(False)
+                .Layer(0)
+                .BestSize((self.toolbars["rdigit"].GetBestSize())),
+            )
             self.MapWindow.SetToolbar(self.toolbars[name])
-            #self._mgr.GetPane('rdigittoolbar').Hide()
+            # self._mgr.GetPane('rdigittoolbar').Hide()
 
     def _addPanes(self):
         """!Add mapwindows and toolbars to aui manager"""
 
         self._addPaneMapWindow()
-        self._addPaneToolbar(name = 'digitMap')
+        self._addPaneToolbar(name="digitMap")
 
     def _addPaneToolbar(self, name):
 
         self.toolbars[name] = RDigitMapManagerToolbar(self, self.mapManager)
-        self._mgr.AddPane(self.toolbars[name],
-                          wx.aui.AuiPaneInfo().ToolbarPane().Movable().
-                          Name(name).
-                          CloseButton(False).Center().Layer(0).
-                          BestSize((self.toolbars[name].GetBestSize())))
+        self._mgr.AddPane(
+            self.toolbars[name],
+            wx.aui.AuiPaneInfo()
+            .ToolbarPane()
+            .Movable()
+            .Name(name)
+            .CloseButton(False)
+            .Center()
+            .Layer(0)
+            .BestSize((self.toolbars[name].GetBestSize())),
+        )
 
     def _addPaneMapWindow(self):
 
-        self._mgr.AddPane(self.MapWindow, wx.aui.AuiPaneInfo().CentrePane().
-                          Dockable(False).BestSize((-1,-1)).Name('window').
-                          CloseButton(False).DestroyOnClose(True).
-                          Layer(0))
+        self._mgr.AddPane(
+            self.MapWindow,
+            wx.aui.AuiPaneInfo()
+            .CentrePane()
+            .Dockable(False)
+            .BestSize((-1, -1))
+            .Name("window")
+            .CloseButton(False)
+            .DestroyOnClose(True)
+            .Layer(0),
+        )
 
-#        self._mgr.AddPane(self.MapWindowRDigit, wx.aui.AuiPaneInfo().CentrePane().
-#                          Dockable(True).BestSize((-1,-1)).Name('rdigit').
-#                          CloseButton(False).DestroyOnClose(True).
-#                          Layer(0))
+        #        self._mgr.AddPane(self.MapWindowRDigit, wx.aui.AuiPaneInfo().CentrePane().
+        #                          Dockable(True).BestSize((-1,-1)).Name('rdigit').
+        #                          CloseButton(False).DestroyOnClose(True).
+        #                          Layer(0))
 
-        self._mgr.GetPane('window').Show()
-        self._mgr.GetPane('rdigit').Hide()
+        self._mgr.GetPane("window").Show()
+        self._mgr.GetPane("rdigit").Hide()
 
     def IsStandalone(self):
         """!Check if Map display is standalone"""
@@ -208,18 +257,25 @@ class RDigitMapFrame(SingleMapFrame):
 
     def GetMapToolbar(self):
         """!Returns toolbar with zooming tools"""
-        return self.toolbars['digitMap']
+        return self.toolbars["digitMap"]
 
-    def AddRasterMap(self, name, firstMap = True, secondMap = True):
+    def AddRasterMap(self, name, firstMap=True, secondMap=True):
         """!Add raster map to Map"""
-        cmdlist = ['d.rast', 'map=%s' % name]
+        cmdlist = ["d.rast", "map=%s" % name]
         if firstMap:
-            self.GetFirstMap().AddLayer(type='raster', command=cmdlist, l_active=True,
-                                        name=name, l_hidden=False, l_opacity=1.0, l_render=False)
-            self.GetWindow().UpdateMap(render = True, renderVector = False)
+            self.GetFirstMap().AddLayer(
+                type="raster",
+                command=cmdlist,
+                l_active=True,
+                name=name,
+                l_hidden=False,
+                l_opacity=1.0,
+                l_render=False,
+            )
+            self.GetWindow().UpdateMap(render=True, renderVector=False)
 
     def OnZoomMenu(self, event):
-        """!Popup Zoom menu """
+        """!Popup Zoom menu"""
         zoommenu = wx.Menu()
         zoommenu.Destroy()
 
@@ -236,9 +292,9 @@ class RDigitMapFrame(SingleMapFrame):
         return self.outMapName
 
     def RemoveToolbar(self, name):
-        self.outMapName = self.toolbars['rdigit'].GetMapName()
-        self.mapManager.AddLayer(name = self.outMapName)
-        self._mgr.GetPane('window').Show()
+        self.outMapName = self.toolbars["rdigit"].GetMapName()
+        self.mapManager.AddLayer(name=self.outMapName)
+        self._mgr.GetPane("window").Show()
         self._mgr.Update()
 
 
@@ -265,23 +321,30 @@ class MapManager:
     def SetToolbar(self, toolbar):
         self.toolbar = toolbar
 
-    def AddLayer(self, name, alias = None, resultsLayer = False):
+    def AddLayer(self, name, alias=None, resultsLayer=False):
         """!Adds layer to Map and update toolbar
 
         @param name layer (raster) name
         @param resultsLayer True if layer is temp. raster showing the results of computation
         """
-        if (resultsLayer and
-                name in [l.GetName() for l in self.map.GetListOfLayers(l_name = name)]):
+        if resultsLayer and name in [
+            l.GetName() for l in self.map.GetListOfLayers(l_name=name)
+        ]:
             self.frame.Render(self.mapWindow)
             return
 
-        cmdlist = ['d.rast', 'map=%s' % name]
-        self.map.AddLayer(type = 'raster', command = cmdlist, l_active = True,
-                          name = name, l_hidden = False, l_opacity = 1.0, l_render = True)
-        #self.frame.Render(self.GetWindow().Render())
-        self.frame.GetWindow().UpdateMap(render = True, renderVector = False)
-
+        cmdlist = ["d.rast", "map=%s" % name]
+        self.map.AddLayer(
+            type="raster",
+            command=cmdlist,
+            l_active=True,
+            name=name,
+            l_hidden=False,
+            l_opacity=1.0,
+            l_render=True,
+        )
+        # self.frame.Render(self.GetWindow().Render())
+        self.frame.GetWindow().UpdateMap(render=True, renderVector=False)
 
         if alias is not None:
             alias = self._addSuffix(alias)
@@ -296,25 +359,25 @@ class MapManager:
     def RemoveLayer(self, name, idx):
         """!Removes layer from Map and update toolbar"""
         name = self.layerName[name]
-        self.map.RemoveLayer(name = name)
+        self.map.RemoveLayer(name=name)
         del self.layerName[name]
         self.toolbar.choice.Delete(idx)
         if not self.toolbar.choice.IsEmpty():
             self.toolbar.choice.SetSelection(0)
 
-        self.frame.GetWindow().UpdateMap(render = True, renderVector = False)
-        #self.frame.Render(self.mapWindow)
+        self.frame.GetWindow().UpdateMap(render=True, renderVector=False)
+        # self.frame.Render(self.mapWindow)
 
     def SelectLayer(self, name):
         """!Moves selected layer to top"""
-        layers = self.map.GetListOfLayers(l_type = 'raster')
+        layers = self.map.GetListOfLayers(l_type="raster")
         idx = None
         for i, layer in enumerate(layers):
             if self.layerName[name] == layer.GetName():
                 idx = i
                 break
 
-        if idx is not None: # should not happen
+        if idx is not None:  # should not happen
             layers.append(layers.pop(idx))
 
             choice = self.toolbar.choice
@@ -323,16 +386,18 @@ class MapManager:
             choice.Insert(name, 0)
             choice.SetSelection(0)
 
-            #layers.reverse()
+            # layers.reverse()
             self.map.ReorderLayers(layers)
-            self.frame.GetWindow().UpdateMap(render = True, renderVector = False)
+            self.frame.GetWindow().UpdateMap(render=True, renderVector=False)
 
 
 def test():
     import gettext
     import core.render as render
 
-    gettext.install('grasswxpy', os.path.join(os.getenv("GISBASE"), 'locale'), unicode = True)
+    gettext.install(
+        "grasswxpy", os.path.join(os.getenv("GISBASE"), "locale"), unicode=True
+    )
 
     app = wx.PySimpleApp()
     wx.InitAllImageHandlers()
@@ -340,6 +405,7 @@ def test():
     frame = RDigitMapFrame()
     frame.Show()
     app.MainLoop()
+
 
 if __name__ == "__main__":
     test()

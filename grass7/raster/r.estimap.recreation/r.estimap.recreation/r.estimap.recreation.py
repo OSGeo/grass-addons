@@ -619,14 +619,18 @@ if "GISBASE" not in os.environ:
 import grass.script as grass
 from grass.script.utils import set_path
 
-addon_path = os.path.join(os.path.dirname(__file__), "..", 'etc', 'r.estimap.recreation')
+addon_path = os.path.join(
+    os.path.dirname(__file__), "..", "etc", "r.estimap.recreation"
+)
 sys.path.insert(1, os.path.abspath(addon_path))
 # import pprint
 # pprint.pprint(sys.path)
 from estimap_recreation.main import main as main_estimap
 
+
 def main(options, flags):
     sys.exit(main_estimap(options, flags))
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

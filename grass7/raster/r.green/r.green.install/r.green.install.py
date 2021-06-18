@@ -58,21 +58,23 @@ except ImportError:
     from html.entities import name2codepoint
     from html.parser import HTMLParser
     from urllib.request import build_opener
+
     unichr = chr
 
 
 from grass.script import core as gcore
 
-Pkg = namedtuple('Pkg', ['name', 'version', 'py', 'un', 'platform'])
+Pkg = namedtuple("Pkg", ["name", "version", "py", "un", "platform"])
 
 
 # list packages required by the module
-CHECK_LIBRARIES = ['scipy', 'numexpr']
-CHECK_RGREENLIB = [('libgreen', '..'),
-                   ('libhydro', os.path.join('..', 'r.green.hydro'))]
+CHECK_LIBRARIES = ["scipy", "numexpr"]
+CHECK_RGREENLIB = [
+    ("libgreen", ".."),
+    ("libhydro", os.path.join("..", "r.green.hydro")),
+]
 
-UAGENT = ('Mozilla/5.0 (Windows NT 6.3; WOW64; rv:44.0) '
-          'Gecko/20100101 Firefox/44.0')
+UAGENT = "Mozilla/5.0 (Windows NT 6.3; WOW64; rv:44.0) " "Gecko/20100101 Firefox/44.0"
 
 PATHSYSXML = []
 PATHLOCXML = []
@@ -156,7 +158,9 @@ XMLENERGYTOOLBOX = """<?xml version="1.0" encoding="UTF-8"?>
     </items>
   </toolbox>
 </toolboxes>
-""".format(XMLMAINMENU=XMLMAINMENU)
+""".format(
+    XMLMAINMENU=XMLMAINMENU
+)
 
 
 def value_not_none(method):
@@ -170,6 +174,7 @@ def value_not_none(method):
             method(*args, **kwargs)
         else:
             return
+
     return decorator
 
 
@@ -183,91 +188,94 @@ def get_vals(string):
     ([105,121,76,112,51,111,45,50,108,99,104,101,116,46,122,110,87,47,114,55,73,52,119,67,48,69,72],
      'BD@C>2IJAG1<:5?6H=74=E6937C6?5?;6F0?47=F:8')
     """
-    nums, chars = string[string.find('(')+1:string.find(')')].split(', ')
-    return [int(n) for n in nums[1:-1].split(',')], chars.strip('"')
+    nums, chars = string[string.find("(") + 1 : string.find(")")].split(", ")
+    return [int(n) for n in nums[1:-1].split(",")], chars.strip('"')
 
 
 class PkgHTMLParser(HTMLParser):
     """Extract all the <li> ... </li> elements from a webpage"""
-    tag = 'a'
+
+    tag = "a"
     values = []
     value = None
     packages = {}
 
     def handle_starttag(self, tag, attrs):
         if tag == self.tag:
-            self.value = dict(attrs=attrs, data=[], comment=[],
-                              entityref={}, charref={}, decl=[])
+            self.value = dict(
+                attrs=attrs, data=[], comment=[], entityref={}, charref={}, decl=[]
+            )
 
     def handle_endtag(self, tag):
         if tag == self.tag:
-            if self.value is not None and len(self.value['data']) > 1:
-                pname = ''.join(self.value['data'])
-                pkey = pname.split('-')[0]
+            if self.value is not None and len(self.value["data"]) > 1:
+                pname = "".join(self.value["data"])
+                pkey = pname.split("-")[0]
                 pdict = self.packages.get(pkey, {})
 
-                dval = dict(self.value['attrs'])
+                dval = dict(self.value["attrs"])
                 # save only if onclick is in the attrs
-                if 'onclick' in dval:
-                    nums, chars = get_vals(dval['onclick'])
-                    self.value['url'] = get_decripted_url(nums, chars)
-                    pdict[pname] = self.value['url']
+                if "onclick" in dval:
+                    nums, chars = get_vals(dval["onclick"])
+                    self.value["url"] = get_decripted_url(nums, chars)
+                    pdict[pname] = self.value["url"]
                     self.values.append(self.value)
                     self.packages[pkey] = pdict
             self.value = None
 
     @value_not_none
     def handle_data(self, data):
-        self.value['data'].append(data)
+        self.value["data"].append(data)
 
     @value_not_none
     def handle_comment(self, data):
-        self.value['comment'].append(data)
+        self.value["comment"].append(data)
 
     @value_not_none
     def handle_entityref(self, name):
-        nlist = self.value['entityref'].get(name, [])
+        nlist = self.value["entityref"].get(name, [])
         nlist.append(unichr(name2codepoint[name]))
-        self.value['entityref'][name] = nlist
+        self.value["entityref"][name] = nlist
 
     @value_not_none
     def handle_charref(self, name):
-        self.value['data'].append(unichr(int(name[1:], 16))
-                                  if name.startswith('x') else
-                                  unichr(int(name)))
+        self.value["data"].append(
+            unichr(int(name[1:], 16)) if name.startswith("x") else unichr(int(name))
+        )
 
     @value_not_none
     def handle_decl(self, data):
-        self.value['decl'].append(data)
+        self.value["decl"].append(data)
 
 
 def get_settings_path():
-    """Get full path to the settings directory
-    """
+    """Get full path to the settings directory"""
     # TODO: remove this function once the GetSettingsPath function is moved in
     # grass.script.utils or similia
-    return (join(os.getenv('APPDATA'), 'GRASS%d' % 7)
-            if sys.platform.startswith('win') else
-            join(os.getenv('HOME'), '.grass%d' % 7))
+    return (
+        join(os.getenv("APPDATA"), "GRASS%d" % 7)
+        if sys.platform.startswith("win")
+        else join(os.getenv("HOME"), ".grass%d" % 7)
+    )
 
 
 def download(url, filepath, overwrite=False):
     """Download a pkg from URLWHL"""
     if os.path.exists(filepath):
-        print('The file: %s already exist!' % filepath)
+        print("The file: %s already exist!" % filepath)
         if overwrite:
-            print('Removing previous downloaded version')
+            print("Removing previous downloaded version")
             os.remove(filepath)
         else:
             return filepath
-    print('Downloading from:', url)
-    print('Saving to:', filepath)
+    print("Downloading from:", url)
+    print("Saving to:", filepath)
     opener = build_opener()
-    opener.addheaders = [('User-agent', UAGENT)]
+    opener.addheaders = [("User-agent", UAGENT)]
     response = opener.open(url)
-    with open(filepath, mode='wb') as fpath:
+    with open(filepath, mode="wb") as fpath:
         fpath.write(response.read())
-    print('Done!')
+    print("Done!")
     return filepath
 
 
@@ -307,32 +315,38 @@ def get_decripted_url(nums, chars):
                   "4397:G1F@D7E2D=H?H858C?0D65?&lt;F&lt;A?;&#62;&lt;6H8;GB")
 
     """
+
     def transform(chars):
-        chars = chars.replace('&lt;', '<')
-        chars = chars.replace('&#62;', '>')
-        return chars.replace('&#38;', '&')
-    return ''.join([chr(nums[ord(c)-48]) for c in transform(chars)])
+        chars = chars.replace("&lt;", "<")
+        chars = chars.replace("&#62;", ">")
+        return chars.replace("&#38;", "&")
+
+    return "".join([chr(nums[ord(c) - 48]) for c in transform(chars)])
 
 
-def get_url(lib, _parser=[None, ]):
+def get_url(
+    lib,
+    _parser=[
+        None,
+    ],
+):
     """Return the complete url to download the wheel file for windows"""
 
-    urlwin = 'http://www.lfd.uci.edu/~gohlke/pythonlibs/'
+    urlwin = "http://www.lfd.uci.edu/~gohlke/pythonlibs/"
 
     def match():
         """Match platform with available wheel files on the web page"""
         pkgs = sorted(parser.packages[lib].keys())
-        cppy = 'cp%d%d' % (sys.version_info.major, sys.version_info.minor)
-        pltf = ('win_amd64.whl'
-                if platform.architecture()[0] == '64bit' else 'win32.whl')
+        cppy = "cp%d%d" % (sys.version_info.major, sys.version_info.minor)
+        pltf = "win_amd64.whl" if platform.architecture()[0] == "64bit" else "win32.whl"
         result = None
         for pki in pkgs[::-1]:
-            pkk = Pkg(*pki.split('-'))
+            pkk = Pkg(*pki.split("-"))
             if pkk.py == cppy and pkk.platform == pltf:
                 result = pki
                 break
         if result is None:
-            print('=> Library not found for your system', cppy, pltf[:-4])
+            print("=> Library not found for your system", cppy, pltf[:-4])
             sys.exit(1)
         return result, parser.packages[lib][result]
 
@@ -340,7 +354,7 @@ def get_url(lib, _parser=[None, ]):
     if _parser[0] is None:
         # read and parse the HTML page
         opener = build_opener()
-        opener.addheaders = [('User-agent', UAGENT)]
+        opener.addheaders = [("User-agent", UAGENT)]
         response = opener.open(urlwin)
         parser = PkgHTMLParser()
         parser.feed(response.read())
@@ -351,8 +365,9 @@ def get_url(lib, _parser=[None, ]):
         parser = _parser[0]
 
     if lib not in parser.packages:
-        print(lib, 'not in the package list:')
+        print(lib, "not in the package list:")
         from pprint import pprint
+
         pprint(sorted(parser.packages))
         sys.exit(1)
 
@@ -363,54 +378,68 @@ def get_url(lib, _parser=[None, ]):
 def get_pip_win_env():
     """Add pip path to the windows environmental variable"""
     os_pth = os.__file__.split(os.path.sep)
-    script_pth = os.sep.join(os_pth[:-2] + ['Scripts', ])
+    script_pth = os.sep.join(
+        os_pth[:-2]
+        + [
+            "Scripts",
+        ]
+    )
     if not os.path.exists(script_pth):
         msg = "The directory containing python scripts does not exist!"
         raise Exception(msg)
 
     env = os.environ.copy()
-    path = env['PATH'].split(';')
+    path = env["PATH"].split(";")
     if script_pth not in path:
         path.append(script_pth)
-        env['PATH'] = ';'.join(path)
+        env["PATH"] = ";".join(path)
 
     return env
 
 
 def pip_install(whl, *pipargs):
     """Install a whl using pip"""
-    cmd = ['pip', 'install', whl]
+    cmd = ["pip", "install", whl]
     cmd.extend(pipargs)
     popen_pip = subprocess.Popen(cmd, shell=True, env=get_pip_win_env())
     if popen_pip.wait():
-        print(('Something went wrong during the installation, '
-               'of {whl} please fix this '
-               'manually. Running: ').format(whl=whl))
-        print(' '.join(cmd))
+        print(
+            (
+                "Something went wrong during the installation, "
+                "of {whl} please fix this "
+                "manually. Running: "
+            ).format(whl=whl)
+        )
+        print(" ".join(cmd))
         sys.exit(1)
 
 
 def check_install_pip(install=False):
     """Check if pip is available"""
-    env = get_pip_win_env() if 'win' in sys.platform else {}
+    env = get_pip_win_env() if "win" in sys.platform else {}
     # run pip and check return code
-    popen_pip = subprocess.Popen(['pip', '--help'],
-                                 stdout=subprocess.PIPE, shell=True, env=env)
+    popen_pip = subprocess.Popen(
+        ["pip", "--help"], stdout=subprocess.PIPE, shell=True, env=env
+    )
     if popen_pip.wait():
-        print('pip is not available')
+        print("pip is not available")
         if install:
-            print('Downloading pip')
+            print("Downloading pip")
             # download get_pip.py
-            dst = download('https://bootstrap.pypa.io/get-pip.py',
-                           os.path.join(gettempdir(), 'get_pip.py'))
+            dst = download(
+                "https://bootstrap.pypa.io/get-pip.py",
+                os.path.join(gettempdir(), "get_pip.py"),
+            )
             # install pip
-            print('Installing pip')
+            print("Installing pip")
             popen_py = subprocess.Popen([sys.executable, dst])
             if popen_py.returncode:
-                print('Something wrong during the installation of pip,'
-                      ' perhaps permissions')
+                print(
+                    "Something wrong during the installation of pip,"
+                    " perhaps permissions"
+                )
     else:
-        print('pip is available on the sys path')
+        print("pip is available on the sys path")
 
 
 def win_install(libs):
@@ -425,9 +454,9 @@ def win_install(libs):
         urlwhl, pkg = dlibs[lib]
         # download wheel file
         whlpath = download(urlwhl, os.path.join(gettempdir(), pkg))
-        pip_install(whlpath, '--user', '--upgrade')
+        pip_install(whlpath, "--user", "--upgrade")
 
-    print("\n\nMissiging libreries %s installed!\n" % ', '.join(libs))
+    print("\n\nMissiging libreries %s installed!\n" % ", ".join(libs))
 
 
 def fix_missing_libraries(install=False):
@@ -437,30 +466,32 @@ def fix_missing_libraries(install=False):
     for lib in CHECK_LIBRARIES:
         try:
             imp.find_module(lib)
-            print(lib, 'available in the sys path')
+            print(lib, "available in the sys path")
         except ImportError:
             to_be_installed.append(lib)
 
     if to_be_installed:
-        print('the following libraries are missing:')
+        print("the following libraries are missing:")
         for lib in to_be_installed:
-            print('- ', lib)
+            print("- ", lib)
 
         if install:
-            if 'win' in sys.platform:
+            if "win" in sys.platform:
                 # download precompiled wheel and install them
-                print('Download the wheel file for your platform from:')
+                print("Download the wheel file for your platform from:")
                 # add numpy+mkl
-                to_be_installed.insert(0, 'numpy')
+                to_be_installed.insert(0, "numpy")
                 win_install(to_be_installed)
                 # win_install(lib)
             else:
-                cmd = ['pip', 'install'].extend(to_be_installed)
-                cmd.append('--user')
+                cmd = ["pip", "install"].extend(to_be_installed)
+                cmd.append("--user")
                 popen_pip = subprocess.Popen(cmd)
                 if popen_pip.wait():
-                    print('Something went wrong during the installation, '
-                          'please fix this manually')
+                    print(
+                        "Something went wrong during the installation, "
+                        "please fix this manually"
+                    )
                     print(cmd)
                     sys.exit(1)
 
@@ -470,15 +501,14 @@ def add_rgreen_menu():
 
     def toolboxes2dict(toolboxes):
         """Trnsform a list of toolbox elements into a dictionary"""
-        return {toolbox.find('label').text: toolbox for toolbox in toolboxes}
+        return {toolbox.find("label").text: toolbox for toolbox in toolboxes}
 
     def get_or_create(xmlfile, sysdir, usrdir):
         """Check if XML files already exist"""
         xml_path = join(usrdir, xmlfile)
 
         if not os.path.exists(xml_path):
-            print('Copying %s to %s' % (join(sysdir, xmlfile),
-                                        xml_path))
+            print("Copying %s to %s" % (join(sysdir, xmlfile), xml_path))
             shutil.copyfile(join(sysdir, xmlfile), xml_path)
         return xml_path
 
@@ -490,20 +520,20 @@ def add_rgreen_menu():
         tool_root = tool_tree.getroot()
 
         # check if the update of the main xml it is necessary
-        main_items = main_root.find('items')
+        main_items = main_root.find("items")
         update_main = True
         for item in main_items:
-            if item.attrib['name'] == XMLMAINMENU:
+            if item.attrib["name"] == XMLMAINMENU:
                 update_main = False
 
         if update_main:
             print("Updating", main_path)
             menrg = main_items[0].copy()
-            menrg.attrib['name'] = XMLMAINMENU
+            menrg.attrib["name"] = XMLMAINMENU
             main_items.insert(-1, menrg)
             main_tree.write(main_path)
 
-        toolboxes = toolboxes2dict(tool_root.findall('toolbox'))
+        toolboxes = toolboxes2dict(tool_root.findall("toolbox"))
         enrg_tools = toolboxes2dict(ET.fromstring(XMLENERGYTOOLBOX))
 
         # update the energy toolboxes
@@ -514,12 +544,12 @@ def add_rgreen_menu():
             tool_root.append(enrg_tools[key])
         tool_tree.write(tool_path)
 
-    grass_tool_path = join(os.getenv('GISBASE'), 'gui', 'wxpython', 'xml')
-    user_tool_path = join(get_settings_path(), 'toolboxes')
+    grass_tool_path = join(os.getenv("GISBASE"), "gui", "wxpython", "xml")
+    user_tool_path = join(get_settings_path(), "toolboxes")
 
     # read XML input files
-    main_path = get_or_create('main_menu.xml', grass_tool_path, user_tool_path)
-    tool_path = get_or_create('toolboxes.xml', grass_tool_path, user_tool_path)
+    main_path = get_or_create("main_menu.xml", grass_tool_path, user_tool_path)
+    tool_path = get_or_create("toolboxes.xml", grass_tool_path, user_tool_path)
 
     read_update_xml(main_path, tool_path)
 
@@ -527,8 +557,8 @@ def add_rgreen_menu():
 if __name__ == "__main__":
     opts, flgs = gcore.parser()
 
-    check_install_pip(flgs['i'])
-    fix_missing_libraries(flgs['i'])
+    check_install_pip(flgs["i"])
+    fix_missing_libraries(flgs["i"])
 
-    if flgs['x']:
+    if flgs["x"]:
         add_rgreen_menu()

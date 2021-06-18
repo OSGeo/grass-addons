@@ -45,7 +45,7 @@
 #% multiple: no
 #%end
 
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 #%option
 #% key: dimensions
@@ -81,7 +81,7 @@
 #% answer: white
 #%end
 
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 #%option
 #% key: labelnum
@@ -149,7 +149,7 @@
 #% guisection: Extra options
 #%end
 
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 #%option
 #% key: font
@@ -183,8 +183,9 @@ import grass.script as grass
 from grass.pygrass.modules import Module
 from grass.script.utils import parse_key_val
 import imp
+
 try:
-    imp.find_module('PIL')
+    imp.find_module("PIL")
     found = True
     from PIL import Image
 except ImportError:
@@ -195,68 +196,72 @@ except ImportError:
 def main():
 
     # parameters - file name and extension
-    outputfile = options['file']
-    ext = outputfile.split('.')
+    outputfile = options["file"]
+    ext = outputfile.split(".")
     if len(ext) == 1:
         grass.fatal("Please provide the file extension of the output file")
-    filetype = options['filetype']
-    if filetype == 'cairo':
-        allowed = ('.png', '.bmp', 'ppm', 'pdf', 'ps', 'svg')
+    filetype = options["filetype"]
+    if filetype == "cairo":
+        allowed = (".png", ".bmp", "ppm", "pdf", "ps", "svg")
         if not outputfile.lower().endswith(allowed):
             grass.fatal("Unknown display driver <{}>".format(ext[1]))
     if filetype == "ps" and not ext[1] == "ps":
-        grass.fatal("The file type <{}> does not match the file extension <"
-                    "{}>".format(filetype, ext[1]))
+        grass.fatal(
+            "The file type <{}> does not match the file extension <"
+            "{}>".format(filetype, ext[1])
+        )
     if filetype == "png" and not ext[1] == "png":
-        grass.fatal("The file type <{}> does not match the file extension <"
-                    "{}>".format(filetype, ext[1]))
+        grass.fatal(
+            "The file type <{}> does not match the file extension <"
+            "{}>".format(filetype, ext[1])
+        )
 
     # parameters - image settings
-    unit = options['unit']
-    resol = options['resolution']
-    if resol == '':
-        if unit == 'px':
+    unit = options["unit"]
+    resol = options["resolution"]
+    if resol == "":
+        if unit == "px":
             resol = 96
         else:
             resol = 300
     else:
         resol = int(resol)
-    dimensions = options['dimensions']
+    dimensions = options["dimensions"]
     width, height = dimensions.split(",")
-    bgcolor = options['color']
-    inmap = options['raster']
-    labelnum = options['labelnum']
-    vr = options['range']
-    font = options['font']
-    fontsize = int(options['fontsize'])
-    digits = int(options['digits'])
-    labval = options['label_values']
-    labstep = options['label_step']
+    bgcolor = options["color"]
+    inmap = options["raster"]
+    labelnum = options["labelnum"]
+    vr = options["range"]
+    font = options["font"]
+    fontsize = int(options["fontsize"])
+    digits = int(options["digits"])
+    labval = options["label_values"]
+    labstep = options["label_step"]
 
     # flag parameters
-    flag_f = flags['f']
-    flag_d = flags['d']
-    flag_t = flags['t']
+    flag_f = flags["f"]
+    flag_d = flags["d"]
+    flag_t = flags["t"]
     if flag_t:
         tagmargin = 9
     else:
         tagmargin = 4
 
     # Compute output size of legend bar in pixels
-    if unit == 'cm':
-        bw = math.ceil(float(width)/2.54*float(resol))
-        bh = math.ceil(float(height)/2.54*float(resol))
-    elif unit == 'mm':
-        bw = math.ceil(float(width)/25.4*float(resol))
-        bh = math.ceil(float(height)/25.4*float(resol))
-    elif unit == 'inch':
-        bw = math.ceil(float(width)*float(resol))
-        bh = math.ceil(float(height)*float(resol))
+    if unit == "cm":
+        bw = math.ceil(float(width) / 2.54 * float(resol))
+        bh = math.ceil(float(height) / 2.54 * float(resol))
+    elif unit == "mm":
+        bw = math.ceil(float(width) / 25.4 * float(resol))
+        bh = math.ceil(float(height) / 25.4 * float(resol))
+    elif unit == "inch":
+        bw = math.ceil(float(width) * float(resol))
+        bh = math.ceil(float(height) * float(resol))
     elif unit == "px":
         bw = float(width)
         bh = float(height)
     else:
-        grass.error('Unit must be inch, cm, mm or px')
+        grass.error("Unit must be inch, cm, mm or px")
 
     # Add size of legend to w or h, if flag_d is set
     # Add size of tics
@@ -275,13 +280,13 @@ def main():
     if fontsize == 0:
         fz = 1
     else:
-        fz = round(float(fontsize) * (float(resol)/72.272))
+        fz = round(float(fontsize) * (float(resol) / 72.272))
 
     # Determine space at left and right (or top and bottom)
     # based on fontsize (fz) and number of digits
     maprange = grass.raster_info(inmap)
-    maxval = round(maprange['max'], digits)
-    minval = round(maprange['min'], digits)
+    maxval = round(maprange["max"], digits)
+    minval = round(maprange["min"], digits)
     if maxval < 1:
         maxl = len(str(maxval)) - 1
     else:
@@ -320,35 +325,43 @@ def main():
     at = (bmargin, tmargin, lmargin, rmargin)
 
     # Open file connection, set font
-    os.environ['GRASS_RENDER_IMMEDIATE'] = filetype
-    os.environ['GRASS_RENDER_FILE'] = outputfile
-    os.environ['GRASS_RENDER_HEIGHT'] = str(ih)
-    os.environ['GRASS_RENDER_WIDTH'] = str(iw)
-    if bgcolor == 'none':
-        os.environ['GRASS_RENDER_TRANSPARENT'] = "TRUE"
+    os.environ["GRASS_RENDER_IMMEDIATE"] = filetype
+    os.environ["GRASS_RENDER_FILE"] = outputfile
+    os.environ["GRASS_RENDER_HEIGHT"] = str(ih)
+    os.environ["GRASS_RENDER_WIDTH"] = str(iw)
+    if bgcolor == "none":
+        os.environ["GRASS_RENDER_TRANSPARENT"] = "TRUE"
     else:
-        os.environ['GRASS_RENDER_BACKGROUNDCOLOR'] = bgcolor
+        os.environ["GRASS_RENDER_BACKGROUNDCOLOR"] = bgcolor
     if flag_f and fontsize == 0:
-        flag = 'cfsv'
+        flag = "cfsv"
     elif flag_f:
-        flag = 'fsv'
+        flag = "fsv"
     elif fontsize == 0:
-        flag = 'csv'
+        flag = "csv"
     else:
-        flag = 'sv'
+        flag = "sv"
     if flag_d:
-        flag = flag + 'd'
+        flag = flag + "d"
     if flag_t:
-        flag = flag + 't'
+        flag = flag + "t"
 
     # Write legend with various options
-    d_legend = Module("d.legend", flags=flag, raster=inmap, font=font,
-                      at=at, fontsize=fz, labelnum=labelnum, run_=False)
+    d_legend = Module(
+        "d.legend",
+        flags=flag,
+        raster=inmap,
+        font=font,
+        at=at,
+        fontsize=fz,
+        labelnum=labelnum,
+        run_=False,
+    )
     if vr:
-        val_range = map(float, vr.split(','))
+        val_range = map(float, vr.split(","))
         d_legend.inputs.range = val_range
     if labval:
-        label_values = map(float, labval.split(','))
+        label_values = map(float, labval.split(","))
         d_legend.inputs.label_values = label_values
     if labstep:
         label_step = float(labstep)
@@ -356,7 +369,7 @@ def main():
     d_legend.run()
 
     # Set image resolution
-    if found and outputfile.lower().endswith(('.png', '.bmp')):
+    if found and outputfile.lower().endswith((".png", ".bmp")):
         im = Image.open(outputfile)
         im.save(outputfile, dpi=(resol, resol))
 
@@ -364,17 +377,16 @@ def main():
     grass.message("----------------------------\n")
     grass.message("File saved as {}".format(outputfile))
     grass.message("The image dimensions are:\n")
-    grass.message("{} px wide and {} px heigh\n".format(str(int(iw)),
-                  str(int(ih))))
-    if unit == 'inch':
-        wr = round(iw/resol, 3)
-        hr = round(ih/resol, 3)
-    elif unit == 'cm':
-        wr = round(iw/resol*2.54, 3)
-        hr = round(ih/resol*2.54, 3)
-    elif unit == 'mm':
-        wr = round(iw/resol*2.54*10, 3)
-        hr = round(ih/resol*2.54*10, 3)
+    grass.message("{} px wide and {} px heigh\n".format(str(int(iw)), str(int(ih))))
+    if unit == "inch":
+        wr = round(iw / resol, 3)
+        hr = round(ih / resol, 3)
+    elif unit == "cm":
+        wr = round(iw / resol * 2.54, 3)
+        hr = round(ih / resol * 2.54, 3)
+    elif unit == "mm":
+        wr = round(iw / resol * 2.54 * 10, 3)
+        hr = round(ih / resol * 2.54 * 10, 3)
     else:
         wr = "same"
     if wr != "same":

@@ -92,8 +92,9 @@ def main():
         gs.fatal("steps must be greater than 1")
 
     # calculate radi for generalization
-    radi = np.logspace(np.log(minradius), np.log(maxradius), steps,
-                       base=np.exp(1), dtype=np.int)
+    radi = np.logspace(
+        np.log(minradius), np.log(maxradius), steps, base=np.exp(1), dtype=np.int
+    )
     radi = np.unique(radi)
     sizes = radi * 2 + 1
 
@@ -102,7 +103,7 @@ def main():
 
     for step, (radius, size) in enumerate(zip(radi[::-1], sizes[::-1])):
         gs.message("Calculating the TPI at radius {radius}".format(radius=radius))
-        
+
         # generalize the dem
         step_res = res * size
         step_res_pretty = str(step_res).replace(".", "_")
@@ -112,9 +113,9 @@ def main():
             step_dem = gs.tempname(4)
             gg.region(res=str(step_res))
             gr.resamp_stats(
-                input=input_raster, 
-                output=step_dem, 
-                method="average", 
+                input=input_raster,
+                output=step_dem,
+                method="average",
                 flags="w",
             )
             gr.resamp_rst(
@@ -122,7 +123,7 @@ def main():
                 ew_res=res,
                 ns_res=res,
                 elevation=generalized_dem,
-                quiet=True
+                quiet=True,
             )
             region.write()
             gg.remove(type="raster", name=step_dem, flags="f", quiet=True)
@@ -132,7 +133,9 @@ def main():
         # calculate the tpi
         tpi = gs.tempname(4)
         gr.mapcalc(
-            expression="{x} = {a} - {b}".format(x=tpi, a=input_raster, b=generalized_dem)
+            expression="{x} = {a} - {b}".format(
+                x=tpi, a=input_raster, b=generalized_dem
+            )
         )
         gg.remove(type="raster", name=generalized_dem, flags="f", quiet=True)
 
@@ -144,19 +147,22 @@ def main():
         ztpi = gs.tempname(4)
         ztpi_maps.append(ztpi)
         RAST_REMOVE.append(ztpi)
-        
+
         gr.mapcalc(
-            expression = "{x} = ({a} - {mean})/{std}".format(
-            x=ztpi, a=tpi, mean=tpi_mean, std=tpi_std
-        ))
+            expression="{x} = ({a} - {mean})/{std}".format(
+                x=ztpi, a=tpi, mean=tpi_mean, std=tpi_std
+            )
+        )
         gg.remove(type="raster", name=tpi, flags="f", quiet=True)
 
         # integrate
         if step > 1:
             tpi_updated2 = gs.tempname(4)
-            gr.mapcalc("{x} = if(abs({a}) > abs({b}), {a}, {b})".format(
-                a=ztpi_maps[step], b=tpi_updated1, x=tpi_updated2
-            ))
+            gr.mapcalc(
+                "{x} = if(abs({a}) > abs({b}), {a}, {b})".format(
+                    a=ztpi_maps[step], b=tpi_updated1, x=tpi_updated2
+                )
+            )
             RAST_REMOVE.append(tpi_updated2)
             tpi_updated1 = tpi_updated2
         else:
@@ -164,17 +170,15 @@ def main():
 
     RAST_REMOVE.pop()
     gg.rename(raster=(tpi_updated2, output_raster), quiet=True)
-    
+
     # set color theme
     with RasterRow(output_raster) as src:
-        color_rules = (
-            """{minv} blue
+        color_rules = """{minv} blue
             -1 0:34:198
             0 255:255:255
             1 255:0:0
             {maxv} 110:15:0
             """
-        )
         color_rules = color_rules.format(minv=src.info.min, maxv=src.info.max)
         gr.colors(map=output_raster, rules="-", stdin_=color_rules, quiet=True)
 

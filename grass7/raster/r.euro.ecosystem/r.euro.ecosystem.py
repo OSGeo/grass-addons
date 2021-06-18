@@ -48,18 +48,19 @@ import shutil
 import tempfile
 import grass.script as grass
 
+
 def main():
 
-    iraster = options['input']
-    eraster = options['input'].split('@')[0]
-    level1 = flags['1']
-    level2 = flags['2']
+    iraster = options["input"]
+    eraster = options["input"].split("@")[0]
+    level1 = flags["1"]
+    level2 = flags["2"]
     if level1:
-        color_rules_level1 = eraster+'_color_level1.txt'
-        cat_rules_level1 = eraster+'_cat_level1.txt'
+        color_rules_level1 = eraster + "_color_level1.txt"
+        cat_rules_level1 = eraster + "_cat_level1.txt"
     if level2:
-        color_rules_level2 = eraster+'_color_level2.txt'
-        cat_rules_level2 = eraster+'_cat_level2.txt'
+        color_rules_level2 = eraster + "_color_level2.txt"
+        cat_rules_level2 = eraster + "_cat_level2.txt"
     global tmp
 
     # start settings
@@ -74,12 +75,12 @@ def main():
         tmp_col_l2 = os.path.join(datatempdir, color_rules_level2)
         tmp_cat_l2 = os.path.join(datatempdir, cat_rules_level2)
 
-
     # write intermediate color and cat rule file data level 1
     if level1:
         # write intermediate color rule file level 1
-        fcl1 = open('%s' % (tmp_col_l1), 'wt')
-        fcl1.write("""1 115:178:255
+        fcl1 = open("%s" % (tmp_col_l1), "wt")
+        fcl1.write(
+            """1 115:178:255
         2 255:211:127
         3 0:112:255
         4 223:115:255
@@ -88,12 +89,14 @@ def main():
         7 38:115:0
         8 178:178:178
         9 255:255:0
-        10 255:0:0""")
+        10 255:0:0"""
+        )
         # close intermediate color level 1 rules
         fcl1.close()
         # write intermediate category rule file level 1
-        fcal1 = open('%s' % (tmp_cat_l1), 'wt')
-        fcal1.write("""1|A Marine habitats
+        fcal1 = open("%s" % (tmp_cat_l1), "wt")
+        fcal1.write(
+            """1|A Marine habitats
         2|B Coastal habitats
         3|C Inland surface waters
         4|D Mires, bogs and fens
@@ -102,29 +105,27 @@ def main():
         7|G Woodland, forest and other wooded land
         8|H Inland unvegetated or sparsely vegetated habitats
         9|I Regularly or recently cultivated, hortocultural and domestic habitats
-        10|J Constructed, industrial and other artificial habitats""")
+        10|J Constructed, industrial and other artificial habitats"""
+        )
         # close intermediate category level 1 rules
         fcal1.close()
 
         # apply color rules level 1
-        grass.message ("applying color rules for data level 1...")
-        grass.run_command("r.colors", map = iraster,
-                                        rules = tmp_col_l1,
-                                        quiet = True)
-
+        grass.message("applying color rules for data level 1...")
+        grass.run_command("r.colors", map=iraster, rules=tmp_col_l1, quiet=True)
 
         # apply category rules level 1
-        grass.message ("applying category rules for data level 1...")
-        grass.run_command("r.category", map = iraster,
-                                        rules = tmp_cat_l1,
-                                        separator = 'pipe',
-                                        quiet = True)
+        grass.message("applying category rules for data level 1...")
+        grass.run_command(
+            "r.category", map=iraster, rules=tmp_cat_l1, separator="pipe", quiet=True
+        )
 
     # write intermediate color and cat rule file data level 2
     if level2:
         # write intermediate color rule file level 2
-        fcl2 = open('%s' % (tmp_col_l2), 'wt')
-        fcl2.write("""9 166:255:230
+        fcl2 = open("%s" % (tmp_col_l2), "wt")
+        fcl2.write(
+            """9 166:255:230
         10 0:255:166
         11 230:230:230
         12 200:200:200
@@ -255,13 +256,15 @@ def main():
         705 21:35:161
         706 21:35:161
         710 21:32:158
-        720 15:22:153""")
+        720 15:22:153"""
+        )
         # close intermediate color level 2 rules
         fcl2.close()
 
         # write intermediate category rule file level 2
-        fcal2 = open('%s' % (tmp_cat_l2), 'wt')
-        fcal2.write("""100|A100 - Littoral undetermined substrate with no sea ice presence
+        fcal2 = open("%s" % (tmp_cat_l2), "wt")
+        fcal2.write(
+            """100|A100 - Littoral undetermined substrate with no sea ice presence
         101|A101 - Littoral rock and biogenic with no sea ice presence
         103|A103 - Littoral coarse sediment with no sea ice presence
         104|A104 - Littoral mixed sediment with no sea ice presence
@@ -392,24 +395,20 @@ def main():
         56|J3 - Extractive industrial sites
         57|J4 - Transport networks and other constructed hard-surfaced areas
         58|J5 - Highly artificial man-made waters and associated structures
-        59|J6 - Waste deposits""")
+        59|J6 - Waste deposits"""
+        )
         # close intermediate category level 1 rules
         fcal2.close()
 
-
         # apply color rules level 2
-        grass.message ("applying color rules for data level 2...")
-        grass.run_command("r.colors", map = iraster,
-                                        rules = tmp_col_l2,
-                                        quiet = True)
-
+        grass.message("applying color rules for data level 2...")
+        grass.run_command("r.colors", map=iraster, rules=tmp_col_l2, quiet=True)
 
         # apply category rules level 2
-        grass.message ("applying category rules for data level 2...")
-        grass.run_command("r.category", map = iraster,
-                                        rules = tmp_cat_l2,
-                                        separator = 'pipe',
-                                        quiet = True)
+        grass.message("applying category rules for data level 2...")
+        grass.run_command(
+            "r.category", map=iraster, rules=tmp_cat_l2, separator="pipe", quiet=True
+        )
 
     # do some clean up
     grass.message("----")

@@ -28,10 +28,10 @@ from grass.exceptions import CalledModuleError
 
 def main():
     env = grass.gisenv()
-    mapset = env['MAPSET']
+    mapset = env["MAPSET"]
     converted = 0
     ret = 0
-    for vect in grass.list_grouped('oldvect')[mapset]:
+    for vect in grass.list_grouped("oldvect")[mapset]:
         inmap = "%s@%s" % (vect, mapset)
         outmap = vect.replace(".", "_")
         try:
@@ -43,12 +43,21 @@ def main():
             converted += 1
 
         if converted < 1:
-            grass.warning(_("No vector maps converted as no old vector maps present in current mapset."))
+            grass.warning(
+                _(
+                    "No vector maps converted as no old vector maps present in current mapset."
+                )
+            )
         else:
-            grass.message(_("Total %u vector maps in current mapset converted.") % converted)
-            grass.message(_("Please verify new vector map(s) before deleting old vector map(s)."))
+            grass.message(
+                _("Total %u vector maps in current mapset converted.") % converted
+            )
+            grass.message(
+                _("Please verify new vector map(s) before deleting old vector map(s).")
+            )
 
         sys.exit(ret)
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

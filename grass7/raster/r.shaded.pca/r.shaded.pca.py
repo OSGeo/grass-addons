@@ -103,53 +103,72 @@ def cleanup():
     if REMOVE or MREMOVE:
         core.info(_("Cleaning temporary maps..."))
     for rast in REMOVE:
-        grass.run_command('g.remove', flags = 'f', type = 'raster', name = rast, quiet=True)
+        grass.run_command("g.remove", flags="f", type="raster", name=rast, quiet=True)
     for pattern in MREMOVE:
-        grass.run_command('g.remove', flags = 'f', type = 'raster', pattern ='%s*' % pattern,
-                           quiet=True)
+        grass.run_command(
+            "g.remove", flags="f", type="raster", pattern="%s*" % pattern, quiet=True
+        )
 
 
 def is_grass_7():
-    if core.version()['version'].split('.')[0] == '7':
+    if core.version()["version"].split(".")[0] == "7":
         return True
     return False
 
 
 def create_tmp_map_name(name):
-    return '{mod}_{pid}_{map_}_tmp'.format(mod='r_shaded_pca',
-                                           pid=os.getpid(),
-                                           map_=name)
+    return "{mod}_{pid}_{map_}_tmp".format(
+        mod="r_shaded_pca", pid=os.getpid(), map_=name
+    )
 
 
 # add latitude map
-def run_r_shaded_relief(elevation_input, shades_basename,
-                        altitude, azimuth, z_exaggeration,
-                        scale, units, suffix):
+def run_r_shaded_relief(
+    elevation_input,
+    shades_basename,
+    altitude,
+    azimuth,
+    z_exaggeration,
+    scale,
+    units,
+    suffix,
+):
     params = {}
     if units:
-        params.update({'units': units})
-    grass.run_command('r.relief', input=elevation_input,
-                      output=shades_basename + suffix,
-                      azimuth=azimuth, zscale=z_exaggeration,
-                      scale=scale, altitude=altitude,
-                      overwrite=core.overwrite(), quiet=True,
-                      **params)
+        params.update({"units": units})
+    grass.run_command(
+        "r.relief",
+        input=elevation_input,
+        output=shades_basename + suffix,
+        azimuth=azimuth,
+        zscale=z_exaggeration,
+        scale=scale,
+        altitude=altitude,
+        overwrite=core.overwrite(),
+        quiet=True,
+        **params
+    )
 
 
 def set_color_table(rasters, map_):
     if is_grass_7():
-        grass.run_command('r.colors', map=rasters, raster=map_, quiet=True)
+        grass.run_command("r.colors", map=rasters, raster=map_, quiet=True)
     else:
         for rast in rasters:
-            grass.run_command('r.colors', map=rast, raster=map_, quiet=True)
+            grass.run_command("r.colors", map=rast, raster=map_, quiet=True)
 
 
 def check_map_names(basename, mapset, suffixes):
     for suffix in suffixes:
-        map_ = '%s%s%s' % (basename, '_', suffix)
-        if grass.find_file(map_, element='cell', mapset=mapset)['file']:
-            grass.fatal(_("Raster map <%s> already exists. "
-                          "Change the base name or allow overwrite.") % map_)
+        map_ = "%s%s%s" % (basename, "_", suffix)
+        if grass.find_file(map_, element="cell", mapset=mapset)["file"]:
+            grass.fatal(
+                _(
+                    "Raster map <%s> already exists. "
+                    "Change the base name or allow overwrite."
+                )
+                % map_
+            )
 
 
 def frange(x, y, step):
@@ -162,16 +181,16 @@ def frange(x, y, step):
 def main():
     options, flags = grass.parser()
 
-    elevation_input = options['input']
-    pca_shade_output = options['output']
-    altitude = float(options['altitude'])
-    number_of_azimuths = int(options['nazimuths'])
-    z_exaggeration = float(options['zscale'])
-    scale = float(options['scale'])
-    units = options['units']
-    shades_basename = options['shades_basename']
-    pca_basename = pca_basename_user = options['pca_shades_basename']
-    nprocs = int(options['nprocs'])
+    elevation_input = options["input"]
+    pca_shade_output = options["output"]
+    altitude = float(options["altitude"])
+    number_of_azimuths = int(options["nazimuths"])
+    z_exaggeration = float(options["zscale"])
+    scale = float(options["scale"])
+    units = options["units"]
+    shades_basename = options["shades_basename"]
+    pca_basename = pca_basename_user = options["pca_shades_basename"]
+    nprocs = int(options["nprocs"])
 
     full_circle = 360
     # let's use floats here and leave the consequences to the user
@@ -179,22 +198,23 @@ def main():
     azimuths = list(frange(0, full_circle, smallest_angle))
 
     if not shades_basename:
-        shades_basename = create_tmp_map_name('shade')
+        shades_basename = create_tmp_map_name("shade")
         MREMOVE.append(shades_basename)
 
     if not pca_basename:
-        pca_basename = pca_shade_output + '_pca'
-    pca_maps = [pca_basename + '.' + str(i)
-                for i in range(1, number_of_azimuths + 1)]
+        pca_basename = pca_shade_output + "_pca"
+    pca_maps = [pca_basename + "." + str(i) for i in range(1, number_of_azimuths + 1)]
     if not pca_basename_user:
         REMOVE.extend(pca_maps)
 
     # here we check all the posible
     if not grass.overwrite():
-        check_map_names(shades_basename, grass.gisenv()['MAPSET'],
-                        suffixes=azimuths)
-        check_map_names(pca_basename, grass.gisenv()['MAPSET'],
-                        suffixes=range(1, number_of_azimuths))
+        check_map_names(shades_basename, grass.gisenv()["MAPSET"], suffixes=azimuths)
+        check_map_names(
+            pca_basename,
+            grass.gisenv()["MAPSET"],
+            suffixes=range(1, number_of_azimuths),
+        )
 
     grass.info(_("Running r.relief in a loop..."))
     count = 0
@@ -208,20 +228,33 @@ def main():
         count += 1
         core.percent(count, number_of_azimuths, 10)
 
-        suffix = '_' + str(azimuth)
-        proc_list.append(Process(target=run_r_shaded_relief,
-                                 args=(elevation_input, shades_basename,
-                                       altitude, azimuth, z_exaggeration,
-                                       scale, units,
-                                       suffix)))
+        suffix = "_" + str(azimuth)
+        proc_list.append(
+            Process(
+                target=run_r_shaded_relief,
+                args=(
+                    elevation_input,
+                    shades_basename,
+                    altitude,
+                    azimuth,
+                    z_exaggeration,
+                    scale,
+                    units,
+                    suffix,
+                ),
+            )
+        )
 
         proc_list[proc_count].start()
         proc_count += 1
         suffixes.append(suffix)
         all_suffixes.append(suffix)
 
-        if proc_count == nprocs or proc_count == number_of_azimuths \
-                or count == number_of_azimuths:
+        if (
+            proc_count == nprocs
+            or proc_count == number_of_azimuths
+            or count == number_of_azimuths
+        ):
             proc_count = 0
             exitcodes = 0
             for proc in proc_list:
@@ -242,17 +275,22 @@ def main():
     grass.info(_("Running r.pca..."))
 
     # not quiet=True to get percents
-    grass.run_command('i.pca', input=shade_maps, output=pca_basename,
-                      overwrite=core.overwrite())
+    grass.run_command(
+        "i.pca", input=shade_maps, output=pca_basename, overwrite=core.overwrite()
+    )
 
-    grass.info(_("Creating RGB composite from "
-                 "PC1 (red), PC2 (green), PC3 (blue) ..."))
-    grass.run_command('r.composite',
-                      red=pca_maps[0],
-                      green=pca_maps[1],
-                      blue=pca_maps[2],
-                      output=pca_shade_output,
-                      overwrite=core.overwrite(), quiet=True)
+    grass.info(
+        _("Creating RGB composite from " "PC1 (red), PC2 (green), PC3 (blue) ...")
+    )
+    grass.run_command(
+        "r.composite",
+        red=pca_maps[0],
+        green=pca_maps[1],
+        blue=pca_maps[2],
+        output=pca_shade_output,
+        overwrite=core.overwrite(),
+        quiet=True,
+    )
     grass.raster_history(pca_shade_output)
 
     if pca_basename_user:

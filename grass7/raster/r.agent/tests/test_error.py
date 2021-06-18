@@ -1,8 +1,9 @@
-
 import unittest2 as unittest
-#import unittest
+
+# import unittest
 
 from libagent import error
+
 
 class TestOurExceptions(unittest.TestCase):
     #    def setUp(self):
@@ -26,5 +27,6 @@ class TestOurExceptions(unittest.TestCase):
     def test_dataerror(self):
         self.assertRaises(error.Error, self.raise_base, ("tests", "data"))
         self.assertRaises(error.DataError, self.raise_data, ("tests", "data"))
+
 
 #    def tearDown(self):

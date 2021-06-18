@@ -19,7 +19,7 @@ import grass.script as grass
 from helpers import run
 
 
-class Column_Water_Vapor():
+class Column_Water_Vapor:
     """
     Retrieving atmospheric column water vapor from Landsat8 TIRS data based on
     the modified split-window covariance and variance ratio (MSWCVR).
@@ -106,14 +106,15 @@ class Column_Water_Vapor():
     """
 
     def __init__(self, window_size, ti, tj):
-        """
-        """
+        """ """
 
         # citation
-        self.citation = ('Huazhong Ren, Chen Du, Qiming Qin, Rongyuan Liu, '
-                         'Jinjie Meng, and Jing Li. '
-                         '"Atmospheric Water Vapor Retrieval from Landsat 8 '
-                         'and Its Validation." 3045-3048. IEEE, 2014.')
+        self.citation = (
+            "Huazhong Ren, Chen Du, Qiming Qin, Rongyuan Liu, "
+            "Jinjie Meng, and Jing Li. "
+            '"Atmospheric Water Vapor Retrieval from Landsat 8 '
+            'and Its Validation." 3045-3048. IEEE, 2014.'
+        )
 
         # model constants
         self.c2 = -9.674
@@ -143,24 +144,21 @@ class Column_Water_Vapor():
         self.mean_tj_expression = self._mean_tirs_expression(self.modifiers_tj)
 
         # mapcalc expression for medians  --  ToDo
-        self.median_ti_expression = \
-            self._median_tirs_expression(self.modifiers_ti)
-        self.median_tj_expression = \
-            self._median_tirs_expression(self.modifiers_tj)
+        self.median_ti_expression = self._median_tirs_expression(self.modifiers_ti)
+        self.median_tj_expression = self._median_tirs_expression(self.modifiers_tj)
 
         # mapcalc expression for ratio ji
         self.ratio_ji_expression = self._ratio_ji_expression()
 
         # mapcalc expression for column water vapor
-        self.column_water_vapor_expression = \
-            self._column_water_vapor_expression()
+        self.column_water_vapor_expression = self._column_water_vapor_expression()
 
     def __str__(self):
         """
         The object's self string
         """
-        msg = '- Window size: ' + str(self.window_size) + " by " + str(self.window_size)
-        msg += '\n      - Expression for r.mapcalc to determine column water vapor: '
+        msg = "- Window size: " + str(self.window_size) + " by " + str(self.window_size)
+        msg += "\n      - Expression for r.mapcalc to determine column water vapor: "
         return msg + str(self.column_water_vapor_expression)
 
     def compute_column_water_vapor(self, tik, tjk):
@@ -184,7 +182,7 @@ class Column_Water_Vapor():
         # denominator:  sum of all (Tik - Tj_mean)^2
         denominator_ji_terms = []
         for ti in tik:
-            term = (ti - ti_mean)**2
+            term = (ti - ti_mean) ** 2
             denominator_ji_terms.append(term)
         denominator_ji = sum(denominator_ji_terms) * 1.0
 
@@ -215,8 +213,11 @@ class Column_Water_Vapor():
         # center col indexing
         half_width = (self.window_width - 1) // 2
 
-        return [[col, row] for col in range(-half_width + 1, half_width)
-                for row in range(-half_height + 1, half_height)]
+        return [
+            [col, row]
+            for col in range(-half_width + 1, half_width)
+            for row in range(-half_height + 1, half_height)
+        ]
 
     def _derive_modifiers(self, tx):
         """
@@ -229,11 +230,10 @@ class Column_Water_Vapor():
         Return mapcalc expression for window means based on the given mapcalc
         pixel modifiers.
         """
-        tx_mean_expression = '{sum_of_tx} / {length_of_tx}'
-        tx_sum = '(' + ' + '.join(modifiers) + ')'
+        tx_mean_expression = "{sum_of_tx} / {length_of_tx}"
+        tx_sum = "(" + " + ".join(modifiers) + ")"
         tx_length = len(modifiers)
-        return tx_mean_expression.format(sum_of_tx=tx_sum,
-                                         length_of_tx=tx_length)
+        return tx_mean_expression.format(sum_of_tx=tx_sum, length_of_tx=tx_length)
 
     def _median_tirs_expression(self, modifiers):
         """
@@ -243,7 +243,7 @@ class Column_Water_Vapor():
         r.mapcalc has a "median" function. Thus, just return the pixel
         modifiers.
         """
-        tx_median_expression = 'median({pixel_modifiers})'
+        tx_median_expression = "median({pixel_modifiers})"
         # print tx_median_expression.format(pixel_modifiers=modifiers)
         return tx_median_expression
 
@@ -254,18 +254,19 @@ class Column_Water_Vapor():
         function) of the module i.landsat8.swlst
         """
         if not mean_ti:
-            mean_ti = 'Ti_mean'
+            mean_ti = "Ti_mean"
 
         if not mean_tj:
-            mean_tj = 'Tj_mean'
+            mean_tj = "Tj_mean"
 
-        rji_numerator = '(' + '({Ti} - {Tim}) * ({Tj} - {Tjm})' + ')'
+        rji_numerator = "(" + "({Ti} - {Tim}) * ({Tj} - {Tjm})" + ")"
 
-        return ' + '.join([rji_numerator.format(Ti=mod_ti,
-                                                Tim=mean_ti,
-                                                Tj=mod_tj,
-                                                Tjm=mean_tj)
-                          for mod_ti, mod_tj in self.modifiers])
+        return " + ".join(
+            [
+                rji_numerator.format(Ti=mod_ti, Tim=mean_ti, Tj=mod_tj, Tjm=mean_tj)
+                for mod_ti, mod_tj in self.modifiers
+            ]
+        )
 
     def _numerator_for_ratio_big(self, **kwargs):
         """
@@ -277,15 +278,16 @@ class Column_Water_Vapor():
                 _numerator_for_ratio_big(mean_ti='Some_String',
                                         mean_tj='Another_String')
         """
-        mean_ti = kwargs.get('mean_ti', 'ti_mean')
-        mean_tj = kwargs.get('mean_tj', 'tj_mean')
+        mean_ti = kwargs.get("mean_ti", "ti_mean")
+        mean_tj = kwargs.get("mean_tj", "tj_mean")
 
-        terms = '({Ti} - {Tim}) * ({Tj} - {Tjm})'
-        terms = ' + '.join([terms.format(Ti=mod_ti,
-                                         Tim=mean_ti,
-                                         Tj=mod_tj,
-                                         Tjm=mean_tj)
-                           for mod_ti, mod_tj in self.modifiers])
+        terms = "({Ti} - {Tim}) * ({Tj} - {Tjm})"
+        terms = " + ".join(
+            [
+                terms.format(Ti=mod_ti, Tim=mean_ti, Tj=mod_tj, Tjm=mean_tj)
+                for mod_ti, mod_tj in self.modifiers
+            ]
+        )
         return terms
 
     def _denominator_for_ratio(self, mean_ti):
@@ -295,13 +297,13 @@ class Column_Water_Vapor():
         (main function) of the module i.landsat8.swlst
         """
         if not mean_ti:
-            mean_ti = 'Ti_mean'
+            mean_ti = "Ti_mean"
 
-        rji_denominator = '({Ti} - {Tim})^2'
+        rji_denominator = "({Ti} - {Tim})^2"
 
-        return ' + '.join([rji_denominator.format(Ti=mod,
-                                                  Tim=mean_ti)
-                          for mod in self.modifiers_ti])
+        return " + ".join(
+            [rji_denominator.format(Ti=mod, Tim=mean_ti) for mod in self.modifiers_ti]
+        )
 
     def _denominator_for_ratio_big(self, **kwargs):
         """
@@ -311,11 +313,11 @@ class Column_Water_Vapor():
         Example:
                 _denominator_for_ratio_big(mean_ti='Some_String')
         """
-        mean_ti = kwargs.get('mean_ti', 'ti_mean')
-        terms = '({Ti} - {Tim})^2'
-        terms = ' + '.join([terms.format(Ti=mod,
-                                         Tim=mean_ti)
-                           for mod in self.modifiers_ti])
+        mean_ti = kwargs.get("mean_ti", "ti_mean")
+        terms = "({Ti} - {Tim})^2"
+        terms = " + ".join(
+            [terms.format(Ti=mod, Tim=mean_ti) for mod in self.modifiers_ti]
+        )
 
         return terms
 
@@ -324,12 +326,13 @@ class Column_Water_Vapor():
         Returns a mapcalc expression for the Ratio ji, part of the column water
         vapor retrieval model.
         """
-        rji_numerator = self._numerator_for_ratio(mean_ti=DUMMY_Ti_MEAN,
-                                                  mean_tj=DUMMY_Tj_MEAN)
+        rji_numerator = self._numerator_for_ratio(
+            mean_ti=DUMMY_Ti_MEAN, mean_tj=DUMMY_Tj_MEAN
+        )
 
         rji_denominator = self._denominator_for_ratio(mean_ti=DUMMY_Ti_MEAN)
 
-        rji = '( {numerator} ) / ( {denominator} )'
+        rji = "( {numerator} ) / ( {denominator} )"
         rji = rji.format(numerator=rji_numerator, denominator=rji_denominator)
 
         return rji
@@ -340,10 +343,9 @@ class Column_Water_Vapor():
         water vapor from within the main code (main function) of the module
         i.landsat8.swlst
         """
-        cwv_expression = '({c0}) + ({c1}) * ({Rji}) + ({c2}) * ({Rji})^2'
+        cwv_expression = "({c0}) + ({c1}) * ({Rji}) + ({c2}) * ({Rji})^2"
 
-        return cwv_expression.format(c0=self.c0, c1=self.c1,
-                                     Rji=DUMMY_Rji, c2=self.c2)
+        return cwv_expression.format(c0=self.c0, c1=self.c1, Rji=DUMMY_Rji, c2=self.c2)
 
     def _big_cwv_expression(self):
         """
@@ -352,41 +354,48 @@ class Column_Water_Vapor():
         B10, B11 based on the MSWCVM method (see citation).
         """
         modifiers_ti = self._derive_modifiers(self.ti)
-        ti_sum = '(' + ' + '.join(modifiers_ti) + ')'
+        ti_sum = "(" + " + ".join(modifiers_ti) + ")"
         ti_length = len(modifiers_ti)
-        ti_mean = '{sum} / {length}'.format(sum=ti_sum, length=ti_length)
+        ti_mean = "{sum} / {length}".format(sum=ti_sum, length=ti_length)
 
         modifiers_tj = self._derive_modifiers(self.tj)
-        tj_sum = '(' + ' + '.join(modifiers_tj) + ')'
+        tj_sum = "(" + " + ".join(modifiers_tj) + ")"
         tj_length = len(modifiers_tj)
-        tj_mean = '{sum} / {length}'.format(sum=tj_sum, length=tj_length)
+        tj_mean = "{sum} / {length}".format(sum=tj_sum, length=tj_length)
 
-        string_for_mean_ti = 'ti_mean'
-        string_for_mean_tj = 'tj_mean'
+        string_for_mean_ti = "ti_mean"
+        string_for_mean_tj = "tj_mean"
 
-        numerator = self._numerator_for_ratio_big(mean_ti=string_for_mean_ti,
-                                                  mean_tj=string_for_mean_tj)
+        numerator = self._numerator_for_ratio_big(
+            mean_ti=string_for_mean_ti, mean_tj=string_for_mean_tj
+        )
 
-        denominator = \
-            self._denominator_for_ratio_big(mean_ti=string_for_mean_ti)
+        denominator = self._denominator_for_ratio_big(mean_ti=string_for_mean_ti)
 
-        cwv = ('eval('
-               '\ \n  ti_mean = {tim},'
-               '\ \n'
-               '\ \n  tj_mean = {tjm},'
-               '\ \n'
-               '\ \n  numerator = {numerator},'
-               '\ \n'
-               '\ \n  denominator = {denominator},'
-               '\ \n'
-               '\ \n  rji = numerator / denominator,'
-               '\ \n'
-               '\ \n  {c0} + {c1} * (rji) + {c2} * (rji)^2)')
+        cwv = (
+            "eval("
+            "\ \n  ti_mean = {tim},"
+            "\ \n"
+            "\ \n  tj_mean = {tjm},"
+            "\ \n"
+            "\ \n  numerator = {numerator},"
+            "\ \n"
+            "\ \n  denominator = {denominator},"
+            "\ \n"
+            "\ \n  rji = numerator / denominator,"
+            "\ \n"
+            "\ \n  {c0} + {c1} * (rji) + {c2} * (rji)^2)"
+        )
 
-        cwv_expression = cwv.format(tim=ti_mean, tjm=tj_mean,
-                                    numerator=numerator,
-                                    denominator=denominator,
-                                    c0=self.c0, c1=self.c1, c2=self.c2)
+        cwv_expression = cwv.format(
+            tim=ti_mean,
+            tjm=tj_mean,
+            numerator=numerator,
+            denominator=denominator,
+            c0=self.c0,
+            c1=self.c1,
+            c2=self.c2,
+        )
 
         return cwv_expression
 
@@ -397,49 +406,56 @@ class Column_Water_Vapor():
         B10, B11 based on the MSWCVM method (see citation).
         """
         modifiers_ti = self._derive_modifiers(self.ti)
-        ti_median = 'median({modifiers}'.format(modifiers=modifiers_ti)
+        ti_median = "median({modifiers}".format(modifiers=modifiers_ti)
 
         modifiers_tj = self._derive_modifiers(self.tj)
-        tj_median = 'median({modifiers}'.format(modifiers=modifiers_tj)
+        tj_median = "median({modifiers}".format(modifiers=modifiers_tj)
 
-        string_for_median_ti = 'ti_median'
-        string_for_median_tj = 'tj_median'
+        string_for_median_ti = "ti_median"
+        string_for_median_tj = "tj_median"
 
-        numerator = self._numerator_for_ratio_big(median_ti=string_for_median_ti,
-                                                  median_tj=string_for_median_tj)
+        numerator = self._numerator_for_ratio_big(
+            median_ti=string_for_median_ti, median_tj=string_for_median_tj
+        )
 
-        denominator = \
-            self._denominator_for_ratio_big(median_ti=string_for_median_ti)
+        denominator = self._denominator_for_ratio_big(median_ti=string_for_median_ti)
 
-        cwv = ('eval('
-               '\ \n  ti_median = {tim},'
-               '\ \n'
-               '\ \n  tj_median = {tjm},'
-               '\ \n'
-               '\ \n  numerator = {numerator},'
-               '\ \n'
-               '\ \n  denominator = {denominator},'
-               '\ \n'
-               '\ \n  rji = numerator / denominator,'
-               '\ \n'
-               '\ \n  {c0} + {c1} * (rji) + {c2} * (rji)^2)')
+        cwv = (
+            "eval("
+            "\ \n  ti_median = {tim},"
+            "\ \n"
+            "\ \n  tj_median = {tjm},"
+            "\ \n"
+            "\ \n  numerator = {numerator},"
+            "\ \n"
+            "\ \n  denominator = {denominator},"
+            "\ \n"
+            "\ \n  rji = numerator / denominator,"
+            "\ \n"
+            "\ \n  {c0} + {c1} * (rji) + {c2} * (rji)^2)"
+        )
 
-        cwv_expression = cwv.format(tim=ti_median, tjm=tj_median,
-                                    numerator=numerator,
-                                    denominator=denominator,
-                                    c0=self.c0, c1=self.c1, c2=self.c2)
+        cwv_expression = cwv.format(
+            tim=ti_median,
+            tjm=tj_median,
+            numerator=numerator,
+            denominator=denominator,
+            c0=self.c0,
+            c1=self.c1,
+            c2=self.c2,
+        )
 
         return cwv_expression
 
 
 def estimate_cwv_big_expression(
-        outname,
-        cwv_output,
-        t10,
-        t11,
-        cwv_expression,
-        quiet=True,
-    ):
+    outname,
+    cwv_output,
+    t10,
+    t11,
+    cwv_expression,
+    quiet=True,
+):
     """
     Derive a column water vapor map using a single mapcalc expression based on
     eval.
@@ -448,36 +464,37 @@ def estimate_cwv_big_expression(
     """
     msg = "\n|i Estimating atmospheric column water vapor "
     if quiet:
-        msg += '| Expression:\n'
+        msg += "| Expression:\n"
     g.message(msg)
 
     if quiet:
-        msg = replace_dummies(cwv_expression,
-                              in_ti=t10, out_ti='T10',
-                              in_tj=t11, out_tj='T11')
-        msg += '\n'
+        msg = replace_dummies(
+            cwv_expression, in_ti=t10, out_ti="T10", in_tj=t11, out_tj="T11"
+        )
+        msg += "\n"
         g.message(msg)
 
     cwv_equation = EQUATION.format(result=outname, expression=cwv_expression)
     grass.mapcalc(cwv_equation, overwrite=True)
 
     if quiet:
-        run('r.info', map=outname, flags='r')
+        run("r.info", map=outname, flags="r")
 
     # save Column Water Vapor map?
     if cwv_output:
 
         # strings for metadata
-        history_cwv = 'FixMe -- Column Water Vapor model: '
-        history_cwv += 'FixMe -- Add equation?'
-        title_cwv = 'Column Water Vapor'
-        description_cwv = 'Column Water Vapor'
-        units_cwv = 'g/cm^2'
-        source1_cwv = 'FixMe'
-        source2_cwv = 'FixMe'
+        history_cwv = "FixMe -- Column Water Vapor model: "
+        history_cwv += "FixMe -- Add equation?"
+        title_cwv = "Column Water Vapor"
+        description_cwv = "Column Water Vapor"
+        units_cwv = "g/cm^2"
+        source1_cwv = "FixMe"
+        source2_cwv = "FixMe"
 
         # history entry
-        run("r.support",
+        run(
+            "r.support",
             map=outname,
             title=title_cwv,
             units=units_cwv,
@@ -485,12 +502,14 @@ def estimate_cwv_big_expression(
             source1=source1_cwv,
             source2=source2_cwv,
             history=history_cwv,
-            )
-        run('g.rename', raster=(outname, cwv_output))
+        )
+        run("g.rename", raster=(outname, cwv_output))
 
 
 # reusable & stand-alone
 if __name__ == "__main__":
-    print ('Atmpspheric column water vapor retrieval '
-           'from Landsat 8 TIRS data.'
-           ' (Running as stand-alone tool?)')
+    print(
+        "Atmpspheric column water vapor retrieval "
+        "from Landsat 8 TIRS data."
+        " (Running as stand-alone tool?)"
+    )

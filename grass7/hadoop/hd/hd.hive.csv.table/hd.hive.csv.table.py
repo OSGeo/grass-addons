@@ -110,17 +110,19 @@ def main():
 
     conn.get_current_connection(options["driver"])
     hive = conn.get_hook()
-    hive.create_csv_table(table=options['table'],
-                          field=options['columns'],
-                          partition=options['partition'],
-                          delimiter=options['delimeter'],
-                          stored=options['stored'],
-                          serde=options['serde'],
-                          outputformat=options['outputformat'],
-                          external=flags['e'],
-                          recreate=flags['d'],
-                          filepath=options['csvpath'],
-                          overwrite=flags['o'])
+    hive.create_csv_table(
+        table=options["table"],
+        field=options["columns"],
+        partition=options["partition"],
+        delimiter=options["delimeter"],
+        stored=options["stored"],
+        serde=options["serde"],
+        outputformat=options["outputformat"],
+        external=flags["e"],
+        recreate=flags["d"],
+        filepath=options["csvpath"],
+        overwrite=flags["o"],
+    )
 
 
 if __name__ == "__main__":

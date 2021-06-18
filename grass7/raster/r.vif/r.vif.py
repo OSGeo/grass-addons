@@ -91,6 +91,7 @@ import os
 import sys
 import math
 import numpy as np
+
 try:
     from io import StringIO
 except ImportError:
@@ -110,15 +111,14 @@ def cleanup():
     remove temporary files"""
     cleanrast = list(reversed(CLEAN_RAST))
     for rast in cleanrast:
-        gs.run_command("g.remove", flags="f", type="all",
-                       name=rast, quiet=True)
+        gs.run_command("g.remove", flags="f", type="all", name=rast, quiet=True)
 
 
 def tmpname(prefix):
     """Generate a tmp name which contains prefix. Store the name in the
     global list. Use only for raster maps."""
     tmpf = prefix + str(uuid.uuid4())
-    tmpf = string.replace(tmpf, '-', '_')
+    tmpf = string.replace(tmpf, "-", "_")
     CLEAN_RAST.append(tmpf)
     return tmpf
 
@@ -126,38 +126,41 @@ def tmpname(prefix):
 def CheckLayer(envlay):
     """Check if the input layers exist. If not, exit with warning"""
     for chl in range(len(envlay)):
-        ffile = gs.find_file(envlay[chl], element='cell')
-        if ffile['fullname'] == '':
+        ffile = gs.find_file(envlay[chl], element="cell")
+        if ffile["fullname"] == "":
             gs.fatal("The layer " + envlay[chl] + " does not exist.")
 
 
 def ReadData(raster, n):
-    """Read in the raster layers as a numpy array. """
+    """Read in the raster layers as a numpy array."""
     gs.message("Reading in the data ...")
     if not n == "100%":
         # Create mask random locations
         new_mask = tmpname("rvif")
-        gs.run_command("r.random", input=raster[0], npoints=n, raster=new_mask,
-                       quiet=True)
-        exist_mask = gs.find_file(name='MASK', element='cell',
-                                  mapset=gs.gisenv()['MAPSET'])
-        if exist_mask['fullname']:
-            mask_backup = tmpname('rvifoldmask')
-            gs.run_command("g.rename", raster=["MASK", mask_backup],
-                           quiet=True)
+        gs.run_command(
+            "r.random", input=raster[0], npoints=n, raster=new_mask, quiet=True
+        )
+        exist_mask = gs.find_file(
+            name="MASK", element="cell", mapset=gs.gisenv()["MAPSET"]
+        )
+        if exist_mask["fullname"]:
+            mask_backup = tmpname("rvifoldmask")
+            gs.run_command("g.rename", raster=["MASK", mask_backup], quiet=True)
         gs.run_command("r.mask", raster=new_mask, quiet=True)
 
     # Get the raster values at sample points
-    tmpcov = StringIO(gs.read_command("r.stats", flags="1n", input=raster,
-                                quiet=True, separator="comma").rstrip('\n'))
+    tmpcov = StringIO(
+        gs.read_command(
+            "r.stats", flags="1n", input=raster, quiet=True, separator="comma"
+        ).rstrip("\n")
+    )
     p = np.loadtxt(tmpcov, skiprows=0, delimiter=",")
 
     if not n == "100%":
         gs.run_command("r.mask", flags="r", quiet=True)
-        if exist_mask['fullname']:
-            gs.run_command("g.rename", raster=[mask_backup, "MASK"],
-                           quiet=True)
-    return(p)
+        if exist_mask["fullname"]:
+            gs.run_command("g.rename", raster=[mask_backup, "MASK"], quiet=True)
+    return p
 
 
 def ComputeVif(mapx, mapy):
@@ -177,10 +180,11 @@ def ComputeVif(mapx, mapy):
 
 
 def ComputeVif2(mapx, mapy):
-    vifstat = gs.read_command("r.regression.multi", flags="g", quiet=True,
-                              mapx=mapx, mapy=mapy)
-    vifstat = vifstat.split('\n')
-    vifstat = [i.split('=') for i in vifstat]
+    vifstat = gs.read_command(
+        "r.regression.multi", flags="g", quiet=True, mapx=mapx, mapy=mapy
+    )
+    vifstat = vifstat.split("\n")
+    vifstat = [i.split("=") for i in vifstat]
     if float(vifstat[1][1]) > 0.9999999999:
         vif = float("inf")
         sqrtvif = float("inf")
@@ -196,22 +200,22 @@ def main(options, flags):
     """Main function, called at execution time."""
 
     # Variables
-    IPF = options['maps'].split(',')
-    IPR = options['retain'].split(',')
-    if IPR != ['']:
+    IPF = options["maps"].split(",")
+    IPR = options["retain"].split(",")
+    if IPR != [""]:
         CheckLayer(IPR)
         for k in range(len(IPR)):
             if IPR[k] not in IPF:
                 IPF.extend([IPR[k]])
-    IPFn = [i.split('@')[0] for i in IPF]
-    IPRn = [i.split('@')[0] for i in IPR]
-    MXVIF = options['maxvif']
-    if MXVIF != '':
+    IPFn = [i.split("@")[0] for i in IPF]
+    IPRn = [i.split("@")[0] for i in IPR]
+    MXVIF = options["maxvif"]
+    if MXVIF != "":
         MXVIF = float(MXVIF)
-    OPF = options['file']
-    n = options['n']
-    flag_s = flags['s']
-    flag_f = flags['f']
+    OPF = options["file"]
+    n = options["n"]
+    flag_s = flags["s"]
+    flag_f = flags["f"]
 
     # Determine maximum width of the columns to be printed to std output
     name_lengths = []
@@ -229,10 +233,13 @@ def main(options, flags):
     out_variable = []
 
     # VIF is computed once only
-    if MXVIF == '':
+    if MXVIF == "":
         # Print header of table to std output
-        print('{0[0]:{1}s} {0[1]:8s} {0[2]:8s}'.format(
-            ['variable', 'vif', 'sqrtvif'], nlength))
+        print(
+            "{0[0]:{1}s} {0[1]:8s} {0[2]:8s}".format(
+                ["variable", "vif", "sqrtvif"], nlength
+            )
+        )
 
         # Compute the VIF
         for i, e in enumerate(IPFn):
@@ -251,8 +258,11 @@ def main(options, flags):
             out_vif.append(vifstat[0])
             out_sqrt.append(vifstat[1])
             out_variable.append(e)
-            print('{0[0]:{1}s} {0[1]:8.2f} {0[2]:8.2f}'.format([IPFn[i],
-                  vifstat[0], vifstat[1]], nlength))
+            print(
+                "{0[0]:{1}s} {0[1]:8.2f} {0[2]:8.2f}".format(
+                    [IPFn[i], vifstat[0], vifstat[1]], nlength
+                )
+            )
         print
         if len(OPF) > 0:
             print("Statistics are written to {}\n".format(OPF))
@@ -261,7 +271,7 @@ def main(options, flags):
     else:
         rvifmx = MXVIF + 1
         m = 0
-        remove_variable = 'none'
+        remove_variable = "none"
         out_removed = []
         out_round = []
 
@@ -281,8 +291,11 @@ def main(options, flags):
                 print("\n")
                 print("VIF round " + str(m))
                 print("--------------------------------------")
-                print('{0[0]:{1}s} {0[1]:>8s} {0[2]:>8s}'.format(
-                    ['variable', 'vif', 'sqrtvif'], nlength))
+                print(
+                    "{0[0]:{1}s} {0[1]:>8s} {0[2]:>8s}".format(
+                        ["variable", "vif", "sqrtvif"], nlength
+                    )
+                )
 
             # Compute the VIF and sqrt(vif) for all variables in this round
             for k, e in enumerate(IPFn):
@@ -307,8 +320,11 @@ def main(options, flags):
 
                 # print result to console
                 if not flag_s:
-                    print('{0[0]:{1}s} {0[1]:8.2f} {0[2]:8.2f}'.
-                          format([IPFn[k], vifstat[0], vifstat[1]], nlength))
+                    print(
+                        "{0[0]:{1}s} {0[1]:8.2f} {0[2]:8.2f}".format(
+                            [IPFn[k], vifstat[0], vifstat[1]], nlength
+                        )
+                    )
 
                 # If variable is set to be retained by the user, the VIF
                 # is set to -9999 to ensure it will not have highest VIF
@@ -333,25 +349,33 @@ def main(options, flags):
             print("/n")
             print("selected variables are: ")
             print("--------------------------------------")
-            print(', '.join(IPFn))
+            print(", ".join(IPFn))
         else:
-            print(','.join(IPFn))
+            print(",".join(IPFn))
 
     if len(OPF) > 0:
         try:
             text_file = open(OPF, "w")
-            if MXVIF == '':
+            if MXVIF == "":
                 text_file.write("variable,vif,sqrtvif\n")
                 for i in range(len(out_vif)):
-                    text_file.write('{0:s},{1:.6f},{2:.6f}\n'.format(
-                        out_variable[i], out_vif[i], out_sqrt[i]))
+                    text_file.write(
+                        "{0:s},{1:.6f},{2:.6f}\n".format(
+                            out_variable[i], out_vif[i], out_sqrt[i]
+                        )
+                    )
             else:
                 text_file.write("round,removed,variable,vif,sqrtvif\n")
                 for i in range(len(out_vif)):
-                    text_file.write('{0:d},{1:s},{2:s},{3:.6f},{4:.6f}\n'.
-                                    format(out_round[i], out_removed[i],
-                                           out_variable[i], out_vif[i],
-                                           out_sqrt[i]))
+                    text_file.write(
+                        "{0:d},{1:s},{2:s},{3:.6f},{4:.6f}\n".format(
+                            out_round[i],
+                            out_removed[i],
+                            out_variable[i],
+                            out_vif[i],
+                            out_sqrt[i],
+                        )
+                    )
         finally:
             text_file.close()
             gs.message("\n")

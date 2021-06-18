@@ -23,14 +23,15 @@ class Playground(object):
     space, i.e. it mainly consists of a set of raster layers, makes
     them accessible and puts them in relation to one another.
     """
+
     STRAIGHT = 0
-    DIAGONAL = sqrt(2)-1
+    DIAGONAL = sqrt(2) - 1
 
     def __init__(self):
         """Create a Playground"""
         self.layers = dict()
         self.region = dict()
-        self.setregion(1,1)
+        self.setregion(1, 1)
 
     def stringcoordinate(self, x, y):
         """
@@ -69,7 +70,8 @@ class Playground(object):
             if not (len(layer) is rows and len(layer[0]) is cols):
                 raise error.Error(
                     "r.agent::libagent.playground.Playground.setregion()",
-                    "new region is incompatible with some layer(s).")
+                    "new region is incompatible with some layer(s).",
+                )
 
     def getregion(self):
         """
@@ -83,14 +85,14 @@ class Playground(object):
         Return the number of cells in the playground
         @return int total cells count
         """
-        return self.region["rows"]*self.region["cols"]
+        return self.region["rows"] * self.region["cols"]
 
     def getdiagonalcount(self):
         """
         Return the number of cells in the diagonal
         @return int diagonal cells count
         """
-        return sqrt(pow(self.region["rows"],2)+pow(self.region["cols"],2))
+        return sqrt(pow(self.region["rows"], 2) + pow(self.region["cols"], 2))
 
     def getbound(self, bound):
         """
@@ -111,7 +113,8 @@ class Playground(object):
         if not force and layername in self.layers:
             raise error.Error(
                 "r.agent::libagent.playground.Playground.setlayer()",
-                "May not overwrite existing layer.")
+                "May not overwrite existing layer.",
+            )
         self.layers[layername] = layer
 
     def createlayer(self, layername, filename=False, force=False):
@@ -123,10 +126,10 @@ class Playground(object):
         """
         r = self.region["rows"]
         c = self.region["cols"]
-        layer = numpy.zeros(r*c).reshape((r,c))
+        layer = numpy.zeros(r * c).reshape((r, c))
 
         if filename:
-            #TODO import from file
+            # TODO import from file
             pass
 
         self.setlayer(layername, layer)
@@ -157,8 +160,8 @@ class Playground(object):
         @param string name of the file to be written to
         @param boolean optional, whether an existing file may be overwritten
         """
-        #TODO export to file
-        #TODO overwrite policy: to increment or to fail?
+        # TODO export to file
+        # TODO overwrite policy: to increment or to fail?
         pass
 
     def getrandomposition(self):
@@ -166,17 +169,19 @@ class Playground(object):
         Return a random position on the playground
         @return list some coordinates
         """
-        ns = random.randrange(0,self.region["rows"])
-        nw = random.randrange(0,self.region["cols"])
-        return [ns,nw]
+        ns = random.randrange(0, self.region["rows"])
+        nw = random.randrange(0, self.region["cols"])
+        return [ns, nw]
 
     def isvalidposition(self, position):
         """
         Test if a position realy is on the playground
         @return list position if on, boolean False if off the playground
         """
-        if 0 <= position[0] < self.region["rows"] and \
-                0 <= position[1] < self.region["cols"]:
+        if (
+            0 <= position[0] < self.region["rows"]
+            and 0 <= position[1] < self.region["cols"]
+        ):
             return position
         else:
             return False
@@ -206,31 +211,39 @@ class Playground(object):
             return False
         # collect the coordinates
         if freedom >= 4:
-            #walking south (=0)
-            self.addneighbourposition(positions,
-                [position[0]-1, position[1], 0, Playground.STRAIGHT])
-            #walking north (=1)
-            self.addneighbourposition(positions,
-                [position[0]+1, position[1], 1, Playground.STRAIGHT])
-            #walking west (=2)
-            self.addneighbourposition(positions,
-                [position[0], position[1]-1, 2, Playground.STRAIGHT])
-            #walking east (=3)
-            self.addneighbourposition(positions,
-                [position[0], position[1]+1, 3, Playground.STRAIGHT])
+            # walking south (=0)
+            self.addneighbourposition(
+                positions, [position[0] - 1, position[1], 0, Playground.STRAIGHT]
+            )
+            # walking north (=1)
+            self.addneighbourposition(
+                positions, [position[0] + 1, position[1], 1, Playground.STRAIGHT]
+            )
+            # walking west (=2)
+            self.addneighbourposition(
+                positions, [position[0], position[1] - 1, 2, Playground.STRAIGHT]
+            )
+            # walking east (=3)
+            self.addneighbourposition(
+                positions, [position[0], position[1] + 1, 3, Playground.STRAIGHT]
+            )
         if freedom >= 8:
-            #walking south-west (=4)
-            self.addneighbourposition(positions,
-                [position[0]-1, position[1]-1, 4, Playground.DIAGONAL])
-            #walking north-west (=5)
-            self.addneighbourposition(positions,
-                [position[0]+1, position[1]-1, 5, Playground.DIAGONAL])
-            #walking south-east (=6)
-            self.addneighbourposition(positions,
-                [position[0]-1, position[1]+1, 6, Playground.DIAGONAL])
-            #walking north-east (=7)
-            self.addneighbourposition(positions,
-                [position[0]+1, position[1]+1, 7, Playground.DIAGONAL])
+            # walking south-west (=4)
+            self.addneighbourposition(
+                positions, [position[0] - 1, position[1] - 1, 4, Playground.DIAGONAL]
+            )
+            # walking north-west (=5)
+            self.addneighbourposition(
+                positions, [position[0] + 1, position[1] - 1, 5, Playground.DIAGONAL]
+            )
+            # walking south-east (=6)
+            self.addneighbourposition(
+                positions, [position[0] - 1, position[1] + 1, 6, Playground.DIAGONAL]
+            )
+            # walking north-east (=7)
+            self.addneighbourposition(
+                positions, [position[0] + 1, position[1] + 1, 7, Playground.DIAGONAL]
+            )
         return positions
 
     def getneighbourpositions(self, position, freedom):
@@ -275,7 +288,7 @@ class Playground(object):
             for i in range(self.region["rows"]):
                 for j in range(self.region["cols"]):
                     if self.layers[layername][i][j] > minimum:
-                        v = self.layers[layername][i][j]*0.5**(1.0/halflife)
+                        v = self.layers[layername][i][j] * 0.5 ** (1.0 / halflife)
                         if v > minimum:
                             self.layers[layername][i][j] = v
                         else:

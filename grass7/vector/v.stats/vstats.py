@@ -9,9 +9,9 @@ import os
 from grass.pygrass.modules import Module, ParallelModuleQueue
 
 
-def get_shp_csv(vector, csv=None, overwrite=False, separator=';'):
-    vasts = Module('v.area.stats')
-    csv = vector + '.csv' if csv is None else csv
+def get_shp_csv(vector, csv=None, overwrite=False, separator=";"):
+    vasts = Module("v.area.stats")
+    csv = vector + ".csv" if csv is None else csv
     if os.path.exists(csv) and overwrite:
         os.remove(csv)
     vasts(map=vector, output=csv, overwrite=overwrite, separator=separator)
@@ -19,19 +19,37 @@ def get_shp_csv(vector, csv=None, overwrite=False, separator=';'):
 
 
 def get_zones(vector, zones, layer=1, overwrite=False):
-    v2rast = Module('v.to.rast', input=vector, layer=str(layer), type='area',
-                    output=zones, overwrite=overwrite, use='cat')
+    v2rast = Module(
+        "v.to.rast",
+        input=vector,
+        layer=str(layer),
+        type="area",
+        output=zones,
+        overwrite=overwrite,
+        use="cat",
+    )
     rclr = Module("r.colors", map=zones, color="random")
 
 
-def get_rst_csv(rasters, zones, csvfiles, percentile=90., overwrite=False,
-                nprocs=1, separator=';'):
+def get_rst_csv(
+    rasters, zones, csvfiles, percentile=90.0, overwrite=False, nprocs=1, separator=";"
+):
     queue = ParallelModuleQueue(nprocs=nprocs)
     for rast, csv in zip(rasters, csvfiles):
         print(rast, csv)
-        queue.put(Module('r.univar2', map=rast, zones=zones,
-                         percentile=percentile, output=csv, separator=separator,
-                         overwrite=overwrite, flags='et', run_=False))
+        queue.put(
+            Module(
+                "r.univar2",
+                map=rast,
+                zones=zones,
+                percentile=percentile,
+                output=csv,
+                separator=separator,
+                overwrite=overwrite,
+                flags="et",
+                run_=False,
+            )
+        )
     # wait the end of all process
     queue.wait()
     return csvfiles

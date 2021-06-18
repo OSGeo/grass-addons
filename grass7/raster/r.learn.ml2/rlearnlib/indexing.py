@@ -61,18 +61,22 @@ class _LocIndexer(Mapping):
         # some checks
         # check equal number of keys and values
         if len(key) != len(value):
-            raise ValueError("Cannot set layers using a different number of "
-                             "keys and values")
+            raise ValueError(
+                "Cannot set layers using a different number of " "keys and values"
+            )
 
         # check types
         for k, v in zip(key, value):
             if not isinstance(k, str):
-                raise ValueError("Label for new layer in the RasterStack has "
-                                 "to be a string")
+                raise ValueError(
+                    "Label for new layer in the RasterStack has " "to be a string"
+                )
 
             if not isinstance(v, RasterRow):
-                raise ValueError("Setting a layer on something other than a "
-                                 "RasterRow object is not allowed")
+                raise ValueError(
+                    "Setting a layer on something other than a "
+                    "RasterRow object is not allowed"
+                )
 
         # check for duplicated keys
         if len(key) != len(set(key)):

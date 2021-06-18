@@ -16,14 +16,14 @@ from .grassy_utilities import update_vector
 
 
 def build_unmet_demand_expression(
-        distance,
-        constant,
-        population,
-        coefficients=MOBILITY_COEFFICIENTS[4],
-        score=MOBILITY_SCORE,
-        suitability=None,
-        real_numbers=False,
-    ):
+    distance,
+    constant,
+    population,
+    coefficients=MOBILITY_COEFFICIENTS[4],
+    score=MOBILITY_SCORE,
+    suitability=None,
+    real_numbers=False,
+):
     """
     Parameters
     ----------
@@ -102,7 +102,7 @@ def build_unmet_demand_expression(
         " \ \n null() ))"
     )
     if not real_numbers:
-        expression = 'round(' + expression + ')'
+        expression = "round(" + expression + ")"
     grass.debug(_("Mapcalc expression: {e}".format(e=expression)))
 
     # replace keywords appropriately
@@ -119,17 +119,17 @@ def build_unmet_demand_expression(
 
 
 def compute_unmet_demand(
-        distance_categories_to_highest_spectrum,
-        constant,
-        coefficients,
-        population,
-        score,
-        real_numbers,
-        output_unmet_demand,
-        vector_base_map=False,
-        vector_methods=None,
-        vector_column_prefix=None,
-    ):
+    distance_categories_to_highest_spectrum,
+    constant,
+    coefficients,
+    population,
+    score,
+    real_numbers,
+    output_unmet_demand,
+    vector_base_map=False,
+    vector_methods=None,
+    vector_column_prefix=None,
+):
     """
     Parameters
     ----------
@@ -205,16 +205,15 @@ def compute_unmet_demand(
 
 
 def compute_demand(
-        base,
-        population,
-        method,
-        output_demand,
-        vector_base_map=None,
-        vector_methods=None,
-        vector_column_prefix=None,
+    base,
+    population,
+    method,
+    output_demand,
+    vector_base_map=None,
+    vector_methods=None,
+    vector_column_prefix=None,
 ):
-    """
-    """
+    """ """
     r.stats_zonal(
         base=base,
         flags="r",

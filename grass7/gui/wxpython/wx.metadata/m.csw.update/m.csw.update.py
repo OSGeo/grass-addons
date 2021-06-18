@@ -168,7 +168,7 @@ import grass.script as gscript
 from grass.script.core import percent
 from grass.script.utils import set_path
 
-set_path(modulename='wx.metadata', dirname='mdlib', path='..')
+set_path(modulename="wx.metadata", dirname="mdlib", path="..")
 
 from mdlib import globalvar
 
@@ -177,20 +177,20 @@ HEADERS = {}
 HTTP_STATUS_CODES = list(http.HTTPStatus)
 
 MODULES = {
-    'lxml': {
-        'check_version': False,
+    "lxml": {
+        "check_version": False,
     },
-    'owslib': {
-        'check_version': True,
-        'package': ['owslib.csw', 'owslib.ows'],
-        'method': [['CatalogueServiceWeb'], ['ExceptionReport']],
-        'version': '>=0.9',
+    "owslib": {
+        "check_version": True,
+        "package": ["owslib.csw", "owslib.ows"],
+        "method": [["CatalogueServiceWeb"], ["ExceptionReport"]],
+        "version": ">=0.9",
     },
-    'pyexcel_ods3': {
-        'check_version': False,
+    "pyexcel_ods3": {
+        "check_version": False,
     },
-    'validators': {
-        'check_version': False,
+    "validators": {
+        "check_version": False,
     },
 }
 
@@ -204,8 +204,8 @@ class FilePathDoesNotExists(Exception):
 
 
 class UrlType(Enum):
-    WEB = 'web'
-    FILE = 'file'
+    WEB = "web"
+    FILE = "file"
 
 
 class UpdateConnectionsResources:
@@ -237,48 +237,58 @@ class UpdateConnectionsResources:
     """
 
     data_theme_opts = [
-        'Addresses',
-        'Agriculture',
-        'Banking',
-        'BusinessPolitics',
-        'Chemicals',
-        'Criminality',
-        'Culture',
-        'Education',
-        'Environment',
-        'Food',
-        'Geospatial',
-        'Government',
-        'Grand Total',
-        'Health',
-        'IoT',
-        'Language',
-        'Legal',
-        'Meteo',
-        'NewsCadastre',
-        'Research',
-        'Social',
-        'Statistics',
-        'Taxation',
-        'Transportation',
-        'Utilities',
-        'Various',
-        'Weather',
+        "Addresses",
+        "Agriculture",
+        "Banking",
+        "BusinessPolitics",
+        "Chemicals",
+        "Criminality",
+        "Culture",
+        "Education",
+        "Environment",
+        "Food",
+        "Geospatial",
+        "Government",
+        "Grand Total",
+        "Health",
+        "IoT",
+        "Language",
+        "Legal",
+        "Meteo",
+        "NewsCadastre",
+        "Research",
+        "Social",
+        "Statistics",
+        "Taxation",
+        "Transportation",
+        "Utilities",
+        "Various",
+        "Weather",
     ]
 
-    data_theme_opts += ['All']
+    data_theme_opts += ["All"]
 
     def __init__(
-            self, conns_resrs_xml, conns_resrs_xsd,
-            spreadsheet_file_url, data_theme='Geospatial',
-            csw_timeout=10, separator=': ', print_info=False,
-            print_summary_info=False, active_csw_url=False,
-            not_active_csw_url=False, valid_csw_url=False,
-            not_valid_csw_url=False, valid_xml=False,
-            active_xml_csw_url=False, not_valid_xml_csw_url=False,
+        self,
+        conns_resrs_xml,
+        conns_resrs_xsd,
+        spreadsheet_file_url,
+        data_theme="Geospatial",
+        csw_timeout=10,
+        separator=": ",
+        print_info=False,
+        print_summary_info=False,
+        active_csw_url=False,
+        not_active_csw_url=False,
+        valid_csw_url=False,
+        not_valid_csw_url=False,
+        valid_xml=False,
+        active_xml_csw_url=False,
+        not_valid_xml_csw_url=False,
     ):
 
         from mdlib.dependency import check_dependencies
+
         module_not_found = []
         for module in MODULES:
             if not check_dependencies(module):
@@ -287,8 +297,7 @@ class UpdateConnectionsResources:
             sys.exit(1)
 
         try:
-            global CatalogueServiceWeb, etree, ExceptionReport, get_data, \
-                validators
+            global CatalogueServiceWeb, etree, ExceptionReport, get_data, validators
 
             import lxml.etree as etree
 
@@ -300,9 +309,11 @@ class UpdateConnectionsResources:
             import validators
         except ModuleNotFoundError as e:
             msg = e.msg
-            gscript.fatal(globalvar.MODULE_NOT_FOUND.format(
-                lib=msg.split("'")[-2],
-                url=globalvar.MODULE_URL))
+            gscript.fatal(
+                globalvar.MODULE_NOT_FOUND.format(
+                    lib=msg.split("'")[-2], url=globalvar.MODULE_URL
+                )
+            )
 
         self._spreadsheet_file_url_type = None
         self._spreadsheet_file_url = spreadsheet_file_url
@@ -327,13 +338,13 @@ class UpdateConnectionsResources:
         self._xml_root = None
         self._xml_tree = None
         self._new_connections = 0
-        self._print_result = ''
-        self._print_summary_result = ''
-        self._file_data_key = 'API_Cases'
+        self._print_result = ""
+        self._print_summary_result = ""
+        self._file_data_key = "API_Cases"
         self._not_valid_csw_urls = []
         self._not_active_csw_urls = []
         self._xml_parser = etree.XMLParser(remove_blank_text=True)
-        self._progress_message = 'Percent complete...'
+        self._progress_message = "Percent complete..."
 
         # Process csw connections resources xml file
         if self._valid_xml:
@@ -365,7 +376,7 @@ class UpdateConnectionsResources:
 
     @_spreadsheet_file_url.setter
     def _spreadsheet_file_url(self, path):
-        if ('http' or 'https') in path:
+        if ("http" or "https") in path:
             self._validate_url(url=path)
             self.__spreadsheet_file_url = path
             self._spreadsheet_file_url_type = UrlType.WEB
@@ -379,7 +390,7 @@ class UpdateConnectionsResources:
                         ),
                     ),
                 )
-            if not path.lower().endswith('.ods'):
+            if not path.lower().endswith(".ods"):
                 gscript.fatal(
                     _(
                         "File '{}' is not spreadsheets file (.ods)".format(
@@ -406,7 +417,7 @@ class UpdateConnectionsResources:
                     ),
                 ),
             )
-        if not path.lower().endswith('.xsd'):
+        if not path.lower().endswith(".xsd"):
             gscript.fatal(
                 _("File '{}' is not xsd file (.xsd)".format(path)),
             )
@@ -427,7 +438,7 @@ class UpdateConnectionsResources:
                     ),
                 ),
             )
-        if not path.lower().endswith('.xml'):
+        if not path.lower().endswith(".xml"):
             gscript.fatal(
                 _("File '{}' is not xml file (.xml)".format(path)),
             )
@@ -443,9 +454,9 @@ class UpdateConnectionsResources:
         if value not in self.data_theme_opts:
             gscript.fatal(
                 _(
-                    "Param \'data_theme\' args is not allowed value, "
+                    "Param 'data_theme' args is not allowed value, "
                     "allowed values are: {}".format(
-                        ', '.join(self.data_theme_opts),
+                        ", ".join(self.data_theme_opts),
                     ),
                 ),
             )
@@ -459,7 +470,7 @@ class UpdateConnectionsResources:
     def _active_csw_url(self, value):
         if not isinstance(value, bool):
             gscript.fatal(
-                _('Param \'active_csw_url\' arg require boolean value'),
+                _("Param 'active_csw_url' arg require boolean value"),
             )
         self.__active_csw_url = value
 
@@ -472,7 +483,7 @@ class UpdateConnectionsResources:
         if not isinstance(value, bool):
             gscript.fatal(
                 _(
-                    'Param \'not_active_csw_url\' arg require boolean value',
+                    "Param 'not_active_csw_url' arg require boolean value",
                 ),
             )
         self.__not_active_csw_url = value
@@ -486,7 +497,7 @@ class UpdateConnectionsResources:
         if not isinstance(value, bool):
             gscript.fatal(
                 _(
-                    'Param \'valid_csw_url\' arg require boolean value',
+                    "Param 'valid_csw_url' arg require boolean value",
                 ),
             )
         self.__valid_csw_url = value
@@ -500,7 +511,7 @@ class UpdateConnectionsResources:
         if not isinstance(value, bool):
             gscript.fatal(
                 _(
-                    'Param \'valid_csw_url\' arg require boolean value',
+                    "Param 'valid_csw_url' arg require boolean value",
                 ),
             )
         self.__not_valid_csw_url = value
@@ -514,7 +525,7 @@ class UpdateConnectionsResources:
         if not isinstance(value, str):
             gscript.fatal(
                 _(
-                    'Param \'valid_csw_url\' arg require str value',
+                    "Param 'valid_csw_url' arg require str value",
                 ),
             )
         self.__separator = value
@@ -527,7 +538,7 @@ class UpdateConnectionsResources:
     def _csw_timeout(self, value):
         if not isinstance(value, int):
             gscript.fatal(
-                _('Param \'csw_timeout\' arg require integer value'),
+                _("Param 'csw_timeout' arg require integer value"),
             )
         self.__csw_timeout = value
 
@@ -539,7 +550,7 @@ class UpdateConnectionsResources:
     def _print_info(self, value):
         if not isinstance(value, bool):
             gscript.fatal(
-                _('Param \'print_info\' arg require boolean value'),
+                _("Param 'print_info' arg require boolean value"),
             )
         self.__print_info = value
 
@@ -551,7 +562,7 @@ class UpdateConnectionsResources:
     def _print_summary_info(self, value):
         if not isinstance(value, bool):
             gscript.fatal(
-                _('Param \'print_summary_info\' arg require boolean value'),
+                _("Param 'print_summary_info' arg require boolean value"),
             )
         self.__print_summary_info = value
 
@@ -563,7 +574,7 @@ class UpdateConnectionsResources:
     def _active_xml_csw_url(self, value):
         if not isinstance(value, bool):
             gscript.fatal(
-                _('Param \'active_xml_csw_url\' arg require boolean value'),
+                _("Param 'active_xml_csw_url' arg require boolean value"),
             )
         self.__active_xml_csw_url = value
 
@@ -575,10 +586,7 @@ class UpdateConnectionsResources:
     def _not_valid_xml_csw_url(self, value):
         if not isinstance(value, bool):
             gscript.fatal(
-                _(
-                    'Param \'not_valid_xml_csw_url\' arg require '
-                    'boolean value'
-                ),
+                _("Param 'not_valid_xml_csw_url' arg require " "boolean value"),
             )
         self.__not_valid_xml_csw_url = value
 
@@ -604,8 +612,10 @@ class UpdateConnectionsResources:
                             ),
                         ),
                     )
-                if response.getheader('Content-Type') != \
-                   'application/vnd.oasis.opendocument.spreadsheet':
+                if (
+                    response.getheader("Content-Type")
+                    != "application/vnd.oasis.opendocument.spreadsheet"
+                ):
                     gscript.fatal(
                         _(
                             "Wrong downloaded file format. "
@@ -647,7 +657,7 @@ class UpdateConnectionsResources:
 
         :return bool: multiple/single
         """
-        if url.count('\n') > 1:
+        if url.count("\n") > 1:
             return True
         return False
 
@@ -658,7 +668,7 @@ class UpdateConnectionsResources:
 
         :return str: stripped url
         """
-        return url.strip().split()[0].replace('\n', '')
+        return url.strip().split()[0].replace("\n", "")
 
     def _handle_multiple_url(self, url):
         """Parse multiple url from one string and valide them and check
@@ -667,8 +677,8 @@ class UpdateConnectionsResources:
         :param str url: url address(es)
         """
         if self._is_multiple_url(url):
-            for u in url.split('\n'):
-                if ('https' or 'http') in u:
+            for u in url.split("\n"):
+                if ("https" or "http") in u:
                     u = self._strip_url(url=u)
                     validated_url = self._validate_url(
                         url=u,
@@ -701,8 +711,8 @@ class UpdateConnectionsResources:
         :return str/None: url string (url is valid) or None
         """
         if isinstance(
-                validators.url(url),
-                validators.ValidationFailure,
+            validators.url(url),
+            validators.ValidationFailure,
         ):
             if add_url:
                 self._not_valid_csw_urls.append(url)
@@ -764,7 +774,7 @@ class UpdateConnectionsResources:
 
         :return str: xml root tag string format
         """
-        return "<{tag} version=\"1.0\">{csw_element}</{tag}>"
+        return '<{tag} version="1.0">{csw_element}</{tag}>'
 
     def _read_file(self, file):
         """Read spreadsheets file"""
@@ -787,7 +797,7 @@ class UpdateConnectionsResources:
         except ValueError as err:
             msg = "Value Error: {}, {}".format(err, url)
         except Exception as err:
-            msg = 'Unknown Error: {}, {}'.format(err, url)
+            msg = "Unknown Error: {}, {}".format(err, url)
         if add_url:
             self._not_active_csw_urls.append(url)
         return False
@@ -808,12 +818,12 @@ class UpdateConnectionsResources:
         gscript.message(_(self._progress_message))
         n = len(self._xml_root)
         for i, csw in enumerate(self._xml_root):
-            if not self._is_active_csw_url(url=csw.attrib['url']):
+            if not self._is_active_csw_url(url=csw.attrib["url"]):
                 not_active_csw.append(
                     "{name}{separator}{url}\n".format(
-                        name=csw.attrib['name'],
+                        name=csw.attrib["name"],
                         separator=self._separator,
-                        url=csw.attrib['url'],
+                        url=csw.attrib["url"],
                     ),
                 )
                 self._xml_root.remove(csw)
@@ -829,7 +839,7 @@ class UpdateConnectionsResources:
                 count=len(not_active_csw),
             ),
         )
-        sys.stdout.write(''.join(not_active_csw))
+        sys.stdout.write("".join(not_active_csw))
 
     def _check_not_valid_xml_csw_url(self):
         """Check not valid xml csw connections resources urls"""
@@ -847,12 +857,12 @@ class UpdateConnectionsResources:
         gscript.message(_(self._progress_message))
         n = len(self._xml_root)
         for i, csw in enumerate(self._xml_root):
-            if not self._validate_url(url=csw.attrib['url'], add_url=True):
+            if not self._validate_url(url=csw.attrib["url"], add_url=True):
                 not_valid_csw_urls.append(
                     "{name}{separator}{url}\n".format(
-                        name=csw.attrib['name'],
+                        name=csw.attrib["name"],
                         separator=self._separator,
-                        url=csw.attrib['url'],
+                        url=csw.attrib["url"],
                     ),
                 )
                 self._xml_root.remove(csw)
@@ -870,7 +880,7 @@ class UpdateConnectionsResources:
                 count=len(not_valid_csw_urls),
             ),
         )
-        sys.stdout.write(''.join(not_valid_csw_urls))
+        sys.stdout.write("".join(not_valid_csw_urls))
 
     def _get_data_row(self, row, print_or_write):
         """Get data row
@@ -893,9 +903,9 @@ class UpdateConnectionsResources:
         n = 1
         if self._is_multiple_url(row[5]):
             # Handle multiple urls (same item name with diff prefix number)
-            for u in row[5].split('\n'):
-                if 'http' in u or 'https' in u:
-                    data_row = self. _get_data_format().format(
+            for u in row[5].split("\n"):
+                if "http" in u or "https" in u:
+                    data_row = self._get_data_format().format(
                         country=row[1],
                         govermental_level=row[8],
                         api_provider=row[2],
@@ -906,7 +916,7 @@ class UpdateConnectionsResources:
                     print_or_write(data_row)
                     n += 1
         else:
-            data_row = self. _get_data_format().format(
+            data_row = self._get_data_format().format(
                 country=row[1],
                 govermental_level=row[8],
                 api_provider=row[2],
@@ -923,7 +933,7 @@ class UpdateConnectionsResources:
         """
         self._get_data_row(
             row=row,
-            print_or_write=self. _write_csw_conn_element,
+            print_or_write=self._write_csw_conn_element,
         )
 
     def _make_xpath_query(self, **kwargs):
@@ -937,7 +947,7 @@ class UpdateConnectionsResources:
         result = []
         for n, u in kwargs.items():
             result.append("[@{name}='{url}']".format(name=n, url=u))
-        return ''.join(result)
+        return "".join(result)
 
     def _csw_conn_exist(self, root, **kwargs):
         """Find existed resource connnection item from xml file
@@ -979,6 +989,7 @@ class UpdateConnectionsResources:
 
         :param str data_row: xml csw resource connection xml item string
         """
+
         def append_csw():
             st = etree.Element("csw", name=name, url=url)
             self._validate_xml_at_parse_time(
@@ -993,19 +1004,16 @@ class UpdateConnectionsResources:
 
         if not self._csw_conn_exist(self._xml_root, name=name, url=url):
             # Check if url is active nd valid
-            if url not in self._not_valid_csw_urls and \
-               url not in self._not_active_csw_urls:
+            if (
+                url not in self._not_valid_csw_urls
+                and url not in self._not_active_csw_urls
+            ):
                 append_csw()
                 self._new_connections += 1
 
     def _get_data_format(self):
         """Get dat row format"""
-        return (
-            "{country}, "
-            "{govermental_level}, "
-            "{api_provider}{separator}"
-            "{url}"
-        )
+        return "{country}, " "{govermental_level}, " "{api_provider}{separator}" "{url}"
 
     def _split_data_row(self, row):
         """Split data row string
@@ -1015,13 +1023,13 @@ class UpdateConnectionsResources:
 
         :return tuple: name, url
         """
-        if 'https' in row:
-            url_start = row.index('https')
-            name = row[:url_start - len(self._separator)]
+        if "https" in row:
+            url_start = row.index("https")
+            name = row[: url_start - len(self._separator)]
             url = row[url_start:]
-        elif 'http' in row:
-            url_start = row.index('http')
-            name = row[:url_start - len(self._separator)]
+        elif "http" in row:
+            url_start = row.index("http")
+            name = row[: url_start - len(self._separator)]
             url = row[url_start:]
         return name, url
 
@@ -1030,9 +1038,9 @@ class UpdateConnectionsResources:
 
         param: list row: csw resource connection item for printing
         '{Name}{Separator}{Url}'
-       """
+        """
         row_format = "{}\n"
-        join_char = ''
+        join_char = ""
 
         name, url = self._split_data_row(row)
 
@@ -1040,8 +1048,10 @@ class UpdateConnectionsResources:
 
             # Valid and active
             if self._active_csw_url:
-                if url not in self._not_valid_csw_urls and \
-                   url not in self._not_active_csw_urls:
+                if (
+                    url not in self._not_valid_csw_urls
+                    and url not in self._not_active_csw_urls
+                ):
 
                     self._print_result = join_char.join(
                         [
@@ -1073,8 +1083,10 @@ class UpdateConnectionsResources:
         else:
             if self._active_csw_url:
                 # Active always valid
-                if url not in self._not_valid_csw_urls and \
-                   url not in self._not_active_csw_urls:
+                if (
+                    url not in self._not_valid_csw_urls
+                    and url not in self._not_active_csw_urls
+                ):
                     self._print_result = join_char.join(
                         [
                             self._print_result,
@@ -1084,8 +1096,10 @@ class UpdateConnectionsResources:
 
             elif self._not_active_csw_url:
                 # Not active always valid
-                if url in self._not_active_csw_urls and \
-                   url not in self._not_valid_csw_urls:
+                if (
+                    url in self._not_active_csw_urls
+                    and url not in self._not_valid_csw_urls
+                ):
 
                     self._print_result = join_char.join(
                         [
@@ -1143,8 +1157,8 @@ class UpdateConnectionsResources:
 
         Length of printed string 60
         """
-        join_char = ''
-        eof = '\n'
+        join_char = ""
+        eof = "\n"
 
         if self._print_info:
             self._print_summary_result = join_char.join(
@@ -1153,9 +1167,9 @@ class UpdateConnectionsResources:
                     (
                         "Number of new connections resource"
                         "{value:.>25}{eof}".format(
-                            value=self._new_connections -
-                            len(self._not_valid_csw_urls) -
-                            len(self._not_active_csw_urls),
+                            value=self._new_connections
+                            - len(self._not_valid_csw_urls)
+                            - len(self._not_active_csw_urls),
                             eof=eof,
                         )
                     ),
@@ -1168,9 +1182,9 @@ class UpdateConnectionsResources:
                     (
                         "Number of new added connections resource"
                         "{value:.>19}{eof}".format(
-                            value=self._new_connections -
-                            len(self._not_valid_csw_urls) -
-                            len(self._not_active_csw_urls),
+                            value=self._new_connections
+                            - len(self._not_valid_csw_urls)
+                            - len(self._not_active_csw_urls),
                             eof=eof,
                         )
                     ),
@@ -1223,7 +1237,7 @@ class UpdateConnectionsResources:
         if not self._print_info:
             self._parse_xml()
 
-        if self._data_theme == 'All':
+        if self._data_theme == "All":
             gscript.message(_(self._progress_message))
             n = len(self._data[self._file_data_key])
             for i, row in enumerate(self._data[self._file_data_key]):
@@ -1275,8 +1289,8 @@ def url_path(url):
     :param str url: url path
     """
     if isinstance(
-            validators.url(url),
-            validators.ValidationFailure,
+        validators.url(url),
+        validators.ValidationFailure,
     ):
         raise UrlValidationFailure(
             "Validation url <{}> failure".format(url),
@@ -1301,7 +1315,7 @@ def manage_proxies(proxies):
     param: str proxies: proxies definition "http=<value>,ftp=<value>"
     """
     _proxies = {}
-    for ptype, purl in (p.split('=') for p in proxies.split(',')):
+    for ptype, purl in (p.split("=") for p in proxies.split(",")):
         _proxies[ptype] = purl
         proxy = urlrequest.ProxyHandler(_proxies)
         opener = urlrequest.build_opener(proxy)
@@ -1315,7 +1329,7 @@ def manage_headers(headers):
     "User-Agent=<value>,Accept=<value>"
     """
     global HEADERS
-    for ptype, purl in (p.split('=') for p in headers.split(',')):
+    for ptype, purl in (p.split("=") for p in headers.split(",")):
         HEADERS[ptype] = purl
 
 
@@ -1326,73 +1340,74 @@ def strip_string(value):
 
     :return str: stripped string
     """
-    return value.strip().replace('"', '').replace('\'', '')
+    return value.strip().replace('"', "").replace("'", "")
 
 
 def main():
     options, flags = gscript.parser()
 
-    default_xml = 'connections_resources.xml'
-    default_xsd = 'connections_resources.xsd'
-    default_ods = 'API-cases.ods'
-    url = ('https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/APIS4DGOV/'
-           'cases/LATEST/API-cases.ods')
+    default_xml = "connections_resources.xml"
+    default_xsd = "connections_resources.xsd"
+    default_ods = "API-cases.ods"
+    url = (
+        "https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/APIS4DGOV/"
+        "cases/LATEST/API-cases.ods"
+    )
 
     addon_dir = os.path.realpath(
-        os.path.join(os.path.dirname(__file__), '..'),
+        os.path.join(os.path.dirname(__file__), ".."),
     )
-    config_dir = [addon_dir, 'etc', 'wx.metadata', 'config']
-    if options['xml'] != default_xml:
-        xml = options['xml']
+    config_dir = [addon_dir, "etc", "wx.metadata", "config"]
+    if options["xml"] != default_xml:
+        xml = options["xml"]
     else:
-        xml = os.path.join(*config_dir + [options['xml']])
-    if options['xsd'] != default_xsd:
-        xsd = options['xsd']
+        xml = os.path.join(*config_dir + [options["xml"]])
+    if options["xsd"] != default_xsd:
+        xsd = options["xsd"]
     else:
-        xsd = os.path.join(*config_dir + [options['xsd']])
-    if options['spreadsheet'] != default_ods:
-        spreadsheet = options['spreadsheet']
+        xsd = os.path.join(*config_dir + [options["xsd"]])
+    if options["spreadsheet"] != default_ods:
+        spreadsheet = options["spreadsheet"]
     else:
         spreadsheet = os.path.join(
-            *config_dir + [options['spreadsheet']],
+            *config_dir + [options["spreadsheet"]],
         )
 
-    options['separator'] = strip_string(options['separator'])
+    options["separator"] = strip_string(options["separator"])
 
-    if options['proxy']:
-        options['proxy'] = strip_string(options['proxy'])
-        manage_proxies(proxies=options['proxy'])
-    if options['header']:
-        options['header'] = strip_string(options['header'])
-        manage_headers(headers=options['header'])
+    if options["proxy"]:
+        options["proxy"] = strip_string(options["proxy"])
+        manage_proxies(proxies=options["proxy"])
+    if options["header"]:
+        options["header"] = strip_string(options["header"])
+        manage_headers(headers=options["header"])
 
-    if not options['url'] and not options['spreadsheet']:
+    if not options["url"] and not options["spreadsheet"]:
         gscript.fatal(
-            _('Set \'url=\' or \'spreadsheet=\' parameter argument'),
+            _("Set 'url=' or 'spreadsheet=' parameter argument"),
         )
-    if options['url'] and options['spreadsheet']:
-        spreadsheet = options['url']
+    if options["url"] and options["spreadsheet"]:
+        spreadsheet = options["url"]
         gscript.warning(
             _(
-                'Use spreadsheet file url \'{}\' for getting new csw '
-                'resources connections candidates'.format(
+                "Use spreadsheet file url '{}' for getting new csw "
+                "resources connections candidates".format(
                     url,
                 ),
             ),
         )
 
-    if (flags['a'] or flags['i'] or flags['v'] or flags['n']) and not \
-       flags['p']:
-        flags['p'] = True
+    if (flags["a"] or flags["i"] or flags["v"] or flags["n"]) and not flags["p"]:
+        flags["p"] = True
 
-    if flags['w']:
+    if flags["w"]:
         sys.stdout.write("{}\n".format(url))
         return
 
-    if flags['l']:
+    if flags["l"]:
         sys.stdout.write(
             "{}\n".format(
-                os.path.join(*config_dir + [options['spreadsheet']]),
+                os.path.join(*config_dir + [options["spreadsheet"]]),
             ),
         )
         return
@@ -1401,17 +1416,17 @@ def main():
         spreadsheet_file_url=spreadsheet,
         conns_resrs_xml=xml,
         conns_resrs_xsd=xsd,
-        separator=options['separator'],
-        csw_timeout=int(options['timeout']),
-        active_csw_url=flags['a'],
-        not_active_csw_url=flags['i'],
-        valid_csw_url=flags['v'],
-        not_valid_csw_url=flags['n'],
-        print_info=flags['p'],
-        print_summary_info=flags['s'],
-        valid_xml=flags['x'],
-        active_xml_csw_url=flags['c'],
-        not_valid_xml_csw_url=flags['k'],
+        separator=options["separator"],
+        csw_timeout=int(options["timeout"]),
+        active_csw_url=flags["a"],
+        not_active_csw_url=flags["i"],
+        valid_csw_url=flags["v"],
+        not_valid_csw_url=flags["n"],
+        print_info=flags["p"],
+        print_summary_info=flags["s"],
+        valid_xml=flags["x"],
+        active_xml_csw_url=flags["c"],
+        not_valid_xml_csw_url=flags["k"],
     )
 
 

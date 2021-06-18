@@ -317,14 +317,18 @@
 # required librairies
 import os
 import sys
-sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]),
-                                'etc', 'i.landsat8.swlst'))
+
+sys.path.insert(
+    1, os.path.join(os.path.dirname(sys.path[0]), "etc", "i.landsat8.swlst")
+)
 
 import atexit
 import grass.script as grass
+
 # from grass.exceptions import CalledModuleError
 from grass.pygrass.modules.shortcuts import general as g
 from grass.pygrass.modules.shortcuts import raster as r
+
 # from grass.pygrass.raster.abstract import Info
 import functools
 
@@ -366,76 +370,79 @@ if "GISBASE" not in os.environ:
     print("You must be in GRASS GIS to run this program.")
     sys.exit(1)
 
+
 def main():
     # Temporary filenames
-    tmp_avg_lse = tmp_map_name('avg_lse')
-    tmp_delta_lse = tmp_map_name('delta_lse')
-    tmp_cwv = tmp_map_name('cwv')
-    #tmp_lst = tmp_map_name('lst')
+    tmp_avg_lse = tmp_map_name("avg_lse")
+    tmp_delta_lse = tmp_map_name("delta_lse")
+    tmp_cwv = tmp_map_name("cwv")
+    # tmp_lst = tmp_map_name('lst')
 
     # user input
-    mtl_file = options['mtl']
+    mtl_file = options["mtl"]
 
-    if not options['prefix']:
-        b10 = options['b10']
-        b11 = options['b11']
-        t10 = options['t10']
-        t11 = options['t11']
+    if not options["prefix"]:
+        b10 = options["b10"]
+        b11 = options["b11"]
+        t10 = options["t10"]
+        t11 = options["t11"]
 
-        if not options['clouds']:
-            qab = options['qab']
+        if not options["clouds"]:
+            qab = options["qab"]
             cloud_map = False
 
         else:
             qab = False
-            cloud_map = options['clouds']
+            cloud_map = options["clouds"]
 
-    elif options['prefix']:
-        prefix = options['prefix']
-        b10 = prefix + '10'
-        b11 = prefix + '11'
+    elif options["prefix"]:
+        prefix = options["prefix"]
+        b10 = prefix + "10"
+        b11 = prefix + "11"
 
-        if not options['clouds']:
-            qab = prefix + 'QA'
+        if not options["clouds"]:
+            qab = prefix + "QA"
             cloud_map = False
 
         else:
-            cloud_map = options['clouds']
+            cloud_map = options["clouds"]
             qab = False
 
-    qapixel = options['qapixel']
-    lst_output = options['lst']
+    qapixel = options["qapixel"]
+    lst_output = options["lst"]
 
     # save Brightness Temperature maps?
-    if options['prefix_bt']:
-        brightness_temperature_prefix = options['prefix_bt']
+    if options["prefix_bt"]:
+        brightness_temperature_prefix = options["prefix_bt"]
     else:
         brightness_temperature_prefix = None
 
-    cwv_window_size = int(options['window'])
-    assertion_for_cwv_window_size_msg = ('A spatial window of size 5^2 or less is not '
-                                         'recommended. Please select a larger window. '
-                                         'Refer to the manual\'s notes for details.')
+    cwv_window_size = int(options["window"])
+    assertion_for_cwv_window_size_msg = (
+        "A spatial window of size 5^2 or less is not "
+        "recommended. Please select a larger window. "
+        "Refer to the manual's notes for details."
+    )
     assert cwv_window_size >= 7, assertion_for_cwv_window_size_msg
-    cwv_output = options['cwv']
+    cwv_output = options["cwv"]
 
     # optional maps
-    average_emissivity_map = options['emissivity']
-    delta_emissivity_map = options['delta_emissivity']
+    average_emissivity_map = options["emissivity"]
+    delta_emissivity_map = options["delta_emissivity"]
 
     # output for in-between maps?
-    emissivity_output = options['emissivity_out']
-    delta_emissivity_output = options['delta_emissivity_out']
-    landcover_map = options['landcover']
-    landcover_class = options['landcover_class']
+    emissivity_output = options["emissivity_out"]
+    delta_emissivity_output = options["delta_emissivity_out"]
+    landcover_map = options["landcover"]
+    landcover_class = options["landcover_class"]
 
     # flags
-    info = flags['i']
-    scene_extent = flags['e']
-    timestamping = flags['t']
-    null = flags['n']
-    rounding = flags['r']
-    celsius = flags['c']
+    info = flags["i"]
+    scene_extent = flags["e"]
+    timestamping = flags["t"]
+    null = flags["n"]
+    rounding = flags["r"]
+    celsius = flags["c"]
 
     # ToDo:
     # shell = flags['g']
@@ -453,17 +460,17 @@ def main():
         # Improve below!
 
         if b10:
-            run('g.region', rast=b10, align=b10)
+            run("g.region", rast=b10, align=b10)
             msg = msg.format(name=b10)
 
         elif t10:
-            run('g.region', rast=t10, align=t10)
+            run("g.region", rast=t10, align=t10)
             msg = msg.format(name=t10)
 
         g.message(msg)
 
     elif not scene_extent:
-        grass.warning(_('Operating on current region'))
+        grass.warning(_("Operating on current region"))
 
     #
     # 1. Mask clouds
@@ -471,9 +478,9 @@ def main():
 
     if cloud_map:
         # user-fed cloud map?
-        msg = '\n|i Using {cmap} as a MASK'.format(cmap=cloud_map)
+        msg = "\n|i Using {cmap} as a MASK".format(cmap=cloud_map)
         g.message(msg)
-        r.mask(raster=cloud_map, flags='i', overwrite=True)
+        r.mask(raster=cloud_map, flags="i", overwrite=True)
 
     else:
         # using the quality assessment band and a "QA" pixel value
@@ -523,24 +530,35 @@ def main():
 
         if split_window_lst.landcover_class is False:
             # replace with meaningful error
-            grass.warning('Unknown land cover class string! Note, this string '
-                      'input option is case sensitive.')
+            grass.warning(
+                "Unknown land cover class string! Note, this string "
+                "input option is case sensitive."
+            )
 
-        if landcover_class == 'Random':
-            msg = "\n|! Random emissivity class selected > " + \
-                split_window_lst.landcover_class + ' '
+        if landcover_class == "Random":
+            msg = (
+                "\n|! Random emissivity class selected > "
+                + split_window_lst.landcover_class
+                + " "
+            )
 
-        if landcover_class == 'Barren_Land':
-            msg = "\n|! For barren land, the last quadratic term of the Split-Window algorithm will be set to 0" + \
-                split_window_lst.landcover_class + ' '
+        if landcover_class == "Barren_Land":
+            msg = (
+                "\n|! For barren land, the last quadratic term of the Split-Window algorithm will be set to 0"
+                + split_window_lst.landcover_class
+                + " "
+            )
 
         else:
-            msg = '\n|! Retrieving average emissivities *only* for {eclass} '
+            msg = "\n|! Retrieving average emissivities *only* for {eclass} "
 
         if info:
-            msg += '| Average emissivities (channels 10, 11): '
-            msg += str(split_window_lst.emissivity_t10) + ', ' + \
-                str(split_window_lst.emissivity_t11)
+            msg += "| Average emissivities (channels 10, 11): "
+            msg += (
+                str(split_window_lst.emissivity_t10)
+                + ", "
+                + str(split_window_lst.emissivity_t11)
+            )
 
         msg = msg.format(eclass=split_window_lst.landcover_class)
         g.message(msg)
@@ -559,8 +577,8 @@ def main():
                 split_window_lst.average_lse_mapcalc,
                 quiet=info,
             )
-            if options['emissivity_out']:
-                tmp_avg_lse = options['emissivity_out']
+            if options["emissivity_out"]:
+                tmp_avg_lse = options["emissivity_out"]
 
         if delta_emissivity_map:
             tmp_delta_lse = delta_emissivity_map
@@ -573,15 +591,15 @@ def main():
                 split_window_lst.delta_lse_mapcalc,
                 quiet=info,
             )
-            if options['delta_emissivity_out']:
-                tmp_delta_lse = options['delta_emissivity_out']
+            if options["delta_emissivity_out"]:
+                tmp_delta_lse = options["delta_emissivity_out"]
 
     #
     # 4. Modified Split-Window Variance-Covariance Matrix > Column Water Vapor
     #
 
     if info:
-        msg = '\n|i Spatial window of size {n} for Column Water Vapor estimation: '
+        msg = "\n|i Spatial window of size {n} for Column Water Vapor estimation: "
         msg = msg.format(n=cwv_window_size)
         g.message(msg)
 
@@ -601,8 +619,8 @@ def main():
     # 5. Estimate Land Surface Temperature
     #
 
-    if info and landcover_class == 'Random':
-        msg = '\n|* Will pick a random emissivity class!'
+    if info and landcover_class == "Random":
+        msg = "\n|* Will pick a random emissivity class!"
         grass.verbose(msg)
 
     estimate_lst(
@@ -625,7 +643,7 @@ def main():
     #
 
     # remove MASK
-    r.mask(flags='r', verbose=True)
+    r.mask(flags="r", verbose=True)
 
     # time-stamping
     if timestamping:
@@ -636,43 +654,45 @@ def main():
 
     # Apply color table
     if celsius:
-        run('r.colors', map=lst_output, color='celsius')
+        run("r.colors", map=lst_output, color="celsius")
     else:
         # color table for kelvin
-        run('r.colors', map=lst_output, color='kelvin')
+        run("r.colors", map=lst_output, color="kelvin")
 
     # ToDo: helper function for r.support
     # strings for metadata
-    history_lst = '\n' + citation_lst
-    history_lst += '\n\n' + citation_cwv
-    history_lst += '\n\nSplit-Window model: '
+    history_lst = "\n" + citation_lst
+    history_lst += "\n\n" + citation_cwv
+    history_lst += "\n\nSplit-Window model: "
     history_lst += split_window_lst._equation  # :wsw_lst_mapcalc
-    description_lst = ('Land Surface Temperature derived from a split-window algorithm. ')
+    description_lst = "Land Surface Temperature derived from a split-window algorithm. "
 
     if celsius:
-        title_lst = 'Land Surface Temperature (C)'
-        units_lst = 'Celsius'
+        title_lst = "Land Surface Temperature (C)"
+        units_lst = "Celsius"
 
     else:
-        title_lst = 'Land Surface Temperature (K)'
-        units_lst = 'Kelvin'
+        title_lst = "Land Surface Temperature (K)"
+        units_lst = "Kelvin"
 
     landsat8_metadata = Landsat8_MTL(mtl_file)
     source1_lst = landsat8_metadata.scene_id
     source2_lst = landsat8_metadata.origin
 
     # history entry
-    run("r.support",
+    run(
+        "r.support",
         map=lst_output,
         title=title_lst,
         units=units_lst,
         description=description_lst,
         source1=source1_lst,
         source2=source2_lst,
-        history=history_lst)
+        history=history_lst,
+    )
 
     # (re)name the LST product
-    #run("g.rename", rast=(tmp_lst, lst_output))
+    # run("g.rename", rast=(tmp_lst, lst_output))
 
     # restore region
     if scene_extent:
@@ -681,7 +701,7 @@ def main():
 
     # print citation
     if info:
-        g.message('\nSource: ' + citation_lst)
+        g.message("\nSource: " + citation_lst)
 
 
 if __name__ == "__main__":

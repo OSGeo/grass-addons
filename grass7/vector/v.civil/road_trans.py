@@ -15,16 +15,15 @@ import road_base as Base
 
 # from grass.pygrass.vector.geometry import Point
 from grass.pygrass.vector.geometry import Line
+
 # from grass.pygrass.vector.geometry import Point
 
 
 class TransLine(object):
-    """ Return
-    """
+    """Return"""
 
     def __init__(self, r_pnt=None, dist_left=None, dist_right=None):
-        """ Return
-        """
+        """Return"""
         self.r_pnt = r_pnt
         self.dist_left = dist_left
         self.dist_right = dist_right
@@ -38,66 +37,59 @@ class TransLine(object):
         self.terr_pnts = None
 
     def __str__(self):
-        """ Return
-        """
+        """Return"""
         return "TransLine(" + str(self.r_pnt.npk) + ")"
 
     def __repr__(self):
-        """ Return
-        """
+        """Return"""
         return "TransLine(" + str(self.r_pnt.npk) + ")"
 
     def length(self):
-        """ Return
-        """
+        """Return"""
         return self.dist_left + self.dist_right
 
     def _get_straight(self):
-        """ Return
-        """
+        """Return"""
         p_left = self.r_pnt.parallel(self.dist_left, -math.pi / 2)
         p_right = self.r_pnt.parallel(self.dist_right, math.pi / 2)
         return Base.Straight(p_left, p_right)
 
     def get_line(self):
-        """ Return
-        """
+        """Return"""
         p_left = self.r_pnt.parallel(self.dist_left, -math.pi / 2)
         p_right = self.r_pnt.parallel(self.dist_right, math.pi / 2)
         return Line([p_left, p_right])
 
     def set_displ(self, displaced):
-        """ Return
-        """
+        """Return"""
         self.displ_left, self.displ_right = displaced.find_cutoff(self.r_pnt)
 
     def set_talud(self, taludes, terr):
-        """ Return
-        """
+        """Return"""
         if self.displ_left != [] and self.displ_left[-1] is not None:
 
             terr.set_pnt_terr(self.displ_left[-1])
-            self.talud_left = \
-                taludes.talud_left.get_pnt_slope(self.r_pnt,
-                                                 self.displ_left[-1])
-#        if self.talud_left is None:
-#            self.talud_left = Base.RoadPoint(Point(0,0,0))
-#            self.talud_left.dist_displ = 0
-#            self.talud_left.npk = -1
+            self.talud_left = taludes.talud_left.get_pnt_slope(
+                self.r_pnt, self.displ_left[-1]
+            )
+        #        if self.talud_left is None:
+        #            self.talud_left = Base.RoadPoint(Point(0,0,0))
+        #            self.talud_left.dist_displ = 0
+        #            self.talud_left.npk = -1
 
         if self.displ_right != [] and self.displ_right[-1] is not None:
             terr.set_pnt_terr(self.displ_right[-1])
-            self.talud_right = \
-                taludes.talud_right.get_pnt_slope(self.r_pnt,
-                                                  self.displ_right[-1])
-#        if self.talud_right is not None:
-#            self.talud_right = Base.RoadPoint(Point(0,0,0))
-#            self.talud_right.dist_displ = 0
-#            self.talud_right.npk = -1
+            self.talud_right = taludes.talud_right.get_pnt_slope(
+                self.r_pnt, self.displ_right[-1]
+            )
+
+    #        if self.talud_right is not None:
+    #            self.talud_right = Base.RoadPoint(Point(0,0,0))
+    #            self.talud_right.dist_displ = 0
+    #            self.talud_right.npk = -1
 
     def set_terr_pnts(self, terr):
-        """ Return
-        """
+        """Return"""
         max_left_width = self.max_left_width()
         straight_1 = self._get_straight()
         self.terr_pnts = straight_1.get_roadpnts(0, -1, 1)
@@ -109,8 +101,7 @@ class TransLine(object):
                 self.terr_pnts[i].npk = rest + r_pnt.npk
 
     def get_ras_pnts(self):
-        """ Return
-        """
+        """Return"""
         max_left_width = self.max_left_width()
         line = []
         if self.talud_left is not None:
@@ -126,7 +117,6 @@ class TransLine(object):
         r_pnt_c = Base.RoadPoint(self.r_pnt, max_left_width, self.r_pnt.azi)
         line.append(r_pnt_c)
 
-
         for r_pnt in self.displ_right:
             if r_pnt is not None:
                 r_pnt.npk = max_left_width + r_pnt.dist_displ
@@ -139,38 +129,32 @@ class TransLine(object):
         return line
 
     def max_left_width(self):
-        """ Return
-        """
+        """Return"""
         if self.talud_left is not None:
             return max(self.dist_left, self.talud_left.dist_displ)
         return self.dist_left
 
     def max_right_width(self):
-        """ Return
-        """
+        """Return"""
 
         if self.talud_right is not None:
             return max(self.dist_right, self.talud_right.dist_displ)
         return self.dist_right
 
     def _width_terr(self):
-        """ Return
-        """
+        """Return"""
         return self.talud_left.dist_displ + self.talud_right.dist_displ
 
     def _max_terr(self):
-        """ Return
-        """
+        """Return"""
         return max([r_pnt.terr for r_pnt in self.terr_pnts])
 
     def _min_terr(self):
-        """ Return
-        """
+        """Return"""
         return min([r_pnt.terr for r_pnt in self.terr_pnts])
 
     def _max_height_displ(self):
-        """ Return
-        """
+        """Return"""
         lista = self.displ_left + self.displ_right
         if self.talud_left is not None:
             lista += [self.talud_left]
@@ -179,8 +163,7 @@ class TransLine(object):
         return max([r_pnt.z for r_pnt in lista if r_pnt is not None])
 
     def _min_height_displ(self):
-        """ Return
-        """
+        """Return"""
         lista = self.displ_left + self.displ_right
         if self.talud_left is not None:
             lista += [self.talud_left]
@@ -189,28 +172,23 @@ class TransLine(object):
         return min([r_pnt.z for r_pnt in lista if r_pnt is not None])
 
     def max_height(self):
-        """ Return
-        """
+        """Return"""
         return math.ceil(max(self._max_terr(), self._max_height_displ()))
 
     def min_height(self):
-        """ Return
-        """
+        """Return"""
         return math.floor(min(self._min_terr(), self._min_height_displ()))
 
     def max_width(self):
-        """ Return
-        """
+        """Return"""
         return max(self._width_terr(), self.length())
 
 
 class Trans(object):
-    """ Return
-    """
+    """Return"""
 
     def __init__(self, polygon, tabla_iter, plant, vert, terr):
-        """ Return
-        """
+        """Return"""
         self.polygon = polygon
         self.tabla_iter = tabla_iter
         self.plant = plant
@@ -235,8 +213,7 @@ class Trans(object):
         return len(self.t_aligns)
 
     def __str__(self):
-        """ Return
-        """
+        """Return"""
         string = "[\n"
         for i in self.t_aligns:
             string += str(i)
@@ -244,8 +221,7 @@ class Trans(object):
         return string
 
     def __repr__(self):
-        """ Return
-        """
+        """Return"""
         string = "[\n"
         for i in self.t_aligns:
             string += str(i)
@@ -253,19 +229,19 @@ class Trans(object):
         return string
 
     def _init_trans(self):
-        """ Return
-        """
+        """Return"""
         dat_1 = []
         for i, dat_2 in enumerate(self.tabla_iter):
 
             if i >= 1:
-                if dat_1['npk'] == 0:
+                if dat_1["npk"] == 0:
                     continue
                 start = dat_1
                 end = dat_2
 
-                r_pnts = self.plant.get_roadpnts(start['pk'], end['pk'],
-                                                 start['npk'], start['npk'])
+                r_pnts = self.plant.get_roadpnts(
+                    start["pk"], end["pk"], start["npk"], start["npk"]
+                )
                 self.vert.set_pnts_elev(r_pnts)
 
                 if self.terr is not None:
@@ -273,56 +249,63 @@ class Trans(object):
 
                 for r_pnt in r_pnts:
 
-                    dist_left = start['dist_left'] + \
-                        ((r_pnt.npk - start['pk']) * (end['dist_left'] -
-                         start['dist_left'])) / (end['pk'] - start['pk'])
+                    dist_left = start["dist_left"] + (
+                        (r_pnt.npk - start["pk"])
+                        * (end["dist_left"] - start["dist_left"])
+                    ) / (end["pk"] - start["pk"])
 
-                    dist_right = start['dist_right'] + \
-                        ((r_pnt.npk - start['pk']) * (end['dist_right'] -
-                         start['dist_right'])) / (end['pk'] - start['pk'])
+                    dist_right = start["dist_right"] + (
+                        (r_pnt.npk - start["pk"])
+                        * (end["dist_right"] - start["dist_right"])
+                    ) / (end["pk"] - start["pk"])
 
                     trans = TransLine(r_pnt, dist_left, dist_right)
                     self.t_aligns.append(trans)
             dat_1 = dat_2
 
     def get_trans(self):
-        """ Return
-        """
+        """Return"""
         list_lines = []
         list_attrs = []
         for t_ali in self.t_aligns:
             list_lines.append(t_ali.get_line())
-            list_attrs.append([t_ali.r_pnt.get_pk(),
-                               t_ali.r_pnt.get_azi(),
-                               t_ali.r_pnt.p_type,
-                               round(t_ali.dist_left, 4),
-                               round(t_ali.dist_right, 4), ''])
+            list_attrs.append(
+                [
+                    t_ali.r_pnt.get_pk(),
+                    t_ali.r_pnt.get_azi(),
+                    t_ali.r_pnt.p_type,
+                    round(t_ali.dist_left, 4),
+                    round(t_ali.dist_right, 4),
+                    "",
+                ]
+            )
         return list_lines, list_attrs
 
     def get_pnts_trans(self, displ):
-        """ Return
-        """
+        """Return"""
         list_pnts = []
         list_attrs = []
         for t_ali in self.t_aligns:
             t_ali.set_displ(displ)
 
-#            list_pnts.extend(t_ali.displ_left + t_ali.displ_right)
+            #            list_pnts.extend(t_ali.displ_left + t_ali.displ_right)
             for i, r_pnt in enumerate(t_ali.displ_left + t_ali.displ_right):
                 if r_pnt is not None:
                     list_pnts.append(r_pnt)
-                    list_attrs.append([r_pnt.get_pk(),
-                                       r_pnt.get_azi(),
-                                       t_ali.r_pnt.get_pk(),
-                                       'Dist=' +
-                                       str(round(r_pnt.dist_displ, 4)),
-                                       'Displ=' + str(i + 1)])
+                    list_attrs.append(
+                        [
+                            r_pnt.get_pk(),
+                            r_pnt.get_azi(),
+                            t_ali.r_pnt.get_pk(),
+                            "Dist=" + str(round(r_pnt.dist_displ, 4)),
+                            "Displ=" + str(i + 1),
+                        ]
+                    )
 
         return list_pnts, list_attrs
 
     def get_pnts_trans_terr(self, displ, taludes, terr):
-        """ Return
-        """
+        """Return"""
         list_pnts = []
         list_attrs = []
         for t_ali in self.t_aligns:
@@ -332,17 +315,19 @@ class Trans(object):
                 if r_pnt is not None and r_pnt.npk != -1:
 
                     list_pnts.append(r_pnt)
-                    list_attrs.append([r_pnt.get_pk(),
-                                       r_pnt.get_azi(),
-                                       t_ali.r_pnt.get_pk(),
-                                       'Dist=' +
-                                       str(round(r_pnt.dist_displ, 4)),
-                                       'Terr=' + str(i + 1)])
+                    list_attrs.append(
+                        [
+                            r_pnt.get_pk(),
+                            r_pnt.get_azi(),
+                            t_ali.r_pnt.get_pk(),
+                            "Dist=" + str(round(r_pnt.dist_displ, 4)),
+                            "Terr=" + str(i + 1),
+                        ]
+                    )
         return list_pnts, list_attrs
 
     def generate_pks(self, start, end, dpk, mpk, len_d, len_m):
-        """ Return
-        """
+        """Return"""
         r_pnts_d = self.plant.get_roadpnts(start, end, dpk, dpk)
         r_pnts_m = self.plant.get_roadpnts(start, end, mpk, mpk)
 
@@ -354,10 +339,11 @@ class Trans(object):
             else:
                 trans = TransLine(r_pnt, len_d, len_d)
             list_trans.append(trans.get_line())
-            list_attrs.append([r_pnt.get_pk(), r_pnt.get_azi(), r_pnt.p_type,
-                               ''])
+            list_attrs.append([r_pnt.get_pk(), r_pnt.get_azi(), r_pnt.p_type, ""])
         return list_trans, list_attrs
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

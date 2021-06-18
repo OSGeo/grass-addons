@@ -59,6 +59,7 @@ from grass.script.utils import try_rmdir
 class DownloadError(Exception):
     pass
 
+
 # TODO: multiple functions copied or modified from g.extension and
 # startup screen Download button
 # all should go to "grass.scripts.tools"
@@ -87,8 +88,7 @@ def move_extracted_files(extract_dir, target_dir, files):
             if os.path.isdir(actual_file):
                 # shutil.copytree() replaced by copy_tree() because
                 # shutil's copytree() fails when subdirectory exists
-                shutil.copytree(actual_file,
-                                os.path.join(target_dir, file_name))
+                shutil.copytree(actual_file, os.path.join(target_dir, file_name))
             else:
                 shutil.copy(actual_file, os.path.join(target_dir, file_name))
 
@@ -96,23 +96,25 @@ def move_extracted_files(extract_dir, target_dir, files):
 # copy from g.extension
 def extract_zip(name, directory, tmpdir):
     """Extract a ZIP file into a directory"""
-    gs.debug("extract_zip(name={name}, directory={directory},"
-             " tmpdir={tmpdir})".format(name=name, directory=directory,
-                                        tmpdir=tmpdir), 3)
+    gs.debug(
+        "extract_zip(name={name}, directory={directory},"
+        " tmpdir={tmpdir})".format(name=name, directory=directory, tmpdir=tmpdir),
+        3,
+    )
     try:
         import zipfile
-        zip_file = zipfile.ZipFile(name, mode='r')
+
+        zip_file = zipfile.ZipFile(name, mode="r")
         file_list = zip_file.namelist()
         # we suppose we can write to parent of the given dir
         # (supposing a tmp dir)
-        extract_dir = os.path.join(tmpdir, 'extract_dir')
+        extract_dir = os.path.join(tmpdir, "extract_dir")
         os.mkdir(extract_dir)
         for subfile in file_list:
             # this should be safe in Python 2.7.4
             zip_file.extract(subfile, extract_dir)
         files = os.listdir(extract_dir)
-        move_extracted_files(extract_dir=extract_dir,
-                             target_dir=directory, files=files)
+        move_extracted_files(extract_dir=extract_dir, target_dir=directory, files=files)
     except zipfile.BadZipfile as error:
         raise DownloadError(_("ZIP file is unreadable: {0}").format(error))
 
@@ -120,44 +122,50 @@ def extract_zip(name, directory, tmpdir):
 # copy from g.extension
 def extract_tar(name, directory, tmpdir):
     """Extract a TAR or a similar file into a directory"""
-    gs.debug("extract_tar(name={name}, directory={directory},"
-             " tmpdir={tmpdir})".format(name=name, directory=directory,
-                                        tmpdir=tmpdir), 3)
+    gs.debug(
+        "extract_tar(name={name}, directory={directory},"
+        " tmpdir={tmpdir})".format(name=name, directory=directory, tmpdir=tmpdir),
+        3,
+    )
     try:
         import tarfile  # we don't need it anywhere else
+
         tar = tarfile.open(name)
-        extract_dir = os.path.join(tmpdir, 'extract_dir')
+        extract_dir = os.path.join(tmpdir, "extract_dir")
         os.mkdir(extract_dir)
         tar.extractall(path=extract_dir)
         files = os.listdir(extract_dir)
-        move_extracted_files(extract_dir=extract_dir,
-                             target_dir=directory, files=files)
+        move_extracted_files(extract_dir=extract_dir, target_dir=directory, files=files)
     except tarfile.TarError as error:
         raise DownloadError(_("Archive file is unreadable: {0}").format(error))
     except EOFError as error:
         raise DownloadError(_("Archive file is incomplete: {0}").format(error))
 
-extract_tar.supported_formats = ['tar.gz', 'gz', 'bz2', 'tar', 'gzip', 'targz', 'xz']
+
+extract_tar.supported_formats = ["tar.gz", "gz", "bz2", "tar", "gzip", "targz", "xz"]
 
 
 def download_end_extract(source):
     tmpdir = tempfile.mkdtemp()
-    directory = os.path.join(tmpdir, 'location')
-    if source.endswith('.zip'):
-        archive_name = os.path.join(tmpdir, 'location.zip')
+    directory = os.path.join(tmpdir, "location")
+    if source.endswith(".zip"):
+        archive_name = os.path.join(tmpdir, "location.zip")
         # TODO: except IOError from urlretrieve
         f, h = urlretrieve(source, archive_name)
-        if h.get('content-type', '') != 'application/zip':
-            raise DownloadError(_("Download of <%s> failed "
-                                  "or file is not a ZIP file") % source)
+        if h.get("content-type", "") != "application/zip":
+            raise DownloadError(
+                _("Download of <%s> failed " "or file is not a ZIP file") % source
+            )
         extract_zip(name=archive_name, directory=directory, tmpdir=tmpdir)
-    elif ("." in source and (source.endswith(".tar.gz") or
-          source.rsplit('.', 1)[1] in extract_tar.supported_formats)):
+    elif "." in source and (
+        source.endswith(".tar.gz")
+        or source.rsplit(".", 1)[1] in extract_tar.supported_formats
+    ):
         if source.endswith(".tar.gz"):
             ext = "tar.gz"
         else:
-            ext = source.rsplit('.', 1)[1]
-        archive_name = os.path.join(tmpdir, 'extension.' + ext)
+            ext = source.rsplit(".", 1)[1]
+        archive_name = os.path.join(tmpdir, "extension." + ext)
         urlretrieve(source, archive_name)
         # TODO: error handling for urlretrieve
         extract_tar(name=archive_name, directory=directory, tmpdir=tmpdir)
@@ -168,7 +176,9 @@ def download_end_extract(source):
     if not os.path.isdir(directory):
         # If there is only one file ZIP and TAR extractions just
         # extract that file under the provided directory name.
-        raise DownloadError(_("Archive contains only one file and no mapset directories"))
+        raise DownloadError(
+            _("Archive contains only one file and no mapset directories")
+        )
     return directory
 
 
@@ -183,8 +193,7 @@ def is_location_valid(location):
     # containing a PERMANENT/DEFAULT_WIND file is probably a GRASS
     # location, while a directory lacking it probably isn't.
     # TODO: perhaps we can relax this and require only permanent
-    return os.access(os.path.join(location,
-                                  "PERMANENT", "DEFAULT_WIND"), os.F_OK)
+    return os.access(os.path.join(location, "PERMANENT", "DEFAULT_WIND"), os.F_OK)
 
 
 def find_location_in_directory(path, recurse=0):
@@ -217,25 +226,23 @@ def find_location_in_directory(path, recurse=0):
 
 
 def location_name_from_url(url):
-    return (url.rsplit('/', 1)[1].split('.', 1)[0]
-            .replace("-", "_").replace(" ", "_"))
+    return url.rsplit("/", 1)[1].split(".", 1)[0].replace("-", "_").replace(" ", "_")
 
 
 def main(options, flags):
-    url = options['url']
-    name = options['name']
-    database = options['dbase']
+    url = options["url"]
+    name = options["name"]
+    database = options["dbase"]
 
     if not database:
         # use current
-        database = gs.gisenv()['GISDBASE']
+        database = gs.gisenv()["GISDBASE"]
     if not name:
         name = location_name_from_url(url)
     destination = os.path.join(database, name)
 
     if os.path.exists(destination):
-        gs.fatal(_("Location named <%s> already exists,"
-                   " download canceled") % name)
+        gs.fatal(_("Location named <%s> already exists," " download canceled") % name)
         return
 
     gs.message(_("Downloading and extracting..."))
@@ -256,22 +263,27 @@ def main(options, flags):
             # full relative path, but the directory name is diffrent now.
             # This is the consequence of how the extract functions work.)
             relative = os.path.relpath(result, start=directory)
-            gs.verbose(_(
-                "Location found in a nested directory '{directory}'").format(
-                    directory=relative))
+            gs.verbose(
+                _("Location found in a nested directory '{directory}'").format(
+                    directory=relative
+                )
+            )
             directory = result
         else:
             # The list is similarly misleading as the relative path above
             # as it misses the root directory, but it still should be useful.
             files_and_dirs = os.listdir(directory)
-            gs.fatal(_("The dowloaded file is not a valid GRASS Location."
-                       " The extracted file contains these files and directories:"
-                       "\n{files_and_dirs}").format(
-                           files_and_dirs=" ".join(files_and_dirs)))
+            gs.fatal(
+                _(
+                    "The dowloaded file is not a valid GRASS Location."
+                    " The extracted file contains these files and directories:"
+                    "\n{files_and_dirs}"
+                ).format(files_and_dirs=" ".join(files_and_dirs))
+            )
     gs.verbose(_("Copying to final destination..."))
     shutil.copytree(src=directory, dst=destination)
     gs.message(_("Path to the location now <{path}>").format(path=destination))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main(*gs.parser())
