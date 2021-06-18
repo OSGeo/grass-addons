@@ -96,7 +96,7 @@ and 256.
 
 <center>
     <img src="i_gabor_ortho.png" border=1><br>
-    <p>North Carolina demo data - ortho_2001_t792_1m
+    North Carolina demo data - ortho_2001_t792_1m
 </center>
 
 <div class="code"><pre>
@@ -108,9 +108,8 @@ i.gabor input=ortho_2001_t792_1m output=ortho_i \
 
 <center>
     <img src="i_gabor_individual.png" border=1><br>
-    <p>The individual imaginary outputs at the orientations 0, 45, 90, and 135 degrees. Created without <b>-c</b> flag.
+    The individual imaginary outputs at the orientations 0, 45, 90, and 135 degrees. Created without <b>-c</b> flag.
 </center>
-
 
 <div class="code"><pre>
 g.region n=220272 s=219585 w=638335 e=639313 res=1
@@ -120,7 +119,7 @@ i.gabor input=ortho_2001_t792_1m output=ortho_i_8o_41_5 \
 </pre></div>
 <center>
     <img src="i_gabor_imaginary.png" border=1><br>
-    <p>Imaginary component of Gabor filter bank with 8 orientations.
+    Imaginary component of Gabor filter bank with 8 orientations.
 </center>
 
 <div class="code"><pre>
@@ -131,11 +130,11 @@ i.gabor input=ortho_2001_t792_1m output=ortho_i_8o_41_5_q \
 </pre></div>
 <center>
     <img src="i_gabor_quant.png" border=1><br>
-    <p>Bitwise quantification of imaginary component. Each pixels orientation
+    Bitwise quantification of imaginary component. Each pixels orientation
     responses can be extracted.
 </center>
 
-After the Gabor filter is generated, it can be used for a number of purposes.
+<p>After the Gabor filter is generated, it can be used for a number of purposes.
 For instance we can create a segmented raster map of ortho_2001_t792_1m aided
 with both the real and imaginary component of the Gabor filter which is able to
 reduce noise in the output raster map.
@@ -153,50 +152,52 @@ i.gabor input=ortho_2001_t792_1m output=ortho_i --overwrite \
 # Segmentation with just ortho_2001_t792_1m
 i.segment group=ortho_2001_t792_1m output=orhto_segment --overwrite \
         threshold=0.5 minsize=5
-# Segmentation with ortho_2001_t792_1m and both gabor filters
+# Segmentation with ortho_2001_t792_1m and both Gabor filters
 i.segment group=ortho_2001_t792_1m,ortho,ortho_i output=gabor_aided_segment \
         --overwrite threshold=0.5 minsize=5
 </pre></div>
 <center>
     <img src="i_gabor_segment.png" border=1><br>
-    <p>Segmentation of solely ortho_2001_t792_1m and the segmentation of
-    ortho_2001_t792_1m aided with the real and imaginary gabor components
+    Segmentation of solely ortho_2001_t792_1m and the segmentation of
+    ortho_2001_t792_1m aided with the real and imaginary Gabor components
 </center>
 
 <h2>TODO</h2>
+
 More robust implementation in regard to potential bottleneck caused by treating
 everything in memory. Implement GRASS RasterRow/Segment class to read in bits of
 raster map at a time in memory.
 
-
 <h2>SEE ALSO</h2>
 <em>
-    <a href="https://grass.osgeo.org/grass78/manuals/r.texture.html">r.texture</a>
-    <a href="https://grass.osgeo.org/grass78/manuals/addons/i.variance.html">i.variance</a>
+    <a href="https://grass.osgeo.org/grass78/manuals/r.texture.html">r.texture</a>,
+    <a href="https://grass.osgeo.org/grass78/manuals/addons/i.variance.html">i.variance</a>,
     <a href="https://grass.osgeo.org/grass78/manuals/i.segment.html">i.segment</a>
 </em>
 
 <h2>AUTHOR</h2>
 <a href="mailto:ocsmit@protonmail.com">Owen Smith</a>
 
-
 <h2>REFERENCES</h2>
 <ul>
-    <li>Grigorescu, S. E., Petkov, N., & Kruizinga, P. (2002). Comparison of
-        texture features based on Gabor filters. IEEE Transactions on Image
+    <li>Gabor, D. (1946). <em>Theory of communication.</em> Journal of the
+        Institute of Electrical Engineers, 93, 429–457.</li>
+    <li>Grigorescu, S. E., Petkov, N., &amp; Kruizinga, P. (2002). <em>Comparison of
+        texture features based on Gabor filters.</em> IEEE Transactions on Image
         processing, 11(10), 1160-1167.</li>
-    <li>Lee, T. S. (1996). Image representation using 2D Gabor wavelets.
+    <li>Hillen, F., Meynberg, O., &amp; H&ouml;fle, B. (2015). <em>Routing in dense human
+        crowds using smartphone movement data and optical aerial imagery.</em>
+        ISPRS International Journal of Geo-Information, 4(2), 974-988.</li>
+    <li>Lee, T. S. (1996). <em>Image representation using 2D Gabor wavelets.</em>
         IEEE Transactions on pattern analysis and machine intelligence, 18(10),
         959-971.</li>
-    <li>Zhao, H., Xiao, P., & Feng, X. (2017). Optimal Gabor filter-based edge
-        detection of high spatial resolution remotely sensed images. Journal of
+    <li>Smith, O. (2021). <a href="https://here.isnew.info/gisc-4360k/i.gabor%20-%20A%20Gabor%20filter%20module%20for%20GRASS%20GIS%20by%20Owen%20Smith.pdf"><em>i.gabor - A Gabor filter module for GRASS GIS</em></a></li>
+    <li>Zhao, H., Xiao, P., &amp; Feng, X. (2017). <em>Optimal Gabor filter-based edge
+        detection of high spatial resolution remotely sensed images.</em> Journal of
         Applied Remote Sensing, 11(1), 015019.</li>
-    <li>Hillen, F., Meynberg, O., & Höfle, B. (2015). Routing in dense human crowds using smartphone movement data and optical aerial imagery. ISPRS International Journal of Geo-Information, 4(2), 974-988.
-    <li>Technical paper - <a href="https://here.isnew.info/gisc-4360k/i.gabor%20-%20A%20Gabor%20filter%20module%20for%20GRASS%20GIS%20by%20Owen%20Smith.pdf">i.gabor - A gabor filter module for GRASS GIS</a>
 </ul>
 
 <!--
 <p>
 <i>Last changed: $Date$</i>
 -->
-
