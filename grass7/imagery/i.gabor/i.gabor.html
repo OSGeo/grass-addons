@@ -135,6 +135,35 @@ i.gabor input=ortho_2001_t792_1m output=ortho_i_8o_41_5_q \
     responses can be extracted.
 </center>
 
+After the Gabor filter is generated, it can be used for a number of purposes.
+For instance we can create a segmented raster map of ortho_2001_t792_1m aided
+with both the real and imaginary component of the Gabor filter which is able to
+reduce noise in the output raster map.
+
+<div class="code"><pre>
+g.region n=220272 s=219585 w=638335 e=639313 res=1
+# Real component
+i.gabor input=ortho_2001_t792_1m output=ortho --overwrite \
+        orientation=0,22.5,45,67.5,90,112.5,135,157.5 size=11 wavelength=2.5 \
+        -c
+# Imaginary component
+i.gabor input=ortho_2001_t792_1m output=ortho_i --overwrite \
+        orientation=0,22.5,45,67.5,90,112.5,135,157.5 size=11 wavelength=2.5 \
+        -c -i
+# Segmentation with just ortho_2001_t792_1m
+i.segment group=ortho_2001_t792_1m output=orhto_segment --overwrite \
+        threshold=0.5 minsize=5
+# Segmentation with ortho_2001_t792_1m and both gabor filters
+i.segment group=ortho_2001_t792_1m,ortho,ortho_i output=gabor_aided_segment \
+        --overwrite threshold=0.5 minsize=5
+</pre></div>
+<center>
+    <img src="i_gabor_segment.png" border=1><br>
+    <p>Segmentation of solely ortho_2001_t792_1m and the segmentation of
+    ortho_2001_t792_1m aided with the real and imaginary gabor components
+</center>
+
+
 <h2>SEE ALSO</h2>
 <em>
     <a href="https://grass.osgeo.org/grass78/manuals/r.texture.html">r.texture</a>
