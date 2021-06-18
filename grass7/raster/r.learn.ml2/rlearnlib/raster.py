@@ -20,6 +20,17 @@ from .stats import StatisticsMixin
 from .transformers import CategoryEncoder
 from .utils import get_fullname
 
+import importlib
+
+
+def import_pandas():
+    try:
+        module = importlib.import_module("pandas")
+    except ImportError:
+        gs.fatal("Package python3-pandas 0.25 or newer is not installed")
+
+    return module
+
 
 class RasterStack(StatisticsMixin):
     def __init__(self, rasters=None, group=None):
@@ -52,12 +63,6 @@ class RasterStack(StatisticsMixin):
         count : int
             Number of RasterRow objects within the RasterStack.
         """
-        try:
-            import pandas as pd
-
-        except ImportError:
-            gs.fatal("Package python3-pandas 0.25 or newer is not installed")
-
         self.loc = _LocIndexer(self)
         self.iloc = _ILocIndexer(self, self.loc)
 
@@ -784,6 +789,8 @@ class RasterStack(StatisticsMixin):
             DataFrame.
         """
         # some checks
+        pd = import_pandas()
+
         if RasterRow(rast_name).exist() is False:
             gs.fatal("The supplied raster does not exist")
 
@@ -870,6 +877,8 @@ class RasterStack(StatisticsMixin):
             Extracted raster values as Pandas DataFrame if as_df = True.
         """
         # some checks
+        pd = import_pandas()
+
         try:
             vname, mapset = vect_name.split("@")
         except ValueError:
@@ -985,6 +994,7 @@ class RasterStack(StatisticsMixin):
         -------
         pandas.DataFrame
         """
+        pd = import_pandas()
 
         reg = Region()
         arr = self.read()

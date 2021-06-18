@@ -127,13 +127,15 @@ def cleanup():
     """Remove temporary maps specified in the global list"""
     cleanrast = list(reversed(CLEAN_LAY))
     for rast in cleanrast:
-        gs.run_command("g.remove", flags="f", type="all", name=rast, quiet=True)
+        gs.run_command("g.remove", flags="f", type="all",
+                       name=rast, quiet=True)
 
 
 def checkmask():
     """Check if there is a MASK set"""
-    ffile = gs.find_file(name="MASK", element="cell", mapset=gs.gisenv()["MAPSET"])
-    mask_presence = ffile["fullname"] != ""
+    ffile = gs.find_file(name="MASK", element="cell",
+                         mapset=gs.gisenv()['MAPSET'])
+    mask_presence = ffile['fullname'] != ''
     return mask_presence
 
 
@@ -143,7 +145,7 @@ def tmpname(prefix):
     Use only for raster maps.
     """
     tmpf = prefix + str(uuid.uuid4())
-    tmpf = string.replace(tmpf, "-", "_")
+    tmpf = tmpf.replace('-', '_')
     CLEAN_LAY.append(tmpf)
     return tmpf
 
@@ -162,9 +164,8 @@ def CoVar(maps):
 def mahal(v, m, VI):
     """Compute the mahalanobis distance over reference layers"""
     delta = v - m[:, None, None]
-    mahdist = np.sum(
-        np.sum(delta[None, :, :, :] * VI[:, :, None, None], axis=1) * delta, axis=0
-    )
+    mahdist = np.sum(np.sum(delta[None, :, :, :] *
+                     VI[:, :, None, None], axis=1) * delta, axis=0)
     stat_mahal = garray.array()
     stat_mahal[...] = mahdist
     return stat_mahal
@@ -172,25 +173,25 @@ def mahal(v, m, VI):
 
 def main(options, flags):
 
-    gisbase = os.getenv("GISBASE")
+    gisbase = os.getenv('GISBASE')
     if not gisbase:
-        gs.fatal(_("$GISBASE not defined"))
+        gs.fatal(_('$GISBASE not defined'))
         return 0
 
     # Variables
-    ref = options["reference"]
-    REF = ref.split(",")
-    pro = options["projection"]
+    ref = options['reference']
+    REF = ref.split(',')
+    pro = options['projection']
     if pro:
-        PRO = pro.split(",")
+        PRO = pro.split(',')
     else:
         PRO = REF
-    opn = [z.split("@")[0] for z in PRO]
-    out = options["output"]
-    region = options["region"]
-    flag_d = flags["d"]
-    flag_e = flags["e"]
-    flag_p = flags["p"]
+    opn = [z.split('@')[0] for z in PRO]
+    out = options['output']
+    region = options['region']
+    flag_d = flags['d']
+    flag_e = flags['e']
+    flag_p = flags['p']
 
     # get current region settings, to compare to new ones later
     regbu1 = tmpname("region")
@@ -202,25 +203,16 @@ def main(options, flags):
         if not ffile:
             gs.fatal(_("the region {} does not exist").format(region))
     if not pro and not checkmask() and not region:
-        gs.fatal(
-            _(
-                "You need to provide projected layers, a region, or "
-                "a mask has to be set"
-            )
-        )
+        gs.fatal(_("You need to provide projected layers, a region, or "
+                   "a mask has to be set"))
     if pro and len(REF) != len(PRO):
-        gs.fatal(
-            _(
-                "The number of reference and projection layers need to "
-                "be the same. Your provided %d reference and %d"
-                "projection variables"
-            )
-            % (len(REF), len(PRO))
-        )
+        gs.fatal(_("The number of reference and projection layers need to "
+                   "be the same. Your provided %d reference and %d"
+                   "projection variables") % (len(REF), len(PRO)))
 
     # Text for history in metadata
-    opt2 = dict((k, v) for k, v in options.iteritems() if v)
-    hist = " ".join("{!s}={!r}".format(k, v) for (k, v) in opt2.iteritems())
+    opt2 = dict((k, v) for k, v in options.items() if v)
+    hist = ' '.join("{!s}={!r}".format(k, v) for (k, v) in opt2.items())
     hist = "r.exdet {}".format(hist)
     unused, tmphist = tempfile.mkstemp()
     with open(tmphist, "w") as text_file:
@@ -258,14 +250,10 @@ def main(options, flags):
         mahalref = "{}_mahalref".format(out)
         mahal_ref.write(mapname=mahalref)
         gs.info(_("Mahalanobis distance map saved: {}").format(mahalref))
-        gs.run_command(
-            "r.support",
-            map=mahalref,
-            title="Mahalanobis distance map",
-            units="unitless",
-            description="Mahalanobis distance map in reference " "domain",
-            loadhistory=tmphist,
-        )
+        gs.run_command("r.support", map=mahalref,
+                       title="Mahalanobis distance map", units="unitless",
+                       description="Mahalanobis distance map in reference "
+                                   "domain", loadhistory=tmphist)
     del mahal_ref
 
     # Remove mask and set new region based on user-defined region or
@@ -298,45 +286,36 @@ def main(options, flags):
         mahalpro = "{}_mahalpro".format(out)
         mahal_pro.write(mapname=mahalpro)
         gs.info(_("Mahalanobis distance map saved: {}").format(mahalpro))
-        gs.run_command(
-            "r.support",
-            map=mahalpro,
-            title="Mahalanobis distance map projection domain",
-            units="unitless",
-            loadhistory=tmphist,
-            description="Mahalanobis distance map in projection "
-            "domain estimated using covariance of refence data",
-        )
+        gs.run_command("r.support", map=mahalpro,
+                       title="Mahalanobis distance map projection domain",
+                       units="unitless", loadhistory=tmphist,
+                       description="Mahalanobis distance map in projection "
+                       "domain estimated using covariance of refence data")
 
     # Compute NT1
     tmplay = tmpname(out)
     mnames = [None] * len(REF)
-    for i in xrange(len(REF)):
+    for i in range(len(REF)):
         tmpout = tmpname("exdet")
         # TODO: computations below sometimes result in very small negative
         # numbers, which are not 'real', but rather due to some differences
         # in handling digits in grass and python, hence second mapcalc
         # statement. Need to figure out how to handle this better.
-        gs.mapcalc(
-            "eval("
-            "tmp = min(($prolay - $refmin), ($refmax - $prolay),0) / "
-            "($refmax - $refmin))\n"
-            "$Dij = if(tmp > -0.000000001, 0, tmp)",
-            Dij=tmpout,
-            prolay=PRO[i],
-            refmin=stat_min[i],
-            refmax=stat_max[i],
-            quiet=True,
-        )
+        gs.mapcalc("eval("
+                   "tmp = min(($prolay - $refmin), ($refmax - $prolay),0) / "
+                   "($refmax - $refmin))\n"
+                   "$Dij = if(tmp > -0.00000000001, 0, tmp)",
+                   Dij=tmpout, prolay=PRO[i], refmin=stat_min[i],
+                   refmax=stat_max[i], quiet=True)
         mnames[i] = tmpout
-    gs.run_command("r.series", quiet=True, input=mnames, output=tmplay, method="sum")
+    gs.run_command("r.series", quiet=True, input=mnames, output=tmplay,
+                   method="sum")
 
     # Compute most influential covariate (MIC) metric for NT1
     if flag_p:
         tmpla1 = tmpname(out)
-        gs.run_command(
-            "r.series", quiet=True, output=tmpla1, input=mnames, method="min_raster"
-        )
+        gs.run_command("r.series", quiet=True, output=tmpla1, input=mnames,
+                       method="min_raster")
 
     # Compute NT2
     tmpla2 = tmpname(out)
@@ -365,97 +344,64 @@ def main(options, flags):
             tmpmahal = tmpname(out)
             layer.write(tmpmahal)
             laylist.append(tmpmahal)
-        gs.run_command(
-            "r.series",
-            quiet=True,
-            output=tmpla3,
-            input=laylist,
-            method="min_raster",
-            overwrite=True,
-        )
+        gs.run_command("r.series", quiet=True, output=tmpla3,
+                       input=laylist, method="min_raster", overwrite=True)
 
     # Compute nt1, nt2, and nt1and2 novelty maps
     nt1 = "{}_NT1".format(out)
     nt2 = "{}_NT2".format(out)
     nt12 = "{}_NT1NT2".format(out)
-    expr = ";".join(
-        [
-            "$nt12 = if($tmplay < 0, $tmplay, $tmpla2)",
-            "$nt2 = if($tmplay >= 0, $tmpla2, null())",
-            "$nt1 = if($tmplay < 0, $tmplay, null())",
-        ]
-    )
-    gs.mapcalc(
-        expr, nt12=nt12, nt1=nt1, nt2=nt2, tmplay=tmplay, tmpla2=tmpla2, quiet=True
-    )
+    expr = ";".join([
+        "$nt12 = if($tmplay < 0, $tmplay, $tmpla2)",
+        "$nt2 = if($tmplay >= 0, $tmpla2, null())",
+        "$nt1 = if($tmplay < 0, $tmplay, null())"])
+    gs.mapcalc(expr, nt12=nt12, nt1=nt1, nt2=nt2, tmplay=tmplay,
+               tmpla2=tmpla2, quiet=True)
 
     # Write metadata nt1, nt2, nt1and2  maps
-    gs.run_command(
-        "r.support",
-        map=nt1,
-        units="unitless",
-        title="Type 1 similarity",
-        description="Type 1 similarity (NT1)",
-        loadhistory=tmphist,
-    )
-    gs.run_command(
-        "r.support",
-        map=nt2,
-        units="unitless",
-        title="Type 2 similarity",
-        description="Type 2 similarity (NT2)",
-        loadhistory=tmphist,
-    )
-    gs.run_command(
-        "r.support",
-        map=nt12,
-        units="unitless",
-        title="Type 1 + 2 novelty / similarity",
-        description="Type 1 + 2 similarity (NT1)",
-        loadhistory=tmphist,
-    )
+    gs.run_command("r.support", map=nt1, units="unitless",
+                   title="Type 1 similarity",
+                   description="Type 1 similarity (NT1)",
+                   loadhistory=tmphist)
+    gs.run_command("r.support", map=nt2, units="unitless",
+                   title="Type 2 similarity",
+                   description="Type 2 similarity (NT2)",
+                   loadhistory=tmphist)
+    gs.run_command("r.support", map=nt12, units="unitless",
+                   title="Type 1 + 2 novelty / similarity",
+                   description="Type 1 + 2 similarity (NT1)",
+                   loadhistory=tmphist)
 
     # Compute MIC maps
     if flag_p:
         mic12 = "{}_MICNT1and2".format(out)
-        expr = "$mic12 = if($tmplay < 0, $tmpla1, " "if($tmpla2>1, $tmpla3, -1))"
-        gs.mapcalc(
-            expr,
-            tmplay=tmplay,
-            tmpla1=tmpla1,
-            tmpla2=tmpla2,
-            tmpla3=tmpla3,
-            mic12=mic12,
-            quiet=True,
-        )
+        expr = "$mic12 = if($tmplay < 0, $tmpla1, " \
+               "if($tmpla2>1, $tmpla3, -1))"
+        gs.mapcalc(expr, tmplay=tmplay, tmpla1=tmpla1, tmpla2=tmpla2,
+                   tmpla3=tmpla3, mic12=mic12, quiet=True)
 
         # Write category labels to MIC maps
         tmpcat = tempfile.mkstemp()
         with open(tmpcat[1], "w") as text_file:
             text_file.write("-1:None\n")
-            for cats in xrange(len(opn)):
+            for cats in range(len(opn)):
                 text_file.write("{}:{}\n".format(cats, opn[cats]))
-        gs.run_command(
-            "r.category", quiet=True, map=mic12, rules=tmpcat[1], separator=":"
-        )
+        gs.run_command("r.category", quiet=True, map=mic12, rules=tmpcat[1],
+                       separator=":")
         os.remove(tmpcat[1])
-        CATV = Module("r.category", map=mic12, stdout_=PIPE).outputs.stdout
-        Module("r.category", map=mic12, rules="-", stdin_=CATV, quiet=True)
-        gs.run_command(
-            "r.support",
-            map=mic12,
-            units="unitless",
-            title="Most influential covariate",
-            description="Most influential covariate (MIC) for NT1" "and NT2",
-            loadhistory=tmphist,
-        )
+        CATV = Module('r.category', map=mic12, stdout_=PIPE).outputs.stdout
+        Module('r.category', map=mic12, rules="-", stdin_=CATV, quiet=True)
+        gs.run_command("r.support", map=mic12, units="unitless",
+                       title="Most influential covariate",
+                       description="Most influential covariate (MIC) for NT1"
+                                   "and NT2", loadhistory=tmphist)
 
     # Write color table
-    gs.write_command("r.colors", map=nt12, rules="-", stdin=COLORS_EXDET, quiet=True)
+    gs.write_command("r.colors", map=nt12, rules='-', stdin=COLORS_EXDET,
+                     quiet=True)
 
     # Finalize
     gs.info(_("Done...."))
-
 
 if __name__ == "__main__":
     atexit.register(cleanup)
