@@ -105,8 +105,7 @@ def main():
     try:
         import projpicker as ppik
     except ImportError:
-        grass.fatal(_("ProjPicker not installed.\n"
-                      "Use 'pip install projpicker'"))
+        grass.fatal(_("ProjPicker not installed. Use 'pip install projpicker'"))
 
     coords = options["coordinates"]
     operator = options["operator"]
