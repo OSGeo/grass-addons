@@ -105,9 +105,7 @@ def main():
     try:
         import projpicker as ppik
     except ImportError:
-        grass.fatal(
-            _("ProjPicker not installed. Use 'pip install projpicker'")
-        )
+        grass.fatal(_("ProjPicker not installed. Use 'pip install projpicker'"))
 
     coords = options["coordinates"]
     operator = options["operator"]
@@ -125,10 +123,7 @@ def main():
     single = flags["1"]
     start_gui = flags["g"]
 
-    if (
-        bbox_map
-        and grass.parse_command("g.proj", flags="g")["unit"] != "degree"
-    ):
+    if bbox_map and grass.parse_command("g.proj", flags="g")["unit"] != "degree":
         grass.fatal(_("Cannot create vector in degree in a non-degree mapset"))
 
     # ppik.projpicker() appends input file contents to geometries from
@@ -225,13 +220,9 @@ def main():
         if p.returncode != 0:
             grass.fatal(_("Error creating output vector map %s") % bbox_map)
 
-        grass.run_command(
-            "v.db.addtable", map=bbox_map, columns="srid text, name text"
-        )
+        grass.run_command("v.db.addtable", map=bbox_map, columns="srid text, name text")
         for i in range(0, nbbox):
-            message(
-                "\b" * 80 + _("Populating table...") + f" {i+1}/{nbbox}", ""
-            )
+            message("\b" * 80 + _("Populating table...") + f" {i+1}/{nbbox}", "")
             b = bbox[i]
             srid = f"{b.crs_auth_name}:{b.crs_code}"
             cat = i + 1
