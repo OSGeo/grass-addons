@@ -220,33 +220,33 @@ performed in a postfix notation.
 A, but not B:
 <div class="code"><pre>
 postfix
-A	# find A
-B	# find B
-not	# complement of B
-and	# A and not B
+A       # find A
+B       # find B
+not     # complement of B
+and     # A and not B
 </pre></div>
 
 <p>This query string returns all projections that contain A or B, but not C:
 A, but not B:
 <div class="code"><pre>
 postfix
-A	# find A
-B	# find B
-or	# A or B
-C	# find C
-not	# complement of C
-and	# (A or B) and not C
+A       # find A
+B       # find B
+or      # A or B
+C       # find C
+not     # complement of C
+and     # (A or B) and not C
 </pre></div>
 
 <p>This query string returns all projections that contain both A and B, but not
 C; or those that contain C, but neither A nor B:
 <div class="code"><pre>
 postfix
-A	# find A
-B	# find B
-and	# A and B
-C	# find C
-xor	# (A and B) xor C
+A       # find A
+B       # find B
+and     # A and B
+C       # find C
+xor     # (A and B) xor C
 </pre></div>
 
 <h3>Special geometries for logical operations</h3>
@@ -258,34 +258,34 @@ special geometries are useful to manipulate existing projection sets.
 projections that only contain X:
 <div class="code"><pre>
 postfix
-A	# find A
-B	# find B
-or	# A or B
-C	# find C
-not	# complement of C
-and	# (A or B) and not C
-none	# empty
-and	# ((A or B) and not C) and empty = empty
-X	# find X
-or	# empty or X = X
+A       # find A
+B       # find B
+or      # A or B
+C       # find C
+not     # complement of C
+and     # (A or B) and not C
+none    # empty
+and     # ((A or B) and not C) and empty = empty
+X       # find X
+or      # empty or X = X
 </pre></div>
 
 <p>This query string returns all projections not in degree that contain A:
 <div class="code"><pre>
 postfix
-A		# find A
-unit=degree	# restrict queries to degree unit
-all		# find all projections in degree
+A               # find A
+unit=degree     # restrict queries to degree unit
+all             # find all projections in degree
 
-unit=any	# back to all units; without this, the following NOT operation
-		# would be performed in the degree-unit universe and return
-		# nothing because the NOT of all in the same universe is none
+unit=any        # back to all units; without this, the following NOT operation
+                # would be performed in the degree-unit universe and return
+                # nothing because the NOT of all in the same universe is none
 
-not		# complement of (all projections in degree) in the any-unit
-		# universe; that is, all projections not in degree
+not             # complement of (all projections in degree) in the any-unit
+                # universe; that is, all projections not in degree
 
-and		# A and (all projections not in degree);
-		# all projections not in degree that contain A
+and             # A and (all projections not in degree);
+                # all projections not in degree that contain A
 </pre></div>
 
 <p>This query string returns all projections in <em>xy</em> that contain A that
@@ -293,11 +293,11 @@ can be transformed to B in EPSG:4326 within a <em>match_tol</em> distance
 tolerance in <em>xy</em> (default 1):
 <div class="code"><pre>
 postfix
-match_tol=200	# error tolerance in an xy unit for distance matching
-A		# known coordinates in an unknown projection and unit
+match_tol=200   # error tolerance in an xy unit for distance matching
+A               # known coordinates in an unknown projection and unit
 latlon
-B		# known coordinates in latlon that should match A
-match		# find projections in xy that contain A that matches B in latlon
+B               # known coordinates in latlon that should match A
+match           # find projections in xy that contain A that matches B in latlon
 </pre></div>
 
 <p>This operator requires the <a href="https://pypi.org/project/pyproj/">pyproj</a>
@@ -306,12 +306,12 @@ contain both A and B. To save time and just return the first match, use
 <em>match_max</em> (default 0 for all):
 <div class="code"><pre>
 postfix
-match_tol=200	# error tolerance in an xy unit for distance matching
-match_max=1	# return the first match only and quit
-A		# known coordinates in an unknown projection and unit
+match_tol=200   # error tolerance in an xy unit for distance matching
+match_max=1     # return the first match only and quit
+A               # known coordinates in an unknown projection and unit
 latlon
-B		# known coordinates in latlon that should match A
-match		# find projections in xy that contain A that matches B in latlon
+B               # known coordinates in latlon that should match A
+match           # find projections in xy that contain A that matches B in latlon
 </pre></div>
 
 <h3>Output schema</h3>
@@ -405,13 +405,20 @@ g.projpicker query="postfix match_max=1 match_tol=200 33.7490,-84.3880 xy 432697
 These equivalent commands find projections in US foot that contains
 34.2348,-83.8677, but not 33.7490,-84.3880 in <em>latlon</em>:
 <div class="code"><pre>
+# since the unit name "US foot" contains a space and statements are separated
+# by whitespaces, it needs to be surrounded by # single or double quotes when
+# it's passed from the command line
 g.projpicker query="postfix unit='US foot' 34.2348,-83.8677 33.7490,-84.3880 not and"
 
 g.projpicker query="postfix unit='US foot' '34.2348 -83.8677' '33.7490 -84.3880' not and"
 
 g.projpicker input=- &lt;&lt;EOT
 postfix
-unit=US foot
+unit=US foot    # in this case, quotes are not allowed because statements are
+                # separated by a newline; in fact, quotes are handled by
+                # g.projpicker, not by ProjPicker, because the former accepts
+                # the entire query as a single string while the latter reads
+                # multiple statements as invidiaul arguments
 34.2348,-83.8677
 33.7490,-84.3880
 not

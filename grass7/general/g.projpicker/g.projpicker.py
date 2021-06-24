@@ -19,7 +19,7 @@
 #############################################################################
 
 # %module
-# % description: Queries projection information spatially
+# % description: Queries projection information spatially.
 # % keyword: general
 # % keyword: projection
 # % keyword: create location
