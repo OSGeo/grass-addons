@@ -119,9 +119,13 @@ def main():
     try:
         from netCDF4 import Dataset
     except:
-        g.fatal(_('netCDF4 not detected. Install pip3 and '
-                  'then type at the command prompt: '
-                  '"pip3 install netCDF4".'))
+        g.fatal(
+            _(
+                "netCDF4 not detected. Install pip3 and "
+                "then type at the command prompt: "
+                '"pip3 install netCDF4".'
+            )
+        )
 
     options, flags = gscript.parser()
     _input = options["input"]
@@ -162,7 +166,7 @@ def main():
     _rasters = np.array(gscript.parse_command("g.list", type="raster").keys())
     if (_rasters == _output).any() or (_water == _output).any():
         if gscript.overwrite() is False:
-            g.fatal(_("output would overwrite "+_output))
+            g.fatal(_("output would overwrite " + _output))
 
     # Check for proper number of processors
     try:
@@ -174,16 +178,14 @@ def main():
         g.fatal(_("FlowFill requires 3 or more processors."))
 
     # Check for proper option set
-    if _h_runoff is not '': # ????? possible ?????
-        if _h_runoff_raster is not '':
-            g.fatal(_('Only one of "h_runoff" and ' +
-                                         '"h_runoff_raster" may be set'))
-    elif _h_runoff_raster is '':
-        g.fatal(_('Either "h_runoff" or ' +
-                                     '"h_runoff_raster" must be set'))
+    if _h_runoff is not "":  # ????? possible ?????
+        if _h_runoff_raster is not "":
+            g.fatal(_('Only one of "h_runoff" and "h_runoff_raster" may be set'))
+    elif _h_runoff_raster is "":
+        g.fatal(_('Either "h_runoff" or "h_runoff_raster" must be set'))
 
-    if _output is '' and _water is '':
-        g.warning(_('No output is set.'))
+    if _output is "" and _water is "":
+        g.warning(_("No output is set."))
 
     # Set up runoff options
     if _h_runoff_raster is not "":
@@ -273,18 +275,21 @@ def main():
             _mpirun_error_flag = True
     popen.stdout.close()
     if _mpirun_error_flag:
-        print('')
-        g.fatal(_('FlowFill executable not found.\n'
-              'If you have not installed FlowFill, please download it '
-              'from https://github.com/KCallaghan/FlowFill, '
-              'and follow the directions in the README to compile and '
-              'install it on your system.\n'
-              'This should then work with the default "ffpath". '
-              'Otherwise, you may have simply have typed in an incorrect '
-              '"ffpath".'))
+        print("")
+        g.fatal(
+            _(
+                "FlowFill executable not found.\n"
+                "If you have not installed FlowFill, please download it "
+                "from https://github.com/KCallaghan/FlowFill, "
+                "and follow the directions in the README to compile and "
+                "install it on your system.\n"
+                'This should then work with the default "ffpath". '
+                "Otherwise, you may have simply have typed in an incorrect "
+                '"ffpath".'
+            )
+        )
 
-
-    #_stdout = subprocess.Popen(mpirunstr, shell=True, stdout=subprocess.PIPE)
+    # _stdout = subprocess.Popen(mpirunstr, shell=True, stdout=subprocess.PIPE)
     #
     # if 'mpirun was unable to find the specified executable file' in \
     #                              ''.join(_stdout.stdout.readlines()):
