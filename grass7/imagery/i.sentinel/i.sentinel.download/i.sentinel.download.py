@@ -420,7 +420,6 @@ def download_gcs(scene, output):
     except ImportError as e:
         gs.fatal(_("Module requires tqdm library: {}").format(e))
 
-
     final_scene_dir = os.path.join(output, "{}.SAFE".format(scene))
     create_dir(final_scene_dir)
     level = scene.split("_")[1]
@@ -1034,7 +1033,6 @@ def main():
         import requests
     except ImportError as e:
         gs.fatal(_("Module requires requests library: {}").format(e))
-
 
     user = password = None
     if options["datasource"] == "ESA_COAH" or options["datasource"] == "GCS":
