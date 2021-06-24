@@ -1,0 +1,205 @@
+<h2>DESCRIPTION</h2>
+
+<p>
+<em>i.gabor</em> computes texture raster maps from a user-specified Gabor
+filter bank and raster map.
+The 2 dimensional Gabor filter is an orientation sensitive filter which mimics
+the cells within the human visual cortex by creating a filter bank of multiple
+orientations and scales to pick up different frequency responses.
+This mimicing or simulation of the visual cortex, and in particular its
+sensitivity to various orientations, sets the filter aside from other standard
+texture and edge detectors.
+Additionally, the Gabor filter has been shown to have high localization
+optimization/performance in both the spatial and frequency domains.
+The localized nature of the filter then allows for the parameters to be tweaked
+and changed to retrieve different features which suit the visual needs of the
+analysis.
+Subsequently, the Gabor filter has been used in hyperspectral image
+classification, water body and river extraction, land use classification and
+change detection, and is especially powerful when used with Object Based Image
+Analysis (OBIA) and edge detection algorithms.
+
+
+<h2>NOTES</h2>
+
+<em>i.gabor</em> uses <a href="https://numpy.org/">NumPy</a> to handle the
+entire raster map in memory.
+This can result in a bottleneck when processing large raster maps.
+Additionally, <a href="https://www.scipy.org/">SciPy</a> is used for fast
+Fourier convolution of the each filter.
+
+The module can either produce individual rasters with the suffix of
+<b>windowsize_orientation_wavelength_offset_aspect</b> for each filter in the
+bank or a single combined (<b>-c</b>) raster outputting with only the basename.
+
+<p>
+The default orientations computed will be 0 (East/West), 45
+(North-East/South-West), 90 North/South, 135 (North-West/South-East).
+However, the user can also specify any number of orientations in degrees less
+than 180 with the <b>orientation</b> option.
+The window size of the Gabor filter is specified by the user in
+<em>i.gabor</em>
+The standard deviation of the Gaussian kernel before it is oscillated is tied to
+the user-specified window size.
+<p>
+The Gabor filter has both a real and imaginary component which can be used for
+different purposes.
+While <em>i.gabor</em> computes the real component by default, the imaginary
+component can be computed by using the flag <b>-i</b>.
+
+<p>
+By default <em>i.gabor</em> outputs each Gabor filter convolved raster map as
+individual raster maps
+with each part corresponding to its specified value.
+The <b>-c</b> flag can be used to create a singular combined raster map as the
+output.
+<p>
+Additionally, <em>i.gabor</em> offers statistical thresholding which will set
+values below a user-specified percentile (<b>threshold</b>) of the convolved
+image to 0 while keeping all values above the percentile the same.
+In conjunction with thresholding, a bitwise quantification (<b>-q</b>) method
+is implemented for the orientations specified by the user.
+As an orientation sensitive filter, the Gabor filter is unique in its
+capabilities to mimic the human visual cortex system when a bank of Gabor
+filters is used. Common filter banks will consist of between 4 to 8
+orientations and scales controlled by the wavelength. Each filter within a bank
+is subsequently convolved over the raster map for each kernel within the bank.
+The resulting number of raster maps will be the number of orientations x the
+number of scales.
+
+<h3>Orientation quantification</h3>
+The orientation quantificatation takes the index value (<i>i</i>) of each
+user-specified orientation and applies <i>2<sup>i</sup></i> for every value
+greater than or equal to the percentile value. Where a bit string position is
+equal to one it indicates the corresponding orientation<i><sub>i</sub></i> has
+a strong response.
+<div class="code"><pre>
+orientation = 0, 45, 90, 135
+0   = 0b00000001 = 1
+45  = 0b00000010 = 2
+90  = 0b00000100 = 4
+135 = 0b00001000 = 8
+</pre></div>
+This method will allow the values of the combined raster to be decomposed in
+order to evaluate which orientations had high responses for a given raster
+cell. For example, if a cell has high responses at orientations 0 and 135
+degrees, the combined raster cell will have a final output value of 9, which as
+a binary string is <i>0b00001001</i>.
+
+<h2>EXAMPLE</h2>
+The following example uses the North Carolina demo data orthophoto to show the
+orientation responses of a Gabor filter bank. Eight orientations are used; 0,
+22.5, 45, 67.5, 90, 112.5, 135, and 157.5 degrees. For the quantified raster
+map, the bit values will be 1, 2, 4, 8, 16, 32, 64, and 256.
+
+<center>
+    <img src="i_gabor_ortho.png" border=1><br>
+    North Carolina demo data - ortho_2001_t792_1m
+</center>
+
+<div class="code"><pre>
+g.region n=220272 s=219585 w=638335 e=639313 res=1
+i.gabor input=ortho_2001_t792_1m output=ortho_i \
+	orientation=0,22.5,45,67.5,90,112.5,135,157.5 size=41 wavelength=6 \
+	threshold=90 -i
+</pre></div>
+
+<center>
+    <img src="i_gabor_individual.png" border=1><br>
+    The individual imaginary outputs at the orientations 0, 45, 90, and 135
+    degrees. Created without <b>-c</b> flag.
+</center>
+
+<div class="code"><pre>
+g.region n=220272 s=219585 w=638335 e=639313 res=1
+i.gabor input=ortho_2001_t792_1m output=ortho_i_8o_41_5 \
+	orientation=0,22.5,45,67.5,90,112.5,135,157.5 size=41 wavelength=6 \
+	threshold=90 -c -i
+</pre></div>
+<center>
+    <img src="i_gabor_imaginary.png" border=1><br>
+    Imaginary component of Gabor filter bank with 8 orientations.
+</center>
+
+<div class="code"><pre>
+g.region n=220272 s=219585 w=638335 e=639313 res=1
+i.gabor input=ortho_2001_t792_1m output=ortho_i_8o_41_5_q \
+	orientation=0,22.5,45,67.5,90,112.5,135,157.5 size=41 wavelength=6 \
+	threshold=90 -c -i -q
+</pre></div>
+<center>
+    <img src="i_gabor_quant.png" border=1><br>
+    Bitwise quantification of imaginary component. Each pixels orientation
+    responses can be extracted.
+</center>
+
+<p>After the Gabor filter is generated, it can be used for a number of purposes.
+For instance, we can create a segmented raster map of ortho_2001_t792_1m aided
+with both the real and imaginary component of the Gabor filter which is able to
+reduce noise in the output raster map.
+
+<div class="code"><pre>
+g.region n=220272 s=219585 w=638335 e=639313 res=1
+# Real component
+i.gabor input=ortho_2001_t792_1m output=ortho --overwrite \
+        orientation=0,22.5,45,67.5,90,112.5,135,157.5 size=11 wavelength=2.5 \
+        -c
+
+# Imaginary component
+i.gabor input=ortho_2001_t792_1m output=ortho_i --overwrite \
+        orientation=0,22.5,45,67.5,90,112.5,135,157.5 size=11 wavelength=2.5 \
+        -c -i
+
+# Segmentation with just ortho_2001_t792_1m
+i.segment group=ortho_2001_t792_1m output=ortho_segment --overwrite \
+        threshold=0.5 minsize=5
+
+# Segmentation with ortho_2001_t792_1m and both Gabor filters
+i.segment group=ortho_2001_t792_1m,ortho,ortho_i output=gabor_aided_segment \
+        --overwrite threshold=0.5 minsize=5
+</pre></div>
+<center>
+    <img src="i_gabor_segment.png" border=1><br>
+    Segmentation of solely ortho_2001_t792_1m and the segmentation of
+    ortho_2001_t792_1m aided with the real and imaginary Gabor components
+</center>
+
+<h2>TODO</h2>
+
+More robust implementation in regard to potential bottleneck caused by treating
+everything in memory. Implement GRASS RasterRow/Segment class to read in bits of
+raster map at a time in memory.
+
+<h2>SEE ALSO</h2>
+<em>
+    <a href="https://grass.osgeo.org/grass78/manuals/r.texture.html">r.texture</a>,
+    <a href="https://grass.osgeo.org/grass78/manuals/addons/i.variance.html">i.variance</a>,
+    <a href="https://grass.osgeo.org/grass78/manuals/i.segment.html">i.segment</a>
+</em>
+
+<h2>AUTHOR</h2>
+<a href="mailto:ocsmit@protonmail.com">Owen Smith</a>
+
+<h2>REFERENCES</h2>
+<ul>
+    <li>Gabor, D. (1946). <em>Theory of communication.</em> Journal of the
+        Institute of Electrical Engineers, 93, 429–457.</li>
+    <li>Grigorescu, S. E., Petkov, N., &amp; Kruizinga, P. (2002). <em>Comparison of
+        texture features based on Gabor filters.</em> IEEE Transactions on Image
+        processing, 11(10), 1160-1167.</li>
+    <li>Hillen, F., Meynberg, O., &amp; H&ouml;fle, B. (2015). <em>Routing in dense human
+        crowds using smartphone movement data and optical aerial imagery.</em>
+        ISPRS International Journal of Geo-Information, 4(2), 974-988.</li>
+    <li>Lee, T. S. (1996). <em>Image representation using 2D Gabor wavelets.</em>
+        IEEE Transactions on pattern analysis and machine intelligence, 18(10),
+        959-971.</li>
+    <li>Smith, O. (2021). <a href="https://here.isnew.info/gisc-4360k/i.gabor%20-%20A%20Gabor%20filter%20module%20for%20GRASS%20GIS%20by%20Owen%20Smith.pdf"><em>i.gabor - A Gabor filter module for GRASS GIS</em></a></li>
+    <li>Zhao, H., Xiao, P., &amp; Feng, X. (2017). <em>Optimal Gabor filter-based edge
+        detection of high spatial resolution remotely sensed images.</em> Journal of
+        Applied Remote Sensing, 11(1), 015019.</li>
+</ul>
+
+<!--
+<p>
+<i>Last changed: $Date$</i>
+-->
