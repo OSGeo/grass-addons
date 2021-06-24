@@ -16,28 +16,31 @@ This program is free software under the GNU General Public License
 """
 
 import grass.script.core as grass
-#from pygrass.modules import Module
+
+# from pygrass.modules import Module
 from core.gconsole import GConsole
-from core.gcmd        import GError, RunCommand, CommandThread
-from core.debug       import Debug
-from core.settings    import UserSettings
+from core.gcmd import GError, RunCommand, CommandThread
+from core.debug import Debug
+from core.settings import UserSettings
 
 import sys
 import os
 import tempfile
 
 try:
-    from grass.lib.gis    import *
+    from grass.lib.gis import *
     from grass.lib.vector import *
     from grass.lib.raster import *
 except ImportError:
     pass
 
+
 class RasterObject:
-    def __init__(self,cat,coords,ft):
+    def __init__(self, cat, coords, ft):
         self.catId = cat
         self.coords = coords
         self.ftype = ft
+
 
 class IRDigit:
     def __init__(self, mapwindow):
@@ -47,7 +50,7 @@ class IRDigit:
         """
         self.mapWindow = mapwindow
         self.objects = list()
-        self.toolbar = mapwindow.parent.toolbars['rdigit']
+        self.toolbar = mapwindow.parent.toolbars["rdigit"]
         self.polyfile = tempfile.NamedTemporaryFile(delete=False)
 
         Debug.msg(2, "IRDigit.__init__() %s ", self.polyfile.name)
@@ -65,23 +68,28 @@ class IRDigit:
                     self.polyfile.write("AREA\n")
                     for coor in obj.coords:
                         east, north = coor
-                        locbuf = " %s %s\n" % (east,north)
+                        locbuf = " %s %s\n" % (east, north)
                         self.polyfile.write(locbuf)
 
                 elif obj.ftype == GV_LINE:
                     self.polyfile.write("LINE\n")
                     for coor in obj.coords:
                         east, north = coor
-                        locbuf = " %s %s\n" % (east,north)
+                        locbuf = " %s %s\n" % (east, north)
                         self.polyfile.write(locbuf)
 
                 catbuf = "=%d a\n" % (obj.catId)
                 self.polyfile.write(catbuf)
 
             self.polyfile.close()
-            region_settings = grass.parse_command('g.region', flags = 'p', delimiter = ':')
-            RunCommand('r.in.poly', input=self.polyfile.name,
-                                    rows=region_settings['rows'], output=self.getOutputName(),overwrite=True)
+            region_settings = grass.parse_command("g.region", flags="p", delimiter=":")
+            RunCommand(
+                "r.in.poly",
+                input=self.polyfile.name,
+                rows=region_settings["rows"],
+                output=self.getOutputName(),
+                overwrite=True,
+            )
 
             os.unlink(self.polyfile.name)
 
@@ -107,48 +115,48 @@ class IRDigit:
 
         @return tuple (number of added features, feature ids)
         """
-        if ftype == 'point':
+        if ftype == "point":
             vtype = GV_POINT
-        elif ftype == 'line':
+        elif ftype == "line":
             vtype = GV_LINE
-        elif ftype == 'boundary':
+        elif ftype == "boundary":
             vtype = GV_BOUNDARY
-        elif ftype == 'area':
+        elif ftype == "area":
             vtype = GV_AREA
-        elif ftype == 'circle':
-            vtype = 'circle'
+        elif ftype == "circle":
+            vtype = "circle"
         else:
-            GError(parent = self.mapWindow,
-                   message = _("Unknown feature type '%s'") % ftype)
+            GError(
+                parent=self.mapWindow, message=_("Unknown feature type '%s'") % ftype
+            )
             return (-1, None)
 
-
         if vtype & GV_LINES and len(points) < 2:
-            GError(parent = self.mapWindow,
-                   message = _("Not enough points for line"))
+            GError(parent=self.mapWindow, message=_("Not enough points for line"))
             return (-1, None)
 
         self.toolbar.EnableUndo()
         return self._addFeature(vtype, points)
 
     def _checkMap(self):
-        """!Check if map is open
-        """
+        """!Check if map is open"""
         if not self.polyfile.name:
             self._NoMap()
             return False
 
         return True
 
-    def NoMap(self, name = None):
+    def NoMap(self, name=None):
         """!No map for editing"""
         if name:
-            message = _('Unable to open vector map <%s>.') % name
+            message = _("Unable to open vector map <%s>.") % name
         else:
-            message = _('No vector map open for editing.3')
-        GError(message + ' ' + _('Operation canceled.'),
-               parent = self.parent,
-               caption = self.caption)
+            message = _("No vector map open for editing.3")
+        GError(
+            message + " " + _("Operation canceled."),
+            parent=self.parent,
+            caption=self.caption,
+        )
 
     def _addFeature(self, ftype, coords):
         """!Add new feature(s) to the vector map
@@ -160,11 +168,16 @@ class IRDigit:
         if not self._checkMap():
             return (-1, None)
 
-        obj = RasterObject(self.cat, coords,ftype)
+        obj = RasterObject(self.cat, coords, ftype)
         self.objects.append(obj)
         self.cat = self.cat + 1
 
-        Debug.msg(2, "IRDigit._addFeature(): npoints=%d, ftype=%d, catId=%d",
-                  len(coords), ftype,self.cat)
+        Debug.msg(
+            2,
+            "IRDigit._addFeature(): npoints=%d, ftype=%d, catId=%d",
+            len(coords),
+            ftype,
+            self.cat,
+        )
 
         return self.cat - 1

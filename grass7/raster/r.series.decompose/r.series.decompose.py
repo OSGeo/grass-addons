@@ -68,8 +68,6 @@
 #%end
 
 
-
-
 import os
 import sys
 import csv
@@ -95,11 +93,13 @@ def get_time(N, t, deg=True):
         x = degrees(x)
     return x
 
+
 def _freq_to_name(freq):
     return "_fr%s" % (freq)
 
+
 def _time_to_name(time):
-    return "_t%04d" % (time, )
+    return "_t%04d" % (time,)
 
 
 def _generate_time(N, prefix):
@@ -117,8 +117,9 @@ def _generate_time(N, prefix):
     for i in range(N):
         output = prefix + _time_to_name(i)
         t = get_time(N, i, deg=True)
-        grass.mapcalc("${out} = ${t}", out=output, t=t,
-                      quiet=True, overwrite=grass.overwrite())
+        grass.mapcalc(
+            "${out} = ${t}", out=output, t=t, quiet=True, overwrite=grass.overwrite()
+        )
         names[i] = output
 
     return names
@@ -139,45 +140,56 @@ def _generate_harmonics(time_names, freq, prefix):
         harm = dict()
         t = get_time(len(time_names), i)
         for f in freq:
-            sin_output = prefix + 'sin' + _time_to_name(i) + _freq_to_name(f)
-            grass.mapcalc("${out} = sin(${f} * ${t})", out=sin_output, t=t, f=f,
-                          quiet=True, overwrite=grass.overwrite())
+            sin_output = prefix + "sin" + _time_to_name(i) + _freq_to_name(f)
+            grass.mapcalc(
+                "${out} = sin(${f} * ${t})",
+                out=sin_output,
+                t=t,
+                f=f,
+                quiet=True,
+                overwrite=grass.overwrite(),
+            )
 
-            cos_output = prefix + 'cos' + _time_to_name(i) + _freq_to_name(f)
-            grass.mapcalc("${out} = cos(${f} * ${t})", out=cos_output, t=t, f=f,
-                          quiet=True, overwrite=grass.overwrite())
+            cos_output = prefix + "cos" + _time_to_name(i) + _freq_to_name(f)
+            grass.mapcalc(
+                "${out} = cos(${f} * ${t})",
+                out=cos_output,
+                t=t,
+                f=f,
+                quiet=True,
+                overwrite=grass.overwrite(),
+            )
             harm[f] = dict(sin=sin_output, cos=cos_output)
 
         names[i] = harm
 
     return names
 
+
 def _generate_const(prefix):
-    output = prefix + 'const'
-    grass.mapcalc("${out} = 1.0", out=output,
-                  quiet=True, overwrite=grass.overwrite())
+    output = prefix + "const"
+    grass.mapcalc("${out} = 1.0", out=output, quiet=True, overwrite=grass.overwrite())
     return output
 
+
 def generate_vars(time_count, freq, prefix):
-    """Generate time_count sets of variables.
-    """
+    """Generate time_count sets of variables."""
     const_name = _generate_const(prefix)
     time_names = _generate_time(time_count, prefix)
     harm_names = _generate_harmonics(time_names, freq, prefix)
 
     return const_name, time_names, harm_names
 
-def _generate_sample_descr(fileobj, freq, xnames, const_name, time_names, harm_names):
-    """Generate settings file for r.mregression.series
 
-    """
+def _generate_sample_descr(fileobj, freq, xnames, const_name, time_names, harm_names):
+    """Generate settings file for r.mregression.series"""
     freq_names = []
     for f in freq:
-        freq_names.append('sin' + _freq_to_name(f))
-        freq_names.append('cos' + _freq_to_name(f))
-    header = ['x', 'const', 'time'] + freq_names
+        freq_names.append("sin" + _freq_to_name(f))
+        freq_names.append("cos" + _freq_to_name(f))
+    header = ["x", "const", "time"] + freq_names
 
-    writer = csv.writer(fileobj, delimiter=',')
+    writer = csv.writer(fileobj, delimiter=",")
     writer.writerow(header)
 
     size = len(xnames)
@@ -185,20 +197,24 @@ def _generate_sample_descr(fileobj, freq, xnames, const_name, time_names, harm_n
         row = [xnames[i], const_name, time_names[i]]
         f_name = harm_names[i]
         for f in freq:
-            sin_name = f_name[f]['sin']
-            cos_name = f_name[f]['cos']
+            sin_name = f_name[f]["sin"]
+            cos_name = f_name[f]["cos"]
             row.append(sin_name)
             row.append(cos_name)
         writer.writerow(row)
 
+
 def regression(settings_name, coef_prefix):
-    grass.run_command('r.mregression.series',
-                      samples=settings_name, result_prefix=coef_prefix,
-                      overwrite=grass.overwrite())
+    grass.run_command(
+        "r.mregression.series",
+        samples=settings_name,
+        result_prefix=coef_prefix,
+        overwrite=grass.overwrite(),
+    )
 
 
-def inverse_transform(settings_name, coef_prefix, result_prefix='res.'):
-    reader = csv.reader(open(settings_name), delimiter=',')
+def inverse_transform(settings_name, coef_prefix, result_prefix="res."):
+    reader = csv.reader(open(settings_name), delimiter=",")
     header = reader.next()
 
     data_names = [coef_prefix + name for name in header[1:]]
@@ -207,35 +223,37 @@ def inverse_transform(settings_name, coef_prefix, result_prefix='res.'):
         s = "%s%s = " % (result_prefix, row[0])
         sums = []
         for i in range(len(data_names)):
-            sums.append("%s*%s" % (data_names[i], row[i+1]))
-        s += ' + '.join(sums)
+            sums.append("%s*%s" % (data_names[i], row[i + 1]))
+        s += " + ".join(sums)
 
         grass.mapcalc(s, overwrite=grass.overwrite(), quite=True)
 
-def main(options, flags):
-    xnames = options['input']
-    coef_pref = options['coef_prefix']
-    timevar_pref = options['timevar_prefix']
-    result_pref = options['result_prefix']
-    freq = options['freq']
-    freq = [float(f) for f in freq.split(',')]
 
-    xnames = xnames.split(',')
+def main(options, flags):
+    xnames = options["input"]
+    coef_pref = options["coef_prefix"]
+    timevar_pref = options["timevar_prefix"]
+    result_pref = options["result_prefix"]
+    freq = options["freq"]
+    freq = [float(f) for f in freq.split(",")]
+
+    xnames = xnames.split(",")
 
     N = len(xnames)
-    if len(freq) >= (N-1)/2:
+    if len(freq) >= (N - 1) / 2:
         grass.error("Count of used harmonics is to large. Reduce the paramether.")
         sys.exit(1)
 
     const_name, time_names, harm_names = generate_vars(N, freq, timevar_pref)
 
     settings_name = uuid.uuid4().hex
-    settings = open(settings_name, 'w')
+    settings = open(settings_name, "w")
     _generate_sample_descr(settings, freq, xnames, const_name, time_names, harm_names)
     settings.close()
     regression(settings_name, coef_pref)
     inverse_transform(settings_name, coef_pref, result_pref)
     os.unlink(settings_name)
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

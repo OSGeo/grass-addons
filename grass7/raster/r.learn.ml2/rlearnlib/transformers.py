@@ -4,17 +4,19 @@ import numpy as np
 import grass.script as gs
 
 
-class ImportSklearnModule():
+class ImportSklearnModule:
     """Lazy import of 'sklearn' module"""
+
     try:
-        sklearn_base = importlib.import_module('sklearn.base')
+        sklearn_base = importlib.import_module("sklearn.base")
     except:
-        gs.fatal(
-            "Package python3-scikit-learn 0.20 or newer is not installed")
+        gs.fatal("Package python3-scikit-learn 0.20 or newer is not installed")
 
 
-class CategoryEncoder(ImportSklearnModule.sklearn_base.BaseEstimator,
-                      ImportSklearnModule.sklearn_base.TransformerMixin):
+class CategoryEncoder(
+    ImportSklearnModule.sklearn_base.BaseEstimator,
+    ImportSklearnModule.sklearn_base.TransformerMixin,
+):
     """Transformer to encode GRASS GIS category labels into integer labels"""
 
     def __init__(self):

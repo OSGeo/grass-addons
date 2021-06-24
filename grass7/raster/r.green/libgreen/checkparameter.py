@@ -8,18 +8,17 @@ from grass.pygrass.vector import VectorTopo
 def check_required_columns(vname, layer, reqcols, pname):
     """Check if the vector input maps has the right columns
     in the attribute table."""
-    vname, mset = vname.split('@') if '@' in vname else (vname, '')
-    with VectorTopo(vname, mset, mode='r', layer=layer) as vect:
+    vname, mset = vname.split("@") if "@" in vname else (vname, "")
+    with VectorTopo(vname, mset, mode="r", layer=layer) as vect:
         columns = vect.table.columns
     for col in reqcols:
         if col not in columns:
-            msg = ("Parameter: %s require the following columns: %r,"
-                   " %s is missing")
+            msg = "Parameter: %s require the following columns: %r," " %s is missing"
             raise ParameterError(msg % (pname, reqcols, col))
     return vect
 
 
-def check_range(value, min=0., max=1.):
+def check_range(value, min=0.0, max=1.0):
     """Check if a value is between a range"""
     if value < min or value > max:
         raise ParameterError("Value not between: %f, %f" % (min, max))
@@ -34,8 +33,7 @@ def check_float_or_raster(parameter, min=None, max=None):
             par = check_range(par, min, max)
     except:
         try:
-            rname, mset = (parameter.split('@') if '@' in parameter
-                           else (parameter, ''))
+            rname, mset = parameter.split("@") if "@" in parameter else (parameter, "")
             if min is not None and max is not None:
                 with RasterRow(rname, mset) as rst:
                     mn, mx = rst.info.range

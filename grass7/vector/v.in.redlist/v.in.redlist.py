@@ -69,20 +69,24 @@ def main():
     try:
         from osgeo import ogr
     except ImportError:
-        grass.fatal(_("Unable to load GDAL Python bindings (requires "
-                      "package 'python-gdal' or Python library GDAL "
-                      "to be installed)."))
+        grass.fatal(
+            _(
+                "Unable to load GDAL Python bindings (requires "
+                "package 'python-gdal' or Python library GDAL "
+                "to be installed)."
+            )
+        )
 
-    redlist_shapefile_long = options['input']
-    imported_species = options['species_name']
-    species_to_import = options['output']
-    imported_species_quoted = "'"+imported_species+"'"
-    directory = options['dir']
-    list_species = flags['l']
-    save_species = flags['s']
+    redlist_shapefile_long = options["input"]
+    imported_species = options["species_name"]
+    species_to_import = options["output"]
+    imported_species_quoted = "'" + imported_species + "'"
+    directory = options["dir"]
+    list_species = flags["l"]
+    save_species = flags["s"]
     redlist_shapefile_short = os.path.basename(redlist_shapefile_long)
-    species_filename = redlist_shapefile_short.split('.')[0]
-    species_file = species_filename+'.txt'
+    species_filename = redlist_shapefile_short.split(".")[0]
+    species_file = species_filename + ".txt"
     global tmp
 
     # save species list to a user defined directory
@@ -98,10 +102,10 @@ def main():
         # get layer
         layer = dataSource.GetLayer()
         # open export file
-        f = open('%s' % (output_species_file), 'wb')
+        f = open("%s" % (output_species_file), "wb")
         # write content of the attribute table column binomial
         for feature in layer:
-            f.write('%s\n' % (feature.GetField("binomial")))
+            f.write("%s\n" % (feature.GetField("binomial")))
         f.close()
         grass.message("%s" % (output_species_file))
 
@@ -117,17 +121,21 @@ def main():
         # get layer
         layer = dataSource.GetLayer()
         for feature in layer:
-            grass.message('%s' % (feature.GetField("binomial")))
+            grass.message("%s" % (feature.GetField("binomial")))
 
     # import spatial data for a user defined species in the Red List
 
     else:
 
         grass.message(" importing spatial data for %s ..." % (imported_species_quoted))
-        grass.run_command("v.in.ogr", input = redlist_shapefile_long,
-                                                        output = species_to_import,
-                                                        where = "binomial = %s" % (imported_species_quoted),
-                                                        quiet = True)
+        grass.run_command(
+            "v.in.ogr",
+            input=redlist_shapefile_long,
+            output=species_to_import,
+            where="binomial = %s" % (imported_species_quoted),
+            quiet=True,
+        )
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

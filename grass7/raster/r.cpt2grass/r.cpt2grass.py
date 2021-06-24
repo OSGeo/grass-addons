@@ -61,9 +61,9 @@ def HSVtoRGB(h, s, v):
     """Converts HSV to RGB.
     Based on the Foley and Van Dam HSV algorithm used
     by James Westervelt's (CERL) hsv.rgb.sh script from GRASS 4/5."""
-   # Hue: 0-360 degrees
-   # Satuaration: 0.0-1.0
-   # Value: 0.0-1.0
+    # Hue: 0-360 degrees
+    # Satuaration: 0.0-1.0
+    # Value: 0.0-1.0
     if v == 0.0:
         return (0, 0, 0)
     if v == 1.0:
@@ -94,7 +94,7 @@ def HSVtoRGB(h, s, v):
     if i == 5:
         R = v
 
-     # green
+    # green
     if i == 0:
         G = t
     if i == 1:
@@ -126,8 +126,8 @@ def HSVtoRGB(h, s, v):
 
 
 def main(options, flags):
-    input_file = options['input']
-    input_url = options['url']
+    input_file = options["input"]
+    input_url = options["url"]
     if input_url:
         try:
             from six.moves.urllib.request import urlopen
@@ -136,26 +136,26 @@ def main(options, flags):
 
         txt = urlopen(input_url).readlines()
     else:
-        with open(input_file, 'r') as f:
+        with open(input_file, "r") as f:
             txt = f.readlines()
 
-    model = 'RGB'  # assuming RGB
+    model = "RGB"  # assuming RGB
     cpt_rules = []
     for line in txt:
         if not line.strip():
             continue
-        if 'COLOR_MODEL' in line:
-            model = line.split('=')[-1].strip()
-        elif line[0] in ('B', 'F', 'N', '#'):
+        if "COLOR_MODEL" in line:
+            model = line.split("=")[-1].strip()
+        elif line[0] in ("B", "F", "N", "#"):
             continue
         else:
             cpt_rules.append(line.strip())
 
-    if model not in ('RGB', 'HSV'):
+    if model not in ("RGB", "HSV"):
         gscript.fatal(_("Only the RGB and HSV color models are supported"))
 
     rules = []
-    if flags['s']:
+    if flags["s"]:
         # sort?
         cpt_min = float(cpt_rules[0].split()[0])
         cpt_max = float(cpt_rules[-1].split()[4])
@@ -164,30 +164,41 @@ def main(options, flags):
         try:
             v1, r1, g1, b1, v2, r2, g2, b2 = line.split()
         except ValueError:
-            gscript.fatal(_("Parsing input failed. The expected format is 'value1 R G B value2 R G B'"))
+            gscript.fatal(
+                _(
+                    "Parsing input failed. The expected format is 'value1 R G B value2 R G B'"
+                )
+            )
         v1 = float(v1)
         v2 = float(v2)
-        if model == 'HSV':
+        if model == "HSV":
             r1, b1, g1 = HSVtoRGB(int(r1), int(g1), int(b1))
             r2, b2, g2 = HSVtoRGB(int(r2), int(g2), int(b2))
-        if flags['s']:
+        if flags["s"]:
             v1 = 100 * (cpt_range - (cpt_max - v1)) / cpt_range
             v2 = 100 * (cpt_range - (cpt_max - v2)) / cpt_range
-        rules.append("{v:.3f}{perc} {r}:{g}:{b}".format(v=v1, perc='%' if flags['s'] else '',
-                                                        r=r1, g=g1, b=b1))
-        rules.append("{v:.3f}{perc} {r}:{g}:{b}".format(v=v2, perc='%' if flags['s'] else '',
-                                                        r=r2, g=g2, b=b2))
-    if options['map']:
-        gscript.write_command('r.colors', map=options['map'],
-                              rules='-', stdin='\n'.join(rules))
-    if options['output']:
-        with open(options['output'], 'w') as f:
-            f.write('\n'.join(rules))
-            f.write('\n')
-    elif not options['map']:
-        print('\n'.join(rules) + '\n')
+        rules.append(
+            "{v:.3f}{perc} {r}:{g}:{b}".format(
+                v=v1, perc="%" if flags["s"] else "", r=r1, g=g1, b=b1
+            )
+        )
+        rules.append(
+            "{v:.3f}{perc} {r}:{g}:{b}".format(
+                v=v2, perc="%" if flags["s"] else "", r=r2, g=g2, b=b2
+            )
+        )
+    if options["map"]:
+        gscript.write_command(
+            "r.colors", map=options["map"], rules="-", stdin="\n".join(rules)
+        )
+    if options["output"]:
+        with open(options["output"], "w") as f:
+            f.write("\n".join(rules))
+            f.write("\n")
+    elif not options["map"]:
+        print("\n".join(rules) + "\n")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     options, flags = gscript.parser()
     sys.exit(main(options, flags))

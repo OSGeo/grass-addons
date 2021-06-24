@@ -78,7 +78,7 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
 #%end
 
 import sys
-from sys  import exit, maxsize
+from sys import exit, maxsize
 from math import sqrt
 from math import exp
 from random import randint
@@ -90,30 +90,34 @@ except ImportError:
 
 from grass.pygrass.utils import set_path
 
-set_path('r.agent', 'libagent', '..')
+set_path("r.agent", "libagent", "..")
 from libagent import error, grassland, world
+
 
 def setmaps(cost, output):
     """
     Set the user maps in place
     """
     if cost:
-        if -1 == cost.find('@'):
-            cost = cost + '@' + grass.gisenv()['MAPSET']
+        if -1 == cost.find("@"):
+            cost = cost + "@" + grass.gisenv()["MAPSET"]
         # set cost/penalty layer
-        world.playground.setgrasslayer('COST', cost, True)
+        world.playground.setgrasslayer("COST", cost, True)
     else:
         raise error.DataError("r.agent.rand:", "The cost map is mandatory.")
     if output:
-        if -1 == output.find('@'):
-            output = output + '@' + grass.gisenv()['MAPSET']
-        world.playground.setgrasslayer('RESULT', output, True)
+        if -1 == output.find("@"):
+            output = output + "@" + grass.gisenv()["MAPSET"]
+        world.playground.setgrasslayer("RESULT", output, True)
     else:
         raise error.DataError("r.agent.rand:", "The output map is mandatory.")
+
+
 #    world.playground.grassmapnames['RESULT'] = output
-    #TODO hopefully not really needed - workaround for broken(?) garray
+# TODO hopefully not really needed - workaround for broken(?) garray
 #    world.playground.createlayer("copy", output, True)
 #    world.playground.grassmapnames["copy"] = output
+
 
 def run(rounds, maxagents, agentlife, mark, overwrite):
     """
@@ -126,31 +130,33 @@ def run(rounds, maxagents, agentlife, mark, overwrite):
             agent = world.agents[i]
             agent.step()
             position = agent.getposition()
-            newvalue = world.playground.getcellvalue('RESULT', position) + mark
-            world.playground.setcellvalue('RESULT', position, newvalue)
-    world.playground.writelayer('RESULT', False, overwrite)
+            newvalue = world.playground.getcellvalue("RESULT", position) + mark
+            world.playground.setcellvalue("RESULT", position, newvalue)
+    world.playground.writelayer("RESULT", False, overwrite)
+
 
 def main():
     try:
-        setmaps(options['costmap'], options['outputmap'])
+        setmaps(options["costmap"], options["outputmap"])
     except error.DataError:
         grass.fatal("Failed to parse args..")
         sys.exit(1)
-    if options['maxagents']:
-        maxagents = int(options['maxagents'])
+    if options["maxagents"]:
+        maxagents = int(options["maxagents"])
     else:
         maxagents = 99
-    if options['agentslife']:
-        agentslife = int(options['agentslife'])
+    if options["agentslife"]:
+        agentslife = int(options["agentslife"])
     else:
         agentslife = 99
-    if options['mark']:
-        mark = int(options['mark'])
+    if options["mark"]:
+        mark = int(options["mark"])
     else:
         mark = 99
 
-    run(int(options['rounds']), maxagents, agentslife, mark, flags['p'])
+    run(int(options["rounds"]), maxagents, agentslife, mark, flags["p"])
     grass.message("FINISH")
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

@@ -191,12 +191,10 @@ import grass.script as grass
 from grass.pygrass.raster import RasterRow
 from grass.script.core import overwrite, parse_command, parser, run_command
 
-YPIX = 'yield_pix = yield_pix1*%d + yield_pix2*%d'
-
+YPIX = "yield_pix = yield_pix1*%d + yield_pix2*%d"
 
 
 def remove_map(opts, flgs):
-
 
     run_command("g.remove", type="raster", flags="f", name="cable_crane_extraction")
     run_command("g.remove", type="raster", flags="f", name="forwarder_extraction")
@@ -215,47 +213,76 @@ def remove_map(opts, flgs):
 def main(opts, flgs):
     ow = overwrite()
 
-    output = opts['output_basename']
+    output = opts["output_basename"]
 
-    forest = opts['forest']
-    boundaries = opts['boundaries']
-    yield_ = opts['forest_column_yield']
-    management = opts['forest_column_management']
-    treatment = opts['forest_column_treatment']
-    yield_surface = opts['forest_column_yield_surface']
-    roughness = opts['forest_column_roughness']
-    forest_roads = opts['forest_roads']
+    forest = opts["forest"]
+    boundaries = opts["boundaries"]
+    yield_ = opts["forest_column_yield"]
+    management = opts["forest_column_management"]
+    treatment = opts["forest_column_treatment"]
+    yield_surface = opts["forest_column_yield_surface"]
+    roughness = opts["forest_column_roughness"]
+    forest_roads = opts["forest_roads"]
 
-    rivers = opts['rivers']
-    lakes = opts['lakes']
+    rivers = opts["rivers"]
+    lakes = opts["lakes"]
 
-    vector_forest = opts['forest']
+    vector_forest = opts["forest"]
 
-    tech_bioenergyHF = output+'_tech_bioenergyHF'
-    tech_bioenergyC = output+'_tech_bioenergyC'
-    tech_bioenergy = output+'_tech_bioenergy'
+    tech_bioenergyHF = output + "_tech_bioenergyHF"
+    tech_bioenergyC = output + "_tech_bioenergyC"
+    tech_bioenergy = output + "_tech_bioenergy"
 
     ######## start import and convert ########
 
+    run_command("g.region", vect=boundaries)
+    run_command(
+        "v.to.rast",
+        input=forest,
+        output="yield",
+        use="attr",
+        attrcolumn=yield_,
+        overwrite=True,
+    )
+    run_command(
+        "v.to.rast",
+        input=forest,
+        output="yield_surface",
+        use="attr",
+        attrcolumn=yield_surface,
+        overwrite=True,
+    )
+    run_command(
+        "v.to.rast",
+        input=forest,
+        output="treatment",
+        use="attr",
+        attrcolumn=treatment,
+        overwrite=True,
+    )
+    run_command(
+        "v.to.rast",
+        input=forest,
+        output="management",
+        use="attr",
+        attrcolumn=management,
+        overwrite=True,
+    )
 
-    run_command("g.region",vect=boundaries)
-    run_command("v.to.rast", input=forest,output="yield", use="attr", attrcolumn=yield_,overwrite=True)
-    run_command("v.to.rast", input=forest,output="yield_surface", use="attr", attrcolumn=yield_surface,overwrite=True)
-    run_command("v.to.rast", input=forest,output="treatment", use="attr", attrcolumn=treatment,overwrite=True)
-    run_command("v.to.rast", input=forest,output="management", use="attr", attrcolumn=management,overwrite=True)
+    run_command(
+        "v.to.rast",
+        input=forest_roads,
+        output="forest_roads",
+        use="val",
+        overwrite=True,
+    )
 
-    run_command("v.to.rast", input=forest_roads,output="forest_roads", use="val", overwrite=True)
-
-
-
-    run_command("r.null", map='yield',null=0)
-    run_command("r.null", map='yield_surface',null=0)
-    run_command("r.null", map='treatment',null=0)
-    run_command("r.null", map='management',null=0)
-
+    run_command("r.null", map="yield", null=0)
+    run_command("r.null", map="yield_surface", null=0)
+    run_command("r.null", map="treatment", null=0)
+    run_command("r.null", map="management", null=0)
 
     ######## end import and convert ########
-
 
     ######## temp patch to link map and fields ######
 
@@ -267,77 +294,178 @@ def main(opts, flgs):
 
     ######## end temp patch to link map and fields ######
 
-
-    if roughness == '':
-        run_command("r.mapcalc",overwrite=ow,expression='roughness=0')
-        roughness = 'roughness'
+    if roughness == "":
+        run_command("r.mapcalc", overwrite=ow, expression="roughness=0")
+        roughness = "roughness"
     else:
-        run_command("v.to.rast", input=forest,output="roughness", use="attr", attrcolumn=roughness,overwrite=True)
-        run_command("r.null", map='roughness',null=0)
+        run_command(
+            "v.to.rast",
+            input=forest,
+            output="roughness",
+            use="attr",
+            attrcolumn=roughness,
+            overwrite=True,
+        )
+        run_command("r.null", map="roughness", null=0)
 
-    CCEXTR = 'cable_crane_extraction = if('+yield_+'>0 && slope>'+opts['slp_min_cc']+' && slope<='+opts['slp_max_cc']+' && extr_dist<'+opts['dist_max_cc']+', 1)'
+    CCEXTR = (
+        "cable_crane_extraction = if("
+        + yield_
+        + ">0 && slope>"
+        + opts["slp_min_cc"]
+        + " && slope<="
+        + opts["slp_max_cc"]
+        + " && extr_dist<"
+        + opts["dist_max_cc"]
+        + ", 1)"
+    )
 
-    FWEXTR = 'forwarder_extraction = if('+yield_+'>0 && slope<='+opts['slp_max_fw']+' && '+management+'==1 && ('+roughness+'==0 || '+roughness+'==1 || '+roughness+'==99999) && extr_dist<'+opts['dist_max_fw']+', 1)'
+    FWEXTR = (
+        "forwarder_extraction = if("
+        + yield_
+        + ">0 && slope<="
+        + opts["slp_max_fw"]
+        + " && "
+        + management
+        + "==1 && ("
+        + roughness
+        + "==0 || "
+        + roughness
+        + "==1 || "
+        + roughness
+        + "==99999) && extr_dist<"
+        + opts["dist_max_fw"]
+        + ", 1)"
+    )
 
-    OEXTR = 'other_extraction = if('+yield_+'>0 && slope<='+opts['slp_max_cop']+' && '+management+'==2 && ('+roughness+'==0 || '+roughness+'==1 || '+roughness+'==99999) && extr_dist<'+opts['dist_max_cop']+', 1)'
+    OEXTR = (
+        "other_extraction = if("
+        + yield_
+        + ">0 && slope<="
+        + opts["slp_max_cop"]
+        + " && "
+        + management
+        + "==2 && ("
+        + roughness
+        + "==0 || "
+        + roughness
+        + "==1 || "
+        + roughness
+        + "==99999) && extr_dist<"
+        + opts["dist_max_cop"]
+        + ", 1)"
+    )
 
-    EHF = tech_bioenergyHF+' = technical_surface*(if('+management+'==1 && '+treatment+'==1 || '+management+'==1 && '+treatment+'==99999, yield_pix*'+opts['energy_tops_hf']+', if('+management+'==1 && '+treatment+'==2, yield_pix *'+opts['energy_tops_hf']+' + yield_pix * '+opts['energy_cormometric_vol_hf']+')))'
+    EHF = (
+        tech_bioenergyHF
+        + " = technical_surface*(if("
+        + management
+        + "==1 && "
+        + treatment
+        + "==1 || "
+        + management
+        + "==1 && "
+        + treatment
+        + "==99999, yield_pix*"
+        + opts["energy_tops_hf"]
+        + ", if("
+        + management
+        + "==1 && "
+        + treatment
+        + "==2, yield_pix *"
+        + opts["energy_tops_hf"]
+        + " + yield_pix * "
+        + opts["energy_cormometric_vol_hf"]
+        + ")))"
+    )
 
-    ECC = tech_bioenergyC+' = technical_surface*(if('+management+' == 2, yield_pix*'+opts['energy_tops_cop']+'))'
+    ECC = (
+        tech_bioenergyC
+        + " = technical_surface*(if("
+        + management
+        + " == 2, yield_pix*"
+        + opts["energy_tops_cop"]
+        + "))"
+    )
 
-    ET = tech_bioenergy+' = ('+tech_bioenergyC+' + '+tech_bioenergyHF+')'
+    ET = tech_bioenergy + " = (" + tech_bioenergyC + " + " + tech_bioenergyHF + ")"
 
-
-    run_command("r.param.scale", overwrite=ow,
-                input=opts['dtm'], output="morphometric_features",
-                size=3, method="feature")
-    run_command("r.slope.aspect", overwrite=ow,
-                elevation=opts['dtm'], slope="slope_deg")
-    run_command("r.mapcalc", overwrite=ow,
-                expression='pix_cross = ((ewres()+nsres())/2)/ cos(slope_deg)')
-    run_command("r.mapcalc", overwrite=ow,expression='yield_pix1 = ('+yield_+'/'+yield_surface+')*((ewres()*nsres())/10000)')
+    run_command(
+        "r.param.scale",
+        overwrite=ow,
+        input=opts["dtm"],
+        output="morphometric_features",
+        size=3,
+        method="feature",
+    )
+    run_command(
+        "r.slope.aspect", overwrite=ow, elevation=opts["dtm"], slope="slope_deg"
+    )
+    run_command(
+        "r.mapcalc",
+        overwrite=ow,
+        expression="pix_cross = ((ewres()+nsres())/2)/ cos(slope_deg)",
+    )
+    run_command(
+        "r.mapcalc",
+        overwrite=ow,
+        expression="yield_pix1 = ("
+        + yield_
+        + "/"
+        + yield_surface
+        + ")*((ewres()*nsres())/10000)",
+    )
     run_command("r.null", map="yield_pix1", null=0)
     run_command("r.null", map="morphometric_features", null=0)
 
+    exprmap = "frict_surf_extr = pix_cross + if(yield_pix1<=0, 99999) + if(morphometric_features==6, 99999)"
 
-
-    exprmap = 'frict_surf_extr = pix_cross + if(yield_pix1<=0, 99999) + if(morphometric_features==6, 99999)'
-
-    if rivers != '':
-        run_command("v.to.rast", input=rivers,output="rivers", use="val", overwrite=True)
+    if rivers != "":
+        run_command(
+            "v.to.rast", input=rivers, output="rivers", use="val", overwrite=True
+        )
         run_command("r.null", map="rivers", null=0)
         rivers = "rivers"
-        exprmap += '+ if('+rivers+'>=1, 99999)'
+        exprmap += "+ if(" + rivers + ">=1, 99999)"
 
-    if lakes != '':
-        run_command("v.to.rast", input=lakes,output="lakes", use="val", overwrite=True)
+    if lakes != "":
+        run_command("v.to.rast", input=lakes, output="lakes", use="val", overwrite=True)
         run_command("r.null", map="lakes", null=0)
         lakes = "lakes"
-        exprmap += '+ if('+lakes+'>=1, 99999)'
+        exprmap += "+ if(" + lakes + ">=1, 99999)"
 
+    # morphometric_features==6 -> peaks
+    # run_command("r.mapcalc", overwrite=ow,expression='frict_surf_extr = if(morphometric_features==6, 99999) + if(rivers>=1 || lakes>=1, 99999) + if(yield_pix1<=0, 99999) + pix_cross')
+    run_command("r.mapcalc", overwrite=ow, expression=exprmap)
 
+    run_command(
+        "r.cost",
+        overwrite=ow,
+        input="frict_surf_extr",
+        output="extr_dist",
+        stop_points=vector_forest,
+        start_rast=forest_roads,
+        max_cost=1500,
+    )
 
-    #morphometric_features==6 -> peaks
-    #run_command("r.mapcalc", overwrite=ow,expression='frict_surf_extr = if(morphometric_features==6, 99999) + if(rivers>=1 || lakes>=1, 99999) + if(yield_pix1<=0, 99999) + pix_cross')
-    run_command("r.mapcalc", overwrite=ow,expression=exprmap)
-
-    run_command("r.cost", overwrite=ow,
-                input="frict_surf_extr", output="extr_dist",
-                stop_points=vector_forest, start_rast=forest_roads,
-                max_cost=1500)
-
-    run_command("r.slope.aspect", overwrite=ow,
-                elevation=opts['dtm'], slope="slope", format="percent")
-    run_command("r.mapcalc", overwrite=ow,expression=CCEXTR)
-    run_command("r.mapcalc", overwrite=ow,
-                expression=FWEXTR)
-    run_command("r.mapcalc", overwrite=ow,
-                expression=OEXTR)
+    run_command(
+        "r.slope.aspect",
+        overwrite=ow,
+        elevation=opts["dtm"],
+        slope="slope",
+        format="percent",
+    )
+    run_command("r.mapcalc", overwrite=ow, expression=CCEXTR)
+    run_command("r.mapcalc", overwrite=ow, expression=FWEXTR)
+    run_command("r.mapcalc", overwrite=ow, expression=OEXTR)
     run_command("r.null", map="cable_crane_extraction", null=0)
     run_command("r.null", map="forwarder_extraction", null=0)
     run_command("r.null", map="other_extraction", null=0)
-    run_command("r.mapcalc", overwrite=ow,
-                expression='technical_surface = cable_crane_extraction + forwarder_extraction + other_extraction')
+    run_command(
+        "r.mapcalc",
+        overwrite=ow,
+        expression="technical_surface = cable_crane_extraction + forwarder_extraction + other_extraction",
+    )
     # run_command("r.statistics", overwrite=ow,
     #             base="compartment", cover="technical_surface", method="sum",
     #             output="techn_pix_comp")
@@ -347,23 +475,28 @@ def main(opts, flgs):
     # run_command("r.mapcalc", overwrite=ow,
     #             expression=YPIX % (1 if flgs['u'] else 0, 0 if flgs['u'] else 1,))
 
-    run_command("r.mapcalc", overwrite=ow,expression="yield_pix=yield_pix1")
+    run_command("r.mapcalc", overwrite=ow, expression="yield_pix=yield_pix1")
 
-
-    run_command("r.mapcalc", overwrite=ow,expression=EHF)
-    run_command("r.mapcalc", overwrite=ow,expression=ECC)
-    run_command("r.mapcalc", overwrite=ow,expression=ET)
+    run_command("r.mapcalc", overwrite=ow, expression=EHF)
+    run_command("r.mapcalc", overwrite=ow, expression=ECC)
+    run_command("r.mapcalc", overwrite=ow, expression=ET)
 
     with RasterRow(tech_bioenergy) as pT:
         T = np.array(pT)
 
-    print("Resulted maps: "+output+"_tech_bioenergyHF, "+output+"_tech_bioenergyC, "+output+"_tech_bioenergy")
+    print(
+        "Resulted maps: "
+        + output
+        + "_tech_bioenergyHF, "
+        + output
+        + "_tech_bioenergyC, "
+        + output
+        + "_tech_bioenergy"
+    )
     print("Total bioenergy stimated (Mwh): %.2f" % np.nansum(T))
 
-
-    if flgs['r']:
+    if flgs["r"]:
         remove_map(opts, flgs)
-
 
 
 if __name__ == "__main__":

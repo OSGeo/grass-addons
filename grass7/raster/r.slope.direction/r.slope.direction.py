@@ -80,10 +80,15 @@ import grass.script as gscript
 
 def cleanup():
     """Remove temporary maps"""
-    nuldev = open(os.devnull, 'w')
-    gscript.run_command('g.remove', flags='f', quiet=True,
-                         type=['raster','vector'], stderr=nuldev,
-                         pattern='{}*'.format(tmpname))
+    nuldev = open(os.devnull, "w")
+    gscript.run_command(
+        "g.remove",
+        flags="f",
+        quiet=True,
+        type=["raster", "vector"],
+        stderr=nuldev,
+        pattern="{}*".format(tmpname),
+    )
 
 
 def check_directions(dir_type, dmax):
@@ -107,23 +112,49 @@ def check_directions(dir_type, dmax):
             gscript.fatal(_("Directional degrees divided by 45 can not be > 8"))
     elif dir_type == "bitmask":
         if dmax > ((1 << 16) - 1):
-            gscript.fatal(_("Bitmask encoded directions can not be > %d"), (1 << 16) - 1)
+            gscript.fatal(
+                _("Bitmask encoded directions can not be > %d"), (1 << 16) - 1
+            )
     elif dir_type == "auto":
         if dmax <= 8:
-            gscript.message(_("Input direction format assumed to be degrees CCW from East divided by 45"))
+            gscript.message(
+                _(
+                    "Input direction format assumed to be degrees CCW from East divided by 45"
+                )
+            )
             dir_type = "degree_45"
         elif dmax <= ((1 << 8) - 1):
-            gscript.message(_("Input direction format assumed to be bitmask encoded without Knight's move"))
+            gscript.message(
+                _(
+                    "Input direction format assumed to be bitmask encoded without Knight's move"
+                )
+            )
             dir_type = "bitmask"
         elif dmax <= 360:
-            gscript.message(_("Input direction format assumed to be degrees CCW from East"))
+            gscript.message(
+                _("Input direction format assumed to be degrees CCW from East")
+            )
             dir_type = "degree"
         elif dmax <= ((1 << 16) - 1):
-            gscript.message(_("Input direction format assumed to be bitmask encoded with Knight's move"))
+            gscript.message(
+                _(
+                    "Input direction format assumed to be bitmask encoded with Knight's move"
+                )
+            )
             dir_type = "bitmask_k"
-            gscript.fatal(_("Sorry, bitmask direction with Knight's move encoding is not (yet) supported"))
+            gscript.fatal(
+                _(
+                    "Sorry, bitmask direction with Knight's move encoding is not (yet) supported"
+                )
+            )
         else:
-            gscript.fatal(_("Unable to detect format of input direction map <{}>".format(direction)))
+            gscript.fatal(
+                _(
+                    "Unable to detect format of input direction map <{}>".format(
+                        direction
+                    )
+                )
+            )
     else:
         gscript.fatal(_("Invalid directions format '{}'".format(direction)))
 
@@ -137,60 +168,64 @@ def main():
     tmpname = gscript.tempname(12)
 
     # Define user input variables
-    a_flag = flags['a']
-    elevation = options['elevation']
-    direction = options['direction']
-    slope_measure = options['slope_measure']
-    outputs = options['output'].split(',')
-    dir_format = options['dir_type']
+    a_flag = flags["a"]
+    elevation = options["elevation"]
+    direction = options["direction"]
+    slope_measure = options["slope_measure"]
+    outputs = options["output"].split(",")
+    dir_format = options["dir_type"]
 
     try:
-        steps = list(map(int, options['steps'].split(',')))
+        steps = list(map(int, options["steps"].split(",")))
     except:
-        gscript.fatal(_('Not all steps given as integer.'))
+        gscript.fatal(_("Not all steps given as integer."))
 
     n_steps = max(steps)
 
-    abs = 'abs' if a_flag else ''
+    abs = "abs" if a_flag else ""
 
-    dir_values = gscript.parse_command('r.info', map=direction, flags='r')
+    dir_values = gscript.parse_command("r.info", map=direction, flags="r")
 
-    dir_type = check_directions(dir_format,float(dir_values['max']))
+    dir_type = check_directions(dir_format, float(dir_values["max"]))
 
     # Ceck if number of requested steps and outputs match
     if len(outputs) != len(steps):
         gscript.fatal(_("Number of steps and number of output maps differ"))
 
     # Define static variables
-    kwargs_even = {'dir': direction,
-                   'elev_in': '{}_elev_even'.format(tmpname),
-                   'elev_out': '{}_elev_odd'.format(tmpname)}
-    kwargs_odd = {'dir': direction,
-                  'elev_in': '{}_elev_odd'.format(tmpname),
-                  'elev_out': '{}_elev_even'.format(tmpname)}
+    kwargs_even = {
+        "dir": direction,
+        "elev_in": "{}_elev_even".format(tmpname),
+        "elev_out": "{}_elev_odd".format(tmpname),
+    }
+    kwargs_odd = {
+        "dir": direction,
+        "elev_in": "{}_elev_odd".format(tmpname),
+        "elev_out": "{}_elev_even".format(tmpname),
+    }
 
-    if slope_measure != 'difference':
-        kwargs_even['dist_in'] = '{}_dist_even'.format(tmpname)
-        kwargs_even['dist_out'] = '{}_dist_odd'.format(tmpname)
-        kwargs_even['dist_sum_in'] = '{}_dist_sum_even'.format(tmpname)
-        kwargs_even['dist_sum_out'] = '{}_dist_sum_odd'.format(tmpname)
-        kwargs_odd['dist_in'] = '{}_dist_odd'.format(tmpname)
-        kwargs_odd['dist_out'] = '{}_dist_even'.format(tmpname)
-        kwargs_odd['dist_sum_in'] = '{}_dist_sum_odd'.format(tmpname)
-        kwargs_odd['dist_sum_out'] = '{}_dist_sum_even'.format(tmpname)
+    if slope_measure != "difference":
+        kwargs_even["dist_in"] = "{}_dist_even".format(tmpname)
+        kwargs_even["dist_out"] = "{}_dist_odd".format(tmpname)
+        kwargs_even["dist_sum_in"] = "{}_dist_sum_even".format(tmpname)
+        kwargs_even["dist_sum_out"] = "{}_dist_sum_odd".format(tmpname)
+        kwargs_odd["dist_in"] = "{}_dist_odd".format(tmpname)
+        kwargs_odd["dist_out"] = "{}_dist_even".format(tmpname)
+        kwargs_odd["dist_sum_in"] = "{}_dist_sum_odd".format(tmpname)
+        kwargs_odd["dist_sum_out"] = "{}_dist_sum_even".format(tmpname)
 
     dir_format_dict = {
-        'degree_45': [1, 2, 3, 4, 5, 6, 7],
-        'degree': [45, 90, 135, 180, 225, 270, 315],
-        'bitmask': [1, 8, 7, 6, 5, 4, 3]
+        "degree_45": [1, 2, 3, 4, 5, 6, 7],
+        "degree": [45, 90, 135, 180, 225, 270, 315],
+        "bitmask": [1, 8, 7, 6, 5, 4, 3],
     }
 
     slope_measure_dict = {
-        'difference': """\n{gradient}={abs}({elev}-{elev_in})""",
-        'percent': """\n{gradient}={abs}({elev}-{elev_in})/{dist}""",
-        'percent_int': """\n{gradient}=round(({abs}(({elev}-{elev_in}))/{dist})*10000.0)""",
-        'degree': """\n{gradient}=atan({abs}({elev}-{elev_in})/{dist})""",
-        'degree_int': """\n{gradient}=round(atan({abs}({elev}-{elev_in})/{dist})*100.0)"""
+        "difference": """\n{gradient}={abs}({elev}-{elev_in})""",
+        "percent": """\n{gradient}={abs}({elev}-{elev_in})/{dist}""",
+        "percent_int": """\n{gradient}=round(({abs}(({elev}-{elev_in}))/{dist})*10000.0)""",
+        "degree": """\n{gradient}=atan({abs}({elev}-{elev_in})/{dist})""",
+        "degree_int": """\n{gradient}=round(atan({abs}({elev}-{elev_in})/{dist})*100.0)""",
     }
 
     dirs = dir_format_dict[dir_type]
@@ -203,13 +238,17 @@ if({{dir}} == {3}, if(isnull({{elev_in}}[0,-1]),{{elev_in}},{{elev_in}}[0,-1]), 
 if({{dir}} == {4}, if(isnull({{elev_in}}[1,-1]),{{elev_in}},{{elev_in}}[1,-1]), \
 if({{dir}} == {5}, if(isnull({{elev_in}}[1,0]),{{elev_in}},{{elev_in}}[1,0]), \
 if({{dir}} == {6}, if(isnull({{elev_in}}[1,1]),{{elev_in}},{{elev_in}}[1,1]), \
-if(isnull({{elev_in}}[0,1]),{{elev_in}},{{elev_in}}[0,1]))))))))""".format(*dirs)
+if(isnull({{elev_in}}[0,1]),{{elev_in}},{{elev_in}}[0,1]))))))))""".format(
+        *dirs
+    )
 
-    kwargs = {'dir': direction,
-               'elev_in': elevation,
-               'elev_out': '{}_elev_even'.format(tmpname)}
+    kwargs = {
+        "dir": direction,
+        "elev_in": elevation,
+        "elev_out": "{}_elev_even".format(tmpname),
+    }
 
-    if slope_measure != 'difference':
+    if slope_measure != "difference":
         expression_template += """\n{{dist_out}}=\
 if({{dir}} == {0}, if(isnull({{dist_in}}[-1,1]),{{dist_in}},{{dist_in}}[-1,1]), \
 if({{dir}} == {1}, if(isnull({{dist_in}}[-1,0]),{{dist_in}},{{dist_in}}[-1,0]), \
@@ -219,30 +258,42 @@ if({{dir}} == {4}, if(isnull({{dist_in}}[1,-1]),{{dist_in}},{{dist_in}}[1,-1]), 
 if({{dir}} == {5}, if(isnull({{dist_in}}[1,0]),{{dist_in}},{{dist_in}}[1,0]), \
 if({{dir}} == {6}, if(isnull({{dist_in}}[1,1]),{{dist_in}},{{dist_in}}[1,1]), \
 if(isnull({{dist_in}}[0,1]),{{dist_in}},{{dist_in}}[0,1]))))))))
-{{dist_sum_out}}={{dist_sum_in}}+{{dist_in}}""".format(*dirs)
+{{dist_sum_out}}={{dist_sum_in}}+{{dist_in}}""".format(
+            *dirs
+        )
 
-        kwargs['dist_in'] = '{}_dist_odd'.format(tmpname)
-        kwargs['dist_out'] = '{}_dist_even'.format(tmpname)
-        kwargs['dist_sum_in'] = '{}_dist_sum_odd'.format(tmpname)
-        kwargs['dist_sum_out'] = '{}_dist_sum_even'.format(tmpname)
+        kwargs["dist_in"] = "{}_dist_odd".format(tmpname)
+        kwargs["dist_out"] = "{}_dist_even".format(tmpname)
+        kwargs["dist_sum_in"] = "{}_dist_sum_odd".format(tmpname)
+        kwargs["dist_sum_out"] = "{}_dist_sum_even".format(tmpname)
 
         # Start processing
         curent_region = gscript.region()
 
-        gscript.run_command('r.mapcalc', overwrite=True, quiet=True,
-                            expression="""{dist_in}=\
+        gscript.run_command(
+            "r.mapcalc",
+            overwrite=True,
+            quiet=True,
+            expression="""{dist_in}=\
 if({dir} == {NE} || {dir} == {NW} || {dir} == {SW}\
 || {dir} == {SE}, sqrt({ewres}^2+{nsres}^2), \
 if({dir} == {N} || {dir} == {S},{nsres},{ewres}))
-{dist_sum_in}=0""".format(NE=dirs[0], NW=dirs[2], SW=dirs[4], SE=dirs[6],
-                                N=dirs[1], S=dirs[5],
-                                nsres=curent_region['nsres'],
-                                ewres=curent_region['ewres'],
-                                dir=direction,
-                                dist_in=kwargs['dist_in'],
-                                dist_sum_in=kwargs['dist_sum_in']))
+{dist_sum_in}=0""".format(
+                NE=dirs[0],
+                NW=dirs[2],
+                SW=dirs[4],
+                SE=dirs[6],
+                N=dirs[1],
+                S=dirs[5],
+                nsres=curent_region["nsres"],
+                ewres=curent_region["ewres"],
+                dir=direction,
+                dist_in=kwargs["dist_in"],
+                dist_sum_in=kwargs["dist_sum_in"],
+            ),
+        )
 
-    for x in range(max(steps)+1):
+    for x in range(max(steps) + 1):
         mc_expression = expression_template.format(**kwargs)
 
         if x in steps:
@@ -250,28 +301,32 @@ if({dir} == {N} || {dir} == {S},{nsres},{ewres}))
             # Compile expression for r.mapcalc
             result_expression = slope_measure_dict[slope_measure]
             # Results are computed for output from previous step
-            if slope_measure != 'difference':
-                result_kwargs = {'elev_in': kwargs['elev_in'],
-                                 'elev': elevation,
-                                 'dist': kwargs['dist_sum_in'],
-                                 'abs': abs,
-                                 'gradient': outputs[idx]}
+            if slope_measure != "difference":
+                result_kwargs = {
+                    "elev_in": kwargs["elev_in"],
+                    "elev": elevation,
+                    "dist": kwargs["dist_sum_in"],
+                    "abs": abs,
+                    "gradient": outputs[idx],
+                }
             else:
-                result_kwargs = {'elev_in': kwargs['elev_in'],
-                                 'elev': elevation,
-                                 'abs': abs,
-                                 'gradient': outputs[idx]}
+                result_kwargs = {
+                    "elev_in": kwargs["elev_in"],
+                    "elev": elevation,
+                    "abs": abs,
+                    "gradient": outputs[idx],
+                }
 
             result_expression = result_expression.format(**result_kwargs)
 
-
             if x == max(steps):
-                mc_expression = result_expression.lstrip('\n')
+                mc_expression = result_expression.lstrip("\n")
             else:
                 mc_expression += result_expression
 
-        gscript.run_command('r.mapcalc', overwrite=True, quiet=True,
-                            expression=mc_expression)
+        gscript.run_command(
+            "r.mapcalc", overwrite=True, quiet=True, expression=mc_expression
+        )
 
         if x in steps:
             gscript.raster.raster_history(outputs[idx])
@@ -286,6 +341,7 @@ if({dir} == {N} || {dir} == {S},{nsres},{ewres}))
             kwargs = kwargs_odd
 
         gscript.percent(x, max(steps), 1)
+
 
 if __name__ == "__main__":
     options, flags = gscript.parser()

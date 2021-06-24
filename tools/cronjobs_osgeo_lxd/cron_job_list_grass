@@ -22,16 +22,16 @@
 30 */12 * * * nice sh /home/neteler/cronjobs/hugo_clean_and_update_job.sh
 
 # weekly source snapshots (target dir: /var/www/code_and_data/)
-30 02 * * 6 nice sh /home/neteler/cronjobs/cron_grass7_HEAD_src_snapshot.sh
+30 02 * * 6 nice sh /home/neteler/cronjobs/cron_grass8_HEAD_src_snapshot.sh
 46 02 * * 6 nice sh /home/neteler/cronjobs/cron_grass78_src_relbr78_snapshot.sh
 #59 02 * * 6 nice sh /home/neteler/cronjobs/cron_grass76_src_relbr76_snapshot.sh
 #12 03 * * 6 nice sh /home/neteler/cronjobs/cron_grass74_src_relbr74_snapshot.sh
 
 # daily Linux binary snapshots, also creates main manuals, addon manuals, and prog-manual (target dir: /var/www/code_and_data/)
-05 05 * * * nice sh /home/neteler/cronjobs/cron_grass7_HEAD_build_bins.sh               > /var/www/code_and_data/grass79/binary/linux/snapshot/build.log 2>&1
-05 06 * * * nice sh /home/neteler/cronjobs/cron_grass78_releasebranch_78_build_bins.sh  > /var/www/code_and_data/grass78/binary/linux/snapshot/build.log 2>&1
-#05 07 * * * nice sh /home/neteler/cronjobs/cron_grass76_releasebranch_76_build_bins.sh  > /var/www/code_and_data/grass76/binary/linux/snapshot/build.log 2>&1
-#05 08 * * * nice sh /home/neteler/cronjobs/cron_grass74_releasebranch_74_build_bins.sh  > /var/www/code_and_data/grass74/binary/linux/snapshot/build.log 2>&1
+05 05 * * * nice sh /home/neteler/cronjobs/cron_grass8_HEAD_build_bins.sh               > /var/www/code_and_data/grass80/binary/linux/snapshot/build.log.txt 2>&1
+05 06 * * * nice sh /home/neteler/cronjobs/cron_grass78_releasebranch_78_build_bins.sh  > /var/www/code_and_data/grass78/binary/linux/snapshot/build.log.txt 2>&1
+#05 07 * * * nice sh /home/neteler/cronjobs/cron_grass76_releasebranch_76_build_bins.sh  > /var/www/code_and_data/grass76/binary/linux/snapshot/build.log.txt 2>&1
+#05 08 * * * nice sh /home/neteler/cronjobs/cron_grass74_releasebranch_74_build_bins.sh  > /var/www/code_and_data/grass74/binary/linux/snapshot/build.log.txt 2>&1
 
 # generate osgeo_mailman_stats/ + email
 # ... runs as root cronjob on osgeo6 machine

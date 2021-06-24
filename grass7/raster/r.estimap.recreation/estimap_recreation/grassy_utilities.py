@@ -29,7 +29,7 @@ def run(cmd, **kwargs):
 
 
 def remove_map(map_name):
-    """ Remove the provided map """
+    """Remove the provided map"""
     grass.verbose("Removing %s" % map_name)
     g.remove(
         flags="fb",
@@ -40,14 +40,14 @@ def remove_map(map_name):
 
 
 def remove_map_at_exit(map_name):
-    """ Remove the provided map when the program exits """
+    """Remove the provided map when the program exits"""
     msg = "*** Add '{map}' to list of maps to remove when program exits"
     grass.debug(_(msg.format(map=map_name)))
     atexit.register(lambda: remove_map(map_name))
 
 
 def remove_files_at_exit(filename):
-    """ Remove the specified file when the program exits """
+    """Remove the specified file when the program exits"""
     msg = "*** Add '{file}' to list of files to remove when program exits"
     grass.debug(_(msg.format(file=filename)))
     atexit.register(lambda: os.unlink(filename))
@@ -325,7 +325,9 @@ def export_map(input_name, title, categories, colors, output_name, timestamp):
     """
     finding = grass.find_file(name=input_name, element="cell")
     if not finding["file"]:
-        grass.fatal("Raster map {name} not found".format(name=input_name))  # Maybe use 'finding'?
+        grass.fatal(
+            "Raster map {name} not found".format(name=input_name)
+        )  # Maybe use 'finding'?
 
     # inform
     msg = "* Outputting '{raster}' map\n"
@@ -457,6 +459,7 @@ def smooth_map(raster, method, size):
         quiet=True,
     )
 
+
 def update_vector(vector, raster, methods, column_prefix):
     """
 
@@ -495,12 +498,10 @@ def update_vector(vector, raster, methods, column_prefix):
     )
     grass.verbose(_("* Updating vector map '{v}'".format(v=vector)))
 
+
 def raster_to_vector(
-        raster_category_flow,
-        vector_category_flow,
-        flow_column_name,
-        category,
-        type):
+    raster_category_flow, vector_category_flow, flow_column_name, category, type
+):
     """Converts a raster to a vector map
 
     Parameters
@@ -523,11 +524,15 @@ def raster_to_vector(
     ..
     """
     msg = " * Vectorising raster map '{r}'"
-    grass.verbose(_(msg.format(
-        c=category,
-        r=raster_category_flow,
-        v=vector_category_flow,
-    )))
+    grass.verbose(
+        _(
+            msg.format(
+                c=category,
+                r=raster_category_flow,
+                v=vector_category_flow,
+            )
+        )
+    )
     r.to_vect(
         input=raster_category_flow,
         output=vector_category_flow,

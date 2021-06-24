@@ -303,7 +303,9 @@ def compute_artificial_proximity(raster, distance_categories, output_name=None):
 
     else:
         tmp_output = temporary_filename(filename="artificial_proximity")
-        grass.debug(_("*** Hardcoded temporary map name {name}".format(name=tmp_output)))
+        grass.debug(
+            _("*** Hardcoded temporary map name {name}".format(name=tmp_output))
+        )
 
     msg = "* Computing proximity to '{mapname}'"
     msg = msg.format(mapname=raster)

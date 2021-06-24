@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# script to build GRASS 7.x master binaries (shared libs)
+# script to build GRASS 8.x master binaries (shared libs)
 # (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
 # Nov 2008, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021
 #
@@ -30,8 +30,8 @@
 #################################
 PATH=/home/neteler/binaries/bin:/usr/bin:/bin:/usr/X11R6/bin:/usr/local/bin
 
-GMAJOR=7
-GMINOR=9
+GMAJOR=8
+GMINOR=0
 DOTVERSION=$GMAJOR.$GMINOR
 VERSION=$GMAJOR$GMINOR
 GVERSION=$GMAJOR
@@ -46,7 +46,7 @@ LDFLAGSSTRING='-s'
 MAINDIR=/home/neteler
 # where to find the GRASS sources (git clone):
 SOURCE=$MAINDIR/src/
-BRANCH=master  # releasebranch_7_8
+BRANCH=master  # releasebranch_8_0
 GRASSBUILDDIR=$SOURCE/$BRANCH
 TARGETMAIN=/var/www/code_and_data/
 TARGETDIR=$TARGETMAIN/grass${VERSION}/binary/linux/snapshot
@@ -265,12 +265,12 @@ cd $GRASSBUILDDIR
 ############################################
 ## compile addons <--- only done for latest stable! See: cron_grass78_releasebranch_78_build_bins.sh
 #cd $GRASSBUILDDIR
-#sh ~/cronjobs/compile_addons_git.sh ~/src/grass-addons/grass7/ ~/src/master/dist.x86_64-pc-linux-gnu/ ~/.grass7/addons
+#sh ~/cronjobs/compile_addons_git.sh ~/src/grass-addons/grass7/ ~/src/master/dist.x86_64-pc-linux-gnu/ ~/.grass8/addons
 #mkdir $TARGETHTMLDIR/addons/
-#cp ~/.grass7/addons/docs/html/* $TARGETHTMLDIR/addons/
+#cp ~/.grass8/addons/docs/html/* $TARGETHTMLDIR/addons/
 #chmod -R a+r,g+w $TARGETHTMLDIR 2> /dev/null
 
-# TODO: cp logs from ~/.grass7/addons/logs/
+# TODO: cp logs from ~/.grass8/addons/logs/
 
 ############################################
 # cleanup

@@ -15,7 +15,9 @@ def estimap_test_runner(test_case):
 
     # check if the mapset already exists
     cmd = f"grass {GRASSDB}/PERMANENT --exec g.mapset -l"
-    proc = subprocess.run(shlex.split(cmd), check=True, universal_newlines=True, stdout=subprocess.PIPE)
+    proc = subprocess.run(
+        shlex.split(cmd), check=True, universal_newlines=True, stdout=subprocess.PIPE
+    )
     if test_case["mapset"] in proc.stdout:
         # The mapset already exists. Cleanup maps and remove it.
         # Cleaning up the maps is necessary due to GRASS linking maps

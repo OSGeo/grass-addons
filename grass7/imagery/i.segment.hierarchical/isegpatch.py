@@ -14,6 +14,7 @@ try:
 except NameError:
     xrange = range
 
+
 def rpatch_row(rast, rasts, bboxes, max_rasts):
     """Patch a row of bound boxes."""
     sei = get_start_end_index(bboxes)
@@ -29,13 +30,21 @@ def rpatch_row(rast, rasts, bboxes, max_rasts):
         rast.put_row(rbuff)
 
 
-def rpatch_map(raster, mapset, mset_str, bbox_list, overwrite=False,
-               start_row=0, start_col=0, prefix=''):
+def rpatch_map(
+    raster,
+    mapset,
+    mset_str,
+    bbox_list,
+    overwrite=False,
+    start_row=0,
+    start_col=0,
+    prefix="",
+):
     """Patch raster using a bounding box list to trim the raster."""
     # Instantiate the RasterRow input objects
     rast = RasterRow(prefix + raster, mapset)
-    with RasterRow(name=raster, mapset=mset_str % (0, 0), mode='r') as rtype:
-        rast.open('w', mtype=rtype.mtype, overwrite=overwrite)
+    with RasterRow(name=raster, mapset=mset_str % (0, 0), mode="r") as rtype:
+        rast.open("w", mtype=rtype.mtype, overwrite=overwrite)
     msgr = get_msgr()
     rasts = []
     mrast = 0
@@ -45,28 +54,31 @@ def rpatch_map(raster, mapset, mset_str, bbox_list, overwrite=False,
         max_rasts = []
         for col in range(len(rbbox)):
             msgr.percent(row, nrows, 1)
-            rrasts.append(RasterRow(name=raster,
-                                    mapset=mset_str % (start_row + row,
-                                                       start_col + col)))
-            rrasts[-1].open('r')
+            rrasts.append(
+                RasterRow(
+                    name=raster, mapset=mset_str % (start_row + row, start_col + col)
+                )
+            )
+            rrasts[-1].open("r")
             mrast += rrasts[-1].info.max + 1
             max_rasts.append(mrast)
         rasts.append(rrasts)
         rpatch_row(rast, rrasts, rbbox, max_rasts)
         for rst in rrasts:
             rst.close()
-            del(rst)
+            del rst
 
     rast.close()
 
+
 # run on a cluster
-#import os
-#import re
-#from grass.pygrass.modules.grid.split import split_region_tiles
-#from grass.pygrass.modules.grid.node import row_order
+# import os
+# import re
+# from grass.pygrass.modules.grid.split import split_region_tiles
+# from grass.pygrass.modules.grid.node import row_order
 #
 #
-#def node_patch(cmd, nwidth, nheight, out_regexp, overwrite=True):
+# def node_patch(cmd, nwidth, nheight, out_regexp, overwrite=True):
 #    from grass.lib.gis import G_tempfile
 #    tmp, dummy = os.path.split(os.path.split(G_tempfile())[0])
 #    tmpdir = os.path.join(cmd)

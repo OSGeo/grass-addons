@@ -8,8 +8,9 @@ COPYRIGHT:    (C) 2015 by Michael Lustenberger and the GRASS Development Team
               License (>=v2). Read the file COPYING that comes with GRASS
               for details.
 """
-#from random import choice, randint
+# from random import choice, randint
 from random import randint
+
 
 class Agent(object):
     """
@@ -43,7 +44,7 @@ class Agent(object):
         Ask the agent for its current position
         @return list coordinate of the current position
         """
-#TODO not very meaningful yet..
+        # TODO not very meaningful yet..
         return self.position
 
     def randomposition(self, positions):
@@ -52,7 +53,7 @@ class Agent(object):
         @param positions list of possible positions
         @return position the decision for a position
         """
-        return positions[randint(0, len(positions)-1)]
+        return positions[randint(0, len(positions) - 1)]
 
     def step(self):
         """

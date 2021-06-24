@@ -9,9 +9,9 @@
 #
 # COPYRIGHT:	(C) 2013 by the GRASS Development Team
 #
-#		This program is free software under the GNU General Public
-#		License (>=v2). Read the file COPYING that comes with GRASS
-#		for details.
+# 		This program is free software under the GNU General Public
+# 		License (>=v2). Read the file COPYING that comes with GRASS
+# 		for details.
 #
 #############################################################################
 
@@ -161,7 +161,7 @@ class SegModule(GridModule):
     """Extend the GridModule class, modifying the patch method."""
 
     def __init__(self, *args, **kwargs):
-        self.memory = kwargs['memory']
+        self.memory = kwargs["memory"]
         super(SegModule, self).__init__(*args, **kwargs)
 
     def patch(self):
@@ -176,81 +176,107 @@ class SegModule(GridModule):
         inputs = self.module.inputs
         print("Start patching the segments")
         start = time.time()
-        rpatch_map(inputs.outputs_prefix % inputs.thresholds[-1],
-                   self.mset.name, self.msetstr, bboxes,
-                   self.module.flags.overwrite,
-                   self.start_row, self.start_col, self.out_prefix)
-        print("%s, required: %.2fs" % (OPTS['output'], time.time() - start))
+        rpatch_map(
+            inputs.outputs_prefix % inputs.thresholds[-1],
+            self.mset.name,
+            self.msetstr,
+            bboxes,
+            self.module.flags.overwrite,
+            self.start_row,
+            self.start_col,
+            self.out_prefix,
+        )
+        print("%s, required: %.2fs" % (OPTS["output"], time.time() - start))
 
         # segment
         print("Start running segment for the last time in the whole region")
         start = time.time()
-        iseg = Module('i.segment')
+        iseg = Module("i.segment")
         threshold = self.module.inputs.thresholds[-1]
-        iseg(group=self.module.inputs.group,
-             output=self.module.outputs.output,
-             threshold=threshold,
-             method=self.module.inputs.method,
-             similarity=self.module.inputs.similarity,
-             minsize=self.module.inputs.minsizes[-1],
-             memory=self.memory,
-             iterations=3,
-             seeds=self.module.inputs.outputs_prefix % threshold)
-        print("%s, required: %.2fs" % (OPTS['output'], time.time() - start))
+        iseg(
+            group=self.module.inputs.group,
+            output=self.module.outputs.output,
+            threshold=threshold,
+            method=self.module.inputs.method,
+            similarity=self.module.inputs.similarity,
+            minsize=self.module.inputs.minsizes[-1],
+            memory=self.memory,
+            iterations=3,
+            seeds=self.module.inputs.outputs_prefix % threshold,
+        )
+        print("%s, required: %.2fs" % (OPTS["output"], time.time() - start))
 
         self.mset.current()
         if self.move:
-            copy_rasters([self.module.outputs.output, ],
-                         self.gisrc_dst, self.gisrc_src)
+            copy_rasters(
+                [
+                    self.module.outputs.output,
+                ],
+                self.gisrc_dst,
+                self.gisrc_src,
+            )
 
 
-def segment(thresholds, minsizes, output='seg__%.2f', **opts):
+def segment(thresholds, minsizes, output="seg__%.2f", **opts):
     """Call the i.segment module hierarchical"""
-    iseg = Module('i.segment')
-    seeds = opts['seeds'] if opts['seeds'] else None
+    iseg = Module("i.segment")
+    seeds = opts["seeds"] if opts["seeds"] else None
     for thr, msize in zip(thresholds, minsizes):
-        opts['threshold'] = thr
-        opts['minsize'] = msize
-        opts['seeds'] = seeds
-        opts['flags'] = FLAGS
-        opts['output'] = output % thr
+        opts["threshold"] = thr
+        opts["minsize"] = msize
+        opts["seeds"] = seeds
+        opts["flags"] = FLAGS
+        opts["output"] = output % thr
         start = time.time()
         iseg(**opts)
-        print("%s, required: %.2fs" % (opts['output'], time.time() - start))
-        seeds = opts['output']  # update seeds
+        print("%s, required: %.2fs" % (opts["output"], time.time() - start))
+        seeds = opts["output"]  # update seeds
 
 
 if __name__ == "__main__":
     OPTS, FLAGS = parser()
-    WIDTH = OPTS.pop('width')
-    HEIGHT = OPTS.pop('height')
-    OVERLAP = OPTS.pop('overlap')
-    MOVE = OPTS.pop('move')
+    WIDTH = OPTS.pop("width")
+    HEIGHT = OPTS.pop("height")
+    OVERLAP = OPTS.pop("overlap")
+    MOVE = OPTS.pop("move")
     MOVE = MOVE if MOVE else None
-    PROCESSES = OPTS.pop('processes')
+    PROCESSES = OPTS.pop("processes")
     PROCESSES = int(PROCESSES) if PROCESSES else mltp.cpu_count()
-    MEMORY = int(OPTS['memory'])
-    THRS = [float(thr) for thr in OPTS['thresholds'].split(',') if thr]
-    if OPTS['minsizes']:
-        MINSIZES = [int(m) for m in OPTS['minsizes'].split(',') if m]
+    MEMORY = int(OPTS["memory"])
+    THRS = [float(thr) for thr in OPTS["thresholds"].split(",") if thr]
+    if OPTS["minsizes"]:
+        MINSIZES = [int(m) for m in OPTS["minsizes"].split(",") if m]
         if len(MINSIZES) != len(THRS):
-            MINSIZES = [int(MINSIZES[0]), ] * len(THRS)
+            MINSIZES = [
+                int(MINSIZES[0]),
+            ] * len(THRS)
     else:
-        MINSIZES = [1, ] * len(THRS)
+        MINSIZES = [
+            1,
+        ] * len(THRS)
 
     # define new cleaned parameters
-    OPTS['thresholds'] = THRS
-    OPTS['minsizes'] = MINSIZES
-    OPTS['iterations'] = int(OPTS['iterations'])
-    OPTS['memory'] = MEMORY / PROCESSES
+    OPTS["thresholds"] = THRS
+    OPTS["minsizes"] = MINSIZES
+    OPTS["iterations"] = int(OPTS["iterations"])
+    OPTS["memory"] = MEMORY / PROCESSES
     if WIDTH and HEIGHT:
-        SEG = SegModule('i.segment.hierarchical',
-                        width=int(WIDTH), height=int(HEIGHT),
-                        overlap=int(OVERLAP),
-                        processes=PROCESSES, move=MOVE,
-                        debug=DEBUG, **OPTS)
+        SEG = SegModule(
+            "i.segment.hierarchical",
+            width=int(WIDTH),
+            height=int(HEIGHT),
+            overlap=int(OVERLAP),
+            processes=PROCESSES,
+            move=MOVE,
+            debug=DEBUG,
+            **OPTS
+        )
         SEG.run()
     else:
-        OPTS.pop('output')
-        segment(OPTS.pop('thresholds'), OPTS.pop('minsizes'),
-                output=OPTS.pop('outputs_prefix'), **OPTS)
+        OPTS.pop("output")
+        segment(
+            OPTS.pop("thresholds"),
+            OPTS.pop("minsizes"),
+            output=OPTS.pop("outputs_prefix"),
+            **OPTS
+        )

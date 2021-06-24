@@ -58,8 +58,7 @@ class TestRegression(TestCase):
         cls.runModule(
             "i.group",
             group=cls.group,
-            input=[cls.band1, cls.band2, cls.band3, cls.band4, cls.band5,
-                   cls.band7],
+            input=[cls.band1, cls.band2, cls.band3, cls.band4, cls.band5, cls.band7],
         )
         cls.runModule(
             "r.random",
@@ -73,15 +72,13 @@ class TestRegression(TestCase):
     def tearDownClass(cls):
         """Remove the temporary region (and anything else we created)"""
         cls.del_temp_region()
-        cls.runModule("g.remove", flags="f", type="vector",
-                      name=cls.training_points)
+        cls.runModule("g.remove", flags="f", type="vector", name=cls.training_points)
         cls.runModule("g.remove", flags="f", type="group", name=cls.group)
 
     def tearDown(self):
         """Remove the output created from the tests
         (reuse the same name for all the test functions)"""
-        self.runModule("g.remove", flags="f", type="raster",
-                       name=[self.output])
+        self.runModule("g.remove", flags="f", type="raster", name=[self.output])
 
         try:
             os.remove(self.model_file)
@@ -139,7 +136,7 @@ class TestRegression(TestCase):
             load_training=self.training_file,
             n_estimators=100,
             save_model=self.model_file,
-            overwrite=True
+            overwrite=True,
         )
 
         # predict after loading training data

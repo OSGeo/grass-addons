@@ -52,47 +52,49 @@ import grass.script as gscript
 
 def main():
     import matplotlib  # required by windows
-    matplotlib.use('wxAGG')  # required by windows
+
+    matplotlib.use("wxAGG")  # required by windows
     import matplotlib.pyplot as plt
 
-    vector = options['map']
-    column = options['column']
-    step = int(options['step'])
-    legend_angle = float(options['legend_angle'])
+    vector = options["map"]
+    column = options["column"]
+    step = int(options["step"])
+    legend_angle = float(options["legend_angle"])
 
     azimuth = []
-    for line in gscript.read_command('v.db.select',
-                                     map_=vector,
-                                     column=column,
-                                     flags='c').splitlines():
+    for line in gscript.read_command(
+        "v.db.select", map_=vector, column=column, flags="c"
+    ).splitlines():
         azimuth.append(float(line))
 
-    bins = 360/step
-    az_bins = np.histogram(azimuth, bins=bins, range=(0,360))
-    if flags['a']:
+    bins = 360 / step
+    az_bins = np.histogram(azimuth, bins=bins, range=(0, 360))
+    if flags["a"]:
         radii = az_bins[0]
-        label = ''
+        label = ""
     else:
-        radii = [100.0*x/sum(az_bins[0]) for x in az_bins[0]]
-        label = '%'
+        radii = [100.0 * x / sum(az_bins[0]) for x in az_bins[0]]
+        label = "%"
     theta = az_bins[1][:-1]
-    theta = theta * (np.pi/180)
+    theta = theta * (np.pi / 180)
     width = 2 * np.pi / bins
 
-    ax = plt.subplot(111, projection='polar')
+    ax = plt.subplot(111, projection="polar")
     ax.set_theta_direction(-1)
-    ax.set_theta_offset(np.pi/2.0)
+    ax.set_theta_offset(np.pi / 2.0)
     unique_radii = [x for x in set(radii) if x > 0]
     range_radii = max(radii) - min(radii)
     if range_radii > 4:
         base = 5 if max(radii) > 10 else 2
         labelstep = np.ceil((range_radii) / 5)
         labelstep = int(base * round(labelstep / base))
-        labelradii = [x for x in np.arange(0, int(np.ceil(max(radii))), labelstep) if x > 0]
+        labelradii = [
+            x for x in np.arange(0, int(np.ceil(max(radii))), labelstep) if x > 0
+        ]
     else:
         labelradii = unique_radii
     ax.set_rgrids(labelradii, angle=legend_angle)
-    ax.text(legend_angle*(np.pi/180), max(radii)*1.1, label)
+    ax.text(legend_angle * (np.pi / 180), max(radii) * 1.1, label)
     bars = ax.bar(theta, radii, width=width, bottom=0.0)
 
     # Use custom colors and opacity
@@ -100,6 +102,7 @@ def main():
         bar.set_alpha(0.5)
 
     plt.show()
+
 
 if __name__ == "__main__":
     options, flags = gscript.parser()

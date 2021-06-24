@@ -92,18 +92,18 @@ from grass.exceptions import CalledModuleError
 def main():
     options, flags = gcore.parser()
 
-    location = options['location']
-    mapset = options['mapset']
-    dbase = options['dbase']
+    location = options["location"]
+    mapset = options["mapset"]
+    dbase = options["dbase"]
 
-    resolution = options['resolution']
+    resolution = options["resolution"]
     if resolution:
         resolution = float(resolution)
-    method = options['method']
-    curr_region = flags['r']
+    method = options["method"]
+    curr_region = flags["r"]
 
-    transform_z = flags['z']
-    overwrite = flags['o']
+    transform_z = flags["z"]
+    overwrite = flags["o"]
 
     if not curr_region:
         gcore.use_temp_region()
@@ -115,62 +115,66 @@ def main():
     #
     # r.proj
     #
-    parameters = dict(location=location, mapset=mapset, flags='l',
-                      overwrite=overwrite)
+    parameters = dict(location=location, mapset=mapset, flags="l", overwrite=overwrite)
     if dbase:
         parameters.update(dict(dbase=dbase))
     # first run r.proj to see if it works
     try:
-        gcore.run_command('r.proj', quiet=True, **parameters)
+        gcore.run_command("r.proj", quiet=True, **parameters)
     except CalledModuleError:
         gcore.fatal(_("Module r.proj failed. Please check the error messages above."))
     # run again to get the raster maps
-    rasters = gcore.read_command('r.proj', **parameters)
+    rasters = gcore.read_command("r.proj", **parameters)
     rasters = rasters.strip().split()
-    gcore.info(_("{num} raster maps will be reprojected from mapset <{mapsetS}> "
-                 "to mapset <{mapsetT}>.").format(num=len(rasters), mapsetS=mapset,
-                                               mapsetT=gcore.gisenv()['MAPSET']))
+    gcore.info(
+        _(
+            "{num} raster maps will be reprojected from mapset <{mapsetS}> "
+            "to mapset <{mapsetT}>."
+        ).format(num=len(rasters), mapsetS=mapset, mapsetT=gcore.gisenv()["MAPSET"])
+    )
 
-    parameters = dict(location=location, mapset=mapset, method=method,
-                      overwrite=overwrite)
+    parameters = dict(
+        location=location, mapset=mapset, method=method, overwrite=overwrite
+    )
     if resolution:
         parameters.update(dict(resolution=resolution))
     if dbase:
         parameters.update(dict(dbase=dbase))
     for raster in rasters:
         if not curr_region:
-            bounds = gcore.read_command('r.proj', input=raster, flags='g',
-                                        **parameters)
-            bounds = parse_key_val(bounds, vsep=' ')
-            gcore.run_command('g.region', **bounds)
+            bounds = gcore.read_command("r.proj", input=raster, flags="g", **parameters)
+            bounds = parse_key_val(bounds, vsep=" ")
+            gcore.run_command("g.region", **bounds)
 
-        gcore.run_command('r.proj', input=raster, **parameters)
+        gcore.run_command("r.proj", input=raster, **parameters)
 
     #
     # v.proj
     #
-    parameters = dict(location=location, mapset=mapset, flags='l',
-                       overwrite=overwrite)
+    parameters = dict(location=location, mapset=mapset, flags="l", overwrite=overwrite)
     if dbase:
         parameters.update(dict(dbase=dbase))
     # first run v.proj to see if it works
     try:
-        gcore.run_command('v.proj', quiet=True, **parameters)
+        gcore.run_command("v.proj", quiet=True, **parameters)
     except CalledModuleError:
         gcore.fatal(_("Module v.proj failed. Please check the error messages above."))
     # run again to get the vector maps
-    vectors = gcore.read_command('v.proj', **parameters)
+    vectors = gcore.read_command("v.proj", **parameters)
     vectors = vectors.strip().split()
-    gcore.info(_("{num} vectors maps will be reprojected from mapset <{mapsetS}> "
-                 "to mapset <{mapsetT}>.").format(num=len(vectors), mapsetS=mapset,
-                                               mapsetT=gcore.gisenv()['MAPSET']))
+    gcore.info(
+        _(
+            "{num} vectors maps will be reprojected from mapset <{mapsetS}> "
+            "to mapset <{mapsetT}>."
+        ).format(num=len(vectors), mapsetS=mapset, mapsetT=gcore.gisenv()["MAPSET"])
+    )
 
-    parameters = dict(location=location, mapset=mapset,
-                      overwrite=overwrite)
+    parameters = dict(location=location, mapset=mapset, overwrite=overwrite)
     if transform_z:
-        parameters.update(dict(flags='z'))
+        parameters.update(dict(flags="z"))
     for vector in vectors:
-        gcore.run_command('v.proj', input=vector, **parameters)
+        gcore.run_command("v.proj", input=vector, **parameters)
+
 
 if __name__ == "__main__":
     sys.exit(main())

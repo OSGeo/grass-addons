@@ -75,9 +75,9 @@ except:
 
 
 def cleanup():
-    inmap = options['input']
+    inmap = options["input"]
     grass.try_remove(tmp)
-    for f in glob.glob(tmp + '*'):
+    for f in glob.glob(tmp + "*"):
         grass.try_remove(f)
     with open(os.devnull, "w") as nuldev:
         grass.run_command(
@@ -91,10 +91,10 @@ def cleanup():
 
 
 def main():
-    inmap = options['input']
-    outmap = options['output']
-    coor = options['coor']
-    coor = coor.replace(',',' ')
+    inmap = options["input"]
+    outmap = options["output"]
+    coor = options["coor"]
+    coor = coor.replace(",", " ")
 
     global tmp, grass_version
 
@@ -106,9 +106,8 @@ def main():
         grass.fatal("Module works only in locations with cartesian coordinate system")
 
     # check if input file exists
-    if not grass.find_file(inmap, element = 'vector')['file']:
+    if not grass.find_file(inmap, element="vector")["file"]:
         grass.fatal(_("<%s> does not exist.") % inmap)
-
 
     ## DO IT ##
     ## add categories to boundaries
@@ -123,8 +122,8 @@ def main():
     )
 
     ## export polygons to CSV + WKT
-    tmp1 = tmp + '.csv'
-    tmp2 = tmp + '2.csv'
+    tmp1 = tmp + ".csv"
+    tmp2 = tmp + "2.csv"
     grass.run_command(
         "v.out.ogr",
         input_="v_temp_bcats",
@@ -137,14 +136,18 @@ def main():
     )
 
     ## convert lines to polygons
-    f1 = open(tmp1, 'r')
-    f2 = open(tmp2, 'w')
+    f1 = open(tmp1, "r")
+    f2 = open(tmp2, "w")
     for line in f1:
-        f2.write(line.replace('LINESTRING','POLYGON').replace(' (',' ((').replace(')"','))"'))
+        f2.write(
+            line.replace("LINESTRING", "POLYGON")
+            .replace(" (", " ((")
+            .replace(')"', '))"')
+        )
     f1.close()
     f2.close()
 
-    with open(tmp2, 'r') as f:
+    with open(tmp2, "r") as f:
         print(f.read())
 
     ## open CSV with OGR and get layer name
@@ -154,8 +157,8 @@ def main():
 
     ## make spatial query with coordinates
     coords = "%s %s" % (coor, coor)
-    tmp3 = tmp + '_v_temp_select.shp'
-    cmd = 'ogr2ogr ' + ' -spat ' + coords + ' ' + tmp3 + ' ' + tmp2 + ' ' + lyr_name
+    tmp3 = tmp + "_v_temp_select.shp"
+    cmd = "ogr2ogr " + " -spat " + coords + " " + tmp3 + " " + tmp2 + " " + lyr_name
     os.system(cmd)
 
     ## open SHP with OGR and get layer name
@@ -164,8 +167,8 @@ def main():
     lyr_name = lyr.GetName()
 
     ## print selected objects to stdout or write into vector map
-    if flags['p']:
-        cmd = 'ogrinfo -al -fields=YES -geom=SUMMARY' + ' ' + tmp3 + ' ' + lyr_name
+    if flags["p"]:
+        cmd = "ogrinfo -al -fields=YES -geom=SUMMARY" + " " + tmp3 + " " + lyr_name
         os.system(cmd)
     else:
         grass.run_command(

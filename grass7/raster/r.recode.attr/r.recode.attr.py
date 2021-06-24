@@ -77,24 +77,24 @@ def main():
         grass.fatal("You must be in GRASS GIS to run this program")
 
     # input raster map and parameters
-    inputmap = options['input']
-    outBase = options['output']
-    rules = options['rules']
-    outNames = outBase.split(',')
+    inputmap = options["input"]
+    outBase = options["output"]
+    rules = options["rules"]
+    outNames = outBase.split(",")
     lengthNames = len(outNames)
-    flag_a = flags['a']
+    flag_a = flags["a"]
 
     # Get attribute data
-    myData = np.genfromtxt(rules, delimiter=',', skip_header=1)
-    nmsData = np.genfromtxt(rules, delimiter=',', names=True)
+    myData = np.genfromtxt(rules, delimiter=",", skip_header=1)
+    nmsData = np.genfromtxt(rules, delimiter=",", names=True)
     dimData = myData.shape
     nmsData = nmsData.dtype.names
 
     # Create recode maps
-    numVar = xrange(dimData[1]-1)
+    numVar = xrange(dimData[1] - 1)
     for x in numVar:
         y = x + 1
-        myRecode = np.column_stack((myData[:,0], myData[:,0], myData[:,y]))
+        myRecode = np.column_stack((myData[:, 0], myData[:, 0], myData[:, y]))
 
         fd1, tmpname = tempfile.mkstemp()
         np.savetxt(tmpname, myRecode, delimiter=":")
@@ -102,24 +102,22 @@ def main():
         if len(numVar) == lengthNames:
             nmOutput = outNames[x]
         else:
-            nmOutput = outNames[0] + '_' + nmsData[y]
+            nmOutput = outNames[0] + "_" + nmsData[y]
 
-        cf = grass.find_file(name=nmOutput, element = 'cell',
-                          mapset=grass.gisenv()['MAPSET'])
-        if cf['fullname'] != '':
+        cf = grass.find_file(
+            name=nmOutput, element="cell", mapset=grass.gisenv()["MAPSET"]
+        )
+        if cf["fullname"] != "":
             grass.fatal("The layer " + nmOutput + " already exist in this mapset")
 
         if flag_a:
-            grass.run_command('r.recode',
-                    input = inputmap,
-                    output = nmOutput,
-                    rules = tmpname,
-                    flags = "a")
+            grass.run_command(
+                "r.recode", input=inputmap, output=nmOutput, rules=tmpname, flags="a"
+            )
         else:
-            grass.run_command('r.recode',
-                    input = inputmap,
-                    output = nmOutput,
-                    rules = tmpname)
+            grass.run_command(
+                "r.recode", input=inputmap, output=nmOutput, rules=tmpname
+            )
         os.close(fd1)
         os.remove(tmpname)
 

@@ -13,11 +13,11 @@ EQUATION = "{result} = {expression}"  # basic equation for mapcalc
 THRESHHOLD_ZERO = 0
 THRESHHOLD_0001 = 0.0001
 
-COLUMN_PREFIX_SPECTRUM = 'spectrum'
-COLUMN_PREFIX_UNMET = 'unmet'
-COLUMN_PREFIX_DEMAND = 'demand'
-COLUMN_PREFIX_UNMET = 'unmet'
-COLUMN_PREFIX_FLOW = 'flow'
+COLUMN_PREFIX_SPECTRUM = "spectrum"
+COLUMN_PREFIX_UNMET = "unmet"
+COLUMN_PREFIX_DEMAND = "demand"
+COLUMN_PREFIX_UNMET = "unmet"
+COLUMN_PREFIX_FLOW = "flow"
 
 CSV_EXTENSION = ".csv"
 COMMA = "comma"

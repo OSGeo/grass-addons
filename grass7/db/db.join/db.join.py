@@ -66,17 +66,17 @@ from grass.exceptions import CalledModuleError
 
 
 def main():
-    table = options['table']
-    column = options['column']
-    otable = options['other_table']
-    ocolumn = options['other_column']
-    if options['subset_columns']:
-        scolumns = options['subset_columns'].split(',')
+    table = options["table"]
+    column = options["column"]
+    otable = options["other_table"]
+    ocolumn = options["other_column"]
+    if options["subset_columns"]:
+        scolumns = options["subset_columns"].split(",")
     else:
         scolumns = None
 
-    database = options['database']
-    driver = options['driver']
+    database = options["database"]
+    driver = options["driver"]
 
     # this error handling is completely different among th db.* scripts - FIX
     if not database:
@@ -84,11 +84,11 @@ def main():
     if not driver:
         driver = None
 
-    if driver == 'dbf':
+    if driver == "dbf":
         grass.fatal(_("JOIN is not supported for tables stored in DBF format"))
 
     # describe input table
-    all_cols_tt = grass.db_describe(table, driver=driver, database=database)['cols']
+    all_cols_tt = grass.db_describe(table, driver=driver, database=database)["cols"]
     if not all_cols_tt:
         grass.fatal(_("Unable to describe table <%s>") % table)
     found = False
@@ -98,7 +98,7 @@ def main():
         grass.fatal(_("Column <%s> not found in table <%s>") % (column, table))
 
     # describe other table
-    all_cols_ot = grass.db_describe(otable, driver=driver, database=database)['cols']
+    all_cols_ot = grass.db_describe(otable, driver=driver, database=database)["cols"]
 
     # check if ocolumn is in other table
     if ocolumn not in [ocol[0] for ocol in all_cols_ot]:
@@ -137,7 +137,7 @@ def main():
             if driver == "sqlite":
                 use_len = False
             # MySQL - expect format DOUBLE PRECISION(M,D), see #2792
-            elif driver == "mysql" and col[1] == 'DOUBLE PRECISION':
+            elif driver == "mysql" and col[1] == "DOUBLE PRECISION":
                 use_len = False
 
         if use_len:
@@ -149,26 +149,30 @@ def main():
 
         # add only the new column to the table
         if colname not in all_cols_tt:
-            p = grass.feed_command('db.execute', input = '-', database = database, driver = driver)
+            p = grass.feed_command(
+                "db.execute", input="-", database=database, driver=driver
+            )
             p.stdin.write("ALTER TABLE %s ADD COLUMN %s" % (table, colspec))
             grass.debug("ALTER TABLE %s ADD COLUMN %s" % (table, colspec))
             p.stdin.close()
             if p.wait() != 0:
                 grass.fatal(_("Unable to add column <%s>.") % colname)
 
-
-        stmt = template.substitute(table=table, column=column,
-                                   otable=otable, ocolumn=ocolumn,
-                                   colname=colname)
+        stmt = template.substitute(
+            table=table, column=column, otable=otable, ocolumn=ocolumn, colname=colname
+        )
         grass.debug(stmt, 1)
         grass.verbose(_("Updating column <%s> of table <%s>...") % (colname, table))
         try:
-            grass.write_command('db.execute', stdin=stmt, input='-',
-                                database=database, driver=driver)
+            grass.write_command(
+                "db.execute", stdin=stmt, input="-", database=database, driver=driver
+            )
         except CalledModuleError:
             grass.fatal(_("Error filling column <%s>") % colname)
 
     return 0
+
+
 if __name__ == "__main__":
     options, flags = grass.parser()
     sys.exit(main())

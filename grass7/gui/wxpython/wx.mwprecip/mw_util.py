@@ -9,8 +9,8 @@ import csv
 from datetime import timedelta
 import wx.lib.filebrowsebutton as filebrowse
 import codecs
-from core.gcmd          import GMessage, GError
-from grass.script       import core as grass
+from core.gcmd import GMessage, GError
+from grass.script import core as grass
 import grass.script as grass
 
 import time
@@ -18,21 +18,23 @@ from datetime import datetime
 import logging
 
 
-class StaticContext():
+class StaticContext:
     def __init__(self):
         gisenvDict = grass.gisenv()
-        pathToMapset = os.path.join(gisenvDict['GISDBASE'], gisenvDict['LOCATION_NAME'], gisenvDict['MAPSET'])
+        pathToMapset = os.path.join(
+            gisenvDict["GISDBASE"], gisenvDict["LOCATION_NAME"], gisenvDict["MAPSET"]
+        )
         self.tmp_mapset_path = os.path.join(pathToMapset, "mwprecip_data")
-
 
     def getTmpPath(self):
         return self.tmp_mapset_path
 
+
 class SaveLoad(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
-        saveBtt = wx.Button(parent=self, label='Save')
-        loadBtt = wx.Button(parent=self, label='Load')
+        saveBtt = wx.Button(parent=self, label="Save")
+        loadBtt = wx.Button(parent=self, label="Load")
         sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         sizer.Add(saveBtt, flag=wx.EXPAND)
@@ -45,11 +47,11 @@ class BaseInput(wx.Panel):
     def __init__(self, parent, label, style=0):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
         statText = wx.StaticText(self, id=wx.ID_ANY, label=label)
-        #if cats:
-        #self.ctrl = gselect.VectorCategorySelect(parent=self, giface=self._giface)  # TODO gifece
-        #else:
+        # if cats:
+        # self.ctrl = gselect.VectorCategorySelect(parent=self, giface=self._giface)  # TODO gifece
+        # else:
         self.text = wx.TextCtrl(self, id=wx.ID_ANY, style=style)
-        #self.key=key
+        # self.key=key
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(statText, flag=wx.EXPAND)
         sizer.Add(self.text, flag=wx.EXPAND)
@@ -60,13 +62,15 @@ class BaseInput(wx.Panel):
 
     def GetValue(self):
         value = self.text.GetValue()
-        if value == '':
+        if value == "":
             return None
         else:
             return value
 
     def SetValue(self, value):
         self.text.SetValue((str(value)))
+
+
 '''
 class TextInput1(wx.Panel):
     def __init__(self, parent, label, tmpPath=None):
@@ -259,6 +263,8 @@ class TextInput1(wx.Panel):
 
         event.Skip()
 '''
+
+
 class TextInput(wx.Panel):
     def __init__(self, parent, label):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
@@ -266,18 +272,21 @@ class TextInput(wx.Panel):
 
         self.tmpPath = None
         statText = wx.StaticText(self, id=wx.ID_ANY, label=label)
-        statText2 = wx.StaticText(self, id=wx.ID_ANY, label='or enter values interactively')
+        statText2 = wx.StaticText(
+            self, id=wx.ID_ANY, label="or enter values interactively"
+        )
 
         self.pathInput = wx.TextCtrl(self, id=wx.ID_ANY)
-        self.browseBtt = wx.Button(self, id=wx.ID_ANY, label='Browse')
-        self.directInp = wx.TextCtrl(self, id=wx.ID_ANY, size=(0, 70), style=wx.TE_MULTILINE | wx.HSCROLL)
-        self.saveBtt = wx.Button(self,label='Save to new file')
+        self.browseBtt = wx.Button(self, id=wx.ID_ANY, label="Browse")
+        self.directInp = wx.TextCtrl(
+            self, id=wx.ID_ANY, size=(0, 70), style=wx.TE_MULTILINE | wx.HSCROLL
+        )
+        self.saveBtt = wx.Button(self, label="Save to new file")
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer2 = wx.BoxSizer(wx.HORIZONTAL)
         sizer2.Add(self.pathInput, flag=wx.EXPAND, proportion=1)
         sizer2.Add(self.browseBtt, flag=wx.EXPAND)
-
 
         sizer.Add(statText, flag=wx.EXPAND)
         sizer.Add(sizer2, flag=wx.EXPAND)
@@ -287,22 +296,26 @@ class TextInput(wx.Panel):
 
         self.SetSizer(sizer)
         self.browseBtt.Bind(wx.EVT_BUTTON, self.onBrowse)
-        self.saveBtt.Bind(wx.EVT_BUTTON,self.setTmpPath)
+        self.saveBtt.Bind(wx.EVT_BUTTON, self.setTmpPath)
         self.firstDirInp = False
 
     def setTmpPath(self, event):
         if self.firstDirInp is False:  # intitialization
             self.firstDirInp = True
             if self.tmpPath is None:
-                self.tmpPath = os.path.join(self.context.getTmpPath(), 'tmp%s' % randomWord(3))
+                self.tmpPath = os.path.join(
+                    self.context.getTmpPath(), "tmp%s" % randomWord(3)
+                )
                 self.pathInput.SetValue(self.tmpPath)
 
-        io = open(self.tmpPath,'w')
+        io = open(self.tmpPath, "w")
         io.writelines(self.directInp.GetValue())
         io.close()
 
     def onBrowse(self, event):
-        openFileDialog = wx.FileDialog(self, "Open text file", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+        openFileDialog = wx.FileDialog(
+            self, "Open text file", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST
+        )
         if openFileDialog.ShowModal() == wx.ID_CANCEL:
             return  # the user changed idea...
         path = openFileDialog.GetPath()
@@ -310,7 +323,7 @@ class TextInput(wx.Panel):
         self.pathInput.SetValue(path)
         if self.SetValue() == -1:
             # TODO msgbox
-            self.pathInput.SetValue('')
+            self.pathInput.SetValue("")
 
     def GetValue(self):
         return self.directInp.GetValue()
@@ -318,7 +331,7 @@ class TextInput(wx.Panel):
     def SetValue(self):
         if not os.path.isfile(self.pathInput.GetValue()):
             return -1
-        io = open(self.pathInput.GetValue(), 'r')
+        io = open(self.pathInput.GetValue(), "r")
         str = io.read()
         try:
             self.directInp.SetValue(str)
@@ -338,7 +351,7 @@ class TextInput(wx.Panel):
 
     def GetPath(self):
         path = self.pathInput.GetValue()
-        if path == '':
+        if path == "":
             return None
         else:
             return path
@@ -350,7 +363,8 @@ class TextInput(wx.Panel):
         self.pathInput.SetValue(value)
         if self.SetValue() == -1:
             # TODO msgbox
-            self.pathInput.SetValue('')
+            self.pathInput.SetValue("")
+
 
 class FileInput(wx.Panel):
     def __init__(self, parent, label, dir=False, tmpPath=None):
@@ -360,7 +374,7 @@ class FileInput(wx.Panel):
         statText = wx.StaticText(self, id=wx.ID_ANY, label=label)
 
         self.pathInput = wx.TextCtrl(self, id=wx.ID_ANY)
-        self.browseBtt = wx.Button(self, id=wx.ID_ANY, label='Browse')
+        self.browseBtt = wx.Button(self, id=wx.ID_ANY, label="Browse")
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer2 = wx.BoxSizer(wx.HORIZONTAL)
@@ -375,19 +389,23 @@ class FileInput(wx.Panel):
 
     def onBrowse(self, event):
         if self.dir:
-            openFileDialog = wx.DirDialog(self, "Choose a directory:",
-                                          style=wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST | wx.DD_CHANGE_DIR)
+            openFileDialog = wx.DirDialog(
+                self,
+                "Choose a directory:",
+                style=wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST | wx.DD_CHANGE_DIR,
+            )
             if openFileDialog.ShowModal() == wx.ID_CANCEL:
                 return  # the user changed idea...
             path = openFileDialog.GetPath()
             self.pathInput.SetValue(path)
         else:
-            openFileDialog = wx.FileDialog(self, "Choose a file:", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+            openFileDialog = wx.FileDialog(
+                self, "Choose a file:", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST
+            )
             if openFileDialog.ShowModal() == wx.ID_CANCEL:
                 return  # the user changed idea...
             path = openFileDialog.GetPath()
             self.pathInput.SetValue(path)
-
 
     def GetPath(self):
         path = self.pathInput.GetValue()
@@ -400,7 +418,7 @@ class FileInput(wx.Panel):
         self.pathInput.SetValue(value)
 
 
-def YesNo(parent, question, caption='Yes or no?'):
+def YesNo(parent, question, caption="Yes or no?"):
     dlg = wx.MessageDialog(parent, question, caption, wx.YES_NO | wx.ICON_QUESTION)
     result = dlg.ShowModal() == wx.ID_YES
     dlg.Destroy()
@@ -415,7 +433,7 @@ def getFilesInFoldr(fpath, full=False):
         return 0
     tmp = []
     for path in lis:
-        if path.find('~') == -1:
+        if path.find("~") == -1:
             if full:
                 tmp.append(os.path.join(fpath, path))
             else:
@@ -425,16 +443,16 @@ def getFilesInFoldr(fpath, full=False):
     return tmp
 
 
-class MeasureTime():
-    def __init__(self,total_count_step=14):
+class MeasureTime:
+    def __init__(self, total_count_step=14):
         self.startLast = None
         self.total_count_step = total_count_step
         self.end = None
         self.start = None
-        self.logger = logging.getLogger('mwprecip.MeasureTime')
+        self.logger = logging.getLogger("mwprecip.MeasureTime")
         self.set_counter = 0
 
-    def timeMsg(self,msg,end=False,step=1):
+    def timeMsg(self, msg, end=False, step=1):
         self.set_counter += 1
         if self.start is None:
             self.start = time.time()
@@ -444,68 +462,80 @@ class MeasureTime():
         else:
             self.end = time.time()
             elapsedTotal = self.end - self.start
-            elapsedLast = self.end-self.startLast
+            elapsedLast = self.end - self.startLast
             self.startLast = self.end
-            grass.percent(self.set_counter,self.total_count_step,1)
+            grass.percent(self.set_counter, self.total_count_step, 1)
 
-            self.logger.info("TOTAL TIME < %s > : %s" % (msg,elapsedTotal))
-            self.logger.info("LAST PART TIME< %s > : %s" % (msg,elapsedLast))
+            self.logger.info("TOTAL TIME < %s > : %s" % (msg, elapsedTotal))
+            self.logger.info("LAST PART TIME< %s > : %s" % (msg, elapsedLast))
 
             if end:
-                grass.percent(self.total_count_step,self.total_count_step,1)
+                grass.percent(self.total_count_step, self.total_count_step, 1)
                 self.logger.info("TOTAL TIME e: %s" % (elapsedTotal))
                 self.logger.info("Measuring time - END: %s " % str(datetime.now()))
 
+
 def isAttributExist(connection, schema, table, columns):
-    sql = "SELECT EXISTS( SELECT * FROM information_schema.columns WHERE \
+    sql = (
+        "SELECT EXISTS( SELECT * FROM information_schema.columns WHERE \
           table_schema = '%s' AND \
           table_name = '%s' AND\
-          column_name='%s');" % (schema, table, columns)
+          column_name='%s');"
+        % (schema, table, columns)
+    )
     return connection.executeSql(sql, True, True)[0][0]
 
 
 def isTableExist(connection, schema, table):
-    sql = "SELECT EXISTS( SELECT * \
+    sql = (
+        "SELECT EXISTS( SELECT * \
           FROM information_schema.tables \
           WHERE table_schema = '%s' AND \
-          table_name = '%s');" % (schema, table)
+          table_name = '%s');"
+        % (schema, table)
+    )
     return connection.executeSql(sql, True, True)[0][0]
 
 
 def removeLines(old_file, new_file, start, end):
-    '''remove lines between two lines by line number and create new file '''
-    data_list = open(old_file, 'r').readlines()
+    """remove lines between two lines by line number and create new file"""
+    data_list = open(old_file, "r").readlines()
     temp_list = data_list[0:start]
-    temp_list[len(temp_list):] = data_list[end:len(data_list)]
-    open(new_file, 'w+').writelines(temp_list)
+    temp_list[len(temp_list) :] = data_list[end : len(data_list)]
+    open(new_file, "w+").writelines(temp_list)
 
 
 def OnSaveAs(parent):
-    saveFileDialog = wx.FileDialog(parent, "Save file", "", "",
-                                   "files (*.*)|*.*", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+    saveFileDialog = wx.FileDialog(
+        parent,
+        "Save file",
+        "",
+        "",
+        "files (*.*)|*.*",
+        wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+    )
 
     if saveFileDialog.ShowModal() == wx.ID_CANCEL:
         return  # the user changed idea...
 
     # save the current contents in the file
     # this can be done with e.g. wxPython output streams:
-    output_stream = (saveFileDialog.GetPath())
+    output_stream = saveFileDialog.GetPath()
     return output_stream
-
 
 
 def saveDict(fn, dict_rap):
     f = open(fn, "wb")
     w = csv.writer(f)
     for key, val in dict_rap.items():
-        if val is None or val == '':
+        if val is None or val == "":
             continue
         w.writerow([key, val])
     f.close()
 
 
 def readDict(fn):
-    f = open(fn, 'r')
+    f = open(fn, "r")
     dict_rap = {}
     try:
         for key, val in csv.reader(f):
@@ -515,21 +545,17 @@ def readDict(fn):
                 val = '"' + val + '"'
                 dict_rap[key] = eval(val)
         f.close()
-        return (dict_rap)
+        return dict_rap
     except IOError as e:
         print("I/O error({}): {}".format(e.errno, e.strerror))
 
 
-
-
 def randomWord(length):
-    return ''.join(
-        random.choice(string.ascii_lowercase) for i in range(length)
-    )
+    return "".join(random.choice(string.ascii_lowercase) for i in range(length))
 
 
 def isTimeValid(time):
-    RE = re.compile(r'^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}$')
+    RE = re.compile(r"^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}$")
     return bool(RE.search(time))
 
 

@@ -84,7 +84,7 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
 #% required : no
 #%end
 #%option
-#TODO evaluate..
+# TODO evaluate..
 #% key: targetvisibility
 #% type: integer
 #% gisprompt: number
@@ -219,7 +219,7 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
 #%end
 
 import sys
-from sys  import exit, maxsize
+from sys import exit, maxsize
 from math import sqrt
 from math import exp
 from random import randint
@@ -231,57 +231,60 @@ except ImportError:
 
 from grass.pygrass.utils import set_path
 
-set_path('r.agent', 'libagent', '..')
+set_path("r.agent", "libagent", "..")
 from libagent import error, grassland, anthill
+
 
 def setmaps(site, cost, wastecosts, inphero, outphero, wastephero):
     """
     Set the user maps in place
     """
     if site:
-        if -1 == site.find('@'):
-            site = site + '@' + grass.gisenv()['MAPSET']
+        if -1 == site.find("@"):
+            site = site + "@" + grass.gisenv()["MAPSET"]
         # set sitemap and site list
-        world.sites = world.playground.parsevectorlayer(anthill.Anthill.SITE,
-                                                        site, -1, True)
+        world.sites = world.playground.parsevectorlayer(
+            anthill.Anthill.SITE, site, -1, True
+        )
         if not world.sites:
-            raise error.DataError("r.agent.aco:",
-                                    "There were no sites in" + site)
+            raise error.DataError("r.agent.aco:", "There were no sites in" + site)
     else:
         raise error.DataError("r.agent.aco:", "The site map is mandatory.")
     if cost:
-        if -1 == cost.find('@'):
-            cost = cost + '@' + grass.gisenv()['MAPSET']
+        if -1 == cost.find("@"):
+            cost = cost + "@" + grass.gisenv()["MAPSET"]
         # set cost/penalty layer
         world.playground.setgrasslayer(anthill.Anthill.COST, cost, True)
         world.overwritepenalty = wastecosts
     else:
         raise error.DataError("r.agent.aco:", "The cost map is mandatory.")
     if outphero:
-        if -1 == outphero.find('@'):
-            outphero = outphero + '@' + grass.gisenv()['MAPSET']
+        if -1 == outphero.find("@"):
+            outphero = outphero + "@" + grass.gisenv()["MAPSET"]
     else:
         raise error.DataError("r.agent.aco:", "The output map is mandatory.")
     if inphero == outphero:
         if not wastephero:
             raise error.DataError("aco:", "May not overwrite the output map.")
     if inphero:
-        if -1 == inphero.find('@'):
-            inphero = inphero + '@' + grass.gisenv()['MAPSET']
+        if -1 == inphero.find("@"):
+            inphero = inphero + "@" + grass.gisenv()["MAPSET"]
         world.playground.setgrasslayer(anthill.Anthill.RESULT, inphero, True)
     world.playground.grassmapnames[anthill.Anthill.RESULT] = outphero
-    #TODO hopefully not really needed - workaround for broken(?) garray
+    # TODO hopefully not really needed - workaround for broken(?) garray
     world.playground.createlayer("copy", outphero, True)
     world.playground.grassmapnames["copy"] = outphero
     world.overwritepheormone = wastephero
+
 
 def letantsdance(rounds, outrounds):
     """
     Organize the agents and the pheromone on the playground.
     """
     if world.addsequencenumber:
-        outputmapbasename = \
-            world.playground.grassmapnames[anthill.Anthill.RESULT].split("@")
+        outputmapbasename = world.playground.grassmapnames[
+            anthill.Anthill.RESULT
+        ].split("@")
     else:
         outputmapbasename = False
         outputmapname = False
@@ -296,84 +299,91 @@ def letantsdance(rounds, outrounds):
     run = 0
     while run < mainloops:
         if outputmapbasename:
-            outputmapname = outputmapbasename[0] + str(run) + "@" + \
-                outputmapbasename[1]
+            outputmapname = outputmapbasename[0] + str(run) + "@" + outputmapbasename[1]
         # loop and write out the contents at the end
         world.letantsdance(nextwrite)
         # Print the number of found paths
         grass.info("Number of found paths: " + str(world.numberofpaths))
         # export the value maps
-        #TODO hopefully not really needed - workaround for broken(?) garray
+        # TODO hopefully not really needed - workaround for broken(?) garray
         for i in range(len(world.playground.layers[anthill.Anthill.RESULT])):
-            for j in range(len(
-                    world.playground.layers[anthill.Anthill.RESULT][0])):
-                world.playground.layers["copy"][i][j] = \
-                    world.playground.layers[anthill.Anthill.RESULT][i][j]
-        world.playground.writelayer("copy", outputmapname,
-                                            world.overwritepheormone)
-        #TODO world.playground.writelayer(anthill.Anthill.RESULT, False,
-        #TODO                                    world.overwritepheormone)
-#        print "nrofpaths:", world.nrop
+            for j in range(len(world.playground.layers[anthill.Anthill.RESULT][0])):
+                world.playground.layers["copy"][i][j] = world.playground.layers[
+                    anthill.Anthill.RESULT
+                ][i][j]
+        world.playground.writelayer("copy", outputmapname, world.overwritepheormone)
+        # TODO world.playground.writelayer(anthill.Anthill.RESULT, False,
+        # TODO                                    world.overwritepheormone)
+        #        print "nrofpaths:", world.nrop
         # count down outer
         run += 1
+
+
 #    print "nrofrounds", nrofrounds
+
 
 def main():
 
     try:
-        setmaps(options['sitesmap'],
-            options['costmap'], flags['c'],
-            options['inputmap'], options['outputmap'], flags['p'])
+        setmaps(
+            options["sitesmap"],
+            options["costmap"],
+            flags["c"],
+            options["inputmap"],
+            options["outputmap"],
+            flags["p"],
+        )
 
-#        world.playground.setboundsfromlayer("costs")
-        if not options['outrounds']:
-            options['outrounds'] = 0
-        elif flags['s'] and options['outrounds'] > 0:
+        #        world.playground.setboundsfromlayer("costs")
+        if not options["outrounds"]:
+            options["outrounds"] = 0
+        elif flags["s"] and options["outrounds"] > 0:
             world.addsequencenumber = True
 
-        if flags['s']:
+        if flags["s"]:
             world.antavoidsloops = True
-        if options['lowcostlimit']:
-            world.minpenalty = int(options['lowcostlimit'])
-        if options['highcostlimit']:
-            world.maxpenalty = int(options['highcostlimit'])
-        if options['maxpheromone']:
-            world.maxpheromone = int(options['maxpheromone'])
+        if options["lowcostlimit"]:
+            world.minpenalty = int(options["lowcostlimit"])
+        if options["highcostlimit"]:
+            world.maxpenalty = int(options["highcostlimit"])
+        if options["maxpheromone"]:
+            world.maxpheromone = int(options["maxpheromone"])
             world.maxrandom = world.maxpheromone
-        if options['minpheromone']:
-            world.minpheromone = int(options['minpheromone'])
+        if options["minpheromone"]:
+            world.minpheromone = int(options["minpheromone"])
             world.minrandom = world.minpheromone
-        if options['volatilizationtime']:
-            world.volatilizationtime = int(options['volatilizationtime'])
-        if options['stepintensity']:
-            world.stepintensity = int(options['stepintensity'])
-        if options['pathintensity']:
-            world.pathintensity = int(options['pathintensity'])
-        if options['maxants']:
-            world.maxants = int(options['maxants'])
-        if options['antslife']:
-            world.antslife = int(options['antslife'])
-        if options['decisionalgorithm']:
-            world.decisionbase = str(options['decisionalgorithm'])
-        if options['evaluateposition']:
-            world.evaluationbase = str(options['evaluateposition'])
-#        if options['agentfreedom']:
-#            world.globalfreedom = int(options['agentfreedom'])
-        if options['pheromoneweight']:
-            world.pheroweight = int(options['pheromoneweight'])
-        if options['randomnessweight']:
-            world.randomweight = int(options['randomnessweight'])
-        if options['costweight']:
-            world.costweight = int(options['costweight'])
-        #if arglist[0] == "stability":
-            #TODO ask silvia..
+        if options["volatilizationtime"]:
+            world.volatilizationtime = int(options["volatilizationtime"])
+        if options["stepintensity"]:
+            world.stepintensity = int(options["stepintensity"])
+        if options["pathintensity"]:
+            world.pathintensity = int(options["pathintensity"])
+        if options["maxants"]:
+            world.maxants = int(options["maxants"])
+        if options["antslife"]:
+            world.antslife = int(options["antslife"])
+        if options["decisionalgorithm"]:
+            world.decisionbase = str(options["decisionalgorithm"])
+        if options["evaluateposition"]:
+            world.evaluationbase = str(options["evaluateposition"])
+        #        if options['agentfreedom']:
+        #            world.globalfreedom = int(options['agentfreedom'])
+        if options["pheromoneweight"]:
+            world.pheroweight = int(options["pheromoneweight"])
+        if options["randomnessweight"]:
+            world.randomweight = int(options["randomnessweight"])
+        if options["costweight"]:
+            world.costweight = int(options["costweight"])
+        # if arglist[0] == "stability":
+        # TODO ask silvia..
 
-#        world.checkvalues()
+    #        world.checkvalues()
     except error.DataError:
         grass.fatal("Failed to parse args..")
         sys.exit(1)
-    letantsdance(int(options['rounds']), int(options['outrounds']))
+    letantsdance(int(options["rounds"]), int(options["outrounds"]))
     grass.message("FINISH")
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

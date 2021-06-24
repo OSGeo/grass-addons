@@ -5,9 +5,9 @@ import tempfile
 
 def save_dict(fn, dict_rap):
     f = open(fn, "wb")
-    w = csv.writer(f, delimiter='=')
+    w = csv.writer(f, delimiter="=")
     for key, val in dict_rap.items():
-        if val is None or val == '':
+        if val is None or val == "":
             continue
         w.writerow([key, val])
     f.close()
@@ -15,17 +15,17 @@ def save_dict(fn, dict_rap):
 
 def read_dict(fn):
     if os.path.exists(fn):
-        f = open(fn, 'r')
+        f = open(fn, "r")
         dict_rap = {}
         try:
-            for key, val in csv.reader(f, delimiter='='):
+            for key, val in csv.reader(f, delimiter="="):
                 try:
                     dict_rap[key] = eval(val)
                 except:
                     val = '"' + val + '"'
                     dict_rap[key] = eval(val)
             f.close()
-            return (dict_rap)
+            return dict_rap
         except IOError as e:
             print "I/O error({0}): {1}".format(e.errno, e.strerror)
     else:

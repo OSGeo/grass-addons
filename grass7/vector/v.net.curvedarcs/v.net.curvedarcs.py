@@ -73,61 +73,59 @@ import atexit
 import math
 import grass.script as gscript
 
+
 def cleanup():
     if tmplines:
-        gscript.run_command('g.remove',
-                            flags='f',
-                            type='vector',
-                            name=tmplines,
-                            quiet=True)
+        gscript.run_command(
+            "g.remove", flags="f", type="vector", name=tmplines, quiet=True
+        )
     if tmplines2:
-        gscript.run_command('g.remove',
-                            flags='f',
-                            type='vector',
-                            name=tmplines2,
-                            quiet=True)
+        gscript.run_command(
+            "g.remove", flags="f", type="vector", name=tmplines2, quiet=True
+        )
     if tmppoints:
-        gscript.run_command('g.remove',
-                            flags='f',
-                            type='vector',
-                            name=tmppoints,
-                            quiet=True)
+        gscript.run_command(
+            "g.remove", flags="f", type="vector", name=tmppoints, quiet=True
+        )
 
     gscript.try_remove(vseginfile)
     gscript.try_remove(vnetinfile)
+
 
 def write_segmentdefs(lineinfo, minoffset, maxoffset, nbvertices):
 
     filename = gscript.tempfile()
     maxlength = max(lineinfo.values())
-    step = 100000/nbvertices
-    t = [x/100000.0 for x in range(0,int(math.pi*100000),step)]
-    x = [a/max(t)*100 for a in t]
+    step = 100000 / nbvertices
+    t = [x / 100000.0 for x in range(0, int(math.pi * 100000), step)]
+    x = [a / max(t) * 100 for a in t]
     x[-1] -= 0.001
-    with open(filename, 'w') as fout:
+    with open(filename, "w") as fout:
         for linecat in lineinfo:
             offset = lineinfo[linecat] / maxlength * maxoffset
             if offset < minoffset:
                 offset = minoffset
-            y = [math.sin(a)*offset for a in t]
-            P = list(zip(x,y))
-            cat = linecat*10000
+            y = [math.sin(a) * offset for a in t]
+            P = list(zip(x, y))
+            cat = linecat * 10000
             for px, py in P:
                 cat += 1
                 fout.write("P %d %d %f%% %f\n" % (cat, linecat, px, py))
 
     return filename, len(x)
 
+
 def write_segarcdefs(lineinfo, maxcat):
 
     filename = gscript.tempfile()
-    with open(filename, 'w') as fout:
+    with open(filename, "w") as fout:
         for arccat in lineinfo:
             for cat in range(1, maxcat):
-                pointcat = arccat*10000 + cat
-                fout.write("%d %d %d\n" % (arccat, pointcat, pointcat+1))
+                pointcat = arccat * 10000 + cat
+                fout.write("%d %d %d\n" % (arccat, pointcat, pointcat + 1))
 
     return filename
+
 
 def process_infile(flow_file, separator, header, sameok, outputfile):
 
@@ -135,10 +133,10 @@ def process_infile(flow_file, separator, header, sameok, outputfile):
     sqlfile = gscript.tempfile()
     cat = 0
 
-    with open(vnetinfile, 'w') as fout:
-        with open(sqlfile, 'w') as sqlout:
+    with open(vnetinfile, "w") as fout:
+        with open(sqlfile, "w") as sqlout:
             sqlout.write("BEGIN TRANSACTION;\n")
-            with open(flow_file, 'r') as fin:
+            with open(flow_file, "r") as fin:
                 for line in fin:
                     cat += 1
                     if header:
@@ -148,97 +146,110 @@ def process_infile(flow_file, separator, header, sameok, outputfile):
                     print(data)
                     if sameok or not (data[0] == data[1]):
                         fout.write("%s %s %s\n" % (cat, data[0], data[1]))
-                        sqlout.write("UPDATE %s SET from_node = %s, to_node = %s, volume = %s WHERE cat = %d;\n" % (outputfile, data[0], data[1], data[2], cat))
+                        sqlout.write(
+                            "UPDATE %s SET from_node = %s, to_node = %s, volume = %s WHERE cat = %d;\n"
+                            % (outputfile, data[0], data[1], data[2], cat)
+                        )
             sqlout.write("END TRANSACTION;\n")
 
     return vnetinfile, sqlfile
 
+
 def main():
-    orig_point_map = options['input']
-    flow_file = options['flow_input_file']
-    minoffset = float(options['minimum_offset'])
-    maxoffset = float(options['maximum_offset'])
-    vertices = int(options['vertices'])
-    outputfile = options['output']
-    separator = gscript.separator(options['separator'])
-    sameok = flags['s']
+    orig_point_map = options["input"]
+    flow_file = options["flow_input_file"]
+    minoffset = float(options["minimum_offset"])
+    maxoffset = float(options["maximum_offset"])
+    vertices = int(options["vertices"])
+    outputfile = options["output"]
+    separator = gscript.separator(options["separator"])
+    sameok = flags["s"]
     header = True
 
     pid = os.getpid()
 
-
     global tmplines, tmplines2, tmppoints, vseginfile, vnetinfile
-    tmplines = 'tmp_vnetcurvedarcs_tmplines_%d' % pid
-    tmplines2 = 'tmp_vnetcurvedarcs_tmplines2_%d' % pid
-    tmppoints = 'tmp_vnetcurvedarcs_tmppoints_%d' % pid
+    tmplines = "tmp_vnetcurvedarcs_tmplines_%d" % pid
+    tmplines2 = "tmp_vnetcurvedarcs_tmplines2_%d" % pid
+    tmppoints = "tmp_vnetcurvedarcs_tmppoints_%d" % pid
 
-    vnetinfile, sqlfile = process_infile(flow_file, separator, header, sameok, outputfile)
+    vnetinfile, sqlfile = process_infile(
+        flow_file, separator, header, sameok, outputfile
+    )
     gscript.message(_("Creating straight flow lines..."))
-    gscript.run_command('v.net',
-                        points=orig_point_map,
-                        operation='arcs',
-                        file_=vnetinfile,
-                        out=tmplines,
-                        overwrite=True,
-                        quiet=True)
+    gscript.run_command(
+        "v.net",
+        points=orig_point_map,
+        operation="arcs",
+        file_=vnetinfile,
+        out=tmplines,
+        overwrite=True,
+        quiet=True,
+    )
 
-    linedata = gscript.read_command('v.to.db',
-                                    flags='p',
-                                    map_=tmplines,
-                                    option='length',
-                                    quiet=True).splitlines()
+    linedata = gscript.read_command(
+        "v.to.db", flags="p", map_=tmplines, option="length", quiet=True
+    ).splitlines()
 
     lineinfo = {}
     for line in linedata:
-        data = line.split('|')
+        data = line.split("|")
         if int(data[0]) > 0:
             lineinfo[int(data[0])] = float(data[1])
 
     vseginfile, maxcat = write_segmentdefs(lineinfo, minoffset, maxoffset, vertices)
 
     gscript.message(_("Creating points of curved lines..."))
-    gscript.run_command('v.segment',
-                        input_=tmplines,
-                        out=tmppoints,
-                        rules=vseginfile,
-                        overwrite=True,
-                        quiet=True)
+    gscript.run_command(
+        "v.segment",
+        input_=tmplines,
+        out=tmppoints,
+        rules=vseginfile,
+        overwrite=True,
+        quiet=True,
+    )
 
     gscript.message(_("Creating curved lines from points..."))
 
     vnetinfile = write_segarcdefs(lineinfo, maxcat)
-    gscript.run_command('v.net',
-                        points=tmppoints,
-                        output=tmplines,
-                        operation='arcs',
-                        file_=vnetinfile,
-                        overwrite=True,
-                        quiet=True)
+    gscript.run_command(
+        "v.net",
+        points=tmppoints,
+        output=tmplines,
+        operation="arcs",
+        file_=vnetinfile,
+        overwrite=True,
+        quiet=True,
+    )
 
-    gscript.run_command('v.extract',
-                        input_=tmplines,
-                        output=tmplines2,
-                        layer=1,
-                        overwrite=True,
-                        quiet=True)
+    gscript.run_command(
+        "v.extract",
+        input_=tmplines,
+        output=tmplines2,
+        layer=1,
+        overwrite=True,
+        quiet=True,
+    )
 
     gscript.message(_("Creating polylines..."))
-    gscript.run_command('v.build.polylines',
-                        input_=tmplines2,
-                        output=outputfile,
-                        cats='multi',
-                        overwrite=True,
-                        quiet=True)
+    gscript.run_command(
+        "v.build.polylines",
+        input_=tmplines2,
+        output=outputfile,
+        cats="multi",
+        overwrite=True,
+        quiet=True,
+    )
 
-    gscript.run_command('v.db.addtable',
-                        map_=outputfile,
-                        columns="from_node int, to_node int, volume double precision",
-                        quiet=True,
-                        overwrite=True)
+    gscript.run_command(
+        "v.db.addtable",
+        map_=outputfile,
+        columns="from_node int, to_node int, volume double precision",
+        quiet=True,
+        overwrite=True,
+    )
 
-    gscript.run_command('db.execute',
-                        input_=sqlfile,
-                        quiet=True)
+    gscript.run_command("db.execute", input_=sqlfile, quiet=True)
 
 
 if __name__ == "__main__":

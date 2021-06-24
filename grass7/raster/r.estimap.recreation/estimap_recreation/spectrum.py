@@ -101,7 +101,7 @@ def compute_recreation_spectrum(potential, opportunity, spectrum):
 
     spectrum_equation = EQUATION.format(result=spectrum, expression=spectrum_expression)
 
-    msg = '\n'
+    msg = "\n"
     msg += ">>> Recreation Spectrum equation: \n"
     msg += spectrum_equation
     grass.verbose(msg)

@@ -48,6 +48,46 @@ import atexit
 
 import grass.script as gs
 
+try:
+    from grass.script.utils import append_random
+except ImportError:
+    import random
+    import string
+
+    def append_random(name, suffix_length=None, total_length=None):
+        """Add a random part to of a specified length to a name (string)
+
+        >>> append_random("tmp", 8)
+        >>> append_random("tmp", total_length=16)
+
+        ..note::
+
+            This function is copied from grass79.
+        """
+        if suffix_length and total_length:
+            raise ValueError(
+                "Either suffix_length or total_length can be provided, not both"
+            )
+        if not suffix_length and not total_length:
+            raise ValueError("suffix_length or total_length has to be provided")
+        if total_length:
+            # remove len of name and one underscore
+            name_length = len(name)
+            suffix_length = total_length - name_length - 1
+            if suffix_length <= 0:
+                raise ValueError(
+                    "No characters left for the suffix:"
+                    " total_length <{total_length}> is too small"
+                    " or name <{name}> ({name_length}) is too long".format(**locals())
+                )
+        # We don't do lower and upper case because that could cause conflicts in
+        # contexts which are case-insensitive.
+        # We use lowercase because that's what is in UUID4 hex string.
+        allowed_chars = string.ascii_lowercase + string.digits
+        # The following can be shorter with random.choices from Python 3.6.
+        suffix = "".join(random.choice(allowed_chars) for _ in range(suffix_length))
+        return "{name}_{suffix}".format(**locals())
+
 
 TMP = []
 
@@ -91,14 +131,12 @@ def main():
 
     rules = parse(original, cats)
     if flags["c"] and flags["s"]:
-        gs.warning(
-            _("The extent of the output reclassified raster cannot be changed")
-        )
+        gs.warning(_("The extent of the output reclassified raster cannot be changed"))
 
     if flags["s"]:
         reclass(original, output, rules)
     else:
-        output_tmp = gs.append_random("tmp", 8)
+        output_tmp = append_random("tmp", 8)
         TMP.append(output_tmp)
         reclass(original, output_tmp, rules)
         if flags["c"]:

@@ -353,131 +353,174 @@ from grass.script.utils import set_path
 
 try:
     # set python path to the shared r.green libraries
-    set_path('r.green', 'libforest', '..')
-    set_path('r.green', 'libgreen', os.path.join('..', '..'))
+    set_path("r.green", "libforest", "..")
+    set_path("r.green", "libgreen", os.path.join("..", ".."))
     from libforest.harvesting import combination
     from libforest.harvesting import slope_computation, yield_pix_process
     from libgreen.utils import cleanup
     from libgreen.utils import sel_columns
-    #TODO: check the required column
+
+    # TODO: check the required column
     # from libgreen.checkparameter import check_required_columns,
     # exception2error
     from libforest.financial import revenues, productivity
     from libforest.financial import costs, net_revenues
 except ImportError:
-    warning('libgreen and libforest not in the python path!')
+    warning("libgreen and libforest not in the python path!")
 
 
 def main(opts, flgs):
     pid = os.getpid()
     pat = "tmprgreen_%i_*" % pid
     DEBUG = False
-    #FIXME: debug from flag
-    atexit.register(cleanup,
-                    pattern=pat,
-                    debug=DEBUG)
+    # FIXME: debug from flag
+    atexit.register(cleanup, pattern=pat, debug=DEBUG)
 
-    forest = opts['forest']
+    forest = opts["forest"]
 
-    forest_roads = opts['forest_roads']
-    main_roads = opts['main_roads']
+    forest_roads = opts["forest_roads"]
+    main_roads = opts["main_roads"]
 
     ######## start import and convert ########
-    ll = [x for x in opts.keys() if sel_columns(x, 'forest_column')]
+    ll = [x for x in opts.keys() if sel_columns(x, "forest_column")]
     for key in ll:
         try:
-            run_command("v.to.rast",
-                        input=forest,
-                        output=('tmprgreen_%i_%s' % (pid, key[14:])),
-                        use="attr",
-                        attrcolumn=opts[key], overwrite=True)
-            #FIXME: not to show the ERROR
-            run_command("r.null", map=('tmprgreen_%i_%s' % (pid, key[14:])),
-                        null=0)
+            run_command(
+                "v.to.rast",
+                input=forest,
+                output=("tmprgreen_%i_%s" % (pid, key[14:])),
+                use="attr",
+                attrcolumn=opts[key],
+                overwrite=True,
+            )
+            # FIXME: not to show the ERROR
+            run_command("r.null", map=("tmprgreen_%i_%s" % (pid, key[14:])), null=0)
         except Exception:
-            warning('no column %s selectd, values set to 0' % key)
-            run_command("r.mapcalc", overwrite=True,
-                        expression=('%s=0' % 'tmprgreen_%i_%s'
-                                    % (pid, key[14:])))
+            warning("no column %s selectd, values set to 0" % key)
+            run_command(
+                "r.mapcalc",
+                overwrite=True,
+                expression=("%s=0" % "tmprgreen_%i_%s" % (pid, key[14:])),
+            )
 
-    run_command("v.to.rast", input=forest_roads,
-                output=('tmprgreen_%i_forest_roads' % pid),
-                use="val", overwrite=True)
-    run_command("v.to.rast", input=main_roads,
-                output=('tmprgreen_%i_main_roads' % pid),
-                use="val", overwrite=True)
-# FIXME: yiel surface can be computed by the code, plan surface or real?
-# FIXME: this map can be create here
-    yield_pix = 'tmprgreen_%i_yield_pix' % pid
-    expr = ("{pix} = {yield_}/{yield_surface}*"
-            "((ewres()*nsres())/10000)")
-    r.mapcalc(expr.format(pix=yield_pix,
-                          yield_=('tmprgreen_%i_yield' % pid),
-                          yield_surface='tmprgreen_%i_yield_surface' % pid),
-              overwrite=True)
+    run_command(
+        "v.to.rast",
+        input=forest_roads,
+        output=("tmprgreen_%i_forest_roads" % pid),
+        use="val",
+        overwrite=True,
+    )
+    run_command(
+        "v.to.rast",
+        input=main_roads,
+        output=("tmprgreen_%i_main_roads" % pid),
+        use="val",
+        overwrite=True,
+    )
+    # FIXME: yiel surface can be computed by the code, plan surface or real?
+    # FIXME: this map can be create here
+    yield_pix = "tmprgreen_%i_yield_pix" % pid
+    expr = "{pix} = {yield_}/{yield_surface}*" "((ewres()*nsres())/10000)"
+    r.mapcalc(
+        expr.format(
+            pix=yield_pix,
+            yield_=("tmprgreen_%i_yield" % pid),
+            yield_surface="tmprgreen_%i_yield_surface" % pid,
+        ),
+        overwrite=True,
+    )
     # TODO: add r.null
     ######## end import and convert ########
-    dic = {'tree_diam': 35, 'tree_vol': 3, 'soilp2_map': 0.7}
+    dic = {"tree_diam": 35, "tree_vol": 3, "soilp2_map": 0.7}
     for key, val in dic.items():
-        if not(opts[key]):
+        if not (opts[key]):
             warning("Not %s map, value set to %f" % (key, val))
-            output = 'tmprgreen_%i_%s' % (pid, key)
-            run_command("r.mapcalc", overwrite=True,
-                        expression=('%s=%f' % (output, val)))
+            output = "tmprgreen_%i_%s" % (pid, key)
+            run_command(
+                "r.mapcalc", overwrite=True, expression=("%s=%f" % (output, val))
+            )
     # create combination maps to avoid if construction
-    m1t1, m1t2, m1, m2, not2 = combination('tmprgreen_%i_management' % pid,
-                                           'tmprgreen_%i_treatment' % pid)
+    m1t1, m1t2, m1, m2, not2 = combination(
+        "tmprgreen_%i_management" % pid, "tmprgreen_%i_treatment" % pid
+    )
 
-    slope_computation(opts['elevation'])
+    slope_computation(opts["elevation"])
 
-    if (opts['technical_bioenergy'] and opts['tech_bioc']
-            and opts['tech_biohf']):
-        technical_bioenergy = opts['technical_bioenergy']
-        tech_bioC = opts['tech_bioc']
-        tech_bioHF = opts['tech_biohf']
-        technical_surface = 'tmprgreen_%i_technical_surface' % pid
+    if opts["technical_bioenergy"] and opts["tech_bioc"] and opts["tech_biohf"]:
+        technical_bioenergy = opts["technical_bioenergy"]
+        tech_bioC = opts["tech_bioc"]
+        tech_bioHF = opts["tech_biohf"]
+        technical_surface = "tmprgreen_%i_technical_surface" % pid
         expr = "{technical_surface} = if({technical_bioenergy}, 1, 0)"
-        r.mapcalc(expr.format(technical_surface=technical_surface,
-                              technical_bioenergy=technical_bioenergy
-                              ),
-                              overwrite=True)
+        r.mapcalc(
+            expr.format(
+                technical_surface=technical_surface,
+                technical_bioenergy=technical_bioenergy,
+            ),
+            overwrite=True,
+        )
 
     else:
-        #FIXME: call directly the biomassfor.technical module
-        out = yield_pix_process(opts=opts, vector_forest=forest,
-                                yield_=('tmprgreen_%i_yield' % pid),
-                                yield_surface=('tmprgreen_%i_yield_surface' % pid),
-                                rivers=opts['rivers'],
-                                lakes=opts['lakes'],
-                                forest_roads=('tmprgreen_%i_forest_roads' % pid),
-                                m1t1=m1t1, m1t2=m1t2, m1=m1, m2=m2,
-                                roughness=('tmprgreen_%i_roughness' % pid))
+        # FIXME: call directly the biomassfor.technical module
+        out = yield_pix_process(
+            opts=opts,
+            vector_forest=forest,
+            yield_=("tmprgreen_%i_yield" % pid),
+            yield_surface=("tmprgreen_%i_yield_surface" % pid),
+            rivers=opts["rivers"],
+            lakes=opts["lakes"],
+            forest_roads=("tmprgreen_%i_forest_roads" % pid),
+            m1t1=m1t1,
+            m1t2=m1t2,
+            m1=m1,
+            m2=m2,
+            roughness=("tmprgreen_%i_roughness" % pid),
+        )
         technical_bioenergy, tech_bioC, tech_bioHF = out
 
-    total_revenues = revenues(opts=opts,
-                              yield_surface=('tmprgreen_%i_yield_surface'
-                                             % pid),
-                              m1t1=m1t1, m1t2=m1t2, m1=m1, m2=m2,
-                              forest=forest,
-                              yield_=('tmprgreen_%i_yield' % pid),
-                              technical_bioenergy=technical_bioenergy)
+    total_revenues = revenues(
+        opts=opts,
+        yield_surface=("tmprgreen_%i_yield_surface" % pid),
+        m1t1=m1t1,
+        m1t2=m1t2,
+        m1=m1,
+        m2=m2,
+        forest=forest,
+        yield_=("tmprgreen_%i_yield" % pid),
+        technical_bioenergy=technical_bioenergy,
+    )
 
-    dic1, dic2 = productivity(opts=opts,
-                              m1t1=m1t1, m1t2=m1t2, m1=m1, m2=m2, not2=not2,
-                              soilp2_map=('tmprgreen_%i_soilp2_map' % pid),
-                              tree_diam=('tmprgreen_%i_tree_diam' % pid),
-                              tree_vol=('tmprgreen_%i_tree_vol' % pid),
-                              forest_roads=('tmprgreen_%i_forest_roads' % pid),
-                              main_roads=('tmprgreen_%i_main_roads' % pid))
-    total_costs = costs(opts, total_revenues=total_revenues,
-                        dic1=dic1, dic2=dic2, yield_pix="yield_pix1")
-    net_revenues(opts=opts,
-                 total_revenues=total_revenues,
-                 technical_bioenergy=technical_bioenergy,
-                 tech_bioC=tech_bioC, tech_bioHF=tech_bioHF,
-                 total_costs=total_costs)
+    dic1, dic2 = productivity(
+        opts=opts,
+        m1t1=m1t1,
+        m1t2=m1t2,
+        m1=m1,
+        m2=m2,
+        not2=not2,
+        soilp2_map=("tmprgreen_%i_soilp2_map" % pid),
+        tree_diam=("tmprgreen_%i_tree_diam" % pid),
+        tree_vol=("tmprgreen_%i_tree_vol" % pid),
+        forest_roads=("tmprgreen_%i_forest_roads" % pid),
+        main_roads=("tmprgreen_%i_main_roads" % pid),
+    )
+    total_costs = costs(
+        opts,
+        total_revenues=total_revenues,
+        dic1=dic1,
+        dic2=dic2,
+        yield_pix="yield_pix1",
+    )
+    net_revenues(
+        opts=opts,
+        total_revenues=total_revenues,
+        technical_bioenergy=technical_bioenergy,
+        tech_bioC=tech_bioC,
+        tech_bioHF=tech_bioHF,
+        total_costs=total_costs,
+    )
 
-#TODO: create a function based on r.univar or delete it
+
+# TODO: create a function based on r.univar or delete it
 #    with RasterRow(econ_bioenergy) as pT:
 #        T = np.array(pT)
 #

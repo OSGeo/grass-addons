@@ -39,18 +39,18 @@ import grass.script as grass
 import grass.temporal as tgis
 from grass.script import parser
 
-grass.utils.set_path(modulename='wx.metadata', dirname='mdlib', path='..')
+grass.utils.set_path(modulename="wx.metadata", dirname="mdlib", path="..")
 
 
 def main():
     # Load metadata library
     from mdlib.mdgrass import GrassMD
 
-    if not options['output']:
+    if not options["output"]:
         destination = None
         output_name = None
     else:
-        destination, output_name = os.path.split(options['output'])
+        destination, output_name = os.path.split(options["output"])
 
     name = options["input"]
     type_ = options["type"]
@@ -77,7 +77,7 @@ def main():
     md.saveXML(
         path=destination,
         xml_out_name=output_name,
-        overwrite=os.getenv('GRASS_OVERWRITE', False),
+        overwrite=os.getenv("GRASS_OVERWRITE", False),
     )
 
 

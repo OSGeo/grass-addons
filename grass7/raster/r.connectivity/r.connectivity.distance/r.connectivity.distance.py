@@ -240,23 +240,29 @@ if "GISBASE" not in os.environ:
 # global TMP_PREFIX
 TMP_PREFIX = grass.tempname(12)
 
+
 def cleanup():
-    """Remove temporary data
-    """
+    """Remove temporary data"""
     grass.del_temp_region()
-    tmp_maps = grass.read_command("g.list",
-                                  type=['vector', 'raster'],
-                                  pattern='{}*'.format(TMP_PREFIX),
-                                  separator=',')
+    tmp_maps = grass.read_command(
+        "g.list",
+        type=["vector", "raster"],
+        pattern="{}*".format(TMP_PREFIX),
+        separator=",",
+    )
 
     if tmp_maps:
-        grass.run_command("g.remove", type=['vector', 'raster'],
-                          pattern='{}*'.format(TMP_PREFIX), quiet=True,
-                          flags='f')
+        grass.run_command(
+            "g.remove",
+            type=["vector", "raster"],
+            pattern="{}*".format(TMP_PREFIX),
+            quiet=True,
+            flags="f",
+        )
+
 
 def main():
-    """Do the main processing
-    """
+    """Do the main processing"""
 
     # Lazy import GDAL python bindings
     try:
@@ -265,29 +271,29 @@ def main():
         grass.fatal(_("Module requires GDAL python bindings: {}").format(e))
 
     # Parse input options:
-    patch_map = options['input']
-    patches = patch_map.split('@')[0]
-    patches_mapset = patch_map.split('@')[1] if len(patch_map.split('@')) > 1 else None
-    pop_proxy = options['pop_proxy']
-    layer = options['layer']
-    costs = options['costs']
-    cutoff = float(options['cutoff'])
-    border_dist = int(options['border_dist'])
-    conefor_dir = options['conefor_dir']
-    memory = int(options['memory'])
+    patch_map = options["input"]
+    patches = patch_map.split("@")[0]
+    patches_mapset = patch_map.split("@")[1] if len(patch_map.split("@")) > 1 else None
+    pop_proxy = options["pop_proxy"]
+    layer = options["layer"]
+    costs = options["costs"]
+    cutoff = float(options["cutoff"])
+    border_dist = int(options["border_dist"])
+    conefor_dir = options["conefor_dir"]
+    memory = int(options["memory"])
 
     # Parse output options:
-    prefix = options['prefix']
-    edge_map = '{}_edges'.format(prefix)
-    vertex_map = '{}_vertices'.format(prefix)
-    shortest_paths = '{}_shortest_paths'.format(prefix)
+    prefix = options["prefix"]
+    edge_map = "{}_edges".format(prefix)
+    vertex_map = "{}_vertices".format(prefix)
+    shortest_paths = "{}_shortest_paths".format(prefix)
 
     # Parse flags:
-    p_flag = flags['p']
-    t_flag = flags['t']
-    r_flag = flags['r']
+    p_flag = flags["p"]
+    t_flag = flags["t"]
+    r_flag = flags["r"]
 
-    dist_flags = 'kn' if flags['k'] else 'n'
+    dist_flags = "kn" if flags["k"] else "n"
 
     lin_cat = 1
     zero_dist = None
@@ -302,71 +308,99 @@ def main():
     # Check if location is lat/lon (only in lat/lon geodesic distance
     # measuring is supported)
     if grass.locn_is_latlong():
-        grass.verbose("Location is lat/lon: Geodesic distance \
-                      measure is used")
+        grass.verbose(
+            "Location is lat/lon: Geodesic distance \
+                      measure is used"
+        )
 
     # Check if prefix is legal GRASS name
     if not grass.legal_name(prefix):
-        grass.fatal('{} is not a legal name for GRASS \
-                    maps.'.format(prefix))
+        grass.fatal(
+            "{} is not a legal name for GRASS \
+                    maps.".format(
+                prefix
+            )
+        )
 
     if prefix[0].isdigit():
-        grass.fatal('Tables names starting with a digit are not SQL \
-                    compliant.'.format(prefix))
+        grass.fatal(
+            "Tables names starting with a digit are not SQL \
+                    compliant.".format(
+                prefix
+            )
+        )
 
     # Check if output maps not already exists or could be overwritten
     for output in [edge_map, vertex_map, shortest_paths]:
         if grass.db.db_table_exist(output) and not grass.overwrite():
-            grass.fatal('Vector map <{}> already exists'.format(output))
+            grass.fatal("Vector map <{}> already exists".format(output))
 
     # Check if input has required attributes
     in_db_connection = grass.vector.vector_db(patch_map)
     if not int(layer) in in_db_connection.keys():
-        grass.fatal('No attribute table connected vector map {} at \
-                    layer {}.'.format(patches, layer))
+        grass.fatal(
+            "No attribute table connected vector map {} at \
+                    layer {}.".format(
+                patches, layer
+            )
+        )
 
-    #Check if cat column exists
+    # Check if cat column exists
     pcols = grass.vector.vector_columns(patch_map, layer=layer)
 
-    #Check if cat column exists
-    if 'cat' not in pcols.keys():
-        grass.fatal('Cannot find the reqired column cat in vector map \
-                    {}.'.format(patches))
+    # Check if cat column exists
+    if "cat" not in pcols.keys():
+        grass.fatal(
+            "Cannot find the reqired column cat in vector map \
+                    {}.".format(
+                patches
+            )
+        )
 
-    #Check if pop_proxy column exists
+    # Check if pop_proxy column exists
     if pop_proxy not in pcols.keys():
-        grass.fatal('Cannot find column {} in vector map \
-                    {}'.format(pop_proxy, patches))
+        grass.fatal(
+            "Cannot find column {} in vector map \
+                    {}".format(
+                pop_proxy, patches
+            )
+        )
 
-    #Check if pop_proxy column is numeric type
-    if not pcols[pop_proxy]['type'] in ['INTEGER', 'REAL',
-                                        'DOUBLE PRECISION']:
-        grass.fatal('Column {} is of type {}. Only numeric types \
+    # Check if pop_proxy column is numeric type
+    if not pcols[pop_proxy]["type"] in ["INTEGER", "REAL", "DOUBLE PRECISION"]:
+        grass.fatal(
+            "Column {} is of type {}. Only numeric types \
                     (integer or double precision) \
-                    allowed!'.format(pop_proxy,
-                                     pcols[pop_proxy]['type']))
+                    allowed!".format(
+                pop_proxy, pcols[pop_proxy]["type"]
+            )
+        )
 
-    #Check if pop_proxy column does not contain values <= 0
-    pop_vals = np.fromstring(grass.read_command('v.db.select',
-                                                flags='c',
-                                                map=patches,
-                                                columns=pop_proxy,
-                                                nv=-9999
-                                                ).rstrip('\n'),
-                             dtype=float, sep='\n')
+    # Check if pop_proxy column does not contain values <= 0
+    pop_vals = np.fromstring(
+        grass.read_command(
+            "v.db.select", flags="c", map=patches, columns=pop_proxy, nv=-9999
+        ).rstrip("\n"),
+        dtype=float,
+        sep="\n",
+    )
 
     if np.min(pop_vals) <= 0:
-        grass.fatal('Column {} contains values <= 0 or NULL. Neither \
-                    values <= 0 nor NULL allowed!}'.format(pop_proxy))
+        grass.fatal(
+            "Column {} contains values <= 0 or NULL. Neither \
+                    values <= 0 nor NULL allowed!}".format(
+                pop_proxy
+            )
+        )
 
     ##############################################
     # Use pygrass region instead of grass.parse_command !?!
-    start_reg = grass.parse_command('g.region', flags='ugp')
+    start_reg = grass.parse_command("g.region", flags="ugp")
 
-    max_n = start_reg['n']
-    min_s = start_reg['s']
-    max_e = start_reg['e']
-    min_w = start_reg['w']
+    max_n = start_reg["n"]
+    min_s = start_reg["s"]
+    max_e = start_reg["e"]
+    min_w = start_reg["w"]
     # cost_nsres = reg['nsres']
     # cost_ewres = reg['ewres']
 
@@ -378,66 +412,88 @@ def main():
         # Rasterize patches with "all-touched" mode using GDAL
         # Read region-settings (not needed canuse max_n, min_s, max_e,
         # min_w nsres, ewres...
-        prast = os.path.join(folder, 'patches_rast.tif')
+        prast = os.path.join(folder, "patches_rast.tif")
 
         # Check if GDAL-GRASS plugin is installed
-        if ogr.GetDriverByName('GRASS'):
-            #With GDAL-GRASS plugin
-            #Locate file for patch vector map
-            pfile = grass.parse_command('g.findfile', element='vector',
-                                        file=patches,
-                                        mapset=patches_mapset)['file']
-            pfile = os.path.join(pfile, 'head')
+        if ogr.GetDriverByName("GRASS"):
+            # With GDAL-GRASS plugin
+            # Locate file for patch vector map
+            pfile = grass.parse_command(
+                "g.findfile", element="vector", file=patches, mapset=patches_mapset
+            )["file"]
+            pfile = os.path.join(pfile, "head")
 
         else:
             # Without GDAL-GRASS-plugin
-            grass.warning("Cannot find GDAL-GRASS plugin. Consider \
+            grass.warning(
+                "Cannot find GDAL-GRASS plugin. Consider \
                           installing it in order to save time for \
-                          all-touched rasterisation")
-            pfile = os.path.join(folder, 'patches_vect.gpkg')
+                          all-touched rasterisation"
+            )
+            pfile = os.path.join(folder, "patches_vect.gpkg")
             # Export patch vector map to temp-file in a GDAL-readable
             # format (shp)
-            grass.run_command('v.out.ogr', flags='m', quiet=True,
-                              input=patch_map, type='area',
-                              layer=layer, output=pfile,
-                              lco='GEOMETRY_NAME=geom')
+            grass.run_command(
+                "v.out.ogr",
+                flags="m",
+                quiet=True,
+                input=patch_map,
+                type="area",
+                layer=layer,
+                output=pfile,
+                lco="GEOMETRY_NAME=geom",
+            )
 
         # Rasterize vector map with all-touched option
-        os.system('gdal_rasterize -l {} -at -tr {} {} \
+        os.system(
+            "gdal_rasterize -l {} -at -tr {} {} \
                   -te {} {} {} {} -ot Uint32 -a cat \
-                  {} {} -q'.format(patches, start_reg['ewres'],
-                                   start_reg['nsres'],
-                                   start_reg['w'],
-                                   start_reg['s'],
-                                   start_reg['e'],
-                                   start_reg['n'],
-                                   pfile,
-                                   prast))
+                  {} {} -q".format(
+                patches,
+                start_reg["ewres"],
+                start_reg["nsres"],
+                start_reg["w"],
+                start_reg["s"],
+                start_reg["e"],
+                start_reg["n"],
+                pfile,
+                prast,
+            )
+        )
 
-        if not ogr.GetDriverByName('GRASS'):
+        if not ogr.GetDriverByName("GRASS"):
             # Remove vector temp-file
-            os.remove(os.path.join(folder, 'patches_vect.gpkg'))
+            os.remove(os.path.join(folder, "patches_vect.gpkg"))
 
         # Import rasterized patches
-        grass.run_command('r.external', flags='o',
-                          quiet=True,
-                          input=prast,
-                          output='{}_patches_pol'.format(TMP_PREFIX))
+        grass.run_command(
+            "r.external",
+            flags="o",
+            quiet=True,
+            input=prast,
+            output="{}_patches_pol".format(TMP_PREFIX),
+        )
 
     else:
         # Simple rasterisation (only area)
         # in G 7.6 also with support for 'centroid'
-        if float(grass.version()['version'][:3]) >= 7.6:
-            conv_types = ['area', 'centroid']
+        if float(grass.version()["version"][:3]) >= 7.6:
+            conv_types = ["area", "centroid"]
         else:
-            conv_types = ['area']
-        grass.run_command('v.to.rast', quiet=True,
-                          input=patches, use='cat',
-                          type=conv_types,
-                          output='{}_patches_pol'.format(TMP_PREFIX))
+            conv_types = ["area"]
+        grass.run_command(
+            "v.to.rast",
+            quiet=True,
+            input=patches,
+            use="cat",
+            type=conv_types,
+            output="{}_patches_pol".format(TMP_PREFIX),
+        )
 
     # Extract boundaries from patch raster map
-    grass.run_command('r.mapcalc', expression='{p}_patches_boundary=if(\
+    grass.run_command(
+        "r.mapcalc",
+        expression="{p}_patches_boundary=if(\
     {p}_patches_pol,\
     if((\
     (isnull({p}_patches_pol[-1,0])||| \
@@ -448,81 +504,106 @@ def main():
     {p}_patches_pol[1,0]!={p}_patches_pol)||| \
     (isnull({p}_patches_pol[0,-1])||| \
     {p}_patches_pol[0,-1]!={p}_patches_pol)), \
-    {p}_patches_pol,null()), null())'.format(p=TMP_PREFIX), quiet=True)
+    {p}_patches_pol,null()), null())".format(
+            p=TMP_PREFIX
+        ),
+        quiet=True,
+    )
 
-    rasterized_cats = grass.read_command('r.category', separator='newline',
-                                         map='{p}_patches_boundary'.format(p=TMP_PREFIX)
-                                         ).replace('\t','').strip('\n')
-    rasterized_cats = list(map(int, set([x for x in rasterized_cats.split('\n')  if x != ''])))
+    rasterized_cats = (
+        grass.read_command(
+            "r.category",
+            separator="newline",
+            map="{p}_patches_boundary".format(p=TMP_PREFIX),
+        )
+        .replace("\t", "")
+        .strip("\n")
+    )
+    rasterized_cats = list(
+        map(int, set([x for x in rasterized_cats.split("\n") if x != ""]))
+    )
 
-    #Init output vector maps if they are requested by user
+    # Init output vector maps if they are requested by user
     network = VectorTopo(edge_map)
-    network_columns = [(u'cat', 'INTEGER PRIMARY KEY'),
-                       (u'from_p', 'INTEGER'),
-                       (u'to_p', 'INTEGER'),
-                       (u'min_dist', 'DOUBLE PRECISION'),
-                       (u'dist', 'DOUBLE PRECISION'),
-                       (u'max_dist', 'DOUBLE PRECISION')]
-    network.open('w',
-                 tab_name=edge_map,
-                 tab_cols=network_columns)
+    network_columns = [
+        (u"cat", "INTEGER PRIMARY KEY"),
+        (u"from_p", "INTEGER"),
+        (u"to_p", "INTEGER"),
+        (u"min_dist", "DOUBLE PRECISION"),
+        (u"dist", "DOUBLE PRECISION"),
+        (u"max_dist", "DOUBLE PRECISION"),
+    ]
+    network.open("w", tab_name=edge_map, tab_cols=network_columns)
 
     vertex = VectorTopo(vertex_map)
-    vertex_columns = [(u'cat', 'INTEGER PRIMARY KEY'),
-                      (pop_proxy, 'DOUBLE PRECISION'),]
-    vertex.open('w',
-                tab_name=vertex_map,
-                tab_cols=vertex_columns)
+    vertex_columns = [
+        (u"cat", "INTEGER PRIMARY KEY"),
+        (pop_proxy, "DOUBLE PRECISION"),
+    ]
+    vertex.open("w", tab_name=vertex_map, tab_cols=vertex_columns)
 
     if p_flag:
         # Init cost paths file for start-patch
-        grass.run_command('v.edit', quiet=True, map=shortest_paths,
-                          tool='create')
-        grass.run_command('v.db.addtable', quiet=True,
-                          map=shortest_paths,
-                          columns="cat integer,\
+        grass.run_command("v.edit", quiet=True, map=shortest_paths, tool="create")
+        grass.run_command(
+            "v.db.addtable",
+            quiet=True,
+            map=shortest_paths,
+            columns="cat integer,\
                                    from_p integer,\
                                    to_p integer,\
                                    dist_min double precision,\
                                    dist double precision,\
-                                   dist_max double precision")
+                                   dist_max double precision",
+        )
 
-    start_region_bbox = Bbox(north=float(max_n), south=float(min_s),
-                             east=float(max_e), west=float(min_w))
+    start_region_bbox = Bbox(
+        north=float(max_n), south=float(min_s), east=float(max_e), west=float(min_w)
+    )
     vpatches = VectorTopo(patches, mapset=patches_mapset)
-    vpatches.open('r', layer=int(layer))
+    vpatches.open("r", layer=int(layer))
 
     ###Loop through patches
-    vpatch_ids = np.array(vpatches.features_to_wkb_list(feature_type="centroid",
-                                                        bbox=start_region_bbox),
-                          dtype=[('vid', 'uint32'),
-                                 ('cat', 'uint32'),
-                                 ('geom', '|S10')])
-    cats = set(vpatch_ids['cat'])
+    vpatch_ids = np.array(
+        vpatches.features_to_wkb_list(feature_type="centroid", bbox=start_region_bbox),
+        dtype=[("vid", "uint32"), ("cat", "uint32"), ("geom", "|S10")],
+    )
+    cats = set(vpatch_ids["cat"])
     n_cats = len(cats)
-    if n_cats < len(vpatch_ids['cat']):
-        grass.verbose('At least one MultiPolygon found in patch map.\n \
+    if n_cats < len(vpatch_ids["cat"]):
+        grass.verbose(
+            "At least one MultiPolygon found in patch map.\n \
                       Using average coordinates of the centroids for \
-                      visual representation of the patch.')
+                      visual representation of the patch."
+        )
 
     for cat in cats:
         if cat not in rasterized_cats:
-            grass.warning('Patch {} has not been rasterized and will \
+            grass.warning(
+                "Patch {} has not been rasterized and will \
                           therefore not be treated as part of the \
                           network. Consider using t-flag or change \
-                          resolution.'.format(cat))
+                          resolution.".format(
+                    cat
+                )
+            )
 
             continue
-        grass.verbose("Calculating connectivity-distances for patch \
-                      number {}".format(cat))
+        grass.verbose(
+            "Calculating connectivity-distances for patch \
+                      number {}".format(
+                cat
+            )
+        )
 
         # Filter
-        from_vpatch = vpatch_ids[vpatch_ids['cat'] == cat]
+        from_vpatch = vpatch_ids[vpatch_ids["cat"] == cat]
 
         # Get patch ID
-        if from_vpatch['vid'].size == 1:
-            from_centroid = Centroid(v_id=int(from_vpatch['vid']),
-                                     c_mapinfo=vpatches.c_mapinfo)
+        if from_vpatch["vid"].size == 1:
+            from_centroid = Centroid(
+                v_id=int(from_vpatch["vid"]), c_mapinfo=vpatches.c_mapinfo
+            )
             from_x = from_centroid.x
             from_y = from_centroid.y
 
@@ -532,9 +613,8 @@ def main():
         else:
             xcoords = []
             ycoords = []
-            for f_p in from_vpatch['vid']:
-                from_centroid = Centroid(v_id=int(f_p),
-                                         c_mapinfo=vpatches.c_mapinfo)
+            for f_p in from_vpatch["vid"]:
+                from_centroid = Centroid(v_id=int(f_p), c_mapinfo=vpatches.c_mapinfo)
                 xcoords.append(from_centroid.x)
                 ycoords.append(from_centroid.y)
 
@@ -545,29 +625,32 @@ def main():
             from_y = np.average(ycoords)
 
         # Get BoundingBox
-        from_bbox = grass.parse_command('v.db.select', map=patch_map,
-                                        flags='r',
-                                        where='cat={}'.format(cat))
+        from_bbox = grass.parse_command(
+            "v.db.select", map=patch_map, flags="r", where="cat={}".format(cat)
+        )
 
         attr_filter = vpatches.table.filters.select(pop_proxy)
         attr_filter = attr_filter.where("cat={}".format(cat))
         proxy_val = vpatches.table.execute().fetchone()
 
         # Prepare start patch
-        start_patch = '{}_patch_{}'.format(TMP_PREFIX, cat)
-        reclass_rule = grass.encode('{} = 1\n* = NULL'.format(cat))
-        recl = grass.feed_command('r.reclass', quiet=True,
-                                  input='{}_patches_boundary'.format(TMP_PREFIX),
-                                  output=start_patch,
-                                  rules='-')
+        start_patch = "{}_patch_{}".format(TMP_PREFIX, cat)
+        reclass_rule = grass.encode("{} = 1\n* = NULL".format(cat))
+        recl = grass.feed_command(
+            "r.reclass",
+            quiet=True,
+            input="{}_patches_boundary".format(TMP_PREFIX),
+            output=start_patch,
+            rules="-",
+        )
         recl.stdin.write(reclass_rule)
         recl.stdin.close()
         recl.wait()
 
         # Check if patch was rasterised (patches smaller raster resolution and close to larger patches may not be rasterised)
-        #start_check = grass.parse_command('r.info', flags='r', map=start_patch)
-        #start_check = grass.parse_command('r.univar', flags='g', map=start_patch)
-        #print(start_check)
+        # start_check = grass.parse_command('r.info', flags='r', map=start_patch)
+        # start_check = grass.parse_command('r.univar', flags='g', map=start_patch)
+        # print(start_check)
         """if start_check['min'] != '1':
             grass.warning('Patch {} has not been rasterized and will \
                           therefore not be treated as part of the \
@@ -581,112 +664,139 @@ def main():
 
         # Prepare stop patches
         ############################################
-        reg = grass.parse_command('g.region', flags='ug', quiet=True,
-                                  raster=start_patch,
-                                  n=float(from_bbox['n']) + float(cutoff),
-                                  s=float(from_bbox['s']) - float(cutoff),
-                                  e=float(from_bbox['e']) + float(cutoff),
-                                  w=float(from_bbox['w']) - float(cutoff),
-                                  align='{}_patches_pol'.format(TMP_PREFIX))
+        reg = grass.parse_command(
+            "g.region",
+            flags="ug",
+            quiet=True,
+            raster=start_patch,
+            n=float(from_bbox["n"]) + float(cutoff),
+            s=float(from_bbox["s"]) - float(cutoff),
+            e=float(from_bbox["e"]) + float(cutoff),
+            w=float(from_bbox["w"]) - float(cutoff),
+            align="{}_patches_pol".format(TMP_PREFIX),
+        )
 
-        north = reg['n'] if max_n > reg['n'] else max_n
-        south = reg['s'] if min_s < reg['s'] else min_s
-        east = reg['e'] if max_e < reg['e'] else max_e
-        west = reg['w'] if min_w > reg['w'] else min_w
+        north = reg["n"] if max_n > reg["n"] else max_n
+        south = reg["s"] if min_s < reg["s"] else min_s
+        east = reg["e"] if max_e < reg["e"] else max_e
+        west = reg["w"] if min_w > reg["w"] else min_w
 
         # Set region to patch search radius
         grass.use_temp_region()
-        grass.run_command('g.region', quiet=True,
-                          n=north, s=south, e=east, w=west,
-                          align='{}_patches_pol'.format(TMP_PREFIX))
+        grass.run_command(
+            "g.region",
+            quiet=True,
+            n=north,
+            s=south,
+            e=east,
+            w=west,
+            align="{}_patches_pol".format(TMP_PREFIX),
+        )
 
         # Create buffer around start-patch as a mask
         # for cost distance analysis
-        grass.run_command('r.buffer', quiet=True,
-                          input=start_patch,
-                          output='MASK', distances=cutoff)
-        grass.run_command('r.mapcalc', quiet=True,
-                          expression='{pf}_patch_{p}_neighbours_contur=\
+        grass.run_command(
+            "r.buffer", quiet=True, input=start_patch, output="MASK", distances=cutoff
+        )
+        grass.run_command(
+            "r.mapcalc",
+            quiet=True,
+            expression="{pf}_patch_{p}_neighbours_contur=\
                                      if({pf}_patches_boundary=={p},\
                                      null(),\
-                                     {pf}_patches_boundary)'.format(pf=TMP_PREFIX, p=cat))
-        grass.run_command('r.mask', flags='r', quiet=True)
+                                     {pf}_patches_boundary)".format(
+                pf=TMP_PREFIX, p=cat
+            ),
+        )
+        grass.run_command("r.mask", flags="r", quiet=True)
 
         # Calculate cost distance
-        cost_distance_map = '{}_patch_{}_cost_dist'.format(prefix, cat)
-        grass.run_command('r.cost', flags=dist_flags, quiet=True,
-                          overwrite=True, input=costs,
-                          output=cost_distance_map,
-                          start_rast=start_patch, memory=memory)
+        cost_distance_map = "{}_patch_{}_cost_dist".format(prefix, cat)
+        grass.run_command(
+            "r.cost",
+            flags=dist_flags,
+            quiet=True,
+            overwrite=True,
+            input=costs,
+            output=cost_distance_map,
+            start_rast=start_patch,
+            memory=memory,
+        )
 
-        #grass.run_command('g.region', flags='up')
+        # grass.run_command('g.region', flags='up')
         # grass.raster.raster_history(cost_distance_map)
         cdhist = History(cost_distance_map)
         cdhist.clear()
-        cdhist.creator = os.environ['USER']
+        cdhist.creator = os.environ["USER"]
         cdhist.write()
         # History object cannot modify description
-        grass.run_command('r.support',
-                          map=cost_distance_map,
-                          description='Generated by r.connectivity.distance',
-                          history=os.environ['CMDLINE'])
-
+        grass.run_command(
+            "r.support",
+            map=cost_distance_map,
+            description="Generated by r.connectivity.distance",
+            history=os.environ["CMDLINE"],
+        )
 
         # Export distance at boundaries
-        maps = '{0}_patch_{1}_neighbours_contur,{2}_patch_{1}_cost_dist'
-        maps = maps.format(TMP_PREFIX, cat, prefix),
+        maps = "{0}_patch_{1}_neighbours_contur,{2}_patch_{1}_cost_dist"
+        maps = (maps.format(TMP_PREFIX, cat, prefix),)
 
-        connections = grass.encode(grass.read_command('r.stats',
-                                                          flags='1ng',
-                                                          quiet=True,
-                                                          input=maps,
-                                                          separator=';').rstrip('\n'))
+        connections = grass.encode(
+            grass.read_command(
+                "r.stats", flags="1ng", quiet=True, input=maps, separator=";"
+            ).rstrip("\n")
+        )
         if connections:
-            con_array = np.genfromtxt(BytesIO(connections), delimiter=';',
-                                      dtype=None,
-                                      names=['x', 'y', 'cat', 'dist'])
+            con_array = np.genfromtxt(
+                BytesIO(connections),
+                delimiter=";",
+                dtype=None,
+                names=["x", "y", "cat", "dist"],
+            )
         else:
-            grass.warning('No connections for patch {}'.format(cat))
+            grass.warning("No connections for patch {}".format(cat))
 
             # Write centroid to vertex map
-            vertex.write(Point(from_x, from_y),
-                         cat=int(cat),
-                         attrs=proxy_val)
+            vertex.write(Point(from_x, from_y), cat=int(cat), attrs=proxy_val)
             vertex.table.conn.commit()
 
             # Remove temporary map data
-            grass.run_command('g.remove', quiet=True, flags='f',
-                              type=['raster', 'vector'],
-                              pattern="{}*{}*".format(TMP_PREFIX, cat))
+            grass.run_command(
+                "g.remove",
+                quiet=True,
+                flags="f",
+                type=["raster", "vector"],
+                pattern="{}*{}*".format(TMP_PREFIX, cat),
+            )
             grass.del_temp_region()
             continue
 
-        #Find closest points on neigbour patches
-        to_cats = set(np.atleast_1d(con_array['cat']))
+        # Find closest points on neigbour patches
+        to_cats = set(np.atleast_1d(con_array["cat"]))
         to_coords = []
         for to_cat in to_cats:
-            connection = con_array[con_array['cat'] == to_cat]
-            connection.sort(order=['dist'])
-            pixel = border_dist if len(connection) > border_dist else len(connection) - 1
+            connection = con_array[con_array["cat"] == to_cat]
+            connection.sort(order=["dist"])
+            pixel = (
+                border_dist if len(connection) > border_dist else len(connection) - 1
+            )
             # closest_points_x = connection['x'][pixel]
             # closest_points_y = connection['y'][pixel]
             closest_points_to_cat = to_cat
-            closest_points_min_dist = connection['dist'][0]
-            closest_points_dist = connection['dist'][pixel]
-            closest_points_max_dist = connection['dist'][-1]
-            to_patch_ids = vpatch_ids[vpatch_ids['cat'] == int(to_cat)]['vid']
+            closest_points_min_dist = connection["dist"][0]
+            closest_points_dist = connection["dist"][pixel]
+            closest_points_max_dist = connection["dist"][-1]
+            to_patch_ids = vpatch_ids[vpatch_ids["cat"] == int(to_cat)]["vid"]
 
             if len(to_patch_ids) == 1:
-                to_centroid = Centroid(v_id=to_patch_ids,
-                                       c_mapinfo=vpatches.c_mapinfo)
+                to_centroid = Centroid(v_id=to_patch_ids, c_mapinfo=vpatches.c_mapinfo)
                 to_x = to_centroid.x
                 to_y = to_centroid.y
             elif len(to_patch_ids) >= 1:
                 xcoords = []
                 ycoords = []
                 for t_p in to_patch_ids:
-                    to_centroid = Centroid(v_id=int(t_p),
-                                             c_mapinfo=vpatches.c_mapinfo)
+                    to_centroid = Centroid(v_id=int(t_p), c_mapinfo=vpatches.c_mapinfo)
                     xcoords.append(to_centroid.x)
                     ycoords.append(to_centroid.y)
 
@@ -696,27 +806,33 @@ def main():
                 to_x = np.average(xcoords)
                 to_y = np.average(ycoords)
 
-            to_coords.append('{},{},{},{},{},{}'.format(connection['x'][0],
-                                                  connection['y'][0],
-                                                  to_cat,
-                                                  closest_points_min_dist,
-                                                  closest_points_dist,
-                                                  closest_points_max_dist
-                                                        ))
+            to_coords.append(
+                "{},{},{},{},{},{}".format(
+                    connection["x"][0],
+                    connection["y"][0],
+                    to_cat,
+                    closest_points_min_dist,
+                    closest_points_dist,
+                    closest_points_max_dist,
+                )
+            )
 
-            #Save edges to network dataset
+            # Save edges to network dataset
             if closest_points_dist <= 0:
                 zero_dist = 1
 
             # Write data to network
-            network.write(Line([(from_x, from_y),
-                                (to_x, to_y)]),
-                          cat=lin_cat,
-                          attrs=(cat,
-                                 int(closest_points_to_cat),
-                                 closest_points_min_dist,
-                                 closest_points_dist,
-                                 closest_points_max_dist,))
+            network.write(
+                Line([(from_x, from_y), (to_x, to_y)]),
+                cat=lin_cat,
+                attrs=(
+                    cat,
+                    int(closest_points_to_cat),
+                    closest_points_min_dist,
+                    closest_points_dist,
+                    closest_points_max_dist,
+                ),
+            )
             network.table.conn.commit()
 
             lin_cat = lin_cat + 1
@@ -724,8 +840,12 @@ def main():
         # Save closest points and shortest paths through cost raster as
         # vector map (r.drain limited to 1024 points) if requested
         if p_flag:
-            grass.verbose('Extracting shortest paths for patch number \
-                          {}...'.format(cat))
+            grass.verbose(
+                "Extracting shortest paths for patch number \
+                          {}...".format(
+                    cat
+                )
+            )
 
             points_n = len(to_cats)
 
@@ -737,19 +857,23 @@ def main():
             tile_n = 0
             while tile_n < tiles:
                 tile_n = tile_n + 1
-                #Import closest points for start-patch in 1000er blocks
-                sp = grass.feed_command('v.in.ascii', flags='nr',
-                                  overwrite=True, quiet=True,
-                                  input='-', stderr=subprocess.PIPE,
-                                  output="{}_{}_cp".format(TMP_PREFIX,
-                                                           cat),
-                                  separator=",",
-                                  columns="x double precision,\
+                # Import closest points for start-patch in 1000er blocks
+                sp = grass.feed_command(
+                    "v.in.ascii",
+                    flags="nr",
+                    overwrite=True,
+                    quiet=True,
+                    input="-",
+                    stderr=subprocess.PIPE,
+                    output="{}_{}_cp".format(TMP_PREFIX, cat),
+                    separator=",",
+                    columns="x double precision,\
                                            y double precision,\
                                            to_p integer,\
                                            dist_min double precision,\
                                            dist double precision,\
-                                           dist_max double precision")
+                                           dist_max double precision",
+                )
                 sp.stdin.write(grass.encode("\n".join(to_coords)))
                 sp.stdin.close()
                 sp.wait()
@@ -758,72 +882,94 @@ def main():
                 # 1024 points
                 cost_paths = "{}_{}_cost_paths".format(TMP_PREFIX, cat)
                 start_points = "{}_{}_cp".format(TMP_PREFIX, cat)
-                grass.run_command('r.drain', overwrite=True, quiet=True,
-                                  input=cost_distance_map,
-                                  output=cost_paths,
-                                  drain=cost_paths,
-                                  start_points=start_points)
+                grass.run_command(
+                    "r.drain",
+                    overwrite=True,
+                    quiet=True,
+                    input=cost_distance_map,
+                    output=cost_paths,
+                    drain=cost_paths,
+                    start_points=start_points,
+                )
 
-                grass.run_command('v.db.addtable',
-                                  map=cost_paths,
-                                  quiet=True,
-                                  columns="cat integer,\
+                grass.run_command(
+                    "v.db.addtable",
+                    map=cost_paths,
+                    quiet=True,
+                    columns="cat integer,\
                                    from_p integer,\
                                    to_p integer,\
                                    dist_min double precision,\
                                    dist double precision,\
-                                   dist_max double precision")
-                grass.run_command('v.db.update', map=cost_paths,
-                                  column='from_p', value=cat,
-                                  quiet=True)
-                grass.run_command('v.distance', quiet=True,
-                                  from_=cost_paths,
-                                  to=start_points,
-                                  upload='to_attr',
-                                  column='to_p',
-                                  to_column='to_p')
-                grass.run_command('v.db.join', quiet=True,
-                                  map=cost_paths,
-                                  column='to_p', other_column='to_p',
-                                  other_table=start_points,
-                                  subset_columns='dist_min,dist,dist_max')
+                                   dist_max double precision",
+                )
+                grass.run_command(
+                    "v.db.update",
+                    map=cost_paths,
+                    column="from_p",
+                    value=cat,
+                    quiet=True,
+                )
+                grass.run_command(
+                    "v.distance",
+                    quiet=True,
+                    from_=cost_paths,
+                    to=start_points,
+                    upload="to_attr",
+                    column="to_p",
+                    to_column="to_p",
+                )
+                grass.run_command(
+                    "v.db.join",
+                    quiet=True,
+                    map=cost_paths,
+                    column="to_p",
+                    other_column="to_p",
+                    other_table=start_points,
+                    subset_columns="dist_min,dist,dist_max",
+                )
 
-                #grass.run_command('v.info', flags='c',
+                # grass.run_command('v.info', flags='c',
                 #                  map=cost_paths)
-                grass.run_command('v.patch', flags='ae', overwrite=True,
-                                  quiet=True,
-                                  input=cost_paths,
-                                  output=shortest_paths)
+                grass.run_command(
+                    "v.patch",
+                    flags="ae",
+                    overwrite=True,
+                    quiet=True,
+                    input=cost_paths,
+                    output=shortest_paths,
+                )
 
                 # Remove temporary map data
-                grass.run_command('g.remove', quiet=True, flags='f',
-                                  type=['raster', 'vector'],
-                                  pattern="{}*{}*".format(TMP_PREFIX,
-                                                          cat))
+                grass.run_command(
+                    "g.remove",
+                    quiet=True,
+                    flags="f",
+                    type=["raster", "vector"],
+                    pattern="{}*{}*".format(TMP_PREFIX, cat),
+                )
 
         # Remove temporary map data for patch
         if r_flag:
-            grass.run_command('g.remove', flags='f', type='raster',
-                              name=cost_distance_map,
-                              quiet=True)
+            grass.run_command(
+                "g.remove", flags="f", type="raster", name=cost_distance_map, quiet=True
+            )
 
-        vertex.write(Point(from_x, from_y),
-                     cat=int(cat),
-                     attrs=proxy_val)
+        vertex.write(Point(from_x, from_y), cat=int(cat), attrs=proxy_val)
 
         vertex.table.conn.commit()
 
         # Print progress message
-        grass.percent(i=int((float(counter) / n_cats) * 100),
-                      n=100,
-                      s=3)
+        grass.percent(i=int((float(counter) / n_cats) * 100), n=100, s=3)
 
         # Update counter for progress message
         counter = counter + 1
 
     if zero_dist:
-        grass.warning('Some patches are directly adjacent to others. \
-                       Minimum distance set to 0.0000000001')
+        grass.warning(
+            "Some patches are directly adjacent to others. \
+                       Minimum distance set to 0.0000000001"
+        )
 
     # Close vector maps and build topology
     network.close()
@@ -837,18 +983,30 @@ def main():
     #                   quiet=True)
 
     # Add history and meta data to produced maps
-    grass.run_command('v.support', flags='h', map=edge_map,
-                      person=os.environ['USER'],
-                      cmdhist=os.environ['CMDLINE'])
+    grass.run_command(
+        "v.support",
+        flags="h",
+        map=edge_map,
+        person=os.environ["USER"],
+        cmdhist=os.environ["CMDLINE"],
+    )
 
-    grass.run_command('v.support', flags='h', map=vertex_map,
-                      person=os.environ['USER'],
-                      cmdhist=os.environ['CMDLINE'])
+    grass.run_command(
+        "v.support",
+        flags="h",
+        map=vertex_map,
+        person=os.environ["USER"],
+        cmdhist=os.environ["CMDLINE"],
+    )
 
     if p_flag:
-        grass.run_command('v.support', flags='h', map=shortest_paths,
-                          person=os.environ['USER'],
-                          cmdhist=os.environ['CMDLINE'])
+        grass.run_command(
+            "v.support",
+            flags="h",
+            map=shortest_paths,
+            person=os.environ["USER"],
+            cmdhist=os.environ["CMDLINE"],
+        )
 
     # Output also Conefor files if requested
     if conefor_dir:
@@ -862,21 +1020,25 @@ def main():
                  ELSE to_p END AS p_to,
                  dist
                  FROM {}) AS x
-                 GROUP BY p_from, p_to""".format(edge_map)
-        with open(os.path.join(conefor_dir,
-                               'undirected_connection_file'),
-                  'w') as edges:
-            edges.write(grass.read_command('db.select', sql=query,
-                                           separator=' '))
-        with open(os.path.join(conefor_dir,
-                               'directed_connection_file'),
-                  'w') as edges:
-            edges.write(grass.read_command('v.db.select', map=edge_map,
-                                           separator=' ', flags='c'))
-        with open(os.path.join(conefor_dir, 'node_file'), 'w') as nodes:
-            nodes.write(grass.read_command('v.db.select',
-                                           map=vertex_map,
-                                           separator=' ', flags='c'))
+                 GROUP BY p_from, p_to""".format(
+            edge_map
+        )
+        with open(
+            os.path.join(conefor_dir, "undirected_connection_file"), "w"
+        ) as edges:
+            edges.write(grass.read_command("db.select", sql=query, separator=" "))
+        with open(os.path.join(conefor_dir, "directed_connection_file"), "w") as edges:
+            edges.write(
+                grass.read_command(
+                    "v.db.select", map=edge_map, separator=" ", flags="c"
+                )
+            )
+        with open(os.path.join(conefor_dir, "node_file"), "w") as nodes:
+            nodes.write(
+                grass.read_command(
+                    "v.db.select", map=vertex_map, separator=" ", flags="c"
+                )
+            )
 
 
 if __name__ == "__main__":

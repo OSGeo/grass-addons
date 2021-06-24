@@ -10,6 +10,7 @@ Created on Thu Jul 31 12:02:25 2014
 #
 import math
 import re
+
 # from grass.pygrass.vector import VectorTopo
 from grass.pygrass.vector import VectorTopo
 from grass.pygrass.vector.geometry import Point
@@ -18,10 +19,10 @@ from grass.pygrass.vector.geometry import Line
 
 def azimut(p_ini=None, p_end=None):
     """Return Azimut of two point (x1,y1) (x2,y2), Rad from North
-       to clockwise
+    to clockwise
 
-        >>> azimut(Point(0,0), Point(10,10))
-        0.7853981633974483
+     >>> azimut(Point(0,0), Point(10,10))
+     0.7853981633974483
     """
     if p_ini.x > p_end.x and p_ini.y == p_end.y:
         azi = 3 * math.pi / 2
@@ -64,10 +65,12 @@ def aprox_coord(leng, tau):
     c_x = 0
     c_y = 0
     for n_i in range(n_iter):
-        c_x += (((-1) ** n_i * tau ** (2 * n_i)) /
-                ((4 * n_i + 1) * math.factorial(2 * n_i)))
-        c_y += (((-1) ** n_i * tau ** (2 * n_i + 1)) /
-                ((4 * n_i + 3) * math.factorial(2 * n_i + 1)))
+        c_x += ((-1) ** n_i * tau ** (2 * n_i)) / (
+            (4 * n_i + 1) * math.factorial(2 * n_i)
+        )
+        c_y += ((-1) ** n_i * tau ** (2 * n_i + 1)) / (
+            (4 * n_i + 3) * math.factorial(2 * n_i + 1)
+        )
     c_x = c_x * leng
     c_y = c_y * leng
     return [c_x, c_y]
@@ -83,14 +86,15 @@ def aprox_coord2(radio, tau):
     c_x = 0
     c_y = 0
     for n_i in range(n_iter):
-        c_x += (((-1) ** n_i * (2 * tau ** (2 * n_i + 1) /
-                ((4 * n_i + 1) * math.factorial(2 * n_i)))) -
-                ((-1) ** n_i * (tau ** (2 * n_i + 1) /
-                 math.factorial(2 * n_i + 1))))
+        c_x += (
+            (-1) ** n_i
+            * (2 * tau ** (2 * n_i + 1) / ((4 * n_i + 1) * math.factorial(2 * n_i)))
+        ) - ((-1) ** n_i * (tau ** (2 * n_i + 1) / math.factorial(2 * n_i + 1)))
 
-        c_y += (((-1) ** n_i * (2 * tau ** (2 * n_i + 2) /
-                 ((4 * n_i + 3) * math.factorial(2 * n_i + 1)))) +
-                ((-1) ** n_i * (tau ** (2 * n_i) / math.factorial(2 * n_i))))
+        c_y += (
+            (-1) ** n_i
+            * (2 * tau ** (2 * n_i + 2) / ((4 * n_i + 3) * math.factorial(2 * n_i + 1)))
+        ) + ((-1) ** n_i * (tau ** (2 * n_i) / math.factorial(2 * n_i)))
 
     c_x = c_x * radio
     c_y = c_y * radio - radio
@@ -112,13 +116,11 @@ def cloth_local(radio, a_clot):
     x_o = x_e - radio * math.sin(tau)
     y_o = y_e + radio * math.cos(tau) - radio
 
-    return {'x_o': x_o, 'y_o': y_o, 'tau': tau, 'leng': leng, 'x_e': x_e,
-            'y_e': y_e}
+    return {"x_o": x_o, "y_o": y_o, "tau": tau, "leng": leng, "x_e": x_e, "y_e": y_e}
 
 
 def clotoide_get_a(radio, yo_ent, sobreancho, izq):
-    """Return param A of a clothoid in a curve with widening
-    """
+    """Return param A of a clothoid in a curve with widening"""
     inc = math.pi / 200
     tau = 0.0001 * math.pi / 200
     y_o = aprox_coord2(abs(radio), tau)[1]
@@ -166,15 +168,14 @@ def bisecc(r_pnt, align):
             len_a = len_c
         len_c = (len_a + len_b) / 2.0
 
-    return RoadPoint(Point(eq_c[1], eq_c[2], 0), len_c, r_pnt.azi, '')
+    return RoadPoint(Point(eq_c[1], eq_c[2], 0), len_c, r_pnt.azi, "")
 
 
 def format_pk(funcion_f):
-    """Return the pk format 10+000.001 of a funtion
-    """
+    """Return the pk format 10+000.001 of a funtion"""
+
     def funcion_r(*arg):
-        """Return
-        """
+        """Return"""
         ipk = funcion_f(*arg)
         ipk = round(ipk, 4)
         if str(ipk).find(".") == -1:
@@ -184,17 +185,17 @@ def format_pk(funcion_f):
             integer, decimal = str(ipk).split(".")
         integer = re.sub(r"\B(?=(?:\d{3})+$)", "+", "{:0>4}".format(integer))
         return integer + "." + decimal
+
     return funcion_r
 
 
 def write_objs(allrectas, radio):
-    """ Return
-    """
-    new2 = VectorTopo('AAAAA__' + str(int(radio)))
+    """Return"""
+    new2 = VectorTopo("AAAAA__" + str(int(radio)))
     # cols = [(u'cat',       'INTEGER PRIMARY KEY'),
     #        (u'elev',      'INTEGER')]
 
-    new2.open('w')
+    new2.open("w")
     for obj in allrectas:
         new2.write(obj)
     # new2.table.conn.commit()
@@ -205,14 +206,14 @@ def write_objs(allrectas, radio):
 # ROAD POINT
 # =============================================
 
+
 class RoadPoint(Point, object):
     """RoadPoint object, is a Point with pk and azimuth, and others params
     >>> r_pnt = RoadPoint(Point(1,1,0), 0, 0)
     """
 
     def __init__(self, point=None, npk=None, azi=None, p_type=None):
-        """ Return
-        """
+        """Return"""
         super(RoadPoint, self).__init__(point.x, point.y, point.z)
 
         self.x = point.x
@@ -223,14 +224,14 @@ class RoadPoint(Point, object):
         self.npk = npk
         self.azi = azi
         self.p_type = p_type
-        self.align = ''
+        self.align = ""
         self.incli = 0
 
         self.v_param = 0
-        self.v_type = 'none'
+        self.v_type = "none"
 
         self.terr = 0
-        self.terr_type = 'none'
+        self.terr_type = "none"
 
         self.dist_displ = 0
         self.acum_pk = 0
@@ -239,13 +240,33 @@ class RoadPoint(Point, object):
             self.z = 0
 
     def __repr__(self):
-        return ("RoadPoint(" + str(self.x) + ", " + str(self.y) + ", " +
-                str(self.z) + ", " +
-                str(self.npk) + ", " + str(self.azi) + ", " +
-                str(self.p_type) + ", " + str(self.align) + ", " +
-                str(self.v_param) + ", " + str(self.v_type) + ", " +
-                str(self.terr) + ", " + str(self.terr_type) + ", " +
-                str(self.dist_displ) + ")")
+        return (
+            "RoadPoint("
+            + str(self.x)
+            + ", "
+            + str(self.y)
+            + ", "
+            + str(self.z)
+            + ", "
+            + str(self.npk)
+            + ", "
+            + str(self.azi)
+            + ", "
+            + str(self.p_type)
+            + ", "
+            + str(self.align)
+            + ", "
+            + str(self.v_param)
+            + ", "
+            + str(self.v_type)
+            + ", "
+            + str(self.terr)
+            + ", "
+            + str(self.terr_type)
+            + ", "
+            + str(self.dist_displ)
+            + ")"
+        )
 
     def get_wkt(self):
         """Return a "well know text" (WKT) geometry string. ::
@@ -254,36 +275,53 @@ class RoadPoint(Point, object):
         >>> pnt.get_wkt()
         'POINT(10.000000 100.000000)'
         """
-        return ("ROADPOINT(" + str(self.x) + ", " + str(self.y) + ", " +
-                str(self.z) + ", " +
-                str(self.npk) + ", " + str(self.azi) + ", " +
-                str(self.p_type) + ", " + str(self.align) + ", " +
-                str(self.v_param) + ", " + str(self.v_type) + ", " +
-                str(self.terr) + ", " + str(self.terr_type) + ", " +
-                str(self.dist_displ) + ")")
+        return (
+            "ROADPOINT("
+            + str(self.x)
+            + ", "
+            + str(self.y)
+            + ", "
+            + str(self.z)
+            + ", "
+            + str(self.npk)
+            + ", "
+            + str(self.azi)
+            + ", "
+            + str(self.p_type)
+            + ", "
+            + str(self.align)
+            + ", "
+            + str(self.v_param)
+            + ", "
+            + str(self.v_type)
+            + ", "
+            + str(self.terr)
+            + ", "
+            + str(self.terr_type)
+            + ", "
+            + str(self.dist_displ)
+            + ")"
+        )
 
     def get_info(self):
-        """Return point pk
-        """
-        sal = 'ROADPOINT( \n'
-        sal += ' Point(' + str(self.x) + ", " + str(self.y) + ", " + \
-               str(self.z) + ')\n'
-        sal += ' pk: ' + str(self.npk) + '\n'
-        sal += ' azimuth: ' + str(self.azi * 200 / math.pi) + '\n'
-        sal += ' p_type: ' + str(self.p_type) + '\n'
-        sal += ' align: ' + str(self.align) + '\n'
-        sal += ' v_param: ' + str(self.v_param) + '\n'
-        sal += ' v_type: ' + str(self.v_type) + '\n'
-        sal += ' z_terr: ' + str(self.terr) + '\n'
-        sal += ' terr_type: ' + str(self.terr_type) + '\n'
-        sal += ' dist displ: ' + str(self.dist_displ) + '\n)'
+        """Return point pk"""
+        sal = "ROADPOINT( \n"
+        sal += " Point(" + str(self.x) + ", " + str(self.y) + ", " + str(self.z) + ")\n"
+        sal += " pk: " + str(self.npk) + "\n"
+        sal += " azimuth: " + str(self.azi * 200 / math.pi) + "\n"
+        sal += " p_type: " + str(self.p_type) + "\n"
+        sal += " align: " + str(self.align) + "\n"
+        sal += " v_param: " + str(self.v_param) + "\n"
+        sal += " v_type: " + str(self.v_type) + "\n"
+        sal += " z_terr: " + str(self.terr) + "\n"
+        sal += " terr_type: " + str(self.terr_type) + "\n"
+        sal += " dist displ: " + str(self.dist_displ) + "\n)"
 
         return sal
 
     @format_pk
     def get_pk(self):
-        """Return point pk
-        """
+        """Return point pk"""
         return float(self.npk)
 
     def get_azi(self):
@@ -304,13 +342,11 @@ class RoadPoint(Point, object):
         return azimut(self, pnt2)
 
     def distance2(self, pnt2):
-        """Return point pk
-        """
+        """Return point pk"""
         return math.sqrt((pnt2.x - self.x) ** 2 + (pnt2.y - self.y) ** 2)
 
     def slope(self, pnt2):
-        """Return the slope between this point and the given one
-        """
+        """Return the slope between this point and the given one"""
         # leng = Point.distance(pnt2)
         leng = math.sqrt((pnt2.x - self.x) ** 2 + (pnt2.y - self.y) ** 2)
         if leng == 0:
@@ -319,36 +355,42 @@ class RoadPoint(Point, object):
             return (pnt2.z - self.z) / leng
 
     def slope2(self, pnt2):
-        """Return the slope between this point and the given one
-        """
+        """Return the slope between this point and the given one"""
         if self.npk == pnt2.npk:
             return 0
         else:
             return (pnt2.z - self.z) / (pnt2.npk - self.npk)
 
     def get_straight(self, dist=1):
-        """ Return
-        """
+        """Return"""
         pto_2 = self.project(dist, self.azi)
         return Straight(self, pto_2)
 
     def project(self, dist, azi, sig=1):
-        """ Return
-        """
-        return RoadPoint(Point(self.x + sig * dist * math.sin(azi),
-                               self.y + sig * dist * math.cos(azi)),
-                         self.npk, azi, '')
+        """Return"""
+        return RoadPoint(
+            Point(
+                self.x + sig * dist * math.sin(azi), self.y + sig * dist * math.cos(azi)
+            ),
+            self.npk,
+            azi,
+            "",
+        )
 
     def parallel(self, dist, g90):
-        """ Return
-        """
-        return RoadPoint(Point(self.x + dist * math.sin(self.azi + g90),
-                               self.y + dist * math.cos(self.azi + g90)),
-                         self.npk, self.azi, self.p_type)
+        """Return"""
+        return RoadPoint(
+            Point(
+                self.x + dist * math.sin(self.azi + g90),
+                self.y + dist * math.cos(self.azi + g90),
+            ),
+            self.npk,
+            self.azi,
+            self.p_type,
+        )
 
     def normal(self, g90):
-        """ Return
-        """
+        """Return"""
         return Straight(self.point2d, None, self.azi + g90, 20)
 
 
@@ -356,23 +398,23 @@ class RoadPoint(Point, object):
 # ROAD LINE
 # =============================================
 
+
 class RoadLine(object):
-    """Class to manage list of roadpoints
-    """
+    """Class to manage list of roadpoints"""
 
     def __init__(self, list_r_pnts, attrs=None, name=None):
-        """ Return
-        """
-#        super(RoadLine, self).__init__(list_r_pnts)
-#        if isinstance(list_r_pnts[0], list):
-#            self.list_r_pnts = list_r_pnts
-#        else:
-#            self.list_r_pnts = [list_r_pnts]
+        """Return"""
+        #        super(RoadLine, self).__init__(list_r_pnts)
+        #        if isinstance(list_r_pnts[0], list):
+        #            self.list_r_pnts = list_r_pnts
+        #        else:
+        #            self.list_r_pnts = [list_r_pnts]
 
         self.r_pnts = list_r_pnts
         self.attrs = attrs
         self.name = name
-#        self.pnts_char = pnts_char
+
+    #        self.pnts_char = pnts_char
 
     def __getitem__(self, index):
         return self.r_pnts[index]
@@ -390,51 +432,59 @@ class RoadLine(object):
         return str(self.r_pnts)
 
     def length(self):
-        """ Return
-        """
+        """Return"""
         return len(self.r_pnts)
 
     def is_in(self, r_pnt):
-        """ Return
-        """
+        """Return"""
         if r_pnt.npk in [pnt.npk for pnt in self.r_pnts]:
             return True
         else:
             return False
 
     def insert(self, r_pnt):
-        """Insert a roadpoint with pk like index
-        """
-#        if not self.is_in(r_pnt):
+        """Insert a roadpoint with pk like index"""
+        #        if not self.is_in(r_pnt):
         for i, pnt in enumerate(self.r_pnts[:-1]):
             if pnt.npk < r_pnt.npk < self.r_pnts[i + 1].npk:
                 self.r_pnts.insert(i + 1, r_pnt)
 
-#    def get_segments(self, charline):
-#        """Return
-#        """
+    #    def get_segments(self, charline):
+    #        """Return
+    #        """
 
     def get_by_pk(self, npk):
-        """Return the roadpoint with npk
-        """
+        """Return the roadpoint with npk"""
         for pnt in self.r_pnts:
             if pnt is not None:
                 if pnt.npk == npk:
                     return pnt
 
     def get_pnts_attrs(self):
-        """Return all roadpoints and their attributes
-        """
+        """Return all roadpoints and their attributes"""
         list_pnts = []
         list_attrs = []
         for r_pnt in self.r_pnts:
             if r_pnt is not None:
                 list_pnts.append(r_pnt)
-                list_attrs.append([r_pnt.npk, self.name, r_pnt.azi,
-                                   r_pnt.p_type, r_pnt.align, r_pnt.v_param,
-                                   r_pnt.v_type, float(r_pnt.terr),
-                                   r_pnt.terr_type, r_pnt.dist_displ,
-                                   r_pnt.x, r_pnt.y, r_pnt.z, ''])
+                list_attrs.append(
+                    [
+                        r_pnt.npk,
+                        self.name,
+                        r_pnt.azi,
+                        r_pnt.p_type,
+                        r_pnt.align,
+                        r_pnt.v_param,
+                        r_pnt.v_type,
+                        float(r_pnt.terr),
+                        r_pnt.terr_type,
+                        r_pnt.dist_displ,
+                        r_pnt.x,
+                        r_pnt.y,
+                        r_pnt.z,
+                        "",
+                    ]
+                )
         return list_pnts, list_attrs
 
     def get_line_attrs(self, set_leng=None):
@@ -457,45 +507,43 @@ class RoadLine(object):
                 list_attrs.append(self.attrs)
         return lista_lineas, list_attrs
 
-#    def get_segm_attrs(self):
-#        """Return
-#        """
-#        list_lines = []
-#        list_attrs = []
-#        for i, pnt_char in enumerate(self.pnts_char[1:]):
-#            list_lines.append([self.pnts_char[i - 1]])
-#            for r_pnt in self.r_pnts:
-#                if r_pnt is not None:
-#                    if round(self.pnts_char[i - 1].npk, 6) < r_pnt.npk < \
-#                            pnt_char.npk:
-#                        list_lines[-1].append(r_pnt)
-#            list_lines[-1].append(pnt_char)
-#
-#            list_attrs.append([pnt_char.npk, pnt_char.p_type])
-#
-#        return list_lines, list_attrs
+    #    def get_segm_attrs(self):
+    #        """Return
+    #        """
+    #        list_lines = []
+    #        list_attrs = []
+    #        for i, pnt_char in enumerate(self.pnts_char[1:]):
+    #            list_lines.append([self.pnts_char[i - 1]])
+    #            for r_pnt in self.r_pnts:
+    #                if r_pnt is not None:
+    #                    if round(self.pnts_char[i - 1].npk, 6) < r_pnt.npk < \
+    #                            pnt_char.npk:
+    #                        list_lines[-1].append(r_pnt)
+    #            list_lines[-1].append(pnt_char)
+    #
+    #            list_attrs.append([pnt_char.npk, pnt_char.p_type])
+    #
+    #        return list_lines, list_attrs
 
-
-#    def get_ras(self, r_line):
-#        """Return
-#        """
-#        line = []
-#        for r_pnt in r_line:
-#            line.append(Point(r_pnt.npk + self.zero_x,
-#                              (r_pnt.z - self.min_elev) * self.scale +
-#                              self.zero_y))
-#        return Line(line)
-#
-#    def get_terr(self, r_line):
-#        """Return
-#        """
-#        line = []
-#        for r_pnt in r_line:
-#            line.append(Point(r_pnt.npk + self.zero_x,
-#                              (r_pnt.terr - self.min_elev) * self.scale +
-#                              self.zero_y))
-#        return Line(line)
-
+    #    def get_ras(self, r_line):
+    #        """Return
+    #        """
+    #        line = []
+    #        for r_pnt in r_line:
+    #            line.append(Point(r_pnt.npk + self.zero_x,
+    #                              (r_pnt.z - self.min_elev) * self.scale +
+    #                              self.zero_y))
+    #        return Line(line)
+    #
+    #    def get_terr(self, r_line):
+    #        """Return
+    #        """
+    #        line = []
+    #        for r_pnt in r_line:
+    #            line.append(Point(r_pnt.npk + self.zero_x,
+    #                              (r_pnt.terr - self.min_elev) * self.scale +
+    #                              self.zero_y))
+    #        return Line(line)
 
     def get_area(self, pnts_line2):
         """Return a closed polyline with this roadline and the reverse of the
@@ -532,13 +580,12 @@ class RoadLine(object):
 # ROAD OBJ
 # =============================================
 
+
 class RoadObj(object):
-    """Road object, base of straight, curve, clothoid and parallel
-    """
+    """Road object, base of straight, curve, clothoid and parallel"""
 
     def __init__(self, leng_obj):
-        """ Return
-        """
+        """Return"""
         self.leng_obj = leng_obj
         self.leng_accum = 0
 
@@ -546,45 +593,39 @@ class RoadObj(object):
         self.pts_accum = 0
 
     def param(self):
-        """Return string with length of the object
-        """
-        return 'L=' + str(round(self.leng_obj, 4))
+        """Return string with length of the object"""
+        return "L=" + str(round(self.leng_obj, 4))
 
     @format_pk
     def get_leng_accum(self):
-        """Return the length accum
-        """
+        """Return the length accum"""
         return self.leng_accum
 
     @format_pk
     def get_leng_accum2(self):
-        """Return the length accum and length of this
-        """
+        """Return the length accum and length of this"""
         return self.leng_accum + self.leng_obj
 
     def is_in(self, r_pnt):
-        """ Return
-        """
+        """Return"""
         if self.leng_accum <= r_pnt.npk < self.leng_accum + self.leng_obj:
             return True
         else:
             return False
 
     def grassrgb(self):
-        """Return the default rgb color for each object
-        """
+        """Return the default rgb color for each object"""
         if isinstance(self, Straight):
-            return '0:0:255'
+            return "0:0:255"
         elif isinstance(self, Curve):
-            return '0:255:0'
+            return "0:255:0"
         elif isinstance(self, Clothoid):
-            return '255:0:0'
+            return "255:0:0"
         else:
-            return '255:255:255'
+            return "255:255:255"
 
     def get_roadpoint(self, start):
-        """Return a roadpoint found by pk
-        """
+        """Return a roadpoint found by pk"""
         if start == -1:
             start = self.leng_obj
         self.pts_accum = start
@@ -592,11 +633,12 @@ class RoadObj(object):
         r_pnt.npk = self.leng_accum + start
         if start == 0:
             # r_pnt.p_type = self.pto_ini()
-            r_pnt.p_type = self.__class__.__name__ + '_in'
+            r_pnt.p_type = self.__class__.__name__ + "_in"
         elif start == self.leng_obj:
             # r_pnt.p_type = self.pto_end()
-            r_pnt.p_type = self.__class__.__name__ + '_out'
+            r_pnt.p_type = self.__class__.__name__ + "_out"
         return [r_pnt]
+
 
 #    def pto_ini(self):
 #        """ Return
@@ -636,6 +678,7 @@ class RoadObj(object):
 # STRAIGHT
 # =============================================
 
+
 class Straight(RoadObj, object):
     """Object straight, line with two points or point azimuth and leng
     ::
@@ -645,19 +688,20 @@ class Straight(RoadObj, object):
     """
 
     def __init__(self, pstart=None, pend=None, azi=None, leng=None):
-        """ Return
-        """
+        """Return"""
         self.pstart = pstart
         self.pend = pend
         self.azi = azi
         self.leng = leng
 
-#        self.pts_rest = 0
-#        self.pts_accum = 0
+        #        self.pts_rest = 0
+        #        self.pts_accum = 0
 
         if self.azi and self.leng:
-            self.pend = Point(self.pstart.x + self.leng * math.sin(self.azi),
-                              self.pstart.y + self.leng * math.cos(self.azi))
+            self.pend = Point(
+                self.pstart.x + self.leng * math.sin(self.azi),
+                self.pstart.y + self.leng * math.cos(self.azi),
+            )
 
         super(Straight, self).__init__(self.length())
 
@@ -669,10 +713,23 @@ class Straight(RoadObj, object):
     def __repr__(self):
         if not self.pstart.z:
             self.pstart.z = 0.0
-        return ("Straight(" + str(self.pstart.x) + ", " + str(self.pstart.y) +
-                ", " + str(self.pstart.z) + ", " + str(self.length()) + ", " +
-                str(self.azimuth()) + ", " + str(self.pend.x) + ", " +
-                str(self.pend.y) + ")")
+        return (
+            "Straight("
+            + str(self.pstart.x)
+            + ", "
+            + str(self.pstart.y)
+            + ", "
+            + str(self.pstart.z)
+            + ", "
+            + str(self.length())
+            + ", "
+            + str(self.azimuth())
+            + ", "
+            + str(self.pend.x)
+            + ", "
+            + str(self.pend.y)
+            + ")"
+        )
 
     def get_wkt(self):
         """Return a "well know text" (WKT) geometry string. ::
@@ -681,19 +738,30 @@ class Straight(RoadObj, object):
         >>> pnt.get_wkt()
         'POINT(10.000000 100.000000)'
         """
-        return ("STRAIGHT(" + str(self.pstart.x) + ", " + str(self.pstart.y) +
-                ", " + str(self.pstart.z) + ", " + str(self.length()) + ", " +
-                str(self.azimuth()) + ", " + str(self.pend.x) + ", " +
-                str(self.pend.y) + ")")
+        return (
+            "STRAIGHT("
+            + str(self.pstart.x)
+            + ", "
+            + str(self.pstart.y)
+            + ", "
+            + str(self.pstart.z)
+            + ", "
+            + str(self.length())
+            + ", "
+            + str(self.azimuth())
+            + ", "
+            + str(self.pend.x)
+            + ", "
+            + str(self.pend.y)
+            + ")"
+        )
 
     def get_line(self):
-        """Return length of the straight
-        """
+        """Return length of the straight"""
         return Line([self.pstart, self.pend])
 
     def length(self):
-        """Return length of the straight
-        """
+        """Return length of the straight"""
         return self.pstart.distance(self.pend)
 
     def get_roadpnts(self, start, end, interv):
@@ -711,10 +779,13 @@ class Straight(RoadObj, object):
         azi = self.azimuth()
         list_pts = []
         while start <= end:
-            pnt = Point(self.pstart.x + start * math.sin(azi),
-                        self.pstart.y + start * math.cos(azi), self.pstart.z)
+            pnt = Point(
+                self.pstart.x + start * math.sin(azi),
+                self.pstart.y + start * math.cos(azi),
+                self.pstart.z,
+            )
 
-            list_pts.append(RoadPoint(pnt, accum, round(azi, 6), 'Line'))
+            list_pts.append(RoadPoint(pnt, accum, round(azi, 6), "Line"))
             accum += interv
             start += interv
 
@@ -750,15 +821,16 @@ class Straight(RoadObj, object):
         """
         az_ent = azimut(self.pstart, self.pend)
         az_sal = azimut(recta2.pstart, recta2.pend)
-        a_w = abs(azimut(self.pstart, self.pend) -
-                  azimut(recta2.pstart, recta2.pend))
-        if((self.pstart.x <= self.pend.x and self.pstart.y <= self.pend.y) or
-           (self.pstart.x <= self.pend.x and self.pstart.y >= self.pend.y)):
+        a_w = abs(azimut(self.pstart, self.pend) - azimut(recta2.pstart, recta2.pend))
+        if (self.pstart.x <= self.pend.x and self.pstart.y <= self.pend.y) or (
+            self.pstart.x <= self.pend.x and self.pstart.y >= self.pend.y
+        ):
             if az_ent < az_sal and az_ent + math.pi < az_sal:
                 a_w = 2 * math.pi - abs(az_ent - az_sal)
 
-        if((self.pstart.x >= self.pend.x and self.pstart.y >= self.pend.y) or
-           (self.pstart.x >= self.pend.x and self.pstart.y <= self.pend.y)):
+        if (self.pstart.x >= self.pend.x and self.pstart.y >= self.pend.y) or (
+            self.pstart.x >= self.pend.x and self.pstart.y <= self.pend.y
+        ):
             # "3er o 4to cuadrante"
             if az_ent > az_sal and az_ent - math.pi > az_sal:
                 a_w = 2 * math.pi - abs(az_ent - az_sal)
@@ -773,8 +845,7 @@ class Straight(RoadObj, object):
         RoadPoint(15.0, 15.0, 0.0, 21.2132034356, 0, , , 0, none, 0, none, 0)
         """
         if self.pstart.x == self.pend.x:
-            m_2 = (recta2.pend.y - recta2.pstart.y) / \
-                  (recta2.pend.x - recta2.pstart.x)
+            m_2 = (recta2.pend.y - recta2.pstart.y) / (recta2.pend.x - recta2.pstart.x)
             coord_x = self.pstart.x
             coord_y = recta2.pstart.y + m_2 * (self.pstart.x - recta2.pstart.x)
         elif recta2.pstart.x == recta2.pend.x:
@@ -783,23 +854,29 @@ class Straight(RoadObj, object):
             coord_y = self.pstart.y + m_1 * (recta2.pstart.x - self.pstart.x)
         else:
             m_1 = (self.pend.y - self.pstart.y) / (self.pend.x - self.pstart.x)
-            m_2 = (recta2.pend.y - recta2.pstart.y) / \
-                  (recta2.pend.x - recta2.pstart.x)
-            coord_x = (m_1 * self.pstart.x - m_2 * recta2.pstart.x -
-                       self.pstart.y + recta2.pstart.y) / (m_1 - m_2)
+            m_2 = (recta2.pend.y - recta2.pstart.y) / (recta2.pend.x - recta2.pstart.x)
+            coord_x = (
+                m_1 * self.pstart.x
+                - m_2 * recta2.pstart.x
+                - self.pstart.y
+                + recta2.pstart.y
+            ) / (m_1 - m_2)
             coord_y = m_1 * (coord_x - self.pstart.x) + self.pstart.y
 
-        return RoadPoint(Point(coord_x, coord_y),
-                         self.pstart.distance(Point(coord_x, coord_y)),
-                         self.azi, '')
+        return RoadPoint(
+            Point(coord_x, coord_y),
+            self.pstart.distance(Point(coord_x, coord_y)),
+            self.azi,
+            "",
+        )
 
     def funct(self, leng, recta2):
-        """Funtion for use with bisecc
-        """
+        """Funtion for use with bisecc"""
         x_1 = self.pstart.x + leng * math.sin(self.azimuth())
         y_1 = self.pstart.y + leng * math.cos(self.azimuth())
-        eq1 = y_1 - (recta2.pstart.y - math.tan(recta2.azimuth()) *
-                     (x_1 - recta2.pstart.x))
+        eq1 = y_1 - (
+            recta2.pstart.y - math.tan(recta2.azimuth()) * (x_1 - recta2.pstart.x)
+        )
         return [eq1, x_1, y_1]
 
     def find_cutoff(self, r_pnt):
@@ -813,7 +890,7 @@ class Straight(RoadObj, object):
         """
         r_pnt_d = bisecc(r_pnt, self)
         if r_pnt_d is not None:
-            r_pnt_d.p_type = 'Line'
+            r_pnt_d.p_type = "Line"
         return r_pnt_d
 
     def distance(self, pnt):
@@ -825,8 +902,7 @@ class Straight(RoadObj, object):
         if self.pstart.x == self.pend.x:
             slope = 0
         else:
-            slope = (self.pend.x - self.pstart.x) / \
-                    (self.pend.y - self.pstart.y)
+            slope = (self.pend.x - self.pstart.x) / (self.pend.y - self.pstart.y)
         rest = self.pstart.y + slope * self.pstart.x
         return (slope * pnt.x + pnt.y - rest) / math.sqrt(slope ** 2 + 1)
 
@@ -855,6 +931,7 @@ class Straight(RoadObj, object):
 # =============================================
 # CURVE
 # =============================================
+
 
 class Curve(RoadObj, object):
     """Object Curve, curve with radio, angle, initial azimuth and center
@@ -893,11 +970,28 @@ class Curve(RoadObj, object):
 
     def __repr__(self):
 
-        return ("Curve(" + str(self.radio) + ", " + str(self.alpha) + ", " +
-                str(self.p_center.x) + ", " + str(self.p_center.y) + ", " +
-                str(self.az_ini) + ", " + str(self.az_fin) + ", " +
-                str(self.length()) + ", " + str(self.pnt_ar()) + ", " +
-                str(self.pnt_ra()) + ", " + ")")
+        return (
+            "Curve("
+            + str(self.radio)
+            + ", "
+            + str(self.alpha)
+            + ", "
+            + str(self.p_center.x)
+            + ", "
+            + str(self.p_center.y)
+            + ", "
+            + str(self.az_ini)
+            + ", "
+            + str(self.az_fin)
+            + ", "
+            + str(self.length())
+            + ", "
+            + str(self.pnt_ar())
+            + ", "
+            + str(self.pnt_ra())
+            + ", "
+            + ")"
+        )
 
     def get_wkt(self):
         """Return a "well know text" (WKT) geometry string. ::
@@ -906,20 +1000,35 @@ class Curve(RoadObj, object):
         >>> pnt.get_wkt()
         'POINT(10.000000 100.000000)'
         """
-        return ("CURVE(" + str(self.radio) + ", " + str(self.alpha) + ", " +
-                str(self.p_center.x) + ", " + str(self.p_center.y) + ", " +
-                str(self.az_ini) + ", " + str(self.az_fin) + ", " +
-                str(self.length()) + ", " + str(self.pnt_ar()) + ", " +
-                str(self.pnt_ra()) + ", " + ")")
+        return (
+            "CURVE("
+            + str(self.radio)
+            + ", "
+            + str(self.alpha)
+            + ", "
+            + str(self.p_center.x)
+            + ", "
+            + str(self.p_center.y)
+            + ", "
+            + str(self.az_ini)
+            + ", "
+            + str(self.az_fin)
+            + ", "
+            + str(self.length())
+            + ", "
+            + str(self.pnt_ar())
+            + ", "
+            + str(self.pnt_ra())
+            + ", "
+            + ")"
+        )
 
     def param(self):
-        """Return a string with the radio of the curve
-        """
-        return 'R=' + str(self.radio)
+        """Return a string with the radio of the curve"""
+        return "R=" + str(self.radio)
 
     def length(self):
-        """Return length of the curve
-        """
+        """Return length of the curve"""
         return abs(self.radio) * self.alpha
 
     def get_roadpnts(self, start, end, interv):
@@ -948,13 +1057,13 @@ class Curve(RoadObj, object):
 
             while inc <= az_fin:
                 pnt_1 = self.p_center.project(self.radio, inc)
-                az1 = (inc + math.pi / 2)
+                az1 = inc + math.pi / 2
                 inc += interv
 
                 if az1 > 2 * math.pi:
                     az1 = az1 - 2 * math.pi
 
-                list_pts.append(RoadPoint(pnt_1, accum, round(az1, 6), 'Curve'))
+                list_pts.append(RoadPoint(pnt_1, accum, round(az1, 6), "Curve"))
                 accum += interv * abs(self.radio)
             rest = (az_fin - (inc - interv)) * abs(self.radio)
 
@@ -962,13 +1071,13 @@ class Curve(RoadObj, object):
 
             while inc >= az_fin:
                 pnt_1 = self.p_center.project(self.radio, inc, -1)
-                az1 = (inc - math.pi / 2)
+                az1 = inc - math.pi / 2
                 inc -= interv
 
                 if az1 < 0:
                     az1 = az1 + 2 * math.pi
 
-                list_pts.append(RoadPoint(pnt_1, accum, round(az1, 6), 'Curve'))
+                list_pts.append(RoadPoint(pnt_1, accum, round(az1, 6), "Curve"))
                 accum += interv * abs(self.radio)
             rest = ((inc + interv) - az_fin) * abs(self.radio)
 
@@ -988,47 +1097,49 @@ class Curve(RoadObj, object):
         return line.length() - self.radio
 
     def pnt_ar(self):
-        """Return the first point of the curve
-        """
+        """Return the first point of the curve"""
         return self.p_center.project(abs(self.radio), self.az_ini)
 
     def pnt_ra(self):
-        """Return the last point of the curve
-        """
+        """Return the last point of the curve"""
         return self.p_center.project(abs(self.radio), self.az_fin)
 
     def cutoff(self, recta2):
-        """Return the cutoff between this curve and a straight
-        """
+        """Return the cutoff between this curve and a straight"""
         dist = recta2.distance(self.p_center)
         if dist == 0:
             pnt_1 = self.p_center.project(self.radio, recta2.azimuth())
         else:
             phi = math.acos(dist / self.radio)
-            pnt_1 = self.p_center.project(self.radio, recta2.azimuth() +
-                                          math.pi / 2 + phi)
+            pnt_1 = self.p_center.project(
+                self.radio, recta2.azimuth() + math.pi / 2 + phi
+            )
         return pnt_1
 
     def funct(self, leng, recta2):
-        """Funtion for use with bisecc
-        """
+        """Funtion for use with bisecc"""
         if self.radio > 0:
             if self.az_ini > self.az_fin:
                 self.az_ini = self.az_ini - 2 * math.pi
-            x_1 = self.p_center.x + self.radio * \
-                math.sin(self.az_ini + leng / abs(self.radio))
-            y_1 = self.p_center.y + self.radio * \
-                math.cos(self.az_ini + leng / abs(self.radio))
+            x_1 = self.p_center.x + self.radio * math.sin(
+                self.az_ini + leng / abs(self.radio)
+            )
+            y_1 = self.p_center.y + self.radio * math.cos(
+                self.az_ini + leng / abs(self.radio)
+            )
         elif self.radio < 0:
             if self.az_ini < self.az_fin:
                 self.az_fin = self.az_fin - 2 * math.pi
-            x_1 = self.p_center.x - self.radio * \
-                math.sin(self.az_ini - leng / abs(self.radio))
-            y_1 = self.p_center.y - self.radio * \
-                math.cos(self.az_ini - leng / abs(self.radio))
+            x_1 = self.p_center.x - self.radio * math.sin(
+                self.az_ini - leng / abs(self.radio)
+            )
+            y_1 = self.p_center.y - self.radio * math.cos(
+                self.az_ini - leng / abs(self.radio)
+            )
 
-        eq1 = y_1 - (recta2.pstart.y - math.tan(recta2.azimuth()) *
-                     (x_1 - recta2.pstart.x))
+        eq1 = y_1 - (
+            recta2.pstart.y - math.tan(recta2.azimuth()) * (x_1 - recta2.pstart.x)
+        )
         return [eq1, x_1, y_1]
 
     def find_cutoff(self, r_pnt):
@@ -1037,7 +1148,7 @@ class Curve(RoadObj, object):
         """
         r_pnt_d = bisecc(r_pnt, self)
         if r_pnt_d is not None:
-            r_pnt_d.p_type = 'Curve_'
+            r_pnt_d.p_type = "Curve_"
         return r_pnt_d
 
 
@@ -1045,14 +1156,16 @@ class Curve(RoadObj, object):
 # CLOTHOID
 # =============================================
 
+
 class Clothoid(RoadObj, object):
     """Object Clothoid, with param A, radio, initial azimuth, in or out,
     and center of the curve. Other_local coord in local of other clothoid
     ::
     """
 
-    def __init__(self, a_clot=0, radio=0, azi=0, inout='', other_local=None,
-                 p_center=None):
+    def __init__(
+        self, a_clot=0, radio=0, azi=0, inout="", other_local=None, p_center=None
+    ):
 
         self.radio = radio
         self.a_clot = a_clot
@@ -1070,7 +1183,7 @@ class Clothoid(RoadObj, object):
             self.g90 = -math.pi / 2
 
         if self.other_local:
-            self.leng_rest = self.other_local['leng']
+            self.leng_rest = self.other_local["leng"]
         else:
             self.leng_rest = 0
 
@@ -1080,7 +1193,7 @@ class Clothoid(RoadObj, object):
 
         self.local = cloth_local(self.radio, self.a_clot)
 
-        if self.inout == 'in':
+        if self.inout == "in":
 
             if self.a_clot <= 0:
                 self.pnt_r = self._pnt_ar()
@@ -1092,7 +1205,7 @@ class Clothoid(RoadObj, object):
                 self.pnt_p = self.pnt_d
 
                 if self.other_local:
-                    self.leng_rest = self.other_local['leng']
+                    self.leng_rest = self.other_local["leng"]
                     self.pnt_p = self._pnt_adp()
         else:
             if self.a_clot <= 0:
@@ -1105,7 +1218,7 @@ class Clothoid(RoadObj, object):
                 self.pnt_p = self.pnt_d
 
                 if self.other_local:
-                    self.leng_rest = self.other_local['leng']
+                    self.leng_rest = self.other_local["leng"]
                     self.pnt_p = self._pnt_dap()
 
         super(Clothoid, self).__init__(self.length())
@@ -1114,13 +1227,31 @@ class Clothoid(RoadObj, object):
         return self.get_wkt()
 
     def __repr__(self):
-        return ("Clothoid(" + str(self.a_clot) + ", " + str(self.azi) +
-                ", " + str(self.pnt_d) + ", " +
-                str(self.pnt_r.x) + ", " + str(self.pnt_r.y) + ", " +
-                str(self.length()) + ", " +
-                str(self.radio) + ", " + str(self.leng_rest) + ", " +
-                str(self.pnt_p.x) + ", " + str(self.pnt_p.y) + ", " +
-                self.inout + ")")
+        return (
+            "Clothoid("
+            + str(self.a_clot)
+            + ", "
+            + str(self.azi)
+            + ", "
+            + str(self.pnt_d)
+            + ", "
+            + str(self.pnt_r.x)
+            + ", "
+            + str(self.pnt_r.y)
+            + ", "
+            + str(self.length())
+            + ", "
+            + str(self.radio)
+            + ", "
+            + str(self.leng_rest)
+            + ", "
+            + str(self.pnt_p.x)
+            + ", "
+            + str(self.pnt_p.y)
+            + ", "
+            + self.inout
+            + ")"
+        )
 
     def get_wkt(self):
         """Return a "well know text" (WKT) geometry string. ::
@@ -1129,26 +1260,40 @@ class Clothoid(RoadObj, object):
         >>> pnt.get_wkt()
         'POINT(10.000000 100.000000)'
         """
-        return ("CLOTHOID(" + str(self.a_clot) + ", " + str(self.azi) +
-                ", " + str(self.pnt_d) + ", " + str(self.pnt_r) + ", " +
-                str(self.length()) + ", " +
-                str(self.radio) + ", " + str(self.leng_rest) + ", " +
-                str(self.pnt_p) + ", " + self.inout + ")")
+        return (
+            "CLOTHOID("
+            + str(self.a_clot)
+            + ", "
+            + str(self.azi)
+            + ", "
+            + str(self.pnt_d)
+            + ", "
+            + str(self.pnt_r)
+            + ", "
+            + str(self.length())
+            + ", "
+            + str(self.radio)
+            + ", "
+            + str(self.leng_rest)
+            + ", "
+            + str(self.pnt_p)
+            + ", "
+            + self.inout
+            + ")"
+        )
 
     def param(self):
-        """Return a string with the parameter A of the clothoid
-        """
-        return 'A=' + str(self.a_clot)
+        """Return a string with the parameter A of the clothoid"""
+        return "A=" + str(self.a_clot)
 
     def length(self):
-        """Return length of the clothoid
-        """
+        """Return length of the clothoid"""
         if self.a_clot <= 0:
             return 0
         elif self.other_local:
-            return self.other_local['leng'] - self.leng_rest
+            return self.other_local["leng"] - self.leng_rest
         else:
-            return self.local['leng']
+            return self.local["leng"]
 
     def get_roadpnts(self, start, end, interv):
         """Return list of points of the curve, and set length of last point
@@ -1164,13 +1309,13 @@ class Clothoid(RoadObj, object):
         if end == -1:
             end = self.length()
 
-        if self.inout == 'in':
+        if self.inout == "in":
             return self._get_pts_clot_in(start, end, interv)
-        elif self.inout == 'out':
+        elif self.inout == "out":
             return self._get_pts_clot_out(start, end, interv)
 
     def _get_pts_clot_in(self, start, end, interv):
-        """ Return list of axis points of clothoid in, and set the rest to
+        """Return list of axis points of clothoid in, and set the rest to
         the end of the clothoid and accum length
         """
         accum = self.pts_accum
@@ -1183,8 +1328,9 @@ class Clothoid(RoadObj, object):
             x_o, y_o = aprox_coord(start, tau_clo)
             x_1, y_1 = self.cloth_global(x_o, y_o)
             azi1 = self.pnt_azimuth(tau_clo)
-            list_pts.append(RoadPoint(Point(x_1, y_1, 0), accum,
-                                      round(azi1, 6), 'Clot_in'))
+            list_pts.append(
+                RoadPoint(Point(x_1, y_1, 0), accum, round(azi1, 6), "Clot_in")
+            )
             accum += interv
             start = start + interv
 
@@ -1193,7 +1339,7 @@ class Clothoid(RoadObj, object):
         return list_pts
 
     def _get_pts_clot_out(self, start, end, interv):
-        """ Return list of axis points of clothoid out, and set the rest to
+        """Return list of axis points of clothoid out, and set the rest to
         the end of the clothoid and accum length
         """
         accum = self.pts_accum
@@ -1210,8 +1356,9 @@ class Clothoid(RoadObj, object):
             x_o, y_o = aprox_coord((end2), tau_clo)
             x_1, y_1 = self.cloth_global(x_o, y_o)
             azi1 = self.pnt_azimuth(tau_clo)
-            list_pts.append(RoadPoint(Point(x_1, y_1, 0), accum,
-                                      round(azi1, 6), 'Clot_out'))
+            list_pts.append(
+                RoadPoint(Point(x_1, y_1, 0), accum, round(azi1, 6), "Clot_out")
+            )
             accum += interv
             end2 = end2 - interv
 
@@ -1221,73 +1368,94 @@ class Clothoid(RoadObj, object):
         return list_pts
 
     def _pnt_ar(self):
-        """Return the first point of the clothoid in
-        """
-        return self.p_center.project(abs(self.radio),
-                                     self.azi - self.g90 + self.local['tau'])
+        """Return the first point of the clothoid in"""
+        return self.p_center.project(
+            abs(self.radio), self.azi - self.g90 + self.local["tau"]
+        )
 
     def _pnt_ad(self):
-        """Return the last point of the clothoid in
-        """
-        pnt_t1 = self.p_center.project(abs(self.radio + self.local['y_o']),
-                                       self.azi - self.g90)
+        """Return the last point of the clothoid in"""
+        pnt_t1 = self.p_center.project(
+            abs(self.radio + self.local["y_o"]), self.azi - self.g90
+        )
 
-        return pnt_t1.project(self.local['x_o'], self.azi + math.pi)
+        return pnt_t1.project(self.local["x_o"], self.azi + math.pi)
 
     def _pnt_ra(self):
-        """Return the first point of the clothoid out
-        """
-        return self.p_center.project(abs(self.radio),
-                                     self.azi - self.g90 - self.local['tau'])
+        """Return the first point of the clothoid out"""
+        return self.p_center.project(
+            abs(self.radio), self.azi - self.g90 - self.local["tau"]
+        )
 
     def _pnt_da(self):
-        """Return the last point of the clothoid out
-        """
-        pnt_t1 = self.p_center.project(abs(self.radio + self.local['y_o']),
-                                       self.azi - self.g90)
-        return pnt_t1.project(self.local['x_o'], self.azi)
+        """Return the last point of the clothoid out"""
+        pnt_t1 = self.p_center.project(
+            abs(self.radio + self.local["y_o"]), self.azi - self.g90
+        )
+        return pnt_t1.project(self.local["x_o"], self.azi)
 
     def _pnt_adp(self):
-        """Return
-        """
+        """Return"""
         if self.radio > 0:
-            xadp = self.pnt_d.x - self.other_local['x_e'] * \
-                math.sin(-self.azi) + self.local['y_e'] * math.cos(-self.azi)
-            yadp = self.pnt_d.y + self.other_local['x_e'] * \
-                math.cos(-self.azi) + self.local['y_e'] * math.sin(-self.azi)
+            xadp = (
+                self.pnt_d.x
+                - self.other_local["x_e"] * math.sin(-self.azi)
+                + self.local["y_e"] * math.cos(-self.azi)
+            )
+            yadp = (
+                self.pnt_d.y
+                + self.other_local["x_e"] * math.cos(-self.azi)
+                + self.local["y_e"] * math.sin(-self.azi)
+            )
 
         elif self.radio < 0:
-            xadp = self.pnt_d.x + self.other_local['x_e'] * \
-                math.sin(-self.azi) - self.local['y_e'] * math.cos(-self.azi)
-            yadp = self.pnt_d.y + self.other_local['x_e'] * \
-                math.cos(-self.azi) + self.local['y_e'] * math.sin(-self.azi)
+            xadp = (
+                self.pnt_d.x
+                + self.other_local["x_e"] * math.sin(-self.azi)
+                - self.local["y_e"] * math.cos(-self.azi)
+            )
+            yadp = (
+                self.pnt_d.y
+                + self.other_local["x_e"] * math.cos(-self.azi)
+                + self.local["y_e"] * math.sin(-self.azi)
+            )
         return Point(xadp, yadp)
 
     def _pnt_dap(self):
-        """ Return
-        """
+        """Return"""
         if self.radio > 0:
-            xdap = self.pnt_d.x - self.other_local['x_e'] * \
-                math.sin(-self.azi) + self.local['y_e'] * math.cos(-self.azi)
-            ydap = self.pnt_d.y - self.other_local['x_e'] * \
-                math.cos(-self.azi) - self.local['y_e'] * math.sin(-self.azi)
+            xdap = (
+                self.pnt_d.x
+                - self.other_local["x_e"] * math.sin(-self.azi)
+                + self.local["y_e"] * math.cos(-self.azi)
+            )
+            ydap = (
+                self.pnt_d.y
+                - self.other_local["x_e"] * math.cos(-self.azi)
+                - self.local["y_e"] * math.sin(-self.azi)
+            )
 
         elif self.radio < 0:
-            xdap = self.pnt_d.x + self.other_local['x_e'] * \
-                math.sin(-self.azi) - self.local['y_e'] * math.cos(-self.azi)
-            ydap = self.pnt_d.y - self.other_local['x_e'] * \
-                math.cos(-self.azi) - self.local['y_e'] * math.sin(-self.azi)
+            xdap = (
+                self.pnt_d.x
+                + self.other_local["x_e"] * math.sin(-self.azi)
+                - self.local["y_e"] * math.cos(-self.azi)
+            )
+            ydap = (
+                self.pnt_d.y
+                - self.other_local["x_e"] * math.cos(-self.azi)
+                - self.local["y_e"] * math.sin(-self.azi)
+            )
         return Point(xdap, ydap)
 
     def pnt_azimuth(self, tau_clo):
-        """Return azimuth of a point of the clothoid, given the angle tau
-        """
-        if self.inout == 'in':
+        """Return azimuth of a point of the clothoid, given the angle tau"""
+        if self.inout == "in":
             if self.radio > 0:
                 azi1 = self.azi + tau_clo
             elif self.radio < 0:
                 azi1 = self.azi - tau_clo
-        elif self.inout == 'out':
+        elif self.inout == "out":
             if self.radio > 0:
                 azi1 = self.azi - tau_clo
             elif self.radio < 0:
@@ -1295,42 +1463,65 @@ class Clothoid(RoadObj, object):
         return azi1
 
     def cloth_global(self, x_local, y_local):
-        """Return local coordinates in global coordinates
-        """
-        if self.inout == 'in':
+        """Return local coordinates in global coordinates"""
+        if self.inout == "in":
             if self.radio > 0:
-                x_1 = self.pnt_d.x - x_local * math.sin(-self.azi) + \
-                    y_local * math.cos(-self.azi)
-                y_1 = self.pnt_d.y + x_local * math.cos(-self.azi) + \
-                    y_local * math.sin(-self.azi)
+                x_1 = (
+                    self.pnt_d.x
+                    - x_local * math.sin(-self.azi)
+                    + y_local * math.cos(-self.azi)
+                )
+                y_1 = (
+                    self.pnt_d.y
+                    + x_local * math.cos(-self.azi)
+                    + y_local * math.sin(-self.azi)
+                )
             elif self.radio < 0:
-                x_1 = self.pnt_d.x + x_local * math.sin(self.azi) - \
-                    y_local * math.cos(self.azi)
-                y_1 = self.pnt_d.y + x_local * math.cos(self.azi) + \
-                    y_local * math.sin(self.azi)
-        elif self.inout == 'out':
+                x_1 = (
+                    self.pnt_d.x
+                    + x_local * math.sin(self.azi)
+                    - y_local * math.cos(self.azi)
+                )
+                y_1 = (
+                    self.pnt_d.y
+                    + x_local * math.cos(self.azi)
+                    + y_local * math.sin(self.azi)
+                )
+        elif self.inout == "out":
             if self.radio > 0:
-                x_1 = self.pnt_d.x - x_local * math.sin(self.azi) + \
-                    y_local * math.cos(self.azi)
-                y_1 = self.pnt_d.y - x_local * math.cos(self.azi) - \
-                    y_local * math.sin(self.azi)
+                x_1 = (
+                    self.pnt_d.x
+                    - x_local * math.sin(self.azi)
+                    + y_local * math.cos(self.azi)
+                )
+                y_1 = (
+                    self.pnt_d.y
+                    - x_local * math.cos(self.azi)
+                    - y_local * math.sin(self.azi)
+                )
             elif self.radio < 0:
-                x_1 = self.pnt_d.x + x_local * math.sin(-self.azi) - \
-                    y_local * math.cos(-self.azi)
-                y_1 = self.pnt_d.y - x_local * math.cos(-self.azi) - \
-                    y_local * math.sin(-self.azi)
+                x_1 = (
+                    self.pnt_d.x
+                    + x_local * math.sin(-self.azi)
+                    - y_local * math.cos(-self.azi)
+                )
+                y_1 = (
+                    self.pnt_d.y
+                    - x_local * math.cos(-self.azi)
+                    - y_local * math.sin(-self.azi)
+                )
         return x_1, y_1
 
     def funct(self, leng, recta2):
-        """Funtion for use with bisecc
-        """
+        """Funtion for use with bisecc"""
         rad_i = self.a_clot ** 2 / leng
         tau_i = leng / (2 * rad_i)
         x_o, y_o = aprox_coord(leng, tau_i)
         x_1, y_1 = self.cloth_global(x_o, y_o)
 
-        eq1 = y_1 - (recta2.pstart.y - math.tan((recta2.azimuth())) *
-                     (x_1 - recta2.pstart.x))
+        eq1 = y_1 - (
+            recta2.pstart.y - math.tan((recta2.azimuth())) * (x_1 - recta2.pstart.x)
+        )
         return [eq1, x_1, y_1]
 
     def find_cutoff(self, r_pnt):
@@ -1339,12 +1530,14 @@ class Clothoid(RoadObj, object):
         """
         r_pnt_d = bisecc(r_pnt, self)
         if r_pnt_d is not None:
-            if self.inout == 'out':
+            if self.inout == "out":
                 r_pnt_d.npk = self.length() - r_pnt_d.npk
-            r_pnt_d.p_type = 'Cloth_' + self.inout
-#            r_pnt_d.dist_displ = r_pnt.distance(r_pnt_d)
+            r_pnt_d.p_type = "Cloth_" + self.inout
+        #            r_pnt_d.dist_displ = r_pnt.distance(r_pnt_d)
         return r_pnt_d
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

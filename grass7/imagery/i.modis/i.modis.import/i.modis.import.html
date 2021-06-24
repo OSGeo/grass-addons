@@ -120,16 +120,16 @@ and imported as follows in a latitude-longitude GRASS GIS location:
 <div class="code"><pre>
 # download the two years worth of data
 i.modis.download settings=~/.rmodis product=ndvi_terra_sixteen_5600 \
-  startday=2015-01-01 endday=2016-12-31 folder=$USER/data/ndvi_MOD13C1.006
+  startday=2015-01-01 endday=2016-12-31 folder=$USER/data/ndvi_MOD13C1.061
 # import band 1 = NDVI
-i.modis.import files=$USER/data/ndvi_MOD13C1.006/listfileMOD13C1.006.txt spectral="( 1 )" \
-  method=bilinear outfile=$USER/data/ndvi_MOD13C1.006/list_for_tregister.csv -w
+i.modis.import files=$USER/data/ndvi_MOD13C1.061/listfileMOD13C1.061.txt spectral="( 1 )" \
+  method=bilinear outfile=$USER/data/ndvi_MOD13C1.061/list_for_tregister.csv -w
 # create empty temporal DB
 t.create type=strds temporaltype=absolute output=ndvi_16_5600m title="Global NDVI 16 days MOD13C1" \
   description="MOD13C1 Global NDVI 16 days" semantictype=mean
 # register maps within spacetime datasets (the file name is provided by
 # i.modis.import using -w flag and outfile option)
-t.register input=ndvi_16_5600m file=$USER/data/ndvi_MOD13C1.006/list_for_tregister.csv
+t.register input=ndvi_16_5600m file=$USER/data/ndvi_MOD13C1.061/list_for_tregister.csv
 
 # verify and visualize timeline
 t.rast.list ndvi_16_5600m
@@ -148,12 +148,12 @@ i.modis.download settings=$HOME/SETTING product=lst_terra_eight_1000 \
 Import mosaics of LST Day and QC Day bands for all dates in the list of files:
 
 <div class="code"><pre>
-i.modis.import -m files=$HOME/listfileMOD11A1.006.txt \
+i.modis.import -m files=$HOME/listfileMOD11A1.061.txt \
  spectral="( 1 1 0 0 0 0 0 0 0 0 0 0 )"
 </pre></div>
 
 Extract and apply the mandatory QA band (for more details see 
-<a href="i.modis.qc.html">i.modis.qc</a>):
+<a href="https://grass.osgeo.org/grass-stable/manuals/i.modis.qc.html">i.modis.qc</a>):
 
 <div class="code"><pre>
 for map in `g.list type=raster pattern="*_QC_Day"` ; do
@@ -174,7 +174,7 @@ Create the time series (i.e.: spacetime dataset) and register maps in it:
 <div class="code"><pre>
 t.create type=strds temporaltype=absolute output=LST_Day_daily \
  title="Daily LST Day 1km" \
- description="Daily LST Day 1km MOD11A1.006, December 2016"
+ description="Daily LST Day 1km MOD11A1.061, December 2016"
 t.register -i input=LST_Day_daily \
  maps=`g.list type=raster pattern="*2016*LST_Day_1km" separator=comma` \
  start="2016-12-23" increment="1 day"
@@ -195,13 +195,13 @@ end time written by <em>i.modis.import</em> with the <em>w</em> flag and outfile
 # Import mosaics of LST Day for all dates using the list of downloaded files from 
 # i.modis.download (see above) and get a list of the imported files along with
 # dates to use with t.register in the temporal framework
-i.modis.import -mw files=$HOME/listfileMOD11A1.006.txt \
+i.modis.import -mw files=$HOME/listfileMOD11A1.061.txt \
  spectral="( 1 0 0 0 0 0 0 0 0 0 0 0 )" outfile=$HOME/list_for_tregister.csv
 
 # Create time series and register maps
 t.create type=strds temporaltype=absolute output=LST_Day_daily \
  title="Daily LST Day 1km" \
- description="Daily LST Day 1km MOD11A1.006, December 2016"
+ description="Daily LST Day 1km MOD11A1.061, December 2016"
 t.register input=LST_Day_daily file=$HOME/list_for_tregister.csv
 </pre></div>
 
@@ -210,7 +210,7 @@ t.register input=LST_Day_daily file=$HOME/list_for_tregister.csv
 <em>
 <a href="i.modis.html">i.modis</a>,
 <a href="i.modis.download.html">i.modis.download</a>,
-<a href="i.modis.qc.html">i.modis.qc</a>
+<a href="https://grass.osgeo.org/grass-stable/manuals/i.modis.qc.html">i.modis.qc</a>
 </em>
 <p>
 <a href="https://grasswiki.osgeo.org/wiki/Temporal_data_processing">GRASS GIS Wiki: temporal data processing</a>

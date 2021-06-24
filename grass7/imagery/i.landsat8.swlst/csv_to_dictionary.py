@@ -15,7 +15,7 @@ ToDo:
 # see: <http://stackoverflow.com/q/29141609/1172302>
 
 # real data
-AE_STRING = '''Emissivity Class|TIRS10|TIRS11
+AE_STRING = """Emissivity Class|TIRS10|TIRS11
 Cropland|0.971|0.968
 Forest|0.995|0.996
 Grasslands|0.97|0.971
@@ -25,15 +25,15 @@ Waterbodies|0.992|0.998
 Tundra|0.98|0.984
 Impervious|0.973|0.981
 Barren Land|0.969|0.978
-Snow and ice|0.992|0.998'''
+Snow and ice|0.992|0.998"""
 
-CWV_STRING = '''Range|CWV|b0|b1|b2|b3|b4|b5|b6|b7|RMSE
+CWV_STRING = """Range|CWV|b0|b1|b2|b3|b4|b5|b6|b7|RMSE
 Range 1|(0.0, 2.5)|-2.78009|1.01408|0.15833|-0.34991|4.04487|3.55414|-8.88394|0.09152|0.34
 Range 2|(2.0, 3.5)|11.00824|0.95995|0.17243|-0.28852|7.11492|0.42684|-6.62025|-0.06381|0.60
 Range 3|(3.0, 4.5)|9.62610|0.96202|0.13834|-0.17262|7.87883|5.17910|-13.26611|-0.07603|0.71
 Range 4|(4.0, 5.5)|0.61258|0.99124|0.10051|-0.09664|7.85758|6.86626|-15.00742|-0.01185|0.86
 Range 5|(5.0, 6.3)|-0.34808|0.98123|0.05599|-0.03518|11.96444|9.06710|-14.74085|-0.20471|0.93
-Range 6|(0.0, 6.3)|-0.41165|1.00522|0.14543|-0.27297|4.06655|-6.92512|-18.27461|0.24468|0.87'''
+Range 6|(0.0, 6.3)|-0.41165|1.00522|0.14543|-0.27297|4.06655|-6.92512|-18.27461|0.24468|0.87"""
 
 # required librairies
 import sys
@@ -54,9 +54,9 @@ def set_csvfile():
 
 
 def is_number(value):
-    '''
+    """
     Check if input is a number
-    '''
+    """
     try:
         float(value)  # for int, long and float
     except ValueError:
@@ -71,16 +71,25 @@ def to_tuple(string):
     """
     Convert string to tuple.
     """
-    return tuple(map(float, string[1:-1].split(',')))
+    return tuple(map(float, string[1:-1].split(",")))
 
 
 def replace_dot_comma_space(string):
     """
     Source: <http://stackoverflow.com/a/9479972/1172302>
     """
-    replacements = ('.', ''), (', ', '_'), (',', '_'), (' ', '_'), ('(', ''), (')', ''), ('/', '_')
-    return functools.reduce(lambda alpha, omega: alpha.replace(*omega),
-                  replacements, string)
+    replacements = (
+        (".", ""),
+        (", ", "_"),
+        (",", "_"),
+        (" ", "_"),
+        ("(", ""),
+        (")", ""),
+        ("/", "_"),
+    )
+    return functools.reduce(
+        lambda alpha, omega: alpha.replace(*omega), replacements, string
+    )
 
 
 def csv_reader(csv_file):
@@ -116,17 +125,17 @@ def csv_reader(csv_file):
     Barren Land|0.969|0.978
     Snow and ice|0.992|0.998"""
     '''
-    with open(csv_file, 'r') as csvfile:
+    with open(csv_file, "r") as csvfile:
         csvreader = csv.reader(csvfile, delimiter="|")  # delimiter?
         string = str()
         for row in csvreader:
-            string += '\n' + str('|'.join(row))
-        string = string.strip('\n')  # remove first newline!
+            string += "\n" + str("|".join(row))
+        string = string.strip("\n")  # remove first newline!
         return string
 
 
 def csv_to_dictionary(csv):
-    '''
+    """
     Transform input from "special" csv into a python dictionary with namedtuples
     as values. Note, "strings" of interest are hardcoded!
 
@@ -141,22 +150,22 @@ def csv_to_dictionary(csv):
     -------
     A dictionary with named tuples
 
-    '''
+    """
     # split input in rows
-    rows = csv.split('\n')
+    rows = csv.split("\n")
     dictionary = {}  # empty dictionary
-    fields = rows.pop(0).split('|')[1:]  # header
+    fields = rows.pop(0).split("|")[1:]  # header
 
-    strings = ('TIRS10', 'TIRS11')
+    strings = ("TIRS10", "TIRS11")
     if any(string in fields for string in strings):
 
         def transform(row):
-            '''
+            """
             Transform an input row in to a named tuple, then feed it in to a
             dictionary.
-            '''
+            """
             # split row in elements
-            elements = row.split('|')
+            elements = row.split("|")
 
             # key: 1st column, replace
             key = replace_dot_comma_space(elements[0])
@@ -171,35 +180,39 @@ def csv_to_dictionary(csv):
             # feed dictionary
             dictionary[key] = dictionary.get(key, ect)
 
-    strings = ('b0', 'b1', 'b2', 'b3', 'b4', 'b5', 'b6', 'b7')
+    strings = ("b0", "b1", "b2", "b3", "b4", "b5", "b6", "b7")
     if any(string in fields for string in strings):
 
         def transform(row):
-            '''
+            """
             Transform an input row in to a named tuple, then feed it in to a
             dictionary.
-            '''
+            """
             # split row in elements
-            elements = row.split('|')
+            elements = row.split("|")
 
             # key: 1st column, replace
             key = replace_dot_comma_space(elements[0])
 
             # *** small modification for the CWV field ***
-            fields[0] = 'cwv'
+            fields[0] = "cwv"
 
             # named tuples
-            cwv = namedtuple(key,
-                             [replace_dot_comma_space(fields[0]),
-                              replace_dot_comma_space(fields[1]),
-                              replace_dot_comma_space(fields[2]),
-                              replace_dot_comma_space(fields[3]),
-                              replace_dot_comma_space(fields[4]),
-                              replace_dot_comma_space(fields[5]),
-                              replace_dot_comma_space(fields[6]),
-                              replace_dot_comma_space(fields[7]),
-                              replace_dot_comma_space(fields[8]),
-                              replace_dot_comma_space(fields[9])])
+            cwv = namedtuple(
+                key,
+                [
+                    replace_dot_comma_space(fields[0]),
+                    replace_dot_comma_space(fields[1]),
+                    replace_dot_comma_space(fields[2]),
+                    replace_dot_comma_space(fields[3]),
+                    replace_dot_comma_space(fields[4]),
+                    replace_dot_comma_space(fields[5]),
+                    replace_dot_comma_space(fields[6]),
+                    replace_dot_comma_space(fields[7]),
+                    replace_dot_comma_space(fields[8]),
+                    replace_dot_comma_space(fields[9]),
+                ],
+            )
 
             # feed named tuples
             cwv.subrange = to_tuple(elements[1])
@@ -277,7 +290,7 @@ def main():
         print(" * Reading comma separated values from:", CSVFILE)
 
     else:
-        raise IOError('Please define a file to read comma-separated-values from!')
+        raise IOError("Please define a file to read comma-separated-values from!")
 
     # convert csv file to string
     csvstring = csv_reader(CSVFILE)
@@ -287,8 +300,8 @@ def main():
 
     # report on user requested file
     if set_csvfile():
-        msg = '   > Dictionary with coefficients '
-        msg += str('(note, it contains named tuples):\n\n')
+        msg = "   > Dictionary with coefficients "
+        msg += str("(note, it contains named tuples):\n\n")
         print(msg, coefficients_dictionary)
 
     # return the dictionary with coefficients
@@ -297,17 +310,17 @@ def main():
 
 # Test data
 def test_csvfile(infile):
-    '''
+    """
     Test helper and main functions using as input a csv file.
-    '''
+    """
     global CSVFILE
     CSVFILE = infile
     print("CSVFILE (global variable) = ", CSVFILE)
 
-    print('Test helper and main functions using as input a csv file.')
+    print("Test helper and main functions using as input a csv file.")
     print()
 
-    number = random.randint(1., 10.)
+    number = random.randint(1.0, 10.0)
     print(" * Testing helper function 'is_number':", is_number(number))
 
     if not infile:
@@ -332,16 +345,32 @@ def test_csvfile(infile):
     random_field = random.choice(fields)
     print("* Some random field:", random_field)
     # print "* Return values (namedtuple):", d[somekey].TIRS10, d[somekey].TIRS11
-    print("* Return values (namedtuple):", ('subrange', d[somekey].subrange,
-                                            'b0', d[somekey].b0,
-                                            'b1', d[somekey].b1,
-                                            'b2', d[somekey].b2,
-                                            'b3', d[somekey].b3,
-                                            'b4', d[somekey].b4,
-                                            'b5', d[somekey].b5,
-                                            'b6', d[somekey].b6,
-                                            'b7', d[somekey].b7,
-                                            'rmse', d[somekey].rmse))
+    print(
+        "* Return values (namedtuple):",
+        (
+            "subrange",
+            d[somekey].subrange,
+            "b0",
+            d[somekey].b0,
+            "b1",
+            d[somekey].b1,
+            "b2",
+            d[somekey].b2,
+            "b3",
+            d[somekey].b3,
+            "b4",
+            d[somekey].b4,
+            "b5",
+            d[somekey].b5,
+            "b6",
+            d[somekey].b6,
+            "b7",
+            d[somekey].b7,
+            "rmse",
+            d[somekey].rmse,
+        ),
+    )
+
 
 # test_using_file(CSVFILE)  # Ucomment to run test function!
 # CSVFILE = "cwv_coefficients.csv"
@@ -350,16 +379,16 @@ def test_csvfile(infile):
 
 
 def test(testdata):
-    '''
+    """
     Test helper and main functions using as input a multi-line string.
-    '''
-    number = random.randint(1., 10.)
+    """
+    number = random.randint(1.0, 10.0)
     print(" * Testing 'is_number':", is_number(number))
     print()
 
-    '''
+    """
     Testing the process...
-    '''
+    """
     d = csv_to_dictionary(testdata)
     print("Dictionary is:\n", d)
     print()
@@ -376,7 +405,8 @@ def test(testdata):
     print("Some random field:", random_field)
     print("Return values (namedtuple):", d[somekey].TIRS10, d[somekey].TIRS11)
 
-testdata = '''LandCoverClass|TIRS10|TIRS11
+
+testdata = """LandCoverClass|TIRS10|TIRS11
 Cropland|0.971|0.968
 Forest|0.995|0.996
 Grasslands|0.970|0.971
@@ -386,11 +416,11 @@ Waterbodies|0.992|0.998
 Tundra|0.980|0.984
 Impervious|0.973|0.981
 Barren_Land|0.969|0.978
-Snow_and_Ice|0.992|0.998'''
+Snow_and_Ice|0.992|0.998"""
 
 # test(testdata)  # Ucomment to run the test function!
 
-''' Output ------------------------------
+""" Output ------------------------------
 {'Wetlands': <class '__main__.Wetlands'>,
  'Snow_and_Ice': <class '__main__.Snow_and_Ice'>,
  'Impervious': <class '__main__.Impervious'>,
@@ -401,7 +431,7 @@ Snow_and_Ice|0.992|0.998'''
  'Barren_Land': <class '__main__.Barren_Land'>,
  'Forest': <class '__main__.Forest'>,
  'Waterbodies': <class '__main__.Waterbodies'>}
------------------------------------- '''
+------------------------------------ """
 
 if __name__ == "__main__":
     main()

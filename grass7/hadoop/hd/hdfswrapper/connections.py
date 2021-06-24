@@ -10,9 +10,9 @@ from builtins import bytes
 import json
 import logging
 from urlparse import urlparse
-from sqlalchemy import (
-    Column, Integer, String, Boolean)
+from sqlalchemy import Column, Integer, String, Boolean
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
+
 # from sqlalchemy.dialects.mysql import LONGTEXT
 from sqlalchemy.orm import synonym
 from hdfswrapper import settings
@@ -32,6 +32,7 @@ ENCRYPTION_ON = False
 # except:
 #     pass
 
+
 class InitStorage:
     def __init__(self, connection):
         self.conn = connection
@@ -46,6 +47,7 @@ class Connection(Base):
     database instances (conn_id) instead of hard coding hostname, logins and
     passwords when using operators or hooks.
     """
+
     __tablename__ = "connection"
 
     id = Column(Integer(), primary_key=True)
@@ -54,21 +56,24 @@ class Connection(Base):
     host = Column(String(500))
     schema = Column(String(500))
     login = Column(String(500))
-    _password = Column('password', String(5000))
+    _password = Column("password", String(5000))
     port = Column(Integer())
     is_encrypted = Column(Boolean, unique=False, default=False)
     is_extra_encrypted = Column(Boolean, unique=False, default=False)
-    _extra = Column('extra', String(5000))
+    _extra = Column("extra", String(5000))
 
-    def __init__(self, conn_id=None,
-                 conn_type=None,
-                 host=None,
-                 login=None,
-                 password=None,
-                 schema=None,
-                 port=None,
-                 extra=None,
-                 uri=None):
+    def __init__(
+        self,
+        conn_id=None,
+        conn_type=None,
+        host=None,
+        login=None,
+        password=None,
+        schema=None,
+        port=None,
+        extra=None,
+        uri=None,
+    ):
 
         self.conn_id = conn_id
         if uri:
@@ -88,12 +93,12 @@ class Connection(Base):
 
     def parse_from_uriparse_from_uri(self, uri):
         temp_uri = urlparse(uri)
-        hostname = temp_uri.hostname or ''
-        if '%2f' in hostname:
-            hostname = hostname.replace('%2f', '/').replace('%2F', '/')
+        hostname = temp_uri.hostname or ""
+        if "%2f" in hostname:
+            hostname = hostname.replace("%2f", "/").replace("%2F", "/")
         conn_type = temp_uri.scheme
-        if conn_type == 'postgresql':
-            conn_type = 'postgres'
+        if conn_type == "postgresql":
+            conn_type = "postgres"
         self.conn_type = conn_type
         self.host = hostname
         self.schema = temp_uri.path[1:]
@@ -104,16 +109,15 @@ class Connection(Base):
     def get_password(self):
         if self._password and self.is_encrypted:
             if not ENCRYPTION_ON:
-                raise Exception(
-                    "Can't decrypt, configuration is missing")
-            return FERNET.decrypt(bytes(self._password, 'utf-8')).decode()
+                raise Exception("Can't decrypt, configuration is missing")
+            return FERNET.decrypt(bytes(self._password, "utf-8")).decode()
         else:
             return self._password
 
     def set_password(self, value):
         if value:
             try:
-                self._password = FERNET.encrypt(bytes(value, 'utf-8')).decode()
+                self._password = FERNET.encrypt(bytes(value, "utf-8")).decode()
                 self.is_encrypted = True
             except NameError:
                 self._password = value
@@ -121,22 +125,22 @@ class Connection(Base):
 
     @declared_attr
     def password(cls):
-        return synonym('_password',
-                       descriptor=property(cls.get_password, cls.set_password))
+        return synonym(
+            "_password", descriptor=property(cls.get_password, cls.set_password)
+        )
 
     def get_extra(self):
         if self._extra and self.is_extra_encrypted:
             if not ENCRYPTION_ON:
-                raise Exception(
-                    "Can't decrypt `extra`, configuration is missing")
-            return FERNET.decrypt(bytes(self._extra, 'utf-8')).decode()
+                raise Exception("Can't decrypt `extra`, configuration is missing")
+            return FERNET.decrypt(bytes(self._extra, "utf-8")).decode()
         else:
             return self._extra
 
     def set_extra(self, value):
         if value:
             try:
-                self._extra = FERNET.encrypt(bytes(value, 'utf-8')).decode()
+                self._extra = FERNET.encrypt(bytes(value, "utf-8")).decode()
                 self.is_extra_encrypted = True
             except NameError:
                 self._extra = value
@@ -144,19 +148,18 @@ class Connection(Base):
 
     @declared_attr
     def extra(cls):
-        return synonym('_extra',
-                       descriptor=property(cls.get_extra, cls.set_extra))
+        return synonym("_extra", descriptor=property(cls.get_extra, cls.set_extra))
 
     def get_hook(self):
-        from  hdfswrapper import hive_hook, webhdfs_hook, hdfs_hook
+        from hdfswrapper import hive_hook, webhdfs_hook, hdfs_hook
 
-        if self.conn_type == 'hive_cli':
+        if self.conn_type == "hive_cli":
             return hive_hook.HiveCliHook(hive_cli_conn_id=self.conn_id)
-        elif self.conn_type == 'hiveserver2':
+        elif self.conn_type == "hiveserver2":
             return hive_hook.HiveServer2Hook(hiveserver2_conn_id=self.conn_id)
-        elif self.conn_type == 'webhdfs':
+        elif self.conn_type == "webhdfs":
             return webhdfs_hook.WebHDFSHook(webhdfs_conn_id=self.conn_id)
-        elif self.conn_type == 'hdfs':
+        elif self.conn_type == "hdfs":
             print(self.conn_id)
             return hdfs_hook.HDFSHook(hdfs_conn_id=self.conn_id)
 
@@ -173,6 +176,6 @@ class Connection(Base):
             except Exception as e:
                 logging.exception(e)
                 logging.error(
-                    "Failed parsing the json for "
-                    "conn_id {}".format(self.conn_id))
+                    "Failed parsing the json for " "conn_id {}".format(self.conn_id)
+                )
         return obj

@@ -9,9 +9,9 @@
 #
 # COPYRIGHT:	(C) 2013 by the GRASS Development Team
 #
-#		This program is free software under the GNU General Public
-#		License (>=v2). Read the file COPYING that comes with GRASS
-#		for details.
+# 		This program is free software under the GNU General Public
+# 		License (>=v2). Read the file COPYING that comes with GRASS
+# 		for details.
 #
 #############################################################################
 
@@ -133,7 +133,7 @@
 #% key: r
 #% description: Read from existing CSV files
 #%end
-#-----------------------------------------------------
+# -----------------------------------------------------
 import sys
 import os
 
@@ -159,18 +159,21 @@ def main(opt, flg):
     # Set check variables
     #
     overwrite = True
-    rasters = opt['rasters'].split(',') if opt['rasters'] else []
-    rprefix = opt['rprefix'].split(',') if opt['rprefix'] else []
+    rasters = opt["rasters"].split(",") if opt["rasters"] else []
+    rprefix = opt["rprefix"].split(",") if opt["rprefix"] else []
 
     def split(x):
-        return x.split('@') if '@' in x else (x, '')
+        return x.split("@") if "@" in x else (x, "")
 
-    vname, vmset = split(opt['vector'])
-    shpcsv = opt['shpcsv'] if opt['shpcsv'] else vname + '.csv'
-    rstcsv = (opt['rstcsv'].split(',') if opt['rstcsv']
-              else [split(rst)[0] + '.csv' for rst in rasters])
-    zones = opt['zones'] if opt['zones'] else vname + '_zones'
-    nprocs = int(opt.get('nprocs', 1))
+    vname, vmset = split(opt["vector"])
+    shpcsv = opt["shpcsv"] if opt["shpcsv"] else vname + ".csv"
+    rstcsv = (
+        opt["rstcsv"].split(",")
+        if opt["rstcsv"]
+        else [split(rst)[0] + ".csv" for rst in rasters]
+    )
+    zones = opt["zones"] if opt["zones"] else vname + "_zones"
+    nprocs = int(opt.get("nprocs", 1))
     if rasters:
         if rprefix and len(rasters) != len(rprefix):
             raise
@@ -180,36 +183,36 @@ def main(opt, flg):
     else:
         prefixes = None
 
-    skipshp = opt['skipshape'].split(',') if opt['skipshape'] else []
-    skiprst = opt['skipunivar'].split(',') if opt['skipunivar'] else []
-    layer = int(opt['layer'])
-    newlayer = int(opt['newlayer'])
-    newlayername = (opt['newlayername'] if opt['newlayername']
-                    else vname + '_stats')
-    newtabname = opt['newtabname'] if opt['newtabname'] else vname + '_stats'
-    rstpercentile = float(opt['rstpercentile'])
-    separator = opt.get('separator', ';')
+    skipshp = opt["skipshape"].split(",") if opt["skipshape"] else []
+    skiprst = opt["skipunivar"].split(",") if opt["skipunivar"] else []
+    layer = int(opt["layer"])
+    newlayer = int(opt["newlayer"])
+    newlayername = opt["newlayername"] if opt["newlayername"] else vname + "_stats"
+    newtabname = opt["newtabname"] if opt["newtabname"] else vname + "_stats"
+    rstpercentile = float(opt["rstpercentile"])
+    separator = opt.get("separator", ";")
 
     #
     # compute
     #
     if not os.path.exists(shpcsv):
-        get_shp_csv(opt['vector'], shpcsv, overwrite, separator)
+        get_shp_csv(opt["vector"], shpcsv, overwrite, separator)
     if not get_mapset_raster(zones):
-        get_zones(opt['vector'], zones, layer)
+        get_zones(opt["vector"], zones, layer)
     if not rstcsv or not os.path.exists(rstcsv[0]):
-        get_rst_csv(rasters, zones, rstcsv, rstpercentile, overwrite,
-                    nprocs, separator)
+        get_rst_csv(rasters, zones, rstcsv, rstpercentile, overwrite, nprocs, separator)
 
     newlink = Link(newlayer, newlayername, newtabname)
     newtab = newlink.table()
-    with Vector(vname, vmset, mode='r', layer=layer) as vct:
-        mode = 'r' if newlink in vct.dblinks else 'rw'
+    with Vector(vname, vmset, mode="r", layer=layer) as vct:
+        mode = "r" if newlink in vct.dblinks else "rw"
 
     with VectorTopo(vname, vmset, mode=mode, layer=layer) as vct:
-        update_cols(newtab, shpcsv, rstcsv, prefixes, skipshp, skiprst, separator=separator)
+        update_cols(
+            newtab, shpcsv, rstcsv, prefixes, skipshp, skiprst, separator=separator
+        )
 
-        if mode == 'rw':
+        if mode == "rw":
             # add the new link
             vct.dblinks.add(newlink)
             vct.build()

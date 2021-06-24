@@ -1,20 +1,53 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>GRASS GIS manual: r.green.install</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" href="grassdocs.css" type="text/css">
+</head>
+<body bgcolor="white">
+<div id="container">
+
+<a href="https://grass.osgeo.org/grass-stable/manuals/index.html"><img src="grass_logo.png" alt="GRASS logo"></a>
+<hr class="header">
+
+<h2>NAME</h2>
+
+<em>r.green.install</em> - Toolset to check that all the necessary Python libraries like scipy
+and numexpr are present in the python path. The module also check post-installation troubles
+that sometimes may occur.
+
+<h2>KEYWORDS</h2>
+<a href="https://grass.osgeo.org/grass-stable/manuals/raster.html">raster</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/topic_biomass.html">biomass topic</a>
+
+<!-- meta page description: Computes the residual energy potential of different renewable energies like biomass or hydropower -->
 <h2>DESCRIPTION</h2>
 
-<em>r.green.install</em> checks that all the necessary python libraries like scipy and numexpr are present in the python path. The module also check post-installation troubles that sometimes may occur.
+The module installs the missing Python libraries for different operating systems and
+provide a general menu in the GRASS GUI.
 
 <h2>NOTES</h2>
 
+<em>r.green.install</em> checks that all the necessary Python libraries like scipy and numexpr
+are present in the python path. The module also check post-installation troubles that sometimes
+may occur.
 
-The module installs the missing python librariers for different operating systems and provide a general menu in the grass GUI.
-
-<h3>Microsoft Windows</h3><br><br> 
-You should install <a href="https://grass.osgeo.org/download/software/ms-windows/">GRASS</a> with admin rights, stand-alone installer or OSGeo4W package, in directory with full controll permissions, to be able to intall the r.green modules.
+<h3>Installation on Microsoft Windows</h3>
+You should install <a href="https://grass.osgeo.org/download/windows/">GRASS GIS</a> with administrator
+rights; either the stand-alone installer or via OSGeo4W package, in a directory with full control of
+permissions, to be able to intall the <em>r.green</em> modules.
 
 <center>
 <img src="r_green_install_permissions.png" alt="Microsoft Windows Permissions"><br>
 Microsoft Windows Permissions
 </center><br><br>
-The r.green modules are based on python libraries. The module r.green.install -i is able to download and install them. However some troubles can raise due to new links or versions. In this case, you can manually download the following libraries in your GRASS installation directory from  <a href="http://www.lfd.uci.edu/~gohlke/pythonlibs/">http://www.lfd.uci.edu/~gohlke/pythonlibs/</a> according with your GRASS download (32bit or 64bit):
+The <em>r.green</em> modules are based on Python libraries. The module <em>r.green.install -i</em> is
+able to download and install them. However, some troubles can raise due to new links or versions.
+In this case, you can manually download the following libraries in your GRASS installation directory
+from  <a href="http://www.lfd.uci.edu/~gohlke/pythonlibs/">http://www.lfd.uci.edu/~gohlke/pythonlibs/</a>
+according with your GRASS download (32bit or 64bit):
+
 <table border="1">
   <tr>
     <th>32bit</th>
@@ -45,9 +78,11 @@ The r.green modules are based on python libraries. The module r.green.install -i
     </td>	
   </tr>
 </table>
-After the downloading, in the grass Command Console use the following code to install libraries and the r.green menu:
+After the downloading, in the grass Command Console use the following code to install libraries and
+the <em>r.green</em> menu:
+
 <div class="code"><pre>
-r.green.istall -i
+r.green.install -i
 </pre></div><br>
 
 Check the list of suggested libraries with the previous table. If they agree, you can proceed with the installation.
@@ -57,7 +92,7 @@ If you install the Energy menu, use the following command:
 r.green.install -x
 </pre></div><br>
 
-Close GRASS and restart the programm to have in the the menu the session energy with all the r.green modules.
+Close GRASS and restart the programm to have in the the menu the session energy with all the <em>r.green</em> modules.
 
 <h2>SEE ALSO</h2>
 
@@ -65,7 +100,7 @@ Close GRASS and restart the programm to have in the the menu the session energy 
 <a href="r.green.html">r.green</a> - overview page
 </em>
 
-<h2>AUTHORS</h2>
+<h2>AUTHOR</h2>
 
 Pietro Zambelli (Eurac Research, Bolzano, Italy)
 

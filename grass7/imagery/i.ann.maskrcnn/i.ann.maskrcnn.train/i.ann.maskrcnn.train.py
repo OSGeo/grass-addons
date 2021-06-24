@@ -7,9 +7,9 @@
 # PURPOSE:	    Train your Mask R-CNN network
 # COPYRIGHT:	(C) 2017 Ondrej Pesek and the GRASS Development Team
 #
-#		This program is free software under the GNU General
-#		Public License (>=v2). Read the file COPYING that
-#		comes with GRASS for details.
+# 		This program is free software under the GNU General
+# 		Public License (>=v2). Read the file COPYING that
+# 		comes with GRASS for details.
 #
 #############################################################################
 
@@ -169,9 +169,9 @@ import os
 import sys
 from random import shuffle
 
-path = get_lib_path(modname='maskrcnn', libname='model')
+path = get_lib_path(modname="maskrcnn", libname="model")
 if path is None:
-    grass.script.fatal('Not able to find the maskrcnn library directory.')
+    grass.script.fatal("Not able to find the maskrcnn library directory.")
 sys.path.append(path)
 
 
@@ -182,88 +182,91 @@ def main(options, flags):
     import model as modellib
 
     try:
-        dataset = options['training_dataset']
-        initialWeights = options['model']
-        classes = options['classes']
-        name = options['name']
-        logs = options['logs']
-        epochs = int(options['epochs'])
-        stepsPerEpoch = int(options['steps_per_epoch'])
-        ROIsPerImage = int(options['rois_per_image'])
-        imagesPerGPU = int(options['images_per_gpu'])
-        GPUcount = int(options['gpu_count'])
-        miniMaskSize = options['mini_mask_size']
-        validationSteps = int(options['validation_steps'])
-        imMaxDim = int(options['images_max_dim'])
-        imMinDim = int(options['images_min_dim'])
-        backbone = options['backbone']
+        dataset = options["training_dataset"]
+        initialWeights = options["model"]
+        classes = options["classes"]
+        name = options["name"]
+        logs = options["logs"]
+        epochs = int(options["epochs"])
+        stepsPerEpoch = int(options["steps_per_epoch"])
+        ROIsPerImage = int(options["rois_per_image"])
+        imagesPerGPU = int(options["images_per_gpu"])
+        GPUcount = int(options["gpu_count"])
+        miniMaskSize = options["mini_mask_size"]
+        validationSteps = int(options["validation_steps"])
+        imMaxDim = int(options["images_max_dim"])
+        imMinDim = int(options["images_min_dim"])
+        backbone = options["backbone"]
     except KeyError:
         # GRASS parses keys and values as bytes instead of strings
-        dataset = options[b'training_dataset'].decode('utf-8')
-        initialWeights = options[b'model'].decode('utf-8')
-        classes = options[b'classes'].decode('utf-8').split(',')
-        name = options[b'name'].decode('utf-8')
-        logs = options[b'logs'].decode('utf-8')
-        epochs = int(options[b'epochs'])
-        stepsPerEpoch = int(options[b'steps_per_epoch'])
-        ROIsPerImage = int(options[b'rois_per_image'])
-        imagesPerGPU = int(options[b'images_per_gpu'])
-        GPUcount = int(options[b'gpu_count'])
-        miniMaskSize = options[b'mini_mask_size'].decode('utf-8')
-        validationSteps = int(options[b'validation_steps'])
-        imMaxDim = int(options[b'images_max_dim'])
-        imMinDim = int(options[b'images_min_dim'])
-        backbone = options[b'backbone'].decode('utf-8')
+        dataset = options[b"training_dataset"].decode("utf-8")
+        initialWeights = options[b"model"].decode("utf-8")
+        classes = options[b"classes"].decode("utf-8").split(",")
+        name = options[b"name"].decode("utf-8")
+        logs = options[b"logs"].decode("utf-8")
+        epochs = int(options[b"epochs"])
+        stepsPerEpoch = int(options[b"steps_per_epoch"])
+        ROIsPerImage = int(options[b"rois_per_image"])
+        imagesPerGPU = int(options[b"images_per_gpu"])
+        GPUcount = int(options[b"gpu_count"])
+        miniMaskSize = options[b"mini_mask_size"].decode("utf-8")
+        validationSteps = int(options[b"validation_steps"])
+        imMaxDim = int(options[b"images_max_dim"])
+        imMinDim = int(options[b"images_min_dim"])
+        backbone = options[b"backbone"].decode("utf-8")
 
         newFlags = dict()
         for flag, value in flags.items():
-            newFlags.update({flag.decode('utf-8'): value})
+            newFlags.update({flag.decode("utf-8"): value})
         flags = newFlags
 
-    if not flags['b']:
+    if not flags["b"]:
         trainBatchNorm = False
     else:
         # None means train in normal mode but do not force it when inferencing
         trainBatchNorm = None
 
-    if not flags['n']:
+    if not flags["n"]:
         # Resize and pad with zeros to get a square image of
         # size [max_dim, max_dim].
-        resizeMode = 'square'
+        resizeMode = "square"
     else:
-        resizeMode = 'none'
+        resizeMode = "none"
 
     # Configurations
-    config = ModelConfig(name=name,
-                         imagesPerGPU=imagesPerGPU,
-                         GPUcount=GPUcount,
-                         numClasses=len(classes) + 1,
-                         trainROIsPerImage=ROIsPerImage,
-                         stepsPerEpoch=stepsPerEpoch,
-                         miniMaskShape=miniMaskSize,
-                         validationSteps=validationSteps,
-                         imageMaxDim=imMaxDim,
-                         imageMinDim=imMinDim,
-                         backbone=backbone,
-                         trainBatchNorm=trainBatchNorm,
-                         resizeMode=resizeMode)
+    config = ModelConfig(
+        name=name,
+        imagesPerGPU=imagesPerGPU,
+        GPUcount=GPUcount,
+        numClasses=len(classes) + 1,
+        trainROIsPerImage=ROIsPerImage,
+        stepsPerEpoch=stepsPerEpoch,
+        miniMaskShape=miniMaskSize,
+        validationSteps=validationSteps,
+        imageMaxDim=imMaxDim,
+        imageMinDim=imMinDim,
+        backbone=backbone,
+        trainBatchNorm=trainBatchNorm,
+        resizeMode=resizeMode,
+    )
     config.display()
 
     # Create model
-    model = modellib.MaskRCNN(mode="training", config=config,
-                              model_dir=logs)
+    model = modellib.MaskRCNN(mode="training", config=config, model_dir=logs)
 
     # Load weights
     if initialWeights:
         gscript.message("Loading weights {}".format(initialWeights))
-    if initialWeights and flags['e']:
-        model.load_weights(initialWeights, by_name=True,
-                           exclude=["mrcnn_class_logits", "mrcnn_bbox_fc",
-                                    "mrcnn_bbox", "mrcnn_mask"])
+    if initialWeights and flags["e"]:
+        model.load_weights(
+            initialWeights,
+            by_name=True,
+            exclude=["mrcnn_class_logits", "mrcnn_bbox_fc", "mrcnn_bbox", "mrcnn_mask"],
+        )
     elif initialWeights:
         model.load_weights(initialWeights, by_name=True)
 
-    gscript.message('Reading images from dataset {}'.format(dataset))
+    gscript.message("Reading images from dataset {}".format(dataset))
     images = list()
     for root, subdirs, _ in os.walk(dataset):
         if not subdirs:
@@ -272,18 +275,19 @@ def main(options, flags):
 
     shuffle(images)
 
-    if flags['s']:
+    if flags["s"]:
         # Write list of unused images to logs
-        testImagesThreshold = int(len(images) * .9)
-        gscript.message('List of unused images saved in the logs directory'
-                        'as "unused.txt"')
-        with open(os.path.join(logs, 'unused.txt'), 'w') as unused:
+        testImagesThreshold = int(len(images) * 0.9)
+        gscript.message(
+            "List of unused images saved in the logs directory" 'as "unused.txt"'
+        )
+        with open(os.path.join(logs, "unused.txt"), "w") as unused:
             for filename in images[testImagesThreshold:]:
-                unused.write('{}\n'.format(filename))
+                unused.write("{}\n".format(filename))
     else:
         testImagesThreshold = len(images)
 
-    evalImagesThreshold = int(testImagesThreshold * .75)
+    evalImagesThreshold = int(testImagesThreshold * 0.75)
 
     # augmentation = imgaug/augmenters.Fliplr(0.5)
 
@@ -303,20 +307,26 @@ def main(options, flags):
         # Training - Stage 1
         # Adjust epochs and layers as needed
         gscript.message("Training network heads")
-        model.train(dataset_train, dataset_val,
-                    learning_rate=config.LEARNING_RATE,
-                    epochs=int(epochs / 7),
-                    layers='heads')  # augmentation=augmentation
+        model.train(
+            dataset_train,
+            dataset_val,
+            learning_rate=config.LEARNING_RATE,
+            epochs=int(epochs / 7),
+            layers="heads",
+        )  # augmentation=augmentation
 
         # Training - Stage 2
         # Finetune layers from ResNet stage 4 and up
         gscript.message("Fine tune Resnet stage 4 and up")
         # divide the learning rate by 10 if ran out of memory or
         # if weights exploded
-        model.train(dataset_train, dataset_val,
-                    learning_rate=config.LEARNING_RATE,
-                    epochs=int(epochs / 7) * 3,
-                    layers='4+')  # augmentation=augmentation
+        model.train(
+            dataset_train,
+            dataset_val,
+            learning_rate=config.LEARNING_RATE,
+            epochs=int(epochs / 7) * 3,
+            layers="4+",
+        )  # augmentation=augmentation
 
         # Training - Stage 3
         # Fine tune all layers
@@ -328,10 +338,13 @@ def main(options, flags):
 
     # divide the learning rate by 100 if ran out of memory or
     # if weights exploded
-    model.train(dataset_train, dataset_val,
-                learning_rate=config.LEARNING_RATE / 10,
-                epochs=epochs,
-                layers='all')  # augmentation=augmentation
+    model.train(
+        dataset_train,
+        dataset_val,
+        learning_rate=config.LEARNING_RATE / 10,
+        epochs=epochs,
+        layers="all",
+    )  # augmentation=augmentation
 
 
 if __name__ == "__main__":

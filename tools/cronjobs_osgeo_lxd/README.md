@@ -10,7 +10,7 @@ This directory contains the relevant files to generate and deploy the GRASS GIS 
     - `hugo_clean_and_update_job.sh`
 - GRASS GIS source code weekly snapshots:
     - release_branch_7_8: `cron_grass78_src_relbr78_snapshot.sh`
-    - master: `cron_grass7_HEAD_src_snapshot.sh`
+    - master: `cron_grass8_HEAD_src_snapshot.sh`
 - GRASS GIS Linux binary weekly snapshots:
     - `cron_grass78_releasebranch_78_build_bins.sh`
 - GRASS GIS addons manual pages:
@@ -21,7 +21,16 @@ This directory contains the relevant files to generate and deploy the GRASS GIS 
     - `grass-addons-index.sh` - called from `cron_grass78_releasebranch_78_build_bins.sh`
     - `get_page_description.py` - called from `grass-addons-index.sh`
 - GRASS GIS programmer's manual:
-    - within `cron_grass7_HEAD_build_bins.sh`
+    - within `cron_grass8_HEAD_build_bins.sh`
+
+## Web site organisation
+
+Important: there are two web related directories on the server:
+
+- `/var/www/code_and_data/`: contains source code, sample data, etc.
+- `/var/www/html/`: contains the hugo generated files. The relevant subdirectories of `/var/www/code_and_data/` are linked here.
+
+## Infrastructure
 
 The server is hosted as LXD container on `osgeo7`, see: https://wiki.osgeo.org/wiki/SAC_Service_Status#GRASS_GIS_server
 

@@ -43,65 +43,67 @@ from grass.script import vector as vgrass
 
 
 def main():
-    fileorig = options['input']
-    filevect = options['output']
+    fileorig = options["input"]
+    filevect = options["output"]
 
     if not filevect:
-        filevect = basename(fileorig, 'txt')
+        filevect = basename(fileorig, "txt")
 
-    #are we in LatLong location?
-    s = grass.read_command("g.proj", flags='j')
+    # are we in LatLong location?
+    s = grass.read_command("g.proj", flags="j")
     kv = parse_key_val(s)
-    if kv['+proj'] != 'longlat':
+    if kv["+proj"] != "longlat":
         grass.fatal(_("This module only operates in LatLong/WGS84 locations"))
 
     #### setup temporary file
     tmpfile = grass.tempfile()
 
-    coldescs = [("RC", "rc integer"),
-                ("UFI", "uf1 integer"),
-                ("UNI", "uni integer"),
-                ("LAT", "lat double precision"),
-                ("LONG", "lon double precision"),
-                ("DMS_LAT", "dms_lat integer"),
-                ("DMS_LONG", "dms_long integer"),
-                ("MGRS", "mgrs varchar(15)"),
-                ("JOG", "jog varchar(7)"),
-                ("FC", "fc varchar(1)"),
-                ("DSG", "dsg varchar(6)"),
-                ("PC", "pc integer"),
-                ("CC1", "cci varchar(255)"),
-                ("ADM1", "adm1 varchar(2)"),
-                ("POP", "pop integer"),
-                ("ELEV", "elev double precision"),
-                ("CC2", "cc2 varchar(255)"),
-                ("NT", "nt varchar(2)"),
-                ("LC", "lc varchar(3)"),
-                ("SHORT_FORM", "shortform varchar(128)"),
-                ("GENERIC", "generic varchar(128)"),
-                ("SORT_NAME_RO", "sortnamero varchar(255)"),
-                ("FULL_NAME_RO", "fullnamero varchar(255)"),
-                ("FULL_NAME_ND_RO", "funamesdro varchar(255)"),
-                ("SORT_NAME_RG", "sortnamerg varchar(255)"),
-                ("FULL_NAME_RG", "fullnamerg varchar(255)"),
-                ("FULL_NAME_ND_RG", "funamesdrg varchar(255)"),
-                ("NOTE", "note varchar(4000)"),
-                ("MODIFY_DATE", "mod_date date"),
-                ("DISPLAY", "display varchar(255)"),
-                ("NAME_RANK", "namerank integer"),
-                ("NAME_LINK", "namelink integer"),
-                ("TRANSL_CD", "translcd varchar(32)"),
-                ("NM_MODIFY_DATE", "nmmodifydate varchar(10)")]
+    coldescs = [
+        ("RC", "rc integer"),
+        ("UFI", "uf1 integer"),
+        ("UNI", "uni integer"),
+        ("LAT", "lat double precision"),
+        ("LONG", "lon double precision"),
+        ("DMS_LAT", "dms_lat integer"),
+        ("DMS_LONG", "dms_long integer"),
+        ("MGRS", "mgrs varchar(15)"),
+        ("JOG", "jog varchar(7)"),
+        ("FC", "fc varchar(1)"),
+        ("DSG", "dsg varchar(6)"),
+        ("PC", "pc integer"),
+        ("CC1", "cci varchar(255)"),
+        ("ADM1", "adm1 varchar(2)"),
+        ("POP", "pop integer"),
+        ("ELEV", "elev double precision"),
+        ("CC2", "cc2 varchar(255)"),
+        ("NT", "nt varchar(2)"),
+        ("LC", "lc varchar(3)"),
+        ("SHORT_FORM", "shortform varchar(128)"),
+        ("GENERIC", "generic varchar(128)"),
+        ("SORT_NAME_RO", "sortnamero varchar(255)"),
+        ("FULL_NAME_RO", "fullnamero varchar(255)"),
+        ("FULL_NAME_ND_RO", "funamesdro varchar(255)"),
+        ("SORT_NAME_RG", "sortnamerg varchar(255)"),
+        ("FULL_NAME_RG", "fullnamerg varchar(255)"),
+        ("FULL_NAME_ND_RG", "funamesdrg varchar(255)"),
+        ("NOTE", "note varchar(4000)"),
+        ("MODIFY_DATE", "mod_date date"),
+        ("DISPLAY", "display varchar(255)"),
+        ("NAME_RANK", "namerank integer"),
+        ("NAME_LINK", "namelink integer"),
+        ("TRANSL_CD", "translcd varchar(32)"),
+        ("NM_MODIFY_DATE", "nmmodifydate varchar(10)"),
+    ]
 
     colnames = [desc[0] for desc in coldescs]
-    coltypes = dict([(desc[0], 'integer' in desc[1]) for desc in coldescs])
+    coltypes = dict([(desc[0], "integer" in desc[1]) for desc in coldescs])
 
     header = None
     num_places = 0
     inf = open(fileorig)
     outf = open(tmpfile, "wb")
     for line in inf:
-        fields = line.rstrip('\r\n').split('\t')
+        fields = line.rstrip("\r\n").split("\t")
         if not header:
             header = fields
             continue
@@ -109,16 +111,16 @@ def main():
         fields2 = []
         for col in colnames:
             if col in vars:
-                if coltypes[col] and vars[col] == '':
-                    fields2.append('0')
+                if coltypes[col] and vars[col] == "":
+                    fields2.append("0")
                 else:
                     fields2.append(vars[col])
             else:
                 if coltypes[col]:
-                    fields2.append('0')
+                    fields2.append("0")
                 else:
-                    fields2.append('')
-        line2 = ';'.join(fields2) + '\n'
+                    fields2.append("")
+        line2 = ";".join(fields2) + "\n"
         outf.write(line2)
         num_places += 1
     outf.close()
@@ -126,7 +128,7 @@ def main():
 
     grass.message(_("Converted %d place names.") % num_places)
 
-    #TODO: fix dms_lat,dms_long DDMMSS -> DD:MM:SS
+    # TODO: fix dms_lat,dms_long DDMMSS -> DD:MM:SS
     # Solution:
     # IN=DDMMSS
     # DEG=`echo $IN | cut -b1,2`
@@ -134,7 +136,7 @@ def main():
     # SEC=`echo $IN | cut -b5,6`
     # DEG_STR="$DEG:$MIN:$SEC"
 
-    #modifications (to match DBF 10 char column name limit):
+    # modifications (to match DBF 10 char column name limit):
     # short_form   -> shortform
     # sort_name    -> sortname
     # full_name    -> fullname
@@ -144,13 +146,22 @@ def main():
 
     columns = [desc[1] for desc in coldescs]
 
-    grass.run_command('v.in.ascii', cat=0, x=5, y=4, sep=';',
-                      input=tmpfile, output=filevect, columns=columns)
+    grass.run_command(
+        "v.in.ascii",
+        cat=0,
+        x=5,
+        y=4,
+        sep=";",
+        input=tmpfile,
+        output=filevect,
+        columns=columns,
+    )
 
     try_remove(tmpfile)
 
     # write cmd history:
     vgrass.vector_history(filevect)
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

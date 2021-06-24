@@ -99,16 +99,17 @@ import atexit
 import os
 import sys
 
-#from grass.script import mapcalc
+# from grass.script import mapcalc
 from grass.pygrass.messages import get_msgr
 from grass.script import core as gcore
-#from grass.pygrass.raster.buffer import Buffer
+
+# from grass.pygrass.raster.buffer import Buffer
 from grass.script.utils import set_path
 
 try:
     # set python path to the shared r.green libraries
-    set_path('r.green', 'libhydro', '..')
-    set_path('r.green', 'libgreen', os.path.join('..', '..'))
+    set_path("r.green", "libhydro", "..")
+    set_path("r.green", "libgreen", os.path.join("..", ".."))
     from libgreen.utils import cleanup
     from libgreen.utils import dissolve_lines
     from libhydro.optimal import find_segments
@@ -116,15 +117,15 @@ try:
     from libhydro.optimal import write_points
 except ImportError:
     try:
-        set_path('r.green', 'libhydro', os.path.join('..', 'etc', 'r.green'))
-        set_path('r.green', 'libgreen', os.path.join('..', 'etc', 'r.green'))
+        set_path("r.green", "libhydro", os.path.join("..", "etc", "r.green"))
+        set_path("r.green", "libgreen", os.path.join("..", "etc", "r.green"))
         from libgreen.utils import cleanup
         from libgreen.utils import dissolve_lines
         from libhydro.optimal import find_segments
         from libhydro.optimal import write_plants
         from libhydro.optimal import write_points
     except ImportError:
-        gcore.warning('libgreen and libhydro not in the python path!')
+        gcore.warning("libgreen and libhydro not in the python path!")
 
 
 ##################################################
@@ -146,24 +147,24 @@ if "GISBASE" not in os.environ:
 def main(options, flags):
     TMPRAST, TMPVECT, DEBUG = [], [], False
     atexit.register(cleanup, raster=TMPRAST, vector=TMPVECT, debug=DEBUG)
-    elevation = options['elevation']
-    river = options['river']  # raster
-    discharge = options['discharge']  # vec
-    len_plant = float(options['len_plant'])
-    len_min = float(options['len_min'])
-    distance = float(options['distance'])
-    efficiency = float(options['efficiency'])
-    output_plant = options['output_plant']
-    output_point = options['output_point']
-    if options['p_max']:
-        p_max = float(options['p_max'])
+    elevation = options["elevation"]
+    river = options["river"]  # raster
+    discharge = options["discharge"]  # vec
+    len_plant = float(options["len_plant"])
+    len_min = float(options["len_min"])
+    distance = float(options["distance"])
+    efficiency = float(options["efficiency"])
+    output_plant = options["output_plant"]
+    output_point = options["output_point"]
+    if options["p_max"]:
+        p_max = float(options["p_max"])
     else:
         p_max = None
-    p_min = float(options['p_min'])
-    DEBUG = flags['d']
-    c = flags['c']
+    p_min = float(options["p_min"])
+    DEBUG = flags["d"]
+    c = flags["c"]
     msgr = get_msgr()
-    #import ipdb; ipdb.set_trace()
+    # import ipdb; ipdb.set_trace()
 
     if c:
         msgr.message("\Clean rivers\n")
@@ -176,13 +177,13 @@ def main(options, flags):
     msgr.message("\Loop on the category of segments\n")
 
     range_plant = (len_min, len_plant)
-    plants = find_segments(river, discharge, elevation, range_plant, distance,
-                           p_max)
+    plants = find_segments(river, discharge, elevation, range_plant, distance, p_max)
 
     # add l_min
     if output_point:
         write_points(plants, output_point, efficiency, p_min)
     write_plants(plants, output_plant, efficiency, p_min)
+
 
 if __name__ == "__main__":
     options, flags = gcore.parser()

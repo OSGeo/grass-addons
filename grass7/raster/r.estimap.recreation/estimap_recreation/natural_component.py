@@ -13,11 +13,11 @@ from .components import append_map_to_component
 
 
 def build_natural_component(
-        natural,
-        protected,
-        protected_scores,
-        output_scored_protected_areas,
-    ):
+    natural,
+    protected,
+    protected_scores,
+    output_scored_protected_areas,
+):
     """
     Build the natural component based on user defined maps for the 'natural'
     option, as well as the 'protected' option along with a predefined set of

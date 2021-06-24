@@ -22,16 +22,30 @@ from . import globalvar
 from .mdutil import findBetween
 
 
-class MdDescription():
+class MdDescription:
 
-    '''Object which is initialzed by jinja template in '{# #}'
-    '''
+    """Object which is initialzed by jinja template in '{# #}'"""
 
-    def __init__(self, tag=None, object=None, name='', desc=None,
-                 example=None, type=None, multi=0, inboxmulti=None,
-                 group=None, inbox=None, multiline=None, validator=None,
-                 num=None, ref=None, selfInfoString=None,database=None):
-        '''
+    def __init__(
+        self,
+        tag=None,
+        object=None,
+        name="",
+        desc=None,
+        example=None,
+        type=None,
+        multi=0,
+        inboxmulti=None,
+        group=None,
+        inbox=None,
+        multiline=None,
+        validator=None,
+        num=None,
+        ref=None,
+        selfInfoString=None,
+        database=None,
+    ):
+        """
         @param tag: OWSLib object which will be replaced by value of object after jinja template system renders new file
         @param object: some objects in OWSLib need to be initialized temporally in gui generator. Others are initialized by configure file
         @param name:  label and tooltip name
@@ -52,7 +66,7 @@ class MdDescription():
             index of list is represented by list of these items
         @var statements: hold information about first statement in block
         @var statements1: hold info about second statement in block of var: statement
-        '''
+        """
         self.tag = tag
         self.object = object
         self.name = name
@@ -76,8 +90,7 @@ class MdDescription():
         self.mdItem = list()
 
     def addMdItem(self, newMdItem, oldMdItem=None):
-        '''care about integrity of var: self.mdItem
-        '''
+        """care about integrity of var: self.mdItem"""
         # if new mditem is from box- need to hold information
         # about it (list on the same index in self.mdItem)
         if oldMdItem is not None:
@@ -89,8 +102,7 @@ class MdDescription():
             self.mdItem.append(newMdItem)
 
     def removeMdItem(self, item):
-        '''care about integrity of var: self.mdItem
-        '''
+        """care about integrity of var: self.mdItem"""
         try:
             for k, oldListItem in enumerate(self.mdItem):
                 for i in oldListItem:
@@ -108,18 +120,17 @@ class MdDescription():
             self.statements1 = stat
 
 
-class JinjaTemplateParser():
+class JinjaTemplateParser:
 
-    '''Parser of OWSLib tag and init. values of jinjainfo::MdDescription from jinja template.
-    '''
+    """Parser of OWSLib tag and init. values of jinjainfo::MdDescription from jinja template."""
 
     def __init__(self, template):
-        '''
+        """
         @var mdDescription: list of jinjainfo::mdDescription
         @var mdOWSTag: list of tags in jinja templates
         @var mdOWSTagStr: string representing OWSLib tags from template (per line)
         @var mdOWSTagStrList: on each index of list is one line with parsed OWSLib tag
-        '''
+        """
 
         try:
             global GError
@@ -127,15 +138,17 @@ class JinjaTemplateParser():
             from core.gcmd import GError
         except ModuleNotFoundError as e:
             msg = e.msg
-            sys.exit(globalvar.MODULE_NOT_FOUND.format(
-                lib=msg.split("'")[-2],
-                url=globalvar.MODULE_URL))
+            sys.exit(
+                globalvar.MODULE_NOT_FOUND.format(
+                    lib=msg.split("'")[-2], url=globalvar.MODULE_URL
+                )
+            )
 
         self.mdDescription = []
         self.mdOWSTag = []
         self.template = template
 
-        self.mdOWSTagStr = ''
+        self.mdOWSTagStr = ""
         self.mdOWSTagStrList = []
 
         self._readJinjaInfo()
@@ -143,8 +156,7 @@ class JinjaTemplateParser():
         self._formatMdOWSTagStrToPythonBlocks()
 
     def _readJinjaTags(self):
-        '''Parser of OWSLib tag from jinja template to list
-        '''
+        """Parser of OWSLib tag from jinja template to list"""
         try:
             with open(self.template, "r") as f:
                 for line in f:
@@ -159,13 +171,13 @@ class JinjaTemplateParser():
                         self.mdOWSTag.append(obj)
 
         except:
-            GError('Cannot open jinja template')
+            GError("Cannot open jinja template")
             # print "I/O error({0}): {1}".format(e.errno, e.strerror)
 
     def _readJinjaInfo(self):
-        '''Parser  of 'comments'({# #}) in jinja template which are represented by jinjainfo::MdDescription
+        """Parser  of 'comments'({# #}) in jinja template which are represented by jinjainfo::MdDescription
         parsed values initializing list of jinjainfo::MdDesctiption obect
-        '''
+        """
         try:
             with open(self.template, "r") as f:
                 for line in f:
@@ -174,34 +186,33 @@ class JinjaTemplateParser():
                         values = findBetween(line, "{#", "#}")
                         values1 = findBetween(line, "{%", "#}")
                         values2 = findBetween(line, "{{", "#}")
-                        if values1 != '':
+                        if values1 != "":
                             values += ",selfInfoString='''{%" + values1 + "#}'''"
                         else:
                             values += ",selfInfoString='''{{" + values2 + "#}'''"
 
-                        exe_str = "self.mdDescription.append(MdDescription(%s))" % values
-                        exe_str = exe_str.encode("utf-8", 'ignore')
+                        exe_str = (
+                            "self.mdDescription.append(MdDescription(%s))" % values
+                        )
+                        exe_str = exe_str.encode("utf-8", "ignore")
                         eval(exe_str)
         except:
-            GError('Cannot open jinja template')
+            GError("Cannot open jinja template")
             # print "I/O error({0}): {1}".format(e.errno, e.strerror)
 
     def _formatMdOWSTagStrToPythonBlocks(self):
-        '''Formatting of parsed tags to pythonic blocks
-        '''
+        """Formatting of parsed tags to pythonic blocks"""
         self.mdOWSTagStr = ""
         tab = 0
         for item in self.mdOWSTag:
-            if str(item).find(" endfor ") != -1 or \
-                    str(item).find(" endif ") != -1:
+            if str(item).find(" endfor ") != -1 or str(item).find(" endif ") != -1:
                 tab -= 1
                 continue
 
-            tabstr = '\t' * tab
-            str1 = tabstr + item[1:] + '\n'
+            tabstr = "\t" * tab
+            str1 = tabstr + item[1:] + "\n"
             self.mdOWSTagStr += str1
             self.mdOWSTagStrList.append(tabstr + item[1:])
 
-            if str(item).find(" for ") != -1  \
-                    or str(item).find(" if ") != -1:
+            if str(item).find(" for ") != -1 or str(item).find(" if ") != -1:
                 tab += 1

@@ -8,9 +8,9 @@
 # PURPOSE:      Downloads Sentinel-2 images in parallel using i.sentinel.download.
 # COPYRIGHT:    (C) 2020 by mundialis and the GRASS Development Team
 #
-#		This program is free software under the GNU General Public
-#		License (>=v2). Read the file COPYING that comes with GRASS
-#		for details.
+# 		This program is free software under the GNU General Public
+# 		License (>=v2). Read the file COPYING that comes with GRASS
+# 		for details.
 #
 ############################################################################
 
@@ -131,7 +131,7 @@ from datetime import datetime, timedelta
 
 
 def scenename_split(scenename, datasource, esa_name_for_usgs=False):
-    '''
+    """
     When using the query option in i.sentinel.coverage and defining
     specific filenames, the parameters Producttype, Start-Date, and End-Date
     have to be definied as well. This function extracts these parameters from a
@@ -150,87 +150,112 @@ def scenename_split(scenename, datasource, esa_name_for_usgs=False):
                            date +1 day
         query_string(string): string in the format "filename=..."
 
-    '''
-    if (datasource == "ESA_COAH" or datasource == "GCS" or
-            esa_name_for_usgs is True):
+    """
+    if datasource == "ESA_COAH" or datasource == "GCS" or esa_name_for_usgs is True:
         # get producttype
-        name_split = scenename.split('_')
+        name_split = scenename.split("_")
         type_string = name_split[1]
-        level_string = type_string.split('L')[1]
-        producttype = 'S2MSI' + level_string
+        level_string = type_string.split("L")[1]
+        producttype = "S2MSI" + level_string
         # get dates
-        date_string = name_split[2].split('T')[0]
+        date_string = name_split[2].split("T")[0]
         dt_obj = datetime.strptime(date_string, "%Y%m%d")
         start_day_dt = dt_obj - timedelta(days=1)
         end_day_dt = dt_obj + timedelta(days=1)
-        start_day = start_day_dt.strftime('%Y-%m-%d')
-        end_day = end_day_dt.strftime('%Y-%m-%d')
+        start_day = start_day_dt.strftime("%Y-%m-%d")
+        end_day = end_day_dt.strftime("%Y-%m-%d")
         # get query string
-        if not scenename.endswith('.SAFE'):
-            scenename = scenename + '.SAFE'
-        query_string = 'filename={}'.format(scenename)
+        if not scenename.endswith(".SAFE"):
+            scenename = scenename + ".SAFE"
+        query_string = "filename={}".format(scenename)
     else:
         # when usgs downloads via identifier, start/end are ignored
-        producttype = 'S2MSI1C'
-        start_day = '2020-01-01'
-        end_day = '2020-02-01'
-        query_string = 'usgs_identifier={}'.format(scenename)
+        producttype = "S2MSI1C"
+        start_day = "2020-01-01"
+        end_day = "2020-02-01"
+        query_string = "usgs_identifier={}".format(scenename)
     return producttype, start_day, end_day, query_string
 
 
 def main():
 
-    settings = options['settings']
-    scene_names = options['scene_name'].split(',')
-    output = options['output']
-    nprocs = int(options['nprocs'])
-    clouds = int(options['clouds'])
-    producttype = options['producttype']
-    start = options['start']
-    end = options['end']
-    datasource = options['datasource']
-    use_scenenames = flags['s']
-    ind_folder = flags['f']
+    settings = options["settings"]
+    scene_names = options["scene_name"].split(",")
+    output = options["output"]
+    nprocs = int(options["nprocs"])
+    clouds = int(options["clouds"])
+    producttype = options["producttype"]
+    start = options["start"]
+    end = options["end"]
+    datasource = options["datasource"]
+    use_scenenames = flags["s"]
+    ind_folder = flags["f"]
 
     if datasource == "USGS_EE" and producttype != "S2MSI1C":
-        grass.fatal(_('Download from USGS Earth Explorer only supports '
-                      'Sentinel-2 Level 1C data (S2MSI1C)'))
+        grass.fatal(
+            _(
+                "Download from USGS Earth Explorer only supports "
+                "Sentinel-2 Level 1C data (S2MSI1C)"
+            )
+        )
     elif datasource == "GCS" and producttype not in ["S2MSI2A", "S2MSI1C"]:
-        grass.fatal(_("Download from GCS only supports Sentinel-2 Level"
-                      "1C (S2MSI1C) or 2A (S2MSI2A)"))
+        grass.fatal(
+            _(
+                "Download from GCS only supports Sentinel-2 Level"
+                "1C (S2MSI1C) or 2A (S2MSI2A)"
+            )
+        )
 
     # check if we have the i.sentinel.download + i.sentinel.import addons
-    if not grass.find_program('i.sentinel.download', '--help'):
-        grass.fatal(_("The 'i.sentinel.download' module was not found, "
-                      "install it first: \n g.extension i.sentinel"))
+    if not grass.find_program("i.sentinel.download", "--help"):
+        grass.fatal(
+            _(
+                "The 'i.sentinel.download' module was not found, "
+                "install it first: \n g.extension i.sentinel"
+            )
+        )
 
     # Test if all required data are there
     if not os.path.isfile(settings):
         grass.fatal(_("Settings file <{}> not found").format(settings))
 
     # set some common environmental variables, like:
-    os.environ.update(dict(GRASS_COMPRESS_NULLS='1',
-                           GRASS_COMPRESSOR='ZSTD',
-                           GRASS_MESSAGE_FORMAT='plain'))
+    os.environ.update(
+        dict(
+            GRASS_COMPRESS_NULLS="1",
+            GRASS_COMPRESSOR="ZSTD",
+            GRASS_MESSAGE_FORMAT="plain",
+        )
+    )
 
     # test nprocs Settings
     if nprocs > mp.cpu_count():
-        grass.warning(_(
-            "Using {} parallel processes but only {} CPUs available."
-            'Setting nprocs to {}').format(
-                nprocs, mp.cpu_count(), mp.cpu_count()-1))
-        nprocs = mp.cpu_cound()-1
+        grass.warning(
+            _(
+                "Using {} parallel processes but only {} CPUs available."
+                "Setting nprocs to {}"
+            ).format(nprocs, mp.cpu_count(), mp.cpu_count() - 1)
+        )
+        nprocs = mp.cpu_cound() - 1
 
     # sentinelsat allows only three parallel downloads
-    elif nprocs > 2 and options['datasource'] == 'ESA_COAH':
-        grass.message(_("Maximum number of parallel processes for Downloading"
-                        " fixed to 2 due to sentinelsat API restrictions"))
+    elif nprocs > 2 and options["datasource"] == "ESA_COAH":
+        grass.message(
+            _(
+                "Maximum number of parallel processes for Downloading"
+                " fixed to 2 due to sentinelsat API restrictions"
+            )
+        )
         nprocs = 2
 
     # usgs allows maximum 10 parallel downloads
-    elif nprocs > 10 and options['dataseource'] == 'USGS_EE':
-        grass.message(_("Maximum number of parallel processes for Downloading"
-                        " fixed to 10 due to Earth Explorer restrictions"))
+    elif nprocs > 10 and options["dataseource"] == "USGS_EE":
+        grass.message(
+            _(
+                "Maximum number of parallel processes for Downloading"
+                " fixed to 10 due to Earth Explorer restrictions"
+            )
+        )
         nprocs = 10
 
     if use_scenenames:
@@ -239,27 +264,32 @@ def main():
         # usgs scenename format will be checked in i.sentinel.download
         if datasource == "ESA_COAH":
             for scene in scenenames:
-                if len(scene) < 10 or not scene.startswith('S2'):
-                    grass.fatal(_("Please provide scenenames in the format"
-                                  " S2X_LLLLLL_YYYYMMDDTHHMMSS_"
-                                  "NYYYY_RZZZ_TUUUUU_YYYYMMDDTHHMMSS.SAFE"))
+                if len(scene) < 10 or not scene.startswith("S2"):
+                    grass.fatal(
+                        _(
+                            "Please provide scenenames in the format"
+                            " S2X_LLLLLL_YYYYMMDDTHHMMSS_"
+                            "NYYYY_RZZZ_TUUUUU_YYYYMMDDTHHMMSS.SAFE"
+                        )
+                    )
     else:
         # get a list of scenenames to download
         download_args = {
-            'settings': settings,
-            'producttype': producttype,
-            'start': start,
-            'end': end,
-            'clouds': clouds,
-            'datasource': datasource,
-            'flags': 'l'
+            "settings": settings,
+            "producttype": producttype,
+            "start": start,
+            "end": end,
+            "clouds": clouds,
+            "datasource": datasource,
+            "flags": "l",
         }
-        if options['limit']:
-            download_args['limit'] = options['limit']
+        if options["limit"]:
+            download_args["limit"] = options["limit"]
         i_sentinel_download_string = grass.parse_command(
-            'i.sentinel.download', **download_args)
+            "i.sentinel.download", **download_args
+        )
         i_sentinel_keys = i_sentinel_download_string.keys()
-        scenenames = [item.split(' ')[1] for item in i_sentinel_keys]
+        scenenames = [item.split(" ")[1] for item in i_sentinel_keys]
     # parallelize download
     grass.message(_("Downloading Sentinel-2 data..."))
 
@@ -268,14 +298,15 @@ def main():
     queue_download = ParallelModuleQueue(nprocs=nprocs_final)
     for idx, scenename in enumerate(scenenames):
         producttype, start_date, end_date, query_string = scenename_split(
-            scenename, datasource, flags['e'])
+            scenename, datasource, flags["e"]
+        )
         # output into separate folders, easier to import in a parallel way:
         if ind_folder:
-            outpath = os.path.join(output, 'dl_s2_%s' % str(idx+1))
+            outpath = os.path.join(output, "dl_s2_%s" % str(idx + 1))
         else:
             outpath = output
         i_sentinel_download = Module(
-            'i.sentinel.download',
+            "i.sentinel.download",
             settings=settings,
             start=start_date,
             end=end_date,
@@ -283,7 +314,7 @@ def main():
             query=query_string,
             output=outpath,
             datasource=datasource,
-            run_=False
+            run_=False,
         )
         queue_download.put(i_sentinel_download)
     queue_download.wait()

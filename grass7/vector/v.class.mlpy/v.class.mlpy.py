@@ -71,9 +71,8 @@ import numpy as np
 
 def addColumn(mapName, columnName, columnType):
     """Adds column to the map's table."""
-    columnDefinition = columnName + ' ' + columnType
-    grass.run_command('v.db.addcolumn', map=mapName,
-                      columns=columnDefinition)
+    columnDefinition = columnName + " " + columnType
+    grass.run_command("v.db.addcolumn", map=mapName, columns=columnDefinition)
 
 
 def hasColumn(tableDescription, column):
@@ -81,7 +80,7 @@ def hasColumn(tableDescription, column):
 
     @todo This should be part of some object in the lib.
     """
-    for col in tableDescription['cols']:
+    for col in tableDescription["cols"]:
         if col[0] == column:
             return True
     return False
@@ -94,7 +93,7 @@ def updateColumn(mapName, column, cats, values=None):
     or a list of tuples (cat, value) if \p values is None
     \param values to be set for column (same length as cats) or \c None
     """
-    statements = ''
+    statements = ""
     for i in range(len(cats)):
         if values is None:
             cat = str(cats[i][0])
@@ -102,12 +101,12 @@ def updateColumn(mapName, column, cats, values=None):
         else:
             cat = str(cats[i])
             val = str(values[i])
-        statement = 'UPDATE ' + mapName + ' SET '
-        statement += column + ' = ' + val
-        statement += ' WHERE cat = ' + cat
-        statements += statement + ';\n'
+        statement = "UPDATE " + mapName + " SET "
+        statement += column + " = " + val
+        statement += " WHERE cat = " + cat
+        statements += statement + ";\n"
 
-    grass.write_command('db.execute', input='-', stdin=statements)
+    grass.write_command("db.execute", input="-", stdin=statements)
 
 
 class Classifier:
@@ -120,10 +119,14 @@ class Classifier:
         try:
             import mlpy
         except ImportError:
-            grass.fatal(_("Cannot import mlpy (http://mlpy.sourceforge.net)"
-                          " library."
-                          " Please install it or ensure that it is on path"
-                          " (use PYTHONPATH variable)."))
+            grass.fatal(
+                _(
+                    "Cannot import mlpy (http://mlpy.sourceforge.net)"
+                    " library."
+                    " Please install it or ensure that it is on path"
+                    " (use PYTHONPATH variable)."
+                )
+            )
         # Pytlit has a problem with this mlpy and v.class.mlpy.py
         # thus, warinings for objects from mlpy has to be disabled
         self.mlclassifier = mlpy.DLDA(delta=0.01)  # pylint: disable=E1101
@@ -144,7 +147,7 @@ def fromDbTableToSimpleTable(dbTable, columnsDescription, columnWithClass):
         sRow = []
         for i, col in enumerate(row):
             columnName = columnsDescription[i][0]
-            if columnName != columnWithClass and columnName != 'cat':
+            if columnName != columnWithClass and columnName != "cat":
                 sRow.append(float(col))
         sTable.append(sRow)
 
@@ -177,7 +180,7 @@ def extractColumnWithCats(dbTable, columnsDescription):
     for row in dbTable:
         for i, col in enumerate(row):
             columnName = columnsDescription[i][0]
-            if columnName == 'cat':
+            if columnName == "cat":
                 column.append(float(col))
 
     return column
@@ -185,35 +188,41 @@ def extractColumnWithCats(dbTable, columnsDescription):
 
 # unused
 def fatal_noAttributeTable(mapName):
-    grass.fatal(_("Vector map <%s> has no or empty attribute table")
-                % mapName)
+    grass.fatal(_("Vector map <%s> has no or empty attribute table") % mapName)
 
 
 def fatal_noEnoughColumns(mapName, ncols, required):
-    grass.fatal(_("Not enough columns in vector map <%(map)s>"
-                  " (found %(ncols)s, expected at least %(r)s")
-                % {'map': mapName, 'ncols': ncols, 'r': required})
+    grass.fatal(
+        _(
+            "Not enough columns in vector map <%(map)s>"
+            " (found %(ncols)s, expected at least %(r)s"
+        )
+        % {"map": mapName, "ncols": ncols, "r": required}
+    )
 
 
 def fatal_noClassColumn(mapName, columnName):
-    grass.fatal(_("Vector map <%(map)s> does not have"
-                  " the column <%(col)s> cointaining class")
-                % {'map': mapName, 'col': columnName})
+    grass.fatal(
+        _(
+            "Vector map <%(map)s> does not have"
+            " the column <%(col)s> cointaining class"
+        )
+        % {"map": mapName, "col": columnName}
+    )
 
 
 def fatal_noRows(mapName):
-    grass.fatal(_("Empty attribute table for map vector <%(map)s>")
-                % {'map': mapName})
+    grass.fatal(_("Empty attribute table for map vector <%(map)s>") % {"map": mapName})
 
 
 def checkNcols(mapName, tableDescription, requiredNcols):
-    ncols = tableDescription['ncols']
+    ncols = tableDescription["ncols"]
     if ncols < requiredNcols:
         fatal_noEnoughColumns(mapName, ncols, requiredNcols)
 
 
 def checkNrows(mapName, tableDescription):
-    if not tableDescription['nrows'] > 0:
+    if not tableDescription["nrows"] > 0:
         fatal_noRows(mapName)
 
 
@@ -230,15 +239,15 @@ def checkDbConnection(mapName):
 def main():
     options, unused = grass.parser()
 
-    mapName = options['input']
-    trainingMapName = options['training']
+    mapName = options["input"]
+    trainingMapName = options["training"]
 
-    columnWithClass = options['class_column']
+    columnWithClass = options["class_column"]
 
     useAllColumns = True
-    if options['columns']:
+    if options["columns"]:
         # columns as string
-        columns = options['columns'].strip()
+        columns = options["columns"].strip()
         useAllColumns = False
 
     # TODO: allow same input and output map only if --overwrite was specified
@@ -286,17 +295,21 @@ def main():
         dbTable = grass.db_select(table=trainingMapName)
     else:
         # assuming that columns concatenated by comma
-        sql = 'SELECT %s,%s FROM %s' % (columnWithClass, columns, trainingMapName)
+        sql = "SELECT %s,%s FROM %s" % (columnWithClass, columns, trainingMapName)
         dbTable = grass.db_select(sql=sql)
 
-    trainingParameters = fromDbTableToSimpleTable(dbTable,
-                                                  columnsDescription=trainingTableDescription['cols'],
-                                                  columnWithClass=columnWithClass)
+    trainingParameters = fromDbTableToSimpleTable(
+        dbTable,
+        columnsDescription=trainingTableDescription["cols"],
+        columnWithClass=columnWithClass,
+    )
 
     if useAllColumns:
-        trainingClasses = extractColumnWithClass(dbTable,
-                                                 columnsDescription=trainingTableDescription['cols'],
-                                                 columnWithClass=columnWithClass)
+        trainingClasses = extractColumnWithClass(
+            dbTable,
+            columnsDescription=trainingTableDescription["cols"],
+            columnWithClass=columnWithClass,
+        )
     else:
         # FIXME: magic num?
         trainingClasses = extractNthColumn(dbTable, 0)
@@ -306,14 +319,18 @@ def main():
         dbTable = grass.db_select(table=mapName)
     else:
         # assuming that columns concatenated by comma
-        sql = 'SELECT %s,%s FROM %s' % ('cat', columns, mapName)
+        sql = "SELECT %s,%s FROM %s" % ("cat", columns, mapName)
         dbTable = grass.db_select(sql=sql)
 
-    parameters = fromDbTableToSimpleTable(dbTable,
-                                          columnsDescription=tableDescription['cols'],
-                                          columnWithClass=columnWithClass)
+    parameters = fromDbTableToSimpleTable(
+        dbTable,
+        columnsDescription=tableDescription["cols"],
+        columnWithClass=columnWithClass,
+    )
     if useAllColumns:
-        cats = extractColumnWithCats(dbTable, columnsDescription=tableDescription['cols'])
+        cats = extractColumnWithCats(
+            dbTable, columnsDescription=tableDescription["cols"]
+        )
     else:
         cats = extractNthColumn(dbTable, 0)
 
@@ -327,7 +344,7 @@ def main():
 
     # add column only if not exists and the classification was successful
     if not hasColumn(tableDescription, columnWithClass):
-        addColumn(mapName, columnWithClass, 'int')
+        addColumn(mapName, columnWithClass, "int")
 
     updateColumn(mapName, columnWithClass, cats, classes)
 

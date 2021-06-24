@@ -440,7 +440,7 @@ def main(options, flags):
                         result = return_value(nvals, mets[n])
                     if stdout:
                         if not result:
-                            result="*"
+                            result = "*"
                         outtxt += "{sep}{val}".format(val=result, sep=separator)
                     else:
                         try:

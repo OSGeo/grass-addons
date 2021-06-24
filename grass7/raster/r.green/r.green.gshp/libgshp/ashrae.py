@@ -14,81 +14,145 @@ from grass.pygrass.utils import get_mapset_raster
 from grass.script import core as gcore
 from grass.script import raster as grast
 
-BASENAME = 'tmprgreen{pid:05d}_'.format(pid=getpid())
+BASENAME = "tmprgreen{pid:05d}_".format(pid=getpid())
 
 # Coefficients for Tp correlation
-TP = [7.8189e+00, -6.4270e+01, 1.5387e+02, -8.4809e+01, 3.4610e+00,
-      -9.4753e-01, -6.0416e-02, 1.5631e+00, -8.9416e-03, 1.9061e-05,
-      -2.2890e+00, 1.0187e-01, 6.5690e-03, -4.0918e+01, 1.5557e+01,
-      -1.9107e+01, 1.0529e-01, 2.5501e+01, -2.1177e+00, 7.7529e+01,
-      -5.0454e+01, 7.6352e+01, -5.3719e-01, -1.3200e+02, 1.2878e+01,
-      1.2697e-01, -4.0284e-04, -7.2065e-02, 9.5184e-04, -2.4167e-02,
-      9.6811e-05, 2.8317e-02, -1.0905e-03, 1.2207e-01, -7.1050e-03,
-      -1.1129e-03, -4.5566e-04]
+TP = [
+    7.8189e00,
+    -6.4270e01,
+    1.5387e02,
+    -8.4809e01,
+    3.4610e00,
+    -9.4753e-01,
+    -6.0416e-02,
+    1.5631e00,
+    -8.9416e-03,
+    1.9061e-05,
+    -2.2890e00,
+    1.0187e-01,
+    6.5690e-03,
+    -4.0918e01,
+    1.5557e01,
+    -1.9107e01,
+    1.0529e-01,
+    2.5501e01,
+    -2.1177e00,
+    7.7529e01,
+    -5.0454e01,
+    7.6352e01,
+    -5.3719e-01,
+    -1.3200e02,
+    1.2878e01,
+    1.2697e-01,
+    -4.0284e-04,
+    -7.2065e-02,
+    9.5184e-04,
+    -2.4167e-02,
+    9.6811e-05,
+    2.8317e-02,
+    -1.0905e-03,
+    1.2207e-01,
+    -7.1050e-03,
+    -1.1129e-03,
+    -4.5566e-04,
+]
 
 
-FUNCTIONS = {'6h': [0.6619352, -4.815693, 15.03571, -0.09879421, 0.02917889,
-                    0.1138498, 0.005610933, 0.7796329, -0.3243880,
-                    -0.01824101],
-             '1m': [0.4132728, 0.2912981, 0.07589286, 0.1563978, -0.2289355,
-                    -0.004927554, -0.002694979, -0.6380360, 0.2950815,
-                    0.1493320],
-             '10y': [0.3057646, 0.08987446, -0.09151786, -0.03872451,
-                     0.1690853, -0.02881681, -0.002886584, -0.1723169,
-                     0.03112034, -0.1188438]}
+FUNCTIONS = {
+    "6h": [
+        0.6619352,
+        -4.815693,
+        15.03571,
+        -0.09879421,
+        0.02917889,
+        0.1138498,
+        0.005610933,
+        0.7796329,
+        -0.3243880,
+        -0.01824101,
+    ],
+    "1m": [
+        0.4132728,
+        0.2912981,
+        0.07589286,
+        0.1563978,
+        -0.2289355,
+        -0.004927554,
+        -0.002694979,
+        -0.6380360,
+        0.2950815,
+        0.1493320,
+    ],
+    "10y": [
+        0.3057646,
+        0.08987446,
+        -0.09151786,
+        -0.03872451,
+        0.1690853,
+        -0.02881681,
+        -0.002886584,
+        -0.1723169,
+        0.03112034,
+        -0.1188438,
+    ],
+}
 
 
 # define named tuple to struct data/characteristics
-GroundLoads = namedtuple('GroundLoads',
-                         field_names=['hourly', 'monthly', 'yearly'])
+GroundLoads = namedtuple("GroundLoads", field_names=["hourly", "monthly", "yearly"])
 
 
-GroundProperties = namedtuple('GroundProperties',
-                              field_names=['conductivity', 'diffusivity',
-
-                                           'temperature'])
-FluidProperties = namedtuple('FluidProperties',
-                             field_names=['capacity', 'massflow', 'inlettemp'])
-
-
-Borehole = namedtuple('Borehole',
-                      field_names=['radius',
-                                   'pipe_inner_radius', 'pipe_outer_radius',
-                                   'k_grout', 'k_pipe',
-                                   'distance', 'convection'])
+GroundProperties = namedtuple(
+    "GroundProperties", field_names=["conductivity", "diffusivity", "temperature"]
+)
+FluidProperties = namedtuple(
+    "FluidProperties", field_names=["capacity", "massflow", "inlettemp"]
+)
 
 
-BoreholeExchanger = namedtuple('BoreholeExchanger',
-                               field_names=['ground_loads',
-                                            'ground',
-                                            'fluid',
-                                            'borehole'])
+Borehole = namedtuple(
+    "Borehole",
+    field_names=[
+        "radius",
+        "pipe_inner_radius",
+        "pipe_outer_radius",
+        "k_grout",
+        "k_pipe",
+        "distance",
+        "convection",
+    ],
+)
 
-BoreholeField = namedtuple('BoreholeField',
-                           field_names=['distance', 'number', 'ratio', 'bhe'])
+
+BoreholeExchanger = namedtuple(
+    "BoreholeExchanger", field_names=["ground_loads", "ground", "fluid", "borehole"]
+)
+
+BoreholeField = namedtuple(
+    "BoreholeField", field_names=["distance", "number", "ratio", "bhe"]
+)
 
 
-InfoVars = namedtuple('InfoVars', field_names=['long_term', 'medium_term',
-                                               'short_term', 'fluid_temp',
-                                               'resistence'])
+InfoVars = namedtuple(
+    "InfoVars",
+    field_names=["long_term", "medium_term", "short_term", "fluid_temp", "resistence"],
+)
 
 
 def exists(raster_name):
-    """Return True if the map already exist
-    """
-    raster, mapset = (raster_name.split('@') if '@' in raster_name else
-                      (raster_name, ''))
+    """Return True if the map already exist"""
+    raster, mapset = raster_name.split("@") if "@" in raster_name else (raster_name, "")
     return bool(get_mapset_raster(raster_name, mapset))
 
 
 def rename(mtype, from_mname, to_mname):
-    from_to = '{from_name},{to_name}'
-    gcore.run_command('g.rename',
-                      **{mtype: from_to.format(from_name=from_mname,
-                                               to_name=to_mname)})
+    from_to = "{from_name},{to_name}"
+    gcore.run_command(
+        "g.rename", **{mtype: from_to.format(from_name=from_mname, to_name=to_mname)}
+    )
 
 
-def ground_resistence(ground, borehole, period='6h'):
+def ground_resistence(ground, borehole, period="6h"):
     """Return the effective ground thermal resistances:
 
     :math:`R_{period}` [m K W-1]
@@ -129,17 +193,22 @@ def ground_resistence(ground, borehole, period='6h'):
     c0, c1, c2, c3, c4, c5, c6, c7, c8, c9 = FUNCTIONS[period]
     conductivity, diffusivity, temperature = ground
     log_diff = log(diffusivity)
-    return (1. / conductivity *
-            (c0 +
-             c1 * borehole +
-             c2 * borehole**2. +
-             c3 * diffusivity +
-             c4 * diffusivity**2. +
-             c5 * log_diff +
-             c6 * log_diff**2 +
-             c7 * borehole * diffusivity +
-             c8 * borehole * log_diff +
-             c9 * diffusivity * log_diff))
+    return (
+        1.0
+        / conductivity
+        * (
+            c0
+            + c1 * borehole
+            + c2 * borehole ** 2.0
+            + c3 * diffusivity
+            + c4 * diffusivity ** 2.0
+            + c5 * log_diff
+            + c6 * log_diff ** 2
+            + c7 * borehole * diffusivity
+            + c8 * borehole * log_diff
+            + c9 * diffusivity * log_diff
+        )
+    )
 
 
 def _log(out, value, execute=True, show=False, **kwargs):
@@ -165,8 +234,7 @@ def _log(out, value, execute=True, show=False, **kwargs):
         return log(value)
 
 
-def r_ground_resistence(out, ground, borehole, period='6h',
-                        execute=True, **kwargs):
+def r_ground_resistence(out, ground, borehole, period="6h", execute=True, **kwargs):
     """Return the effective ground thermal resistances:
 
     :math:`R_{period}` [m K W-1]
@@ -280,22 +348,37 @@ def r_ground_resistence(out, ground, borehole, period='6h',
     """
     c0, c1, c2, c3, c4, c5, c6, c7, c8, c9 = FUNCTIONS[period]
     conductivity, diffusivity, temperature = ground
-    log_diff = _log(out + '_log', diffusivity, execute=execute, **kwargs)
-    res = ("{out} = (1. / {conductivity} *"
-           " ({c0} +"
-           "  {c1} * {borehole} +"
-           "  {c2} * {borehole}^2. +"
-           "  {c3} * {diffusivity} +"
-           "  {c4} * {diffusivity}^2. +"
-           "  {c5} * {log_diff} +"
-           "  {c6} * {log_diff}^2 +"
-           "  {c7} * {borehole} * {diffusivity} +"
-           "  {c8} * {borehole} * {log_diff} +"
-           "  {c9} * {diffusivity} * {log_diff}))")
-    rcmd = res.format(out=out, c0=c0, c1=c1, c2=c2, c3=c3, c4=c4, c5=c5,
-                      c6=c6, c7=c7, c8=c8, c9=c9, conductivity=conductivity,
-                      diffusivity=diffusivity, borehole=borehole,
-                      log_diff=log_diff)
+    log_diff = _log(out + "_log", diffusivity, execute=execute, **kwargs)
+    res = (
+        "{out} = (1. / {conductivity} *"
+        " ({c0} +"
+        "  {c1} * {borehole} +"
+        "  {c2} * {borehole}^2. +"
+        "  {c3} * {diffusivity} +"
+        "  {c4} * {diffusivity}^2. +"
+        "  {c5} * {log_diff} +"
+        "  {c6} * {log_diff}^2 +"
+        "  {c7} * {borehole} * {diffusivity} +"
+        "  {c8} * {borehole} * {log_diff} +"
+        "  {c9} * {diffusivity} * {log_diff}))"
+    )
+    rcmd = res.format(
+        out=out,
+        c0=c0,
+        c1=c1,
+        c2=c2,
+        c3=c3,
+        c4=c4,
+        c5=c5,
+        c6=c6,
+        c7=c7,
+        c8=c8,
+        c9=c9,
+        conductivity=conductivity,
+        diffusivity=diffusivity,
+        borehole=borehole,
+        log_diff=log_diff,
+    )
     if execute:
         grast.mapcalc(rcmd, **kwargs)
     return rcmd
@@ -323,8 +406,9 @@ def fluid_temperature_hp_outlet(fluid, peak):
     >>> fluid_temperature_hp_outlet(fluid, -392250)
     1.0616216216216219
     """
-    return (fluid.inlettemp +
-            peak / (fluid.massflow * abs(peak) / 1000. * fluid.capacity))
+    return fluid.inlettemp + peak / (
+        fluid.massflow * abs(peak) / 1000.0 * fluid.capacity
+    )
 
 
 def r_fluid_temperature_hp_outlet(out, fluid, peak, execute=True, **kwargs):
@@ -345,13 +429,18 @@ def r_fluid_temperature_hp_outlet(out, fluid, peak, execute=True, **kwargs):
     ...                               execute=False)
     'fluid_tmp_hp_outlet = 40.2 + peak / (0.05 * abs(peak) / 1000. * 4200)'
     """
-    res = ("{out} = {fluid_inlettemp} + "
-           "{peak} / "
-           "({fluid_massflow} * abs({peak}) / 1000. * {fluid_capacity})")
-    rcmd = res.format(out=out, peak=peak,
-                      fluid_inlettemp=fluid.inlettemp,
-                      fluid_massflow=fluid.massflow,
-                      fluid_capacity=fluid.capacity)
+    res = (
+        "{out} = {fluid_inlettemp} + "
+        "{peak} / "
+        "({fluid_massflow} * abs({peak}) / 1000. * {fluid_capacity})"
+    )
+    rcmd = res.format(
+        out=out,
+        peak=peak,
+        fluid_inlettemp=fluid.inlettemp,
+        fluid_massflow=fluid.massflow,
+        fluid_capacity=fluid.capacity,
+    )
     if execute:
         grast.mapcalc(rcmd, **kwargs)
     return rcmd
@@ -378,7 +467,7 @@ def fluid_temperature_borehole(fluid, peak):
     >>> fluid_temperature_borehole(fluid, -392250)
     2.750810810810811
     """
-    return (fluid.inlettemp + fluid_temperature_hp_outlet(fluid, peak)) / 2.
+    return (fluid.inlettemp + fluid_temperature_hp_outlet(fluid, peak)) / 2.0
 
 
 def r_fluid_temperature_borehole(out, fluid, peak, execute=True, **kwargs):
@@ -399,11 +488,15 @@ def r_fluid_temperature_borehole(out, fluid, peak, execute=True, **kwargs):
     'fluid_temp = (40.2 + fluid_temp_hp_outlet) / 2.'
     """
     res = "{out} = ({fluid_inlettemp} + {fluid_temperature_hp_outlet}) / 2."
-    fluid_temperature_hp_outlet = out + '_hp_outlet'
-    r_fluid_temperature_hp_outlet(fluid_temperature_hp_outlet, fluid, peak,
-                                  execute=execute)
-    rcmd = res.format(out=out, fluid_inlettemp=fluid.inlettemp,
-                      fluid_temperature_hp_outlet=fluid_temperature_hp_outlet)
+    fluid_temperature_hp_outlet = out + "_hp_outlet"
+    r_fluid_temperature_hp_outlet(
+        fluid_temperature_hp_outlet, fluid, peak, execute=execute
+    )
+    rcmd = res.format(
+        out=out,
+        fluid_inlettemp=fluid.inlettemp,
+        fluid_temperature_hp_outlet=fluid_temperature_hp_outlet,
+    )
     if execute:
         grast.mapcalc(rcmd, **kwargs)
     return rcmd
@@ -425,7 +518,7 @@ def bh_resistence_convetive(bh):
     >>> bh_resistence_convetive(bh)
     0.011659702790615043
     """
-    return 1. / (2. * pi * bh.pipe_inner_radius * bh.convection)
+    return 1.0 / (2.0 * pi * bh.pipe_inner_radius * bh.convection)
 
 
 def bh_resistence_pipe(bh):
@@ -451,8 +544,7 @@ def bh_resistence_pipe(bh):
     >>> bh_resistence_pipe(bh)
     0.071325888217628128
     """
-    return (log(bh.pipe_outer_radius / bh.pipe_inner_radius) /
-            (2. * pi * bh.k_pipe))
+    return log(bh.pipe_outer_radius / bh.pipe_inner_radius) / (2.0 * pi * bh.k_pipe)
 
 
 def bh_resistence_grout(bh, ground_conductivity):
@@ -482,17 +574,20 @@ def bh_resistence_grout(bh, ground_conductivity):
     >>> bh_resistence_grout(bh, ground_conductivity=2.25)
     0.060049831980162838
     """
-    return (1. / (4. * pi * bh.k_grout) *
-            (log(bh.radius / bh.pipe_outer_radius) +
-             log(bh.radius / bh.distance) +
-             (bh.k_grout - ground_conductivity) /
-             (bh.k_grout + ground_conductivity) *
-             log(bh.radius**4. /
-                 (bh.radius**4. - (bh.distance / 2.)**4.))))
+    return (
+        1.0
+        / (4.0 * pi * bh.k_grout)
+        * (
+            log(bh.radius / bh.pipe_outer_radius)
+            + log(bh.radius / bh.distance)
+            + (bh.k_grout - ground_conductivity)
+            / (bh.k_grout + ground_conductivity)
+            * log(bh.radius ** 4.0 / (bh.radius ** 4.0 - (bh.distance / 2.0) ** 4.0))
+        )
+    )
 
 
-def r_bh_resistence_grout(out, bh, ground_conductivity,
-                          execute=True, **kwargs):
+def r_bh_resistence_grout(out, bh, ground_conductivity, execute=True, **kwargs):
     """Return grout resistence: :math:`R_{grout}` [m K W-1]
 
     .. math::
@@ -519,15 +614,16 @@ def r_bh_resistence_grout(out, bh, ground_conductivity,
                             (1.5 + g_conductivity) *
                             log(0.06^4. /      (0.06^4. - (0.0511/ 2.)^4.))))'
     """
-    res = ("{out} = (1. / (4. * {pi} * {bh.k_grout}) * "
-           "(log({bh.radius} / {bh.pipe_outer_radius}) +"
-           " log({bh.radius} / {bh.distance}) +"
-           " ({bh.k_grout} - {ground_conductivity}) /"
-           "  ({bh.k_grout} + {ground_conductivity}) *"
-           "  log({bh.radius}^4. /"
-           "      ({bh.radius}^4. - ({bh.distance}/ 2.)^4.))))")
-    rcmd = res.format(out=out, bh=bh, ground_conductivity=ground_conductivity,
-                      pi=pi)
+    res = (
+        "{out} = (1. / (4. * {pi} * {bh.k_grout}) * "
+        "(log({bh.radius} / {bh.pipe_outer_radius}) +"
+        " log({bh.radius} / {bh.distance}) +"
+        " ({bh.k_grout} - {ground_conductivity}) /"
+        "  ({bh.k_grout} + {ground_conductivity}) *"
+        "  log({bh.radius}^4. /"
+        "      ({bh.radius}^4. - ({bh.distance}/ 2.)^4.))))"
+    )
+    rcmd = res.format(out=out, bh=bh, ground_conductivity=ground_conductivity, pi=pi)
     if execute:
         grast.mapcalc(rcmd, **kwargs)
     return rcmd
@@ -556,8 +652,10 @@ def bh_resistence(bh, ground_conductivity):
     >>> bh_resistence(bh, ground_conductivity=2.25)
     0.10154262748428441
     """
-    return (bh_resistence_grout(bh, ground_conductivity) +
-            (bh_resistence_convetive(bh) + bh_resistence_pipe(bh)) / 2.)
+    return (
+        bh_resistence_grout(bh, ground_conductivity)
+        + (bh_resistence_convetive(bh) + bh_resistence_pipe(bh)) / 2.0
+    )
 
 
 def r_bh_resistence(out, bh, ground_conductivity, execute=True, **kwargs):
@@ -579,14 +677,20 @@ def r_bh_resistence(out, bh, ground_conductivity, execute=True, **kwargs):
     'bh_resistence = (bh_resistence_grout +
                       (0.0116597027906 + 0.0764205945189) / 2.)'
     """
-    bh_resistence_grout = out + '_grout'
-    r_bh_resistence_grout(bh_resistence_grout, bh, ground_conductivity,
-                          execute=execute, **kwargs)
-    res = ("{out} = ({bh_resistence_grout} +"
-           "         ({bh_resistence_convetive} + {bh_resistence_pipe}) / 2.)")
-    rcmd = res.format(out=out, bh_resistence_grout=bh_resistence_grout,
-                      bh_resistence_convetive=bh_resistence_convetive(bh),
-                      bh_resistence_pipe=bh_resistence_pipe(bh))
+    bh_resistence_grout = out + "_grout"
+    r_bh_resistence_grout(
+        bh_resistence_grout, bh, ground_conductivity, execute=execute, **kwargs
+    )
+    res = (
+        "{out} = ({bh_resistence_grout} +"
+        "         ({bh_resistence_convetive} + {bh_resistence_pipe}) / 2.)"
+    )
+    rcmd = res.format(
+        out=out,
+        bh_resistence_grout=bh_resistence_grout,
+        bh_resistence_convetive=bh_resistence_convetive(bh),
+        bh_resistence_pipe=bh_resistence_pipe(bh),
+    )
     if execute:
         grast.mapcalc(rcmd, **kwargs)
     return rcmd
@@ -632,41 +736,57 @@ def bhe_length(bhe):
     >>> bhe_length(bhe)
     9899.2562646476617
     """
-    long_term = ground_resistence(bhe.ground, bhe.borehole.radius,
-                                  period='10y')
-    medium_term = ground_resistence(bhe.ground, bhe.borehole.radius,
-                                    period='1m')
-    short_term = ground_resistence(bhe.ground, bhe.borehole.radius,
-                                   period='6h')
-    fluid_temp = fluid_temperature_borehole(bhe.fluid,
-                                            bhe.ground_loads.hourly)
+    long_term = ground_resistence(bhe.ground, bhe.borehole.radius, period="10y")
+    medium_term = ground_resistence(bhe.ground, bhe.borehole.radius, period="1m")
+    short_term = ground_resistence(bhe.ground, bhe.borehole.radius, period="6h")
+    fluid_temp = fluid_temperature_borehole(bhe.fluid, bhe.ground_loads.hourly)
     resistence = bh_resistence(bhe.borehole, bhe.ground.conductivity)
-    return ((bhe.ground_loads.yearly * long_term +
-             bhe.ground_loads.monthly * medium_term +
-             bhe.ground_loads.hourly * short_term +
-             bhe.ground_loads.hourly * resistence) /
-            (fluid_temp - bhe.ground.temperature))
+    return (
+        bhe.ground_loads.yearly * long_term
+        + bhe.ground_loads.monthly * medium_term
+        + bhe.ground_loads.hourly * short_term
+        + bhe.ground_loads.hourly * resistence
+    ) / (fluid_temp - bhe.ground.temperature)
 
 
 def get_vars(out, bhe, basename, execute=True, **kwargs):
     basename = basename if basename else BASENAME
     # compute the temporary maps
-    long_term = basename + out + '_long_term'
-    r_ground_resistence(long_term, bhe.ground, bhe.borehole.radius,
-                        period='10y', execute=execute, **kwargs)
-    medium_term = basename + out + '_medium_term'
-    r_ground_resistence(medium_term, bhe.ground, bhe.borehole.radius,
-                        period='1m', execute=execute, **kwargs)
-    short_term = basename + out + '_short_term'
-    r_ground_resistence(short_term, bhe.ground, bhe.borehole.radius,
-                        period='6h', execute=execute, **kwargs)
-    fluid_temp = basename + out + '_fluid_temp'
-    r_fluid_temperature_borehole(fluid_temp, bhe.fluid,
-                                 bhe.ground_loads.hourly,
-                                 execute=execute, **kwargs)
-    resistence = basename + out + '_resistence'
-    r_bh_resistence(resistence, bhe.borehole, bhe.ground.conductivity,
-                    execute=execute, **kwargs)
+    long_term = basename + out + "_long_term"
+    r_ground_resistence(
+        long_term,
+        bhe.ground,
+        bhe.borehole.radius,
+        period="10y",
+        execute=execute,
+        **kwargs
+    )
+    medium_term = basename + out + "_medium_term"
+    r_ground_resistence(
+        medium_term,
+        bhe.ground,
+        bhe.borehole.radius,
+        period="1m",
+        execute=execute,
+        **kwargs
+    )
+    short_term = basename + out + "_short_term"
+    r_ground_resistence(
+        short_term,
+        bhe.ground,
+        bhe.borehole.radius,
+        period="6h",
+        execute=execute,
+        **kwargs
+    )
+    fluid_temp = basename + out + "_fluid_temp"
+    r_fluid_temperature_borehole(
+        fluid_temp, bhe.fluid, bhe.ground_loads.hourly, execute=execute, **kwargs
+    )
+    resistence = basename + out + "_resistence"
+    r_bh_resistence(
+        resistence, bhe.borehole, bhe.ground.conductivity, execute=execute, **kwargs
+    )
     return InfoVars(long_term, medium_term, short_term, fluid_temp, resistence)
 
 
@@ -701,11 +821,13 @@ def r_bhe_length(out, bhe, infovars, execute=True, **kwargs):
                    (f_temp - g_temperature))'
     """
     # compute the BHE length
-    res = ("{out} = (({bhe.ground_loads.yearly} * {iv.long_term} +"
-           "          {bhe.ground_loads.monthly} * {iv.medium_term} +"
-           "          {bhe.ground_loads.hourly} * {iv.short_term} +"
-           "          {bhe.ground_loads.hourly} * {iv.resistence}) /"
-           "           ({iv.fluid_temp} - {bhe.ground.temperature}))")
+    res = (
+        "{out} = (({bhe.ground_loads.yearly} * {iv.long_term} +"
+        "          {bhe.ground_loads.monthly} * {iv.medium_term} +"
+        "          {bhe.ground_loads.hourly} * {iv.short_term} +"
+        "          {bhe.ground_loads.hourly} * {iv.resistence}) /"
+        "           ({iv.fluid_temp} - {bhe.ground.temperature}))"
+    )
     rcmd = res.format(out=out, bhe=bhe, iv=infovars)
     if execute:
         grast.mapcalc(rcmd, **kwargs)
@@ -761,9 +883,11 @@ def log_dimless_time(field, length):
     >>> log_dimless_time(field, length=9899.2562646476617)
     -1.1196400189685967
     """
-    return log(365.25 * 10 /
-               ((length / field.number)**2 /
-                (9 * field.bhe.ground.diffusivity)))
+    return log(
+        365.25
+        * 10
+        / ((length / field.number) ** 2 / (9 * field.bhe.ground.diffusivity))
+    )
 
 
 def r_log_dimless_time(out, field, length, execute=True, **kwargs):
@@ -785,17 +909,20 @@ def r_log_dimless_time(out, field, length, execute=True, **kwargs):
     'ln_dimless_time = log(365.25 * 10 /
                            ((bh_length / f_numb)^2 / (9 * g_diffusivity)))'
     """
-    res = ("{out} = log(365.25 * 10 /"
-           "            (({length} / {field.number})^2 /"
-           "             (9 * {field.bhe.ground.diffusivity})))")
+    res = (
+        "{out} = log(365.25 * 10 /"
+        "            (({length} / {field.number})^2 /"
+        "             (9 * {field.bhe.ground.diffusivity})))"
+    )
     rcmd = res.format(out=out, field=field, length=length)
     if execute:
         grast.mapcalc(rcmd, **kwargs)
     return rcmd
 
 
-def _temperature_penality(yearly_load, ground_conductivity, length,
-                          dd_ratio, ln_dim_time, number, ratio):
+def _temperature_penality(
+    yearly_load, ground_conductivity, length, dd_ratio, ln_dim_time, number, ratio
+):
     """Return the temperature penality of a BHE field
 
     Example
@@ -808,50 +935,63 @@ def _temperature_penality(yearly_load, ground_conductivity, length,
     ...                       number=120, ratio=1.2)
     -0.24002529024227007
     """
-    return (yearly_load /
-            (2 * pi * ground_conductivity * length) *
-            (TP[0] +
-             TP[1] * dd_ratio +
-             TP[2] * dd_ratio**2 +
-             TP[3] * dd_ratio**3 +
-             TP[4] * ln_dim_time +
-             TP[5] * ln_dim_time**2 +
-             TP[6] * ln_dim_time**3 +
-             TP[7] * number +
-             TP[8] * number**2 +
-             TP[9] * number**3 +
-             TP[10] * ratio +
-             TP[11] * ratio**2 +
-             TP[12] * ratio**3 +
-             TP[13] * dd_ratio * ln_dim_time +
-             TP[14] * dd_ratio * ln_dim_time**2 +
-             TP[15] * dd_ratio * number +
-             TP[16] * dd_ratio * number**2 +
-             TP[17] * dd_ratio * ratio +
-             TP[18] * dd_ratio * ratio**2 +
-             TP[19] * dd_ratio**2 * ln_dim_time +
-             TP[20] * dd_ratio**2 * ln_dim_time**2 +
-             TP[21] * dd_ratio**2 * number +
-             TP[22] * dd_ratio**2 * number**2 +
-             TP[23] * dd_ratio**2 * ratio +
-             TP[24] * dd_ratio**2 * ratio**2 +
-             TP[25] * ln_dim_time * number +
-             TP[26] * ln_dim_time * number**2 +
-             TP[27] * ln_dim_time * ratio +
-             TP[28] * ln_dim_time * ratio**2 +
-             TP[29] * ln_dim_time**2 * number +
-             TP[30] * ln_dim_time**2 * number**2 +
-             TP[31] * ln_dim_time**2 * ratio +
-             TP[32] * ln_dim_time**2 * ratio**2 +
-             TP[33] * number * ratio +
-             TP[34] * number * ratio**2 +
-             TP[35] * number**2 * ratio +
-             TP[36] * number**2 * ratio**2))
+    return (
+        yearly_load
+        / (2 * pi * ground_conductivity * length)
+        * (
+            TP[0]
+            + TP[1] * dd_ratio
+            + TP[2] * dd_ratio ** 2
+            + TP[3] * dd_ratio ** 3
+            + TP[4] * ln_dim_time
+            + TP[5] * ln_dim_time ** 2
+            + TP[6] * ln_dim_time ** 3
+            + TP[7] * number
+            + TP[8] * number ** 2
+            + TP[9] * number ** 3
+            + TP[10] * ratio
+            + TP[11] * ratio ** 2
+            + TP[12] * ratio ** 3
+            + TP[13] * dd_ratio * ln_dim_time
+            + TP[14] * dd_ratio * ln_dim_time ** 2
+            + TP[15] * dd_ratio * number
+            + TP[16] * dd_ratio * number ** 2
+            + TP[17] * dd_ratio * ratio
+            + TP[18] * dd_ratio * ratio ** 2
+            + TP[19] * dd_ratio ** 2 * ln_dim_time
+            + TP[20] * dd_ratio ** 2 * ln_dim_time ** 2
+            + TP[21] * dd_ratio ** 2 * number
+            + TP[22] * dd_ratio ** 2 * number ** 2
+            + TP[23] * dd_ratio ** 2 * ratio
+            + TP[24] * dd_ratio ** 2 * ratio ** 2
+            + TP[25] * ln_dim_time * number
+            + TP[26] * ln_dim_time * number ** 2
+            + TP[27] * ln_dim_time * ratio
+            + TP[28] * ln_dim_time * ratio ** 2
+            + TP[29] * ln_dim_time ** 2 * number
+            + TP[30] * ln_dim_time ** 2 * number ** 2
+            + TP[31] * ln_dim_time ** 2 * ratio
+            + TP[32] * ln_dim_time ** 2 * ratio ** 2
+            + TP[33] * number * ratio
+            + TP[34] * number * ratio ** 2
+            + TP[35] * number ** 2 * ratio
+            + TP[36] * number ** 2 * ratio ** 2
+        )
+    )
 
 
-def _r_temperature_penality(out, yearly_load, ground_conductivity, length,
-                            dd_ratio, ln_dim_time, number, ratio,
-                            execute=True, **kwargs):
+def _r_temperature_penality(
+    out,
+    yearly_load,
+    ground_conductivity,
+    length,
+    dd_ratio,
+    ln_dim_time,
+    number,
+    ratio,
+    execute=True,
+    **kwargs
+):
     """Return the temperature penality of a BHE field
 
     Example
@@ -901,56 +1041,76 @@ def _r_temperature_penality(out, yearly_load, ground_conductivity, length,
                   -0.0011129 * numb^2 * ratio +
                   -0.00045566 * numb^2 * ratio^2))'
     """
-    res = ("{out} = ({yearly_load} /"
-           " (2 * {pi} * {ground_conductivity} * {length}) *"
-           " ({TP[0]} +"
-           "  {TP[1]} * {dd_ratio} +"
-           "  {TP[2]} * {dd_ratio}^2 +"
-           "  {TP[3]} * {dd_ratio}^3 +"
-           "  {TP[4]} * {ln_dim_time} +"
-           "  {TP[5]} * {ln_dim_time}^2 +"
-           "  {TP[6]} * {ln_dim_time}^3 +"
-           "  {TP[7]} * {number} +"
-           "  {TP[8]} * {number}^2 +"
-           "  {TP[9]} * {number}^3 +"
-           "  {TP[10]} * {ratio} +"
-           "  {TP[11]} * {ratio}^2 +"
-           "  {TP[12]} * {ratio}^3 +"
-           "  {TP[13]} * {dd_ratio} * {ln_dim_time} +"
-           "  {TP[14]} * {dd_ratio} * {ln_dim_time}^2 +"
-           "  {TP[15]} * {dd_ratio} * {number} +"
-           "  {TP[16]} * {dd_ratio} * {number}^2 +"
-           "  {TP[17]} * {dd_ratio} * {ratio} +"
-           "  {TP[18]} * {dd_ratio} * {ratio}^2 +"
-           "  {TP[19]} * {dd_ratio}^2 * {ln_dim_time} +"
-           "  {TP[20]} * {dd_ratio}^2 * {ln_dim_time}^2 +"
-           "  {TP[21]} * {dd_ratio}^2 * {number} +"
-           "  {TP[22]} * {dd_ratio}^2 * {number}^2 +"
-           "  {TP[23]} * {dd_ratio}^2 * {ratio} +"
-           "  {TP[24]} * {dd_ratio}^2 * {ratio}^2 +"
-           "  {TP[25]} * {ln_dim_time} * {number} +"
-           "  {TP[26]} * {ln_dim_time} * {number}^2 +"
-           "  {TP[27]} * {ln_dim_time} * {ratio} +"
-           "  {TP[28]} * {ln_dim_time} * {ratio}^2 +"
-           "  {TP[29]} * {ln_dim_time}^2 * {number} +"
-           "  {TP[30]} * {ln_dim_time}^2 * {number}^2 +"
-           "  {TP[31]} * {ln_dim_time}^2 * {ratio} +"
-           "  {TP[32]} * {ln_dim_time}^2 * {ratio}^2 +"
-           "  {TP[33]} * {number} * {ratio} +"
-           "  {TP[34]} * {number} * {ratio}^2 +"
-           "  {TP[35]} * {number}^2 * {ratio} +"
-           "  {TP[36]} * {number}^2 * {ratio}^2))")
-    rcmd = res.format(out=out, yearly_load=yearly_load,
-                      ground_conductivity=ground_conductivity, length=length,
-                      dd_ratio=dd_ratio, ln_dim_time=ln_dim_time,
-                      number=number, ratio=ratio, TP=TP, pi=pi)
+    res = (
+        "{out} = ({yearly_load} /"
+        " (2 * {pi} * {ground_conductivity} * {length}) *"
+        " ({TP[0]} +"
+        "  {TP[1]} * {dd_ratio} +"
+        "  {TP[2]} * {dd_ratio}^2 +"
+        "  {TP[3]} * {dd_ratio}^3 +"
+        "  {TP[4]} * {ln_dim_time} +"
+        "  {TP[5]} * {ln_dim_time}^2 +"
+        "  {TP[6]} * {ln_dim_time}^3 +"
+        "  {TP[7]} * {number} +"
+        "  {TP[8]} * {number}^2 +"
+        "  {TP[9]} * {number}^3 +"
+        "  {TP[10]} * {ratio} +"
+        "  {TP[11]} * {ratio}^2 +"
+        "  {TP[12]} * {ratio}^3 +"
+        "  {TP[13]} * {dd_ratio} * {ln_dim_time} +"
+        "  {TP[14]} * {dd_ratio} * {ln_dim_time}^2 +"
+        "  {TP[15]} * {dd_ratio} * {number} +"
+        "  {TP[16]} * {dd_ratio} * {number}^2 +"
+        "  {TP[17]} * {dd_ratio} * {ratio} +"
+        "  {TP[18]} * {dd_ratio} * {ratio}^2 +"
+        "  {TP[19]} * {dd_ratio}^2 * {ln_dim_time} +"
+        "  {TP[20]} * {dd_ratio}^2 * {ln_dim_time}^2 +"
+        "  {TP[21]} * {dd_ratio}^2 * {number} +"
+        "  {TP[22]} * {dd_ratio}^2 * {number}^2 +"
+        "  {TP[23]} * {dd_ratio}^2 * {ratio} +"
+        "  {TP[24]} * {dd_ratio}^2 * {ratio}^2 +"
+        "  {TP[25]} * {ln_dim_time} * {number} +"
+        "  {TP[26]} * {ln_dim_time} * {number}^2 +"
+        "  {TP[27]} * {ln_dim_time} * {ratio} +"
+        "  {TP[28]} * {ln_dim_time} * {ratio}^2 +"
+        "  {TP[29]} * {ln_dim_time}^2 * {number} +"
+        "  {TP[30]} * {ln_dim_time}^2 * {number}^2 +"
+        "  {TP[31]} * {ln_dim_time}^2 * {ratio} +"
+        "  {TP[32]} * {ln_dim_time}^2 * {ratio}^2 +"
+        "  {TP[33]} * {number} * {ratio} +"
+        "  {TP[34]} * {number} * {ratio}^2 +"
+        "  {TP[35]} * {number}^2 * {ratio} +"
+        "  {TP[36]} * {number}^2 * {ratio}^2))"
+    )
+    rcmd = res.format(
+        out=out,
+        yearly_load=yearly_load,
+        ground_conductivity=ground_conductivity,
+        length=length,
+        dd_ratio=dd_ratio,
+        ln_dim_time=ln_dim_time,
+        number=number,
+        ratio=ratio,
+        TP=TP,
+        pi=pi,
+    )
     if execute:
         grast.mapcalc(rcmd, **kwargs)
     return rcmd
 
 
-def _get_length(yearly, long_term, monthly, medium_term, peak, short_term,
-                borehole_res, ftemp, gtemp, temp_penality):
+def _get_length(
+    yearly,
+    long_term,
+    monthly,
+    medium_term,
+    peak,
+    short_term,
+    borehole_res,
+    ftemp,
+    gtemp,
+    temp_penality,
+):
     """Return a first attempt of the BHE field lenght
 
     Example
@@ -967,16 +1127,29 @@ def _get_length(yearly, long_term, monthly, medium_term, peak, short_term,
     #            medium_term=medium_term, peak=peak, short_term=short_term,
     #            borehole_res=borehole_res, ftemp=ftemp, gtemp=gtemp,
     #            temp_penality=temp_penality))
-    return ((yearly * long_term +
-             monthly * medium_term +
-             peak * short_term + peak * borehole_res) /
-            (ftemp - gtemp - temp_penality))
+    return (
+        yearly * long_term
+        + monthly * medium_term
+        + peak * short_term
+        + peak * borehole_res
+    ) / (ftemp - gtemp - temp_penality)
 
 
-def _r_get_length(out, yearly_load, long_term, monthly_load, medium_term,
-                  peak_load, short_term, borehole_resistence,
-                  fluid_temp, ground_temp, temperature_penality,
-                  execute=True, **kwargs):
+def _r_get_length(
+    out,
+    yearly_load,
+    long_term,
+    monthly_load,
+    medium_term,
+    peak_load,
+    short_term,
+    borehole_resistence,
+    fluid_temp,
+    ground_temp,
+    temperature_penality,
+    execute=True,
+    **kwargs
+):
     """Return a first attempt of the BHE field lenght
 
     Example
@@ -994,17 +1167,26 @@ def _r_get_length(out, yearly_load, long_term, monthly_load, medium_term,
                 p_load * bh_resistence) /
                (f_temp - g_temp - temp_pen))'
     """
-    res = ("{out} = (({yearly_load} * {long_term} +"
-           "          {monthly_load} * {medium_term} +"
-           "          {peak_load} * {short_term} +"
-           "          {peak_load} * {borehole_resistence}) /"
-           "         ({fluid_temp} - {ground_temp} - {temp_penality}))")
-    rcmd = res.format(out=out, yearly_load=yearly_load, long_term=long_term,
-                      monthly_load=monthly_load, medium_term=medium_term,
-                      peak_load=peak_load, short_term=short_term,
-                      borehole_resistence=borehole_resistence,
-                      fluid_temp=fluid_temp, ground_temp=ground_temp,
-                      temp_penality=temperature_penality)
+    res = (
+        "{out} = (({yearly_load} * {long_term} +"
+        "          {monthly_load} * {medium_term} +"
+        "          {peak_load} * {short_term} +"
+        "          {peak_load} * {borehole_resistence}) /"
+        "         ({fluid_temp} - {ground_temp} - {temp_penality}))"
+    )
+    rcmd = res.format(
+        out=out,
+        yearly_load=yearly_load,
+        long_term=long_term,
+        monthly_load=monthly_load,
+        medium_term=medium_term,
+        peak_load=peak_load,
+        short_term=short_term,
+        borehole_resistence=borehole_resistence,
+        fluid_temp=fluid_temp,
+        ground_temp=ground_temp,
+        temp_penality=temperature_penality,
+    )
     if execute:
         grast.mapcalc(rcmd, **kwargs)
     return rcmd
@@ -1036,10 +1218,15 @@ def temperature_penality(field, length):
     """
     dd_ratio = distance_depth_ratio(field, length)
     ln_dim_time = log_dimless_time(field, length)
-    return _temperature_penality(field.bhe.ground_loads.yearly,
-                                 field.bhe.ground.conductivity,
-                                 length, dd_ratio, ln_dim_time,
-                                 field.number, field.ratio)
+    return _temperature_penality(
+        field.bhe.ground_loads.yearly,
+        field.bhe.ground.conductivity,
+        length,
+        dd_ratio,
+        ln_dim_time,
+        field.number,
+        field.ratio,
+    )
 
 
 def r_temperature_penality(out, field, length, execute=True, **kwargs):
@@ -1067,16 +1254,22 @@ def r_temperature_penality(out, field, length, execute=True, **kwargs):
     ...                                                    # doctest: +ELLIPSIS
     'temp_pen = (...)'
     """
-    dd_ratio = BASENAME + 'dd_ratio'
+    dd_ratio = BASENAME + "dd_ratio"
     r_distance_depth_ratio(dd_ratio, field, length, execute=execute, **kwargs)
-    dimless_time = BASENAME + 'ln_dimless_time'
+    dimless_time = BASENAME + "ln_dimless_time"
     r_log_dimless_time(dimless_time, field, length, execute=execute, **kwargs)
-    return _r_temperature_penality(out,
-                                   field.bhe.ground_loads.yearly,
-                                   field.bhe.ground.conductivity,
-                                   length, dd_ratio, dimless_time,
-                                   field.number, field.ratio,
-                                   execute=execute, **kwargs)
+    return _r_temperature_penality(
+        out,
+        field.bhe.ground_loads.yearly,
+        field.bhe.ground.conductivity,
+        length,
+        dd_ratio,
+        dimless_time,
+        field.number,
+        field.ratio,
+        execute=execute,
+        **kwargs
+    )
 
 
 def field_length(field, tol=1e-3):
@@ -1104,9 +1297,15 @@ def field_length(field, tol=1e-3):
     10149.682910753265
     """
     # extract common variables
-    long_term = ground_resistence(field.bhe.ground, field.bhe.borehole.radius, period='10y')
-    medium_term = ground_resistence(field.bhe.ground, field.bhe.borehole.radius, period='1m')
-    short_term = ground_resistence(field.bhe.ground, field.bhe.borehole.radius, period='6h')
+    long_term = ground_resistence(
+        field.bhe.ground, field.bhe.borehole.radius, period="10y"
+    )
+    medium_term = ground_resistence(
+        field.bhe.ground, field.bhe.borehole.radius, period="1m"
+    )
+    short_term = ground_resistence(
+        field.bhe.ground, field.bhe.borehole.radius, period="6h"
+    )
     borehole_res = bh_resistence(field.bhe.borehole, field.bhe.ground.conductivity)
     peak = field.bhe.ground_loads.hourly
     monthly = field.bhe.ground_loads.monthly
@@ -1117,33 +1316,56 @@ def field_length(field, tol=1e-3):
     length0 = bhe_length(field.bhe)
 
     # get correct length considering the bhe interferences
-    length1 = _get_length(yearly, long_term,
-                          monthly, medium_term, peak, short_term,
-                          borehole_res, ftemp, gtemp,
-                          temperature_penality(field, length0))
+    length1 = _get_length(
+        yearly,
+        long_term,
+        monthly,
+        medium_term,
+        peak,
+        short_term,
+        borehole_res,
+        ftemp,
+        gtemp,
+        temperature_penality(field, length0),
+    )
     while abs(length1 - length0) > tol:
         length0 = length1
-        length1 = _get_length(yearly, long_term,
-                              monthly, medium_term, peak, short_term,
-                              borehole_res, ftemp, gtemp,
-                              temperature_penality(field, length0))
+        length1 = _get_length(
+            yearly,
+            long_term,
+            monthly,
+            medium_term,
+            peak,
+            short_term,
+            borehole_res,
+            ftemp,
+            gtemp,
+            temperature_penality(field, length0),
+        )
     return length1
 
 
 def abs_diff_gt_tol(out, raster_a, raster_b, tol=1e-3, execute=True, **kwargs):
-    res = ("{out} = if(abs({raster_a} - {raster_b}) > {tol}, 1, 0)")
+    res = "{out} = if(abs({raster_a} - {raster_b}) > {tol}, 1, 0)"
     rcmd = res.format(out=out, raster_a=raster_a, raster_b=raster_b, tol=tol)
     if execute:
         grast.mapcalc(rcmd, **kwargs)
         info = grast.raster_info(out)
     else:
         info = dict(max=0)
-    return True if info['max'] == 1 else False
+    return True if info["max"] == 1 else False
 
 
-def r_field_length(out, field, infovars,
-                   basename=BASENAME,
-                   length_single=None, tol=1e-3, execute=True, **kwargs):
+def r_field_length(
+    out,
+    field,
+    infovars,
+    basename=BASENAME,
+    length_single=None,
+    tol=1e-3,
+    execute=True,
+    **kwargs
+):
     """Return the total borefield length: L [m]
 
     Example
@@ -1174,40 +1396,58 @@ def r_field_length(out, field, infovars,
     yearly = field.bhe.ground_loads.yearly
     gtemp = field.bhe.ground.temperature
     # start iteration get length for a single BHE
-    len_template = basename + out + '_lenght_{:02d}'
-    length0 = (len_template.format(0)
-               if length_single is None else length_single)
+    len_template = basename + out + "_lenght_{:02d}"
+    length0 = len_template.format(0) if length_single is None else length_single
     if not exists(length0):
         r_bhe_length(length0, field.bhe, infovars, execute=execute, **kwargs)
 
-    temp_penality = basename + out + '_temp_penality'
-    r_temperature_penality(temp_penality, field, length0,
-                           execute=execute, **kwargs)
+    temp_penality = basename + out + "_temp_penality"
+    r_temperature_penality(temp_penality, field, length0, execute=execute, **kwargs)
 
     # get correct length considering the bhe interferences
     length1 = len_template.format(1)
-    _r_get_length(length1, yearly, infovars.long_term,
-                  monthly, infovars.medium_term,
-                  peak, infovars.short_term,
-                  infovars.resistence, infovars.fluid_temp,
-                  gtemp, temp_penality, execute=execute, **kwargs)
-    diff_template = basename + out + '_absdiff_{:02d}'
+    _r_get_length(
+        length1,
+        yearly,
+        infovars.long_term,
+        monthly,
+        infovars.medium_term,
+        peak,
+        infovars.short_term,
+        infovars.resistence,
+        infovars.fluid_temp,
+        gtemp,
+        temp_penality,
+        execute=execute,
+        **kwargs
+    )
+    diff_template = basename + out + "_absdiff_{:02d}"
     index = 1
     diff = diff_template.format(index)
-    while abs_diff_gt_tol(diff, length0, length1, tol=tol,
-                          execute=execute, **kwargs):
+    while abs_diff_gt_tol(diff, length0, length1, tol=tol, execute=execute, **kwargs):
         index += 1
         length0 = length1
         length1 = len_template.format(index)
-        _r_get_length(length1, yearly, infovars.long_term,
-                      monthly, infovars.medium_term,
-                      peak, infovars.short_term,
-                      infovars.resistence, infovars.fluid_temp,
-                      gtemp, temp_penality, execute=execute, **kwargs)
-    rename('raster', length1, out)
+        _r_get_length(
+            length1,
+            yearly,
+            infovars.long_term,
+            monthly,
+            infovars.medium_term,
+            peak,
+            infovars.short_term,
+            infovars.resistence,
+            infovars.fluid_temp,
+            gtemp,
+            temp_penality,
+            execute=execute,
+            **kwargs
+        )
+    rename("raster", length1, out)
     return out
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

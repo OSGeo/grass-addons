@@ -11,8 +11,10 @@ import os
 from io import StringIO
 import csv
 import collections
+
 # PY2/PY3 compat
 import sys
+
 if sys.version_info.major >= 3:
     unicode = str
 
@@ -27,11 +29,10 @@ csvfile = StringIO(unicode(csvstring))
 
 
 def csv_to_dictionary(csvfile):
-    """
-    """
+    """ """
     equations = {}  # empty dictionary
-    #csvFile = open(csvfile, 'rb')
-    csvReader = csv.reader(csvfile, delimiter='|')
+    # csvFile = open(csvfile, 'rb')
+    csvReader = csv.reader(csvfile, delimiter="|")
 
     rows = []
     fields = []
@@ -40,8 +41,7 @@ def csv_to_dictionary(csvfile):
     fields = rows.pop(0)[1:]  # header
 
     def transform(row):
-        """
-        """
+        """ """
         author = row[0].replace(" ", "_")  # key: class name, replace ''w/ _
 
         # namedtuple
@@ -69,22 +69,22 @@ def export_to_ascii(dictionary, filename, separator):
     dictionary = str(dictionary)
 
     # define filename
-    filename += '.py'
+    filename += ".py"
 
     # don't overwrite!
     if not os.path.exists(filename):
 
         # structure informative message
-        msg = '> Exporting python dictionary as is...'
+        msg = "> Exporting python dictionary as is..."
         print(msg)
 
         # open, write and close file
-        asciif = open(filename, 'w')
+        asciif = open(filename, "w")
         asciif.write(dictionary)
         asciif.close()
 
     else:
-        print('{f} already exists!'.format(f=filename))
+        print("{f} already exists!".format(f=filename))
 
 
 def main():

@@ -66,7 +66,12 @@ class TestVDbPyUpdate(TestCase):
         )
         for row in table:
             if row["PHONE"].startswith("(919)"):
-                self.assertTrue(row["display_phone"].startswith("Phone num. (919)"), msg="Column does not contain the expected prefix: {row}".format(**locals()))
+                self.assertTrue(
+                    row["display_phone"].startswith("Phone num. (919)"),
+                    msg="Column does not contain the expected prefix: {row}".format(
+                        **locals()
+                    ),
+                )
             else:
                 self.assertFalse(row["display_phone"].startswith("Phone num."))
 

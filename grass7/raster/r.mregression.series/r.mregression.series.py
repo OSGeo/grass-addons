@@ -51,7 +51,6 @@
 #%end
 
 
-
 import os
 import sys
 
@@ -70,7 +69,7 @@ from grass.pygrass import raster
 from grass.pygrass.gis.region import Region
 
 CNULL = -2147483648  # null value for CELL maps
-FNULL = np.nan       # null value for FCELL and DCELL maps
+FNULL = np.nan  # null value for FCELL and DCELL maps
 
 
 def get_val_or_null(map, row, col):
@@ -83,7 +82,7 @@ def get_val_or_null(map, row, col):
     return value
 
 
-def fit(y, x, model='ols'):
+def fit(y, x, model="ols"):
     """Ordinary least squares.
 
     :param x:   MxN matrix of data points
@@ -104,12 +103,12 @@ def fit(y, x, model='ols'):
         # The system can't be solved
         return [FNULL for i in range(factor_count)]
 
-    if model == 'ols':
+    if model == "ols":
         model = sm.OLS(y, x)
-    elif model == 'rlm':
+    elif model == "rlm":
         model = sm.robust.robust_linear_model.RLM(y, x)
     else:
-        raise NotImplementedError("Model %s doesn't implemented" % (model, ))
+        raise NotImplementedError("Model %s doesn't implemented" % (model,))
 
     try:
         results = model.fit()
@@ -119,7 +118,7 @@ def fit(y, x, model='ols'):
     return coefs
 
 
-def get_sample_names(filename, delimiter=','):
+def get_sample_names(filename, delimiter=","):
     """
     Analyse settings file, returns
     """
@@ -136,7 +135,7 @@ def get_sample_names(filename, delimiter=','):
 
 
 class DataModel(object):
-    def __init__(self, headers, Y, X, prefix, restype='FCELL'):
+    def __init__(self, headers, Y, X, prefix, restype="FCELL"):
         """Linear Least Square model  Y = X * b + e
         X are [[],.., []] of raster names
         Y are [] of raster names
@@ -150,14 +149,14 @@ class DataModel(object):
             prefix+variable_name (see header)
         """
         if len(set(headers)) != len(headers):
-            grass.error('The names of the variables are not unique!')
+            grass.error("The names of the variables are not unique!")
 
         self.mtype = restype
 
-        self.x_headers = headers[1:]    # Names of the coefficient
+        self.x_headers = headers[1:]  # Names of the coefficient
         self.b_names = [prefix + name for name in self.x_headers]
-        self.y_names = Y                # Names of Y rasters
-        self.x_names = X                # Names of X rasters
+        self.y_names = Y  # Names of Y rasters
+        self.x_names = X  # Names of X rasters
 
         self.sample_count = len(self.y_names)
         self.factor_count = len(self.x_names[0])
@@ -168,13 +167,11 @@ class DataModel(object):
         self._init_rasters()
 
     def x(self, s, f):
-        """Return input map (X) from sample number s and factor number f.
-        """
+        """Return input map (X) from sample number s and factor number f."""
         return self._x_rasters[s][f]
 
     def y(self, s):
-        """Return output map (Y) from sample number s.
-        """
+        """Return output map (Y) from sample number s."""
         return self._y_rasters[s]
 
     def b(self, s):
@@ -184,7 +181,7 @@ class DataModel(object):
         for name in self.y_names:
             map = raster.RasterSegment(name)
             if not map.exist():
-                raise ValueError("Raster map %s doesn't exist" % (name, ))
+                raise ValueError("Raster map %s doesn't exist" % (name,))
             self._y_rasters.append(map)
 
         for names in self.x_names:
@@ -192,7 +189,7 @@ class DataModel(object):
             for name in names:
                 map = raster.RasterSegment(name)
                 if not map.exist():
-                    raise ValueError("Raster map %s doesn't exist" % (name, ))
+                    raise ValueError("Raster map %s doesn't exist" % (name,))
                 maps.append(map)
             # Check count of X samples
             assert len(maps) == self.factor_count
@@ -212,7 +209,7 @@ class DataModel(object):
 
         for j in range(self.factor_count):
             map = self.b(j)
-            map.open('w', mtype=self.mtype, overwrite=overwrite)
+            map.open("w", mtype=self.mtype, overwrite=overwrite)
             for i in range(self.sample_count):
                 map = self.x(i, j)
                 map.open()
@@ -230,8 +227,7 @@ class DataModel(object):
                 map.close()
 
     def get_sample(self, row, col):
-        """Return X and Y matrices for one pixel sample
-        """
+        """Return X and Y matrices for one pixel sample"""
         X = np.empty((self.sample_count, self.factor_count))
         Y = np.empty(self.sample_count)
         for snum in range(self.sample_count):
@@ -243,7 +239,7 @@ class DataModel(object):
 
         return Y, X
 
-    def fit(self, model='ols', overwrite=None):
+    def fit(self, model="ols", overwrite=None):
         try:
             reg = Region()
             self.open_rasters(overwrite=overwrite)
@@ -260,11 +256,11 @@ class DataModel(object):
 
 
 def main(options, flags):
-    samples = options['samples']
-    res_pref = options['result_prefix']
-    model_type = options['model']
+    samples = options["samples"]
+    res_pref = options["result_prefix"]
+    model_type = options["model"]
     if not os.path.isfile(samples):
-        sys.stderr.write("File '%s' doesn't exist.\n" % (samples, ))
+        sys.stderr.write("File '%s' doesn't exist.\n" % (samples,))
         sys.exit(1)
 
     headers, outputs, inputs = get_sample_names(samples)
@@ -273,6 +269,7 @@ def main(options, flags):
     model.fit(model=model_type, overwrite=grass.overwrite())
     sys.exit(0)
 
+
 if __name__ == "__main__":
     options, flags = grass.parser()
 
@@ -280,7 +277,8 @@ if __name__ == "__main__":
     try:
         import statsmodels.api as sm
     except ImportError:
-        grass.fatal(_("Cannot import statsmodels."
-                      " Install python-statmodels package first"))
+        grass.fatal(
+            _("Cannot import statsmodels." " Install python-statmodels package first")
+        )
 
     main(options, flags)
