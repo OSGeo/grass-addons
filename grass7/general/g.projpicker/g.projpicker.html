@@ -372,9 +372,9 @@ g.projpicker query="bbox 0,0,10,10 20,20,50,50"
 <h3>Finding missing projection</h3>
 
 Some GIS data is missing projection information. In this example, we have a
-Shapefile without its .PRJ file, so we don't have the correct projeciton. We
+shapefile without its .PRJ file, so we don't have the correct projection. We
 just know the general location of this data (Atlanta, GA or
-33.7490&deg;N,84.3880&deg;W). We can stil check the <em>xy</em> extent of the
+33.7490&deg;N,84.3880&deg;W). We can still check the <em>xy</em> extent of the
 data in an unknown projection and unit (1323252,1374239,396255,434290 in SNWE).
 Let's figure out what the projections of the data can be:
 <div class="code"><pre>
@@ -418,7 +418,7 @@ unit=US foot    # in this case, quotes are not allowed because statements are
                 # separated by a newline; in fact, quotes are handled by
                 # g.projpicker, not by ProjPicker, because the former accepts
                 # the entire query as a single string from the command line
-                # while the latter reads multiple statements as invidiaul
+                # while the latter reads multiple statements as individual
                 # arguments
 34.2348,-83.8677
 33.7490,-84.3880
