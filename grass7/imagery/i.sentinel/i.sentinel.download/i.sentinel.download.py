@@ -164,7 +164,6 @@
 import fnmatch
 import hashlib
 import os
-import requests
 import xml.etree.ElementTree as ET
 import shutil
 import sys
@@ -173,16 +172,6 @@ import time
 from collections import OrderedDict
 
 import grass.script as gs
-
-try:
-    import pandas
-except ImportError as e:
-    gs.fatal(_("Module requires pandas library: {}").format(e))
-
-try:
-    from tqdm import tqdm
-except ImportError as e:
-    gs.fatal(_("Module requires tqdm library: {}").format(e))
 
 
 def create_dir(dir):
@@ -425,6 +414,12 @@ def download_gcs_file(url, destination, checksum_function, checksum):
 
 def download_gcs(scene, output):
     """Downloads a single S2 scene from Google Cloud Storage."""
+    # Lazy import tqdm
+    try:
+        from tqdm import tqdm
+    except ImportError as e:
+        gs.fatal(_("Module requires tqdm library: {}").format(e))
+
     final_scene_dir = os.path.join(output, "{}.SAFE".format(scene))
     create_dir(final_scene_dir)
     level = scene.split("_")[1]
@@ -1027,6 +1022,18 @@ class SentinelDownloader(object):
 
 
 def main():
+
+    # Lazy import nonstandard modules
+    try:
+        import pandas
+    except ImportError as e:
+        gs.fatal(_("Module requires pandas library: {}").format(e))
+
+    try:
+        import requests
+    except ImportError as e:
+        gs.fatal(_("Module requires requests library: {}").format(e))
+
     user = password = None
     if options["datasource"] == "ESA_COAH" or options["datasource"] == "GCS":
         api_url = "https://apihub.copernicus.eu/apihub"

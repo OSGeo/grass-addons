@@ -68,12 +68,19 @@ import subprocess
 import sys
 import os
 import platform
+import re
+import string
 import grass.script as grass
 from grass.lib import gis as grasslib
 from grass.lib import proj as grassproj
-from UserDict import *
-import re
-import string
+
+# UserDict is merged into collections http://python3porting.com/problems.html
+if sys.version_info > (3,):
+    from collections import UserDict
+
+    IterableUserDict = UserDict
+else:
+    from UserDict import UserDict, IterableUserDict
 
 if "GISBASE" not in os.environ:
     print("You must be in GRASS GIS to run this program.")
