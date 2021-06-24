@@ -406,7 +406,7 @@ These equivalent commands find projections in US foot that contains
 34.2348,-83.8677, but not 33.7490,-84.3880 in <em>latlon</em>:
 <div class="code"><pre>
 # since the unit name "US foot" contains a space and statements are separated
-# by whitespaces, it needs to be surrounded by # single or double quotes when
+# by whitespaces, it needs to be surrounded by single or double quotes when
 # it's passed from the command line
 g.projpicker query="postfix unit='US foot' 34.2348,-83.8677 33.7490,-84.3880 not and"
 
@@ -417,8 +417,9 @@ postfix
 unit=US foot    # in this case, quotes are not allowed because statements are
                 # separated by a newline; in fact, quotes are handled by
                 # g.projpicker, not by ProjPicker, because the former accepts
-                # the entire query as a single string while the latter reads
-                # multiple statements as invidiaul arguments
+                # the entire query as a single string from the command line
+                # while the latter reads multiple statements as invidiaul
+                # arguments
 34.2348,-83.8677
 33.7490,-84.3880
 not
