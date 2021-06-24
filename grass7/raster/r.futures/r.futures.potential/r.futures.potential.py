@@ -146,49 +146,76 @@ def cleanup():
 
 
 def main():
-    vinput = options['input']
-    columns = options['columns'].split(',')
-    binary = options['developed_column']
-    level = options['subregions_column']
-    sep = gutils.separator(options['separator'])
-    minim = int(options['min_variables'])
-    dredge = flags['d']
-    if options['max_variables']:
-        maxv = int(options['max_variables'])
+    vinput = options["input"]
+    columns = options["columns"].split(",")
+    binary = options["developed_column"]
+    level = options["subregions_column"]
+    sep = gutils.separator(options["separator"])
+    minim = int(options["min_variables"])
+    dredge = flags["d"]
+    if options["max_variables"]:
+        maxv = int(options["max_variables"])
     else:
         maxv = len(columns)
     if dredge and minim > maxv:
-        gscript.fatal(_("Minimum number of predictor variables is larger than maximum number"))
+        gscript.fatal(
+            _("Minimum number of predictor variables is larger than maximum number")
+        )
 
     global TMP_CSV, TMP_RSCRIPT, TMP_POT
-    TMP_CSV = gscript.tempfile(create=False) + '.csv'
+    TMP_CSV = gscript.tempfile(create=False) + ".csv"
     TMP_RSCRIPT = gscript.tempfile()
     include_level = True
-    distinct = gscript.read_command('v.db.select', flags='c', map=vinput,
-                                    columns="distinct {level}".format(level=level)).strip()
+    distinct = gscript.read_command(
+        "v.db.select",
+        flags="c",
+        map=vinput,
+        columns="distinct {level}".format(level=level),
+    ).strip()
     if len(distinct.splitlines()) <= 1:
         include_level = False
         single_level = distinct.splitlines()[0]
-    with open(TMP_RSCRIPT, 'w') as f:
+    with open(TMP_RSCRIPT, "w") as f:
         f.write(rscript)
-    TMP_POT = gscript.tempfile(create=False) + '_potential.csv'
+    TMP_POT = gscript.tempfile(create=False) + "_potential.csv"
     columns += [binary]
     if include_level:
         columns += [level]
     where = "{c} IS NOT NULL".format(c=columns[0])
     for c in columns[1:]:
         where += " AND {c} IS NOT NULL".format(c=c)
-    gscript.run_command('v.db.select', map=vinput, columns=columns, separator='comma', where=where, file=TMP_CSV)
+    gscript.run_command(
+        "v.db.select",
+        map=vinput,
+        columns=columns,
+        separator="comma",
+        where=where,
+        file=TMP_CSV,
+    )
 
     if dredge:
         gscript.info(_("Running automatic model selection ..."))
     else:
         gscript.info(_("Computing model..."))
 
-    cmd = ['Rscript', TMP_RSCRIPT, '-i', TMP_CSV, '-r', binary,
-           '-m', str(minim), '-x', str(maxv), '-o', TMP_POT, '-d', 'TRUE' if dredge else 'FALSE']
+    cmd = [
+        "Rscript",
+        TMP_RSCRIPT,
+        "-i",
+        TMP_CSV,
+        "-r",
+        binary,
+        "-m",
+        str(minim),
+        "-x",
+        str(maxv),
+        "-o",
+        TMP_POT,
+        "-d",
+        "TRUE" if dredge else "FALSE",
+    ]
     if include_level:
-        cmd += ['-l', level]
+        cmd += ["-l", level]
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
     gscript.warning(gscript.decode(stderr))
@@ -200,10 +227,10 @@ def main():
     gscript.info("-------------------------")
     gscript.message(gscript.decode(stdout))
 
-    with open(TMP_POT, 'r') as fin, open(options['output'], 'w') as fout:
+    with open(TMP_POT, "r") as fin, open(options["output"], "w") as fout:
         i = 0
         for line in fin.readlines():
-            row = line.strip().split('\t')
+            row = line.strip().split("\t")
             row = [each.strip('"') for each in row]
             if i == 0:
                 row[0] = "ID"
@@ -211,7 +238,7 @@ def main():
             if i == 1 and not include_level:
                 row[0] = single_level
             fout.write(sep.join(row))
-            fout.write('\n')
+            fout.write("\n")
             i += 1
 
 

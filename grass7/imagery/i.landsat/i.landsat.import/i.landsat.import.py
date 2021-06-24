@@ -132,10 +132,10 @@ def _untar(inputdir, untardir):
 
     if not os.path.exists(inputdir):
         gs.fatal(_("Directory <{}> does not exist").format(inputdir))
-    if  not os.path.isdir(inputdir):
+    if not os.path.isdir(inputdir):
         gs.fatal(_("<{}> is not a directory").format(inputdir))
     elif not os.access(inputdir, os.W_OK):
-            gs.fatal(_("Directory <{}> is not writable.").format(inputdir))
+        gs.fatal(_("Directory <{}> is not writable.").format(inputdir))
 
     if untardir is None or untardir == "":
         untardir = inputdir
@@ -155,7 +155,7 @@ def _untar(inputdir, untardir):
     scenes_to_untar = glob.glob(os.path.join(inputdir, filter_f))
 
     for scene in scenes_to_untar:
-        with tarfile.open(name=scene, mode='r') as tar:
+        with tarfile.open(name=scene, mode="r") as tar:
             tar.extractall(untardir)
 
     untared_tifs = glob.glob(os.path.join(untardir, "*.TIF"))
@@ -241,37 +241,32 @@ def import_raster(filename, module, args):
         pass  # error already printed
 
 
-def write_register_file(filenames,register_output):
+def write_register_file(filenames, register_output):
     gs.message(_("Creating register file <{}>...").format(register_output))
-    has_band_ref = float(gs.version()['version'][0:3]) >= 7.9
-    sep = '|'
+    has_band_ref = float(gs.version()["version"][0:3]) >= 7.9
+    sep = "|"
 
-    with open(register_output, 'w') as fd:
+    with open(register_output, "w") as fd:
         for img_file in filenames:
             map_name = _map_name(img_file)
             satellite = map_name.strip()[3]
-            timestamp_str = map_name.split('_')[3]
+            timestamp_str = map_name.split("_")[3]
             timestamp = datetime.strptime(timestamp_str, "%Y%m%d").strftime("%Y-%m-%d")
-            fd.write('{img}{sep}{ts}'.format(
-                img=map_name,
-                sep=sep,
-                ts=timestamp
-            ))
+            fd.write("{img}{sep}{ts}".format(img=map_name, sep=sep, ts=timestamp))
             if has_band_ref:
                 try:
-                    band_ref = re.match(
-                        r".*_B([1-9]+).*", map_name
-                    ).groups()
+                    band_ref = re.match(r".*_B([1-9]+).*", map_name).groups()
                     band_ref = band_ref[0] if band_ref[0] else band_ref[1]
                 except AttributeError:
                     gs.warning(
                         _("Unable to determine band reference for <{}>").format(
-                            map_name))
+                            map_name
+                        )
+                    )
                     continue
-                fd.write('{sep}{br}'.format(
-                    sep=sep,
-                    br='L{}_{}'.format(satellite,band_ref)
-                ))
+                fd.write(
+                    "{sep}{br}".format(sep=sep, br="L{}_{}".format(satellite, band_ref))
+                )
             fd.write(os.linesep)
 
 
@@ -342,8 +337,8 @@ def main():
                     )
             import_raster(f, module, args)
 
-    if options['register_output']:
-        write_register_file(files_to_import, options['register_output'])
+    if options["register_output"]:
+        write_register_file(files_to_import, options["register_output"])
 
     # remove all tif files after import
     for f in files:

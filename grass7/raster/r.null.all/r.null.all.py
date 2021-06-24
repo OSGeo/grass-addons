@@ -106,6 +106,7 @@
 
 import grass.script as gs
 
+
 def main():
     options, flags = gs.parser()
     pattern = options["pattern"]
@@ -153,26 +154,37 @@ def main():
     type = "raster"
     mapset = "."  # current
     try:
-        maps = gs.list_strings(type=type, mapset=mapset,
-                               pattern=pattern, exclude=exclude,
-                               flag=expression_type_flag)
+        maps = gs.list_strings(
+            type=type,
+            mapset=mapset,
+            pattern=pattern,
+            exclude=exclude,
+            flag=expression_type_flag,
+        )
     except gs.CalledModuleError:
         # the previous error is appropriate (assuming g.list error)
         import sys
+
         sys.exit(1)
 
     if dry_run and maps:
         gs.message(
-            _("With inclusion pattern <{pattern}>"
-              " and exclusion pattern <{exclude}>"
-              " using syntax <{expression_type}>"
-              " these raster maps were identified").format(**locals()))
+            _(
+                "With inclusion pattern <{pattern}>"
+                " and exclusion pattern <{exclude}>"
+                " using syntax <{expression_type}>"
+                " these raster maps were identified"
+            ).format(**locals())
+        )
     elif dry_run:
         gs.message(
-            _("No raster maps were identified"
-              " with inclusion pattern <{pattern}>"
-              " and exclusion pattern <{exclude}>"
-              " using syntax <{expression_type}>").format(**locals()))
+            _(
+                "No raster maps were identified"
+                " with inclusion pattern <{pattern}>"
+                " and exclusion pattern <{exclude}>"
+                " using syntax <{expression_type}>"
+            ).format(**locals())
+        )
 
     for map in maps:
         # TODO: option copy with prefix/suffix before setting nulls
@@ -181,10 +193,10 @@ def main():
             # (or add dry run to r.null)
             print(map)
         else:
-            gs.run_command("r.null", map=map,
-                           setnull=setnull,
-                           null=null,
-                           flags=null_flags)
+            gs.run_command(
+                "r.null", map=map, setnull=setnull, null=null, flags=null_flags
+            )
+
 
 if __name__ == "__main__":
     main()

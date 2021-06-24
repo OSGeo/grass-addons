@@ -19,7 +19,7 @@ class WebHDFSHook(BaseHook):
     Interact with HDFS. This class is a wrapper around the hdfscli library.
     """
 
-    def __init__(self, webhdfs_conn_id='webhdfs_default', proxy_user=None):
+    def __init__(self, webhdfs_conn_id="webhdfs_default", proxy_user=None):
         self.webhdfs_conn_id = webhdfs_conn_id
         self.proxy_user = proxy_user
 
@@ -30,34 +30,41 @@ class WebHDFSHook(BaseHook):
         nn_connections = self.get_connections(self.webhdfs_conn_id)
         for nn in nn_connections:
             try:
-                logging.debug('Trying namenode {}'.format(nn.host))
-                connection_str = 'http://{nn.host}:{nn.port}'.format(nn=nn)
+                logging.debug("Trying namenode {}".format(nn.host))
+                connection_str = "http://{nn.host}:{nn.port}".format(nn=nn)
                 if _kerberos_security_mode:
                     client = KerberosClient(connection_str)
                 else:
                     proxy_user = self.proxy_user or nn.login
                     client = InsecureClient(connection_str, user=proxy_user)
-                client.status('/')
-                logging.debug('Using namenode {} for hook'.format(nn.host))
+                client.status("/")
+                logging.debug("Using namenode {} for hook".format(nn.host))
                 return client
             except HdfsError as e:
-                logging.debug("Read operation on namenode {nn.host} failed with"
-                              " error: {e.message}".format(**locals()))
+                logging.debug(
+                    "Read operation on namenode {nn.host} failed with"
+                    " error: {e.message}".format(**locals())
+                )
         nn_hosts = [c.host for c in nn_connections]
-        no_nn_error = "Read operations failed on the namenodes below:\n{}".format("\n".join(nn_hosts))
+        no_nn_error = "Read operations failed on the namenodes below:\n{}".format(
+            "\n".join(nn_hosts)
+        )
         raise Exception(no_nn_error)
 
     def test(self):
         try:
             path = self.check_for_path("/")
-            print('***' * 30)
-            print("\n   Test <webhdfs> connection (is path exists: ls /) \n    %s \n" % path)
-            print('***' * 30)
+            print("***" * 30)
+            print(
+                "\n   Test <webhdfs> connection (is path exists: ls /) \n    %s \n"
+                % path
+            )
+            print("***" * 30)
             return True
 
         except Exception, e:
             print("\n     ERROR: connection can not be established: %s" % e)
-            print('***' * 30)
+            print("***" * 30)
             return False
 
     def check_for_path(self, hdfs_path):
@@ -74,10 +81,9 @@ class WebHDFSHook(BaseHook):
 
     def progress(self, a, b):
         # print(a)
-        print('progress: chunk_size %s' % b)
+        print("progress: chunk_size %s" % b)
 
-    def upload_file(self, source, destination, overwrite=True, parallelism=1,
-                    **kwargs):
+    def upload_file(self, source, destination, overwrite=True, parallelism=1, **kwargs):
         """
         Uploads a file to HDFS
         :param source: Local path to file or folder. If a folder, all the files
@@ -95,26 +101,30 @@ class WebHDFSHook(BaseHook):
         :param \*\*kwargs: Keyword arguments forwarded to :meth:`upload`.
         """
         c = self.get_conn()
-        c.upload(hdfs_path=destination,
-                 local_path=source,
-                 overwrite=overwrite,
-                 n_threads=parallelism,
-                 progress=self.progress,
-                 **kwargs)
+        c.upload(
+            hdfs_path=destination,
+            local_path=source,
+            overwrite=overwrite,
+            n_threads=parallelism,
+            progress=self.progress,
+            **kwargs
+        )
         logging.debug("Uploaded file {} to {}".format(source, destination))
 
-    def download_file(self, hdfs_path, local_path, overwrite=True, parallelism=1,
-                      **kwargs):
+    def download_file(
+        self, hdfs_path, local_path, overwrite=True, parallelism=1, **kwargs
+    ):
 
         c = self.get_conn()
-        out = c.download(hdfs_path=hdfs_path,
-                   local_path=local_path,
-                   overwrite=overwrite,
-                   n_threads=parallelism,
-                   **kwargs)
+        out = c.download(
+            hdfs_path=hdfs_path,
+            local_path=local_path,
+            overwrite=overwrite,
+            n_threads=parallelism,
+            **kwargs
+        )
 
         logging.debug("Download file {} to {}".format(hdfs_path, local_path))
-
 
         return out
 
@@ -129,11 +139,11 @@ class WebHDFSHook(BaseHook):
 
         client.delete(hdfs, recursive=True)
         model = {
-            '(intercept)': 48.,
-            'first_feature': 2.,
-            'second_feature': 12.,
+            "(intercept)": 48.0,
+            "first_feature": 2.0,
+            "second_feature": 12.0,
         }
 
-        with client.write(hdfs, encoding='utf-8') as writer:
+        with client.write(hdfs, encoding="utf-8") as writer:
             for item in model.items():
-                writer.write(u'%s,%s\n' % item)
+                writer.write(u"%s,%s\n" % item)

@@ -60,8 +60,8 @@ from grass.script.utils import try_rmdir
 import grass.script as grass
 from grass.exceptions import CalledModuleError
 
-class OsmImporter:
 
+class OsmImporter:
     def __init__(self):
 
         self.tmp_vects = []
@@ -70,12 +70,13 @@ class OsmImporter:
     def cleanup(self):
 
         for tmp in self.tmp_vects:
-            grass.run_command('g.remove', flags = 'f', type = 'vector',
-                              name = tmp, quiet = True)
+            grass.run_command(
+                "g.remove", flags="f", type="vector", name=tmp, quiet=True
+            )
 
     def _getTmpName(self, name):
 
-        return name + '_' + self.tmp_opid
+        return name + "_" + self.tmp_opid
 
     def getNewTmp(self, name):
 
@@ -92,61 +93,63 @@ class OsmImporter:
     def main(self, options, flags):
 
         # just get the layer names
-        if flags['l']:
+        if flags["l"]:
             try:
-                grass.run_command('v.in.ogr',
-                                  quiet=True,
-                                  input=options['input'],
-                                  flags='l'
-                                  )
+                grass.run_command(
+                    "v.in.ogr", quiet=True, input=options["input"], flags="l"
+                )
                 sys.exit()
             except CalledModuleError:
-                grass.fatal(_('%s failed') % 'v.in.ogr')
+                grass.fatal(_("%s failed") % "v.in.ogr")
         else:
-            if not options['table']:
-                grass.fatal(_('Required parameter <%s> not set') % 'table')
-            if not options['output']:
-                grass.fatal(_('Required parameter <%s> not set') % 'output')
+            if not options["table"]:
+                grass.fatal(_("Required parameter <%s> not set") % "table")
+            if not options["output"]:
+                grass.fatal(_("Required parameter <%s> not set") % "output")
 
         # process
         try:
             # http://gdal.org/drv_osm.html
-            os.environ['OGR_INTERLEAVED_READING'] = 'YES'
+            os.environ["OGR_INTERLEAVED_READING"] = "YES"
 
-            grass.debug('Step 1/3: v.in.ogr...', 2)
-            grass.run_command('v.in.ogr',
-                             quiet=True,
-                             input=options['input'],
-                             output=self.getNewTmp('ogr'),
-                             layer=options['table'],
-                             where=options['where'],
-                             type=options['type'],
-                             flags=flags['o']
-                              )
+            grass.debug("Step 1/3: v.in.ogr...", 2)
+            grass.run_command(
+                "v.in.ogr",
+                quiet=True,
+                input=options["input"],
+                output=self.getNewTmp("ogr"),
+                layer=options["table"],
+                where=options["where"],
+                type=options["type"],
+                flags=flags["o"],
+            )
         except CalledModuleError:
-            grass.fatal(_('%s failed') % 'v.in.ogr')
-
-        try:
-            grass.debug('Step 2/3: v.split...', 2)
-            grass.run_command('v.split',
-                             quiet=True,
-                             input=self.getTmp('ogr'),
-                             output=self.getNewTmp('split'),
-                             vertices=2
-                              )
-        except CalledModuleError:
-            grass.fatal(_('%s failed') % 'v.split')
+            grass.fatal(_("%s failed") % "v.in.ogr")
 
         try:
-            grass.debug('Step 3/3: v.build.polylines...', 2)
-            grass.run_command('v.build.polylines',
-                             quiet=True,
-                             input=self.getNewTmp('split'),
-                             output=options['output'],
-                             cats='same'
-                              )
+            grass.debug("Step 2/3: v.split...", 2)
+            grass.run_command(
+                "v.split",
+                quiet=True,
+                input=self.getTmp("ogr"),
+                output=self.getNewTmp("split"),
+                vertices=2,
+            )
         except CalledModuleError:
-            grass.fatal(_('%s failed') % 'v.build.polylines')
+            grass.fatal(_("%s failed") % "v.split")
+
+        try:
+            grass.debug("Step 3/3: v.build.polylines...", 2)
+            grass.run_command(
+                "v.build.polylines",
+                quiet=True,
+                input=self.getNewTmp("split"),
+                output=options["output"],
+                cats="same",
+            )
+        except CalledModuleError:
+            grass.fatal(_("%s failed") % "v.build.polylines")
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

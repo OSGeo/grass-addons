@@ -74,7 +74,7 @@
 #% required: no
 #% guisection: Basin Potential
 #%end
-#TODO: add flags
+# TODO: add flags
 #%flag
 #% key: d
 #% description: Debug with intermediate maps
@@ -91,6 +91,7 @@
 from __future__ import print_function
 
 import atexit
+
 # import system libraries
 import os
 import sys
@@ -101,30 +102,32 @@ from grass.script.utils import set_path
 
 try:
     # set python path to the shared r.green libraries
-    set_path('r.green', 'libhydro', '..')
-    set_path('r.green', 'libgreen', os.path.join('..', '..'))
+    set_path("r.green", "libhydro", "..")
+    set_path("r.green", "libgreen", os.path.join("..", ".."))
     from libgreen.utils import cleanup
     from libhydro.basin import dtm_corr
     from libhydro.plant import power2energy
     from libhydro import basin
     from libgreen.utils import check_overlay_rr
-    #from libgreen.utils import check_overlay_rv
+
+    # from libgreen.utils import check_overlay_rv
     from libgreen.utils import raster2numpy
     from libgreen.utils import remove_pixel_from_raster
 except ImportError:
     try:
-        set_path('r.green', 'libhydro', os.path.join('..', 'etc', 'r.green'))
-        set_path('r.green', 'libgreen', os.path.join('..', 'etc', 'r.green'))
+        set_path("r.green", "libhydro", os.path.join("..", "etc", "r.green"))
+        set_path("r.green", "libgreen", os.path.join("..", "etc", "r.green"))
         from libgreen.utils import cleanup
         from libhydro.basin import dtm_corr
         from libhydro.plant import power2energy
         from libhydro import basin
         from libgreen.utils import check_overlay_rr
-        #from libgreen.utils import check_overlay_rv
+
+        # from libgreen.utils import check_overlay_rv
         from libgreen.utils import raster2numpy
         from libgreen.utils import remove_pixel_from_raster
     except ImportError:
-        gcore.warning('libgreen and libhydro not in the python path!')
+        gcore.warning("libgreen and libhydro not in the python path!")
 
 
 if "GISBASE" not in os.environ:
@@ -137,31 +140,31 @@ def main(options, flags):
     # inizialitation
     #############################################################
     pid = os.getpid()
-    DEBUG = flags['d']
+    DEBUG = flags["d"]
     atexit.register(cleanup, pattern=("tmprgreen_%i*" % pid), debug=DEBUG)
-    #TOD_add the possibilities to have q_points
+    # TOD_add the possibilities to have q_points
     # required
-    discharge = options['discharge']
-    dtm = options['elevation']
+    discharge = options["discharge"]
+    dtm = options["elevation"]
     # basin potential
-    basins = options['basins']
-    stream = options['stream']  # raster
-    rivers = options['rivers']  # vec
-    lakes = options['lakes']  # vec
-    E = options['output']
-    threshold = options['threshold']
+    basins = options["basins"]
+    stream = options["stream"]  # raster
+    rivers = options["rivers"]  # vec
+    lakes = options["lakes"]  # vec
+    E = options["output"]
+    threshold = options["threshold"]
 
     # existing plants
-#    segments = options['segments']
-#    output_segm = options['output_segm']
-#    output_point = options['output_point']
-#    hydro = options['hydro']
-#    hydro_layer = options['hydro_layer']
-#    hydro_kind_intake = options['hydro_kind_intake']
-#    hydro_kind_turbine = options['hydro_kind_turbine']
-#    other = options['other']
-#    other_kind_intake = options['other_kind_intake']
-#    other_kind_turbine = options['other_kind_turbine']
+    #    segments = options['segments']
+    #    output_segm = options['output_segm']
+    #    output_point = options['output_point']
+    #    hydro = options['hydro']
+    #    hydro_layer = options['hydro_layer']
+    #    hydro_kind_intake = options['hydro_kind_intake']
+    #    hydro_kind_turbine = options['hydro_kind_turbine']
+    #    other = options['other']
+    #    other_kind_intake = options['other_kind_intake']
+    #    other_kind_turbine = options['other_kind_turbine']
 
     # optional
 
@@ -174,25 +177,29 @@ def main(options, flags):
     if rivers:
         # cp the vector in the current mapset in order to clean it
         tmp_river = "tmprgreen_%i_river" % pid
-        to_copy = '%s,%s' % (rivers, tmp_river)
-        gcore.run_command('g.copy', vector=to_copy)
+        to_copy = "%s,%s" % (rivers, tmp_river)
+        gcore.run_command("g.copy", vector=to_copy)
         rivers = tmp_river
-        gcore.run_command('v.build', map=rivers)
+        gcore.run_command("v.build", map=rivers)
         tmp_dtm_corr = "tmprgreen_%i_dtm_corr" % pid
         dtm_corr(dtm, rivers, tmp_dtm_corr, lakes)
-        basins, stream = basin.check_compute_basin_stream(basins, stream,
-                                                          tmp_dtm_corr, threshold)
+        basins, stream = basin.check_compute_basin_stream(
+            basins, stream, tmp_dtm_corr, threshold
+        )
     else:
-        basins, stream = basin.check_compute_basin_stream(basins, stream,
-                                                          dtm, threshold)
+        basins, stream = basin.check_compute_basin_stream(
+            basins, stream, dtm, threshold
+        )
 
     perc_overlay = check_overlay_rr(discharge, stream)
-    #pdb.set_trace()
+    # pdb.set_trace()
     try:
         p = float(perc_overlay)
         if p < 90:
-            warn = ("Discharge map doesn't overlay all the stream map."
-                    "It covers only the %s %% of rivers") % (perc_overlay)
+            warn = (
+                "Discharge map doesn't overlay all the stream map."
+                "It covers only the %s %% of rivers"
+            ) % (perc_overlay)
             msgr.warning(warn)
     except ValueError:
         msgr.error("Could not convert data to a float")
@@ -200,7 +207,7 @@ def main(options, flags):
         msgr.error("Unexpected error")
 
     msgr.message("\Init basins\n")
-    #pdb.set_trace()
+    # pdb.set_trace()
     #############################################################
     # core
     #############################################################
@@ -232,7 +239,7 @@ def main(options, flags):
     msgr.message("\nWrite results\n")
 
     basin.write_results2newvec(stream, E, basins_tot, inputs)
-    power2energy(E, 'Etot_kW', 8760)
+    power2energy(E, "Etot_kW", 8760)
 
 
 if __name__ == "__main__":

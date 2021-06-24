@@ -32,20 +32,22 @@ from grass.pydispatch.signal import Signal
 
 import grass.script as grass
 
-from gui_core.dialogs   import SavedRegion
-from core.gcmd          import RunCommand, GException, GError, GMessage
-from core.debug         import Debug
-from core.settings      import UserSettings
-from core.events        import EVT_UPDATE_MAP
+from gui_core.dialogs import SavedRegion
+from core.gcmd import RunCommand, GException, GError, GMessage
+from core.debug import Debug
+from core.settings import UserSettings
+from core.events import EVT_UPDATE_MAP
 from gui_mapwindow import MapWindow
-from core.ws            import EVT_UPDATE_PRGBAR
-from core.utils         import GetGEventAttribsForHandler
+from core.ws import EVT_UPDATE_PRGBAR
+from core.utils import GetGEventAttribsForHandler
 
 try:
     import grass.lib.gis as gislib
+
     haveCtypes = True
 except ImportError:
     haveCtypes = False
+
 
 class BufferedWindow2(MapWindow, wx.Window):
     """!A Buffered window class (2D view mode)
@@ -58,21 +60,34 @@ class BufferedWindow2(MapWindow, wx.Window):
     SaveToFile() method.
     """
 
-    def __init__(self, parent, giface, Map, frame=None,
-                 id = wx.ID_ANY, tree = None, lmgr = None, overlays = None,
-                 style = wx.NO_FULL_REPAINT_ON_RESIZE, **kwargs):
-        MapWindow.__init__(self, parent = parent, giface = giface, Map = Map,
-                           frame = frame, **kwargs)
-        wx.Window.__init__(self, parent = parent, id = id, style = style, **kwargs)
+    def __init__(
+        self,
+        parent,
+        giface,
+        Map,
+        frame=None,
+        id=wx.ID_ANY,
+        tree=None,
+        lmgr=None,
+        overlays=None,
+        style=wx.NO_FULL_REPAINT_ON_RESIZE,
+        **kwargs
+    ):
+        MapWindow.__init__(
+            self, parent=parent, giface=giface, Map=Map, frame=frame, **kwargs
+        )
+        wx.Window.__init__(self, parent=parent, id=id, style=style, **kwargs)
 
         self.tree = tree
         # flags
-        self.resize = False # indicates whether or not a resize event has taken place
-        self.dragimg = None # initialize variable for map panning
-        self.alwaysRender = False # if it always sets render to True in self.UpdateMap()
+        self.resize = False  # indicates whether or not a resize event has taken place
+        self.dragimg = None  # initialize variable for map panning
+        self.alwaysRender = (
+            False  # if it always sets render to True in self.UpdateMap()
+        )
 
         # variables for drawing on DC
-        self.pen = None      # pen for drawing zoom boxes, etc.
+        self.pen = None  # pen for drawing zoom boxes, etc.
         self.polypen = None  # pen for drawing polylines (measurements, profiles, etc)
         # List of wx.Point tuples defining a polyline (geographical coordinates)
         self.polycoords = []
@@ -82,16 +97,16 @@ class BufferedWindow2(MapWindow, wx.Window):
         self.plineid = None
 
         # Emitted when zoom of a window is changed
-        self.zoomChanged = Signal('BufferedWindow2.zoomChanged')
+        self.zoomChanged = Signal("BufferedWindow2.zoomChanged")
 
-        #rashad self._giface.updateMap.connect(self.UpdateMap)
+        # rashad self._giface.updateMap.connect(self.UpdateMap)
 
         # event bindings
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.EVT_IDLE, self.OnIdle)
         self.Bind(EVT_UPDATE_MAP, self.OnUpdateMap)
-        if self.frame and hasattr(self.frame, 'OnUpdateProgress'):
+        if self.frame and hasattr(self.frame, "OnUpdateProgress"):
             self.Bind(EVT_UPDATE_PRGBAR, self.frame.OnUpdateProgress)
 
         self._bindMouseEvents()
@@ -99,21 +114,21 @@ class BufferedWindow2(MapWindow, wx.Window):
         self.processMouse = True
 
         # render output objects
-        self.mapfile = None   # image file to be rendered
-        self.img = None   # wx.Image object (self.mapfile)
+        self.mapfile = None  # image file to be rendered
+        self.img = None  # wx.Image object (self.mapfile)
         # decoration overlays
         self.overlays = overlays
         # images and their PseudoDC ID's for painting and dragging
         self.imagedict = {}
-        self.select = {}      # selecting/unselecting decorations for dragging
-        self.textdict = {}    # text, font, and color indexed by id
-        self.currtxtid = None # PseudoDC id for currently selected text
+        self.select = {}  # selecting/unselecting decorations for dragging
+        self.textdict = {}  # text, font, and color indexed by id
+        self.currtxtid = None  # PseudoDC id for currently selected text
 
         # zoom objects
-        self.zoomhistory = [] # list of past zoom extents
+        self.zoomhistory = []  # list of past zoom extents
         self.currzoom = 0  # current set of extents in zoom history being used
         self.zoomtype = 1  # 1 zoom in, 0 no zoom, -1 zoom out
-        self.hitradius = 10 # distance for selecting map decorations
+        self.hitradius = 10  # distance for selecting map decorations
         self.dialogOffset = 5  # offset for dialog (e.g. DisplayAttributesDialog)
 
         # OnSize called to make sure the buffer is initialized.
@@ -128,7 +143,7 @@ class BufferedWindow2(MapWindow, wx.Window):
         # will store an off screen empty bitmap for saving to file
         self._buffer = wx.EmptyBitmap(max(1, self.Map.width), max(1, self.Map.height))
 
-        self.Bind(wx.EVT_ERASE_BACKGROUND, lambda x:None)
+        self.Bind(wx.EVT_ERASE_BACKGROUND, lambda x: None)
 
         # vars for handling mouse clicks
         self.dragid = -1
@@ -138,8 +153,7 @@ class BufferedWindow2(MapWindow, wx.Window):
         self.graphicsSetList = []
 
     def _definePseudoDC(self):
-        """!Define PseudoDC objects to use
-        """
+        """!Define PseudoDC objects to use"""
         # create PseudoDC used for background map, map decorations like scales and legends
         self.pdc = wx.PseudoDC()
         # used for digitization tool
@@ -162,7 +176,7 @@ class BufferedWindow2(MapWindow, wx.Window):
 
         if not hasattr(self, "popupCopyCoordinates"):
             self.popupCopyCoordinates = wx.NewId()
-            self.Bind(wx.EVT_MENU, self.OnCopyCoordinates, id = self.popupCopyCoordinates)
+            self.Bind(wx.EVT_MENU, self.OnCopyCoordinates, id=self.popupCopyCoordinates)
 
         # generate popup-menu
         menu = wx.Menu()
@@ -171,27 +185,28 @@ class BufferedWindow2(MapWindow, wx.Window):
         self.PopupMenu(menu)
         menu.Destroy()
 
-    def Draw(self, pdc, img = None, drawid = None, pdctype = 'image', coords = [0, 0, 0, 0], pen = None):
-        """!Draws map and overlay decorations
-        """
+    def Draw(
+        self, pdc, img=None, drawid=None, pdctype="image", coords=[0, 0, 0, 0], pen=None
+    ):
+        """!Draws map and overlay decorations"""
         if drawid is None:
-            if pdctype == 'image' and img:
+            if pdctype == "image" and img:
                 drawid = self.imagedict[img]
-            elif pdctype == 'clear':
+            elif pdctype == "clear":
                 drawid = None
             else:
                 drawid = wx.NewId()
 
         # TODO: find better solution
         if not pen:
-            if pdctype == 'polyline':
+            if pdctype == "polyline":
                 pen = self.polypen
             else:
                 pen = self.pen
 
-        if img and pdctype == 'image':
+        if img and pdctype == "image":
             # self.imagedict[img]['coords'] = coords
-            self.select[self.imagedict[img]['id']] = False # ?
+            self.select[self.imagedict[img]["id"]] = False  # ?
 
         pdc.BeginDrawing()
 
@@ -202,14 +217,17 @@ class BufferedWindow2(MapWindow, wx.Window):
 
         pdc.SetBackground(bg)
 
-        Debug.msg (5, "BufferedWindow2.Draw(): id=%s, pdctype = %s, coord=%s" %
-                       (drawid, pdctype, coords))
+        Debug.msg(
+            5,
+            "BufferedWindow2.Draw(): id=%s, pdctype = %s, coord=%s"
+            % (drawid, pdctype, coords),
+        )
 
         # set PseudoDC id
         if drawid is not None:
             pdc.SetId(drawid)
 
-        if pdctype == 'clear': # erase the display
+        if pdctype == "clear":  # erase the display
             bg = wx.WHITE_BRUSH
             # bg = wx.Brush(self.GetBackgroundColour())
             pdc.SetBackground(bg)
@@ -220,43 +238,49 @@ class BufferedWindow2(MapWindow, wx.Window):
             self.Refresh()
             return
 
-        if pdctype == 'image': # draw selected image
+        if pdctype == "image":  # draw selected image
             bitmap = wx.BitmapFromImage(img)
-            w,h = bitmap.GetSize()
-            pdc.DrawBitmap(bitmap, coords[0], coords[1], True) # draw the composite map
-            pdc.SetIdBounds(drawid, wx.Rect(coords[0],coords[1], w, h))
+            w, h = bitmap.GetSize()
+            pdc.DrawBitmap(bitmap, coords[0], coords[1], True)  # draw the composite map
+            pdc.SetIdBounds(drawid, wx.Rect(coords[0], coords[1], w, h))
 
-        elif pdctype == 'box': # draw a box on top of the map
+        elif pdctype == "box":  # draw a box on top of the map
             if pen:
                 pdc.SetBrush(wx.Brush(wx.CYAN, wx.TRANSPARENT))
                 pdc.SetPen(pen)
-                x2 = max(coords[0],coords[2])
-                x1 = min(coords[0],coords[2])
-                y2 = max(coords[1],coords[3])
-                y1 = min(coords[1],coords[3])
-                rwidth = x2-x1
-                rheight = y2-y1
+                x2 = max(coords[0], coords[2])
+                x1 = min(coords[0], coords[2])
+                y2 = max(coords[1], coords[3])
+                y1 = min(coords[1], coords[3])
+                rwidth = x2 - x1
+                rheight = y2 - y1
                 rect = wx.Rect(x1, y1, rwidth, rheight)
                 pdc.DrawRectangleRect(rect)
                 pdc.SetIdBounds(drawid, rect)
 
-        elif pdctype == 'line': # draw a line on top of the map
+        elif pdctype == "line":  # draw a line on top of the map
             if pen:
                 pdc.SetBrush(wx.Brush(wx.CYAN, wx.TRANSPARENT))
                 pdc.SetPen(pen)
-                pdc.DrawLinePoint(wx.Point(coords[0], coords[1]),wx.Point(coords[2], coords[3]))
-                pdc.SetIdBounds(drawid, wx.Rect(coords[0], coords[1], coords[2], coords[3]))
+                pdc.DrawLinePoint(
+                    wx.Point(coords[0], coords[1]), wx.Point(coords[2], coords[3])
+                )
+                pdc.SetIdBounds(
+                    drawid, wx.Rect(coords[0], coords[1], coords[2], coords[3])
+                )
 
-        elif pdctype == 'polyline': # draw a polyline on top of the map
+        elif pdctype == "polyline":  # draw a polyline on top of the map
             if pen:
                 pdc.SetBrush(wx.Brush(wx.CYAN, wx.TRANSPARENT))
                 pdc.SetPen(pen)
-                if (len(coords) < 2):
+                if len(coords) < 2:
                     return
                 i = 1
                 while i < len(coords):
-                    pdc.DrawLinePoint(wx.Point(coords[i-1][0], coords[i-1][1]),
-                                      wx.Point(coords[i][0], coords[i][1]))
+                    pdc.DrawLinePoint(
+                        wx.Point(coords[i - 1][0], coords[i - 1][1]),
+                        wx.Point(coords[i][0], coords[i][1]),
+                    )
                     i += 1
 
                 # get bounding rectangle for polyline
@@ -264,41 +288,43 @@ class BufferedWindow2(MapWindow, wx.Window):
                 ylist = []
                 if len(coords) > 0:
                     for point in coords:
-                        x,y = point
+                        x, y = point
                         xlist.append(x)
                         ylist.append(y)
                     x1 = min(xlist)
                     x2 = max(xlist)
                     y1 = min(ylist)
                     y2 = max(ylist)
-                    pdc.SetIdBounds(drawid, wx.Rect(x1,y1,x2,y2))
+                    pdc.SetIdBounds(drawid, wx.Rect(x1, y1, x2, y2))
                     # self.ovlcoords[drawid] = [x1,y1,x2,y2]
 
-        elif pdctype == 'point': # draw point
+        elif pdctype == "point":  # draw point
             if pen:
                 pdc.SetPen(pen)
                 pdc.DrawPoint(coords[0], coords[1])
-                coordsBound = (coords[0] - 5,
-                               coords[1] - 5,
-                               coords[0] + 5,
-                               coords[1] + 5)
+                coordsBound = (
+                    coords[0] - 5,
+                    coords[1] - 5,
+                    coords[0] + 5,
+                    coords[1] + 5,
+                )
                 pdc.SetIdBounds(drawid, wx.Rect(coordsBound))
 
-        elif pdctype == 'text': # draw text on top of map
-            if not img['active']:
-                return # only draw active text
-            if 'rotation' in img:
-                rotation = float(img['rotation'])
+        elif pdctype == "text":  # draw text on top of map
+            if not img["active"]:
+                return  # only draw active text
+            if "rotation" in img:
+                rotation = float(img["rotation"])
             else:
                 rotation = 0.0
-            w, h = self.GetFullTextExtent(img['text'])[0:2]
-            pdc.SetFont(img['font'])
-            pdc.SetTextForeground(img['color'])
+            w, h = self.GetFullTextExtent(img["text"])[0:2]
+            pdc.SetFont(img["font"])
+            pdc.SetTextForeground(img["color"])
             coords, bbox = self.TextBounds(img)
             if rotation == 0:
-                pdc.DrawText(img['text'], coords[0], coords[1])
+                pdc.DrawText(img["text"], coords[0], coords[1])
             else:
-                pdc.DrawRotatedText(img['text'], coords[0], coords[1], rotation)
+                pdc.DrawRotatedText(img["text"], coords[0], coords[1], rotation)
             pdc.SetIdBounds(drawid, bbox)
 
         pdc.EndDrawing()
@@ -307,7 +333,7 @@ class BufferedWindow2(MapWindow, wx.Window):
 
         return drawid
 
-    def TextBounds(self, textinfo, relcoords = False):
+    def TextBounds(self, textinfo, relcoords=False):
         """!Return text boundary data
 
         @param textinfo text metadata (text, font, color, rotation)
@@ -317,22 +343,25 @@ class BufferedWindow2(MapWindow, wx.Window):
         @return bbox of rotated text bbox (wx.Rect)
         @return relCoords are text coord inside bbox
         """
-        if 'rotation' in textinfo:
-            rotation = float(textinfo['rotation'])
+        if "rotation" in textinfo:
+            rotation = float(textinfo["rotation"])
         else:
             rotation = 0.0
 
-        coords = textinfo['coords']
+        coords = textinfo["coords"]
         bbox = wx.Rect(coords[0], coords[1], 0, 0)
         relCoords = (0, 0)
-        Debug.msg (4, "BufferedWindow2.TextBounds(): text=%s, rotation=%f" %
-                   (textinfo['text'], rotation))
+        Debug.msg(
+            4,
+            "BufferedWindow2.TextBounds(): text=%s, rotation=%f"
+            % (textinfo["text"], rotation),
+        )
 
         self.Update()
 
-        self.SetFont(textinfo['font'])
+        self.SetFont(textinfo["font"])
 
-        w, h = self.GetTextExtent(textinfo['text'])
+        w, h = self.GetTextExtent(textinfo["text"])
 
         if rotation == 0:
             bbox[2], bbox[3] = w, h
@@ -355,7 +384,7 @@ class BufferedWindow2(MapWindow, wx.Window):
             relCoords = (boxw, 0)
         bbox[2] = boxw
         bbox[3] = boxh
-        bbox.Inflate(h,h)
+        bbox.Inflate(h, h)
         if relcoords:
             return coords, bbox, relCoords
         else:
@@ -384,7 +413,7 @@ class BufferedWindow2(MapWindow, wx.Window):
             self.redrawAll = True
             switchDraw = True
 
-        if self.redrawAll: # redraw pdc and pdcVector
+        if self.redrawAll:  # redraw pdc and pdcVector
             # draw to the dc using the calculated clipping rect
             self.pdc.DrawToDCClipped(dc, rgn)
 
@@ -395,11 +424,11 @@ class BufferedWindow2(MapWindow, wx.Window):
                     gcdc = wx.GCDC(dc)
                     self.pdcVector.DrawToDCClipped(gcdc, rgn)
                 except NotImplementedError, e:
-                    print >> sys.stderr, e
+                    print >>sys.stderr, e
                     self.pdcVector.DrawToDCClipped(dc, rgn)
 
             self.bufferLast = None
-        else: # do not redraw pdc and pdcVector
+        else:  # do not redraw pdc and pdcVector
             if self.bufferLast is None:
                 # draw to the dc
                 self.pdc.DrawToDC(dc)
@@ -410,12 +439,14 @@ class BufferedWindow2(MapWindow, wx.Window):
                         gcdc = wx.GCDC(dc)
                         self.pdcVector.DrawToDC(gcdc)
                     except NotImplementedError, e:
-                        print >> sys.stderr, e
+                        print >>sys.stderr, e
                         self.pdcVector.DrawToDC(dc)
 
                 # store buffered image
                 # self.bufferLast = wx.BitmapFromImage(self.buffer.ConvertToImage())
-                self.bufferLast = dc.GetAsBitmap(wx.Rect(0, 0, self.Map.width, self.Map.height))
+                self.bufferLast = dc.GetAsBitmap(
+                    wx.Rect(0, 0, self.Map.width, self.Map.height)
+                )
 
             self.pdc.DrawBitmap(self.bufferLast, 0, 0, False)
             self.pdc.DrawToDC(dc)
@@ -425,7 +456,7 @@ class BufferedWindow2(MapWindow, wx.Window):
             gcdc = wx.GCDC(dc)
             self.pdcDec.DrawToDC(gcdc)
         except NotImplementedError, e:
-            print >> sys.stderr, e
+            print >>sys.stderr, e
             self.pdcDec.DrawToDC(dc)
 
         # draw temporary object on the foreground
@@ -436,8 +467,7 @@ class BufferedWindow2(MapWindow, wx.Window):
             self.redrawAll = False
 
     def OnSize(self, event):
-        """!Scale map image so that it is the same size as the Window
-        """
+        """!Scale map image so that it is the same size as the Window"""
         # re-render image on idle
         self.resize = time.clock()
 
@@ -458,27 +488,31 @@ class BufferedWindow2(MapWindow, wx.Window):
             # current drawing in it, so it can be used to save the image to
             # a file, or whatever.
             self._buffer.Destroy()
-            self._buffer = wx.EmptyBitmap(max(1, self.Map.width), max(1, self.Map.height))
+            self._buffer = wx.EmptyBitmap(
+                max(1, self.Map.width), max(1, self.Map.height)
+            )
 
             # get the image to be rendered
             self.img = self.GetImage()
 
             # update map display
             updatemap = True
-            if self.img and self.Map.width + self.Map.height > 0: # scale image after resize
+            if (
+                self.img and self.Map.width + self.Map.height > 0
+            ):  # scale image after resize
                 self.img = self.img.Scale(self.Map.width, self.Map.height)
                 if len(self.Map.GetListOfLayers()) > 0:
                     self.UpdateMap()
                     updatemap = False
-#rashad
-#            # reposition checkbox in statusbar
-#            self.frame.StatusbarReposition()
-#
-#            # update statusbar
-#            self.frame.StatusbarUpdate()
+            # rashad
+            #            # reposition checkbox in statusbar
+            #            self.frame.StatusbarReposition()
+            #
+            #            # update statusbar
+            #            self.frame.StatusbarUpdate()
 
             if updatemap:
-                self.UpdateMap(render = True)
+                self.UpdateMap(render=True)
             self.resize = False
         elif self.resize:
             event.RequestMore()
@@ -494,16 +528,15 @@ class BufferedWindow2(MapWindow, wx.Window):
         @param width image width
         @param height image height
         """
-        busy = wx.BusyInfo(message = _("Please wait, exporting image..."),
-                           parent = self)
+        busy = wx.BusyInfo(message=_("Please wait, exporting image..."), parent=self)
         wx.Yield()
 
         self.Map.ChangeMapSize((width, height))
         ibuffer = wx.EmptyBitmap(max(1, width), max(1, height))
-        self.Map.Render(force = True, windres = self.frame.GetProperty('resolution'))
+        self.Map.Render(force=True, windres=self.frame.GetProperty("resolution"))
         img = self.GetImage()
         self.pdc.RemoveAll()
-        self.Draw(self.pdc, img, drawid = 99)
+        self.Draw(self.pdc, img, drawid=99)
 
         # compute size ratio to move overlay accordingly
         cSize = self.GetClientSizeTuple()
@@ -512,23 +545,30 @@ class BufferedWindow2(MapWindow, wx.Window):
         # redraw legend, scalebar
         for img in self.GetOverlay():
             # draw any active and defined overlays
-            if self.imagedict[img]['layer'].IsActive():
-                id = self.imagedict[img]['id']
-                coords = int(ratio[0] * self.overlays[id].coords[0]),\
-                         int(ratio[1] * self.overlays[id].coords[1])
-                self.Draw(self.pdc, img = img, drawid = id,
-                          pdctype = self.overlays[id].pdcType, coords = coords)
+            if self.imagedict[img]["layer"].IsActive():
+                id = self.imagedict[img]["id"]
+                coords = int(ratio[0] * self.overlays[id].coords[0]), int(
+                    ratio[1] * self.overlays[id].coords[1]
+                )
+                self.Draw(
+                    self.pdc,
+                    img=img,
+                    drawid=id,
+                    pdctype=self.overlays[id].pdcType,
+                    coords=coords,
+                )
 
         # redraw text labels
         for id in self.textdict.keys():
             textinfo = self.textdict[id]
-            oldCoords = textinfo['coords']
-            textinfo['coords'] = ratio[0] * textinfo['coords'][0],\
-                                 ratio[1] * textinfo['coords'][1]
-            self.Draw(self.pdc, img = self.textdict[id], drawid = id,
-                      pdctype = 'text')
+            oldCoords = textinfo["coords"]
+            textinfo["coords"] = (
+                ratio[0] * textinfo["coords"][0],
+                ratio[1] * textinfo["coords"][1],
+            )
+            self.Draw(self.pdc, img=self.textdict[id], drawid=id, pdctype="text")
             # set back old coordinates
-            textinfo['coords'] = oldCoords
+            textinfo["coords"] = oldCoords
 
         dc = wx.BufferedDC(None, ibuffer)
         dc.Clear()
@@ -541,7 +581,7 @@ class BufferedWindow2(MapWindow, wx.Window):
 
         busy.Destroy()
 
-        self.UpdateMap(render = True)
+        self.UpdateMap(render=True)
         self.Refresh()
 
     def GetOverlay(self):
@@ -552,17 +592,19 @@ class BufferedWindow2(MapWindow, wx.Window):
         @return list of images
         """
         imgs = []
-        for overlay in self.Map.GetListOfLayers(ltype = "overlay", active = True):
-            if overlay.mapfile is not None \
-               and os.path.isfile(overlay.mapfile) and os.path.getsize(overlay.mapfile):
+        for overlay in self.Map.GetListOfLayers(ltype="overlay", active=True):
+            if (
+                overlay.mapfile is not None
+                and os.path.isfile(overlay.mapfile)
+                and os.path.getsize(overlay.mapfile)
+            ):
                 img = wx.Image(overlay.mapfile, wx.BITMAP_TYPE_ANY)
 
                 for key in self.imagedict.keys():
-                    if self.imagedict[key]['id'] == overlay.id:
+                    if self.imagedict[key]["id"] == overlay.id:
                         del self.imagedict[key]
 
-                self.imagedict[img] = {'id': overlay.id,
-                                        'layer': overlay}
+                self.imagedict[img] = {"id": overlay.id, "layer": overlay}
                 imgs.append(img)
 
         return imgs
@@ -575,38 +617,41 @@ class BufferedWindow2(MapWindow, wx.Window):
         @return wx.Image instance (map composition)
         """
         imgId = 99
-        if self.mapfile and self.Map.mapfile and os.path.isfile(self.Map.mapfile) and \
-                os.path.getsize(self.Map.mapfile):
+        if (
+            self.mapfile
+            and self.Map.mapfile
+            and os.path.isfile(self.Map.mapfile)
+            and os.path.getsize(self.Map.mapfile)
+        ):
             img = wx.Image(self.Map.mapfile, wx.BITMAP_TYPE_ANY)
         else:
             img = None
 
         for key in self.imagedict.keys():
-            if self.imagedict[key]['id'] == imgId:
+            if self.imagedict[key]["id"] == imgId:
                 del self.imagedict[key]
 
-        self.imagedict[img] = {'id': imgId}
+        self.imagedict[img] = {"id": imgId}
 
         return img
 
-    def SetAlwaysRenderEnabled(self, alwaysRender = True):
+    def SetAlwaysRenderEnabled(self, alwaysRender=True):
         self.alwaysRender = alwaysRender
 
     def IsAlwaysRenderEnabled(self):
         return self.alwaysRender
 
     def OnUpdateMap(self, event):
-        """!Called when this class receives core.events.gUpdateMap event.
-        """
+        """!Called when this class receives core.events.gUpdateMap event."""
         kwargs, missing_args = GetGEventAttribsForHandler(self.UpdateMap, event)
 
         if missing_args:
-            Debug.msg (1, "Invalid call of EVT_UPDATE_MAP event.")
+            Debug.msg(1, "Invalid call of EVT_UPDATE_MAP event.")
             return
 
         self.UpdateMap(**kwargs)
 
-    def UpdateMap(self, render = True, renderVector = True):
+    def UpdateMap(self, render=True, renderVector=True):
         """!Updates the canvas anytime there is a change to the
         underlaying images or to the geometry of the canvas.
 
@@ -640,31 +685,28 @@ class BufferedWindow2(MapWindow, wx.Window):
             if render:
                 # update display size
                 self.Map.ChangeMapSize(self.GetClientSize())
-#############rashad
+                #############rashad
                 windres = True
-#                if self.frame.GetProperty('resolution'):
+                #                if self.frame.GetProperty('resolution'):
                 # use computation region resolution for rendering
                 #   windres = True
-                #else:
+                # else:
                 #  windres = False
 
-                self.mapfile = self.Map.Render(force = True,
-                                               windres = windres)
+                self.mapfile = self.Map.Render(force=True, windres=windres)
             else:
-                self.mapfile = self.Map.Render(force = False)
+                self.mapfile = self.Map.Render(force=False)
 
         except GException, e:
-            GError(message = e.value)
+            GError(message=e.value)
             self.mapfile = None
 
-        self.img = self.GetImage() # id=99
+        self.img = self.GetImage()  # id=99
 
         #
         # clear pseudoDcs
         #
-        for pdc in (self.pdc,
-                    self.pdcDec,
-                    self.pdcTmp):
+        for pdc in (self.pdc, self.pdcDec, self.pdcTmp):
             pdc.Clear()
             pdc.RemoveAll()
 
@@ -672,14 +714,14 @@ class BufferedWindow2(MapWindow, wx.Window):
         # draw background map image to PseudoDC
         #
         if not self.img:
-            self.Draw(self.pdc, pdctype = 'clear')
+            self.Draw(self.pdc, pdctype="clear")
         else:
             try:
-                id = self.imagedict[self.img]['id']
+                id = self.imagedict[self.img]["id"]
             except:
                 return False
 
-            self.Draw(self.pdc, self.img, drawid = id)
+            self.Draw(self.pdc, self.img, drawid=id)
 
         #
         # render vector map layer
@@ -691,14 +733,24 @@ class BufferedWindow2(MapWindow, wx.Window):
         #
         for img in self.GetOverlay():
             # draw any active and defined overlays
-            if self.imagedict[img]['layer'].IsActive():
-                id = self.imagedict[img]['id']
-                self.Draw(self.pdc, img = img, drawid = id,
-                          pdctype = self.overlays[id].pdcType, coords = self.overlays[id].coords)
+            if self.imagedict[img]["layer"].IsActive():
+                id = self.imagedict[img]["id"]
+                self.Draw(
+                    self.pdc,
+                    img=img,
+                    drawid=id,
+                    pdctype=self.overlays[id].pdcType,
+                    coords=self.overlays[id].coords,
+                )
 
         for id in self.textdict.keys():
-            self.Draw(self.pdc, img = self.textdict[id], drawid = id,
-                      pdctype = 'text', coords = [10, 10, 10, 10])
+            self.Draw(
+                self.pdc,
+                img=self.textdict[id],
+                drawid=id,
+                pdctype="text",
+                coords=[10, 10, 10, 10],
+            )
 
         # optionally draw computational extent box
         self.DrawCompRegionExtent()
@@ -708,7 +760,7 @@ class BufferedWindow2(MapWindow, wx.Window):
         #
 
         # draw registered graphics
-        if  len(self.graphicsSetList) > 0:
+        if len(self.graphicsSetList) > 0:
             penOrig = self.pen
             polypenOrig = self.polypen
 
@@ -716,9 +768,13 @@ class BufferedWindow2(MapWindow, wx.Window):
                 try:
                     item.Draw(self.pdcTmp)
                 except:
-                    GError(parent = self,
-                           message = _('Unable to draw registered graphics. '
-                                       'The graphics was unregistered.'))
+                    GError(
+                        parent=self,
+                        message=_(
+                            "Unable to draw registered graphics. "
+                            "The graphics was unregistered."
+                        ),
+                    )
                     self.UnregisterGraphicsToDraw(item)
 
             self.pen = penOrig
@@ -731,17 +787,20 @@ class BufferedWindow2(MapWindow, wx.Window):
         # clear measurement
         #
         if self.mouse["use"] == "measure":
-            self.ClearLines(pdc = self.pdcTmp)
+            self.ClearLines(pdc=self.pdcTmp)
             self.polycoords = []
-            self.mouse['use'] = 'pointer'
-            self.mouse['box'] = 'point'
-            self.mouse['end'] = [0, 0]
+            self.mouse["use"] = "pointer"
+            self.mouse["box"] = "point"
+            self.mouse["end"] = [0, 0]
             self.SetCursor(self.frame.cursors["default"])
 
         stop = time.clock()
 
-        Debug.msg (1, "BufferedWindow2.UpdateMap(): render=%s, renderVector=%s -> time=%g" %
-                   (render, renderVector, (stop-start)))
+        Debug.msg(
+            1,
+            "BufferedWindow2.UpdateMap(): render=%s, renderVector=%s -> time=%g"
+            % (render, renderVector, (stop - start)),
+        )
 
         return True
 
@@ -756,21 +815,24 @@ class BufferedWindow2(MapWindow, wx.Window):
             dispReg = self.Map.GetCurrentRegion()
             reg = None
             if self.IsInRegion(dispReg, compReg):
-                self.polypen = wx.Pen(colour = wx.Colour(0, 0, 255, 128), width = 3, style = wx.SOLID)
+                self.polypen = wx.Pen(
+                    colour=wx.Colour(0, 0, 255, 128), width=3, style=wx.SOLID
+                )
                 reg = dispReg
             else:
-                self.polypen = wx.Pen(colour = wx.Colour(255, 0, 0, 128),
-                                      width = 3, style = wx.SOLID)
+                self.polypen = wx.Pen(
+                    colour=wx.Colour(255, 0, 0, 128), width=3, style=wx.SOLID
+                )
                 reg = compReg
 
             self.regionCoords = []
-            self.regionCoords.append((reg['w'], reg['n']))
-            self.regionCoords.append((reg['e'], reg['n']))
-            self.regionCoords.append((reg['e'], reg['s']))
-            self.regionCoords.append((reg['w'], reg['s']))
-            self.regionCoords.append((reg['w'], reg['n']))
+            self.regionCoords.append((reg["w"], reg["n"]))
+            self.regionCoords.append((reg["e"], reg["n"]))
+            self.regionCoords.append((reg["e"], reg["s"]))
+            self.regionCoords.append((reg["w"], reg["s"]))
+            self.regionCoords.append((reg["w"], reg["n"]))
             # draw region extent
-            self.DrawLines(pdc = self.pdcDec, polycoords = self.regionCoords)
+            self.DrawLines(pdc=self.pdcDec, polycoords=self.regionCoords)
 
     def IsInRegion(self, region, refRegion):
         """!
@@ -782,24 +844,25 @@ class BufferedWindow2(MapWindow, wx.Window):
         @return True if region is inside of refRegion
         @return False
         """
-        if region['s'] >= refRegion['s'] and \
-                region['n'] <= refRegion['n'] and \
-                region['w'] >= refRegion['w'] and \
-                region['e'] <= refRegion['e']:
+        if (
+            region["s"] >= refRegion["s"]
+            and region["n"] <= refRegion["n"]
+            and region["w"] >= refRegion["w"]
+            and region["e"] <= refRegion["e"]
+        ):
             return True
 
         return False
 
     def EraseMap(self):
-        """!Erase map canvas
-        """
-        self.Draw(self.pdc, pdctype = 'clear')
+        """!Erase map canvas"""
+        self.Draw(self.pdc, pdctype="clear")
 
         if hasattr(self, "digit"):
-            self.Draw(self.pdcVector, pdctype = 'clear')
+            self.Draw(self.pdcVector, pdctype="clear")
 
-        self.Draw(self.pdcDec, pdctype = 'clear')
-        self.Draw(self.pdcTmp, pdctype = 'clear')
+        self.Draw(self.pdcDec, pdctype="clear")
+        self.Draw(self.pdcTmp, pdctype="clear")
 
         self.Map.AbortAllThreads()
 
@@ -821,11 +884,10 @@ class BufferedWindow2(MapWindow, wx.Window):
         self.dragimg.EndDrag()
 
     def DragItem(self, id, coords):
-        """!Drag an overlay decoration item
-        """
-        if id == 99 or id == '' or id is None:
+        """!Drag an overlay decoration item"""
+        if id == 99 or id == "" or id is None:
             return
-        Debug.msg (5, "BufferedWindow2.DragItem(): id=%d" % id)
+        Debug.msg(5, "BufferedWindow2.DragItem(): id=%d" % id)
         x, y = self.lastpos
         dx = coords[0] - x
         dy = coords[1] - y
@@ -834,26 +896,26 @@ class BufferedWindow2(MapWindow, wx.Window):
 
         if isinstance(r, list):
             r = wx.Rect(r[0], r[1], r[2], r[3])
-        if id > 100: # text dragging
-            rtop = (r[0],r[1]-r[3],r[2],r[3])
+        if id > 100:  # text dragging
+            rtop = (r[0], r[1] - r[3], r[2], r[3])
             r = r.Union(rtop)
-            rleft = (r[0]-r[2],r[1],r[2],r[3])
+            rleft = (r[0] - r[2], r[1], r[2], r[3])
             r = r.Union(rleft)
         self.pdc.TranslateId(id, dx, dy)
 
         r2 = self.pdc.GetIdBounds(id)
         if isinstance(r2, list):
             r2 = wx.Rect(r[0], r[1], r[2], r[3])
-        if id > 100: # text
-            self.textdict[id]['bbox'] = r2
-            self.textdict[id]['coords'][0] += dx
-            self.textdict[id]['coords'][1] += dy
+        if id > 100:  # text
+            self.textdict[id]["bbox"] = r2
+            self.textdict[id]["coords"][0] += dx
+            self.textdict[id]["coords"][1] += dy
         r = r.Union(r2)
-        r.Inflate(4,4)
+        r.Inflate(4, 4)
         self.RefreshRect(r, False)
         self.lastpos = (coords[0], coords[1])
 
-    def MouseDraw(self, pdc = None, begin = None, end = None):
+    def MouseDraw(self, pdc=None, begin=None, end=None):
         """!Mouse box or line from 'begin' to 'end'
 
         If not given from self.mouse['begin'] to self.mouse['end'].
@@ -862,18 +924,26 @@ class BufferedWindow2(MapWindow, wx.Window):
             return
 
         if begin is None:
-            begin = self.mouse['begin']
+            begin = self.mouse["begin"]
         if end is None:
-            end = self.mouse['end']
+            end = self.mouse["end"]
 
-        Debug.msg (5, "BufferedWindow2.MouseDraw(): use=%s, box=%s, begin=%f,%f, end=%f,%f" %
-                       (self.mouse['use'], self.mouse['box'],
-                        begin[0], begin[1], end[0], end[1]))
+        Debug.msg(
+            5,
+            "BufferedWindow2.MouseDraw(): use=%s, box=%s, begin=%f,%f, end=%f,%f"
+            % (
+                self.mouse["use"],
+                self.mouse["box"],
+                begin[0],
+                begin[1],
+                end[0],
+                end[1],
+            ),
+        )
 
-        if self.mouse['box'] == "box":
+        if self.mouse["box"] == "box":
             boxid = wx.ID_NEW
-            mousecoords = [begin[0], begin[1],
-                           end[0], end[1]]
+            mousecoords = [begin[0], begin[1], end[0], end[1]]
             r = pdc.GetIdBounds(boxid)
             if isinstance(r, list):
                 r = wx.Rect(r[0], r[1], r[2], r[3])
@@ -884,27 +954,26 @@ class BufferedWindow2(MapWindow, wx.Window):
                 pass
             self.RefreshRect(r, False)
             pdc.SetId(boxid)
-            self.Draw(pdc, drawid = boxid, pdctype = 'box', coords = mousecoords)
+            self.Draw(pdc, drawid=boxid, pdctype="box", coords=mousecoords)
 
-        elif self.mouse['box'] == "line":
+        elif self.mouse["box"] == "line":
             self.lineid = wx.ID_NEW
-            mousecoords = [begin[0], begin[1],
-                           end[0], end[1]]
-            x1 = min(begin[0],end[0])
-            x2 = max(begin[0],end[0])
-            y1 = min(begin[1],end[1])
-            y2 = max(begin[1],end[1])
-            r = wx.Rect(x1,y1,x2-x1,y2-y1)
-            r.Inflate(4,4)
+            mousecoords = [begin[0], begin[1], end[0], end[1]]
+            x1 = min(begin[0], end[0])
+            x2 = max(begin[0], end[0])
+            y1 = min(begin[1], end[1])
+            y2 = max(begin[1], end[1])
+            r = wx.Rect(x1, y1, x2 - x1, y2 - y1)
+            r.Inflate(4, 4)
             try:
                 pdc.ClearId(self.lineid)
             except:
                 pass
             self.RefreshRect(r, False)
             pdc.SetId(self.lineid)
-            self.Draw(pdc, drawid = self.lineid, pdctype = 'line', coords = mousecoords)
+            self.Draw(pdc, drawid=self.lineid, pdctype="line", coords=mousecoords)
 
-    def DrawLines(self, pdc = None, polycoords = None):
+    def DrawLines(self, pdc=None, polycoords=None):
         """!Draw polyline in PseudoDC
 
         Set self.pline to wx.NEW_ID + 1
@@ -925,17 +994,29 @@ class BufferedWindow2(MapWindow, wx.Window):
             for p in polycoords:
                 coords.append(self.Cell2Pixel(p))
 
-            self.Draw(pdc, drawid = self.plineid, pdctype = 'polyline', coords = coords)
+            self.Draw(pdc, drawid=self.plineid, pdctype="polyline", coords=coords)
 
-            Debug.msg (4, "BufferedWindow2.DrawLines(): coords=%s, id=%s" %
-                           (coords, self.plineid))
+            Debug.msg(
+                4,
+                "BufferedWindow2.DrawLines(): coords=%s, id=%s"
+                % (coords, self.plineid),
+            )
 
             return self.plineid
 
         return -1
 
-    def DrawCross(self, pdc, coords, size, rotation = 0, pen = None,
-                  text = None, textAlign = 'lr', textOffset = (5, 5)):
+    def DrawCross(
+        self,
+        pdc,
+        coords,
+        size,
+        rotation=0,
+        pen=None,
+        text=None,
+        textAlign="lr",
+        textOffset=(5, 5),
+    ):
         """!Draw cross in PseudoDC
 
         @todo implement rotation
@@ -947,29 +1028,35 @@ class BufferedWindow2(MapWindow, wx.Window):
         @param textAlign alignment (default 'lower-right')
         @param textOffset offset for text (from center point)
         """
-        Debug.msg(4, "BufferedWindow2.DrawCross(): pdc=%s, coords=%s, size=%d" %
-                  (pdc, coords, size))
-        coordsCross = ((coords[0] - size, coords[1], coords[0] + size, coords[1]),
-                       (coords[0], coords[1] - size, coords[0], coords[1] + size))
+        Debug.msg(
+            4,
+            "BufferedWindow2.DrawCross(): pdc=%s, coords=%s, size=%d"
+            % (pdc, coords, size),
+        )
+        coordsCross = (
+            (coords[0] - size, coords[1], coords[0] + size, coords[1]),
+            (coords[0], coords[1] - size, coords[0], coords[1] + size),
+        )
 
         self.lineid = wx.NewId()
         for lineCoords in coordsCross:
-            self.Draw(pdc, drawid = self.lineid, pdctype = 'line', coords = lineCoords, pen = pen)
+            self.Draw(
+                pdc, drawid=self.lineid, pdctype="line", coords=lineCoords, pen=pen
+            )
 
         if not text:
             return self.lineid
 
-        if textAlign == 'ul':
+        if textAlign == "ul":
             coord = [coords[0] - textOffset[0], coords[1] - textOffset[1], 0, 0]
-        elif textAlign == 'ur':
+        elif textAlign == "ur":
             coord = [coords[0] + textOffset[0], coords[1] - textOffset[1], 0, 0]
-        elif textAlign == 'lr':
+        elif textAlign == "lr":
             coord = [coords[0] + textOffset[0], coords[1] + textOffset[1], 0, 0]
         else:
             coord = [coords[0] - textOffset[0], coords[1] + textOffset[1], 0, 0]
 
-        self.Draw(pdc, img = text,
-                  pdctype = 'text', coords = coord, pen = pen)
+        self.Draw(pdc, img=text, pdctype="text", coords=coord, pen=pen)
 
         return self.lineid
 
@@ -981,20 +1068,21 @@ class BufferedWindow2(MapWindow, wx.Window):
         and mouse wheel zooming (zoom and recenter mode).
         """
         if zoomtype > 0:
-            begin = (position[0] - self.Map.width / 4,
-                     position[1] - self.Map.height / 4)
-            end = (position[0] + self.Map.width / 4,
-                     position[1] + self.Map.height / 4)
+            begin = (
+                position[0] - self.Map.width / 4,
+                position[1] - self.Map.height / 4,
+            )
+            end = (position[0] + self.Map.width / 4, position[1] + self.Map.height / 4)
         else:
-            begin = ((self.Map.width - position[0]) / 2,
-                     (self.Map.height - position[1]) / 2)
-            end = (begin[0] + self.Map.width / 2,
-                   begin[1] + self.Map.height / 2)
+            begin = (
+                (self.Map.width - position[0]) / 2,
+                (self.Map.height - position[1]) / 2,
+            )
+            end = (begin[0] + self.Map.width / 2, begin[1] + self.Map.height / 2)
         return begin, end
 
     def MouseActions(self, event):
-        """!Mouse motion and button click notifier
-        """
+        """!Mouse motion and button click notifier"""
         if not self.processMouse:
             return
 
@@ -1041,11 +1129,10 @@ class BufferedWindow2(MapWindow, wx.Window):
             self.OnMouseMoving(event)
 
     def OnMouseWheel(self, event):
-        """!Mouse wheel moved
-        """
-        zoomBehaviour = UserSettings.Get(group = 'display',
-                                         key = 'mouseWheelZoom',
-                                         subkey = 'selection')
+        """!Mouse wheel moved"""
+        zoomBehaviour = UserSettings.Get(
+            group="display", key="mouseWheelZoom", subkey="selection"
+        )
         if zoomBehaviour == 2:
             event.Skip()
             return
@@ -1053,25 +1140,26 @@ class BufferedWindow2(MapWindow, wx.Window):
         self.processMouse = False
         current = event.GetPositionTuple()[:]
         wheel = event.GetWheelRotation()
-        Debug.msg (5, "BufferedWindow2.MouseAction(): wheel=%d" % wheel)
+        Debug.msg(5, "BufferedWindow2.MouseAction(): wheel=%d" % wheel)
 
         if wheel > 0:
             zoomtype = 1
         else:
             zoomtype = -1
-        if UserSettings.Get(group = 'display',
-                            key = 'scrollDirection',
-                            subkey = 'selection'):
+        if UserSettings.Get(group="display", key="scrollDirection", subkey="selection"):
             zoomtype *= -1
         # zoom 1/2 of the screen (TODO: settings)
         if zoomBehaviour == 0:  # zoom and recenter
-            begin, end = self._computeZoomToPointAndRecenter(position = current, zoomtype = zoomtype)
+            begin, end = self._computeZoomToPointAndRecenter(
+                position=current, zoomtype=zoomtype
+            )
 
         elif zoomBehaviour == 1:  # zoom to current cursor position
-            begin = (current[0]/2, current[1]/2)
-            end = ((self.Map.width - current[0])/2 + current[0],
-                   (self.Map.height - current[1])/2 + current[1])
-
+            begin = (current[0] / 2, current[1] / 2)
+            end = (
+                (self.Map.width - current[0]) / 2 + current[0],
+                (self.Map.height - current[1]) / 2 + current[1],
+            )
 
         # zoom
         self.Zoom(begin, end, zoomtype)
@@ -1080,19 +1168,17 @@ class BufferedWindow2(MapWindow, wx.Window):
         self.UpdateMap()
 
         # update statusbar
-        #rashad self.frame.StatusbarUpdate()
+        # rashad self.frame.StatusbarUpdate()
 
         self.Refresh()
         self.processMouse = True
 
     def OnDragging(self, event):
-        """!Mouse dragging
-        """
-        Debug.msg (5, "BufferedWindow2.MouseAction(): Dragging")
+        """!Mouse dragging"""
+        Debug.msg(5, "BufferedWindow2.MouseAction(): Dragging")
         current = event.GetPositionTuple()[:]
-        previous = self.mouse['begin']
-        move = (current[0] - previous[0],
-                current[1] - previous[1])
+        previous = self.mouse["begin"]
+        move = (current[0] - previous[0], current[1] - previous[1])
 
         if hasattr(self, "digit"):
             digitToolbar = self.toolbar
@@ -1100,65 +1186,64 @@ class BufferedWindow2(MapWindow, wx.Window):
             digitToolbar = None
 
         # dragging or drawing box with left button
-        if self.mouse['use'] == 'pan' or \
-                event.MiddleIsDown():
+        if self.mouse["use"] == "pan" or event.MiddleIsDown():
             self.DragMap(move)
 
         # dragging decoration overlay item
-        elif (self.mouse['use'] == 'pointer' and
-                not digitToolbar and
-                self.dragid is not None):
+        elif (
+            self.mouse["use"] == "pointer"
+            and not digitToolbar
+            and self.dragid is not None
+        ):
             coords = event.GetPositionTuple()
             self.DragItem(self.dragid, coords)
 
         # dragging anything else - rubber band box or line
         else:
-            if (self.mouse['use'] == 'pointer' and
-                    not digitToolbar):
+            if self.mouse["use"] == "pointer" and not digitToolbar:
                 return
 
-            self.mouse['end'] = event.GetPositionTuple()[:]
-            if (event.LeftIsDown() and
-                not (digitToolbar and
-                    digitToolbar.GetAction() in ("moveLine",) and
-                     self.digit.GetDisplay().GetSelected() > 0)):
-                self.MouseDraw(pdc = self.pdcTmp)
+            self.mouse["end"] = event.GetPositionTuple()[:]
+            if event.LeftIsDown() and not (
+                digitToolbar
+                and digitToolbar.GetAction() in ("moveLine",)
+                and self.digit.GetDisplay().GetSelected() > 0
+            ):
+                self.MouseDraw(pdc=self.pdcTmp)
 
     def OnLeftDown(self, event):
-        """!Left mouse button pressed
-        """
-        Debug.msg (5, "BufferedWindow2.OnLeftDown(): use=%s" %
-                   self.mouse["use"])
+        """!Left mouse button pressed"""
+        Debug.msg(5, "BufferedWindow2.OnLeftDown(): use=%s" % self.mouse["use"])
 
-        self.mouse['begin'] = event.GetPositionTuple()[:]
+        self.mouse["begin"] = event.GetPositionTuple()[:]
 
         if self.mouse["use"] in ["measure", "profile"]:
             # measure or profile
             if len(self.polycoords) == 0:
-                self.mouse['end'] = self.mouse['begin']
-                self.polycoords.append(self.Pixel2Cell(self.mouse['begin']))
+                self.mouse["end"] = self.mouse["begin"]
+                self.polycoords.append(self.Pixel2Cell(self.mouse["begin"]))
                 self.ClearLines(pdc=self.pdcTmp)
             else:
-                self.mouse['begin'] = self.mouse['end']
+                self.mouse["begin"] = self.mouse["end"]
 
-        elif self.mouse['use'] in ('zoom', 'legend'):
+        elif self.mouse["use"] in ("zoom", "legend"):
             pass
 
         # vector digizer
-        elif self.mouse["use"] == "pointer" and \
-                hasattr(self, "digit"):
+        elif self.mouse["use"] == "pointer" and hasattr(self, "digit"):
             if event.ControlDown():
                 self.OnLeftDownUndo(event)
             else:
                 self._onLeftDown(event)
 
-        elif self.mouse['use'] == 'pointer':
+        elif self.mouse["use"] == "pointer":
             # get decoration or text id
             idlist = []
-            self.dragid = ''
-            self.lastpos = self.mouse['begin']
-            idlist = self.pdc.FindObjects(self.lastpos[0], self.lastpos[1],
-                                          self.hitradius)
+            self.dragid = ""
+            self.lastpos = self.mouse["begin"]
+            idlist = self.pdc.FindObjects(
+                self.lastpos[0], self.lastpos[1], self.hitradius
+            )
             if 99 in idlist:
                 idlist.remove(99)
             if idlist != []:
@@ -1169,127 +1254,124 @@ class BufferedWindow2(MapWindow, wx.Window):
         event.Skip()
 
     def OnLeftUp(self, event):
-        """!Left mouse button released
-        """
-        Debug.msg (5, "BufferedWindow2.OnLeftUp(): use=%s" %
-                       self.mouse["use"])
+        """!Left mouse button released"""
+        Debug.msg(5, "BufferedWindow2.OnLeftUp(): use=%s" % self.mouse["use"])
 
-        self.mouse['end'] = event.GetPositionTuple()[:]
+        self.mouse["end"] = event.GetPositionTuple()[:]
 
-        if self.mouse['use'] in ["zoom", "pan"]:
+        if self.mouse["use"] in ["zoom", "pan"]:
             # set region in zoom or pan
-            begin = self.mouse['begin']
-            end = self.mouse['end']
+            begin = self.mouse["begin"]
+            end = self.mouse["end"]
 
-            if self.mouse['use'] == 'zoom':
+            if self.mouse["use"] == "zoom":
                 # set region for click (zero-width box)
-                if begin[0] - end[0] == 0 or \
-                        begin[1] - end[1] == 0:
-                    begin, end = self._computeZoomToPointAndRecenter(position = end, zoomtype = self.zoomtype)
+                if begin[0] - end[0] == 0 or begin[1] - end[1] == 0:
+                    begin, end = self._computeZoomToPointAndRecenter(
+                        position=end, zoomtype=self.zoomtype
+                    )
             self.Zoom(begin, end, self.zoomtype)
 
             # redraw map
-            self.UpdateMap(render = True)
+            self.UpdateMap(render=True)
 
             # update statusbar
-###############rashad
-#            self.frame.StatusbarUpdate()
-#
-#        elif self.mouse["use"] == "query":
-#            self.frame.Query(self.mouse['end'][0], self.mouse['end'][1])
-#
-#        elif self.mouse["use"] in ["measure", "profile"]:
-#            # measure or profile
-#            if self.mouse["use"] == "measure":
-#                self.frame.MeasureDist(self.mouse['begin'], self.mouse['end'])
-#
-#            self.polycoords.append(self.Pixel2Cell(self.mouse['end']))
-#            self.ClearLines(pdc = self.pdcTmp)
-#            self.DrawLines(pdc = self.pdcTmp)
-#
-#        elif self.mouse["use"] == "pointer" and \
-#                not self.frame.IsStandalone() and \
-#                self.frame.GetLayerManager().gcpmanagement:
-#            # -> GCP manager
-#            if self.frame.GetToolbar('gcpdisp'):
-#                coord = self.Pixel2Cell(self.mouse['end'])
-#                if self.frame.MapWindow == self.frame.SrcMapWindow:
-#                    coordtype = 'source'
-#                else:
-#                    coordtype = 'target'
-#
-#                self.frame.GetLayerManager().gcpmanagement.SetGCPData(coordtype, coord, self, confirm = True)
-#                self.UpdateMap(render = False, renderVector = False)
+        ###############rashad
+        #            self.frame.StatusbarUpdate()
+        #
+        #        elif self.mouse["use"] == "query":
+        #            self.frame.Query(self.mouse['end'][0], self.mouse['end'][1])
+        #
+        #        elif self.mouse["use"] in ["measure", "profile"]:
+        #            # measure or profile
+        #            if self.mouse["use"] == "measure":
+        #                self.frame.MeasureDist(self.mouse['begin'], self.mouse['end'])
+        #
+        #            self.polycoords.append(self.Pixel2Cell(self.mouse['end']))
+        #            self.ClearLines(pdc = self.pdcTmp)
+        #            self.DrawLines(pdc = self.pdcTmp)
+        #
+        #        elif self.mouse["use"] == "pointer" and \
+        #                not self.frame.IsStandalone() and \
+        #                self.frame.GetLayerManager().gcpmanagement:
+        #            # -> GCP manager
+        #            if self.frame.GetToolbar('gcpdisp'):
+        #                coord = self.Pixel2Cell(self.mouse['end'])
+        #                if self.frame.MapWindow == self.frame.SrcMapWindow:
+        #                    coordtype = 'source'
+        #                else:
+        #                    coordtype = 'target'
+        #
+        #                self.frame.GetLayerManager().gcpmanagement.SetGCPData(coordtype, coord, self, confirm = True)
+        #                self.UpdateMap(render = False, renderVector = False)
 
-        elif self.mouse["use"] == "pointer" and \
-                hasattr(self, "digit"):
+        elif self.mouse["use"] == "pointer" and hasattr(self, "digit"):
             self._onLeftUp(event)
 
-        elif (self.mouse['use'] == 'pointer' and
-                self.dragid >= 0):
+        elif self.mouse["use"] == "pointer" and self.dragid >= 0:
             # end drag of overlay decoration
 
             if self.dragid < 99 and self.dragid in self.overlays:
                 self.overlays[self.dragid].coords = self.pdc.GetIdBounds(self.dragid)
             elif self.dragid > 100 and self.dragid in self.textdict:
-                self.textdict[self.dragid]['bbox'] = self.pdc.GetIdBounds(self.dragid)
+                self.textdict[self.dragid]["bbox"] = self.pdc.GetIdBounds(self.dragid)
             else:
                 pass
             self.dragid = None
             self.currtxtid = None
-#########rashad
-#        elif self.mouse['use'] == 'legend':
-#            self.frame.dialogs['legend'].resizeBtn.SetValue(False)
-#            screenSize = self.GetClientSizeTuple()
-#            self.overlays[1].ResizeLegend(self.mouse["begin"], self.mouse["end"], screenSize)
 
-#            self.frame.MapWindow.SetCursor(self.frame.cursors["default"])
-#            self.frame.MapWindow.mouse['use'] = 'pointer'
-#
-#            self.UpdateMap()
+    #########rashad
+    #        elif self.mouse['use'] == 'legend':
+    #            self.frame.dialogs['legend'].resizeBtn.SetValue(False)
+    #            screenSize = self.GetClientSizeTuple()
+    #            self.overlays[1].ResizeLegend(self.mouse["begin"], self.mouse["end"], screenSize)
+
+    #            self.frame.MapWindow.SetCursor(self.frame.cursors["default"])
+    #            self.frame.MapWindow.mouse['use'] = 'pointer'
+    #
+    #            self.UpdateMap()
 
     def OnButtonDClick(self, event):
-        """!Mouse button double click
-        """
-        Debug.msg (5, "BufferedWindow2.OnButtonDClick(): use=%s" %
-                   self.mouse["use"])
+        """!Mouse button double click"""
+        Debug.msg(5, "BufferedWindow2.OnButtonDClick(): use=%s" % self.mouse["use"])
 
         if self.mouse["use"] == "measure":
             # measure
             self.ClearLines(pdc=self.pdcTmp)
             self.polycoords = []
-            self.mouse['use'] = 'pointer'
-            self.mouse['box'] = 'point'
-            self.mouse['end'] = [0, 0]
+            self.mouse["use"] = "pointer"
+            self.mouse["box"] = "point"
+            self.mouse["end"] = [0, 0]
             self.Refresh()
-#############rashad
-            #self.SetCursor(self.frame.cursors["default"])
+        #############rashad
+        # self.SetCursor(self.frame.cursors["default"])
 
-        elif self.mouse["use"] != "profile" or \
-                (self.mouse['use'] != 'pointer' and
-                     hasattr(self, "digit")):
-               # select overlay decoration options dialog
+        elif self.mouse["use"] != "profile" or (
+            self.mouse["use"] != "pointer" and hasattr(self, "digit")
+        ):
+            # select overlay decoration options dialog
             clickposition = event.GetPositionTuple()[:]
-            idlist = self.pdc.FindObjects(clickposition[0], clickposition[1], self.hitradius)
+            idlist = self.pdc.FindObjects(
+                clickposition[0], clickposition[1], self.hitradius
+            )
             if idlist == []:
                 return
             self.dragid = idlist[0]
 
             # self.ovlcoords[self.dragid] = self.pdc.GetIdBounds(self.dragid)
-#############rashad
-#            if self.dragid > 100:
-#                self.currtxtid = self.dragid
-#                self.frame.OnAddText(None)
-#            elif self.dragid == 0:
-#                self.frame.AddBarscale()
-#            elif self.dragid == 1:
-#                self.frame.AddLegend()
+
+    #############rashad
+    #            if self.dragid > 100:
+    #                self.currtxtid = self.dragid
+    #                self.frame.OnAddText(None)
+    #            elif self.dragid == 0:
+    #                self.frame.AddBarscale()
+    #            elif self.dragid == 1:
+    #                self.frame.AddLegend()
 
     def OnRightDown(self, event):
-        """!Right mouse button pressed
-        """
-        Debug.msg (5, "BufferedWindow2.OnRightDown(): use=%s" %
-                   self.mouse["use"])
+        """!Right mouse button pressed"""
+        Debug.msg(5, "BufferedWindow2.OnRightDown(): use=%s" % self.mouse["use"])
 
         if hasattr(self, "digit"):
             self._onRightDown(event)
@@ -1297,10 +1379,8 @@ class BufferedWindow2(MapWindow, wx.Window):
         event.Skip()
 
     def OnRightUp(self, event):
-        """!Right mouse button released
-        """
-        Debug.msg (5, "BufferedWindow2.OnRightUp(): use=%s" %
-                   self.mouse["use"])
+        """!Right mouse button released"""
+        Debug.msg(5, "BufferedWindow2.OnRightUp(): use=%s" % self.mouse["use"])
 
         if hasattr(self, "digit"):
             self._onRightUp(event)
@@ -1311,52 +1391,47 @@ class BufferedWindow2(MapWindow, wx.Window):
         event.Skip()
 
     def OnMiddleDown(self, event):
-        """!Middle mouse button pressed
-        """
+        """!Middle mouse button pressed"""
         if not event:
             return
 
-        self.mouse['begin'] = event.GetPositionTuple()[:]
+        self.mouse["begin"] = event.GetPositionTuple()[:]
 
     def OnMiddleUp(self, event):
-        """!Middle mouse button released
-        """
-        self.mouse['end'] = event.GetPositionTuple()[:]
+        """!Middle mouse button released"""
+        self.mouse["end"] = event.GetPositionTuple()[:]
 
         # set region in zoom or pan
-        begin = self.mouse['begin']
-        end = self.mouse['end']
+        begin = self.mouse["begin"]
+        end = self.mouse["end"]
 
-        self.Zoom(begin, end, 0) # no zoom
+        self.Zoom(begin, end, 0)  # no zoom
 
         # redraw map
-        self.UpdateMap(render = True)
+        self.UpdateMap(render=True)
 
         # update statusbar
         self.frame.StatusbarUpdate()
 
     def OnMouseEnter(self, event):
-        """!Mouse entered window and no mouse buttons were pressed
+        """!Mouse entered window and no mouse buttons were pressed"""
 
-        """
-#############rashad
-#        if not self.frame.IsStandalone() and \
-#                self.frame.GetLayerManager().gcpmanagement:
-#            if self.frame.GetToolbar('gcpdisp'):
-#                if not self.frame.MapWindow == self:
-#                    self.frame.MapWindow = self
-#                    self.frame.Map = self.Map
-#                    self.frame.UpdateActive(self)
-#                    # needed for wingrass
-#                    self.SetFocus()
-#        else:
-#            event.Skip()
+    #############rashad
+    #        if not self.frame.IsStandalone() and \
+    #                self.frame.GetLayerManager().gcpmanagement:
+    #            if self.frame.GetToolbar('gcpdisp'):
+    #                if not self.frame.MapWindow == self:
+    #                    self.frame.MapWindow = self
+    #                    self.frame.Map = self.Map
+    #                    self.frame.UpdateActive(self)
+    #                    # needed for wingrass
+    #                    self.SetFocus()
+    #        else:
+    #            event.Skip()
 
     def OnMouseMoving(self, event):
-        """!Motion event and no mouse buttons were pressed
-        """
-        if self.mouse["use"] == "pointer" and \
-                hasattr(self, "digit"):
+        """!Motion event and no mouse buttons were pressed"""
+        if self.mouse["use"] == "pointer" and hasattr(self, "digit"):
             self._onMouseMoving(event)
 
         event.Skip()
@@ -1367,14 +1442,13 @@ class BufferedWindow2(MapWindow, wx.Window):
         if wx.TheClipboard.Open():
             do = wx.TextDataObject()
             # TODO: put delimiter in settings and apply also for Go to in statusbar
-            delim = ';'
+            delim = ";"
             do.SetText(str(e) + delim + str(n))
             wx.TheClipboard.SetData(do)
             wx.TheClipboard.Close()
 
-    def ClearLines(self, pdc = None):
-        """!Clears temporary drawn lines from PseudoDC
-        """
+    def ClearLines(self, pdc=None):
+        """!Clears temporary drawn lines from PseudoDC"""
         if not pdc:
             pdc = self.pdcTmp
         try:
@@ -1389,8 +1463,11 @@ class BufferedWindow2(MapWindow, wx.Window):
         except:
             pass
 
-        Debug.msg(4, "BufferedWindow2.ClearLines(): lineid=%s, plineid=%s" %
-                  (self.lineid, self.plineid))
+        Debug.msg(
+            4,
+            "BufferedWindow2.ClearLines(): lineid=%s, plineid=%s"
+            % (self.lineid, self.plineid),
+        )
 
         return True
 
@@ -1422,8 +1499,7 @@ class BufferedWindow2(MapWindow, wx.Window):
         return (east, north)
 
     def Cell2Pixel(self, (east, north)):
-        """!Convert real word coordinates to image coordinates
-        """
+        """!Convert real word coordinates to image coordinates"""
         try:
             east = float(east)
             north = float(north)
@@ -1444,15 +1520,14 @@ class BufferedWindow2(MapWindow, wx.Window):
         return (x, y)
 
     def Zoom(self, begin, end, zoomtype):
-        """!Calculates new region while (un)zoom/pan-ing
-        """
+        """!Calculates new region while (un)zoom/pan-ing"""
         x1, y1 = begin
         x2, y2 = end
         newreg = {}
 
         # threshold - too small squares do not make sense
         # can only zoom to windows of > 5x5 screen pixels
-        if abs(x2-x1) > 5 and abs(y2-y1) > 5 and zoomtype != 0:
+        if abs(x2 - x1) > 5 and abs(y2 - y1) > 5 and zoomtype != 0:
             if x1 > x2:
                 x1, x2 = x2, x1
             if y1 > y2:
@@ -1460,16 +1535,18 @@ class BufferedWindow2(MapWindow, wx.Window):
 
             # zoom in
             if zoomtype > 0:
-                newreg['w'], newreg['n'] = self.Pixel2Cell((x1, y1))
-                newreg['e'], newreg['s'] = self.Pixel2Cell((x2, y2))
+                newreg["w"], newreg["n"] = self.Pixel2Cell((x1, y1))
+                newreg["e"], newreg["s"] = self.Pixel2Cell((x2, y2))
 
             # zoom out
             elif zoomtype < 0:
-                newreg['w'], newreg['n'] = self.Pixel2Cell((-x1 * 2, -y1 * 2))
-                newreg['e'], newreg['s'] = self.Pixel2Cell((self.Map.width + 2 *
-                                                                (self.Map.width - x2),
-                                                            self.Map.height + 2 *
-                                                                (self.Map.height - y2)))
+                newreg["w"], newreg["n"] = self.Pixel2Cell((-x1 * 2, -y1 * 2))
+                newreg["e"], newreg["s"] = self.Pixel2Cell(
+                    (
+                        self.Map.width + 2 * (self.Map.width - x2),
+                        self.Map.height + 2 * (self.Map.height - y2),
+                    )
+                )
         # pan
         elif zoomtype == 0:
             dx = x1 - x2
@@ -1477,46 +1554,49 @@ class BufferedWindow2(MapWindow, wx.Window):
             if dx == 0 and dy == 0:
                 dx = x1 - self.Map.width / 2
                 dy = y1 - self.Map.height / 2
-            newreg['w'], newreg['n'] = self.Pixel2Cell((dx, dy))
-            newreg['e'], newreg['s'] = self.Pixel2Cell((self.Map.width + dx,
-                                                        self.Map.height + dy))
+            newreg["w"], newreg["n"] = self.Pixel2Cell((dx, dy))
+            newreg["e"], newreg["s"] = self.Pixel2Cell(
+                (self.Map.width + dx, self.Map.height + dy)
+            )
 
         # if new region has been calculated, set the values
         if newreg != {}:
             # LL locations
-            if self.Map.projinfo['proj'] == 'll':
-                self.Map.region['n'] = min(self.Map.region['n'], 90.0)
-                self.Map.region['s'] = max(self.Map.region['s'], -90.0)
+            if self.Map.projinfo["proj"] == "ll":
+                self.Map.region["n"] = min(self.Map.region["n"], 90.0)
+                self.Map.region["s"] = max(self.Map.region["s"], -90.0)
 
-            ce = newreg['w'] + (newreg['e'] - newreg['w']) / 2
-            cn = newreg['s'] + (newreg['n'] - newreg['s']) / 2
+            ce = newreg["w"] + (newreg["e"] - newreg["w"]) / 2
+            cn = newreg["s"] + (newreg["n"] - newreg["s"]) / 2
 
             # calculate new center point and display resolution
-            self.Map.region['center_easting'] = ce
-            self.Map.region['center_northing'] = cn
-            self.Map.region['ewres'] = (newreg['e'] - newreg['w']) / self.Map.width
-            self.Map.region['nsres'] = (newreg['n'] - newreg['s']) / self.Map.height
-#############rashad
-#            if not self.frame.HasProperty('alignExtent') or \
-#                    self.frame.GetProperty('alignExtent'):
-#                self.Map.AlignExtentFromDisplay()
-#            else:
-#                for k in ('n', 's', 'e', 'w'):
-#                    self.Map.region[k] = newreg[k]
+            self.Map.region["center_easting"] = ce
+            self.Map.region["center_northing"] = cn
+            self.Map.region["ewres"] = (newreg["e"] - newreg["w"]) / self.Map.width
+            self.Map.region["nsres"] = (newreg["n"] - newreg["s"]) / self.Map.height
+            #############rashad
+            #            if not self.frame.HasProperty('alignExtent') or \
+            #                    self.frame.GetProperty('alignExtent'):
+            #                self.Map.AlignExtentFromDisplay()
+            #            else:
+            #                for k in ('n', 's', 'e', 'w'):
+            #                    self.Map.region[k] = newreg[k]
 
-            if hasattr(self, "digit") and \
-                    hasattr(self, "moveInfo"):
+            if hasattr(self, "digit") and hasattr(self, "moveInfo"):
                 self._zoom(None)
 
-            self.ZoomHistory(self.Map.region['n'], self.Map.region['s'],
-                             self.Map.region['e'], self.Map.region['w'])
+            self.ZoomHistory(
+                self.Map.region["n"],
+                self.Map.region["s"],
+                self.Map.region["e"],
+                self.Map.region["w"],
+            )
 
         if self.redrawAll is False:
             self.redrawAll = True
 
     def ZoomBack(self):
-        """!Zoom to previous extents in zoomhistory list
-        """
+        """!Zoom to previous extents in zoomhistory list"""
         zoom = list()
 
         if len(self.zoomhistory) > 1:
@@ -1524,14 +1604,12 @@ class BufferedWindow2(MapWindow, wx.Window):
             zoom = self.zoomhistory[-1]
 
         # disable tool if stack is empty
-        if len(self.zoomhistory) < 2: # disable tool
+        if len(self.zoomhistory) < 2:  # disable tool
             toolbar = self.frame.GetMapToolbar()
-            toolbar.Enable('zoomBack', enable = False)
+            toolbar.Enable("zoomBack", enable=False)
 
         # zoom to selected region
-        self.Map.GetRegion(n = zoom[0], s = zoom[1],
-                           e = zoom[2], w = zoom[3],
-                           update = True)
+        self.Map.GetRegion(n=zoom[0], s=zoom[1], e=zoom[2], w=zoom[3], update=True)
         # update map
         self.UpdateMap()
 
@@ -1548,17 +1626,19 @@ class BufferedWindow2(MapWindow, wx.Window):
         @return removed history item if exists (or None)
         """
         removed = None
-        self.zoomhistory.append((n,s,e,w))
+        self.zoomhistory.append((n, s, e, w))
 
         if len(self.zoomhistory) > 10:
             removed = self.zoomhistory.pop(0)
 
         if removed:
-            Debug.msg(4, "BufferedWindow2.ZoomHistory(): hist=%s, removed=%s" %
-                      (self.zoomhistory, removed))
+            Debug.msg(
+                4,
+                "BufferedWindow2.ZoomHistory(): hist=%s, removed=%s"
+                % (self.zoomhistory, removed),
+            )
         else:
-            Debug.msg(4, "BufferedWindow2.ZoomHistory(): hist=%s" %
-                      (self.zoomhistory))
+            Debug.msg(4, "BufferedWindow2.ZoomHistory(): hist=%s" % (self.zoomhistory))
 
         # update toolbar
         if len(self.zoomhistory) > 1:
@@ -1568,7 +1648,7 @@ class BufferedWindow2(MapWindow, wx.Window):
 
         toolbar = self.frame.GetMapToolbar()
 
-        toolbar.Enable('zoomBack', enable)
+        toolbar.Enable("zoomBack", enable)
 
         self.zoomChanged.emit()
 
@@ -1578,7 +1658,7 @@ class BufferedWindow2(MapWindow, wx.Window):
         """!Reset zoom history"""
         self.zoomhistory = list()
 
-    def ZoomToMap(self, layers = None, ignoreNulls = False, render = True):
+    def ZoomToMap(self, layers=None, ignoreNulls=False, render=True):
         """!Set display extents to match selected raster
         or vector map(s).
 
@@ -1587,8 +1667,8 @@ class BufferedWindow2(MapWindow, wx.Window):
         @param render True to re-render display
         """
         if not layers:
-            layers = self.tree.GetSelectedLayer(multi = True, checkedOnly = False)
-            layers = [self.tree.GetLayerInfo(layer, key = 'maplayer') for layer in layers]
+            layers = self.tree.GetSelectedLayer(multi=True, checkedOnly=False)
+            layers = [self.tree.GetLayerInfo(layer, key="maplayer") for layer in layers]
 
         if not layers:
             return
@@ -1598,29 +1678,28 @@ class BufferedWindow2(MapWindow, wx.Window):
         updated = False
         for l in layers:
             # only raster/vector layers are currently supported
-            if l.type == 'raster':
+            if l.type == "raster":
                 rast.append(l.GetName())
-            elif l.type == 'vector':
-                if hasattr(self, "digit") and \
-                        self.toolbar.GetLayer() == l:
+            elif l.type == "vector":
+                if hasattr(self, "digit") and self.toolbar.GetLayer() == l:
                     w, s, b, e, n, t = self.digit.GetDisplay().GetMapBoundingBox()
-                    self.Map.GetRegion(n = n, s = s, w = w, e = e,
-                                       update = True)
+                    self.Map.GetRegion(n=n, s=s, w=w, e=e, update=True)
                     updated = True
                 else:
                     vect.append(l.name)
-            elif l.type == 'rgb':
+            elif l.type == "rgb":
                 for rname in l.GetName().splitlines():
                     rast.append(rname)
 
         if not updated:
-            self.Map.GetRegion(rast = rast,
-                               vect = vect,
-                               zoom = ignoreNulls,
-                               update = True)
+            self.Map.GetRegion(rast=rast, vect=vect, zoom=ignoreNulls, update=True)
 
-        self.ZoomHistory(self.Map.region['n'], self.Map.region['s'],
-                         self.Map.region['e'], self.Map.region['w'])
+        self.ZoomHistory(
+            self.Map.region["n"],
+            self.Map.region["s"],
+            self.Map.region["e"],
+            self.Map.region["w"],
+        )
 
         if render:
             self.UpdateMap()
@@ -1633,44 +1712,49 @@ class BufferedWindow2(MapWindow, wx.Window):
         """
         self.Map.region = self.Map.GetRegion()
 
-        self.ZoomHistory(self.Map.region['n'], self.Map.region['s'],
-                         self.Map.region['e'], self.Map.region['w'])
+        self.ZoomHistory(
+            self.Map.region["n"],
+            self.Map.region["s"],
+            self.Map.region["e"],
+            self.Map.region["w"],
+        )
 
         self.UpdateMap()
 
         self.frame.StatusbarUpdate()
 
     def ZoomToDefault(self):
-        """!Set display geometry to match default region settings
-        """
-        self.Map.region = self.Map.GetRegion(default = True)
-        self.Map.AdjustRegion() # aling region extent to the display
+        """!Set display geometry to match default region settings"""
+        self.Map.region = self.Map.GetRegion(default=True)
+        self.Map.AdjustRegion()  # aling region extent to the display
 
-        self.ZoomHistory(self.Map.region['n'], self.Map.region['s'],
-                         self.Map.region['e'], self.Map.region['w'])
+        self.ZoomHistory(
+            self.Map.region["n"],
+            self.Map.region["s"],
+            self.Map.region["e"],
+            self.Map.region["w"],
+        )
 
         self.UpdateMap()
 
         self.frame.StatusbarUpdate()
 
-
     def GoTo(self, e, n):
         region = self.Map.GetCurrentRegion()
 
-        region['center_easting'], region['center_northing'] = e, n
+        region["center_easting"], region["center_northing"] = e, n
 
-        dn = (region['nsres'] * region['rows']) / 2.
-        region['n'] = region['center_northing'] + dn
-        region['s'] = region['center_northing'] - dn
-        de = (region['ewres'] * region['cols']) / 2.
-        region['e'] = region['center_easting'] + de
-        region['w'] = region['center_easting'] - de
+        dn = (region["nsres"] * region["rows"]) / 2.0
+        region["n"] = region["center_northing"] + dn
+        region["s"] = region["center_northing"] - dn
+        de = (region["ewres"] * region["cols"]) / 2.0
+        region["e"] = region["center_easting"] + de
+        region["w"] = region["center_easting"] - de
 
         self.Map.AdjustRegion()
 
         # add to zoom history
-        self.ZoomHistory(region['n'], region['s'],
-                                   region['e'], region['w'])
+        self.ZoomHistory(region["n"], region["s"], region["e"], region["w"])
         self.UpdateMap()
 
     def DisplayToWind(self):
@@ -1684,15 +1768,17 @@ class BufferedWindow2(MapWindow, wx.Window):
         # We ONLY want to set extents here. Don't mess with resolution. Leave that
         # for user to set explicitly with g.region
         new = self.Map.AlignResolution()
-        RunCommand('g.region',
-                   parent = self,
-                   overwrite = True,
-                   n = new['n'],
-                   s = new['s'],
-                   e = new['e'],
-                   w = new['w'],
-                   rows = int(new['rows']),
-                   cols = int(new['cols']))
+        RunCommand(
+            "g.region",
+            parent=self,
+            overwrite=True,
+            n=new["n"],
+            s=new["s"],
+            e=new["e"],
+            w=new["w"],
+            rows=int(new["rows"]),
+            cols=int(new["cols"]),
+        )
 
         if tmpreg:
             os.environ["GRASS_REGION"] = tmpreg
@@ -1701,34 +1787,38 @@ class BufferedWindow2(MapWindow, wx.Window):
         """!Set display geometry to match extents in
         saved region file
         """
-        dlg = SavedRegion(parent = self,
-                          title = _("Zoom to saved region extents"),
-                          loadsave = 'load')
+        dlg = SavedRegion(
+            parent=self, title=_("Zoom to saved region extents"), loadsave="load"
+        )
 
         if dlg.ShowModal() == wx.ID_CANCEL or not dlg.GetName():
             dlg.Destroy()
             return
 
-        if not grass.find_file(name = dlg.GetName(), element = 'windows')['name']:
-            wx.MessageBox(parent = self,
-                          message = _("Region <%s> not found. Operation canceled.") % dlg.GetName(),
-                          caption = _("Error"), style = wx.ICON_ERROR | wx.OK | wx.CENTRE)
+        if not grass.find_file(name=dlg.GetName(), element="windows")["name"]:
+            wx.MessageBox(
+                parent=self,
+                message=_("Region <%s> not found. Operation canceled.") % dlg.GetName(),
+                caption=_("Error"),
+                style=wx.ICON_ERROR | wx.OK | wx.CENTRE,
+            )
             dlg.Destroy()
             return
 
-        self.Map.GetRegion(regionName = dlg.GetName(),
-                           update = True)
+        self.Map.GetRegion(regionName=dlg.GetName(), update=True)
 
         dlg.Destroy()
 
-        self.ZoomHistory(self.Map.region['n'],
-                         self.Map.region['s'],
-                         self.Map.region['e'],
-                         self.Map.region['w'])
+        self.ZoomHistory(
+            self.Map.region["n"],
+            self.Map.region["s"],
+            self.Map.region["e"],
+            self.Map.region["w"],
+        )
 
         self.UpdateMap()
 
-    def SaveRegion(self, display = True):
+    def SaveRegion(self, display=True):
         """!Save display extents/compulational region to named region
         file.
 
@@ -1739,17 +1829,22 @@ class BufferedWindow2(MapWindow, wx.Window):
         else:
             title = _("Save computational region to region file")
 
-        dlg = SavedRegion(parent = self, title = title, loadsave = 'save')
+        dlg = SavedRegion(parent=self, title=title, loadsave="save")
         if dlg.ShowModal() == wx.ID_CANCEL or not dlg.GetName():
             dlg.Destroy()
             return
 
         # test to see if it already exists and ask permission to overwrite
-        if grass.find_file(name = dlg.GetName(), element = 'windows')['name']:
-            overwrite = wx.MessageBox(parent = self,
-                                      message = _("Region file <%s> already exists. "
-                                                  "Do you want to overwrite it?") % (dlg.GetName()),
-                                      caption = _("Warning"), style = wx.YES_NO | wx.CENTRE)
+        if grass.find_file(name=dlg.GetName(), element="windows")["name"]:
+            overwrite = wx.MessageBox(
+                parent=self,
+                message=_(
+                    "Region file <%s> already exists. " "Do you want to overwrite it?"
+                )
+                % (dlg.GetName()),
+                caption=_("Warning"),
+                style=wx.YES_NO | wx.CENTRE,
+            )
             if overwrite != wx.YES:
                 dlg.Destroy()
                 return
@@ -1766,11 +1861,7 @@ class BufferedWindow2(MapWindow, wx.Window):
 
         @param name region name
         """
-        RunCommand('g.region',
-                   overwrite = True,
-                   parent = self,
-                   flags = 'u',
-                   save = name)
+        RunCommand("g.region", overwrite=True, parent=self, flags="u", save=name)
 
     def _saveDisplayRegion(self, name):
         """!Save display extents to region file
@@ -1783,22 +1874,24 @@ class BufferedWindow2(MapWindow, wx.Window):
         if tmpreg:
             del os.environ["GRASS_REGION"]
 
-        RunCommand('g.region',
-                   overwrite = True,
-                   parent = self,
-                   flags = 'u',
-                   n = new['n'],
-                   s = new['s'],
-                   e = new['e'],
-                   w = new['w'],
-                   rows = int(new['rows']),
-                   cols = int(new['cols']),
-                   save = name)
+        RunCommand(
+            "g.region",
+            overwrite=True,
+            parent=self,
+            flags="u",
+            n=new["n"],
+            s=new["s"],
+            e=new["e"],
+            w=new["w"],
+            rows=int(new["rows"]),
+            cols=int(new["cols"]),
+            save=name,
+        )
 
         if tmpreg:
             os.environ["GRASS_REGION"] = tmpreg
 
-    def Distance(self, beginpt, endpt, screen = True):
+    def Distance(self, beginpt, endpt, screen=True):
         """!Calculates distance
 
         Ctypes required for LL-locations
@@ -1814,10 +1907,10 @@ class BufferedWindow2(MapWindow, wx.Window):
             e1, n1 = beginpt
             e2, n2 = endpt
 
-        dEast = (e2 - e1)
-        dNorth = (n2 - n1)
+        dEast = e2 - e1
+        dNorth = n2 - n1
 
-        if self.frame.Map.projinfo['proj'] == 'll' and haveCtypes:
+        if self.frame.Map.projinfo["proj"] == "ll" and haveCtypes:
             dist = gislib.G_distance(e1, n1, e2, n2)
         else:
             dist = math.sqrt(math.pow((dEast), 2) + math.pow((dNorth), 2))
@@ -1828,7 +1921,7 @@ class BufferedWindow2(MapWindow, wx.Window):
         """!Get render.Map() instance"""
         return self.Map
 
-    def RegisterMouseEventHandler(self, event, handler, cursor = None):
+    def RegisterMouseEventHandler(self, event, handler, cursor=None):
         """!Calls UpdateTools to manage connected toolbars"""
         self.frame.UpdateTools(None)
         MapWindow.RegisterMouseEventHandler(self, event, handler, cursor)
@@ -1838,12 +1931,12 @@ class BufferedWindow2(MapWindow, wx.Window):
         MapWindow.UnregisterMouseEventHandler(self, event, handler)
 
         # sets pointer mode
-        toolbar = self.frame.toolbars['map']
-        toolbar.action['id'] = vars(toolbar)["pointer"]
+        toolbar = self.frame.toolbars["map"]
+        toolbar.action["id"] = vars(toolbar)["pointer"]
         toolbar.OnTool(None)
-        self.frame.OnPointer(event = None)
+        self.frame.OnPointer(event=None)
 
-    def RegisterGraphicsToDraw(self, graphicsType, setStatusFunc = None, drawFunc = None):
+    def RegisterGraphicsToDraw(self, graphicsType, setStatusFunc=None, drawFunc=None):
         """! Method allows to register graphics to draw.
 
         @param type (string) - graphics type: "point" or "line"
@@ -1858,10 +1951,12 @@ class BufferedWindow2(MapWindow, wx.Window):
 
         @return reference to GraphicsSet, which was added.
         """
-        item = GraphicsSet(parentMapWin = self,
-                           graphicsType = graphicsType,
-                           setStatusFunc = setStatusFunc,
-                           drawFunc = drawFunc)
+        item = GraphicsSet(
+            parentMapWin=self,
+            graphicsType=graphicsType,
+            setStatusFunc=setStatusFunc,
+            drawFunc=drawFunc,
+        )
         self.graphicsSetList.append(item)
 
         return item
@@ -1880,17 +1975,18 @@ class BufferedWindow2(MapWindow, wx.Window):
 
         return False
 
+
 class GraphicsSet:
-    def __init__(self, parentMapWin, graphicsType, setStatusFunc = None, drawFunc = None):
+    def __init__(self, parentMapWin, graphicsType, setStatusFunc=None, drawFunc=None):
         """!Class, which contains instances of GraphicsSetItem and
-            draws them For description of parameters look at method
-            RegisterGraphicsToDraw in BufferedWindow2 class.
+        draws them For description of parameters look at method
+        RegisterGraphicsToDraw in BufferedWindow2 class.
         """
         self.pens = {
-            "default": wx.Pen(colour = wx.BLACK, width = 2, style = wx.SOLID),
-            "selected": wx.Pen(colour = wx.GREEN, width = 2, style = wx.SOLID),
-            "unused": wx.Pen(colour = wx.LIGHT_GREY, width = 2, style = wx.SOLID),
-            "highest": wx.Pen(colour = wx.RED, width = 2, style = wx.SOLID)
+            "default": wx.Pen(colour=wx.BLACK, width=2, style=wx.SOLID),
+            "selected": wx.Pen(colour=wx.GREEN, width=2, style=wx.SOLID),
+            "unused": wx.Pen(colour=wx.LIGHT_GREY, width=2, style=wx.SOLID),
+            "highest": wx.Pen(colour=wx.RED, width=2, style=wx.SOLID),
         }
 
         # list contains instances of GraphicsSetItem
@@ -1908,11 +2004,13 @@ class GraphicsSet:
             self.properties["size"] = 5
 
             self.properties["text"] = {}
-            self.properties["text"]['font'] = wx.Font(pointSize = self.properties["size"],
-                                                      family = wx.FONTFAMILY_DEFAULT,
-                                                      style = wx.FONTSTYLE_NORMAL,
-                                                      weight = wx.FONTWEIGHT_NORMAL)
-            self.properties["text"]['active'] = True
+            self.properties["text"]["font"] = wx.Font(
+                pointSize=self.properties["size"],
+                family=wx.FONTFAMILY_DEFAULT,
+                style=wx.FONTSTYLE_NORMAL,
+                weight=wx.FONTWEIGHT_NORMAL,
+            )
+            self.properties["text"]["active"] = True
 
             self.drawFunc = self.parentMapWin.DrawCross
 
@@ -1942,25 +2040,31 @@ class GraphicsSet:
                 coords = self.parentMapWin.Cell2Pixel(item.GetCoords())
                 size = self.properties["size"]
 
-                self.properties["text"]['coords'] = [coords[0] + size, coords[1] + size, size, size]
-                self.properties["text"]['color'] = self.parentMapWin.pen.GetColour()
-                self.properties["text"]['text'] = item.GetPropertyVal("label")
+                self.properties["text"]["coords"] = [
+                    coords[0] + size,
+                    coords[1] + size,
+                    size,
+                    size,
+                ]
+                self.properties["text"]["color"] = self.parentMapWin.pen.GetColour()
+                self.properties["text"]["text"] = item.GetPropertyVal("label")
 
-                self.drawFunc(pdc = pdc,
-                              coords = coords,
-                              text = self.properties["text"],
-                              size = self.properties["size"])
+                self.drawFunc(
+                    pdc=pdc,
+                    coords=coords,
+                    text=self.properties["text"],
+                    size=self.properties["size"],
+                )
 
             elif self.graphicsType == "line":
                 if item.GetPropertyVal("pen"):
                     self.parentMapWin.polypen = self.pens[item.GetPropertyVal("pen")]
                 else:
                     self.parentMapWin.polypen = self.pens["default"]
-                self.drawFunc(pdc = pdc,
-                              polycoords = coords)
+                self.drawFunc(pdc=pdc, polycoords=coords)
             itemOrderNum += 1
 
-    def AddItem(self, coords, penName = None, label = None, hide = False):
+    def AddItem(self, coords, penName=None, label=None, hide=False):
         """!Append item to the list.
 
         Added item is put to the last place in drawing order.
@@ -1976,7 +2080,7 @@ class GraphicsSet:
 
         @return (GraphicsSetItem) - added item reference
         """
-        item = GraphicsSetItem(coords = coords, penName = penName, label = label, hide = hide)
+        item = GraphicsSetItem(coords=coords, penName=penName, label=label, hide=hide)
         self.itemsList.append(item)
 
         return item
@@ -2087,9 +2191,10 @@ class GraphicsSet:
         @return True - if order was changed
         @return False - if drawNum is out of range or item was not found
         """
-        if drawNum < len(self.itemsList) and drawNum >= 0 and \
-            item in self.itemsList:
-            self.itemsList.insert(drawNum, self.itemsList.pop(self.itemsList.index(item)))
+        if drawNum < len(self.itemsList) and drawNum >= 0 and item in self.itemsList:
+            self.itemsList.insert(
+                drawNum, self.itemsList.pop(self.itemsList.index(item))
+            )
             return True
 
         return False
@@ -2107,8 +2212,9 @@ class GraphicsSet:
         except ValueError:
             return None
 
+
 class GraphicsSetItem:
-    def __init__(self, coords, penName = None, label = None, hide = False):
+    def __init__(self, coords, penName=None, label=None, hide=False):
         """!Could be point or line according to graphicsType in
         GraphicsSet class
 
@@ -2122,9 +2228,7 @@ class GraphicsSetItem:
         """
         self.coords = coords
 
-        self.properties = {"penName": penName,
-                            "hide": hide,
-                            "label": label}
+        self.properties = {"penName": penName, "hide": hide, "label": label}
 
     def SetPropertyVal(self, propName, propVal):
         """!Set property value

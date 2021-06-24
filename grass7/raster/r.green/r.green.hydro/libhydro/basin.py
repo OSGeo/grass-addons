@@ -16,6 +16,7 @@
 
 import itertools
 import math
+
 # import system libraries
 import os
 
@@ -26,22 +27,20 @@ from grass.pygrass.vector import VectorTopo
 from grass.script import core as gcore
 from grass.script import mapcalc
 from grass.script.utils import set_path
+
 # finally import the module in the library
-from libgreen.utils import (dissolve_lines, get_coo, raster2compressM,
-                            raster2numpy)
+from libgreen.utils import dissolve_lines, get_coo, raster2compressM, raster2numpy
 
-#import pdb
-
+# import pdb
 
 
 try:
     from scipy import integrate
 except ImportError:
-    gcore.warning('You should install scipy to use this module: '
-                  'pip install scipy')
+    gcore.warning("You should install scipy to use this module: " "pip install scipy")
 
-set_path('r.green', 'libhydro', '..')
-set_path('r.green', 'libgreen', os.path.join('..', '..'))
+set_path("r.green", "libhydro", "..")
+set_path("r.green", "libgreen", os.path.join("..", ".."))
 
 
 def discharge_sum(list_basin, list_ID):
@@ -79,14 +78,14 @@ def check_new(b, lista, new):
     function in order to add the new ID upper to the added
     ID
     """
-#    ID_basin = b.ID_all[indice]
-#    for new in lista[ID_basin].up:
-#            b.ID_all.add(new)
-#    indice += 1
-#    if (indice < len(b.ID_all)):
-#        return check_new(b, lista, indice)
-#    else:
-#        return
+    #    ID_basin = b.ID_all[indice]
+    #    for new in lista[ID_basin].up:
+    #            b.ID_all.add(new)
+    #    indice += 1
+    #    if (indice < len(b.ID_all)):
+    #        return check_new(b, lista, indice)
+    #    else:
+    #        return
     if not new:
         return
     else:
@@ -96,10 +95,20 @@ def check_new(b, lista, new):
 
 
 class Basin(object):
-
-    def __init__(self, ID, h_mean=None, h_closure=0, discharge_own=None,
-                 discharge_tot=None, E_own=None, ID_all=None,
-                 E_up=None, area=None, length=None, up=None):
+    def __init__(
+        self,
+        ID,
+        h_mean=None,
+        h_closure=0,
+        discharge_own=None,
+        discharge_tot=None,
+        E_own=None,
+        ID_all=None,
+        E_up=None,
+        area=None,
+        length=None,
+        up=None,
+    ):
         """Instantiate a Basin object.: Define the class Basin in order
         to create a list
         of object basins with own discharge, mean elevation, closure elevation,
@@ -192,10 +201,9 @@ class Basin(object):
         self.area = area
         self.length = length
 
-        if ((E_own is None) and (h_mean is not None) and
-           (h_closure is not None)):
+        if (E_own is None) and (h_mean is not None) and (h_closure is not None):
 
-            delta = (self.h_mean-self.h_closure)
+            delta = self.h_mean - self.h_closure
             self.E_own = E_hydro(delta, self.discharge_own)
         else:
             self.E_own = E_own
@@ -221,18 +229,18 @@ class Basin(object):
         else:
             raise TypeError("E_up must be a dict")
 
-#    # provo ad assegnare un magic method in modo che ID_up
-#    # sia sempre un set
-#    def _get_up(self):
-#        return self.up
-#
-#    def _set_up(self, up):
-#        if isinstance(up, set):
-#            self.up = up
-#        else:
-#            raise TypeError("up must be a set")
-#
-#    up = property(fget=_get_up, fset=_set_up)
+    #    # provo ad assegnare un magic method in modo che ID_up
+    #    # sia sempre un set
+    #    def _get_up(self):
+    #        return self.up
+    #
+    #    def _set_up(self, up):
+    #        if isinstance(up, set):
+    #            self.up = up
+    #        else:
+    #            raise TypeError("up must be a set")
+    #
+    #    up = property(fget=_get_up, fset=_set_up)
 
     def _get_E_up(self):
         return self._E_up
@@ -257,7 +265,7 @@ class Basin(object):
                       object Basin
         """
         self.ID_all = self.up
-        #self.ID_all.union(set([99]))
+        # self.ID_all.union(set([99]))
         # indice = 0
         if not self.ID_all:
             return
@@ -271,18 +279,18 @@ class Basin(object):
         compute the specific energy for length unit of the basin
         TOFIX
         """
-        #pdb.set_trace()
-        E_spec = self.E_own/self.area  # kW/km2
+        # pdb.set_trace()
+        E_spec = self.E_own / self.area  # kW/km2
         if self.up:
             for i in self.E_up:
-                E_spec = E_spec + self.E_up[i]/(self.length/1000.0)
+                E_spec = E_spec + self.E_up[i] / (self.length / 1000.0)
         return E_spec
 
 
 class Station(object):
-
-    def __init__(self, ID, ID_bas=None, days=None, discharge=None,
-                 area=None, coord=None):
+    def __init__(
+        self, ID, ID_bas=None, days=None, discharge=None, area=None, coord=None
+    ):
         """Instantiate a Basin object.: Define the class Station in order
         to create a list
         of object station with duration curve and point coordinates.
@@ -311,9 +319,8 @@ class Station(object):
         self.coord = coord
 
     def mean(self):
-        """Return the mean value of discharge in the duration curve
-        """
-        Q = integrate.trapz(self.discharge, self.days)/365
+        """Return the mean value of discharge in the duration curve"""
+        Q = integrate.trapz(self.discharge, self.days) / 365
         return Q
 
 
@@ -327,26 +334,27 @@ def write_results2newvec(stream, E, basins_tot, inputs):
     tmp_thin = "tmprgreen_%i_thin" % pid
     tmp_clean = "tmprgreen_%i_clean" % pid
     gcore.run_command("r.thin", input=stream, output=tmp_thin)
-    gcore.run_command("r.to.vect", input=tmp_thin,
-                      flags='v',
-                      output=tmp_clean, type="line")
-    gcore.run_command("v.edit", map=tmp_clean, tool='delete', cats='0')
-    #pdb.set_trace()
-    gcore.run_command('v.build', map=tmp_clean)
+    gcore.run_command(
+        "r.to.vect", input=tmp_thin, flags="v", output=tmp_clean, type="line"
+    )
+    gcore.run_command("v.edit", map=tmp_clean, tool="delete", cats="0")
+    # pdb.set_trace()
+    gcore.run_command("v.build", map=tmp_clean)
     dissolve_lines(tmp_clean, E)
     # TODO: dissolve the areas with the same cat
     # adding columns
-    gcore.run_command("v.db.addcolumn", map=E,
-                      columns=
-                      "Qown double precision,"
-                      "Qtot double precision, Hmean double precision,"
-                      "H0 double precision, Eown_kW double precision,"
-                      "IDup1 int, Eup1_kW double precision,"
-                      "IDup2 int, Eup2_kW double precision,"
-                      "IDup3 int, Eup3_kW double precision,"
-                      "Etot_kW double precision")
-    gcore.run_command("db.dropcolumn", flags="f",
-                      table=E, column="label")
+    gcore.run_command(
+        "v.db.addcolumn",
+        map=E,
+        columns="Qown double precision,"
+        "Qtot double precision, Hmean double precision,"
+        "H0 double precision, Eown_kW double precision,"
+        "IDup1 int, Eup1_kW double precision,"
+        "IDup2 int, Eup2_kW double precision,"
+        "IDup3 int, Eup3_kW double precision,"
+        "Etot_kW double precision",
+    )
+    gcore.run_command("db.dropcolumn", flags="f", table=E, column="label")
     # Open database connection
     vec = VectorTopo(E)
     vec.open("rw")
@@ -358,41 +366,52 @@ def write_results2newvec(stream, E, basins_tot, inputs):
     # 4._Julio_Alterach_-_Evaluation_of_the_residual_potential_
     # hydropower_production_in_Italy
     # compute the lenght of the river in a basin
-    #import ipdb; ipdb.set_trace()
+    # import ipdb; ipdb.set_trace()
     for ID in inputs:
         length = 0
-        for l in vec.cat(ID, 'lines'):
+        for l in vec.cat(ID, "lines"):
             length += l.length()
         basins_tot[ID].length = length
-        db = [basins_tot[ID].discharge_own,
-              basins_tot[ID].discharge_tot,
-              basins_tot[ID].h_mean,
-              basins_tot[ID].h_closure,
-              basins_tot[ID].E_own]
+        db = [
+            basins_tot[ID].discharge_own,
+            basins_tot[ID].discharge_tot,
+            basins_tot[ID].h_mean,
+            basins_tot[ID].h_closure,
+            basins_tot[ID].E_own,
+        ]
         if len(basins_tot[ID].E_up) == 0:
-            db = db + [0, 0.0, 0, 0.0, 0, 0.0,
-                       basins_tot[ID].E_own]
+            db = db + [0, 0.0, 0, 0.0, 0, 0.0, basins_tot[ID].E_own]
         elif len(basins_tot[ID].E_up) == 1:
-            db = (db + [list(basins_tot[ID].E_up.keys())[0],
-                  list(basins_tot[ID].E_up.values())[0],
-                  0, 0.0, 0, 0.0, basins_tot[ID].E_own
-                  + sum(basins_tot[ID].E_up.values())])
+            db = db + [
+                list(basins_tot[ID].E_up.keys())[0],
+                list(basins_tot[ID].E_up.values())[0],
+                0,
+                0.0,
+                0,
+                0.0,
+                basins_tot[ID].E_own + sum(basins_tot[ID].E_up.values()),
+            ]
         elif len(basins_tot[ID].E_up) == 2:
-            db = (db + [list(basins_tot[ID].E_up.keys())[0],
-                  list(basins_tot[ID].E_up.values())[0],
-                  list(basins_tot[ID].E_up.keys())[1],
-                  list(basins_tot[ID].E_up.values())[1],
-                  0, 0.0, basins_tot[ID].E_own
-                  + sum(basins_tot[ID].E_up.values())])
+            db = db + [
+                list(basins_tot[ID].E_up.keys())[0],
+                list(basins_tot[ID].E_up.values())[0],
+                list(basins_tot[ID].E_up.keys())[1],
+                list(basins_tot[ID].E_up.values())[1],
+                0,
+                0.0,
+                basins_tot[ID].E_own + sum(basins_tot[ID].E_up.values()),
+            ]
         elif len(basins_tot[ID].E_up) == 3:
-            #pdb.set_trace()
-            db = (db + [list(basins_tot[ID].E_up.keys())[0],
-                  list(basins_tot[ID].E_up.values())[0],
-                  list(basins_tot[ID].E_up.keys())[1],
-                  list(basins_tot[ID].E_up.values())[1],
-                  list(basins_tot[ID].E_up.keys())[2],
-                  list(basins_tot[ID].E_up.values())[2],
-                  basins_tot[ID].E_own + sum(basins_tot[ID].E_up.values())])
+            # pdb.set_trace()
+            db = db + [
+                list(basins_tot[ID].E_up.keys())[0],
+                list(basins_tot[ID].E_up.values())[0],
+                list(basins_tot[ID].E_up.keys())[1],
+                list(basins_tot[ID].E_up.values())[1],
+                list(basins_tot[ID].E_up.keys())[2],
+                list(basins_tot[ID].E_up.values())[2],
+                basins_tot[ID].E_own + sum(basins_tot[ID].E_up.values()),
+            ]
         else:
             db = db + [0, 0.0, 0, 0.0, 0, 0.0, basins_tot[ID].E_own]
         db = [float(d) for d in db]
@@ -411,21 +430,25 @@ def add_results2shp(basins, rivers, basins_tot, E, inputs):
     Add the attribute of the object basins to
     a vector with the category equal to the ID of the basin
     """
-    gcore.run_command("r.to.vect", input=basins,
-                      flags='v',
-                      output='basins', type="area")
-    gcore.run_command('v.overlay', overwrite=True,
-                      ainput=rivers, binput=basins, operator='and',
-                      output=E)
-    gcore.run_command("v.db.addcolumn", map=E,
-                      columns="E_spec double precision")
+    gcore.run_command(
+        "r.to.vect", input=basins, flags="v", output="basins", type="area"
+    )
+    gcore.run_command(
+        "v.overlay",
+        overwrite=True,
+        ainput=rivers,
+        binput=basins,
+        operator="and",
+        output=E,
+    )
+    gcore.run_command("v.db.addcolumn", map=E, columns="E_spec double precision")
     for ID in inputs:
-        #pdb.set_trace()
+        # pdb.set_trace()
         E_spec = str(basins_tot[ID].E_spec())
-        cond = 'b_cat=%i' % (ID)
-        gcore.run_command('v.db.update', map=E,
-                          layer=1, column='E_spec',
-                          value=E_spec, where=cond)
+        cond = "b_cat=%i" % (ID)
+        gcore.run_command(
+            "v.db.update", map=E, layer=1, column="E_spec", value=E_spec, where=cond
+        )
 
 
 def init_basins(basins):
@@ -434,7 +457,7 @@ def init_basins(basins):
     to the ID of each basins
     """
     # I use r.stats because of the case with MASK
-    info = gcore.parse_command('r.stats', flags='n', input=basins)
+    info = gcore.parse_command("r.stats", flags="n", input=basins)
     inputs = list(map(int, info.keys()))
     basins_tot = {}
 
@@ -448,29 +471,37 @@ def check_compute_drain_stream(drain, stream, dtm, threshold=100000):
     Compute the stream and drain map with r.watersheld
     """
     msgr = get_msgr()
-    if (not(drain) or not(stream)):
-        drain = 'drainage'
-        stream = 'stream'
-        gcore.run_command('r.watershed',
-                          elevation=dtm,
-                          threshold=threshold,
-                          drainage=drain,
-                          stream=stream)
+    if not (drain) or not (stream):
+        drain = "drainage"
+        stream = "stream"
+        gcore.run_command(
+            "r.watershed",
+            elevation=dtm,
+            threshold=threshold,
+            drainage=drain,
+            stream=stream,
+        )
     else:
-        info1 = gcore.parse_command('r.info', flags='e', map=drain)
-        info2 = gcore.parse_command('r.info', flags='e', map=stream)
-        #pdb.set_trace()
-        in1 = '\"%s\"' % (dtm)
-        in2 = '\"%s\"' % (dtm)
-        if ((in1 != info1['source1'] or (info1['description']
-             != '\"generated by r.watershed\"'))):
-            warn = ("%s map not generated "
-                    "by r.watershed starting from %s") % (drain, dtm)
+        info1 = gcore.parse_command("r.info", flags="e", map=drain)
+        info2 = gcore.parse_command("r.info", flags="e", map=stream)
+        # pdb.set_trace()
+        in1 = '"%s"' % (dtm)
+        in2 = '"%s"' % (dtm)
+        if in1 != info1["source1"] or (
+            info1["description"] != '"generated by r.watershed"'
+        ):
+            warn = ("%s map not generated " "by r.watershed starting from %s") % (
+                drain,
+                dtm,
+            )
             msgr.warning(warn)
-        if ((in2 != info2['source1'] or (info2['description']
-             != '\"generated by r.watershed\"'))):
-            warn = ("%s map not generated "
-                    "by r.watershed starting from %s") % (stream, dtm)
+        if in2 != info2["source1"] or (
+            info2["description"] != '"generated by r.watershed"'
+        ):
+            warn = ("%s map not generated " "by r.watershed starting from %s") % (
+                stream,
+                dtm,
+            )
             msgr.warning(warn)
     return drain, stream
 
@@ -480,29 +511,37 @@ def check_compute_basin_stream(basins, stream, dtm, threshold):
     Compute the stream and basin map with r.watersheld
     """
     msgr = get_msgr()
-    if (not(basins) or not(stream)):
+    if not (basins) or not (stream):
         pid = os.getpid()
         basins = "tmprgreen_%i_basins" % pid
         stream = "tmprgreen_%i_stream" % pid
-        gcore.run_command('r.watershed',
-                          elevation=dtm,
-                          threshold=threshold,
-                          basin=basins,
-                          stream=stream)
+        gcore.run_command(
+            "r.watershed",
+            elevation=dtm,
+            threshold=threshold,
+            basin=basins,
+            stream=stream,
+        )
     else:
-        info1 = gcore.parse_command('r.info', flags='e', map=basins)
-        info2 = gcore.parse_command('r.info', flags='e', map=stream)
-        #pdb.set_trace()
-        in1 = '\"%s\"' % (dtm)
-        if ((in1 != info1['source1'] or (info1['description']
-             != '\"generated by r.watershed\"'))):
-            warn = ("%s map not generated "
-                    "by r.watershed starting from %s") % (basins, dtm)
+        info1 = gcore.parse_command("r.info", flags="e", map=basins)
+        info2 = gcore.parse_command("r.info", flags="e", map=stream)
+        # pdb.set_trace()
+        in1 = '"%s"' % (dtm)
+        if in1 != info1["source1"] or (
+            info1["description"] != '"generated by r.watershed"'
+        ):
+            warn = ("%s map not generated " "by r.watershed starting from %s") % (
+                basins,
+                dtm,
+            )
             msgr.warning(warn)
-        if ((in1 != info2['source1'] or (info2['description']
-             != '\"generated by r.watershed\"'))):
-            warn = ("%s map not generated "
-                    "by r.watershed starting from %s") % (stream, dtm)
+        if in1 != info2["source1"] or (
+            info2["description"] != '"generated by r.watershed"'
+        ):
+            warn = ("%s map not generated " "by r.watershed starting from %s") % (
+                stream,
+                dtm,
+            )
             msgr.warning(warn)
     return basins, stream
 
@@ -519,29 +558,31 @@ def build_network(stream, dtm, basins_tot):
 
     river = raster2numpy(stream)
     river_comp = raster2compressM(stream).tocoo()
-    gcore.run_command('r.neighbors', input=stream,
-                      output=tmp_neighbors, method="minimum", size='5',
-                      quantile='0.5')
+    gcore.run_command(
+        "r.neighbors",
+        input=stream,
+        output=tmp_neighbors,
+        method="minimum",
+        size="5",
+        quantile="0.5",
+    )
 
-    formula = '%s = %s-%s' % (tmp_closure, tmp_neighbors, stream)
+    formula = "%s = %s-%s" % (tmp_closure, tmp_neighbors, stream)
     mapcalc(formula)
     # del the map down, it should be not necessary
-    gcore.run_command('r.stats.zonal',
-                      base=stream,
-                      cover=tmp_closure,
-                      output=tmp_down,
-                      method='min')
-    #pdb.set_trace()
+    gcore.run_command(
+        "r.stats.zonal", base=stream, cover=tmp_closure, output=tmp_down, method="min"
+    )
+    # pdb.set_trace()
     dtm_n = raster2numpy(dtm)
     clos = raster2numpy(tmp_closure)
     ID_down = raster2numpy(tmp_down)
-    #pdb.set_trace()
-    for i, j, v in zip(river_comp.row,
-                       river_comp.col, river_comp.data):
+    # pdb.set_trace()
+    for i, j, v in zip(river_comp.row, river_comp.col, river_comp.data):
         up = clos[i][j]
         if up < 0:
             ID = river[i, j]
-            basins_tot[(ID+int(ID_down[i, j]))].up.add(ID)
+            basins_tot[(ID + int(ID_down[i, j]))].up.add(ID)
             basins_tot[ID].h_closure = dtm_n[i, j]
 
 
@@ -549,19 +590,18 @@ def area_of_basins(basins, count, dtm):
     """
     By knowing the basin map compute the area of a given basin ID=count
     """
-    #TODO: check the similar function in r.green.discharge
-    command = 'area_stat=if(%s == %i, %s, null())' % ((basins, count, dtm))
+    # TODO: check the similar function in r.green.discharge
+    command = "area_stat=if(%s == %i, %s, null())" % ((basins, count, dtm))
     mapcalc(command, overwrite=True)
-    return area_of_watershed('area_stat')
+    return area_of_watershed("area_stat")
 
 
 def area_of_watershed(watershed):
-    info = gcore.parse_command('r.report', map=watershed, flags='hn',
-                               units='k')
+    info = gcore.parse_command("r.report", map=watershed, flags="hn", units="k")
     temp = 0
     for somestring in info.keys():
-        if ('TOTAL') in somestring:
-            temp = float(somestring.split('|')[-2])
+        if ("TOTAL") in somestring:
+            temp = float(somestring.split("|")[-2])
     return temp
 
 
@@ -571,9 +611,9 @@ def fill_energyown(bas):
     """
 
     delta = bas.h_mean - bas.h_closure
-    #TODO: modify power with potential
-    bas.E_own = (E_hydro(delta, bas.discharge_own))
-    #pdb.set_trace()
+    # TODO: modify power with potential
+    bas.E_own = E_hydro(delta, bas.discharge_own)
+    # pdb.set_trace()
 
 
 def fill_discharge_tot(bas, discharge_n, stream_n):
@@ -585,14 +625,14 @@ def fill_discharge_tot(bas, discharge_n, stream_n):
     msgr = get_msgr()
     warn = ("%i") % bas.ID
     ttt = sorted(discharge_n[stream_n == bas.ID])
-    #import ipdb; ipdb.set_trace()
+    # import ipdb; ipdb.set_trace()
     # bas.discharge_tot = 0.0
     ttt = ttt[~np.isnan(ttt)]
-    #FIXME: take the second bgger value to avoid to take the value of
+    # FIXME: take the second bgger value to avoid to take the value of
     # another catchment, it is not so elegant
     # the low value is the upper part of the basin and the greater
     # the closure point
-    if len(ttt) > 1 and not(math.isnan(ttt[-2])):
+    if len(ttt) > 1 and not (math.isnan(ttt[-2])):
         bas.discharge_tot = float(ttt[-2])
     else:
         bas.discharge_tot = 0.0
@@ -605,10 +645,11 @@ def fill_discharge_own(basins_tot, b):
     Fill the discharge_own with the run-off of the basin
     """
     basins_tot[b].discharge_own = basins_tot[b].discharge_tot
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     for idd in basins_tot[b].up:
-        basins_tot[b].discharge_own = (basins_tot[b].discharge_own -
-                                       basins_tot[idd].discharge_tot)
+        basins_tot[b].discharge_own = (
+            basins_tot[b].discharge_own - basins_tot[idd].discharge_tot
+        )
 
 
 def fill_Eup(basins_tot, b):
@@ -619,15 +660,14 @@ def fill_Eup(basins_tot, b):
         deltaH = basins_tot[ID].h_closure - basins_tot[b].h_closure
         power = E_hydro(deltaH, basins_tot[ID].discharge_tot)
         # if area > 1km2 I use the up-up basin
-        #TODO: change the up basins for the energy, something
+        # TODO: change the up basins for the energy, something
         # similar to an optimization problem
         if basins_tot[ID].area > 1:
             basins_tot[b].add_E_up(ID, power)
         else:
             if basins_tot[ID].up:
                 for id_up in basins_tot[ID].up:
-                    deltaH = (basins_tot[id_up].h_closure -
-                              basins_tot[b].h_closure)
+                    deltaH = basins_tot[id_up].h_closure - basins_tot[b].h_closure
                     power = E_hydro(deltaH, basins_tot[id_up].discharge_tot)
                     basins_tot[b].add_E_up(id_up, power)
             else:
@@ -640,15 +680,18 @@ def fill_basins(inputs, basins_tot, basins, dtm, discharge, stream):
     """
     pid = os.getpid()
     tmp_dtm_mean = "tmprgreen_%i_dtm_mean" % pid
-    gcore.run_command('r.stats.zonal',
-                      base=basins,
-                      cover=dtm, flags='r',
-                      output=tmp_dtm_mean,
-                      method='average')
-    info_h = gcore.parse_command('r.category', map=tmp_dtm_mean, separator='=')
-    #pdb.set_trace()
+    gcore.run_command(
+        "r.stats.zonal",
+        base=basins,
+        cover=dtm,
+        flags="r",
+        output=tmp_dtm_mean,
+        method="average",
+    )
+    info_h = gcore.parse_command("r.category", map=tmp_dtm_mean, separator="=")
+    # pdb.set_trace()
     for count in inputs:
-        if info_h[str(count)] != '':
+        if info_h[str(count)] != "":
             # area = area_of_basins(basins, count, dtm)
             # basins_tot[count].area = float(area)
             basins_tot[count].h_mean = float(info_h[str(count)])
@@ -674,7 +717,7 @@ def compute_river_discharge(drain, stream, string, **kwargs):
     if piedmont case kwargs-> a=a, dtm=dtm and string=mean
     """
     msgr = get_msgr()
-    info = gcore.parse_command('r.info', flags='g', map=stream)
+    info = gcore.parse_command("r.info", flags="g", map=stream)
     raster_out = {}
     for name, value in kwargs.items():
         raster_out[name] = raster2numpy(stream)
@@ -683,70 +726,80 @@ def compute_river_discharge(drain, stream, string, **kwargs):
     river_comp = raster2compressM(stream).tocoo()
     count = 0
     for i, j in zip(river_comp.row, river_comp.col):
-        count = count+1
+        count = count + 1
         msgr.message("\n %i \n" % count)
         p_x, p_y = get_coo(stream, i, j)
-        #pdb.set_trace()
-        coo = '%f, %f' % (p_x, p_y)
-        gcore.run_command('r.water.outlet', overwrite=True, input=drain,
-                          output='area_temp',
-                          coordinates=coo)
+        # pdb.set_trace()
+        coo = "%f, %f" % (p_x, p_y)
+        gcore.run_command(
+            "r.water.outlet",
+            overwrite=True,
+            input=drain,
+            output="area_temp",
+            coordinates=coo,
+        )
         for name, value in kwargs.items():
-            formula = 'temp = if(not(area_temp),0, %s)' % (value)
-            #pdb.set_trace()
+            formula = "temp = if(not(area_temp),0, %s)" % (value)
+            # pdb.set_trace()
             mapcalc(formula, overwrite=True)
-            #pdb.set_trace()
-            info = gcore.parse_command('r.univar', map='temp', flags='g')
-            #pdb.set_trace()
+            # pdb.set_trace()
+            info = gcore.parse_command("r.univar", map="temp", flags="g")
+            # pdb.set_trace()
             raster_out[name][i][j] = float(info[string])
-        bas_area[i][j] = area_of_watershed('area_temp')
-        #pdb.set_trace()
+        bas_area[i][j] = area_of_watershed("area_temp")
+        # pdb.set_trace()
     return raster_out, bas_area
 
 
 def dtm_corr(dtm, river, dtm_corr, lake=None):
-    """ Compute a new DTM by applying a corrective factor
+    """Compute a new DTM by applying a corrective factor
     close to the river network. Output of r.green.watershed
     will be coherent with the river network
     """
     pid = os.getpid()
     msgr = get_msgr()
-    info = gcore.parse_command('g.region', flags='pgm')
+    info = gcore.parse_command("g.region", flags="pgm")
 
     if lake:
         tmp_network = "tmprgreen_%i_network" % pid
-        inputs = '%s,%s' % (lake, river)
-        gcore.run_command('v.patch',
-                          input=inputs,
-                          output=tmp_network)
+        inputs = "%s,%s" % (lake, river)
+        gcore.run_command("v.patch", input=inputs, output=tmp_network)
         river = tmp_network
 
     msgr.warning("The DTM will be temporarily modified")
-    distance = [float(info['nsres']), float(info['nsres'])*1.5,
-                float(info['nsres'])*3]
+    distance = [
+        float(info["nsres"]),
+        float(info["nsres"]) * 1.5,
+        float(info["nsres"]) * 3,
+    ]
     pat = "tmprgreen_%i_" % pid
     for i, val in enumerate(distance):
 
-        output = '%sbuff_%i' % (pat, i)
-        gcore.run_command('v.buffer',
-                          input=river,
-                          output=output,
-                          distance=val)
-        gcore.run_command('v.to.rast',
-                          input=output,
-                          output=output,
-                          use='val',
-                          value=val,
-                          overwrite=True)
-        command = ('%s_c = if(isnull(%s),0,%s)') % (output, output,
-                                                    output)
+        output = "%sbuff_%i" % (pat, i)
+        gcore.run_command("v.buffer", input=river, output=output, distance=val)
+        gcore.run_command(
+            "v.to.rast",
+            input=output,
+            output=output,
+            use="val",
+            value=val,
+            overwrite=True,
+        )
+        command = ("%s_c = if(isnull(%s),0,%s)") % (output, output, output)
         mapcalc(command, overwrite=True)
 
-    command = (('%s = if(%s,%s-%sbuff_0_c-%sbuff_1_c-%sbuff_2_c)')
-               % (dtm_corr, dtm, dtm, pat, pat, pat))
+    command = ("%s = if(%s,%s-%sbuff_0_c-%sbuff_1_c-%sbuff_2_c)") % (
+        dtm_corr,
+        dtm,
+        dtm,
+        pat,
+        pat,
+        pat,
+    )
     mapcalc(command, overwrite=True)
 
 
 if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

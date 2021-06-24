@@ -57,13 +57,14 @@
 ##################
 # PYTHON
 import numpy as np
+
 # GRASS
 from grass.pygrass.modules.shortcuts import general as g
 from grass.pygrass.modules.shortcuts import raster as r
 from grass.pygrass.modules.shortcuts import vector as v
 from grass.pygrass.modules.shortcuts import miscellaneous as m
 from grass.pygrass.gis import region
-from grass.pygrass import vector # Change to "v"?
+from grass.pygrass import vector  # Change to "v"?
 from grass.script import vector_db_select
 from grass.pygrass.vector import Vector, VectorTopo
 from grass.pygrass.raster import RasterRow
@@ -73,6 +74,7 @@ from grass import script as gscript
 ###############
 # MAIN MODULE #
 ###############
+
 
 def main():
     """
@@ -88,11 +90,11 @@ def main():
     options, flags = gscript.parser()
 
     # I/O
-    HRUs = options['hru_input']
-    grid = options['grid_input']
-    segments = options['output']
-    #col = options['col']
-    gravity_reservoirs = options['output']
+    HRUs = options["hru_input"]
+    grid = options["grid_input"]
+    segments = options["output"]
+    # col = options['col']
+    gravity_reservoirs = options["output"]
 
     ############
     # ANALYSIS #
@@ -105,21 +107,63 @@ def main():
     """
 
     # Create gravity reservoirs -- overlay cells=grid and HRUs
-    v.overlay(ainput=HRUs, binput=grid, atype='area', btype='area', operator='and', output=gravity_reservoirs, overwrite=gscript.overwrite())
-    v.db_dropcolumn(map=gravity_reservoirs, columns='a_cat,a_label,b_cat', quiet=True)
+    v.overlay(
+        ainput=HRUs,
+        binput=grid,
+        atype="area",
+        btype="area",
+        operator="and",
+        output=gravity_reservoirs,
+        overwrite=gscript.overwrite(),
+    )
+    v.db_dropcolumn(map=gravity_reservoirs, columns="a_cat,a_label,b_cat", quiet=True)
     # Cell and HRU ID's
-    v.db_renamecolumn(map=gravity_reservoirs, column=('a_id', 'gvr_hru_id'), quiet=True)
-    v.db_renamecolumn(map=gravity_reservoirs, column=('b_id', 'gvr_cell_id'), quiet=True)
+    v.db_renamecolumn(map=gravity_reservoirs, column=("a_id", "gvr_hru_id"), quiet=True)
+    v.db_renamecolumn(
+        map=gravity_reservoirs, column=("b_id", "gvr_cell_id"), quiet=True
+    )
     # Percent areas
-    v.db_renamecolumn(map=gravity_reservoirs, column=('a_hru_area_m2', 'hru_area_m2'), quiet=True)
-    v.db_renamecolumn(map=gravity_reservoirs, column=('b_area_m2', 'cell_area_m2'), quiet=True)
-    v.db_addcolumn(map=gravity_reservoirs, columns='area_m2 double precision', quiet=True)
-    v.to_db(map=gravity_reservoirs, option='area', units='meters', columns='area_m2', quiet=True)
-    v.db_addcolumn(map=gravity_reservoirs, columns='gvr_cell_pct double precision, gvr_hru_pct double precision', quiet=True)
-    v.db_update(map=gravity_reservoirs, column='gvr_cell_pct', query_column='100*area_m2/cell_area_m2', quiet=True)
-    v.db_update(map=gravity_reservoirs, column='gvr_hru_pct', query_column='100*area_m2/hru_area_m2', quiet=True)
-    v.extract(input=gravity_reservoirs, output='tmp_', where="gvr_cell_pct > 0.001", overwrite=True, quiet=True)
-    g.rename(vector=('tmp_',gravity_reservoirs), overwrite=True, quiet=True)
+    v.db_renamecolumn(
+        map=gravity_reservoirs, column=("a_hru_area_m2", "hru_area_m2"), quiet=True
+    )
+    v.db_renamecolumn(
+        map=gravity_reservoirs, column=("b_area_m2", "cell_area_m2"), quiet=True
+    )
+    v.db_addcolumn(
+        map=gravity_reservoirs, columns="area_m2 double precision", quiet=True
+    )
+    v.to_db(
+        map=gravity_reservoirs,
+        option="area",
+        units="meters",
+        columns="area_m2",
+        quiet=True,
+    )
+    v.db_addcolumn(
+        map=gravity_reservoirs,
+        columns="gvr_cell_pct double precision, gvr_hru_pct double precision",
+        quiet=True,
+    )
+    v.db_update(
+        map=gravity_reservoirs,
+        column="gvr_cell_pct",
+        query_column="100*area_m2/cell_area_m2",
+        quiet=True,
+    )
+    v.db_update(
+        map=gravity_reservoirs,
+        column="gvr_hru_pct",
+        query_column="100*area_m2/hru_area_m2",
+        quiet=True,
+    )
+    v.extract(
+        input=gravity_reservoirs,
+        output="tmp_",
+        where="gvr_cell_pct > 0.001",
+        overwrite=True,
+        quiet=True,
+    )
+    g.rename(vector=("tmp_", gravity_reservoirs), overwrite=True, quiet=True)
 
 
 if __name__ == "__main__":

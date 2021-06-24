@@ -22,20 +22,22 @@ cols:    4
 3 3 2 2
 """
 
+
 class TestObjectGeometryPixel(TestCase):
     """Test case for object geometry module"""
 
     # Setup variables to be used for outputs
-    test_objects1 = 'test_objects1'
-    output_file_pixel = 'output_file_pixel.csv'
+    test_objects1 = "test_objects1"
+    output_file_pixel = "output_file_pixel.csv"
 
     @classmethod
     def setUpClass(cls):
         """Imports test raster(s), ensures expected computational region and setup"""
-        cls.runModule('r.in.ascii', input='-', stdin_=testraster1,
-                output=cls.test_objects1)
+        cls.runModule(
+            "r.in.ascii", input="-", stdin_=testraster1, output=cls.test_objects1
+        )
         cls.use_temp_region()
-        cls.runModule('g.region', raster=cls.test_objects1)
+        cls.runModule("g.region", raster=cls.test_objects1)
 
     @classmethod
     def tearDownClass(cls):
@@ -49,35 +51,39 @@ class TestObjectGeometryPixel(TestCase):
         """
         if os.path.isfile(self.output_file_pixel):
             os.remove(self.output_file_pixel)
-        self.runModule('g.remove', flags='f', type='raster',
-                       name=self.test_objects1)
+        self.runModule("g.remove", flags="f", type="raster", name=self.test_objects1)
 
     def test_object_geometry_pixel(self):
         """Test to see if the outputs are created and are correct in pixel units"""
         # run the object geometry module
-        self.assertModule('r.object.geometry', input=self.test_objects1,
-                          output=self.output_file_pixel)
+        self.assertModule(
+            "r.object.geometry", input=self.test_objects1, output=self.output_file_pixel
+        )
         # check to see if output file exists
-        self.assertFileExists(self.output_file_pixel,
-                               msg='Output file does not exist')
+        self.assertFileExists(self.output_file_pixel, msg="Output file does not exist")
         # check if the output file is equal to the reference file
-        self.assertFilesEqualMd5(self.output_file_pixel, 'data/file_pixel.csv',
-                               msg='Output file is not equal to reference file')
+        self.assertFilesEqualMd5(
+            self.output_file_pixel,
+            "data/file_pixel.csv",
+            msg="Output file is not equal to reference file",
+        )
+
 
 class TestObjectGeometryMeter(TestCase):
     """Test case for object geometry module"""
 
     # Setup variables to be used for outputs
-    test_objects1 = 'test_objects1'
-    output_file_meter = 'output_file_meter.csv'
+    test_objects1 = "test_objects1"
+    output_file_meter = "output_file_meter.csv"
 
     @classmethod
     def setUpClass(cls):
         """Imports test raster(s), ensures expected computational region and setup"""
-        cls.runModule('r.in.ascii', input='-', stdin_=testraster1,
-                output=cls.test_objects1)
+        cls.runModule(
+            "r.in.ascii", input="-", stdin_=testraster1, output=cls.test_objects1
+        )
         cls.use_temp_region()
-        cls.runModule('g.region', raster=cls.test_objects1)
+        cls.runModule("g.region", raster=cls.test_objects1)
 
     @classmethod
     def tearDownClass(cls):
@@ -91,22 +97,26 @@ class TestObjectGeometryMeter(TestCase):
         """
         if os.path.isfile(self.output_file_meter):
             os.remove(self.output_file_meter)
-        self.runModule('g.remove', flags='f', type='raster',
-                       name=self.test_objects1)
+        self.runModule("g.remove", flags="f", type="raster", name=self.test_objects1)
 
     def test_object_geometry_meter(self):
         """Test to see if the outputs are created and are correct in meter units"""
         # run the object geometry module
-        self.assertModule('r.object.geometry', input=self.test_objects1,
-                          output=self.output_file_meter, flags='m')
+        self.assertModule(
+            "r.object.geometry",
+            input=self.test_objects1,
+            output=self.output_file_meter,
+            flags="m",
+        )
         # check to see if output file exists
-        self.assertFileExists(self.output_file_meter,
-                               msg='Output file does not exist')
+        self.assertFileExists(self.output_file_meter, msg="Output file does not exist")
         # check if the output file is equal to the reference file
-        self.assertFilesEqualMd5(self.output_file_meter, 'data/file_meter.csv',
-                               msg='Output file is not equal to reference file')
+        self.assertFilesEqualMd5(
+            self.output_file_meter,
+            "data/file_meter.csv",
+            msg="Output file is not equal to reference file",
+        )
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     test()

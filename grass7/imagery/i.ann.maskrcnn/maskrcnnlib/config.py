@@ -114,11 +114,11 @@ class ModelConfig(object):
     # Loss weights for more precise optimization.
     # Can be used for R-CNN training setup.
     LOSS_WEIGHTS = {
-        "rpn_class_loss": 1.,
-        "rpn_bbox_loss": 1.,
-        "mrcnn_class_loss": 1.,
-        "mrcnn_bbox_loss": 1.,
-        "mrcnn_mask_loss": 1.
+        "rpn_class_loss": 1.0,
+        "rpn_bbox_loss": 1.0,
+        "mrcnn_class_loss": 1.0,
+        "mrcnn_bbox_loss": 1.0,
+        "mrcnn_mask_loss": 1.0,
     }
 
     # Use RPN ROIs or externally generated ROIs for training
@@ -131,12 +131,23 @@ class ModelConfig(object):
     # Gradient norm clipping
     GRADIENT_CLIP_NORM = 5.0
 
-    def __init__(self, name='model', imagesPerGPU=1, GPUcount=1, numClasses=1,
-                 trainROIsPerImage=64, stepsPerEpoch=1500,
-                 miniMaskShape=None, validationSteps=100,
-                 imageMaxDim=768, imageMinDim=768, backbone='resnet101',
-                 trainBatchNorm=False, resizeMode='square',
-                 image_channel_count=3):
+    def __init__(
+        self,
+        name="model",
+        imagesPerGPU=1,
+        GPUcount=1,
+        numClasses=1,
+        trainROIsPerImage=64,
+        stepsPerEpoch=1500,
+        miniMaskShape=None,
+        validationSteps=100,
+        imageMaxDim=768,
+        imageMinDim=768,
+        backbone="resnet101",
+        trainBatchNorm=False,
+        resizeMode="square",
+        image_channel_count=3,
+    ):
         """Set values of attributes.
         Written by Ondrej Pesek, but using attributes from Waleed Abdulla"""
 
@@ -185,7 +196,8 @@ class ModelConfig(object):
         if miniMaskShape:
             self.USE_MINI_MASK = True
             self.MINI_MASK_SHAPE = tuple(
-                int(a) for a in miniMaskShape.split(','))  # (height, width)
+                int(a) for a in miniMaskShape.split(",")
+            )  # (height, width)
         else:
             self.USE_MINI_MASK = False
             self.MINI_MASK_SHAPE = None
@@ -210,16 +222,22 @@ class ModelConfig(object):
         self.IMAGE_CHANNEL_COUNT = image_channel_count
 
         # Input image size
-        self.IMAGE_SHAPE = np.array([self.IMAGE_MAX_DIM, self.IMAGE_MAX_DIM,
-             self.IMAGE_CHANNEL_COUNT])
+        self.IMAGE_SHAPE = np.array(
+            [self.IMAGE_MAX_DIM, self.IMAGE_MAX_DIM, self.IMAGE_CHANNEL_COUNT]
+        )
 
         # Compute backbone size from input image size
         # TODO Ondrej Pesek: Maybe delete it and see Matterport's (avoid math
         #  import)
         self.BACKBONE_SHAPES = np.array(
-            [[int(math.ceil(self.IMAGE_SHAPE[0] / stride)),
-              int(math.ceil(self.IMAGE_SHAPE[1] / stride))]
-             for stride in self.BACKBONE_STRIDES])
+            [
+                [
+                    int(math.ceil(self.IMAGE_SHAPE[0] / stride)),
+                    int(math.ceil(self.IMAGE_SHAPE[1] / stride)),
+                ]
+                for stride in self.BACKBONE_STRIDES
+            ]
+        )
 
         # Train or freeze batch normalization layers
         #  None: Train BN layers in a normal mode

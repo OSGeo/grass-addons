@@ -66,6 +66,7 @@ import atexit
 import grass.script as gscript
 from grass.exceptions import CalledModuleError
 
+
 def cleanup():
     pass
 
@@ -73,30 +74,30 @@ def cleanup():
 def main():
 
     global tmpfile
-    infile = options['input']
-    out = options['output']
-    scale = options['scale']
-    offset = options['shift']
-    mem = options['memory']
-
+    infile = options["input"]
+    out = options["output"]
+    scale = options["scale"]
+    offset = options["shift"]
+    mem = options["memory"]
 
     pid = os.getpid()
-    tmpname = str(pid) + 'i.in.probav'
+    tmpname = str(pid) + "i.in.probav"
     tmpfile = gscript.tempfile()
 
-    if not gscript.overwrite() and gscript.find_file(out)['file']:
+    if not gscript.overwrite() and gscript.find_file(out)["file"]:
         gscript.fatal(("<%s> already exists. Aborting.") % out)
 
     # Are we in LatLong location?
-    s = gscript.read_command("g.proj", flags='j')
+    s = gscript.read_command("g.proj", flags="j")
     kv = gscript.parse_key_val(s)
-    if kv['+proj'] != 'longlat':
+    if kv["+proj"] != "longlat":
         gscript.fatal(("This module only operates in LatLong locations"))
 
-
     try:
-        gscript.message('Importing raster map <' + out + '>...')
-        gscript.run_command('r.in.gdal', input=infile, output=tmpname, memory=mem, quiet=True)
+        gscript.message("Importing raster map <" + out + ">...")
+        gscript.run_command(
+            "r.in.gdal", input=infile, output=tmpname, memory=mem, quiet=True
+        )
     except CalledModuleError:
         gscript.fatal(("An error occurred. Stop."))
 
@@ -109,21 +110,24 @@ def main():
 
     # create temporary region
     gscript.use_temp_region()
-    gscript.run_command('g.region', raster=tmpname, quiet=True)
+    gscript.run_command("g.region", raster=tmpname, quiet=True)
     gscript.message("Remapping digital numbers to NDVI...")
 
     # do the mapcalc
-    gscript.mapcalc("${out} = ${a} * ${tmpname} + ${b}", out=out, a=scale, tmpname=tmpname, b=offset)
+    gscript.mapcalc(
+        "${out} = ${a} * ${tmpname} + ${b}", out=out, a=scale, tmpname=tmpname, b=offset
+    )
 
     # remove original input
-    gscript.run_command('g.remove', type='raster', name=tmpname, quiet=True, flags='f')
+    gscript.run_command("g.remove", type="raster", name=tmpname, quiet=True, flags="f")
 
     # set color table to ndvi
-    gscript.run_command('r.colors', map=out, color='ndvi')
+    gscript.run_command("r.colors", map=out, color="ndvi")
 
     gscript.message(("Done: generated map <%s>") % out)
 
     return 0
+
 
 if __name__ == "__main__":
     options, flags = gscript.parser()

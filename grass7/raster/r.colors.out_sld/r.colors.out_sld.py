@@ -65,8 +65,10 @@ import os
 import sys
 import grass.script as grass
 
-def set_output_encoding(encoding='utf-8'):
+
+def set_output_encoding(encoding="utf-8"):
     import codecs
+
     current = sys.stdout.encoding
     if current is None:
         sys.stdout = codecs.getwriter(encoding)(sys.stdout)
@@ -74,33 +76,34 @@ def set_output_encoding(encoding='utf-8'):
     if current is None:
         sys.stderr = codecs.getwriter(encoding)(sys.stderr)
 
+
 def main():
 
     # Set output encoding to UTF-8
     set_output_encoding()
     # Parse input
-    output = options['output'] # done
-    style_name = options['style_name'] # done
-    map = options['map'] # done
+    output = options["output"]  # done
+    style_name = options["style_name"]  # done
+    map = options["map"]  # done
 
     # Get map metadata
-    mapinfo = grass.parse_command('r.info', flags='e', map=map)
+    mapinfo = grass.parse_command("r.info", flags="e", map=map)
 
-    if mapinfo['title']:
-        name = '{} : {}'.format(mapinfo['map'], mapinfo['title'])
+    if mapinfo["title"]:
+        name = "{} : {}".format(mapinfo["map"], mapinfo["title"])
     else:
-        name = mapinfo['map']
+        name = mapinfo["map"]
 
     # Get color rules
-    color_rules = grass.read_command('r.colors.out', map=map).split('\n')
+    color_rules = grass.read_command("r.colors.out", map=map).split("\n")
 
     # Get maptype (CELL, FCELL, DCELL)
-    maptype = grass.parse_command('r.info', flags='g', map=map)['datatype']
+    maptype = grass.parse_command("r.info", flags="g", map=map)["datatype"]
 
     # Check if map has categories if type is CELL
-    if maptype == 'CELL':
-        grass.verbose('Reading category lables, may take a while...')
-        categories = grass.parse_command('r.category', map=map, separator='=')
+    if maptype == "CELL":
+        grass.verbose("Reading category lables, may take a while...")
+        categories = grass.parse_command("r.category", map=map, separator="=")
         if list(set(categories.values()))[0] or len(list(set(categories.values()))) > 1:
             use_categories = True
         else:
@@ -117,49 +120,53 @@ def main():
     xmlns:xlink="http://www.w3.org/1999/xlink"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <NamedLayer>
-    <Name>{}</Name>""".format(style_name)
+    <Name>{}</Name>""".format(
+        style_name
+    )
     sld += """    <UserStyle>
       <Title>{}</Title>\n
       <FeatureTypeStyle>
         <Rule>
-          <RasterSymbolizer>\n""".format(name)
+          <RasterSymbolizer>\n""".format(
+        name
+    )
 
     # Define type of ColorMap depending on data type of input map
     if use_categories:
-        sld += '            <ColorMap type={}>\n'.format('"values"')
+        sld += "            <ColorMap type={}>\n".format('"values"')
         ColorMapEntry = '              <ColorMapEntry color="#{0:02x}{1:02x}{2:02x}" quantity="{3}" label="{4}" opacity="{5}" />\n'
     else:
-        sld += '            <ColorMap>\n'
+        sld += "            <ColorMap>\n"
         # sld+='            <ColorMap type={}>\n'.format('"ramp"')
         ColorMapEntry = '              <ColorMapEntry color="#{0:02x}{1:02x}{2:02x}" quantity="{3}" opacity="{4}" />\n'
 
     #
     for c in color_rules:
-        if len(c.split(' ')) == 2 and not c.split(' ')[0] == 'default':
-            q = c.split(' ')[0]
-            if q == 'nv':
-                q = 'NaN'
+        if len(c.split(" ")) == 2 and not c.split(" ")[0] == "default":
+            q = c.split(" ")[0]
+            if q == "nv":
+                q = "NaN"
                 r = 255
                 g = 255
                 b = 255
                 o = 0
             else:
-                r = int(c.split(' ')[1].split(':')[0])
-                g = int(c.split(' ')[1].split(':')[1])
-                b = int(c.split(' ')[1].split(':')[2])
+                r = int(c.split(" ")[1].split(":")[0])
+                g = int(c.split(" ")[1].split(":")[1])
+                b = int(c.split(" ")[1].split(":")[2])
                 o = 1
             if use_categories:
                 if str(q) in list(categories.keys()):
                     l = categories[str(q)]
-                elif q == 'NaN':
-                    l = 'NoData'
+                elif q == "NaN":
+                    l = "NoData"
                 else:
                     continue
-                if not q == 'NaN' or flags['n']:
-                    sld += ColorMapEntry.format(r,g,b,q,l,o)
+                if not q == "NaN" or flags["n"]:
+                    sld += ColorMapEntry.format(r, g, b, q, l, o)
             else:
-                if not q == 'NaN' or flags['n']:
-                    sld += ColorMapEntry.format(r,g,b,q,o)
+                if not q == "NaN" or flags["n"]:
+                    sld += ColorMapEntry.format(r, g, b, q, o)
 
     # write file footer
     sld += """            </ColorMap>
@@ -170,13 +177,14 @@ def main():
   </NamedLayer>
 </StyledLayerDescriptor>\n"""
 
-    if output == '-':
+    if output == "-":
         # Write SLD to stdout if no output is requested
         print(sld)
     else:
         # Write SLD to file if requested
-        with open(output, 'wb+') as o:
-            o.write(sld.encode('utf8'))
+        with open(output, "wb+") as o:
+            o.write(sld.encode("utf8"))
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

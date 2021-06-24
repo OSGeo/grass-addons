@@ -50,8 +50,8 @@ def main():
 
     conn.get_current_connection(options["conn_type"])
     hive = conn.get_hook()
-    result = hive.execute(options['hql'], options['fatch'])
-    if flags['f']:
+    result = hive.execute(options["hql"], options["fatch"])
+    if flags["f"]:
         for i in result:
             print(i)
 

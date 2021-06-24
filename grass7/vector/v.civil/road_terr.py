@@ -6,6 +6,7 @@ Created on Thu Sep 11 00:29:15 2014
 """
 
 import math
+
 # import time
 
 import road_base as Base
@@ -13,40 +14,39 @@ from grass.pygrass.raster import RasterRow
 
 from grass.pygrass.vector.geometry import Point
 from grass.pygrass.gis.region import Region
+
 # from grass.pygrass.vector.geometry import Line
 from grass.pygrass.vector.geometry import Boundary
+
 # from grass.pygrass.vector.geometry import Area
 
 
 def get_rgb(type_terr):
-    """ Return
-    """
-    if type_terr == 'Cut':
-        return '165:50:0'
+    """Return"""
+    if type_terr == "Cut":
+        return "165:50:0"
     else:
-        return '255:165:0'
+        return "255:165:0"
 
 
 def get_side(left):
-    """ Return
-    """
+    """Return"""
     if left:
-        return 'left'
+        return "left"
     else:
-        return 'right'
+        return "right"
 
 
 # =============================================
 # PLANT
 # =============================================
 
+
 class Talud(object):
-    """ Return
-    """
+    """Return"""
 
     def __init__(self, pks, cut, fill, left=True, terr=None):
-        """ Return
-        """
+        """Return"""
         self.pks = pks
         self.cut = [float(p) for p in cut]
         self.fill = [float(p) for p in fill]
@@ -63,8 +63,7 @@ class Talud(object):
         self.roadline = None
 
     def _get_cutfill_slope(self, r_pnt_d):
-        """Return
-        """
+        """Return"""
         for i in range(len(self.pks) - 1):
             if self.pks[i] <= r_pnt_d.npk < self.pks[i + 1]:
 
@@ -75,30 +74,28 @@ class Talud(object):
 
                 if slope[i] is not None or slope[i + 1] is not None:
 
-                    return slope[i] + ((r_pnt_d.npk - self.pks[i]) *
-                                       (slope[i + 1] - slope[i])) / \
-                                      (self.pks[i + 1] - self.pks[i])
+                    return slope[i] + (
+                        (r_pnt_d.npk - self.pks[i]) * (slope[i + 1] - slope[i])
+                    ) / (self.pks[i + 1] - self.pks[i])
 
     def _funct(self, r_pnt_d, len_i, sig, azim, slope):
-        """ Return
-        """
+        """Return"""
         x_1 = r_pnt_d.x + len_i * math.sin(azim)
         y_1 = r_pnt_d.y + len_i * math.cos(azim)
         z_t = self.terr.get_value(Base.Point(x_1, y_1))
         z_1 = r_pnt_d.z + sig * len_i * slope
-        return dict(zip(['z_1', 'z_t', 'x_1', 'y_1'], [z_1, z_t, x_1, y_1]))
+        return dict(zip(["z_1", "z_t", "x_1", "y_1"], [z_1, z_t, x_1, y_1]))
 
     def get_pnt_slope(self, r_pnt, r_pnt_d):
-        """ Return
-        """
+        """Return"""
         azim = r_pnt_d.azi + self.g90
 
         if r_pnt_d.z > r_pnt_d.terr:  # Terraplen
             sig = -1
-            type_t = 'Fill'
+            type_t = "Fill"
         else:
             sig = 1
-            type_t = 'Cut'
+            type_t = "Cut"
 
         z_t = r_pnt_d.terr
         z_1 = r_pnt_d.z
@@ -123,24 +120,24 @@ class Talud(object):
         while (len_b - len_a) / 2.0 > 0.001:
             eq_c = self._funct(r_pnt_d, len_c, sig, azim, slop)
             eq_a = self._funct(r_pnt_d, len_a, sig, azim, slop)
-            if eq_c['z_1'] == eq_c['z_t']:
+            if eq_c["z_1"] == eq_c["z_t"]:
                 break
-            elif (eq_a['z_1'] - eq_a['z_t']) * (eq_c['z_1'] - eq_c['z_t']) < 0:
+            elif (eq_a["z_1"] - eq_a["z_t"]) * (eq_c["z_1"] - eq_c["z_t"]) < 0:
                 len_b = len_c
             else:
                 len_a = len_c
             len_c = (len_a + len_b) / 2.0
 
         eq_c = self._funct(r_pnt_d, len_c, sig, azim, slop)
-        pnt = Base.RoadPoint(Point(eq_c['x_1'], eq_c['y_1'], eq_c['z_1']),
-                             r_pnt.npk, r_pnt_d.azi, '')
+        pnt = Base.RoadPoint(
+            Point(eq_c["x_1"], eq_c["y_1"], eq_c["z_1"]), r_pnt.npk, r_pnt_d.azi, ""
+        )
         pnt.terr_type = type_t
         pnt.dist_displ = pnt.distance(r_pnt)
         return pnt
 
     def get_pnts_slope(self, list_r_pnts, list_pnts_d):
-        """Return
-        """
+        """Return"""
         list_pnts_t = []
         for i, r_pnt_d in enumerate(list_pnts_d):
             if r_pnt_d is not None:
@@ -151,8 +148,7 @@ class Talud(object):
         return list_pnts_t
 
     def split_slope_line(self, rline):
-        """Return
-        """
+        """Return"""
         list_pnts_t = [[]]
         for line in rline:
             if line is not None:
@@ -171,21 +167,25 @@ class Talud(object):
         return list_pnts_t
 
     def set_roadlines(self, roadline, roadline_d):
-        """ Return
-        """
+        """Return"""
         self.terr.set_pnts_terr(roadline_d)
 
         line1 = self.get_pnts_slope(roadline, roadline_d)
-        name = 'Slope_' + get_side(self.left)
-        attrs = [name, 1, get_side(self.left), 1, '0:0:0']
+        name = "Slope_" + get_side(self.left)
+        attrs = [name, 1, get_side(self.left), 1, "0:0:0"]
         self.roadline = Base.RoadLine(line1, attrs, name)
         lines = self.split_slope_line(line1)
         for i, line in enumerate(lines):
             if line != []:
                 # Name lenght type param rgb
-                name = 'Slope_' + get_side(self.left) + '_' + str(i + 1)
-                attrs = [name, -1, line[-1].terr_type, i + 1,
-                         get_rgb(line[-1].terr_type)]
+                name = "Slope_" + get_side(self.left) + "_" + str(i + 1)
+                attrs = [
+                    name,
+                    -1,
+                    line[-1].terr_type,
+                    i + 1,
+                    get_rgb(line[-1].terr_type),
+                ]
                 self.roadlines.append(Base.RoadLine(line, attrs, name))
 
 
@@ -193,48 +193,45 @@ class Talud(object):
 # Taludes
 # =============================================
 
+
 class Taludes(object):
-    """ Return
-    """
+    """Return"""
 
     def __init__(self, polygon=None, tabla=None, terr=None):
-        """ Return
-        """
+        """Return"""
         self.polygon = polygon
         self.tabla = tabla
         self.terr = terr
 
         self.pks = []
-        self.cut = {'left': [], 'right': []}
-        self.fill = {'left': [], 'right': []}
+        self.cut = {"left": [], "right": []}
+        self.fill = {"left": [], "right": []}
 
         self._init_talud()
 
-        self.talud_left = Talud(self.pks, self.cut['left'], self.fill['left'],
-                                left=True, terr=self.terr)
-        self.talud_right = Talud(self.pks, self.cut['right'],
-                                 self.fill['right'], left=False,
-                                 terr=self.terr)
+        self.talud_left = Talud(
+            self.pks, self.cut["left"], self.fill["left"], left=True, terr=self.terr
+        )
+        self.talud_right = Talud(
+            self.pks, self.cut["right"], self.fill["right"], left=False, terr=self.terr
+        )
 
     def __repr__(self):
-        """ Return
-        """
-        return 'Taludes '
+        """Return"""
+        return "Taludes "
 
     def _init_talud(self):
-        """ Return
-        """
+        """Return"""
         for dat in self.tabla:
 
-            self.pks.append(dat['pk'])
-            self.cut['left'].append(dat['cut_left'])
-            self.cut['right'].append(dat['cut_right'])
-            self.fill['left'].append(dat['fill_left'])
-            self.fill['right'].append(dat['fill_right'])
+            self.pks.append(dat["pk"])
+            self.cut["left"].append(dat["cut_left"])
+            self.cut["right"].append(dat["cut_right"])
+            self.fill["left"].append(dat["fill_left"])
+            self.fill["right"].append(dat["fill_right"])
 
     def get_pnts(self, r_pnt, r_pnts_d):
-        """ Return
-        """
+        """Return"""
         pto1 = None
         pto2 = None
         if r_pnts_d[0][-1] is not None:
@@ -244,8 +241,7 @@ class Taludes(object):
         return [pto1, pto2]
 
     def get_lines(self):
-        """ Return
-        """
+        """Return"""
         list_lines = []
         list_attrs = []
         for r_line in self.talud_left.roadlines:
@@ -261,25 +257,24 @@ class Taludes(object):
         return list_lines, list_attrs
 
     def set_roadlines(self, roadline, displ):
-        """ Return
-        """
+        """Return"""
         if displ.displines == []:
             return None, None
 
-        self.talud_left.set_roadlines(roadline,
-                                      displ.displines_left[-1].roadline)
-        self.talud_right.set_roadlines(roadline,
-                                       displ.displines_right[-1].roadline)
+        self.talud_left.set_roadlines(roadline, displ.displines_left[-1].roadline)
+        self.talud_right.set_roadlines(roadline, displ.displines_right[-1].roadline)
 
     def get_areas(self, displ):
-        """ Return
-        """
+        """Return"""
         areas = []
         list_attrs = []
 
         for r_line in self.talud_left.roadlines:
-            line2 = [displ.displines_left[-1].roadline.get_by_pk(r_pnt.npk)
-                     for r_pnt in r_line if r_pnt is not None]
+            line2 = [
+                displ.displines_left[-1].roadline.get_by_pk(r_pnt.npk)
+                for r_pnt in r_line
+                if r_pnt is not None
+            ]
             lines = r_line.get_area(line2)
 
             for j in range(len(lines)):
@@ -287,8 +282,11 @@ class Taludes(object):
             areas.extend(lines)
 
         for r_line in self.talud_right.roadlines:
-            line2 = [displ.displines_right[-1].roadline.get_by_pk(r_pnt.npk)
-                     for r_pnt in r_line if r_pnt is not None]
+            line2 = [
+                displ.displines_right[-1].roadline.get_by_pk(r_pnt.npk)
+                for r_pnt in r_line
+                if r_pnt is not None
+            ]
             lines = r_line.get_area(line2)
 
             for j in range(len(lines)):
@@ -298,8 +296,7 @@ class Taludes(object):
         return areas, list_attrs
 
     def get_hull(self, displ):
-        """ Return
-        """
+        """Return"""
         line1 = []
         for i, pnt_t in enumerate(self.talud_left.roadline):
             if pnt_t is not None:
@@ -324,7 +321,7 @@ class Taludes(object):
         for i, pto in enumerate(line1):
             line1[i].z = 0
         line = Boundary(points=line1)
-        attrs = [['Hull', line.length()]]
+        attrs = [["Hull", line.length()]]
         return [line], attrs
 
 
@@ -332,13 +329,12 @@ class Taludes(object):
 # Terrain
 # =============================================
 
+
 class Terrain(object):
-    """ Return
-    """
+    """Return"""
 
     def __init__(self, mapname=None):
-        """ Return
-        """
+        """Return"""
         self.mapname = mapname
 
         self.elev = []
@@ -351,8 +347,7 @@ class Terrain(object):
         self.yres = region.nsres
 
     def _init_elev(self):
-        """ Return
-        """
+        """Return"""
         with RasterRow(self.mapname) as rrow:
             for row in rrow:
                 self.elev.append([])
@@ -360,16 +355,14 @@ class Terrain(object):
                     self.elev[-1].append(elem)
 
     def get_value(self, point):
-        """ Return
-        """
+        """Return"""
         pto_col = int((point.x - self.xref) / self.xres)
         pto_row = int((self.yref - point.y) / self.yres)
 
         return self.elev[pto_row][pto_col]
 
     def set_pnts_terr(self, list_r_pnts):
-        """Return
-        """
+        """Return"""
         for r_pnt in list_r_pnts:
             if r_pnt is not None:
                 self.set_pnt_terr(r_pnt)
@@ -377,10 +370,11 @@ class Terrain(object):
                 return None
 
     def set_pnt_terr(self, r_pnt):
-        """ Return
-        """
+        """Return"""
         r_pnt.terr = self.get_value(r_pnt)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

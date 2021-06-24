@@ -27,6 +27,7 @@ class Anthill(world.World):
     on the playground more likely then unmarked spots. The pheromone
     evaporates over time.
     """
+
     # constant names for the layers
     SITE = "sitemap"
     COST = "penaltymap"
@@ -94,15 +95,16 @@ class Anthill(world.World):
         @param list coordinates to put the agent on, none for a random position
         @return agent the newly created agent
         """
-        position = self.sites[randint(0, len(self.sites)-1)]
+        position = self.sites[randint(0, len(self.sites) - 1)]
         return super(Anthill, self).bear(self.antslife, position)
 
     def volatilize(self):
         """
         Let the pheromone evaporate over time.
         """
-        self.playground.decaycellvalues(Anthill.RESULT, self.volatilizationtime,
-                                            self.minpheromone)
+        self.playground.decaycellvalues(
+            Anthill.RESULT, self.volatilizationtime, self.minpheromone
+        )
 
     def letantsdance(self, rounds):
         """

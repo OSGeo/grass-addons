@@ -66,6 +66,7 @@
 ##################
 # PYTHON
 import numpy as np
+
 # GRASS
 from grass.pygrass.modules.shortcuts import general as g
 from grass.pygrass.modules.shortcuts import raster as r
@@ -83,6 +84,7 @@ from grass import script as gscript
 # MAIN MODULE #
 ###############
 
+
 def main():
     """
     Creates a hydrologically correct MODFLOW grid that inlcudes minimum
@@ -99,19 +101,19 @@ def main():
     """
 
     options, flags = gscript.parser()
-    dem = options['dem']
-    grid = options['grid']
-    streams = options['streams']
-    #resolution = float(options['resolution'])
-    streams_MODFLOW = options['streams_modflow']
-    DEM_MODFLOW = options['dem_modflow']
+    dem = options["dem"]
+    grid = options["grid"]
+    streams = options["streams"]
+    # resolution = float(options['resolution'])
+    streams_MODFLOW = options["streams_modflow"]
+    DEM_MODFLOW = options["dem_modflow"]
 
     # Get number of rows and columns
-    colNames = np.array(gscript.vector_db_select(grid, layer=1)['columns'])
-    colValues = np.array(gscript.vector_db_select(grid, layer=1)['values'].values())
-    cats = colValues[:,colNames == 'cat'].astype(int).squeeze()
-    rows = colValues[:,colNames == 'row'].astype(int).squeeze()
-    cols = colValues[:,colNames == 'col'].astype(int).squeeze()
+    colNames = np.array(gscript.vector_db_select(grid, layer=1)["columns"])
+    colValues = np.array(gscript.vector_db_select(grid, layer=1)["values"].values())
+    cats = colValues[:, colNames == "cat"].astype(int).squeeze()
+    rows = colValues[:, colNames == "row"].astype(int).squeeze()
+    cols = colValues[:, colNames == "col"].astype(int).squeeze()
     nRows = np.max(rows)
     nCols = np.max(cols)
 
@@ -119,17 +121,39 @@ def main():
 
     # Set the region to capture only the channel
     g.region(raster=dem)
-    v.to_rast(input=streams, output=streams_MODFLOW, use='val', value=1.0,
-              type='line', overwrite=gscript.overwrite(), quiet=True)
-    r.mapcalc('tmp'+" = "+streams_MODFLOW+" * " + dem, overwrite=True)
-    g.rename(raster=('tmp',streams_MODFLOW), overwrite=True, quiet=True)
+    v.to_rast(
+        input=streams,
+        output=streams_MODFLOW,
+        use="val",
+        value=1.0,
+        type="line",
+        overwrite=gscript.overwrite(),
+        quiet=True,
+    )
+    r.mapcalc("tmp" + " = " + streams_MODFLOW + " * " + dem, overwrite=True)
+    g.rename(raster=("tmp", streams_MODFLOW), overwrite=True, quiet=True)
     g.region(vector=grid, rows=nRows, cols=nCols, quiet=True)
-    r.resamp_stats(input=streams_MODFLOW, output=streams_MODFLOW,
-                   method='average', overwrite=gscript.overwrite(), quiet=True)
-    r.resamp_stats(input=dem, output=DEM_MODFLOW, method='average',
-                   overwrite=gscript.overwrite(), quiet=True)
-    r.patch(input=streams_MODFLOW+','+DEM_MODFLOW, output=DEM_MODFLOW,
-            overwrite=True, quiet=True)
+    r.resamp_stats(
+        input=streams_MODFLOW,
+        output=streams_MODFLOW,
+        method="average",
+        overwrite=gscript.overwrite(),
+        quiet=True,
+    )
+    r.resamp_stats(
+        input=dem,
+        output=DEM_MODFLOW,
+        method="average",
+        overwrite=gscript.overwrite(),
+        quiet=True,
+    )
+    r.patch(
+        input=streams_MODFLOW + "," + DEM_MODFLOW,
+        output=DEM_MODFLOW,
+        overwrite=True,
+        quiet=True,
+    )
+
 
 if __name__ == "__main__":
     main()

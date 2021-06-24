@@ -54,14 +54,7 @@ class TestGridSearch(TestCase):
         cls.runModule(
             "i.group",
             group=cls.group,
-            input=[
-                cls.band1,
-                cls.band2,
-                cls.band3,
-                cls.band4,
-                cls.band5,
-                cls.band7
-            ],
+            input=[cls.band1, cls.band2, cls.band3, cls.band4, cls.band5, cls.band7],
         )
         cls.runModule(
             "r.random",
@@ -75,8 +68,7 @@ class TestGridSearch(TestCase):
     def tearDownClass(cls):
         """Remove the temporary region (and anything else we created)"""
         cls.del_temp_region()
-        cls.runModule("g.remove", flags="f", type="raster",
-                      name=cls.labelled_pixels)
+        cls.runModule("g.remove", flags="f", type="raster", name=cls.labelled_pixels)
         cls.runModule("g.remove", flags="f", type="group", name=cls.group)
 
     def tearDown(self):

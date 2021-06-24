@@ -4,5 +4,5 @@ all = [
     "ServerInfoAPIs.py",
     "WMSMapDisplay.py",
     "wmsmenu.py",
-    "LoadConfig.py"
+    "LoadConfig.py",
 ]

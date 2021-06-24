@@ -123,6 +123,7 @@
 
 # PYTHON
 import numpy as np
+
 # GRASS
 import grass.script as grass
 from grass.pygrass import vector
@@ -132,23 +133,25 @@ from grass.pygrass import vector
 # UTILITY FUNCTION #
 ####################
 
+
 def get_points_xy(vect_name):
     """
     to find x and y using pygrass, see my (A. Wickert's) StackOverflow answer:
     http://gis.stackexchange.com/questions/28061/how-to-access-vector-coordinates-in-grass-gis-from-python
     """
     points = vector.VectorTopo(vect_name)
-    points.open('r')
+    points.open("r")
     coords = []
     for i in range(len(points)):
-        coords.append(points.read(i+1).coords())
+        coords.append(points.read(i + 1).coords())
     coords = np.array(coords)
-    return coords[:,0], coords[:,1] # x, y
+    return coords[:, 0], coords[:, 1]  # x, y
 
 
 ############################
 # PASS VARIABLES AND SOLVE #
 ############################
+
 
 def main():
     """
@@ -184,48 +187,77 @@ def main():
     flex.grass = True
 
     # Method
-    flex.Method = 'SAS_NG'
+    flex.Method = "SAS_NG"
 
     # Parameters that are often changed for the solution
     ######################################################
 
     # x, y, q
-    flex.x, flex.y = get_points_xy(options['input'])
+    flex.x, flex.y = get_points_xy(options["input"])
     # xw, yw: gridded output
-    if len(grass.parse_command('g.list', type='vect', pattern=options['output'])):
+    if len(grass.parse_command("g.list", type="vect", pattern=options["output"])):
         if not grass.overwrite():
-            grass.fatal("Vector map '" + options['output'] + "' already exists. Use '--o' to overwrite.")
+            grass.fatal(
+                "Vector map '"
+                + options["output"]
+                + "' already exists. Use '--o' to overwrite."
+            )
     # Just check raster at the same time if it exists
-    if len(grass.parse_command('g.list', type='rast', pattern=options['raster_output'])):
+    if len(
+        grass.parse_command("g.list", type="rast", pattern=options["raster_output"])
+    ):
         if not grass.overwrite():
-            grass.fatal("Raster map '" + options['raster_output'] + "' already exists. Use '--o' to overwrite.")
-    grass.run_command('v.mkgrid', map=options['output'], type='point', overwrite=grass.overwrite(), quiet=True)
-    grass.run_command('v.db.addcolumn', map=options['output'], columns='w double precision', quiet=True)
-    flex.xw, flex.yw = get_points_xy(options['output']) # gridded output coordinates
-    vect_db = grass.vector_db_select(options['input'])
-    col_names = np.array(vect_db['columns'])
-    q_col = (col_names == options['column'])
+            grass.fatal(
+                "Raster map '"
+                + options["raster_output"]
+                + "' already exists. Use '--o' to overwrite."
+            )
+    grass.run_command(
+        "v.mkgrid",
+        map=options["output"],
+        type="point",
+        overwrite=grass.overwrite(),
+        quiet=True,
+    )
+    grass.run_command(
+        "v.db.addcolumn",
+        map=options["output"],
+        columns="w double precision",
+        quiet=True,
+    )
+    flex.xw, flex.yw = get_points_xy(options["output"])  # gridded output coordinates
+    vect_db = grass.vector_db_select(options["input"])
+    col_names = np.array(vect_db["columns"])
+    q_col = col_names == options["column"]
     if np.sum(q_col):
-        col_values = np.array(list(vect_db['values'].values())).astype(float)
-        flex.q = col_values[:, q_col].squeeze() # Make it 1D for consistency w/ x, y
+        col_values = np.array(list(vect_db["values"].values())).astype(float)
+        flex.q = col_values[:, q_col].squeeze()  # Make it 1D for consistency w/ x, y
     else:
-        grass.fatal("provided column name, "+options['column']+" does not match\nany column in "+options['q0']+".")
+        grass.fatal(
+            "provided column name, "
+            + options["column"]
+            + " does not match\nany column in "
+            + options["q0"]
+            + "."
+        )
     # Elastic thickness
-    flex.Te = float(options['te'])
-    if options['te_units'] == 'km':
+    flex.Te = float(options["te"])
+    if options["te_units"] == "km":
         flex.Te *= 1000
-    elif options['te_units'] == 'm':
+    elif options["te_units"] == "m":
         pass
     else:
         grass.fatal("Inappropriate te_units. How? Options should be limited by GRASS.")
-    flex.rho_fill = float(options['rho_fill'])
+    flex.rho_fill = float(options["rho_fill"])
 
     # Parameters that often stay at their default values
     ######################################################
-    flex.g = float(options['g'])
-    flex.E = float(options['ym']) # Can't just use "E" because reserved for "east", I think
-    flex.nu = float(options['nu'])
-    flex.rho_m = float(options['rho_m'])
+    flex.g = float(options["g"])
+    flex.E = float(
+        options["ym"]
+    )  # Can't just use "E" because reserved for "east", I think
+    flex.nu = float(options["nu"])
+    flex.rho_m = float(options["rho_m"])
 
     # Set verbosity
     if grass.verbosity() >= 2:
@@ -236,9 +268,9 @@ def main():
         flex.Quiet = True
 
     # Check if lat/lon and let user know if verbosity is True
-    if grass.region_env()[6] == '3':
+    if grass.region_env()[6] == "3":
         flex.latlon = True
-        flex.PlanetaryRadius = float(grass.parse_command('g.proj', flags='j')['+a'])
+        flex.PlanetaryRadius = float(grass.parse_command("g.proj", flags="j")["+a"])
         if flex.Verbose:
             print("Latitude/longitude grid.")
             print("Based on r_Earth = 6371 km")
@@ -256,35 +288,55 @@ def main():
     # table and update its entries
     # See for help:
     # http://nbviewer.ipython.org/github/zarch/workshop-pygrass/blob/master/02_Vector.ipynb
-    w = vector.VectorTopo(options['output'])
-    w.open('rw') # Get ready to read and write
+    w = vector.VectorTopo(options["output"])
+    w.open("rw")  # Get ready to read and write
     wdb = w.dblinks[0]
     wtable = wdb.table()
-    col = int((np.array(wtable.columns.names()) == 'w').nonzero()[0]) # update this column
-    for i in range(1, len(w)+1):
+    col = int(
+        (np.array(wtable.columns.names()) == "w").nonzero()[0]
+    )  # update this column
+    for i in range(1, len(w) + 1):
         # ignoring 1st column: assuming it will be category (always true here)
-        wnewvalues = list(w[i].attrs.values())[1:col] + tuple([flex.w[i-1]]) + list(w[i].attrs.values())[col+1:]
+        wnewvalues = (
+            list(w[i].attrs.values())[1:col]
+            + tuple([flex.w[i - 1]])
+            + list(w[i].attrs.values())[col + 1 :]
+        )
         wtable.update(key=i, values=wnewvalues)
-    wtable.conn.commit() # Save this
-    w.close(build=False) # don't build here b/c it is always verbose
-    grass.run_command('v.build', map=options['output'], quiet=True)
+    wtable.conn.commit()  # Save this
+    w.close(build=False)  # don't build here b/c it is always verbose
+    grass.run_command("v.build", map=options["output"], quiet=True)
 
     # And raster export
     # "w" vector defined by raster resolution, so can do direct v.to.rast
     # though if this option isn't selected, the user can do a finer-grained
     # interpolation, which shouldn't introduce much error so long as these
     # outputs are spaced at << 1 flexural wavelength.
-    if options['raster_output']:
-        grass.run_command('v.to.rast', input=options['output'], output=options['raster_output'], use='attr', attribute_column='w', type='point', overwrite=grass.overwrite(), quiet=True)
+    if options["raster_output"]:
+        grass.run_command(
+            "v.to.rast",
+            input=options["output"],
+            output=options["raster_output"],
+            use="attr",
+            attribute_column="w",
+            type="point",
+            overwrite=grass.overwrite(),
+            quiet=True,
+        )
         # And create a nice colormap!
-        grass.run_command('r.colors', map=options['raster_output'], color='differences', quiet=True)
+        grass.run_command(
+            "r.colors", map=options["raster_output"], color="differences", quiet=True
+        )
+
 
 def install_dependencies():
     print("PLACEHOLDER")
 
+
 if __name__ == "__main__":
     import sys
-    if len(sys.argv) > 1 and sys.argv[1] == '--install-dependencies':
+
+    if len(sys.argv) > 1 and sys.argv[1] == "--install-dependencies":
         install_dependencies()
     else:
         main()

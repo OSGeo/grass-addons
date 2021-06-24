@@ -5,8 +5,11 @@ import inspect
 import logging
 import os
 import sys
-#import mmap
-path = os.path.join(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))), os.pardir)
+
+# import mmap
+path = os.path.join(
+    os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))), os.pardir
+)
 if path not in sys.path:
     sys.path.append(path)
 
@@ -18,9 +21,10 @@ from hdfs_grass_util import read_dict, save_dict, get_tmp_folder
 from grass.pygrass.modules import Module
 from grass.script.core import PIPE
 import grass.script as grass
-from grass_map  import VectorDBInfo as VectorDBInfoBase
+from grass_map import VectorDBInfo as VectorDBInfoBase
 
-from dagpype import stream_lines, to_stream,filt, nth
+from dagpype import stream_lines, to_stream, filt, nth
+
 
 class ConnectionManager:
     """
@@ -70,21 +74,21 @@ class ConnectionManager:
         :return: self.connection which is main class of Connection module
         """
         if self.uri:
-            self.connectionDict = {'uri': self.uri}
+            self.connectionDict = {"uri": self.uri}
         else:
-            self.connectionDict = {'host': self.host}
+            self.connectionDict = {"host": self.host}
             if self.login:
-                self.connectionDict['login'] = self.login
+                self.connectionDict["login"] = self.login
             if self.schema:
-                self.connectionDict['schema'] = self.schema
+                self.connectionDict["schema"] = self.schema
             if self.conn_id:
-                self.connectionDict['conn_id'] = self.conn_id
+                self.connectionDict["conn_id"] = self.conn_id
             if self.conn_type:
-                self.connectionDict['conn_type'] = self.conn_type
+                self.connectionDict["conn_type"] = self.conn_type
             if self.password:
-                self.connectionDict['password'] = self.password
+                self.connectionDict["password"] = self.password
             if self.port:
-                self.connectionDict['port'] = self.port
+                self.connectionDict["port"] = self.port
         self.connection = Connection(**self.connectionDict)
 
     def add_connection(self):
@@ -92,25 +96,36 @@ class ConnectionManager:
         Add connection to sql database. If connection already exists, is overwritten.
         :return:
         """
-        grass.message('***' * 30)
-        grass.message("\n     Adding new connection \n       conn_type: %s  \n" % self.conn_type)
+        grass.message("***" * 30)
+        grass.message(
+            "\n     Adding new connection \n       conn_type: %s  \n" % self.conn_type
+        )
         self.session.add(self.connection)
         try:
             self.session.commit()
-            self._set_active_connection(self.conn_type, self.connectionDict['conn_id'])
+            self._set_active_connection(self.conn_type, self.connectionDict["conn_id"])
         except IntegrityError, e:
-            grass.message("       ERROR conn_id already exists. Will be overwritten...\n")
-            grass.message('***' * 30)
+            grass.message(
+                "       ERROR conn_id already exists. Will be overwritten...\n"
+            )
+            grass.message("***" * 30)
             self.session.rollback()
             self.session.flush()
-            self.remove_conn_Id(self.connectionDict['conn_id'])
+            self.remove_conn_Id(self.connectionDict["conn_id"])
             self.add_connection()
-            grass.message('***' * 30)
+            grass.message("***" * 30)
 
-    def set_connection(self, conn_id, conn_type,
-                       host=None, port=None,
-                       login=None, password=None,
-                       schema=None, authMechanism=None):
+    def set_connection(
+        self,
+        conn_id,
+        conn_type,
+        host=None,
+        port=None,
+        login=None,
+        password=None,
+        schema=None,
+        authMechanism=None,
+    ):
         """
         Set new connection.
         :param conn_id: id of connection
@@ -145,18 +160,19 @@ class ConnectionManager:
         :return:
         """
         from sqlalchemy import MetaData
+
         md = MetaData()
-        connTable = Table('connection', md)
+        connTable = Table("connection", md)
         try:
             connTable.drop(settings.engine)
             os.remove(settings.grass_config)
-            grass.message('***' * 30)
+            grass.message("***" * 30)
             grass.message("\n     Table of connection has been removed \n")
-            grass.message('***' * 30)
+            grass.message("***" * 30)
         except Exception, e:
-            grass.message('***' * 30)
+            grass.message("***" * 30)
             grass.message("\n     No table exists\n")
-            grass.message('***' * 30)
+            grass.message("***" * 30)
 
     @staticmethod
     def show_connections():
@@ -165,17 +181,17 @@ class ConnectionManager:
         :return:
         """
         cn = settings.engine.connect()
-        grass.message('***' * 30)
+        grass.message("***" * 30)
         grass.message("\n     Table of connection \n")
         try:
-            result = cn.execute('select * from connection')
+            result = cn.execute("select * from connection")
             for row in result:
                 grass.message("       %s\n" % row)
             cn.close()
         except Exception, e:
             grass.message(e)
             grass.message("        No connection\n")
-        grass.message('***' * 30)
+        grass.message("***" * 30)
 
     def set_active_connection(self, conn_type=None, conn_id=None):
         """
@@ -224,13 +240,13 @@ class ConnectionManager:
         """
         cfg = read_dict(settings.grass_config)
         if cfg:
-            grass.message('***' * 30)
-            grass.message('\n     Primary connection for db drivers\n')
+            grass.message("***" * 30)
+            grass.message("\n     Primary connection for db drivers\n")
             for key, val in cfg.iteritems():
-                grass.message('       conn_type: %s -> conn_id: %s\n' % (key, val))
+                grass.message("       conn_type: %s -> conn_id: %s\n" % (key, val))
         else:
-            grass.message('      No connection defined\n')
-        grass.message('***' * 30)
+            grass.message("      No connection defined\n")
+        grass.message("***" * 30)
 
     def get_current_connection(self, conn_type):
         """
@@ -264,16 +280,16 @@ class ConnectionManager:
         :return:
         """
         cn = settings.engine.connect()
-        grass.message('***' * 30)
+        grass.message("***" * 30)
         grass.message("\n     Removing connection %s " % id)
         try:
-            grass.message('       conn_id= %s \n' % id)
+            grass.message("       conn_id= %s \n" % id)
             cn.execute('DELETE FROM connection WHERE conn_id="%s"' % id)
             cn.close()
         except Exception, e:
             grass.message("       ERROR: %s \n" % e)
             # grass.message('     No connection with conn_id %s'%id)
-        grass.message('***' * 30)
+        grass.message("***" * 30)
 
     def set_connection_uri(self, uri):
         """
@@ -296,15 +312,16 @@ class ConnectionManager:
         hook = self.get_hook()
         if hook:
             if not hook.test():
-                grass.message('Cannot establish connection')
+                grass.message("Cannot establish connection")
                 return False
+
 
 class HiveTableBuilder:
     """
     Abstract class for Hive table maker
     """
 
-    def __init__(self,map,layer):
+    def __init__(self, map, layer):
         self.map = map
         self.layer = layer
 
@@ -316,14 +333,18 @@ class HiveTableBuilder:
 
         for col in map_info.keys():
             name = str(col)
-            dtype = col['type']
-            if dtype == 'integer':
-                dtype = 'INT'
+            dtype = col["type"]
+            if dtype == "integer":
+                dtype = "INT"
             if not dtype.capitalize() in dtype:
-                grass.fatal('Automatic generation of columns faild, datatype %s is not recognized' % dtype)
+                grass.fatal(
+                    "Automatic generation of columns faild, datatype %s is not recognized"
+                    % dtype
+                )
 
     def _get_map(self):
         raise NotImplemented
+
 
 class JSONBuilder:
     """
@@ -334,7 +355,7 @@ class JSONBuilder:
 
         self.grass_map = grass_map
         self.json_file = json_file
-        self.json = ''
+        self.json = ""
 
     def get_JSON(self):
         """
@@ -355,7 +376,10 @@ class JSONBuilder:
         :param rm_last_line:
         :return:
         """
-        file = open(path, "r+", )
+        file = open(
+            path,
+            "r+",
+        )
 
         # Move the pointer (similar to a cursor in a text editor) to the end of the file.
         file.seek(-rm_last_line, os.SEEK_END)
@@ -381,8 +405,8 @@ class JSONBuilder:
         :param lineNumber:
         :return:
         """
-        with open(filename, 'r+') as outputFile:
-            with open(filename, 'r') as inputFile:
+        with open(filename, "r+") as outputFile:
+            with open(filename, "r") as inputFile:
 
                 currentLineNumber = 0
                 while currentLineNumber < lineNumber:
@@ -406,23 +430,32 @@ class JSONBuilder:
         Transform GRASS map to GeoJSON
         :return:
         """
-        if self.grass_map['type'] not in ['point', 'line', 'boundary', 'centroid',
-                                          'area', 'face', 'kernel', 'auto']:
-            self.grass_map['type'] = 'auto'
-        out = "%s_%s.json" % (self.grass_map['map'],
-                              self.grass_map['layer'])
+        if self.grass_map["type"] not in [
+            "point",
+            "line",
+            "boundary",
+            "centroid",
+            "area",
+            "face",
+            "kernel",
+            "auto",
+        ]:
+            self.grass_map["type"] = "auto"
+        out = "%s_%s.json" % (self.grass_map["map"], self.grass_map["layer"])
 
         out = os.path.join(get_tmp_folder(), out)
         if os.path.exists(out):
             os.remove(out)
-        out1 = Module('v.out.ogr',
-                      input=self.grass_map['map'],
-                      layer=self.grass_map['layer'],
-                      type=self.grass_map['type'],
-                      output=out,
-                      format='GeoJSON',
-                      stderr_=PIPE,
-                      overwrite=True)
+        out1 = Module(
+            "v.out.ogr",
+            input=self.grass_map["map"],
+            layer=self.grass_map["layer"],
+            type=self.grass_map["type"],
+            output=out,
+            format="GeoJSON",
+            stderr_=PIPE,
+            overwrite=True,
+        )
 
         grass.message(out1.outputs["stderr"].value.strip())
 
@@ -433,12 +466,13 @@ class JSONBuilder:
 
         return out
 
+
 class GrassMapBuilder(object):
     """
     Base class for creating GRASS map from GeoJSON
     """
 
-    def __init__(self, json_file, map,attributes):
+    def __init__(self, json_file, map, attributes):
         self.file = json_file
         self.map = map
         self.attr = attributes
@@ -447,8 +481,8 @@ class GrassMapBuilder(object):
         raise NotImplemented
 
     def remove_line(self, lineNumber):
-        with open(self.file, 'r+') as outputFile:
-            with open(self.file, 'r') as inputFile:
+        with open(self.file, "r+") as outputFile:
+            with open(self.file, "r") as inputFile:
 
                 currentLineNumber = 0
                 while currentLineNumber < lineNumber:
@@ -473,22 +507,22 @@ class GrassMapBuilder(object):
         :return:
         :rtype:
         """
-        with open(self.file, 'r') as f:
+        with open(self.file, "r") as f:
             first_line = f.readline()
-            if first_line.find('wkid') != -1:
-                return self._find_between(first_line,'wkid":','}')
+            if first_line.find("wkid") != -1:
+                return self._find_between(first_line, 'wkid":', "}")
 
     def _rm_null(self):
         """
         First line sometimes include null. Must be removed
         :return:
         """
-        with open(self.file, 'r') as f:
+        with open(self.file, "r") as f:
             first_line = f.readline()
-            if first_line.find('null') != -1:
+            if first_line.find("null") != -1:
                 self.remove_line(0)
 
-    def _find_between(self,s, first, last):
+    def _find_between(self, s, first, last):
         """
         Return sting between two strings
         :param s:
@@ -508,35 +542,36 @@ class GrassMapBuilder(object):
         Create map from GeoJSON
         :return:
         """
-        out1 = Module('v.in.ogr',
-              input=self.file,
-              output=self.map,
-              verbose=True,
-              #stderr_=PIPE,
-              overwrite=True)
+        out1 = Module(
+            "v.in.ogr",
+            input=self.file,
+            output=self.map,
+            verbose=True,
+            # stderr_=PIPE,
+            overwrite=True,
+        )
 
-        #grass.message(out1.outputs["stderr"].value.strip())
-        #logging.debug(out1.outputs["stderr"].value.strip())
+        # grass.message(out1.outputs["stderr"].value.strip())
+        # logging.debug(out1.outputs["stderr"].value.strip())
 
-
-    def _prepend_line(self,line):
+    def _prepend_line(self, line):
         """
         Prepend line to the text file
         :param line:
         :return:
         """
         with open(self.file, "r+") as f:
-            old = f.read() # read everything in the file
-            f.seek(0) # rewind
-            f.write("%s\n" % line + old) # write the new line before
+            old = f.read()  # read everything in the file
+            f.seek(0)  # rewind
+            f.write("%s\n" % line + old)  # write the new line before
 
-    def _append_line(self,line):
+    def _append_line(self, line):
         """
         Append line to the text file
         :param line:
         :return:
         """
-        with open(self.file, 'a') as file:
+        with open(self.file, "a") as file:
             file.write(line)
 
     def _get_type(self):
@@ -545,59 +580,61 @@ class GrassMapBuilder(object):
         :return:
         """
         line = stream_lines(self.file) | nth(0)
-        if line.find('ring'):
-            return ['ring','"type":"Polygon","coordinates":']
-        if line.find('multipoint'):
-            return ['multipoint','"type":"MultiPoint","coordinates":']
-        if line.find('paths'):
-            return ['paths','"type":"MultiLineString","coordinates":']
+        if line.find("ring"):
+            return ["ring", '"type":"Polygon","coordinates":']
+        if line.find("multipoint"):
+            return ["multipoint", '"type":"MultiPoint","coordinates":']
+        if line.find("paths"):
+            return ["paths", '"type":"MultiLineString","coordinates":']
 
         if line.find('"x"'):
-            grass.fatal('Point is not supported')
-        if line.find('envelope'):
-            grass.fatal('Envelope is not supported')
+            grass.fatal("Point is not supported")
+        if line.find("envelope"):
+            grass.fatal("Envelope is not supported")
 
-    def replace_substring(self,foo,bar):
+    def replace_substring(self, foo, bar):
         """
         Replace substring by given string
         :param foo:
         :param bar:
         :return:
         """
-        path = '%s1' % self.file
-        io = open(path,'w')
-        stream_lines(self.file) |\
-            filt(lambda l: l.replace(foo, bar)) |\
-            to_stream(io)
+        path = "%s1" % self.file
+        io = open(path, "w")
+        stream_lines(self.file) | filt(lambda l: l.replace(foo, bar)) | to_stream(io)
         self.file = path
+
 
 class GrassMapBuilderEsriToStandard(GrassMapBuilder):
     """
     Class for conversion serialised GeoJson to GRASS MAP
     """
 
-    def __init__(self,json_file, map):
-        super(GrassMapBuilderEsriToStandard,self).__init__(json_file, map)
+    def __init__(self, json_file, map):
+        super(GrassMapBuilderEsriToStandard, self).__init__(json_file, map)
 
     def build(self):
         geom_type = self._get_type()
-        self.replace_substring(geom_type[0],[1])
-        self.replace_substring('}}}','}}},')
+        self.replace_substring(geom_type[0], [1])
+        self.replace_substring("}}}", "}}},")
 
-        fst_line = ('{"type": "FeatureCollection","crs": '
-                   '{ "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },"features": [')
+        fst_line = (
+            '{"type": "FeatureCollection","crs": '
+            '{ "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },"features": ['
+        )
         self._prepend_line(fst_line)
-        self._append_line(']}')
+        self._append_line("]}")
 
         self._create_map()
+
 
 class GrassMapBuilderEsriToEsri(GrassMapBuilder):
     """
     Class for conversion serialised Esri GeoJson to GRASS MAP
     """
 
-    def __init__(self,json_file, map,attributes):
-        super(GrassMapBuilderEsriToEsri,self).__init__(json_file, map,attributes)
+    def __init__(self, json_file, map, attributes):
+        super(GrassMapBuilderEsriToEsri, self).__init__(json_file, map, attributes)
         if not os.path.exists(self.file):
             return
 
@@ -605,61 +642,63 @@ class GrassMapBuilderEsriToEsri(GrassMapBuilder):
         self._rm_null()
         geom_type = self._get_type()
         wkid = self._get_wkid()
-        self.replace_substring('}}','}},')
+        self.replace_substring("}}", "}},")
 
-        header = self._generate_header(geom_type[1],wkid)
+        header = self._generate_header(geom_type[1], wkid)
         self._prepend_line(header)
-        self._append_line(']}')
+        self._append_line("]}")
 
         self._create_map()
 
-    def _generate_header(self,geom_type,wkid):
+    def _generate_header(self, geom_type, wkid):
 
-        cols = ''
+        cols = ""
         if self.attr:
-            items = self.attr.split(',')
+            items = self.attr.split(",")
             for att in items:
-                col,typ = att.split(' ')
-                if 'int' in typ.lower():
-                    typ = 'esriFieldTypeInteger'
-                if 'str' in typ.lower():
-                    typ = 'esriFieldTypeString'
-                if 'double' in typ.lower():
-                    typ = 'esriFieldTypeDouble'
-                if 'id' in typ.lower():
-                    typ = 'esriFieldTypeOID'
+                col, typ = att.split(" ")
+                if "int" in typ.lower():
+                    typ = "esriFieldTypeInteger"
+                if "str" in typ.lower():
+                    typ = "esriFieldTypeString"
+                if "double" in typ.lower():
+                    typ = "esriFieldTypeDouble"
+                if "id" in typ.lower():
+                    typ = "esriFieldTypeOID"
 
-                cols += '{"name":"%s","type":"%s"},' % (col,typ)
-
+                cols += '{"name":"%s","type":"%s"},' % (col, typ)
 
         cols = cols[:-1]
 
         if not wkid:
-            wkid = '4326'  # TODO g.proj.identify3
-        header = ('{"objectIdFieldName":"objectid",'
-                 '"globalIdFieldName":"",'
-                 '"geometryType":"%s",'
-                 '"spatialReference":{"wkid":%s},'
-                 '"fields":[%s],'
-                 '"features": [' % (geom_type,wkid,cols))
+            wkid = "4326"  # TODO g.proj.identify3
+        header = (
+            '{"objectIdFieldName":"objectid",'
+            '"globalIdFieldName":"",'
+            '"geometryType":"%s",'
+            '"spatialReference":{"wkid":%s},'
+            '"fields":[%s],'
+            '"features": [' % (geom_type, wkid, cols)
+        )
 
         return header
 
     def _get_type(self):
         logging.info("Get type for file: %s" % self.file)
         line = stream_lines(self.file) | nth(0)
-        if line.find('ring'):
-            return ['ring','esriGeometryPolygon']
-        if line.find('multipoint'):
-            return ['multipoint','esriGeometryMultipoint']
-        if line.find('paths'):
-            return ['paths','esriGeometryPolyline']
+        if line.find("ring"):
+            return ["ring", "esriGeometryPolygon"]
+        if line.find("multipoint"):
+            return ["multipoint", "esriGeometryMultipoint"]
+        if line.find("paths"):
+            return ["paths", "esriGeometryPolyline"]
         if line.find('"x"'):
-            return ['point','esriGeometryPoint']
-        if line.find('envelope'):
-            return ['envelope','esriGeometryEnvelope']
+            return ["point", "esriGeometryPoint"]
+        if line.find("envelope"):
+            return ["envelope", "esriGeometryEnvelope"]
 
-class GrassHdfs():
+
+class GrassHdfs:
     """
     Helper class for ineteraction between GRASS and HDFS/HIVE
     """
@@ -680,21 +719,21 @@ class GrassHdfs():
 
     @staticmethod
     def printInfo(hdfs, msg=None):
-        grass.message('***' * 30)
+        grass.message("***" * 30)
         if msg:
             grass.message("     %s \n" % msg)
-        grass.message(' path :\n    %s\n' % hdfs)
-        grass.message('***' * 30)
+        grass.message(" path :\n    %s\n" % hdfs)
+        grass.message("***" * 30)
 
     def get_path_grass_dataset(self):
-        LOCATION_NAME = grass.gisenv()['LOCATION_NAME']
-        MAPSET = grass.gisenv()['MAPSET']
-        dest_path = os.path.join('grass_data_hdfs', LOCATION_NAME, MAPSET, 'vector')
+        LOCATION_NAME = grass.gisenv()["LOCATION_NAME"]
+        MAPSET = grass.gisenv()["MAPSET"]
+        dest_path = os.path.join("grass_data_hdfs", LOCATION_NAME, MAPSET, "vector")
         self.mkdir(dest_path)
         return dest_path
 
     def upload(self, fs, hdfs, overwrite=True, parallelism=1):
-        logging.info('Trying copy: fs: %s to  hdfs: %s   ' % (fs, hdfs))
+        logging.info("Trying copy: fs: %s to  hdfs: %s   " % (fs, hdfs))
         self.hook.upload_file(fs, hdfs, overwrite, parallelism)
         self.grass.messageInfo(hdfs, "File has been copied to:")
 
@@ -708,14 +747,13 @@ class GrassHdfs():
         self.grass.messageInfo(hdfs)
 
     def download(self, fs, hdfs, overwrite=True, parallelism=1):
-        logging.info('Trying download : hdfs: %s to fs: %s   ' % (hdfs, fs))
+        logging.info("Trying download : hdfs: %s to fs: %s   " % (hdfs, fs))
 
-        out = self.hook.download_file(hdfs_path = hdfs,
-                                       local_path = fs,
-                                       overwrite = overwrite,
-                                       parallelism = parallelism)
+        out = self.hook.download_file(
+            hdfs_path=hdfs, local_path=fs, overwrite=overwrite, parallelism=parallelism
+        )
         if out:
             self.grass.messageInfo(out)
         else:
-            grass.message('Copy error!')
+            grass.message("Copy error!")
         return out

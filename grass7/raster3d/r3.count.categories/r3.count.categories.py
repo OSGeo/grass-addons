@@ -78,28 +78,27 @@ from grass.exceptions import CalledModuleError
 
 def check_raster3d_exists(name):
     """Check if the raster map exists, call GRASS fatal otherwise"""
-    file_info = gs.find_file(name, element='grid3')
-    if not file_info['fullname']:
+    file_info = gs.find_file(name, element="grid3")
+    if not file_info["fullname"]:
         gs.fatal(_("3D raster map <%s> not found") % name)
 
 
 def check_raster2d_exists(name):
     """Check if the raster map exists, call GRASS fatal otherwise"""
-    file_info = gs.find_file(name, element='cell')
-    if not file_info['fullname']:
+    file_info = gs.find_file(name, element="cell")
+    if not file_info["fullname"]:
         gs.fatal(_("2D raster map <%s> not found") % name)
 
 
 def remove(maps):
     """Remove raster maps"""
     if maps:
-        gs.run_command('g.remove', flags='f', quiet=True,
-                       type='rast', name=maps)
+        gs.run_command("g.remove", flags="f", quiet=True, type="rast", name=maps)
 
 
 def list_in_current_mapset(pattern):
     """List names of raster maps in the current mapset"""
-    maps = gs.list_pairs(type='rast', mapset=".", pattern=pattern, flag='e')
+    maps = gs.list_pairs(type="rast", mapset=".", pattern=pattern, flag="e")
     maps = [name for name, mapset in maps]
     return maps
 
@@ -109,46 +108,51 @@ def basename_in_use_message(basename, rasters):
         formatted = "%s,..." % ", ".join(rasters[:3])
     else:
         formatted = ", ".join(rasters)
-    gs.fatal(_("There are rasters with basename <%s> (%s), use"
-               " different name or overwrite") % (basename, formatted))
+    gs.fatal(
+        _(
+            "There are rasters with basename <%s> (%s), use"
+            " different name or overwrite"
+        )
+        % (basename, formatted)
+    )
 
 
 # TODO: create name for slices if not provided
 def create_tmp_map_name(name):
-    return '{mod}_{pid}_{map_}_tmp'.format(mod='r3_reduce',
-                                           pid=os.getpid(),
-                                           map_=name)
+    return "{mod}_{pid}_{map_}_tmp".format(mod="r3_reduce", pid=os.getpid(), map_=name)
 
 
 def main():
     options, flags = gs.parser()
 
     # TODO: allow using existing slices with a flag
-    input_ = options['input']
-    output_basename = options['output']
-    slices_basename = options['slices']
-    surface = options['surface']
+    input_ = options["input"]
+    output_basename = options["output"]
+    slices_basename = options["slices"]
+    surface = options["surface"]
 
-    divide = flags['d']
-    use_slices = flags['s']
+    divide = flags["d"]
+    use_slices = flags["s"]
 
     check_raster3d_exists(input_)
     if surface:
         check_raster2d_exists(surface)
 
     size = None
-    if options['size']:
-        size = int(options['size'])
+    if options["size"]:
+        size = int(options["size"])
         if size % 2 == 0:
-            gs.fatal(_("Please provide an odd number for the moving"
-                       " window size, not %d") % size)
+            gs.fatal(
+                _("Please provide an odd number for the moving" " window size, not %d")
+                % size
+            )
 
     # options to be passed to r3.to.rast
     additional_options = {}
-    for option in ['multiply', 'add']:
+    for option in ["multiply", "add"]:
         if options[option]:
             additional_options[option] = options[option]
-    additional_options['type'] = 'CELL'
+    additional_options["type"] = "CELL"
 
     basename_sep = "_"
     output_pattern = "^%s%s[0-9]+$" % (output_basename, basename_sep)
@@ -164,9 +168,9 @@ def main():
         basename_in_use_message(slices_basename, rasters)
 
     # TODO: list of categories would be better
-    info = gs.parse_command('r3.info', map=input_, flags='r')
-    map_min = int(float(info['min']))
-    map_max = int(float(info['max']))
+    info = gs.parse_command("r3.info", map=input_, flags="r")
+    map_min = int(float(info["min"]))
+    map_max = int(float(info["max"]))
     gs.verbose(_("Categories from %d to %d") % (map_min, map_max))
 
     rasters = []
@@ -174,8 +178,9 @@ def main():
         # TODO: we should switch to 3D region for the following computations?
         # or should we require resolutions to be the same?
         if not use_slices:
-            gs.run_command('r3.to.rast', input=input_, output=slices_basename,
-                           **additional_options)
+            gs.run_command(
+                "r3.to.rast", input=input_, output=slices_basename, **additional_options
+            )
         # it's clear we created just the ones in the current mapset
         # and we need to make the command line as short as possible
         rasters = list_in_current_mapset(slices_pattern)
@@ -186,34 +191,37 @@ def main():
             for raster in rasters:
                 for j in range(-size, size + 1):
                     for i in range(-size, size + 1):
-                        expr_list.append(base_expr.format(
-                            m=raster, a=i, b=j))
+                        expr_list.append(base_expr.format(m=raster, a=i, b=j))
             expr = " + ".join(expr_list)
             expr = "{out}{sep}$num = {inp}".format(
-                out=output_basename, sep=basename_sep,
-                inp=expr)
+                out=output_basename, sep=basename_sep, inp=expr
+            )
         else:
             if surface:
                 # TODO: < or <= ?
                 base_expr = "if({d} < {s}, int({m} == $num), 0)"
                 expr_list = []
                 for depth, raster in enumerate(rasters):
-                    expr_list.append(base_expr.format(
-                        m=raster, d=depth + 1, s=surface))
+                    expr_list.append(base_expr.format(m=raster, d=depth + 1, s=surface))
                 expr = " + ".join(expr_list)
                 if divide:
                     expr = "({e}) / {otype}({s})".format(
-                        e=expr, otype='float', s=surface)
+                        e=expr, otype="float", s=surface
+                    )
                 expr = "{out}{sep}$num = {inp}".format(
-                    out=output_basename, sep=basename_sep, inp=expr)
+                    out=output_basename, sep=basename_sep, inp=expr
+                )
             else:
                 expr = "{out}{sep}$num = int({inp} == $num)".format(
-                    out=output_basename, sep=basename_sep,
-                    inp=" == $num) + int(".join(rasters))
+                    out=output_basename,
+                    sep=basename_sep,
+                    inp=" == $num) + int(".join(rasters),
+                )
         # TODO: define behavior when the map is empty or has just one class
         try:
             # TODO: this uses uncommitted experimental code for trunk
             from grass.script.parallel import ModuleCallList, execute_by_module
+
             call = ModuleCallList()
             parallel = True
         except ImportError:
@@ -225,8 +233,7 @@ def main():
             execute_by_module(call, nprocs=4)
     except CalledModuleError as error:
         remove(rasters)
-        gs.fatal(_("Module %s failed. Check the above error messages.") %
-                 error.cmd)
+        gs.fatal(_("Module %s failed. Check the above error messages.") % error.cmd)
 
 
 if __name__ == "__main__":

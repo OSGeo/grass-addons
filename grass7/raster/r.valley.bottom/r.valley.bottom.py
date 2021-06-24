@@ -124,8 +124,7 @@ if "GISBASE" not in os.environ:
 
 
 def cleanup():
-    """Clean-up procedure for module
-    """
+    """Clean-up procedure for module"""
     gs.message("Deleting intermediate files...")
     for k, v in TMP_RAST.items():
         for f in v:
@@ -216,10 +215,14 @@ def focal_expr(radius, window_square=False):
                 row_start = row - radius
                 col_start = col - radius
 
-                if pow(row_start, 2) + pow(col_start, 2) <= pow(radius, 2) and (
-                    i,
-                    j,
-                ) != (0, 0):
+                if (
+                    pow(row_start, 2) + pow(col_start, 2) <= pow(radius, 2)
+                    and (
+                        i,
+                        j,
+                    )
+                    != (0, 0)
+                ):
                     offsets.append((j, i))
 
     return offsets
@@ -255,8 +258,12 @@ def elevation_percentile(input, radius=3, window_square=False):
 
     terms = []
     for d in offsets:
-        valid = ','.join(map(str, d))
-        terms.append("if( isnull({input}[{d}]), 1, {input}[{d}]<={input})".format(input=input, d=valid))
+        valid = ",".join(map(str, d))
+        terms.append(
+            "if( isnull({input}[{d}]), 1, {input}[{d}]<={input})".format(
+                input=input, d=valid
+            )
+        )
 
     terms = "+".join(terms)
     expr = "{x} = ({s}) / {n}".format(x=PCTL, s=terms, n=n_pixels)
@@ -570,16 +577,20 @@ def main():
     remaining_cells = current_region.cells
     while remaining_cells >= min_cells:
         levels += 1
-        g.region(nsres=Region().nsres*3, ewres=Region().ewres*3)
+        g.region(nsres=Region().nsres * 3, ewres=Region().ewres * 3)
         remaining_cells = Region().cells
     current_region.write()
 
     if levels < 3:
-        gs.fatal('MRVBF algorithm requires a greater level of generalization. Reduce number of min_cells or use a larger computational region.')
+        gs.fatal(
+            "MRVBF algorithm requires a greater level of generalization. Reduce number of min_cells or use a larger computational region."
+        )
 
-    gs.message('Parameter Settings')
-    gs.message('------------------')
-    gs.message('min_cells = %d will result in %d generalization steps' % (min_cells, levels))
+    gs.message("Parameter Settings")
+    gs.message("------------------")
+    gs.message(
+        "min_cells = %d will result in %d generalization steps" % (min_cells, levels)
+    )
 
     # intermediate outputs
     Xres_step = list()
@@ -731,6 +742,7 @@ def main():
 
     if mrrtf != "":
         gs.mapcalc("$x = $y", x=mrrtf, y=MRRTF[L])
+
 
 if __name__ == "__main__":
     options, flags = gs.parser()

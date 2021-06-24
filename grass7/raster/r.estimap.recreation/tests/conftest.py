@@ -15,14 +15,13 @@ def pytest_collect_file(parent, path):
 
 
 class YamlFile(pytest.File):
-
     def collect(self):
         test_cases = yaml.load(self.fspath.open())
         for case in test_cases:
             module = py.path.local(str(self.fspath).replace(".yml", ".py"))
             yield pytest.Function(
-                name=case['mapset'],
+                name=case["mapset"],
                 # parent=pytest.Module(fspath=os.path.abspath(__file__), parent=self),
                 parent=pytest.Module(fspath=module, parent=self),
-                callobj=functools.partial(estimap_test_runner, case)
+                callobj=functools.partial(estimap_test_runner, case),
             )

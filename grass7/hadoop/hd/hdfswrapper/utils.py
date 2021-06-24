@@ -9,7 +9,7 @@ except:
     pass
 
 
-def TemporaryDirectory(suffix='', prefix=None, dir=None):
+def TemporaryDirectory(suffix="", prefix=None, dir=None):
     name = mkdtemp(suffix=suffix, prefix=prefix, dir=dir)
     try:
         yield name
@@ -36,25 +36,25 @@ def string2dict(string):
         return json.loads(string.replace("'", '"'))
 
     except Exception, e:
-        print('Dictonary is not valid: %s' % e)
+        print("Dictonary is not valid: %s" % e)
         return None
 
 
 def find_ST_fnc(hsql):
-    '''
+    """
     Parse hsql query and find ST_ functions.
     :param hsql: string of hive query.
     :type hsql: string
     :return: dict {ST_fce: com.esri.hadoop.hive.ST_fce} (name: java path )
     :rtype: dict
-    '''
+    """
     first = "ST_"
     last = "("
     ST = {}
-    for s in hsql.split('('):
-        if s.find('ST_'):
-            s = s.split('ST_')
-            fc = 'ST_%s' % s[0]
+    for s in hsql.split("("):
+        if s.find("ST_"):
+            s = s.split("ST_")
+            fc = "ST_%s" % s[0]
             if fc not in ST:
                 ST[s] = "com.esri.hadoop.hive.%s" % fc
 

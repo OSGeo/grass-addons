@@ -242,7 +242,7 @@ from grass.exceptions import CalledModuleError
 # r.mvprecip.py -g database=letnany baseline=1 fromtime=2013-09-10 04:00:00 totime=2013-09-11 04:00:00 schema=temp6
 
 
-path = ''
+path = ""
 view = "view"
 view_statement = "TABLE"
 # new scheme, no source
@@ -253,22 +253,30 @@ R = 6371
 mesuretime = 0
 restime = 0
 temp_windows_names = []
-schema_name = ''
+schema_name = ""
 
 
 ###########################
 ##   Point-link interpolation
 
+
 def intrpolatePoints(db):
     print_message("Interpolating points along lines...")
 
-    step = options['step']  # interpolation step per meters
+    step = options["step"]  # interpolation step per meters
     step = float(step)
     sql = "select ST_AsText(link.geom),ST_Length(link.geom,false), linkid from link"
-    resu = db.executeSql(sql, True, True)  # values from table link include geom, lenght and linkid
+    resu = db.executeSql(
+        sql, True, True
+    )  # values from table link include geom, lenght and linkid
 
-    nametable = "linkpoints" + str(step).replace('.0', '')  # create name for table with interopol. points.
-    sql = "DROP TABLE IF EXISTS %s.%s" % (schema_name, nametable)  # if table exist than drop
+    nametable = "linkpoints" + str(step).replace(
+        ".0", ""
+    )  # create name for table with interopol. points.
+    sql = "DROP TABLE IF EXISTS %s.%s" % (
+        schema_name,
+        nametable,
+    )  # if table exist than drop
     db.executeSql(sql, False, True)
 
     try:  # open file for interpol. points.
@@ -278,8 +286,10 @@ def intrpolatePoints(db):
     io.write(nametable)
     io.close
 
-    sql = "create table %s.%s (linkid integer,long real,lat real,point_id serial PRIMARY KEY) " % (
-        schema_name, nametable)  # create table where will be intrpol. points.
+    sql = (
+        "create table %s.%s (linkid integer,long real,lat real,point_id serial PRIMARY KEY) "
+        % (schema_name, nametable)
+    )  # create table where will be intrpol. points.
     db.executeSql(sql, False, True)
 
     latlong = []  # list of  [lon1 lat1 lon2 lat2]
@@ -314,24 +324,46 @@ def intrpolatePoints(db):
         az = bearing(lat1, lon1, lat2, lon2)  # compute approx. azimut on sphere
         a += 1
 
-        if options['pmethod'].find('p') != -1:  # compute per distance interval
-            while abs(dist) > step:  # compute points per step while is not achieve second node on link
-                lat1, lon1, az, backBrg = destinationPointWGS(lat1, lon1, az,
-                                                              step)  # return interpol. point and set current point as starting point(for next loop), also return azimut for next point
+        if options["pmethod"].find("p") != -1:  # compute per distance interval
+            while (
+                abs(dist) > step
+            ):  # compute points per step while is not achieve second node on link
+                lat1, lon1, az, backBrg = destinationPointWGS(
+                    lat1, lon1, az, step
+                )  # return interpol. point and set current point as starting point(for next loop), also return azimut for next point
                 dist -= step  # reduce distance
                 x += 1
-                out = str(linkid) + "|" + str(lon1) + "|" + str(lat1) + '|' + str(
-                    x) + "\n"  # set string for one row in table with interpol points
+                out = (
+                    str(linkid)
+                    + "|"
+                    + str(lon1)
+                    + "|"
+                    + str(lat1)
+                    + "|"
+                    + str(x)
+                    + "\n"
+                )  # set string for one row in table with interpol points
                 temp.append(out)
 
         else:  # compute by dividing distance to sub-distances
             step1 = dist / (step + 1)
-            for i in range(0, int(step)):  # compute points per step while is not achieve second node on link
-                lat1, lon1, az, backBrg = destinationPointWGS(lat1, lon1, az,
-                                                              step1)  # return interpol. point and set current point as starting point(for next loop), also return azimut for next point
+            for i in range(
+                0, int(step)
+            ):  # compute points per step while is not achieve second node on link
+                lat1, lon1, az, backBrg = destinationPointWGS(
+                    lat1, lon1, az, step1
+                )  # return interpol. point and set current point as starting point(for next loop), also return azimut for next point
                 x += 1
-                out = str(linkid) + "|" + str(lon1) + "|" + str(lat1) + '|' + str(
-                    x) + "\n"  # set string for one row in table with interpol points
+                out = (
+                    str(linkid)
+                    + "|"
+                    + str(lon1)
+                    + "|"
+                    + str(lat1)
+                    + "|"
+                    + str(x)
+                    + "\n"
+                )  # set string for one row in table with interpol points
                 temp.append(out)
 
     io.writelines(temp)  # write interpolated points to flat file
@@ -339,21 +371,33 @@ def intrpolatePoints(db):
     io.close()
 
     io1 = open(os.path.join(path, "linknode"), "r")
-    db.copyfrom(io1, "%s.%s" % (schema_name, nametable))  # write interpoalted points to database from temp flat file
+    db.copyfrom(
+        io1, "%s.%s" % (schema_name, nametable)
+    )  # write interpoalted points to database from temp flat file
     io1.close()
 
     sql = "SELECT AddGeometryColumn  ('%s','%s','geom',4326,'POINT',2); " % (
-        schema_name, nametable)  # add geometry column for computed interpolated points
+        schema_name,
+        nametable,
+    )  # add geometry column for computed interpolated points
     db.executeSql(sql, False, True)
 
-    sql = "UPDATE %s.%s SET geom = \
-    (ST_SetSRID(ST_MakePoint(long, lat),4326)); " % (
-        schema_name, nametable)  # make geometry for computed interpolated points
+    sql = (
+        "UPDATE %s.%s SET geom = \
+    (ST_SetSRID(ST_MakePoint(long, lat),4326)); "
+        % (schema_name, nametable)
+    )  # make geometry for computed interpolated points
     db.executeSql(sql, False, True)
 
-    sql = "alter table %s.%s drop column lat" % (schema_name, nametable)  # remove latitde column from table
+    sql = "alter table %s.%s drop column lat" % (
+        schema_name,
+        nametable,
+    )  # remove latitde column from table
     db.executeSql(sql, False, True)
-    sql = "alter table %s.%s drop column long" % (schema_name, nametable)  # remove longtitude column from table
+    sql = "alter table %s.%s drop column long" % (
+        schema_name,
+        nametable,
+    )  # remove longtitude column from table
     db.executeSql(sql, False, True)
 
 
@@ -383,8 +427,19 @@ def destinationPointWGS(lat1, lon1, brng, s):
         cs1m = cos(2 * s2 + s1)
         ss1 = sin(s1)
         cs1 = cos(s1)
-        ds1 = B * ss1 * (cs1m + B / 4 * (
-            cs1 * (-1 + 2 * cs1m * cs1m) - B / 6 * cs1m * (-3 + 4 * ss1 * ss1) * (-3 + 4 * cs1m * cs1m)))
+        ds1 = (
+            B
+            * ss1
+            * (
+                cs1m
+                + B
+                / 4
+                * (
+                    cs1 * (-1 + 2 * cs1m * cs1m)
+                    - B / 6 * cs1m * (-3 + 4 * ss1 * ss1) * (-3 + 4 * cs1m * cs1m)
+                )
+            )
+        )
         s1p = s1
         s1 = s / (b * A) + ds1
     # Continue calculation after the loop.
@@ -392,7 +447,9 @@ def destinationPointWGS(lat1, lon1, brng, s):
     lat2 = atan2(su1 * cs1 + cu1 * ss1 * cb, (1 - f) * sqrt(sa * sa + t * t))
     l2 = atan2(ss1 * sb, cu1 * cs1 - su1 * ss1 * cb)
     c = f / 16 * csa * (4 + f * (4 - 3 * csa))
-    l = l2 - (1 - c) * f * sa * (s1 + c * ss1 * (cs1m + c * cs1 * (-1 + 2 * cs1m * cs1m)))
+    l = l2 - (1 - c) * f * sa * (
+        s1 + c * ss1 * (cs1m + c * cs1 * (-1 + 2 * cs1m * cs1m))
+    )
     d = atan2(sa, -t)
     finalBrg = d + 2 * math.pi
     backBrg = d + math.pi
@@ -415,10 +472,12 @@ def bearing(lat1, lon1, lat2, lon2):
     lon1 = math.radians(float(lon1))
     lat2 = math.radians(float(lat2))
     lon2 = math.radians(float(lon2))
-    dLon = (lon2 - lon1)
+    dLon = lon2 - lon1
 
     y = math.sin(dLon) * math.cos(lat2)
-    x = math.cos(lat1) * math.sin(lat2) - math.sin(lat1) * math.cos(lat2) * math.cos(dLon)
+    x = math.cos(lat1) * math.sin(lat2) - math.sin(lat1) * math.cos(lat2) * math.cos(
+        dLon
+    )
     brng = math.degrees(math.atan2(y, x))
 
     return (brng + 360) % 360
@@ -427,17 +486,17 @@ def bearing(lat1, lon1, lat2, lon2):
 ###########################
 ## Miscellaneous
 def isTimeValid(time):
-    RE = re.compile(r'^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}$')
+    RE = re.compile(r"^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}$")
     return bool(RE.search(time))
 
 
 def print_message(msg):
     grass.message(msg)
-    grass.message('-' * 60)
+    grass.message("-" * 60)
 
 
 def randomWord(length):
-    return ''.join(random.choice(string.lowercase) for i in range(length))
+    return "".join(random.choice(string.lowercase) for i in range(length))
 
 
 def st(mes=True):
@@ -454,7 +513,7 @@ def getFilesInFoldr(fpath):
     lis = os.listdir(fpath)
     tmp = []
     for path in lis:
-        if path.find('~') == -1:
+        if path.find("~") == -1:
             tmp.append(path)
 
     return tmp
@@ -462,6 +521,7 @@ def getFilesInFoldr(fpath):
 
 ###########################
 ##   optional
+
 
 def removeTemp(db):
     sql = "drop schema IF EXISTS %s CASCADE" % schema_name
@@ -477,13 +537,13 @@ def printTime(db):
     # get first timestamp
     sql = "select time from tt limit 1"
     timestamp_min = db.executeSql(sql, True, True)[0][0]
-    print_message('First timestamp is %s' % timestamp_min)
+    print_message("First timestamp is %s" % timestamp_min)
     record_num = db.count(record_tb_name)
 
     # get last timestep
     sql = "select time from  tt offset %s" % (record_num - 1)
     timestamp_max = db.executeSql(sql, True, True)[0][0]
-    print_message('Last timestamp is %s' % timestamp_max)
+    print_message("Last timestamp is %s" % timestamp_max)
     sql = "drop view tt"
     db.executeSql(sql, False, True)
     sys.exit()
@@ -491,6 +551,7 @@ def printTime(db):
 
 ###########################
 ##   database work
+
 
 def firstRun(db):
     print_message("Preparing database...")
@@ -573,27 +634,40 @@ def dbConnGrass(database, user, password):
     # Unfortunately we cannot test untill user/password is set
     if user or password:
         try:
-            grass.run_command('db.login', driver="pg", database=database,
-                              user=user, password=password)
+            grass.run_command(
+                "db.login", driver="pg", database=database, user=user, password=password
+            )
         except CalledModuleError:
             grass.fatal("Cannot login")
 
     # Try to connect
     try:
-        grass.run_command('db.select', quiet=True, flags='c',
-                          driver="pg", database=database, sql="select version()")
+        grass.run_command(
+            "db.select",
+            quiet=True,
+            flags="c",
+            driver="pg",
+            database=database,
+            sql="select version()",
+        )
     except CalledModuleError:
         if user or password:
             print_message("Deleting login (db.login) ...")
             try:
-                grass.run_command('db.login', quiet=True, driver="pg",
-                                  database=database, user="", password="")
+                grass.run_command(
+                    "db.login",
+                    quiet=True,
+                    driver="pg",
+                    database=database,
+                    user="",
+                    password="",
+                )
             except CalledModuleError:
                 print_message("Cannot delete login.")
         grass.fatal("Cannot connect to database.")
 
     try:
-        grass.run_command('db.connect', driver="pg", database=database)
+        grass.run_command("db.connect", driver="pg", database=database)
     except CalledModuleError:
         grass.fatal("Cannot connect to database.")
 
@@ -602,22 +676,24 @@ def dbConnPy():
     import psycopg2
 
     # print_message("Connecting to database by Psycopg driver...")
-    db_name = options['database']
-    db_user = options['user']
-    db_password = options['password']
+    db_name = options["database"]
+    db_user = options["user"]
+    db_password = options["password"]
 
     try:
-        sys.path.insert(0, os.path.join(os.environ['GRASS_ADDON_BASE'], 'etc', 'r.mwprecip'))
+        sys.path.insert(
+            0, os.path.join(os.environ["GRASS_ADDON_BASE"], "etc", "r.mwprecip")
+        )
         from pgwrapper import pgwrapper as pg
     except ImportError:
         sys.exit("Cannot find 'pgwrapper' Python module")
 
     try:
-        conninfo = {'dbname': db_name}
+        conninfo = {"dbname": db_name}
         if db_user:
-            conninfo['user'] = db_user
+            conninfo["user"] = db_user
         if db_password:
-            conninfo['passwd'] = db_password
+            conninfo["passwd"] = db_password
 
         db = pg(**conninfo)
 
@@ -628,37 +704,43 @@ def dbConnPy():
 
 
 def isAttributExist(db, schema, table, columns):
-    sql = "SELECT EXISTS( SELECT * FROM information_schema.columns WHERE \
+    sql = (
+        "SELECT EXISTS( SELECT * FROM information_schema.columns WHERE \
          table_schema = '%s' AND \
          table_name = '%s' AND\
-         column_name='%s');" % (schema, table, columns)
+         column_name='%s');"
+        % (schema, table, columns)
+    )
     return db.executeSql(sql, True, True)[0][0]
 
 
 def isTableExist(db, schema, table):
-    sql = "SELECT EXISTS( SELECT * \
+    sql = (
+        "SELECT EXISTS( SELECT * \
          FROM information_schema.tables \
          WHERE \
          table_schema = '%s' AND \
-         table_name = '%s');" % (schema, table)
+         table_name = '%s');"
+        % (schema, table)
+    )
     return db.executeSql(sql, True, True)[0][0]
 
 
 def removeLines(old_file, new_file, start, end):
-    data_list = open(old_file, 'r').readlines()
+    data_list = open(old_file, "r").readlines()
     temp_list = data_list[0:start]
-    temp_list[len(temp_list):] = data_list[end:len(data_list)]
-    open(new_file, 'wr').writelines(temp_list)
+    temp_list[len(temp_list) :] = data_list[end : len(data_list)]
+    open(new_file, "wr").writelines(temp_list)
 
 
 def readRaingauge(db, path_file):
-    schema_name = options['schema']
+    schema_name = options["schema"]
     rgpath = path_file
 
     lines = open(rgpath).readlines()
     ##get metadata from raingauge file
     try:
-        with open(rgpath, 'rb') as f:
+        with open(rgpath, "rb") as f:
             gaugeid = f.next()
             lat = f.next()
             lon = f.next()
@@ -676,11 +758,11 @@ def readRaingauge(db, path_file):
     lo = float(lon)
     ##prepare list of string for copy to database
     try:
-        with open(os.path.join(path, "gauge_tmp"), 'rb') as f:
+        with open(os.path.join(path, "gauge_tmp"), "rb") as f:
             data = f.readlines()
             tmp = []
             for line in data:
-                stri = str(gid) + ',' + line
+                stri = str(gid) + "," + line
                 tmp.append(stri)
             f.close()
 
@@ -689,7 +771,7 @@ def readRaingauge(db, path_file):
 
     ## write list of string to database
     try:
-        with open(os.path.join(path, "gauge_tmp"), 'wr') as x:
+        with open(os.path.join(path, "gauge_tmp"), "wr") as x:
             x.writelines(tmp)
             x.close()
     except IOError as e:
@@ -697,40 +779,59 @@ def readRaingauge(db, path_file):
 
     if not isTableExist(db, schema_name, "rgauge"):
         ##create table for raingauge id
-        sql = "create table %s.%s (gaugeid integer PRIMARY KEY,lat real,long real ) " % (schema_name, "rgauge")
+        sql = (
+            "create table %s.%s (gaugeid integer PRIMARY KEY,lat real,long real ) "
+            % (schema_name, "rgauge")
+        )
         db.executeSql(sql, False, True)
 
         ## create table for rain gauge records
-        sql = ' CREATE TABLE %s.%s \
+        sql = (
+            ' CREATE TABLE %s.%s \
               (gaugeid integer NOT NULL,\
               "time" timestamp without time zone NOT NULL,\
               precip real,\
               CONSTRAINT recordrg PRIMARY KEY (gaugeid, "time"),\
               CONSTRAINT fk_record_rgague FOREIGN KEY (gaugeid)\
               REFERENCES %s.rgauge (gaugeid) MATCH SIMPLE\
-              ON UPDATE NO ACTION ON DELETE NO ACTION)' % (schema_name, comp_precip_gauge, schema_name)
+              ON UPDATE NO ACTION ON DELETE NO ACTION)'
+            % (schema_name, comp_precip_gauge, schema_name)
+        )
         db.executeSql(sql, False, True)
 
         ##crate geometry column
-        sql = "SELECT AddGeometryColumn('%s','%s','geom',4326,'POINT',2); " % (schema_name, "rgauge")
+        sql = "SELECT AddGeometryColumn('%s','%s','geom',4326,'POINT',2); " % (
+            schema_name,
+            "rgauge",
+        )
         db.executeSql(sql, False, True)
 
-    sql = "Insert into %s.%s ( gaugeid , lat , long) values (%s , %s , %s) " % (schema_name, 'rgauge', gid, la, lo)
+    sql = "Insert into %s.%s ( gaugeid , lat , long) values (%s , %s , %s) " % (
+        schema_name,
+        "rgauge",
+        gid,
+        la,
+        lo,
+    )
     db.executeSql(sql, False, True)
 
     ## copy records in database
     io1 = open(os.path.join(path, "gauge_tmp"), "r")
-    db.copyfrom(io1, "%s.%s" % (schema_name, "rgauge_rec"), ',')
+    db.copyfrom(io1, "%s.%s" % (schema_name, "rgauge_rec"), ",")
     io1.close()
 
     ## make geom from long lat
-    sql = "UPDATE %s.%s SET geom = ST_SetSRID(ST_MakePoint(long, lat), 4326); " % (schema_name, "rgauge")
+    sql = "UPDATE %s.%s SET geom = ST_SetSRID(ST_MakePoint(long, lat), 4326); " % (
+        schema_name,
+        "rgauge",
+    )
     db.executeSql(sql, False, True)
     os.remove(os.path.join(path, "gauge_tmp"))
 
 
 ###########################
 ##  status
+
 
 def isCurrSetT():
     curr_timewindow_config = "null"
@@ -742,11 +843,24 @@ def isCurrSetT():
         pass
 
     # compare current and new settings
-    new_timewindow_config = options['interval'] + '|' + options['fromtime'] + '|' + options['totime'] + options[
-        'lignore']
-    if curr_timewindow_config != new_timewindow_config or not (
-            options['interval'] or options['fromtime'] or options['totime'] or options['lignore']) or options[
-        'rgauges']:
+    new_timewindow_config = (
+        options["interval"]
+        + "|"
+        + options["fromtime"]
+        + "|"
+        + options["totime"]
+        + options["lignore"]
+    )
+    if (
+        curr_timewindow_config != new_timewindow_config
+        or not (
+            options["interval"]
+            or options["fromtime"]
+            or options["totime"]
+            or options["lignore"]
+        )
+        or options["rgauges"]
+    ):
         return False
     else:
         return True
@@ -754,8 +868,8 @@ def isCurrSetT():
 
 def isCurrSetP():
     ##  chceck if current settings is same like settings from computing before. return True or False
-    curr_precip_conf = ''
-    new_precip_conf = ''
+    curr_precip_conf = ""
+    new_precip_conf = ""
     try:
         io0 = open(os.path.join(path, "compute_precip_info"), "r")
         curr_precip_conf = io0.readline()
@@ -763,19 +877,19 @@ def isCurrSetP():
     except IOError:
         pass
 
-    if options['baseltime']:
-        bpath = options['baseltime']
+    if options["baseltime"]:
+        bpath = options["baseltime"]
         try:
-            f = open(bpath, 'r')
+            f = open(bpath, "r")
             for line in f:
                 new_precip_conf += line.replace("\n", "")
 
-            new_precip_conf += '|' + options['aw']
+            new_precip_conf += "|" + options["aw"]
         except:
             pass
 
-    elif options['baselfile']:
-        new_precip_conf = 'fromfile|' + options['aw']
+    elif options["baselfile"]:
+        new_precip_conf = "fromfile|" + options["aw"]
 
     if curr_precip_conf != new_precip_conf:
         return False
@@ -786,22 +900,25 @@ def isCurrSetP():
 ###########################
 ##   baseline compute
 
+
 def getBaselDict(db):
     ## choose baseline compute method that set user and call that function, return distionary key:linkid,
 
-    if options['baselfile']:
-        links_dict = readBaselineFromText(options['baselfile'])
+    if options["baselfile"]:
+        links_dict = readBaselineFromText(options["baselfile"])
         try:
             io1 = open(os.path.join(path, "compute_precip_info"), "wr")
-            io1.write('fromfile|' + options['aw'])
+            io1.write("fromfile|" + options["aw"])
             io1.close
         except IOError as e:
             print("I/O error({}): {}".format(e.errno, e))
 
-    elif options['baseltime']:
-        print_message('Computing baselines "time interval" "%s"...' % options['statfce'])
+    elif options["baseltime"]:
+        print_message(
+            'Computing baselines "time interval" "%s"...' % options["statfce"]
+        )
         computeBaselineFromTime(db)
-        links_dict = readBaselineFromText(os.path.join(path, 'baseline'))
+        links_dict = readBaselineFromText(os.path.join(path, "baseline"))
 
     return links_dict
 
@@ -810,18 +927,23 @@ def computeBaselinFromMode(db, linktb, recordtb):
     sql = "SELECT linkid from %s group by 1" % linktb
     linksid = db.executeSql(sql, True, True)
     tmp = []
-    schema_name = options['schema']
+    schema_name = options["schema"]
     # round value
-    sql = "create table %s.tempround as select round(a::numeric,%s) as a, linkid from %s" % (
-        schema_name, options['roundm'], recordtb)
+    sql = (
+        "create table %s.tempround as select round(a::numeric,%s) as a, linkid from %s"
+        % (schema_name, options["roundm"], recordtb)
+    )
     db.executeSql(sql, False, True)
     # compute mode for current link
     for linkid in linksid:
         linkid = linkid[0]
 
-        sql = "SELECT mode(a) AS modal_value FROM %s.tempround where linkid=%s;" % (schema_name, linkid)
+        sql = "SELECT mode(a) AS modal_value FROM %s.tempround where linkid=%s;" % (
+            schema_name,
+            linkid,
+        )
         resu = db.executeSql(sql, True, True)[0][0]
-        tmp.append(str(linkid) + ',' + str(resu) + '\n')
+        tmp.append(str(linkid) + "," + str(resu) + "\n")
 
     sql = "drop table %s.tempround" % (schema_name)
     db.executeSql(sql, False, True)
@@ -834,7 +956,7 @@ def computeBaselinFromMode(db, linktb, recordtb):
 
     try:
         io1 = open(os.path.join(path, "compute_precip_info"), "wr")
-        io1.write('mode|' + options['aw'])
+        io1.write("mode|" + options["aw"])
         io1.close
     except IOError as e:
         print("I/O error({}): {}".format(e.errno, e))
@@ -857,20 +979,20 @@ def computeBaselineFromTime(db):
     ## typestr='mode'
     ## typestr='quantile'
     ################################################################
-    bpath = options['baseltime']
+    bpath = options["baseltime"]
     interval = False
     tmp = []
     mark = []
-    st = ''
+    st = ""
 
     ############### AVG ####################
-    if options['statfce'] == 'avg':
+    if options["statfce"] == "avg":
         try:
-            f = open(bpath, 'r')
+            f = open(bpath, "r")
             ##parse input file
             for line in f:
                 st = st + line.replace("\n", "")
-                if 'i' in line.split("\n")[0]:  # get baseline form interval
+                if "i" in line.split("\n")[0]:  # get baseline form interval
 
                     fromt = f.next()
                     st += fromt.replace("\n", "")
@@ -879,8 +1001,10 @@ def computeBaselineFromTime(db):
                     if not isTimeValid(fromt) or not isTimeValid(tot):
                         grass.fatal("Input data is not valid. Parameter 'baselitime'")
                     st += tot.replace("\n", "")
-                    sql = "select linkid, avg(txpower-rxpower)as a from record where time >='%s' and time<='%s' group by linkid order by 1" % (
-                        fromt, tot)
+                    sql = (
+                        "select linkid, avg(txpower-rxpower)as a from record where time >='%s' and time<='%s' group by linkid order by 1"
+                        % (fromt, tot)
+                    )
                     resu = db.executeSql(sql, True, True)
                     tmp.append(resu)
 
@@ -893,8 +1017,10 @@ def computeBaselineFromTime(db):
                     st += str(time).replace("\n", "")
                     fromt = time + timedelta(seconds=-60)
                     tot = time + timedelta(seconds=+60)
-                    sql = "select linkid, avg(txpower-rxpower)as a from record where time >='%s' and time<='%s' group by linkid order by 1" % (
-                        fromt, tot)
+                    sql = (
+                        "select linkid, avg(txpower-rxpower)as a from record where time >='%s' and time<='%s' group by linkid order by 1"
+                        % (fromt, tot)
+                    )
                     resu = db.executeSql(sql, True, True)
                     tmp.append(resu)
 
@@ -928,22 +1054,21 @@ def computeBaselineFromTime(db):
             break
 
         ##write values to baseline file
-        writer = csv.writer(open(os.path.join(path, 'baseline'), 'wr'))
+        writer = csv.writer(open(os.path.join(path, "baseline"), "wr"))
         for key, value in mydict1.items():
             writer.writerow([key, value])
 
-
     ############### MODE or QUANTILE ####################
-    elif options['statfce'] == 'mode' or options['statfce'] == 'quantile':
+    elif options["statfce"] == "mode" or options["statfce"] == "quantile":
         try:
-            f = open(bpath, 'r')
+            f = open(bpath, "r")
             ##parse input file
 
             for line in f:
 
                 # print_message(line)
                 st = st + line.replace("\n", "")
-                if 'i' in line.split("\n")[0]:  # get baseline form interval
+                if "i" in line.split("\n")[0]:  # get baseline form interval
 
                     fromt = f.next()
                     st += fromt.replace("\n", "")
@@ -953,8 +1078,10 @@ def computeBaselineFromTime(db):
                     if not isTimeValid(fromt) or not isTimeValid(tot):
                         grass.fatal("Input data is not valid. Parameter 'baselitime'")
                     st += tot.replace("\n", "")
-                    sql = "select linkid, txpower-rxpower as a from record where time >='%s' and time<='%s'" % (
-                        fromt, tot)
+                    sql = (
+                        "select linkid, txpower-rxpower as a from record where time >='%s' and time<='%s'"
+                        % (fromt, tot)
+                    )
                     resu = db.executeSql(sql, True, True)
                     resu += resu
 
@@ -967,8 +1094,10 @@ def computeBaselineFromTime(db):
                     fromt = time + timedelta(seconds=-60)
                     tot = time + timedelta(seconds=+60)
 
-                    sql = "select linkid, txpower-rxpower as a from record where time >='%s' and time<='%s'" % (
-                        fromt, tot)
+                    sql = (
+                        "select linkid, txpower-rxpower as a from record where time >='%s' and time<='%s'"
+                        % (fromt, tot)
+                    )
                     resu = db.executeSql(sql, True, True)
 
                     resu += resu
@@ -979,7 +1108,10 @@ def computeBaselineFromTime(db):
 
         tmp.append(resu)
         table_mode_tmp = "mode_tmp"
-        sql = "create table %s.%s ( linkid integer,a real);" % (schema_name, table_mode_tmp)
+        sql = "create table %s.%s ( linkid integer,a real);" % (
+            schema_name,
+            table_mode_tmp,
+        )
         db.executeSql(sql, False, True)
         c = 0
         ##write values to flat file
@@ -1004,12 +1136,12 @@ def computeBaselineFromTime(db):
         except IOError as e:
             print("I/O error({}): {}".format(e.errno, e))
 
-        recname = schema_name + '.' + table_mode_tmp
+        recname = schema_name + "." + table_mode_tmp
 
-        if options['statfce'] == 'mode':
+        if options["statfce"] == "mode":
             computeBaselinFromMode(db, recname, recname)
 
-        if options['statfce'] == 'quantile':
+        if options["statfce"] == "quantile":
             computeBaselineFromQuentile(db, recname, recname)
 
         sql = "drop table %s.%s" % (schema_name, table_mode_tmp)
@@ -1018,7 +1150,7 @@ def computeBaselineFromTime(db):
     ##write  unique mark to file
     try:
         io1 = open(os.path.join(path, "compute_precip_info"), "wr")
-        st = st + '|' + options['aw']
+        st = st + "|" + options["aw"]
         io1.write(st)
         io1.close
     except IOError as e:
@@ -1026,7 +1158,7 @@ def computeBaselineFromTime(db):
 
 
 def computeBaselineFromQuentile(db, linktb, recordtb):
-    quantile = options['quantile']
+    quantile = options["quantile"]
     link_num = db.count("link")
     sql = "SELECT linkid from %s group by linkid" % linktb
     linksid = db.executeSql(sql, True, True)
@@ -1034,7 +1166,8 @@ def computeBaselineFromQuentile(db, linktb, recordtb):
     # for each link  compute baseline
     for linkid in linksid:
         linkid = linkid[0]
-        sql = "Select\
+        sql = (
+            "Select\
             max(a) as maxAmount\
             , avg(a) as avgAmount\
             ,quartile\
@@ -1042,10 +1175,12 @@ def computeBaselineFromQuentile(db, linktb, recordtb):
             FROM %s where linkid=%s ) x\
             GROUP BY quartile\
             ORDER BY quartile\
-            limit 1" % (quantile, recordtb, linkid)
+            limit 1"
+            % (quantile, recordtb, linkid)
+        )
 
         resu = db.executeSql(sql, True, True)[0][0]
-        tmp.append(str(linkid) + ',' + str(resu) + '\n')
+        tmp.append(str(linkid) + "," + str(resu) + "\n")
 
     try:
         io0 = open(os.path.join(path, "baseline"), "wr")
@@ -1056,15 +1191,15 @@ def computeBaselineFromQuentile(db, linktb, recordtb):
 
     try:
         io1 = open(os.path.join(path, "compute_precip_info"), "wr")
-        io1.write('quantile' + quantile + '|' + options['aw'])
+        io1.write("quantile" + quantile + "|" + options["aw"])
         io1.close
     except IOError as e:
         print("I/O error({}): {}".format(e.errno, e))
 
 
 def readBaselineFromText(pathh):
-    with open(pathh, mode='r') as infile:
-        reader = csv.reader(infile, delimiter=',')
+    with open(pathh, mode="r") as infile:
+        reader = csv.reader(infile, delimiter=",")
         mydict = {float(rows[0]): float(rows[1]) for rows in reader}
     return mydict
 
@@ -1072,11 +1207,12 @@ def readBaselineFromText(pathh):
 ###########################
 ##   GRASS work
 
+
 def grassWork():
-    database = options['database']
-    user = options['user']
-    password = options['password']
-    mapset = grass.gisenv()['MAPSET']
+    database = options["database"]
+    user = options["user"]
+    password = options["password"]
+    mapset = grass.gisenv()["MAPSET"]
 
     dbConnGrass(database, user, password)
 
@@ -1087,89 +1223,96 @@ def grassWork():
     except IOError as e:
         print("I/O error({}): {}".format(e.errno, e))
 
-    points_schema = schema_name + '.' + points
+    points_schema = schema_name + "." + points
     points_ogr = points + "_ogr"
 
-    grass.run_command('v.in.ogr',
-                      input="PG:",
-                      layer=points_schema,
-                      output=points_ogr,
-                      overwrite=True,
-                      flags='t',
-                      type='point', key='linkid',
-                      quiet=True)
+    grass.run_command(
+        "v.in.ogr",
+        input="PG:",
+        layer=points_schema,
+        output=points_ogr,
+        overwrite=True,
+        flags="t",
+        type="point",
+        key="linkid",
+        quiet=True,
+    )
 
     points_nat = points + "_nat"
 
     # if vector already exits, remove dblink (original table)
-    if grass.find_file(points_nat, element='vector')['fullname']:
-        grass.run_command('v.db.connect',
-                          map=points_nat,
-                          flags='d',
-                          layer='1',
-                          quiet=True)
-        grass.run_command('v.db.connect',
-                          map=points_nat,
-                          flags='d',
-                          layer='2',
-                          quiet=True)
+    if grass.find_file(points_nat, element="vector")["fullname"]:
+        grass.run_command(
+            "v.db.connect", map=points_nat, flags="d", layer="1", quiet=True
+        )
+        grass.run_command(
+            "v.db.connect", map=points_nat, flags="d", layer="2", quiet=True
+        )
 
-    grass.run_command('v.category',
-                      input=points_ogr,
-                      output=points_nat,
-                      option="transfer",
-                      overwrite=True,
-                      layer="1,2",
-                      quiet=True)
+    grass.run_command(
+        "v.category",
+        input=points_ogr,
+        output=points_nat,
+        option="transfer",
+        overwrite=True,
+        layer="1,2",
+        quiet=True,
+    )
 
-    grass.run_command('v.db.connect',
-                      map=points_nat,
-                      table=points_schema,
-                      key='linkid',
-                      layer='2',
-                      quiet=True)
+    grass.run_command(
+        "v.db.connect",
+        map=points_nat,
+        table=points_schema,
+        key="linkid",
+        layer="2",
+        quiet=True,
+    )
 
-    if not flags['q']:
-        grass.run_command('v.in.ogr',
-                          input="PG:",
-                          layer="link",
-                          output="link",
-                          flags='t',
-                          type='line',
-                          quiet=True)
+    if not flags["q"]:
+        grass.run_command(
+            "v.in.ogr",
+            input="PG:",
+            layer="link",
+            output="link",
+            flags="t",
+            type="line",
+            quiet=True,
+        )
 
-        grass.run_command('g.region',
-                          vect='link',
-                          res='00:00:01',
-                          n='n+ 00:00:20',
-                          w='w-00:00:20',
-                          e='e+00:00:20',
-                          s='s-00:00:20',
-                          quiet=True)
+        grass.run_command(
+            "g.region",
+            vect="link",
+            res="00:00:01",
+            n="n+ 00:00:20",
+            w="w-00:00:20",
+            e="e+00:00:20",
+            s="s-00:00:20",
+            quiet=True,
+        )
     # 00:00:1
     try:
-        with open(os.path.join(path, "l_timewindow"), 'r') as f:
+        with open(os.path.join(path, "l_timewindow"), "r") as f:
             for win in f.read().splitlines():
 
-                win = schema_name + '.' + win
-                grass.run_command('v.db.connect',
-                                  map=points_nat,
-                                  table=win,
-                                  key='linkid',
-                                  layer='1',
-                                  quiet=True)
+                win = schema_name + "." + win
+                grass.run_command(
+                    "v.db.connect",
+                    map=points_nat,
+                    table=win,
+                    key="linkid",
+                    layer="1",
+                    quiet=True,
+                )
                 # sys.exit()
-                if options['isettings']:
+                if options["isettings"]:
                     precipInterpolationCustom(points_nat, win)
                 else:
                     precipInterpolationDefault(points_nat, win)
 
                 # remove connection to 2. layer
-                grass.run_command('v.db.connect',
-                                  map=points_nat,
-                                  layer='1',
-                                  flags='d',
-                                  quiet=True)
+                grass.run_command(
+                    "v.db.connect", map=points_nat, layer="1", flags="d", quiet=True
+                )
 
     except IOError as e:
         print("I/O error({}): {}".format(e.errno, e))
@@ -1177,50 +1320,49 @@ def grassWork():
 
 def precipInterpolationCustom(points_nat, win):
     # grass.run_command('v.surf.rst',input=points_nat,zcolumn = attribute_col,elevation=out, overwrite=True)
-    itype = options['interpolation']
-    attribute_col = 'precip_mm_h'
-    out = win + '_' + itype + '_custom'
-    istring = options['isettings']
+    itype = options["interpolation"]
+    attribute_col = "precip_mm_h"
+    out = win + "_" + itype + "_custom"
+    istring = options["isettings"]
     eval(istring)
-    grass.run_command('r.colors',
-                      map=out,
-                      rules=options['color'],
-                      quiet=True)
+    grass.run_command("r.colors", map=out, rules=options["color"], quiet=True)
 
 
 def precipInterpolationDefault(points_nat, win):
-    itype = options['interpolation']
-    attribute_col = 'precip_mm_h'
-    out = win + '_' + itype
+    itype = options["interpolation"]
+    attribute_col = "precip_mm_h"
+    out = win + "_" + itype
 
-    if itype == 'rst':
-        grass.run_command('v.surf.rst',
-                          input=points_nat,
-                          zcolumn=attribute_col,
-                          elevation=out,
-                          overwrite=True,
-                          quiet=True)
+    if itype == "rst":
+        grass.run_command(
+            "v.surf.rst",
+            input=points_nat,
+            zcolumn=attribute_col,
+            elevation=out,
+            overwrite=True,
+            quiet=True,
+        )
 
-    elif itype == 'bspline':
-        grass.run_command('v.surf.bspline',
-                          input=points_nat,
-                          column=attribute_col,
-                          raster_output=out,
-                          overwrite=True,
-                          quiet=True)
+    elif itype == "bspline":
+        grass.run_command(
+            "v.surf.bspline",
+            input=points_nat,
+            column=attribute_col,
+            raster_output=out,
+            overwrite=True,
+            quiet=True,
+        )
     else:
-        grass.run_command('v.surf.idw',
-                          input=points_nat,
-                          column=attribute_col,
-                          output=out,
-                          overwrite=True,
-                          quiet=True
-                          )
+        grass.run_command(
+            "v.surf.idw",
+            input=points_nat,
+            column=attribute_col,
+            output=out,
+            overwrite=True,
+            quiet=True,
+        )
 
-    grass.run_command('r.colors',
-                      map=out,
-                      rules=options['color'],
-                      quiet=True)
+    grass.run_command("r.colors", map=out, rules=options["color"], quiet=True)
 
     # grass.mapcalc("$out1=if($out2<0,null(),$out3)",out1=out,out2=out,out3=out,
     #                    overwrite=True)
@@ -1229,19 +1371,25 @@ def precipInterpolationDefault(points_nat, win):
 ###########################
 ##   Precipitation compute
 
+
 def computePrecip(db):
     print_message("Preparing database for computing precipitation...")
-    Awx = options['aw']
+    Awx = options["aw"]
     Aw = float(Awx)
     ##nuber of link and record in table link
     xx = db.count("record")
     link_num = db.count("link")
     ##select values for computing
-    sql = " select time, txpower-rxpower as a,lenght,polarization,frequency,linkid from %s order by recordid limit %d ; " % (
-        record_tb_name, xx)
+    sql = (
+        " select time, txpower-rxpower as a,lenght,polarization,frequency,linkid from %s order by recordid limit %d ; "
+        % (record_tb_name, xx)
+    )
     resu = db.executeSql(sql, True, True)
 
-    sql = "create table %s.%s ( linkid integer,time timestamp, precip real);" % (schema_name, comp_precip)
+    sql = "create table %s.%s ( linkid integer,time timestamp, precip real);" % (
+        schema_name,
+        comp_precip,
+    )
     db.executeSql(sql, False, True)
 
     # save name of result table for next run without compute precip
@@ -1267,7 +1415,8 @@ def computePrecip(db):
                 print_message("Linkid= %s is missing in txtfile" % str(link[0]))
                 print_message("Link not included in computation")
         print_message(
-            'HINT-> Missing values "linkid,baseline," in text file. Link probably getting ERROR "-99.9" in selected time interval\n or you omitted values in input  text. You can add value manualy into the file and than use method "read baseline from file"')
+            'HINT-> Missing values "linkid,baseline," in text file. Link probably getting ERROR "-99.9" in selected time interval\n or you omitted values in input  text. You can add value manualy into the file and than use method "read baseline from file"'
+        )
 
     print_message("Computing precipitation...")
 
@@ -1280,7 +1429,7 @@ def computePrecip(db):
             coef_a_k = computeAlphaK(record[4], record[3])
 
             # read value from dictionary
-            baseline_decibel = (links_dict[record[5]])
+            baseline_decibel = links_dict[record[5]]
             # final precipiatation is R1
             Ar = record[1] - baseline_decibel - Aw
             if Ar > 0:
@@ -1313,7 +1462,7 @@ def makeTimeWin(db, typeid, table):
     print_message("Creating time windows %s..." % typeid)
     # @function sumPrecip make db views for all timestamps
 
-    sum_precip = options['interval']
+    sum_precip = options["interval"]
     if sum_precip == "minute":
         tcc = 60
     elif sum_precip == "hour":
@@ -1327,7 +1476,16 @@ def makeTimeWin(db, typeid, table):
         %s ,round(avg(precip)::numeric,3) as precip_mm_h, date_trunc('%s',time)\
         as time  FROM %s.%s GROUP BY %s, date_trunc('%s',time)\
         ORDER BY time" % (
-        view_statement, schema_name, view_db, typeid, sum_precip, schema_name, table, typeid, sum_precip)
+        view_statement,
+        schema_name,
+        view_db,
+        typeid,
+        sum_precip,
+        schema_name,
+        table,
+        typeid,
+        sum_precip,
+    )
     data = db.executeSql(sql, False, True)
     stamp = ""
     stamp1 = ""
@@ -1335,13 +1493,18 @@ def makeTimeWin(db, typeid, table):
     ##remove ignored linkid
 
     #    if options['lignore'] and not isTableExist(db,schema_name,'rgauge'):
-    if options['lignore']:
-        lipath = options['lignore']
+    if options["lignore"]:
+        lipath = options["lignore"]
         stamp = lipath
         try:
-            with open(lipath, 'r') as f:
+            with open(lipath, "r") as f:
                 for link in f.read().splitlines():
-                    sql = "DELETE from %s.%s where %s=%s " % (schema_name, view_db, typeid, link)
+                    sql = "DELETE from %s.%s where %s=%s " % (
+                        schema_name,
+                        view_db,
+                        typeid,
+                        link,
+                    )
                     db.executeSql(sql, False, True)
 
         except IOError as e:
@@ -1358,27 +1521,35 @@ def makeTimeWin(db, typeid, table):
     timestamp_max = db.executeSql(sql)[0][0]
 
     ##check if set time by user is in dataset time interval
-    if options['fromtime']:
-        from_time = datetime.strptime(options['fromtime'], "%Y-%m-%d %H:%M:%S")
+    if options["fromtime"]:
+        from_time = datetime.strptime(options["fromtime"], "%Y-%m-%d %H:%M:%S")
         if timestamp_min > from_time:
             print_message("'Fromtime' value is not in dataset time interval")
         else:
             timestamp_min = from_time
 
-    if options['totime']:
-        to_time = datetime.strptime(options['totime'], "%Y-%m-%d %H:%M:%S")
+    if options["totime"]:
+        to_time = datetime.strptime(options["totime"], "%Y-%m-%d %H:%M:%S")
         if timestamp_max < to_time:
             print_message("'Totime' value is not in dataset time interval")
         else:
             timestamp_max = to_time
 
     ##save first and last timewindow to file. On first line file include time step "minute","hour"etc
-    if typeid == 'linkid':
+    if typeid == "linkid":
         try:
             io1 = open(os.path.join(path, "time_window_info"), "wr")
         except IOError as e:
             print("I/O error({}): {}".format(e.errno, e))
-        io1.write(sum_precip + '|' + str(timestamp_min) + '|' + str(timestamp_max) + stamp + stamp1)
+        io1.write(
+            sum_precip
+            + "|"
+            + str(timestamp_min)
+            + "|"
+            + str(timestamp_max)
+            + stamp
+            + stamp1
+        )
         io1.close
 
     time_const = 0
@@ -1387,40 +1558,60 @@ def makeTimeWin(db, typeid, table):
     tgrass_interpol = []
     tgrass_vector = []
     # set prefix
-    prefix = 'l'
-    if typeid == 'gaugeid':
-        prefix = 'g'
+    prefix = "l"
+    if typeid == "gaugeid":
+        prefix = "g"
 
     cur_timestamp = timestamp_min
-    print_message("from " + str(timestamp_min) + " to " + str(timestamp_max) + " per " + options[
-        'interval'] + ". It can take a time...")
+    print_message(
+        "from "
+        + str(timestamp_min)
+        + " to "
+        + str(timestamp_max)
+        + " per "
+        + options["interval"]
+        + ". It can take a time..."
+    )
 
     ##make timewindows from time interval
     ###############################################
     while cur_timestamp <= timestamp_max:
 
         # create name of view
-        a = time.strftime("%Y_%m_%d_%H_%M", time.strptime(str(cur_timestamp), "%Y-%m-%d %H:%M:%S"))
+        a = time.strftime(
+            "%Y_%m_%d_%H_%M", time.strptime(str(cur_timestamp), "%Y-%m-%d %H:%M:%S")
+        )
         view_name = "%s%s%s" % (prefix, view, a)
         vw = view_name + "\n"
         temp.append(vw)
 
         # format for t.register ( temporal grass)
-        if typeid == 'linkid':
-            tgrass = schema_name + '.' + view_name + "_" + options['interpolation'] + '|' + str(cur_timestamp) + "\n"
+        if typeid == "linkid":
+            tgrass = (
+                schema_name
+                + "."
+                + view_name
+                + "_"
+                + options["interpolation"]
+                + "|"
+                + str(cur_timestamp)
+                + "\n"
+            )
             tgrass_interpol.append(tgrass)
 
-            tgrass = view_name + '|' + str(cur_timestamp) + "\n"
+            tgrass = view_name + "|" + str(cur_timestamp) + "\n"
             tgrass_vector.append(tgrass)
 
         else:
 
-            tgrass = view_name + '|' + str(cur_timestamp) + "\n"
+            tgrass = view_name + "|" + str(cur_timestamp) + "\n"
             tgrass_vector.append(tgrass)
 
         # create view
-        sql = "CREATE table %s.%s as select * from %s.%s where time=(timestamp'%s'+ %s * interval '1 second')" % (
-            schema_name, view_name, schema_name, view_db, timestamp_min, time_const)
+        sql = (
+            "CREATE table %s.%s as select * from %s.%s where time=(timestamp'%s'+ %s * interval '1 second')"
+            % (schema_name, view_name, schema_name, view_db, timestamp_min, time_const)
+        )
         data = db.executeSql(sql, False, True)
 
         # compute cur_timestamp (need for loop)
@@ -1431,7 +1622,7 @@ def makeTimeWin(db, typeid, table):
         time_const += tcc
 
     ##write values to flat file
-    if typeid == 'linkid':
+    if typeid == "linkid":
         try:
             io2 = open(os.path.join(path, "l_timewindow"), "wr")
             io2.writelines(temp)
@@ -1447,9 +1638,14 @@ def makeTimeWin(db, typeid, table):
             print("I/O error({}): {}".format(e.errno, e))
 
     # make textfile for t.register input
-    if typeid == 'linkid':
-        filename = "timewin_%s" % prefix + "_" + str(timestamp_min).replace(' ', '_') + "|" + str(
-            timestamp_max).replace(' ', '_')
+    if typeid == "linkid":
+        filename = (
+            "timewin_%s" % prefix
+            + "_"
+            + str(timestamp_min).replace(" ", "_")
+            + "|"
+            + str(timestamp_max).replace(" ", "_")
+        )
         try:
             io3 = open(os.path.join(path, filename), "wr")
             io3.writelines(tgrass_interpol)
@@ -1457,8 +1653,13 @@ def makeTimeWin(db, typeid, table):
         except IOError as e:
             print("I/O error({}): {}".format(e.errno, e))
 
-        filename = "timewin_%s" % prefix + "vec_" + str(timestamp_min).replace(' ', '_') + "|" + str(
-            timestamp_max).replace(' ', '_')
+        filename = (
+            "timewin_%s" % prefix
+            + "vec_"
+            + str(timestamp_min).replace(" ", "_")
+            + "|"
+            + str(timestamp_max).replace(" ", "_")
+        )
         try:
             io3 = open(os.path.join(path, filename), "wr")
             io3.writelines(tgrass_vector)
@@ -1466,10 +1667,14 @@ def makeTimeWin(db, typeid, table):
         except IOError as e:
             print("I/O error({}): {}".format(e.errno, e))
 
-
     else:
-        filename = "timewin_%s" % prefix + "vec_" + str(timestamp_min).replace(' ', '_') + "|" + str(
-            timestamp_max).replace(' ', '_')
+        filename = (
+            "timewin_%s" % prefix
+            + "vec_"
+            + str(timestamp_min).replace(" ", "_")
+            + "|"
+            + str(timestamp_max).replace(" ", "_")
+        )
         try:
             io4 = open(os.path.join(path, filename), "wr")
             io4.writelines(tgrass_vector)
@@ -1554,7 +1759,7 @@ def computeAlphaK(freq, polarization):
             frac_av = -math.pow(((math.log10(freq) - bj_av[j]) / cj_av[j]), 2)
             av += aj_av[j] * math.exp(frac_av)
 
-        av = (av + ma_av * math.log10(freq) + ca_av)
+        av = av + ma_av * math.log10(freq) + ca_av
 
         return (av, kv)
 
@@ -1562,10 +1767,13 @@ def computeAlphaK(freq, polarization):
 ###########################
 ##   main
 
+
 def main():
     global schema_name, path
-    schema_name = options['schema']
-    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "tmp_%s" % schema_name)
+    schema_name = options["schema"]
+    path = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)), "tmp_%s" % schema_name
+    )
 
     try:
         os.makedirs(path)
@@ -1577,29 +1785,39 @@ def main():
     db = dbConnPy()
 
     # check database if is prepare
-    if not isAttributExist(db, 'public', 'link', 'geom'):
+    if not isAttributExist(db, "public", "link", "geom"):
         firstRun(db)
 
     ##drop working schema and remove temp folder
-    if flags['r']:
+    if flags["r"]:
         removeTemp(db)
 
     ##print first and last timestamp
-    if flags['p']:
+    if flags["p"]:
         printTime(db)
 
     ##check if timestamp is in valid format
-    if options['fromtime']:
-        if not isTimeValid(options['fromtime']):
-            grass.fatal("Timestamp 'fromtime' is not valid. Use format'YYYY-MM-DD H:M:S' ")
+    if options["fromtime"]:
+        if not isTimeValid(options["fromtime"]):
+            grass.fatal(
+                "Timestamp 'fromtime' is not valid. Use format'YYYY-MM-DD H:M:S' "
+            )
 
-    if options['totime']:
-        if not isTimeValid(options['totime']):
-            grass.fatal("Timestamp 'fromtime' is not valid. Use format'YYYY-MM-DD H:M:S' ")
+    if options["totime"]:
+        if not isTimeValid(options["totime"]):
+            grass.fatal(
+                "Timestamp 'fromtime' is not valid. Use format'YYYY-MM-DD H:M:S' "
+            )
 
     ##check settings of baseline is valid
-    if not options['baseltime'] and not options['baselfile'] and not (flags['p'] or flags['r']):
-        grass.fatal("For compute precipitation is necessity to set parametr 'baseltime' or 'baselfile'")
+    if (
+        not options["baseltime"]
+        and not options["baselfile"]
+        and not (flags["p"] or flags["r"])
+    ):
+        grass.fatal(
+            "For compute precipitation is necessity to set parametr 'baseltime' or 'baselfile'"
+        )
 
     ##compute precipitation
     if not isCurrSetP():
@@ -1615,37 +1833,37 @@ def main():
 
     if not isCurrSetT():
         ##import raingauges
-        if options['rgauges']:
+        if options["rgauges"]:
             print_message("Reading rain gauges files")
             sql = "CREATE SCHEMA  if not exists %s " % schema_name
             db.executeSql(sql, False, True)
-            file_list = getFilesInFoldr(options['rgauges'])
+            file_list = getFilesInFoldr(options["rgauges"])
             for fil in file_list:
-                path1 = os.path.join(options['rgauges'], fil)
+                path1 = os.path.join(options["rgauges"], fil)
                 print_message(path1)
                 readRaingauge(db, path1)
 
         if os.path.exists(os.path.join(path, "l_timewindow")):
-            with open(os.path.join(path, "l_timewindow"), 'r') as f:
+            with open(os.path.join(path, "l_timewindow"), "r") as f:
                 for win in f.read().splitlines():
                     sql = "drop table IF EXISTS %s.%s " % (schema_name, win)
                     db.executeSql(sql, False, True)
 
         if os.path.exists(os.path.join(path, "l_timewindow")):
-            with open(os.path.join(path, "g_timewindow"), 'r') as f:
+            with open(os.path.join(path, "g_timewindow"), "r") as f:
                 for win in f.read().splitlines():
                     sql = "drop table IF EXISTS %s.%s " % (schema_name, win)
                     db.executeSql(sql, False, True)
 
-        makeTimeWin(db, 'linkid', comp_precip)
-        if isTableExist(db, schema_name, 'rgauge'):
-            makeTimeWin(db, 'gaugeid', comp_precip_gauge)
+        makeTimeWin(db, "linkid", comp_precip)
+        if isTableExist(db, schema_name, "rgauge"):
+            makeTimeWin(db, "gaugeid", comp_precip_gauge)
 
     ##interpol. points
-    step = options['step']  # interpolation step per meters
+    step = options["step"]  # interpolation step per meters
     step = float(step)
-    new_table_name = "linkpoints" + str(step).replace('.0', '')
-    curr_table_name = ''
+    new_table_name = "linkpoints" + str(step).replace(".0", "")
+    curr_table_name = ""
     try:
         io2 = open(os.path.join(path, "linkpointsname"), "r")
         curr_table_name = io2.readline()
@@ -1653,16 +1871,19 @@ def main():
     except:
         pass
     # check if table exist or if exist with different step or if -> interpol. one more time
-    if not (isTableExist(db, schema_name, curr_table_name)) or new_table_name != curr_table_name:
-        if not options['step']:
+    if (
+        not (isTableExist(db, schema_name, curr_table_name))
+        or new_table_name != curr_table_name
+    ):
+        if not options["step"]:
             grass.fatal('Missing value for "step" for interpolation')
         intrpolatePoints(db)
 
     ##grass work
-    if flags['g']:
+    if flags["g"]:
         grassWork()
 
-    print_message('DONE')
+    print_message("DONE")
 
 
 if __name__ == "__main__":

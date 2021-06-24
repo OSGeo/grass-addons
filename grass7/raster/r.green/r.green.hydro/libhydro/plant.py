@@ -13,38 +13,47 @@ from grass.pygrass.vector.geometry import Line
 from grass.pygrass.vector.table import Link
 from grass.script import core as gcore
 
-COLS = [(u'cat', 'INTEGER PRIMARY KEY'),
-        (u'plant_id', 'VARCHAR(10)'),
-        (u'stream_id', 'INTEGER'),
-        (u'pot_power', 'DOUBLE'),
-        (u'discharge', 'DOUBLE'),
-        (u'elev_up', 'DOUBLE'),
-        (u'elev_down', 'DOUBLE'),]
+COLS = [
+    (u"cat", "INTEGER PRIMARY KEY"),
+    (u"plant_id", "VARCHAR(10)"),
+    (u"stream_id", "INTEGER"),
+    (u"pot_power", "DOUBLE"),
+    (u"discharge", "DOUBLE"),
+    (u"elev_up", "DOUBLE"),
+    (u"elev_down", "DOUBLE"),
+]
 
 
-COLS_points = [(u'cat', 'INTEGER PRIMARY KEY'),
-               (u'kind', 'VARCHAR(10)'),
-               (u'plant_id', 'VARCHAR(10)'),
-               (u'kind_label', 'VARCHAR(10)'),
-               (u'stream_id', 'INTEGER'),
-               (u'elevation', 'DOUBLE'),
-               (u'discharge', 'DOUBLE'),
-               (u'pot_power', 'DOUBLE')]
+COLS_points = [
+    (u"cat", "INTEGER PRIMARY KEY"),
+    (u"kind", "VARCHAR(10)"),
+    (u"plant_id", "VARCHAR(10)"),
+    (u"kind_label", "VARCHAR(10)"),
+    (u"stream_id", "INTEGER"),
+    (u"elevation", "DOUBLE"),
+    (u"discharge", "DOUBLE"),
+    (u"pot_power", "DOUBLE"),
+]
 
-HydroStruct = namedtuple('HydroStruct',
-                         ['intake', 'conduct', 'penstock', 'side'])
+HydroStruct = namedtuple("HydroStruct", ["intake", "conduct", "penstock", "side"])
 
 
 def power2energy(vect, power, n):
-    """ add a column with energy potential (MWh) given the
+    """add a column with energy potential (MWh) given the
     output file and the name of the column with the power (kW), n is
     the number of working hours"""
-    new_col = 'E_potMWh'
-    gcore.run_command('v.db.addcolumn', map=vect,
-                      columns='%s double precision' % new_col)
-    gcore.run_command('v.db.update', map=vect, layer=1, column=new_col,
-                      query_column='%s * %f' % (power, n/1000.0))
-    gcore.run_command('v.build', map=vect)
+    new_col = "E_potMWh"
+    gcore.run_command(
+        "v.db.addcolumn", map=vect, columns="%s double precision" % new_col
+    )
+    gcore.run_command(
+        "v.db.update",
+        map=vect,
+        layer=1,
+        column=new_col,
+        query_column="%s * %f" % (power, n / 1000.0),
+    )
+    gcore.run_command("v.build", map=vect)
 
 
 def closest(number, ndigits=0, resolution=None):
@@ -66,10 +75,17 @@ def closest(number, ndigits=0, resolution=None):
     103.75
     """
     num = round(number, ndigits)
-    return (num if resolution is None else
-            round((num // resolution * resolution +
-                   round((num % resolution) / float(resolution), 0) *
-                   resolution), ndigits))
+    return (
+        num
+        if resolution is None
+        else round(
+            (
+                num // resolution * resolution
+                + round((num % resolution) / float(resolution), 0) * resolution
+            ),
+            ndigits,
+        )
+    )
 
 
 def isinverted(line, elev, region):
@@ -83,7 +99,7 @@ def not_overlaped(line):
     therefore we return only the part of the line that is not overlaped
     """
     if len(line) >= 2 and line[1] == line[-2]:
-        return Line(line[:len(line)//2+1])
+        return Line(line[: len(line) // 2 + 1])
     return line
 
 
@@ -119,35 +135,51 @@ def splitline(line, point, max_dist):
     dist = line.distance(point)
     l0 = line.segment(0, dist.sldist)
     l0.reverse()
-    lngth = min([max_dist+dist.sldist, line.length()])
+    lngth = min([max_dist + dist.sldist, line.length()])
     l1 = line.segment(dist.sldist, lngth)
     return l0, l1
 
 
-def read_plants(hydro, elev=None, restitution='restitution', intake='intake',
-                cid_plant='id_plant', cid_point='id_point', ckind_label='kind_label',
-                celevation='elevation', cdischarge='discharge'):
+def read_plants(
+    hydro,
+    elev=None,
+    restitution="restitution",
+    intake="intake",
+    cid_plant="id_plant",
+    cid_point="id_point",
+    ckind_label="kind_label",
+    celevation="elevation",
+    cdischarge="discharge",
+):
     plants = {}
     skipped = []
     for pnt in hydro:
         if pnt is None:
-            #import ipdb
-            #ipdb.set_trace()
-            print('Number of pnts: None')
+            # import ipdb
+            # ipdb.set_trace()
+            print("Number of pnts: None")
         if elev is None:
-            select = ','.join([cid_plant, cid_point, ckind_label, celevation, cdischarge])
+            select = ",".join(
+                [cid_plant, cid_point, ckind_label, celevation, cdischarge]
+            )
             id_plant, id_point, kind_label, el, disch = pnt.attrs[select]
         else:
-            select = ','.join([cid_plant, cid_point, ckind_label, cdischarge])
+            select = ",".join([cid_plant, cid_point, ckind_label, cdischarge])
             id_plant, id_point, kind_label, disch = pnt.attrs[select]
             el = elev.get_value(pnt)
         plant = plants.get(id_plant, Plant(id_plant))
         if kind_label == restitution:
             plant.restitution = Restitution(id_point, pnt, el)
         elif kind_label == intake:
-            plant.intakes.add(Intake(id_point=id_point, point=pnt,
-                                     elevation=el, id_plants=id_plant,
-                                     discharge=disch if disch else 1.))
+            plant.intakes.add(
+                Intake(
+                    id_point=id_point,
+                    point=pnt,
+                    elevation=el,
+                    id_plants=id_plant,
+                    discharge=disch if disch else 1.0,
+                )
+            )
         else:
             skipped.append((id_plant, id_point, kind_label))
         plants[id_plant] = plant
@@ -156,65 +188,87 @@ def read_plants(hydro, elev=None, restitution='restitution', intake='intake',
 
 def write_plants(plants, output, stream, elev, overwrite=False):
     """Write a vector map with the plant"""
-    with VectorTopo(output, mode='w', tab_cols=COLS,
-                    overwrite=overwrite) as out:
+    with VectorTopo(output, mode="w", tab_cols=COLS, overwrite=overwrite) as out:
         for p in plants:
             potential_power = plants[p].potential_power()
             plant_id = plants[p].id
             lines, ids = plants[p].plant(stream, elev)
             for line, r_id in zip(lines, ids):
-                out.write(line, (plant_id, r_id, potential_power, ))
+                out.write(
+                    line,
+                    (
+                        plant_id,
+                        r_id,
+                        potential_power,
+                    ),
+                )
         out.table.conn.commit()
 
 
-def write_structures(plants, output, elev, stream=None,
-                     ndigits=0, resolution=None, contour='',
-                     overwrite=False):
+def write_structures(
+    plants,
+    output,
+    elev,
+    stream=None,
+    ndigits=0,
+    resolution=None,
+    contour="",
+    overwrite=False,
+):
     """Write a vector map with the plant structures"""
+
     def write_hydrostruct(out, hydro, plant):
-        pot = plant.potential_power(intakes=[hydro.intake, ])
-        (plant_id, itk_id, side,
-         disch, gross_head) = (plant.id, hydro.intake.id, hydro.side,
-                               float(hydro.intake.discharge),
-                               float(hydro.intake.elevation -
-                                     plant.restitution.elevation))
-        out.write(hydro.conduct,
-                  (plant_id, itk_id, disch, 0., 0., 'conduct', side))
-        out.write(hydro.penstock,
-                  (plant_id, itk_id, disch, gross_head, pot, 'penstock', side))
+        pot = plant.potential_power(
+            intakes=[
+                hydro.intake,
+            ]
+        )
+        (plant_id, itk_id, side, disch, gross_head) = (
+            plant.id,
+            hydro.intake.id,
+            hydro.side,
+            float(hydro.intake.discharge),
+            float(hydro.intake.elevation - plant.restitution.elevation),
+        )
+        out.write(hydro.conduct, (plant_id, itk_id, disch, 0.0, 0.0, "conduct", side))
+        out.write(
+            hydro.penstock, (plant_id, itk_id, disch, gross_head, pot, "penstock", side)
+        )
         out.table.conn.commit()
 
-    tab_cols = [(u'cat', 'INTEGER PRIMARY KEY'),
-                (u'plant_id', 'VARCHAR(10)'),
-                (u'intake_id', 'INTEGER'),
-                (u'discharge', 'DOUBLE'),
-                (u'gross_head', 'DOUBLE'),
-                (u'power', 'DOUBLE'),
-                (u'kind', 'VARCHAR(10)'),
-                (u'side', 'VARCHAR(10)'), ]
+    tab_cols = [
+        (u"cat", "INTEGER PRIMARY KEY"),
+        (u"plant_id", "VARCHAR(10)"),
+        (u"intake_id", "INTEGER"),
+        (u"discharge", "DOUBLE"),
+        (u"gross_head", "DOUBLE"),
+        (u"power", "DOUBLE"),
+        (u"kind", "VARCHAR(10)"),
+        (u"side", "VARCHAR(10)"),
+    ]
 
-    with VectorTopo(output, mode='w', overwrite=overwrite) as out:
-        link = Link(layer=1, name=output, table=output,
-                    driver='sqlite')
-        out.open('w')
+    with VectorTopo(output, mode="w", overwrite=overwrite) as out:
+        link = Link(layer=1, name=output, table=output, driver="sqlite")
+        out.open("w")
         out.dblinks.add(link)
         out.table = out.dblinks[0].table()
         out.table.create(tab_cols)
 
-        print('Number of plants: %d' % len(plants))
+        print("Number of plants: %d" % len(plants))
 
         # check if contour vector map is provide by the user
         if contour:
-            cname, cmset = (contour.split('@') if '@' in contour
-                            else (contour, ''))
+            cname, cmset = contour.split("@") if "@" in contour else (contour, "")
             # check if the map already exist
             if bool(utils.get_mapset_vector(cname, cmset)) and overwrite:
                 compute_contour = True
             remove = False
         else:
             # create a random name
-            contour = 'tmp_struct_contour_%05d_%03d' % (os.getpid(),
-                                                        random.randint(0, 999))
+            contour = "tmp_struct_contour_%05d_%03d" % (
+                os.getpid(),
+                random.randint(0, 999),
+            )
             compute_contour = True
             remove = True
 
@@ -223,23 +277,32 @@ def write_structures(plants, output, elev, stream=None,
             levels = []
             for p in plants.values():
                 for itk in p.intakes:
-                    levels.append(closest(itk.elevation, ndigits=ndigits,
-                                          resolution=resolution))
+                    levels.append(
+                        closest(itk.elevation, ndigits=ndigits, resolution=resolution)
+                    )
             levels = sorted(set(levels))
             # generate the contur line that pass to the point
-            r.contour(input='%s@%s' % (elev.name, elev.mapset),
-                      output=contour, step=0, levels=levels, overwrite=True)
+            r.contour(
+                input="%s@%s" % (elev.name, elev.mapset),
+                output=contour,
+                step=0,
+                levels=levels,
+                overwrite=True,
+            )
 
         # open the contur lines
-        with VectorTopo(contour, mode='r') as cnt:
+        with VectorTopo(contour, mode="r") as cnt:
             for plant in plants.values():
                 print(plant.id)
-                for options in plant.structures(elev, stream=stream,
-                                                ndigits=ndigits,
-                                                resolution=resolution,
-                                                contour=cnt):
+                for options in plant.structures(
+                    elev,
+                    stream=stream,
+                    ndigits=ndigits,
+                    resolution=resolution,
+                    contour=cnt,
+                ):
                     for hydro in options:
-                        print('writing: ', hydro.intake)
+                        print("writing: ", hydro.intake)
                         write_hydrostruct(out, hydro, plant)
 
         if remove:
@@ -247,8 +310,9 @@ def write_structures(plants, output, elev, stream=None,
 
 
 class AbstractPoint(object):
-    def __init__(self, id_point, point, elevation, id_plants=None,
-                 id_stream=None, discharge=1.):
+    def __init__(
+        self, id_point, point, elevation, id_plants=None, id_stream=None, discharge=1.0
+    ):
         self.id = id_point
         self.point = point
         self.elevation = elevation
@@ -258,8 +322,7 @@ class AbstractPoint(object):
 
     def __repr__(self):
         srepr = "%s(id_point=%r, point=%r, elevation=%r)"
-        return srepr % (self.__class__.__name__, self.id,
-                        self.point, self.elevation)
+        return srepr % (self.__class__.__name__, self.id, self.point, self.elevation)
 
 
 class Restitution(AbstractPoint):
@@ -271,8 +334,9 @@ class Intake(AbstractPoint):
 
 
 class Plant(object):
-    def __init__(self, id_plant, id_stream=None, restitution=None,
-                 intakes=None, line=None):
+    def __init__(
+        self, id_plant, id_stream=None, restitution=None, intakes=None, line=None
+    ):
         self.id = id_plant
         self.id_stream = id_stream
         self.restitution = restitution
@@ -281,10 +345,14 @@ class Plant(object):
 
     def __repr__(self):
         srepr = "%s(id_plant=%r, restitution=%r, intakes=%r)"
-        return srepr % (self.__class__.__name__, self.id,
-                        self.restitution, self.intakes)
+        return srepr % (
+            self.__class__.__name__,
+            self.id,
+            self.restitution,
+            self.intakes,
+        )
 
-    def potential_power(self, efficiency=1., intakes=None):
+    def potential_power(self, efficiency=1.0, intakes=None):
         """Return the potential of the plant: input discharge [m3/s],
         elevetion [m] and output [kW].
 
@@ -309,8 +377,9 @@ class Plant(object):
         # and the discharge
         elev = np.array([ink.elevation for ink in intakes])
         discharge = np.array([ink.discharge for ink in intakes])
-        return ((elev - self.restitution.elevation)
-                * discharge * 9.810 * efficiency).sum()
+        return (
+            (elev - self.restitution.elevation) * discharge * 9.810 * efficiency
+        ).sum()
 
     def plant(self, stream, elev, maxdist=1.0, region=None):
         """Return a list with the segments involved by the plant.
@@ -363,6 +432,7 @@ class Plant(object):
             the list returned is: [b, c, d]
 
         """
+
         def error(pnt):
             raise TypeError("Line not found for %r" % pnt)
 
@@ -372,7 +442,7 @@ class Plant(object):
             1. the distance from the beginning of the line
             2. the total length of the line.
             """
-            line = stream.find['by_point'].geo(pnt, maxdist=maxdist)
+            line = stream.find["by_point"].geo(pnt, maxdist=maxdist)
             if line is None:
                 error(pnt)
             (newpnt, _, _, seg) = line.distance(pnt)
@@ -407,8 +477,8 @@ class Plant(object):
         lines = []
         ids = []
         reg = Region() if region is None else region
-        #stream, mset = stream.split('q') if '@' in stream else (stream, '')
-        #with VectorTopo(stream, mapset=mset, mode='r') as stm:
+        # stream, mset = stream.split('q') if '@' in stream else (stream, '')
+        # with VectorTopo(stream, mapset=mset, mode='r') as stm:
         res, rseg, rlen = split_line(self.restitution.point)
         for intake in self.intakes:
             itk, iseg, ilen = split_line(intake.point)
@@ -435,8 +505,7 @@ class Plant(object):
                     ids.append(l_id)
         return lines, ids
 
-    def structures(self, elev, stream=None,
-                   ndigits=0, resolution=None, contour=None):
+    def structures(self, elev, stream=None, ndigits=0, resolution=None, contour=None):
         """Return a tuple with lines structres options of a hypotetical plant.
 
         ::
@@ -475,6 +544,7 @@ class Plant(object):
            Return a list of tuples, containing two HydroStruct the first with
            the shortest penstock and the second with the other option.
         """
+
         def get_struct(contur, respoint):
             """Return the lines of the conduct and the penstock.
 
@@ -501,15 +571,14 @@ class Plant(object):
             return conduct, penstock
 
         def get_all_structs(contur, itk, res):
-            l0, l1 = splitline(contur, itk.point,
-                               3*itk.point.distance(res.point))
+            l0, l1 = splitline(contur, itk.point, 3 * itk.point.distance(res.point))
             # get structs
             c0, p0 = get_struct(l0, res.point)
             c1, p1 = get_struct(l1, res.point)
-            s0, s1 = 'option0', 'option1'
+            s0, s1 = "option0", "option1"
             # TODO: uncomment this to have left and right distinction...
             # but sofar is not working properly, therefore is commented.
-            #if stream is not None:
+            # if stream is not None:
             #    sitk = stream.find['by_point'].geo(itk.point, maxdist=100000)
             #    s0, s1 = (('right', 'left') if isinverted(sitk, elev, reg)
             #              else ('left', 'right'))
@@ -517,15 +586,24 @@ class Plant(object):
 
         result = []
         if contour is None:
-            levels = sorted(set([closest(itk.elevation,
-                                         ndigits=ndigits, resolution=resolution)
-                                 for itk in self.intakes]))
+            levels = sorted(
+                set(
+                    [
+                        closest(itk.elevation, ndigits=ndigits, resolution=resolution)
+                        for itk in self.intakes
+                    ]
+                )
+            )
 
             # generate the contur line that pass to the point
-            contour_tmp = 'tmpvect%04d' % random.randint(1000, 9999)
-            r.contour(input='%s@%s' % (elev.name, elev.mapset),
-                      output=contour_tmp, step=0, levels=levels,
-                      overwrite=True)
+            contour_tmp = "tmpvect%04d" % random.randint(1000, 9999)
+            r.contour(
+                input="%s@%s" % (elev.name, elev.mapset),
+                output=contour_tmp,
+                step=0,
+                levels=levels,
+                overwrite=True,
+            )
 
             cnt = VectorTopo(contour_tmp)
             cnt.open()
@@ -534,26 +612,29 @@ class Plant(object):
 
         for itk in self.intakes:
             # find the closest contur line
-            contur_res = cnt.find['by_point'].geo(self.restitution.point,
-                                                  maxdist=100000.0)
+            contur_res = cnt.find["by_point"].geo(
+                self.restitution.point, maxdist=100000.0
+            )
 
             # TODO: probably find the contur line for the intake and
             # the restitution it is not necessary, and we could also remove
             # the check bellow: contur_itk.id != contur_res.id
-            contur_itk = cnt.find['by_point'].geo(itk.point,
-                                                  maxdist=100000.0)
+            contur_itk = cnt.find["by_point"].geo(itk.point, maxdist=100000.0)
             if contur_itk is None or contur_res is None:
-                msg = ('Not able to find the contur line closest to the '
-                       'intake point %r, of the plant %r'
-                       'from the contur line map: %s')
+                msg = (
+                    "Not able to find the contur line closest to the "
+                    "intake point %r, of the plant %r"
+                    "from the contur line map: %s"
+                )
                 raise TypeError(msg % (itk, self, cnt.name))
             if contur_itk.id != contur_res.id:
-                print('=' * 30)
+                print("=" * 30)
                 print(itk)
-                msg = ("Contur lines are different! %d != %d, in %s."
-                       "Therefore %d will be used.")
-                print(msg % (contur_itk.id, contur_res.id, cnt.name,
-                             contur_itk.id))
+                msg = (
+                    "Contur lines are different! %d != %d, in %s."
+                    "Therefore %d will be used."
+                )
+                print(msg % (contur_itk.id, contur_res.id, cnt.name, contur_itk.id))
 
             # check contour
             contur = not_overlaped(contur_itk)

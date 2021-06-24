@@ -46,45 +46,60 @@
 import os
 import glob
 import numpy as np
+
 # GRASS
 import grass.script as grass
 from grass.script import array as garray
 from grass.pygrass.vector import VectorTopo
+
 
 def main():
     """
     Compute cell areas
     """
 
-    projinfo = grass.parse_command('g.proj', flags='g')
+    projinfo = grass.parse_command("g.proj", flags="g")
 
     options, flags = grass.parser()
-    output = options['output']
-    units = options['units']
+    output = options["output"]
+    units = options["units"]
 
     # First check if output exists
-    if len(grass.parse_command('g.list', type='rast',
-                               pattern=options['output'])):
+    if len(grass.parse_command("g.list", type="rast", pattern=options["output"])):
         if not grass.overwrite():
-            grass.fatal("Raster map '" + options['output'] +
-                        "' already exists. Use '--o' to overwrite.")
+            grass.fatal(
+                "Raster map '"
+                + options["output"]
+                + "' already exists. Use '--o' to overwrite."
+            )
 
-    projunits = str(projinfo['units']) # Unicode to str
+    projunits = str(projinfo["units"])  # Unicode to str
     # Then compute
-    if (projunits == 'meters') or (projunits == 'Meters'):
-        if units == 'm2':
-            grass.mapcalc(output+' = nsres() * ewres()')
-        elif units == 'km2':
-            grass.mapcalc(output+' = nsres() * ewres() / 10.^6')
-    elif (projunits == 'degrees') or (projunits == 'Degrees'):
-        if units == 'm2':
-            grass.mapcalc(output+' = ( 111195. * nsres() ) * \
-                          ( ewres() * '+str(np.pi/180.)+' * 6371000. * cos(y()) )')
-        elif units == 'km2':
-            grass.mapcalc(output+' = ( 111.195 * nsres() ) * \
-                          ( ewres() * '+str(np.pi/180.)+' * 6371. * cos(y()) )')
+    if (projunits == "meters") or (projunits == "Meters"):
+        if units == "m2":
+            grass.mapcalc(output + " = nsres() * ewres()")
+        elif units == "km2":
+            grass.mapcalc(output + " = nsres() * ewres() / 10.^6")
+    elif (projunits == "degrees") or (projunits == "Degrees"):
+        if units == "m2":
+            grass.mapcalc(
+                output
+                + " = ( 111195. * nsres() ) * \
+                          ( ewres() * "
+                + str(np.pi / 180.0)
+                + " * 6371000. * cos(y()) )"
+            )
+        elif units == "km2":
+            grass.mapcalc(
+                output
+                + " = ( 111.195 * nsres() ) * \
+                          ( ewres() * "
+                + str(np.pi / 180.0)
+                + " * 6371. * cos(y()) )"
+            )
     else:
-        print('Units: ', projunits, ' not currently supported')
+        print("Units: ", projunits, " not currently supported")
+
 
 if __name__ == "__main__":
     main()

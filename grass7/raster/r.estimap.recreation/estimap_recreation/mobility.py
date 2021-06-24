@@ -139,7 +139,7 @@ def mobility_function(
         " \ \n null() )))))"
     )
     if not real_numbers:
-        expression = 'round(' + expression + ')'
+        expression = "round(" + expression + ")"
     grass.debug(_("Mapcalc expression: {e}".format(e=expression)))
 
     # replace keywords appropriately

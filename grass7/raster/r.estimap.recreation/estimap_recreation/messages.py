@@ -1,17 +1,16 @@
 INFRASTRUCTURE_NOT_REQUIRED = (
-    "Infrastructure is not required "
-    "to derive the 'potential' recreation map."
+    "Infrastructure is not required " "to derive the 'potential' recreation map."
 )
 COMPUTING_INTERMEDIATE_POTENTIAL_MAP = "\n>>> Computing intermediate potential map"
-COMPUTING_INTERMEDIATE_OPPORTUNITY_MAP = "*** Computing intermediate opportunity map '{opportunity}'"
+COMPUTING_INTERMEDIATE_OPPORTUNITY_MAP = (
+    "*** Computing intermediate opportunity map '{opportunity}'"
+)
 CLASSIFYING_POTENTIAL_MAP = "\n>>> Classifying '{potential}' map"
 CLASSIFYING_OPPORTUNITY_MAP = "* Classifying '{opportunity}' map"
 WRITING_SPECTRUM_MAP = "* Writing '{spectrum}' map"
 MOBILITY_FUNCTION = "*** Mobility function: {f}"
 MESSAGE_PROCESSING = "\n>>> Processing..."
-USING_SUITABILITY_SCORES_FROM_FILE = (
-    " * Using suitability scores from file: {scores}."
-)
+USING_SUITABILITY_SCORES_FROM_FILE = " * Using suitability scores from file: {scores}."
 USING_SUITABILITY_SCORES_FROM_INTERNAL_RULES = (
     " * Using internal rules to score land use classes in '{map}'"
 )
@@ -41,7 +40,7 @@ DERIVING_LAND_SUITABILITY = (
 MESSAGE_NORMALISING = "\n>>> Normalising '{component}' component\n"
 ZEROFY_NULL_CELLS = "*** Setting NULL cells to 0"
 ADDING_MAP_TO_COMPONENT = "* Adding '{raster}' map to '{component}' component\n"
-WATER_COMPONENT_INCLUDES = '*** Water component includes currently: {component}'
+WATER_COMPONENT_INCLUDES = "*** Water component includes currently: {component}"
 SCORING_PROTECTED_AREAS = "Scoring protected areas '{protected}' based on '{rules}'"
 POPULATION_STATISTICS = "iii Population statistics: {s}"
 FATAL_MESSAGE_LAND_USE_DATATYPE = (

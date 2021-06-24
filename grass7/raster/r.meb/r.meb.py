@@ -106,9 +106,9 @@
 #% answer: 5
 #%end
 
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Standard
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 # import libraries
 import os
@@ -146,11 +146,9 @@ CLEAN_RAST = []
 def cleanup():
     """Remove temporary maps specified in the global list"""
     for rast in CLEAN_RAST:
-        cf = gs.find_file(name=rast, element="cell",
-                          mapset=gs.gisenv()["MAPSET"])
+        cf = gs.find_file(name=rast, element="cell", mapset=gs.gisenv()["MAPSET"])
         if cf["fullname"] != "":
-            gs.run_command("g.remove", type="raster",
-                           name=rast, quiet=True, flags="f")
+            gs.run_command("g.remove", type="raster", name=rast, quiet=True, flags="f")
 
 
 # Create temporary name
@@ -179,28 +177,26 @@ def EB(simlay, reflay):
     # Median and mad for whole region (within current mask)
     tmpf4 = tmpname("reb4")
     CLEAN_RAST.append(tmpf4)
-    d = gs.read_command("r.quantile", quiet=True, input=simlay,
-                        percentiles="50")
+    d = gs.read_command("r.quantile", quiet=True, input=simlay, percentiles="50")
     d = d.split(":")
     d = float(string.replace(d[2], "\n", ""))
-    gs.mapcalc("$tmpf4 = abs($map - $d)",
-               map=simlay,
-               tmpf4=tmpf4,
-               d=d, quiet=True)
-    mad = gs.read_command("r.quantile", quiet=True, input=tmpf4,
-                          percentiles="50")
+    gs.mapcalc("$tmpf4 = abs($map - $d)", map=simlay, tmpf4=tmpf4, d=d, quiet=True)
+    mad = gs.read_command("r.quantile", quiet=True, input=tmpf4, percentiles="50")
     mad = mad.split(":")
     mad = float(string.replace(mad[2], "\n", ""))
-    gs.run_command("g.remove", quiet=True, flags="f", type="raster",
-                   name=tmpf4)
+    gs.run_command("g.remove", quiet=True, flags="f", type="raster", name=tmpf4)
 
     # Median and mad for reference layer
     tmpf5 = tmpname("reb5")
     CLEAN_RAST.append(tmpf5)
-    gs.mapcalc("$tmpf5 = if($reflay==1, $simlay, null())", simlay=simlay,
-               tmpf5=tmpf5, reflay=reflay, quiet=True)
-    e = gs.read_command("r.quantile", quiet=True, input=tmpf5,
-                        percentiles="50")
+    gs.mapcalc(
+        "$tmpf5 = if($reflay==1, $simlay, null())",
+        simlay=simlay,
+        tmpf5=tmpf5,
+        reflay=reflay,
+        quiet=True,
+    )
+    e = gs.read_command("r.quantile", quiet=True, input=tmpf5, percentiles="50")
     e = e.split(":")
     e = float(string.replace(e[2], "\n", ""))
     EBstat = abs(d - e) / mad
@@ -212,8 +208,7 @@ def EB(simlay, reflay):
     gs.info(_("EB = {:.3f}").format(EBstat))
 
     # Clean up and return data
-    gs.run_command("g.remove", flags="f", type="raster", name=tmpf5,
-                   quiet=True)
+    gs.run_command("g.remove", flags="f", type="raster", name=tmpf5, quiet=True)
     return (mad, d, e, EBstat)
 
 
@@ -247,17 +242,21 @@ def main(options, flags):
 
     # Check if ref map is of type cell and values are limited to 1 and 0
     reftype = gs.raster_info(ref)
-    if reftype['datatype'] != "CELL":
+    if reftype["datatype"] != "CELL":
         gs.fatal(_("Your reference map must have type CELL (integer)"))
-    if reftype['min'] != 0 or reftype['max'] != 1:
-        gs.fatal(_("The input raster map must be a binary raster,"
-                   " i.e. it should contain only values 0 and 1 "
-                   " (now the minimum is %d and maximum is %d)")
-                 % (reftype['min'], reftype['max']))
+    if reftype["min"] != 0 or reftype["max"] != 1:
+        gs.fatal(
+            _(
+                "The input raster map must be a binary raster,"
+                " i.e. it should contain only values 0 and 1 "
+                " (now the minimum is %d and maximum is %d)"
+            )
+            % (reftype["min"], reftype["max"])
+        )
 
     # Text for history in metadata
     opt2 = dict((k, v) for k, v in options.iteritems() if v)
-    hist = ' '.join("{!s}={!r}".format(k, v) for (k, v) in opt2.iteritems())
+    hist = " ".join("{!s}={!r}".format(k, v) for (k, v) in opt2.iteritems())
     hist = "r.meb {}".format(hist)
     unused, tmphist = tempfile.mkstemp()
     text_file = open(tmphist, "w")
@@ -282,10 +281,16 @@ def main(options, flags):
         if laytype == "CELL":
             gs.run_command("g.copy", quiet=True, raster=(ipl[j], tmpf1))
         else:
-            gs.mapcalc("$tmpf1 = int($dignum * $inplay)", tmpf1=tmpf1,
-                       inplay=ipl[j], dignum=digits2, quiet=True)
-        p = gs.pipe_command("r.stats", quiet=True, flags="cn", input=tmpf1,
-                            sort="asc", sep=";")
+            gs.mapcalc(
+                "$tmpf1 = int($dignum * $inplay)",
+                tmpf1=tmpf1,
+                inplay=ipl[j],
+                dignum=digits2,
+                quiet=True,
+            )
+        p = gs.pipe_command(
+            "r.stats", quiet=True, flags="cn", input=tmpf1, sort="asc", sep=";"
+        )
         stval = {}
         for line in p.stdout:
             [val, count] = line.strip(os.linesep).split(";")
@@ -318,11 +323,14 @@ def main(options, flags):
         tmpf3 = tmpname("reb3")
         CLEAN_RAST.append(tmpf3)
 
-        calcc = "{1} = if({0} <= 50, 2 * float({0}), if({0} < 100, " \
-                "2 * (100 - float({0}))))".format(tmpf2, tmpf3)
+        calcc = (
+            "{1} = if({0} <= 50, 2 * float({0}), if({0} < 100, "
+            "2 * (100 - float({0}))))".format(tmpf2, tmpf3)
+        )
         gs.mapcalc(calcc, quiet=True)
-        gs.run_command("g.remove", quiet=True, flags="f", type="raster",
-                       name=(tmpf2, tmpf1))
+        gs.run_command(
+            "g.remove", quiet=True, flags="f", type="raster", name=(tmpf2, tmpf1)
+        )
         os.close(fd2)
         os.remove(tmprule)
         ipi.append(tmpf3)
@@ -335,60 +343,69 @@ def main(options, flags):
     if flag_m:
         gs.info(_("\nThe EB based on mean ES values:\n"))
         nmn = "{}_MES_mean".format(tmpf0)
-        gs.run_command("r.series", quiet=True, output=nmn, input=tuple(ipi),
-                       method="average")
-        gs.write_command("r.colors", map=nmn, rules="-",
-                         stdin=COLORS_MES, quiet=True)
+        gs.run_command(
+            "r.series", quiet=True, output=nmn, input=tuple(ipi), method="average"
+        )
+        gs.write_command("r.colors", map=nmn, rules="-", stdin=COLORS_MES, quiet=True)
         ebm = EB(simlay=nmn, reflay=tmpref0)
         if not out:
             # Add to list of layers to be removed at completion
             CLEAN_RAST.append(nmn)
         else:
             # Write layer metadata
-            gs.run_command("r.support", map=nmn,
-                           title="Multivariate environmental similarity (MES)",
-                           units="0-100 (relative score",
-                           description="MES (compuated as the average of "
-                           "the individual similarity layers",
-                           loadhistory=tmphist)
+            gs.run_command(
+                "r.support",
+                map=nmn,
+                title="Multivariate environmental similarity (MES)",
+                units="0-100 (relative score",
+                description="MES (compuated as the average of "
+                "the individual similarity layers",
+                loadhistory=tmphist,
+            )
 
     if flag_n:
         gs.info(_("\nThe EB based on median ES values:\n"))
         nmn = "{}_MES_median".format(tmpf0)
-        gs.run_command("r.series", quiet=True, output=nmn, input=tuple(ipi),
-                       method="median")
-        gs.write_command("r.colors", map=nmn, rules="-",
-                         stdin=COLORS_MES, quiet=True)
+        gs.run_command(
+            "r.series", quiet=True, output=nmn, input=tuple(ipi), method="median"
+        )
+        gs.write_command("r.colors", map=nmn, rules="-", stdin=COLORS_MES, quiet=True)
         ebn = EB(simlay=nmn, reflay=tmpref0)
         if not out:
             CLEAN_RAST.append(nmn)
         else:
             # Write layer metadata
-            gs.run_command("r.support", map=nmn,
-                           title="Multivariate environmental similarity (MES)",
-                           units="0-100 (relative score",
-                           description="MES (compuated as the median of "
-                           "the individual similarity layers",
-                           loadhistory=tmphist)
+            gs.run_command(
+                "r.support",
+                map=nmn,
+                title="Multivariate environmental similarity (MES)",
+                units="0-100 (relative score",
+                description="MES (compuated as the median of "
+                "the individual similarity layers",
+                loadhistory=tmphist,
+            )
 
     if flag_o:
         gs.info(_("\nThe EB based on minimum ES values:\n"))
         nmn = "{}_MES_minimum".format(tmpf0)
-        gs.run_command("r.series", quiet=True, output=nmn, input=tuple(ipi),
-                       method="minimum")
-        gs.write_command("r.colors", map=nmn, rules="-",
-                         stdin=COLORS_MES, quiet=True)
+        gs.run_command(
+            "r.series", quiet=True, output=nmn, input=tuple(ipi), method="minimum"
+        )
+        gs.write_command("r.colors", map=nmn, rules="-", stdin=COLORS_MES, quiet=True)
         ebo = EB(simlay=nmn, reflay=tmpref0)
         if not out:
             CLEAN_RAST.append(nmn)
         else:
             # Write layer metadata
-            gs.run_command("r.support", map=nmn,
-                           title="Multivariate environmental similarity (MES)",
-                           units="0-100 (relative score",
-                           description="MES (compuated as the minimum of "
-                           "the individual similarity layers",
-                           loadhistory=tmphist)
+            gs.run_command(
+                "r.support",
+                map=nmn,
+                title="Multivariate environmental similarity (MES)",
+                units="0-100 (relative score",
+                description="MES (compuated as the minimum of "
+                "the individual similarity layers",
+                loadhistory=tmphist,
+            )
 
     # EB individual layers
     if flag_i:
@@ -398,51 +415,74 @@ def main(options, flags):
             if not out:
                 CLEAN_RAST.append(nmn)
             gs.run_command("g.rename", quiet=True, raster=(ipi[mm], nmn))
-            gs.write_command("r.colors", map=nmn, rules="-",
-                             stdin=COLORS_MES, quiet=True)
+            gs.write_command(
+                "r.colors", map=nmn, rules="-", stdin=COLORS_MES, quiet=True
+            )
             gs.info(_("\nThe EB for {}:\n").format(ipn[mm]))
             value = EB(simlay=nmn, reflay=tmpref0)
             ebi[ipn[mm]] = value
-            gs.run_command("r.support", map=nmn,
-                           title="Environmental similarity (ES) for "
-                           "{}".format(ipn[mm]), units="0-100 (relative score",
-                           description="Environmental similarity (ES) for "
-                           "{}".format(ipn[mm]),
-                           loadhistory=tmphist)
+            gs.run_command(
+                "r.support",
+                map=nmn,
+                title="Environmental similarity (ES) for " "{}".format(ipn[mm]),
+                units="0-100 (relative score",
+                description="Environmental similarity (ES) for " "{}".format(ipn[mm]),
+                loadhistory=tmphist,
+            )
     else:
-        gs.run_command("g.remove", quiet=True, flags="f", type="raster",
-                       name=ipi)
+        gs.run_command("g.remove", quiet=True, flags="f", type="raster", name=ipi)
 
     if filename:
         with open(filename, "wb") as csvfile:
-            fieldnames = ["variable", "median_region", "median_reference",
-                          "mad", "eb"]
+            fieldnames = ["variable", "median_region", "median_reference", "mad", "eb"]
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
             if flag_m:
-                writer.writerow({"variable": "MES_mean",
-                                 "median_region": ebm[1],
-                                 "median_reference": ebm[2],
-                                 "mad": ebm[0], "eb": ebm[3]})
+                writer.writerow(
+                    {
+                        "variable": "MES_mean",
+                        "median_region": ebm[1],
+                        "median_reference": ebm[2],
+                        "mad": ebm[0],
+                        "eb": ebm[3],
+                    }
+                )
             if flag_n:
-                writer.writerow({"variable": "MES_median",
-                                 "median_region": ebn[1],
-                                 "median_reference": ebn[2],
-                                 "mad": ebn[0], "eb": ebn[3]})
+                writer.writerow(
+                    {
+                        "variable": "MES_median",
+                        "median_region": ebn[1],
+                        "median_reference": ebn[2],
+                        "mad": ebn[0],
+                        "eb": ebn[3],
+                    }
+                )
             if flag_o:
-                writer.writerow({"variable": "MES_minimum",
-                                 "median_region": ebo[1],
-                                 "median_reference": ebo[2],
-                                 "mad": ebo[0], "eb": ebo[3]})
+                writer.writerow(
+                    {
+                        "variable": "MES_minimum",
+                        "median_region": ebo[1],
+                        "median_reference": ebo[2],
+                        "mad": ebo[0],
+                        "eb": ebo[3],
+                    }
+                )
             if flag_i:
                 mykeys = ebi.keys()
                 for vari in mykeys:
                     ebj = ebi[vari]
-                    writer.writerow({"variable": vari, "median_region": ebj[1],
-                                     "median_reference": ebj[2], "mad": ebj[0],
-                                     "eb": ebj[3]})
+                    writer.writerow(
+                        {
+                            "variable": vari,
+                            "median_region": ebj[1],
+                            "median_reference": ebj[2],
+                            "mad": ebj[0],
+                            "eb": ebj[3],
+                        }
+                    )
         gs.info(_("\nThe results are written to {}\n").format(filename))
         gs.info("\n")
+
 
 if __name__ == "__main__":
     atexit.register(cleanup)

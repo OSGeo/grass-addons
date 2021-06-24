@@ -291,27 +291,51 @@ def cleanup(tmp=None):
         maps = tmp
     else:
         maps = TMP
-    gcore.run_command('g.remove', flags='f', type=['raster', 'vector'], name=maps, quiet=True)
+    gcore.run_command(
+        "g.remove", flags="f", type=["raster", "vector"], name=maps, quiet=True
+    )
 
 
 def check_addon_installed(addon, fatal=True):
-    if not gcore.find_program(addon, '--help'):
+    if not gcore.find_program(addon, "--help"):
         call = gcore.fatal if fatal else gcore.warning
-        call(_("Addon {a} is not installed."
-               " Please install it using g.extension.").format(a=addon))
+        call(
+            _(
+                "Addon {a} is not installed." " Please install it using g.extension."
+            ).format(a=addon)
+        )
 
 
-def run_one_combination(comb_count, comb_all, repeat, seed, development_start, compactness_mean, compactness_range,
-                        discount_factor, patches_file, fut_options, threshold,
-                        hist_bins_area_orig, hist_range_area_orig, hist_bins_compactness_orig,
-                        hist_range_compactness_orig, cell_size, histogram_area_orig, histogram_compactness_orig,
-                        tmp_name, queue):
+def run_one_combination(
+    comb_count,
+    comb_all,
+    repeat,
+    seed,
+    development_start,
+    compactness_mean,
+    compactness_range,
+    discount_factor,
+    patches_file,
+    fut_options,
+    threshold,
+    hist_bins_area_orig,
+    hist_range_area_orig,
+    hist_bins_compactness_orig,
+    hist_range_compactness_orig,
+    cell_size,
+    histogram_area_orig,
+    histogram_compactness_orig,
+    tmp_name,
+    queue,
+):
     TMP_PROCESS = []
     # unique name, must be sql compliant
-    suffix = (str(discount_factor) + str(compactness_mean) + str(compactness_range)).replace('.', '')
-    simulation_dev_end = tmp_name + 'simulation_dev_end_' + suffix
-    simulation_dev_diff = tmp_name + 'simulation_dev_diff' + suffix
-    tmp_clump = tmp_name + 'tmp_clump' + suffix
+    suffix = (
+        str(discount_factor) + str(compactness_mean) + str(compactness_range)
+    ).replace(".", "")
+    simulation_dev_end = tmp_name + "simulation_dev_end_" + suffix
+    simulation_dev_diff = tmp_name + "simulation_dev_diff" + suffix
+    tmp_clump = tmp_name + "tmp_clump" + suffix
     TMP_PROCESS.append(simulation_dev_diff)
     TMP_PROCESS.append(simulation_dev_end)
     TMP_PROCESS.append(tmp_clump)
@@ -322,15 +346,29 @@ def run_one_combination(comb_count, comb_all, repeat, seed, development_start, c
     seed *= 10000
     for i in range(repeat):
         f_seed = seed + i
-        gcore.message(_("Running calibration combination {comb_count}/{comb_all}"
-                        " of simulation attempt {i}/{repeat} with random seed {s}...".format(comb_count=comb_count,
-                                                                                             comb_all=comb_all,
-                                                                                             i=i + 1, repeat=repeat, s=f_seed)))
+        gcore.message(
+            _(
+                "Running calibration combination {comb_count}/{comb_all}"
+                " of simulation attempt {i}/{repeat} with random seed {s}...".format(
+                    comb_count=comb_count,
+                    comb_all=comb_all,
+                    i=i + 1,
+                    repeat=repeat,
+                    s=f_seed,
+                )
+            )
+        )
         try:
-            run_simulation(development_start=development_start, development_end=simulation_dev_end,
-                           compactness_mean=compactness_mean, compactness_range=compactness_range,
-                           discount_factor=discount_factor, patches_file=patches_file,
-                           seed=f_seed, fut_options=fut_options)
+            run_simulation(
+                development_start=development_start,
+                development_end=simulation_dev_end,
+                compactness_mean=compactness_mean,
+                compactness_range=compactness_range,
+                discount_factor=discount_factor,
+                patches_file=patches_file,
+                seed=f_seed,
+                fut_options=fut_options,
+            )
         except CalledModuleError as e:
             queue.put(None)
             cleanup(tmp=TMP_PROCESS)
@@ -339,86 +377,160 @@ def run_one_combination(comb_count, comb_all, repeat, seed, development_start, c
         new_development(simulation_dev_end, simulation_dev_diff)
 
         data = patch_analysis(simulation_dev_diff, threshold, tmp_clump)
-        sim_hist_area, sim_hist_compactness = create_histograms(data, hist_bins_area_orig, hist_range_area_orig,
-                                                                hist_bins_compactness_orig, hist_range_compactness_orig, cell_size)
+        sim_hist_area, sim_hist_compactness = create_histograms(
+            data,
+            hist_bins_area_orig,
+            hist_range_area_orig,
+            hist_bins_compactness_orig,
+            hist_range_compactness_orig,
+            cell_size,
+        )
 
         sum_dist_area += compare_histograms(histogram_area_orig, sim_hist_area)
-        sum_dist_compactness += compare_histograms(histogram_compactness_orig, sim_hist_compactness)
+        sum_dist_compactness += compare_histograms(
+            histogram_compactness_orig, sim_hist_compactness
+        )
 
     mean_dist_area = sum_dist_area / repeat
     mean_dist_compactness = sum_dist_compactness / repeat
 
     data = {}
-    data['input_discount_factor'] = discount_factor
-    data['input_compactness_mean'] = compactness_mean
-    data['input_compactness_range'] = compactness_range
-    data['area_distance'] = mean_dist_area
-    data['compactness_distance'] = mean_dist_compactness
+    data["input_discount_factor"] = discount_factor
+    data["input_compactness_mean"] = compactness_mean
+    data["input_compactness_range"] = compactness_range
+    data["area_distance"] = mean_dist_area
+    data["compactness_distance"] = mean_dist_compactness
     queue.put(data)
     cleanup(tmp=TMP_PROCESS)
 
 
-def run_simulation(development_start, development_end, compactness_mean,
-                   compactness_range, discount_factor, patches_file,
-                   seed, fut_options):
-    parameters = dict(compactness_mean=compactness_mean, compactness_range=compactness_range,
-                      discount_factor=discount_factor, patch_sizes=patches_file,
-                      developed=development_start)
-    futures_parameters = dict(development_pressure=fut_options['development_pressure'],
-                              predictors=fut_options['predictors'], n_dev_neighbourhood=fut_options['n_dev_neighbourhood'],
-                              devpot_params=fut_options['devpot_params'],
-                              num_neighbors=fut_options['num_neighbors'], seed_search=fut_options['seed_search'],
-                              development_pressure_approach=fut_options['development_pressure_approach'], gamma=fut_options['gamma'],
-                              scaling_factor=fut_options['scaling_factor'],
-                              subregions=fut_options['subregions'], demand=fut_options['demand'],
-                              separator=fut_options['separator'],
-                              output=development_end, random_seed=seed, quiet=True)
+def run_simulation(
+    development_start,
+    development_end,
+    compactness_mean,
+    compactness_range,
+    discount_factor,
+    patches_file,
+    seed,
+    fut_options,
+):
+    parameters = dict(
+        compactness_mean=compactness_mean,
+        compactness_range=compactness_range,
+        discount_factor=discount_factor,
+        patch_sizes=patches_file,
+        developed=development_start,
+    )
+    futures_parameters = dict(
+        development_pressure=fut_options["development_pressure"],
+        predictors=fut_options["predictors"],
+        n_dev_neighbourhood=fut_options["n_dev_neighbourhood"],
+        devpot_params=fut_options["devpot_params"],
+        num_neighbors=fut_options["num_neighbors"],
+        seed_search=fut_options["seed_search"],
+        development_pressure_approach=fut_options["development_pressure_approach"],
+        gamma=fut_options["gamma"],
+        scaling_factor=fut_options["scaling_factor"],
+        subregions=fut_options["subregions"],
+        demand=fut_options["demand"],
+        separator=fut_options["separator"],
+        output=development_end,
+        random_seed=seed,
+        quiet=True,
+    )
     parameters.update(futures_parameters)
-    for not_required in ('potential_weight', 'num_steps', 'incentive_power', 'subregions_potential'):
+    for not_required in (
+        "potential_weight",
+        "num_steps",
+        "incentive_power",
+        "subregions_potential",
+    ):
         if fut_options[not_required]:
             parameters.update({not_required: fut_options[not_required]})
 
-    gcore.run_command('r.futures.pga', overwrite=True, **parameters)
+    gcore.run_command("r.futures.pga", overwrite=True, **parameters)
 
 
 def diff_development(development_start, development_end, subregions, development_diff):
-    grast.mapcalc(exp="{res} = if({subregions} && {dev_end} && (isnull({dev_start}) ||| !{dev_start}), 1, null())".format(res=development_diff, subregions=subregions,
-                  dev_end=development_end, dev_start=development_start), overwrite=True, quiet=True)
+    grast.mapcalc(
+        exp="{res} = if({subregions} && {dev_end} && (isnull({dev_start}) ||| !{dev_start}), 1, null())".format(
+            res=development_diff,
+            subregions=subregions,
+            dev_end=development_end,
+            dev_start=development_start,
+        ),
+        overwrite=True,
+        quiet=True,
+    )
 
 
 def new_development(development_end, development_diff):
-    grast.mapcalc(exp="{res} = if({dev_end} > 0, 1, null())".format(res=development_diff,
-                  dev_end=development_end), overwrite=True, quiet=True)
+    grast.mapcalc(
+        exp="{res} = if({dev_end} > 0, 1, null())".format(
+            res=development_diff, dev_end=development_end
+        ),
+        overwrite=True,
+        quiet=True,
+    )
 
 
-def patch_analysis_per_subregion(development_diff, subregions, threshold, tmp_clump, tmp_clump_cat):
-    gcore.run_command('r.clump', input=development_diff, output=tmp_clump, overwrite=True, quiet=True)
-    cats = gcore.read_command("r.describe", flags="1n", map=subregions, quiet=True).strip().splitlines()
+def patch_analysis_per_subregion(
+    development_diff, subregions, threshold, tmp_clump, tmp_clump_cat
+):
+    gcore.run_command(
+        "r.clump", input=development_diff, output=tmp_clump, overwrite=True, quiet=True
+    )
+    cats = (
+        gcore.read_command("r.describe", flags="1n", map=subregions, quiet=True)
+        .strip()
+        .splitlines()
+    )
     subregions_data = {}
     env = os.environ.copy()
     for cat in cats:
-        grast.mapcalc('{new} = if ({reg} == {cat}, {clump}, null())'.format(new=tmp_clump_cat, reg=subregions,
-                                                                            cat=cat, clump=tmp_clump),
-                      overwrite=True)
-        env['GRASS_REGION'] = gcore.region_env(zoom=tmp_clump_cat)
+        grast.mapcalc(
+            "{new} = if ({reg} == {cat}, {clump}, null())".format(
+                new=tmp_clump_cat, reg=subregions, cat=cat, clump=tmp_clump
+            ),
+            overwrite=True,
+        )
+        env["GRASS_REGION"] = gcore.region_env(zoom=tmp_clump_cat)
         try:
-            data = gcore.read_command('r.object.geometry', input=tmp_clump_cat,
-                                    flags='m', separator='comma', env=env, quiet=True).strip()
-            data = np.loadtxt(StringIO(data), delimiter=',', usecols=(1, 2), skiprows=1)
+            data = gcore.read_command(
+                "r.object.geometry",
+                input=tmp_clump_cat,
+                flags="m",
+                separator="comma",
+                env=env,
+                quiet=True,
+            ).strip()
+            data = np.loadtxt(StringIO(data), delimiter=",", usecols=(1, 2), skiprows=1)
             # in case there is just one record
             data = data.reshape((-1, 2))
             subregions_data[cat] = data[data[:, 0] > threshold]
         except CalledModuleError:
-            gcore.warning("Subregion {cat} has no changes in development, no patches found.".format(cat=cat))
+            gcore.warning(
+                "Subregion {cat} has no changes in development, no patches found.".format(
+                    cat=cat
+                )
+            )
             subregions_data[cat] = np.empty([0, 2])
     return subregions_data
 
 
 def patch_analysis(development_diff, threshold, tmp_clump):
-    gcore.run_command('r.clump', input=development_diff, output=tmp_clump, overwrite=True, quiet=True)
+    gcore.run_command(
+        "r.clump", input=development_diff, output=tmp_clump, overwrite=True, quiet=True
+    )
     try:
-        data = gcore.read_command('r.object.geometry', input=tmp_clump, flags='m', separator='comma', quiet=True).strip()
-        data = np.loadtxt(StringIO(data), delimiter=',', usecols=(1, 2), skiprows=1)
+        data = gcore.read_command(
+            "r.object.geometry",
+            input=tmp_clump,
+            flags="m",
+            separator="comma",
+            quiet=True,
+        ).strip()
+        data = np.loadtxt(StringIO(data), delimiter=",", usecols=(1, 2), skiprows=1)
         # in case there is just one record
         data = data.reshape((-1, 2))
         data = data[data[:, 0] > threshold]
@@ -428,14 +540,29 @@ def patch_analysis(development_diff, threshold, tmp_clump):
     return data
 
 
-def create_histograms(data, hist_bins_area_orig, hist_range_area_orig, hist_bins_compactness_orig, hist_range_compactness_orig, cell_size):
+def create_histograms(
+    data,
+    hist_bins_area_orig,
+    hist_range_area_orig,
+    hist_bins_compactness_orig,
+    hist_range_compactness_orig,
+    cell_size,
+):
     area, perimeter = data.T
     compact = compactness(area, perimeter)
-    histogram_area, _edges = np.histogram(area / cell_size, bins=hist_bins_area_orig,
-                                          range=hist_range_area_orig, density=True)
+    histogram_area, _edges = np.histogram(
+        area / cell_size,
+        bins=hist_bins_area_orig,
+        range=hist_range_area_orig,
+        density=True,
+    )
     histogram_area = histogram_area * 100
-    histogram_compactness, _edges = np.histogram(compact, bins=hist_bins_compactness_orig,
-                                                 range=hist_range_compactness_orig, density=True)
+    histogram_compactness, _edges = np.histogram(
+        compact,
+        bins=hist_bins_compactness_orig,
+        range=hist_range_compactness_orig,
+        density=True,
+    )
     histogram_compactness = histogram_compactness * 100
     return histogram_area, histogram_compactness
 
@@ -453,21 +580,28 @@ def write_patches_file(data, cell_size, output_file, separator):
         max_patches = max([len(x) for x in array_list])
         new_array_list = []
         for array in array_list:
-            new_array_list.append(np.pad(array, (0, max_patches - len(array)),
-                                         'constant', constant_values=-1))
+            new_array_list.append(
+                np.pad(
+                    array, (0, max_patches - len(array)), "constant", constant_values=-1
+                )
+            )
         data = np.column_stack(new_array_list)
-        np.savetxt(output_file, X=data, fmt='%u')
+        np.savetxt(output_file, X=data, fmt="%u")
         data = np.loadtxt(output_file, dtype=str)
-        data[data == '-1'] = ''
-        with open(output_file, 'wb') as f:
+        data[data == "-1"] = ""
+        with open(output_file, "wb") as f:
             f.write(separator.join(keys).encode())
-            f.write(b'\n')
-            np.savetxt(f, X=data, delimiter=separator, fmt='%s')
+            f.write(b"\n")
+            np.savetxt(f, X=data, delimiter=separator, fmt="%s")
     else:
         areas = data[:, 0]
         areas = np.round(areas / cell_size)
-        np.savetxt(fname=output_file, X=np.sort(areas.astype(int)),
-                   delimiter=separator, fmt='%u')
+        np.savetxt(
+            fname=output_file,
+            X=np.sort(areas.astype(int)),
+            delimiter=separator,
+            fmt="%u",
+        )
 
 
 def compare_histograms(hist1, hist2):
@@ -489,63 +623,87 @@ def compactness(area, perimeter):
 
 
 def process_calibration(calib_file):
-    disc, area_err, compact_mean, compact_range, compact_err = \
-        np.loadtxt(calib_file, unpack=True, delimiter=',')
+    disc, area_err, compact_mean, compact_range, compact_err = np.loadtxt(
+        calib_file, unpack=True, delimiter=","
+    )
     norm_area_err = area_err / np.max(area_err)
     norm_compact_err = compact_err / np.max(compact_err)
     averaged_error = (norm_area_err + norm_compact_err) / 2
-    res = np.column_stack((disc, compact_mean, compact_range, norm_area_err, norm_compact_err, averaged_error))
+    res = np.column_stack(
+        (
+            disc,
+            compact_mean,
+            compact_range,
+            norm_area_err,
+            norm_compact_err,
+            averaged_error,
+        )
+    )
     res = res[res[:, 5].argsort()]
-    header = ','.join(['discount_factor',
-                       'compactness_mean', 'compactness_range',
-                       'area_error', 'compactness_error', 'combined_error'])
-    with open(calib_file, 'wb') as f:
+    header = ",".join(
+        [
+            "discount_factor",
+            "compactness_mean",
+            "compactness_range",
+            "area_error",
+            "compactness_error",
+            "combined_error",
+        ]
+    )
+    with open(calib_file, "wb") as f:
         f.write(header.encode())
-        f.write(b'\n')
-        np.savetxt(f, res, delimiter=',', fmt='%.2f')
+        f.write(b"\n")
+        np.savetxt(f, res, delimiter=",", fmt="%.2f")
 
 
 def main():
-    check_addon_installed('r.object.geometry', fatal=True)
+    check_addon_installed("r.object.geometry", fatal=True)
 
-    dev_start = options['development_start']
-    dev_end = options['development_end']
-    only_file = flags['l']
-    patches_per_subregion = flags['s']
+    dev_start = options["development_start"]
+    dev_end = options["development_end"]
+    only_file = flags["l"]
+    patches_per_subregion = flags["s"]
     if not only_file:
-        repeat = int(options['repeat'])
-        compactness_means = [float(each) for each in options['compactness_mean'].split(',')]
-        compactness_ranges = [float(each) for each in options['compactness_range'].split(',')]
-        discount_factors = [float(each) for each in options['discount_factor'].split(',')]
-    patches_file = options['patch_sizes']
-    threshold = float(options['patch_threshold'])
-    sep = gutils.separator(options['separator'])
+        repeat = int(options["repeat"])
+        compactness_means = [
+            float(each) for each in options["compactness_mean"].split(",")
+        ]
+        compactness_ranges = [
+            float(each) for each in options["compactness_range"].split(",")
+        ]
+        discount_factors = [
+            float(each) for each in options["discount_factor"].split(",")
+        ]
+    patches_file = options["patch_sizes"]
+    threshold = float(options["patch_threshold"])
+    sep = gutils.separator(options["separator"])
     # v.clean removes size <= threshold, we want to keep size == threshold
     threshold -= 1e-6
 
     # compute cell size
     region = gcore.region()
-    res = (region['nsres'] + region['ewres']) / 2.
-    coeff = float(gcore.parse_command('g.proj', flags='g')['meters'])
+    res = (region["nsres"] + region["ewres"]) / 2.0
+    coeff = float(gcore.parse_command("g.proj", flags="g")["meters"])
     cell_size = res * res * coeff * coeff
 
-    tmp_name = 'tmp_futures_calib_' + str(os.getpid()) + '_'
+    tmp_name = "tmp_futures_calib_" + str(os.getpid()) + "_"
     global TMP
 
-    orig_patch_diff = tmp_name + 'orig_patch_diff'
+    orig_patch_diff = tmp_name + "orig_patch_diff"
     TMP.append(orig_patch_diff)
-    tmp_clump = tmp_name + 'tmp_clump'
+    tmp_clump = tmp_name + "tmp_clump"
     TMP.append(tmp_clump)
     if patches_per_subregion:
-        tmp_cat_clump = tmp_name + 'tmp_cat_clump'
+        tmp_cat_clump = tmp_name + "tmp_cat_clump"
         TMP.append(tmp_cat_clump)
 
     gcore.message(_("Analyzing original patches..."))
-    diff_development(dev_start, dev_end, options['subregions'], orig_patch_diff)
+    diff_development(dev_start, dev_end, options["subregions"], orig_patch_diff)
     data = write_data = patch_analysis(orig_patch_diff, threshold, tmp_clump)
     if patches_per_subregion:
-        subregions_data = patch_analysis_per_subregion(orig_patch_diff, options['subregions'],
-                                                       threshold, tmp_clump, tmp_cat_clump)
+        subregions_data = patch_analysis_per_subregion(
+            orig_patch_diff, options["subregions"], threshold, tmp_clump, tmp_cat_clump
+        )
         # if there is just one column, write the previous analysis result
         if len(subregions_data.keys()) > 1:
             write_data = subregions_data
@@ -559,40 +717,68 @@ def main():
 
     # area histogram
     area = area / cell_size
-    bin_width = 1.  # automatic ways to determine bin width do not perform well in this case
+    bin_width = (
+        1.0  # automatic ways to determine bin width do not perform well in this case
+    )
     hist_bins_area_orig = int(np.ptp(area) / bin_width)
     hist_range_area_orig = (np.min(area), np.max(area))
-    histogram_area_orig, _edges = np.histogram(area, bins=hist_bins_area_orig,
-                                               range=hist_range_area_orig, density=True)
+    histogram_area_orig, _edges = np.histogram(
+        area, bins=hist_bins_area_orig, range=hist_range_area_orig, density=True
+    )
     histogram_area_orig = histogram_area_orig * 100  # to get percentage for readability
 
     # compactness histogram
     bin_width = 0.1
     hist_bins_compactness_orig = int(np.ptp(compact) / bin_width)
     hist_range_compactness_orig = (np.min(compact), np.max(compact))
-    histogram_compactness_orig, _edges = np.histogram(compact, bins=hist_bins_compactness_orig,
-                                                      range=hist_range_compactness_orig, density=True)
-    histogram_compactness_orig = histogram_compactness_orig * 100  # to get percentage for readability
+    histogram_compactness_orig, _edges = np.histogram(
+        compact,
+        bins=hist_bins_compactness_orig,
+        range=hist_range_compactness_orig,
+        density=True,
+    )
+    histogram_compactness_orig = (
+        histogram_compactness_orig * 100
+    )  # to get percentage for readability
 
-    seed = int(options['random_seed'])
-    nprocs = int(options['nprocs'])
+    seed = int(options["random_seed"])
+    nprocs = int(options["nprocs"])
     count = 0
     proc_count = 0
     queue_list = []
     proc_list = []
     num_all = len(compactness_means) * len(compactness_ranges) * len(discount_factors)
-    with open(options['calibration_results'], 'w') as f:
+    with open(options["calibration_results"], "w") as f:
         for com_mean in compactness_means:
             for com_range in compactness_ranges:
                 for discount_factor in discount_factors:
                     count += 1
                     q = Queue()
-                    p = Process(target=run_one_combination,
-                                args=(count, num_all, repeat, seed, dev_start, com_mean, com_range,
-                                      discount_factor, patches_file, options, threshold,
-                                      hist_bins_area_orig, hist_range_area_orig, hist_bins_compactness_orig,
-                                      hist_range_compactness_orig, cell_size, histogram_area_orig, histogram_compactness_orig,
-                                      tmp_name, q))
+                    p = Process(
+                        target=run_one_combination,
+                        args=(
+                            count,
+                            num_all,
+                            repeat,
+                            seed,
+                            dev_start,
+                            com_mean,
+                            com_range,
+                            discount_factor,
+                            patches_file,
+                            options,
+                            threshold,
+                            hist_bins_area_orig,
+                            hist_range_area_orig,
+                            hist_bins_compactness_orig,
+                            hist_range_compactness_orig,
+                            cell_size,
+                            histogram_area_orig,
+                            histogram_compactness_orig,
+                            tmp_name,
+                            q,
+                        ),
+                    )
                     p.start()
                     queue_list.append(q)
                     proc_list.append(p)
@@ -604,16 +790,24 @@ def main():
                             data = queue_list[i].get()
                             if not data:
                                 continue
-                            f.write(','.join([str(data['input_discount_factor']), str(data['area_distance']),
-                                              str(data['input_compactness_mean']), str(data['input_compactness_range']),
-                                              str(data['compactness_distance'])]))
-                            f.write('\n')
+                            f.write(
+                                ",".join(
+                                    [
+                                        str(data["input_discount_factor"]),
+                                        str(data["area_distance"]),
+                                        str(data["input_compactness_mean"]),
+                                        str(data["input_compactness_range"]),
+                                        str(data["compactness_distance"]),
+                                    ]
+                                )
+                            )
+                            f.write("\n")
                         f.flush()
                         proc_count = 0
                         proc_list = []
                         queue_list = []
     # compute combined normalized error
-    process_calibration(options['calibration_results'])
+    process_calibration(options["calibration_results"])
 
 
 if __name__ == "__main__":

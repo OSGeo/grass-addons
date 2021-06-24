@@ -50,9 +50,9 @@ def main():
     conn.get_current_connection(options["driver"])
     hive = conn.get_hook()
 
-    if options['path']:
+    if options["path"]:
 
-        for path in (hive.check_for_content(options['path'], flags['r'])):
+        for path in hive.check_for_content(options["path"], flags["r"]):
             grass.message(path)
 
 

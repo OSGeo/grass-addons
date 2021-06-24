@@ -3,15 +3,15 @@ from .accessibility import compute_artificial_accessibility
 
 
 def build_infrastructure_component(
-        infrastructure,
-        artificial_distance_categories,
-        artificial_proximity_map_name,
-        roads_distance_categories,
-        roads_proximity_map_name,
-        artificial_accessibility_map_name,
-        artificial=None,
-        roads=None,
-    ):
+    infrastructure,
+    artificial_distance_categories,
+    artificial_proximity_map_name,
+    roads_distance_categories,
+    roads_proximity_map_name,
+    artificial_accessibility_map_name,
+    artificial=None,
+    roads=None,
+):
     """
     Build and return the 'infrastructure' component
     """

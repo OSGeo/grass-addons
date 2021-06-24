@@ -61,20 +61,20 @@ import grass.script as grass
 
 def main():
 
-    gbifraw = options['input']
-    gbifimported = options['output']
-    directory = options['dir']
-    move_vrt_gbif_to_dir = flags['c']
-    gbifvrt = gbifimported+'.vrt'
+    gbifraw = options["input"]
+    gbifimported = options["output"]
+    directory = options["dir"]
+    move_vrt_gbif_to_dir = flags["c"]
+    gbifvrt = gbifimported + ".vrt"
     gbif_vrt_layer = gbifimported
-    gbifcsv = gbifimported+'.csv'
-    reproject_gbif = flags['r']
+    gbifcsv = gbifimported + ".csv"
+    reproject_gbif = flags["r"]
     global tmp
 
     # check for unsupported locations or unsupported combination of option and projected location
-    in_proj = grass.parse_command('g.proj', flags='g')
+    in_proj = grass.parse_command("g.proj", flags="g")
 
-    if in_proj['name'].lower() == 'xy_location_unprojected':
+    if in_proj["name"].lower() == "xy_location_unprojected":
         grass.fatal(_("xy-locations are not supported"))
 
     # import GBIF data
@@ -86,9 +86,9 @@ def main():
     new_gbif_csv = os.path.join(gbiftempdir, gbifcsv)
 
     # quote raw data
-    with open('%s' % (gbifraw), 'rb') as csvinfile:
-        gbifreader = csv.reader(csvinfile, delimiter='\t')
-        with open ('%s' % (new_gbif_csv), 'wb') as csvoutfile:
+    with open("%s" % (gbifraw), "rb") as csvinfile:
+        gbifreader = csv.reader(csvinfile, delimiter="\t")
+        with open("%s" % (new_gbif_csv), "wb") as csvoutfile:
             gbifwriter = csv.writer(csvoutfile, quotechar='"', quoting=csv.QUOTE_ALL)
             for row in gbifreader:
                 gbifwriter.writerow(row)
@@ -98,8 +98,9 @@ def main():
     grass.message("writing vrt ...")
     new_gbif_vrt = os.path.join(gbiftempdir, gbifvrt)
 
-    f = open('%s' % (new_gbif_vrt), 'wt')
-    f.write("""<OGRVRTDataSource>
+    f = open("%s" % (new_gbif_vrt), "wt")
+    f.write(
+        """<OGRVRTDataSource>
     <OGRVRTLayer name="%s">
         <SrcDataSource relativeToVRT="1">%s</SrcDataSource>
         <GeometryType>wkbPoint</GeometryType>
@@ -148,7 +149,9 @@ def main():
                 <Field name="g_issue" src="issue" type="String" width="255" />
                 <GeometryField encoding="PointFromColumns" x="decimallongitude" y="decimallatitude"/>
         </OGRVRTLayer>
-        </OGRVRTDataSource>""" % (gbif_vrt_layer, gbifcsv))
+        </OGRVRTDataSource>"""
+        % (gbif_vrt_layer, gbifcsv)
+    )
 
     f.close()
 
@@ -168,18 +171,21 @@ def main():
     if reproject_gbif:
 
         grass.message("reprojecting data on-the-fly ...")
-        grass.run_command("v.import", input = new_gbif_vrt,
-                             output = gbifimported,
-                             quiet = True)
+        grass.run_command(
+            "v.import", input=new_gbif_vrt, output=gbifimported, quiet=True
+        )
 
         # no reprojection-on-the-fly
 
     else:
 
-        grass.run_command("v.in.ogr", input = new_gbif_vrt,
-                             layer = gbif_vrt_layer,
-                             output = gbifimported,
-                             quiet = True)
+        grass.run_command(
+            "v.in.ogr",
+            input=new_gbif_vrt,
+            layer=gbif_vrt_layer,
+            output=gbifimported,
+            quiet=True,
+        )
 
     grass.message("...")
     # v.in.gbif done!

@@ -16,8 +16,12 @@ def exec_grass(mapset, cmd, **kwargs):
 def construct_r_estimap_command(test_case):
     flags = " ".join(test_case["flags"])
     inputs = " ".join([f"{k}={','.join(v)}" for (k, v) in test_case["inputs"].items()])
-    output_maps = " ".join([f"{k}={v['name']}" for (k, v) in test_case["outputs"]["maps"].items()])
-    output_csvs = " ".join([f"{k}={v['name']}" for (k, v) in test_case["outputs"]["csvs"].items()])
+    output_maps = " ".join(
+        [f"{k}={v['name']}" for (k, v) in test_case["outputs"]["maps"].items()]
+    )
+    output_csvs = " ".join(
+        [f"{k}={v['name']}" for (k, v) in test_case["outputs"]["csvs"].items()]
+    )
     cmd = f"r.estimap.recreation {flags} {inputs} {output_maps} {output_csvs}"
     return cmd
 

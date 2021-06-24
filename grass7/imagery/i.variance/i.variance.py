@@ -77,13 +77,17 @@ import atexit
 from math import sqrt
 import grass.script as gscript
 
+
 def cleanup():
-    if gscript.find_file(temp_resamp_map, element='raster')['name']:
-        gscript.run_command('g.remove', flags='f', type='raster',
-                          name=temp_resamp_map, quiet=True)
-    if gscript.find_file(temp_variance_map, element='raster')['name']:
-        gscript.run_command('g.remove', flags='f', type='raster',
-                          name=temp_variance_map, quiet=True)
+    if gscript.find_file(temp_resamp_map, element="raster")["name"]:
+        gscript.run_command(
+            "g.remove", flags="f", type="raster", name=temp_resamp_map, quiet=True
+        )
+    if gscript.find_file(temp_variance_map, element="raster")["name"]:
+        gscript.run_command(
+            "g.remove", flags="f", type="raster", name=temp_variance_map, quiet=True
+        )
+
 
 def FindMaxima(numbers):
     maxima = []
@@ -95,36 +99,40 @@ def FindMaxima(numbers):
             differences.append(numbers[0] - numbers[1])
 
         if length > 3:
-            for i in range(1, length-1):
-                if numbers[i] > numbers[i-1] and numbers[i] > numbers[i+1]:
+            for i in range(1, length - 1):
+                if numbers[i] > numbers[i - 1] and numbers[i] > numbers[i + 1]:
                     maxima.append(i)
-                    differences.append(min(numbers[i] - numbers[i-1], numbers[i] - numbers[i+1]))
+                    differences.append(
+                        min(numbers[i] - numbers[i - 1], numbers[i] - numbers[i + 1])
+                    )
 
-        if numbers[length-1] > numbers[length-2]:
-            maxima.append(length-1)
-            differences.append(numbers[length-1] - numbers[length-2])
+        if numbers[length - 1] > numbers[length - 2]:
+            maxima.append(length - 1)
+            differences.append(numbers[length - 1] - numbers[length - 2])
 
     return maxima, differences
 
+
 def main():
     import matplotlib  # required by windows
-    matplotlib.use('wxAGG')  # required by windows
+
+    matplotlib.use("wxAGG")  # required by windows
     import matplotlib.pyplot as plt
 
-    input = options['input']
+    input = options["input"]
     output = None
-    if options['csv_output']:
-        output = options['csv_output']
+    if options["csv_output"]:
+        output = options["csv_output"]
     plot_output = None
-    if options['plot_output']:
-        plot_output = options['plot_output']
+    if options["plot_output"]:
+        plot_output = options["plot_output"]
     min_cells = False
-    if options['min_cells']:
-        min_cells = int(options['min_cells'])
+    if options["min_cells"]:
+        min_cells = int(options["min_cells"])
     target_res = None
-    if options['max_size']:
-        target_res = float(options['max_size'])
-    step = float(options['step'])
+    if options["max_size"]:
+        target_res = float(options["max_size"])
+    step = float(options["step"])
 
     global temp_resamp_map, temp_variance_map
     temp_resamp_map = "temp_resamp_map_%d" % os.getpid()
@@ -132,13 +140,13 @@ def main():
     resolutions = []
     variances = []
 
-    region = gscript.parse_command('g.region', flags='g')
-    cells = int(region['cells'])
-    res = (float(region['nsres']) + float(region['ewres'])) / 2
-    north = float(region['n'])
-    south = float(region['s'])
-    west = float(region['w'])
-    east = float(region['e'])
+    region = gscript.parse_command("g.region", flags="g")
+    cells = int(region["cells"])
+    res = (float(region["nsres"]) + float(region["ewres"])) / 2
+    north = float(region["n"])
+    south = float(region["s"])
+    west = float(region["w"])
+    east = float(region["e"])
 
     if res % 1 == 0 and step % 1 == 0:
         template_string = "%d,%f\n"
@@ -149,7 +157,12 @@ def main():
         target_res_cells = int(sqrt(((east - west) * (north - south)) / min_cells))
         if target_res > target_res_cells:
             target_res = target_res_cells
-            gscript.message(_("Max resolution leads to less cells than defined by 'min_cells' (%d)." % min_cells))
+            gscript.message(
+                _(
+                    "Max resolution leads to less cells than defined by 'min_cells' (%d)."
+                    % min_cells
+                )
+            )
             gscript.message(_("Max resolution reduced to %d" % target_res))
 
     nb_iterations = target_res - res / step
@@ -163,33 +176,32 @@ def main():
     gscript.message(_("Calculating variance at different resolutions"))
     while res <= target_res:
         gscript.percent(res, target_res, step)
-        gscript.run_command('r.resamp.stats',
-                            input=input,
-                            output=temp_resamp_map,
-                            method='average',
-                            quiet=True,
-                            overwrite=True)
-        gscript.run_command('r.neighbors',
-                            input=temp_resamp_map,
-                            method='variance',
-                            output=temp_variance_map,
-                            quiet=True,
-                            overwrite=True)
-        varianceinfo = gscript.parse_command('r.univar',
-                                             map_=temp_variance_map,
-                                             flags='g',
-                                             quiet=True)
+        gscript.run_command(
+            "r.resamp.stats",
+            input=input,
+            output=temp_resamp_map,
+            method="average",
+            quiet=True,
+            overwrite=True,
+        )
+        gscript.run_command(
+            "r.neighbors",
+            input=temp_resamp_map,
+            method="variance",
+            output=temp_variance_map,
+            quiet=True,
+            overwrite=True,
+        )
+        varianceinfo = gscript.parse_command(
+            "r.univar", map_=temp_variance_map, flags="g", quiet=True
+        )
         resolutions.append(res)
-        variances.append(float(varianceinfo['mean']))
+        variances.append(float(varianceinfo["mean"]))
         res += step
-        region = gscript.parse_command('g.region',
-                            res=res,
-                            n=north,
-                            s=south,
-                            w=west,
-                            e=east,
-                            flags='ag')
-        cells = int(region['cells'])
+        region = gscript.parse_command(
+            "g.region", res=res, n=north, s=south, w=west, e=east, flags="ag"
+        )
+        cells = int(region["cells"])
 
     indices, differences = FindMaxima(variances)
     max_resolutions = [resolutions[x] for x in indices]
@@ -199,7 +211,7 @@ def main():
 
     if output:
         header = "resolution,variance\n"
-        of = open(output, 'w')
+        of = open(output, "w")
         of.write(header)
         for i in range(len(resolutions)):
             output_string = template_string % (resolutions[i], variances[i])
@@ -211,7 +223,7 @@ def main():
         plt.xlabel("Resolution")
         plt.ylabel("Variance")
         plt.grid(True)
-        if plot_output == '-':
+        if plot_output == "-":
             plt.show()
         else:
             plt.savefig(plot_output)

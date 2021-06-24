@@ -140,9 +140,9 @@ import grass.script as gscript
 
 def values_to_rule(value, red, green, blue, percent):
     """Return textual representation of one color rule line"""
-    return "{v:.3f}{p} {r}:{g}:{b}".format(v=value,
-                                           p='%' if percent else '',
-                                           r=red, g=green, b=blue)
+    return "{v:.3f}{p} {r}:{g}:{b}".format(
+        v=value, p="%" if percent else "", r=red, g=green, b=blue
+    )
 
 
 # sync with r.colors.matplotlib
@@ -175,81 +175,94 @@ def mpl_cmap_to_rules(cmap, n_colors=None, discrete=False, comments=None):
         r1 = int(r1 * 255.999)
         g1 = int(g1 * 255.999)
         b1 = int(b1 * 255.999)
-        rules.append(values_to_rule(value=v1, red=r1, green=g1,
-                                    blue=b1, percent=True))
+        rules.append(values_to_rule(value=v1, red=r1, green=g1, blue=b1, percent=True))
         if discrete:
-            rules.append(values_to_rule(value=v2, red=r1, green=g1,
-                                        blue=b1, percent=True))
-    return '\n'.join(rules)
+            rules.append(
+                values_to_rule(value=v2, red=r1, green=g1, blue=b1, percent=True)
+            )
+    return "\n".join(rules)
 
 
 def main(options, flags):
     # TODO: inervals flag, s should be defaut behavior
-    n_colors = int(options['ncolors'])
-    discrete = flags['d']
+    n_colors = int(options["ncolors"])
+    discrete = flags["d"]
 
     fallback = True
     try:
         import seaborn as sns
+
         fallback = False
     except ImportError:
         # perhaps this can be function in the core
-        gscript.error(_("{} Python package not installed.").format('seaborn'))
+        gscript.error(_("{} Python package not installed.").format("seaborn"))
     if not fallback:
         cmap = sns.cubehelix_palette(
             n_colors=n_colors,
-            start=float(options['start']),
-            rot=float(options['nrotations']),
-            gamma=float(options['gamma']),
-            hue=float(options['hue']),
-            light=float(options['light']),
-            dark=float(options['dark']),
-            reverse=flags['n'],
-            as_cmap=False)
+            start=float(options["start"]),
+            rot=float(options["nrotations"]),
+            gamma=float(options["gamma"]),
+            hue=float(options["hue"]),
+            light=float(options["light"]),
+            dark=float(options["dark"]),
+            reverse=flags["n"],
+            as_cmap=False,
+        )
         # as_cmap ignores n_colors in 0.7.0
         # but we want n_colors to be exact when we are exporting
         # the color table or doing discrete one
         import matplotlib  # required by windows
-        matplotlib.use('wxAGG')  # required by windows
+
+        matplotlib.use("wxAGG")  # required by windows
         import matplotlib.colors as clr
-        cmap = clr.LinearSegmentedColormap.from_list('from_list', cmap, N=n_colors)
+
+        cmap = clr.LinearSegmentedColormap.from_list("from_list", cmap, N=n_colors)
     else:
-        gscript.warning(_("Using Matplotlib cubehelix color table."
-                          " Most of cubehelix parameters ignored"))
+        gscript.warning(
+            _(
+                "Using Matplotlib cubehelix color table."
+                " Most of cubehelix parameters ignored"
+            )
+        )
         # we are very nice and provide a fallback
         import matplotlib.pyplot as plt
-        name = 'cubehelix'
+
+        name = "cubehelix"
         # Matplotlib one goes from dark to light but Seaborn goes
         # the other way around by default
-        if not flags['n']:
-            name += '_r'
+        if not flags["n"]:
+            name += "_r"
         cmap = plt.get_cmap(name, lut=n_colors)
 
     comments = []
-    comments.append(
-        "Cubehelix color table generated using:")
+    comments.append("Cubehelix color table generated using:")
     command = [sys.argv[0].split(os.path.sep)[-1]]
     command.extend(sys.argv[1:])
-    comments.append(
-        "  {}".format(' '.join(command)))
+    comments.append("  {}".format(" ".join(command)))
 
-    rules = mpl_cmap_to_rules(cmap, n_colors=n_colors,
-                              discrete=discrete, comments=comments)
+    rules = mpl_cmap_to_rules(
+        cmap, n_colors=n_colors, discrete=discrete, comments=comments
+    )
 
-    if options['map']:
-        rcf = ''
-        for char in 'gae':
+    if options["map"]:
+        rcf = ""
+        for char in "gae":
             if flags[char]:
                 rcf += char
-        gscript.write_command('r.colors', map=options['map'], flags=rcf,
-                              rules='-', stdin=rules,)
-    if options['output']:
-        with open(options['output'], 'w') as f:
+        gscript.write_command(
+            "r.colors",
+            map=options["map"],
+            flags=rcf,
+            rules="-",
+            stdin=rules,
+        )
+    if options["output"]:
+        with open(options["output"], "w") as f:
             f.write(rules)
-            f.write('\n')
-    elif not options['map']:
+            f.write("\n")
+    elif not options["map"]:
         print(rules)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main(*gscript.parser()))

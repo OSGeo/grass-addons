@@ -83,12 +83,13 @@
 ##################
 # PYTHON
 import numpy as np
+
 # GRASS
 from grass.pygrass.modules.shortcuts import general as g
 from grass.pygrass.modules.shortcuts import raster as r
 from grass.pygrass.modules.shortcuts import vector as v
 from grass.pygrass.gis import region
-from grass.pygrass import vector # Change to "v"?
+from grass.pygrass import vector  # Change to "v"?
 from grass.script import vector_db_select
 from grass.pygrass.vector import Vector, VectorTopo
 from grass.pygrass.raster import RasterRow
@@ -99,6 +100,7 @@ from grass import script as gscript
 # MAIN MODULE #
 ###############
 
+
 def main():
     """
     Links each river segment to the next downstream segment in a tributary
@@ -107,17 +109,17 @@ def main():
     """
 
     options, flags = gscript.parser()
-    streams = options['map']
-    x1 = options['upstream_easting_column']
-    y1 = options['upstream_northing_column']
-    x2 = options['downstream_easting_column']
-    y2 = options['downstream_northing_column']
+    streams = options["map"]
+    x1 = options["upstream_easting_column"]
+    y1 = options["upstream_northing_column"]
+    x2 = options["downstream_easting_column"]
+    y2 = options["downstream_northing_column"]
 
     streamsTopo = VectorTopo(streams)
-    #streamsTopo.build()
+    # streamsTopo.build()
 
     # 1. Get vectorTopo
-    streamsTopo.open(mode='rw')
+    streamsTopo.open(mode="rw")
     """
     points_in_streams = []
     cat_of_line_segment = []
@@ -131,23 +133,23 @@ def main():
 
     # 3. Coordinates of points: 1 = start, 2 = end
     try:
-        streamsTopo.table.columns.add(x1,'double precision')
+        streamsTopo.table.columns.add(x1, "double precision")
     except:
         pass
     try:
-        streamsTopo.table.columns.add(y1,'double precision')
+        streamsTopo.table.columns.add(y1, "double precision")
     except:
         pass
     try:
-        streamsTopo.table.columns.add(x2,'double precision')
+        streamsTopo.table.columns.add(x2, "double precision")
     except:
         pass
     try:
-        streamsTopo.table.columns.add(y2,'double precision')
+        streamsTopo.table.columns.add(y2, "double precision")
     except:
         pass
     try:
-        streamsTopo.table.columns.add('tostream','int')
+        streamsTopo.table.columns.add("tostream", "int")
     except:
         pass
     streamsTopo.table.conn.commit()
@@ -165,15 +167,19 @@ def main():
     """
     # v.to.db Works more consistently, at least
     streamsTopo.close()
-    v.to_db(map=streams, option='start', columns=x1+','+y1)
-    v.to_db(map=streams, option='end', columns=x2+','+y2)
+    v.to_db(map=streams, option="start", columns=x1 + "," + y1)
+    v.to_db(map=streams, option="end", columns=x2 + "," + y2)
 
     # 4. Read in and save the start and end coordinate points
-    colNames = np.array(vector_db_select(streams)['columns'])
-    colValues = np.array(vector_db_select(streams)['values'].values())
-    cats = colValues[:,colNames == 'cat'].astype(int).squeeze() # river number
-    xy1 = colValues[:,(colNames == 'x1') + (colNames == 'y1')].astype(float) # upstream
-    xy2 = colValues[:,(colNames == 'x2') + (colNames == 'y2')].astype(float) # downstream
+    colNames = np.array(vector_db_select(streams)["columns"])
+    colValues = np.array(vector_db_select(streams)["values"].values())
+    cats = colValues[:, colNames == "cat"].astype(int).squeeze()  # river number
+    xy1 = colValues[:, (colNames == "x1") + (colNames == "y1")].astype(
+        float
+    )  # upstream
+    xy2 = colValues[:, (colNames == "x2") + (colNames == "y2")].astype(
+        float
+    )  # downstream
 
     # 5. Build river network
     tocat = []
@@ -188,20 +194,29 @@ def main():
     # This gives us a set of downstream-facing adjacencies.
     # We will update the database with it.
     streamsTopo.build()
-    streamsTopo.open('rw')
+    streamsTopo.open("rw")
     cur = streamsTopo.table.conn.cursor()
     # Default to 0 if no stream flows to it
-    cur.execute("update "+streams+" set tostream=0")
+    cur.execute("update " + streams + " set tostream=0")
     for i in range(len(tocat)):
-        cur.execute("update "+streams+" set tostream="+str(tocat[i])+" where cat="+str(cats[i]))
+        cur.execute(
+            "update "
+            + streams
+            + " set tostream="
+            + str(tocat[i])
+            + " where cat="
+            + str(cats[i])
+        )
     streamsTopo.table.conn.commit()
-    #streamsTopo.build()
+    # streamsTopo.build()
     streamsTopo.close()
 
-    gscript.message('')
-    gscript.message('Drainage topology built. Check "tostream" column for the downstream cat.')
-    gscript.message('A cat value of 0 indicates the downstream-most segment.')
-    gscript.message('')
+    gscript.message("")
+    gscript.message(
+        'Drainage topology built. Check "tostream" column for the downstream cat.'
+    )
+    gscript.message("A cat value of 0 indicates the downstream-most segment.")
+    gscript.message("")
 
 
 if __name__ == "__main__":

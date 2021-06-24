@@ -5,15 +5,20 @@ import sys
 import importlib
 import logging
 
+
 class pgwrapper:
     try:
-        psycopg2 = importlib.import_module('psycopg2')
+        psycopg2 = importlib.import_module("psycopg2")
     except ModuleNotFoundError as e:
         msg = e.msg
-        gs.fatal(_("Unable to load python <{0}> lib (requires lib "
-                   "<{0}> being installed).".format(msg.split("'")[-2])))
+        gs.fatal(
+            _(
+                "Unable to load python <{0}> lib (requires lib "
+                "<{0}> being installed).".format(msg.split("'")[-2])
+            )
+        )
 
-    def __init__(self, dbname, host='', user='', passwd='', port=''):
+    def __init__(self, dbname, host="", user="", passwd="", port=""):
         self.dbname = dbname  # Database name which connect to.
         self.host = host  # Host name (default is "localhost")
         self.user = user  # User name for login to the database.
@@ -21,7 +26,7 @@ class pgwrapper:
         self.password = passwd  # Password for login to the database.
         self.connection = self.setConnect()  # Set a connection to the database
         self.cursor = self.setCursor()  # Generate cursor.
-        self.logger = logging.getLogger('mwprecip')
+        self.logger = logging.getLogger("mwprecip")
 
     def setConnect(self):
         conn_string = "dbname='%s'" % self.dbname
@@ -36,8 +41,8 @@ class pgwrapper:
         try:
             conn = self.psycopg2.connect(conn_string)
         except:
-            self.logger.error('Cannot connect to database')
-            self.print_message('Cannot connect to database')
+            self.logger.error("Cannot connect to database")
+            self.print_message("Cannot connect to database")
             return
 
         return conn
@@ -46,17 +51,18 @@ class pgwrapper:
         try:
             return self.connection.cursor()
         except:
-            self.logger.error('Cannot set cursor')
-            self.print_message('Cannot set cursor')
-    '''
+            self.logger.error("Cannot set cursor")
+            self.print_message("Cannot set cursor")
+
+    """
     def setIsoLvl(self, lvl='0'):
         if lvl == 0:
             self.connection.set_session('read committed')
         elif lvl == 1:
             self.connection.set_session(readonly=True, autocommit=False)
-    '''
+    """
 
-    def copyfrom(self, afile, table, sep='|'):
+    def copyfrom(self, afile, table, sep="|"):
         try:
             self.cursor.copy_from(afile, table, sep=sep)
             self.connection.commit()
@@ -70,7 +76,7 @@ class pgwrapper:
 
             pass
 
-    def copyto(self, afile, table, sep='|'):
+    def copyto(self, afile, table, sep="|"):
         try:
             self.cursor.copy_to(afile, table, sep=sep)
             self.connection.commit()
@@ -83,14 +89,12 @@ class pgwrapper:
             self.logger.error(err)
             pass
 
-
     def copyexpert(self, sql, data):
         try:
             self.cursor.copy_expert(sql, data)
         except Exception:
             self.connection.rollback()
             pass
-
 
     def executeSql(self, sql, results=True, commit=False):
         # Excute the SQL statement.
@@ -112,36 +116,42 @@ class pgwrapper:
             # Return the results.1
             return results
 
-
     def count(self, table):
         """!Count the number of rows.
         @param table         : Name of the table to count row"""
-        sql_count = 'SELECT COUNT(*) FROM ' + table
+        sql_count = "SELECT COUNT(*) FROM " + table
         self.cursor.execute(sql_count)
         n = self.cursor.fetchall()[0][0]
         return n
 
-    def updatecol(self, table, columns, where=''):
+    def updatecol(self, table, columns, where=""):
         """!Update the values of columns.
         @param table            : Name of the table to parse.
         @param columns          : Keys values pair of column names and values to update.
         @param where            : Advanced search option for 'where' statement.
         """
         # Make a SQL statement.
-        parse = ''
+        parse = ""
         for i in range(len(columns)):
-            parse = parse + '"' + str(dict.keys(columns)[i]) + '"=' + str(dict.values(columns)[i]) + ','
-        parse = parse.rstrip(',')
+            parse = (
+                parse
+                + '"'
+                + str(dict.keys(columns)[i])
+                + '"='
+                + str(dict.values(columns)[i])
+                + ","
+            )
+        parse = parse.rstrip(",")
 
-        if where == '':
+        if where == "":
             sql_update_col = 'UPDATE "' + table + '" SET ' + parse
         else:
-            sql_update_col = 'UPDATE "' + table + '" SET ' + parse + ' WHERE ' + where
+            sql_update_col = 'UPDATE "' + table + '" SET ' + parse + " WHERE " + where
         # Excute the SQL statement.
         self.cursor.execute(sql_update_col)
 
     def print_message(self, msg):
-        print('-' * 80)
+        print("-" * 80)
         print(msg)
-        print('-' * 80)
+        print("-" * 80)
         sys.stdout.flush()

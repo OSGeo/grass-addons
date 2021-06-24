@@ -190,10 +190,10 @@ from grass.pygrass.vector.geometry import Point
 
 def set_output_encoding(encoding="utf-8"):
     """When piping to the terminal, python knows the encoding needed, and
-       sets it automatically. But when piping to another program (for example,
-       | less), python can not check the output encoding. In that case, it
-       is None. What I am doing here is to catch this situation for both
-       stdout and stderr and force the encoding"""
+    sets it automatically. But when piping to another program (for example,
+    | less), python can not check the output encoding. In that case, it
+    is None. What I am doing here is to catch this situation for both
+    stdout and stderr and force the encoding"""
 
     import codecs
 
@@ -212,9 +212,13 @@ def main():
         from osgeo import ogr, osr
         from osgeo import __version__ as gdal_version
     except ImportError:
-        grass.fatal(_("Unable to load GDAL Python bindings (requires "
-                      "package 'python-gdal' or Python library GDAL "
-                      "to be installed)."))
+        grass.fatal(
+            _(
+                "Unable to load GDAL Python bindings (requires "
+                "package 'python-gdal' or Python library GDAL "
+                "to be installed)."
+            )
+        )
     try:
         from pygbif import occurrences
         from pygbif import species
@@ -518,8 +522,10 @@ def main():
                 .rstrip(")")
                 .split(",")
             )
-            region_pol = "POLYGON (({0} {1}, {0} {3}, {2} {3}, {2} {1}, {0} {1}))".format(
-                bbox[2], bbox[0], bbox[3], bbox[1]
+            region_pol = (
+                "POLYGON (({0} {1}, {0} {3}, {2} {3}, {2} {1}, {0} {1}))".format(
+                    bbox[2], bbox[0], bbox[3], bbox[1]
+                )
             )
         m.close()
     else:
@@ -550,11 +556,11 @@ def main():
 
     # Create output map if not output maps for each species are requested
     if (
-            not species_maps
-            and not print_species
-            and not print_species_shell
-            and not print_occ_number
-            and not print_species_table
+        not species_maps
+        and not print_species
+        and not print_species_shell
+        and not print_occ_number
+        and not print_species_table
     ):
         mapname = output
         new = Vector(mapname)
@@ -820,11 +826,11 @@ def main():
 
     # Close the output map if not a map for each species is requested
     if (
-            not species_maps
-            and not print_species
-            and not print_species_shell
-            and not print_occ_number
-            and not print_species_table
+        not species_maps
+        and not print_species
+        and not print_species_shell
+        and not print_occ_number
+        and not print_species_table
     ):
         new.table.conn.commit()
         new.close()

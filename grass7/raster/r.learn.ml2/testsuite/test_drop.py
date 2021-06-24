@@ -33,7 +33,7 @@ class MyTestCase(unittest.TestCase):
             "lsat7_2002_30@PERMANENT",
             "lsat7_2002_40@PERMANENT",
             "lsat7_2002_50@PERMANENT",
-            "lsat7_2002_70@PERMANENT"
+            "lsat7_2002_70@PERMANENT",
         ]
 
     def setUp(self) -> None:
@@ -57,5 +57,5 @@ class MyTestCase(unittest.TestCase):
         self.assertListEqual(self.stack.names, self.predictors[0:5])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

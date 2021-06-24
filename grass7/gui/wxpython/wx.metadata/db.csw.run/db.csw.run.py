@@ -82,7 +82,7 @@ import contextlib
 from grass.script import core as grass
 from grass.script.utils import set_path
 
-set_path(modulename='wx.metadata', dirname='mdlib', path='..')
+set_path(modulename="wx.metadata", dirname="mdlib", path="..")
 
 from mdlib import globalvar
 
@@ -92,36 +92,34 @@ app_path = None
 @contextlib.contextmanager
 def application(env, start_response):
     """WSGI wrapper"""
-    config = 'default.cfg'
+    config = "default.cfg"
 
-    if 'PYCSW_CONFIG' in env:
-        config = env['PYCSW_CONFIG']
+    if "PYCSW_CONFIG" in env:
+        config = env["PYCSW_CONFIG"]
 
-    if env['QUERY_STRING'].lower().find('config') != -1:
-        for kvp in env['QUERY_STRING'].split('&'):
-            if kvp.lower().find('config') != -1:
-                config = kvp.split('=')[1]
+    if env["QUERY_STRING"].lower().find("config") != -1:
+        for kvp in env["QUERY_STRING"].split("&"):
+            if kvp.lower().find("config") != -1:
+                config = kvp.split("=")[1]
 
     if not os.path.isabs(config):
         config = os.path.join(app_path, config)
 
-    if 'HTTP_HOST' in env and ':' in env['HTTP_HOST']:
-        env['HTTP_HOST'] = env['HTTP_HOST'].split(':')[0]
+    if "HTTP_HOST" in env and ":" in env["HTTP_HOST"]:
+        env["HTTP_HOST"] = env["HTTP_HOST"].split(":")[0]
 
-    env['local.app_root'] = app_path
+    env["local.app_root"] = app_path
 
     csw = server.Csw(config, env)
 
     gzip = False
-    if ('HTTP_ACCEPT_ENCODING' in env and
-                env['HTTP_ACCEPT_ENCODING'].find('gzip') != -1):
+    if "HTTP_ACCEPT_ENCODING" in env and env["HTTP_ACCEPT_ENCODING"].find("gzip") != -1:
         # set for gzip compressed response
         gzip = True
 
     # set compression level
-    if csw.config.has_option('server', 'gzip_compresslevel'):
-        gzip_compresslevel = \
-            int(csw.config.get('server', 'gzip_compresslevel'))
+    if csw.config.has_option("server", "gzip_compresslevel"):
+        gzip_compresslevel = int(csw.config.get("server", "gzip_compresslevel"))
     else:
         gzip_compresslevel = 0
 
@@ -133,17 +131,18 @@ def application(env, start_response):
         import gzip
 
         buf = StringIO()
-        gzipfile = gzip.GzipFile(mode='wb', fileobj=buf,
-                                 compresslevel=gzip_compresslevel)
+        gzipfile = gzip.GzipFile(
+            mode="wb", fileobj=buf, compresslevel=gzip_compresslevel
+        )
         gzipfile.write(contents)
         gzipfile.close()
 
         contents = buf.getvalue()
 
-        headers['Content-Encoding'] = 'gzip'
+        headers["Content-Encoding"] = "gzip"
 
-    headers['Content-Length'] = str(len(contents))
-    headers['Content-Type'] = csw.contenttype
+    headers["Content-Length"] = str(len(contents))
+    headers["Content-Type"] = csw.contenttype
 
     start_response(status, list(headers.items()))
 
@@ -156,12 +155,14 @@ def main():
         from pycsw import server
     except ModuleNotFoundError as e:
         msg = e.msg
-        grass.fatal(globalvar.MODULE_NOT_FOUND.format(
-            lib=msg.split("'")[-2],
-            url=globalvar.MODULE_URL))
+        grass.fatal(
+            globalvar.MODULE_NOT_FOUND.format(
+                lib=msg.split("'")[-2], url=globalvar.MODULE_URL
+            )
+        )
 
-    path = options['path']
-    port = int(options['port'])
+    path = options["path"]
+    port = int(options["port"])
     path = os.path.dirname(path)
 
     app_path = os.path.dirname(path)
@@ -170,7 +171,7 @@ def main():
     from wsgiref.simple_server import make_server
 
     try:
-        httpd = make_server('', port, application)
+        httpd = make_server("", port, application)
         grass.message("Serving on port %d..." % port)
     except Exception as e:
         grass.error(str(e))

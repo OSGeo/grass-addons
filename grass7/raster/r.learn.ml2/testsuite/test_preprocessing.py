@@ -76,16 +76,13 @@ class TestPreprocessing(TestCase):
     def tearDownClass(cls):
         """Remove the temporary region (and anything else we created)"""
         cls.del_temp_region()
-        cls.runModule("g.remove", flags="f", type="raster",
-                      name=cls.labelled_pixels)
-        cls.runModule("g.remove", flags="f", type="group",
-                      name=cls.group)
+        cls.runModule("g.remove", flags="f", type="raster", name=cls.labelled_pixels)
+        cls.runModule("g.remove", flags="f", type="group", name=cls.group)
 
     def tearDown(self):
         """Remove the output created from the tests
         (reuse the same name for all the test functions)"""
-        self.runModule("g.remove", flags="f", type="raster",
-                       name=[self.output])
+        self.runModule("g.remove", flags="f", type="raster", name=[self.output])
 
         try:
             os.remove(self.model_file)
@@ -113,7 +110,7 @@ class TestPreprocessing(TestCase):
         self.assertRasterExists(self.output, msg="Output was not created")
 
         estimator, y, class_labels = joblib.load(self.model_file)
-        trans = estimator.named_steps['preprocessing'].transformers[0]
+        trans = estimator.named_steps["preprocessing"].transformers[0]
         self.assertIsInstance(trans[1], OneHotEncoder)
         estimator = None
 
@@ -138,7 +135,7 @@ class TestPreprocessing(TestCase):
         self.assertRasterExists(self.output, msg="Output was not created")
 
         estimator, y, class_labels = joblib.load(self.model_file)
-        trans = estimator.named_steps['preprocessing'].transformers[0]
+        trans = estimator.named_steps["preprocessing"].transformers[0]
         self.assertIsInstance(trans[1], StandardScaler)
         estimator = None
 
@@ -164,11 +161,12 @@ class TestPreprocessing(TestCase):
         self.assertRasterExists(self.output, msg="Output was not created")
 
         estimator, y, class_labels = joblib.load(self.model_file)
-        ohe = estimator.named_steps['preprocessing'].transformers[0]
-        scaler = estimator.named_steps['preprocessing'].transformers[1]
+        ohe = estimator.named_steps["preprocessing"].transformers[0]
+        scaler = estimator.named_steps["preprocessing"].transformers[1]
         self.assertIsInstance(ohe[1], OneHotEncoder)
         self.assertIsInstance(scaler[1], StandardScaler)
         estimator = None
+
 
 if __name__ == "__main__":
     test()

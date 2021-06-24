@@ -19,7 +19,8 @@ for details.
 """
 
 import wx
-import  cStringIO
+import cStringIO
+
 
 class ImagePanel(wx.Panel):
     def __init__(self, parent, id, tempFile):
@@ -31,15 +32,22 @@ class ImagePanel(wx.Panel):
             bmp = wx.BitmapFromImage(wx.ImageFromStream(stream))
             wx.StaticBitmap(self, -1, bmp, (5, 5))
             png = wx.Image(imageFile, wx.BITMAP_TYPE_ANY).ConvertToBitmap()
-            wx.StaticBitmap(self, -1, png, (10 + png.GetWidth(), 5), (png.GetWidth(), png.GetHeight()))
+            wx.StaticBitmap(
+                self,
+                -1,
+                png,
+                (10 + png.GetWidth(), 5),
+                (png.GetWidth(), png.GetHeight()),
+            )
         except IOError:
             message = "Image file %s not found" % imageFile
             grass.warning(message)
             raise SystemExit
 
+
 def NewImageFrame(tempFile):
     NewWindowapp = wx.PySimpleApp()
-    NewWindowframe = wx.Frame(None, -1, "Map Display", size = (400, 300))
-    ImagePanel(NewWindowframe,-1,tempFile)
+    NewWindowframe = wx.Frame(None, -1, "Map Display", size=(400, 300))
+    ImagePanel(NewWindowframe, -1, tempFile)
     NewWindowframe.Show(1)
     NewWindowapp.MainLoop()

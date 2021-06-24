@@ -34,14 +34,15 @@ from .components import (
     append_map_to_component,
 )
 
+
 def build_land_component(
-        landuse,
-        suitability_scores,
-        landcover,
-        landcover_reclassification_rules,
-        maes_ecosystem_types,
-        land,
-    ):
+    landuse,
+    suitability_scores,
+    landcover,
+    landcover_reclassification_rules,
+    maes_ecosystem_types,
+    land,
+):
     """
 
     Parameters
@@ -80,38 +81,31 @@ def build_land_component(
         if landuse_datatype != "CELL":
             grass.fatal(_(FATAL_MESSAGE_LAND_USE_DATATYPE.format(landuse=landuse)))
 
-    if (
-        landuse
-        and suitability_scores
-        and ":" not in suitability_scores
-    ):
+    if landuse and suitability_scores and ":" not in suitability_scores:
 
         msg = USING_SUITABILITY_SCORES_FROM_FILE.format(scores=suitability_scores)
         grass.verbose(_(msg))
 
     suitability_map_name = temporary_filename(filename="suitability")
 
-    if (
-        landuse
-        and not suitability_scores
-    ):
+    if landuse and not suitability_scores:
         msg = USING_SUITABILITY_SCORES_FROM_INTERNAL_RULES.format(map=landuse)
         grass.warning(_(msg))
 
-        temporary_suitability_map_name = temporary_filename(filename=suitability_map_name)
+        temporary_suitability_map_name = temporary_filename(
+            filename=suitability_map_name
+        )
         suitability_scores = string_to_file(
             SUITABILITY_SCORES, filename=temporary_suitability_map_name
         )
         remove_files_at_exit(suitability_scores)
 
-    if (
-        landuse
-        and suitability_scores
-        and ":" in suitability_scores
-    ):
+    if landuse and suitability_scores and ":" in suitability_scores:
         msg = USING_SUITABILITY_SCORES_FROM_STRING.format(map=landuse)
         grass.verbose(_(msg))
-        temporary_suitability_map_name = temporary_filename(filename=suitability_map_name)
+        temporary_suitability_map_name = temporary_filename(
+            filename=suitability_map_name
+        )
         suitability_scores = string_to_file(
             suitability_scores, filename=temporary_suitability_map_name
         )
@@ -150,7 +144,9 @@ def build_land_component(
         msg = USING_INTERNAL_LAND_COVER_RECLASSIFICATION_RULES.format(map=landcover)
         grass.verbose(_(msg))
 
-        temporary_maes_ecosystem_types = temporary_filename(filename=maes_ecosystem_types)
+        temporary_maes_ecosystem_types = temporary_filename(
+            filename=maes_ecosystem_types
+        )
         landcover_reclassification_rules = string_to_file(
             URBAN_ATLAS_TO_MAES_NOMENCLATURE, filename=maes_ecosystem_types
         )

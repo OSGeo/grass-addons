@@ -72,73 +72,75 @@ import sys
 import os
 from grass.script import core as grass
 
-def main():
-    handler = options['handler']
 
-    if options['tempfile']:
-        img_tmp = options['tempfile']
-        #TODO: add option for GRASS_RENDER_FILE_COMPRESSION=0,1-9
+def main():
+    handler = options["handler"]
+
+    if options["tempfile"]:
+        img_tmp = options["tempfile"]
+        # TODO: add option for GRASS_RENDER_FILE_COMPRESSION=0,1-9
     else:
         img_tmp = grass.tempfile()
         os.remove(img_tmp)
         img_tmp += ".bmp"
 
-
-    if flags['b']:
+    if flags["b"]:
         print('GRASS_RENDER_FILE="%s"' % img_tmp)
         if "GRASS_RENDER_WIDTH" not in os.environ:
-            print('GRASS_RENDER_WIDTH=%s' % options['width'])
+            print("GRASS_RENDER_WIDTH=%s" % options["width"])
         if "GRASS_RENDER_HEIGHT" not in os.environ:
-            print('GRASS_RENDER_HEIGHT=%s' % options['height'])
-        if flags['c']:
-            print('GRASS_RENDER_IMMEDIATE=cairo')
+            print("GRASS_RENDER_HEIGHT=%s" % options["height"])
+        if flags["c"]:
+            print("GRASS_RENDER_IMMEDIATE=cairo")
         else:
-            print('GRASS_RENDER_IMMEDIATE=PNG')
-        print('GRASS_RENDER_FILE_MAPPED=TRUE')
-        print('GRASS_RENDER_FILE_READ=TRUE')
-        print('export GRASS_RENDER_FILE GRASS_RENDER_WIDTH GRASS_RENDER_HEIGHT GRASS_RENDER_IMMEDIATE GRASS_RENDER_FILE_MAPPED GRASS_RENDER_FILE_READ;')
+            print("GRASS_RENDER_IMMEDIATE=PNG")
+        print("GRASS_RENDER_FILE_MAPPED=TRUE")
+        print("GRASS_RENDER_FILE_READ=TRUE")
+        print(
+            "export GRASS_RENDER_FILE GRASS_RENDER_WIDTH GRASS_RENDER_HEIGHT GRASS_RENDER_IMMEDIATE GRASS_RENDER_FILE_MAPPED GRASS_RENDER_FILE_READ;"
+        )
 
-        print('d.erase bgcolor=%s;' % options['color'])
+        print("d.erase bgcolor=%s;" % options["color"])
         if handler == "none":
             grass.message("Image file is '%s'" % img_tmp)
         elif handler == "qiv":
             print('qiv -e -T "%s" &' % img_tmp)  # add --center ?
         else:
-            print('%s image="%s" percent=%s &' % (handler, img_tmp, options['percent']))
+            print('%s image="%s" percent=%s &' % (handler, img_tmp, options["percent"]))
 
         sys.exit(0)
 
-    if flags['d']:
-        print('rem DOS export not yet implemented')
+    if flags["d"]:
+        print("rem DOS export not yet implemented")
         sys.exit(0)
-
 
     ## rest of this won't work, as parent can't inherit from the child..
     ##  (unless we do some ugly g.gisenv)
     ##  ... any ideas? end by running grass.call(['bash'])?
-    if not grass.find_program(handler, '--help'):
+    if not grass.find_program(handler, "--help"):
         grass.fatal(_("'%s' not found.") % handler)
 
-    os.environ['GRASS_RENDER_FILE'] = img_tmp
+    os.environ["GRASS_RENDER_FILE"] = img_tmp
     if "GRASS_RENDER_WIDTH" not in os.environ:
-        os.environ['GRASS_RENDER_WIDTH'] = options['width']
+        os.environ["GRASS_RENDER_WIDTH"] = options["width"]
     if "GRASS_RENDER_HEIGHT" not in os.environ:
-        os.environ['GRASS_RENDER_HEIGHT'] = options['height']
-    if flags['c']:
-        os.environ['GRASS_RENDER_IMMEDIATE'] = 'cairo'
-    os.environ['GRASS_RENDER_FILE_MAPPED'] = 'TRUE'
-    os.environ['GRASS_RENDER_FILE_READ'] = 'TRUE'
-    #? os.environ['GRASS_PNG_AUTO_WRITE'] = 'FALSE'
+        os.environ["GRASS_RENDER_HEIGHT"] = options["height"]
+    if flags["c"]:
+        os.environ["GRASS_RENDER_IMMEDIATE"] = "cairo"
+    os.environ["GRASS_RENDER_FILE_MAPPED"] = "TRUE"
+    os.environ["GRASS_RENDER_FILE_READ"] = "TRUE"
+    # ? os.environ['GRASS_PNG_AUTO_WRITE'] = 'FALSE'
 
-    grass.run_command('d.erase', bgcolor = options['color'])
+    grass.run_command("d.erase", bgcolor=options["color"])
 
     if handler == "qiv":
-        ret = grass.call(['qiv', '-e', '-T', img_tmp])
+        ret = grass.call(["qiv", "-e", "-T", img_tmp])
     else:
-        ret = grass.exec_command(handler, image = img_tmp, percent = options['percent'])
+        ret = grass.exec_command(handler, image=img_tmp, percent=options["percent"])
 
     os.remove(img_tmp)
     sys.exit(ret)
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

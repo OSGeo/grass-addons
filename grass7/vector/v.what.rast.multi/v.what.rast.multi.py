@@ -116,16 +116,16 @@ def main():
     vmap = options["map"]  # Vector points
     layer = options["layer"]
     vtype = options["type"]
-    rasters = options["raster"].split(',')  # List of rasters to sample
-    columns = options["columns"].split(',')  # List of column names
+    rasters = options["raster"].split(",")  # List of rasters to sample
+    columns = options["columns"].split(",")  # List of column names
     where = options["where"]
 
     # If length(columns) != length(rasters), throw error
-    if columns != ['']:
+    if columns != [""]:
         if len(columns) != len(rasters):
-            grass.fatal(_(
-                "The number of rasters and the number of column names do not match"
-            ))
+            grass.fatal(
+                _("The number of rasters and the number of column names do not match")
+            )
 
     # Get flags
     if flags["i"]:
@@ -138,23 +138,18 @@ def main():
 
         r = rasters[i]
 
-        if columns != ['']:
+        if columns != [""]:
             c = columns[i]
         else:
             c = r
 
         # Sample using v.what.rast
         v.what_rast(
-            map=vmap,
-            layer=layer,
-            type=vtype,
-            raster=r,
-            column=c,
-            where=where,
-            flags=fl
+            map=vmap, layer=layer, type=vtype, raster=r, column=c, where=where, flags=fl
         )
 
     return 0
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

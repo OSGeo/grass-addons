@@ -55,12 +55,12 @@ def remove_unwanted_tags(text):
     """
     # ? is for non-greedy to not go to last tag but end the current first
     # new lines and paragraphs
-    text = re.sub(r'<br.?>', '', text, flags=re.IGNORECASE)
-    text = re.sub(r'<p.*?>', '', text, flags=re.IGNORECASE)
-    text = re.sub(r'</p>', '', text, flags=re.IGNORECASE)
+    text = re.sub(r"<br.?>", "", text, flags=re.IGNORECASE)
+    text = re.sub(r"<p.*?>", "", text, flags=re.IGNORECASE)
+    text = re.sub(r"</p>", "", text, flags=re.IGNORECASE)
     # links and other anchors
-    text = re.sub(r'<a.*?>', '', text, flags=re.IGNORECASE)
-    text = re.sub(r'</a>', '', text, flags=re.IGNORECASE)
+    text = re.sub(r"<a.*?>", "", text, flags=re.IGNORECASE)
+    text = re.sub(r"</a>", "", text, flags=re.IGNORECASE)
     return text
 
 
@@ -83,7 +83,7 @@ def get_desc_from_desc_text(text):
     text = remove_unwanted_tags(text)
     # strip spaces from the ends and add the stripped dot back
     # TODO: unify the behavior with dot, some modules have it, some don't
-    return text.strip() + '.'
+    return text.strip() + "."
 
 
 def main(filename):
@@ -91,21 +91,21 @@ def main(filename):
         desc = None
         in_desc_block = False
         in_desc_section = False
-        desc_section = ''
+        desc_section = ""
         desc_section_num_lines = 0
         # one empty after heading and then a longer sentence over two lines
         desc_section_max_lines = 3
         # we expect h2 level
-        desc_block_start = re.compile(r'<h2.*>NAME.*/h.>', flags=re.IGNORECASE)
+        desc_block_start = re.compile(r"<h2.*>NAME.*/h.>", flags=re.IGNORECASE)
         # the incomplete manual pages have NAME followed by DESCRIPTION
-        desc_block_end = re.compile(r'<h2.*>(KEYWORDS|DESCRIPTION).*/h.>',
-                                    flags=re.IGNORECASE)
-        desc_section_start = re.compile(r'<h2.*>DESCRIPTION.*/h.>',
-                                        flags=re.IGNORECASE)
-        #desc_section_end = re.compile(r'<h2.*>.*<.*/h.>', flags=re.IGNORECASE)
-        desc_section_end = re.compile(r'<h2.*>.*/h.>', flags=re.IGNORECASE)
-        desc_line = re.compile(r' - ')
-        comment_meta_desc_line = re.compile(r'<!-- meta page description:.*-->')
+        desc_block_end = re.compile(
+            r"<h2.*>(KEYWORDS|DESCRIPTION).*/h.>", flags=re.IGNORECASE
+        )
+        desc_section_start = re.compile(r"<h2.*>DESCRIPTION.*/h.>", flags=re.IGNORECASE)
+        # desc_section_end = re.compile(r'<h2.*>.*<.*/h.>', flags=re.IGNORECASE)
+        desc_section_end = re.compile(r"<h2.*>.*/h.>", flags=re.IGNORECASE)
+        desc_line = re.compile(r" - ")
+        comment_meta_desc_line = re.compile(r"<!-- meta page description:.*-->")
         for line in page_file:
             line = line.rstrip()  # remove '\n' at end of line
             if desc_block_start.search(line):
@@ -145,8 +145,10 @@ def main(filename):
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        sys.exit("{name} takes exactly one argument (HTML manual page name)."
-                 " {argc} parameters were given."
-                 .format(name=os.path.basename(sys.argv[0]),
-                                               argc=len(sys.argv) - 1))
+        sys.exit(
+            "{name} takes exactly one argument (HTML manual page name)."
+            " {argc} parameters were given.".format(
+                name=os.path.basename(sys.argv[0]), argc=len(sys.argv) - 1
+            )
+        )
     sys.exit(main(sys.argv[1]))

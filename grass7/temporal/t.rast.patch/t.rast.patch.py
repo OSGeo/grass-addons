@@ -91,10 +91,10 @@ def main():
 
         ordered_rasts = []
         # newest images are first
-        if sort == 'desc':
+        if sort == "desc":
             rows_sorted = rows[::-1]
         # older images are first
-        elif sort == 'asc':
+        elif sort == "asc":
             rows_sorted = rows
 
         for row in rows_sorted:
@@ -108,19 +108,22 @@ def main():
             patch_flags += "s"
 
         try:
-            grass.run_command("r.patch",
-                              overwrite=grass.overwrite(),
-                              input=(',').join(ordered_rasts),
-                              output=output,
-                              flags=patch_flags
-                              )
+            grass.run_command(
+                "r.patch",
+                overwrite=grass.overwrite(),
+                input=(",").join(ordered_rasts),
+                output=output,
+                flags=patch_flags,
+            )
         except CalledModuleError:
-            grass.fatal(_("%s failed. Check above error messages.") % 'r.patch')
+            grass.fatal(_("%s failed. Check above error messages.") % "r.patch")
 
         if not add_time:
 
             # We need to set the temporal extent from the subset of selected maps
-            maps = sp.get_registered_maps_as_objects(where=where, order="start_time", dbif=None)
+            maps = sp.get_registered_maps_as_objects(
+                where=where, order="start_time", dbif=None
+            )
             first_map = maps[0]
             last_map = maps[-1]
             start_a, end_a = first_map.get_temporal_extent_as_tuple()
@@ -132,8 +135,11 @@ def main():
             if first_map.is_time_absolute():
                 extent = tgis.AbsoluteTemporalExtent(start_time=start_a, end_time=end_b)
             else:
-                extent = tgis.RelativeTemporalExtent(start_time=start_a, end_time=end_b,
-                                                     unit=first_map.get_relative_time_unit())
+                extent = tgis.RelativeTemporalExtent(
+                    start_time=start_a,
+                    end_time=end_b,
+                    unit=first_map.get_relative_time_unit(),
+                )
 
             # Create the time range for the output map
             if output.find("@") >= 0:

@@ -65,43 +65,48 @@ from grass.pygrass.modules.shortcuts import general as g
 
 
 def main():
-    os.environ['GRASS_RENDER_IMMEDIATE'] = 'png'
-    os.environ['GRASS_RENDER_FILE'] = options['output']
-    os.environ['GRASS_RENDER_FILE_COMPRESSION'] = options['compression']
-    os.environ['GRASS_RENDER_WIDTH'] = options['width']
-    os.environ['GRASS_RENDER_HEIGHT'] = options['height']
+    os.environ["GRASS_RENDER_IMMEDIATE"] = "png"
+    os.environ["GRASS_RENDER_FILE"] = options["output"]
+    os.environ["GRASS_RENDER_FILE_COMPRESSION"] = options["compression"]
+    os.environ["GRASS_RENDER_WIDTH"] = options["width"]
+    os.environ["GRASS_RENDER_HEIGHT"] = options["height"]
 
-    if flags['w']:
+    if flags["w"]:
         # get display region info
-        s = grass.read_command('d.info', flags='g')
+        s = grass.read_command("d.info", flags="g")
         win = grassutils.parse_key_val(s, val_type=float)
 
     monitor_old = None
     genv = gisenv()
-    if 'MONITOR' in genv:
-        monitor_old = genv['MONITOR']
-        g.gisenv(unset='MONITOR')
+    if "MONITOR" in genv:
+        monitor_old = genv["MONITOR"]
+        g.gisenv(unset="MONITOR")
 
-    if options['rgb_column']:
-        d.vect(map=options['input'], rgb_column=options['rgb_column'], flags='a',
-               quiet=True)
+    if options["rgb_column"]:
+        d.vect(
+            map=options["input"],
+            rgb_column=options["rgb_column"],
+            flags="a",
+            quiet=True,
+        )
     else:
-        d.vect(map=options['input'])
+        d.vect(map=options["input"])
 
     if monitor_old:
-        g.gisenv(set='MONITOR=%s' % monitor_old)
+        g.gisenv(set="MONITOR=%s" % monitor_old)
 
-    if flags['w']:
+    if flags["w"]:
 
-        wldfile = options['output'].split('.')[0] + '.wld'
+        wldfile = options["output"].split(".")[0] + ".wld"
         file_ = open(wldfile, "w")
-        file_.write("%36.15f \n" % win['ewres'])
+        file_.write("%36.15f \n" % win["ewres"])
         file_.write("%36.15f \n" % 0.0)
         file_.write("%36.15f \n" % 0.0)
-        file_.write("%36.15f \n" % (-1 * win['nsres']))
-        file_.write("%36.15f \n" % (win['w'] + win['ewres'] / 2.0))
-        file_.write("%36.15f \n" % (win['n'] - win['nsres'] / 2.0))
+        file_.write("%36.15f \n" % (-1 * win["nsres"]))
+        file_.write("%36.15f \n" % (win["w"] + win["ewres"] / 2.0))
+        file_.write("%36.15f \n" % (win["n"] - win["nsres"] / 2.0))
         file_.close()
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

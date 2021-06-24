@@ -114,44 +114,57 @@ N N N
 class TestForestFragTrivial(TestCase):
     # TODO: replace by unified handing of maps
     to_remove = []
-    forest = 'r3ff_test_forest_trivial'
-    forest_frag = 'r3ff_test_forest_frag_trivial'
-    forest_frag_ref = 'r3ff_test_forest_frag_trivial_ref'
-    pf_ref = 'r3ff_test_forest_frag_trivial_ref_pf'
-    pff_ref = 'r3ff_test_forest_frag_trivial_ref_pff'
+    forest = "r3ff_test_forest_trivial"
+    forest_frag = "r3ff_test_forest_frag_trivial"
+    forest_frag_ref = "r3ff_test_forest_frag_trivial_ref"
+    pf_ref = "r3ff_test_forest_frag_trivial_ref_pf"
+    pff_ref = "r3ff_test_forest_frag_trivial_ref_pff"
 
     def setUp(self):
         self.use_temp_region()
-        self.runModule('r3.in.ascii', input='-', stdin_=FOREST,
-                       output=self.forest)
+        self.runModule("r3.in.ascii", input="-", stdin_=FOREST, output=self.forest)
         self.to_remove.append(self.forest)
-        self.runModule('g.region', raster_3d=self.forest)
-        self.runModule('r3.in.ascii', input='-', stdin_=PF,
-                       output=self.pf_ref,
-                       null_value='N')
+        self.runModule("g.region", raster_3d=self.forest)
+        self.runModule(
+            "r3.in.ascii", input="-", stdin_=PF, output=self.pf_ref, null_value="N"
+        )
         self.to_remove.append(self.pf_ref)
-        self.runModule('r3.in.ascii', input='-', stdin_=PFF,
-                       output=self.pff_ref,
-                       null_value='N')
+        self.runModule(
+            "r3.in.ascii", input="-", stdin_=PFF, output=self.pff_ref, null_value="N"
+        )
         self.to_remove.append(self.pff_ref)
-        self.runModule('r3.in.ascii', input='-', stdin_=FRAG,
-                       output=self.forest_frag_ref,
-                       null_value='N')
+        self.runModule(
+            "r3.in.ascii",
+            input="-",
+            stdin_=FRAG,
+            output=self.forest_frag_ref,
+            null_value="N",
+        )
         self.to_remove.append(self.forest_frag_ref)
-
 
     def tearDown(self):
         self.del_temp_region()
         if self.to_remove:
-            self.runModule('g.remove', flags='f', type='raster',
-                           name=','.join(self.to_remove), verbose=True)
+            self.runModule(
+                "g.remove",
+                flags="f",
+                type="raster",
+                name=",".join(self.to_remove),
+                verbose=True,
+            )
 
     def test_simple_window(self):
-        pf = self.forest_frag + '_pf'
-        pff = self.forest_frag + '_pff'
-        self.assertModule('r3.forestfrag', input=self.forest,
-                          output=self.forest_frag, size=3,
-                          pf=pf, pff=pff, flags='t')
+        pf = self.forest_frag + "_pf"
+        pff = self.forest_frag + "_pff"
+        self.assertModule(
+            "r3.forestfrag",
+            input=self.forest,
+            output=self.forest_frag,
+            size=3,
+            pf=pf,
+            pff=pff,
+            flags="t",
+        )
         self.assertRaster3dExists(self.forest_frag)
         self.to_remove.append(self.forest_frag)
         self.assertRaster3dExists(pf)
@@ -161,14 +174,13 @@ class TestForestFragTrivial(TestCase):
 
         # check the basic properties
         ref_univar = dict(null_cells=0, cells=27)
-        self.assertRaster3dFitsUnivar(raster=self.forest_frag,
-                                    reference=ref_univar, precision=0)
+        self.assertRaster3dFitsUnivar(
+            raster=self.forest_frag, reference=ref_univar, precision=0
+        )
         # the null cells requirements for pf and pff are fuzzy
         ref_univar = dict(cells=27)
-        self.assertRaster3dFitsUnivar(raster=pf,
-                                    reference=ref_univar, precision=0)
-        self.assertRaster3dFitsUnivar(raster=pff,
-                                    reference=ref_univar, precision=0)
+        self.assertRaster3dFitsUnivar(raster=pf, reference=ref_univar, precision=0)
+        self.assertRaster3dFitsUnivar(raster=pff, reference=ref_univar, precision=0)
         self.assertRaster3dMinMax(pf, refmin=0, refmax=1)
         self.assertRaster3dMinMax(pff, refmin=0, refmax=1)
         self.assertRaster3dMinMax(self.forest_frag, refmin=0, refmax=6)
@@ -180,18 +192,18 @@ class TestForestFragTrivial(TestCase):
         # self.runModule('g.region', zoom=self.pff_ref)
 
         # check the values
-        self.assertRasters3dNoDifference(actual=pf,
-                                         reference=self.pf_ref,
-                                         precision=0.001)
+        self.assertRasters3dNoDifference(
+            actual=pf, reference=self.pf_ref, precision=0.001
+        )
 
-        self.assertRasters3dNoDifference(actual=pff,
-                                         reference=self.pff_ref,
-                                         precision=0.001)
+        self.assertRasters3dNoDifference(
+            actual=pff, reference=self.pff_ref, precision=0.001
+        )
 
-        self.assertRasters3dNoDifference(actual=self.forest_frag,
-                                         reference=self.forest_frag_ref,
-                                         precision=0)  # it's CELL type
+        self.assertRasters3dNoDifference(
+            actual=self.forest_frag, reference=self.forest_frag_ref, precision=0
+        )  # it's CELL type
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test()

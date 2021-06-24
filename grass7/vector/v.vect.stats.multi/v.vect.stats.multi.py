@@ -241,7 +241,7 @@ def main():
             stats_column=stats_column_name,
             quiet=True,
             **modified_options,
-            errors="exit"
+            errors="exit",
         )
         gs.percent(i, num_new_columns, 1)
     gs.percent(1, 1, 1)

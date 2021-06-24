@@ -78,7 +78,6 @@
 #%end
 
 
-
 import sys
 import os
 import atexit
@@ -89,18 +88,19 @@ import grass.script as grass
 from grass.exceptions import CalledModuleError
 
 
-#.... todo ....
+# .... todo ....
+
 
 def main():
-    format = options['format']
-    input = options['input']
-    output = options['output']
-    proj_terms = options['proj']
-    wpt = flags['w']
-    rte = flags['r']
-    trk = flags['t']
-    points_mode = flags['p']
-    no_reproj = flags['k']
+    format = options["format"]
+    input = options["input"]
+    output = options["output"]
+    proj_terms = options["proj"]
+    wpt = flags["w"]
+    rte = flags["r"]
+    trk = flags["t"]
+    points_mode = flags["p"]
+    no_reproj = flags["k"]
 
     nflags = len(filter(None, [wpt, rte, trk]))
     if nflags > 1:
@@ -108,37 +108,40 @@ def main():
     if nflags < 1:
         grass.fatal(_("No features requested for import."))
 
-
     #### check for gpsbabel
     ### FIXME: may need --help or similar?
     if not grass.find_program("gpsbabel"):
-        grass.fatal(_("The gpsbabel program was not found, please install it first.\n") +
-                    "http://gpsbabel.sourceforge.net")
+        grass.fatal(
+            _("The gpsbabel program was not found, please install it first.\n")
+            + "http://gpsbabel.sourceforge.net"
+        )
 
     #### check for cs2cs
     if not grass.find_program("cs2cs"):
-        grass.fatal(_("The cs2cs program was not found, please install it first.\n") +
-                    "http://proj.osgeo.org")
+        grass.fatal(
+            _("The cs2cs program was not found, please install it first.\n")
+            + "http://proj.osgeo.org"
+        )
 
-#todo
-#    # check if we will overwrite data
-#    if grass.findfile(output) and not grass.overwrite():
-#        grass.fatal(_("Output file already exists."))
+    # todo
+    #    # check if we will overwrite data
+    #    if grass.findfile(output) and not grass.overwrite():
+    #        grass.fatal(_("Output file already exists."))
 
     #### set temporary files
     tmp = grass.tempfile()
 
     # import as GPX using v.in.ogr
-#     if trk:
-#         linetype = "FORCE_GPX_TRACK=YES"
-#     elif rte:
-#         linetype = "FORCE_GPX_TRACK=YES"
-#     else:
-#         linetype = None
+    #     if trk:
+    #         linetype = "FORCE_GPX_TRACK=YES"
+    #     elif rte:
+    #         linetype = "FORCE_GPX_TRACK=YES"
+    #     else:
+    #         linetype = None
 
-    if format == 'gpx':
+    if format == "gpx":
         # short circuit, we have what we came for.
-        #todo
+        # todo
         #        grass.try_remove(output)
         #        os.rename(tmp_gpx, output)
         grass.verbose("Fast exit.")
@@ -146,34 +149,37 @@ def main():
 
     # run gpsbabel
     if wpt:
-        gtype = '-w'
+        gtype = "-w"
     elif trk:
-        gtype = '-t'
+        gtype = "-t"
     elif rte:
-        gtype = '-r'
+        gtype = "-r"
     else:
-        gtype = ''
+        gtype = ""
 
     grass.verbose("Running GPSBabel ...")
 
-    ret = grass.call(['gpsbabel',
-                      gtype,
-                      '-i', format,
-                      '-f', output,
-                      '-o', 'gpx',
-                      '-F', tmp + '.gpx'])
+    ret = grass.call(
+        ["gpsbabel", gtype, "-i", format, "-f", output, "-o", "gpx", "-F", tmp + ".gpx"]
+    )
 
     if ret != 0:
         grass.fatal(_("Error running GPSBabel"))
-
 
     grass.verbose("Importing data ...")
 
     tmp_gpx = tmp + ".gpx"
     try:
-        grass.run_command('v.in.ogr', input=tmp_gpx, output=output,
-                          type=type, format='GPX', lco=linetype,
-                          dsco="GPX_USE_EXTENSIONS=YES", quiet=True)
+        grass.run_command(
+            "v.in.ogr",
+            input=tmp_gpx,
+            output=output,
+            type=type,
+            format="GPX",
+            lco=linetype,
+            dsco="GPX_USE_EXTENSIONS=YES",
+            quiet=True,
+        )
     except CalledModuleError:
         grass.fatal(_("Error importing data"))
 
@@ -184,59 +190,58 @@ def main():
     #   output as old GRASS 4 vector ascii and fight with dig_ascii/?
     #   Change to s/^ \([0-9]   .*\)    /# \1/' ??? mmph.
 
-#todo (taken from Glynn's v.out.gps)
+    # todo (taken from Glynn's v.out.gps)
     # reproject to lat/lon WGS84
-#     grass.verbose("Reprojecting data ...")
-#
-#     re1 = re.compile(r'^\([PLBCFKA]\)')
-#     re2 = re.compile(r'^ 1     ')
-#
-#     re3 = re.compile(r'\t\([-\.0-9]*\) .*')
-#     re4 = re.compile(r'^\([-\.0-9]\)')
-#     re5 = re.compile(r'^#')
-#
-#     tmp_proj = tmp + ".proj"
-#     tf = open(tmp_proj, 'w')
-#     p1 = grass.pipe_command('v.out.ascii', input = inmap, format = 'standard')
-#     p2 = grass.feed_command('m.proj', input = '-', flags = 'od', quiet = True, stdout = tf)
-#     tf.close()
-#
-#     lineno = 0
-#     for line in p1.stdout:
-#         lineno += 1
-#         if lineno < 11:
-#             continue
-#         line = re1.sub(r'#\1', line)
-#         line = re2.sub(r'# 1  ', line)
-#         p2.stdin.write(line)
-#
-#     p2.stdin.close()
-#     p1.wait()
-#     p2.wait()
-#
-#     if p1.returncode != 0 or p2.returncode != 0:
-#         grass.fatal(_("Error reprojecting data"))
-#
-#     tmp_vogb = "tmp_vogb_epsg4326_%d" % os.getpid()
-#     p3 = grass.feed_command('v.in.ascii', out = tmp_vogb, format = 'standard', flags = 'n', quiet = True)
-#     tf = open(tmp_proj, 'r')
-#
-#     for line in tf:
-#         line = re3.sub(r' \1', line)
-#         line = re4.sub(r' \1', line)
-#         line = re5.sub('', line)
-#         p3.stdin.write(line)
-#
-#     p3.stdin.close()
-#     tf.close()
-#     p3.wait()
-#
-#     if p3.returncode != 0:
-#         grass.fatal(_("Error reprojecting data"))
-
-
+    #     grass.verbose("Reprojecting data ...")
+    #
+    #     re1 = re.compile(r'^\([PLBCFKA]\)')
+    #     re2 = re.compile(r'^ 1     ')
+    #
+    #     re3 = re.compile(r'\t\([-\.0-9]*\) .*')
+    #     re4 = re.compile(r'^\([-\.0-9]\)')
+    #     re5 = re.compile(r'^#')
+    #
+    #     tmp_proj = tmp + ".proj"
+    #     tf = open(tmp_proj, 'w')
+    #     p1 = grass.pipe_command('v.out.ascii', input = inmap, format = 'standard')
+    #     p2 = grass.feed_command('m.proj', input = '-', flags = 'od', quiet = True, stdout = tf)
+    #     tf.close()
+    #
+    #     lineno = 0
+    #     for line in p1.stdout:
+    #         lineno += 1
+    #         if lineno < 11:
+    #             continue
+    #         line = re1.sub(r'#\1', line)
+    #         line = re2.sub(r'# 1  ', line)
+    #         p2.stdin.write(line)
+    #
+    #     p2.stdin.close()
+    #     p1.wait()
+    #     p2.wait()
+    #
+    #     if p1.returncode != 0 or p2.returncode != 0:
+    #         grass.fatal(_("Error reprojecting data"))
+    #
+    #     tmp_vogb = "tmp_vogb_epsg4326_%d" % os.getpid()
+    #     p3 = grass.feed_command('v.in.ascii', out = tmp_vogb, format = 'standard', flags = 'n', quiet = True)
+    #     tf = open(tmp_proj, 'r')
+    #
+    #     for line in tf:
+    #         line = re3.sub(r' \1', line)
+    #         line = re4.sub(r' \1', line)
+    #         line = re5.sub('', line)
+    #         p3.stdin.write(line)
+    #
+    #     p3.stdin.close()
+    #     tf.close()
+    #     p3.wait()
+    #
+    #     if p3.returncode != 0:
+    #         grass.fatal(_("Error reprojecting data"))
 
     grass.verbose("Done.")
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

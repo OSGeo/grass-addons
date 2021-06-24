@@ -52,7 +52,7 @@ class Ant(agent.Agent):
         self.home = self.position[:]
         self.laststeps = []
         self.visitedsteps = []
-        self.nextstep = [None,None,None,0]
+        self.nextstep = [None, None, None, 0]
         self.goal = []
         self.penalty = 0.0
         self.walk = self.walkaround
@@ -64,7 +64,7 @@ class Ant(agent.Agent):
         if self.world.decisionbase == "costlymarked":
             self.decide = self.costlymarkedposition
         else:
-            #standard is marked for the moment..
+            # standard is marked for the moment..
             self.decide = self.markedposition
         if self.world.evaluationbase == "standard":
             self.evaluate = self.check
@@ -92,11 +92,11 @@ class Ant(agent.Agent):
                 else:
                     # goal node found!
                     self.world.numberofpaths += 1
-                    #TODO for now just drop a line..
-                    #self.world.playground.grassinfo("Found a path, total: " + \
+                    # TODO for now just drop a line..
+                    # self.world.playground.grassinfo("Found a path, total: " + \
                     #        str(self.world.numberofpaths))
                     # add one to the counter
-                    #self.world.nrop += 1
+                    # self.world.nrop += 1
                     self.walk = self.walkhome
                     # now, head back home..
                     self.nextstep = self.laststeps.pop()
@@ -116,28 +116,31 @@ class Ant(agent.Agent):
         for i in xrange(0, len(positions)):
             p = copyofpositions[i]
             penalty = self.world.getpenalty(p)
-            if ((penalty < self.world.minpenalty) or
-                    (penalty > self.world.maxpenalty)):
+            if (penalty < self.world.minpenalty) or (penalty > self.world.maxpenalty):
                 positions.remove(p)
         if not positions:
             # die as there is nowwhere to go to
             self.snuffit()
             # make sure to not walk again..
-            return [0,0,99,99]
+            return [0, 0, 99, 99]
 
         position = positions[0]
         # compare the remaining
-        tmpval = - self.world.getpenalty(position) * self.world.costweight +\
-                self.world.getpheromone(position) * self.world.pheroweight +\
-                uniform(self.world.minrandom, self.world.maxrandom) *\
-                self.world.randomweight
+        tmpval = (
+            -self.world.getpenalty(position) * self.world.costweight
+            + self.world.getpheromone(position) * self.world.pheroweight
+            + uniform(self.world.minrandom, self.world.maxrandom)
+            * self.world.randomweight
+        )
         for i in xrange(1, len(positions)):
             p = positions[i]
-            newval = - self.world.getpenalty(p) * self.world.costweight +\
-                    self.world.getpheromone(p) * self.world.pheroweight +\
-                    uniform(self.world.minrandom, self.world.maxrandom) *\
-                    self.world.randomweight
-            if (newval > tmpval):
+            newval = (
+                -self.world.getpenalty(p) * self.world.costweight
+                + self.world.getpheromone(p) * self.world.pheroweight
+                + uniform(self.world.minrandom, self.world.maxrandom)
+                * self.world.randomweight
+            )
+            if newval > tmpval:
                 position = p
                 tmpval = newval
         return position
@@ -150,15 +153,19 @@ class Ant(agent.Agent):
         @return position the decision for a position
         """
         position = positions[0]
-        tmpval = self.world.getpheromone(position) * self.world.pheroweight +\
-                    uniform(self.world.minrandom, self.world.maxrandom) *\
-                    self.world.randomweight
+        tmpval = (
+            self.world.getpheromone(position) * self.world.pheroweight
+            + uniform(self.world.minrandom, self.world.maxrandom)
+            * self.world.randomweight
+        )
         for i in xrange(1, len(positions)):
             p = positions[i]
-            newval = self.world.getpheromone(p) * self.world.pheroweight +\
-                    uniform(self.world.minrandom, self.world.maxrandom) *\
-                    self.world.randomweight
-            if (newval > tmpval):
+            newval = (
+                self.world.getpheromone(p) * self.world.pheroweight
+                + uniform(self.world.minrandom, self.world.maxrandom)
+                * self.world.randomweight
+            )
+            if newval > tmpval:
                 position = p
                 tmpval = newval
         return position
@@ -183,15 +190,14 @@ class Ant(agent.Agent):
         self.position = self.nextstep
         if len(self.laststeps) > 1:
             # try to avoid loops
-            if (self.world.antavoidsloops):
+            if self.world.antavoidsloops:
                 # Find the first occurence of this step in the path array
                 i = self.laststeps.index(self.laststeps[-1])
                 # Forget the path (the loop) inbetween
-                self.laststeps = self.laststeps[0:i+1]
+                self.laststeps = self.laststeps[0 : i + 1]
             # walk only up to the gates of the hometown
             self.nextstep = self.laststeps.pop()
-            self.penalty += self.nextstep[3] + \
-                              self.world.getpenalty(self.nextstep)
+            self.penalty += self.nextstep[3] + self.world.getpenalty(self.nextstep)
         else:
             # retire after work.
             self.snuffit()
@@ -204,7 +210,7 @@ class Ant(agent.Agent):
         """
         self.laststeps.append(self.position)
         self.position = self.nextstep
-        self.nextstep = [None,None,None,0]
+        self.nextstep = [None, None, None, 0]
         self.world.setsteppheromone(self.position)
 
     def work(self):
@@ -221,8 +227,7 @@ class Ant(agent.Agent):
         if self.nextstep[0] is None:
             # ..or we'll have to decide it now if it was not clear yet
             self.choose()
-            self.penalty += self.nextstep[3] + \
-                                self.world.getpenalty(self.nextstep)
+            self.penalty += self.nextstep[3] + self.world.getpenalty(self.nextstep)
         # if penalty is positive, wait one round
         if self.penalty > 0:
             self.penalty -= 1

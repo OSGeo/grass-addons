@@ -12,7 +12,7 @@ from builtins import object
 from hdfswrapper import settings
 from hdfswrapper.connections import Connection
 
-CONN_ENV_PREFIX = 'GRASSHIVE_CONN_'
+CONN_ENV_PREFIX = "GRASSHIVE_CONN_"
 
 
 class BaseHook(object):
@@ -31,10 +31,9 @@ class BaseHook(object):
     def get_connections(cls, conn_id):
         session = settings.Session()
 
-        db = (session.query(Connection).filter(Connection.conn_id == conn_id).all())
+        db = session.query(Connection).filter(Connection.conn_id == conn_id).all()
         if not db:
-            raise Exception(
-                "The conn_id `{0}` isn't defined".format(conn_id))
+            raise Exception("The conn_id `{0}` isn't defined".format(conn_id))
         session.expunge_all()
         session.close()
         return db

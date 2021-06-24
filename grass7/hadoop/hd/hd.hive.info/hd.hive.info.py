@@ -53,31 +53,29 @@
 #%end
 
 
-
 import grass.script as grass
 
 from hdfsgrass.hdfs_grass_lib import ConnectionManager
-
 
 
 def main():
     conn = ConnectionManager()
     conn.get_current_connection(options["driver"])
     hive = conn.get_hook()
-    if flags['p']:
+    if flags["p"]:
         hive.show_tables()
-    if flags['d']:
-        if not options['table']:
+    if flags["d"]:
+        if not options["table"]:
             grass.fatal("With flag <d> table must be defined")
-        hive.describe_table(options['table'], True)
+        hive.describe_table(options["table"], True)
 
-    if flags['h']:
-        if not options['table']:
+    if flags["h"]:
+        if not options["table"]:
             grass.fatal("With flag <h> table must be defined")
-        print(hive.find_table_location(options['table']))
+        print(hive.find_table_location(options["table"]))
 
-    if options['path']:
-        hive.check_for_content(options['path'])
+    if options["path"]:
+        hive.check_for_content(options["path"])
 
 
 if __name__ == "__main__":

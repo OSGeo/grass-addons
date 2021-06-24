@@ -60,8 +60,7 @@ class TestClassification(TestCase):
         cls.runModule(
             "i.group",
             group=cls.group,
-            input=[cls.band1, cls.band2, cls.band3, cls.band4, cls.band5,
-                   cls.band7],
+            input=[cls.band1, cls.band2, cls.band3, cls.band4, cls.band5, cls.band7],
         )
         cls.runModule(
             "r.random",
@@ -81,18 +80,14 @@ class TestClassification(TestCase):
     def tearDownClass(cls):
         """Remove the temporary region (and anything else we created)"""
         cls.del_temp_region()
-        cls.runModule("g.remove", flags="f", type="raster",
-                      name=cls.labelled_pixels)
-        cls.runModule("g.remove", flags="f", type="vector",
-                      name=cls.labelled_points)
-        cls.runModule("g.remove", flags="f", type="group",
-                      name=cls.group)
+        cls.runModule("g.remove", flags="f", type="raster", name=cls.labelled_pixels)
+        cls.runModule("g.remove", flags="f", type="vector", name=cls.labelled_points)
+        cls.runModule("g.remove", flags="f", type="group", name=cls.group)
 
     def tearDown(self):
         """Remove the output created from the tests
         (reuse the same name for all the test functions)"""
-        self.runModule("g.remove", flags="f", type="raster",
-                       name=[self.output])
+        self.runModule("g.remove", flags="f", type="raster", name=[self.output])
 
         try:
             os.remove(self.model_file)
@@ -128,17 +123,11 @@ class TestClassification(TestCase):
 
         # check categories were applied to classification map
         cats_input = gs.parse_command(
-            "r.category",
-            map=self.labelled_pixels,
-            separator=":",
-            delimiter=":"
+            "r.category", map=self.labelled_pixels, separator=":", delimiter=":"
         )
 
         cats_result = gs.parse_command(
-            "r.category",
-            map=self.output,
-            separator=":",
-            delimiter=":"
+            "r.category", map=self.output, separator=":", delimiter=":"
         )
 
         self.assertEqual(cats_input, cats_result)
@@ -189,7 +178,7 @@ class TestClassification(TestCase):
             load_training=self.training_file,
             n_estimators=100,
             save_model=self.model_file,
-            overwrite=True
+            overwrite=True,
         )
 
         # predict after loading training data

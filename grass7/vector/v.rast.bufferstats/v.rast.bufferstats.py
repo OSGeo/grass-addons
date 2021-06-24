@@ -427,6 +427,7 @@ def main():
             raster_maps[column_prefix.index(p)], tabulate, use_label
         )
         valid_labels.append(val_lab)
+
         for b in buffers:
             b_str = str(b).replace(".", "_")
             if tabulate:

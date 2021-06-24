@@ -57,10 +57,12 @@ def main():
 
     conn.get_current_connection(options["driver"])
     hive = conn.get_hook()
-    hive.data2table(filepath=options['path'],
-                    table=options['table'],
-                    overwrite=options['path'],  # TODO
-                    partition=options['partition'])
+    hive.data2table(
+        filepath=options["path"],
+        table=options["table"],
+        overwrite=options["path"],  # TODO
+        partition=options["partition"],
+    )
 
 
 if __name__ == "__main__":
