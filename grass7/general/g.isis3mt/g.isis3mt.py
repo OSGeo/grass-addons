@@ -77,6 +77,7 @@ from grass.lib import proj as grassproj
 # UserDict is merged into collections http://python3porting.com/problems.html
 if sys.version_info > (3,):
     from collections import UserDict
+
     IterableUserDict = UserDict
 else:
     from UserDict import UserDict, IterableUserDict
