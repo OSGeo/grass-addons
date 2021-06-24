@@ -18,7 +18,7 @@
 ############################################################################
 
 # %module
-# % description: Creates Gabor filter bank for an 2-dimensional image
+# % description: Creates Gabor filter bank for a 2-dimensional image
 # % overwrite: yes
 # % keyword: imagery
 # % keyword: satellite
