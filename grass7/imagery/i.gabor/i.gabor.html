@@ -81,10 +81,10 @@ orientation = 0, 45, 90, 135
 135 = 0b00001000 = 8
 </pre></div>
 This method will allow the values of the combined raster to be decomposed in
-order to evaluate which orientations had high responses for a given raster cell.
-I.e. if a cell has high responses at orientations 0 and 135 degrees, the
-combined raster cell will have a final output value of 9, which as a binary
-string is <i>0b00001001</i>.
+order to evaluate which orientations had high responses for a given raster
+cell. For example, if a cell has high responses at orientations 0 and 135
+degrees, the combined raster cell will have a final output value of 9, which as
+a binary string is <i>0b00001001</i>.
 
 <h2>EXAMPLE</h2>
 The following example uses the North Carolina demo data orthophoto to show the
@@ -134,7 +134,7 @@ i.gabor input=ortho_2001_t792_1m output=ortho_i_8o_41_5_q \
 </center>
 
 <p>After the Gabor filter is generated, it can be used for a number of purposes.
-For instance we can create a segmented raster map of ortho_2001_t792_1m aided
+For instance, we can create a segmented raster map of ortho_2001_t792_1m aided
 with both the real and imaginary component of the Gabor filter which is able to
 reduce noise in the output raster map.
 
@@ -144,13 +144,16 @@ g.region n=220272 s=219585 w=638335 e=639313 res=1
 i.gabor input=ortho_2001_t792_1m output=ortho --overwrite \
         orientation=0,22.5,45,67.5,90,112.5,135,157.5 size=11 wavelength=2.5 \
         -c
+
 # Imaginary component
 i.gabor input=ortho_2001_t792_1m output=ortho_i --overwrite \
         orientation=0,22.5,45,67.5,90,112.5,135,157.5 size=11 wavelength=2.5 \
         -c -i
+
 # Segmentation with just ortho_2001_t792_1m
-i.segment group=ortho_2001_t792_1m output=orhto_segment --overwrite \
+i.segment group=ortho_2001_t792_1m output=ortho_segment --overwrite \
         threshold=0.5 minsize=5
+
 # Segmentation with ortho_2001_t792_1m and both Gabor filters
 i.segment group=ortho_2001_t792_1m,ortho,ortho_i output=gabor_aided_segment \
         --overwrite threshold=0.5 minsize=5
