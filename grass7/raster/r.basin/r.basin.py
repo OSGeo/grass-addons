@@ -465,9 +465,7 @@ def main():
         # Rectangle containing basin
         basin_east = baricenter_slope_baricenter[33]
         basin_north = baricenter_slope_baricenter[34]
-        info_region_basin = grass.read_command(
-            "g.region", vect=options["prefix"] + "_" + mapname[0] + "_basin", flags="m"
-        )
+        info_region_basin = grass.read_command("g.region", rast=r_basin, flags="m")
 
         grass.message("g.region done")
         dict_region_basin = dict(
@@ -646,9 +644,10 @@ def main():
             "r.info", flags="r", map="r_elevation_crop"
         )
         minmax_height_basin = minmax_height_basin.strip().split("\n")
-        min_height_basin, max_height_basin = float(
-            minmax_height_basin[0].split("=")[-1]
-        ), float(minmax_height_basin[1].split("=")[-1])
+        min_height_basin, max_height_basin = (
+            float(minmax_height_basin[0].split("=")[-1]),
+            float(minmax_height_basin[1].split("=")[-1]),
+        )
         H1 = max_height_basin
         H2 = min_height_basin
         HM = H1 - H2
