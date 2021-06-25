@@ -6,10 +6,11 @@ MODULE:    v.rast.bufferstats
 AUTHOR(S): Stefan Blumentrath < stefan.blumentrath AT nina.no>
            With lots of inspiration from v.what.rast.buffer by
            Hamish Bowman, Dunedin, New Zealand
+           Percentage implemented by Luca DeLucchi
 
 PURPOSE:   Calculates statistics of raster map(s) for buffers around vector geometries.
 
-COPYRIGHT: (C) 2018 by the GRASS Development Team
+COPYRIGHT: (C) 2021 by the GRASS Development Team
 
            This program is free software under the GNU General Public
            License (>=v2). Read the file COPYING that comes with GRASS
@@ -20,7 +21,6 @@ To Dos:
 - parallelize
 - consider adding distance weights
 - add neighborhood stats ???
-- silence r.category
 - add where clause
 
 /#%option G_OPT_DB_WHERE
@@ -254,6 +254,14 @@ def random_name(length):
     return randomname
 
 
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
+
+
 def raster_type(raster, tabulate, use_label):
     """Check raster map type (int or double) and return categories for int maps
 
@@ -265,12 +273,16 @@ def raster_type(raster, tabulate, use_label):
     :type use_label: bool
     :returns: string with raster map type and list of categories with labels
     :rmap_type: string
+    :returns: logical if rastermap contains valid labels
+    :rmap_type: bool
     :rcats: list of category tuples
     :Example:
 
     >>> raster_type('elevation')
-    'double precision', []
+    'double precision', False, []
     """
+
+    valid_lab = False
     r_map = RasterRow(raster)
     r_map.open()
     if not r_map.has_cats() and r_map.mtype != "CELL":
@@ -291,23 +303,19 @@ def raster_type(raster, tabulate, use_label):
                     .split("\n")
                 )
                 rcats = [
-                    tuple((rcat.split("\t")[1], rcat.split("\t")[1], None))
+                    tuple((rcat.split("\t")[1], rcat.split("\t")[0], None))
                     for rcat in rcats
                 ]
-            cat_list = [rcat[0] for rcat in rcats]
-            label_list = [rcat[1] for rcat in rcats]
-            if use_label:
-                racts = (
-                    label_list
-                    if len(set(cat_list)) == len(set(label_list))
-                    else cat_list
-                )
-            else:
-                racts = cat_list
+            cat_list = [rcat[1] for rcat in rcats]
+            label_list = [rcat[0] for rcat in rcats]
+            if len(set(cat_list)) != len(set(label_list)):
+                rcats = [tuple((rcat[1], rcat[1], None)) for rcat in rcats]
+            elif use_label:
+                valid_lab = True
         else:
             r_map.close()
 
-    return rmap_type, rcats
+    return rmap_type, valid_lab, rcats
 
 
 def main():
@@ -412,11 +420,14 @@ def main():
 
     # Generate list of required column names and types
     col_names = []
+    valid_labels = []
     col_types = []
     for p in column_prefix:
-        rmaptype, rcats = raster_type(
+        rmaptype, val_lab, rcats = raster_type(
             raster_maps[column_prefix.index(p)], tabulate, use_label
         )
+        valid_labels.append(val_lab)
+
         for b in buffers:
             b_str = str(b).replace(".", "_")
             if tabulate:
@@ -434,8 +445,9 @@ def main():
                 col_types.append("double precision")
                 col_names.append("{}_{}_b{}".format(p, "area_tot", b_str))
                 col_types.append("double precision")
+
                 for rcat in rcats:
-                    if use_label:
+                    if use_label and valid_labels:
                         rcat = rcat[0].replace(" ", "_")
                     else:
                         rcat = rcat[1]
@@ -463,6 +475,7 @@ def main():
     in_vect.open(mode="r")
 
     # Get name for temporary map
+    global TMP_MAPS
     TMP_MAPS.append(tmp_map)
 
     # Setup stats collectors
@@ -509,6 +522,7 @@ def main():
         existing_cols = list(set(tab_cols.names()).intersection(col_names))
         if len(existing_cols) > 0:
             if not update:
+                in_vect.close()
                 grass.fatal(
                     "Column(s) {} already exist! Please use the u-flag \
                             if you want to update values in those columns".format(
@@ -641,8 +655,8 @@ def main():
 
             updates = []
             # Compute statistics for every raster map
-            for rm in range(len(raster_maps)):
-                rmap = raster_maps[rm]
+            for rm, rmap in enumerate(raster_maps):
+                # rmap = raster_maps[rm]
                 prefix = column_prefix[rm]
 
                 if tabulate:
@@ -652,10 +666,14 @@ def main():
                     t_stats = (
                         stats.outputs["stdout"]
                         .value.rstrip(os.linesep)
+                        .replace("  ", " ")
+                        .replace("no data", "no_data")
                         .replace(" ", "_b{} = ".format(b_str))
                         .split(os.linesep)
                     )
-
+                    if t_stats == [""]:
+                        grass.warning(empty_buffer_warning.format(rmap, buf, cat))
+                        continue
                     if (
                         t_stats[0].split("_b{} = ".format(b_str))[0].split("_")[-1]
                         != "null"
@@ -685,22 +703,19 @@ def main():
                             # check if raster maps has category or not
                             if len(l.split("=")) == 2:
                                 updates.append("\t{}_{}".format(prefix, l.rstrip("%")))
-                            else:
+                            elif not l.startswith("null"):
                                 vals = l.split("=")
                                 updates.append(
                                     "\t{}_{} = {}".format(
                                         prefix,
-                                        vals[-2].strip(),
+                                        vals[-2].strip()
+                                        if valid_labels[rm]
+                                        else vals[0].strip(),
                                         vals[-1].strip().rstrip("%"),
                                     )
                                 )
-                            if (
-                                l.split("_b{} =".format(b_str))[0].split("_")[-1]
-                                != "null"
-                            ):
-                                area_tot = area_tot + float(
-                                    l.rstrip("%").split("= ")[1]
-                                )
+                            if not l.startswith("null"):
+                                area_tot += float(l.rstrip("%").split("= ")[-1])
                         if not percent:
                             updates.append(
                                 "\t{}_{}_b{} = {}".format(
@@ -716,12 +731,13 @@ def main():
                             sep, cat, prefix, buf, "mode", mode, os.linesep
                         )
                         area_tot = 0
-                        if not t_stats[0]:
-                            grass.warning(empty_buffer_warning.format(rmap, buf, cat))
-                            continue
                         for l in t_stats:
-                            rcat = l.split("_b{} =".format(b_str))[0].split("_")[-1]
-                            area = l.split("= ")[1]
+                            rcat = (
+                                l.split("= ")[1].rstrip("_b{} = ".format(b_str))
+                                if valid_labels[rm]
+                                else l.split("_")[0]
+                            )
+                            area = l.split("= ")[-1]
                             out_str += "{1}{0}{2}{0}{3}{0}{4}{0}{5}{6}".format(
                                 sep,
                                 cat,
@@ -733,11 +749,17 @@ def main():
                             )
                             if rcat != "null":
                                 area_tot = area_tot + float(
-                                    l.rstrip("%").split("= ")[1]
+                                    l.rstrip("%").split("= ")[-1]
                                 )
                         if not percent:
                             out_str += "{1}{0}{2}{0}{3}{0}{4}{0}{5}{6}".format(
-                                sep, cat, prefix, buf, "area_tot", area_tot, os.linesep
+                                sep,
+                                cat,
+                                prefix,
+                                buf,
+                                "area total",
+                                area_tot,
+                                os.linesep,
                             )
 
                         if output == "-":
@@ -771,7 +793,19 @@ def main():
                         if not output:
                             # Add to list of UPDATE statements
                             updates.append(
-                                "\t{}_{}".format(prefix, u_stats[int_dict[m][0]])
+                                "\t{}_{}".format(
+                                    prefix,
+                                    u_stats[int_dict[m][0]]
+                                    if is_number(
+                                        u_stats[int_dict[m][0]].split(" = ")[1]
+                                    )
+                                    else " = ".join(
+                                        [
+                                            u_stats[int_dict[m][0]].split(" = ")[0],
+                                            "NULL",
+                                        ]
+                                    ),
+                                )
                             )
                         else:
                             out_str = "{1}{0}{2}{0}{3}{0}{4}{0}{5}".format(
@@ -847,7 +881,7 @@ def main():
         # write results to file
         out.close()
 
-    if remove:
+    if remove and not output:
         dropcols = []
         selectnum = "select count({}) from {}"
         for i in col_names:
