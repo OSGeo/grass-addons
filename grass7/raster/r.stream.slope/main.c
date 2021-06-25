@@ -113,8 +113,8 @@ int main(int argc, char *argv[])
 
     G_get_window(&window);
     Rast_get_cellhd(in_dir_opt->answer, mapset, &cellhd);
-    if (fabs(window.ew_res - cellhd.ew_res) >= 1e-10 ||
-	fabs(window.ns_res - cellhd.ns_res) >= 1e-10)
+    if (fabs(window.ew_res - cellhd.ew_res) >= GRASS_EPSILON ||
+	fabs(window.ns_res - cellhd.ns_res) >= GRASS_EPSILON)
 	G_fatal_error(_("Region resolution and raster map <%s> resolution differs. "
                           "Run 'g.region raster=%s' to set proper region resolution."),
                         in_dir_opt->answer, in_dir_opt->answer);

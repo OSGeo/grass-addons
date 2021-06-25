@@ -75,8 +75,8 @@ int ram_read_map(MAP * map, char *input_map_name, int check_res,
     G_get_window(&this_window);
     Rast_get_cellhd(input_map_name, mapset, &cellhd);
     if (check_res)
-	if (fabs(this_window.ew_res - cellhd.ew_res) >= 1e-10 ||
-	    fabs(this_window.ns_res - cellhd.ns_res) >= 1e-10)
+	if (fabs(this_window.ew_res - cellhd.ew_res) >= GRASS_EPSILON ||
+	    fabs(this_window.ns_res - cellhd.ns_res) >= GRASS_EPSILON)
           G_fatal_error(_("Region resolution and raster map <%s> resolution differs. "
                           "Run 'g.region raster=%s' to set proper region resolution."),
                         input_map_name, input_map_name);
@@ -410,8 +410,8 @@ int seg_read_map(SEG * seg, char *input_map_name, int check_res,
 
     /* check resolution equal any integer check;  equal 0 no check */
     if (check_res)
-	if (fabs(this_window.ew_res - cellhd.ew_res) >= 1e-10 ||
-	    fabs(this_window.ns_res - cellhd.ns_res) >= 1e-10)
+	if (fabs(this_window.ew_res - cellhd.ew_res) >= GRASS_EPSILON ||
+	    fabs(this_window.ns_res - cellhd.ns_res) >= GRASS_EPSILON)
           G_fatal_error(_("Region resolution and raster map <%s> resolution differs. "
                           "Run 'g.region raster=%s' to set proper region resolution."),
                         input_map_name, input_map_name);
