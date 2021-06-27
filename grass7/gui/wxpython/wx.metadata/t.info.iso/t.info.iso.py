@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 """
-@module  r.info.iso
-@brief   Module for creating metadata based on ISO for raster maps
+@module  t.info.iso
+@brief   Module for creating metadata based on ISO for temporal maps
 
 (C) 2014 by the GRASS Development Team
 This program is free software under the GNU General Public License
