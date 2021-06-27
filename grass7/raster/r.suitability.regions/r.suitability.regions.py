@@ -157,6 +157,7 @@ def cleanup():
             gs.run_command("g.remove", flags="f", type="raster",
                            name=rast, quiet=True)
 
+
 def tmpname(prefix):
     """Generate a tmp name which contains prefix
     Store the name in the global list.
@@ -167,6 +168,7 @@ def tmpname(prefix):
     CLEAN_LAY.append(tmpf)
     return tmpf
 
+
 def tmpmask(input, absmin):
     """Create tmp mask"""
     rules = "*:{}:1".format(absmin)
@@ -174,6 +176,7 @@ def tmpmask(input, absmin):
     gs.write_command("r.recode", input=input, output=tmprecode, rule='-',
                      stdin=rules, quiet=True)
     return tmprecode
+
 
 def main(options, flags):
 
@@ -187,7 +190,7 @@ def main(options, flags):
     minfrag = float(options['minfrag'])
     maxgap = float(options['maxgap'])
     suitreg = options['suitreg']
-    
+
     # Flags
     flag_c = flags['c']
     if flag_c:
@@ -203,7 +206,7 @@ def main(options, flags):
     flag_k = flags['k']
     flag_f = flags['f']
     flag_a = flags['a']
-    
+
     # Temporary layer names
     tmp01 = tmpname("tmp01")
     tmp02 = tmpname("tmp02")
@@ -216,13 +219,13 @@ def main(options, flags):
     tmp07 = tmpname("tmp07")
     tmp08 = tmpname("tmp08")
     xtralayer = "{}_filledgaps".format(suitreg)
-   
+
     # Compute neighborhood statistic
     if (radius > 1) & (len(absminsuit) == 0):
         gs.message("Computing neighborhood statistic")
         gs.run_command("r.neighbors", flags=c, input=suitrast, quiet=True,
                        output=tmp02a, method=focalstat, size=radius)
-        gs.run_command("r.series", input=[suitrast,tmp02a],
+        gs.run_command("r.series", input=[suitrast, tmp02a],
                        method="maximum", output=tmp02)
     elif radius > 1:
         gs.message("Computing neighborhood statistic")
@@ -237,23 +240,23 @@ def main(options, flags):
         gs.run_command("r.mapcalc", quiet=True,
                        expression=("{0} = if({1} > {2},{3},null())"
                                    .format(tmp02, suitrast, absminsuit,
-                                             tmp02a)))
+                                           tmp02a)))
     else:
-        gs.run_command("g.copy", raster=[suitrast,tmp02], quiet=True)
-            
+        gs.run_command("g.copy", raster=[suitrast, tmp02], quiet=True)
+
     # Convert suitability to boolean: suitable (1) or not (nodata)
     gs.message("Creating boolean map suitable/none-suitable")
     gs.run_command("r.mapcalc", quiet=True,
-                    expression=("{} = if({} >= {},1,null())"
-                                .format(tmp03, tmp02, minsuit)))
-        
+                   expression=("{} = if({} >= {},1,null())"
+                               .format(tmp03, tmp02, minsuit)))
+
     # Clump contiguous cells (adjacent celss with same value) and
     # remove clumps that are below user provided size
     gs.message("Clumping continuous cells and removing small fragments")
     gs.run_command("r.reclass.area", flags=d, input=tmp03, output=tmp04,
                    value=minfrag, mode="greater", method="reclass",
                    quiet=True)
-    
+
     # Remove gaps within suitable regions with size smaller than maxgap
     # Note, in the reclass.area module below mode 'greater' is used because
     # 1/nodata is reversed. The last step (clump) is to assign unique values
@@ -275,17 +278,17 @@ def main(options, flags):
             bumask = tmpmask(input=suitrast, absmin=absminsuit)
             gs.run_command("r.mapcalc",
                            expression=("{} = if(isnull({}), {},null())"
-                           .format(tmp07, bumask, tmp07a)))
+                                       .format(tmp07, bumask, tmp07a)))
         else:
             gs.run_command("g.rename", raster=[tmp07a, tmp07])
 
         # Create map with category clump-suitable, clump-unsuitable
         gs.message("Create map with category clump-suitable, clump-unsuitable")
         gs.run_command("r.series", quiet=True, output=xtralayer,
-                       input=[tmp04,tmp07], method="sum")
+                       input=[tmp04, tmp07], method="sum")
         gs.write_command("r.category", map=xtralayer, rules="-",
                          separator=":", stdin=RECLASSRULES1, quiet=True)
-        
+
         # Assign unique ids to clumps
         gs.message("Assigning unique id's to clumps")
         gs.run_command("r.clump", flags=d, input=tmp07, output=suitreg,
@@ -293,24 +296,23 @@ def main(options, flags):
         gs.run_command("r.support", map=xtralayer,
                        title="Regions + filled gaps",
                        units="2 = suitable, 1 = filled gaps",
-		               description=("Map indicating which cells of the",
-			                        "\nidentified regions are suitable,",
-			                        "\nand which are gaps included\n"))
+                       description=("Map indicating which cells of the",
+                                    "\nidentified regions are suitable,",
+                                    "\nand which are gaps included\n"))
         gs.write_command("r.colors", rules='-', map=xtralayer,
-                       stdin=COLORRULES2, quiet=True)
-        
+                         stdin=COLORRULES2, quiet=True)
+
     else:
         # Assign unique ids to clumps
         gs.message("Assigning unique id's to clumps")
         gs.run_command("r.clump", flags=d, input=tmp04, output=suitreg,
                        quiet=True)
     gs.run_command("r.support", map=suitreg,
-			   title="Suitable regions",
-               units="IDs of suitable regions",
-               description=("Map with potential areas for conservation"
-                            "\n, Based on the suitability layer {}\n"
-               .format(suitrast)))
-    
+                   title="Suitable regions",
+                   units="IDs of suitable regions",
+                   description=("Map with potential areas for conservation"
+                                "\n, Based on the suitability layer {}\n"
+                                .format(suitrast)))
     if flag_a:
         gs.message("Compute area per clump")
         areastat = "{}_clumpsize".format(suitreg)
@@ -318,7 +320,7 @@ def main(options, flags):
         gs.run_command("r.mapcalc", quiet=True,
                        expression=("{} = {} * area()/10000"
                                    .format(areastat, tmp08)))
-        
+
     # Zonal statistics
     if flag_z:
         gs.message("Compute average suitability per clump")
@@ -327,11 +329,11 @@ def main(options, flags):
                        method="average", output=zonstat, quiet=True)
         gs.run_command("r.colors", map=zonstat, color="bgyr", quiet=True)
     gs.message("Done")
-    
+
     # Keep map with all suitable areas
     if flag_k:
         rname = "{}_allsuitableareas".format(suitreg)
-        gs.run_command("g.rename", raster=[tmp03,rname], quiet=True)
+        gs.run_command("g.rename", raster=[tmp03, rname], quiet=True)
         gs.write_command("r.colors", rules='-', map=rname,
                          stdin=COLORRULES1, quiet=True)
     # Keep suitability map based on focal statistic
@@ -340,7 +342,8 @@ def main(options, flags):
         gs.run_command("g.rename", raster=[tmp02, rname2], quiet=True)
         gs.run_command("r.colors", map=rname2, raster=suitrast,
                        quiet=True)
-    
+
+
 if __name__ == "__main__":
     atexit.register(cleanup)
     sys.exit(main(*gs.parser()))
