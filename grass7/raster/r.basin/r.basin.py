@@ -465,7 +465,7 @@ def main():
         # Rectangle containing basin
         basin_east = baricenter_slope_baricenter[33]
         basin_north = baricenter_slope_baricenter[34]
-        info_region_basin = grass.read_command("g.region", rast=r_basin, flags="m")
+        info_region_basin = grass.read_command("g.region", raster=r_basin, flags="m")
 
         grass.message("g.region done")
         dict_region_basin = dict(
