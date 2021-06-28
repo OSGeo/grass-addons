@@ -1,2 +1,0 @@
-
-void problem(char *message);

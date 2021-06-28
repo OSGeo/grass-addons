@@ -1,5 +1,0 @@
-Compile with
-  make MODULE_TOPDIR=$HOME/src/grass65/
-
-This code is basically an improved i.points (from 2004).
-Recent changes in i.points haven't been ported here yet.

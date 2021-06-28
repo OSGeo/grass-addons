@@ -1,6 +1,0 @@
-Compile with
-  make MODULE_TOPDIR=$HOME/grass63/
-
-TODO
-
-Code based on GRASS 5. To be updated to GRASS 6.

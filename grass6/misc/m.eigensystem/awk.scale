@@ -1,4 +1,0 @@
-/V/ {print $0 "    " $2/E; next}
-/N/ {print $0 "    " $2/E; next}
-/E/ {E=sqrt($2)}
-{print}

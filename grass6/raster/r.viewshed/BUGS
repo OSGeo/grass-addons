@@ -1,6 +1,0 @@
-BUGS
-
-* http://trac.osgeo.org/grass/ticket/390
-  r.viewshed precision bug
-
-* areas outside of LOS should be NULL, not zero

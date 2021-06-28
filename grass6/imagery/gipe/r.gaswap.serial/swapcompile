@@ -1,6 +1,0 @@
-#!/bin/bash
-gfortran -lm -fforce-addr -fno-automatic -o swap swap.for
-
-#For Makefile
-#swap: swap.for 
-#	f77 -lm -fforce-addr -fno-automatic -o swap swap.for
