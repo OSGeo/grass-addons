@@ -7,7 +7,7 @@ for an overview.
 
 ## Install AddOns
 
-The simplest way to install GRASS GIS AddOns is to use the `g.extension`
+The simplest way to install GRASS GIS Addons is to use the `g.extension`
 module which is part of any GRASS GIS installation:
 
 <https://grass.osgeo.org/grass-stable/manuals/g.extension.html>
