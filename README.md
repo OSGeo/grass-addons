@@ -1,19 +1,25 @@
 # GRASS GIS Addons
 
-This is the official GRASS GIS Addons git repository. Head over to [GRASS GIS 7
-Addons Manual pages](https://grass.osgeo.org/grass78/manuals/addons/) for an
-overview.
+This is the official GRASS GIS Addons git repository.
+Head over to [GRASS GIS 7Addons Manual
+pages](https://grass.osgeo.org/grass78/manuals/addons/)
+for an overview.
 
+## Install AddOns
 ## How to get write access here
 
+The simplest way to install GRASS GIS AddOns is to use the `g.extension`
+module which is part of any GRASS GIS installation:
 Read access is granted to the public, write access
 must be requested, see here for details:
 <https://trac.osgeo.org/grass/wiki/HowToContribute#WriteaccesstotheGRASSaddonsrepository>
 
+<https://grass.osgeo.org/grass-stable/manuals/g.extension.html>
 However, it is also possible to fork this repository, insert your AddOn or fix
 an existing one in a new branch and finally open
 a [pull request](https://help.github.com/en/articles/about-pull-requests).
 
+The same module can remove installed addons
 In either case, please read the submitting rules at the bottom of this page.
 
 ## How to get the AddOn code
@@ -26,9 +32,6 @@ git clone https://github.com/OSGeo/grass-addons.git grass_addons
 
 ## How to install or remove AddOns in your GRASS installation
 
-The simplest way to install GRASS GIS AddOns is to use the `g.extension`
-module:
-<https://grass.osgeo.org/grass-stable/manuals/g.extension.html>
 
 ## How to compile AddOn code
 
