@@ -12,7 +12,7 @@ module which is part of any GRASS GIS installation:
 
 <https://grass.osgeo.org/grass-stable/manuals/g.extension.html>
 
-The same module can remove installed addons
+The same module can also remove installed addons.
 
 ## This repository
 
