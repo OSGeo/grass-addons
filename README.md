@@ -22,7 +22,9 @@ a [pull request](https://help.github.com/en/articles/about-pull-requests).
 The same module can remove installed addons
 In either case, please read the submitting rules at the bottom of this page.
 
-## How to get the AddOn code
+## This repository
+
+### Clone locally
 
 Clone of the entire AddOns git repository:
 
@@ -30,12 +32,12 @@ Clone of the entire AddOns git repository:
 git clone https://github.com/OSGeo/grass-addons.git grass_addons
 ```
 
-## How to install or remove AddOns in your GRASS installation
+### Write access
 
 
-## How to compile AddOn code
+### Compile AddOns
 
-### C code/Scripts, with GRASS source code on your computer
+#### With GRASS source code on your computer
 
 Preparations (assuming the source code in $HOME/grass78/):
 (if you have already built GRASS from source you don't need to do this
@@ -69,7 +71,7 @@ make MODULE_TOPDIR=$HOME/grass78/ install
 For system-wide installation this usually requires "root" priviledges
 (so, also 'sudo' may help).
 
-### C code/Scripts, with GRASS binaries on your computer
+#### With GRASS binaries on your computer
 
 compile GRASS AddOns modules into your GRASS code by setting
 MODULE_TOPDIR to where to the GRASS binaries are located:
@@ -78,7 +80,7 @@ MODULE_TOPDIR to where to the GRASS binaries are located:
 make MODULE_TOPDIR=/usr/lib/grass78/
 ```
 
-## How to submit contributions
+### Contribute
 
 To submit your GRASS GIS module here, please check
 
