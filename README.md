@@ -18,7 +18,7 @@ The same module can also remove installed addons.
 
 ### Clone locally
 
-Clone of the entire AddOns git repository:
+Clone of the entire addons git repository:
 
 ```
 git clone https://github.com/OSGeo/grass-addons.git grass_addons
