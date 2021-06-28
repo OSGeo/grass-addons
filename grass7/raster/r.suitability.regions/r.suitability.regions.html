@@ -96,10 +96,11 @@ Diagonally connected raster cells are not considered to form a
 contiguous region.</i></p>
 
 <p>Note that for line elements like roads, results may differ if the 
-option to include the diagonal neighbors when defining clumps is 
-selected. For example, in figure 4, diagonally connected cells are 
-considered as neighbors. So the areas above and below the road are 
-connected at among others the marked locations. 
+option to 'include the diagonal neighbors when defining clumps' 
+(flag d) is selected. For example, in figure 4, diagonally connected
+cells are considered as neighbors. As a consequence, the suitable areas
+on both sides of the road are considered to be part of the same region.
+I.e., the road does not act as a barrier here. 
 
 <p><img src="option04.png"><i>Figure 4: Like figure 3, but this time, 
 diagonally connected raster cells are considered to form a contiguous 
@@ -124,9 +125,7 @@ suitable areas within the selected regions (green) and the filled gaps
 <p>Selecting this option will generate a second map which shows the 
 'filled patches'. This makes it easier to e.g., inspect the 
 feasibility or desirability to actually include these areas in a 
-protected area. It furthermore makes it easier to calculate the area 
-of the total area of the region and the area within the region with 
-suitable habitat.
+protected area. 
 
 <h3>Other options</h3>
 
