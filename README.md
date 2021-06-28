@@ -1,4 +1,8 @@
-# GRASS Addons git repository
+# GRASS GIS Addons
+
+This is the official GRASS GIS Addons git repository. Head over to [GRASS GIS 7
+Addons Manual pages](https://grass.osgeo.org/grass78/manuals/addons/) for an
+overview.
 
 ## How to get write access here
 
