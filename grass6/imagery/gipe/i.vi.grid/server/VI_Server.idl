@@ -1,4 +1,0 @@
-Module VI_Server;
-Define VI_CALC (IN int n,IN double I[n], IN double a[n],IN double b[n], IN double c[n],IN double d[n], IN double e[n],IN double f[n],OUT double r[n])
-Required "VI_ServerC.o"
-Calls "C" VI_CALC(n,I,a,b,c,d,e,f,r);

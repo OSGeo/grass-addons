@@ -1,6 +1,0 @@
-18 Feb 2007 - M Neteler
-	updated to GRASS 6.3
-11 Feb 2003 - A Frigeri
-	r.out.netcdf (0.1) is out for testing!
-17 Mar 2003 - A Frigeri
-	added support for floating point and double precision raster maps

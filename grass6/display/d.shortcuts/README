@@ -1,7 +1,0 @@
-These are just simple wrappers around the d.vect module.
-
- - d.stations quickly plots up a vector points map in a pretty way. (5px red dots)
- - d.vareas quickly plots up a vector areas map in a pretty way. (no centroids)
-
-
-Hamish

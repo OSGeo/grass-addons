@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-    <PlanetSashaSettings>
-        <tcp>
-            <host>localhost</host>
-            <dport>8000</dport> 
-            <pport>7000</pport> 
-        </tcp>
-    </PlanetSashaSettings>
