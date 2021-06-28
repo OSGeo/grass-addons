@@ -6,22 +6,22 @@ on:
 
 jobs:
 
-  flake8-grass7-scripts:
+  flake8-scripts:
     name: ${{ matrix.directory }}
     runs-on: ubuntu-20.04
     strategy:
       matrix:
         directory:
-        - grass7/db
-        - grass7/display
-        - grass7/general
-        - grass7/imagery
-        - grass7/misc
-        - grass7/raster
-        - grass7/raster3d
-        - grass7/temporal
-        - grass7/tools
-        - grass7/vector
+        - src/db
+        - src/display
+        - src/general
+        - src/imagery
+        - src/misc
+        - src/raster
+        - src/raster3d
+        - src/temporal
+        - src/tools
+        - src/vector
       fail-fast: false
 
     steps:
@@ -43,7 +43,7 @@ jobs:
 
 
   flake8-gui-wxgui:
-    name: grass7/gui
+    name: src/gui
     runs-on: ubuntu-20.04
 
     steps:
@@ -60,5 +60,5 @@ jobs:
     - name: Run Flake8
       # use own local flake8 settings file
       run: |
-        cd grass7/gui/wxpython/
+        cd src/gui/wxpython/
         flake8 --config=./.flake8 --count --statistics --show-source --jobs=$(nproc) .
