@@ -1,0 +1,35 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.prominence</em> calculates the average difference between a 
+central cell and its neighbors. It approximated the terrain 'ruggedness'
+by looking at average differences in elev_lid792_1m within a given neighborhood
+The <em>radius</em> is specified in number of map rows/columns.
+
+<h2>EXAMPLE</h2>
+
+North Carolina sample region:
+
+<div class="code"><pre>
+g.region raster=elev_lid792_1m
+
+# get region rows/columns
+g.region -g
+
+# calculate prominence (radius of 50 map rows)
+r.prominence input=elev_lid792_1m output=prominence radius=50
+
+# visualize over shaded DEM
+r.relief input=elev_lid792_1m output=elev_lid792_1m_shaded
+
+d.mon wx0
+d.shade shade=elev_lid792_1m_shaded color=prominence
+</pre></div> 
+
+<h2>AUTHOR</h2>
+
+Benjamin Ducke (benjamin.ducke - oxfordarch.co.uk)<br>
+Update to GRASS GIS 7: Markus Neteler - <a href="https://www.mundialis.de/">mundialis</a>
+
+<!--
+<p><i>Last changed: $Date$</i>
+-->
