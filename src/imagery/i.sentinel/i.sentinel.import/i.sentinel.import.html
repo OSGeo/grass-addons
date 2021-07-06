@@ -120,8 +120,8 @@ This mask is based on the cloud probability layer which is part of each Level2A 
 By specifying the <b>cloud_*</b>-options the creation of the cloud mask can be controlled.
 The default cloud masking threshold applied to the probability layer is set to 65%, which corresponds to
 the classification of such areas as most likely cloudy according to the ESA classification scheme used for the creation of the SCL layer.
-The SCL Layer itself is used if shadow masks should be included in the _MSK_CLOUDS layer. This requires to set <em>cloud_shadows=yes</em>,
-which includes shadows as part of the output layer. The area threshold parameter allows to exclude
+The SCL Layer itself is used if shadow masks should be included in the _MSK_CLOUDS layer. This requires to call the <b>-s</b> flag,
+which adds shadows as part of the _MSK_CLOUDS output layer. The area threshold parameter allows to exclude
 small areas of cloud and shadow cover, which in case of vector outputs tend to increase the computational speed.
 Note that the resolution of the _MSK_CLOUDS layer (20m) is determined by the native resolution of the
 cloud probability layer and the SCL layer, respectively.

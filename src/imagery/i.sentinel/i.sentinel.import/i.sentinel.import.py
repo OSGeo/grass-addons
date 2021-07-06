@@ -95,15 +95,6 @@
 #% answer: vector
 #% label: Create cloud mask as raster or vector product
 #%end
-#%option
-#% key: cloud_shadows
-#% type: string
-#% required: no
-#% multiple: no
-#% options: yes, no
-#% answer: yes
-#% label: Include cloud shadows in cloud masking
-#%end
 #%flag
 #% key: r
 #% description: Reproject raster data using r.import if needed
@@ -121,7 +112,12 @@
 #%end
 #%flag
 #% key: c
-#% description: Import cloud (and cloud shadows) masks
+#% description: Import cloud masks
+#% guisection: Settings
+#%end
+#%flag
+#% key: s
+#% description: Import cloud shadow masks
 #% guisection: Settings
 #%end
 #%flag
@@ -144,6 +140,7 @@
 #% exclusive: -o,-r
 #% exclusive: extent,-l
 #% exclusive: metadata,-j
+#% requires: -s,-c
 #%end
 
 import os
@@ -423,7 +420,7 @@ class SentinelImporter(object):
                 gs.mapcalc(f'{clouds_selected} = if({clouds_imported} >= {prob_threshold}, 1, 0)')
 
                 # Add shadow mask
-                if shadows == 'yes':
+                if shadows:
                     try:
                         shadow_file = self._filter("_".join([items[5], items[2], "SCL_20m.jp2"]))
                         if reproject:
@@ -488,7 +485,7 @@ class SentinelImporter(object):
                     gs.raster_history(map_name)
 
                 gs.message(_(f'Areal proportion of masked clouds:{[key.split()[1] for key in info_stats][0]}'))
-                if shadows == 'yes':
+                if shadows:
                     if len(info_stats) > 2:
                         gs.message(_(f'Areal proportion of masked shadows:{[key.split()[1] for key in info_stats][1]}'))
                     else:
@@ -756,7 +753,7 @@ def main():
         importer.import_cloud_masks(options["cloud_area_threshold"],
                                     options["cloud_probability_threshold"],
                                     options["cloud_output"],
-                                    options["cloud_shadows"],
+                                    flags["s"],
                                     flags["r"])
 
     if options["register_output"]:
