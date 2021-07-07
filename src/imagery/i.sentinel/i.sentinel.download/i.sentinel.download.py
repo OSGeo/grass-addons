@@ -169,6 +169,7 @@ import shutil
 import sys
 import logging
 import time
+import pandas
 from collections import OrderedDict
 
 import grass.script as gs
@@ -1023,11 +1024,12 @@ class SentinelDownloader(object):
 
 def main():
 
+    # --- Not needed anymore ---
     # Lazy import nonstandard modules
-    try:
-        import pandas
-    except ImportError as e:
-        gs.fatal(_("Module requires pandas library: {}").format(e))
+    #try:
+    #    import pandas
+    #except ImportError as e:
+    #    gs.fatal(_("Module requires pandas library: {}").format(e))
 
     try:
         import requests
