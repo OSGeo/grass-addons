@@ -93,7 +93,7 @@
 #% multiple: no
 #% options: vector,raster
 #% answer: vector
-#% label: Create cloud mask as raster or vector product
+#% label: Create cloud mask as raster or vector map
 #%end
 #%flag
 #% key: r
