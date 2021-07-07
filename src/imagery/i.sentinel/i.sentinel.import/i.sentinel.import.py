@@ -178,9 +178,10 @@ class SentinelImporter(object):
     def __del__(self):
         # remove temporary maps
         for map in self._map_list:
-            if gs.find_file(map, element='cell')['file']:
-                gs.run_command("g.remove", flags="fb", type='raster', name=map,
-                               quiet=True)
+            if gs.find_file(map, element="cell")["file"]:
+                gs.run_command(
+                    "g.remove", flags="fb", type="raster", name=map, quiet=True
+                )
 
         if flags["l"]:
             # unzipped files are required when linking
@@ -375,15 +376,21 @@ class SentinelImporter(object):
         except CalledModuleError as e:
             pass  # error already printed
 
-    def import_cloud_masks(self, area_threshold, prob_threshold, output, shadows, reproject):
+    def import_cloud_masks(
+        self, area_threshold, prob_threshold, output, shadows, reproject
+    ):
         files = self._filter("MSK_CLDPRB_20m.jp2")
 
         for f in files:
             safe_dir = os.path.dirname(f).split(os.path.sep)[-4]
             items = safe_dir.split("_")
 
-            if 'L2A' not in items[1]:
-                gs.warning(_(f'No Level2A product: Unable to import cloud mask for {"_".join([items[5], items[2]])}'))
+            if "L2A" not in items[1]:
+                gs.warning(
+                    _("No Level2A product: Unable to import cloud mask for {}").format(
+                        "_".join([items[5], items[2]])
+                    )
+                )
                 continue
 
             # Define names of final & temporary maps
@@ -395,106 +402,187 @@ class SentinelImporter(object):
             mask_selected = "_".join([items[5], items[2], "mask_selected"])
             mask_cleaned = "_".join([items[5], items[2], "mask_cleaned"])
 
-            self._map_list.extend([clouds_imported, clouds_selected,
-                                  shadows_imported, shadows_selected,
-                                  mask_selected, mask_cleaned])
+            self._map_list.extend(
+                [
+                    clouds_imported,
+                    clouds_selected,
+                    shadows_imported,
+                    shadows_selected,
+                    mask_selected,
+                    mask_cleaned,
+                ]
+            )
 
             try:
                 # Import & Threshold cloud probability layer
-                gs.message(_(f'Importing cloud mask for {"_".join([items[5], items[2]])}'))
+                gs.message(
+                    _("Importing cloud mask for {}").format(
+                        "_".join([items[5], items[2]])
+                    )
+                )
                 if reproject:
                     self._args["resolution_value"] = self._raster_resolution(f)
                     self._args["resample"] = "bilinear"
-                    gs.run_command("r.import",
-                                   input=f,
-                                   output=clouds_imported,
-                                   **self._args)
+                    gs.run_command(
+                        "r.import", input=f, output=clouds_imported, **self._args
+                    )
                 else:
-                    gs.run_command("r.in.gdal",
-                                   input=f,
-                                   output=clouds_imported,
-                                   **self._args)
+                    gs.run_command(
+                        "r.in.gdal", input=f, output=clouds_imported, **self._args
+                    )
 
                 gs.use_temp_region()
                 gs.run_command("g.region", raster=clouds_imported)
-                gs.mapcalc(f'{clouds_selected} = if({clouds_imported} >= {prob_threshold}, 1, 0)')
+                gs.mapcalc(
+                    f"{clouds_selected} = if({clouds_imported} >= {prob_threshold}, 1, 0)"
+                )
 
                 # Add shadow mask
                 if shadows:
                     try:
-                        shadow_file = self._filter("_".join([items[5], items[2], "SCL_20m.jp2"]))
+                        shadow_file = self._filter(
+                            "_".join([items[5], items[2], "SCL_20m.jp2"])
+                        )
                         if reproject:
-                            self._args["resolution_value"] = self._raster_resolution(shadow_file[0])
+                            self._args["resolution_value"] = self._raster_resolution(
+                                shadow_file[0]
+                            )
                             self._args["resample"] = "nearest"
-                            gs.run_command("r.import",
-                                           input=shadow_file,
-                                           output=shadows_imported,
-                                           **self._args)
+                            gs.run_command(
+                                "r.import",
+                                input=shadow_file,
+                                output=shadows_imported,
+                                **self._args,
+                            )
                         else:
-                            gs.run_command("r.in.gdal",
-                                           input=shadow_file,
-                                           output=shadows_imported,
-                                           **self._args)
+                            gs.run_command(
+                                "r.in.gdal",
+                                input=shadow_file,
+                                output=shadows_imported,
+                                **self._args,
+                            )
 
-                        gs.mapcalc(f'{shadows_selected} = if({shadows_imported} == 3, 2, 0)')
-                        gs.mapcalc(f'{mask_selected} = max({shadows_selected},{clouds_selected})')
+                        gs.mapcalc(
+                            f"{shadows_selected} = if({shadows_imported} == 3, 2, 0)"
+                        )
+                        gs.mapcalc(
+                            f"{mask_selected} = max({shadows_selected},{clouds_selected})"
+                        )
                     except Exception as e:
-                        gs.warning(_(f'Unable to import shadows for {"_".join([items[5], items[2]])}. Error: {e}'))
+                        gs.warning(
+                            _("Unable to import shadows for {}. Error: {}").format(
+                                "_".join([items[5], items[2]]), e
+                            )
+                        )
 
                 else:
-                    gs.run_command("g.rename", quiet=True, raster=(clouds_selected, mask_selected))
-
+                    gs.run_command(
+                        "g.rename", quiet=True, raster=(clouds_selected, mask_selected)
+                    )
 
                 # Cleaning small patches
                 try:
-                    gs.run_command('r.reclass.area',
-                                   input=mask_selected,
-                                   output=mask_cleaned,
-                                   value=area_threshold,
-                                   mode='greater')
+                    gs.run_command(
+                        "r.reclass.area",
+                        input=mask_selected,
+                        output=mask_cleaned,
+                        value=area_threshold,
+                        mode="greater",
+                    )
                 except Exception as e:
-                    pass # error already printed
+                    pass  # error already printed
 
                 # Extract & Label clouds (and shadows)
-                gs.run_command('r.null', map=mask_cleaned, setnull='0')
+                gs.run_command("r.null", map=mask_cleaned, setnull="0")
 
-                labels = ['1:clouds','2:shadows']
-                labelling = gs.feed_command('r.category', map=mask_cleaned, separator=':', rules="-")
+                labels = ["1:clouds", "2:shadows"]
+                labelling = gs.feed_command(
+                    "r.category", map=mask_cleaned, separator=":", rules="-"
+                )
                 labelling.stdin.write("\n".join(labels).encode())
                 labelling.stdin.close()
                 labelling.wait()
 
-                info_stats = gs.parse_command('r.stats', input=mask_cleaned, flags='p')
+                info_stats = gs.parse_command("r.stats", input=mask_cleaned, flags="p")
 
                 # Create final cloud (and shadow) mask & display areal statistics
-                if output == 'vector':
-                    gs.run_command('r.to.vect', input=mask_cleaned, output=map_name, type='area', flags='s')
-                    gs.run_command('v.db.addcolumn', map=map_name, columns='GRASSRGB varchar(20)', quiet=True)
-                    gs.run_command('v.db.update', map=map_name, column='GRASSRGB', where='label=="clouds"', value='230:230:230', quiet=True)
-                    gs.run_command('v.db.update', map=map_name, column='GRASSRGB', where='label=="shadows"', value='60:60:60', quiet=True)
-                    gs.run_command('v.colors', map=map_name, use='attr', column='value', rgb_column='GRASSRGB', flags='c', quiet=True)
+                if output == "vector":
+                    gs.run_command(
+                        "r.to.vect",
+                        input=mask_cleaned,
+                        output=map_name,
+                        type="area",
+                        flags="s",
+                    )
+                    gs.run_command(
+                        "v.db.addcolumn",
+                        map=map_name,
+                        columns="GRASSRGB varchar(20)",
+                        quiet=True,
+                    )
+                    gs.run_command(
+                        "v.db.update",
+                        map=map_name,
+                        column="GRASSRGB",
+                        where='label=="clouds"',
+                        value="230:230:230",
+                        quiet=True,
+                    )
+                    gs.run_command(
+                        "v.db.update",
+                        map=map_name,
+                        column="GRASSRGB",
+                        where='label=="shadows"',
+                        value="60:60:60",
+                        quiet=True,
+                    )
+                    gs.run_command(
+                        "v.colors",
+                        map=map_name,
+                        use="attr",
+                        column="value",
+                        rgb_column="GRASSRGB",
+                        flags="c",
+                        quiet=True,
+                    )
                     gs.vector_history(map_name)
 
                 else:
-                    gs.run_command('g.rename', quiet=True, raster=(mask_cleaned, map_name))
-                    colours = ['1 230:230:230','2 60:60:60']
-                    colourise = gs.feed_command('r.colors', map=map_name, rules="-", quiet=True)
+                    gs.run_command(
+                        "g.rename", quiet=True, raster=(mask_cleaned, map_name)
+                    )
+                    colours = ["1 230:230:230", "2 60:60:60"]
+                    colourise = gs.feed_command(
+                        "r.colors", map=map_name, rules="-", quiet=True
+                    )
                     colourise.stdin.write("\n".join(colours).encode())
                     colourise.stdin.close()
                     colourise.wait()
                     gs.raster_history(map_name)
 
-                gs.message(_(f'Areal proportion of masked clouds:{[key.split()[1] for key in info_stats][0]}'))
+                gs.message(
+                    _("Areal proportion of masked clouds:{}").format(
+                        [key.split()[1] for key in info_stats][0]
+                    )
+                )
                 if shadows:
                     if len(info_stats) > 2:
-                        gs.message(_(f'Areal proportion of masked shadows:{[key.split()[1] for key in info_stats][1]}'))
+                        gs.message(
+                            _("Areal proportion of masked shadows:{}").format(
+                                [key.split()[1] for key in info_stats][1]
+                            )
+                        )
                     else:
-                        gs.message(_('Areal proportion of masked shadows:0%'))
+                        gs.message(_("Areal proportion of masked shadows:0%"))
 
                 gs.del_temp_region()
 
             except Exception as e:
-                gs.warning(_(f'Unable to import cloud mask for {"_".join([items[5], items[2]])}. Error: {e}'))
+                gs.warning(
+                    _("Unable to import cloud mask for {}. Error: {}").format(
+                        "_".join([items[5], items[2]]), e
+                    )
+                )
 
     def print_products(self):
         for f in self.files:
@@ -750,11 +838,13 @@ def main():
 
     if flags["c"]:
         # import cloud mask if requested
-        importer.import_cloud_masks(options["cloud_area_threshold"],
-                                    options["cloud_probability_threshold"],
-                                    options["cloud_output"],
-                                    flags["s"],
-                                    flags["r"])
+        importer.import_cloud_masks(
+            options["cloud_area_threshold"],
+            options["cloud_probability_threshold"],
+            options["cloud_output"],
+            flags["s"],
+            flags["r"],
+        )
 
     if options["register_output"]:
         # create t.register file if requested
