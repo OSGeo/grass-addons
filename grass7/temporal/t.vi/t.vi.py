@@ -212,7 +212,7 @@ def check_map_numbers(where, **kwargs):
                 if numrast != len(maps):
                     grass.warning(
                         _(
-                            "Number of raster in {} strds and {} strds are not the same.".format(
+                            "The number of raster maps in {} strds and {} strds differs.".format(
                                 name, sp.get_name()
                             )
                         )
