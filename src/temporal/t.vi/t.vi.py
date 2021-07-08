@@ -94,7 +94,7 @@
 #% required: no
 #% multiple: no
 #% key_desc: name
-#% description: The prefix of the output name of raster in space time raster dataset
+#% description: Prefix of the output raster names within the space time raster dataset
 #% gisprompt: new,strds,strds
 #%end
 
