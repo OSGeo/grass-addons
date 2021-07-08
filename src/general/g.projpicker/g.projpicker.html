@@ -199,7 +199,8 @@ C
 D
 </pre></div>
 
-<p>This query string performs the XOR of two geometries and returns projections that completely contain only one of them:
+<p>This query string performs the XOR of two geometries and returns projections
+that completely contain only one of them:
 <div class="code"><pre>
 xor
 # A or B can be point, poly, or bbox individually
@@ -207,7 +208,17 @@ A
 B
 </pre></div>
 
-<p>Since the XOR operator is performed on two geometries at a time, feeding more than two geometries does not return mutually exclusive projections.
+<p>Since the XOR operator is performed on two geometries at a time, feeding
+more than two geometries does not return mutually exclusive projections. For
+example, this query string returns projections that contain only A, B, or C
+exclusively, and additionally all three geometries:
+<div class="code"><pre>
+xor
+# A, B, or C can be point, poly, or bbox individually
+A
+B
+C
+</pre></div>
 
 <h3>Postfix logical operations</h3>
 
@@ -248,7 +259,8 @@ C       # find C
 xor     # (A and B) xor C
 </pre></div>
 
-<p>This query string returns all projections that contain only one of A, B, or C exclusively:
+<p>This query string returns all projections that contain only one of A, B, or
+C exclusively:
 <div class="code"><pre>
 postfix
 A       # find A
