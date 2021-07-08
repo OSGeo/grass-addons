@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
     }
     if (!Rast_map_is_fp(parm.input->answer, mapset)) {
         G_fatal_error
-            ("Input map is not a floating point map.\nOnly integer maps are allowed as input maps.");
+            ("Input map is not a floating point map.\nOnly floating point maps are allowed as input maps.");
     }
     fd = Rast_open_old(parm.input->answer, mapset);
     if (fd < 0) {
