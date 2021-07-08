@@ -182,6 +182,10 @@ class SentinelImporter(object):
                 gs.run_command(
                     "g.remove", flags="fb", type="raster", name=map, quiet=True
                 )
+            if gs.find_file(map, element="vector")["file"]:
+                gs.run_command(
+                    "g.remove", flags="f", type="vector", name=map, quiet=True
+                )
 
         if flags["l"]:
             # unzipped files are required when linking
@@ -293,7 +297,6 @@ class SentinelImporter(object):
                         self._args["flags"] += "r"
                     else:
                         self._args["flags"] = "r"
-
         for f in self.files:
             if not override and (link or (not link and not reproject)):
                 if not self._check_projection(f):
@@ -376,22 +379,13 @@ class SentinelImporter(object):
         except CalledModuleError as e:
             pass  # error already printed
 
-    def import_cloud_masks(
-        self, area_threshold, prob_threshold, output, shadows, reproject
-    ):
-        files = self._filter("MSK_CLDPRB_20m.jp2")
+    def import_cloud_masks(self, area_threshold, prob_threshold, output, shadows, reproject):
+        # Import cloud masks for L2A products
+        files_L2A = self._filter("MSK_CLDPRB_20m.jp2")
 
-        for f in files:
+        for f in files_L2A:
             safe_dir = os.path.dirname(f).split(os.path.sep)[-4]
             items = safe_dir.split("_")
-
-            if "L2A" not in items[1]:
-                gs.warning(
-                    _("No Level2A product: Unable to import cloud mask for {}").format(
-                        "_".join([items[5], items[2]])
-                    )
-                )
-                continue
 
             # Define names of final & temporary maps
             map_name = "_".join([items[5], items[2], "MSK", "CLOUDS"])
@@ -583,6 +577,124 @@ class SentinelImporter(object):
                         "_".join([items[5], items[2]]), e
                     )
                 )
+
+        # Import of simplified cloud masks for Level-1C products
+        all_files = self._filter("MSK_CLOUDS_B00.gml")
+        files_L1C = []
+
+        for f in all_files:
+            safe_dir = os.path.dirname(f).split(os.path.sep)[-4]
+            if safe_dir not in [os.path.dirname(file).split(os.path.sep)[-4] for file in files_L2A]:
+                files_L1C.append(f)
+
+        if len(files_L1C) > 0:
+            from osgeo import ogr
+            for f in files_L1C:
+                safe_dir = os.path.dirname(f).split(os.path.sep)[-4]
+                items = safe_dir.split("_")
+
+                # Define names of final & temporary maps
+                map_name = "_".join([items[5], items[2], "MSK", "CLOUDS"])
+                clouds_imported = "_".join([items[5], items[2], "clouds_imported"])
+                mask_cleaned = "_".join([items[5], items[2], "mask_cleaned"])
+                self._map_list.extend([clouds_imported, mask_cleaned])
+
+                # check if any OGR layer
+                dsn = ogr.Open(f)
+                layer_count = dsn.GetLayerCount()
+                dsn.Destroy()
+                if layer_count < 1:
+                    gs.info("No clouds layer found in <{}>. Import skipped".format(f))
+                    continue
+
+                # Import cloud layer
+                try:
+                    gs.message(
+                        _("Importing cloud mask for {}").format(
+                            "_".join([items[5], items[2]])
+                        )
+                    )
+                    gs.run_command(
+                        "v.import",
+                        input=f,
+                        output=clouds_imported,
+                        extent=options["extent"],
+                        flags="o" if flags["o"] else None,
+                        quiet=True
+                    )
+
+                    gs.use_temp_region()
+                    gs.run_command("g.region", vector=clouds_imported)
+
+                    # Cleaning small patches
+                    gs.run_command(
+                        "v.clean",
+                        input=clouds_imported,
+                        output=mask_cleaned,
+                        tool='rmarea',
+                        threshold=area_threshold
+                    )
+
+                    # Calculating info stats
+                    gs.run_command('v.db.addcolumn', map=mask_cleaned, columns='value_num INT')
+                    gs.run_command('v.db.update', map=mask_cleaned, column='value_num', value=1)
+                    gs.run_command('v.to.rast', input=mask_cleaned, output=mask_cleaned, use='attr', attribute_column='value_num')
+                    info_stats = gs.parse_command("r.stats", input=mask_cleaned, flags="p")
+
+                    # Create final cloud mask output
+                    if output == "vector":
+                        gs.run_command(
+                            "g.rename", quiet=True, vector=(mask_cleaned, map_name)
+                        )
+                        colours = ["1 230:230:230"]
+                        colourise = gs.feed_command(
+                            "v.colors",
+                            map=map_name,
+                            use="attr",
+                            column="value_num",
+                            rules="-",
+                            quiet=True
+                        )
+                        colourise.stdin.write("\n".join(colours).encode())
+                        colourise.stdin.close()
+                        colourise.wait()
+                        gs.vector_history(map_name)
+
+                    else:
+                        gs.run_command(
+                            "g.rename", quiet=True, raster=(mask_cleaned, map_name)
+                        )
+                        colours = ["1 230:230:230"]
+                        colourise = gs.feed_command(
+                            "r.colors", map=map_name, rules="-", quiet=True
+                        )
+                        colourise.stdin.write("\n".join(colours).encode())
+                        colourise.stdin.close()
+                        colourise.wait()
+                        gs.raster_history(map_name)
+
+                    # Display messages & statistics
+                    if shadows:
+                        gs.warning(
+                            _("Level1 product: No shadow mask for {}").format(
+                                "_".join([items[5], items[2]])
+                            )
+                        )
+
+                    gs.message(
+                        _("Areal proportion of masked clouds:{}").format(
+                            [key.split()[1] for key in info_stats][0]
+                        )
+                    )
+
+                    gs.del_temp_region()
+
+                except Exception as e:
+                    gs.warning(
+                        _("Unable to import cloud mask for {}. Error: {}").format(
+                            "_".join([items[5], items[2]]), e
+                        )
+                    )
 
     def print_products(self):
         for f in self.files:
