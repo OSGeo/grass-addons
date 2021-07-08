@@ -519,11 +519,14 @@ def main():
                     gscript.warning(_("To many map as input, only first will be used"))
                 thisivi.inputs[k].value = rast[0].get_name()
         if options["prefix"]:
-            out = "{pre}_{ti}_ndvi".format(
-                pre=options["prefix"], ti=ti[0].strftime("%Y_%m_%d_%H_%M")
+            out = "{pre}_{ti}_{vi}".format(
+                pre=options["prefix"], ti=ti[0].strftime("%Y_%m_%d_%H_%M"),
+                vi=viname
             )
         else:
-            out = "{ti}_ndvi".format(ti=ti[0].strftime("%Y_%m_%d_%H_%M"))
+            out = "{ti}_{vi}".format(
+                ti=ti[0].strftime("%Y_%m_%d_%H_%M"), vi=viname
+            )
         thisivi.outputs.output = out
         cmd_list.append(thisivi)
         new_map = tgis.open_new_map_dataset(
