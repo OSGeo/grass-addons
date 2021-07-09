@@ -136,33 +136,7 @@ def main():
                 x, y = y, x
             query += f" {y},{x}"
 
-    if infile:
-        geoms = ppik.read_file(infile)
-    else:
-        geoms = query.split()
-        n = len(geoms)
-        idx = []
-        i = 0
-        while i < n - 1:
-            m = re.match("""^(|unit=)(["'])(.*)$""", geoms[i])
-            if m:
-                geoms[i] = m[1] + m[3]
-                quote = m[2]
-                if geoms[i].endswith(quote):
-                    geoms[i] = geoms[i][: -len(quote)]
-                else:
-                    for j in range(i + 1, n):
-                        idx.append(j)
-                        m = re.match(f"^(.*){quote}$", geoms[j])
-                        if m:
-                            geoms[i] += f" {m[1]}"
-                            break
-                        else:
-                            geoms[i] += f" {geoms[j]}"
-                    i = j
-            i += 1
-        for i in reversed(idx):
-            del geoms[i]
+    geoms = ppik.read_file(infile) if infile else query.split()
 
     if separator == "pipe for plain; newline for srid":
         if fmt == "plain":
