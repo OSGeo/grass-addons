@@ -113,26 +113,32 @@ AZIMUTH_ANGLE_5=295.354861828927<br>
 <h2>NOTES</h2>
 
 <p>
-<h3>Importing cloud and cloud shadow masks</h3>
-
-If <b>-c</b> flag is given, a cloud mask with suffix _MSK_CLOUDS is additionally created.
-This mask is based on the cloud probability layer which is part of each Level2A product.
-The creation of the cloud mask can be controlled by specifying the <b>cloud_*</b> options.
-The default cloud masking threshold applied to the probability layer is set to 65%, which corresponds to
-the classification of such areas as most likely cloudy according to the ESA classification scheme used for the creation of the SCL layer.
-The SCL Layer itself is used if shadow masks should be included in the _MSK_CLOUDS layer. This requires to call the <b>-s</b> flag,
-which adds shadows as part of the _MSK_CLOUDS output layer. The <b>cloud_area_threshold</b> parameter allows to exclude
-small areas of cloud and shadow cover, which in case of vector outputs tend to increase the computational speed.
-Note that the resolution of the _MSK_CLOUDS layer (20m) is determined by the native resolution of the
-cloud probability layer and the SCL layer, respectively.
-
-<p>
 By <b>register_file</b> option <em>i.sentinel.import</em> allows
 creating a file which can be used to register imported imagery data
 into space-time raster dateset (STRDS)
 by <em><a href="https://grass.osgeo.org/grass-stable/manuals/t.register.html">t.register</a></em>. Note that
 currently a register file can be created only for Sentinel-2 data. See
 example below.
+
+<p>
+<h3>Importing cloud and cloud shadow masks</h3>
+
+If <b>-c</b> flag is given, a cloud mask with suffix _MSK_CLOUDS is additionally created.
+For Level2A products this mask is based on the Level2A inherent cloud probability layer and
+can be controlled by specifying the <b>cloud_*</b> options. The default <b>cloud_probability_threshold</b>
+applied to the probability layer is set to 65%, which corresponds to the classification of such areas as most
+likely cloudy according to the ESA classification scheme used for the creation of the SCL layer.
+The SCL Layer itself is used if shadow masks should be included in the _MSK_CLOUDS layer.
+This requires to call the <b>-s</b> flag, which adds shadows as part of the _MSK_CLOUDS output layer.
+The <b>cloud_area_threshold</b> parameter allows to exclude small areas of cloud and shadow cover,
+which in case of vector outputs tend to increase the computational speed. Note that the resolution of
+the _MSK_CLOUDS layer (20m) is determined by the native resolution of the cloud probability layer
+and the SCL layer, respectively.
+For Level1C products a simplified cloud mask will be created since cloud probability and SCL layer
+are not available. Note that for Level1C products only clouds and no shadows can be masked and specifying
+the <b>cloud_probability_threshold</b> does not influence the masking procedure. Only the parameters
+<b>cloud_area_threshold</b> and <b>cloud_output</b> will be applied during the import of cloud masks
+for Level1C products.
 
 <p>
 <h3>Metadata import</h3>
