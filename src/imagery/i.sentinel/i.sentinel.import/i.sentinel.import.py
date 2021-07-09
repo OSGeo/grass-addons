@@ -379,7 +379,9 @@ class SentinelImporter(object):
         except CalledModuleError as e:
             pass  # error already printed
 
-    def import_cloud_masks(self, area_threshold, prob_threshold, output, shadows, reproject):
+    def import_cloud_masks(
+        self, area_threshold, prob_threshold, output, shadows, reproject
+    ):
         # Import cloud masks for L2A products
         files_L2A = self._filter("MSK_CLDPRB_20m.jp2")
 
@@ -508,37 +510,18 @@ class SentinelImporter(object):
                         type="area",
                         flags="s",
                     )
-                    gs.run_command(
-                        "v.db.addcolumn",
-                        map=map_name,
-                        columns="GRASSRGB varchar(20)",
-                        quiet=True,
-                    )
-                    gs.run_command(
-                        "v.db.update",
-                        map=map_name,
-                        column="GRASSRGB",
-                        where='label=="clouds"',
-                        value="230:230:230",
-                        quiet=True,
-                    )
-                    gs.run_command(
-                        "v.db.update",
-                        map=map_name,
-                        column="GRASSRGB",
-                        where='label=="shadows"',
-                        value="60:60:60",
-                        quiet=True,
-                    )
-                    gs.run_command(
+                    colours = ["1 230:230:230", "2 60:60:60"]
+                    colourise = gs.feed_command(
                         "v.colors",
                         map=map_name,
                         use="attr",
                         column="value",
-                        rgb_column="GRASSRGB",
-                        flags="c",
+                        rules="-",
                         quiet=True,
                     )
+                    colourise.stdin.write("\n".join(colours).encode())
+                    colourise.stdin.close()
+                    colourise.wait()
                     gs.vector_history(map_name)
 
                 else:
@@ -584,11 +567,14 @@ class SentinelImporter(object):
 
         for f in all_files:
             safe_dir = os.path.dirname(f).split(os.path.sep)[-4]
-            if safe_dir not in [os.path.dirname(file).split(os.path.sep)[-4] for file in files_L2A]:
+            if safe_dir not in [
+                os.path.dirname(file).split(os.path.sep)[-4] for file in files_L2A
+            ]:
                 files_L1C.append(f)
 
         if len(files_L1C) > 0:
             from osgeo import ogr
+
             for f in files_L1C:
                 safe_dir = os.path.dirname(f).split(os.path.sep)[-4]
                 items = safe_dir.split("_")
@@ -620,7 +606,7 @@ class SentinelImporter(object):
                         output=clouds_imported,
                         extent=options["extent"],
                         flags="o" if flags["o"] else None,
-                        quiet=True
+                        quiet=True,
                     )
 
                     gs.use_temp_region()
@@ -631,15 +617,27 @@ class SentinelImporter(object):
                         "v.clean",
                         input=clouds_imported,
                         output=mask_cleaned,
-                        tool='rmarea',
-                        threshold=area_threshold
+                        tool="rmarea",
+                        threshold=area_threshold,
                     )
 
                     # Calculating info stats
-                    gs.run_command('v.db.addcolumn', map=mask_cleaned, columns='value_num INT')
-                    gs.run_command('v.db.update', map=mask_cleaned, column='value_num', value=1)
-                    gs.run_command('v.to.rast', input=mask_cleaned, output=mask_cleaned, use='attr', attribute_column='value_num')
-                    info_stats = gs.parse_command("r.stats", input=mask_cleaned, flags="p")
+                    gs.run_command(
+                        "v.db.addcolumn", map=mask_cleaned, columns="value_num INT"
+                    )
+                    gs.run_command(
+                        "v.db.update", map=mask_cleaned, column="value_num", value=1
+                    )
+                    gs.run_command(
+                        "v.to.rast",
+                        input=mask_cleaned,
+                        output=mask_cleaned,
+                        use="attr",
+                        attribute_column="value_num",
+                    )
+                    info_stats = gs.parse_command(
+                        "r.stats", input=mask_cleaned, flags="p"
+                    )
 
                     # Create final cloud mask output
                     if output == "vector":
@@ -653,7 +651,7 @@ class SentinelImporter(object):
                             use="attr",
                             column="value_num",
                             rules="-",
-                            quiet=True
+                            quiet=True,
                         )
                         colourise.stdin.write("\n".join(colours).encode())
                         colourise.stdin.close()
