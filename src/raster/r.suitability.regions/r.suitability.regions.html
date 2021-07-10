@@ -23,7 +23,8 @@ are subsequently removed. See <a
 href="https://grass.osgeo.org/grass78/manuals/r.reclass.area.html" 
 target="_blank">r.reclass.area</a> for more details. 
 
-<p><img src="option01.png"><i>Figure 1: identifying regions of 
+<p><img src="option01.png"><i>
+<br>Figure 1: identifying regions of 
 contiguous raster cells with a suitability score of 0.7 or 
 more.</i></p>
 
@@ -69,7 +70,8 @@ no problem to briefly stay in non-suitable habitat, e.g., to cross it
 on their way to more suitable habitat. As the example below shows, it 
 results in larger regions than in the previous option.
 
-<p><img src="option02.png"><i>Figure 2: Like figure 1, but based on the 
+<p><img src="option02.png"><i>
+<br>Figure 2: Like figure 1, but based on the 
 median suitability scores of the neighboring cells within a radius of 
 300 meter (3x3 moving window).</i></p>
 
@@ -90,7 +92,8 @@ in a net loss of habitat if one or more of the fragments are too small
 to maintain a population (the user can set a minimum area size to 
 account for this). 
 
-<p><img src="option03.png"><i>Figure 3: Like figure 2, but considering 
+<p><img src="option03.png"><i>
+<br>Figure 3: Like figure 2, but considering 
 raster cells with suitability 0 (mostly roads) as absolute barriers. 
 Diagonally connected raster cells are not considered to form a 
 contiguous region.</i></p>
@@ -102,7 +105,8 @@ cells are considered as neighbors. As a consequence, the suitable areas
 on both sides of the road are considered to be part of the same region.
 I.e., the road does not act as a barrier here. 
 
-<p><img src="option04.png"><i>Figure 4: Like figure 3, but this time, 
+<p><img src="option04.png"><i>
+<br>Figure 4: Like figure 3, but this time, 
 diagonally connected raster cells are considered to form a contiguous 
 region.</i></p>
 
@@ -116,7 +120,8 @@ Only gaps smaller than a user-defined maximum size will be included.
 be desirable for visualisation purposes, or it may in fact be 
 acceptable to include such areas in the final selection of a region. 
 
-<p><img src="option05.png"><i>Figure 5: Like figure 3 (left), but here 
+<p><img src="option05.png"><i>
+<br>Figure 5: Like figure 3 (left), but here 
 gaps (areas within a suitable region) of 500 hectares or less were 
 included in the final selection (middle). The right map shows the 
 suitable areas within the selected regions (green) and the filled gaps 
@@ -127,37 +132,61 @@ suitable areas within the selected regions (green) and the filled gaps
 feasibility or desirability to actually include these areas in a 
 protected area. 
 
+<h3>Compactness of the regions</h3>
+
+<p>To compare the compactness of the resulting regions, the compactness 
+of an area is calculated using the formula below (see also <a 
+href="https://grass.osgeo.org/grass78/manuals/v.to.db.html">v.to.db</a>. 
+
+<p><pre><code>compactness = perimeter / (2 * sqrt(PI * area))</code></pre>
+
+<p>This will create a layer with the basename with the suffix 
+'compactness'. The compactness will also be calculated as one of the 
+region statistics if the option to save the result as a vector layer is 
+selected (see under 'other options' below.
+
+
 <h3>Other options</h3>
 
 The user can opt to save two intermediate layers: the layer showing all 
-raster cells with a suitability higher than the threshold (flag k; file name as 
-suffix <i>_allsuitableareas</i>), and the layer with the suitability 
-based on focal statistics (flag f; file name as suffix 
-<i>_focalsuitability</i>). 
+raster cells with a suitability higher than the threshold (flag k; file 
+name with the suffix <i>_allsuitableareas</i>), and the layer with the 
+suitability based on focal statistics (flag f; file name with suffix 
+<i>_focalsuitability</i>). There is furthermore the option to create a 
+layer with the average suitability per clump (flag z), and a layer with 
+the surface area (in hectares) of the clumped regions (flag a).
 
-<p>There is furthermore the option to create a layer with the average 
-suitability per clump (flag z), and a layer with the surface area (in 
-hectares) of the clumped regions (flag a).
+<p>Selecting the 'v' flag will create a vector layer with the regions. 
+The attribute table of this vector layer will include columns with the 
+surface area (m2), compactness, fractal dimension (<i>fd</i>), and 
+average suitability. For the meaning of compactness, see above. The 
+fractal dimension of the boundary of a polygon is calculated using the 
+formula below (see also <a 
+href="https://grass.osgeo.org/grass78/manuals/v.to.db.html">v.to.db</a>.
+
+<p><pre><code> <code>fd = 2 * (log(perimeter) / log(area))</code></pre>
 
 
 <h2>NOTE</h2>
 
-This addon is based on the <i>r.reclass.area</i> function. Like in that 
-function, the user can opt to consider diagonally connected raster 
-cells to be part of a contiguous region. Using this option will in most 
-cases result in less compact regions. It may furthermore result in 
-regions that would otherwise be considered as separate regions to 
-appear as one large region instead.
+This addon uses the <i>r.reclass.area</i> function to find the clumps. 
+Like in that function, the user can opt to consider diagonally 
+connected raster cells to be part of a contiguous region. Using this 
+option will in most cases result in less compact regions. It may 
+furthermore result in regions that would otherwise be considered as 
+separate regions to appear as one large region instead.
 
 <p>The option to calculate the area of clumped regions should be used 
 with projected layers only because the assumption is that all cells 
 have the same size.
 
 <h2>See also</h2>
-<em>
-<a href="https://grass.osgeo.org/grass78/manuals/r.reclass.area.html">r.reclass.area</a>,
-<a href="https://grass.osgeo.org/grass78/manuals/r.clump.html">r.clump</a>,
-</em>
+
+<ul>
+<li><a href="https://grass.osgeo.org/grass78/manuals/r.reclass.area.html">r.reclass.area</a></li>
+<li><a href="https://grass.osgeo.org/grass78/manuals/r.clump.html">r.clump</a></li>
+<li><a href="https://grass.osgeo.org/grass78/manuals/v.to.db.html">v.to.db</a></li>
+</ul>
 
 <h2>AUTHOR</h2>
 
