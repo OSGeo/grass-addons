@@ -494,12 +494,8 @@ g.projpicker query="postfix unit='US foot' '34.2348 -83.8677' '33.7490 -84.3880'
 
 g.projpicker input=- &lt;&lt;EOT
 postfix
-unit=US foot    # in this case, quotes are not allowed because statements are
-                # separated by a newline; in fact, quotes are handled by
-                # g.projpicker, not by ProjPicker, because the former accepts
-                # the entire query as a single string from the command line
-                # while the latter reads multiple statements as individual
-                # arguments
+unit=US foot    # in this case, quotes are optional because this statement is
+                # not followed by other items
 34.2348,-83.8677
 33.7490,-84.3880
 not
