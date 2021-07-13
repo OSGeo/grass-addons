@@ -342,6 +342,58 @@ B               # known coordinates in latlon that should match A
 match           # find projections in xy that contain A that matches B in latlon
 </pre></div>
 
+<h3>Geometry variables</h3>
+
+Geometry variables can be used to store a geometry. The name of a variable must
+consist of lowercase and uppercase letters, numbers, and underscores. If the
+variable name starts with one of these characters and ends with a colon, it
+stores the following geometry and is not used immediately. If the variable name
+starts with a colon followed by these characters, the geometry stored in the
+variable is restored. If the variable name starts and ends with a colon, the
+following geometry is stored and used immediately.
+
+<p>See the following example:
+<div class="code"><pre>
+postfix
+# define city geometries, but not used immediately
+city_A:
+A
+city_A:
+B
+city_C:
+C
+city_X:
+X
+
+# start query
+:city_A
+:city_B
+or
+:city_C
+not
+and
+:no_where: # saved and used immediately
+and
+:city_X
+or
+</pre></div>
+
+<h3>Multiple items in one line</h3>
+
+Multiple items can be specified in one line separated by whitespaces. When
+there are whitespaces in one item, it needs to be enclosed between single or
+double quotes. Two numbers in <em>latlon</em> or <em>xy</em>, or four numbers
+in <em>bbox</em> are treated as a single item, so they don't need quotes unless
+they are separated by whitespaces.
+
+<p>See the following example:
+<div class="code"><pre>
+point 10,20 xy 3,4
+# use a space-comma-space to start a new poly
+latlon poly 10,20 "30 40" xy 5,6 7,8 9,10 , 11,12 13,14
+latlon bbox 10,20,30,40 xy 5,6,7,8
+</pre></div>
+
 <h3>Output schema</h3>
 
 The output schema for the <em>sqlite</em> <b>format</b> is as follows:
@@ -461,6 +513,19 @@ unit=US foot
 33.7490 -84.3880
 not
 and
+EOT
+
+g.projpicker input=- &lt;&lt;EOT
+postfix unit="US foot" 34.2348,-83.8677 33.7490,-84.3880 not and
+EOT
+
+g.projpicker input=- &lt;&lt;EOT
+postfix
+unit=US foot
+A: 34.2348,-83.8677
+B: 33.7490,-84.3880
+
+:A :B not and
 EOT
 </pre></div>
 
