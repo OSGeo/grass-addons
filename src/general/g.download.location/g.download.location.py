@@ -35,8 +35,20 @@
 #% key_desc: name
 #%end
 #%option G_OPT_M_DBASE
+#% key: path
 #% required: no
 #% multiple: no
+#%end
+#%option
+#% key: dbase
+#% multiple: no
+#% type: string
+#% label: Path to database, use path option instead
+#% description: This option is obsolete and replaced by path
+#% required: no
+#%end
+#%rules
+#% exclusive: path,dbase
 #%end
 
 import os
@@ -232,7 +244,9 @@ def location_name_from_url(url):
 def main(options, flags):
     url = options["url"]
     name = options["name"]
-    database = options["dbase"]
+    database = options["path"]
+    if not database:
+        database = options["dbase"]
 
     if not database:
         # use current
