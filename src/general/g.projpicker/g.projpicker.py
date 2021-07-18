@@ -78,14 +78,14 @@
 # %end
 # %flag
 # % key: g
-# % description: Start GUI for selecting a subset of queried projections
+# % description: Start GUI
 # %end
 # %flag
 # % key: 1
 # % description: Allow only one selection in GUI
 # %end
 # %rules
-# % required: coordinates, query, input
+# % required: -g, coordinates, query, input
 # % exclusive: coordinates, query, input
 # % requires: operator, coordinates
 # % requires: -l, coordinates
@@ -121,7 +121,13 @@ def main():
     print_geoms = flags["p"]
     no_header = flags["n"]
     single = flags["1"]
-    start_gui = flags["g"]
+    if flags["g"]:
+        if coords or query or infile:
+            start_gui = "select"
+        else:
+            start_gui = "gui"
+    else:
+        start_gui = None
 
     if bbox_map and grass.parse_command("g.proj", flags="g")["unit"] != "degree":
         grass.fatal(_("Cannot create vector in degree in a non-degree mapset"))
