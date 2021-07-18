@@ -85,7 +85,7 @@
 #%option
 #% key: size
 #% label: Neighborhood size
-#% description: The neighborhood size specifies which cells surrounding any given cell fall into the neighborhood for that cell. The size must be an odd integer and represent the length of one of moving window edges in cells. See the manual page of r.neighbors for more details 
+#% description: The neighborhood size specifies which cells surrounding any given cell fall into the neighborhood for that cell. The size must be an odd integer and represent the length of one of moving window edges in cells. See the manual page of r.neighbors for more details
 #% required: no
 #% type: integer
 #% answer: 1
