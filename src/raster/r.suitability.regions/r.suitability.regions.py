@@ -169,16 +169,14 @@ import uuid
 import grass.script as gs
 
 CLEAN_LAY = []
-try:
-    from grass.script import append_node_pid as create_unique_name
-except ImportError:
 
-    def create_unique_name(name):
-        """Generate a tmp name which contains prefix
-        Store the name in the global list.
-        Use only for raster maps.
-        """
-        return name + str(uuid.uuid4().hex)
+
+def create_unique_name(name):
+    """Generate a tmp name which contains prefix
+    Store the name in the global list.
+    Use only for raster maps.
+    """
+    return name + str(uuid.uuid4().hex)
 
 
 def create_temporary_name(prefix):
