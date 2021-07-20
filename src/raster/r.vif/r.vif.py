@@ -113,16 +113,11 @@ def cleanup():
         gs.run_command("g.remove", flags="f", type="all", name=rast, quiet=True)
 
 
-try:
-    from grass.script import append_node_pid as create_unique_name
-except ImportError:
-
-    def create_unique_name(name):
-        """Generate a tmp name which contains prefix
-        Store the name in the global list.
-        Use only for raster maps.
-        """
-        return name + str(uuid.uuid4().hex)
+def create_unique_name(name):
+    """Generate a tmp name which contains prefix
+    Store the name in the global list.
+    """
+    return name + str(uuid.uuid4().hex)
 
 
 def tmpname(prefix):
