@@ -34,16 +34,31 @@
 
 #%option
 #% key: suitability_threshold
-#% description: Threshold value above which areas are considered suitable
-#% required: yes
+#% label: Threshold suitability score
+#% description: The minimum suitability score to be included. For example, with a threshold of 0.7, all raster cells with a suitability of 0.7 are used as input in the delineation of contiguous suitable regions.
 #% type: string
 #% key_desc: float
 #% guisection: Input
 #%end
 
 #%option
+#% key: percentile_threshold
+#% label: Percentile threshold
+#% description: Percentile above which suitability scores are included in the search for suitable regions. For example, using a 0.95 percentile means that the raster cells with the 5% highest suitability scores are are used as input in the delineation of contiguous suitable regions.
+#% type: string
+#% key_desc: percentile
+#% guisection: Input
+#%end
+
+#%rules
+#% required: suitability_threshold,percentile_threshold
+#% exclusive: suitability_threshold,percentile_threshold
+#%end
+
+#%option
 #% key: minimum_size
-#% description: Minimum area (in hectares) limit for fragments
+#% label: Minimum area (in hectares)
+#% description: Contiguous regions need to have a minimum area to be included.
 #% required: yes
 #% type: string
 #% key_desc: float
@@ -52,7 +67,8 @@
 
 #%option
 #% key: minimum_suitability
-#% description: Threshold below which cells are marked as fully unsuitable
+#% label: Threshold for unsuitable areas
+#% description: This option can be used to mark cells with a suitability equal or less than the given threshold as unsuitable. Can be used in conjuction with the 'focal statistics' option to ensure that those cells are marked as unsuitable (barriers), irrespective of the suitability scores of the surrounding cells.
 #% required: no
 #% type: string
 #% key_desc: float
@@ -61,13 +77,15 @@
 
 #%flag
 #% key: d
-#% description: Diagonally neighboring cells are considerd part of the same region
+#% label: Clumps including diagonal neighbors
+#% description: Diagonal neighboring cells are considerd to be connected, and will therefore be consiered part of the same region.
 #% guisection: Optional
 #%end
 
 #%option
-#% key: radius
-#% description: Radius for focal stat
+#% key: size
+#% label: Neighborhood size
+#% description: The neighborhood size specifies which cells surrounding any given cell fall into the neighborhood for that cell. The size must be an odd integer and represent the length of one of moving window edges in cells. See the manual page of r.neighbors for more details
 #% required: no
 #% type: integer
 #% answer: 1
@@ -76,13 +94,15 @@
 
 #%flag
 #% key: c
-#% description: Use circular neighborhood for focal statistic
+#% label: Circular neighborhood for focal statistics
+#% description: Use circular neighborhood when computing the focal statistic
 #% guisection: Focal stats
 #%end
 
 #%option
 #% key: focal_statistic
-#% description: Neighborhood operation (focal statistic)
+#% Label: Neighborhood operation (focal statistic)
+#% description: The median, maximum, first or 3rd quartile of the cells in a neighborhood of user-defined size is computed. This aggregated suitability score is used instead of the original suitability score to determine which raster cells are used as input in the delineation of contiguous suitable regions.
 #% required: no
 #% type: string
 #% answer: median
@@ -92,7 +112,8 @@
 
 #%option
 #% key: maximum_gap
-#% description: Maximum gap size (in hectares) to remove
+#% label: Maximum gap size
+#% description: Unsuitable areas (gaps) within suitable regions are removed if they are equal or smaller than the maximum size. This is done by merging them with the suitable regions in which they are located.
 #% required: no
 #% type: string
 #% answer: 0
@@ -102,40 +123,45 @@
 
 #%flag
 #% key: z
-#% description: Compute map with average suitability per region
+#% label: Average suitability per region
+#% description: Create a map in which each region has a value corresponding to the average suitability of that region.
 #% guisection: Reporting stats
 #%end
 
 #%flag
 #% key: a
-#% description: Calculates area of clumped areas (hectares)
+#% label: Area of the regions
+#% description: Create a map in which each region has a value corresponding to the surface area (hectares) of that region.
 #% guisection: Reporting stats
 #%end
 
 #%flag
 #% key: k
-#% description: Keep map that show suitable areas (irrespective of clump size)
+#% label: Suitable areas
+#% description: Map showing all raster cells with a suitability equal or above the user-defined threshold
 #% guisection: Optional
 #%end
 
 #%flag
 #% key: f
-#% description: Keep suitabiliyt based on focal statistics
+#% label: Suitable areas (focal statistics)
+#% description: Map showing all raster cells with an aggregated suitability score based on a user-defined neighhborhood size that is equal or above a user-defined threshold.
 #% guisection: Optional
 #%end
 
 #%flag
 #% key: v
+#% label: Vector output layer
 #% description: Create vector layer with suitabilty and compactness statistics
 #% guisection: Optional
 #%end
 
 #%flag
 #% key: m
-#% description: Compute compactness of selected areas
+#% description: Compactness
+#% description: Compute compactness of selected suitable regions.
 #% guisection: Optional
 #%end
-
 
 import sys
 import atexit
@@ -143,16 +169,14 @@ import uuid
 import grass.script as gs
 
 CLEAN_LAY = []
-try:
-    from grass.script import append_node_pid as create_unique_name
-except ImportError:
 
-    def create_unique_name(name):
-        """Generate a tmp name which contains prefix
-        Store the name in the global list.
-        Use only for raster maps.
-        """
-        return name + str(uuid.uuid4().hex)
+
+def create_unique_name(name):
+    """Generate a tmp name which contains prefix
+    Store the name in the global list.
+    Use only for raster maps.
+    """
+    return name + str(uuid.uuid4().hex)
 
 
 def create_temporary_name(prefix):
@@ -185,12 +209,13 @@ def main(options, flags):
     # Variables
     in_filename = options["input"]
     out_filename = options["output"]
-    suitability_threshold = float(options["suitability_threshold"])
+    suitability_threshold = options["suitability_threshold"]
+    percentile_threshold = options["percentile_threshold"]
     minimum_suitability = options["minimum_suitability"]
     minimum_size = float(options["minimum_size"])
-    radius = int(options["radius"])
-    if (radius % 2) == 0:
-        gs.fatal("Radius should be an odd positive number")
+    size = int(options["size"])
+    if (size % 2) == 0:
+        gs.fatal("size should be an odd positive number")
     focal_statistic = options["focal_statistic"]
     maximum_gap = float(options["maximum_gap"])
 
@@ -209,7 +234,7 @@ def main(options, flags):
     clump_areas_flag = flags["a"]
 
     # Compute neighborhood statistic
-    if radius > 1 and len(minimum_suitability) == 0:
+    if size > 1 and len(minimum_suitability) == 0:
         gs.message("Computing neighborhood statistic")
         gs.message("================================\n")
         tmp00 = create_temporary_name("tmp00")
@@ -219,13 +244,13 @@ def main(options, flags):
             input=in_filename,
             output=tmp00,
             method=focal_statistic,
-            size=radius,
+            size=size,
         )
         tmp02 = create_temporary_name("tmp02")
         gs.run_command(
             "r.series", input=[in_filename, tmp00], method="maximum", output=tmp02
         )
-    elif radius > 1:
+    elif size > 1:
         gs.message("Computing neighborhood statistic")
         gs.message("================================\n")
         try:
@@ -239,7 +264,7 @@ def main(options, flags):
             input=in_filename,
             output=tmp01,
             method=focal_statistic,
-            size=radius,
+            size=size,
         )
         tmp00 = create_temporary_name("tmp00")
         gs.run_command(
@@ -261,6 +286,22 @@ def main(options, flags):
     # Convert suitability to boolean: suitable (1) or not (nodata)
     gs.message("Creating boolean map suitable/none-suitable")
     gs.message("===========================================\n")
+
+    if suitability_threshold == "":
+        qrule = (
+            gs.read_command(
+                "r.quantile",
+                input=in_filename,
+                percentiles=percentile_threshold,
+                quiet=True,
+            )
+            .replace("\n", "")
+            .split(":")[2]
+        )
+        suitability_threshold = float(qrule)
+    else:
+        suitability_threshold = float(suitability_threshold)
+
     tmp03 = create_temporary_name("tmp03")
     gs.run_command(
         "r.mapcalc",
@@ -488,6 +529,12 @@ def main(options, flags):
         rname2 = "{}_focalsuitability".format(out_filename)
         gs.run_command("g.rename", raster=[tmp02, rname2], quiet=True)
         gs.run_command("r.colors", map=rname2, raster=in_filename)
+
+    if options["suitability_threshold"] == "":
+        gs.message("\n---------------------------------------------------\n")
+        gs.message("Suitability threshold = {}".format(suitability_threshold))
+        gs.message("Minimum area = {} hectares".format(minimum_size))
+        gs.message("\n\n")
 
 
 if __name__ == "__main__":
