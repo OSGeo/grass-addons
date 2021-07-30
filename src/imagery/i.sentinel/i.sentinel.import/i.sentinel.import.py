@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 ############################################################################
 #
@@ -382,6 +382,12 @@ class SentinelImporter(object):
     def import_cloud_masks(
         self, area_threshold, prob_threshold, output, shadows, reproject
     ):
+        try:
+            if os.environ["GRASS_OVERWRITE"] == "1":
+                overwrite = True
+        except Exception as e:
+            overwrite = False
+
         # Import cloud masks for L2A products
         files_L2A = self._filter("MSK_CLDPRB_20m.jp2")
 
@@ -409,6 +415,17 @@ class SentinelImporter(object):
                 ]
             )
 
+            # check if mask alrady exist
+            if gs.find_file(name=map_name, element=output)["file"] and not overwrite:
+                gs.message(
+                    _(
+                        "option <output>: <{}> exists. To overwrite, use the --overwrite flag".format(
+                            map_name
+                        )
+                    )
+                )
+                continue
+
             try:
                 # Import & Threshold cloud probability layer
                 gs.message(
@@ -426,12 +443,12 @@ class SentinelImporter(object):
                     gs.run_command(
                         "r.in.gdal", input=f, output=clouds_imported, **self._args
                     )
-
                 gs.use_temp_region()
                 gs.run_command("g.region", raster=clouds_imported)
                 gs.mapcalc(
                     f"{clouds_selected} = if({clouds_imported} >= {prob_threshold}, 1, 0)"
                 )
+                gs.del_temp_region()
 
                 # Add shadow mask
                 if shadows:
@@ -458,12 +475,15 @@ class SentinelImporter(object):
                                 **self._args,
                             )
 
+                        gs.use_temp_region()
+                        gs.run_command("g.region", raster=shadows_imported)
                         gs.mapcalc(
                             f"{shadows_selected} = if({shadows_imported} == 3, 2, 0)"
                         )
                         gs.mapcalc(
                             f"{mask_selected} = max({shadows_selected},{clouds_selected})"
                         )
+                        gs.del_temp_region()
                     except Exception as e:
                         gs.warning(
                             _("Unable to import shadows for {}. Error: {}").format(
@@ -475,6 +495,9 @@ class SentinelImporter(object):
                     gs.run_command(
                         "g.rename", quiet=True, raster=(clouds_selected, mask_selected)
                     )
+
+                gs.use_temp_region()
+                gs.run_command("g.region", raster=mask_selected)
 
                 # Cleaning small patches
                 try:
@@ -555,6 +578,7 @@ class SentinelImporter(object):
                 gs.del_temp_region()
 
             except Exception as e:
+                gs.del_temp_region()
                 gs.warning(
                     _("Unable to import cloud mask for {}. Error: {}").format(
                         "_".join([items[5], items[2]]), e
@@ -584,6 +608,20 @@ class SentinelImporter(object):
                 clouds_imported = "_".join([items[5], items[2], "clouds_imported"])
                 mask_cleaned = "_".join([items[5], items[2], "mask_cleaned"])
                 self._map_list.extend([clouds_imported, mask_cleaned])
+
+                # check if mask alrady exist
+                if (
+                    gs.find_file(name=map_name, element=output)["file"]
+                    and not overwrite
+                ):
+                    gs.fatal(
+                        _(
+                            "option <output>: <{}> exists. To overwrite, use the --overwrite flag".format(
+                                map_name
+                            )
+                        )
+                    )
+                    continue
 
                 # check if any OGR layer
                 dsn = ogr.Open(f)
@@ -634,6 +672,7 @@ class SentinelImporter(object):
                         output=mask_cleaned,
                         use="attr",
                         attribute_column="value_num",
+                        quiet=True,
                     )
                     info_stats = gs.parse_command(
                         "r.stats", input=mask_cleaned, flags="p"
@@ -688,6 +727,7 @@ class SentinelImporter(object):
                     gs.del_temp_region()
 
                 except Exception as e:
+                    gs.del_temp_region()
                     gs.warning(
                         _("Unable to import cloud mask for {}. Error: {}").format(
                             "_".join([items[5], items[2]]), e

@@ -203,16 +203,37 @@ i.sentinel.import -j input=data pattern='_B((0[2348]_1)|(0[567]|8A|11|12)_2)0m'
 </pre></div>
 
 <p>
-Link data and import also cloud mask file:
+Import cloud and shadow mask:
 
 <div class="code"><pre>
-i.sentinel.import -l -c -j input=data
+i.sentinel.import input=data
+i.sentinel.import input=data -c -s
+i.sentinel.import input=data cloud_probability_threshold=25 cloud_area_threshold=10 -c -s
 </pre></div>
 
-<center>
-<img src="i_sentinel_import_band_4_clouds.png" width="600" height="356"><br>
-<i>Fig: Band 4 with imported cloud mask</i>
-</center>
+<p>
+<table width="100%" cellspacing="5" cellpadding="1" border="0">
+	<tbody>
+		<tr>
+		<td valign="top" align="center" width=30%>
+      <a href="i_sentinel_import_without_cloud_mask.jpeg">
+        <img src="i_sentinel_import_without_cloud_mask.jpeg" width="90%"></a><br>
+      <br><i>Fig: S2 L2-A imagery without cloud mask <br>(example: T33TVE_20210313T095029, Italy)<br></i>
+    </td>
+		<td valign="top" align="center" width=30%>
+      <a href="i_sentinel_import_with_cloudshadow_mask.jpeg">
+				<img src="i_sentinel_import_with_cloudshadow_mask.jpeg" width="90%"></a><br>
+      <br><i>Fig: Cloud (ligthgrey) and shadow (darkgrey) mask <br> (default options)<br></i>
+    </td>
+		<td valign="top" align="center" width=30%>
+      <a href="i_sentinel_import_with_cloudshadow_mask_II.jpeg">
+        <img src="i_sentinel_import_with_cloudshadow_mask_II.jpeg" width="90%"></a><br>
+      <br><i>Fig: Cloud (ligthgrey) and shadow (darkgrey) mask <br>(lower probability threshold and higher area threshold)<br></i>
+    </td>
+		</tr>
+	</tbody>
+</table>
+</p>
 
 <p>
 Link data from specific UTM zone while ignoring projection check
