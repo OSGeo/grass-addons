@@ -94,7 +94,9 @@
 
 import sys
 import re
+
 import grass.script as grass
+import grass.projpicker as ppik
 
 
 def message(msg="", end=None):
@@ -102,11 +104,6 @@ def message(msg="", end=None):
 
 
 def main():
-    try:
-        import projpicker as ppik
-    except ImportError:
-        grass.fatal(_("ProjPicker not installed. Use 'pip install projpicker'"))
-
     coords = options["coordinates"]
     operator = options["operator"]
     query = options["query"]
@@ -132,7 +129,7 @@ def main():
     if bbox_map and grass.parse_command("g.proj", flags="g")["unit"] != "degree":
         grass.fatal(_("Cannot create vector in degree in a non-degree mapset"))
 
-    # ppik.projpicker() appends input file contents to geometries from
+    # ppik.start() appends input file contents to geometries from
     # arguments, but it can be confusing and is not supported in this module
     if coords:
         query = f"{operator}"
@@ -152,7 +149,7 @@ def main():
     else:
         separator = grass.utils.separator(separator)
 
-    bbox = ppik.projpicker(
+    bbox = ppik.start(
         geoms=geoms,
         outfile=outfile,
         fmt=fmt,
