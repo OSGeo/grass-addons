@@ -239,11 +239,11 @@ def check_no_missing_zones(vector_origin, vector_new):
     """
 
     origin_n = int(gscript.parse_command('v.db.univar', flags='g',
-        map=vector_origin, column=id)['n']
-        )
+        map=vector_origin, column=id)['n'])
+
     new_n = int(gscript.parse_command('v.db.univar', flags='g',
-        map=vector_new, column=id)['n']
-        )
+        map=vector_new, column=id)['n'])
+
     difference = origin_n - new_n
     if origin_n != new_n:
         element_equal = False
@@ -268,8 +268,8 @@ def create_clumped_grid(tile_size):
     gscript.mapcalc("empty_grid=rand(0 ,999999999)", seed='auto')
     # Assigning a unique value to each cell in contiguous zones
     gscript.run_command('r.clump', quiet=True, input='empty_grid',
-        output='clumped_grid'
-        )
+        output='clumped_grid')
+
     gscript.run_command('r.mask', quiet=True, flags='r')
     TMP_MAPS.append("empty_grid")
     TMP_MAPS.append("clumped_grid")
@@ -290,7 +290,7 @@ def clip_basemaps(raster_list, rast_out_list, vector_map):
     gscript.run_command('r.mask', quiet=True, vector=vector_map)
 
     # Clip rasters
-    for inrast, outrast in zip(raster_list,rast_out_list):
+    for inrast, outrast in zip(raster_list, rast_out_list):
         # Set region to vector & align to basemap
         # (to keep cell size & alignment)
         gscript.run_command('g.region', vector=vector_map, align=inrast)
@@ -307,10 +307,10 @@ def extract_raster_categories(categorical_raster):
 
     L = []
     L = [cl.split(":")[0] for cl in gscript.parse_command('r.category',
-        map=categorical_raster,separator=":")]
+        map=categorical_raster, separator=":")]
     # UTF8 coding required for Linux
     if sys.platform == 'linux':
-        for i,x in enumerate(L):
+        for i, x in enumerate(L):
             L[i] = x.encode('UTF8')
     L.sort(key=float)  # Sort the raster categories in ascending
 
@@ -325,10 +325,10 @@ def category_list_check(cat_list, raster_map):
 
     # UTF8 coding required for Linux
     if sys.platform == 'linux':
-        for i,x in enumerate(cat_list):
-           cat_list[i] = x.encode('UTF8')
-        for j,z in enumerate(existing_cat_string):
-           existing_cat_string[j] = z.decode('UTF8')
+        for i, x in enumerate(cat_list):
+            cat_list[i] = x.encode('UTF8')
+        for j, z in enumerate(existing_cat_string):
+            existing_cat_string[j] = z.decode('UTF8')
 
     for cat in cat_list:
         if cat not in existing_cat:
@@ -359,7 +359,7 @@ def spatial_boundaries(vector, id):
 
     current_mapset = gscript.gisenv()['MAPSET']
     gridded_vector = (vector.split("@")[0] + '_' + str(tile_size) +
-        'm_gridded@' + current_mapset)
+                      'm_gridded@' + current_mapset)
     gscript.run_command('g.region', raster='clumped_grid')
     gscript.run_command('v.to.rast', quiet=True, input=vector,
         type='area', output='gridded_spatial_units', use='attr',
@@ -380,8 +380,8 @@ def spatial_boundaries(vector, id):
 
     # Check if loss of spatial units (polygons)
     element_equal, origin_n, gridded_n = (
-        check_no_missing_zones(vector,gridded_vector))
-    if element_equal == False: #todo
+        check_no_missing_zones(vector, gridded_vector))
+    if element_equal == False:
         gscript.run_command('g.remove', quiet=True, type='vector',
             name=gridded_vector, flags='fb')
         message = _(("A tile size of %s m seems to large and produces "
@@ -393,7 +393,7 @@ def spatial_boundaries(vector, id):
         gscript.fatal(message)
 
 def compute_proportion_csv(categorical_raster, zone_raster, prefix,
-                            outputfile):
+    outputfile):
     """Run module r.zonal.classes to calculate statistics"""
 
     gscript.run_command('r.zonal.classes', quiet=True,
@@ -414,9 +414,9 @@ def natural_keys(text):
     """Return key to sort a string containing numerical values"""
 
     import re  # Import needed library
-    return [ atoi(c) for c in re.split('(\d+)', text) ]  #Split string
+    return [atoi(c) for c in re.split('(\d+)', text)]  # Split string
 
-def join_2csv(file1,file2,separator=";",join='inner',fillempty='NULL'):
+def join_2csv(file1, file2, separator=";", join='inner', fillempty='NULL'):
     """
     Join two csv files according to the first column (primary key)
 
@@ -451,11 +451,11 @@ def join_2csv(file1,file2,separator=";",join='inner',fillempty='NULL'):
     # Build dictionnary for values of file 1
     reader1 = csv.reader(open(file1), delimiter=separator)
     reader1.__next__()
-    values_dict1 = {rows[0]:rows[1:] for rows in reader1}
+    values_dict1 = {rows[0]: rows[1:] for rows in reader1}
     # Build dictionnary for values of file 2
     reader2 = csv.reader(open(file2), delimiter=separator)
     reader2.__next__()
-    values_dict2 = {rows[0]:rows[1:] for rows in reader2}
+    values_dict2 = {rows[0]: rows[1:] for rows in reader2}
     # Build new content
     new_content = []
     new_header = header_list1 + header_list2[1:]
@@ -465,30 +465,30 @@ def join_2csv(file1,file2,separator=";",join='inner',fillempty='NULL'):
         try:
             [new_row.append(value) for value in values_dict1[key]]
         except:
-            [new_row.append('%s'%fillempty) for x in header_list1[1:]]
+            [new_row.append('%s' % fillempty) for x in header_list1[1:]]
         try:
             [new_row.append(value) for value in values_dict2[key]]
         except:
-            [new_row.append('%s'%fillempty) for x in header_list2[1:]]
+            [new_row.append('%s' % fillempty) for x in header_list2[1:]]
         new_content.append(new_row)
 
     #Return the result
     outfile = gscript.tempfile()
-    fout = open(outfile,"w")
+    fout = open(outfile, "w")
     writer = csv.writer(fout, delimiter=separator, lineterminator='\n')
-    writer.writerows(new_content) #Write multiple rows in the file
+    writer.writerows(new_content)  # Write multiple rows in the file
     # Make sure file does not close too fast
     # (the content could be incompletely filled)
     time.sleep(0.5)
     fout.close()
     return outfile
 
-def join_multiplecsv(fileList,outfile,separator=";", join='inner',
+def join_multiplecsv(fileList, outfile, separator=";", join='inner',
     fillempty='NULL', overwrite=False):
     """Join multiple csv files"""
 
     # Stop execution if outputfile exists and can not be overwritten
-    if os.path.isfile(outfile) and overwrite == False: #todo
+    if os.path.isfile(outfile) and overwrite == False:
         gscript.fatal("File '%s' aleady exists and overwrite option is "
             + "not enabled." % outfile)
     else:
@@ -500,19 +500,19 @@ def join_multiplecsv(fileList,outfile,separator=";", join='inner',
             # Inner join on the two first files
             file1 = queue_list.pop(0)
             file2 = queue_list.pop(0)
-            tmp_file = join_2csv(file1,file2,separator=separator,
+            tmp_file = join_2csv(file1, file2, separator=separator,
                 join=join, fillempty=fillempty)
             # Inner join on the rest of the files in the list
             while len(queue_list) > 0:
                 file2 = queue_list.pop(0)
-                tmp_file = join_2csv(tmp_file,file2,separator=separator,
+                tmp_file = join_2csv(tmp_file, file2, separator=separator,
                     join=join, fillempty=fillempty)
         else:  # in case there is only one file in the list
             tmp_file = fileList[0]
-        if os.path.isfile(outfile) and overwrite == True: #todo
+        if os.path.isfile(outfile) and overwrite == True:
             os.remove(outfile)
         # Copy the temporary file to the desired output path
-        shutil.copy2(tmp_file,outfile)
+        shutil.copy2(tmp_file, outfile)
         os.remove(tmp_file)
 
 def labels_from_csv(current_labels):
@@ -530,18 +530,18 @@ def labels_from_csv(current_labels):
     # If flag selected, extract class names from basemap_a
     if rasta_class_list == 1:
         ccode = [cl.split(":")[0] for cl in gscript.parse_command(
-            'r.category',map=basemap_a,separator=":")]
+            'r.category', map=basemap_a, separator=":")]
         ccname = [cl.split(":")[1] for cl in gscript.parse_command(
-            'r.category',map=basemap_a,separator=":")]
-        for classcode,classname in zip(ccode,ccname):
+            'r.category', map=basemap_a, separator=":")]
+        for classcode, classname in zip(ccode, ccname):
             basemap_a_class_rename_dict[classcode] = classname
     # If flag selected, extract class names from basemap_b
     if rastb_class_list == 1:
         ccode = [cl.split(":")[0] for cl in gscript.parse_command(
-            'r.category',map=basemap_b,separator=":")]
+            'r.category', map=basemap_b, separator=":")]
         ccname = [cl.split(":")[1] for cl in gscript.parse_command(
-            'r.category',map=basemap_b,separator=":")]
-        for classcode,classname in zip(ccode,ccname):
+            'r.category', map=basemap_b, separator=":")]
+        for classcode, classname in zip(ccode, ccname):
             basemap_b_class_rename_dict[classcode] = classname
 
     # Replace class value with class labels (if existing)
@@ -564,12 +564,12 @@ def labels_from_csv(current_labels):
             else:
                 new_label.append('Basemap B "' + classnum + '"')
         elif l[-4:] == 'mean':
-            new_label.append(l[0].title() + l[1:-5].replace('_',' '))
+            new_label.append(l[0].title() + l[1:-5].replace('_', ' '))
         else:
             new_label.append(l)
     return new_label
 
-def RandomForest(weighting_layer_name,vector,id):
+def RandomForest(weighting_layer_name, vector, id):
     """
     Create, train and run a random forest model
 
@@ -588,29 +588,29 @@ def RandomForest(weighting_layer_name,vector,id):
     # Export desired columns from the attribute table as CSV
     area_table = gscript.tempfile()  # Define the path to the .csv
 
-    query = "SELECT cat,%s,area FROM %s"%(response_variable,
+    query = "SELECT cat,%s,area FROM %s" % (response_variable,
         gridded_vector.split('@')[0])
     gscript.run_command('db.select', quiet=True, sql=query,
         output=area_table, overwrite=True)
     TMP_CSV.append(area_table)
     # Copy gridded vector to be an output with user-defined name
     gscript.run_command('g.copy', quiet=True,
-        vector='%s,%s'%(gridded_vector,output_units_layer))
+        vector='%s,%s' % (gridded_vector, output_units_layer))
 
     # Compute log of density in a new .csv file
-    reader = csv.reader(open(area_table,'r'), delimiter='|')
+    reader = csv.reader(open(area_table, 'r'), delimiter='|')
     # Define the path to the .csv containing the log of density
     log_density_csv = gscript.tempfile()
 
-    fout = open(log_density_csv,'w')
-    writer = csv.writer(fout, delimiter=',',lineterminator='\n')
+    fout = open(log_density_csv, 'w')
+    writer = csv.writer(fout, delimiter=',', lineterminator='\n')
     new_content = []
-    new_header = ['cat','log_' + response_variable + '_density']
+    new_header = ['cat', 'log_' + response_variable + '_density']
     new_content.append(new_header)
     reader.__next__()
     # Compute log (ln) of the density
     [new_content.append(
-        [row[0],ma.log(int(row[1]) / float(row[2]))]) for row in reader]
+        [row[0], ma.log(int(row[1]) / float(row[2]))]) for row in reader]
     writer.writerows(new_content)
     # Make sure file does not close too fast
     #   (the content could be incompletely filled)
@@ -641,10 +641,10 @@ def RandomForest(weighting_layer_name,vector,id):
     # Make a list with names of covariables columns
     list_covar = []
     for cl in basemap_a_category_list:
-        list_covar.append("basemapA_prop_%s"%cl)
+        list_covar.append("basemapA_prop_%s" % cl)
     if (basemap_b != ''):
         for cl in basemap_b_category_list:
-            list_covar.append("basemapB_prop_%s"%cl)
+            list_covar.append("basemapB_prop_%s" % cl)
     if(distance_to != ''):
         list_covar.append(distance_to.split("@")[0] + "_mean")
 
@@ -675,7 +675,7 @@ def RandomForest(weighting_layer_name,vector,id):
     # Save the selected covariates for the model in message for logfile
     message = ("Selected covariates for the random forest model (with "
         + "feature importance upper than {value} %) : \n\
-        ".format(value=min_fimportance*100))
+        ".format(value=min_fimportance * 100))
     message += "\n".join(list_covar)
     log_text += message + '\n\n'
 
@@ -700,11 +700,11 @@ def RandomForest(weighting_layer_name,vector,id):
     log_text += message + '\n'
     #Save info for logfile - Tuned parameters
     message = ("Optimized parameters for Random Forest after grid "
-        + "search %s-fold cross-validation tuning :\n"%kfold)
+        + "search %s-fold cross-validation tuning :\n" % kfold)
     for key in grid_search.best_params_.keys():
-        message += " %s : %s"%(key,grid_search.best_params_[key])+"\n"
+        message += " %s : %s" % (key, grid_search.best_params_[key]) + "\n"
     log_text += message + '\n'
-    # Save info for logfile - Mean cross-validated estimator 
+    # Save info for logfile - Mean cross-validated estimator
     #    score (R2) and stddev of the best_estimator
     best_score = (grid_search.cv_results_
         ['mean_test_score'][grid_search.best_index_])
@@ -712,7 +712,7 @@ def RandomForest(weighting_layer_name,vector,id):
         ['std_test_score'][grid_search.best_index_])
     message = ("Mean cross-validated estimator score (R2) and stddev "
         + "of the best estimator : %0.3f (+/-%0.3f)"
-        %(best_score,best_std) + '\n')
+        % (best_score, best_std) + '\n')
     log_text += message + '\n'
     # Save info for logfile: Mean R2 + sddev for each set of parameters
     means = grid_search.cv_results_['mean_test_score']
@@ -721,7 +721,7 @@ def RandomForest(weighting_layer_name,vector,id):
         + " for every tested set of parameter :\n")
     for mean, std, params in zip(means, stds,
             grid_search.cv_results_['params']):
-        message += "%0.3f (+/-%0.03f) for %r"%(mean, std, params)+'\n'
+        message += "%0.3f (+/-%0.03f) for %r" % (mean, std, params) + '\n'
     log_text_extend += message
 
     ## Applying the RF model
@@ -738,7 +738,7 @@ def RandomForest(weighting_layer_name,vector,id):
     gscript.verbose(_("......Saving the prediction"))
     df1 = df_grid['cat']
     df2 = pd.DataFrame(prediction, columns=['log'])
-    df_weight = pd.concat((df1,df2), axis=1)
+    df_weight = pd.concat((df1, df2), axis=1)
     col = df_weight.apply(lambda row : np.exp(row["log"]), axis=1)
     df_weight ["weight_after_log"] = col
 
@@ -753,7 +753,7 @@ def RandomForest(weighting_layer_name,vector,id):
         rule += "="
         # Reclass rule of r.reclass requires INTEGER but random forest
         #   prediction could have very low values.
-        rule += str(int(round(weight_list[i] * 1000000000,0)))
+        rule += str(int(round(weight_list[i] * 1000000000, 0)))
         rule += "\n"
     rule += "*"
     rule += "="
@@ -774,7 +774,7 @@ def RandomForest(weighting_layer_name,vector,id):
     #   density of random forest
     gscript.run_command('r.mapcalc',
         expression="%s=float(weight_int)/float(1000000000)"
-        %weighting_layer_name, quiet=True)
+        % weighting_layer_name, quiet=True)
     gscript.run_command('g.remove', quiet=True, type='raster',
         name="weight_int", flags='fb')
 
@@ -789,16 +789,16 @@ def RandomForest(weighting_layer_name,vector,id):
     idx = indices[::-1]
     y_axis = range(x.shape[1])
     # Set the size of the plot according to the number of features
-    plt.figure(figsize=(5, (len(y_axis)+1) * 0.23))
-    plt.scatter(x_axis,y_axis)
+    plt.figure(figsize=(5, (len(y_axis) + 1) * 0.23))
+    plt.scatter(x_axis, y_axis)
     Labels = []
     for i in range(x.shape[1]):
         Labels.append(x_grid.columns[idx[i]])
     # Change the labels of the feature if raster class labels specified
     Labels = labels_from_csv(Labels)
     plt.yticks(y_axis, Labels)
-    plt.ylim([-1,len(y_axis)])  # Ajust ylim
-    plt.xlim([-0.04,max(x_axis) + 0.04])  # Ajust xlim
+    plt.ylim([-1, len(y_axis)])  # Ajust ylim
+    plt.xlim([-0.04, max(x_axis) + 0.04])  # Ajust xlim
     plt.title("Feature importances")
 
     # Export in .png file (image)
@@ -813,7 +813,7 @@ def RandomForest(weighting_layer_name,vector,id):
 def main():
     start_time = time.ctime()
     options, flags = gscript.parser()
-    gscript.use_temp_region() # define use of temporary regions
+    gscript.use_temp_region()  # define use of temporary regions
 
     ## Create global variables
     global TMP_MAPS, TMP_CSV, TMP_VECT, vector_map, allstatfile, \
@@ -900,7 +900,7 @@ def main():
     param_grid = (literal_eval(options['param_grid'])
         if options['param_grid'] else {'oob_score': [True],
         'bootstrap': [True],
-        'max_features': ['sqrt',0.1,0.3,0.5,0.7,1],
+        'max_features': ['sqrt', 0.1, 0.3, 0.5, 0.7, 1],
         'n_estimators': [500, 1000]})
 
     # ------------------------------------------------------------------
@@ -934,8 +934,8 @@ def main():
         gscript.fatal(_("Column <%s> not found in vector <%s>")
             % (response_variable, vector_map))
     # is response variable column numeric?
-    coltype = gscript.vector_columns(vector_map
-        )[response_variable]['type']
+    coltype = gscript.vector_columns(
+        vector_map)[response_variable]['type']
     if coltype not in ('INTEGER', 'DOUBLE PRECISION'):
         gscript.fatal(_("Column <%s> must be numeric")
             % (response_variable))
@@ -954,7 +954,7 @@ def main():
             + "Make sure the resolution of basemap_a is smaller than "
             + "the tile size."))
     # basemap_b exists
-    if (basemap_b_user !=''):
+    if (basemap_b_user != ''):
         result = gscript.find_file(basemap_b_user, element='cell')
         if not result['file']:
             gscript.fatal(_("Raster map <%s> not found")
@@ -970,28 +970,28 @@ def main():
             gscript.warning(_("Category list for basemap_b will be "
                 + "ignored as basemap_b has not been provided."))
     # distance_to exists?
-    if (distance_to !=''):
+    if (distance_to != ''):
         result = gscript.find_file(distance_to, element='cell')
         if not result['file']:
             gscript.fatal(_("Raster map <%s> not found") % distance_to)
     # rastb_class_list only exists if basemap_b exists?
     if rastb_class_list == 1:
         if basemap_b == '':
-            rastb_class_list=0
+            rastb_class_list = 0
             gscript.warning(_("Class names for basemap_b will be "
                 + "ignored as basemap_b has not been provided."))
 
     gscript.verbose(_("...Checking RF parameters..."))
     # 'oob_score' parameter in the dictionary for grid search is True?
     if 'oob_score' not in param_grid.keys():
-        param_grid['oob_score']=[True]
-    elif param_grid['oob_score']!=[True]:
-        param_grid['oob_score']=[True]
+        param_grid['oob_score'] = [True]
+    elif param_grid['oob_score'] != [True]:
+        param_grid['oob_score'] = [True]
     # valid n_jobs?
     if(n_jobs >= multiprocessing.cpu_count()):
         gscript.fatal(_("Requested number of jobs is > or = to "
             + "available resources. Reduce to maximum <%s> jobs")
-            % (int(multiprocessing.cpu_count())-1))
+            % (int(multiprocessing.cpu_count()) - 1))
     # Is kfold valid?
     # Corresponds to leave-one-out cross-validation
     maxfold = int(gscript.parse_command('v.db.univar', flags='g',
@@ -1008,7 +1008,7 @@ def main():
             + "existing directory" % os.path.split(plot)[0]))
     # Directory for output file with logging of RF run valid?
     if not os.path.exists(os.path.split(log_file)[0]):
-         gscript.fatal(_("Directory '%s' for output file with logging "
+        gscript.fatal(_("Directory '%s' for output file with logging "
             + "of RF run does not exist. \nPlease specify an existing "
             + "directory" % os.path.split(log_file)[0]))
 
@@ -1035,7 +1035,7 @@ def main():
     ## Prepare basemaps (clip to zone covered by the vector_map)
     # Ensure extraction of raster categories only within area covered
     #   by spatial units
-    clip_basemaps(raster_list,raster_list_prep,vector_map)
+    clip_basemaps(raster_list, raster_list_prep, vector_map)
 
     ## Extract list of raster categories for each basemap OR check that
     ##   user provided category list is valid
@@ -1053,13 +1053,13 @@ def main():
         basemap_a_category_list.sort(key=float)
     # UTF8 coding required for Linux
     if sys.platform == 'linux':
-        for i,x in enumerate(basemap_a_category_list):
-            basemap_a_category_list[i]=x.decode('UTF8')
+        for i, x in enumerate(basemap_a_category_list):
+            basemap_a_category_list[i] = x.decode('UTF8')
     message = ("Classes of raster '" + str(basemap_a_user) + "' used: "
          + ",".join(basemap_a_category_list))
     log_text += message + '\n'
 
-    if (basemap_b_user !=''):
+    if (basemap_b_user != ''):
         if (basemap_b_list == ""):
             gscript.verbose(_("......Classes list will be extracted "
                 + "from <%s>") % basemap_b)
@@ -1075,8 +1075,8 @@ def main():
             basemap_b_category_list.sort(key=float)
         # UTF8 coding required for Linux
         if sys.platform == 'linux':
-            for i,x in enumerate(basemap_b_category_list):
-                basemap_b_category_list[i]=x.decode('UTF8')
+            for i, x in enumerate(basemap_b_category_list):
+                basemap_b_category_list[i] = x.decode('UTF8')
         message = ("Classes of raster '" + str(basemap_b_user)
             + "' used: " + ",".join(basemap_b_category_list))
         log_text += message + '\n'
@@ -1123,7 +1123,7 @@ def main():
             tmp_stat_files['unit_B'])
 
     ## Compute mean value for quantitative raster
-    if(distance_to !=''):
+    if(distance_to != ''):
         ## For grids
         tmp_stat_files['grid_C'] = gscript.tempfile()
         TMP_CSV.append(tmp_stat_files['grid_C'])
@@ -1165,18 +1165,18 @@ def main():
     # Join .csv files of statistics
     # ------------------------------------------------------------------
     gscript.verbose(_("...Join .csv files of statistics..."))
-    for zone in ['grid','unit']:
+    for zone in ['grid', 'unit']:
         # Create list of .csv files to join
         allstatfile[zone] = gscript.tempfile()
         TMP_CSV.append(allstatfile[zone])
-        list_paths = [tmp_stat_files['%s_A'%zone],]
+        list_paths = [tmp_stat_files['%s_A' % zone], ]
         # Add all csv with proportions of classesfrom basemap_b
         if(basemap_b != ''):
-            list_paths.append(tmp_stat_files['%s_B'%zone])
-        if distance_to !='':  # Add mean distance
-            list_paths.append(tmp_stat_files['%s_C'%zone])
+            list_paths.append(tmp_stat_files['%s_B' % zone])
+        if distance_to != '':  # Add mean distance
+            list_paths.append(tmp_stat_files['%s_C' % zone])
         # Join .csv files
-        join_multiplecsv(list_paths,allstatfile[zone],separator=",",
+        join_multiplecsv(list_paths, allstatfile[zone], separator=",",
             join='inner', fillempty='0.000', overwrite=True)
 
     # ------------------------------------------------------------------
@@ -1184,7 +1184,7 @@ def main():
     # ------------------------------------------------------------------
     gscript.info(_("Random forest model training and prediction. "
         + "This may take some time..."))
-    RandomForest(output_weighting_layer,vector_map.split("@")[0],id)
+    RandomForest(output_weighting_layer, vector_map.split("@")[0], id)
 
     # ------------------------------------------------------------------
     # Export log file
@@ -1192,7 +1192,8 @@ def main():
     gscript.info(_("Exporting log file"))
     end_time = time.ctime()
     path, ext = os.path.splitext(log_file)
-    if ext != '.txt': log_file = log_file+'.txt'
+    if ext != '.txt':
+        log_file = log_file + '.txt'
     logging = open(log_file, 'w')
     logging.write("Log file of r.area.createweight\n")
     logging.write("Run started on " + str(start_time) + " and finished "
@@ -1206,11 +1207,12 @@ def main():
         logging.write(log_text_extend)
     logging.close()
 
-    gscript.del_temp_region() # Remove temporary region
+    gscript.del_temp_region()  # Remove temporary region
     gscript.message(_("Run started on " + str(start_time) + " and "
         + "finished on " + str(end_time) + "\n"))
 
 if __name__ == "__main__":
+
     atexit.register(cleanup)
     sys.exit(main())
-
+    
