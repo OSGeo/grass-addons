@@ -8,7 +8,7 @@
 # PURPOSE:      Create a weighting layer for dasymetric mapping,
 #               using a random forest regression model.
 #
-# DATE:         2021/07/12
+# DATE:         2021/08/05
 #
 # COPYRIGHT:    (C) 2021 Grippa Tais, Safa Fennia, Charlotte Flasse
 #               and by the GRASS Development Team
@@ -220,14 +220,16 @@ except:
 
 def cleanup():
     if TMP_MAPS != [] :
-        gscript.run_command('g.remove', quiet=True, type='raster',
+        gscript.run_command(
+            'g.remove', quiet=True, type='raster',
             name=','.join(TMP_MAPS), flags='fb')
     if TMP_CSV != []:
         for tmp_csv in TMP_CSV:
             if os.path.isfile(tmp_csv):
                 os.remove(tmp_csv)
     if TMP_VECT != []:
-        gscript.run_command('g.remove', quiet=True, type='vector',
+        gscript.run_command(
+            'g.remove', quiet=True, type='vector',
             name=','.join(TMP_VECT), flags='fb')
 
 def check_no_missing_zones(vector_origin, vector_new):
@@ -238,11 +240,11 @@ def check_no_missing_zones(vector_origin, vector_new):
     Return N elements in each vector
     """
 
-    origin_n = int(gscript.parse_command('v.db.univar', flags='g',
-        map=vector_origin, column=id)['n'])
+    origin_n = int(gscript.parse_command(
+        'v.db.univar', flags='g', map=vector_origin, column=id)['n'])
 
-    new_n = int(gscript.parse_command('v.db.univar', flags='g',
-        map=vector_new, column=id)['n'])
+    new_n = int(gscript.parse_command(
+        'v.db.univar', flags='g', map=vector_new, column=id)['n'])
 
     difference = origin_n - new_n
     if origin_n != new_n:
@@ -267,7 +269,8 @@ def create_clumped_grid(tile_size):
     # Creating a raster with random values
     gscript.mapcalc("empty_grid=rand(0 ,999999999)", seed='auto')
     # Assigning a unique value to each cell in contiguous zones
-    gscript.run_command('r.clump', quiet=True, input='empty_grid',
+    gscript.run_command(
+        'r.clump', quiet=True, input='empty_grid',
         output='clumped_grid')
 
     gscript.run_command('r.mask', quiet=True, flags='r')
@@ -295,8 +298,8 @@ def clip_basemaps(raster_list, rast_out_list, vector_map):
         # (to keep cell size & alignment)
         gscript.run_command('g.region', vector=vector_map, align=inrast)
         # Clip raster
-        gscript.run_command('r.clip', quiet=True, input=inrast,
-            output=outrast)
+        gscript.run_command(
+            'r.clip', quiet=True, input=inrast, output=outrast)
         TMP_MAPS.append(outrast)
 
     # Remove mask
@@ -306,8 +309,8 @@ def extract_raster_categories(categorical_raster):
     """Extract and return sorted list categorical raster classes"""
 
     L = []
-    L = [cl.split(":")[0] for cl in gscript.parse_command('r.category',
-        map=categorical_raster, separator=":")]
+    L = [cl.split(":")[0] for cl in gscript.parse_command(
+        'r.category', map=categorical_raster, separator=":")]
     # UTF8 coding required for Linux
     if sys.platform == 'linux':
         for i, x in enumerate(L):
@@ -332,13 +335,15 @@ def category_list_check(cat_list, raster_map):
 
     for cat in cat_list:
         if cat not in existing_cat:
-            message = (_("Some categories provided do not exist in the "
-                + "parts of raster \n <%s>, that are covered by the "
-                + "spatial units. Please check. \n Valid categories "
-                + "are: " + ",".join(existing_cat_string)) % raster_map)
+            message = ((
+                "Some categories provided do not exist in the "
+                "parts of raster \n <%s>, that are covered by the "
+                "spatial units. Please check. \n Valid categories "
+                "are: " + ",".join(existing_cat_string)) % raster_map)
             gscript.fatal(message)
-    gscript.verbose(_("...All user-given categories exist in raster "
-        + "<%s>") % raster_map)
+    gscript.verbose((
+        "...All user-given categories exist in raster <%s>")
+        % raster_map)
 
 def spatial_boundaries(vector, id):
     """
@@ -358,45 +363,55 @@ def spatial_boundaries(vector, id):
     global gridded_vector
 
     current_mapset = gscript.gisenv()['MAPSET']
-    gridded_vector = (vector.split("@")[0] + '_' + str(tile_size) +
-                      'm_gridded@' + current_mapset)
+    gridded_vector = (
+        vector.split("@")[0] + '_' + str(tile_size)
+        + 'm_gridded@' + current_mapset)
     gscript.run_command('g.region', raster='clumped_grid')
-    gscript.run_command('v.to.rast', quiet=True, input=vector,
+    gscript.run_command(
+        'v.to.rast', quiet=True, input=vector,
         type='area', output='gridded_spatial_units', use='attr',
         attribute_column=id)
-    gscript.run_command('r.to.vect', quiet=True,
+    gscript.run_command(
+        'r.to.vect', quiet=True,
         input='gridded_spatial_units', output=gridded_vector,
         type='area', flags='v')
-    gscript.run_command('v.db.dropcolumn', quiet=True,
+    gscript.run_command(
+        'v.db.dropcolumn', quiet=True,
         map=gridded_vector, column='label')
     # Join the response variable count
-    gscript.run_command('v.db.join', quiet=True, map=gridded_vector,
+    gscript.run_command(
+        'v.db.join', quiet=True, map=gridded_vector,
         column='cat', other_table=vector, other_column=id,
         subset_columns=response_variable)
     TMP_MAPS.append("gridded_spatial_units")
     TMP_VECT.append(gridded_vector)
-    gscript.run_command('g.region', vector=gridded_vector,
+    gscript.run_command(
+        'g.region', vector=gridded_vector,
         align='clumped_grid')
 
     # Check if loss of spatial units (polygons)
     element_equal, origin_n, gridded_n = (
         check_no_missing_zones(vector, gridded_vector))
     if element_equal == False:
-        gscript.run_command('g.remove', quiet=True, type='vector',
+        gscript.run_command(
+            'g.remove', quiet=True, type='vector',
             name=gridded_vector, flags='fb')
-        message = _(("A tile size of %s m seems to large and produces "
-            + "loss of some spatial units when rasterizing them."
-            + "\n") % tile_size)
-        message += _(("Try to reduce the 'tile_size' parameter or edit "
-            + "the <%s> vector to merge smallest spatial units with "
-            + "their neighboring units") % vector)
+        message = ((
+            "A tile size of %s m seems to large and produces "
+            "loss of some spatial units when rasterizing them."
+            "\n") % tile_size)
+        message += ((
+            "Try to reduce the 'tile_size' parameter or edit "
+            "the <%s> vector to merge smallest spatial units with "
+            "their neighboring units") % vector)
         gscript.fatal(message)
 
-def compute_proportion_csv(categorical_raster, zone_raster, prefix,
-    outputfile):
+def compute_proportion_csv(
+        categorical_raster, zone_raster, prefix, outputfile):
     """Run module r.zonal.classes to calculate statistics"""
 
-    gscript.run_command('r.zonal.classes', quiet=True,
+    gscript.run_command(
+        'r.zonal.classes', quiet=True,
         zone_map=zone_raster, raster=categorical_raster, prefix=prefix,
         decimals='4', statistics='proportion', csvfile=outputfile,
         separator='comma', overwrite=True)
@@ -416,7 +431,8 @@ def natural_keys(text):
     import re  # Import needed library
     return [atoi(c) for c in re.split('(\d+)', text)]  # Split string
 
-def join_2csv(file1, file2, separator=";", join='inner', fillempty='NULL'):
+def join_2csv(file1, file2, separator=";",
+              join='inner', fillempty='NULL'):
     """
     Join two csv files according to the first column (primary key)
 
@@ -484,13 +500,14 @@ def join_2csv(file1, file2, separator=";", join='inner', fillempty='NULL'):
     return outfile
 
 def join_multiplecsv(fileList, outfile, separator=";", join='inner',
-    fillempty='NULL', overwrite=False):
+                     fillempty='NULL', overwrite=False):
     """Join multiple csv files"""
 
     # Stop execution if outputfile exists and can not be overwritten
     if os.path.isfile(outfile) and overwrite == False:
-        gscript.fatal("File '%s' aleady exists and overwrite option is "
-            + "not enabled." % outfile)
+        gscript.fatal(
+            "File '%s' aleady exists and overwrite option is "
+            "not enabled." % outfile)
     else:
         nbfile = len(fileList)
         # Check if there are at least 2 files in the list
@@ -500,12 +517,14 @@ def join_multiplecsv(fileList, outfile, separator=";", join='inner',
             # Inner join on the two first files
             file1 = queue_list.pop(0)
             file2 = queue_list.pop(0)
-            tmp_file = join_2csv(file1, file2, separator=separator,
+            tmp_file = join_2csv(
+                file1, file2, separator=separator,
                 join=join, fillempty=fillempty)
             # Inner join on the rest of the files in the list
             while len(queue_list) > 0:
                 file2 = queue_list.pop(0)
-                tmp_file = join_2csv(tmp_file, file2, separator=separator,
+                tmp_file = join_2csv(
+                    tmp_file, file2, separator=separator,
                     join=join, fillempty=fillempty)
         else:  # in case there is only one file in the list
             tmp_file = fileList[0]
@@ -551,18 +570,20 @@ def labels_from_csv(current_labels):
             classnum = l[l.index('_prop_') + len('_prop_'):]
             if (classnum in basemap_a_class_rename_dict.keys()
                     and basemap_a_class_rename_dict[classnum] != ''):
-                new_label.append('Basemap A "'
-                    + basemap_a_class_rename_dict[classnum] + '"')
+                new_label.append(
+                    'Basemap A "%s"'
+                    % basemap_a_class_rename_dict[classnum])
             else:
-                new_label.append('Basemap A "' + classnum + '"')
+                new_label.append('Basemap A "%s"' % classnum)
         elif l[:8] == 'basemapB':
             classnum = l[l.index('_prop_') + len('_prop_'):]
             if (classnum in basemap_b_class_rename_dict.keys()
                     and basemap_b_class_rename_dict[classnum] != ''):
-                new_label.append('Basemap B "'
-                    + basemap_b_class_rename_dict[classnum] + '"')
+                new_label.append(
+                    'Basemap B "%s"'
+                    % basemap_b_class_rename_dict[classnum])
             else:
-                new_label.append('Basemap B "' + classnum + '"')
+                new_label.append('Basemap B "%s"' % classnum)
         elif l[-4:] == 'mean':
             new_label.append(l[0].title() + l[1:-5].replace('_', ' '))
         else:
@@ -583,18 +604,21 @@ def RandomForest(weighting_layer_name, vector, id):
     # ------------------------------------------------------------------
     gscript.info(_('...Data preparation for spatial units...'))
     # Compute area of the gridded spatial unit (vector) layer
-    gscript.run_command('v.to.db', quiet=True, map=gridded_vector,
+    gscript.run_command(
+        'v.to.db', quiet=True, map=gridded_vector,
         option='area', columns='area', units='meters')
     # Export desired columns from the attribute table as CSV
     area_table = gscript.tempfile()  # Define the path to the .csv
 
-    query = "SELECT cat,%s,area FROM %s" % (response_variable,
-        gridded_vector.split('@')[0])
-    gscript.run_command('db.select', quiet=True, sql=query,
+    query = "SELECT cat,%s,area FROM %s" % (
+        response_variable, gridded_vector.split('@')[0])
+    gscript.run_command(
+        'db.select', quiet=True, sql=query,
         output=area_table, overwrite=True)
     TMP_CSV.append(area_table)
     # Copy gridded vector to be an output with user-defined name
-    gscript.run_command('g.copy', quiet=True,
+    gscript.run_command(
+        'g.copy', quiet=True,
         vector='%s,%s' % (gridded_vector, output_units_layer))
 
     # Compute log of density in a new .csv file
@@ -609,8 +633,9 @@ def RandomForest(weighting_layer_name, vector, id):
     new_content.append(new_header)
     reader.__next__()
     # Compute log (ln) of the density
-    [new_content.append(
-        [row[0], ma.log(int(row[1]) / float(row[2]))]) for row in reader]
+    [new_content.append([
+                        row[0], ma.log(int(row[1]) / float(row[2]))
+                        ]) for row in reader]
     writer.writerows(new_content)
     # Make sure file does not close too fast
     #   (the content could be incompletely filled)
@@ -624,9 +649,9 @@ def RandomForest(weighting_layer_name, vector, id):
     all_stats_spatial_unit = allstatfile['unit']
     # For spatial unit level : join all co-variates with the log of
     #   density (response variable of the model)
-    units_attribute_table = join_2csv(log_density_csv,
-        all_stats_spatial_unit, separator=",", join='inner',
-        fillempty='NULL')
+    units_attribute_table = join_2csv(
+        log_density_csv, all_stats_spatial_unit,
+        separator=",", join='inner', fillempty='NULL')
     TMP_CSV.append(units_attribute_table)
 
     # ------------------------------------------------------------------
@@ -657,10 +682,12 @@ def RandomForest(weighting_layer_name, vector, id):
 
     ## Remove features whose importance is less than a threshold
     ##  (Feature selection)
-    gscript.verbose(_("......Removing features whose importance is "
-        + "less than a threshold (Feature selection)"))
+    gscript.verbose((
+        "......Removing features whose importance is "
+        "less than a threshold (Feature selection)"))
     # Run RF with default parameters, and 500 trees
-    rfmodel = RandomForestRegressor(n_estimators=500, oob_score=True,
+    rfmodel = RandomForestRegressor(
+        n_estimators=500, oob_score=True,
         max_features='auto', n_jobs=-1)
     # Select features
     a = SelectFromModel(rfmodel, threshold=min_fimportance)
@@ -673,55 +700,61 @@ def RandomForest(weighting_layer_name, vector, id):
     # Replace the dataframe with the selected features
     x = fitted.transform(x)
     # Save the selected covariates for the model in message for logfile
-    message = ("Selected covariates for the random forest model (with "
-        + "feature importance upper than {value} %) : \n\
+    message = (
+        "Selected covariates for the random forest model (with "
+        "feature importance upper than {value} %) : \n\
         ".format(value=min_fimportance * 100))
     message += "\n".join(list_covar)
     log_text += message + '\n\n'
 
     ## Tuning of hyperparameters for the Random Forest regressor using
     ##      "Grid search"
-    gscript.verbose(_("......Tuning of hyperparameters for the RF "
-        + "regressor"))
+    gscript.verbose((
+        "......Tuning of hyperparameters for the RF "
+        "regressor"))
     # Instantiate the grid search model
-    grid_search = GridSearchCV(estimator=RandomForestRegressor(),
+    grid_search = GridSearchCV(
+        estimator=RandomForestRegressor(),
         param_grid=param_grid, cv=kfold, n_jobs=n_jobs, verbose=0)
     grid_search.fit(x, y)  # Fit the grid search to the data
     regressor = grid_search.best_estimator_   # Save the best regressor
     regressor.fit(x, y)  # Fit the best regressor with the data
 
     ## Save RF infos in message for logile
-    gscript.verbose(_("......Saving information into logfile"))
+    gscript.verbose(("......Saving information into logfile"))
     # Save info for logfile - Parameter grid
     message = "Parameter grid for Random Forest tuning :\n"
     for key in param_grid.keys():
-        message += "    " + key + " : " + ", ".join([str(i) for i in
-            list(param_grid[key])]) + "\n"
+        message += "    %s : %s \n" % (
+            key, ", ".join([str(i) for i in list(param_grid[key])]))
     log_text += message + '\n'
     #Save info for logfile - Tuned parameters
-    message = ("Optimized parameters for Random Forest after grid "
-        + "search %s-fold cross-validation tuning :\n" % kfold)
+    message = (
+        "Optimized parameters for Random Forest after grid "
+        "search %s-fold cross-validation tuning :\n" % kfold)
     for key in grid_search.best_params_.keys():
-        message += " %s : %s" % (key, grid_search.best_params_[key]) + "\n"
+        message += " %s : %s \n" % (key, grid_search.best_params_[key])
     log_text += message + '\n'
     # Save info for logfile - Mean cross-validated estimator
     #    score (R2) and stddev of the best_estimator
     best_score = (grid_search.cv_results_
-        ['mean_test_score'][grid_search.best_index_])
+                  ['mean_test_score'][grid_search.best_index_])
     best_std = (grid_search.cv_results_
-        ['std_test_score'][grid_search.best_index_])
-    message = ("Mean cross-validated estimator score (R2) and stddev "
-        + "of the best estimator : %0.3f (+/-%0.3f)"
-        % (best_score, best_std) + '\n')
+                ['std_test_score'][grid_search.best_index_])
+    message = (
+        "Mean cross-validated estimator score (R2) and stddev "
+        "of the best estimator : %0.3f (+/-%0.3f) \n"
+        % (best_score, best_std))
     log_text += message + '\n'
     # Save info for logfile: Mean R2 + sddev for each set of parameters
     means = grid_search.cv_results_['mean_test_score']
     stds = grid_search.cv_results_['std_test_score']
-    message = ("Mean cross-validated estimator score (R2) and stddev"
-        + " for every tested set of parameter :\n")
+    message = (
+        "Mean cross-validated estimator score (R2) and stddev"
+        " for every tested set of parameter :\n")
     for mean, std, params in zip(means, stds,
-            grid_search.cv_results_['params']):
-        message += "%0.3f (+/-%0.03f) for %r" % (mean, std, params) + '\n'
+                                 grid_search.cv_results_['params']):
+        message += "%0.3f (+/-%0.03f) for %r \n" % (mean, std, params)
     log_text_extend += message
 
     ## Applying the RF model
@@ -768,14 +801,17 @@ def RandomForest(weighting_layer_name, vector, id):
 
     # Reclass segments raster layer
     gscript.run_command('g.region', raster='clumped_grid')
-    gscript.run_command('r.reclass', quiet=True, input="clumped_grid",
+    gscript.run_command(
+        'r.reclass', quiet=True, input="clumped_grid",
         output="weight_int", rules=outputcsv)
     # Get back to the original 'float' prediction of response variable
     #   density of random forest
-    gscript.run_command('r.mapcalc',
+    gscript.run_command(
+        'r.mapcalc',
         expression="%s=float(weight_int)/float(1000000000)"
         % weighting_layer_name, quiet=True)
-    gscript.run_command('g.remove', quiet=True, type='raster',
+    gscript.run_command(
+        'g.remove', quiet=True, type='raster',
         name="weight_int", flags='fb')
 
     # ------------------------------------------------------------------
@@ -805,8 +841,9 @@ def RandomForest(weighting_layer_name, vector, id):
     plt.savefig(plot + '.png', bbox_inches='tight', dpi=400)
     # Export in .svg file (vectorial)
     plt.savefig(plot + '.svg', bbox_inches='tight', dpi=400)
-    message = ("Final Random Forest model run - internal Out-of-bag "
-        + "score (OOB) : %0.3f" % regressor.oob_score_)
+    message = (
+        "Final Random Forest model run - internal Out-of-bag "
+        "score (OOB) : %0.3f" % regressor.oob_score)
     log_text += message + "\n"
     gscript.info(message)
 
@@ -839,37 +876,43 @@ def main():
     gscript.verbose(_("Checking installation of necessary modules..."))
     # Check if i.segment.stats is well installed
     if not gscript.find_program('i.segment.stats', '--help'):
-        message = _("You first need to install the addon "
-            + "i.segment.stats.\n")
-        message += _(" You can install the addon with 'g.extension "
-            + "i.segment.stats'")
+        message = (
+            "You first need to install the addon "
+            "i.segment.stats.\n")
+        message += (
+            "You can install the addon with 'g.extension "
+            "i.segment.stats'")
         gscript.fatal(message)
     # Check if r.zonal.classes is well installed
     if not gscript.find_program('r.zonal.classes', '--help'):
-        message = _("You first need to install the addon "
-            + "r.zonal.classes.\n")
-        message += _(" You can install the addon with 'g.extension "
-            + "r.zonal.classes'")
+        message = _(
+            "You first need to install the addon "
+            "r.zonal.classes.\n")
+        message += _(
+            "You can install the addon with 'g.extension "
+            "r.zonal.classes'")
         gscript.fatal(message)
     # Check if r.clip is well installed
     if not gscript.find_program('r.clip', '--help'):
-        message = _("You first need to install the addon "
-            + "r.clip.\n")
-        message += _(" You can install the addon with 'g.extension "
-            + "r.clip.'")
+        message = _(
+            "You first need to install the addon "
+            "r.clip.\n")
+        message += _(
+            "You can install the addon with 'g.extension "
+            "r.clip.'")
         gscript.fatal(message)
     # ------------------------------------------------------------------
     # Define variables from user's values
     # ------------------------------------------------------------------
-    gscript.message(_("Preparing and checking input data..."))
-    gscript.verbose(_("...Preparing variables from user options "
-        + "flags..."))
+    gscript.message(("Preparing and checking input data..."))
+    gscript.verbose((
+        "...Preparing variables from user options flags..."))
     vector_map = options['vector']
     basemap_a_user = options['basemap_a']
-    basemap_b_user = (options['basemap_b']
-        if options['basemap_b'] else "")
-    distance_to = (options['distance_to']
-        if options['distance_to'] else "")
+    basemap_b_user = (
+        options['basemap_b'] if options['basemap_b'] else "")
+    distance_to = (
+        options['distance_to'] if options['distance_to'] else "")
     tile_size = options['tile_size']
     id = options['id']
     response_variable = options['response_variable']
@@ -877,9 +920,11 @@ def main():
     output_units_layer = options['output_units']
     plot = options['plot']
     log_file = options['log_file']
-    basemap_a_list = (options['basemap_a_list'].split(",")
+    basemap_a_list = (
+        options['basemap_a_list'].split(",")
         if options['basemap_a_list'] else "")
-    basemap_b_list = (options['basemap_b_list'].split(",")
+    basemap_b_list = (
+        options['basemap_b_list'].split(",")
         if options['basemap_b_list'] else "")
     n_jobs = int(options['n_jobs'])
     rasta_class_list = 1 if flags['a'] else 0
@@ -894,70 +939,79 @@ def main():
         try:
             literal_eval(options['param_grid'])
         except:
-            gscript.fatal(_("The syntax of the Python dictionary with "
-                + "model parameter is not as expected. \nPlease refer "
-                + "to the manual"))
-    param_grid = (literal_eval(options['param_grid'])
-        if options['param_grid'] else {'oob_score': [True],
-        'bootstrap': [True],
-        'max_features': ['sqrt', 0.1, 0.3, 0.5, 0.7, 1],
-        'n_estimators': [500, 1000]})
+            gscript.fatal((
+                "The syntax of the Python dictionary with "
+                "model parameter is not as expected. \nPlease refer "
+                "to the manual"))
+    param_grid = (
+        literal_eval(options['param_grid']) if options['param_grid']
+        else {
+            'oob_score': [True],
+            'bootstrap': [True],
+            'max_features': ['sqrt', 0.1, 0.3, 0.5, 0.7, 1],
+            'n_estimators': [500, 1000]})
 
     # ------------------------------------------------------------------
     # Check existance & validity of user files and values
     # ------------------------------------------------------------------
-    gscript.verbose(_("...Checking vaidity of data (existence, "
-        + "type...)..."))
+    gscript.verbose((
+        "...Checking vaidity of data (existence, type...)..."))
     # basemap_a exists?
     result = gscript.find_file(basemap_a_user, element='cell')
     if not result['file']:
-        gscript.fatal(_("Raster map <%s> not found" % basemap_a_user))
+        gscript.fatal(("Raster map <%s> not found" % basemap_a_user))
     raster_list.append(basemap_a_user)
     basemap_a = 'basemap_a'
     raster_list_prep.append(basemap_a)
     # vector exists?
     result = gscript.find_file(vector_map, element='vector')
     if not result['file']:
-        gscript.fatal(_("Vector map <%s> not found" % vector_map))
+        gscript.fatal(("Vector map <%s> not found" % vector_map))
 
     # id column exists?
     if id not in gscript.vector_columns(vector_map).keys():
-        gscript.fatal(_("Column '%s' not found in vector <%s>")
-            % (id, vector_map))
+        gscript.fatal((
+            "Column '%s' not found in vector <%s>") % (id, vector_map))
     # is id column numeric?
     coltype = gscript.vector_columns(vector_map)[id]['type']
     if coltype not in ('INTEGER', 'DOUBLE PRECISION'):
-        gscript.fatal(_("Column <%s> must be integer") % id)
+        gscript.fatal(("Column <%s> must be integer") % id)
     # response variable column exists?
     if (response_variable not in
             gscript.vector_columns(vector_map).keys()):
-        gscript.fatal(_("Column <%s> not found in vector <%s>")
+        gscript.fatal((
+            "Column <%s> not found in vector <%s>")
             % (response_variable, vector_map))
     # is response variable column numeric?
     coltype = gscript.vector_columns(
         vector_map)[response_variable]['type']
     if coltype not in ('INTEGER', 'DOUBLE PRECISION'):
-        gscript.fatal(_("Column <%s> must be numeric")
+        gscript.fatal((
+            "Column <%s> must be numeric")
             % (response_variable))
     # response variable column contains values <=0 or NULL?
-    for x in gscript.parse_command('v.db.select', map=vector_map,
+    for x in gscript.parse_command(
+        'v.db.select', map=vector_map,
             columns=response_variable, null_value='0', flags='c'):
         if float(x) <= 0:
-            gscript.fatal(_("Response values contained in column <%s> "
-                + "cannot be smaller than 1 or have NULL values. \n"
-                + "Check manual page for more information.")
+            gscript.fatal((
+                "Response values contained in column <%s> "
+                "cannot be smaller than 1 or have NULL values. \n"
+                "Check manual page for more information.")
                 % (response_variable))
     # is tile_size different from null?
     if (int(tile_size) <= gscript.raster_info(basemap_a_user).nsres):
-        gscript.fatal(_("Invalid tile size. Tile size must be greater "
-            + "than basemap_a's resolution. \n"
-            + "Make sure the resolution of basemap_a is smaller than "
-            + "the tile size."))
+        gscript.fatal((
+            "Invalid tile size. Tile size must be greater "
+            "than basemap_a's resolution. \n"
+            "Make sure the resolution of basemap_a is smaller than "
+            "the tile size."))
     # basemap_b exists
     if (basemap_b_user != ''):
         result = gscript.find_file(basemap_b_user, element='cell')
         if not result['file']:
-            gscript.fatal(_("Raster map <%s> not found")
+            gscript.fatal((
+                "Raster map <%s> not found")
                 % basemap_b_user)
         raster_list.append(basemap_b_user)
         basemap_b = 'basemap_b'
@@ -967,8 +1021,9 @@ def main():
     # basemap_b_list only exists if basemap_b exists?
     if basemap_b_list != '':
         if basemap_b_user == '':
-            gscript.warning(_("Category list for basemap_b will be "
-                + "ignored as basemap_b has not been provided."))
+            gscript.warning((
+                "Category list for basemap_b will be "
+                "ignored as basemap_b has not been provided."))
     # distance_to exists?
     if (distance_to != ''):
         result = gscript.find_file(distance_to, element='cell')
@@ -978,39 +1033,44 @@ def main():
     if rastb_class_list == 1:
         if basemap_b == '':
             rastb_class_list = 0
-            gscript.warning(_("Class names for basemap_b will be "
-                + "ignored as basemap_b has not been provided."))
+            gscript.warning((
+                "Class names for basemap_b will be "
+                "ignored as basemap_b has not been provided."))
 
-    gscript.verbose(_("...Checking RF parameters..."))
+    gscript.verbose(("...Checking RF parameters..."))
     # 'oob_score' parameter in the dictionary for grid search is True?
     if 'oob_score' not in param_grid.keys():
         param_grid['oob_score'] = [True]
     elif param_grid['oob_score'] != [True]:
         param_grid['oob_score'] = [True]
     # valid n_jobs?
-    if(n_jobs >= multiprocessing.cpu_count()):
-        gscript.fatal(_("Requested number of jobs is > or = to "
-            + "available resources. Reduce to maximum <%s> jobs")
+    if n_jobs >= multiprocessing.cpu_count():
+        gscript.fatal((
+            "Requested number of jobs is > or = to "
+            "available resources. Reduce to maximum <%s> jobs")
             % (int(multiprocessing.cpu_count()) - 1))
     # Is kfold valid?
     # Corresponds to leave-one-out cross-validation
-    maxfold = int(gscript.parse_command('v.db.univar', flags='g',
-        map=vector_map, column='cat')['n'])
+    maxfold = int(gscript.parse_command(
+        'v.db.univar', flags='g', map=vector_map, column='cat')['n'])
     if(kfold > maxfold):
-        gscript.fatal(_("<kfold> parameter must be lower than %s "
-            + "(number of spatial units)" % maxfold))
+        gscript.fatal((
+            "<kfold> parameter must be lower than %s "
+            "(number of spatial units)" % maxfold))
     if(kfold < 2):
-        gscript.fatal(_("<kfold> parameter must be higher than 2"))
+        gscript.fatal(("<kfold> parameter must be higher than 2"))
     # Directory for output plot of model's feature importances valid?
     if not os.path.exists(os.path.split(plot)[0]):
-        gscript.fatal(_("Directory '%s' for output plot of model's "
-            + "feature importances does not exist. \nPlease specify an "
-            + "existing directory" % os.path.split(plot)[0]))
+        gscript.fatal((
+            "Directory '%s' for output plot of model's "
+            "feature importances does not exist. \nPlease specify an "
+            "existing directory" % os.path.split(plot)[0]))
     # Directory for output file with logging of RF run valid?
     if not os.path.exists(os.path.split(log_file)[0]):
-        gscript.fatal(_("Directory '%s' for output file with logging "
-            + "of RF run does not exist. \nPlease specify an existing "
-            + "directory" % os.path.split(log_file)[0]))
+        gscript.fatal((
+            "Directory '%s' for output file with logging "
+            "of RF run does not exist. \nPlease specify an existing "
+            "directory" % os.path.split(log_file)[0]))
 
     # ------------------------------------------------------------------
     # Create dictionaries and grids
@@ -1030,8 +1090,8 @@ def main():
     # ------------------------------------------------------------------
     # Prepare basemaps & distance map and check raster category lists
     # ------------------------------------------------------------------
-    gscript.verbose(_("...Preparing input rasters and defining raster "
-        + "categories..."))
+    gscript.verbose((
+        "...Preparing input rasters and defining raster categories..."))
     ## Prepare basemaps (clip to zone covered by the vector_map)
     # Ensure extraction of raster categories only within area covered
     #   by spatial units
@@ -1040,13 +1100,15 @@ def main():
     ## Extract list of raster categories for each basemap OR check that
     ##   user provided category list is valid
     if (basemap_a_list == ""):
-        gscript.verbose(_("......Classes list will be extracted from "
-            + "<%s>") % basemap_a)
+        gscript.verbose((
+            "......Classes list will be extracted from <%s>")
+            % basemap_a)
         # Get a sorted list with values of category in this raster
         basemap_a_category_list = extract_raster_categories(basemap_a)
     else:
-        gscript.verbose(_("......Checking if user provided classes "
-            + "exist in raster <%s>") % basemap_a)
+        gscript.verbose((
+            "......Checking if user provided classes "
+            "exist in raster <%s>") % basemap_a)
         category_list_check(basemap_a_list, basemap_a)
         basemap_a_category_list = basemap_a_list
         # Make sure the list provided by the user is well sorted
@@ -1055,20 +1117,23 @@ def main():
     if sys.platform == 'linux':
         for i, x in enumerate(basemap_a_category_list):
             basemap_a_category_list[i] = x.decode('UTF8')
-    message = ("Classes of raster '" + str(basemap_a_user) + "' used: "
-         + ",".join(basemap_a_category_list))
+    message = (
+        "Classes of raster '" + str(basemap_a_user) + "' used: "
+        + ",".join(basemap_a_category_list))
     log_text += message + '\n'
 
     if (basemap_b_user != ''):
         if (basemap_b_list == ""):
-            gscript.verbose(_("......Classes list will be extracted "
-                + "from <%s>") % basemap_b)
+            gscript.verbose((
+                "......Classes list will be extracted "
+                "from <%s>") % basemap_b)
             # Get a sorted list with values of category in this raster
             basemap_b_category_list = extract_raster_categories(
                 basemap_b)
         else:
-            gscript.verbose(_("......Checking if user provided classes "
-                + "exist in raster <%s>") % basemap_b)
+            gscript.verbose((
+                "......Checking if user provided classes "
+                "exist in raster <%s>") % basemap_b)
             category_list_check(basemap_b_list, basemap_b)
             basemap_b_category_list = basemap_b_list
             # Make sure the list provided by the user is well sorted
@@ -1077,7 +1142,8 @@ def main():
         if sys.platform == 'linux':
             for i, x in enumerate(basemap_b_category_list):
                 basemap_b_category_list[i] = x.decode('UTF8')
-        message = ("Classes of raster '" + str(basemap_b_user)
+        message = (
+            "Classes of raster '" + str(basemap_b_user)
             + "' used: " + ",".join(basemap_b_category_list))
         log_text += message + '\n'
 
@@ -1093,20 +1159,22 @@ def main():
     # ------------------------------------------------------------------
     # Compute statistics per grid and per spatial unit
     # ------------------------------------------------------------------
-    gscript.info(_("Extracting statistics..."))
-    gscript.verbose(_("...Extracting statistics per grid and "
-        + "spatial unit..."))
+    gscript.info(("Extracting statistics..."))
+    gscript.verbose((
+        "...Extracting statistics per grid and spatial unit..."))
     ## Calculate proportion of each class for categorical rasters
     # Categorical raster A
     gscript.run_command('g.region', raster=basemap_a.split("@")[0])
     tmp_stat_files['grid_A'] = gscript.tempfile()
     TMP_CSV.append(tmp_stat_files['grid_A'])
-    compute_proportion_csv(basemap_a.split("@")[0], 'clumped_grid',
+    compute_proportion_csv(
+        basemap_a.split("@")[0], 'clumped_grid',
         'basemapA', tmp_stat_files['grid_A'])
     tmp_stat_files['unit_A'] = gscript.tempfile()
     TMP_CSV.append(tmp_stat_files['unit_A'])
-    compute_proportion_csv(basemap_a.split("@")[0],
-        'gridded_spatial_units', 'basemapA', tmp_stat_files['unit_A'])
+    compute_proportion_csv(
+        basemap_a.split("@")[0], 'gridded_spatial_units',
+        'basemapA', tmp_stat_files['unit_A'])
 
     # Categorical raster B
     if(basemap_b != ''):
@@ -1114,20 +1182,22 @@ def main():
         gscript.run_command('g.region', raster=basemap_b.split("@")[0])
         tmp_stat_files['grid_B'] = gscript.tempfile()
         TMP_CSV.append(tmp_stat_files['grid_B'])
-        compute_proportion_csv(basemap_b.split("@")[0], 'clumped_grid',
+        compute_proportion_csv(
+            basemap_b.split("@")[0], 'clumped_grid',
             'basemapB', tmp_stat_files['grid_B'])
         tmp_stat_files['unit_B'] = gscript.tempfile()
         TMP_CSV.append(tmp_stat_files['unit_B'])
-        compute_proportion_csv(basemap_b.split("@")[0],
-            'gridded_spatial_units', 'basemapB',
-            tmp_stat_files['unit_B'])
+        compute_proportion_csv(
+            basemap_b.split("@")[0], 'gridded_spatial_units',
+            'basemapB', tmp_stat_files['unit_B'])
 
     ## Compute mean value for quantitative raster
     if(distance_to != ''):
         ## For grids
         tmp_stat_files['grid_C'] = gscript.tempfile()
         TMP_CSV.append(tmp_stat_files['grid_C'])
-        gscript.run_command('i.segment.stats', quiet=True, flags='sc',
+        gscript.run_command(
+            'i.segment.stats', quiet=True, flags='sc',
             map='clumped_grid',
             rasters=distance_to.split("@")[0], raster_statistics='mean',
             csvfile=tmp_stat_files['grid_C'], separator='comma',
@@ -1144,7 +1214,8 @@ def main():
         ## For spatial units
         tmp_stat_files['unit_C'] = gscript.tempfile()
         TMP_CSV.append(tmp_stat_files['unit_C'])
-        gscript.run_command('i.segment.stats', quiet=True, flags='sc',
+        gscript.run_command(
+            'i.segment.stats', quiet=True, flags='sc',
             map='gridded_spatial_units',
             rasters=distance_to.split("@")[0], raster_statistics='mean',
             csvfile=tmp_stat_files['unit_C'], separator='comma',
@@ -1176,14 +1247,16 @@ def main():
         if distance_to != '':  # Add mean distance
             list_paths.append(tmp_stat_files['%s_C' % zone])
         # Join .csv files
-        join_multiplecsv(list_paths, allstatfile[zone], separator=",",
+        join_multiplecsv(
+            list_paths, allstatfile[zone], separator=",",
             join='inner', fillempty='0.000', overwrite=True)
 
     # ------------------------------------------------------------------
     # Run random forest
     # ------------------------------------------------------------------
-    gscript.info(_("Random forest model training and prediction. "
-        + "This may take some time..."))
+    gscript.info((
+        "Random forest model training and prediction. "
+        "This may take some time..."))
     RandomForest(output_weighting_layer, vector_map.split("@")[0], id)
 
     # ------------------------------------------------------------------
@@ -1196,11 +1269,13 @@ def main():
         log_file = log_file + '.txt'
     logging = open(log_file, 'w')
     logging.write("Log file of r.area.createweight\n")
-    logging.write("Run started on " + str(start_time) + " and finished "
+    logging.write(
+        "Run started on " + str(start_time) + " and finished "
         + "on " + str(end_time) + "\n")
-    logging.write("Selected spatial resolution for weightarea_tableing layer : "
+    logging.write(
+        "Selected spatial resolution for weightarea_tableing layer : "
         + tile_size + " meters\n")
-    logging.write("Spatial units layer used : " + vector_map + '\n')
+    logging.write("Spatial units layer used : %s \n" % vector_map)
     logging.write(log_text)
     if flags['f'] :
         logging.write("\n")
@@ -1208,11 +1283,12 @@ def main():
     logging.close()
 
     gscript.del_temp_region()  # Remove temporary region
-    gscript.message(_("Run started on " + str(start_time) + " and "
+    gscript.message((
+        "Run started on " + str(start_time) + " and "
         + "finished on " + str(end_time) + "\n"))
+
 
 if __name__ == "__main__":
 
     atexit.register(cleanup)
     sys.exit(main())
-    
