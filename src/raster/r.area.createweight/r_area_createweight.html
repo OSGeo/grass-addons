@@ -5,10 +5,13 @@ layer</i> for <em><a
 href="https://en.wikipedia.org/wiki/Dasymetric_map">
 dasymetric mapping</a></em> using a Random Forest model.
 Dasymetric mapping is used to redistribute a response variable
-(e.g. population count) known for coarse spatial unit level (e.g.
+(e.g. population count) mapped at a coarse spatial unit level (e.g.
+
 administrative units), into a raster grid with a finer spatial
-resolution. Based on a vectorial layer with the response variable stored
-in the attribute table and raster with categorical variables (e.g. land
+resolution. Based on a vector layer with the response variable stored
+
+in the attribute table and a raster map with categorical values (e.g. land
+
 cover), the add-on will produce a raster with the weights to be used in
 a dasymetric mapping operation that can be performed using <em><a
 href="https://grass.osgeo.org/grass-stable/manuals/
@@ -22,11 +25,14 @@ href="https://grass.osgeo.org/grass-stable/manuals/
 addons/v.area.weigh.html">v.area.weigh</a></em> module.
 
 <p>A Random Forest (RF) regression model is trained at the level of the
-vectorial spatial units. The user must specify a vector layer using the
+vector spatial units. The user must specify a vector layer using the
+
 <b>vector</b> parameter. The attribute table connected to this layer
-must contain a column containing a unique identifier (numeric),
+must contain a column with a unique identifier (numeric),
+
 specified via the <b>id</b> parameter. It must also contain a column
-containing the numeric value to be used as a response variable (e.g.
+with the numeric value to be used as the response variable (e.g.
+
 population count), specified via the <b>response_variable</b> parameter.
 
 <p>The user must specify at least one categorical raster map,
@@ -36,8 +42,10 @@ with the parameter <b>basemap_b</b>, and/or a raster with continuous
 values (e.g. distance to the nearest road, school, hospital,
 university...) with the parameter <b>distance_to</b>. From these raster
 maps, the Random Forest's explanatory variables (i.e. covariates,
-predictors) are calculated.  For each of the categorical rasters
-(basemaps), the proportion of each of the classes is calculated. For the
+predictors) are calculated. For each of the categorical raster maps
+
+(basemaps), the proportion of each class is calculated. For the
+
 continuous raster map, the average values are calculated.
 
 <p>Once trained, the Random Forest model predicts weights in a raster
@@ -46,12 +54,14 @@ specified via the <b>tile_size</b> parameter, and its name via the
 <b>output</b> parameter. The <b>tile_size</b> must be greater than
 the spatial resolution of <b>basemap_a</b>. It it considered good
 practice that the <b>tile_size</b> also be greater than the spatial
-resolution of the other basemaps and distance map. The extent of the
+resolution of the other basemap and distance maps. The extent of the
+
 output weighted grid is created using the extent of the spatial units,
 i.e. the <b>vector</b> parameter.
 
 <p>By default, all classes from the raster basemap(s) are taken into
-account. If the user want only specific classes to be taken into account
+account. If the user wants only specific classes to be taken into account
+
 within the Random Forest model, it is possible to provide an optional
 list of these classes with the <b>basemap_a_list</b> parameter (for
 basemap_a) or the <b>basemap_b_list</b> parameter (for basemap_b, if
@@ -61,12 +71,14 @@ used).
 and gives an indication about the internal accuracy of the model
 (cross-validation on training set at the spatial units level). The log
 of the Random Forest run (including the OOB error) is saved in a file
-whose path and name has to be specified via the <b>log_file</b>
+which path and name has to be specified via the <b>log_file</b>
+
 parameter. Using the <b>-f</b> flag, the log file will include extended
 information about the cross-validation for each set of parameters
 tested in the grid search.
 
-<p>Feature importances in the model are plotted in a graph, whose path
+<p>Feature importances in the model are plotted in a graph, which path
+
 and name has to be specified via the <b>plot</b> parameter. By default,
 class values are used. Optionally, class labels can be used as plot
 labels, using the flags <b>-a</b> and <b>-b</b>, for <b>basemap_a</b>
@@ -84,8 +96,10 @@ should be specified via the <b>n_jobs</b> parameter.
 
 <p>The module <a
 href="https://grass.osgeo.org/grass-stable/manuals/r.mask.html">
-r.mask</a> is used within the module. The user should first remove any
-masks. If the user wish to run the add-on on a subset of the data, the
+r.mask</a> is used within <i>r.area.createweight</i>. The user should first remove any
+
+masks. If the user wishes to run the add-on on a subset of the data, the
+
 input datasets should first be clipped.
 
 <p>It is good practice that the spatial units (<b>vector</b> parameter)
@@ -93,12 +107,15 @@ are <i>entirely</i> spatially covered by <i>all</i> the input rasters.
 Any spatial units not sufficiently covered by <i>all</i> the input
 rasters should first be removed by the user. The add-on, however, will
 function even if the spatial units are not completely covered by the
-input rasters. This allows for the occasional missing pixel, or a
+input rasters. This allows for occasionally missing pixels, or a
+
 non-perfect alignment of input rasters with the spatial units (i.e.
 NULL values in the rasters). In the example below, numerous spatial
 units are not sufficiently covered, and should be removed prior to
-running the add-on. It is up to the user to choose the level of coverage
-acceptable for their analysis, and to ensure the quality of the input
+running the add-on. It is up to the users to choose an acceptable level of coverage
+
+for their analysis, and to ensure the quality of the input
+
 data, keeping in mind that the higher the coverage, the better the RF
 model. The RF model and its' prediction will only be as good as the
 input data it is given.
@@ -116,14 +133,18 @@ covered by <i>all</i> the input rasters (i.e. if the statistics
 calculated for that cell are null for at least one of the input
 rasters), the cell will be given a nodata value.
 
-<p>A temporary copy is made of the categorical input rasters
-(<b>basemap_a</b> and <b>basemap_b</b>), which are clipped to the
+<p>The module makes a temporary copy of the categorical input rasters
+
+(<b>basemap_a</b> and <b>basemap_b</b>) clipped to the
+
 area covered by the spatial units. This allows for the extraction of
 raster categories that exist only within the spatial units. If a user
-specifies a list of specific raster categories (<b>basemap_a_list</b>
+specifies a list of raster categories (<b>basemap_a_list</b>
+
 or <b>basemap_b_list</b>), these classes must be present in the area
 covered by the spatial units. The distance map (<b>distance_to</b>) is
-not changed, and is kept in its' original format.
+not changed, and it is kept in its original format.
+
 
 <p>The spatial units are rasterised to the extent, cell size and
 alignment of the output weighted grid, and then are re-vectorised. This
@@ -219,18 +240,24 @@ Linux package manager in most distributions (named for example
 easiest way is to use the <a
 href="https://grass.osgeo.org/download/software/ms-windows/">OSGeo4W</a>
 installation method of GRASS, where the Python setuptools can also be
-installed. You can then use 'easy_install pip' to install the pip
-package manager. Then, you can download the "Python wheels"
+installed. The users can then run 'easy_install pip' to install the pip
+
+package manager. Then, they can download the "Python wheels"
+
 corresponding to each package and install them using the following
-command : <em>pip install packagename.whl</em>. Below, links for
-downloading wheels are provided. The version installed should be
-compatible with your Python version. If GRASS was not installed
+command: <em>pip install packagename.whl</em>. Links for
+
+downloading wheels are provided below. The version installed should be
+
+compatible with user's Python version. If GRASS was not installed
+
 using the OSGeo4W method, the pip package manager can be installed by
 saving the "get-pip.py" python script provided <a
 href="https://bootstrap.pypa.io/get-pip.py">here</a> in the folder
 containing the GRASS GIS Python environment
 (GRASSFOLDER/../etc/python/grass) and executing it with administrator
-rights with the following command : <em>Python get-pip.py</em>
+rights with the following command: <em>python get-pip.py</em>
+
 <ul>
 <li>Pandas Wheel : <a
 href="https://pypi.python.org/pypi/pandas">https://pypi.python.org/pypi/
@@ -245,9 +272,11 @@ Gohlke</a></li>
 
 <h2>EXAMPLES</h2>
 
-Here we use the GRASS GIS sample North Carolina data set to created a
+Here we use the GRASS GIS sample North Carolina data set to create a
+
 weighting layer of population, using the layers <b>basemap_a</b> =
-<i>landuse96_28m</i>, <b>vector</b> spatial units =
+<i>landuse96_28m</i> and <b>vector</b> spatial units =
+
 <i>censusblk_swwake</i>. A <b>distance</b> map can be created from the
 <i>streets_wake</i> layer. Some of the layers must first be prepared as
 follows.
@@ -296,7 +325,8 @@ spatial units with their neighbouring units, as follows:
 g.region vector=censusblk_swwake
 </pre></div>
 
-<p>Make point file of centroid of all polygons in initial census file
+<p>Create a vector of points with the centroids of all polygons in the initial census file
+
 <div class="code"><pre>
 v.to.points input=censusblk_swwake type=centroid,face \
   output=censusblk_swwake_points
