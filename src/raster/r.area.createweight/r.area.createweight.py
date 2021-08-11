@@ -201,9 +201,6 @@ import math as ma
 import matplotlib
 import matplotlib.pyplot as plt
 
-# Import multiprocessing library
-import multiprocessing
-
 # Import literal_eval
 from ast import literal_eval
 from copy import deepcopy
@@ -1197,15 +1194,6 @@ def main():
         param_grid["oob_score"] = [True]
     elif param_grid["oob_score"] != [True]:
         param_grid["oob_score"] = [True]
-    # valid n_jobs?
-    if n_jobs >= multiprocessing.cpu_count():
-        gscript.fatal(
-            _(
-                "Requested number of jobs is > or = to "
-                "available resources. Reduce to maximum <%s> jobs"
-            )
-            % (int(multiprocessing.cpu_count()) - 1)
-        )
     # Is kfold valid?
     # Corresponds to leave-one-out cross-validation
     maxfold = int(
