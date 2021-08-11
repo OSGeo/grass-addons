@@ -85,9 +85,10 @@ labels, using the flags <b>-a</b> and <b>-b</b>, for <b>basemap_a</b>
 and <b>basemap_b</b> respectively. If these flags are used, the raster
 should already contain the associated category labels. The module <a
 href="https://grass.osgeo.org/grass-stable/manuals/r.category.html">r.
-category</a> can be used to set category labels for a raster map. If the
-flag is selected, but the class label does not exist, the class value
-will be kept.
+category</a> can be used to set category labels for a raster map. If 
+the flag(s) <b>-a</b> and/or <b>-b</b> is(are) selected without existing  
+categories for the corresponding raster map, the class value will be 
+kept.
 
 <p>Parallel processing is supported. The number of cores to be used
 should be specified via the <b>n_jobs</b> parameter.
@@ -97,17 +98,14 @@ should be specified via the <b>n_jobs</b> parameter.
 <p>The module <a
 href="https://grass.osgeo.org/grass-stable/manuals/r.mask.html">
 r.mask</a> is used within <i>r.area.createweight</i>. The user should first remove any
-
-masks. If the user wishes to run the add-on on a subset of the data, the
-
-input datasets should first be clipped.
+masks. 
 
 <p>It is good practice that the spatial units (<b>vector</b> parameter)
 are <i>entirely</i> spatially covered by <i>all</i> the input rasters.
 Any spatial units not sufficiently covered by <i>all</i> the input
-rasters should first be removed by the user. The add-on, however, will
-function even if the spatial units are not completely covered by the
-input rasters. This allows for occasionally missing pixels, or a
+rasters should first be removed by the user, prior to run <i>r.area.createweight</i>. 
+The add-on, however, will function even if the spatial units are not completely 
+covered by the input rasters. This allows for occasionally missing pixels, or a
 
 non-perfect alignment of input rasters with the spatial units (i.e.
 NULL values in the rasters). In the example below, numerous spatial
