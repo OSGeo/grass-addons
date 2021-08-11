@@ -30,8 +30,7 @@
 #%option G_OPT_V_MAP
 #% key: vector
 #% label: Vector with spatial units
-#% description: Polygon vector containing unique ID and response
-#               variable in the attribute table
+#% description: Polygon vector containing unique ID and response variable in the attribute table
 #% required : yes
 #% guisection: Required inputs
 #% guidependency:vector_layer,id,response_variable
