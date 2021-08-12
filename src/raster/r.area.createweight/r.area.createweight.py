@@ -162,8 +162,7 @@
 #%option
 #% key: kfold
 #% type: integer
-#% label: Number of k-fold cross-validation for grid search
-#       parameter optimization
+#% label: Number of k-fold cross-validation for grid search parameter optimization
 #% description: Format: Must have a value > 2 and < N spatial units
 #% required: no
 #% guisection: Feature selection and tuning
@@ -172,8 +171,7 @@
 #%option
 #% key: param_grid
 #% type: string
-#% description: Python dictionary of customized tunegrid for
-#               sklearn RFregressor
+#% description: Python dictionary of customized tunegrid for sklearn RFregressor
 #% required: no
 #% guisection: Feature selection and tuning
 #%end
