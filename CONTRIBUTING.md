@@ -15,8 +15,8 @@ on GitHub.
 
 ## Changing code and documentation
 
-This guide covers contributing to the main version of GRASS GIS Addons
-source code which is stored the master branch.
+This guide covers contributing to the latest version of GRASS GIS Addons
+source code which is stored in a branch called _grass7_.
 It assumes that you have some very basic knowledge of Git and GitHub,
 but if you don't just go through some tutorial online or ask on the
 GRASS GIS developer mailing list.
@@ -65,22 +65,22 @@ It is important that "origin" points to your fork.
 
 ### Update before creating a feature branch
 
-* Make sure your are using master branch:
+* Make sure your are starting with the branch for the latest version, i.e., _grass7_:
 
 ```
-git checkout master
+git checkout grass7
 ```
 
-* Download updates from all branches from all remotes:
+* Download updates from all branches from the _upstream_ remote:
 
 ```
 git fetch upstream
 ```
 
-* Update your local master branch to match master in the main repository:
+* Update your local branch to match the one in the upstream repository:
 
 ```
-git rebase upstream/master
+git rebase upstream/grass7
 ```
 
 ### Update if you have local branches
@@ -95,7 +95,7 @@ git stash
 * Now you can rebase:
 
 ```
-git rebase upstream/master
+git rebase upstream/grass7
 ```
 
 * Apply your local changes on top:
@@ -112,7 +112,7 @@ git stash pop
 
 ### Creating a new feature branch
 
-Now you have updated your local master branch, you can create a feature branch
+Now you have updated your local branch, you can create a feature branch
 based on it.
 
 * Create a new feature branch and switch to it:
@@ -165,11 +165,11 @@ GRASS GIS maintainers or users will now review your pull request.
 If needed, they will work with you to improve your changes.
 
 Once the changes in the pull request are ready to be accepted,
-the maintainers will decide if it is more appropriate to:
+the maintainers will usually squash all your commits into one commit and merge it
+to the _main_ branch.
 
-* merge your feature branch,
-* squash all commit into one commit, or
-* rebase (i.e., replay) all commits on top of the master branch.
+Once the pull request is merged, it is a good time to update your
+local _grass7_ branch in order to get there the change you just contributed.
 
 ### Further notes
 
