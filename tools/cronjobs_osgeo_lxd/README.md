@@ -10,7 +10,7 @@ This directory contains the relevant files to generate and deploy the GRASS GIS 
     - `hugo_clean_and_update_job.sh`
 - GRASS GIS source code weekly snapshots:
     - release_branch_7_8: `cron_grass78_src_relbr78_snapshot.sh`
-    - master: `cron_grass8_HEAD_src_snapshot.sh`
+    - main: `cron_grass8_HEAD_src_snapshot.sh`
 - GRASS GIS Linux binary weekly snapshots:
     - `cron_grass78_releasebranch_78_build_bins.sh`
 - GRASS GIS addons manual pages:

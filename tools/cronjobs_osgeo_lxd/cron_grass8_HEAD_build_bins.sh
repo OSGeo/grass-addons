@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# script to build GRASS 8.x master binaries (shared libs)
+# script to build GRASS 8.x binaries from the main branch (shared libs)
 # (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
 # Nov 2008, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021
 #
@@ -117,7 +117,7 @@ rm -rf lib/python/docs/_build/ lib/python/docs/_templates/layout.html
 rm -f config_${DOTVERSION}.git_log.txt ChangeLog
 
 ## hard reset local git repo (just in case)
-#git checkout master && git reset --hard HEAD~1 && git reset --hard origin
+#git checkout main && git reset --hard HEAD~1 && git reset --hard origin
 
 echo "git update..."
 git fetch --all --prune && git checkout $BRANCH && git pull --rebase || halt_on_error "git update error!"

@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         grass-version:
-        - master
+        - main
         - releasebranch_7_8
         python-version:
         - 3.6

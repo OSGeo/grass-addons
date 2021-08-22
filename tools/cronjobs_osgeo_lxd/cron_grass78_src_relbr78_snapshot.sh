@@ -24,7 +24,7 @@ GSHORTGVERSION=$GMAJOR$GMINOR
 ###################
 # where to find the GRASS sources (git clone):
 SOURCE=$MAINDIR/src/
-BRANCH=releasebranch_${GMAJOR}_${GMINOR}  # or, master
+BRANCH=releasebranch_${GMAJOR}_${GMINOR}
 # where to put the resulting .tar.gz file:
 TARGETMAIN=/var/www/code_and_data/
 TARGETDIR=$TARGETMAIN/grass${GSHORTGVERSION}/source/snapshot
