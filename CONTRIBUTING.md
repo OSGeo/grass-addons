@@ -166,7 +166,7 @@ If needed, they will work with you to improve your changes.
 
 Once the changes in the pull request are ready to be accepted,
 the maintainers will usually squash all your commits into one commit and merge it
-to the _main_ branch.
+to the _grass7_ branch.
 
 Once the pull request is merged, it is a good time to update your
 local _grass7_ branch in order to get there the change you just contributed.
