@@ -421,6 +421,10 @@ def download_gcs(scene, output):
         from tqdm import tqdm
     except ImportError as e:
         gs.fatal(_("Module requires tqdm library: {}").format(e))
+    try:
+        import requests
+    except ImportError as e:
+        gs.fatal(_("Module requires requests library: {}").format(e))
 
     final_scene_dir = os.path.join(output, "{}.SAFE".format(scene))
     create_dir(final_scene_dir)
@@ -911,6 +915,13 @@ class SentinelDownloader(object):
         asc=True,
         relativeorbitnumber=None,
     ):
+
+        try:
+            import pandas
+        except ImportError as e:
+            gs.fatal(_("Module requires pandas library: {}").format(e))
+
+
         if area_relation != "Intersects":
             gs.fatal(
                 _("USGS Earth Explorer only supports area_relation" " 'Intersects'")
@@ -1024,17 +1035,6 @@ class SentinelDownloader(object):
 
 
 def main():
-
-    # Lazy import nonstandard modules
-    try:
-        import pandas
-    except ImportError as e:
-        gs.fatal(_("Module requires pandas library: {}").format(e))
-
-    try:
-        import requests
-    except ImportError as e:
-        gs.fatal(_("Module requires requests library: {}").format(e))
 
     user = password = None
     if options["datasource"] == "ESA_COAH" or options["datasource"] == "GCS":
