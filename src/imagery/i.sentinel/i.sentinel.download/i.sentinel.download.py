@@ -380,6 +380,8 @@ def get_checksum(filename, hash_function="md5"):
             readable_hash = hashlib.md5(bytes).hexdigest()
         elif hash_function == "sha256":
             readable_hash = hashlib.sha256(bytes).hexdigest()
+        elif hash_function == "sha3-256":
+            readable_hash = hashlib.sha3_256(bytes).hexdigest()
         else:
             raise Exception(
                 (
@@ -401,7 +403,7 @@ def download_gcs_file(url, destination, checksum_function, checksum):
         r_file = requests.get(url, allow_redirects=True)
         open(destination, "wb").write(r_file.content)
         sum_dl = get_checksum(destination, checksum_function)
-        if sum_dl != checksum:
+        if sum_dl.lower() != checksum.lower():
             gs.verbose(_("Checksumming not successful for {}").format(destination))
             return 1
         else:
