@@ -4,7 +4,7 @@
 ########################################################################
 #
 # MODULE:       r.meb
-# AUTHOR(S):    Paulo van Breugel <p.vanbreugel AT gmail.com>
+# AUTHOR(S):    Paulo van Breugel <paulo AT ecodiv.earth>
 # PURPOSE:      Compute the multivariate envirionmental bias (MEB) as
 #               described in van Breugel et al. 2015
 #               (doi: 10.1371/journal.pone.0121444). If A s an areas
