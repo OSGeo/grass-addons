@@ -9,9 +9,7 @@ Dasymetric mapping is used to redistribute a response variable
 
 administrative units), into a raster grid with a finer spatial
 resolution. Based on a vector layer with the response variable stored
-
 in the attribute table and a raster map with categorical values (e.g. land
-
 cover), the add-on will produce a raster with the weights to be used in
 a dasymetric mapping operation that can be performed using <em><a
 href="https://grass.osgeo.org/grass-stable/manuals/
@@ -26,13 +24,11 @@ addons/v.area.weigh.html">v.area.weigh</a></em> module.
 
 <p>A Random Forest (RF) regression model is trained at the level of the
 vector spatial units. The user must specify a vector layer using the
-
 <b>vector</b> parameter. The attribute table connected to this layer
 must contain a column with a unique identifier (numeric),
 
 specified via the <b>id</b> parameter. It must also contain a column
 with the numeric value to be used as the response variable (e.g.
-
 population count), specified via the <b>response_variable</b> parameter.
 
 <p>The user must specify at least one categorical raster map,
@@ -42,10 +38,8 @@ with the parameter <b>basemap_b</b>, and/or a raster with continuous
 values (e.g. distance to the nearest road, school, hospital,
 university...) with the parameter <b>distance_to</b>. From these raster
 maps, the Random Forest's explanatory variables (i.e. covariates,
-predictors) are calculated. For each of the categorical raster maps
-
-(basemaps), the proportion of each class is calculated. For the
-
+predictors) are calculated. For each of the categorical raster maps 
+(basemaps), the proportion of each class is calculated. For the 
 continuous raster map, the average values are calculated.
 
 <p>Once trained, the Random Forest model predicts weights in a raster
@@ -54,14 +48,12 @@ specified via the <b>tile_size</b> parameter, and its name via the
 <b>output</b> parameter. The <b>tile_size</b> must be greater than
 the spatial resolution of <b>basemap_a</b>. It it considered good
 practice that the <b>tile_size</b> also be greater than the spatial
-resolution of the other basemap and distance maps. The extent of the
-
+resolution of the other basemap and distance maps. The extent of the 
 output weighted grid is created using the extent of the spatial units,
 i.e. the <b>vector</b> parameter.
 
 <p>By default, all classes from the raster basemap(s) are taken into
-account. If the user wants only specific classes to be taken into account
-
+account. If the user wants only specific classes to be taken into account 
 within the Random Forest model, it is possible to provide an optional
 list of these classes with the <b>basemap_a_list</b> parameter (for
 basemap_a) or the <b>basemap_b_list</b> parameter (for basemap_b, if
@@ -71,14 +63,12 @@ used).
 and gives an indication about the internal accuracy of the model
 (cross-validation on training set at the spatial units level). The log
 of the Random Forest run (including the OOB error) is saved in a file
-which path and name has to be specified via the <b>log_file</b>
-
+which path and name has to be specified via the <b>log_file</b> 
 parameter. Using the <b>-f</b> flag, the log file will include extended
 information about the cross-validation for each set of parameters
 tested in the grid search.
 
-<p>Feature importances in the model are plotted in a graph, which path
-
+<p>Feature importances in the model are plotted in a graph, which path 
 and name has to be specified via the <b>plot</b> parameter. By default,
 class values are used. Optionally, class labels can be used as plot
 labels, using the flags <b>-a</b> and <b>-b</b>, for <b>basemap_a</b>
@@ -92,6 +82,9 @@ kept.
 
 <p>Parallel processing is supported. The number of cores to be used
 should be specified via the <b>n_jobs</b> parameter.
+
+<p>The addon is described in more details in a paper [3] with a case 
+study.
 
 <h2>NOTES</h2>
 
@@ -466,6 +459,12 @@ distribution models with very-high resolution satellite information.
 <i>Data, 4</i>(1), 13. <a
 href="https://doi.org/10.3390/data4010013">https://doi.org/10.3390/
 data4010013</a>
+<p>[3] Flasse, C., T. Grippa, et S. Fennia. 2021. « A TOOL FOR MACHINE 
+LEARNING BASED DASYMETRIC MAPPING APPROACHES IN GRASS GIS ». The 
+International Archives of the Photogrammetry, Remote Sensing and 
+Spatial Information Sciences XLVI-4/W2-2021: 55‑62. 
+<a href="https://doi.org/10.5194/isprs-archives-XLVI-4-W2-2021-55-2021">
+https://doi.org/10.5194/isprs-archives-XLVI-4-W2-2021-55-2021</a>
 
 <h2>ACKNOWLEDGEMENT</h2>
 
