@@ -292,6 +292,11 @@ def get_bbox_from_S2_UTMtile(tile):
         "V20150622T000000_21000101T000000_B00.kml/"
         "ec05e22c-a2bc-4a13-9e84-02d5257b09a8"
     )
+    if ("requests" not in sys.modules) or ("requests" not in dir()):
+        try:
+            import requests
+        except ImportError as e:
+            gs.fatal(_("Module requires requests library: {}").format(e))
     r = requests.get(tile_kml_url, allow_redirects=True)
     root = ET.fromstring(r.content)
     r = None
@@ -395,6 +400,12 @@ def get_checksum(filename, hash_function="md5"):
 def download_gcs_file(url, destination, checksum_function, checksum):
     """Downloads a single file from GCS and performs checksumming."""
     # if file exists, check if checksum is ok, download again otherwise
+
+    if ("requests" not in sys.modules) or ("requests" not in dir()):
+        try:
+            import requests
+        except ImportError as e:
+            gs.fatal(_("Module requires requests library: {}").format(e))
     if os.path.isfile(destination):
         sum_existing = get_checksum(destination, checksum_function)
         if sum_existing == checksum:
@@ -405,7 +416,7 @@ def download_gcs_file(url, destination, checksum_function, checksum):
         sum_dl = get_checksum(destination, checksum_function)
         if sum_dl.lower() != checksum.lower():
             gs.verbose(_("Checksumming not successful for {}").format(destination))
-            return 1
+            return 2
         else:
             return 0
 
@@ -421,10 +432,11 @@ def download_gcs(scene, output):
         from tqdm import tqdm
     except ImportError as e:
         gs.fatal(_("Module requires tqdm library: {}").format(e))
-    try:
-        import requests
-    except ImportError as e:
-        gs.fatal(_("Module requires requests library: {}").format(e))
+    if ("requests" not in sys.modules) or ("requests" not in dir()):
+        try:
+            import requests
+        except ImportError as e:
+            gs.fatal(_("Module requires requests library: {}").format(e))
 
     final_scene_dir = os.path.join(output, "{}.SAFE".format(scene))
     create_dir(final_scene_dir)
@@ -456,7 +468,6 @@ def download_gcs(scene, output):
     open(output_path_safe, "wb").write(r_safe.content)
     # parse manifest.safe for the rest of the data
     files_list = parse_manifest_gcs(root_manifest)
-
     # get all required folders
     hrefs = [file["href"] for file in files_list]
     hrefs_heads = [os.path.split(path)[0] for path in hrefs]
@@ -512,6 +523,7 @@ def download_gcs(scene, output):
     if req_folder_code != 0:
         return 1
     failed_downloads = []
+    failed_checksums = []
     # no .html files are available on GCS but the folder might be required
     files_list_dl = [file for file in files_list if "HTML" not in file["href"]]
     for dl_file in tqdm(files_list_dl):
@@ -530,8 +542,10 @@ def download_gcs(scene, output):
             checksum_function=checksum_function,
             checksum=dl_file["checksum"],
         )
-        if dl_code != 0:
+        if dl_code == 1:
             failed_downloads.append(dl_url)
+        elif dl_code == 2:
+            failed_checksums.append(dl_url)
 
     if len(failed_downloads) > 0:
         gs.verbose(
@@ -542,6 +556,14 @@ def download_gcs(scene, output):
         gs.warning(_("Downloading was not successful for scene <{}>").format(scene))
         return 1
     else:
+        if len(failed_checksums) > 0:
+            gs.warning(_("Scene {} was downloaded but checksumming was not "
+                         "successful for one or more files.").format(scene))
+            gs.verbose(
+                _("Checksumming was not successful for urls \n{}").format(
+                    "\n".join(failed_checksums)
+                )
+            )
         return 0
 
 
@@ -920,7 +942,6 @@ class SentinelDownloader(object):
             import pandas
         except ImportError as e:
             gs.fatal(_("Module requires pandas library: {}").format(e))
-
 
         if area_relation != "Intersects":
             gs.fatal(
