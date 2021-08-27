@@ -872,6 +872,11 @@ class SentinelDownloader(object):
         )
 
     def get_products_from_uuid_usgs(self, uuid_list):
+        if ("pandas" not in sys.modules) or ("pandas" not in dir()):
+            try:
+                import pandas
+            except ImportError as e:
+                gs.fatal(_("Module requires pandas library: {}").format(e))
         scenes = []
         for uuid in uuid_list:
             metadata = self._api.metadata(uuid, "SENTINEL_2A")
