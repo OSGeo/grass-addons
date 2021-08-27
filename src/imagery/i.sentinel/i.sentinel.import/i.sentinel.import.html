@@ -6,9 +6,9 @@ module.
 
 <p>
 By default <em>i.sentinel.import</em> imports all Sentinel scene files found
-in the <b>input</b> directory. The number of scene files can be optionally 
-reduced by the <b>pattern_file</b> option. In this option, a regular expression 
-for filtering the file names should be given, e.g. "MSIL2A.*T32VNR_2019" for 
+in the <b>input</b> directory. The number of scene files can be optionally
+reduced by the <b>pattern_file</b> option. In this option, a regular expression
+for filtering the file names should be given, e.g. "MSIL2A.*T32VNR_2019" for
 importing only level 2A products for tile T32VNR from 2019.
 <p>
 By default <em>i.sentinel.import</em> imports the full scene. Optionally, the
@@ -17,13 +17,13 @@ import can be reduced to the computational region extent with
 
 <p>
 Note that in the case that spatial reference system of input data differs
-from GRASS GIS location, the input data need to be reprojected with 
+from GRASS GIS location, the input data need to be reprojected with
 <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.import.html">r.import</a></em>. To speed up this
 process, a higher than default value can be specified for the <b>memory</b>
 option.
 
 <p>
-In order to ignore insignificant mismatch of the spatial reference 
+In order to ignore insignificant mismatch of the spatial reference
 systems, the projection check can be suppressed with the <b>-o</b> flag.
 
 <p>
@@ -109,12 +109,8 @@ AZIMUTH_ANGLE_5=295.354861828927<br>
 </tbody>
 </table>
 
-<h2>NOTES</h2>
 
-<p>
-If <b>-c</b> flag is given, than also cloud mask file is imported as
-vector map if available. The name of created vector map is determined from
-input Sentinel product.
+<h2>NOTES</h2>
 
 <p>
 By <b>register_file</b> option <em>i.sentinel.import</em> allows
@@ -125,7 +121,27 @@ currently a register file can be created only for Sentinel-2 data. See
 example below.
 
 <p>
-<b>Metadata import</b>
+<h3>Importing cloud and cloud shadow masks</h3>
+
+If <b>-c</b> flag is given, a cloud mask with suffix _MSK_CLOUDS is additionally created.
+For Level2A products this mask is based on the Level2A inherent cloud probability layer and
+can be controlled by specifying the <b>cloud_*</b> options. The default <b>cloud_probability_threshold</b>
+applied to the probability layer is set to 65%, which corresponds to the classification of such areas as most
+likely cloudy according to the ESA classification scheme used for the creation of the SCL layer.
+The SCL Layer itself is used if shadow masks should be included in the _MSK_CLOUDS layer.
+This requires to call the <b>-s</b> flag, which adds shadows as part of the _MSK_CLOUDS output layer.
+The <b>cloud_area_threshold</b> parameter allows to exclude small areas of cloud and shadow cover,
+which in case of vector outputs tend to increase the computational speed. Note that the resolution of
+the _MSK_CLOUDS layer (20m) is determined by the native resolution of the cloud probability layer
+and the SCL layer, respectively.
+For Level1C products a simplified cloud mask will be created since cloud probability and SCL layer
+are not available. Note that for Level1C products only clouds and no shadows can be masked and specifying
+the <b>cloud_probability_threshold</b> does not influence the masking procedure. Only the parameters
+<b>cloud_area_threshold</b> and <b>cloud_output</b> will be applied during the import of cloud masks
+for Level1C products.
+
+<p>
+<h3>Metadata import</h3>
 
 By using the <b>-j</b> flag the band metadata are additionally stored
 in JSON format (in the current mapset under <tt>cell_misc</tt>). These
@@ -187,16 +203,37 @@ i.sentinel.import -j input=data pattern='_B((0[2348]_1)|(0[567]|8A|11|12)_2)0m'
 </pre></div>
 
 <p>
-Link data and import also cloud mask file:
+Import cloud and shadow mask:
 
 <div class="code"><pre>
-i.sentinel.import -l -c -j input=data
+i.sentinel.import input=data
+i.sentinel.import input=data -c -s
+i.sentinel.import input=data cloud_probability_threshold=25 cloud_area_threshold=10 -c -s
 </pre></div>
 
-<center>
-<img src="i_sentinel_import_band_4_clouds.png" width="600" height="356"><br>
-<i>Fig: Band 4 with imported cloud mask</i>
-</center>
+<p>
+<table width="100%" cellspacing="5" cellpadding="1" border="0">
+	<tbody>
+		<tr>
+		<td valign="top" align="center" width=30%>
+      <a href="i_sentinel_import_without_cloud_mask.png">
+        <img src="i_sentinel_import_without_cloud_mask.png" width="90%"></a><br>
+      <br><i>Fig: S2 L2-A imagery without cloud mask <br>(example: T33TVE_20210313T095029, Italy)<br></i>
+    </td>
+		<td valign="top" align="center" width=30%>
+      <a href="i_sentinel_import_with_cloud_shadow_mask_v1.png">
+				<img src="i_sentinel_import_with_cloud_shadow_mask_v1.png" width="90%"></a><br>
+      <br><i>Fig: Cloud (ligthgrey) and shadow (darkgrey) mask <br> (default options)<br></i>
+    </td>
+		<td valign="top" align="center" width=30%>
+      <a href="i_sentinel_import_with_cloud_shadow_mask_v2.png">
+        <img src="i_sentinel_import_with_cloud_shadow_mask_v2.png" width="90%"></a><br>
+      <br><i>Fig: Cloud (ligthgrey) and shadow (darkgrey) mask <br>(lower probability threshold and higher area threshold)<br></i>
+    </td>
+		</tr>
+	</tbody>
+</table>
+<p>
 
 <p>
 Link data from specific UTM zone while ignoring projection check
