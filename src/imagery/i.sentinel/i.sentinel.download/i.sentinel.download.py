@@ -557,8 +557,12 @@ def download_gcs(scene, output):
         return 1
     else:
         if len(failed_checksums) > 0:
-            gs.warning(_("Scene {} was downloaded but checksumming was not "
-                         "successful for one or more files.").format(scene))
+            gs.warning(
+                _(
+                    "Scene {} was downloaded but checksumming was not "
+                    "successful for one or more files."
+                ).format(scene)
+            )
             gs.verbose(
                 _("Checksumming was not successful for urls \n{}").format(
                     "\n".join(failed_checksums)
