@@ -152,7 +152,7 @@ def main():
     else:
         separator = grass.utils.separator(separator)
 
-    bbox = ppik.projpicker(
+    bbox = ppik.start(
         geoms=geoms,
         outfile=outfile,
         fmt=fmt,
