@@ -132,8 +132,8 @@ def main():
     if bbox_map and grass.parse_command("g.proj", flags="g")["unit"] != "degree":
         grass.fatal(_("Cannot create vector in degree in a non-degree mapset"))
 
-    # ppik.projpicker() appends input file contents to geometries from
-    # arguments, but it can be confusing and is not supported in this module
+    # ppik.start() appends input file contents to geometries from arguments,
+    # but it can be confusing and is not supported in this module
     if coords:
         query = f"{operator}"
         coords = coords.split(",")
