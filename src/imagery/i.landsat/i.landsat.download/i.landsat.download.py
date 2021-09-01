@@ -239,7 +239,7 @@ def main():
             start_date=start_date,
             end_date=end_date,
             max_cloud_cover=options["clouds"],
-            max_results=options["limit"]
+            max_results=options["limit"],
         )
 
         if options["tier"]:
