@@ -116,6 +116,14 @@
 #% guisection: Optional
 #%end
 
+#%option
+#% key: limit
+#% type: integer
+#% description: maximum number of Landsat scenes
+#% answer: 50
+#% guisection: Optional
+#%end
+
 #%flag
 #% key: l
 #% description: List filtered products and exit
@@ -231,7 +239,7 @@ def main():
             start_date=start_date,
             end_date=end_date,
             max_cloud_cover=options["clouds"],
-            max_results=50,
+            max_results=options["limit"],
         )
 
         if options["tier"]:
