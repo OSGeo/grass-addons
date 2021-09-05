@@ -1,47 +1,22 @@
 <h2>DESCRIPTION</h2>
+<em>r.random.walk</em> generates a 2D random walk arcoss the current computational region.
+ The module provides control of the number of steps and directions (4 or 8) the walker 
+ can take, and allows the walkers behavior to be set to revisit or self-avoiding
+ walk (Madras et al., 1996). The output displays the frequency the walker visited each cell
+ if the walker is allowed to revisit cells. The module also allows for multiple walks to run and
+ averaged together.
 
-<em>r.random.walk</em> Generates a random walk on a given raster surface.
+<center>
+    <img src="random_walk_output.png" width=600 border=0><br>
+    Difference between fixed overlap width and spatially variable overlap.
+</center>
 
-
-The main parameters are:
-<ul>
-<li></li>
-</ul>
-
-<h2>EXAMPLE</h2>
-
-North Carolina sample dataset example:
-
-<div class="code"><pre>
-g.region raster=elevation -p
-r.random.walk input=elevation output=random_path steps=10000
-
-# visualize some results
-d.mon wx0
-d.rast random_path
-</pre></div>
-
-<p>
+<!-- <h2>EXAMPLE</h2>, <h2>EXAMPLES</h2> -->
 
 
-<h3>Dependencies</h3>
-<ul></ul>
-<li></li>
-</ul>
+<h2>SEE ALSO</h2>
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.surf.fractal.html">r.surf.fractal</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.surf.random.html">r.surf.random</a>
 
-<h2>Known issues</h2>
-<ul>
-<li></li>
-</ul>
-
-<h2>CITE AS</h2>
-
-<h2>REFERENCES</h2>
-<ul>
-<li><em></em></li>
-<li><em></em></li>
-</ul>
-
-<h2>AUTHORS</h2>
-
-Corey T. White
+<h2>AUTHOR</h2>
+Corey T. White, <a href="http://geospatial.ncsu.edu/osgeorel/">NCSU OSGeoREL</a><br>
