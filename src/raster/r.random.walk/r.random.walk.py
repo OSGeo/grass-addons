@@ -463,9 +463,9 @@ def main():
         mem_for_process = math.floor(int(memory) / processes)
         print(f"Memory Per Process: {mem_for_process}")
         chunks_lst = list(get_chunks(_tmp_rasters, math.ceil(smooth / chunks_n)))
-        print(list(map(lambda x: len(x), chunks_lst)))
+        # print(list(map(lambda x: len(x), chunks_lst)))
         chunks = len(chunks_lst)
-        print(f"Chunks: {chunks}")
+        # print(f"Chunks: {chunks}")
         futures = run_paralle(
             _tmp_rasters,
             processes,
