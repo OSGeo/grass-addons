@@ -13,15 +13,17 @@
 #############################################################################
 
 #%module
-#% description: Performs a random-walk inside the computational region and returns the resulting walk.
+#% description: Performs a 2D random walk inside the computational region and returns the resulting walk.
 #% keyword: raster
-#% keyword: select
-#% keyword: random walk
+#% keyword: random
+#% keyword: walk
+#% keyword: surface
 #%end
 
 #%flag
 #% key: revisit
 #% description: Allow walker to revisit a cell.
+#% guisection: Parameters
 #%end
 
 #%flag
@@ -32,12 +34,13 @@
 
 #%flag
 #% key: seed
-#% description: Use seed value set from the seed option.
+#% description: Generate random seed.
 #%end
 
 #%flag
 #% key: tpath
 #% description: Each walker starts from the same point.
+#% guisection: Parallel
 #%end
 
 #%option G_OPT_R_OUTPUT
@@ -50,6 +53,7 @@
 #% multiple: no
 #% description: How many steps to take during walk.
 #% answer: 100000
+#% guisection: Parameters
 #%end
 
 #%option
@@ -60,6 +64,7 @@
 #% options: 4, 8
 #% description: How many directions should be used during walk.
 #% answer: 4
+#% guisection: Parameters
 #%end
 
 #%option
@@ -69,6 +74,7 @@
 #% multiple: no
 #% description: How much memory to use.
 #% answer: 300
+#% guisection: Parallel
 #%end
 
 #%option
@@ -76,13 +82,12 @@
 #% type: integer
 #% required: no
 #% multiple: no
-#% description: Set random seed
+#% description: Seed for random number generator
 #%end
 
 #%option
 #% key: nprocs
 #% type: integer
-#% required: yes
 #% multiple: no
 #% answer: 1
 #% description: Number of processes to run in parallel
@@ -90,12 +95,12 @@
 #%end
 
 #%option
-#% key: repeat
+#% key: nwalkers
 #% type: integer
 #% required: no
 #% multiple: no
 #% answer: 10
-#% description: Number of times stochastic simulation is repeated
+#% description: Number of walkers, only used when parallel is enabled
 #% guisection: Parallel
 #%end
 
@@ -105,8 +110,6 @@ import random
 import concurrent.futures
 import atexit
 import math
-import queue
-from types import prepare_class
 import grass.script as gs
 from grass.pygrass import raster
 from grass.pygrass.gis.region import Region
@@ -124,7 +127,7 @@ PREFIX = "r_random_walk_temp_walk_"
 def cleanup():
     if TMP_RASTERS:
         gs.run_command(
-            "g.remove", type="raster", name=TMP_RASTERS, flags="f", quiet=True
+            "g.remove", type="raster", pattern="r_random_walk_temp_walk_*", flags="f", quiet=True
         )
 
 
@@ -242,7 +245,6 @@ def find_new_path(walk_output, current_pos, new_position, num_directions, step):
             new_position = take_step(current_pos, num_directions, tested_directions)
             tested_directions.append(new_position["direction"])
             visited = cell_visited(walk_output, new_position["position"])
-        # time.sleep(0.001) # prevent cpu from maxing out
 
     return new_position
 
@@ -455,7 +457,7 @@ def main():
     parallel = flags["p"]
     processes = int(options["nprocs"])
     if parallel:
-        smooth = int(options["repeat"])
+        smooth = int(options["nwalkers"])
         _tmp_rasters = [f"{PREFIX}{i}" for i in range(0, smooth)]
         TMP_RASTERS.append(_tmp_rasters)
         chunks_n = math.ceil(smooth / processes)

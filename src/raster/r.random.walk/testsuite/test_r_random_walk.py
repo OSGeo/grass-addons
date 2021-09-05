@@ -107,7 +107,7 @@ class TestRandomWalk(TestCase):
             directions="8",
             seed=0,
             nprocs=2,
-            repeat=4,
+            nwalkers=4,
             flags="srp",
             overwrite=True,
         )
@@ -123,7 +123,7 @@ class TestRandomWalk(TestCase):
             directions="8",
             seed=0,
             nprocs=2,
-            repeat=4,
+            nwalkers=4,
             flags="srpt",
             overwrite=True,
         )
