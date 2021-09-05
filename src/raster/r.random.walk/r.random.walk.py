@@ -127,7 +127,11 @@ PREFIX = "r_random_walk_temp_walk_"
 def cleanup():
     if TMP_RASTERS:
         gs.run_command(
-            "g.remove", type="raster", pattern="r_random_walk_temp_walk_*", flags="f", quiet=True
+            "g.remove",
+            type="raster",
+            pattern="r_random_walk_temp_walk_*",
+            flags="f",
+            quiet=True,
         )
 
 
