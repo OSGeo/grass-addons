@@ -1,0 +1,47 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.random.walk</em> Generates a random walk on a given raster surface.
+
+
+The main parameters are:
+<ul>
+<li></li>
+</ul>
+
+<h2>EXAMPLE</h2>
+
+North Carolina sample dataset example:
+
+<div class="code"><pre>
+g.region raster=elevation -p
+r.random.walk input=elevation output=random_path steps=10000
+
+# visualize some results
+d.mon wx0
+d.rast random_path
+</pre></div>
+
+<p>
+
+
+<h3>Dependencies</h3>
+<ul></ul>
+<li></li>
+</ul>
+
+<h2>Known issues</h2>
+<ul>
+<li></li>
+</ul>
+
+<h2>CITE AS</h2>
+
+<h2>REFERENCES</h2>
+<ul>
+<li><em></em></li>
+<li><em></em></li>
+</ul>
+
+<h2>AUTHORS</h2>
+
+Corey T. White
