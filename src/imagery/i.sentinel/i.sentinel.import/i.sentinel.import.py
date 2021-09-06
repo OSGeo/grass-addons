@@ -926,7 +926,7 @@ class SentinelImporter(object):
                             json.dump(descr_dict, outfile)
 
     def create_register_file(self, filename):
-        from datetime import timedelta # workaround
+        from datetime import timedelta  # workaround
 
         gs.message(_("Creating register file <{}>...").format(filename))
         ip_timestamp = {}
@@ -954,9 +954,7 @@ class SentinelImporter(object):
                 if timestamp:
                     timestamp_int = timestamp + timedelta(seconds=1)
                     timestamp_int_str = timestamp_int.strftime("%Y-%m-%d %H:%M:%S.%f")
-                    fd.write(
-                        "{sep}{ts}".format(sep=sep, ts=timestamp_int_str)
-                    )
+                    fd.write("{sep}{ts}".format(sep=sep, ts=timestamp_int_str))
                 # workaround end
                 if has_band_ref:
                     try:
