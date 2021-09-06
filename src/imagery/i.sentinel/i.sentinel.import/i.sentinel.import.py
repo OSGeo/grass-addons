@@ -926,6 +926,8 @@ class SentinelImporter(object):
                             json.dump(descr_dict, outfile)
 
     def create_register_file(self, filename):
+        from datetime import timedelta # workaround
+
         gs.message(_("Creating register file <{}>...").format(filename))
         ip_timestamp = {}
         for mtd_file in self._filter("MTD_TL.xml"):
@@ -948,6 +950,14 @@ class SentinelImporter(object):
                 fd.write(
                     "{img}{sep}{ts}".format(img=map_name, sep=sep, ts=timestamp_str)
                 )
+                # workaroud for https://github.com/OSGeo/grass/issues/1843 - create interval temporal type
+                if timestamp:
+                    timestamp_int = timestamp + timedelta(seconds=1)
+                    timestamp_int_str = timestamp_int.strftime("%Y-%m-%d %H:%M:%S.%f")
+                    fd.write(
+                        "{sep}{ts}".format(sep=sep, ts=timestamp_int_str)
+                    )
+                # workaround end
                 if has_band_ref:
                     try:
                         band_ref = re.match(
