@@ -39,7 +39,7 @@ class SelectTest(TestCase):
         sel.run()
         sel = SimpleModule(
             "db.select",
-            sql="select greedyclr,count(greedyclr) from my_boundary_county group by greedyclr"
+            sql="select greedyclr,count(greedyclr) from my_boundary_county group by greedyclr",
         )
         sel.run()
         self.assertLooksLike(reference=out_greedyclrs, actual=sel.outputs.stdout)
