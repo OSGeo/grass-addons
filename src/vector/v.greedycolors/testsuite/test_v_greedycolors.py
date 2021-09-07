@@ -33,7 +33,9 @@ class SelectTest(TestCase):
     def testRun(self):
         """Module runs with minimal parameters and give output."""
 
-        sel = SimpleModulesel = SimpleModule("g.copy", vector=(self.invect, self.outvect))
+        sel = SimpleModulesel = SimpleModule(
+            "g.copy", vector=(self.invect, self.outvect)
+        )
         sel.run()
         sel = SimpleModule("v.greedycolors", map=self.outvect)
         sel.run()
