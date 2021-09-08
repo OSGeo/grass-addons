@@ -68,7 +68,7 @@
 #% description: Sentinel product type to filter
 #% label: USGS Earth Explorer only supports S2MSI1C
 #% required: no
-#% options: SLC,GRD,OCN,S2MSI1C,S2MSI2A,S2MSI2Ap
+#% options: SLC,GRD,OCN,S2MSI1C,S2MSI2A,S2MSI2Ap,S3SL2LST
 #% answer: S2MSI2A
 #% guisection: Filter
 #%end
@@ -414,12 +414,6 @@ def download_gcs_file(url, destination, checksum_function, checksum):
 
 def download_gcs(scene, output):
     """Downloads a single S2 scene from Google Cloud Storage."""
-    # Lazy import tqdm
-    try:
-        from tqdm import tqdm
-    except ImportError as e:
-        gs.fatal(_("Module requires tqdm library: {}").format(e))
-
     final_scene_dir = os.path.join(output, "{}.SAFE".format(scene))
     create_dir(final_scene_dir)
     level = scene.split("_")[1]
@@ -556,11 +550,6 @@ class SentinelDownloader(object):
             # connect SciHub via API
             self._api = SentinelAPI(self._user, self._password, api_url=self._apiname)
         elif self._apiname == "USGS_EE":
-            try:
-                import landsatxplore.api
-                from landsatxplore.errors import EarthExplorerError
-            except ImportError as e:
-                gs.fatal(_("Module requires landsatxplore library: {}").format(e))
             api_login = False
             while api_login is False:
                 # avoid login conflict in possible parallel execution
@@ -585,6 +574,11 @@ class SentinelDownloader(object):
         asc=True,
         relativeorbitnumber=None,
     ):
+        platforms = {
+            "S1": "Sentinel-1",
+            "S2": "Sentinel-2",
+            "S3": "Sentinel-3",
+        }
         args = {}
         if clouds:
             args["cloudcoverpercentage"] = (0, int(clouds))
@@ -595,11 +589,15 @@ class SentinelDownloader(object):
             elif int(relativeorbitnumber) > 175:
                 gs.warning(_("This relative orbit number is out of range"))
         if producttype:
-            args["producttype"] = producttype
-            if producttype.startswith("S2"):
-                args["platformname"] = "Sentinel-2"
+            if producttype.startswith("S3"):
+                # Using custom product names for Sentinel-3 products that look less cryptic
+                split = [0, 2, 4, 5, 8]
+                args["producttype"] = "_".join(
+                    [producttype[i:j] for i, j in zip(split, split[1:] + [None])][1:]
+                ).ljust(11, "_")
             else:
-                args["platformname"] = "Sentinel-1"
+                args["producttype"] = producttype
+            args["platformname"] = platforms[producttype[0:2]]
         if not start:
             start = "NOW-60DAYS"
         else:
@@ -798,8 +796,7 @@ class SentinelDownloader(object):
 
         # Sentinel-1 data does not have cloudcoverpercentage
         prod_types = [type for type in self._products_df_sorted["producttype"]]
-        s1_types = ["SLC", "GRD"]
-        if any(type in prod_types for type in s1_types):
+        if any(type in prod_types for type in no_cloudcoverpercentage):
             del attrs["cloudcoverpercentage"]
 
         for key in attrs.keys():
@@ -1034,17 +1031,26 @@ def main():
     except ImportError as e:
         gs.fatal(_("Module requires requests library: {}").format(e))
 
-    user = password = None
-    if options["datasource"] == "ESA_COAH" or options["datasource"] == "GCS":
-        api_url = "https://apihub.copernicus.eu/apihub"
-    else:
+    api_url = "https://apihub.copernicus.eu/apihub"
+    if options["datasource"] == "GCS":
+        # Lazy import tqdm
+        if options["producttype"] not in ["S2MSI2A", "S2MSI1C"]:
+            gs.fatal(
+                _("Download from GCS only supports producttypes S2MSI2A " "or S2MSI1C")
+            )
+        try:
+            from tqdm import tqdm
+        except ImportError as e:
+            gs.fatal(_("Module requires tqdm library: {}").format(e))
+    elif options["datasource"] == "USGS_EE":
         api_url = "USGS_EE"
-    if options["datasource"] == "GCS" and (
-        options["producttype"] not in ["S2MSI2A", "S2MSI1C"]
-    ):
-        gs.fatal(
-            _("Download from GCS only supports producttypes S2MSI2A " "or S2MSI1C")
-        )
+        try:
+            import landsatxplore.api
+            from landsatxplore.errors import EarthExplorerError
+        except ImportError as e:
+            gs.fatal(_("Module requires landsatxplore library: {}").format(e))
+
+    user = password = None
 
     if options["settings"] == "-":
         # stdin
@@ -1070,6 +1076,8 @@ def main():
         except IOError as e:
             gs.fatal(_("Unable to open settings file: {}").format(e))
 
+    no_cloudcoverpercentage = ["SLC", "GRD", "OCN", "S3SL2LST"]
+
     if user is None or password is None:
         gs.fatal(_("No user or password given"))
 
@@ -1079,7 +1087,7 @@ def main():
         map_box = get_aoi_box(options["map"])
 
     sortby = options["sort"].split(",")
-    if options["producttype"] in ("SLC", "GRD", "OCN"):
+    if options["producttype"] in (no_cloudcoverpercentage):
         if options["clouds"]:
             gs.info(
                 _(
