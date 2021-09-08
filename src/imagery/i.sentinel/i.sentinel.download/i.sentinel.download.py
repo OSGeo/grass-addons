@@ -68,7 +68,7 @@
 #% description: Sentinel product type to filter
 #% label: USGS Earth Explorer only supports S2MSI1C
 #% required: no
-#% options: SLC,GRD,OCN,S2MSI1C,S2MSI2A,S2MSI2Ap,S3SL2LST
+#% options: SLC,GRD,OCN,S2MSI1C,S2MSI2A,S2MSI2Ap,S3OL2LFR,S3OL2LRR,S3SL2LST,S3SL2FRP,S3SY2SYN,S3SY2VGP,S3SY2VG1,S3SY2V10,S3SY2AOD,S3SR2LAN
 #% answer: S2MSI2A
 #% guisection: Filter
 #%end
@@ -796,7 +796,7 @@ class SentinelDownloader(object):
 
         # Sentinel-1 data does not have cloudcoverpercentage
         prod_types = [type for type in self._products_df_sorted["producttype"]]
-        if any(type in prod_types for type in no_cloudcoverpercentage):
+        if not any(type in prod_types for type in cloudcover_products):
             del attrs["cloudcoverpercentage"]
 
         for key in attrs.keys():
@@ -1076,7 +1076,7 @@ def main():
         except IOError as e:
             gs.fatal(_("Unable to open settings file: {}").format(e))
 
-    no_cloudcoverpercentage = ["SLC", "GRD", "OCN", "S3SL2LST"]
+    cloudcover_products = ["S2MSI1C", "S2MSI2A", "S2MSI2Ap"]
 
     if user is None or password is None:
         gs.fatal(_("No user or password given"))
@@ -1087,7 +1087,7 @@ def main():
         map_box = get_aoi_box(options["map"])
 
     sortby = options["sort"].split(",")
-    if options["producttype"] in (no_cloudcoverpercentage):
+    if not options["producttype"] in cloudcover_products:
         if options["clouds"]:
             gs.info(
                 _(
