@@ -574,8 +574,11 @@ class SentinelDownloader(object):
         asc=True,
         relativeorbitnumber=None,
     ):
+        # Dict to identify plaforms from requested product
         platforms = {
-            "S1": "Sentinel-1",
+            "SL": "Sentinel-1",
+            "GR": "Sentinel-1",
+            "OC": "Sentinel-1",
             "S2": "Sentinel-2",
             "S3": "Sentinel-3",
         }
