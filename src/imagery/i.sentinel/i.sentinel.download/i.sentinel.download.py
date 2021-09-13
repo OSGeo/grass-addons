@@ -542,7 +542,7 @@ class SentinelDownloader(object):
         # init logger
         root = logging.getLogger()
         root.addHandler(logging.StreamHandler(sys.stderr))
-        if self._apiname not in ["USGS_EE", "GCS"]:  # == "https://apihub.copernicus.eu/apihub":
+        if self._apiname not in ["USGS_EE", "GCS"]:
             try:
                 from sentinelsat import SentinelAPI
             except ImportError as e:
