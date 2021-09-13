@@ -141,37 +141,14 @@ import json
 from zipfile import ZipFile
 from multiprocessing import Pool
 
-
-TMPFILE = None
-
-try:
-    from dateutil.parser import isoparse as parse_timestr
-except ImportError:
-    print(
-        "Could not import dateutil. Please install it with:\n" "'pip install dateutil'!"
-    )
-try:
-    from osgeo import osr
-except ImportError:
-    print("Could not import gdal. Please install it with:\n" "'pip install GDAL'!")
-
 import grass.script as gscript
 from grass.pygrass.modules import Module, MultiModule
 from grass.temporal.datetime_math import (
     datetime_to_grass_datetime_string as grass_timestamp,
 )
 
-try:
-    from netCDF4 import Dataset
-except ImportError:
-    print(
-        "Could not import netCDF4. Please install it with:\n" "'pip install netcdf4'!"
-    )
 
-try:
-    import numpy as np
-except ImportError:
-    print("Could not import numpy. Please install it with:\n" "'pip install numpy'!")
+TMPFILE = None
 
 
 def cleanup():
@@ -197,10 +174,20 @@ def filter(input_dir, pattern, modified_after, modified_before):
     s3_files = []
     s3_files = list(input_dir.glob(pattern))
 
-    if len(s3_files) > 0 and (modified_after is not None or modified_before is not None):
+    if len(s3_files) > 0 and (
+        modified_after is not None or modified_before is not None
+    ):
         modified_after = modified_after if modified_after is not None else datetime.min
-        modified_before = modified_before if modified_before is not None else datetime.now()
-        s3_files = [s3_file for s3_file in s3_files if modified_after < datetime.fromtimestamp(s3_file.stat().st_mtime) < modified_before]
+        modified_before = (
+            modified_before if modified_before is not None else datetime.now()
+        )
+        s3_files = [
+            s3_file
+            for s3_file in s3_files
+            if modified_after
+            < datetime.fromtimestamp(s3_file.stat().st_mtime)
+            < modified_before
+        ]
 
     if len(s3_files) < 1:
         gscript.fatal(
@@ -797,16 +784,22 @@ def main():
         pool.join()
 
     if flags["p"]:
-        print("|".join(["product_file_name",
-                        "nc_file_name",
-                        "nc_file_title",
-                        "nc_file_start_time",
-                        "nc_file_creation_time",
-                            "band",
-                            "band_shape",
-                            "band_title",
-                            "band_standard_name",
-"band_long_name"]))
+        print(
+            "|".join(
+                [
+                    "product_file_name",
+                    "nc_file_name",
+                    "nc_file_title",
+                    "nc_file_start_time",
+                    "nc_file_creation_time",
+                    "band",
+                    "band_shape",
+                    "band_title",
+                    "band_standard_name",
+                    "band_long_name",
+                ]
+            )
+        )
         print("\n".join(chain(*import_result)))
         return 0
 
@@ -819,5 +812,33 @@ def main():
 
 if __name__ == "__main__":
     options, flags = gscript.parser()
+    # Lazy imports
+    try:
+        from dateutil.parser import isoparse as parse_timestr
+    except ImportError:
+        print(
+            "Could not import dateutil. Please install it with:\n"
+            "'pip install dateutil'!"
+        )
+    try:
+        from osgeo import osr
+    except ImportError:
+        print("Could not import gdal. Please install it with:\n" "'pip install GDAL'!")
+
+    try:
+        from netCDF4 import Dataset
+    except ImportError:
+        print(
+            "Could not import netCDF4. Please install it with:\n"
+            "'pip install netcdf4'!"
+        )
+
+    try:
+        import numpy as np
+    except ImportError:
+        print(
+            "Could not import numpy. Please install it with:\n" "'pip install numpy'!"
+        )
+
     atexit.register(cleanup)
     sys.exit(main())
