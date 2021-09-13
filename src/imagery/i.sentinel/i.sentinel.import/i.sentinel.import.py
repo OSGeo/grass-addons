@@ -352,6 +352,21 @@ class SentinelImporter(object):
     def _map_name(filename):
         return os.path.splitext(os.path.basename(filename))[0]
 
+    def _extract_bandref(self, map_name):
+        band_ref = None
+        try:
+            band_ref = re.match(
+                r".*_B([0-18][0-9A]).*|.*_([S][C][L])_.*", map_name
+            ).groups()
+            band_ref = band_ref[0] if band_ref[0] else band_ref[1]
+            band_ref = band_ref.lstrip("0")
+            band_ref = "S2_{}".format(band_ref)
+        except AttributeError:
+            gs.warning(
+                _("Unable to determine band reference for <{}>").format(map_name)
+            )
+        return band_ref
+
     def _import_file(self, filename, module, args):
         mapname = self._map_name(filename)
         gs.message(_("Processing <{}>...").format(mapname))
@@ -908,8 +923,9 @@ class SentinelImporter(object):
                     "source2": img_file,
                     "history": descr,
                 }
+                # Band refrence available after version 7.9
                 if float(gs.version()["version"][0:3]) >= 7.9:
-                    support_args["bandref"] = extract_bandref(map_name)
+                    support_args["bandref"] = self._extract_bandref(map_name)
                 for band in bands:
                     gs.run_command("r.support", **support_args)
                     gs.run_command("r.timestamp", map=map_name, date=timestamp_str)
@@ -927,22 +943,6 @@ class SentinelImporter(object):
                         with open(metadatajson, "w") as outfile:
                             json.dump(descr_dict, outfile)
 
-    @staticmethod
-    def extract_bandref(map_name):
-        band_ref = None
-        try:
-            band_ref = re.match(
-                r".*_B([0-18][0-9A]).*|.*_([S][C][L])_.*", map_name
-            ).groups()
-            band_ref = band_ref[0] if band_ref[0] else band_ref[1]
-            band_ref = band_ref.lstrip("0")
-            band_ref = "S2_{}".format(band_ref)
-        except AttributeError:
-            gs.warning(
-                _("Unable to determine band reference for <{}>").format(map_name)
-            )
-        return band_ref
-
     def create_register_file(self, filename):
         gs.message(_("Creating register file <{}>...").format(filename))
         ip_timestamp = {}
@@ -952,7 +952,6 @@ class SentinelImporter(object):
 
         if not ip_timestamp:
             gs.warning(_("Unable to determine timestamps. No metadata file found"))
-        has_band_ref = float(gs.version()["version"][0:3]) >= 7.9
         sep = "|"
         with open(filename, "w") as fd:
             for img_file in self.files:
@@ -966,8 +965,9 @@ class SentinelImporter(object):
                 fd.write(
                     "{img}{sep}{ts}".format(img=map_name, sep=sep, ts=timestamp_str)
                 )
-                if has_band_ref:
-                    band_ref = extract_bandref(map_name)
+                # Band refrence available after version 7.9
+                if float(gs.version()["version"][0:3]) >= 7.9:
+                    band_ref = self._extract_bandref(map_name)
                     if band_ref is None:
                         continue
                     fd.write("{sep}{br}".format(sep=sep, br=band_ref))
