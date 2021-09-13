@@ -61,6 +61,18 @@
 #% guisection: Filter
 #%end
 
+#%option
+#% key: modified_after
+#% description: Import only files modified after this date ("YYYY-MM-DD")
+#% guisection: Filter
+#%end
+
+#%option
+#% key: modified_before
+#% description: Import only files modified before this date ("YYYY-MM-DD")
+#% guisection: Filter
+#%end
+
 #%option G_OPT_F_OUTPUT
 #% key: register_output
 #% description: Name for output file to use with t.register
@@ -120,6 +132,7 @@
 #%end
 
 import atexit
+from datetime import datetime
 from itertools import chain
 import os
 import sys
@@ -129,7 +142,7 @@ from zipfile import ZipFile
 from multiprocessing import Pool
 
 
-tmpfile = None
+TMPFILE = None
 
 try:
     from dateutil.parser import isoparse as parse_timestr
@@ -163,28 +176,38 @@ except ImportError:
 
 def cleanup():
     # remove temporary maps
-    if tmpfile is not None:
-        gscript.try_remove(tmpfile)
+    if TMPFILE is not None:
+        gscript.try_remove(TMPFILE)
 
 
-def filter(input_dir, pattern):
+def np_as_scalar(var):
+    if type(var).__module__ == np.__name__:
+        if var.size > 1:
+            return str(var)
+        return var.item()
+    else:
+        return var
+
+
+def filter(input_dir, pattern, modified_after, modified_before):
     # Filter files according to pattern
     if not pattern:
         pattern = "S3*.zip"
 
     s3_files = []
     s3_files = list(input_dir.glob(pattern))
+
+    if len(s3_files) > 0 and (modified_after is not None or modified_before is not None):
+        modified_after = modified_after if modified_after is not None else datetime.min
+        modified_before = modified_before if modified_before is not None else datetime.now()
+        s3_files = [s3_file for s3_file in s3_files if modified_after < datetime.fromtimestamp(s3_file.stat().st_mtime) < modified_before]
+
     if len(s3_files) < 1:
         gscript.fatal(
             _("Nothing found to import. Please check input and pattern_file options.")
         )
 
     return s3_files
-
-
-def print_products(product_files):
-    for f in product_files:
-        sys.stdout.write(",".join([f, product_files]))
 
 
 def write_metadata(json_dict, metadatajson):
@@ -300,7 +323,7 @@ def import_s3(s3_file, kwargs):
 
     # Unpack dictionary variables
     rmap = kwargs["basename"]
-    tmpfile = kwargs["tmpfile"]
+    TMPFILE = kwargs["tmpfile"]
     reg_bounds = kwargs["reg_bounds"]
     current_reg = kwargs["current_reg"]
     mod_flags = kwargs["mod_flags"]
@@ -337,7 +360,7 @@ def import_s3(s3_file, kwargs):
     # Add required band to requested bands
     bands = bands.union({"latitude_in", "longitude_in", "LST"})
 
-    tmp_ascii = tmpfile.joinpath(s3_file.stem + ".txt")
+    tmp_ascii = TMPFILE.joinpath(s3_file.stem + ".txt")
 
     # Setup container dictionary
     nc_bands = {}
@@ -355,11 +378,11 @@ def import_s3(s3_file, kwargs):
         fmt = "%.5f,%.5f"
         # Print only product structure
         if mod_flags["p"]:
-            zf.extractall(path=tmpfile)
+            zf.extractall(path=TMPFILE)
             product_info = []
             for nc_file in members:
                 if nc_file.endswith(".nc"):
-                    nc_file_path = tmpfile.joinpath(nc_file)
+                    nc_file_path = TMPFILE.joinpath(nc_file)
                     nc_ds = Dataset(nc_file_path)
                     file_info = [
                         root,
@@ -399,7 +422,7 @@ def import_s3(s3_file, kwargs):
                             )
                         )
                     )
-                nc_file_path = zf.extract(member, path=tmpfile)
+                nc_file_path = zf.extract(member, path=TMPFILE)
                 nc_file_open = Dataset(nc_file_path)
                 file_attrs = nc_file_open.ncattrs()
                 start_time = parse_timestr(nc_file_open.start_time)
@@ -524,16 +547,16 @@ def import_s3(s3_file, kwargs):
                         write_metadata(
                             {
                                 **{
-                                    a: nc_file_open.getncattr(a)
+                                    a: np_as_scalar(nc_file_open.getncattr(a))
                                     for a in nc_file_open.ncattrs()
                                 },
                                 **{"variable": band},
                                 **{
-                                    a: nc_file_open[band].getncattr(a)
+                                    a: np_as_scalar(nc_file_open[band].getncattr(a))
                                     for a in nc_file_open[band].ncattrs()
                                 },
                             },
-                            json_standard_folder.pathjoin(mapname + ".json"),
+                            json_standard_folder.joinpath(mapname + ".json"),
                         )
 
                     # Setup import modules
@@ -687,8 +710,24 @@ def main():
     if not input_dir.exists():
         gscript.fatal(_("Input directory <{}> does not exist").format(input_dir))
 
+    if options["modified_after"]:
+        try:
+            modified_after = parse_timestr(options["modified_after"])
+        except ValueError:
+            gscript.fatal(_("Cannot parse input in modified_after option"))
+    else:
+        modified_after = None
+
+    if options["modified_before"]:
+        try:
+            modified_before = parse_timestr(options["modified_before"])
+        except ValueError:
+            gscript.fatal(_("Cannot parse input in modified_before option"))
+    else:
+        modified_before = None
+
     # Filter files to import
-    s3_files = filter(input_dir, options["pattern"])
+    s3_files = filter(input_dir, options["pattern"], modified_after, modified_before)
 
     overwrite = gscript.overwrite()
 
@@ -701,9 +740,10 @@ def main():
     )
 
     # Create tempdir
-    tmpfile = Path(gscript.tempfile(create=False))
-    if not tmpfile.exists():
-        tmpfile.mkdir()
+    global TMPFILE
+    TMPFILE = Path(gscript.tempfile(create=False))
+    if not TMPFILE.exists():
+        TMPFILE.mkdir()
 
     # Get region bounds
     reg_bounds = gscript.parse_command("g.region", flags="gb", quiet=True)
@@ -713,7 +753,7 @@ def main():
     # Collect variables for import
     import_dict = {
         "basename": basename,
-        "tmpfile": tmpfile,
+        "tmpfile": TMPFILE,
         "reg_bounds": dict(reg_bounds),
         "current_reg": dict(current_reg),
         "mod_flags": flags,
@@ -769,9 +809,6 @@ def main():
 "band_long_name"]))
         print("\n".join(chain(*import_result)))
         return 0
-
-    if flags["c"]:
-        pass
 
     if options["register_output"]:
         # Write t.register file if requested
