@@ -1,0 +1,236 @@
+<h2>DESCRIPTION</h2>
+
+The <em>i.sentinel3.import</em> module allows importing Copernicus Sentinel-3 products
+downloaded by the <em><a href="i.sentinel.download.html">i.sentinel.download</a></em>
+module.
+
+<p>
+By default <em>i.sentinel3.import</em> imports all Sentinel scene files found
+in the <b>input</b> directory. The number of scene files can be optionally
+reduced by the <b>pattern</b> option. In this option, a regular expression
+for filtering the file names should be given, e.g. "0179_076_100_0900_LN2" for
+importing only specific tiles.
+<p>
+The <em>Sentinel-3</em> format is currently not supported by GDAL. Therefore, 
+a GRASS GIS specific import routine is implemented in 
+It uses r.in.xyz Thus, the computational region extent and resolution determines with
+<b>extent=region</b>.
+
+<p>
+Note that in the case that spatial reference system of input data differs
+from GRASS GIS location, the input data need to be reprojected with
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.import.html">r.import</a></em>. To speed up this
+process, a higher than default value can be specified for the <b>memory</b>
+option.
+
+<p>
+In order to ignore insignificant mismatch of the spatial reference
+systems, the projection check can be suppressed with the <b>-o</b> flag.
+
+<p>
+Optionally input data can be linked
+by <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.external.html">r.external</a></em> when <b>-l</b> is
+given. Note that linking data requires that Sentinel input data and GRASS
+location have the same spatial reference system (e.g., the same UTM zone).
+
+<p>
+The number of imported Sentinel bands can be optionally reduced by the
+<b>pattern</b> option.
+
+<p>
+Level 2A (L2A) products for Sentinel-2 come with a scene classification (SCL layer)
+at 20m and 60m resolution, that e.g. can be used for masking clouds and snow
+and is also imported by default.
+
+<p>
+For each imported band both scene and band specific metadata on geometric
+conditions as well as quality indicators are written into the map history
+(<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.support.html">r.support</a></em>). In addition, the scene
+name is stored as <em>source1</em> and the imported or linked file name as
+<em>source2</em>. Also, sensing time is written into the timestamp of the
+map. After import, the metadata can be retrieved with <em>r.info -e</em>
+as shown below.
+
+
+<h2>NOTES</h2>
+
+<p>
+Currently, only import of SL_2_LST__ products is supported.
+<p>
+By <b>register_file</b> option <em>i.sentinel3.import</em> allows
+creating a file which can be used to register imported imagery data
+into space-time raster dateset (STRDS)
+by <em><a href="https://grass.osgeo.org/grass-stable/manuals/t.register.html">t.register</a></em>. See
+example below.
+
+<p>
+<h3>Metadata storage</h3>
+
+By using the <b>-j</b> flag the band metadata are additionally stored
+in JSON format (in the current mapset under <tt>cell_misc</tt>).
+
+
+<h2>EXAMPLES</h2>
+
+<h3>List Sentinel bands</h3>
+
+At first, print list of raster files to be imported by <b>-p</b>. For
+each file also projection match with current location is printed
+including detected input data EPSG code:
+
+<div class="code"><pre>
+i.sentinel.import -p input=data
+
+data/S2B_MSIL1C_20180216T102059_N0206_R065_T32UPB_20180216T140508.SAFE/GRANULE/.../T32UPB_20180216T102059_B04.jp2 1 (EPSG: 32632)
+data/S2B_MSIL1C_20180216T102059_N0206_R065_T32UPB_20180216T140508.SAFE/GRANULE/.../T32UPB_20180216T102059_B07.jp2 1 (EPSG: 32632)
+data/S2B_MSIL1C_20180216T102059_N0206_R065_T32UPB_20180216T140508.SAFE/GRANULE/.../T32UPB_20180216T102059_B11.jp2 1 (EPSG: 32632)
+</pre></div>
+
+<h3>Import Sentinel data</h3>
+
+Import all Sentinel bands found in <i>data</i> directory and store metadata
+as JSON files within the GRASS GIS database directory:
+
+
+<div class="code"><pre>
+i.sentinel.import -j input=data
+</pre></div>
+
+<p>
+Limit import to only to 4th and 8th bands:
+
+<div class="code"><pre>
+i.sentinel.import -j input=data pattern='B0(4|8)'
+</pre></div>
+
+<p>
+Limit import to all bands with 10m resolution (excluding AOT, WVP, ... bands):
+
+<div class="code"><pre>
+i.sentinel.import -j input=data pattern='B0(2|3|4|8)_10m'
+</pre></div>
+
+<p>
+Limit import to only selected bands with 10m and 20m resolution (excluding AOT, WVP, ... bands):
+
+<div class="code"><pre>
+i.sentinel.import -j input=data pattern='B(02_1|03_1|04_1|08_1|11_2)0m'
+</pre></div>
+
+<p>
+Limit import to all bands with 10m and 20m resolution (excluding AOT, WVP, ... bands):
+
+<div class="code"><pre>
+i.sentinel.import -j input=data pattern='_B((0[2348]_1)|(0[567]|8A|11|12)_2)0m'
+</pre></div>
+
+<p>
+Import cloud and shadow mask:
+
+<div class="code"><pre>
+i.sentinel.import input=data
+i.sentinel.import input=data -c -s
+i.sentinel.import input=data cloud_probability_threshold=25 cloud_area_threshold=10 -c -s
+</pre></div>
+
+<p>
+<table width="100%" cellspacing="5" cellpadding="1" border="0">
+	<tbody>
+		<tr>
+		<td valign="top" align="center" width=30%>
+      <a href="i_sentinel_import_without_cloud_mask.png">
+        <img src="i_sentinel_import_without_cloud_mask.png" width="90%"></a><br>
+      <br><i>Fig: S2 L2-A imagery without cloud mask <br>(example: T33TVE_20210313T095029, Italy)<br></i>
+    </td>
+		<td valign="top" align="center" width=30%>
+      <a href="i_sentinel_import_with_cloud_shadow_mask_v1.png">
+				<img src="i_sentinel_import_with_cloud_shadow_mask_v1.png" width="90%"></a><br>
+      <br><i>Fig: Cloud (ligthgrey) and shadow (darkgrey) mask <br> (default options)<br></i>
+    </td>
+		<td valign="top" align="center" width=30%>
+      <a href="i_sentinel_import_with_cloud_shadow_mask_v2.png">
+        <img src="i_sentinel_import_with_cloud_shadow_mask_v2.png" width="90%"></a><br>
+      <br><i>Fig: Cloud (ligthgrey) and shadow (darkgrey) mask <br>(lower probability threshold and higher area threshold)<br></i>
+    </td>
+		</tr>
+	</tbody>
+</table>
+<p>
+
+<p>
+Link data from specific UTM zone while ignoring projection check
+
+<div class="code"><pre>
+i.sentinel.import -l -o -j input=data pattern_file="_T32"
+</pre></div>
+
+<p>
+Limit import to only bands 3 and 4 from level 2A products for tile T32VNR in 2019
+
+<div class="code"><pre>
+i.sentinel.import -j input=data pattern_file="MSIL2A.*T32VNR_2019" pattern='B(03|04)'
+</pre></div>
+
+<p>
+Limit import to only bands 3 and 4 from level 2A products for tile T32VNR in 2019,
+unzip to directory "safefiles_dir":
+
+<div class="code"><pre>
+i.sentinel.import -j input=data unzip_dir=safefiles_dir pattern_file="MSIL2A.*T32VNR_2019" pattern='B(03|04)'
+</pre></div>
+
+<h3>Register imported Sentinel data into STRDS</h3>
+
+<div class="code"><pre>
+i.sentinel.import -j input=data register_output=t_register.txt
+
+# register imported data into existing STRDS
+t.register input=sentinel_ds file=t_register.txt
+</pre></div>
+
+A register file typically contains two columns: imported raster map
+name and timestamp separated by <tt>|</tt>. In the case of current
+development version of GRASS which supports band references concept
+(see <em><a href="https://grass.osgeo.org/grass-devel/manuals/g.bands.html">g.bands</a></em> module for details) a
+register file is extended by a third column containg band reference
+information, see the examples below.
+
+<div class="code"><pre>
+# register file produced by stable GRASS GIS 7.8 version
+T33UVR_20181205T101401_B05|2018-12-05 10:16:43.275000
+T33UVR_20181205T101401_B03|2018-12-05 10:16:43.275000
+T33UVR_20181205T101401_B06|2018-12-05 10:16:43.275000
+...
+# register file produced by development GRASS GIS 7.9 version
+T33UVR_20181205T101401_B05|2018-12-05 10:16:43.275000|S2_5
+T33UVR_20181205T101401_B03|2018-12-05 10:16:43.275000|S2_3
+T33UVR_20181205T101401_B06|2018-12-05 10:16:43.275000|S2_6
+</pre></div>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="i.sentinel.html">Overview of i.sentinel toolset</a>
+</em>
+<p>
+<em>
+<a href="i.sentinel.download.html">i.sentinel.download</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.in.xyz.html">r.in.xyz</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.external.html">r.external</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/v.import.html">v.import</a>
+</em>
+
+<p>
+See also <a href="https://training.gismentors.eu/grass-gis-workshop-jena/units/20.html">GRASS
+GIS Workshop in Jena</a> for usage examples.
+
+<h2>AUTHOR</h2>
+
+Stefan Blumentrath, <a href="http://geomatics.fsv.cvut.cz/research/geoforall/">GeoForAll
+Lab</a>, CTU in Prague, Czech Republic with support
+of <a href="https://opengeolabs.cz/en/home/">OpenGeoLabs</a> company
+
+<!--
+<p>
+<i>Last changed: $Date$</i>
+-->
