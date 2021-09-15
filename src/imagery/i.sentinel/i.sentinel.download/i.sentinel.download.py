@@ -696,7 +696,11 @@ class SentinelDownloader(object):
             return
         # Check if ingestion date is returned by API
         if "ingestiondate" not in self._products_df_sorted:
-            gs.warning(_("Ingestiondate not returned. Cannot filter previously downloaded scenes"))
+            gs.warning(
+                _(
+                    "Ingestiondate not returned. Cannot filter previously downloaded scenes"
+                )
+            )
             return
         # Check for previously downloaded scenes
         existing_files = glob(os.path.join(output, pattern_file))
@@ -707,9 +711,17 @@ class SentinelDownloader(object):
         for idx, display_id in enumerate(self._products_df_sorted["identifier"]):
             existing_file = [sfile for sfile in existing_files if display_id in sfile]
             if existing_file:
-                creation_time = datetime.fromtimestamp(os.path.getctime(existing_file[0]))
+                creation_time = datetime.fromtimestamp(
+                    os.path.getctime(existing_file[0])
+                )
                 if self._products_df_sorted["ingestiondate"][idx] <= creation_time:
-                    gs.verbose(_("Skipping scene: {} which is already downloaded.".format(self._products_df_sorted["identifier"][idx])))
+                    gs.verbose(
+                        _(
+                            "Skipping scene: {} which is already downloaded.".format(
+                                self._products_df_sorted["identifier"][idx]
+                            )
+                        )
+                    )
                     skiprows.append(display_id)
         if prod_df_type == dict:
             for scene in skiprows:
@@ -717,7 +729,9 @@ class SentinelDownloader(object):
                 for key in self._products_df_sorted:
                     self._products_df_sorted[key].pop(idx)
         else:
-            self._products_df_sorted = self._products_df_sorted[~self._products_df_sorted["identifier"].isin(skiprows)]
+            self._products_df_sorted = self._products_df_sorted[
+                ~self._products_df_sorted["identifier"].isin(skiprows)
+            ]
 
     def download(self, output, sleep=False, maxretry=False, datasource="ESA_COAH"):
         if self._products_df_sorted is None:
