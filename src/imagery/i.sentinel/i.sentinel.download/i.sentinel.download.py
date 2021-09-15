@@ -152,6 +152,11 @@
 #% guisection: Print
 #%end
 #%flag
+#% key: s
+#% description: Skip scenes that have already been downloaded after ingestiondate
+#% guisection: Filter
+#%end
+#%flag
 #% key: b
 #% description: Use the borders of the AOI polygon and not the region of the AOI
 #%end
@@ -170,6 +175,8 @@ import sys
 import logging
 import time
 from collections import OrderedDict
+from glob import glob
+from datetime import datetime
 
 import grass.script as gs
 
@@ -675,8 +682,42 @@ class SentinelDownloader(object):
             print_str += " {0} {1}".format(time_string, ccp)
             if kw_idx == 0:
                 print_str += " {0}".format(self._products_df_sorted["producttype"][idx])
+                print_str += " {0}".format(self._products_df_sorted["size"][idx])
 
             print(print_str)
+
+    def skip_existing(self, output, pattern_file):
+        prod_df_type = type(self._products_df_sorted)
+        # Check i skipping is possible/required
+        if prod_df_type != dict:
+            if self._products_df_sorted.empty:
+                return
+        elif not self._products_df_sorted or os.path.exists(output) == False:
+            return
+        # Check if ingestion date is returned by API
+        if "ingestiondate" not in self._products_df_sorted:
+            gs.warning(_("Ingestiondate not returned. Cannot filter previously downloaded scenes"))
+            return
+        # Check for previously downloaded scenes
+        existing_files = glob(os.path.join(output, pattern_file))
+        if len(existing_files) <= 1:
+            return
+        # Filter by ingestion date
+        skiprows = []
+        for idx, display_id in enumerate(self._products_df_sorted["identifier"]):
+            existing_file = [sfile for sfile in existing_files if display_id in sfile]
+            if existing_file:
+                creation_time = datetime.fromtimestamp(os.path.getctime(existing_file[0]))
+                if self._products_df_sorted["ingestiondate"][idx] <= creation_time:
+                    gs.verbose(_("Skipping scene: {} which is already downloaded.".format(self._products_df_sorted["identifier"][idx])))
+                    skiprows.append(display_id)
+        if prod_df_type == dict:
+            for scene in skiprows:
+                idx = self._products_df_sorted["identifier"].index(scene)
+                for key in self._products_df_sorted:
+                    self._products_df_sorted[key].pop(idx)
+        else:
+            self._products_df_sorted = self._products_df_sorted[~self._products_df_sorted["identifier"].isin(skiprows)]
 
     def download(self, output, sleep=False, maxretry=False, datasource="ESA_COAH"):
         if self._products_df_sorted is None:
@@ -1136,6 +1177,9 @@ def main():
 
     if options["footprints"]:
         downloader.save_footprints(options["footprints"])
+
+    if flags["s"]:
+        downloader.skip_existing(options["output"], "*.zip")
 
     if flags["l"]:
         downloader.list()
