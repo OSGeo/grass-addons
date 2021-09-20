@@ -503,7 +503,7 @@ def smooth_dem(DEM):
             output=smoothed,
             size=11,
             weighting_function="gaussian",
-            weighting_factor=3
+            weighting_factor=3,
         )
 
     return smoothed
