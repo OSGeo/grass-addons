@@ -27,8 +27,6 @@ from grass.script.setup import set_gui_path
 
 set_gui_path()
 
-from gui_core.forms import GUI
-
 import wx
 import wx.html as html
 from wx import SplitterWindow
@@ -105,7 +103,7 @@ class CSWBrowserPanel(wx.Panel):
         wx.Panel.__init__(self, parent)
 
         try:
-            global BBox, CatalogueServiceWeb, Environment, ExceptionReport, FileSystemLoader, GError, GMessage, GWarning, HtmlFormatter, PropertyIsLike, XmlLexer, highlight
+            global BBox, CatalogueServiceWeb, Environment, ExceptionReport, FileSystemLoader, GError, GMessage, GUI, GWarning, HtmlFormatter, PropertyIsLike, XmlLexer, highlight
 
             from jinja2 import Environment, FileSystemLoader
 
@@ -118,6 +116,7 @@ class CSWBrowserPanel(wx.Panel):
             from pygments.lexers import XmlLexer
 
             from core.gcmd import GError, GMessage, GWarning
+            from gui_core.forms import GUI
         except ModuleNotFoundError as e:
             msg = e.msg
             sys.exit(
