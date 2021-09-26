@@ -251,10 +251,10 @@ echo "Written to: $TARGETDIR"
 # compile addons
 
 # update addon repo
-(cd ~/src/grass-addons/grass7/ ; git pull origin master)
+(cd ~/src/grass-addons/; git fetch origin; git checkout grass${GMAJOR}; git pull origin grass${GMAJOR})
 # compile addons
 cd $GRASSBUILDDIR
-sh ~/cronjobs/compile_addons_git.sh ~/src/grass-addons/grass7/ \
+sh ~/cronjobs/compile_addons_git.sh ~/src/grass-addons/src/ \
    ~/src/releasebranch_7_8/dist.x86_64-pc-linux-gnu/ \
    ~/.grass7/addons \
    ~/src/releasebranch_7_8/bin.x86_64-pc-linux-gnu/grass$VERSION

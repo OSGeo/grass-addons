@@ -8,7 +8,7 @@
 
 if [ -z "$3" ]; then
     echo "Usage: $0 git_path topdir addons_path grass_startup_program [separate]"
-    echo "eg. $0 ~/src/grass_addons/grass7/ \
+    echo "eg. $0 ~/src/grass_addons/src/ \
 ~/src/releasebranch_7_8/dist.x86_64-pc-linux-gnu \
 ~/.grass7/addons \
 ~/src/releasebranch_7_8/bin.x86_64-pc-linux-gnu/grass78"
@@ -125,7 +125,7 @@ for c in "db" "display" "general" "gui/wxpython" "imagery" "misc" "raster" "rast
         MANBASEDIR="$path/docs/man" \
         SCRIPTDIR="$path/scripts" \
         ETC="$path/etc" \
-            SOURCE_URL="https://github.com/OSGeo/grass-addons/tree/master/grass${GRASS_VERSION}/" > \
+            SOURCE_URL="https://github.com/OSGeo/grass-addons/tree/grass${GRASS_VERSION}/src/" > \
             "$ADDON_PATH/logs/$m.log" 2>&1 \
         HTML_PAGE_FOOTER_PAGES_PATH="../"
     if [ `echo $?` -eq 0 ] ; then
