@@ -2,11 +2,8 @@
 ignore =
     E203,  # whitespace before ':' (Black)
     W503,  # line break before binary operator (Black)
-    E101, # indentation contains mixed spaces and tabs
-    E211, # whitespace before '['
     E265, # block comment should start with '# '
     E266, # too many leading '#' for block comment
-    E302, # expected 2 blank lines, found 1
     E402, # module level import not at top of file
     E501, # line too long (161 > 150 characters)
     E712, # comparison to False should be 'if cond is False:' or 'if not cond:'
@@ -29,9 +26,28 @@ ignore =
     F811, # redefinition of unused 'transform' from line 153
     F821, # undefined name '_'
     F841, # local variable 'center' is assigned to but never used
-    W191, # indentation contains tabs
-    W293, # blank line contains whitespace
     W605, # invalid escape sequence '\_'
+
+
+per-file-ignores =
+    src/display/d.frame/d.frame.py: E302
+    src/gui/wxpython/wx.wms/wmsmenu.py: W293
+    src/gui/wxpython/wx.wms/WMSMapDisplay.py: W29
+    src/gui/wxpython/wx.wms/parse.py: E101, W191
+    src/raster/r.landscape.evol.old/r.landscape.evol.old.py: E302
+    src/raster/r.object.spatialautocor/r.object.spatialautocor.py: E302
+    src/raster/r.roughness.vector/r.roughness.vector.py: E302
+    src/raster/r.recode.attr/r.recode.attr.py: E302
+    src/raster/r.centroids/testsuite/test_r_centroids.py: E302
+    src/raster/r.euro.ecosystem/r.euro.ecosystem.py: W293
+    src/raster/r.soillossbare/r.soillossbare.py: E101, W191
+    src/raster/r.basin/r.basin.py: E302
+    src/raster/r.denoise/r.denoise.py: E302
+    src/imagery/i.landsat8.swlst/csv_to_dictionary.py: E302
+    src/imagery/i.nightlights.intercalibration/i.nightlights.intercalibration.py: E302
+    src/imagery/i.nightlights.intercalibration/test_intercalibration_models.py: E302
+    src/imagery/i.landsat/i.landsat.download/i.landsat.download.py: E302
+    src/hadoop/hd/dependency.py: E211
 
 
 max-line-length = 88
@@ -45,4 +61,3 @@ exclude =
     ENV,
     env.bak,
     venv.bak,
-    testsuite,
