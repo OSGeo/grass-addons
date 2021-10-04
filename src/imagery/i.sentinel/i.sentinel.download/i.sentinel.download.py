@@ -381,6 +381,8 @@ def get_checksum(filename, hash_function="md5"):
             readable_hash = hashlib.md5(bytes).hexdigest()
         elif hash_function == "sha256":
             readable_hash = hashlib.sha256(bytes).hexdigest()
+        elif hash_function == "sha3-256":
+            readable_hash = hashlib.sha3_256(bytes).hexdigest()
         else:
             raise Exception(
                 (
@@ -394,6 +396,12 @@ def get_checksum(filename, hash_function="md5"):
 def download_gcs_file(url, destination, checksum_function, checksum):
     """Downloads a single file from GCS and performs checksumming."""
     # if file exists, check if checksum is ok, download again otherwise
+
+    if ("requests" not in sys.modules) or ("requests" not in dir()):
+        try:
+            import requests
+        except ImportError as e:
+            gs.fatal(_("Module requires requests library: {}").format(e))
     if os.path.isfile(destination):
         sum_existing = get_checksum(destination, checksum_function)
         if sum_existing == checksum:
@@ -402,9 +410,9 @@ def download_gcs_file(url, destination, checksum_function, checksum):
         r_file = requests.get(url, allow_redirects=True)
         open(destination, "wb").write(r_file.content)
         sum_dl = get_checksum(destination, checksum_function)
-        if sum_dl != checksum:
+        if sum_dl.lower() != checksum.lower():
             gs.verbose(_("Checksumming not successful for {}").format(destination))
-            return 1
+            return 2
         else:
             return 0
 
@@ -415,6 +423,17 @@ def download_gcs_file(url, destination, checksum_function, checksum):
 
 def download_gcs(scene, output):
     """Downloads a single S2 scene from Google Cloud Storage."""
+    # Lazy import tqdm
+    try:
+        from tqdm import tqdm
+    except ImportError as e:
+        gs.fatal(_("Module requires tqdm library: {}").format(e))
+    if ("requests" not in sys.modules) or ("requests" not in dir()):
+        try:
+            import requests
+        except ImportError as e:
+            gs.fatal(_("Module requires requests library: {}").format(e))
+
     final_scene_dir = os.path.join(output, "{}.SAFE".format(scene))
     create_dir(final_scene_dir)
     level = scene.split("_")[1]
@@ -432,7 +451,6 @@ def download_gcs(scene, output):
     url_scene = os.path.join(
         baseurl, tile_no, tile_first_letter, tile_last_letters, "{}.SAFE".format(scene)
     )
-
     # download the manifest.safe file
     safe_file = "manifest.safe"
     safe_url = os.path.join(url_scene, safe_file)
@@ -445,7 +463,6 @@ def download_gcs(scene, output):
     open(output_path_safe, "wb").write(r_safe.content)
     # parse manifest.safe for the rest of the data
     files_list = parse_manifest_gcs(root_manifest)
-
     # get all required folders
     hrefs = [file["href"] for file in files_list]
     hrefs_heads = [os.path.split(path)[0] for path in hrefs]
@@ -501,6 +518,7 @@ def download_gcs(scene, output):
     if req_folder_code != 0:
         return 1
     failed_downloads = []
+    failed_checksums = []
     # no .html files are available on GCS but the folder might be required
     files_list_dl = [file for file in files_list if "HTML" not in file["href"]]
     for dl_file in tqdm(files_list_dl):
@@ -519,8 +537,10 @@ def download_gcs(scene, output):
             checksum_function=checksum_function,
             checksum=dl_file["checksum"],
         )
-        if dl_code != 0:
+        if dl_code == 1:
             failed_downloads.append(dl_url)
+        elif dl_code == 2:
+            failed_checksums.append(dl_url)
 
     if len(failed_downloads) > 0:
         gs.verbose(
@@ -531,6 +551,18 @@ def download_gcs(scene, output):
         gs.warning(_("Downloading was not successful for scene <{}>").format(scene))
         return 1
     else:
+        if len(failed_checksums) > 0:
+            gs.warning(
+                _(
+                    "Scene {} was downloaded but checksumming was not "
+                    "successful for one or more files."
+                ).format(scene)
+            )
+            gs.verbose(
+                _("Checksumming was not successful for urls \n{}").format(
+                    "\n".join(failed_checksums)
+                )
+            )
         return 0
 
 
@@ -1078,7 +1110,6 @@ def main():
                 gs.fatal(_("No user or password given"))
 
     cloudcover_products = ["S2MSI1C", "S2MSI2A", "S2MSI2Ap"]
-
 
     if flags["b"]:
         map_box = get_aoi(options["map"])
