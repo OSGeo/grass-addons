@@ -24,6 +24,7 @@
 #%option G_OPT_F_INPUT
 #% key: settings
 #% label: Full path to settings file (user, password)
+#% required: no
 #% description: '-' for standard input
 #%end
 #%option G_OPT_M_DIR
@@ -534,10 +535,12 @@ def download_gcs(scene, output):
 
 
 class SentinelDownloader(object):
-    def __init__(self, user, password, api_url="https://apihub.copernicus.eu/apihub"):
+    def __init__(self, user, password, api_url="https://apihub.copernicus.eu/apihub",
+                 cred_req=True):
         self._apiname = api_url
         self._user = user
         self._password = password
+        self._cred_req = cred_req
 
         # init logger
         root = logging.getLogger()
@@ -623,6 +626,11 @@ class SentinelDownloader(object):
                 area, area_relation, start, end, args
             )
         )
+        if self._cred_req is False:
+            # in the main function it is ensured that there is an "identifier" query
+            self._products_df_sorted = pandas.DataFrame({"identifier": [query["identifier"]]})
+            return
+
         products = self._api.query(
             area=area, area_relation=area_relation, date=(start, end), **args
         )
@@ -1022,46 +1030,55 @@ class SentinelDownloader(object):
 
 
 def main():
-
+    cred_req = True
     api_url = "https://apihub.copernicus.eu/apihub"
     if options["datasource"] == "GCS":
         if options["producttype"] not in ["S2MSI2A", "S2MSI1C"]:
             gs.fatal(
                 _("Download from GCS only supports producttypes S2MSI2A " "or S2MSI1C")
             )
+        if options["query"]:
+            queries = options["query"].split(",")
+            query_names = [query.split("=")[0] for query in queries]
+            if "identifier" in query_names and not flags["l"]:
+                cred_req = False
     elif options["datasource"] == "USGS_EE":
         api_url = "USGS_EE"
 
+    if not options["settings"] and cred_req is True:
+        gs.fatal(
+            _("Credentials are required via the settings parameter.")
+        )
     user = password = None
+    if cred_req is True:
+        if options["settings"] == "-":
+            # stdin
+            import getpass
 
-    if options["settings"] == "-":
-        # stdin
-        import getpass
-
-        user = raw_input(_("Insert username: "))
-        password = getpass.getpass(_("Insert password: "))
-        url = raw_input(_("Insert API URL (leave empty for {}): ").format(api_url))
-        if url:
-            api_url = url
-    else:
-        try:
-            with open(options["settings"], "r") as fd:
-                lines = list(
-                    filter(None, (line.rstrip() for line in fd))
-                )  # non-blank lines only
-                if len(lines) < 2:
-                    gs.fatal(_("Invalid settings file"))
-                user = lines[0].strip()
-                password = lines[1].strip()
-                if len(lines) > 2:
-                    api_url = lines[2].strip()
-        except IOError as e:
-            gs.fatal(_("Unable to open settings file: {}").format(e))
+            user = raw_input(_("Insert username: "))
+            password = getpass.getpass(_("Insert password: "))
+            url = raw_input(_("Insert API URL (leave empty for {}): ").format(api_url))
+            if url:
+                api_url = url
+        else:
+            try:
+                with open(options["settings"], "r") as fd:
+                    lines = list(
+                        filter(None, (line.rstrip() for line in fd))
+                    )  # non-blank lines only
+                    if len(lines) < 2:
+                        gs.fatal(_("Invalid settings file"))
+                    user = lines[0].strip()
+                    password = lines[1].strip()
+                    if len(lines) > 2:
+                        api_url = lines[2].strip()
+            except IOError as e:
+                gs.fatal(_("Unable to open settings file: {}").format(e))
+            if user is None or password is None:
+                gs.fatal(_("No user or password given"))
 
     cloudcover_products = ["S2MSI1C", "S2MSI2A", "S2MSI2Ap"]
 
-    if user is None or password is None:
-        gs.fatal(_("No user or password given"))
 
     if flags["b"]:
         map_box = get_aoi(options["map"])
@@ -1083,7 +1100,7 @@ def main():
         except ValueError:
             pass
     try:
-        downloader = SentinelDownloader(user, password, api_url)
+        downloader = SentinelDownloader(user, password, api_url, cred_req)
 
         if options["uuid"]:
             downloader.set_uuid(options["uuid"].split(","))
@@ -1106,6 +1123,7 @@ def main():
                 "asc": True if options["order"] == "asc" else False,
                 "relativeorbitnumber": options["relativeorbitnumber"],
             }
+
             if options["datasource"] == "ESA_COAH" or options["datasource"] == "GCS":
                 downloader.filter(**filter_args)
             elif options["datasource"] == "USGS_EE":
