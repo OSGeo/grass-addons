@@ -380,6 +380,8 @@ def get_checksum(filename, hash_function="md5"):
             readable_hash = hashlib.md5(bytes).hexdigest()
         elif hash_function == "sha256":
             readable_hash = hashlib.sha256(bytes).hexdigest()
+        elif hash_function == "sha3-256":
+            readable_hash = hashlib.sha3_256(bytes).hexdigest()
         else:
             raise Exception(
                 (
@@ -401,9 +403,9 @@ def download_gcs_file(url, destination, checksum_function, checksum):
         r_file = requests.get(url, allow_redirects=True)
         open(destination, "wb").write(r_file.content)
         sum_dl = get_checksum(destination, checksum_function)
-        if sum_dl != checksum:
+        if sum_dl.lower() != checksum.lower():
             gs.verbose(_("Checksumming not successful for {}").format(destination))
-            return 1
+            return 2
         else:
             return 0
 
@@ -500,6 +502,7 @@ def download_gcs(scene, output):
     if req_folder_code != 0:
         return 1
     failed_downloads = []
+    failed_checksums = []
     # no .html files are available on GCS but the folder might be required
     files_list_dl = [file for file in files_list if "HTML" not in file["href"]]
     for dl_file in tqdm(files_list_dl):
@@ -518,8 +521,10 @@ def download_gcs(scene, output):
             checksum_function=checksum_function,
             checksum=dl_file["checksum"],
         )
-        if dl_code != 0:
+        if dl_code == 1:
             failed_downloads.append(dl_url)
+        elif dl_code == 2:
+            failed_checksums.append(dl_url)
 
     if len(failed_downloads) > 0:
         gs.verbose(
@@ -530,6 +535,18 @@ def download_gcs(scene, output):
         gs.warning(_("Downloading was not successful for scene <{}>").format(scene))
         return 1
     else:
+        if len(failed_checksums) > 0:
+            gs.warning(
+                _(
+                    "Scene {} was downloaded but checksumming was not "
+                    "successful for one or more files."
+                ).format(scene)
+            )
+            gs.verbose(
+                _("Checksumming was not successful for urls \n{}").format(
+                    "\n".join(failed_checksums)
+                )
+            )
         return 0
 
 
