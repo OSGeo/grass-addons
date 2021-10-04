@@ -567,8 +567,13 @@ def download_gcs(scene, output):
 
 
 class SentinelDownloader(object):
-    def __init__(self, user, password, api_url="https://apihub.copernicus.eu/apihub",
-                 cred_req=True):
+    def __init__(
+        self,
+        user,
+        password,
+        api_url="https://apihub.copernicus.eu/apihub",
+        cred_req=True,
+    ):
         self._apiname = api_url
         self._user = user
         self._password = password
@@ -660,7 +665,9 @@ class SentinelDownloader(object):
         )
         if self._cred_req is False:
             # in the main function it is ensured that there is an "identifier" query
-            self._products_df_sorted = pandas.DataFrame({"identifier": [query["identifier"]]})
+            self._products_df_sorted = pandas.DataFrame(
+                {"identifier": [query["identifier"]]}
+            )
             return
 
         products = self._api.query(
@@ -1078,9 +1085,7 @@ def main():
         api_url = "USGS_EE"
 
     if not options["settings"] and cred_req is True:
-        gs.fatal(
-            _("Credentials are required via the settings parameter.")
-        )
+        gs.fatal(_("Credentials are required via the settings parameter."))
     user = password = None
     if cred_req is True:
         if options["settings"] == "-":
