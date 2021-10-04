@@ -123,7 +123,7 @@
 
 #%flag
 #% key: j
-#% description: Write meta data json for each band to LOCATION/MAPSET/cell_misc/BAND/description.json
+#% description: Write metadata json for each band to LOCATION/MAPSET/cell_misc/BAND/description.json
 #% guisection: Print
 #%end
 
