@@ -1023,35 +1023,14 @@ class SentinelDownloader(object):
 
 def main():
 
-    # Lazy import nonstandard modules
-    try:
-        import pandas
-    except ImportError as e:
-        gs.fatal(_("Module requires pandas library: {}").format(e))
-
-    try:
-        import requests
-    except ImportError as e:
-        gs.fatal(_("Module requires requests library: {}").format(e))
-
     api_url = "https://apihub.copernicus.eu/apihub"
     if options["datasource"] == "GCS":
-        # Lazy import tqdm
         if options["producttype"] not in ["S2MSI2A", "S2MSI1C"]:
             gs.fatal(
                 _("Download from GCS only supports producttypes S2MSI2A " "or S2MSI1C")
             )
-        try:
-            from tqdm import tqdm
-        except ImportError as e:
-            gs.fatal(_("Module requires tqdm library: {}").format(e))
     elif options["datasource"] == "USGS_EE":
         api_url = "USGS_EE"
-        try:
-            import landsatxplore.api
-            from landsatxplore.errors import EarthExplorerError
-        except ImportError as e:
-            gs.fatal(_("Module requires landsatxplore library: {}").format(e))
 
     user = password = None
 
@@ -1153,4 +1132,28 @@ def main():
 
 if __name__ == "__main__":
     options, flags = gs.parser()
+
+    if options["datasource"] == "GCS":
+        # Lazy import nonstandard modules
+        try:
+            import pandas
+        except ImportError as e:
+            gs.fatal(_("Module requires pandas library: {}").format(e))
+
+        try:
+            import requests
+        except ImportError as e:
+            gs.fatal(_("Module requires requests library: {}").format(e))
+
+        try:
+            from tqdm import tqdm
+        except ImportError as e:
+            gs.fatal(_("Module requires tqdm library: {}").format(e))
+    elif options["datasource"] == "USGS_EE":
+        try:
+            import landsatxplore.api
+            from landsatxplore.errors import EarthExplorerError
+        except ImportError as e:
+            gs.fatal(_("Module requires landsatxplore library: {}").format(e))
+
     sys.exit(main())
