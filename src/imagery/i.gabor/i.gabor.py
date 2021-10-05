@@ -172,8 +172,7 @@ def main():
             name = f"{win_size}_{deg}_{freq}_{offset}_{aspect}"
             filters[name] = gabor2d(win_size, deg, freq, aspect, offset, ntype)
 
-    inarr = garray.array()
-    inarr.read(input)
+    inarr = garray.array(input)
     if flags["c"]:
         convolved = []
         if type(q) == list:

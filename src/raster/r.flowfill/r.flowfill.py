@@ -200,8 +200,7 @@ def main():
 
     # Output DEM as temporary file for FORTRAN
     temp_FlowFill_input_file = gscript.tempfile(create=False)
-    dem = garray.array()
-    dem.read(_input, null=-999999)
+    dem = garray.array(_input, null=-999999)
     dem_array = np.array(dem[:]).astype(np.float32)
     del dem
     newnc = Dataset(temp_FlowFill_input_file, "w", format="NETCDF4")
@@ -217,8 +216,7 @@ def main():
     # Output runoff raster as temporary file for FORTRAN
     if _h_runoff_raster is not "":
         temp_FlowFill_runoff_file = gscript.tempfile(create=False)
-        rr = garray.array()
-        rr.read(_h_runoff_raster, null=0.0)
+        rr = garray.array(_h_runoff_raster, null=0.0)
         rr_array = np.array(rr[:]).astype(np.float32)
         del rr
         newnc = Dataset(temp_FlowFill_runoff_file, "w", format="NETCDF4")

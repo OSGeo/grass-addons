@@ -247,8 +247,7 @@ def main():
 
             tmp_map_rast.append("r_exp_tmp_")
 
-            r = garray.array()
-            r.read("r_exp_tmp_%d" % os.getpid())
+            r = garray.array("r_exp_tmp_%d" % os.getpid())
 
         elif options["r_exp_value"]:
             r = float(options["r_exp_value"])
@@ -256,8 +255,7 @@ def main():
             grass.fatal(_("No r value/map provided for exponential model"))
 
         # run model
-        n0_map = garray.array()
-        n0_map.read("n0_tmp_%d" % os.getpid())
+        n0_map = garray.array("n0_tmp_%d" % os.getpid())
         exponential_map = garray.array()
         exponential_map[...] = exponential_mod(n0_map, r, t)
         ricker_map.write("exponential_output_tmp_%d" % os.getpid())
@@ -310,8 +308,7 @@ def main():
 
             tmp_map_rast.append("r_rick_tmp_")
 
-            r = garray.array()
-            r.read("r_rick_tmp_%d" % os.getpid())
+            r = garray.array("r_rick_tmp_%d" % os.getpid())
 
         elif options["r_rick_value"]:
             r = float(options["r_rick_value"])
@@ -335,8 +332,7 @@ def main():
 
             tmp_map_rast.append("k_tmp_")
 
-            k = garray.array()
-            k.read("k_tmp_%d" % os.getpid())
+            k = garray.array("k_tmp_%d" % os.getpid())
 
         elif options["k_value"]:
             k = float(options["k_value"])
@@ -344,8 +340,7 @@ def main():
             grass.fatal(_("No value/map for carrying capacity (k) provided"))
 
         # run model
-        n0_map = garray.array()
-        n0_map.read("n0_tmp_%d" % os.getpid())
+        n0_map = garray.array("n0_tmp_%d" % os.getpid())
         ricker_map = garray.array()
         ricker_map[...] = ricker_mod(n0_map, r, k, t)
         ricker_map.write("ricker_output_tmp_%d" % os.getpid())

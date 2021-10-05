@@ -200,18 +200,14 @@ def main():
     quota = what.split("\n")
 
     # array per la somma dei massi
-    tot = garray.array()
-    tot.read(r_elevation)
+    tot = garray.array(r_elevation)
     tot[...] = (tot * 0.0).astype(float)
-    somma = garray.array()
 
     # array per le velocita
-    velocity = garray.array()
     velMax = garray.array()
     velMean = garray.array()
 
     # array per energia
-    energy = garray.array()
     enMax = garray.array()
     enMean = garray.array()
     grass.message("Waiting...")
@@ -247,18 +243,18 @@ def main():
 
         # calcolo velocita
         grass.mapcalc("vel = $red*sqrt(2*9.8*F)", red=red, overwrite=True)
-        velocity.read("vel")
+        velocity = garray.array("vel")
         velMax[...] = (np.where(velocity > velMax, velocity, velMax)).astype(float)
         velMean[...] = (velocity + velMean).astype(float)
 
         # calcolo numero massi
         grass.mapcalc("somma=if(vel>0,1,0)", overwrite=True)
-        somma.read("somma")
+        somma = garray.array("somma")
         tot[...] = (somma + tot).astype(float)
 
         # calcolo energia
         grass.mapcalc("en=$m*9.8*F/1000", m=m, overwrite=True)
-        energy.read("en")
+        energy = garray.array("en")
         enMax[...] = (np.where(energy > enMax, energy, enMax)).astype(float)
         enMean[...] = (energy + enMean).astype(float)
     grass.message("Create output maps...")

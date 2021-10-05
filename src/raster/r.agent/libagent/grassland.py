@@ -45,10 +45,9 @@ class Grassland(playground.Playground):
         @param string name of an existing GRASS map layer
         @param boolean optional, whether to overwrite values if key exists
         """
-        layer = garray.array()
         # fill the new grass array with the contents from the map (must exist)
         if grassmapname in grass.list_strings("rast"):
-            layer.read(grassmapname)
+            layer = garray.array(grassmapname)
             self.grassmapnames[layername] = grassmapname
             self.setlayer(layername, layer, force)
         else:

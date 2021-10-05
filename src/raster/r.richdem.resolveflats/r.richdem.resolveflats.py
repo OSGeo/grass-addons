@@ -79,8 +79,7 @@ def main():
     if (_rasters == _output).any():
         g.message(flags="e", message="output would overwrite " + _output)
 
-    dem = garray.array()
-    dem.read(_input, null=np.nan)
+    dem = garray.array(_input, null=np.nan)
 
     rd_input = rd.rdarray(dem, no_data=np.nan)
     rd_output = rd.ResolveFlats(rd_input)
