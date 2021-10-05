@@ -232,7 +232,9 @@ def main():
     try:
         flex.Te = float(options["te"])
     except:
-        flex.Te = garray.array(options["te"])  # FlexureTe is the one that is used by Flexure
+        flex.Te = garray.array(
+            options["te"]
+        )  # FlexureTe is the one that is used by Flexure
         flex.Te = np.array(flex.Te)
     if options["te_units"] == "km":
         flex.Te *= 1000
