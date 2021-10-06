@@ -8,7 +8,7 @@ AUTHOR(S): Stefan Blumentrath < stefan.blumentrath AT nina.no>
 
 PURPOSE:   Extract endmembers from imagery group and perform spectral unmixing
            using pysptools
-           Depemds on pysptools and scikit-learn
+           Depends on pysptools and scikit-learn
 
 COPYRIGHT: (C) 2018 by the GRASS GIS Development Team,
                            Norwegian Institute for Nature Research (NINA)
