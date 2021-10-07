@@ -28,5 +28,5 @@ jobs:
           VALIDATE_MD: false
           VALIDATE_PERL: false
           VALIDATE_POWERSHELL: true
-          VALIDATE_XML: true
+          VALIDATE_XML: false
           VALIDATE_YAML: true
