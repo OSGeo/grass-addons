@@ -68,7 +68,7 @@
 #% description: Sentinel product type to filter
 #% label: USGS Earth Explorer only supports S2MSI1C
 #% required: no
-#% options: SLC,GRD,OCN,S2MSI1C,S2MSI2A,S2MSI2Ap
+#% options: SLC,GRD,OCN,S2MSI1C,S2MSI2A,S2MSI2Ap,S3OL2LFR,S3OL2LRR,S3SL2LST,S3SL2FRP,S3SY2SYN,S3SY2VGP,S3SY2VG1,S3SY2V10,S3SY2AOD,S3SR2LAN
 #% answer: S2MSI2A
 #% guisection: Filter
 #%end
@@ -152,6 +152,11 @@
 #% guisection: Print
 #%end
 #%flag
+#% key: s
+#% description: Skip scenes that have already been downloaded after ingestiondate
+#% guisection: Filter
+#%end
+#%flag
 #% key: b
 #% description: Use the borders of the AOI polygon and not the region of the AOI
 #%end
@@ -170,6 +175,8 @@ import sys
 import logging
 import time
 from collections import OrderedDict
+from glob import glob
+from datetime import datetime
 
 import grass.script as gs
 
@@ -380,6 +387,8 @@ def get_checksum(filename, hash_function="md5"):
             readable_hash = hashlib.md5(bytes).hexdigest()
         elif hash_function == "sha256":
             readable_hash = hashlib.sha256(bytes).hexdigest()
+        elif hash_function == "sha3-256":
+            readable_hash = hashlib.sha3_256(bytes).hexdigest()
         else:
             raise Exception(
                 (
@@ -401,9 +410,9 @@ def download_gcs_file(url, destination, checksum_function, checksum):
         r_file = requests.get(url, allow_redirects=True)
         open(destination, "wb").write(r_file.content)
         sum_dl = get_checksum(destination, checksum_function)
-        if sum_dl != checksum:
+        if sum_dl.lower() != checksum.lower():
             gs.verbose(_("Checksumming not successful for {}").format(destination))
-            return 1
+            return 2
         else:
             return 0
 
@@ -414,12 +423,6 @@ def download_gcs_file(url, destination, checksum_function, checksum):
 
 def download_gcs(scene, output):
     """Downloads a single S2 scene from Google Cloud Storage."""
-    # Lazy import tqdm
-    try:
-        from tqdm import tqdm
-    except ImportError as e:
-        gs.fatal(_("Module requires tqdm library: {}").format(e))
-
     final_scene_dir = os.path.join(output, "{}.SAFE".format(scene))
     create_dir(final_scene_dir)
     level = scene.split("_")[1]
@@ -506,6 +509,7 @@ def download_gcs(scene, output):
     if req_folder_code != 0:
         return 1
     failed_downloads = []
+    failed_checksums = []
     # no .html files are available on GCS but the folder might be required
     files_list_dl = [file for file in files_list if "HTML" not in file["href"]]
     for dl_file in tqdm(files_list_dl):
@@ -524,8 +528,10 @@ def download_gcs(scene, output):
             checksum_function=checksum_function,
             checksum=dl_file["checksum"],
         )
-        if dl_code != 0:
+        if dl_code == 1:
             failed_downloads.append(dl_url)
+        elif dl_code == 2:
+            failed_checksums.append(dl_url)
 
     if len(failed_downloads) > 0:
         gs.verbose(
@@ -536,6 +542,18 @@ def download_gcs(scene, output):
         gs.warning(_("Downloading was not successful for scene <{}>").format(scene))
         return 1
     else:
+        if len(failed_checksums) > 0:
+            gs.warning(
+                _(
+                    "Scene {} was downloaded but checksumming was not "
+                    "successful for one or more files."
+                ).format(scene)
+            )
+            gs.verbose(
+                _("Checksumming was not successful for urls \n{}").format(
+                    "\n".join(failed_checksums)
+                )
+            )
         return 0
 
 
@@ -548,7 +566,7 @@ class SentinelDownloader(object):
         # init logger
         root = logging.getLogger()
         root.addHandler(logging.StreamHandler(sys.stderr))
-        if self._apiname == "https://apihub.copernicus.eu/apihub":
+        if self._apiname not in ["USGS_EE", "GCS"]:
             try:
                 from sentinelsat import SentinelAPI
             except ImportError as e:
@@ -556,11 +574,6 @@ class SentinelDownloader(object):
             # connect SciHub via API
             self._api = SentinelAPI(self._user, self._password, api_url=self._apiname)
         elif self._apiname == "USGS_EE":
-            try:
-                import landsatxplore.api
-                from landsatxplore.errors import EarthExplorerError
-            except ImportError as e:
-                gs.fatal(_("Module requires landsatxplore library: {}").format(e))
             api_login = False
             while api_login is False:
                 # avoid login conflict in possible parallel execution
@@ -585,6 +598,14 @@ class SentinelDownloader(object):
         asc=True,
         relativeorbitnumber=None,
     ):
+        # Dict to identify plaforms from requested product
+        platforms = {
+            "SL": "Sentinel-1",
+            "GR": "Sentinel-1",
+            "OC": "Sentinel-1",
+            "S2": "Sentinel-2",
+            "S3": "Sentinel-3",
+        }
         args = {}
         if clouds:
             args["cloudcoverpercentage"] = (0, int(clouds))
@@ -595,11 +616,15 @@ class SentinelDownloader(object):
             elif int(relativeorbitnumber) > 175:
                 gs.warning(_("This relative orbit number is out of range"))
         if producttype:
-            args["producttype"] = producttype
-            if producttype.startswith("S2"):
-                args["platformname"] = "Sentinel-2"
+            if producttype.startswith("S3"):
+                # Using custom product names for Sentinel-3 products that look less cryptic
+                split = [0, 2, 4, 5, 8]
+                args["producttype"] = "_".join(
+                    [producttype[i:j] for i, j in zip(split, split[1:] + [None])][1:]
+                ).ljust(11, "_")
             else:
-                args["platformname"] = "Sentinel-1"
+                args["producttype"] = producttype
+            args["platformname"] = platforms[producttype[0:2]]
         if not start:
             start = "NOW-60DAYS"
         else:
@@ -674,8 +699,58 @@ class SentinelDownloader(object):
             print_str += " {0} {1}".format(time_string, ccp)
             if kw_idx == 0:
                 print_str += " {0}".format(self._products_df_sorted["producttype"][idx])
+                print_str += " {0}".format(self._products_df_sorted["size"][idx])
 
             print(print_str)
+
+    def skip_existing(self, output, pattern_file):
+        prod_df_type = type(self._products_df_sorted)
+        # Check i skipping is possible/required
+        if prod_df_type != dict:
+            if self._products_df_sorted.empty:
+                return
+        elif not self._products_df_sorted or os.path.exists(output) == False:
+            return
+        # Check if ingestion date is returned by API
+        if "ingestiondate" not in self._products_df_sorted:
+            gs.warning(
+                _(
+                    "Ingestiondate not returned. Cannot filter previously downloaded scenes"
+                )
+            )
+            return
+        # Check for previously downloaded scenes
+        existing_files = [
+            f for f in os.listdir(output) if re.search(r".zip$|.safe$|.ZIP$|.SAFE$", f)
+        ]
+        if len(existing_files) <= 1:
+            return
+        # Filter by ingestion date
+        skiprows = []
+        for idx, display_id in enumerate(self._products_df_sorted["identifier"]):
+            existing_file = [sfile for sfile in existing_files if display_id in sfile]
+            if existing_file:
+                creation_time = datetime.fromtimestamp(
+                    os.path.getctime(existing_file[0])
+                )
+                if self._products_df_sorted["ingestiondate"][idx] <= creation_time:
+                    gs.message(
+                        _(
+                            "Skipping scene: {} which is already downloaded.".format(
+                                self._products_df_sorted["identifier"][idx]
+                            )
+                        )
+                    )
+                    skiprows.append(display_id)
+        if prod_df_type == dict:
+            for scene in skiprows:
+                idx = self._products_df_sorted["identifier"].index(scene)
+                for key in self._products_df_sorted:
+                    self._products_df_sorted[key].pop(idx)
+        else:
+            self._products_df_sorted = self._products_df_sorted[
+                ~self._products_df_sorted["identifier"].isin(skiprows)
+            ]
 
     def download(self, output, sleep=False, maxretry=False, datasource="ESA_COAH"):
         if self._products_df_sorted is None:
@@ -798,8 +873,7 @@ class SentinelDownloader(object):
 
         # Sentinel-1 data does not have cloudcoverpercentage
         prod_types = [type for type in self._products_df_sorted["producttype"]]
-        s1_types = ["SLC", "GRD"]
-        if any(type in prod_types for type in s1_types):
+        if not any(type in prod_types for type in cloudcover_products):
             del attrs["cloudcoverpercentage"]
 
         for key in attrs.keys():
@@ -1023,28 +1097,16 @@ class SentinelDownloader(object):
 
 def main():
 
-    # Lazy import nonstandard modules
-    try:
-        import pandas
-    except ImportError as e:
-        gs.fatal(_("Module requires pandas library: {}").format(e))
-
-    try:
-        import requests
-    except ImportError as e:
-        gs.fatal(_("Module requires requests library: {}").format(e))
+    api_url = "https://apihub.copernicus.eu/apihub"
+    if options["datasource"] == "GCS":
+        if options["producttype"] not in ["S2MSI2A", "S2MSI1C"]:
+            gs.fatal(
+                _("Download from GCS only supports producttypes S2MSI2A " "or S2MSI1C")
+            )
+    elif options["datasource"] == "USGS_EE":
+        api_url = "USGS_EE"
 
     user = password = None
-    if options["datasource"] == "ESA_COAH" or options["datasource"] == "GCS":
-        api_url = "https://apihub.copernicus.eu/apihub"
-    else:
-        api_url = "USGS_EE"
-    if options["datasource"] == "GCS" and (
-        options["producttype"] not in ["S2MSI2A", "S2MSI1C"]
-    ):
-        gs.fatal(
-            _("Download from GCS only supports producttypes S2MSI2A " "or S2MSI1C")
-        )
 
     if options["settings"] == "-":
         # stdin
@@ -1070,6 +1132,8 @@ def main():
         except IOError as e:
             gs.fatal(_("Unable to open settings file: {}").format(e))
 
+    cloudcover_products = ["S2MSI1C", "S2MSI2A", "S2MSI2Ap"]
+
     if user is None or password is None:
         gs.fatal(_("No user or password given"))
 
@@ -1079,7 +1143,7 @@ def main():
         map_box = get_aoi_box(options["map"])
 
     sortby = options["sort"].split(",")
-    if options["producttype"] in ("SLC", "GRD", "OCN"):
+    if not options["producttype"] in cloudcover_products:
         if options["clouds"]:
             gs.info(
                 _(
@@ -1126,6 +1190,9 @@ def main():
     if options["footprints"]:
         downloader.save_footprints(options["footprints"])
 
+    if flags["s"]:
+        downloader.skip_existing(options["output"], "*.zip")
+
     if flags["l"]:
         downloader.list()
         return
@@ -1142,4 +1209,28 @@ def main():
 
 if __name__ == "__main__":
     options, flags = gs.parser()
+
+    if options["datasource"] == "GCS":
+        # Lazy import nonstandard modules
+        try:
+            import pandas
+        except ImportError as e:
+            gs.fatal(_("Module requires pandas library: {}").format(e))
+
+        try:
+            import requests
+        except ImportError as e:
+            gs.fatal(_("Module requires requests library: {}").format(e))
+
+        try:
+            from tqdm import tqdm
+        except ImportError as e:
+            gs.fatal(_("Module requires tqdm library: {}").format(e))
+    elif options["datasource"] == "USGS_EE":
+        try:
+            import landsatxplore.api
+            from landsatxplore.errors import EarthExplorerError
+        except ImportError as e:
+            gs.fatal(_("Module requires landsatxplore library: {}").format(e))
+
     sys.exit(main())
