@@ -7,26 +7,29 @@ module.
 <p>
 By default <em>i.sentinel3.import</em> imports all Sentinel-3 scene files found
 in the <b>input</b> directory. The number of scene files can be optionally
-reduced by the <b>pattern</b> option or filtered by modification time using the 
-<b>modified_after</b> and/or <b>modified_before</b> option. In the <b>pattern</b> 
-option, a regular expression for filtering the file names should be given, e.g. 
+reduced by the <b>pattern</b> option or filtered by modification time using the
+<b>modified_after</b> and/or <b>modified_before</b> option. In the <b>pattern</b>
+option, a regular expression for filtering the file names should be given, e.g.
 "0179_076_100_0900_LN2" for importing only specific tiles.
 <p>
-The <em>Sentinel-3</em> format is currently not supported by GDAL and consists 
-of several netCDF4 files. Therefore, a GRASS GIS specific import routine is implemented. 
-It imports the data pixel-wise after transforming them from WGS84 into the projection 
-of the current LOCATION. <em>r.in.xyz<em> is then used to read the coordinates into 
-a GRASS GIS raster map. Thus, the the user has to set the computational region extent and 
-resolution appropriately, to import the data of interest in the correct resolution.
+The <em>Sentinel-3</em> products are provided in different formats. Not all of
+them are currently directly supported by GDAL. Some, like the e.g. the LST products
+consist of several netCDF4 files, where geometry and image information are stored in
+different files. Therefore, a GRASS GIS specific import routine has been implemented
+for those formats. This routine imports the data pixel-wise after transforming them
+from WGS84 into the projection of the current LOCATION. <em>r.in.xyz</em> is then
+used to read the coordinates into a GRASS GIS raster map.
+Thus, the <em>the user has to set the computational region extent and
+resolution appropriately, to import the data of interest in the correct resolution</em>.
 
 <p>
-By default, ancillary data and quality flag data are imported as well - as artificial 
-bands. Import of those additional data layers can be deactivated using the <b>ancillary_bands</b> 
+By default, ancillary data and quality flag data are imported as well - as artificial
+bands. Import of those additional data layers can be deactivated using the <b>ancillary_bands</b>
 and <b>quality_bands</b> option.
 
 <p>
 For each imported band both scene and band specific metadata are written into the map history
-(<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.support.html">r.support</a></em>). 
+(<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.support.html">r.support</a></em>).
 In addition, the scene name is stored as <em>source1</em> and the imported or linked file name as
 <em>source2</em>. Also, sensing time is written into the timestamp of the
 map. After import, the metadata can be retrieved with <em>r.info -e</em>
@@ -36,12 +39,12 @@ as shown below.
 <h2>NOTES</h2>
 
 <p>
-Currently, only import of SL_2_LST__ products is supported.
+Currently, only import of SL_2_LST__ products from Sentinel-3 SLSTR sensor are supported.
 <p>
 By means of the <b>register_file</b> option <em>i.sentinel3.import</em> allows
 creating a file which can be used to register imported imagery data
-into a space-time raster dateset (STRDS) with 
-<em><a href="https://grass.osgeo.org/grass-stable/manuals/t.register.html">t.register</a></em>. 
+into a space-time raster dateset (STRDS) with
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/t.register.html">t.register</a></em>.
 See example below.
 
 <p>
@@ -59,7 +62,8 @@ At first, print the list of raster files to be imported with <b>-p</b> flag. For
 each file also product content is printed:
 
 <div class="code"><pre>
-i.sentinel3.import -p input="data" nprocs=4 modified_before="2021-09-09" product=LST basename=S3_LST
+i.sentinel3.import -p input=./data/ nprocs=4 modified_before="2021-09-09" \
+product=LST basename=S3_LST
 
 ...
 </pre></div>
@@ -68,14 +72,16 @@ i.sentinel3.import -p input="data" nprocs=4 modified_before="2021-09-09" product
 Import all Sentinel-3 data found in <i>data</i> directory and store metadata
 as JSON files within the GRASS GIS database directory:
 <div class="code"><pre>
-i.sentinel3.import -a -c -j input="data" nprocs=4 modified_before="2021-09-09" product=LST basename=S3_LST
+i.sentinel3.import -a -c -j input=./data/ nprocs=4 modified_before="2021-09-09" \
+product=LST basename=S3_LST
 </pre></div>
 
 
 <h3>Register imported Sentinel-3 data into STRDS</h3>
 
 <div class="code"><pre>
-i.sentinel3.import -a -c -j input="data" register_output=data/reg.txt nprocs=4 modified_before="2021-09-09" product=LST basename=S3_LST
+i.sentinel3.import -a -c -j input=./data/ register_output=./data/reg.txt nprocs=4 \
+modified_before="2021-09-09" product=LST basename=S3_LST
 
 # register imported data into existing STRDS
 t.register input=Sentinel_3 file=data/reg.txt

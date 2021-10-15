@@ -167,9 +167,9 @@ def np_as_scalar(var):
 
 
 def filter(input_dir, pattern, modified_after, modified_before):
-    # Filter files according to pattern
+    # Filter files according to pattern (with L2 LST)
     if not pattern:
-        pattern = "S3*.zip"
+        pattern = "S3*SL_2_LST*.zip"
 
     s3_files = []
     s3_files = list(input_dir.glob(pattern))
@@ -191,7 +191,7 @@ def filter(input_dir, pattern, modified_after, modified_before):
 
     if len(s3_files) < 1:
         gscript.fatal(
-            _("Nothing found to import. Please check input and pattern_file options.")
+            _("Nothing found to import. Please check input and pattern options.")
         )
 
     return s3_files
@@ -402,7 +402,7 @@ def import_s3(s3_file, kwargs):
                 if member not in members:
                     gscript.fatal(
                         _(
-                            "{s3_file} does not contain a a container {container} with band {band}".format(
+                            "{s3_file} does not contain a container {container} with band {band}".format(
                                 s3_file=s3_file,
                                 container=nc_file,
                                 band=", ".join(requested_bands),
@@ -438,7 +438,7 @@ def import_s3(s3_file, kwargs):
                     if member not in members:
                         gscript.fatal(
                             _(
-                                "{s3_file} does not contain a a container {container} with band {band}".format(
+                                "{s3_file} does not contain a container {container} with band {band}".format(
                                     s3_file=s3_file,
                                     container=nc_file,
                                     band=", ".join(requested_bands),
