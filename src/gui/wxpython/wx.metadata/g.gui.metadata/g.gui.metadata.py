@@ -44,7 +44,6 @@ set_gui_path()
 from core.debug import Debug
 
 # from datacatalog.tree import LocationMapTree
-from core.utils import GetListOfLocations, ListOfMapsets
 
 grass.utils.set_path(modulename="wx.metadata", dirname="mdlib", path="..")
 
@@ -82,9 +81,10 @@ class LocationMapTree(wx.TreeCtrl):
         super(LocationMapTree, self).__init__(parent, id=wx.ID_ANY, style=style)
 
         try:
-            global RunCommand
+            global GetListOfLocations, ListOfMapsets, RunCommand
 
             from core.gcmd import RunCommand
+            from core.utils import GetListOfLocations, ListOfMapsets
         except ModuleNotFoundError as e:
             msg = e.msg
             sys.exit(
