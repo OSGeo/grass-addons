@@ -403,12 +403,6 @@ def get_checksum(filename, hash_function="md5"):
 def download_gcs_file(url, destination, checksum_function, checksum):
     """Downloads a single file from GCS and performs checksumming."""
     # if file exists, check if checksum is ok, download again otherwise
-
-    if ("requests" not in sys.modules) or ("requests" not in dir()):
-        try:
-            import requests
-        except ImportError as e:
-            gs.fatal(_("Module requires requests library: {}").format(e))
     if os.path.isfile(destination):
         sum_existing = get_checksum(destination, checksum_function)
         if sum_existing == checksum:
