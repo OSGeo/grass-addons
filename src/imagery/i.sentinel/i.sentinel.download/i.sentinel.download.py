@@ -1125,9 +1125,13 @@ def main():
         api_url = "USGS_EE"
 
     if not options["settings"] and cred_req is True:
-        gs.fatal(_("Unless using the options datasource=GCS and "
-                   "query='identifier=...', credentials are required via "
-                   "the settings parameter. "))
+        gs.fatal(
+            _(
+                "Unless using the options datasource=GCS and "
+                "query='identifier=...', credentials are required via "
+                "the settings parameter. "
+            )
+        )
     user = password = None
     if cred_req is True:
         if options["settings"] == "-":
