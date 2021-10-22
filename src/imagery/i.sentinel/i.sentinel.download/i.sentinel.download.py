@@ -1138,9 +1138,9 @@ def main():
             # stdin
             import getpass
 
-            user = raw_input(_("Insert username: "))
+            user = input(_("Insert username: "))
             password = getpass.getpass(_("Insert password: "))
-            url = raw_input(_("Insert API URL (leave empty for {}): ").format(api_url))
+            url = input(_("Insert API URL (leave empty for {}): ").format(api_url))
             if url:
                 api_url = url
         else:
