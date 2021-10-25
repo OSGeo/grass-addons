@@ -21,15 +21,6 @@ import importlib
 from grass.gunittest.case import TestCase
 from grass.gunittest.main import test
 
-# importlib.import_module("r.random.walk")
-# from r.random.walk import (
-#     take_step,
-#     walker_is_stuck,
-#     avoid_boundary,
-#     starting_position,
-#     out_of_bounds,
-# )
-
 # Tests
 class TestRandomWalk(TestCase):
     # Setup variables to be used for outputs
