@@ -221,6 +221,12 @@ except:
 matplotlib.use("Agg")
 
 
+# For list of files to cleanup
+TMP_MAPS = []  # Maps to cleanup
+TMP_CSV = []  # Csv to cleanup
+TMP_VECT = []  # Vector to cleanup
+
+
 def cleanup():
     if TMP_MAPS != []:
         gscript.run_command(
@@ -968,10 +974,6 @@ def main():
     global TMP_MAPS, TMP_CSV, TMP_VECT, vector_map, allstatfile, min_fimportance, param_grid, kfold, basemap_a, basemap_b, distance_to, tile_size, n_jobs, id, response_variable, plot, log_f, log_text, log_text_extend, basemap_a_category_list, basemap_b_category_list, rasta_class_list, rastb_class_list, output_units_layer
 
     ## Create empty variables
-    # For list of files to cleanup
-    TMP_MAPS = []  # Maps to cleanup
-    TMP_CSV = []  # Csv to cleanup
-    TMP_VECT = []  # Vector to cleanup
     raster_list = []  # List of the input rasters
     raster_list_prep = []  # List to rename rasters after pre-processing
     log_text = ""  # Log for random forest

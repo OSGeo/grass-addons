@@ -1,8 +1,7 @@
 <h2>DESCRIPTION</h2>
 
 <em>r.area.createweight</em> can be used to create a <i>weighting
-layer</i> for <em><a
-href="https://en.wikipedia.org/wiki/Dasymetric_map">
+layer</i> for <em><a href="https://en.wikipedia.org/wiki/Dasymetric_map">
 dasymetric mapping</a></em> using a Random Forest model.
 Dasymetric mapping is used to redistribute a response variable
 (e.g. population count) mapped at a coarse spatial unit level (e.g.
@@ -11,15 +10,14 @@ administrative units), into a raster grid with a finer spatial
 resolution. Based on a vector layer with the response variable stored
 in the attribute table and a raster map with categorical values (e.g. land
 cover), the add-on will produce a raster with the weights to be used in
-a dasymetric mapping operation that can be performed using <em><a
-href="https://grass.osgeo.org/grass-stable/manuals/
+a dasymetric mapping operation that can be performed using <em>
+<a href="https://grass.osgeo.org/grass-stable/manuals/
 addons/v.area.weigh.html">v.area.weigh</a></em>.
 
 <p><em>r.area.createweight</em> also creates a 'gridded' version of the
 spatial units, whose borders will appear as staircases following the
 spatial resolution of the weighting layer produced. These two outputs
-can be used in <em><a
-href="https://grass.osgeo.org/grass-stable/manuals/
+can be used in <em><a href="https://grass.osgeo.org/grass-stable/manuals/
 addons/v.area.weigh.html">v.area.weigh</a></em> module.
 
 <p>A Random Forest (RF) regression model is trained at the level of the
@@ -38,8 +36,8 @@ with the parameter <b>basemap_b</b>, and/or a raster with continuous
 values (e.g. distance to the nearest road, school, hospital,
 university...) with the parameter <b>distance_to</b>. From these raster
 maps, the Random Forest's explanatory variables (i.e. covariates,
-predictors) are calculated. For each of the categorical raster maps 
-(basemaps), the proportion of each class is calculated. For the 
+predictors) are calculated. For each of the categorical raster maps
+(basemaps), the proportion of each class is calculated. For the
 continuous raster map, the average values are calculated.
 
 <p>Once trained, the Random Forest model predicts weights in a raster
@@ -48,12 +46,12 @@ specified via the <b>tile_size</b> parameter, and its name via the
 <b>output</b> parameter. The <b>tile_size</b> must be greater than
 the spatial resolution of <b>basemap_a</b>. It it considered good
 practice that the <b>tile_size</b> also be greater than the spatial
-resolution of the other basemap and distance maps. The extent of the 
+resolution of the other basemap and distance maps. The extent of the
 output weighted grid is created using the extent of the spatial units,
 i.e. the <b>vector</b> parameter.
 
 <p>By default, all classes from the raster basemap(s) are taken into
-account. If the user wants only specific classes to be taken into account 
+account. If the user wants only specific classes to be taken into account
 within the Random Forest model, it is possible to provide an optional
 list of these classes with the <b>basemap_a_list</b> parameter (for
 basemap_a) or the <b>basemap_b_list</b> parameter (for basemap_b, if
@@ -63,41 +61,40 @@ used).
 and gives an indication about the internal accuracy of the model
 (cross-validation on training set at the spatial units level). The log
 of the Random Forest run (including the OOB error) is saved in a file
-which path and name has to be specified via the <b>log_file</b> 
+which path and name has to be specified via the <b>log_file</b>
 parameter. Using the <b>-f</b> flag, the log file will include extended
 information about the cross-validation for each set of parameters
 tested in the grid search.
 
-<p>Feature importances in the model are plotted in a graph, which path 
+<p>Feature importances in the model are plotted in a graph, which path
 and name has to be specified via the <b>plot</b> parameter. By default,
 class values are used. Optionally, class labels can be used as plot
 labels, using the flags <b>-a</b> and <b>-b</b>, for <b>basemap_a</b>
 and <b>basemap_b</b> respectively. If these flags are used, the raster
-should already contain the associated category labels. The module <a
-href="https://grass.osgeo.org/grass-stable/manuals/r.category.html">r.
-category</a> can be used to set category labels for a raster map. If 
-the flag(s) <b>-a</b> and/or <b>-b</b> is(are) selected without existing  
-categories for the corresponding raster map, the class value will be 
+should already contain the associated category labels. The module
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.category.html">r.
+category</a> can be used to set category labels for a raster map. If
+the flag(s) <b>-a</b> and/or <b>-b</b> is(are) selected without existing
+categories for the corresponding raster map, the class value will be
 kept.
 
 <p>Parallel processing is supported. The number of cores to be used
 should be specified via the <b>n_jobs</b> parameter.
 
-<p>The addon is described in more details in a paper [3] with a case 
+<p>The addon is described in more details in a paper [3] with a case
 study.
 
 <h2>NOTES</h2>
 
-<p>The module <a
-href="https://grass.osgeo.org/grass-stable/manuals/r.mask.html">
+<p>The module <a href="https://grass.osgeo.org/grass-stable/manuals/r.mask.html">
 r.mask</a> is used within <i>r.area.createweight</i>. The user should first remove any
-masks. 
+masks.
 
 <p>It is good practice that the spatial units (<b>vector</b> parameter)
 are <i>entirely</i> spatially covered by <i>all</i> the input rasters.
 Any spatial units not sufficiently covered by <i>all</i> the input
-rasters should first be removed by the user, prior to run <i>r.area.createweight</i>. 
-The add-on, however, will function even if the spatial units are not completely 
+rasters should first be removed by the user, prior to run <i>r.area.createweight</i>.
+The add-on, however, will function even if the spatial units are not completely
 covered by the input rasters. This allows for occasionally missing pixels, or a
 
 non-perfect alignment of input rasters with the spatial units (i.e.
@@ -142,9 +139,8 @@ alignment of the output weighted grid, and then are re-vectorised. This
 results in spatial units whose boundaries will have a 'staircase'
 appearance, and ensures that each tile of the output weighted grid will
 be contained in only one spatial unit. This 'gridded' version of the
-spatial units can be used as an input for dasymetric mapping with <a
-href="https://grass.osgeo.org/grass-stable/manuals/addons/v.area.weigh.
-html">
+spatial units can be used as an input for dasymetric mapping with
+<a href="https://grass.osgeo.org/grass-stable/manuals/addons/v.area.weigh.html">
 v.area.weigh</a>. However, if the original vector contains small (or
 very narrow) polygons, and the desired tile-size is too large, some
 polygons can disappear during this process. This will produce an error.
@@ -153,15 +149,15 @@ vector to merge the smallest spatial units with their neighbouring
 units (see examples).
 
 <p>
-<table cellspacing="2" cellpadding="2" width=100% align=center
+<table cellspacing="2" cellpadding="2" width="100%" align=center
 border="0">
 <tr>
 	<th><a href="r_area_createweight_input_spatial_units.png">
     <img src="r_area_createweight_input_spatial_units.png"
-width=300></th>
+width=300></a></th>
 	<th><a href="r_area_createweight_gridded_spatial_units.png">
-    <img src="r_area_createweight_gridded_spatial_units.png"
-width=300></th>
+    <img src="r_area_createweight_gridded_spatial_units.png" width=300></a>
+</th>
 </tr>
 <tr>
 	<th><i>Input spatial units</i></th>
@@ -191,45 +187,41 @@ and cross-validation. By default, a 5-fold cross-validation scheme is
 used but the user can change the number of folds using the <b>kfold</b>
 parameter. Optionally, the user can provide a Python dictionary with
 the parameters to be tested via the <b>param_grid</b> parameter. For
-information about the parameters to be used, please refer to the <em><a
-href="http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.
-RandomForestRegressor.html">scikit-learn manual</a></em>. An example of
+information about the parameters to be used, please refer to the <em>
+<a href="http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html">
+scikit-learn manual</a></em>. An example of
 the format is as follows, these are the parameters tested in the add-on:
 
-<dd><p><div class="code"><pre>
+<p><div class="code"><pre>
 "{'oob_score':[True],'bootstrap':[True],\
   'max_features':['sqrt',0.1,0.3,0.5,0.7,1],\
   'n_estimators':[500,1000]}"
-</pre></div></dd>
+</pre></div>
 
 <h3>Dependencies</h3>
 
-<em>r.area.createweight</em> requires the <a
-href="https://grass.osgeo.org/grass-stable/manuals/addons/i.segment.
-stats.
-html">i.segment.stats</a>, <a
-href="https://grass.osgeo.org/grass-stable/manuals/addons/r.zonal.
-classes.
-html">r.zonal.classes</a> and <a
-href="https://grass.osgeo.org/grass-stable/manuals/addons/r.clip.
-html">r.clip</a> add-ons to be installed. This can be done using
-<a
-href="https://grass.osgeo.org/grass-stable/manuals/g.extension.
-html">g.extension</a>.
+<em>r.area.createweight</em> requires the
+<a href="https://grass.osgeo.org/grass-stable/manuals/addons/i.segment.stats.html">
+i.segment.stats</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.zonal.classes.html">
+r.zonal.classes</a> and
+<a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.clip.html">
+r.clip</a> add-ons to be installed. This can be done using
+<a href="https://grass.osgeo.org/grass-stable/manuals/g.extension.html">g.extension</a>.
 
 <p> Python 3 is required.
 
 <p><em>r.area.createweight</em> uses the <b>"scikit-learn"</b> machine
-learning package (version ≥ 0.24.1) along with the <b>"pandas"</b>
-Python package (version ≥ 1.0.1). These packages need to be installed
+learning package (version >= 0.24.1) along with the <b>"pandas"</b>
+Python package (version >= 1.0.1). These packages need to be installed
 within your GRASS GIS Python environment for
 <em>r.area.createweight</em>
 to work, i.e. using the GRASS command line terminal for installation.
 For Linux users, this package should be available through the
 Linux package manager in most distributions (named for example
 "python-scikit-learn"). For MS-Windows users using a 64 bit GRASS, the
-easiest way is to use the <a
-href="https://grass.osgeo.org/download/software/ms-windows/">OSGeo4W</a>
+easiest way is to use the
+<a href="https://grass.osgeo.org/download/software/ms-windows/">OSGeo4W</a>
 installation method of GRASS, where the Python setuptools can also be
 installed. The users can then run 'easy_install pip' to install the pip
 
@@ -243,22 +235,21 @@ downloading wheels are provided below. The version installed should be
 compatible with user's Python version. If GRASS was not installed
 
 using the OSGeo4W method, the pip package manager can be installed by
-saving the "get-pip.py" python script provided <a
-href="https://bootstrap.pypa.io/get-pip.py">here</a> in the folder
+saving the "get-pip.py" python script provided
+<a href="https://bootstrap.pypa.io/get-pip.py">here</a> in the folder
 containing the GRASS GIS Python environment
 (GRASSFOLDER/../etc/python/grass) and executing it with administrator
 rights with the following command: <em>python get-pip.py</em>
 
 <ul>
-<li>Pandas Wheel : <a
-href="https://pypi.python.org/pypi/pandas">https://pypi.python.org/pypi/
+<li>Pandas Wheel :
+<a href="https://pypi.python.org/pypi/pandas">https://pypi.python.org/pypi/
 pandas</a></li>
-<li>Scikit-learn Wheel : <a
-href="https://pypi.python.org/pypi/scikit-learn/">https://pypi.python.
+<li>Scikit-learn Wheel :
+<a href="https://pypi.python.org/pypi/scikit-learn/">https://pypi.python.
 org/pypi/scikit-learn/</a></li>
-<li>Unofficial compiled biaries from <a
-href="https://www.lfd.uci.edu/~gohlke/pythonlibs/">Christoph
-Gohlke</a></li>
+<li>Unofficial compiled biaries from <a href="https://www.lfd.uci.edu/~gohlke/pythonlibs/">
+Christoph Gohlke</a></li>
 </ul>
 
 <h2>EXAMPLES</h2>
@@ -369,17 +360,17 @@ g.remove -f type=vector \
 
 <p>
 
-<table cellspacing="2" cellpadding="2" width:100% align=center
+<table cellspacing="2" cellpadding="2" width="100%" align=center
 border="0">
   <tr>
   <th><a href="r_area_createweight_census_initial.png"><img
-src="r_area_createweight_census_initial.png" width=300 alt="[SDF]"></th>
+src="r_area_createweight_census_initial.png" width=300 alt="[SDF]"></a></th>
   <th><a href="r_area_createweight_census_merge.png"><img
 src="r_area_createweight_census_merge.png"
-width=300 alt="[SDF]"></th>
+width=300 alt="[SDF]"></a></th>
   <th><a href="r_area_createweight_census_final.png"><img
 src="r_area_createweight_census_final.png"
-width=300 alt="[SDF]"></th>
+width=300 alt="[SDF]"></a></th>
   </tr>
   <tr><th><i>Initial census layer</i></th>
   <th><i>Census layer after merging</i></th>
@@ -424,12 +415,10 @@ r.area.createweight -a vector=censusblk_swwake_final id=cat \
 </div>
 
 <p>
-<table cellspacing="2" cellpadding="2" width:100% align=center
+<table cellspacing="2" cellpadding="2" width="100%" align=center
 border="0">
-  <tr><th><a
-href="r_area_createweight_importances_plot_nonames.png"><img
-src="r_area_createweight_importances_plot_nonames.png" height=300
-alt="[SDF]"</th>
+  <tr><th><a href="r_area_createweight_importances_plot_nonames.png">
+    <img src="r_area_createweight_importances_plot_nonames.png" height=300 alt="[SDF]"></th>
    <th><a href="r_area_createweight_importances_plot_names.png"><img
 src="r_area_createweight_importances_plot_names.png" height=300
 alt="[SDF]"></th>
@@ -459,10 +448,10 @@ distribution models with very-high resolution satellite information.
 <i>Data, 4</i>(1), 13. <a
 href="https://doi.org/10.3390/data4010013">https://doi.org/10.3390/
 data4010013</a>
-<p>[3] Flasse, C., T. Grippa, et S. Fennia. 2021. « A TOOL FOR MACHINE 
-LEARNING BASED DASYMETRIC MAPPING APPROACHES IN GRASS GIS ». The 
-International Archives of the Photogrammetry, Remote Sensing and 
-Spatial Information Sciences XLVI-4/W2-2021: 55‑62. 
+<p>[3] Flasse, C., T. Grippa, et S. Fennia. 2021. A TOOL FOR MACHINE
+LEARNING BASED DASYMETRIC MAPPING APPROACHES IN GRASS GIS. The
+International Archives of the Photogrammetry, Remote Sensing and
+Spatial Information Sciences XLVI-4/W2-2021: 55‑62.
 <a href="https://doi.org/10.5194/isprs-archives-XLVI-4-W2-2021-55-2021">
 https://doi.org/10.5194/isprs-archives-XLVI-4-W2-2021-55-2021</a>
 
@@ -491,5 +480,3 @@ html">i.segment.stats (Addon)</a>
 
 	Tais GRIPPA, Safa FENNIA, Charlotte FLASSE - Universite Libre de
 Bruxelles. ANAGEO Lab.
-</body>
-</html>
