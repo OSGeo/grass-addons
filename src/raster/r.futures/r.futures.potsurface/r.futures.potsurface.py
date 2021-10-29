@@ -45,13 +45,13 @@ import grass.script as gscript
 
 
 def main():
-    csv = options["input"]
-    output = options["output"]
-    subregions = options["subregions"]
-    sep = gscript.separator(options["separator"])
+    csv = options['input']
+    output = options['output']
+    subregions = options['subregions']
+    sep = gscript.separator(options['separator'])
 
     data = {}
-    with open(csv, "r") as f:
+    with open(csv, 'r') as f:
         lines = f.read().splitlines()
     header = lines[0].strip().split(sep)
     maps = header[2:]
@@ -61,18 +61,17 @@ def main():
         items = line.strip().split(sep)
         data[items[0]] = items[1:]
 
-    expr = "eval(tmp = "
+    expr = 'eval(tmp = '
     for i in data.keys():
         expr += "if ({sub} == {ind}, {interc}".format(
-            sub=subregions, ind=i, interc=data[i][0]
-        )
+            sub=subregions, ind=i, interc=data[i][0])
         for j, m in enumerate(maps):
             expr += " + {coef} * {map}".format(coef=data[i][1 + j], map=m)
-        expr += ", "
-    expr += "null()"
-    expr += ")" * len(data.keys())
-    expr += ")"  # for eval
-    expr += "\n {new} = 1.0 / (1.0 + exp(-tmp))".format(new=output)
+        expr += ', '
+    expr += 'null()'
+    expr += ')' * len(data.keys())
+    expr += ')'  # for eval
+    expr += '\n {new} = 1.0 / (1.0 + exp(-tmp))'.format(new=output)
     gscript.debug(expr, 1)
     gscript.mapcalc(expr)
 

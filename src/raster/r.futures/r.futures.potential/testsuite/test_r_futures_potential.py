@@ -8,6 +8,7 @@ from grass.gunittest.main import test
 class TestPotential(TestCase):
 
     output = "potential.csv"
+    dredge_out = "dredge_out.csv"
 
     @classmethod
     def setUpClass(cls):
@@ -66,32 +67,18 @@ class TestPotential(TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.runModule(
-            "g.remove",
-            flags="f",
-            type="raster",
-            name=[
-                "slope",
-                "lakes_dist",
-                "lakes_dist_km",
-                "streets",
-                "streets_dist",
-                "streets_dist_km",
-                "devpressure",
-                "ndvi_2002",
-                "ndvi_1987",
-                "urban_1987",
-                "urban_2002",
-                "urban_change",
-                "single_level",
-            ],
-        )
-        cls.runModule("g.remove", flags="f", type="vector", name=["sampling"])
+        cls.runModule('g.remove', flags='f', type='raster',
+                      name=['slope', 'lakes_dist', 'lakes_dist_km', 'streets',
+                            'streets_dist', 'streets_dist_km', 'devpressure',
+                            'ndvi_2002', 'ndvi_1987', 'urban_1987', 'urban_2002',
+                            'urban_change', 'single_level'])
+        cls.runModule('g.remove', flags='f', type='vector', name=['sampling'])
         cls.del_temp_region()
 
     def tearDown(self):
         try:
             os.remove(self.output)
+            os.remove(self.dredge_out)
         except OSError:
             pass
 
@@ -145,7 +132,7 @@ class TestPotential(TestCase):
                 self.assertEqual(len(line), 6)
                 if i == 0:
                     self.assertEqual(
-                        line,
+                        sorted(line),
                         [
                             "ID",
                             "Intercept",
@@ -157,6 +144,59 @@ class TestPotential(TestCase):
                     )
                 i += 1
             self.assertEqual(i, 14)
+
+    def test_potential_run_dredge_export(self):
+        """Test if results is in expected limits"""
+        self.assertModule(
+            "r.futures.potential",
+            flags="d",
+            input="sampling",
+            columns=["devpressure", "lakes_dist_km", "slope", "streets_dist_km"],
+            developed_column="urban_change",
+            subregions_column="zipcodes",
+            min_variables=3,
+            max_variables=4,
+            nprocs=2,
+            fixed_columns=["slope"],
+            dredge_output=self.dredge_out,
+            output=self.output,
+        )
+        with open(self.output, "r") as f:
+            i = 0
+            for line in f.readlines():
+                line = line.strip().split(",")
+                self.assertEqual(len(line), 5)
+                if i == 0:
+                    self.assertEqual(
+                        line,
+                        ["ID", "Intercept", "devpressure", "streets_dist_km", "slope"],
+                    )
+                i += 1
+            self.assertEqual(i, 14)
+        with open(self.dredge_out, "r") as f:
+            i = 0
+            for line in f.readlines():
+                line = line.strip().split(",")
+                self.assertEqual(len(line), 11)
+                if i == 0:
+                    self.assertEqual(
+                        line,
+                        [
+                            "ID",
+                            "Intercept",
+                            "devpressure",
+                            "lakes_dist_km",
+                            "slope",
+                            "streets_dist_km",
+                            "df",
+                            "logLik",
+                            "AIC",
+                            "delta",
+                            "weight",
+                        ],
+                    )
+                i += 1
+            self.assertEqual(i, 5)
 
     def test_potential_run_single_level(self):
         """Test if results is in expected limits"""
