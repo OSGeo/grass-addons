@@ -67,12 +67,27 @@ class TestPotential(TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.runModule('g.remove', flags='f', type='raster',
-                      name=['slope', 'lakes_dist', 'lakes_dist_km', 'streets',
-                            'streets_dist', 'streets_dist_km', 'devpressure',
-                            'ndvi_2002', 'ndvi_1987', 'urban_1987', 'urban_2002',
-                            'urban_change', 'single_level'])
-        cls.runModule('g.remove', flags='f', type='vector', name=['sampling'])
+        cls.runModule(
+            "g.remove",
+            flags="f",
+            type="raster",
+            name=[
+                "slope",
+                "lakes_dist",
+                "lakes_dist_km",
+                "streets",
+                "streets_dist",
+                "streets_dist_km",
+                "devpressure",
+                "ndvi_2002",
+                "ndvi_1987",
+                "urban_1987",
+                "urban_2002",
+                "urban_change",
+                "single_level",
+            ],
+        )
+        cls.runModule("g.remove", flags="f", type="vector", name=["sampling"])
         cls.del_temp_region()
 
     def tearDown(self):

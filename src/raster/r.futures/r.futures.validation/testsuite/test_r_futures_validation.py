@@ -17,8 +17,12 @@ class TestValidation(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.runModule("r.unpack", input="data/actual.pack", flags="o", output=cls.actual)
-        cls.runModule("r.unpack", input="data/original.pack", flags="o", output=cls.original)
+        cls.runModule(
+            "r.unpack", input="data/actual.pack", flags="o", output=cls.actual
+        )
+        cls.runModule(
+            "r.unpack", input="data/original.pack", flags="o", output=cls.original
+        )
         cls.runModule("r.unpack", input="data/S1.pack", flags="o", output=cls.S1)
         cls.runModule("r.unpack", input="data/S2.pack", flags="o", output=cls.S2)
         cls.runModule("r.unpack", input="data/S3.pack", flags="o", output=cls.S3)
@@ -31,14 +35,7 @@ class TestValidation(TestCase):
             "g.remove",
             flags="f",
             type="raster",
-            name=[
-                cls.actual,
-                cls.original,
-                cls.S1,
-                cls.S2,
-                cls.S3,
-                cls.S4
-            ],
+            name=[cls.actual, cls.original, cls.S1, cls.S2, cls.S3, cls.S4],
         )
 
     def test_validation_run(self):
