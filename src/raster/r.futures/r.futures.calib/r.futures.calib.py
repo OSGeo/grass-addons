@@ -224,6 +224,13 @@
 #% description: Control file with number of cells to convert
 #% guisection: PGA
 #%end
+#%option
+#% key: memory
+#% type: double
+#% required: no
+#% multiple: no
+#% description: Memory for single run in GB
+#%end
 #%option G_OPT_F_SEP
 #% label: Separator used in output patch file
 #% answer: comma
@@ -253,6 +260,7 @@
 #% exclusive: -l,compactness_range
 #% exclusive: -l,compactness_mean
 #% exclusive: -l,repeat
+#% exclusive: -l,memory
 #% required: -l,demand
 #% required: -l,scaling_factor
 #% required: -l,gamma
