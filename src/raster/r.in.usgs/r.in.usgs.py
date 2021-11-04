@@ -46,12 +46,6 @@
 #% required: yes
 #%end
 
-#%option G_OPT_M_DIR
-#% key: output_directory
-#% required: yes
-#% description: Directory for USGS data download and processing
-#%end
-
 #%option
 #% key: ned_dataset
 #% required: no
@@ -124,6 +118,14 @@
 #% guisection: Speed
 #%end
 
+#%option G_OPT_M_DIR
+#% key: output_directory
+#% required: no
+#% label: Cache directory for download and processing
+#% description: Defaults to system user cache directory (e.g., .cache)
+#% guisection: Speed
+#%end
+
 #%flag
 #% key: k
 #% description: Keep extracted files after GRASS import and patch
@@ -144,10 +146,45 @@ from six.moves.urllib.parse import quote_plus
 from multiprocessing import Process, Manager
 import json
 import atexit
+from pathlib import Path
 
+import grass.script as gs
 from grass.exceptions import CalledModuleError
 
 cleanup_list = []
+
+
+def get_cache_dir(name):
+    """Get the default user cache directory
+
+    The name parameter is used to distinguish cache data from different
+    componenets, e.g., from different modules.
+
+    The function creates the directory (including all its parent directories)
+    if it does not exist.
+    """
+    app_version = gs.version()["version"]
+    if sys.platform.startswith('win'):
+        # App name, directory, and the assumption that the directory exists
+        # (and thus that it should be used) are derived from the startup script.
+        app_name = "GRASS8"
+        path = Path(os.getenv("APPDATA")) / "Cache" / app_name / name
+    elif sys.platform.startswith('darwin'):
+        app_name = "grass"
+        path = Path('~/Library/Caches').expanduser() / app_name / app_version / name
+    else:
+        app_name = "grass"
+        # According to XDG Base Directory Specification 0.8:
+        # If $XDG_CACHE_HOME is either not set or empty, a default equal
+        # to $HOME/.cache should be used.
+        env_var = os.getenv("XDG_CACHE_HOME")
+        if env_var:
+            path =  Path(env_var)
+        else:
+            path = Path("~/.cache").expanduser()
+        path = path / app_name / app_version / name
+    path.mkdir(parents=True, exist_ok=True)
+    return path
 
 
 def get_current_mapset():
@@ -383,7 +420,9 @@ def main():
     preserve_imported_tiles = gui_k_flag
     use_existing_imported_tiles = True
 
-    if not os.path.isdir(work_dir):
+    if not work_dir:
+        work_dir = get_cache_dir("r_in_usgs")
+    elif not os.path.isdir(work_dir):
         gscript.fatal(
             _("Directory <{}> does not exist." " Please create it.").format(work_dir)
         )
@@ -786,7 +825,7 @@ def main():
                                     os.remove(extracted_tile)
                             if remove_and_extract:
                                 extracted_tiles_num += 1
-                                read_zip.extract(f, work_dir)
+                                read_zip.extract(f, str(work_dir))
                 if os.path.exists(extracted_tile):
                     local_tile_path_list.append(extracted_tile)
                     if not preserve_extracted_files:
