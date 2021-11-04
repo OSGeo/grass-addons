@@ -168,7 +168,7 @@ def get_cache_dir(name):
         # App name, directory, and the assumption that the directory exists
         # (and thus that it should be used) are derived from the startup script.
         app_name = "GRASS8"
-        path = Path(os.getenv("APPDATA")) / "Cache" / app_name / name
+        path = Path(os.getenv("APPDATA")) / app_name / "Cache" / name
     elif sys.platform.startswith('darwin'):
         app_name = "grass"
         path = Path('~/Library/Caches').expanduser() / app_name / app_version / name
