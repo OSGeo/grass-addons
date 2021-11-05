@@ -731,7 +731,8 @@ def main():
         except URLError as error:
             gs.fatal(
                 _(
-                    "USGS download request for {url} has timed out. Network or formatting error: {err}"
+                    "USGS download request for {url} has timed out. "
+                    "Network or formatting error: {err}"
                 ).format(url=url, err=error)
             )
         except StandardError as error:
