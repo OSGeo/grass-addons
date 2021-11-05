@@ -145,6 +145,7 @@ from multiprocessing import Process, Manager
 import json
 import atexit
 
+import grass.script as gs
 from grass.exceptions import CalledModuleError
 
 cleanup_list = []
@@ -518,7 +519,7 @@ def main():
 
     # Fatal error if API query returns no results for GUI input
     if tile_API_count == 0:
-        gscript.fatal(
+        gs.fatal(
             _("USGS TNM API error or no tiles available for given input parameters")
         )
 
@@ -674,7 +675,7 @@ def main():
     print(data_info)
 
     if gui_i_flag:
-        gscript.info(_("To download USGS data, remove <i> flag, and rerun r.in.usgs."))
+        gs.message(_("To download USGS data, remove <i> flag, and rerun r.in.usgs."))
         sys.exit()
 
     # USGS data download process
@@ -701,7 +702,7 @@ def main():
             local_file_path = os.path.join(work_dir, file_name)
         try:
             download_count += 1
-            gscript.info(
+            gs.message(
                 _("Download {current} of {total}...").format(
                     current=download_count, total=TNM_count
                 )
@@ -728,16 +729,14 @@ def main():
             else:
                 local_tile_path_list.append(local_file_path)
         except URLError as error:
-            gscript.fatal(
+            gs.fatal(
                 _(
                     "USGS download request for {url} has timed out. Network or formatting error: {err}"
                 ).format(url=url, err=error)
             )
         except StandardError as error:
             cleanup_list.append(local_file_path)
-            gscript.fatal(
-                _("Download of {url} failed: {err}").format(url=url, err=error)
-            )
+            gs.fatal(_("Download of {url} failed: {err}").format(url=url, err=error))
 
     # sets already downloaded zip files or tiles to be extracted or imported
     # our pre-stats for extraction are broken, collecting stats during
