@@ -386,7 +386,7 @@ def main():
 
     if not os.path.isdir(work_dir):
         gscript.fatal(
-            _("Directory <{}> does not exist." " Please create it.").format(work_dir)
+            _("Directory <{}> does not exist. Please create it.").format(work_dir)
         )
 
     # Returns current units
@@ -459,7 +459,7 @@ def main():
     except HTTPError as error:
         gscript.fatal(
             _(
-                "HTTP(S) error from USGS TNM API:" " {code}: {reason} ({instructions})"
+                "HTTP(S) error from USGS TNM API: {code}: {reason} ({instructions})"
             ).format(
                 reason=error.reason, code=error.code, instructions=try_again_messge
             )
@@ -802,9 +802,7 @@ def main():
         gscript.percent(1, 1, 1)
         # TODO: do this before the extraction begins
         gscript.verbose(
-            _(
-                "Extracted {extracted} new tiles and" " used {used} existing tiles"
-            ).format(
+            _("Extracted {extracted} new tiles and used {used} existing tiles").format(
                 used=used_existing_extracted_tiles_num, extracted=extracted_tiles_num
             )
         )
@@ -823,9 +821,7 @@ def main():
             )
 
     if gui_product == "lidar" and not has_pdal:
-        gscript.fatal(
-            _("Module v.in.pdal is missing," " cannot process downloaded data.")
-        )
+        gs.fatal(_("Module v.in.pdal is missing, cannot process downloaded data."))
 
     # operations for extracted or complete files available locally
     # We are looking only for the existing maps in the current mapset,
@@ -862,7 +858,7 @@ def main():
                 used_existing_imported_tiles_num += 1
             else:
                 in_info = _(
-                    "Importing and reprojecting {name}" " ({count} out of {total})..."
+                    "Importing and reprojecting {name} ({count} out of {total})..."
                 ).format(name=LT_file_name, count=i + 1, total=files_to_import)
                 gscript.info(in_info)
 
@@ -933,7 +929,7 @@ def main():
         assert not process_count
 
     gscript.verbose(
-        _("Imported {imported} new tiles and" " used {used} existing tiles").format(
+        _("Imported {imported} new tiles and used {used} existing tiles").format(
             used=used_existing_imported_tiles_num, imported=imported_tiles_num
         )
     )
