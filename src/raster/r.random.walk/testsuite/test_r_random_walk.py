@@ -21,6 +21,7 @@ import importlib
 from grass.gunittest.case import TestCase
 from grass.gunittest.main import test
 
+
 # Tests
 class TestRandomWalk(TestCase):
     # Setup variables to be used for outputs
