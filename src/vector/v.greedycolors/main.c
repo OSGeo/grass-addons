@@ -263,7 +263,8 @@ int main(int argc, char *argv[])
 		neighbor = Vect_get_isle_area(&Map, -neighbor);
 	    }
 
-	    if (neighbor > 0 && area_cats[neighbor] >= 0) {
+	    if (neighbor > 0 && area_cats[neighbor] >= 0 &&
+	        area_cats[neighbor] != area_cats[area]) {
 		G_ilist_add(an[cat - mincat].list, area_cats[neighbor]);
 	    }
 	}
@@ -286,7 +287,8 @@ int main(int argc, char *argv[])
 		    neighbor = Vect_get_isle_area(&Map, -neighbor);
 		}
 
-		if (neighbor > 0 && area_cats[neighbor] >= 0) {
+		if (neighbor > 0 && area_cats[neighbor] >= 0 &&
+		    area_cats[neighbor] != area_cats[area]) {
 		    G_ilist_add(an[cat - mincat].list, area_cats[neighbor]);
 		}
 	    }
