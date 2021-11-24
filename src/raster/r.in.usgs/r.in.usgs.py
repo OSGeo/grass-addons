@@ -880,7 +880,7 @@ def main():
                             resolution_value=product_resolution,
                             extent="region",
                             resample=product_interpolation,
-                            memory=float(memory) / int(nprocs),
+                            memory=int(float(memory) // int(nprocs)),
                         ),
                     )
                 else:
