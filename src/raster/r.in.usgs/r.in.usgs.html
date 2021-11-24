@@ -3,8 +3,8 @@
 the current GRASS computational region and coordinate reference system. 
 Associated parameters are automatically passed to 
 <a href="https://viewer.nationalmap.gov/tnmaccess/api/index">
-The National Map Access API</a>, downloaded to a user-specified
-local directory, then imported and patched.
+The National Map Access API</a>, downloaded to a local cache directory,
+then imported, and patched together.
 
 <em>r.in.usgs</em> supports the following datasets:
 <ul>
@@ -38,11 +38,23 @@ If the <b>i</b> flag is set, only information about data meeting the input param
 is displayed without downloading the data.
 
 <p>
-By default, downloaded files are kept in the specified <b>output_direcory</b>,
-so that they can be reused in case different computational region is required.
+By default, downloaded files are kept in a user cache directory according to
+the operating system standards.
+These files can be reused in case a different, but overlapping, computational
+region is required.
 However, unzipped files and imported rasters before patching are removed.
 If the <b>k</b> flag is set, extracted files from compressed archives are also kept within the
-download directory after the import.
+cache directory after the import.
+The location of the cache directory depends on the operating system.
+You can clear the cache by deleting the directory.
+Where this directory is depends on operating system,
+for example on Linux, it is under <code>~/.cache</code>,
+on macOS under <code>~/Library/Caches</code>,
+and on Microsoft Windows under the Application Data directory.
+If you have limited space or other special needs, you can set
+<b>output_directory</b> to a custom directory,
+e.g., <code>/tmp</code> on Linux.
+The custom directory needs to exist before calling this module.
 
 <p>
 By default, resampling method is chosen based on the nature of the dataset,
@@ -51,11 +63,10 @@ bilinear for NED and nearest for NAIP. This can be changed with option
 
 <h2>EXAMPLE</h2>
 We will download NED 1/9 arc-second digital elevation model in the extent of raster 'elevation'.
-First, we just list the files to be downloaded
- (change output directory depending on the operating system):
+First, we just list the files to be downloaded:
 <div class="code"><pre>
 g.region raster=elevation
-r.in.usgs product=ned ned_dataset=ned19sec output_directory=/tmp output_name=ned -i
+r.in.usgs product=ned ned_dataset=ned19sec output_name=ned -i
 </pre></div>
 <pre>
 USGS file(s) to download:
@@ -74,7 +85,7 @@ To download USGS data, remove i flag, and rerun r.in.usgs.
 
 We proceed with the download:
 <div class="code"><pre>
-r.in.usgs product=ned ned_dataset=ned19sec output_directory=/tmp output_name=ned
+r.in.usgs product=ned ned_dataset=ned19sec output_name=ned
 r.colors map=ned_small color=grey
 </pre></div>
 
@@ -82,10 +93,12 @@ We change the computational region to a smaller extent and create a new DEM,
 downloaded files will be used.
 <div class="code"><pre>
 g.region n=224649 s=222000 w=633000 e=636000
-r.in.usgs product=ned ned_dataset=ned19sec output_directory=/tmp output_name=ned_small
+r.in.usgs product=ned ned_dataset=ned19sec output_name=ned_small
 </pre></div>
 
-For a different extent we download NAIP imagery:
+For a different extent we download NAIP imagery and we use a custom cache directory
+(replace <code>/tmp</code> by an existing path suitable
+for your operating system and needs):
 <div class="code"><pre>
 g.region n=224649 s=222000 w=636000 e=639000
 r.in.usgs product=naip output_directory=/tmp output_name=ortho
