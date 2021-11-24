@@ -11,7 +11,7 @@
 #
 # PURPOSE:   Download user-requested products through the USGS TNM API.
 #
-# COPYRIGHT: (C) 2017-2019 Zechariah Krautwurst and the GRASS Development Team
+# COPYRIGHT: (C) 2017-2021 Zechariah Krautwurst and the GRASS Development Team
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS
@@ -158,16 +158,17 @@ def get_cache_dir(name):
     """Get the default user cache directory
 
     The name parameter is used to distinguish cache data from different
-    componenets, e.g., from different modules.
+    components, e.g., from different modules.
 
     The function creates the directory (including all its parent directories)
     if it does not exist.
     """
     app_version = gs.version()["version"]
     if sys.platform.startswith("win"):
-        # App name, directory, and the assumption that the directory exists
-        # (and thus that it should be used) are derived from the startup script.
-        app_name = "GRASS8"
+        # App name, directory, and the assumption that the directory
+        # should be used are derived from the startup script.
+        # Major version is part of the directory name.
+        app_name = "GRASS{}".format(app_version.split(".", maxsplit=1)[0])
         path = Path(os.getenv("APPDATA")) / app_name / "Cache" / name
     elif sys.platform.startswith("darwin"):
         app_name = "grass"
