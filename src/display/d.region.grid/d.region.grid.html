@@ -1,0 +1,151 @@
+<h2>DESCRIPTION</h2>
+
+<em>d.region.grid</em> plots a grid defined by the computational region
+or by a raster map.
+The computational region can be the current computational region or a saved
+computational region.
+
+<h2>EXAMPLES</h2>
+
+<h3>Comparing grids of two rasters</h3>
+
+To compare how grids (resolutions) of two rasters align,
+here a digital elevation model and a Landsat image,
+you can zoom to an area of interest and show grids of both rasters.
+
+First, zoom close enough that the raster cells become visible.
+Here a small saved region is used and a negative value for <em>grow</em>
+causes <em>g.region</em> to zoom-in even more:
+
+<div class="code"><pre>
+g.region region=rural_1m grow=-250 -p
+</pre></div>
+
+Start a monitor (skip this in the GUI):
+
+<div class="code"><pre>
+d.mon start=cairo width=600 height=400 output=two_rasters.png
+</pre></div>
+
+Optionally, show the digital elevation model and its shaded relief raster:
+
+<div class="code"><pre>
+d.shade shade=elevation_shade color=elevation
+</pre></div>
+
+Add grid for the elevation raster using a subtle color:
+
+<div class="code"><pre>
+d.region.grid raster=elevation color="#9B520D"
+</pre></div>
+
+Add grid for the Landsat raster using a high-contrast color:
+
+<div class="code"><pre>
+d.region.grid raster=lsat7_2002_10 color=black
+</pre></div>
+
+<center>
+    <img src="d_region_grid_two_rasters.png">
+    <p><em>Figure: Grids of two rasters which are not aligned</em></p>
+</center>
+
+If you are using <em>d.mon</em>, you can stop the monitor using:
+
+<div class="code"><pre>
+d.mon stop=cairo
+</pre></div>
+
+<h3>Showing the current computational region grid</h3>
+
+Let's say you want to render grid cells of a computational region
+you plan to resample a raster map into.
+First, set the computational region to the raster map, then start
+the monitor (here we use file-based rendering in the command line
+with the cairo driver), and finally, render the raster map:
+
+<div class="code"><pre>
+g.region raster=elevation
+d.mon start=cairo width=600 height=400 output=new_region_grid.png
+d.rast map=elevation
+</pre></div>
+
+Then change to the desired computational region, here the new region resolution
+is set to 1000 meters (map units) and fitted into the current region extent
+without modifying the 1000 meters value.
+
+<div class="code"><pre>
+g.region res=1000 -a
+</pre></div>
+
+Now, you are ready to plot the grid of the current computational region:
+
+<div class="code"><pre>
+d.region.grid -r
+</pre></div>
+
+<center>
+    <img src="d_region_grid_new_region_grid.png">
+    <p><em>
+        Figure: Raster with resolution 10 meters and grid of a computational region
+        with resolution 1000 meters
+    </em></p>
+</center>
+
+Assuming you used <em>d.mon</em> to start rendering as in the code above,
+you can stop it using:
+
+<div class="code"><pre>
+d.mon stop=cairo
+</pre></div>
+
+<h3>Using an existing saved region</h3>
+
+Displaying a saved computational region is extremely helpful in GUI,
+were you save the current region first:
+
+<div class="code"><pre>
+g.region save=study_area
+</pre></div>
+
+Then, you use <em>Add command layer</em> to add the following command:
+
+<div class="code"><pre>
+d.region.grid region=study_area
+</pre></div>
+
+<h2>NOTES</h2>
+
+<ul>
+    <li>
+        Use through the <em>Add command layer</em> option in the GUI.
+    </li>
+    <li>
+        In the GUI, it is currently not possible to directly draw the current region.
+    </li>
+    <li>
+        Generally, only the grid resolution is based on the selected region or raster,
+        with extent of the grid being limited only by what is being displayed
+        (this happens to be the current computational region when rendering
+        directly to files in command line).
+    </li>
+</ul>
+
+<h2>SEE ALSO</h2>
+
+<em>
+  <a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a>,
+  <a href="https://grass.osgeo.org/grass-stable/manuals/d.frame.html">d.grid</a>,
+  <a href="https://grass.osgeo.org/grass-stable/manuals/d.rast.num.html">d.rast.num</a>,
+  <a href="https://grass.osgeo.org/grass-stable/manuals/d.mon.html">d.mon</a>,
+  <a href="https://grass.osgeo.org/grass-stable/manuals/v.mkgrid.html">v.mkgrid</a>
+</em>
+
+<h2>AUTHORS</h2>
+
+Vaclav Petras, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a>
+
+<!--
+<p>
+<i>Last changed: $Date$</i>
+-->
