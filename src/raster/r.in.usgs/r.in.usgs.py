@@ -126,7 +126,7 @@
 
 #%flag
 #% key: k
-#% description: Keep extracted files after GRASS import and patch
+#% description: Keep imported tiles in the mapset after patch
 #% guisection: Speed
 #%end
 
@@ -379,7 +379,7 @@ def main():
     memory = options["memory"]
     nprocs = options["nprocs"]
 
-    preserve_extracted_files = gui_k_flag
+    preserve_extracted_files = True
     use_existing_extracted_files = True
     preserve_imported_tiles = gui_k_flag
     use_existing_imported_tiles = True
@@ -877,7 +877,7 @@ def main():
                             resolution_value=product_resolution,
                             extent="region",
                             resample=product_interpolation,
-                            memory=memory,
+                            memory=int(float(memory) // int(nprocs)),
                         ),
                     )
                 else:
@@ -1040,11 +1040,6 @@ def main():
         gscript.fatal(
             _("Error in getting or importing the data (see above). Please retry.")
         )
-
-    # Keep source files if 'k' flag active
-    if gui_k_flag:
-        src_msg = ("<k> flag selected: Source tiles remain in '{0}'").format(work_dir)
-        gscript.info(src_msg)
 
     # set appropriate color table
     if gui_product == "ned":
