@@ -1,6 +1,6 @@
 <h2>DESCRIPTION</h2>
 
-<em>d.region.grid</em> plots a grid defined by the a computational region
+<em>d.region.grid</em> plots a grid defined by the computational region
 or by a raster map.
 The computational region can be the current computational region or a saved
 computational region.
@@ -10,7 +10,7 @@ computational region.
 <h3>Comparing grids of two rasters</h3>
 
 To compare how grids (resolutions) of two rasters align,
-here an digital elevation model and a Landsat image,
+here a digital elevation model and a Landsat image,
 you can zoom to an area of interest and show grids of both rasters.
 
 First, zoom close enough that the raster cells become visible.
@@ -27,7 +27,7 @@ Start a monitor (skip this in the GUI):
 d.mon start=cairo width=600 height=400 output=two_rasters.png
 </pre></div>
 
-Optionally, show the digital elevation model an its shaded relief raster:
+Optionally, show the digital elevation model and its shaded relief raster:
 
 <div class="code"><pre>
 d.shade shade=elevation_shade color=elevation
@@ -50,7 +50,7 @@ d.region.grid raster=lsat7_2002_10 color=black
     <p><em>Figure: Grids of two rasters which are not aligned</em></p>
 </center>
 
-If you are using <em>d.mon</em>, you can stop the monitor it using:
+If you are using <em>d.mon</em>, you can stop the monitor using:
 
 <div class="code"><pre>
 d.mon stop=cairo
@@ -60,9 +60,9 @@ d.mon stop=cairo
 
 Let's say you want to render grid cells of a computational region
 you plan to resample a raster map into.
-First, set the computational region to the raster map, than start
+First, set the computational region to the raster map, then start
 the monitor (here we use file-based rendering in the command line
-with the cairo driver), and than finally, render the raster map:
+with the cairo driver), and finally, render the raster map:
 
 <div class="code"><pre>
 g.region raster=elevation
@@ -70,7 +70,7 @@ d.mon start=cairo width=600 height=400 output=new_region_grid.png
 d.rast map=elevation
 </pre></div>
 
-Than change to the desired computational region, here the new region resolution
+Then change to the desired computational region, here the new region resolution
 is set to 1000 meters (map units) and fitted into the current region extent
 without modifying the 1000 meters value.
 
@@ -101,7 +101,7 @@ d.mon stop=cairo
 
 <h3>Using an existing saved region</h3>
 
-Displaying a saved computation region is extremely helpful in GUI,
+Displaying a saved computational region is extremely helpful in GUI,
 were you save the current region first:
 
 <div class="code"><pre>
