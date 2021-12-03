@@ -495,16 +495,7 @@ def smooth_dem(DEM):
     smoothed = rand_id("smoothed{}".format(L + 1))
     TMP_RAST[L].append(smoothed)
 
-    try:
-        r.neighbors(input=DEM, output=smoothed, size=11, gauss=3)
-    except ParameterError:
-        r.neighbors(
-            input=DEM,
-            output=smoothed,
-            size=11,
-            weighting_function="gaussian",
-            weighting_factor=3,
-        )
+    r.neighbors(input=DEM, output=smoothed, size=11, gauss=3)
 
     return smoothed
 
