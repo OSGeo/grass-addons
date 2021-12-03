@@ -1,4 +1,4 @@
-MODULE_TOPDIR=/home/anna/grass7_trunk
+MODULE_TOPDIR = ../..
 
 PGM = i.cva
 
