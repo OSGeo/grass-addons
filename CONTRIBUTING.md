@@ -16,7 +16,7 @@ on GitHub.
 ## Changing code and documentation
 
 This guide covers contributing to the latest version of GRASS GIS Addons
-source code which is stored in a branch called _grass7_.
+source code which is stored in a branch called _grass8_.
 It assumes that you have some very basic knowledge of Git and GitHub,
 but if you don't just go through some tutorial online or ask on the
 GRASS GIS developer mailing list.
@@ -65,10 +65,10 @@ It is important that "origin" points to your fork.
 
 ### Update before creating a feature branch
 
-* Make sure your are starting with the branch for the latest version, i.e., _grass7_:
+* Make sure your are starting with the branch for the latest version, i.e., _grass8_:
 
 ```
-git checkout grass7
+git checkout grass8
 ```
 
 * Download updates from all branches from the _upstream_ remote:
@@ -80,7 +80,7 @@ git fetch upstream
 * Update your local branch to match the one in the upstream repository:
 
 ```
-git rebase upstream/grass7
+git rebase upstream/grass8
 ```
 
 ### Update if you have local branches
@@ -95,7 +95,7 @@ git stash
 * Now you can rebase:
 
 ```
-git rebase upstream/grass7
+git rebase upstream/grass8
 ```
 
 * Apply your local changes on top:
@@ -166,10 +166,10 @@ If needed, they will work with you to improve your changes.
 
 Once the changes in the pull request are ready to be accepted,
 the maintainers will usually squash all your commits into one commit and merge it
-to the _grass7_ branch.
+to the _grass8_ branch.
 
 Once the pull request is merged, it is a good time to update your
-local _grass7_ branch in order to get there the change you just contributed.
+local _grass8_ branch in order to get there the change you just contributed.
 
 ### Further notes
 
