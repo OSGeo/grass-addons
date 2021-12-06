@@ -157,15 +157,7 @@ def main():
     PixelArea = Xres * Yres
     global tmp
 
-    ## check if r.geomorphon addon is installed
-    if not grass.find_program("r.geomorphon", "--help"):
-        grass.fatal(
-            _("The 'r.geomorphon' addon was not found, install it first:")
-            + "\n"
-            + "g.extension r.geomorphon"
-        )
-
-    ## check if r.geomorphon addon is installed
+    ## check if r.sun.hourly addon is installed
     if not grass.find_program("r.sun.hourly", "--help"):
         grass.fatal(
             _("The 'r.sun.hourly' addon was not found, install it first:")
@@ -285,7 +277,7 @@ def main():
     grass.run_command(
         "v.db.select",
         map=v_habitat,
-        flags="v",
+        format="vertical",
         layer=1,
         columns=v_column,
         where="habarea < %s" % (PixelArea),
@@ -296,7 +288,7 @@ def main():
     grass.run_command(
         "v.db.select",
         map=v_habitat,
-        flags="v",
+        format="vertical",
         layer=1,
         columns=v_column,
         file=smallareacsv,

@@ -200,7 +200,7 @@ def get_size(vector):
         quiet=True,
         overwrite=True,
     )
-    sizeselected = grass.parse_command("v.db.select", map=tmpvector, flags="v")
+    sizeselected = grass.parse_command("v.db.select", map=tmpvector, format="vertical")
     sizesstr = [x.split("|")[1:] for x in sizeselected if x.startswith("tmparea|")][0]
     sizes = [float(x) for x in sizesstr]
     return sum(sizes)
