@@ -1,13 +1,4 @@
 OBJ.*
 *.pyc
-# grass7/misc/m.eigensystem
 *.o
 *.tmp.html
-grass6/raster/r.inund.fluv/2d_path
-grass6/raster/r.inund.fluv/clean_inundation
-grass6/raster/r.inund.fluv/correction_from_path
-grass6/raster/r.inund.fluv/dati.mod
-grass6/raster/r.inund.fluv/dd.mod
-grass6/raster/r.inund.fluv/find_main_channel
-grass6/raster/r.roughness/r.roughness.window.vector
-grass6/vector/v.in.postgis/v.in.postgis
