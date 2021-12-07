@@ -17,10 +17,12 @@ jobs:
       matrix:
         grass-version:
         - main
-        - releasebranch_7_8
+        - releasebranch_8_0
         python-version:
-        - 3.6
-        - 3.8
+        # Test with supported Python versions.
+        # Test only with every second version to reduce number of jobs.
+        - "3.8"
+        - "3.10"
       fail-fast: false
 
     steps:
