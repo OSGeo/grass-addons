@@ -232,10 +232,9 @@ def main(options, flags):
     # Import reference data & compute univar stats per reference layer
     s = len(REF)
     dat_ref = stat_mean = stat_min = stat_max = None
-    layer = garray.array()
 
     for i, map in enumerate(REF):
-        layer.read(map, null=np.nan)
+        layer = garray.array(map, null=np.nan)
         r, c = layer.shape
         if dat_ref is None:
             dat_ref = np.empty((s, r, c), dtype=np.double)
@@ -249,7 +248,7 @@ def main(options, flags):
         stat_mean[i] = np.nanmean(layer)
         stat_max[i] = np.nanmax(layer)
         dat_ref[i, :, :] = layer
-    del layer
+        del layer
 
     # Compute mahalanobis over full set of reference layers
     mahal_ref = mahal(v=dat_ref, m=stat_mean, VI=VI)
@@ -283,14 +282,13 @@ def main(options, flags):
     # Import projected layers in numpy array
     s = len(PRO)
     dat_pro = None
-    layer = garray.array()
     for i, map in enumerate(PRO):
-        layer.read(map, null=np.nan)
+        layer = garray.array(map, null=np.nan)
         r, c = layer.shape
         if dat_pro is None:
             dat_pro = np.empty((s, r, c), dtype=np.double)
         dat_pro[i, :, :] = layer
-    del layer
+        del layer
 
     # Compute mahalanobis distance
     mahal_pro = mahal(v=dat_pro, m=stat_mean, VI=VI)

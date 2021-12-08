@@ -1035,10 +1035,8 @@ def main():
                         name="density_from_point_unmasked_tmp_%d" % os.getpid(),
                     )
 
-                x1 = garray.array()
-                x1.read("lower_distance_tmp_%d" % os.getpid())
-                x2 = garray.array()
-                x2.read("upper_distance_tmp_%d" % os.getpid())
+                x1 = garray.array("lower_distance_tmp_%d" % os.getpid())
+                x2 = garray.array("upper_distance_tmp_%d" % os.getpid())
                 Density = garray.array()
                 Density[...] = cdf(x2) - cdf(x1)
                 grass.debug(_("Write density from point to garray. unmasked"))
@@ -1351,8 +1349,7 @@ def main():
                             + str(cat)
                         )
                     )
-                    CorrectedDensity = garray.array()
-                    CorrectedDensity.read("density_" + str(cat))
+                    CorrectedDensity = garray.array("density_" + str(cat))
 
                     RealisedDensity = garray.array()
                     if options["seed2"]:

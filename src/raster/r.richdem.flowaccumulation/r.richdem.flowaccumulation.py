@@ -119,12 +119,10 @@ def main():
     if _weights == "":
         rd_weights = None
     else:
-        g_weights = garray.array()
-        g_weights.read(_weights, null=np.nan)
+        g_weights = garray.array(_weights, null=np.nan)
         rd_weights = rd.rdarray(g_weights, no_data=np.nan)
 
-    dem = garray.array()
-    dem.read(_input, null=np.nan)
+    dem = garray.array(_input, null=np.nan)
 
     mask = dem * 0 + 1
 

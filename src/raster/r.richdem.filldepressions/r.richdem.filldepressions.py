@@ -103,8 +103,7 @@ def main():
     else:
         epsilon = False
 
-    dem = garray.array()
-    dem.read(_input, null=np.nan)
+    dem = garray.array(_input, null=np.nan)
 
     rd_inout = rd.rdarray(dem, no_data=np.nan)
     rd.FillDepressions(dem=rd_inout, epsilon=epsilon, in_place=True, topology=_topology)

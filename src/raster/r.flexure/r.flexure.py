@@ -227,14 +227,14 @@ def main():
         flex.PlateSolutionType = "vWC1994"
     # Parameters that are often changed for the solution
     qs = options["input"]
-    flex.qs = garray.array()
-    flex.qs.read(qs)
+    flex.qs = garray.array(qs)
     # Elastic thickness
     try:
         flex.Te = float(options["te"])
     except:
-        flex.Te = garray.array()  # FlexureTe is the one that is used by Flexure
-        flex.Te.read(options["te"])
+        flex.Te = garray.array(
+            options["te"]
+        )  # FlexureTe is the one that is used by Flexure
         flex.Te = np.array(flex.Te)
     if options["te_units"] == "km":
         flex.Te *= 1000

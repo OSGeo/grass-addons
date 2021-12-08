@@ -85,8 +85,7 @@ def main():
     _output = options["output"]
     _topology = options["topology"]
 
-    dem = garray.array()
-    dem.read(_input, null=np.nan)
+    dem = garray.array(_input, null=np.nan)
 
     rd_inout = rd.rdarray(dem, no_data=np.nan)
     rd.BreachDepressions(dem=rd_inout, in_place=True, topology=_topology)
