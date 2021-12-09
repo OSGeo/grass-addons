@@ -2,7 +2,7 @@
 
 ############################################################################
 #
-# MODULE:       t.vi
+# MODULE:       t.rast.vi
 #
 # AUTHOR(S):    Luca Delucchi <luca.delucchi fmach.it>
 #
