@@ -1315,7 +1315,7 @@ def cross_val_scores(
         "f1": metrics.f1_score,
         "fbeta": metrics.fbeta_score,
         "hamming_loss": metrics.hamming_loss,
-        "jaccard_similarity": metrics.jaccard_similarity_score,
+        "jaccard_similarity": metrics.jaccard_score,
         "log_loss": metrics.log_loss,
         "matthews_corrcoef": metrics.matthews_corrcoef,
         "precision": metrics.precision_score,
