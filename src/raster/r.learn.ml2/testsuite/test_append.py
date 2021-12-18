@@ -36,14 +36,20 @@ class TestAppend(unittest.TestCase):
             "lsat7_2002_70@PERMANENT",
         ]
 
-        # create duplicate of a landsat band in a different mapset
+        # create duplicate of a landsat 2002 band from PERMANENT in a different mapset
         cls.other = "lsat7_2002_10@landsat"
+
+        gs.run_command("g.mapset", mapset="landsat")
+        gs.run_command("g.region", raster="lsat7_2002_10@PERMANENT")
         gs.mapcalc("lsat7_2002_10 = lsat7_2002_10@PERMANENT")
+        gs.run_command("g.mapset", mapset="PERMANENT")
 
     @classmethod
     def tearDownClass(cls) -> None:
         """remove temporary maps after all tests"""
+        gs.run_command("g.mapset", mapset="landsat")
         gs.run_command("g.remove", type="raster", name=cls.other, flags="f")
+        gs.run_command("g.mapset", mapset="PERMANENT")
 
     def test_append(self):
         """Append another grass raster to a RasterStack"""
