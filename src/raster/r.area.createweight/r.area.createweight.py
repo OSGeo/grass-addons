@@ -215,7 +215,7 @@ try:
     from sklearn.feature_selection import SelectFromModel
     from sklearn.model_selection import GridSearchCV
 except:
-    gscript.fatal(_("Scikit learn 0.24 or newer is not installed"))
+    gscript.fatal(_("Scikit learn 0.24 or newer is not installed (python3-scikit-learn)"))
 
 # Use a non-interactive backend: prevent the figure from popping up
 matplotlib.use("Agg")
