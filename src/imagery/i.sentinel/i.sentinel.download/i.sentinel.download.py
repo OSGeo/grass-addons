@@ -181,6 +181,8 @@ from datetime import datetime
 
 import grass.script as gs
 
+cloudcover_products = ["S2MSI1C", "S2MSI2A", "S2MSI2Ap"]
+
 
 def create_dir(dir):
     if not os.path.isdir(dir):
@@ -1109,6 +1111,8 @@ class SentinelDownloader(object):
 
 
 def main():
+    global cloudcover_products
+
     cred_req = True
     api_url = "https://apihub.copernicus.eu/apihub"
     if options["datasource"] == "GCS":
@@ -1159,8 +1163,6 @@ def main():
                 gs.fatal(_("Unable to open settings file: {}").format(e))
             if user is None or password is None:
                 gs.fatal(_("No user or password given"))
-
-    cloudcover_products = ["S2MSI1C", "S2MSI2A", "S2MSI2Ap"]
 
     if flags["b"]:
         map_box = get_aoi(options["map"])
