@@ -11,14 +11,12 @@ resolution. Based on a vector layer with the response variable stored
 in the attribute table and a raster map with categorical values (e.g. land
 cover), the add-on will produce a raster with the weights to be used in
 a dasymetric mapping operation that can be performed using <em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/
-addons/v.area.weigh.html">v.area.weigh</a></em>.
+<a href="v.area.weigh.html">v.area.weigh</a></em>.
 
 <p><em>r.area.createweight</em> also creates a 'gridded' version of the
 spatial units, whose borders will appear as staircases following the
 spatial resolution of the weighting layer produced. These two outputs
-can be used in <em><a href="https://grass.osgeo.org/grass-stable/manuals/
-addons/v.area.weigh.html">v.area.weigh</a></em> module.
+can be used in <em><a href="v.area.weigh.html">v.area.weigh</a></em> module.
 
 <p>A Random Forest (RF) regression model is trained at the level of the
 vector spatial units. The user must specify a vector layer using the
@@ -140,8 +138,8 @@ results in spatial units whose boundaries will have a 'staircase'
 appearance, and ensures that each tile of the output weighted grid will
 be contained in only one spatial unit. This 'gridded' version of the
 spatial units can be used as an input for dasymetric mapping with
-<a href="https://grass.osgeo.org/grass-stable/manuals/addons/v.area.weigh.html">
-v.area.weigh</a>. However, if the original vector contains small (or
+<a href="v.area.weigh.html">v.area.weigh</a>.
+However, if the original vector contains small (or
 very narrow) polygons, and the desired tile-size is too large, some
 polygons can disappear during this process. This will produce an error.
 The user should reduce the tile size, and/or edit the spatial units
@@ -200,40 +198,38 @@ the format is as follows, these are the parameters tested in the add-on:
 
 <h3>Dependencies</h3>
 
-<em>r.area.createweight</em> requires the
-<a href="https://grass.osgeo.org/grass-stable/manuals/addons/i.segment.stats.html">
-i.segment.stats</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.zonal.classes.html">
-r.zonal.classes</a> and
-<a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.clip.html">
-r.clip</a> add-ons to be installed. This can be done using
+Python 3 is required.
+
+<h4>GRASS GIS addons</h4>
+
+<em>r.area.createweight</em> requires the GRASS GIS addons
+<a href="i.segment.stats.html">i.segment.stats</a>,
+<a href="r.zonal.classes.html">r.zonal.classes</a>, and
+<a href="r.clip.html">r.clip</a> to be installed. This can be done using
 <a href="https://grass.osgeo.org/grass-stable/manuals/g.extension.html">g.extension</a>.
 
-<p> Python 3 is required.
+<h4>Python libraries</h4>
 
 <p><em>r.area.createweight</em> uses the <b>"scikit-learn"</b> machine
-learning package (version >= 0.24.1) along with the <b>"pandas"</b>
-Python package (version >= 1.0.1). These packages need to be installed
+learning package (version &gt;= 0.24.1) along with the <b>"pandas"</b>
+Python package (version &gt;= 1.0.1). These packages need to be installed
 within your GRASS GIS Python environment for
 <em>r.area.createweight</em>
 to work, i.e. using the GRASS command line terminal for installation.
-For Linux users, this package should be available through the
+<br>
+For <b>Linux</b> users, this package should be available through the
 Linux package manager in most distributions (named for example
-"python-scikit-learn"). For MS-Windows users using a 64 bit GRASS, the
-easiest way is to use the
+"python3-scikit-learn").
+<br>
+For <b>MS-Windows</b> users using a 64 bit GRASS, the easiest way is to use the
 <a href="https://grass.osgeo.org/download/software/ms-windows/">OSGeo4W</a>
 installation method of GRASS, where the Python setuptools can also be
 installed. The users can then run 'easy_install pip' to install the pip
-
 package manager. Then, they can download the "Python wheels"
-
 corresponding to each package and install them using the following
 command: <em>pip install packagename.whl</em>. Links for
-
 downloading wheels are provided below. The version installed should be
-
 compatible with user's Python version. If GRASS was not installed
-
 using the OSGeo4W method, the pip package manager can be installed by
 saving the "get-pip.py" python script provided
 <a href="https://bootstrap.pypa.io/get-pip.py">here</a> in the folder
@@ -242,13 +238,13 @@ containing the GRASS GIS Python environment
 rights with the following command: <em>python get-pip.py</em>
 
 <ul>
-<li>Pandas Wheel :
+<li>Pandas Wheel (mainly relevant to Windows users):
 <a href="https://pypi.python.org/pypi/pandas">https://pypi.python.org/pypi/
 pandas</a></li>
-<li>Scikit-learn Wheel :
+<li>Scikit-learn Wheel (mainly relevant to Windows users):
 <a href="https://pypi.python.org/pypi/scikit-learn/">https://pypi.python.
 org/pypi/scikit-learn/</a></li>
-<li>Unofficial compiled biaries from <a href="https://www.lfd.uci.edu/~gohlke/pythonlibs/">
+<li>Unofficial Windows compiled binaries from <a href="https://www.lfd.uci.edu/~gohlke/pythonlibs/">
 Christoph Gohlke</a></li>
 </ul>
 
@@ -432,7 +428,7 @@ alt="[SDF]"></th>
 <h2>KNOWN ISSUES</h2>
 
 On Windows, the installation of Pandas library could be quite difficult
-to handle.
+to handle (see above for hints).
 
 <h2>REFERENCES</h2>
 
@@ -466,17 +462,11 @@ as part of the <a href="https://maupp.ulb.ac.be/">MAUPP project
 <h2>SEE ALSO</h2>
 
 <em>
-<a
-href="https://grass.osgeo.org/grass-stable/manuals/addons/v.area.weigh.
-html">
-v.area.weigh</a>,
-<a
-href="https://grass.osgeo.org/grass-stable/manuals/addons/i.segment.
-stats.
-html">i.segment.stats (Addon)</a>
+<a href="v.area.weigh.html"> v.area.weigh</a> (addon),
+<a href="i.segment.stats.html">i.segment.stats</a> (addon)
 </em>
 
-<h2>AUTHOR</h2>
+<h2>AUTHORS</h2>
 
-	Tais GRIPPA, Safa FENNIA, Charlotte FLASSE - Universite Libre de
+Tais GRIPPA, Safa FENNIA, Charlotte FLASSE - Universite Libre de
 Bruxelles. ANAGEO Lab.
