@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # updated for new CMS path MN 8/2015
+# updated to new utils/ path MN 12/2021
 
 DIR=$HOME/src
 # XMLDIR=/var/www/grass/grass-cms/addons/
@@ -14,7 +15,7 @@ if [ ! -d "$XMLDIR" ]; then
 fi
 
 build_addons() {
-    cd tools/addons/ 
+    cd utils/addons/ 
     ./compile-xml.sh $XMLDIR
     for version in 6 7 ; do
     	cd /tmp/.grass${version}/addons/

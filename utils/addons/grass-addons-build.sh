@@ -18,7 +18,7 @@ if [ "$run" == "2" ]; then
     exit 0
 fi
 
-${SRC}/grass-addons/tools/addons/compile-addons.sh "$1"
+${SRC}/grass-addons/utils/addons/compile-addons.sh "$1"
 
 if [ $? != 0 ] ; then
     exit 0
@@ -30,7 +30,7 @@ manuals() {
     for dir in `find . -maxdepth 1 -type d`; do
         if [ -d $dir/docs/html ] ; then
             for f in `pwd`/$dir/docs/html/*.html ; do 
-                ${SRC}/grass-addons/tools/addons/update_manual.py $f https://grass.osgeo.org/grass${1}${2}/manuals `pwd`
+                ${SRC}/grass-addons/utils/addons/update_manual.py $f https://grass.osgeo.org/grass${1}${2}/manuals `pwd`
             done
             cp -r $dir/docs/html/* $HTMLDIR/ 2>/dev/null
         fi
