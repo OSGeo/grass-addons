@@ -1,28 +1,17 @@
 #!/bin/sh
 
-# script to build GRASS 7.x relbranch78 binaries (shared libs)
+# script to build GRASS 7.x binaries from the `releasebranch_7_0` binaries
 # (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
-# Sat Mar 29 13:05:53 PDT 2014
-# Tue Apr 22 11:23:12 PDT 2014
-# Sat Sep 19 03:43:34 PDT 2015
-# Wed May 25 10:05:05 PDT 2016
-# Sun Nov 12 22:02:53 CET 2017
-# Fri Aug 31 06:59:59 PDT 2018
-# Sun 02 Jun 2019 03:30:38 PM CEST
-# Sun 04 Aug 2019 11:02:52 AM CEST
-# Sun 27 Oct 2019 09:00:14 PM CET
-# Thu 16 Jan 2020 08:17:43 AM UTC
-# Fri 19 Jun 2020 07:56:20 PM UTC
-# Fri 20 Nov 2020 12:55:19 AM CET
-# Fri Jan  1 05:47:36 PM CET 2021
+# 2014, 2015, 2016, 2017, 2018, 2019, 2021
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
-## prep, neteler@osgeo6:$
+## prep, on neteler@grasslxd:$
 # mkdir -p ~/src
 # cd ~/src
-# for i in 2 4 6 ; do git clone https://github.com/OSGeo/grass.git releasebranch_7_$i ; done
-# for i in 2 4 6 ; do (cd releasebranch_7_$i ;  git checkout releasebranch_7_$i ) ; done
+# G76 G78
+# for i in 6 8 ; do git clone https://github.com/OSGeo/grass.git releasebranch_7_$i ; done
+# for i in 6 8 ; do (cd releasebranch_7_$i ;  git checkout releasebranch_7_$i ) ; done
 #
 ###################################################################
 # how it works:
@@ -65,7 +54,7 @@ GRASSBUILDDIR=$SOURCE/$BRANCH
 TARGETMAIN=/var/www/code_and_data/
 TARGETDIR=$TARGETMAIN/grass${VERSION}/binary/linux/snapshot
 TARGETHTMLDIR=$TARGETMAIN/grass${VERSION}/manuals/
-# programmer's manual is build only from the main branch
+# programmer's manual is build only from the main G8 branch
 
 MYBIN=$MAINDIR/binaries
 
@@ -176,7 +165,7 @@ cp -rp dist.$ARCH/docs/html/* $TARGETHTMLDIR/
 echo "Copied pygrass progman to http://grass.osgeo.org/grass${VERSION}/manuals/libpython/"
 
 echo "Injecting DuckDuckGo search field into manual main page..."
-(cd $TARGETHTMLDIR/ ; sed -i -e "s+</table>+</table><\!\-\- injected in cron_grass78_releasebranch_78_build_bins.sh \-\-> <center><iframe src=\"https://duckduckgo.com/search.html?site=grass.osgeo.org\&prefill=Search manual pages at DuckDuckGo\" style=\"overflow:hidden;margin:0;padding:0;width:410px;height:40px;\" frameborder=\"0\"></iframe></center>+g" index.html)
+(cd $TARGETHTMLDIR/ ; sed -i -e "s+</table>+</table><\!\-\- injected in cron_grass7_main_build_binaries.sh \-\-> <center><iframe src=\"https://duckduckgo.com/search.html?site=grass.osgeo.org\&prefill=Search manual pages at DuckDuckGo\" style=\"overflow:hidden;margin:0;padding:0;width:410px;height:40px;\" frameborder=\"0\"></iframe></center>+g" index.html)
 
 cp -p AUTHORS CHANGES CITING COPYING GPL.TXT INSTALL REQUIREMENTS.html $TARGETDIR/
 
@@ -248,7 +237,8 @@ echo "Written to: $TARGETDIR"
 ############################################
 # compile addons
 
-# update addon repo
+# update addon repo (addon repo has been cloned twice on the server to
+#   separate grass7 and grass8 addon compilation)
 (cd ~/src/grass$GMAJOR-addons/; git checkout grass$GMAJOR; git pull origin grass$GMAJOR)
 # compile addons
 cd $GRASSBUILDDIR
