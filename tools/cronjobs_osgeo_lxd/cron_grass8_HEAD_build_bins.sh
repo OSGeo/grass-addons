@@ -46,7 +46,7 @@ LDFLAGSSTRING='-s'
 MAINDIR=/home/neteler
 # where to find the GRASS sources (git clone):
 SOURCE=$MAINDIR/src/
-BRANCH=master  # releasebranch_8_0
+BRANCH=main  # releasebranch_${GMAJOR}_$GMINOR
 GRASSBUILDDIR=$SOURCE/$BRANCH
 TARGETMAIN=/var/www/code_and_data/
 TARGETDIR=$TARGETMAIN/grass${VERSION}/binary/linux/snapshot
@@ -85,7 +85,7 @@ CFLAGS=$CFLAGSSTRING LDFLAGS=$LDFLAGSSTRING ./configure \
   --with-geos \
   --with-odbc \
   --with-cairo --with-cairo-ldflags=-lfontconfig \
-  --with-proj --with-proj-share=/usr/share/proj \
+  --with-proj-share=/usr/share/proj \
   --with-postgres --with-postgres-includes=/usr/include/postgresql \
   --with-freetype --with-freetype-includes=/usr/include/freetype2 \
   --with-netcdf \
@@ -95,7 +95,6 @@ CFLAGS=$CFLAGSSTRING LDFLAGS=$LDFLAGSSTRING ./configure \
   --with-blas --with-blas-includes=/usr/include/atlas/ \
   --with-lapack --with-lapack-includes=/usr/include/atlas/ \
   --with-zstd \
-  --without-motif \
   --with-liblas \
   2>&1 | tee config_$DOTVERSION.git_log.txt
 
@@ -128,10 +127,9 @@ cp -f *.csv $TARGETMAIN/uploads/grass/
 
 #configure
 echo "configuring"
-$MYMAKE distclean  > /dev/null
 configure_grass || (echo "$0: an error occured" ; exit 1)
 pwd
-ARCH=`cat config.status |grep '@host@' | cut -d'%' -f3`
+ARCH=`cat include/Make/Platform.make | grep ^ARCH | cut -d'=' -f2 | xargs`
 
 ########  now GRASS is prepared ####################
 
@@ -192,7 +190,7 @@ rm -f $TARGETPROGMAN/*.*
 # copy over doxygen manual
 cp -r html/*  $TARGETPROGMAN/
 
-echo "Copied HTML progman to https://grass.osgeo.org/programming7"
+echo "Copied HTML progman to https://grass.osgeo.org/programming${GVERSION}"
 # fix permissions
 chgrp -R grass $TARGETPROGMAN/*
 chmod -R a+r,g+w $TARGETPROGMAN/
@@ -264,13 +262,32 @@ cd $GRASSBUILDDIR
 
 ############################################
 ## compile addons <--- only done for latest stable! See: cron_grass78_releasebranch_78_build_bins.sh
-#cd $GRASSBUILDDIR
-#sh ~/cronjobs/compile_addons_git.sh ~/src/grass-addons/grass7/ ~/src/master/dist.x86_64-pc-linux-gnu/ ~/.grass8/addons
-#mkdir $TARGETHTMLDIR/addons/
-#cp ~/.grass8/addons/docs/html/* $TARGETHTMLDIR/addons/
-#chmod -R a+r,g+w $TARGETHTMLDIR 2> /dev/null
 
-# TODO: cp logs from ~/.grass8/addons/logs/
+# # update addon repo
+# (cd ~/src/grass$GMAJOR-addons/; git checkout grass$GMAJOR; git pull origin grass$GMAJOR)
+# # compile addons
+# cd $GRASSBUILDDIR
+# sh ~/cronjobs/compile_addons_git.sh ~/src/grass$GMAJOR-addons/src/ \
+#    ~/src/$BRANCH/dist.$ARCH/ \
+#    ~/.grass$GMAJOR/addons \
+#    ~/src/$BRANCH/bin.$ARCH/grass$VERSION
+# mkdir -p $TARGETHTMLDIR/addons/
+# cp ~/.grass$GMAJOR/addons/docs/html/* $TARGETHTMLDIR/addons/
+# sh ~/cronjobs/grass-addons-index.sh $TARGETHTMLDIR/addons/
+# chmod -R a+r,g+w $TARGETHTMLDIR 2> /dev/null
+
+# # cp logs from ~/.grass$GMAJOR/addons/logs/
+# mkdir -p $TARGETMAIN/addons/grass$GMAJOR/logs/
+# cp -p ~/.grass$GMAJOR/addons/logs/* $TARGETMAIN/addons/grass$GMAJOR/logs/
+
+# # cp XML from winGRASS server
+# sh ~/cronjobs/grass-addons-fetch-xml.sh $TARGETMAIN/addons/
+
+############################################
+# create sitemaps to expand the hugo sitemap
+
+python3 $HOME/src/grass$GMAJOR-addons/tools/create_manuals_sitemap.py --dir=/var/www/code_and_data/grass$GMAJOR$GMINOR/manuals/ --url=https://grass.osgeo.org/grass$GMAJOR$GMINOR/manuals/ -o
+# python3 $HOME/src/grass$GMAJOR-addons/tools/create_manuals_sitemap.py --dir=/var/www/code_and_data/grass$GMAJOR$GMINOR/manuals/addons/ --url=https://grass.osgeo.org/grass$GMAJOR$GMINOR/manuals/addons/ -o
 
 ############################################
 # cleanup
@@ -281,6 +298,6 @@ echo "Finished GRASS $VERSION $ARCH compilation."
 echo "Written to: $TARGETDIR"
 echo "Copied HTML manual to https://grass.osgeo.org/grass${VERSION}/manuals/"
 echo "Copied pygrass progman to https://grass.osgeo.org/grass${VERSION}/manuals/libpython/"
-echo "Copied HTML progman to https://grass.osgeo.org/programming7"
+echo "Copied HTML progman to https://grass.osgeo.org/programming${GVERSION}"
 exit 0
 
