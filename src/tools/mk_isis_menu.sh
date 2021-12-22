@@ -16,7 +16,7 @@
 
 #In $GRASS_HOME/gui/wxpython/gis_set.py it will not be appropriate
 #if os.getenv('ISISROOT'):
-#    os.popen("bash "+os.path.join(globalvar.GUIDIR, "tools", "mk_isis_menu.sh")
+#    os.popen("bash "+os.path.join(globalvar.GUIDIR, "utils", "mk_isis_menu.sh")
 
 #Toolbox
 tbfile="$HOME/.grass7/toolboxes/toolboxes.xml"

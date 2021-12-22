@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# cloned from https://github.com/OSGeo/grass-addons/blob/master/tools/addons/grass-addons-publish.sh
+# cloned from https://github.com/OSGeo/grass-addons/blob/master/utils/addons/grass-addons-publish.sh
 #
 # This script copies built addons manual pages from the winGRASS build server
 # To be run on publishing server (grasslxd server)
