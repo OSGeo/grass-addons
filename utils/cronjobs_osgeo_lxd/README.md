@@ -12,20 +12,20 @@ This directory contains the relevant files to generate and deploy the GRASS GIS 
     - grass7: `cron_grass7_main_src_snapshot.sh`
     - grass8: `cron_grass8_main_src_snapshot.sh`
 - GRASS GIS Linux binary weekly snapshots:
-    - grass7: `cron_grass7_main_build_binaries.sh`
-    - grass8: `cron_grass8_main_build_binaries.sh`
+    - grass7: `cron_grass7_relbranch_build_binaries.sh`
+    - grass8: `cron_grass8_relbranch_build_binaries.sh`
 - GRASS GIS addons manual pages:
-    - grass7: within `cron_grass7_main_build_binaries.sh`
-    - grass8: within `cron_grass8_main_build_binaries.sh`
+    - grass7: within `cron_grass7_relbranch_build_binaries.sh`
+    - grass8: within `cron_grass8_relbranch_build_binaries.sh`
 - GRASS GIS addons overview page at https://grass.osgeo.org/grass7/manuals/addons/:
-    - `compile_addons_git.sh` - called from `cron_grass7_main_build_binaries.sh`
-    - `grass-addons-fetch-xml.sh` - called from `cron_grass7_main_build_binaries.sh`
-    - `grass-addons-index.sh` - called from `cron_grass7_main_build_binaries.sh`
+    - `compile_addons_git.sh` - called from `cron_grass7_relbranch_build_binaries.sh`
+    - `grass-addons-fetch-xml.sh` - called from `cron_grass7_relbranch_build_binaries.sh`
+    - `grass-addons-index.sh` - called from `cron_grass7_relbranch_build_binaries.sh`
     - `get_page_description.py` - called from `grass-addons-index.sh`
 - GRASS GIS addons overview page at https://grass.osgeo.org/grass8/manuals/addons/:
-    - `compile_addons_git.sh` - called from `cron_grass8_main_build_binaries.sh`
-    - `grass-addons-fetch-xml.sh` - called from `cron_grass8_main_build_binaries.sh`
-    - `grass-addons-index.sh` - called from `cron_grass8_main_build_binaries.sh`
+    - `compile_addons_git.sh` - called from `cron_grass8_relbranch_build_binaries.sh`
+    - `grass-addons-fetch-xml.sh` - called from `cron_grass8_relbranch_build_binaries.sh`
+    - `grass-addons-index.sh` - called from `cron_grass8_relbranch_build_binaries.sh`
     - `get_page_description.py` - called from `grass-addons-index.sh`
 - GRASS GIS programmer's manual:
     - within `cron_grass8_HEAD_build_bins.sh`
