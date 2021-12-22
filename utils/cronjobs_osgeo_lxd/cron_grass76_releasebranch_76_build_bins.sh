@@ -153,7 +153,7 @@ echo "GRASS $VERSION compilation done"
 # now GRASS is prepared ############################################
 
 #### create module overview (https://trac.osgeo.org/grass/ticket/1203)
-#sh tools/module_synopsis.sh
+#sh utils/module_synopsis.sh
 
 #### generate developer stuff: pygrass docs + gunittest docs
 # generate pyGRASS sphinx manual (in docs/html/libpython/)

@@ -2,7 +2,7 @@
 
 # PURPOSE: Extracts page one line descriptions for index.html of GRASS GIS Addons
 #
-# cloned from https://github.com/OSGeo/grass-addons/blob/master/tools/addons/get_page_description.py
+# cloned from https://github.com/OSGeo/grass-addons/blob/master/utils/addons/get_page_description.py
 #
 # AUTHORS: Martin Landa (Bash version)
 #          Vaclav Petras (Python version)

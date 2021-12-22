@@ -4,7 +4,7 @@
 
 Cronjobs are run on the `grasslxd` container (on Server `osgeo7`).
 For details, see:
-https://github.com/OSGeo/grass-addons/blob/master/tools/cronjobs_osgeo_lxd/README.md
+https://github.com/OSGeo/grass-addons/blob/master/utils/cronjobs_osgeo_lxd/README.md
 
 
 ## Old WORKFLOW
