@@ -7,8 +7,7 @@
 # updated for GRASS GIS Addons by Markus Neteler and Martin Landa, 2013
 # updated for new CMS path MN 8/2015
 # display module prefix by ML 8/2015
-# cloned from https://github.com/OSGeo/grass-addons/blob/master/utils/addons/grass-addons-index.sh
-#   and updated for GRASS GIS 7 only Addons compilation on grasslxd server by Markus Neteler, 6/2020
+# updated for GRASS GIS 7 only Addons compilation on grasslxd server by Markus Neteler, 6/2020
 
 # Important: keep log links in sync at https://grass.osgeo.org/download/addons/
 
