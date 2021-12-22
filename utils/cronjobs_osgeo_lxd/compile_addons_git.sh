@@ -3,15 +3,27 @@
 # Martin Landa, 2013
 # updated for GRASS GIS 7 (only) Addons by Markus Neteler, 2020
 # fixes for addon creation by Tomas Zigo, 2020
+# changes to variables by Markus Neteler, 2021
 
-# This script compiles GRASS Addons, it's called by cron_grass78_releasebranch_78_build_bins.sh | cron_grass7_HEAD_build_bins.sh
+# This script compiles GRASS Addons, it's called by cron_grass${GMAJOR}_main_build_binaries.sh | cron_grass${GMAJOR}_main_src_snapshot.sh
+
+GMAJOR=8
+GMINOR=0
+
+#################
+
+if [ `uname -m` = "x86_64" ] ; then
+    PLATFORM=x86_64
+else
+    PLATFORM=x86
+fi
 
 if [ -z "$3" ]; then
     echo "Usage: $0 git_path topdir addons_path grass_startup_program [separate]"
-    echo "eg. $0 ~/src/grass_addons/grass7/ \
-~/src/releasebranch_7_8/dist.x86_64-pc-linux-gnu \
-~/.grass7/addons \
-~/src/releasebranch_7_8/bin.x86_64-pc-linux-gnu/grass78"
+    echo "eg. $0 ~/src/grass_addons/grass${GMAJOR}/ \
+~/src/releasebranch_${GMAJOR}_${GMINOR}/dist.${PLATFORM}-pc-linux-gnu \
+~/.grass${GMAJOR}/addons \
+~/src/releasebranch_${GMAJOR}_${GMINOR}/bin.${PLATFORM}-pc-linux-gnu/grass${GMAJOR}"
     exit 1
 fi
 
@@ -19,8 +31,6 @@ GIT_PATH="$1"
 TOPDIR="$2"
 ADDON_PATH="$3"
 GRASS_STARTUP_PROGRAM="$4"
-#GRASS_VERSION=`echo -n ${GIT_PATH} | tail -c 1`
-GRASS_VERSION=7
 INDEX_FILE="index"
 INDEX_MANUAL_PAGES_FILE="index_manual_pages"
 ADDONS_PATHS_JSON_FILE="addons_paths.json"
@@ -30,7 +40,7 @@ if [ ! -d "$3" ] ; then
 fi
 
 if [ -z "$4" ] ; then
-    echo "ERROR: Set GRASS GIS startup program with full path (e.g., ~/src/releasebranch_7_8/bin.x86_64-pc-linux-gnu/grass78)"
+    echo "ERROR: Set GRASS GIS startup program with full path (e.g., ~/src/releasebranch_${GMAJOR}_${GMINOR}/bin.${PLATFORM}-pc-linux-gnu/grass${GMAJOR})"
     exit 1
 fi
 
@@ -38,12 +48,6 @@ if [ -n "$5" ] ; then
     SEP=1 # useful for collecting files (see build-xml.py)
 else
     SEP=0
-fi
-
-if [ `uname -m` = "x86_64" ] ; then
-    PLATFORM=x86_64
-else
-    PLATFORM=x86
 fi
 
 rm -rf "$ADDON_PATH"
@@ -78,7 +82,7 @@ border: 1px solid black;
 </style>
 </head>
 <body>
-<h1>GRASS $GRASS_VERSION Addons ($PLATFORM) / $uname (logs generated $date)</h1>
+<h1>GRASS $GMAJOR Addons ($PLATFORM) / $uname (logs generated $date)</h1>
 <hr />
 <table cellpadding=\"5\">
 <tr><th style=\"background-color: grey\">AddOns</th>
@@ -96,7 +100,7 @@ echo "-----------------------------------------------------"
 
 pwd=`pwd`
 # .. "hadoop"
-# from ../../grass7/
+# from ../../grass${GMAJOR}/
 for c in "db" "display" "general" "gui/wxpython" "imagery" "misc" "raster" "raster3d" "temporal" "vector" ; do
     if [ ! -d $c ]; then
         continue
@@ -125,7 +129,7 @@ for c in "db" "display" "general" "gui/wxpython" "imagery" "misc" "raster" "rast
         MANBASEDIR="$path/docs/man" \
         SCRIPTDIR="$path/scripts" \
         ETC="$path/etc" \
-            SOURCE_URL="https://github.com/OSGeo/grass-addons/tree/master/grass${GRASS_VERSION}/" > \
+            SOURCE_URL="https://github.com/OSGeo/grass-addons/tree/master/grass${GMAJOR}/" > \
             "$ADDON_PATH/logs/$m.log" 2>&1 \
         HTML_PAGE_FOOTER_PAGES_PATH="../"
     if [ `echo $?` -eq 0 ] ; then
