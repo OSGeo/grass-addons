@@ -1,13 +1,17 @@
 #!/bin/sh
 
-# script to build GRASS 8.x binaries from the main branch (shared libs)
+# script to build GRASS 8.x binaries from the `releasebranch_8_0` binaries
 # (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
-# Nov 2008, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021
+# 2008, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
-## prep
-# git clone https://github.com/OSGeo/grass.git master
+## prep, on neteler@grasslxd:$
+# mkdir -p ~/src
+# cd ~/src
+# G80 ...
+# for i in 0 ; do git clone https://github.com/OSGeo/grass.git releasebranch_8_$i ; done
+# for i in 0 ; do (cd releasebranch_8_$i ;  git checkout releasebranch_8_$i ) ; done
 #
 ###################################################################
 # how it works:
@@ -15,7 +19,7 @@
 # - configures, compiles
 # - packages the binaries
 # - generated the install scripts
-# - generates the programmer's HTML manual
+# - generates the programmer's 8 HTML manual
 # - generates the pyGRASS HTML manual
 # - generates the user HTML manuals
 # - injects DuckDuckGo search field
@@ -162,11 +166,11 @@ cp -rp dist.$ARCH/docs/html/* $TARGETHTMLDIR/
 echo "Copied pygrass progman to http://grass.osgeo.org/grass${VERSION}/manuals/libpython/"
 
 echo "Injecting DuckDuckGo search field into manual main page..."
-(cd $TARGETHTMLDIR/ ; sed -i -e "s+</table>+</table><\!\-\- injected in cron_grass7_HEAD_build_bins.sh \-\-> <center><iframe src=\"https://duckduckgo.com/search.html?site=grass.osgeo.org\&prefill=Search manual pages at DuckDuckGo\" style=\"overflow:hidden;margin:0;padding:0;width:410px;height:40px;\" frameborder=\"0\"></iframe></center>+g" index.html)
+(cd $TARGETHTMLDIR/ ; sed -i -e "s+</table>+</table><\!\-\- injected in cron_grass8_main_build_binaries.sh \-\-> <center><iframe src=\"https://duckduckgo.com/search.html?site=grass.osgeo.org\&prefill=Search manual pages at DuckDuckGo\" style=\"overflow:hidden;margin:0;padding:0;width:410px;height:40px;\" frameborder=\"0\"></iframe></center>+g" index.html)
 
 cp -p AUTHORS CHANGES CITING COPYING GPL.TXT INSTALL REQUIREMENTS.html $TARGETDIR/
 
-# note: addons are in grass7x compilation scripts
+# note: addons are in grass8x compilation scripts
 
 # clean wxGUI sphinx manual etc
 (cd $GRASSBUILDDIR/ ; $MYMAKE cleansphinx)
@@ -261,7 +265,7 @@ echo "Written to: $TARGETDIR"
 cd $GRASSBUILDDIR
 
 ############################################
-## compile addons <--- only done for latest stable! See: cron_grass78_releasebranch_78_build_bins.sh
+## compile addons <--- only done for latest stable! See: cron_grass8_main_build_binaries.sh
 
 # # update addon repo
 # (cd ~/src/grass$GMAJOR-addons/; git checkout grass$GMAJOR; git pull origin grass$GMAJOR)
