@@ -129,7 +129,7 @@ for c in "db" "display" "general" "gui/wxpython" "imagery" "misc" "raster" "rast
         MANBASEDIR="$path/docs/man" \
         SCRIPTDIR="$path/scripts" \
         ETC="$path/etc" \
-            SOURCE_URL="https://github.com/OSGeo/grass-addons/tree/master/grass${GMAJOR}/" > \
+            SOURCE_URL="https://github.com/OSGeo/grass-addons/tree/grass${GMAJOR}/src" > \
             "$ADDON_PATH/logs/$m.log" 2>&1 \
         HTML_PAGE_FOOTER_PAGES_PATH="../"
     if [ `echo $?` -eq 0 ] ; then
