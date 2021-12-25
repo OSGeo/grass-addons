@@ -274,7 +274,7 @@ sh ~/cronjobs/compile_addons_git.sh ~/src/grass$GMAJOR-addons/src/ \
 mkdir -p $TARGETHTMLDIR/addons/
 cp ~/.grass$GMAJOR/addons/docs/html/* $TARGETHTMLDIR/addons/
 sh ~/cronjobs/grass8-addons-index.sh $GMAJOR $GMINOR $TARGETHTMLDIR/addons/
-cp $TARGETHTMLDIR/grass_logo.png $TARGETHTMLDIR/addons/
+cp $TARGETHTMLDIR/grass_logo.png $TARGETHTMLDIR/grassdocs.css $TARGETHTMLDIR/addons/
 chmod -R a+r,g+w $TARGETHTMLDIR 2> /dev/null
 
 # cp logs from ~/.grass$GMAJOR/addons/logs/
