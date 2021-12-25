@@ -25,10 +25,10 @@ This directory contains the relevant files to generate and deploy the GRASS GIS 
 - GRASS GIS addons overview page at https://grass.osgeo.org/grass8/manuals/addons/:
     - `compile_addons_git.sh` - called from `cron_grass8_relbranch_build_binaries.sh`
     - `grass-addons-fetch-xml.sh` - called from `cron_grass8_relbranch_build_binaries.sh`
-    - `grass8-addons-index.sh` - called from `cron_grass8_relbranch_build_binaries.sh`
-    - `get_page_description.py` - called from `grass-addons8-index.sh`
+    - `grass-addons-index.sh` - called from `cron_grass8_relbranch_build_binaries.sh`
+    - `get_page_description.py` - called from `grass-addons-index.sh`
 - GRASS GIS programmer's manual:
-    - within `cron_grass8_HEAD_build_bins.sh`
+    - within `cron_grass8_relbranch_build_binaries.sh`
 
 ## Web site organisation
 

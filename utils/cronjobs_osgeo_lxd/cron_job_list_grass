@@ -1,6 +1,8 @@
 # crontab entries
 # see: https://github.com/OSGeo/grass-addons/tree/grass8/utils/cronjobs_osgeo_lxd/
 
+# IMPORTANT: only a single crontab file may exist. Hence both the GRASS GIS 7 + 8 addons are generated here.
+
 # add GRASS GIS build jobs here and then run on `grasslxd`server:
 # crontab $HOME/cronjobs/cron_job_list_grass && crontab -l
 
