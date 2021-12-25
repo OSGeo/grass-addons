@@ -184,9 +184,8 @@ See also log files of compilation:
 }
 
 ## main
-# $1 is path to addons manual directory:
-generate $MAJOR $MINOR $1
-# unused: #generate 6 4
+# $3 is path to addons manual directory:
+generate $MAJOR $MINOR $3
 
 exit 0
 
