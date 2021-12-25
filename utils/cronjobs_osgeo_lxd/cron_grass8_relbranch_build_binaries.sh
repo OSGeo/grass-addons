@@ -1,13 +1,17 @@
 #!/bin/sh
 
-# script to build GRASS 8.x binaries from the main branch (shared libs)
+# script to build GRASS 8.x binaries + addons from the `releasebranch_8_0` binaries
 # (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
-# Nov 2008, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021
+# 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
-## prep
-# git clone https://github.com/OSGeo/grass.git master
+## prep, on neteler@grasslxd:$
+# mkdir -p ~/src
+# cd ~/src
+# # G80 ...
+# for i in 0 ; do git clone https://github.com/OSGeo/grass.git releasebranch_8_$i ; done
+# for i in 0 ; do (cd releasebranch_8_$i ;  git checkout releasebranch_8_$i ) ; done
 #
 ###################################################################
 # how it works:
@@ -15,9 +19,9 @@
 # - configures, compiles
 # - packages the binaries
 # - generated the install scripts
-# - generates the programmer's HTML manual
-# - generates the pyGRASS HTML manual
-# - generates the user HTML manuals
+# - generates the programmer's 8 HTML manual
+# - generates the pyGRASS 8 HTML manual
+# - generates the user 8 HTML manuals
 # - injects DuckDuckGo search field
 
 # Preparations:
@@ -46,7 +50,7 @@ LDFLAGSSTRING='-s'
 MAINDIR=/home/neteler
 # where to find the GRASS sources (git clone):
 SOURCE=$MAINDIR/src/
-BRANCH=main  # releasebranch_${GMAJOR}_$GMINOR
+BRANCH=releasebranch_${GMAJOR}_$GMINOR
 GRASSBUILDDIR=$SOURCE/$BRANCH
 TARGETMAIN=/var/www/code_and_data/
 TARGETDIR=$TARGETMAIN/grass${VERSION}/binary/linux/snapshot
@@ -70,9 +74,6 @@ halt_on_error()
 
 configure_grass()
 {
-
-#  --enable-64bit \
-#  --with-libs=/usr/lib64 \
 
 # which package?
 #   --with-mysql --with-mysql-includes=/usr/include/mysql --with-mysql-libs=/usr/lib/mysql \
@@ -115,8 +116,8 @@ git status | grep '.rst' | xargs rm -f
 rm -rf lib/python/docs/_build/ lib/python/docs/_templates/layout.html
 rm -f config_${DOTVERSION}.git_log.txt ChangeLog
 
-## hard reset local git repo (just in case)
-#git checkout main && git reset --hard HEAD~1 && git reset --hard origin
+# be sure to be on branch
+git checkout $BRANCH
 
 echo "git update..."
 git fetch --all --prune && git checkout $BRANCH && git pull --rebase || halt_on_error "git update error!"
@@ -162,17 +163,15 @@ cp -rp dist.$ARCH/docs/html/* $TARGETHTMLDIR/
 echo "Copied pygrass progman to http://grass.osgeo.org/grass${VERSION}/manuals/libpython/"
 
 echo "Injecting DuckDuckGo search field into manual main page..."
-(cd $TARGETHTMLDIR/ ; sed -i -e "s+</table>+</table><\!\-\- injected in cron_grass7_HEAD_build_bins.sh \-\-> <center><iframe src=\"https://duckduckgo.com/search.html?site=grass.osgeo.org\&prefill=Search manual pages at DuckDuckGo\" style=\"overflow:hidden;margin:0;padding:0;width:410px;height:40px;\" frameborder=\"0\"></iframe></center>+g" index.html)
+(cd $TARGETHTMLDIR/ ; sed -i -e "s+</table>+</table><\!\-\- injected in cron_grass8_relbranch_build_binaries.sh \-\-> <center><iframe src=\"https://duckduckgo.com/search.html?site=grass.osgeo.org\&prefill=Search manual pages at DuckDuckGo\" style=\"overflow:hidden;margin:0;padding:0;width:410px;height:40px;\" frameborder=\"0\"></iframe></center>+g" index.html)
 
 cp -p AUTHORS CHANGES CITING COPYING GPL.TXT INSTALL REQUIREMENTS.html $TARGETDIR/
-
-# note: addons are in grass7x compilation scripts
 
 # clean wxGUI sphinx manual etc
 (cd $GRASSBUILDDIR/ ; $MYMAKE cleansphinx)
 
 ############
-# generate doxygen programmers's manual
+# generate doxygen programmers's G8 manual
 cd $GRASSBUILDDIR/
 #$MYMAKE htmldocs-single > /dev/null || (echo "$0 htmldocs-single: an error occured" ; exit 1)
 $MYMAKE htmldocs-single || (echo "$0 htmldocs-single: an error occured" ; exit 1)
@@ -198,7 +197,7 @@ chmod -R a+r,g+w $TARGETPROGMAN/*
 # bug in doxygen
 (cd $TARGETPROGMAN/ ; ln -s index.html main.html)
 
-##### generate i18N POT files, needed for https://www.transifex.com/grass-gis/grass7X/
+##### generate i18N POT files, needed for https://www.transifex.com/grass-gis/
 (cd locale ;
 $MYMAKE pot
 mkdir -p $TARGETDIR/transifex/
@@ -261,43 +260,48 @@ echo "Written to: $TARGETDIR"
 cd $GRASSBUILDDIR
 
 ############################################
-## compile addons <--- only done for latest stable! See: cron_grass78_releasebranch_78_build_bins.sh
+# compile addons
 
-# # update addon repo
-# (cd ~/src/grass$GMAJOR-addons/; git checkout grass$GMAJOR; git pull origin grass$GMAJOR)
-# # compile addons
-# cd $GRASSBUILDDIR
-# sh ~/cronjobs/compile_addons_git.sh ~/src/grass$GMAJOR-addons/src/ \
-#    ~/src/$BRANCH/dist.$ARCH/ \
-#    ~/.grass$GMAJOR/addons \
-#    ~/src/$BRANCH/bin.$ARCH/grass$VERSION
-# mkdir -p $TARGETHTMLDIR/addons/
-# cp ~/.grass$GMAJOR/addons/docs/html/* $TARGETHTMLDIR/addons/
-# sh ~/cronjobs/grass-addons-index.sh $TARGETHTMLDIR/addons/
-# chmod -R a+r,g+w $TARGETHTMLDIR 2> /dev/null
+# update addon repo (addon repo has been cloned twice on the server to
+#   separate grass7 and grass8 addon compilation)
+(cd ~/src/grass$GMAJOR-addons/; git checkout grass$GMAJOR; git pull origin grass$GMAJOR)
+# compile addons
+cd $GRASSBUILDDIR
+sh ~/cronjobs/compile_addons_git.sh ~/src/grass$GMAJOR-addons/src/ \
+   ~/src/$BRANCH/dist.$ARCH/ \
+   ~/.grass$GMAJOR/addons \
+   ~/src/$BRANCH/bin.$ARCH/grass$VERSION
+mkdir -p $TARGETHTMLDIR/addons/
+cp ~/.grass$GMAJOR/addons/docs/html/* $TARGETHTMLDIR/addons/
+sh ~/cronjobs/grass-addons-index.sh $GMAJOR $GMINOR $TARGETHTMLDIR/addons/
+cp $TARGETHTMLDIR/grass_logo.png $TARGETHTMLDIR/grassdocs.css $TARGETHTMLDIR/addons/
+chmod -R a+r,g+w $TARGETHTMLDIR 2> /dev/null
 
-# # cp logs from ~/.grass$GMAJOR/addons/logs/
-# mkdir -p $TARGETMAIN/addons/grass$GMAJOR/logs/
-# cp -p ~/.grass$GMAJOR/addons/logs/* $TARGETMAIN/addons/grass$GMAJOR/logs/
+# cp logs from ~/.grass$GMAJOR/addons/logs/
+mkdir -p $TARGETMAIN/addons/grass$GMAJOR/logs/
+cp -p ~/.grass$GMAJOR/addons/logs/* $TARGETMAIN/addons/grass$GMAJOR/logs/
 
-# # cp XML from winGRASS server
-# sh ~/cronjobs/grass-addons-fetch-xml.sh $TARGETMAIN/addons/
+# cp XML from winGRASS server
+sh ~/cronjobs/grass-addons-fetch-xml.sh $TARGETMAIN/addons/
 
 ############################################
 # create sitemaps to expand the hugo sitemap
 
 python3 $HOME/src/grass$GMAJOR-addons/utils/create_manuals_sitemap.py --dir=/var/www/code_and_data/grass$GMAJOR$GMINOR/manuals/ --url=https://grass.osgeo.org/grass$GMAJOR$GMINOR/manuals/ -o
-# python3 $HOME/src/grass$GMAJOR-addons/utils/create_manuals_sitemap.py --dir=/var/www/code_and_data/grass$GMAJOR$GMINOR/manuals/addons/ --url=https://grass.osgeo.org/grass$GMAJOR$GMINOR/manuals/addons/ -o
+python3 $HOME/src/grass$GMAJOR-addons/utils/create_manuals_sitemap.py --dir=/var/www/code_and_data/grass$GMAJOR$GMINOR/manuals/addons/ --url=https://grass.osgeo.org/grass$GMAJOR$GMINOR/manuals/addons/ -o
 
 ############################################
 # cleanup
+cd $GRASSBUILDDIR
 $MYMAKE distclean  > /dev/null || (echo "$0: an error occured" ; exit 1)
 rm -rf lib/html/ lib/latex/
 
 echo "Finished GRASS $VERSION $ARCH compilation."
 echo "Written to: $TARGETDIR"
-echo "Copied HTML manual to https://grass.osgeo.org/grass${VERSION}/manuals/"
-echo "Copied pygrass progman to https://grass.osgeo.org/grass${VERSION}/manuals/libpython/"
-echo "Copied HTML progman to https://grass.osgeo.org/programming${GVERSION}"
+echo "Copied HTML ${GVERSION} manual to https://grass.osgeo.org/grass${VERSION}/manuals/"
+echo "Copied pygrass progman ${GVERSION} to https://grass.osgeo.org/grass${VERSION}/manuals/libpython/"
+echo "Copied HTML ${GVERSION} progman to https://grass.osgeo.org/programming${GVERSION}"
+echo "Copied Addons ${GVERSION} to https://grass.osgeo.org/grass${VERSION}/manuals/addons/"
+
 exit 0
 

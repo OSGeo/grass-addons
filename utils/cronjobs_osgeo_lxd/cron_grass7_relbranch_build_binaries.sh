@@ -1,45 +1,40 @@
 #!/bin/sh
 
-# script to build GRASS 7.x relbranch74 binaries (shared libs)
+# script to build GRASS 7.x binaries + addons from the `releasebranch_7_0` binaries
 # (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
-# Sat Mar 29 13:05:53 PDT 2014
-# Tue Apr 22 11:23:12 PDT 2014
-# Sat Sep 19 03:43:34 PDT 2015
-# Wed May 25 10:05:05 PDT 2016
-# Sun Nov 12 22:02:53 CET 2017
-# Sun 02 Jun 2019 03:30:38 PM CEST
-# Sun 27 Oct 2019 09:00:14 PM CET
-# Thu 16 Jan 2020 08:17:43 AM UTC
+# 2008, 2014, 2015, 2016, 2017, 2018, 2019, 2021
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
-## prep, neteler@osgeo6:$
+## prep, on neteler@grasslxd:$
 # mkdir -p ~/src
 # cd ~/src
-# for i in 2 4 6 ; do git clone https://github.com/OSGeo/grass.git releasebranch_7_$i ; done
-# for i in 2 4 6 ; do (cd releasebranch_7_$i ;  git checkout releasebranch_7_$i ) ; done
+# # G76 G78
+# for i in 6 8 ; do git clone https://github.com/OSGeo/grass.git releasebranch_7_$i ; done
+# for i in 6 8 ; do (cd releasebranch_7_$i ;  git checkout releasebranch_7_$i ) ; done
 #
 ###################################################################
 # how it works:
-# - it updates the GRASS source code from github server
+# - it updates locally the GRASS source code from github server
 # - configures, compiles
 # - packages the binaries
 # - generated the install scripts
-# - generates the pyGRASS HTML manual
-# - generates the user HTML manuals
+# - generates the pyGRASS 7 HTML manual
+# - generates the user 7 HTML manuals
+# - injects DuckDuckGo search field
 
 # Preparations:
 #  - Install PROJ: http://trac.osgeo.org/proj/ incl Datum shift grids
 #     sh conf_proj4.sh
 #  - Install GDAL: http://trac.osgeo.org/gdal/wiki/DownloadSource
 #     sh conf_gdal.sh
-#  - Install apt-get install texlive-latex-extra sphinx-apidoc
+#  - Install apt-get install texlive-latex-extra python3-sphinxcontrib.apidoc
 #  - Clone source from github
 #################################
 PATH=/home/neteler/binaries/bin:/usr/bin:/bin:/usr/X11R6/bin:/usr/local/bin
 
 GMAJOR=7
-GMINOR=4
+GMINOR=8
 DOTVERSION=$GMAJOR.$GMINOR
 VERSION=$GMAJOR$GMINOR
 GVERSION=$GMAJOR
@@ -54,12 +49,12 @@ LDFLAGSSTRING='-s'
 MAINDIR=/home/neteler
 # where to find the GRASS sources (git clone):
 SOURCE=$MAINDIR/src/
-BRANCH=releasebranch_7_$GMINOR
+BRANCH=releasebranch_${GMAJOR}_$GMINOR
 GRASSBUILDDIR=$SOURCE/$BRANCH
 TARGETMAIN=/var/www/code_and_data/
 TARGETDIR=$TARGETMAIN/grass${VERSION}/binary/linux/snapshot
 TARGETHTMLDIR=$TARGETMAIN/grass${VERSION}/manuals/
-# programmer's manual is build only from the main branch
+# programmer's manual is only built from the relbranch_8_0
 
 MYBIN=$MAINDIR/binaries
 
@@ -79,9 +74,6 @@ halt_on_error()
 configure_grass()
 {
 
-#  --enable-64bit \
-#  --with-libs=/usr/lib64 \
-
 # which package?
 #   --with-mysql --with-mysql-includes=/usr/include/mysql --with-mysql-libs=/usr/lib/mysql \
 
@@ -93,7 +85,7 @@ CFLAGS=$CFLAGSSTRING LDFLAGS=$LDFLAGSSTRING ./configure \
   --with-geos \
   --with-odbc \
   --with-cairo --with-cairo-ldflags=-lfontconfig \
-  --with-proj --with-proj-share=/usr/share/proj \
+  --with-proj-share=/usr/share/proj \
   --with-postgres --with-postgres-includes=/usr/include/postgresql \
   --with-freetype --with-freetype-includes=/usr/include/freetype2 \
   --with-netcdf \
@@ -103,8 +95,7 @@ CFLAGS=$CFLAGSSTRING LDFLAGS=$LDFLAGSSTRING ./configure \
   --with-blas --with-blas-includes=/usr/include/atlas/ \
   --with-lapack --with-lapack-includes=/usr/include/atlas/ \
   --with-zstd \
-  --without-motif \
-  --without-liblas \
+  --with-liblas \
   2>&1 | tee config_$DOTVERSION.git_log.txt
 
  if [ $? -ne 0 ] ; then
@@ -136,10 +127,9 @@ cp -f *.csv $TARGETMAIN/uploads/grass/
 
 #configure
 echo "configuring"
-$MYMAKE distclean  > /dev/null
 configure_grass || (echo "$0: an error occured" ; exit 1)
 pwd
-ARCH=`cat config.status |grep '@host@' | cut -d'%' -f3`
+ARCH=`cat include/Make/Platform.make | grep ^ARCH | cut -d'=' -f2 | xargs`
 
 ########  now GRASS is prepared ####################
 
@@ -171,18 +161,15 @@ rm -f $TARGETHTMLDIR/*.*
 cp -rp dist.$ARCH/docs/html/* $TARGETHTMLDIR/
 echo "Copied pygrass progman to http://grass.osgeo.org/grass${VERSION}/manuals/libpython/"
 
+echo "Injecting DuckDuckGo search field into manual main page..."
+(cd $TARGETHTMLDIR/ ; sed -i -e "s+</table>+</table><\!\-\- injected in cron_grass7_relbranch_build_binaries.sh \-\-> <center><iframe src=\"https://duckduckgo.com/search.html?site=grass.osgeo.org\&prefill=Search manual pages at DuckDuckGo\" style=\"overflow:hidden;margin:0;padding:0;width:410px;height:40px;\" frameborder=\"0\"></iframe></center>+g" index.html)
+
 cp -p AUTHORS CHANGES CITING COPYING GPL.TXT INSTALL REQUIREMENTS.html $TARGETDIR/
-
-# inject G7.x new version hint in a red box:
-(cd $TARGETHTMLDIR/ ; for myfile in `ls *.html` ; do sed -i -e "s:<hr class=\"header\">:<hr class=\"header\"><p style=\"border\:3px; border-style\:solid; border-color\:#BC1818; padding\: 1em;\">Note\: A new GRASS GIS stable version has been released\: GRASS GIS 7.8, available <a href=\"https\://grass.osgeo.org/download/\">here</a>\.<br> Updated manual page\: <a href=\"../../grass78/manuals/$myfile\">here</a></p>:g" $myfile ; done)
-# also for Python
-(cd $TARGETHTMLDIR/libpython/ ; for myfile in `ls *.html` ; do sed -i -e "s:<hr class=\"header\">:<hr class=\"header\"><p style=\"border\:3px; border-style\:solid; border-color\:#FF2121; padding\: 1em;\">Note\: A new GRASS GIS stable version has been released\: <a href=\"https\://grass.osgeo.org/download/\">GRASS GIS 7.8</a>\. Go directly to the new manual page <a href=\"../../../grass78/manuals/libpython/$myfile\">here</a></p>:g" $myfile ; done)
-
 
 # clean wxGUI sphinx manual etc
 (cd $GRASSBUILDDIR/ ; $MYMAKE cleansphinx)
 
-##### generate i18N POT files, needed for https://www.transifex.com/grass-gis/grass7X/
+##### generate i18N POT files, needed for https://www.transifex.com/grass-gis/
 (cd locale ;
 $MYMAKE pot
 mkdir -p $TARGETDIR/transifex/
@@ -243,13 +230,43 @@ chmod -R a+r,g+w $TARGETHTMLDIR 2> /dev/null
 echo "Written to: $TARGETDIR"
 
 ############################################
+# compile addons
+
+# update addon repo (addon repo has been cloned twice on the server to
+#   separate grass7 and grass8 addon compilation)
+(cd ~/src/grass$GMAJOR-addons/; git checkout grass$GMAJOR; git pull origin grass$GMAJOR)
+# compile addons
+cd $GRASSBUILDDIR
+sh ~/cronjobs/compile_addons_git.sh ~/src/grass$GMAJOR-addons/src/ \
+   ~/src/$BRANCH/dist.$ARCH/ \
+   ~/.grass$GMAJOR/addons \
+   ~/src/$BRANCH/bin.$ARCH/grass$VERSION
+mkdir -p $TARGETHTMLDIR/addons/
+cp ~/.grass$GMAJOR/addons/docs/html/* $TARGETHTMLDIR/addons/
+sh ~/cronjobs/grass-addons-index.sh $GMAJOR $GMINOR $TARGETHTMLDIR/addons/
+chmod -R a+r,g+w $TARGETHTMLDIR 2> /dev/null
+
+# cp logs from ~/.grass$GMAJOR/addons/logs/
+mkdir -p $TARGETMAIN/addons/grass$GMAJOR/logs/
+cp -p ~/.grass$GMAJOR/addons/logs/* $TARGETMAIN/addons/grass$GMAJOR/logs/
+
+# cp XML from winGRASS server
+sh ~/cronjobs/grass-addons-fetch-xml.sh $TARGETMAIN/addons/
+
+############################################
+# create sitemaps to expand the hugo sitemap
+
+python3 $HOME/src/grass$GMAJOR-addons/utils/create_manuals_sitemap.py --dir=/var/www/code_and_data/grass$GMAJOR$GMINOR/manuals/ --url=https://grass.osgeo.org/grass$GMAJOR$GMINOR/manuals/ -o
+python3 $HOME/src/grass$GMAJOR-addons/utils/create_manuals_sitemap.py --dir=/var/www/code_and_data/grass$GMAJOR$GMINOR/manuals/addons/ --url=https://grass.osgeo.org/grass$GMAJOR$GMINOR/manuals/addons/ -o
+
+############################################
 # cleanup
 cd $GRASSBUILDDIR
 $MYMAKE distclean  > /dev/null || (echo "$0: an error occured" ; exit 1)
 
 echo "Finished GRASS $VERSION $ARCH compilation."
 echo "Written to: $TARGETDIR"
-echo "Copied HTML manual to https://grass.osgeo.org/grass${VERSION}/manuals/"
-echo "Copied pygrass progman to https://grass.osgeo.org/grass${VERSION}/manuals/libpython/"
-exit 0
+echo "Copied HTML ${GVERSION} manual to https://grass.osgeo.org/grass${VERSION}/manuals/"
+echo "Copied pygrass progman ${GVERSION} to https://grass.osgeo.org/grass${VERSION}/manuals/libpython/"
 
+exit 0

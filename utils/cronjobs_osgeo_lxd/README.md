@@ -9,19 +9,26 @@ This directory contains the relevant files to generate and deploy the GRASS GIS 
 - generate and deploy the GRASS GIS Web pages at https://grass.osgeo.org/:
     - `hugo_clean_and_update_job.sh`
 - GRASS GIS source code weekly snapshots:
-    - release_branch_7_8: `cron_grass78_src_relbr78_snapshot.sh`
-    - main: `cron_grass8_HEAD_src_snapshot.sh`
+    - grass7: `cron_grass7_main_src_snapshot.sh`
+    - grass8: `cron_grass8_main_src_snapshot.sh`
 - GRASS GIS Linux binary weekly snapshots:
-    - `cron_grass78_releasebranch_78_build_bins.sh`
+    - grass7: `cron_grass7_relbranch_build_binaries.sh`
+    - grass8: `cron_grass8_relbranch_build_binaries.sh`
 - GRASS GIS addons manual pages:
-    - within `cron_grass78_releasebranch_78_build_bins.sh`
+    - grass7: within `cron_grass7_relbranch_build_binaries.sh`
+    - grass8: within `cron_grass8_relbranch_build_binaries.sh`
 - GRASS GIS addons overview page at https://grass.osgeo.org/grass7/manuals/addons/:
-    - `compile_addons_git.sh` - called from `cron_grass78_releasebranch_78_build_bins.sh`
-    - `grass-addons-fetch-xml.sh` - called from `cron_grass78_releasebranch_78_build_bins.sh`
-    - `grass-addons-index.sh` - called from `cron_grass78_releasebranch_78_build_bins.sh`
+    - `compile_addons_git.sh` - called from `cron_grass7_relbranch_build_binaries.sh`
+    - `grass-addons-fetch-xml.sh` - called from `cron_grass7_relbranch_build_binaries.sh`
+    - `grass-addons-index.sh` - called from `cron_grass7_relbranch_build_binaries.sh`
+    - `get_page_description.py` - called from `grass-addons-index.sh`
+- GRASS GIS addons overview page at https://grass.osgeo.org/grass8/manuals/addons/:
+    - `compile_addons_git.sh` - called from `cron_grass8_relbranch_build_binaries.sh`
+    - `grass-addons-fetch-xml.sh` - called from `cron_grass8_relbranch_build_binaries.sh`
+    - `grass-addons-index.sh` - called from `cron_grass8_relbranch_build_binaries.sh`
     - `get_page_description.py` - called from `grass-addons-index.sh`
 - GRASS GIS programmer's manual:
-    - within `cron_grass8_HEAD_build_bins.sh`
+    - within `cron_grass8_relbranch_build_binaries.sh`
 
 ## Web site organisation
 
@@ -34,7 +41,7 @@ Important: there are two web related directories on the server:
 
 The server is hosted as LXD container on `osgeo7`, see: https://wiki.osgeo.org/wiki/SAC_Service_Status#GRASS_GIS_server
 
-The container is only accessible via the related OSGeo ssh jumphost.
+The container is only accessible via the related OSGeo ssh jumphost and registered ssh pubkey.
 
 ## Cronjob execution
 
@@ -46,4 +53,4 @@ grasslxd:/home/neteler/cronjobs/
 
 ## History
 
-The cronjobs here have been initially written in 2002 and subsequently updated.
+The cronjobs here have been initially written in 2002 and subsequently been updated.
