@@ -2,12 +2,14 @@
 
 # PURPOSE: Generates index.html of GRASS GIS Addons
 #          https://grass.osgeo.org/grass7/manuals/addons/
+#          https://grass.osgeo.org/grass8/manuals/addons/
 #
 # Markus Neteler 9/2002
 # updated for GRASS GIS Addons by Markus Neteler and Martin Landa, 2013
 # updated for new CMS path MN 8/2015
 # display module prefix by ML 8/2015
 # updated for GRASS GIS 7 only Addons compilation on grasslxd server by Markus Neteler, 6/2020
+# updated for GRASS GIS 7 + 8 Addons compilation on grasslxd server by Markus Neteler, 12/2021
 
 # Important: keep log links in sync at https://grass.osgeo.org/download/addons/
 
@@ -15,19 +17,19 @@
 # Requirements: ./get_page_description.py
 
 CRONJOBDIR=~/cronjobs/
-MAJOR=7
-MINOR=8
+MAJOR=$1
+MINOR=$2
 
 ##################
 # generated Addon HTML manual pages are expected to be in the directory
-# /home/neteler/var/www/grass/grass-cms/grass${major}${minor}/manuals/addons/
+# /var/www/code_and_data/grass${major}${minor}/manuals/addons/
 
-if [ $# -ne 1 ] ; then
+if [ $# -ne 3 ] ; then
   echo "ERROR: addon manpath required.
 
 Usage:
 
-$0 manpath"
+$0 GMAJOR GMINOR manpath"
   exit 1
 fi
 
@@ -83,7 +85,7 @@ module_prefix () {
 }
 
 generate () {
-    # 7 8
+    # 7 8 manpath | 8 0 manpath
     major=$1
     minor=$2
     manpath=$3
@@ -111,30 +113,26 @@ generate () {
 <h2>GRASS GIS ${major} Addons Manual pages</h2>
 
 <!-- Generated from: grasslxd (on osgeo7): ~/cronjobs/grass-addons-index.sh -->
-<!--       See also: https://github.com/OSGeo/grass-addons/blob/master/utils/cronjobs_osgeo_lxd/README.md -->
+<!--       See also: https://github.com/OSGeo/grass-addons/tree/grass8/utils/cronjobs_osgeo_lxd/README.md -->
 
 <table><tr><td>
 <script type=\"text/javascript\" src=\"https://www.openhub.net/p/grass_gis_addons/widgets/project_factoids_stats?format=js\"></script>
 </td><td>
 <a href=\"https://grass.osgeo.org\">GRASS GIS</a> is free software,
-anyone may develop his/her own extensions.  The <a
-href=\"https://grasswiki.osgeo.org/wiki/AddOns/GRASS_${major}\">GRASS GIS
-Addons Wiki page</a> contains a growing list of links to GRASS GIS
+anyone may develop his/her own extensions (addons).  The <a
+href=\"https://github.com/OSGeo/grass-addons\">GRASS GIS
+Addons repository</a> on GitHub contains a growing list of links to GRASS GIS
 extensions, which are currently not part of the core software package.<br>
-Most addons are managed in the
-<a href=\"https://github.com/OSGeo/grass-addons\">GRASS GIS Addons repository</a>
-on GitHub.<br>
 Addons can easily be <b>installed</b> in your local GRASS GIS installation
 through the graphical user interface (<i>Menu - Settings - Addons
 Extension - Install</i>) or via the <a
 href=\"../g.extension.html\">g.extension</a> command.  <p> <i>These
 manual pages are updated daily. Last run: $LASTDATE</i>
 <p> How to contribute?
-<p> You may upload your Addon to the <strong>GRASS GIS Addons repository</strong>.
-Further details about gaining write access there can be found in
-<a href=\"https://trac.osgeo.org/grass/wiki/HowToContribute#WriteaccesstotheGRASSaddonsrepository\">this document</a>.
-Please also read <a href=\"https://trac.osgeo.org/grass/wiki/Submitting\">GRASS GIS programming best practice</a>.
-<p> How to get the source code:
+<p> You may propose your Addon to the <a href=\"https://github.com/OSGeo/grass-addons\">GRASS GIS
+Addons repository</a>. Please read the <a href=\"https://github.com/OSGeo/grass-addons/blob/grass8/CONTRIBUTING.md\">Contributing</a>
+document as well as the <a href=\"https://trac.osgeo.org/grass/wiki/Submitting\">GRASS GIS programming best practice</a>.
+<p> How to get the addons source code:
 <p> <tt>git clone https://github.com/OSGeo/grass-addons.git</tt>
 <p>
 See also log files of compilation:
@@ -186,9 +184,8 @@ See also log files of compilation:
 }
 
 ## main
-# $1 is path to addons manual directory:
-generate $MAJOR $MINOR $1
-# unused: #generate 6 4
+# $3 is path to addons manual directory:
+generate $MAJOR $MINOR $3
 
 exit 0
 
