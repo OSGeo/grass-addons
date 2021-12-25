@@ -7,7 +7,7 @@
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
 ## prep
-# git clone https://github.com/OSGeo/grass.git master
+# git clone https://github.com/OSGeo/grass.git main
 #
 ###################################################################
 
@@ -21,7 +21,7 @@ GSHORTGVERSION=$GMAJOR$GMINOR
 ###################
 # where to find the GRASS sources (git clone):
 SOURCE=$MAINDIR/src/
-BRANCH=master  # releasebranch_8_0
+BRANCH=main  # releasebranch_8_0
 # where to put the resulting .tar.gz file:
 TARGETMAIN=/var/www/code_and_data/
 TARGETDIR=$TARGETMAIN/grass${GSHORTGVERSION}/source/snapshot

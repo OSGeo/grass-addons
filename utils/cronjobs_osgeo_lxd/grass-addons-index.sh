@@ -2,12 +2,14 @@
 
 # PURPOSE: Generates index.html of GRASS GIS Addons
 #          https://grass.osgeo.org/grass7/manuals/addons/
+#          https://grass.osgeo.org/grass8/manuals/addons/
 #
 # Markus Neteler 9/2002
 # updated for GRASS GIS Addons by Markus Neteler and Martin Landa, 2013
 # updated for new CMS path MN 8/2015
 # display module prefix by ML 8/2015
 # updated for GRASS GIS 7 only Addons compilation on grasslxd server by Markus Neteler, 6/2020
+# updated for GRASS GIS 7 + 8 Addons compilation on grasslxd server by Markus Neteler, 12/2021
 
 # Important: keep log links in sync at https://grass.osgeo.org/download/addons/
 
@@ -15,19 +17,19 @@
 # Requirements: ./get_page_description.py
 
 CRONJOBDIR=~/cronjobs/
-MAJOR=7
-MINOR=8
+MAJOR=$1
+MINOR=$2
 
 ##################
 # generated Addon HTML manual pages are expected to be in the directory
-# /home/neteler/var/www/grass/grass-cms/grass${major}${minor}/manuals/addons/
+# /var/www/code_and_data/grass${major}${minor}/manuals/addons/
 
-if [ $# -ne 1 ] ; then
+if [ $# -ne 3 ] ; then
   echo "ERROR: addon manpath required.
 
 Usage:
 
-$0 manpath"
+$0 GMAJOR GMINOR manpath"
   exit 1
 fi
 
@@ -83,7 +85,7 @@ module_prefix () {
 }
 
 generate () {
-    # 7 8
+    # 7 8 manpath | 8 0 manpath
     major=$1
     minor=$2
     manpath=$3
