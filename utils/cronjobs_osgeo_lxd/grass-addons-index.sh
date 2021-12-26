@@ -137,7 +137,7 @@ document as well as the <a href=\"https://trac.osgeo.org/grass/wiki/Submitting\"
 <p>
 See also log files of compilation:
 <a href=\"https://grass.osgeo.org/addons/grass${major}/logs\">Linux log files</a> |
-<a href=\"https://wingrass.fsv.cvut.cz/grass${major}${minor}/x86_64/addons/latest/logs/\">Windows log files</a>
+<a href=\"https://wingrass.fsv.cvut.cz/grass${major}${minor}/x86_64/addons/grass-${major}.${minor}.dev/logs/\">Windows log files</a>
 
 </tr></table>
 <hr>
