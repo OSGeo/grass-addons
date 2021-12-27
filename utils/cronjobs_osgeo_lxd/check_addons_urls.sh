@@ -40,8 +40,8 @@ ADDONS_DOCS_HTML_DIR_PATH=$1
 LOG_FILE_PATH=$2
 LOG_HTML_FILE_PATH=$3
 
-SRC_URL_ID="tree"
-COMMITS_URL_ID="commits"
+# Addon source code and histrory URL
+URL_TREE_COMMITS="tree|commits"
 
 NORMAL_COLOR=$(tput sgr0)
 RED_COLOR=$(tput setaf 1)
@@ -50,9 +50,7 @@ check_addon_html_manual_page() {
     for i in "${!urls[@]}"; do
         IFS=':'
         read -a template_page_url <<< "${urls[$i]}"
-
-        found_urls=$(grep -woe "$SRC_URL_ID" <<< "${urls[$i]}" \
-                          -woe "$COMMITS_URL_ID" <<< "${urls[$i]}" | wc -l)
+        found_urls=$(egrep -woe $URL_TREE_COMMITS $template_page_url | wc -l)
         pgm=$(basename "${template_page_url[0]}")
         echo "<tr><td><tt>$pgm</tt></td>" \
              >> "$LOG_HTML_FILE_PATH"
