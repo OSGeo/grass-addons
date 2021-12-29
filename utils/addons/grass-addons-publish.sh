@@ -9,6 +9,10 @@
 # updated for new CMS path MN 8/2015
 set -e
 
+# version numbers
+GRASS_VERSION_OLD="6 4"
+GRASS_VERSION_STABLE="7 8"
+
 URL=http://geo102.fsv.cvut.cz/grass/addons/
 ADDONS=${HOME}/src/grass-addons
 
@@ -41,8 +45,8 @@ process () {
 cd $ADDONS
 nup=`git pull | wc -l`
 if [ "$nup" -gt 1 ] || [ "$1" = "f" ] ; then
-    process 7 8
-    process 6 4 
+    process $GRASS_VERSION_STABLE
+    process $GRASS_VERSION_OLD
 
     ${ADDONS}/utils/addons/grass-addons-index.sh
 fi

@@ -8,6 +8,10 @@
 #
 # original author: Martin Landa
 
+# version numbers
+GRASS_VERSION_OLD="6 4"
+GRASS_VERSION_STABLE="7 8"
+
 DST=/var/www/grass
 DIST=dist.x86_64-pc-linux-gnu
 SRC=${HOME}/src/
@@ -53,7 +57,7 @@ promote() {
     cp html.tar.gz ${DST}/addons/grass${major}
 }
 
-promote 6 4
-promote 7 8
+promote $GRASS_VERSION_OLD
+promote $GRASS_VERSION_STABLE
 
 exit 0

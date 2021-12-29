@@ -14,6 +14,10 @@
 # generated Addon HTML manual pages are expected to be in the directory
 # /var/www/grass/grass-cms/grass${major}${minor}/manuals/addons
 
+# version numbers
+GRASS_VERSION_OLD="6 4"
+GRASS_VERSION_STABLE="7 8"
+
 module_prefix () {
     case "$1" in
 	"db")
@@ -164,8 +168,8 @@ See also log files of compilation:
     echo "</body></html>" >> index.html
 }
 
-generate 7 8
-generate 6 4
+generate $GRASS_VERSION_STABLE
+generate $GRASS_VERSION_OLD
 
 exit 0
 

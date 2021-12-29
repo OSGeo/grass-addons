@@ -3,6 +3,10 @@
 # updated for new CMS path MN 8/2015
 # updated to new utils/ path MN 12/2021
 
+# version numbers
+GRASS_VERSION_OLD="6 4"
+GRASS_VERSION_STABLE="7 8"
+
 DIR=$HOME/src
 # XMLDIR=/var/www/grass/grass-cms/addons/
 MANDIR=/var/www/grass/grass-cms/
@@ -24,8 +28,8 @@ build_addons() {
     	cd $XMLDIR/grass${version}/logs
     done
 
-    update_manual 7 8
-    update_manual 6 4
+    update_manual $GRASS_VERSION_STABLE
+    update_manual $GRASS_VERSION_OLD
 }
 
 update_manual() {

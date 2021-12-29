@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# TODO 2021: do not hardcode version numbers below but use GRASS_VERSION_OLD and GRASS_VERSION_STABLE
+
 # Support Python script used by compile-xml.sh
 
 import os
