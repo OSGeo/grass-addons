@@ -117,9 +117,21 @@ for c in "db" "display" "general" "gui/wxpython" "imagery" "misc" "raster" "rast
     fi
 
     export GRASS_ADDON_BASE=$path
+    if [ ! -f $GRASS_ADDON_BASE ]; then
+        # Create addon dir first for download addons_paths.json file if
+        # addon has own dir e.g. ~/.grass8/addons/db.join/ with bin/ docs/
+        # etc/ scripts/ subdir (check condition $SEP -eq 1)
+        mkdir $GRASS_ADDON_BASE
+    fi
     # Try download Add-Ons json file paths
-    if [ ! -f  "$GRASS_ADDON_BASE/$ADDONS_PATHS_JSON_FILE" ]; then
-        $GRASS_STARTUP_PROGRAM --tmp-location EPSG:4326 --exec g.extension -j > /dev/null 2>&1
+    if [ ! -f "$GRASS_ADDON_BASE/$ADDONS_PATHS_JSON_FILE" ] && [ ! -f "$(dirname $GRASS_ADDON_BASE)/$ADDONS_PATHS_JSON_FILE" ]; then
+        $GRASS_STARTUP_PROGRAM --tmp-location EPSG:4326 --exec g.extension -j
+        # Prevent download addons_paths.json file for every addon compilation if
+        # addon has own dir e.g. ~/.grass8/addons/db.join/ with bin/ docs/
+        # etc/ scripts/ subdir (check condition $SEP -eq 1)
+        if [ ! -f "$(dirname $GRASS_ADDON_BASE)/$ADDONS_PATHS_JSON_FILE" ]; then
+            mv "$GRASS_ADDON_BASE/$ADDONS_PATHS_JSON_FILE" "$(dirname $GRASS_ADDON_BASE)/$ADDONS_PATHS_JSON_FILE"
+        fi
     fi
     echo "<tr><td><tt>$c/$m</tt></td>" >> "$ADDON_PATH/logs/${INDEX_FILE}.html"
     make MODULE_TOPDIR="$TOPDIR" clean > /dev/null 2>&1
