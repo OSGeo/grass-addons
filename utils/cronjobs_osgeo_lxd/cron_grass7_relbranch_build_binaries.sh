@@ -244,7 +244,7 @@ sh ~/cronjobs/compile_addons_git.sh ~/src/grass$GMAJOR-addons/src/ \
    1
 mkdir -p $TARGETHTMLDIR/addons/
 # copy indvidual addon html files into one target dir if compiled addon
-# has own dir e.g. ~/.grass8/addons/db.join/ with bin/ docs/ etc/ scripts/
+# has own dir e.g. ~/.grass7/addons/db.join/ with bin/ docs/ etc/ scripts/
 # subdir
 for dir in `find ~/.grass$GMAJOR/addons -maxdepth 1 -type d`; do
     if [ -d $dir/docs/html ] ; then
