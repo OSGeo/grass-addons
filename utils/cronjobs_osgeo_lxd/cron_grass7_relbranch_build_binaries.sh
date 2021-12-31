@@ -248,9 +248,11 @@ mkdir -p $TARGETHTMLDIR/addons/
 # subdir
 for dir in `find ~/.grass$GMAJOR/addons -maxdepth 1 -type d`; do
     if [ -d $dir/docs/html ] ; then
-        for f in $dir/docs/html/*; do
-            cp $f $TARGETHTMLDIR/addons/
-        done
+        if [ "$(ls -A $dir/docs/html/)" ]; then
+            for f in $dir/docs/html/*; do
+                cp $f $TARGETHTMLDIR/addons/
+            done
+        fi
     fi
 done
 sh ~/cronjobs/grass-addons-index.sh $GMAJOR $GMINOR $TARGETHTMLDIR/addons/
