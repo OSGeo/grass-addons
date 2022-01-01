@@ -52,7 +52,7 @@ MAINDIR=/home/neteler
 SOURCE=$MAINDIR/src/
 BRANCH=releasebranch_${GMAJOR}_$GMINOR
 GRASSBUILDDIR=$SOURCE/$BRANCH
-TARGETMAIN=/var/www/code_and_data/
+TARGETMAIN=/var/www/code_and_data
 TARGETDIR=$TARGETMAIN/grass${VERSION}/binary/linux/snapshot
 TARGETHTMLDIR=$TARGETMAIN/grass${VERSION}/manuals/
 TARGETPROGMAN=$TARGETMAIN/programming${GVERSION}
@@ -295,7 +295,7 @@ cp -p ~/.grass$GMAJOR/addons/logs/* $TARGETMAIN/addons/grass$GMAJOR/logs/
 
 # generate addons modules.xml file (required for g.extension module)
 ~/src/$BRANCH/bin.$ARCH/grass --tmp-location EPSG:4326 --exec ~/cronjobs/build-xml.py --build ~/.grass$GMAJOR/addons
-cp ~/.grass$GMAJOR/addons/modules.xml $TARGETDIR/modules.xml
+cp ~/.grass$GMAJOR/addons/modules.xml $TARGETMAIN/addons/grass$GMAJOR/modules.xml
 
 ############################################
 # create sitemaps to expand the hugo sitemap
