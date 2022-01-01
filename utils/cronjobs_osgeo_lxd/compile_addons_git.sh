@@ -165,7 +165,7 @@ echo "</table><hr />
 </body></html>" >> "$ADDON_PATH/logs/${INDEX_FILE}.html"
 
 echo ""
-bash ~/cronjobs/check_addons_urls.sh "$ADDON_PATH/docs/html" \
+bash ~/cronjobs/check_addons_urls.sh "$ADDON_PATH" \
    "$ADDON_PATH/logs/${INDEX_MANUAL_PAGES_FILE}.log" \
    "$ADDON_PATH/logs/${INDEX_MANUAL_PAGES_FILE}.html"
 echo ""
