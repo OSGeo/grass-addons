@@ -19,12 +19,14 @@ This directory contains the relevant files to generate and deploy the GRASS GIS 
     - grass8: within `cron_grass8_relbranch_build_binaries.sh`
 - GRASS GIS addons overview page at https://grass.osgeo.org/grass7/manuals/addons/:
     - `compile_addons_git.sh` - called from `cron_grass7_relbranch_build_binaries.sh`
-    - `grass-addons-fetch-xml.sh` - called from `cron_grass7_relbranch_build_binaries.sh`
+    - `build-xml.py` - called from `cron_grass7_relbranch_build_binaries.sh`,
+    generates the modules.xml file required for the g.extension module
     - `grass-addons-index.sh` - called from `cron_grass7_relbranch_build_binaries.sh`
     - `get_page_description.py` - called from `grass-addons-index.sh`
 - GRASS GIS addons overview page at https://grass.osgeo.org/grass8/manuals/addons/:
     - `compile_addons_git.sh` - called from `cron_grass8_relbranch_build_binaries.sh`
-    - `grass-addons-fetch-xml.sh` - called from `cron_grass8_relbranch_build_binaries.sh`
+    - `build-xml.py` - called from `cron_grass8_relbranch_build_binaries.sh`
+    generates the modules.xml file required for the g.extension module
     - `grass-addons-index.sh` - called from `cron_grass8_relbranch_build_binaries.sh`
     - `get_page_description.py` - called from `grass-addons-index.sh`
 - GRASS GIS programmer's manual:
