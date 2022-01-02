@@ -135,7 +135,12 @@ import atexit
 import os
 import sys
 import string
-import resource
+
+try:
+    import resource
+except ImportError:
+    resource = None
+
 import copy
 from io import StringIO
 import numpy as np
@@ -216,7 +221,9 @@ def main():
     d_flag = flags["d"]
     r_flag = flags["r"]
 
-    ulimit = resource.getrlimit(resource.RLIMIT_NOFILE)
+    ulimit = (512, 2048)  # Windows number of opened files (soft-limit, hard-limit)
+    if resource:
+        ulimit = resource.getrlimit(resource.RLIMIT_NOFILE)
 
     net_hist_str = (
         grass.read_command("v.info", map=network_map, flags="h")
