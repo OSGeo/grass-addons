@@ -5,7 +5,7 @@
 MODULE:       r.connectivity.distance
 AUTHOR(S):    Stefan Blumentrath <stefan . blumentrath at nina . no >
 PURPOSE:      Compute cost-distance between all polygons (patches) of an
-              input vector map within a user defined euclidean distance
+              input vector map within a user defined Euclidean distance
               threshold
 
               Recently, graph-theory has been characterised as an
@@ -21,10 +21,10 @@ PURPOSE:      Compute cost-distance between all polygons (patches) of an
               r.connectivity.network and r.connectivity.corridor).
               r.connectivity.distance loops through all polygons in the
               input vector map and calculates the cost-distance to all
-              the other polygons within a user-defined defined Euclidean
+              the other polygons within a user-defined Euclidean
               distance threshold.
 
-              It produces two vector maps that holde the network:
+              It produces two vector maps that hold the network:
                - an edge-map (connections between patches) and a
                - vertex-map (centroid representations of the patches).
 
@@ -57,8 +57,8 @@ PURPOSE:      Compute cost-distance between all polygons (patches) of an
               width of possible corridors computed with
               r.connectivity.corridor later on.
 
-              If the conefor_dir option is specified also output in
-              CONEFOR formart will be produced, namely
+              If the conefor_dir option is also specified, output in
+              CONEFOR format will be produced, namely
                - a node file
                - a directed connection file, and
                - an undirected connection file
@@ -66,6 +66,7 @@ PURPOSE:      Compute cost-distance between all polygons (patches) of an
 
 COPYRIGHT:    (C) 2018 by the Norwegian Institute for Nature Research
                               (NINA)
+
 
               This program is free software under the GNU General Public
               License (>=v2). Read the file COPYING that comes with
@@ -107,7 +108,7 @@ Todo:
 #% key: pop_proxy
 #% required: yes
 #% key_desc: pop_proxy
-#% description: Column containig proxy for population size (not NULL and > 0)
+#% description: Column containing proxy for population size (not NULL and > 0)
 #%end
 
 #%option G_OPT_R_INPUT
