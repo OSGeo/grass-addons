@@ -51,7 +51,7 @@ MAINDIR=/home/neteler
 SOURCE=$MAINDIR/src/
 BRANCH=releasebranch_${GMAJOR}_$GMINOR
 GRASSBUILDDIR=$SOURCE/$BRANCH
-TARGETMAIN=/var/www/code_and_data/
+TARGETMAIN=/var/www/code_and_data
 TARGETDIR=$TARGETMAIN/grass${VERSION}/binary/linux/snapshot
 TARGETHTMLDIR=$TARGETMAIN/grass${VERSION}/manuals/
 # programmer's manual is only built from the relbranch_8_0
@@ -240,9 +240,21 @@ cd $GRASSBUILDDIR
 sh ~/cronjobs/compile_addons_git.sh ~/src/grass$GMAJOR-addons/src/ \
    ~/src/$BRANCH/dist.$ARCH/ \
    ~/.grass$GMAJOR/addons \
-   ~/src/$BRANCH/bin.$ARCH/grass$VERSION
+   ~/src/$BRANCH/bin.$ARCH/grass$VERSION \
+   1
 mkdir -p $TARGETHTMLDIR/addons/
-cp ~/.grass$GMAJOR/addons/docs/html/* $TARGETHTMLDIR/addons/
+# copy indvidual addon html files into one target dir if compiled addon
+# has own dir e.g. ~/.grass7/addons/db.join/ with bin/ docs/ etc/ scripts/
+# subdir
+for dir in `find ~/.grass$GMAJOR/addons -maxdepth 1 -type d`; do
+    if [ -d $dir/docs/html ] ; then
+        if [ "$(ls -A $dir/docs/html/)" ]; then
+            for f in $dir/docs/html/*; do
+                cp $f $TARGETHTMLDIR/addons/
+            done
+        fi
+    fi
+done
 sh ~/cronjobs/grass-addons-index.sh $GMAJOR $GMINOR $TARGETHTMLDIR/addons/
 chmod -R a+r,g+w $TARGETHTMLDIR 2> /dev/null
 
@@ -250,8 +262,9 @@ chmod -R a+r,g+w $TARGETHTMLDIR 2> /dev/null
 mkdir -p $TARGETMAIN/addons/grass$GMAJOR/logs/
 cp -p ~/.grass$GMAJOR/addons/logs/* $TARGETMAIN/addons/grass$GMAJOR/logs/
 
-# cp XML from winGRASS server
-sh ~/cronjobs/grass-addons-fetch-xml.sh $TARGETMAIN/addons/
+# generate addons module.xml file (required for g.extension module)
+~/src/$BRANCH/bin.$ARCH/grass$VERSION --tmp-location EPSG:4326 --exec ~/cronjobs/build-xml.py --build ~/.grass$GMAJOR/addons
+cp ~/.grass$GMAJOR/addons/modules.xml $TARGETMAIN/addons/grass$GMAJOR/modules.xml
 
 ############################################
 # create sitemaps to expand the hugo sitemap
