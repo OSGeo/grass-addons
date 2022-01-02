@@ -1,6 +1,6 @@
 <h2>DESCRIPTION</h2>
 
-r.connectivity.corridors is th 3rd tool of the r.connectivity.* toolset.
+r.connectivity.corridors is the 3rd tool of the r.connectivity.* toolset.
 
 <p>
 <em>r.connectivity.corridors</em> loops through the user-selected edges 
@@ -9,7 +9,7 @@ r.connectivity.corridors is th 3rd tool of the r.connectivity.* toolset.
 </p>
 <p>
 Corridors are defined as all pixels that have a lower average cost distance 
-from a pair of patches, than the average cost distance between that pair. 
+from a pair of patches than the average cost distance between that pair. 
 The user can add a tolerance for allowed deviation from cost distance 
 within corridors in %, using the <b>corridor_tolerance</b> option.
 </p>
@@ -19,8 +19,8 @@ corridors for the entire network by weighting them with regards to one or
 more network measures from <em>r.connectivity.network</em>, using the 
 <b>weights</b> option.
 </p>
-Thus, <em>r.connectivity.corridors</em> produces two types of output,
-that are named according to a user defined <b>prefix</b> and <b>suffix</b>:
+Thus, <em>r.connectivity.corridors</em> produces two types of output, 
+that are named according to a user defined <b>prefix</b> and <b>suffix</b>: 
 <ol>
 <li>a set of individual corridor raster maps 
 (named: <b>prefix</b>_corridor_<b>edge_id</b>_<b>weight</b>) and</li>
@@ -49,7 +49,7 @@ of corridors are calculated:</p>
 
 <h3>Corridor set 1:</h3>
 For the first set, corridors are only computed for the minimum spanning 
-tree (in literture sometimes called the backbone of an ecological network). 
+tree (in literature sometimes called the backbone of an ecological network). 
 This is specified in the "where"-parameter. Edge betweenness values are 
 used as weights, which represent the centrality of a connection (edge) 
 in a network (and is therewith a measure of importance). The output is a 
@@ -98,12 +98,12 @@ potential flow of propagules.</i>
 
 Users with a multi-processor computer (e.g. dual-core) may speed up 
 corridor processing by setting cores > 1 r.connectivity.corridors.<br>
-An other means for speeding up processing would be to use integer weights 
-(e.g. by converting edge betweenness to integer afte multiplying with 10 
+Another means for speeding up processing would be to use integer weights 
+(e.g. by converting edge betweenness to integer after multiplying with 10 
 to the power of the relevant number of digits). Then <em>r.reclass</em> 
 is used in the script instead of <em>r.recode</em>.<br>
 <br>
-When all analysis is finnished some cleanup may be appropriate, in order 
+When all analysis is finished some cleanup may be appropriate, in order 
 to save disk space:<br>
 
 <div class="code"><pre>
