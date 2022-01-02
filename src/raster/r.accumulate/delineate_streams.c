@@ -99,7 +99,7 @@ static void trace_down(struct cell_map *dir_buf, struct raster_map *accum_buf,
     int dir;
 
     /* if the current cell is outside the computational region or its
-     * acccumulation is less than the threshold, stop tracing */
+     * accumulation is less than the threshold, stop tracing */
     if (row < 0 || row >= nrows || col < 0 || col >= ncols ||
         get(accum_buf, row, col) < thresh)
         return;
