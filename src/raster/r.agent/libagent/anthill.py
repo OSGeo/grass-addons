@@ -24,7 +24,7 @@ class Anthill(world.World):
     The agents are implemented as ants, wandering around by chance
     if they find a goal cell they will mark their way back home
     with pheromone. The following ants then choose the marked cells
-    on the playground more likely then unmarked spots. The pheromone
+    on the playground more likely than unmarked spots. The pheromone
     evaporates over time.
     """
 

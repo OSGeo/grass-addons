@@ -3,7 +3,7 @@
 MODULE:       r.agent.aco
 AUTHOR(S):    michael lustenberger inofix.ch
 PURPOSE:      r.agent.aco is used to organize ant-like agents in a raster
-              based playground. As decribed by the Ant Colony Optimization
+              based playground. As described by the Ant Colony Optimization
               algorithm, the ants wander around looking for attractors,
               marking their paths if they find any.
 COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team

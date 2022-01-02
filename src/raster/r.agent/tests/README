@@ -1,6 +1,6 @@
 README file for libagent's test suite
 
-This test cases are intended to contain all the tests for
+These test cases are intended to contain all the tests for
 libagent and to be usable with python 2.7 and higher, it
 should however run resp. via the separate unittest2 available
 as backport for python 2.3-2.6 too.
@@ -10,7 +10,7 @@ level issue
  user@host:~/path/r.agent.aco$ unit2 discover -v -p "test*.py"
 
 All tests except for tests.test_grassland should run without
-the GRASS environemnent. For tests.test_grassland you must start
+the GRASS environment. For tests.test_grassland you must start
 the tests inside the GRASS console respectively:
  GRASS 6.4.4 (foobar):~/path/r.agent.aco > unit2 discover -v -p "test*.py"
 
