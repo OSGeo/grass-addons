@@ -316,7 +316,7 @@ int main(int argc, char *argv[])
 
     if ((floor(window.ew_res) != window.ew_res) ||
         (floor(window.ns_res) != window.ns_res)) {
-        G_fatal_error(_("please use region with integer resolution "));
+        G_fatal_error(_("Please use region with integer resolution "));
     }
 
     /* Check that point location falls within current region */
@@ -496,7 +496,7 @@ int main(int argc, char *argv[])
                             cell_counts[segment]++;
                         }
                     }
-                    /* Implicit else leaves value in bufer as NULL */
+                    /* Implicit else leaves value in buffer as NULL */
                 }
             }
         }
@@ -571,7 +571,7 @@ int main(int argc, char *argv[])
                                                    output_buf_cell_type, row,
                                                    col);
                     }
-                    /* Implicit else leaves value in bufer as NULL */
+                    /* Implicit else leaves value in buffer as NULL */
                 }
             }
         }

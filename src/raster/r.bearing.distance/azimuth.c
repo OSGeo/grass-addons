@@ -121,7 +121,7 @@ double calc_azimuth(int row, int col, int reverse)
 
     if (axis) {
         if (reverse) {
-            /* Calulate bearing from cell towards point */
+            /* Calculate bearing from cell towards point */
             switch (axis) {
             case (1):
                 azimuth = 180.0;
@@ -141,7 +141,7 @@ double calc_azimuth(int row, int col, int reverse)
             };
         }
         else {
-            /* Calulate bearing from point towards cell */
+            /* Calculate bearing from point towards cell */
             switch (axis) {
             case (1):
                 azimuth = 0.0;
@@ -174,7 +174,7 @@ double calc_azimuth(int row, int col, int reverse)
         /* Convert alpha in radians to azimuth in degrees */
 
         if (reverse) {
-            /* Calulate bearing from cell towards point */
+            /* Calculate bearing from cell towards point */
             switch (quad) {
             case (1):
                 azimuth = (AZ_RAD180 + alpha) * 180.0 / AZ_PI;
@@ -192,7 +192,7 @@ double calc_azimuth(int row, int col, int reverse)
             }
         }
         else {
-            /* Calulate bearing from point towards cell */
+            /* Calculate bearing from point towards cell */
             switch (quad) {
             case (1):
                 azimuth = alpha * 180.0 / AZ_PI;
@@ -217,9 +217,9 @@ double calc_azimuth(int row, int col, int reverse)
 /***********************************************************************/
 /*
    This variant computes the axial difference such that if the bearing
-   is aligned with the reference bearing then the result is zero.  If the 
+   is aligned with the reference bearing then the result is zero. If the 
    the bearing is orthogonal to the reference bearing then the result is
-   +90.  Intermediate differences fall between 0 and +90.
+   +90. Intermediate differences fall between 0 and +90.
  */
 
 double calc_azimuth_axial_diff(double reference_bearing, double bearing)
@@ -240,11 +240,11 @@ double calc_azimuth_axial_diff(double reference_bearing, double bearing)
 /***********************************************************************/
 /*
    This variant computes the axial difference such that if the bearing
-   is aligned with the reference bearing then the result is zero.  If the 
+   is aligned with the reference bearing then the result is zero. If the 
    the bearing is orthogonal to the reference bearing then the result is
-   +/-90.  Intermediate differences fall between 0 and +/-90.  The difference is
-   positive if the the bearing is between 0 and 180 degree clockwise of the
-   reference bearing.  The difference is negative is the bearing is 
+   +/-90. Intermediate differences fall between 0 and +/-90. The difference is
+   positive if the bearing is between 0 and 180 degree clockwise of the
+   reference bearing. The difference is negative if the bearing is 
    between 0 and 180 degrees anticlockwise of the reference bearing.
  */
 

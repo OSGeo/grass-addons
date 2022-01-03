@@ -8,7 +8,7 @@
    Written by Mark Lake, 15/07/2002, for r.horizon in GRASS 5.x
 
    NOTES
-   Once maps are loaded into buffer, it is possible to read and write
+   Once maps are loaded into a buffer, it is possible to read and write
    individual map cell values addressed by row and col, where row 0
    is the top row in the rast map and col 0 is the left-hand column
    in the raster map.
