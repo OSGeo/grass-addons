@@ -33,7 +33,7 @@
 #include <grass/linkm.h>
 #include <grass/bitmap.h>
 /* function here defined */
-#include "SWE.h" /*function that solve the shallow water equations*/
+#include "SWE.h" /*function that solves the shallow water equations*/
 
 //#include <grass/interpf.h>
 
@@ -166,7 +166,7 @@ int main(int argc, char *argv[]){
   startpt *a_start,*tmp_start;*/
   struct Cell_head cellhd; /* it stores region information and header information of rasters */
   struct Cell_head window;
-  //struct History history;  /* holds meta-data */
+  //struct History history;  /* holds metadata */
 
   /* input-output raster file descriptor */
   int infd_ELEV,infd_LAKE,infd_DAMBREAK, infd_MANNING, infd_U, infd_V;
@@ -544,7 +544,7 @@ int main(int argc, char *argv[]){
     	G_fatal_error("You choose flow direction map without flow velocity prefix name");
     }
 
-	/* check legal output name */
+	/* Check legal output name */
 	if (OUT_H) {
 	 if (G_legal_filename (OUT_H) < 0)
 		G_fatal_error (_("[%s] is an illegal name"), OUT_H);
@@ -569,7 +569,7 @@ int main(int argc, char *argv[]){
 	 if (G_legal_filename (OUT_WAVEFRONT) < 0)
 		G_fatal_error (_("[%s] is an illegal name"), OUT_WAVEFRONT);
 	}
-  /* type of dam failure*/
+  /* Type of dam failure*/
   if (strcmp(opt.met->answer, "uniform drop in of lake") == 0)
   	method=1;
   else if (strcmp(opt.met->answer, "small dam breach") == 0)
@@ -596,14 +596,14 @@ int main(int argc, char *argv[]){
   } else if (input_V->answer != NULL && input_U->answer == NULL ) {
 	inrast_V = Rast_allocate_d_buf();
   }
-  /* get windows rows & cols */
+  /* Get windows rows & cols */
   nrows = Rast_window_rows();
   ncols = Rast_window_cols();
   G_get_window(&window);
   res_ew = window.ew_res;
   res_ns = window.ns_res;
 
-  /* allocate memory matrix */
+  /* Allocate memory matrix */
   m_DAMBREAK = G_alloc_fmatrix(nrows,ncols);
   m_m = G_alloc_fmatrix(nrows,ncols);
   m_z = G_alloc_fmatrix(nrows,ncols);
@@ -639,7 +639,7 @@ int main(int argc, char *argv[]){
   	{
 	  G_percent (row, nrows, 2);
 
-	  /* read a line input maps into buffers*/
+	  /* Read a line input maps into buffers*/
 	  Rast_get_f_row (infd_ELEV, inrast_ELEV, row);
 	  Rast_get_d_row (infd_LAKE, inrast_LAKE, row);
 	  Rast_get_f_row (infd_DAMBREAK, inrast_DAMBREAK, row);
@@ -661,10 +661,10 @@ int main(int argc, char *argv[]){
 	      if (G_get_f_raster_row (infd_MANNING, inrast_MANNING, row) < 0)
 		G_fatal_error (_("Could not read from <%s>"),MANNING);*/
 
-	      /* read every cell in the line buffers */
+	      /* Read every cell in the line buffers */
 	      for (col = 0; col < ncols; col++)
 		{
-  			/* store values in memory matrix (attenzione valori nulli!)*/
+  			/* Store values in memory matrix (attenzione valori nulli!) (attention null values!)*/
 		  	m_DAMBREAK[row][col] = ((FCELL *) inrast_DAMBREAK)[col];
 		  	m_m[row][col] = ((FCELL *) inrast_MANNING)[col];
 		  	m_z[row][col] = ((FCELL *) inrast_ELEV)[col];
@@ -765,7 +765,7 @@ int main(int argc, char *argv[]){
 					if (vel_0 > vel_max)
 					vel_max=vel_0;
 				} else {
-					G_fatal_error(_("Don't find the dambreak - Please select a correct map or adjust the computational region"));
+					G_fatal_error(_("Didn't find the dambreak. Please select a correct map or adjust the computational region."));
 				}
 
 				if (m_DAMBREAK[row][col] > 0) {
@@ -778,7 +778,7 @@ int main(int argc, char *argv[]){
 					}
 		  	}
 		}
-		G_message("the number of lake cell is': %d\n", num_cell);
+		G_message("The number of lake cell is': %d\n", num_cell);
 
 		/**************************************/
 		/* timestep in funzione di V_0 e res */
@@ -834,7 +834,7 @@ int main(int argc, char *argv[]){
 					}
 			}}//end two for cicles
 		} //end if
-	// there isn't interest to find where is the lake --> everywhere m_lake[row][col]=0 
+	// There isn't interest to find where is the lake --> everywhere m_lake[row][col]=0 
 	if (method==3){
 	 	for (row = 0; row < nrows; row++)
 			{
@@ -854,7 +854,7 @@ int main(int argc, char *argv[]){
 
   	G_message("Model running");
 	
-	/* calculate time step loop */
+	/* Calculate time step loop */
 	for(t=0; t<=TSTOP; t+=timestep){
 	//printf("************************************************\n");
 	//while(!getchar()){ }
@@ -885,7 +885,7 @@ int main(int argc, char *argv[]){
 				if (reg_lim==0) {
 					G_warning("At the time %.3f the computational region is smaller than inundation",t);
 					reg_lim=1;
-				} /* warning  message only a time */
+				} /* Warning  message only a time */
 	    		} /* velocities at the limit of computational region */
 				
             	//********************************************************************				
@@ -984,7 +984,7 @@ int main(int argc, char *argv[]){
 				sprintf(name3,"%s%s%s%d","opt_","dir_",OUT_VEL,pp);
 				G_message("Time: %lf, writing an optional output maps %d",t, pp);
 			}
-			/* controlling if we can write the raster */
+			/* Controlling if we can write the raster */
 			if (OUT_H) {
 				if ( (outfd_H = Rast_open_new (name1,DCELL_TYPE)) < 0) {
 					G_fatal_error (_("Could not open <%s>"),name1);
@@ -1000,7 +1000,7 @@ int main(int argc, char *argv[]){
 					G_fatal_error (_("Could not open <%s>"),name3);
 				}
 			}
-			/* allocate output buffer */
+			/* Allocate output buffer */
 			if (OUT_VEL) {
 				outrast_VEL = Rast_allocate_d_buf();
 			}
@@ -1014,7 +1014,7 @@ int main(int argc, char *argv[]){
 				{
 			 	for (col = 0; col < ncols; col++) 
 					{
-					/* copy matrix in buffer */
+					/* Copy matrix in buffer */
 					if (OUT_VEL) {
 						((DCELL *) outrast_VEL)[col] = sqrt(pow(m_u1[row][col],2.0) + pow(m_v1[row][col],2.0));
 					}
@@ -1055,7 +1055,7 @@ int main(int argc, char *argv[]){
 				 	Rast_put_d_row(outfd_VEL_DIR,outrast_VEL_DIR);
 				 }
 			}  /* end row */
-			/* memory cleanup */
+			/* Memory cleanup */
 			if (OUT_VEL) {
 				G_free(outrast_VEL);
 			}
@@ -1065,7 +1065,7 @@ int main(int argc, char *argv[]){
 			if (flag_d->answer) {
 				G_free(outrast_VEL_DIR);
 			}
-			/* close the raster maps */
+			/* Close the raster maps */
 			if (OUT_VEL) { 
 				Rast_close (outfd_VEL);
 			}
@@ -1090,7 +1090,7 @@ int main(int argc, char *argv[]){
 
 
 //*******************************************************************
-// write final flooding map
+// Write final flooding map
 if(OUT_H) {
 	sprintf(name1,"%s%d",OUT_H,TSTOP);
 }
@@ -1151,7 +1151,7 @@ if (OUT_WAVEFRONT){
 		G_fatal_error (_("Could not open <%s>"),OUT_WAVEFRONT);
 }
 
-/* allocate output buffer */
+/* Allocate output buffer */
 if (OUT_H) {
 	outrast_H = Rast_allocate_d_buf();
 }
@@ -1189,7 +1189,7 @@ G_percent(nrows, nrows, 1);	/* finish it */
 for (row = 0; row < nrows; row++){
    G_percent (row, nrows, 2);
 	for (col = 0; col < ncols; col++) {
-		/* copy matrix in buffer */
+		/* Copy matrix in buffer */
 		if (OUT_H) {
 			((DCELL *) outrast_H)[col] = m_h1[row][col];
 		}
@@ -1343,7 +1343,7 @@ for (row = 0; row < nrows; row++){
   		G_message("Writing the output final map %s", OUT_WAVEFRONT);
   	}
 
-G_percent(nrows, nrows, 1);	/* finish it */
+G_percent(nrows, nrows, 1);	/* Finish it */
 if (OUT_VEL) {
 	G_free(outrast_VEL);
 	Rast_close (outfd_VEL);
@@ -1389,9 +1389,9 @@ if (OUT_WAVEFRONT){
 }
 
 //************************************************************************
-// da sistemare
+// da sistemare (TODO/To fix)
 //************************************************************************
-/* add command line incantation to history file */
+/* Add command line incantation to history file */
 //G_short_history(result, "raster", &history);
 //G_command_history(&history);
 //G_write_history(result, &history);
