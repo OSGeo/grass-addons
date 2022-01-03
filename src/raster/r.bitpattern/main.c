@@ -1,33 +1,34 @@
 
+
 /****************************************************************************
  *
  * MODULE:      r.bitpattern
  * AUTHOR(S):   Radim Blazek
  * PURPOSE:     bit pattern comparison
- *		Functionality:
- *		1. define position: set bit(s) to 1 you want to match
- *		   then convert this position pattern to integer, set pattern=
- *		   parameter with that integer value
- *		2. define pattern *value* which should be in that position:
- *		   first bit pattern of value, convert to integer, set
- *		   patval= parameter
+ *              Functionality:
+ *              1. Define position: set bit(s) to 1 you want to match
+ *                 then convert this position pattern to integer, set pattern=
+ *                 parameter with that integer value
+ *              2. Define pattern *value* which should be in that position:
+ *                 first bit pattern of value, convert to integer, set
+ *                 patval= parameter
  *
- *		128 64 32 16 8 4 2 1
- *		Example:
- *		1. define position 
- *			xx xx 1x xx
- *			binary: 1000 -> integer: 8 -> pattern=8
- *		2. define value 
+ *              128 64 32 16 8 4 2 1
+ *              Example:
+ *              1. Define position 
+ *                      xx xx 1x xx
+ *                      binary: 1000 -> integer: 8 -> pattern=8
+ *              2. Define value 
  *                      Ex.: we want to check for 0 in that position
- *			xx xx 0x xx
- *			binary: 0000 -> integer: 0 -> patval=0
- *                 if value can be arbitray (0/1), then assume 0 value
+ *                      xx xx 0x xx
+ *                      binary: 0000 -> integer: 0 -> patval=0
+ *                 If value can be arbitrary (0/1), then assume 0 value
  *
  * COPYRIGHT:    (C) 2002-2014 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
- *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
- *   	    	 for details.
+ *               License (>=v2). Read the file COPYING that comes with GRASS
+ *               for details.
  *
  *****************************************************************************/
 
@@ -81,7 +82,7 @@ int main(int argc, char *argv[])
     patval->description = _("Bit pattern value");
 
     if (G_parser(argc, argv))
-	exit(EXIT_FAILURE);
+    exit(EXIT_FAILURE);
 
     name = input->answer;
     result = output->answer;
@@ -106,26 +107,26 @@ int main(int argc, char *argv[])
     outfd = Rast_open_new(result, data_type);
 
     for (row = 0; row < nrows; row++) {
-	CELL c;
+        CELL c;
 
         G_percent(row, nrows, 2);
 
-	/* read input map */
-	Rast_get_row(infd, inrast, row, data_type);
+        /* read input map */
+        Rast_get_row(infd, inrast, row, data_type);
 
-	/*process the data */
-	for (col = 0; col < ncols; col++) {
+        /*process the data */
+        for (col = 0; col < ncols; col++) {
 
-	    c = ((CELL *) inrast)[col];
-	    /*((CELL *) outrast)[col] = c; */
-	    if ((c & pat) == patv)
-		((CELL *) outrast)[col] = 1;
-	    else
-		((CELL *) outrast)[col] = 0;
+            c = ((CELL *) inrast)[col];
+            /*((CELL *) outrast)[col] = c; */
+            if ((c & pat) == patv)
+                ((CELL *) outrast)[col] = 1;
+            else
+                ((CELL *) outrast)[col] = 0;
 
-	}
+        }
 
-	Rast_put_row(outfd, outrast, data_type);
+        Rast_put_row(outfd, outrast, data_type);
     }
     G_percent(1, 1, 1);
     
