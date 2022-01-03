@@ -53,6 +53,7 @@
 
 //#define hmin 0.01
 /* lo calcolo dopo in funzione della velocita' massima 
+   (Calculated later as a function of maximum velocity)
 #define timestep 0.1 */
 
 /* 
@@ -731,7 +732,7 @@ int main(int argc, char *argv[]){
 
 	if (method==1 || method==2) {
 		num_cell=0;
-		/* cerco il lago */
+		/* Search for lakes (cerco il lago) */
 		for (row = 0; row < nrows; row++)
 			{
 			for (col = 0; col < ncols; col++)
@@ -750,7 +751,7 @@ int main(int argc, char *argv[]){
 			{
 			for (col = 0; col < ncols; col++)
 				{
-				/*  rottura diga */
+				/*  Dam break (rottura diga) */
 				if (m_DAMBREAK[row][col] > 0){
 					num_break++;
 					G_message("(%d,%d)Cell Dam Breach n° %d",row,col,num_break);
@@ -781,6 +782,7 @@ int main(int argc, char *argv[]){
 
 		/**************************************/
 		/* timestep in funzione di V_0 e res */
+		/* timestep as a function of V_0 and res */
 		/**************************************/
 		//timestep=0.01;
 		//timestep= ((res_ns+res_ew)/2.0)/(vel_max*50.0);
@@ -793,7 +795,7 @@ int main(int argc, char *argv[]){
 		// Uniform drop in of lake (method=1 or method =2) 
 		//*****************************************************************************
 		if (method==1 || method==2){
-			/* calcolo l'abbassamento sul lago*/
+			/* calcolo l'abbassamento sul lago (Calculation of the lowering of the lake) */
 			if (num_cell!=0) {
 				fall = (volume) / (num_cell * res_ew * res_ns);
 				//printf("volume=%f, fall=%f\n",volume,fall);
@@ -805,12 +807,13 @@ int main(int argc, char *argv[]){
 				for (col = 1; col < ncols-1; col++)
 				{
 					if (m_DAMBREAK[row][col]>0){
-						// ragiona se ha senso
+						// ragiona se ha senso (I think it makes sense)
 						m_h2[row][col]=m_h1[row][col]-fall;
 						if (m_h2[row][col]<=0) {
 							m_h2[row][col]=0.0;
 							if (m_h1[row][col]>0) {
 							// questo warning va modificato perchè vale per ogni cella ---> bisogna metterne uno generico che valga quando tutte le celle sono con h=0
+							// (This warning must be modified since it is valid for every cell) ---> (You have to put a generic one that is valid when all cells have h=0)
 								num_break--;
 								if (num_break==0){
 									if (warn1==0){
@@ -837,7 +840,7 @@ int main(int argc, char *argv[]){
 			{
 			for (col = 0; col < ncols; col++)
 				{
-				/*  rottura diga */
+				/*  Dam break (rottura diga) */
 				if (m_DAMBREAK[row][col] > 0){
 					m_z[row][col]=m_z[row][col]-m_DAMBREAK[row][col];
 					m_DAMBREAK[row][col]=-1.0;
@@ -961,10 +964,10 @@ int main(int argc, char *argv[]){
 	/* qualcosa non va in questo if  								*/        
 	/*----------------------------------------------------------------------------------------------*/
 	
-	/* controllo se devo scrivere outputs */
+	/* controllo se devo scrivere outputs (Check if we need to write outputs) */
 	if ((input_DELTAT->answer != NULL)||(parm.opt_t->answer != NULL)) {
 		if ((((m*DELTAT-t) <= timestep && (m*DELTAT) < TSTOP) && (input_DELTAT->answer != NULL)) || ((pp < ntimes && (times[pp]-t) < timestep) && (parm.opt_t->answer != NULL))) {
-	     	 	if ((m*DELTAT-t) <= timestep && m*DELTAT < TSTOP) {   /* devo cambiare il nome del raster e aggiungere ogni volta _timestep*/
+	     	 	if ((m*DELTAT-t) <= timestep && m*DELTAT < TSTOP) {   /* devo cambiare il nome del raster e aggiungere ogni volta _timestep (We need to change the raster name and add _timestep at each time)*/
 				if (OUT_H) {
 					sprintf(name1,"%s%d",OUT_H,m*DELTAT);
 				}
@@ -1041,7 +1044,7 @@ int main(int argc, char *argv[]){
 					}
 
 				} /* end_col*/
-				 /*copia righe !!! */
+				 /*copia righe (Copy lines)!!! */
 				 if (OUT_VEL) {
 				 	Rast_put_d_row(outfd_VEL,outrast_VEL);
 				 }
@@ -1318,7 +1321,7 @@ for (row = 0; row < nrows; row++){
 	}
  	//G_message("pippo, row=%d e nrows=%d", row, nrows);
 }	// end row
-/* chiudi i file */
+/* chiudi i file (Close files) */
 
 
   	if (OUT_H) {
