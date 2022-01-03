@@ -73,7 +73,7 @@ int main(int argc, char **argv)
     flag_slope = G_define_flag();
     flag_slope->key = 's';
     flag_slope->description =
-	_("Add slope convergence (radically slow down calculation time)");
+	_("Add slope convergence (radically slows down calculation time)");
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
