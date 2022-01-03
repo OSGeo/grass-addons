@@ -1,124 +1,156 @@
 <h2>DESCRIPTION</h2>
 
 
-<em><b>r.damflood</b></em> - The definition of flooding areas is of considerable importance for both the risk analysis and the emergency management.
-This command, in particular, is an embedded GRASS GIS hydrodynamic 2D model that allows to obtain flooding area due to a failure 
-of a dam, given the geometry of the reservoir and of the downstream area, the initial conditions and the dam breach geometry.
+<em><b>r.damflood</b></em> - The definition of flooding areas is of considerable
+importance for both the risk analysis and the emergency management.
+This module, in particular, is an embedded GRASS GIS hydrodynamic 2D model
+that allows to obtain flooding areas due to a failure of a dam, given 
+the geometry of the reservoir and of the downstream area, 
+the initial conditions and the dam breach geometry.
 <br>
 
-The numerical model solves the conservative form of the shallow water equations (SWE) using a finite volume method (FVM); 
-the intercell flux is computed by the "upwind method and the water-level gradient is evaluated by weighted 
-average of both upwind and downwind gradient. Additional details of the specific numerical scheme adopted in the model are 
+The numerical model solves the conservative form of the shallow water equations
+(SWE) using a finite volume method (FVM);
+the intercell flux is computed by the "upwind method and the water-level
+gradient is evaluated by weighted average of both upwind and downwind gradient. 
+Additional details of the specific numerical scheme adopted in the model are
 presented in references [1].<br>
 
-The command allows to generate raster time series, of water depth and flow velocity, with time resolution defined by user. 
-Each time series is identified by a number of raster maps named with a common prefix as specified by the user and the time instant
-which it refers expressed in seconds from the dam failure, joined by the underscore character (e.g.; myvel_125, myvel_250, myvel_375, etc.).<br>
+The module allows to generate raster time series, of water depth and
+flow velocity, with time resolution defined by the user.
+Each time series is identified by a number of raster maps named with a common
+prefix as specified by the user and the time instant which it refers 
+expressed in seconds from the dam failure, joined by the underscore character 
+(e.g.; myvel_125, myvel_250, myvel_375, etc.).<br>
 
-Because this new module has been implemented with the aim to provide an instrument for risk assessment fully within a GIS environment,
-it should be able to provide intensity maps directly applicable in those analyses.In floods, intensity generally corresponds 
-to the maximum flow depth, but in the particular case of flash floods, where velocities are normally high,
-it is recommended to use as intensity indicator the maximum between the water depth and the product of water velocity and water depth. 
-For this reason, with this module, in addition to the water depth and velocity maps, the user can choose
-a variety of output raster maps: maximum water depth, maximum water velocity, and maximum intensity raster maps. <br>
+Because this new module has been implemented with the aim to provide an 
+instrument for risk assessment fully within a GIS environment, it should be 
+able to provide intensity maps directly applicable in those analyses.
+In floods, intensity generally corresponds to the maximum flow depth, 
+but in the particular case of flash floods, where velocities are normally high,
+it is recommended to use as an intensity indicator the maximum between
+the water depth and the product of water velocity and water depth.
+For this reason, with this module, in addition to the water depth and velocity
+maps, the user can choose a variety of output raster maps: maximum water depth, 
+maximum water velocity, and maximum intensity raster maps.<br>
 
-In case on high numerical stability problem, the user is warned, and the simulation is stopped.<br>
-<br><br>
-
-
-<em><b><!--font size = "5"-->Use</b></em><!--/font-->
+In case of numerical stability problems, the user is warned, and the
+simulation is stopped.<br>
 <br>
-<p>
-<em><b>Requested input:</b></em> <br>
-The required input are: <br>
-- a DTM including the lake bathimetry and the dam elevation over the ground [elev], <br>
-- a map with the initial condition easily obtained with <a href="https://grass.osgeo.org/grass-stable/manuals/r.lake.html">r.lake</a> command [lake], <br>
-- a dam breach width raster map [dambreak] which can be obtained using <a href="r.dam.html">r.dam</a> grass add-on script, <br>
-- a Manning's roughness coefficient raster map, easily obtained from a reclassification of a land use map 
-(<a href="https://grass.osgeo.org/grass-stable/manuals/r.reclass.html">r.reclass</a>) [manning],<br>
-- the simulation time length expressed in <em>seconds</em> [tstop].<br><br>
 
 
+<h3>USAGE</h3>
+<h4>Required inputs</h4>
+The required inputs are:
+<ul>
+<li>a DTM including the lake bathymetry and the dam elevation over
+    the ground [<b>elev</b>],</li>
+<li>a map with the initial condition easily obtained with
+    <a href="https://grass.osgeo.org/grass-stable/manuals/r.lake.html">r.lake</a>
+    command [<b>lake</b>],</li>
+<li>a dam breach width raster map [<b>dambreak</b>] which can be
+    obtained using <a href="r.dam.html">r.dam</a> grass add-on script,</li>
+<li>a Manning's roughness coefficient raster map, easily obtained from a
+    reclassification of a land use map
+    (<a href="https://grass.osgeo.org/grass-stable/manuals/r.reclass.html">r.reclass</a>)
+    [<b>manning</b>],</li>
+<li>the simulation time length expressed in <em>seconds</em>
+    [<b>tstop</b>].</li>
+</ul>
 
 
-<!-- ********************************************************************************************************************************* -->
-<em><b>Output map and additional output options:</b></em> <br>
-First the user can set a specific time lag [deltat] expressed in <em>seconds</em>, that is used for the output map (depth and velocity) generation.
-and also an additional series of instants [opt_t],expressed in <em>seconds</em> from the beginning of the simulation), used to generate further water flow depth and velocity maps 
-at desired precise times.<br>
+<h4>Output map and additional output options</h4>
+First the user can set a specific time lag [<b>deltat</b>] expressed in 
+<em>seconds</em>, that is used for the output map (depth and velocity)
+generation.
+It is also possible to generate the output maps, like water flow depth and 
+velocity maps, at some precise times. These additional series of instants
+are set with the <b>opt_t</b> parameter, expressed in <em>seconds</em> 
+from the beginning of the simulation.
 
-The user can choose between one of the following time series raster maps as output: 
- - flow depth [h],<br>
- - flow velocity [vel],<br>
-
-<!--Finally the user can be choose as additional output: <br>  -->
- - a raster map with maximum water depth [hmax], relative flooding intensity [i_hmax], that is the product of water depth and velocity, and the relative time of occurence[t_hmax],<br>
- - a raster map with maximum water velocity [vmax], relative flooding intensity [i_vmax], and the relative time of occurence[t_vmax],<br>
- - a raster map with maximum flooding intensity [imax] and the relative time of occurence[t_imax].<br>
- - a raster map with the time of arriving of the Wave-Front [wavefront]<br><br>
-where and the raster maps are coded as "prefix" + "_" + "elapsed seconds": e.g. <em>mydepth_125</em>.<br><br>
+The user can choose between one of the following time series raster maps as
+output:
+<ul>
+    <li>flow depth [<b>h</b>],</li>
+    <li>flow velocity [<b>vel</b>],</li>
+<!--Finally, the user can choose as additional output: <br>  -->
+<li>a raster map with maximum water depth [<b>hmax</b>],
+    relative flooding intensity [<b>i_hmax</b>], 
+    that is the product of water depth and velocity, 
+    and the relative time of occurrence [<b>t_hmax</b>],</li>
+<li>a raster map with maximum water velocity [<b>vmax</b>], 
+    relative flooding intensity [<b>i_vmax</b>], 
+    and the relative time of occurrence [<b>t_vmax</b>],</li>
+<li>a raster map with maximum flooding intensity [<b>imax</b>] 
+    and the relative time of occurrence[<b>t_imax</b>],</li>
+<li>a raster map with the time of arriving of the Wave-Front 
+    [<b>wavefront</b>]</li>
+</ul>
+where and the raster maps are coded as "prefix" + "_" + "elapsed seconds": 
+e.g. <em>mydepth_125</em>.<br>
 <br>
+
 <em>Obviously at least one output map prefix must be specified.</em> <br>
-The unit of measurements of output raster maps are expresssed using the <em>International System</em> (<em>S.I.</em>). 
-<br>
-<br>
+
+The unit of measurements of output raster maps are expressed using the
+<em>International System</em> (<em>S.I.</em>).
 
 
-
-<!-- ********************************************************************************************************************************* -->
-<em><b>Options:</b></em> <br>
-Using a specific flag, the user can obtain another raster map with flow directions that can be visualized using a specific display command 
-(<a href="https://grass.osgeo.org/grass-stable/manuals/d.rast.arrow.html">d.rast.arrow</a>) of the GRASS GIS software. <br>
-<br>
-
-Actually two different dam failure type are considered by the command: <em>(i)</em> full breach, <em>(ii)</em> partial breach.
-<br>
-<img src="./dam_failure.png" height="350" alt="" >
-
+<h4>Options</h4>
+Using a specific flag, the user can obtain another raster map with flow
+directions that can be visualized using a specific display command
+(<a href="https://grass.osgeo.org/grass-stable/manuals/d.rast.arrow.html">d.rast.arrow</a>)
+of the GRASS GIS software.<br>
 <br>
 
-In case of total istantaeous dam break (configuration <em>i</em>), the initial velocity is computed directly applying the SWE at the first time step; 
-while in case of partial dam breach (configuration <em>ii</em>) the user can choose between don't use any hypothesis, like in the previous configuration, 
+Two different dam failure types are currently considered by the module:
+<em>(i)</em> full breach, <em>(ii)</em> partial breach.
+<br>
+<img src="./dam_failure.png" height="350" alt="Full breach. Partial breach.">
+<br>
+
+In case of total instantaneous dam break (configuration <em>i</em>), the initial
+velocity is computed directly applying the SWE at the first time step;
+while in case of partial dam breach (configuration <em>ii</em>) the user can
+choose between don't use any hypothesis, like in the previous configuration,
 or evaluate the initial velocity using the overflow spillway equation: <br>
 
-<em> V </em> = <em> 0.4 </em> <span class="radic"><sup><var> </var></sup>&#8730;<span style="text-decoration:overline" class="radicand"><var>(2 <em>g h)</em></var></span> <br>    
+<em> V </em> = <em> 0.4 </em> <span class="radic"><sup><var> </var>
+</sup>&#8730;<span style="text-decoration:overline"class="radicand">
+<var>(2 <em>g h)</em></var></span><br>
 
 where <em>V</em> is the water flow velocity expressed in m/s, 
 <em>g</em> is the gravitational acceleration expressed in m/s<sup>2</sup> 
-and <em>h</em> is the water depth in correspondence of the dam breach expresssed in meters (m). <br>
+and <em>h</em> is the water depth in correspondence of the dam breach 
+expressed in meters (m). <br>
 
 
 
-Optionally the user may modify the initial timestep used for the numerical solution of the SWE (<em>default value = 0.01 s</em>), nevertheless the timestep  [],
-and choose a specific failure tipe corresponding to different computational method for the initial velocity estimation. 
+Optionally the user may modify the initial timestep used for the numerical
+solution of the SWE (<em>default value = 0.01 s</em>), nevertheless the
+timestep [<b>timestep</b>],
+and choose a specific failure type corresponding to different computational
+method for the initial velocity estimation.
 <br><br>
 
 
-<br>
 
-<br>
-<br>
-<em><b><!--font size = "5"-->Notes</b></em><!--/font-->
-
-<br>
-<br>
+<h2>NOTES</h2>
 <em>(GRASS ANSI C command)</em>
 
 
-<h2>AUTHORS</h2>
-Roberto Marzocchi (<a href="mailto:roberto.marzocchi@gter.it">e-mail</a>) and Massimiliano Cannata (<a href="mailto:massimiliano.cannata@supsi.ch">e-mail</a>).
-The GRASS tool was developed by Institute of earth science (IST), 
-University of applied science of Italian Switzerland (SUPSI), Lugano - Division of geomatics <a href="http://istgeo.ist.supsi.ch/site/" target="_blank">web-page</a><br>
-Actually the debug is assured by:<br>
- - <a href="http://www.gter.it/?q=en"  target="_blank"> Gter srl</a> (Genoa, Italy) <br>
- - <a href="http://www.ist.supsi.ch/" target="_blank">IST -SUPSI</a> (Lugano, Switzerland)<br>
-
-   
-
-The numerical model, originally developed by the National Center for Computational Hydroscience and Engineering of the University of Mississippi, 
-has been reformulated and modified by the authors introducing important new features to consider the numerical stability and the type of dam failure, 
-and currently is written in ANSI C programming language within GRASS.<br><br>
-
+<h2>REFERENCES</h2>
+[1] Cannata M. & Marzocchi R. (2012). Two-dimensional dam break flooding simulation: a GIS embedded approach. - Natural Hazards 61(3):1143-1159 <br>
+[2] <a href="http://gfoss2009.crs4.it/en/system/files/marzocchi_cannata_licensed.pdf" 
+target="_blank">Pdf</a> presentation of the work at the 
+"X Meeting degli Utenti Italiani di GRASS - GFOSS" (It) 
+<a href="http://gfoss2009.crs4.it/en/node/61" target="_blank">web-page</a><br>
+[3] Pdf presentation of the work at the FOSS4G 2009 (En) - 
+<a href="http://2009.foss4g.org/researchpapers/#researchpaper_10" 
+target="_blank">web-page</a><br>
+[4] Pdf presentation of the work at the Geoitalia 2011 conference (En) - 
+<a href="https://dl.dropbox.com/u/3019930/marzocchi_cannata_geoitalia2011.pdf"
+target="_blank">document</a><br>
 
 
 <h2>SEE ALSO</h2>
@@ -131,10 +163,35 @@ and currently is written in ANSI C programming language within GRASS.<br><br>
 Details of the numerical model are presented in references. <br>
 Details of use and developing of <a r.damflood></a> are available <a href="http://istgeo.ist.supsi.ch/site/projects/dambreak" target="_blank">here</a>.<br>
 
-<h2>REFERENCES</h2>
-[1] Cannata M. & Marzocchi R. (2012). Two-dimensional dam break flooding simulation: a GIS embedded approach. - Natural Hazards 61(3):1143-1159 <br>
-[2] <a href="http://gfoss2009.crs4.it/en/system/files/marzocchi_cannata_licensed.pdf" target="_blank">Pdf</a> presentation of the work at the "X Meeting degli Utenti Italiani di GRASS - GFOSS" (It) <a href="http://gfoss2009.crs4.it/en/node/61" target="_blank"> web-page </a> <br>
-[3] Pdf presentation of the work at the FOSS4G 2009 (En) - <a href="http://2009.foss4g.org/researchpapers/#researchpaper_10" target="_blank"> web-page </a> <br>
-[4] Pdf presentation of the work at the Geoitalia 2011 conference (En)- <a href="https://dl.dropbox.com/u/3019930/marzocchi_cannata_geoitalia2011.pdf" target="_blank"> document </a><br>
 
+<h2>AUTHORS</h2>
+Roberto Marzocchi (<a href="mailto:roberto.marzocchi@gter.it">e-mail</a>)
+and Massimiliano Cannata (<a
+href="mailto:massimiliano.cannata@supsi.ch">e-mail</a>).
+The GRASS tool was developed by Institute of earth science (IST),
+University of applied science of Italian Switzerland (SUPSI), Lugano -
+Division of geomatics <a href="http://istgeo.ist.supsi.ch/site/"
+target="_blank">web-page</a><br>
+Actually the debug is assured by:<br>
+<ul>
+    <li>
+        <a href="http://www.gter.it/?q=en" target="_blank">Gter srl</a>
+        (Genoa, Italy)<br>
+    </li>
+    <li>
+        <a href="http://www.ist.supsi.ch/" target="_blank">IST -SUPSI</a>
+        (Lugano, Switzerland)<br>
+    </li>
+</ul>
+
+
+The numerical model, originally developed by the National Center for
+Computational Hydroscience and Engineering of the University of Mississippi,
+has been reformulated and modified by the authors introducing important new
+features to consider the numerical stability and the type of dam failure,
+and currently is written in ANSI C programming language within
+GRASS.<br><br>
+
+<!--
 <p><i> Last changed: $27 februar 2013 09:40:00 CET $</i>
+-->
