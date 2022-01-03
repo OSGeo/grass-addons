@@ -4,8 +4,8 @@
 "catchments" around point locations according to a walking cost 
 function. The module is particularly aimed at "Site Catchment 
 Analysis" for archaeology, but could be potentially useful in any 
-number of appliations where delimiting an area based on 
-walking-costs is desireable. Although defining a catchment based on 
+number of applications where delimiting an area based on 
+walking-costs is desirable. Although defining a catchment based on 
 a threshold in walking-costs (or time) can be undertaken using <em>
 r.walk</em> or <em>r.cost</em> alone, this addon module allows the 
 user to enter a pre-determined square meterage (option <b>area</b>) 
@@ -32,7 +32,7 @@ the region boundaries and the resolution match the input elevation map.
 start_points</b>. <b>area</b> is also requited, which is an integer 
 value for the size of the desired catchment (in the map units of the 
 defined location/region). The final required parameter is <b>map_val
-</b>, wich is the integer value to write to the areas defined as 
+</b>, which is the integer value to write to the areas defined as 
 part of the catchment in the output map, <b>buffer</b>. The optional 
 value, <b>sigma</b> is the slope threshold cut off value. Slopes 
 above <b>sigma</b> will be masked out during the determination of 
@@ -40,18 +40,19 @@ the catchment configuration. There are two native flags for <em>
 r.catchment</em>. <b>-c</b> allows you to keep the interim cost 
 surface maps made. <b>-l</b> allows you to show a list of the cost 
 values in that cost map, along with the size of the catchments they 
-delineate. All other flags and options are inherited from <em>r.walk
-</em> (see the<a href="https://grass.osgeo.org/grass-stable/manuals/r.walk.html">r.walk</a> help page for more 
-information on these).
+delineate. All other flags and options are inherited from 
+<em>r.walk</em> (see the 
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.walk.html">r.walk</a> 
+help page for more information on these).
 
 <h2>NOTES</h2>
 The module will attempt to find the cost radius that defines an area 
 close to the value of <b>area</b>, but em will likely slightly 
-overestimate the catchement size. The module will display the actual 
+overestimate the catchment size. The module will display the actual 
 area of the defined catchment in the Command Output.
 
 By default, <em>r.catchment</em> will create a <b>friction</b> map 
-of value 0, which, when input into <em>r.walk</em> will yeild a cost 
+of value 0, which, when input into <em>r.walk</em> will yield a cost 
 surface based on walking times only. The user may optionally create 
 a <b>friction</b> map, however, and, if used, r.walk will consider 
 these costs this as well when determining the cost surface used to 
@@ -69,7 +70,7 @@ catchments will sum (close) to <b>area</b>. If two input points are
 close, their catchments may overlap. In this case, the routine will 
 "meld" the two, and the melded catchment will still be of an area 
 close to <b>area</b>. If truly overlapping catchments are desired, 
-then the routine should be run independantly for each individual 
+then the routine should be run independently for each individual 
 start point.
 <p>
 

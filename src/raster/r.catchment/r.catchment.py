@@ -174,10 +174,10 @@ def main():
         and bool(options["sigma"]) is True
     ):
         grass.message(
-            "There is already a MASK in place, and you have also"
+            "There is already a MASK in place, and you also have"
             " selected to mask slope values above %s.\n The high slope areas"
             " (slope mask) will be temporarily added to current MASKED areas for"
-            " the calcualtion of the catchment geometry.\n The original MASK will"
+            " the calculation of the catchment geometry.\n The original MASK will"
             " be restored when the module finishes" % sigma
         )
         ismask = 2
@@ -493,8 +493,8 @@ def main():
         return
 
 
-# here is where the code in "main" actually gets executed.
-# This way of programming is neccessary for the way g.parser needs to
+# Here is where the code in "main" actually gets executed.
+# This way of programming is necessary for the way g.parser needs to
 # run in GRASS 7.
 if __name__ == "__main__":
     options, flags = grass.parser()
