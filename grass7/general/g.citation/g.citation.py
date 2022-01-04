@@ -185,6 +185,17 @@ def clean_line_item(text):
     return text
 
 
+def get_access_date_from_documentation_file_attributes(path):
+    """Extract year from file attributes of the documentation
+
+    >>> path = documentation_filename(name)
+    >>> get_year_from_documentation_file_attributes(path)
+    2011-10-14
+    """
+    date_installed = datetime.fromtimestamp(Path(path).stat().st_ctime).strftime("%Y-%m-%d")
+    return date_installed
+
+
 def get_year_from_documentation_file_attributes(path):
     """Extract year from file attributes of the documentation
 
@@ -611,8 +622,9 @@ def print_bibtex(citation):
 
     author_names = [author['name'] for author in citation['authors']]
     print("  author = {", " and ".join(author_names), "},", sep="")
+    print("  howpublished = {", citation['code-url'], "},", sep="")
     print("  year = {", citation['year'], "}", sep="")
-
+    print("  note = {Accessed: ", citation['access'], "},", sep="")
     print("}")
 
 
@@ -765,6 +777,7 @@ def citation_for_module(name, add_grass=False):
     citation['grass-build-date'] = g_version['build_date']
     citation['authors'] = get_authors_from_documentation(text)
     citation['year'] = get_year_from_documentation_file_attributes(path)
+    citation['access'] = get_access_date_from_documentation_file_attributes(path)
     code_url, code_history_url = get_code_urls_from_documentation(text)
     citation['code-url'] = code_url
     citation['url-code-history'] = code_history_url
