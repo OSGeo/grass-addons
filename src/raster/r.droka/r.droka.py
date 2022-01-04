@@ -51,7 +51,7 @@
 #%option
 #% key: m
 #% type: double
-#% description: Value of rock mass (Kg)
+#% description: Value of rock mass (kg)
 #% required: yes
 #%end
 #% option
@@ -107,7 +107,7 @@ if "GISBASE" not in os.environ:
 
 def main():
 
-    # leggo variabili
+    # Read variables
     r_elevation = options["dem"].split("@")[0]
     mapname = options["dem"].replace("@", " ")
     mapname = mapname.split()
@@ -189,6 +189,7 @@ def main():
     # v.patch input=punto,random output=patch1
 
     # creo raster (che sara' il DEM di input) con valore 1
+    # Create raster (which will be the input DEM) with value 1
     grass.mapcalc("uno=$dem*0+1", dem=r_elevation, quiet=True)
     what = grass.read_command(
         "r.what",
@@ -199,15 +200,15 @@ def main():
     )
     quota = what.split("\n")
 
-    # array per la somma dei massi
+    # array per la somma dei massi (Array for the sum of boulders)
     tot = garray.array(r_elevation)
     tot[...] = (tot * 0.0).astype(float)
 
-    # array per le velocita
+    # array per le velocita (Array for velocity)
     velMax = garray.array()
     velMean = garray.array()
 
-    # array per energia
+    # array per energia (Array for energy)
     enMax = garray.array()
     enMean = garray.array()
     grass.message("Waiting...")
@@ -219,6 +220,7 @@ def main():
         y = float(point.split("|")[1])
         # print x,y,z
         # Calcolo cost (sostituire i punti di partenza in start_raster al pusto di punto)
+        # (Cost calculation (replace the starting points in start_raster at the point of the point))
         grass.run_command(
             "r.cost",
             flags="k",
@@ -230,29 +232,31 @@ def main():
         )
 
         # trasforma i valori di distanza celle in valori metrici utilizzando la risoluzione raster
+        # (Transform cell distance values into metric values using raster resolution)
         grass.mapcalc("costo_m=costo*(ewres()+nsres())/2", overwrite=True)
 
         # calcola A=tangente angolo visuale (INPUT) * costo in metri
+        # (Calculate A=tangent of shadow angle (INPUT) * cost in meters)
         grass.mapcalc("A=tan($ang)*costo_m", ang=ang, overwrite=True)
         grass.mapcalc("C=$z-A", z=z, overwrite=True)
         grass.mapcalc("D=C-$dem", dem=r_elevation, overwrite=True)
         # area di espansione
         grass.mapcalc("E=if(D>0,1,null())", overwrite=True)
-        # valore di deltaH (F)
+        # valore di deltaH (F) (delatH value (F))
         grass.mapcalc("F=D*E", overwrite=True)
 
-        # calcolo velocita
+        # calcolo velocita (velocity calculation)
         grass.mapcalc("vel = $red*sqrt(2*9.8*F)", red=red, overwrite=True)
         velocity = garray.array("vel")
         velMax[...] = (np.where(velocity > velMax, velocity, velMax)).astype(float)
         velMean[...] = (velocity + velMean).astype(float)
 
-        # calcolo numero massi
+        # calcolo numero massi (Calculation of the number of boulders)
         grass.mapcalc("somma=if(vel>0,1,0)", overwrite=True)
         somma = garray.array("somma")
         tot[...] = (somma + tot).astype(float)
 
-        # calcolo energia
+        # calcolo energia (Calculation of energy)
         grass.mapcalc("en=$m*9.8*F/1000", m=m, overwrite=True)
         energy = garray.array("en")
         enMax[...] = (np.where(energy > enMax, energy, enMax)).astype(float)
