@@ -33,7 +33,7 @@ class TestVToRastMulti(TestCase):
             verbose=True,
             input="census_wake2000",
             type="area",
-            output="vrastmulti",
+            output="vtorastmulti",
             attribute_columns="RINGS_OK,TRACT",
             label_columns="ID,TRACTID",
             memory=3000,
@@ -54,7 +54,7 @@ stddev=66121.0453170682
 variance=4371992633.82178
 coeff_var=1.23595351315145
 sum=47549025471"""
-        self.assertRasterFitsUnivar(raster='vrastmulti_TRACT', reference=values, precision=1)
+        self.assertRasterFitsUnivar(raster='vtorastmulti_TRACT', reference=values, precision=1)
 
         values = """n=8888
 null_cells=1113694
@@ -68,7 +68,7 @@ stddev=0
 variance=0
 coeff_var=0
 sum=8888"""
-        self.assertRasterFitsUnivar(raster='vrastmulti_RINGS_OK', reference=values, precision=1)
+        self.assertRasterFitsUnivar(raster='vtorastmulti_RINGS_OK', reference=values, precision=1)
 
 
 if __name__ == "__main__":
