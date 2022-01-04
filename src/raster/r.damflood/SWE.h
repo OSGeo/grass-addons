@@ -8,6 +8,13 @@ e method=3
 
 returns void
 */
+/* Function to solve Shallow Water Equations
+Originally developed for r.damflood (GRASS module)
+In the generic case give a matrix with 2 rasters of 0 **m_DAMBREAK & **m_lake
+and method=3
+
+returns void
+*/
 
 void shallow_water(double **m_h1,double **m_u1, double **m_v1,		/* water depth and velocities of the i step*/
 		     	float **m_z,						/* DTM */
