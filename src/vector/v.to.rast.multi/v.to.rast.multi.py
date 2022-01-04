@@ -176,7 +176,7 @@ def check_columns(module_options):
     for at in ["attribute_columns", "label_columns"]:  # , "rgb_columns"
         if module_options[at]:
             for col in module_options[at].split(","):
-                if col and not col in vmap_cols.keys():
+                if col and col not in vmap_cols.keys():
                     gscript.fatal(
                         _(
                             "Column {col} not in attribute table of map <{m}> with layer <{l}>".format(
