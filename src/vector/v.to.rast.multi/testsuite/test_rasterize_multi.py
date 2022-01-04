@@ -13,7 +13,6 @@ from grass.gunittest.gmodules import SimpleModule
 
 
 class TestVToRastMulti(TestCase):
-
     @classmethod
     def setUpClass(cls):
         """Initiate the temporal GIS and set the region"""
@@ -37,8 +36,8 @@ class TestVToRastMulti(TestCase):
             attribute_columns="RINGS_OK,TRACT",
             label_columns="ID,TRACTID",
             memory=3000,
-            ndigits=[0,4],
-            separator=","
+            ndigits=[0, 4],
+            separator=",",
         )
         self.assertModule(manual_example_run)
 
@@ -54,7 +53,9 @@ stddev=66121.0453170682
 variance=4371992633.82178
 coeff_var=1.23595351315145
 sum=47549025471"""
-        self.assertRasterFitsUnivar(raster='vtorastmulti_TRACT', reference=values, precision=1)
+        self.assertRasterFitsUnivar(
+            raster="vtorastmulti_TRACT", reference=values, precision=1
+        )
 
         values = """n=8888
 null_cells=1113694
@@ -68,7 +69,9 @@ stddev=0
 variance=0
 coeff_var=0
 sum=8888"""
-        self.assertRasterFitsUnivar(raster='vtorastmulti_RINGS_OK', reference=values, precision=1)
+        self.assertRasterFitsUnivar(
+            raster="vtorastmulti_RINGS_OK", reference=values, precision=1
+        )
 
 
 if __name__ == "__main__":
