@@ -218,6 +218,8 @@ def check_columns(module_options):
 
 
 def main():
+    """Do the main work"""
+    separator_dict = {"pipe": "|", "comma": ",", "space": " ", "tab": "\t", "newline": "\n"}
     # Parse options
     attribute_columns = (
         options["attribute_columns"].split(",")
@@ -232,7 +234,14 @@ def main():
     )
     output = options["output"]
     key_column = options["key_column"]
-    sep = options["separator"]
+    sep = separator_dict[options["separator"]] if options["separator"] in separator_dict else options["separator"]
+    if len(sep) > 1:
+        gscript.warning(
+            _(
+                "Using <{}> as separator may cause the module to fail. "
+                "Please use only single, special characters as separator.".format(sep)
+            )
+        )
 
     if key_column in attribute_columns:
         gscript.fatal(
