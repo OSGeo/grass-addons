@@ -1,0 +1,37 @@
+<h2>DESCRIPTION</h2>
+
+<em>v.what.rast.label</em> retrieves raster values and labels from one
+or more given raster maps for each point stored in the input vector map.
+The name of the columns with the raster values and labels are
+respectively<i>ID_name-of-raster-map</i> and <i>name-of-raster-map</i>.
+
+<p>Optionally, the user can define raster layers without labels. In that case
+only raster values are uploaded to a column with the name
+<i>name-of-raster-map</i>. 
+
+<p>Except the columns with raster values, the attribute table of the
+output vector point map can optionally include columns with coordinates.
+
+<p>The user can opt to include the attribute columns of the input vector layer
+in the output. In that case, the columns with the raster values and labels will
+appear after the columns from the input vector layer.
+    
+<h2>NOTES</h2>
+
+Points and centroid with shared category number cannot be processed. To solved 
+this, unique categories may be added with v.category in a separate layer. See
+<i>v.what.rast</i> for details.
+
+<p>If you only want to uploads raster values at positions of vector points to the
+attribute table of that vector layer, use <i>v.what.rast</i> instead. 
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="v.what.rast">v.what.rast</a>,
+<a href="https://grass.osgeo.org/grass78/manuals/addons/v.what.rast.multi.html">
+    r.what.rast.multi</a>
+</em>
+
+<h2>AUTHORS</h2>
+<em>Paulo van Breugel</em>
