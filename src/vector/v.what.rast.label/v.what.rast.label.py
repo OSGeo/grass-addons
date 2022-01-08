@@ -67,10 +67,8 @@
 # import libraries
 import os
 import sys
-import uuid
 import atexit
 from subprocess import PIPE
-import textwrap
 import grass.script as gs
 from grass.pygrass.modules import Module
 
@@ -78,18 +76,9 @@ from grass.pygrass.modules import Module
 clean_layers = []
 
 
-def create_unique_name(name):
-    """Generate a tmp name which contains prefix
-    Store the name in the global list.
-    """
-    return name + str(uuid.uuid4().hex)
-
-
-def tmpname(prefix):
-    """Generate a tmp name which contains prefix
-    Store the name in the global list.
-    """
-    tmpf = create_unique_name(prefix)
+def tmpname():
+    """Generate a tmp name and stores it in the global list."""
+    tmpf = gs.tempname(12)
     clean_layers.append(tmpf)
     return tmpf
 
@@ -122,7 +111,7 @@ def main(options, flags):
     output_vector = options["output"]
 
     if flags["o"]:
-        tmp_layer = tmpname("v_what_rastlabel")
+        tmp_layer = tmpname()
         Module("g.copy", vector=[input_vector, output_vector], quiet=True)
     else:
         tmp_layer = output_vector
@@ -206,34 +195,7 @@ def main(options, flags):
     Module("v.db.dropcolumn", map=output_vector, columns=["label"])
 
     # Write metadata
-    list_with_options = dict((k, v) for k, v in options.items() if v)
-    list_with_flags = dict((k, v) for k, v in flags.items() if v)
-    history_options = " ".join(
-        "{!s}={!r}".format(k, v) for (k, v) in list_with_options.items()
-    )
-    history_flags = " ".join(
-        "{!s}={!r}".format(k, v) for (k, v) in list_with_flags.items()
-    )
-    history_command = "r.what.rastlabel \n{0} \n{1}".format(
-        history_flags, history_options
-    )
-
-    history_command = textwrap.fill(
-        history_command,
-        width=40,
-        break_long_words=False,
-        break_on_hyphens=True,
-        subsequent_indent=" " * 13,
-    )
-
-    Module(
-        "v.support",
-        map=output_vector,
-        comment="created with v.what.rast.label",
-        cmdhist=history_command,
-        flags=["r", "h"],
-        quiet=True,
-    )
+    gs.vector_history(output_vector, replace=True)
 
 
 if __name__ == "__main__":
