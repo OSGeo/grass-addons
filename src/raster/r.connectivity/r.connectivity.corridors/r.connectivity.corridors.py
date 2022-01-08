@@ -18,11 +18,11 @@ PURPOSE:      Compute corridors between habitat patches of an input-
               r.connectivity.distance is intended to make graph-theory
               more easily available to conservation planning.
 
-              r.connectivity.corridors is th 3rd tool of the
+              r.connectivity.corridors is the 3rd tool of the
               r.connectivity.* toolchain.
 
               r.connectivity.corridors loops through the attribute-table
-              of the edge- output vector map from r.connectivity.network
+              of the edge-output vector map from r.connectivity.network
               and computes the corridor for each edge of a user-defined
               set of edges. r.connectivity.corridors can account for the
               importance of the corridors for the entire network by
@@ -82,14 +82,14 @@ REQUIREMENTS:
 #% required: no
 #% multiple: yes
 #% key_desc: Column names
-#% description: Column names separated by comma
+#% description: Column names separated by commas
 #%End
 
 #%Option G_OPT_DB_where
 #% key: where
 #% required: no
 #% key_desc: where (SQL statement)
-#% description: where conditions of SQL statement without 'where' keyword. (example: cf_mst_ud = 1 or cf_eb_ud > 100)
+#% description: where conditions of an SQL statement without 'where' keyword. (example: cf_mst_ud = 1 or cf_eb_ud > 100)
 #%End
 
 #%option
@@ -135,7 +135,12 @@ import atexit
 import os
 import sys
 import string
-import resource
+
+try:
+    import resource
+except ImportError:
+    resource = None
+
 import copy
 from io import StringIO
 import numpy as np
@@ -216,7 +221,9 @@ def main():
     d_flag = flags["d"]
     r_flag = flags["r"]
 
-    ulimit = resource.getrlimit(resource.RLIMIT_NOFILE)
+    ulimit = (512, 2048)  # Windows number of opened files (soft-limit, hard-limit)
+    if resource:
+        ulimit = resource.getrlimit(resource.RLIMIT_NOFILE)
 
     net_hist_str = (
         grass.read_command("v.info", map=network_map, flags="h")
@@ -254,7 +261,7 @@ def main():
 
     if missing_columns:
         grass.fatal(
-            "Cannot find the following reqired/requested \
+            "Cannot find the following required/requested \
                     column(s) {} in vector map \
                     {}.".format(
                 ", ".join(missing_columns), network
@@ -278,7 +285,7 @@ def main():
         if col in weights:
             weight_types.append(in_columns[col]["type"])
 
-    # Extract necessary informartion on edges from attribute table of
+    # Extract necessary information on edges from attribute table of
     # edge map
     table_io = StringIO(
         unicode(
@@ -363,7 +370,7 @@ def main():
     reclass = Module("r.reclass", rules="-", quiet=True, run_=False)
     recode = Module("r.recode", rules="-", quiet=True, run_=False)
 
-    # Setup paralel module queue if parallel processing is requested
+    # Setup parallel module queue if parallel processing is requested
     # print(weight_types)
     if cores > 1:
         mapcalc_queue = ParallelModuleQueue(nprocs=cores)
