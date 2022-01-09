@@ -244,7 +244,7 @@ g.mapset  -c   mapset=sub_watershedID$ID   location=$LOCATION_NAME  dbase=$GISDB
 
 rm -f    $GISDBASE/$LOCATION_NAME/sub_watershedID$ID/.gislock      
 
-export GISBASE=$( grep  gisbase   $(which grass70) | awk \'{ if(NR==2) { gsub ("\\"","" ) ; print $3 }  }\' )
+export GISBASE=$( grep  gisbase   $(which grass) | awk \'{ if(NR==2) { gsub ("\\"","" ) ; print $3 }  }\' )
 export PATH=$PATH:$GISBASE/bin:$GISBASE/scripts
 export LD_LIBRARY_PATH="$GISBASE/lib"
 export GRASS_LD_LIBRARY_PATH="$LD_LIBRARY_PATH"
@@ -302,7 +302,7 @@ g.mapset  -c   mapset=sub_watershedID$ID   location=$LOCATION_NAME  dbase=$GISDB
 
 rm -f    $GISDBASE/$LOCATION_NAME/sub_watershedID$ID/.gislock      
 
-export GISBASE=$( grep  gisbase   $(which grass70) | awk \'{ if(NR==2) { gsub ("\\"","" ) ; print $3 }  }\' )
+export GISBASE=$( grep  gisbase   $(which grass) | awk \'{ if(NR==2) { gsub ("\\"","" ) ; print $3 }  }\' )
 export PATH=$PATH:$GISBASE/bin:$GISBASE/scripts
 export LD_LIBRARY_PATH="$GISBASE/lib"
 export GRASS_LD_LIBRARY_PATH="$LD_LIBRARY_PATH"
