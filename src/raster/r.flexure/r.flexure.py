@@ -110,7 +110,6 @@
 #%  required : no
 #%end
 
-
 #%option
 #%  key: westbc
 #%  type: string
