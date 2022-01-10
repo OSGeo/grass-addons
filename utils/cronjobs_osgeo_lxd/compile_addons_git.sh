@@ -35,6 +35,8 @@ topdir addons_path grass_startup_program [separate]"
     exit 1
 fi
 
+GMAJOR="$1"
+GMINOR="$2"
 GIT_PATH="$3"
 TOPDIR="$4"
 ADDON_PATH="$5"
