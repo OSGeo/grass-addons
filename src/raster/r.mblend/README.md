@@ -1,7 +1,7 @@
 r.mblend
 ==========
 
-Draft implementation of the [Mblend algorithm](http://www.sciencedirect.com/science/article/pii/S0098300416300012) as an add-on for [GRASS 7](https://grass.osgeo.org/).
+Draft implementation of the [Mblend algorithm](http://www.sciencedirect.com/science/article/pii/S0098300416300012) as an add-on for [GRASS GIS](https://grass.osgeo.org/).
 
 Manual and detailed description is available at the [GRASS manual pages](https://grass.osgeo.org/grass8/manuals/addons/r.mblend.html).
 
