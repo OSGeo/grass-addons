@@ -42,7 +42,7 @@ if [ $# -ne 5 ] ; then
    exit 0
 fi
 
-#### start of GRASS 7 setup
+#### start of GRASS 8 setup
 # better say where to find libs and bins:
 export PATH=$PATH:/usr/local/bin:$HOME
 export LD_LIBRARY_PATH=$MYLD_LIBRARY_PATH
@@ -81,7 +81,7 @@ echo "GRASS_GUI: text" >> "$MYGISRC"
 # path to GRASS settings file
 export GISRC=$MYGISRC
 
-#### end of GRASS 7 setup
+#### end of GRASS 8 setup
 
 echo $MYPID 1>&2
 
