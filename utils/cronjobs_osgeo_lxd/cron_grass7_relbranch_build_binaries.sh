@@ -237,7 +237,9 @@ echo "Written to: $TARGETDIR"
 (cd ~/src/grass$GMAJOR-addons/; git checkout grass$GMAJOR; git pull origin grass$GMAJOR)
 # compile addons
 cd $GRASSBUILDDIR
-sh ~/cronjobs/compile_addons_git.sh ~/src/grass$GMAJOR-addons/src/ \
+sh ~/cronjobs/compile_addons_git.sh $GMAJOR \
+   $GMINOR \
+   ~/src/grass$GMAJOR-addons/src/ \
    ~/src/$BRANCH/dist.$ARCH/ \
    ~/.grass$GMAJOR/addons \
    ~/src/$BRANCH/bin.$ARCH/grass$VERSION \
