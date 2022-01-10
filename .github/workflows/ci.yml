@@ -28,14 +28,14 @@ jobs:
 
     steps:
 
-    - name: Checkout addons
+    - name: Checkout core
       uses: actions/checkout@v2
       with:
         repository: OSGeo/grass
         ref: ${{ matrix.grass-version }}
         path: grass
 
-    - name: Checkout core
+    - name: Checkout addons
       uses: actions/checkout@v2
       with:
         path: grass-addons
