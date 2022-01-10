@@ -19,6 +19,9 @@ if [ -z "$2" ]; then
     exit 1
 fi
 
+GMAJOR="$1"
+GMINOR="$2"
+
 if [ `uname -m` = "x86_64" ] ; then
     PLATFORM=x86_64
 else
@@ -35,8 +38,6 @@ topdir addons_path grass_startup_program [separate]"
     exit 1
 fi
 
-GMAJOR="$1"
-GMINOR="$2"
 GIT_PATH="$3"
 TOPDIR="$4"
 ADDON_PATH="$5"
