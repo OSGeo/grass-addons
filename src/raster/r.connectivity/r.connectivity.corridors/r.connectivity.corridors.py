@@ -156,7 +156,7 @@ if sys.version_info.major >= 3:
 
 ### To do:
 # Distinguish and remove temporary raster maps (single corridors)
-# Prallelize aggregation (if meaningful)
+# Parallelize aggregation (if meaningful)
 # Fix history assignment for single corridors
 # - grass.parse_command('v.support', map=edges, flags='g')[comments]
 # - grass.parse_command('v.support', map=nodes, flags='g')[comments]

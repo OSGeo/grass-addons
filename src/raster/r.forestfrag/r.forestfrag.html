@@ -6,8 +6,8 @@ the methodology proposed by Riitters et al. (2000). See
 detailed explanation.
 
 <p>It follows a "sliding window" algorithm with overlapping windows.
-The amount of forest and its occurence as adjacent forest pixels
-within fixed- area "moving-windows" surrounding each forest pixel is
+The amount of forest and its occurrence as adjacent forest pixels
+within fixed-area "moving-windows" surrounding each forest pixel is
 measured. The window size is user-defined. The result is stored at
 the location of the center pixel. Thus, a pixel value in the derived
 map refers to "between-pixel" fragmentation around the corresponding
@@ -41,14 +41,14 @@ undetermined:   Pf &ge; 0.6 and Pf = Pff
 
 <ul>
 <li>The moving window size is user-defined (default=3)
-and must be an odd number. If an even number is given the function
+and must be an odd number. If an even number is given, the function
 will stop with an error message.
 <li>No-data cells are ignored. This means that statistics at the
 raster edges are based on fewer cells (smaller) moving windows. If this
 is a problem, the user can choose to have the output raster trimmed
 with a number of raster cells equal to 1/2 * the size of the moving
 window.
-<li>The function respects the region. The user has however the option
+<li>The function respects the region. However, the user has the option
 to set the region to match the input layer.
 </ul>
 
@@ -114,7 +114,7 @@ respects the region) and a better handling of no-data cells.
 Riitters, K., J. Wickham, R. O'Neill, B. Jones,
 and E. Smith. 2000. Global-scale patterns of forest fragmentation.
 Conservation Ecology 4(2): 3. [online] URL:
-<a href="http://www.consecol.org/vol4/iss2/art3/">http://www.consecol.org/vol4/iss2/art3/</a>
+<a href="https://www.consecol.org/vol4/iss2/art3/">https://www.consecol.org/vol4/iss2/art3/</a>
 
 <!--
 <p>

@@ -27,7 +27,7 @@ class Error(Exception):
 
 
 class EnvError(Error):
-    """Exception raised for missing GRASS environement.
+    """Exception raised for missing GRASS environment.
 
     Attributes:
         expr -- Context expression in which the error occurred

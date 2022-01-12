@@ -40,7 +40,7 @@ double Gault_Dat(double W, double r_proj, double r_targ, double theta, int targe
                         /*for craters up to 100 m + loose target rock or regolith*/
                         Dat=0.25*pow(r_proj,1/6.0)*pow(r_targ,-1/2.0)*pow(W,0.29)*pow(sin(theta),1/3.0);
                 	if (Dat > 100){
-                        	/*for craters > 100m up to 1000 m + any kind of target material*/
+                        	/*for craters > 100 m up to 1000 m + any kind of target material*/
                         	Dat=0.27*pow(r_proj,1/6.0)*pow(r_targ,-1/2.0)*pow(W,0.28)*pow(sin(theta),1/3.0);
 			}
 		}
@@ -48,7 +48,7 @@ double Gault_Dat(double W, double r_proj, double r_targ, double theta, int targe
                 /*for craters up to 100 m + loose target rock or regolith*/
                 Dat=0.25*pow(r_proj,1/6.0)*pow(r_targ,-1/2.0)*pow(W,0.29)*pow(sin(theta),1/3.0);
                 if (Dat > 100){
-                        /*for craters > 100m up to 1000 m + any kind of target material*/
+                        /*for craters > 100 m up to 1000 m + any kind of target material*/
                         Dat=0.27*pow(r_proj,1/6.0)*pow(r_targ,-1/2.0)*pow(W,0.28)*pow(sin(theta),1/3.0);
 		}
 	}
@@ -72,7 +72,7 @@ double Pi_Dat(double W, double r_proj, double r_targ, double L, double g){
 double Gault_L(double Dat, double Vi, double r_proj, double r_targ, double theta, int target_type){
 	double L;
         if (Dat >= 100){
-                /*for craters > 100m up to 1000 m + any kind of target material*/
+                /*for craters > 100 m up to 1000 m + any kind of target material*/
                 L=pow(Dat/(0.27*pow(r_proj,1/6.0)*pow(r_targ,-1/2.0)*pow(1/3.0*PI*Vi*Vi,0.28)*pow(1/2.0,3.28)*pow(sin(theta),1/3.0)),1/3.28);
 	}
 

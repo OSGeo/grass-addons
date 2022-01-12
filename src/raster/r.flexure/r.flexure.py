@@ -56,7 +56,7 @@
 #%option G_OPT_R_INPUT
 #%  key: te
 #%  type: string
-#%  description: Elastic thicnkess: scalar or raster; unis chosen in "te_units"
+#%  description: Elastic thickness: scalar or raster; unis chosen in "te_units"
 #%  required : yes
 #%end
 

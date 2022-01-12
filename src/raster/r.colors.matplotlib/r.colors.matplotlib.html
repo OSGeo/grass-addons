@@ -2,14 +2,14 @@
 
 The <em>r.colors.matplotlib</em> module converts
 <a href="http://matplotlib.org/">Matplotlib</a> color maps
-to GRASS color table format (rules) and assigns it to given raster map.
+to GRASS color table format (rules) and assigns it to a given raster map.
 
 
 The created color table is always relative (color rules with
 percent) 
 When option <b>map</b> is specified <em>r.colors.matplotlib</em>
 assigns the color rules to the given raster map.
-The color tables is always stratched based on the range of values of the map
+The color tables is always stretched based on the range of values of the map
 
 <p>
 Depending on the use case,
@@ -65,7 +65,7 @@ r.colors.matplotlib color=summer ncolors=2
 100.000% 255:255:102
 </pre>
 
-In case we want to use discrete color table with intervals with given
+In case we want to use a discrete color table with intervals with given
 constant color, we use the <b>-d</b> flag and the number of colors
 is now the number of intervals, so we want to make it higher, 5 in this
 case.
@@ -91,7 +91,7 @@ r.colors.matplotlib color=summer ncolors=5 -d
 Now we set several different color tables for the elevation raster map
 from the North Carolina sample dataset.
 We use continuous and discrete color tables (gradients).
-The color tables ae stretched to fit the raster map range.
+The color tables are stretched to fit the raster map range.
 
 <div class="code"><pre>
 r.colors.matplotlib color=summer map=elevation
@@ -114,7 +114,7 @@ d.legend raster=elevation labelnum=10 at=5,50,7,10
 <img src="r_colors_matplotlib_terrain.png" alt="Matplotlib terrain">
 <p><em>
 summer, winter, autumn, cubehelix, and terrain color tables applied
-to elevation raster from the North Carolina sample dataset. winter and
+to the elevation raster from the North Carolina sample dataset. winter and
 cubehelix are set to be discrete instead of continuous.
 </em>
 </center>
@@ -176,7 +176,7 @@ simulations.
 <center>
 <img src="r_colors_matplotlib_viscm.png" alt="Applied color table form viscm">
 <p><em>
-A color table from viscm applied to elevation raster
+A color table from viscm applied to the elevation raster
 from the North Carolina sample dataset.
 </em>
 </center>

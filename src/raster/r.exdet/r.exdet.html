@@ -3,7 +3,7 @@
 Correlative species distribution models (SDMs) often involve some
 degree of projection into conditions non-analogous to those under
 which it has been calibrated. This projection into areas with novel
-environmental condtions is risky as it may be ecologically and
+environmental conditions is risky as it may be ecologically and
 statistically invalid. However, depending on the research question
 it may be difficult to avoid or indeed the objective of research to
 do so. An example is the prediction of potential distribution of
@@ -14,18 +14,18 @@ identify such areas and to interpret model results with care.
 <p>The <em>r.exdet</em> function allows you to identify areas with
 novel conditions, following methods developed by Mesgaran et al.
 (2014) [1][2]. This includes areas where conditions fall outside the
-range of values observed in the reference / callibration data set (
+range of values observed in the reference / calibration data set (
 <i>NT1</i>: Type 1 novelty) or areas with novel combinations between
-the envirionmental variables (<i>NT2</i>: Type 2 novelty), which
+the environmental variables (<i>NT2</i>: Type 2 novelty), which
 Mesgaran et al. call the multivariate combination novelty index.
 
 <p>The type 1 (<em>NT1</em>) similarity is similar to how the
-multi-environmental similarity messure (MESS) computes novel
+multi-environmental similarity measure (MESS) computes novel
 climates [3]. In both cases if a point is outside the range of a
 given covariate, it gets a negative value based on its distance to
 the minimum/maximum of that covariate. The difference is that the
 MESS is based on the most negative value amongst these covariates.
-The NT1 on the other hand is the sum of all these distances. The NT1
+The NT1, on the other hand, is the sum of all these distances. The NT1
 thus accounts for all variables [2]. The <em>NT1</em> can have
 infinite negative values to zero where zero indicates no
 extrapolation beyond the univariate coverage of reference data.
@@ -68,8 +68,8 @@ conditions in the current computational region.</li>
 </ul>
 
 <p>Some of the options can be combined. For example, the use can set
-a mask, a set of layers describing current conditions (reference)
-and a set of layers providing future conditions (projection). In
+a mask, a set of layers describing current conditions (<b>reference</b>)
+and a set of layers providing future conditions (<b>projection</b>). In
 this case, the future conditions in the whole region are compared to
 the current conditions within the area defined by the MASK. (todo:
 provide some examples)

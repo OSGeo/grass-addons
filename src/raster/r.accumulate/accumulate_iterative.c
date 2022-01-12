@@ -86,7 +86,7 @@ static void trace_up(struct cell_map *dir_buf, struct raster_map *weight_buf,
         /* pop one upstream cell */
         struct neighbor *cur_up = get_up(&up_stack, 0);
 
-        /* only if the current cell is not process */
+        /* only if the current cell is not processed */
         if (!cur_up->done) {
             /* find its upstream cells */
             find_up(dir_buf, weight_buf, accum_buf, done, neg, cur_up->row,

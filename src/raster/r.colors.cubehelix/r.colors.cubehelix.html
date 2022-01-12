@@ -1,16 +1,16 @@
 <h2>DESCRIPTION</h2>
 
 The <em>r.colors.cubehelix</em> module generates
-a cubehelix color table and assigns it to given raster map
+a cubehelix color table and assigns it to a given raster map
 if requested.
 
 The color table is generated using <em>seaborn</em> Python
-package. Several pararameters are available to control the
+package. Several parameters are available to control the
 cubehelix.
 
 When option <b>map</b> is specified <em>r.colors.cubehelix</em>
 assigns the color rules to the given raster map.
-The color tables is always stratched based on the range of values of the map
+The color tables are always stretched based on the range of values of the map
 
 <p>
 Depending on the use case,
@@ -56,7 +56,7 @@ r.colors.cubehelix -d ncolors=5 nrotations=0.6
 Now we set several different color tables for the elevation raster map
 from the North Carolina sample dataset.
 We use continuous and discrete color tables (gradients).
-The color tables ae stretched to fit the raster map range.
+The color tables are stretched to fit the raster map range.
 
 <div class="code"><pre>
 r.colors.cubehelix -d ncolors=8 nrotations=0.6 map=elevation

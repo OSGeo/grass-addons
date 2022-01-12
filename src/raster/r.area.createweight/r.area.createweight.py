@@ -133,12 +133,12 @@
 #%end
 #%flag
 #% key: a
-#% description: Use class names for basemap a
+#% description: Use class names for basemap A
 #% guisection: Optional inputs
 #%end
 #%flag
 #% key: b
-#% description: Use class names for basemap b
+#% description: Use class names for basemap B
 #% guisection: Optional inputs
 #%end
 #%option G_OPT_M_NPROCS
@@ -171,7 +171,7 @@
 #%option
 #% key: param_grid
 #% type: string
-#% description: Python dictionary of customized tunegrid for sklearn RFregressor
+#% description: Python dictionary of customized tunegrid for sklearn RandomForestRegressor
 #% required: no
 #% guisection: Feature selection and tuning
 #%end
@@ -307,9 +307,9 @@ def clip_basemaps(raster_list, rast_out_list, vector_map):
     """
     Clip all input rasters to the boundary of a vector
 
-    Used to enables extraction of raster categories for only the zone
+    Used to enable extraction of raster categories for only the zone
         covered by the spatial units, or to check user-given categories
-        exist in zone covered by the spatial units.
+        exist in the zone covered by the spatial units.
     Original cell size & alignment of input rasters are kept.
     Input list of rasters to clip, and list of names for outputs
         (in same order as list of rasters)
@@ -385,8 +385,8 @@ def spatial_boundaries(vector, id):
         unit.
     Output gridded vector can be used as input for dasymetric mapping
         with v.area.weigh module.
-    Creates error if number of polygons in initial and final vector are
-        not equal as if the original vector contains small sized
+    Creates error if the number of polygons in initial and final vectors
+        are not equal as if the original vector contains small sized
         polygons (or very narrow) and desired 'tile_size' is too large,
         some polygons could disappear during the rasterization process
     """
@@ -443,7 +443,7 @@ def spatial_boundaries(vector, id):
             flags="fb",
         )
         message = (
-            "A tile size of %s m seems to large and produces "
+            "A tile size of %s m seems too large and produces "
             "loss of some spatial units when rasterizing them."
             "\n"
         ) % tile_size
@@ -568,11 +568,11 @@ def join_multiplecsv(
 ):
     """Join multiple csv files"""
 
-    # Stop execution if outputfile exists and can not be overwritten
+    # Stop execution if outputfile exists and cannot be overwritten
     if os.path.isfile(outfile) and overwrite == False:
         gscript.fatal(
             _(
-                "File '%s' aleady exists and overwrite option is "
+                "File '%s' already exists and overwrite option is "
                 "not enabled." % outfile
             )
         )
@@ -832,7 +832,7 @@ def RandomForest(weighting_layer_name, vector, id):
     regressor = grid_search.best_estimator_  # Save the best regressor
     regressor.fit(x, y)  # Fit the best regressor with the data
 
-    ## Save RF infos in message for logile
+    ## Save RF infos in message for logfile
     gscript.verbose(_("Saving information into logfile..."))
     # Save info for logfile - Parameter grid
     message = "Parameter grid for Random Forest tuning :\n"
@@ -864,7 +864,7 @@ def RandomForest(weighting_layer_name, vector, id):
     stds = grid_search.cv_results_["std_test_score"]
     message = (
         "Mean cross-validated estimator score (R2) and stddev"
-        " for every tested set of parameter :\n"
+        " for every tested set of parameters :\n"
     )
     for mean, std, params in zip(means, stds, grid_search.cv_results_["params"]):
         message += "%0.3f (+/-%0.03f) for %r \n" % (mean, std, params)
@@ -1054,9 +1054,9 @@ def main():
     )
 
     # ------------------------------------------------------------------
-    # Check existance & validity of user files and values
+    # Check existence & validity of user files and values
     # ------------------------------------------------------------------
-    gscript.verbose(_("Checking vaidity of data (existence, type...)..."))
+    gscript.verbose(_("Checking validity of data (existence, type...)..."))
     # basemap_a exists?
     result = gscript.find_file(basemap_a_user, element="cell")
     if not result["file"]:
@@ -1196,7 +1196,7 @@ def main():
     #   files with statistics
     tmp_stat_files = {}
     # Create a dictionary that will contain the paths of files resulting
-    #   of the join of intermediates files
+    #   of the join of intermediate files
     allstatfile = {}
     # Creating a empty grid raster: each grid has a size corresponding
     #   to the "tile_size" parameter
@@ -1208,7 +1208,7 @@ def main():
     # ------------------------------------------------------------------
     gscript.verbose(_("Preparing input rasters and defining raster categories..."))
     ## Prepare basemaps (clip to zone covered by the vector_map)
-    # Ensure extraction of raster categories only within area covered
+    # Ensure extraction of raster categories only within the area covered
     #   by spatial units
     clip_basemaps(raster_list, raster_list_prep, vector_map)
 
@@ -1216,7 +1216,7 @@ def main():
     ##   user provided category list is valid
     if basemap_a_list == "":
         gscript.verbose(_("Classes list will be extracted from <%s>.") % basemap_a)
-        # Get a sorted list with values of category in this raster
+        # Get a sorted list with values of categories in this raster
         basemap_a_category_list = extract_raster_categories(basemap_a)
     else:
         gscript.verbose(
@@ -1241,7 +1241,7 @@ def main():
     if basemap_b_user != "":
         if basemap_b_list == "":
             gscript.verbose(_("Classes list will be extracted from <%s>.") % basemap_b)
-            # Get a sorted list with values of category in this raster
+            # Get a sorted list with values of categories in this raster
             basemap_b_category_list = extract_raster_categories(basemap_b)
         else:
             gscript.verbose(

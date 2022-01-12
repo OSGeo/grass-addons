@@ -64,7 +64,7 @@
 #% key: plot
 #% required: no
 #% label: Save plotted relationship between developed cells and population into a file
-#% description: File type is given by extension (.pfd, .png, .svg)
+#% description: File type is given by extension (.pdf, .png, .svg)
 #% guisection: Output
 #%end
 #%option G_OPT_F_OUTPUT
@@ -152,7 +152,7 @@ def main():
     if len(developments) != len(observed_times):
         gcore.fatal(
             _(
-                "Number of development raster maps doesn't not correspond to the number of observed times"
+                "Number of development raster maps does not correspond to the number of observed times"
             )
         )
 

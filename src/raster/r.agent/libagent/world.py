@@ -16,7 +16,7 @@ from libagent import agent, error, playground
 
 class World(object):
     """
-    Generic World class as basis for more complex worlds.
+    Generic World class as a basis for more complex worlds.
     A world is a place where things happen. A world normally
     consists of some playground, i.e. a setup of various
     layers. Furthermore it holds a list of agents that will
@@ -98,7 +98,7 @@ class World(object):
         Set a new agent into the world
         @param int number of cycles the agent has to live
         @param list coordinates to put the agent on, none for a random position
-        @param agenttype the typ of agent to be spawned
+        @param agenttype the type of agent to be spawned
         @return agent the newly created agent
         """
         position = self.findposition(position)

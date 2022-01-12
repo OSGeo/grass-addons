@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 #%module
-#% label: Extracts portion of the input map which overlaps with current region
+#% label: Extracts portion of the input map which overlaps with the current region
 #% description: Extracts portion of the input raster map which is in the current computational region
 #% keyword: raster
 #% keyword: extract

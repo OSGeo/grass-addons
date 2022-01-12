@@ -10,9 +10,9 @@
 <p><b>Starting points</b> = name 
     <ul>Name of vector map containing rockfall source area. It can be one point or more.</ul>
 <p><b>Shadow angle</b> = integer 
-    <ul>Angle of inclination that defines the propagation zone. It's calculated from an horizontal plane starting from source point: highest values determine a lowest propagation.</ul>
+    <ul>Angle of inclination that defines the propagation zone. It's calculated from a horizontal plane starting from a source point: highest values determine a lowest propagation.</ul>
 <p><b>Reduction value</b> = double 
-    <ul>Reduction moltiplicator for velocity. Default value is 0.9</ul>
+    <ul>Reduction multiplicator for velocity. Default value is 0.9</ul>
 <p><b>Number of boulders</b> = integer 
     <ul>For each starting point can be generated other random points used in the computations. By default points are located in a radius from the starting point equal to: (cell size * number of boulders)/2. Insert 1 for use only the original starting point or points. Note that a high number of boulders can make excessively long the calculation times.</ul>
 <p><b>Rock mass</b> = double 
@@ -20,13 +20,13 @@
 <p><b>Output prefix</b> = string 
     <ul>Name of prefix used for output raster maps</ul>
 <p><b>Buffer distance</b> = integer 
-    <ul>This value define the radius for randomly generatin boulders starting from starting point. It's in the option dialog window.</ul>
+    <ul>This value defines the radius for randomly generating boulders starting from starting point. It's in the option dialog window.</ul>
 
 
 <h2>OUTPUT</h2>
-<p><b>r.droka generates 5 raster maps and a vector map.</b> The names of all output maps start with the prefix defined by the parameter prefix followed by name of map
+<p><b>r.droka generates 5 raster maps and a vector map.</b> The names of all output maps start with the prefix defined by the parameter prefix followed by the name of map
 <ul>
-    <li><em>prefix</em>_propagation: raster map rapresenting the area of propagation. If are used multiple source points, each pixel show the percentage of passage (%)</li>
+    <li><em>prefix</em>_propagation: raster map representing the area of propagation. If are used multiple source points, each pixel shows the percentage of passage (%)</li>
     <li><em>prefix</em>_vel_max: maximum rock-fall translational velocities (m/sec)</li>
     <li><em>prefix</em>_vel_med: medium rock-fall translational velocities (m/sec)</li>
     <li><em>prefix</em>_vel_max: medium kinetic energy (kJ)</li>

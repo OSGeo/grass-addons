@@ -42,7 +42,7 @@ processing window x (number of input maps - 1)).
 <h4>Landscape structure</h4>
 For each processing window, the number of cells per category are 
 counted and patches are identified.  
-The size and category of each patch is recorded. From these cell and 
+The size and category of each patch are recorded. From these cell and 
 patch statistics, three kinds of patterns (distributions) are 
 calculated:
 <dl>
@@ -63,7 +63,7 @@ changes in the general landscape structure.
 The latter is obtained from the category and size of each patch, i.e. 
 each unique category - size class combination becomes a separate class. 
 <p>
-The numbers indicate which distribtution will be used for the selected 
+The numbers indicate which distribution will be used for the selected 
 method (see below).
 <p>
 A low change in category distributions and a high change in 
@@ -195,9 +195,9 @@ MCD12Q1.A2003.Land_Cover_Type_1
 then a change assessment can be done with
 <div class="code"><pre>
 r.change.info in=`g.list type=rast pat=MCD12Q1.A*.Land_Cover_Type_1 sep=,` \
-	      method=pc,gain1,gain2,ratio1,ratio2,dist1,dist2 
-	      out=MCD12Q1.pc,MCD12Q1.gain1,MCD12Q1.gain2,MCD12Q1.ratio1,MCD12Q1.ratio2,MCD12Q1.dist1,MCD12Q1.dist2 \
-	      radius=20 step=40 alpha=2
+              method=pc,gain1,gain2,ratio1,ratio2,dist1,dist2 
+              out=MCD12Q1.pc,MCD12Q1.gain1,MCD12Q1.gain2,MCD12Q1.ratio1,MCD12Q1.ratio2,MCD12Q1.dist1,MCD12Q1.dist2 \
+              radius=20 step=40 alpha=2
 </pre></div>
 
 <h2>SEE ALSO</h2>

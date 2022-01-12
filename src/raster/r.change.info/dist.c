@@ -4,7 +4,7 @@
 #include "ncb.h"
 #include "window.h"
 
-/* average statistical distance between average distribution and 
+/* Average statistical distance between average distribution and 
  * observed distributions: 
  * sum of the absolute differences divided by the number of distributions
  * 
@@ -26,14 +26,14 @@ DCELL dist(double **dist, int *nd, int n, int dsize)
     }
     for (i = 0; i < dsize; i++) {
 
-	/* create combined distribution */
+	/* Create combined distribution */
 	p_avg = 0;
 	for (d = 0; d < n; d++) {
 	    if (dist[d][i] > 0 && nd[d] > 0) {
 		p_avg += dist[d][i];
 	    }
 	}
-	/* difference to combined distribution */
+	/* Difference to combined distribution */
 	if (p_avg > 0) {
 	    p_avg /= n_comb;
 	    for (d = 0; d < n; d++) {

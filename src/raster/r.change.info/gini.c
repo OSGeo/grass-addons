@@ -26,7 +26,7 @@ DCELL gini(double **dist, int *nd, int n, int dsize)
     }
     for (i = 0; i < dsize; i++) {
 
-	/* comnined distribution */
+	/* combined distribution */
 	p_avg = 0;
 	for (d = 0; d < n; d++) {
 	    if (dist[d][i] > 0 && nd[d] > 0) {

@@ -175,7 +175,7 @@ class Playground(object):
 
     def isvalidposition(self, position):
         """
-        Test if a position realy is on the playground
+        Test if a position really is on the playground
         @return list position if on, boolean False if off the playground
         """
         if (
@@ -248,7 +248,7 @@ class Playground(object):
 
     def getneighbourpositions(self, position, freedom):
         """
-        Get all the positions reachable from a certain position and shuffel
+        Get all the positions reachable from a certain position and shuffle
         @param list coordinates of a certain cell
         @param int number of potentially reachable neighbours
         @return list of coordinates, or boolean False
@@ -278,7 +278,7 @@ class Playground(object):
     def decaycellvalues(self, layername, halflife, minimum=0):
         """
         Let the values in each cell decay, volatilize or evaporate over time.
-        This method is intendet for relativly small 2D python arrays, see
+        This method is intended for relatively small 2D python arrays, see
         grassland.Grassland.decaycellvalues for numpy arrays.
         @param string layername name of the layer to work on
         @param long halflife or number of years when to reach half of the value
