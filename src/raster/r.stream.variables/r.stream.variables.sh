@@ -233,14 +233,14 @@ fi
 
 # replicate the start-GISRC in a uniq GISRC
 
-cp   $GISRC_def    $HOME/.grass7/rc$ID
-export GISRC=$HOME/.grass7/rc$ID
+cp   $GISRC_def    $HOME/.grass8/rc$ID
+export GISRC=$HOME/.grass8/rc$ID
 
 g.mapset  -c   mapset=sub_${GIS_OPT_AREA}ID$ID   location=$LOCATION_NAME  dbase=$GISDBASE   --quiet
 
 rm -f    $GISDBASE/$LOCATION_NAME/sub_${GIS_OPT_AREA}ID$ID/.gislock      
 
-export GISBASE=$( grep  gisbase   $(which grass70) | awk \'{ if(NR==2) { gsub ("\\"","" ) ; print $3 }  }\' )
+export GISBASE=$( grep  gisbase   $(which grass) | awk \'{ if(NR==2) { gsub ("\\"","" ) ; print $3 }  }\' )
 export PATH=$PATH:$GISBASE/bin:$GISBASE/scripts
 export LD_LIBRARY_PATH="$GISBASE/lib"
 export GRASS_LD_LIBRARY_PATH="$LD_LIBRARY_PATH"
@@ -264,7 +264,7 @@ else
 rm -f $DIRNAME/sub_${GIS_OPT_AREA}ID${ID}.tif      
 fi
 
-rm -r $HOME/.grass7/rc$ID    $GISDBASE/$LOCATION_NAME/sub_${GIS_OPT_AREA}ID$ID
+rm -r $HOME/.grass8/rc$ID    $GISDBASE/$LOCATION_NAME/sub_${GIS_OPT_AREA}ID$ID
 
 ' _ 
 
@@ -301,14 +301,14 @@ fi
 
 # replicate the start-GISRC in a uniq GISRC
 
-cp   $GISRC_def    $HOME/.grass7/rc$ID
-export GISRC=$HOME/.grass7/rc$ID
+cp   $GISRC_def    $HOME/.grass8/rc$ID
+export GISRC=$HOME/.grass8/rc$ID
 
 g.mapset  -c   mapset=sub_${GIS_OPT_AREA}ID$ID   location=$LOCATION_NAME  dbase=$GISDBASE   --quiet
 
 rm -f    $GISDBASE/$LOCATION_NAME/sub_${GIS_OPT_AREA}ID$ID/.gislock      
 
-export GISBASE=$( grep  gisbase   $(which grass70) | awk \'{ if(NR==2) { gsub ("\\"","" ) ; print $3 }  }\' )
+export GISBASE=$( grep  gisbase   $(which grass) | awk \'{ if(NR==2) { gsub ("\\"","" ) ; print $3 }  }\' )
 export PATH=$PATH:$GISBASE/bin:$GISBASE/scripts
 export LD_LIBRARY_PATH="$GISBASE/lib"
 export GRASS_LD_LIBRARY_PATH="$LD_LIBRARY_PATH"
@@ -329,7 +329,7 @@ FULL=$(awk -F "|"  \'{if (NF==13) {print 1 } else {print 0} }\'   $DIRNAME/stat_
 
 if [ $FULL -eq 0 ] ; then rm   $DIRNAME/stat_${GIS_OPT_VARIABLE}_ID$ID.txt ; fi
 
-rm -r $HOME/.grass7/rc$ID    $GISDBASE/$LOCATION_NAME/sub_${GIS_OPT_AREA}ID$ID
+rm -r $HOME/.grass8/rc$ID    $GISDBASE/$LOCATION_NAME/sub_${GIS_OPT_AREA}ID$ID
 
 fi 
 

@@ -88,10 +88,10 @@ def main():
     # set the home path
     grass_env_file = None  # see check_shell()
     if sys.platform == "win32":
-        grass_config_dirname = "GRASS7"
+        grass_config_dirname = "GRASS8"
         grass_config_dir = os.path.join(os.getenv("APPDATA"), grass_config_dirname)
     else:
-        grass_config_dirname = ".grass7"
+        grass_config_dirname = ".grass8"
         grass_config_dir = os.path.join(os.getenv("HOME"), grass_config_dirname)
     # configuration directory
     rlidir = os.path.join(grass_config_dir, "r.li")
@@ -122,7 +122,7 @@ def main():
 
     # check if ~/.r.li path exists
     if not os.path.exists(rlidir):
-        # create ~/.grass7/r.li
+        # create ~/.grass8/r.li
         os.mkdir(rlidir)
 
     # set overwrite

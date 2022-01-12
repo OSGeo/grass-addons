@@ -19,11 +19,11 @@
 #    os.popen("bash "+os.path.join(globalvar.GUIDIR, "utils", "mk_isis_menu.sh")
 
 #Toolbox
-tbfile="$HOME/.grass7/toolboxes/toolboxes.xml"
+tbfile="$HOME/.grass8/toolboxes/toolboxes.xml"
 #Main menu
-mmfile="$HOME/.grass7/toolboxes/main_menu.xml"
+mmfile="$HOME/.grass8/toolboxes/main_menu.xml"
 #Menu tree 
-mtfile="$HOME/.grass7/toolboxes/module_tree.xml"
+mtfile="$HOME/.grass8/toolboxes/module_tree.xml"
 #For building
 #tbfile="$ISISROOT/../toolboxes.xml"
 #echo $ISISROOT
@@ -530,7 +530,7 @@ echo "  </toolbox>" >> $tbfile
 echo "</toolboxes>" >> $tbfile
 
 #For testing
-#cp -f $tbfile ~/.grass7/toolboxes/
+#cp -f $tbfile ~/.grass8/toolboxes/
 
 #Missing
 #ctx

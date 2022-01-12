@@ -304,7 +304,7 @@ def main():
         grass.fatal(_("You are not in a GRASS GIS version 7 session"))
         return 0
     # set the path of grassdata/location/mapset
-    # set to .grass7 folder
+    # set to .grass8 folder
     path = os.path.join(home, session_path, "g.cloud")
     if not os.path.exists(path):
         os.makedirs(path)

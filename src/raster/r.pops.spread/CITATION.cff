@@ -16,6 +16,6 @@ authors:
 title: r.pops.spread - PoPS model implemented as a GRASS GIS module
 version: 29074a1
 date-released: 2018-06-21
-url: https://grass.osgeo.org/grass74/manuals/addons/r.pops.spread.html
+url: https://grass.osgeo.org/grass7/manuals/addons/r.pops.spread.html
 repository-code: https://github.com/ncsu-landscape-dynamics/r.pops.spread
 license: GPL-2.0-or-later
