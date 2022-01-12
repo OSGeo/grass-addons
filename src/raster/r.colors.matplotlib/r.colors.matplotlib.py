@@ -94,12 +94,12 @@ def values_to_rule(value, red, green, blue, percent):
     )
 
 
-# sync with r.colors.cubehelix
-# this can potentially go to the core as something like grass.utils
+# Sync with r.colors.cubehelix
+# This can potentially go to the core as something like grass.utils
 def mpl_cmap_to_rules(cmap, n_colors=None, discrete=False, comments=None):
     if not n_colors:
         n_colors = cmap.N
-    # determine numbers for recomputing from absolute range to relative
+    # Determine numbers for recomputing from absolute range to relative
     cmin = 0
     cmax = n_colors
     if not discrete:
@@ -118,8 +118,8 @@ def mpl_cmap_to_rules(cmap, n_colors=None, discrete=False, comments=None):
         v1 = 100 * (crange - (cmax - v1)) / float(crange)
         if discrete:
             v2 = 100 * (crange - (cmax - v2)) / float(crange)
-        # multiply to get 255 after integer
-        # assuming nobody uses smaller faction than 0.001
+        # Multiply to get 255 after integer
+        # assuming nobody uses smaller fraction than 0.001
         # taken from color_rules.c
         r1 = int(r1 * 255.999)
         g1 = int(g1 * 255.999)
@@ -152,11 +152,11 @@ def main(options, flags):
             code = compile(f.read(), os.path.basename(name), "exec")
             exec(code, globals(), ns)
         cmap = ns.get("test_cm", None)
-        # we ignore user input since we need to use whatever the
+        # We ignore user input since we need to use whatever the
         # color map object is defined with
         n_colors = cmap.N
     else:
-        # not sure if datad is part of the API but it is in one example
+        # Not sure if datad is part of the API but it is in one example
         # datad might be potentially better way of getting the table
         # it contains the raw data, but on the other hand it might not be
         # clear if you can interpolate linearly in between (but likely yes)

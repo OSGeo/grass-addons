@@ -5,7 +5,7 @@
 MODULE:       r.colors.out_sld
 AUTHOR(S):    Hamish Bowman
               Stefan Blumentrath, NINA: Port to GRASS GIS 7 / Python,
-              lable and opacity support
+              label and opacity support
 PURPOSE:      Export GRASS raster color table to OGC SLD template v1.0.0
 COPYRIGHT:    (C) 2011 by Hamish Bowman, and the GRASS Development Team
 
@@ -25,9 +25,9 @@ http://docs.geoserver.org/stable/en/user/styling/sld/reference/rastersymbolizer.
 """
 
 """
-To Dos:
-- add transparency support
-- support for intervalls ColorMap?
+TODO:
+- Add transparency support
+- Support for interval ColorMap?
 """
 
 #%Module

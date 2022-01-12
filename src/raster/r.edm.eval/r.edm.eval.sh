@@ -5,7 +5,7 @@
 # 
 # MODULE:       r.model.eval
 # AUTHOR(S):    Paulo van Breugel <paulo AT ecodiv.org>
-# PURPOSE:      To evaluates how well a modeled distribution predicts an 
+# PURPOSE:      To evaluate how well a modeled distribution predicts an 
 #               observed distribution. 
 #
 # NOTES:        The observed distribution of e.g., a species, land
@@ -133,7 +133,7 @@
 #%end
 
 #=======================================================================
-## GRASS team recommandations
+## GRASS team recommendations
 #=======================================================================
 
 ## Check if in GRASS

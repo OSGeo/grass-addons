@@ -27,7 +27,7 @@ higher than for adjacent "non-stream" pixels.
 r.findtheriver attempts to "snap" the coordinates of the
 streamflow gage to the "true" stream location by first identifying
 stream pixels within a search window, and then selecting the stream
-pixel that is closest (cartesian distance) to the input gage
+pixel that is closest (Cartesian distance) to the input gage
 coordinates.  Stream pixels are identified by searching the UAA
 raster window for pixels that exceed a threshold.  This is done by
 computing the log10 of the UAA value for the pixel corresponding to
