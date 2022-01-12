@@ -216,10 +216,10 @@ Linux package manager in most distributions (named for example
 For <b>MS-Windows</b> users using a 64 bit GRASS, the easiest way is to use the
 <a href="https://grass.osgeo.org/download/software/ms-windows/">OSGeo4W</a>
 installation method of GRASS, where the Python setuptools can also be
-installed. The users can then run 'easy_install pip' to install the pip
+installed. The users can then run <code>easy_install pip</code> to install the pip
 package manager. Then, they can download the "Python wheels"
 corresponding to each package and install them using the following
-command: <em>pip install packagename.whl</em>. Links for
+command: <code>pip install packagename.whl</code>. Links for
 downloading wheels are provided below. The version installed should be
 compatible with the user's Python version. If GRASS was not installed
 using the OSGeo4W method, the pip package manager can be installed by
@@ -227,7 +227,12 @@ saving the "get-pip.py" python script provided
 <a href="https://bootstrap.pypa.io/get-pip.py">here</a> in the folder
 containing the GRASS GIS Python environment
 (GRASSFOLDER/../etc/python/grass) and executing it with administrator
-rights with the following command: <em>python get-pip.py</em>
+rights with the following command: <code>python get-pip.py</code>
+<br>
+For users of <b>macOS</b> GRASS-X.X.app bundles, start GRASS and install
+packages with following commands in the Terminal: <code>python
+-m pip install --upgrade pip</code> and <code>python -m pip
+install pandas scikit-learn</code>.
 
 <ul>
 <li>Pandas Wheel (mainly relevant to Windows users):
