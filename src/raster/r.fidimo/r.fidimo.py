@@ -61,7 +61,7 @@
 #% key: source_populations
 #% type: string
 #% gisprompt: old,cell,raster
-#% description: Or: Source population raster (relative or absolute occurence)
+#% description: Or: Source population raster (relative or absolute occurrence)
 #% required: no
 #% guisection: Source populations
 #%end
@@ -336,12 +336,12 @@ def main():
     n_source = options["n_source"]  # number of random source points
     source_populations = options["source_populations"]
 
-    # Habitat attractivity maps
+    # Habitat attractiveness maps
     if options["habitat_attract"]:
         habitat_attract = options["habitat_attract"]
 
     # multiplication value as workaround for very small FLOAT values
-    # imporatant for transformation of source population raster into point vector
+    # important for transformation of source population raster into point vector
     scalar = 10000
 
     # Statistical interval
@@ -564,7 +564,7 @@ def main():
         value="river_raster_nearest_tmp_%d" % os.getpid(),
     )
 
-    # get value of nearest river cell
+    # get value of the nearest river cell
     grass.run_command(
         "r.grow",
         overwrite=True,
@@ -583,7 +583,7 @@ def main():
         distance_raster_grow_tmp="distance_raster_grow_tmp_%d" % os.getpid(),
     )
 
-    # grow by one cell to make sure taht the start point is the only cell
+    # grow by one cell to make sure that the start point is the only cell
     grass.run_command(
         "r.grow",
         overwrite=True,
@@ -676,7 +676,7 @@ def main():
     )
 
     ################ Preparation Source Populations ################
-    # Defining source points either as random points in river or from input raster
+    # Defining source points either as random points in the river or from input raster
     if options["n_source"]:
         grass.run_command(
             "r.random",
@@ -691,7 +691,7 @@ def main():
             columns="n_fish INT, prob_scalar DOUBLE",
         )
 
-        # Set starting propability of occurence to 1.0*scalar for all random source_points
+        # Set starting probability of occurrence to 1.0*scalar for all random source_points
         grass.write_command(
             "db.execute",
             input="-",
@@ -741,7 +741,7 @@ def main():
             columns="n_fish INT, prob_scalar DOUBLE",
         )
 
-        # populate n_fish and sample prob from input sourcepopulations raster (multiplied by scalar)
+        # populate n_fish and sample prob from input source_populations raster (multiplied by scalar)
         if flags["r"]:
             grass.run_command(
                 "v.what.rast",
@@ -796,7 +796,7 @@ def main():
         column="Strahler",
     )
 
-    # Adding information of habitat attractivenss to source points
+    # Adding information of habitat attractiveness to source points
     if options["habitat_attract"]:
         grass.run_command(
             "v.what.rast",
@@ -830,7 +830,7 @@ def main():
         + "_source_points",
     )
 
-    ########### Looping over nrun, over segements, over source points ##########
+    ########### Looping over nrun, over segments, over source points ##########
 
     if (
         str(options["statistical_interval"]) == "no"
@@ -897,7 +897,7 @@ def main():
                 p = float(k[7])
 
                 # Progress bar
-                # add here progressbar
+                # TODO: add here progress bar
 
                 # Debug messages
                 grass.debug(_("Start looping over source points"))
@@ -915,7 +915,7 @@ def main():
                 grass.debug(_("This is i:" + str(i)))
                 grass.debug(_("This is " + str(SO)))
 
-                # if Random Value within Confidence Interval than select a sigma value that is within the CI assuming a normal distribution of sigma within the CI
+                # if Random Value within Confidence Interval then select a sigma value that is within the CI assuming a normal distribution of sigma within the CI
                 if (
                     str(options["statistical_interval"])
                     == "Random Value within Confidence Interval"
@@ -975,7 +975,7 @@ def main():
 
                 grass.debug(
                     _(
-                        "Distance from each source point is calculated up to a treshold of: "
+                        "Distance from each source point is calculated up to a threshold of: "
                         + str(max_dist)
                     )
                 )
@@ -990,7 +990,7 @@ def main():
                     max_cost=max_dist,
                 )
 
-                # Getting upper and lower distance (cell boundaries) based on the fact that there are different flow lenghts through a cell depending on the direction (diagonal-orthogonal)
+                # Getting upper and lower distance (cell boundaries) based on the fact that there are different flow lengths through a cell depending on the direction (diagonal-orthogonal)
                 grass.mapcalc(
                     "$upper_distance = if($flow_direction==2||$flow_direction==4||$flow_direction==6||$flow_direction==8||$flow_direction==-2||$flow_direction==-4||$flow_direction==-6||$flow_direction==-8, $distance_from_point+($ds/2.0), $distance_from_point+($dd/2.0))",
                     upper_distance="upper_distance_tmp_%d" % os.getpid(),
@@ -1073,10 +1073,10 @@ def main():
                     start_coordinates=coors,
                 )
 
-                # Applying upstream split at network nodes based on inverse shreve stream order
+                # Applying upstream split at network nodes based on inverse Shreve stream order
                 grass.debug(
                     _(
-                        "Applying upstream split at network nodes based on inverse shreve stream order"
+                        "Applying upstream split at network nodes based on inverse Shreve stream order"
                     )
                 )
 
@@ -1215,7 +1215,7 @@ def main():
                             # if no upstream density to allocate than stop that "barrier-loop" and continue with next barrier
                             grass.message(
                                 _(
-                                    "No upstream denisty to allocate downstream for that barrier: "
+                                    "No upstream density to allocate downstream for that barrier: "
                                     + coors_barriers
                                 )
                             )
@@ -1317,11 +1317,11 @@ def main():
                                 "r.null", map="density_" + str(cat), setnull="0"
                             )
 
-                # Get a list of all densities processed so far within this segement
+                # Get a list of all densities processed so far within this segment
                 mapcalc_list_Aa.append("density_" + str(cat))
 
                 if options["habitat_attract"]:
-                    # Multiply (Weight) density point with relative attractiveness. realative attractive in relation to habitat attractivness at source
+                    # Multiply (Weight) density point with relative attractiveness. relative attractive in relation to habitat attractiveness at source
                     grass.mapcalc(
                         "$density_point_attract = $density_point*($habitat_attract/$source_habitat_attract)",
                         density_point_attract="density_attract_" + str(cat),
@@ -1342,7 +1342,7 @@ def main():
                     )
 
                 if flags["r"]:
-                    # Realisation of Probablity raster, Multinomial backtransformation from probability into fish counts per cell
+                    # Realisation of Probability raster, Multinomial backtransformation from probability into fish counts per cell
                     grass.debug(
                         _(
                             "Write Realisation (fish counts) from point to garray. This is point cat: "
@@ -1366,7 +1366,7 @@ def main():
                         "r.null", map="realised_density_" + str(cat), null="0"
                     )
 
-                    # Get a list of all realised densities processed so far within this segement
+                    # Get a list of all realised densities processed so far within this segment
                     mapcalc_list_Ab.append("realised_density_" + str(cat))
 
             # Aggregation per segment
@@ -1415,7 +1415,7 @@ def main():
         mapcalc_string_Ba_removal = ",".join(mapcalc_list_Ba)
 
         # Final raster map, Final map is sum of all
-        # density maps (for each segement), All contributing maps (string_Ba_removal) are deleted
+        # density maps (for each segment), All contributing maps (string_Ba_removal) are deleted
         # in the end.
         grass.mapcalc(
             "$density_final = $mapcalc_string_Ba_aggregate",

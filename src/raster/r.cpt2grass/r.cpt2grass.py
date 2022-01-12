@@ -62,7 +62,7 @@ def HSVtoRGB(h, s, v):
     Based on the Foley and Van Dam HSV algorithm used
     by James Westervelt's (CERL) hsv.rgb.sh script from GRASS 4/5."""
     # Hue: 0-360 degrees
-    # Satuaration: 0.0-1.0
+    # Saturation: 0.0-1.0
     # Value: 0.0-1.0
     if v == 0.0:
         return (0, 0, 0)

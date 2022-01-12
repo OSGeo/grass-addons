@@ -82,13 +82,13 @@
 #%flag
 #% key: d
 #% label: Mahalanobis distance in projection domain?
-#% description: Keep layer mahalanobis distance in projection domain?
+#% description: Keep layer Mahalanobis distance in projection domain?
 #%end
 
 #%flag
 #% key: e
 #% label: Mahalanobis distance in reference domain
-#% description: Keep layer mahalanobis distance in reference domain?
+#% description: Keep layer Mahalanobis distance in reference domain?
 #%end
 
 # import libraries
@@ -160,7 +160,7 @@ def CoVar(maps):
 
 
 def mahal(v, m, VI):
-    """Compute the mahalanobis distance over reference layers"""
+    """Compute the Mahalanobis distance over reference layers"""
     delta = v - m[:, None, None]
     mahdist = np.sum(
         np.sum(delta[None, :, :, :] * VI[:, :, None, None], axis=1) * delta, axis=0
@@ -250,7 +250,7 @@ def main(options, flags):
         dat_ref[i, :, :] = layer
         del layer
 
-    # Compute mahalanobis over full set of reference layers
+    # Compute Mahalanobis over full set of reference layers
     mahal_ref = mahal(v=dat_ref, m=stat_mean, VI=VI)
     mahal_ref_max = max(mahal_ref[np.isfinite(mahal_ref)])
     if flag_e:
@@ -303,7 +303,7 @@ def main(options, flags):
             units="unitless",
             loadhistory=tmphist,
             description="Mahalanobis distance map in projection "
-            "domain estimated using covariance of refence data",
+            "domain estimated using covariance of reference data",
         )
 
     # Compute NT1
@@ -313,7 +313,7 @@ def main(options, flags):
         tmpout = tmpname("exdet")
         # TODO: computations below sometimes result in very small negative
         # numbers, which are not 'real', but rather due to some differences
-        # in handling digits in grass and python, hence second mapcalc
+        # in handling digits in grass and Python, hence second mapcalc
         # statement. Need to figure out how to handle this better.
         gs.mapcalc(
             "eval("
@@ -357,7 +357,7 @@ def main(options, flags):
             dat_protmp = np.delete(dat_pro, i, axis=0)
             ymap = mahal(v=dat_protmp, m=stattmp, VI=VItmp)
             # in Mesgaran et al, the MIC2 is the max icp, but that is the
-            # same as the minimum mahalanobis distance (ymap)
+            # same as the minimum Mahalanobis distance (ymap)
             # icp = (mahal_pro - ymap) / mahal_pro * 100
             layer[:, :] = ymap
             tmpmahal = tmpname(out)

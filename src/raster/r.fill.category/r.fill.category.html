@@ -19,26 +19,26 @@ Optionally, <em>r.fill.category</em> can create an MPEG file animating the repla
 <h2>PARAMETERS</h2>
 The user controls the process by setting the <i>neighborhood size</i> in pixels and the <i>maximum number of iterations</i>.
 <p>
-The <i>neighborhood size</i> controls the size of the moving window where the mode of the values is used to assign a value to the pixels of the category to be replaced. Large values of the <i>neighborhood size</i> can speed the process considerably but can also lead to unwanted effects where pixels with the category to remove are mixed with pixels with different categories. Small values of <i>neighborhood size</i> require a large number of iterations, therefore longer processing times, but provide better results when categories are mixed.
+The <i>neighborhood size</i> (<b>nsize</b>) controls the size of the moving window where the mode of the values is used to assign a value to the pixels of the category to be replaced. Large values of the <i>neighborhood size</i> can speed the process considerably but can also lead to unwanted effects where pixels with the category to remove are mixed with pixels with different categories. Small values of <i>neighborhood size</i> require a large number of iterations, therefore longer processing times, but provide better results when categories are mixed.
 </p>
 <p>
-The <i>maximum number of iterations</i> is limited to <i>999</i> because the name of the temporary map at each step uses three digit to identify the iteration.
+The <i>maximum number of iterations</i> (<b>maxiter</b>) is limited to <i>999</i> because the name of the temporary map at each step uses three digits to identify the iteration.
 </p>
 
 <h2>INTERMEDIATE MAPS</h2>
-To save space, maps generated at each iteration are removed as soon as they are used. It is possible to keep these maps using the <i>k</i> flag.
+To save space, maps generated at each iteration are removed as soon as they are used. It is possible to keep these maps using the <b>k</b> flag.
 
 <h2>ANIMATION</h2>
 If the user provides the name of an MPEG output file, an animation is created by combining the raster maps of each step.
 <p>
-The <i>quality</i> (1-5) parameter controls the quality of the MPEG, lower values will yield higher quality images, but with less compression (i.e. larger MPEG file size). Switching from <i>quality=1</i> to <i>quality=5</i> reduces the MPEG file size of about 40%, although the actual compression ratio depends on the number of frames.
+The <b>quality</b> (1-5) parameter controls the quality of the MPEG, lower values will yield higher quality images, but with less compression (i.e. larger MPEG file size). Switching from <i>quality=1</i> to <i>quality=5</i> reduces the MPEG file size of about 40%, although the actual compression ratio depends on the number of frames.
 </p>
 <p>
 The module <em>r.out.mpeg</em> is used to generate the MPEG file, therefore the program mpeg_encode (aka ppmtompeg) must be available. 
 See <em>r.out.mpeg</em> manual for more information.
 </p>
 <p>
-If a name for an MPEG output file is provided but the <i>k</i> flag is not set, intermediate maps are kept during the process and deleted after the MPEG file has been created.
+If a name for an MPEG output file is provided but the <b>k</b> flag is not set, intermediate maps are kept during the process and deleted after the MPEG file has been created.
 </p>
 
 <h2>EXAMPLE</h2>
