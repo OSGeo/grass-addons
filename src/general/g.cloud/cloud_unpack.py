@@ -44,8 +44,8 @@ dbase = os.path.split(os.path.split(dbaselocatmap)[0])[0]
 logging.debug("Unpacking in <%s/%s/%s>" % (dbase, location, mapset))
 f.write("Unpacking in <%s/%s/%s>" % (dbase, location, mapset))
 
-# read for grass70 executable the path to gisbase
-for line in open(which.which("grass70")).readlines():
+# read for grass executable the path to gisbase
+for line in open(which.which("grass")).readlines():
     if line.startswith('    gisbase = "'):
         gisbase = line.split("=")[-1].split('"')[1]
 # look for raster and vector pack

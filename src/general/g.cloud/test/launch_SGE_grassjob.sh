@@ -33,7 +33,7 @@
 # better say where to find libs and bins:
 export PATH=$PATH:/usr/local/bin:$HOME
 export LD_LIBRARY_PATH=$MYLD_LIBRARY_PATH
-MYGRASS_ADDON_PATH=$HOME/.grass7/addons/scripts/
+MYGRASS_ADDON_PATH=$HOME/.grass8/addons/scripts/
 
 #### DON'T TOUCH THE VARIABLES BELOW
 # generate machine (blade) unique TMP string
@@ -48,7 +48,7 @@ TARGETMAPSET=PERMANENT
 GRASS_BATCH_JOB=$GRASSCRIPT
 
 # path to GRASS binaries and libraries:
-export GISBASE=`grass70 --config path`
+export GISBASE=`grass --config path`
 export PATH=$PATH:$GISBASE/bin:$GISBASE/scripts
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$GISBASE/lib
 
@@ -60,8 +60,8 @@ export TERM=linux
 ################ nothing to change below ############
 
 # Set the global GRASS settings file to individual file name
-mkdir -p $HOME/.grass7/
-MYGISRC="$HOME/.grass7/rc.$MYUSER.`uname -n`.$MYTMP"
+mkdir -p $HOME/.grass8/
+MYGISRC="$HOME/.grass8/rc.$MYUSER.`uname -n`.$MYTMP"
 
 #generate GISRCRC
 echo "GRASS_ADDON_PATH: $MYGRASS_ADDON_PATH" > "$MYGISRC"
@@ -84,7 +84,7 @@ db.connect -c --quiet
 # cleaning up temporary files
 $GISBASE/etc/clean_temp > /dev/null
 rm -f ${MYGISRC}
-rm -rf $HOME/tmp/grass7-$USER-$GIS_LOCK
+rm -rf $HOME/tmp/grass8-$USER-$GIS_LOCK
 
 # leave breadcrumb to find related mapsets back when moving results
 # into final mapset:

@@ -42,11 +42,11 @@ if [ $# -ne 5 ] ; then
    exit 0
 fi
 
-#### start of GRASS 7 setup
+#### start of GRASS 8 setup
 # better say where to find libs and bins:
 export PATH=$PATH:/usr/local/bin:$HOME
 export LD_LIBRARY_PATH=$MYLD_LIBRARY_PATH
-MYGRASS_ADDON_PATH=$HOME/.grass7/addons/scripts/
+MYGRASS_ADDON_PATH=$HOME/.grass8/addons/scripts/
 
 # define location to work in
 GRASSDBROOT=$1
@@ -58,7 +58,7 @@ CLOUDID=$5
 MYMAPSET="PERMANENT"
 
 # path to GRASS binaries and libraries:
-export GISBASE=`grass70 --config path`
+export GISBASE=`grass --config path`
 export PATH=$PATH:$GISBASE/bin:$GISBASE/scripts
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib64:$GISBASE/lib
 
@@ -68,8 +68,8 @@ export GRASS_MESSAGE_FORMAT=plain
 export TERM=linux
 
 # path to GRASS settings file
-mkdir -p $HOME/.grass7/
-MYGISRC="$HOME/.grass7/rc.gcollectorjob.$MYPID"
+mkdir -p $HOME/.grass8/
+MYGISRC="$HOME/.grass8/rc.gcollectorjob.$MYPID"
 
 #generate GISRCRC
 #echo "GRASS_ADDON_PATH: $MYGRASS_ADDON_PATH" > "$MYGISRC"
@@ -81,7 +81,7 @@ echo "GRASS_GUI: text" >> "$MYGISRC"
 # path to GRASS settings file
 export GISRC=$MYGISRC
 
-#### end of GRASS 7 setup
+#### end of GRASS 8 setup
 
 echo $MYPID 1>&2
 
