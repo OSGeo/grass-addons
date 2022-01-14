@@ -18,149 +18,150 @@
 #
 ############################################################################
 
-#%module
-#% description: Create raster maps for multiple numeric attribute columns of a vector map
-#% keyword: vector
-#% keyword: conversion
-#% keyword: raster
-#% keyword: rasterization
-#% keyword: reclassify
-#% keyword: multiple
-#%end
+# %module
+# % description: Create raster maps for multiple numeric attribute columns of a vector map
+# % keyword: vector
+# % keyword: conversion
+# % keyword: raster
+# % keyword: rasterization
+# % keyword: reclassify
+# % keyword: multiple
+# %end
 
-#%flag
-#% key: d
-#% label: Create densified lines (default: thin lines)
-#% description: All cells touched by the line will be set, not only those on the render path
-#%end
+# %flag
+# % key: d
+# % label: Create densified lines (default: thin lines)
+# % description: All cells touched by the line will be set, not only those on the render path
+# %end
 
-#%option
-#% key: input
-#% type: string
-#% required: yes
-#% multiple: no
-#% key_desc: name
-#% label: Name of input vector map
-#% description: Or data source for direct OGR access
-#% gisprompt: old,vector,vector
-#%end
+# %option
+# % key: input
+# % type: string
+# % required: yes
+# % multiple: no
+# % key_desc: name
+# % label: Name of input vector map
+# % description: Or data source for direct OGR access
+# % gisprompt: old,vector,vector
+# %end
 
-#%option
-#% key: layer
-#% type: string
-#% required: no
-#% multiple: no
-#% label: Layer number or name
-#% description: Vector features can have category values in different layers. This number determines which layer to use. When used with direct OGR access this is the layer name.
-#% answer: 1
-#% gisprompt: old,layer,layer
-#%end
+# %option
+# % key: layer
+# % type: string
+# % required: no
+# % multiple: no
+# % label: Layer number or name
+# % description: Vector features can have category values in different layers. This number determines which layer to use. When used with direct OGR access this is the layer name.
+# % answer: 1
+# % gisprompt: old,layer,layer
+# %end
 
-#%option
-#% key: type
-#% type: string
-#% required: no
-#% multiple: yes
-#% options: point,line,boundary,centroid,area
-#% description: Input feature type
-#% answer: point,line,area
-#% guisection: Selection
-#%end
+# %option
+# % key: type
+# % type: string
+# % required: no
+# % multiple: yes
+# % options: point,line,boundary,centroid,area
+# % description: Input feature type
+# % answer: point,line,area
+# % guisection: Selection
+# %end
 
-#%option
-#% key: cats
-#% type: string
-#% required: no
-#% multiple: no
-#% key_desc: range
-#% label: Category values
-#% description: Example: 1,3,7-9,13
-#% gisprompt: old,cats,cats
-#% guisection: Selection
-#%end
+# %option
+# % key: cats
+# % type: string
+# % required: no
+# % multiple: no
+# % key_desc: range
+# % label: Category values
+# % description: Example: 1,3,7-9,13
+# % gisprompt: old,cats,cats
+# % guisection: Selection
+# %end
 
-#%option
-#% key: where
-#% type: string
-#% required: no
-#% multiple: no
-#% key_desc: sql_query
-#% label: WHERE conditions of SQL statement without 'where' keyword
-#% description: Example: income < 1000 and population >= 10000
-#% gisprompt: old,sql_query,sql_query
-#% guisection: Selection
-#%end
+# %option
+# % key: where
+# % type: string
+# % required: no
+# % multiple: no
+# % key_desc: sql_query
+# % label: WHERE conditions of SQL statement without 'where' keyword
+# % description: Example: income < 1000 and population >= 10000
+# % gisprompt: old,sql_query,sql_query
+# % guisection: Selection
+# %end
 
-#%option
-#% key: output
-#% type: string
-#% required: yes
-#% multiple: no
-#% key_desc: prefix
-#% description: Prefix for output raster maps
-#% gisprompt: new,cell,raster
-#%end
+# %option
+# % key: output
+# % type: string
+# % required: yes
+# % multiple: no
+# % key_desc: prefix
+# % description: Prefix for output raster maps
+# % gisprompt: new,cell,raster
+# %end
 
-#%option
-#% key: key_column
-#% type: string
-#% required: yes
-#% multiple: no
-#% answer: cat
-#% key_desc: name
-#% description: Name of the key column (default: cat, data type must be integer)
-#% gisprompt: old,dbcolumn,dbcolumn
-#% guisection: Attributes
-#%end
+# %option
+# % key: key_column
+# % type: string
+# % required: yes
+# % multiple: no
+# % answer: cat
+# % key_desc: name
+# % description: Name of the key column (default: cat, data type must be integer)
+# % gisprompt: old,dbcolumn,dbcolumn
+# % guisection: Attributes
+# %end
 
-#%option
-#% key: attribute_columns
-#% type: string
-#% required: yes
-#% multiple: yes
-#% key_desc: names
-#% description: Names of columns for 'attr' parameter (data type must be numeric)
-#% gisprompt: old,dbcolumn,dbcolumn
-#% guisection: Attributes
-#%end
+# %option
+# % key: attribute_columns
+# % type: string
+# % required: yes
+# % multiple: yes
+# % key_desc: names
+# % description: Names of columns for 'attr' parameter (data type must be numeric)
+# % gisprompt: old,dbcolumn,dbcolumn
+# % guisection: Attributes
+# %end
 
-#%option
-#% key: label_columns
-#% type: string
-#% required: no
-#% multiple: yes
-#% key_desc: names
-#% description: Names of columns used as raster category labels
-#% gisprompt: old,dbcolumn,dbcolumn
-#% guisection: Attributes
-#%end
+# %option
+# % key: label_columns
+# % type: string
+# % required: no
+# % multiple: yes
+# % key_desc: names
+# % description: Names of columns used as raster category labels
+# % gisprompt: old,dbcolumn,dbcolumn
+# % guisection: Attributes
+# %end
 
-#%option
-#% key: memory
-#% type: integer
-#% required: no
-#% multiple: no
-#% key_desc: memory in MB
-#% label: Maximum memory to be used (in MB)
-#% description: Cache size for raster rows
-#% answer: 300
-#%end
+# %option
+# % key: memory
+# % type: integer
+# % required: no
+# % multiple: no
+# % key_desc: memory in MB
+# % label: Maximum memory to be used (in MB)
+# % description: Cache size for raster rows
+# % answer: 300
+# %end
 
-#%option
-#% key: ndigits
-#% type: integer
-#% required: no
-#% multiple: yes
-#% key_desc: number of digits
-#% label: Number of significant digits per attribute column
-#% description: Number of significant digits per attribute column (for columns with floating point data)
-#%end
+# %option
+# % key: ndigits
+# % type: integer
+# % required: no
+# % multiple: yes
+# % key_desc: number of digits
+# % label: Number of significant digits per attribute column
+# % description: Number of significant digits per attribute column (for columns with floating point data)
+# %end
 
-#%option G_OPT_M_SEP
-#% key: separator
-#% key_desc: Separator
-#% description: Separator used for parsing attribute table (it should not occur in any selected column)
-#%end
+# %option G_OPT_M_SEP
+# % key: separator
+# % key_desc: Separator
+# % description: Separator used for parsing attribute table (it should not occur in any selected column)
+# % answer: pipe
+# %end
 
 import sys
 import numpy as np
