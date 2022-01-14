@@ -191,7 +191,7 @@ def check_columns(module_options):
                     if vmap_cols[col]["type"] not in supported_numeric:
                         gscript.fatal(
                             _(
-                                "Type {t} of column {col} is not a numeric type supportedby this module".format(
+                                "Type {t} of column {col} is not a numeric type supported by this module".format(
                                     t=vmap_cols[at]["type"], col=col
                                 )
                             )
