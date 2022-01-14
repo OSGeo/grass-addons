@@ -220,7 +220,13 @@ def check_columns(module_options):
 
 def main():
     """Do the main work"""
-    separator_dict = {"pipe": "|", "comma": ",", "space": " ", "tab": "\t", "newline": "\n"}
+    separator_dict = {
+        "pipe": "|",
+        "comma": ",",
+        "space": " ",
+        "tab": "\t",
+        "newline": "\n",
+    }
     # Parse options
     attribute_columns = (
         options["attribute_columns"].split(",")
@@ -235,7 +241,11 @@ def main():
     )
     output = options["output"]
     key_column = options["key_column"]
-    sep = separator_dict[options["separator"]] if options["separator"] in separator_dict else options["separator"]
+    sep = (
+        separator_dict[options["separator"]]
+        if options["separator"] in separator_dict
+        else options["separator"]
+    )
     if len(sep) > 1:
         gscript.warning(
             _(
