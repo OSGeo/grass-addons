@@ -35,28 +35,34 @@ v.in.region output=regionbounds
 v.select ainput=points_of_interest binput=regionbounds output=POI_select operator=within
 </pre></div>
 
-<p>Extract raster values and labels from landuse map. Columns from the input map (POI_select) are not included.
+<p>Extract raster values and labels from landuse map. Columns from the
+input map (POI_select) are not included.
 
 <p><div class="code"><pre>
 v.what.rast.label vector=POI_select raster=landuse raster2=elevation output=POI_landuse1
 </pre></div>
 
-<p>Extract raster values and labels from landuse map. Use the -0 flag to include the columns from the input map (POI_select)
+<p>Extract raster values and labels from landuse map. Use the -0 flag 
+to include the columns from the input map (POI_select)
 
 <p><div class="code"><pre>
 v.what.rast.label -o vector=POI_select raster=landuse raster2=elevation output=POI_landuse2
 </pre></div>
 
-<p>Extract raster values and labels from landuse map and values from elevation map. Use the -0 flag to include the columns from the input map (POI_select)
+<p>Extract raster values and labels from landuse map and values from
+elevation map. Use the -0 flag to include the columns from the input map
+(POI_select)
 
 <p><div class="code"><pre>
-v.what.rast.label -o vector=POI_select@user1 raster=landuse@PERMANENT raster2=elevation@PERMANENT output=POI_landuse
+v.what.rast.label -o vector=POI_select@user1 raster=landuse raster2=elevation output=POI_landuse
 </pre></div>
 
-<p>Extract raster values and labels from landuse map and values from elevation map. Use the -0 flag to include the columns from the input map (POI_select)
+<p>Extract raster values and labels from landuse map and values from
+elevation map. Use the -0 flag to include the columns from the input map
+(POI_select). Use the -c flag to include the point coordinates
 
 <p><div class="code"><pre>
-v.what.rast.label -o vector=POI_select@user1 raster=landuse@PERMANENT raster2=elevation@PERMANENT output=POI_landuse
+v.what.rast.label -o -c vector=POI_select@user1 raster=landuse@PERMANENT raster2=elevation@PERMANENT output=POI_landuse
 </pre></div>
 
 <h2>SEE ALSO</h2>
