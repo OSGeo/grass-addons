@@ -14,56 +14,56 @@
 #        for details.
 ##############################################################################
 
-#%module
-#% description: Uploads raster values and labels to vector point layer
-#% keyword: vector
-#% keyword: sampling
-#% keyword: raster
-#% keyword: position
-#% keyword: querying
-#% keyword: attribute table
-#% keyword: surface information
-#%end
+# %module
+# % description: Uploads raster values and labels to vector point layer
+# % keyword: vector
+# % keyword: sampling
+# % keyword: raster
+# % keyword: position
+# % keyword: querying
+# % keyword: attribute table
+# % keyword: surface information
+# %end
 
-#%option G_OPT_V_MAP
-#% key: vector
-#% description: Name vector points map for which to add raster values & labels
-#% guisection: Input
-#% required: yes
-#%end
+# %option G_OPT_V_MAP
+# % key: vector
+# % description: Name vector points map for which to add raster values & labels
+# % guisection: Input
+# % required: yes
+# %end
 
-#%option G_OPT_R_INPUTS
-#% key: raster
-#% description: Name of raster map(s) with labels to be queried
-#% guisection: Input
-#% required: yes
-#% multiple: yes
-#%end
+# %option G_OPT_R_INPUTS
+# % key: raster
+# % description: Name of raster map(s) with labels to be queried
+# % guisection: Input
+# % required: yes
+# % multiple: yes
+# %end
 
-#%option G_OPT_R_INPUTS
-#% key: raster2
-#% description: Name of raster map(s) without labels to be queried
-#% guisection: Input
-#% required: no
-#% multiple: yes
-#%end
+# %option G_OPT_R_INPUTS
+# % key: raster2
+# % description: Name of raster map(s) without labels to be queried
+# % guisection: Input
+# % required: no
+# % multiple: yes
+# %end
 
-#%option G_OPT_V_OUTPUT
-#% description: Name of output point layer
-#% key_desc: name
-#% guisection: Input
-#% required: yes
-#%end
+# %option G_OPT_V_OUTPUT
+# % description: Name of output point layer
+# % key_desc: name
+# % guisection: Input
+# % required: yes
+# %end
 
-#%flag
-#% key: o
-#% description: Include columns of input vector map
-#%end
+# %flag
+# % key: o
+# % description: Include columns of input vector map
+# %end
 
-#%flag
-#% key: c
-#% description: Include point coordinates
-#%end
+# %flag
+# % key: c
+# % description: Include point coordinates
+# %end
 # import libraries
 import os
 import sys
