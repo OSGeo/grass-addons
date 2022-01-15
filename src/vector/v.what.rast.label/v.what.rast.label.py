@@ -144,7 +144,7 @@ def main(options, flags):
     raster_cats = Module(
         "r.what", flags="f", map=raster_cat, stdin_=point_to_ascii, stdout_=PIPE
     ).outputs.stdout
-    ascii_to_point = raster_cats.replace("|*|", "||")
+    ascii_to_point = raster_cats.replace("|*|", "||").replace("\r", "")
     Module(
         "v.in.ascii",
         input="-",
