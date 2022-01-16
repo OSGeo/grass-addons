@@ -108,7 +108,7 @@ with open(conf["csvfile"], "w", newline="") as f:
                 expression=expression,
                 width=wh,
                 height=wh,
-                processes=conf["nprocs"],
+                nprocs=conf["nprocs"],
                 overwrite=True,
             )
             end = time.time()

@@ -5,9 +5,9 @@
 #
 # MODULE:       r.category.trim
 # AUTHOR(S):    Paulo van Breugel (paulo AT ecodiv DOT earth)
-# DESCRIPTION:  Export the categories, category labels and colour codes (RGB)
-#               as csv file or as a QGIS colour map file. It will first remove
-#               non-existing categories and their colour definitions.
+# DESCRIPTION:  Export the categories, category labels and color codes (RGB)
+#               as csv file or as a QGIS color map file. It will first remove
+#               non-existing categories and their color definitions.
 #               Optionally, map values can be reclassed into consecutive
 #               categories values, whereby the category labels and colors are
 #               retained.
@@ -21,7 +21,7 @@
 ########################################################################
 #
 #%Module
-#% description: Export categories and corresponding colors as QGIS colour file or csv file. Non-existing categories and their colour definitions will be removed.
+#% description: Export categories and corresponding colors as QGIS color file or csv file. Non-existing categories and their color definitions will be removed.
 #% keyword: raster
 #% keyword: color
 #% keyword: color table

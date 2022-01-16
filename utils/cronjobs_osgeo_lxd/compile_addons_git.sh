@@ -7,10 +7,20 @@
 
 # This script compiles GRASS Addons, it's called by cron_grass${GMAJOR}_main_build_binaries.sh | cron_grass${GMAJOR}_main_src_snapshot.sh
 
-GMAJOR=8
-GMINOR=0
-
 #################
+
+if [ -z "$1" ]; then
+    echo "ERROR: Set GRASS GIS major version"
+    exit 1
+fi
+
+if [ -z "$2" ]; then
+    echo "ERROR: Set GRASS GIS minor version"
+    exit 1
+fi
+
+GMAJOR="$1"
+GMINOR="$2"
 
 if [ `uname -m` = "x86_64" ] ; then
     PLATFORM=x86_64
@@ -19,32 +29,33 @@ else
 fi
 
 if [ -z "$3" ]; then
-    echo "Usage: $0 git_path topdir addons_path grass_startup_program [separate]"
-    echo "eg. $0 ~/src/grass_addons/grass${GMAJOR}/ \
+    echo "Usage: $0 grass_major_version grass_minor_version git_path \
+topdir addons_path grass_startup_program [separate]"
+    echo "eg. $0 8 0 ~/src/grass_addons/grass${GMAJOR}/ \
 ~/src/releasebranch_${GMAJOR}_${GMINOR}/dist.${PLATFORM}-pc-linux-gnu \
 ~/.grass${GMAJOR}/addons \
 ~/src/releasebranch_${GMAJOR}_${GMINOR}/bin.${PLATFORM}-pc-linux-gnu/grass${GMAJOR}"
     exit 1
 fi
 
-GIT_PATH="$1"
-TOPDIR="$2"
-ADDON_PATH="$3"
-GRASS_STARTUP_PROGRAM="$4"
+GIT_PATH="$3"
+TOPDIR="$4"
+ADDON_PATH="$5"
+GRASS_STARTUP_PROGRAM="$6"
 INDEX_FILE="index"
 INDEX_MANUAL_PAGES_FILE="index_manual_pages"
 ADDONS_PATHS_JSON_FILE="addons_paths.json"
 
-if [ ! -d "$3" ] ; then
-    mkdir -p "$3"
+if [ ! -d "$5" ] ; then
+    mkdir -p "$5"
 fi
 
-if [ -z "$4" ] ; then
+if [ -z "$6" ] ; then
     echo "ERROR: Set GRASS GIS startup program with full path (e.g., ~/src/releasebranch_${GMAJOR}_${GMINOR}/bin.${PLATFORM}-pc-linux-gnu/grass${GMAJOR})"
     exit 1
 fi
 
-if [ -n "$5" ] ; then
+if [ -n "$7" ] ; then
     SEP=1 # useful for collecting files (see build-xml.py)
 else
     SEP=0

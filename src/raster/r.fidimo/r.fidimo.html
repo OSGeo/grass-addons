@@ -2,7 +2,7 @@
 
 <em>r.fidimo</em> performs analysis of fish dispersal based on
 leptokurtic dispersal kernels. It calculates fish dispersal along river
-corridors based on a users stream network input, fish source populations
+corridors based on a user's stream network input, fish source populations
 and species-specific dispersal parameters.
 
 <h2>OPTIONS</h2>
@@ -10,19 +10,19 @@ and species-specific dispersal parameters.
 <dl>
 <dt><b>river</b></dt>
 <dd>Name of input stream network map (thinned raster map) on which the
-calculations of dispersal is performed. In cases of very maeandering rivers
-(with bends narrower than the spatial resolution of the analyis (cell size)
+calculations of dispersal is performed. In cases of very meandering rivers
+(with bends narrower than the spatial resolution of the analysis (cell size)
 it is recommended to run v.generalize and r.thin and/or to use
 <em>r.fidimo.river</em> in advance. The stream network should only consist
-of tree like structures, as braiding rivers and networks with two-side
+of tree-like structures, as braiding rivers and networks with two-side
 connected side arms will not work. Check the raster beforehand carefully!
 </dd>
 <dt><b>outflow_point</b></dt>
 <dd>Name of the outflow point txt-file (single point) for the calculation
 of the flow direction within the provided river network. The text-file
-must only contain a single |-separeted coordinate pair (X|Y; same
-coordinate system as the river network raster). The file should not
-contain any headings etc. E.g the content of the file can look like: 
+must only contain a single |-separated coordinate pair (X|Y; same
+coordinate system as the <b>river</b> network raster). The file should not
+contain any headings, etc. e.g. the content of the file can look like: 
 </dd>
 </dl>
 
@@ -81,7 +81,7 @@ etting AR will overwrite any species-settings (see R-package 'fishmove').
 <dt><b>T</b></dt>
 <dd>Time interval for one modelling step. The dispersal kernel is time
 dependent and increasing T is positively correlated with larger dispersal
-istances (see R-package 'fishmove').
+distances (see R-package 'fishmove').
 </dd>
 <dt><b>p</b></dt>
 <dd>Share of the stationary component of the population. The value is
@@ -98,7 +98,7 @@ statistical interval is set.
 </dd>
 <dt><b>statistical_interval</b></dt>
 <dd>Statistical interval (confidence or prediction) derived from the
-regression analyis (see R-package 'fishmove'). If a statistical interval
+regression analysis (see R-package 'fishmove'). If a statistical interval
 is set, three output maps will be created (fit, lwr and upr).
 </dd>
 </dl>
@@ -128,6 +128,7 @@ is set, three output maps will be created (fit, lwr and upr).
 Johannes Radinger, Leibniz-Institute of Freshwater Ecology and Inland 
 Fisheries, Berlin (Germany)
 
+<!--
 <p>
 <i>Last changed: (Mo, Sept 20, 2011)</i>
-
+-->
