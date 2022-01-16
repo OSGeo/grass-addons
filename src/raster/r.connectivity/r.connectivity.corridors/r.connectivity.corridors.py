@@ -135,7 +135,12 @@ import atexit
 import os
 import sys
 import string
-import resource
+
+try:
+    import resource
+except ImportError:
+    resource = None
+
 import copy
 from io import StringIO
 import numpy as np
@@ -151,7 +156,7 @@ if sys.version_info.major >= 3:
 
 ### To do:
 # Distinguish and remove temporary raster maps (single corridors)
-# Prallelize aggregation (if meaningful)
+# Parallelize aggregation (if meaningful)
 # Fix history assignment for single corridors
 # - grass.parse_command('v.support', map=edges, flags='g')[comments]
 # - grass.parse_command('v.support', map=nodes, flags='g')[comments]
@@ -216,7 +221,9 @@ def main():
     d_flag = flags["d"]
     r_flag = flags["r"]
 
-    ulimit = resource.getrlimit(resource.RLIMIT_NOFILE)
+    ulimit = (512, 2048)  # Windows number of opened files (soft-limit, hard-limit)
+    if resource:
+        ulimit = resource.getrlimit(resource.RLIMIT_NOFILE)
 
     net_hist_str = (
         grass.read_command("v.info", map=network_map, flags="h")

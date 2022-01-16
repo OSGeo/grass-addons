@@ -9,7 +9,7 @@ i.group group=test1 input=sam_test_b1,sam_test_b2,sam_test_b3,sam_test_b4
 g.region raster=sam_test_b1 -p
 
 # SAM
-i.spec.sam group=test1 input=~/dev/grass-addons/grass7/imagery/i.spec.sam/spectrum.dat result=specang
+i.spec.sam group=test1 input=~/dev/grass-addons/src/imagery/i.spec.sam/spectrum.dat result=specang
 # color table (TODO: should be reverse?)
 for map in `seq 1 4` ; do r.colors specang.$map color=grey ; done
 

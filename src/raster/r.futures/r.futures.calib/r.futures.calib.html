@@ -12,7 +12,7 @@ For the details about calibration see below.
 
 <p>
 This module depends on addon
-<a href="https://grass.osgeo.org/grass7/manuals/addons/r.object.geometry.html">r.object.geometry</a>.
+<a href="r.object.geometry.html">r.object.geometry</a>.
 
 <h3>Patch size</h3>
 As part of the calibration process, module <em>r.futures.calibration</em>
@@ -85,7 +85,7 @@ Providing too many values in <b>compactness_mean</b>,
 <b>compactness_range</b> and <b>discount_factor</b> results in very long computation.
 Therefore it is recommended to run <em>r.futures.calibration</em>
 on high-end computers, with more processes running in parallel using <b>nprocs</b> parameter.
-Also, it can be run on smaller region, under the assumption
+Also, it can be run on smaller regions, under the assumption
 that patch sizes and shapes are close to being consistent across the entire study area.
 
 <p>
@@ -94,7 +94,7 @@ For all other parameters not mentioned above, please refer to
 
 <h2>NOTES</h2>
 This module depends on addon
-<a href="https://grass.osgeo.org/grass7/manuals/addons/r.object.geometry.html">r.object.geometry</a>.
+<a href="r.object.geometry.html">r.object.geometry</a>.
 Please install it with g.extension:
 
 <div class="code"><pre>
@@ -105,13 +105,15 @@ g.extension r.object.geometry
 
 <h2>SEE ALSO</h2>
 
-<a href="r.futures.html">FUTURES</a>,
-<em><a href="r.futures.pga.html">r.futures.pga</a></em>,
-<em><a href="r.futures.devpressure.html">r.futures.devpressure</a></em>,
-<em><a href="r.futures.demand.html">r.futures.demand</a></em>,
-<em><a href="r.futures.potential.html">r.futures.potential</a></em>,
-<em><a href="r.sample.category.html">r.sample.category</a></em>,
-<em><a href="https://grass.osgeo.org/grass7/manuals/addons/r.object.geometry.html">r.object.geometry</a></em>.
+<em>
+<a href="r.futures.html">FUTURES overview</a>,
+<a href="r.futures.pga.html">r.futures.pga</a>,
+<a href="r.futures.devpressure.html">r.futures.devpressure</a>,
+<a href="r.futures.demand.html">r.futures.demand</a>,
+<a href="r.futures.potential.html">r.futures.potential</a>,
+<a href="r.sample.category.html">r.sample.category</a>,
+<a href="r.object.geometry.html">r.object.geometry</a>
+</em>
 
 <h2>REFERENCES</h2>
 <ul>
@@ -136,4 +138,6 @@ g.extension r.object.geometry
 
 Anna Petrasova, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll</a><br>
 
-<p><i>Last changed: $Date: 2018-09-14 21:49:22 -0400 (Fri, 14 Sep 2018) $</i>
+<!--
+<p><i>Last changed: $Date$</i>
+-->

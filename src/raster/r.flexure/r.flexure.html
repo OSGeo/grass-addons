@@ -1,8 +1,8 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.flexure</em> computes how the rigid outer shell of a planet deforms elastically in response to surface-normal loads by solving equations for plate bending. This phenomenon is known as "flexural isostasy" and can be useful in cases of glacier/ice-cap/ice-sheet loading, sedimentary basin filling, mountain belt growth, volcano emplacement, sea-level change, and other geologic processes. <em>r.flexure</em> and <a href="v.flexure.html">v.flexure</a> are the GRASS GIS interfaces to the the model <a href=http://csdms.colorado.edu/wiki/Model:gFlex><b>gFlex</b></a>.
+<em>r.flexure</em> computes how the rigid outer shell of a planet deforms elastically in response to surface-normal loads by solving equations for plate bending. This phenomenon is known as "flexural isostasy" and can be useful in cases of glacier/ice-cap/ice-sheet loading, sedimentary basin filling, mountain belt growth, volcano emplacement, sea-level change, and other geologic processes. <em>r.flexure</em> and <a href="v.flexure.html">v.flexure</a> are the GRASS GIS interfaces to the model <a href=http://csdms.colorado.edu/wiki/Model:gFlex><b>gFlex</b></a>.
 
-As both <em>r.flexure</em> and <a href="v.flexure.html">v.flexure</a> are interfaces to gFlex, this must be downloaded and installed. The most recent versions of <b>gFlex</b> are available from <a href=https://github.com/awickert/gFlex>https://github.com/awickert/gFlex</a>, and installation instructions are avaliable on that page via the <i>README.md</i> file.
+As both <em>r.flexure</em> and <a href="v.flexure.html">v.flexure</a> are interfaces to gFlex, this must be downloaded and installed. The most recent versions of <b>gFlex</b> are available from <a href="https://github.com/awickert/gFlex">https://github.com/awickert/gFlex</a>, and installation instructions are available on that page via the <i>README.md</i> file.
 
 <h2>NOTES</h2>
 
@@ -15,9 +15,9 @@ The flexural solution is generated for the current computational region, so be s
 <p>
 <b>te</b>, written in standard text as T<sub>e</sub>, is the lithospheric elastic thickness.
 <p>
-Several boundary conditions are available, and these depend on if the solution method is finite differece (FD) or superposition of analytical solutions (SAS). In the latter, it is assumed that there are no loads outside of those that are explicitly listed, so the boundary conditions are "NoOutsideLoads". As this is the implicit case, the boundary conditions all default to this.
+Several boundary conditions are available, and these depend on if the solution method is finite difference (FD) or superposition of analytical solutions (SAS). In the latter, it is assumed that there are no loads outside of those that are explicitly listed, so the boundary conditions are "NoOutsideLoads". As this is the implicit case, the boundary conditions all default to this.
 <p>
-The finite difference boundary conditions are a bit more complicated, but are largely self-explanitory:
+The finite difference boundary conditions are a bit more complicated, but are largely self-explanatory:
 <p>
  <dl>
   <dt><b>0Displacement0Slope</b></dt>
@@ -25,18 +25,18 @@ The finite difference boundary conditions are a bit more complicated, but are la
   <dt><b>0Moment0Shear</b></dt>
   <dd>"Broken plate" boundary condition: second and third derivatives of vertical displacement are 0. This is like the end of a diving board.</dd>
   <dt><b>0Slope0Shear</b></dt>
-  <dd>First and third derivatives of vertical displacement are zero. While this does not lend itsellf so easily to physical meaning, it is helpful to aid in efforts to make boundary condition effects disappear (i.e. to emulate the NoOutsideLoads cases)</dd>
+  <dd>First and third derivatives of vertical displacement are zero. While this does not lend itself so easily to physical meaning, it is helpful to aid in efforts to make boundary condition effects disappear (i.e. to emulate the NoOutsideLoads cases)</dd>
   <dt><b>Mirror</b></dt>
   <dd>Load and elastic thickness structures reflected at boundary.</dd>
   <dt><b>Periodic</b></dt>
   <dd>"Wrap-around" boundary condition: must be applied to both North and South and/or both East and West. This causes, for example, the edge of the eastern and western limits of the domain to act like they are next to each other in an infinite loop.</dd>
 </dl>
 <p>
-All of these boundary conditions may be combined in an way, with the exception of the note for periodic boundary conditions. If one does not want the boundary conditions to affect the solutions, it is recommended that one places the boundaries at lesat one flexural wavelength away from the load.
+All of these boundary conditions may be combined in any way, with the exception of the note for periodic boundary conditions. If one does not want the boundary conditions to affect the solutions, it is recommended that one places the boundaries at least one flexural wavelength away from the load.
 <p>
-<em>r.flexure</em> may be run in latitude/longitude coordinates (with the "-l" flag), but its grid constraint is that it can have only one <i>dx</i> and one <i>dy</i> for the entire domain. Thus, it chooses the average <i>dx</i> at the midpoint between the northernmost and southernmost latitudes for which the calculations are made. This assumption can break down at the poles, where the East&ndash;West dimension rapidly diminishes.
+<em>r.flexure</em> may be run in latitude/longitude coordinates (with the "<b>-l</b>" flag), but its grid constraint is that it can have only one <i>dx</i> and one <i>dy</i> for the entire domain. Thus, it chooses the average <i>dx</i> at the midpoint between the northernmost and southernmost latitudes for which the calculations are made. This assumption can break down at the poles, where the East&ndash;West dimension rapidly diminishes.
 <p>
-<!--Add figures and example from paper once that is out-->
+<!--Add figures and examples from paper once that is out-->
 <!--And examples-->
 <!--Add runtime fig.-->
 The <a href="http://csdms.colorado.edu">Community Surface Dynamics Modeling System</a>, into which <b>gFlex</b> is integrated, is a community-driven effort to build an open-source modeling infrastructure for Earth-surface processes.

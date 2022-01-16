@@ -282,7 +282,7 @@ def main():
                 "and follow the directions in the README to compile and "
                 "install it on your system.\n"
                 'This should then work with the default "ffpath". '
-                "Otherwise, you may have simply have typed in an incorrect "
+                "Otherwise, you may simply have typed in an incorrect "
                 '"ffpath".'
             )
         )
