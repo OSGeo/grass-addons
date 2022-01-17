@@ -236,7 +236,11 @@ def main():
     label_columns = (
         options["label_columns"].split(",") if options["label_columns"] else None
     )
-    ndigits = [int(nd) if nd else 0 for nd in options["ndigits"].split(",")] if options["ndigits"] else None
+    ndigits = (
+        [int(nd) if nd else 0 for nd in options["ndigits"].split(",")]
+        if options["ndigits"]
+        else None
+    )
     output = options["output"]
     key_column = options["key_column"]
     sep = (
