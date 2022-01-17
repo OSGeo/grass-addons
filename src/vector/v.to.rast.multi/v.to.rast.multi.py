@@ -174,7 +174,7 @@ def check_columns(module_options):
     vmap_cols = gscript.vector.vector_columns(
         module_options["input"], layer=module_options["layer"]
     )
-    for at in ["attribute_columns", "label_columns"]:  # , "rgb_columns"
+    for at in ["attribute_columns", "label_columns"]:
         if module_options[at]:
             for col in module_options[at].split(","):
                 if col and col not in vmap_cols.keys():
@@ -236,9 +236,7 @@ def main():
     label_columns = (
         options["label_columns"].split(",") if options["label_columns"] else None
     )
-    ndigits = (
-        list(map(int, options["ndigits"].split(","))) if options["ndigits"] else None
-    )
+    ndigits = [int(nd) if nd else 0 for nd in options["ndigits"].split(",")] if options["ndigits"] else None
     output = options["output"]
     key_column = options["key_column"]
     sep = (
@@ -294,7 +292,6 @@ def main():
 
     gscript.run_command(
         "v.to.rast",
-        quiet=True,
         output=f"{output}_{key_column}",
         flags="d" if flags["d"] else None,
         **v_to_rast_kwargs,
