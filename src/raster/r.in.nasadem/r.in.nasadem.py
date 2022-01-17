@@ -347,7 +347,6 @@ def createTMPlocation(epsg=4326):
     else:
         currepsg = proj["srid"].split("EPSG:")[1]
 
-    currepsg = ":".join(proj["srid"].split(":")[-1:])
     if currepsg != str(epsg):
         grass.fatal("Creation of temporary location failed!")
 
