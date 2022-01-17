@@ -2,12 +2,13 @@
 
 <em>v.what.rast.label</em> retrieves raster values and labels from one
 or more given raster maps for each point stored in the input vector map.
-The name of the columns with the raster values and labels are
-respectively<i>ID_name-of-raster-map</i> and <i>name-of-raster-map</i>.
+The name of the columns with the raster values start with <i>ID_</i>,
+followed by the name of the raster layer from which the values are taken. 
+For the name of the column with the raster labels, the name of the raster from
+which the label is taken is used.
 
 <p>Optionally, the user can define raster layers without labels. In that case
-only raster values are uploaded to a column with the name
-<i>name-of-raster-map</i>. 
+only the raster values are uploaded to a column with the name of that raster. 
 
 <p>Except the columns with raster values, the attribute table of the
 output vector point map can optionally include columns with coordinates.
