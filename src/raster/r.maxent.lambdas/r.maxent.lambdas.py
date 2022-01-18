@@ -20,7 +20,7 @@ PURPOSE:      Compute raw and/or logistic prediction maps from a lambdas
               If alias names were used in MaxEnt, these alias names can
               automatically be replaced according to a  CSV-like file provided
               by the user. This file should contain alias names in the first
-              column and map names in the second column, seperated by comma,
+              column and map names in the second column, separated by comma,
               without header. It should look e.g. like this:
 
               alias_1,map_1
