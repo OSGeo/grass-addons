@@ -53,7 +53,7 @@ COPYRIGHT:    (C) 2019-2022 by the Norwegian Institute for Nature Research
 """
 
 #%Module
-#% description: Computes raw and/or logistic prediction maps from MaxEnt lambdas files
+#% description: Computes raw or logistic prediction maps from MaxEnt lambdas files
 #% keyword: raster
 #% keyword: maxent
 #% keyword: ecology
@@ -89,14 +89,14 @@ COPYRIGHT:    (C) 2019-2022 by the Norwegian Institute for Nature Research
 #%end
 
 #%option G_OPT_R_OUTPUT
-#% key: output_logistic
+#% key: logistic
 #% description: Raster map with logistic output
 #% required : no
 #%end
 
 #%option G_OPT_R_OUTPUT
-#% key: output_raw
-#% description: Raster map with logistic output
+#% key: raw
+#% description: Raster map with raw output
 #% required : no
 #%end
 
@@ -109,8 +109,8 @@ COPYRIGHT:    (C) 2019-2022 by the Norwegian Institute for Nature Research
 #%end
 
 #%rules
-#% required: output_logistic,output_raw
-#% exclusive: output_logistic,output_raw
+#% required: logistic,raw
+#% exclusive: logistic,raw
 #% exclusive: -n,-N
 #%end
 
@@ -234,9 +234,9 @@ def main():
 
     ndigits = max(0, min(ndigits, 5))
 
-    output_raw = options["output_raw"]
+    raw = options["raw"]
 
-    output_logistic = options["output_logistic"]
+    logistic = options["logistic"]
 
     # Check if input file exists and is readable
     if not os.access(lambdas_file, os.R_OK):
@@ -281,18 +281,18 @@ def main():
     )
 
     ###Compute raw output map by sending expression saved in file temporary file to r.mapcalc
-    if output_raw:
-        output_raw_expr = "{out_map}_raw = {expr}".format(
-            out_map=output_raw, expr=mc_expression_raw
+    if raw:
+        raw_expr = "{out_map}_raw = {expr}".format(
+            out_map=raw, expr=mc_expression_raw
         )
         if flags["p"]:
-            print(output_raw_expr)
+            print(raw_expr)
             return 0
-        mapcalc(output_raw_expr)
-        raster_history(output_raw, overwrite=True)
+        mapcalc(raw_expr)
+        raster_history(raw, overwrite=True)
 
     ###Compute logistic output map if not suppressed
-    if output_logistic:
+    if logistic:
         mc_expression_log = (
             "(({expr})*exp({entropy}))/(1.0+(({expr})*exp({entropy})))".format(
                 expr=mc_expression_raw, entropy=entropy
@@ -302,16 +302,16 @@ def main():
             mc_expression_log = "round(({expr})*(10^{ndigits}))".format(
                 expr=mc_expression_log, ndigits=ndigits
             )
-        output_log_expr = "{out_map}={expr}".format(
-            out_map=output_logistic, expr=mc_expression_log
+        log_expr = "{out_map}={expr}".format(
+            out_map=logistic, expr=mc_expression_log
         )
         if flags["p"]:
-            print(output_log_expr)
+            print(log_expr)
             return 0
-        mapcalc(output_log_expr)
+        mapcalc(log_expr)
         if flags["N"]:
-            gscript.run_command("r.null", map=output_logistic, setnull=0)
-        raster_history(output_logistic, overwrite=True)
+            gscript.run_command("r.null", map=logistic, setnull=0)
+        raster_history(logistic, overwrite=True)
     return 0
 
 
