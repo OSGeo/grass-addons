@@ -282,9 +282,7 @@ def main():
 
     ###Compute raw output map by sending expression saved in file temporary file to r.mapcalc
     if raw:
-        raw_expr = "{out_map}_raw = {expr}".format(
-            out_map=raw, expr=mc_expression_raw
-        )
+        raw_expr = "{out_map}_raw = {expr}".format(out_map=raw, expr=mc_expression_raw)
         if flags["p"]:
             print(raw_expr)
             return 0
@@ -302,9 +300,7 @@ def main():
             mc_expression_log = "round(({expr})*(10^{ndigits}))".format(
                 expr=mc_expression_log, ndigits=ndigits
             )
-        log_expr = "{out_map}={expr}".format(
-            out_map=logistic, expr=mc_expression_log
-        )
+        log_expr = "{out_map}={expr}".format(out_map=logistic, expr=mc_expression_log)
         if flags["p"]:
             print(log_expr)
             return 0
