@@ -122,7 +122,7 @@ from grass.script.raster import mapcalc, raster_history
 
 
 def parse_alias(alias_file):
-    """ Parse alias file if provided"""
+    """Parse alias file if provided"""
     if alias_file:
         if not os.access(alias_file, os.R_OK):
             gscript.fatal(
