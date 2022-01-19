@@ -153,7 +153,13 @@ from functools import partial
 
 
 def tiled_mapcalc(expression=None, width=None, height=None, nprocs=None):
-    gscript.run_command("r.mapcalc.tiled", expression=expression, width=width, height=height, processes=nprocs)
+    gscript.run_command(
+        "r.mapcalc.tiled",
+        expression=expression,
+        width=width,
+        height=height,
+        processes=nprocs,
+    )
     return 0
 
 
@@ -197,7 +203,9 @@ def parse_alias(alias_file):
 def clamp_if_needed(maps, min_val, max_val, clamp):
     """Clamps maps to minimum and maximum values seen by the maxent model"""
     if clamp:
-        maps = "if(({maps})<{min_val},{min_val},if(({maps})>{max_val},{max_val},{maps}))".format(maps=maps, min_val=min_val, max_val=max_val)
+        maps = "if(({maps})<{min_val},{min_val},if(({maps})>{max_val},{max_val},{maps}))".format(
+            maps=maps, min_val=min_val, max_val=max_val
+        )
     return maps
 
 
@@ -213,20 +221,28 @@ def parse_lambdas_row(row, coeff, alias_dict, clamp):
         )
         mc_row = [(coeff[0],), "if({0}=={1},{2},0)".format(*coeff)]
     elif row.startswith("("):  # threshold
-        coeff = (
-            row.lstrip("(")
-            .replace(")", "")
-            .replace("<", ",")
-            .split(",")
-        )
+        coeff = row.lstrip("(").replace(")", "").replace("<", ",").split(",")
         # if x < threshold then fx = 0 otherwise fx = lambda
         mc_row = [(coeff[1],), "if({0}<{1},{2},{3},0)".format(*coeff)]
     elif "^" in row:  # quadratic
-        mc_row = [(coeff[0].split("^")[0],), "{1}*(({0})-{2})/({3}-{2})".format(clamp_if_needed(coeff[0], coeff[2], coeff[3], clamp), coeff[1], coeff[2], coeff[3])]
+        mc_row = [
+            (coeff[0].split("^")[0],),
+            "{1}*(({0})-{2})/({3}-{2})".format(
+                clamp_if_needed(coeff[0], coeff[2], coeff[3], clamp),
+                coeff[1],
+                coeff[2],
+                coeff[3],
+            ),
+        ]
     elif "*" in row:  # product
         mc_row = [
             tuple(coeff[0].split("*")),
-            "{1}*(({0})-{2})/({3}-{2})".format(clamp_if_needed(coeff[0], coeff[2], coeff[3], clamp), coeff[1], coeff[2], coeff[3]),
+            "{1}*(({0})-{2})/({3}-{2})".format(
+                clamp_if_needed(coeff[0], coeff[2], coeff[3], clamp),
+                coeff[1],
+                coeff[2],
+                coeff[3],
+            ),
         ]
     elif row.startswith("`"):  # reverse_hinge
         coeff = [coeff[0].lstrip("`")] + coeff[1:]
@@ -241,16 +257,20 @@ def parse_lambdas_row(row, coeff, alias_dict, clamp):
             "if({0}<{2},0.0,{1}*({0}-{2})/({3}-{2}))".format(*coeff),
         ]
     else:  # 'linear'
-        mc_row = [(coeff[0],), "{1}*(({0}-{2})/({3}-{2}))".format(clamp_if_needed(coeff[0], coeff[2], coeff[3], clamp), coeff[1], coeff[2], coeff[3])]
+        mc_row = [
+            (coeff[0],),
+            "{1}*(({0}-{2})/({3}-{2}))".format(
+                clamp_if_needed(coeff[0], coeff[2], coeff[3], clamp),
+                coeff[1],
+                coeff[2],
+                coeff[3],
+            ),
+        ]
     if alias_dict:
         for rmap in mc_row[0]:
             if not rmap in alias_dict:
                 gscript.fatal(
-                    _(
-                        "Invalid input: Variable {} not found in alias file".format(
-                            rmap
-                        )
-                    )
+                    _("Invalid input: Variable {} not found in alias file".format(rmap))
                 )
             mc_row[1] = mc_row[1].replace(rmap, alias_dict[rmap])
         mc_row[0] = (alias_dict[rmap] for rmap in mc_row[0])
@@ -284,9 +304,18 @@ def main():
 
     if int(options["nprocs"]) > 1:
         if not gscript.find_program("r.mapcalc.tiled"):
-            gscript.fatal(_("Cannot find r.mapcalc.tiled for parallel processing.\n"
-            "Please install it with 'g.extension r.mapcalc.tiled'"))
-        rmapcalc = partial(tiled_mapcalc, width=options["width"], height=options["height"], nprocs=options["nprocs"])
+            gscript.fatal(
+                _(
+                    "Cannot find r.mapcalc.tiled for parallel processing.\n"
+                    "Please install it with 'g.extension r.mapcalc.tiled'"
+                )
+            )
+        rmapcalc = partial(
+            tiled_mapcalc,
+            width=options["width"],
+            height=options["height"],
+            nprocs=options["nprocs"],
+        )
     else:
         rmapcalc = mapcalc
 
