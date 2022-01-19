@@ -59,11 +59,20 @@
 #%end
 #
 #%option
-#% key: processes
+#% key: nprocs
 #% type: integer
 #% description: Number of r.mapcalc processes to run in parallel
-#% answer: 1
-#% required: yes
+#% required: no
+#% options: 1-
+#%end
+#
+#%option
+#% key: processes
+#% type: integer
+#% description: Number of r.mapcalc processes to run in parallel, use nprocs option instead
+#% label: This option is obsolete and replaced by nprocs
+#% required: no
+#% options: 1-
 #%end
 #
 #%option
@@ -72,7 +81,10 @@
 #% description: Mapset prefix
 #% required: no
 #%end
-
+#
+#%rules
+#% exclusive: processes,nprocs
+#%end
 
 import math
 import grass.script as gscript
@@ -108,7 +120,16 @@ def main():
     width = int(options["width"])
     height = int(options["height"])
     overlap = int(options["overlap"])
-    processes = int(options["processes"])
+    processes = options["nprocs"]
+    if not processes:
+        processes = options["processes"]
+        if processes:
+            gscript.warning(_("Option processes is obsolete, use nprocs instead."))
+    try:
+        processes = int(processes)
+    except ValueError:
+        processes = 1
+
     output = None
     if options["output"]:
         output = options["output"]
