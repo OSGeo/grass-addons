@@ -76,6 +76,11 @@ COPYRIGHT:    (C) 2019-2022 by the Norwegian Institute for Nature Research
 #% label: Do not include cells where all variabels contain no data
 #%end
 
+#%flag
+#% key: c
+#% label: Clamp values in raster maps to value range seen by the MaxEnt model
+#%end
+
 #%option G_OPT_F_INPUT
 #% key: lambdas_file
 #% description: MaxEnt lambdas-file to compute distribution-model from
@@ -108,6 +113,31 @@ COPYRIGHT:    (C) 2019-2022 by the Norwegian Institute for Nature Research
 #% answer : 0
 #%end
 
+#%option
+#% key: nprocs
+#% type: integer
+#% description: Number of r.mapcalc processes to run in parallel (requires r.mapcalc.tiled addon)
+#% answer: 1
+#% required: no
+#% options: 1-
+#%end
+
+#%option
+#% key: width
+#% type: integer
+#% description: Width of tiles (columns) (requires r.mapcalc.tiled addon and nprocs > 1)
+#% answer: 1000
+#% required: yes
+#%end
+#
+#%option
+#% key: height
+#% type: integer
+#% description: Height of tiles (requires r.mapcalc.tiled addon and nprocs > 1)
+#% answer: 1000
+#% required: yes
+#%end
+
 #%rules
 #% required: logistic,raw
 #% exclusive: logistic,raw
@@ -116,9 +146,15 @@ COPYRIGHT:    (C) 2019-2022 by the Norwegian Institute for Nature Research
 
 import os
 
-from grass.pygrass.raster import RasterAbstractBase
+from grass.pygrass.raster import RasterRow
 import grass.script as gscript
 from grass.script.raster import mapcalc, raster_history
+from functools import partial
+
+
+def tiled_mapcalc(expression=None, width=None, height=None, nprocs=None):
+    gscript.run_command("r.mapcalc.tiled", expression=expression, width=width, height=height, processes=nprocs)
+    return 0
 
 
 def parse_alias(alias_file):
@@ -135,14 +171,16 @@ def parse_alias(alias_file):
         alias_dict = None
 
     if alias_dict:
-        for alias in alias_dict:
+        for alias, full_name in alias_dict.items():
+            # Skip invaid lines
+            if not alias or not full_name:
+                continue
             # Check if environmental parameter map(s) exist
-            full_name = alias_dict[alias]
             if "@" in full_name:
                 raster, mapset = full_name.split("@")
             else:
                 raster, mapset = full_name, ""
-            raster_map = RasterAbstractBase(raster, mapset)
+            raster_map = RasterRow(full_name)  # raster, mapset)
             mapset = "." if not mapset else mapset
             if not raster_map.exist():
                 gscript.fatal(
@@ -156,7 +194,14 @@ def parse_alias(alias_file):
     return alias_dict
 
 
-def parse_lambdas_row(row, coeff, alias_dict):
+def clamp_if_needed(maps, min_val, max_val, clamp):
+    """Clamps maps to minimum and maximum values seen by the maxent model"""
+    if clamp:
+        maps = "if(({maps})<{min_val},{min_val},if(({maps})>{max_val},{max_val},{maps}))".format(maps=maps, min_val=min_val, max_val=max_val)
+    return maps
+
+
+def parse_lambdas_row(row, coeff, alias_dict, clamp):
     """Translate Maxent function to mapcalc"""
     if "=" in row:  # categorical
         coeff = (
@@ -169,20 +214,19 @@ def parse_lambdas_row(row, coeff, alias_dict):
         mc_row = [(coeff[0],), "if({0}=={1},{2},0)".format(*coeff)]
     elif row.startswith("("):  # threshold
         coeff = (
-            row.lstrip("()")
+            row.lstrip("(")
             .replace(")", "")
-            .replace("<", ",<,")
-            .replace(">", ",>,")
+            .replace("<", ",")
             .split(",")
         )
         # if x < threshold then fx = 0 otherwise fx = lambda
-        mc_row = [(coeff[0],), "if({0}{1}{2},{3},0)".format(*coeff)]
+        mc_row = [(coeff[1],), "if({0}<{1},{2},{3},0)".format(*coeff)]
     elif "^" in row:  # quadratic
-        mc_row = [(coeff[0],), "{1}*(({0})-{2})/({3}-{2})".format(*coeff)]
+        mc_row = [(coeff[0].split("^")[0],), "{1}*(({0})-{2})/({3}-{2})".format(clamp_if_needed(coeff[0], coeff[2], coeff[3], clamp), coeff[1], coeff[2], coeff[3])]
     elif "*" in row:  # product
         mc_row = [
             tuple(coeff[0].split("*")),
-            "{1}*(({0})-{2})/({3}-{2})".format(*coeff),
+            "{1}*(({0})-{2})/({3}-{2})".format(clamp_if_needed(coeff[0], coeff[2], coeff[3], clamp), coeff[1], coeff[2], coeff[3]),
         ]
     elif row.startswith("`"):  # reverse_hinge
         coeff = [coeff[0].lstrip("`")] + coeff[1:]
@@ -197,17 +241,17 @@ def parse_lambdas_row(row, coeff, alias_dict):
             "if({0}<{2},0.0,{1}*({0}-{2})/({3}-{2}))".format(*coeff),
         ]
     else:  # 'linear'
-        mc_row = [(coeff[0],), "{1}*({0}-{2})/({3}-{2})".format(*coeff)]
+        mc_row = [(coeff[0],), "{1}*(({0}-{2})/({3}-{2}))".format(clamp_if_needed(coeff[0], coeff[2], coeff[3], clamp), coeff[1], coeff[2], coeff[3])]
     if alias_dict:
-        if not all(rmap in alias_dict for rmap in mc_row[0]):
-            gscript.fatal(
-                _(
-                    "Invalid input: Variable {} not found in alias file".format(
-                        mc_row[0]
+        for rmap in mc_row[0]:
+            if not rmap in alias_dict:
+                gscript.fatal(
+                    _(
+                        "Invalid input: Variable {} not found in alias file".format(
+                            rmap
+                        )
                     )
                 )
-            )
-        for rmap in mc_row[0]:
             mc_row[1] = mc_row[1].replace(rmap, alias_dict[rmap])
         mc_row[0] = (alias_dict[rmap] for rmap in mc_row[0])
 
@@ -238,6 +282,14 @@ def main():
 
     logistic = options["logistic"]
 
+    if int(options["nprocs"]) > 1:
+        if not gscript.find_program("r.mapcalc.tiled"):
+            gscript.fatal(_("Cannot find r.mapcalc.tiled for parallel processing.\n"
+            "Please install it with 'g.extension r.mapcalc.tiled'"))
+        rmapcalc = partial(tiled_mapcalc, width=options["width"], height=options["height"], nprocs=options["nprocs"])
+    else:
+        rmapcalc = mapcalc
+
     # Check if input file exists and is readable
     if not os.access(lambdas_file, os.R_OK):
         gscript.fatal(_("MaxEnt lambdas-file could not be found or is not readable."))
@@ -256,7 +308,8 @@ def main():
                 or "," not in lrow
             ):
                 continue
-            coeff = lrow.replace(" ", "").rstrip("\n").split(",")
+            lrow = lrow.replace(" ", "").rstrip("\n")
+            coeff = lrow.split(",")
             if lrow.startswith("linearPredictorNormalizer"):
                 linear_predictor_normalizer = coeff[1]
             elif lrow.startswith("densityNormalizer"):
@@ -267,7 +320,7 @@ def main():
             elif lrow.startswith("entropy"):
                 entropy = coeff[1]
             else:
-                lrow = parse_lambdas_row(lrow, coeff, alias_dict)
+                lrow = parse_lambdas_row(lrow, coeff, alias_dict, flags["c"])
                 isnull = "|".join(["isnull({})".format(rmap) for rmap in lrow[0]])
                 mc_expression_parts.append(
                     lrow[1] if flags["n"] else "if({0},0,{1})".format(isnull, lrow[1])
@@ -282,11 +335,11 @@ def main():
 
     ###Compute raw output map by sending expression saved in file temporary file to r.mapcalc
     if raw:
-        raw_expr = "{out_map}_raw = {expr}".format(out_map=raw, expr=mc_expression_raw)
+        raw_expr = "{out_map}={expr}".format(out_map=raw, expr=mc_expression_raw)
         if flags["p"]:
             print(raw_expr)
             return 0
-        mapcalc(raw_expr)
+        rmapcalc(raw_expr)
         raster_history(raw, overwrite=True)
 
     ###Compute logistic output map if not suppressed
@@ -304,7 +357,7 @@ def main():
         if flags["p"]:
             print(log_expr)
             return 0
-        mapcalc(log_expr)
+        rmapcalc(log_expr)
         if flags["N"]:
             gscript.run_command("r.null", map=logistic, setnull=0)
         raster_history(logistic, overwrite=True)
