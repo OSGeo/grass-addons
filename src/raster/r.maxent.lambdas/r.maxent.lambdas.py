@@ -158,7 +158,7 @@ def tiled_mapcalc(expression=None, width=None, height=None, nprocs=None):
         expression=expression,
         width=width,
         height=height,
-        processes=nprocs,
+        nprocs=nprocs,
     )
     return 0
 
