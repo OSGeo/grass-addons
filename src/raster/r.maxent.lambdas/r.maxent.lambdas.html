@@ -33,6 +33,18 @@ in the map history.
 By default, NoData for each function in the lambdas file is set to zero. The
 user can however choose to set pixels to null where a single variable contains
 NoData (<b>n</b>-flag) or where all variables produce NoData (<b>N</b>-flag).
+<p>
+Extraction of random points in MaxEnt can be a reason why values in raster maps
+exceed values seen by the MaxEnt model. To limit raster map values to the valid
+range for the model, raster map values can be clamped to the value range in the
+model with the <b>c</b>-flag.
+<p>
+Complex models (and thus mapcalculator expressions) can become CPU intensive to
+process. On multicore computers, processing such large models can benefit from tiled,
+parallel processing (<b>nprocs</b> larger than 1). This requires that the
+<a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.mapcalc.tiled.html">
+r.mapcalc.tiled</a> addon is installed. The size of tiles can be controled by
+the <b>height</b> and <b>width</b> options.
 
 <h2>NOTES</h2>
 
@@ -41,13 +53,19 @@ accessible from the current region.
 <p>
 Due to conversion from double to floating-point in exp()-function, a loss of
 precision from the 7th decimal place onwards may occur in the logistic output.
+Differences to logistic predictions from MaxEnt are supposed to be below 0.0001.
+This can be checked by importing sample or background predictions from the MaxEnt
+output (e.g. with <a href="https://grass.osgeo.org/grass-stable/manuals/r.in.xyz.html">
+r.in.xyz</a>).
+
 
 <h2>REFERENCES</h2>
 
 <ul>
 <li>Wilson, Peter D. 2009: Guidelines for computing MaxEnt model output values
-from a lambdas file. (Available at <a href="https://groups.google.com/group/MaxEnt">
-https://groups.google.com/group/MaxEnt</a>)</li>
+from a lambdas file. (Available at
+<a href="https://gsp.humboldt.edu/OLM/Courses/GSP_570/Learning%20Modules/10%20BlueSpray_Maxent_Uncertinaty/MaxEnt%20lambda%20files.pdf">
+https://gsp.humboldt.edu/OLM/Courses/GSP_570/Learning%20Modules/10%20BlueSpray_Maxent_Uncertinaty/MaxEnt%20lambda%20files.pdf</a>)</li>
 <li>Steven J. Phillips, Miroslav Dud&iacute;k, Robert E. Schapire. 2020: Maxent software
 for modeling species niches and distributions (Version 3.4.1).
 Available from url: <a href="http://biodiversityinformatics.amnh.org/open_source/maxent">
@@ -66,9 +84,10 @@ Distributions, 17:43-57, 2011.</li>
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.in.xyz.html">r.in.xyz</a>,,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.in.xyz.html">r.mapcalc</a>,,
-<a href="https://grass.osgeo.org/grass-stable/manuals/addonsr.out.maxent_swd.html">r.out.maxent_swd</a> (Addon)
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.in.xyz.html">r.in.xyz</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.mapcalc.tiled.html">r.mapcalc.tiled</a> (Addon)
+<a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.out.maxent_swd.html">r.out.maxent_swd</a> (Addon)
 </em>
 
 <h2>AUTHOR</h2>
