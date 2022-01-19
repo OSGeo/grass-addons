@@ -12,7 +12,7 @@ the output map name with the parameter <b>output</b>
 
 <p>
 Tiles can be defined with the <b>width</b>, <b>height</b> and 
-<b>overlap</b> parameters. If <b>processes</b> is higher than one, these tiles 
+<b>overlap</b> parameters. If <b>nprocs</b> is higher than one, these tiles 
 will be processed in parallel.
 
 <p>
@@ -31,7 +31,7 @@ Run <b>r.mapcalc</b> over tiles with size 1000x1000 using 4 parallel processes
 <div class="code"><pre> 
 g.region raster=ortho_2001_t792_1m
 r.mapcalc.tiled expression="bright_pixels = if(ortho_2001_t792_1m > 200, 1, 0)" \
-   width=1000 height=1000 processes=4
+   width=1000 height=1000 nprocs=4
 </pre></div>
 
 <h2>SEE ALSO</h2>
