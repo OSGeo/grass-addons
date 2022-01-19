@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 """
 MODULE:       r.out.maxent_swd
@@ -29,7 +29,7 @@ PURPOSE:      Produce a set of SWD file as input to MaxEnt 3.3.3e using r.stats.
               r.maxent.lambdas.
 
 
-COPYRIGHT:    (C) 2020 by the Norwegian Institute for Nature Research
+COPYRIGHT:    (C) 2022 by the Norwegian Institute for Nature Research
               http://www.nina.no, Stefan Bluentrath and the GRASS GIS
               Development Team
 
@@ -146,7 +146,6 @@ import grass.script as gscript
 from grass.pygrass.gis import Mapset
 from grass.pygrass.raster import RasterRow
 
-global TMP_NAME
 TMP_NAME = gscript.tempname(12)
 
 
@@ -269,9 +268,6 @@ def main():
     bgr_output = options["bgr_output"]
     species_output = options["species_output"]
 
-    # Flags
-    flag_z = flags["z"]
-
     alias, parameters = parse_bgr_input(
         options["alias_input"], options["env_maps"], options["alias_names"]
     )
@@ -281,8 +277,6 @@ def main():
     )
 
     # Check if a mask file allready exists
-    global TMP_NAME
-    TMP_NAME = gscript.tempname(12)
     if RasterRow("MASK", Mapset().name).exist():
         gscript.verbose(
             _("A mask allready exists. Renaming existing mask to old_MASK...")
@@ -313,7 +307,7 @@ def main():
 
             species_map = species_dict[species]
             # Zoom region to match specie map if requested
-            if flag_z:
+            if flags["z"]:
                 gscript.verbose(
                     _("Zooming region to species {} temporarily.".format(species))
                 )
@@ -343,7 +337,7 @@ def main():
                     sp_out.write("{},{}".format(species, gscript.decode(row)))
 
             # Redo zoom region to match specie map if it had been requested
-            if flag_z:
+            if flags["z"]:
                 gscript.del_temp_region()
             # Remove mask
             gscript.run_command("r.mask", flags="r", quiet=True)
