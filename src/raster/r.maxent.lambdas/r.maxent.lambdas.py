@@ -268,7 +268,7 @@ def parse_lambdas_row(row, coeff, alias_dict, clamp):
         ]
     if alias_dict:
         for rmap in mc_row[0]:
-            if not rmap in alias_dict:
+            if rmap not in alias_dict:
                 gscript.fatal(
                     _("Invalid input: Variable {} not found in alias file".format(rmap))
                 )
