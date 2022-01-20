@@ -965,7 +965,7 @@ class SentinelImporter(object):
                 fd.write(
                     "{img}{sep}{ts}".format(img=map_name, sep=sep, ts=timestamp_str)
                 )
-                # Band refrence available after version 7.9
+                # Band references/semantic labels available from GRASS GIS 8.0.0 onwards
                 if float(gs.version()["version"][0:3]) >= 7.9:
                     band_ref = self._extract_bandref(map_name)
                     if band_ref is None:
