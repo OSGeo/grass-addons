@@ -352,20 +352,22 @@ class SentinelImporter(object):
     def _map_name(filename):
         return os.path.splitext(os.path.basename(filename))[0]
 
-    def _extract_bandref(self, map_name):
-        band_ref = None
+    def _extract_semantic_label(self, map_name):
+        semantic_label = None
         try:
-            band_ref = re.match(
+            semantic_label = re.match(
                 r".*_B([0-18][0-9A]).*|.*_([S][C][L])_.*", map_name
             ).groups()
-            band_ref = band_ref[0] if band_ref[0] else band_ref[1]
-            band_ref = band_ref.lstrip("0")
-            band_ref = "S2_{}".format(band_ref)
+            semantic_label = (
+                semantic_label[0] if semantic_label[0] else semantic_label[1]
+            )
+            semantic_label = semantic_label.lstrip("0")
+            semantic_label = "S2_{}".format(semantic_label)
         except AttributeError:
             gs.warning(
                 _("Unable to determine band reference for <{}>").format(map_name)
             )
-        return band_ref
+        return semantic_label
 
     def _import_file(self, filename, module, args):
         mapname = self._map_name(filename)
@@ -925,7 +927,9 @@ class SentinelImporter(object):
                 }
                 # Band references/semantic labels available from GRASS GIS 8.0.0 onwards
                 if float(gs.version()["version"][0:3]) >= 7.9:
-                    support_args["bandref"] = self._extract_bandref(map_name)
+                    support_args["semantic_label"] = self._extract_semantic_label(
+                        map_name
+                    )
                 for band in bands:
                     gs.run_command("r.support", **support_args)
                     gs.run_command("r.timestamp", map=map_name, date=timestamp_str)
@@ -967,10 +971,14 @@ class SentinelImporter(object):
                 )
                 # Band references/semantic labels available from GRASS GIS 8.0.0 onwards
                 if float(gs.version()["version"][0:3]) >= 7.9:
-                    band_ref = self._extract_bandref(map_name)
-                    if band_ref is None:
+                    semantic_label = self._extract_semantic_label(map_name)
+                    if semantic_label is None:
                         continue
-                    fd.write("{sep}{br}".format(sep=sep, br=band_ref))
+                    fd.write(
+                        "{sep}{semantic_label}".format(
+                            sep=sep, semantic_label=semantic_label
+                        )
+                    )
                 fd.write(os.linesep)
 
 
