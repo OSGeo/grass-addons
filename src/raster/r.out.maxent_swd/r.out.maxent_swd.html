@@ -1,0 +1,58 @@
+<h2>DESCRIPTION</h2>
+The script is intended to produce a set of SWD files as input to MaxEnt >= 3.3.3e
+using <b>r.stats</b>.<br>
+<br>
+The SWD file format is a simple CSV-like file file format as described in Elith et al. 2011.
+Generally it looks like:<br>
+<em>
+specie_name,X,Y,parameter_1,parameter_2,...<br>
+your_specie,1.1,1.1,2,4.7,...<br>
+</em>
+The first column always contains the name of the species, followed by
+two columns for the X- and Y-coordinates. Then each column
+represents one environmental parameter. In contrast to <b>r.stats</b>
+only integer values are accepted to represent NO DATA.<br>
+<br>
+A background SWD file is always produced while species output can be omitted.<br>
+<br>
+Multiple species can be processed, but each has to be in an
+individual raster map. Map names of the maps containing the environmental
+parameters can be replaced by short names, which should be used
+in MaxEnt >= 3.3.3.e.<br>
+<br>
+Results from MaxEnt can either be imported using <b>r.in.xyz</b> or
+calculated from MaxEnt lambdas file using the <b>r.maxent.lambdas</b>.
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.stats.html">r.stats</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.what.html">r.what</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.in.xyz.html">r.in.xyz</a>,,
+<a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.maxent.lambdas.html">r.maxent.lambdas</a>
+</em>
+
+<ul>
+<li>Steven J. Phillips, Miroslav Dud&iacute;k, Robert E. Schapire. 2020: Maxent software
+for modeling species niches and distributions (Version 3.4.1).
+Available from url: <a href="http://biodiversityinformatics.amnh.org/open_source/maxent">
+http://biodiversityinformatics.amnh.org/open_source/maxent</a>
+and <a href="https://github.com/mrmaxent/Maxent">https://github.com/mrmaxent/Maxent</a></li>
+<li>Steven J. Phillips, Miroslav Dud&iacute;k, Robert E. Schapire. 2004: A maximum entropy
+approach to species distribution modeling. In Proceedings of the Twenty-First International
+Conference on Machine Learning, pages 655-662, 2004.</li>
+<li>Steven J. Phillips, Robert P. Anderson, Robert E. Schapire. 2006: Maximum entropy
+modeling of species geographic distributions. Ecological Modelling, 190:231-259, 2006.</li>
+<li>Jane Elith, Steven J. Phillips, Trevor Hastie, Miroslav Dud&iacute;k, Yung En Chee,
+Colin J. Yates. 2011: A statistical explanation of MaxEnt for ecologists. Diversity and
+Distributions, 17:43-57, 2011.</li>
+</ul>
+
+<h2>AUTHOR</h2>
+Stefan Blumentrath, Norwegian Institute for Nature Research (NINA),
+<a href="http://www.nina.no">http://www.nina.no</a>
+
+<!--
+<p>
+<i>Last changed: $Date$</i>
+-->
