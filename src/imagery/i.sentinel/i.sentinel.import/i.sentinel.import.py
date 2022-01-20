@@ -923,7 +923,7 @@ class SentinelImporter(object):
                     "source2": img_file,
                     "history": descr,
                 }
-                # Band refrence available after version 7.9
+                # Band references/semantic labels available from GRASS GIS 8.0.0 onwards
                 if float(gs.version()["version"][0:3]) >= 7.9:
                     support_args["bandref"] = self._extract_bandref(map_name)
                 for band in bands:
