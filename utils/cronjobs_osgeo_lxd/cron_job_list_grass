@@ -25,7 +25,8 @@
 
 # weekly source snapshots (target dir: /var/www/code_and_data/)
 30 02 * * 6 nice sh /home/neteler/cronjobs/cron_grass8_main_src_snapshot.sh
-46 02 * * 6 nice sh /home/neteler/cronjobs/cron_grass7_main_src_snapshot.sh
+40 02 * * 6 nice sh /home/neteler/cronjobs/cron_grass8_relbranch_src_snapshot.sh
+50 02 * * 6 nice sh /home/neteler/cronjobs/cron_grass7_relbranch_src_snapshot.sh
 
 # daily Linux binary snapshots, also creates main manuals, addon manuals, and prog-manual (target dir: /var/www/code_and_data/)
 05 05 * * * nice sh /home/neteler/cronjobs/cron_grass8_relbranch_build_binaries.sh > /var/www/code_and_data/grass80/binary/linux/snapshot/build.log.txt 2>&1
