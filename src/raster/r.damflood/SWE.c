@@ -65,8 +65,8 @@ void shallow_water(double **m_h1,double **m_u1, double **m_v1, float **m_z,float
 	double u_sx, u_dx, v_dx, v_sx, v_up, v_dw, u_up, u_dw;
 
 	/***************************************************/
-    /* TO BE PLACED IN ADDITIONAL FUNCTION IN fall.c   */
-    /* called both here and in main                    */
+	/* TO BE PLACED IN ADDITIONAL FUNCTION IN fall.c   */
+	/* called both here and in main                    */
 	/* Check (for) Q=0.0 & volume=0.0                  */
 	float Q, vol_res,fall, volume; 
 	/***************************************************/
@@ -321,14 +321,14 @@ void shallow_water(double **m_h1,double **m_u1, double **m_v1, float **m_z,float
 
 
 	// DESCRIPTION OF METHOD
-    //******************************************************************/
-    // Third complete cycle over the matrix: Apply  -->
-    // EQUATIONS OF MOTION IN DIRECTIONS X and Y 
-    // and then compute u(t+1) and v(t+1)
-    //
-    // NOTE:
-    // u(i,j) and v(i,j) are the average velocities of cells i,j
-    /*******************************************************************/
+	//******************************************************************/
+	// Third complete cycle over the matrix: Apply  -->
+	// EQUATIONS OF MOTION IN DIRECTIONS X and Y 
+	// and then compute u(t+1) and v(t+1)
+	//
+	// NOTE:
+	// u(i,j) and v(i,j) are the average velocities of cells i,j
+	/*******************************************************************/
 	for (row = 1; row < nrows-1; row++)
 	{
 		for (col = 1; col < ncols-1; col++)
