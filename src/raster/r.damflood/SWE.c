@@ -65,10 +65,6 @@ void shallow_water(double **m_h1,double **m_u1, double **m_v1, float **m_z,float
 	double u_sx, u_dx, v_dx, v_sx, v_up, v_dw, u_up, u_dw;
 
 	/***************************************************/
-	/* DA METTERE IN UNA ULTERIORE FUNZIONE fall.c     */
-	/* chiamato sia qua che nel main                   */
-    /* controlla Q=0.0 & volume=0.0                    */
-    /*                                                 */
     /* TO BE PLACED IN ADDITIONAL FUNCTION IN fall.c   */
     /* called both here and in main                    */
 	/* Check (for) Q=0.0 & volume=0.0                  */
@@ -85,18 +81,7 @@ void shallow_water(double **m_h1,double **m_u1, double **m_v1, float **m_z,float
 
 
 
-    // DESCRIPTION OF METHOD (Italian --> TRANSLATE)
-   	// primo ciclo: calcolo nuove altezze dell'acqua al tempo t+1:
-   	// 		- a valle della diga applico l'equazione di continuita' delle shallow water
-   	// 		  in pratica la nuova altezza e' valutata attraverso un bilancio dei
-   	// 		  flussi in ingresso e in uscita nelle due direzioni principali
-   	// 		- a monte delle diga:
-	//              	- nel metodo 1 e 2 :l'equazione di continuita' e' applicata al volume del lago
-   	//			  fisicamente questo porta a una minore realisticita' ma evita le oscillazioni che
-   	// 			  sono causa di instabilita' numerica
-	//			- nel caso piu' generale si applicano le equazioni a tutto il lago
-    //
-    // (Rough translation):
+    // DESCRIPTION OF METHOD
     // First cycle: Calculation of new water heights at time t + 1:
     //      - Downstream of the dam: Apply continuity equation to shallow water (?)
     //        In practice, the new height is evaluated through a balance 
@@ -164,7 +149,7 @@ void shallow_water(double **m_h1,double **m_u1, double **m_v1, float **m_z,float
 				}
 				F = Fdx - Fsx;
 
-				// dGup =m_v1[row][col] * m_h1[row][col] ;irezione y
+				// dGup =m_v1[row][col] * m_h1[row][col] ; y direction
 				// intercell up
 				if (m_v1[row][col]>0 && m_v1[row-1][col]>0) {
 					Gup = m_v1[row][col] * m_h1[row][col];
@@ -238,7 +223,7 @@ void shallow_water(double **m_h1,double **m_u1, double **m_v1, float **m_z,float
 				
 				if (m_h2[row][col]<0){
 					/*G_warning("At the time %f h is lesser than 0 h(%d,%d)=%f",t, row,col,m_h2[row][col]);
-				   printf("row:%d, col:%d, H minore di zero: %.30lf)",row, col, m_h2[row][col]);
+				   printf("row:%d, col:%d, H less than zero: %.30lf)",row, col, m_h2[row][col]);
 				   printf("DATA:\n");
 					printf("row:%d,col%d,hmin:%g,h2:%.30lf \n ",row,col,hmin,m_h2[row][col]);
 					printf("m_z[row][col]:%f\n", m_z[row][col]);
@@ -262,7 +247,6 @@ void shallow_water(double **m_h1,double **m_u1, double **m_v1, float **m_z,float
 
 			if (method==1 || method==2){
 				//*******************************************************************
-				// calcolo portata Q uscente dal lago solo nel caso di Hp stramazzo
                 // Calculation of flow rate Q coming out of the lake only in the case of Hp weir
 				/* HP: method 1 or 2   */
 				if (m_DAMBREAK[row][col]>0 ){
@@ -288,13 +272,11 @@ void shallow_water(double **m_h1,double **m_u1, double **m_v1, float **m_z,float
 
 
 	//*****************************************************************************
-	// abbassamento lago (siccome c'e due volte fare poi una function)
 	// Lowering of the lake (as there is twice do then a function)
 	//*****************************************************************************
 	if (method==1 || method==2){
 
-		/* calcolo l'abbassamento sul lago*/
-		/* (Calculation of the lowering of the lake)*/
+		/* Calculation of the lowering of the lake*/
 		if (num_cell!=0) {
 			fall = (Q * timestep-vol_res) / (num_cell * res_ew * res_ns);
 		} else {
@@ -338,15 +320,7 @@ void shallow_water(double **m_h1,double **m_u1, double **m_v1, float **m_z,float
 	
 
 
-	// DESCRIPTION OF METHOD (Italian --> TRANSLATE)
-	//**********************************************************************************
-	// terzo ciclo completo sulla matrice: applico le  -->
-	// EQUAZIONI DEL MOTO IN DIREZIONE X e Y
-	// e quindi calcolo u(t+1) e v(t+1)
-	//
-	// NOTA:
-	// u(i,j) e v (i,j) sono le velocita' medie della cella i,j
-	/*******************************************************************/
+	// DESCRIPTION OF METHOD
     //******************************************************************/
     // Third complete cycle over the matrix: Apply  -->
     // EQUATIONS OF MOTION IN DIRECTIONS X and Y 
@@ -362,8 +336,7 @@ void shallow_water(double **m_h1,double **m_u1, double **m_v1, float **m_z,float
 			if (m_lake[row][col]==0 && m_h2[row][col]>=hmin){
 
 				/**********************************************************************************************************************/
-				/* EQUAZIONE DEL MOTO IN DIREZIONE X */
-				/* (EQUATIONS OF MOTION IN DIRECTION X) */
+				/* EQUATIONS OF MOTION IN DIRECTION X */
 				// right intercell
 				if (m_u1[row][col]>0 && m_u1[row][col+1]>0) {
 					Fdx = m_u1[row][col] * m_u1[row][col] * m_h1[row][col];
@@ -399,7 +372,7 @@ void shallow_water(double **m_h1,double **m_u1, double **m_v1, float **m_z,float
 				}
 
 				if(m_DAMBREAK[row][col+1]>0 && ((m_h2[row][col]+m_z[row][col]) < (m_h2[row][col+1]+m_z[row][col+1]))){
-					Fdx = m_h1[row][col+1]* pow(-velocita_breccia(method,m_h1[row][col+1]),2.0);  // -vel al quadrato perde il segno meno
+					Fdx = m_h1[row][col+1]* pow(-velocita_breccia(method,m_h1[row][col+1]),2.0);  // -vel squared looses the negative sign
 					if (m_h2[row][col+1]==0)
 						Fdx=0.0;
 				}
@@ -529,16 +502,15 @@ void shallow_water(double **m_h1,double **m_u1, double **m_v1, float **m_z,float
 
 			   	if (m_DAMBREAK[row][col] > 0){
 			   		if ((m_z[row][col]+m_h2[row][col]) > (m_z[row][col+1]+m_h2[row][col+1]))
-			   			m_u2[row][col] = velocita_breccia(method,m_h2[row][col]);  // velocita' sullo stramazzo (velocity on the weir)
+			   			m_u2[row][col] = velocita_breccia(method,m_h2[row][col]);  //velocity on the weir
 			   		else if ((m_z[row][col] + m_h2[row][col]) > (m_z[row][col-1] + m_h2[row][col-1]))
-			   			m_u2[row][col] = - velocita_breccia(method,m_h2[row][col]);  // velocita' sullo stramazzo (velocity on the weir)
+			   			m_u2[row][col] = - velocita_breccia(method,m_h2[row][col]);  //velocity on the weir
 			   		else
 			   			m_u2[row][col] = 0.0;
 			   	}else {
 						m_u2[row][col] = 1.0 / m_h2[row][col] * (m_h1[row][col] * m_u1[row][col] - timestep / res_ew * F - timestep / res_ns * G + timestep * S );
 				}
-				// no velocita' contro la diga
-				// (No velocity against the dam)
+				// No velocity against the dam
 				/*if (m_z[row][col+1]> water_elevation && m_u2[row][col]>0)
 	     			m_u2[row][col]=0.0;
 				if (m_z[row][col-1] > water_elevation && m_u2[row][col]<0)
@@ -547,7 +519,7 @@ void shallow_water(double **m_h1,double **m_u1, double **m_v1, float **m_z,float
 
 				if ((timestep/res_ew*(fabs(m_u2[row][col])+sqrt(g*m_h2[row][col])))>1.0){
 					G_warning("At time %f the Courant-Friedrich-Lewy stability condition isn't respected",t);
-					/*G_message("velocita' lungo x\n");
+					/*G_message("x long velocity \n");
 					G_message("row:%d, col%d \n",row,col);
 					G_message("dZ_dx_down:%f, dZ_dx_up:%f,cr_up:%f, cr_down:%f\n" , dZ_dx_down,dZ_dx_up, cr_up, cr_down);
 					G_message("Z_piu:%f,Z_meno:%f\n", Z_piu, Z_meno);
@@ -570,8 +542,7 @@ void shallow_water(double **m_h1,double **m_u1, double **m_v1, float **m_z,float
 
 
 				/******************************************************************************************************************************/
-				/* EQUAZIONE DEL MOTO IN DIREZIONE Y */
-				/* (EQUATIONS OF MOTION IN DIRECTION Y) */
+				/* EQUATIONS OF MOTION IN DIRECTION Y */
 				// right intercell
 				if (m_u1[row][col]>0 && m_u1[row][col+1]>0) {
 					Fdx = m_u1[row][col] * m_v1[row][col] * m_h1[row][col];
@@ -658,7 +629,7 @@ void shallow_water(double **m_h1,double **m_u1, double **m_v1, float **m_z,float
 
 
 				if(m_DAMBREAK[row-1][col]>0.0 && ((m_h2[row][col]+m_z[row][col]) < (m_h2[row-1][col]+m_z[row-1][col]))){
-					Gup = m_h1[row-1][col]* pow((-velocita_breccia(method,m_h1[row-1][col])),2.0); // -0.4 al quadrato perde il segno meno (-0.4 squared loses the minus sign)
+					Gup = m_h1[row-1][col]* pow((-velocita_breccia(method,m_h1[row-1][col])),2.0); // -0.4 squared loses the minus sign
 					if(m_h2[row-1][col]==0)
 						Gup=0.0;
 				}
@@ -735,17 +706,16 @@ void shallow_water(double **m_h1,double **m_u1, double **m_v1, float **m_z,float
 
 				if (m_DAMBREAK[row][col] > 0.0 ){
 					if ((m_z[row][col]+m_h2[row][col]) >  (m_z[row-1][col] + m_h2[row-1][col]))
-					   m_v2[row][col] = velocita_breccia(method,m_h2[row][col]);  // velocita sullo stramazzo (velocity on the weir)
+					   m_v2[row][col] = velocita_breccia(method,m_h2[row][col]);  // velocity on the weir
 					else if ((m_z[row][col]+m_h2[row][col]) >  (m_z[row+1][col] + m_h2[row+1][col]))
-						m_v2[row][col] = -velocita_breccia(method,m_h2[row][col]);  // velocita sullo stramazzo (velocity on the weir)
+						m_v2[row][col] = -velocita_breccia(method,m_h2[row][col]);  // velocity on the weir
 					else
 						m_v2[row][col] = 0.0;
 				}else{
 					m_v2[row][col] = 1.0 / m_h2[row][col] * (m_h1[row][col] * m_v1[row][col] - timestep / res_ew * F  - timestep / res_ns * G + timestep * S);
 					}
 
-				// no velocita' contro la diga
-				// (No velocity against the dam)
+				// No velocity against the dam
 				/*if (m_z[row-1][col] > water_elevation && m_v2[row][col] >0)
 					m_v2[row][col]=0.0;
 		  		if (m_z[row+1][col] > water_elevation && m_v2[row][col] < 0 )
@@ -753,7 +723,7 @@ void shallow_water(double **m_h1,double **m_u1, double **m_v1, float **m_z,float
 
 				if ((timestep/res_ns*(abs(abs(m_v2[row][col])+sqrt(g*m_h2[row][col]))))>1){
 					G_warning("At time: %f the Courant-Friedrich-Lewy stability condition isn't respected",t);
-					/*G_message("EQ. MOTO DIR Y' --> row:%d, col:%d\n)",row, col);
+					/*G_message("EQ. MOTION DIR Y' --> row:%d, col:%d\n)",row, col);
 					G_message("m_h1[row][col]:%f,m_u1[row][col]:%f,m_v1[row][col]:%f",m_h1[row][col],m_u1[row][col],m_v1[row][col]);
 					G_message("m_h1[row][col+1]:%f,m_h1[row][col-1]:%f,m_h1[row+1][col]:%f, m_h1[row-1][col]:%f\n",m_h1[row][col+1],m_h1[row][col-1],m_h1[row+1][col], m_h1[row-1][col]);
 					G_message("h_dx:%f, h_sx:%f, h_up%f, h_dw:%f\n",h_dx, h_sx, h_up, h_dw);
@@ -782,11 +752,10 @@ void shallow_water(double **m_h1,double **m_u1, double **m_v1, float **m_z,float
 
 
 			 } else {
-			   // tolgo h<hmin quando si svuota
-			   // (Remove h<hmin when empty)
+			   // Remove h<hmin when empty
 			   m_u2[row][col] = 0.0;
 			   m_v2[row][col] = 0.0;
-			 } // ciclo if (h>hmin) (Loop if h>hmin)
+			 } // Loop if h>hmin
 		}
 	}
           
