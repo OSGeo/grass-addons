@@ -144,8 +144,11 @@ def main():
         # sld+='            <ColorMap type={}>\n'.format('"ramp"')
         ColorMapEntry = '              <ColorMapEntry color="#{0:02x}{1:02x}{2:02x}" quantity="{3}" opacity="{4}" />\n'
 
-    #
+    # loop over colors
+    num = 0
     for c in color_rules:
+        num += 1
+        grass.percent(num, len(color_rules), 1)
         if len(c.split(" ")) == 2 and not c.split(" ")[0] == "default":
             q = c.split(" ")[0]
             if q == "nv":
