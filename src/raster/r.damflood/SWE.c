@@ -242,7 +242,7 @@ void shallow_water(double **m_h1,double **m_u1, double **m_v1, float **m_z,float
 					m_h2[row][col]=0;
 				}
 
-			} // fine continuita' a valle (IF check) (end continuity downstream)
+			} // end continuity downstream (IF check)
 
 
 			if (method==1 || method==2){
