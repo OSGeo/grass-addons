@@ -32,7 +32,7 @@
 #include <grass/dbmi.h>
 #include <grass/linkm.h>
 #include <grass/bitmap.h>
-/* Function here defined */
+/* Functions defined in here */
 #include "SWE.h" /* Function that solves the shallow water equations*/
 
 //#include <grass/interpf.h>
@@ -171,7 +171,6 @@ int main(int argc, char *argv[]){
   int infd_ELEV,infd_LAKE,infd_DAMBREAK, infd_MANNING, infd_U, infd_V;
   int outfd_H,outfd_VEL,outfd_VEL_DIR,outfd_HMAX,outfd_T_HMAX,outfd_I_HMAX;
   int outfd_VMAX,outfd_T_VMAX,outfd_I_VMAX,outfd_DIR_VMAX,outfd_IMAX,outfd_T_IMAX,outfd_WAVEFRONT;
-  //float g=9.81; Initial definition!
   
   /* Mapset name locator */
   char *mapset_ELEV,*mapset_LAKE,*mapset_DAMBREAK,*mapset_MANNING,*mapset_U,*mapset_V;
@@ -283,8 +282,8 @@ int main(int argc, char *argv[]){
 
   /* LEGEND
   total_dambreak-without_hypotesis = No hypothesis about initial velocity
-  total_dambreak = Hp critical height --> initial velocity (critical h) = 0.93*sqrt(h);
-  small_dam_breach = Hp dam --> initial velocity = 0.4*sqrt(2*g*h)
+  total_dambreak = Hypothesis critical height --> initial velocity (critical h) = 0.93*sqrt(h);
+  small_dam_breach = Hypothesis spillway --> initial velocity = 0.4*sqrt(2*g*h)
   */
 
   input_TIMESTEP = G_define_option();
@@ -793,7 +792,7 @@ int main(int argc, char *argv[]){
 		// Uniform drop in of lake (method=1 or method =2) 
 		//*****************************************************************************
 		if (method==1 || method==2){
-			/* Calculation of the lowering of the lake */
+			/* Lake depth reduction calculation */
 			if (num_cell!=0) {
 				fall = (volume) / (num_cell * res_ew * res_ns);
 				//printf("volume=%f, fall=%f\n",volume,fall);
@@ -829,7 +828,7 @@ int main(int argc, char *argv[]){
 							num_cell--;
 						}
 					}
-			}} //end two for cicles
+			}} //end two for cycles
 		} //end if
 	// There isn't interest to find where is the lake --> everywhere m_lake[row][col]=0 
 	if (method==3){
@@ -856,7 +855,7 @@ int main(int argc, char *argv[]){
 	//printf("************************************************\n");
 	//while(!getchar()){ }
 	//G_percent(t, TSTOP, timestep);
-	// Ciclo sui tempi
+	// Loop over time
         //G_message("timestep =%f,t=%f",timestep,t);
 		   if (t>M*100){
 		   	if (M*100!=(m-1)*DELTAT)
@@ -875,14 +874,14 @@ int main(int argc, char *argv[]){
     //*************************************** Overwriting *********************************************
     timestep_ct=0;
     if (t<TSTOP){   
-    /* Open new cicle */
+    /* Open new cycle */
     	for (row = 1; row < nrows-1; row++) {
 	   	for (col = 1; col < ncols-1; col++) {
 		 	if( (row==1 || row==(nrows-2) || col==1 || col==(ncols-2)) && (m_v2[1][col]>0 || m_v2[nrows-2][col]<0 || m_u1[row][1]<0 || m_u1[row][ncols-2]>0 )) {
 				if (reg_lim==0) {
 					G_warning("At the time %.3f the computational region is smaller than inundation",t);
 					reg_lim=1;
-				} /* Warning  message only a time */
+				} /* Warning message only a time */
 	    		} /* velocities at the limit of computational region */
 				
             	//********************************************************************				
@@ -1386,7 +1385,7 @@ if (OUT_WAVEFRONT){
 }
 
 //************************************************************************
-// TODO/To fix
+// TODO: Fix the following
 //************************************************************************
 /* Add command line incantation to history file */
 //G_short_history(result, "raster", &history);

@@ -83,7 +83,7 @@ void shallow_water(double **m_h1,double **m_u1, double **m_v1, float **m_z,float
 
     // DESCRIPTION OF METHOD
     // First cycle: Calculation of new water heights at time t + 1:
-    //      - Downstream of the dam: Apply continuity equation to shallow water (?)
+    //      - Downstream of the dam: Apply continuity equation to shallow water
     //        In practice, the new height is evaluated through a balance 
     //        of the incoming and outgoing flows in the two main directions
     //      - Upstream of the dam:
@@ -247,8 +247,8 @@ void shallow_water(double **m_h1,double **m_u1, double **m_v1, float **m_z,float
 
 			if (method==1 || method==2){
 				//*******************************************************************
-                // Calculation of flow rate Q coming out of the lake only in the case of Hp weir
-				/* HP: method 1 or 2   */
+                // Calculation of flow rate Q coming out of the lake only in the case of spillway Hp (hypothesis)
+				/* Hypothesis: method 1 or 2   */
 				if (m_DAMBREAK[row][col]>0 ){
 					if ((m_z[row][col]+m_h1[row][col])>(m_z[row][col+1]+m_h1[row][col+1])){
 						if (t==timestep)
@@ -268,15 +268,15 @@ void shallow_water(double **m_h1,double **m_u1, double **m_v1, float **m_z,float
 				}
 			}
 
-	}} //end two for cicles (continuity equation)
+	}} //end two for cycles (continuity equation)
 
 
 	//*****************************************************************************
-	// Lowering of the lake (as there is twice do then a function)
+	// Lake depth reduction (as there is twice do then a function)
 	//*****************************************************************************
 	if (method==1 || method==2){
 
-		/* Calculation of the lowering of the lake*/
+		/* Lake depth reduction calculation*/
 		if (num_cell!=0) {
 			fall = (Q * timestep-vol_res) / (num_cell * res_ew * res_ns);
 		} else {
@@ -502,9 +502,9 @@ void shallow_water(double **m_h1,double **m_u1, double **m_v1, float **m_z,float
 
 			   	if (m_DAMBREAK[row][col] > 0){
 			   		if ((m_z[row][col]+m_h2[row][col]) > (m_z[row][col+1]+m_h2[row][col+1]))
-			   			m_u2[row][col] = velocita_breccia(method,m_h2[row][col]);  //velocity on the weir
+			   			m_u2[row][col] = velocita_breccia(method,m_h2[row][col]);  //velocity on the spillway
 			   		else if ((m_z[row][col] + m_h2[row][col]) > (m_z[row][col-1] + m_h2[row][col-1]))
-			   			m_u2[row][col] = - velocita_breccia(method,m_h2[row][col]);  //velocity on the weir
+			   			m_u2[row][col] = - velocita_breccia(method,m_h2[row][col]);  //velocity on the spillway
 			   		else
 			   			m_u2[row][col] = 0.0;
 			   	}else {
@@ -519,7 +519,7 @@ void shallow_water(double **m_h1,double **m_u1, double **m_v1, float **m_z,float
 
 				if ((timestep/res_ew*(fabs(m_u2[row][col])+sqrt(g*m_h2[row][col])))>1.0){
 					G_warning("At time %f the Courant-Friedrich-Lewy stability condition isn't respected",t);
-					/*G_message("x long velocity \n");
+					/*G_message("X component of velocity \n");
 					G_message("row:%d, col%d \n",row,col);
 					G_message("dZ_dx_down:%f, dZ_dx_up:%f,cr_up:%f, cr_down:%f\n" , dZ_dx_down,dZ_dx_up, cr_up, cr_down);
 					G_message("Z_piu:%f,Z_meno:%f\n", Z_piu, Z_meno);
@@ -706,9 +706,9 @@ void shallow_water(double **m_h1,double **m_u1, double **m_v1, float **m_z,float
 
 				if (m_DAMBREAK[row][col] > 0.0 ){
 					if ((m_z[row][col]+m_h2[row][col]) >  (m_z[row-1][col] + m_h2[row-1][col]))
-					   m_v2[row][col] = velocita_breccia(method,m_h2[row][col]);  // velocity on the weir
+					   m_v2[row][col] = velocita_breccia(method,m_h2[row][col]);  // velocity on the spillway
 					else if ((m_z[row][col]+m_h2[row][col]) >  (m_z[row+1][col] + m_h2[row+1][col]))
-						m_v2[row][col] = -velocita_breccia(method,m_h2[row][col]);  // velocity on the weir
+						m_v2[row][col] = -velocita_breccia(method,m_h2[row][col]);  // velocity on the spillway
 					else
 						m_v2[row][col] = 0.0;
 				}else{
