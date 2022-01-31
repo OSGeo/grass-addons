@@ -18,42 +18,42 @@
 #
 ########################################################################
 #
-#%Module
-#% description: Recode raster using attribute table (csv file) as input.
-#% keyword: raster
-#% keyword: recode
-#%End
+# %Module
+# % description: Recode raster using attribute table (csv file) as input.
+# % keyword: raster
+# % keyword: recode
+# %End
 
-#%option
-#% key: input
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Input map
-#% key_desc: name
-#% required: yes
-#% multiple: no
-#%end
+# %option
+# % key: input
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Input map
+# % key_desc: name
+# % required: yes
+# % multiple: no
+# %end
 
-#%option
-#% key: output
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: name(s) output layer(s)
-#% key_desc: name
-#% required: yes
-#% multiple: no
-#%end
+# %option
+# % key: output
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: name(s) output layer(s)
+# % key_desc: name
+# % required: yes
+# % multiple: no
+# %end
 
-#%option G_OPT_F_INPUT
-#% key: rules
-#% label: Full path to rules file
-#% required: yes
-#%end
+# %option G_OPT_F_INPUT
+# % key: rules
+# % label: Full path to rules file
+# % required: yes
+# %end
 
-#%flag:
-#% key: a
-#% description: Align the current region to the input raster map
-#%end
+# %flag:
+# % key: a
+# % description: Align the current region to the input raster map
+# %end
 
 # import libraries
 import os

@@ -14,39 +14,39 @@
 #
 #############################################################################
 
-#%module
-#% description: Draw a plot of multiple rasters to explain a raster operation for example a + b = c
-#% keyword: display
-#% keyword: manual
-#% keyword: raster
-#%end
-#%option G_OPT_R_INPUT
-#% key: a
-#%end
-#%option G_OPT_R_INPUT
-#% key: b
-#%end
-#%option G_OPT_R_INPUT
-#% key: c
-#%end
-#%option
-#% key: label_a
-#% type: string
-#% required: no
-#% description: Label above the raster
-#%end
-#%option
-#% key: label_b
-#% type: string
-#% required: no
-#% description: Label above the raster
-#%end
-#%option
-#% key: label_c
-#% type: string
-#% required: no
-#% description: Label above the raster
-#%end
+# %module
+# % description: Draw a plot of multiple rasters to explain a raster operation for example a + b = c
+# % keyword: display
+# % keyword: manual
+# % keyword: raster
+# %end
+# %option G_OPT_R_INPUT
+# % key: a
+# %end
+# %option G_OPT_R_INPUT
+# % key: b
+# %end
+# %option G_OPT_R_INPUT
+# % key: c
+# %end
+# %option
+# % key: label_a
+# % type: string
+# % required: no
+# % description: Label above the raster
+# %end
+# %option
+# % key: label_b
+# % type: string
+# % required: no
+# % description: Label above the raster
+# %end
+# %option
+# % key: label_c
+# % type: string
+# % required: no
+# % description: Label above the raster
+# %end
 
 
 import sys

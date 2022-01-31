@@ -55,80 +55,80 @@ REQUIREMENTS:
 
 """
 
-#%Module
-#% description: Compute corridors between habitat patches of an input-layer based on (cost) distance raster maps
-#% keyword: raster
-#% keyword: vector
-#% keyword: corridor
-#% keyword: cost distance
-#% keyword: least cost paths
-#%End
+# %Module
+# % description: Compute corridors between habitat patches of an input-layer based on (cost) distance raster maps
+# % keyword: raster
+# % keyword: vector
+# % keyword: corridor
+# % keyword: cost distance
+# % keyword: least cost paths
+# %End
 
-#%option G_OPT_V_INPUT
-#% required: yes
-#% key_desc: Result from r.connectivity.network containing edge measures
-#% description: Name of the table containing edge measures from r.connectivity.network
-#%end
+# %option G_OPT_V_INPUT
+# % required: yes
+# % key_desc: Result from r.connectivity.network containing edge measures
+# % description: Name of the table containing edge measures from r.connectivity.network
+# %end
 
-#%option G_OPT_V_FIELD
-#% required: yes
-#% answer: 1
-#% description: layer containing patch geometries
-#%end
+# %option G_OPT_V_FIELD
+# % required: yes
+# % answer: 1
+# % description: layer containing patch geometries
+# %end
 
-#%Option G_OPT_DB_COLUMNS
-#% key: weights
-#% type: string
-#% required: no
-#% multiple: yes
-#% key_desc: Column names
-#% description: Column names separated by commas
-#%End
+# %Option G_OPT_DB_COLUMNS
+# % key: weights
+# % type: string
+# % required: no
+# % multiple: yes
+# % key_desc: Column names
+# % description: Column names separated by commas
+# %End
 
-#%Option G_OPT_DB_where
-#% key: where
-#% required: no
-#% key_desc: where (SQL statement)
-#% description: where conditions of an SQL statement without 'where' keyword. (example: cf_mst_ud = 1 or cf_eb_ud > 100)
-#%End
+# %Option G_OPT_DB_where
+# % key: where
+# % required: no
+# % key_desc: where (SQL statement)
+# % description: where conditions of an SQL statement without 'where' keyword. (example: cf_mst_ud = 1 or cf_eb_ud > 100)
+# %End
 
-#%option
-#% key: suffix
-#% type: string
-#% description: Output suffix for corridor summary result
-#% required : yes
-#%end
+# %option
+# % key: suffix
+# % type: string
+# % description: Output suffix for corridor summary result
+# % required : yes
+# %end
 
-#%option
-#% key: corridor_tolerance
-#% type: double
-#% description: Tolerance for deviation from (cost) distance within corridors (in %)
-#% required : no
-#% answer : 0.0
-#%end
+# %option
+# % key: corridor_tolerance
+# % type: double
+# % description: Tolerance for deviation from (cost) distance within corridors (in %)
+# % required : no
+# % answer : 0.0
+# %end
 
-#%flag
-#% key: s
-#% description: Show edges selected by where-clause and exit
-#%end
+# %flag
+# % key: s
+# % description: Show edges selected by where-clause and exit
+# %end
 
-#%flag
-#% key: d
-#% description: Assign distance values to corridors instead of connection ids and weights
-#%end
+# %flag
+# % key: d
+# % description: Assign distance values to corridors instead of connection ids and weights
+# %end
 
-#%flag
-#% key: r
-#% description: Recalculate already computed corridors (default is only weight and summarize already existing corridor maps)
-#%end
+# %flag
+# % key: r
+# % description: Recalculate already computed corridors (default is only weight and summarize already existing corridor maps)
+# %end
 
-#%option
-#% key: cores
-#% type: integer
-#% description: cores used for multithreading (1 means no multithreading)
-#% required : no
-#% answer : 1
-#%end
+# %option
+# % key: cores
+# % type: integer
+# % description: cores used for multithreading (1 means no multithreading)
+# % required : no
+# % answer : 1
+# %end
 
 
 import atexit

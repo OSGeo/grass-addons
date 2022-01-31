@@ -17,96 +17,96 @@
 #
 #############################################################################
 
-#%Module
-#% description: Performs filtering of raster time series X (in time domain).
-#% overwrite: yes
-#% keyword: raster
-#% keyword: statistics
-#% keyword: filter
-#%End
-#%flag
-#% key: c
-#% description: Try to find optimal parameters for filtering
-#% guisection: Parameters
-#%end
-#%flag
-#% key: u
-#% description: Fit the result curve by upper boundary
-#% guisection: Parameters
-#%end
-#%option
-#% key: input
-#% type: string
-#% gisprompt: list of raster names
-#% description: Raster names of equally spaced time series
-#% required : yes
-#% multiple: yes
-#%end
-#%option
-#% key: result_prefix
-#% type: string
-#% gisprompt: prefix of result raster names
-#% description: Prefix for raster names of filtered X(t)
-#% required : yes
-#% multiple: no
-#%end
-#%option
-#% key: method
-#% type: string
-#% required : no
-#% multiple: no
-#% answer: savgol
-#% description: Used method
-#% descriptions: savgol; Savitzky-Golay filter; median; Median filter
-#%end
-#%option
-#% key: winsize
-#% type: integer
-#% answer: 9
-#% required: no
-#% multiple: no
-#% description: Length of running window for the filter
-#%end
-#%option
-#% key: order
-#% type: integer
-#% answer: 2
-#% required: no
-#% multiple: no
-#% description: Order of the Savitzky-Golay filter
-#%end
-#%option
-#% key: opt_points
-#% type: integer
-#% answer: 50
-#% required: no
-#% multiple: no
-#% description: Count of random points used for parameter optimization
-#%end
-#%option
-#% key: diff_penalty
-#% type: double
-#% answer: 1.0
-#% required: no
-#% multiple: no
-#% description: Penalty for difference between original and filtered signals
-#%end
-#%option
-#% key: deriv_penalty
-#% type: double
-#% answer: 1.0
-#% required: no
-#% multiple: no
-#% description: Penalty for big derivates of the filtered signal
-#%end
-#%option
-#% key: iterations
-#% type: integer
-#% required: no
-#% multiple: no
-#% description: Number of iterations
-#% answer: 1
-#%end
+# %Module
+# % description: Performs filtering of raster time series X (in time domain).
+# % overwrite: yes
+# % keyword: raster
+# % keyword: statistics
+# % keyword: filter
+# %End
+# %flag
+# % key: c
+# % description: Try to find optimal parameters for filtering
+# % guisection: Parameters
+# %end
+# %flag
+# % key: u
+# % description: Fit the result curve by upper boundary
+# % guisection: Parameters
+# %end
+# %option
+# % key: input
+# % type: string
+# % gisprompt: list of raster names
+# % description: Raster names of equally spaced time series
+# % required : yes
+# % multiple: yes
+# %end
+# %option
+# % key: result_prefix
+# % type: string
+# % gisprompt: prefix of result raster names
+# % description: Prefix for raster names of filtered X(t)
+# % required : yes
+# % multiple: no
+# %end
+# %option
+# % key: method
+# % type: string
+# % required : no
+# % multiple: no
+# % answer: savgol
+# % description: Used method
+# % descriptions: savgol; Savitzky-Golay filter; median; Median filter
+# %end
+# %option
+# % key: winsize
+# % type: integer
+# % answer: 9
+# % required: no
+# % multiple: no
+# % description: Length of running window for the filter
+# %end
+# %option
+# % key: order
+# % type: integer
+# % answer: 2
+# % required: no
+# % multiple: no
+# % description: Order of the Savitzky-Golay filter
+# %end
+# %option
+# % key: opt_points
+# % type: integer
+# % answer: 50
+# % required: no
+# % multiple: no
+# % description: Count of random points used for parameter optimization
+# %end
+# %option
+# % key: diff_penalty
+# % type: double
+# % answer: 1.0
+# % required: no
+# % multiple: no
+# % description: Penalty for difference between original and filtered signals
+# %end
+# %option
+# % key: deriv_penalty
+# % type: double
+# % answer: 1.0
+# % required: no
+# % multiple: no
+# % description: Penalty for big derivates of the filtered signal
+# %end
+# %option
+# % key: iterations
+# % type: integer
+# % required: no
+# % multiple: no
+# % description: Number of iterations
+# % answer: 1
+# %end
 
 
 import os

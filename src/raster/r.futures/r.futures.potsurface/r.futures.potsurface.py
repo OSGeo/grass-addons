@@ -16,28 +16,28 @@
 #
 ##############################################################################
 
-#%module
-#% description: Module for computing development potential surface from CSV file created by r.futures.potential and predictors
-#% keyword: raster
-#% keyword: statistics
-#%end
-#%option G_OPT_F_INPUT
-#% description: CSV file with coefficients
-#% required: yes
-#%end
-#%option G_OPT_R_INPUT
-#% key: subregions
-#% description: Raster map of subregions
-#% required: yes
-#%end
-#%option G_OPT_R_OUTPUT
-#% description: Output probability raster
-#%end
-#%option G_OPT_F_SEP
-#% required: no
-#% label: Separator used in input CSV file
-#% answer: comma
-#%end
+# %module
+# % description: Module for computing development potential surface from CSV file created by r.futures.potential and predictors
+# % keyword: raster
+# % keyword: statistics
+# %end
+# %option G_OPT_F_INPUT
+# % description: CSV file with coefficients
+# % required: yes
+# %end
+# %option G_OPT_R_INPUT
+# % key: subregions
+# % description: Raster map of subregions
+# % required: yes
+# %end
+# %option G_OPT_R_OUTPUT
+# % description: Output probability raster
+# %end
+# %option G_OPT_F_SEP
+# % required: no
+# % label: Separator used in input CSV file
+# % answer: comma
+# %end
 
 
 import sys

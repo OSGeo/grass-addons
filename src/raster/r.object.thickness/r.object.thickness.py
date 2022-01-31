@@ -14,76 +14,76 @@
 #   for details.
 #
 #############################################################################
-#%Module
-#% description: Evaluates minimum, maximum and mean thickness of objects of a given category on a raster map.
-#% keyword: raster
-#% keyword: algebra
-#% keyword: size
-#% keyword: clumps
-#%end
-#%option G_OPT_R_INPUT
-#%end
-#%option
-#% key: category
-#% type: integer
-#% required: yes
-#% multiple: no
-#% description: Category to evaluate
-#%end
-#%option
-#% key: tsize
-#% type: double
-#% required: yes
-#% multiple: no
-#% description: Expected maximum size in map units
-#% answer: 100
-#%end
-#%option
-#% key: tspace
-#% type: double
-#% required: yes
-#% multiple: no
-#% description: Transect spacing in map units
-#% answer: 2
-#%end
-#%option
-#% key: resolutiondir
-#% type: string
-#% description: Resolution for output in pixels
-#% required: yes
-#% options: N-S,E-W
-#% answer: N-S
-#%end
-#%option G_OPT_R_OUTPUT
-#% key: rmedian
-#% description: Raster map of median lines
-#% required: no
-#% guisection: Optional
-#%end
-#%option G_OPT_V_OUTPUT
-#% key: vmedian
-#% description: Vector map of median lines
-#% required: no
-#% guisection: Optional
-#%end
-#%option G_OPT_V_OUTPUT
-#% key: transects
-#% description: Vector map of complete transects
-#% required: no
-#% guisection: Optional
-#%end
-#%option G_OPT_V_OUTPUT
-#% key: itransects
-#% description: Vector map of inner transects
-#% required: no
-#% guisection: Optional
-#%end
-#%option G_OPT_F_OUTPUT
-#% key: csvfilename
-#% description: CSV output file
-#% required: no
-#% guisection: Optional
-#%end
+# %Module
+# % description: Evaluates minimum, maximum and mean thickness of objects of a given category on a raster map.
+# % keyword: raster
+# % keyword: algebra
+# % keyword: size
+# % keyword: clumps
+# %end
+# %option G_OPT_R_INPUT
+# %end
+# %option
+# % key: category
+# % type: integer
+# % required: yes
+# % multiple: no
+# % description: Category to evaluate
+# %end
+# %option
+# % key: tsize
+# % type: double
+# % required: yes
+# % multiple: no
+# % description: Expected maximum size in map units
+# % answer: 100
+# %end
+# %option
+# % key: tspace
+# % type: double
+# % required: yes
+# % multiple: no
+# % description: Transect spacing in map units
+# % answer: 2
+# %end
+# %option
+# % key: resolutiondir
+# % type: string
+# % description: Resolution for output in pixels
+# % required: yes
+# % options: N-S,E-W
+# % answer: N-S
+# %end
+# %option G_OPT_R_OUTPUT
+# % key: rmedian
+# % description: Raster map of median lines
+# % required: no
+# % guisection: Optional
+# %end
+# %option G_OPT_V_OUTPUT
+# % key: vmedian
+# % description: Vector map of median lines
+# % required: no
+# % guisection: Optional
+# %end
+# %option G_OPT_V_OUTPUT
+# % key: transects
+# % description: Vector map of complete transects
+# % required: no
+# % guisection: Optional
+# %end
+# %option G_OPT_V_OUTPUT
+# % key: itransects
+# % description: Vector map of inner transects
+# % required: no
+# % guisection: Optional
+# %end
+# %option G_OPT_F_OUTPUT
+# % key: csvfilename
+# % description: CSV output file
+# % required: no
+# % guisection: Optional
+# %end
 
 
 import sys

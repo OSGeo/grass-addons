@@ -11,180 +11,180 @@
 # DATE:			2013-04-11
 #
 #############################################################################
-#%Module
-#% description: Calculating fish dispersal in a river network from source populations with species specific dispersal parameters
-#% keyword: Fish Dispersal Model
-#%End
-#%option
-#% key: river
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: River network (raster, e.g. output from r.watershed)
-#% required: no
-#% guisection: Stream parameters
-#%end
-#%option
-#% key: coors
-#% type: string
-#% required: no
-#% multiple: no
-#% key_desc: x,y
-#% description: River networks' outlet coordinates: E,N
-#% guisection: Stream parameters
-#%End
-#%option
-#% key: barriers
-#% type: string
-#% gisprompt:old,vector,vector
-#% description: Barrier point file (vector map)
-#% required: no
-#% guisection: Stream parameters
-#%end
-#%option
-#% key: passability_col
-#% type: string
-#% required: no
-#% multiple: no
-#% key_desc: name
-#% description: Column name indicating passability value (0-1) of barrier
-#% guisection: Stream parameters
-#%End
-#%option
-#% key: n_source
-#% type: string
-#% key_desc: number[%]
-#% description: Either: Number of random cells with source populations
-#% required: no
-#% guisection: Source populations
-#%end
-#%option
-#% key: source_populations
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Or: Source population raster (relative or absolute occurrence)
-#% required: no
-#% guisection: Source populations
-#%end
-#%Option
-#% key: species
-#% type: string
-#% required: no
-#% multiple: no
-#% options:Custom species,Catostomus commersoni,Moxostoma duquesnii,Moxostoma erythrurum,Ambloplites rupestris,Lepomis auritus,Lepomis cyanellus,Lepomis macrochirus,Lepomis megalotis,Micropterus dolomieui,Micropterus punctulatus,Micropterus salmoides,Pomoxis annularis,Cottus bairdii,Cottus gobio,Abramis brama,Barbus barbus,Cyprinus carpio carpio,Gobio gobio,Leuciscus idus,Rutilus rutilus,Squalius cephalus,Tinca tinca,Esox lucius,Fundulus heteroclitus heteroclitus,Ameiurus natalis,Ictalurus punctatus,Morone americana,Etheostoma flabellare,Etheostoma nigrum,Perca fluviatilis,Percina nigrofasciata,Sander lucioperca,Oncorhynchus mykiss, Oncorhynchus gilae,Salmo salar,Salmo trutta fario,Salvelinus fontinalis,Salvelinus malma malma,Thymallus thymallus,Aplodinotus grunniens,Salmo trutta,Gobio gobio,Rutilus rutilus
-#% description: Select fish species
-#% guisection: Dispersal parameters
-#%End
-#%Option
-#% key: l
-#% type: integer
-#% required: no
-#% multiple: no
-#% description: Fish Length [mm] (If no species is given, range=39-810)
-#% guisection: Dispersal parameters
-#%End
-#%Option
-#% key: ar
-#% type: double
-#% required: no
-#% multiple: no
-#% description: Aspect Ratio of Caudal Fin (If no species is given) (valid range 0.51 - 2.29)
-#% guisection: Dispersal parameters
-#%End
-#%Option
-#% key: t
-#% type: integer
-#% required: no
-#% multiple: no
-#% description: Time interval for model step [d]
-#% guisection: Dispersal parameters
-#% options: 1-3650
-#% answer: 30
-#%End
-#%option
-#% key: p
-#% type: double
-#% required: no
-#% multiple: no
-#% description: Share of the stationary component (valid range 0 - 1)
-#% answer:0.67
-#% guisection: Dispersal parameters
-#%End
-#%option
-#% key: habitat_attract
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Attractiveness of habitat used as weighting factor (sink effect, habitat-dependent dispersal)
-#% required: no
-#% guisection: Habitat dependency
-#%end
-#%option
-#% key: habitat_p
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Spatially varying and habitat-dependent p factor (float: 0-1, source effect, habitat-dependent dispersal)
-#% required: no
-#% guisection: Habitat dependency
-#%end
-#%Flag
-#% key: b
-#% description: Don't keep basic vector maps (source_points, barriers)
-#%end
-#%Flag
-#% key: a
-#% description: Keep all temporal vector and raster maps
-#%end
-#%Flag
-#% key: r
-#% description: Source population input are real fish counts per cell. Backtransformation into fish counts will be performed.
-#%end
-#%Option
-#% key: truncation
-#% type: string
-#% required: no
-#% multiple: no
-#% options: 0.9,0.95,0.99,0.995,0.999,0.99999,0.999999999,inf
-#% description: kernel truncation criterion (precision)
-#% answer: 0.99
-#% guisection: Optional
-#%End
-#%Option
-#% key: seed1
-#% type: integer
-#% required: no
-#% multiple: no
-#% description: fixed seed for generating dispersal parameters
-#% guisection: Optional
-#%End
-#%Option
-#% key: seed2
-#% type: integer
-#% required: no
-#% multiple: no
-#% description: fixed seed for multinomial realisation step
-#% guisection: Optional
-#%End
-#%Option
-#% key: output
-#% type: string
-#% gisprompt: new
-#% required: no
-#% multiple: no
-#% key_desc: name
-#% description: Base name for output raster
-#% guisection: Output
-#% answer: fidimo_out
-#%end
-#%Option
-#% key: statistical_interval
-#% type: string
-#% required: no
-#% multiple: no
-#% key_desc: name
-#% description: Statistical Intervals
-#% guisection: Output
-#% options:no,Confidence Interval,Prediction Interval,Random Value within Confidence Interval
-#% answer:no
-#%end
+# %Module
+# % description: Calculating fish dispersal in a river network from source populations with species specific dispersal parameters
+# % keyword: Fish Dispersal Model
+# %End
+# %option
+# % key: river
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: River network (raster, e.g. output from r.watershed)
+# % required: no
+# % guisection: Stream parameters
+# %end
+# %option
+# % key: coors
+# % type: string
+# % required: no
+# % multiple: no
+# % key_desc: x,y
+# % description: River networks' outlet coordinates: E,N
+# % guisection: Stream parameters
+# %End
+# %option
+# % key: barriers
+# % type: string
+# % gisprompt:old,vector,vector
+# % description: Barrier point file (vector map)
+# % required: no
+# % guisection: Stream parameters
+# %end
+# %option
+# % key: passability_col
+# % type: string
+# % required: no
+# % multiple: no
+# % key_desc: name
+# % description: Column name indicating passability value (0-1) of barrier
+# % guisection: Stream parameters
+# %End
+# %option
+# % key: n_source
+# % type: string
+# % key_desc: number[%]
+# % description: Either: Number of random cells with source populations
+# % required: no
+# % guisection: Source populations
+# %end
+# %option
+# % key: source_populations
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Or: Source population raster (relative or absolute occurrence)
+# % required: no
+# % guisection: Source populations
+# %end
+# %Option
+# % key: species
+# % type: string
+# % required: no
+# % multiple: no
+# % options:Custom species,Catostomus commersoni,Moxostoma duquesnii,Moxostoma erythrurum,Ambloplites rupestris,Lepomis auritus,Lepomis cyanellus,Lepomis macrochirus,Lepomis megalotis,Micropterus dolomieui,Micropterus punctulatus,Micropterus salmoides,Pomoxis annularis,Cottus bairdii,Cottus gobio,Abramis brama,Barbus barbus,Cyprinus carpio carpio,Gobio gobio,Leuciscus idus,Rutilus rutilus,Squalius cephalus,Tinca tinca,Esox lucius,Fundulus heteroclitus heteroclitus,Ameiurus natalis,Ictalurus punctatus,Morone americana,Etheostoma flabellare,Etheostoma nigrum,Perca fluviatilis,Percina nigrofasciata,Sander lucioperca,Oncorhynchus mykiss, Oncorhynchus gilae,Salmo salar,Salmo trutta fario,Salvelinus fontinalis,Salvelinus malma malma,Thymallus thymallus,Aplodinotus grunniens,Salmo trutta,Gobio gobio,Rutilus rutilus
+# % description: Select fish species
+# % guisection: Dispersal parameters
+# %End
+# %Option
+# % key: l
+# % type: integer
+# % required: no
+# % multiple: no
+# % description: Fish Length [mm] (If no species is given, range=39-810)
+# % guisection: Dispersal parameters
+# %End
+# %Option
+# % key: ar
+# % type: double
+# % required: no
+# % multiple: no
+# % description: Aspect Ratio of Caudal Fin (If no species is given) (valid range 0.51 - 2.29)
+# % guisection: Dispersal parameters
+# %End
+# %Option
+# % key: t
+# % type: integer
+# % required: no
+# % multiple: no
+# % description: Time interval for model step [d]
+# % guisection: Dispersal parameters
+# % options: 1-3650
+# % answer: 30
+# %End
+# %option
+# % key: p
+# % type: double
+# % required: no
+# % multiple: no
+# % description: Share of the stationary component (valid range 0 - 1)
+# % answer:0.67
+# % guisection: Dispersal parameters
+# %End
+# %option
+# % key: habitat_attract
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Attractiveness of habitat used as weighting factor (sink effect, habitat-dependent dispersal)
+# % required: no
+# % guisection: Habitat dependency
+# %end
+# %option
+# % key: habitat_p
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Spatially varying and habitat-dependent p factor (float: 0-1, source effect, habitat-dependent dispersal)
+# % required: no
+# % guisection: Habitat dependency
+# %end
+# %Flag
+# % key: b
+# % description: Don't keep basic vector maps (source_points, barriers)
+# %end
+# %Flag
+# % key: a
+# % description: Keep all temporal vector and raster maps
+# %end
+# %Flag
+# % key: r
+# % description: Source population input are real fish counts per cell. Backtransformation into fish counts will be performed.
+# %end
+# %Option
+# % key: truncation
+# % type: string
+# % required: no
+# % multiple: no
+# % options: 0.9,0.95,0.99,0.995,0.999,0.99999,0.999999999,inf
+# % description: kernel truncation criterion (precision)
+# % answer: 0.99
+# % guisection: Optional
+# %End
+# %Option
+# % key: seed1
+# % type: integer
+# % required: no
+# % multiple: no
+# % description: fixed seed for generating dispersal parameters
+# % guisection: Optional
+# %End
+# %Option
+# % key: seed2
+# % type: integer
+# % required: no
+# % multiple: no
+# % description: fixed seed for multinomial realisation step
+# % guisection: Optional
+# %End
+# %Option
+# % key: output
+# % type: string
+# % gisprompt: new
+# % required: no
+# % multiple: no
+# % key_desc: name
+# % description: Base name for output raster
+# % guisection: Output
+# % answer: fidimo_out
+# %end
+# %Option
+# % key: statistical_interval
+# % type: string
+# % required: no
+# % multiple: no
+# % key_desc: name
+# % description: Statistical Intervals
+# % guisection: Output
+# % options:no,Confidence Interval,Prediction Interval,Random Value within Confidence Interval
+# % answer:no
+# %end
 
 
 # import required base modules

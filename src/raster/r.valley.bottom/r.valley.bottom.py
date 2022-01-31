@@ -20,90 +20,90 @@ COPYRIGHT: (C) 2018 by the GRASS Development Team
            for details.
 """
 
-#%module
-#% description: Calculation of Multi-resolution Valley Bottom Flatness (MrVBF) index
-#% keyword: raster
-#% keyword: terrain
-#%end
+# %module
+# % description: Calculation of Multi-resolution Valley Bottom Flatness (MrVBF) index
+# % keyword: raster
+# % keyword: terrain
+# %end
 
-#%option G_OPT_R_ELEV
-#% key: elevation
-#% description: Name of elevation raster map
-#% required: yes
-#%end
+# %option G_OPT_R_ELEV
+# % key: elevation
+# % description: Name of elevation raster map
+# % required: yes
+# %end
 
-#%option G_OPT_R_OUTPUT
-#% key: mrvbf
-#% description: Name of output MRVBF raster map
-#% required: yes
-#%end
+# %option G_OPT_R_OUTPUT
+# % key: mrvbf
+# % description: Name of output MRVBF raster map
+# % required: yes
+# %end
 
-#%option G_OPT_R_OUTPUT
-#% key: mrrtf
-#% description: Name of output MRRTF raster map
-#% required: no
-#%end
+# %option G_OPT_R_OUTPUT
+# % key: mrrtf
+# % description: Name of output MRRTF raster map
+# % required: no
+# %end
 
-#%option
-#% key: t_slope
-#% description: Initial Threshold for Slope
-#% required: no
-#% answer: 16
-#% end
+# %option
+# % key: t_slope
+# % description: Initial Threshold for Slope
+# % required: no
+# % answer: 16
+# % end
 
-#%option
-#% key: t_pctl_v
-#% description: Threshold (t) for transformation of Elevation Percentile (Lowness)
-#% required: no
-#% answer: 0.4
-#% end
+# %option
+# % key: t_pctl_v
+# % description: Threshold (t) for transformation of Elevation Percentile (Lowness)
+# % required: no
+# % answer: 0.4
+# % end
 
-#%option
-#% key: t_pctl_r
-#% description: Threshold (t) for transformation of Elevation Percentile (Upness)
-#% required: no
-#% answer: 0.3
-#% end
+# %option
+# % key: t_pctl_r
+# % description: Threshold (t) for transformation of Elevation Percentile (Upness)
+# % required: no
+# % answer: 0.3
+# % end
 
-#%option
-#% key: t_vf
-#% description: Threshold (t) for transformation of Valley Bottom Flatness
-#% required: no
-#% answer: 0.3
-#% end
+# %option
+# % key: t_vf
+# % description: Threshold (t) for transformation of Valley Bottom Flatness
+# % required: no
+# % answer: 0.3
+# % end
 
-#%option
-#% key: t_rf
-#% description: Threshold (t) for transformation of Ridge Top Flatness
-#% required: no
-#% answer: 0.35
-#% end
+# %option
+# % key: t_rf
+# % description: Threshold (t) for transformation of Ridge Top Flatness
+# % required: no
+# % answer: 0.35
+# % end
 
-#%option
-#% key: p_slope
-#% description: Shape Parameter (p) for Slope
-#% required: no
-#% answer: 4
-#% end
+# %option
+# % key: p_slope
+# % description: Shape Parameter (p) for Slope
+# % required: no
+# % answer: 4
+# % end
 
-#%option
-#% key: p_pctl
-#% description: Shape Parameter (p) for Elevation Percentile
-#% required: no
-#% answer: 3
-#% end
+# %option
+# % key: p_pctl
+# % description: Shape Parameter (p) for Elevation Percentile
+# % required: no
+# % answer: 3
+# % end
 
-#%option
-#% key: min_cells
-#% description: Minimum number of cells in generalized DEM
-#% required: no
-#% answer: 2
-#% end
+# %option
+# % key: min_cells
+# % description: Minimum number of cells in generalized DEM
+# % required: no
+# % answer: 2
+# % end
 
-#%flag
-#% key: s
-#% description: Use square moving window instead of circular moving window
-#%end
+# %flag
+# % key: s
+# % description: Use square moving window instead of circular moving window
+# %end
 
 
 import atexit

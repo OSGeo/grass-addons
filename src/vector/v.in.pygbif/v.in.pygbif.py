@@ -23,159 +23,159 @@ COPYRIGHT: (C) 2016 by the GRASS Development Team
 # - add progress bar
 # - make date_from and date_to dependent on each other or use today as date_to if not specified
 
-#%module
-#% description: Search and import GBIF species distribution data
-#% keyword: vector
-#% keyword: geometry
-#%end
+# %module
+# % description: Search and import GBIF species distribution data
+# % keyword: vector
+# % keyword: geometry
+# %end
 
-#%option G_OPT_V_OUTPUT
-#% key: output
-#% description: Name of resulting vector map with occurrences
-#% required : yes
-#%end
+# %option G_OPT_V_OUTPUT
+# % key: output
+# % description: Name of resulting vector map with occurrences
+# % required : yes
+# %end
 
-#%option
-#% key: taxa
-#% description: Comma separated list of taxon names or keys to fetch data for
-#% required : yes
-#%end
+# %option
+# % key: taxa
+# % description: Comma separated list of taxon names or keys to fetch data for
+# % required : yes
+# %end
 
-#%option G_OPT_V_INPUT
-#% key: mask
-#% description: Vector map that delimits region of interest
-#% guisection: Spatial filter
-#% required: no
-#%end
+# %option G_OPT_V_INPUT
+# % key: mask
+# % description: Vector map that delimits region of interest
+# % guisection: Spatial filter
+# % required: no
+# %end
 
-#%option
-#% key: date_from
-#% type: string
-#% description: Lower bound of acceptable dates (format: yyyy, yyyy-MM, yyyy-MM-dd, or MM-dd)
-#% guisection: Temporal filter
-#% required: no
-#%end
+# %option
+# % key: date_from
+# % type: string
+# % description: Lower bound of acceptable dates (format: yyyy, yyyy-MM, yyyy-MM-dd, or MM-dd)
+# % guisection: Temporal filter
+# % required: no
+# %end
 
-#%option
-#% key: date_to
-#% type: string
-#% description:  Upper bound of acceptable dates (format: yyyy, yyyy-MM, yyyy-MM-dd, or MM-dd)
-#% guisection: Temporal filter
-#% required: no
-#%end
+# %option
+# % key: date_to
+# % type: string
+# % description:  Upper bound of acceptable dates (format: yyyy, yyyy-MM, yyyy-MM-dd, or MM-dd)
+# % guisection: Temporal filter
+# % required: no
+# %end
 
 # Import will allways be limited to current region except for latlon locations
-#%flag
-#% key: b
-#% description: Do not build topology
-#%end
+# %flag
+# % key: b
+# % description: Do not build topology
+# %end
 
-#%flag
-#% key: r
-#% description: Do not limit import to current region (works only in lat/lon)
-#% guisection: Spatial filter
-#%end
+# %flag
+# % key: r
+# % description: Do not limit import to current region (works only in lat/lon)
+# % guisection: Spatial filter
+# %end
 
-#%flag
-#% key: p
-#% description: Print result from matching taxa names and exit
-#% guisection: Print
-#% suppress_required: yes
-#%end
+# %flag
+# % key: p
+# % description: Print result from matching taxa names and exit
+# % guisection: Print
+# % suppress_required: yes
+# %end
 
-#%flag
-#% key: i
-#% description: Produce individual map for each taxon
-#%end
+# %flag
+# % key: i
+# % description: Produce individual map for each taxon
+# %end
 
-#%flag
-#% key: g
-#% description: Print result from matching taxon names in shell script style and exit
-#% guisection: Print
-#% suppress_required: yes
-#%end
+# %flag
+# % key: g
+# % description: Print result from matching taxon names in shell script style and exit
+# % guisection: Print
+# % suppress_required: yes
+# %end
 
-#%flag
-#% key: o
-#% description: Print number of matching occurrences per taxon and exit
-#% guisection: Print
-#% suppress_required: yes
-#%end
+# %flag
+# % key: o
+# % description: Print number of matching occurrences per taxon and exit
+# % guisection: Print
+# % suppress_required: yes
+# %end
 
-#%flag
-#% key: t
-#% description: Print result of taxon matching in table format and exit
-#% guisection: Print
-#% suppress_required: yes
-#%end
+# %flag
+# % key: t
+# % description: Print result of taxon matching in table format and exit
+# % guisection: Print
+# % suppress_required: yes
+# %end
 
-#%option
-#% key: basisofrecord
-#% type: string
-#% description: Accepted basis of records
-#% guisection: Context filter
-#% required: no
-#% multiple: no
-#% options: ALL,FOSSIL_SPECIMEN,HUMAN_OBSERVATION,LITERATURE,LIVING_SPECIMEN,MACHINE_OBSERVATION,OBSERVATION,PRESERVED_SPECIMEN,UNKNOWN
-#% answer: ALL
-#%end
+# %option
+# % key: basisofrecord
+# % type: string
+# % description: Accepted basis of records
+# % guisection: Context filter
+# % required: no
+# % multiple: no
+# % options: ALL,FOSSIL_SPECIMEN,HUMAN_OBSERVATION,LITERATURE,LIVING_SPECIMEN,MACHINE_OBSERVATION,OBSERVATION,PRESERVED_SPECIMEN,UNKNOWN
+# % answer: ALL
+# %end
 
-#%option
-#% key: rank
-#% type: string
-#% description: Rank of the taxon to search for
-#% guisection: Context filter
-#% required: yes
-#% multiple: no
-#% options: class,cultivar,cultivar_group,domain,family,form,genus,informal,infrageneric_name,infraorder,infraspecific_name,infrasubspecific_name,kingdom,order,phylum,section,series,species,strain,subclass,subfamily,subform,subgenus,subkingdom,suborder,subphylum,subsection,subseries,subspecies,subtribe,subvariety,superclass,superfamily,superorder,superphylum,suprageneric_name,tribe,unranked,variety
-#% answer: species
-#%end
+# %option
+# % key: rank
+# % type: string
+# % description: Rank of the taxon to search for
+# % guisection: Context filter
+# % required: yes
+# % multiple: no
+# % options: class,cultivar,cultivar_group,domain,family,form,genus,informal,infrageneric_name,infraorder,infraspecific_name,infrasubspecific_name,kingdom,order,phylum,section,series,species,strain,subclass,subfamily,subform,subgenus,subkingdom,suborder,subphylum,subsection,subseries,subspecies,subtribe,subvariety,superclass,superfamily,superorder,superphylum,suprageneric_name,tribe,unranked,variety
+# % answer: species
+# %end
 
-#%option
-#% key: recordedby
-#% type: string
-#% description: The person who recorded the occurrence.
-#% guisection: Context filter
-#%end
+# %option
+# % key: recordedby
+# % type: string
+# % description: The person who recorded the occurrence.
+# % guisection: Context filter
+# %end
 
-#%option
-#% key: institutioncode
-#% type: string
-#% description: An identifier of any form assigned by the source to identify the institution the record belongs to.
-#% guisection: Context filter
-#%end
+# %option
+# % key: institutioncode
+# % type: string
+# % description: An identifier of any form assigned by the source to identify the institution the record belongs to.
+# % guisection: Context filter
+# %end
 
-#%option
-#% key: country
-#% type: string
-#% description: The 2-letter country code (as per ISO-3166-1) of the country in which the occurrence was recorded
-#% guisection: Spatial filter
-#%end
+# %option
+# % key: country
+# % type: string
+# % description: The 2-letter country code (as per ISO-3166-1) of the country in which the occurrence was recorded
+# % guisection: Spatial filter
+# %end
 
-#%option
-#% key: continent
-#% type: string
-#% description: The continent in which the occurrence was recorded
-#% guisection: Spatial filter
-#% options: africa,antarctica,asia,europe,north_america,oceania,south_america
-#%end
+# %option
+# % key: continent
+# % type: string
+# % description: The continent in which the occurrence was recorded
+# % guisection: Spatial filter
+# % options: africa,antarctica,asia,europe,north_america,oceania,south_america
+# %end
 
-#%flag
-#% key: n
-#% description: Do not limit search to records with coordinates
-#% guisection: Spatial filter
-#%end
+# %flag
+# % key: n
+# % description: Do not limit search to records with coordinates
+# % guisection: Spatial filter
+# %end
 
-#%flag
-#% key: s
-#% description: Do also import occurrences with spatial issues
-#% guisection: Spatial filter
-#%end
+# %flag
+# % key: s
+# % description: Do also import occurrences with spatial issues
+# % guisection: Spatial filter
+# %end
 
 
-#%rules
-#% excludes: -r,-p,-g,-t
-#%end
+# %rules
+# % excludes: -r,-p,-g,-t
+# %end
 
 
 import sys

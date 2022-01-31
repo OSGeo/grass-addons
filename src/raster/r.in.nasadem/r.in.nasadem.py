@@ -17,95 +17,95 @@
 #
 #############################################################################
 
-#%module
-#% description: Creates a DEM from 1 arcsec NASADEM tiles.
-#% keyword: raster
-#% keyword: import
-#% keyword: SRTM
-#%end
-#%option
-#% key: version
-#% description: NASADEM version
-#% options: NASADEM_HGT.001
-#% answer: NASADEM_HGT.001
-#% required: no
-#%end
-#%option
-#% key: layer
-#% description: NASADEM layer
-#% options: hgt,num,swb
-#% description: NASADEM layer to import
-#% descriptions: hgt;Void-filled DEM;num;Number of scenes;swb;Updated SRTM water body data
-#% answer: hgt
-#% required: no
-#%end
-#%option G_OPT_R_OUTPUT
-#% description: Name for output raster map
-#% required: yes
-#%end
-#%option
-#% key: username
-#% description: Username for authentication
-#% required: no
-#%end
-#%option
-#% key: password
-#% description: Password for authentication
-#% required: no
-#%end
-#%option
-#% key: url
-#% description: Base URL to fetch NASADEM tiles
-#% answer: https://e4ftl01.cr.usgs.gov/MEASURES
-#% required: no
-#%end
-#%option G_OPT_M_DIR
-#% key: local
-#% label: Local folder with NASADEM tiles
-#% description: Use local folder instead of URL to retrieve NASADEM tiles
-#% required: no
-#%end
-#%option
-#% key: region
-#% type: double
-#% label: Import subregion only (default is current region)
-#% description: Format: xmin,ymin,xmax,ymax - usually W,S,E,N
-#% key_desc: xmin,ymin,xmax,ymax
-#% multiple: no
-#% required: no
-#%end
-#%option
-#% key: method
-#% type: string
-#% required: no
-#% multiple: no
-#% options: nearest,bilinear,bicubic,lanczos,bilinear_f,bicubic_f,lanczos_f
-#% description: Resampling method to use for reprojection (required if location projection not longlat)
-#% descriptions: nearest;nearest neighbor;bilinear;bilinear interpolation;bicubic;bicubic interpolation;lanczos;lanczos filter;bilinear_f;bilinear interpolation with fallback;bicubic_f;bicubic interpolation with fallback;lanczos_f;lanczos filter with fallback
-#% guisection: Output
-#% answer: bilinear_f
-#%end
-#%option
-#% key: resolution
-#% type: double
-#% required: no
-#% multiple: no
-#% description: Resolution of output raster map (required if location projection not longlat)
-#% guisection: Output
-#%end
-#%option
-#% key: memory
-#% type: integer
-#% required: no
-#% multiple: no
-#% label: Maximum memory to be used (in MB)
-#% description: Cache size for raster rows
-#% answer: 300
-#%end
-#%flag
-#% key: z
-#% description: Create zero elevation for missing tiles
-#%end
+# %module
+# % description: Creates a DEM from 1 arcsec NASADEM tiles.
+# % keyword: raster
+# % keyword: import
+# % keyword: SRTM
+# %end
+# %option
+# % key: version
+# % description: NASADEM version
+# % options: NASADEM_HGT.001
+# % answer: NASADEM_HGT.001
+# % required: no
+# %end
+# %option
+# % key: layer
+# % description: NASADEM layer
+# % options: hgt,num,swb
+# % description: NASADEM layer to import
+# % descriptions: hgt;Void-filled DEM;num;Number of scenes;swb;Updated SRTM water body data
+# % answer: hgt
+# % required: no
+# %end
+# %option G_OPT_R_OUTPUT
+# % description: Name for output raster map
+# % required: yes
+# %end
+# %option
+# % key: username
+# % description: Username for authentication
+# % required: no
+# %end
+# %option
+# % key: password
+# % description: Password for authentication
+# % required: no
+# %end
+# %option
+# % key: url
+# % description: Base URL to fetch NASADEM tiles
+# % answer: https://e4ftl01.cr.usgs.gov/MEASURES
+# % required: no
+# %end
+# %option G_OPT_M_DIR
+# % key: local
+# % label: Local folder with NASADEM tiles
+# % description: Use local folder instead of URL to retrieve NASADEM tiles
+# % required: no
+# %end
+# %option
+# % key: region
+# % type: double
+# % label: Import subregion only (default is current region)
+# % description: Format: xmin,ymin,xmax,ymax - usually W,S,E,N
+# % key_desc: xmin,ymin,xmax,ymax
+# % multiple: no
+# % required: no
+# %end
+# %option
+# % key: method
+# % type: string
+# % required: no
+# % multiple: no
+# % options: nearest,bilinear,bicubic,lanczos,bilinear_f,bicubic_f,lanczos_f
+# % description: Resampling method to use for reprojection (required if location projection not longlat)
+# % descriptions: nearest;nearest neighbor;bilinear;bilinear interpolation;bicubic;bicubic interpolation;lanczos;lanczos filter;bilinear_f;bilinear interpolation with fallback;bicubic_f;bicubic interpolation with fallback;lanczos_f;lanczos filter with fallback
+# % guisection: Output
+# % answer: bilinear_f
+# %end
+# %option
+# % key: resolution
+# % type: double
+# % required: no
+# % multiple: no
+# % description: Resolution of output raster map (required if location projection not longlat)
+# % guisection: Output
+# %end
+# %option
+# % key: memory
+# % type: integer
+# % required: no
+# % multiple: no
+# % label: Maximum memory to be used (in MB)
+# % description: Cache size for raster rows
+# % answer: 300
+# %end
+# %flag
+# % key: z
+# % description: Create zero elevation for missing tiles
+# %end
 
 
 import os

@@ -20,47 +20,47 @@
 #
 #############################################################################
 
-#%module
-#% description: Patches multiple space time raster maps into a single raster map using r.patch.
-#% keyword: temporal
-#% keyword: aggregation
-#% keyword: series
-#% keyword: raster
-#% keyword: merge
-#% keyword: patching
-#% keyword: time
-#%end
+# %module
+# % description: Patches multiple space time raster maps into a single raster map using r.patch.
+# % keyword: temporal
+# % keyword: aggregation
+# % keyword: series
+# % keyword: raster
+# % keyword: merge
+# % keyword: patching
+# % keyword: time
+# %end
 
-#%option G_OPT_STRDS_INPUT
-#%end
+# %option G_OPT_STRDS_INPUT
+# %end
 
-#%option G_OPT_T_WHERE
-#%end
+# %option G_OPT_T_WHERE
+# %end
 
-#%option G_OPT_R_OUTPUT
-#%end
+# %option G_OPT_R_OUTPUT
+# %end
 
-#%flag
-#% key: t
-#% description: Do not assign the space time raster dataset start and end time to the output map
-#%end
+# %flag
+# % key: t
+# % description: Do not assign the space time raster dataset start and end time to the output map
+# %end
 
-#%flag
-#% key: z
-#% description: Use zero (0) for transparency instead of NULL
-#%end
+# %flag
+# % key: z
+# % description: Use zero (0) for transparency instead of NULL
+# %end
 
-#%flag
-#% key: s
-#% description: Do not create color and category files
-#%end
+# %flag
+# % key: s
+# % description: Do not create color and category files
+# %end
 
-#%option
-#% key: sort
-#% description: Sort order (see sort parameter)
-#% options: asc,desc
-#% answer: desc
-#%end
+# %option
+# % key: sort
+# % description: Sort order (see sort parameter)
+# % options: asc,desc
+# % answer: desc
+# %end
 
 
 import grass.script as grass

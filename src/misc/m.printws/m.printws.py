@@ -17,158 +17,158 @@
 #
 #############################################################################
 
-#%module
-#% description: Opens a workspace file and creates a map sheet according to its visible contents.
-#% keyword: map
-#% keyword: print
-#% keyword: layout
-#% keyword: workspace
-#%end
-#%option G_OPT_F_BIN_INPUT
-#% key: input
-#% description: Name of workspace file to process
-#% required: YES
-#% gisprompt: old,bin,file
-#% guisection: Input
-#%end
-#%option
-#% key: dpi
-#% type: integer
-#% answer: 150
-#% multiple: no
-#% description: DPI for the generated page
-#% guisection: Output
-#%end
-#%option G_OPT_F_OUTPUT
-#% description: Name of output file without extension
-#% key: output
-#% gisprompt: new,file,file
-#% guisection: Output
-#%end
-#%option
-#% key: page
-#% type: string
-#% options: A4landscape,A4portrait,LETTERlandscape,LETTERportrait,A3landscape,A3portrait,Flexi
-#% answer: A4landscape
-#% description: Output map page size
-#% guisection: Output
-#%end
-#%option
-#% key: format
-#% type: string
-#% options: pdf,png,tiff,bmp,ppm,jpg
-#% answer: pdf
-#% description: Output file format
-#% guisection: Output
-#%end
-#%option
-#% key: maintitle
-#% type: string
-#% description: Main title of map sheet
-#% guisection: Titles
-#%end
-#%option
-#% key: font
-#% type: string
-#% description: Font for title above and postscript under the map
-#% guisection: Titles
-#%end
-#%option G_OPT_C
-#% key: titlecolor
-#% type: string
-#% description: Title text color
-#% guisection: Titles
-#%end
-#%option
-#% key: maintitlesize
-#% type: integer
-#% description: Main title font size in layout units
-#% guisection: Titles
-#%end
-#%option
-#% key: subtitle
-#% type: string
-#% description: Subtitle text above the map sheet in the middle
-#% guisection: Titles
-#%end
-#%option
-#% key: subtitlesize
-#% type: integer
-#% description: Subtitle font size in layout units
-#% guisection: Titles
-#%end
-#%option
-#% key: psunderleft
-#% type: string
-#% description: Postscript text under the map sheet on the left
-#% guisection: Titles
-#%end
-#%option
-#% key: psunderright
-#% type: string
-#% description: Postscript text under the map sheet on the right
-#% guisection: Titles
-#%end
-#%option
-#% key: psundercentral
-#% type: string
-#% description: Postscript text under the map sheet, centered
-#% guisection: Titles
-#%end
-#%option
-#% key: pssize
-#% type: integer
-#% description: Postscript text font size in layout units
-#% guisection: Titles
-#%end
-#%option G_OPT_M_REGION
-#% key:region
-#% description: Name of region to use - uses workspace displayed area if empty
-#% required: NO
-#% gisprompt: old,windows,region
-#% guisection: Input
-#%end
-#%flag
-#% key: d
-#% description: Debug - Leave temp files as is for alternative usage or checkup
-#% guisection: Optional
-#% suppress_required: yes
-#%end
-#%option
-#% key: layunits
-#% type: string
-#% options: cm,mm,inch
-#% answer: mm
-#% description: Unit used for layout specification
-#% guisection: Layout
-#%end
-#%option
-#% key: pagemargin
-#% type: string
-#% description: Margins in layout units left,right,top,bottom
-#% guisection: Layout
-#%end
-#%option
-#% key: mapupperleft
-#% type: string
-#% answer: -1,-1
-#% description: Map frame upper left coordinates - negative means centering
-#% guisection: Layout
-#%end
-#%option
-#% key: mapsize
-#% type: string
-#% answer: 1000
-#% description: Map frame size in layout units as width,height
-#% guisection: Layout
-#%end
-#%option
-#% key: screendpi
-#% type: integer
-#% answer: 100
-#% description: The DPI of your monitor
-#% guisection: Layout
-#%end
+# %module
+# % description: Opens a workspace file and creates a map sheet according to its visible contents.
+# % keyword: map
+# % keyword: print
+# % keyword: layout
+# % keyword: workspace
+# %end
+# %option G_OPT_F_BIN_INPUT
+# % key: input
+# % description: Name of workspace file to process
+# % required: YES
+# % gisprompt: old,bin,file
+# % guisection: Input
+# %end
+# %option
+# % key: dpi
+# % type: integer
+# % answer: 150
+# % multiple: no
+# % description: DPI for the generated page
+# % guisection: Output
+# %end
+# %option G_OPT_F_OUTPUT
+# % description: Name of output file without extension
+# % key: output
+# % gisprompt: new,file,file
+# % guisection: Output
+# %end
+# %option
+# % key: page
+# % type: string
+# % options: A4landscape,A4portrait,LETTERlandscape,LETTERportrait,A3landscape,A3portrait,Flexi
+# % answer: A4landscape
+# % description: Output map page size
+# % guisection: Output
+# %end
+# %option
+# % key: format
+# % type: string
+# % options: pdf,png,tiff,bmp,ppm,jpg
+# % answer: pdf
+# % description: Output file format
+# % guisection: Output
+# %end
+# %option
+# % key: maintitle
+# % type: string
+# % description: Main title of map sheet
+# % guisection: Titles
+# %end
+# %option
+# % key: font
+# % type: string
+# % description: Font for title above and postscript under the map
+# % guisection: Titles
+# %end
+# %option G_OPT_C
+# % key: titlecolor
+# % type: string
+# % description: Title text color
+# % guisection: Titles
+# %end
+# %option
+# % key: maintitlesize
+# % type: integer
+# % description: Main title font size in layout units
+# % guisection: Titles
+# %end
+# %option
+# % key: subtitle
+# % type: string
+# % description: Subtitle text above the map sheet in the middle
+# % guisection: Titles
+# %end
+# %option
+# % key: subtitlesize
+# % type: integer
+# % description: Subtitle font size in layout units
+# % guisection: Titles
+# %end
+# %option
+# % key: psunderleft
+# % type: string
+# % description: Postscript text under the map sheet on the left
+# % guisection: Titles
+# %end
+# %option
+# % key: psunderright
+# % type: string
+# % description: Postscript text under the map sheet on the right
+# % guisection: Titles
+# %end
+# %option
+# % key: psundercentral
+# % type: string
+# % description: Postscript text under the map sheet, centered
+# % guisection: Titles
+# %end
+# %option
+# % key: pssize
+# % type: integer
+# % description: Postscript text font size in layout units
+# % guisection: Titles
+# %end
+# %option G_OPT_M_REGION
+# % key:region
+# % description: Name of region to use - uses workspace displayed area if empty
+# % required: NO
+# % gisprompt: old,windows,region
+# % guisection: Input
+# %end
+# %flag
+# % key: d
+# % description: Debug - Leave temp files as is for alternative usage or checkup
+# % guisection: Optional
+# % suppress_required: yes
+# %end
+# %option
+# % key: layunits
+# % type: string
+# % options: cm,mm,inch
+# % answer: mm
+# % description: Unit used for layout specification
+# % guisection: Layout
+# %end
+# %option
+# % key: pagemargin
+# % type: string
+# % description: Margins in layout units left,right,top,bottom
+# % guisection: Layout
+# %end
+# %option
+# % key: mapupperleft
+# % type: string
+# % answer: -1,-1
+# % description: Map frame upper left coordinates - negative means centering
+# % guisection: Layout
+# %end
+# %option
+# % key: mapsize
+# % type: string
+# % answer: 1000
+# % description: Map frame size in layout units as width,height
+# % guisection: Layout
+# %end
+# %option
+# % key: screendpi
+# % type: integer
+# % answer: 100
+# % description: The DPI of your monitor
+# % guisection: Layout
+# %end
 
 
 import sys

@@ -20,78 +20,78 @@
 #
 #############################################################################
 
-#%Module
-#% description: Calculation of contiguous stream-specific variables that account for the upstream environment (based on r.stream.watersheds).
-#% keyword: raster
-#% keyword: stream
-#% keyword: drainage
-#% keyword: hydrology
-#%End
+# %Module
+# % description: Calculation of contiguous stream-specific variables that account for the upstream environment (based on r.stream.watersheds).
+# % keyword: raster
+# % keyword: stream
+# % keyword: drainage
+# % keyword: hydrology
+# %End
 
-#%option
-#% key: variable
-#% type: string
-#% key_desc: name
-#% description: Name of raster to be converted into a stream-specific variable
-#% required : yes
-#%end
+# %option
+# % key: variable
+# % type: string
+# % key_desc: name
+# % description: Name of raster to be converted into a stream-specific variable
+# % required : yes
+# %end
 
-#%option
-#% key: area
-#% type: string
-#% key_desc: string
-#% multiple: no
-#% options: watershed,stream
-#% description: Area of aggregation: across the sub-watersheds or only across sub-streams
-#% required : yes
-#%end
+# %option
+# % key: area
+# % type: string
+# % key_desc: string
+# % multiple: no
+# % options: watershed,stream
+# % description: Area of aggregation: across the sub-watersheds or only across sub-streams
+# % required : yes
+# %end
 
-#%option
-#% key: folder 
-#% type: string
-#% key_desc: name
-#% description: Provide the full folder path (same as for r.stream.watersheds)
-#% required:no
-#% answer: GISDBASE/folder_structure
-#%end
+# %option
+# % key: folder 
+# % type: string
+# % key_desc: name
+# % description: Provide the full folder path (same as for r.stream.watersheds)
+# % required:no
+# % answer: GISDBASE/folder_structure
+# %end
 
-#%option
-#% key: out_folder 
-#% type: string
-#% key_desc: name
-#% description: Provide the full folder path for the output stream-specific variable
-#% required:no
-#% answer: GISDBASE/stream-specific_variables
-#%end
+# %option
+# % key: out_folder 
+# % type: string
+# % key_desc: name
+# % description: Provide the full folder path for the output stream-specific variable
+# % required:no
+# % answer: GISDBASE/stream-specific_variables
+# %end
 
-#%option
-#% key: output
-#% type: string
-#% key_desc: method
-#% multiple: yes
-#% options: cells,min,max,range,mean,stddev,coeff_var,sum
-#% label: Provide the output aggregation method for the stream-specific variable
-#% description: upstream cells numbers, minimum, maximum, range, mean, standard deviation, coefficient of variation, sum. Output datatype is Int32
-#% required:yes
-#%end
+# %option
+# % key: output
+# % type: string
+# % key_desc: method
+# % multiple: yes
+# % options: cells,min,max,range,mean,stddev,coeff_var,sum
+# % label: Provide the output aggregation method for the stream-specific variable
+# % description: upstream cells numbers, minimum, maximum, range, mean, standard deviation, coefficient of variation, sum. Output datatype is Int32
+# % required:yes
+# %end
 
-#%option
-#% key: scale
-#% type: double
-#% key_desc: value
-#% label: Provide a scale factor to multiply or divide the final stream-specific variable
-#% description: Provide it e.g. if input raster values are between -1 and 1, use scale=1000 to inicrease the number of decimals - all outputs will be rounded to integers 
-#% answer: 1
-#% required:no
-#%end
+# %option
+# % key: scale
+# % type: double
+# % key_desc: value
+# % label: Provide a scale factor to multiply or divide the final stream-specific variable
+# % description: Provide it e.g. if input raster values are between -1 and 1, use scale=1000 to inicrease the number of decimals - all outputs will be rounded to integers 
+# % answer: 1
+# % required:no
+# %end
 
-#%option
-#% key: cpu
-#% type: double
-#% description: Number of CPUs used for the parallel computation
-#% answer: 1
-#% required:no
-#%end
+# %option
+# % key: cpu
+# % type: double
+# % description: Number of CPUs used for the parallel computation
+# % answer: 1
+# % required:no
+# %end
 
 if [ -z "$GISBASE" ] ; then
     echo "You must be in GRASS GIS to run this program." >&2

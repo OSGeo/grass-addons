@@ -23,60 +23,60 @@
 # More information
 # Started 14 October 2016
 
-#%module
-#% description: Build a linked stream network: each link knows its downstream link
-#% keyword: vector
-#% keyword: stream network
-#% keyword: hydrology
-#% keyword: geomorphology
-#%end
+# %module
+# % description: Build a linked stream network: each link knows its downstream link
+# % keyword: vector
+# % keyword: stream network
+# % keyword: hydrology
+# % keyword: geomorphology
+# %end
 
-#%option G_OPT_V_INPUT
-#%  key: map
-#%  label: Vector stream network from r.stream.extract
-#%  required: yes
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_V_INPUT
+# %  key: map
+# %  label: Vector stream network from r.stream.extract
+# %  required: yes
+# %  guidependency: layer,column
+# %end
 
-#%option
-#%  key: upstream_easting_column
-#%  type: string
-#%  description: Upstream easting (or x or lon) column name
-#%  answer: x1
-#%  required : no
-#%end
+# %option
+# %  key: upstream_easting_column
+# %  type: string
+# %  description: Upstream easting (or x or lon) column name
+# %  answer: x1
+# %  required : no
+# %end
 
-#%option
-#%  key: upstream_northing_column
-#%  type: string
-#%  description: Upstream northing (or y or lat) column name
-#%  answer: y1
-#%  required : no
-#%end
+# %option
+# %  key: upstream_northing_column
+# %  type: string
+# %  description: Upstream northing (or y or lat) column name
+# %  answer: y1
+# %  required : no
+# %end
 
-#%option
-#%  key: downstream_easting_column
-#%  type: string
-#%  description: Downstream easting (or x or lon) column name
-#%  answer: x2
-#%  required : no
-#%end
+# %option
+# %  key: downstream_easting_column
+# %  type: string
+# %  description: Downstream easting (or x or lon) column name
+# %  answer: x2
+# %  required : no
+# %end
 
-#%option
-#%  key: downstream_northing_column
-#%  type: string
-#%  description: Downstream northing (or y or lat) column name
-#%  answer: y2
-#%  required : no
-#%end
+# %option
+# %  key: downstream_northing_column
+# %  type: string
+# %  description: Downstream northing (or y or lat) column name
+# %  answer: y2
+# %  required : no
+# %end
 
-#%option
-#%  key: tostream_cat_column
-#%  type: string
-#%  description: Adjacent downstream segment cat (0 = offmap flow)
-#%  answer: tostream
-#%  required : no
-#%end
+# %option
+# %  key: tostream_cat_column
+# %  type: string
+# %  description: Adjacent downstream segment cat (0 = offmap flow)
+# %  answer: tostream
+# %  required : no
+# %end
 
 ##################
 # IMPORT MODULES #

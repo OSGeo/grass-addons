@@ -33,49 +33,49 @@
 #
 #############################################################################
 
-#%Module
-#% description: Import waypoints, routes, and tracks from a GPS receiver or GPS download file into a vector map.
-#% keyword: vector
-#% keyword: import
-#% keyword: GPS
-#%End
-#%flag
-#% key: w
-#% description: Import as waypoints
-#%end
-#%flag
-#% key: r
-#% description: Import as routes
-#%end
-#%flag
-#% key: t
-#% description: Import as tracks
-#%end
-#%flag
-#% key: p
-#% description: Force vertices of track or route data as points
-#%end
-#%flag
-#% key: k
-#% description: Do not attempt projection transform from WGS84
-#%end
-#%option G_OPT_F_INPUT
-#% description: Device or file used to import data
-#%end
-#%option G_OPT_V_OUTPUT
-#%end
-#%option
-#% key: format
-#% type: string
-#% description: GPSBabel supported output format
-#% answer: gpx
-#%end
-#%option
-#% key: proj
-#% type: string
-#% description: Projection of input data (PROJ.4 style), if not set Lat/Lon WGS84 is assumed
-#% required: no
-#%end
+# %Module
+# % description: Import waypoints, routes, and tracks from a GPS receiver or GPS download file into a vector map.
+# % keyword: vector
+# % keyword: import
+# % keyword: GPS
+# %End
+# %flag
+# % key: w
+# % description: Import as waypoints
+# %end
+# %flag
+# % key: r
+# % description: Import as routes
+# %end
+# %flag
+# % key: t
+# % description: Import as tracks
+# %end
+# %flag
+# % key: p
+# % description: Force vertices of track or route data as points
+# %end
+# %flag
+# % key: k
+# % description: Do not attempt projection transform from WGS84
+# %end
+# %option G_OPT_F_INPUT
+# % description: Device or file used to import data
+# %end
+# %option G_OPT_V_OUTPUT
+# %end
+# %option
+# % key: format
+# % type: string
+# % description: GPSBabel supported output format
+# % answer: gpx
+# %end
+# %option
+# % key: proj
+# % type: string
+# % description: Projection of input data (PROJ.4 style), if not set Lat/Lon WGS84 is assumed
+# % required: no
+# %end
 
 
 import sys

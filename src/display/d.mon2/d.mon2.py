@@ -11,62 +11,62 @@
 #
 #############################################################################
 
-#%Module
-#% description: Starts a graphics display monitor which can be controlled from the command line.
-#% keyword: display
-#% keyword: CLI
-#%End
-#%Option
-#% key: width
-#% type: integer
-#% description: Width for display monitor if not set by GRASS_RENDER_WIDTH
-#% answer: 800
-#%End
-#%Option
-#% key: height
-#% type: integer
-#% description: Height for display monitor if not set by GRASS_RENDER_HEIGHT
-#% answer: 600
-#%End
-#%Option
-#% key: handler
-#% type: string
-#% description: Window program to use
-#% options: ximgview,wximgview,wxpyimgview,qiv,none
-#% answer: wximgview
-#%End
-#%option
-#% key: tempfile
-#% type: string
-#% gisprompt: new_file,file,input
-#% description: Name and location of temp file
-#% required : no
-#%end
-#%option
-#% key: percent
-#% type: integer
-#% description: Percentage of CPU time to use
-#% answer: 10
-#%end
-#%option
-#% key: color
-#% type: string
-#% description: Background color, either a standard GRASS color or R:G:B triplet (separated by colons)
-#% answer: white
-#% gisprompt: old_color,color,color
-#%end
-#%Flag
-#% key: c
-#% description: Use the Cario driver to render images
-#%End
-#%Flag
-#% key: b
-#% description: output Bourne shell code to set up display
-#%End
-#%Flag
-#% key: d
-#% description: output DOS code to set up display
-#%End
+# %Module
+# % description: Starts a graphics display monitor which can be controlled from the command line.
+# % keyword: display
+# % keyword: CLI
+# %End
+# %Option
+# % key: width
+# % type: integer
+# % description: Width for display monitor if not set by GRASS_RENDER_WIDTH
+# % answer: 800
+# %End
+# %Option
+# % key: height
+# % type: integer
+# % description: Height for display monitor if not set by GRASS_RENDER_HEIGHT
+# % answer: 600
+# %End
+# %Option
+# % key: handler
+# % type: string
+# % description: Window program to use
+# % options: ximgview,wximgview,wxpyimgview,qiv,none
+# % answer: wximgview
+# %End
+# %option
+# % key: tempfile
+# % type: string
+# % gisprompt: new_file,file,input
+# % description: Name and location of temp file
+# % required : no
+# %end
+# %option
+# % key: percent
+# % type: integer
+# % description: Percentage of CPU time to use
+# % answer: 10
+# %end
+# %option
+# % key: color
+# % type: string
+# % description: Background color, either a standard GRASS color or R:G:B triplet (separated by colons)
+# % answer: white
+# % gisprompt: old_color,color,color
+# %end
+# %Flag
+# % key: c
+# % description: Use the Cario driver to render images
+# %End
+# %Flag
+# % key: b
+# % description: output Bourne shell code to set up display
+# %End
+# %Flag
+# % key: d
+# % description: output DOS code to set up display
+# %End
 
 import sys
 import os

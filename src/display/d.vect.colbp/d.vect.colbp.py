@@ -12,83 +12,83 @@
 #
 #############################################################################
 
-#%module
-#% description: Draws the boxplot of values in a vector attribute column
-#% keyword: display
-#% keyword: vector
-#% keyword: plot
-#% keyword: histogram
-#% keyword: boxplot
-#%end
+# %module
+# % description: Draws the boxplot of values in a vector attribute column
+# % keyword: display
+# % keyword: vector
+# % keyword: plot
+# % keyword: histogram
+# % keyword: boxplot
+# %end
 
-#%option G_OPT_V_MAP
-#% guisection: General
-#%end
+# %option G_OPT_V_MAP
+# % guisection: General
+# %end
 
-#%option G_OPT_V_FIELD
-#%end
+# %option G_OPT_V_FIELD
+# %end
 
-#%option G_OPT_DB_COLUMN
-#% key: column
-#% description: Attribute column value to be plotted
-#% required: yes
-#% guisection: General
-#%end
+# %option G_OPT_DB_COLUMN
+# % key: column
+# % description: Attribute column value to be plotted
+# % required: yes
+# % guisection: General
+# %end
 
-#%option G_OPT_DB_WHERE
-#%guisection: General
-#%end
+# %option G_OPT_DB_WHERE
+# %guisection: General
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key: plot_output
-#% required: no
-#% guisection: General
-#%end
+# %option G_OPT_F_OUTPUT
+# % key: plot_output
+# % required: no
+# % guisection: General
+# %end
 
-#%option G_OPT_DB_COLUMN
-#% key: group_by
-#% description: Attribute column with categories to group the data by
-#% required: no
-#% guisection: Plot options
-#%end
+# %option G_OPT_DB_COLUMN
+# % key: group_by
+# % description: Attribute column with categories to group the data by
+# % required: no
+# % guisection: Plot options
+# %end
 
-#%option
-#% key: order
-#% type: string
-#% label: Sort boxplots
-#% description: Sort boxplots based on their median values
-#% required: no
-#% options: descending,ascending
-#% guisection: Plot options
-#%end
+# %option
+# % key: order
+# % type: string
+# % label: Sort boxplots
+# % description: Sort boxplots based on their median values
+# % required: no
+# % options: descending,ascending
+# % guisection: Plot options
+# %end
 
-#%flag
-#% key: h
-#% label: horizontal boxplot(s)
-#% description: Draw the boxplot horizontal
-#% guisection: Plot options
-#%end
+# %flag
+# % key: h
+# % label: horizontal boxplot(s)
+# % description: Draw the boxplot horizontal
+# % guisection: Plot options
+# %end
 
-#%flag
-#% key: o
-#% label: hide outliers
-#% description: Draw boxplot(s) without outliers
-#% guisection: Plot options
-#%end
+# %flag
+# % key: o
+# % label: hide outliers
+# % description: Draw boxplot(s) without outliers
+# % guisection: Plot options
+# %end
 
-#%flag
-#% key: n
-#% label: notch
-#% description: Draw boxplot(s) with notch
-#% guisection: Plot options
-#%end
+# %flag
+# % key: n
+# % label: notch
+# % description: Draw boxplot(s) with notch
+# % guisection: Plot options
+# %end
 
-#%flag
-#% key: r
-#% label: Rotate labels
-#% description: rotate x-axis labels
-#% guisection: Plot options
-#%end
+# %flag
+# % key: r
+# % label: Rotate labels
+# % description: rotate x-axis labels
+# % guisection: Plot options
+# %end
 
 import sys
 import grass.script as gscript

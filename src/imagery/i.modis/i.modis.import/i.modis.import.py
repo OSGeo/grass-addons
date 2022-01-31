@@ -22,88 +22,88 @@
 #
 #############################################################################
 
-#%module
-#% description: Import single or multiple tiles of MODIS products using pyModis.
-#% keyword: raster
-#% keyword: import
-#% keyword: MODIS
-#%end
-#%flag
-#% key: m
-#% description: Create a mosaic for each date
-#% guisection: Import settings
-#%end
-#%flag
-#% key: t
-#% description: Preserve temporary files (TIF and HDF mosaic)
-#% guisection: Import settings
-#%end
-#%flag
-#% key: q
-#% description: Ignore the QA map layer
-#% guisection: Import settings
-#%end
-#%flag
-#% key: w
-#% description: Create a text file to use with t.register
-#% guisection: Temporal
-#%end
-#%flag
-#% key: a
-#% description: Append new file to existing file to use with t.register
-#% guisection: Temporal
-#%end
-#%flag
-#% key: l
-#% description: List more info about the supported MODIS products
-#% guisection: Print
-#%end
-#%flag
-#% key: g
-#% description: Print output message in shell script style
-#% guisection: Print
-#%end
-#%option G_OPT_F_BIN_INPUT
-#% description: Full path to single HDF file
-#% required: no
-#% guisection: Input
-#%end
-#%option G_OPT_F_INPUT
-#% key: files
-#% description: Full path to file with list of HDF files
-#% required: no
-#% guisection: Input
-#%end
-#%option
-#% key: method
-#% type: string
-#% key_desc: resampling
-#% description: Name of spatial resampling method
-#% options: nearest, bilinear, cubic
-#% answer: nearest
-#% required: no
-#% guisection: Import settings
-#%end
-#%option G_OPT_M_DIR
-#% key: mrtpath
-#% description: Full path to MRT directory
-#% required: no
-#% guisection: Input
-#%end
-#%option
-#% key: spectral
-#% type: string
-#% key_desc: spectral subset
-#% description: String of the form "( 1 0 1 0 )" to choose a subset of HDF layers to import
-#% required: no
-#% guisection: Import settings
-#%end
-#%option G_OPT_F_OUTPUT
-#% key: outfile
-#% description: Full path to output file to use with t.register
-#% required: no
-#% guisection: Temporal
-#%end
+# %module
+# % description: Import single or multiple tiles of MODIS products using pyModis.
+# % keyword: raster
+# % keyword: import
+# % keyword: MODIS
+# %end
+# %flag
+# % key: m
+# % description: Create a mosaic for each date
+# % guisection: Import settings
+# %end
+# %flag
+# % key: t
+# % description: Preserve temporary files (TIF and HDF mosaic)
+# % guisection: Import settings
+# %end
+# %flag
+# % key: q
+# % description: Ignore the QA map layer
+# % guisection: Import settings
+# %end
+# %flag
+# % key: w
+# % description: Create a text file to use with t.register
+# % guisection: Temporal
+# %end
+# %flag
+# % key: a
+# % description: Append new file to existing file to use with t.register
+# % guisection: Temporal
+# %end
+# %flag
+# % key: l
+# % description: List more info about the supported MODIS products
+# % guisection: Print
+# %end
+# %flag
+# % key: g
+# % description: Print output message in shell script style
+# % guisection: Print
+# %end
+# %option G_OPT_F_BIN_INPUT
+# % description: Full path to single HDF file
+# % required: no
+# % guisection: Input
+# %end
+# %option G_OPT_F_INPUT
+# % key: files
+# % description: Full path to file with list of HDF files
+# % required: no
+# % guisection: Input
+# %end
+# %option
+# % key: method
+# % type: string
+# % key_desc: resampling
+# % description: Name of spatial resampling method
+# % options: nearest, bilinear, cubic
+# % answer: nearest
+# % required: no
+# % guisection: Import settings
+# %end
+# %option G_OPT_M_DIR
+# % key: mrtpath
+# % description: Full path to MRT directory
+# % required: no
+# % guisection: Input
+# %end
+# %option
+# % key: spectral
+# % type: string
+# % key_desc: spectral subset
+# % description: String of the form "( 1 0 1 0 )" to choose a subset of HDF layers to import
+# % required: no
+# % guisection: Import settings
+# %end
+# %option G_OPT_F_OUTPUT
+# % key: outfile
+# % description: Full path to output file to use with t.register
+# % required: no
+# % guisection: Temporal
+# %end
 
 import os
 import sys

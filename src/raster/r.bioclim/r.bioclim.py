@@ -13,70 +13,70 @@
 #
 #############################################################################
 
-#%module
-#% description: Calcuates bioclimatic indices.
-#% keyword: raster
-#% keyword: time series
-#% overwrite: yes
-#%end
-#%option G_OPT_R_INPUTS
-#% key: tmin
-#% label: Monthly minimum temperatures
-#% description: Monthly minimum temperatures for 12 months
-#% required: YES
-#%end
-#%option G_OPT_R_INPUTS
-#% key: tmax
-#% label: Monthly maximum temperatures
-#% description: Monthly maximum temperatures for 12 months
-#% required: YES
-#%end
-#%option G_OPT_R_INPUTS
-#% key: tavg
-#% label: Monthly average temperatures
-#% description: Monthly average temperatures for 12 months
-#% required: NO
-#%end
-#%option G_OPT_R_INPUTS
-#% key: precipitation
-#% label: Monthly precipitation
-#% description: Monthly average precipitation for 12 months
-#% required: NO
-#%end
-#%option
-#% key: output
-#% type: string
-#% description: Prefix for output maps
-#% required: YES
-#%end
-#%option
-#% key: tinscale
-#% type: integer
-#% description: Scale factor for input temperature
-#% answer: 1
-#%end
-#%option
-#% key: toutscale
-#% type: integer
-#% description: Scale factor for output temperature
-#% answer: 10
-#%end
-#%option
-#% key: quartals
-#% type: integer
-#% description: Number of quartals to use
-#% options: 4,12
-#% answer: 4
-#%end
-#%Option
-#% key: workers
-#% type: integer
-#% required: no
-#% multiple: no
-#% options: 1-12
-#% answer: 1
-#% description: Number of parallel processes to launch
-#%End
+# %module
+# % description: Calcuates bioclimatic indices.
+# % keyword: raster
+# % keyword: time series
+# % overwrite: yes
+# %end
+# %option G_OPT_R_INPUTS
+# % key: tmin
+# % label: Monthly minimum temperatures
+# % description: Monthly minimum temperatures for 12 months
+# % required: YES
+# %end
+# %option G_OPT_R_INPUTS
+# % key: tmax
+# % label: Monthly maximum temperatures
+# % description: Monthly maximum temperatures for 12 months
+# % required: YES
+# %end
+# %option G_OPT_R_INPUTS
+# % key: tavg
+# % label: Monthly average temperatures
+# % description: Monthly average temperatures for 12 months
+# % required: NO
+# %end
+# %option G_OPT_R_INPUTS
+# % key: precipitation
+# % label: Monthly precipitation
+# % description: Monthly average precipitation for 12 months
+# % required: NO
+# %end
+# %option
+# % key: output
+# % type: string
+# % description: Prefix for output maps
+# % required: YES
+# %end
+# %option
+# % key: tinscale
+# % type: integer
+# % description: Scale factor for input temperature
+# % answer: 1
+# %end
+# %option
+# % key: toutscale
+# % type: integer
+# % description: Scale factor for output temperature
+# % answer: 10
+# %end
+# %option
+# % key: quartals
+# % type: integer
+# % description: Number of quartals to use
+# % options: 4,12
+# % answer: 4
+# %end
+# %Option
+# % key: workers
+# % type: integer
+# % required: no
+# % multiple: no
+# % options: 1-12
+# % answer: 1
+# % description: Number of parallel processes to launch
+# %End
 
 import sys
 import os

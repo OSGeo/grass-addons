@@ -15,66 +15,66 @@
 #
 #############################################################################
 
-#%module
-#% description: Reprojects raster and vector maps from given location and mapset to current mapset.
-#% keyword: general
-#% keyword: projection
-#% keyword: transformation
-#%end
-#%option
-#% key: location
-#% key_desc: name
-#% type: string
-#% required: yes
-#% description: Location containing input raster map
-#% gisprompt: old,location,location
-#% guisection: Source
-#%end
-#% option G_OPT_M_MAPSET
-#% description: Mapset containing input raster map
-#% required: yes
-#% guisection: Source
-#%end
-#%option
-#% key: dbase
-#% key_desc: path
-#% type: string
-#% required: no
-#% description: Path to GRASS database of input location
-#% gisprompt: old,dbase,dbase
-#%end
-#%option
-#% key: method
-#% type: string
-#% required: no
-#% description: Interpolation method to use
-#% guisection: Raster
-#% answer: nearest
-#% options: nearest,linear,cubic,lanczos,linear_f,cubic_f,lanczos_f
-#% descriptions: nearest;nearest neighbor;linear;linear interpolation;cubic;cubic convolution;lanczos;lanczos filter;linear_f;linear interpolation with fallback;cubic_f;cubic convolution with fallback;lanczos_f;lanczos filter with fallback
-#%end
-#%option
-#% key: resolution
-#% type: double
-#% required: no
-#% description: Resolution of output raster map
-#% guisection: Raster
-#%end
-#%flag
-#% key: r
-#% description: Use current region instead of maps bounds
-#% guisection: Raster
-#%end
-#%flag
-#% key: z
-#% label: Assume z coordinate is ellipsoidal height and transform if possible
-#% description: 3D vector maps only
-#% guisection: Vector
-#%end
-#%flag
-#% key: o
-#% description: Allow output files to overwrite existing files
-#%end
+# %module
+# % description: Reprojects raster and vector maps from given location and mapset to current mapset.
+# % keyword: general
+# % keyword: projection
+# % keyword: transformation
+# %end
+# %option
+# % key: location
+# % key_desc: name
+# % type: string
+# % required: yes
+# % description: Location containing input raster map
+# % gisprompt: old,location,location
+# % guisection: Source
+# %end
+# % option G_OPT_M_MAPSET
+# % description: Mapset containing input raster map
+# % required: yes
+# % guisection: Source
+# %end
+# %option
+# % key: dbase
+# % key_desc: path
+# % type: string
+# % required: no
+# % description: Path to GRASS database of input location
+# % gisprompt: old,dbase,dbase
+# %end
+# %option
+# % key: method
+# % type: string
+# % required: no
+# % description: Interpolation method to use
+# % guisection: Raster
+# % answer: nearest
+# % options: nearest,linear,cubic,lanczos,linear_f,cubic_f,lanczos_f
+# % descriptions: nearest;nearest neighbor;linear;linear interpolation;cubic;cubic convolution;lanczos;lanczos filter;linear_f;linear interpolation with fallback;cubic_f;cubic convolution with fallback;lanczos_f;lanczos filter with fallback
+# %end
+# %option
+# % key: resolution
+# % type: double
+# % required: no
+# % description: Resolution of output raster map
+# % guisection: Raster
+# %end
+# %flag
+# % key: r
+# % description: Use current region instead of maps bounds
+# % guisection: Raster
+# %end
+# %flag
+# % key: z
+# % label: Assume z coordinate is ellipsoidal height and transform if possible
+# % description: 3D vector maps only
+# % guisection: Vector
+# %end
+# %flag
+# % key: o
+# % description: Allow output files to overwrite existing files
+# %end
 
 
 ## location, mapset, dbase should be moved to one tab (Source)

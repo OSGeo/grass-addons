@@ -13,26 +13,26 @@
 #               comes with GRASS for details.
 #
 #############################################################################
-#%module
-#% description: Return the barycenter of a cloud of point.
-#% keyword: vector
-#%end
-#%option
-#% key: input
-#% type: string
-#% gisprompt: old,vector,vector
-#% description: Name of vector map to pack up
-#% key_desc: name
-#% required : yes
-#%end
-#%option
-#% key: output
-#% type: string
-#% gisprompt: new_file,file,output
-#% description: Name for output file ('-' for standard output)
-#% answer: -
-#% required : no
-#%end
+# %module
+# % description: Return the barycenter of a cloud of point.
+# % keyword: vector
+# %end
+# %option
+# % key: input
+# % type: string
+# % gisprompt: old,vector,vector
+# % description: Name of vector map to pack up
+# % key_desc: name
+# % required : yes
+# %end
+# %option
+# % key: output
+# % type: string
+# % gisprompt: new_file,file,output
+# % description: Name for output file ('-' for standard output)
+# % answer: -
+# % required : no
+# %end
 
 import sys
 import os

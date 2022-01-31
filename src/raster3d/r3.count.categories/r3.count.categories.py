@@ -13,63 +13,63 @@
 #
 #############################################################################
 
-#%module
-#% description: Count categories in vertical direction
-#% keyword: raster3d
-#% keyword: conversion
-#% keyword: raster
-#% keyword: category
-#% keyword: voxel
-#%end
-#%option G_OPT_R3_INPUT
-#%end
-#%option G_OPT_R_BASENAME_OUTPUT
-#% required: yes
-#%end
-#%option G_OPT_R_BASENAME_OUTPUT
-#% key: slices
+# %module
+# % description: Count categories in vertical direction
+# % keyword: raster3d
+# % keyword: conversion
+# % keyword: raster
+# % keyword: category
+# % keyword: voxel
+# %end
+# %option G_OPT_R3_INPUT
+# %end
+# %option G_OPT_R_BASENAME_OUTPUT
+# % required: yes
+# %end
+# %option G_OPT_R_BASENAME_OUTPUT
+# % key: slices
 # TODO: required: no
-#% required: yes
-#% label: Basename for horizontal slices of the 3D raster
-#%end
-#%option
-#% key: multiply
-#% type: double
-#% required: no
-#% label: Value to multiply the raster values with
-#% description: Coefficient a in the equation y = ax + b
-#%end
-#%option
-#% key: add
-#% type: double
-#% required: no
-#% label: Value to add to the raster values
-#% description: Coefficient b in the equation y = ax + b
-#%end
-#%option
-#% key: size
-#% type: integer
-#% required: no
-#% label: Moving window size
-#% description: By default, only the given cell is considered
-#%end
-#%option G_OPT_R_INPUT
-#% key: surface
-#% required: no
-#% description: Count only those cells which are under the surface (in cells)
-#%end
-#%flag
-#% key: d
-#% description: Divide count by the number of cells in the surface
-#%end
-#%flag
-#% key: s
-#% label: Expect the slices to be already present
-#% description: When running the module over and over, this saves the slicing 3D raster step
-#%end
-#%rules
-#% exclusive: size, surface
-#%end
+# % required: yes
+# % label: Basename for horizontal slices of the 3D raster
+# %end
+# %option
+# % key: multiply
+# % type: double
+# % required: no
+# % label: Value to multiply the raster values with
+# % description: Coefficient a in the equation y = ax + b
+# %end
+# %option
+# % key: add
+# % type: double
+# % required: no
+# % label: Value to add to the raster values
+# % description: Coefficient b in the equation y = ax + b
+# %end
+# %option
+# % key: size
+# % type: integer
+# % required: no
+# % label: Moving window size
+# % description: By default, only the given cell is considered
+# %end
+# %option G_OPT_R_INPUT
+# % key: surface
+# % required: no
+# % description: Count only those cells which are under the surface (in cells)
+# %end
+# %flag
+# % key: d
+# % description: Divide count by the number of cells in the surface
+# %end
+# %flag
+# % key: s
+# % label: Expect the slices to be already present
+# % description: When running the module over and over, this saves the slicing 3D raster step
+# %end
+# %rules
+# % exclusive: size, surface
+# %end
 
 
 import grass.script as gs

@@ -15,63 +15,63 @@
 #
 #############################################################################
 
-#%module
-#% description: Sets color rules for features in a vector map using a numeric attribute column.
-#% keyword: vector
-#% keyword: color table
-#%end
-#% option G_OPT_V_MAP
-#%end
-#%option G_OPT_V_FIELD
-#%end
-#%option G_OPT_DB_COLUMN
-#% description: Name of attribute column containing numeric data
-#% required : yes
-#%end
-#%option G_OPT_DB_COLUMN
-#% key: rgb_column
-#% description: Name of color column to populate with RGB values
-#% answer: GRASSRGB
-#% guisection: Colors
-#%end
-#%option
-#% key: range
-#% type: double
-#% required: no
-#% multiple: no
-#% key_desc: min,max
-#% description: Manually set range (min,max)
-#%end
-#%option
-#% key: color
-#% type: string
-#% key_desc: string
-#% options: aspect,aspectcolr,bcyr,bgyr,byg,byr,celsius,corine,curvature,differences,elevation,etopo2,evi,gdd,grey,grey1.0,grey255,grey.eq,grey.log,gyr,ndvi,population,precipitation,rainbow,ramp,random,ryb,ryg,sepia,slope,srtm,terrain,wave
-#% description: Type of color table
-#% required: no
-#% guisection: Colors
-#%end
-#%option G_OPT_R_INPUT
-#% key: raster
-#% required: no
-#% description: Name of raster map from which to copy color table
-#% guisection: Colors
-#%end
-#%option G_OPT_F_INPUT
-#% key: rules
-#% required: no
-#% description: Name of file containing rules
-#% guisection: Colors
-#%end
-#%flag
-#% key: s
-#% description: Save placeholder raster map for use with d.legend
-#%end
-#%flag
-#% key: n
-#% description: Invert colors
-#% guisection: Colors
-#%end
+# %module
+# % description: Sets color rules for features in a vector map using a numeric attribute column.
+# % keyword: vector
+# % keyword: color table
+# %end
+# % option G_OPT_V_MAP
+# %end
+# %option G_OPT_V_FIELD
+# %end
+# %option G_OPT_DB_COLUMN
+# % description: Name of attribute column containing numeric data
+# % required : yes
+# %end
+# %option G_OPT_DB_COLUMN
+# % key: rgb_column
+# % description: Name of color column to populate with RGB values
+# % answer: GRASSRGB
+# % guisection: Colors
+# %end
+# %option
+# % key: range
+# % type: double
+# % required: no
+# % multiple: no
+# % key_desc: min,max
+# % description: Manually set range (min,max)
+# %end
+# %option
+# % key: color
+# % type: string
+# % key_desc: string
+# % options: aspect,aspectcolr,bcyr,bgyr,byg,byr,celsius,corine,curvature,differences,elevation,etopo2,evi,gdd,grey,grey1.0,grey255,grey.eq,grey.log,gyr,ndvi,population,precipitation,rainbow,ramp,random,ryb,ryg,sepia,slope,srtm,terrain,wave
+# % description: Type of color table
+# % required: no
+# % guisection: Colors
+# %end
+# %option G_OPT_R_INPUT
+# % key: raster
+# % required: no
+# % description: Name of raster map from which to copy color table
+# % guisection: Colors
+# %end
+# %option G_OPT_F_INPUT
+# % key: rules
+# % required: no
+# % description: Name of file containing rules
+# % guisection: Colors
+# %end
+# %flag
+# % key: s
+# % description: Save placeholder raster map for use with d.legend
+# %end
+# %flag
+# % key: n
+# % description: Invert colors
+# % guisection: Colors
+# %end
 
 ## TODO: implement -e (equalized) and -g (logarithmic) methods in r.colors
 ##   'v.db.select column= | wc -l' to set region size (1xLength)

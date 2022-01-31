@@ -12,40 +12,40 @@
 #
 #############################################################################
 
-#%module
-#% description: Builds PostGIS topology for vector map linked via v.external.
-#% keyword: vector
-#% keyword: external
-#% keyword: PostGIS
-#% keyword: topology
-#% overwrite: yes
-#%end
-#%option G_OPT_V_MAP
-#% description:
-#%end
-#%option
-#% key: topo_schema
-#% label: Name of schema where to build PostGIS topology
-#% description: Default: topo_<map>
-#% key_desc: name
-#%end
-#%option
-#% key: topo_column
-#% description: Name of topology column
-#% key_desc: name
-#% required: yes
-#% answer: topo
-#%end
-#%option
-#% key: tolerance
-#% description: Tolerance to snap input geometry to existing primitives
-#% type: double
-#% answer: 1
-#%end
-#%flag
-#% key: p
-#% description: Don't execute SQL statements, just print them and exit
-#%end
+# %module
+# % description: Builds PostGIS topology for vector map linked via v.external.
+# % keyword: vector
+# % keyword: external
+# % keyword: PostGIS
+# % keyword: topology
+# % overwrite: yes
+# %end
+# %option G_OPT_V_MAP
+# % description:
+# %end
+# %option
+# % key: topo_schema
+# % label: Name of schema where to build PostGIS topology
+# % description: Default: topo_<map>
+# % key_desc: name
+# %end
+# %option
+# % key: topo_column
+# % description: Name of topology column
+# % key_desc: name
+# % required: yes
+# % answer: topo
+# %end
+# %option
+# % key: tolerance
+# % description: Tolerance to snap input geometry to existing primitives
+# % type: double
+# % answer: 1
+# %end
+# %flag
+# % key: p
+# % description: Don't execute SQL statements, just print them and exit
+# %end
 
 import os
 import sys

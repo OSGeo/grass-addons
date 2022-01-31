@@ -14,28 +14,28 @@
 #
 #############################################################################
 
-#%Module
-#% description: Converts a GRASS Version 4-6 raster map to a GRASS 7 raster map format
-#% keyword: raster
-#% keyword: import
-#% keyword: conversion
-#%end
-#%option
-#% key: map
-#% type: string
-#% gisprompt: old,cell,raster
-#% key_desc: name
-#% description: Name of input raster map
-#% required: yes
-#%end
-#%flag
-#%  key: m
-#%  description: Move map instead of copying it
-#%end
-#%flag
-#%  key: r
-#%  description: Reverse action: Convert from GRASS 7 to GRASS 4-6 format
-#%end
+# %Module
+# % description: Converts a GRASS Version 4-6 raster map to a GRASS 7 raster map format
+# % keyword: raster
+# % keyword: import
+# % keyword: conversion
+# %end
+# %option
+# % key: map
+# % type: string
+# % gisprompt: old,cell,raster
+# % key_desc: name
+# % description: Name of input raster map
+# % required: yes
+# %end
+# %flag
+# %  key: m
+# %  description: Move map instead of copying it
+# %end
+# %flag
+# %  key: r
+# %  description: Reverse action: Convert from GRASS 7 to GRASS 4-6 format
+# %end
 
 if  [ -z "$GISBASE" ] ; then
     echo "You must be in GRASS GIS to run this program." 1>&2

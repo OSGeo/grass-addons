@@ -22,31 +22,31 @@
 #  GNU General Public License for more details.
 #
 ############################################################################
-#%Module
-#%  description: "Explode" polylines, splitting them to separate lines (uses v.split + v.category)
-#%  keyword: display
-#%  keyword: graphics
-#%  keyword: vector
-#%  keyword: symbology
-#%End
-#%Option
-#%  key: input
-#%  type: string
-#%  required: yes
-#%  multiple: no
-#%  key_desc: name
-#%  description: Name of input vector map
-#%  gisprompt: old,vector,vector
-#%End
-#%Option
-#%  key: output
-#%  type: string
-#%  required: no
-#%  multiple: no
-#%  key_desc: name
-#%  description: Name of output vector map
-#%  gisprompt: new,vector,vector
-#%End
+# %Module
+# %  description: "Explode" polylines, splitting them to separate lines (uses v.split + v.category)
+# %  keyword: display
+# %  keyword: graphics
+# %  keyword: vector
+# %  keyword: symbology
+# %End
+# %Option
+# %  key: input
+# %  type: string
+# %  required: yes
+# %  multiple: no
+# %  key_desc: name
+# %  description: Name of input vector map
+# %  gisprompt: old,vector,vector
+# %End
+# %Option
+# %  key: output
+# %  type: string
+# %  required: no
+# %  multiple: no
+# %  key_desc: name
+# %  description: Name of output vector map
+# %  gisprompt: new,vector,vector
+# %End
 ############################################################################
 
 import os

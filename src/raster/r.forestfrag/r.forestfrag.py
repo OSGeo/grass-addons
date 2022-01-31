@@ -25,75 +25,75 @@
 #
 #############################################################################
 
-#%module
-#% description: Computes the forest fragmentation index (Riitters et al. 2000)
-#% keyword: raster
-#% keyword: landscape structure analysis
-#% keyword: forest
-#% keyword: fragmentation index
-#% keyword: Riitters
-#%end
+# %module
+# % description: Computes the forest fragmentation index (Riitters et al. 2000)
+# % keyword: raster
+# % keyword: landscape structure analysis
+# % keyword: forest
+# % keyword: fragmentation index
+# % keyword: Riitters
+# %end
 
-#%option G_OPT_R_INPUT
-#% description: Name of forest raster map (where forest=1, non-forest=0)
-#% required: yes
-#%end
+# %option G_OPT_R_INPUT
+# % description: Name of forest raster map (where forest=1, non-forest=0)
+# % required: yes
+# %end
 
-#%option G_OPT_R_OUTPUT
-#% required: yes
-#%end
+# %option G_OPT_R_OUTPUT
+# % required: yes
+# %end
 
-#%option
-#% key: size
-#% type: integer
-#% description: Moving window size (odd number)
-#% key_desc: number
-#% options: 3-
-#% answer : 3
-#% required: no
-#%end
+# %option
+# % key: size
+# % type: integer
+# % description: Moving window size (odd number)
+# % key_desc: number
+# % options: 3-
+# % answer : 3
+# % required: no
+# %end
 
-#%option G_OPT_R_OUTPUT
-#% key: pf
-#% label: Name for output Pf (forest area density) raster map
-#% description: Proportion of area which is forested (amount of forest)
-#% required: no
-#%end
+# %option G_OPT_R_OUTPUT
+# % key: pf
+# % label: Name for output Pf (forest area density) raster map
+# % description: Proportion of area which is forested (amount of forest)
+# % required: no
+# %end
 
-#%option G_OPT_R_OUTPUT
-#% key: pff
-#% label: Name for output Pff (forest connectivity) raster map
-#% description: Conditional probability that neighboring cell is forest
-#% required: no
-#%end
+# %option G_OPT_R_OUTPUT
+# % key: pff
+# % label: Name for output Pff (forest connectivity) raster map
+# % description: Conditional probability that neighboring cell is forest
+# % required: no
+# %end
 
-#%flag
-#% key: r
-#% description: Set computational region to input raster map
-#%end
+# %flag
+# % key: r
+# % description: Set computational region to input raster map
+# %end
 
-#%flag
-#% key: t
-#% description: Keep Pf and Pff maps
-#%end
+# %flag
+# % key: t
+# % description: Keep Pf and Pff maps
+# %end
 
-#%flag
-#% key: s
-#% description: Run r.report on output map
-#%end
+# %flag
+# % key: s
+# % description: Run r.report on output map
+# %end
 
-#%flag
-#% key: a
-#% description: Trim the output map to avoid border effects
-#%end
+# %flag
+# % key: a
+# % description: Trim the output map to avoid border effects
+# %end
 
-#%option
-#% key: window
-#% type: integer
-#% label: This option is deprecated, use the option size instead
-#% options: 3-
-#% required: no
-#%end
+# %option
+# % key: window
+# % type: integer
+# % label: This option is deprecated, use the option size instead
+# % options: 3-
+# % required: no
+# %end
 
 import os
 import sys

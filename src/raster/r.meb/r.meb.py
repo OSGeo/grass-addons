@@ -27,84 +27,84 @@
 #
 ########################################################################
 #
-#%Module
-#% description: Compute the multivariate environmental bias (MEB)
-#% keyword: similarity
-#% keyword: raster
-#% keyword: modelling
-#%End
+# %Module
+# % description: Compute the multivariate environmental bias (MEB)
+# % keyword: similarity
+# % keyword: raster
+# % keyword: modelling
+# %End
 
-#%option G_OPT_R_INPUTS
-#% key: env
-#% label: Environmental layers
-#% description: Raster map(s) of environmental conditions
-#% key_desc: names
-#% guisection: Input
-#%end
+# %option G_OPT_R_INPUTS
+# % key: env
+# % label: Environmental layers
+# % description: Raster map(s) of environmental conditions
+# % key_desc: names
+# % guisection: Input
+# %end
 
-#%option G_OPT_R_INPUTS
-#% key: ref
-#% label: Reference area
-#% description: Sub-area (1) within region (1+0) for which to compute the EB
-#% key_desc: names
-#% multiple: no
-#% guisection: Input
-#%end
+# %option G_OPT_R_INPUTS
+# % key: ref
+# % label: Reference area
+# % description: Sub-area (1) within region (1+0) for which to compute the EB
+# % key_desc: names
+# % multiple: no
+# % guisection: Input
+# %end
 
-#%option G_OPT_R_OUTPUT
-#% key: output
-#% label: Root of name output layers
-#% description: Output MES layer (and root for IES layers if kept)
-#% key_desc: names
-#% required: no
-#% multiple: no
-#% guisection: Output
-#%end
+# %option G_OPT_R_OUTPUT
+# % key: output
+# % label: Root of name output layers
+# % description: Output MES layer (and root for IES layers if kept)
+# % key_desc: names
+# % required: no
+# % multiple: no
+# % guisection: Output
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key:file
-#% label: Name of output text file
-#% description: Name of output text file (csv format)
-#% key_desc: name
-#% required: no
-#% guisection: Output
-#%end
+# %option G_OPT_F_OUTPUT
+# % key:file
+# % label: Name of output text file
+# % description: Name of output text file (csv format)
+# % key_desc: name
+# % required: no
+# % guisection: Output
+# %end
 
-#%flag
-#% key: i
-#% description: Compute EB for individual variables
-#% guisection: Output
-#%end
+# %flag
+# % key: i
+# % description: Compute EB for individual variables
+# % guisection: Output
+# %end
 
-#%flag
-#% key: m
-#% description: Use mean values of IES layers to compute MES
-#% guisection: Output
-#%end
+# %flag
+# % key: m
+# % description: Use mean values of IES layers to compute MES
+# % guisection: Output
+# %end
 
-#%flag
-#% key: n
-#% description: Use median values of IES layers to compute MES
-#% guisection: Output
-#%end
+# %flag
+# % key: n
+# % description: Use median values of IES layers to compute MES
+# % guisection: Output
+# %end
 
-#%flag
-#% key: o
-#% description: Use minimum values of IES layers to compute MES
-#% guisection: Output
-#%end
+# %flag
+# % key: o
+# % description: Use minimum values of IES layers to compute MES
+# % guisection: Output
+# %end
 
-#%rules
-#% required: -m,-n,-o
-#%end
+# %rules
+# % required: -m,-n,-o
+# %end
 
-#%option
-#% key: digits
-#% type: integer
-#% description: Precision of your input layers values
-#% key_desc: string
-#% answer: 5
-#%end
+# %option
+# % key: digits
+# % type: integer
+# % description: Precision of your input layers values
+# % key_desc: string
+# % answer: 5
+# %end
 
 # ----------------------------------------------------------------------------
 # Standard

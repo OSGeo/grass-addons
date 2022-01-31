@@ -19,10 +19,10 @@
 #
 ############################################################################
 
-#%Module
-#%  description: Generates a list of all modules' option and flag names.
-#%  keywords: infrastructure
-#%End
+# %Module
+# %  description: Generates a list of all modules' option and flag names.
+# %  keywords: infrastructure
+# %End
 
 
 if [ -z "$GISBASE" ] ; then

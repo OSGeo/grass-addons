@@ -19,209 +19,209 @@
 #  GNU General Public License for more details.
 #
 #############################################################################/
-#%Module
-#% description: Simulates the cumulative effect of erosion and deposition on a landscape over time.
-#% keyword: raster
-#% keyword: hydrology
-#% keyword: erosion modeling
-#% keyword: landscape evolution
-#%End
-#%option G_OPT_R_ELEV
-#% key: elev
-#% description: Input elevation map (DEM of surface)
-#% required : yes
-#%end
-#%option G_OPT_R_INPUT
-#% key: initbdrk
-#% description: Bedrock elevations map (DEM of bedrock)
-#% answer:
-#% required : yes
-#%end
-#%option G_OPT_R_BASENAME_OUTPUT
-#% key: prefx
-#% answer: levol_
-#% required : yes
-#%end
-#%option G_OPT_R_BASENAME_OUTPUT
-#% key: outdem
-#% description: Name stem for output elevation map(s) (preceded by prefix and followed by numerical suffix if more than one iteration)
-#% answer: elevation
-#% required: yes
-#%end
-#%option G_OPT_R_BASENAME_OUTPUT
-#% key: outsoil
-#% description: Name stem for the output soil depth map(s) (preceded by prefix and followed by numerical suffix if more than one iteration)
-#% answer: soildepth
-#% required: yes
-#%end
-#%option
-#% key: number
-#% type: integer
-#% description: Number of iterations (cycles) to run
-#% answer: 1
-#% required : yes
-#%end
+# %Module
+# % description: Simulates the cumulative effect of erosion and deposition on a landscape over time.
+# % keyword: raster
+# % keyword: hydrology
+# % keyword: erosion modeling
+# % keyword: landscape evolution
+# %End
+# %option G_OPT_R_ELEV
+# % key: elev
+# % description: Input elevation map (DEM of surface)
+# % required : yes
+# %end
+# %option G_OPT_R_INPUT
+# % key: initbdrk
+# % description: Bedrock elevations map (DEM of bedrock)
+# % answer:
+# % required : yes
+# %end
+# %option G_OPT_R_BASENAME_OUTPUT
+# % key: prefx
+# % answer: levol_
+# % required : yes
+# %end
+# %option G_OPT_R_BASENAME_OUTPUT
+# % key: outdem
+# % description: Name stem for output elevation map(s) (preceded by prefix and followed by numerical suffix if more than one iteration)
+# % answer: elevation
+# % required: yes
+# %end
+# %option G_OPT_R_BASENAME_OUTPUT
+# % key: outsoil
+# % description: Name stem for the output soil depth map(s) (preceded by prefix and followed by numerical suffix if more than one iteration)
+# % answer: soildepth
+# % required: yes
+# %end
+# %option
+# % key: number
+# % type: integer
+# % description: Number of iterations (cycles) to run
+# % answer: 1
+# % required : yes
+# %end
 
-#%option G_OPT_R_MAP
-#% key: k
-#% description: Soil erodability index (K factor) map or constant (values <= 0.09 [t.ha.h /ha.MJ.mm])
-#% answer: 0.05
-#% required : no
-#% guisection: Landscape Evolution
-#%end
-#%option G_OPT_R_MAP
-#% key: c
-#% description: Landcover index (C factor) map or constant (values <=1.0 [unitless])
-#% answer: 0.005
-#% required : no
-#% guisection: Landscape Evolution
-#%end
-#%option G_OPT_R_MAP
-#% key: p
-#% description: Landuse practices factor (P factor) map or constant (values <=1.0 [unitless])
-#% answer: 1.0
-#% required : no
-#% guisection: Landscape Evolution
-#%end
-#%option G_OPT_R_MAP
-#% key: sdensity
-#% description: Soil density map or constant for conversion from mass to volume (values typically >=1000 [kg/m3])
-#% answer: 1218.4
-#% required : no
-#% guisection: Landscape Evolution
-#%end
-#%option
-#% key: transp_eq
-#% type: string
-#% description: The sediment transport equation to use (USPED: Tc=R*K*C*P*A^m*B^n, Stream power: Tc=Kt*gw*1/N*h^m*B^n, or Shear stress: Tc=Kt*tau^m ).
-#% answer: StreamPower
-#% options: StreamPower,ShearStress,USPED
-#% guisection: Landscape Evolution
-#%end
-#%option
-#% key: exp_m
-#% type: string
-#% description: Exponent m relates to the influence of upslope area (and thus flow depth, discharge) on transport capacity. Values generally thought to scale inversely with increasing depth of flow between the two cutoff thresholds specified: "thresh1,m1,thresh2,m2"
-#% answer: 10,2,100,1
-#% required : no
-#% guisection: Landscape Evolution
-#%end
-#%option
-#% key: exp_n
-#% type: string
-#% description: Exponent n relates to the influence of local topographic slope on transport capacity. Default values set to scale inversely with increasing local slope between the two slope cutoff thresholds specified: "thresh1,n1,thresh2,n2"
-#% answer: 10,2,45,0.5
-#% required : no
-#% guisection: Landscape Evolution
-#%end
-#%flag
-#% key: m
-#% description: -m Apply smoothing (useful to mitigate possible unstable conditions in streams)
-#% guisection: Landscape Evolution
-#%end
+# %option G_OPT_R_MAP
+# % key: k
+# % description: Soil erodability index (K factor) map or constant (values <= 0.09 [t.ha.h /ha.MJ.mm])
+# % answer: 0.05
+# % required : no
+# % guisection: Landscape Evolution
+# %end
+# %option G_OPT_R_MAP
+# % key: c
+# % description: Landcover index (C factor) map or constant (values <=1.0 [unitless])
+# % answer: 0.005
+# % required : no
+# % guisection: Landscape Evolution
+# %end
+# %option G_OPT_R_MAP
+# % key: p
+# % description: Landuse practices factor (P factor) map or constant (values <=1.0 [unitless])
+# % answer: 1.0
+# % required : no
+# % guisection: Landscape Evolution
+# %end
+# %option G_OPT_R_MAP
+# % key: sdensity
+# % description: Soil density map or constant for conversion from mass to volume (values typically >=1000 [kg/m3])
+# % answer: 1218.4
+# % required : no
+# % guisection: Landscape Evolution
+# %end
+# %option
+# % key: transp_eq
+# % type: string
+# % description: The sediment transport equation to use (USPED: Tc=R*K*C*P*A^m*B^n, Stream power: Tc=Kt*gw*1/N*h^m*B^n, or Shear stress: Tc=Kt*tau^m ).
+# % answer: StreamPower
+# % options: StreamPower,ShearStress,USPED
+# % guisection: Landscape Evolution
+# %end
+# %option
+# % key: exp_m
+# % type: string
+# % description: Exponent m relates to the influence of upslope area (and thus flow depth, discharge) on transport capacity. Values generally thought to scale inversely with increasing depth of flow between the two cutoff thresholds specified: "thresh1,m1,thresh2,m2"
+# % answer: 10,2,100,1
+# % required : no
+# % guisection: Landscape Evolution
+# %end
+# %option
+# % key: exp_n
+# % type: string
+# % description: Exponent n relates to the influence of local topographic slope on transport capacity. Default values set to scale inversely with increasing local slope between the two slope cutoff thresholds specified: "thresh1,n1,thresh2,n2"
+# % answer: 10,2,45,0.5
+# % required : no
+# % guisection: Landscape Evolution
+# %end
+# %flag
+# % key: m
+# % description: -m Apply smoothing (useful to mitigate possible unstable conditions in streams)
+# % guisection: Landscape Evolution
+# %end
 
-#%option G_OPT_R_MAP
-#% key: r
-#% description: Rainfall (R factor) map or constant (Employed only in the USPED equation) (values typically between 500 and 10000 [MJ.mm/ha.h.yr])
-#% answer: 720
-#% guisection: Climate
-#%end
-#%option G_OPT_R_MAP
-#% key: rain
-#% description: Precip total for the average erosion-causing storm map (Employed in stream power and shear stress equations) (values typically >=30.0 [mm])
-#% answer: 30
-#% guisection: Climate
-#%end
-#%option G_OPT_R_MAP
-#% key: storms
-#% description: Number of erosion-causing storms per year map or constant (Employed in stream power and shear stress equations) (values >=0 [integer])
-#% answer: 2
-#% guisection: Climate
-#%end
-#%option G_OPT_R_MAP
-#% key: stormlength
-#% description: Average length of the storm map or constant (Employed in stream power and shear stress equations) (values >=0.0 [h])
-#% answer: 24.0
-#% guisection: Climate
-#%end
-#%option G_OPT_R_MAP
-#% key: stormi
-#% description: Proportion of the length of the storm where the storm is at peak intensity map or constant (Employed in stream power and shear stress equations) (values typically ~0.05 [unitless proportion])
-#% answer: 0.05
-#% guisection: Climate
-#%end
-#%option
-#% key: climfile
-#% gisprompt: old,file,file
-#% description: Path to climate file of comma separated values of "rain,R,storms,stormlength,stormi", with a new line for each year of the simulation. This option will override values or maps entered above.
-#% guisection: Climate
-#%end
-#%option G_OPT_R_MAP
-#% key: manningn
-#% description: Map or constant of the value of Manning's "N" value for channelized flow. (Employed in stream power and shear stress equations) (0.03 = clean/straight stream channel, 0.035 = major river, 0.04 = sluggish stream with pools, 0.06 = very clogged streams [unitless])
-#% answer: 0.03
-#% required : no
-#% guisection: Hydrology
-#%end
-#%option G_OPT_R_MAP
-#% key: flowcontrib
-#% description: Map or constant indicating how much each cell contributes to downstream flow (this typically relates to vegetation or conservation practices). If no map or value entered, routine will assume 100% downstream contribution (values between 0 and 100 [unitless percentage])
-#% answer: 100
-#% required : no
-#% guisection: Hydrology
-#%end
-#%option
-#% key: convergence
-#% type: integer
-#% description: Value for the flow convergence variable in r.watershed. Small values make water spread out, high values make it converge in narrower channels.
-#% answer: 5
-#% options: 1,2,3,4,5,6,7,8,9,10
-#% required : no
-#% guisection: Hydrology
-#%end
+# %option G_OPT_R_MAP
+# % key: r
+# % description: Rainfall (R factor) map or constant (Employed only in the USPED equation) (values typically between 500 and 10000 [MJ.mm/ha.h.yr])
+# % answer: 720
+# % guisection: Climate
+# %end
+# %option G_OPT_R_MAP
+# % key: rain
+# % description: Precip total for the average erosion-causing storm map (Employed in stream power and shear stress equations) (values typically >=30.0 [mm])
+# % answer: 30
+# % guisection: Climate
+# %end
+# %option G_OPT_R_MAP
+# % key: storms
+# % description: Number of erosion-causing storms per year map or constant (Employed in stream power and shear stress equations) (values >=0 [integer])
+# % answer: 2
+# % guisection: Climate
+# %end
+# %option G_OPT_R_MAP
+# % key: stormlength
+# % description: Average length of the storm map or constant (Employed in stream power and shear stress equations) (values >=0.0 [h])
+# % answer: 24.0
+# % guisection: Climate
+# %end
+# %option G_OPT_R_MAP
+# % key: stormi
+# % description: Proportion of the length of the storm where the storm is at peak intensity map or constant (Employed in stream power and shear stress equations) (values typically ~0.05 [unitless proportion])
+# % answer: 0.05
+# % guisection: Climate
+# %end
+# %option
+# % key: climfile
+# % gisprompt: old,file,file
+# % description: Path to climate file of comma separated values of "rain,R,storms,stormlength,stormi", with a new line for each year of the simulation. This option will override values or maps entered above.
+# % guisection: Climate
+# %end
+# %option G_OPT_R_MAP
+# % key: manningn
+# % description: Map or constant of the value of Manning's "N" value for channelized flow. (Employed in stream power and shear stress equations) (0.03 = clean/straight stream channel, 0.035 = major river, 0.04 = sluggish stream with pools, 0.06 = very clogged streams [unitless])
+# % answer: 0.03
+# % required : no
+# % guisection: Hydrology
+# %end
+# %option G_OPT_R_MAP
+# % key: flowcontrib
+# % description: Map or constant indicating how much each cell contributes to downstream flow (this typically relates to vegetation or conservation practices). If no map or value entered, routine will assume 100% downstream contribution (values between 0 and 100 [unitless percentage])
+# % answer: 100
+# % required : no
+# % guisection: Hydrology
+# %end
+# %option
+# % key: convergence
+# % type: integer
+# % description: Value for the flow convergence variable in r.watershed. Small values make water spread out, high values make it converge in narrower channels.
+# % answer: 5
+# % options: 1,2,3,4,5,6,7,8,9,10
+# % required : no
+# % guisection: Hydrology
+# %end
 
 
-#%flag
-#% key: p
-#% description: -p Run a sampling procedure to generate a vector points map with scaled flow accumulation values suitable for determining transport equation thresholds. Overrides all other output.
-#% guisection: Optional
-#%end
-#%flag
-#% key: k
-#% description: -k Keep ALL temporary maps (overides flags -drst). This will make A LOT of maps!
-#% guisection: Optional
-#%end
-#%flag
-#% key: d
-#% description: -d Don't output yearly soil depth maps
-#% guisection: Optional
-#%end
-#%flag
-#% key: r
-#% description: -r Don't output yearly maps of the erosion/deposition rates ("ED_rate" map, in vertical meters)
-#% guisection: Optional
-#%end
-#%flag
-#% key: s
-#% description: -s Keep all slope maps
-#% guisection: Optional
-#%end
-#%flag
-#% key: t
-#% description: -t Keep yearly maps of the Transport Capacity at each cell ("Qs" maps)
-#% guisection: Optional
-#%end
-#%flag
-#% key: e
-#% description: -e Keep yearly maps of the Excess Transport Capacity (divergence) at each cell ("DeltaQs" maps)
-#% guisection: Optional
-#%end
-#%Option G_OPT_F_OUTPUT
-#% key: statsout
-#% description: Name for the statsout text file (optional, if none provided, a default name will be used)
-#% required: no
-#% guisection: Optional
-#%end
+# %flag
+# % key: p
+# % description: -p Run a sampling procedure to generate a vector points map with scaled flow accumulation values suitable for determining transport equation thresholds. Overrides all other output.
+# % guisection: Optional
+# %end
+# %flag
+# % key: k
+# % description: -k Keep ALL temporary maps (overides flags -drst). This will make A LOT of maps!
+# % guisection: Optional
+# %end
+# %flag
+# % key: d
+# % description: -d Don't output yearly soil depth maps
+# % guisection: Optional
+# %end
+# %flag
+# % key: r
+# % description: -r Don't output yearly maps of the erosion/deposition rates ("ED_rate" map, in vertical meters)
+# % guisection: Optional
+# %end
+# %flag
+# % key: s
+# % description: -s Keep all slope maps
+# % guisection: Optional
+# %end
+# %flag
+# % key: t
+# % description: -t Keep yearly maps of the Transport Capacity at each cell ("Qs" maps)
+# % guisection: Optional
+# %end
+# %flag
+# % key: e
+# % description: -e Keep yearly maps of the Excess Transport Capacity (divergence) at each cell ("DeltaQs" maps)
+# % guisection: Optional
+# %end
+# %Option G_OPT_F_OUTPUT
+# % key: statsout
+# % description: Name for the statsout text file (optional, if none provided, a default name will be used)
+# % required: no
+# % guisection: Optional
+# %end
 
 import sys
 import os

@@ -35,89 +35,89 @@
 #
 #############################################################################
 #
-#%Module
-#% description: Calculates surface roughness in a moving-window, as the orientation of vectors normal to surface planes.
-#% keyword: raster
-#% keyword: terrain
-#% keyword: aspect
-#% keyword: slope
-#% keyword: roughness
-#%end
-#%option G_OPT_R_ELEV
-#% key: elevation
-#% description: Name of elevation raster map
-#% required: yes
-#%end
-#%option
-#% key: slope
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Input slope map
-#% required : yes
-#%end
-#%option
-#% key: aspect
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Input aspect map
-#% required : yes
-#%end
-#%option
-#% key: window
-#% type: integer
-#% description: Moving-window size (uses r.neighbors)
-#% required : no
-#% answer : 3
-#%end
-#%option
-#% key: strength
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Output "vector strength" map
-#% required : no
-#%end
-#%option
-#% key: fisher
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Output "Fisher's K parameter" map
-#% required : no
-#%end
-#%option
-#% key: compass
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Input compass aspect map (optional)
-#% required : no
-#%end
-#%option
-#% key: colatitude
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Input colatitude map (optional)
-#% required : no
-#%end
-#%option
-#% key: xcos
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Input x directional cosine map (optional)
-#% required : no
-#%end
-#%option
-#% key: ycos
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Input y directional cosine map (optional)
-#% required : no
-#%end
-#%option
-#% key: zcos
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Input z directional cosine map (optional)
-#% required : no
-#%end
+# %Module
+# % description: Calculates surface roughness in a moving-window, as the orientation of vectors normal to surface planes.
+# % keyword: raster
+# % keyword: terrain
+# % keyword: aspect
+# % keyword: slope
+# % keyword: roughness
+# %end
+# %option G_OPT_R_ELEV
+# % key: elevation
+# % description: Name of elevation raster map
+# % required: yes
+# %end
+# %option
+# % key: slope
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Input slope map
+# % required : yes
+# %end
+# %option
+# % key: aspect
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Input aspect map
+# % required : yes
+# %end
+# %option
+# % key: window
+# % type: integer
+# % description: Moving-window size (uses r.neighbors)
+# % required : no
+# % answer : 3
+# %end
+# %option
+# % key: strength
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Output "vector strength" map
+# % required : no
+# %end
+# %option
+# % key: fisher
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Output "Fisher's K parameter" map
+# % required : no
+# %end
+# %option
+# % key: compass
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Input compass aspect map (optional)
+# % required : no
+# %end
+# %option
+# % key: colatitude
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Input colatitude map (optional)
+# % required : no
+# %end
+# %option
+# % key: xcos
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Input x directional cosine map (optional)
+# % required : no
+# %end
+# %option
+# % key: ycos
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Input y directional cosine map (optional)
+# % required : no
+# %end
+# %option
+# % key: zcos
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Input z directional cosine map (optional)
+# % required : no
+# %end
 #
 
 import sys

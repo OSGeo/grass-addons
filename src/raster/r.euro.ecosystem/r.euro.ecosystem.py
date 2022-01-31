@@ -17,27 +17,27 @@ COPYRIGHT: (C) 2015, 2019 by the GRASS Development Team
            for details.
 """
 
-#%module
-#% description: Sets colors and categories of European ecosystem raster data set
-#% keyword: raster
-#% keyword: color
-#% keyword: category
-#% keyword: ecosystem
-#%end
+# %module
+# % description: Sets colors and categories of European ecosystem raster data set
+# % keyword: raster
+# % keyword: color
+# % keyword: category
+# % keyword: ecosystem
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: input
-#%end
+# %option G_OPT_R_INPUT
+# % key: input
+# %end
 
-#%flag
-#% key: 1
-#% description: level 1 data
-#%end
+# %flag
+# % key: 1
+# % description: level 1 data
+# %end
 
-#%flag
-#% key: 2
-#% description: level 2 data
-#%end
+# %flag
+# % key: 2
+# % description: level 2 data
+# %end
 
 
 import sys

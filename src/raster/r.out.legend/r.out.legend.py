@@ -16,160 +16,160 @@
 #
 ########################################################################
 #
-#%Module
-#% description: Create an image file showing the legend of a raster map
-#% keyword: raster
-#% keyword: color
-#% keyword: color table
-#% keyword: image
-#%End
+# %Module
+# % description: Create an image file showing the legend of a raster map
+# % keyword: raster
+# % keyword: color
+# % keyword: color table
+# % keyword: image
+# %End
 
-#%option G_OPT_R_MAP
-#% key: raster
-#%end
+# %option G_OPT_R_MAP
+# % key: raster
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key:file
-#% description: Name of the output file (including file extension)
-#% key_desc: name
-#%end
+# %option G_OPT_F_OUTPUT
+# % key:file
+# % description: Name of the output file (including file extension)
+# % key_desc: name
+# %end
 
-#%option
-#% key: filetype
-#% type: string
-#% description: File type
-#% key_desc: extension
-#% options: png,ps,cairo
-#% answer: cairo
-#% required: yes
-#% multiple: no
-#%end
-
-# ------------------------------------------------------------------------------
-
-#%option
-#% key: dimensions
-#% type: string
-#% description: width and height of the color legend
-#% key_desc: width,height
-#% required: yes
-#% guisection: Image settings
-#%end
-
-#%option
-#% key: unit
-#% type: string
-#% description: unit of the image dimensions
-#% key_desc: unit
-#% required: no
-#% options: cm,mm,inch,px
-#% answer: cm
-#% guisection: Image settings
-#%end
-
-#%option
-#% key: resolution
-#% type: integer
-#% description: resolution (dots/inch)
-#% key_desc: value
-#% required: no
-#% guisection: Image settings
-#%end
-
-#%option G_OPT_CN
-#% guisection: Image settings
-#% answer: white
-#%end
+# %option
+# % key: filetype
+# % type: string
+# % description: File type
+# % key_desc: extension
+# % options: png,ps,cairo
+# % answer: cairo
+# % required: yes
+# % multiple: no
+# %end
 
 # ------------------------------------------------------------------------------
 
-#%option
-#% key: labelnum
-#% type: integer
-#% description: Number of text labels
-#% key_desc: integer
-#% required: no
-#% answer: 5
-#% guisection: Extra options
-#%end
+# %option
+# % key: dimensions
+# % type: string
+# % description: width and height of the color legend
+# % key_desc: width,height
+# % required: yes
+# % guisection: Image settings
+# %end
 
-#%option
-#% key: range
-#% type: string
-#% description: Use a subset of the map range for the legend
-#% key_desc: min,max
-#% required: no
-#% guisection: Extra options
-#%end
+# %option
+# % key: unit
+# % type: string
+# % description: unit of the image dimensions
+# % key_desc: unit
+# % required: no
+# % options: cm,mm,inch,px
+# % answer: cm
+# % guisection: Image settings
+# %end
 
-#%option
-#% key: label_values
-#% type: string
-#% key_desc: float
-#% description: Specific values to draw ticks
-#% required: no
-#% multiple: yes
-#% guisection: Extra options
-#%end
+# %option
+# % key: resolution
+# % type: integer
+# % description: resolution (dots/inch)
+# % key_desc: value
+# % required: no
+# % guisection: Image settings
+# %end
 
-#%option
-#% key: label_step
-#% type: string
-#% key_desc: float
-#% description: Display label every step
-#% required: no
-#% multiple: no
-#% guisection: Extra options
-#%end
-
-#%option
-#% key: digits
-#% type: integer
-#% description: Maximum number of digits for raster value display
-#% key_desc: integer
-#% required: no
-#% answer: 1
-#%end
-
-#%flag:
-#% key: f
-#% description: Flip legend
-#% guisection: Extra options
-#%end
-
-#%flag:
-#% key: d
-#% description: Add histogram to legend
-#% guisection: Extra options
-#%end
-
-#%flag:
-#% key: t
-#% description: Draw legend ticks for labels
-#% guisection: Extra options
-#%end
+# %option G_OPT_CN
+# % guisection: Image settings
+# % answer: white
+# %end
 
 # ------------------------------------------------------------------------------
 
-#%option
-#% key: font
-#% type: string
-#% description: Font name
-#% key_desc: string
-#% required: no
-#% answer: Arial
-#% guisection: Font settings
-#%end
+# %option
+# % key: labelnum
+# % type: integer
+# % description: Number of text labels
+# % key_desc: integer
+# % required: no
+# % answer: 5
+# % guisection: Extra options
+# %end
 
-#%option
-#% key: fontsize
-#% type: integer
-#% description: Font size
-#% key_desc: integer
-#% required: no
-#% answer: 10
-#% guisection: Font settings
-#%end
+# %option
+# % key: range
+# % type: string
+# % description: Use a subset of the map range for the legend
+# % key_desc: min,max
+# % required: no
+# % guisection: Extra options
+# %end
+
+# %option
+# % key: label_values
+# % type: string
+# % key_desc: float
+# % description: Specific values to draw ticks
+# % required: no
+# % multiple: yes
+# % guisection: Extra options
+# %end
+
+# %option
+# % key: label_step
+# % type: string
+# % key_desc: float
+# % description: Display label every step
+# % required: no
+# % multiple: no
+# % guisection: Extra options
+# %end
+
+# %option
+# % key: digits
+# % type: integer
+# % description: Maximum number of digits for raster value display
+# % key_desc: integer
+# % required: no
+# % answer: 1
+# %end
+
+# %flag:
+# % key: f
+# % description: Flip legend
+# % guisection: Extra options
+# %end
+
+# %flag:
+# % key: d
+# % description: Add histogram to legend
+# % guisection: Extra options
+# %end
+
+# %flag:
+# % key: t
+# % description: Draw legend ticks for labels
+# % guisection: Extra options
+# %end
+
+# ------------------------------------------------------------------------------
+
+# %option
+# % key: font
+# % type: string
+# % description: Font name
+# % key_desc: string
+# % required: no
+# % answer: Arial
+# % guisection: Font settings
+# %end
+
+# %option
+# % key: fontsize
+# % type: integer
+# % description: Font size
+# % key_desc: integer
+# % required: no
+# % answer: 10
+# % guisection: Font settings
+# %end
 
 # =======================================================================
 # General

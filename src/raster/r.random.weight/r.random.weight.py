@@ -14,70 +14,70 @@
 #        for details.
 ##############################################################################
 
-#%module
-#% description: Generates a binary raster layer with a random selection of raster cells depending on the weight of each cell in the input weight layer.
-#% keyword: raster
-#% keyword: sampling
-#% keyword: random
-#%end
+# %module
+# % description: Generates a binary raster layer with a random selection of raster cells depending on the weight of each cell in the input weight layer.
+# % keyword: raster
+# % keyword: sampling
+# % keyword: random
+# %end
 
-#%option
-#% key: weights
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: layer with weight
-#% key_desc: raster
-#% required: yes
-#% multiple: no
-#%end
+# %option
+# % key: weights
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: layer with weight
+# % key_desc: raster
+# % required: yes
+# % multiple: no
+# %end
 
-#%option
-#% key: output
-#% type: string
-#% gisprompt: new,cell,raster
-#% description: output layer
-#% key_desc: raster
-#% required: yes
-#% multiple: no
-#%end
+# %option
+# % key: output
+# % type: string
+# % gisprompt: new,cell,raster
+# % description: output layer
+# % key_desc: raster
+# % required: yes
+# % multiple: no
+# %end
 
-#%option
-#% key: start
-#% type: double
-#% description: minimum weight
-#% required: no
-#% guisection: Sample options
-#%end
+# %option
+# % key: start
+# % type: double
+# % description: minimum weight
+# % required: no
+# % guisection: Sample options
+# %end
 
-#%option
-#% key: end
-#% type: double
-#% description: maximum weight
-#% required: no
-#% guisection: Sample options
-#%end
+# %option
+# % key: end
+# % type: double
+# % description: maximum weight
+# % required: no
+# % guisection: Sample options
+# %end
 
-#%option
-#% key: subsample
-#% type: string
-#% description: subsample
-#% required: no
-#% guisection: Sample options
-#%end
+# %option
+# % key: subsample
+# % type: string
+# % description: subsample
+# % required: no
+# % guisection: Sample options
+# %end
 
-#%option
-#% key: seed
-#% type: string
-#% description: set seed for random number generation
-#% answer: auto
-#% required: no
-#% guisection: Sample options
-#%end
+# %option
+# % key: seed
+# % type: string
+# % description: set seed for random number generation
+# % answer: auto
+# % required: no
+# % guisection: Sample options
+# %end
 
-#%flag
-#% key: n
-#% description: set non-selected values to 0 (default to NULL)
-#%end
+# %flag
+# % key: n
+# % description: set non-selected values to 0 (default to NULL)
+# %end
 
 
 # import libraries
