@@ -2,6 +2,7 @@
 ignore =
     E203,  # whitespace before ':' (Black)
     W503,  # line break before binary operator (Black)
+    E265, # block comment should start with '# '
     E266, # too many leading '#' for block comment
     E402, # module level import not at top of file
     E501, # line too long (161 > 150 characters)
