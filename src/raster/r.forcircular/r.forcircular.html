@@ -1,0 +1,64 @@
+<h2>DESCRIPTION</h2>
+
+Analyze and measure the level of sustainability of the forest-wood supply chain in a circular bioeconomy approach.
+
+<h2>NOTES</h2>
+This module permits to identifies potentially usable forest areas both from a technical and economic point of view. The mandatory data input are a vector file with a series of mandatory fields described below:
+<ul>
+    <li>incr_ha: [float] value of the forest increase [mc * ha * year-1]</li>
+    <li>management: [integer] forest management system (form of government), can take on two values, namely (1) for forest management and (2) for coppice management</li>
+    <li>treatment: [integer] treatment adopted, it can take on two values, namely (1) for the final use cut and (2) for the thinning. Thinning is not foreseen for coppice woods.</li>
+    <li>roughness: [integer] level of terrain accidentality - (0): no accidentality; (1): locally bumpy; (2): partially bumpy; (3): mostly bumpy</li>
+    <li>tree_diam: [integer] average diameter of the stems [cm]. If the data is not available, indicate the generic value 99999</li>
+    <li>tree_vol: [decimal] average volume per plant [m3]. If the data is not available, indicate the generic value 9,999</li>
+    <li>rotation: [integer] cutting cycle (or forest shift) [years]</li>
+    <li>soil_prod: [integer] degree of soil productivity (fertility): (1): very low; (2): low; (3): medium; (4); tall; (5): very high</li>
+    <li>PCI: [float] Average lower calorific value of the wood species present in the polygon [MWh / t]</li>
+    <li>cut: [float]: cut percentage (range from 0 (0%) to 1 (100%)). It represents the percentage of wood mass on the total stock that falls during the cutting operation.</li>
+    <li>perc_round: [float] (from 0 to 1) corresponding to the percentage of the wood mass for round wood</li>
+    <li>perc_timb: [float] (from 0 to 1) corresponding to the percentage of the wood mass for poles</li>
+    <li>perc_fire: [float] (from 0 to 1) corresponding to the percentage of the wood mass for firewood</li>
+    <li>perc_res: [float] (from 0 to 1) corresponding to the percentage of wood residues to be used for energy (wood chips)</li>
+    <li>perc_roun9: [float] (from 0 to 1) corresponding to the percentage of the wood mass for roundwood in the assortment optimization scenario</li>
+    <li>perc_timb9: [float] (from 0 to 1) corresponding to the percentage of the wood mass for poles in the assortment optimization scenario</li>
+    <li>perc_fire9: [float] (from 0 to 1) corresponding to the percentage of the wood mass for firewood in the assortment optimization scenario</li>
+    <li>perc_res9: [float] (from 0 to 1) corresponding to the percentage of wood residues to be used for energy use (wood chips) in the assortment optimization scenario</li>
+    <li>pric_roun: [float] corresponding to the average price for the roundwood assortment [€ / m3]</li>
+    <li>pric_timb: [float] corresponding to the average price for the poles assortment [€ / m3]</li>
+    <li>pric_fire: [float] corresponding to the average price for the firewood assortment [€ / m3]</li>
+    <li>pric_bioe: [float] corresponding to the average price for biomass energy for energy use [€ / MWh]</li>
+</ul>
+
+Other mandatory data:
+
+<ul>
+    <li>vector tracks file</li>
+    <li>vector boundaries file</li>
+    <li>raster digital elevetion model file</li>
+</ul>
+
+Other optional data:
+
+<ul>
+    <li>vector rivers file</li>
+    <li>vector lakes file</li>
+    <li>vector protected areas file</li>
+</ul>
+
+<h3></h3>
+
+<h2>REFERENCE</h2>
+Paletto A, Becagli C, Geri F, Sacchelli S, De Meo I. Use of Participatory Processes in Wood Residue Management from a Circular Bioeconomy Perspective: An Approach Adopted in Italy. Energies. 2022; 15(3):1011. https://doi.org/10.3390/en15031011
+
+<h2>SEE ALSO</h2>
+<em>
+  <a href="r.green.biomassfor.html">r.green.biomassfor</a>
+</em>
+
+<h2>AUTHORS</h2>
+Francesco Geri and Sandro Sacchelli
+
+<!--
+<p>
+<i>Last changed: $Date$</i>
+-->
