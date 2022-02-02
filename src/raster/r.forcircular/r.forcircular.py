@@ -12,383 +12,383 @@
 #              for details.
 #
 #############################################################################
-#%Module
-#% description: Evaluation of circular bioconomy level of forest ecosystems
-#% keyword: bioeconomy
-#% keyword: forest
-#% overwrite: yes
-#%End
-#%option G_OPT_V_INPUT
-#% key: forest
-#% type: string
-#% description: Name of input parcel parcel map
-#% label: Name of input parcel parcel map
-#% required : yes
-#% guisection: Base
-#%end
-#%option G_OPT_V_INPUT
-#% key: boundaries
-#% type: string
-#% description: Name of input boundaries vector boolean map
-#% label: Name of input boundaries vector boolean map
-#% required : yes
-#% guisection: Base
-#%end
-#%option G_OPT_R_ELEV
-#% key: dtm
-#% type: string
-#% description: Name of input elevation raster map
-#% required : yes
-#% guisection: Base
-#%end
-#%option G_OPT_V_INPUT
-#% key: tracks
-#% type: string
-#% description: Name of input forest roads vector map
-#% label: Name of input forest roads vector map
-#% guisection: Base
-#% required : yes
-#%end
-#%option G_OPT_V_INPUT
-#% key: rivers
-#% type: string
-#% description: Name of input rivers vector map
-#% label: Name of input rivers vector map
-#% required : no
-#% guisection: Base
-#%end
-#%option G_OPT_V_INPUT
-#% key: lakes
-#% type: string
-#% description: Name of input lakes vector map
-#% label: Name of input lakes vector map
-#% required : no
-#% guisection: Base
-#%end
-#%option G_OPT_V_INPUT
-#% key: protected_areas
-#% type: string
-#% description: Name of input protected areas vector map
-#% label: Name of input protected areas vector map
-#% required : no
-#% guisection: Base
-#%end
-#%option
-#% key: slp_min_cc
-#% type: double
-#% description: Percent slope lower limit for aerial extraction
-#% answer: 30.
-#% required : yes
-#% guisection: Variables
-#%end
-#%option
-#% key: slp_max_cc
-#% type: double
-#% description: Percent slope higher limit for aerial extraction
-#% answer: 100.
-#% required : yes
-#% guisection:Variables
-#%end
-#%option
-#% key: dist_max_cc
-#% type: double
-#% description: Maximum distance for aerial extraction
-#% answer: 1000.
-#% required : yes
-#% guisection: Variables
-#%end
-#%option
-#% key: slp_max_fw
-#% type: double
-#% description: Percent slope higher limit with Forwarder
-#% answer: 30.
-#% required : no
-#% guisection: Variables
-#%end
-#%option
-#% key: dist_max_fw
-#% type: double
-#% description: Maximum distance with Forwarder
-#% answer: 900.
-#% required : yes
-#% guisection: Variables
-#%end
-#%option
-#% key: slp_max_cop
-#% type: double
-#% description: Percent slope higher limit with other techniques for Coppices
-#% answer: 30.
-#% required : yes
-#% guisection: Variables
-#%end
-#%option
-#% key: dist_max_cop
-#% type: double
-#% description: Maximum distance with other techniques for Coppices
-#% answer: 800.
-#% required : yes
-#% guisection: Variables
-#%end
-#%option
-#% key: hf_slope
-#% type: string
-#% description: Machineries for high forest in steep terrain
-#% options: cable crane - high power,cable crane - medium/low power,skidder
-#% required: yes
-#% guisection: Variables
-#%end
-#%option
-#% key: c_slope
-#% type: string
-#% description: Machineries for coppice in steep terrain
-#% options: cable crane - high power,cable crane - medium/low power,tractor
-#% required: yes
-#% guisection: Variables
-#%end
-#%option
-#% key: hf_noslope
-#% type: string
-#% description: Vehicle for high forest in not steep terrain
-#% options: forwarder,skidder,tractor
-#% required: yes
-#% guisection: Variables
-#%end
-#%option
-#% key: c_noslope
-#% type: string
-#% description: Vehicle for coppice in not steep terrain
-#% options: forwarder,skidder,tractor
-#% required: yes
-#% guisection: Variables
-#%end
-#%option
-#% key: resolution
-#% type: value
-#% description: Working resolution
-#% answer: 10
-#% required : no
-#%end
-#%option
-#% key: cost_chainsaw
-#% type: double
-#% description: Felling and/or felling-processing cost with chainsaw EUR/h
-#% answer: 13.17
-#% guisection: Costs
-#%end
-#%option
-#% key: cost_processor
-#% type: double
-#% description: Processing cost with processor EUR/h
-#% answer: 83.52
-#% guisection: Costs
-#%end
-#%option
-#% key: cost_harvester
-#% type: double
-#% description: Felling and processing cost with harvester EUR/h
-#% answer: 96.33
-#% guisection: Costs
-#%end
-#%option
-#% key: cost_cablehf
-#% type: double
-#% description: Extraction cost with high power cable crane EUR/h
-#% answer: 111.64
-#% guisection: Costs
-#%end
-#%option
-#% key: cost_cablec
-#% type: double
-#% description: Extraction cost with medium power cable crane EUR/h
-#% answer: 104.31
-#% guisection: Costs
-#%end
-#%option
-#% key: cost_forwarder
-#% type: double
-#% description: Extraction cost with forwarder EUR/h
-#% answer: 70.70
-#% guisection: Costs
-#%end
-#%option
-#% key: cost_skidder
-#% type: double
-#% description: Extraction cost with skidder EUR/h
-#% answer: 64.36
-#% guisection: Costs
-#%end
-#%option
-#% key: cost_tractor
-#% type: double
-#% description: Extraction cost with tractor EUR/h
-#% answer: 45
-#% guisection: Costs
-#%end
-#%option
-#% key: cost_chipping
-#% type: double
-#% description: Chipping cost EUR/h
-#% answer: 160.87
-#% guisection: Costs
-#%end
-#%option
-#% key: interest
-#% type: double
-#% description: Interest rate EUR/h
-#% answer: 0.03
-#% guisection: Costs
-#%end
-#%option
-#% key: mc_paper
-#% type: double
-#% description: Percentage of roundwood re-use in paper
-#% answer : 0.02
-#% guisection: Indicators
-#%end
-#%option
-#% key: mc_furniture
-#% type: double
-#% description: Percentage of roundwood re-use in furniture
-#% answer : 0.4
-#% guisection: Indicators
-#%end
-#%option
-#% key: mc_building
-#% type: double
-#% description: Percentage of roundwood re-use in building
-#% answer : 0.5
-#% guisection: Indicators
-#%end
-#%option
-#% key: mc_woodpackaging
-#% type: double
-#% description: Percentage of roundwood re-use in packaging
-#% answer : 0.03
-#% guisection: Indicators
-#%end
-#%option
-#% key: mc_other
-#% type: double
-#% description: Percentage of roundwood re-use in other use
-#% answer : 0.05
-#% guisection: Indicators
-#%end
-#%option
-#% key: ind1
-#% type: string
-#% gisprompt: new
-#% description: Name for indicator n.1 map
-#% key_desc : name
-#% required: yes
-#% guisection: Indicators
-#%end
-#%option
-#% key: ind2
-#% type: string
-#% gisprompt: new
-#% description: Name for indicator n.2 map
-#% key_desc : name
-#% required: yes
-#% guisection: Indicators
-#%end
-#%option
-#% key: ind3
-#% type: string
-#% gisprompt: new
-#% description: Name for indicator n.3 map
-#% key_desc : name
-#% required: yes
-#% guisection: Indicators
-#%end
-#%option
-#% key: ind4
-#% type: string
-#% gisprompt: new
-#% description: Name for indicator n.4 map
-#% key_desc : name
-#% required: yes
-#% guisection: Indicators
-#%end
-#%option
-#% key: ind5
-#% type: string
-#% gisprompt: new
-#% description: Name for indicator n.5 map
-#% key_desc : name
-#% required: yes
-#% guisection: Indicators
-#%end
-#%option
-#% key: ind6
-#% type: string
-#% gisprompt: new
-#% description: Name for indicator n.6 map
-#% key_desc : name
-#% required: yes
-#% guisection: Indicators
-#%end
-#%option
-#% key: ind7
-#% type: string
-#% gisprompt: new
-#% description: Name for indicator n.7 map
-#% key_desc : name
-#% required: yes
-#% guisection: Indicators
-#%end
-#%option
-#% key: w_1
-#% type: double
-#% description: Weight for indicator n.1
-#% answer : 0.15
-#% guisection: Indicators
-#%end
-#%option
-#% key: w_2
-#% type: double
-#% description: Weight for indicator n.2
-#% answer : 0.12
-#% guisection: Indicators
-#%end
-#%option
-#% key: w_3
-#% type: double
-#% description: Weight for indicator n.3
-#% answer : 0.12
-#% guisection: Indicators
-#%end
-#%option
-#% key: w_4
-#% type: double
-#% description: Weight for indicator n.4
-#% answer : 0.13
-#% guisection: Indicators
-#%end
-#%option
-#% key: w_5
-#% type: double
-#% description: Weight for indicator n.5
-#% answer : 0.14
-#% guisection: Indicators
-#%end
-#%option
-#% key: w_6
-#% type: double
-#% description: Weight for indicator n.6
-#% answer : 0.17
-#% guisection: Indicators
-#%end
-#%option
-#% key: w_7
-#% type: double
-#% description: Weight for indicator n.7
-#% answer : 0.16
-#% guisection: Indicators
-#%end
-#%flag
-#% key: r
-#% description: Remove all operational maps
-#%end
+# %Module
+# % description: Evaluation of circular bioconomy level of forest ecosystems
+# % keyword: bioeconomy
+# % keyword: forest
+# % overwrite: yes
+# %End
+# %option G_OPT_V_INPUT
+# % key: forest
+# % type: string
+# % description: Name of input parcel parcel map
+# % label: Name of input parcel parcel map
+# % required : yes
+# % guisection: Base
+# %end
+# %option G_OPT_V_INPUT
+# % key: boundaries
+# % type: string
+# % description: Name of input boundaries vector boolean map
+# % label: Name of input boundaries vector boolean map
+# % required : yes
+# % guisection: Base
+# %end
+# %option G_OPT_R_ELEV
+# % key: dtm
+# % type: string
+# % description: Name of input elevation raster map
+# % required : yes
+# % guisection: Base
+# %end
+# %option G_OPT_V_INPUT
+# % key: tracks
+# % type: string
+# % description: Name of input forest roads vector map
+# % label: Name of input forest roads vector map
+# % guisection: Base
+# % required : yes
+# %end
+# %option G_OPT_V_INPUT
+# % key: rivers
+# % type: string
+# % description: Name of input rivers vector map
+# % label: Name of input rivers vector map
+# % required : no
+# % guisection: Base
+# %end
+# %option G_OPT_V_INPUT
+# % key: lakes
+# % type: string
+# % description: Name of input lakes vector map
+# % label: Name of input lakes vector map
+# % required : no
+# % guisection: Base
+# %end
+# %option G_OPT_V_INPUT
+# % key: protected_areas
+# % type: string
+# % description: Name of input protected areas vector map
+# % label: Name of input protected areas vector map
+# % required : no
+# % guisection: Base
+# %end
+# %option
+# % key: slp_min_cc
+# % type: double
+# % description: Percent slope lower limit for aerial extraction
+# % answer: 30.
+# % required : yes
+# % guisection: Variables
+# %end
+# %option
+# % key: slp_max_cc
+# % type: double
+# % description: Percent slope higher limit for aerial extraction
+# % answer: 100.
+# % required : yes
+# % guisection:Variables
+# %end
+# %option
+# % key: dist_max_cc
+# % type: double
+# % description: Maximum distance for aerial extraction
+# % answer: 1000.
+# % required : yes
+# % guisection: Variables
+# %end
+# %option
+# % key: slp_max_fw
+# % type: double
+# % description: Percent slope higher limit with Forwarder
+# % answer: 30.
+# % required : no
+# % guisection: Variables
+# %end
+# %option
+# % key: dist_max_fw
+# % type: double
+# % description: Maximum distance with Forwarder
+# % answer: 900.
+# % required : yes
+# % guisection: Variables
+# %end
+# %option
+# % key: slp_max_cop
+# % type: double
+# % description: Percent slope higher limit with other techniques for Coppices
+# % answer: 30.
+# % required : yes
+# % guisection: Variables
+# %end
+# %option
+# % key: dist_max_cop
+# % type: double
+# % description: Maximum distance with other techniques for Coppices
+# % answer: 800.
+# % required : yes
+# % guisection: Variables
+# %end
+# %option
+# % key: hf_slope
+# % type: string
+# % description: Machineries for high forest in steep terrain
+# % options: cable crane - high power,cable crane - medium/low power,skidder
+# % required: yes
+# % guisection: Variables
+# %end
+# %option
+# % key: c_slope
+# % type: string
+# % description: Machineries for coppice in steep terrain
+# % options: cable crane - high power,cable crane - medium/low power,tractor
+# % required: yes
+# % guisection: Variables
+# %end
+# %option
+# % key: hf_noslope
+# % type: string
+# % description: Vehicle for high forest in not steep terrain
+# % options: forwarder,skidder,tractor
+# % required: yes
+# % guisection: Variables
+# %end
+# %option
+# % key: c_noslope
+# % type: string
+# % description: Vehicle for coppice in not steep terrain
+# % options: forwarder,skidder,tractor
+# % required: yes
+# % guisection: Variables
+# %end
+# %option
+# % key: resolution
+# % type: value
+# % description: Working resolution
+# % answer: 10
+# % required : no
+# %end
+# %option
+# % key: cost_chainsaw
+# % type: double
+# % description: Felling and/or felling-processing cost with chainsaw EUR/h
+# % answer: 13.17
+# % guisection: Costs
+# %end
+# %option
+# % key: cost_processor
+# % type: double
+# % description: Processing cost with processor EUR/h
+# % answer: 83.52
+# % guisection: Costs
+# %end
+# %option
+# % key: cost_harvester
+# % type: double
+# % description: Felling and processing cost with harvester EUR/h
+# % answer: 96.33
+# % guisection: Costs
+# %end
+# %option
+# % key: cost_cablehf
+# % type: double
+# % description: Extraction cost with high power cable crane EUR/h
+# % answer: 111.64
+# % guisection: Costs
+# %end
+# %option
+# % key: cost_cablec
+# % type: double
+# % description: Extraction cost with medium power cable crane EUR/h
+# % answer: 104.31
+# % guisection: Costs
+# %end
+# %option
+# % key: cost_forwarder
+# % type: double
+# % description: Extraction cost with forwarder EUR/h
+# % answer: 70.70
+# % guisection: Costs
+# %end
+# %option
+# % key: cost_skidder
+# % type: double
+# % description: Extraction cost with skidder EUR/h
+# % answer: 64.36
+# % guisection: Costs
+# %end
+# %option
+# % key: cost_tractor
+# % type: double
+# % description: Extraction cost with tractor EUR/h
+# % answer: 45
+# % guisection: Costs
+# %end
+# %option
+# % key: cost_chipping
+# % type: double
+# % description: Chipping cost EUR/h
+# % answer: 160.87
+# % guisection: Costs
+# %end
+# %option
+# % key: interest
+# % type: double
+# % description: Interest rate EUR/h
+# % answer: 0.03
+# % guisection: Costs
+# %end
+# %option
+# % key: mc_paper
+# % type: double
+# % description: Percentage of roundwood re-use in paper
+# % answer : 0.02
+# % guisection: Indicators
+# %end
+# %option
+# % key: mc_furniture
+# % type: double
+# % description: Percentage of roundwood re-use in furniture
+# % answer : 0.4
+# % guisection: Indicators
+# %end
+# %option
+# % key: mc_building
+# % type: double
+# % description: Percentage of roundwood re-use in building
+# % answer : 0.5
+# % guisection: Indicators
+# %end
+# %option
+# % key: mc_woodpackaging
+# % type: double
+# % description: Percentage of roundwood re-use in packaging
+# % answer : 0.03
+# % guisection: Indicators
+# %end
+# %option
+# % key: mc_other
+# % type: double
+# % description: Percentage of roundwood re-use in other use
+# % answer : 0.05
+# % guisection: Indicators
+# %end
+# %option
+# % key: ind1
+# % type: string
+# % gisprompt: new
+# % description: Name for indicator n.1 map
+# % key_desc : name
+# % required: yes
+# % guisection: Indicators
+# %end
+# %option
+# % key: ind2
+# % type: string
+# % gisprompt: new
+# % description: Name for indicator n.2 map
+# % key_desc : name
+# % required: yes
+# % guisection: Indicators
+# %end
+# %option
+# % key: ind3
+# % type: string
+# % gisprompt: new
+# % description: Name for indicator n.3 map
+# % key_desc : name
+# % required: yes
+# % guisection: Indicators
+# %end
+# %option
+# % key: ind4
+# % type: string
+# % gisprompt: new
+# % description: Name for indicator n.4 map
+# % key_desc : name
+# % required: yes
+# % guisection: Indicators
+# %end
+# %option
+# % key: ind5
+# % type: string
+# % gisprompt: new
+# % description: Name for indicator n.5 map
+# % key_desc : name
+# % required: yes
+# % guisection: Indicators
+# %end
+# %option
+# % key: ind6
+# % type: string
+# % gisprompt: new
+# % description: Name for indicator n.6 map
+# % key_desc : name
+# % required: yes
+# % guisection: Indicators
+# %end
+# %option
+# % key: ind7
+# % type: string
+# % gisprompt: new
+# % description: Name for indicator n.7 map
+# % key_desc : name
+# % required: yes
+# % guisection: Indicators
+# %end
+# %option
+# % key: w_1
+# % type: double
+# % description: Weight for indicator n.1
+# % answer : 0.15
+# % guisection: Indicators
+# %end
+# %option
+# % key: w_2
+# % type: double
+# % description: Weight for indicator n.2
+# % answer : 0.12
+# % guisection: Indicators
+# %end
+# %option
+# % key: w_3
+# % type: double
+# % description: Weight for indicator n.3
+# % answer : 0.12
+# % guisection: Indicators
+# %end
+# %option
+# % key: w_4
+# % type: double
+# % description: Weight for indicator n.4
+# % answer : 0.13
+# % guisection: Indicators
+# %end
+# %option
+# % key: w_5
+# % type: double
+# % description: Weight for indicator n.5
+# % answer : 0.14
+# % guisection: Indicators
+# %end
+# %option
+# % key: w_6
+# % type: double
+# % description: Weight for indicator n.6
+# % answer : 0.17
+# % guisection: Indicators
+# %end
+# %option
+# % key: w_7
+# % type: double
+# % description: Weight for indicator n.7
+# % answer : 0.16
+# % guisection: Indicators
+# %end
+# %flag
+# % key: r
+# % description: Remove all operational maps
+# %end
 
 
 from grass.script.core import run_command, parser, overwrite
