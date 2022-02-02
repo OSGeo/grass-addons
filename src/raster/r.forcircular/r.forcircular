@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -- coding: utf-8 --
 #
 ############################################################################
 #
@@ -22,20 +21,20 @@
 #%option G_OPT_V_INPUT
 #% key: forest
 #% type: string
-#% description: Name of vector parcel map
-#% label: Name of vector parcel map
+#% description: Name of input parcel parcel map
+#% label: Name of input parcel parcel map
 #% required : yes
 #% guisection: Base
 #%end
 #%option G_OPT_V_INPUT
 #% key: boundaries
 #% type: string
-#% description: Name of vector boundaries map (boolean map)
-#% label: Name of vector boundaries map (boolean map)
+#% description: Name of input boundaries vector boolean map
+#% label: Name of input boundaries vector boolean map
 #% required : yes
 #% guisection: Base
 #%end
-#%option G_OPT_R_INPUT
+#%option G_OPT_R_ELEV
 #% key: dtm
 #% type: string
 #% description: Name of input elevation raster map
@@ -45,32 +44,32 @@
 #%option G_OPT_V_INPUT
 #% key: tracks
 #% type: string
-#% description: Vector map of forest roads
-#% label: Vector map of forest roads
+#% description: Name of input forest roads vector map
+#% label: Name of input forest roads vector map
 #% guisection: Base
 #% required : yes
 #%end
 #%option G_OPT_V_INPUT
 #% key: rivers
 #% type: string
-#% description: Vector map of rivers
-#% label: Vector map of rivers
+#% description: Name of input rivers vector map
+#% label: Name of input rivers vector map
 #% required : no
 #% guisection: Base
 #%end
 #%option G_OPT_V_INPUT
 #% key: lakes
 #% type: string
-#% description: Vector map of lakes
-#% label: Vector map of lakes
+#% description: Name of input lakes vector map
+#% label: Name of input lakes vector map
 #% required : no
 #% guisection: Base
 #%end
 #%option G_OPT_V_INPUT
 #% key: protected_areas
 #% type: string
-#% description: Vector map of protected areas
-#% label: Vector map of protected areas
+#% description: Name of input protected areas vector map
+#% label: Name of input protected areas vector map
 #% required : no
 #% guisection: Base
 #%end
@@ -1040,14 +1039,14 @@ def main(opts, flgs):
     run_command(
         "r.mapcalc",
         overwrite=1,
-        expression="fell_proc_productHFtr2 = if(management@PERMANENT == 1 && "
-        + "treatment@PERMANENT == 2 && tree_vol<9.999, "
-        + "HFground_extraction@PERMANENT*60/(1.5*(2.71^(0.1480-"
-        + "0.3894*2+0.0002*(slope@PERMANENT^2)-0.2674*2.5))+(1.0667+"
-        + "(0.3094/tree_vol@PERMANENT)-0.1846*1))*0.8,if(management@PERMANENT"
-        + " == 1 && treatment@PERMANENT == 2 && "
-        + "tree_vol==9.999, HFground_extraction@PERMANENT*60/(1.5*"
-        + "(2.71^(0.1480-0.3894*2+0.0002*(slope@PERMANENT^2)-0.2674*2.5))"
+        expression="fell_proc_productHFtr2 = if(management == 1 && "
+        + "treatment == 2 && tree_vol<9.999, "
+        + "HFground_extraction*60/(1.5*(2.71^(0.1480-"
+        + "0.3894*2+0.0002*(slope^2)-0.2674*2.5))+(1.0667+"
+        + "(0.3094/tree_vol)-0.1846*1))*0.8,if(management"
+        + " == 1 && treatment == 2 && "
+        + "tree_vol==9.999, HFground_extraction*60/(1.5*"
+        + "(2.71^(0.1480-0.3894*2+0.0002*(slope^2)-0.2674*2.5))"
         + "+(1.0667+(0.3094/0.7)-0.1846*1))*0.8))",
     )
     run_command(
