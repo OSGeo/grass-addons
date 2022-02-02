@@ -249,7 +249,7 @@
 #%option
 #% key: mc_furniture
 #% type: double
-#% description: Percentage of roundwood re-use in forniture
+#% description: Percentage of roundwood re-use in furniture
 #% answer : 0.4
 #% guisection: Indicators
 #%end
