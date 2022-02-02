@@ -38,7 +38,7 @@
 #%option G_OPT_R_INPUT
 #% key: dtm
 #% type: string
-#% description: Name of Digital terrain model map
+#% description: Name of input elevation raster map
 #% required : yes
 #% guisection: Base
 #%end
