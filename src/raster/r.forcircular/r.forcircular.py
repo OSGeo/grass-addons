@@ -16,7 +16,6 @@
 # % description: Evaluation of circular bioconomy level of forest ecosystems
 # % keyword: bioeconomy
 # % keyword: forest
-# % overwrite: yes
 # %End
 # %option G_OPT_V_INPUT
 # % key: forest
