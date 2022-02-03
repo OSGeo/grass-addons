@@ -13,7 +13,7 @@
 #
 #############################################################################
 # %Module
-# % description: Evaluation of circular bioconomy level of forest ecosystems
+# % description: Evaluation of circular bioeconomy level of forest ecosystems
 # % keyword: bioeconomy
 # % keyword: forest
 # %End
