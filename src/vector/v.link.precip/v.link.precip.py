@@ -18,81 +18,81 @@ except ImportError:
 ##########################################################
 ################## guisection: required ##################
 ##########################################################
-#%module
-#% description: Links time-windows to vector link map.
-#% keyword: vector
-#%end
+# %module
+# % description: Links time-windows to vector link map.
+# % keyword: vector
+# %end
 
 
-#%option
-#% key: schema
-#% type: string
-#% label: Set schema name containing timewindows
-#% required : yes
-#%end
+# %option
+# % key: schema
+# % type: string
+# % label: Set schema name containing timewindows
+# % required : yes
+# %end
 
 
-#%option
-#% key: time
-#% type: string
-#% label: Set time "YYYY-MM-DD H:M:S"
+# %option
+# % key: time
+# % type: string
+# % label: Set time "YYYY-MM-DD H:M:S"
 
-#%end
+# %end
 
-#%option
-#% key: type
-#% label: Choose object type to connect
-#% options: raingauge, links
-#% multiple: yes
-#% required : yes
-#% answer: links
-#%end
+# %option
+# % key: type
+# % label: Choose object type to connect
+# % options: raingauge, links
+# % multiple: yes
+# % required : yes
+# % answer: links
+# %end
 
-#%option
-#% key: vector
-#% label: Choose MV representation
-#% options: lines, points
-#% multiple: yes
-#% required : yes
-#% answer: points
-#%end
+# %option
+# % key: vector
+# % label: Choose MV representation
+# % options: lines, points
+# % multiple: yes
+# % required : yes
+# % answer: points
+# %end
 
-#%flag
-#% key:c
-#% description: Create vector map
-#%end
+# %flag
+# % key:c
+# % description: Create vector map
+# %end
 
-#%flag
-#% key:a
-#% description: Create vector maps for all timewin
-#%end
+# %flag
+# % key:a
+# % description: Create vector maps for all timewin
+# %end
 
 
-#%option
-#% key: layername
-#% type: string
-#% label: Name of points layer to connect
-#%end
+# %option
+# % key: layername
+# % type: string
+# % label: Name of points layer to connect
+# %end
 
 ##########################################################
 ################## guisection: optional ##################
 ##########################################################
-#%option G_OPT_F_INPUT
-#% key: color
-#% label: Set color table
-#% required: no
-#%end
+# %option G_OPT_F_INPUT
+# % key: color
+# % label: Set color table
+# % required: no
+# %end
 
 
-#%flag
-#% key:p
-#% description: Print attribut table
-#%end
+# %flag
+# % key:p
+# % description: Print attribut table
+# %end
 
-#%flag
-#% key:r
-#% description: Remove temp file
-#%end
+# %flag
+# % key:r
+# % description: Remove temp file
+# %end
 
 
 schema = ""

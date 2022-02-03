@@ -13,69 +13,69 @@
 #
 #############################################################################
 
-#%module
-#% description: Reclassifies points of a LiDAR point cloud as ground / non-ground using a multiscale curvature based classification algorithm.
-#% keyword: vector
-#% keyword: lidar
-#% keyword: classification
-#%end
-#%flag
-#% key: n
-#% description: Filter negative outliers (default is positive)
-#%end
-#%option G_OPT_V_INPUT
-#% description: Input vector point map
-#% label: Input point layer
-#% required: yes
-#%end
-#%option G_OPT_V_OUTPUT
-#% key: ground
-#% label: Output ground return points
-#% description: Output vector point map containing points classified as ground return
-#% required: yes
-#%end
-#%option G_OPT_V_OUTPUT
-#% key: nonground
-#% label: Output non-ground return points
-#% description: Output vector point map containing points NOT classified as ground return
-#% required: yes
-#%end
-#%option nl
-#% key: nl
-#% label: Number of scale domains (nl)
-#% description: nl
-#% type: integer
-#% required: no
-#% answer : 3
-#%end
-#%option t
-#% key: t
-#% type: double
-#% label: Curvature tolerance threshold (t)
-#% required: no
-#% answer : 0.3
-#%end
-#%option j
-#% key: j
-#% label: Convergence threshold (j)
-#% type: double
-#% required: no
-#% answer : 0.1
-#%end
-#%option f
-#% key: f
-#% label: Tension parameter (f)
-#% type: double
-#% required: no
-#% answer : 2
-#%end
-#%option s
-#% key: s
-#% label: Spline steps parameter (s)
-#% type: integer
-#% required: no
-#% answer : 10
-#%end
+# %module
+# % description: Reclassifies points of a LiDAR point cloud as ground / non-ground using a multiscale curvature based classification algorithm.
+# % keyword: vector
+# % keyword: lidar
+# % keyword: classification
+# %end
+# %flag
+# % key: n
+# % description: Filter negative outliers (default is positive)
+# %end
+# %option G_OPT_V_INPUT
+# % description: Input vector point map
+# % label: Input point layer
+# % required: yes
+# %end
+# %option G_OPT_V_OUTPUT
+# % key: ground
+# % label: Output ground return points
+# % description: Output vector point map containing points classified as ground return
+# % required: yes
+# %end
+# %option G_OPT_V_OUTPUT
+# % key: nonground
+# % label: Output non-ground return points
+# % description: Output vector point map containing points NOT classified as ground return
+# % required: yes
+# %end
+# %option nl
+# % key: nl
+# % label: Number of scale domains (nl)
+# % description: nl
+# % type: integer
+# % required: no
+# % answer : 3
+# %end
+# %option t
+# % key: t
+# % type: double
+# % label: Curvature tolerance threshold (t)
+# % required: no
+# % answer : 0.3
+# %end
+# %option j
+# % key: j
+# % label: Convergence threshold (j)
+# % type: double
+# % required: no
+# % answer : 0.1
+# %end
+# %option f
+# % key: f
+# % label: Tension parameter (f)
+# % type: double
+# % required: no
+# % answer : 2
+# %end
+# %option s
+# % key: s
+# % label: Spline steps parameter (s)
+# % type: integer
+# % required: no
+# % answer : 10
+# %end
 
 import sys
 import os

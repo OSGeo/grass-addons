@@ -14,30 +14,30 @@
 #
 #############################################################################
 
-#%module
-#% description: Lists signature file of a group/subgroup.
-#% keyword: imagery
-#% keyword: map management
-#% keyword: list
-#% keyword: signature
-#% keyword: group
-#% keyword: search
-#%end
+# %module
+# % description: Lists signature file of a group/subgroup.
+# % keyword: imagery
+# % keyword: map management
+# % keyword: list
+# % keyword: signature
+# % keyword: group
+# % keyword: search
+# %end
 
-#%flag
-#% key: g
-#% description: Return in shell script style, it require group and subgroup options
-#%end
+# %flag
+# % key: g
+# % description: Return in shell script style, it require group and subgroup options
+# %end
 
-#%option G_OPT_I_GROUP
-#% description: Group used to print signature file
-#% required : no
-#%end
+# %option G_OPT_I_GROUP
+# % description: Group used to print signature file
+# % required : no
+# %end
 
-#%option G_OPT_I_SUBGROUP
-#% description: Subroup used to print signature file
-#% required : no
-#%end
+# %option G_OPT_I_SUBGROUP
+# % description: Subroup used to print signature file
+# % required : no
+# %end
 
 import os
 import sys

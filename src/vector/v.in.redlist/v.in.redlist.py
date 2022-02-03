@@ -14,51 +14,51 @@ COPYRIGHT: (C) 2015 by the GRASS Development Team
            for details.
 """
 
-#%module
-#% description: importing of IUCN Red List Spatial Data
-#% keyword: vector
-#% keyword: geometry
-#%end
+# %module
+# % description: importing of IUCN Red List Spatial Data
+# % keyword: vector
+# % keyword: geometry
+# %end
 
-#%option G_OPT_F_BIN_INPUT
-#% key: input
-#% description: name of the IUCN Red List Spatial Data shapefile
-#% required : yes
-#% guisection: GIS data
-#%end
+# %option G_OPT_F_BIN_INPUT
+# % key: input
+# % description: name of the IUCN Red List Spatial Data shapefile
+# % required : yes
+# % guisection: GIS data
+# %end
 
-#%option G_OPT_V_OUTPUT
-#% key: output
-#% description: name of the imported IUCN Red List Spatial Data
-#% required : no
-#% guisection: GIS data
-#%end
+# %option G_OPT_V_OUTPUT
+# % key: output
+# % description: name of the imported IUCN Red List Spatial Data
+# % required : no
+# % guisection: GIS data
+# %end
 
-#%option
-#% key: species_name
-#% description: name of species which should be imported
-#% required : no
-#% guisection: GIS data
-#%end
+# %option
+# % key: species_name
+# % description: name of species which should be imported
+# % required : no
+# % guisection: GIS data
+# %end
 
-#%flag
-#% key: l
-#% description: list species in IUCN Red List Spatial Data
-#% guisection: listing
-#%end
+# %flag
+# % key: l
+# % description: list species in IUCN Red List Spatial Data
+# % guisection: listing
+# %end
 
-#%flag
-#% key: s
-#% description: save species list to a text file
-#% guisection: listing
-#%end
+# %flag
+# % key: s
+# % description: save species list to a text file
+# % guisection: listing
+# %end
 
-#%option G_OPT_M_DIR
-#% key: dir
-#% description: Directory where the species list will be found
-#% required : no
-#% guisection: listing
-#%end
+# %option G_OPT_M_DIR
+# % key: dir
+# % description: Directory where the species list will be found
+# % required : no
+# % guisection: listing
+# %end
 
 import sys
 import os

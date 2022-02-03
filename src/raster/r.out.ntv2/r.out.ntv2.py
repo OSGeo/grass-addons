@@ -13,81 +13,81 @@
 #
 #############################################################################
 
-#%Module
-#% description: Exports NTv2 datum transformation grid
-#%End
+# %Module
+# % description: Exports NTv2 datum transformation grid
+# %End
 
-#%option
-#% key: latshift
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Input raster map of lattitude datum shift values
-#% required : yes
-#%end
+# %option
+# % key: latshift
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Input raster map of lattitude datum shift values
+# % required : yes
+# %end
 
-#%option
-#% key: lonshift
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Input raster map of longitude datum shift values
-#% required : yes
-#%end
+# %option
+# % key: lonshift
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Input raster map of longitude datum shift values
+# % required : yes
+# %end
 
-#%option
-#% key: output
-#% type: string
-#% description: Output NTv2 datum transformation grid file
-#% gisprompt: new_file,file,output
-#% required: yes
-#%end
+# %option
+# % key: output
+# % type: string
+# % description: Output NTv2 datum transformation grid file
+# % gisprompt: new_file,file,output
+# % required: yes
+# %end
 
-#%option
-#% key: systemt
-#% type: string
-#% description: Transformation grid's destination coordinate system name
-#% required : no
-#% answer: WGS84
-#%end
+# %option
+# % key: systemt
+# % type: string
+# % description: Transformation grid's destination coordinate system name
+# % required : no
+# % answer: WGS84
+# %end
 
-#%option
-#% key: majort
-#% type: string
-#% description: Major ellipsoid axis of the transformation grid's destination coordinate system
-#% required : no
-#% answer: 6378137
-#%end
+# %option
+# % key: majort
+# % type: string
+# % description: Major ellipsoid axis of the transformation grid's destination coordinate system
+# % required : no
+# % answer: 6378137
+# %end
 
-#%option
-#% key: minort
-#% type: string
-#% description: Minor ellipsoid axis of the transformation grid's destination coordinate system
-#% required : no
-#% answer: 6356752.314245
-#%end
+# %option
+# % key: minort
+# % type: string
+# % description: Minor ellipsoid axis of the transformation grid's destination coordinate system
+# % required : no
+# % answer: 6356752.314245
+# %end
 
-#%option
-#% key: systemf
-#% type: string
-#% description: Transformation grid's input coordinate system name
-#% required : no
-#% answer: UNKNOWN
-#%end
+# %option
+# % key: systemf
+# % type: string
+# % description: Transformation grid's input coordinate system name
+# % required : no
+# % answer: UNKNOWN
+# %end
 
-#%option
-#% key: majorf
-#% type: string
-#% description: Major ellipsoid axis of the transformation grid's input coordinate system
-#% required : no
-#% answer: UNKNOWN
-#%end
+# %option
+# % key: majorf
+# % type: string
+# % description: Major ellipsoid axis of the transformation grid's input coordinate system
+# % required : no
+# % answer: UNKNOWN
+# %end
 
-#%option
-#% key: minorf
-#% type: string
-#% description: Minor ellipsoid axis of the transformation grid's input coordinate system
-#% required : no
-#% answer: UNKNOWN
-#%end
+# %option
+# % key: minorf
+# % type: string
+# % description: Minor ellipsoid axis of the transformation grid's input coordinate system
+# % required : no
+# % answer: UNKNOWN
+# %end
 
 """
 SYSTEM_F, SYSTEM_T, MAJOR_F, MINOR_F, MAJOR_T, MINOR_T are not used for

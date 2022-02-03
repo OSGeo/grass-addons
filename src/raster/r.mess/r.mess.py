@@ -17,95 +17,95 @@
 #
 ########################################################################
 #
-#%Module
-#% description: Computes multivariate environmental similarity surface (MES)
-#% keyword: similarity
-#% keyword: raster
-#% keyword: modelling
-#%End
+# %Module
+# % description: Computes multivariate environmental similarity surface (MES)
+# % keyword: similarity
+# % keyword: raster
+# % keyword: modelling
+# %End
 
-#%option G_OPT_R_INPUTS
-#% key: env
-#% description: Reference conditions
-#% key_desc: names
-#% required: yes
-#% guisection: Input
-#%end
+# %option G_OPT_R_INPUTS
+# % key: env
+# % description: Reference conditions
+# % key_desc: names
+# % required: yes
+# % guisection: Input
+# %end
 
-#%option G_OPT_R_INPUTS
-#% key: env_proj
-#% description: Projected conditions
-#% key_desc: names
-#% required: no
-#% guisection: Input
-#%end
+# %option G_OPT_R_INPUTS
+# % key: env_proj
+# % description: Projected conditions
+# % key_desc: names
+# % required: no
+# % guisection: Input
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: ref_rast
-#% label: Reference area (raster)
-#% description: Reference areas (1 = presence, 0 or null = absence)
-#% key_desc: name
-#% required: no
-#% guisection: Input
-#%end
+# %option G_OPT_R_INPUT
+# % key: ref_rast
+# % label: Reference area (raster)
+# % description: Reference areas (1 = presence, 0 or null = absence)
+# % key_desc: name
+# % required: no
+# % guisection: Input
+# %end
 
-#%option G_OPT_V_MAP
-#% key: ref_vect
-#% label: Reference points (vector)
-#% description: Point vector layer with presence locations
-#% key_desc: name
-#% required: no
-#% guisection: Input
-#%end
+# %option G_OPT_V_MAP
+# % key: ref_vect
+# % label: Reference points (vector)
+# % description: Point vector layer with presence locations
+# % key_desc: name
+# % required: no
+# % guisection: Input
+# %end
 
-#%rules
-#%exclusive: ref_rast,ref_vect
-#%end
+# %rules
+# %exclusive: ref_rast,ref_vect
+# %end
 
-#%option G_OPT_R_BASENAME_OUTPUT
-#% description: Root name of the output MESS data layers
-#% key_desc: name
-#% required: yes
-#% guisection: Output
-#%end
+# %option G_OPT_R_BASENAME_OUTPUT
+# % description: Root name of the output MESS data layers
+# % key_desc: name
+# % required: yes
+# % guisection: Output
+# %end
 
-#%option
-#% key: digits
-#% type: integer
-#% description: Precision of your input layers values
-#% key_desc: string
-#% answer: 3
-#%end
+# %option
+# % key: digits
+# % type: integer
+# % description: Precision of your input layers values
+# % key_desc: string
+# % answer: 3
+# %end
 
-#%flag
-#% key: m
-#% description: Calculate Most dissimilar variable (MoD)
-#% guisection: Output
-#%end
+# %flag
+# % key: m
+# % description: Calculate Most dissimilar variable (MoD)
+# % guisection: Output
+# %end
 
-#%flag
-#% key: n
-#% description: Area with negative MESS
-#% guisection: Output
-#%end
+# %flag
+# % key: n
+# % description: Area with negative MESS
+# % guisection: Output
+# %end
 
-#%flag
-#% key: k
-#% description: sum(IES), where IES < 0
-#% guisection: Output
-#%end
+# %flag
+# % key: k
+# % description: sum(IES), where IES < 0
+# % guisection: Output
+# %end
 
-#%flag
-#% key: c
-#% description: Number of IES layers with values < 0
-#% guisection: Output
-#%end
+# %flag
+# % key: c
+# % description: Number of IES layers with values < 0
+# % guisection: Output
+# %end
 
-#%flag:  IES
-#% key: i
-#% description: Remove individual environmental similarity layers (IES)
-#% guisection: Output
-#%end
+# %flag:  IES
+# % key: i
+# % description: Remove individual environmental similarity layers (IES)
+# % guisection: Output
+# %end
 
 # import libraries
 import os

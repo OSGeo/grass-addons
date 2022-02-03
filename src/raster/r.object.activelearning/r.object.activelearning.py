@@ -15,84 +15,84 @@
 # *
 # ******************************************************************
 
-#%module
-#% description: Active learning for classifying raster objects
-#%end
-#%option G_OPT_F_INPUT
-#% key: training_set
-#% description: Training set (csv format)
-#% required: yes
-#%end
-#%option G_OPT_F_INPUT
-#% key: test_set
-#% description: Test set (csv format)
-#% required: yes
-#%end
-#%option G_OPT_F_INPUT
-#% key: unlabeled_set
-#% description: Unlabeled samples (csv format)
-#% required: yes
-#%end
-#%option
-#% key: learning_steps
-#% type: integer
-#% description: Number of samples to label at each iteration
-#% answer: 5
-#% required: no
-#%end
-#%option
-#% key: nbr_uncertainty
-#% type: integer
-#% description: Number of samples to select (based on uncertainty criterion) before applying the diversity criterion.
-#% answer: 15
-#% required: no
-#%end
-#%option
-#% key: diversity_lambda
-#% type: double
-#% description: Lambda parameter used in the diversity heuristic
-#% answer: 0.25
-#% required: no
-#%end
-#%option
-#% key: c_svm
-#% type: double
-#% description: Penalty parameter C of the error term
-#% required: no
-#%end
-#%option
-#% key: gamma_parameter
-#% type: double
-#% description: Kernel coefficient
-#% required: no
-#%end
-#%option
-#% key: search_iter
-#% type: integer
-#% description: Number of parameter settings that are sampled in the automatic parameter search (C, gamma).
-#% answer: 15
-#% required: no
-#%end
-#%option G_OPT_F_INPUT
-#% key: update
-#% description: Training set update file
-#% required: no
-#%end
-#%option G_OPT_F_OUTPUT
-#% key: predictions
-#% description: Output file for class predictions
-#% required: no
-#%end
-#%option G_OPT_F_OUTPUT
-#% key: training_updated
-#% description: Output file for the updated training file
-#% required: no
-#%end
-#%option G_OPT_F_OUTPUT
-#% key: unlabeled_updated
-#% description: Output file for the updated unlabeled file
-#% required: no
-#%end
+# %module
+# % description: Active learning for classifying raster objects
+# %end
+# %option G_OPT_F_INPUT
+# % key: training_set
+# % description: Training set (csv format)
+# % required: yes
+# %end
+# %option G_OPT_F_INPUT
+# % key: test_set
+# % description: Test set (csv format)
+# % required: yes
+# %end
+# %option G_OPT_F_INPUT
+# % key: unlabeled_set
+# % description: Unlabeled samples (csv format)
+# % required: yes
+# %end
+# %option
+# % key: learning_steps
+# % type: integer
+# % description: Number of samples to label at each iteration
+# % answer: 5
+# % required: no
+# %end
+# %option
+# % key: nbr_uncertainty
+# % type: integer
+# % description: Number of samples to select (based on uncertainty criterion) before applying the diversity criterion.
+# % answer: 15
+# % required: no
+# %end
+# %option
+# % key: diversity_lambda
+# % type: double
+# % description: Lambda parameter used in the diversity heuristic
+# % answer: 0.25
+# % required: no
+# %end
+# %option
+# % key: c_svm
+# % type: double
+# % description: Penalty parameter C of the error term
+# % required: no
+# %end
+# %option
+# % key: gamma_parameter
+# % type: double
+# % description: Kernel coefficient
+# % required: no
+# %end
+# %option
+# % key: search_iter
+# % type: integer
+# % description: Number of parameter settings that are sampled in the automatic parameter search (C, gamma).
+# % answer: 15
+# % required: no
+# %end
+# %option G_OPT_F_INPUT
+# % key: update
+# % description: Training set update file
+# % required: no
+# %end
+# %option G_OPT_F_OUTPUT
+# % key: predictions
+# % description: Output file for class predictions
+# % required: no
+# %end
+# %option G_OPT_F_OUTPUT
+# % key: training_updated
+# % description: Output file for the updated training file
+# % required: no
+# %end
+# %option G_OPT_F_OUTPUT
+# % key: unlabeled_updated
+# % description: Output file for the updated unlabeled file
+# % required: no
+# %end
 
 
 try:  # You can run the tests outside of grass where those imports are not available

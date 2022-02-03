@@ -14,479 +14,479 @@
 #
 #############################################################################
 #
-#%Module
-#% description: Assess the financial costs and values
-#% overwrite: yes
-#%End
-#%option G_OPT_V_INPUT
-#%  key: plant
-#%  label: Name of the input vector map with the segments of the plants
-#%  required: yes
-#%end
-#%option G_OPT_V_INPUT
-#%  key: struct
-#%  label: Name of the input vector map with the structure of the plants
-#%  required: yes
-#%end
+# %Module
+# % description: Assess the financial costs and values
+# % overwrite: yes
+# %End
+# %option G_OPT_V_INPUT
+# %  key: plant
+# %  label: Name of the input vector map with the segments of the plants
+# %  required: yes
+# %end
+# %option G_OPT_V_INPUT
+# %  key: struct
+# %  label: Name of the input vector map with the structure of the plants
+# %  required: yes
+# %end
 
 #############################################################################
 
-#%option G_OPT_V_FIELD
-#%  key: plant_layer
-#%  label: Name of the vector map layer of the segments
-#%  required: no
-#%  answer: 1
-#%  guisection: Input columns
-#%end
-#%option G_OPT_V_FIELD
-#%  key: struct_layer
-#%  label: Name of the vector map layer of the structure of the plants
-#%  required: no
-#%  answer: 1
-#%  guisection: Input columns
-#%end
-#%option
-#%  key: struct_column_id
-#%  type: string
-#%  description: Table of the struct map: column name with plant id
-#%  required: no
-#%  answer: plant_id
-#%  guisection: Input columns
-#%end
-#%option
-#%  key: struct_column_power
-#%  type: string
-#%  description: Table of the struct map: column name with power value
-#%  required: no
-#%  answer: power
-#%  guisection: Input columns
-#%end
-#%option
-#%  key: struct_column_head
-#%  type: string
-#%  description: Table of the struct map: column name with head value
-#%  required: no
-#%  answer: gross_head
-#%  guisection: Input columns
-#%end
-#%option
-#%  key: struct_column_side
-#%  type: string
-#%  description: Table of the struct map: column name with the strings that define the side of the plant
-#%  required: no
-#%  answer: side
-#%  guisection: Input columns
-#%end
-#%option
-#%  key: struct_column_kind
-#%  type: string
-#%  description: Table of the struct map: column name with the strings that define if it's a derivation channel or a penstock
-#%  required: no
-#%  answer: kind
-#%  guisection: Input columns
-#%end
-#%option
-#%  key: struct_kind_intake
-#%  type: string
-#%  description: Table of the structures map: Value contained in the column 'kind' which corresponds to the derivation channel
-#%  required: no
-#%  answer: conduct
-#%  guisection: Input columns
-#%end
-#%option
-#%  key: struct_kind_turbine
-#%  type: string
-#%  description: Table of the structures map: Value contained in the column 'kind' which corresponds to the penstock
-#%  required: no
-#%  answer: penstock
-#%  guisection: Input columns
-#%end
-#%option
-#%  key: plant_column_id
-#%  description: Table of the plants map: Column name with the plant id
-#%  required: no
-#%  answer: plant_id
-#%  guisection: Input columns
-#%end
-#%option
-#%  key: plant_basename
-#%  type: string
-#%  description:Table of the plants map: basename of the columns that will be added to the input plants vector map
-#%  required: no
-#%  answer: case1
-#%  guisection: Input columns
-#%end
+# %option G_OPT_V_FIELD
+# %  key: plant_layer
+# %  label: Name of the vector map layer of the segments
+# %  required: no
+# %  answer: 1
+# %  guisection: Input columns
+# %end
+# %option G_OPT_V_FIELD
+# %  key: struct_layer
+# %  label: Name of the vector map layer of the structure of the plants
+# %  required: no
+# %  answer: 1
+# %  guisection: Input columns
+# %end
+# %option
+# %  key: struct_column_id
+# %  type: string
+# %  description: Table of the struct map: column name with plant id
+# %  required: no
+# %  answer: plant_id
+# %  guisection: Input columns
+# %end
+# %option
+# %  key: struct_column_power
+# %  type: string
+# %  description: Table of the struct map: column name with power value
+# %  required: no
+# %  answer: power
+# %  guisection: Input columns
+# %end
+# %option
+# %  key: struct_column_head
+# %  type: string
+# %  description: Table of the struct map: column name with head value
+# %  required: no
+# %  answer: gross_head
+# %  guisection: Input columns
+# %end
+# %option
+# %  key: struct_column_side
+# %  type: string
+# %  description: Table of the struct map: column name with the strings that define the side of the plant
+# %  required: no
+# %  answer: side
+# %  guisection: Input columns
+# %end
+# %option
+# %  key: struct_column_kind
+# %  type: string
+# %  description: Table of the struct map: column name with the strings that define if it's a derivation channel or a penstock
+# %  required: no
+# %  answer: kind
+# %  guisection: Input columns
+# %end
+# %option
+# %  key: struct_kind_intake
+# %  type: string
+# %  description: Table of the structures map: Value contained in the column 'kind' which corresponds to the derivation channel
+# %  required: no
+# %  answer: conduct
+# %  guisection: Input columns
+# %end
+# %option
+# %  key: struct_kind_turbine
+# %  type: string
+# %  description: Table of the structures map: Value contained in the column 'kind' which corresponds to the penstock
+# %  required: no
+# %  answer: penstock
+# %  guisection: Input columns
+# %end
+# %option
+# %  key: plant_column_id
+# %  description: Table of the plants map: Column name with the plant id
+# %  required: no
+# %  answer: plant_id
+# %  guisection: Input columns
+# %end
+# %option
+# %  key: plant_basename
+# %  type: string
+# %  description:Table of the plants map: basename of the columns that will be added to the input plants vector map
+# %  required: no
+# %  answer: case1
+# %  guisection: Input columns
+# %end
 
 
 #############################################################################
 # DEFINE COMPENSATION COSTS
 # provide raster
 
-#%option
-#%  key: interest_rate
-#%  type: double
-#%  description: Interest rate value
-#%  required: no
-#%  answer: 0.03
-#%  guisection: Compensation
-#%end
-#%option
-#%  key: gamma_comp
-#%  type: double
-#%  description: Coefficient
-#%  required: no
-#%  answer: 1.25
-#%  guisection: Compensation
-#%end
-#%option
-#%  key: life
-#%  type: double
-#%  description: Life of the hydropower plant [year]
-#%  required: no
-#%  answer: 30
-#%  guisection: Compensation
-#%end
+# %option
+# %  key: interest_rate
+# %  type: double
+# %  description: Interest rate value
+# %  required: no
+# %  answer: 0.03
+# %  guisection: Compensation
+# %end
+# %option
+# %  key: gamma_comp
+# %  type: double
+# %  description: Coefficient
+# %  required: no
+# %  answer: 1.25
+# %  guisection: Compensation
+# %end
+# %option
+# %  key: life
+# %  type: double
+# %  description: Life of the hydropower plant [year]
+# %  required: no
+# %  answer: 30
+# %  guisection: Compensation
+# %end
 
 
-#%option G_OPT_R_INPUT
-#%  key: landvalue
-#%  label: Name of the raster map with the land value [currency/ha]
-#%  required: no
-#%  guisection: Compensation
-#%end
-#%option G_OPT_R_INPUT
-#%  key: tributes
-#%  label: Name of the raster map with the tributes [currency/ha]
-#%  required: no
-#%  guisection: Compensation
-#%end
-#%option G_OPT_R_INPUT
-#%  key: stumpage
-#%  label: Name of the raster map with the stumpage value [currency/ha]
-#%  required: no
-#%  guisection: Compensation
-#%end
-#%option G_OPT_R_INPUT
-#%  key: rotation
-#%  label: Name of the raster map with the rotation period per landuse type [year]
-#%  required: no
-#%  guisection: Compensation
-#%end
-#%option G_OPT_R_INPUT
-#%  key: age
-#%  label: Name of the raster map with the average age [year]
-#%  required: no
-#%  guisection: Compensation
-#%end
+# %option G_OPT_R_INPUT
+# %  key: landvalue
+# %  label: Name of the raster map with the land value [currency/ha]
+# %  required: no
+# %  guisection: Compensation
+# %end
+# %option G_OPT_R_INPUT
+# %  key: tributes
+# %  label: Name of the raster map with the tributes [currency/ha]
+# %  required: no
+# %  guisection: Compensation
+# %end
+# %option G_OPT_R_INPUT
+# %  key: stumpage
+# %  label: Name of the raster map with the stumpage value [currency/ha]
+# %  required: no
+# %  guisection: Compensation
+# %end
+# %option G_OPT_R_INPUT
+# %  key: rotation
+# %  label: Name of the raster map with the rotation period per landuse type [year]
+# %  required: no
+# %  guisection: Compensation
+# %end
+# %option G_OPT_R_INPUT
+# %  key: age
+# %  label: Name of the raster map with the average age [year]
+# %  required: no
+# %  guisection: Compensation
+# %end
 
 # or rule to transform landuse categories in raster maps
-#%option G_OPT_R_INPUT
-#%  key: landuse
-#%  label: Name of the raster map with the landuse categories
-#%  required: no
-#%  guisection: Compensation
-#%end
+# %option G_OPT_R_INPUT
+# %  key: landuse
+# %  label: Name of the raster map with the landuse categories
+# %  required: no
+# %  guisection: Compensation
+# %end
 
 # RULES
-#%option
-#%  key: rules_landvalue
-#%  type: string
-#%  description: Rule file for the reclassification of the landuse to associate a value for each landuse [currency/ha]
-#%  required: no
-#%  guisection: Compensation
-#%end
-#%option
-#%  key: rules_tributes
-#%  type: string
-#%  description: Rule file for the reclassification of the landuse to associate a tribute rate for each landuse [currency/ha]
-#%  required: no
-#%  guisection: Compensation
-#%end
-#%option
-#%  key: rules_stumpage
-#%  type: string
-#%  description: Rule file for the reclassification of the landuse to associate a stumpage value for each landuse [currency/ha]
-#%  required: no
-#%  guisection: Compensation
-#%end
-#%option
-#%  key: rules_rotation
-#%  type: string
-#%  description: Rule file for the reclassification of the landuse to associate a rotation value for each landuse [year]
-#%  required: no
-#%  guisection: Compensation
-#%end
-#%option
-#%  key: rules_age
-#%  type: string
-#%  description: Rule file for the reclassification of the landuse to associate an age for each landuse [year]
-#%  required: no
-#%  guisection: Compensation
-#%end
+# %option
+# %  key: rules_landvalue
+# %  type: string
+# %  description: Rule file for the reclassification of the landuse to associate a value for each landuse [currency/ha]
+# %  required: no
+# %  guisection: Compensation
+# %end
+# %option
+# %  key: rules_tributes
+# %  type: string
+# %  description: Rule file for the reclassification of the landuse to associate a tribute rate for each landuse [currency/ha]
+# %  required: no
+# %  guisection: Compensation
+# %end
+# %option
+# %  key: rules_stumpage
+# %  type: string
+# %  description: Rule file for the reclassification of the landuse to associate a stumpage value for each landuse [currency/ha]
+# %  required: no
+# %  guisection: Compensation
+# %end
+# %option
+# %  key: rules_rotation
+# %  type: string
+# %  description: Rule file for the reclassification of the landuse to associate a rotation value for each landuse [year]
+# %  required: no
+# %  guisection: Compensation
+# %end
+# %option
+# %  key: rules_age
+# %  type: string
+# %  description: Rule file for the reclassification of the landuse to associate an age for each landuse [year]
+# %  required: no
+# %  guisection: Compensation
+# %end
 
 #############################################################################
 # DEFINE EXCAVATION COSTS
 
-#%option
-#%  key: width
-#%  type: double
-#%  description: Width of the excavation works [m]
-#%  required: no
-#%  answer: 2.
-#%  guisection: Excavation
-#%end
-#%option
-#%  key: depth
-#%  type: double
-#%  description:Depth of the excavation works [m]
-#%  required: no
-#%  answer: 2.
-#%  guisection: Excavation
-#%end
-#%option
-#%  key: slope_limit
-#%  type: double
-#%  description: Slope limit, above this limit the cost will be equal to the maximum [degree]
-#%  required: no
-#%  answer: 50.
-#%  guisection: Excavation
-#%end
+# %option
+# %  key: width
+# %  type: double
+# %  description: Width of the excavation works [m]
+# %  required: no
+# %  answer: 2.
+# %  guisection: Excavation
+# %end
+# %option
+# %  key: depth
+# %  type: double
+# %  description:Depth of the excavation works [m]
+# %  required: no
+# %  answer: 2.
+# %  guisection: Excavation
+# %end
+# %option
+# %  key: slope_limit
+# %  type: double
+# %  description: Slope limit, above this limit the cost will be equal to the maximum [degree]
+# %  required: no
+# %  answer: 50.
+# %  guisection: Excavation
+# %end
 
 # provide raster maps
 
-#%option G_OPT_R_INPUT
-#%  key: min_exc
-#%  label: Minimum excavation costs [currency/mc]
-#%  required: no
-#%  guisection: Excavation
-#%end
-#%option G_OPT_R_INPUT
-#%  key: max_exc
-#%  label: Maximum excavation costs [currency/mc]
-#%  required: no
-#%  guisection: Excavation
-#%end
-#%option G_OPT_R_INPUT
-#%  key: slope
-#%  label: Slope raster map
-#%  required: yes
-#%  guisection: Excavation
-#%end
+# %option G_OPT_R_INPUT
+# %  key: min_exc
+# %  label: Minimum excavation costs [currency/mc]
+# %  required: no
+# %  guisection: Excavation
+# %end
+# %option G_OPT_R_INPUT
+# %  key: max_exc
+# %  label: Maximum excavation costs [currency/mc]
+# %  required: no
+# %  guisection: Excavation
+# %end
+# %option G_OPT_R_INPUT
+# %  key: slope
+# %  label: Slope raster map
+# %  required: yes
+# %  guisection: Excavation
+# %end
 
 
 # RULES
-#%option
-#%  key: rules_min_exc
-#%  type: string
-#%  description: Rule file for the reclassification of the landuse to associate a minimum excavation cost for each landuse [currency/mc].
-#%  required: no
-#%  guisection: Excavation
-#%end
-#%option
-#%  key: rules_max_exc
-#%  type: string
-#%  description: Rule file for the reclassification of the landuse to associate a maximum excavation cost for each landuse [currency/mc].
-#%  required: no
-#%  guisection: Excavation
-#%end
+# %option
+# %  key: rules_min_exc
+# %  type: string
+# %  description: Rule file for the reclassification of the landuse to associate a minimum excavation cost for each landuse [currency/mc].
+# %  required: no
+# %  guisection: Excavation
+# %end
+# %option
+# %  key: rules_max_exc
+# %  type: string
+# %  description: Rule file for the reclassification of the landuse to associate a maximum excavation cost for each landuse [currency/mc].
+# %  required: no
+# %  guisection: Excavation
+# %end
 
 #############################################################################
 # DEFINE ELECTROMECHANICAL COSTS
-#%option
-#%  key: alpha_em
-#%  type: double
-#%  description: Electro-mechanical costs alpha parameter, default values taken from Aggidis et al. 2010
-#%  required: no
-#%  answer: 0.56
-#%  guisection: Electro-mechanical
-#%end
-#%option
-#%  key: beta_em
-#%  type: double
-#%  description: Electro-mechanical costs beta parameter, default values taken from Aggidis et al. 2010
-#%  required: no
-#%  answer: -0.112
-#%  guisection: Electro-mechanical
-#%end
-#%option
-#%  key: gamma_em
-#%  type: double
-#%  description: Electro-mechanical costs gamma parameter, default values taken from Aggidis et al. 2010
-#%  required: no
-#%  answer: 15600.0
-#%  guisection: Electro-mechanical
-#%end
-#%option
-#%  key: const_em
-#%  type: double
-#%  description: Electro-mechanical costs constant value, default values taken from Aggidis et al. 2010
-#%  required: no
-#%  answer: 0.
-#%  guisection: Electro-mechanical
-#%end
+# %option
+# %  key: alpha_em
+# %  type: double
+# %  description: Electro-mechanical costs alpha parameter, default values taken from Aggidis et al. 2010
+# %  required: no
+# %  answer: 0.56
+# %  guisection: Electro-mechanical
+# %end
+# %option
+# %  key: beta_em
+# %  type: double
+# %  description: Electro-mechanical costs beta parameter, default values taken from Aggidis et al. 2010
+# %  required: no
+# %  answer: -0.112
+# %  guisection: Electro-mechanical
+# %end
+# %option
+# %  key: gamma_em
+# %  type: double
+# %  description: Electro-mechanical costs gamma parameter, default values taken from Aggidis et al. 2010
+# %  required: no
+# %  answer: 15600.0
+# %  guisection: Electro-mechanical
+# %end
+# %option
+# %  key: const_em
+# %  type: double
+# %  description: Electro-mechanical costs constant value, default values taken from Aggidis et al. 2010
+# %  required: no
+# %  answer: 0.
+# %  guisection: Electro-mechanical
+# %end
 
 #############################################################################
 # DEFINE SUPPLY AND INSTALLATION COSTS
-#%option
-#%  key: lc_pipe
-#%  type: double
-#%  description: Supply and installation linear cost for the pipeline [currency/m]
-#%  answer: 310.
-#%  guisection: Supply & Installation
-#%end
-#%option
-#%  key: lc_electro
-#%  type: double
-#%  description: Supply and installation linear cost for the electroline [currency/m]
-#%  answer: 250.
-#%  guisection: Supply & Installation
-#%end
-#%option G_OPT_V_INPUT
-#%  key: electro
-#%  label: Name of the vector map with the electric grid
-#%  required: yes
-#%end
-#%option
-#%  key: electro_layer
-#%  description: Vector map layer of the grid
-#%  required: no
-#%  answer: 1
-#%end
-#%option
-#%  key: elines
-#%  description: Output name of the vector map with power lines
-#%  required: no
-#%end
+# %option
+# %  key: lc_pipe
+# %  type: double
+# %  description: Supply and installation linear cost for the pipeline [currency/m]
+# %  answer: 310.
+# %  guisection: Supply & Installation
+# %end
+# %option
+# %  key: lc_electro
+# %  type: double
+# %  description: Supply and installation linear cost for the electroline [currency/m]
+# %  answer: 250.
+# %  guisection: Supply & Installation
+# %end
+# %option G_OPT_V_INPUT
+# %  key: electro
+# %  label: Name of the vector map with the electric grid
+# %  required: yes
+# %end
+# %option
+# %  key: electro_layer
+# %  description: Vector map layer of the grid
+# %  required: no
+# %  answer: 1
+# %end
+# %option
+# %  key: elines
+# %  description: Output name of the vector map with power lines
+# %  required: no
+# %end
 
 #############################################################################
 # DEFINE POWER STATION COSTS
-#%option
-#%  key: alpha_station
-#%  type: double
-#%  description: Power station costs are assessed as a fraction of the Electro-mechanical costs
-#%  answer: 0.52
-#%  guisection: Power station
-#%end
+# %option
+# %  key: alpha_station
+# %  type: double
+# %  description: Power station costs are assessed as a fraction of the Electro-mechanical costs
+# %  answer: 0.52
+# %  guisection: Power station
+# %end
 
 #############################################################################
 # DEFINE INLET COSTS
-#%option
-#%  key: alpha_inlet
-#%  type: double
-#%  description: Inlet costs are assessed as a fraction of the Electro-mechanical costs
-#%  answer: 0.38
-#%  guisection: Inlet
-#%end
+# %option
+# %  key: alpha_inlet
+# %  type: double
+# %  description: Inlet costs are assessed as a fraction of the Electro-mechanical costs
+# %  answer: 0.38
+# %  guisection: Inlet
+# %end
 
 #############################################################################
 # DEFINE OTHER COSTS
-#%option
-#%  key: grid
-#%  type: double
-#%  description:  Cost for grid connection
-#%  answer: 50000
-#%  guisection: Other
-#%end
-#%option
-#%  key: general
-#%  type: double
-#%  description:  Factor for general expenses
-#%  answer: 0.15
-#%  guisection: Other
-#%end
-#%option
-#%  key: hindrances
-#%  type: double
-#%  description:  Factor for hindrances expenses
-#%  answer: 0.1
-#%  guisection: Other
-#%end
+# %option
+# %  key: grid
+# %  type: double
+# %  description:  Cost for grid connection
+# %  answer: 50000
+# %  guisection: Other
+# %end
+# %option
+# %  key: general
+# %  type: double
+# %  description:  Factor for general expenses
+# %  answer: 0.15
+# %  guisection: Other
+# %end
+# %option
+# %  key: hindrances
+# %  type: double
+# %  description:  Factor for hindrances expenses
+# %  answer: 0.1
+# %  guisection: Other
+# %end
 # DEFINE MAINTENANCE COSTS
-#%option
-#%  key: cost_maintenance_per_kw
-#%  type: double
-#%  description: Maintenace costs per kW
-#%  answer: 7000.
-#%  guisection: Maintenance
-#%end
-#%option
-#%  key: alpha_maintenance
-#%  type: double
-#%  description: Alpha coefficient to assess the maintenance costs
-#%  answer: 0.05
-#%  guisection: Maintenance
-#%end
-#%option
-#%  key: beta_maintenance
-#%  type: double
-#%  description: Beta coefficient to assess the maintenance costs
-#%  answer: 0.45
-#%  guisection: Maintenance
-#%end
-#%option
-#%  key: const_maintenance
-#%  type: double
-#%  description: Constant to assess the maintenance costs
-#%  answer: 0.
-#%  guisection: Maintenance
-#%end
+# %option
+# %  key: cost_maintenance_per_kw
+# %  type: double
+# %  description: Maintenace costs per kW
+# %  answer: 7000.
+# %  guisection: Maintenance
+# %end
+# %option
+# %  key: alpha_maintenance
+# %  type: double
+# %  description: Alpha coefficient to assess the maintenance costs
+# %  answer: 0.05
+# %  guisection: Maintenance
+# %end
+# %option
+# %  key: beta_maintenance
+# %  type: double
+# %  description: Beta coefficient to assess the maintenance costs
+# %  answer: 0.45
+# %  guisection: Maintenance
+# %end
+# %option
+# %  key: const_maintenance
+# %  type: double
+# %  description: Constant to assess the maintenance costs
+# %  answer: 0.
+# %  guisection: Maintenance
+# %end
 
 # DEFINE REVENUES PARAMETERS
-#%option
-#%  key: energy_price
-#%  type: double
-#%  description: Energy price per kW [currency/kW]
-#%  answer: 0.1
-#%  guisection: Revenues
-#%end
-#%option
-#%  key: eta
-#%  type: double
-#%  description: Efficiency of electro-mechanical components
-#%  answer: 0.81
-#%  guisection: Revenues
-#%end
-#%option
-#%  key: operative_hours
-#%  type: double
-#%  description: Number of operative hours per year [hours/year]
-#%  answer: 3392.
-#%  guisection: Revenues
-#%end
-#%option
-#%  key: const_revenue
-#%  type: double
-#%  description: Constant to assess the revenues
-#%  answer: 0.
-#%  guisection: Revenues
-#%end
+# %option
+# %  key: energy_price
+# %  type: double
+# %  description: Energy price per kW [currency/kW]
+# %  answer: 0.1
+# %  guisection: Revenues
+# %end
+# %option
+# %  key: eta
+# %  type: double
+# %  description: Efficiency of electro-mechanical components
+# %  answer: 0.81
+# %  guisection: Revenues
+# %end
+# %option
+# %  key: operative_hours
+# %  type: double
+# %  description: Number of operative hours per year [hours/year]
+# %  answer: 3392.
+# %  guisection: Revenues
+# %end
+# %option
+# %  key: const_revenue
+# %  type: double
+# %  description: Constant to assess the revenues
+# %  answer: 0.
+# %  guisection: Revenues
+# %end
 
 #############################################################################
 # DEFINE OUTPUTS
-#%option G_OPT_V_OUTPUT
-#%  key: output_struct
-#%  label: Name of the output vector map: plants' structure including the main costs in the table
-#%  required: yes
-#%end
+# %option G_OPT_V_OUTPUT
+# %  key: output_struct
+# %  label: Name of the output vector map: plants' structure including the main costs in the table
+# %  required: yes
+# %end
 
 ## COSTS
-#%option G_OPT_R_OUTPUT
-#%  key: compensation
-#%  label: Output raster map with the compensation values
-#%  required: no
-#%end
-#%option G_OPT_R_OUTPUT
-#%  key: excavation
-#%  label: Output raster map with the excavation costs
-#%  required: no
-#%end
+# %option G_OPT_R_OUTPUT
+# %  key: compensation
+# %  label: Output raster map with the compensation values
+# %  required: no
+# %end
+# %option G_OPT_R_OUTPUT
+# %  key: excavation
+# %  label: Output raster map with the excavation costs
+# %  required: no
+# %end
 
 ## VALUES
-#%option G_OPT_R_OUTPUT
-#%  key: upper
-#%  label: Output raster map with the value upper part of the soil
-#%  required: no
-#%end
+# %option G_OPT_R_OUTPUT
+# %  key: upper
+# %  label: Output raster map with the value upper part of the soil
+# %  required: no
+# %end
 
 #############################################################################
 from __future__ import print_function

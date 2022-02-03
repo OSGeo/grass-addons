@@ -18,47 +18,47 @@
 #
 ############################################################################
 
-#%module
-#% description: Imports PROBA-V NDVI data in netCDF format into a raster map with real NDVI data range.
-#% keyword: imagery
-#% keyword: import
-#% keyword: NDVI
-#% keyword: PROBA-V
-#%end
-#%option G_OPT_F_INPUT
-#% description: Name of input PROBA-V NDVI .nc file
-#%end
-#%option G_OPT_R_OUTPUT
-#%end
-#%option
-#% key: scale
-#% type: double
-#% required: no
-#% multiple: no
-#% answer: 0.004
-#% key_desc: float
-#% description: Scale factor for input
-#%end
-#%option
-#% key: shift
-#% type: double
-#% required: no
-#% multiple: no
-#% answer: -0.08
-#% key_desc: float
-#% label: Shift factor for input
-#% description: Offset factor for input
-#%end
-#%option
-#% key: memory
-#% type: double
-#% required: no
-#% multiple: no
-#% options: 0-2047
-#% answer: 300
-#% key_desc: integer
-#% description: Maximum memory to be used in MB
-#%end
+# %module
+# % description: Imports PROBA-V NDVI data in netCDF format into a raster map with real NDVI data range.
+# % keyword: imagery
+# % keyword: import
+# % keyword: NDVI
+# % keyword: PROBA-V
+# %end
+# %option G_OPT_F_INPUT
+# % description: Name of input PROBA-V NDVI .nc file
+# %end
+# %option G_OPT_R_OUTPUT
+# %end
+# %option
+# % key: scale
+# % type: double
+# % required: no
+# % multiple: no
+# % answer: 0.004
+# % key_desc: float
+# % description: Scale factor for input
+# %end
+# %option
+# % key: shift
+# % type: double
+# % required: no
+# % multiple: no
+# % answer: -0.08
+# % key_desc: float
+# % label: Shift factor for input
+# % description: Offset factor for input
+# %end
+# %option
+# % key: memory
+# % type: double
+# % required: no
+# % multiple: no
+# % options: 0-2047
+# % answer: 300
+# % key_desc: integer
+# % description: Maximum memory to be used in MB
+# %end
 
 import sys
 import os

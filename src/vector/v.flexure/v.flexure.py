@@ -25,96 +25,96 @@
 # Started 20 Jan 2015 to add GRASS GIS support for distributed point loads
 # and their effects on lithospheric flexure
 
-#%module
-#% description: Lithospheric flexure: gridded deflections from scattered point loads
-#% keyword: vector
-#% keyword: geophysics
-#%end
+# %module
+# % description: Lithospheric flexure: gridded deflections from scattered point loads
+# % keyword: vector
+# % keyword: geophysics
+# %end
 
-#%option G_OPT_V_INPUT
-#%  key: input
-#%  description: Vector map of loads (thickness * area * density * g) [N]
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_V_INPUT
+# %  key: input
+# %  description: Vector map of loads (thickness * area * density * g) [N]
+# %  guidependency: layer,column
+# %end
 
-#%option G_OPT_V_FIELD
-#%  key: layer
-#%  description: Layer containing load values
-#%  guidependency: column
-#%end
+# %option G_OPT_V_FIELD
+# %  key: layer
+# %  description: Layer containing load values
+# %  guidependency: column
+# %end
 
-#%option G_OPT_DB_COLUMNS
-#%  key: column
-#%  description: Column containing load values [N]
-#%  required : yes
-#%end
+# %option G_OPT_DB_COLUMNS
+# %  key: column
+# %  description: Column containing load values [N]
+# %  required : yes
+# %end
 
-#%option
-#%  key: te
-#%  type: double
-#%  description: Elastic thicnkess: scalar; unis chosen in "te_units"
-#%  required : yes
-#%end
+# %option
+# %  key: te
+# %  type: double
+# %  description: Elastic thicnkess: scalar; unis chosen in "te_units"
+# %  required : yes
+# %end
 
-#%option
-#%  key: te_units
-#%  type: string
-#%  description: Units for elastic thickness
-#%  options: m, km
-#%  required : yes
-#%end
+# %option
+# %  key: te_units
+# %  type: string
+# %  description: Units for elastic thickness
+# %  options: m, km
+# %  required : yes
+# %end
 
-#%option G_OPT_V_OUTPUT
-#%  key: output
-#%  description: Output vector points map of vertical deflections [m]
-#%  required : yes
-#%end
+# %option G_OPT_V_OUTPUT
+# %  key: output
+# %  description: Output vector points map of vertical deflections [m]
+# %  required : yes
+# %end
 
-#%option G_OPT_R_OUTPUT
-#%  key: raster_output
-#%  description: Output raster map of vertical deflections [m]
-#%  required : no
-#%end
+# %option G_OPT_R_OUTPUT
+# %  key: raster_output
+# %  description: Output raster map of vertical deflections [m]
+# %  required : no
+# %end
 
-#%option
-#%  key: g
-#%  type: double
-#%  description: gravitational acceleration at surface [m/s^2]
-#%  answer: 9.8
-#%  required : no
-#%end
+# %option
+# %  key: g
+# %  type: double
+# %  description: gravitational acceleration at surface [m/s^2]
+# %  answer: 9.8
+# %  required : no
+# %end
 
-#%option
-#%  key: ym
-#%  type: double
-#%  description: Young's Modulus [Pa]
-#%  answer: 65E9
-#%  required : no
-#%end
+# %option
+# %  key: ym
+# %  type: double
+# %  description: Young's Modulus [Pa]
+# %  answer: 65E9
+# %  required : no
+# %end
 
-#%option
-#%  key: nu
-#%  type: double
-#%  description: Poisson's ratio
-#%  answer: 0.25
-#%  required : no
-#%end
+# %option
+# %  key: nu
+# %  type: double
+# %  description: Poisson's ratio
+# %  answer: 0.25
+# %  required : no
+# %end
 
-#%option
-#%  key: rho_fill
-#%  type: double
-#%  description: Density of material that fills flexural depressions [kg/m^3]
-#%  answer: 0
-#%  required : no
-#%end
+# %option
+# %  key: rho_fill
+# %  type: double
+# %  description: Density of material that fills flexural depressions [kg/m^3]
+# %  answer: 0
+# %  required : no
+# %end
 
-#%option
-#%  key: rho_m
-#%  type: double
-#%  description: Mantle density [kg/m^3]
-#%  answer: 3300
-#%  required : no
-#%end
+# %option
+# %  key: rho_m
+# %  type: double
+# %  description: Mantle density [kg/m^3]
+# %  answer: 3300
+# %  required : no
+# %end
 
 
 ##################

@@ -20,63 +20,63 @@
 #
 ##############################################################################
 
-#%module
-#% description: Vector Ruggedness Measure
-#%end
+# %module
+# % description: Vector Ruggedness Measure
+# %end
 
-#%option G_OPT_R_INPUTS
-#% key: elevation
-#% label: DEM Raster Input
-#% description: GRASS raster elevation map
-#%end
+# %option G_OPT_R_INPUTS
+# % key: elevation
+# % label: DEM Raster Input
+# % description: GRASS raster elevation map
+# %end
 
-#%option
-#% key: size
-#% type: integer
-#% label: Size of neighbourhood
-#% description: Size of neighbourhood to calculate the vector dispersion over. Multiple sizes are accepted to more efficiently calculate the VRM over different scales.
-#% answer: 3
-#% multiple: yes
-#% guisection: Required
-#%end
+# %option
+# % key: size
+# % type: integer
+# % label: Size of neighbourhood
+# % description: Size of neighbourhood to calculate the vector dispersion over. Multiple sizes are accepted to more efficiently calculate the VRM over different scales.
+# % answer: 3
+# % multiple: yes
+# % guisection: Required
+# %end
 
-#%option G_OPT_R_OUTPUTS
-#% key: output
-#% label: Vector Ruggedness Measure Output
-#%end
+# %option G_OPT_R_OUTPUTS
+# % key: output
+# % label: Vector Ruggedness Measure Output
+# %end
 
-#%option G_OPT_R_INPUT
-#% label: Optional slope raster map
-#% description: Optional slope raster map. If not supplied, then a slope map will be calculated internally.
-#% key: slope
-#% required: no
-#% guisection: Optional
-#%end
+# %option G_OPT_R_INPUT
+# % label: Optional slope raster map
+# % description: Optional slope raster map. If not supplied, then a slope map will be calculated internally.
+# % key: slope
+# % required: no
+# % guisection: Optional
+# %end
 
-#%option G_OPT_R_INPUT
-#% label: Optional aspect raster map
-#% description: Optional aspect raster map. If not supplied, then an aspect map will be calculated internally.
-#% key: aspect
-#% required: no
-#% guisection: Optional
-#%end
+# %option G_OPT_R_INPUT
+# % label: Optional aspect raster map
+# % description: Optional aspect raster map. If not supplied, then an aspect map will be calculated internally.
+# % key: aspect
+# % required: no
+# % guisection: Optional
+# %end
 
-#%option
-#% key: exponent
-#% type: double
-#% description: Exponent for distance weighting (zero is equal weights)
-#% answer: 0
-#% guisection: Optional
-#%end
+# %option
+# % key: exponent
+# % type: double
+# % description: Exponent for distance weighting (zero is equal weights)
+# % answer: 0
+# % guisection: Optional
+# %end
 
-#%option
-#% key: nprocs
-#% type: integer
-#% label: The maximum number of cores to use for multiprocessing
-#% description: The maximum number of cores to use for multiprocessing. -1 uses all cores, -2 uses n_cores-1 etc.
-#% answer: -1
-#% guisection: Optional
-#%end
+# %option
+# % key: nprocs
+# % type: integer
+# % label: The maximum number of cores to use for multiprocessing
+# % description: The maximum number of cores to use for multiprocessing. -1 uses all cores, -2 uses n_cores-1 etc.
+# % answer: -1
+# % guisection: Optional
+# %end
 
 import atexit
 import copy

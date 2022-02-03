@@ -23,77 +23,77 @@
 # More information
 # Started December 2016
 
-#%module
-#% description: Upload data to PRMS data
-#% keyword: vector
-#% keyword: import
-#% keyword: hydrology
-#% keyword: GSFLOW
-#%end
+# %module
+# % description: Upload data to PRMS data
+# % keyword: vector
+# % keyword: import
+# % keyword: hydrology
+# % keyword: GSFLOW
+# %end
 
-#%option G_OPT_V_INPUT
-#%  key: map
-#%  label: GSFLOW vect: HRUs, MODFLOW grid, gravres, segments, or reaches
-#%  required: yes
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_V_INPUT
+# %  key: map
+# %  label: GSFLOW vect: HRUs, MODFLOW grid, gravres, segments, or reaches
+# %  required: yes
+# %  guidependency: layer,column
+# %end
 
-#%option G_OPT_V_INPUT
-#%  key: vector_area
-#%  label: Input vector area (polygon) data set (e.g., geologic map)
-#%  required: no
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_V_INPUT
+# %  key: vector_area
+# %  label: Input vector area (polygon) data set (e.g., geologic map)
+# %  required: no
+# %  guidependency: layer,column
+# %end
 
-#%option G_OPT_V_INPUT
-#%  key: vector_points
-#%  label: Input vector points data set (e.g., field surveys at points)
-#%  required: no
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_V_INPUT
+# %  key: vector_points
+# %  label: Input vector points data set (e.g., field surveys at points)
+# %  required: no
+# %  guidependency: layer,column
+# %end
 
-#%option G_OPT_R_INPUT
-#%  key: raster
-#%  label: Input raster gridded data set (e.g., gridded soils data)
-#%  required: no
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_R_INPUT
+# %  key: raster
+# %  label: Input raster gridded data set (e.g., gridded soils data)
+# %  required: no
+# %  guidependency: layer,column
+# %end
 
-#%option
-#%  key: dxy
-#%  type: string
-#%  description: Cell size for rasterization of vector_area, if needed
-#%  answer: 100
-#%  required: no
-#%end
+# %option
+# %  key: dxy
+# %  type: string
+# %  description: Cell size for rasterization of vector_area, if needed
+# %  answer: 100
+# %  required: no
+# %end
 
-#%option
-#%  key: column
-#%  type: string
-#%  description: Column to which to upload data (will create if doesn't exist)
-#%  required: no
-#%end
+# %option
+# %  key: column
+# %  type: string
+# %  description: Column to which to upload data (will create if doesn't exist)
+# %  required: no
+# %end
 
-#%option
-#%  key: from_column
-#%  type: string
-#%  description: Column from which to upload data (for vector input)
-#%  required: no
-#%end
+# %option
+# %  key: from_column
+# %  type: string
+# %  description: Column from which to upload data (for vector input)
+# %  required: no
+# %end
 
-#%option
-#%  key: attrtype
-#%  type: string
-#%  description: Data type in column; user may treat int as float
-#%  options: int,float,string
-#%  required: no
-#%end
+# %option
+# %  key: attrtype
+# %  type: string
+# %  description: Data type in column; user may treat int as float
+# %  options: int,float,string
+# %  required: no
+# %end
 
-#%rules
-#% exclusive: vector_area, vector_points, raster
-#% requires: vector_area, column, from_column, attrtype
-#% requires: vector_points, column, from_column, attrtype
-#%end
+# %rules
+# % exclusive: vector_area, vector_points, raster
+# % requires: vector_area, column, from_column, attrtype
+# % requires: vector_points, column, from_column, attrtype
+# %end
 
 
 ##################

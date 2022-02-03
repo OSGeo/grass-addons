@@ -21,46 +21,46 @@
 #
 #############################################################################
 
-#%Module
-#% description: Sub-watershed and sub-stream delineation based on the drainage direction and a gridded stream network.
-#% keyword: raster
-#% keyword: stream
-#% keyword: drainage
-#% keyword: hydrology
-#%End
+# %Module
+# % description: Sub-watershed and sub-stream delineation based on the drainage direction and a gridded stream network.
+# % keyword: raster
+# % keyword: stream
+# % keyword: drainage
+# % keyword: hydrology
+# %End
 
-#%option
-#% key: drainage
-#% type: string
-#% key_desc: name
-#% description: Name of the drainage direction raster (generated with r.watershed)
-#% required : yes
-#%end
+# %option
+# % key: drainage
+# % type: string
+# % key_desc: name
+# % description: Name of the drainage direction raster (generated with r.watershed)
+# % required : yes
+# %end
 
-#%option
-#% key: stream
-#% type: string
-#% key_desc: name
-#% description: Name of the stream network raster
-#% required : yes
-#%end
+# %option
+# % key: stream
+# % type: string
+# % key_desc: name
+# % description: Name of the stream network raster
+# % required : yes
+# %end
 
-#%option
-#% key: folder 
-#% type: string
-#% key_desc: name
-#% description: Provide the full folder path and name where the sub-watersheds and sub-streams should be stored
-#% required:no
-#% answer: GISDBASE/folder_structure
-#%end
+# %option
+# % key: folder 
+# % type: string
+# % key_desc: name
+# % description: Provide the full folder path and name where the sub-watersheds and sub-streams should be stored
+# % required:no
+# % answer: GISDBASE/folder_structure
+# %end
 
-#%option
-#% key: cpu
-#% type: double
-#% description: Number of CPUs used for the parallel computation
-#% answer: 1
-#% required:no
-#%end
+# %option
+# % key: cpu
+# % type: double
+# % description: Number of CPUs used for the parallel computation
+# % answer: 1
+# % required:no
+# %end
 
 if [ -z "$GISBASE" ] ; then
     echo "You must be in GRASS GIS to run this program." >&2

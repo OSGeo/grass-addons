@@ -13,92 +13,92 @@
 #
 #############################################################################
 
-#%module
-#% description: Creates isochrones from a road map and starting points
-#% keyword: vector
-#% keyword: network
-#% keyword: isochrones
-#%end
-#%option G_OPT_V_MAP
-#% label: Roads with speed attribute
-#% required: yes
-#%end
-#%option G_OPT_V_FIELD
-#% key: roads_layer
-#% label: Layer number of the roads with relevant attributes
-#% required: yes
-#%end
-#%option G_OPT_V_FIELD
-#% key: node_layer
-#% label: Layer number of the nodes on the network (for method=v.net.iso)
-#% required: no
-#% answer: 2
-#% guisection: v.net.iso
-#%end
-#%option G_OPT_DB_COLUMN
-#% key: cost_column
-#% description: Name of speed attribute column (in km/h) or cost column (in minutes)
-#% required: yes
-#%end
-#%option G_OPT_V_INPUT
-#% key: start_points
-#% label: Vector map with starting points for isochrones
-#% required: yes
-#%end
-#%option G_OPT_V_OUTPUT
-#% key: isochrones
-#% label: Output vector map with isochrone polygons (Output prefix with flag -i)
-#% required: yes
-#%end
-#%option
-#% key: time_steps
-#% type: double
-#% description: Time steps of isochrones (in minutes)
-#% multiple: yes
-#% required: yes
-#%end
-#%option G_OPT_R_OUTPUT
-#% key: timemap
-#% label: Optional output raster map with continuous time from starting points
-#% required: no
-#% guisection: r.cost
-#%end
-#%option
-#% key: offroad_speed
-#% type: double
-#% description: Speed for off-road areas (in km/h > 0)
-#% required: no
-#% answer: 5.0
-#% guisection: r.cost
-#%end
-#%option
-#% key: memory
-#% description: Amount of memory (in MB) use
-#% type: integer
-#% required: no
-#% answer: 300
-#% guisection: r.cost
-#%end
-#%option
-#% key: max_distance
-#% type: double
-#% description: Maximum distance (m) from network to include into isochrones
-#% required: no
-#% guisection: v.net.iso
-#%end
-#%option
-#% key: method
-#% description: Method to use for isochrone calculation
-#% type: string
-#% required: yes
-#% options: v.net.iso,r.cost
-#% answer: v.net.iso
-#%end
-#%flag
-#% key: i
-#% description: Create individual isochrone map for each starting point
-#% guisection: v.net.iso
-#%end
+# %module
+# % description: Creates isochrones from a road map and starting points
+# % keyword: vector
+# % keyword: network
+# % keyword: isochrones
+# %end
+# %option G_OPT_V_MAP
+# % label: Roads with speed attribute
+# % required: yes
+# %end
+# %option G_OPT_V_FIELD
+# % key: roads_layer
+# % label: Layer number of the roads with relevant attributes
+# % required: yes
+# %end
+# %option G_OPT_V_FIELD
+# % key: node_layer
+# % label: Layer number of the nodes on the network (for method=v.net.iso)
+# % required: no
+# % answer: 2
+# % guisection: v.net.iso
+# %end
+# %option G_OPT_DB_COLUMN
+# % key: cost_column
+# % description: Name of speed attribute column (in km/h) or cost column (in minutes)
+# % required: yes
+# %end
+# %option G_OPT_V_INPUT
+# % key: start_points
+# % label: Vector map with starting points for isochrones
+# % required: yes
+# %end
+# %option G_OPT_V_OUTPUT
+# % key: isochrones
+# % label: Output vector map with isochrone polygons (Output prefix with flag -i)
+# % required: yes
+# %end
+# %option
+# % key: time_steps
+# % type: double
+# % description: Time steps of isochrones (in minutes)
+# % multiple: yes
+# % required: yes
+# %end
+# %option G_OPT_R_OUTPUT
+# % key: timemap
+# % label: Optional output raster map with continuous time from starting points
+# % required: no
+# % guisection: r.cost
+# %end
+# %option
+# % key: offroad_speed
+# % type: double
+# % description: Speed for off-road areas (in km/h > 0)
+# % required: no
+# % answer: 5.0
+# % guisection: r.cost
+# %end
+# %option
+# % key: memory
+# % description: Amount of memory (in MB) use
+# % type: integer
+# % required: no
+# % answer: 300
+# % guisection: r.cost
+# %end
+# %option
+# % key: max_distance
+# % type: double
+# % description: Maximum distance (m) from network to include into isochrones
+# % required: no
+# % guisection: v.net.iso
+# %end
+# %option
+# % key: method
+# % description: Method to use for isochrone calculation
+# % type: string
+# % required: yes
+# % options: v.net.iso,r.cost
+# % answer: v.net.iso
+# %end
+# %flag
+# % key: i
+# % description: Create individual isochrone map for each starting point
+# % guisection: v.net.iso
+# %end
 
 
 import os

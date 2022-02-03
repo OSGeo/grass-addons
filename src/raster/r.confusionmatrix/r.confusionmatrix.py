@@ -16,63 +16,63 @@
 #
 #############################################################################
 
-#%Module
-#% description: Calculates a confusion matrix and accuracies for a given classification using r.kappa.
-#% keyword: raster
-#% keyword: statistics
-#% keyword: accuracy
-#% keyword: classification
-#%end
+# %Module
+# % description: Calculates a confusion matrix and accuracies for a given classification using r.kappa.
+# % keyword: raster
+# % keyword: statistics
+# % keyword: accuracy
+# % keyword: classification
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: classification
-#% required: no
-#% description: Name of raster map containing classification result
-#%end
+# %option G_OPT_R_INPUT
+# % key: classification
+# % required: no
+# % description: Name of raster map containing classification result
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: raster_reference
-#% required: no
-#% description: Name of raster map containing reference classes
-#%end
+# %option G_OPT_R_INPUT
+# % key: raster_reference
+# % required: no
+# % description: Name of raster map containing reference classes
+# %end
 
-#%option G_OPT_V_INPUT
-#% key: vector_reference
-#% required: no
-#% description: Name of vector map containing reference classes
-#%end
+# %option G_OPT_V_INPUT
+# % key: vector_reference
+# % required: no
+# % description: Name of vector map containing reference classes
+# %end
 
-#%option G_OPT_DB_COLUMN
-#% key: column
-#% required: no
-#% description: Name of column in the vector map containing reference classes
-#%end
+# %option G_OPT_DB_COLUMN
+# % key: column
+# % required: no
+# % description: Name of column in the vector map containing reference classes
+# %end
 
-#%option
-#% key: label_column
-#% type: string
-#% required: no
-#% multiple: no
-#% key_desc: name
-#% description: Name of column used as raster category labels
-#%end
+# %option
+# % key: label_column
+# % type: string
+# % required: no
+# % multiple: no
+# % key_desc: name
+# % description: Name of column used as raster category labels
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key: csvfile
-#% required: no
-#% label: Name for output csv file containing confusion matrix and accuracies
-#% description: If not given write to standard output
-#%end
+# %option G_OPT_F_OUTPUT
+# % key: csvfile
+# % required: no
+# % label: Name for output csv file containing confusion matrix and accuracies
+# % description: If not given write to standard output
+# %end
 
-#%flag
-#% key: d
-#% description: Description of the accuracies
-#%end
+# %flag
+# % key: d
+# % description: Description of the accuracies
+# %end
 
-#%flag
-#% key: m
-#% description: Print output as a matrix
-#%end
+# %flag
+# % key: m
+# % description: Print output as a matrix
+# %end
 
 import atexit
 import csv

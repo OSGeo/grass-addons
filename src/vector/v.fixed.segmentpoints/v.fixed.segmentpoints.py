@@ -15,45 +15,45 @@ COPYRIGHT: (C) 2014 by the GRASS Development Team
            for details.
 """
 
-#%module
-#% description: segment points along a vector line with fixed distances
-#% keyword: vector
-#% keyword: geometry
-#%end
+# %module
+# % description: segment points along a vector line with fixed distances
+# % keyword: vector
+# % keyword: geometry
+# %end
 
-#%option G_OPT_V_INPUT
-#% key: vector
-#% required: yes
-#%end
+# %option G_OPT_V_INPUT
+# % key: vector
+# % required: yes
+# %end
 
-#%option G_OPT_V_CAT
-#% key: cat
-#% description: Category of a vector line
-#% required: yes
-#%end
+# %option G_OPT_V_CAT
+# % key: cat
+# % description: Category of a vector line
+# % required: yes
+# %end
 
-#%option G_OPT_M_DIR
-#% key: dir
-#% description: Directory where the output will be found
-#% required : yes
-#%end
+# %option G_OPT_M_DIR
+# % key: dir
+# % description: Directory where the output will be found
+# % required : yes
+# %end
 
-#%option
-#% key: prefix
-#% type: string
-#% key_desc: prefix
-#% description: output prefix (must start with a letter)
-#% required: yes
-#%end
+# %option
+# % key: prefix
+# % type: string
+# % key_desc: prefix
+# % description: output prefix (must start with a letter)
+# % required: yes
+# %end
 
-#%option
-#% key: distance
-#% type: integer
-#% key_desc: integer
-#% description: fixed distance between segment points
-#% required : no
-#% answer: 100
-#%end
+# %option
+# % key: distance
+# % type: integer
+# % key_desc: integer
+# % description: fixed distance between segment points
+# % required : no
+# % answer: 100
+# %end
 
 import sys
 import os

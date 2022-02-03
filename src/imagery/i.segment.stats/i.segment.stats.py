@@ -13,89 +13,89 @@
 #
 #############################################################################
 
-#%module
-#% description: Calculates statistics describing raster areas.
-#% keyword: imagery
-#% keyword: segmentation
-#% keyword: statistics
-#%end
-#%option G_OPT_R_MAP
-#% label: Name for input raster map with areas
-#% description: Raster map with areas (all pixels of an area have same id), such as the output of i.segment
-#% required: yes
-#%end
-#%option G_OPT_R_INPUTS
-#% key: rasters
-#% description: Name of input raster maps for statistics
-#% multiple: yes
-#% required: no
-#% guisection: Raster statistics
-#%end
-#%option
-#% key: raster_statistics
-#% type: string
-#% label: Statistics to calculate for each input raster map
-#% required: no
-#% multiple: yes
-#% options: min,max,range,mean,mean_of_abs,stddev,variance,coeff_var,sum,sum_abs,first_quart,median,third_quart,perc_90
-#% answer: mean,stddev,sum
-#% guisection: Raster statistics
-#%end
-#%rules
-#% requires: raster_statistics,rasters
-#%end
-#%option
-#% key: area_measures
-#% type: string
-#% label: Area measurements to include in the output
-#% required: no
-#% multiple: yes
-#% options: area,perimeter,compact_circle,compact_square,fd,xcoords,ycoords
-#% answer: area,perimeter,compact_circle,fd
-#% guisection: Shape statistics
-#%end
-#%option G_OPT_F_OUTPUT
-#% key: csvfile
-#% description: Name for output CSV file containing statistics
-#% required: no
-#% guisection: Output
-#%end
-#%option G_OPT_F_SEP
-#% guisection: Output
-#%end
-#%option G_OPT_V_OUTPUT
-#% key: vectormap
-#% description: Name for optional vector output map with statistics as attributes
-#% required: no
-#% guisection: Output
-#%end
-#%option
-#% key: processes
-#% type: integer
-#% description: Number of processes to run in parallel (for multiple rasters)
-#% required: no
-#% answer: 1
-#%end
-#%rules
-#% required: csvfile,vectormap
-#%end
-#%flag
-#% key: r
-#% description: Adjust region to input map
-#%end
-#%flag
-#% key: n
-#% description: Calculate neighborhood statistics
-#%end
-#%flag
-#% key: s
-#% description: Do not calculate any shape statistics
-#% guisection: Shape statistics
-#%end
-#%flag
-#% key: c
-#% description: Do not check rasters for null cells
-#%END
+# %module
+# % description: Calculates statistics describing raster areas.
+# % keyword: imagery
+# % keyword: segmentation
+# % keyword: statistics
+# %end
+# %option G_OPT_R_MAP
+# % label: Name for input raster map with areas
+# % description: Raster map with areas (all pixels of an area have same id), such as the output of i.segment
+# % required: yes
+# %end
+# %option G_OPT_R_INPUTS
+# % key: rasters
+# % description: Name of input raster maps for statistics
+# % multiple: yes
+# % required: no
+# % guisection: Raster statistics
+# %end
+# %option
+# % key: raster_statistics
+# % type: string
+# % label: Statistics to calculate for each input raster map
+# % required: no
+# % multiple: yes
+# % options: min,max,range,mean,mean_of_abs,stddev,variance,coeff_var,sum,sum_abs,first_quart,median,third_quart,perc_90
+# % answer: mean,stddev,sum
+# % guisection: Raster statistics
+# %end
+# %rules
+# % requires: raster_statistics,rasters
+# %end
+# %option
+# % key: area_measures
+# % type: string
+# % label: Area measurements to include in the output
+# % required: no
+# % multiple: yes
+# % options: area,perimeter,compact_circle,compact_square,fd,xcoords,ycoords
+# % answer: area,perimeter,compact_circle,fd
+# % guisection: Shape statistics
+# %end
+# %option G_OPT_F_OUTPUT
+# % key: csvfile
+# % description: Name for output CSV file containing statistics
+# % required: no
+# % guisection: Output
+# %end
+# %option G_OPT_F_SEP
+# % guisection: Output
+# %end
+# %option G_OPT_V_OUTPUT
+# % key: vectormap
+# % description: Name for optional vector output map with statistics as attributes
+# % required: no
+# % guisection: Output
+# %end
+# %option
+# % key: processes
+# % type: integer
+# % description: Number of processes to run in parallel (for multiple rasters)
+# % required: no
+# % answer: 1
+# %end
+# %rules
+# % required: csvfile,vectormap
+# %end
+# %flag
+# % key: r
+# % description: Adjust region to input map
+# %end
+# %flag
+# % key: n
+# % description: Calculate neighborhood statistics
+# %end
+# %flag
+# % key: s
+# % description: Do not calculate any shape statistics
+# % guisection: Shape statistics
+# %end
+# %flag
+# % key: c
+# % description: Do not check rasters for null cells
+# %END
 
 
 import os

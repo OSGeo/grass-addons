@@ -27,52 +27,52 @@
 #    NULL, and the resolution is correct. Same as most GRASS raster modules
 #    this one is region sensitive too.
 
-#%Module
-#% description: Interpolates a raster map using the nnbathy natural neighbor interpolation program.
-#% keyword: vector
-#% keyword: surface
-#% keyword: interpolation
-#% keyword: natural
-#% keyword: neighbor
-#%end
-#%option G_OPT_V_INPUT
-#% key: input
-#% type: string
-#% description: Name of input vector points map
-#% guisection: Input data
-#% required : no
-#%end
-#%option G_OPT_V_FIELD
-#% key: layer
-#% label: Layer number
-#% description: If set to 0, z coordinates are used. (3D vector only)
-#% guisection: Selection
-#%end
-#%option G_OPT_F_INPUT
-#% key: file
-#% description: Containing x,y,z data as three space separated columns
-#% guisection: Input data
-#% required : no
-#%end
-#%option G_OPT_R_OUTPUT
-#% key: output
-#% description: Name of output raster map
-#%end
-#%option G_OPT_DB_COLUMN
-#% description: Name of the attribute column with values to be used for approximation (if layer>0)
-#% guisection: Settings
-#%end
-#%option G_OPT_DB_WHERE
-#% guisection: Selection
-#%end
-#%option
-#% key: algorithm
-#% type: string
-#% options: l,nn,ns
-#% answer: nn
-#% descriptions: l;Linear;nn;Sibson natural neighbor;ns;Non-Sibsonian natural neighbor
-#% description: Settings
-#%end
+# %Module
+# % description: Interpolates a raster map using the nnbathy natural neighbor interpolation program.
+# % keyword: vector
+# % keyword: surface
+# % keyword: interpolation
+# % keyword: natural
+# % keyword: neighbor
+# %end
+# %option G_OPT_V_INPUT
+# % key: input
+# % type: string
+# % description: Name of input vector points map
+# % guisection: Input data
+# % required : no
+# %end
+# %option G_OPT_V_FIELD
+# % key: layer
+# % label: Layer number
+# % description: If set to 0, z coordinates are used. (3D vector only)
+# % guisection: Selection
+# %end
+# %option G_OPT_F_INPUT
+# % key: file
+# % description: Containing x,y,z data as three space separated columns
+# % guisection: Input data
+# % required : no
+# %end
+# %option G_OPT_R_OUTPUT
+# % key: output
+# % description: Name of output raster map
+# %end
+# %option G_OPT_DB_COLUMN
+# % description: Name of the attribute column with values to be used for approximation (if layer>0)
+# % guisection: Settings
+# %end
+# %option G_OPT_DB_WHERE
+# % guisection: Selection
+# %end
+# %option
+# % key: algorithm
+# % type: string
+# % options: l,nn,ns
+# % answer: nn
+# % descriptions: l;Linear;nn;Sibson natural neighbor;ns;Non-Sibsonian natural neighbor
+# % description: Settings
+# %end
 
 import sys
 import os

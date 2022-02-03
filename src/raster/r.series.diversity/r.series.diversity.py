@@ -16,104 +16,104 @@
 #
 ########################################################################
 #
-#%Module
-#% description: Compute diversity indici over input layers
-#% keyword: raster
-#% keyword: diversity index
-#% keyword: renyi entrophy
-#% keyword: shannon
-#% keyword: simpson
-#% keyword: richness
-#% keyword: biodiversity
-#% keyword: eveness
-#%End
+# %Module
+# % description: Compute diversity indici over input layers
+# % keyword: raster
+# % keyword: diversity index
+# % keyword: renyi entrophy
+# % keyword: shannon
+# % keyword: simpson
+# % keyword: richness
+# % keyword: biodiversity
+# % keyword: eveness
+# %End
 
-#%option
-#% key: input
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: input layers
-#% label: input layers
-#% key_desc: name
-#% required: yes
-#% multiple: yes
-#%end
+# %option
+# % key: input
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: input layers
+# % label: input layers
+# % key_desc: name
+# % required: yes
+# % multiple: yes
+# %end
 
-#%option
-#% key: output
-#% type: string
-#% gisprompt: new,cell,raster
-#% description: prefix name output layer
-#% key_desc: name
-#% required: yes
-#% multiple: no
-#%end
+# %option
+# % key: output
+# % type: string
+# % gisprompt: new,cell,raster
+# % description: prefix name output layer
+# % key_desc: name
+# % required: yes
+# % multiple: no
+# %end
 
-#%flag
-#% key: r
-#% description: Renyi enthropy index
-#% guisection: Indices
-#%end
+# %flag
+# % key: r
+# % description: Renyi enthropy index
+# % guisection: Indices
+# %end
 
-#%option
-#% key: alpha
-#% type: double
-#% description: Order of generalized entropy
-#% key_desc: number(s)
-#% multiple: yes
-#% options: 0.0-*
-#% guisection: Indices
-#%end
+# %option
+# % key: alpha
+# % type: double
+# % description: Order of generalized entropy
+# % key_desc: number(s)
+# % multiple: yes
+# % options: 0.0-*
+# % guisection: Indices
+# %end
 
-#%rules
-#% collective: -r,alpha
-#%end
+# %rules
+# % collective: -r,alpha
+# %end
 
-#%flag
-#% key: s
-#% description: Richness index
-#% guisection: Indices
-#%end
+# %flag
+# % key: s
+# % description: Richness index
+# % guisection: Indices
+# %end
 
-#%flag
-#% key: h
-#% description: Shannon index
-#% guisection: Indices
-#%end
+# %flag
+# % key: h
+# % description: Shannon index
+# % guisection: Indices
+# %end
 
-#%flag
-#% key: p
-#% description: Reversed Simpson index
-#% guisection: Indices
-#%end
+# %flag
+# % key: p
+# % description: Reversed Simpson index
+# % guisection: Indices
+# %end
 
-#%flag
-#% key: g
-#% description: Gini-Simpson index
-#% guisection: Indices
-#%end
+# %flag
+# % key: g
+# % description: Gini-Simpson index
+# % guisection: Indices
+# %end
 
-#%flag
-#% key: e
-#% description: Pielou's evenness index
-#% guisection: Indices
-#%end
+# %flag
+# % key: e
+# % description: Pielou's evenness index
+# % guisection: Indices
+# %end
 
-#%flag
-#% key: n
-#% description: Shannon effective number of species
-#% guisection: Indices
-#%end
+# %flag
+# % key: n
+# % description: Shannon effective number of species
+# % guisection: Indices
+# %end
 
-#%flag
-#% key: t
-#% description: Total counts
-#% guisection: Indices
-#%end
+# %flag
+# % key: t
+# % description: Total counts
+# % guisection: Indices
+# %end
 
-#%rules
-#% required: -r,-s,-h,-e,-p,-g,-n
-#%end
+# %rules
+# % required: -r,-s,-h,-e,-p,-g,-n
+# %end
 
 # ----------------------------------------------------------------------------
 # Standard

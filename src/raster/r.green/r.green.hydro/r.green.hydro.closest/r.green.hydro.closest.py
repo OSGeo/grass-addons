@@ -15,31 +15,31 @@
 #############################################################################
 #
 
-#%module
-#% description: Move points to the closest vector map
-#% keyword: vector
-#% keyword: hydropower
-#% keyword: renewable energy
-#%end
-#%option G_OPT_V_INPUT
-#% key: points
-#% required: yes
-#%end
-#%option G_OPT_V_INPUT
-#% key: lines
-#% required: yes
-#%end
-#%option G_OPT_V_OUTPUT
-#% key: output
-#% required: yes
-#%end
-#%option
-#% key: max_dist
-#% type: double
-#% description: Maximum distance from points to river
-#% required: yes
-#% answer: 10
-#%end
+# %module
+# % description: Move points to the closest vector map
+# % keyword: vector
+# % keyword: hydropower
+# % keyword: renewable energy
+# %end
+# %option G_OPT_V_INPUT
+# % key: points
+# % required: yes
+# %end
+# %option G_OPT_V_INPUT
+# % key: lines
+# % required: yes
+# %end
+# %option G_OPT_V_OUTPUT
+# % key: output
+# % required: yes
+# %end
+# %option
+# % key: max_dist
+# % type: double
+# % description: Maximum distance from points to river
+# % required: yes
+# % answer: 10
+# %end
 from __future__ import print_function
 
 # import system libraries

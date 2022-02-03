@@ -14,134 +14,134 @@
 #
 #############################################################################
 
-#%Module
-#% description: Imports Sentinel satellite data downloaded from Copernicus Open Access Hub using i.sentinel.download.
-#% keyword: imagery
-#% keyword: satellite
-#% keyword: Sentinel
-#% keyword: import
-#%end
-#%option G_OPT_M_DIR
-#% key: input
-#% description: Name of input directory with downloaded Sentinel data
-#% required: yes
-#%end
-#%option G_OPT_M_DIR
-#% key: unzip_dir
-#% description: Name of directory into which Sentinel zip-files are extracted (default=input)
-#% required: no
-#%end
-#%option
-#% key: pattern
-#% description: Band name pattern to import
-#% guisection: Filter
-#%end
-#%option
-#% key: pattern_file
-#% description: File name pattern to import
-#% guisection: Filter
-#%end
-#%option
-#% key: extent
-#% type: string
-#% required: no
-#% multiple: no
-#% options: input,region
-#% answer: input
-#% description: Output raster map extent
-#% descriptions: region;extent of current region;input;extent of input map
-#% guisection: Filter
-#%end
-#%option
-#% key: memory
-#% type: integer
-#% required: no
-#% multiple: no
-#% label: Maximum memory to be used (in MB)
-#% description: Cache size for raster rows
-#% answer: 300
-#%end
-#%option G_OPT_F_OUTPUT
-#% key: register_output
-#% description: Name for output file to use with t.register
-#% required: no
-#%end
-#%option G_OPT_M_DIR
-#% key: metadata
-#% description: Name of directory into which Sentinel metadata json dumps are saved
-#% required: no
-#%end
-#%option
-#% key: cloud_area_threshold
-#% description: Threshold above which areas of clouds and/or cloud shadows will be masked (in hectares)
-#% type: double
-#% required: no
-#% answer: 1
-#%end
-#%option
-#% key: cloud_probability_threshold
-#% description: Minimum cloud probability for pixels to be masked
-#% type: integer
-#% required: no
-#% options: 0-100
-#% answer: 65
-#%end
-#%option
-#% key: cloud_output
-#% type: string
-#% required: no
-#% multiple: no
-#% options: vector,raster
-#% answer: vector
-#% label: Create cloud mask as raster or vector map
-#%end
-#%flag
-#% key: r
-#% description: Reproject raster data using r.import if needed
-#% guisection: Settings
-#%end
-#%flag
-#% key: l
-#% description: Link raster data instead of importing
-#% guisection: Settings
-#%end
-#%flag
-#% key: o
-#% description: Override projection check (use current location's projection)
-#% guisection: Settings
-#%end
-#%flag
-#% key: c
-#% description: Import cloud masks
-#% guisection: Settings
-#%end
-#%flag
-#% key: s
-#% description: Import cloud shadow masks
-#% guisection: Settings
-#%end
-#%flag
-#% key: n
-#% description: Do not unzip SAFE-files if they are already extracted
-#% guisection: Settings
-#%end
-#%flag
-#% key: p
-#% description: Print raster data to be imported and exit
-#% guisection: Print
-#%end
-#%flag
-#% key: j
-#% description: Write meta data json for each band to LOCATION/MAPSET/cell_misc/BAND/description.json
-#% guisection: Print
-#%end
-#%rules
-#% exclusive: -l,-r,-p
-#% exclusive: -o,-r
-#% exclusive: extent,-l
-#% exclusive: metadata,-j
-#% requires: -s,-c
-#%end
+# %Module
+# % description: Imports Sentinel satellite data downloaded from Copernicus Open Access Hub using i.sentinel.download.
+# % keyword: imagery
+# % keyword: satellite
+# % keyword: Sentinel
+# % keyword: import
+# %end
+# %option G_OPT_M_DIR
+# % key: input
+# % description: Name of input directory with downloaded Sentinel data
+# % required: yes
+# %end
+# %option G_OPT_M_DIR
+# % key: unzip_dir
+# % description: Name of directory into which Sentinel zip-files are extracted (default=input)
+# % required: no
+# %end
+# %option
+# % key: pattern
+# % description: Band name pattern to import
+# % guisection: Filter
+# %end
+# %option
+# % key: pattern_file
+# % description: File name pattern to import
+# % guisection: Filter
+# %end
+# %option
+# % key: extent
+# % type: string
+# % required: no
+# % multiple: no
+# % options: input,region
+# % answer: input
+# % description: Output raster map extent
+# % descriptions: region;extent of current region;input;extent of input map
+# % guisection: Filter
+# %end
+# %option
+# % key: memory
+# % type: integer
+# % required: no
+# % multiple: no
+# % label: Maximum memory to be used (in MB)
+# % description: Cache size for raster rows
+# % answer: 300
+# %end
+# %option G_OPT_F_OUTPUT
+# % key: register_output
+# % description: Name for output file to use with t.register
+# % required: no
+# %end
+# %option G_OPT_M_DIR
+# % key: metadata
+# % description: Name of directory into which Sentinel metadata json dumps are saved
+# % required: no
+# %end
+# %option
+# % key: cloud_area_threshold
+# % description: Threshold above which areas of clouds and/or cloud shadows will be masked (in hectares)
+# % type: double
+# % required: no
+# % answer: 1
+# %end
+# %option
+# % key: cloud_probability_threshold
+# % description: Minimum cloud probability for pixels to be masked
+# % type: integer
+# % required: no
+# % options: 0-100
+# % answer: 65
+# %end
+# %option
+# % key: cloud_output
+# % type: string
+# % required: no
+# % multiple: no
+# % options: vector,raster
+# % answer: vector
+# % label: Create cloud mask as raster or vector map
+# %end
+# %flag
+# % key: r
+# % description: Reproject raster data using r.import if needed
+# % guisection: Settings
+# %end
+# %flag
+# % key: l
+# % description: Link raster data instead of importing
+# % guisection: Settings
+# %end
+# %flag
+# % key: o
+# % description: Override projection check (use current location's projection)
+# % guisection: Settings
+# %end
+# %flag
+# % key: c
+# % description: Import cloud masks
+# % guisection: Settings
+# %end
+# %flag
+# % key: s
+# % description: Import cloud shadow masks
+# % guisection: Settings
+# %end
+# %flag
+# % key: n
+# % description: Do not unzip SAFE-files if they are already extracted
+# % guisection: Settings
+# %end
+# %flag
+# % key: p
+# % description: Print raster data to be imported and exit
+# % guisection: Print
+# %end
+# %flag
+# % key: j
+# % description: Write meta data json for each band to LOCATION/MAPSET/cell_misc/BAND/description.json
+# % guisection: Print
+# %end
+# %rules
+# % exclusive: -l,-r,-p
+# % exclusive: -o,-r
+# % exclusive: extent,-l
+# % exclusive: metadata,-j
+# % requires: -s,-c
+# %end
 
 import os
 import sys

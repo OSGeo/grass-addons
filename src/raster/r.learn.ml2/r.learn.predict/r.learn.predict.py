@@ -12,61 +12,61 @@
 #
 #############################################################################
 
-#%module
-#% description: Apply a fitted scikit-learn estimator to rasters in a GRASS GIS imagery group.
-#% keyword: raster
-#% keyword: classification
-#% keyword: regression
-#% keyword: machine learning
-#% keyword: scikit-learn
-#% keyword: prediction
-#%end
+# %module
+# % description: Apply a fitted scikit-learn estimator to rasters in a GRASS GIS imagery group.
+# % keyword: raster
+# % keyword: classification
+# % keyword: regression
+# % keyword: machine learning
+# % keyword: scikit-learn
+# % keyword: prediction
+# %end
 
-#%option G_OPT_I_GROUP
-#% key: group
-#% label: Group of raster layers used for prediction
-#% description: GRASS imagery group of raster maps representing feature variables to be used in the machine learning model
-#% required: yes
-#% multiple: no
-#%end
+# %option G_OPT_I_GROUP
+# % key: group
+# % label: Group of raster layers used for prediction
+# % description: GRASS imagery group of raster maps representing feature variables to be used in the machine learning model
+# % required: yes
+# % multiple: no
+# %end
 
-#%option G_OPT_F_INPUT
-#% key: load_model
-#% label: Load model from file
-#% description: File representing pickled scikit-learn estimator model
-#% required: yes
-#% guisection: Required
-#%end
+# %option G_OPT_F_INPUT
+# % key: load_model
+# % label: Load model from file
+# % description: File representing pickled scikit-learn estimator model
+# % required: yes
+# % guisection: Required
+# %end
 
-#%option G_OPT_R_OUTPUT
-#% key: output
-#% label: Output Map
-#% description: Raster layer name to store result from classification or regression model. The name will also used as a perfix if class probabilities or intermediate of cross-validation results are ordered as maps.
-#% guisection: Required
-#% required: yes
-#%end
+# %option G_OPT_R_OUTPUT
+# % key: output
+# % label: Output Map
+# % description: Raster layer name to store result from classification or regression model. The name will also used as a perfix if class probabilities or intermediate of cross-validation results are ordered as maps.
+# % guisection: Required
+# % required: yes
+# %end
 
-#%flag
-#% key: p
-#% label: Output class membership probabilities
-#% description: A raster layer is created for each class. For the case of a binary classification, only the positive (maximum) class is output
-#% guisection: Optional
-#%end
+# %flag
+# % key: p
+# % label: Output class membership probabilities
+# % description: A raster layer is created for each class. For the case of a binary classification, only the positive (maximum) class is output
+# % guisection: Optional
+# %end
 
-#%flag
-#% key: z
-#% label: Only predict class probabilities
-#% guisection: Optional
-#%end
+# %flag
+# % key: z
+# % label: Only predict class probabilities
+# % guisection: Optional
+# %end
 
-#%option
-#% key: chunksize
-#% type: integer
-#% label: Number of pixels to pass to the prediction method
-#% description: Number of pixels to pass to the prediction method. GRASS GIS reads raster by-row so chunksize is rounded down based on the number of columns
-#% answer: 100000
-#% guisection: Optional
-#%end
+# %option
+# % key: chunksize
+# % type: integer
+# % label: Number of pixels to pass to the prediction method
+# % description: Number of pixels to pass to the prediction method. GRASS GIS reads raster by-row so chunksize is rounded down based on the number of columns
+# % answer: 100000
+# % guisection: Optional
+# %end
 
 
 import grass.script as gs

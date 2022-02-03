@@ -21,70 +21,70 @@
 #
 ########################################################################
 #
-#%Module
-#% description: To calculate the stepwise variance inflation factor.
-#% keyword: raster
-#% keyword: variance inflation factor
-#% keyword: VIF
-#%End
+# %Module
+# % description: To calculate the stepwise variance inflation factor.
+# % keyword: raster
+# % keyword: variance inflation factor
+# % keyword: VIF
+# %End
 
-#%option
-#% key: maps
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: variables
-#% required: yes
-#% multiple: yes
-#% guisection: Input
-#%end
+# %option
+# % key: maps
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: variables
+# % required: yes
+# % multiple: yes
+# % guisection: Input
+# %end
 
-#%option
-#% key: retain
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: variables
-#% required: no
-#% multiple: yes
-#% guisection: Input
-#%end
+# %option
+# % key: retain
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: variables
+# % required: no
+# % multiple: yes
+# % guisection: Input
+# %end
 
-#%option
-#% key: n
-#% type: string
-#% description: number of sample points (number or percentage)
-#% key_desc: number
-#% guisection: Input
-#% answer: 100%
-#%end
+# %option
+# % key: n
+# % type: string
+# % description: number of sample points (number or percentage)
+# % key_desc: number
+# % guisection: Input
+# % answer: 100%
+# %end
 
-#%option
-#% key: maxvif
-#% type: double
-#% description: Maximum vif
-#% key_desc: number
-#% guisection: Input
-#%end
+# %option
+# % key: maxvif
+# % type: double
+# % description: Maximum vif
+# % key_desc: number
+# % guisection: Input
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key:file
-#% description: Name of output text file
-#% required: no
-#% guisection: Input
-#%end
+# %option G_OPT_F_OUTPUT
+# % key:file
+# % description: Name of output text file
+# % required: no
+# % guisection: Input
+# %end
 
-#%flag
-#% key: s
-#% description: Only print selected variables to screen
-#%end
+# %flag
+# % key: s
+# % description: Only print selected variables to screen
+# %end
 
-#%flag
-#% key: f
-#% description: low-memory option (will use full raster layers)
-#%end
+# %flag
+# % key: f
+# % description: low-memory option (will use full raster layers)
+# %end
 
-#%rules
-#%requires_all: -s,maxvif
-#%end
+# %rules
+# %requires_all: -s,maxvif
+# %end
 
 # import libraries
 import os

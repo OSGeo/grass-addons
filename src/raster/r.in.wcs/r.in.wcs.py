@@ -20,90 +20,90 @@ This program is free software under the GNU General Public License
 (>=v2). Read the file COPYING that comes with GRASS for details.
 """
 
-#%module
-#% description: Downloads and imports coverage from WCS server.
-#% keyword: raster
-#% keyword: import
-#% keyword: OGC web services
-#%end
+# %module
+# % description: Downloads and imports coverage from WCS server.
+# % keyword: raster
+# % keyword: import
+# % keyword: OGC web services
+# %end
 
-#%option
-#% key: url
-#% type: string
-#% description: Service URL (typically http://.../mapserv? )
-#% required: yes
-#% answer: http://...?
-#%end
+# %option
+# % key: url
+# % type: string
+# % description: Service URL (typically http://.../mapserv? )
+# % required: yes
+# % answer: http://...?
+# %end
 
-#%flag
-#% key: c
-#% description: Get the server capabilities then exit
-#% guisection: Request
-#%end
+# %flag
+# % key: c
+# % description: Get the server capabilities then exit
+# % guisection: Request
+# %end
 
-#%flag
-#% key: r
-#% description: Reproject raster data using r.import if needed
-#%end
+# %flag
+# % key: r
+# % description: Reproject raster data using r.import if needed
+# %end
 
-#%option
-#% key: coverage
-#% type: string
-#% description: Coverage name to request
-#% multiple: no
-#% required: no
-#% guisection: Request
-#%end
+# %option
+# % key: coverage
+# % type: string
+# % description: Coverage name to request
+# % multiple: no
+# % required: no
+# % guisection: Request
+# %end
 
-#%option
-#% key: urlparams
-#% type: string
-#% description: Additional query parameters to pass to the server
-#% guisection: Request
-#%end
+# %option
+# % key: urlparams
+# % type: string
+# % description: Additional query parameters to pass to the server
+# % guisection: Request
+# %end
 
-#%option
-#% key: username
-#% type:string
-#% description: Username for server connection
-#% guisection: Request
-#%end
+# %option
+# % key: username
+# % type:string
+# % description: Username for server connection
+# % guisection: Request
+# %end
 
-#%option
-#% key: password
-#% type:string
-#% description: Password for server connection
-#% guisection: Request
-#%end
+# %option
+# % key: password
+# % type:string
+# % description: Password for server connection
+# % guisection: Request
+# %end
 
-#%option
-#% key: output
-#% type: string
-#% gisprompt: new,cell,raster
-#% description: Name for output raster map (default: coveragename)
-#% required: no
-#%end
+# %option
+# % key: output
+# % type: string
+# % gisprompt: new,cell,raster
+# % description: Name for output raster map (default: coveragename)
+# % required: no
+# %end
 
-#%option
-#% key: location
-#% type: string
-#% description: Name for new location to create
-#% required: no
-#%end
+# %option
+# % key: location
+# % type: string
+# % description: Name for new location to create
+# % required: no
+# %end
 
-#%option
-#% key: region
-#% type: string
-#% description: Name for region instead of current region
-#% required: no
-#%end
+# %option
+# % key: region
+# % type: string
+# % description: Name for region instead of current region
+# % required: no
+# %end
 
-#%option
-#% key: crs
-#% type: string
-#% description: A valid CRS string to pass at WCS request
-#% required: no
-#%end
+# %option
+# % key: crs
+# % type: string
+# % description: A valid CRS string to pass at WCS request
+# % required: no
+# %end
 
 import os
 import sys

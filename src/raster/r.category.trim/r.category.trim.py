@@ -20,60 +20,60 @@
 #
 ########################################################################
 #
-#%Module
-#% description: Export categories and corresponding colors as QGIS color file or csv file. Non-existing categories and their color definitions will be removed.
-#% keyword: raster
-#% keyword: color
-#% keyword: color table
-#% keyword: category
-#%End
+# %Module
+# % description: Export categories and corresponding colors as QGIS color file or csv file. Non-existing categories and their color definitions will be removed.
+# % keyword: raster
+# % keyword: color
+# % keyword: color table
+# % keyword: category
+# %End
 
-#%option
-#% key: input
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: input map
-#% key_desc: name
-#% required: yes
-#% multiple: no
-#% guisection: Raster
-#%end
+# %option
+# % key: input
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: input map
+# % key_desc: name
+# % required: yes
+# % multiple: no
+# % guisection: Raster
+# %end
 
-#%option
-#% key: output
-#% type: string
-#% gisprompt: new,cell,raster
-#% description: output map
-#% key_desc: name
-#% required: no
-#% multiple: no
-#% guisection: Raster
-#%end
+# %option
+# % key: output
+# % type: string
+# % gisprompt: new,cell,raster
+# % description: output map
+# % key_desc: name
+# % required: no
+# % multiple: no
+# % guisection: Raster
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key:csv
-#% description: Attribute table (csv format)
-#% key_desc: name
-#% required: no
-#% guisection: Export
-#%end
+# %option G_OPT_F_OUTPUT
+# % key:csv
+# % description: Attribute table (csv format)
+# % key_desc: name
+# % required: no
+# % guisection: Export
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key:qgis
-#% description: QGIS color file (txt format)
-#% key_desc: name
-#% required: no
-#% guisection: Export
-#%end
+# %option G_OPT_F_OUTPUT
+# % key:qgis
+# % description: QGIS color file (txt format)
+# % key_desc: name
+# % required: no
+# % guisection: Export
+# %end
 
-#%flag:
-#% key: n
-#% description: Recode layer to get consecutive category values
-#%end
+# %flag:
+# % key: n
+# % description: Recode layer to get consecutive category values
+# %end
 
-#%rules
-#% requires_all: -n, output
-#%end
+# %rules
+# % requires_all: -n, output
+# %end
 
 # =======================================================================
 ## General

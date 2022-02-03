@@ -13,246 +13,246 @@
 #
 #############################################################################
 
-#%module
-#% description: Runs r.sun in loop for given time range within one day (mode 1 or 2)
-#% keyword: raster
-#% keyword: solar
-#% keyword: sun energy
-#% overwrite: yes
-#%end
-#%option
-#% type: string
-#% gisprompt: old,cell,raster
-#% key: elevation
-#% description: Name of the input elevation raster map [meters]
-#% required : yes
-#%end
-#%option
-#% type: string
-#% gisprompt: old,cell,raster
-#% key: aspect
-#% description: Name of the input aspect map (terrain aspect or azimuth of the solar panel) [decimal degrees]
-#%end
-#%option
-#% type: string
-#% gisprompt: old,cell,raster
-#% key: slope
-#% description: Name of the input slope raster map (terrain slope or solar panel inclination) [decimal degrees]
-#%end
-#%option G_OPT_R_INPUT
-#% key: linke
-#% description: Name of the Linke atmospheric turbidity coefficient input raster map [-]
-#% required : no
-#%end
-#%option
-#% key: linke_value
-#% type: double
-#% description: A single value of the Linke atmospheric turbidity coefficient [-]
-#% options: 0.0-7.0
-#% answer: 3.0
-#% required: no
-#%end
-#% rules
-#%  exclusive: linke, linke_value
-#% end
-#%option G_OPT_R_INPUT
-#% key: albedo
-#% description: Name of the ground albedo coefficient input raster map [-]
-#% required: no
-#%end
-#%option
-#% key: albedo_value
-#% type: double
-#% description: A single value of the ground albedo coefficient [-]
-#% options: 0.0-1.0
-#% answer: 0.2
-#% required: no
-#%end
-#% rules
-#%  exclusive: albedo, albedo_value
-#% end
-#%option G_OPT_R_INPUT
-#% key: coeff_bh
-#% required: no
-#% description: Name of real-sky beam radiation coefficient (thick cloud) input raster map [0-1]
-#%end
-#%option G_OPT_STRDS_INPUT
-#% key: coeff_bh_strds
-#% required: no
-#% description: Name of real-sky beam radiation coefficient (thick cloud) input space-time raster dataset
-#%end
-#% rules
-#%  exclusive: coeff_bh, coeff_bh_strds
-#% end
-#%option G_OPT_R_INPUT
-#% key: coeff_dh
-#% required: no
-#% description: Name of real-sky diffuse radiation coefficient (haze) input raster map [0-1]
-#%end
-#%option G_OPT_STRDS_INPUT
-#% key: coeff_dh_strds
-#% required: no
-#% description: Name of real-sky diffuse radiation coefficient (haze) input space-time raster dataset
-#%end
-#% rules
-#%  exclusive: coeff_dh, coeff_dh_strds
-#% end
-#%option G_OPT_R_INPUT
-#% key: lat
-#% required: no
-#% description: Name of input raster map containing latitudes [decimal degrees]
-#%end
-#%option G_OPT_R_INPUT
-#% key: long
-#% required: no
-#% description: Name of input raster map containing longitudes [decimal degrees]
-#%end
-#%option
-#% key: mode
-#% required: yes
-#% options: mode1,mode2
-#% answer: mode1
-#% descriptions: mode1;r.sun mode 1 computes irradiance [W.m-2];mode2;r.sun mode 2 computes irradiation [Wh.m-2]
-#% description: Select r.sun mode to choose between irradiance (mode 1) and irradiation (mode 2)
-#%end
-#%option
-#% key: start_time
-#% type: double
-#% label: Start time of interval
-#% description: Use up to 2 decimal places
-#% options: 0-24
-#% required : yes
-#%end
-#%option
-#% key: end_time
-#% type: double
-#% label: End time of interval
-#% description: Use up to 2 decimal places
-#% options: 0-24
-#% required : yes
-#%end
-#%option
-#% key: time_step
-#% type: double
-#% label: Time step for running r.sun [decimal hours]
-#% description: Use up to 2 decimal places
-#% options: 0-24
-#% answer: 1
-#%end
-#%option
-#% key: day
-#% type: integer
-#% description: No. of day of the year
-#% options: 1-365
-#% required : yes
-#%end
-#%option
-#% key: year
-#% type: integer
-#% label: Year used for map registration into temporal dataset or r.timestamp
-#% description: This value is not used in r.sun calculations
-#% options: 1900-9999
-#% required: yes
-#% answer: 1900
-#%end
-#%option
-#% key: civil_time
-#% type: double
-#% description: Civil time zone value, if none, the time will be local solar time
-#%end
-#%option
-#% key: distance_step
-#% type: double
-#% required: no
-#% description: Sampling distance step coefficient (0.5-1.5)
-#% answer: 1.0
-#%end
-#%option
-#% key: beam_rad_basename
-#% type: string
-#% label: Base name for output beam irradiance [W.m-2] (mode 1) or irradiation raster map [Wh.m-2] (mode 2)
-#% description: Underscore and time are added to the base name for each map
-#%end
-#%option
-#% key: diff_rad_basename
-#% type: string
-#% label: Base name for output diffuse irradiance [W.m-2] (mode 1) or irradiation raster map [Wh.m-2] (mode 2)
-#% description: Underscore and time are added to the base name for each map
-#%end
-#%option
-#% key: refl_rad_basename
-#% type: string
-#% label: Base name for output ground reflected irradiance [W.m-2] (mode 1) or irradiation raster map [Wh.m-2] (mode 2)
-#% description: Underscore and time are added to the base name for each map
-#%end
-#%option
-#% key: glob_rad_basename
-#% type: string
-#% label: Base name for output global (total) irradiance [W.m-2] (mode 1) or irradiation raster map [Wh.m-2] (mode 2)
-#% description: Underscore and time are added to the base name for each map
-#%end
-#%option
-#% key: incidout_basename
-#% type: string
-#% label: Base name for output incidence angle raster maps (mode 1 only)
-#% description: Underscore and time are added to the base name for each map
-#%end
-#%option
-#% key: beam_rad
-#% type: string
-#% description: Output beam irradiation raster map [Wh.m-2] (mode 2) integrated over specified time period
-#%end
-#%option
-#% key: diff_rad
-#% type: string
-#% description: Output diffuse irradiation raster map [Wh.m-2] (mode 2) integrated over specified time period
-#%end
-#%option
-#% key: refl_rad
-#% type: string
-#% description: Output ground reflected irradiation raster map [Wh.m-2] (mode 2) integrated over specified time period
-#%end
-#%option
-#% key: glob_rad
-#% type: string
-#% description: Output global (total) irradiation raster map [Wh.m-2] (mode 2) integrated over specified time period
-#%end
-#%option
-#% key: solar_constant
-#% type: double
-#% required: no
-#% multiple: no
-#% label: Solar constant [W/m^2]
-#% description: If not specified, r.sun default will be used.
-#%end
-#%option
-#% key: nprocs
-#% type: integer
-#% description: Number of r.sun processes to run in parallel
-#% options: 1-
-#% answer: 1
-#%end
-#%flag
-#% key: c
-#% description: Compute cumulative raster maps of irradiation (only with mode 2)
-#%end
-#%flag
-#% key: t
-#% description: Dataset name is the same as the base name for the output series of maps
-#% label: Register created series of output maps into temporal dataset
-#%end
-#%flag
-#% key: b
-#% description: Create binary rasters instead of irradiance rasters
-#%end
-#%flag
-#% key: p
-#% description: Do not incorporate the shadowing effect of terrain
-#%end
-#%flag
-#% key: m
-#% description: Use the low-memory version of the program
-#%end
+# %module
+# % description: Runs r.sun in loop for given time range within one day (mode 1 or 2)
+# % keyword: raster
+# % keyword: solar
+# % keyword: sun energy
+# % overwrite: yes
+# %end
+# %option
+# % type: string
+# % gisprompt: old,cell,raster
+# % key: elevation
+# % description: Name of the input elevation raster map [meters]
+# % required : yes
+# %end
+# %option
+# % type: string
+# % gisprompt: old,cell,raster
+# % key: aspect
+# % description: Name of the input aspect map (terrain aspect or azimuth of the solar panel) [decimal degrees]
+# %end
+# %option
+# % type: string
+# % gisprompt: old,cell,raster
+# % key: slope
+# % description: Name of the input slope raster map (terrain slope or solar panel inclination) [decimal degrees]
+# %end
+# %option G_OPT_R_INPUT
+# % key: linke
+# % description: Name of the Linke atmospheric turbidity coefficient input raster map [-]
+# % required : no
+# %end
+# %option
+# % key: linke_value
+# % type: double
+# % description: A single value of the Linke atmospheric turbidity coefficient [-]
+# % options: 0.0-7.0
+# % answer: 3.0
+# % required: no
+# %end
+# % rules
+# %  exclusive: linke, linke_value
+# % end
+# %option G_OPT_R_INPUT
+# % key: albedo
+# % description: Name of the ground albedo coefficient input raster map [-]
+# % required: no
+# %end
+# %option
+# % key: albedo_value
+# % type: double
+# % description: A single value of the ground albedo coefficient [-]
+# % options: 0.0-1.0
+# % answer: 0.2
+# % required: no
+# %end
+# % rules
+# %  exclusive: albedo, albedo_value
+# % end
+# %option G_OPT_R_INPUT
+# % key: coeff_bh
+# % required: no
+# % description: Name of real-sky beam radiation coefficient (thick cloud) input raster map [0-1]
+# %end
+# %option G_OPT_STRDS_INPUT
+# % key: coeff_bh_strds
+# % required: no
+# % description: Name of real-sky beam radiation coefficient (thick cloud) input space-time raster dataset
+# %end
+# % rules
+# %  exclusive: coeff_bh, coeff_bh_strds
+# % end
+# %option G_OPT_R_INPUT
+# % key: coeff_dh
+# % required: no
+# % description: Name of real-sky diffuse radiation coefficient (haze) input raster map [0-1]
+# %end
+# %option G_OPT_STRDS_INPUT
+# % key: coeff_dh_strds
+# % required: no
+# % description: Name of real-sky diffuse radiation coefficient (haze) input space-time raster dataset
+# %end
+# % rules
+# %  exclusive: coeff_dh, coeff_dh_strds
+# % end
+# %option G_OPT_R_INPUT
+# % key: lat
+# % required: no
+# % description: Name of input raster map containing latitudes [decimal degrees]
+# %end
+# %option G_OPT_R_INPUT
+# % key: long
+# % required: no
+# % description: Name of input raster map containing longitudes [decimal degrees]
+# %end
+# %option
+# % key: mode
+# % required: yes
+# % options: mode1,mode2
+# % answer: mode1
+# % descriptions: mode1;r.sun mode 1 computes irradiance [W.m-2];mode2;r.sun mode 2 computes irradiation [Wh.m-2]
+# % description: Select r.sun mode to choose between irradiance (mode 1) and irradiation (mode 2)
+# %end
+# %option
+# % key: start_time
+# % type: double
+# % label: Start time of interval
+# % description: Use up to 2 decimal places
+# % options: 0-24
+# % required : yes
+# %end
+# %option
+# % key: end_time
+# % type: double
+# % label: End time of interval
+# % description: Use up to 2 decimal places
+# % options: 0-24
+# % required : yes
+# %end
+# %option
+# % key: time_step
+# % type: double
+# % label: Time step for running r.sun [decimal hours]
+# % description: Use up to 2 decimal places
+# % options: 0-24
+# % answer: 1
+# %end
+# %option
+# % key: day
+# % type: integer
+# % description: No. of day of the year
+# % options: 1-365
+# % required : yes
+# %end
+# %option
+# % key: year
+# % type: integer
+# % label: Year used for map registration into temporal dataset or r.timestamp
+# % description: This value is not used in r.sun calculations
+# % options: 1900-9999
+# % required: yes
+# % answer: 1900
+# %end
+# %option
+# % key: civil_time
+# % type: double
+# % description: Civil time zone value, if none, the time will be local solar time
+# %end
+# %option
+# % key: distance_step
+# % type: double
+# % required: no
+# % description: Sampling distance step coefficient (0.5-1.5)
+# % answer: 1.0
+# %end
+# %option
+# % key: beam_rad_basename
+# % type: string
+# % label: Base name for output beam irradiance [W.m-2] (mode 1) or irradiation raster map [Wh.m-2] (mode 2)
+# % description: Underscore and time are added to the base name for each map
+# %end
+# %option
+# % key: diff_rad_basename
+# % type: string
+# % label: Base name for output diffuse irradiance [W.m-2] (mode 1) or irradiation raster map [Wh.m-2] (mode 2)
+# % description: Underscore and time are added to the base name for each map
+# %end
+# %option
+# % key: refl_rad_basename
+# % type: string
+# % label: Base name for output ground reflected irradiance [W.m-2] (mode 1) or irradiation raster map [Wh.m-2] (mode 2)
+# % description: Underscore and time are added to the base name for each map
+# %end
+# %option
+# % key: glob_rad_basename
+# % type: string
+# % label: Base name for output global (total) irradiance [W.m-2] (mode 1) or irradiation raster map [Wh.m-2] (mode 2)
+# % description: Underscore and time are added to the base name for each map
+# %end
+# %option
+# % key: incidout_basename
+# % type: string
+# % label: Base name for output incidence angle raster maps (mode 1 only)
+# % description: Underscore and time are added to the base name for each map
+# %end
+# %option
+# % key: beam_rad
+# % type: string
+# % description: Output beam irradiation raster map [Wh.m-2] (mode 2) integrated over specified time period
+# %end
+# %option
+# % key: diff_rad
+# % type: string
+# % description: Output diffuse irradiation raster map [Wh.m-2] (mode 2) integrated over specified time period
+# %end
+# %option
+# % key: refl_rad
+# % type: string
+# % description: Output ground reflected irradiation raster map [Wh.m-2] (mode 2) integrated over specified time period
+# %end
+# %option
+# % key: glob_rad
+# % type: string
+# % description: Output global (total) irradiation raster map [Wh.m-2] (mode 2) integrated over specified time period
+# %end
+# %option
+# % key: solar_constant
+# % type: double
+# % required: no
+# % multiple: no
+# % label: Solar constant [W/m^2]
+# % description: If not specified, r.sun default will be used.
+# %end
+# %option
+# % key: nprocs
+# % type: integer
+# % description: Number of r.sun processes to run in parallel
+# % options: 1-
+# % answer: 1
+# %end
+# %flag
+# % key: c
+# % description: Compute cumulative raster maps of irradiation (only with mode 2)
+# %end
+# %flag
+# % key: t
+# % description: Dataset name is the same as the base name for the output series of maps
+# % label: Register created series of output maps into temporal dataset
+# %end
+# %flag
+# % key: b
+# % description: Create binary rasters instead of irradiance rasters
+# %end
+# %flag
+# % key: p
+# % description: Do not incorporate the shadowing effect of terrain
+# %end
+# %flag
+# % key: m
+# % description: Use the low-memory version of the program
+# %end
 
 import os
 import datetime

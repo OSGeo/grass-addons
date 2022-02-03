@@ -14,369 +14,369 @@ COPYRIGHT: (C) 2016 Brendan Harmon and the GRASS Development Team
            for details.
 """
 
-#%module
-#% description: Dynamic landscape evolution model
-#% keyword: raster
-#% keyword: terrain
-#% keyword: landscape
-#% keyword: evolution
-#%end
+# %module
+# % description: Dynamic landscape evolution model
+# % keyword: raster
+# % keyword: terrain
+# % keyword: landscape
+# % keyword: evolution
+# %end
 
-#%option G_OPT_R_ELEV
-#% key: elevation
-#% required: yes
-#% guisection: Basic
-#%end
+# %option G_OPT_R_ELEV
+# % key: elevation
+# % required: yes
+# % guisection: Basic
+# %end
 
-#%option
-#% key: runs
-#% type: string
-#% required: yes
-#% multiple: no
-#% answer: event
-#% options: event,series
-#% description: Run for a single rainfall event or a series of events
-#% descriptions: event;single rainfall event;series;series of rainfall events
-#% guisection: Basic
-#%end
+# %option
+# % key: runs
+# % type: string
+# % required: yes
+# % multiple: no
+# % answer: event
+# % options: event,series
+# % description: Run for a single rainfall event or a series of events
+# % descriptions: event;single rainfall event;series;series of rainfall events
+# % guisection: Basic
+# %end
 
-#%option
-#% key: mode
-#% type: string
-#% required: yes
-#% multiple: no
-#% answer: simwe_mode
-#% options: simwe_mode,usped_mode,rusle_mode
-#% description: SIMWE erosion deposition, USPED transport limited, or RUSLE 3D detachment limited mode
-#% descriptions: simwe_mode;SIMWE erosion deposition mode;usped_mode;USPED transport limited mode;rusle_mode;RUSLE 3D detachment limited mode
-#% guisection: Basic
-#%end
+# %option
+# % key: mode
+# % type: string
+# % required: yes
+# % multiple: no
+# % answer: simwe_mode
+# % options: simwe_mode,usped_mode,rusle_mode
+# % description: SIMWE erosion deposition, USPED transport limited, or RUSLE 3D detachment limited mode
+# % descriptions: simwe_mode;SIMWE erosion deposition mode;usped_mode;USPED transport limited mode;rusle_mode;RUSLE 3D detachment limited mode
+# % guisection: Basic
+# %end
 
-#%option
-#% key: rain_intensity
-#% type: integer
-#% description: Rainfall intensity in mm/hr
-#% answer: 50
-#% multiple: no
-#% required: no
-#% guisection: Event
-#%end
+# %option
+# % key: rain_intensity
+# % type: integer
+# % description: Rainfall intensity in mm/hr
+# % answer: 50
+# % multiple: no
+# % required: no
+# % guisection: Event
+# %end
 
-#%option
-#% key: rain_duration
-#% type: integer
-#% description: Total duration of storm event in minutes
-#% answer: 60
-#% multiple: no
-#% required: no
-#% guisection: Event
-#%end
+# %option
+# % key: rain_duration
+# % type: integer
+# % description: Total duration of storm event in minutes
+# % answer: 60
+# % multiple: no
+# % required: no
+# % guisection: Event
+# %end
 
-#%option G_OPT_F_INPUT
-#% key: precipitation
-#% description: Name of input precipitation file
-#% label: Precipitation file
-#% required: no
-#% guisection: Series
-#%end
+# %option G_OPT_F_INPUT
+# % key: precipitation
+# % description: Name of input precipitation file
+# % label: Precipitation file
+# % required: no
+# % guisection: Series
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: k_factor
-#% description: Soil erodibility factor
-#% label: K factor
-#% required: no
-#% guisection: Input
-#%end
+# %option G_OPT_R_INPUT
+# % key: k_factor
+# % description: Soil erodibility factor
+# % label: K factor
+# % required: no
+# % guisection: Input
+# %end
 
-#%option
-#% key: k_factor_value
-#% type: double
-#% description: Soil erodibility constant
-#% label: K factor constant
-#% answer: 0.25
-#% multiple: no
-#% guisection: Input
-#%end
+# %option
+# % key: k_factor_value
+# % type: double
+# % description: Soil erodibility constant
+# % label: K factor constant
+# % answer: 0.25
+# % multiple: no
+# % guisection: Input
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: c_factor
-#% description: Land cover factor
-#% label: C factor
-#% required: no
-#% guisection: Input
-#%end
+# %option G_OPT_R_INPUT
+# % key: c_factor
+# % description: Land cover factor
+# % label: C factor
+# % required: no
+# % guisection: Input
+# %end
 
-#%option
-#% key: c_factor_value
-#% type: double
-#% description: Land cover constant
-#% label: C factor constant
-#% answer: 0.1
-#% multiple: no
-#% guisection: Input
-#%end
+# %option
+# % key: c_factor_value
+# % type: double
+# % description: Land cover constant
+# % label: C factor constant
+# % answer: 0.1
+# % multiple: no
+# % guisection: Input
+# %end
 
-#%option
-#% key: m
-#% type: double
-#% description: Water flow exponent
-#% label: Water flow exponent
-#% answer: 1.5
-#% multiple: no
-#% guisection: Input
-#%end
+# %option
+# % key: m
+# % type: double
+# % description: Water flow exponent
+# % label: Water flow exponent
+# % answer: 1.5
+# % multiple: no
+# % guisection: Input
+# %end
 
-#%option
-#% key: n
-#% type: double
-#% description: Slope exponent
-#% label: Slope exponent
-#% answer: 1.2
-#% multiple: no
-#% guisection: Input
-#%end
+# %option
+# % key: n
+# % type: double
+# % description: Slope exponent
+# % label: Slope exponent
+# % answer: 1.2
+# % multiple: no
+# % guisection: Input
+# %end
 
-#%option
-#% key: walkers
-#% type: integer
-#% description: Number of walkers (max = 7000000)
-#% answer: 1000000
-#% multiple: no
-#% guisection: Input
-#%end
+# %option
+# % key: walkers
+# % type: integer
+# % description: Number of walkers (max = 7000000)
+# % answer: 1000000
+# % multiple: no
+# % guisection: Input
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: runoff
-#% description: Runoff coefficient (0.6 for bare earth, 0.35 for grass or crops, 0.5 for shrubs and trees, 0.25 for forest, 0.95 for roads)
-#% label: Runoff coefficient
-#% required: no
-#% guisection: Input
-#%end
+# %option G_OPT_R_INPUT
+# % key: runoff
+# % description: Runoff coefficient (0.6 for bare earth, 0.35 for grass or crops, 0.5 for shrubs and trees, 0.25 for forest, 0.95 for roads)
+# % label: Runoff coefficient
+# % required: no
+# % guisection: Input
+# %end
 
-#%option
-#% key: runoff_value
-#% type: double
-#% description: Runoff coefficient (0.6 for bare earth, 0.35 for grass or crops, 0.5 for shrubs and trees, 0.25 for forest, 0.95 for roads)
-#% label: Runoff coefficient
-#% answer: 0.35
-#% multiple: no
-#% guisection: Input
-#%end
+# %option
+# % key: runoff_value
+# % type: double
+# % description: Runoff coefficient (0.6 for bare earth, 0.35 for grass or crops, 0.5 for shrubs and trees, 0.25 for forest, 0.95 for roads)
+# % label: Runoff coefficient
+# % answer: 0.35
+# % multiple: no
+# % guisection: Input
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: mannings
-#% description: Manning's roughness coefficient
-#% label: Manning's roughness coefficient
-#% required: no
-#% guisection: Input
-#%end
+# %option G_OPT_R_INPUT
+# % key: mannings
+# % description: Manning's roughness coefficient
+# % label: Manning's roughness coefficient
+# % required: no
+# % guisection: Input
+# %end
 
-#%option
-#% key: mannings_value
-#% type: double
-#% description: Manning's roughness coefficient
-#% label: Manning's roughness coefficient
-#% answer: 0.04
-#% multiple: no
-#% guisection: Input
-#%end
+# %option
+# % key: mannings_value
+# % type: double
+# % description: Manning's roughness coefficient
+# % label: Manning's roughness coefficient
+# % answer: 0.04
+# % multiple: no
+# % guisection: Input
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: detachment
-#% description: Detachment coefficient
-#% label: Detachment coefficient
-#% required: no
-#% guisection: Input
-#%end
+# %option G_OPT_R_INPUT
+# % key: detachment
+# % description: Detachment coefficient
+# % label: Detachment coefficient
+# % required: no
+# % guisection: Input
+# %end
 
-#%option
-#% key: detachment_value
-#% type: double
-#% description: Detachment coefficient
-#% label: Detachment coefficient
-#% answer: 0.01
-#% multiple: no
-#% guisection: Input
-#%end
+# %option
+# % key: detachment_value
+# % type: double
+# % description: Detachment coefficient
+# % label: Detachment coefficient
+# % answer: 0.01
+# % multiple: no
+# % guisection: Input
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: transport
-#% description: Transport coefficient
-#% label: Transport coefficient
-#% required: no
-#% guisection: Input
-#%end
+# %option G_OPT_R_INPUT
+# % key: transport
+# % description: Transport coefficient
+# % label: Transport coefficient
+# % required: no
+# % guisection: Input
+# %end
 
-#%option
-#% key: transport_value
-#% type: double
-#% description: Transport coefficient
-#% label: Transport coefficient
-#% answer: 0.01
-#% multiple: no
-#% guisection: Input
-#%end
+# %option
+# % key: transport_value
+# % type: double
+# % description: Transport coefficient
+# % label: Transport coefficient
+# % answer: 0.01
+# % multiple: no
+# % guisection: Input
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: shearstress
-#% description: Shear stress coefficient
-#% label: Shear stress coefficient
-#% required: no
-#% guisection: Input
-#%end
+# %option G_OPT_R_INPUT
+# % key: shearstress
+# % description: Shear stress coefficient
+# % label: Shear stress coefficient
+# % required: no
+# % guisection: Input
+# %end
 
-#%option
-#% key: shearstress_value
-#% type: double
-#% description: Shear stress coefficient
-#% label: Shear stress coefficient
-#% answer: 0.0
-#% multiple: no
-#% guisection: Input
-#%end
+# %option
+# % key: shearstress_value
+# % type: double
+# % description: Shear stress coefficient
+# % label: Shear stress coefficient
+# % answer: 0.0
+# % multiple: no
+# % guisection: Input
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: density
-#% description: Sediment mass density in g/cm^3
-#% label: Sediment mass density
-#% required: no
-#% guisection: Input
-#%end
+# %option G_OPT_R_INPUT
+# % key: density
+# % description: Sediment mass density in g/cm^3
+# % label: Sediment mass density
+# % required: no
+# % guisection: Input
+# %end
 
-#%option
-#% key: density_value
-#% type: double
-#% description: Sediment mass density in g/cm^3
-#% label: Sediment mass density
-#% answer: 1.4
-#% multiple: no
-#% guisection: Input
-#%end
+# %option
+# % key: density_value
+# % type: double
+# % description: Sediment mass density in g/cm^3
+# % label: Sediment mass density
+# % answer: 1.4
+# % multiple: no
+# % guisection: Input
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: mass
-#% description: Mass of sediment per unit area in kg/m^2
-#% label: Mass of sediment per unit area
-#% required: no
-#% guisection: Input
-#%end
+# %option G_OPT_R_INPUT
+# % key: mass
+# % description: Mass of sediment per unit area in kg/m^2
+# % label: Mass of sediment per unit area
+# % required: no
+# % guisection: Input
+# %end
 
-#%option
-#% key: mass_value
-#% type: double
-#% description: Mass of sediment per unit area in kg/m^2
-#% label: Mass of sediment per unit area
-#% answer: 116.
-#% multiple: no
-#% guisection: Input
-#%end
+# %option
+# % key: mass_value
+# % type: double
+# % description: Mass of sediment per unit area in kg/m^2
+# % label: Mass of sediment per unit area
+# % answer: 116.
+# % multiple: no
+# % guisection: Input
+# %end
 
-#%option
-#% key: grav_diffusion
-#% type: double
-#% description: Gravitational diffusion coefficient in m^2/s
-#% label: Gravitational diffusion coefficient
-#% answer: 0.1
-#% multiple: no
-#% guisection: Input
-#%end
+# %option
+# % key: grav_diffusion
+# % type: double
+# % description: Gravitational diffusion coefficient in m^2/s
+# % label: Gravitational diffusion coefficient
+# % answer: 0.1
+# % multiple: no
+# % guisection: Input
+# %end
 
-#%option
-#% key: erdepmin
-#% type: double
-#% description: Minimum values for erosion-deposition in kg/m^2s
-#% label: Minimum values for erosion-deposition
-#% answer: -0.5
-#% multiple: no
-#% guisection: Input
-#%end
+# %option
+# % key: erdepmin
+# % type: double
+# % description: Minimum values for erosion-deposition in kg/m^2s
+# % label: Minimum values for erosion-deposition
+# % answer: -0.5
+# % multiple: no
+# % guisection: Input
+# %end
 
-#%option
-#% key: erdepmax
-#% type: double
-#% description: Maximum values for erosion-deposition in kg/m^2s
-#% label: Maximum values for erosion-deposition
-#% answer: 0.5
-#% multiple: no
-#% guisection: Input
-#%end
+# %option
+# % key: erdepmax
+# % type: double
+# % description: Maximum values for erosion-deposition in kg/m^2s
+# % label: Maximum values for erosion-deposition
+# % answer: 0.5
+# % multiple: no
+# % guisection: Input
+# %end
 
-#%option
-#% key: start
-#% type: string
-#% description: Start time in year-month-day hour:minute:second format
-#% answer: 2016-01-01 00:00:00
-#% multiple: no
-#% required: yes
-#% guisection: Temporal
-#%end
+# %option
+# % key: start
+# % type: string
+# % description: Start time in year-month-day hour:minute:second format
+# % answer: 2016-01-01 00:00:00
+# % multiple: no
+# % required: yes
+# % guisection: Temporal
+# %end
 
-#%option
-#% key: rain_interval
-#% type: integer
-#% description: Time interval between evolution events in minutes
-#% answer: 1
-#% multiple: no
-#% required: yes
-#% guisection: Temporal
-#%end
+# %option
+# % key: rain_interval
+# % type: integer
+# % description: Time interval between evolution events in minutes
+# % answer: 1
+# % multiple: no
+# % required: yes
+# % guisection: Temporal
+# %end
 
-#%option G_OPT_T_TYPE
-#% key: temporaltype
-#% answer: absolute
-#% required: yes
-#% guisection: Temporal
-#%end
+# %option G_OPT_T_TYPE
+# % key: temporaltype
+# % answer: absolute
+# % required: yes
+# % guisection: Temporal
+# %end
 
-#%option
-#% key: threads
-#% type: integer
-#% description: Number of threads for multiprocessing
-#% answer: 1
-#% multiple: no
-#% required: no
-#% guisection: Multiprocessing
-#%end
+# %option
+# % key: threads
+# % type: integer
+# % description: Number of threads for multiprocessing
+# % answer: 1
+# % multiple: no
+# % required: no
+# % guisection: Multiprocessing
+# %end
 
-#%option G_OPT_STRDS_OUTPUT
-#% key: elevation_timeseries
-#% answer: elevation_timeseries
-#% required: yes
-#% guisection: Output
-#%end
+# %option G_OPT_STRDS_OUTPUT
+# % key: elevation_timeseries
+# % answer: elevation_timeseries
+# % required: yes
+# % guisection: Output
+# %end
 
-#%option G_OPT_STRDS_OUTPUT
-#% key: depth_timeseries
-#% answer: depth_timeseries
-#% required: no
-#% guisection: Output
-#%end
+# %option G_OPT_STRDS_OUTPUT
+# % key: depth_timeseries
+# % answer: depth_timeseries
+# % required: no
+# % guisection: Output
+# %end
 
-#%option G_OPT_STRDS_OUTPUT
-#% key: erdep_timeseries
-#% answer: erdep_timeseries
-#% required: no
-#% guisection: Output
-#%end
+# %option G_OPT_STRDS_OUTPUT
+# % key: erdep_timeseries
+# % answer: erdep_timeseries
+# % required: no
+# % guisection: Output
+# %end
 
-#%option G_OPT_STRDS_OUTPUT
-#% key: flux_timeseries
-#% answer: flux_timeseries
-#% required: no
-#% guisection: Output
-#%end
+# %option G_OPT_STRDS_OUTPUT
+# % key: flux_timeseries
+# % answer: flux_timeseries
+# % required: no
+# % guisection: Output
+# %end
 
-#%option G_OPT_STRDS_OUTPUT
-#% key: difference_timeseries
-#% answer: difference_timeseries
-#% required: no
-#% guisection: Output
-#%end
+# %option G_OPT_STRDS_OUTPUT
+# % key: difference_timeseries
+# % answer: difference_timeseries
+# % required: no
+# % guisection: Output
+# %end
 
-#%flag
-#% key: f
-#% description: Fill depressions
-#%end
+# %flag
+# % key: f
+# % description: Fill depressions
+# %end
 
 import sys
 import atexit
