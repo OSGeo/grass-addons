@@ -14,62 +14,62 @@
 #   for details.
 #
 #############################################################################
-#%Module
-#% description: Replaces the values of pixels of a given category with values of the surrounding pixels.
-#% keyword: raster
-#% keyword: algebra
-#% keyword: category
-#%end
-#%flag
-#% key: k
-#% description: Keep intermediate maps
-#%end
-#%option G_OPT_R_INPUT
-#%end
-#%option G_OPT_R_OUTPUT
-#%end
-#%option
-#% key: category
-#% type: integer
-#% required: yes
-#% multiple: no
-#% description: Category to replace
-#%end
-#%option
-#% key: nsize
-#% type: integer
-#% required: no
-#% multiple: no
-#% description: Neighborhood size in pixel
-#% answer: 19
-#% guisection: Parameters
-#%end
-#%option
-#% key: maxiter
-#% type: integer
-#% required: no
-#% multiple: no
-#% description: Maximum number of iterations
-#% answer: 100
-#% options: 1-999
-#% guisection: Parameters
-#%end
-#%option G_OPT_F_OUTPUT
-#% key: animationfile
-#% description: Name for animation output file
-#% required: no
-#% guisection: Optional
-#%end
-#%option
-#% key: quality
-#% type: integer
-#% required: no
-#% multiple: no
-#% description: Quality factor for animation (1 = highest quality, lowest compression)
-#% answer: 3
-#% options: 1-5
-#% guisection: Optional
-#%end
+# %Module
+# % description: Replaces the values of pixels of a given category with values of the surrounding pixels.
+# % keyword: raster
+# % keyword: algebra
+# % keyword: category
+# %end
+# %flag
+# % key: k
+# % description: Keep intermediate maps
+# %end
+# %option G_OPT_R_INPUT
+# %end
+# %option G_OPT_R_OUTPUT
+# %end
+# %option
+# % key: category
+# % type: integer
+# % required: yes
+# % multiple: no
+# % description: Category to replace
+# %end
+# %option
+# % key: nsize
+# % type: integer
+# % required: no
+# % multiple: no
+# % description: Neighborhood size in pixel
+# % answer: 19
+# % guisection: Parameters
+# %end
+# %option
+# % key: maxiter
+# % type: integer
+# % required: no
+# % multiple: no
+# % description: Maximum number of iterations
+# % answer: 100
+# % options: 1-999
+# % guisection: Parameters
+# %end
+# %option G_OPT_F_OUTPUT
+# % key: animationfile
+# % description: Name for animation output file
+# % required: no
+# % guisection: Optional
+# %end
+# %option
+# % key: quality
+# % type: integer
+# % required: no
+# % multiple: no
+# % description: Quality factor for animation (1 = highest quality, lowest compression)
+# % answer: 3
+# % options: 1-5
+# % guisection: Optional
+# %end
 
 import sys
 import os

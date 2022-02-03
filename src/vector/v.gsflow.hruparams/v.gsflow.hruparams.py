@@ -22,64 +22,64 @@
 # More information
 # Started December 2016
 
-#%module
-#%  description: Set parameters for GSFLOW Hydrologic Response Units (HRUs)
-#%  keyword: vector
-#%  keyword: stream network
-#%  keyword: hydrology
-#%  keyword: GSFLOW
-#%end
+# %module
+# %  description: Set parameters for GSFLOW Hydrologic Response Units (HRUs)
+# %  keyword: vector
+# %  keyword: stream network
+# %  keyword: hydrology
+# %  keyword: GSFLOW
+# %end
 
-#%option G_OPT_R_INPUT
-#%  key: elevation
-#%  label: Elevation raster
-#%  required: yes
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_R_INPUT
+# %  key: elevation
+# %  label: Elevation raster
+# %  required: yes
+# %  guidependency: layer,column
+# %end
 
-#%option G_OPT_R_INPUT
-#%  key: cov_type
-#%  label: land cover: rast or int: 0=bare soil; 1=grass; 2=shrub; 3=tree; 4=conif
-#%  answer: 0
-#%  required: no
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_R_INPUT
+# %  key: cov_type
+# %  label: land cover: rast or int: 0=bare soil; 1=grass; 2=shrub; 3=tree; 4=conif
+# %  answer: 0
+# %  required: no
+# %  guidependency: layer,column
+# %end
 
-#%option G_OPT_R_INPUT
-#%  key: soil_type
-#%  label: soil: rast or int: 1=sand; 2=loam; 3=clay
-#%  answer: 2
-#%  required: no
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_R_INPUT
+# %  key: soil_type
+# %  label: soil: rast or int: 1=sand; 2=loam; 3=clay
+# %  answer: 2
+# %  required: no
+# %  guidependency: layer,column
+# %end
 
-#%option G_OPT_V_INPUT
-#%  key: input
-#%  label: Sub-basins to become HRUs
-#%  required: yes
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_V_INPUT
+# %  key: input
+# %  label: Sub-basins to become HRUs
+# %  required: yes
+# %  guidependency: layer,column
+# %end
 
-#%option G_OPT_V_OUTPUT
-#%  key: output
-#%  label: HRUs
-#%  required: yes
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_V_OUTPUT
+# %  key: output
+# %  label: HRUs
+# %  required: yes
+# %  guidependency: layer,column
+# %end
 
-#%option
-#%  key: slope
-#%  type: string
-#%  description: Slope [unitless]: r.slope.aspect format=percent zscale=0.01
-#%  required: yes
-#%end
+# %option
+# %  key: slope
+# %  type: string
+# %  description: Slope [unitless]: r.slope.aspect format=percent zscale=0.01
+# %  required: yes
+# %end
 
-#%option
-#%  key: aspect
-#%  type: string
-#%  description: Aspect from r.slope.aspect
-#%  required: yes
-#%end
+# %option
+# %  key: aspect
+# %  type: string
+# %  description: Aspect from r.slope.aspect
+# %  required: yes
+# %end
 
 ##################
 # IMPORT MODULES #

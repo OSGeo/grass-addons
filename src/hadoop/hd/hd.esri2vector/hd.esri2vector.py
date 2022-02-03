@@ -13,26 +13,26 @@
 #
 #############################################################################
 
-#%module
-#% description:  Module for conversion Esri GeoJson to GRASS vector
-#% keyword: database
-#% keyword: hdfs
-#% keyword: hive
-#%end
-#%option G_OPT_V_OUTPUT
-#% key: out
-#% required: yes
-#%end
-#%option
-#% key: path
-#% type: string
-#% description:  path to the folder with files.
-#%end
-#%option
-#% key: attributes
-#% type: string
-#% description: list of attributes with datatype
-#%end
+# %module
+# % description:  Module for conversion Esri GeoJson to GRASS vector
+# % keyword: database
+# % keyword: hdfs
+# % keyword: hive
+# %end
+# %option G_OPT_V_OUTPUT
+# % key: out
+# % required: yes
+# %end
+# %option
+# % key: path
+# % type: string
+# % description:  path to the folder with files.
+# %end
+# %option
+# % key: attributes
+# % type: string
+# % description: list of attributes with datatype
+# %end
 
 
 import os

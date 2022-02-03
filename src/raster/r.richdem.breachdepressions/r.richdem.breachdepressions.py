@@ -20,33 +20,33 @@
 # More information
 # Started June 2019
 
-#%module
-#% description: Breaches depressions using RichDEM
-#% keyword: raster
-#% keyword: hydrology
-#%end
+# %module
+# % description: Breaches depressions using RichDEM
+# % keyword: raster
+# % keyword: hydrology
+# %end
 
-#%option G_OPT_R_INPUT
-#%  key: input
-#%  label: Input DEM
-#%  required: yes
-#%end
+# %option G_OPT_R_INPUT
+# %  key: input
+# %  label: Input DEM
+# %  required: yes
+# %end
 
-#%option
-#% key: topology
-#% type: string
-#% label: D4 or D8 flow routing?
-#% required: no
-#% multiple: no
-#% answer: D8
-#% options: D4,D8
-#%end
+# %option
+# % key: topology
+# % type: string
+# % label: D4 or D8 flow routing?
+# % required: no
+# % multiple: no
+# % answer: D8
+# % options: D4,D8
+# %end
 
-#%option G_OPT_R_OUTPUT
-#%  key: output
-#%  label: Output DEM with depressions breached
-#%  required: yes
-#%end
+# %option G_OPT_R_OUTPUT
+# %  key: output
+# %  label: Output DEM with depressions breached
+# %  required: yes
+# %end
 
 ##################
 # IMPORT MODULES #

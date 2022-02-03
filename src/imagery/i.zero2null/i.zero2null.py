@@ -18,14 +18,14 @@
 #
 ############################################################################
 
-#%module
-#% description: Replaces zero values with null at edges, otherwise replaces zero values with appropriate neighboring values.
-#% keyword: imagery
-#% keyword: satellite
-#%end
+# %module
+# % description: Replaces zero values with null at edges, otherwise replaces zero values with appropriate neighboring values.
+# % keyword: imagery
+# % keyword: satellite
+# %end
 
-#%option G_OPT_R_MAPS
-#%end
+# %option G_OPT_R_MAPS
+# %end
 
 
 import sys

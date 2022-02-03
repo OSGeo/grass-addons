@@ -14,20 +14,20 @@ COPYRIGHT: (C) 2014 by the GRASS Development Team
            for details.
 """
 
-#%module
-#% description: Calculation of northerness, easterness and the interaction between northerness and slope
-#% keyword: raster
-#% keyword: terrain
-#% keyword: aspect
-#% keyword: slope
-#% keyword: sun
-#%end
+# %module
+# % description: Calculation of northerness, easterness and the interaction between northerness and slope
+# % keyword: raster
+# % keyword: terrain
+# % keyword: aspect
+# % keyword: slope
+# % keyword: sun
+# %end
 
-#%option G_OPT_R_ELEV
-#% key: elevation
-#% description: Name of elevation raster map
-#% required: yes
-#%end
+# %option G_OPT_R_ELEV
+# % key: elevation
+# % description: Name of elevation raster map
+# % required: yes
+# %end
 
 import sys
 import os

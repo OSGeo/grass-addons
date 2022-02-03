@@ -12,44 +12,44 @@
 #
 #############################################################################
 
-#%module
-#% label: Download GRASS Location from the web
-#% description: Get GRASS Location from an URL or file path
-#% keyword: general
-#% keyword: data
-#% keyword: download
-#% keyword: import
-#%end
-#%option
-#% key: url
-#% multiple: no
-#% type: string
-#% label: URL of the archive with a location to be downloaded
-#% description: URL of ZIP, TAR.GZ, or other similar archive
-#% required: yes
-#%end
-#%option G_OPT_M_LOCATION
-#% key: name
-#% required: no
-#% multiple: no
-#% key_desc: name
-#%end
-#%option G_OPT_M_DBASE
-#% key: path
-#% required: no
-#% multiple: no
-#%end
-#%option
-#% key: dbase
-#% multiple: no
-#% type: string
-#% label: Path to database, use path option instead
-#% description: This option is obsolete and replaced by path
-#% required: no
-#%end
-#%rules
-#% exclusive: path,dbase
-#%end
+# %module
+# % label: Download GRASS Location from the web
+# % description: Get GRASS Location from an URL or file path
+# % keyword: general
+# % keyword: data
+# % keyword: download
+# % keyword: import
+# %end
+# %option
+# % key: url
+# % multiple: no
+# % type: string
+# % label: URL of the archive with a location to be downloaded
+# % description: URL of ZIP, TAR.GZ, or other similar archive
+# % required: yes
+# %end
+# %option G_OPT_M_LOCATION
+# % key: name
+# % required: no
+# % multiple: no
+# % key_desc: name
+# %end
+# %option G_OPT_M_DBASE
+# % key: path
+# % required: no
+# % multiple: no
+# %end
+# %option
+# % key: dbase
+# % multiple: no
+# % type: string
+# % label: Path to database, use path option instead
+# % description: This option is obsolete and replaced by path
+# % required: no
+# %end
+# %rules
+# % exclusive: path,dbase
+# %end
 
 import os
 import shutil

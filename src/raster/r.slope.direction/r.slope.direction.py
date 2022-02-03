@@ -11,62 +11,62 @@ COPYRIGHT:    (C) 2019 by the GRASS Development Team
               for details.
 """
 
-#%module
-#% description: Calculates slope following a direction raster.
-#% keyword: raster
-#% keyword: slope
-#% keyword: direction
-#% keyword: neighborhood
-#% keyword: stream
-#% keyword: trail
-#% keyword: trac
-#% keyword: path
-#% keyword: road
-#% keyword: street
+# %module
+# % description: Calculates slope following a direction raster.
+# % keyword: raster
+# % keyword: slope
+# % keyword: direction
+# % keyword: neighborhood
+# % keyword: stream
+# % keyword: trail
+# % keyword: trac
+# % keyword: path
+# % keyword: road
+# % keyword: street
 
-#%end
-#%option G_OPT_R_ELEV
-#% required: YES
-#%end
-#%option G_OPT_R_INPUT
-#% key: direction
-#% label: Input Direction raster map
-#% required: YES
-#%end
-#%option
-#% key: dir_type
-#% label: Direction type
-#% description: Type of diretion encoding in diections input raster map (default: auto)
-#% options: 45degree,degree,bitmask,bitmask_k,auto
-#% type: string
-#% required: YES
-#% answer: auto
-#%end
-#%option
-#% key: steps
-#% label: Number of steps
-#% description: Comma separated list of steps in direction for which slope is computed
-#% type: string
-#% required: YES
-#% answer: 1
-#%end
-#%option
-#% key: slope_measure
-#% label: Slope measure
-#% description: Format for reporting the slope (default: degree)
-#% options: difference,percent,percent_int,degree,degree_int
-#% type: string
-#% required: YES
-#% answer: degree
-#%end
-#%option G_OPT_R_OUTPUTS
-#% required: YES
-#%end
-#%flag
-#% key: a
-#% label: Compute slope as absolute values
-#% description: Compute slope as absolute values (default allows negative slopes)
-#%end
+# %end
+# %option G_OPT_R_ELEV
+# % required: YES
+# %end
+# %option G_OPT_R_INPUT
+# % key: direction
+# % label: Input Direction raster map
+# % required: YES
+# %end
+# %option
+# % key: dir_type
+# % label: Direction type
+# % description: Type of diretion encoding in diections input raster map (default: auto)
+# % options: 45degree,degree,bitmask,bitmask_k,auto
+# % type: string
+# % required: YES
+# % answer: auto
+# %end
+# %option
+# % key: steps
+# % label: Number of steps
+# % description: Comma separated list of steps in direction for which slope is computed
+# % type: string
+# % required: YES
+# % answer: 1
+# %end
+# %option
+# % key: slope_measure
+# % label: Slope measure
+# % description: Format for reporting the slope (default: degree)
+# % options: difference,percent,percent_int,degree,degree_int
+# % type: string
+# % required: YES
+# % answer: degree
+# %end
+# %option G_OPT_R_OUTPUTS
+# % required: YES
+# %end
+# %flag
+# % key: a
+# % label: Compute slope as absolute values
+# % description: Compute slope as absolute values (default allows negative slopes)
+# %end
 
 # toDo:
 # - write tests

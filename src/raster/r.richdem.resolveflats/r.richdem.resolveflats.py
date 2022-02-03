@@ -20,23 +20,23 @@
 # More information
 # Started June 2019
 
-#%module
-#% description: Directs flow from flat areas on depression-filled DEMs
-#% keyword: raster
-#% keyword: hydrology
-#%end
+# %module
+# % description: Directs flow from flat areas on depression-filled DEMs
+# % keyword: raster
+# % keyword: hydrology
+# %end
 
-#%option G_OPT_R_INPUT
-#%  key: input
-#%  label: Input DEM (most commonly with depressions filled)
-#%  required: yes
-#%end
+# %option G_OPT_R_INPUT
+# %  key: input
+# %  label: Input DEM (most commonly with depressions filled)
+# %  required: yes
+# %end
 
-#%option G_OPT_R_OUTPUT
-#%  key: output
-#%  label: Output DEM with flats resolved for continuous flow
-#%  required: yes
-#%end
+# %option G_OPT_R_OUTPUT
+# %  key: output
+# %  label: Output DEM with flats resolved for continuous flow
+# %  required: yes
+# %end
 
 ##################
 # IMPORT MODULES #

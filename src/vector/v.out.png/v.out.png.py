@@ -14,46 +14,46 @@
 #
 #############################################################################
 
-#%module
-#% description: Export vector map as PNG
-#% keyword: vector
-#% keyword: export
-#% keyword: PNG
-#%end
-#%option G_OPT_V_INPUT
-#%end
-#%option G_OPT_F_OUTPUT
-#% label: Name for new PNG file
-#%end
-#%option
-#% key: rgb_column
-#% type: string
-#% description: Name of color definition column
-#%end
-#%option
-#% key: compression
-#% type: integer
-#% options: 0-9
-#% label: Compression level of PNG file
-#% description: (0 = none, 1 = fastest, 9 = best)
-#% answer: 6
-#%end
-#%option
-#% key: width
-#% type: integer
-#% label: Width of PNG file
-#% answer: 640
-#%end
-#%option
-#% key: height
-#% type: integer
-#% label: Height of PNG file
-#% answer: 480
-#%end
-#%flag
-#%key: w
-#%description: Output world file
-#%end
+# %module
+# % description: Export vector map as PNG
+# % keyword: vector
+# % keyword: export
+# % keyword: PNG
+# %end
+# %option G_OPT_V_INPUT
+# %end
+# %option G_OPT_F_OUTPUT
+# % label: Name for new PNG file
+# %end
+# %option
+# % key: rgb_column
+# % type: string
+# % description: Name of color definition column
+# %end
+# %option
+# % key: compression
+# % type: integer
+# % options: 0-9
+# % label: Compression level of PNG file
+# % description: (0 = none, 1 = fastest, 9 = best)
+# % answer: 6
+# %end
+# %option
+# % key: width
+# % type: integer
+# % label: Width of PNG file
+# % answer: 640
+# %end
+# %option
+# % key: height
+# % type: integer
+# % label: Height of PNG file
+# % answer: 480
+# %end
+# %flag
+# %key: w
+# %description: Output world file
+# %end
 
 import os
 import sys

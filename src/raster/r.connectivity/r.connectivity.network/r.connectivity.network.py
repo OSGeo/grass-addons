@@ -77,70 +77,70 @@ ToDo:
 - - grass.parse_command('v.support', map=nodes, flags='g')[comments]
 """
 
-#%Module
-#% description: Compute connectivity measures for a set of habitat patches based on graph-theory
-#% keyword: raster
-#% keyword: vector
-#% keyword: graph theory
-#% keyword: network
-#% keyword: network analysis
-#%End
+# %Module
+# % description: Compute connectivity measures for a set of habitat patches based on graph-theory
+# % keyword: raster
+# % keyword: vector
+# % keyword: graph theory
+# % keyword: network
+# % keyword: network analysis
+# %End
 
-#%option G_OPT_V_INPUT
-#% required: yes
-#% key_desc: Network computed with r.connectivity.distance (input)
-#% description: Name of input vector map containing the network produced with r.connectivity.distance
-#%end
+# %option G_OPT_V_INPUT
+# % required: yes
+# % key_desc: Network computed with r.connectivity.distance (input)
+# % description: Name of input vector map containing the network produced with r.connectivity.distance
+# %end
 
-#%option G_OPT_M_DIR
-#% type: string
-#% key: qml_style
-#% required: no
-#% description: Directory for output of QML files for layer styling in QGIS
-#%end
+# %option G_OPT_M_DIR
+# % type: string
+# % key: qml_style
+# % required: no
+# % description: Directory for output of QML files for layer styling in QGIS
+# %end
 
-#%option
-#% type: string
-#% key: prefix
-#% required: yes
-#% description: Prefix for output tables
-#%end
+# %option
+# % type: string
+# % key: prefix
+# % required: yes
+# % description: Prefix for output tables
+# %end
 
-#%option
-#% key: connectivity_cutoff
-#% type: double
-#% description: Maximum cost distance for connectivity
-#% guisection: Settings
-#% required: no
-#% answer: 0.0
-#%end
+# %option
+# % key: connectivity_cutoff
+# % type: double
+# % description: Maximum cost distance for connectivity
+# % guisection: Settings
+# % required: no
+# % answer: 0.0
+# %end
 
-#%option
-#% key: lnbh_cutoff
-#% type: double
-#% description: Threshold defining a locale neighborhood (neighborhood = number of times connectivity_cutoff)
-#% guisection: Settings
-#% required: no
-#% answer: 3.0
-#%end
+# %option
+# % key: lnbh_cutoff
+# % type: double
+# % description: Threshold defining a locale neighborhood (neighborhood = number of times connectivity_cutoff)
+# % guisection: Settings
+# % required: no
+# % answer: 3.0
+# %end
 
-#%option
-#% key: convergence_threshold
-#% type: double
-#% description: Convergence threshold for the overview plot over the graph
-#% guisection: Settings
-#% required: no
-#% answer: 0.05
-#%end
+# %option
+# % key: convergence_threshold
+# % type: double
+# % description: Convergence threshold for the overview plot over the graph
+# % guisection: Settings
+# % required: no
+# % answer: 0.05
+# %end
 
-#%option
-#% key: cl_thresh
-#% type: integer
-#% description: Number of community levels to be traced in edge betweenness community
-#% guisection: Settings
-#% required: no
-#% answer: 0
-#%end
+# %option
+# % key: cl_thresh
+# % type: integer
+# % description: Number of community levels to be traced in edge betweenness community
+# % guisection: Settings
+# % required: no
+# % answer: 0
+# %end
 
 # Temporarily disabled
 ##%flag
@@ -149,62 +149,62 @@ ToDo:
 ##% guisection: Measures
 ##%end
 
-#%option
-#% key: base
-#% type: double
-#% description: A factor for defining the shape of the negative exponential decay kernel (e ^ base * exponent)
-#% guisection: Kernel
-#% required: no
-#% answer: -3.0
-#%end
+# %option
+# % key: base
+# % type: double
+# % description: A factor for defining the shape of the negative exponential decay kernel (e ^ base * exponent)
+# % guisection: Kernel
+# % required: no
+# % answer: -3.0
+# %end
 
-#%option
-#% key: exponent
-#% type: double
-#% description: Exponent of the negative exponential decay kernel (e ^ base * exponent)
-#% guisection: Kernel
-#% required: no
-#% answer: -4.5
-#%end
+# %option
+# % key: exponent
+# % type: double
+# % description: Exponent of the negative exponential decay kernel (e ^ base * exponent)
+# % guisection: Kernel
+# % required: no
+# % answer: -4.5
+# %end
 
-#%flag
-#% key: x
-#% description: Visualise negative exponential decay kernel and exit
-#% guisection: Output
-#%end
+# %flag
+# % key: x
+# % description: Visualise negative exponential decay kernel and exit
+# % guisection: Output
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key: kernel_plot
-#% description: File name for a plot of the negative exponential decay kernel (e ^ base * exponent) used in analysis (requires ghostscript installed)
-#% required : no
-#% guisection: Output
-#%end
+# %option G_OPT_F_OUTPUT
+# % key: kernel_plot
+# % description: File name for a plot of the negative exponential decay kernel (e ^ base * exponent) used in analysis (requires ghostscript installed)
+# % required : no
+# % guisection: Output
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key: overview_plot
-#% description: File name for a plot of an overview over network characteristics (requires ghostscript installed)
-#% required : no
-#% guisection: Output
-#%end
+# %option G_OPT_F_OUTPUT
+# % key: overview_plot
+# % description: File name for a plot of an overview over network characteristics (requires ghostscript installed)
+# % required : no
+# % guisection: Output
+# %end
 
-#%option
-#% key: cores
-#% type: integer
-#% description: Number of cores to be used for computation (if <= 1 no parallelisation is applied)
-#% guisection: Parallelisation
-#% required: no
-#% answer: 1
-#%end
+# %option
+# % key: cores
+# % type: integer
+# % description: Number of cores to be used for computation (if <= 1 no parallelisation is applied)
+# % guisection: Parallelisation
+# % required: no
+# % answer: 1
+# %end
 
-#%flag
-#% key: i
-#% description: Install required R packages in an interactive session if they are missing
-#%end
+# %flag
+# % key: i
+# % description: Install required R packages in an interactive session if they are missing
+# %end
 
-#%flag
-#% key: r
-#% description: Remove indirect connections from network
-#%end
+# %flag
+# % key: r
+# % description: Remove indirect connections from network
+# %end
 
 import atexit
 import os

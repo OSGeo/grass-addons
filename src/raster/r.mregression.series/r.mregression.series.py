@@ -17,38 +17,38 @@
 #
 #############################################################################
 
-#%Module
-#% description: Calculates multiple regression between time series: Y(t) = b1*X1(t) + ... + bn*Xn(t).
-#% overwrite: yes
-#% keyword: raster
-#% keyword: statistics
-#% keyword: regression
-#%End
-#%option
-#% key: samples
-#% type: string
-#% gisprompt: file with settings in csv format
-#% description: File contains list of input and output rasters
-#% required : yes
-#% multiple: no
-#%end
-#%option
-#% key: result_prefix
-#% type: string
-#% gisprompt: prefix for names of result rasters
-#% description: Prefix for names of result raster (rasters of regression coefficients)
-#% required : yes
-#% multiple: no
-#%end
-#%option
-#% key: model
-#% type: string
-#% gisprompt: model
-#% description: model type: ols (ordinary least squares), rlm (robust linear model)
-#% required: no
-#% answer: ols
-#% multiple: no
-#%end
+# %Module
+# % description: Calculates multiple regression between time series: Y(t) = b1*X1(t) + ... + bn*Xn(t).
+# % overwrite: yes
+# % keyword: raster
+# % keyword: statistics
+# % keyword: regression
+# %End
+# %option
+# % key: samples
+# % type: string
+# % gisprompt: file with settings in csv format
+# % description: File contains list of input and output rasters
+# % required : yes
+# % multiple: no
+# %end
+# %option
+# % key: result_prefix
+# % type: string
+# % gisprompt: prefix for names of result rasters
+# % description: Prefix for names of result raster (rasters of regression coefficients)
+# % required : yes
+# % multiple: no
+# %end
+# %option
+# % key: model
+# % type: string
+# % gisprompt: model
+# % description: model type: ols (ordinary least squares), rlm (robust linear model)
+# % required: no
+# % answer: ols
+# % multiple: no
+# %end
 
 
 import os

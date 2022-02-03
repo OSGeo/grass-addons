@@ -13,42 +13,42 @@
 #
 #############################################################################
 
-#%module
-#% description: Creates a central line of a map of lines
-#% keyword: vector
-#% keyword: lines central
-#%end
-#%option G_OPT_V_INPUT
-#%end
-#%option G_OPT_V_OUTPUT
-#%end
-#%option
-#% key: range
-#% type: double
-#% description: Distance (in map units) of search radius
-#% required: no
-#%end
-#%option
-#% key: refline
-#% type: integer
-#% description: Category of the line to use as initial reference
-#% required: no
-#%end
-#%option
-#% key: vertices
-#% description: Number of vertices for center line
-#% type: integer
-#% answer: 20
-#% required: no
-#%end
-#%flag
-#% key: t
-#% description: Use transversal line algorithm
-#%end
-#%flag
-#% key: m
-#% description: Use approximate median instead of mean
-#%end
+# %module
+# % description: Creates a central line of a map of lines
+# % keyword: vector
+# % keyword: lines central
+# %end
+# %option G_OPT_V_INPUT
+# %end
+# %option G_OPT_V_OUTPUT
+# %end
+# %option
+# % key: range
+# % type: double
+# % description: Distance (in map units) of search radius
+# % required: no
+# %end
+# %option
+# % key: refline
+# % type: integer
+# % description: Category of the line to use as initial reference
+# % required: no
+# %end
+# %option
+# % key: vertices
+# % description: Number of vertices for center line
+# % type: integer
+# % answer: 20
+# % required: no
+# %end
+# %flag
+# % key: t
+# % description: Use transversal line algorithm
+# %end
+# %flag
+# % key: m
+# % description: Use approximate median instead of mean
+# %end
 
 import os
 import atexit

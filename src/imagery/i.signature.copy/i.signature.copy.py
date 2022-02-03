@@ -14,59 +14,59 @@
 #
 #############################################################################
 
-#%module
-#% description: Copies signature file from a group/subgroup to another group/subgroup.
-#% keyword: imagery
-#% keyword: map management
-#% keyword: copy
-#% keyword: signature
-#% keyword: group
-#%end
+# %module
+# % description: Copies signature file from a group/subgroup to another group/subgroup.
+# % keyword: imagery
+# % keyword: map management
+# % keyword: copy
+# % keyword: signature
+# % keyword: group
+# %end
 
-#%option G_OPT_I_GROUP
-#% key: igroup
-#% description: Input group for signature file to copy
-#% required : yes
-#%end
+# %option G_OPT_I_GROUP
+# % key: igroup
+# % description: Input group for signature file to copy
+# % required : yes
+# %end
 
-#%option G_OPT_I_SUBGROUP
-#% key: isubgroup
-#% description: Input subgroup for signature file to copy
-#% required : yes
-#%end
+# %option G_OPT_I_SUBGROUP
+# % key: isubgroup
+# % description: Input subgroup for signature file to copy
+# % required : yes
+# %end
 
-#%option
-#% key: isignature
-#% type: string
-#% gisprompt: old,sig,sigfile
-#% label: Input signature file
-#% description: The name of the input signature file to copy
-#% required: yes
-#%end
+# %option
+# % key: isignature
+# % type: string
+# % gisprompt: old,sig,sigfile
+# % label: Input signature file
+# % description: The name of the input signature file to copy
+# % required: yes
+# %end
 
-#%option
-#% key: ogroup
-#% type: string
-#% gisprompt: old,group,group
-#% label: Output group where copy the signature file
-#% required : yes
-#%end
+# %option
+# % key: ogroup
+# % type: string
+# % gisprompt: old,group,group
+# % label: Output group where copy the signature file
+# % required : yes
+# %end
 
-#%option
-#% key: osubgroup
-#% type: string
-#% gisprompt: old,subgroup,subgroup
-#% description: Output subgroup where copy the signature file
-#% required : yes
-#%end
+# %option
+# % key: osubgroup
+# % type: string
+# % gisprompt: old,subgroup,subgroup
+# % description: Output subgroup where copy the signature file
+# % required : yes
+# %end
 
-#%option
-#% key: osignature
-#% type: string
-#% label: Output signature file
-#% description: The name of the output signature file
-#% required: no
-#%end
+# %option
+# % key: osignature
+# % type: string
+# % label: Output signature file
+# % description: The name of the output signature file
+# % required: no
+# %end
 
 import os
 import sys

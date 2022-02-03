@@ -21,38 +21,38 @@
 # Incorporated Statistician 5, 115. https://dx.doi.org/10.2307%2F2986645
 #############################################################################
 
-#%Module
-#% description: Spatial autocorrelation of raster objects
-#% keyword: raster
-#% keyword: statistics
-#% keyword: spatial autocorrelation
-#%end
+# %Module
+# % description: Spatial autocorrelation of raster objects
+# % keyword: raster
+# % keyword: statistics
+# % keyword: spatial autocorrelation
+# %end
 #
-#%option G_OPT_R_INPUT
-#% key: object_map
-#% description: Raster input map with objects
-#% required : yes
-#%end
+# %option G_OPT_R_INPUT
+# % key: object_map
+# % description: Raster input map with objects
+# % required : yes
+# %end
 #
-#%option G_OPT_R_INPUT
-#% key: variable_map
-#% description: Raster input map with variable
-#% required : yes
-#%end
+# %option G_OPT_R_INPUT
+# % key: variable_map
+# % description: Raster input map with variable
+# % required : yes
+# %end
 #
-#%option
-#% key: method
-#% type: string
-#% description: Method for spatial autocorrelation
-#% options: moran,geary
-#% multiple: no
-#% required: yes
-#%end
+# %option
+# % key: method
+# % type: string
+# % description: Method for spatial autocorrelation
+# % options: moran,geary
+# % multiple: no
+# % required: yes
+# %end
 #
-#%flag
-#% key: d
-#% description: Also take into account diagonal neighbors
-#%end
+# %flag
+# % key: d
+# % description: Also take into account diagonal neighbors
+# %end
 
 from __future__ import print_function
 import sys

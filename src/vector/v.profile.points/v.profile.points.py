@@ -18,65 +18,65 @@
 #
 #########################################################################
 
-#%module
-#% description: Creates a profile (transect) from points
-#% keyword: vector
-#% keyword: points
-#% keyword: profile
-#% keyword: transect
-#% keyword: lidar
-#% keyword: point cloud
-#%end
-#%option G_OPT_V_INPUT
-#% key: line_input
-#% required: no
-#% label: Vector map with a single line (with 2 points)
-#% description: Vector line prepared ahead
-#% guisection: Line
-#%end
-#%option G_OPT_M_COORDS
-#% required: no
-#% multiple: yes
-#% label: Line coordinates (x,y,x,y)
-#% description: Two pairs of coordinates as an alternative to a vector line
-#% guisection: Line
-#%end
-#%option G_OPT_V_INPUT
-#% key: point_input
-#% required: no
-#% label: Vector map with points
-#% guisection: Points
-#%end
-#%option G_OPT_F_BIN_INPUT
-#% key: file_input
-#% required: no
-#% label: LAS (or LAZ) file with a point cloud
-#% description: File to be imported using v.in.lidar
-#% guisection: Points
-#%end
-#%option G_OPT_V_OUTPUT
-#% required: yes
-#% guisection: Output
-#%end
-#%option
-#% key: width
-#% type: double
-#% required: no
-#% label: Width of profile in map units
-#% description: Default with is 5% of the profile length
-#% guisection: Line
-#%end
-#%flag
-#% key: z
-#% description: Start the z coordinates at 0 instead of the actual height
-#% guisection: Output
-#%end
-#%rules
-#% required: line_input, coordinates
-#% exclusive: line_input, coordinates
-#% required: point_input, file_input
-#% exclusive: point_input, file_input
-#%end
+# %module
+# % description: Creates a profile (transect) from points
+# % keyword: vector
+# % keyword: points
+# % keyword: profile
+# % keyword: transect
+# % keyword: lidar
+# % keyword: point cloud
+# %end
+# %option G_OPT_V_INPUT
+# % key: line_input
+# % required: no
+# % label: Vector map with a single line (with 2 points)
+# % description: Vector line prepared ahead
+# % guisection: Line
+# %end
+# %option G_OPT_M_COORDS
+# % required: no
+# % multiple: yes
+# % label: Line coordinates (x,y,x,y)
+# % description: Two pairs of coordinates as an alternative to a vector line
+# % guisection: Line
+# %end
+# %option G_OPT_V_INPUT
+# % key: point_input
+# % required: no
+# % label: Vector map with points
+# % guisection: Points
+# %end
+# %option G_OPT_F_BIN_INPUT
+# % key: file_input
+# % required: no
+# % label: LAS (or LAZ) file with a point cloud
+# % description: File to be imported using v.in.lidar
+# % guisection: Points
+# %end
+# %option G_OPT_V_OUTPUT
+# % required: yes
+# % guisection: Output
+# %end
+# %option
+# % key: width
+# % type: double
+# % required: no
+# % label: Width of profile in map units
+# % description: Default with is 5% of the profile length
+# % guisection: Line
+# %end
+# %flag
+# % key: z
+# % description: Start the z coordinates at 0 instead of the actual height
+# % guisection: Output
+# %end
+# %rules
+# % required: line_input, coordinates
+# % exclusive: line_input, coordinates
+# % required: point_input, file_input
+# % exclusive: point_input, file_input
+# %end
 
 # TODO: support more than one line with 2 points
 # TODO: shift x coordinates to zero

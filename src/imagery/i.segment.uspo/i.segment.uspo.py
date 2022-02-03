@@ -29,271 +29,271 @@
 # Geo-Information, 4(4), pp. 2292-2305, http://dx.doi.org/10.3390/ijgi4042292
 #############################################################################
 
-#%Module
-#% description: Unsupervised segmentation parameter optimization
-#% keyword: imagery
-#% keyword: variance
-#% keyword: segmentation
-#% keyword: threshold
-#%end
+# %Module
+# % description: Unsupervised segmentation parameter optimization
+# % keyword: imagery
+# % keyword: variance
+# % keyword: segmentation
+# % keyword: threshold
+# %end
 #
-#%option G_OPT_I_GROUP
-#% description: Group to use for segmentation
-#% required : yes
-#%end
+# %option G_OPT_I_GROUP
+# % description: Group to use for segmentation
+# % required : yes
+# %end
 #
-#%option G_OPT_R_MAPS
-#% key: maps
-#% description: Raster band(s) for  which to calculate variance (default: all group members)
-#% required : no
-#%end
+# %option G_OPT_R_MAPS
+# % key: maps
+# % description: Raster band(s) for  which to calculate variance (default: all group members)
+# % required : no
+# %end
 #
-#%option G_OPT_R_MAP
-#% key: seeds
-#% description: Seeds for segmentation
-#% required : no
-#%end
+# %option G_OPT_R_MAP
+# % key: seeds
+# % description: Seeds for segmentation
+# % required : no
+# %end
 #
-#%option G_OPT_F_OUTPUT
-#% description: Name for output file (- for standard output)
-#% required : no
-#%end
+# %option G_OPT_F_OUTPUT
+# % description: Name for output file (- for standard output)
+# % required : no
+# %end
 #
-#%option G_OPT_R_OUTPUT
-#% key: segment_map
-#% description: Prefix for "best" output segmentation map per region
-#% required : no
-#%end
+# %option G_OPT_R_OUTPUT
+# % key: segment_map
+# % description: Prefix for "best" output segmentation map per region
+# % required : no
+# %end
 #
-#%option G_OPT_M_REGION
-#% key: regions
-#% description: Regions in which to analyze the variance
-#% required: yes
-#% multiple: yes
-#%end
+# %option G_OPT_M_REGION
+# % key: regions
+# % description: Regions in which to analyze the variance
+# % required: yes
+# % multiple: yes
+# %end
 #
-#%option
-#% key: segmentation_method
-#% type: string
-#% description: Segmentation method to use
-#% required: yes
-#% options: region_growing,mean_shift
-#% answer: region_growing
-#%end
+# %option
+# % key: segmentation_method
+# % type: string
+# % description: Segmentation method to use
+# % required: yes
+# % options: region_growing,mean_shift
+# % answer: region_growing
+# %end
 #
-#%option
-#% key: thresholds
-#% type: double
-#% description: Thresholds to test
-#% required: no
-#% multiple: yes
-#% guisection: General
-#%end
+# %option
+# % key: thresholds
+# % type: double
+# % description: Thresholds to test
+# % required: no
+# % multiple: yes
+# % guisection: General
+# %end
 #
-#%option
-#% key: threshold_start
-#% type: double
-#% description: Lowest threshold to test
-#% required: no
-#% guisection: General
-#%end
+# %option
+# % key: threshold_start
+# % type: double
+# % description: Lowest threshold to test
+# % required: no
+# % guisection: General
+# %end
 #
-#%option
-#% key: threshold_stop
-#% type: double
-#% description: Threshold at which to stop (not included)
-#% required: no
-#% guisection: General
-#%end
+# %option
+# % key: threshold_stop
+# % type: double
+# % description: Threshold at which to stop (not included)
+# % required: no
+# % guisection: General
+# %end
 #
-#%option
-#% key: threshold_step
-#% type: double
-#% description: Step to use between thresholds
-#% required: no
-#% guisection: General
-#%end
+# %option
+# % key: threshold_step
+# % type: double
+# % description: Step to use between thresholds
+# % required: no
+# % guisection: General
+# %end
 #
-#%option
-#% key: minsizes
-#% type: integer
-#% description: Minimum number of cells in a segment to test
-#% multiple: yes
-#% required: no
-#% guisection: General
-#%end
+# %option
+# % key: minsizes
+# % type: integer
+# % description: Minimum number of cells in a segment to test
+# % multiple: yes
+# % required: no
+# % guisection: General
+# %end
 #
-#%option
-#% key: minsize_start
-#% type: integer
-#% description: Lowest minimum segment size to test
-#% required: no
-#% guisection: General
-#%end
+# %option
+# % key: minsize_start
+# % type: integer
+# % description: Lowest minimum segment size to test
+# % required: no
+# % guisection: General
+# %end
 #
-#%option
-#% key: minsize_stop
-#% type: integer
-#% description: Value for minimum segment size at which to stop (not included)
-#% required: no
-#% guisection: General
-#%end
+# %option
+# % key: minsize_stop
+# % type: integer
+# % description: Value for minimum segment size at which to stop (not included)
+# % required: no
+# % guisection: General
+# %end
 #
-#%option
-#% key: minsize_step
-#% type: integer
-#% description: Step to use between minimum segment sizes
-#% required: no
-#% guisection: General
-#%end
+# %option
+# % key: minsize_step
+# % type: integer
+# % description: Step to use between minimum segment sizes
+# % required: no
+# % guisection: General
+# %end
 #
-#%option
-#% key: radiuses
-#% type: double
-#% description: Radiuses to test
-#% required: no
-#% multiple: yes
-#% guisection: Mean Shift
-#%end
+# %option
+# % key: radiuses
+# % type: double
+# % description: Radiuses to test
+# % required: no
+# % multiple: yes
+# % guisection: Mean Shift
+# %end
 #
-#%option
-#% key: radius_start
-#% type: double
-#% description: Lowest radius to test
-#% required: no
-#% guisection: Mean Shift
-#%end
+# %option
+# % key: radius_start
+# % type: double
+# % description: Lowest radius to test
+# % required: no
+# % guisection: Mean Shift
+# %end
 #
-#%option
-#% key: radius_stop
-#% type: double
-#% description: Radius at which to stop (not included)
-#% required: no
-#% guisection: Mean Shift
-#%end
+# %option
+# % key: radius_stop
+# % type: double
+# % description: Radius at which to stop (not included)
+# % required: no
+# % guisection: Mean Shift
+# %end
 #
-#%option
-#% key: radius_step
-#% type: double
-#% description: Step to use between radiuses
-#% required: no
-#% guisection: Mean Shift
-#%end
+# %option
+# % key: radius_step
+# % type: double
+# % description: Step to use between radiuses
+# % required: no
+# % guisection: Mean Shift
+# %end
 #
-#%option
-#% key: hrs
-#% type: double
-#% description: Spectral bandwidths to test
-#% required: no
-#% multiple: yes
-#% guisection: Mean Shift
-#%end
+# %option
+# % key: hrs
+# % type: double
+# % description: Spectral bandwidths to test
+# % required: no
+# % multiple: yes
+# % guisection: Mean Shift
+# %end
 #
-#%option
-#% key: hr_start
-#% type: double
-#% description: Lowest spectral bandwith to test
-#% required: no
-#% guisection: Mean Shift
-#%end
+# %option
+# % key: hr_start
+# % type: double
+# % description: Lowest spectral bandwith to test
+# % required: no
+# % guisection: Mean Shift
+# %end
 #
-#%option
-#% key: hr_stop
-#% type: double
-#% description: Spectral bandwith at which to stop (not included)
-#% required: no
-#% guisection: Mean Shift
-#%end
+# %option
+# % key: hr_stop
+# % type: double
+# % description: Spectral bandwith at which to stop (not included)
+# % required: no
+# % guisection: Mean Shift
+# %end
 #
-#%option
-#% key: hr_step
-#% type: double
-#% description: Step to use between spectral bandwidths
-#% required: no
-#% guisection: Mean Shift
-#%end
+# %option
+# % key: hr_step
+# % type: double
+# % description: Step to use between spectral bandwidths
+# % required: no
+# % guisection: Mean Shift
+# %end
 #
-#%option
-#% key: autocorrelation_indicator
-#% type: string
-#% description: Indicator for measuring inter-segment heterogeneity
-#% required: no
-#% options: morans,geary
-#% answer: morans
-#% guisection: Evaluation
-#%end
+# %option
+# % key: autocorrelation_indicator
+# % type: string
+# % description: Indicator for measuring inter-segment heterogeneity
+# % required: no
+# % options: morans,geary
+# % answer: morans
+# % guisection: Evaluation
+# %end
 #
-#%option
-#% key: optimization_function
-#% type: string
-#% description: Optimization function used to determine "best" parameters
-#% required: no
-#% options: sum,f
-#% answer: sum
-#% guisection: Evaluation
-#%end
+# %option
+# % key: optimization_function
+# % type: string
+# % description: Optimization function used to determine "best" parameters
+# % required: no
+# % options: sum,f
+# % answer: sum
+# % guisection: Evaluation
+# %end
 #
-#%option
-#% key: f_function_alpha
-#% type: double
-#% description: Alpha value used for F-measure optimization function
-#% required: no
-#% answer: 1
-#% guisection: Evaluation
-#%end
+# %option
+# % key: f_function_alpha
+# % type: double
+# % description: Alpha value used for F-measure optimization function
+# % required: no
+# % answer: 1
+# % guisection: Evaluation
+# %end
 #
-#%option
-#% key: number_best
-#% type: integer
-#% description: Number of desired best parameter values and maps
-#% required: no
-#% answer: 1
-#%end
+# %option
+# % key: number_best
+# % type: integer
+# % description: Number of desired best parameter values and maps
+# % required: no
+# % answer: 1
+# %end
 #
-#%option
-#% key: memory
-#% type: integer
-#% description: Total memory (in MB) to allocate (will be divided by processes)
-#% required: no
-#% answer: 300
-#%end
+# %option
+# % key: memory
+# % type: integer
+# % description: Total memory (in MB) to allocate (will be divided by processes)
+# % required: no
+# % answer: 300
+# %end
 #
-#%option
-#% key: processes
-#% type: integer
-#% description: Number of processes to run in parallel
-#% required: no
-#% answer: 1
-#%end
+# %option
+# % key: processes
+# % type: integer
+# % description: Number of processes to run in parallel
+# % required: no
+# % answer: 1
+# %end
 #
-#%flag
-#% key: k
-#% description: Keep all segmented maps
-#%end
+# %flag
+# % key: k
+# % description: Keep all segmented maps
+# %end
 #
-#%flag
-#% key: h
-#% description: Use hierarchical segmentation
-#%end
+# %flag
+# % key: h
+# % description: Use hierarchical segmentation
+# %end
 #
-#%flag
-#% key: a
-#% description: Use adaptive spectral bandwidth (with mean shift)
-#% guisection: Mean Shift
-#%end
+# %flag
+# % key: a
+# % description: Use adaptive spectral bandwidth (with mean shift)
+# % guisection: Mean Shift
+# %end
 #
-#%rules
-#% required: thresholds,threshold_start
-#% excludes: thresholds,threshold_start,threshold_stop,threshold_step
-#% collective: threshold_start,threshold_stop,threshold_step
-#% required: minsizes,minsize_start
-#% excludes: minsizes,minsize_start,minsize_stop,minsize_step
-#% collective: minsize_start,minsize_stop,minsize_step
-#% excludes: radiuses,radius_start,radius_stop,radius_step
-#% excludes: hrs,hr_start,hr_stop,hr_step
-#% collective: radius_start,radius_stop,radius_step
-#% collective: hr_start,hr_stop,hr_step
-#%end
+# %rules
+# % required: thresholds,threshold_start
+# % excludes: thresholds,threshold_start,threshold_stop,threshold_step
+# % collective: threshold_start,threshold_stop,threshold_step
+# % required: minsizes,minsize_start
+# % excludes: minsizes,minsize_start,minsize_stop,minsize_step
+# % collective: minsize_start,minsize_stop,minsize_step
+# % excludes: radiuses,radius_start,radius_stop,radius_step
+# % excludes: hrs,hr_start,hr_stop,hr_step
+# % collective: radius_start,radius_stop,radius_step
+# % collective: hr_start,hr_stop,hr_step
+# %end
 
 import grass.script as gscript
 import sys

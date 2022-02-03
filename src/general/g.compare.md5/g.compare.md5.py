@@ -16,44 +16,44 @@
 #
 ################################################################################
 
-#%module
-#% description: Checks if two GRASS GIS maps are identical.
-#% keyword: general
-#% keyword: map management
-#% keyword: list
-#%end
-#%flag
-#% key: g
-#% description: Return output in shell script style (0 fail, 1 success)
-#%end
-#%flag
-#% key: c
-#% description: Does not consider the color table for raster
-#%end
-#%flag
-#% key: t
-#% description: Does not consider the topology for vector
-#%end
-#%option
-#% key: ainput
-#% type: string
-#% gisprompt: old,file,file
-#% description: Name of first map to check
-#% key_desc: name
-#% required : yes
-#%end
-#%option
-#% key: binput
-#% type: string
-#% gisprompt: old,file,file
-#% description: Name of second map to check
-#% required : yes
-#%end
-#%option G_OPT_M_DATATYPE
-#% key: type
-#% options: raster,vector
-#% answer: raster
-#%end
+# %module
+# % description: Checks if two GRASS GIS maps are identical.
+# % keyword: general
+# % keyword: map management
+# % keyword: list
+# %end
+# %flag
+# % key: g
+# % description: Return output in shell script style (0 fail, 1 success)
+# %end
+# %flag
+# % key: c
+# % description: Does not consider the color table for raster
+# %end
+# %flag
+# % key: t
+# % description: Does not consider the topology for vector
+# %end
+# %option
+# % key: ainput
+# % type: string
+# % gisprompt: old,file,file
+# % description: Name of first map to check
+# % key_desc: name
+# % required : yes
+# %end
+# %option
+# % key: binput
+# % type: string
+# % gisprompt: old,file,file
+# % description: Name of second map to check
+# % required : yes
+# %end
+# %option G_OPT_M_DATATYPE
+# % key: type
+# % options: raster,vector
+# % answer: raster
+# %end
 
 import os
 import sys

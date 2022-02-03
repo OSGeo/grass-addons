@@ -19,42 +19,42 @@
 #
 ############################################################################
 
-#%module
-#% description: Vector supervised classification tool which uses attributes as classification parametres (order of columns matters, names not), cat column identifies feature, class_column is excluded from classification parametres.
-#% keyword: vector
-#% keyword: classification
-#% keyword: supervised
-#% keyword: machine learning
-#%end
-#%option G_OPT_V_MAP
-#%  key: input
-#%  description: Input vector map (attribut table required)
-#%  required: yes
-#%  multiple: no
-#%end
-#%option G_OPT_V_MAP
-#%  key: training
-#%  description: Training vector map (attribut table required)
-#%  required: yes
-#%  multiple: no
-#%end
-#%option G_OPT_V_FIELD
-#%  key: class_column
-#%  type: string
-#%  label: Name of column containing class
-#%  description: Used for both input/output and training dataset. If column does not exists in input map attribute table, it will be created.
-#%  required: no
-#%  multiple: no
-#%  answer: class
-#%end
-#%option
-#%  key: columns
-#%  type: string
-#%  label: Columns to be used in classification
-#%  description: Columns to be used in classification. If left empty, all columns will be used for classification except for class_column and cat column.
-#%  required: no
-#%  multiple: yes
-#%end
+# %module
+# % description: Vector supervised classification tool which uses attributes as classification parametres (order of columns matters, names not), cat column identifies feature, class_column is excluded from classification parametres.
+# % keyword: vector
+# % keyword: classification
+# % keyword: supervised
+# % keyword: machine learning
+# %end
+# %option G_OPT_V_MAP
+# %  key: input
+# %  description: Input vector map (attribut table required)
+# %  required: yes
+# %  multiple: no
+# %end
+# %option G_OPT_V_MAP
+# %  key: training
+# %  description: Training vector map (attribut table required)
+# %  required: yes
+# %  multiple: no
+# %end
+# %option G_OPT_V_FIELD
+# %  key: class_column
+# %  type: string
+# %  label: Name of column containing class
+# %  description: Used for both input/output and training dataset. If column does not exists in input map attribute table, it will be created.
+# %  required: no
+# %  multiple: no
+# %  answer: class
+# %end
+# %option
+# %  key: columns
+# %  type: string
+# %  label: Columns to be used in classification
+# %  description: Columns to be used in classification. If left empty, all columns will be used for classification except for class_column and cat column.
+# %  required: no
+# %  multiple: yes
+# %end
 
 
 # TODO: add other classifiers

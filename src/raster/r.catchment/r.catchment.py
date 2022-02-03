@@ -15,113 +15,113 @@
 #############################################################################
 
 
-#%Module
-#% description: Creates a raster buffer of specified area around vector points using cost distances using r.walk.
-#% keyword: raster
-#% keyword: buffer
-#%END
+# %Module
+# % description: Creates a raster buffer of specified area around vector points using cost distances using r.walk.
+# % keyword: raster
+# % keyword: buffer
+# %END
 
 
-#%option G_OPT_R_INPUT
-#% key: elevation
-#% description: Input elevation map (DEM)
-#% required : yes
-#%END
-#%option G_OPT_R_INPUT
-#% key: in_cost
-#% description: Input cost map (This will override the input elevation map, if none specified, one will be created from input elevation map with r.walk)
-#% required : no
-#%END
-#%option G_OPT_V_INPUT
-#% key: start_points
-#% description: Name of input vector site points map
-#% required : yes
-#%END
-#%option G_OPT_R_INPUT
-#% key: friction
-#% description: Optional map of friction costs. If no map selected, default friction=0 making output reflect time costs only
-#% answer:
-#% required : no
-#%END
-#%option
-#% key: a
-#% type: double
-#% description: Coefficients for walking energy formula parameters a,b,c,d
-#% answer: 0.72
-#% required : no
-#%END
-#%option
-#% key: b
-#% type: double
-#% description:
-#% answer: 6.0
-#% required : no
-#%END
-#%option
-#% key: c
-#% type: double
-#% description:
-#% answer: 1.9998
-#% required : no
-#%END
-#%option
-#% key: d
-#% type: double
-#% description:
-#% answer: -1.9998
-#% required : no
-#%END
-#%option
-#% key: lambda
-#% type: double
-#% description: Lambda value for cost distance calculation (for combining friction costs with walking costs)
-#% answer: 1
-#% required : no
-#%END
-#%option
-#% key: slope_factor
-#% type: double
-#% description: Slope factor determines travel energy cost per height step
-#% answer: -0.2125
-#% required : no
-#%END
-#%option G_OPT_R_OUTPUT
-#% key: buffer
-#% description: Output buffer map
-#% required : yes
-#%END
-#%option
-#% key: sigma
-#% type: double
-#% description: Slope threshold for mask
-#% required: no
-#%END
-#%option
-#% key: area
-#% type: integer
-#% description: Area of buffer (Integer value to nearest 100 square map units)
-#% answer: 5000000
-#% required: yes
-#%END
-#%option
-#% key: map_val
-#% type: integer
-#% description: Integer value for output catchment area (all other areas will be Null)
-#% answer: 1
-#% required : yes
-#%END
-#%flag
-#% key: k
-#% description: Use knight's move for calculating cost surface (slower but more accurate)
-#%END
-#%flag
-#% key: c
-#% description: Keep cost surface used to calculate buffers
-#%END
-#%flag
-#% key: l
-#% description: Show a list of all cost surface values and the area of the catchment that they delimit
-#%END
+# %option G_OPT_R_INPUT
+# % key: elevation
+# % description: Input elevation map (DEM)
+# % required : yes
+# %END
+# %option G_OPT_R_INPUT
+# % key: in_cost
+# % description: Input cost map (This will override the input elevation map, if none specified, one will be created from input elevation map with r.walk)
+# % required : no
+# %END
+# %option G_OPT_V_INPUT
+# % key: start_points
+# % description: Name of input vector site points map
+# % required : yes
+# %END
+# %option G_OPT_R_INPUT
+# % key: friction
+# % description: Optional map of friction costs. If no map selected, default friction=0 making output reflect time costs only
+# % answer:
+# % required : no
+# %END
+# %option
+# % key: a
+# % type: double
+# % description: Coefficients for walking energy formula parameters a,b,c,d
+# % answer: 0.72
+# % required : no
+# %END
+# %option
+# % key: b
+# % type: double
+# % description:
+# % answer: 6.0
+# % required : no
+# %END
+# %option
+# % key: c
+# % type: double
+# % description:
+# % answer: 1.9998
+# % required : no
+# %END
+# %option
+# % key: d
+# % type: double
+# % description:
+# % answer: -1.9998
+# % required : no
+# %END
+# %option
+# % key: lambda
+# % type: double
+# % description: Lambda value for cost distance calculation (for combining friction costs with walking costs)
+# % answer: 1
+# % required : no
+# %END
+# %option
+# % key: slope_factor
+# % type: double
+# % description: Slope factor determines travel energy cost per height step
+# % answer: -0.2125
+# % required : no
+# %END
+# %option G_OPT_R_OUTPUT
+# % key: buffer
+# % description: Output buffer map
+# % required : yes
+# %END
+# %option
+# % key: sigma
+# % type: double
+# % description: Slope threshold for mask
+# % required: no
+# %END
+# %option
+# % key: area
+# % type: integer
+# % description: Area of buffer (Integer value to nearest 100 square map units)
+# % answer: 5000000
+# % required: yes
+# %END
+# %option
+# % key: map_val
+# % type: integer
+# % description: Integer value for output catchment area (all other areas will be Null)
+# % answer: 1
+# % required : yes
+# %END
+# %flag
+# % key: k
+# % description: Use knight's move for calculating cost surface (slower but more accurate)
+# %END
+# %flag
+# % key: c
+# % description: Keep cost surface used to calculate buffers
+# %END
+# %flag
+# % key: l
+# % description: Show a list of all cost surface values and the area of the catchment that they delimit
+# %END
 
 
 import sys

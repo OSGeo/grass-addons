@@ -15,62 +15,62 @@
 #              Anna Petrasova 2013 (update for GRASS 7)
 #
 #############################################################################
-#%module
-#% description: Creates transect lines or quadrilateral areas at regular intervals perpendicular to a polyline.
-#% keyword: vector
-#% keyword: transect
-#%end
-#%option G_OPT_V_INPUT
-#%end
-#%option G_OPT_V_OUTPUT
-#%end
-#%option
-#% key: transect_spacing
-#% type: double
-#% description: Transect spacing along input polyline
-#% required: yes
-#%end
-#%option
-#% key: dleft
-#% type: double
-#% label: Distance transect extends to the left of input line
-#% description: Default is the same as the transect spacing
-#% required: no
-#%end
-#%option
-#% key: dright
-#% type: double
-#% label: Distance transect extends to the right of input line
-#% description: Default is the same as the transect spacing
-#% required: no
-#%end
-#%option G_OPT_V_TYPE
-#% multiple: no
-#% options: point,line,area
-#% answer: line
-#%end
-#%option
-#% key: metric
-#% type: string
-#% description: Determines how transect spacing is measured
-#% multiple: no
-#% options: straight, along
-#% descriptions: straight;Straight distance between transect points;along;Distance along the line
-#% answer: straight
-#%end
-#%option
-#% key: transect_perpendicular
-#% type: string
-#% description: Determines which line is the transect perpendicular to
-#% multiple: no
-#% options: trend, line
-#% descriptions: trend;Perpendicular to the line connecting transect points;line;Perpendicular to the particular segment of the original line
-#% answer: trend
-#%end
-#%flag
-#% key: l
-#% description: Use the last point of the line to create transect
-#%end
+# %module
+# % description: Creates transect lines or quadrilateral areas at regular intervals perpendicular to a polyline.
+# % keyword: vector
+# % keyword: transect
+# %end
+# %option G_OPT_V_INPUT
+# %end
+# %option G_OPT_V_OUTPUT
+# %end
+# %option
+# % key: transect_spacing
+# % type: double
+# % description: Transect spacing along input polyline
+# % required: yes
+# %end
+# %option
+# % key: dleft
+# % type: double
+# % label: Distance transect extends to the left of input line
+# % description: Default is the same as the transect spacing
+# % required: no
+# %end
+# %option
+# % key: dright
+# % type: double
+# % label: Distance transect extends to the right of input line
+# % description: Default is the same as the transect spacing
+# % required: no
+# %end
+# %option G_OPT_V_TYPE
+# % multiple: no
+# % options: point,line,area
+# % answer: line
+# %end
+# %option
+# % key: metric
+# % type: string
+# % description: Determines how transect spacing is measured
+# % multiple: no
+# % options: straight, along
+# % descriptions: straight;Straight distance between transect points;along;Distance along the line
+# % answer: straight
+# %end
+# %option
+# % key: transect_perpendicular
+# % type: string
+# % description: Determines which line is the transect perpendicular to
+# % multiple: no
+# % options: trend, line
+# % descriptions: trend;Perpendicular to the line connecting transect points;line;Perpendicular to the particular segment of the original line
+# % answer: trend
+# %end
+# %flag
+# % key: l
+# % description: Use the last point of the line to create transect
+# %end
 
 from subprocess import Popen, PIPE, STDOUT
 from numpy import array

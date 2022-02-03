@@ -14,104 +14,104 @@ https://github.com/geopython/pycsw/blob/master/bin/pycsw-admin.py)
 """
 
 
-#%module
-#% description: CSW database manager
-#% keyword: csw
-#% keyword: metadata
-#%end
+# %module
+# % description: CSW database manager
+# % keyword: csw
+# % keyword: metadata
+# %end
 
-#%option G_OPT_F_INPUT
-#% key: configure
-#% description: path to configure file (default.cfg)
-#% required : yes
-#% answer : /var/www/html/pycsw/default.cfg
-#%end
+# %option G_OPT_F_INPUT
+# % key: configure
+# % description: path to configure file (default.cfg)
+# % required : yes
+# % answer : /var/www/html/pycsw/default.cfg
+# %end
 
-#%option
-#% key: load_records
-#% label: Load metadata(folder)
-#% description: Loads metadata records from directory into repository
-#% guisection: Records
-#%end
+# %option
+# % key: load_records
+# % label: Load metadata(folder)
+# % description: Loads metadata records from directory into repository
+# % guisection: Records
+# %end
 
-#%flag
-#% key: r
-#% label: Load records recursively
-#% description: Load records from directory recursively
-#% guisection: Records
-#%end
+# %flag
+# % key: r
+# % label: Load records recursively
+# % description: Load records from directory recursively
+# % guisection: Records
+# %end
 
-#%flag
-#% key: s
-#% label: Setup database
-#% description: Creates repository tables and indexes
-#% guisection: Commands
-#%end
+# %flag
+# % key: s
+# % label: Setup database
+# % description: Creates repository tables and indexes
+# % guisection: Commands
+# %end
 
-#%option
-#% key: export_records
-#% label: Create db dump(folder)
-#% description: Dump metadata records from repository into directory
-#% guisection: Commands
-#%end
+# %option
+# % key: export_records
+# % label: Create db dump(folder)
+# % description: Dump metadata records from repository into directory
+# % guisection: Commands
+# %end
 
-#%flag
-#% key: i
-#% label: Database indexes
-#% description: Rebuild repository database indexes
-#% guisection: Commands
-#%end
+# %flag
+# % key: i
+# % label: Database indexes
+# % description: Rebuild repository database indexes
+# % guisection: Commands
+# %end
 
-#%flag
-#% key: o
-#% label: Optimize db
-#% description: Optimize repository database
-#% guisection: Commands
-#%end
+# %flag
+# % key: o
+# % label: Optimize db
+# % description: Optimize repository database
+# % guisection: Commands
+# %end
 
-#%flag
-#% key: h
-#% label: Refresh harvested records
-#% description: Optimize repository database
-#% guisection: Commands
-#%end
+# %flag
+# % key: h
+# % label: Refresh harvested records
+# % description: Optimize repository database
+# % guisection: Commands
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key: gen_sitemap
-#% label: Sitemap
-#% description: Generate XML Sitemap
-#% guisection: Commands
-#% required: NO
-#%end
+# %option G_OPT_F_OUTPUT
+# % key: gen_sitemap
+# % label: Sitemap
+# % description: Generate XML Sitemap
+# % guisection: Commands
+# % required: NO
+# %end
 
-#%flag
-#% key: d
-#% label: Delete all records(!!)
-#% description: Delete all records without prompting
-#% guisection: Commands
-#%end
+# %flag
+# % key: d
+# % label: Delete all records(!!)
+# % description: Delete all records without prompting
+# % guisection: Commands
+# %end
 
-#%flag
-#% key: f
-#% label: Force confirmation
-#% description: Force confirmation of task
-#% guisection: Commands
-#%end
+# %flag
+# % key: f
+# % label: Force confirmation
+# % description: Force confirmation of task
+# % guisection: Commands
+# %end
 
-#%option
-#% key: url_csw
-#% label: Url of CSW
-#% description: Execute a CSW request via HTTP POST: URL of CSW
-#% guisection: Execute request
-#%end
+# %option
+# % key: url_csw
+# % label: Url of CSW
+# % description: Execute a CSW request via HTTP POST: URL of CSW
+# % guisection: Execute request
+# %end
 
-#%option G_OPT_F_INPUT
-#% key: file_xml
-#% label: XML file
-#% description: Execute a CSW request via HTTP POST: XML FILE
-#% guisection: Execute request
-#% required: NO
-#%end
+# %option G_OPT_F_INPUT
+# % key: file_xml
+# % label: XML file
+# % description: Execute a CSW request via HTTP POST: XML FILE
+# % guisection: Execute request
+# % required: NO
+# %end
 
 import configparser
 import getopt
@@ -382,12 +382,12 @@ class CswAdmin:
                 grass.error('Cannot acces databaase < %s >'%DATABASE)
 """
 """
-#%flag
-#% key: a
-#% label: Automatic configuration
-#% description: Set database according GRASS default and confugure server
-#% guisection: Auto Config
-#%end
+# %flag
+# % key: a
+# % label: Automatic configuration
+# % description: Set database according GRASS default and confugure server
+# % guisection: Auto Config
+# %end
 """
 
 

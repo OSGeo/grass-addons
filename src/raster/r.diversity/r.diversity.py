@@ -16,66 +16,66 @@
 #
 #############################################################################
 
-#%module
-#% description: Calculate diversity indices based on a moving window using r.li packages
-#% keyword: raster
-#%end
-#%option
-#% key: input
-#% type: string
-#% gisprompt: old,cell,raster
-#% key_desc: name
-#% description: Name of input raster map
-#% required: yes
-#%end
-#%option
-#% key: prefix
-#% type: string
-#% gisprompt: new,cell,raster
-#% key_desc: name
-#% description: Prefix for output raster map(s)
-#% required: yes
-#%end
-#%option
-#% key: alpha
-#% type: double
-#% key_desc: alpha value for Renyi entropy
-#% description: Order of generalized entropy (> 0.0; undefined for 1.0)
-#% multiple: yes
-#% required: no
-#%end
-#%option
-#% key: size
-#% type: integer
-#% key_desc: moving window
-#% multiple: yes
-#% description: Size of processing window (odd number only)
-#% answer: 3
-#% required: no
-#%end
-#%option
-#% key: method
-#% type: string
-#% key_desc: method
-#% options: simpson,shannon,pielou,renyi
-#% multiple: yes
-#% description: Name of methods to use
-#% answer: simpson,shannon,pielou,renyi
-#% required: no
-#%end
-#%option
-#% key: exclude
-#% type: string
-#% key_desc: exclude method
-#% options: simpson,shannon,pielou,renyi
-#% multiple: yes
-#% description: Exclude methods
-#% required: no
-#%end
-#%flag
-#% key: t
-#% description: Preserve configuration files
-#%end
+# %module
+# % description: Calculate diversity indices based on a moving window using r.li packages
+# % keyword: raster
+# %end
+# %option
+# % key: input
+# % type: string
+# % gisprompt: old,cell,raster
+# % key_desc: name
+# % description: Name of input raster map
+# % required: yes
+# %end
+# %option
+# % key: prefix
+# % type: string
+# % gisprompt: new,cell,raster
+# % key_desc: name
+# % description: Prefix for output raster map(s)
+# % required: yes
+# %end
+# %option
+# % key: alpha
+# % type: double
+# % key_desc: alpha value for Renyi entropy
+# % description: Order of generalized entropy (> 0.0; undefined for 1.0)
+# % multiple: yes
+# % required: no
+# %end
+# %option
+# % key: size
+# % type: integer
+# % key_desc: moving window
+# % multiple: yes
+# % description: Size of processing window (odd number only)
+# % answer: 3
+# % required: no
+# %end
+# %option
+# % key: method
+# % type: string
+# % key_desc: method
+# % options: simpson,shannon,pielou,renyi
+# % multiple: yes
+# % description: Name of methods to use
+# % answer: simpson,shannon,pielou,renyi
+# % required: no
+# %end
+# %option
+# % key: exclude
+# % type: string
+# % key_desc: exclude method
+# % options: simpson,shannon,pielou,renyi
+# % multiple: yes
+# % description: Exclude methods
+# % required: no
+# %end
+# %flag
+# % key: t
+# % description: Preserve configuration files
+# %end
 
 # import library
 import os

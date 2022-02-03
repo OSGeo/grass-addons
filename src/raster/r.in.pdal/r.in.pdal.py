@@ -17,141 +17,141 @@
 #
 #############################################################################
 
-#%Module
-#%description:  Creates a raster map from LAS LiDAR points using univariate statistics and r.in.xyz.
-#%keyword: raster
-#%keyword: import
-#%keyword: LIDAR
-#%keyword: statistics
-#%keyword: conversion
-#%overwrite: yes
-#%End
+# %Module
+# %description:  Creates a raster map from LAS LiDAR points using univariate statistics and r.in.xyz.
+# %keyword: raster
+# %keyword: import
+# %keyword: LIDAR
+# %keyword: statistics
+# %keyword: conversion
+# %overwrite: yes
+# %End
 
-#%option G_OPT_R_INPUT
-#% key: input
-#% description: LAS input file
-#% required: yes
-#%end
+# %option G_OPT_R_INPUT
+# % key: input
+# % description: LAS input file
+# % required: yes
+# %end
 
-#%option G_OPT_R_OUTPUTS
-#% key: output
-#% description: Name for output raster map
-#% required: yes
-#%end
+# %option G_OPT_R_OUTPUTS
+# % key: output
+# % description: Name for output raster map
+# % required: yes
+# %end
 
-#%option
-#% key: resolution
-#% type: double
-#% description: 2D grid resolution (north-south and east-west)
-#% answer: 1.0
-#% required: no
-#%end
+# %option
+# % key: resolution
+# % type: double
+# % description: 2D grid resolution (north-south and east-west)
+# % answer: 1.0
+# % required: no
+# %end
 
-#%option
-#% key: raster_reference
-#% label: Raster map to be used as pixel geometry reference
-#% description: Raster map to align to, e.g. an orthophoto of the same region
-#% required: no
-#%end
+# %option
+# % key: raster_reference
+# % label: Raster map to be used as pixel geometry reference
+# % description: Raster map to align to, e.g. an orthophoto of the same region
+# % required: no
+# %end
 
-#%option
-#% key: raster_file
-#% label: External raster map to be used as pixel geometry reference
-#% description: External raster map to align to, e.g. an orthophoto of the same region
-#% required: no
-#%end
+# %option
+# % key: raster_file
+# % label: External raster map to be used as pixel geometry reference
+# % description: External raster map to align to, e.g. an orthophoto of the same region
+# % required: no
+# %end
 
-#%option
-#% key: method
-#% type: string
-#% description: Statistic to use for raster values
-#% options: n, min, max, range, sum, mean, stddev, variance, coeff_var, median, percentile, skewness, trimmean
-#% answer: mean
-#% descriptions: n;Number of points in cell;min;Minimum value of point values in cell;max;Maximum value of point values in cell;range;Range of point values in cell;sum;Sum of point values in cell;mean;Mean (average) value of point values in cell;stddev;Standard deviation of point values in cell;variance;Variance of point values in cell;coeff_var;Coefficient of variance of point values in cell;median;Median value of point values in cell;percentile;Pth (nth) percentile of point values in cell;skewness;Skewness of point values in cell
-#% multiple: yes
-#% required: no
-#%end
+# %option
+# % key: method
+# % type: string
+# % description: Statistic to use for raster values
+# % options: n, min, max, range, sum, mean, stddev, variance, coeff_var, median, percentile, skewness, trimmean
+# % answer: mean
+# % descriptions: n;Number of points in cell;min;Minimum value of point values in cell;max;Maximum value of point values in cell;range;Range of point values in cell;sum;Sum of point values in cell;mean;Mean (average) value of point values in cell;stddev;Standard deviation of point values in cell;variance;Variance of point values in cell;coeff_var;Coefficient of variance of point values in cell;median;Median value of point values in cell;percentile;Pth (nth) percentile of point values in cell;skewness;Skewness of point values in cell
+# % multiple: yes
+# % required: no
+# %end
 
-#%option
-#% key: zrange
-#% type: double
-#% key_desc: min,max
-#% description: Filter range for z data (min,max)
-#% required: no
-#%end
+# %option
+# % key: zrange
+# % type: double
+# % key_desc: min,max
+# % description: Filter range for z data (min,max)
+# % required: no
+# %end
 
-#%option
-#% key: zscale
-#% type: double
-#% description: Scale to apply to z data
-#% answer: 1.0
-#% required: no
-#%end
+# %option
+# % key: zscale
+# % type: double
+# % description: Scale to apply to z data
+# % answer: 1.0
+# % required: no
+# %end
 
-#%option
-#% key: type
-#% type: string
-#% description: Type of raster map to be created / Storage type for resultant raster map
-#% options: CELL, FCELL, DCELL
-#% answer: FCELL
-#% required: no
-#% descriptions: CELL;Integer;FCELL;Single precision floating point;DCELL;Double precision floating point
-#%end
+# %option
+# % key: type
+# % type: string
+# % description: Type of raster map to be created / Storage type for resultant raster map
+# % options: CELL, FCELL, DCELL
+# % answer: FCELL
+# % required: no
+# % descriptions: CELL;Integer;FCELL;Single precision floating point;DCELL;Double precision floating point
+# %end
 
-#%option
-#% key: percent
-#% type: integer
-#% description: Percent of map to keep in memory
-#% options: 1-100
-#% answer: 100
-#% required: no
-#%end
+# %option
+# % key: percent
+# % type: integer
+# % description: Percent of map to keep in memory
+# % options: 1-100
+# % answer: 100
+# % required: no
+# %end
 
-#%option
-#% key: pth
-#% type: integer
-#% description: Pth percentile of the values
-#% options: 1-100
-#% required: no
-#%end
+# %option
+# % key: pth
+# % type: integer
+# % description: Pth percentile of the values
+# % options: 1-100
+# % required: no
+# %end
 
-#%option
-#% key: trim
-#% type: double
-#% description: Discard <trim> percent of the smallest and <trim> percent of the largest observations
-#% options: 1-50
-#% required: no
-#%end
+# %option
+# % key: trim
+# % type: double
+# % description: Discard <trim> percent of the smallest and <trim> percent of the largest observations
+# % options: 1-50
+# % required: no
+# %end
 
-#%option
-#% key: footprint
-#% type: string
-#% description: Footprint of the data as vector map
-#% required: no
-#%end
+# %option
+# % key: footprint
+# % type: string
+# % description: Footprint of the data as vector map
+# % required: no
+# %end
 
-#%option
-#% key: pdal_cmd
-#% type: string
-#% description: Command for PDAL (e.g. if PDAL runs only in a docker)
-#% required: no
-#% answer: pdal
-#%end
+# %option
+# % key: pdal_cmd
+# % type: string
+# % description: Command for PDAL (e.g. if PDAL runs only in a docker)
+# % required: no
+# % answer: pdal
+# %end
 
-#%flag
-#% key: s
-#% description: Scan data file for extent then exit
-#%end
+# %flag
+# % key: s
+# % description: Scan data file for extent then exit
+# %end
 
-#%flag
-#% key: g
-#% description: In scan mode, print using shell script style
-#%end
+# %flag
+# % key: g
+# % description: In scan mode, print using shell script style
+# %end
 
-#%rules
-#% exclusive: raster_file, raster_reference
-#% exclusive: resolution, raster_file, raster_reference
-#%end
+# %rules
+# % exclusive: raster_file, raster_reference
+# % exclusive: resolution, raster_file, raster_reference
+# %end
 
 import os
 import sys

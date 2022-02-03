@@ -20,24 +20,24 @@
 #
 #
 ################################################################################
-#%module
-#% description: Calculates the Width Function of a watershed basin.
-#% keyword: raster
-#% keyword: hydrology
-#%end
+# %module
+# % description: Calculates the Width Function of a watershed basin.
+# % keyword: raster
+# % keyword: hydrology
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: map
-#% description: Distance to outlet map (from r.stream.distance)
-#% required: yes
-#%end
+# %option G_OPT_R_INPUT
+# % key: map
+# % description: Distance to outlet map (from r.stream.distance)
+# % required: yes
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key: image
-#% key_desc: image
-#% description: Name for output graph file (png)
-#% required: yes
-#%END
+# %option G_OPT_F_OUTPUT
+# % key: image
+# % key_desc: image
+# % description: Name for output graph file (png)
+# % required: yes
+# %END
 
 
 import sys

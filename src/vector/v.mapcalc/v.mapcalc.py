@@ -12,19 +12,19 @@ COPYRIGHT:    (C) 2013-2015 by the GRASS Development Team
               comes with GRASS for details.
 """
 
-#%module
-#% description: Vector map calculator.
-#% keyword: vector
-#% keyword: algebra
-#% overwrite: yes
-#%end
-#%option
-#% key: expression
-#% type: string
-#% description: Expression to evaluate
-#% key_desc: expression
-#% required: yes
-#%end
+# %module
+# % description: Vector map calculator.
+# % keyword: vector
+# % keyword: algebra
+# % overwrite: yes
+# %end
+# %option
+# % key: expression
+# % type: string
+# % description: Expression to evaluate
+# % key_desc: expression
+# % required: yes
+# %end
 
 
 import sys

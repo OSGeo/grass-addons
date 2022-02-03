@@ -19,57 +19,57 @@
 #
 #############################################################################
 
-#%Module
-#% description: Analyses variation of variance with variation of resolution
-#% keyword: imagery
-#% keyword: variance
-#% keyword: resolution
-#%end
+# %Module
+# % description: Analyses variation of variance with variation of resolution
+# % keyword: imagery
+# % keyword: variance
+# % keyword: resolution
+# %end
 #
-#%option G_OPT_R_INPUT
-#% description: Raster band  on which to perform analysis of variation of variance
-#%end
+# %option G_OPT_R_INPUT
+# % description: Raster band  on which to perform analysis of variation of variance
+# %end
 #
-#%option G_OPT_F_OUTPUT
-#% key: csv_output
-#% label: Name for output file
-#% required: no
-#%end
+# %option G_OPT_F_OUTPUT
+# % key: csv_output
+# % label: Name for output file
+# % required: no
+# %end
 #
-#%option G_OPT_F_OUTPUT
-#% key: plot_output
-#% label: Name for graphic output file for plot (extension decides format, - for screen)
-#% required: no
-#%end
+# %option G_OPT_F_OUTPUT
+# % key: plot_output
+# % label: Name for graphic output file for plot (extension decides format, - for screen)
+# % required: no
+# %end
 #
-#%option
-#% key: min_cells
-#% type: integer
-#% description: Minimum number of cells at which to stop
-#% required: no
-#% multiple: no
-#%end
+# %option
+# % key: min_cells
+# % type: integer
+# % description: Minimum number of cells at which to stop
+# % required: no
+# % multiple: no
+# %end
 #
-#%option
-#% key: max_size
-#% type: double
-#% description: Maximum pixel size (= minimum resolution) to analyse
-#% required: no
-#% multiple: no
-#%end
+# %option
+# % key: max_size
+# % type: double
+# % description: Maximum pixel size (= minimum resolution) to analyse
+# % required: no
+# % multiple: no
+# %end
 #
-#%option
-#% key: step
-#% type: double
-#% description: Step of resolution variation
-#% required: yes
-#% answer: 1
-#% multiple: no
-#%end
+# %option
+# % key: step
+# % type: double
+# % description: Step of resolution variation
+# % required: yes
+# % answer: 1
+# % multiple: no
+# %end
 #
-#%rules
-#% required: min_cells,max_size
-#%end
+# %rules
+# % required: min_cells,max_size
+# %end
 
 import sys
 import os

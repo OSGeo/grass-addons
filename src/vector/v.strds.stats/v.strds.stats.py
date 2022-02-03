@@ -14,51 +14,51 @@
 #
 #############################################################################
 
-#%module
-#% description: Calculates univariate statistics from given space-time raster datasets based on a vector map
-#% keyword: vector
-#% keyword: temporal
-#% keyword: statistics
-#% keyword: univariate statistics
-#% keyword: querying
-#% keyword: attribute table
-#% keyword: time
-#% keyword: zonal statistics
-#%end
+# %module
+# % description: Calculates univariate statistics from given space-time raster datasets based on a vector map
+# % keyword: vector
+# % keyword: temporal
+# % keyword: statistics
+# % keyword: univariate statistics
+# % keyword: querying
+# % keyword: attribute table
+# % keyword: time
+# % keyword: zonal statistics
+# %end
 
-#%option G_OPT_V_INPUT
-#%end
+# %option G_OPT_V_INPUT
+# %end
 
-#%option G_OPT_STRDS_INPUTS
-#% key: strds
-#%end
+# %option G_OPT_STRDS_INPUTS
+# % key: strds
+# %end
 
-#%option G_OPT_V_OUTPUT
-#%end
+# %option G_OPT_V_OUTPUT
+# %end
 
-#%option G_OPT_DB_WHERE
-#%end
+# %option G_OPT_DB_WHERE
+# %end
 
-#%option G_OPT_T_WHERE
-#% key: t_where
-#%end
+# %option G_OPT_T_WHERE
+# % key: t_where
+# %end
 
-#%option
-#% key: method
-#% type: string
-#% description: The methods to use
-#% answer: number,minimum,maximum,range,average,stddev,variance,coeff_var,sum,first_quartile,median,third_quartile,percentile
-#% required: no
-#% multiple: yes
-#%end
+# %option
+# % key: method
+# % type: string
+# % description: The methods to use
+# % answer: number,minimum,maximum,range,average,stddev,variance,coeff_var,sum,first_quartile,median,third_quartile,percentile
+# % required: no
+# % multiple: yes
+# %end
 
-#%option
-#% key: percentile
-#% type: integer
-#% description: Percentile to calculate
-#% answer: 90
-#% required: no
-#%end
+# %option
+# % key: percentile
+# % type: integer
+# % description: Percentile to calculate
+# % answer: 90
+# % required: no
+# %end
 
 import grass.script as grass
 import grass.temporal as tgis

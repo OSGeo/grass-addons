@@ -20,53 +20,53 @@
 #
 #############################################################################
 
-#%Module
-#% description: Performs Change Vector Analysis (CVA) in two dimensions.
-#% keyword: imagery
-#% keyword: transformation
-#% keyword: CVA
-#% keyword: change vector analysis
-#%end
-#%option G_OPT_R_INPUT
-#% key: xaraster
-#% description: Name of the first raster for X axis
-#%end
-#%option G_OPT_R_INPUT
-#% key: xbraster
-#% description: Name of the the second raster for X axis
-#%end
-#%option G_OPT_R_INPUT
-#% key: yaraster
-#% description: Name of the first raster for Y axis
-#%end
-#%option G_OPT_R_INPUT
-#% key: ybraster
-#% description: Name of the second raster for Y axis
-#%end
-#%option G_OPT_R_BASENAME_OUTPUT
-#% label: Name for output basename raster maps (angle and magnitude)
-#%end
-#%option
-#% key: custom_threshold
-#% description: Use a custom threshold
-#% guisection: Magnitude threshold
-#% type: double
-#% required: no
-#% descriptions: Insert numerical value for the threshold to perform the analysis
-#% multiple: no
-#%end
-#%option
-#% key: stat_threshold
-#% description: Use a statystical parameter for the threshold (mean + N * standard deviation)
-#% guisection: Magnitude threshold
-#% type: double
-#% required: no
-#% descriptions: Insert the integer value for a multiple of standard deviation (to be summed to the mean of the magnitude values )
-#% multiple: no
-#%end
-#%rules
-#% exclusive: custom_threshold, stat_threshold
-#%end
+# %Module
+# % description: Performs Change Vector Analysis (CVA) in two dimensions.
+# % keyword: imagery
+# % keyword: transformation
+# % keyword: CVA
+# % keyword: change vector analysis
+# %end
+# %option G_OPT_R_INPUT
+# % key: xaraster
+# % description: Name of the first raster for X axis
+# %end
+# %option G_OPT_R_INPUT
+# % key: xbraster
+# % description: Name of the the second raster for X axis
+# %end
+# %option G_OPT_R_INPUT
+# % key: yaraster
+# % description: Name of the first raster for Y axis
+# %end
+# %option G_OPT_R_INPUT
+# % key: ybraster
+# % description: Name of the second raster for Y axis
+# %end
+# %option G_OPT_R_BASENAME_OUTPUT
+# % label: Name for output basename raster maps (angle and magnitude)
+# %end
+# %option
+# % key: custom_threshold
+# % description: Use a custom threshold
+# % guisection: Magnitude threshold
+# % type: double
+# % required: no
+# % descriptions: Insert numerical value for the threshold to perform the analysis
+# % multiple: no
+# %end
+# %option
+# % key: stat_threshold
+# % description: Use a statystical parameter for the threshold (mean + N * standard deviation)
+# % guisection: Magnitude threshold
+# % type: double
+# % required: no
+# % descriptions: Insert the integer value for a multiple of standard deviation (to be summed to the mean of the magnitude values )
+# % multiple: no
+# %end
+# %rules
+# % exclusive: custom_threshold, stat_threshold
+# %end
 
 from __future__ import print_function
 import atexit

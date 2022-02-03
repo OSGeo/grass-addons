@@ -16,37 +16,37 @@
 #
 #############################################################################
 
-#%module
-#% description: Computes subday design precipitation totals.
-#% keyword: raster
-#% keyword: hydrology
-#% keyword: precipitation
-#%end
+# %module
+# % description: Computes subday design precipitation totals.
+# % keyword: raster
+# % keyword: hydrology
+# % keyword: precipitation
+# %end
 
-#%option G_OPT_V_MAP
-#% label: Vector map of location under analysis
-#%end
+# %option G_OPT_V_MAP
+# % label: Vector map of location under analysis
+# %end
 
-#%option G_OPT_R_INPUTS
-#% key: return_period
-#% description: Rainfall raster maps of required return period
-#% options: N2,N5,N10,N20,N50,N100
-#%end
+# %option G_OPT_R_INPUTS
+# % key: return_period
+# % description: Rainfall raster maps of required return period
+# % options: N2,N5,N10,N20,N50,N100
+# %end
 
-#%option
-#% key: rainlength
-#% description: Design rainfall length in minutes
-#% type: integer
-#% options: 0-1439
-#% required: yes
-#%end
+# %option
+# % key: rainlength
+# % description: Design rainfall length in minutes
+# % type: integer
+# % options: 0-1439
+# % required: yes
+# %end
 
-#%option
-#% key: area_size
-#% description: Maximum area size to be processed (in km2, -1 for no limit)
-#% type: double
-#% answer: 20
-#%end
+# %option
+# % key: area_size
+# % description: Maximum area size to be processed (in km2, -1 for no limit)
+# % type: double
+# % answer: 20
+# %end
 
 import os
 import sys

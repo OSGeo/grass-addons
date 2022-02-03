@@ -15,100 +15,100 @@
 #############################################################################
 
 
-#%module
-#% description: Undertakes a "cumulative viewshed analysis" using a vector points map as input "viewing" locations, using r.viewshed to calculate the individual viewsheds.
-#% keyword: raster
-#% keyword: viewshed
-#% keyword: line of sight
-#% keyword: LOS
-#%end
+# %module
+# % description: Undertakes a "cumulative viewshed analysis" using a vector points map as input "viewing" locations, using r.viewshed to calculate the individual viewsheds.
+# % keyword: raster
+# % keyword: viewshed
+# % keyword: line of sight
+# % keyword: LOS
+# %end
 
-#%option G_OPT_R_INPUT
-#% description: Input elevation map (DEM)
-#%END
+# %option G_OPT_R_INPUT
+# % description: Input elevation map (DEM)
+# %END
 
-#%option G_OPT_V_INPUT
-#% key: vector
-#% description: Name of input vector points map containg the set of points for this analysis.
-#%end
+# %option G_OPT_V_INPUT
+# % key: vector
+# % description: Name of input vector points map containg the set of points for this analysis.
+# %end
 
-#%option G_OPT_R_OUTPUT
-#% key: output
-#% description: Output cumulative viewshed raster
-#%end
+# %option G_OPT_R_OUTPUT
+# % key: output
+# % description: Output cumulative viewshed raster
+# %end
 
-#%option
-#% key: observer_elevation
-#% type: double
-#% description: Height of observation points off the ground
-#%answer: 1.75
-#% required : no
-#%end
+# %option
+# % key: observer_elevation
+# % type: double
+# % description: Height of observation points off the ground
+# %answer: 1.75
+# % required : no
+# %end
 
-#%option
-#% key: target_elevation
-#% type: double
-#% description: Height of target areas off the ground
-#%answer: 1.75
-#% required : no
-#%end
+# %option
+# % key: target_elevation
+# % type: double
+# % description: Height of target areas off the ground
+# %answer: 1.75
+# % required : no
+# %end
 
-#%option
-#% key: max_distance
-#% type: double
-#% description: Maximum visibility radius. By default infinity (-1)
-#%answer: -1
-#% required : no
-#%end
+# %option
+# % key: max_distance
+# % type: double
+# % description: Maximum visibility radius. By default infinity (-1)
+# %answer: -1
+# % required : no
+# %end
 
-#%option
-#% key: memory
-#% type: integer
-#% description: Amount of memory to use (in MB)
-#%answer: 500
-#% required : no
-#%end
+# %option
+# % key: memory
+# % type: integer
+# % description: Amount of memory to use (in MB)
+# %answer: 500
+# % required : no
+# %end
 
-#%option
-#% key: refraction_coeff
-#% type: double
-#% description: Refraction coefficient (with flag -r)
-#%answer: 0.14286
-#% options: 0.0-1.0
-#% required : no
-#%end
+# %option
+# % key: refraction_coeff
+# % type: double
+# % description: Refraction coefficient (with flag -r)
+# %answer: 0.14286
+# % options: 0.0-1.0
+# % required : no
+# %end
 
-#%option G_OPT_DB_COLUMN
-#% key: name_column
-#% description: Database column for point names (with flag -k)
-#% required : no
-#%end
+# %option G_OPT_DB_COLUMN
+# % key: name_column
+# % description: Database column for point names (with flag -k)
+# % required : no
+# %end
 
 
-#%flag
-#% key: k
-#% description:  Keep all interim viewshed maps produced by the routine (maps will be named "vshed_'name'_uniquenumber", where 'name' is the value in "name_column" for each input point. If no value specified in "name_column", cat value will be used instead)
-#%end
+# %flag
+# % key: k
+# % description:  Keep all interim viewshed maps produced by the routine (maps will be named "vshed_'name'_uniquenumber", where 'name' is the value in "name_column" for each input point. If no value specified in "name_column", cat value will be used instead)
+# %end
 
-#%flag
-#% key: c
-#% description: Consider the curvature of the earth (current ellipsoid)
-#%end
+# %flag
+# % key: c
+# % description: Consider the curvature of the earth (current ellipsoid)
+# %end
 
-#%flag
-#% key: r
-#% description: Consider the effect of atmospheric refraction
-#%end
+# %flag
+# % key: r
+# % description: Consider the effect of atmospheric refraction
+# %end
 
-#%flag
-#% key: b
-#% description: Output format is {0 (invisible) 1 (visible)}
-#%end
+# %flag
+# % key: b
+# % description: Output format is {0 (invisible) 1 (visible)}
+# %end
 
-#%flag
-#% key: e
-#% description:  Output format is invisible = NULL, else current elev - viewpoint_elev
-#%end
+# %flag
+# % key: e
+# % description:  Output format is invisible = NULL, else current elev - viewpoint_elev
+# %end
 
 
 import sys

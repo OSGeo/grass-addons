@@ -14,80 +14,80 @@
 #
 #############################################################################
 
-#%module
-#% description: Estimates Satellite Derived Bathymetry (SDB) from multispectral images.
-#% keyword: imagery
-#% keyword: bathymetry
-#% keyword: satellite
-#%end
-#%option G_OPT_R_INPUT
-#% key: blue_band
-#%required: no
-#%end
-#%option G_OPT_R_INPUT
-#% key: green_band
-#%required: yes
-#%end
-#%option G_OPT_R_INPUT
-#% key: red_band
-#%required: yes
-#%end
-#%option G_OPT_R_INPUT
-#% key: nir_band
-#%required: yes
-#%end
-#%option G_OPT_R_INPUT
-#% key: band_for_correction
-#%required: yes
-#%end
-#%option G_OPT_V_INPUT
-#% key: calibration_points
-#%required: yes
-#%end
-#%option G_OPT_V_INPUT
-#% key: area_of_interest
-#%required: no
-#%end
-#%option G_OPT_R_INPUT
-#% key: additional_band1
-#%required: no
-#%end
-#%option G_OPT_R_INPUT
-#% key: additional_band2
-#%required: no
-#%end
-#%option G_OPT_R_INPUT
-#% key: additional_band3
-#%required: no
-#%end
-#%option G_OPT_R_INPUT
-#% key: additional_band4
-#%required: no
-#%end
-#%option G_OPT_R_OUTPUT
-#% key: depth_estimate
-#%required: yes
-#%end
-#%option
-#% key: tide_height
-#%type: double
-#%multiple: no
-#%required: no
-#%description: Tide correction to the time of satellite image capture
-#%end
-#%option G_OPT_DB_COLUMN
-#% key: calibration_column
-#%required: yes
-#%description: Name of the column which stores depth values
-#%end
-#%flag
-#%key: f
-#%description: select if only want to run Fixed-GWR model
-#%end
-#%flag
-#%key: b
-#%description: select kernel function as bi-square
-#%end
+# %module
+# % description: Estimates Satellite Derived Bathymetry (SDB) from multispectral images.
+# % keyword: imagery
+# % keyword: bathymetry
+# % keyword: satellite
+# %end
+# %option G_OPT_R_INPUT
+# % key: blue_band
+# %required: no
+# %end
+# %option G_OPT_R_INPUT
+# % key: green_band
+# %required: yes
+# %end
+# %option G_OPT_R_INPUT
+# % key: red_band
+# %required: yes
+# %end
+# %option G_OPT_R_INPUT
+# % key: nir_band
+# %required: yes
+# %end
+# %option G_OPT_R_INPUT
+# % key: band_for_correction
+# %required: yes
+# %end
+# %option G_OPT_V_INPUT
+# % key: calibration_points
+# %required: yes
+# %end
+# %option G_OPT_V_INPUT
+# % key: area_of_interest
+# %required: no
+# %end
+# %option G_OPT_R_INPUT
+# % key: additional_band1
+# %required: no
+# %end
+# %option G_OPT_R_INPUT
+# % key: additional_band2
+# %required: no
+# %end
+# %option G_OPT_R_INPUT
+# % key: additional_band3
+# %required: no
+# %end
+# %option G_OPT_R_INPUT
+# % key: additional_band4
+# %required: no
+# %end
+# %option G_OPT_R_OUTPUT
+# % key: depth_estimate
+# %required: yes
+# %end
+# %option
+# % key: tide_height
+# %type: double
+# %multiple: no
+# %required: no
+# %description: Tide correction to the time of satellite image capture
+# %end
+# %option G_OPT_DB_COLUMN
+# % key: calibration_column
+# %required: yes
+# %description: Name of the column which stores depth values
+# %end
+# %flag
+# %key: f
+# %description: select if only want to run Fixed-GWR model
+# %end
+# %flag
+# %key: b
+# %description: select kernel function as bi-square
+# %end
 
 import atexit
 import grass.script as g

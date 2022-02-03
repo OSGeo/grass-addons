@@ -12,35 +12,35 @@
 #
 #############################################################################
 
-#%module
-#% description: Exports the neighborhood matrix of polygons in a vector map
-#% keyword: vector
-#% keyword: neighborhood matrix
-#%end
-#%option G_OPT_V_INPUT
-#%end
-#%option
-#% key: player
-#% type: integer
-#% description: Layer in map where polygons are to be found
-#% answer: 1
-#% required: no
-#%end
-#%option G_OPT_DB_COLUMN
-#% key: idcolumn
-#% description: Name of column containing polygon ids
-#% required: no
-#%end
-#%option G_OPT_F_OUTPUT
-#% description: Name for output file (if omitted or "-" output to stdout)
-#% required: no
-#%end
-#%option G_OPT_F_SEP
-#%end
-#%flag
-#% key: b
-#% description: create bidirectional matrix (same neighborhood relation repeated twice)
-#%end
+# %module
+# % description: Exports the neighborhood matrix of polygons in a vector map
+# % keyword: vector
+# % keyword: neighborhood matrix
+# %end
+# %option G_OPT_V_INPUT
+# %end
+# %option
+# % key: player
+# % type: integer
+# % description: Layer in map where polygons are to be found
+# % answer: 1
+# % required: no
+# %end
+# %option G_OPT_DB_COLUMN
+# % key: idcolumn
+# % description: Name of column containing polygon ids
+# % required: no
+# %end
+# %option G_OPT_F_OUTPUT
+# % description: Name for output file (if omitted or "-" output to stdout)
+# % required: no
+# %end
+# %option G_OPT_F_SEP
+# %end
+# %flag
+# % key: b
+# % description: create bidirectional matrix (same neighborhood relation repeated twice)
+# %end
 
 import sys
 import os

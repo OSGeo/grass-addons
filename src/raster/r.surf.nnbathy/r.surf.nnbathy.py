@@ -27,33 +27,33 @@
 #    NULL, and the resolution is correct. Same as most GRASS raster modules
 #    this one is region sensitive too.
 
-#%Module
-#% description: Interpolates a raster map using the nnbathy natural neighbor interpolation program.
-#% keyword: vector
-#% keyword: surface
-#% keyword: interpolation
-#% keyword: natural
-#% keyword: neighbor
-#%end
-#%option G_OPT_R_INPUT
-#% key: input
-#% type: string
-#% description: Name of input raster map
-#% guisection: Input data
-#% required : yes
-#%end
-#%option G_OPT_R_OUTPUT
-#% key: output
-#% description: Name of output raster map
-#%end
-#%option
-#% key: algorithm
-#% type: string
-#% options: l,nn,ns
-#% answer: nn
-#% descriptions: l;Linear;nn;Sibson natural neighbor;ns;Non-Sibsonian natural neighbor
-#% description: Settings
-#%end
+# %Module
+# % description: Interpolates a raster map using the nnbathy natural neighbor interpolation program.
+# % keyword: vector
+# % keyword: surface
+# % keyword: interpolation
+# % keyword: natural
+# % keyword: neighbor
+# %end
+# %option G_OPT_R_INPUT
+# % key: input
+# % type: string
+# % description: Name of input raster map
+# % guisection: Input data
+# % required : yes
+# %end
+# %option G_OPT_R_OUTPUT
+# % key: output
+# % description: Name of output raster map
+# %end
+# %option
+# % key: algorithm
+# % type: string
+# % options: l,nn,ns
+# % answer: nn
+# % descriptions: l;Linear;nn;Sibson natural neighbor;ns;Non-Sibsonian natural neighbor
+# % description: Settings
+# %end
 
 import os
 import sys

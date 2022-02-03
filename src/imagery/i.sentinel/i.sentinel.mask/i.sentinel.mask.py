@@ -15,151 +15,151 @@
 #
 #############################################################################
 
-#%Module
-#% description: Creates clouds and shadows masks for Sentinel-2 images.
-#% keyword: imagery
-#% keyword: satellite
-#% keyword: Sentinel
-#% keyword: cloud detection
-#% keyword: shadow
-#% keyword: reflectance
-#%End
-#%option G_OPT_F_INPUT
-#% key: input_file
-#% description: Name of the .txt file with listed input bands
-#% required : no
-#% guisection: Required
-#%end
-#%option G_OPT_R_INPUT
-#% key: blue
-#% description: Input bands
-#% required : no
-#% guisection: Required
-#%end
-#%option G_OPT_R_INPUT
-#% key: green
-#% description: Input bands
-#% required : no
-#% guisection: Required
-#%end
-#%option G_OPT_R_INPUT
-#% key: red
-#% description: Input bands
-#% required : no
-#% guisection: Required
-#%end
-#%option G_OPT_R_INPUT
-#% key: nir
-#% description: Input bands
-#% required : no
-#% guisection: Required
-#%end
-#%option G_OPT_R_INPUT
-#% key: nir8a
-#% description: Input bands
-#% required : no
-#% guisection: Required
-#%end
-#%option G_OPT_R_INPUT
-#% key: swir11
-#% description: Input bands
-#% required : no
-#% guisection: Required
-#%end
-#%option G_OPT_R_INPUT
-#% key: swir12
-#% description: Input bands
-#% required : no
-#% guisection: Required
-#%end
-#%option G_OPT_V_OUTPUT
-#% key: cloud_mask
-#% description: Name of output vector cloud mask
-#% required : no
-#% guisection: Output
-#%end
-#%option G_OPT_R_OUTPUT
-#% key: cloud_raster
-#% description: Name of output raster cloud mask
-#% required : no
-#% guisection: Output
-#%end
-#%option G_OPT_V_OUTPUT
-#% key: shadow_mask
-#% description: Name of output vector shadow mask
-#% required : no
-#% guisection: Output
-#%end
-#%option G_OPT_R_OUTPUT
-#% key: shadow_raster
-#% description: Name of output raster shadow mask
-#% required : no
-#% guisection: Output
-#%end
-#%option
-#% key: cloud_threshold
-#% type: integer
-#% description: Threshold for cleaning small areas from cloud mask (in square meters)
-#% required : yes
-#% answer: 50000
-#% guisection: Output
-#%end
-#%option
-#% key: shadow_threshold
-#% type: integer
-#% description: Threshold for cleaning small areas from shadow mask (in square meters)
-#% required : yes
-#% answer: 10000
-#% guisection: Output
-#%end
-#%option G_OPT_F_INPUT
-#% key: mtd_file
-#% description: Name of the image metadata file (MTD_TL.xml)
-#% required : no
-#% guisection: Metadata
-#%end
-#%option G_OPT_F_INPUT
-#% key: metadata
-#% label: Name of Sentinel metadata json file
-#% description: Default is LOCATION/MAPSET/cell_misc/BAND/description.json
-#% answer: default
-#% required : no
-#% guisection: Metadata
-#%end
-#%option
-#% key: scale_fac
-#% type: integer
-#% description: Rescale factor
-#% required : no
-#% answer: 10000
-#% guisection: Rescale
-#%end
-#%flag
-#% key: r
-#% description: Set computational region to maximum image extent
-#%end
-#%flag
-#% key: t
-#% description: Do not delete temporary files
-#%end
-#%flag
-#% key: s
-#% description: Rescale input bands
-#% guisection: Rescale
-#%end
-#%flag
-#% key: c
-#% description: Compute only the cloud mask
-#%end
+# %Module
+# % description: Creates clouds and shadows masks for Sentinel-2 images.
+# % keyword: imagery
+# % keyword: satellite
+# % keyword: Sentinel
+# % keyword: cloud detection
+# % keyword: shadow
+# % keyword: reflectance
+# %End
+# %option G_OPT_F_INPUT
+# % key: input_file
+# % description: Name of the .txt file with listed input bands
+# % required : no
+# % guisection: Required
+# %end
+# %option G_OPT_R_INPUT
+# % key: blue
+# % description: Input bands
+# % required : no
+# % guisection: Required
+# %end
+# %option G_OPT_R_INPUT
+# % key: green
+# % description: Input bands
+# % required : no
+# % guisection: Required
+# %end
+# %option G_OPT_R_INPUT
+# % key: red
+# % description: Input bands
+# % required : no
+# % guisection: Required
+# %end
+# %option G_OPT_R_INPUT
+# % key: nir
+# % description: Input bands
+# % required : no
+# % guisection: Required
+# %end
+# %option G_OPT_R_INPUT
+# % key: nir8a
+# % description: Input bands
+# % required : no
+# % guisection: Required
+# %end
+# %option G_OPT_R_INPUT
+# % key: swir11
+# % description: Input bands
+# % required : no
+# % guisection: Required
+# %end
+# %option G_OPT_R_INPUT
+# % key: swir12
+# % description: Input bands
+# % required : no
+# % guisection: Required
+# %end
+# %option G_OPT_V_OUTPUT
+# % key: cloud_mask
+# % description: Name of output vector cloud mask
+# % required : no
+# % guisection: Output
+# %end
+# %option G_OPT_R_OUTPUT
+# % key: cloud_raster
+# % description: Name of output raster cloud mask
+# % required : no
+# % guisection: Output
+# %end
+# %option G_OPT_V_OUTPUT
+# % key: shadow_mask
+# % description: Name of output vector shadow mask
+# % required : no
+# % guisection: Output
+# %end
+# %option G_OPT_R_OUTPUT
+# % key: shadow_raster
+# % description: Name of output raster shadow mask
+# % required : no
+# % guisection: Output
+# %end
+# %option
+# % key: cloud_threshold
+# % type: integer
+# % description: Threshold for cleaning small areas from cloud mask (in square meters)
+# % required : yes
+# % answer: 50000
+# % guisection: Output
+# %end
+# %option
+# % key: shadow_threshold
+# % type: integer
+# % description: Threshold for cleaning small areas from shadow mask (in square meters)
+# % required : yes
+# % answer: 10000
+# % guisection: Output
+# %end
+# %option G_OPT_F_INPUT
+# % key: mtd_file
+# % description: Name of the image metadata file (MTD_TL.xml)
+# % required : no
+# % guisection: Metadata
+# %end
+# %option G_OPT_F_INPUT
+# % key: metadata
+# % label: Name of Sentinel metadata json file
+# % description: Default is LOCATION/MAPSET/cell_misc/BAND/description.json
+# % answer: default
+# % required : no
+# % guisection: Metadata
+# %end
+# %option
+# % key: scale_fac
+# % type: integer
+# % description: Rescale factor
+# % required : no
+# % answer: 10000
+# % guisection: Rescale
+# %end
+# %flag
+# % key: r
+# % description: Set computational region to maximum image extent
+# %end
+# %flag
+# % key: t
+# % description: Do not delete temporary files
+# %end
+# %flag
+# % key: s
+# % description: Rescale input bands
+# % guisection: Rescale
+# %end
+# %flag
+# % key: c
+# % description: Compute only the cloud mask
+# %end
 
-#%rules
-#% collective: blue,green,red,nir,nir8a,swir11,swir12
-#% excludes: mtd_file,metadata
-#% required: cloud_mask,cloud_raster,shadow_mask,shadow_raster
-#% excludes: -c,shadow_mask,shadow_raster
-#% required: input_file,blue,green,red,nir,nir8a,swir11,swir12,mtd_file
-#% excludes: input_file,blue,green,red,nir,nir8a,swir11,swir12,mtd_file
-#%end
+# %rules
+# % collective: blue,green,red,nir,nir8a,swir11,swir12
+# % excludes: mtd_file,metadata
+# % required: cloud_mask,cloud_raster,shadow_mask,shadow_raster
+# % excludes: -c,shadow_mask,shadow_raster
+# % required: input_file,blue,green,red,nir,nir8a,swir11,swir12,mtd_file
+# % excludes: input_file,blue,green,red,nir,nir8a,swir11,swir12,mtd_file
+# %end
 
 import math
 import os

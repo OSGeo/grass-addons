@@ -14,38 +14,38 @@
 #############################################################################
 
 
-#%Module
-#% description: Generates a raster map classified with Dominance Rough Set Approach. Use *.rls file from JAMM, 4eMka2 etc.
-#% keyword: raster
-#% keyword: Dominance Rough Set Approach
-#% keyword: Multi Criteria Decision Analysis (MCDA)
-#%End
-#%option
-#% key: input
-#% type: string
-#% gisprompt: old,file,input
-#% description: File name with rules (*.rls)
-#% required: yes
-#%end
-#%option
-#% key: output
-#% type: string
-#% gisprompt: new_file,cell,output
-#% description: output classified raster map
-#% required: yes
-#%end
-#%flag
-#% key:k
-#% description:file *.rls from software 4eMka2
-#%end
-#%flag
-#% key:j
-#% description:file *.rls from software jMAF (NOT YET IMPLEMENTED)
-#%end
-#%flag
-#% key: l
-#% description: do not remove single rules in vector format
-#%end
+# %Module
+# % description: Generates a raster map classified with Dominance Rough Set Approach. Use *.rls file from JAMM, 4eMka2 etc.
+# % keyword: raster
+# % keyword: Dominance Rough Set Approach
+# % keyword: Multi Criteria Decision Analysis (MCDA)
+# %End
+# %option
+# % key: input
+# % type: string
+# % gisprompt: old,file,input
+# % description: File name with rules (*.rls)
+# % required: yes
+# %end
+# %option
+# % key: output
+# % type: string
+# % gisprompt: new_file,cell,output
+# % description: output classified raster map
+# % required: yes
+# %end
+# %flag
+# % key:k
+# % description:file *.rls from software 4eMka2
+# %end
+# %flag
+# % key:j
+# % description:file *.rls from software jMAF (NOT YET IMPLEMENTED)
+# %end
+# %flag
+# % key: l
+# % description: do not remove single rules in vector format
+# %end
 
 
 import sys

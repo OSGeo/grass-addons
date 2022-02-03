@@ -31,110 +31,110 @@ To Dos:
 
 """
 
-#%Module
-#% label: Calculates statistics of raster map(s) for buffers around vector geometries.
-#% keyword: vector
-#% keyword: raster
-#% keyword: buffer
-#% keyword: statistics
-#%End
+# %Module
+# % label: Calculates statistics of raster map(s) for buffers around vector geometries.
+# % keyword: vector
+# % keyword: raster
+# % keyword: buffer
+# % keyword: statistics
+# %End
 
-#%option G_OPT_V_INPUT
-#% description: Vector map containing geometries to compute buffer statistics for
-#%end
+# %option G_OPT_V_INPUT
+# % description: Vector map containing geometries to compute buffer statistics for
+# %end
 
-#%option G_OPT_R_INPUTS
-#% key: raster
-#% description: Raster map(s) to calculate statistics from
-#% multiple: yes
-#% required : yes
-#%end
+# %option G_OPT_R_INPUTS
+# % key: raster
+# % description: Raster map(s) to calculate statistics from
+# % multiple: yes
+# % required : yes
+# %end
 
-#%option
-#% key: buffers
-#% type: integer
-#% description: Buffer distance(s) in map units
-#% multiple: yes
-#% required : yes
-#%end
+# %option
+# % key: buffers
+# % type: integer
+# % description: Buffer distance(s) in map units
+# % multiple: yes
+# % required : yes
+# %end
 
-#%option
-#% key: type
-#% type:string
-#% description: Vector type to work on
-#% options: points,lines,areas
-#% answer: points,lines,areas
-#% multiple: yes
-#% required: yes
-#%end
+# %option
+# % key: type
+# % type:string
+# % description: Vector type to work on
+# % options: points,lines,areas
+# % answer: points,lines,areas
+# % multiple: yes
+# % required: yes
+# %end
 
 ## ,centroid not supported in pygrass
 
-#%option G_OPT_V_FIELD
-#% required: no
-#%end
+# %option G_OPT_V_FIELD
+# % required: no
+# %end
 
-#%option
-#% key: column_prefix
-#% type: string
-#% description: Column prefix for new attribute columns
-#% required : yes
-#% multiple: yes
-#%end
+# %option
+# % key: column_prefix
+# % type: string
+# % description: Column prefix for new attribute columns
+# % required : yes
+# % multiple: yes
+# %end
 
-#%option
-#% key: methods
-#% type: string
-#% description: The methods to use
-#% required: no
-#% multiple: yes
-#% options: number,number_null,minimum,maximum,range,sum,average,average_abs,stddev,variance,coeff_var,first_quartile,median,third_quartile
-#% answer: number,number_null,minimum,maximum,range,sum,average,average_abs,stddev,variance,coeff_var,first_quartile,median,third_quartile
-#%end
+# %option
+# % key: methods
+# % type: string
+# % description: The methods to use
+# % required: no
+# % multiple: yes
+# % options: number,number_null,minimum,maximum,range,sum,average,average_abs,stddev,variance,coeff_var,first_quartile,median,third_quartile
+# % answer: number,number_null,minimum,maximum,range,sum,average,average_abs,stddev,variance,coeff_var,first_quartile,median,third_quartile
+# %end
 
-#%option
-#% key: percentile
-#% type: integer
-#% description: Percentile to calculate
-#% options: 0-100
-#% required : no
-#%end
+# %option
+# % key: percentile
+# % type: integer
+# % description: Percentile to calculate
+# % options: 0-100
+# % required : no
+# %end
 
-#%flag
-#% key: t
-#% description: Tabulate area within buffers for categories in raster map(s)
-#%end
+# %flag
+# % key: t
+# % description: Tabulate area within buffers for categories in raster map(s)
+# %end
 
-#%flag
-#% key: p
-#% description: Used with -t flag will return percentage of area for categories
-#%end
+# %flag
+# % key: p
+# % description: Used with -t flag will return percentage of area for categories
+# %end
 
-#%flag
-#% key: u
-#% description: Update columns if they already exist
-#%end
+# %flag
+# % key: u
+# % description: Update columns if they already exist
+# %end
 
-#%flag
-#% key: r
-#% description: Remove columns without data
-#%end
+# %flag
+# % key: r
+# % description: Remove columns without data
+# %end
 
-#%flag
-#% key: l
-#% description: Use labels for column names if possible
-#%end
+# %flag
+# % key: l
+# % description: Use labels for column names if possible
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% description: Name for output file (if "-" output to stdout)
-#% required: no
-#%end
+# %option G_OPT_F_OUTPUT
+# % description: Name for output file (if "-" output to stdout)
+# % required: no
+# %end
 
-#%option G_OPT_F_SEP
-#% description: Field separator in output file
-#% answer: |
-#% required: no
-#%end
+# %option G_OPT_F_SEP
+# % description: Field separator in output file
+# % answer: |
+# % required: no
+# %end
 
 import sys
 import os

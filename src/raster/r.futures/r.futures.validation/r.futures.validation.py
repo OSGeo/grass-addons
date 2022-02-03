@@ -16,37 +16,37 @@
 #
 ##############################################################################
 
-#%module
-#% description: Module for land change simulation validation and accuracy assessment
-#% keyword: raster
-#% keyword: statistics
-#% keyword: accuracy
-#% keyword: validation
-#%end
-#%option G_OPT_R_INPUT
-#% key: simulated
-#% description: Simulated land use raster
-#% required: yes
-#%end
-#%option G_OPT_R_INPUT
-#% key: reference
-#% description: Reference land use raster
-#% required: yes
-#%end
-#%option G_OPT_R_INPUT
-#% key: original
-#% label: Original land use raster
-#% description: Required for kappa simulation
-#% required: no
-#%end
-#%option
-#% key: format
-#% type: string
-#% description: Output format
-#% options: plain,shell,json
-#% required: no
-#% answer: plain
-#%end
+# %module
+# % description: Module for land change simulation validation and accuracy assessment
+# % keyword: raster
+# % keyword: statistics
+# % keyword: accuracy
+# % keyword: validation
+# %end
+# %option G_OPT_R_INPUT
+# % key: simulated
+# % description: Simulated land use raster
+# % required: yes
+# %end
+# %option G_OPT_R_INPUT
+# % key: reference
+# % description: Reference land use raster
+# % required: yes
+# %end
+# %option G_OPT_R_INPUT
+# % key: original
+# % label: Original land use raster
+# % description: Required for kappa simulation
+# % required: no
+# %end
+# %option
+# % key: format
+# % type: string
+# % description: Output format
+# % options: plain,shell,json
+# % required: no
+# % answer: plain
+# %end
 
 
 import sys

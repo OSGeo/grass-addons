@@ -13,45 +13,45 @@ This program is free software under the GNU General Public License
 (>=v2). Read the file COPYING that comes with GRASS for details.
 """
 
-#%module
-#% description: Imports OpenStreetMap data into GRASS GIS.
-#% keyword: osm
-#% keyword: vector
-#% keyword: import
-#%end
+# %module
+# % description: Imports OpenStreetMap data into GRASS GIS.
+# % keyword: osm
+# % keyword: vector
+# % keyword: import
+# %end
 
-#%option G_OPT_F_BIN_INPUT
-#% description: Table file to be imported or DB connection string
-#%end
+# %option G_OPT_F_BIN_INPUT
+# % description: Table file to be imported or DB connection string
+# %end
 
-#%option G_OPT_V_OUTPUT
-#% description: Name for output vector map
-#% required: no
-#%end
+# %option G_OPT_V_OUTPUT
+# % description: Name for output vector map
+# % required: no
+# %end
 
-#%option G_OPT_DB_WHERE
-#%end
+# %option G_OPT_DB_WHERE
+# %end
 
-#%option G_OPT_V_TYPE
-#% description: Name for output vector map
-#% options: point,line,boundary,centroid
-#% answer: point,line,boundary,centroid
-#% required: no
-#%end
+# %option G_OPT_V_TYPE
+# % description: Name for output vector map
+# % options: point,line,boundary,centroid
+# % answer: point,line,boundary,centroid
+# % required: no
+# %end
 
-#%option G_OPT_DB_TABLE
-#%end
+# %option G_OPT_DB_TABLE
+# %end
 
-#%flag
-#% key: o
-#% label: Override projection check (use current location's projection)
-#% description: Assume that the dataset has the same projection as the current location
-#%end
+# %flag
+# % key: o
+# % label: Override projection check (use current location's projection)
+# % description: Assume that the dataset has the same projection as the current location
+# %end
 
-#%flag
-#% key: l
-#% label: List available OGR layers in data source and exit
-#%end
+# %flag
+# % key: l
+# % label: List available OGR layers in data source and exit
+# %end
 
 import os
 import sys

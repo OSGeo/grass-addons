@@ -15,174 +15,174 @@
 #
 #############################################################################
 #
-#%Module
-#% description: Estimates the quantity of woody biomass obtained from a forest surface where extraction is possible given a particular level of mechanisation
-#% keyword: raster
-#% keyword: biomass
-#% overwrite: yes
-#%End
-#%option G_OPT_R_INPUT
-#% key: dtm
-#% type: string
-#% description: Name of Digital terrain model map
-#% required : yes
-#%end
-#%option G_OPT_V_INPUT
-#% key: forest
-#% type: string
-#% description: Name of vector parcel map
-#% label: Name of vector parcel map
-#% required : yes
-#%end
-#%option G_OPT_V_INPUT
-#% key: boundaries
-#% type: string
-#% description: Name of vector boundaries map (boolean map)
-#% label: Name of vector boundaries map (boolean map)
-#% required : yes
-#%end
-#%option
-#% key: forest_column_yield
-#% type: string
-#% description: Vector field of yield
-#% required : yes
-#%end
-#%option
-#% key: forest_column_yield_surface
-#% type: string
-#% description: Vector field of stand surface (ha)
-#% required : yes
-#%end
-#%option
-#% key: forest_column_management
-#% type: string
-#% description: Vector field of forest management (1: high forest, 2:coppice)
-#% required : yes
-#%end
-#%option
-#% key: forest_column_treatment
-#% type: string
-#% description: Vector field of forest treatment (1: final felling, 2:thinning)
-#% required : yes
-#%end
-#%option G_OPT_V_INPUT
-#% key: forest_roads
-#% type: string
-#% description: Vector map of forest roads
-#% label: Vector map of forest roads
-#% required : yes
-#%end
-#%option
-#% key: output_basename
-#% type: string
-#% description: Basename for technical bioenergy (HF,CC and total)
-#% gisprompt: new
-#% key_desc : name
-#% required : yes
-#%end
-#%option
-#% key: forest_column_roughness
-#% type: string
-#% description: Vector field of roughness
-#% required : no
-#% guisection: Opt files
-#%end
-#%option G_OPT_V_INPUT
-#% key: rivers
-#% type: string
-#% description: Vector map of rivers
-#% label: Vector map of rivers
-#% required : no
-#% guisection: Opt files
-#%end
-#%option G_OPT_V_INPUT
-#% key: lakes
-#% type: string
-#% description: Vector map of lakes
-#% label: Vector map of lakes
-#% required : no
-#% guisection: Opt files
-#%end
-#%option
-#% key: slp_min_cc
-#% type: double
-#% description: Percent slope lower limit with Cable Crane
-#% answer: 30.
-#% guisection: Cable Crane
-#%end
-#%option
-#% key: slp_max_cc
-#% type: double
-#% description: Percent slope higher limit with Cable Crane
-#% answer: 100.
-#% required : no
-#% guisection: Cable Crane
-#%end
-#%option
-#% key: dist_max_cc
-#% type: double
-#% description: Maximum distance with Cable Crane
-#% answer: 800.
-#% required : no
-#% guisection: Cable Crane
-#%end
-#%option
-#% key: slp_max_fw
-#% type: double
-#% description: Percent slope higher limit with Forwarder
-#% answer: 30.
-#% required : no
-#% guisection: Forwarder
-#%end
-#%option
-#% key: dist_max_fw
-#% type: double
-#% description: Maximum distance with Forwarder
-#% answer: 600.
-#% required : no
-#% guisection: Forwarder
-#%end
-#%option
-#% key: slp_max_cop
-#% type: double
-#% description: Percent slope higher limit with other techniques for Coppices
-#% answer: 30.
-#% required : no
-#% guisection: Other
-#%end
-#%option
-#% key: dist_max_cop
-#% type: double
-#% description: Maximum distance with other techniques for Coppices
-#% answer: 600.
-#% required : no
-#% guisection: Other
-#%end
-#%option
-#% key: energy_tops_hf
-#% type: double
-#% description: Energy for tops and branches in high forest in MWh/m3
-#% answer: 0.49
-#% guisection: Energy
-#%end
-#%option
-#% key: energy_cormometric_vol_hf
-#% type: double
-#% description: Energy for the whole tree in high forest (tops, branches and stem) in MWh/m3
-#% answer: 1.97
-#% guisection: Energy
-#%end
-#%option
-#% key: energy_tops_cop
-#% type: double
-#% description: Energy for tops and branches for Coppices in MWh/m3
-#% answer: 0.55
-#% guisection: Energy
-#%end
-#%flag
-#% key: r
-#% description: Remove all operational maps
-#%end
+# %Module
+# % description: Estimates the quantity of woody biomass obtained from a forest surface where extraction is possible given a particular level of mechanisation
+# % keyword: raster
+# % keyword: biomass
+# % overwrite: yes
+# %End
+# %option G_OPT_R_INPUT
+# % key: dtm
+# % type: string
+# % description: Name of Digital terrain model map
+# % required : yes
+# %end
+# %option G_OPT_V_INPUT
+# % key: forest
+# % type: string
+# % description: Name of vector parcel map
+# % label: Name of vector parcel map
+# % required : yes
+# %end
+# %option G_OPT_V_INPUT
+# % key: boundaries
+# % type: string
+# % description: Name of vector boundaries map (boolean map)
+# % label: Name of vector boundaries map (boolean map)
+# % required : yes
+# %end
+# %option
+# % key: forest_column_yield
+# % type: string
+# % description: Vector field of yield
+# % required : yes
+# %end
+# %option
+# % key: forest_column_yield_surface
+# % type: string
+# % description: Vector field of stand surface (ha)
+# % required : yes
+# %end
+# %option
+# % key: forest_column_management
+# % type: string
+# % description: Vector field of forest management (1: high forest, 2:coppice)
+# % required : yes
+# %end
+# %option
+# % key: forest_column_treatment
+# % type: string
+# % description: Vector field of forest treatment (1: final felling, 2:thinning)
+# % required : yes
+# %end
+# %option G_OPT_V_INPUT
+# % key: forest_roads
+# % type: string
+# % description: Vector map of forest roads
+# % label: Vector map of forest roads
+# % required : yes
+# %end
+# %option
+# % key: output_basename
+# % type: string
+# % description: Basename for technical bioenergy (HF,CC and total)
+# % gisprompt: new
+# % key_desc : name
+# % required : yes
+# %end
+# %option
+# % key: forest_column_roughness
+# % type: string
+# % description: Vector field of roughness
+# % required : no
+# % guisection: Opt files
+# %end
+# %option G_OPT_V_INPUT
+# % key: rivers
+# % type: string
+# % description: Vector map of rivers
+# % label: Vector map of rivers
+# % required : no
+# % guisection: Opt files
+# %end
+# %option G_OPT_V_INPUT
+# % key: lakes
+# % type: string
+# % description: Vector map of lakes
+# % label: Vector map of lakes
+# % required : no
+# % guisection: Opt files
+# %end
+# %option
+# % key: slp_min_cc
+# % type: double
+# % description: Percent slope lower limit with Cable Crane
+# % answer: 30.
+# % guisection: Cable Crane
+# %end
+# %option
+# % key: slp_max_cc
+# % type: double
+# % description: Percent slope higher limit with Cable Crane
+# % answer: 100.
+# % required : no
+# % guisection: Cable Crane
+# %end
+# %option
+# % key: dist_max_cc
+# % type: double
+# % description: Maximum distance with Cable Crane
+# % answer: 800.
+# % required : no
+# % guisection: Cable Crane
+# %end
+# %option
+# % key: slp_max_fw
+# % type: double
+# % description: Percent slope higher limit with Forwarder
+# % answer: 30.
+# % required : no
+# % guisection: Forwarder
+# %end
+# %option
+# % key: dist_max_fw
+# % type: double
+# % description: Maximum distance with Forwarder
+# % answer: 600.
+# % required : no
+# % guisection: Forwarder
+# %end
+# %option
+# % key: slp_max_cop
+# % type: double
+# % description: Percent slope higher limit with other techniques for Coppices
+# % answer: 30.
+# % required : no
+# % guisection: Other
+# %end
+# %option
+# % key: dist_max_cop
+# % type: double
+# % description: Maximum distance with other techniques for Coppices
+# % answer: 600.
+# % required : no
+# % guisection: Other
+# %end
+# %option
+# % key: energy_tops_hf
+# % type: double
+# % description: Energy for tops and branches in high forest in MWh/m3
+# % answer: 0.49
+# % guisection: Energy
+# %end
+# %option
+# % key: energy_cormometric_vol_hf
+# % type: double
+# % description: Energy for the whole tree in high forest (tops, branches and stem) in MWh/m3
+# % answer: 1.97
+# % guisection: Energy
+# %end
+# %option
+# % key: energy_tops_cop
+# % type: double
+# % description: Energy for tops and branches for Coppices in MWh/m3
+# % answer: 0.55
+# % guisection: Energy
+# %end
+# %flag
+# % key: r
+# % description: Remove all operational maps
+# %end
 
 
 import numpy as np

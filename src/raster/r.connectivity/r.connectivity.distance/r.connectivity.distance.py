@@ -81,108 +81,108 @@ Todo:
     - different distance measures
 """
 
-#%module
-#% description: Compute cost-distances between patches of an input vector map
-#% keyword: raster
-#% keyword: vector
-#% keyword: connectivity
-#% keyword: cost distance
-#% keyword: walking distance
-#% keyword: least cost path
-#% keyword: Conefor
-#%end
+# %module
+# % description: Compute cost-distances between patches of an input vector map
+# % keyword: raster
+# % keyword: vector
+# % keyword: connectivity
+# % keyword: cost distance
+# % keyword: walking distance
+# % keyword: least cost path
+# % keyword: Conefor
+# %end
 
-#%option G_OPT_V_INPUT
-#% required: yes
-#% key_desc: patches (input)
-#% description: Name of input vector map containing habitat patches
-#%end
+# %option G_OPT_V_INPUT
+# % required: yes
+# % key_desc: patches (input)
+# % description: Name of input vector map containing habitat patches
+# %end
 
-#%option G_OPT_V_FIELD
-#% required: yes
-#% answer: 1
-#% description: layer containing patch geometries
-#%end
+# %option G_OPT_V_FIELD
+# % required: yes
+# % answer: 1
+# % description: layer containing patch geometries
+# %end
 
-#%option G_OPT_DB_COLUMN
-#% key: pop_proxy
-#% required: yes
-#% key_desc: pop_proxy
-#% description: Column containing proxy for population size (not NULL and > 0)
-#%end
+# %option G_OPT_DB_COLUMN
+# % key: pop_proxy
+# % required: yes
+# % key_desc: pop_proxy
+# % description: Column containing proxy for population size (not NULL and > 0)
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: costs
-#% required: no
-#% key_desc: costs (input)
-#% description: Name of input costs raster map
-#%end
+# %option G_OPT_R_INPUT
+# % key: costs
+# % required: no
+# % key_desc: costs (input)
+# % description: Name of input costs raster map
+# %end
 
-#%option
-#% key: prefix
-#% type: string
-#% description: Prefix used for all output of the module (network vector map(s) and cost distance raster maps)
-#% required : yes
-#% guisection: Output
-#%end
+# %option
+# % key: prefix
+# % type: string
+# % description: Prefix used for all output of the module (network vector map(s) and cost distance raster maps)
+# % required : yes
+# % guisection: Output
+# %end
 
-#%option
-#% key: cutoff
-#% type: double
-#% description: Maximum search distance around patches in meter
-#% required: no
-#% guisection: Settings
-#% answer: 10000
-#%end
+# %option
+# % key: cutoff
+# % type: double
+# % description: Maximum search distance around patches in meter
+# % required: no
+# % guisection: Settings
+# % answer: 10000
+# %end
 
-#%option
-#% key: border_dist
-#% type: integer
-#% description: Number of border cells used for distance measuring
-#% required : no
-#% guisection: Settings
-#% answer : 50
-#%end
+# %option
+# % key: border_dist
+# % type: integer
+# % description: Number of border cells used for distance measuring
+# % required : no
+# % guisection: Settings
+# % answer : 50
+# %end
 
-#%option
-#% key: memory
-#% type: integer
-#% description: Maximum memory to be used in MB
-#% required : no
-#% guisection: Settings
-#% answer : 300
-#%end
+# %option
+# % key: memory
+# % type: integer
+# % description: Maximum memory to be used in MB
+# % required : no
+# % guisection: Settings
+# % answer : 300
+# %end
 
-#%option G_OPT_M_DIR
-#% key: conefor_dir
-#% description: Directory for additional output in Conefor format
-#% required : no
-#% guisection: Output
-#%end
+# %option G_OPT_M_DIR
+# % key: conefor_dir
+# % description: Directory for additional output in Conefor format
+# % required : no
+# % guisection: Output
+# %end
 
-#%flag
-#% key: p
-#% description: Extract and save shortest paths and closest points into a vector map
-#% guisection: Settings
-#%end
+# %flag
+# % key: p
+# % description: Extract and save shortest paths and closest points into a vector map
+# % guisection: Settings
+# %end
 
-#%flag
-#% key: t
-#% description: Rasterize patch borders with "all-touched" option using GDAL
-#% guisection: Settings
-#%end
+# %flag
+# % key: t
+# % description: Rasterize patch borders with "all-touched" option using GDAL
+# % guisection: Settings
+# %end
 
-#%flag
-#% key: r
-#% description: Remove distance maps (saves disk-space but disables computation of corridors)
-#% guisection: Settings
-#%end
+# %flag
+# % key: r
+# % description: Remove distance maps (saves disk-space but disables computation of corridors)
+# % guisection: Settings
+# %end
 
-#%flag
-#% key: k
-#% description: Use the 'Knight's move'; slower, but more accurate
-#% guisection: Settings
-#%end
+# %flag
+# % key: k
+# % description: Use the 'Knight's move'; slower, but more accurate
+# % guisection: Settings
+# %end
 
 ##%flag
 ##% key: w

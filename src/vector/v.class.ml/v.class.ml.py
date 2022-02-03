@@ -15,350 +15,350 @@
 #
 #############################################################################
 
-#%Module
-#% description: Classification of a vector maps based on the values in attribute tables
-#% keyword: vector
-#% keyword: classification
-#% keyword: machine learning
-#% overwrite: yes
-#%End
-#%option G_OPT_V_MAP
-#% key: vector
-#% description: Name of input vector map
-#% required: yes
-#%end
-#%option G_OPT_V_MAP
-#% key: vtraining
-#% description: Name of training vector map
-#% required: no
-#%end
-#%option
-#% key: vlayer
-#% type: string
-#% multiple: no
-#% description: layer name or number to use for data
-#% required: no
-#%end
-#%option
-#% key: tlayer
-#% type: string
-#% multiple: no
-#% description: layer number/name for the training layer
-#% required: no
-#%end
-#%option
-#% key: rlayer
-#% type: string
-#% multiple: no
-#% description: layer number/name for the ML results
-#% required: no
-#%end
-#%option
-#% key: npy_data
-#% type: string
-#% multiple: no
-#% description: Data with statistics in npy format.
-#% answer: data.npy
-#% required: no
-#%end
-#%option
-#% key: npy_cats
-#% type: string
-#% multiple: no
-#% description: Numpy array with vector cats.
-#% answer: cats.npy
-#% required: no
-#%end
-#%option
-#% key: npy_cols
-#% type: string
-#% multiple: no
-#% description: Numpy array with columns names.
-#% answer: cols.npy
-#% required: no
-#%end
-#%option
-#% key: npy_index
-#% type: string
-#% multiple: no
-#% description: Boolean numpy array with training indexes.
-#% answer: indx.npy
-#% required: no
-#%end
-#%option
-#% key: npy_tdata
-#% type: string
-#% multiple: no
-#% description: training npy file with training set, default: training_data.npy
-#% answer: training_data.npy
-#% required: no
-#%end
-#%option
-#% key: npy_tclasses
-#% type: string
-#% multiple: no
-#% description: training npy file with the classes, default: training_classes.npy
-#% answer: training_classes.npy
-#% required: no
-#%end
-#%option
-#% key: npy_btdata
-#% type: string
-#% multiple: no
-#% description: training npy file with training set, default: training_data.npy
-#% answer: Xbt.npy
-#% required: no
-#%end
-#%option
-#% key: npy_btclasses
-#% type: string
-#% multiple: no
-#% description: training npy file with the classes, default: training_classes.npy
-#% answer: Ybt.npy
-#% required: no
-#%end
-#%option
-#% key: imp_csv
-#% type: string
-#% multiple: no
-#% description: CSV file name with the feature importances rank using extra tree algorithms
-#% answer: features_importances.csv
-#% required: no
-#%end
-#%option
-#% key: imp_fig
-#% type: string
-#% multiple: no
-#% description: Figure file name with feature importances rank using extra tree algorithms
-#% answer: features_importances.png
-#% required: no
-#%end
-#%option
-#% key: scalar
-#% type: string
-#% multiple: yes
-#% description: scaler method, center the data before scaling, if no, not scale at all
-#% required: no
-#% answer: with_mean,with_std
-#%end
-#%option
-#% key: decomposition
-#% type: string
-#% multiple: no
-#% description: choose a decomposition method (PCA, KernelPCA, ProbabilisticPCA, RandomizedPCA, FastICA, TruncatedSVD) and set the parameters using the | to separate the decomposition method from the parameters like: PCA|n_components=98
-#% required: no
-#% answer:
-#%end
-#%option
-#% key: n_training
-#% type: integer
-#% multiple: no
-#% description: Number of random training per class to training the machine learning algorithms
-#% required: no
-#%end
-#%option
-#% key: pyclassifiers
-#% type: string
-#% multiple: no
-#% description: a python file with classifiers
-#% required: no
-#%end
-#%option
-#% key: pyvar
-#% type: string
-#% multiple: no
-#% description: name of the python variable that must be a list of dictionary
-#% required: no
-#%end
-#%option
-#% key: pyindx
-#% type: string
-#% multiple: no
-#% description: specify the index or range of index of the classifiers that you want to use
-#% required: no
-#%end
-#%option
-#% key: pyindx_optimize
-#% type: string
-#% multiple: no
-#% description: Index of the classifiers to optimize the training set
-#% required: no
-#%end
-#%option
-#% key: nan
-#% type: string
-#% multiple: yes
-#% description: Column pattern:Value or Numpy funtion to use to substitute NaN values
-#% required: no
-#% answer: *_skewness:nanmean,*_kurtosis:nanmean
-#%end
-#%option
-#% key: inf
-#% type: string
-#% multiple: yes
-#% description: Key:Value or Numpy funtion to use to substitute Inf values
-#% required: no
-#% answer: *_skewness:nanmean,*_kurtosis:nanmean
-#%end
-#%option
-#% key: neginf
-#% type: string
-#% multiple: yes
-#% description: Key:Value or Numpy funtion to use to substitute neginf values
-#% required: no
-#% answer:
-#%end
-#%option
-#% key: posinf
-#% type: string
-#% multiple: yes
-#% description: Key:Value or Numpy funtion to use to substitute posinf values
-#% required: no
-#% answer:
-#%end
-#%option
-#% key: csv_test_cls
-#% type: string
-#% multiple: no
-#% description: csv file name with results of different machine learning scores
-#% required: no
-#% answer: test_classifiers.csv
-#%end
-#%option
-#% key: report_class
-#% type: string
-#% multiple: no
-#% description: text file name with the report of different machine learning algorithms
-#% required: no
-#% answer: classification_report.txt
-#%end
-#%option
-#% key: svc_c_range
-#% type: double
-#% multiple: yes
-#% description: C value range list to explore SVC domain
-#% required: no
-#% answer: 1e-2,1e-1,1e0,1e1,1e2,1e3,1e4,1e5,1e6,1e7,1e8
-#%end
-#%option
-#% key: svc_gamma_range
-#% type: double
-#% multiple: yes
-#% description: gamma value range list to explore SVC domain
-#% required: no
-#% answer: 1e-6,1e-5,1e-4,1e-3,1e-2,1e-1,1e0,1e1,1e2,1e3,1e4
-#%end
-#%option
-#% key: svc_kernel_range
-#% type: string
-#% multiple: yes
-#% description: kernel value range list to explore SVC domain
-#% required: no
-#% answer: linear,poly,rbf,sigmoid
-#%end
-#%option
-#% key: svc_poly_range
-#% type: string
-#% multiple: yes
-#% description: polynomial order list to explore SVC domain
-#% required: no
-#% answer:
-#%end
-#%option
-#% key: svc_n_jobs
-#% type: integer
-#% multiple: no
-#% description: number of jobs to use during the domain exploration
-#% required: no
-#% answer: 1
-#%end
-#%option
-#% key: svc_c
-#% type: double
-#% multiple: no
-#% description: definitive C value
-#% required: no
-#%end
-#%option
-#% key: svc_gamma
-#% type: double
-#% multiple: no
-#% description: definitive gamma value
-#% required: no
-#%end
-#%option
-#% key: svc_kernel
-#% type: string
-#% multiple: no
-#% description: definitive kernel value. Available kernel are: 'linear', 'poly', 'rbf', 'sigmoid', 'precomputed'
-#% required: no
-#% answer: rbf
-#%end
-#%option
-#% key: svc_img
-#% type: string
-#% multiple: no
-#% description: filename pattern with the image of SVC parameter
-#% required: no
-#% answer: domain_%s.svg
-#%end
-#%option
-#% key: rst_names
-#% type: string
-#% multiple: no
-#% description: filename pattern for raster
-#% required: no
-#% answer: %s
-#%end
+# %Module
+# % description: Classification of a vector maps based on the values in attribute tables
+# % keyword: vector
+# % keyword: classification
+# % keyword: machine learning
+# % overwrite: yes
+# %End
+# %option G_OPT_V_MAP
+# % key: vector
+# % description: Name of input vector map
+# % required: yes
+# %end
+# %option G_OPT_V_MAP
+# % key: vtraining
+# % description: Name of training vector map
+# % required: no
+# %end
+# %option
+# % key: vlayer
+# % type: string
+# % multiple: no
+# % description: layer name or number to use for data
+# % required: no
+# %end
+# %option
+# % key: tlayer
+# % type: string
+# % multiple: no
+# % description: layer number/name for the training layer
+# % required: no
+# %end
+# %option
+# % key: rlayer
+# % type: string
+# % multiple: no
+# % description: layer number/name for the ML results
+# % required: no
+# %end
+# %option
+# % key: npy_data
+# % type: string
+# % multiple: no
+# % description: Data with statistics in npy format.
+# % answer: data.npy
+# % required: no
+# %end
+# %option
+# % key: npy_cats
+# % type: string
+# % multiple: no
+# % description: Numpy array with vector cats.
+# % answer: cats.npy
+# % required: no
+# %end
+# %option
+# % key: npy_cols
+# % type: string
+# % multiple: no
+# % description: Numpy array with columns names.
+# % answer: cols.npy
+# % required: no
+# %end
+# %option
+# % key: npy_index
+# % type: string
+# % multiple: no
+# % description: Boolean numpy array with training indexes.
+# % answer: indx.npy
+# % required: no
+# %end
+# %option
+# % key: npy_tdata
+# % type: string
+# % multiple: no
+# % description: training npy file with training set, default: training_data.npy
+# % answer: training_data.npy
+# % required: no
+# %end
+# %option
+# % key: npy_tclasses
+# % type: string
+# % multiple: no
+# % description: training npy file with the classes, default: training_classes.npy
+# % answer: training_classes.npy
+# % required: no
+# %end
+# %option
+# % key: npy_btdata
+# % type: string
+# % multiple: no
+# % description: training npy file with training set, default: training_data.npy
+# % answer: Xbt.npy
+# % required: no
+# %end
+# %option
+# % key: npy_btclasses
+# % type: string
+# % multiple: no
+# % description: training npy file with the classes, default: training_classes.npy
+# % answer: Ybt.npy
+# % required: no
+# %end
+# %option
+# % key: imp_csv
+# % type: string
+# % multiple: no
+# % description: CSV file name with the feature importances rank using extra tree algorithms
+# % answer: features_importances.csv
+# % required: no
+# %end
+# %option
+# % key: imp_fig
+# % type: string
+# % multiple: no
+# % description: Figure file name with feature importances rank using extra tree algorithms
+# % answer: features_importances.png
+# % required: no
+# %end
+# %option
+# % key: scalar
+# % type: string
+# % multiple: yes
+# % description: scaler method, center the data before scaling, if no, not scale at all
+# % required: no
+# % answer: with_mean,with_std
+# %end
+# %option
+# % key: decomposition
+# % type: string
+# % multiple: no
+# % description: choose a decomposition method (PCA, KernelPCA, ProbabilisticPCA, RandomizedPCA, FastICA, TruncatedSVD) and set the parameters using the | to separate the decomposition method from the parameters like: PCA|n_components=98
+# % required: no
+# % answer:
+# %end
+# %option
+# % key: n_training
+# % type: integer
+# % multiple: no
+# % description: Number of random training per class to training the machine learning algorithms
+# % required: no
+# %end
+# %option
+# % key: pyclassifiers
+# % type: string
+# % multiple: no
+# % description: a python file with classifiers
+# % required: no
+# %end
+# %option
+# % key: pyvar
+# % type: string
+# % multiple: no
+# % description: name of the python variable that must be a list of dictionary
+# % required: no
+# %end
+# %option
+# % key: pyindx
+# % type: string
+# % multiple: no
+# % description: specify the index or range of index of the classifiers that you want to use
+# % required: no
+# %end
+# %option
+# % key: pyindx_optimize
+# % type: string
+# % multiple: no
+# % description: Index of the classifiers to optimize the training set
+# % required: no
+# %end
+# %option
+# % key: nan
+# % type: string
+# % multiple: yes
+# % description: Column pattern:Value or Numpy funtion to use to substitute NaN values
+# % required: no
+# % answer: *_skewness:nanmean,*_kurtosis:nanmean
+# %end
+# %option
+# % key: inf
+# % type: string
+# % multiple: yes
+# % description: Key:Value or Numpy funtion to use to substitute Inf values
+# % required: no
+# % answer: *_skewness:nanmean,*_kurtosis:nanmean
+# %end
+# %option
+# % key: neginf
+# % type: string
+# % multiple: yes
+# % description: Key:Value or Numpy funtion to use to substitute neginf values
+# % required: no
+# % answer:
+# %end
+# %option
+# % key: posinf
+# % type: string
+# % multiple: yes
+# % description: Key:Value or Numpy funtion to use to substitute posinf values
+# % required: no
+# % answer:
+# %end
+# %option
+# % key: csv_test_cls
+# % type: string
+# % multiple: no
+# % description: csv file name with results of different machine learning scores
+# % required: no
+# % answer: test_classifiers.csv
+# %end
+# %option
+# % key: report_class
+# % type: string
+# % multiple: no
+# % description: text file name with the report of different machine learning algorithms
+# % required: no
+# % answer: classification_report.txt
+# %end
+# %option
+# % key: svc_c_range
+# % type: double
+# % multiple: yes
+# % description: C value range list to explore SVC domain
+# % required: no
+# % answer: 1e-2,1e-1,1e0,1e1,1e2,1e3,1e4,1e5,1e6,1e7,1e8
+# %end
+# %option
+# % key: svc_gamma_range
+# % type: double
+# % multiple: yes
+# % description: gamma value range list to explore SVC domain
+# % required: no
+# % answer: 1e-6,1e-5,1e-4,1e-3,1e-2,1e-1,1e0,1e1,1e2,1e3,1e4
+# %end
+# %option
+# % key: svc_kernel_range
+# % type: string
+# % multiple: yes
+# % description: kernel value range list to explore SVC domain
+# % required: no
+# % answer: linear,poly,rbf,sigmoid
+# %end
+# %option
+# % key: svc_poly_range
+# % type: string
+# % multiple: yes
+# % description: polynomial order list to explore SVC domain
+# % required: no
+# % answer:
+# %end
+# %option
+# % key: svc_n_jobs
+# % type: integer
+# % multiple: no
+# % description: number of jobs to use during the domain exploration
+# % required: no
+# % answer: 1
+# %end
+# %option
+# % key: svc_c
+# % type: double
+# % multiple: no
+# % description: definitive C value
+# % required: no
+# %end
+# %option
+# % key: svc_gamma
+# % type: double
+# % multiple: no
+# % description: definitive gamma value
+# % required: no
+# %end
+# %option
+# % key: svc_kernel
+# % type: string
+# % multiple: no
+# % description: definitive kernel value. Available kernel are: 'linear', 'poly', 'rbf', 'sigmoid', 'precomputed'
+# % required: no
+# % answer: rbf
+# %end
+# %option
+# % key: svc_img
+# % type: string
+# % multiple: no
+# % description: filename pattern with the image of SVC parameter
+# % required: no
+# % answer: domain_%s.svg
+# %end
+# %option
+# % key: rst_names
+# % type: string
+# % multiple: no
+# % description: filename pattern for raster
+# % required: no
+# % answer: %s
+# %end
 # -----------------------------------------------------
-#%flag
-#% key: e
-#% description: Extract the training set from the vtraining map
-#%end
-#%flag
-#% key: n
-#% description: Export to numpy files
-#%end
-#%flag
-#% key: f
-#% description: Feature importances using extra trees algorithm
-#%end
-#%flag
-#% key: b
-#% description: Balance the training using the class with the minor number of data
-#%end
-#%flag
-#% key: o
-#% description: Optimize the training samples
-#%end
-#%flag
-#% key: c
-#% description: Classify the whole dataset
-#%end
-#%flag
-#% key: r
-#% description: Export the classify results to raster maps
-#%end
-#%flag
-#% key: t
-#% description: Test different classification methods
-#%end
-#%flag
-#% key: v
-#% description: add to test to compute the Bias variance
-#%end
-#%flag
-#% key: x
-#% description: add to test to compute extra parameters like: confusion matrix, ROC, PR
-#%end
-#%flag
-#% key: d
-#% description: Explore the SVC domain
-#%end
-#%flag
-#% key: a
-#% description: append the classification results
-#%end
+# %flag
+# % key: e
+# % description: Extract the training set from the vtraining map
+# %end
+# %flag
+# % key: n
+# % description: Export to numpy files
+# %end
+# %flag
+# % key: f
+# % description: Feature importances using extra trees algorithm
+# %end
+# %flag
+# % key: b
+# % description: Balance the training using the class with the minor number of data
+# %end
+# %flag
+# % key: o
+# % description: Optimize the training samples
+# %end
+# %flag
+# % key: c
+# % description: Classify the whole dataset
+# %end
+# %flag
+# % key: r
+# % description: Export the classify results to raster maps
+# %end
+# %flag
+# % key: t
+# % description: Test different classification methods
+# %end
+# %flag
+# % key: v
+# % description: add to test to compute the Bias variance
+# %end
+# %flag
+# % key: x
+# % description: add to test to compute extra parameters like: confusion matrix, ROC, PR
+# %end
+# %flag
+# % key: d
+# % description: Explore the SVC domain
+# %end
+# %flag
+# % key: a
+# % description: append the classification results
+# %end
 # -----------------------------------------------------
 from __future__ import absolute_import, division, print_function, unicode_literals
 from importlib.machinery import SourceFileLoader

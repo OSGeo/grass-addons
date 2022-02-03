@@ -11,112 +11,112 @@
 # DATE:			2013-11-27
 #
 #############################################################################
-#%Module
-#% description: Set of population models (fisheries science)
-#% keyword: Population growth model
-#%End
-#%option
-#% key: n_initial
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Map of number of individuals per cell at time t0 (initial population size)
-#% required: yes
-#%end
-#%option
-#% key: timesteps
-#% type: integer
-#% description: Number of time steps
-#% required: yes
-#% answer: 1
-#%end
-#%Option
-#% key: exponential_output
-#% type: string
-#% gisprompt: new,cell,raster
-#% required: no
-#% multiple: no
-#% key_desc: name
-#% description: Name for exponential model output map
-#% guisection: Exponential
-#%end
-#%option
-#% key: r_exp_value
-#% type: double
-#% description: Cell-specific fixed value of intrinsic rate of increase, log(finite rate of increase, lambda)
-#% required: no
-#% multiple: no
-#% guisection: Exponential
-#%end
-#%option
-#% key: r_exp_map
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Map of cell-specific intrinsic rate of increase, log(finite rate of increase, lambda)
-#% required: no
-#% multiple: no
-#% guisection: Exponential
-#%end
-#%Option
-#% key: ricker_output
-#% type: string
-#% gisprompt: new,cell,raster
-#% required: no
-#% multiple: no
-#% key_desc: name
-#% description: Name for Ricker model output map
-#% guisection: Ricker
-#%end
-#%option
-#% key: k_value
-#% type: integer
-#% description: Fixed value of carrying capacity of the environment (per cell)
-#% required: no
-#% guisection: Ricker
-#%end
-#%option
-#% key: k_map
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Map of carrying capacity of the environment (per cell)
-#% required: no
-#% guisection: Ricker
-#%end
-#%option
-#% key: r_rick_value
-#% type: double
-#% description: Cell-specific fixed value of intrinsic rate of increase (Ricker)
-#% required: no
-#% multiple: no
-#% guisection: Ricker
-#%end
-#%option
-#% key: r_rick_map
-#% gisprompt: old,cell,raster
-#% description: Map of cell-specific intrinsic rate of increase (Ricker)
-#% required: no
-#% multiple: no
-#% guisection: Ricker
-#%end
-#%option
-#% key: population_patches
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Optional raster map of patches of single populations. If provided, growth models are calculated based on these patches (patch-averaged r and cumulated k).
-#% required: no
-#% guisection: Optional
-#%end
-#%Option
-#% key: seed
-#% type: integer
-#% required: no
-#% multiple: no
-#% description: fixed seed for random rounding
-#% guisection: Optional
-#%End
-#%Flag
-#% key: i
-#% description: Calculate models with rounded integer values
-#%end
+# %Module
+# % description: Set of population models (fisheries science)
+# % keyword: Population growth model
+# %End
+# %option
+# % key: n_initial
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Map of number of individuals per cell at time t0 (initial population size)
+# % required: yes
+# %end
+# %option
+# % key: timesteps
+# % type: integer
+# % description: Number of time steps
+# % required: yes
+# % answer: 1
+# %end
+# %Option
+# % key: exponential_output
+# % type: string
+# % gisprompt: new,cell,raster
+# % required: no
+# % multiple: no
+# % key_desc: name
+# % description: Name for exponential model output map
+# % guisection: Exponential
+# %end
+# %option
+# % key: r_exp_value
+# % type: double
+# % description: Cell-specific fixed value of intrinsic rate of increase, log(finite rate of increase, lambda)
+# % required: no
+# % multiple: no
+# % guisection: Exponential
+# %end
+# %option
+# % key: r_exp_map
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Map of cell-specific intrinsic rate of increase, log(finite rate of increase, lambda)
+# % required: no
+# % multiple: no
+# % guisection: Exponential
+# %end
+# %Option
+# % key: ricker_output
+# % type: string
+# % gisprompt: new,cell,raster
+# % required: no
+# % multiple: no
+# % key_desc: name
+# % description: Name for Ricker model output map
+# % guisection: Ricker
+# %end
+# %option
+# % key: k_value
+# % type: integer
+# % description: Fixed value of carrying capacity of the environment (per cell)
+# % required: no
+# % guisection: Ricker
+# %end
+# %option
+# % key: k_map
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Map of carrying capacity of the environment (per cell)
+# % required: no
+# % guisection: Ricker
+# %end
+# %option
+# % key: r_rick_value
+# % type: double
+# % description: Cell-specific fixed value of intrinsic rate of increase (Ricker)
+# % required: no
+# % multiple: no
+# % guisection: Ricker
+# %end
+# %option
+# % key: r_rick_map
+# % gisprompt: old,cell,raster
+# % description: Map of cell-specific intrinsic rate of increase (Ricker)
+# % required: no
+# % multiple: no
+# % guisection: Ricker
+# %end
+# %option
+# % key: population_patches
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Optional raster map of patches of single populations. If provided, growth models are calculated based on these patches (patch-averaged r and cumulated k).
+# % required: no
+# % guisection: Optional
+# %end
+# %Option
+# % key: seed
+# % type: integer
+# % required: no
+# % multiple: no
+# % description: fixed seed for random rounding
+# % guisection: Optional
+# %End
+# %Flag
+# % key: i
+# % description: Calculate models with rounded integer values
+# %end
 
 
 # import required base modules

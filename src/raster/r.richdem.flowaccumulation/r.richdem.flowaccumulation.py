@@ -20,46 +20,46 @@
 # More information
 # Started June 2019
 
-#%module
-#% description: Calculates flow accumulation via one of a variety of methods.
-#% keyword: raster
-#% keyword: hydrology
-#%end
+# %module
+# % description: Calculates flow accumulation via one of a variety of methods.
+# % keyword: raster
+# % keyword: hydrology
+# %end
 
-#%option G_OPT_R_INPUT
-#%  key: input
-#%  label: Input DEM
-#%  required: yes
-#%end
+# %option G_OPT_R_INPUT
+# %  key: input
+# %  label: Input DEM
+# %  required: yes
+# %end
 
-#%option G_OPT_R_INPUT
-#%  key: weights
-#%  label: Raster defining the amount of runoff per cell
-#%  required: no
-#%end
+# %option G_OPT_R_INPUT
+# %  key: weights
+# %  label: Raster defining the amount of runoff per cell
+# %  required: no
+# %end
 
-#%option
-#% key: method
-#% type: string
-#% label: Method to compute the flow routing.
-#% required: yes
-#% multiple: no
-#% options: Dinf,Quinn,Holmgren,Freeman,Rho8,Rho4,D8,D4
-#%end
+# %option
+# % key: method
+# % type: string
+# % label: Method to compute the flow routing.
+# % required: yes
+# % multiple: no
+# % options: Dinf,Quinn,Holmgren,Freeman,Rho8,Rho4,D8,D4
+# %end
 
-#%option
-#% key: exponent
-#% type: double
-#% label: Exponent required for Holmgren and Freeman methods
-#% required: no
-#% multiple: no
-#%end
+# %option
+# % key: exponent
+# % type: double
+# % label: Exponent required for Holmgren and Freeman methods
+# % required: no
+# % multiple: no
+# %end
 
-#%option G_OPT_R_OUTPUT
-#%  key: output
-#%  label: Output DEM with depressions filled
-#%  required: yes
-#%end
+# %option G_OPT_R_OUTPUT
+# %  key: output
+# %  label: Output DEM with depressions filled
+# %  required: yes
+# %end
 
 ##################
 # IMPORT MODULES #

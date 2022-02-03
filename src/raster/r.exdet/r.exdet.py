@@ -19,77 +19,77 @@
 #        for details.
 ##############################################################################
 
-#%module
-#% description: Quantification of novel uni- and multi-variate environments
-#% keyword: similarity
-#% keyword: multivariate
-#% keyword: raster
-#% keyword: modelling
-#%end
+# %module
+# % description: Quantification of novel uni- and multi-variate environments
+# % keyword: similarity
+# % keyword: multivariate
+# % keyword: raster
+# % keyword: modelling
+# %end
 
-#%option G_OPT_R_INPUTS
-#% key: reference
-#% label: Reference conditions
-#% description: Reference environmental conditions
-#% key_desc: raster
-#% required: yes
-#% multiple: yes
-#% guisection: Input
-#%end
+# %option G_OPT_R_INPUTS
+# % key: reference
+# % label: Reference conditions
+# % description: Reference environmental conditions
+# % key_desc: raster
+# % required: yes
+# % multiple: yes
+# % guisection: Input
+# %end
 
-#%option G_OPT_R_INPUTS
-#% key: projection
-#% label: Projected conditions
-#% description: Projected conditions to be compared to reference conditions
-#% key_desc: raster
-#% required: no
-#% multiple: yes
-#% guisection: Input
-#%end
+# %option G_OPT_R_INPUTS
+# % key: projection
+# % label: Projected conditions
+# % description: Projected conditions to be compared to reference conditions
+# % key_desc: raster
+# % required: no
+# % multiple: yes
+# % guisection: Input
+# %end
 
-#%option
-#% key: region
-#% type: string
-#% gisprompt: new,region
-#% label: Projection region
-#% description: Region defining the area to be compared to the reference area
-#% key_desc: region
-#% required: no
-#% multiple: no
-#% guisection: Input
-#%end
+# %option
+# % key: region
+# % type: string
+# % gisprompt: new,region
+# % label: Projection region
+# % description: Region defining the area to be compared to the reference area
+# % key_desc: region
+# % required: no
+# % multiple: no
+# % guisection: Input
+# %end
 
-#%rules
-#%exclusive: projection,region
-#%end
+# %rules
+# %exclusive: projection,region
+# %end
 
-#%option G_OPT_R_BASENAME_OUTPUT
-#% key: output
-#% label: Suffix name output layers
-#% description: Root name of the output layers
-#% key_desc: raster
-#% required: yes
-#% multiple: no
-#% guisection: Output
-#%end
+# %option G_OPT_R_BASENAME_OUTPUT
+# % key: output
+# % label: Suffix name output layers
+# % description: Root name of the output layers
+# % key_desc: raster
+# % required: yes
+# % multiple: no
+# % guisection: Output
+# %end
 
-#%flag
-#% key: p
-#% description: Most influential covariates (MIC)
-#% guisection: Output
-#%end
+# %flag
+# % key: p
+# % description: Most influential covariates (MIC)
+# % guisection: Output
+# %end
 
-#%flag
-#% key: d
-#% label: Mahalanobis distance in projection domain?
-#% description: Keep layer Mahalanobis distance in projection domain?
-#%end
+# %flag
+# % key: d
+# % label: Mahalanobis distance in projection domain?
+# % description: Keep layer Mahalanobis distance in projection domain?
+# %end
 
-#%flag
-#% key: e
-#% label: Mahalanobis distance in reference domain
-#% description: Keep layer Mahalanobis distance in reference domain?
-#%end
+# %flag
+# % key: e
+# % label: Mahalanobis distance in reference domain
+# % description: Keep layer Mahalanobis distance in reference domain?
+# %end
 
 # import libraries
 import os

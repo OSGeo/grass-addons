@@ -11,26 +11,26 @@ This program is free software under the GNU General Public License
 @author Matej Krejci <matejkrejci gmail.com> (GSoC 2015)
 """
 
-#%module
-#% description: Lists information about space time datasets and maps.
-#% keyword: temporal
-#% keyword: metadata
-#% keyword: extent
-#%end
+# %module
+# % description: Lists information about space time datasets and maps.
+# % keyword: temporal
+# % keyword: metadata
+# % keyword: extent
+# %end
 
-#%option G_OPT_STDS_INPUT
-#% description: Name of an existing space time dataset or map
-#%end
+# %option G_OPT_STDS_INPUT
+# % description: Name of an existing space time dataset or map
+# %end
 
-#%option G_OPT_STDS_TYPE
-#% guidependency: input
-#% guisection: Required
-#% options: strds, str3ds, stvds, raster, raster_3d, vector
-#%end
+# %option G_OPT_STDS_TYPE
+# % guidependency: input
+# % guisection: Required
+# % options: strds, str3ds, stvds, raster, raster_3d, vector
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% required: no
-#%end
+# %option G_OPT_F_OUTPUT
+# % required: no
+# %end
 
 import os
 import sys

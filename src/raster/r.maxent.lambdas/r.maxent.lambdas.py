@@ -52,97 +52,97 @@ COPYRIGHT:    (C) 2019-2022 by the Norwegian Institute for Nature Research
               for details.
 """
 
-#%Module
-#% description: Computes raw or logistic prediction maps from MaxEnt lambdas files
-#% keyword: raster
-#% keyword: maxent
-#% keyword: ecology
-#% keyword: niche
-#%End
+# %Module
+# % description: Computes raw or logistic prediction maps from MaxEnt lambdas files
+# % keyword: raster
+# % keyword: maxent
+# % keyword: ecology
+# % keyword: niche
+# %End
 
-#%flag
-#% key: p
-#% label: Print only
-#% description: Print mapcalculator expressions and exit
-#%end
+# %flag
+# % key: p
+# % label: Print only
+# % description: Print mapcalculator expressions and exit
+# %end
 
-#%flag
-#% key: n
-#% label: Do not include cells where any variabel contains no data
-#%end
+# %flag
+# % key: n
+# % label: Do not include cells where any variabel contains no data
+# %end
 
-#%flag
-#% key: N
-#% label: Do not include cells where all variabels contain no data
-#%end
+# %flag
+# % key: N
+# % label: Do not include cells where all variabels contain no data
+# %end
 
-#%flag
-#% key: c
-#% label: Clamp values in raster maps to value range seen by the MaxEnt model
-#%end
+# %flag
+# % key: c
+# % label: Clamp values in raster maps to value range seen by the MaxEnt model
+# %end
 
-#%option G_OPT_F_INPUT
-#% key: lambdas_file
-#% description: MaxEnt lambdas-file to compute distribution-model from
-#% required : yes
-#%end
+# %option G_OPT_F_INPUT
+# % key: lambdas_file
+# % description: MaxEnt lambdas-file to compute distribution-model from
+# % required : yes
+# %end
 
-#%option G_OPT_F_INPUT
-#% key: alias_file
-#% description: CSV-file to replace alias names from MaxEnt by GRASS map names
-#% required : no
-#%end
+# %option G_OPT_F_INPUT
+# % key: alias_file
+# % description: CSV-file to replace alias names from MaxEnt by GRASS map names
+# % required : no
+# %end
 
-#%option G_OPT_R_OUTPUT
-#% key: logistic
-#% description: Raster map with logistic output
-#% required : no
-#%end
+# %option G_OPT_R_OUTPUT
+# % key: logistic
+# % description: Raster map with logistic output
+# % required : no
+# %end
 
-#%option G_OPT_R_OUTPUT
-#% key: raw
-#% description: Raster map with raw output
-#% required : no
-#%end
+# %option G_OPT_R_OUTPUT
+# % key: raw
+# % description: Raster map with raw output
+# % required : no
+# %end
 
-#%option
-#% key: ndigits
-#% type: integer
-#% description: Produce logistic output as integer map with this number of digits preserved
-#% required : no
-#% answer : 0
-#%end
+# %option
+# % key: ndigits
+# % type: integer
+# % description: Produce logistic output as integer map with this number of digits preserved
+# % required : no
+# % answer : 0
+# %end
 
-#%option
-#% key: nprocs
-#% type: integer
-#% description: Number of r.mapcalc processes to run in parallel (requires r.mapcalc.tiled addon)
-#% answer: 1
-#% required: no
-#% options: 1-
-#%end
+# %option
+# % key: nprocs
+# % type: integer
+# % description: Number of r.mapcalc processes to run in parallel (requires r.mapcalc.tiled addon)
+# % answer: 1
+# % required: no
+# % options: 1-
+# %end
 
-#%option
-#% key: width
-#% type: integer
-#% description: Width of tiles (columns) (requires r.mapcalc.tiled addon and nprocs > 1)
-#% answer: 1000
-#% required: yes
-#%end
+# %option
+# % key: width
+# % type: integer
+# % description: Width of tiles (columns) (requires r.mapcalc.tiled addon and nprocs > 1)
+# % answer: 1000
+# % required: yes
+# %end
 #
-#%option
-#% key: height
-#% type: integer
-#% description: Height of tiles (requires r.mapcalc.tiled addon and nprocs > 1)
-#% answer: 1000
-#% required: yes
-#%end
+# %option
+# % key: height
+# % type: integer
+# % description: Height of tiles (requires r.mapcalc.tiled addon and nprocs > 1)
+# % answer: 1000
+# % required: yes
+# %end
 
-#%rules
-#% required: logistic,raw
-#% exclusive: logistic,raw
-#% exclusive: -n,-N
-#%end
+# %rules
+# % required: logistic,raw
+# % exclusive: logistic,raw
+# % exclusive: -n,-N
+# %end
 
 import os
 

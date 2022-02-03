@@ -16,144 +16,144 @@
 #
 #############################################################################
 
-#%module
-#% description: Update catalogue service for the web connections resources candidates.
-#% keyword: connections resources
-#% keyword: csw
-#% keyword: metadata
-#%end
+# %module
+# % description: Update catalogue service for the web connections resources candidates.
+# % keyword: connections resources
+# % keyword: csw
+# % keyword: metadata
+# %end
 
-#%option G_OPT_F_INPUT
-#% key: spreadsheet
-#% description: Path to spreadsheet file (ODS format)
-#% gisprompt: old,bin,file
-#% answer: API-cases.ods
-#% required: no
-#%end
+# %option G_OPT_F_INPUT
+# % key: spreadsheet
+# % description: Path to spreadsheet file (ODS format)
+# % gisprompt: old,bin,file
+# % answer: API-cases.ods
+# % required: no
+# %end
 
-#%option
-#% key: url
-#% key_desc: string
-#% type: string
-#% description: Spreadsheet file URL
-#% multiple: no
-#% required: no
-#%end
+# %option
+# % key: url
+# % key_desc: string
+# % type: string
+# % description: Spreadsheet file URL
+# % multiple: no
+# % required: no
+# %end
 
-#%option G_OPT_F_INPUT
-#% key: xml
-#% description: Path to CSW connections resources XML file
-#% gisprompt: old,bin,file
-#% answer: connections_resources.xml
-#% required: yes
-#%end
+# %option G_OPT_F_INPUT
+# % key: xml
+# % description: Path to CSW connections resources XML file
+# % gisprompt: old,bin,file
+# % answer: connections_resources.xml
+# % required: yes
+# %end
 
-#%option G_OPT_F_INPUT
-#% key: xsd
-#% description: Path to CSW connections resources validation schema XSD file
-#% gisprompt: old,bin,file
-#% answer: connections_resources.xsd
-#% required: yes
-#%end
+# %option G_OPT_F_INPUT
+# % key: xsd
+# % description: Path to CSW connections resources validation schema XSD file
+# % gisprompt: old,bin,file
+# % answer: connections_resources.xsd
+# % required: yes
+# %end
 
-#%option
-#% key: timeout
-#% type: integer
-#% key_desc: timeout
-#% description: Timeout for checking if CSW connections resources URL is active
-#% answer: 10
-#% required: yes
-#%end
+# %option
+# % key: timeout
+# % type: integer
+# % key_desc: timeout
+# % description: Timeout for checking if CSW connections resources URL is active
+# % answer: 10
+# % required: yes
+# %end
 
-#%option
-#% key: separator
-#% type: string
-#% key_desc: separator
-#% description: Separator inside connections resources item string '{Name}{Separator}{URL}' (print only), use "separator"
-#% answer: ': '
-#% required: no
-#%end
+# %option
+# % key: separator
+# % type: string
+# % key_desc: separator
+# % description: Separator inside connections resources item string '{Name}{Separator}{URL}' (print only), use "separator"
+# % answer: ': '
+# % required: no
+# %end
 
-#%option
-#% key: proxy
-#% type: string
-#% key_desc: proxy
-#% description: Set the proxy with: "http=<value>,ftp=<value>"
-#% required: no
-#% multiple: yes
-#%end
+# %option
+# % key: proxy
+# % type: string
+# % key_desc: proxy
+# % description: Set the proxy with: "http=<value>,ftp=<value>"
+# % required: no
+# % multiple: yes
+# %end
 
-#%option
-#% key: header
-#% type: string
-#% key_desc: header
-#% description: Set the header with: "User-Agent=<value>,Accept=<value>"
-#% answer: User-Agent=Mozilla/5.0
-#% required: no
-#% multiple: yes
-#%end
+# %option
+# % key: header
+# % type: string
+# % key_desc: header
+# % description: Set the header with: "User-Agent=<value>,Accept=<value>"
+# % answer: User-Agent=Mozilla/5.0
+# % required: no
+# % multiple: yes
+# %end
 
-#%flag
-#% key: a
-#% description: Print all active (valid and active) CSW connections resources only
-#%end
+# %flag
+# % key: a
+# % description: Print all active (valid and active) CSW connections resources only
+# %end
 
-#%flag
-#% key: i
-#% description: Print not active CSW connections resources only
-#%end
+# %flag
+# % key: i
+# % description: Print not active CSW connections resources only
+# %end
 
-#%flag
-#% key: v
-#% description: Print valid CSW connections resources URLs
-#%end
+# %flag
+# % key: v
+# % description: Print valid CSW connections resources URLs
+# %end
 
-#%flag
-#% key: n
-#% description: Print not valid CSW connections resources URLs
-#%end
+# %flag
+# % key: n
+# % description: Print not valid CSW connections resources URLs
+# %end
 
-#%flag
-#% key: p
-#% description: Print all new CSW connections (valid/not valid, active/not active) resources with following format '{Country}, {Governmental level}, {API provider}: {URL}'
-#%end
+# %flag
+# % key: p
+# % description: Print all new CSW connections (valid/not valid, active/not active) resources with following format '{Country}, {Governmental level}, {API provider}: {URL}'
+# %end
 
-#%flag
-#% key: s
-#% description: Print new CSW connections resources summary info
-#%end
+# %flag
+# % key: s
+# % description: Print new CSW connections resources summary info
+# %end
 
-#%flag
-#% key: w
-#% description: Print default spreadsheet file URL
-#%end
+# %flag
+# % key: w
+# % description: Print default spreadsheet file URL
+# %end
 
-#%flag
-#% key: l
-#% description: Print default local spreadsheet file URL
-#%end
+# %flag
+# % key: l
+# % description: Print default local spreadsheet file URL
+# %end
 
-#%flag
-#% key: x
-#% description: Validate CSW connections resources XML file against XSD schema
-#%end
+# %flag
+# % key: x
+# % description: Validate CSW connections resources XML file against XSD schema
+# %end
 
-#%flag
-#% key: c
-#% description: Remove and print not active CSW connection resources from XML file
-#%end
+# %flag
+# % key: c
+# % description: Remove and print not active CSW connection resources from XML file
+# %end
 
-#%flag
-#% key: k
-#% description: Remove and print not valid CSW connections resources from XML file
-#%end
+# %flag
+# % key: k
+# % description: Remove and print not valid CSW connections resources from XML file
+# %end
 
-#%rules
-#% exclusive: -a, -i
-#% exclusive: -v, -n
-#% exclusive: -a, -n
-#% exclusive: -i, -n
-#%end
+# %rules
+# % exclusive: -a, -i
+# % exclusive: -v, -n
+# % exclusive: -a, -n
+# % exclusive: -i, -n
+# %end
 
 
 import http

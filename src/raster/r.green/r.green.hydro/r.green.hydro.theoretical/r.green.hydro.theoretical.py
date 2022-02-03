@@ -15,78 +15,78 @@
 #############################################################################
 #
 
-#%module
-#% description: Calculate the hydropower energy potential for each basin starting from discharge and elevation data. If existing plants are available it computes the potential installed power in the available part of the rivers.
-#% keyword: raster
-#% keyword: hydropower
-#% keyword: renewable energy
-#%end
-#%option G_OPT_R_ELEV
-#% required: yes
-#%end
-#%option G_OPT_R_INPUT
-#% key: discharge
-#% type: string
-#% gisprompt: old,cell,raster
-#% key_desc: name
-#% description: Name of input river discharge raster map [m3/s]
-#% required: yes
-#%end
-#%option G_OPT_V_INPUT
-#% key: rivers
-#% type: string
-#% gisprompt: old,vector,vector
-#% key_desc: name
-#% description: Name of river network input vector map
-#% required: no
-#%end
-#%option G_OPT_V_INPUT
-#% key: lakes
-#% type: string
-#% gisprompt: old,vector,vector
-#% key_desc: name
-#% description: Name of lakes input vector map
-#% required: no
-#%end
-#%option
-#% key: threshold
-#% type: string
-#% description: Minimum size of exterior watershed basin
-#% required: yes
-#% answer: 0
-#% guisection: Basin Potential
-#%end
-#%option G_OPT_R_INPUT
-#% key: basins
-#% type: string
-#% gisprompt: old,cell,raster
-#% key_desc: name
-#% description: Name of basin map obtained by r.watershed
-#% required: no
-#% guisection: Basin Potential
-#%end
-#%option G_OPT_R_INPUT
-#% key: stream
-#% type: string
-#% gisprompt: old,cell,raster
-#% key_desc: name
-#% description: Name of stream map obtained by r.watershed
-#% required: no
-#% guisection: Basin Potential
-#%end
+# %module
+# % description: Calculate the hydropower energy potential for each basin starting from discharge and elevation data. If existing plants are available it computes the potential installed power in the available part of the rivers.
+# % keyword: raster
+# % keyword: hydropower
+# % keyword: renewable energy
+# %end
+# %option G_OPT_R_ELEV
+# % required: yes
+# %end
+# %option G_OPT_R_INPUT
+# % key: discharge
+# % type: string
+# % gisprompt: old,cell,raster
+# % key_desc: name
+# % description: Name of input river discharge raster map [m3/s]
+# % required: yes
+# %end
+# %option G_OPT_V_INPUT
+# % key: rivers
+# % type: string
+# % gisprompt: old,vector,vector
+# % key_desc: name
+# % description: Name of river network input vector map
+# % required: no
+# %end
+# %option G_OPT_V_INPUT
+# % key: lakes
+# % type: string
+# % gisprompt: old,vector,vector
+# % key_desc: name
+# % description: Name of lakes input vector map
+# % required: no
+# %end
+# %option
+# % key: threshold
+# % type: string
+# % description: Minimum size of exterior watershed basin
+# % required: yes
+# % answer: 0
+# % guisection: Basin Potential
+# %end
+# %option G_OPT_R_INPUT
+# % key: basins
+# % type: string
+# % gisprompt: old,cell,raster
+# % key_desc: name
+# % description: Name of basin map obtained by r.watershed
+# % required: no
+# % guisection: Basin Potential
+# %end
+# %option G_OPT_R_INPUT
+# % key: stream
+# % type: string
+# % gisprompt: old,cell,raster
+# % key_desc: name
+# % description: Name of stream map obtained by r.watershed
+# % required: no
+# % guisection: Basin Potential
+# %end
 # TODO: add flags
-#%flag
-#% key: d
-#% description: Debug with intermediate maps
-#%end
-#%option G_OPT_V_OUTPUT
-#% key: output
-#% type: string
-#% key_desc: name
-#% description: Name of output vector map with basin potential [MWh]
-#% required: yes
-#% guisection: Basin Potential
-#%END
+# %flag
+# % key: d
+# % description: Debug with intermediate maps
+# %end
+# %option G_OPT_V_OUTPUT
+# % key: output
+# % type: string
+# % key_desc: name
+# % description: Name of output vector map with basin potential [MWh]
+# % required: yes
+# % guisection: Basin Potential
+# %END
 
 from __future__ import print_function
 

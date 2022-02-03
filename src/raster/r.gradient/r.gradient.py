@@ -15,36 +15,36 @@
 #
 #############################################################################
 
-#%module
-#% description: Create a gradient map
-#% keyword: raster
-#% keyword: gradient
-#%end
+# %module
+# % description: Create a gradient map
+# % keyword: raster
+# % keyword: gradient
+# %end
 
-#%option G_OPT_R_OUTPUT
-#%end
+# %option G_OPT_R_OUTPUT
+# %end
 
-#%option
-#% key: direction
-#% type: string
-#% label: The direction of gradient
-#% options: N-S, S-N, W-E, E-W, NW-SE, NE-SW
-#% required: yes
-#%end
-#%option
-#% key: range
-#% type: integer
-#% label: Minimum and maximum values of gradient
-#% required: yes
-#% multiple: yes
-#%end
-#%option
-#% key: percentile
-#% type: double
-#% label: Percentile to calculate (only for oblique gradient)
-#% options: 0-100
-#% required: no
-#%end
+# %option
+# % key: direction
+# % type: string
+# % label: The direction of gradient
+# % options: N-S, S-N, W-E, E-W, NW-SE, NE-SW
+# % required: yes
+# %end
+# %option
+# % key: range
+# % type: integer
+# % label: Minimum and maximum values of gradient
+# % required: yes
+# % multiple: yes
+# %end
+# %option
+# % key: percentile
+# % type: double
+# % label: Percentile to calculate (only for oblique gradient)
+# % options: 0-100
+# % required: no
+# %end
 
 
 # TODO add support for SW-NE, SE-NW direction

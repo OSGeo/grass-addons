@@ -21,61 +21,61 @@
 # More information
 # Started December 2016
 
-#%module
-#% description: Builds grid for the MODFLOW component of GSFLOW
-#% keyword: vector
-#% keyword: stream network
-#% keyword: hydrology
-#% keyword: GSFLOW
-#%end
+# %module
+# % description: Builds grid for the MODFLOW component of GSFLOW
+# % keyword: vector
+# % keyword: stream network
+# % keyword: hydrology
+# % keyword: GSFLOW
+# %end
 
-#%option G_OPT_V_INPUT
-#%  key: basin
-#%  label: Study basin, over which to build a MODFLOW grid
-#%  required: yes
-#%end
+# %option G_OPT_V_INPUT
+# %  key: basin
+# %  label: Study basin, over which to build a MODFLOW grid
+# %  required: yes
+# %end
 
-#%option G_OPT_V_INPUT
-#%  key: pour_point
-#%  label: Pour point, to which row and col (MODFLOW) will be added
-#%  required: yes
-#%end
+# %option G_OPT_V_INPUT
+# %  key: pour_point
+# %  label: Pour point, to which row and col (MODFLOW) will be added
+# %  required: yes
+# %end
 
-#%option G_OPT_R_INPUT
-#%  key: raster_input
-#%  label: Raster to be resampled to grid resolution
-#%  required: no
-#%end
+# %option G_OPT_R_INPUT
+# %  key: raster_input
+# %  label: Raster to be resampled to grid resolution
+# %  required: no
+# %end
 
-#%option
-#%  key: dx
-#%  label: Cell size suggestion (x / E / zonal), map units: rounds to DEM
-#%  required: yes
-#%end
+# %option
+# %  key: dx
+# %  label: Cell size suggestion (x / E / zonal), map units: rounds to DEM
+# %  required: yes
+# %end
 
-#%option
-#%  key: dy
-#%  label: Cell size suggestion (y / N / meridional), map units: rounds to DEM
-#%  required: yes
-#%end
+# %option
+# %  key: dy
+# %  label: Cell size suggestion (y / N / meridional), map units: rounds to DEM
+# %  required: yes
+# %end
 
-#%option G_OPT_V_OUTPUT
-#%  key: output
-#%  label: MODFLOW grid
-#%  required: yes
-#%end
+# %option G_OPT_V_OUTPUT
+# %  key: output
+# %  label: MODFLOW grid
+# %  required: yes
+# %end
 
-#%option G_OPT_R_OUTPUT
-#%  key: mask_output
-#%  label: Raster basin mask: inside (1) or outside (0) the watershed?
-#%  required: no
-#%end
+# %option G_OPT_R_OUTPUT
+# %  key: mask_output
+# %  label: Raster basin mask: inside (1) or outside (0) the watershed?
+# %  required: no
+# %end
 
-#%option G_OPT_V_OUTPUT
-#%  key: bc_cell
-#%  label: Constant-head boundary condition cell
-#%  required: yes
-#%end
+# %option G_OPT_V_OUTPUT
+# %  key: bc_cell
+# %  label: Constant-head boundary condition cell
+# %  required: yes
+# %end
 
 ##################
 # IMPORT MODULES #

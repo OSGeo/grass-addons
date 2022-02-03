@@ -14,99 +14,99 @@ COPYRIGHT: (C) 2014 by the GRASS Development Team
            for details.
 """
 
-#%module
-#% description: Calculates DEM derived characteristics of habitats.
-#% keyword: vector
-#% keyword: raster
-#% keyword: terrain
-#% keyword: statistics
-#% keyword: sun
-#% keyword: zonal statistics
-#%end
+# %module
+# % description: Calculates DEM derived characteristics of habitats.
+# % keyword: vector
+# % keyword: raster
+# % keyword: terrain
+# % keyword: statistics
+# % keyword: sun
+# % keyword: zonal statistics
+# %end
 
-#%option G_OPT_R_ELEV
-#% key: elevation
-#% description: Name of elevation raster map
-#% required: yes
-#%end
+# %option G_OPT_R_ELEV
+# % key: elevation
+# % description: Name of elevation raster map
+# % required: yes
+# %end
 
-#%option G_OPT_V_INPUT
-#% key: vector
-#% description: Name of habitat vector map
-#% required: yes
-#%end
+# %option G_OPT_V_INPUT
+# % key: vector
+# % description: Name of habitat vector map
+# % required: yes
+# %end
 
-#%option G_OPT_DB_COLUMN
-#% description: Name of attribute column with a unique habitat ID (must be numeric)
-#% required: yes
-#%end
+# %option G_OPT_DB_COLUMN
+# % description: Name of attribute column with a unique habitat ID (must be numeric)
+# % required: yes
+# %end
 
-#%option
-#% key: prefix
-#% type: string
-#% key_desc: prefix
-#% description: output prefix (must start with a letter)
-#% required: yes
-#%end
+# %option
+# % key: prefix
+# % type: string
+# % key_desc: prefix
+# % description: output prefix (must start with a letter)
+# % required: yes
+# %end
 
-#%option G_OPT_M_DIR
-#% key: dir
-#% description: Directory where the output will be found
-#% required : yes
-#%end
+# %option G_OPT_M_DIR
+# % key: dir
+# % description: Directory where the output will be found
+# % required : yes
+# %end
 
-#%option
-#% key: region_extension
-#% type: double
-#% key_desc: float
-#% description: region extension
-#% required : no
-#% answer: 5000
-#%end
+# %option
+# % key: region_extension
+# % type: double
+# % key_desc: float
+# % description: region extension
+# % required : no
+# % answer: 5000
+# %end
 
-#%option
-#% key: start_time
-#% type: double
-#% label: Start time of interval
-#% description: Use up to 2 decimal places
-#% options: 0-24
-#% answer: 8
-#%end
+# %option
+# % key: start_time
+# % type: double
+# % label: Start time of interval
+# % description: Use up to 2 decimal places
+# % options: 0-24
+# % answer: 8
+# %end
 
-#%option
-#% key: end_time
-#% type: double
-#% label: End time of interval
-#% description: Use up to 2 decimal places
-#% options: 0-24
-#% answer: 18
-#%end
+# %option
+# % key: end_time
+# % type: double
+# % label: End time of interval
+# % description: Use up to 2 decimal places
+# % options: 0-24
+# % answer: 18
+# %end
 
-#%option
-#% key: time_step
-#% type: double
-#% label: Time step for running r.sun [decimal hours]
-#% description: Use up to 2 decimal places
-#% options: 0-24
-#% answer: 1
-#%end
+# %option
+# % key: time_step
+# % type: double
+# % label: Time step for running r.sun [decimal hours]
+# % description: Use up to 2 decimal places
+# % options: 0-24
+# % answer: 1
+# %end
 
-#%option
-#% key: day
-#% type: integer
-#% description: No. of day of the year
-#% options: 1-365
-#% answer: 172
-#%end
+# %option
+# % key: day
+# % type: integer
+# % description: No. of day of the year
+# % options: 1-365
+# % answer: 172
+# %end
 
-#%option
-#% key: year
-#% type: integer
-#% label: Year used for map registration into temporal dataset or r.timestamp
-#% description: This value is not used in r.sun calculations
-#% options: 1900-9999
-#% answer: 2014
-#%end
+# %option
+# % key: year
+# % type: integer
+# % label: Year used for map registration into temporal dataset or r.timestamp
+# % description: This value is not used in r.sun calculations
+# % options: 1900-9999
+# % answer: 2014
+# %end
 
 import sys
 import os

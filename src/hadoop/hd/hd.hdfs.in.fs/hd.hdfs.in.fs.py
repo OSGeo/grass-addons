@@ -13,30 +13,30 @@
 #
 #############################################################################
 
-#%module
-#% description: Module for transfer file to HDFS
-#% keyword: database
-#% keyword: hdfs
-#% keyword: hive
-#%end
-#%option
-#% key: hdfs
-#% type: string
-#% answer: @grass_data_hdfs
-#% required: yes
-#% description: HDFS path or default grass dataset
-#%end
-#%option
-#% key: driver
-#% type: string
-#% required: yes
-#% options: hdfs,webhdfs
-#% description: HDFS driver
-#%end
-#%option G_OPT_F_INPUT
-#% key: local
-#% guisection: file input
-#%end
+# %module
+# % description: Module for transfer file to HDFS
+# % keyword: database
+# % keyword: hdfs
+# % keyword: hive
+# %end
+# %option
+# % key: hdfs
+# % type: string
+# % answer: @grass_data_hdfs
+# % required: yes
+# % description: HDFS path or default grass dataset
+# %end
+# %option
+# % key: driver
+# % type: string
+# % required: yes
+# % options: hdfs,webhdfs
+# % description: HDFS driver
+# %end
+# %option G_OPT_F_INPUT
+# % key: local
+# % guisection: file input
+# %end
 
 
 import os

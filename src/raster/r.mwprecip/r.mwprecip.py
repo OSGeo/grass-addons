@@ -23,219 +23,219 @@ from grass.exceptions import CalledModuleError
 ##########################################################
 ################## guisection: required ##################
 ##########################################################
-#%module
-#% description: Module for working with microwave links
-#% keyword: raster
-#% keyword: microwave
-#%end
+# %module
+# % description: Module for working with microwave links
+# % keyword: raster
+# % keyword: microwave
+# %end
 
-#%option
-#% key: database
-#% type: string
-#% key_desc : name
-#% gisprompt: old_dbname,dbname,dbname
-#% description: PostgreSQL database containing input data
-#% guisection: Database
-#% required : yes
-#%end
+# %option
+# % key: database
+# % type: string
+# % key_desc : name
+# % gisprompt: old_dbname,dbname,dbname
+# % description: PostgreSQL database containing input data
+# % guisection: Database
+# % required : yes
+# %end
 
 
 ##########################################################
 ############## guisection: Baseline #################
 ##########################################################
-#%option
-#% key: statfce
-#% label: Choose method for compute bs from time intervals
-#% options: avg,mode,quantile
+# %option
+# % key: statfce
+# % label: Choose method for compute bs from time intervals
+# % options: avg,mode,quantile
 
-#% answer: mode
+# % answer: mode
 
-#% guisection: Baseline
-#%end
+# % guisection: Baseline
+# %end
 
-#%option
-#% key: quantile
-#% label: Set quantile
-#% type: integer
-#% guisection: Baseline
-#% answer: 96
-#%end
+# %option
+# % key: quantile
+# % label: Set quantile
+# % type: integer
+# % guisection: Baseline
+# % answer: 96
+# %end
 
-#%option
-#% key: roundm
-#% label: Round to "m" decimal places for computing mode
-#% type: integer
-#% guisection: Baseline
-#% answer: 3
-#%end
+# %option
+# % key: roundm
+# % label: Round to "m" decimal places for computing mode
+# % type: integer
+# % guisection: Baseline
+# % answer: 3
+# %end
 
-#%option
-#% key: aw
-#% label: aw value
-#% description: Wetting antenna value Aw[dB]
-#% type: double
-#% guisection: Baseline
-#% answer: 1.5
-#%end
-#%option G_OPT_F_INPUT
-#% key: baseltime
-#% label: Set interval or just time when not raining (see the manual)
-#% guisection: Baseline
-#% required: no
-#%end
+# %option
+# % key: aw
+# % label: aw value
+# % description: Wetting antenna value Aw[dB]
+# % type: double
+# % guisection: Baseline
+# % answer: 1.5
+# %end
+# %option G_OPT_F_INPUT
+# % key: baseltime
+# % label: Set interval or just time when not raining (see the manual)
+# % guisection: Baseline
+# % required: no
+# %end
 
-#%option G_OPT_F_INPUT
-#% key: baselfile
-#% label: Baseline values in format "linkid,baseline"
-#% guisection: Baseline
-#% required: no
-#%end
+# %option G_OPT_F_INPUT
+# % key: baselfile
+# % label: Baseline values in format "linkid,baseline"
+# % guisection: Baseline
+# % required: no
+# %end
 
 
 ##########################################################
 ################# guisection: Timewindows ##############
 ##########################################################
-#%option
-#% key: interval
-#% label: Summing precipitation per
-#% options: minute, hour, day
-#% guisection: Time-windows
-#% answer: minute
-#%end
+# %option
+# % key: interval
+# % label: Summing precipitation per
+# % options: minute, hour, day
+# % guisection: Time-windows
+# % answer: minute
+# %end
 
-#%option
-#% key: fromtime
-#% label: First timestamp "YYYY-MM-DD H:M:S"
-#% description: Set first timestamp to create timewindows
-#% type: string
-#% guisection: Time-windows
-#%end
+# %option
+# % key: fromtime
+# % label: First timestamp "YYYY-MM-DD H:M:S"
+# % description: Set first timestamp to create timewindows
+# % type: string
+# % guisection: Time-windows
+# %end
 
-#%option
-#% key: totime
-#% label: Last timestamp "YYYY-MM-DD H:M:S"
-#% description: Set last timestamp to create timewindows
-#% type: string
-#% guisection: Time-windows
-#%end
-
-
-#%option G_OPT_F_INPUT
-#% key: lignore
-#% label: Linkid ignore list
-#% guisection: Time-windows
-#% required: no
-#%end
+# %option
+# % key: totime
+# % label: Last timestamp "YYYY-MM-DD H:M:S"
+# % description: Set last timestamp to create timewindows
+# % type: string
+# % guisection: Time-windows
+# %end
 
 
-#%option G_OPT_M_DIR
-#% key: rgauges
-#% label: Path to folder with rain rauge files
-#% guisection:Time-windows
-#% required: no
-#%end
+# %option G_OPT_F_INPUT
+# % key: lignore
+# % label: Linkid ignore list
+# % guisection: Time-windows
+# % required: no
+# %end
+
+
+# %option G_OPT_M_DIR
+# % key: rgauges
+# % label: Path to folder with rain rauge files
+# % guisection:Time-windows
+# % required: no
+# %end
 
 ##########################################################
 ################# guisection: Interpolation ##############
 ##########################################################
 
-#%flag
-#% key:g
-#% description: Run GRASS analysis
-#% guisection: Interpolation
-#%end
+# %flag
+# % key:g
+# % description: Run GRASS analysis
+# % guisection: Interpolation
+# %end
 
-#%option
-#% key: interpolation
-#% label: Type of interpolation
-#% options: bspline, idw, rst
-#% guisection: Interpolation
-#% answer: rst
-#%end
-
-
-#%option
-#% key: isettings
-#% label: Interpolation command string
-#% description: Additional settings for choosen interpolation (see manual)
-#% type: string
-#% guisection: Interpolation
-#%end
+# %option
+# % key: interpolation
+# % label: Type of interpolation
+# % options: bspline, idw, rst
+# % guisection: Interpolation
+# % answer: rst
+# %end
 
 
-#%flag
-#% key:q
-#% description: Do not set region from modul settings
-#% guisection: Interpolation
-#%end
+# %option
+# % key: isettings
+# % label: Interpolation command string
+# % description: Additional settings for choosen interpolation (see manual)
+# % type: string
+# % guisection: Interpolation
+# %end
 
 
-#%option
-#% key: pmethod
-#% label: Type of interpolation
-#% options: permeter, count
-#% guisection: Interpolation
-#% answer: count
-#%end
+# %flag
+# % key:q
+# % description: Do not set region from modul settings
+# % guisection: Interpolation
+# %end
 
-#%option
-#% key: step
-#% label: Setting for parameter pmethod
-#% type: integer
-#% guisection: Interpolation
-#% answer: 1
-#%end
 
-#%option G_OPT_F_INPUT
-#% key: color
-#% label: Set color table
-#% guisection: Interpolation
-#% required: no
-#%end
+# %option
+# % key: pmethod
+# % label: Type of interpolation
+# % options: permeter, count
+# % guisection: Interpolation
+# % answer: count
+# %end
+
+# %option
+# % key: step
+# % label: Setting for parameter pmethod
+# % type: integer
+# % guisection: Interpolation
+# % answer: 1
+# %end
+
+# %option G_OPT_F_INPUT
+# % key: color
+# % label: Set color table
+# % guisection: Interpolation
+# % required: no
+# %end
 
 
 ##########################################################
 ############## guisection: database work #################
 ##########################################################
 
-#%option
-#% key: user
-#% type: string
-#% label: User name
-#% description: Connect to the database as the user username instead of the default.
-#% guisection: Database
-#% required : no
-#%end
+# %option
+# % key: user
+# % type: string
+# % label: User name
+# % description: Connect to the database as the user username instead of the default.
+# % guisection: Database
+# % required : no
+# %end
 
-#%option
-#% key: password
-#% type: string
-#% label: Password
-#% description: Password will be stored in file!
-#% guisection: Database
-#% required : no
-#%end
+# %option
+# % key: password
+# % type: string
+# % label: Password
+# % description: Password will be stored in file!
+# % guisection: Database
+# % required : no
+# %end
 
 ##########################################################
 ############### guisection: optional #####################
 ##########################################################
-#%flag
-#% key:p
-#% description: Print info about timestamp(first,last) in db
-#%end
+# %flag
+# % key:p
+# % description: Print info about timestamp(first,last) in db
+# %end
 
-#%flag
-#% key:r
-#% description: Remove temporary working schema and data folder
-#%end
+# %flag
+# % key:r
+# % description: Remove temporary working schema and data folder
+# %end
 
 
-#%option
-#% key: schema
-#% type: string
-#% label: Name of db schema for results
-#% answer: temp4
-#%end
+# %option
+# % key: schema
+# % type: string
+# % label: Name of db schema for results
+# % answer: temp4
+# %end
 
 
 # EXAMPLE

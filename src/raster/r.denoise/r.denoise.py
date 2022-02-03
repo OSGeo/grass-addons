@@ -26,45 +26,45 @@
 #
 #############################################################################
 
-#%Module
-#%  description: r.denoise - denoise topographic data
-#%End
-#%option
-#% key: input
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Raster input map
-#% required : yes
-#%end
-#%option
-#% key: output
-#% type: string
-#% gisprompt: new,cell,raster
-#% description: Denoised raster output map
-#% required : yes
-#%end
-#%option
-#% key: iterations
-#% type: integer
-#% description: Number of normal-updating iterations
-#% answer: 5
-#% options: 1-50
-#% required : no
-#%end
-#%option
-#% key: threshold
-#% type: double
-#% description: Edge-sharpness threshold
-#% answer: 0.93
-#% options: 0.0-1.0
-#% required : no
-#%end
-#%option
-#% key: epsg
-#% type: integer
-#% description: EPSG projection code (required if current location is not projected)
-#% required : no
-#%end
+# %Module
+# %  description: r.denoise - denoise topographic data
+# %End
+# %option
+# % key: input
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Raster input map
+# % required : yes
+# %end
+# %option
+# % key: output
+# % type: string
+# % gisprompt: new,cell,raster
+# % description: Denoised raster output map
+# % required : yes
+# %end
+# %option
+# % key: iterations
+# % type: integer
+# % description: Number of normal-updating iterations
+# % answer: 5
+# % options: 1-50
+# % required : no
+# %end
+# %option
+# % key: threshold
+# % type: double
+# % description: Edge-sharpness threshold
+# % answer: 0.93
+# % options: 0.0-1.0
+# % required : no
+# %end
+# %option
+# % key: epsg
+# % type: integer
+# % description: EPSG projection code (required if current location is not projected)
+# % required : no
+# %end
 
 import os
 import atexit

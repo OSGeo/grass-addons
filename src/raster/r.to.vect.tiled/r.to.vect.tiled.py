@@ -18,90 +18,90 @@
 #
 ############################################################################
 
-#%module
-#% description: Converts a raster map into vector tiles.
-#% keyword: raster
-#% keyword: conversion
-#% keyword: geometry
-#% keyword: vectorization
-#% keyword: tiling
-#% overwrite: yes
-#%end
-#%option G_OPT_R_INPUT
-#%end
-#%option
-#% key: output
-#% type: string
-#% required: yes
-#% multiple: no
-#% description: Output base name
-#%end
-#%option
-#% key: type
-#% type: string
-#% required: yes
-#% multiple: no
-#% options: point,line,area
-#% description: Feature type
-#%end
-#%option
-#% key: column
-#% type: string
-#% required: no
-#% multiple: no
-#% key_desc: name
-#% label: Name of attribute column to store value
-#% description: Name must be SQL compliant
-#% answer: value
-#% guisection: Attributes
-#%end
-#%flag
-#% key: s
-#% description: Smooth corners of linear features
-#%end
-#%flag
-#% key: v
-#% description: Use raster values as categories instead of unique sequence (CELL only)
-#% guisection: Attributes
-#%end
-#%flag
-#% key: z
-#% label: Write raster values as z coordinate
-#% description: Table is not created. Currently supported only for points.
-#% guisection: Attributes
-#%end
-#%flag
-#% key: b
-#% label: Do not build vector topology
-#% description: Recommended for massive point conversion
-#%end
-#%flag
-#% key: t
-#% description: Do not create attribute table
-#% guisection: Attributes
-#%end
-#%flag
-#% key: p
-#% description: Patch the tiles
-#%end
-#%option
-#% key: x
-#% type: integer
-#% required: no
-#% answer: 2
-#% multiple: no
-#% description: Number of tiles in x direction
-#% guisection: Tiling
-#%end
-#%option
-#% key: y
-#% type: integer
-#% required: no
-#% answer: 2
-#% multiple: no
-#% description: Number of tiles in y direction
-#% guisection: Tiling
-#%end
+# %module
+# % description: Converts a raster map into vector tiles.
+# % keyword: raster
+# % keyword: conversion
+# % keyword: geometry
+# % keyword: vectorization
+# % keyword: tiling
+# % overwrite: yes
+# %end
+# %option G_OPT_R_INPUT
+# %end
+# %option
+# % key: output
+# % type: string
+# % required: yes
+# % multiple: no
+# % description: Output base name
+# %end
+# %option
+# % key: type
+# % type: string
+# % required: yes
+# % multiple: no
+# % options: point,line,area
+# % description: Feature type
+# %end
+# %option
+# % key: column
+# % type: string
+# % required: no
+# % multiple: no
+# % key_desc: name
+# % label: Name of attribute column to store value
+# % description: Name must be SQL compliant
+# % answer: value
+# % guisection: Attributes
+# %end
+# %flag
+# % key: s
+# % description: Smooth corners of linear features
+# %end
+# %flag
+# % key: v
+# % description: Use raster values as categories instead of unique sequence (CELL only)
+# % guisection: Attributes
+# %end
+# %flag
+# % key: z
+# % label: Write raster values as z coordinate
+# % description: Table is not created. Currently supported only for points.
+# % guisection: Attributes
+# %end
+# %flag
+# % key: b
+# % label: Do not build vector topology
+# % description: Recommended for massive point conversion
+# %end
+# %flag
+# % key: t
+# % description: Do not create attribute table
+# % guisection: Attributes
+# %end
+# %flag
+# % key: p
+# % description: Patch the tiles
+# %end
+# %option
+# % key: x
+# % type: integer
+# % required: no
+# % answer: 2
+# % multiple: no
+# % description: Number of tiles in x direction
+# % guisection: Tiling
+# %end
+# %option
+# % key: y
+# % type: integer
+# % required: no
+# % answer: 2
+# % multiple: no
+# % description: Number of tiles in y direction
+# % guisection: Tiling
+# %end
 
 import sys
 

@@ -12,60 +12,60 @@
 #
 #############################################################################
 
-#%Module
-#% description: Generates a MCDA map from several criteria maps using Dominance Rough Set Approach.
-#% keyword: raster
-#% keyword: Dominance Rough Set Approach
-#% keyword: Multi Criteria Decision Analysis (MCDA)
-#%End
-#%option
-#% key: criteria
-#% type: string
-#% multiple: yes
-#% gisprompt: old,cell,raster
-#% key_desc: name
-#% description: Name of criteria raster maps
-#% required: yes
-#%end
-#%option
-#% key: preferences
-#% type: string
-#% key_desc: character
-#% description: gain,cost
-#% required: yes
-#%end
-#%option
-#% key: decision
-#% type: string
-#% gisprompt: old,cell,raster
-#% key_desc: name
-#% description: Name of decision raster map
-#% required: yes
-#%end
-#%option
-#% key: outputMap
-#% type: string
-#% gisprompt: new_file,cell,output
-#% description: Output classified raster map
-#% required: yes
-#%end
-#%option
-#% key: outputTxt
-#% type: string
-#% gisprompt: new_file,file,output
-#% key_desc: name
-#% description: Name for output files (base for *.isf  and *.rls files)
-#% answer:infosys
-#% required: yes
-#%end
-#%flag
-#% key: l
-#% description: do not remove single rules in vector format
-#%end
-#%flag
-#% key: n
-#% description: compute null value as zero
-#%end
+# %Module
+# % description: Generates a MCDA map from several criteria maps using Dominance Rough Set Approach.
+# % keyword: raster
+# % keyword: Dominance Rough Set Approach
+# % keyword: Multi Criteria Decision Analysis (MCDA)
+# %End
+# %option
+# % key: criteria
+# % type: string
+# % multiple: yes
+# % gisprompt: old,cell,raster
+# % key_desc: name
+# % description: Name of criteria raster maps
+# % required: yes
+# %end
+# %option
+# % key: preferences
+# % type: string
+# % key_desc: character
+# % description: gain,cost
+# % required: yes
+# %end
+# %option
+# % key: decision
+# % type: string
+# % gisprompt: old,cell,raster
+# % key_desc: name
+# % description: Name of decision raster map
+# % required: yes
+# %end
+# %option
+# % key: outputMap
+# % type: string
+# % gisprompt: new_file,cell,output
+# % description: Output classified raster map
+# % required: yes
+# %end
+# %option
+# % key: outputTxt
+# % type: string
+# % gisprompt: new_file,file,output
+# % key_desc: name
+# % description: Name for output files (base for *.isf  and *.rls files)
+# % answer:infosys
+# % required: yes
+# %end
+# %flag
+# % key: l
+# % description: do not remove single rules in vector format
+# %end
+# %flag
+# % key: n
+# % description: compute null value as zero
+# %end
 
 import sys
 import copy

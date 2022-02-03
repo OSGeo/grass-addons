@@ -18,167 +18,167 @@
 #
 ##############################################################################
 
-#%module
-#% description: Creates multiple vector layers from just one textfile
-#% keyword: vector
-#% keyword: import
-#% keyword: ASCII
-#% keyword: multiple
-#%end
+# %module
+# % description: Creates multiple vector layers from just one textfile
+# % keyword: vector
+# % keyword: import
+# % keyword: ASCII
+# % keyword: multiple
+# %end
 
-#% option G_OPT_F_INPUT
-#% key: input
-#% description: Name of input file to be imported
-#% required: yes
-#%end
+# % option G_OPT_F_INPUT
+# % key: input
+# % description: Name of input file to be imported
+# % required: yes
+# %end
 
-#% option G_OPT_F_SEP
-#% key: separator
-#% guisection: Input format
-#%end
+# % option G_OPT_F_SEP
+# % key: separator
+# % guisection: Input format
+# %end
 
-#% option
-#% key: pt_rules
-#% guisection: Vector type codes
-#% multiple: yes
-#% description: Point(s): hosp.pt.01..., forest.tree.01 -> 'pt,tree'
-#%end
+# % option
+# % key: pt_rules
+# % guisection: Vector type codes
+# % multiple: yes
+# % description: Point(s): hosp.pt.01..., forest.tree.01 -> 'pt,tree'
+# %end
 
-#% option
-#% key: ln_rules
-#% guisection: Vector type codes
-#% multiple: yes
-#% description: Line(s): road.ln.01..., Danube.river.01 -> 'ln,river'
-#%end
+# % option
+# % key: ln_rules
+# % guisection: Vector type codes
+# % multiple: yes
+# % description: Line(s): road.ln.01..., Danube.river.01 -> 'ln,river'
+# %end
 
-#% option
-#% key: poly_rules
-#% guisection: Vector type codes
-#% multiple: yes
-#% description: Polygon(s): hosp.area.01,..., forest.area.01 -> 'area'
-#%end
+# % option
+# % key: poly_rules
+# % guisection: Vector type codes
+# % multiple: yes
+# % description: Polygon(s): hosp.area.01,..., forest.area.01 -> 'area'
+# %end
 
-#% option
-#% key: skip
-#% type: integer
-#% required: NO
-#% multiple: NO
-#% answer: 0
-#% description: Number of lines to skip at top of input file (points mode)
-#% guisection: Points
-#%end
+# % option
+# % key: skip
+# % type: integer
+# % required: NO
+# % multiple: NO
+# % answer: 0
+# % description: Number of lines to skip at top of input file (points mode)
+# % guisection: Points
+# %end
 
-#% option
-#% key: columns
-#% type: string
-#% required: NO
-#% multiple: NO
-#% guisection: Points
-#% label: Column definition in SQL style (points mode))
-#% description: E.g.: 'x double precision, y double precision, cat int, name varchar(10)'
-#%end
+# % option
+# % key: columns
+# % type: string
+# % required: NO
+# % multiple: NO
+# % guisection: Points
+# % label: Column definition in SQL style (points mode))
+# % description: E.g.: 'x double precision, y double precision, cat int, name varchar(10)'
+# %end
 
-#% option
-#% key: easting
-#% type: integer
-#% required: NO
-#% multiple: NO
-#% answer: 2
-#% guisection: Points
-#% label: Number of column used as easting coordinate (points mode)
-#% description: First column is 1
-#%end
+# % option
+# % key: easting
+# % type: integer
+# % required: NO
+# % multiple: NO
+# % answer: 2
+# % guisection: Points
+# % label: Number of column used as easting coordinate (points mode)
+# % description: First column is 1
+# %end
 
-#% option
-#% key: northing
-#% type: integer
-#% required: NO
-#% multiple: NO
-#% answer: 3
-#% guisection: Points
-#% label: Number of column used as northing coordinate (points mode)
-#% description: First column is 1
-#%end
+# % option
+# % key: northing
+# % type: integer
+# % required: NO
+# % multiple: NO
+# % answer: 3
+# % guisection: Points
+# % label: Number of column used as northing coordinate (points mode)
+# % description: First column is 1
+# %end
 
-#% option
-#% key: elevation
-#% type: integer
-#% required: NO
-#% multiple: NO
-#% answer: 0
-#% guisection: Points
-#% label: Number of column used as elevation (points mode)
-#% description: First column is 1. If 0, z coordinate is not used
-#%end
+# % option
+# % key: elevation
+# % type: integer
+# % required: NO
+# % multiple: NO
+# % answer: 0
+# % guisection: Points
+# % label: Number of column used as elevation (points mode)
+# % description: First column is 1. If 0, z coordinate is not used
+# %end
 
-#% option G_OPT_M_DIR
-#% key: outdir
-#% guisection: Output settings
-#% description: Name of directory to store separated files for each layer
-#% required: no
-#%end
+# % option G_OPT_M_DIR
+# % key: outdir
+# % guisection: Output settings
+# % description: Name of directory to store separated files for each layer
+# % required: no
+# %end
 
-#% option
-#% key: merge_lyrs
-#% guisection: Output settings
-#% multiple: yes
-#% description: Pattern(s) for layers to be merged
-#%end
+# % option
+# % key: merge_lyrs
+# % guisection: Output settings
+# % multiple: yes
+# % description: Pattern(s) for layers to be merged
+# %end
 
-#% flag
-#% key: z
-#% description: Create 3D vector map
-#%end
+# % flag
+# % key: z
+# % description: Create 3D vector map
+# %end
 
-#% flag
-#% key: e
-#% description: Create a new empty vector map and exit. Nothing is read from input.
-#%end
+# % flag
+# % key: e
+# % description: Create a new empty vector map and exit. Nothing is read from input.
+# %end
 
-#% flag
-#% key: n
-#% description: Do not expect a header when reading in standard format
-#% guisection: Input format
-#%end
+# % flag
+# % key: n
+# % description: Do not expect a header when reading in standard format
+# % guisection: Input format
+# %end
 
-#% flag
-#% key: t
-#% description: Do not create table in points mode
-#% guisection: Points
-#%end
+# % flag
+# % key: t
+# % description: Do not create table in points mode
+# % guisection: Points
+# %end
 
-#% flag
-#% key: r
-#% description: Only import points falling within current region (points mode)
-#% guisection: Points
-#% end
+# % flag
+# % key: r
+# % description: Only import points falling within current region (points mode)
+# % guisection: Points
+# % end
 
-#% flag
-#% key: x
-#% description: Convert to DXF
-#% guisection: DXF conversion
-#%end
+# % flag
+# % key: x
+# % description: Convert to DXF
+# % guisection: DXF conversion
+# %end
 
-#% option
-#% key: dxf_file
-#% description: Name of the DXF file
-#% guisection: DXF conversion
-#%end
+# % option
+# % key: dxf_file
+# % description: Name of the DXF file
+# % guisection: DXF conversion
+# %end
 
-#% option
-#% key: draw_unit
-#% description: Drawing units
-#% answer: metric
-#% options: metric, imperial
-#% guisection: DXF conversion
-#%end
+# % option
+# % key: draw_unit
+# % description: Drawing units
+# % answer: metric
+# % options: metric, imperial
+# % guisection: DXF conversion
+# %end
 
-#% option
-#% key: textsize
-#% description: Text height of the labels in DXF file
-#% answer: 0.
-#% guisection: DXF conversion
-#%end
+# % option
+# % key: textsize
+# % description: Text height of the labels in DXF file
+# % answer: 0.
+# % guisection: DXF conversion
+# %end
 
 import fileinput
 import os

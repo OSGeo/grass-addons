@@ -13,26 +13,26 @@
 #
 #############################################################################
 
-#%module
-#% description: Rasterize vector areas using weights
-#% keyword: vector
-#% keyword: interpolation
-#% keyword: raster
-#%end
-#%option G_OPT_V_INPUT
-#% key: vector
-#%end
-#%option G_OPT_V_FIELD
-#%end
-#%option G_OPT_DB_COLUMN
-#% description: Name of attribute column to use as area values (must be numeric)
-#%end
-#%option G_OPT_R_INPUT
-#% key: weight
-#% description: Name of input raster with weights per cell
-#%end
-#%option G_OPT_R_OUTPUT
-#%end
+# %module
+# % description: Rasterize vector areas using weights
+# % keyword: vector
+# % keyword: interpolation
+# % keyword: raster
+# %end
+# %option G_OPT_V_INPUT
+# % key: vector
+# %end
+# %option G_OPT_V_FIELD
+# %end
+# %option G_OPT_DB_COLUMN
+# % description: Name of attribute column to use as area values (must be numeric)
+# %end
+# %option G_OPT_R_INPUT
+# % key: weight
+# % description: Name of input raster with weights per cell
+# %end
+# %option G_OPT_R_OUTPUT
+# %end
 
 import sys
 import os

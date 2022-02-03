@@ -83,236 +83,236 @@
                for details.
 """
 
-#%Module
-#%  description: Practical split-window algorithm estimating Land Surface Temperature from Landsat 8 OLI/TIRS imagery (Du, Chen; Ren, Huazhong; Qin, Qiming; Meng, Jinjie; Zhao, Shaohua. 2015)
-#%  keywords: imagery
-#%  keywords: split window
-#%  keywords: column water vapor
-#%  keywords: land surface temperature
-#%  keywords: lst
-#%  keywords: landsat8
-#%End
+# %Module
+# %  description: Practical split-window algorithm estimating Land Surface Temperature from Landsat 8 OLI/TIRS imagery (Du, Chen; Ren, Huazhong; Qin, Qiming; Meng, Jinjie; Zhao, Shaohua. 2015)
+# %  keywords: imagery
+# %  keywords: split window
+# %  keywords: column water vapor
+# %  keywords: land surface temperature
+# %  keywords: lst
+# %  keywords: landsat8
+# %End
 
-#%flag
-#%  key: i
-#%  description: Print out model equations, citation
-#%end
+# %flag
+# %  key: i
+# %  description: Print out model equations, citation
+# %end
 
-#%flag
-#%  key: e
-#%  description: Match computational region to extent of thermal bands
-#%end
+# %flag
+# %  key: e
+# %  description: Match computational region to extent of thermal bands
+# %end
 
-#%flag
-#%  key: r
-#%  description: Round LST output and keep two digits
-#%end
+# %flag
+# %  key: r
+# %  description: Round LST output and keep two digits
+# %end
 
-#%flag
-#% key: t
-#% description: Time-stamp the output LST (and optional CWV) map
-#%end
+# %flag
+# % key: t
+# % description: Time-stamp the output LST (and optional CWV) map
+# %end
 
-#%flag
-#% key: c
-#% description: Convert LST output to celsius degrees, apply color table
-#%end
+# %flag
+# % key: c
+# % description: Convert LST output to celsius degrees, apply color table
+# %end
 
-#%flag
-#% key: n
-#% description: Set zero digital numbers in b10, b11 to NULL | ToDo: Perform in copy of input input maps!
-#%end
+# %flag
+# % key: n
+# % description: Set zero digital numbers in b10, b11 to NULL | ToDo: Perform in copy of input input maps!
+# %end
 
-#%option G_OPT_F_INPUT
-#% key: mtl
-#% key_desc: filename
-#% description: Landsat8 metadata file (MTL)
-#% required: no
-#%end
+# %option G_OPT_F_INPUT
+# % key: mtl
+# % key_desc: filename
+# % description: Landsat8 metadata file (MTL)
+# % required: no
+# %end
 
-#%option G_OPT_R_BASENAME_INPUT
-#% key: prefix
-#% key_desc: basename
-#% type: string
-#% label: OLI/TIRS band names prefix
-#% description: Prefix of Landsat8 OLI/TIRS band names
-#% required: no
-#%end
+# %option G_OPT_R_BASENAME_INPUT
+# % key: prefix
+# % key_desc: basename
+# % type: string
+# % label: OLI/TIRS band names prefix
+# % description: Prefix of Landsat8 OLI/TIRS band names
+# % required: no
+# %end
 
 ##%rules
 ##% collective: prefix, mtl
 ##%end
 
-#%option G_OPT_R_INPUT
-#% key: b10
-#% key_desc: name
-#% description: TIRS 10 (10.60 - 11.19 microns)
-#% required : no
-#%end
+# %option G_OPT_R_INPUT
+# % key: b10
+# % key_desc: name
+# % description: TIRS 10 (10.60 - 11.19 microns)
+# % required : no
+# %end
 
-#%rules
-#% requires_all: b10, mtl
-#%end
+# %rules
+# % requires_all: b10, mtl
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: b11
-#% key_desc: name
-#% description: TIRS 11 (11.50 - 12.51 microns)
-#% required : no
-#%end
+# %option G_OPT_R_INPUT
+# % key: b11
+# % key_desc: name
+# % description: TIRS 11 (11.50 - 12.51 microns)
+# % required : no
+# %end
 
-#%rules
-#% requires_all: b11, mtl
-#%end
+# %rules
+# % requires_all: b11, mtl
+# %end
 
-#%option G_OPT_R_BASENAME_INPUT
-#% key: prefix_bt
-#% key_desc: basename
-#% type: string
-#% label: Prefix for output at-satellite brightness temperature maps (K)
-#% description: Prefix for brightness temperature maps (K)
-#% required: no
-#%end
+# %option G_OPT_R_BASENAME_INPUT
+# % key: prefix_bt
+# % key_desc: basename
+# % type: string
+# % label: Prefix for output at-satellite brightness temperature maps (K)
+# % description: Prefix for brightness temperature maps (K)
+# % required: no
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: t10
-#% key_desc: name
-#% description: Brightness temperature (K) from band 10 | Overrides 'b10'
-#% required : no
-#%end
+# %option G_OPT_R_INPUT
+# % key: t10
+# % key_desc: name
+# % description: Brightness temperature (K) from band 10 | Overrides 'b10'
+# % required : no
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: t11
-#% key_desc: name
-#% description: Brightness temperature (K) from band 11 | Overrides 'b11'
-#% required : no
-#%end
+# %option G_OPT_R_INPUT
+# % key: t11
+# % key_desc: name
+# % description: Brightness temperature (K) from band 11 | Overrides 'b11'
+# % required : no
+# %end
 
-#%rules
-#% requires: b10, b11, t11
-#%end
+# %rules
+# % requires: b10, b11, t11
+# %end
 
-#%rules
-#% requires: b11, b10, t10
-#%end
+# %rules
+# % requires: b11, b10, t10
+# %end
 
-#%rules
-#% requires: t10, t11, b11
-#%end
+# %rules
+# % requires: t10, t11, b11
+# %end
 
-#%rules
-#% requires: t11, t10, b10
-#%end
+# %rules
+# % requires: t11, t10, b10
+# %end
 
-#%rules
-#% exclusive: b10, t10
-#%end
+# %rules
+# % exclusive: b10, t10
+# %end
 
-#%rules
-#% exclusive: b11, t11
-#%end
+# %rules
+# % exclusive: b11, t11
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: qab
-#% key_desc: name
-#% description: Landsat 8 Quality Assessment band
-#% required : no
-#%end
+# %option G_OPT_R_INPUT
+# % key: qab
+# % key_desc: name
+# % description: Landsat 8 Quality Assessment band
+# % required : no
+# %end
 
-#%option
-#% key: qapixel
-#% key_desc: pixelvalue
-#% description: Quality assessment pixel value for which to build a mask | Source: <http://landsat.usgs.gov/L8QualityAssessmentBand.php>.
-#% answer: 61440
-#% required: no
-#% multiple: yes
-#%end
+# %option
+# % key: qapixel
+# % key_desc: pixelvalue
+# % description: Quality assessment pixel value for which to build a mask | Source: <http://landsat.usgs.gov/L8QualityAssessmentBand.php>.
+# % answer: 61440
+# % required: no
+# % multiple: yes
+# %end
 
-#%rules
-#% excludes: prefix, b10, b11, qab
-#%end
+# %rules
+# % excludes: prefix, b10, b11, qab
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: clouds
-#% key_desc: name
-#% description: A raster map applied as an inverted MASK | Overrides 'qab'
-#% required : no
-#%end
+# %option G_OPT_R_INPUT
+# % key: clouds
+# % key_desc: name
+# % description: A raster map applied as an inverted MASK | Overrides 'qab'
+# % required : no
+# %end
 
-#%rules
-#% exclusive: qab, clouds
-#%end
+# %rules
+# % exclusive: qab, clouds
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: emissivity
-#% key_desc: name
-#% description: Land surface emissivity map | Expert use, overrides retrieving average emissivity from landcover
-#% required : no
-#%end
+# %option G_OPT_R_INPUT
+# % key: emissivity
+# % key_desc: name
+# % description: Land surface emissivity map | Expert use, overrides retrieving average emissivity from landcover
+# % required : no
+# %end
 
-#%option G_OPT_R_OUTPUT
-#% key: emissivity_out
-#% key_desc: name
-#% description: Name for output emissivity map | For re-use as "emissivity=" input in subsequent trials with different spatial window sizes
-#% required: no
-#%end
+# %option G_OPT_R_OUTPUT
+# % key: emissivity_out
+# % key_desc: name
+# % description: Name for output emissivity map | For re-use as "emissivity=" input in subsequent trials with different spatial window sizes
+# % required: no
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: delta_emissivity
-#% key_desc: name
-#% description: Emissivity difference map for Landsat8 TIRS channels 10 and 11 | Expert use, overrides retrieving delta emissivity from landcover
-#% required : no
-#%end
+# %option G_OPT_R_INPUT
+# % key: delta_emissivity
+# % key_desc: name
+# % description: Emissivity difference map for Landsat8 TIRS channels 10 and 11 | Expert use, overrides retrieving delta emissivity from landcover
+# % required : no
+# %end
 
-#%option G_OPT_R_OUTPUT
-#% key: delta_emissivity_out
-#% key_desc: name
-#% description: Name for output delta emissivity map | For re-use as "delta_emissivity=" in subsequent trials with different spatial window sizes
-#% required: no
-#%end
+# %option G_OPT_R_OUTPUT
+# % key: delta_emissivity_out
+# % key_desc: name
+# % description: Name for output delta emissivity map | For re-use as "delta_emissivity=" in subsequent trials with different spatial window sizes
+# % required: no
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: landcover
-#% key_desc: name
-#% description: FROM-GLC products covering the Landsat8 scene under processing. Source <http://data.ess.tsinghua.edu.cn/>.
-#% required : no
-#%end
+# %option G_OPT_R_INPUT
+# % key: landcover
+# % key_desc: name
+# % description: FROM-GLC products covering the Landsat8 scene under processing. Source <http://data.ess.tsinghua.edu.cn/>.
+# % required : no
+# %end
 
-#%option
-#% key: landcover_class
-#% key_desc: string
-#% description: Retrieve average emissivities only for a single land cover class (case sensitive) | Expert use
-#% options: Cropland, Forest, Grasslands, Shrublands, Wetlands, Waterbodies, Tundra, Impervious, Barren_Land, Snow_and_ice, Random
-#% required : no
-#%end
+# %option
+# % key: landcover_class
+# % key_desc: string
+# % description: Retrieve average emissivities only for a single land cover class (case sensitive) | Expert use
+# % options: Cropland, Forest, Grasslands, Shrublands, Wetlands, Waterbodies, Tundra, Impervious, Barren_Land, Snow_and_ice, Random
+# % required : no
+# %end
 
-#%rules
-#% required: landcover, landcover_class
-#% exclusive: landcover, landcover_class
-#%end
+# %rules
+# % required: landcover, landcover_class
+# % exclusive: landcover, landcover_class
+# %end
 
-#%option G_OPT_R_OUTPUT
-#% key: lst
-#% key_desc: name
-#% description: Name for output Land Surface Temperature map
-#% required: yes
-#% answer: lst
-#%end
+# %option G_OPT_R_OUTPUT
+# % key: lst
+# % key_desc: name
+# % description: Name for output Land Surface Temperature map
+# % required: yes
+# % answer: lst
+# %end
 
-#%option
-#% key: window
-#% key_desc: integer
-#% description: Odd number n sizing an n^2 spatial window for column water vapor retrieval | Increase to reduce spatial discontinuation in the final LST
-#% answer: 7
-#% required: yes
-#%end
+# %option
+# % key: window
+# % key_desc: integer
+# % description: Odd number n sizing an n^2 spatial window for column water vapor retrieval | Increase to reduce spatial discontinuation in the final LST
+# % answer: 7
+# % required: yes
+# %end
 
-#%option G_OPT_R_OUTPUT
-#% key: cwv
-#% key_desc: name
-#% description: Name for output Column Water Vapor map | Optional
-#% required: no
-#%end
+# %option G_OPT_R_OUTPUT
+# % key: cwv
+# % key_desc: name
+# % description: Name for output Column Water Vapor map | Optional
+# % required: no
+# %end
 
 # required librairies
 import os

@@ -14,91 +14,91 @@
 #              for details.
 #
 #############################################################################
-#%Module
-#% description: Estimates potential bioenergy according to environmental restriction
-#% keyword: raster
-#% keyword: biomass
-#%End
-#%option G_OPT_R_INPUT
-#% key: hfmap
-#% description: Bioenergy potential map for High Forest in MWh/m3
-#%end
-#%option G_OPT_R_INPUT
-#% key: cmap
-#% type: string
-#% description: Bioenergy potential map for Coppice in MWh/m3
-#% required : yes
-#%end
-#%option
-#% key: output_basename
-#% type: string
-#% description: Basename for final recommended maps of bioenergy (HF,CC and total)
-#% gisprompt: new
-#% key_desc : name
-#% required : yes
-#%end
-#%option G_OPT_R_INPUT
-#% key: management
-#% type: string
-#% description: Map of forest management (1: high forest, 2:coppice)
-#% required : yes
-#%end
-#%option G_OPT_R_INPUT
-#% key: treatment
-#% type: string
-#% description: Map of forest treatment (1: final felling, 2:thinning)
-#% required : yes
-#%end
-#%option G_OPT_R_INPUTS
-#% key: restrictions
-#% type: string
-#% description: Area with absolute restrictions (protected areas, urban parks etc.)
-#% required : no
-#% guisection: Restrictions
-#%end
-#%option G_OPT_R_INPUT
-#% key: hydro
-#% type: string
-#% description: Rivers network
-#% required : no
-#% guisection: Restrictions
-#%end
-#%option
-#% key: buffer_hydro
-#% type: integer
-#% description: Buffer area for rivers
-#% answer: 0
-#% required : no
-#% guisection: Restrictions
-#%end
-#%option G_OPT_R_INPUT
-#% key: zone_less
-#% type: string
-#% description: Civic use
-#% required : no
-#% guisection: Restrictions
-#%end
-#%option
-#% key: energy_tops_hf
-#% type: double
-#% description: Energy for tops and branches in high forest in MWh/m3
-#% answer: 0.49
-#% guisection: Energy
-#%end
-#%option
-#% key: energy_cormometric_vol_hf
-#% type: double
-#% description: Energy for tops and branches for high forest in MWh/m3
-#% answer: 1.97
-#% guisection: Energy
-#%end
-#%option
-#% key: energy_tops_cop
-#% type: double
-#% description: Energy for tops and branches for Coppices in MWh/m3
-#% answer: 0.55
-#% guisection: Energy
-#%end
+# %Module
+# % description: Estimates potential bioenergy according to environmental restriction
+# % keyword: raster
+# % keyword: biomass
+# %End
+# %option G_OPT_R_INPUT
+# % key: hfmap
+# % description: Bioenergy potential map for High Forest in MWh/m3
+# %end
+# %option G_OPT_R_INPUT
+# % key: cmap
+# % type: string
+# % description: Bioenergy potential map for Coppice in MWh/m3
+# % required : yes
+# %end
+# %option
+# % key: output_basename
+# % type: string
+# % description: Basename for final recommended maps of bioenergy (HF,CC and total)
+# % gisprompt: new
+# % key_desc : name
+# % required : yes
+# %end
+# %option G_OPT_R_INPUT
+# % key: management
+# % type: string
+# % description: Map of forest management (1: high forest, 2:coppice)
+# % required : yes
+# %end
+# %option G_OPT_R_INPUT
+# % key: treatment
+# % type: string
+# % description: Map of forest treatment (1: final felling, 2:thinning)
+# % required : yes
+# %end
+# %option G_OPT_R_INPUTS
+# % key: restrictions
+# % type: string
+# % description: Area with absolute restrictions (protected areas, urban parks etc.)
+# % required : no
+# % guisection: Restrictions
+# %end
+# %option G_OPT_R_INPUT
+# % key: hydro
+# % type: string
+# % description: Rivers network
+# % required : no
+# % guisection: Restrictions
+# %end
+# %option
+# % key: buffer_hydro
+# % type: integer
+# % description: Buffer area for rivers
+# % answer: 0
+# % required : no
+# % guisection: Restrictions
+# %end
+# %option G_OPT_R_INPUT
+# % key: zone_less
+# % type: string
+# % description: Civic use
+# % required : no
+# % guisection: Restrictions
+# %end
+# %option
+# % key: energy_tops_hf
+# % type: double
+# % description: Energy for tops and branches in high forest in MWh/m3
+# % answer: 0.49
+# % guisection: Energy
+# %end
+# %option
+# % key: energy_cormometric_vol_hf
+# % type: double
+# % description: Energy for tops and branches for high forest in MWh/m3
+# % answer: 1.97
+# % guisection: Energy
+# %end
+# %option
+# % key: energy_tops_cop
+# % type: double
+# % description: Energy for tops and branches for Coppices in MWh/m3
+# % answer: 0.55
+# % guisection: Energy
+# %end
 
 import pdb
 import string

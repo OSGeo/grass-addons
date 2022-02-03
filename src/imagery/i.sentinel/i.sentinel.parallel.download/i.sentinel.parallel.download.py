@@ -14,113 +14,113 @@
 #
 ############################################################################
 
-#%module
-#% description: Downloads Sentinel-2 images in parallel using i.sentinel.download.
-#% keyword: imagery
-#% keyword: satellite
-#% keyword: Sentinel
-#% keyword: download
-#% keyword: parallel
-#%end
+# %module
+# % description: Downloads Sentinel-2 images in parallel using i.sentinel.download.
+# % keyword: imagery
+# % keyword: satellite
+# % keyword: Sentinel
+# % keyword: download
+# % keyword: parallel
+# %end
 
-#%option G_OPT_F_INPUT
-#% key: settings
-#% label: Full path to settings file (user, password)
-#%end
+# %option G_OPT_F_INPUT
+# % key: settings
+# % label: Full path to settings file (user, password)
+# %end
 
-#%option
-#% key: scene_name
-#% required: no
-#% multiple: yes
-#% label: Names of the scenes to be downloaded
-#%end
+# %option
+# % key: scene_name
+# % required: no
+# % multiple: yes
+# % label: Names of the scenes to be downloaded
+# %end
 
-#%option G_OPT_M_DIR
-#% key: output
-#% description: Name for output directory where to store downloaded Sentinel data
-#% required: no
-#% guisection: Output
-#%end
+# %option G_OPT_M_DIR
+# % key: output
+# % description: Name for output directory where to store downloaded Sentinel data
+# % required: no
+# % guisection: Output
+# %end
 
-#%option
-#% key: clouds
-#% type: integer
-#% description: Maximum cloud cover percentage for Sentinel scene
-#% required: no
-#% guisection: Filter
-#% answer: 20
-#%end
+# %option
+# % key: clouds
+# % type: integer
+# % description: Maximum cloud cover percentage for Sentinel scene
+# % required: no
+# % guisection: Filter
+# % answer: 20
+# %end
 
-#%option
-#% key: producttype
-#% type: string
-#% description: Sentinel product type to filter
-#% required: no
-#% options: SLC,GRD,OCN,S2MSI1C,S2MSI2A,S2MSI2Ap
-#% answer: S2MSI2A
-#% guisection: Filter
-#%end
+# %option
+# % key: producttype
+# % type: string
+# % description: Sentinel product type to filter
+# % required: no
+# % options: SLC,GRD,OCN,S2MSI1C,S2MSI2A,S2MSI2Ap
+# % answer: S2MSI2A
+# % guisection: Filter
+# %end
 
-#%option
-#% key: start
-#% type: string
-#% description: Start date ('YYYY-MM-DD')
-#% guisection: Filter
-#%end
+# %option
+# % key: start
+# % type: string
+# % description: Start date ('YYYY-MM-DD')
+# % guisection: Filter
+# %end
 
-#%option
-#% key: end
-#% type: string
-#% description: End date ('YYYY-MM-DD')
-#% guisection: Filter
-#%end
+# %option
+# % key: end
+# % type: string
+# % description: End date ('YYYY-MM-DD')
+# % guisection: Filter
+# %end
 
-#%option
-#% key: nprocs
-#% type: integer
-#% required: no
-#% multiple: no
-#% label: Number of parallel processes
-#% description: Number of used CPUs
-#% answer: 1
-#%end
+# %option
+# % key: nprocs
+# % type: integer
+# % required: no
+# % multiple: no
+# % label: Number of parallel processes
+# % description: Number of used CPUs
+# % answer: 1
+# %end
 
-#%option
-#% key: datasource
-#% description: Data-Hub to download scenes from
-#% label: Default is ESA Copernicus Open Access Hub (ESA_COAH), but Sentinel-2 L1C data can also be acquired from USGS Earth Explorer (USGS_EE) or Google Cloud Storage (GCS)
-#% options: ESA_COAH,USGS_EE,GCS
-#% answer: ESA_COAH
-#% guisection: Filter
-#%end
+# %option
+# % key: datasource
+# % description: Data-Hub to download scenes from
+# % label: Default is ESA Copernicus Open Access Hub (ESA_COAH), but Sentinel-2 L1C data can also be acquired from USGS Earth Explorer (USGS_EE) or Google Cloud Storage (GCS)
+# % options: ESA_COAH,USGS_EE,GCS
+# % answer: ESA_COAH
+# % guisection: Filter
+# %end
 
-#%option
-#% key: limit
-#% type: integer
-#% description: Maximum number of scenes to filter/download
-#% required: no
-#% guisection: Filter
-#%end
+# %option
+# % key: limit
+# % type: integer
+# % description: Maximum number of scenes to filter/download
+# % required: no
+# % guisection: Filter
+# %end
 
-#%flag
-#% key: s
-#% description: Use scenename/s instead of start/end/producttype to download specific S2 data (specify in the scene_name field)
-#%end
+# %flag
+# % key: s
+# % description: Use scenename/s instead of start/end/producttype to download specific S2 data (specify in the scene_name field)
+# %end
 
-#%flag
-#% key: f
-#% description: Download each Sentinel-2 datasat into an individual folder within the output folder
-#%end
+# %flag
+# % key: f
+# % description: Download each Sentinel-2 datasat into an individual folder within the output folder
+# %end
 
-#%flag
-#% key: e
-#% description: Use ESA-style scenename/s to download from USGS
-#%end
+# %flag
+# % key: e
+# % description: Use ESA-style scenename/s to download from USGS
+# %end
 
-#%rules
-#% collective: -s,scene_name
-#% requires_all: -e,-s,scene_name
-#%end
+# %rules
+# % collective: -s,scene_name
+# % requires_all: -e,-s,scene_name
+# %end
 
 import sys
 import os

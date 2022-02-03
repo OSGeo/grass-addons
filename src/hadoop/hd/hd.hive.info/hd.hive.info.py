@@ -13,44 +13,44 @@
 #
 #############################################################################
 
-#%module
-#% description: Module for geting metadata of tables in hive
-#% keyword: database
-#% keyword: hdfs
-#% keyword: hive
-#%end
+# %module
+# % description: Module for geting metadata of tables in hive
+# % keyword: database
+# % keyword: hdfs
+# % keyword: hive
+# %end
 
-#%option
-#% key: driver
-#% type: string
-#% required: yes
-#% answer: hiveserver2
-#% description: Type of database driver
-#% options: hiveserver2, hiveserver2
-#%end
-#%option
-#% key: table
-#% type: string
-#% required: no
-#% description: Name of table
-#% guisection: Connection
-#%end
-#%option
-#%flag
-#% key: p
-#% description: print tables
-#% guisection: table
-#%end
-#%flag
-#% key: d
-#% description: describe table
-#% guisection: table
-#%end
-#%flag
-#% key: h
-#% description: print hdfs path of table
-#% guisection: table
-#%end
+# %option
+# % key: driver
+# % type: string
+# % required: yes
+# % answer: hiveserver2
+# % description: Type of database driver
+# % options: hiveserver2, hiveserver2
+# %end
+# %option
+# % key: table
+# % type: string
+# % required: no
+# % description: Name of table
+# % guisection: Connection
+# %end
+# %option
+# %flag
+# % key: p
+# % description: print tables
+# % guisection: table
+# %end
+# %flag
+# % key: d
+# % description: describe table
+# % guisection: table
+# %end
+# %flag
+# % key: h
+# % description: print hdfs path of table
+# % guisection: table
+# %end
 
 
 import grass.script as grass

@@ -15,40 +15,40 @@ COPYRIGHT: (C) 2015 by the GRASS Development Team
            for details.
 """
 
-#%module
-#% description: importing of GBIF species distribution data
-#% keyword: vector
-#% keyword: geometry
-#%end
+# %module
+# % description: importing of GBIF species distribution data
+# % keyword: vector
+# % keyword: geometry
+# %end
 
-#%option G_OPT_F_INPUT
-#% key: input
-#% required: yes
-#%end
+# %option G_OPT_F_INPUT
+# % key: input
+# % required: yes
+# %end
 
-#%option G_OPT_V_OUTPUT
-#% key: output
-#% description: name of imported GBIF data set
-#% required : yes
-#%end
+# %option G_OPT_V_OUTPUT
+# % key: output
+# % description: name of imported GBIF data set
+# % required : yes
+# %end
 
-#%flag
-#% key: c
-#% description: Create GDAL VRT data set of GBIF data
-#% guisection: vrt
-#%end
+# %flag
+# % key: c
+# % description: Create GDAL VRT data set of GBIF data
+# % guisection: vrt
+# %end
 
-#%option G_OPT_M_DIR
-#% key: dir
-#% description: Directory where the output will be found
-#% required : no
-#% guisection: vrt
-#%end
+# %option G_OPT_M_DIR
+# % key: dir
+# % description: Directory where the output will be found
+# % required : no
+# % guisection: vrt
+# %end
 
-#%flag
-#% key: r
-#% description: Reproject data on-the-fly if no latlon (WGS84) location
-#%end
+# %flag
+# % key: r
+# % description: Reproject data on-the-fly if no latlon (WGS84) location
+# %end
 
 import sys
 import os

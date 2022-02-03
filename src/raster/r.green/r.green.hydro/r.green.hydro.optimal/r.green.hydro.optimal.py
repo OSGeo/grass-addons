@@ -14,83 +14,83 @@
 #
 #############################################################################
 #
-#%module
-#% description: Detect the position of the potential hydropower plants that can produce the highest possible power
-#% keyword: raster
-#% overwrite: yes
-#%end
-#%option G_OPT_R_ELEV
-#%  required: yes
-#%end
-#%option G_OPT_R_INPUT
-#% key: discharge
-#% label: Name of river discharge [m^3/s]
-#% required: yes
-#%end
-#%option G_OPT_V_INPUT
-#% key: river
-#% label: Name of vector map with interested segments of rivers
-#% required: yes
-#%end
-#%flag
-#% key: d
-#% description: Debug with intermediate maps
-#%end
-#%flag
-#% key: c
-#% description: Clean vector lines
-#%end
-#%option
-#% key: len_plant
-#% type: double
-#% description: Maximum length of the plant [m]
-#% required: yes
-#% answer: 10000
-#%end
-#%option
-#% key: len_min
-#% type: double
-#% description: Minimum length of the plant [m]
-#% required: yes
-#% answer: 10
-#%end
-#%option
-#% key: distance
-#% type: double
-#% description: Minimum distance among plants [m]
-#% required: yes
-#% answer: 0.5
-#%end
-#%option
-#% key: p_max
-#% type: double
-#% description: Maximum mean power [kW]
-#% required: no
-#%end
-#%option
-#% key: p_min
-#% type: double
-#% description: Minimum mean power [kW]
-#% answer: 10.0
-#% required: yes
-#%end
-#%option G_OPT_V_OUTPUT
-#% key: output_plant
-#% label: Name of output vector map with potential power for each river segment [kW]
-#% required: yes
-#%end
-#%option G_OPT_V_OUTPUT
-#% key: output_point
-#% label: Name of output vector map with potential power intakes and restitution [kW]
-#% required: no
-#%end
-#%option
-#% key: efficiency
-#% type: double
-#% description: Efficiency [-]
-#% required: yes
-#% answer: 1
-#%END
+# %module
+# % description: Detect the position of the potential hydropower plants that can produce the highest possible power
+# % keyword: raster
+# % overwrite: yes
+# %end
+# %option G_OPT_R_ELEV
+# %  required: yes
+# %end
+# %option G_OPT_R_INPUT
+# % key: discharge
+# % label: Name of river discharge [m^3/s]
+# % required: yes
+# %end
+# %option G_OPT_V_INPUT
+# % key: river
+# % label: Name of vector map with interested segments of rivers
+# % required: yes
+# %end
+# %flag
+# % key: d
+# % description: Debug with intermediate maps
+# %end
+# %flag
+# % key: c
+# % description: Clean vector lines
+# %end
+# %option
+# % key: len_plant
+# % type: double
+# % description: Maximum length of the plant [m]
+# % required: yes
+# % answer: 10000
+# %end
+# %option
+# % key: len_min
+# % type: double
+# % description: Minimum length of the plant [m]
+# % required: yes
+# % answer: 10
+# %end
+# %option
+# % key: distance
+# % type: double
+# % description: Minimum distance among plants [m]
+# % required: yes
+# % answer: 0.5
+# %end
+# %option
+# % key: p_max
+# % type: double
+# % description: Maximum mean power [kW]
+# % required: no
+# %end
+# %option
+# % key: p_min
+# % type: double
+# % description: Minimum mean power [kW]
+# % answer: 10.0
+# % required: yes
+# %end
+# %option G_OPT_V_OUTPUT
+# % key: output_plant
+# % label: Name of output vector map with potential power for each river segment [kW]
+# % required: yes
+# %end
+# %option G_OPT_V_OUTPUT
+# % key: output_point
+# % label: Name of output vector map with potential power intakes and restitution [kW]
+# % required: no
+# %end
+# %option
+# % key: efficiency
+# % type: double
+# % description: Efficiency [-]
+# % required: yes
+# % answer: 1
+# %END
 
 from __future__ import print_function
 

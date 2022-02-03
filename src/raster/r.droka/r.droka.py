@@ -15,65 +15,65 @@
 # 		for details.
 #
 #############################################################################
-#%Module
-#% description: Calculates run-out distance of a falling rock mass
-#% keyword: rock mass
-#% keyword: rockfall
-#%End
-#%option
-#% key: dem
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Digital Elevation Model
-#% required: yes
-#%end
-#%option
-#% key: start
-#% type: string
-#% gisprompt: old,vector,vector
-#% description: Name of starting points map
-#% required : yes
-#%end
-#%option
-#% key: ang
-#% type: double
-#% description: Shadow angle
-#% required: yes
-#%end
-#%option
-#% key: red
-#% type: double
-#% description: Reduction value
-#% answer: 0.9
-#% options : 0-1
-#% required: yes
-#%end
-#%option
-#% key: m
-#% type: double
-#% description: Value of rock mass (kg)
-#% required: yes
-#%end
-#% option
-#% key: num
-#% type: integer
-#% description: Number of boulders (>=1)
-#% required: yes
-#%end
-#%option
-#% key: prefix
-#% type: string
-#% gisprompt: new,cell,raster
-#% key_desc: name
-#% description: Prefix for output raster maps
-#% required: yes
-#%end
-#%option
-#% key: n
-#% type: integer
-#% description: Buffer distance (meters)
-#% required: no
-#%end
+# %Module
+# % description: Calculates run-out distance of a falling rock mass
+# % keyword: rock mass
+# % keyword: rockfall
+# %End
+# %option
+# % key: dem
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Digital Elevation Model
+# % required: yes
+# %end
+# %option
+# % key: start
+# % type: string
+# % gisprompt: old,vector,vector
+# % description: Name of starting points map
+# % required : yes
+# %end
+# %option
+# % key: ang
+# % type: double
+# % description: Shadow angle
+# % required: yes
+# %end
+# %option
+# % key: red
+# % type: double
+# % description: Reduction value
+# % answer: 0.9
+# % options : 0-1
+# % required: yes
+# %end
+# %option
+# % key: m
+# % type: double
+# % description: Value of rock mass (kg)
+# % required: yes
+# %end
+# % option
+# % key: num
+# % type: integer
+# % description: Number of boulders (>=1)
+# % required: yes
+# %end
+# %option
+# % key: prefix
+# % type: string
+# % gisprompt: new,cell,raster
+# % key_desc: name
+# % description: Prefix for output raster maps
+# % required: yes
+# %end
+# %option
+# % key: n
+# % type: integer
+# % description: Buffer distance (meters)
+# % required: no
+# %end
 
 import os
 import sys

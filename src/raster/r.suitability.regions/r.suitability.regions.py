@@ -12,156 +12,156 @@
 #
 ##############################################################################
 
-#%module
-#% description: From suitability map to suitable regions
-#%end
+# %module
+# % description: From suitability map to suitable regions
+# %end
 
-#%option G_OPT_R_INPUT
-#% label: Suitability raster
-#% description: Raster layer represting suitability (0-1)
-#% required: yes
-#% multiple: no
-#% guisection: Input
-#%end
+# %option G_OPT_R_INPUT
+# % label: Suitability raster
+# % description: Raster layer represting suitability (0-1)
+# % required: yes
+# % multiple: no
+# % guisection: Input
+# %end
 
-#%option G_OPT_R_OUTPUT
-#% label: Output raster
-#% description: Raster with candidate regions for conservation
-#% required: yes
-#% multiple: no
-#% guisection: Input
-#%end
+# %option G_OPT_R_OUTPUT
+# % label: Output raster
+# % description: Raster with candidate regions for conservation
+# % required: yes
+# % multiple: no
+# % guisection: Input
+# %end
 
-#%option
-#% key: suitability_threshold
-#% label: Threshold suitability score
-#% description: The minimum suitability score to be included. For example, with a threshold of 0.7, all raster cells with a suitability of 0.7 are used as input in the delineation of contiguous suitable regions.
-#% type: string
-#% key_desc: float
-#% guisection: Input
-#%end
+# %option
+# % key: suitability_threshold
+# % label: Threshold suitability score
+# % description: The minimum suitability score to be included. For example, with a threshold of 0.7, all raster cells with a suitability of 0.7 are used as input in the delineation of contiguous suitable regions.
+# % type: string
+# % key_desc: float
+# % guisection: Input
+# %end
 
-#%option
-#% key: percentile_threshold
-#% label: Percentile threshold
-#% description: Percentile above which suitability scores are included in the search for suitable regions. For example, using a 0.95 percentile means that the raster cells with the 5% highest suitability scores are are used as input in the delineation of contiguous suitable regions.
-#% type: string
-#% key_desc: percentile
-#% guisection: Input
-#%end
+# %option
+# % key: percentile_threshold
+# % label: Percentile threshold
+# % description: Percentile above which suitability scores are included in the search for suitable regions. For example, using a 0.95 percentile means that the raster cells with the 5% highest suitability scores are are used as input in the delineation of contiguous suitable regions.
+# % type: string
+# % key_desc: percentile
+# % guisection: Input
+# %end
 
-#%rules
-#% required: suitability_threshold,percentile_threshold
-#% exclusive: suitability_threshold,percentile_threshold
-#%end
+# %rules
+# % required: suitability_threshold,percentile_threshold
+# % exclusive: suitability_threshold,percentile_threshold
+# %end
 
-#%option
-#% key: minimum_size
-#% label: Minimum area (in hectares)
-#% description: Contiguous regions need to have a minimum area to be included.
-#% required: yes
-#% type: string
-#% key_desc: float
-#% guisection: Input
-#%end
+# %option
+# % key: minimum_size
+# % label: Minimum area (in hectares)
+# % description: Contiguous regions need to have a minimum area to be included.
+# % required: yes
+# % type: string
+# % key_desc: float
+# % guisection: Input
+# %end
 
-#%option
-#% key: minimum_suitability
-#% label: Threshold for unsuitable areas
-#% description: This option can be used to mark cells with a suitability equal or less than the given threshold as unsuitable. Can be used in conjuction with the 'focal statistics' option to ensure that those cells are marked as unsuitable (barriers), irrespective of the suitability scores of the surrounding cells.
-#% required: no
-#% type: string
-#% key_desc: float
-#% guisection: Input
-#%end
+# %option
+# % key: minimum_suitability
+# % label: Threshold for unsuitable areas
+# % description: This option can be used to mark cells with a suitability equal or less than the given threshold as unsuitable. Can be used in conjuction with the 'focal statistics' option to ensure that those cells are marked as unsuitable (barriers), irrespective of the suitability scores of the surrounding cells.
+# % required: no
+# % type: string
+# % key_desc: float
+# % guisection: Input
+# %end
 
-#%flag
-#% key: d
-#% label: Clumps including diagonal neighbors
-#% description: Diagonal neighboring cells are considerd to be connected, and will therefore be consiered part of the same region.
-#% guisection: Optional
-#%end
+# %flag
+# % key: d
+# % label: Clumps including diagonal neighbors
+# % description: Diagonal neighboring cells are considerd to be connected, and will therefore be consiered part of the same region.
+# % guisection: Optional
+# %end
 
-#%option
-#% key: size
-#% label: Neighborhood size
-#% description: The neighborhood size specifies which cells surrounding any given cell fall into the neighborhood for that cell. The size must be an odd integer and represent the length of one of moving window edges in cells. See the manual page of r.neighbors for more details
-#% required: no
-#% type: integer
-#% answer: 1
-#% guisection: Focal stats
-#%end
+# %option
+# % key: size
+# % label: Neighborhood size
+# % description: The neighborhood size specifies which cells surrounding any given cell fall into the neighborhood for that cell. The size must be an odd integer and represent the length of one of moving window edges in cells. See the manual page of r.neighbors for more details
+# % required: no
+# % type: integer
+# % answer: 1
+# % guisection: Focal stats
+# %end
 
-#%flag
-#% key: c
-#% label: Circular neighborhood for focal statistics
-#% description: Use circular neighborhood when computing the focal statistic
-#% guisection: Focal stats
-#%end
+# %flag
+# % key: c
+# % label: Circular neighborhood for focal statistics
+# % description: Use circular neighborhood when computing the focal statistic
+# % guisection: Focal stats
+# %end
 
-#%option
-#% key: focal_statistic
-#% Label: Neighborhood operation (focal statistic)
-#% description: The median, maximum, first or 3rd quartile of the cells in a neighborhood of user-defined size is computed. This aggregated suitability score is used instead of the original suitability score to determine which raster cells are used as input in the delineation of contiguous suitable regions.
-#% required: no
-#% type: string
-#% answer: median
-#% options:maximum,median,quart1,quart3
-#% guisection: Focal stats
-#%end
+# %option
+# % key: focal_statistic
+# % Label: Neighborhood operation (focal statistic)
+# % description: The median, maximum, first or 3rd quartile of the cells in a neighborhood of user-defined size is computed. This aggregated suitability score is used instead of the original suitability score to determine which raster cells are used as input in the delineation of contiguous suitable regions.
+# % required: no
+# % type: string
+# % answer: median
+# % options:maximum,median,quart1,quart3
+# % guisection: Focal stats
+# %end
 
-#%option
-#% key: maximum_gap
-#% label: Maximum gap size
-#% description: Unsuitable areas (gaps) within suitable regions are removed if they are equal or smaller than the maximum size. This is done by merging them with the suitable regions in which they are located.
-#% required: no
-#% type: string
-#% answer: 0
-#% key_desc: float
-#% guisection: Remove gaps
-#%end
+# %option
+# % key: maximum_gap
+# % label: Maximum gap size
+# % description: Unsuitable areas (gaps) within suitable regions are removed if they are equal or smaller than the maximum size. This is done by merging them with the suitable regions in which they are located.
+# % required: no
+# % type: string
+# % answer: 0
+# % key_desc: float
+# % guisection: Remove gaps
+# %end
 
-#%flag
-#% key: z
-#% label: Average suitability per region
-#% description: Create a map in which each region has a value corresponding to the average suitability of that region.
-#% guisection: Reporting stats
-#%end
+# %flag
+# % key: z
+# % label: Average suitability per region
+# % description: Create a map in which each region has a value corresponding to the average suitability of that region.
+# % guisection: Reporting stats
+# %end
 
-#%flag
-#% key: a
-#% label: Area of the regions
-#% description: Create a map in which each region has a value corresponding to the surface area (hectares) of that region.
-#% guisection: Reporting stats
-#%end
+# %flag
+# % key: a
+# % label: Area of the regions
+# % description: Create a map in which each region has a value corresponding to the surface area (hectares) of that region.
+# % guisection: Reporting stats
+# %end
 
-#%flag
-#% key: k
-#% label: Suitable areas
-#% description: Map showing all raster cells with a suitability equal or above the user-defined threshold
-#% guisection: Optional
-#%end
+# %flag
+# % key: k
+# % label: Suitable areas
+# % description: Map showing all raster cells with a suitability equal or above the user-defined threshold
+# % guisection: Optional
+# %end
 
-#%flag
-#% key: f
-#% label: Suitable areas (focal statistics)
-#% description: Map showing all raster cells with an aggregated suitability score based on a user-defined neighhborhood size that is equal or above a user-defined threshold.
-#% guisection: Optional
-#%end
+# %flag
+# % key: f
+# % label: Suitable areas (focal statistics)
+# % description: Map showing all raster cells with an aggregated suitability score based on a user-defined neighhborhood size that is equal or above a user-defined threshold.
+# % guisection: Optional
+# %end
 
-#%flag
-#% key: v
-#% label: Vector output layer
-#% description: Create vector layer with suitabilty and compactness statistics
-#% guisection: Optional
-#%end
+# %flag
+# % key: v
+# % label: Vector output layer
+# % description: Create vector layer with suitabilty and compactness statistics
+# % guisection: Optional
+# %end
 
-#%flag
-#% key: m
-#% description: Compactness
-#% description: Compute compactness of selected suitable regions.
-#% guisection: Optional
-#%end
+# %flag
+# % key: m
+# % description: Compactness
+# % description: Compute compactness of selected suitable regions.
+# % guisection: Optional
+# %end
 
 import sys
 import atexit

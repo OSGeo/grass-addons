@@ -12,36 +12,36 @@ This program is free software under the GNU General Public License
 (>=v2). Read the file COPYING that comes with GRASS for details.
 """
 
-#%module
-#% description: Downloads and imports data from OGC API Features server.
-#% keyword: vector
-#% keyword: import
-#% keyword: ogc
-#% keyword: features
-#%end
+# %module
+# % description: Downloads and imports data from OGC API Features server.
+# % keyword: vector
+# % keyword: import
+# % keyword: ogc
+# % keyword: features
+# %end
 
-#%option
-#% key: url
-#% type: string
-#% description: URL of OGC API Features server
-#% required: yes
-#%end
+# %option
+# % key: url
+# % type: string
+# % description: URL of OGC API Features server
+# % required: yes
+# %end
 
-#%option
-#% key: layer
-#% type: string
-#% description: Layer to request from server
-#%end
+# %option
+# % key: layer
+# % type: string
+# % description: Layer to request from server
+# %end
 
-#%option G_OPT_V_OUTPUT
-#% description: Name for output vector map
-#% required: no
-#%end
+# %option G_OPT_V_OUTPUT
+# % description: Name for output vector map
+# % required: no
+# %end
 
-#%flag
-#% key: l
-#% description: Get layers from the server
-#%end
+# %flag
+# % key: l
+# % description: Get layers from the server
+# %end
 import sys
 import json
 import grass.script as grass

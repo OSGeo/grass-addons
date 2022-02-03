@@ -19,51 +19,51 @@
 #
 ########################################################################
 #
-#%Module
-#% description: Computes niche overlap or similarity
-#% keyword: raster
-#% keyword: niche modelling
-#%End
+# %Module
+# % description: Computes niche overlap or similarity
+# % keyword: raster
+# % keyword: niche modelling
+# %End
 
-#%option
-#% key: maps
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Input maps
-#% key_desc: name
-#% required: yes
-#% multiple: yes
-#% guisection: Suitability distribution maps
-#%end
+# %option
+# % key: maps
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Input maps
+# % key_desc: name
+# % required: yes
+# % multiple: yes
+# % guisection: Suitability distribution maps
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key:output
-#% description: Name of output text file
-#% key_desc: name
-#% required: no
-#%end
+# %option G_OPT_F_OUTPUT
+# % key:output
+# % description: Name of output text file
+# % key_desc: name
+# % required: no
+# %end
 
-#%flag
-#% key: i
-#% description: I niche similarity
-#% guisection: Statistics
-#%end
+# %flag
+# % key: i
+# % description: I niche similarity
+# % guisection: Statistics
+# %end
 
-#%flag
-#% key: d
-#% description: D niche similarity
-#% guisection: Statistics
-#%end
+# %flag
+# % key: d
+# % description: D niche similarity
+# % guisection: Statistics
+# %end
 
-#%flag
-#% key: c
-#% description: Correlation
-#% guisection: Statistics
-#%end
+# %flag
+# % key: c
+# % description: Correlation
+# % guisection: Statistics
+# %end
 
-#%rules
-#%required: -i,-d,-c
-#%end
+# %rules
+# %required: -i,-d,-c
+# %end
 
 # import libraries
 import os

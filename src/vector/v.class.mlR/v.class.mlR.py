@@ -19,266 +19,266 @@
 # Computer Science. Springer Berlin Heidelberg, pp. 705-713,
 # http://dx.doi.org/10.1007/11815921_77</a>.
 #############################################################################
-#%module
-#% description: Provides supervised support vector machine classification
-#% keyword: classification
-#% keyword: machine learning
-#% keyword: R
-#% keyword: classifiers
-#%end
-#%option G_OPT_V_MAP
-#% key: segments_map
-#% label: Vector map with areas to be classified
-#% description: Vector map containing all areas and relevant attributes
-#% required: no
-#% guisection: Vector input
-#%end
-#%option G_OPT_V_FIELD
-#% key: segments_layer
-#% label: Layer of the segments map where attributes are stored
-#% required: no
-#% answer: 1
-#% guisection: Vector input
-#%end
-#%option G_OPT_V_INPUT
-#% key: training_map
-#% label: Vector map with training areas
-#% description: Vector map with training areas and relevant attributes
-#% required: no
-#% guisection: Vector input
-#%end
-#%option G_OPT_V_FIELD
-#% key: training_layer
-#% label: Layer of the training map where attributes are stored
-#% required: no
-#% answer: 1
-#% guisection: Vector input
-#%end
-#%option G_OPT_F_INPUT
-#% key: segments_file
-#% label: File containing statistics of all segments
-#% description: File containing relevant attributes for all areas
-#% required: no
-#% guisection: Text input
-#%end
-#%option G_OPT_F_INPUT
-#% key: training_file
-#% label: File containing statistics of training segments
-#% description: File containing relevant attributes for training areas
-#% required: no
-#% guisection: Text input
-#%end
-#%option
-#% key: training_sample_size
-#% label: Size of subsample per class to be used for training
-#% required: no
-#% guisection: Model tuning
-#%end
-#%option
-#% key: tuning_sample_size
-#% type: integer
-#% label: Size of sample per class to be used for hyperparameter tuning
-#% required: no
-#% guisection: Model tuning
-#%end
-#%option G_OPT_F_SEP
-#% description: Field separator in input text files
-#% guisection: Text input
-#%end
-#%option G_OPT_R_INPUT
-#% key: raster_segments_map
-#% label: Raster map with segments
-#% description: Input raster map containing all segments
-#% required: no
-#% guisection: Raster maps
-#%end
-#%option G_OPT_R_OUTPUT
-#% key: classified_map
-#% label: Prefix for raster maps (one per weighting mode) with classes attributed to pixels
-#% description: Output raster maps (one per weighting mode) in which all pixels are reclassed to the class attributed to the segment they belong to
-#% required: no
-#% guisection: Raster maps
-#%end
-#%option
-#% key: train_class_column
-#% type: string
-#% description: Name of attribute column containing training classification
-#% required: no
-#%end
-#%option
-#% key: output_class_column
-#% type: string
-#% description: Prefix of column with final classification
-#% required: yes
-#% answer: vote
-#%end
-#%option
-#% key: output_prob_column
-#% type: string
-#% description: Prefix of column with probability of classification
-#% required: yes
-#% answer: prob
-#%end
-#%option
-#% key: max_features
-#% type: integer
-#% description: Perform feature selection to a maximum of max_features
-#% required: no
-#% guisection: Model tuning
-#%end
-#%option
-#% key: classifiers
-#% type: string
-#% description: Classifiers to use
-#% required: yes
-#% multiple: yes
-#% options: svmRadial,svmLinear,svmPoly,rf,ranger,rpart,C5.0,knn,xgbTree
-#% answer: svmRadial,rf
-#%end
-#%option
-#% key: folds
-#% type: integer
-#% description: Number of folds to use for cross-validation
-#% required: yes
-#% answer: 5
-#% guisection: Model tuning
-#%end
-#%option
-#% key: partitions
-#% type: integer
-#% description: Number of different partitions to use for cross-validation
-#% required: yes
-#% answer: 10
-#% guisection: Model tuning
-#%end
-#%option
-#% key: tunelength
-#% type: integer
-#% description: Number of levels to test for each tuning parameter
-#% required: yes
-#% answer: 10
-#% guisection: Model tuning
-#%end
-#%option
-#% key: tunegrids
-#% type: string
-#% description: Python dictionary of customized tunegrids
-#% required: no
-#% guisection: Model tuning
-#%end
-#%option
-#% key: weighting_modes
-#% type: string
-#% description: Type of weighting to use
-#% required: yes
-#% multiple: yes
-#% options: smv,swv,bwwv,qbwwv
-#% answer: smv
-#% guisection: Voting
-#%end
-#%option
-#% key: weighting_metric
-#% type: string
-#% description: Metric to use for weighting
-#% required: yes
-#% options: accuracy,kappa
-#% answer: accuracy
-#% guisection: Voting
-#%end
-#%option G_OPT_F_OUTPUT
-#% key: output_model_file
-#% description: File where to save model(s)
-#% required: no
-#% guisection: Save/Load models
-#%end
-#%option G_OPT_F_INPUT
-#% key: input_model_file
-#% description: Name of file containing an existing model
-#% required: no
-#% guisection: Save/Load models
-#%end
-#%option G_OPT_F_OUTPUT
-#% key: classification_results
-#% description: File for saving results of all classifiers
-#% required: no
-#% guisection: Optional output
-#%end
-#%option G_OPT_F_OUTPUT
-#% key: variable_importance_file
-#% description: File for saving relative importance of used variables
-#% required: no
-#% guisection: Optional output
-#%end
-#%option G_OPT_F_OUTPUT
-#% key: accuracy_file
-#% description: File for saving accuracy measures of classifiers
-#% required: no
-#% guisection: Optional output
-#%end
-#%option G_OPT_F_OUTPUT
-#% key: model_details
-#% description: File for saving details about the classifier module runs
-#% required: no
-#% guisection: Optional output
-#%end
-#%option G_OPT_F_OUTPUT
-#% key: bw_plot_file
-#% description: PNG file for saving box-whisker plot of classifier performance
-#% required: no
-#% guisection: Optional output
-#%end
-#%option G_OPT_F_OUTPUT
-#% key: r_script_file
-#% description: File containing R script
-#% required: no
-#% guisection: Optional output
-#%end
-#%option
-#% key: processes
-#% type: integer
-#% description: Number of processes to run in parallel
-#% answer: 1
-#%end
-#%flag
-#% key: f
-#% description: Only write results to text file, do not update vector map
-#% guisection: Optional output
-#%end
-#%flag
-#% key: i
-#% description: Include individual classifier results in output
-#% guisection: Optional output
-#%end
-#%flag
-#% key: n
-#% description: Normalize (center and scale) data before analysis
-#% guisection: Model tuning
-#%end
-#%flag
-#% key: t
-#% description: Only tune and train model, do not predict
-#% guisection: Optional output
-#%end
-#%flag
-#% key: p
-#% description: Include class probabilities in classification results
-#% guisection: Optional output
-#%end
+# %module
+# % description: Provides supervised support vector machine classification
+# % keyword: classification
+# % keyword: machine learning
+# % keyword: R
+# % keyword: classifiers
+# %end
+# %option G_OPT_V_MAP
+# % key: segments_map
+# % label: Vector map with areas to be classified
+# % description: Vector map containing all areas and relevant attributes
+# % required: no
+# % guisection: Vector input
+# %end
+# %option G_OPT_V_FIELD
+# % key: segments_layer
+# % label: Layer of the segments map where attributes are stored
+# % required: no
+# % answer: 1
+# % guisection: Vector input
+# %end
+# %option G_OPT_V_INPUT
+# % key: training_map
+# % label: Vector map with training areas
+# % description: Vector map with training areas and relevant attributes
+# % required: no
+# % guisection: Vector input
+# %end
+# %option G_OPT_V_FIELD
+# % key: training_layer
+# % label: Layer of the training map where attributes are stored
+# % required: no
+# % answer: 1
+# % guisection: Vector input
+# %end
+# %option G_OPT_F_INPUT
+# % key: segments_file
+# % label: File containing statistics of all segments
+# % description: File containing relevant attributes for all areas
+# % required: no
+# % guisection: Text input
+# %end
+# %option G_OPT_F_INPUT
+# % key: training_file
+# % label: File containing statistics of training segments
+# % description: File containing relevant attributes for training areas
+# % required: no
+# % guisection: Text input
+# %end
+# %option
+# % key: training_sample_size
+# % label: Size of subsample per class to be used for training
+# % required: no
+# % guisection: Model tuning
+# %end
+# %option
+# % key: tuning_sample_size
+# % type: integer
+# % label: Size of sample per class to be used for hyperparameter tuning
+# % required: no
+# % guisection: Model tuning
+# %end
+# %option G_OPT_F_SEP
+# % description: Field separator in input text files
+# % guisection: Text input
+# %end
+# %option G_OPT_R_INPUT
+# % key: raster_segments_map
+# % label: Raster map with segments
+# % description: Input raster map containing all segments
+# % required: no
+# % guisection: Raster maps
+# %end
+# %option G_OPT_R_OUTPUT
+# % key: classified_map
+# % label: Prefix for raster maps (one per weighting mode) with classes attributed to pixels
+# % description: Output raster maps (one per weighting mode) in which all pixels are reclassed to the class attributed to the segment they belong to
+# % required: no
+# % guisection: Raster maps
+# %end
+# %option
+# % key: train_class_column
+# % type: string
+# % description: Name of attribute column containing training classification
+# % required: no
+# %end
+# %option
+# % key: output_class_column
+# % type: string
+# % description: Prefix of column with final classification
+# % required: yes
+# % answer: vote
+# %end
+# %option
+# % key: output_prob_column
+# % type: string
+# % description: Prefix of column with probability of classification
+# % required: yes
+# % answer: prob
+# %end
+# %option
+# % key: max_features
+# % type: integer
+# % description: Perform feature selection to a maximum of max_features
+# % required: no
+# % guisection: Model tuning
+# %end
+# %option
+# % key: classifiers
+# % type: string
+# % description: Classifiers to use
+# % required: yes
+# % multiple: yes
+# % options: svmRadial,svmLinear,svmPoly,rf,ranger,rpart,C5.0,knn,xgbTree
+# % answer: svmRadial,rf
+# %end
+# %option
+# % key: folds
+# % type: integer
+# % description: Number of folds to use for cross-validation
+# % required: yes
+# % answer: 5
+# % guisection: Model tuning
+# %end
+# %option
+# % key: partitions
+# % type: integer
+# % description: Number of different partitions to use for cross-validation
+# % required: yes
+# % answer: 10
+# % guisection: Model tuning
+# %end
+# %option
+# % key: tunelength
+# % type: integer
+# % description: Number of levels to test for each tuning parameter
+# % required: yes
+# % answer: 10
+# % guisection: Model tuning
+# %end
+# %option
+# % key: tunegrids
+# % type: string
+# % description: Python dictionary of customized tunegrids
+# % required: no
+# % guisection: Model tuning
+# %end
+# %option
+# % key: weighting_modes
+# % type: string
+# % description: Type of weighting to use
+# % required: yes
+# % multiple: yes
+# % options: smv,swv,bwwv,qbwwv
+# % answer: smv
+# % guisection: Voting
+# %end
+# %option
+# % key: weighting_metric
+# % type: string
+# % description: Metric to use for weighting
+# % required: yes
+# % options: accuracy,kappa
+# % answer: accuracy
+# % guisection: Voting
+# %end
+# %option G_OPT_F_OUTPUT
+# % key: output_model_file
+# % description: File where to save model(s)
+# % required: no
+# % guisection: Save/Load models
+# %end
+# %option G_OPT_F_INPUT
+# % key: input_model_file
+# % description: Name of file containing an existing model
+# % required: no
+# % guisection: Save/Load models
+# %end
+# %option G_OPT_F_OUTPUT
+# % key: classification_results
+# % description: File for saving results of all classifiers
+# % required: no
+# % guisection: Optional output
+# %end
+# %option G_OPT_F_OUTPUT
+# % key: variable_importance_file
+# % description: File for saving relative importance of used variables
+# % required: no
+# % guisection: Optional output
+# %end
+# %option G_OPT_F_OUTPUT
+# % key: accuracy_file
+# % description: File for saving accuracy measures of classifiers
+# % required: no
+# % guisection: Optional output
+# %end
+# %option G_OPT_F_OUTPUT
+# % key: model_details
+# % description: File for saving details about the classifier module runs
+# % required: no
+# % guisection: Optional output
+# %end
+# %option G_OPT_F_OUTPUT
+# % key: bw_plot_file
+# % description: PNG file for saving box-whisker plot of classifier performance
+# % required: no
+# % guisection: Optional output
+# %end
+# %option G_OPT_F_OUTPUT
+# % key: r_script_file
+# % description: File containing R script
+# % required: no
+# % guisection: Optional output
+# %end
+# %option
+# % key: processes
+# % type: integer
+# % description: Number of processes to run in parallel
+# % answer: 1
+# %end
+# %flag
+# % key: f
+# % description: Only write results to text file, do not update vector map
+# % guisection: Optional output
+# %end
+# %flag
+# % key: i
+# % description: Include individual classifier results in output
+# % guisection: Optional output
+# %end
+# %flag
+# % key: n
+# % description: Normalize (center and scale) data before analysis
+# % guisection: Model tuning
+# %end
+# %flag
+# % key: t
+# % description: Only tune and train model, do not predict
+# % guisection: Optional output
+# %end
+# %flag
+# % key: p
+# % description: Include class probabilities in classification results
+# % guisection: Optional output
+# %end
 #
-#%rules
-#% required: segments_map,segments_file,-t
-#% exclusive: segments_map,segments_file,-t
-#% required: training_map,training_file,input_model_file
-#% required: train_class_column,input_model_file
-#% exclusive: training_map,training_file,input_model_file
-#% requires: classified_map,raster_segments_map
-#% requires: -f,classification_results
-#% exclusive: -t,classification_results
-#% exclusive: -t,-f
-#% exclusive: input_model_file,accuracy_file
-#% exclusive: input_model_file,model_details
-#% exclusive: input_model_file,bw_plot_file
-#%end
+# %rules
+# % required: segments_map,segments_file,-t
+# % exclusive: segments_map,segments_file,-t
+# % required: training_map,training_file,input_model_file
+# % required: train_class_column,input_model_file
+# % exclusive: training_map,training_file,input_model_file
+# % requires: classified_map,raster_segments_map
+# % requires: -f,classification_results
+# % exclusive: -t,classification_results
+# % exclusive: -t,-f
+# % exclusive: input_model_file,accuracy_file
+# % exclusive: input_model_file,model_details
+# % exclusive: input_model_file,bw_plot_file
+# %end
 
 import atexit
 import subprocess

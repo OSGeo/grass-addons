@@ -14,41 +14,41 @@
 #
 #############################################################################
 
-#%Module
-#% description: Generates a MCDA map based on TOPSIS algorthm.
-#% keyword: raster
-#% keyword: Multi Criteria Decision Analysis (MCDA)
-#%End
-#%option
-#% key: criteria
-#% type: string
-#% multiple: yes
-#% gisprompt: old,cell,raster
-#% key_desc: name
-#% description: Name of criteria raster maps
-#% required: yes
-#%end
-#%option
-#% key: preferences
-#% type: string
-#% key_desc: character
-#% description: preference (gain,cost)
-#% required: yes
-#%end
-#%option
-#% key: weights
-#% type: double
-#% description: weights (w1,w2,...,wn)
-#% multiple: yes
-#% required: yes
-#%end
-#%option
-#% key: topsismap
-#% type: string
-#% gisprompt: new_file,cell,output
-#% description: Ranked raster map
-#% required: yes
-#%end
+# %Module
+# % description: Generates a MCDA map based on TOPSIS algorthm.
+# % keyword: raster
+# % keyword: Multi Criteria Decision Analysis (MCDA)
+# %End
+# %option
+# % key: criteria
+# % type: string
+# % multiple: yes
+# % gisprompt: old,cell,raster
+# % key_desc: name
+# % description: Name of criteria raster maps
+# % required: yes
+# %end
+# %option
+# % key: preferences
+# % type: string
+# % key_desc: character
+# % description: preference (gain,cost)
+# % required: yes
+# %end
+# %option
+# % key: weights
+# % type: double
+# % description: weights (w1,w2,...,wn)
+# % multiple: yes
+# % required: yes
+# %end
+# %option
+# % key: topsismap
+# % type: string
+# % gisprompt: new_file,cell,output
+# % description: Ranked raster map
+# % required: yes
+# %end
 
 
 import sys

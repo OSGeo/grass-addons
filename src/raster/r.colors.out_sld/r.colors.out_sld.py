@@ -30,36 +30,36 @@ TODO:
 - Support for interval ColorMap?
 """
 
-#%Module
-#% description: Exports the color table associated with a raster map layer in SLD format.
-#% keyword: raster
-#% keyword: export
-#% keyword: color table
-#%End
+# %Module
+# % description: Exports the color table associated with a raster map layer in SLD format.
+# % keyword: raster
+# % keyword: export
+# % keyword: color table
+# %End
 
-#%Option G_OPT_R_MAP
-#% required: yes
-#%End
+# %Option G_OPT_R_MAP
+# % required: yes
+# %End
 
-#%Option
-#% key: style_name
-#% required: no
-#% label: Name for style
-#% description: A name for the style which might be displayed on the server
-#% answer: GRASS color table
-#%End
+# %Option
+# % key: style_name
+# % required: no
+# % label: Name for style
+# % description: A name for the style which might be displayed on the server
+# % answer: GRASS color table
+# %End
 
-#%Option G_OPT_F_OUTPUT
-#% required: no
-#% label: Name for output SLD rules file
-#% description: "-" to write to stdout
-#% answer: -
-#%End
+# %Option G_OPT_F_OUTPUT
+# % required: no
+# % label: Name for output SLD rules file
+# % description: "-" to write to stdout
+# % answer: -
+# %End
 
-#%flag
-#% key: n
-#% description: Propagate NULLs
-#%end
+# %flag
+# % key: n
+# % description: Propagate NULLs
+# %end
 
 import os
 import sys

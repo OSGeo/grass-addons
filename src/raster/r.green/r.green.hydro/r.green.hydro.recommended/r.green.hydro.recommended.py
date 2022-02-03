@@ -16,180 +16,180 @@
 #############################################################################
 #
 
-#%module
-#% description: Calculate hydropower energy potential with user's recommendations
-#% keyword: raster
-#%end
+# %module
+# % description: Calculate hydropower energy potential with user's recommendations
+# % keyword: raster
+# %end
 
 ##
 ## REQUIRED INPUTS
 ##
-#%option G_OPT_R_ELEV
-#% required: yes
-#%end
-#%option G_OPT_V_INPUT
-#% key: river
-#% label: Name of vector map with interesting segments of rivers
-#% description: Vector map with the segments of the river that will be analysed
-#% required: yes
-#%end
+# %option G_OPT_R_ELEV
+# % required: yes
+# %end
+# %option G_OPT_V_INPUT
+# % key: river
+# % label: Name of vector map with interesting segments of rivers
+# % description: Vector map with the segments of the river that will be analysed
+# % required: yes
+# %end
 
 ##
 ## OPTIONAL INPUTS
 ##
-#%option
-#% key: efficiency
-#% type: double
-#% key_desc: double
-#% description: Efficiency [0-1]
-#% required: yes
-#% options: 0-1
-#% answer: 1
-#%end
-#%option
-#% key: len_plant
-#% type: double
-#% key_desc: double
-#% description: Maximum plant length [m]
-#% required: yes
-#% answer: 100
-#%end
-#%option
-#% key: len_min
-#% type: double
-#% key_desc: double
-#% description: Minimum plant length [m]
-#% required: yes
-#% answer: 10
-#%end
-#%option
-#% key: distance
-#% type: double
-#% key_desc: double
-#% description: Minimum distance among plants [m]
-#% required: yes
-#% answer: 0.5
-#%end
-#%option
-#% key: p_min
-#% type: double
-#% key_desc: double
-#% description: Minimum mean power [kW]
-#% answer: 10.0
-#% required: no
-#%end
-#%option
-#% key: n
-#% type: double
-#% description: Number of operative hours per year [hours/year]
-#% required: no
-#% answer: 3392
-#%end
+# %option
+# % key: efficiency
+# % type: double
+# % key_desc: double
+# % description: Efficiency [0-1]
+# % required: yes
+# % options: 0-1
+# % answer: 1
+# %end
+# %option
+# % key: len_plant
+# % type: double
+# % key_desc: double
+# % description: Maximum plant length [m]
+# % required: yes
+# % answer: 100
+# %end
+# %option
+# % key: len_min
+# % type: double
+# % key_desc: double
+# % description: Minimum plant length [m]
+# % required: yes
+# % answer: 10
+# %end
+# %option
+# % key: distance
+# % type: double
+# % key_desc: double
+# % description: Minimum distance among plants [m]
+# % required: yes
+# % answer: 0.5
+# %end
+# %option
+# % key: p_min
+# % type: double
+# % key_desc: double
+# % description: Minimum mean power [kW]
+# % answer: 10.0
+# % required: no
+# %end
+# %option
+# % key: n
+# % type: double
+# % description: Number of operative hours per year [hours/year]
+# % required: no
+# % answer: 3392
+# %end
 
 ##
 ## OPTIONAL INPUTS: LEGAL DISCHARGE
 ##
-#%option G_OPT_R_INPUT
-#% key: discharge_current
-#% label: Current discharge [m3/s]
-#% required: yes
-#% guisection: Legal Discharge
-#%end
-#%option G_OPT_R_INPUT
-#% key: mfd
-#% label: Minimum Flow Discharge (MFD) [m3/s]
-#% required: no
-#% guisection: Legal Discharge
-#%end
-#%option G_OPT_R_INPUT
-#% key: discharge_natural
-#% label: Natural discharge [m3/s]
-#% required: no
-#% guisection: Legal Discharge
-#%end
-#%option
-#% key: percentage
-#% type: double
-#% key_desc: double
-#% description: MFD as percentage of natural discharge [%]
-#% options: 0-100
-#% required: no
-#% guisection: Legal Discharge
-#%end
+# %option G_OPT_R_INPUT
+# % key: discharge_current
+# % label: Current discharge [m3/s]
+# % required: yes
+# % guisection: Legal Discharge
+# %end
+# %option G_OPT_R_INPUT
+# % key: mfd
+# % label: Minimum Flow Discharge (MFD) [m3/s]
+# % required: no
+# % guisection: Legal Discharge
+# %end
+# %option G_OPT_R_INPUT
+# % key: discharge_natural
+# % label: Natural discharge [m3/s]
+# % required: no
+# % guisection: Legal Discharge
+# %end
+# %option
+# % key: percentage
+# % type: double
+# % key_desc: double
+# % description: MFD as percentage of natural discharge [%]
+# % options: 0-100
+# % required: no
+# % guisection: Legal Discharge
+# %end
 
 ##
 ## OPTIONAL INPUTS: AREAS TO EXCLUDE
 ##
-#%option G_OPT_V_INPUT
-#% key: area
-#% label: Areas to exclude
-#% description: Vector map with the areas that must be excluded (e.g. Parks)
-#% required: no
-#% guisection: Areas to exclude
-#%end
-#%option
-#% key: buff
-#% type: double
-#% key_desc: double
-#% description: Buffer for areas to exclude [m]
-#% required: no
-#% answer: 0
-#% guisection: Areas to exclude
-#%end
-#%option G_OPT_V_INPUT
-#% key: points_view
-#% label: Vector points of viewing position to exclude
-#% description: Vector with the points that are used to compute the visibility
-#% required: no
-#% guisection: Areas to exclude
-#%end
-#%option
-#% key: visibility_resolution
-#% type: double
-#% description: Resolution of the visibility map computation
-#% required: no
-#% guisection: Areas to exclude
-#%end
-#%option
-#% key: n_points
-#% type: integer
-#% description: Number of points for the visibility
-#% required: no
-#% guisection: Areas to exclude
-#%end
+# %option G_OPT_V_INPUT
+# % key: area
+# % label: Areas to exclude
+# % description: Vector map with the areas that must be excluded (e.g. Parks)
+# % required: no
+# % guisection: Areas to exclude
+# %end
+# %option
+# % key: buff
+# % type: double
+# % key_desc: double
+# % description: Buffer for areas to exclude [m]
+# % required: no
+# % answer: 0
+# % guisection: Areas to exclude
+# %end
+# %option G_OPT_V_INPUT
+# % key: points_view
+# % label: Vector points of viewing position to exclude
+# % description: Vector with the points that are used to compute the visibility
+# % required: no
+# % guisection: Areas to exclude
+# %end
+# %option
+# % key: visibility_resolution
+# % type: double
+# % description: Resolution of the visibility map computation
+# % required: no
+# % guisection: Areas to exclude
+# %end
+# %option
+# % key: n_points
+# % type: integer
+# % description: Number of points for the visibility
+# % required: no
+# % guisection: Areas to exclude
+# %end
 
 ##
 ## OUTPUTS
 ##
-#%option G_OPT_V_OUTPUT
-#% key: output_plant
-#% description: Name of output vector with potential segments
-#% required: yes
-#%end
-#%option G_OPT_V_OUTPUT
-#% key: output_vis
-#% description: Name of output vector with viewed areas
-#% required: no
-#% guisection: Areas to exclude
-#%end
+# %option G_OPT_V_OUTPUT
+# % key: output_plant
+# % description: Name of output vector with potential segments
+# % required: yes
+# %end
+# %option G_OPT_V_OUTPUT
+# % key: output_vis
+# % description: Name of output vector with viewed areas
+# % required: no
+# % guisection: Areas to exclude
+# %end
 
 ##
 ## FLAGS
 ##
-#%flag
-#% key: d
-#% description: Debug with intermediate maps
-#%end
-#%flag
-#% key: c
-#% description: Clean vector lines
-#%end
+# %flag
+# % key: d
+# % description: Debug with intermediate maps
+# %end
+# %flag
+# % key: c
+# % description: Clean vector lines
+# %end
 
-#%rules
-#%exclusive: mfd, discharge_natural
-#%exclusive: mfd, percentage
-#%requires: discharge_natural, percentage
-#%end
+# %rules
+# %exclusive: mfd, discharge_natural
+# %exclusive: mfd, percentage
+# %requires: discharge_natural, percentage
+# %end
 
 # import system libraries
 from __future__ import print_function

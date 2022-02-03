@@ -15,130 +15,130 @@
                for details.
 """
 
-#%Module
-#% description: Reclassifies Landsat QA band according to acceptable pixel quality as defined by the user.
-#% keyword: imagery
-#% keyword: pixel
-#% keyword: quality
-#% keyword: qa
-#% keyword: bitpattern
-#% keyword: mask
-#% keyword: landsat
-#%End
+# %Module
+# % description: Reclassifies Landsat QA band according to acceptable pixel quality as defined by the user.
+# % keyword: imagery
+# % keyword: pixel
+# % keyword: quality
+# % keyword: qa
+# % keyword: bitpattern
+# % keyword: mask
+# % keyword: landsat
+# %End
 
-#%option G_OPT_F_OUTPUT
-#% description: Output file with reclass rules
-#% required: no
-#%end
+# %option G_OPT_F_OUTPUT
+# % description: Output file with reclass rules
+# % required: no
+# %end
 
-#%option
-#% key: dataset
-#% type: string
-#% description: Landsat dataset to search for
-#% required: no
-#% options: landsat_tm_c1, landsat_etm_c1, landsat_8_c1, landsat_tm_c2_l1, landsat_tm_c2_l2, landsat_etm_c2_l1, landsat_etm_c2_l2, landsat_ot_c2_l1, landsat_ot_c2_l2
-#% answer: landsat_8_c1
-#% guisection: Filter
-#%end
+# %option
+# % key: dataset
+# % type: string
+# % description: Landsat dataset to search for
+# % required: no
+# % options: landsat_tm_c1, landsat_etm_c1, landsat_8_c1, landsat_tm_c2_l1, landsat_tm_c2_l2, landsat_etm_c2_l1, landsat_etm_c2_l2, landsat_ot_c2_l1, landsat_ot_c2_l2
+# % answer: landsat_8_c1
+# % guisection: Filter
+# %end
 
-#%option
-#% key: designated_fill
-#% multiple: No
-#% description: Unacceptable conditions for Designated Fill
-#% options: No, Yes
-#% required : no
-#%end
+# %option
+# % key: designated_fill
+# % multiple: No
+# % description: Unacceptable conditions for Designated Fill
+# % options: No, Yes
+# % required : no
+# %end
 
-#%option
-#% key: cloud
-#% multiple: No
-#% description: Unacceptable conditions for Clouds
-#% options: No, Yes
-#% required : no
-#%end
+# %option
+# % key: cloud
+# % multiple: No
+# % description: Unacceptable conditions for Clouds
+# % options: No, Yes
+# % required : no
+# %end
 
-#%option
-#% key: cloud_confidence
-#% multiple: yes
-#% description: Unacceptable conditions for Cloud confidence
-#% options: Not Determined, Low, Medium, High
-#% required : no
-#%end
+# %option
+# % key: cloud_confidence
+# % multiple: yes
+# % description: Unacceptable conditions for Cloud confidence
+# % options: Not Determined, Low, Medium, High
+# % required : no
+# %end
 
-#%option
-#% key: cloud_shadow_confidence
-#% multiple: yes
-#% description: Unacceptable conditions for Cloud Shaddow Confidence
-#% options: Not Determined, Low, Medium, High
-#% required : no
-#%end
+# %option
+# % key: cloud_shadow_confidence
+# % multiple: yes
+# % description: Unacceptable conditions for Cloud Shaddow Confidence
+# % options: Not Determined, Low, Medium, High
+# % required : no
+# %end
 
-#%option
-#% key: snow_ice_confidence
-#% multiple: yes
-#% description: Unacceptable conditions for Snow/Ice Confidence
-#% options: Not Determined, Low, Medium, High
-#% required : no
-#%end
+# %option
+# % key: snow_ice_confidence
+# % multiple: yes
+# % description: Unacceptable conditions for Snow/Ice Confidence
+# % options: Not Determined, Low, Medium, High
+# % required : no
+# %end
 
-#%option
-#% key: cirrus_confidence
-#% multiple: yes
-#% description: Unacceptable conditions for Cirrus Confidence
-#% options: Not Determined, Low, Medium, High
-#% required : no
-#%end
+# %option
+# % key: cirrus_confidence
+# % multiple: yes
+# % description: Unacceptable conditions for Cirrus Confidence
+# % options: Not Determined, Low, Medium, High
+# % required : no
+# %end
 
-#%option
-#% key: dilated_cloud
-#% multiple: No
-#% description: Unacceptable conditions for Pixels with Dilated Clouds (only collection 2)
-#% options: No, Yes
-#% required : no
-#%end
+# %option
+# % key: dilated_cloud
+# % multiple: No
+# % description: Unacceptable conditions for Pixels with Dilated Clouds (only collection 2)
+# % options: No, Yes
+# % required : no
+# %end
 
-#%option
-#% key: snow
-#% multiple: No
-#% description: Unacceptable conditions for Snow Pixels (only collection 2)
-#% options: No, Yes
-#% required : no
-#%end
+# %option
+# % key: snow
+# % multiple: No
+# % description: Unacceptable conditions for Snow Pixels (only collection 2)
+# % options: No, Yes
+# % required : no
+# %end
 
-#%option
-#% key: clear
-#% multiple: No
-#% description: Unacceptable conditions for Clear Pixels (only collection 2)
-#% options: No, Yes
-#% required : no
-#%end
+# %option
+# % key: clear
+# % multiple: No
+# % description: Unacceptable conditions for Clear Pixels (only collection 2)
+# % options: No, Yes
+# % required : no
+# %end
 
-#%option
-#% key: water
-#% description: Unacceptable conditions for Water Pixels (only collection 2)
-#% options: No, Yes
-#% required : no
-#%end
+# %option
+# % key: water
+# % description: Unacceptable conditions for Water Pixels (only collection 2)
+# % options: No, Yes
+# % required : no
+# %end
 
-#%option
-#% key: terrain_occlusion
-#% multiple: No
-#% description: Unacceptable conditions for Terrain Occlusion / Dropped Pixels (only collection 1)
-#% options: No, Yes
-#% required : no
-#%end
+# %option
+# % key: terrain_occlusion
+# % multiple: No
+# % description: Unacceptable conditions for Terrain Occlusion / Dropped Pixels (only collection 1)
+# % options: No, Yes
+# % required : no
+# %end
 
-#%option
-#% key: radiometric_saturation
-#% multiple: yes
-#% description: Unacceptable conditions for Radiometric Saturation (only collection 1)
-#% options: Not Determined, Low, Medium, High
-#% required : no
-#%end
+# %option
+# % key: radiometric_saturation
+# % multiple: yes
+# % description: Unacceptable conditions for Radiometric Saturation (only collection 1)
+# % options: Not Determined, Low, Medium, High
+# % required : no
+# %end
 
-#%rules
-#% required: designated_fill,terrain_occlusion,radiometric_saturation,cloud,cloud_confidence,cloud_shadow_confidence,snow_ice_confidence,cirrus_confidence,dilated_cloud,snow,clear,water,terrain_occlusion,radiometric_saturation
-#%end
+# %rules
+# % required: designated_fill,terrain_occlusion,radiometric_saturation,cloud,cloud_confidence,cloud_shadow_confidence,snow_ice_confidence,cirrus_confidence,dilated_cloud,snow,clear,water,terrain_occlusion,radiometric_saturation
+# %end
 
 # To do:
 # - implement other quality bands of esp. collection 2

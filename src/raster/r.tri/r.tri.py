@@ -13,51 +13,51 @@
 #
 ###############################################################################
 
-#%module
-#% description: Computes the Terrain Ruggedness Index.
-#%end
+# %module
+# % description: Computes the Terrain Ruggedness Index.
+# %end
 
-#%option G_OPT_R_INPUT
-#% description: Input elevation raster
-#% key: input
-#% required: yes
-#%end
+# %option G_OPT_R_INPUT
+# % description: Input elevation raster
+# % key: input
+# % required: yes
+# %end
 
-#%option G_OPT_R_OUTPUT
-#% description: Output Terrain Ruggedness Index (TRI)
-#% key: output
-#% required: yes
-#%end
+# %option G_OPT_R_OUTPUT
+# % description: Output Terrain Ruggedness Index (TRI)
+# % key: output
+# % required: yes
+# %end
 
-#%option
-#% key: size
-#% type: integer
-#% description: Size of neighbourhood in cells (> 2 and <= 51)
-#% required: yes
-#% answer: 3
-#%end
+# %option
+# % key: size
+# % type: integer
+# % description: Size of neighbourhood in cells (> 2 and <= 51)
+# % required: yes
+# % answer: 3
+# %end
 
-#%option
-#% key: exponent
-#% type: double
-#% description: Distance weighting exponent (>= 0 and <= 4.0)
-#% required: no
-#% answer: 0.0
-#%end
+# %option
+# % key: exponent
+# % type: double
+# % description: Distance weighting exponent (>= 0 and <= 4.0)
+# % required: no
+# % answer: 0.0
+# %end
 
-#%option
-#% key: processes
-#% type: integer
-#% label: Number of processing cores for tiled calculation
-#% description: Number of processing cores for tiled calculation (negative numbers are all cpus -1, -2 etc.)
-#% required: no
-#% answer: 1
-#%end
+# %option
+# % key: processes
+# % type: integer
+# % label: Number of processing cores for tiled calculation
+# % description: Number of processing cores for tiled calculation (negative numbers are all cpus -1, -2 etc.)
+# % required: no
+# % answer: 1
+# %end
 
-#%flag
-#% key: c
-#% description: Use circular neighborhood
-#%end
+# %flag
+# % key: c
+# % description: Use circular neighborhood
+# %end
 
 import math
 import multiprocessing as mp

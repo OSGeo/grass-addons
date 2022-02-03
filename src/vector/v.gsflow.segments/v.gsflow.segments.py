@@ -21,247 +21,247 @@
 # More information
 # Started December 2016
 
-#%module
-#% description: Prepares stream segments for PRMS and GSFLOW
-#% keyword: vector
-#% keyword: stream network
-#% keyword: hydrology
-#% keyword: GSFLOW
-#%end
+# %module
+# % description: Prepares stream segments for PRMS and GSFLOW
+# % keyword: vector
+# % keyword: stream network
+# % keyword: hydrology
+# % keyword: GSFLOW
+# %end
 
-#%option G_OPT_V_INPUT
-#%  key: input
-#%  label: Vector stream network from r.stream.extract
-#%  required: yes
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_V_INPUT
+# %  key: input
+# %  label: Vector stream network from r.stream.extract
+# %  required: yes
+# %  guidependency: layer,column
+# %end
 
-#%option G_OPT_V_OUTPUT
-#%  key: output
-#%  label: Segments: stream segments for GSFLOW / PRMS
-#%  required: yes
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_V_OUTPUT
+# %  key: output
+# %  label: Segments: stream segments for GSFLOW / PRMS
+# %  required: yes
+# %  guidependency: layer,column
+# %end
 
-#%option
-#%  key: icalc
-#%  type: integer
-#%  description: Stream depth option: 0-const; 1,2-Manning (rect/8-pt); 3-aQ^b
-#%  answer: 1
-#%  required: no
-#%end
+# %option
+# %  key: icalc
+# %  type: integer
+# %  description: Stream depth option: 0-const; 1,2-Manning (rect/8-pt); 3-aQ^b
+# %  answer: 1
+# %  required: no
+# %end
 
-#%option
-#%  key: cdpth
-#%  type: double
-#%  description: Flow depth coefficient [meters]; used if ICALC=3
-#%  answer: 0.4
-#%  required: no
-#%end
+# %option
+# %  key: cdpth
+# %  type: double
+# %  description: Flow depth coefficient [meters]; used if ICALC=3
+# %  answer: 0.4
+# %  required: no
+# %end
 
-#%option
-#%  key: fdpth
-#%  type: double
-#%  description: Flow depth exponent; used if ICALC=3
-#%  answer: 0.42
-#%  required: no
-#%end
+# %option
+# %  key: fdpth
+# %  type: double
+# %  description: Flow depth exponent; used if ICALC=3
+# %  answer: 0.42
+# %  required: no
+# %end
 
-#%option
-#%  key: awdth
-#%  type: double
-#%  description: Flow width coefficient [meters]; used if ICALC=3
-#%  answer: 4
-#%  required: no
-#%end
+# %option
+# %  key: awdth
+# %  type: double
+# %  description: Flow width coefficient [meters]; used if ICALC=3
+# %  answer: 4
+# %  required: no
+# %end
 
-#%option
-#%  key: bwdth
-#%  type: double
-#%  description: Flow width exponent; used if ICALC=3
-#%  answer: 0.23
-#%  required: no
-#%end
+# %option
+# %  key: bwdth
+# %  type: double
+# %  description: Flow width exponent; used if ICALC=3
+# %  answer: 0.23
+# %  required: no
+# %end
 
-#%option
-#%  key: iupseg
-#%  type: string
-#%  description: Category of upstream diversion segment (from_cat,to_cat,...)
-#%  answer: 0,0
-#%  required: no
-#%end
+# %option
+# %  key: iupseg
+# %  type: string
+# %  description: Category of upstream diversion segment (from_cat,to_cat,...)
+# %  answer: 0,0
+# %  required: no
+# %end
 
-#%option
-#%  key: flow
-#%  type: string
-#%  description: Streamflow entering the upstream-most segs (cat,Q,cat,Q,...)
-#%  answer: 0,0
-#%  required: no
-#%end
+# %option
+# %  key: flow
+# %  type: string
+# %  description: Streamflow entering the upstream-most segs (cat,Q,cat,Q,...)
+# %  answer: 0,0
+# %  required: no
+# %end
 
-#%option
-#%  key: runoff
-#%  type: string
-#%  description: Diffuse runoff entering each segment (cat,Q,cat,Q,...)
-#%  answer: 0,0
-#%  required: no
-#%end
+# %option
+# %  key: runoff
+# %  type: string
+# %  description: Diffuse runoff entering each segment (cat,Q,cat,Q,...)
+# %  answer: 0,0
+# %  required: no
+# %end
 
-#%option
-#%  key: etsw
-#%  type: string
-#%  description: Direct removal of in-channel water by ET (cat,Q,cat,Q)
-#%  answer: 0,0
-#%  required: no
-#%end
+# %option
+# %  key: etsw
+# %  type: string
+# %  description: Direct removal of in-channel water by ET (cat,Q,cat,Q)
+# %  answer: 0,0
+# %  required: no
+# %end
 
-#%option
-#%  key: pptsw
-#%  type: string
-#%  description: Direct precipitation on the stream (cat,Q,cat,Q)
-#%  answer: 0,0
-#%  required: no
-#%end
+# %option
+# %  key: pptsw
+# %  type: string
+# %  description: Direct precipitation on the stream (cat,Q,cat,Q)
+# %  answer: 0,0
+# %  required: no
+# %end
 
-#%option
-#%  key: roughch_value
-#%  type: double
-#%  description: In-channel Manning's n (single value) for ICALC=1,2
-#%  answer: 0.035
-#%  required: no
-#%end
+# %option
+# %  key: roughch_value
+# %  type: double
+# %  description: In-channel Manning's n (single value) for ICALC=1,2
+# %  answer: 0.035
+# %  required: no
+# %end
 
-#%option
-#%  key: roughch_raster
-#%  type: string
-#%  description: In-channel Manning's n raster map for ICALC=1,2
-#%  required: no
-#%end
+# %option
+# %  key: roughch_raster
+# %  type: string
+# %  description: In-channel Manning's n raster map for ICALC=1,2
+# %  required: no
+# %end
 
-#%option
-#%  key: roughch_points
-#%  type: string
-#%  description: In-channel Manning's n vector point meas for ICALC=1,2
-#%  required: no
-#%end
+# %option
+# %  key: roughch_points
+# %  type: string
+# %  description: In-channel Manning's n vector point meas for ICALC=1,2
+# %  required: no
+# %end
 
-#%option
-#%  key: roughch_pt_col
-#%  type: string
-#%  description: Column name for in-channel n point measurements
-#%  required: no
-#%end
+# %option
+# %  key: roughch_pt_col
+# %  type: string
+# %  description: Column name for in-channel n point measurements
+# %  required: no
+# %end
 
-#%option
-#%  key: roughbk_value
-#%  type: double
-#%  description: Overbank Manning's n for ICALC=2
-#%  answer: 0.06
-#%  required: no
-#%end
+# %option
+# %  key: roughbk_value
+# %  type: double
+# %  description: Overbank Manning's n for ICALC=2
+# %  answer: 0.06
+# %  required: no
+# %end
 
-#%option
-#%  key: roughbk_raster
-#%  type: string
-#%  description: Overbank Manning's n raster map for ICALC=2
-#%  required: no
-#%end
+# %option
+# %  key: roughbk_raster
+# %  type: string
+# %  description: Overbank Manning's n raster map for ICALC=2
+# %  required: no
+# %end
 
-#%option
-#%  key: roughbk_points
-#%  type: string
-#%  description: Overbank Manning's n vector point meas for ICALC=2
-#%  required: no
-#%end
+# %option
+# %  key: roughbk_points
+# %  type: string
+# %  description: Overbank Manning's n vector point meas for ICALC=2
+# %  required: no
+# %end
 
-#%option
-#%  key: roughbk_pt_col
-#%  type: string
-#%  description: Column name for overbank n point measurements
-#%  required: no
-#%end
+# %option
+# %  key: roughbk_pt_col
+# %  type: string
+# %  description: Column name for overbank n point measurements
+# %  required: no
+# %end
 
-#%option
-#%  key: width1
-#%  type: double
-#%  description: Upstream width in segment [m], uniform in watershed
-#%  answer: 5
-#%  required: no
-#%end
+# %option
+# %  key: width1
+# %  type: double
+# %  description: Upstream width in segment [m], uniform in watershed
+# %  answer: 5
+# %  required: no
+# %end
 
-#%option
-#%  key: width2
-#%  type: double
-#%  description: Downstream width in segment [m], uniform in watershed
-#%  answer: 5
-#%  required: no
-#%end
+# %option
+# %  key: width2
+# %  type: double
+# %  description: Downstream width in segment [m], uniform in watershed
+# %  answer: 5
+# %  required: no
+# %end
 
-#%option
-#%  key: width_points
-#%  type: string
-#%  description: Channel width point meas vect (instead of width1,width2)
-#%  required: no
-#%end
+# %option
+# %  key: width_points
+# %  type: string
+# %  description: Channel width point meas vect (instead of width1,width2)
+# %  required: no
+# %end
 
-#%option
-#%  key: width_points_col
-#%  type: string
-#%  description: Channel width point meas vect column
-#%  required: no
-#%end
+# %option
+# %  key: width_points_col
+# %  type: string
+# %  description: Channel width point meas vect column
+# %  required: no
+# %end
 
-#%option
-#%  key: width1
-#%  type: double
-#%  description: Upstream width in segment [m], uniform in watershed
-#%  answer: 5
-#%  required: no
-#%end
+# %option
+# %  key: width1
+# %  type: double
+# %  description: Upstream width in segment [m], uniform in watershed
+# %  answer: 5
+# %  required: no
+# %end
 
-#%option
-#%  key: width2
-#%  type: double
-#%  description: Downstream width in segment [m], uniform in watershed
-#%  answer: 5
-#%  required: no
-#%end
+# %option
+# %  key: width2
+# %  type: double
+# %  description: Downstream width in segment [m], uniform in watershed
+# %  answer: 5
+# %  required: no
+# %end
 
-#%option
-#%  key: width_points
-#%  type: string
-#%  description: Channel width point meas vect (instead of width1,width2)
-#%  required: no
-#%end
+# %option
+# %  key: width_points
+# %  type: string
+# %  description: Channel width point meas vect (instead of width1,width2)
+# %  required: no
+# %end
 
-#%option
-#%  key: width_points_col
-#%  type: string
-#%  description: Channel width point meas vect column
-#%  required: no
-#%end
+# %option
+# %  key: width_points_col
+# %  type: string
+# %  description: Channel width point meas vect column
+# %  required: no
+# %end
 
-#%option
-#%  key: fp_width_value
-#%  type: double
-#%  description: Floodplain width as constant value (ICALC=2)
-#%  answer: 0
-#%  required: no
-#%end
+# %option
+# %  key: fp_width_value
+# %  type: double
+# %  description: Floodplain width as constant value (ICALC=2)
+# %  answer: 0
+# %  required: no
+# %end
 
-#%option
-#%  key: fp_width_pts
-#%  type: string
-#%  description: Floodplain width measurement vector (ICALC=2)
-#%  required: no
-#%end
+# %option
+# %  key: fp_width_pts
+# %  type: string
+# %  description: Floodplain width measurement vector (ICALC=2)
+# %  required: no
+# %end
 
-#%option
-#%  key: fp_width_pts_col
-#%  type: string
-#%  description: Floodplain width measurement column (ICALC=2)
-#%  required: no
-#%end
+# %option
+# %  key: fp_width_pts_col
+# %  type: string
+# %  description: Floodplain width measurement column (ICALC=2)
+# %  required: no
+# %end
 
 ##################
 # IMPORT MODULES #

@@ -17,88 +17,88 @@
 #
 #############################################################################
 
-#%module
-#% description: Creates a DEM from 3 arcsec SRTM v2.1 or 1 arcsec SRTM v3 tiles.
-#% keyword: raster
-#% keyword: import
-#% keyword: SRTM
-#%end
-#%option G_OPT_R_OUTPUT
-#% description: Name for output raster map
-#% required: yes
-#%end
-#%option
-#% key: username
-#% description: Username for authentication
-#% required: yes
-#%end
-#%option
-#% key: password
-#% description: Password for authentication
-#% required: yes
-#%end
-#%option
-#% key: url
-#% description: Base URL to fetch SRTM tiles
-#% required: no
-#%end
-#%option G_OPT_M_DIR
-#% key: local
-#% label: Local folder with SRTM tiles
-#% description: Use local folder instead of URL to retrieve SRTM tiles
-#% required: no
-#%end
-#%option
-#% key: region
-#% type: double
-#% label: Import subregion only (default is current region)
-#% description: Format: xmin,ymin,xmax,ymax - usually W,S,E,N
-#% key_desc: xmin,ymin,xmax,ymax
-#% multiple: no
-#% required: no
-#%end
-#%option
-#% key: memory
-#% type: integer
-#% description: Memory in MB for interpolation
-#% answer: 300
-#% required: no
-#%end
-#%option
-#% key: method
-#% type: string
-#% required: no
-#% multiple: no
-#% options: nearest,bilinear,bicubic,lanczos,bilinear_f,bicubic_f,lanczos_f
-#% description: Resampling method to use for reprojection (required if location projection not longlat)
-#% descriptions: nearest;nearest neighbor;bilinear;bilinear interpolation;bicubic;bicubic interpolation;lanczos;lanczos filter;bilinear_f;bilinear interpolation with fallback;bicubic_f;bicubic interpolation with fallback;lanczos_f;lanczos filter with fallback
-#% guisection: Output
-#%end
-#%option
-#% key: resolution
-#% type: double
-#% required: no
-#% multiple: no
-#% description: Resolution of output raster map (required if location projection not longlat)
-#% guisection: Output
-#%end
-#%flag
-#%  key: n
-#%  description: Fill null cells
-#%end
-#%flag
-#%  key: 2
-#%  label: Import SRTM v2 tiles
-#%  description: Default: Import SRTM v3 tiles
-#%end
-#%flag
-#% key: 1
-#% description: Input is a 1-arcsec tile (default: 3-arcsec)
-#%end
-#%flag
-#% key: z
-#% description: Create zero elevation for missing tiles
-#%end
+# %module
+# % description: Creates a DEM from 3 arcsec SRTM v2.1 or 1 arcsec SRTM v3 tiles.
+# % keyword: raster
+# % keyword: import
+# % keyword: SRTM
+# %end
+# %option G_OPT_R_OUTPUT
+# % description: Name for output raster map
+# % required: yes
+# %end
+# %option
+# % key: username
+# % description: Username for authentication
+# % required: yes
+# %end
+# %option
+# % key: password
+# % description: Password for authentication
+# % required: yes
+# %end
+# %option
+# % key: url
+# % description: Base URL to fetch SRTM tiles
+# % required: no
+# %end
+# %option G_OPT_M_DIR
+# % key: local
+# % label: Local folder with SRTM tiles
+# % description: Use local folder instead of URL to retrieve SRTM tiles
+# % required: no
+# %end
+# %option
+# % key: region
+# % type: double
+# % label: Import subregion only (default is current region)
+# % description: Format: xmin,ymin,xmax,ymax - usually W,S,E,N
+# % key_desc: xmin,ymin,xmax,ymax
+# % multiple: no
+# % required: no
+# %end
+# %option
+# % key: memory
+# % type: integer
+# % description: Memory in MB for interpolation
+# % answer: 300
+# % required: no
+# %end
+# %option
+# % key: method
+# % type: string
+# % required: no
+# % multiple: no
+# % options: nearest,bilinear,bicubic,lanczos,bilinear_f,bicubic_f,lanczos_f
+# % description: Resampling method to use for reprojection (required if location projection not longlat)
+# % descriptions: nearest;nearest neighbor;bilinear;bilinear interpolation;bicubic;bicubic interpolation;lanczos;lanczos filter;bilinear_f;bilinear interpolation with fallback;bicubic_f;bicubic interpolation with fallback;lanczos_f;lanczos filter with fallback
+# % guisection: Output
+# %end
+# %option
+# % key: resolution
+# % type: double
+# % required: no
+# % multiple: no
+# % description: Resolution of output raster map (required if location projection not longlat)
+# % guisection: Output
+# %end
+# %flag
+# %  key: n
+# %  description: Fill null cells
+# %end
+# %flag
+# %  key: 2
+# %  label: Import SRTM v2 tiles
+# %  description: Default: Import SRTM v3 tiles
+# %end
+# %flag
+# % key: 1
+# % description: Input is a 1-arcsec tile (default: 3-arcsec)
+# %end
+# %flag
+# % key: z
+# % description: Create zero elevation for missing tiles
+# %end
 
 
 # initialize global vars

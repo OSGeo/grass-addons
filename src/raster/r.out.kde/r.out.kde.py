@@ -14,34 +14,34 @@
 #
 #############################################################################
 
-#%module
-#% description: Exports raster with variable transparency into an image file
-#% keyword: raster
-#% keyword: kernel density
-#% keyword: visualization
-#% keyword: transparency
-#% keyword: heatmap
-#%end
+# %module
+# % description: Exports raster with variable transparency into an image file
+# % keyword: raster
+# % keyword: kernel density
+# % keyword: visualization
+# % keyword: transparency
+# % keyword: heatmap
+# %end
 
-#%option G_OPT_R_INPUT
-#% description: Raster map to be rendered with semi-transparency
-#%end
+# %option G_OPT_R_INPUT
+# % description: Raster map to be rendered with semi-transparency
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: background
-#% description: Background raster map
-#%end
+# %option G_OPT_R_INPUT
+# % key: background
+# % description: Background raster map
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% description: Rendered output file
-#%end
+# %option G_OPT_F_OUTPUT
+# % description: Rendered output file
+# %end
 
-#%option
-#% key: method
-#% type: string
-#% options: linear,logistic
-#% description: Method to scale transparency
-#%end
+# %option
+# % key: method
+# % type: string
+# % options: linear,logistic
+# % description: Method to scale transparency
+# %end
 
 
 import os

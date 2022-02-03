@@ -17,71 +17,71 @@
 #
 #############################################################################
 
-#%module
-#% description: Download single or multiple tiles of MODIS products using pyModis.
-#% keyword: raster
-#% keyword: import
-#% keyword: MODIS
-#%end
-#%flag
-#% key: d
-#% description: Debug mode, writing more info into the log file
-#%end
-#%flag
-#% key: g
-#% description: Return the name of file containing the list of HDF tiles downloaded in shell script style
-#%end
-#%flag
-#% key: c
-#% description: Do not perform GDAL check on downloaded images
-#%end
-#%flag
-#% key: l
-#% description: List more info about the supported MODIS products
-#%end
-#%option G_OPT_F_INPUT
-#% key: settings
-#% label: Full path to settings file or '-' for standard input, empty for .netrc file
-#% required: no
-#% guisection: Define
-#%end
-#%option
-#% key: product
-#% type: string
-#% label: Name of MODIS product(s)
-#% multiple: yes
-#% required: no
-#% options: lst_terra_daily_1000, lst_aqua_daily_1000, lst_terra_eight_1000, lst_aqua_eight_1000, lst_terra_daily_5600, lst_aqua_daily_5600, lst_terra_monthly_5600, lst_aqua_monthly_5600, ndvi_terra_sixteen_250, ndvi_aqua_sixteen_250, ndvi_terra_sixteen_500, ndvi_aqua_sixteen_500, ndvi_terra_sixteen_1000, ndvi_aqua_sixteen_1000, ndvi_terra_sixteen_5600, ndvi_aqua_sixteen_5600, ndvi_terra_monthly_1000, ndvi_aqua_monthly_1000, ndvi_terra_monthly_5600, ndvi_aqua_monthly_5600, snow_terra_daily_500, snow_aqua_daily_500, snow_terra_eight_500, snow_aqua_eight_500, surfreflec_terra_daily_500, surfreflec_aqua_daily_500, surfreflec_terra_eight_500, surfreflec_aqua_eight_500, water_terra_250, aerosol_terra_aqua_daily_1000
-#% answer: lst_terra_daily_1000
-#%end
-#%option
-#% key: tiles
-#% type: string
-#% label: The name(s) of tile(s) to download (comma separated). If not set, all available tiles are downloaded
-#% description: e.g.: h18v04
-#% required: no
-#%end
-#%option
-#% key: startday
-#% type: string
-#% label: First date to download
-#% description: Format: YYYY-MM-DD. If not set the download starts from current date and goes back 10 days. If not endday is set, the download stops 10 days after the startday
-#% required: no
-#%end
-#%option
-#% key: endday
-#% type: string
-#% label: Last date to download
-#% description: Format: YYYY-MM-DD. To use only with startday
-#% required: no
-#%end
-#%option
-#% key: folder
-#% type: string
-#% label: Folder to store the downloaded data
-#% description: If not set, path to settings file is used
-#% required: no
-#%end
+# %module
+# % description: Download single or multiple tiles of MODIS products using pyModis.
+# % keyword: raster
+# % keyword: import
+# % keyword: MODIS
+# %end
+# %flag
+# % key: d
+# % description: Debug mode, writing more info into the log file
+# %end
+# %flag
+# % key: g
+# % description: Return the name of file containing the list of HDF tiles downloaded in shell script style
+# %end
+# %flag
+# % key: c
+# % description: Do not perform GDAL check on downloaded images
+# %end
+# %flag
+# % key: l
+# % description: List more info about the supported MODIS products
+# %end
+# %option G_OPT_F_INPUT
+# % key: settings
+# % label: Full path to settings file or '-' for standard input, empty for .netrc file
+# % required: no
+# % guisection: Define
+# %end
+# %option
+# % key: product
+# % type: string
+# % label: Name of MODIS product(s)
+# % multiple: yes
+# % required: no
+# % options: lst_terra_daily_1000, lst_aqua_daily_1000, lst_terra_eight_1000, lst_aqua_eight_1000, lst_terra_daily_5600, lst_aqua_daily_5600, lst_terra_monthly_5600, lst_aqua_monthly_5600, ndvi_terra_sixteen_250, ndvi_aqua_sixteen_250, ndvi_terra_sixteen_500, ndvi_aqua_sixteen_500, ndvi_terra_sixteen_1000, ndvi_aqua_sixteen_1000, ndvi_terra_sixteen_5600, ndvi_aqua_sixteen_5600, ndvi_terra_monthly_1000, ndvi_aqua_monthly_1000, ndvi_terra_monthly_5600, ndvi_aqua_monthly_5600, snow_terra_daily_500, snow_aqua_daily_500, snow_terra_eight_500, snow_aqua_eight_500, surfreflec_terra_daily_500, surfreflec_aqua_daily_500, surfreflec_terra_eight_500, surfreflec_aqua_eight_500, water_terra_250, aerosol_terra_aqua_daily_1000
+# % answer: lst_terra_daily_1000
+# %end
+# %option
+# % key: tiles
+# % type: string
+# % label: The name(s) of tile(s) to download (comma separated). If not set, all available tiles are downloaded
+# % description: e.g.: h18v04
+# % required: no
+# %end
+# %option
+# % key: startday
+# % type: string
+# % label: First date to download
+# % description: Format: YYYY-MM-DD. If not set the download starts from current date and goes back 10 days. If not endday is set, the download stops 10 days after the startday
+# % required: no
+# %end
+# %option
+# % key: endday
+# % type: string
+# % label: Last date to download
+# % description: Format: YYYY-MM-DD. To use only with startday
+# % required: no
+# %end
+# %option
+# % key: folder
+# % type: string
+# % label: Folder to store the downloaded data
+# % description: If not set, path to settings file is used
+# % required: no
+# %end
 
 
 # import library

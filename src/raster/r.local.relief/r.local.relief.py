@@ -14,77 +14,77 @@
 #
 #############################################################################
 
-#%module
-#% description: Creates a local relief model from elevation map.
-#% keyword: raster
-#% keyword: elevation
-#% keyword: terrain
-#% keyword: relief
-#% keyword: LRM
-#% keyword: visualization
-#%end
-#%option
-#% type: string
-#% gisprompt: old,cell,raster
-#% key: input
-#% description: Name of the input elevation raster map
-#% required: yes
-#%end
-#%option
-#% type: string
-#% gisprompt: new,cell,raster
-#% key: output
-#% description: Name for output local relief map
-#% required: yes
-#%end
-#%option
-#% key: neighborhood_size
-#% type: integer
-#% label: Smoothing neighborhood size
-#% description: Neighborhood size used when smoothing the elevation model
-#% options: 0-
-#% answer: 11
-#%end
-#%option
-#% key: color_table
-#% type: string
-#% label: Color table for the local relief model raster map
-#% description: If not provided, grey is used for output and differences is used for the shaded_output
-#% required: no
-#% options: grey, differences
-#% guisection: Color
-#%end
-#%option G_OPT_R_OUTPUT
-#% key: shaded_output
-#% required: no
-#% label: Local relief combined with shaded relief
-#% description: Local relief model combined with shaded relief of the original elevation
-#% guisection: Color
-#%end
-#%flag
-#% key: i
-#% description: Save intermediate maps
-#%end
-#%flag
-#% key: v
-#% label: Use bspline interpolation to construct the surface
-#% description: Uses v.surf.bspline cubic interpolation instead of r.fillnulls cubic interpolation.
-#%end
-#%flag
-#% key: n
-#% description: Invert colors in the color table
-#% guisection: Color
-#%end
-#%flag
-#% key: g
-#% description: Logarithmic scaling of the color table
-#% guisection: Color
-#%end
-#%flag
-#% key: f
-#% description: Do not perform histogram equalization on the color table
-#% guisection: Color
-#%end
+# %module
+# % description: Creates a local relief model from elevation map.
+# % keyword: raster
+# % keyword: elevation
+# % keyword: terrain
+# % keyword: relief
+# % keyword: LRM
+# % keyword: visualization
+# %end
+# %option
+# % type: string
+# % gisprompt: old,cell,raster
+# % key: input
+# % description: Name of the input elevation raster map
+# % required: yes
+# %end
+# %option
+# % type: string
+# % gisprompt: new,cell,raster
+# % key: output
+# % description: Name for output local relief map
+# % required: yes
+# %end
+# %option
+# % key: neighborhood_size
+# % type: integer
+# % label: Smoothing neighborhood size
+# % description: Neighborhood size used when smoothing the elevation model
+# % options: 0-
+# % answer: 11
+# %end
+# %option
+# % key: color_table
+# % type: string
+# % label: Color table for the local relief model raster map
+# % description: If not provided, grey is used for output and differences is used for the shaded_output
+# % required: no
+# % options: grey, differences
+# % guisection: Color
+# %end
+# %option G_OPT_R_OUTPUT
+# % key: shaded_output
+# % required: no
+# % label: Local relief combined with shaded relief
+# % description: Local relief model combined with shaded relief of the original elevation
+# % guisection: Color
+# %end
+# %flag
+# % key: i
+# % description: Save intermediate maps
+# %end
+# %flag
+# % key: v
+# % label: Use bspline interpolation to construct the surface
+# % description: Uses v.surf.bspline cubic interpolation instead of r.fillnulls cubic interpolation.
+# %end
+# %flag
+# % key: n
+# % description: Invert colors in the color table
+# % guisection: Color
+# %end
+# %flag
+# % key: g
+# % description: Logarithmic scaling of the color table
+# % guisection: Color
+# %end
+# %flag
+# % key: f
+# % description: Do not perform histogram equalization on the color table
+# % guisection: Color
+# %end
 
 
 import os

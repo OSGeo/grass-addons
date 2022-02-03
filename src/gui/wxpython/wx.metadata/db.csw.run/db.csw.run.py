@@ -53,26 +53,26 @@
 # http://localhost:8000/
 #
 
-#%module
-#% description: CSW wsgi handler
-#% keyword: csw
-#% keyword: metadata
-#%end
+# %module
+# % description: CSW wsgi handler
+# % keyword: csw
+# % keyword: metadata
+# %end
 
-#%option
-#% key: path
-#% description: path to pycsw instal folder
-#% required : yes
-#% answer : /var/www/html/pycsw
-#%end
+# %option
+# % key: path
+# % description: path to pycsw instal folder
+# % required : yes
+# % answer : /var/www/html/pycsw
+# %end
 
-#%option
-#% key: port
-#% type: integer
-#% description: server port
-#% required : yes
-#% answer: 8000
-#%end
+# %option
+# % key: port
+# % type: integer
+# % description: server port
+# % required : yes
+# % answer: 8000
+# %end
 
 from io import StringIO
 import os

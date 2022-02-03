@@ -18,33 +18,33 @@ This program is free software under the GNU General Public License
 
 """
 
-#%module
-#% description: CSW database manager
-#% keyword: csw
-#% keyword: metadata
-#% keyword: harvesting
-#%end
+# %module
+# % description: CSW database manager
+# % keyword: csw
+# % keyword: metadata
+# % keyword: harvesting
+# %end
 
-#%option
-#% key: source
-#% label: uri source
-#% description: uri to csw source
-#% required : yes
-#%end
+# %option
+# % key: source
+# % label: uri source
+# % description: uri to csw source
+# % required : yes
+# %end
 
-#%option
-#% key: destination
-#% label: uri destination
-#% description: uri to csw destination
-#% required : yes
-#%end
+# %option
+# % key: destination
+# % label: uri destination
+# % description: uri to csw destination
+# % required : yes
+# %end
 
-#%option
-#% key: max
-#% label: max records
-#% description: uri to csw destination
-#% type: integer
-#%end
+# %option
+# % key: max
+# % label: max records
+# % description: uri to csw destination
+# % type: integer
+# %end
 
 import sys
 import os

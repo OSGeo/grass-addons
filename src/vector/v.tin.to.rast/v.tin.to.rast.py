@@ -23,19 +23,19 @@
 #
 ############################################################################
 
-#%module
-#% description: Converts (rasterize) a TIN map into a raster map
-#% keyword: vector
-#% keyword: raster
-#% keyword: TIN
-#% keyword: conversion
-#%end
-#%option G_OPT_V_INPUT
-#% label: Name of input TIN map
-#% description: Name of input TIN map
-#%end
-#%option G_OPT_R_OUTPUT
-#%end
+# %module
+# % description: Converts (rasterize) a TIN map into a raster map
+# % keyword: vector
+# % keyword: raster
+# % keyword: TIN
+# % keyword: conversion
+# %end
+# %option G_OPT_V_INPUT
+# % label: Name of input TIN map
+# % description: Name of input TIN map
+# %end
+# %option G_OPT_R_OUTPUT
+# %end
 ############################################################################
 
 import sys

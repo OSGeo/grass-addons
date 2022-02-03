@@ -29,42 +29,42 @@
 #
 ##############################################################################
 
-#%Module
-#% description: Computes Lake Surface Water Temperatures (inland water bodies) from TOA Brightness Temperatures.
-#% keyword: imagery
-#% keyword: LSWT
-#% keyword: MODIS
-#% keyword: AVHRR
-#% keyword: AATSR
-#% keyword: SEVIRI
-#% keyword: IMG
-#%end
+# %Module
+# % description: Computes Lake Surface Water Temperatures (inland water bodies) from TOA Brightness Temperatures.
+# % keyword: imagery
+# % keyword: LSWT
+# % keyword: MODIS
+# % keyword: AVHRR
+# % keyword: AATSR
+# % keyword: SEVIRI
+# % keyword: IMG
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: ainput
-#% description: Brightness Temperature (10.5 - 11.5 micro m)
-#%end
-#%option G_OPT_R_INPUT
-#% key: binput
-#% description: Brightness Temperature (11.5 - 12.5 micro m)
-#%end
-#%option G_OPT_R_BASENAME_OUTPUT
-#% key: basename
-#% description: Name for output basename raster map(s)
-#%end
-#%option
-#% key: satellite
-#% type: string
-#% description: Satellite name
-#% required: yes
-#% multiple: no
-#% options: NOAA07-AVHRR,NOAA09-AVHRR,NOAA11-AVHRR,NOAA12-AVHRR,NOAA14-AVHRR,NOAA15-AVHRR,NOAA16-AVHRR,NOAA17-AVHRR,NOAA18-AVHRR,NOAA19-AVHRR,METOPA-AVHRR,ERS1-ATSR1,ERS2-ATSR2,Envisat-AATSR,Terra-MODIS,Aqua-MODIS,GOES8-IMG,GOES9-IMG,GOES10-IMG,GOES11-IMG,GOES12-IMG,GOES13-IMG,MSG1-SEVIRI,MSG2-SEVIRI
-#% descriptions: NOAA07-AVHRR;Use split-window coefficients for NOAA07-AVHRR;
-#%end
-#%flag
-#% key: i
-#% description: Display split-window coefficients and exit
-#%end
+# %option G_OPT_R_INPUT
+# % key: ainput
+# % description: Brightness Temperature (10.5 - 11.5 micro m)
+# %end
+# %option G_OPT_R_INPUT
+# % key: binput
+# % description: Brightness Temperature (11.5 - 12.5 micro m)
+# %end
+# %option G_OPT_R_BASENAME_OUTPUT
+# % key: basename
+# % description: Name for output basename raster map(s)
+# %end
+# %option
+# % key: satellite
+# % type: string
+# % description: Satellite name
+# % required: yes
+# % multiple: no
+# % options: NOAA07-AVHRR,NOAA09-AVHRR,NOAA11-AVHRR,NOAA12-AVHRR,NOAA14-AVHRR,NOAA15-AVHRR,NOAA16-AVHRR,NOAA17-AVHRR,NOAA18-AVHRR,NOAA19-AVHRR,METOPA-AVHRR,ERS1-ATSR1,ERS2-ATSR2,Envisat-AATSR,Terra-MODIS,Aqua-MODIS,GOES8-IMG,GOES9-IMG,GOES10-IMG,GOES11-IMG,GOES12-IMG,GOES13-IMG,MSG1-SEVIRI,MSG2-SEVIRI
+# % descriptions: NOAA07-AVHRR;Use split-window coefficients for NOAA07-AVHRR;
+# %end
+# %flag
+# % key: i
+# % description: Display split-window coefficients and exit
+# %end
 
 import grass.script as grass
 

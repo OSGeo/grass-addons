@@ -16,94 +16,94 @@
 #############################################################################
 
 
-#%module
-#% description: Fills lake at given point(s) to given levels.
-#% keyword: raster
-#% keyword: hydrology
-#% keyword: hazard
-#% keyword: flood
-#%end
-#%option G_OPT_R_ELEV
-#%end
-#%option G_OPT_STRDS_OUTPUT
-#% label: Name of the output space time raster dataset
-#% description: The name of the dataset is used as a base name for created output maps. Map names will consist of a base name, underscore and water level value or number depending on -c flag.
-#%end
-#%option
-#% key: start_water_level
-#% type: double
-#% label: Start water level
-#% description: Units should be meters?
-#% required: yes
-#% guisection: Water
-#%end
-#%option
-#% key: end_water_level
-#% type: double
-#% label: Final (maximal) water level
-#% description: Units should be meters?
-#% required: yes
-#% guisection: Water
-#%end
-#%option
-#% key: water_level_step
-#% type: double
-#% label: Water level step
-#% description: Units should be meters?
-#% guisection: Water
-#% required: yes
-#%end
-#%option G_OPT_M_COORDS
-#% label: Seed point coordinates
-#% description: Either this coordinates pair or a seed map name have to be specified.
-#% required: no
-#% guisection: Water
-#%end
-#%option G_OPT_R_INPUT
-#% key: seed_raster
-#% label: Name of input raster map with given starting point(s) (at least 1 cell > 0)
-#% description: Either this parameter or a coordinates pair have to be specified.
-#% required: no
-#% guisection: Water
-#%end
-#%option
-#% key: time_step
-#% type: integer
-#% label: Time increment
-#% description: Time increment between two states (maps) used to register output maps in space-time raster dataset. Used together with time_units parameter.
-#% required: no
-#% answer: 30
-#% options: 0-
-#% guisection: Time
-#%end
-#%option
-#% key: time_unit
-#% type: string
-#% label: Time units
-#% description: Time units used to register output maps in space-time raster dataset. Used together with time_step parameter.
-#% required: no
-#% options: years,months,days,hours,minutes,seconds
-#% answer: minutes
-#% guisection: Time
-#%end
-#%option
-#% key: nproc
-#% type: integer
-#% label: Number of processes to run in parallel (currently ignored)
-#% required: no
-#% answer: 1
-#% options: 1-
-#%end
-#%flag
-#% key: n
-#% label: Use negative depth values for lake raster map
-#% description: This flag is passed to r.lake module.
-#%end
-#%flag
-#% key: c
-#% label: Use map number instead of the water level in map name (currently ignored)
-#% description: This names are always in the right alphabetical order and are also valid vector map names.
-#%end
+# %module
+# % description: Fills lake at given point(s) to given levels.
+# % keyword: raster
+# % keyword: hydrology
+# % keyword: hazard
+# % keyword: flood
+# %end
+# %option G_OPT_R_ELEV
+# %end
+# %option G_OPT_STRDS_OUTPUT
+# % label: Name of the output space time raster dataset
+# % description: The name of the dataset is used as a base name for created output maps. Map names will consist of a base name, underscore and water level value or number depending on -c flag.
+# %end
+# %option
+# % key: start_water_level
+# % type: double
+# % label: Start water level
+# % description: Units should be meters?
+# % required: yes
+# % guisection: Water
+# %end
+# %option
+# % key: end_water_level
+# % type: double
+# % label: Final (maximal) water level
+# % description: Units should be meters?
+# % required: yes
+# % guisection: Water
+# %end
+# %option
+# % key: water_level_step
+# % type: double
+# % label: Water level step
+# % description: Units should be meters?
+# % guisection: Water
+# % required: yes
+# %end
+# %option G_OPT_M_COORDS
+# % label: Seed point coordinates
+# % description: Either this coordinates pair or a seed map name have to be specified.
+# % required: no
+# % guisection: Water
+# %end
+# %option G_OPT_R_INPUT
+# % key: seed_raster
+# % label: Name of input raster map with given starting point(s) (at least 1 cell > 0)
+# % description: Either this parameter or a coordinates pair have to be specified.
+# % required: no
+# % guisection: Water
+# %end
+# %option
+# % key: time_step
+# % type: integer
+# % label: Time increment
+# % description: Time increment between two states (maps) used to register output maps in space-time raster dataset. Used together with time_units parameter.
+# % required: no
+# % answer: 30
+# % options: 0-
+# % guisection: Time
+# %end
+# %option
+# % key: time_unit
+# % type: string
+# % label: Time units
+# % description: Time units used to register output maps in space-time raster dataset. Used together with time_step parameter.
+# % required: no
+# % options: years,months,days,hours,minutes,seconds
+# % answer: minutes
+# % guisection: Time
+# %end
+# %option
+# % key: nproc
+# % type: integer
+# % label: Number of processes to run in parallel (currently ignored)
+# % required: no
+# % answer: 1
+# % options: 1-
+# %end
+# %flag
+# % key: n
+# % label: Use negative depth values for lake raster map
+# % description: This flag is passed to r.lake module.
+# %end
+# %flag
+# % key: c
+# % label: Use map number instead of the water level in map name (currently ignored)
+# % description: This names are always in the right alphabetical order and are also valid vector map names.
+# %end
 
 """
 Created on Tue Oct 15 21:18:00 2013

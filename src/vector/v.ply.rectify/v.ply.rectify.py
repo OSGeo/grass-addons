@@ -15,24 +15,24 @@
 #               for details.
 #
 #############################################################################
-#%module
-#% description: Imports PLY points, georeferences and exports them.
-#% keyword: vector
-#% keyword: import
-#% keyword: export
-#% keyword: rectify
-#%end
-#%option G_OPT_F_INPUT
-#% description: Name of input PLY file
-#%end
-#%option G_OPT_V_OUTPUT
-#% description: Default is input name without .ply
-#% required: no
-#%end
-#%flag
-#% key: s
-#% description: Also export point cloud shifted to center
-#%end
+# %module
+# % description: Imports PLY points, georeferences and exports them.
+# % keyword: vector
+# % keyword: import
+# % keyword: export
+# % keyword: rectify
+# %end
+# %option G_OPT_F_INPUT
+# % description: Name of input PLY file
+# %end
+# %option G_OPT_V_OUTPUT
+# % description: Default is input name without .ply
+# % required: no
+# %end
+# %flag
+# % key: s
+# % description: Also export point cloud shifted to center
+# %end
 
 import sys
 import os

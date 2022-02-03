@@ -16,45 +16,45 @@
 #
 #############################################################################
 
-#%module
-#% description: Blends two rasters of different spatial resolution.
-#% keyword: raster
-#% keyword: resolution
-#%end
-#%option HIGH
-#% key: high
-#% description: High resolution input raster.
-#%end
-#%option LOW
-#% key: low
-#% description: Low resolution input raster.
-#%end
-#%option OUTPUT
-#% key: output
-#% description: Name of output raster.
-#%end
-#%option FAR_EDGE
-#% key: far_edge
-#% key_desc: value
-#% type: double
-#% description: Percentage of distance to high resolution raster used to determine far edge. Number between 0 and 100.
-#% answer: 95
-#% multiple: no
-#% required: no
-#%end
-#%option INTER_POINTS
-#% key: inter_points
-#% key_desc: value
-#% type: integer
-#% description: Number of points to use in interpolation. A higher number produces a smoother result but requires a lengthier computation.
-#% answer: 50
-#% multiple: no
-#% required: no
-#%end
-#%flag
-#% key: a
-#% description: Assign the average difference between the two rasters to the far edge (instead of zero).
-#%end
+# %module
+# % description: Blends two rasters of different spatial resolution.
+# % keyword: raster
+# % keyword: resolution
+# %end
+# %option HIGH
+# % key: high
+# % description: High resolution input raster.
+# %end
+# %option LOW
+# % key: low
+# % description: Low resolution input raster.
+# %end
+# %option OUTPUT
+# % key: output
+# % description: Name of output raster.
+# %end
+# %option FAR_EDGE
+# % key: far_edge
+# % key_desc: value
+# % type: double
+# % description: Percentage of distance to high resolution raster used to determine far edge. Number between 0 and 100.
+# % answer: 95
+# % multiple: no
+# % required: no
+# %end
+# %option INTER_POINTS
+# % key: inter_points
+# % key_desc: value
+# % type: integer
+# % description: Number of points to use in interpolation. A higher number produces a smoother result but requires a lengthier computation.
+# % answer: 50
+# % multiple: no
+# % required: no
+# %end
+# %flag
+# % key: a
+# % description: Assign the average difference between the two rasters to the far edge (instead of zero).
+# %end
 
 import os
 import atexit

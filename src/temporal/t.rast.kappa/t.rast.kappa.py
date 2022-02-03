@@ -16,62 +16,62 @@
 #
 ################################################
 
-#%module
-#% description: Calculate kappa parameter in a space time raster dataset
-#% keyword: temporal
-#% keyword: raster
-#% keyword: statistics
-#%end
+# %module
+# % description: Calculate kappa parameter in a space time raster dataset
+# % keyword: temporal
+# % keyword: raster
+# % keyword: statistics
+# %end
 
-#%flag
-#% key: k
-#% description: Use r.kappa module instead SciKit-Learn Laboratory metrics.kappa
-#%end
+# %flag
+# % key: k
+# % description: Use r.kappa module instead SciKit-Learn Laboratory metrics.kappa
+# %end
 
-#%flag
-#% key: l
-#% label: Use memory swap
-#% guisection: Optional
-#%end
+# %flag
+# % key: l
+# % label: Use memory swap
+# % guisection: Optional
+# %end
 
-#%flag
-#% key: p
-#% label: Pixel by pixel analysis along different years
-#% guisection: Optional
-#%end
+# %flag
+# % key: p
+# % label: Pixel by pixel analysis along different years
+# % guisection: Optional
+# %end
 
-#%option G_OPT_STRDS_INPUT
-#% key: strds
-#%end
+# %option G_OPT_STRDS_INPUT
+# % key: strds
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% required: no
-#% description: Name for the output file or "-" in case stdout should be used
-#% answer: -
-#%end
+# %option G_OPT_F_OUTPUT
+# % required: no
+# % description: Name for the output file or "-" in case stdout should be used
+# % answer: -
+# %end
 
-#%option
-#% key: weight
-#% type: string
-#% label: Specifies the weight matrix for the calculation
-#% multiple: no
-#% required: no
-#% options: linear, quadratic
-#%end
+# %option
+# % key: weight
+# % type: string
+# % label: Specifies the weight matrix for the calculation
+# % multiple: no
+# % required: no
+# % options: linear, quadratic
+# %end
 
-#%option G_OPT_T_WHERE
-#%end
+# %option G_OPT_T_WHERE
+# %end
 
-#%option
-#% key: splittingday
-#% type: string
-#% label: Specifies the day to split the space time raster dataset in two groups, isotime format
-#% multiple: no
-#% required: no
-#%end
+# %option
+# % key: splittingday
+# % type: string
+# % label: Specifies the day to split the space time raster dataset in two groups, isotime format
+# % multiple: no
+# % required: no
+# %end
 
-#%option G_OPT_F_SEP
-#%end
+# %option G_OPT_F_SEP
+# %end
 
 import sys
 import grass.script as gscript

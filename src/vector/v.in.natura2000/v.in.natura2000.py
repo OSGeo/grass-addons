@@ -14,101 +14,101 @@ COPYRIGHT: (C) 2015 by the GRASS Development Team
            for details.
 """
 
-#%module
-#% description: importing of Natura 2000 spatial data of protected areas
-#% keyword: vector
-#% keyword: geometry
-#%end
+# %module
+# % description: importing of Natura 2000 spatial data of protected areas
+# % keyword: vector
+# % keyword: geometry
+# %end
 
-#%option G_OPT_F_BIN_INPUT
-#% key: input
-#% required: yes
-#%end
+# %option G_OPT_F_BIN_INPUT
+# % key: input
+# % required: yes
+# %end
 
-#%option G_OPT_V_OUTPUT
-#% key: output
-#% description: name of imported spatial data set
-#% required : no
-#% guisection: output
-#%end
+# %option G_OPT_V_OUTPUT
+# % key: output
+# % description: name of imported spatial data set
+# % required : no
+# % guisection: output
+# %end
 
-#%option sitetype
-#% key: sitetype
-#% description: Select site type of input (A, B or C)
-#% required : no
-#% guisection: selection
-#%end
+# %option sitetype
+# % key: sitetype
+# % description: Select site type of input (A, B or C)
+# % required : no
+# % guisection: selection
+# %end
 
-#%option habitat_code
-#% key: habitat_code
-#% description: Select habitat code of input
-#% required : no
-#% guisection: selection
-#%end
+# %option habitat_code
+# % key: habitat_code
+# % description: Select habitat code of input
+# % required : no
+# % guisection: selection
+# %end
 
-#%option species_code
-#% key: species_code
-#% description: Select species of input
-#% required : no
-#% guisection: selection
-#%end
+# %option species_code
+# % key: species_code
+# % description: Select species of input
+# % required : no
+# % guisection: selection
+# %end
 
-#%option biogeographic_region
-#% key: biogeographic_region
-#% description: Select biogeographic region of input
-#% required : no
-#% guisection: selection
-#%end
+# %option biogeographic_region
+# % key: biogeographic_region
+# % description: Select biogeographic region of input
+# % required : no
+# % guisection: selection
+# %end
 
-#%option member_state
-#% key: member_state
-#% description: Select member state of input
-#% required : no
-#% guisection: selection
-#%end
+# %option member_state
+# % key: member_state
+# % description: Select member state of input
+# % required : no
+# % guisection: selection
+# %end
 
-#%option existing_layer
-#% key: existing_layer
-#% description: Import of existing layer
-#% required : no
-#% guisection: layer
-#%end
+# %option existing_layer
+# % key: existing_layer
+# % description: Import of existing layer
+# % required : no
+# % guisection: layer
+# %end
 
-#%flag
-#% key: l
-#% description: Print available layer
-#% guisection: layer
-#%end
+# %flag
+# % key: l
+# % description: Print available layer
+# % guisection: layer
+# %end
 
-#%flag
-#% key: b
-#% description: Print list of biogeographic regions
-#% guisection: print
-#%end
+# %flag
+# % key: b
+# % description: Print list of biogeographic regions
+# % guisection: print
+# %end
 
-#%flag
-#% key: m
-#% description: Print list of EU member states codes
-#% guisection: print
-#%end
+# %flag
+# % key: m
+# % description: Print list of EU member states codes
+# % guisection: print
+# %end
 
-#%flag
-#% key: h
-#% description: Print list of habitats of community interest
-#% guisection: print
-#%end
+# %flag
+# % key: h
+# % description: Print list of habitats of community interest
+# % guisection: print
+# %end
 
-#%flag
-#% key: s
-#% description: Print list of species of community interest
-#% guisection: print
-#%end
+# %flag
+# % key: s
+# % description: Print list of species of community interest
+# % guisection: print
+# %end
 
-#%flag
-#% key: t
-#% description: Print list of protected area site types
-#% guisection: print
-#%end
+# %flag
+# % key: t
+# % description: Print list of protected area site types
+# % guisection: print
+# %end
 
 import sys
 import os

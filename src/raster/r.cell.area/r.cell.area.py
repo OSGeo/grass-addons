@@ -17,26 +17,26 @@
 #############################################################################
 #
 
-#%module
-#% description: Calculate cell sizes within the computational region
-#% keyword: raster
-#% keyword: statistics
-#%end
+# %module
+# % description: Calculate cell sizes within the computational region
+# % keyword: raster
+# % keyword: statistics
+# %end
 
-#%option G_OPT_R_OUTPUT
-#%  key: output
-#%  type: string
-#%  description: Output grid of cell sizes
-#%  required: yes
-#%end
+# %option G_OPT_R_OUTPUT
+# %  key: output
+# %  type: string
+# %  description: Output grid of cell sizes
+# %  required: yes
+# %end
 
-#%option
-#%  key: units
-#%  type: string
-#%  description: Units for output areas
-#%  options: m2, km2
-#%  required: yes
-#%end
+# %option
+# %  key: units
+# %  type: string
+# %  description: Units for output areas
+# %  options: m2, km2
+# %  required: yes
+# %end
 
 ##################
 # IMPORT MODULES #

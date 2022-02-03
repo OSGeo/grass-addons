@@ -16,46 +16,46 @@
 ##############################################################################
 
 
-#%module
-#% description: Create sampling points from each category in a raster map
-#% keyword: raster
-#% keyword: sampling
-#% keyword: random
-#% keyword: points
-#% keyword: vector
-#% keyword: stratified random sampling
-#% keyword: category
-#%end
-#%option G_OPT_R_INPUT
-#% description: Name of input raster map with categories (classes)
-#%end
-#%option G_OPT_V_OUTPUT
-#% description: Name of output vector map with points at random locations
-#%end
-#%option G_OPT_R_INPUTS
-#% description: Names of input raster maps to be sampled
-#% key: sampled
-#% required: no
-#%end
-#%option
-#% label: Number of sampling points per category in the input map
-#% description: You can provide multiple numbers, one for each category in input raster (sorted ascending)
-#% key: npoints
-#% required: yes
-#% multiple: yes
-#% type: integer
-#%end
-#%option
-#% key: random_seed
-#% type: integer
-#% required: no
-#% multiple: no
-#% description: Seed for random number generator
-#%end
-#%flag
-#% key: s
-#% description: If number of cells in category < npoints, skip category
-#%end
+# %module
+# % description: Create sampling points from each category in a raster map
+# % keyword: raster
+# % keyword: sampling
+# % keyword: random
+# % keyword: points
+# % keyword: vector
+# % keyword: stratified random sampling
+# % keyword: category
+# %end
+# %option G_OPT_R_INPUT
+# % description: Name of input raster map with categories (classes)
+# %end
+# %option G_OPT_V_OUTPUT
+# % description: Name of output vector map with points at random locations
+# %end
+# %option G_OPT_R_INPUTS
+# % description: Names of input raster maps to be sampled
+# % key: sampled
+# % required: no
+# %end
+# %option
+# % label: Number of sampling points per category in the input map
+# % description: You can provide multiple numbers, one for each category in input raster (sorted ascending)
+# % key: npoints
+# % required: yes
+# % multiple: yes
+# % type: integer
+# %end
+# %option
+# % key: random_seed
+# % type: integer
+# % required: no
+# % multiple: no
+# % description: Seed for random number generator
+# %end
+# %flag
+# % key: s
+# % description: If number of cells in category < npoints, skip category
+# %end
 
 # TODO: Python tests for more advanced things such as overwrite or attributes
 # TODO: only optional sampling of the category raster

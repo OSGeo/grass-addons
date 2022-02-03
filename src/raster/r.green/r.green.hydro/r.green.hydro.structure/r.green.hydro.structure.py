@@ -14,119 +14,119 @@
 #
 #############################################################################
 #
-#%Module
-#% description: Compute channels and penstocks
-#% overwrite: yes
-#%End
-#%option G_OPT_R_ELEV
-#%  required: yes
-#%end
-#%option G_OPT_V_INPUT
-#%  key: plant
-#%  label: Name of input vector map with segments of potential plants
-#%  required: yes
-#%end
-#%option G_OPT_V_FIELD
-#%  key: plant_layer
-#%  label: Name of the vector map layer of plants
-#%  required: no
-#%  answer: 1
-#%  guisection: Input columns
-#%end
-#%option
-#%  key: plant_column_plant_id
-#%  type: string
-#%  description: Column name with the plant id
-#%  required: no
-#%  answer: plant_id
-#%  guisection: Input columns
-#%end
-#%option
-#%  key: plant_column_point_id
-#%  type: string
-#%  description: Column name with the point id
-#%  required: no
-#%  answer: cat
-#%  guisection: Input columns
-#%end
-#%option
-#%  key: plant_column_stream_id
-#%  type: string
-#%  description: Column name with the stream id
-#%  required: no
-#%  answer: stream_id
-#%  guisection: Input columns
-#%end
-#%option
-#%  key: plant_column_elevup
-#%  type: string
-#%  description: Column name with the elevation value at the intake (upstream) [m]
-#%  required: no
-#%  answer: elev_up
-#%  guisection: Input columns
-#%end
-#%option
-#%  key: plant_column_elevdown
-#%  type: string
-#%  description: Column name with the elevation value at the restitution (downstream) [m]
-#%  required: no
-#%  answer: elev_down
-#%  guisection: Input columns
-#%end
-#%option
-#%  key: plant_column_discharge
-#%  type: string
-#%  description: Column name with the discharge values [m3/s]
-#%  required: no
-#%  answer: discharge
-#%  guisection: Input columns
-#%end
-#%option
-#%  key: plant_column_power
-#%  type: string
-#%  description: Column name with the potential power [kW]
-#%  required: no
-#%  answer: pot_power
-#%  guisection: Input columns
-#%end
-#%option
-#%  key: ndigits
-#%  type: integer
-#%  description: Number of digits to use for the elevation in the contour line vector map
-#%  required: no
-#%  answer: 0
-#%  guisection: Contour
-#%end
-#%option
-#%  key: resolution
-#%  type: double
-#%  description: Resolution use for the contour line vector map, if 0.25 approximate 703.31 tp 703.25
-#%  required: no
-#%  guisection: Contour
-#%end
-#%option G_OPT_V_OUTPUT
-#%  key: contour
-#%  description: Name of the contour line vector map
-#%  required: no
-#%  guisection: Contour
-#%end
-#%option G_OPT_V_OUTPUT
-#% key: output_point
-#% label: Name of output vector map with potential intakes and restitution
-#% required: no
-#%end
-#%option G_OPT_V_OUTPUT
-#% key: output_struct
-#% label: Name of output vector map with the structure of the plants
-#% required: yes
-#%end
+# %Module
+# % description: Compute channels and penstocks
+# % overwrite: yes
+# %End
+# %option G_OPT_R_ELEV
+# %  required: yes
+# %end
+# %option G_OPT_V_INPUT
+# %  key: plant
+# %  label: Name of input vector map with segments of potential plants
+# %  required: yes
+# %end
+# %option G_OPT_V_FIELD
+# %  key: plant_layer
+# %  label: Name of the vector map layer of plants
+# %  required: no
+# %  answer: 1
+# %  guisection: Input columns
+# %end
+# %option
+# %  key: plant_column_plant_id
+# %  type: string
+# %  description: Column name with the plant id
+# %  required: no
+# %  answer: plant_id
+# %  guisection: Input columns
+# %end
+# %option
+# %  key: plant_column_point_id
+# %  type: string
+# %  description: Column name with the point id
+# %  required: no
+# %  answer: cat
+# %  guisection: Input columns
+# %end
+# %option
+# %  key: plant_column_stream_id
+# %  type: string
+# %  description: Column name with the stream id
+# %  required: no
+# %  answer: stream_id
+# %  guisection: Input columns
+# %end
+# %option
+# %  key: plant_column_elevup
+# %  type: string
+# %  description: Column name with the elevation value at the intake (upstream) [m]
+# %  required: no
+# %  answer: elev_up
+# %  guisection: Input columns
+# %end
+# %option
+# %  key: plant_column_elevdown
+# %  type: string
+# %  description: Column name with the elevation value at the restitution (downstream) [m]
+# %  required: no
+# %  answer: elev_down
+# %  guisection: Input columns
+# %end
+# %option
+# %  key: plant_column_discharge
+# %  type: string
+# %  description: Column name with the discharge values [m3/s]
+# %  required: no
+# %  answer: discharge
+# %  guisection: Input columns
+# %end
+# %option
+# %  key: plant_column_power
+# %  type: string
+# %  description: Column name with the potential power [kW]
+# %  required: no
+# %  answer: pot_power
+# %  guisection: Input columns
+# %end
+# %option
+# %  key: ndigits
+# %  type: integer
+# %  description: Number of digits to use for the elevation in the contour line vector map
+# %  required: no
+# %  answer: 0
+# %  guisection: Contour
+# %end
+# %option
+# %  key: resolution
+# %  type: double
+# %  description: Resolution use for the contour line vector map, if 0.25 approximate 703.31 tp 703.25
+# %  required: no
+# %  guisection: Contour
+# %end
+# %option G_OPT_V_OUTPUT
+# %  key: contour
+# %  description: Name of the contour line vector map
+# %  required: no
+# %  guisection: Contour
+# %end
+# %option G_OPT_V_OUTPUT
+# % key: output_point
+# % label: Name of output vector map with potential intakes and restitution
+# % required: no
+# %end
+# %option G_OPT_V_OUTPUT
+# % key: output_struct
+# % label: Name of output vector map with the structure of the plants
+# % required: yes
+# %end
 ##
 ## FLAGS
 ##
-#%flag
-#% key: d
-#% description: Debug with intermediate maps
-#%end
+# %flag
+# % key: d
+# % description: Debug with intermediate maps
+# %end
 from __future__ import print_function
 
 import atexit

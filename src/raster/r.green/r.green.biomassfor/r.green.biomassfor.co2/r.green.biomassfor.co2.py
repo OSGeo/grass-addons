@@ -17,239 +17,239 @@
 #
 #############################################################################
 #
-#%Module
-#% description: Calculates impact and multifunctionality values
-#% keyword: raster
-#% keyword: biomass
-#%End
-#%option G_OPT_V_INPUT
-#% key: forest
-#% type: string
-#% description: Name of vector parcel map
-#% label: Name of vector parcel map
-#% required : yes
-#%end
-#%option G_OPT_V_INPUT
-#% key: boundaries
-#% type: string
-#% description: Name of vector boundaries map (boolean map)
-#% label: Name of vector boundaries map (boolean map)
-#% required : yes
-#%end
-#%option
-#% key: forest_column_yield
-#% type: string
-#% description: Vector field of yield
-#% required : yes
-#%end
-#%option
-#% key: forest_column_yield_surface
-#% type: string
-#% description: Vector field of stand surface (ha)
-#% required : yes
-#%end
-#%option
-#% key: forest_column_management
-#% type: string
-#% description: Vector field of forest management (1: high forest, 2:coppice)
-#% required : yes
-#%end
-#%option
-#% key: forest_column_treatment
-#% type: string
-#% description: Vector field of forest treatment (1: final felling, 2:thinning)
-#% required : yes
-#%end
-#%option G_OPT_V_INPUT
-#% key: forest_roads
-#% type: string
-#% description: Vector map of forest roads
-#% label: Vector map of forest roads
-#% required : yes
-#%end
-#%option
-#% key: forest_column_roughness
-#% type: string
-#% description: Vector field of roughness
-#% required : no
-#% guisection: Opt files
-#%end
-#%option G_OPT_V_INPUT
-#% key: rivers
-#% type: string
-#% description: Vector map of rivers
-#% label: Vector map of rivers
-#% required : no
-#% guisection: Opt files
-#%end
-#%option G_OPT_V_INPUT
-#% key: lakes
-#% type: string
-#% description: Vector map of lakes
-#% label: Vector map of lakes
-#% required : no
-#% guisection: Opt files
-#%end
-#%option
-#% key: energy_tops_hf
-#% type: double
-#% description: Energy for tops and branches in high forest in MWh/m3
-#% answer: 0.49
-#% guisection: Energy
-#%end
-#%option
-#% key: energy_cormometric_vol_hf
-#% type: double
-#% description: Energy for tops and branches for high forest in MWh/m3
-#% answer: 1.97
-#% guisection: Energy
-#%end
-#%option
-#% key: energy_tops_cop
-#% type: double
-#% description: Energy for tops and branches for Coppices in MWh/m3
-#% answer: 0.55
-#% guisection: Energy
-#%end
-#%option G_OPT_R_INPUT
-#% key: energy_map
-#% description: Bioenergy map in MWh/m3
-#% required : yes
-#%end
-#%option G_OPT_V_INPUT
-#% key: dhp
-#% type: string
-#% description: Name of vector district heating points
-#% label: Name of vector district heating points
-#% required : yes
-#%end
-#%option
-#% key: output_basename_co2map
-#% type: string
-#% gisprompt: new
-#% description: Name for output CO2 emissions map
-#% key_desc : name
-#% guisection: CO2 Emission
-#%end
-#%option
-#% key: output_basename_aco2map
-#% type: string
-#% gisprompt: new
-#% description: Name for output avoided CO2 emissions map
-#% key_desc : name
-#% guisection: CO2 Emission
-#%end
-#%option
-#% key: output_basename_nco2map
-#% type: string
-#% gisprompt: new
-#% description: Name for output net CO2 emissions map
-#% key_desc : name
-#% guisection: CO2 Emission
-#%end
-#%option G_OPT_R_INPUT
-#% key: dtm
-#% type: string
-#% description: Name of Digital terrain model map
-#% required : no
-#% guisection : CO2 Emission
-#%end
-#%option
-#% key: forest_column_roughness
-#% type: string
-#% description: Vector field of roughness
-#% required : no
-#% guisection: Opt files
-#%end
-#%option G_OPT_R_INPUT
-#% key: soilp2_map
-#% type: string
-#% description: Soil production map
-#% required : no
-#% guisection: CO2 Emission
-#%end
-#%option G_OPT_R_INPUT
-#% key: tree_diam
-#% type: string
-#% description: Average tree diameter map
-#% required : no
-#% guisection: CO2 Emission
-#%end
-#%option G_OPT_R_INPUT
-#% key: tree_vol
-#% type: string
-#% description: Average tree volume map
-#% required : no
-#% guisection: CO2 Emission
-#%end
-#%option G_OPT_V_INPUT
-#% key: main_roads
-#% type: string
-#% description: Vector map of main roads
-#% label: Vector map of main roads
-#% required : no
-#% guisection: CO2 Emission
-#%end
-#%option
-#% key: slp_min_cc
-#% type: double
-#% description: Percent slope lower limit with Cable Crane
-#% answer: 30.
-#% required : no
-#% guisection: CO2 Emission
-#%end
-#%option
-#% key: slp_max_cc
-#% type: double
-#% description: Percent slope higher limit with Cable Crane
-#% answer: 100.
-#% required : no
-#% guisection: CO2 Emission
-#%end
-#%option
-#% key: dist_max_cc
-#% type: double
-#% description: Maximum distance with Cable Crane
-#% answer: 800.
-#% required : no
-#% guisection: CO2 Emission
-#%end
-#%option
-#% key: slp_max_fw
-#% type: double
-#% description: Percent slope higher limit with Forwarder
-#% answer: 30.
-#% required : no
-#% guisection: CO2 Emission
-#%end
-#%option
-#% key: dist_max_fw
-#% type: double
-#% description: Maximum distance with Forwarder
-#% answer: 600.
-#% required : no
-#% guisection: CO2 Emission
-#%end
-#%option
-#% key: slp_max_cop
-#% type: double
-#% description: Percent slope higher limit with other techniques for Coppices
-#% answer: 30.
-#% required : no
-#% guisection: CO2 Emission
-#%end
-#%option
-#% key: dist_max_cop
-#% type: double
-#% description: Maximum distance with other techniques for Coppices
-#% answer: 600.
-#% required : no
-#% guisection: CO2 Emission
-#%end
-#%flag
-#% key: r
-#% description: Remove all operational maps
-#%end
+# %Module
+# % description: Calculates impact and multifunctionality values
+# % keyword: raster
+# % keyword: biomass
+# %End
+# %option G_OPT_V_INPUT
+# % key: forest
+# % type: string
+# % description: Name of vector parcel map
+# % label: Name of vector parcel map
+# % required : yes
+# %end
+# %option G_OPT_V_INPUT
+# % key: boundaries
+# % type: string
+# % description: Name of vector boundaries map (boolean map)
+# % label: Name of vector boundaries map (boolean map)
+# % required : yes
+# %end
+# %option
+# % key: forest_column_yield
+# % type: string
+# % description: Vector field of yield
+# % required : yes
+# %end
+# %option
+# % key: forest_column_yield_surface
+# % type: string
+# % description: Vector field of stand surface (ha)
+# % required : yes
+# %end
+# %option
+# % key: forest_column_management
+# % type: string
+# % description: Vector field of forest management (1: high forest, 2:coppice)
+# % required : yes
+# %end
+# %option
+# % key: forest_column_treatment
+# % type: string
+# % description: Vector field of forest treatment (1: final felling, 2:thinning)
+# % required : yes
+# %end
+# %option G_OPT_V_INPUT
+# % key: forest_roads
+# % type: string
+# % description: Vector map of forest roads
+# % label: Vector map of forest roads
+# % required : yes
+# %end
+# %option
+# % key: forest_column_roughness
+# % type: string
+# % description: Vector field of roughness
+# % required : no
+# % guisection: Opt files
+# %end
+# %option G_OPT_V_INPUT
+# % key: rivers
+# % type: string
+# % description: Vector map of rivers
+# % label: Vector map of rivers
+# % required : no
+# % guisection: Opt files
+# %end
+# %option G_OPT_V_INPUT
+# % key: lakes
+# % type: string
+# % description: Vector map of lakes
+# % label: Vector map of lakes
+# % required : no
+# % guisection: Opt files
+# %end
+# %option
+# % key: energy_tops_hf
+# % type: double
+# % description: Energy for tops and branches in high forest in MWh/m3
+# % answer: 0.49
+# % guisection: Energy
+# %end
+# %option
+# % key: energy_cormometric_vol_hf
+# % type: double
+# % description: Energy for tops and branches for high forest in MWh/m3
+# % answer: 1.97
+# % guisection: Energy
+# %end
+# %option
+# % key: energy_tops_cop
+# % type: double
+# % description: Energy for tops and branches for Coppices in MWh/m3
+# % answer: 0.55
+# % guisection: Energy
+# %end
+# %option G_OPT_R_INPUT
+# % key: energy_map
+# % description: Bioenergy map in MWh/m3
+# % required : yes
+# %end
+# %option G_OPT_V_INPUT
+# % key: dhp
+# % type: string
+# % description: Name of vector district heating points
+# % label: Name of vector district heating points
+# % required : yes
+# %end
+# %option
+# % key: output_basename_co2map
+# % type: string
+# % gisprompt: new
+# % description: Name for output CO2 emissions map
+# % key_desc : name
+# % guisection: CO2 Emission
+# %end
+# %option
+# % key: output_basename_aco2map
+# % type: string
+# % gisprompt: new
+# % description: Name for output avoided CO2 emissions map
+# % key_desc : name
+# % guisection: CO2 Emission
+# %end
+# %option
+# % key: output_basename_nco2map
+# % type: string
+# % gisprompt: new
+# % description: Name for output net CO2 emissions map
+# % key_desc : name
+# % guisection: CO2 Emission
+# %end
+# %option G_OPT_R_INPUT
+# % key: dtm
+# % type: string
+# % description: Name of Digital terrain model map
+# % required : no
+# % guisection : CO2 Emission
+# %end
+# %option
+# % key: forest_column_roughness
+# % type: string
+# % description: Vector field of roughness
+# % required : no
+# % guisection: Opt files
+# %end
+# %option G_OPT_R_INPUT
+# % key: soilp2_map
+# % type: string
+# % description: Soil production map
+# % required : no
+# % guisection: CO2 Emission
+# %end
+# %option G_OPT_R_INPUT
+# % key: tree_diam
+# % type: string
+# % description: Average tree diameter map
+# % required : no
+# % guisection: CO2 Emission
+# %end
+# %option G_OPT_R_INPUT
+# % key: tree_vol
+# % type: string
+# % description: Average tree volume map
+# % required : no
+# % guisection: CO2 Emission
+# %end
+# %option G_OPT_V_INPUT
+# % key: main_roads
+# % type: string
+# % description: Vector map of main roads
+# % label: Vector map of main roads
+# % required : no
+# % guisection: CO2 Emission
+# %end
+# %option
+# % key: slp_min_cc
+# % type: double
+# % description: Percent slope lower limit with Cable Crane
+# % answer: 30.
+# % required : no
+# % guisection: CO2 Emission
+# %end
+# %option
+# % key: slp_max_cc
+# % type: double
+# % description: Percent slope higher limit with Cable Crane
+# % answer: 100.
+# % required : no
+# % guisection: CO2 Emission
+# %end
+# %option
+# % key: dist_max_cc
+# % type: double
+# % description: Maximum distance with Cable Crane
+# % answer: 800.
+# % required : no
+# % guisection: CO2 Emission
+# %end
+# %option
+# % key: slp_max_fw
+# % type: double
+# % description: Percent slope higher limit with Forwarder
+# % answer: 30.
+# % required : no
+# % guisection: CO2 Emission
+# %end
+# %option
+# % key: dist_max_fw
+# % type: double
+# % description: Maximum distance with Forwarder
+# % answer: 600.
+# % required : no
+# % guisection: CO2 Emission
+# %end
+# %option
+# % key: slp_max_cop
+# % type: double
+# % description: Percent slope higher limit with other techniques for Coppices
+# % answer: 30.
+# % required : no
+# % guisection: CO2 Emission
+# %end
+# %option
+# % key: dist_max_cop
+# % type: double
+# % description: Maximum distance with other techniques for Coppices
+# % answer: 600.
+# % required : no
+# % guisection: CO2 Emission
+# %end
+# %flag
+# % key: r
+# % description: Remove all operational maps
+# %end
 
 import pdb
 

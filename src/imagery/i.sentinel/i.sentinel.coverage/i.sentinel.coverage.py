@@ -17,87 +17,87 @@
 #
 #############################################################################
 
-#%Module
-#% description: Checks the area coverage of Sentinel-1 or Sentinel-2 scenes selected by filters.
-#% keyword: imagery
-#% keyword: satellite
-#% keyword: Sentinel
-#% keyword: geometry
-#% keyword: spatial query
-#% keyword: area
-#%end
+# %Module
+# % description: Checks the area coverage of Sentinel-1 or Sentinel-2 scenes selected by filters.
+# % keyword: imagery
+# % keyword: satellite
+# % keyword: Sentinel
+# % keyword: geometry
+# % keyword: spatial query
+# % keyword: area
+# %end
 
-#%option G_OPT_F_INPUT
-#% key: settings
-#% label: Full path to settings file (user, password)
-#%end
+# %option G_OPT_F_INPUT
+# % key: settings
+# % label: Full path to settings file (user, password)
+# %end
 
-#%option G_OPT_V_INPUT
-#% key: area
-#% description: Area input vector maps
-#%end
+# %option G_OPT_V_INPUT
+# % key: area
+# % description: Area input vector maps
+# %end
 
-#%option
-#% key: start
-#% type: string
-#% description: Start date ('YYYY-MM-DD')
-#% guisection: Filter
-#%end
+# %option
+# % key: start
+# % type: string
+# % description: Start date ('YYYY-MM-DD')
+# % guisection: Filter
+# %end
 
-#%option
-#% key: end
-#% type: string
-#% description: End date ('YYYY-MM-DD')
-#% guisection: Filter
-#%end
+# %option
+# % key: end
+# % type: string
+# % description: End date ('YYYY-MM-DD')
+# % guisection: Filter
+# %end
 
-#%option
-#% key: producttype
-#% type: string
-#% description: Sentinel product type to filter
-#% required: no
-#% options: SLC,GRD,OCN,S2MSI1C,S2MSI2A,S2MSI2Ap
-#% answer: S2MSI2A
-#% guisection: Filter
-#%end
+# %option
+# % key: producttype
+# % type: string
+# % description: Sentinel product type to filter
+# % required: no
+# % options: SLC,GRD,OCN,S2MSI1C,S2MSI2A,S2MSI2Ap
+# % answer: S2MSI2A
+# % guisection: Filter
+# %end
 
-#%option
-#% key: clouds
-#% type: integer
-#% required: no
-#% multiple: no
-#% description: Maximum cloud cover percentage for Sentinel scene
-#% guisection: Filter
-#%end
+# %option
+# % key: clouds
+# % type: integer
+# % required: no
+# % multiple: no
+# % description: Maximum cloud cover percentage for Sentinel scene
+# % guisection: Filter
+# %end
 
-#%option
-#% key: minpercent
-#% type: integer
-#% required: no
-#% multiple: no
-#% description: Minimal percentage of coverage for Sentinel scene; error otherwise
-#% guisection: Filter
-#%end
+# %option
+# % key: minpercent
+# % type: integer
+# % required: no
+# % multiple: no
+# % description: Minimal percentage of coverage for Sentinel scene; error otherwise
+# % guisection: Filter
+# %end
 
-#%option
-#% key: names
-#% type: string
-#% description: Sentinel-1 or Sentinel-2 names
-#% guisection: Filter
-#% required: no
-#% multiple: yes
-#%end
+# %option
+# % key: names
+# % type: string
+# % description: Sentinel-1 or Sentinel-2 names
+# % guisection: Filter
+# % required: no
+# % multiple: yes
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key: output
-#% label: Output file with a list of Sentinel-1 or Sentinel-2 scene names
-#% required: no
-#%end
+# %option G_OPT_F_OUTPUT
+# % key: output
+# % label: Output file with a list of Sentinel-1 or Sentinel-2 scene names
+# % required: no
+# %end
 
-#%rules
-#% collective: start,end
-#% excludes: names,start,end,clouds,producttype
-#%end
+# %rules
+# % collective: start,end
+# % excludes: names,start,end,clouds,producttype
+# %end
 
 
 import atexit

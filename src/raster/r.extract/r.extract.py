@@ -13,35 +13,35 @@
 #
 #############################################################################
 
-#%module
-#% description: Extracts specified categories of an integer input map.
-#% keyword: raster
-#% keyword: extract
-#% keyword: extent
-#% keyword: category
-#%end
-#%option G_OPT_R_INPUT
-#%end
-#%option G_OPT_R_OUTPUT
-#%end
-#%option
-#% key: cats
-#% type: string
-#% required: yes
-#% multiple: no
-#% key_desc: range
-#% label: Category values
-#% description: Example: 1,3,7-9,13
-#% gisprompt: old,cats,cats
-#%end
-#%flag
-#% key: c
-#% description: Clip to minimum extent
-#%end
-#%flag
-#% key: s
-#% description: Output reclassified map instead of true map
-#%end
+# %module
+# % description: Extracts specified categories of an integer input map.
+# % keyword: raster
+# % keyword: extract
+# % keyword: extent
+# % keyword: category
+# %end
+# %option G_OPT_R_INPUT
+# %end
+# %option G_OPT_R_OUTPUT
+# %end
+# %option
+# % key: cats
+# % type: string
+# % required: yes
+# % multiple: no
+# % key_desc: range
+# % label: Category values
+# % description: Example: 1,3,7-9,13
+# % gisprompt: old,cats,cats
+# %end
+# %flag
+# % key: c
+# % description: Clip to minimum extent
+# %end
+# %flag
+# % key: s
+# % description: Output reclassified map instead of true map
+# %end
 
 import sys
 import atexit

@@ -14,25 +14,25 @@
 #############################################################################
 
 
-#%module
-#% description: Creates a concave hull around points.
-#% keyword: vector
-#% keyword: geometry
-#% keyword: alpha shape
-#%end
-#%option G_OPT_V_INPUT
-#% label: Input points
-#%end
-#%option G_OPT_V_OUTPUT
-#%end
-#%option
-#% key: threshold
-#% type: double
-#% description: Lower values make the hull more concave
-#% required : no
-#% answer: 7
-#% options: 0-10
-#%end
+# %module
+# % description: Creates a concave hull around points.
+# % keyword: vector
+# % keyword: geometry
+# % keyword: alpha shape
+# %end
+# %option G_OPT_V_INPUT
+# % label: Input points
+# %end
+# %option G_OPT_V_OUTPUT
+# %end
+# %option
+# % key: threshold
+# % type: double
+# % description: Lower values make the hull more concave
+# % required : no
+# % answer: 7
+# % options: 0-10
+# %end
 
 import sys
 import os

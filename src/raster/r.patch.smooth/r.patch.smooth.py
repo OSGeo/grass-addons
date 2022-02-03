@@ -17,80 +17,80 @@
 #
 ##############################################################################
 
-#%module
-#% description: Module for patching rasters with smoothing along edges
-#% keyword: raster
-#% keyword: patch
-#%end
-#%option G_OPT_R_INPUT
-#% key: input_a
-#% label: Name for input raster map A
-#%end
-#%option G_OPT_R_INPUT
-#% key: input_b
-#% label: Name for input raster map B
-#%end
-#%option G_OPT_R_OUTPUT
-#%end
-#%option G_OPT_R_OUTPUT
-#% key: overlap
-#% label: Name for raster map of spatially variable overlap
-#% required: no
-#%end
-#%option
-#% type: string
-#% key: blend_mask
-#% label: Raster containing edge of raster A which is not to be blended
-#% description: Useful when raster A has common edge with raster B
-#% required: no
-#% guisection: Settings
-#%end
-#%option
-#% type: double
-#% key: smooth_dist
-#% description: Smoothing distance in map units
-#% required: no
-#% guisection: Settings
-#%end
-#%option
-#% type: double
-#% key: transition_angle
-#% label: Angle of transition for spatially variable overlap
-#% description: Recommended values between 1 and 5 degrees
-#% required: no
-#% guisection: Settings
-#%end
-#%option
-#% type: integer
-#% key: parallel_smoothing
-#% label: Size of smoothing window for smoothing edges of spatially variable overlap zone
-#% description: Small value results in more rugged shape of the overlap zone, large values result in spatially non-variable overlap zone. Requires odd values.
-#% answer: 9
-#% options: 3-99
-#% required: no
-#% guisection: Settings
-#%end
-#%option
-#% type: integer
-#% key: difference_reach
-#% label: Look for maximum difference between surfaces in surrounding n cells from the edge
-#% description: Recommended values between 3 and 9
-#% answer: 3
-#% options: 2-100
-#% required: no
-#% guisection: Settings
-#%end
-#%flag
-#% key: s
-#% description: Use spatially variable overlap
-#% guisection: Settings
-#%end
-#%rules
-#% collective: -s,transition_angle
-#% exclusive: transition_angle,smooth_dist
-#% required: -s,smooth_dist
-#% excludes: smooth_dist,overlap
-#%end
+# %module
+# % description: Module for patching rasters with smoothing along edges
+# % keyword: raster
+# % keyword: patch
+# %end
+# %option G_OPT_R_INPUT
+# % key: input_a
+# % label: Name for input raster map A
+# %end
+# %option G_OPT_R_INPUT
+# % key: input_b
+# % label: Name for input raster map B
+# %end
+# %option G_OPT_R_OUTPUT
+# %end
+# %option G_OPT_R_OUTPUT
+# % key: overlap
+# % label: Name for raster map of spatially variable overlap
+# % required: no
+# %end
+# %option
+# % type: string
+# % key: blend_mask
+# % label: Raster containing edge of raster A which is not to be blended
+# % description: Useful when raster A has common edge with raster B
+# % required: no
+# % guisection: Settings
+# %end
+# %option
+# % type: double
+# % key: smooth_dist
+# % description: Smoothing distance in map units
+# % required: no
+# % guisection: Settings
+# %end
+# %option
+# % type: double
+# % key: transition_angle
+# % label: Angle of transition for spatially variable overlap
+# % description: Recommended values between 1 and 5 degrees
+# % required: no
+# % guisection: Settings
+# %end
+# %option
+# % type: integer
+# % key: parallel_smoothing
+# % label: Size of smoothing window for smoothing edges of spatially variable overlap zone
+# % description: Small value results in more rugged shape of the overlap zone, large values result in spatially non-variable overlap zone. Requires odd values.
+# % answer: 9
+# % options: 3-99
+# % required: no
+# % guisection: Settings
+# %end
+# %option
+# % type: integer
+# % key: difference_reach
+# % label: Look for maximum difference between surfaces in surrounding n cells from the edge
+# % description: Recommended values between 3 and 9
+# % answer: 3
+# % options: 2-100
+# % required: no
+# % guisection: Settings
+# %end
+# %flag
+# % key: s
+# % description: Use spatially variable overlap
+# % guisection: Settings
+# %end
+# %rules
+# % collective: -s,transition_angle
+# % exclusive: transition_angle,smooth_dist
+# % required: -s,smooth_dist
+# % excludes: smooth_dist,overlap
+# %end
 
 import os
 import sys

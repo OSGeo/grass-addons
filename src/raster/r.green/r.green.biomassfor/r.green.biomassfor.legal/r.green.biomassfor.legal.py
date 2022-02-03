@@ -14,84 +14,84 @@
 #              for details.
 #
 #############################################################################
-#%Module
-#% description: Estimates potential bioenergy depending on forest increment, forest management and forest treatment
-#% keyword: raster
-#% keyword: biomass
-#% overwrite: yes
-#%End
-#%option G_OPT_V_INPUT
-#% key: forest
-#% type: string
-#% description: Name of vector parcel map
-#% label: Name of vector parcel map
-#% guisection: Base
-#%end
-#%option G_OPT_V_INPUT
-#% key: boundaries
-#% type: string
-#% description: Name of vector boundaries map (boolean map)
-#% label: Name of vector boundaries map (boolean map)
-#% guisection: Base
-#%end
-#%option
-#% key: energy_tops_hf
-#% type: double
-#% description: Energy for tops and branches in high forest in MWh/m3
-#% answer: 0.49
-#% guisection: Energy
-#%end
-#%option
-#% key: forest_column_yield
-#% type: string
-#% answer: yield
-#% description: Vector field of yield
-#% guisection: Base
-#%end
-#%option
-#% key: forest_column_yield_surface
-#% type: string
-#% answer: yield_surface
-#% description: Vector field of stand surface (ha)
-#% guisection: Base
-#%end
-#%option
-#% key: forest_column_management
-#% type: string
-#% answer: management
-#% description: Vector field of forest management (1: high forest, 2:coppice)
-#% guisection: Base
-#%end
-#%option
-#% key: forest_column_treatment
-#% answer: treatment
-#% type: string
-#% description: Vector field of forest treatment (1: final felling, 2:thinning)
-#% guisection: Base
-#%end
-#%option
-#% key: output_basename
-#% answer: biomassfor
-#% type: string
-#% gisprompt: new
-#% description: Basename for potential bioenergy (HF,CC and total)
-#% key_desc : name
-#% guisection: Base
-#%end
-#%option
-#% key: energy_cormometric_vol_hf
-#% type: double
-#% description: Energy for the whole tree in high forest (tops, branches and stem) in MWh/m3
-#% answer: 1.97
-#% guisection: Energy
-#%end
-#%option
-#% key: energy_tops_cop
-#% type: double
-#% description: Energy for tops and branches for Coppices in MWh/m3
-#% answer: 0.55
-#% guisection: Energy
-#%end
+# %Module
+# % description: Estimates potential bioenergy depending on forest increment, forest management and forest treatment
+# % keyword: raster
+# % keyword: biomass
+# % overwrite: yes
+# %End
+# %option G_OPT_V_INPUT
+# % key: forest
+# % type: string
+# % description: Name of vector parcel map
+# % label: Name of vector parcel map
+# % guisection: Base
+# %end
+# %option G_OPT_V_INPUT
+# % key: boundaries
+# % type: string
+# % description: Name of vector boundaries map (boolean map)
+# % label: Name of vector boundaries map (boolean map)
+# % guisection: Base
+# %end
+# %option
+# % key: energy_tops_hf
+# % type: double
+# % description: Energy for tops and branches in high forest in MWh/m3
+# % answer: 0.49
+# % guisection: Energy
+# %end
+# %option
+# % key: forest_column_yield
+# % type: string
+# % answer: yield
+# % description: Vector field of yield
+# % guisection: Base
+# %end
+# %option
+# % key: forest_column_yield_surface
+# % type: string
+# % answer: yield_surface
+# % description: Vector field of stand surface (ha)
+# % guisection: Base
+# %end
+# %option
+# % key: forest_column_management
+# % type: string
+# % answer: management
+# % description: Vector field of forest management (1: high forest, 2:coppice)
+# % guisection: Base
+# %end
+# %option
+# % key: forest_column_treatment
+# % answer: treatment
+# % type: string
+# % description: Vector field of forest treatment (1: final felling, 2:thinning)
+# % guisection: Base
+# %end
+# %option
+# % key: output_basename
+# % answer: biomassfor
+# % type: string
+# % gisprompt: new
+# % description: Basename for potential bioenergy (HF,CC and total)
+# % key_desc : name
+# % guisection: Base
+# %end
+# %option
+# % key: energy_cormometric_vol_hf
+# % type: double
+# % description: Energy for the whole tree in high forest (tops, branches and stem) in MWh/m3
+# % answer: 1.97
+# % guisection: Energy
+# %end
+# %option
+# % key: energy_tops_cop
+# % type: double
+# % description: Energy for tops and branches for Coppices in MWh/m3
+# % answer: 0.55
+# % guisection: Energy
+# %end
 
 import numpy as np
 

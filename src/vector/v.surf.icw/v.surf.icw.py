@@ -37,62 +37,62 @@
 #  hard drive (r.cost is heavy on disk IO).
 
 
-#%Module
-#% description: IDW interpolation, but distance is cost to get to any other site.
-#% keyword: vector
-#% keyword: surface
-#% keyword: interpolation
-#% keyword: ICW
-#%End
-#%option
-#% key: input
-#% type: string
-#% gisprompt: old,vector,vector
-#% description: Name of existing vector points map containing seed data
-#% required : yes
-#%end
-#%option
-#% key: column
-#% type: string
-#% description: Column name in points map that contains data values
-#% required : yes
-#%end
-#%option
-#% key: output
-#% type: string
-#% gisprompt: new,cell,raster
-#% description: Name for output raster map
-#% required : yes
-#%end
-#%option
-#% key: cost_map
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Name of existing raster map containing cost information
-#% required : yes
-#%end
-#%option
-#% key: friction
-#% type: double
-#% description: Friction of distance, (the 'n' in 1/d^n)
-#% answer: 2
-#% options: 1-6
-#% required : no
-#%end
-#%option
-#% key: layer
-#% type: integer
-#% answer: 1
-#% description: Layer number of data in points map
-#% required: no
-#%end
-#%option
-#% key: where
-#% type: string
-#% label: WHERE conditions of SQL query statement without 'where' keyword
-#% description: Example: income < 1000 and inhab >= 10000
-#% required : no
-#%end
+# %Module
+# % description: IDW interpolation, but distance is cost to get to any other site.
+# % keyword: vector
+# % keyword: surface
+# % keyword: interpolation
+# % keyword: ICW
+# %End
+# %option
+# % key: input
+# % type: string
+# % gisprompt: old,vector,vector
+# % description: Name of existing vector points map containing seed data
+# % required : yes
+# %end
+# %option
+# % key: column
+# % type: string
+# % description: Column name in points map that contains data values
+# % required : yes
+# %end
+# %option
+# % key: output
+# % type: string
+# % gisprompt: new,cell,raster
+# % description: Name for output raster map
+# % required : yes
+# %end
+# %option
+# % key: cost_map
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Name of existing raster map containing cost information
+# % required : yes
+# %end
+# %option
+# % key: friction
+# % type: double
+# % description: Friction of distance, (the 'n' in 1/d^n)
+# % answer: 2
+# % options: 1-6
+# % required : no
+# %end
+# %option
+# % key: layer
+# % type: integer
+# % answer: 1
+# % description: Layer number of data in points map
+# % required: no
+# %end
+# %option
+# % key: where
+# % type: string
+# % label: WHERE conditions of SQL query statement without 'where' keyword
+# % description: Example: income < 1000 and inhab >= 10000
+# % required : no
+# %end
 
 ##%option
 ##% key: max_cost
@@ -101,24 +101,24 @@
 ##% required : no
 ##%end
 
-#%option
-#% key: post_mask
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Name of existing raster map to be used as post-processing MASK
-#% required : no
-#%end
-#%flag
-#% key: r
-#% description: Use (d^n)*log(d) instead of 1/(d^n) for radial basis function
-#%end
-#%option
-#% key: workers
-#% type: integer
-#% options: 1-256
-#% answer: 1
-#% description: Number of parallel processes to launch
-#%end
+# %option
+# % key: post_mask
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Name of existing raster map to be used as post-processing MASK
+# % required : no
+# %end
+# %flag
+# % key: r
+# % description: Use (d^n)*log(d) instead of 1/(d^n) for radial basis function
+# %end
+# %option
+# % key: workers
+# % type: integer
+# % options: 1-256
+# % answer: 1
+# % description: Number of parallel processes to launch
+# %end
 
 from __future__ import unicode_literals
 from builtins import str
