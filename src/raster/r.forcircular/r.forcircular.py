@@ -12,393 +12,392 @@
 #              for details.
 #
 #############################################################################
-# %Module
-# % description: Evaluation of circular bioeconomy level of forest ecosystems
-# % keyword: raster
-# % keyword: bioeconomy
-# % keyword: forest
-# %End
-# %option G_OPT_V_INPUT
-# % key: forest
-# % type: string
-# % description: Name of input parcel parcel map
-# % label: Name of input parcel parcel map
-# % required : yes
-# % guisection: Base
-# %end
-# %option G_OPT_V_INPUT
-# % key: boundaries
-# % type: string
-# % description: Name of input boundaries vector boolean map
-# % label: Name of input boundaries vector boolean map
-# % required : yes
-# % guisection: Base
-# %end
-# %option G_OPT_R_ELEV
-# % key: dtm
-# % type: string
-# % description: Name of input elevation raster map
-# % required : yes
-# % guisection: Base
-# %end
-# %option G_OPT_V_INPUT
-# % key: tracks
-# % type: string
-# % description: Name of input forest roads vector map
-# % label: Name of input forest roads vector map
-# % guisection: Base
-# % required : yes
-# %end
-# %option G_OPT_V_INPUT
-# % key: rivers
-# % type: string
-# % description: Name of input rivers vector map
-# % label: Name of input rivers vector map
-# % required : no
-# % guisection: Base
-# %end
-# %option G_OPT_V_INPUT
-# % key: lakes
-# % type: string
-# % description: Name of input lakes vector map
-# % label: Name of input lakes vector map
-# % required : no
-# % guisection: Base
-# %end
-# %option G_OPT_V_INPUT
-# % key: protected_areas
-# % type: string
-# % description: Name of input protected areas vector map
-# % label: Name of input protected areas vector map
-# % required : no
-# % guisection: Base
-# %end
-# %option
-# % key: slp_min_cc
-# % type: double
-# % description: Percent slope lower limit for aerial extraction
-# % answer: 30.
-# % required : yes
-# % guisection: Variables
-# %end
-# %option
-# % key: slp_max_cc
-# % type: double
-# % description: Percent slope higher limit for aerial extraction
-# % answer: 100.
-# % required : yes
-# % guisection:Variables
-# %end
-# %option
-# % key: dist_max_cc
-# % type: double
-# % description: Maximum distance for aerial extraction
-# % answer: 1000.
-# % required : yes
-# % guisection: Variables
-# %end
-# %option
-# % key: slp_max_fw
-# % type: double
-# % description: Percent slope higher limit with Forwarder
-# % answer: 30.
-# % required : no
-# % guisection: Variables
-# %end
-# %option
-# % key: dist_max_fw
-# % type: double
-# % description: Maximum distance with Forwarder
-# % answer: 900.
-# % required : yes
-# % guisection: Variables
-# %end
-# %option
-# % key: slp_max_cop
-# % type: double
-# % description: Percent slope higher limit with other techniques for Coppices
-# % answer: 30.
-# % required : yes
-# % guisection: Variables
-# %end
-# %option
-# % key: dist_max_cop
-# % type: double
-# % description: Maximum distance with other techniques for Coppices
-# % answer: 800.
-# % required : yes
-# % guisection: Variables
-# %end
-# %option
-# % key: hf_slope
-# % type: string
-# % description: Machineries for high forest in steep terrain
-# % options: cable crane - high power,cable crane - medium/low power,skidder
-# % required: yes
-# % guisection: Variables
-# %end
-# %option
-# % key: c_slope
-# % type: string
-# % description: Machineries for coppice in steep terrain
-# % options: cable crane - high power,cable crane - medium/low power,tractor
-# % required: yes
-# % guisection: Variables
-# %end
-# %option
-# % key: hf_noslope
-# % type: string
-# % description: Vehicle for high forest in not steep terrain
-# % options: forwarder,skidder,tractor
-# % required: yes
-# % guisection: Variables
-# %end
-# %option
-# % key: c_noslope
-# % type: string
-# % description: Vehicle for coppice in not steep terrain
-# % options: forwarder,skidder,tractor
-# % required: yes
-# % guisection: Variables
-# %end
-# %option
-# % key: resolution
-# % type: value
-# % description: Working resolution
-# % answer: 10
-# % required : no
-# %end
-# %option
-# % key: cost_chainsaw
-# % type: double
-# % description: Felling and/or felling-processing cost with chainsaw EUR/h
-# % answer: 13.17
-# % guisection: Costs
-# %end
-# %option
-# % key: cost_processor
-# % type: double
-# % description: Processing cost with processor EUR/h
-# % answer: 83.52
-# % guisection: Costs
-# %end
-# %option
-# % key: cost_harvester
-# % type: double
-# % description: Felling and processing cost with harvester EUR/h
-# % answer: 96.33
-# % guisection: Costs
-# %end
-# %option
-# % key: cost_cablehf
-# % type: double
-# % description: Extraction cost with high power cable crane EUR/h
-# % answer: 111.64
-# % guisection: Costs
-# %end
-# %option
-# % key: cost_cablec
-# % type: double
-# % description: Extraction cost with medium power cable crane EUR/h
-# % answer: 104.31
-# % guisection: Costs
-# %end
-# %option
-# % key: cost_forwarder
-# % type: double
-# % description: Extraction cost with forwarder EUR/h
-# % answer: 70.70
-# % guisection: Costs
-# %end
-# %option
-# % key: cost_skidder
-# % type: double
-# % description: Extraction cost with skidder EUR/h
-# % answer: 64.36
-# % guisection: Costs
-# %end
-# %option
-# % key: cost_tractor
-# % type: double
-# % description: Extraction cost with tractor EUR/h
-# % answer: 45
-# % guisection: Costs
-# %end
-# %option
-# % key: cost_chipping
-# % type: double
-# % description: Chipping cost EUR/h
-# % answer: 160.87
-# % guisection: Costs
-# %end
-# %option
-# % key: interest
-# % type: double
-# % description: Interest rate EUR/h
-# % answer: 0.03
-# % guisection: Costs
-# %end
-# %option
-# % key: mc_paper
-# % type: double
-# % description: Percentage of roundwood re-use in paper
-# % answer : 0.02
-# % guisection: Indicators
-# %end
-# %option
-# % key: mc_furniture
-# % type: double
-# % description: Percentage of roundwood re-use in furniture
-# % answer : 0.4
-# % guisection: Indicators
-# %end
-# %option
-# % key: mc_building
-# % type: double
-# % description: Percentage of roundwood re-use in building
-# % answer : 0.5
-# % guisection: Indicators
-# %end
-# %option
-# % key: mc_woodpackaging
-# % type: double
-# % description: Percentage of roundwood re-use in packaging
-# % answer : 0.03
-# % guisection: Indicators
-# %end
-# %option
-# % key: mc_other
-# % type: double
-# % description: Percentage of roundwood re-use in other use
-# % answer : 0.05
-# % guisection: Indicators
-# %end
-# %option
-# % key: ind1
-# % type: string
-# % gisprompt: new
-# % description: Name for indicator n.1 map
-# % key_desc : name
-# % required: yes
-# % guisection: Indicators
-# %end
-# %option
-# % key: ind2
-# % type: string
-# % gisprompt: new
-# % description: Name for indicator n.2 map
-# % key_desc : name
-# % required: yes
-# % guisection: Indicators
-# %end
-# %option
-# % key: ind3
-# % type: string
-# % gisprompt: new
-# % description: Name for indicator n.3 map
-# % key_desc : name
-# % required: yes
-# % guisection: Indicators
-# %end
-# %option
-# % key: ind4
-# % type: string
-# % gisprompt: new
-# % description: Name for indicator n.4 map
-# % key_desc : name
-# % required: yes
-# % guisection: Indicators
-# %end
-# %option
-# % key: ind5
-# % type: string
-# % gisprompt: new
-# % description: Name for indicator n.5 map
-# % key_desc : name
-# % required: yes
-# % guisection: Indicators
-# %end
-# %option
-# % key: ind6
-# % type: string
-# % gisprompt: new
-# % description: Name for indicator n.6 map
-# % key_desc : name
-# % required: yes
-# % guisection: Indicators
-# %end
-# %option
-# % key: ind7
-# % type: string
-# % gisprompt: new
-# % description: Name for indicator n.7 map
-# % key_desc : name
-# % required: yes
-# % guisection: Indicators
-# %end
-# %option
-# % key: w_1
-# % type: double
-# % description: Weight for indicator n.1
-# % answer : 0.15
-# % guisection: Indicators
-# %end
-# %option
-# % key: w_2
-# % type: double
-# % description: Weight for indicator n.2
-# % answer : 0.12
-# % guisection: Indicators
-# %end
-# %option
-# % key: w_3
-# % type: double
-# % description: Weight for indicator n.3
-# % answer : 0.12
-# % guisection: Indicators
-# %end
-# %option
-# % key: w_4
-# % type: double
-# % description: Weight for indicator n.4
-# % answer : 0.13
-# % guisection: Indicators
-# %end
-# %option
-# % key: w_5
-# % type: double
-# % description: Weight for indicator n.5
-# % answer : 0.14
-# % guisection: Indicators
-# %end
-# %option
-# % key: w_6
-# % type: double
-# % description: Weight for indicator n.6
-# % answer : 0.17
-# % guisection: Indicators
-# %end
-# %option
-# % key: w_7
-# % type: double
-# % description: Weight for indicator n.7
-# % answer : 0.16
-# % guisection: Indicators
-# %end
-# %flag
-# % key: r
-# % description: Remove all operational maps
-# %end
+#%Module
+#% description: Evaluation of circular bioeconomy level of forest ecosystems
+#% keyword: raster
+#% keyword: bioeconomy
+#% keyword: forest
+#%End
+#%option G_OPT_V_INPUT
+#% key: forest
+#% type: string
+#% description: Name of input parcel parcel map
+#% label: Name of input parcel parcel map
+#% required : yes
+#% guisection: Base
+#%end
+#%option G_OPT_V_INPUT
+#% key: boundaries
+#% type: string
+#% description: Name of input boundaries vector boolean map
+#% label: Name of input boundaries vector boolean map
+#% required : yes
+#% guisection: Base
+#%end
+#%option G_OPT_R_ELEV
+#% key: dtm
+#% type: string
+#% description: Name of input elevation raster map
+#% required : yes
+#% guisection: Base
+#%end
+#%option G_OPT_V_INPUT
+#% key: tracks
+#% type: string
+#% description: Name of input forest roads vector map
+#% label: Name of input forest roads vector map
+#% guisection: Base
+#% required : yes
+#%end
+#%option G_OPT_V_INPUT
+#% key: rivers
+#% type: string
+#% description: Name of input rivers vector map
+#% label: Name of input rivers vector map
+#% required : no
+#% guisection: Base
+#%end
+#%option G_OPT_V_INPUT
+#% key: lakes
+#% type: string
+#% description: Name of input lakes vector map
+#% label: Name of input lakes vector map
+#% required : no
+#% guisection: Base
+#%end
+#%option G_OPT_V_INPUT
+#% key: protected_areas
+#% type: string
+#% description: Name of input protected areas vector map
+#% label: Name of input protected areas vector map
+#% required : no
+#% guisection: Base
+#%end
+#%option
+#% key: slp_min_cc
+#% type: double
+#% description: Percent slope lower limit for aerial extraction
+#% answer: 30.
+#% required : yes
+#% guisection: Variables
+#%end
+#%option
+#% key: slp_max_cc
+#% type: double
+#% description: Percent slope higher limit for aerial extraction
+#% answer: 100.
+#% required : yes
+#% guisection:Variables
+#%end
+#%option
+#% key: dist_max_cc
+#% type: double
+#% description: Maximum distance for aerial extraction
+#% answer: 1000.
+#% required : yes
+#% guisection: Variables
+#%end
+#%option
+#% key: slp_max_fw
+#% type: double
+#% description: Percent slope higher limit with Forwarder
+#% answer: 30.
+#% required : no
+#% guisection: Variables
+#%end
+#%option
+#% key: dist_max_fw
+#% type: double
+#% description: Maximum distance with Forwarder
+#% answer: 900.
+#% required : yes
+#% guisection: Variables
+#%end
+#%option
+#% key: slp_max_cop
+#% type: double
+#% description: Percent slope higher limit with other techniques for Coppices
+#% answer: 30.
+#% required : yes
+#% guisection: Variables
+#%end
+#%option
+#% key: dist_max_cop
+#% type: double
+#% description: Maximum distance with other techniques for Coppices
+#% answer: 800.
+#% required : yes
+#% guisection: Variables
+#%end
+#%option
+#% key: hf_slope
+#% type: string
+#% description: Machineries for high forest in steep terrain
+#% options: cable crane - high power,cable crane - medium/low power,skidder
+#% required: yes
+#% guisection: Variables
+#%end
+#%option
+#% key: c_slope
+#% type: string
+#% description: Machineries for coppice in steep terrain
+#% options: cable crane - high power,cable crane - medium/low power,tractor
+#% required: yes
+#% guisection: Variables
+#%end
+#%option
+#% key: hf_noslope
+#% type: string
+#% description: Vehicle for high forest in not steep terrain
+#% options: forwarder,skidder,tractor
+#% required: yes
+#% guisection: Variables
+#%end
+#%option
+#% key: c_noslope
+#% type: string
+#% description: Vehicle for coppice in not steep terrain
+#% options: forwarder,skidder,tractor
+#% required: yes
+#% guisection: Variables
+#%end
+#%option
+#% key: resolution
+#% type: value
+#% description: Working resolution
+#% answer: 10
+#% required : no
+#%end
+#%option
+#% key: cost_chainsaw
+#% type: double
+#% description: Felling and/or felling-processing cost with chainsaw EUR/h
+#% answer: 13.17
+#% guisection: Costs
+#%end
+#%option
+#% key: cost_processor
+#% type: double
+#% description: Processing cost with processor EUR/h
+#% answer: 83.52
+#% guisection: Costs
+#%end
+#%option
+#% key: cost_harvester
+#% type: double
+#% description: Felling and processing cost with harvester EUR/h
+#% answer: 96.33
+#% guisection: Costs
+#%end
+#%option
+#% key: cost_cablehf
+#% type: double
+#% description: Extraction cost with high power cable crane EUR/h
+#% answer: 111.64
+#% guisection: Costs
+#%end
+#%option
+#% key: cost_cablec
+#% type: double
+#% description: Extraction cost with medium power cable crane EUR/h
+#% answer: 104.31
+#% guisection: Costs
+#%end
+#%option
+#% key: cost_forwarder
+#% type: double
+#% description: Extraction cost with forwarder EUR/h
+#% answer: 70.70
+#% guisection: Costs
+#%end
+#%option
+#% key: cost_skidder
+#% type: double
+#% description: Extraction cost with skidder EUR/h
+#% answer: 64.36
+#% guisection: Costs
+#%end
+#%option
+#% key: cost_tractor
+#% type: double
+#% description: Extraction cost with tractor EUR/h
+#% answer: 45
+#% guisection: Costs
+#%end
+#%option
+#% key: cost_chipping
+#% type: double
+#% description: Chipping cost EUR/h
+#% answer: 160.87
+#% guisection: Costs
+#%end
+#%option
+#% key: interest
+#% type: double
+#% description: Interest rate EUR/h
+#% answer: 0.03
+#% guisection: Costs
+#%end
+#%option
+#% key: mc_paper
+#% type: double
+#% description: Percentage of roundwood re-use in paper
+#% answer : 0.02
+#% guisection: Indicators
+#%end
+#%option
+#% key: mc_furniture
+#% type: double
+#% description: Percentage of roundwood re-use in furniture
+#% answer : 0.4
+#% guisection: Indicators
+#%end
+#%option
+#% key: mc_building
+#% type: double
+#% description: Percentage of roundwood re-use in building
+#% answer : 0.5
+#% guisection: Indicators
+#%end
+#%option
+#% key: mc_woodpackaging
+#% type: double
+#% description: Percentage of roundwood re-use in packaging
+#% answer : 0.03
+#% guisection: Indicators
+#%end
+#%option
+#% key: mc_other
+#% type: double
+#% description: Percentage of roundwood re-use in other use
+#% answer : 0.05
+#% guisection: Indicators
+#%end
+#%option
+#% key: ind1
+#% type: string
+#% gisprompt: new
+#% description: Name for indicator n.1 map
+#% key_desc : name
+#% required: yes
+#% guisection: Indicators
+#%end
+#%option
+#% key: ind2
+#% type: string
+#% gisprompt: new
+#% description: Name for indicator n.2 map
+#% key_desc : name
+#% required: yes
+#% guisection: Indicators
+#%end
+#%option
+#% key: ind3
+#% type: string
+#% gisprompt: new
+#% description: Name for indicator n.3 map
+#% key_desc : name
+#% required: yes
+#% guisection: Indicators
+#%end
+#%option
+#% key: ind4
+#% type: string
+#% gisprompt: new
+#% description: Name for indicator n.4 map
+#% key_desc : name
+#% required: yes
+#% guisection: Indicators
+#%end
+#%option
+#% key: ind5
+#% type: string
+#% gisprompt: new
+#% description: Name for indicator n.5 map
+#% key_desc : name
+#% required: yes
+#% guisection: Indicators
+#%end
+#%option
+#% key: ind6
+#% type: string
+#% gisprompt: new
+#% description: Name for indicator n.6 map
+#% key_desc : name
+#% required: yes
+#% guisection: Indicators
+#%end
+#%option
+#% key: ind7
+#% type: string
+#% gisprompt: new
+#% description: Name for indicator n.7 map
+#% key_desc : name
+#% required: yes
+#% guisection: Indicators
+#%end
+#%option
+#% key: w_1
+#% type: double
+#% description: Weight for indicator n.1
+#% answer : 0.15
+#% guisection: Indicators
+#%end
+#%option
+#% key: w_2
+#% type: double
+#% description: Weight for indicator n.2
+#% answer : 0.12
+#% guisection: Indicators
+#%end
+#%option
+#% key: w_3
+#% type: double
+#% description: Weight for indicator n.3
+#% answer : 0.12
+#% guisection: Indicators
+#%end
+#%option
+#% key: w_4
+#% type: double
+#% description: Weight for indicator n.4
+#% answer : 0.13
+#% guisection: Indicators
+#%end
+#%option
+#% key: w_5
+#% type: double
+#% description: Weight for indicator n.5
+#% answer : 0.14
+#% guisection: Indicators
+#%end
+#%option
+#% key: w_6
+#% type: double
+#% description: Weight for indicator n.6
+#% answer : 0.17
+#% guisection: Indicators
+#%end
+#%option
+#% key: w_7
+#% type: double
+#% description: Weight for indicator n.7
+#% answer : 0.16
+#% guisection: Indicators
+#%end
+#%flag
+#% key: r
+#% description: Remove all operational maps
+#%end
 
 
-from grass.script.core import run_command, parser, overwrite
+from grass.script.core import run_command, parser
 from grass.pygrass.raster import RasterRow
 from grass.pygrass.modules import Module
 from grass.pygrass.modules.shortcuts import raster as r
 import numpy as np
 from subprocess import PIPE
 from grass.script import parse_key_val
-import pdb
 
 
 def remove_map(opts, flgs, dic1, dic2, dic_ind2):
@@ -416,18 +415,23 @@ def remove_map(opts, flgs, dic1, dic2, dic_ind2):
     run_command("g.remove", type="raster", flags="f", name="tracks")
     run_command("g.remove", type="raster", flags="f", name="boundaries")
     run_command("g.remove", type="raster", flags="f", name="increment")
-    run_command("g.remove", type="raster", flags="f", name="morphometric_features")
+    run_command(
+        "g.remove", type="raster", flags="f", name="morphometric_features")
     run_command("g.remove", type="raster", flags="f", name="pix_cross")
-    run_command("g.remove", type="raster", flags="f", name="frict_surf_extr")
+    run_command(
+        "g.remove", type="raster", flags="f", name="frict_surf_extr")
     run_command("g.remove", type="raster", flags="f", name="extr_dist")
     run_command("g.remove", type="raster", flags="f", name="aerial_extraction")
-    run_command("g.remove", type="raster", flags="f", name="HFground_extraction")
-    run_command("g.remove", type="raster", flags="f", name="Cground_extraction")
+    run_command(
+        "g.remove", type="raster", flags="f", name="HFground_extraction")
+    run_command(
+        "g.remove", type="raster", flags="f", name="Cground_extraction")
     run_command("g.remove", type="raster", flags="f", name="volume")
     run_command("g.remove", type="raster", flags="f", name="tracks")
     run_command("g.remove", type="raster", flags="f", name="boundaries")
     for key, val in dic1.items():
-        run_command("g.remove", type="raster", flags="f", name="tmpc_%s" % (key))
+        run_command(
+            "g.remove", type="raster", flags="f", name="tmpc_%s" % (key))
 
     run_command("g.remove", type="raster", flags="f", name="chipp_cost")
     run_command("g.remove", type="raster", flags="f", name="direction_cost")
@@ -437,13 +441,15 @@ def remove_map(opts, flgs, dic1, dic2, dic_ind2):
     run_command("g.remove", type="raster", flags="f", name="a_stump_value_ha")
     run_command("g.remove", type="raster", flags="f", name="clumped_area")
     run_command("g.remove", type="raster", flags="f", name="revenues9")
-    run_command("g.remove", type="raster", flags="f", name="administrative_cost9")
+    run_command(
+        "g.remove", type="raster", flags="f", name="administrative_cost9")
     run_command("g.remove", type="raster", flags="f", name="costs9")
     run_command("g.remove", type="raster", flags="f", name="costs_reclass9")
     run_command("g.remove", type="raster", flags="f", name="stumpage_value9")
     run_command("g.remove", type="raster", flags="f", name="a_stumpage_value9")
     run_command("g.remove", type="raster", flags="f", name="economic_surface9")
-    run_command("g.remove", type="raster", flags="f", name="administrative_cost")
+    run_command(
+        "g.remove", type="raster", flags="f", name="administrative_cost")
     run_command("g.remove", type="raster", flags="f", name="clumped_area")
     run_command("g.remove", type="raster", flags="f", name="clumped_area9")
     run_command("g.remove", type="raster", flags="f", name="costs9")
@@ -471,7 +477,8 @@ def indicator2(opts, flgs):
     run_command(
         "r.mapcalc",
         overwrite=1,
-        expression=opts["ind2"] + "= clumped_area*(emission / volume)/rotation",
+        expression=opts["ind2"] + "= clumped_area*"
+        + "(emission / volume)/rotation",
     )
 
 
@@ -586,7 +593,6 @@ def indicator5(opts, flgs):
 
 
 def main(opts, flgs):
-    ow = overwrite()
 
     c_hf_slope = {
         "cable crane - high power": 1,
@@ -813,7 +819,8 @@ def main(opts, flgs):
         overwrite=True,
     )
 
-    run_command("v.to.rast", input=tracks, output="tracks", use="val", overwrite=True)
+    run_command(
+        "v.to.rast", input=tracks, output="tracks", use="val", overwrite=True)
 
     run_command(
         "v.to.rast",
@@ -844,7 +851,8 @@ def main(opts, flgs):
     )
     run_command("r.null", map="morphometric_features", null=0)
 
-    run_command("r.slope.aspect", overwrite=True, elevation=dtm, slope="slope_deg")
+    run_command(
+        "r.slope.aspect", overwrite=True, elevation=dtm, slope="slope_deg")
     run_command(
         "r.mapcalc",
         overwrite=True,
@@ -867,7 +875,12 @@ def main(opts, flgs):
         exprmap += "+ if(" + rivers + ">=1, 99999)"
 
     if lakes != "":
-        run_command("v.to.rast", input=lakes, output="lakes", use="val", overwrite=True)
+        run_command(
+            "v.to.rast",
+            input=lakes,
+            output="lakes",
+            use="val",
+            overwrite=True)
         run_command("r.null", map="lakes", null=0)
         lakes = "lakes"
         exprmap += "+ if(" + lakes + ">=1, 99999)"
@@ -1192,7 +1205,8 @@ def main(opts, flgs):
     run_command(
         "r.mapcalc",
         overwrite=1,
-        expression="extr_cost_forw = " + vcost_forw + "/extr_product_HFground*volume",
+        expression="extr_cost_forw = "
+        + vcost_forw + "/extr_product_HFground*volume",
     )
     run_command("r.null", map="extr_cost_forw", null=0)
     run_command(
@@ -1232,7 +1246,8 @@ def main(opts, flgs):
     run_command(
         "r.mapcalc",
         overwrite=1,
-        expression="interests = (prod_costs +  administrative_cost)*" + interest + "/4",
+        expression="interests = (prod_costs +  administrative_cost)*"
+        + interest + "/4",
     )
 
     run_command(
@@ -1356,9 +1371,11 @@ def main(opts, flgs):
     command = command[:-1]
 
     run_command("r.mapcalc", overwrite=1, expression=command)
-    run_command("r.mapcalc", overwrite=1, expression="chipp_em = chipp_prod*130.599")
+    run_command(
+        "r.mapcalc", overwrite=1, expression="chipp_em = chipp_prod*130.599")
     run_command("r.null", map="chipp_em", null=0)
-    run_command("r.mapcalc", overwrite=1, expression="sum_em = sum_em1+chipp_em")
+    run_command(
+        "r.mapcalc", overwrite=1, expression="sum_em = sum_em1+chipp_em")
 
     run_command(
         "r.mapcalc",
@@ -1413,7 +1430,8 @@ def main(opts, flgs):
         method="sum",
         output="rep_roundwood",
     )
-    c_rep_roundwood = Module("r.univar", flags="g", map="roundwood", stdout_=PIPE)
+    c_rep_roundwood = Module(
+        "r.univar", flags="g", map="roundwood", stdout_=PIPE)
     rep_roundwood = parse_key_val(c_rep_roundwood.outputs.stdout)
 
     run_command(
@@ -1435,7 +1453,8 @@ def main(opts, flgs):
         method="sum",
         output="rep_firewood",
     )
-    c_rep_firewood = Module("r.univar", flags="g", map="firewood", stdout_=PIPE)
+    c_rep_firewood = Module(
+        "r.univar", flags="g", map="firewood", stdout_=PIPE)
     rep_firewood = parse_key_val(c_rep_firewood.outputs.stdout)
 
     run_command(
@@ -1446,7 +1465,8 @@ def main(opts, flgs):
         method="sum",
         output="rep_bioenergy",
     )
-    c_rep_bioenergy = Module("r.univar", flags="g", map="bioenergy", stdout_=PIPE)
+    c_rep_bioenergy = Module(
+        "r.univar", flags="g", map="bioenergy", stdout_=PIPE)
     rep_bioenergy = parse_key_val(c_rep_bioenergy.outputs.stdout)
 
     run_command(
@@ -1885,10 +1905,15 @@ def main(opts, flgs):
     print("\n#############################\n")
     print("End of process\nName of output maps:\n")
     print(
-        "rep_roundwood -> roundwood (m3/y): {0:.4f}".format(float(rep_roundwood["sum"]))
+        "rep_roundwood -> "
+        + "roundwood (m3/y): {0:.4f}".format(float(rep_roundwood["sum"]))
     )
-    print("rep_timber -> timber pole (m3/y): {0:.4f}".format(float(rep_timber["sum"])))
-    print("rep_firewood -> firewood (m3/y): {0:.4f}".format(float(rep_firewood["sum"])))
+    print(
+        "rep_timber ->"
+        + " timber pole (m3/y): {0:.4f}".format(float(rep_timber["sum"])))
+    print(
+        "rep_firewood ->"
+        + " firewood (m3/y): {0:.4f}".format(float(rep_firewood["sum"])))
     print(
         "rep_bioenergy -> bioenergy (MWh/y): {0:.4f}".format(
             float(rep_bioenergy["sum"])
@@ -1904,11 +1929,13 @@ def main(opts, flgs):
     )
     print(
         "rep_ave_a_stumpage_value -> average annual stumpage"
-        + " value (EUR/ha*y-1): {0:.4f}".format(float(rep_a_stump_value_ha["mean"]))
+        + " value (EUR/ha*y-1): {0:.4f}"
+        .format(float(rep_a_stump_value_ha["mean"]))
     )
     print(
         "rep_annual_avoided_emission -> annual avoided "
-        + "emissions (t): {0:.4f}".format(float(rep_annual_avoided_emission["sum"]))
+        + "emissions (t): {0:.4f}"
+        .format(float(rep_annual_avoided_emission["sum"]))
     )
     print("\n---------------------------\n")
     if opts["ind1"] != "":
@@ -1951,7 +1978,8 @@ def main(opts, flgs):
             "rep_"
             + opts["ind6"]
             + " -> percentual of wood residuals used in "
-            + "bioenergy production (%): {0:.4f}".format(float(rep_ind6["max"]))
+            + "bioenergy production (%): {0:.4f}"
+            .format(float(rep_ind6["max"]))
         )
     if opts["ind7"] != "":
         print(
@@ -1964,7 +1992,7 @@ def main(opts, flgs):
     print("dist_tot -> AMC map: {0:.4f}".format(float(rep_dip["mean"])))
     print("\n#############################\n")
 
-    if flgs["r"] == True:
+    if flgs["r"] is True:
         remove_map(opts, flgs, dic1, dic2, dic_ind2)
 
 
