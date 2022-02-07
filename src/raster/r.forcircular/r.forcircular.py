@@ -416,26 +416,18 @@ def remove_map(opts, flgs, dic1, dic2, dic_ind2):
     run_command("g.remove", type="raster", flags="f", name="tracks")
     run_command("g.remove", type="raster", flags="f", name="boundaries")
     run_command("g.remove", type="raster", flags="f", name="increment")
-    run_command(
-        "g.remove", type="raster", flags="f", name="morphometric_features"
-    )
+    run_command("g.remove", type="raster", flags="f", name="morphometric_features")
     run_command("g.remove", type="raster", flags="f", name="pix_cross")
     run_command("g.remove", type="raster", flags="f", name="frict_surf_extr")
     run_command("g.remove", type="raster", flags="f", name="extr_dist")
     run_command("g.remove", type="raster", flags="f", name="aerial_extraction")
-    run_command(
-        "g.remove", type="raster", flags="f", name="HFground_extraction"
-    )
-    run_command(
-        "g.remove", type="raster", flags="f", name="Cground_extraction"
-    )
+    run_command("g.remove", type="raster", flags="f", name="HFground_extraction")
+    run_command("g.remove", type="raster", flags="f", name="Cground_extraction")
     run_command("g.remove", type="raster", flags="f", name="volume")
     run_command("g.remove", type="raster", flags="f", name="tracks")
     run_command("g.remove", type="raster", flags="f", name="boundaries")
     for key, val in dic1.items():
-        run_command(
-            "g.remove", type="raster", flags="f", name="tmpc_%s" % (key)
-        )
+        run_command("g.remove", type="raster", flags="f", name="tmpc_%s" % (key))
 
     run_command("g.remove", type="raster", flags="f", name="chipp_cost")
     run_command("g.remove", type="raster", flags="f", name="direction_cost")
@@ -445,17 +437,13 @@ def remove_map(opts, flgs, dic1, dic2, dic_ind2):
     run_command("g.remove", type="raster", flags="f", name="a_stump_value_ha")
     run_command("g.remove", type="raster", flags="f", name="clumped_area")
     run_command("g.remove", type="raster", flags="f", name="revenues9")
-    run_command(
-        "g.remove", type="raster", flags="f", name="administrative_cost9"
-    )
+    run_command("g.remove", type="raster", flags="f", name="administrative_cost9")
     run_command("g.remove", type="raster", flags="f", name="costs9")
     run_command("g.remove", type="raster", flags="f", name="costs_reclass9")
     run_command("g.remove", type="raster", flags="f", name="stumpage_value9")
     run_command("g.remove", type="raster", flags="f", name="a_stumpage_value9")
     run_command("g.remove", type="raster", flags="f", name="economic_surface9")
-    run_command(
-        "g.remove", type="raster", flags="f", name="administrative_cost"
-    )
+    run_command("g.remove", type="raster", flags="f", name="administrative_cost")
     run_command("g.remove", type="raster", flags="f", name="clumped_area")
     run_command("g.remove", type="raster", flags="f", name="clumped_area9")
     run_command("g.remove", type="raster", flags="f", name="costs9")
@@ -483,8 +471,7 @@ def indicator2(opts, flgs):
     run_command(
         "r.mapcalc",
         overwrite=1,
-        expression=opts["ind2"]
-        + "= clumped_area*(emission / volume)/rotation",
+        expression=opts["ind2"] + "= clumped_area*(emission / volume)/rotation",
     )
 
 
@@ -826,9 +813,7 @@ def main(opts, flgs):
         overwrite=True,
     )
 
-    run_command(
-        "v.to.rast", input=tracks, output="tracks", use="val", overwrite=True
-    )
+    run_command("v.to.rast", input=tracks, output="tracks", use="val", overwrite=True)
 
     run_command(
         "v.to.rast",
@@ -859,9 +844,7 @@ def main(opts, flgs):
     )
     run_command("r.null", map="morphometric_features", null=0)
 
-    run_command(
-        "r.slope.aspect", overwrite=True, elevation=dtm, slope="slope_deg"
-    )
+    run_command("r.slope.aspect", overwrite=True, elevation=dtm, slope="slope_deg")
     run_command(
         "r.mapcalc",
         overwrite=True,
@@ -884,9 +867,7 @@ def main(opts, flgs):
         exprmap += "+ if(" + rivers + ">=1, 99999)"
 
     if lakes != "":
-        run_command(
-            "v.to.rast", input=lakes, output="lakes", use="val", overwrite=True
-        )
+        run_command("v.to.rast", input=lakes, output="lakes", use="val", overwrite=True)
         run_command("r.null", map="lakes", null=0)
         lakes = "lakes"
         exprmap += "+ if(" + lakes + ">=1, 99999)"
@@ -1211,9 +1192,7 @@ def main(opts, flgs):
     run_command(
         "r.mapcalc",
         overwrite=1,
-        expression="extr_cost_forw = "
-        + vcost_forw
-        + "/extr_product_HFground*volume",
+        expression="extr_cost_forw = " + vcost_forw + "/extr_product_HFground*volume",
     )
     run_command("r.null", map="extr_cost_forw", null=0)
     run_command(
@@ -1253,9 +1232,7 @@ def main(opts, flgs):
     run_command(
         "r.mapcalc",
         overwrite=1,
-        expression="interests = (prod_costs +  administrative_cost)*"
-        + interest
-        + "/4",
+        expression="interests = (prod_costs +  administrative_cost)*" + interest + "/4",
     )
 
     run_command(
@@ -1379,13 +1356,9 @@ def main(opts, flgs):
     command = command[:-1]
 
     run_command("r.mapcalc", overwrite=1, expression=command)
-    run_command(
-        "r.mapcalc", overwrite=1, expression="chipp_em = chipp_prod*130.599"
-    )
+    run_command("r.mapcalc", overwrite=1, expression="chipp_em = chipp_prod*130.599")
     run_command("r.null", map="chipp_em", null=0)
-    run_command(
-        "r.mapcalc", overwrite=1, expression="sum_em = sum_em1+chipp_em"
-    )
+    run_command("r.mapcalc", overwrite=1, expression="sum_em = sum_em1+chipp_em")
 
     run_command(
         "r.mapcalc",
@@ -1399,7 +1372,6 @@ def main(opts, flgs):
         expression="avoided_emission = clumped_area * ((bioenergy*"
         + "rotation*320/1000) - emission)",
     )
-
 
     run_command(
         "r.stats.zonal",
@@ -1441,9 +1413,7 @@ def main(opts, flgs):
         method="sum",
         output="rep_roundwood",
     )
-    c_rep_roundwood = Module(
-        "r.univar", flags="g", map="roundwood", stdout_=PIPE
-    )
+    c_rep_roundwood = Module("r.univar", flags="g", map="roundwood", stdout_=PIPE)
     rep_roundwood = parse_key_val(c_rep_roundwood.outputs.stdout)
 
     run_command(
@@ -1465,9 +1435,7 @@ def main(opts, flgs):
         method="sum",
         output="rep_firewood",
     )
-    c_rep_firewood = Module(
-        "r.univar", flags="g", map="firewood", stdout_=PIPE
-    )
+    c_rep_firewood = Module("r.univar", flags="g", map="firewood", stdout_=PIPE)
     rep_firewood = parse_key_val(c_rep_firewood.outputs.stdout)
 
     run_command(
@@ -1478,9 +1446,7 @@ def main(opts, flgs):
         method="sum",
         output="rep_bioenergy",
     )
-    c_rep_bioenergy = Module(
-        "r.univar", flags="g", map="bioenergy", stdout_=PIPE
-    )
+    c_rep_bioenergy = Module("r.univar", flags="g", map="bioenergy", stdout_=PIPE)
     rep_bioenergy = parse_key_val(c_rep_bioenergy.outputs.stdout)
 
     run_command(
@@ -1919,20 +1885,10 @@ def main(opts, flgs):
     print("\n#############################\n")
     print("End of process\nName of output maps:\n")
     print(
-        "rep_roundwood -> roundwood (m3/y): {0:.4f}".format(
-            float(rep_roundwood["sum"])
-        )
+        "rep_roundwood -> roundwood (m3/y): {0:.4f}".format(float(rep_roundwood["sum"]))
     )
-    print(
-        "rep_timber -> timber pole (m3/y): {0:.4f}".format(
-            float(rep_timber["sum"])
-        )
-    )
-    print(
-        "rep_firewood -> firewood (m3/y): {0:.4f}".format(
-            float(rep_firewood["sum"])
-        )
-    )
+    print("rep_timber -> timber pole (m3/y): {0:.4f}".format(float(rep_timber["sum"])))
+    print("rep_firewood -> firewood (m3/y): {0:.4f}".format(float(rep_firewood["sum"])))
     print(
         "rep_bioenergy -> bioenergy (MWh/y): {0:.4f}".format(
             float(rep_bioenergy["sum"])
@@ -1940,27 +1896,19 @@ def main(opts, flgs):
     )
     print(
         "rep_sum_a_stumpage_value -> annual stumpage value"
-        + " (EUR/y): {0:.4f}".format(
-            float(rep_a_stumpage_value["sum"])
-        )
+        + " (EUR/y): {0:.4f}".format(float(rep_a_stumpage_value["sum"]))
     )
     print(
         "rep_ave_stumpage_value -> average stumpage value "
-        + "(EUR/ha): {0:.4f}".format(
-            float(rep_stump_value_ha["mean"])
-        )
+        + "(EUR/ha): {0:.4f}".format(float(rep_stump_value_ha["mean"]))
     )
     print(
         "rep_ave_a_stumpage_value -> average annual stumpage"
-        + " value (EUR/ha*y-1): {0:.4f}".format(
-            float(rep_a_stump_value_ha["mean"])
-        )
+        + " value (EUR/ha*y-1): {0:.4f}".format(float(rep_a_stump_value_ha["mean"]))
     )
     print(
         "rep_annual_avoided_emission -> annual avoided "
-        + "emissions (t): {0:.4f}".format(
-            float(rep_annual_avoided_emission["sum"])
-        )
+        + "emissions (t): {0:.4f}".format(float(rep_annual_avoided_emission["sum"]))
     )
     print("\n---------------------------\n")
     if opts["ind1"] != "":
@@ -1968,63 +1916,49 @@ def main(opts, flgs):
             "rep_"
             + opts["ind1"]
             + " -> annual value of wood on annual yield (euro/m3)"
-            + ": {0:.4f}".format(
-                float(rep_ind1["max"])
-            )
+            + ": {0:.4f}".format(float(rep_ind1["max"]))
         )
     if opts["ind2"] != "":
         print(
             "rep_"
             + opts["ind2"]
             + " -> carbon dioxide emission per cubic meter (t/m3)"
-            + ": {0:.4f}".format(
-                float(rep_ind2["max"])
-            )
+            + ": {0:.4f}".format(float(rep_ind2["max"]))
         )
     if opts["ind3"] != "":
         print(
             "rep_"
             + opts["ind3"]
             + " -> general index of forest surface utilization "
-            + "(ha/y): {0:.4f}".format(
-                float(rep_ind3["max"])
-            )
+            + "(ha/y): {0:.4f}".format(float(rep_ind3["max"]))
         )
     if opts["ind4"] != "":
         print(
             "rep_"
             + opts["ind4"]
             + " -> general index of re-use (m3*y) sum"
-            + ": {0:.4f}".format(
-                float(rep_ind4["max"])
-            )
+            + ": {0:.4f}".format(float(rep_ind4["max"]))
         )
     if opts["ind5"] != "":
         print(
             "rep_"
             + opts["ind5"]
             + " -> potential value of wood on real value "
-            + "(euro/euro): {0:.4f}".format(
-                float(rep_ind5["max"])
-            )
+            + "(euro/euro): {0:.4f}".format(float(rep_ind5["max"]))
         )
     if opts["ind6"] != "":
         print(
             "rep_"
             + opts["ind6"]
             + " -> percentual of wood residuals used in "
-            + "bioenergy production (%): {0:.4f}".format(
-                float(rep_ind6["max"])
-            )
+            + "bioenergy production (%): {0:.4f}".format(float(rep_ind6["max"]))
         )
     if opts["ind7"] != "":
         print(
             "rep_"
             + opts["ind7"]
             + " -> avoided CO2 per unit of energy produced"
-            + " (gCO2 /kWh): {0:.4f}".format(
-                float(rep_ind7["max"])
-            )
+            + " (gCO2 /kWh): {0:.4f}".format(float(rep_ind7["max"]))
         )
 
     print("dist_tot -> AMC map: {0:.4f}".format(float(rep_dip["mean"])))
