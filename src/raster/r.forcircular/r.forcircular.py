@@ -14,6 +14,7 @@
 #############################################################################
 # %Module
 # % description: Evaluation of circular bioeconomy level of forest ecosystems
+# % keyword: raster
 # % keyword: bioeconomy
 # % keyword: forest
 # %End
