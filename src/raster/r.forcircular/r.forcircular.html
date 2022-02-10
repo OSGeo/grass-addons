@@ -199,32 +199,14 @@ manatory field scheme described above.
 <i>Parcel map</i>
 <br><br>
 On the basis of this example the correct syntax to run the module is:
-r.forcircular <br>
-forest=parcel<br>
-boundaries=study_Area
-dtm=dem <br>
-tracks=forest_tracks <br>
-rivers=rivers <br>
-lakes=lakes <br>
-protected_areas=reserved <br>
-slp_min_cc=30. <br>
-slp_max_cc=100. <br>
-dist_max_cc=1000. <br>
-dist_max_fw=900. <br>
-slp_max_cop=30. <br>
-dist_max_cop=800. <br>
-hf_slope="cable crane - high power" <br>
-c_slope="cable crane - medium/low power" <br>
-hf_noslope="tractor" <br>
-c_noslope="tractor" <br>
-ind1=indicator1 <br>
-ind2=indicator2 <br>
-ind3=indicator3 <br>
-ind4=indicator4 <br>
-ind5=indicator5 <br>
-ind6=indicator6 <br>
-ind7=indicator7 <br>
-<br>
+<div class="code"><pre>
+r.forcircular forest=parcel boundaries=study_Area dtm=dem tracks=forest_tracks \
+  rivers=rivers lakes=lakes protected_areas=reserved slp_min_cc=30. slp_max_cc=100. \
+  dist_max_cc=1000. dist_max_fw=900. slp_max_cop=30. dist_max_cop=800. \
+  hf_slope="cable crane - high power" c_slope="cable crane - medium/low power" \
+  hf_noslope="tractor" c_noslope="tractor" ind1=indicator1 ind2=indicator2 ind3=indicator3 \
+  ind4=indicator4 ind5=indicator5 ind6=indicator6 ind7=indicator7
+</pre></div>
 
 <p>
 The output maps are: technical_surface (forest surface where exploitation is
