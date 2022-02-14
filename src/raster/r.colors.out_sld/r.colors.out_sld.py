@@ -116,7 +116,7 @@ def main():
         use_categories = False
 
     # Initialize SLD with header
-    sld = u"""<?xml version="1.0" encoding="UTF-8"?>
+    sld = """<?xml version="1.0" encoding="UTF-8"?>
 <StyledLayerDescriptor version="1.0.0"
     xsi:schemaLocation="http://www.opengis.net/sld StyledLayerDescriptor.xsd"
     xmlns="http://www.opengis.net/sld"
@@ -144,8 +144,9 @@ def main():
         # sld+='            <ColorMap type={}>\n'.format('"ramp"')
         ColorMapEntry = '              <ColorMapEntry color="#{0:02x}{1:02x}{2:02x}" quantity="{3}" opacity="{4}" />\n'
 
-    #
-    for c in color_rules:
+    # loop over colors
+    for num, c in enumerate(color_rules):
+        grass.percent(num + 1, len(color_rules), 1)
         if len(c.split(" ")) == 2 and not c.split(" ")[0] == "default":
             q = c.split(" ")[0]
             if q == "nv":
