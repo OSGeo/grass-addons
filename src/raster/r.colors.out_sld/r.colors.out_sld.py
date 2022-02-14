@@ -116,7 +116,7 @@ def main():
         use_categories = False
 
     # Initialize SLD with header
-    sld = u"""<?xml version="1.0" encoding="UTF-8"?>
+    sld = """<?xml version="1.0" encoding="UTF-8"?>
 <StyledLayerDescriptor version="1.0.0"
     xsi:schemaLocation="http://www.opengis.net/sld StyledLayerDescriptor.xsd"
     xmlns="http://www.opengis.net/sld"
