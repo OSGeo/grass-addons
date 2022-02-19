@@ -7,7 +7,7 @@ AUTHOR(S):    Hamish Bowman
               Stefan Blumentrath, NINA: Port to GRASS GIS 7 / Python,
               lable and opacity support
 PURPOSE:      Export GRASS raster color table to OGC SLD template v1.0.0
-COPYRIGHT:    (C) 2011 by Hamish Bowman, and the GRASS Development Team
+COPYRIGHT:    (C) 2011-2022 by Hamish Bowman, and the GRASS Development Team
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@ To Dos:
 #% required: no
 #% label: Name for style
 #% description: A name for the style which might be displayed on the server
-#% answer: GRASS color table
+#% answer: GRASS GIS color table
 #%End
 
 #%Option G_OPT_F_OUTPUT
@@ -94,7 +94,7 @@ def main():
     mapinfo = grass.parse_command("r.info", flags="e", map=map)
 
     if mapinfo["title"]:
-        name = "{} : {}".format(mapinfo["map"], mapinfo["title"])
+        name = "{}: {}".format(mapinfo["map"], mapinfo["title"])
     else:
         name = mapinfo["map"]
 
@@ -127,8 +127,9 @@ def main():
     <Name>{}</Name>""".format(
         style_name
     )
-    sld += """    <UserStyle>
-      <Title>{}</Title>\n
+    sld += """
+    <UserStyle>
+      <Title>{}</Title>
       <FeatureTypeStyle>
         <Rule>
           <RasterSymbolizer>\n""".format(
