@@ -60,7 +60,7 @@
 # %rules
 # %exclusive: ref_rast,ref_vect
 # %end
-import numpy as np
+
 # %option G_OPT_R_BASENAME_OUTPUT
 # % description: Root name of the output MESS data layers
 # % key_desc: name
@@ -105,6 +105,7 @@ import numpy as np
 # % description: Remove individual environmental similarity layers (IES)
 # % guisection: Output
 # %end
+
 # import libraries
 import os
 import sys
@@ -421,11 +422,11 @@ def main(options, flags):
             if laytype == "CELL":
                 columns = "envvar_{} integer".format(str(mid))
             else:
-                columns = "envvar_%s double precision" % mid
+                columns = "envvar_{} double precision".format(str(mid))
             Module("v.db.addcolumn", map=tmpf0, columns=columns, quiet=True)
             sql2 = "UPDATE {} SET envvar_{} = NULL".format(str(tmpf0), str(mid))
             Module("db.execute", sql=sql2, quiet=True)
-            coln = "envvar_%s" % mid
+            coln = "envvar_{}".format(str(mid))
             Module(
                 "v.what.rast",
                 quiet=True,
@@ -433,7 +434,7 @@ def main(options, flags):
                 layer=1,
                 raster=reference_layer[m],
                 column=coln,
-            )import numpy as np
+            )
             sql3 = (
                 "SELECT {0}, count({0}) from {1} WHERE {0} IS NOT NULL "
                 "GROUP BY {0} ORDER BY {0}"
@@ -473,7 +474,7 @@ def main(options, flags):
                 quiet=True,
             )
 
-            # Calculate min and max values of sample pointimport numpy as nps and raster layer
+            # Calculate min and max values of sample points and raster layer
             envmin = int(min(volval[:, 0]) * digits2)
             envmax = int(max(volval[:, 0]) * digits2)
             Drange = gs.read_command("r.info", flags="r", map=tmpf2)
