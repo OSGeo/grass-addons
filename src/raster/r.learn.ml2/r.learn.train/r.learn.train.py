@@ -773,7 +773,13 @@ def main():
         from sklearn.model_selection import cross_val_predict
 
         preds = cross_val_predict(
-            estimator, X, y, group_id, cv=outer, n_jobs=n_jobs, fit_params=fit_params
+            estimator=estimator,
+            X=X, 
+            y=y,
+            groups=group_id,
+            cv=outer,
+            n_jobs=n_jobs,
+            fit_params=fit_params
         )
 
         test_idx = [test for train, test in outer.split(X, y)]
