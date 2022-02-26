@@ -5,7 +5,7 @@
 # 
 # MODULE:       r.model.eval
 # AUTHOR(S):    Paulo van Breugel <paulo AT ecodiv.org>
-# PURPOSE:      To evaluates how well a modeled distribution predicts an 
+# PURPOSE:      To evaluate how well a modeled distribution predicts an 
 #               observed distribution. 
 #
 # NOTES:        The observed distribution of e.g., a species, land
@@ -30,110 +30,110 @@
 # 
 ########################################################################
 #
-#%Module 
-#% description: Computes evaluation statistics of an environmental distribution model, based on a layer with observed and a layer with predicted values
-#%End 
+# %Module 
+# % description: Computes evaluation statistics of an environmental distribution model, based on a layer with observed and a layer with predicted values
+# %End 
 
-#%option
-#% key: obs
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Observed distribution
-#% key_desc: Raster name
-#% required: yes
-#% multiple: no
-#%end
+# %option
+# % key: obs
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Observed distribution
+# % key_desc: Raster name
+# % required: yes
+# % multiple: no
+# %end
 
-#%option
-#% key: mod
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Modeled distribution
-#% key_desc: Raster name
-#% required: yes
-#% multiple: no
-#%end
+# %option
+# % key: mod
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Modeled distribution
+# % key_desc: Raster name
+# % required: yes
+# % multiple: no
+# %end
 
-#%flag
-#% key: b
-#% description: add presence to background?
-#%end
+# %flag
+# % key: b
+# % description: add presence to background?
+# %end
 
-#%option
-#% key: fstats
-#% type: string
-#% description: Name of output files (without extension)
-#% key_desc: File name
-#% required: yes
-#% multiple: no
-#%end
+# %option
+# % key: fstats
+# % type: string
+# % description: Name of output files (without extension)
+# % key_desc: File name
+# % required: yes
+# % multiple: no
+# %end
 
-#%option
-#% key: n_bins
-#% type: integer
-#% description: Number of bins in which to divide the modeled distribution scores
-#% key_desc: integer
-#% answer: 200
-#% required: no
-#%end
+# %option
+# % key: n_bins
+# % type: integer
+# % description: Number of bins in which to divide the modeled distribution scores
+# % key_desc: integer
+# % answer: 200
+# % required: no
+# %end
 
-#%flag
-#% key: l
-#% description: print log file to file?
-#%end
+# %flag
+# % key: l
+# % description: print log file to file?
+# %end
 
-#%option
-#% key: buffer_abs
-#% type: integer
-#% description: Restrict absence area to x km buffer
-#% key_desc: buffer zone (km)
-#% answer: 0
-#% required: no
-#% guisection: evaluation area
-#%end
+# %option
+# % key: buffer_abs
+# % type: integer
+# % description: Restrict absence area to x km buffer
+# % key_desc: buffer zone (km)
+# % answer: 0
+# % required: no
+# % guisection: evaluation area
+# %end
 
-#%option
-#% key: buffer_pres
-#% type: integer
-#% description: Restrict presence area to x km buffer
-#% key_desc: buffer zone (km)
-#% answer: 0
-#% required: no
-#% guisection: evaluation area
-#%end
+# %option
+# % key: buffer_pres
+# % type: integer
+# % description: Restrict presence area to x km buffer
+# % key_desc: buffer zone (km)
+# % answer: 0
+# % required: no
+# % guisection: evaluation area
+# %end
 
-#%option
-#% key: preval
-#% type: string
-#% description: Prevalence of presence points
-#% key_desc: <0-1>
-#% answer: 0
-#% required: no
-#% guisection: evaluation area
-#%end
+# %option
+# % key: preval
+# % type: string
+# % description: Prevalence of presence points
+# % key_desc: <0-1>
+# % answer: 0
+# % required: no
+# % guisection: evaluation area
+# %end
 
-#%option
-#% key: num_pres
-#% type: integer
-#% description: number of presence points (this will not work if preval > 0)
-#% key_desc: integer
-#% answer: 0
-#% required: no
-#% guisection: evaluation area
-#%end
+# %option
+# % key: num_pres
+# % type: integer
+# % description: number of presence points (this will not work if preval > 0)
+# % key_desc: integer
+# % answer: 0
+# % required: no
+# % guisection: evaluation area
+# %end
 
-#%option
-#% key: num_abs
-#% type: integer
-#% description: number of absence points (this will not work if preval > 0)
-#% key_desc: integer
-#% answer: 0
-#% required: no
-#% guisection: evaluation area
-#%end
+# %option
+# % key: num_abs
+# % type: integer
+# % description: number of absence points (this will not work if preval > 0)
+# % key_desc: integer
+# % answer: 0
+# % required: no
+# % guisection: evaluation area
+# %end
 
 #=======================================================================
-## GRASS team recommandations
+## GRASS team recommendations
 #=======================================================================
 
 ## Check if in GRASS

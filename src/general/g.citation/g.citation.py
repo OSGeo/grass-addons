@@ -18,71 +18,71 @@
 #
 #############################################################################
 
-#%module
-#% description: Provide scientific citation for GRASS modules and add-ons.
-#% keyword: general
-#% keyword: metadata
-#% keyword: citation
-#%end
+# %module
+# % description: Provide scientific citation for GRASS modules and add-ons.
+# % keyword: general
+# % keyword: metadata
+# % keyword: citation
+# %end
 
-#%option
-#% key: module
-#% type: string
-#% description: GRASS GIS module to be cited
-#% multiple: no
-#%end
+# %option
+# % key: module
+# % type: string
+# % description: GRASS GIS module to be cited
+# % multiple: no
+# %end
 
-#%option
-#% key: format
-#% type: string
-#% description: Citation format or style
-#% options: bibtex,cff,json,pretty-json,csl-json,citeproc,chicago-footnote,dict,plain
-#% descriptions: bibtex;BibTeX;cff;Citation File Format;json;JSON;pretty-json;Pretty printed JSON;csl-json;Citation Style Language JSON (citeproc JSON) format;citeproc;Use the citeproc-py library to create the citation (CSL);chicago-footnote;Chicago style for footnotes;dict;Pretty printed Python dictionary;plain;Plain text
-#% answer: bibtex
-#% required: yes
-#%end
+# %option
+# % key: format
+# % type: string
+# % description: Citation format or style
+# % options: bibtex,cff,json,pretty-json,csl-json,citeproc,chicago-footnote,dict,plain
+# % descriptions: bibtex;BibTeX;cff;Citation File Format;json;JSON;pretty-json;Pretty printed JSON;csl-json;Citation Style Language JSON (citeproc JSON) format;citeproc;Use the citeproc-py library to create the citation (CSL);chicago-footnote;Chicago style for footnotes;dict;Pretty printed Python dictionary;plain;Plain text
+# % answer: bibtex
+# % required: yes
+# %end
 
-#%option
-#% key: style
-#% type: string
-#% description: Citation style for the citeproc formatter (CSL)
-#% answer: harvard1
-#%end
+# %option
+# % key: style
+# % type: string
+# % description: Citation style for the citeproc formatter (CSL)
+# % answer: harvard1
+# %end
 
-#%option
-#% key: vertical_separator
-#% type: string
-#% label: Separator of individual citation records
-#% description: Inserted before each item
-#%end
+# %option
+# % key: vertical_separator
+# % type: string
+# % label: Separator of individual citation records
+# % description: Inserted before each item
+# %end
 
-#%option G_OPT_F_INPUT
-#% key: output
-#% type: string
-#% description: Path of the output file
-#% required: no
-#%end
+# %option G_OPT_F_INPUT
+# % key: output
+# % type: string
+# % description: Path of the output file
+# % required: no
+# %end
 
-#%flag
-#% key: a
-#% description: Provide citations for all modules
-#%end
+# %flag
+# % key: a
+# % description: Provide citations for all modules
+# %end
 
-#%flag
-#% key: d
-#% label: Add GRASS GIS as dependency to citation
-#% description: Add GRASS GIS as dependency, reference, or additional citation to the citation of a module if applicable for the format (currently only CFF)
-#%end
+# %flag
+# % key: d
+# % label: Add GRASS GIS as dependency to citation
+# % description: Add GRASS GIS as dependency, reference, or additional citation to the citation of a module if applicable for the format (currently only CFF)
+# %end
 
-#%flag
-#% key: s
-#% description: Skip errors, provide warning only
-#%end
+# %flag
+# % key: s
+# % description: Skip errors, provide warning only
+# %end
 
-#%rules
-#% required: module,-a
-#% exclusive: module,-a
-#%end
+# %rules
+# % required: module,-a
+# % exclusive: module,-a
+# %end
 
 # TODO: if output is provided, write to ascii file
 # (otherwise print to command line)

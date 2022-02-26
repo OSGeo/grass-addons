@@ -20,78 +20,78 @@
 #
 #############################################################################
 
-#%Module
-#% description: Calculation of contiguous stream-specific variables that account for the upstream environment (based on r.stream.watersheds).
-#% keyword: raster
-#% keyword: stream
-#% keyword: drainage
-#% keyword: hydrology
-#%End
+# %Module
+# % description: Calculation of contiguous stream-specific variables that account for the upstream environment (based on r.stream.watersheds).
+# % keyword: raster
+# % keyword: stream
+# % keyword: drainage
+# % keyword: hydrology
+# %End
 
-#%option
-#% key: variable
-#% type: string
-#% key_desc: name
-#% description: Name of raster to be converted into a stream-specific variable
-#% required : yes
-#%end
+# %option
+# % key: variable
+# % type: string
+# % key_desc: name
+# % description: Name of raster to be converted into a stream-specific variable
+# % required : yes
+# %end
 
-#%option
-#% key: area
-#% type: string
-#% key_desc: string
-#% multiple: no
-#% options: watershed,stream
-#% description: Area of aggregation: across the sub-watersheds or only across sub-streams
-#% required : yes
-#%end
+# %option
+# % key: area
+# % type: string
+# % key_desc: string
+# % multiple: no
+# % options: watershed,stream
+# % description: Area of aggregation: across the sub-watersheds or only across sub-streams
+# % required : yes
+# %end
 
-#%option
-#% key: folder 
-#% type: string
-#% key_desc: name
-#% description: Provide the full folder path (same as for r.stream.watersheds)
-#% required:no
-#% answer: GISDBASE/folder_structure
-#%end
+# %option
+# % key: folder 
+# % type: string
+# % key_desc: name
+# % description: Provide the full folder path (same as for r.stream.watersheds)
+# % required:no
+# % answer: GISDBASE/folder_structure
+# %end
 
-#%option
-#% key: out_folder 
-#% type: string
-#% key_desc: name
-#% description: Provide the full folder path for the output stream-specific variable
-#% required:no
-#% answer: GISDBASE/stream-specific_variables
-#%end
+# %option
+# % key: out_folder 
+# % type: string
+# % key_desc: name
+# % description: Provide the full folder path for the output stream-specific variable
+# % required:no
+# % answer: GISDBASE/stream-specific_variables
+# %end
 
-#%option
-#% key: output
-#% type: string
-#% key_desc: method
-#% multiple: yes
-#% options: cells,min,max,range,mean,stddev,coeff_var,sum
-#% label: Provide the output aggregation method for the stream-specific variable
-#% description: upstream cells numbers, minimum, maximum, range, mean, standard deviation, coefficient of variation, sum. Output datatype is Int32
-#% required:yes
-#%end
+# %option
+# % key: output
+# % type: string
+# % key_desc: method
+# % multiple: yes
+# % options: cells,min,max,range,mean,stddev,coeff_var,sum
+# % label: Provide the output aggregation method for the stream-specific variable
+# % description: upstream cells numbers, minimum, maximum, range, mean, standard deviation, coefficient of variation, sum. Output datatype is Int32
+# % required:yes
+# %end
 
-#%option
-#% key: scale
-#% type: double
-#% key_desc: value
-#% label: Provide a scale factor to multiply or divide the final stream-specific variable
-#% description: Provide it e.g. if input raster values are between -1 and 1, use scale=1000 to inicrease the number of decimals - all outputs will be rounded to integers 
-#% answer: 1
-#% required:no
-#%end
+# %option
+# % key: scale
+# % type: double
+# % key_desc: value
+# % label: Provide a scale factor to multiply or divide the final stream-specific variable
+# % description: Provide it e.g. if input raster values are between -1 and 1, use scale=1000 to inicrease the number of decimals - all outputs will be rounded to integers 
+# % answer: 1
+# % required:no
+# %end
 
-#%option
-#% key: cpu
-#% type: double
-#% description: Number of CPUs used for the parallel computation
-#% answer: 1
-#% required:no
-#%end
+# %option
+# % key: cpu
+# % type: double
+# % description: Number of CPUs used for the parallel computation
+# % answer: 1
+# % required:no
+# %end
 
 if [ -z "$GISBASE" ] ; then
     echo "You must be in GRASS GIS to run this program." >&2
@@ -233,14 +233,14 @@ fi
 
 # replicate the start-GISRC in a uniq GISRC
 
-cp   $GISRC_def    $HOME/.grass7/rc$ID
-export GISRC=$HOME/.grass7/rc$ID
+cp   $GISRC_def    $HOME/.grass8/rc$ID
+export GISRC=$HOME/.grass8/rc$ID
 
 g.mapset  -c   mapset=sub_${GIS_OPT_AREA}ID$ID   location=$LOCATION_NAME  dbase=$GISDBASE   --quiet
 
 rm -f    $GISDBASE/$LOCATION_NAME/sub_${GIS_OPT_AREA}ID$ID/.gislock      
 
-export GISBASE=$( grep  gisbase   $(which grass70) | awk \'{ if(NR==2) { gsub ("\\"","" ) ; print $3 }  }\' )
+export GISBASE=$( grep  gisbase   $(which grass) | awk \'{ if(NR==2) { gsub ("\\"","" ) ; print $3 }  }\' )
 export PATH=$PATH:$GISBASE/bin:$GISBASE/scripts
 export LD_LIBRARY_PATH="$GISBASE/lib"
 export GRASS_LD_LIBRARY_PATH="$LD_LIBRARY_PATH"
@@ -264,7 +264,7 @@ else
 rm -f $DIRNAME/sub_${GIS_OPT_AREA}ID${ID}.tif      
 fi
 
-rm -r $HOME/.grass7/rc$ID    $GISDBASE/$LOCATION_NAME/sub_${GIS_OPT_AREA}ID$ID
+rm -r $HOME/.grass8/rc$ID    $GISDBASE/$LOCATION_NAME/sub_${GIS_OPT_AREA}ID$ID
 
 ' _ 
 
@@ -301,14 +301,14 @@ fi
 
 # replicate the start-GISRC in a uniq GISRC
 
-cp   $GISRC_def    $HOME/.grass7/rc$ID
-export GISRC=$HOME/.grass7/rc$ID
+cp   $GISRC_def    $HOME/.grass8/rc$ID
+export GISRC=$HOME/.grass8/rc$ID
 
 g.mapset  -c   mapset=sub_${GIS_OPT_AREA}ID$ID   location=$LOCATION_NAME  dbase=$GISDBASE   --quiet
 
 rm -f    $GISDBASE/$LOCATION_NAME/sub_${GIS_OPT_AREA}ID$ID/.gislock      
 
-export GISBASE=$( grep  gisbase   $(which grass70) | awk \'{ if(NR==2) { gsub ("\\"","" ) ; print $3 }  }\' )
+export GISBASE=$( grep  gisbase   $(which grass) | awk \'{ if(NR==2) { gsub ("\\"","" ) ; print $3 }  }\' )
 export PATH=$PATH:$GISBASE/bin:$GISBASE/scripts
 export LD_LIBRARY_PATH="$GISBASE/lib"
 export GRASS_LD_LIBRARY_PATH="$LD_LIBRARY_PATH"
@@ -329,7 +329,7 @@ FULL=$(awk -F "|"  \'{if (NF==13) {print 1 } else {print 0} }\'   $DIRNAME/stat_
 
 if [ $FULL -eq 0 ] ; then rm   $DIRNAME/stat_${GIS_OPT_VARIABLE}_ID$ID.txt ; fi
 
-rm -r $HOME/.grass7/rc$ID    $GISDBASE/$LOCATION_NAME/sub_${GIS_OPT_AREA}ID$ID
+rm -r $HOME/.grass8/rc$ID    $GISDBASE/$LOCATION_NAME/sub_${GIS_OPT_AREA}ID$ID
 
 fi 
 

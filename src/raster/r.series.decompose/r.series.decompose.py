@@ -18,54 +18,54 @@
 #
 #############################################################################
 
-#%Module
-#% description: Calculates decomposition of time series X.
-#% overwrite: yes
-#% keyword: raster
-#% keyword: statistics
-#% keyword: series
-#% keyword: decomposition
-#%End
-#%option
-#% key: input
-#% type: string
-#% gisprompt: list of raster names
-#% description: Raster names of equally spaced time series.
-#% required : yes
-#% multiple: yes
-#%end
-#%option
-#% key: result_prefix
-#% type: string
-#% gisprompt: prefix of result raster names
-#% description: Prefix for raster names of filterd X(t)
-#% required : yes
-#% multiple: no
-#%end
-#%option
-#% key: coef_prefix
-#% type: string
-#% gisprompt: prefix for raster names of decomposition coefficients
-#% description: Prefix for names of result raster (rasters of coefficients)
-#% required : yes
-#% multiple: no
-#%end
-#%option
-#% key:  timevar_prefix
-#% type: string
-#% gisprompt: prefix for raster names of time variables
-#% description: Prefix for names of result raster (rasters of time variables)
-#% required : yes
-#% multiple: no
-#%end
-#%option
-#% key: freq
-#% type: double
-#% gisprompt: list of used frequiences
-#% description:  List of frequencies for sin and cos functions
-#% required : yes
-#% multiple: yes
-#%end
+# %Module
+# % description: Calculates decomposition of time series X.
+# % overwrite: yes
+# % keyword: raster
+# % keyword: statistics
+# % keyword: series
+# % keyword: decomposition
+# %End
+# %option
+# % key: input
+# % type: string
+# % gisprompt: list of raster names
+# % description: Raster names of equally spaced time series.
+# % required : yes
+# % multiple: yes
+# %end
+# %option
+# % key: result_prefix
+# % type: string
+# % gisprompt: prefix of result raster names
+# % description: Prefix for raster names of filterd X(t)
+# % required : yes
+# % multiple: no
+# %end
+# %option
+# % key: coef_prefix
+# % type: string
+# % gisprompt: prefix for raster names of decomposition coefficients
+# % description: Prefix for names of result raster (rasters of coefficients)
+# % required : yes
+# % multiple: no
+# %end
+# %option
+# % key:  timevar_prefix
+# % type: string
+# % gisprompt: prefix for raster names of time variables
+# % description: Prefix for names of result raster (rasters of time variables)
+# % required : yes
+# % multiple: no
+# %end
+# %option
+# % key: freq
+# % type: double
+# % gisprompt: list of used frequiences
+# % description:  List of frequencies for sin and cos functions
+# % required : yes
+# % multiple: yes
+# %end
 
 
 import os

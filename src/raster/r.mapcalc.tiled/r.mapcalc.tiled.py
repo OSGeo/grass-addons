@@ -14,65 +14,77 @@
 # 		for details.
 #############################################################################
 
-#%Module
-#% description: Runs r.mapcalc in parallel over tiles.
-#% keyword: raster
-#% keyword: algebra
-#% keyword: tiling
-#%end
+# %Module
+# % description: Runs r.mapcalc in parallel over tiles.
+# % keyword: raster
+# % keyword: algebra
+# % keyword: tiling
+# %end
 #
-#%option
-#% key: expression
-#% type: string
-#% description: Expression to send to r.mapcalc
-#% required: yes
-#%end
+# %option
+# % key: expression
+# % type: string
+# % description: Expression to send to r.mapcalc
+# % required: yes
+# %end
 #
-#%option G_OPT_R_OUTPUT
-#% description: Name of raster output map resulting from expression
-#% key: output
-#% required : no
-#%end
+# %option G_OPT_R_OUTPUT
+# % description: Name of raster output map resulting from expression
+# % key: output
+# % required : no
+# %end
 #
-#%option
-#% key: width
-#% type: integer
-#% description: Width of tiles (columns)
-#% answer: 1000
-#% required: yes
-#%end
+# %option
+# % key: width
+# % type: integer
+# % description: Width of tiles (columns)
+# % answer: 1000
+# % required: yes
+# %end
 #
-#%option
-#% key: height
-#% type: integer
-#% description: Height of tiles (rows)
-#% answer: 1000
-#% required: yes
-#%end
+# %option
+# % key: height
+# % type: integer
+# % description: Height of tiles (rows)
+# % answer: 1000
+# % required: yes
+# %end
 #
-#%option
-#% key: overlap
-#% type: integer
-#% description: Overlap of tiles
-#% answer: 0
-#% required: yes
-#%end
+# %option
+# % key: overlap
+# % type: integer
+# % description: Overlap of tiles
+# % answer: 0
+# % required: yes
+# %end
 #
-#%option
-#% key: processes
-#% type: integer
-#% description: Number of r.mapcalc processes to run in parallel
-#% answer: 1
-#% required: yes
-#%end
+# %option
+# % key: nprocs
+# % type: integer
+# % description: Number of r.mapcalc processes to run in parallel
+# % required: no
+# % options: 1-
+# %end
 #
-#%option
-#% key: mapset_prefix
-#% type: string
-#% description: Mapset prefix
-#% required: no
-#%end
-
+# %option
+# % key: processes
+# % type: integer
+# % description: Number of r.mapcalc processes to run in parallel, use nprocs option instead
+# % label: This option is obsolete and replaced by nprocs
+# % required: no
+# % options: 1-
+# %end
+#
+# %option
+# % key: mapset_prefix
+# % type: string
+# % description: Mapset prefix
+# % required: no
+# %end
+#
+# %rules
+# % exclusive: processes,nprocs
+# %end
 
 import math
 import grass.script as gscript
@@ -108,7 +120,16 @@ def main():
     width = int(options["width"])
     height = int(options["height"])
     overlap = int(options["overlap"])
-    processes = int(options["processes"])
+    processes = options["nprocs"]
+    if not processes:
+        processes = options["processes"]
+        if processes:
+            gscript.warning(_("Option processes is obsolete, use nprocs instead."))
+    try:
+        processes = int(processes)
+    except ValueError:
+        processes = 1
+
     output = None
     if options["output"]:
         output = options["output"]

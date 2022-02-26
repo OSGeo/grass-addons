@@ -20,7 +20,7 @@ suitable. All other raster cells are reclassified to NODATA. Next, all
 contiguous raster cells (i.e., all neighboring rastercells) are 
 clumped. Clumps below an user-defined size (minimum area for fragments) 
 are subsequently removed. See <a 
-href="https://grass.osgeo.org/grass78/manuals/r.reclass.area.html" 
+href="https://grass.osgeo.org/grass-stable/manuals/r.reclass.area.html" 
 target="_blank">r.reclass.area</a> for more details. 
 
 <p><img src="option01.png"><i>
@@ -43,7 +43,7 @@ user-defined neighborhood. For example, take the 5x5
 neighborhood below. Using the maximum as statistic, the central cell 
 would be assigned a value of 5. Using the median, it would be assigned 
 the value 2. See <a 
-href="https://grass.osgeo.org/grass78/manuals/r.neighbors.html" 
+href="https://grass.osgeo.org/grass-stable/manuals/r.neighbors.html" 
 target="_blank">r.neighbors</a> for more details.
 
 <div class="code"><pre>
@@ -136,7 +136,7 @@ protected area.
 
 <p>To compare the compactness of the resulting regions, the compactness 
 of an area is calculated using the formula below (see also <a 
-href="https://grass.osgeo.org/grass78/manuals/v.to.db.html">v.to.db</a>. 
+href="https://grass.osgeo.org/grass-stable/manuals/v.to.db.html">v.to.db</a>. 
 
 <p><pre><code>compactness = perimeter / (2 * sqrt(PI * area))</code></pre>
 
@@ -161,7 +161,7 @@ surface area (m2), compactness, fractal dimension (<i>fd</i>), and
 average suitability. For the meaning of compactness, see above. The 
 fractal dimension of the boundary of a polygon is calculated using the 
 formula below (see also <a 
-href="https://grass.osgeo.org/grass78/manuals/v.to.db.html">v.to.db</a>.
+href="https://grass.osgeo.org/grass-stable/manuals/v.to.db.html">v.to.db</a>.
 
 <p><pre><code>fd = 2 * (log(perimeter) / log(area))</code></pre>
 
@@ -185,16 +185,11 @@ See <a href="https://ecodiv.earth/TutorialsNotes/SuitabilityRegions/index.html">
 <h2>See also</h2>
 
 <ul>
-<li><a href="https://grass.osgeo.org/grass78/manuals/r.reclass.area.html">r.reclass.area</a></li>
-<li><a href="https://grass.osgeo.org/grass78/manuals/r.clump.html">r.clump</a></li>
-<li><a href="https://grass.osgeo.org/grass78/manuals/v.to.db.html">v.to.db</a></li>
+<li><a href="https://grass.osgeo.org/grass-stable/manuals/r.reclass.area.html">r.reclass.area</a></li>
+<li><a href="https://grass.osgeo.org/grass-stable/manuals/r.clump.html">r.clump</a></li>
+<li><a href="https://grass.osgeo.org/grass-stable/manuals/v.to.db.html">v.to.db</a></li>
 </ul>
 
 <h2>AUTHOR</h2>
 
 Paulo van Breugel, paulo at ecodiv.earth
-
-<!--
-<p>
-<i>Last changed: $Date$</i>
--->

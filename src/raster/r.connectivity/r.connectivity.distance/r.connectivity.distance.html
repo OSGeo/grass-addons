@@ -1,6 +1,6 @@
 <h2>DESCRIPTION:</h2>
 <em>r.connectivity.distance</em> computes cost-distance between all 
-areas (patches) of an input vector map within a user defined euclidean 
+areas (patches) of an input vector map within a user defined Euclidean 
 distance threshold.
 
 <p>Recently, graph-theory has been characterised as an efficient and 
@@ -17,9 +17,9 @@ and <em>r.connectivity.corridors</em>).</p>
 
 <p><em>r.connectivity.distance</em> loops through all polygons in the 
 input vector map and calculates the cost-distance to all the other 
-polygons within a user-defined defined euclidean distance threshold.</p>
+polygons within a user-defined Euclidean distance threshold.</p>
 
-<p>It produces two vector maps that holde the network:</p>
+<p>It produces two vector maps that hold the network:</p>
 <ul>
 <li>an edge-map (connections between patches) and a</li>
 <li>vertex-map (centroid representations of the patches).</li>
@@ -79,7 +79,7 @@ the <b>border_dist</b> option, the user can define the number of cells
 (n) along the border to be used for distance measuring.<br>
 The distance from a (start) patch to another (end) is measured as the 
 n-th closest cell on the border of the other (end) patch. An increased 
-number of border cells used for distance measuring increases also the 
+number of border cells used for distance measuring also increases the 
 width of possible corridors computed with 
 <em>r.connectivity.corridors</em> later on.</p>
 
@@ -94,7 +94,7 @@ specified, also output suitable for further processing in
 
 <h2>EXAMPLES</h2>
 The following example is based on the North Carolina dataset!
-<p><em>Please be aware that all input parameter of the following example are 
+<p><em>Please be aware that all input parameters of the following example are 
 purely hypothetical (though they intend to imitate a real life 
 situation) and chosen only for the matter of the exercise. Parameters 
 have to be adjusted in other cases according to ecological knowledge in 
@@ -110,8 +110,8 @@ conditions) maximal 1.5 km.
 </p>
 
 <h3>Prepare input data</h3>
-Befor we can run the connectivity analysis with the r.connectivity.*-tools 
-we need to prepare the the example input data. Because we want to use 
+Before we can run the connectivity analysis with the r.connectivity.*-tools 
+we need to prepare the example input data. Because we want to use 
 cost distance as a distance measure we have to provide a cost raster map 
 in addition to the required vector map of (habitat) patches:
 
@@ -156,7 +156,7 @@ v.extract input=patches output=patches_1ha type=area layer=1 where="area_ha>1"
 alt="Patch vector map example">
 </a><br>
 <i>Figure: Patch vector map as input to r.connectivity.distance, produced 
-in exampe above.</i>
+in the example above.</i>
 </div>
 
 <h3>Create a cost raster:</h3>
@@ -166,9 +166,9 @@ in exampe above.</i>
 high intensity are absolute barriers for our species (not crossable at all).<br>
 Other developed and managed areas can be crossed, but only at high costs 
 (they are avoided where possible). Other Hardwood landcover types offer 
-best opportnity for the dispersal of our species (they are prefered), 
+best opportunity for the dispersal of our species (they are preferred), 
 while the costs for crossing the other landcover types is somewhere 
-inbetween.</p>
+in between.</p>
 <p>Hint: One might also add infrastructure like e.g. roads</p>
 
 <div class="code"><pre>
@@ -176,7 +176,7 @@ inbetween.</p>
 # Windows users may have to use the GUI version of r.reclass
 # and paste the rules there...
 echo '0 = 56 #not classified (2*resolution (28m))
-1 = NULL #High Intensity Developed (absolut barrier)
+1 = NULL #High Intensity Developed (absolute barrier)
 2 = 140 #Low Intensity Developed (5*resolution (28m))
 3 = 112 #Cultivated (4*resolution (28m))
 4 = 70 #Managed Herbaceous Cover (2,5*resolution (28m))
@@ -198,16 +198,16 @@ input=landuse96_28m output=costs rules=- --overwrite
 <img src="r_connectivity_distance_costs.png" width="600" height="600" 
 alt="Cost raster map example">
 </a><br>
-<i>Figure: Cost raster as input to r.connectivity.distance, produced in 
-exampe above.</i>
+<i>Figure: Cost raster as input to r.connectivity.distance, produced in the 
+example above.</i>
 </div>
 
 <h3>Create the network</h3>
 In the first step the network dataset is created, and the cost distance 
 between all possible pairs of vertices (patches) is calculated.
-<p>Our species is known to be uable to cover more than 1.5 km distance. 
-In order to identify potential for improving the connectectivity of the 
-landscape for our speies we set the cutoff distance (maximum search 
+<p>Our species is known to be unable to cover more than 1.5 km distance. 
+In order to identify potential for improving the connectivity of the 
+landscape for our species we set the cutoff distance (maximum search 
 distance for connections) to three times dispersal potential of our 
 species (4500). In lack of real population data we use the area (ha) as 
 a proxy. The distance between two patches is measured as the maximum 
@@ -227,7 +227,7 @@ conefor_dir=./conefor
 height="600" alt="Output network represented by shortest paths">
 </a><br>
 <i>Figure: Network produced with r.connectivity.distance, visually 
-represented by shortest paths and patch areas, produced in exampe above.</i>
+represented by shortest paths and patch areas, produced in the example above.</i>
 </div>
 
 <div style="margin: 10px">
@@ -236,7 +236,7 @@ represented by shortest paths and patch areas, produced in exampe above.</i>
 alt="Output network visualised as a simplified (straight) network">
 </a><br>
 <i>Figure: Network produced with r.connectivity.distance, simplified 
-visualisation with straight lines, produced in exampe above.</i>
+visualisation with straight lines, produced in the example above.</i>
 </div>
 
 <p>To be continued with <a href="r.connectivity.network.html">
@@ -262,10 +262,6 @@ naturforskning (NINA), Trondheim.
 <a href="r.connectivity.corridors.html">r.connectivity.corridors</a>
 
 <h2>AUTHOR</h2>
-Stefan Blumentrath, Norwegian Institute for Nature Research, Oslo, Norway
 
-<!--
-<p>
-<i>Last changed: $Date$</i>
--->
+Stefan Blumentrath, Norwegian Institute for Nature Research, Oslo, Norway
 

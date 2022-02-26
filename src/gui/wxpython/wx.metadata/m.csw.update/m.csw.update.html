@@ -7,7 +7,9 @@ If the <b>-p</b> flag is used only printing instead of writing is done.
 The module also allows validate the connections resources XML file against
 XSD schema, remove invalid and not active CSW connections resources
 candidates.
+
 <h2>NOTES</h2>
+
 For dependencies and installation instructions see the
 <a href="https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support">
 wiki page</a>.
@@ -17,7 +19,9 @@ Stored new connections resources candidates are only those being active and vali
 Default source of the new candidates is a spreadsheet file (*.ods), which
 is to be stored in the module's <i>config/</i> directory. It is possible to use
 the updated document directly from the web address, see <b>-w</b> flag.
+
 <h2>EXAMPLES</h2>
+
 Import and store new resources connections candidates (default):
 <div class="code"><pre>
 m.csw.update url=API-cases.ods
@@ -46,6 +50,7 @@ CSWs):
 <div class="code"><pre>
 m.csw.update -xc
 </pre></div>
+
 <h2>SEE ALSO</h2>
 <em>
 <a href="g.gui.cswbrowser.html">g.gui.cswbrowser</a>,
@@ -60,7 +65,3 @@ wiki page</a>.
 <h2>AUTHOR</h2>
 
 Tomas Zigo
-<!--
-<p>
-<i>Last changed: $Date$</i>
--->

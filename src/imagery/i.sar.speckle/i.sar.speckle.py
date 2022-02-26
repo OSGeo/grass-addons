@@ -21,38 +21,38 @@
 #
 #############################################################################
 
-#%Module
-#% description: Remove speckle from SAR image
-#% keyword: imagery
-#% keyword: speckle
-#% keyword: sar
-#% keyword: radar
-#% overwrite: yes
-#%End
-#%option G_OPT_R_INPUT
-#% key: input
-#% description: Name of input image
-#% required: yes
-#%end
-#%option G_OPT_R_OUTPUT
-#% key: output
-#% description: Name of output image
-#% required: yes
-#%end
-#%option
-#% key: method
-#% description: Method for speckle removal
-#% options: lee
-#% answer: lee
-#% required: yes
-#%end
-#%option
-#% key: size
-#% type: integer
-#% description: Size of neighborhood
-#% answer: 11
-#% required: yes
-#%end
+# %Module
+# % description: Remove speckle from SAR image
+# % keyword: imagery
+# % keyword: speckle
+# % keyword: sar
+# % keyword: radar
+# % overwrite: yes
+# %End
+# %option G_OPT_R_INPUT
+# % key: input
+# % description: Name of input image
+# % required: yes
+# %end
+# %option G_OPT_R_OUTPUT
+# % key: output
+# % description: Name of output image
+# % required: yes
+# %end
+# %option
+# % key: method
+# % description: Method for speckle removal
+# % options: lee
+# % answer: lee
+# % required: yes
+# %end
+# %option
+# % key: size
+# % type: integer
+# % description: Size of neighborhood
+# % answer: 11
+# % required: yes
+# %end
 
 
 import os

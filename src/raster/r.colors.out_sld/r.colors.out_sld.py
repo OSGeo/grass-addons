@@ -5,9 +5,9 @@
 MODULE:       r.colors.out_sld
 AUTHOR(S):    Hamish Bowman
               Stefan Blumentrath, NINA: Port to GRASS GIS 7 / Python,
-              lable and opacity support
+              label and opacity support
 PURPOSE:      Export GRASS raster color table to OGC SLD template v1.0.0
-COPYRIGHT:    (C) 2011 by Hamish Bowman, and the GRASS Development Team
+COPYRIGHT:    (C) 2011-2022 by Hamish Bowman, and the GRASS Development Team
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -25,41 +25,41 @@ http://docs.geoserver.org/stable/en/user/styling/sld/reference/rastersymbolizer.
 """
 
 """
-To Dos:
-- add transparency support
-- support for intervalls ColorMap?
+TODO:
+- Add transparency support
+- Support for interval ColorMap?
 """
 
-#%Module
-#% description: Exports the color table associated with a raster map layer in SLD format.
-#% keyword: raster
-#% keyword: export
-#% keyword: color table
-#%End
+# %Module
+# % description: Exports the color table associated with a raster map layer in SLD format.
+# % keyword: raster
+# % keyword: export
+# % keyword: color table
+# %End
 
-#%Option G_OPT_R_MAP
-#% required: yes
-#%End
+# %Option G_OPT_R_MAP
+# % required: yes
+# %End
 
-#%Option
-#% key: style_name
-#% required: no
-#% label: Name for style
-#% description: A name for the style which might be displayed on the server
-#% answer: GRASS color table
-#%End
+# %Option
+# % key: style_name
+# % required: no
+# % label: Name for style
+# % description: A name for the style which might be displayed on the server
+# % answer: GRASS GIS color table
+# %End
 
-#%Option G_OPT_F_OUTPUT
-#% required: no
-#% label: Name for output SLD rules file
-#% description: "-" to write to stdout
-#% answer: -
-#%End
+# %Option G_OPT_F_OUTPUT
+# % required: no
+# % label: Name for output SLD rules file
+# % description: "-" to write to stdout
+# % answer: -
+# %End
 
-#%flag
-#% key: n
-#% description: Propagate NULLs
-#%end
+# %flag
+# % key: n
+# % description: Propagate NULLs
+# %end
 
 import os
 import sys
@@ -86,11 +86,15 @@ def main():
     style_name = options["style_name"]  # done
     map = options["map"]  # done
 
+    # check if input file exists
+    if not grass.find_file(map)["file"]:
+        grass.fatal(_("Raster map <%s> not found") % map)
+
     # Get map metadata
     mapinfo = grass.parse_command("r.info", flags="e", map=map)
 
     if mapinfo["title"]:
-        name = "{} : {}".format(mapinfo["map"], mapinfo["title"])
+        name = "{}: {}".format(mapinfo["map"], mapinfo["title"])
     else:
         name = mapinfo["map"]
 
@@ -112,7 +116,7 @@ def main():
         use_categories = False
 
     # Initialize SLD with header
-    sld = u"""<?xml version="1.0" encoding="UTF-8"?>
+    sld = """<?xml version="1.0" encoding="UTF-8"?>
 <StyledLayerDescriptor version="1.0.0"
     xsi:schemaLocation="http://www.opengis.net/sld StyledLayerDescriptor.xsd"
     xmlns="http://www.opengis.net/sld"
@@ -123,8 +127,9 @@ def main():
     <Name>{}</Name>""".format(
         style_name
     )
-    sld += """    <UserStyle>
-      <Title>{}</Title>\n
+    sld += """
+    <UserStyle>
+      <Title>{}</Title>
       <FeatureTypeStyle>
         <Rule>
           <RasterSymbolizer>\n""".format(
@@ -140,8 +145,9 @@ def main():
         # sld+='            <ColorMap type={}>\n'.format('"ramp"')
         ColorMapEntry = '              <ColorMapEntry color="#{0:02x}{1:02x}{2:02x}" quantity="{3}" opacity="{4}" />\n'
 
-    #
-    for c in color_rules:
+    # loop over colors
+    for num, c in enumerate(color_rules):
+        grass.percent(num + 1, len(color_rules), 1)
         if len(c.split(" ")) == 2 and not c.split(" ")[0] == "default":
             q = c.split(" ")[0]
             if q == "nv":

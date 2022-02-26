@@ -13,45 +13,45 @@
 #
 #############################################################################
 
-#%Module
-#% description: Exports criteria raster maps and decision raster map in a *.isf file (e.g. 4eMka2, jMAF) for dominance rough set approach analysis.
-#% keyword: raster
-#% keyword: Dominance Rough Set Approach
-#% keyword: Multi Criteria Decision Analysis (MCDA)
-#%End
-#%option
-#% key: attributes
-#% type: string
-#% multiple: yes
-#% gisprompt: old,cell,raster
-#% key_desc: name
-#% description: Name of criteria raster maps
-#% required: yes
-#%end
-#%option
-#% key: preferences
-#% type: string
-#% key_desc: character
-#% description: gain,cost,none
-#% required: yes
-#%end
-#%option
-#% key: decision
-#% type: string
-#% gisprompt: old,cell,raster
-#% key_desc: name
-#% description: Name of decision raster map
-#% required: yes
-#%end
-#%option
-#% key: output
-#% type: string
-#% gisprompt: new_file,file,output
-#% key_desc: name
-#% description: Name for output file (*.isf file, Information System)
-#% answer:infosys.isf
-#% required: yes
-#%end
+# %Module
+# % description: Exports criteria raster maps and decision raster map in a *.isf file (e.g. 4eMka2, jMAF) for dominance rough set approach analysis.
+# % keyword: raster
+# % keyword: Dominance Rough Set Approach
+# % keyword: Multi Criteria Decision Analysis (MCDA)
+# %End
+# %option
+# % key: attributes
+# % type: string
+# % multiple: yes
+# % gisprompt: old,cell,raster
+# % key_desc: name
+# % description: Name of criteria raster maps
+# % required: yes
+# %end
+# %option
+# % key: preferences
+# % type: string
+# % key_desc: character
+# % description: gain,cost,none
+# % required: yes
+# %end
+# %option
+# % key: decision
+# % type: string
+# % gisprompt: old,cell,raster
+# % key_desc: name
+# % description: Name of decision raster map
+# % required: yes
+# %end
+# %option
+# % key: output
+# % type: string
+# % gisprompt: new_file,file,output
+# % key_desc: name
+# % description: Name for output file (*.isf file, Information System)
+# % answer:infosys.isf
+# % required: yes
+# %end
 
 
 import sys

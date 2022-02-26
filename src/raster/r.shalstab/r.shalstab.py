@@ -15,87 +15,87 @@
 #
 ##############################################################################
 
-#%module
-#% description: A model for shallow landslide susceptibility.
-#% keyword: raster
-#% keyword: critical rainfall
-#% keyword: landslide
-#%end
-#%option
-#% key: dem
-#% type: string
-#% gisprompt: old,raster,raster
-#% key_desc: name
-#% description: Name of input elevation raster map
-#% required: yes
-#%end
-#%option
-#% key: phy
-#% type: string
-#% gisprompt: old,raster,raster
-#% key_desc: name
-#% description: Soil friction angle (angle)
-#% required: yes
-#%end
-#%option
-#% key: c_soil
-#% type: string
-#% gisprompt: old,raster,raster
-#% key_desc: name
-#% description: Soil cohesion (N/m^2)
-#% required: yes
-#%end
-#%option
-#% key: gamma
-#% type: string
-#% gisprompt: old,raster,raster
-#% key_desc: name
-#% description: Soil density(Kg/m^3)
-#% required: yes
-#%end
-#%option
-#% key: z
-#% type: string
-#% gisprompt: old,raster,raster
-#% key_desc: name
-#% description: Vertical thickness of soil (m)
-#% required: yes
-#%end
-#%option
-#% key: k
-#% type: string
-#% gisprompt: old,raster,raster
-#% key_desc: name
-#% description: hydraulic conductivity (m/h)
-#% required: yes
-#%end
-#%option
-#% key: root
-#% type: string
-#% gisprompt: old,raster,raster
-#% key_desc: name
-#% description: Root cohesion k (N/m^2)
-#% required: no
-#%end
+# %module
+# % description: A model for shallow landslide susceptibility.
+# % keyword: raster
+# % keyword: critical rainfall
+# % keyword: landslide
+# %end
+# %option
+# % key: dem
+# % type: string
+# % gisprompt: old,raster,raster
+# % key_desc: name
+# % description: Name of input elevation raster map
+# % required: yes
+# %end
+# %option
+# % key: phy
+# % type: string
+# % gisprompt: old,raster,raster
+# % key_desc: name
+# % description: Soil friction angle (angle)
+# % required: yes
+# %end
+# %option
+# % key: c_soil
+# % type: string
+# % gisprompt: old,raster,raster
+# % key_desc: name
+# % description: Soil cohesion (N/m^2)
+# % required: yes
+# %end
+# %option
+# % key: gamma
+# % type: string
+# % gisprompt: old,raster,raster
+# % key_desc: name
+# % description: Soil density(Kg/m^3)
+# % required: yes
+# %end
+# %option
+# % key: z
+# % type: string
+# % gisprompt: old,raster,raster
+# % key_desc: name
+# % description: Vertical thickness of soil (m)
+# % required: yes
+# %end
+# %option
+# % key: k
+# % type: string
+# % gisprompt: old,raster,raster
+# % key_desc: name
+# % description: hydraulic conductivity (m/h)
+# % required: yes
+# %end
+# %option
+# % key: root
+# % type: string
+# % gisprompt: old,raster,raster
+# % key_desc: name
+# % description: Root cohesion k (N/m^2)
+# % required: no
+# %end
 ##############################################################################
 # output
 ##############################################################################
-#%option
-#% key: susceptibility
-#% type: string
-#% gisprompt: new,cell,raster
-#% key_desc: susceptibility
-#% description: Name for output landslide susceptibility map (from 1 to 7)
-#% required : yes
-#%end
-#%option
-#% key: critic_rain
-#% type: string
-#% gisprompt: new,cell,raster
-#% key_desc: critical rain
-#% description: Name for output critical rainfall map (mm/day)
-#% required : yes
-#%END
+# %option
+# % key: susceptibility
+# % type: string
+# % gisprompt: new,cell,raster
+# % key_desc: susceptibility
+# % description: Name for output landslide susceptibility map (from 1 to 7)
+# % required : yes
+# %end
+# %option
+# % key: critic_rain
+# % type: string
+# % gisprompt: new,cell,raster
+# % key_desc: critical rain
+# % description: Name for output critical rainfall map (mm/day)
+# % required : yes
+# %END
 
 import sys
 import os

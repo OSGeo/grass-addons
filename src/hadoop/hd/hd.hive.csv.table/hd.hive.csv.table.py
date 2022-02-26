@@ -13,92 +13,92 @@
 #
 #############################################################################
 
-#%module
-#% description: Hive table creator
-#% keyword: database
-#% keyword: hdfs
-#% keyword: hive
-#%end
+# %module
+# % description: Hive table creator
+# % keyword: database
+# % keyword: hdfs
+# % keyword: hive
+# %end
 
-#%option
-#% key: driver
-#% type: string
-#% required: yes
-#% answer: hiveserver2
-#% description: Type of database driver
-#% options: hiveserver2
-#%end
-#%option
-#% key: table
-#% type: string
-#% required: yes
-#% description: name of table
-#% guisection: table
-#%end
-#%option
-#% key: columns
-#% type: string
-#% required: yes
-#% description: python dictionary {attribute:datatype}
-#% guisection: table
-#%end
-#%option
-#% key: stored
-#% type: string
-#% required: no
-#% answer: textfile
-#% description: output
-#% guisection: table
-#%end
-#%option
-#% key: outputformat
-#% type: string
-#% required: no
-#% description: output
-#% guisection: table
-#%end
-#%option
-#% key: csvpath
-#% type: string
-#% required: no
-#% description: hdfs path specifying input data
-#% guisection: data
-#%end
-#%option
-#% key: partition
-#% type: string
-#% required: no
-#% description: arget partition as a dict of partition columns and values
-#% guisection: data
-#%end
-#%option
-#% key: serde
-#% type: string
-#% description: java class for serialization of json
-#% guisection: table
-#%end
-#%option
-#% key: delimeter
-#% type: string
-#% required: yes
-#% answer: ,
-#% description: csv delimeter of fields
-#% guisection: data
-#%end
-#%flag
-#% key: o
-#% description: Optional if csvpath for loading data is delcared. overwrite all data in table.
-#% guisection: data
-#%end
-#%flag
-#% key: d
-#% description: Firstly drop table if exists
-#% guisection: table
-#%end
-#%flag
-#% key: e
-#% description: the EXTERNAL keyword lets you create a table and provide a LOCATION so that Hive does not use a default location for this table. This comes in handy if you already have data generated. When dropping an EXTERNAL table, data in the table is NOT deleted from the file system.
-#% guisection: table
+# %option
+# % key: driver
+# % type: string
+# % required: yes
+# % answer: hiveserver2
+# % description: Type of database driver
+# % options: hiveserver2
+# %end
+# %option
+# % key: table
+# % type: string
+# % required: yes
+# % description: name of table
+# % guisection: table
+# %end
+# %option
+# % key: columns
+# % type: string
+# % required: yes
+# % description: python dictionary {attribute:datatype}
+# % guisection: table
+# %end
+# %option
+# % key: stored
+# % type: string
+# % required: no
+# % answer: textfile
+# % description: output
+# % guisection: table
+# %end
+# %option
+# % key: outputformat
+# % type: string
+# % required: no
+# % description: output
+# % guisection: table
+# %end
+# %option
+# % key: csvpath
+# % type: string
+# % required: no
+# % description: hdfs path specifying input data
+# % guisection: data
+# %end
+# %option
+# % key: partition
+# % type: string
+# % required: no
+# % description: arget partition as a dict of partition columns and values
+# % guisection: data
+# %end
+# %option
+# % key: serde
+# % type: string
+# % description: java class for serialization of json
+# % guisection: table
+# %end
+# %option
+# % key: delimeter
+# % type: string
+# % required: yes
+# % answer: ,
+# % description: csv delimeter of fields
+# % guisection: data
+# %end
+# %flag
+# % key: o
+# % description: Optional if csvpath for loading data is delcared. overwrite all data in table.
+# % guisection: data
+# %end
+# %flag
+# % key: d
+# % description: Firstly drop table if exists
+# % guisection: table
+# %end
+# %flag
+# % key: e
+# % description: the EXTERNAL keyword lets you create a table and provide a LOCATION so that Hive does not use a default location for this table. This comes in handy if you already have data generated. When dropping an EXTERNAL table, data in the table is NOT deleted from the file system.
+# % guisection: table
 
 import grass.script as grass
 

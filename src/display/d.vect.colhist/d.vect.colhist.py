@@ -12,36 +12,36 @@
 #
 #############################################################################
 
-#%module
-#% description: Draws the histogram of values in a vector attribute column
-#% keyword: display
-#% keyword: vector
-#% keyword: geology
-#%end
-#%option G_OPT_V_MAP
-#%end
-#%option G_OPT_V_FIELD
-#%end
-#%option G_OPT_DB_COLUMN
-#% key: column
-#% description: Attribute column containing azimuth
-#% required: yes
-#%end
-#%option G_OPT_DB_WHERE
-#%end
-#%option G_OPT_F_OUTPUT
-#% key: plot_output
-#% label: Name for graphic output file for plot (extension decides format, - for screen)
-#% required: yes
-#% answer: -
-#%end
-#%option
-#% key: bins
-#% type: integer
-#% description: Number of bins in histogram
-#% answer: 30
-#% required: no
-#%end
+# %module
+# % description: Draws the histogram of values in a vector attribute column
+# % keyword: display
+# % keyword: vector
+# % keyword: geology
+# %end
+# %option G_OPT_V_MAP
+# %end
+# %option G_OPT_V_FIELD
+# %end
+# %option G_OPT_DB_COLUMN
+# % key: column
+# % description: Attribute column containing azimuth
+# % required: yes
+# %end
+# %option G_OPT_DB_WHERE
+# %end
+# %option G_OPT_F_OUTPUT
+# % key: plot_output
+# % label: Name for graphic output file for plot (extension decides format, - for screen)
+# % required: yes
+# % answer: -
+# %end
+# %option
+# % key: bins
+# % type: integer
+# % description: Number of bins in histogram
+# % answer: 30
+# % required: no
+# %end
 
 
 import sys

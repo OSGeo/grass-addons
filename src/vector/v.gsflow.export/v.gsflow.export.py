@@ -21,90 +21,90 @@
 # More information
 # Started December 2016
 
-#%module
-#% description: Export databse tables and pour point for GSFLOW input and control files
-#% keyword: vector
-#% keyword: stream network
-#% keyword: hydrology
-#% keyword: GSFLOW
-#%end
+# %module
+# % description: Export databse tables and pour point for GSFLOW input and control files
+# % keyword: vector
+# % keyword: stream network
+# % keyword: hydrology
+# % keyword: GSFLOW
+# %end
 
-#%option G_OPT_V_INPUT
-#%  key: reaches_input
-#%  label: Reaches where stream segments overlap MODFLOW grid cells
-#%  required: no
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_V_INPUT
+# %  key: reaches_input
+# %  label: Reaches where stream segments overlap MODFLOW grid cells
+# %  required: no
+# %  guidependency: layer,column
+# %end
 
-#%option G_OPT_V_INPUT
-#%  key: segments_input
-#%  label: Stream segments, coincident with HRUs
-#%  required: no
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_V_INPUT
+# %  key: segments_input
+# %  label: Stream segments, coincident with HRUs
+# %  required: no
+# %  guidependency: layer,column
+# %end
 
-#%option G_OPT_V_INPUT
-#%  key: gravres_input
-#%  label: Union of MODFLOW grid and HRUs
-#%  required: no
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_V_INPUT
+# %  key: gravres_input
+# %  label: Union of MODFLOW grid and HRUs
+# %  required: no
+# %  guidependency: layer,column
+# %end
 
-#%option G_OPT_V_INPUT
-#%  key: hru_input
-#%  label: PRMS-style hydrologic response units
-#%  required: no
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_V_INPUT
+# %  key: hru_input
+# %  label: PRMS-style hydrologic response units
+# %  required: no
+# %  guidependency: layer,column
+# %end
 
-#%option G_OPT_V_INPUT
-#%  key: pour_point_input
-#%  label: Pour point at the outlet of the basin
-#%  required: no
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_V_INPUT
+# %  key: pour_point_input
+# %  label: Pour point at the outlet of the basin
+# %  required: no
+# %  guidependency: layer,column
+# %end
 
-#%option G_OPT_V_INPUT
-#%  key: bc_cell_input
-#%  label: Boundary condition cell downstream of pour point
-#%  required: no
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_V_INPUT
+# %  key: bc_cell_input
+# %  label: Boundary condition cell downstream of pour point
+# %  required: no
+# %  guidependency: layer,column
+# %end
 
-#%option G_OPT_V_OUTPUT
-#%  key: reaches_output
-#%  label: Reaches table, no file ext
-#%  required: no
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_V_OUTPUT
+# %  key: reaches_output
+# %  label: Reaches table, no file ext
+# %  required: no
+# %  guidependency: layer,column
+# %end
 
-#%option G_OPT_V_OUTPUT
-#%  key: segments_output
-#%  label: Segments table, no file ext
-#%  required: no
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_V_OUTPUT
+# %  key: segments_output
+# %  label: Segments table, no file ext
+# %  required: no
+# %  guidependency: layer,column
+# %end
 
-#%option G_OPT_V_OUTPUT
-#%  key: gravres_output
-#%  label: Gravity Reservoir output table for GSFLOW input, no file ext
-#%  required: no
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_V_OUTPUT
+# %  key: gravres_output
+# %  label: Gravity Reservoir output table for GSFLOW input, no file ext
+# %  required: no
+# %  guidependency: layer,column
+# %end
 
-#%option G_OPT_V_OUTPUT
-#%  key: hru_output
-#%  label: HRU table, no file ext
-#%  required: no
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_V_OUTPUT
+# %  key: hru_output
+# %  label: HRU table, no file ext
+# %  required: no
+# %  guidependency: layer,column
+# %end
 
-#%option G_OPT_V_OUTPUT
-#%  key: pour_point_boundary_output
-#%  label: Pour point and b.c. coordinates for GSFLOW input, no file ext
-#%  required: no
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_V_OUTPUT
+# %  key: pour_point_boundary_output
+# %  label: Pour point and b.c. coordinates for GSFLOW input, no file ext
+# %  required: no
+# %  guidependency: layer,column
+# %end
 
 ##################
 # IMPORT MODULES #

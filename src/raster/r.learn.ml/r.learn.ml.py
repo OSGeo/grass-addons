@@ -16,391 +16,391 @@
 # when class numeric ID-s were not continous increasing +1 each.
 # Bugfix for processing index list of nominal layers.
 
-#%module
-#% description: Supervised classification and regression of GRASS rasters using the python scikit-learn package
-#% keyword: raster
-#% keyword: classification
-#% keyword: regression
-#% keyword: machine learning
-#% keyword: scikit-learn
-#%end
+# %module
+# % description: Supervised classification and regression of GRASS rasters using the python scikit-learn package
+# % keyword: raster
+# % keyword: classification
+# % keyword: regression
+# % keyword: machine learning
+# % keyword: scikit-learn
+# %end
 
-#%option G_OPT_I_GROUP
-#% key: group
-#% label: Group of raster layers to be classified
-#% description: GRASS imagery group of raster maps representing feature variables to be used in the machine learning model
-#% required: yes
-#% multiple: no
-#%end
+# %option G_OPT_I_GROUP
+# % key: group
+# % label: Group of raster layers to be classified
+# % description: GRASS imagery group of raster maps representing feature variables to be used in the machine learning model
+# % required: yes
+# % multiple: no
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: trainingmap
-#% label: Labelled pixels
-#% description: Raster map with labelled pixels for training
-#% required: no
-#% guisection: Required
-#%end
+# %option G_OPT_R_INPUT
+# % key: trainingmap
+# % label: Labelled pixels
+# % description: Raster map with labelled pixels for training
+# % required: no
+# % guisection: Required
+# %end
 
-#%option G_OPT_V_INPUT
-#% key: trainingpoints
-#% label: Vector map with training samples
-#% description: Vector points map where each point is used as training sample. Handling of missing values in training data can be choosen later.
-#% required: no
-#% guisection: Required
-#%end
+# %option G_OPT_V_INPUT
+# % key: trainingpoints
+# % label: Vector map with training samples
+# % description: Vector points map where each point is used as training sample. Handling of missing values in training data can be choosen later.
+# % required: no
+# % guisection: Required
+# %end
 
-#%option G_OPT_DB_COLUMN
-#% key: field
-#% label: Response attribute column
-#% description: Name of attribute column in trainingpoints table containing response values
-#% required: no
-#% guisection: Required
-#%end
+# %option G_OPT_DB_COLUMN
+# % key: field
+# % label: Response attribute column
+# % description: Name of attribute column in trainingpoints table containing response values
+# % required: no
+# % guisection: Required
+# %end
 
-#%option G_OPT_R_OUTPUT
-#% key: output
-#% label: Output Map
-#% description: Raster layer name to store result from classification or regression model. The name will also used as a perfix if class probabilities or intermediate of cross-validation results are ordered as maps.
-#% guisection: Required
-#% required: no
-#%end
+# %option G_OPT_R_OUTPUT
+# % key: output
+# % label: Output Map
+# % description: Raster layer name to store result from classification or regression model. The name will also used as a perfix if class probabilities or intermediate of cross-validation results are ordered as maps.
+# % guisection: Required
+# % required: no
+# %end
 
-#%option string
-#% key: classifier
-#% label: Classifier
-#% description: Supervised learning model to use
-#% answer: RandomForestClassifier
-#% options: LogisticRegression,LinearDiscriminantAnalysis,QuadraticDiscriminantAnalysis,KNeighborsClassifier,GaussianNB,DecisionTreeClassifier,DecisionTreeRegressor,RandomForestClassifier,RandomForestRegressor,ExtraTreesClassifier,ExtraTreesRegressor,GradientBoostingClassifier,GradientBoostingRegressor,SVC,EarthClassifier,EarthRegressor
-#% guisection: Classifier settings
-#% required: no
-#%end
+# %option string
+# % key: classifier
+# % label: Classifier
+# % description: Supervised learning model to use
+# % answer: RandomForestClassifier
+# % options: LogisticRegression,LinearDiscriminantAnalysis,QuadraticDiscriminantAnalysis,KNeighborsClassifier,GaussianNB,DecisionTreeClassifier,DecisionTreeRegressor,RandomForestClassifier,RandomForestRegressor,ExtraTreesClassifier,ExtraTreesRegressor,GradientBoostingClassifier,GradientBoostingRegressor,SVC,EarthClassifier,EarthRegressor
+# % guisection: Classifier settings
+# % required: no
+# %end
 
-#%option
-#% key: c
-#% type: double
-#% label: Inverse of regularization strength
-#% description: Inverse of regularization strength (LogisticRegression and SVC)
-#% answer: 1.0
-#% multiple: yes
-#% guisection: Classifier settings
-#%end
+# %option
+# % key: c
+# % type: double
+# % label: Inverse of regularization strength
+# % description: Inverse of regularization strength (LogisticRegression and SVC)
+# % answer: 1.0
+# % multiple: yes
+# % guisection: Classifier settings
+# %end
 
-#%option
-#% key: max_features
-#% type: integer
-#% label: Number of features available during node splitting; zero uses classifier defaults
-#% description: Number of features available during node splitting (tree-based classifiers and regressors)
-#% answer:0
-#% multiple: yes
-#% guisection: Classifier settings
-#%end
+# %option
+# % key: max_features
+# % type: integer
+# % label: Number of features available during node splitting; zero uses classifier defaults
+# % description: Number of features available during node splitting (tree-based classifiers and regressors)
+# % answer:0
+# % multiple: yes
+# % guisection: Classifier settings
+# %end
 
-#%option
-#% key: max_depth
-#% type: integer
-#% label: Maximum tree depth; zero uses classifier defaults
-#% description: Maximum tree depth for tree-based method; zero uses classifier defaults (full-growing for Decision trees and Randomforest, 3 for GBM)
-#% answer:0
-#% multiple: yes
-#% guisection: Classifier settings
-#%end
+# %option
+# % key: max_depth
+# % type: integer
+# % label: Maximum tree depth; zero uses classifier defaults
+# % description: Maximum tree depth for tree-based method; zero uses classifier defaults (full-growing for Decision trees and Randomforest, 3 for GBM)
+# % answer:0
+# % multiple: yes
+# % guisection: Classifier settings
+# %end
 
-#%option
-#% key: min_samples_split
-#% type: integer
-#% label: The minimum number of samples required for node splitting
-#% description: The minimum number of samples required for node splitting in tree-based classifiers
-#% answer: 2
-#% multiple: yes
-#% guisection: Classifier settings
-#%end
+# %option
+# % key: min_samples_split
+# % type: integer
+# % label: The minimum number of samples required for node splitting
+# % description: The minimum number of samples required for node splitting in tree-based classifiers
+# % answer: 2
+# % multiple: yes
+# % guisection: Classifier settings
+# %end
 
-#%option
-#% key: min_samples_leaf
-#% type: integer
-#% label: The minimum number of samples required to form a leaf node
-#% description: The minimum number of samples required to form a leaf node in tree-based classifiers
-#% answer: 1
-#% multiple: yes
-#% guisection: Classifier settings
-#%end
+# %option
+# % key: min_samples_leaf
+# % type: integer
+# % label: The minimum number of samples required to form a leaf node
+# % description: The minimum number of samples required to form a leaf node in tree-based classifiers
+# % answer: 1
+# % multiple: yes
+# % guisection: Classifier settings
+# %end
 
-#%option
-#% key: n_estimators
-#% type: integer
-#% label: Number of estimators
-#% description: Number of estimators (trees) in ensemble tree-based classifiers
-#% answer: 100
-#% multiple: yes
-#% guisection: Classifier settings
-#%end
+# %option
+# % key: n_estimators
+# % type: integer
+# % label: Number of estimators
+# % description: Number of estimators (trees) in ensemble tree-based classifiers
+# % answer: 100
+# % multiple: yes
+# % guisection: Classifier settings
+# %end
 
-#%option
-#% key: learning_rate
-#% type: double
-#% label: learning rate
-#% description: learning rate (also known as shrinkage) for gradient boosting methods
-#% answer: 0.1
-#% multiple: yes
-#% guisection: Classifier settings
-#%end
+# %option
+# % key: learning_rate
+# % type: double
+# % label: learning rate
+# % description: learning rate (also known as shrinkage) for gradient boosting methods
+# % answer: 0.1
+# % multiple: yes
+# % guisection: Classifier settings
+# %end
 
-#%option
-#% key: subsample
-#% type: double
-#% label: The fraction of samples to be used for fitting
-#% description: The fraction of samples to be used for fitting, controls stochastic behaviour of gradient boosting methods
-#% answer: 1.0
-#% multiple: yes
-#% guisection: Classifier settings
-#%end
+# %option
+# % key: subsample
+# % type: double
+# % label: The fraction of samples to be used for fitting
+# % description: The fraction of samples to be used for fitting, controls stochastic behaviour of gradient boosting methods
+# % answer: 1.0
+# % multiple: yes
+# % guisection: Classifier settings
+# %end
 
-#%option
-#% key: max_degree
-#% type: integer
-#% label: The maximum degree of terms in forward pass
-#% description: The maximum degree of terms in forward pass for Py-earth
-#% answer: 1
-#% multiple: yes
-#% guisection: Classifier settings
-#%end
+# %option
+# % key: max_degree
+# % type: integer
+# % label: The maximum degree of terms in forward pass
+# % description: The maximum degree of terms in forward pass for Py-earth
+# % answer: 1
+# % multiple: yes
+# % guisection: Classifier settings
+# %end
 
-#%option
-#% key: n_neighbors
-#% type: integer
-#% label: Number of neighbors to use
-#% description: Number of neighbors to use
-#% answer: 5
-#% multiple: yes
-#% guisection: Classifier settings
-#%end
+# %option
+# % key: n_neighbors
+# % type: integer
+# % label: Number of neighbors to use
+# % description: Number of neighbors to use
+# % answer: 5
+# % multiple: yes
+# % guisection: Classifier settings
+# %end
 
-#%option string
-#% key: weights
-#% label: weight function
-#% description: Distance weight function for k-nearest neighbours model prediction
-#% answer: uniform
-#% options: uniform,distance
-#% multiple: yes
-#% guisection: Classifier settings
-#%end
+# %option string
+# % key: weights
+# % label: weight function
+# % description: Distance weight function for k-nearest neighbours model prediction
+# % answer: uniform
+# % options: uniform,distance
+# % multiple: yes
+# % guisection: Classifier settings
+# %end
 
-#%option string
-#% key: grid_search
-#% label: Resampling method to use for hyperparameter optimization
-#% description: Resampling method to use for hyperparameter optimization
-#% options: cross-validation,holdout
-#% answer: cross-validation
-#% multiple: no
-#% guisection: Classifier settings
-#%end
+# %option string
+# % key: grid_search
+# % label: Resampling method to use for hyperparameter optimization
+# % description: Resampling method to use for hyperparameter optimization
+# % options: cross-validation,holdout
+# % answer: cross-validation
+# % multiple: no
+# % guisection: Classifier settings
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: categorymaps
-#% required: no
-#% multiple: yes
-#% label: Names of categorical rasters within the imagery group
-#% description: Names of categorical rasters within the imagery group that will be one-hot encoded. Leave empty if none.
-#% guisection: Optional
-#%end
+# %option G_OPT_R_INPUT
+# % key: categorymaps
+# % required: no
+# % multiple: yes
+# % label: Names of categorical rasters within the imagery group
+# % description: Names of categorical rasters within the imagery group that will be one-hot encoded. Leave empty if none.
+# % guisection: Optional
+# %end
 
-#%option string
-#% key: cvtype
-#% label: Non-spatial or spatial cross-validation
-#% description: Perform non-spatial, clumped or clustered k-fold cross-validation
-#% answer: Non-spatial
-#% options: non-spatial,clumped,kmeans
-#% guisection: Cross validation
-#%end
+# %option string
+# % key: cvtype
+# % label: Non-spatial or spatial cross-validation
+# % description: Perform non-spatial, clumped or clustered k-fold cross-validation
+# % answer: Non-spatial
+# % options: non-spatial,clumped,kmeans
+# % guisection: Cross validation
+# %end
 
-#%option
-#% key: n_partitions
-#% type: integer
-#% label: Number of k-means spatial partitions
-#% description: Number of k-means spatial partitions for k-means clustered cross-validation
-#% answer: 10
-#% guisection: Cross validation
-#%end
+# %option
+# % key: n_partitions
+# % type: integer
+# % label: Number of k-means spatial partitions
+# % description: Number of k-means spatial partitions for k-means clustered cross-validation
+# % answer: 10
+# % guisection: Cross validation
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: group_raster
-#% label: Custom group ids for training samples from GRASS raster
-#% description: GRASS raster containing group ids for training samples. Samples with the same group id will not be split between training and test cross-validation folds
-#% required: no
-#% guisection: Cross validation
-#%end
+# %option G_OPT_R_INPUT
+# % key: group_raster
+# % label: Custom group ids for training samples from GRASS raster
+# % description: GRASS raster containing group ids for training samples. Samples with the same group id will not be split between training and test cross-validation folds
+# % required: no
+# % guisection: Cross validation
+# %end
 
-#%option
-#% key: cv
-#% type: integer
-#% description: Number of cross-validation folds
-#% answer: 1
-#% guisection: Cross validation
-#%end
+# %option
+# % key: cv
+# % type: integer
+# % description: Number of cross-validation folds
+# % answer: 1
+# % guisection: Cross validation
+# %end
 
-#%option
-#% key: n_permutations
-#% type: integer
-#% description: Number of permutations to perform for feature importances
-#% answer: 10
-#% guisection: Cross validation
-#%end
+# %option
+# % key: n_permutations
+# % type: integer
+# % description: Number of permutations to perform for feature importances
+# % answer: 10
+# % guisection: Cross validation
+# %end
 
-#%flag
-#% key: t
-#% description: Perform hyperparameter tuning only
-#% guisection: Cross validation
-#%end
+# %flag
+# % key: t
+# % description: Perform hyperparameter tuning only
+# % guisection: Cross validation
+# %end
 
-#%flag
-#% key: f
-#% label: Estimate permutation-based feature importances
-#% description: Estimate feature importance using a permutation-based method
-#% guisection: Cross validation
-#%end
+# %flag
+# % key: f
+# % label: Estimate permutation-based feature importances
+# % description: Estimate feature importance using a permutation-based method
+# % guisection: Cross validation
+# %end
 
-#%flag
-#% key: r
-#% label: Make predictions for cross validation resamples
-#% description: Produce raster predictions for all cross validation resamples
-#% guisection: Cross validation
-#%end
+# %flag
+# % key: r
+# % label: Make predictions for cross validation resamples
+# % description: Produce raster predictions for all cross validation resamples
+# % guisection: Cross validation
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key: errors_file
-#% label: Save cross-validation global accuracy results to csv
-#% required: no
-#% guisection: Cross validation
-#%end
+# %option G_OPT_F_OUTPUT
+# % key: errors_file
+# % label: Save cross-validation global accuracy results to csv
+# % required: no
+# % guisection: Cross validation
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key: preds_file
-#% label: Save cross-validation predictions to csv
-#% required: no
-#% guisection: Cross validation
-#%end
+# %option G_OPT_F_OUTPUT
+# % key: preds_file
+# % label: Save cross-validation predictions to csv
+# % required: no
+# % guisection: Cross validation
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key: fimp_file
-#% label: Save feature importances to csv
-#% required: no
-#% guisection: Cross validation
-#%end
+# %option G_OPT_F_OUTPUT
+# % key: fimp_file
+# % label: Save feature importances to csv
+# % required: no
+# % guisection: Cross validation
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key: param_file
-#% label: Save hyperparameter search scores to csv
-#% required: no
-#% guisection: Cross validation
-#%end
+# %option G_OPT_F_OUTPUT
+# % key: param_file
+# % label: Save hyperparameter search scores to csv
+# % required: no
+# % guisection: Cross validation
+# %end
 
-#%option
-#% key: random_state
-#% type: integer
-#% description: Seed to use for random state
-#% answer: 1
-#% guisection: Optional
-#%end
+# %option
+# % key: random_state
+# % type: integer
+# % description: Seed to use for random state
+# % answer: 1
+# % guisection: Optional
+# %end
 
-#%option
-#% key: indexes
-#% type: integer
-#% description: Indexes of class probabilities to predict. Default -1 predicts all classes
-#% answer: -1
-#% guisection: Optional
-#% multiple: yes
-#%end
+# %option
+# % key: indexes
+# % type: integer
+# % description: Indexes of class probabilities to predict. Default -1 predicts all classes
+# % answer: -1
+# % guisection: Optional
+# % multiple: yes
+# %end
 
-#%option
-#% key: rowincr
-#% type: integer
-#% description: Maximum number of raster rows to read/write in single chunk whilst performing prediction
-#% answer: 25
-#% guisection: Optional
-#%end
+# %option
+# % key: rowincr
+# % type: integer
+# % description: Maximum number of raster rows to read/write in single chunk whilst performing prediction
+# % answer: 25
+# % guisection: Optional
+# %end
 
-#%option
-#% key: n_jobs
-#% type: integer
-#% description: Number of cores for multiprocessing, -2 is n_cores-1
-#% answer: -2
-#% guisection: Optional
-#%end
+# %option
+# % key: n_jobs
+# % type: integer
+# % description: Number of cores for multiprocessing, -2 is n_cores-1
+# % answer: -2
+# % guisection: Optional
+# %end
 
-#%flag
-#% key: s
-#% label: Standardization preprocessing
-#% description: Standardize feature variables (convert values the get zero mean and unit variance).
-#% guisection: Optional
-#%end
+# %flag
+# % key: s
+# % label: Standardization preprocessing
+# % description: Standardize feature variables (convert values the get zero mean and unit variance).
+# % guisection: Optional
+# %end
 
-#%flag
-#% key: p
-#% label: Output class membership probabilities
-#% description: A raster layer is created for each class. It is recommended to give a list of particular classes in interest to avoid consumption of large amounts of disk space.
-#% guisection: Optional
-#%end
+# %flag
+# % key: p
+# % label: Output class membership probabilities
+# % description: A raster layer is created for each class. It is recommended to give a list of particular classes in interest to avoid consumption of large amounts of disk space.
+# % guisection: Optional
+# %end
 
-#%flag
-#% key: z
-#% label: Only predict class probabilities
-#% guisection: Optional
-#%end
+# %flag
+# % key: z
+# % label: Only predict class probabilities
+# % guisection: Optional
+# %end
 
-#%flag
-#% key: m
-#% description: Build model only - do not perform prediction
-#% guisection: Optional
-#%end
+# %flag
+# % key: m
+# % description: Build model only - do not perform prediction
+# % guisection: Optional
+# %end
 
-#%flag
-#% key: b
-#% description: Balance training data using class weights
-#% guisection: Optional
-#%end
+# %flag
+# % key: b
+# % description: Balance training data using class weights
+# % guisection: Optional
+# %end
 
-#%flag
-#% key: l
-#% label: Use memory swap
-#% guisection: Optional
-#%end
+# %flag
+# % key: l
+# % label: Use memory swap
+# % guisection: Optional
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key: save_training
-#% label: Save training data to csv
-#% required: no
-#% guisection: Optional
-#%end
+# %option G_OPT_F_OUTPUT
+# % key: save_training
+# % label: Save training data to csv
+# % required: no
+# % guisection: Optional
+# %end
 
-#%option G_OPT_F_INPUT
-#% key: load_training
-#% label: Load training data from csv
-#% required: no
-#% guisection: Optional
-#%end
+# %option G_OPT_F_INPUT
+# % key: load_training
+# % label: Load training data from csv
+# % required: no
+# % guisection: Optional
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key: save_model
-#% label: Save model to file (for compression use e.g. '.gz' extension)
-#% required: no
-#% guisection: Optional
-#%end
+# %option G_OPT_F_OUTPUT
+# % key: save_model
+# % label: Save model to file (for compression use e.g. '.gz' extension)
+# % required: no
+# % guisection: Optional
+# %end
 
-#%option G_OPT_F_INPUT
-#% key: load_model
-#% label: Load model from file
-#% required: no
-#% guisection: Optional
-#%end
+# %option G_OPT_F_INPUT
+# % key: load_model
+# % label: Load model from file
+# % required: no
+# % guisection: Optional
+# %end
 
-#%rules
-#% exclusive: trainingmap,load_model
-#% exclusive: load_training,save_training
-#% exclusive: trainingmap,load_training
-#% exclusive: trainingpoints,trainingmap
-#% exclusive: trainingpoints,load_training
-#% requires: fimp_file,-f
-#%end
+# %rules
+# % exclusive: trainingmap,load_model
+# % exclusive: load_training,save_training
+# % exclusive: trainingmap,load_training
+# % exclusive: trainingpoints,trainingmap
+# % exclusive: trainingpoints,load_training
+# % requires: fimp_file,-f
+# %end
 
 from __future__ import absolute_import
 import atexit

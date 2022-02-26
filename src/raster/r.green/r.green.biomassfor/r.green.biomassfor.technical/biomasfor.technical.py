@@ -15,101 +15,101 @@
 #
 #############################################################################
 #
-#%Module
-#% description: Assess the technical biomass availability
-#% keyword: raster
-#% keyword: biomass
-#%End
-#%option G_OPT_R_INPUT
-#% key: dtm
-#% type: string
-#% description: Name of Digital terrain model map
-#% required : yes
-#%end
-#%option
-#% key: slp_min_cc
-#% type: double
-#% description: Percent slope lower limit with Cable Crane
-#% answer: 30.
-#% required : no
-#% guisection: Cable Crane
-#%end
-#%option
-#% key: slp_max_cc
-#% type: double
-#% description: Percent slope higher limit with Cable Crane
-#% answer: 100.
-#% required : no
-#% guisection: Cable Crane
-#%end
-#%option
-#% key: dist_max_cc
-#% type: double
-#% description: Maximum distance with Cable Crane
-#% answer: 800.
-#% required : no
-#% guisection: Cable Crane
-#%end
-#%option
-#% key: slp_max_fw
-#% type: double
-#% description: Percent slope higher limit with Forwarder
-#% answer: 30.
-#% required : no
-#% guisection: Forwarder
-#%end
-#%option
-#% key: dist_max_fw
-#% type: double
-#% description: Maximum distance with Forwarder
-#% answer: 600.
-#% required : no
-#% guisection: Forwarder
-#%end
-#%option
-#% key: slp_max_cop
-#% type: double
-#% description: Percent slope higher limit with other techniques for Coppices
-#% answer: 30.
-#% required : no
-#% guisection: Other
-#%end
-#%option
-#% key: dist_max_cop
-#% type: double
-#% description: Maximum distance with other techniques for Coppices
-#% answer: 600.
-#% required : no
-#% guisection: Other
-#%end
-#%option
-#% key: energy_tops_hf
-#% type: double
-#% description: Energy for tops and branches in high forest in MWh/m³
-#% answer: 0.49
-#% required : no
-#% guisection: Energy
-#%end
-#%option
-#% key: energy_cormometric_vol_hf
-#% type: double
-#% description: Energy for tops and branches for high forest in MWh/m³
-#% answer: 1.97
-#% required : no
-#% guisection: Energy
-#%end
-#%option
-#% key: energy_tops_cop
-#% type: double
-#% description: Energy for tops and branches for Coppices in MWh/m³
-#% answer: 0.55
-#% required : no
-#% guisection: Energy
-#%end
-#%flag
-#% key: u
-#% description: technical bioenergy can be considered to be spread uniformly over the entire surface or to be concentrated in accessible areas.
-#%end
+# %Module
+# % description: Assess the technical biomass availability
+# % keyword: raster
+# % keyword: biomass
+# %End
+# %option G_OPT_R_INPUT
+# % key: dtm
+# % type: string
+# % description: Name of Digital terrain model map
+# % required : yes
+# %end
+# %option
+# % key: slp_min_cc
+# % type: double
+# % description: Percent slope lower limit with Cable Crane
+# % answer: 30.
+# % required : no
+# % guisection: Cable Crane
+# %end
+# %option
+# % key: slp_max_cc
+# % type: double
+# % description: Percent slope higher limit with Cable Crane
+# % answer: 100.
+# % required : no
+# % guisection: Cable Crane
+# %end
+# %option
+# % key: dist_max_cc
+# % type: double
+# % description: Maximum distance with Cable Crane
+# % answer: 800.
+# % required : no
+# % guisection: Cable Crane
+# %end
+# %option
+# % key: slp_max_fw
+# % type: double
+# % description: Percent slope higher limit with Forwarder
+# % answer: 30.
+# % required : no
+# % guisection: Forwarder
+# %end
+# %option
+# % key: dist_max_fw
+# % type: double
+# % description: Maximum distance with Forwarder
+# % answer: 600.
+# % required : no
+# % guisection: Forwarder
+# %end
+# %option
+# % key: slp_max_cop
+# % type: double
+# % description: Percent slope higher limit with other techniques for Coppices
+# % answer: 30.
+# % required : no
+# % guisection: Other
+# %end
+# %option
+# % key: dist_max_cop
+# % type: double
+# % description: Maximum distance with other techniques for Coppices
+# % answer: 600.
+# % required : no
+# % guisection: Other
+# %end
+# %option
+# % key: energy_tops_hf
+# % type: double
+# % description: Energy for tops and branches in high forest in MWh/m³
+# % answer: 0.49
+# % required : no
+# % guisection: Energy
+# %end
+# %option
+# % key: energy_cormometric_vol_hf
+# % type: double
+# % description: Energy for tops and branches for high forest in MWh/m³
+# % answer: 1.97
+# % required : no
+# % guisection: Energy
+# %end
+# %option
+# % key: energy_tops_cop
+# % type: double
+# % description: Energy for tops and branches for Coppices in MWh/m³
+# % answer: 0.55
+# % required : no
+# % guisection: Energy
+# %end
+# %flag
+# % key: u
+# % description: technical bioenergy can be considered to be spread uniformly over the entire surface or to be concentrated in accessible areas.
+# %end
 from grass.script.core import overwrite, parser, run_command
 
 # CCEXTR = 'cable_crane_extraction = if(yield>0 && slope>%f && slope<=%f && extr_dist<%f, 1)'

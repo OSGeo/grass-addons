@@ -17,56 +17,56 @@
 #
 #############################################################################
 
-#%module
-#% description: Morphometric characterization of river basins
-#% keyword: raster
-#% keyword: hydrology
-#% keyword: watershed
-#% overwrite: yes
-#%end
+# %module
+# % description: Morphometric characterization of river basins
+# % keyword: raster
+# % keyword: hydrology
+# % keyword: watershed
+# % overwrite: yes
+# %end
 
-#%option G_OPT_R_ELEV
-#% key: map
-#% description: Name of elevation raster map
-#% required: yes
-#%end
+# %option G_OPT_R_ELEV
+# % key: map
+# % description: Name of elevation raster map
+# % required: yes
+# %end
 
-#%option
-#% key: prefix
-#% type: string
-#% key_desc: prefix
-#% description: output prefix (must start with a letter)
-#% required: yes
-#%end
+# %option
+# % key: prefix
+# % type: string
+# % key_desc: prefix
+# % description: output prefix (must start with a letter)
+# % required: yes
+# %end
 
-#%option G_OPT_M_COORDS
-#% description: coordinates of the outlet (east,north)
-#% required : yes
-#%end
+# %option G_OPT_M_COORDS
+# % description: coordinates of the outlet (east,north)
+# % required : yes
+# %end
 
-#%option G_OPT_M_DIR
-#% key: dir
-#% description: Directory where the output will be found
-#% required : yes
-#%end
+# %option G_OPT_M_DIR
+# % key: dir
+# % description: Directory where the output will be found
+# % required : yes
+# %end
 
-#%option
-#% key: threshold
-#% type: double
-#% key_desc: threshold
-#% description: threshold
-#% required : no
-#%end
+# %option
+# % key: threshold
+# % type: double
+# % key_desc: threshold
+# % description: threshold
+# % required : no
+# %end
 
-#%flag
-#% key: a
-#% description: Use default threshold (1km^2)
-#%END
+# %flag
+# % key: a
+# % description: Use default threshold (1km^2)
+# %END
 
-#%flag
-#% key: c
-#% description: No maps output
-#%END
+# %flag
+# % key: c
+# % description: No maps output
+# %END
 
 import sys
 import os

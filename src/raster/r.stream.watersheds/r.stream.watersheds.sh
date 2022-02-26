@@ -21,46 +21,46 @@
 #
 #############################################################################
 
-#%Module
-#% description: Sub-watershed and sub-stream delineation based on the drainage direction and a gridded stream network.
-#% keyword: raster
-#% keyword: stream
-#% keyword: drainage
-#% keyword: hydrology
-#%End
+# %Module
+# % description: Sub-watershed and sub-stream delineation based on the drainage direction and a gridded stream network.
+# % keyword: raster
+# % keyword: stream
+# % keyword: drainage
+# % keyword: hydrology
+# %End
 
-#%option
-#% key: drainage
-#% type: string
-#% key_desc: name
-#% description: Name of the drainage direction raster (generated with r.watershed)
-#% required : yes
-#%end
+# %option
+# % key: drainage
+# % type: string
+# % key_desc: name
+# % description: Name of the drainage direction raster (generated with r.watershed)
+# % required : yes
+# %end
 
-#%option
-#% key: stream
-#% type: string
-#% key_desc: name
-#% description: Name of the stream network raster
-#% required : yes
-#%end
+# %option
+# % key: stream
+# % type: string
+# % key_desc: name
+# % description: Name of the stream network raster
+# % required : yes
+# %end
 
-#%option
-#% key: folder 
-#% type: string
-#% key_desc: name
-#% description: Provide the full folder path and name where the sub-watersheds and sub-streams should be stored
-#% required:no
-#% answer: GISDBASE/folder_structure
-#%end
+# %option
+# % key: folder 
+# % type: string
+# % key_desc: name
+# % description: Provide the full folder path and name where the sub-watersheds and sub-streams should be stored
+# % required:no
+# % answer: GISDBASE/folder_structure
+# %end
 
-#%option
-#% key: cpu
-#% type: double
-#% description: Number of CPUs used for the parallel computation
-#% answer: 1
-#% required:no
-#%end
+# %option
+# % key: cpu
+# % type: double
+# % description: Number of CPUs used for the parallel computation
+# % answer: 1
+# % required:no
+# %end
 
 if [ -z "$GISBASE" ] ; then
     echo "You must be in GRASS GIS to run this program." >&2
@@ -237,14 +237,14 @@ fi
 
 # replicate the start-GISRC in a unique GISRC
 
-cp   $GISRC_def    $HOME/.grass7/rc$ID
-export GISRC=$HOME/.grass7/rc$ID
+cp   $GISRC_def    $HOME/.grass8/rc$ID
+export GISRC=$HOME/.grass8/rc$ID
 
 g.mapset  -c   mapset=sub_watershedID$ID   location=$LOCATION_NAME  dbase=$GISDBASE   --quiet
 
 rm -f    $GISDBASE/$LOCATION_NAME/sub_watershedID$ID/.gislock      
 
-export GISBASE=$( grep  gisbase   $(which grass70) | awk \'{ if(NR==2) { gsub ("\\"","" ) ; print $3 }  }\' )
+export GISBASE=$( grep  gisbase   $(which grass) | awk \'{ if(NR==2) { gsub ("\\"","" ) ; print $3 }  }\' )
 export PATH=$PATH:$GISBASE/bin:$GISBASE/scripts
 export LD_LIBRARY_PATH="$GISBASE/lib"
 export GRASS_LD_LIBRARY_PATH="$LD_LIBRARY_PATH"
@@ -264,7 +264,7 @@ r.out.gdal  -c type=Byte    --o --q     nodata=255     createopt="COMPRESS=LZW,Z
 
 if [ ! -f $GIS_OPT_FOLDER/${dir4d}digit4/${dir3d}digit3/${dir2d}digit2/${dir1d}digit1/sub_streamID${ID}.tif  ] ; then the file $GIS_OPT_FOLDER/${dir4d}digit4/${dir3d}digit3/${dir2d}digit2/${dir1d}digit1/sub_streamID${ID}.tif  dose not exist ; fi 
 
-rm -r $HOME/.grass7/rc$ID    $GISDBASE/$LOCATION_NAME/sub_watershedID$ID
+rm -r $HOME/.grass8/rc$ID    $GISDBASE/$LOCATION_NAME/sub_watershedID$ID
 
 ' _
 
@@ -295,14 +295,14 @@ echo Fix missing file $GIS_OPT_FOLDER/${dir4d}digit4/${dir3d}digit3/${dir2d}digi
 
 # replicate the start-GISRC in a unique GISRC
 
-cp   $GISRC_def    $HOME/.grass7/rc$ID
-export GISRC=$HOME/.grass7/rc$ID
+cp   $GISRC_def    $HOME/.grass8/rc$ID
+export GISRC=$HOME/.grass8/rc$ID
 
 g.mapset  -c   mapset=sub_watershedID$ID   location=$LOCATION_NAME  dbase=$GISDBASE   --quiet
 
 rm -f    $GISDBASE/$LOCATION_NAME/sub_watershedID$ID/.gislock      
 
-export GISBASE=$( grep  gisbase   $(which grass70) | awk \'{ if(NR==2) { gsub ("\\"","" ) ; print $3 }  }\' )
+export GISBASE=$( grep  gisbase   $(which grass) | awk \'{ if(NR==2) { gsub ("\\"","" ) ; print $3 }  }\' )
 export PATH=$PATH:$GISBASE/bin:$GISBASE/scripts
 export LD_LIBRARY_PATH="$GISBASE/lib"
 export GRASS_LD_LIBRARY_PATH="$LD_LIBRARY_PATH"
@@ -320,7 +320,7 @@ r.mapcalc  "sub_streamID${ID} = if ( sub_watershedID${ID}@sub_watershedID${ID}  
 r.null  map=sub_streamID${ID}  setnull=0    --q
 r.out.gdal  -c type=Byte    --o --q     nodata=255     createopt="COMPRESS=LZW,ZLEVEL=9"   input=sub_streamID${ID}@sub_watershedID${ID}    output=$GIS_OPT_FOLDER/${dir4d}digit4/${dir3d}digit3/${dir2d}digit2/${dir1d}digit1/sub_streamID${ID}.tif 
 
-rm -r $HOME/.grass7/rc$ID    $GISDBASE/$LOCATION_NAME/sub_watershedID$ID
+rm -r $HOME/.grass8/rc$ID    $GISDBASE/$LOCATION_NAME/sub_watershedID$ID
 
 fi
 

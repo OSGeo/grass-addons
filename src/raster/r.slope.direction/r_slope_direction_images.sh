@@ -76,7 +76,7 @@ mogrify -trim $output
 # some bounding box problems noticed when opening mogrify result in Gimp
 
 # Optimize for SVN
-../../../../tools/svn-image.sh $output
+../../../../utils/svn-image.sh $output
 done
 
 # Compute slope of the streets for three different step-size (neighborhood)
@@ -103,5 +103,5 @@ mogrify -trim $output
 # some bounding box problems noticed when opening mogrify result in Gimp
 
 # Optimize for SVN
-../../../../tools/svn-image.sh $output
+../../../../utils/svn-image.sh $output
 done

@@ -15,26 +15,27 @@ jobs:
 
     strategy:
       matrix:
-        grass-version:
-        - main
-        - releasebranch_8_0
-        python-version:
-        # Test with supported Python versions.
-        # Test only with every second version to reduce number of jobs.
-        - "3.8"
-        - "3.10"
+        # Test with relevant active branches or tags and supported Python
+        # versions, but also limit the number of jobs by, e.g., testing only
+        # every second version or testing older GRASS versions with older Python
+        # only.
+        include:
+          - grass-version: main
+            python-version: "3.8"
+          - grass-version: releasebranch_8_0
+            python-version: "3.7"
       fail-fast: false
 
     steps:
 
-    - name: Checkout addons
+    - name: Checkout core
       uses: actions/checkout@v2
       with:
         repository: OSGeo/grass
         ref: ${{ matrix.grass-version }}
         path: grass
 
-    - name: Checkout core
+    - name: Checkout addons
       uses: actions/checkout@v2
       with:
         path: grass-addons

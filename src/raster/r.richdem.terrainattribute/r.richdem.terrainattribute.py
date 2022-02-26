@@ -20,39 +20,39 @@
 # More information
 # Started June 2019
 
-#%module
-#% description: Calculates local terrain attributes.
-#% keyword: raster
-#%end
+# %module
+# % description: Calculates local terrain attributes.
+# % keyword: raster
+# %end
 
-#%option G_OPT_R_INPUT
-#%  key: input
-#%  label: Input DEM
-#%  required: yes
-#%end
+# %option G_OPT_R_INPUT
+# %  key: input
+# %  label: Input DEM
+# %  required: yes
+# %end
 
-#%option
-#% key: attribute
-#% type: string
-#% label: Terrain attribute to calculate.
-#% required: yes
-#% multiple: no
-#% options: slope_riserun,slope_percentage,slope_degrees,slope_radians,aspect,curvature,planform_curvature,profile_curvature
-#%end
+# %option
+# % key: attribute
+# % type: string
+# % label: Terrain attribute to calculate.
+# % required: yes
+# % multiple: no
+# % options: slope_riserun,slope_percentage,slope_degrees,slope_radians,aspect,curvature,planform_curvature,profile_curvature
+# %end
 
-#%option
-#% key: zscale
-#% type: double
-#% label: Scalar multiplier for elevation (vertical exaggeration)
-#% required: no
-#% answer: 1.0
-#%end
+# %option
+# % key: zscale
+# % type: double
+# % label: Scalar multiplier for elevation (vertical exaggeration)
+# % required: no
+# % answer: 1.0
+# %end
 
-#%option G_OPT_R_OUTPUT
-#%  key: output
-#%  label: Output DEM with depressions filled
-#%  required: yes
-#%end
+# %option G_OPT_R_OUTPUT
+# %  key: output
+# %  label: Output DEM with depressions filled
+# %  required: yes
+# %end
 
 
 ##################

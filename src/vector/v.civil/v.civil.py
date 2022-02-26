@@ -23,237 +23,237 @@ Created on Wed Jul 23 18:37:36 2014
 #
 #############################################################################
 
-#%Module
-#% description: Generates a alignment for designing roads, channels, and ports in civil engineering
-#% keyword: vector
-#% keyword: civil engineering
-#% keyword: roads
-#% keyword: channels
-#% keyword: ports
-#%End
+# %Module
+# % description: Generates a alignment for designing roads, channels, and ports in civil engineering
+# % keyword: vector
+# % keyword: civil engineering
+# % keyword: roads
+# % keyword: channels
+# % keyword: ports
+# %End
 
 #######################
 ### Required section
 #######################
 
-#%option G_OPT_V_INPUT
-#% key: name
-#% type: string
-#% description: Name of road map
-#% required: yes
-#%end
+# %option G_OPT_V_INPUT
+# % key: name
+# % type: string
+# % description: Name of road map
+# % required: yes
+# %end
 
 #######################
 ### Plant section
 #######################
 
-#%option G_OPT_V_TYPE
-#% key: plan
-#% options: plan,pks,displ,marks
-#% answer:
-#% required: no
-#% description: Plan options
-#% guisection: Plan
-#%end
+# %option G_OPT_V_TYPE
+# % key: plan
+# % options: plan,pks,displ,marks
+# % answer:
+# % required: no
+# % description: Plan options
+# % guisection: Plan
+# %end
 
-#%option
-#% key: pkopt
-#% type: string
-#% description:  Pks marks options values. (npk,mpk,dist,m)
-#% required: no
-#% answer: 20,100,2,4
-#% guisection: Plan
-#%end
+# %option
+# % key: pkopt
+# % type: string
+# % description:  Pks marks options values. (npk,mpk,dist,m)
+# % required: no
+# % answer: 20,100,2,4
+# % guisection: Plan
+# %end
 
-#%option G_OPT_DB_TABLE
-#% key: dtable
-#% description: Other displaced table (Default all)
-#% required: no
+# %option G_OPT_DB_TABLE
+# % key: dtable
+# % description: Other displaced table (Default all)
+# % required: no
 ##% guidependency: ocolumn,scolumns
-#% guisection: Plan
-#%end
+# % guisection: Plan
+# %end
 
-#%option G_OPT_DB_TABLE
-#% key: mtable
-#% description: Other marks table (Default all)
-#% required: no
+# %option G_OPT_DB_TABLE
+# % key: mtable
+# % description: Other marks table (Default all)
+# % required: no
 ##% guidependency: ocolumn,scolumns
-#% guisection: Plan
-#%end
+# % guisection: Plan
+# %end
 
-#%option
-#% key: areaopt
-#% type: string
-#% description:  Pair of displaced lines for areas (1-2,2-5,5-6)
-#% required: no
-#% guisection: Plan
-#%end
+# %option
+# % key: areaopt
+# % type: string
+# % description:  Pair of displaced lines for areas (1-2,2-5,5-6)
+# % required: no
+# % guisection: Plan
+# %end
 
 #######################
 ### Alz section
 #######################
 
-#%option G_OPT_V_TYPE
-#% key: vert
-#% options: vert,profile
-#% answer:
-#% required: no
-#% description: Vertical options
-#% guisection: Vert
-#%end
+# %option G_OPT_V_TYPE
+# % key: vert
+# % options: vert,profile
+# % answer:
+# % required: no
+# % description: Vertical options
+# % guisection: Vert
+# %end
 
-#%option
-#% key: lpscale
-#% type: integer
-#% description: Long profile vertical scale (V/H, V/1)
-#% options: 0-100
-#% answer : 4
-#% required: no
-#% guisection: Vert
-#%end
+# %option
+# % key: lpscale
+# % type: integer
+# % description: Long profile vertical scale (V/H, V/1)
+# % options: 0-100
+# % answer : 4
+# % required: no
+# % guisection: Vert
+# %end
 
-#%option
-#% key: lpopt
-#% type: string
-#% description: Long profile values Longmark,distMark_x,distMark_y,DistGitarr.
-#% required: no
-#% answer: 2,20,1,20
-#% guisection: Vert
-#%end
+# %option
+# % key: lpopt
+# % type: string
+# % description: Long profile values Longmark,distMark_x,distMark_y,DistGitarr.
+# % required: no
+# % answer: 2,20,1,20
+# % guisection: Vert
+# %end
 
-#%option
-#% key: lpoffset
-#% type: string
-#% description: Long profile offset from origin of region
-#% required: no
-#% answer: 0,0
-#% guisection: Vert
-#%end
+# %option
+# % key: lpoffset
+# % type: string
+# % description: Long profile offset from origin of region
+# % required: no
+# % answer: 0,0
+# % guisection: Vert
+# %end
 
-#%option
-#% key: camber
-#% type: string
-#% description: General camber
-#% required: no
-#% answer: 0
-#% guisection: Vert
-#%end
+# %option
+# % key: camber
+# % type: string
+# % description: General camber
+# % required: no
+# % answer: 0
+# % guisection: Vert
+# %end
 
-#%option
-#% key: displrot
-#% type: string
-#% description: Displaced lines to rotate
-#% required: no
-#% answer: 0,0
-#% guisection: Vert
-#%end
+# %option
+# % key: displrot
+# % type: string
+# % description: Displaced lines to rotate
+# % required: no
+# % answer: 0,0
+# % guisection: Vert
+# %end
 
 #######################
 ### Trans section
 #######################
 
-#%option G_OPT_V_TYPE
-#% key: trans
-#% options: trans,profiles
-#% answer:
-#% required: no
-#% description: Vertical options
-#% guisection: Trans
-#%end
+# %option G_OPT_V_TYPE
+# % key: trans
+# % options: trans,profiles
+# % answer:
+# % required: no
+# % description: Vertical options
+# % guisection: Trans
+# %end
 
-#%option
-#% key: ltscale
-#% type: double
-#% description: Cross section vertical scale (V/H, V/1)
-#% required: no
-#% answer: 2
-#% guisection: Trans
-#%end
+# %option
+# % key: ltscale
+# % type: double
+# % description: Cross section vertical scale (V/H, V/1)
+# % required: no
+# % answer: 2
+# % guisection: Trans
+# %end
 
-#%option
-#% key: ltopt1
-#% type: string
-#% description: Cross section options values Longmark,distMark_x,distMark_y.
-#% required: no
-#% answer: 1,20,2
-#% guisection: Trans
-#%end
+# %option
+# % key: ltopt1
+# % type: string
+# % description: Cross section options values Longmark,distMark_x,distMark_y.
+# % required: no
+# % answer: 1,20,2
+# % guisection: Trans
+# %end
 
-#%option
-#% key: ltopt2
-#% type: string
-#% description: Trans section options values for nrows,distTP_x,distTP_y.
-#% required: no
-#% answer: 10,10,10
-#% guisection: Trans
-#%end
+# %option
+# % key: ltopt2
+# % type: string
+# % description: Trans section options values for nrows,distTP_x,distTP_y.
+# % required: no
+# % answer: 10,10,10
+# % guisection: Trans
+# %end
 
-#%option
-#% key: ltoffset
-#% type: string
-#% description: Trans sections profile offset from origin of region
-#% required: no
-#% answer: 0,0
-#% guisection: Trans
-#%end
+# %option
+# % key: ltoffset
+# % type: string
+# % description: Trans sections profile offset from origin of region
+# % required: no
+# % answer: 0,0
+# % guisection: Trans
+# %end
 
 #########################
 ### Terrain section
 #########################
 
-#%option G_OPT_V_TYPE
-#% key: terr
-#% options: slopes,sareas,topo
-#% answer:
-#% required: no
-#% description: Terrain options
-#% guisection: Terr
-#%end
+# %option G_OPT_V_TYPE
+# % key: terr
+# % options: slopes,sareas,topo
+# % answer:
+# % required: no
+# % description: Terrain options
+# % guisection: Terr
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: dem
-#% key_desc: raster dem
-#% description: Name of DEM raster
-#% required: no
-#% guisection: Terr
-#%end
+# %option G_OPT_R_INPUT
+# % key: dem
+# % key_desc: raster dem
+# % description: Name of DEM raster
+# % required: no
+# % guisection: Terr
+# %end
 
 #########################
 ### TopoTools section
 #########################
 
-#%flag
-#% key: o
-#% description: TopoTools
-#% guisection: TopoTools
-#%end
+# %flag
+# % key: o
+# % description: TopoTools
+# % guisection: TopoTools
+# %end
 
-#%option G_OPT_V_TYPE
-#% key: actions
-#% options: uppoints, pnt_info
-#% answer:
-#% required: no
-#% description: Points tools
-#% guisection: TopoTools
-#%end
+# %option G_OPT_V_TYPE
+# % key: actions
+# % options: uppoints, pnt_info
+# % answer:
+# % required: no
+# % description: Points tools
+# % guisection: TopoTools
+# %end
 
-#%option
-#% key: pk_info
-#% type: double
-#% description: PK
-#% required: no
-#% answer: 0
-#% guisection: TopoTools
-#%end
+# %option
+# % key: pk_info
+# % type: double
+# % description: PK
+# % required: no
+# % answer: 0
+# % guisection: TopoTools
+# %end
 
-#%option G_OPT_V_TYPE
-#% key: topotools
-#% options: triangle,delaunay,curved,cut_hull
-#% answer:
-#% required: no
-#% description: Triangulate and curved
-#% guisection: TopoTools
-#%end
+# %option G_OPT_V_TYPE
+# % key: topotools
+# % options: triangle,delaunay,curved,cut_hull
+# % answer:
+# % required: no
+# % description: Triangulate and curved
+# % guisection: TopoTools
+# %end
 
 ##%option G_OPT_V_TYPE
 ##% key: tinraster
@@ -265,260 +265,260 @@ Created on Wed Jul 23 18:37:36 2014
 ##%end
 
 
-#%option G_OPT_V_TYPE
-#% key: roundabout
-#% options: roundabout
-#% answer:
-#% required: no
-#% description: Roundabout tools
-#% guisection: TopoTools
-#%end
+# %option G_OPT_V_TYPE
+# % key: roundabout
+# % options: roundabout
+# % answer:
+# % required: no
+# % description: Roundabout tools
+# % guisection: TopoTools
+# %end
 
-#%option
-#% key: rround1
-#% type: string
-#% description: Minus radio for roundabout edge
-#% required: no
-#% guisection: TopoTools
-#%end
+# %option
+# % key: rround1
+# % type: string
+# % description: Minus radio for roundabout edge
+# % required: no
+# % guisection: TopoTools
+# %end
 
-#%option
-#% key: rround2
-#% type: string
-#% description: Mayor radio for roundabout edge
-#% required: no
-#% guisection: TopoTools
-#%end
+# %option
+# % key: rround2
+# % type: string
+# % description: Mayor radio for roundabout edge
+# % required: no
+# % guisection: TopoTools
+# %end
 
-#%option
-#% key: azround
-#% type: string
-#% description: Azimut for roundabout start point
-#% required: no
-#% guisection: TopoTools
-#%end
+# %option
+# % key: azround
+# % type: string
+# % description: Azimut for roundabout start point
+# % required: no
+# % guisection: TopoTools
+# %end
 
-#%option
-#% key: cround
-#% type: string
-#% description: Center for roundabout
-#% required: no
-#% guisection: TopoTools
-#%end
+# %option
+# % key: cround
+# % type: string
+# % description: Center for roundabout
+# % required: no
+# % guisection: TopoTools
+# %end
 
-#%option
-#% key: roundname
-#% type: string
-#% description: Name for roundabout
-#% required: no
-#% guisection: TopoTools
-#%end
+# %option
+# % key: roundname
+# % type: string
+# % description: Name for roundabout
+# % required: no
+# % guisection: TopoTools
+# %end
 
 #########################
 ### TableTools section
 #########################
 
-#%flag
-#% key: e
-#% description: TableTools
-#% guisection: TableTools
-#%end
+# %flag
+# % key: e
+# % description: TableTools
+# % guisection: TableTools
+# %end
 
-#%option G_OPT_V_TYPE
-#% key: add
-#% options: table, row
-#% answer:
-#% required: no
-#% description: Add new table or add row to table
-#% guisection: TableTools
-#%end
+# %option G_OPT_V_TYPE
+# % key: add
+# % options: table, row
+# % answer:
+# % required: no
+# % description: Add new table or add row to table
+# % guisection: TableTools
+# %end
 
-#%option
-#% key: tab_type
-#% type: string
-#% label: Name of table for new table or to add row
-#% description: To add new table only Displ or Marks table are supported
-#% options: Vert,Displ,Trans,Terr,Marks
-#% required: no
-#% guisection: TableTools
-#%end
+# %option
+# % key: tab_type
+# % type: string
+# % label: Name of table for new table or to add row
+# % description: To add new table only Displ or Marks table are supported
+# % options: Vert,Displ,Trans,Terr,Marks
+# % required: no
+# % guisection: TableTools
+# %end
 
-#%option
-#% key: tab_subname
-#% type: string
-#% label: Table subname for new table or row or displ subname to add or del col
-#% required: no
-#% guisection: TableTools
-#%end
+# %option
+# % key: tab_subname
+# % type: string
+# % label: Table subname for new table or row or displ subname to add or del col
+# % required: no
+# % guisection: TableTools
+# %end
 
-#%option
-#% key: pklist
-#% type: string
-#% label: List of Pks
-#% required: no
-#% guisection: TableTools
-#%end
+# %option
+# % key: pklist
+# % type: string
+# % label: List of Pks
+# % required: no
+# % guisection: TableTools
+# %end
 
-#%option G_OPT_V_TYPE
-#% key: displline
-#% options: add,del
-#% answer:
-#% required: no
-#% description: Add or del displaced line
-#% guisection: TableTools
-#%end
+# %option G_OPT_V_TYPE
+# % key: displline
+# % options: add,del
+# % answer:
+# % required: no
+# % description: Add or del displaced line
+# % guisection: TableTools
+# %end
 
-#%option
-#% key: side
-#% type: string
-#% label: left or right side of Displ
-#% options: left,right
-#% required: no
-#% guisection: TableTools
-#%end
+# %option
+# % key: side
+# % type: string
+# % label: left or right side of Displ
+# % options: left,right
+# % required: no
+# % guisection: TableTools
+# %end
 
-#%option
-#% key: ncol
-#% type: integer
-#% label: Number of Displ to insert
-#% required: no
-#% guisection: TableTools
-#%end
+# %option
+# % key: ncol
+# % type: integer
+# % label: Number of Displ to insert
+# % required: no
+# % guisection: TableTools
+# %end
 
-#%option
-#% key: sedist
-#% type: string
-#% label: start and end distance and height
-#% required: no
-#% guisection: TableTools
-#%end
+# %option
+# % key: sedist
+# % type: string
+# % label: start and end distance and height
+# % required: no
+# % guisection: TableTools
+# %end
 
 #########################
 ### CrossTools section
 #########################
 
-#%flag
-#% key: c
-#% description: CrossTools
-#% guisection: CrossTools
-#%end
+# %flag
+# % key: c
+# % description: CrossTools
+# % guisection: CrossTools
+# %end
 
-#%option G_OPT_V_TYPE
-#% key: intersect
-#% options: left1, right1, left2, right2, in, out, rounda, write
-#% answer:
-#% required: no
-#% description: Plan options
-#% guisection: CrossTools
-#%end
+# %option G_OPT_V_TYPE
+# % key: intersect
+# % options: left1, right1, left2, right2, in, out, rounda, write
+# % answer:
+# % required: no
+# % description: Plan options
+# % guisection: CrossTools
+# %end
 
-#%option G_OPT_V_INPUT
-#% key: plant1
-#% key_desc: map plant 1
-#% description: Name of first map plant
-#% required: no
-#% guisection: CrossTools
-#%end
+# %option G_OPT_V_INPUT
+# % key: plant1
+# % key_desc: map plant 1
+# % description: Name of first map plant
+# % required: no
+# % guisection: CrossTools
+# %end
 
-#%option
-#% key: cat1
-#% type: integer
-#% label: Categorie of align
-#% required: no
-#% answer: 1
-#% guisection: CrossTools
-#%end
+# %option
+# % key: cat1
+# % type: integer
+# % label: Categorie of align
+# % required: no
+# % answer: 1
+# % guisection: CrossTools
+# %end
 
 
-#%option G_OPT_V_INPUT
-#% key: plant2
-#% key_desc: map plant 2
-#% description: Name of second map plant
-#% required: no
-#% guisection: CrossTools
-#%end
+# %option G_OPT_V_INPUT
+# % key: plant2
+# % key_desc: map plant 2
+# % description: Name of second map plant
+# % required: no
+# % guisection: CrossTools
+# %end
 
-#%option
-#% key: cat2
-#% type: integer
-#% label: Categorie of align
-#% required: no
-#% answer: 1
-#% guisection: CrossTools
-#%end
+# %option
+# % key: cat2
+# % type: integer
+# % label: Categorie of align
+# % required: no
+# % answer: 1
+# % guisection: CrossTools
+# %end
 
-#%option
-#% key: dist1
-#% type: string
-#% description: Displaced distances for aling 1
-#% required: no
-#% guisection: CrossTools
-#%end
+# %option
+# % key: dist1
+# % type: string
+# % description: Displaced distances for aling 1
+# % required: no
+# % guisection: CrossTools
+# %end
 
-#%option
-#% key: dist2
-#% type: string
-#% description: Displaced distances for aling 2
-#% required: no
-#% guisection: CrossTools
-#%end
+# %option
+# % key: dist2
+# % type: string
+# % description: Displaced distances for aling 2
+# % required: no
+# % guisection: CrossTools
+# %end
 
-#%option
-#% key: radios
-#% type: string
-#% description: Intersections radios
-#% required: no
-#% guisection: CrossTools
-#%end
+# %option
+# % key: radios
+# % type: string
+# % description: Intersections radios
+# % required: no
+# % guisection: CrossTools
+# %end
 
 #########################
 ### #Options section
 #########################
 
-#%flag
-#% key: r
-#% description: Run
-#%end
+# %flag
+# % key: r
+# % description: Run
+# %end
 
-#%flag
-#% key: p
-#% description: Update solution from polygon
-#%end
+# %flag
+# % key: p
+# % description: Update solution from polygon
+# %end
 
-#%flag
-#% key: t
-#% description: Update solution from table plan distances_
-#%end
+# %flag
+# % key: t
+# % description: Update solution from table plan distances_
+# %end
 
-#%option
-#% key: intr
-#% type: integer
-#% label: Interval in straights
-#% required: no
-#% answer: 1
-#%end
+# %option
+# % key: intr
+# % type: integer
+# % label: Interval in straights
+# % required: no
+# % answer: 1
+# %end
 
-#%option
-#% key: intc
-#% type: integer
-#% label: Interval in curves
-#% required: no
-#% answer: 1
-#%end
+# %option
+# % key: intc
+# % type: integer
+# % label: Interval in curves
+# % required: no
+# % answer: 1
+# %end
 
-#%option
-#% key: startend
-#% type: string
-#% label: start and end pks (last pk = -1)
-#% required: no
-#% answer: 0,-1
-#%end
+# %option
+# % key: startend
+# % type: string
+# % label: start and end pks (last pk = -1)
+# % required: no
+# % answer: 0,-1
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key: backup
-#% description: Create backup file
-#% required: no
-#%end
+# %option G_OPT_F_OUTPUT
+# % key: backup
+# % description: Create backup file
+# % required: no
+# %end
 
 # ######################
 

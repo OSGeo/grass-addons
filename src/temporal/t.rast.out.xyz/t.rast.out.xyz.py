@@ -14,35 +14,35 @@
 #
 #############################################################################
 
-#%module
-#% description: Export space time raster dataset to a CSV file.
-#% keyword: temporal
-#% keyword: raster
-#% keyword: export
-#% keyword: ASCII
-#% keyword: conversion
-#%end
+# %module
+# % description: Export space time raster dataset to a CSV file.
+# % keyword: temporal
+# % keyword: raster
+# % keyword: export
+# % keyword: ASCII
+# % keyword: conversion
+# %end
 
-#%option G_OPT_STRDS_INPUT
-#% key: strds
-#%end
+# %option G_OPT_STRDS_INPUT
+# % key: strds
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% required: no
-#% description: Name for the output file or "-" in case stdout should be used
-#% answer: -
-#%end
+# %option G_OPT_F_OUTPUT
+# % required: no
+# % description: Name for the output file or "-" in case stdout should be used
+# % answer: -
+# %end
 
-#%option G_OPT_T_WHERE
-#%end
+# %option G_OPT_T_WHERE
+# %end
 
-#%option G_OPT_F_SEP
-#%end
+# %option G_OPT_F_SEP
+# %end
 
-#%flag
-#% key: i
-#% description: Include no data values
-#%end
+# %flag
+# % key: i
+# % description: Include no data values
+# %end
 
 import grass.script as gscript
 import grass.temporal as tgis

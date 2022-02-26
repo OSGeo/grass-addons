@@ -12,22 +12,22 @@
 #
 #############################################################################
 
-#%module
-#% description: Links all OGR layers available in given OGR datasource.
-#% keyword: vector
-#% keyword: external
-#% overwrite: yes
-#%end
-#%flag
-#% key: l
-#% description: List available layers in data source and exit
-#%end
-#%option
-#% key: input
-#% type: string
-#% description: Name of input OGR or PostGIS data source
-#% required: yes
-#%end
+# %module
+# % description: Links all OGR layers available in given OGR datasource.
+# % keyword: vector
+# % keyword: external
+# % overwrite: yes
+# %end
+# %flag
+# % key: l
+# % description: List available layers in data source and exit
+# %end
+# %option
+# % key: input
+# % type: string
+# % description: Name of input OGR or PostGIS data source
+# % required: yes
+# %end
 
 import os
 import sys

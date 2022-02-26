@@ -18,39 +18,39 @@
 #
 # TODO: use "BEGIN TRANSACTION" etc?
 #############################################################################
-#%module
-#% description: Calculate histogram matching of several images.
-#% keyword: imagery
-#% keyword: histogram matching
-#%end
-#%option G_OPT_R_INPUTS
-#% description: Name of raster maps to be analyzed
-#% required: yes
-#%end
-#%option
-#% key: suffix
-#% type: string
-#% gisprompt: Suffix for output maps
-#% description: Suffix for output maps
-#% required: no
-#% answer: match
-#%end
-#%option G_OPT_R_OUTPUT
-#% description: Name for mosaic output map
-#% required: no
-#%end
-#%option G_OPT_DB_DATABASE
-#% required : no
-#% answer: $GISDBASE/$LOCATION_NAME/$MAPSET/histo.db
-#%end
-#%option
-#% key: max
-#% type: integer
-#% gisprompt: Number of the maximum value for raster maps
-#% description: Number of the maximum value for raster maps
-#% required: no
-#% answer: 255
-#%end
+# %module
+# % description: Calculate histogram matching of several images.
+# % keyword: imagery
+# % keyword: histogram matching
+# %end
+# %option G_OPT_R_INPUTS
+# % description: Name of raster maps to be analyzed
+# % required: yes
+# %end
+# %option
+# % key: suffix
+# % type: string
+# % gisprompt: Suffix for output maps
+# % description: Suffix for output maps
+# % required: no
+# % answer: match
+# %end
+# %option G_OPT_R_OUTPUT
+# % description: Name for mosaic output map
+# % required: no
+# %end
+# %option G_OPT_DB_DATABASE
+# % required : no
+# % answer: $GISDBASE/$LOCATION_NAME/$MAPSET/histo.db
+# %end
+# %option
+# % key: max
+# % type: integer
+# % gisprompt: Number of the maximum value for raster maps
+# % description: Number of the maximum value for raster maps
+# % required: no
+# % answer: 255
+# %end
 
 
 import sys

@@ -15,19 +15,19 @@
 #############################################################################
 #
 
-#%module
-#% description: Check if everything of r.green is correctly installed and configured
-#% keyword: raster
-#% keyword: renewable energy
-#%end
-#%flag
-#% key: i
-#% description: Install missing libraries
-#%end
-#%flag
-#% key: x
-#% description: Add r.green menu to the GRASS GUI
-#%end
+# %module
+# % description: Check if everything of r.green is correctly installed and configured
+# % keyword: raster
+# % keyword: renewable energy
+# %end
+# %flag
+# % key: i
+# % description: Install missing libraries
+# %end
+# %flag
+# % key: x
+# % description: Add r.green menu to the GRASS GUI
+# %end
 
 # import system libraries
 from __future__ import print_function

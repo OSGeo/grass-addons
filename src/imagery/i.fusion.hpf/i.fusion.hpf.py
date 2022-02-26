@@ -51,129 +51,129 @@
                for details.
 """
 
-#%Module
-#%  description: Fusing high resolution panchromatic and low resolution multi-spectral data based on the High-Pass Filter Addition technique (Gangkofner, 2008).
-#%  keyword: imagery
-#%  keyword: fusion
-#%  keyword: sharpening
-#%  keyword: high pass filter
-#%  keyword: HPFA
-#%End
+# %Module
+# %  description: Fusing high resolution panchromatic and low resolution multi-spectral data based on the High-Pass Filter Addition technique (Gangkofner, 2008).
+# %  keyword: imagery
+# %  keyword: fusion
+# %  keyword: sharpening
+# %  keyword: high pass filter
+# %  keyword: HPFA
+# %End
 
-#%flag
-#%  key: l
-#%  label: Linearly match histogram of Pan-sharpened output to Multi-Spectral input
-#%  description: Default: Quantile scaling
-#%end
+# %flag
+# %  key: l
+# %  label: Linearly match histogram of Pan-sharpened output to Multi-Spectral input
+# %  description: Default: Quantile scaling
+# %end
 
-#%flag
-#%  key: 2
-#%  description: 2-Pass Processing (recommended) for large resolution ratio (>=5.5)
-#%end
+# %flag
+# %  key: 2
+# %  description: 2-Pass Processing (recommended) for large resolution ratio (>=5.5)
+# %end
 
-#%flag
-#%  key: c
-#%  description: Match color table of Pan-Sharpened output to Multi-Spectral input
-#%end
+# %flag
+# %  key: c
+# %  description: Match color table of Pan-Sharpened output to Multi-Spectral input
+# %end
 
-#%flag
-#%  key: a
-#%  label: Align output to pan band
-#%  description: Default: set resolution from pan band
-#%end
+# %flag
+# %  key: a
+# %  label: Align output to pan band
+# %  description: Default: set resolution from pan band
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: pan
-#% description: High resolution Panchromatic image
-#% required : yes
-#%end
+# %option G_OPT_R_INPUT
+# % key: pan
+# % description: High resolution Panchromatic image
+# % required : yes
+# %end
 
-#%option G_OPT_R_INPUTS
-#% key: msx
-#% description: Low resolution Multi-Spectral image(s)
-#% required: yes
-#% multiple: yes
-#%end
+# %option G_OPT_R_INPUTS
+# % key: msx
+# % description: Low resolution Multi-Spectral image(s)
+# % required: yes
+# % multiple: yes
+# %end
 
-#%option G_OPT_R_BASENAME_OUTPUT
-#% key: suffix
-#% type: string
-#% label: Suffix for output image(s)
-#% description: Names of Pan-Sharpened image(s) will end with this suffix
-#% required: yes
-#% answer: .hpf
-#%end
+# %option G_OPT_R_BASENAME_OUTPUT
+# % key: suffix
+# % type: string
+# % label: Suffix for output image(s)
+# % description: Names of Pan-Sharpened image(s) will end with this suffix
+# % required: yes
+# % answer: .hpf
+# %end
 
-#%option
-#% key: ratio
-#% type: double
-#% label: Custom ratio
-#% description: Custom ratio overriding standard calculation
-#% options: 1.0-10.0
-#% guisection: High Pass Filter
-#% required: no
-#%end
+# %option
+# % key: ratio
+# % type: double
+# % label: Custom ratio
+# % description: Custom ratio overriding standard calculation
+# % options: 1.0-10.0
+# % guisection: High Pass Filter
+# % required: no
+# %end
 
-#%option
-#% key: center
-#% type: string
-#% label: Center cell value
-#% description: Center cell value of the High-Pass-Filter
-#% descriptions: Level of center value (low, mid, high)
-#% options: low,mid,high
-#% required: no
-#% answer: low
-#% guisection: High Pass Filter
-#% multiple : no
-#%end
+# %option
+# % key: center
+# % type: string
+# % label: Center cell value
+# % description: Center cell value of the High-Pass-Filter
+# % descriptions: Level of center value (low, mid, high)
+# % options: low,mid,high
+# % required: no
+# % answer: low
+# % guisection: High Pass Filter
+# % multiple : no
+# %end
 
-#%option
-#% key: center2
-#% type: string
-#% label: 2nd Pass center cell value
-#% description: Center cell value for the second High-Pass-Filter (use -2 flag)
-#% descriptions: Level of center value for second pass
-#% options: low,mid,high
-#% required: no
-#% answer: low
-#% guisection: High Pass Filter
-#% multiple : no
-#%end
+# %option
+# % key: center2
+# % type: string
+# % label: 2nd Pass center cell value
+# % description: Center cell value for the second High-Pass-Filter (use -2 flag)
+# % descriptions: Level of center value for second pass
+# % options: low,mid,high
+# % required: no
+# % answer: low
+# % guisection: High Pass Filter
+# % multiple : no
+# %end
 
-#%option
-#% key: modulation
-#% type: string
-#% label: Modulation level
-#% description: Modulation level weighting the HPF image determining crispness
-#% descriptions: Levels of modulating factors
-#% options: min,mid,max
-#% required: no
-#% answer: mid
-#% guisection: Crispness
-#% multiple : no
-#%end
+# %option
+# % key: modulation
+# % type: string
+# % label: Modulation level
+# % description: Modulation level weighting the HPF image determining crispness
+# % descriptions: Levels of modulating factors
+# % options: min,mid,max
+# % required: no
+# % answer: mid
+# % guisection: Crispness
+# % multiple : no
+# %end
 
-#%option
-#% key: modulation2
-#% type: string
-#% label: 2nd Pass modulation level (use -2 flag)
-#% description: Modulation level weighting the second HPF image determining crispness (use -2 flag)
-#% descriptions: mid;Mid: 0.35;min;Minimum: 0.25;max;Maximum: 0.5;
-#% options: min,mid,max
-#% required: no
-#% answer: mid
-#% guisection: Crispness
-#% multiple : no
-#%end
+# %option
+# % key: modulation2
+# % type: string
+# % label: 2nd Pass modulation level (use -2 flag)
+# % description: Modulation level weighting the second HPF image determining crispness (use -2 flag)
+# % descriptions: mid;Mid: 0.35;min;Minimum: 0.25;max;Maximum: 0.5;
+# % options: min,mid,max
+# % required: no
+# % answer: mid
+# % guisection: Crispness
+# % multiple : no
+# %end
 
-#%option
-#% key: trim
-#% type: double
-#% label: Trimming factor
-#% description: Trim output border pixels by a factor of the pixel size of the low resolution image. A factor of 1.0 may suffice.
-#% guisection: High Pass Filter
-#% required: no
-#%end
+# %option
+# % key: trim
+# % type: double
+# % label: Trimming factor
+# % description: Trim output border pixels by a factor of the pixel size of the low resolution image. A factor of 1.0 may suffice.
+# % guisection: High Pass Filter
+# % required: no
+# %end
 
 # StdLib
 import os

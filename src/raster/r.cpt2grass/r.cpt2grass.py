@@ -19,39 +19,39 @@
 #
 #############################################################################
 
-#%module
-#% description: Convert or apply a GMT color table to a GRASS raster map
-#%end
-#%option G_OPT_F_INPUT
-#% description: Name of input GMT color table (.cpt file)
-#% required: no
-#% guisection: Input
-#%end
-#%option
-#% key: url
-#% type: string
-#% description: URL of the color table
-#% required: no
-#% guisection: Input
-#%end
-#%option G_OPT_R_INPUT
-#% key: map
-#% description: Raster map to apply it to
-#% required: no
-#% guisection: Input
-#%end
-#%option G_OPT_F_OUTPUT
-#% description: Name for new rules file
-#% required: no
-#%end
-#%flag
-#% key: s
-#% description: Stretch color scale to match map data extent
-#%end
-#%rules
-#% required: input,url
-#% exclusive: input,url
-#%end
+# %module
+# % description: Convert or apply a GMT color table to a GRASS raster map
+# %end
+# %option G_OPT_F_INPUT
+# % description: Name of input GMT color table (.cpt file)
+# % required: no
+# % guisection: Input
+# %end
+# %option
+# % key: url
+# % type: string
+# % description: URL of the color table
+# % required: no
+# % guisection: Input
+# %end
+# %option G_OPT_R_INPUT
+# % key: map
+# % description: Raster map to apply it to
+# % required: no
+# % guisection: Input
+# %end
+# %option G_OPT_F_OUTPUT
+# % description: Name for new rules file
+# % required: no
+# %end
+# %flag
+# % key: s
+# % description: Stretch color scale to match map data extent
+# %end
+# %rules
+# % required: input,url
+# % exclusive: input,url
+# %end
 
 import sys
 import grass.script as gscript
@@ -62,7 +62,7 @@ def HSVtoRGB(h, s, v):
     Based on the Foley and Van Dam HSV algorithm used
     by James Westervelt's (CERL) hsv.rgb.sh script from GRASS 4/5."""
     # Hue: 0-360 degrees
-    # Satuaration: 0.0-1.0
+    # Saturation: 0.0-1.0
     # Value: 0.0-1.0
     if v == 0.0:
         return (0, 0, 0)

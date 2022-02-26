@@ -16,79 +16,79 @@
 #
 ##############################################################################
 
-#%module
-#% description: Module for computing development potential as input to r.futures.pga
-#% keyword: raster
-#% keyword: statistics
-#%end
-#%option G_OPT_V_INPUT
-#%end
-#%option G_OPT_F_OUTPUT
-#% description: Output Potential file
-#%end
-#%option G_OPT_F_SEP
-#% label: Separator used in output file
-#% answer: comma
-#%end
-#%option G_OPT_DB_COLUMNS
-#% description: Names of attribute columns representing sampled predictors
-#% required: yes
-#%end
-#%option G_OPT_DB_COLUMN
-#% key: developed_column
-#% description: Name of attribute column representing development
-#% required: yes
-#%end
-#%option G_OPT_DB_COLUMN
-#% key: subregions_column
-#% description: Name of attribute column representing subregions
-#% required: yes
-#%end
-#%option
-#% type: string
-#% key: fixed_columns
-#% description: Predictor columns that will be used for all models when dredging
-#% required: no
-#% multiple: yes
-#% guisection: Dredge
-#%end
-#%option
-#% type: integer
-#% key: min_variables
-#% description: Minimum number of predictors considered
-#% required: no
-#% answer: 1
-#% options: 1-20
-#% guisection: Dredge
-#%end
-#%option
-#% type: integer
-#% key: max_variables
-#% description: Maximum number of predictors considered
-#% required: no
-#% options: 1-20
-#% guisection: Dredge
-#%end
-#%flag
-#% key: d
-#% description: Use dredge fuction to find best model
-#% guisection: Dredge
-#%end
-#%option
-#% type: integer
-#% key: nprocs
-#% description: Number of parallel processes for dredging
-#% required: yes
-#% answer: 1
-#% options: 1-50
-#% guisection: Dredge
-#%end
-#%option G_OPT_F_OUTPUT
-#% required: no
-#% key: dredge_output
-#% description: Output CSV file summarizing all models
-#% guisection: Dredge
-#%end
+# %module
+# % description: Module for computing development potential as input to r.futures.pga
+# % keyword: raster
+# % keyword: statistics
+# %end
+# %option G_OPT_V_INPUT
+# %end
+# %option G_OPT_F_OUTPUT
+# % description: Output Potential file
+# %end
+# %option G_OPT_F_SEP
+# % label: Separator used in output file
+# % answer: comma
+# %end
+# %option G_OPT_DB_COLUMNS
+# % description: Names of attribute columns representing sampled predictors
+# % required: yes
+# %end
+# %option G_OPT_DB_COLUMN
+# % key: developed_column
+# % description: Name of attribute column representing development
+# % required: yes
+# %end
+# %option G_OPT_DB_COLUMN
+# % key: subregions_column
+# % description: Name of attribute column representing subregions
+# % required: yes
+# %end
+# %option
+# % type: string
+# % key: fixed_columns
+# % description: Predictor columns that will be used for all models when dredging
+# % required: no
+# % multiple: yes
+# % guisection: Dredge
+# %end
+# %option
+# % type: integer
+# % key: min_variables
+# % description: Minimum number of predictors considered
+# % required: no
+# % answer: 1
+# % options: 1-20
+# % guisection: Dredge
+# %end
+# %option
+# % type: integer
+# % key: max_variables
+# % description: Maximum number of predictors considered
+# % required: no
+# % options: 1-20
+# % guisection: Dredge
+# %end
+# %flag
+# % key: d
+# % description: Use dredge function to find best model
+# % guisection: Dredge
+# %end
+# %option
+# % type: integer
+# % key: nprocs
+# % description: Number of parallel processes for dredging
+# % required: yes
+# % answer: 1
+# % options: 1-50
+# % guisection: Dredge
+# %end
+# %option G_OPT_F_OUTPUT
+# % required: no
+# % key: dredge_output
+# % description: Output CSV file summarizing all models
+# % guisection: Dredge
+# %end
 
 import sys
 import atexit

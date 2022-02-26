@@ -11,27 +11,27 @@ This program is free software under the GNU General Public License
 @author Matej Krejci <matejkrejci gmail.com> (GSoC 2014)
 """
 
-#%module
-#% description: Creates metadata based on ISO standard for specified raster map.
-#% keyword: raster
-#% keyword: metadata
-#% keyword: iso
-#%end
+# %module
+# % description: Creates metadata based on ISO standard for specified raster map.
+# % keyword: raster
+# % keyword: metadata
+# % keyword: iso
+# %end
 
-#%option G_OPT_R_MAP
-#%end
+# %option G_OPT_R_MAP
+# %end
 
-#%option
-#% key: profile
-#% label: Metadata profile based on ISO
-#% description: INSPIRE profile is not filled properly (unknown values are filled with '$NULL')
-#% options: basic, inspire
-#% answer: basic
-#%end
+# %option
+# % key: profile
+# % label: Metadata profile based on ISO
+# % description: INSPIRE profile is not filled properly (unknown values are filled with '$NULL')
+# % options: basic, inspire
+# % answer: basic
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% required: no
-#%end
+# %option G_OPT_F_OUTPUT
+# % required: no
+# %end
 
 import os
 import sys

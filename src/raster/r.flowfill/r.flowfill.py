@@ -22,75 +22,75 @@
 # More information
 # Started June 2019
 
-#%module
-#% description: Moves water downhill into pools or the ocean/map edge
-#% keyword: raster
-#% keyword: hydrology
-#%end
+# %module
+# % description: Moves water downhill into pools or the ocean/map edge
+# % keyword: raster
+# % keyword: hydrology
+# %end
 
-#%option G_OPT_R_INPUT
-#%  key: input
-#%  label: Input DEM
-#%  required: yes
-#%end
+# %option G_OPT_R_INPUT
+# %  key: input
+# %  label: Input DEM
+# %  required: yes
+# %end
 
-#%option
-#% key: np
-#% type: integer
-#% description: Number of processors to use (>= 3)
-#% required: yes
-#%end
+# %option
+# % key: np
+# % type: integer
+# % description: Number of processors to use (>= 3)
+# % required: yes
+# %end
 
-#%option
-#% key: threshold
-#% type: double
-#% label: Threshold water-surface elevation change to conclude calculation
-#% answer: 0.001
-#% required: no
-#%end
+# %option
+# % key: threshold
+# % type: double
+# % label: Threshold water-surface elevation change to conclude calculation
+# % answer: 0.001
+# % required: no
+# %end
 
-#%option
-#% key: h_runoff
-#% type: double
-#% label: Initial depth of uniform runoff [thickness in map units]
-#% required: no
-#%end
+# %option
+# % key: h_runoff
+# % type: double
+# % label: Initial depth of uniform runoff [thickness in map units]
+# % required: no
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: h_runoff_raster
-#% type: string
-#% label: Initial depth of non-uniform runoff [thickness in map units]
-#% required: no
-#%end
+# %option G_OPT_R_INPUT
+# % key: h_runoff_raster
+# % type: string
+# % label: Initial depth of non-uniform runoff [thickness in map units]
+# % required: no
+# %end
 
-#%option
-#% key: ties
-#% type: string
-#% label: Tie-handling: counterclockwise from Northwest (PREF) or random (RAND)
-#% answer: PREF
-#% options: PREF,RAND
-#% required: no
-#%end
+# %option
+# % key: ties
+# % type: string
+# % label: Tie-handling: counterclockwise from Northwest (PREF) or random (RAND)
+# % answer: PREF
+# % options: PREF,RAND
+# % required: no
+# %end
 
-#%option
-#% key: ffpath
-#% type: string
-#% label: Path to the FlowFill executable
-#% answer: flowfill
-#% required: no
-#%end
+# %option
+# % key: ffpath
+# % type: string
+# % label: Path to the FlowFill executable
+# % answer: flowfill
+# % required: no
+# %end
 
-#%option G_OPT_R_OUTPUT
-#%  key: output
-#%  label: Output DEM + pooled/remaining runoff
-#%  required: no
-#%end
+# %option G_OPT_R_OUTPUT
+# %  key: output
+# %  label: Output DEM + pooled/remaining runoff
+# %  required: no
+# %end
 
-#%option G_OPT_R_OUTPUT
-#%  key: water
-#%  label: Output water depth at the end of the run
-#%  required: no
-#%end
+# %option G_OPT_R_OUTPUT
+# %  key: water
+# %  label: Output water depth at the end of the run
+# %  required: no
+# %end
 
 ##################
 # IMPORT MODULES #
@@ -282,7 +282,7 @@ def main():
                 "and follow the directions in the README to compile and "
                 "install it on your system.\n"
                 'This should then work with the default "ffpath". '
-                "Otherwise, you may have simply have typed in an incorrect "
+                "Otherwise, you may simply have typed in an incorrect "
                 '"ffpath".'
             )
         )

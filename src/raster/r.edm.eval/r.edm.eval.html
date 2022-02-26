@@ -1,41 +1,37 @@
 <h2>DESCRIPTION</h2>
 
-<p><em>r.edm.eval</em> is an environmental distribution model evaluation script. This addon is a GRASS GIS wrapper for a R script. The function returns a number of evaluation statistics (on the command line and as text file with user defined name), including the AUC, maximum sum of specificity and sensitivity (spec. + sens), the maximum true skill statistic (TSS - which is just spec + sens - 1), and the the maximum kappa. For all three statistics, the corresponding probabilty threshold values are also given.
+<p><em>r.edm.eval</em> is an environmental distribution model evaluation script. This addon is a GRASS GIS wrapper for an R script. The function returns a number of evaluation statistics (on the command line and as a text file with user defined name), including the AUC, maximum sum of specificity and sensitivity (spec. + sens), the maximum true skill statistic (TSS - which is just spec + sens - 1), and the maximum kappa. For all three statistics, the corresponding probability threshold values are also given.
 
 <p>In addition, a csv file (with user-defined name) is created with the number of true and false positives (TP,FP), true and false negatives (TN,FN), the true and false positive rate (TPR,FPR), the true negative rate (TNR) and the three statistics mentioned above are given. The user can use this to create for example the receiver operating characteristic (ROC) curve and other evaluation statistics in her/his favorite software.
 
 <p>The observed distribution map should be a binary map, with 1 for presence and 0 for absence. The modeled distribution normally contains probability scores between 0 and 1, but it will work on other scales too. 
 
-<p>It is fairly common to use background rather than (pseudo-)absence points in species distribution modeling. To evaluate models that are build using presence and background points, there is the option to add the presence points to the absence points (flag b). If selected, the combined presence-absence points will be used instead of the absence points.
+<p>It is fairly common to use background rather than (pseudo-)absence points in species distribution modeling. To evaluate models that are built using presence and background points, there is the option to add the presence points to the absence points (flag b). If selected, the combined presence-absence points will be used instead of the absence points.
 
-<p>A problem with the AUC is that it varies with the spatial extent used to select background points (Lobo et al. 2008, Jiménez-Valverde 2012). Generally, the larger that extent, the higher the AUC value. Therefore, AUC values are generally biased and cannot be directly compared. One possible way to address this problem is to use a pairwise distance sampling for presence and absence testing points to remove this bias (Hijmans 2012). An perhaps simpler way to evaluate this problem of changing AUC values with changing extents is to only sample absence/background points within certain distances of the presence points. 
+<p>A problem with the AUC is that it varies with the spatial extent used to select background points (Lobo et al. 2008, Jim&eacute;nez-Valverde 2012). Generally, the larger that extent, the higher the AUC value. Therefore, AUC values are generally biased and cannot be directly compared. One possible way to address this problem is to use a pairwise distance sampling for presence and absence testing points to remove this bias (Hijmans 2012). Perhaps a simpler way to evaluate this problem of changing AUC values with changing extents is to only sample absence/background points within certain distances of the presence points.
 
-<p>The addon offers the option to limit the area over which the evaluation statistics are calculated. The user can define a buffer (in kilometers) around the absence and presence raster cells (the options buffer_abs and buffer_pres respectively). The inside buffer is obviously only useful when your presence data consists of areas (polygons) rather then point data. Note that currently the script does not check if there are sufficient number of absence or background points within the given distance of the presence points. The default value is 0, which means no buffer is used
+<p>The addon offers the option to limit the area over which the evaluation statistics are calculated. The user can define a buffer (in kilometers) around the absence and presence raster cells (the options <b>buffer_abs</b> and <b>buffer_pres</b> respectively). The inside buffer is obviously only useful when your presence data consists of areas (polygons) rather than point data. Note that currently the script does not check if there are a sufficient number of absence or background points within the given distance of the presence points. The default value is 0, which means no buffer is used.
 
-<p>To test the sensitivity of the evaluation statistics for the number of evaluation points, it is possible to set the number of presence and absence points to be used (they will be randomly selected) using the num_pres and num_abs parameters (the default, 0, means all points are included). If the number of presence or absence set by the user is larger than the actual number of presence or absence points, this step is silently skipped. Note however that the number of points used to calculate the statistics are given in the summary.
+<p>To test the sensitivity of the evaluation statistics for the number of evaluation points, it is possible to set the number of presence and absence points to be used (they will be randomly selected) using the <b>num_pres</b> and <b>num_abs</b> parameters (the default, 0, means all points are included). If the number of presence or absence set by the user is larger than the actual number of presence or absence points, this step is silently skipped. Note, however, that the number of points used to calculate the statistics are given in the summary.
 
-<p>The user can set the required ratio of presence and total points to be used in the evaluation (0&lt;preval&lt;1, any value outside this range will be ignored). This allows the user to test how sensitive the evaluation statistics are for the prevalence of presence points. Note that if preval > 0, the num_pre and num_abs parameters will be ignored. Note that if you use the flag to use background points rather than absence points, this preval option will probably not make sense (check the reported prevalence in the summary output).
+<p>The user can set the required ratio of presence and total points to be used in the evaluation (0&lt;<b>preval</b>&lt;1, any value outside this range will be ignored). This allows the user to test how sensitive the evaluation statistics are for the prevalence of presence points. Note that if <b>preval</b> > 0, the num_pre and num_abs parameters will be ignored. Note that if you use the flag to use background points rather than absence points, this <b>preval</b> option will probably not make sense (check the reported prevalence in the summary output).
 
 <h2>NOTES</h2>
 
 <p>The selection of the best evaluation statistic depends on your data and what you want to test. This add-on provides a few, but the user can calculate his/her own using the table in the csv file. See the REFERENCES list for a few useful references in that respect.
 
-<p>Besides R, the script uses the R packages spgrass6, reshape and caTools. If they are not installed yet, the script will attempt to do so. This may take some time, so if you are planning to use the script more often, you are advised to install the packages yourself first.
+<p>Besides R, the script uses the R packages <em>rgrass7</em>, <em>reshape</em> and <em>caTools</em>. If they are not installed yet, the script will attempt to do so. This may take some time, so if you are planning to use the script more often, you are advised to install the packages yourself first.
 
 
 <h2>REFERENCES</h2>
-<p>Jiménez-Valverde, A. 2012. Insights into the area under the receiver operating characteristic curve (AUC) as a discrimination measure in species distribution modelling. Global Ecology and Biogeography 21: 498-507
-<p>Lobo, J. M., Jiménez-Valverde, A., & Real, R. 2008. AUC: a misleading measure of the performance of predictive distribution models. Global Ecology and Biogeography 17: 145-151.
+<p>Jim&eacute;nez-Valverde, A. 2012. Insights into the area under the receiver operating characteristic curve (AUC) as a discrimination measure in species distribution modelling. Global Ecology and Biogeography 21: 498-507
+<p>Lobo, J. M., Jim&eacute;nez-Valverde, A., & Real, R. 2008. AUC: a misleading measure of the performance of predictive distribution models. Global Ecology and Biogeography 17: 145-151.
 <p>Hijmans, R. J. 2012. Cross-validation of species distribution models: removing spatial sorting bias and calibration with a null model. Ecology 93: 679-688.
 <P>Allouche, O., Tsoar, A., & Kadmon, R. 2006. Assessing the accuracy of species distribution models: prevalence, kappa and the true skill statistic (TSS). Journal of Applied Ecology 43: 1223-1232.
 <p>McPHERSON, J. M., Jetz, W., & Rogers, D. J. 2004. The effects of species' range sizes on the accuracy of distribution models: ecological phenomenon or statistical artefact? Journal of Applied Ecology 41: 811-823.
 
 
 <h2>AUTHOR</h2>
-Paulo van Breugel <a href="https://ecodiv.earth/contact.html">ecodiv.earth/contact.html</a>
 
-<!--
-<p>
-<i>Last changed: $Date$</i>
--->
+Paulo van Breugel <a href="https://ecodiv.earth/contact.html">ecodiv.earth/contact.html</a>
 

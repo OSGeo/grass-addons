@@ -14,12 +14,12 @@
 #
 #############################################################################
 
-#%module
-#% description: Converts all older versions of GRASS vector maps in current mapset to current format.
-#% keyword: vector
-#% keyword: import
-#% keyword: conversion
-#%end
+# %module
+# % description: Converts all older versions of GRASS vector maps in current mapset to current format.
+# % keyword: vector
+# % keyword: import
+# % keyword: conversion
+# %end
 
 import sys
 from grass.script import core as grass

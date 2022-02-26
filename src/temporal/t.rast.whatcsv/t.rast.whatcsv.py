@@ -17,49 +17,49 @@
 #
 #############################################################################
 
-#%module
-#% description: Sample a space time raster dataset at specific space-time point coordinates from a csv file and write the output to stdout
-#% keyword: temporal
-#% keyword: raster
-#% keyword: sampling
-#% keyword: time
-#%end
+# %module
+# % description: Sample a space time raster dataset at specific space-time point coordinates from a csv file and write the output to stdout
+# % keyword: temporal
+# % keyword: raster
+# % keyword: sampling
+# % keyword: time
+# %end
 
-#%option G_OPT_F_INPUT
-#% key: csv
-#% description: Name for the output input csv file
-#%end
+# %option G_OPT_F_INPUT
+# % key: csv
+# % description: Name for the output input csv file
+# %end
 
-#%option G_OPT_STRDS_INPUT
-#% key: strds
-#%end
+# %option G_OPT_STRDS_INPUT
+# % key: strds
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% required: no
-#% description: Name for the output file or "-" in case stdout should be used
-#% answer: -
-#%end
+# %option G_OPT_F_OUTPUT
+# % required: no
+# % description: Name for the output file or "-" in case stdout should be used
+# % answer: -
+# %end
 
-#%option G_OPT_T_WHERE
-#%end
+# %option G_OPT_T_WHERE
+# %end
 
-#%option G_OPT_M_NULL_VALUE
-#%end
+# %option G_OPT_M_NULL_VALUE
+# %end
 
-#%option G_OPT_F_SEP
-#%end
+# %option G_OPT_F_SEP
+# %end
 
-#%option
-#% key: skip
-#% type: integer
-#% description: Number of header lines to skip in the csv file
-#% required: yes
-#%end
+# %option
+# % key: skip
+# % type: integer
+# % description: Number of header lines to skip in the csv file
+# % required: yes
+# %end
 
-#%flag
-#% key: n
-#% description: Output header row
-#%end
+# %flag
+# % key: n
+# % description: Output header row
+# %end
 
 ## Temporary disabled the r.what flags due to test issues
 ##%flag

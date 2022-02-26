@@ -16,185 +16,185 @@
 #############################################################################
 
 
-#%module
-#% description: Displays thematic map created from vector features and numeric attributes.
-#% keyword: display
-#% keyword: cartography
-#% keyword: vector
-#% keyword: thematic
-#% keyword: legend
-#%end
-#%option G_OPT_V_MAP
-#%end
-#%option G_OPT_V_FIELD
-#%end
-#%option G_OPT_DB_COLUMN
-#% description: Name of attribute column to use for thematic display (must be numeric)
-#% required: yes
-#%end
-#%option G_OPT_V_TYPE
-#%answer: point,line,area
-#%end
-#%option G_OPT_DB_WHERE
-#% guisection: Theme
-#%end
-#%option
-#% key: themetype
-#% type: string
-#% options: graduated_colors,graduated_points,graduated_lines
-#% answer: graduated_colors
-#% description: Type of thematic display
-#% required: yes
-#% guisection: Theme
-#%end
-#%option
-#% key: themecalc
-#% type: string
-#% options: interval,std_deviation,quartiles,custom_breaks
-#% answer: interval
-#% description: Thematic divisions of data for display
-#% required: yes
-#% guisection: Theme
-#%end
-#%option
-#% key: breakpoints
-#% type: string
-#% label: Break points for custom breaks option
-#% description: Separate values by spaces (0 10 20 30 ...)
-#% required: no
-#% guisection: Theme
-#%end
-#%option
-#% key: icon
-#% type: string
-#% description: Vector point icon for point data
-#% options: basic/box,basic/circle,basic/cross2,basic/diamond,basic/star,basic/cross1,basic/x
-#% answer: basic/circle
-#% required: no
-#% guisection: Points
-#%end
-#%option
-#% key: size
-#% type: double
-#% label: Icon size for point data
-#% description: Minimum icon size/line width for graduated points/lines)
-#% answer: 5
-#% required: no
-#% guisection: Points
-#%end
-#%option
-#% key: maxsize
-#% type: double
-#% description: Maximum icon size/line width for graduated points and lines
-#% answer: 20
-#% required: no
-#% guisection: Points
-#%end
-#%option
-#% key: nint
-#% type: integer
-#% description: Number of classes for interval theme (integer)
-#% answer: 4
-#% required: no
-#% guisection: Theme
-#%end
-#%option
-#% key: colorscheme
-#% type: string
-#% label: Color scheme for graduated color mapping
-#% description: Select 'single_color' for graduated point/line display
-#% options: blue-red,red-blue,green-red,red-green,blue-green,green-blue,cyan-yellow,yellow-cyan,custom_gradient,single_color
-#% answer: blue-red
-#% required: yes
-#% guisection: Color
-#%end
-#% option
-#% key: point_color
-#% type: string
-#% label: Color for graduated points map
-#% description: GRASS named color or R:G:B triplet. Set color scheme to single color
-#% answer: 255:0:0
-#% required: no
-#% guisection: Color
-#%end
-#% option
-#% key: line_color
-#% type: string
-#% label: Color for graduated lines or point/area outlines
-#% description: GRASS named color or R:G:B triplet. Set color scheme to single color.
-#% answer: 0:0:0
-#% required: no
-#% guisection: Color
-#%end
-#% option
-#% key: start_color
-#% type: string
-#% label: Beginning color for custom color gradient
-#% description: Must be expressed as R:G:B triplet
-#% answer: 255:0:0
-#% required: no
-#% guisection: Color
-#%end
-#% option
-#% key: end_color
-#% type: string
-#% label: Ending color for custom color gradient
-#% description: Must be expressed as R:G:B triplet
-#% answer: 0:0:255
-#% required: no
-#% guisection: Color
-#%end
-#% option
-#% key: monitor
-#% type: string
-#% description: Select WXGUI display monitor for legend
-#% options: wx0,wx1,wx2,wx3,wx4,wx5,wx6,none
-#% answer: wx1
-#% required: no
-#% guisection: Misc
-#%end
-#%flag
-#% guisection: Files
-#% key: g
-#%description: Save thematic map commands to group file for GIS Manager
-#%end
-#%option
-#% key: psmap
-#% type: string
-#% label: Root for the name of psmap instruction files to be in current directory
-#% description: If not set, no psmap instruction files will be created)
-#% required: no
-#% guisection: Files
-#%end
-#%option G_OPT_I_GROUP
-#% description: Name of group file where thematic map commands will be saved
-#% required: no
-#% guisection: Files
-#%end
-#%option G_OPT_DB_COLUMN
-#% key: rgb_column
-#% description: Name of color column to populate RGB values
-#%end
-#%flag
-#% guisection: Theme
-#%key: l
-#%description: Create graphic legend in x11 display monitor
-#%end
-#%flag
-#% guisection: Color
-#% key: f
-#% description: Only draw fills (no outlines) for areas and points
-#%end
-#%flag
-#% guisection: Misc
-#%key: s
-#%description: Output legend for GIS Manager (for scripting use only)
-#%end
-#%flag
-#% guisection: Misc
-#%key: m
-#%description: Use math notation brackets in legend
-#%end
+# %module
+# % description: Displays thematic map created from vector features and numeric attributes.
+# % keyword: display
+# % keyword: cartography
+# % keyword: vector
+# % keyword: thematic
+# % keyword: legend
+# %end
+# %option G_OPT_V_MAP
+# %end
+# %option G_OPT_V_FIELD
+# %end
+# %option G_OPT_DB_COLUMN
+# % description: Name of attribute column to use for thematic display (must be numeric)
+# % required: yes
+# %end
+# %option G_OPT_V_TYPE
+# %answer: point,line,area
+# %end
+# %option G_OPT_DB_WHERE
+# % guisection: Theme
+# %end
+# %option
+# % key: themetype
+# % type: string
+# % options: graduated_colors,graduated_points,graduated_lines
+# % answer: graduated_colors
+# % description: Type of thematic display
+# % required: yes
+# % guisection: Theme
+# %end
+# %option
+# % key: themecalc
+# % type: string
+# % options: interval,std_deviation,quartiles,custom_breaks
+# % answer: interval
+# % description: Thematic divisions of data for display
+# % required: yes
+# % guisection: Theme
+# %end
+# %option
+# % key: breakpoints
+# % type: string
+# % label: Break points for custom breaks option
+# % description: Separate values by spaces (0 10 20 30 ...)
+# % required: no
+# % guisection: Theme
+# %end
+# %option
+# % key: icon
+# % type: string
+# % description: Vector point icon for point data
+# % options: basic/box,basic/circle,basic/cross2,basic/diamond,basic/star,basic/cross1,basic/x
+# % answer: basic/circle
+# % required: no
+# % guisection: Points
+# %end
+# %option
+# % key: size
+# % type: double
+# % label: Icon size for point data
+# % description: Minimum icon size/line width for graduated points/lines)
+# % answer: 5
+# % required: no
+# % guisection: Points
+# %end
+# %option
+# % key: maxsize
+# % type: double
+# % description: Maximum icon size/line width for graduated points and lines
+# % answer: 20
+# % required: no
+# % guisection: Points
+# %end
+# %option
+# % key: nint
+# % type: integer
+# % description: Number of classes for interval theme (integer)
+# % answer: 4
+# % required: no
+# % guisection: Theme
+# %end
+# %option
+# % key: colorscheme
+# % type: string
+# % label: Color scheme for graduated color mapping
+# % description: Select 'single_color' for graduated point/line display
+# % options: blue-red,red-blue,green-red,red-green,blue-green,green-blue,cyan-yellow,yellow-cyan,custom_gradient,single_color
+# % answer: blue-red
+# % required: yes
+# % guisection: Color
+# %end
+# % option
+# % key: point_color
+# % type: string
+# % label: Color for graduated points map
+# % description: GRASS named color or R:G:B triplet. Set color scheme to single color
+# % answer: 255:0:0
+# % required: no
+# % guisection: Color
+# %end
+# % option
+# % key: line_color
+# % type: string
+# % label: Color for graduated lines or point/area outlines
+# % description: GRASS named color or R:G:B triplet. Set color scheme to single color.
+# % answer: 0:0:0
+# % required: no
+# % guisection: Color
+# %end
+# % option
+# % key: start_color
+# % type: string
+# % label: Beginning color for custom color gradient
+# % description: Must be expressed as R:G:B triplet
+# % answer: 255:0:0
+# % required: no
+# % guisection: Color
+# %end
+# % option
+# % key: end_color
+# % type: string
+# % label: Ending color for custom color gradient
+# % description: Must be expressed as R:G:B triplet
+# % answer: 0:0:255
+# % required: no
+# % guisection: Color
+# %end
+# % option
+# % key: monitor
+# % type: string
+# % description: Select WXGUI display monitor for legend
+# % options: wx0,wx1,wx2,wx3,wx4,wx5,wx6,none
+# % answer: wx1
+# % required: no
+# % guisection: Misc
+# %end
+# %flag
+# % guisection: Files
+# % key: g
+# %description: Save thematic map commands to group file for GIS Manager
+# %end
+# %option
+# % key: psmap
+# % type: string
+# % label: Root for the name of psmap instruction files to be in current directory
+# % description: If not set, no psmap instruction files will be created)
+# % required: no
+# % guisection: Files
+# %end
+# %option G_OPT_I_GROUP
+# % description: Name of group file where thematic map commands will be saved
+# % required: no
+# % guisection: Files
+# %end
+# %option G_OPT_DB_COLUMN
+# % key: rgb_column
+# % description: Name of color column to populate RGB values
+# %end
+# %flag
+# % guisection: Theme
+# %key: l
+# %description: Create graphic legend in x11 display monitor
+# %end
+# %flag
+# % guisection: Color
+# % key: f
+# % description: Only draw fills (no outlines) for areas and points
+# %end
+# %flag
+# % guisection: Misc
+# %key: s
+# %description: Output legend for GIS Manager (for scripting use only)
+# %end
+# %flag
+# % guisection: Misc
+# %key: m
+# %description: Use math notation brackets in legend
+# %end
 
 import sys
 import os
