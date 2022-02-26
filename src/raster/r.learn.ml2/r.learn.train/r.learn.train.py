@@ -774,12 +774,12 @@ def main():
 
         preds = cross_val_predict(
             estimator=estimator,
-            X=X, 
+            X=X,
             y=y,
             groups=group_id,
             cv=outer,
             n_jobs=n_jobs,
-            fit_params=fit_params
+            fit_params=fit_params,
         )
 
         test_idx = [test for train, test in outer.split(X, y)]
