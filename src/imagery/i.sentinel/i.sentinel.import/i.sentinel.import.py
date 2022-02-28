@@ -979,7 +979,7 @@ class SentinelImporter(object):
                             sep=sep, semantic_label=semantic_label
                         )
                     )
-                fd.write(os.linesep)
+                fd.write("\n")
 
 
 def main():
