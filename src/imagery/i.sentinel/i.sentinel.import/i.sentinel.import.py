@@ -891,7 +891,7 @@ class SentinelImporter(object):
                     continue
 
                 timestamp = meta["timestamp"]
-                timestamp_str = timestamp.strftime("%-d %b %Y %H:%M:%S.%f")
+                timestamp_str = timestamp.strftime("%d %b %Y %H:%M:%S.%f")
                 descr_list = []
                 for dkey in meta.keys():
                     if dkey != "timestamp":
