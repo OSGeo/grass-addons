@@ -53,8 +53,8 @@ except:
             sys.exit(1)
 
 grass_version = grass.version().get("version")[0:2]
-if grass_version != "7.":
-    grass.fatal(_("Sorry, this script works in GRASS 7.* only"))
+if grass_version != "8.":
+    grass.fatal(_("Sorry, this script works in GRASS 8.* only"))
 else:
     from grass.lib.gis import *
     from grass.lib.vector import *
