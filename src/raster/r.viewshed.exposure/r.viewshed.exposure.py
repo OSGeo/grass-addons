@@ -20,179 +20,179 @@ License (>=v2). Read the file COPYING that comes with GRASS
 for details.
 """
 
-#%module
-#% label: Visual exposure to defined exposure source.
-#% description: Computes visual exposure to defined exposure source using weighted parametrised cummulative viewshed analysis.
-#% keyword: raster
-#% keyword: viewshed
-#% keyword: line of sight
-#% keyword: LOS
-#% keyword: visual exposure
-#%end
+# %module
+# % label: Visual exposure to defined exposure source.
+# % description: Computes visual exposure to defined exposure source using weighted parametrised cummulative viewshed analysis.
+# % keyword: raster
+# % keyword: viewshed
+# % keyword: line of sight
+# % keyword: LOS
+# % keyword: visual exposure
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: dsm
-#% label: Name of input digital surface raster map
-#%end
+# %option G_OPT_R_INPUT
+# % key: dsm
+# % label: Name of input digital surface raster map
+# %end
 
-#%option G_OPT_R_OUTPUT
-#% key: output
-#% label: Name of output raster map of visual exposure
-#%end
+# %option G_OPT_R_OUTPUT
+# % key: output
+# % label: Name of output raster map of visual exposure
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: source
-#% required: no
-#% label: Name of input raster map of exposure source
-#% guisection: Exposure source settings
-#%end
+# %option G_OPT_R_INPUT
+# % key: source
+# % required: no
+# % label: Name of input raster map of exposure source
+# % guisection: Exposure source settings
+# %end
 
-#%option
-#% key: sourcecat
-#% type: string
-#% key_desc: value
-#% label: Raster values to use as exposure source
-#% description: 1-
-#% answer: *
-#% guisection: Exposure source settings
-#%end
+# %option
+# % key: sourcecat
+# % type: string
+# % key_desc: value
+# % label: Raster values to use as exposure source
+# % description: 1-
+# % answer: *
+# % guisection: Exposure source settings
+# %end
 
-#%option G_OPT_V_INPUT
-#% key: sampling_points
-#% required: no
-#% label: Name of input vector map of sampling points
-#% guisection: Exposure source settings
-#%end
+# %option G_OPT_V_INPUT
+# % key: sampling_points
+# % required: no
+# % label: Name of input vector map of sampling points
+# % guisection: Exposure source settings
+# %end
 
-#%rules
-#% required: sampling_points,source
-#%end
+# %rules
+# % required: sampling_points,source
+# %end
 
-#%rules
-#% exclusive: sampling_points,source
-#%end
+# %rules
+# % exclusive: sampling_points,source
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: weights
-#% required: no
-#% label: Name of input raster map of viewshed weights
-#% guisection: Exposure source settings
-#%end
+# %option G_OPT_R_INPUT
+# % key: weights
+# % required: no
+# % label: Name of input raster map of viewshed weights
+# % guisection: Exposure source settings
+# %end
 
-#%flag
-#% key: c
-#% label: Consider the curvature of the earth (current ellipsoid)
-#% guisection: Viewshed settings
-#%end
+# %flag
+# % key: c
+# % label: Consider the curvature of the earth (current ellipsoid)
+# % guisection: Viewshed settings
+# %end
 
-#%option
-#% key: observer_elevation
-#% type: double
-#% required: no
-#% key_desc: value
-#% label: Observer elevation above the ground
-#% description: 0.0-
-#% options: 0.0-
-#% answer: 1.5
-#% guisection: Viewshed settings
-#%end
+# %option
+# % key: observer_elevation
+# % type: double
+# % required: no
+# % key_desc: value
+# % label: Observer elevation above the ground
+# % description: 0.0-
+# % options: 0.0-
+# % answer: 1.5
+# % guisection: Viewshed settings
+# %end
 
-#%option
-#% key: range
-#% type: double
-#% required: no
-#% key_desc: value
-#% label: Exposure range
-#% description: 0.0- , -1 for infinity
-#% options: 0.0-
-#% answer: 100
-#% guisection: Viewshed settings
-#%end
+# %option
+# % key: range
+# % type: double
+# % required: no
+# % key_desc: value
+# % label: Exposure range
+# % description: 0.0- , -1 for infinity
+# % options: 0.0-
+# % answer: 100
+# % guisection: Viewshed settings
+# %end
 
-#%option
-#% key: function
-#% type: string
-#% required: no
-#% key_desc: name
-#% label: Viewshed parametrisation function
-#% description: Binary, Distance_decay, Fuzzy_viewshed, Visual_magnitude, Solid_angle
-#% options: Binary, Distance_decay, Fuzzy_viewshed, Visual_magnitude, Solid_angle
-#% answer: Distance_decay
-#% guisection: Viewshed settings
-#%end
+# %option
+# % key: function
+# % type: string
+# % required: no
+# % key_desc: name
+# % label: Viewshed parametrisation function
+# % description: Binary, Distance_decay, Fuzzy_viewshed, Visual_magnitude, Solid_angle
+# % options: Binary, Distance_decay, Fuzzy_viewshed, Visual_magnitude, Solid_angle
+# % answer: Distance_decay
+# % guisection: Viewshed settings
+# %end
 
-#%option
-#% key: b1_distance
-#% type: double
-#% required: no
-#% key_desc: value
-#% label: Radius around the observer where clarity is perfect. Used in fuzzy viewshed function.
-#% guisection: Viewshed settings
-#% answer: 10
-#%end
+# %option
+# % key: b1_distance
+# % type: double
+# % required: no
+# % key_desc: value
+# % label: Radius around the observer where clarity is perfect. Used in fuzzy viewshed function.
+# % guisection: Viewshed settings
+# % answer: 10
+# %end
 
-#%option
-#% key: sample_density
-#% type: double
-#% required: no
-#% key_desc: value
-#% label: Density of sampling points
-#% options: 0.0-100.0
-#% description: 0.0-100.0
-#% answer: 25
-#% guisection: Sampling settings
-#%end
+# %option
+# % key: sample_density
+# % type: double
+# % required: no
+# % key_desc: value
+# % label: Density of sampling points
+# % options: 0.0-100.0
+# % description: 0.0-100.0
+# % answer: 25
+# % guisection: Sampling settings
+# %end
 
-#%option
-#% key: seed
-#% type: integer
-#% required: no
-#% key_desc: value
-#% label: Random seed, default [random]
-#% options: 0-
-#% description: 0-
-#% guisection: Sampling settings
-#%end
+# %option
+# % key: seed
+# % type: integer
+# % required: no
+# % key_desc: value
+# % label: Random seed, default [random]
+# % options: 0-
+# % description: 0-
+# % guisection: Sampling settings
+# %end
 
-#%flag
-#% key: r
-#% label: Consider the effect of atmospheric refraction
-#% guisection: Refraction
-#%end
+# %flag
+# % key: r
+# % label: Consider the effect of atmospheric refraction
+# % guisection: Refraction
+# %end
 
-#%option
-#% key: refraction_coeff
-#% type: double
-#% required: no
-#% key_desc: value
-#% label: Refraction coefficient
-#% options: 0.0-1.0
-#% description: 0.0-1.0
-#% answer: 0.14286
-#% guisection: Refraction
-#%end
+# %option
+# % key: refraction_coeff
+# % type: double
+# % required: no
+# % key_desc: value
+# % label: Refraction coefficient
+# % options: 0.0-1.0
+# % description: 0.0-1.0
+# % answer: 0.14286
+# % guisection: Refraction
+# %end
 
-#%option
-#% key: memory
-#% type: integer
-#% required: no
-#% key_desc: value
-#% label: Amount of memory to use in MB
-#% options: 1-
-#% description: 1-
-#% answer: 500
-#%end
+# %option
+# % key: memory
+# % type: integer
+# % required: no
+# % key_desc: value
+# % label: Amount of memory to use in MB
+# % options: 1-
+# % description: 1-
+# % answer: 500
+# %end
 
-#%option
-#% key: cores
-#% type: integer
-#% required: no
-#% key_desc: value
-#% label: Number of cores to use in parallelisation
-#% description: 1-
-#% options: 1-
-#% answer: 1
-#%end
+# %option
+# % key: cores
+# % type: integer
+# % required: no
+# % key_desc: value
+# % label: Number of cores to use in parallelisation
+# % description: 1-
+# % options: 1-
+# % answer: 1
+# %end
 
 import os
 import math
