@@ -613,12 +613,6 @@ def main():
     elif options["input"] != "" and options["files"] != "":
         grass.fatal(_('It is not possible set "input" and "files"' " options together"))
         return 0
-    # check the version
-    version = grass.core.version()
-    # this is would be set automatically
-    if version["version"].find("7.") == -1:
-        grass.fatal(_("GRASS GIS version 7 required"))
-        return 0
     # check if remove the files or not
     if flags["t"]:
         remove = False
