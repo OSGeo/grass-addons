@@ -86,9 +86,19 @@
 # % exclusive: processes,nprocs
 # %end
 
-import math
 import grass.script as gscript
-from grass.pygrass.modules.grid.grid import *
+from grass.pygrass.modules.grid.grid import (
+    GridModule,
+    Location,
+    split_region_tiles,
+    rpatch_map,
+)
+
+try:
+    parallel_rpatch = True
+    from grass.pygrass.modules.grid.grid import rpatch_map_no_overlap
+except ImportError:
+    parallel_rpatch = False
 
 
 class MyGridModule(GridModule):
@@ -102,16 +112,28 @@ class MyGridModule(GridModule):
         mset.visible.extend(loc.mapsets())
         output_map = self.out_prefix[:]
         self.out_prefix = ""
-        rpatch_map(
-            output_map,
-            self.mset.name,
-            self.msetstr,
-            bboxes,
-            self.module.flags.overwrite,
-            self.start_row,
-            self.start_col,
-            self.out_prefix,
-        )
+        if self.overlap or not parallel_rpatch:
+            rpatch_map(
+                output_map,
+                self.mset.name,
+                self.msetstr,
+                bboxes,
+                self.module.flags.overwrite,
+                self.start_row,
+                self.start_col,
+                self.out_prefix,
+            )
+        else:
+            rpatch_map_no_overlap(
+                output_map,
+                self.msetstr,
+                bboxes,
+                self.module.flags.overwrite,
+                self.start_row,
+                self.start_col,
+                self.out_prefix,
+                self.processes,
+            )
 
 
 def main():
