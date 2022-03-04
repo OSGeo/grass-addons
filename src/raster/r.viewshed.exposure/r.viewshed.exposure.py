@@ -44,7 +44,7 @@ for details.
 # % key: source
 # % required: no
 # % label: Name of input raster map of exposure source
-# % guisection: Exposure source settings
+# % guisection: Exposure source
 # %end
 
 # %option
@@ -54,14 +54,14 @@ for details.
 # % label: Raster values to use as exposure source
 # % description: 1-
 # % answer: *
-# % guisection: Exposure source settings
+# % guisection: Exposure source
 # %end
 
 # %option G_OPT_V_INPUT
 # % key: sampling_points
 # % required: no
 # % label: Name of input vector map of sampling points
-# % guisection: Exposure source settings
+# % guisection: Exposure source
 # %end
 
 # %rules
@@ -76,13 +76,13 @@ for details.
 # % key: weights
 # % required: no
 # % label: Name of input raster map of viewshed weights
-# % guisection: Exposure source settings
+# % guisection: Exposure source
 # %end
 
 # %flag
 # % key: c
 # % label: Consider the curvature of the earth (current ellipsoid)
-# % guisection: Viewshed settings
+# % guisection: Viewshed
 # %end
 
 # %option
@@ -94,7 +94,7 @@ for details.
 # % description: 0.0-
 # % options: 0.0-
 # % answer: 1.5
-# % guisection: Viewshed settings
+# % guisection: Viewshed
 # %end
 
 # %option
@@ -106,7 +106,7 @@ for details.
 # % description: 0.0- , -1 for infinity
 # % options: 0.0-
 # % answer: 100
-# % guisection: Viewshed settings
+# % guisection: Viewshed
 # %end
 
 # %option
@@ -118,7 +118,7 @@ for details.
 # % description: Binary, Distance_decay, Fuzzy_viewshed, Visual_magnitude, Solid_angle
 # % options: Binary, Distance_decay, Fuzzy_viewshed, Visual_magnitude, Solid_angle
 # % answer: Distance_decay
-# % guisection: Viewshed settings
+# % guisection: Viewshed
 # %end
 
 # %option
@@ -127,7 +127,7 @@ for details.
 # % required: no
 # % key_desc: value
 # % label: Radius around the observer where clarity is perfect. Used in fuzzy viewshed function.
-# % guisection: Viewshed settings
+# % guisection: Viewshed
 # % answer: 10
 # %end
 
@@ -140,7 +140,7 @@ for details.
 # % options: 0.0-100.0
 # % description: 0.0-100.0
 # % answer: 25
-# % guisection: Sampling settings
+# % guisection: Sampling
 # %end
 
 # %option
@@ -151,7 +151,7 @@ for details.
 # % label: Random seed, default [random]
 # % options: 0-
 # % description: 0-
-# % guisection: Sampling settings
+# % guisection: Sampling
 # %end
 
 # %flag
