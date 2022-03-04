@@ -259,8 +259,8 @@ class SentinelImporter(object):
         if len(safes) < 1:
             gs.fatal(
                 _(
-                    "Nothing found to import. Please check input and pattern_file options."
-                )
+                    "No Sentinel files found to import in directory <{}>. Please check input and pattern_file options."
+                ).format(self.unzip_dir)
             )
 
         for safe in safes:
