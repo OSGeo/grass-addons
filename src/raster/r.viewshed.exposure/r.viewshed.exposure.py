@@ -172,26 +172,10 @@ for details.
 # % guisection: Refraction
 # %end
 
-# %option
-# % key: memory
-# % type: integer
-# % required: no
-# % key_desc: value
-# % label: Amount of memory to use in MB
-# % options: 1-
-# % description: 1-
-# % answer: 500
+# %option G_OPT_M_MEMORY
 # %end
 
-# %option
-# % key: cores
-# % type: integer
-# % required: no
-# % key_desc: value
-# % label: Number of cores to use in parallelisation
-# % description: 1-
-# % options: 1-
-# % answer: 1
+# %option G_OPT_M_NPROCS
 # %end
 
 import os
