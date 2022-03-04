@@ -228,46 +228,44 @@ def cleanup():
 def unset_mask():
     """Deactivate user mask"""
     if RasterRow("MASK", Mapset().name).exist():
-        try:
-            grass.run_command(
-                "g.copy",
-                quiet=True,
-                raster="MASK,MASK_{}".format(TEMPNAME),
-                stderr=subprocess.DEVNULL,
-            )
-            grass.run_command(
-                "g.remove",
-                quiet=True,
-                type="raster",
-                name="MASK",
-                stderr=subprocess.DEVNULL,
-                flags="f",
-            )
-        except Exception:
-            pass
+        grass.run_command(
+            "g.copy",
+            quiet=True,
+            raster="MASK,MASK_{}".format(TEMPNAME),
+            stderr=subprocess.DEVNULL,
+            errors="ignore",
+        )
+        grass.run_command(
+            "g.remove",
+            quiet=True,
+            type="raster",
+            name="MASK",
+            stderr=subprocess.DEVNULL,
+            flags="f",
+            errors="ignore",
+        )
 
 
 def reset_mask():
     """Re-activate user mask"""
     if RasterRow("MASK_{}".format(TEMPNAME)).exist():
-        try:
-            grass.warning("reset mask")
-            grass.run_command(
-                "g.copy",
-                quiet=True,
-                raster="MASK_{},MASK".format(TEMPNAME),
-                stderr=subprocess.DEVNULL,
-            )
-            grass.run_command(
-                "g.remove",
-                quiet=True,
-                type="raster",
-                name="MASK_{}".format(TEMPNAME),
-                stderr=subprocess.DEVNULL,
-                flags="f",
-            )
-        except Exception:
-            pass
+        grass.warning("Reseting mask")
+        grass.run_command(
+            "g.copy",
+            quiet=True,
+            raster="MASK_{},MASK".format(TEMPNAME),
+            stderr=subprocess.DEVNULL,
+            errors="ignore",
+        )
+        grass.run_command(
+            "g.remove",
+            quiet=True,
+            type="raster",
+            name="MASK_{}".format(TEMPNAME),
+            stderr=subprocess.DEVNULL,
+            flags="f",
+            errors="ignore",
+        )
 
 
 def clean_temp(pid):
