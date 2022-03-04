@@ -368,8 +368,10 @@ def do_it_all(global_vars, target_pts_np):
             env=c_env,
         )
         vs.communicate()
+        # Workaround for https://github.com/OSGeo/grass/issues/1436
         clean_temp(vs.pid)
 
+        # Read viewshed into numpy with single precision and replace NoData
         np_viewshed = raster2numpy(tmp_vs).astype(np.single)
         np_viewshed[np_viewshed == -2147483648] = np.nan
 
