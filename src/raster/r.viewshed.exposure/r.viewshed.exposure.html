@@ -115,7 +115,7 @@ g.region raster=elevation@PERMANENT
 
 # calculate visual exposure
 # no viewshed parametrisation function (binary viewshed)
-r.viewshed.exposure dsm=elevation@PERMANENT
+r.viewshed.exposure input=elevation@PERMANENT
   output=exposure_roadsmajor_b
   source=roadsmajor@PERMANENT
   observer_elevation=1.50
@@ -124,7 +124,7 @@ r.viewshed.exposure dsm=elevation@PERMANENT
 
 # calculate visual exposure
 # solid anfle viewshed parametrisation function
-r.viewshed.exposure dsm=elevation@PERMANENT
+r.viewshed.exposure input=elevation@PERMANENT
   output=exposure_roadsmajor_s
   source=roadsmajor@PERMANENT
   observer_elevation=1.50
