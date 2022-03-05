@@ -41,7 +41,7 @@ class TestFunctions(TestCase):
     r_viewshed = SimpleModule(
         "r.viewshed.exposure",
         flags="cr",
-        dsm=dsm,
+        input=dsm,
         source=source_roads,
         observer_elevation=1.5,
         range=100,
@@ -195,7 +195,7 @@ class TestFunctions(TestCase):
             self.r_viewshed.outputs.output = output
 
             # Input datasets
-            self.r_viewshed.inputs.dsm = self.dsm
+            self.r_viewshed.inputs.input = self.dsm
             self.r_viewshed.inputs.source = self.source_roads
             self.r_viewshed.inputs.function = function
             self.r_viewshed.inputs.sampling_points = None
@@ -229,7 +229,7 @@ class TestFunctions(TestCase):
         self.r_viewshed.outputs.output = output
 
         # Input dataset
-        self.r_viewshed.inputs.dsm = self.dsm
+        self.r_viewshed.inputs.input = self.dsm
         self.r_viewshed.inputs.source = self.source_lakes
         self.r_viewshed.inputs.function = function
 
@@ -262,7 +262,7 @@ class TestFunctions(TestCase):
         self.r_viewshed.outputs.output = output
 
         # Input datasets
-        self.r_viewshed.inputs.dsm = self.dsm
+        self.r_viewshed.inputs.input = self.dsm
         self.r_viewshed.inputs.source = None
         self.r_viewshed.inputs.sampling_points = self.source_points
         self.r_viewshed.inputs.function = function
