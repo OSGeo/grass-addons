@@ -31,7 +31,6 @@ for details.
 # %end
 
 # %option G_OPT_R_INPUT
-# % key: dsm
 # % label: Name of input digital surface raster map
 # %end
 
@@ -1031,7 +1030,7 @@ def main():
     # ==========================================================================
     # Required
     r_output = options["output"]
-    r_dsm = options["dsm"]
+    r_dsm = options["input"]
     dsm_type = grass.parse_command("r.info", map=r_dsm, flags="g")["datatype"]
 
     # Test if DSM exist
