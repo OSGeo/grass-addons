@@ -854,7 +854,6 @@ def visual_magnitude_reverse(
     visual_magnitude = (
         np.cos(beta) * np.cos(theta) * ((reg.nsres * reg.ewres) / (v_scal ** 2))
     )
-    sys.stderr.flush()
 
     # 9. Multiply visual magnitude by binary viewshed and weight
     return visual_magnitude * np_viewshed * t_loc[-1]
