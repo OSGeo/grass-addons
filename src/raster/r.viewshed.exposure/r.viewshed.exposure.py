@@ -1349,10 +1349,10 @@ def main():
     combo = list(zip(itertools.repeat(global_vars), target_pnts))
 
     # Calculate partial cummulative viewshed
-    pool = Pool(cores)
-    np_sum = pool.starmap(do_it_all, combo)
-    pool.close()
-    pool.join()
+    with Pool(cores) as pool:
+        np_sum = pool.starmap(do_it_all, combo)
+        pool.close()
+        pool.join()
 
     # We should probably use nansum here?
     all_nan = np.all(np.isnan(np_sum), axis=0)
