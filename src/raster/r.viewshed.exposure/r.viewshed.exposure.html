@@ -97,7 +97,7 @@ This raster represents visual exposure to the exposure source.
 
 <h3>Memory and parallel processing</h3>
 Options <b>memory</b> specifies the amount of memory allocated for
-viewshed computation. Option <b>cores</b> specifies the number of cores used in
+viewshed computation. Option <b>nprocs</b> specifies the number of cores used in
 parallel processing. In parallel processing, the computation of individual
 viewsheds is randomly distributed across the specified cores.
 
@@ -120,7 +120,7 @@ r.viewshed.exposure input=elevation@PERMANENT
   source=roadsmajor@PERMANENT
   observer_elevation=1.50
   max_distance=2000
-  sample_density=50 memory=5000 cores=25
+  sample_density=50 memory=5000 nprocs=25
 
 # calculate visual exposure
 # solid anfle viewshed parametrisation function
@@ -130,7 +130,7 @@ r.viewshed.exposure input=elevation@PERMANENT
   observer_elevation=1.50
   max_distance=2000
   function=solid_angle
-  sample_density=50 memory=5000 cores=25
+  sample_density=50 memory=5000 nprocs=25
 
 # scale solid angle values for visualisation purposes
 # (see Domingo-Santos et al., 2011)

@@ -1112,7 +1112,7 @@ def main():
         seed = os.getpid()
 
     # Optional
-    cores = int(options["cores"])
+    cores = int(options["nprocs"])
     memory = int(options["memory"])
 
     # ==========================================================================
