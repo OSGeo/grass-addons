@@ -171,7 +171,7 @@ for details.
 # % guisection: Refraction
 # %end
 
-# %option G_OPT_M_MEMORY
+# %option G_OPT_MEMORYMB
 # %end
 
 # %option G_OPT_M_NPROCS
