@@ -157,20 +157,16 @@ class TestFunctions(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        """Save the current region
-        We cannot use temp_region as it is used by the module.
-        """
+        """Setup temp region."""
 
         # Save current region to temporary file
-        cls.runModule("g.region", flags="u", save="{}_region".format(cls.tempname))
+        gs.use_temp_region()
+        gs.run_command("g.region", raster=cls.dsm, align=cls.dsm)
 
     @classmethod
     def tearDownClass(cls):
         """Reset original region and remove the temporary region"""
-        cls.runModule("g.region", region="{}_region".format(cls.tempname))
-        cls.runModule(
-            "g.remove", flags="f", type="region", name="{}_region".format(cls.tempname)
-        )
+        gs.del_temp_region()
 
     def tearDown(self):
         """Remove the output created from the module
