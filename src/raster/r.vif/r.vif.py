@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #
 ########################################################################
@@ -13,7 +13,7 @@
 #               VIF. This will be repeated till the VIF falls below the user
 #               defined VIF threshold value.
 #
-# COPYRIGHT: (C) 2015 - 2017 Paulo van Breugel and the GRASS Development Team
+# COPYRIGHT: (C) 2015 - 2022 Paulo van Breugel and the GRASS Development Team
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS
@@ -141,7 +141,12 @@ def ReadData(raster, n):
         # Create mask random locations
         new_mask = tmpname("rvif")
         gs.run_command(
-            "r.random", input=raster[0], npoints=n, raster=new_mask, quiet=True
+            "r.random",
+            input=raster[0],
+            flags="s",
+            npoints=n,
+            raster=new_mask,
+            quiet=True,
         )
         exist_mask = gs.find_file(
             name="MASK", element="cell", mapset=gs.gisenv()["MAPSET"]
