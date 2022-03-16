@@ -198,6 +198,7 @@ def main():
                 input=temp_name,
                 npoints=npoints[i],
                 vector=vector,
+                flags="s",
                 quiet=True,
             )
         else:
