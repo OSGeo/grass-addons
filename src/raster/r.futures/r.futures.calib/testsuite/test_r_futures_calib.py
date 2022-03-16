@@ -116,6 +116,7 @@ class TestPGACalib(TestCase):
             patch_threshold=0,
             subregions="zipcodes",
             patch_sizes="data/out_library_subregion.csv",
+            nprocs=8,
         )
         self.assertTrue(
             filecmp.cmp(
