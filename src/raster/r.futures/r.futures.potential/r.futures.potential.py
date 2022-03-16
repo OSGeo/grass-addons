@@ -8,7 +8,7 @@
 #
 # PURPOSE:      FUTURES Potential submodel
 #
-# COPYRIGHT:    (C) 2016-2020 by the GRASS Development Team
+# COPYRIGHT:    (C) 2016-2021 by the GRASS Development Team
 #
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
@@ -43,6 +43,13 @@
 # % key: subregions_column
 # % description: Name of attribute column representing subregions
 # % required: yes
+# %end
+# %option
+# % type: string
+# % key: random_column
+# % description: Random effect predictor
+# % required: no
+# % multiple: no
 # %end
 # %option
 # % type: string
@@ -118,6 +125,7 @@ option_list = list(
   make_option(c("-x","--maximum"), action="store", default=NA, type='integer', help="maximum number of variables for dredge"),
   make_option(c("-n","--nprocs"), action="store", default=1, type='integer', help="number of processes for dredge"),
   make_option(c("-f","--fixed"), action="store", default=NA, type='character', help="fixed predictors for dredge"),
+  make_option(c("-a","--random"), action="store", default=NA, type='character', help="random effect predictor"),
   make_option(c("-e","--export_dredge"), action="store", default=NA, type='character', help="output CSV file of all models (when using dredge)")
 )
 opt = parse_args(OptionParser(option_list=option_list))
@@ -138,6 +146,9 @@ if (is.na(opt$predictors)) {
 }
 if (!is.na(opt$level)) {
     predictors <- predictors[predictors != opt$level]
+    if (!is.na(opt$random)) {
+        predictors <- predictors[predictors != opt$random]
+    }
 }
 predictors <- predictors[predictors != opt$response]
 
@@ -145,7 +156,11 @@ if (is.na(opt$level)) {
     fmla <- as.formula(paste(opt$response, " ~ ", paste(c(predictors), collapse= "+")))
     model = glm(formula=fmla, family = binomial, data=input_data, na.action = "na.fail")
 } else {
-    interc <- paste("(1|", opt$level, ")")
+    if (is.na(opt$random)) {
+        interc <- paste("(1|", opt$level, ")")
+    } else {
+        interc <- paste("(", opt$random, "|", opt$level, ")")
+    }
     fmla <- as.formula(paste(opt$response, " ~ ", paste(c(predictors, interc), collapse= "+")))
     model = glmer(formula=fmla, family = binomial, data=input_data, na.action = "na.fail")
 }
@@ -161,7 +176,11 @@ if(opt$usedredge) {
             fixed <- paste(" ~ ",  fixed)
         }
         else {
-            fixed <- paste(" ~ ",  fixed, " + ", paste("(1|", opt$level, ")", sep=""))
+            if (is.na(opt$random)) {
+                fixed <- paste(" ~ ",  fixed, " + ", paste("(1|", opt$level, ")", sep=""))
+            } else {
+                fixed <- paste(" ~ ",  fixed, " + ", paste("(", opt$random, "|", opt$level, ")", sep=""))
+            }
         }
         fmla_fixed <- as.formula(fixed)
     }
@@ -213,6 +232,7 @@ def main():
     columns = options["columns"].split(",")
     binary = options["developed_column"]
     level = options["subregions_column"]
+    random = options["random_column"]
     sep = gutils.separator(options["separator"])
     minim = int(options["min_variables"])
     dredge = flags["d"]
@@ -265,6 +285,10 @@ def main():
     columns += [binary]
     if include_level:
         columns += [level]
+    if random:
+        columns += [random]
+    # filter duplicates
+    columns = list(dict.fromkeys(columns))
     where = "{c} IS NOT NULL".format(c=columns[0])
     for c in columns[1:]:
         where += " AND {c} IS NOT NULL".format(c=c)
@@ -304,6 +328,8 @@ def main():
     ]
     if include_level:
         cmd += ["-l", level]
+        if random:
+            cmd += ["-a", random]
     if dredge and fixed_columns:
         cmd += ["-f", ",".join(fixed_columns)]
     if dredge and options["dredge_output"]:
@@ -319,6 +345,7 @@ def main():
     gscript.info("-------------------------")
     gscript.message(gscript.decode(stdout))
 
+    # note: this would be better with pandas, but adds dependency
     with open(TMP_POT, "r") as fin, open(options["output"], "w") as fout:
         i = 0
         for line in fin.readlines():
@@ -326,9 +353,18 @@ def main():
             row = [each.strip('"') for each in row]
             if i == 0:
                 row[0] = "ID"
+                if include_level and random:
+                    row[2] = row[1]
                 row[1] = "Intercept"
             if i == 1 and not include_level:
                 row[0] = single_level
+            if i >= 1:
+                if include_level:
+                    # devpressure needs to be after intercept
+                    if random:
+                        row[2], row[1] = row[1], row[2]
+                else:
+                    row[0] = single_level
             fout.write(sep.join(row))
             fout.write("\n")
             i += 1
