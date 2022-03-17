@@ -104,13 +104,13 @@ generate () {
     echo "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\">
 <html>
 <head>
- <title>GRASS GIS ${major} Addons Manual pages</title>
+ <title>GRASS GIS ${major}.${minor} Addons Manual pages</title>
  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">
  <meta name=\"Author\" content=\"GRASS Development Team\">
  <link rel=\"stylesheet\" href=\"../grassdocs.css\" type=\"text/css\">
 </head>
 <body bgcolor=\"#FFFFFF\">
-<h2>GRASS GIS ${major} Addons Manual pages</h2>
+<h2>GRASS GIS ${major}.${minor} Addons Manual pages</h2>
 
 <!-- Generated from: grasslxd (on osgeo7): ~/cronjobs/grass-addons-index.sh -->
 <!--       See also: https://github.com/OSGeo/grass-addons/tree/grass8/utils/cronjobs_osgeo_lxd/README.md -->
