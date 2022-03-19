@@ -241,7 +241,7 @@ def main(options, flags):
     # Variables
     input_maps = options["maps"].split(",")
     retain_maps = options["retain"].split(",")
-    if retain_maps != [""]:
+    if options["retain"]:
         check_layer(retain_maps)
         for retain_map in retain_maps:
             if retain_map not in input_maps:
