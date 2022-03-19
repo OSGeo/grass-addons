@@ -168,9 +168,9 @@ echo "Injecting DuckDuckGo search field into manual main page..."
 cp -p AUTHORS CHANGES CITING COPYING GPL.TXT INSTALL REQUIREMENTS.html $TARGETDIR/
 
 # inject G8.x new version hint in a red box:
-(cd $TARGETHTMLDIR/ ; for myfile in `ls *.html` ; do sed -i -e "s:<hr class=\"header\">:<hr class=\"header\"><p style=\"border\:3px; border-style\:solid; border-color\:#BC1818; padding\: 1em;\">Note\: The new GRASS GIS 8 stable version has been released, available <a href=\"https\://grass.osgeo.org/download/\">here</a>\.<br> Updated manual page at\: <a href=\"../../grass-stable/manuals/$myfile\">here</a></p>:g" $myfile ; done)
+(cd $TARGETHTMLDIR/ ; for myfile in `ls *.html` ; do sed -i -e "s:<hr class=\"header\">:<hr class=\"header\"><p style=\"border\:3px; border-style\:solid; border-color\:#BC1818; padding\: 1em;\">Note\: This document is for an old version of GRASS GIS that is no longer supported. You should upgrade, and read the <a href=\"../../grass-stable/manuals/$myfile\">current manual page</a>.</p>:g" $myfile ; done)
 # also for Python
-(cd $TARGETHTMLDIR/libpython/ ; for myfile in `ls *.html` ; do sed -i -e "s:<hr class=\"header\">:<hr class=\"header\"><p style=\"border\:3px; border-style\:solid; border-color\:#FF2121; padding\: 1em;\">Note\: The new GRASS GIS 8 stable version has been released, available <a href=\"https\://grass.osgeo.org/download/\">here</a>\.<br>. Go directly to the new Python manual page <a href=\"../../../grass-stable/manuals/libpython/$myfile\">here</a></p>:g" $myfile ; done)
+(cd $TARGETHTMLDIR/libpython/ ; for myfile in `ls *.html` ; do sed -i -e "s:<hr class=\"header\">:<hr class=\"header\"><p style=\"border\:3px; border-style\:solid; border-color\:#FF2121; padding\: 1em;\">Note\: This document is for an old version of GRASS GIS that is no longer supported. You should upgrade, and read the <a href=\"../../../grass-stable/manuals/libpython/$myfile\">current Python manual page</a>.</p>:g" $myfile ; done)
 
 
 # clean wxGUI sphinx manual etc
