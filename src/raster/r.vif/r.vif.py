@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #
 ########################################################################
@@ -13,7 +13,7 @@
 #               VIF. This will be repeated till the VIF falls below the user
 #               defined VIF threshold value.
 #
-# COPYRIGHT: (C) 2015 - 2017 Paulo van Breugel and the GRASS Development Team
+# COPYRIGHT: (C) 2015 - 2022 Paulo van Breugel and the GRASS Development Team
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS
@@ -49,15 +49,6 @@
 # %end
 
 # %option
-# % key: n
-# % type: string
-# % description: number of sample points (number or percentage)
-# % key_desc: number
-# % guisection: Input
-# % answer: 100%
-# %end
-
-# %option
 # % key: maxvif
 # % type: double
 # % description: Maximum vif
@@ -72,8 +63,30 @@
 # % guisection: Input
 # %end
 
+# %option
+# % key: n
+# % type: string
+# % description: number of sample points (number or percentage)
+# % key_desc: number
+# % guisection: Sample options
+# %end
+
+# %option
+# % key: seed
+# % type: integer
+# % description: Seed for rand() function
+# % required: no
+# % guisection: Sample options
+# %end
+
 # %flag
 # % key: s
+# % description: Generate random seed (result is non-deterministic)
+# % guisection: Sample options
+# %end
+
+# %flag
+# % key: v
 # % description: Only print selected variables to screen
 # %end
 
@@ -83,21 +96,29 @@
 # %end
 
 # %rules
-# %requires_all: -s,maxvif
+# %requires: n,-s,seed
+# %end
+
+# %rules
+# %excludes: -s,seed
+# %end
+
+# %rules
+# %requires_all: -v,maxvif
 # %end
 
 # import libraries
 import os
 import sys
 import math
+import uuid
+import atexit
 import numpy as np
 
 try:
     from io import StringIO
 except ImportError:
     from cStringIO import StringIO
-import uuid
-import atexit
 import grass.script as gs
 
 
@@ -126,23 +147,38 @@ def tmpname(prefix):
     return tmpf
 
 
-def CheckLayer(envlay):
+def check_layer(envlay):
     """Check if the input layers exist. If not, exit with warning"""
-    for chl in range(len(envlay)):
+    for chl, _ in enumerate(envlay):
         ffile = gs.find_file(envlay[chl], element="cell")
         if ffile["fullname"] == "":
             gs.fatal("The layer " + envlay[chl] + " does not exist.")
 
 
-def ReadData(raster, n):
+def read_data(raster, n, flag_s, seed):
     """Read in the raster layers as a numpy array."""
     gs.message("Reading in the data ...")
-    if not n == "100%":
+    if n:
         # Create mask random locations
         new_mask = tmpname("rvif")
-        gs.run_command(
-            "r.random", input=raster[0], npoints=n, raster=new_mask, quiet=True
-        )
+        if flag_s:
+            gs.run_command(
+                "r.random",
+                input=raster[0],
+                flags="s",
+                npoints=n,
+                raster=new_mask,
+                quiet=True,
+            )
+        else:
+            gs.run_command(
+                "r.random",
+                input=raster[0],
+                seed=seed,
+                npoints=n,
+                raster=new_mask,
+                quiet=True,
+            )
         exist_mask = gs.find_file(
             name="MASK", element="cell", mapset=gs.gisenv()["MAPSET"]
         )
@@ -159,17 +195,17 @@ def ReadData(raster, n):
     )
     p = np.loadtxt(tmpcov, skiprows=0, delimiter=",")
 
-    if not n == "100%":
+    if n:
         gs.run_command("r.mask", flags="r", quiet=True)
         if exist_mask["fullname"]:
             gs.run_command("g.rename", raster=[mask_backup, "MASK"], quiet=True)
     return p
 
 
-def ComputeVif(mapx, mapy):
+def compute_vif(mapx, mapy):
     """Compute rsqr of linear regression between layers mapx and mapy."""
-    Xi = np.hstack((mapx, np.ones((mapx.shape[0], 1))))
-    mod, resid = np.linalg.lstsq(Xi, mapy, rcond=None)[:2]
+    x_i = np.hstack((mapx, np.ones((mapx.shape[0], 1))))
+    unused, resid = np.linalg.lstsq(x_i, mapy, rcond=None)[:2]
     if resid.size == 0:
         resid = 0
     r2 = float(1 - resid / (mapy.size * mapy.var()))
@@ -182,7 +218,7 @@ def ComputeVif(mapx, mapy):
     return [vif, sqrtvif]
 
 
-def ComputeVif2(mapx, mapy):
+def compute_vif2(mapx, mapy):
     vifstat = gs.read_command(
         "r.regression.multi", flags="g", quiet=True, mapx=mapx, mapy=mapy
     )
@@ -203,32 +239,36 @@ def main(options, flags):
     """Main function, called at execution time."""
 
     # Variables
-    IPF = options["maps"].split(",")
-    IPR = options["retain"].split(",")
-    if IPR != [""]:
-        CheckLayer(IPR)
-        for k in range(len(IPR)):
-            if IPR[k] not in IPF:
-                IPF.extend([IPR[k]])
-    IPFn = [i.split("@")[0] for i in IPF]
-    IPRn = [i.split("@")[0] for i in IPR]
-    MXVIF = options["maxvif"]
-    if MXVIF != "":
-        MXVIF = float(MXVIF)
-    OPF = options["file"]
-    n = options["n"]
-    flag_s = flags["s"]
+    input_maps = options["maps"].split(",")
+    retain_maps = options["retain"].split(",")
+    if options["retain"]:
+        check_layer(retain_maps)
+        for retain_map in retain_maps:
+            if retain_map not in input_maps:
+                input_maps.extend([retain_map])
+    input_map_names = [i.split("@")[0] for i in input_maps]
+    retain_map_names = [i.split("@")[0] for i in retain_maps]
+    max_vif = options["maxvif"]
+    if max_vif:
+        max_vif = float(max_vif)
+    output_file = options["file"]
+    number_points = options["n"]
+    seed = options["seed"]
+    if seed:
+        int(seed)
+    flag_v = flags["v"]
     flag_f = flags["f"]
+    flag_s = flags["s"]
 
     # Determine maximum width of the columns to be printed to std output
     name_lengths = []
-    for i in IPF:
+    for i in input_maps:
         name_lengths.append(len(i))
     nlength = max(name_lengths)
 
     # Read in data
     if not flag_f:
-        p = ReadData(IPF, n)
+        p = read_data(raster=input_maps, n=number_points, flag_s=flag_s, seed=seed)
 
     # Create arrays to hold results (which will be written to file at end)
     out_vif = []
@@ -236,7 +276,7 @@ def main(options, flags):
     out_variable = []
 
     # VIF is computed once only
-    if MXVIF == "":
+    if max_vif == "":
         # Print header of table to std output
         print(
             "{0[0]:{1}s} {0[1]:8s} {0[2]:8s}".format(
@@ -245,34 +285,33 @@ def main(options, flags):
         )
 
         # Compute the VIF
-        for i, e in enumerate(IPFn):
+        for i, e in enumerate(input_map_names):
             # Compute vif using full rasters
             if flag_f:
-                y = IPF[i]
-                x = IPF[:]
+                y = input_maps[i]
+                x = input_maps[:]
                 del x[i]
-                vifstat = ComputeVif2(x, y)
+                vifstat = compute_vif2(x, y)
             # Compute vif using sample
             else:
                 y = p[:, i]
                 x = np.delete(p, i, axis=1)
-                vifstat = ComputeVif(x, y)
+                vifstat = compute_vif(x, y)
             # Write stats to arrays
             out_vif.append(vifstat[0])
             out_sqrt.append(vifstat[1])
             out_variable.append(e)
             print(
                 "{0[0]:{1}s} {0[1]:8.2f} {0[2]:8.2f}".format(
-                    [IPFn[i], vifstat[0], vifstat[1]], nlength
+                    [input_map_names[i], vifstat[0], vifstat[1]], nlength
                 )
             )
-        print
-        if len(OPF) > 0:
-            print("Statistics are written to {}\n".format(OPF))
+        if len(output_file) > 0:
+            print("Statistics are written to {}\n".format(output_file))
 
     # The VIF stepwise variable selection procedure
     else:
-        rvifmx = MXVIF + 1
+        rvifmx = max_vif + 1
         m = 0
         remove_variable = "none"
         out_removed = []
@@ -282,17 +321,16 @@ def main(options, flags):
         # with highest vif is removed and the procedure is repeated. This
         # continuous till the maximum vif across the variables > maxvif
 
-        if flag_s:
+        if flag_v:
             gs.message("Computing statistics ...")
 
-        while MXVIF < rvifmx:
+        while max_vif < rvifmx:
             m += 1
-            rvif = np.zeros(len(IPF))
+            rvif = np.zeros(len(input_maps))
 
             # print the header of the output table to the console
-            if not flag_s:
-                print("\n")
-                print("VIF round " + str(m))
+            if not flag_v:
+                print("\nVIF round " + str(m))
                 print("--------------------------------------")
                 print(
                     "{0[0]:{1}s} {0[1]:>8s} {0[2]:>8s}".format(
@@ -301,18 +339,18 @@ def main(options, flags):
                 )
 
             # Compute the VIF and sqrt(vif) for all variables in this round
-            for k, e in enumerate(IPFn):
+            for k, e in enumerate(input_map_names):
                 # Compute vif using full rasters
                 if flag_f:
-                    y = IPF[k]
-                    x = IPF[:]
+                    y = input_maps[k]
+                    x = input_maps[:]
                     del x[k]
-                    vifstat = ComputeVif2(x, y)
+                    vifstat = compute_vif2(x, y)
                 else:
                     # Compute vif using sample
                     y = p[:, k]
                     x = np.delete(p, k, axis=1)
-                    vifstat = ComputeVif(x, y)
+                    vifstat = compute_vif(x, y)
 
                 # Write results to arrays
                 out_vif.append(vifstat[0])
@@ -322,16 +360,16 @@ def main(options, flags):
                 out_removed.append(remove_variable)
 
                 # print result to console
-                if not flag_s:
+                if not flag_v:
                     print(
                         "{0[0]:{1}s} {0[1]:8.2f} {0[2]:8.2f}".format(
-                            [IPFn[k], vifstat[0], vifstat[1]], nlength
+                            [input_map_names[k], vifstat[0], vifstat[1]], nlength
                         )
                     )
 
                 # If variable is set to be retained by the user, the VIF
                 # is set to -9999 to ensure it will not have highest VIF
-                if IPFn[k] in IPRn:
+                if input_map_names[k] in retain_map_names:
                     rvif[k] = -9999
                 else:
                     rvif[k] = vifstat[0]
@@ -339,27 +377,26 @@ def main(options, flags):
             # Compute the maximum vif across the variables for this round and
             # remove the variable with the highest VIF
             rvifmx = max(rvif)
-            if rvifmx >= MXVIF:
+            if rvifmx >= max_vif:
                 rvifindex = np.argmax(rvif, axis=None)
-                remove_variable = IPFn[rvifindex]
-                del IPF[rvifindex]
-                del IPFn[rvifindex]
+                remove_variable = input_map_names[rvifindex]
+                del input_maps[rvifindex]
+                del input_map_names[rvifindex]
                 if not flag_f:
                     p = np.delete(p, rvifindex, axis=1)
 
         # Write final selected variables to std output
-        if not flag_s:
-            print("/n")
-            print("selected variables are: ")
+        if not flag_v:
+            print("\nselected variables are: ")
             print("--------------------------------------")
-            print(", ".join(IPFn))
+            print(", ".join(input_map_names))
         else:
-            print(",".join(IPFn))
+            print(",".join(input_map_names))
 
-    if len(OPF) > 0:
+    if len(output_file) > 0:
         try:
-            text_file = open(OPF, "w")
-            if MXVIF == "":
+            text_file = open(output_file, "w")
+            if max_vif == "":
                 text_file.write("variable,vif,sqrtvif\n")
                 for i in range(len(out_vif)):
                     text_file.write(
@@ -381,8 +418,7 @@ def main(options, flags):
                     )
         finally:
             text_file.close()
-            gs.message("\n")
-            gs.message("Statistics are written to " + OPF + "\n")
+            gs.message("\nStatistics are written to {}\n".format(output_file))
 
 
 if __name__ == "__main__":
