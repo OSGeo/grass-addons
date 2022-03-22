@@ -329,11 +329,25 @@ def do_it_all(global_vars, target_pts_np):
         # ======================================================================
         # 1. Set local computational region: +/- exp_range from target point
         # ======================================================================
+        # compute position of target point within a pixel
+        delta_n = math.ceil((t_glob[1] - reg.south) / reg.nsres) * reg.nsres - (
+            t_glob[1] - reg.south
+        )
+        delta_s = (t_glob[1] - reg.south) - math.floor(
+            (t_glob[1] - reg.south) / reg.nsres
+        ) * reg.nsres
+        delta_e = math.ceil((t_glob[0] - reg.west) / reg.ewres) * reg.ewres - (
+            t_glob[0] - reg.west
+        )
+        delta_w = (t_glob[0] - reg.west) - math.floor(
+            (t_glob[0] - reg.west) / reg.ewres
+        ) * reg.ewres
+
         # ensure that local region doesn't exceed global region
-        loc_reg_n = min(t_glob[1] + exp_range + reg.nsres / 2, reg.north)
-        loc_reg_s = max(t_glob[1] - exp_range - reg.nsres / 2, reg.south)
-        loc_reg_e = min(t_glob[0] + exp_range + reg.ewres / 2, reg.east)
-        loc_reg_w = max(t_glob[0] - exp_range - reg.ewres / 2, reg.west)
+        loc_reg_n = min(t_glob[1] + exp_range + delta_n, reg.north)
+        loc_reg_s = max(t_glob[1] - exp_range - delta_s, reg.south)
+        loc_reg_e = min(t_glob[0] + exp_range + delta_e, reg.east)
+        loc_reg_w = max(t_glob[0] - exp_range - delta_w, reg.west)
 
         # pygrass sets region for pygrass tasks
         lreg = deepcopy(reg)
@@ -899,12 +913,11 @@ def sample_raster_with_points(r_map, cat, density, min_d, v_sample, seed):
         grass.verbose("Distributing {} sampling points...".format(source_ncells))
 
         # vectorize source cells
-        v_source_sample = "{}_rand_pts_vect".format(TEMPNAME)
         grass.run_command(
             "r.to.vect",
             flags="b",
             input=r_map,
-            output=v_source_sample,
+            output=v_sample,
             type="point",
             overwrite=True,
             quiet=True,
