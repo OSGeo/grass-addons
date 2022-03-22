@@ -150,8 +150,8 @@ class TestFunctions(TestCase):
             "mean_of_abs": 0.0432476,
             "stddev": 0.144737,
             "variance": 0.0209488,
-            "coeff_var": 334.670567638394,
-            "sum": 4209.72256931104,
+            "coeff_var": 334.675522436311,
+            "sum": 4209.66482665949,
         },
     }
 
