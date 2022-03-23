@@ -13,7 +13,8 @@ COPYRIGHT:    (C) 2022 by Zofie Cimburova, Stefan Blumentrath, and the GRASS
 
 REFERENCES:   Cimburova, Z., Blumentrath, S., 2022. Viewshed-based modelling of
               visual exposure to urban greenery - an efficient GIS tool for
-              practical appliactions (in press). Landscape and Urban Planning.
+              practical applications. Landscape and Urban Planning 222, 104395.
+              https://doi.org/10.1016/j.landurbplan.2022.104395
 
 This program is free software under the GNU General Public
 License (>=v2). Read the file COPYING that comes with GRASS
