@@ -82,6 +82,16 @@
 # % required: no
 # %end
 #
+# %option
+# % key: patch_backend
+# % type: string
+# % label: Backend for patching computed tiles
+# % description: If backend is not specified, original serial implementation with RasterRow is used
+# % options: RasterRow,r.patch
+# % descriptions: RasterRow; serial patching with PyGRASS RasterRow ; r.patch; parallelized r.patch
+# % required: no
+# %end
+#
 # %rules
 # % exclusive: processes,nprocs
 # %end
@@ -95,10 +105,10 @@ from grass.pygrass.modules.grid.grid import (
 )
 
 try:
-    parallel_rpatch = True
-    from grass.pygrass.modules.grid.grid import rpatch_map_no_overlap
+    parallel_rpatch_available = True
+    from grass.pygrass.modules.grid.grid import rpatch_map_r_patch_backend
 except ImportError:
-    parallel_rpatch = False
+    parallel_rpatch_available = False
 
 
 class MyGridModule(GridModule):
@@ -112,27 +122,27 @@ class MyGridModule(GridModule):
         mset.visible.extend(loc.mapsets())
         output_map = self.out_prefix[:]
         self.out_prefix = ""
-        if self.overlap or not parallel_rpatch:
+        if self.patch_backend == "RasterRow":
             rpatch_map(
-                output_map,
-                self.mset.name,
-                self.msetstr,
-                bboxes,
-                self.module.flags.overwrite,
-                self.start_row,
-                self.start_col,
-                self.out_prefix,
+                raster=output_map,
+                mapset=self.mset.name,
+                mset_str=self.msetstr,
+                bbox_list=bboxes,
+                overwrite=self.module.flags.overwrite,
+                start_row=self.start_row,
+                start_col=self.start_col,
+                prefix=self.out_prefix,
             )
         else:
-            rpatch_map_no_overlap(
-                output_map,
-                self.msetstr,
-                bboxes,
-                self.module.flags.overwrite,
-                self.start_row,
-                self.start_col,
-                self.out_prefix,
-                self.processes,
+            rpatch_map_r_patch_backend(
+                raster=output_map,
+                mset_str=self.msetstr,
+                bbox_list=bboxes,
+                overwrite=self.module.flags.overwrite,
+                start_row=self.start_row,
+                start_col=self.start_col,
+                prefix=self.out_prefix,
+                processes=self.processes,
             )
 
 
@@ -143,6 +153,7 @@ def main():
     height = int(options["height"])
     overlap = int(options["overlap"])
     processes = options["nprocs"]
+    patch_backend = options["patch_backend"]
     if not processes:
         processes = options["processes"]
         if processes:
@@ -160,6 +171,18 @@ def main():
         mapset_prefix = options["mapset_prefix"]
 
     kwargs = {"expression": expression, "quiet": True}
+
+    if not parallel_rpatch_available and patch_backend == "r.patch":
+        gs.warning(
+            _(
+                "r.patch backend is not available in this version of GRASS GIS, using RasterRow"
+            )
+        )
+        patch_backend = "RasterRow"
+    if patch_backend == "r.patch" and overlap > 0:
+        gs.fatal(_("Patching backend 'r.patch' doesn't work for overlap > 0"))
+    if parallel_rpatch_available:
+        kwargs["patch_backend"] = patch_backend
 
     if output:
         output_mapname = output
