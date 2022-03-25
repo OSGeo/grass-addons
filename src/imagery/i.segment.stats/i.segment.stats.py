@@ -188,14 +188,6 @@ def main():
         if (options["area_measures"] and not flags["s"])
         else []
     )
-    if area_measures:
-        if not gscript.find_program("r.object.geometry", "--help"):
-            message = _("You need to install the addon r.object.geometry to be able")
-            message += _(" to calculate area measures.\n")
-            message += _(
-                " You can install the addon with 'g.extension r.object.geometry'"
-            )
-            gscript.fatal(message)
     neighborhood = True if flags["n"] else False
     if neighborhood:
         if not gscript.find_program("r.neighborhoodmatrix", "--help"):
