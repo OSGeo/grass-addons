@@ -84,7 +84,6 @@
 import os
 import sys
 import uuid
-import string
 import atexit
 import grass.script as gs
 
@@ -105,7 +104,7 @@ def tmpname(name):
     Use only for raster maps.
     """
     tmpf = name + "_" + str(uuid.uuid4())
-    tmpf = string.replace(tmpf, "-", "_")
+    tmpf = tmpf.replace("-", "_")
     CLEAN_RAST.append(tmpf)
     return tmpf
 
