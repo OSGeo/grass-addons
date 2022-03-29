@@ -29,7 +29,7 @@ def importances(
     csv="",
     img="",
     clf=ExtraTreesClassifier(n_estimators=N_ESTIMATORS, random_state=RANDOM_STATE),
-    **savefig
+    **savefig,
 ):
     clf.fit(X, y)
     imp = clf.feature_importances_

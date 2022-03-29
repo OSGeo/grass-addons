@@ -699,7 +699,7 @@ def distance_decay_reverse(
     v_scal = np.where(abs(v_scal) < 1e-6, (reg.nsres + reg.ewres) / 2, v_scal)
 
     # 4. distance decay function
-    distance_decay = (reg.nsres * reg.ewres) / (v_scal ** 2)
+    distance_decay = (reg.nsres * reg.ewres) / (v_scal**2)
 
     # 5. multiply distance decay by binary viewshed and weight
     return distance_decay * np_viewshed * t_loc[-1]
@@ -867,7 +867,7 @@ def visual_magnitude_reverse(
 
     # 8. visual magnitude adjusted for distance weight
     visual_magnitude = (
-        np.cos(beta) * np.cos(theta) * ((reg.nsres * reg.ewres) / (v_scal ** 2))
+        np.cos(beta) * np.cos(theta) * ((reg.nsres * reg.ewres) / (v_scal**2))
     )
 
     # 9. Multiply visual magnitude by binary viewshed and weight

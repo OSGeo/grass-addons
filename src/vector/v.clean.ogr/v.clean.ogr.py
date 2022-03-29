@@ -245,7 +245,7 @@ def main():
             flags="i",
             quiet=True,
             overwrite=overwrite,
-            **vopts
+            **vopts,
         )
     except CalledModuleError:
         grass.fatal(_("Unable to create location from OGR datasource <%s>") % indsn)
@@ -267,7 +267,7 @@ def main():
             layer=inlayer,
             output=outvect_tmp,
             overwrite=overwrite,
-            **vopts
+            **vopts,
         )
     except CalledModuleError:
         grass.fatal(_("Unable to import OGR datasource <%s>") % indsn)

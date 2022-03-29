@@ -79,7 +79,7 @@ class MySingleMapFrame(MapFrameBase):
         Map=Map(),
         auimgr=None,
         name=None,
-        **kwargs
+        **kwargs,
     ):
         """!
 
@@ -100,7 +100,7 @@ class MySingleMapFrame(MapFrameBase):
             style=style,
             auimgr=auimgr,
             name=name,
-            **kwargs
+            **kwargs,
         )
 
         self.Map = Map  # instance of render.Map
@@ -192,7 +192,7 @@ class LayerManager(wx.Panel):
         | CT.TR_ROW_LINES
         | CT.TR_FULL_ROW_HIGHLIGHT
         | CT.TR_MULTIPLE,
-        **kwargs
+        **kwargs,
     ):
 
         wx.Panel.__init__(self, parent=parent, id=id, style=style)

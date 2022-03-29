@@ -66,11 +66,11 @@ def main():
         if i != 0:
             zn[i, 0], zn[i, 1] = map(float, stats[i].split(" "))
             zn[i, 2] = zn[i, 1] + zn[i - 1, 2]
-            zn[i, 3] = zn[i, 1] * (res ** 2)
+            zn[i, 3] = zn[i, 1] * (res**2)
 
     totcell = sum(zn[:, 1])
     print("Tot. cells %s" % (totcell))
-    totarea = totcell * (res ** 2)
+    totarea = totcell * (res**2)
     print("Tot. area %s" % (totarea))
     maxdist = max(zn[:, 0])
     print("Max distance %s" % (maxdist))

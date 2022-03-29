@@ -142,7 +142,7 @@ class TestPGACalib(TestCase):
             nprocs=1,
             repeat=2,
             random_seed=1,
-            **self.pga_params
+            **self.pga_params,
         )
         self.assertTrue(
             filecmp.cmp("data/out_calib.csv", "data/ref_calib.csv", shallow=False),
@@ -165,7 +165,7 @@ class TestPGACalib(TestCase):
             nprocs=1,
             repeat=2,
             random_seed=1,
-            **self.pga_params
+            **self.pga_params,
         )
         self.assertTrue(
             filecmp.cmp(

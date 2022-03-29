@@ -269,7 +269,7 @@ if __name__ == "__main__":
             processes=PROCESSES,
             move=MOVE,
             debug=DEBUG,
-            **OPTS
+            **OPTS,
         )
         SEG.run()
     else:
@@ -278,5 +278,5 @@ if __name__ == "__main__":
             OPTS.pop("thresholds"),
             OPTS.pop("minsizes"),
             output=OPTS.pop("outputs_prefix"),
-            **OPTS
+            **OPTS,
         )

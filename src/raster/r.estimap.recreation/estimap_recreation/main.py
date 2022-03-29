@@ -713,7 +713,7 @@ def main(options, flags):
             ns_resolution=population_ns_resolution,
             ew_resolution=population_ew_resolution,
             print_only=print_only,
-            **supply_parameters
+            **supply_parameters,
         )
 
     # restore region

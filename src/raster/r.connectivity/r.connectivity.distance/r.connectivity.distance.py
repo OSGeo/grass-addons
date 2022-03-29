@@ -527,18 +527,18 @@ def main():
     # Init output vector maps if they are requested by user
     network = VectorTopo(edge_map)
     network_columns = [
-        (u"cat", "INTEGER PRIMARY KEY"),
-        (u"from_p", "INTEGER"),
-        (u"to_p", "INTEGER"),
-        (u"min_dist", "DOUBLE PRECISION"),
-        (u"dist", "DOUBLE PRECISION"),
-        (u"max_dist", "DOUBLE PRECISION"),
+        ("cat", "INTEGER PRIMARY KEY"),
+        ("from_p", "INTEGER"),
+        ("to_p", "INTEGER"),
+        ("min_dist", "DOUBLE PRECISION"),
+        ("dist", "DOUBLE PRECISION"),
+        ("max_dist", "DOUBLE PRECISION"),
     ]
     network.open("w", tab_name=edge_map, tab_cols=network_columns)
 
     vertex = VectorTopo(vertex_map)
     vertex_columns = [
-        (u"cat", "INTEGER PRIMARY KEY"),
+        ("cat", "INTEGER PRIMARY KEY"),
         (pop_proxy, "DOUBLE PRECISION"),
     ]
     vertex.open("w", tab_name=vertex_map, tab_cols=vertex_columns)

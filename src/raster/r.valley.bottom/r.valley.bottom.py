@@ -217,14 +217,10 @@ def focal_expr(radius, window_square=False):
                 row_start = row - radius
                 col_start = col - radius
 
-                if (
-                    pow(row_start, 2) + pow(col_start, 2) <= pow(radius, 2)
-                    and (
-                        i,
-                        j,
-                    )
-                    != (0, 0)
-                ):
+                if pow(row_start, 2) + pow(col_start, 2) <= pow(radius, 2) and (
+                    i,
+                    j,
+                ) != (0, 0):
                     offsets.append((j, i))
 
     return offsets

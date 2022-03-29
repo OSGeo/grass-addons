@@ -1472,19 +1472,22 @@ def makeTimeWin(db, typeid, table):
 
     ##summing values per (->user)timestep interval
     view_db = typeid + "_" + randomWord(3)
-    sql = "CREATE %s %s.%s as select\
+    sql = (
+        "CREATE %s %s.%s as select\
         %s ,round(avg(precip)::numeric,3) as precip_mm_h, date_trunc('%s',time)\
         as time  FROM %s.%s GROUP BY %s, date_trunc('%s',time)\
-        ORDER BY time" % (
-        view_statement,
-        schema_name,
-        view_db,
-        typeid,
-        sum_precip,
-        schema_name,
-        table,
-        typeid,
-        sum_precip,
+        ORDER BY time"
+        % (
+            view_statement,
+            schema_name,
+            view_db,
+            typeid,
+            sum_precip,
+            schema_name,
+            table,
+            typeid,
+            sum_precip,
+        )
     )
     data = db.executeSql(sql, False, True)
     stamp = ""

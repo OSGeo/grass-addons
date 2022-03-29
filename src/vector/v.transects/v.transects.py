@@ -236,7 +236,7 @@ def NR(ip, fp):
     """!Take a vector, normalize and rotate it 90 degrees."""
     x = fp[0] - ip[0]
     y = fp[1] - ip[1]
-    r = sqrt(x ** 2 + y ** 2)
+    r = sqrt(x**2 + y**2)
     return array([-y / r, x / r])
 
 

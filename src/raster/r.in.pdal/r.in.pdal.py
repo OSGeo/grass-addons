@@ -199,10 +199,10 @@ def footprint_to_vectormap(infile, footprint):
         fh.close()
     data = json.load(open(tmp_fp))
     xy_in = ""
-    str1 = u"boundary"
+    str1 = "boundary"
     try:
-        str2 = u"boundary_json"
-        str3 = u"coordinates"
+        str2 = "boundary_json"
+        str3 = "coordinates"
         coord = data[str1][str2][str3][0][0]
         for xy in coord:
             xy_in += str(xy[0]) + "," + str(xy[1]) + "\n"
@@ -289,13 +289,13 @@ def scan_extent(infile):
 
     data = json.load(open(tmp_scan))
     if summary:
-        str1 = u"summary"
-        str2 = u"bounds"
-        y_str = u"Y"
-        x_str = u"X"
-        z_str = u"Z"
-        min_str = u"min"
-        max_str = u"max"
+        str1 = "summary"
+        str2 = "bounds"
+        y_str = "Y"
+        x_str = "X"
+        z_str = "Z"
+        min_str = "min"
+        max_str = "max"
         try:
             n = str(data[str1][str2][y_str][max_str])
             s = str(data[str1][str2][y_str][min_str])
@@ -304,12 +304,12 @@ def scan_extent(infile):
             t = str(data[str1][str2][z_str][max_str])
             b = str(data[str1][str2][z_str][min_str])
         except:
-            ymin_str = u"miny"
-            xmin_str = u"minx"
-            zmin_str = u"minz"
-            ymax_str = u"maxy"
-            xmax_str = u"maxx"
-            zmax_str = u"maxz"
+            ymin_str = "miny"
+            xmin_str = "minx"
+            zmin_str = "minz"
+            ymax_str = "maxy"
+            xmax_str = "maxx"
+            zmax_str = "maxz"
             n = str(data[str1][str2][ymax_str])
             s = str(data[str1][str2][ymin_str])
             w = str(data[str1][str2][xmin_str])
@@ -317,16 +317,16 @@ def scan_extent(infile):
             t = str(data[str1][str2][zmax_str])
             b = str(data[str1][str2][zmin_str])
     else:
-        str1 = u"stats"
-        str2 = u"bbox"
-        str3 = u"native"
-        str4 = u"bbox"
-        n = str(data[str1][str2][str3][str4][u"maxy"])
-        s = str(data[str1][str2][str3][str4][u"miny"])
-        w = str(data[str1][str2][str3][str4][u"minx"])
-        e = str(data[str1][str2][str3][str4][u"maxx"])
-        t = str(data[str1][str2][str3][str4][u"maxz"])
-        b = str(data[str1][str2][str3][str4][u"minz"])
+        str1 = "stats"
+        str2 = "bbox"
+        str3 = "native"
+        str4 = "bbox"
+        n = str(data[str1][str2][str3][str4]["maxy"])
+        s = str(data[str1][str2][str3][str4]["miny"])
+        w = str(data[str1][str2][str3][str4]["minx"])
+        e = str(data[str1][str2][str3][str4]["maxx"])
+        t = str(data[str1][str2][str3][str4]["maxz"])
+        b = str(data[str1][str2][str3][str4]["minz"])
 
     return n, s, w, e, t, b
 
@@ -394,7 +394,7 @@ def main():
                 "r.external", input=raster_file, flags="o", output=raster_reference
             )
             result = grass.find_file(name=raster_reference, element="raster")
-            if result[u"fullname"] == u"":
+            if result["fullname"] == "":
                 raster_reference = raster_reference + ".1"
         # option 1: set region to extent of tiles while precisely aligning pixel
         # geometry to raster_reference (including both raster_reference and raster_file)
