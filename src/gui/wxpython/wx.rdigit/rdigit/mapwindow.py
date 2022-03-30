@@ -43,7 +43,7 @@ class RDigitWindow(BufferedWindow):
         tree=None,
         lmgr=None,
         style=wx.NO_FULL_REPAINT_ON_RESIZE,
-        **kwargs
+        **kwargs,
     ):
         BufferedWindow.__init__(
             self,
@@ -54,7 +54,7 @@ class RDigitWindow(BufferedWindow):
             frame=frame,
             tree=tree,
             style=style,
-            **kwargs
+            **kwargs,
         )
         self.lmgr = lmgr
         self.pdcVector = wx.PseudoDC()

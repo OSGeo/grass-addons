@@ -210,7 +210,7 @@ class Elvidge(CalibrationModel):
         build a calibration equation for the requested satellite and year.
         """
         if self.is_dn_valid(dn):
-            cdn = self.c0 + (self.c1 * dn) + (self.c2 * (dn ** 2))
+            cdn = self.c0 + (self.c1 * dn) + (self.c2 * (dn**2))
         model = EQUATIONS[self.author].model  # look in equations.py
         self._model = model.format(dn=dn, cdn=cdn, c0=self.c0, c1=self.c1, c2=self.c2)
         return cdn
@@ -289,7 +289,7 @@ class Liu2012(CalibrationModel):
         build a calibration equation for the requested satellite and year.
         """
         if self.is_dn_valid(dn):
-            cdn = self.c0 + (self.c1 * dn) + (self.c2 * (dn ** 2))
+            cdn = self.c0 + (self.c1 * dn) + (self.c2 * (dn**2))
 
         # Update _model as well!
         model = "{cdn} = ({c0}) + ({c1}) * {dn} + ({c2}) * {dn}^2"

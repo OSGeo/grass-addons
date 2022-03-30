@@ -103,7 +103,7 @@ def main():
     grass.message("Slope map done. ")
 
     # n exponent
-    n = 0.016 * (resolution ** 0.46)
+    n = 0.016 * (resolution**0.46)
     grass.message("Exponent : %s " % n)
 
     # MTI threshold
@@ -139,7 +139,7 @@ def main():
 
     # Delete areas of less than a threshold of cells (corresponding to 1 square kilometer)
     # Calculating threshold
-    th = int(1000000 / resolution ** 2)
+    th = int(1000000 / resolution**2)
     grass.message("Deleting areas of less than %s cells.. " % th)
     grass.run_command(
         "r.area", input="r_clump", output="r_flood_th", lesser=th, flags="b"

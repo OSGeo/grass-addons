@@ -117,7 +117,7 @@ def export_results(
                 tab,
                 cats.astype(int),
                 up,
-                *[cls["predict"].astype(int) for cls in results]
+                *[cls["predict"].astype(int) for cls in results],
             )
             if mode == "w":
                 nlyr = len(vect.dblinks) + 1

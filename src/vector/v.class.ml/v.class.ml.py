@@ -639,7 +639,7 @@ def main(opt, flg):
             csv=opt["imp_csv"],
             img=opt["imp_fig"],
             # default parameters to save the matplotlib figure
-            **dict(dpi=300, transparent=False, bbox_inches="tight")
+            **dict(dpi=300, transparent=False, bbox_inches="tight"),
         )
 
     # optimize the training set

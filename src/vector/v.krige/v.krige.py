@@ -308,7 +308,7 @@ class Controller:
         block,
         output_var,
         command,
-        **kwargs
+        **kwargs,
     ):
         """Wrapper for all functions above."""
 

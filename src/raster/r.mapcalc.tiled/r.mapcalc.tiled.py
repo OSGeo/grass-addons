@@ -153,7 +153,7 @@ def main():
         split=False,
         mapset_prefix=mapset_prefix,
         out_prefix=output_mapname,
-        **kwargs
+        **kwargs,
     )
     grd.run()
 

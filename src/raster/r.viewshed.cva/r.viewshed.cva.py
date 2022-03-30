@@ -204,7 +204,7 @@ def main():
             input=elev,
             output=tempry,
             coordinates=site[0] + "," + site[1],
-            **viewshed_options
+            **viewshed_options,
         )
     # now make a mapcalc statement to add all the viewsheds together to make the outout cumulative viewsheds map
     grass.message(_("Calculating cumulative viewshed map <%s>") % out)

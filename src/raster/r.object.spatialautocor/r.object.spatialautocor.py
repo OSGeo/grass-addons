@@ -129,7 +129,7 @@ def get_autocorrelation(mapname, raster, neighbordict, method):
             means[l[0]] = float(l[i])
             mean_diffs[l[0]] = float(l[i]) - global_mean
 
-    sum_sq_mean_diffs = sum(x ** 2 for x in mean_diffs.values())
+    sum_sq_mean_diffs = sum(x**2 for x in mean_diffs.values())
 
     total_nb_neighbors = 0
     for region in neighbordict:

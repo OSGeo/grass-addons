@@ -108,9 +108,9 @@ def get_rastertype(raster):
     if not isinstance(raster[0, 0], np.float32) and not isinstance(
         raster[0, 0], np.float64
     ):
-        map_type = u"INTEGER"
+        map_type = "INTEGER"
     else:
-        map_type = u"REAL"
+        map_type = "REAL"
 
     return map_type
 
@@ -325,7 +325,7 @@ def main():
 
         # Build attribute table
         # Deinfe columns for attribute table
-        cols = [(u"cat", "INTEGER PRIMARY KEY")]
+        cols = [("cat", "INTEGER PRIMARY KEY")]
         for b in band_types.keys():
             cols.append((b.replace(".", "_"), band_types[b]))
 
@@ -359,7 +359,7 @@ def main():
             n = 0
             attr = []
             for b in band_types.keys():
-                if band_types[b] == u"INTEGER":
+                if band_types[b] == "INTEGER":
                     attr.append(int(e[n]))
                 else:
                     attr.append(float(e[n]))

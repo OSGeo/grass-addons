@@ -214,7 +214,7 @@ def main():
                 lake=outputs[i],
                 water_level=water_level,
                 overwrite=gcore.overwrite(),  # TODO: really works? Its seems that hardcoding here False does not prevent overwriting.
-                **kwargs
+                **kwargs,
             )
         except CalledModuleError:
             # remove maps created so far, try to remove also i-th map

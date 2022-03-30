@@ -165,10 +165,10 @@ def main():
                 pass
             tmp = vector.Vector("tmp")
             _cols = [
-                (u"cat", "INTEGER PRIMARY KEY"),
-                (u"x", "DOUBLE PRECISION"),
-                (u"y", "DOUBLE PRECISION"),
-                (u"strcat", "DOUBLE PRECISION"),
+                ("cat", "INTEGER PRIMARY KEY"),
+                ("x", "DOUBLE PRECISION"),
+                ("y", "DOUBLE PRECISION"),
+                ("strcat", "DOUBLE PRECISION"),
             ]
             tmp.open("w", tab_name="tmp", tab_cols=_cols)
             point0 = Point(x_outlet, y_outlet)
@@ -273,9 +273,9 @@ def main():
             _y = y_outlet
         pptmp = vector.Vector(output_pour_point)
         _cols = [
-            (u"cat", "INTEGER PRIMARY KEY"),
-            (u"x", "DOUBLE PRECISION"),
-            (u"y", "DOUBLE PRECISION"),
+            ("cat", "INTEGER PRIMARY KEY"),
+            ("x", "DOUBLE PRECISION"),
+            ("y", "DOUBLE PRECISION"),
         ]
         pptmp.open("w", tab_name=output_pour_point, tab_cols=_cols)
         point0 = Point(_x, _y)

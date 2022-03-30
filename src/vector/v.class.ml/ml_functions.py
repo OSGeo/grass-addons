@@ -204,7 +204,7 @@ def plot_bias_variance(
     test_clr="r",
     alpha=0.2,
     fmt="png",
-    **kwargs
+    **kwargs,
 ):
     fig, ax = plt.subplots(figsize=(6, 5))
     ax.set_ylim([0.0, 1.0])
@@ -455,7 +455,7 @@ def explorer_clsfiers(
                     test_clr="r",
                     alpha=0.2,
                     fmt="png",
-                    **kw
+                    **kw,
                 )
             if extra:
                 extra_analysis(cls, Xd, Yd, labels)

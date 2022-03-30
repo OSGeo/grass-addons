@@ -110,7 +110,7 @@ def cloth_local(radio, a_clot):
     if radio == 0:
         leng, tau = 0, 0
     else:
-        leng = a_clot ** 2 / abs(radio)
+        leng = a_clot**2 / abs(radio)
         tau = leng / (2 * radio)
     x_e, y_e = aprox_coord(leng, tau)
     x_o = x_e - radio * math.sin(tau)
@@ -904,7 +904,7 @@ class Straight(RoadObj, object):
         else:
             slope = (self.pend.x - self.pstart.x) / (self.pend.y - self.pstart.y)
         rest = self.pstart.y + slope * self.pstart.x
-        return (slope * pnt.x + pnt.y - rest) / math.sqrt(slope ** 2 + 1)
+        return (slope * pnt.x + pnt.y - rest) / math.sqrt(slope**2 + 1)
 
     def parallel(self, dist, radio):
         """Return a parallel straight with a given distance and side given by
@@ -1323,7 +1323,7 @@ class Clothoid(RoadObj, object):
         while start <= end:
             if start == 0:
                 start = 0.0000001
-            rad_clo = self.a_clot ** 2 / start
+            rad_clo = self.a_clot**2 / start
             tau_clo = start / (2 * rad_clo)
             x_o, y_o = aprox_coord(start, tau_clo)
             x_1, y_1 = self.cloth_global(x_o, y_o)
@@ -1351,7 +1351,7 @@ class Clothoid(RoadObj, object):
             if end2 == 0:
                 end2 = 0.0000001
 
-            rad_clo = self.a_clot ** 2 / end2
+            rad_clo = self.a_clot**2 / end2
             tau_clo = end2 / (2 * rad_clo)
             x_o, y_o = aprox_coord((end2), tau_clo)
             x_1, y_1 = self.cloth_global(x_o, y_o)
@@ -1514,7 +1514,7 @@ class Clothoid(RoadObj, object):
 
     def funct(self, leng, recta2):
         """Funtion for use with bisecc"""
-        rad_i = self.a_clot ** 2 / leng
+        rad_i = self.a_clot**2 / leng
         tau_i = leng / (2 * rad_i)
         x_o, y_o = aprox_coord(leng, tau_i)
         x_1, y_1 = self.cloth_global(x_o, y_o)

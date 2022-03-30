@@ -360,7 +360,7 @@ def run_r_sun(
         time=time,
         overwrite=core.overwrite(),
         quiet=True,
-        **params
+        **params,
     )
     if binary:
         for output in (beam_rad, diff_rad, refl_rad, glob_rad):

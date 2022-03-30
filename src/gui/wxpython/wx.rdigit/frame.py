@@ -57,7 +57,7 @@ class RDigitMapFrame(SingleMapFrame):
         toolbars=["digitMap", "rdigit"],
         size=(875, 600),
         name="RDigitWindow",
-        **kwargs
+        **kwargs,
     ):
         """!
         @param parent (no parent is expected)

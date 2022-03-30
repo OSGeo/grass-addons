@@ -474,21 +474,24 @@ class TimeWindows:
     def sumValues(self):
         ##summing values per (->user)timestep interval
         self.viewDB = "computed_precip_sum"
-        sql = "CREATE %s %s.%s as  \
+        sql = (
+            "CREATE %s %s.%s as  \
                SELECT %s ,round(avg(precip)::numeric,3) as %s, date_trunc('%s',time)as time  \
                FROM %s.%s \
                GROUP BY %s, date_trunc('%s',time)\
-               ORDER BY time" % (
-            self.viewStatement,
-            self.schema,
-            self.viewDB,
-            self.typeID,
-            self.database.precipColName,
-            self.sumStep,
-            self.schema,
-            self.tbName,
-            self.typeID,
-            self.sumStep,
+               ORDER BY time"
+            % (
+                self.viewStatement,
+                self.schema,
+                self.viewDB,
+                self.typeID,
+                self.database.precipColName,
+                self.sumStep,
+                self.schema,
+                self.tbName,
+                self.typeID,
+                self.sumStep,
+            )
         )
         self.database.connection.executeSql(sql, False, True)
 
@@ -560,17 +563,20 @@ class TimeWindows:
         sql = "DROP TABLE %s.linktmp " % self.schema
         self.database.connection.executeSql(sql, False, True)
 
-        sql = "DELETE FROM %s.%s WHERE NOT EXISTS\
+        sql = (
+            "DELETE FROM %s.%s WHERE NOT EXISTS\
               (SELECT %s FROM   %s.linktmp \
-               WHERE %s.%s.%s=linksonly.%s)" % (
-            self.schema,
-            self.viewDB,
-            self.typeID,
-            self.schema,
-            self.schema,
-            self.viewDB,
-            self.typeID,
-            self.typeID,
+               WHERE %s.%s.%s=linksonly.%s)"
+            % (
+                self.schema,
+                self.viewDB,
+                self.typeID,
+                self.schema,
+                self.schema,
+                self.viewDB,
+                self.typeID,
+                self.typeID,
+            )
         )
         self.database.connection.executeSql(sql, False, True)
 
@@ -612,15 +618,18 @@ class TimeWindows:
                 tgrass = view_name + "|" + str(cur_timestamp) + "\n"
                 tgrass_vector.append(tgrass)
 
-            sql = "CREATE TABLE %s.%s as\
+            sql = (
+                "CREATE TABLE %s.%s as\
                    SELECT * from %s.%s \
-                   WHERE time=(timestamp'%s'+ %s * interval '1 second')" % (
-                self.schema,
-                view_name,
-                self.schema,
-                self.viewDB,
-                self.timestamp_min,
-                time_const,
+                   WHERE time=(timestamp'%s'+ %s * interval '1 second')"
+                % (
+                    self.schema,
+                    view_name,
+                    self.schema,
+                    self.viewDB,
+                    self.timestamp_min,
+                    time_const,
+                )
             )
 
             data = self.database.connection.executeSql(sql, False, True)
@@ -1158,15 +1167,18 @@ class Computor:
                self.timeWin.timestamp_max)
         resu = self.database.connection.executeSql(sql, True, True)
         """
-        sql = "CREATE TABLE %s.record AS (SELECT linkid,time,txpower-rxpower as a \
+        sql = (
+            "CREATE TABLE %s.record AS (SELECT linkid,time,txpower-rxpower as a \
               FROM %s.record \
               WHERE time >= '%s' AND\
                     time <= '%s' \
-                    ORDER by recordid);" % (
-            self.database.schema,
-            self.database.dataSchema,
-            self.timeWin.timestamp_min,
-            self.timeWin.timestamp_max,
+                    ORDER by recordid);"
+            % (
+                self.database.schema,
+                self.database.dataSchema,
+                self.timeWin.timestamp_min,
+                self.timeWin.timestamp_max,
+            )
         )
         self.database.connection.executeSql(sql, False, True)
 

@@ -73,7 +73,7 @@ class RStreamFrame(wx.Frame):
         id=wx.ID_ANY,
         style=wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER,
         title=_("GRASS GIS Hydrological Modelling Utility"),
-        **kwargs
+        **kwargs,
     ):
         """!Main window of r.stream's GUI
 
@@ -92,7 +92,7 @@ class RStreamFrame(wx.Frame):
             title=title,
             name="RStream",
             size=(600, 900),
-            **kwargs
+            **kwargs,
         )
         self.SetIcon(
             wx.Icon(os.path.join(globalvar.ETCICONDIR, "grass.ico"), wx.BITMAP_TYPE_ICO)

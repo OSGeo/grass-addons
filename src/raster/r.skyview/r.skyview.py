@@ -189,7 +189,7 @@ def main():
             step=horizon_step,
             output=TMP_NAME,
             flags="d",
-            **params
+            **params,
         )
 
         new_maps = _get_horizon_maps()

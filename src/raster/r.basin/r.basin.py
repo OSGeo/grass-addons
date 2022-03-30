@@ -174,7 +174,7 @@ def main():
     # Managing flag
     if autothreshold:
         resolution = grass.region()["nsres"]
-        th = 1000000 / (resolution ** 2)
+        th = 1000000 / (resolution**2)
         grass.message("threshold : %s" % th)
     else:
         th = options["threshold"]
@@ -487,7 +487,7 @@ def main():
         # Directing vector
         delta_x = abs(float(basin_east) - east)
         delta_y = abs(float(basin_north) - north)
-        L_orienting_vect = math.sqrt((delta_x ** 2) + (delta_y ** 2)) / 1000
+        L_orienting_vect = math.sqrt((delta_x**2) + (delta_y**2)) / 1000
         grass.message("Directing vector done")
 
         # Prevalent orientation
@@ -499,7 +499,7 @@ def main():
         grass.message("Compactness coefficient done")
 
         # Circularity ratio
-        R_c = (4 * math.pi * area_basin) / (perimeter_basin ** 2)
+        R_c = (4 * math.pi * area_basin) / (perimeter_basin**2)
         grass.message("Circularity ratio done")
 
         # Mainchannel

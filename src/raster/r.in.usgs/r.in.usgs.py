@@ -1009,7 +1009,7 @@ def main():
                         input=gui_output_layer,
                         elevation=gui_output_layer,
                         nprocs=nprocs,
-                        **rst_params
+                        **rst_params,
                     )
                 else:
                     gscript.run_command(
@@ -1061,7 +1061,7 @@ def main():
                     input=patch_names[0],
                     elevation=gui_output_layer,
                     nprocs=nprocs,
-                    **rst_params
+                    **rst_params,
                 )
                 if not preserve_imported_tiles:
                     gscript.run_command(

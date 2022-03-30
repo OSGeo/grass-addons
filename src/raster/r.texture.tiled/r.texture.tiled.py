@@ -166,7 +166,7 @@ def main():
         processes=processes,
         split=False,
         mapset_prefix=mapset_prefix,
-        **kwargs
+        **kwargs,
     )
     grd.run()
 

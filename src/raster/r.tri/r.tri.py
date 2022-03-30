@@ -173,7 +173,7 @@ def idw_weights(radius, p, circular=False):
     # create inverse distance weights
     W = dist.copy()
     W[centre, centre] = np.inf
-    W = 1 / (W ** p)
+    W = 1 / (W**p)
 
     # normalize weights to sum to 1 (excluding centre)
     W[centre, centre] = np.inf

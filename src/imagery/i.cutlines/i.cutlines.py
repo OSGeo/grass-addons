@@ -268,7 +268,7 @@ def main():
                 overlap=overlap,
                 processes=processes,
                 split=False,
-                **kwargs
+                **kwargs,
             )
             grd.run()
         else:
@@ -299,7 +299,7 @@ def main():
                 processes=processes,
                 split=False,
                 flags="n",
-                **kwargs
+                **kwargs,
             )
             grd.run()
         else:

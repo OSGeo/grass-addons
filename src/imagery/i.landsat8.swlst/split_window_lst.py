@@ -381,10 +381,10 @@ class SplitWindowLST:
 
         # addends
         a = b0
-        b1 = b1 + b2 * (1 - avg) / avg + b3 * delta / avg ** 2
+        b1 = b1 + b2 * (1 - avg) / avg + b3 * delta / avg**2
         b2 = (t10 + t11) / 2
         b = b1 * b2
-        c1 = b4 + b5 * (1 - avg) / avg + b6 * delta / avg ** 2
+        c1 = b4 + b5 * (1 - avg) / avg + b6 * delta / avg**2
         c2 = (t10 - t11) / 2
         c = c1 * c2
         d = b7 * (t10 - t11) ** 2
