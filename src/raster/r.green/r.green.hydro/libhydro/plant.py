@@ -14,25 +14,25 @@ from grass.pygrass.vector.table import Link
 from grass.script import core as gcore
 
 COLS = [
-    (u"cat", "INTEGER PRIMARY KEY"),
-    (u"plant_id", "VARCHAR(10)"),
-    (u"stream_id", "INTEGER"),
-    (u"pot_power", "DOUBLE"),
-    (u"discharge", "DOUBLE"),
-    (u"elev_up", "DOUBLE"),
-    (u"elev_down", "DOUBLE"),
+    ("cat", "INTEGER PRIMARY KEY"),
+    ("plant_id", "VARCHAR(10)"),
+    ("stream_id", "INTEGER"),
+    ("pot_power", "DOUBLE"),
+    ("discharge", "DOUBLE"),
+    ("elev_up", "DOUBLE"),
+    ("elev_down", "DOUBLE"),
 ]
 
 
 COLS_points = [
-    (u"cat", "INTEGER PRIMARY KEY"),
-    (u"kind", "VARCHAR(10)"),
-    (u"plant_id", "VARCHAR(10)"),
-    (u"kind_label", "VARCHAR(10)"),
-    (u"stream_id", "INTEGER"),
-    (u"elevation", "DOUBLE"),
-    (u"discharge", "DOUBLE"),
-    (u"pot_power", "DOUBLE"),
+    ("cat", "INTEGER PRIMARY KEY"),
+    ("kind", "VARCHAR(10)"),
+    ("plant_id", "VARCHAR(10)"),
+    ("kind_label", "VARCHAR(10)"),
+    ("stream_id", "INTEGER"),
+    ("elevation", "DOUBLE"),
+    ("discharge", "DOUBLE"),
+    ("pot_power", "DOUBLE"),
 ]
 
 HydroStruct = namedtuple("HydroStruct", ["intake", "conduct", "penstock", "side"])
@@ -237,14 +237,14 @@ def write_structures(
         out.table.conn.commit()
 
     tab_cols = [
-        (u"cat", "INTEGER PRIMARY KEY"),
-        (u"plant_id", "VARCHAR(10)"),
-        (u"intake_id", "INTEGER"),
-        (u"discharge", "DOUBLE"),
-        (u"gross_head", "DOUBLE"),
-        (u"power", "DOUBLE"),
-        (u"kind", "VARCHAR(10)"),
-        (u"side", "VARCHAR(10)"),
+        ("cat", "INTEGER PRIMARY KEY"),
+        ("plant_id", "VARCHAR(10)"),
+        ("intake_id", "INTEGER"),
+        ("discharge", "DOUBLE"),
+        ("gross_head", "DOUBLE"),
+        ("power", "DOUBLE"),
+        ("kind", "VARCHAR(10)"),
+        ("side", "VARCHAR(10)"),
     ]
 
     with VectorTopo(output, mode="w", overwrite=overwrite) as out:

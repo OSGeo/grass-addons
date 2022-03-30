@@ -125,7 +125,7 @@ def idw_weights(size, p):
     W = distance_from_centre(math.floor(size / 2))
     W = np.floor(W)
     W = size - (W + 1)
-    W = W ** p
+    W = W**p
 
     # turn W into character for GRASS r.neighbors
     W_text = str(W)

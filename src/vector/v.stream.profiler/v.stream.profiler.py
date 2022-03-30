@@ -220,7 +220,7 @@ def main():
 
         _dx = np.diff(coords[:, 0])
         _dy = np.diff(coords[:, 1])
-        x_downstream_0 = np.hstack((0, np.cumsum((_dx ** 2 + _dy ** 2) ** 0.5)))
+        x_downstream_0 = np.hstack((0, np.cumsum((_dx**2 + _dy**2) ** 0.5)))
         x_downstream = x_downstream_0.copy()
 
     elif options["direction"] == "upstream":

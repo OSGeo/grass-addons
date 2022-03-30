@@ -387,7 +387,7 @@ def run_r_sun(
         step=step,
         overwrite=core.overwrite(),
         quiet=True,
-        **params
+        **params,
     )
 
 

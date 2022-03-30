@@ -279,12 +279,12 @@ def diam_pen(discharge, length, gross_head, percentage, epsilon=0.015):
     def diam(x, *args):
         q, l, h, p, e = args
         return sqrt(
-            (100 * 8 * l * q ** 2) / (p * h * pi ** 2 * 9.81 * x ** 5)
+            (100 * 8 * l * q**2) / (p * h * pi**2 * 9.81 * x**5)
         ) + 2 * log10(
             (e * 0.001) / (3.71 * x)
             + (2.51 * 0.000001 * pi)
             / (4 * q * l)
-            * sqrt((100 * 8 * l * q ** 2) / (p * h * pi ** 2 * 9.81 * x))
+            * sqrt((100 * 8 * l * q**2) / (p * h * pi**2 * 9.81 * x))
         )
 
     out = fsolve(diam, 0.1, args=(discharge, length, gross_head, percentage, epsilon))[
@@ -333,14 +333,14 @@ def losses_Colebrooke(discharge, length, diameter, epsilon=0.015):
         first_log_arg = (e * 0.001) / (3.71 * d)  # epsilon [mm]
         rho_water = 1000.0  # kg/m2
         mu_water = 0.001  # Pa
-        vel = discharge / (pi * d ** 2.0 / 4.0)
+        vel = discharge / (pi * d**2.0 / 4.0)
         re_number = rho_water * vel * d / mu_water
         return x + 2 * log10(first_log_arg + 2.51 * x / re_number)
 
     out = fsolve(coeff_f, 0, args=(discharge, diameter, epsilon))
-    f = 1 / out ** 2
-    h_colebrooke = (f[0] * 8 * length * discharge ** 2) / (
-        pi ** 2 * diameter ** 5 * 9.81
+    f = 1 / out**2
+    h_colebrooke = (f[0] * 8 * length * discharge**2) / (
+        pi**2 * diameter**5 * 9.81
     )
     return h_colebrooke
 
@@ -376,7 +376,7 @@ def losses_Strickler(discharge, length, diameter, theta, velocity, ks=75):
     """
     # circolar section
     r = diameter * 0.5
-    A = 0.5 * r ** 2 * (2 * pi - theta + sin(theta))
+    A = 0.5 * r**2 * (2 * pi - theta + sin(theta))
     pw = r * (2 * pi - theta)
     Rh = A / pw
 
@@ -387,7 +387,7 @@ def losses_Strickler(discharge, length, diameter, theta, velocity, ks=75):
     #   i = v**2 / (ks**2 * Rh ** (4/3))
     #   hs = i * l
 
-    return velocity ** 2 / (ks ** 2 * Rh ** (4.0 / 3.0)) * length
+    return velocity**2 / (ks**2 * Rh ** (4.0 / 3.0)) * length
 
 
 def singular_losses(gross_head, length, discharge, diameter_penstock):
@@ -398,7 +398,7 @@ def singular_losses(gross_head, length, discharge, diameter_penstock):
             0.5
             + (gross_head / length) ** 2
             + 2 * (sin(asin(min(1, gross_head / length)) / 2)) ** 4
-        ) * ((8 * discharge ** 2) / (9.81 * pi ** 2 * diameter_penstock ** 4))
+        ) * ((8 * discharge**2) / (9.81 * pi**2 * diameter_penstock**4))
     else:
         h_sing = 0
     return h_sing
@@ -464,7 +464,7 @@ def compute_losses(
                             roughness_penstock,
                         )
                         line.attrs["diameter"] = diameter
-                    length = (length ** 2.0 + gross_head ** 2.0) ** 0.5
+                    length = (length**2.0 + gross_head**2.0) ** 0.5
                     if gross_head > length:
                         msgr = get_msgr()
                         msgr.warning(

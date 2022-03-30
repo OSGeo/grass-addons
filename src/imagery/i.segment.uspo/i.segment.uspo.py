@@ -680,7 +680,7 @@ def get_autocorrelation(mapname, raster, neighbordict, indicator):
             means[l[0]] = float(l[i])
             mean_diffs[l[0]] = float(l[i]) - global_mean
 
-    sum_sq_mean_diffs = sum(x ** 2 for x in mean_diffs.values())
+    sum_sq_mean_diffs = sum(x**2 for x in mean_diffs.values())
 
     total_nb_neighbors = 0
     for region in neighbordict:
@@ -738,10 +738,10 @@ def create_optimization_list(variancelist, autocorlist, opt_function, alpha, dir
         optlist = [normvariance[x] + normautocor[x] for x in range(len(normvariance))]
     if opt_function == "f":
         optlist = [
-            (1 + alpha ** 2)
+            (1 + alpha**2)
             * (
                 (normvariance[x] * normautocor[x])
-                / float(alpha ** 2 * normautocor[x] + normvariance[x])
+                / float(alpha**2 * normautocor[x] + normvariance[x])
             )
             if (normautocor[x] + normvariance[x]) > 0
             else 0

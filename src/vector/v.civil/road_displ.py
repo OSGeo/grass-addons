@@ -352,7 +352,7 @@ class DisplLine(Aligns, object):
         recta_c = Base.Straight(pc_d, None, pstart.azi, 10)
         pto_corte = recta_pnt.cutoff(recta_c)
         distxx = pc_d.distance(pto_corte)
-        seno = math.sqrt(rad ** 2 - distxx ** 2)
+        seno = math.sqrt(rad**2 - distxx**2)
         distx = pstart.distance(pto_corte) - seno
         return distx
 

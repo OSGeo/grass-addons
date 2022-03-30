@@ -9,7 +9,7 @@ def random_digital_numbers(count=2):
     digital_numbers = []
 
     for dn in range(0, count):
-        digital_numbers.append(random.randint(1, 2 ** 12))
+        digital_numbers.append(random.randint(1, 2**12))
 
     if count == 1:
         return digital_numbers[0]
