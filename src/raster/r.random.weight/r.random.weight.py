@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 
-
 ##############################################################################
 #
 # MODULE:       r.random.weight
 # AUTHOR(S):    paulo van Breugel <paulo  ecodiv earth>
 # PURPOSE:      Create a layer with weighted random sample
-# COPYRIGHT: (C) 2014-2019 Paulo van Breugel and GRASS DEVELOPMENT TEAM
-#            http://ecodiv.earth
+# COPYRIGHT: (C) 2014-2022 Paulo van Breugel and GRASS DEVELOPMENT TEAM
+#            https://ecodiv.earth
 #
 #        This program is free software under the GNU General Public
 #        License (>=v2). Read the file COPYING that comes with GRASS
@@ -67,11 +66,20 @@
 
 # %option
 # % key: seed
-# % type: string
+# % type: integer
 # % description: set seed for random number generation
-# % answer: auto
 # % required: no
 # % guisection: Sample options
+# %end
+
+# %flag
+# % key: s
+# % description: Generate random seed (result is non-deterministic)
+# % guisection: Sample options
+# %end
+
+# %rules
+# %exclusive: -s,seed
 # %end
 
 # %flag
@@ -103,7 +111,7 @@ def tmpname(name):
     Store the name in the global list.
     Use only for raster maps.
     """
-    tmpf = name + "_" + str(uuid.uuid4())
+    tmpf = "{}_{}".format(name, str(uuid.uuid4()))
     tmpf = tmpf.replace("-", "_")
     CLEAN_RAST.append(tmpf)
     return tmpf
@@ -124,6 +132,7 @@ def main(options, flags):
     subsample = options["subsample"]
     seed = options["seed"]
     flag_n = flags["n"]
+    flag_seed = flags["s"]
 
     # Compute minimum and maximum value raster
     minmax = gs.parse_command("r.univar", map=weight, flags="g", quiet=True)
@@ -135,15 +144,11 @@ def main(options, flags):
         maxval = minmax["max"]
     if minval > minmax["min"] or maxval < minmax["max"]:
         ms = (
-            "\nYou defined the minimum and maximum weights\nas "
-            + minval
-            + " and "
-            + maxval
-            + " respectively. Note that the\nvalue range of weight raster is "
-            + minmax["min"]
-            + " - "
-            + minmax["max"]
-            + ".\nContinuing...\n\n"
+            "\nYou defined the minimum and maximum weights\nas {} and {} "
+            "respectively. Note that the\nvalue range of weight raster is"
+            " {} - {}.\nContinuing ...\n\n".format(
+                minval, maxval, minmax["min"], minmax["max"]
+            )
         )
         gs.message(ms)
 
@@ -151,7 +156,7 @@ def main(options, flags):
     tmp_map1 = tmpname("r_w_rand1")
     tmp_map2 = tmpname("r_w_rand2")
 
-    if seed == "auto":
+    if flag_seed:
         gs.mapcalc(
             "$tmp_map1 = rand(float(${minval}),float(${maxval}))",
             seed="auto",
@@ -190,9 +195,24 @@ def main(options, flags):
         gs.run_command("g.copy", raster=[tmp_map2, outmap], quiet=True)
     else:
         gs.run_command("r.null", map=tmp_map2, setnull=0, quiet=True)
-        gs.run_command(
-            "r.random", input=tmp_map2, n=subsample, raster=outmap, quiet=True
-        )
+        if flag_seed:
+            gs.run_command(
+                "r.random",
+                input=tmp_map2,
+                n=subsample,
+                raster=outmap,
+                flags="s",
+                quiet=True,
+            )
+        else:
+            gs.run_command(
+                "r.random",
+                input=tmp_map2,
+                n=subsample,
+                raster=outmap,
+                seed=seed,
+                quiet=True,
+            )
         if flag_n:
             gs.run_command("r.null", map=outmap, null=0, quiet=True)
 
@@ -201,11 +221,15 @@ def main(options, flags):
         nflag = "\n\t-n"
     else:
         nflag = ""
+    if flag_seed:
+        seednumber = "random"
+    else:
+        seednumber = seed
     desctxt = (
         "\n\nr.random.weight \n    weight={} \n    output={}"
         "    start={} \n    end={} \n    subsample={}"
         "\n    seed={}{}\n"
-    ).format(weight, outmap, minval, maxval, subsample, seed, nflag)
+    ).format(weight, outmap, minval, maxval, subsample, seednumber, nflag)
     if flag_n:
         bso = "selected: 1/0"
     else:
@@ -223,7 +247,7 @@ def main(options, flags):
 
     gs.message("\n")
     gs.message("Ready!")
-    gs.message("The name of the output raster is " + outmap + "\n")
+    gs.message("The name of the output raster is {}\n".format(outmap))
     gs.message("\n")
 
 
