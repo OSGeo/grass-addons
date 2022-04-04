@@ -164,7 +164,11 @@ def main():
         else:
             height = int(height)
         if warning:
-            gscript.warning(_("No tile width or height provided, default tile size set: {h} rows x {w} cols.").format(h=height, w=width))
+            gscript.warning(
+                _(
+                    "No tile width or height provided, default tile size set: {h} rows x {w} cols."
+                ).format(h=height, w=width)
+            )
     overlap = int(options["overlap"])
     processes = options["nprocs"]
     patch_backend = options["patch_backend"]
