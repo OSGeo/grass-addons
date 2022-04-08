@@ -102,7 +102,7 @@ def main():
         # get layer
         layer = dataSource.GetLayer()
         # open export file
-        f = open("%s" % (output_species_file), "wb")
+        f = open("%s" % (output_species_file), "w")
         # write content of the attribute table column binomial
         for feature in layer:
             f.write("%s\n" % (feature.GetField("binomial")))
