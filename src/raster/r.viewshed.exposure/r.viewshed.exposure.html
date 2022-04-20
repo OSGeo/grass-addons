@@ -4,6 +4,7 @@
 source(s) using weighted (optional) parametrised (optional) cumulative viewshed.
 
 <h3>The algorithm</h3>
+
 The processing workflow of the module consists of five steps:
 <ol>
 <li>Random sampling of exposure source raster map with vector points,
@@ -22,6 +23,7 @@ The processing workflow of the module consists of five steps:
 </div>
 
 <h4>1. Random sampling of exposure source raster map with vector points</h4>
+
 To improve computational efficiency, the exposure source raster map is
 randomly sampled with defined density (0-100&#37;; option <b>sample_density</b>).
 In general, lower sampling densities lead to lower
@@ -33,6 +35,7 @@ the exposure source raster map with own vector map of exposure source points
 
 
 <h4>2. Binary viewshed for each exposure source point</h4>
+
 A binary viewshed for each exposure source point is calculated using
 <a href="r.viewshed.html">r.viewshed</a> module. The height of exposure
 source point above the surface is 0m. The height of observer point (exposure
@@ -40,8 +43,8 @@ receiver) above the surface is specified by option <b>observer_elevation</b>.
 Viewshed radius (range of visual exposure) is specified by option
 <b>max_distance</b>.
 
-
 <h4>3. (optional) Parametrisation of the binary viewshed</h4>
+
 The module supports different parametrization functions to better reflect
 human visual perspective by accounting for the
 variable contribution of the exposure source pixels to visual
@@ -103,6 +106,7 @@ viewsheds is randomly distributed across the specified cores.
 
 
 <h2>EXAMPLES</h2>
+
 Computation of visual exposure to major roads in South-West Wake county,
 North Carolina. Input data are a terrain model and a raster map of major roads
 from NC dataset. Viewshed parametrisation function is set to none (example 1)
@@ -137,7 +141,6 @@ r.viewshed.exposure input=elevation@PERMANENT
 r.mapcalc expression=exposure_roadsmajor_s_rescaled =
   if(exposure_roadsmajor_s@user1>=0.2*3.1416,1,1/
   (-1* log(exposure_roadsmajor_s@user1 /(2*3.1416))))
-
 </pre></div>
 
 <div align="center" style="margin: 10px">
@@ -159,6 +162,7 @@ alt="Example of r.viewshed.exposure (2)" border="0">
 </div>
 
 <h2>TODO</h2>
+
 <ul>
   <li>Implement variable exposure source height.</li>
   <li>Implement possibility to switch between absolute and relative values
@@ -190,7 +194,7 @@ alt="Example of r.viewshed.exposure (2)" border="0">
 <li>Fisher, P., 1994.
   Probable and fuzzy models of the viewshed operation,
   in: Worboys, M.F. (Ed.), <i>Innovations in GIS</i>.
-  Taylor & Francis, London, pp. 161-176.</li>
+  Taylor &amp; Francis, London, pp. 161-176.</li>
 <li>Gr&ecirc;t-Regamey, A., Bishop, I.D., Bebi, P., 2007.
   Predicting the scenic beauty value of mapped landscape changes
   in a mountainous region through the use of GIS.
@@ -209,7 +213,7 @@ alt="Example of r.viewshed.exposure (2)" border="0">
 
 <em>
 <a href="r.viewshed.html">r.viewshed</a>,
-<a href="r.viewshed.cva.html">r.viewshed.cva</a>
+<a href="r.viewshed.cva.html">r.viewshed.cva</a>,
 <a href="r.survey.html">r.survey</a>
 </em>
 
