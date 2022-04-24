@@ -168,9 +168,9 @@ echo "Injecting DuckDuckGo search field into manual main page..."
 cp -p AUTHORS CHANGES CITING COPYING GPL.TXT INSTALL REQUIREMENTS.html $TARGETDIR/
 
 # inject G8.x new version hint in a red box:
-(cd $TARGETHTMLDIR/ ; for myfile in `ls *.html` ; do sed -i -e "s:<hr class=\"header\">:<hr class=\"header\"><p style=\"border\:3px; border-style\:solid; border-color\:#BC1818; padding\: 1em;\">Note\: This document is for an old version of GRASS GIS that is no longer supported. You should upgrade, and read the <a href=\"../../grass-stable/manuals/$myfile\">current manual page</a>.</p>:g" $myfile ; done)
+(cd $TARGETHTMLDIR/ ; for myfile in `ls *.html` ; do sed -i -e "s:<hr class=\"header\">:<hr class=\"header\"><p style=\"border\:3px; border-style\:solid; border-color\:#BC1818; padding\: 1em;\">Note\: This document is for an older version of GRASS GIS that will be discontinued soon. You should upgrade, and read the <a href=\"../../grass-stable/manuals/$myfile\">current manual page</a>.</p>:g" $myfile ; done)
 # also for Python
-(cd $TARGETHTMLDIR/libpython/ ; for myfile in `ls *.html` ; do sed -i -e "s:<hr class=\"header\">:<hr class=\"header\"><p style=\"border\:3px; border-style\:solid; border-color\:#FF2121; padding\: 1em;\">Note\: This document is for an old version of GRASS GIS that is no longer supported. You should upgrade, and read the <a href=\"../../../grass-stable/manuals/libpython/$myfile\">current Python manual page</a>.</p>:g" $myfile ; done)
+(cd $TARGETHTMLDIR/libpython/ ; for myfile in `ls *.html` ; do sed -i -e "s:<hr class=\"header\">:<hr class=\"header\"><p style=\"border\:3px; border-style\:solid; border-color\:#FF2121; padding\: 1em;\">Note\: This document is for an older version of GRASS GIS that will be discontinued soon. You should upgrade, and read the <a href=\"../../../grass-stable/manuals/libpython/$myfile\">current Python manual page</a>.</p>:g" $myfile ; done)
 
 
 # clean wxGUI sphinx manual etc
@@ -266,8 +266,9 @@ for dir in `find ~/.grass$GMAJOR/addons -maxdepth 1 -type d`; do
 done
 sh ~/cronjobs/grass-addons-index.sh $GMAJOR $GMINOR $TARGETHTMLDIR/addons/
 chmod -R a+r,g+w $TARGETHTMLDIR 2> /dev/null
-# inject G8.x new version hint in a red box:
-(cd $TARGETHTMLDIR/addons/ ; for myfile in `ls *.html` ; do sed -i -e "s:<hr class=\"header\">:<hr class=\"header\"><p style=\"border\:3px; border-style\:solid; border-color\:#BC1818; padding\: 1em;\">Note\: This addon document is for an old version of GRASS GIS that is no longer supported. You should upgrade your GRASS GIS installation, and read the <a href=\"../../../grass-stable/manuals/addons/$myfile\">current addon manual page</a>.</p>:g" $myfile ; done)
+# inject G8.x new version hint in a red box: into index.html and all addon manual pages
+(cd $TARGETHTMLDIR/addons/ ; sed -i -e "s: Addons Manual pages</h2>: Addons Manual pages</h2><p style=\"border\:3px; border-style\:solid; border-color\:#BC1818; padding\: 1em;\">Note\: This addon documentation is for an older version of GRASS GIS that will be discontinued soon. You should upgrade your GRASS GIS installation, and read the <a href=\"../../../grass-stable/manuals/addons/index.html\">current addon manual page</a>.</p>:g" index.html)
+(cd $TARGETHTMLDIR/addons/ ; for myfile in `ls *.html` ; do sed -i -e "s:<hr class=\"header\">:<hr class=\"header\"><p style=\"border\:3px; border-style\:solid; border-color\:#BC1818; padding\: 1em;\">Note\: This addon document is for an older version of GRASS GIS that will be discontinued soon. You should upgrade your GRASS GIS installation, and read the <a href=\"../../../grass-stable/manuals/addons/$myfile\">current addon manual page</a>.</p>:g" $myfile ; done)
 
 
 # cp logs from ~/.grass$GMAJOR/addons/logs/
