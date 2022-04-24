@@ -142,7 +142,12 @@ import grass.script as grass
 def out2dictnum(m, n, o):
     """Execute a grass command, and parse it to a dictionary
     This works differently than standard grass.parse_command syntax"""
-    p1 = subprocess.Popen("%s" % m, stdout=subprocess.PIPE, shell="bash")
+    p1 = subprocess.Popen(
+        "%s" % m,
+        stdout=subprocess.PIPE,
+        shell=True,
+        universal_newlines=True,
+    )
     p2 = p1.stdout.readlines()
     for y in p2:
         y0, y1 = y.split("%s" % n)
