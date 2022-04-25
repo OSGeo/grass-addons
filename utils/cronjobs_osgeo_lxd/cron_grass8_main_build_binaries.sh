@@ -198,9 +198,8 @@ cd $GRASSBUILDDIR/
 ## bug in doxygen
 #(cd $TARGETPROGMAN/ ; ln -s index.html main.html)
 
-##### generate i18N POT files, needed for https://www.transifex.com/grass-gis/
+##### copy i18N POT files, needed for https://www.transifex.com/grass-gis/
 (cd locale ;
-$MYMAKE pot
 mkdir -p $TARGETDIR/transifex/
 cp templates/*.pot $TARGETDIR/transifex/
 )
