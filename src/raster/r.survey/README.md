@@ -151,6 +151,10 @@ Solid Angle of a surface is, by definition, equal to the projected spherical sur
 Other three maps (pointOfViewWithMin3dDistance, pointOfViewWithMmaxAngle and pointOfViewWithMmaxSolidAngle) are used to register, in each cell, the identifier of the viewpoints from where an observer can get, respectively, (i) the minimum values of 3D Distance, (ii) the maximum values of View Angle and (iii) the maximum value of the Solid Angle. Another relevant output is the numberOfViews map which portraits the number of viewpoints from where each pixel is visible.
 
 <h2>INSTALLATION</h2>
+
+The simple way: Install it with g.extension
+
+Other possibilities:
 <h3>LINUX:</h3>
 
 1) Download the compressed folder of r.survey from <a href="https://doi.org/10.5281/zenodo.3993140">https://doi.org/10.5281/zenodo.3993140</a> and decompress it. 
@@ -198,6 +202,9 @@ The software was designed as a GRASS GIS python module whose source code was  wr
 Multi-core processing is used by r.survey for reducing the computational time. When the aim is to derive the values of the visibility indexes along a given path (e.g. a road or a UAV track) viewpoints can be very dense in terms of number per unit of distance and the more the viewpoints are,  the longer the computational time becomes.  
 <p>
 Parallel computation was implemented exploiting the Python Multiprocessing library and the ability of GRASS GIS to set a temporary spatial region centered on the considered point without affecting the parallel computation of the other points.
+<p>
+The code produces temporary maps whose names begin with the suffixes xxtemp_, zztemp_,kktemp_ . In case there are already maps with those names in the working mapset, the code stops and asks you to rename or delete them. 
+The code produces several temporary maps. The moment the execution ends or is interrupted (CTRL+C) the temporary maps are removed. 
 
 
 <h2>EXAMPLES</h2>
@@ -249,6 +256,7 @@ r.survey -d points=Flight_viewpoints dem=Synthetic_valley output=example3 maxdis
 
 <em>
 <a href="r.viewshed.html">r.viewshed</a>
+<a href="r.viewshed.exposure.html">r.viewshed.exposure</a>
 </em>
 
 <h2><a name="authors">AUTHORS</a></h2>
