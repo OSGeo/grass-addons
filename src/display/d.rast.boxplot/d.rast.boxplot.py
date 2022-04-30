@@ -352,13 +352,13 @@ def bxp_nozones(
     else:
         ax.set_xlabel(strip_mapset(name))
         ax.axes.get_yaxis().set_visible(False)
-    plt.tight_layout()
     if rotate_label:
         plt.xticks(rotation=90)
     if output:
         plt.savefig(output, bbox_inches="tight", dpi=dpi)
         plt.close()
     else:
+        plt.tight_layout()
         plt.show()
         plt.close()
 
@@ -570,12 +570,11 @@ def bxp_zones(
         ax.set_xlabel(strip_mapset(name))
     if rotate_label:
         plt.xticks(rotation=90)
-    
-    plt.tight_layout()
     if output:
         plt.savefig(output, bbox_inches="tight", dpi=dpi)
         plt.close()
     else:
+        plt.tight_layout()
         plt.show()
         plt.close()
 
