@@ -190,9 +190,7 @@ def cleanup():
 
 def checkmask():
     """Check if there is a MASK set"""
-    ffile = gs.find_file(
-        name="MASK", element="cell", mapset=gs.gisenv()["MAPSET"]
-    )
+    ffile = gs.find_file(name="MASK", element="cell", mapset=gs.gisenv()["MAPSET"])
     mask_presence = ffile["name"] == "MASK"
     return mask_presence
 
@@ -308,9 +306,7 @@ def bxp_nozones(
 
         # If asked for, save point vector layer
         if name_outliers_map:
-            Module(
-                "v.db.dropcolumn", map=vect_name, columns=["value", "label"]
-            )
+            Module("v.db.dropcolumn", map=vect_name, columns=["value", "label"])
             Module("g.rename", vector=[vect_name, name_outliers_map])
             gs.message("Point vector map '{}' created".format(vect_name))
     elif outliers and not recode_rules:
@@ -343,9 +339,7 @@ def bxp_nozones(
             "cihi": upper_notch,
         }
     ]
-    ax.bxp(
-        boxes, showfliers=True, widths=0.75, vert=vertical, shownotches=notch
-    )
+    ax.bxp(boxes, showfliers=True, widths=0.75, vert=vertical, shownotches=notch)
     if vertical:
         ax.set_ylabel(strip_mapset(name))
         ax.axes.get_xaxis().set_visible(False)
@@ -453,9 +447,7 @@ def bxp_zones(
             univar = Module(
                 "r.univar", flags=["g", "t"], map=name, stdout_=PIPE
             ).outputs.stdout
-            n_values = int(
-                univar.replace("\r", "").split("\n")[1].split("|")[0]
-            )
+            n_values = int(univar.replace("\r", "").split("\n")[1].split("|")[0])
             lower_notch = quantile_2 - 1.57 * (iqr / n_values**2)
             upper_notch = quantile_2 + 1.57 * (iqr / n_values**2)
         else:
@@ -543,9 +535,7 @@ def bxp_zones(
             columns=["value", "label"],
         )
         colzones = strip_mapset(zones)
-        Module(
-            "v.what.rast", map=name_outliers_map, raster=zones, column=colzones
-        )
+        Module("v.what.rast", map=name_outliers_map, raster=zones, column=colzones)
         gs.message("Point vector map '{}' created".format(name_outliers_map))
     elif name_outliers_map:
         gs.message("\n--> There are no outliers")
@@ -561,9 +551,7 @@ def bxp_zones(
 
     # Plot the figure
     _, ax = plt.subplots(figsize=dimensions)
-    ax.bxp(
-        boxes, showfliers=True, widths=0.6, vert=vertical, shownotches=notch
-    )
+    ax.bxp(boxes, showfliers=True, widths=0.6, vert=vertical, shownotches=notch)
     if vertical:
         ax.set_ylabel(strip_mapset(name))
     else:
