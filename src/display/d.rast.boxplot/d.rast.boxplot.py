@@ -570,6 +570,7 @@ def bxp_zones(
         ax.set_xlabel(strip_mapset(name))
     if rotate_label:
         plt.xticks(rotation=90)
+    
     plt.tight_layout()
     if output:
         plt.savefig(output, bbox_inches="tight", dpi=dpi)
