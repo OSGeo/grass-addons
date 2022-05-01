@@ -2,16 +2,9 @@
 
 # script to build GRASS 8.x binaries + addons from the `releasebranch_8_0` binaries
 # (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
-# 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021
+# 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
-#
-## prep, on neteler@grasslxd:$
-# mkdir -p ~/src
-# cd ~/src
-# # G80 ...
-# for i in 0 ; do git clone https://github.com/OSGeo/grass.git releasebranch_8_$i ; done
-# for i in 0 ; do (cd releasebranch_8_$i ;  git checkout releasebranch_8_$i ) ; done
 #
 ###################################################################
 # how it works:
@@ -24,14 +17,22 @@
 # - generates the user 8 HTML manuals
 # - injects DuckDuckGo search field
 
-# Preparations:
-#  - Install PROJ: http://trac.osgeo.org/proj/ incl Datum shift grids
-#     sh conf_proj4.sh
-#  - Install GDAL: http://trac.osgeo.org/gdal/wiki/DownloadSource
-#     sh conf_gdal.sh
+# Preparations, on server:
+#  - Install PROJ incl Datum shift grids
+#  - Install GDAL:
 #  - Install apt-get install texlive-latex-extra python3-sphinxcontrib.apidoc
-#  - Clone source from github
-#################################
+#  - Clone source from github:
+#    mkdir -p ~/src ; cd ~/src
+#    git clone https://github.com/OSGeo/grass.git releasebranch_8_0
+#    cd releasebranch_8_0
+#    git checkout releasebranch_8_0
+#  - Prepare target directories:
+#    cd /var/www/code_and_data/
+#    mkdir grass80
+#    cd /var/www/html/
+#    ln -s /var/www/code_and_data/grass80 .
+#
+##########################################
 PATH=/home/neteler/binaries/bin:/usr/bin:/bin:/usr/X11R6/bin:/usr/local/bin
 
 GMAJOR=8
@@ -78,6 +79,15 @@ configure_grass()
 # which package?
 #   --with-mysql --with-mysql-includes=/usr/include/mysql --with-mysql-libs=/usr/lib/mysql \
 
+# cleanup
+rm -rf man/__pycache__/ python/libgrass_interface_generator/ctypesgen/parser/__pycache__/ \
+        python/libgrass_interface_generator/ctypesgen/printer_json/__pycache__/ \
+	python/libgrass_interface_generator/ctypesgen/printer_python/__pycache__/ \
+	python/libgrass_interface_generator/ctypesgen/processor/__pycache__/ \
+	config_$GMAJOR.$GMINOR.git_log.txt
+
+# reset i18N POT files
+git checkout locale/templates/*.pot
 
 CFLAGS=$CFLAGSSTRING LDFLAGS=$LDFLAGSSTRING ./configure \
   --with-cxx \
@@ -198,6 +208,7 @@ chmod -R a+r,g+w $TARGETPROGMAN/*
 (cd $TARGETPROGMAN/ ; ln -s index.html main.html)
 
 ##### generate i18N POT files, needed for https://www.transifex.com/grass-gis/
+# will be different from G82+ onwards (POTs are in git)
 (cd locale ;
 $MYMAKE pot
 mkdir -p $TARGETDIR/transifex/
