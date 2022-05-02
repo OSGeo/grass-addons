@@ -1,0 +1,107 @@
+<h2>DESCRIPTION</h2>
+
+<p>
+<em>r.boxplot</em> draws boxplots of the raster values of a input raster
+layer. The user has the option to define a zonal (categorical) layer. In that
+case, a boxplot will be drawn for each zone, using the values of the input
+raster that fall within that zone.
+
+<p>
+By default, the resulting plot is displayed on screen (default). 
+However, the user can also save the plot to file using the 
+<em>output</em> option. The format is determined by the extension 
+given by the user. So, if output = outputfile.png, the plot will 
+be saved as a png file.
+
+<p>
+The whiskers extend to the most extreme data point, which is no more than
+<i>range</i> &#10005; the interquartile range (iqr) from the box. By default,
+a <i>range</i> of 1.5 is used, but the user can change this. Note that range
+values need to be larger than 0.
+
+<p>
+By default, outliers are not included in the plot. Set to -o flag to include
+them in the plot. To create a point layer with the locations of the outliers, 
+the user needs to provide the name of the output map using <i>map_outliers</i>.
+
+<p>
+There are a few layout options, including the option to rotate 
+the plot and the x-axis labels, print the boxplot(s) with notches and
+sort the boxplot from low to high (ascending) or from high to low (descending)
+median.
+
+<p>
+If the user opts to have the outliers drawn, a vector layer will be created
+with the locations of the outliers. 
+
+<h2>NOTE</h2>
+To include outliers, the function converts the raster cell with outlier
+values to a point vector layer. This may take some time if there are a
+lot of outliers. So, if you are working with very large raster layers,
+be cautious to not set the <i>range</i> value very low as that may result
+in a very large number of outliers. 
+
+<h2>EXAMPLE</h2>
+
+<h3>Example 1</h3>
+Draw a boxplot of the values of the <em>elevation</em> layer from the  
+<a href="https://grass.osgeo.org/download/data/">NC sample 
+dataset</a>. Set the -h flag to print the boxplot horizontally.
+
+<div class="code"><pre>
+g.region raster=elevation
+r.boxplot -h input=elevation
+</pre>
+</div>
+
+<p>
+<img src="d_rast_boxplot_01.png"><br>
+<em>Figure 1: Boxplot of elevation raster layer.</em>
+
+<h3>Example 2</h3>
+Draw boxplots of the values of the <em>elevation</em> layer per category from
+the land use map from the same 
+<a href="https://grass.osgeo.org/download/data/">NC sample 
+dataset</a>. Use the -r flag to rotate the x-asis labels.
+
+<div class="code"><pre>
+r.boxplot -r input=elevation zones=landuse output="d_rast_boxplot_02.png"
+</pre>
+</div>
+
+<p>
+<img src="d_rast_boxplot_02.png"><br>
+<em>Figure 2: Boxplot of elevation raster layer per land use zone.</em>
+
+<h3>Example 3</h3>
+Draw boxplots of the values of the <em>elevation</em> layer per category from
+the land use map from the same 
+<a href="https://grass.osgeo.org/download/data/">NC sample 
+dataset</a>. Set the -o flag to include outliers. Use order=ascending 
+to order the boxplots from low to high median.
+
+<div class="code"><pre>
+r.boxplot -o order=ascending input=elevation zones=landuse output="d_rast_boxplot_03.png"
+</pre>
+</div>
+
+<p>
+<img src="d_rast_boxplot_02.png"><br>
+<em>Figure 3: Boxplot of elevation raster layer per land use zone.</em>
+
+<h3>Example 4</h3>
+Draw boxplots of the values of the <em>elevation</em> layer per category from
+the land use map from the same 
+<a href="https://grass.osgeo.org/download/data/">NC sample 
+dataset</a>. Set the -o flag to include outliers. Use order=ascending 
+to order the boxplots from low to high median. Provide a name for the outlier 
+map to save the outlier locations as a point layer.
+
+<div class="code"><pre>
+r.boxplot -o order=ascending input=elevation zones=landuse map_outliers="outliers"
+</pre>
+</div>
+
+<h2>AUTHOR</h2>
+
+Paulo van Breugel<br>
