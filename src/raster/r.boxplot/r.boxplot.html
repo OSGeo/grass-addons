@@ -55,7 +55,7 @@ r.boxplot -h input=elevation
 </div>
 
 <p>
-<img src="d_rast_boxplot_01.png"><br>
+<img src="r_boxplot_01.png"><br>
 <em>Figure 1: Boxplot of elevation raster layer.</em>
 
 <h3>Example 2</h3>
@@ -65,12 +65,12 @@ the land use map from the same
 dataset</a>. Use the -r flag to rotate the x-asis labels.
 
 <div class="code"><pre>
-r.boxplot -r input=elevation zones=landuse output="d_rast_boxplot_02.png"
+r.boxplot -r input=elevation zones=landuse output="r_boxplot_02.png"
 </pre>
 </div>
 
 <p>
-<img src="d_rast_boxplot_02.png"><br>
+<img src="r_boxplot_02.png"><br>
 <em>Figure 2: Boxplot of elevation raster layer per land use zone.</em>
 
 <h3>Example 3</h3>
@@ -81,12 +81,12 @@ dataset</a>. Set the -o flag to include outliers. Use order=ascending
 to order the boxplots from low to high median.
 
 <div class="code"><pre>
-r.boxplot -o order=ascending input=elevation zones=landuse output="d_rast_boxplot_03.png"
+r.boxplot -o order=ascending input=elevation zones=landuse output="r_boxplot_03.png"
 </pre>
 </div>
 
 <p>
-<img src="d_rast_boxplot_02.png"><br>
+<img src="r_boxplot_03.png"><br>
 <em>Figure 3: Boxplot of elevation raster layer per land use zone.</em>
 
 <h3>Example 4</h3>
