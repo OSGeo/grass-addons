@@ -130,19 +130,6 @@ from subprocess import PIPE
 import grass.script as gs
 from grass.pygrass.modules import Module
 
-try:
-    import matplotlib
-
-    matplotlib.use("WXAgg")
-    from matplotlib import pyplot as plt
-except ImportError as e:
-    raise ImportError(
-        _(
-            'r.boxplot needs the "matplotlib" '
-            "(python-matplotlib) package to be installed. {0}"
-        ).format(e)
-    )
-
 clean_layers = []
 
 
@@ -572,6 +559,18 @@ def main(options, flags):
     Draws the boxplot of raster values. Optionally, this is done per category
     of a zonal raster layer
     """
+    try:
+        import matplotlib
+
+        matplotlib.use("WXAgg")
+        from matplotlib import pyplot as plt
+    except ImportError as e:
+        raise ImportError(
+            _(
+                'r.boxplot needs the "matplotlib" '
+                "(python-matplotlib) package to be installed. {0}"
+            ).format(e)
+        )
 
     # input
     value_raster = options["input"]
