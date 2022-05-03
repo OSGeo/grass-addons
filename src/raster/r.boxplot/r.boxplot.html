@@ -92,12 +92,20 @@ the land use map from the same
 <a href="https://grass.osgeo.org/download/data/">NC sample 
 dataset</a>. Set the -o flag to include outliers. Use order=ascending 
 to order the boxplots from low to high median. Provide a name for the outlier 
-map to save the outlier locations as a point layer.
+map to save the outlier locations as a point vector map.
 
 <div class="code"><pre>
 r.boxplot -o order=ascending input=elevation zones=landuse map_outliers="outliers"
 </pre>
 </div>
+
+<h2>SEE ALSO</h2> 
+
+<em>
+<a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.scatterplot.html">r.scatterplot</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.stats.zonal.html">r.stats.zonal</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/addons/d.vect.colbp.html">d.vect.colbp</a> 
+</em> 
 
 <h2>AUTHOR</h2>
 
