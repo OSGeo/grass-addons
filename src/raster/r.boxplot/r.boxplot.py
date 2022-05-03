@@ -214,6 +214,18 @@ def bxp_nozones(
     """Compute the statistics used to create the boxplot,
     and create the boxplot. This function is used in case
     no zonal raster is provided."""
+    try:
+        import matplotlib
+
+        matplotlib.use("WXAgg")
+        from matplotlib import pyplot as plt
+    except ImportError as e:
+        raise ImportError(
+            _(
+                'r.boxplot needs the "matplotlib" '
+                "(python-matplotlib) package to be installed. {0}"
+            ).format(e)
+        )
 
     # Compute statistics
     quantile_rules = Module(
@@ -360,6 +372,18 @@ def bxp_zones(
 ):
     """Compute the statistics used to create the boxplot,
     and create the boxplots per zone from the zonal map."""
+    try:
+        import matplotlib
+
+        matplotlib.use("WXAgg")
+        from matplotlib import pyplot as plt
+    except ImportError as e:
+        raise ImportError(
+            _(
+                'r.boxplot needs the "matplotlib" '
+                "(python-matplotlib) package to be installed. {0}"
+            ).format(e)
+        )
 
     # Get labels
     labels = Module(
@@ -559,19 +583,6 @@ def main(options, flags):
     Draws the boxplot of raster values. Optionally, this is done per category
     of a zonal raster layer
     """
-    try:
-        import matplotlib
-
-        matplotlib.use("WXAgg")
-        from matplotlib import pyplot as plt
-    except ImportError as e:
-        raise ImportError(
-            _(
-                'r.boxplot needs the "matplotlib" '
-                "(python-matplotlib) package to be installed. {0}"
-            ).format(e)
-        )
-
     # input
     value_raster = options["input"]
     zones_raster = options["zones"]
