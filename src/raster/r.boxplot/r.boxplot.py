@@ -138,7 +138,7 @@ try:
 except ImportError as e:
     raise ImportError(
         _(
-            'r.boxplot  needs the "matplotlib" '
+            'r.boxplot needs the "matplotlib" '
             "(python-matplotlib) package to be installed. {0}"
         ).format(e)
     )
