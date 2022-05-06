@@ -43,61 +43,56 @@ in a very large number of outliers.
 <h3>Example 1</h3>
 Draw a boxplot of the values of the <em>elevation</em> layer from the  
 <a href="https://grass.osgeo.org/download/data/">NC sample 
-dataset</a>. Set the -h flag to print the boxplot horizontally.
+dataset</a>. Set the -h flag to print the boxplot horizontally. Set the plot
+dimensions to 7 inch wide, 1 inch heigh.
 
 <div class="code"><pre>
 g.region raster=elevation
-r.boxplot -h input=elevation
+r.boxplot -h input=elevation plot_dimensions="7,1" output="r_boxplot_01.png"
 </pre>
 </div>
 
 <p>
 <img src="r_boxplot_01.png"><br>
-<em>Figure 1: Boxplot of elevation raster layer.</em>
 
 <h3>Example 2</h3>
 Draw boxplots of the values of the <em>elevation</em> layer per category from
-the land use map from the same 
+the <i>landclass96</i> layer from the same 
 <a href="https://grass.osgeo.org/download/data/">NC sample 
 dataset</a>. Use the -r flag to rotate the x-asis labels.
 
 <div class="code"><pre>
-r.boxplot -r input=elevation zones=landuse output="r_boxplot_02.png"
+r.boxplot -r input=elevation zone=landclass96 output="r_boxplot_02.png" 
 </pre>
 </div>
 
 <p>
 <img src="r_boxplot_02.png"><br>
-<em>Figure 2: Boxplot of elevation raster layer per land use zone.</em>
 
 <h3>Example 3</h3>
 Draw boxplots of the values of the <em>elevation</em> layer per category from
-the land use map from the same 
-<a href="https://grass.osgeo.org/download/data/">NC sample 
-dataset</a>. Set the -o flag to include outliers. Use order=ascending 
-to order the boxplots from low to high median.
-
-<div class="code"><pre>
-r.boxplot -o order=ascending input=elevation zones=landuse output="r_boxplot_03.png"
-</pre>
-</div>
-
-<p>
-<img src="r_boxplot_03.png"><br>
-<em>Figure 3: Boxplot of elevation raster layer per land use zone.</em>
-
-<h3>Example 4</h3>
-Draw boxplots of the values of the <em>elevation</em> layer per category from
-the land use map from the same 
+the <i>landclass96</i> layer from the same 
 <a href="https://grass.osgeo.org/download/data/">NC sample 
 dataset</a>. Set the -o flag to include outliers. Use order=ascending 
 to order the boxplots from low to high median. Provide a name for the outlier 
 map to save the outlier locations as a point vector map.
 
 <div class="code"><pre>
-r.boxplot -o order=ascending input=elevation zones=landuse map_outliers="outliers"
+r.boxplot -o order=ascending input=elevation zones=landclass96 output="r_boxplot_03.png" map_outliers="outliers"
 </pre>
 </div>
+
+<p>
+<img src="r_boxplot_03.png"><br>
+<em>Figure 3: Boxplot of elevation raster layer per land use zone, including outliers.</em>
+
+<p>
+Below, part of the landclass96 raster map is shown, with on top the vector point
+layer with location of outliers. Curiously, for some lakes, only part of the
+raster cells are outliers.</em></p>
+
+<p>
+<img src="r_boxplot_map_03.png"><br>
 
 <h2>SEE ALSO</h2> 
 
