@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 ############################################################################
 #
 # MODULE:       r.boxplot
@@ -73,6 +74,15 @@
 # % required: no
 # %end
 
+# %option
+# % key: fontsize
+# % type: integer
+# % label: Font size
+# % description: Default font size
+# % guisection: Plot options
+# % required: no
+# %end
+
 # %flag
 # % key: h
 # % label: horizontal boxplot(s)
@@ -119,9 +129,21 @@
 # % guisection: Plot options
 # %end
 
+# %flag
+# % key: c
+# % label: Color boxploxs
+# % description: Color boxploxs using the colors of the categories of the zonal raster
+# % guisection: Plot options
+# %end
+
 # %rules
 # % requires: map_outliers, -o
 # %end
+
+# %rules
+# % requires: -c, zones
+# %end
+
 
 import sys
 import atexit
@@ -210,6 +232,7 @@ def bxp_nozones(
     rotate_label,
     name_outliers_map,
     whisker_range,
+    fontsize,
 ):
     """Compute the statistics used to create the boxplot,
     and create the boxplot. This function is used in case
@@ -314,7 +337,7 @@ def bxp_nozones(
     else:
         fliers = []
 
-    # Set plot dimensions
+    # Set plot dimensions and fontsize
     if dimensions:
         dimensions = [float(x) for x in dimensions.split(",")]
     else:
@@ -322,6 +345,8 @@ def bxp_nozones(
             dimensions = [4, 8]
         else:
             dimensions = [8, 4]
+    if fontsize:
+        plt.rcParams["font.size"] = fontsize
 
     # Create plot
     _, ax = plt.subplots(figsize=dimensions)
@@ -369,6 +394,8 @@ def bxp_zones(
     sort,
     name_outliers_map,
     whisker_range,
+    bpcolors,
+    fontsize,
 ):
     """Compute the statistics used to create the boxplot,
     and create the boxplots per zone from the zonal map."""
@@ -392,6 +419,27 @@ def bxp_zones(
     labels = labels.replace("\r", "").split("\n")
     labels = [_f for _f in labels if _f]
     labels = [_y[1] for _y in [_x.split("|") for _x in labels]]
+
+    # Get colors
+    if bpcolors:
+        zones_color = Module("r.colors.out", map=zones, stdout_=PIPE).outputs.stdout
+        zones_color = zones_color.replace("\r", "").split("\n")
+        zones_color = [_f for _f in zones_color if _f]
+        zones_color = [
+            _x
+            for _x in zones_color
+            if not _x.startswith("nv") and not _x.startswith("default")
+        ]
+        zones_color = [_y[1] for _y in [_x.split(" ") for _x in zones_color]]
+        zones_color = [_z.split(":") for _z in zones_color]
+        zones_rgb = [[int(_x) / 255 for _x in _y] for _y in zones_color]
+        txt_rgb = []
+        for i in zones_color:
+            rgb_i = list(map(int, i))
+            if rgb_i[0] * 0.299 + rgb_i[1] * 0.587 + rgb_i[2] * 0.114 > 149:
+                txt_rgb.append([0, 0, 0, 0.7])
+            else:
+                txt_rgb.append([1, 1, 1, 0.7])
 
     # Compute statistics
     quantstats = Module(
@@ -418,6 +466,9 @@ def bxp_zones(
         ordered_list = [i for _, i in sorted(zip(medians, ids), reverse=False)]
     else:
         ordered_list = list(range(0, len(order_bpl)))
+    if bpcolors:
+        zones_rgb[:] = [zones_rgb[i] for i in ordered_list]
+        txt_rgb[:] = [txt_rgb[i] for i in ordered_list]
 
     # Define the boxes
     boxes = []
@@ -551,7 +602,7 @@ def bxp_zones(
     elif name_outliers_map:
         gs.message("\n--> There are no outliers")
 
-    # Set plot dimensions
+    # Set plot dimensions and fontsize
     if dimensions:
         dimensions = [float(x) for x in dimensions.split(",")]
     else:
@@ -559,10 +610,24 @@ def bxp_zones(
             dimensions = [8, 4]
         else:
             dimensions = [4, 8]
+    if fontsize:
+        plt.rcParams["font.size"] = fontsize
 
     # Plot the figure
     _, ax = plt.subplots(figsize=dimensions)
-    ax.bxp(boxes, showfliers=True, widths=0.6, vert=vertical, shownotches=notch)
+    bxplot = ax.bxp(
+        boxes,
+        showfliers=True,
+        widths=0.6,
+        vert=vertical,
+        shownotches=notch,
+        patch_artist=bpcolors,
+    )
+    if bpcolors:
+        for patch, color in zip(bxplot["boxes"], zones_rgb):
+            patch.set_facecolor(color)
+        for median, mcolor in zip(bxplot["medians"], txt_rgb):
+            median.set_color(mcolor)
     if vertical:
         ax.set_ylabel(strip_mapset(name))
     else:
@@ -589,7 +654,13 @@ def main(options, flags):
     if zones_raster:
         check_integer(zones_raster)
     output = options["output"]
+    fontsize = options["fontsize"]
+    if fontsize:
+        int(fontsize)
+    else:
+        fontsize = 10
     whisker_range = float(options["range"])
+    bpcolor = flags["c"]
     if whisker_range <= 0:
         gs.fatal(_("The range value need to be larger than 0"))
     if flags["h"]:
@@ -622,6 +693,8 @@ def main(options, flags):
             sort=sort,
             name_outliers_map=name_outliers_map,
             whisker_range=whisker_range,
+            bpcolors=bpcolor,
+            fontsize=fontsize,
         )
     else:
         bxp_nozones(
@@ -635,6 +708,7 @@ def main(options, flags):
             rotate_label=rotate_label,
             name_outliers_map=name_outliers_map,
             whisker_range=whisker_range,
+            fontsize=fontsize,
         )
 
 
