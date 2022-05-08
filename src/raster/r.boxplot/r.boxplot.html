@@ -27,9 +27,11 @@ outliers, the user needs to provide the name of the output map using
 
 <p>
 There are a few layout options, including the option to rotate 
-the plot and the x-axis labels, print the boxplot(s) with notches and
-sort the boxplot from low to high (ascending) or from high to low (descending)
-median.
+the plot and the x-axis labels, print the boxplot(s) with notches, sort the
+boxplot from low to high (ascending) or from high to low (descending) median,
+and color the boxplots according to the corresponding categories of the zonal
+raster.
+
 
 <h2>NOTE</h2>
 To include outliers, the function converts the raster cell with outlier
@@ -50,7 +52,7 @@ dimensions to 7 inch wide, 1 inch heigh.
 g.region raster=elevation
 r.boxplot -h input=elevation plot_dimensions="7,1" output="r_boxplot_01.png"
 </pre>
-</div>
+</div><br>
 
 <p>
 <img src="r_boxplot_01.png"><br>
@@ -64,7 +66,7 @@ dataset</a>. Use the -r flag to rotate the x-asis labels.
 <div class="code"><pre>
 r.boxplot -r input=elevation zone=landclass96 output="r_boxplot_02.png" 
 </pre>
-</div>
+</div><br>
 
 <p>
 <img src="r_boxplot_02.png"><br>
@@ -80,11 +82,10 @@ map to save the outlier locations as a point vector map.
 <div class="code"><pre>
 r.boxplot -o order=ascending input=elevation zones=landclass96 output="r_boxplot_03.png" map_outliers="outliers"
 </pre>
-</div>
+</div><br>
 
 <p>
 <img src="r_boxplot_03.png"><br>
-<em>Figure 3: Boxplot of elevation raster layer per land use zone, including outliers.</em>
 
 <p>
 Below, part of the landclass96 raster map is shown, with on top the vector point
@@ -93,6 +94,22 @@ raster cells are outliers.</p>
 
 <p>
 <img src="r_boxplot_map_03.png"><br>
+
+<h3>Example 4</h3>
+Draw boxplots of the values of the <em>elevation</em> layer per category from
+the <i>landclass96</i> layer from the same 
+<a href="https://grass.osgeo.org/download/data/">NC sample 
+dataset</a>. Set the -c flag to color the boxplots, use order=ascending 
+to order the boxplots from low to high median, and set the fontsize to 11. 
+
+<div class="code"><pre>
+r.boxplot -c order=ascending fontsize=11 input=elevation zones=landclass96 output="r_boxplot_04.png"
+</pre>
+</div><br>
+
+<p>
+<img src="r_boxplot_04.png"><br>
+
 
 <h2>Acknowledgements</h2>
 This work was carried in the framework of the <a href="https://savethetiger.nl/" target="_blank">Save the tiger, save the grassland, save the water</a> 
@@ -112,3 +129,4 @@ project by the
 Paulo van Breugel<br>
 Applied Geo-information Sciences<br>
 <a href="https://www.hasuniversity.nl/">HAS University of Applied Sciences</a><br>
+
