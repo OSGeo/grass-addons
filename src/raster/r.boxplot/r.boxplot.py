@@ -462,16 +462,13 @@ def bxp_zones(
         medians.append(float(value[3]))
     if sort == "descending":
         ordered_list = [i for _, i in sorted(zip(medians, ids), reverse=True)]
-        if bpcolors:
-            zones_rgb = [i for _, i in sorted(zip(medians, zones_rgb), reverse=True)]
-            txt_rgb = [i for _, i in sorted(zip(medians, txt_rgb), reverse=True)]
     elif sort == "ascending":
         ordered_list = [i for _, i in sorted(zip(medians, ids), reverse=False)]
-        if bpcolors:
-            zones_rgb = [i for _, i in sorted(zip(medians, zones_rgb), reverse=False)]
-            txt_rgb = [i for _, i in sorted(zip(medians, txt_rgb), reverse=False)]
     else:
         ordered_list = list(range(0, len(order_bpl)))
+    if bpcolors:
+        zones_rgb[:] = [zones_rgb[i] for i in ordered_list]
+        txt_rgb[:] = [txt_rgb[i] for i in ordered_list]
 
     # Define the boxes
     boxes = []
