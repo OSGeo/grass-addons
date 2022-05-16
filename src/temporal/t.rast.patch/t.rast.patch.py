@@ -87,7 +87,7 @@ def main():
     add_time = flags["t"]
     patch_s = flags["s"]
     patch_z = flags["z"]
-    patch_module = "r.buildvrt" if flags["z"] else "r.patch"
+    patch_module = "r.buildvrt" if flags["v"] else "r.patch"
 
     # Make sure the temporal database exists
     tgis.init()

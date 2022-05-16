@@ -1,5 +1,7 @@
 <h2>DESCRIPTION</h2>
-This module patches raster maps that have gaps in time with subsequent maps (within a space time raster dataset) using <em>r.patch</em> or <b>r.buildvrt</b>. Hence it is a wrapper for those two modules in the temporal domain.
+This module patches raster maps that have gaps in time with subsequent maps
+(within a space time raster dataset) using <em>r.patch</em> or <b>r.buildvrt</b>.
+Hence it is a wrapper for those two modules in the temporal domain.
 <p>
 By default <em>r.patch</em> is used to create a patched raster map.
 Especially for temporary data, using <b>r.buildvrt</b> for patching
@@ -33,7 +35,8 @@ t.rast.patch input=LST_Day_monthly@modis_lst output=LST_Day_patched_2016 \
 r.info LST_Day_patched_2016
 </pre></div>
 <p>
-Patching the MODIS Land Surface Temperature for 2016 (filling missing pixels by subsequent maps in the time series) using a virtual mosaic (<b>r.buildvrt</b>):
+Patching the MODIS Land Surface Temperature for 2016 (filling missing pixels by
+subsequent maps in the time series) using a virtual mosaic (<b>r.buildvrt</b>):
 <div class="code"><pre>
 t.rast.patch -v input=LST_Day_monthly@modis_lst output=LST_Day_patched_2016_vrt \
   where="start_time >= '2016-01' and start_time <= '2016-12'"
