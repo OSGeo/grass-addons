@@ -418,10 +418,13 @@ def bxp_zones(
     ).outputs.stdout
     labels = labels.replace("\r", "").split("\n")
     labels = [_f for _f in labels if _f]
-    labels = [_y[1] for _y in [_x.split("|") for _x in labels]]
+    labels = [_y for _y in [_x.split("|") for _x in labels]]
+    labelsids = [int(_z[0]) for _z in labels]
+    labels = [_z[0] if len(_z[1]) == 0 else _z[1] for _z in labels]
 
     # Get colors
     if bpcolors:
+        # Get list with color rgb codes and corresponding category id
         zones_color = Module("r.colors.out", map=zones, stdout_=PIPE).outputs.stdout
         zones_color = zones_color.replace("\r", "").split("\n")
         zones_color = [_f for _f in zones_color if _f]
@@ -429,6 +432,13 @@ def bxp_zones(
             _x
             for _x in zones_color
             if not _x.startswith("nv") and not _x.startswith("default")
+        ]
+        zones_colorids = [int(_y[0]) for _y in [_x.split(" ") for _x in zones_color]]
+        # Select the actual raster categories and extract the rgb values
+        zones_color = [
+            zones_color[id]
+            for id, _ in enumerate(zones_color)
+            if zones_colorids[id] in labelsids
         ]
         zones_color = [_y[1] for _y in [_x.split(" ") for _x in zones_color]]
         zones_color = [_z.split(":") for _z in zones_color]
@@ -477,12 +487,9 @@ def bxp_zones(
     # Construct per zone the boxplot
     for i in ordered_list:
 
-        # Get or create the boxplot labels
+        # Get boxplot label and stats
+        zone_name = labels[i]
         quantstats_i = order_bpl[i]
-        if labels[i]:
-            zone_name = labels[i]
-        else:
-            zone_name = quantstats_i[0]
 
         # Extract the stats to construct boxplot ith zone
         min_value = float(quantstats_i[1])
