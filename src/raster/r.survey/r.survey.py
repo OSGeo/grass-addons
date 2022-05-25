@@ -1386,7 +1386,7 @@ def main():
             # creating the "zeros" map to be used for the FINAL combination of
             # the different teporary maps (THE FOLLOWING CAN BE DONE CREATING
             # A FIRTS MAP AND THEN COPYING IT, FASTENING THE PROCESS)
-            gscript.message(f"Creating Final 'zeros map' ")
+            gscript.message("Creating Final 'zeros map' ")
             Module("r.mapcalc", expression="xxtemp_a = 0", quiet=True)
             Module("r.mapcalc", expression="xxtemp_b = 0", quiet=True)
             Module("r.mapcalc", expression="xxtemp_c = 0", quiet=True)
