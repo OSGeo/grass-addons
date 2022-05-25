@@ -1202,7 +1202,7 @@ def main():
     n = len(lista)
 
     if n != 0:
-        message = f"*** Exit System. Please rename or remove all the layers in\
+        message = "*** Exit System. Please rename or remove all the layers in\
         the mapset having names starting with 'xx*' , 'zz*' , 'kk*' or named\
         as 'treesmap', 'buildmap' or 'maskera' to prevent overwriting and\
         removing them ***"
