@@ -29,8 +29,8 @@ outliers, the user needs to provide the name of the output map using
 There are a few layout options, including the option to rotate 
 the plot and the x-axis labels, print the boxplot(s) with notches, sort the
 boxplot from low to high (ascending) or from high to low (descending) median,
-and color the boxplots according to the corresponding categories of the zonal
-raster.
+color the boxplots according to the corresponding categories of the zonal
+raster, and set the width of the boxplots.
 
 
 <h2>NOTE</h2>
@@ -39,6 +39,18 @@ values to a point vector layer. This may take some time if there are a
 lot of outliers. So, if you are working with very large raster layers,
 be cautious to not set the <i>range</i> value very low as that may result
 in a very large number of outliers. 
+
+<p>
+The zonal map needs to be an integer map. If it is not, the function will exit
+with the error message, 'The zonal raster must be of type CELL (integer)'.
+
+<p>
+The option to color boxploxs using the colors of the categories of the zonal
+raster (-c flag) only works if the zonal map contains a color table. If it
+does not, the function exits with the error message that 'The zonal map
+does not have a color table'. If you think there is a color table, run 
+<i>r.colors.out</i> and check if the categories are integers. If not, that
+is the problem. If they are all integers, you probably have catched a bug.
 
 <h2>EXAMPLE</h2>
 

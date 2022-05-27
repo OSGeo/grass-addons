@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 ############################################################################
 #
@@ -46,13 +46,30 @@
 # %end
 
 # %option
-# % key: order
+# % key: map_outliers
 # % type: string
-# % label: Sort boxplots
-# % description: Sort boxplots based on their median values
+# % label: Name of outlier map
+# % description: Create a vector point layer of outliers
+# % guisection: Output
 # % required: no
-# % options: descending,ascending
-# % guisection: Plot options
+# %end
+
+# %flag
+# % key: o
+# % label: include outliers
+# % description: Draw boxplot(s) with outliers
+# % guisection: Statistics
+# %end
+
+# %rules
+# % requires: map_outliers, -o
+# %end
+
+# %flag
+# % key: n
+# % label: notch
+# % description: Draw boxplot(s) with notch
+# % guisection: Statistics
 # %end
 
 # %option
@@ -62,17 +79,19 @@
 # % description: this determines how far the plot whiskers extend out from the box. If range is positive, the whiskers extend to the most extreme data point which is no more than range times the interquartile range from the box. A value of zero causes the whiskers to extend to the data extremes.
 # % required: no
 # % answer: 1.5
-# % guisection: Plot options
+# % guisection: Statistics
 # %end
 
 # %option
-# % key: map_outliers
+# % key: order
 # % type: string
-# % label: Name of outlier map
-# % description: Create a vector point layer of outliers
-# % guisection: Output
+# % label: Sort boxplots
+# % description: Sort boxplots based on their median values
 # % required: no
+# % options: descending,ascending
+# % guisection: Plot options
 # %end
+
 
 # %option
 # % key: fontsize
@@ -87,20 +106,6 @@
 # % key: h
 # % label: horizontal boxplot(s)
 # % description: Draw the boxplot horizontal
-# % guisection: Plot options
-# %end
-
-# %flag
-# % key: o
-# % label: include outliers
-# % description: Draw boxplot(s) with outliers
-# % guisection: Plot options
-# %end
-
-# %flag
-# % key: n
-# % label: notch
-# % description: Draw boxplot(s) with notch
 # % guisection: Plot options
 # %end
 
@@ -129,6 +134,16 @@
 # % guisection: Plot options
 # %end
 
+# %option
+# % key: boxplot_width
+# % type: double
+# % label: boxplot width
+# % description: The width of the boxplots (0,1])
+# % required: no
+# % guisection: Plot options
+# %end
+
+
 # %flag
 # % key: c
 # % label: Color boxploxs
@@ -136,14 +151,20 @@
 # % guisection: Plot options
 # %end
 
-# %rules
-# % requires: map_outliers, -o
+# %flag
+# % key: s
+# % label: Show category numbers
+# % description: Show the category numbers of the zonal map
+# % guisection: Plot options
 # %end
 
 # %rules
 # % requires: -c, zones
 # %end
 
+# %rules
+# % requires: -s, zones
+# %end
 
 import sys
 import atexit
@@ -218,7 +239,7 @@ def check_integer(name):
     """Check if map values are integer"""
     input_info = gs.raster_info(name)
     if input_info["datatype"] != "CELL":
-        gs.fatal(_("The cover raster must be of type CELL" " (integer)"))
+        gs.fatal(_("The zonal raster must be of type CELL" " (integer)"))
 
 
 def bxp_nozones(
@@ -233,6 +254,7 @@ def bxp_nozones(
     name_outliers_map,
     whisker_range,
     fontsize,
+    bxp_width,
 ):
     """Compute the statistics used to create the boxplot,
     and create the boxplot. This function is used in case
@@ -363,7 +385,7 @@ def bxp_nozones(
             "cihi": upper_notch,
         }
     ]
-    ax.bxp(boxes, showfliers=True, widths=0.75, vert=vertical, shownotches=notch)
+    ax.bxp(boxes, showfliers=True, widths=bxp_width, vert=vertical, shownotches=notch)
     if vertical:
         ax.set_ylabel(strip_mapset(name))
         ax.axes.get_xaxis().set_visible(False)
@@ -396,6 +418,8 @@ def bxp_zones(
     whisker_range,
     bpcolors,
     fontsize,
+    show_catnumbers,
+    bxp_width,
 ):
     """Compute the statistics used to create the boxplot,
     and create the boxplots per zone from the zonal map."""
@@ -440,6 +464,11 @@ def bxp_zones(
             for id, _ in enumerate(zones_color)
             if zones_colorids[id] in labelsids
         ]
+        zones_colorids = [_c for _c in zones_colorids if _c in labelsids]
+        # Check if zonal map has a color table
+        # (or rather, if the category values are integers)
+        if not all([isinstance(item, int) for item in zones_colorids]):
+            gs.fatal(_("The zonal map does not have a color table"))
         zones_color = [_y[1] for _y in [_x.split(" ") for _x in zones_color]]
         zones_color = [_z.split(":") for _z in zones_color]
         zones_rgb = [[int(_x) / 255 for _x in _y] for _y in zones_color]
@@ -488,7 +517,10 @@ def bxp_zones(
     for i in ordered_list:
 
         # Get boxplot label and stats
-        zone_name = labels[i]
+        if bool(show_catnumbers):
+            zone_name = "{}) {}".format(labelsids[i], labels[i])
+        else:
+            zone_name = labels[i]
         quantstats_i = order_bpl[i]
 
         # Extract the stats to construct boxplot ith zone
@@ -625,7 +657,7 @@ def bxp_zones(
     bxplot = ax.bxp(
         boxes,
         showfliers=True,
-        widths=0.6,
+        widths=bxp_width,
         vert=vertical,
         shownotches=notch,
         patch_artist=bpcolors,
@@ -662,12 +694,22 @@ def main(options, flags):
         check_integer(zones_raster)
     output = options["output"]
     fontsize = options["fontsize"]
+    bxp_width = options["boxplot_width"]
+    if bool(bxp_width):
+        bxp_width = float(bxp_width)
+        if bxp_width > 1 or bxp_width <= 0:
+            gs.fatal(_("The boxplot width needs to in the interval (0,1]"))
+    elif zones_raster:
+        bxp_width = 0.6
+    else:
+        bxp_width = 0.75
     if fontsize:
-        int(fontsize)
+        fontsize = int(fontsize)
     else:
         fontsize = 10
     whisker_range = float(options["range"])
     bpcolor = flags["c"]
+    show_catnumbers = flags["s"]
     if whisker_range <= 0:
         gs.fatal(_("The range value need to be larger than 0"))
     if flags["h"]:
@@ -702,6 +744,8 @@ def main(options, flags):
             whisker_range=whisker_range,
             bpcolors=bpcolor,
             fontsize=fontsize,
+            show_catnumbers=show_catnumbers,
+            bxp_width=bxp_width,
         )
     else:
         bxp_nozones(
@@ -716,6 +760,7 @@ def main(options, flags):
             name_outliers_map=name_outliers_map,
             whisker_range=whisker_range,
             fontsize=fontsize,
+            bxp_width=bxp_width,
         )
 
 
