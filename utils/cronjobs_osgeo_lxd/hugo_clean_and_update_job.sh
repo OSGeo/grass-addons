@@ -7,6 +7,8 @@
 #  sudo chown -R neteler.users /var/www
 
 # 0.  change into local git repo copy
+#     cd ~ ; git clone https://github.com/OSGeo/grass-website.git
+#     cd grass-website
 # 1.  update local repo from github
 # 2.  rm previously built pages in local git repo copy
 # 3.  build updated pages with hugo
