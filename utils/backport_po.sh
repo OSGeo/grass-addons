@@ -3,8 +3,7 @@
 # GRASS GIS po files backport script: merges msg from the main branch
 # Huidae Cho 2022, based on transifex_merge.sh
 # Luca Delucchi 2017, based on gettext message merge procedure by Markus Neteler
-# - keep headers added by Markus
-# 2018, grass72 -> grass7
+# Markus Neteler 2006, original gettext message merge procedure
 
 # see also: https://grasswiki.osgeo.org/wiki/GRASS_messages_translation#Get_the_translated_po_files
 
