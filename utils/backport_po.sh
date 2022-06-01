@@ -29,13 +29,19 @@ cd po
 # copy the po files from the main branch
 git checkout main
 if [ "`git branch --show-current`" != "main" ]; then
-  echo "ERROR: Failed to checkout $RELEASEBRANCH"
+  echo "ERROR: Failed to checkout main"
   exit 1
 fi
+
 test -d tmp && rm -rf tmp
 mkdir tmp
 cp *.po tmp
+
 git checkout $RELEASEBRANCH
+if [ "`git branch --show-current`" != "$RELEASEBRANCH" ]; then
+  echo "ERROR: Failed to checkout $RELEASEBRANCH"
+  exit 1
+fi
 
 # merge updated files into existing ones
 for POFILE in `ls tmp | grep '\.po$'`; do
