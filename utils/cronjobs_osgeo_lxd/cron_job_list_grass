@@ -32,9 +32,9 @@
 # old stable: G78
 05 05 * * * nice sh /home/neteler/cronjobs/cron_grass7_relbranch_build_binaries.sh > /var/www/code_and_data/grass78/binary/linux/snapshot/build.log.txt 2>&1
 # stable: G82
-05 15 * * * nice sh /home/neteler/cronjobs/cron_grass8_relbranch_build_binaries.sh > /var/www/code_and_data/grass82/binary/linux/snapshot/build.log.txt 2>&1
+15 05 * * * nice sh /home/neteler/cronjobs/cron_grass8_relbranch_build_binaries.sh > /var/www/code_and_data/grass82/binary/linux/snapshot/build.log.txt 2>&1
 # dev: G83
-05 25 * * * nice sh /home/neteler/cronjobs/cron_grass8_main_build_binaries.sh > /var/www/code_and_data/grass83/binary/linux/snapshot/build.log.txt 2>&1
+25 05 * * * nice sh /home/neteler/cronjobs/cron_grass8_main_build_binaries.sh > /var/www/code_and_data/grass83/binary/linux/snapshot/build.log.txt 2>&1
 
 
 # generate osgeo_mailman_stats/ + email
