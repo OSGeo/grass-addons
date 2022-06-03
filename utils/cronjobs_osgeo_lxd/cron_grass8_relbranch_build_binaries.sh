@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# script to build GRASS 8.x binaries + addons from the `releasebranch_8_0` binaries
+# script to build GRASS 8.x binaries + addons from the `releasebranch_8_2` binaries
 # (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
 # 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022
 #
@@ -23,20 +23,20 @@
 #  - Install apt-get install texlive-latex-extra python3-sphinxcontrib.apidoc
 #  - Clone source from github:
 #    mkdir -p ~/src ; cd ~/src
-#    git clone https://github.com/OSGeo/grass.git releasebranch_8_0
-#    cd releasebranch_8_0
-#    git checkout releasebranch_8_0
+#    git clone https://github.com/OSGeo/grass.git releasebranch_8_2
+#    cd releasebranch_8_2
+#    git checkout releasebranch_8_2
 #  - Prepare target directories:
 #    cd /var/www/code_and_data/
-#    mkdir grass80
+#    mkdir grass82
 #    cd /var/www/html/
-#    ln -s /var/www/code_and_data/grass80 .
+#    ln -s /var/www/code_and_data/grass82 .
 #
 ##########################################
 PATH=/home/neteler/binaries/bin:/usr/bin:/bin:/usr/X11R6/bin:/usr/local/bin
 
 GMAJOR=8
-GMINOR=0
+GMINOR=2
 DOTVERSION=$GMAJOR.$GMINOR
 VERSION=$GMAJOR$GMINOR
 GVERSION=$GMAJOR
@@ -80,13 +80,9 @@ configure_grass()
 #   --with-mysql --with-mysql-includes=/usr/include/mysql --with-mysql-libs=/usr/lib/mysql \
 
 # cleanup
-rm -rf man/__pycache__/ python/libgrass_interface_generator/ctypesgen/parser/__pycache__/ \
-        python/libgrass_interface_generator/ctypesgen/printer_json/__pycache__/ \
-	python/libgrass_interface_generator/ctypesgen/printer_python/__pycache__/ \
-	python/libgrass_interface_generator/ctypesgen/processor/__pycache__/ \
-	config_$GMAJOR.$GMINOR.git_log.txt
+rm -rf config_$GMAJOR.$GMINOR.git_log.txt
 
-# reset i18N POT files
+# reset i18N POT files to git, just to be sure
 git checkout locale/templates/*.pot
 
 CFLAGS=$CFLAGSSTRING LDFLAGS=$LDFLAGSSTRING ./configure \
@@ -208,9 +204,8 @@ chmod -R a+r,g+w $TARGETPROGMAN/*
 (cd $TARGETPROGMAN/ ; ln -s index.html main.html)
 
 ##### generate i18N POT files, needed for https://www.transifex.com/grass-gis/
-# will be different from G82+ onwards (POTs are in git)
+# from G82+ onwards the gettext POT files are managed in git
 (cd locale ;
-$MYMAKE pot
 mkdir -p $TARGETDIR/transifex/
 cp templates/*.pot $TARGETDIR/transifex/
 )
