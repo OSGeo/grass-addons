@@ -86,7 +86,7 @@
 # % label: Backend for patching computed tiles
 # % description: If backend is not specified, original serial implementation with RasterRow is used
 # % options: RasterRow,r.patch
-# % descriptions: RasterRow; serial patching with PyGRASS RasterRow ; r.patch; parallelized r.patch
+# % descriptions: RasterRow; serial patching with PyGRASS RasterRow; r.patch; parallelized r.patch (with zero overlap only)
 # % required: no
 # %end
 #
@@ -149,8 +149,9 @@ def main():
     expression = options["expression"]
     width = options["width"]
     height = options["height"]
-    # G8.2 GridModule doesn't require tile size anymore
-    # this is proxy for G8.2
+    # v8.2 GridModule doesn't require tile size anymore
+    # this is proxy for v8.2
+    # can be removed in v9.0
     if not parallel_rpatch_available:
         warning = False
         if not width:
@@ -164,6 +165,7 @@ def main():
         else:
             height = int(height)
         if warning:
+            # square tiles tend to be slower than horizontal slices
             gscript.warning(
                 _(
                     "No tile width or height provided, default tile size set: {h} rows x {w} cols."
@@ -196,7 +198,6 @@ def main():
                 "r.patch backend is not available in this version of GRASS GIS, using RasterRow"
             )
         )
-        patch_backend = "RasterRow"
     if patch_backend == "r.patch" and overlap > 0:
         gs.fatal(_("Patching backend 'r.patch' doesn't work for overlap > 0"))
     if parallel_rpatch_available:
