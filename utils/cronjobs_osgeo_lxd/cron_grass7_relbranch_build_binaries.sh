@@ -36,6 +36,7 @@ PATH=/home/neteler/binaries/bin:/usr/bin:/bin:/usr/X11R6/bin:/usr/local/bin
 
 GMAJOR=7
 GMINOR=8
+GPATCH=7 # required by grass-addons-index.sh
 DOTVERSION=$GMAJOR.$GMINOR
 VERSION=$GMAJOR$GMINOR
 GVERSION=$GMAJOR
@@ -264,7 +265,7 @@ for dir in `find ~/.grass$GMAJOR/addons -maxdepth 1 -type d`; do
         fi
     fi
 done
-sh ~/cronjobs/grass-addons-index.sh $GMAJOR $GMINOR $TARGETHTMLDIR/addons/
+sh ~/cronjobs/grass-addons-index.sh $GMAJOR $GMINOR $GPATCH $TARGETHTMLDIR/addons/
 chmod -R a+r,g+w $TARGETHTMLDIR 2> /dev/null
 # inject G8.x new version hint in a red box: into index.html and all addon manual pages
 (cd $TARGETHTMLDIR/addons/ ; sed -i -e "s: Addons Manual pages</h2>: Addons Manual pages</h2><p style=\"border\:3px; border-style\:solid; border-color\:#BC1818; padding\: 1em;\">Note\: This addon documentation is for an older version of GRASS GIS that will be discontinued soon. You should upgrade your GRASS GIS installation, and read the <a href=\"../../../grass-stable/manuals/addons/index.html\">current addon manual page</a>.</p>:g" index.html)
