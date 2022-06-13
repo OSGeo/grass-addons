@@ -37,6 +37,7 @@ PATH=/home/neteler/binaries/bin:/usr/bin:/bin:/usr/X11R6/bin:/usr/local/bin
 
 GMAJOR=8
 GMINOR=2
+GPATCH=0
 DOTVERSION=$GMAJOR.$GMINOR
 VERSION=$GMAJOR$GMINOR
 GVERSION=$GMAJOR
@@ -293,7 +294,7 @@ for dir in `find ~/.grass$GMAJOR/addons -maxdepth 1 -type d`; do
         fi
     fi
 done
-sh ~/cronjobs/grass-addons-index.sh $GMAJOR $GMINOR $TARGETHTMLDIR/addons/
+sh ~/cronjobs/grass-addons-index.sh $GMAJOR $GMINOR $GPATCH $TARGETHTMLDIR/addons/
 cp $TARGETHTMLDIR/grass_logo.png $TARGETHTMLDIR/grassdocs.css $TARGETHTMLDIR/addons/
 chmod -R a+r,g+w $TARGETHTMLDIR 2> /dev/null
 
