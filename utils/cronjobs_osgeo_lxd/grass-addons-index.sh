@@ -19,17 +19,18 @@
 CRONJOBDIR=~/cronjobs/
 MAJOR=$1
 MINOR=$2
+PATCH=$3
 
 ##################
 # generated Addon HTML manual pages are expected to be in the directory
 # /var/www/code_and_data/grass${major}${minor}/manuals/addons/
 
-if [ $# -ne 3 ] ; then
+if [ $# -ne 4 ] ; then
   echo "ERROR: addon manpath required.
 
 Usage:
 
-$0 GMAJOR GMINOR manpath"
+$0 GMAJOR GMINOR GPATCH manpath"
   exit 1
 fi
 
@@ -88,7 +89,14 @@ generate () {
     # 7 8 manpath | 8 0 manpath
     major=$1
     minor=$2
-    manpath=$3
+    patch=$3
+    manpath=$4
+
+    if [ "$major" -eq 7 ]; then
+        win_log_url="https://wingrass.fsv.cvut.cz/grass${major}${minor}/x86_64/addons/grass-${major}.${minor}.${patch}/logs/"
+    else
+        win_log_url="https://wingrass.fsv.cvut.cz/grass${major}${minor}/addons/grass-${major}.${minor}.${patch}/logs/"
+    fi
 
     # DEBUG
     # mkdir -p /tmp/grass${major}${minor}/manuals/addons ; cd /tmp/grass${major}${minor}/manuals/addons
@@ -137,7 +145,7 @@ document as well as the <a href=\"https://trac.osgeo.org/grass/wiki/Submitting\"
 <p>
 See also log files of compilation:
 <a href=\"https://grass.osgeo.org/addons/grass${major}/logs\">Linux log files</a> |
-<a href=\"https://wingrass.fsv.cvut.cz/grass${major}${minor}/x86_64/addons/grass-${major}.${minor}.dev/logs/\">Windows log files</a>
+<a href=\"${win_log_url}\">Windows log files</a>
 
 </tr></table>
 <hr>
@@ -184,8 +192,8 @@ See also log files of compilation:
 }
 
 ## main
-# $3 is path to addons manual directory:
-generate $MAJOR $MINOR $3
+# $4 is path to addons manual directory:
+generate $MAJOR $MINOR $PATCH $4
 
 exit 0
 
