@@ -1,227 +1,179 @@
-<h2>DESCRIPTION</h2>  
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>r.survey.py - GRASS GIS manual</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" href="grassdocs.css" type="text/css">
+</head>
+<body bgcolor="white">
+<div id="container">
 
-<em>r.survey</em> is aimed at earth surface 
-analysis. It is useful for evaluating the visibility (in terms of 3D 
-Distance, Solid Angle and orientation of the terrain respect to the 
-line of sight) of  features lying on the terrain slope, like 
-landslides, road cuts, minor vegetation, mining activity, geological 
-outcrops, surface pipelines, parking areas, solar panels plants, burned 
-areas, etc. 
-<p>
- Depending on the purpose of the study, one can be 
-interested in searching the closest position to observe a given 
-territory while for others, having a frontal view can be more relevant. 
-In some cases, the objective could be the combined balance between the 
-closest and the most frontal view, in order to evaluate how much of the 
-human field of view is occupied by a given object (solid angle). 
-<p> 
-<em>r.survey</em> is deeply based on the powerful <em>r.viewshed</em> 
-GRASS GIS module.
-<p> 
-<em>r.survey</em> wants to provide the user the 
-necessary information to answer questions such as: 
-<ul> 
-<li> In a survey trip, from how many places is something visible?</li>
-<li> During a field work, which place would be the best position to observe 
-a given point/area (according to the distance, the angle or both)?</li>
-<li> Which portion of the territory is visible along a survey 
-path/flight?</li> 
-<li> Are objects of a given size visible from a 
-survey path/flight?</li> 
-</ul> 
-Three principal outputs (visibility 
-indexes) are given, based on trigonometric calculations in order to 
-provide qualitative and quantitative information about how the terrain 
-is perceived from the selected observation point (or viewpoint). This 
-information concerns the three-dimensional distance, the relative 
-orientation (View Angle) and the Solid Angle, of each target pixel with 
-respect to the viewpoint. 
-<p> 
-A map containing a set of points 
-describing the locations of the observer and a digital elevation model 
-(DEM) are the mandatory inputs for <em>r.survey</em>. <i>It is very 
-importante that all observation points have different categories, i.e. 
-cat values (see the examples below)</i>. 
-In addition, maps of buildings 
-and trees, portraying height information, can be used to alter the DEM. 
-In the case of trees map, apart from the height value, a third column 
-in the attribute table has to contain the standard deviation value 
-related to the heigh. This is used to simulate the rougness of forested 
-areas. 
-<p>
-Many other options can be set according to the aim of the 
-analysis, such as: observer height respect to the ground or respect to 
-an elevation datum (absolute elevation), maximum distance to perform 
-the calculations, a view-angle threshold to exclude, a priori, cell 
-oriented almost perpendicularly to the lines of sight, the average size 
-of the observed object. The input points map must be provided to the 
-tool as a vector layer. In case it represents the positions of a UAV, 
-an helicopter or of a satellite, it must include an attribute field 
-containing absolute elevation values with respect to a vertical datum 
-(the same datum used by the input DEM). Observer height (respect to the 
-ground, the default is 1.75 m) and maximum distance of observation 
-(default is 1000 m)  are parameters needed by the r.viewshed module. 
-The object radius is used to approximate, with an equivalent circle, 
-the minimum size of an object centered in the cells center and oriented 
-according to the slope and aspect of the cells. Since r.survey produces 
-different types of outputs, a name to be used for the prefix of the 
-output maps is requested.  
+<div><a href="index.html"><img src="grass_logo.png" alt="GRASS logo" /></a><hr />
+<h2>NAME</h2>
+<em><strong>r.survey.py</strong></em> - Returns maps of visibility indexes (3d distance, view angle and solid angle) from multiple survey points
+<h2>KEYWORDS</h2>
+<a href="visibility.html">visibility</a>, <a href="topic_survey.html">survey</a>
+<h2>SYNOPSIS</h2>
+<div><strong>r.survey.py</strong></div>
+<strong>r.survey.py --help</strong><br />
+<div><strong>r.survey.py</strong> [-<strong>bcd</strong>] <strong>points</strong>=<em>name</em> <strong>dem</strong>=<em>name</em> <strong>output</strong>=<em>name</em> <strong>maxdist</strong>=<em>float</em> [<strong>treesmap</strong>=<em>name</em>] [<strong>buildingsmap</strong>=<em>name</em>] <strong>obs_heigh</strong>=<em>string</em> [<strong>treesheigh</strong>=<em>string</em>] [<strong>treesheighdeviation</strong>=<em>string</em>] [<strong>buildingsheigh</strong>=<em>string</em>] [<strong>obsabselev</strong>=<em>string</em>] [<strong>layer</strong>=<em>string</em>] <strong>viewangle_threshold</strong>=<em>string</em> [<strong>object_radius</strong>=<em>string</em>] [<strong>nprocs</strong>=<em>integer</em>] [<strong>memory</strong>=<em>integer</em>] [--<strong>overwrite</strong>] [--<strong>help</strong>] [--<strong>verbose</strong>] [--<strong>quiet</strong>] [--<strong>ui</strong>]</div>
+<div>
+<h3>Flags:</h3>
+<dl>
+<dt><strong>-b</strong></dt>
+<dd>Create a simple visible-not visible raster map</dd>
+<dt><strong>-c</strong></dt>
+<dd>Consider the curvature of the earth (current ellipsoid)</dd>
+<dt><strong>-d</strong></dt>
+<dd>allow only downward view direction (can be used for drone view)</dd>
+<dt><strong>--overwrite</strong></dt>
+<dd>Allow output files to overwrite existing files</dd>
+<dt><strong>--help</strong></dt>
+<dd>Print usage summary</dd>
+<dt><strong>--verbose</strong></dt>
+<dd>Verbose module output</dd>
+<dt><strong>--quiet</strong></dt>
+<dd>Quiet module output</dd>
+<dt><strong>--ui</strong></dt>
+<dd>Force launching GUI dialog</dd>
+</dl>
+</div>
+<div>
+<h3>Parameters:</h3>
+<dl>
+<dt><strong>points</strong>=<em>name</em>&nbsp;<strong>[required]</strong></dt>
+<dd>Name of input vector map</dd>
+<dd>Name of the input points map (representing the survey location). It can not be a 3D vector layer.</dd>
+<dt><strong>dem</strong>=<em>name</em>&nbsp;<strong>[required]</strong></dt>
+<dd>Name of the input DEM layer</dd>
+<dt><strong>output</strong>=<em>name</em>&nbsp;<strong>[required]</strong></dt>
+<dd>Prefix for the output visibility layers</dd>
+<dt><strong>maxdist</strong>=<em>float</em>&nbsp;<strong>[required]</strong></dt>
+<dd>max distance from the input points</dd>
+<dd>Default: <em>1000</em></dd>
+<dt><strong>treesmap</strong>=<em>name</em></dt>
+<dd>Name of input vector map</dd>
+<dd>Name of the vector layer representing the forested areas</dd>
+<dt><strong>buildingsmap</strong>=<em>name</em></dt>
+<dd>Name of input vector map</dd>
+<dd>Name of the vector layer representing the buildings</dd>
+<dt><strong>obs_heigh</strong>=<em>double</em>&nbsp;<strong>[required]</strong></dt>
+<dd>observer_elevation</dd>
+<dd>Default: <em>1.75</em></dd>
+<dt><strong>treesheigh</strong>=<em>string</em></dt>
+<dd>field of the attribute table containing information about threes heigh</dd>
+<dt><strong>treesheighdeviation</strong>=<em>string</em></dt>
+<dd>field of the attribute table containing information about standard deviation value relate to the heigh</dd>
+<dt><strong>buildingsheigh</strong>=<em>string</em></dt>
+<dd>field of the attribute table containing information about buildings heigh</dd>
+<dt><strong>obsabselev</strong>=<em>string</em></dt>
+<dd>field of the attribute table containing information about observer absolute elevation above the same datum used by the DEM (e.g. geodetic elevation)</dd>
+<dt><strong>layer</strong>=<em>string</em></dt>
+<dd>layer of the attribute table of the point map (can be usefull for obsabselev option)</dd>
+<dd>Default: <em>1</em></dd>
+<dt><strong>viewangle_threshold</strong>=<em>double</em>&nbsp;<strong>[required]</strong></dt>
+<dd>cut the output layers at a given threshold value (between 90 and 180 degrees)</dd>
+<dd>Default: <em>90.01</em></dd>
+<dt><strong>object_radius</strong>=<em>double</em></dt>
+<dd>radius of the surveyed object in unit of map (default is half the DEM resolution)</dd>
+<dt><strong>nprocs</strong>=<em>integer</em></dt>
+<dd>Number of processes</dd>
+<dd>Default: <em>1</em></dd>
+<dt><strong>memory</strong>=<em>integer</em></dt>
+<dd>Amount of memory to use in MB (for r.viewshed analysis)</dd>
+<dd>Default: <em>500</em></dd>
+</dl>
+<h2>DESCRIPTION</h2>
+r.survey is aimed at earth surface analysis. It is useful for evaluating the visibility (in terms of 3D Distance, Solid Angle and orientation of the terrain respect to the line of sight) of features lying on the terrain slope, like landslides, road cuts, minor vegetation, mining activity, geological outcrops, surface pipelines, parking areas, solar panels plants, burned areas, etc.
+<p>Depending on the purpose of the study, one can be interested in searching the closest position to observe a given territory while for others, having a frontal view can be more relevant. In some cases, the objective could be the combined balance between the closest and the most frontal view, in order to evaluate how much of the human field of view is occupied by a given object (solid angle).</p>
+<p>r.survey is deeply based on the powerfull r.viewshed GRASS GIS module.</p>
+<p>r.survey wants to provide the user the necessary information to answer questions such as:</p>
+<p>In a survey trip, from how many places is something visible?</p>
+<p>During a field work, which place would be the best position to observe a given point/area (according to the distance, the angle or both)?</p>
+<p>Which portion of the territory is visible along a survey path/flight?</p>
+<p>Are objects of a given size visible from a survey path/flight?</p>
+<p>Three principal outputs (visibility indexes) are given, based on trigonometric calculations in order to provide qualitative and quantitative information about how the terrain is perceived from the selected observation point (or viewpoint). This information concerns the three-dimensional distance, the relative orientation (View Angle) and the Solid Angle, of each target pixel with respect to the viewpoint.</p>
+<p>A map containing a set of points describing the locations of the observer and a digital elevation model (DEM) are the mandatory inputs for r.survey. <strong>It is very importante that all observation points have different categories, i.e. cat values (see the examples below)</strong>. In addition, maps of buildings and trees, portraying height information, can be used to alter the DEM. In the case of trees map, apart from the height value, a third column in the attribute table has to contain the standard deviation value related to the heigh. This is used to simulate the rougness of forested areas.</p>
+<p>Many other options can be set according to the aim of the analysis, such as: observer height respect to the ground or respect to an elevation datum (absolute elevation), maximum distance to perform the calculations, a view-angle threshold to exclude, a priori, cell oriented almost perpendicularly to the lines of sight, the average size of the observed object. The input points map must be provided to the tool as a vector layer. In case it represents the positions of a UAV, an helicopter or of a satellite, it must include an attribute field containing absolute elevation values with respect to a vertical datum (the same datum used by the input DEM). Observer height (respect to the ground, the default is 1.75 m) and maximum distance of observation (default is 1000 m) are parameters needed by the r.viewshed module. The object radius is used to approximate, with an equivalent circle, the minimum size of an object centered in the cells center and oriented according to the slope and aspect of the cells. Since r.survey produces different types of outputs, a name to be used for the prefix of the output maps is requested.</p>
+<p>3D Distance is the three dimensional linear distance between a viewpoint and a target pixel (see the illutratio bellow). The min3dDistance map portrays the value of the minimum three-dimensional distance between each pixel and the closest viewpoint, in meters.</p>
+<p><img src="r.survey_figures/fig_2.png" alt="e3Ddistance" /></p>
+<p>Given a viewpoint, r.survey calculate the unit vector describing direction and sense of the line of sight between that viewpoint and each visible pixel (see illustration bellow). We define View Angle as the angle between the line of sight unit vector and the versor normal to the terrain surface in each pixel. The maxViewAngle map shows the value of the maximum View Angle between each pixel and the viewpoints, in degrees. It is a measure of the most frontal view each single cell is visible from. View angle output is always larger than 90\B0 and smaller than 180\B0.</p>
+<p><img src="r.survey_figures/View_Angle.png" alt="view angle" /></p>
+<p>Solid Angle is one of the best and most objective indicators for quantifying the visibility. The idea is that any observed object will be progressively less apreciable the more far away and the more tilted it is with regard to the viewpoint. As a consequence Solid Angle depends on the size of the observed object as well as on the distance and the orientation from where this object is observed. Solid Angle of a surface is, by definition, equal to the projected spherical surface in the evolving sphere divided by the square of the radius of the sphere. As an aproximation, we use the ellipse surface area in place of the projected spherical surface in the evolving sphere. The maxSolidAngle map shows the value of the maximum Solid Angle among those measured from the different viewpoints. In this map, the closest pixels to the observation points have to be interpreted with special attention, considering that the error, respect to the real Solid Angle, can reach until the 10% in the immediate neighbor pixels</p>
+<p>Other three maps (pointOfViewWithMin3dDistance, pointOfViewWithMmaxAngle and pointOfViewWithMmaxSolidAngle) are used to register, in each cell, the identifier of the viewpoints from where an observer can get, respectively, (i) the minimum values of 3D Distance, (ii) the maximum values of View Angle and (iii) the maximum value of the Solid Angle. Another relevant output is the numberOfViews map which portraits the number of viewpoints from where each pixel is visible.</p>
+<h2>INSTALLATION</h2>
+<h3>LINUX:</h3>
+<p>1) Download the compressed folder of r.survey from <a href="https://doi.org/10.5281/zenodo.3993140">https://doi.org/10.5281/zenodo.3993140</a> and decompress it.</p>
+<p>2) Copy the file <em>r.survey.py</em> into the folder <em>/usr/lib/grass78/scripts/</em></p>
+<p>3) Copy the file <em>r.survey.html</em> and the folder <em>r.survey_figures</em> into the directory <em>/usr/lib/grass78/docs/html/</em></p>
+<p>4) Open GRASS and run the following commands in order to verify if it works:</p>
+<div>
+<pre>r.survey --h </pre>
+</div>
+<div>
+<pre>g.manual r.survey </pre>
+</div>
+<h3>WINDOWS:</h3>
+<p>Depending on the type of GRASS installation carried out, the directory paths can slightly vary.</p>
+<p>1) Download the compressed folder of r.survey from <a href="https://doi.org/10.5281/zenodo.3993140">https://doi.org/10.5281/zenodo.3993140</a> and decompress it.</p>
+<p>2) Copy the file named <em>r.survey.bat</em> into the following directory:<em>C:\Program Files\GRASS GIS 7.8\bin\</em> (regular installation)or<em>C:\OSGeo4W64\apps\grass\grass78\bin\</em> (installation from OSGeo)</p>
+<p>3) Copy the file <em>r.survey.py</em> into the followin folder:<em>C:\Program Files\GRASS GIS 7.8\scripts\</em> (regular installation)or<em>C:\OSGeo4W64\apps\grass\grass78\scripts\</em> (installation from OSGeo)</p>
+<p>4) Copy the file <em>r.survey.html</em> and the folder <em>r.survey_figures</em> into the following directory:<em>C:\Program Files\GRASS GIS 7.8\docs\html\</em> (regular installation)or<em>C:\OSGeo4W64\apps\grass\grass78\docs\html\</em> (installation from OSGeo)</p>
+<p>5) Open GRASS and run the following commands in order to verify if it works:</p>
+<div>
+<pre>r.survey --h</pre>
+</div>
+<div>
+<pre>g.manual r.survey</pre>
+</div>
+<h2>NOTES</h2>
+<p>The software was designed as a GRASS GIS python module whose source code was written using the GRASS Scripting library and the pyGRASS library.</p>
+<p>Multi-core processing is used by r.survey for reducing the computational time. When the aim is to derive the values of the visibility indexes along a given path (e.g. a road or a UAV track) viewpoints can be very dense in terms of number per unit of distance and the more the viewpoints are, the longer the computational time becomes.</p>
+<p>Parallel computation was implemented exploiting the Python Multiprocessing library and the ability of GRASS GIS to set a temporary spatial region centered on the considered point without affecting the parallel computation of the other points.</p>
+<h2>EXAMPLES</h2>
+<p>The location used for the following examples can be downloaded from this folder. The name is R.SURVEY_Location</p>
+<p>1) The most common usage of this tool is to model the visivility from the roads, for which a set of points located along the roads is needed. We are going to create a sample of points each 50 meters along the road. </p>
+<div>
+<pre>g.region raster=dem
+v.build.polylines input=roads output=roads_poly cats=multi # Convert the road layer into polyline
+v.to.points input=roads_poly output=points_50 dmax=50 # A point is created each 50 meters
+## Ensure that each point has an independent category value ##
+v.category input=points_50 output=points_50_del option=del cat=-1
+v.category input=points_50_del output=points_50_add option=add cat=1
+</pre>
+</div>
+<p>2) This example shows how to run r.survey calculating the solid angle for an object of radius equal to 20 m and using 4 parallel processes. The height of a tower is considered as well into the calculations. </p>
+<div>
+<pre>g.region raster=Synthetic_valley
+r.survey points=Two_viewpoints dem=Synthetic_valley output=example maxdist=3000 buildingsmap=Tower buildingsheigh=Altitude object_radius=20 nprocs=4
+</pre>
+</div>
+<p>3) This example shows how to run r.survey calculating the same layers as in example 1, but this time the outputs are filtered by a View Angle threshold of 100 degrees. </p>
+<div>
+<pre>g.region raster=Synthetic_valley
+r.survey points=Two_viewpoints dem=Synthetic_valley output=example2 maxdist=3000 buildingsmap=Tower buildingsheigh=Altitude object_radius=20 nprocs=4 viewangle_threshold=100
+</pre>
+</div>
+<p>4) This example shows how to run r.survey in flight mode and with the downward view. The observation points correspond for the path of an UAV flying in a irregular height above the ground. A field with the points altitude information (above de sea level) is mandatory. </p>
+<div>
+<pre>g.region raster=Synthetic_valley
+r.survey -d points=Flight_viewpoints dem=Synthetic_valley output=example3 maxdist=3000 nprocs=4 obsabselev=Elevation
+</pre>
+</div>
+<h2><a name="references"></a>REFERENCES</h2>
+<ul>
+<li>Bornaetxea, T., Marchesini, I. <em>r.survey: a tool for calculating visibility of variable-size objects based on orientation</em>,<strong>International Journal of Geographical Information Science</strong>, <a href="https://www.tandfonline.com/doi/full/10.1080/13658816.2021.1942476">https://www.tandfonline.com/doi/full/10.1080/13658816.2021.1942476</a></li>
+</ul>
+<h2><a name="see-also"></a>SEE ALSO</h2>
+<p><em> <a href="r.viewshed.html">r.viewshed</a> </em></p>
+<h2><a name="authors"></a>AUTHORS</h2>
+<p>Ivan Marchesini - Research Institute for Geo-Hydrological Protection (IRPI) - Italian National Research Council (CNR), Perugia, Italy. E-mail: ivan.marchesini@irpi.cnr.it. ORCiD: 0000-0002-8342-3134 <br />Txomin Bornaetxea - Department of Geology, University of the Basque Country (UPV/EHU), Leioa, Spain. E-mail: txomin.bornaetxea@ehu.eus. ORCiD: 0000-0002-1540-3991 </p>
+<hr />
+<p><a href="index.html">Main index</a> | <a href="raster.html">Raster index</a> | <a href="topics.html">Topics index</a> | <a href="keywords.html">Keywords index</a> | <a href="graphical_index.html">Graphical index</a> | <a href="full_index.html">Full index</a></p>
+<p>&copy; 2003-2020 <a href="http://grass.osgeo.org">GRASS Development Team</a>, GRASS GIS 7.8.4dev Reference Manual</p>
+</div>
+</div>
 
-<p> 
-<p>
-
-3D Distance is the three 
-dimensional linear distance between a viewpoint and a target pixel (see 
-the illutratio bellow). The min3dDistance map portrays  the value of 
-the minimum three-dimensional distance between each pixel and the 
-closest viewpoint, in meters.
-<p>  
-
-<img src="r.survey_figures/fig_2.png" alt="e3Ddistance">  
-
-<p> 
-Given a 
-viewpoint, r.survey calculate the unit vector describing direction and 
-sense of the line of sight between that viewpoint and each visible 
-pixel (see illustration bellow). We define View Angle as the angle 
-between the unit vector representing the line of sight and the unit 
-vector normal to the terrain surface in each pixel. The maxViewAngle 
-map shows the value of the maximum View Angle between each pixel and 
-the viewpoints, in degrees. It is a measure of the most frontal view 
-each single cell is visible from.  View angle output is always larger 
-than 90&deg; and smaller than 180&deg;. 
-<p>  
-
-<img src="r.survey_figures/View_Angle.png" alt="view angle">   
-
-<p> 
-
-Solid Angle is one of the best and most objective indicators for quantifying 
-the visibility. The idea is that any observed object will be 
-progressively less appreciable the more far away and the more tilted it 
-is with regard to the viewpoint. As a consequence Solid Angle depends 
-on the size of the observed object as well as on the distance and the 
-orientation from where this object is observed. Solid Angle of a 
-surface is, by definition, equal to the projected spherical surface in 
-the evolving sphere divided by the square of the radius of the sphere. 
-As an aproximation, we use the ellipse surface area in place of the 
-projected spherical surface in the evolving sphere. The maxSolidAngle 
-map shows the value of the maximum Solid Angle (expressed in 
-steradians) among those measured from the different viewpoints. In this 
-map, the closest pixels to the observation points have to be 
-interpreted with special attention, considering that the error, respect 
-to the real Solid Angle, can reach until the 10% in the immediate 
-neighbor pixels. For reference: 1 sr is equal to approximately 3283 
-(deg<sup>2</sup>) square degrees and to 1.18 · 10<sup>7</sup> square 
-minutes (min<sup>2</sup>). It means that 2 · 10<sup>-6</sup> sr ≃ 23.6 
-min<sup>2</sup>. For comparison, letter acuity (the capacity to resolve 
-a letter) is approximately 25 min<sup>2</sup> for a human with perfect 
-vision and in controlled conditions, that is, high contrast between the 
-letters and the background. 
-<p> 
-Other three maps 
-(pointOfViewWithMin3dDistance, pointOfViewWithMmaxAngle and 
-pointOfViewWithMmaxSolidAngle) are used to register, in each cell, the 
-identifier of the viewpoints from where an observer can get, 
-respectively, (i) the minimum values of 3D Distance, (ii) the maximum 
-values of View Angle and (iii) the maximum value of the Solid Angle. 
-Another relevant output is the numberOfViews map which portraits the 
-number of viewpoints from where each pixel is visible.   
-
-
-<h2>NOTES</h2> 
-The software was designed as a GRASS GIS python module whose source 
-code was  written using the GRASS Scripting library and the pyGRASS 
-library. 
-<p> 
-Multi-core processing is used by <em>r.survey</em> for 
-reducing the computational time. When the aim is to derive the values 
-of the visibility indexes along a given path (e.g. a road or a UAV 
-track) viewpoints can be very dense in terms of number per unit of 
-distance and the more the viewpoints are,  the longer the computational 
-time becomes. 
-<p> 
-Parallel computation was implemented exploiting the 
-Python Multiprocessing library and the ability of GRASS GIS to set a 
-temporary spatial region centered on the considered point without 
-affecting the parallel computation of the other points. 
-
-
-<h2>EXAMPLES</h2> 
-The location used for the following examples can be 
-downloaded <a href="https://github.com/IvanMarchesini/r.survey.py">here</a>. The name 
-is R.SURVEY_Location   
-
-<h3>Visibility from roads</h3>  
-
-The most common 
-usage of this tool is to model the visibility from the roads, for which 
-a set of points located along the roads is needed. We are going to 
-create a sample of points each 50 meters along the road.  
-
-<br> 
-<div class="code"><pre> 
-g.region raster=dem v.build.polylines input=roads output=roads_poly cats=multi  # Convert the road layer into polyline 
-v.to.points input=roads_poly output=points_50 dmax=50  # A point is created each 50 meters  
-
-## Ensure that each point has an independent category value ## 
-v.category input=points_50 output=points_50_del option=del cat=-1 
-v.category input=points_50_del output=points_50_add option=add cat=1 
-</pre></div>  
-
-<h3>Running r.survey in parallel</h3> 
-This example shows how to run <em>r.survey</em> calculating the solid 
-angle for an object of radius equal to 20 m and using 4 parallel 
-processes. The height of a tower is considered as well into the 
-calculations.  
-
-<br> <div class="code"><pre> 
-g.region raster=Synthetic_valley 
-r.survey points=Two_viewpoints dem=Synthetic_valley output=example maxdist=3000 buildingsmap=Tower buildingsheigh=Altitude object_radius=20 nprocs=4 
-</pre></div> 
-
-<h3>Filter output by a view angle threshold</h3>  
-This example shows how to run </em>r.survey</em> calculating the same layers as in example 
-1, but this time the outputs are filtered by a View Angle threshold of 
-100 degrees. 
-
-<br> 
-<div class="code"><pre> 
-g.region raster=Synthetic_valley 
-r.survey points=Two_viewpoints dem=Synthetic_valley output=example2 maxdist=3000 buildingsmap=Tower buildingsheigh=Altitude object_radius=20 nprocs=4 viewangle_threshold=100 
-</pre></div>  
-
-<h3>Using r.survey in flight mode and with the downward view</h3>  
-
-This example shows how to run <em>r.survey</em> in flight mode and with the downward view.
-The observation points correspond for the path of an UAV flying in a irregular height above
-the ground. A field with the points altitude information (above de sea level) is mandatory.  
-<br> 
-<div class="code"><pre> 
-g.region raster=Synthetic_valley 
-r.survey -d points=Flight_viewpoints dem=Synthetic_valley output=example3 maxdist=3000 nprocs=4 obsabselev=Elevation 
-</pre></div> 
-
-<h2>REFERENCES</h2>  
-
-<ul> 
-<li>Bornaetxea, T., Marchesini, I. <i>r.survey: a tool for calculating visibility of variable-size objects based on orientation</i>, <b>International Journal of Geographical Information Science</b>, <a href="https://www.tandfonline.com/doi/full/10.1080/13658816.2021.1942476">https://www.tandfonline.com/doi/full/10.1080/13658816.2021.1942476</a> 
-</ul>  
-
-<h2>SEE ALSO</h2>  
-
-<em> 
-<a href="r.viewshed.html">r.viewshed</a>,  
-<a href="r.viewshed.cva.html">r.viewshed.cva</a>, 
-<a href="r.viewshed.exposure.html">r.viewshed.exposure</a>  
-</em>  
-
-<h2><a name="authors">AUTHORS</a></h2>  
-Ivan Marchesini - Research Institute 
-for Geo-Hydrological Protection (IRPI) - Italian National Research 
-Council (CNR), Perugia, Italy. E-mail: ivan.marchesini@irpi.cnr.it. 
-ORCiD: 0000-0002-8342-3134 
-<br> 
-Txomin Bornaetxea - Department of 
-Geology, University of the Basque Country (UPV/EHU), Leioa, Spain. 
-E-mail: txomin.bornaetxea@ehu.eus. ORCiD: 0000-0002-1540-3991
+</div>
+</body>
+</html>
