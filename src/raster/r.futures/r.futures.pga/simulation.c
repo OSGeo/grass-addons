@@ -186,7 +186,7 @@ void recompute_probabilities(struct Undeveloped *undeveloped_cells,
             
             /* realloc if needed */
             if (undeveloped_cells->num[region] >= undeveloped_cells->max[region]) {
-                new_size = 2 * undeveloped_cells->max[region];
+                new_size = 1.25 * undeveloped_cells->max[region];
                 undeveloped_cells->cells[region] = 
                         (struct UndevelopedCell *) G_realloc(undeveloped_cells->cells[region],
                                                              new_size * sizeof(struct UndevelopedCell));
@@ -288,8 +288,8 @@ void compute_step(struct Undeveloped *undev_cells, struct Demand *demand,
         }
     }
 
-    if (n_to_convert > undev_cells->num[region]) {
-        KeyValueIntInt_find(reverse_region_map, region, &region_id);
+    KeyValueIntInt_find(reverse_region_map, region, &region_id);
+    if (n_to_convert >= undev_cells->num[region]) {
         G_warning("Not enough undeveloped cells in region %d (requested: %d,"
                   " available: %ld). Converting all available.",
                   region_id, n_to_convert, undev_cells->num[region]);
@@ -298,6 +298,14 @@ void compute_step(struct Undeveloped *undev_cells, struct Demand *demand,
     }
     
     while (n_done < n_to_convert) {
+        /* too many failed attempts, can't develop here any more */
+        if (unsuccessful_tries > MAX_TRIES_ITER) {
+            G_warning("Too many failed attempts to find a seed for region %d, "
+                      "won't be able to develop %d cells.",
+                      region_id, n_to_convert - n_done);
+            break;
+        }
+
         /* if we can't find a seed, turn off the restriction to use only untried ones */
         if (!allow_already_tried_ones && unsuccessful_tries > MAX_SEED_ITER * n_to_convert)
             allow_already_tried_ones = true;
