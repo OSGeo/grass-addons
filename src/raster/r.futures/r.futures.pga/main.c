@@ -64,7 +64,7 @@
 #include "simulation.h"
 
 
-struct Undeveloped *initialize_undeveloped(int num_subregions)
+struct Undeveloped *initialize_undeveloped(int num_subregions, size_t undev_estimate)
 {
     struct Undeveloped *undev = (struct Undeveloped *) G_malloc(sizeof(struct Undeveloped));
     undev->max_subregions = num_subregions;
@@ -72,7 +72,8 @@ struct Undeveloped *initialize_undeveloped(int num_subregions)
     undev->num = (size_t *) G_calloc(undev->max_subregions, sizeof(size_t));
     undev->cells = (struct UndevelopedCell **) G_malloc(undev->max_subregions * sizeof(struct UndevelopedCell *));
     for (int i = 0; i < undev->max_subregions; i++){
-        undev->max[i] = (Rast_window_rows() * Rast_window_cols()) / num_subregions;
+        /* set smaller estimate, let large regions reallocate later */
+        undev->max[i] = 0.75 * undev_estimate / num_subregions;
         undev->cells[i] = (struct UndevelopedCell *) G_malloc(undev->max[i] * sizeof(struct UndevelopedCell));
     }
     return undev;
@@ -80,11 +81,11 @@ struct Undeveloped *initialize_undeveloped(int num_subregions)
 
 
 static int manage_memory(struct SegmentMemory *memory, struct Segments *segments,
-                         float input_memory)
+                         float input_memory, size_t undev_estimate)
 {
     int nseg, nseg_total;
     int cols, rows;
-    int undev_size;
+    size_t undev_size;
     size_t size;
     size_t estimate;
 
@@ -93,7 +94,7 @@ static int manage_memory(struct SegmentMemory *memory, struct Segments *segments
     rows = Rast_window_rows();
     cols = Rast_window_cols();
 
-    undev_size = (sizeof(size_t) + sizeof(float) * 2 + sizeof(bool)) * rows * cols;
+    undev_size = (sizeof(size_t) + sizeof(float) * 2 + sizeof(bool)) * undev_estimate;
     estimate = undev_size;
 
     if (input_memory > 0 && undev_size > 1e9 * input_memory)
@@ -172,6 +173,7 @@ int main(int argc, char **argv)
     int *patch_overflow;
     char *name_step;
     bool overgrow;
+    size_t undev_estimate;
 
     G_gisinit(argv[0]);
 
@@ -463,11 +465,6 @@ int main(int argc, char **argv)
     if (opt.potentialSubregions->answer) {
         segments.use_potential_subregions = true;
     }
-    memory = -1;
-    if (opt.memory->answer)
-        memory = atof(opt.memory->answer);
-    nseg = manage_memory(&segment_info, &segments, memory);
-    segment_info.in_memory = nseg;
 
     potential_info.incentive_transform_size = 0;
     potential_info.incentive_transform = NULL;
@@ -485,6 +482,13 @@ int main(int argc, char **argv)
         raster_inputs.weights = opt.potentialWeight->answer;
     if (opt.potentialSubregions->answer)
         raster_inputs.potential_regions = opt.potentialSubregions->answer;
+
+    undev_estimate = estimate_undev_size(raster_inputs);
+    memory = -1;
+    if (opt.memory->answer)
+        memory = atof(opt.memory->answer);
+    nseg = manage_memory(&segment_info, &segments, memory, undev_estimate);
+    segment_info.in_memory = nseg;
 
     //    read Subregions layer
     region_map = KeyValueIntInt_create();
@@ -524,7 +528,7 @@ int main(int argc, char **argv)
     patch_sizes.filename = opt.patchFile->answer;
     read_patch_sizes(&patch_sizes, region_map, discount_factor);
 
-    undev_cells = initialize_undeveloped(region_map->nitems);
+    undev_cells = initialize_undeveloped(region_map->nitems, undev_estimate);
     patch_overflow = G_calloc(region_map->nitems, sizeof(int));
     /* here do the modeling */
     overgrow = true;

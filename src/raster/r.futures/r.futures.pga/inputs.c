@@ -25,6 +25,41 @@
 #include "inputs.h"
 
 /*!
+ * \brief Estimate number of undeveloped cells for later memory requirements
+ * \param inputs raster inputs
+ * \return number of estimated undeveloped cells
+ */
+size_t estimate_undev_size(struct RasterInputs inputs)
+{
+    int row, col;
+    int rows, cols;
+    int fd_developed;
+    CELL *developed_row;
+    size_t undeveloped;
+    int skip_rows = 4;
+
+    rows = Rast_window_rows();
+    cols = Rast_window_cols();
+    fd_developed = Rast_open_old(inputs.developed, "");
+    developed_row = Rast_allocate_buf(CELL_TYPE);
+    undeveloped = row = 0;
+
+    while (row < rows) {
+        Rast_get_row(fd_developed, developed_row, row, CELL_TYPE);
+        for (col = 0; col < cols; col++) {
+            if (!Rast_is_null_value(&((CELL *) developed_row)[col], CELL_TYPE)) {
+                if (((CELL *) developed_row)[col] == 0)
+                    undeveloped++;
+            }
+        }
+        row += skip_rows;
+    }
+    Rast_close(fd_developed);
+    G_free(developed_row);
+    return undeveloped * skip_rows;
+}
+
+/*!
  * \brief Initialize arrays for transformation of probability values
  * \param potential_info
  * \param exponent

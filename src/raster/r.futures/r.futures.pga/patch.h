@@ -8,6 +8,7 @@
 
 #define MAX_CANDIDATE_ITER 100
 #define MAX_SEED_ITER 20
+#define MAX_TRIES_ITER 1000
 
 enum slow_grow { FORCE_GROW, SKIP };
 
