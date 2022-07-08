@@ -24,119 +24,119 @@ This program is free software under the GNU General Public License
 (>=v2). Read the file COPYING that comes with GRASS for details.
 """
 
-#%Module
-#% description: Calculates annual soil loss [t/(ha*a)] for bare soil. Use r.soillosscropland.py afterwards for grown soil.
-#% keyword: erosion
-#% keyword: raster
-#% keyword: bare soil
-#% keyword: potential soilloss
-#%end
+# %Module
+# % description: Calculates annual soil loss [t/(ha*a)] for bare soil. Use r.soillosscropland.py afterwards for grown soil.
+# % keyword: erosion
+# % keyword: raster
+# % keyword: bare soil
+# % keyword: potential soilloss
+# %end
 
-#%option
-#%  key: soillossbare
-#%  type: string
-#%  key_desc: name
-#%  gisprompt: new,cell,raster
-#%  description:  Output map (soilloss for ungrown soil)
-#%  required: yes
-#%end
+# %option
+# %  key: soillossbare
+# %  type: string
+# %  key_desc: name
+# %  gisprompt: new,cell,raster
+# %  description:  Output map (soilloss for ungrown soil)
+# %  required: yes
+# %end
 
-#%option
-#%  key: flowaccmethod
-#%  key_desc: name
-#%  description: Module for flowaccumulation calculation
-#%  options: r.terraflow,r.flow,r.watershed
-#%  answer: r.terraflow
-#%  required: yes
-#%  multiple:no
-#%end
+# %option
+# %  key: flowaccmethod
+# %  key_desc: name
+# %  description: Module for flowaccumulation calculation
+# %  options: r.terraflow,r.flow,r.watershed
+# %  answer: r.terraflow
+# %  required: yes
+# %  multiple:no
+# %end
 
-#%option
-#%  key: elevation
-#%  type: string
-#%  key_desc: name
-#%  gisprompt: old,cell,raster
-#%  description: Digital Elevation Model
-#%  required: yes
-#%end
+# %option
+# %  key: elevation
+# %  type: string
+# %  key_desc: name
+# %  gisprompt: old,cell,raster
+# %  description: Digital Elevation Model
+# %  required: yes
+# %end
 
-#%option
-#%  key: resolution
-#%  key_desc: float
-#%  type: string
-#%  description: Resolution of Digital Elevation Model (x y)
-#%  required: yes
-#%  answer: 2
-#%end
+# %option
+# %  key: resolution
+# %  key_desc: float
+# %  type: string
+# %  description: Resolution of Digital Elevation Model (x y)
+# %  required: yes
+# %  answer: 2
+# %end
 
-#%option
-#%  key: kfactor
-#%  type: string
-#%  key_desc: name
-#%  gisprompt: old,cell,raster
-#%  description: K-Factor (soil erodibility factor)
-#%  required: yes
-#%end
+# %option
+# %  key: kfactor
+# %  type: string
+# %  key_desc: name
+# %  gisprompt: old,cell,raster
+# %  description: K-Factor (soil erodibility factor)
+# %  required: yes
+# %end
 
-#%option
-#%  key: rfactor
-#%  key_desc: name
-#%  type: string
-#%  gisprompt: old,cell,raster
-#%  description: R-Factor (rain erosivity factor)
-#%  required: yes
-#%end
+# %option
+# %  key: rfactor
+# %  key_desc: name
+# %  type: string
+# %  gisprompt: old,cell,raster
+# %  description: R-Factor (rain erosivity factor)
+# %  required: yes
+# %end
 
-#%option
-#%  key: fieldblock
-#%  key_desc: name
-#%  type: string
-#%  gisprompt: old,cell,raster
-#%  description: Fieldblock raster map with NULL/0-values as barrier
-#%  required: no
-#%end
+# %option
+# %  key: fieldblock
+# %  key_desc: name
+# %  type: string
+# %  gisprompt: old,cell,raster
+# %  description: Fieldblock raster map with NULL/0-values as barrier
+# %  required: no
+# %end
 
-#%option
-#%  key: map
-#%  key_desc: name
-#%  type: string
-#%  gisprompt: old,vector,vector
-#%  description: Fieldblock vector map
-#%  required: no
-#%end
+# %option
+# %  key: map
+# %  key_desc: name
+# %  type: string
+# %  gisprompt: old,vector,vector
+# %  description: Fieldblock vector map
+# %  required: no
+# %end
 
 
-#%option
-#%  key: flowacc
-#%  type: string
-#%  key_desc: name
-#%  gisprompt: old,cell,raster
-#%  description: Flowaccumulation raster map (instead of calculation)
-#%  required: no
-#%end
+# %option
+# %  key: flowacc
+# %  type: string
+# %  key_desc: name
+# %  gisprompt: old,cell,raster
+# %  description: Flowaccumulation raster map (instead of calculation)
+# %  required: no
+# %end
 
-#%option
-#%  key: constant_m
-#%  key_desc: float
-#%  type: string
-#%  description: RUSLE3D exponential m (0.2..0.6)
-#%  answer: 0.4
-#%  required: no
-#%end
+# %option
+# %  key: constant_m
+# %  key_desc: float
+# %  type: string
+# %  description: RUSLE3D exponential m (0.2..0.6)
+# %  answer: 0.4
+# %  required: no
+# %end
 
-#%option
-#%  key: constant_n
-#%  key_desc: float
-#%  type: string
-#%  description: RUSLE3D exponential n (1.2..1.6)
-#%  answer: 1.3
-#%  required: no
-#%end
+# %option
+# %  key: constant_n
+# %  key_desc: float
+# %  type: string
+# %  description: RUSLE3D exponential n (1.2..1.6)
+# %  answer: 1.3
+# %  required: no
+# %end
 
-#%flag
-#%  key: r
-#%  description: Remove intermediate results
-#%end
+# %flag
+# %  key: r
+# %  description: Remove intermediate results
+# %end
 
 
 import sys

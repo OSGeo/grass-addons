@@ -15,152 +15,152 @@
 #
 ############################################################################
 
-#%Module
-#% description: Imports and performs atmospheric correction of Sentinel-2 images.
-#% keyword: imagery
-#% keyword: satellite
-#% keyword: Sentinel
-#% keyword: download
-#% keyword: import
-#% keyword: atmospheric correction
-#%End
-#%option G_OPT_M_DIR
-#% key: input_dir
-#% description: Name of the directory where the image and metadata file are stored (*.SAFE)
-#% required : yes
-#%end
-#%option G_OPT_R_ELEV
-#% required : yes
-#%end
-#%option G_OPT_R_INPUT
-#% key: visibility
-#% description: Name of input visibility raster map (in m)
-#% required : no
-#% guisection: Input
-#%end
-#%option
-#% key: atmospheric_model
-#% type: string
-#% description: Select the proper Atmospheric model
-#% options: Automatic,No gaseous absorption,Tropical,Midlatitude summer,Midlatitude winter,Subarctic summer,Subarctic winter,Us standard 62
-#% answer: Automatic
-#% required : yes
-#% multiple: no
-#% guisection: 6S Parameters
-#%end
-#%option
-#% key: aerosol_model
-#% type: string
-#% description: Select the proper Aerosol model
-#% options: No aerosols,Continental model,Maritime model,Urban model,Shettle model for background desert aerosol,Biomass burning,Stratospheric model
-#% answer: Continental model
-#% required : yes
-#% multiple: no
-#% guisection: 6S Parameters
-#%end
-#%option
-#% key: aod_value
-#% type: string
-#% description: AOD value at 550nm
-#% required : no
-#% guisection: 6S Parameters
-#%end
-#%option G_OPT_F_INPUT
-#% key: aeronet_file
-#% description: Name of the AERONET file for computing AOD at 550nm
-#% required : no
-#% guisection: 6S Parameters
-#%end
-#%option
-#% key: suffix
-#% type: string
-#% description: Suffix for output raster maps
-#% required : yes
-#%end
-#%option
-#% key: rescale
-#% key_desc: min,max
-#% type: string
-#% description: Rescale output raster map
-#% answer: 0,1
-#% required : no
-#% guisection: Output
-#%end
-#%option G_OPT_F_OUTPUT
-#% key: text_file
-#% description: Name for output text file to be used as input in i.sentinel.mask
-#% required : no
-#% guisection: Output
-#%end
-#%option
-#% key: topo_method
-#% description: Topographic correction method
-#% options: cosine, minnaert, c-factor, percent
-#% required : no
-#% guisection: Input
-#%end
-#%option
-#% key: topo_prefix
-#% description: Prefix for topographic corrected images
-#% required : no
-#% answer: tcor
-#% guisection: Output
-#%end
-#%option
-#% key: memory
-#% type: integer
-#% required: no
-#% multiple: no
-#% label: Maximum memory to be used (in MB)
-#% description: Cache size for raster rows
-#% answer: 300
-#%end
-#%flag
-#% key: a
-#% description: Use AOD instead visibility
-#% guisection: 6S Parameters
-#%end
-#%flag
-#% key: t
-#% description: Create the input text file for i.sentinel.mask
-#% guisection: Output
-#%end
-#%flag
-#% key: r
-#% description: Reproject raster data using r.import if needed
-#% guisection: Input
-#%end
-#%flag
-#% key: i
-#% description: Skip import of Sentinel bands
-#% guisection: Input
-#%end
-#%flag
-#% key: c
-#% description: Computes topographic correction of reflectance
-#% guisection: Input
-#%end
-#%flag
-#% key: l
-#% description: Link raster data instead of importing
-#% guisection: Settings
-#%end
-#%flag
-#% key: o
-#% description: Override projection check (use current location's projection)
-#% guisection: Settings
-#%end
-#%rules
-#% requires: -t,text_file
-#% requires: text_file,-t
-#% required: aod_value,aeronet_file,visibility
-#% requires: aod_value,-a
-#% requires: aeronet_file,-a
-#% requires: -a,aod_value,aeronet_file
-#% exclusive: -a,visibility
-#% exclusive: -l,-r
-#% exclusive: -o,-r
-#%end
+# %Module
+# % description: Imports and performs atmospheric correction of Sentinel-2 images.
+# % keyword: imagery
+# % keyword: satellite
+# % keyword: Sentinel
+# % keyword: download
+# % keyword: import
+# % keyword: atmospheric correction
+# %End
+# %option G_OPT_M_DIR
+# % key: input_dir
+# % description: Name of the directory where the image and metadata file are stored (*.SAFE)
+# % required : yes
+# %end
+# %option G_OPT_R_ELEV
+# % required : yes
+# %end
+# %option G_OPT_R_INPUT
+# % key: visibility
+# % description: Name of input visibility raster map (in m)
+# % required : no
+# % guisection: Input
+# %end
+# %option
+# % key: atmospheric_model
+# % type: string
+# % description: Select the proper Atmospheric model
+# % options: Automatic,No gaseous absorption,Tropical,Midlatitude summer,Midlatitude winter,Subarctic summer,Subarctic winter,Us standard 62
+# % answer: Automatic
+# % required : yes
+# % multiple: no
+# % guisection: 6S Parameters
+# %end
+# %option
+# % key: aerosol_model
+# % type: string
+# % description: Select the proper Aerosol model
+# % options: No aerosols,Continental model,Maritime model,Urban model,Shettle model for background desert aerosol,Biomass burning,Stratospheric model
+# % answer: Continental model
+# % required : yes
+# % multiple: no
+# % guisection: 6S Parameters
+# %end
+# %option
+# % key: aod_value
+# % type: string
+# % description: AOD value at 550nm
+# % required : no
+# % guisection: 6S Parameters
+# %end
+# %option G_OPT_F_INPUT
+# % key: aeronet_file
+# % description: Name of the AERONET file for computing AOD at 550nm
+# % required : no
+# % guisection: 6S Parameters
+# %end
+# %option
+# % key: suffix
+# % type: string
+# % description: Suffix for output raster maps
+# % required : yes
+# %end
+# %option
+# % key: rescale
+# % key_desc: min,max
+# % type: string
+# % description: Rescale output raster map
+# % answer: 0,1
+# % required : no
+# % guisection: Output
+# %end
+# %option G_OPT_F_OUTPUT
+# % key: text_file
+# % description: Name for output text file to be used as input in i.sentinel.mask
+# % required : no
+# % guisection: Output
+# %end
+# %option
+# % key: topo_method
+# % description: Topographic correction method
+# % options: cosine, minnaert, c-factor, percent
+# % required : no
+# % guisection: Input
+# %end
+# %option
+# % key: topo_prefix
+# % description: Prefix for topographic corrected images
+# % required : no
+# % answer: tcor
+# % guisection: Output
+# %end
+# %option
+# % key: memory
+# % type: integer
+# % required: no
+# % multiple: no
+# % label: Maximum memory to be used (in MB)
+# % description: Cache size for raster rows
+# % answer: 300
+# %end
+# %flag
+# % key: a
+# % description: Use AOD instead visibility
+# % guisection: 6S Parameters
+# %end
+# %flag
+# % key: t
+# % description: Create the input text file for i.sentinel.mask
+# % guisection: Output
+# %end
+# %flag
+# % key: r
+# % description: Reproject raster data using r.import if needed
+# % guisection: Input
+# %end
+# %flag
+# % key: i
+# % description: Skip import of Sentinel bands
+# % guisection: Input
+# %end
+# %flag
+# % key: c
+# % description: Computes topographic correction of reflectance
+# % guisection: Input
+# %end
+# %flag
+# % key: l
+# % description: Link raster data instead of importing
+# % guisection: Settings
+# %end
+# %flag
+# % key: o
+# % description: Override projection check (use current location's projection)
+# % guisection: Settings
+# %end
+# %rules
+# % requires: -t,text_file
+# % requires: text_file,-t
+# % required: aod_value,aeronet_file,visibility
+# % requires: aod_value,-a
+# % requires: aeronet_file,-a
+# % requires: -a,aod_value,aeronet_file
+# % exclusive: -a,visibility
+# % exclusive: -l,-r
+# % exclusive: -o,-r
+# %end
 
 import grass.script as gscript
 import xml.etree.ElementTree as et

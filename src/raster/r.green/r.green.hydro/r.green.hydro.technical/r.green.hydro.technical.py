@@ -16,209 +16,209 @@
 ############################################################################
 #
 #
-#%module
-#% description: Hydropower potential with technical constraints
-#% keyword: raster
-#% keyword: hydropower
-#% keyword: renewable energy
-#% overwrite: yes
-#%end
-#%option G_OPT_V_INPUT
-#% key: plant
-#% type: string
-#% label: Name of input vector map with segments of potential plants
-#% required: yes
-#%end
-#%option G_OPT_R_ELEV
-#%  required: yes
-#%end
-#%option G_OPT_V_FIELD
-#%  key: plant_layer
-#%  label: Name of the vector map layer of the plants
-#%  required: no
-#%  answer: 1
-#%  guisection: Input columns
-#%end
-#%option
-#%  key: plant_column_plant_id
-#%  type: string
-#%  description: Column name with the plant id
-#%  required: no
-#%  answer: plant_id
-#%  guisection: Input columns
-#%end
-#%option
-#%  key: plant_column_point_id
-#%  type: string
-#%  description: Column name with the point id
-#%  required: no
-#%  answer: cat
-#%  guisection: Input columns
-#%end
-#%option
-#%  key: plant_column_elevup
-#%  type: string
-#%  description: Column name with the elevation value at the intake (upstream) [m]
-#%  required: no
-#%  answer: elev_up
-#%  guisection: Input columns
-#%end
-#%option
-#%  key: plant_column_elevdown
-#%  type: string
-#%  description: Column name with the elevation value at the restitution (downstream) [m]
-#%  required: no
-#%  answer: elev_down
-#%  guisection: Input columns
-#%end
-#%option
-#%  key: plant_column_discharge
-#%  type: string
-#%  description: Column name with the discharge values [m3/s]
-#%  required: no
-#%  answer: discharge
-#%  guisection: Input columns
-#%end
-#%option
-#%  key: plant_column_power
-#%  type: string
-#%  description: Column name with the potential power [kW]
-#%  required: no
-#%  answer: pot_power
-#%  guisection: Input columns
-#%end
-#%flag
-#% key: d
-#% description: Debug with intermediate maps
-#%end
-#%flag
-#% key: c
-#% description: Clean vector lines
-#%end
-#%option G_OPT_V_OUTPUT
-#% key: output_struct
-#% label: Name of output vector with potential plants and their structure
-#%end
-#%option G_OPT_V_INPUT
-#% key: input_struct
-#% label: Name of input vector with potential plants and their structure
-#% required: no
-#%end
-#%option G_OPT_V_OUTPUT
-#% key: output_plant
-#% label: Name of output vector map with segments of potential plants
-#% required: yes
-#%end
-#%option G_OPT_V_OUTPUT
-#% key: output_point
-#% label: Name of output vector map with potential intakes and restitution
-#% required: no
-#%end
-#%option
-#% key: ks_derivation
-#% type: double
-#% description: Strickler coefficient of the derivation [m^(1/3)/s]
-#% required: no
-#% answer: 75
-#% guisection: Head losses
-#%end
-#%option
-#% key: velocity_derivation
-#% type: double
-#% description: Flow velocity in the derivation pipe [m/s]
-#% required: no
-#% answer: 1.
-#% guisection: Head losses
-#%end
-#%option
-#% key: percentage_losses
-#% type: double
-#% description: Percentage of losses (/gross head), if the diameter is not defined [%]
-#% required: no
-#% answer: 4
-#% guisection: Head losses
-#%end
-#%option
-#% key: roughness_penstock
-#% type: double
-#% description: Roughness of the penstock [mm]
-#% required: no
-#% answer: 0.015
-#% guisection: Head losses
-#%end
-#%option
-#% key: turbine_folder
-#% type: string
-#% description: Path to the folder containing the text file with info about all kind of turbines
-#% required: yes
-#% answer:
-#% guisection: Turbine
-#%end
-#%option
-#% key: turbine_list
-#% type: string
-#% description: Path to the text file containing the list of the turbines considered
-#% required: yes
-#% answer:
-#% guisection: Turbine
-#%end
-#%option
-#% key: n
-#% type: double
-#% description: Number of operative hours per year [hours/year]
-#% required: no
-#% answer: 3392
-#% guisection: Efficiency
-#%end
-#%option
-#% key: efficiency_shaft
-#% type: double
-#% description: Efficiency of the shaft (bearings friction) [-]
-#% required: no
-#% answer: 1
-#% guisection: Efficiency
-#%end
-#%option
-#% key: efficiency_alt
-#% type: double
-#% description: Efficiency of the alternator [-]
-#% required: no
-#% answer: 0.96
-#% guisection: Efficiency
-#%end
-#%option
-#% key: efficiency_transf
-#% type: double
-#% description: Efficiency of the transformer (magnetic losses) [-]
-#% required: no
-#% answer: 0.99
-#% guisection: Efficiency
-#%end
-#%option
-#%  key: ndigits
-#%  type: integer
-#%  description: Number of digits to use for the elevation in the contour line vector map
-#%  required: no
-#%  answer: 0
-#%  guisection: Contour
-#%end
-#%option
-#%  key: resolution
-#%  type: double
-#%  description: Resolution use for the contour line vector map, if 0.25 approximate 703.31 tp 703.25
-#%  required: no
-#%  guisection: Contour
-#%end
-#%option G_OPT_V_OUTPUT
-#%  key: contour
-#%  description: Name of the contour line vector map
-#%  required: no
-#%  guisection: Contour
-#%end
+# %module
+# % description: Hydropower potential with technical constraints
+# % keyword: raster
+# % keyword: hydropower
+# % keyword: renewable energy
+# % overwrite: yes
+# %end
+# %option G_OPT_V_INPUT
+# % key: plant
+# % type: string
+# % label: Name of input vector map with segments of potential plants
+# % required: yes
+# %end
+# %option G_OPT_R_ELEV
+# %  required: yes
+# %end
+# %option G_OPT_V_FIELD
+# %  key: plant_layer
+# %  label: Name of the vector map layer of the plants
+# %  required: no
+# %  answer: 1
+# %  guisection: Input columns
+# %end
+# %option
+# %  key: plant_column_plant_id
+# %  type: string
+# %  description: Column name with the plant id
+# %  required: no
+# %  answer: plant_id
+# %  guisection: Input columns
+# %end
+# %option
+# %  key: plant_column_point_id
+# %  type: string
+# %  description: Column name with the point id
+# %  required: no
+# %  answer: cat
+# %  guisection: Input columns
+# %end
+# %option
+# %  key: plant_column_elevup
+# %  type: string
+# %  description: Column name with the elevation value at the intake (upstream) [m]
+# %  required: no
+# %  answer: elev_up
+# %  guisection: Input columns
+# %end
+# %option
+# %  key: plant_column_elevdown
+# %  type: string
+# %  description: Column name with the elevation value at the restitution (downstream) [m]
+# %  required: no
+# %  answer: elev_down
+# %  guisection: Input columns
+# %end
+# %option
+# %  key: plant_column_discharge
+# %  type: string
+# %  description: Column name with the discharge values [m3/s]
+# %  required: no
+# %  answer: discharge
+# %  guisection: Input columns
+# %end
+# %option
+# %  key: plant_column_power
+# %  type: string
+# %  description: Column name with the potential power [kW]
+# %  required: no
+# %  answer: pot_power
+# %  guisection: Input columns
+# %end
+# %flag
+# % key: d
+# % description: Debug with intermediate maps
+# %end
+# %flag
+# % key: c
+# % description: Clean vector lines
+# %end
+# %option G_OPT_V_OUTPUT
+# % key: output_struct
+# % label: Name of output vector with potential plants and their structure
+# %end
+# %option G_OPT_V_INPUT
+# % key: input_struct
+# % label: Name of input vector with potential plants and their structure
+# % required: no
+# %end
+# %option G_OPT_V_OUTPUT
+# % key: output_plant
+# % label: Name of output vector map with segments of potential plants
+# % required: yes
+# %end
+# %option G_OPT_V_OUTPUT
+# % key: output_point
+# % label: Name of output vector map with potential intakes and restitution
+# % required: no
+# %end
+# %option
+# % key: ks_derivation
+# % type: double
+# % description: Strickler coefficient of the derivation [m^(1/3)/s]
+# % required: no
+# % answer: 75
+# % guisection: Head losses
+# %end
+# %option
+# % key: velocity_derivation
+# % type: double
+# % description: Flow velocity in the derivation pipe [m/s]
+# % required: no
+# % answer: 1.
+# % guisection: Head losses
+# %end
+# %option
+# % key: percentage_losses
+# % type: double
+# % description: Percentage of losses (/gross head), if the diameter is not defined [%]
+# % required: no
+# % answer: 4
+# % guisection: Head losses
+# %end
+# %option
+# % key: roughness_penstock
+# % type: double
+# % description: Roughness of the penstock [mm]
+# % required: no
+# % answer: 0.015
+# % guisection: Head losses
+# %end
+# %option
+# % key: turbine_folder
+# % type: string
+# % description: Path to the folder containing the text file with info about all kind of turbines
+# % required: yes
+# % answer:
+# % guisection: Turbine
+# %end
+# %option
+# % key: turbine_list
+# % type: string
+# % description: Path to the text file containing the list of the turbines considered
+# % required: yes
+# % answer:
+# % guisection: Turbine
+# %end
+# %option
+# % key: n
+# % type: double
+# % description: Number of operative hours per year [hours/year]
+# % required: no
+# % answer: 3392
+# % guisection: Efficiency
+# %end
+# %option
+# % key: efficiency_shaft
+# % type: double
+# % description: Efficiency of the shaft (bearings friction) [-]
+# % required: no
+# % answer: 1
+# % guisection: Efficiency
+# %end
+# %option
+# % key: efficiency_alt
+# % type: double
+# % description: Efficiency of the alternator [-]
+# % required: no
+# % answer: 0.96
+# % guisection: Efficiency
+# %end
+# %option
+# % key: efficiency_transf
+# % type: double
+# % description: Efficiency of the transformer (magnetic losses) [-]
+# % required: no
+# % answer: 0.99
+# % guisection: Efficiency
+# %end
+# %option
+# %  key: ndigits
+# %  type: integer
+# %  description: Number of digits to use for the elevation in the contour line vector map
+# %  required: no
+# %  answer: 0
+# %  guisection: Contour
+# %end
+# %option
+# %  key: resolution
+# %  type: double
+# %  description: Resolution use for the contour line vector map, if 0.25 approximate 703.31 tp 703.25
+# %  required: no
+# %  guisection: Contour
+# %end
+# %option G_OPT_V_OUTPUT
+# %  key: contour
+# %  description: Name of the contour line vector map
+# %  required: no
+# %  guisection: Contour
+# %end
 
-#%rules
-#% exclusive: input_struct,output_struct
-#%end
+# %rules
+# % exclusive: input_struct,output_struct
+# %end
 
 # import system libraries
 from __future__ import print_function
@@ -279,12 +279,12 @@ def diam_pen(discharge, length, gross_head, percentage, epsilon=0.015):
     def diam(x, *args):
         q, l, h, p, e = args
         return sqrt(
-            (100 * 8 * l * q ** 2) / (p * h * pi ** 2 * 9.81 * x ** 5)
+            (100 * 8 * l * q**2) / (p * h * pi**2 * 9.81 * x**5)
         ) + 2 * log10(
             (e * 0.001) / (3.71 * x)
             + (2.51 * 0.000001 * pi)
             / (4 * q * l)
-            * sqrt((100 * 8 * l * q ** 2) / (p * h * pi ** 2 * 9.81 * x))
+            * sqrt((100 * 8 * l * q**2) / (p * h * pi**2 * 9.81 * x))
         )
 
     out = fsolve(diam, 0.1, args=(discharge, length, gross_head, percentage, epsilon))[
@@ -333,14 +333,14 @@ def losses_Colebrooke(discharge, length, diameter, epsilon=0.015):
         first_log_arg = (e * 0.001) / (3.71 * d)  # epsilon [mm]
         rho_water = 1000.0  # kg/m2
         mu_water = 0.001  # Pa
-        vel = discharge / (pi * d ** 2.0 / 4.0)
+        vel = discharge / (pi * d**2.0 / 4.0)
         re_number = rho_water * vel * d / mu_water
         return x + 2 * log10(first_log_arg + 2.51 * x / re_number)
 
     out = fsolve(coeff_f, 0, args=(discharge, diameter, epsilon))
-    f = 1 / out ** 2
-    h_colebrooke = (f[0] * 8 * length * discharge ** 2) / (
-        pi ** 2 * diameter ** 5 * 9.81
+    f = 1 / out**2
+    h_colebrooke = (f[0] * 8 * length * discharge**2) / (
+        pi**2 * diameter**5 * 9.81
     )
     return h_colebrooke
 
@@ -376,7 +376,7 @@ def losses_Strickler(discharge, length, diameter, theta, velocity, ks=75):
     """
     # circolar section
     r = diameter * 0.5
-    A = 0.5 * r ** 2 * (2 * pi - theta + sin(theta))
+    A = 0.5 * r**2 * (2 * pi - theta + sin(theta))
     pw = r * (2 * pi - theta)
     Rh = A / pw
 
@@ -387,7 +387,7 @@ def losses_Strickler(discharge, length, diameter, theta, velocity, ks=75):
     #   i = v**2 / (ks**2 * Rh ** (4/3))
     #   hs = i * l
 
-    return velocity ** 2 / (ks ** 2 * Rh ** (4.0 / 3.0)) * length
+    return velocity**2 / (ks**2 * Rh ** (4.0 / 3.0)) * length
 
 
 def singular_losses(gross_head, length, discharge, diameter_penstock):
@@ -398,7 +398,7 @@ def singular_losses(gross_head, length, discharge, diameter_penstock):
             0.5
             + (gross_head / length) ** 2
             + 2 * (sin(asin(min(1, gross_head / length)) / 2)) ** 4
-        ) * ((8 * discharge ** 2) / (9.81 * pi ** 2 * diameter_penstock ** 4))
+        ) * ((8 * discharge**2) / (9.81 * pi**2 * diameter_penstock**4))
     else:
         h_sing = 0
     return h_sing
@@ -464,7 +464,7 @@ def compute_losses(
                             roughness_penstock,
                         )
                         line.attrs["diameter"] = diameter
-                    length = (length ** 2.0 + gross_head ** 2.0) ** 0.5
+                    length = (length**2.0 + gross_head**2.0) ** 0.5
                     if gross_head > length:
                         msgr = get_msgr()
                         msgr.warning(

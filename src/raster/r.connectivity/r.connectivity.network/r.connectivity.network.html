@@ -1,15 +1,15 @@
 <h2>DESCRIPTION</h2>
 
 r.connectivity.network is the 2nd tool of the r.connectivity.* tool-set and 
-performs network analysis (usig the igraph-package in R). It requires a network 
-dataset produced with r.connectivity.distance, and conducts analysis on graph, 
+performs network analysis (using the igraph-package in R). It requires a network 
+dataset produced with r.connectivity.distance, and conducts analysis on the graph, 
 edge and vertex level.
 
 <p>The analysis is based on a negative exponential decay kernel (as described 
 e.g. in Bunn et al. (2000), which characterizes the probability of dispersal 
 over increasing cost distance. The user can modify the function and thus 
 form of the kernel according to the dispersal characteristics of her/his 
-species or habitat type. Form of the curve can be controled with the <b>base</b> 
+species or habitat type. Form of the curve can be controlled with the <b>base</b> 
 and <b>exponent</b> options. The resulting kernel can be visually inspected 
 using the <b>x-flag</b>. If the <b>kernel_plot</b> option is given a plot 
 of the kernel is saved in the format depending on the ending of the file name 
@@ -43,13 +43,13 @@ column names (of vertex and edge measures):
 </dl>
 
 <h3>(Sub)Graphs</h3>
-In r.connectivity.network a graph is build from the network dataset produced 
+In r.connectivity.network a graph is built from the network dataset produced 
 in r.connectivity.distance. From this full and directed graph a set of 
 (sub)graphs is extracted, specified by:
 <ul>
 <li>u = for the undirected graph</li>
 <li>d = for the graph with only direct edges</li>
-<li>c = for the graph with only edges shorter than cost distance threshold</li>
+<li>c = for the graph with only edges shorter than the cost distance threshold</li>
 </ul>
 
 <h3>Graph measures</h3>
@@ -118,8 +118,8 @@ directed (distk) and undirected edges(distk_u) using the following formulas:</dd
 <dd><b>Maximum potential flow (mf)</b></dd>
 <dd>For the maximum potential flow (mf) weight the user defined dispersal information 
 (the population proxy and the dispersal kernel) is used to model the flow of propagules 
-between a pair of vertices. This weight is based on the assution that propagules disperse 
-evenly and in full amount into all sourrounding patches. Maximum potential flow is 
+between a pair of vertices. This weight is based on the assumption that propagules disperse 
+evenly and in full amount into all surrounding patches. Maximum potential flow is 
 calculated using the following formula:</dd>
 <dd>mf = disk * pop_proxy</dd>
 <dd>Maximum potential flow is calculated for the directed graph as incoming (mf_i) and 
@@ -162,7 +162,7 @@ the mf-weight or the cf-weight (or 0 otherwise).</dd>
 the graph (increase the number of clusters) it is part of a biconnected component.</dd>
 
 <dd><b>Bridges (is_br)</b></dd>
-<dd>A bridge is an edge who's removal increases the number of clusters in a graph. 
+<dd>A bridge is an edge whose removal increases the number of clusters in a graph. 
 Edges are classified either as bridge (1) or not (0).</dd>
 
 <dd><b>Edge betweenness (eb)</b></dd>
@@ -179,7 +179,7 @@ distance threshold (cd_eb_udc, mf_eb_udc, cf_eb_udc).</dd>
  pairs of vertices which are shorter than the user defined local 
  neighbourhood (lnbh_threshold). Local edge betweenness is calculated with all 
  three weights for the entire directed graph (cd_leb_u, mf_leb_u, cf_leb_u), 
- the undirected graph with only direct edges  (cd_leb_ud, mf_leb_ud, cf_leb_ud), 
+ the undirected graph with only direct edges (cd_leb_ud, mf_leb_ud, cf_leb_ud), 
  and the undirected graph with only direct edges shorter than cost distance 
  threshold (cd_leb_udc, mf_leb_udc, cf_leb_udc).</dd>
 
@@ -194,7 +194,7 @@ recalculated and so on. The algorithm produces mainly two edge measures:</dd>
 <dd>1. the order in which edges were deleted (ebc_r)</dd>
 <dd>2. the edge betweenness value of an edge at the time of removal</dd>
 
-<dd>For large graphs calculating edge betweenness community can take long time. 
+<dd>For large graphs calculating edge betweenness community can take a long time. 
 Therefore, it is only calculated on request (y-flag) and only for one weight (cf). 
 It is only calculated for the entire (undirected) graph.</dd>
 
@@ -203,7 +203,7 @@ It is only calculated for the entire (undirected) graph.</dd>
 number of edges  (= number of vertices - 1) connecting all vertices to a minimal 
 possible number of clusters, while the sum of all edge weights is minimised. 
 If the graph consists of more than one cluster, the result of the minimum spanning 
-tree algorithm is a so called minimum spanning forest, consisting of the minimum 
+tree algorithm is a so-called minimum spanning forest, consisting of the minimum 
 spanning tree for each cluster. In the context of nature conservation, the minimum 
 spanning tree is sometimes referred to as the "backbone" of an area network 
 (Bunn etal. 2000). In r.connectivity.network the minimum spanning tree/forest 
@@ -258,15 +258,15 @@ structure of a graph. It results in a hierarchical structure which describes
 how a graph is split up by the edge removal process into an increasing number 
 of communities. The hierarchical community structure is stored as the 
 (character) vertex attribute "cf_ebc_cs". The community membership value 
-(integer) is the id of the community (identified by edge betweeenness community) 
+(integer) is the id of the community (identified by edge betweenness community) 
 a vertex belongs to (on a user defined level of community division).</dd>
 
 <dd><b>Articulation points (art_p)</b></dd>
-<dd>Articulation points (art_p) are vertices who's removal would increase 
+<dd>Articulation points (art_p) are vertices whose removal would increase 
 the number of clusters in a graph. Articulation points are identified for 
 the entire directed graph (art_p_u), the undirected graph with only direct 
 edges (art_p_ud), and the undirected graph with only direct edges shorter 
-than cost distance threshold (art_p_udc). Articulation points (art_p) are a 
+than the cost distance threshold (art_p_udc). Articulation points (art_p) are a 
 (logical) measure of the graph structure and do not take edge weights into 
 account. Vertices are either articulation points (1) or not (0).</dd>
 
@@ -295,7 +295,7 @@ with double precision.</dd>
 
 
 <dd><b>Closeness centrality (cl)</b></dd>
-<dd>Cloness centrality represents the number of steps which are necessary 
+<dd>Closeness centrality represents the number of steps which are necessary 
 to access every other vertex from a given vertex. Closeness centrality 
 (integer) is calculated with all three weights for the entire directed 
 graph (cd_cl_u, mf_cl_u, cf_cl_u), the undirected graph with only direct 
@@ -316,7 +316,7 @@ graph with only direct edges shorter than cost distance threshold
 <dd><b>Local vertex betweenness (lvb)</b></dd>
 <dd>The local vertex betweenness (lvb) value represents the number of shortest 
 paths that go through a vertex (but that do not start or end in that vertex), 
-considering the shortest paths between all possible pairs of vertices wich are 
+considering the shortest paths between all possible pairs of vertices which are 
 shorter than the user defined local neighbourhood (lnbh_threshold). Local vertex 
 betweenness is calculated with all three weights for the entire directed graph 
 (cd_vb_u, mf_vb_u, cf_vb_u), the undirected graph with only direct edges 
@@ -324,7 +324,7 @@ betweenness is calculated with all three weights for the entire directed graph
 shorter than cost distance threshold (cd_vb_udc, mf_vb_udc, cf_vb_udc).</dd>
 
 <dd><b>Neighbourhood size (nbh_s)</b></dd>
-<dd>The neighbourhood size (nbh_s) is the number of of other vertices which 
+<dd>The neighbourhood size (nbh_s) is the number of other vertices which 
 can be reached from a vertex.</dd>
 
 <dd><b>Local neighbourhood size (nbh_sl)</b></dd>
@@ -378,12 +378,12 @@ successful dispersal with increasing cost distance. Only very few dispersal
 units of our species are expected to cross more than ca. 900 cost distance 
 units successfully (see: ./hws_connectivity/kernel.eps after running the 
 command or run it with the x-flag (-x) for only displaying the kernel).<br> 
-Connectivity metrics reslults are stored in te attribute table of the 
+Connectivity metrics results are stored in the attribute table of the 
 vector maps on vertex (patches, map name: "prefix" _ vertex_measures) 
 and edge level (connections, map name: "prefix" _ edge_measures). 
 An overview over connectivity metrics on the graph level (the entire network) 
 is stored in "folder" (./hws_connectivity). We requested also an R-plot of 
-the dispersal kernel and an R-plot givig an overview over network 
+the dispersal kernel and an R-plot giving an overview over network 
 characteristics to be stored in the same folder.
 
 <p>Users with a multi-processor computer (e.g. dual-core) may speed up processing 
@@ -448,9 +448,5 @@ http://cran.r-project.org/web/packages/igraph/index.html</a></dt>
 </em>
 
 <h2>AUTHOR</h2>
-Stefan Blumentrath, Norwegian Institute for Nature Research (NINA)
 
-<!--
-<p>
-<i>Last changed: $Date$</i>
--->
+Stefan Blumentrath, Norwegian Institute for Nature Research (NINA)

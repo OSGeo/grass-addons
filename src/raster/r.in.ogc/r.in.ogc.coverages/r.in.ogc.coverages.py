@@ -12,36 +12,36 @@ This program is free software under the GNU General Public License
 (>=v2). Read the file COPYING that comes with GRASS for details.
 """
 
-#%module
-#% description: Downloads and imports data from OGC API Coverages server.
-#% keyword: raster
-#% keyword: import
-#% keyword: ogc
-#% keyword: coverages
-#%end
+# %module
+# % description: Downloads and imports data from OGC API Coverages server.
+# % keyword: raster
+# % keyword: import
+# % keyword: ogc
+# % keyword: coverages
+# %end
 
-#%option
-#% key: url
-#% type: string
-#% description: URL of OGC API Coverages server
-#% required: yes
-#%end
+# %option
+# % key: url
+# % type: string
+# % description: URL of OGC API Coverages server
+# % required: yes
+# %end
 
-#%option
-#% key: layer
-#% type: string
-#% description: Layer to request from server
-#%end
+# %option
+# % key: layer
+# % type: string
+# % description: Layer to request from server
+# %end
 
-#%option G_OPT_R_OUTPUT
-#% description: Name for output raster map
-#% required: no
-#%end
+# %option G_OPT_R_OUTPUT
+# % description: Name for output raster map
+# % required: no
+# %end
 
-#%flag
-#% key: l
-#% description: Get layers from the server
-#%end
+# %flag
+# % key: l
+# % description: Get layers from the server
+# %end
 import sys
 import grass.script as grass
 

@@ -17,56 +17,56 @@
 #
 #############################################################################
 
-#%module
-#% description: Morphometric characterization of river basins
-#% keyword: raster
-#% keyword: hydrology
-#% keyword: watershed
-#% overwrite: yes
-#%end
+# %module
+# % description: Morphometric characterization of river basins
+# % keyword: raster
+# % keyword: hydrology
+# % keyword: watershed
+# % overwrite: yes
+# %end
 
-#%option G_OPT_R_ELEV
-#% key: map
-#% description: Name of elevation raster map
-#% required: yes
-#%end
+# %option G_OPT_R_ELEV
+# % key: map
+# % description: Name of elevation raster map
+# % required: yes
+# %end
 
-#%option
-#% key: prefix
-#% type: string
-#% key_desc: prefix
-#% description: output prefix (must start with a letter)
-#% required: yes
-#%end
+# %option
+# % key: prefix
+# % type: string
+# % key_desc: prefix
+# % description: output prefix (must start with a letter)
+# % required: yes
+# %end
 
-#%option G_OPT_M_COORDS
-#% description: coordinates of the outlet (east,north)
-#% required : yes
-#%end
+# %option G_OPT_M_COORDS
+# % description: coordinates of the outlet (east,north)
+# % required : yes
+# %end
 
-#%option G_OPT_M_DIR
-#% key: dir
-#% description: Directory where the output will be found
-#% required : yes
-#%end
+# %option G_OPT_M_DIR
+# % key: dir
+# % description: Directory where the output will be found
+# % required : yes
+# %end
 
-#%option
-#% key: threshold
-#% type: double
-#% key_desc: threshold
-#% description: threshold
-#% required : no
-#%end
+# %option
+# % key: threshold
+# % type: double
+# % key_desc: threshold
+# % description: threshold
+# % required : no
+# %end
 
-#%flag
-#% key: a
-#% description: Use default threshold (1km^2)
-#%END
+# %flag
+# % key: a
+# % description: Use default threshold (1km^2)
+# %END
 
-#%flag
-#% key: c
-#% description: No maps output
-#%END
+# %flag
+# % key: c
+# % description: No maps output
+# %END
 
 import sys
 import os
@@ -174,7 +174,7 @@ def main():
     # Managing flag
     if autothreshold:
         resolution = grass.region()["nsres"]
-        th = 1000000 / (resolution ** 2)
+        th = 1000000 / (resolution**2)
         grass.message("threshold : %s" % th)
     else:
         th = options["threshold"]
@@ -487,7 +487,7 @@ def main():
         # Directing vector
         delta_x = abs(float(basin_east) - east)
         delta_y = abs(float(basin_north) - north)
-        L_orienting_vect = math.sqrt((delta_x ** 2) + (delta_y ** 2)) / 1000
+        L_orienting_vect = math.sqrt((delta_x**2) + (delta_y**2)) / 1000
         grass.message("Directing vector done")
 
         # Prevalent orientation
@@ -499,7 +499,7 @@ def main():
         grass.message("Compactness coefficient done")
 
         # Circularity ratio
-        R_c = (4 * math.pi * area_basin) / (perimeter_basin ** 2)
+        R_c = (4 * math.pi * area_basin) / (perimeter_basin**2)
         grass.message("Circularity ratio done")
 
         # Mainchannel

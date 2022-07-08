@@ -17,23 +17,23 @@
 #
 ##############################################################################
 
-#%module
-#% description: Computes divergence of a vector field defined by magnitude and direction
-#% keyword: raster
-#% keyword: divergence
-#%end
-#%option G_OPT_R_INPUT
-#% key: magnitude
-#% description: Name of input raster map representing magnitude
-#%end
-#%option G_OPT_R_INPUT
-#% label:  Name of input raster map representing direction
-#% description: Direction is in degrees ccw from the east
-#% key: direction
-#%end
-#%option G_OPT_R_OUTPUT
-#% description: Name of output divergence raster
-#%end
+# %module
+# % description: Computes divergence of a vector field defined by magnitude and direction
+# % keyword: raster
+# % keyword: divergence
+# %end
+# %option G_OPT_R_INPUT
+# % key: magnitude
+# % description: Name of input raster map representing magnitude
+# %end
+# %option G_OPT_R_INPUT
+# % label:  Name of input raster map representing direction
+# % description: Direction is in degrees ccw from the east
+# % key: direction
+# %end
+# %option G_OPT_R_OUTPUT
+# % description: Name of output divergence raster
+# %end
 
 
 import sys

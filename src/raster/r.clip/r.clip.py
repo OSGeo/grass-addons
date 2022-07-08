@@ -1,24 +1,24 @@
 #!/usr/bin/env python
 
-#%module
-#% label: Extracts portion of the input map which overlaps with current region
-#% description: Extracts portion of the input raster map which is in the current computational region
-#% keyword: raster
-#% keyword: extract
-#% keyword: clip
-#% keyword: crop
-#% keyword: trim
-#% keyword: extent
-#%end
-#%option G_OPT_R_INPUT
-#%end
-#%option G_OPT_R_OUTPUT
-#%end
-#%flag
-#% key: r
-#% label: Resample input raster according to the computational region
-#% description: By default cell size and alignment of the original raster is preserved
-#%end
+# %module
+# % label: Extracts portion of the input map which overlaps with the current region
+# % description: Extracts portion of the input raster map which is in the current computational region
+# % keyword: raster
+# % keyword: extract
+# % keyword: clip
+# % keyword: crop
+# % keyword: trim
+# % keyword: extent
+# %end
+# %option G_OPT_R_INPUT
+# %end
+# %option G_OPT_R_OUTPUT
+# %end
+# %flag
+# % key: r
+# % label: Resample input raster according to the computational region
+# % description: By default cell size and alignment of the original raster is preserved
+# %end
 
 
 import sys

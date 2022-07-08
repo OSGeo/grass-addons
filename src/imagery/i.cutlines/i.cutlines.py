@@ -14,156 +14,156 @@
 # 		for details.
 #############################################################################
 
-#%Module
-#% description: Creates semantically meaningful tile borders
-#% keyword: imagery
-#% keyword: tiling
-#%end
+# %Module
+# % description: Creates semantically meaningful tile borders
+# % keyword: imagery
+# % keyword: tiling
+# %end
 #
-#%option G_OPT_R_INPUT
-#% description: Raster map to use as input for tiling
-#% required: yes
-#%end
+# %option G_OPT_R_INPUT
+# % description: Raster map to use as input for tiling
+# % required: yes
+# %end
 #
-#%option G_OPT_V_OUTPUT
-#% description: Name of output vector map with cutline polygons
-#%end
+# %option G_OPT_V_OUTPUT
+# % description: Name of output vector map with cutline polygons
+# %end
 #
-#%option
-#% key: number_lines
-#% type: integer
-#% description: Number of tile border lines in each direction
-#% required: yes
-#%end
+# %option
+# % key: number_lines
+# % type: integer
+# % description: Number of tile border lines in each direction
+# % required: yes
+# %end
 #
-#%option
-#% key: edge_detection
-#% type: string
-#% description: Edge detection algorithm to use
-#% options: zc,canny
-#% answer: zc
-#% required: yes
-#%end
+# %option
+# % key: edge_detection
+# % type: string
+# % description: Edge detection algorithm to use
+# % options: zc,canny
+# % answer: zc
+# % required: yes
+# %end
 #
-#%option G_OPT_V_INPUTS
-#% key: existing_cutlines
-#% label: Input vector maps with existing cutlines
-#% required: no
-#%end
+# %option G_OPT_V_INPUTS
+# % key: existing_cutlines
+# % label: Input vector maps with existing cutlines
+# % required: no
+# %end
 #
-#%option
-#% key: no_edge_friction
-#% type: integer
-#% description: Additional friction for non-edge pixels
-#% required: yes
-#% answer: 5
-#%end
+# %option
+# % key: no_edge_friction
+# % type: integer
+# % description: Additional friction for non-edge pixels
+# % required: yes
+# % answer: 5
+# %end
 #
-#%option
-#% key: lane_border_multiplier
-#% type: integer
-#% description: Multiplier for borders of lanes compared to non-edge pixels
-#% required: yes
-#% answer: 10
-#%end
+# %option
+# % key: lane_border_multiplier
+# % type: integer
+# % description: Multiplier for borders of lanes compared to non-edge pixels
+# % required: yes
+# % answer: 10
+# %end
 #
-#%option
-#% key: min_tile_size
-#% type: integer
-#% description: Minimum size of tiles in map units
-#% required: no
-#%end
+# %option
+# % key: min_tile_size
+# % type: integer
+# % description: Minimum size of tiles in map units
+# % required: no
+# %end
 #
-#%option
-#% key: zc_threshold
-#% type: double
-#% label: Sensitivity of Gaussian filter (i.zc)
-#% answer: 1
-#% required: no
-#% guisection: Zero-crossing
-#%end
+# %option
+# % key: zc_threshold
+# % type: double
+# % label: Sensitivity of Gaussian filter (i.zc)
+# % answer: 1
+# % required: no
+# % guisection: Zero-crossing
+# %end
 #
-#%option
-#% key: zc_width
-#% type: integer
-#% label: x-y extent of the Gaussian filter (i.zc)
-#% answer: 9
-#% required: no
-#% guisection: Zero-crossing
-#%end
+# %option
+# % key: zc_width
+# % type: integer
+# % label: x-y extent of the Gaussian filter (i.zc)
+# % answer: 9
+# % required: no
+# % guisection: Zero-crossing
+# %end
 #
-#%option
-#% key: canny_low_threshold
-#% type: double
-#% label: Low treshold for edges (i.edge)
-#% answer: 3
-#% required: no
-#% guisection: Canny
-#%end
+# %option
+# % key: canny_low_threshold
+# % type: double
+# % label: Low treshold for edges (i.edge)
+# % answer: 3
+# % required: no
+# % guisection: Canny
+# %end
 #
-#%option
-#% key: canny_high_threshold
-#% type: double
-#% label: High treshold for edges (i.edge)
-#% answer: 10
-#% required: no
-#% guisection: Canny
-#%end
+# %option
+# % key: canny_high_threshold
+# % type: double
+# % label: High treshold for edges (i.edge)
+# % answer: 10
+# % required: no
+# % guisection: Canny
+# %end
 #
-#%option
-#% key: canny_sigma
-#% type: double
-#% label: Kernel radius (i.edge)
-#% answer: 2
-#% required: no
-#% guisection: Canny
-#%end
+# %option
+# % key: canny_sigma
+# % type: double
+# % label: Kernel radius (i.edge)
+# % answer: 2
+# % required: no
+# % guisection: Canny
+# %end
 #
-#%option
-#% key: tile_width
-#% type: integer
-#% description: Width of tiles for tiled edge detection (pixels)
-#% required: no
-#% guisection: Parallel processing
-#%end
+# %option
+# % key: tile_width
+# % type: integer
+# % description: Width of tiles for tiled edge detection (pixels)
+# % required: no
+# % guisection: Parallel processing
+# %end
 #
-#%option
-#% key: tile_height
-#% type: integer
-#% description: Height of tiles for tiled edge detection (pixels)
-#% required: no
-#% guisection: Parallel processing
-#%end
+# %option
+# % key: tile_height
+# % type: integer
+# % description: Height of tiles for tiled edge detection (pixels)
+# % required: no
+# % guisection: Parallel processing
+# %end
 #
-#%option
-#% key: overlap
-#% type: integer
-#% description: Overlap between tiles for tiled edge detection (pixels)
-#% required: no
-#% answer: 1
-#% guisection: Parallel processing
-#%end
+# %option
+# % key: overlap
+# % type: integer
+# % description: Overlap between tiles for tiled edge detection (pixels)
+# % required: no
+# % answer: 1
+# % guisection: Parallel processing
+# %end
 #
-#%option
-#% key: processes
-#% type: integer
-#% description: Number of parallel processes
-#% answer: 1
-#% required: yes
-#% guisection: Parallel processing
-#%end
+# %option
+# % key: processes
+# % type: integer
+# % description: Number of parallel processes
+# % answer: 1
+# % required: yes
+# % guisection: Parallel processing
+# %end
 #
-#%option
-#% key: memory
-#% type: integer
-#% description: RAM memory available (in MB)
-#% answer: 300
-#% required: yes
-#%end
+# %option
+# % key: memory
+# % type: integer
+# % description: RAM memory available (in MB)
+# % answer: 300
+# % required: yes
+# %end
 #
-#%rules
-#% collective: tile_width, tile_height, overlap
-#%end
+# %rules
+# % collective: tile_width, tile_height, overlap
+# %end
 
 import os
 import atexit
@@ -268,7 +268,7 @@ def main():
                 overlap=overlap,
                 processes=processes,
                 split=False,
-                **kwargs
+                **kwargs,
             )
             grd.run()
         else:
@@ -299,7 +299,7 @@ def main():
                 processes=processes,
                 split=False,
                 flags="n",
-                **kwargs
+                **kwargs,
             )
             grd.run()
         else:

@@ -12,39 +12,39 @@
 #############################################################################
 
 
-#%Module
-#% description: Generates a raster map classified with analytic hierarchy process (AHP).
-#% keyword: raster
-#% keyword: Analytic Hierarchy Process (AHP)
-#% keyword: Multi Criteria Decision Analysis (MCDA)
-#%End
-#%option
-#% key: criteria
-#% type: string
-#% multiple: yes
-#% gisprompt: old,cell,raster
-#% key_desc: name
-#% description: Name of criteria raster maps
-#% required: yes
-#%end
-#%option
-#% key: pairwise
-#% type: string
-#% gisprompt: old,file,input
-#% description: Pairwise comparison matrix
-#% required: yes
-#%end
-#%option
-#% key: output
-#% type: string
-#% gisprompt: new_file,cell,output
-#% description: output classified raster map
-#% required: yes
-#%end
-#%flag
-#% key:k
-#% description:build a void pairwise comparison matrix and exit (no yet implemented)
-#%end
+# %Module
+# % description: Generates a raster map classified with analytic hierarchy process (AHP).
+# % keyword: raster
+# % keyword: Analytic Hierarchy Process (AHP)
+# % keyword: Multi Criteria Decision Analysis (MCDA)
+# %End
+# %option
+# % key: criteria
+# % type: string
+# % multiple: yes
+# % gisprompt: old,cell,raster
+# % key_desc: name
+# % description: Name of criteria raster maps
+# % required: yes
+# %end
+# %option
+# % key: pairwise
+# % type: string
+# % gisprompt: old,file,input
+# % description: Pairwise comparison matrix
+# % required: yes
+# %end
+# %option
+# % key: output
+# % type: string
+# % gisprompt: new_file,cell,output
+# % description: output classified raster map
+# % required: yes
+# %end
+# %flag
+# % key:k
+# % description:build a void pairwise comparison matrix and exit (no yet implemented)
+# %end
 
 import sys
 import grass.script as grass

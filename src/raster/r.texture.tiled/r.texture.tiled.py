@@ -14,77 +14,77 @@
 # 		for details.
 #############################################################################
 
-#%Module
-#% description: Runs r.texture in parallel over tiles
-#% keyword: raster
-#% keyword: texture
-#% keyword: tiling
-#%end
+# %Module
+# % description: Runs r.texture in parallel over tiles
+# % keyword: raster
+# % keyword: texture
+# % keyword: tiling
+# %end
 #
-#%option G_OPT_R_INPUT
-#% required: yes
-#%end
+# %option G_OPT_R_INPUT
+# % required: yes
+# %end
 #
-#%option G_OPT_R_BASENAME_OUTPUT
-#% required: yes
-#%end
+# %option G_OPT_R_BASENAME_OUTPUT
+# % required: yes
+# %end
 #
-#%option
-#% key: method
-#% type: string
-#% description: Texture method to apply
-#% required: yes
-#% multiple: no
-#% options: asm,contrast,corr,var,idm,sa,sv,se,entr,dv,de,moc1,moc2
-#%end
+# %option
+# % key: method
+# % type: string
+# % description: Texture method to apply
+# % required: yes
+# % multiple: no
+# % options: asm,contrast,corr,var,idm,sa,sv,se,entr,dv,de,moc1,moc2
+# %end
 #
-#%option
-#% key: size
-#% type: integer
-#% description: The size of moving window (odd and >= 3)
-#% answer: 3
-#% required: yes
-#%end
+# %option
+# % key: size
+# % type: integer
+# % description: The size of moving window (odd and >= 3)
+# % answer: 3
+# % required: yes
+# %end
 #
-#%option
-#% key: distance
-#% type: integer
-#% label: The distance between two samples (>= 1)
-#% description: The distance must be smaller than the size of the moving window
-#% answer: 1
-#% required: yes
-#%end
+# %option
+# % key: distance
+# % type: integer
+# % label: The distance between two samples (>= 1)
+# % description: The distance must be smaller than the size of the moving window
+# % answer: 1
+# % required: yes
+# %end
 #
-#%option
-#% key: tile_width
-#% type: integer
-#% description: Width of tiles
-#% answer: 1000
-#% required: yes
-#%end
+# %option
+# % key: tile_width
+# % type: integer
+# % description: Width of tiles
+# % answer: 1000
+# % required: yes
+# %end
 #
-#%option
-#% key: tile_height
-#% type: integer
-#% description: Height of tiles
-#% answer: 1000
-#% required: yes
-#%end
+# %option
+# % key: tile_height
+# % type: integer
+# % description: Height of tiles
+# % answer: 1000
+# % required: yes
+# %end
 #
-#%option
-#% key: processes
-#% type: integer
-#% description: Number of parallel processes
-#% answer: 1
-#% required: yes
-#%end
+# %option
+# % key: processes
+# % type: integer
+# % description: Number of parallel processes
+# % answer: 1
+# % required: yes
+# %end
 #
-#%option
-#% key: mapset_prefix
-#% type: string
-#% description: Mapset prefix
-#% required: no
-#%end
+# %option
+# % key: mapset_prefix
+# % type: string
+# % description: Mapset prefix
+# % required: no
+# %end
 
 
 import math
@@ -166,7 +166,7 @@ def main():
         processes=processes,
         split=False,
         mapset_prefix=mapset_prefix,
-        **kwargs
+        **kwargs,
     )
     grd.run()
 

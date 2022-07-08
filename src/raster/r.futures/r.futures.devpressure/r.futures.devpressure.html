@@ -1,7 +1,7 @@
 <h2>DESCRIPTION</h2>
 Module <em>r.futures.devpressure</em> is part of <a href="r.futures.html">FUTURES</a>,
 land change model.
-It computes development pressure, a predictor based on number of neighboring
+It computes development pressure, a predictor based on the number of neighboring
 developed cells within search distance, weighted by distance.
 The development pressure variable plays a special role in the model,
 allowing for a feedback between predicted change and change in subsequent steps.
@@ -38,7 +38,7 @@ d) gamma = 1.5, size = 20.
 
 <h2>NOTES</h2>
 By default NULL values are propagated.
-This means that the edges of resulting map will be NULLs. To avoid that,
+This means that the edges of the resulting map will be NULLs. To avoid that,
 flag <b>n</b> internally enlarges the computational region,
 converts NULLs to zeros, performs the computation
 and then patches back the original NULL values.
@@ -83,6 +83,4 @@ r.futures.devpressure input=developed output=pressure gamma=1.5 size=10 method=g
 
 <h2>AUTHOR</h2>
 
-Anna Petrasova, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll</a><br>
-
-<p><i>Last changed: $Date: 2018-09-14 21:49:22 -0400 (Fri, 14 Sep 2018) $</i>
+Anna Petrasova, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll</a>

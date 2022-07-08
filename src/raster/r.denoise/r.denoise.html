@@ -7,15 +7,15 @@ algorithm</a> is a feature-preserving mesh denoising algorithm that
 smooths the surfaces of computer models of three dimensional objects
 such as those used in computer-aided design and graphics.  It removes
 random noise while preserving sharp features and smoothing with
-minimal changes to the original data. <em>r.denoise</em> is a python 
+minimal changes to the original data. <em>r.denoise</em> is a Python 
 script that allows the algorithm to be run on DEMs from within 
 <em>GRASS</em>.  Denoising DEMs can improve clarity and quality
 of derived products such as slope and hydraulic maps.
 
 <p>
-The amount of smoothing is controlled by the <em>threshold</em>
-and <em>iterations</em> parameters.  Increasing the <em>threshold</em>
-decreases how sharp a feature needs to be to be preserved
+The amount of smoothing is controlled by the <b>threshold</b>
+and <b>iterations</b> parameters.  Increasing the <b>threshold</b>
+decreases how sharp a feature needs to be in order to be preserved
 e.g. decreases the smoothing.  To preserve ridge crests in mountain
 areas, T > 0.9 is recommended. Setting T too high results in the
 preservation of noise.  For SRTM data, which is already partly
@@ -27,7 +27,7 @@ detailed information.
 
 <h2>NOTES</h2>
 <p>
-<em>r.denoise</em> works with a cartesian coordinate system.  Thus
+<em>r.denoise</em> works with a Cartesian coordinate system.  Thus
 data in geographic (lat-long) coordinates require projection during
 processing.  The script is able to do this if
 the <a href="http://www.epsg-registry.org/">EPSG code</a> of a
@@ -69,7 +69,7 @@ pip install pyproj
 <a href="https://grass.osgeo.org/grass-stable/manuals/r.topidx.html">r.topidx</a>
 </em>
 
-<h2>AUTHOR</h2>
+<h2>AUTHORS</h2>
 John A Stevenson<br>
 johnalexanderstevenson <i>at</i> yahoo <i>dot</i> co <i>dot</i> uk<br><br>
 
@@ -80,8 +80,3 @@ by <a href="http://www.epsrc.ac.uk">EPSRC</a> Grant no. EP/C007972/1
 Module ported to Python by <a href="http://carlosgrohmann.com/">Carlos
 H. Grohmann</a><br>
 Institute of Energy and Environment, University of Sao Paulo, Brazil<br>
-
-<!--
-<p>
-<i>Last changed: $Date$</i>
--->

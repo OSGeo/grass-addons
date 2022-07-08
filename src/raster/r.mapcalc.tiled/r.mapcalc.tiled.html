@@ -12,7 +12,11 @@ the output map name with the parameter <b>output</b>
 
 <p>
 Tiles can be defined with the <b>width</b>, <b>height</b> and 
-<b>overlap</b> parameters. If <b>processes</b> is higher than one, these tiles 
+<b>overlap</b> parameters. If no <b>width</b> and <b>height</b>
+is specified, they are automatically computed from the number of processes
+and current computational region (with GRASS GIS v8.2 and above).
+For example, 8 processes result in 8 tiles where the tile width is equal
+to the number of columns. If <b>nprocs</b> is higher than one, these tiles
 will be processed in parallel.
 
 <p>
@@ -21,7 +25,15 @@ mapsets created during the tiled processing have unique names. This is useful
 if the user runs <em>r.mapcalc.tiled</em> several times in parallel (e.g. in
 an HPC environment).
 
-<h2>NOTES</h2>
+<p>
+Option <b>patch_backend</b> can switch how the resulting tiles are merged.
+With <b>patch_backend=RasterRow</b> (default) the original
+<a href="https://grass.osgeo.org/grass-stable/manuals/libpython/pygrass.modules.grid.html">GridModule</a>
+implementation is used. With <b>patch_backend=r.patch</b> module
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.patch.html">r.patch</a>
+is used with the number of cores specified with <b>nprocs</b>.
+This backend can only be used with 0 overlap.
+
 
 <h2>EXAMPLE</h2>
 
@@ -31,7 +43,7 @@ Run <b>r.mapcalc</b> over tiles with size 1000x1000 using 4 parallel processes
 <div class="code"><pre> 
 g.region raster=ortho_2001_t792_1m
 r.mapcalc.tiled expression="bright_pixels = if(ortho_2001_t792_1m > 200, 1, 0)" \
-   width=1000 height=1000 processes=4
+   width=1000 height=1000 nprocs=4
 </pre></div>
 
 <h2>SEE ALSO</h2>
@@ -41,8 +53,3 @@ r.mapcalc.tiled expression="bright_pixels = if(ortho_2001_t792_1m > 200, 1, 0)" 
 <h2>AUTHOR</h2> 
 
 Moritz Lennert
-
-<!--
-<p>
-<i>Last changed: $Date$</i>
--->

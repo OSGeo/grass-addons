@@ -20,91 +20,91 @@
 
 # More information
 # Started 14 October 2016
-#%module
-#% description: Build a linked stream network: each link knows its downstream link
-#% keyword: vector
-#% keyword: stream network
-#% keyword: hydrology
-#% keyword: geomorphology
-#%end
-#%option
-#%  key: cat
-#%  label: Starting line segment category
-#%  required: yes
-#%  guidependency: layer,column
-#%end
-#%option G_OPT_V_INPUT
-#%  key: streams
-#%  label: Vector input of stream network created by r.stream.extract
-#%  required: yes
-#%end
-#%option G_OPT_V_OUTPUT
-#%  key: outstream
-#%  label: Vector output stream
-#%  required: no
-#%end
-#%option
-#%  key: direction
-#%  type: string
-#%  label: Which directon to march: up or down
-#%  options: upstream,downstream
-#%  answer: downstream
-#%  required: no
-#%end
-#%option G_OPT_R_INPUT
-#%  key: elevation
-#%  label: Topography (DEM)
-#%  required: no
-#%end
-#%option G_OPT_R_INPUT
-#%  key: accumulation
-#%  label: Flow accumulation raster
-#%  required: no
-#%end
-#%option G_OPT_R_INPUT
-#%  key: slope
-#%  label: Map of slope created by r.slope.area
-#%  required: no
-#%end
-#%option
-#%  key: units
-#%  type: string
-#%  label: Flow accumulation units
-#%  options: m2, km2, cumecs, cfs
-#%  required: no
-#%end
-#%option
-#%  key: accum_mult
-#%  type: double
-#%  label: Multiplier to convert flow accumulation to your chosen unit
-#%  answer: 1
-#%  required: no
-#%end
-#%option G_OPT_R_INPUT
-#%  key: window
-#%  label: Averaging distance [map units]
-#%  required: no
-#%end
-#%option
-#%  key: plots
-#%  type: string
-#%  label: Plots to generate
-#%  options: LongProfile,SlopeAccum,SlopeDistance,AccumDistance
-#%  required: no
-#%  multiple: yes
-#%end
-#%option
-#%  key: outfile_original
-#%  type: string
-#%  label: output file for data on original grid
-#%  required: no
-#%end
-#%option
-#%  key: outfile_smoothed
-#%  type: string
-#%  label: output file for data on smoothed grid
-#%  required: no
-#%end
+# %module
+# % description: Build a linked stream network: each link knows its downstream link
+# % keyword: vector
+# % keyword: stream network
+# % keyword: hydrology
+# % keyword: geomorphology
+# %end
+# %option
+# %  key: cat
+# %  label: Starting line segment category
+# %  required: yes
+# %  guidependency: layer,column
+# %end
+# %option G_OPT_V_INPUT
+# %  key: streams
+# %  label: Vector input of stream network created by r.stream.extract
+# %  required: yes
+# %end
+# %option G_OPT_V_OUTPUT
+# %  key: outstream
+# %  label: Vector output stream
+# %  required: no
+# %end
+# %option
+# %  key: direction
+# %  type: string
+# %  label: Which directon to march: up or down
+# %  options: upstream,downstream
+# %  answer: downstream
+# %  required: no
+# %end
+# %option G_OPT_R_INPUT
+# %  key: elevation
+# %  label: Topography (DEM)
+# %  required: no
+# %end
+# %option G_OPT_R_INPUT
+# %  key: accumulation
+# %  label: Flow accumulation raster
+# %  required: no
+# %end
+# %option G_OPT_R_INPUT
+# %  key: slope
+# %  label: Map of slope created by r.slope.area
+# %  required: no
+# %end
+# %option
+# %  key: units
+# %  type: string
+# %  label: Flow accumulation units
+# %  options: m2, km2, cumecs, cfs
+# %  required: no
+# %end
+# %option
+# %  key: accum_mult
+# %  type: double
+# %  label: Multiplier to convert flow accumulation to your chosen unit
+# %  answer: 1
+# %  required: no
+# %end
+# %option G_OPT_R_INPUT
+# %  key: window
+# %  label: Averaging distance [map units]
+# %  required: no
+# %end
+# %option
+# %  key: plots
+# %  type: string
+# %  label: Plots to generate
+# %  options: LongProfile,SlopeAccum,SlopeDistance,AccumDistance
+# %  required: no
+# %  multiple: yes
+# %end
+# %option
+# %  key: outfile_original
+# %  type: string
+# %  label: output file for data on original grid
+# %  required: no
+# %end
+# %option
+# %  key: outfile_smoothed
+# %  type: string
+# %  label: output file for data on smoothed grid
+# %  required: no
+# %end
 
 ##################
 # IMPORT MODULES #
@@ -159,10 +159,18 @@ def main():
     network by referencing its category (cat) number in a new column. "0"
     means that the river exits the map.
     """
-    import matplotlib  # required by windows
+    try:
+        import matplotlib
 
-    matplotlib.use("wxAGG")  # required by windows
-    from matplotlib import pyplot as plt
+        matplotlib.use("WXAgg")
+        from matplotlib import pyplot as plt
+    except ImportError as e:
+        raise ImportError(
+            _(
+                'v.stream.profiler needs the "matplotlib" '
+                "(python-matplotlib) package to be installed. {0}"
+            ).format(e)
+        )
 
     options, flags = gscript.parser()
 
@@ -220,7 +228,7 @@ def main():
 
         _dx = np.diff(coords[:, 0])
         _dy = np.diff(coords[:, 1])
-        x_downstream_0 = np.hstack((0, np.cumsum((_dx ** 2 + _dy ** 2) ** 0.5)))
+        x_downstream_0 = np.hstack((0, np.cumsum((_dx**2 + _dy**2) ** 0.5)))
         x_downstream = x_downstream_0.copy()
 
     elif options["direction"] == "upstream":

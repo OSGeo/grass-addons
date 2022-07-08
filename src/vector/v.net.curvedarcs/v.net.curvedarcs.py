@@ -14,59 +14,59 @@
 #############################################################################
 
 
-#%module
-#% description: Draws curved arcs between points (e.g. flows)
-#% keyword: vector
-#% keyword: network
-#% keyword: flows
-#%end
+# %module
+# % description: Draws curved arcs between points (e.g. flows)
+# % keyword: vector
+# % keyword: network
+# % keyword: flows
+# %end
 
-#%option G_OPT_V_INPUT
-#% label: Point map containing origins and destinations
-#%end
+# %option G_OPT_V_INPUT
+# % label: Point map containing origins and destinations
+# %end
 
-#%option G_OPT_V_FIELD
-#% label: Layer number where to find point categories
-#%end
+# %option G_OPT_V_FIELD
+# % label: Layer number where to find point categories
+# %end
 
-#%option G_OPT_F_INPUT
-#% key: flow_input_file
-#% label: File containing origins, destinations and flow volumes
-#%end
+# %option G_OPT_F_INPUT
+# % key: flow_input_file
+# % label: File containing origins, destinations and flow volumes
+# %end
 
-#%option G_OPT_F_SEP
-#% label: Separator used in input text file
-#%end
+# %option G_OPT_F_SEP
+# % label: Separator used in input text file
+# %end
 
-#%option G_OPT_V_OUTPUT
-#% label: Output map with curved lines
-#%end
+# %option G_OPT_V_OUTPUT
+# % label: Output map with curved lines
+# %end
 
-#%option
-#% key: minimum_offset
-#% type: double
-#% label: minimum offset at furthest point from straight line
-#% required: yes
-#%end
+# %option
+# % key: minimum_offset
+# % type: double
+# % label: minimum offset at furthest point from straight line
+# % required: yes
+# %end
 
-#%option
-#% key: maximum_offset
-#% type: double
-#% label: maximum offset at furthest point from straight line
-#% required: yes
-#%end
+# %option
+# % key: maximum_offset
+# % type: double
+# % label: maximum offset at furthest point from straight line
+# % required: yes
+# %end
 
-#%option
-#% key: vertices
-#% type: integer
-#% label: number of vertices used to draw curved lines
-#% answer: 30
-#%end
+# %option
+# % key: vertices
+# % type: integer
+# % label: number of vertices used to draw curved lines
+# % answer: 30
+# %end
 
-#%flag
-#% key: s
-#% description: Draw also short line for flow from and to same node
-#%end
+# %flag
+# % key: s
+# % description: Draw also short line for flow from and to same node
+# %end
 
 import os
 import atexit

@@ -3,7 +3,7 @@
 MODULE:       r.agent.aco
 AUTHOR(S):    michael lustenberger inofix.ch
 PURPOSE:      r.agent.aco is used to organize ant-like agents in a raster
-              based playground. As decribed by the Ant Colony Optimization
+              based playground. As described by the Ant Colony Optimization
               algorithm, the ants wander around looking for attractors,
               marking their paths if they find any.
 COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
@@ -15,208 +15,208 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
 
 ##TODO it is time to make this all multithreaded..
 
-#%Module
-#% description: Agents wander around on the terrain, marking paths to new locations.
-#%End
-#%option
-#% key: outputmap
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Name of pheromone output map
-#% required : yes
-#%end
-#%option
-#% key: inputmap
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Name of input pheromone raster map (e.g. from prior run)
-#% required : no
-#%end
-#%flag
-#% key: p
-#% description: Allow overwriting existing pheromone maps
-#%end
-#%flag
-#% key: s
-#% description: Produce a sequence of pheromone maps (by appending a number)
-#%end
-#%flag
-#% key: c
-#% description: Overwrite existing cost map (only used with penalty conversion)
-#%end
-#%option
-#% key: costmap
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Name of penalty resp. cost raster map (note conversion checkbox)
-#% required : yes
-#%end
-#%flag
-#% key: a
-#% description: Auto-convert cost (slope..) to penalty map (using "tobler", see docu)
-#%end
-#%flag
-#% key: l
-#% description: Avoid loops on the way back
-#%end
-#%option
-#% key: sitesmap
-#% type: string
-#% gisprompt: old,vect,vector
-#% description: Name of sites map, vector data with possible points of origin
-#% required : yes
-#%end
-#%option
-#% key: rounds
-#% type: integer
-#% gisprompt: number
-#% description: Number of iterations/rounds to run
-#% answer: 999
-#% options: 0-999999
-#% required : yes
-#%end
-#%option
-#% key: outrounds
-#% type: integer
-#% gisprompt: number
-#% description: Produce output after running this number of iterations/rounds
-#% options: 0-999999
-#% required : no
-#%end
-#%option
+# %Module
+# % description: Agents wander around on the terrain, marking paths to new locations.
+# %End
+# %option
+# % key: outputmap
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Name of pheromone output map
+# % required : yes
+# %end
+# %option
+# % key: inputmap
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Name of input pheromone raster map (e.g. from prior run)
+# % required : no
+# %end
+# %flag
+# % key: p
+# % description: Allow overwriting existing pheromone maps
+# %end
+# %flag
+# % key: s
+# % description: Produce a sequence of pheromone maps (by appending a number)
+# %end
+# %flag
+# % key: c
+# % description: Overwrite existing cost map (only used with penalty conversion)
+# %end
+# %option
+# % key: costmap
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Name of penalty resp. cost raster map (note conversion checkbox)
+# % required : yes
+# %end
+# %flag
+# % key: a
+# % description: Auto-convert cost (slope..) to penalty map (using "tobler", see docu)
+# %end
+# %flag
+# % key: l
+# % description: Avoid loops on the way back
+# %end
+# %option
+# % key: sitesmap
+# % type: string
+# % gisprompt: old,vect,vector
+# % description: Name of sites map, vector data with possible points of origin
+# % required : yes
+# %end
+# %option
+# % key: rounds
+# % type: integer
+# % gisprompt: number
+# % description: Number of iterations/rounds to run
+# % answer: 999
+# % options: 0-999999
+# % required : yes
+# %end
+# %option
+# % key: outrounds
+# % type: integer
+# % gisprompt: number
+# % description: Produce output after running this number of iterations/rounds
+# % options: 0-999999
+# % required : no
+# %end
+# %option
 # TODO evaluate..
-#% key: targetvisibility
-#% type: integer
-#% gisprompt: number
-#% description: Distance to target from where it might be 'sensed'
-#% options: 0-999999
-#% required : no
-#%end
-#%option
-#% key: highcostlimit
-#% type: integer
-#% gisprompt: number
-#% description: Penalty values above this point an ant considers as illegal/bogus when in 'costlymarked' modus
-#% options: 0-<max integer on system would make sense>
-#% required : no
-#%end
-#%option
-#% key: lowcostlimit
-#% type: integer
-#% gisprompt: number
-#% description: Penalty values below this point an ant considers as illegal/bogus when in 'costlymarked' modus
-#% options: -99999-99999
-#% required : no
-#%end
-#%option
-#% key: maxpheromone
-#% type: integer
-#% gisprompt: number
-#% description: Absolute maximum of pheromone intensity a position may have
-#% options: <minpheromone>-<max integer on system would make sense>
-#% required : no
-#%end
-#%option
-#% key: minpheromone
-#% type: integer
-#% gisprompt: number
-#% description: Absolute minimum of pheromone intensity to leave on playground
-#% options: 0-<maxpheromone>
-#% required : no
-#%end
-#%option
-#% key: volatilizationtime
-#% type: integer
-#% gisprompt: number
-#% description: Half-life for pheromone to volatize (e.g. =rounds)
-#% options: 0-<max integer on system would make sense>
-#% required : no
-#%end
-#%option
-#% key: stepintensity
-#% type: integer
-#% gisprompt: number
-#% description: Pheromone intensity to leave on each step
-#% options: 0-<max integer on system would make sense>
-#% required : no
-#%end
-#%option
-#% key: pathintensity
-#% type: integer
-#% gisprompt: number
-#% description: Pheromone intensity to leave on found paths
-#% options: 0-<max integer on system would make sense>
-#% required : no
-#%end
-#%option
-#% key: maxants
-#% type: integer
-#% gisprompt: number
-#% description: Maximum amount of ants that may live concurrently (x*y)
-#% options: 0-<the bigger the playground, the more space they have>
-#% required : no
-#%end
-#%option
-#% key: antslife
-#% type: integer
-#% gisprompt: number
-#% description: Time to live for an ant (e.g. four times points distance)
-#% options: 0-<max integer on system would make sense>
-#% required : no
-#%end
-#%option
-#% key: decisionalgorithm
-#% type: string
-#% gisprompt: algorithm
-#% description: Algorithm used for walking step
-#% answer: standard
-#% options: standard,marked,costlymarked,random,test
-#% required : yes
-#%end
-#%option
-#% key: evaluateposition
-#% type: string
-#% gisprompt: algorithm
-#% description: Algorithm used for finding and remembering paths
-#% answer: avoidorforgetloop
-#% options: standard,avoidloop,forgetloop,avoidorforgetloop
-#% required : yes
-#%end
-#%option
-#% key: agentfreedom
-#% type: integer
-#% gisprompt: number
-#% description: Number of possible directions the ant can take (4 or 8)
-#% options: 4,8
-#% required : no
-#%end
-#%option
-#% key: pheromoneweight
-#% type: integer
-#% gisprompt: number
-#% description: How is the pheromone value (P) weighted when walking (p*P:r*R:c*C)
-#% answer: 1
-#% options: 0-99999
-#% required : yes
-#%end
-#%option
-#% key: randomnessweight
-#% type: integer
-#% gisprompt: number
-#% description: How is the random value (R) weighted when walking (p*P:r*R:c*C)
-#% answer: 1
-#% options: 0-99999
-#% required : yes
-#%end
-#%option
-#% key: costweight
-#% type: integer
-#% gisprompt: number
-#% description: How is the penalty value (C) weighted when walking (p*P:r*R:c*C)
-#% answer: 0
-#% options: 0-99999
-#% required : yes
-#%end
+# % key: targetvisibility
+# % type: integer
+# % gisprompt: number
+# % description: Distance to target from where it might be 'sensed'
+# % options: 0-999999
+# % required : no
+# %end
+# %option
+# % key: highcostlimit
+# % type: integer
+# % gisprompt: number
+# % description: Penalty values above this point an ant considers as illegal/bogus when in 'costlymarked' modus
+# % options: 0-<max integer on system would make sense>
+# % required : no
+# %end
+# %option
+# % key: lowcostlimit
+# % type: integer
+# % gisprompt: number
+# % description: Penalty values below this point an ant considers as illegal/bogus when in 'costlymarked' modus
+# % options: -99999-99999
+# % required : no
+# %end
+# %option
+# % key: maxpheromone
+# % type: integer
+# % gisprompt: number
+# % description: Absolute maximum of pheromone intensity a position may have
+# % options: <minpheromone>-<max integer on system would make sense>
+# % required : no
+# %end
+# %option
+# % key: minpheromone
+# % type: integer
+# % gisprompt: number
+# % description: Absolute minimum of pheromone intensity to leave on playground
+# % options: 0-<maxpheromone>
+# % required : no
+# %end
+# %option
+# % key: volatilizationtime
+# % type: integer
+# % gisprompt: number
+# % description: Half-life for pheromone to volatize (e.g. =rounds)
+# % options: 0-<max integer on system would make sense>
+# % required : no
+# %end
+# %option
+# % key: stepintensity
+# % type: integer
+# % gisprompt: number
+# % description: Pheromone intensity to leave on each step
+# % options: 0-<max integer on system would make sense>
+# % required : no
+# %end
+# %option
+# % key: pathintensity
+# % type: integer
+# % gisprompt: number
+# % description: Pheromone intensity to leave on found paths
+# % options: 0-<max integer on system would make sense>
+# % required : no
+# %end
+# %option
+# % key: maxants
+# % type: integer
+# % gisprompt: number
+# % description: Maximum amount of ants that may live concurrently (x*y)
+# % options: 0-<the bigger the playground, the more space they have>
+# % required : no
+# %end
+# %option
+# % key: antslife
+# % type: integer
+# % gisprompt: number
+# % description: Time to live for an ant (e.g. four times points distance)
+# % options: 0-<max integer on system would make sense>
+# % required : no
+# %end
+# %option
+# % key: decisionalgorithm
+# % type: string
+# % gisprompt: algorithm
+# % description: Algorithm used for walking step
+# % answer: standard
+# % options: standard,marked,costlymarked,random,test
+# % required : yes
+# %end
+# %option
+# % key: evaluateposition
+# % type: string
+# % gisprompt: algorithm
+# % description: Algorithm used for finding and remembering paths
+# % answer: avoidorforgetloop
+# % options: standard,avoidloop,forgetloop,avoidorforgetloop
+# % required : yes
+# %end
+# %option
+# % key: agentfreedom
+# % type: integer
+# % gisprompt: number
+# % description: Number of possible directions the ant can take (4 or 8)
+# % options: 4,8
+# % required : no
+# %end
+# %option
+# % key: pheromoneweight
+# % type: integer
+# % gisprompt: number
+# % description: How is the pheromone value (P) weighted when walking (p*P:r*R:c*C)
+# % answer: 1
+# % options: 0-99999
+# % required : yes
+# %end
+# %option
+# % key: randomnessweight
+# % type: integer
+# % gisprompt: number
+# % description: How is the random value (R) weighted when walking (p*P:r*R:c*C)
+# % answer: 1
+# % options: 0-99999
+# % required : yes
+# %end
+# %option
+# % key: costweight
+# % type: integer
+# % gisprompt: number
+# % description: How is the penalty value (C) weighted when walking (p*P:r*R:c*C)
+# % answer: 0
+# % options: 0-99999
+# % required : yes
+# %end
 
 import sys
 from sys import exit, maxsize

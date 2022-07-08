@@ -16,89 +16,89 @@
 #
 ##############################################################################
 
-#%module
-#% description: Unsupervised nested-means algorithm for terrain classification
-#% keyword: raster
-#% keyword: terrain
-#% keyword: classification
-#%end
+# %module
+# % description: Unsupervised nested-means algorithm for terrain classification
+# % keyword: raster
+# % keyword: terrain
+# % keyword: classification
+# %end
 
-#%option G_OPT_R_INPUT
-#% description: Input elevation raster:
-#% key: elevation
-#% required: yes
-#%end
+# %option G_OPT_R_INPUT
+# % description: Input elevation raster:
+# % key: elevation
+# % required: yes
+# %end
 
-#%option G_OPT_R_INPUT
-#% description: Input slope raster:
-#% key: slope
-#% required: no
-#%end
+# %option G_OPT_R_INPUT
+# % description: Input slope raster:
+# % key: slope
+# % required: no
+# %end
 
-#%option
-#% key: flat_thres
-#% type: double
-#% description: Height threshold for pit and peak detection:
-#% answer: 1
-#% required: no
-#%end
+# %option
+# % key: flat_thres
+# % type: double
+# % description: Height threshold for pit and peak detection:
+# % answer: 1
+# % required: no
+# %end
 
-#%option
-#% key: curv_thres
-#% type: double
-#% description: Curvature threshold for convexity and concavity detection:
-#% answer: 0
-#% required: no
-#%end
+# %option
+# % key: curv_thres
+# % type: double
+# % description: Curvature threshold for convexity and concavity detection:
+# % answer: 0
+# % required: no
+# %end
 
-#%option
-#% key: filter_size
-#% type: integer
-#% description: Size of smoothing filter window:
-#% answer: 3
-#% guisection: Optional
-#%end
+# %option
+# % key: filter_size
+# % type: integer
+# % description: Size of smoothing filter window:
+# % answer: 3
+# % guisection: Optional
+# %end
 
-#%option
-#% key: counting_size
-#% type: integer
-#% description: Size of counting window:
-#% answer: 21
-#% guisection: Optional
-#%end
+# %option
+# % key: counting_size
+# % type: integer
+# % description: Size of counting window:
+# % answer: 21
+# % guisection: Optional
+# %end
 
-#%option
-#% key: classes
-#% type: integer
-#% description: Number of classes in nested terrain classification:
-#% options: 8,12,16
-#% answer: 8
-#% guisection: Optional
-#%end
+# %option
+# % key: classes
+# % type: integer
+# % description: Number of classes in nested terrain classification:
+# % options: 8,12,16
+# % answer: 8
+# % guisection: Optional
+# %end
 
-#%option G_OPT_R_OUTPUT
-#% description: Output terrain texture:
-#% key: texture
-#% required: yes
-#%end
+# %option G_OPT_R_OUTPUT
+# % description: Output terrain texture:
+# % key: texture
+# % required: yes
+# %end
 
-#%option G_OPT_R_OUTPUT
-#% description: Output terrain convexity:
-#% key: convexity
-#% required: yes
-#%end
+# %option G_OPT_R_OUTPUT
+# % description: Output terrain convexity:
+# % key: convexity
+# % required: yes
+# %end
 
-#%option G_OPT_R_OUTPUT
-#% description: Output terrain concavity:
-#% key: concavity
-#% required: yes
-#%end
+# %option G_OPT_R_OUTPUT
+# % description: Output terrain concavity:
+# % key: concavity
+# % required: yes
+# %end
 
-#%option G_OPT_R_OUTPUT
-#% description: Output terrain classification:
-#% key: features
-#% required : no
-#%end
+# %option G_OPT_R_OUTPUT
+# % description: Output terrain classification:
+# % key: features
+# % required : no
+# %end
 
 
 import os

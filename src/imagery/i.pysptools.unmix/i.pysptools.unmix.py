@@ -18,78 +18,78 @@ COPYRIGHT: (C) 2018 by the GRASS GIS Development Team,
            for details.
 """
 
-#%module
-#% description: Extract endmembers from imagery group and perform spectral unmixing using pysptools
-#% keyword: imagery
-#% keyword: endmember
-#% keyword: spectral unmixing
-#%end
+# %module
+# % description: Extract endmembers from imagery group and perform spectral unmixing using pysptools
+# % keyword: imagery
+# % keyword: endmember
+# % keyword: spectral unmixing
+# %end
 
-#%option G_OPT_I_GROUP
-#% key: input
-#% description: Input imagery group
-#% required : yes
-#%end
+# %option G_OPT_I_GROUP
+# % key: input
+# % description: Input imagery group
+# % required : yes
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key: output
-#% guisection: output
-#% description: Text file storing endmember information for i.spec.unmix
-#% required : no
-#%end
+# %option G_OPT_F_OUTPUT
+# % key: output
+# % guisection: output
+# % description: Text file storing endmember information for i.spec.unmix
+# % required : no
+# %end
 
-#%option
-#% key: prefix
-#% description: Prefix for resulting raster maps
-#% guisection: output
-#% required : no
-#%end
+# %option
+# % key: prefix
+# % description: Prefix for resulting raster maps
+# % guisection: output
+# % required : no
+# %end
 
-#%option G_OPT_V_OUTPUT
-#% key: endmembers
-#% description: Vector map representing identified endmembers
-#% guisection: output
-#% required : no
-#%end
+# %option G_OPT_V_OUTPUT
+# % key: endmembers
+# % description: Vector map representing identified endmembers
+# % guisection: output
+# % required : no
+# %end
 
-#%option
-#% key: endmember_n
-#% type: integer
-#% description: Number of endmembers to identify
-#% required: yes
-#%end
+# %option
+# % key: endmember_n
+# % type: integer
+# % description: Number of endmembers to identify
+# % required: yes
+# %end
 
-#%option
-#% key: extraction_method
-#% type: string
-#% description: Method for endmember extraction
-#% options: FIPPI,PPI,NFINDR
-#% answer: NFINDR
-#%end
+# %option
+# % key: extraction_method
+# % type: string
+# % description: Method for endmember extraction
+# % options: FIPPI,PPI,NFINDR
+# % answer: NFINDR
+# %end
 
-#%option
-#% key: unmixing_method
-#% type: string
-#% description: Algorithm for spectral unmixing
-#% options: FCLS,UCLS,NNLS
-#% answer: FCLS
-#%end
+# %option
+# % key: unmixing_method
+# % type: string
+# % description: Algorithm for spectral unmixing
+# % options: FCLS,UCLS,NNLS
+# % answer: FCLS
+# %end
 
-#%option
-#% key: maxit
-#% type: integer
-#% description: Maximal number of iterations for endmember extraction (default=3*number of bands)
-#% required: no
-#%end
+# %option
+# % key: maxit
+# % type: integer
+# % description: Maximal number of iterations for endmember extraction (default=3*number of bands)
+# % required: no
+# %end
 
-#%flag
-#% key: n
-#% description: Do not use Automatic Target Generation Process (ATGP)
-#%end
+# %flag
+# % key: n
+# % description: Do not use Automatic Target Generation Process (ATGP)
+# %end
 
-#%rules
-#% required: output,prefix
-#%end
+# %rules
+# % required: output,prefix
+# %end
 
 import os
 import sys
@@ -108,9 +108,9 @@ def get_rastertype(raster):
     if not isinstance(raster[0, 0], np.float32) and not isinstance(
         raster[0, 0], np.float64
     ):
-        map_type = u"INTEGER"
+        map_type = "INTEGER"
     else:
-        map_type = u"REAL"
+        map_type = "REAL"
 
     return map_type
 
@@ -325,7 +325,7 @@ def main():
 
         # Build attribute table
         # Deinfe columns for attribute table
-        cols = [(u"cat", "INTEGER PRIMARY KEY")]
+        cols = [("cat", "INTEGER PRIMARY KEY")]
         for b in band_types.keys():
             cols.append((b.replace(".", "_"), band_types[b]))
 
@@ -359,7 +359,7 @@ def main():
             n = 0
             attr = []
             for b in band_types.keys():
-                if band_types[b] == u"INTEGER":
+                if band_types[b] == "INTEGER":
                     attr.append(int(e[n]))
                 else:
                     attr.append(float(e[n]))

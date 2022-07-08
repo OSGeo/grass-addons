@@ -45,7 +45,7 @@ def calibrate_digital_number(dn, c0, c1, c2):
             "The provided Digital Number value is out of the " "expected range [0, 63]"
         )
 
-    return c0 + (c1 * dn) + (c2 * (dn ** 2))
+    return c0 + (c1 * dn) + (c2 * (dn**2))
 
 
 def test_model(author):

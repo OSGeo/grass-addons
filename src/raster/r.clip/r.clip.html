@@ -8,7 +8,7 @@ The <b>input</b> raster map is left intact and a new (clipped)
 
 <p>
 By default the cell size and the cell alignment of the original raster
-is preserved. In other words, the output map inherits its resolution and
+are preserved. In other words, the output map inherits its resolution and
 cell positions (grid) from the input raster rather than the
 computational region.
 
@@ -16,14 +16,14 @@ computational region.
 If resampling into the cells size and cell alignment of the
 current computational is desired, the module can perform a nearest
 neighbor resampling when the <b>-r</b> flag is used.
-If more advanced resampling is required, the user is advised to to use
+If a more advanced resampling is required, the user is advised to use
 one of the dedicated resampling modules.
 
 <p>
 If mask (<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.mask.html">r.mask</a></em>) is active, it is
 respected and the output raster map will contain NULL (no data) values
 according to the mask.
-Otherwise, values in the <b>input</b> raster map are simply transfered
+Otherwise, values in the <b>input</b> raster map are simply transferred
 to the <b>output</b> raster map.
 
 <p>
@@ -49,8 +49,8 @@ before running the <em>r.clip</em> module.
 The extent of the resulting map might be slightly different based on how
 the cells of the input raster align with the cells of the computational
 region. The mechanism for aligning in the background is the one used in
-<em><a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a></em>. If exact match is
-desired, user is advised to resolve the cell alignment ahead using
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a></em>. If an exact match is
+desired, the user is advised to resolve the cell alignment ahead using
 <em><a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a></em> and then use
 <em>r.clip</em> with the <b>-r</b> flag.
 
@@ -133,7 +133,7 @@ r.info map=clipped_elevation -g
 
 In the output, we can see that the extent is the same
 (exactly the same in this case) as the computational region
-while the resolution and number of cells is different:
+while the resolution and number of cells are different:
 
 <pre>
 ...
@@ -194,8 +194,3 @@ cells=2025000
 <h2>AUTHOR</h2>
 
 Vaclav Petras, <a href="http://geospatial.ncsu.edu/osgeorel/">NCSU GeoForAll Lab</a>
-
-<!--
-<p>
-<i>Last changed: $Date$</i>
--->

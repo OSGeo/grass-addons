@@ -5,7 +5,7 @@
 MODULE:       r.connectivity.distance
 AUTHOR(S):    Stefan Blumentrath <stefan . blumentrath at nina . no >
 PURPOSE:      Compute cost-distance between all polygons (patches) of an
-              input vector map within a user defined euclidean distance
+              input vector map within a user defined Euclidean distance
               threshold
 
               Recently, graph-theory has been characterised as an
@@ -21,10 +21,10 @@ PURPOSE:      Compute cost-distance between all polygons (patches) of an
               r.connectivity.network and r.connectivity.corridor).
               r.connectivity.distance loops through all polygons in the
               input vector map and calculates the cost-distance to all
-              the other polygons within a user-defined defined Euclidean
+              the other polygons within a user-defined Euclidean
               distance threshold.
 
-              It produces two vector maps that holde the network:
+              It produces two vector maps that hold the network:
                - an edge-map (connections between patches) and a
                - vertex-map (centroid representations of the patches).
 
@@ -57,8 +57,8 @@ PURPOSE:      Compute cost-distance between all polygons (patches) of an
               width of possible corridors computed with
               r.connectivity.corridor later on.
 
-              If the conefor_dir option is specified also output in
-              CONEFOR formart will be produced, namely
+              If the conefor_dir option is also specified, output in
+              CONEFOR format will be produced, namely
                - a node file
                - a directed connection file, and
                - an undirected connection file
@@ -66,6 +66,7 @@ PURPOSE:      Compute cost-distance between all polygons (patches) of an
 
 COPYRIGHT:    (C) 2018 by the Norwegian Institute for Nature Research
                               (NINA)
+
 
               This program is free software under the GNU General Public
               License (>=v2). Read the file COPYING that comes with
@@ -80,108 +81,108 @@ Todo:
     - different distance measures
 """
 
-#%module
-#% description: Compute cost-distances between patches of an input vector map
-#% keyword: raster
-#% keyword: vector
-#% keyword: connectivity
-#% keyword: cost distance
-#% keyword: walking distance
-#% keyword: least cost path
-#% keyword: Conefor
-#%end
+# %module
+# % description: Compute cost-distances between patches of an input vector map
+# % keyword: raster
+# % keyword: vector
+# % keyword: connectivity
+# % keyword: cost distance
+# % keyword: walking distance
+# % keyword: least cost path
+# % keyword: Conefor
+# %end
 
-#%option G_OPT_V_INPUT
-#% required: yes
-#% key_desc: patches (input)
-#% description: Name of input vector map containing habitat patches
-#%end
+# %option G_OPT_V_INPUT
+# % required: yes
+# % key_desc: patches (input)
+# % description: Name of input vector map containing habitat patches
+# %end
 
-#%option G_OPT_V_FIELD
-#% required: yes
-#% answer: 1
-#% description: layer containing patch geometries
-#%end
+# %option G_OPT_V_FIELD
+# % required: yes
+# % answer: 1
+# % description: layer containing patch geometries
+# %end
 
-#%option G_OPT_DB_COLUMN
-#% key: pop_proxy
-#% required: yes
-#% key_desc: pop_proxy
-#% description: Column containig proxy for population size (not NULL and > 0)
-#%end
+# %option G_OPT_DB_COLUMN
+# % key: pop_proxy
+# % required: yes
+# % key_desc: pop_proxy
+# % description: Column containing proxy for population size (not NULL and > 0)
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: costs
-#% required: no
-#% key_desc: costs (input)
-#% description: Name of input costs raster map
-#%end
+# %option G_OPT_R_INPUT
+# % key: costs
+# % required: no
+# % key_desc: costs (input)
+# % description: Name of input costs raster map
+# %end
 
-#%option
-#% key: prefix
-#% type: string
-#% description: Prefix used for all output of the module (network vector map(s) and cost distance raster maps)
-#% required : yes
-#% guisection: Output
-#%end
+# %option
+# % key: prefix
+# % type: string
+# % description: Prefix used for all output of the module (network vector map(s) and cost distance raster maps)
+# % required : yes
+# % guisection: Output
+# %end
 
-#%option
-#% key: cutoff
-#% type: double
-#% description: Maximum search distance around patches in meter
-#% required: no
-#% guisection: Settings
-#% answer: 10000
-#%end
+# %option
+# % key: cutoff
+# % type: double
+# % description: Maximum search distance around patches in meter
+# % required: no
+# % guisection: Settings
+# % answer: 10000
+# %end
 
-#%option
-#% key: border_dist
-#% type: integer
-#% description: Number of border cells used for distance measuring
-#% required : no
-#% guisection: Settings
-#% answer : 50
-#%end
+# %option
+# % key: border_dist
+# % type: integer
+# % description: Number of border cells used for distance measuring
+# % required : no
+# % guisection: Settings
+# % answer : 50
+# %end
 
-#%option
-#% key: memory
-#% type: integer
-#% description: Maximum memory to be used in MB
-#% required : no
-#% guisection: Settings
-#% answer : 300
-#%end
+# %option
+# % key: memory
+# % type: integer
+# % description: Maximum memory to be used in MB
+# % required : no
+# % guisection: Settings
+# % answer : 300
+# %end
 
-#%option G_OPT_M_DIR
-#% key: conefor_dir
-#% description: Directory for additional output in Conefor format
-#% required : no
-#% guisection: Output
-#%end
+# %option G_OPT_M_DIR
+# % key: conefor_dir
+# % description: Directory for additional output in Conefor format
+# % required : no
+# % guisection: Output
+# %end
 
-#%flag
-#% key: p
-#% description: Extract and save shortest paths and closest points into a vector map
-#% guisection: Settings
-#%end
+# %flag
+# % key: p
+# % description: Extract and save shortest paths and closest points into a vector map
+# % guisection: Settings
+# %end
 
-#%flag
-#% key: t
-#% description: Rasterize patch borders with "all-touched" option using GDAL
-#% guisection: Settings
-#%end
+# %flag
+# % key: t
+# % description: Rasterize patch borders with "all-touched" option using GDAL
+# % guisection: Settings
+# %end
 
-#%flag
-#% key: r
-#% description: Remove distance maps (saves disk-space but disables computation of corridors)
-#% guisection: Settings
-#%end
+# %flag
+# % key: r
+# % description: Remove distance maps (saves disk-space but disables computation of corridors)
+# % guisection: Settings
+# %end
 
-#%flag
-#% key: k
-#% description: Use the 'Knight's move'; slower, but more accurate
-#% guisection: Settings
-#%end
+# %flag
+# % key: k
+# % description: Use the 'Knight's move'; slower, but more accurate
+# % guisection: Settings
+# %end
 
 ##%flag
 ##% key: w
@@ -526,18 +527,18 @@ def main():
     # Init output vector maps if they are requested by user
     network = VectorTopo(edge_map)
     network_columns = [
-        (u"cat", "INTEGER PRIMARY KEY"),
-        (u"from_p", "INTEGER"),
-        (u"to_p", "INTEGER"),
-        (u"min_dist", "DOUBLE PRECISION"),
-        (u"dist", "DOUBLE PRECISION"),
-        (u"max_dist", "DOUBLE PRECISION"),
+        ("cat", "INTEGER PRIMARY KEY"),
+        ("from_p", "INTEGER"),
+        ("to_p", "INTEGER"),
+        ("min_dist", "DOUBLE PRECISION"),
+        ("dist", "DOUBLE PRECISION"),
+        ("max_dist", "DOUBLE PRECISION"),
     ]
     network.open("w", tab_name=edge_map, tab_cols=network_columns)
 
     vertex = VectorTopo(vertex_map)
     vertex_columns = [
-        (u"cat", "INTEGER PRIMARY KEY"),
+        ("cat", "INTEGER PRIMARY KEY"),
         (pop_proxy, "DOUBLE PRECISION"),
     ]
     vertex.open("w", tab_name=vertex_map, tab_cols=vertex_columns)

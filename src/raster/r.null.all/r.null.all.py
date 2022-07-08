@@ -14,94 +14,94 @@
 #
 #############################################################################
 
-#%module
-#% description: Manages NULL values of raster maps in a mapset or their subset.
-#% keyword: raster
-#% keyword: map management
-#% keyword: null data
-#% keyword: no-data
-#%end
-#%flag
-#% key: f
-#% description: Only do the work if the map is floating-point
-#% guisection: Check
-#%end
-#%flag
-#% key: i
-#% description: Only do the work if the map is integer
-#% guisection: Check
-#%end
-#%flag
-#% key: n
-#% description: Only do the work if the map doesn't have a NULL-value bitmap file
-#% guisection: Check
-#%end
-#%flag
-#% key: c
-#% description: Create NULL-value bitmap file validating all data cells
-#%end
-#%flag
-#% key: r
-#% description: Remove NULL-value bitmap file
-#% guisection: Remove
-#%end
-#%flag
-#% key: z
-#% description: Re-create NULL-value bitmap file (to compress or uncompress)
-#%end
-#%flag
-#% key: d
-#% label: Dry run
-#% description: Map names to be checked or processed will be printed (does not take into account other flags)
-#%end
-#%option
-#% key: setnull
-#% type: string
-#% required: no
-#% multiple: yes
-#% key_desc: val[-val]
-#% description: List of cell values to be set to NULL
-#% guisection: Modify
-#%end
-#%option
-#% key: null
-#% type: double
-#% required: no
-#% multiple: no
-#% description: The value to replace the null value by
-#% guisection: Modify
-#%end
-#%option
-#% key: pattern
-#% type: string
-#% required: no
-#% multiple: yes
-#% key_desc: expression
-#% label: Map name search pattern (default: all)
-#% guisection: Pattern
-#%end
-#%option
-#% key: exclude
-#% type: string
-#% required: no
-#% multiple: yes
-#% label: Map name exclusion pattern (default: none)
-#% guisection: Pattern
-#%end
-#%option
-#% key: matching
-#% type: string
-#% required: no
-#% multiple: no
-#% label: Search pattern syntax
-#% options: all,wildcards,basic,extended
-#% descriptions: all;Match all (no pattern needed);wildcards;Use wildcards (glob pattern);basic;Use basic regular expressions;extended;Use extended regular expressions
-#% answer: all
-#% guisection: Pattern
-#%end
-#%rules
-#% required: setnull, null
-#%end
+# %module
+# % description: Manages NULL values of raster maps in a mapset or their subset.
+# % keyword: raster
+# % keyword: map management
+# % keyword: null data
+# % keyword: no-data
+# %end
+# %flag
+# % key: f
+# % description: Only do the work if the map is floating-point
+# % guisection: Check
+# %end
+# %flag
+# % key: i
+# % description: Only do the work if the map is integer
+# % guisection: Check
+# %end
+# %flag
+# % key: n
+# % description: Only do the work if the map doesn't have a NULL-value bitmap file
+# % guisection: Check
+# %end
+# %flag
+# % key: c
+# % description: Create NULL-value bitmap file validating all data cells
+# %end
+# %flag
+# % key: r
+# % description: Remove NULL-value bitmap file
+# % guisection: Remove
+# %end
+# %flag
+# % key: z
+# % description: Re-create NULL-value bitmap file (to compress or uncompress)
+# %end
+# %flag
+# % key: d
+# % label: Dry run
+# % description: Map names to be checked or processed will be printed (does not take into account other flags)
+# %end
+# %option
+# % key: setnull
+# % type: string
+# % required: no
+# % multiple: yes
+# % key_desc: val[-val]
+# % description: List of cell values to be set to NULL
+# % guisection: Modify
+# %end
+# %option
+# % key: null
+# % type: double
+# % required: no
+# % multiple: no
+# % description: The value to replace the null value by
+# % guisection: Modify
+# %end
+# %option
+# % key: pattern
+# % type: string
+# % required: no
+# % multiple: yes
+# % key_desc: expression
+# % label: Map name search pattern (default: all)
+# % guisection: Pattern
+# %end
+# %option
+# % key: exclude
+# % type: string
+# % required: no
+# % multiple: yes
+# % label: Map name exclusion pattern (default: none)
+# % guisection: Pattern
+# %end
+# %option
+# % key: matching
+# % type: string
+# % required: no
+# % multiple: no
+# % label: Search pattern syntax
+# % options: all,wildcards,basic,extended
+# % descriptions: all;Match all (no pattern needed);wildcards;Use wildcards (glob pattern);basic;Use basic regular expressions;extended;Use extended regular expressions
+# % answer: all
+# % guisection: Pattern
+# %end
+# %rules
+# % required: setnull, null
+# %end
 
 
 import grass.script as gs

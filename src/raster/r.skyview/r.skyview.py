@@ -17,80 +17,80 @@
 #
 ##############################################################################
 
-#%module
-#% description: Computes skyview factor visualization technique.
-#% keyword: raster
-#% keyword: visualization
-#%end
-#%option G_OPT_R_INPUT
-#%end
-#%option G_OPT_R_OUTPUT
-#%end
-#%option
-#% key: ndir
-#% description: Number of directions (8 to 32 recommended)
-#% type: integer
-#% required: yes
-#% answer: 16
-#% options: 2-360
-#%end
-#%option
-#% key: maxdistance
-#% description: The maximum distance to consider when finding the horizon height
-#% type: double
-#% required: no
-#%end
-#%option
-#% key: color_source
-#% type: string
-#% label: Source raster for colorization
-#% description: Input and color_input are taken from input and color_input options respectively. The rest is computed using r.slope.aspect
-#% descriptions: input; use the raster from the input option;color_input;use the raster from the color_input option;slope;compute and use slope;aspect;compute and use aspect;dxy;compute and use second order partial derivative dxy
-#% multiple: no
-#% required: no
-#% options: input, color_input, slope, aspect, dxy
-#% answer: input
-#% guisection: Colorize
-#%end
-#%option G_OPT_R_INPUT
-#% key: color_input
-#% required: no
-#% description: Custom raster map to be used for colorization
-#% guisection: Colorize
-#%end
-#%option
-#% key: color_table
-#% type: string
-#% label: Color table for colorization raster (preset color table by default)
-#% description: If empty, the color table of the created raster is used (not used at all for input and color_input)
-#% multiple: no
-#% required: no
-#% options: reds, blues, greens, oranges, sepia, aspectcolr
-#% guisection: Colorize
-#%end
-#%option G_OPT_R_OUTPUT
-#% key: colorized_output
-#% required: no
-#% description: Colorized sky-view factor
-#% guisection: Colorize
-#%end
-#%option
-#%  key: basename
-#%  type: string
-#%  multiple: no
-#%  description: Set the basename for the intermediate maps
-#%end
-#%flag
-#% key: o
-#% label: Compute openness instead of skyview factor
-#% description: Openness considers zenith angles > 90 degrees
-#%end
-#%flag
-#% key: n
-#% label: Invert color table for colorization raster
-#% description: Ignored for input and color_input
-#% guisection: Colorize
-#%end
+# %module
+# % description: Computes skyview factor visualization technique.
+# % keyword: raster
+# % keyword: visualization
+# %end
+# %option G_OPT_R_INPUT
+# %end
+# %option G_OPT_R_OUTPUT
+# %end
+# %option
+# % key: ndir
+# % description: Number of directions (8 to 32 recommended)
+# % type: integer
+# % required: yes
+# % answer: 16
+# % options: 2-360
+# %end
+# %option
+# % key: maxdistance
+# % description: The maximum distance to consider when finding the horizon height
+# % type: double
+# % required: no
+# %end
+# %option
+# % key: color_source
+# % type: string
+# % label: Source raster for colorization
+# % description: Input and color_input are taken from input and color_input options respectively. The rest is computed using r.slope.aspect
+# % descriptions: input; use the raster from the input option;color_input;use the raster from the color_input option;slope;compute and use slope;aspect;compute and use aspect;dxy;compute and use second order partial derivative dxy
+# % multiple: no
+# % required: no
+# % options: input, color_input, slope, aspect, dxy
+# % answer: input
+# % guisection: Colorize
+# %end
+# %option G_OPT_R_INPUT
+# % key: color_input
+# % required: no
+# % description: Custom raster map to be used for colorization
+# % guisection: Colorize
+# %end
+# %option
+# % key: color_table
+# % type: string
+# % label: Color table for colorization raster (preset color table by default)
+# % description: If empty, the color table of the created raster is used (not used at all for input and color_input)
+# % multiple: no
+# % required: no
+# % options: reds, blues, greens, oranges, sepia, aspectcolr
+# % guisection: Colorize
+# %end
+# %option G_OPT_R_OUTPUT
+# % key: colorized_output
+# % required: no
+# % description: Colorized sky-view factor
+# % guisection: Colorize
+# %end
+# %option
+# %  key: basename
+# %  type: string
+# %  multiple: no
+# %  description: Set the basename for the intermediate maps
+# %end
+# %flag
+# % key: o
+# % label: Compute openness instead of skyview factor
+# % description: Openness considers zenith angles > 90 degrees
+# %end
+# %flag
+# % key: n
+# % label: Invert color table for colorization raster
+# % description: Ignored for input and color_input
+# % guisection: Colorize
+# %end
 
 
 import sys
@@ -189,7 +189,7 @@ def main():
             step=horizon_step,
             output=TMP_NAME,
             flags="d",
-            **params
+            **params,
         )
 
         new_maps = _get_horizon_maps()

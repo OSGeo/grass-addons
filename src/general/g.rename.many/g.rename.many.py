@@ -19,60 +19,60 @@
 #
 ############################################################################
 
-#%module
-#% description: Renames multiple maps in the current mapset.
-#% keyword: general
-#% keyword: map management
-#% keyword: rename
-#%end
+# %module
+# % description: Renames multiple maps in the current mapset.
+# % keyword: general
+# % keyword: map management
+# % keyword: rename
+# %end
 
-#%option G_OPT_F_INPUT
-#% key: raster
-#% required: no
-#% multiple: no
-#% label: File with rasters to be renamed
-#% description: Format of the file is one raster map per line. Old name first, new name second (separated by comma by default)
-#% guisection: Raster
-#%end
+# %option G_OPT_F_INPUT
+# % key: raster
+# % required: no
+# % multiple: no
+# % label: File with rasters to be renamed
+# % description: Format of the file is one raster map per line. Old name first, new name second (separated by comma by default)
+# % guisection: Raster
+# %end
 
-#%option G_OPT_F_INPUT
-#% key: raster_3d
-#% required: no
-#% multiple: no
-#% label: File with 3D rasters to be renamed
-#% description: Format of the file is one raster map per line. Old name first, new name second (separated by comma by default)
-#% guisection: Raster
-#%end
+# %option G_OPT_F_INPUT
+# % key: raster_3d
+# % required: no
+# % multiple: no
+# % label: File with 3D rasters to be renamed
+# % description: Format of the file is one raster map per line. Old name first, new name second (separated by comma by default)
+# % guisection: Raster
+# %end
 
-#%option G_OPT_F_INPUT
-#% key: vector
-#% required: no
-#% multiple: no
-#% label: File with vectors to be renamed
-#% description: Format of the file is one vector map per line. Old name first, new name second (separated by comma by default)
-#% guisection: Vector
-#%end
+# %option G_OPT_F_INPUT
+# % key: vector
+# % required: no
+# % multiple: no
+# % label: File with vectors to be renamed
+# % description: Format of the file is one vector map per line. Old name first, new name second (separated by comma by default)
+# % guisection: Vector
+# %end
 
-#%option G_OPT_F_SEP
-#% answer: comma
-#%end
+# %option G_OPT_F_SEP
+# % answer: comma
+# %end
 
-#%flag
-#% key: s
-#% label: Skip file format and map existence checks
-#% description: By default a file format check is performed and existence of map is checked before the actual renaming. This requires going through each file two times. It might be advantageous to disable the checks for renames of large number of maps. However, when this flag is used an error occurs, some maps might be renamed while some others not.
-#%end
+# %flag
+# % key: s
+# % label: Skip file format and map existence checks
+# % description: By default a file format check is performed and existence of map is checked before the actual renaming. This requires going through each file two times. It might be advantageous to disable the checks for renames of large number of maps. However, when this flag is used an error occurs, some maps might be renamed while some others not.
+# %end
 
-#%flag
-#% key: d
-#% label: Do the checks only (dry run)
-#% description: This will only perform the file format and map existence checks but it will not do the actual rename. This is useful when writing the file with renames.
-#%end
+# %flag
+# % key: d
+# % label: Do the checks only (dry run)
+# % description: This will only perform the file format and map existence checks but it will not do the actual rename. This is useful when writing the file with renames.
+# %end
 
-#%rules
-#% required: raster,raster_3d,vector
-#% exclusive: -s,-d
-#%end
+# %rules
+# % required: raster,raster_3d,vector
+# % exclusive: -s,-d
+# %end
 
 
 from grass.script.utils import parse_key_val, separator
@@ -131,7 +131,7 @@ def map_exists(name, type, mapset=None):
         mapset=mapset,
         stdout=PIPE,
         stderr=PIPE,
-        **extra_params
+        **extra_params,
     )
     output, errors = process.communicate()
     info = parse_key_val(output)

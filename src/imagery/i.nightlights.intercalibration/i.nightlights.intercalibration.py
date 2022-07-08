@@ -112,91 +112,91 @@ PURPOSE:        Performing inter-satellite calibration on DMSP-OLS Nighttime
                for details.
 """
 
-#%Module
-#%  description: Performs inter-satellite calibration on DMSP-OLS Nighttime Lights Time Series
-#%  keywords: imagery
-#%  keywords: inter-satellite
-#%  keywords: calibration
-#%  keywords: nighttime lights
-#%  keywords: time series
-#%  keywords: DMSP-OLS
-#%End
+# %Module
+# %  description: Performs inter-satellite calibration on DMSP-OLS Nighttime Lights Time Series
+# %  keywords: imagery
+# %  keywords: inter-satellite
+# %  keywords: calibration
+# %  keywords: nighttime lights
+# %  keywords: time series
+# %  keywords: DMSP-OLS
+# %End
 
-#%flag
-#%  key: c
-#%  description: Print out citation for selected calibration model
-#%end
+# %flag
+# %  key: c
+# %  description: Print out citation for selected calibration model
+# %end
 
-#%flag
-#%  key: i
-#%  description: Print out calibration equations
-#%end
+# %flag
+# %  key: i
+# %  description: Print out calibration equations
+# %end
 
-#% flag
-#%  key: e
-#%  description: Evaluation based on the Normalised Difference Index
-#% end
+# % flag
+# %  key: e
+# %  description: Evaluation based on the Normalised Difference Index
+# % end
 
-#% flag
-#%  key: g
-#%  description: Print in shell script style (currently only NDI via -e)
-#% end
+# % flag
+# %  key: g
+# %  description: Print in shell script style (currently only NDI via -e)
+# % end
 
-#%flag
-#%  key: x
-#%  description: Match computational region to extent of input image
-#%end
+# %flag
+# %  key: x
+# %  description: Match computational region to extent of input image
+# %end
 
-#%flag
-#% key: z
-#%  description: Exclude zero values from the analysis (retain zero cells in output)
-#%end
+# %flag
+# % key: z
+# %  description: Exclude zero values from the analysis (retain zero cells in output)
+# %end
 
-#%flag
-#% key: n
-#%  description: Exclude zero values from the analysis (set zero cells to NULL in output)
-#%end
+# %flag
+# % key: n
+# %  description: Exclude zero values from the analysis (set zero cells to NULL in output)
+# %end
 
-#%flag
-#% key: t
-#%  description: Do not try to transfer timestamps (for input without timestamp)
-#%end
+# %flag
+# % key: t
+# %  description: Do not try to transfer timestamps (for input without timestamp)
+# %end
 
-#% rules
-#%  exclusive: -z,-n
-#% end
+# % rules
+# %  exclusive: -z,-n
+# % end
 
-#%option G_OPT_R_INPUTS
-#% key: image
-#% key_desc: name
-#% description: Clean average DMSP-OLS visible band digital number image(s)
-#% required : yes
-#% multiple : yes
-#%end
+# %option G_OPT_R_INPUTS
+# % key: image
+# % key_desc: name
+# % description: Clean average DMSP-OLS visible band digital number image(s)
+# % required : yes
+# % multiple : yes
+# %end
 
-#%option G_OPT_R_BASENAME_OUTPUT
-#% key: suffix
-#% key_desc: suffix
-#% type: string
-#% label: output file(s) suffix
-#% description: Suffix for calibrated average digital number output image(s)
-#% required: yes
-#% answer: c
-#%end
+# %option G_OPT_R_BASENAME_OUTPUT
+# % key: suffix
+# % key_desc: suffix
+# % type: string
+# % label: output file(s) suffix
+# % description: Suffix for calibrated average digital number output image(s)
+# % required: yes
+# % answer: c
+# %end
 
-#%option
-#% key: model
-#% key_desc: author
-#% type: string
-#% label: Calibration model
-#% description: Inter-satellite calibration model for average DMSP-OLS nighttime lights time series
-#% descriptions: Elvidge (2009 or 2014), Liu 2012, Wu 2013
-#% options: elvidge2009,elvidge2014,liu2012,wu2013
-#% required: yes
-#% answer: elvidge2014
-#% guisection: Calibration Model
-#% multiple : no
-#%end
+# %option
+# % key: model
+# % key_desc: author
+# % type: string
+# % label: Calibration model
+# % description: Inter-satellite calibration model for average DMSP-OLS nighttime lights time series
+# % descriptions: Elvidge (2009 or 2014), Liu 2012, Wu 2013
+# % options: elvidge2009,elvidge2014,liu2012,wu2013
+# % required: yes
+# % answer: elvidge2014
+# % guisection: Calibration Model
+# % multiple : no
+# %end
 
 
 # required librairies -------------------------------------------------------

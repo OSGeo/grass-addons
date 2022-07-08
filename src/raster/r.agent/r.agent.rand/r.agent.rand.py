@@ -14,68 +14,68 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
 
 ##TODO it is time to make this all multithreaded..
 
-#%Module
-#% description: Agents wander around on the terrain, marking paths to new locations.
-#%End
-#%option
-#% key: outputmap
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Name of step output map
-#% required : yes
-#%end
-#%flag
-#% key: p
-#% description: Allow overwriting existing output maps
-#%end
-#%option
-#% key: costmap
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Name of penalty resp. cost raster map (note conversion checkbox)
-#% required : yes
-#%end
-#%option
-#% key: rounds
-#% type: integer
-#% gisprompt: number
-#% description: Number of iterations/rounds to run
-#% answer: 999
-#% options: 0-999999
-#% required : yes
-#%end
-#%option
-#% key: mark
-#% type: integer
-#% gisprompt: number
-#% description: Mark each step an agent takes
-#% options: 0-<max integer on system would make sense>
-#% required : no
-#%end
-#%option
-#% key: maxagents
-#% type: integer
-#% gisprompt: number
-#% description: Maximum amount of agents that may live concurrently (x*y)
-#% options: 0-<the bigger the playground, the more space they have>
-#% required : no
-#%end
-#%option
-#% key: agentslife
-#% type: integer
-#% gisprompt: number
-#% description: Time to live for an agent
-#% options: 0-<max integer on system would make sense>
-#% required : no
-#%end
-#%option
-#% key: agentfreedom
-#% type: integer
-#% gisprompt: number
-#% description: Number of possible directions the ant can take (4 or 8)
-#% options: 4,8
-#% required : no
-#%end
+# %Module
+# % description: Agents wander around on the terrain, marking paths to new locations.
+# %End
+# %option
+# % key: outputmap
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Name of step output map
+# % required : yes
+# %end
+# %flag
+# % key: p
+# % description: Allow overwriting existing output maps
+# %end
+# %option
+# % key: costmap
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Name of penalty resp. cost raster map (note conversion checkbox)
+# % required : yes
+# %end
+# %option
+# % key: rounds
+# % type: integer
+# % gisprompt: number
+# % description: Number of iterations/rounds to run
+# % answer: 999
+# % options: 0-999999
+# % required : yes
+# %end
+# %option
+# % key: mark
+# % type: integer
+# % gisprompt: number
+# % description: Mark each step an agent takes
+# % options: 0-<max integer on system would make sense>
+# % required : no
+# %end
+# %option
+# % key: maxagents
+# % type: integer
+# % gisprompt: number
+# % description: Maximum amount of agents that may live concurrently (x*y)
+# % options: 0-<the bigger the playground, the more space they have>
+# % required : no
+# %end
+# %option
+# % key: agentslife
+# % type: integer
+# % gisprompt: number
+# % description: Time to live for an agent
+# % options: 0-<max integer on system would make sense>
+# % required : no
+# %end
+# %option
+# % key: agentfreedom
+# % type: integer
+# % gisprompt: number
+# % description: Number of possible directions the ant can take (4 or 8)
+# % options: 4,8
+# % required : no
+# %end
 
 import sys
 from sys import exit, maxsize

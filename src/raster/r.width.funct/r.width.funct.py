@@ -20,24 +20,24 @@
 #
 #
 ################################################################################
-#%module
-#% description: Calculates the Width Function of a watershed basin.
-#% keyword: raster
-#% keyword: hydrology
-#%end
+# %module
+# % description: Calculates the Width Function of a watershed basin.
+# % keyword: raster
+# % keyword: hydrology
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: map
-#% description: Distance to outlet map (from r.stream.distance)
-#% required: yes
-#%end
+# %option G_OPT_R_INPUT
+# % key: map
+# % description: Distance to outlet map (from r.stream.distance)
+# % required: yes
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key: image
-#% key_desc: image
-#% description: Name for output graph file (png)
-#% required: yes
-#%END
+# %option G_OPT_F_OUTPUT
+# % key: image
+# % key_desc: image
+# % description: Name for output graph file (png)
+# % required: yes
+# %END
 
 
 import sys
@@ -66,11 +66,11 @@ def main():
         if i != 0:
             zn[i, 0], zn[i, 1] = map(float, stats[i].split(" "))
             zn[i, 2] = zn[i, 1] + zn[i - 1, 2]
-            zn[i, 3] = zn[i, 1] * (res ** 2)
+            zn[i, 3] = zn[i, 1] * (res**2)
 
     totcell = sum(zn[:, 1])
     print("Tot. cells %s" % (totcell))
-    totarea = totcell * (res ** 2)
+    totarea = totcell * (res**2)
     print("Tot. area %s" % (totarea))
     maxdist = max(zn[:, 0])
     print("Max distance %s" % (maxdist))

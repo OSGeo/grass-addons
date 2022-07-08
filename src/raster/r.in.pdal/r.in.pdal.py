@@ -17,141 +17,141 @@
 #
 #############################################################################
 
-#%Module
-#%description:  Creates a raster map from LAS LiDAR points using univariate statistics and r.in.xyz.
-#%keyword: raster
-#%keyword: import
-#%keyword: LIDAR
-#%keyword: statistics
-#%keyword: conversion
-#%overwrite: yes
-#%End
+# %Module
+# %description:  Creates a raster map from LAS LiDAR points using univariate statistics and r.in.xyz.
+# %keyword: raster
+# %keyword: import
+# %keyword: LIDAR
+# %keyword: statistics
+# %keyword: conversion
+# %overwrite: yes
+# %End
 
-#%option G_OPT_R_INPUT
-#% key: input
-#% description: LAS input file
-#% required: yes
-#%end
+# %option G_OPT_R_INPUT
+# % key: input
+# % description: LAS input file
+# % required: yes
+# %end
 
-#%option G_OPT_R_OUTPUTS
-#% key: output
-#% description: Name for output raster map
-#% required: yes
-#%end
+# %option G_OPT_R_OUTPUTS
+# % key: output
+# % description: Name for output raster map
+# % required: yes
+# %end
 
-#%option
-#% key: resolution
-#% type: double
-#% description: 2D grid resolution (north-south and east-west)
-#% answer: 1.0
-#% required: no
-#%end
+# %option
+# % key: resolution
+# % type: double
+# % description: 2D grid resolution (north-south and east-west)
+# % answer: 1.0
+# % required: no
+# %end
 
-#%option
-#% key: raster_reference
-#% label: Raster map to be used as pixel geometry reference
-#% description: Raster map to align to, e.g. an orthophoto of the same region
-#% required: no
-#%end
+# %option
+# % key: raster_reference
+# % label: Raster map to be used as pixel geometry reference
+# % description: Raster map to align to, e.g. an orthophoto of the same region
+# % required: no
+# %end
 
-#%option
-#% key: raster_file
-#% label: External raster map to be used as pixel geometry reference
-#% description: External raster map to align to, e.g. an orthophoto of the same region
-#% required: no
-#%end
+# %option
+# % key: raster_file
+# % label: External raster map to be used as pixel geometry reference
+# % description: External raster map to align to, e.g. an orthophoto of the same region
+# % required: no
+# %end
 
-#%option
-#% key: method
-#% type: string
-#% description: Statistic to use for raster values
-#% options: n, min, max, range, sum, mean, stddev, variance, coeff_var, median, percentile, skewness, trimmean
-#% answer: mean
-#% descriptions: n;Number of points in cell;min;Minimum value of point values in cell;max;Maximum value of point values in cell;range;Range of point values in cell;sum;Sum of point values in cell;mean;Mean (average) value of point values in cell;stddev;Standard deviation of point values in cell;variance;Variance of point values in cell;coeff_var;Coefficient of variance of point values in cell;median;Median value of point values in cell;percentile;Pth (nth) percentile of point values in cell;skewness;Skewness of point values in cell
-#% multiple: yes
-#% required: no
-#%end
+# %option
+# % key: method
+# % type: string
+# % description: Statistic to use for raster values
+# % options: n, min, max, range, sum, mean, stddev, variance, coeff_var, median, percentile, skewness, trimmean
+# % answer: mean
+# % descriptions: n;Number of points in cell;min;Minimum value of point values in cell;max;Maximum value of point values in cell;range;Range of point values in cell;sum;Sum of point values in cell;mean;Mean (average) value of point values in cell;stddev;Standard deviation of point values in cell;variance;Variance of point values in cell;coeff_var;Coefficient of variance of point values in cell;median;Median value of point values in cell;percentile;Pth (nth) percentile of point values in cell;skewness;Skewness of point values in cell
+# % multiple: yes
+# % required: no
+# %end
 
-#%option
-#% key: zrange
-#% type: double
-#% key_desc: min,max
-#% description: Filter range for z data (min,max)
-#% required: no
-#%end
+# %option
+# % key: zrange
+# % type: double
+# % key_desc: min,max
+# % description: Filter range for z data (min,max)
+# % required: no
+# %end
 
-#%option
-#% key: zscale
-#% type: double
-#% description: Scale to apply to z data
-#% answer: 1.0
-#% required: no
-#%end
+# %option
+# % key: zscale
+# % type: double
+# % description: Scale to apply to z data
+# % answer: 1.0
+# % required: no
+# %end
 
-#%option
-#% key: type
-#% type: string
-#% description: Type of raster map to be created / Storage type for resultant raster map
-#% options: CELL, FCELL, DCELL
-#% answer: FCELL
-#% required: no
-#% descriptions: CELL;Integer;FCELL;Single precision floating point;DCELL;Double precision floating point
-#%end
+# %option
+# % key: type
+# % type: string
+# % description: Type of raster map to be created / Storage type for resultant raster map
+# % options: CELL, FCELL, DCELL
+# % answer: FCELL
+# % required: no
+# % descriptions: CELL;Integer;FCELL;Single precision floating point;DCELL;Double precision floating point
+# %end
 
-#%option
-#% key: percent
-#% type: integer
-#% description: Percent of map to keep in memory
-#% options: 1-100
-#% answer: 100
-#% required: no
-#%end
+# %option
+# % key: percent
+# % type: integer
+# % description: Percent of map to keep in memory
+# % options: 1-100
+# % answer: 100
+# % required: no
+# %end
 
-#%option
-#% key: pth
-#% type: integer
-#% description: Pth percentile of the values
-#% options: 1-100
-#% required: no
-#%end
+# %option
+# % key: pth
+# % type: integer
+# % description: Pth percentile of the values
+# % options: 1-100
+# % required: no
+# %end
 
-#%option
-#% key: trim
-#% type: double
-#% description: Discard <trim> percent of the smallest and <trim> percent of the largest observations
-#% options: 1-50
-#% required: no
-#%end
+# %option
+# % key: trim
+# % type: double
+# % description: Discard <trim> percent of the smallest and <trim> percent of the largest observations
+# % options: 1-50
+# % required: no
+# %end
 
-#%option
-#% key: footprint
-#% type: string
-#% description: Footprint of the data as vector map
-#% required: no
-#%end
+# %option
+# % key: footprint
+# % type: string
+# % description: Footprint of the data as vector map
+# % required: no
+# %end
 
-#%option
-#% key: pdal_cmd
-#% type: string
-#% description: Command for PDAL (e.g. if PDAL runs only in a docker)
-#% required: no
-#% answer: pdal
-#%end
+# %option
+# % key: pdal_cmd
+# % type: string
+# % description: Command for PDAL (e.g. if PDAL runs only in a docker)
+# % required: no
+# % answer: pdal
+# %end
 
-#%flag
-#% key: s
-#% description: Scan data file for extent then exit
-#%end
+# %flag
+# % key: s
+# % description: Scan data file for extent then exit
+# %end
 
-#%flag
-#% key: g
-#% description: In scan mode, print using shell script style
-#%end
+# %flag
+# % key: g
+# % description: In scan mode, print using shell script style
+# %end
 
-#%rules
-#% exclusive: raster_file, raster_reference
-#% exclusive: resolution, raster_file, raster_reference
-#%end
+# %rules
+# % exclusive: raster_file, raster_reference
+# % exclusive: resolution, raster_file, raster_reference
+# %end
 
 import os
 import sys
@@ -199,10 +199,10 @@ def footprint_to_vectormap(infile, footprint):
         fh.close()
     data = json.load(open(tmp_fp))
     xy_in = ""
-    str1 = u"boundary"
+    str1 = "boundary"
     try:
-        str2 = u"boundary_json"
-        str3 = u"coordinates"
+        str2 = "boundary_json"
+        str3 = "coordinates"
         coord = data[str1][str2][str3][0][0]
         for xy in coord:
             xy_in += str(xy[0]) + "," + str(xy[1]) + "\n"
@@ -289,13 +289,13 @@ def scan_extent(infile):
 
     data = json.load(open(tmp_scan))
     if summary:
-        str1 = u"summary"
-        str2 = u"bounds"
-        y_str = u"Y"
-        x_str = u"X"
-        z_str = u"Z"
-        min_str = u"min"
-        max_str = u"max"
+        str1 = "summary"
+        str2 = "bounds"
+        y_str = "Y"
+        x_str = "X"
+        z_str = "Z"
+        min_str = "min"
+        max_str = "max"
         try:
             n = str(data[str1][str2][y_str][max_str])
             s = str(data[str1][str2][y_str][min_str])
@@ -304,12 +304,12 @@ def scan_extent(infile):
             t = str(data[str1][str2][z_str][max_str])
             b = str(data[str1][str2][z_str][min_str])
         except:
-            ymin_str = u"miny"
-            xmin_str = u"minx"
-            zmin_str = u"minz"
-            ymax_str = u"maxy"
-            xmax_str = u"maxx"
-            zmax_str = u"maxz"
+            ymin_str = "miny"
+            xmin_str = "minx"
+            zmin_str = "minz"
+            ymax_str = "maxy"
+            xmax_str = "maxx"
+            zmax_str = "maxz"
             n = str(data[str1][str2][ymax_str])
             s = str(data[str1][str2][ymin_str])
             w = str(data[str1][str2][xmin_str])
@@ -317,16 +317,16 @@ def scan_extent(infile):
             t = str(data[str1][str2][zmax_str])
             b = str(data[str1][str2][zmin_str])
     else:
-        str1 = u"stats"
-        str2 = u"bbox"
-        str3 = u"native"
-        str4 = u"bbox"
-        n = str(data[str1][str2][str3][str4][u"maxy"])
-        s = str(data[str1][str2][str3][str4][u"miny"])
-        w = str(data[str1][str2][str3][str4][u"minx"])
-        e = str(data[str1][str2][str3][str4][u"maxx"])
-        t = str(data[str1][str2][str3][str4][u"maxz"])
-        b = str(data[str1][str2][str3][str4][u"minz"])
+        str1 = "stats"
+        str2 = "bbox"
+        str3 = "native"
+        str4 = "bbox"
+        n = str(data[str1][str2][str3][str4]["maxy"])
+        s = str(data[str1][str2][str3][str4]["miny"])
+        w = str(data[str1][str2][str3][str4]["minx"])
+        e = str(data[str1][str2][str3][str4]["maxx"])
+        t = str(data[str1][str2][str3][str4]["maxz"])
+        b = str(data[str1][str2][str3][str4]["minz"])
 
     return n, s, w, e, t, b
 
@@ -394,7 +394,7 @@ def main():
                 "r.external", input=raster_file, flags="o", output=raster_reference
             )
             result = grass.find_file(name=raster_reference, element="raster")
-            if result[u"fullname"] == u"":
+            if result["fullname"] == "":
                 raster_reference = raster_reference + ".1"
         # option 1: set region to extent of tiles while precisely aligning pixel
         # geometry to raster_reference (including both raster_reference and raster_file)

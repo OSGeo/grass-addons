@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 
 
-#%module
-#% description: The module for processing row data of microwave links to precipitation.
-#% keyword: general
-#% keyword: GUI
-#% keyword: precipitation
-#% keyword: microwave
-#% keyword: link
-#%end
+# %module
+# % description: The module for processing row data of microwave links to precipitation.
+# % keyword: general
+# % keyword: GUI
+# % keyword: precipitation
+# % keyword: microwave
+# % keyword: link
+# %end
 
 VERSION = 1.3
 import sys

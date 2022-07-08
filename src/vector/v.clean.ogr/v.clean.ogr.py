@@ -18,141 +18,141 @@
 #
 ############################################################################
 
-#%module
-#% description: Imports vector data into a GRASS vector map, cleans the data topologically, and exports them again using OGR library.
-#% keyword: vector
-#% keyword: cleaning
-#% keyword: OGR
-#% keyword: topology
-#% keyword: geometry
-#% keyword: snapping
-#%end
+# %module
+# % description: Imports vector data into a GRASS vector map, cleans the data topologically, and exports them again using OGR library.
+# % keyword: vector
+# % keyword: cleaning
+# % keyword: OGR
+# % keyword: topology
+# % keyword: geometry
+# % keyword: snapping
+# %end
 
 # input options
 
-#%option
-#% key: input
-#% type: string
-#% required: yes
-#% multiple: no
-#% label: Name of OGR datasource to be imported
-#% description: Example: directory containing shapefiles
-#% gisprompt: old,datasource,datasource
-#% guisection: Input
-#%end
-#%option
-#% key: layer
-#% type: string
-#% required: yes
-#% multiple: no
-#% label: OGR layer name.
-#% description: Examples: shapefile name without .shp
-#% gisprompt: old,datasource_layer,datasource_layer
-#% guisection: Input
-#%end
-#%option
-#% key: where
-#% type: string
-#% required: no
-#% multiple: no
-#% key_desc: sql_query
-#% label: WHERE conditions of SQL statement without 'where' keyword
-#% description: Example: income < 1000 and population >= 10000
-#% gisprompt: old,sql_query,sql_query
-#% guisection: Selection
-#%end
-#%option
-#% key: encoding
-#% type: string
-#% required: no
-#% multiple: no
-#% label: Encoding value for attribute data
-#% description: Overrides encoding interpretation, useful when importing ESRI Shapefile
-#% guisection: Attributes
-#%end
-#%option
-#% key: key
-#% type: string
-#% required: no
-#% multiple: no
-#% label: Name of column used for categories
-#% description: If not given, categories are generated as unique values and stored in 'cat' column
-#% guisection: Attributes
-#%end
-#%option
-#% key: geometry
-#% type: string
-#% required: no
-#% multiple: no
-#% key_desc: name
-#% label: Name of geometry column
-#% description: If not given, all geometry columns from the input are used
-#% gisprompt: old,dbcolumn,dbcolumn
-#% guisection: Selection
-#%end
-#%flag
-#% key: l
-#% suppress_required: yes
-#% description: List available OGR layers in data source and exit
-#% guisection: Input
-#%end
+# %option
+# % key: input
+# % type: string
+# % required: yes
+# % multiple: no
+# % label: Name of OGR datasource to be imported
+# % description: Example: directory containing shapefiles
+# % gisprompt: old,datasource,datasource
+# % guisection: Input
+# %end
+# %option
+# % key: layer
+# % type: string
+# % required: yes
+# % multiple: no
+# % label: OGR layer name.
+# % description: Examples: shapefile name without .shp
+# % gisprompt: old,datasource_layer,datasource_layer
+# % guisection: Input
+# %end
+# %option
+# % key: where
+# % type: string
+# % required: no
+# % multiple: no
+# % key_desc: sql_query
+# % label: WHERE conditions of SQL statement without 'where' keyword
+# % description: Example: income < 1000 and population >= 10000
+# % gisprompt: old,sql_query,sql_query
+# % guisection: Selection
+# %end
+# %option
+# % key: encoding
+# % type: string
+# % required: no
+# % multiple: no
+# % label: Encoding value for attribute data
+# % description: Overrides encoding interpretation, useful when importing ESRI Shapefile
+# % guisection: Attributes
+# %end
+# %option
+# % key: key
+# % type: string
+# % required: no
+# % multiple: no
+# % label: Name of column used for categories
+# % description: If not given, categories are generated as unique values and stored in 'cat' column
+# % guisection: Attributes
+# %end
+# %option
+# % key: geometry
+# % type: string
+# % required: no
+# % multiple: no
+# % key_desc: name
+# % label: Name of geometry column
+# % description: If not given, all geometry columns from the input are used
+# % gisprompt: old,dbcolumn,dbcolumn
+# % guisection: Selection
+# %end
+# %flag
+# % key: l
+# % suppress_required: yes
+# % description: List available OGR layers in data source and exit
+# % guisection: Input
+# %end
 
 # cleaning options
 
-#%option
-#% key: snap
-#% type: double
-#% required: no
-#% multiple: no
-#% label: Snapping threshold for boundaries (map units)
-#% description: '-1' for no snap
-#% answer: -1
-#% guisection: Cleaning
-#%end
-#%option
-#% key: min_area
-#% type: double
-#% required: no
-#% multiple: no
-#% label: Minimum size of areas to be retained in output (square meters)
-#% description: Disabled with values <= 0
-#% answer: 0
-#% guisection: Cleaning
-#%end
+# %option
+# % key: snap
+# % type: double
+# % required: no
+# % multiple: no
+# % label: Snapping threshold for boundaries (map units)
+# % description: '-1' for no snap
+# % answer: -1
+# % guisection: Cleaning
+# %end
+# %option
+# % key: min_area
+# % type: double
+# % required: no
+# % multiple: no
+# % label: Minimum size of areas to be retained in output (square meters)
+# % description: Disabled with values <= 0
+# % answer: 0
+# % guisection: Cleaning
+# %end
 
 # output options
 
-#%option
-#% key: output
-#% type: string
-#% required: yes
-#% multiple: no
-#% key_desc: name
-#% label: Name of output OGR datasource
-#% description: Examples: filename for a GeoPackage, directory for shapefiles
-#% gisprompt: new,file,file
-#% guisection: Output
-#%end
-#%option
-#% key: format
-#% type: string
-#% required: yes
-#% multiple: no
-#% description: Data format to write
-#% answer: GPKG
-#% guisection: Output
-#%end
-#%flag
-#% key: u
-#% description: Open an existing output OGR datasource for update
-#% guisection: Output
-#%end
-#%flag
-#% key: f
-#% suppress_required: yes
-#% description: List supported output formats and exit
-#% guisection: Output
-#%end
+# %option
+# % key: output
+# % type: string
+# % required: yes
+# % multiple: no
+# % key_desc: name
+# % label: Name of output OGR datasource
+# % description: Examples: filename for a GeoPackage, directory for shapefiles
+# % gisprompt: new,file,file
+# % guisection: Output
+# %end
+# %option
+# % key: format
+# % type: string
+# % required: yes
+# % multiple: no
+# % description: Data format to write
+# % answer: GPKG
+# % guisection: Output
+# %end
+# %flag
+# % key: u
+# % description: Open an existing output OGR datasource for update
+# % guisection: Output
+# %end
+# %flag
+# % key: f
+# % suppress_required: yes
+# % description: List supported output formats and exit
+# % guisection: Output
+# %end
 
 import sys
 import os
@@ -245,7 +245,7 @@ def main():
             flags="i",
             quiet=True,
             overwrite=overwrite,
-            **vopts
+            **vopts,
         )
     except CalledModuleError:
         grass.fatal(_("Unable to create location from OGR datasource <%s>") % indsn)
@@ -267,7 +267,7 @@ def main():
             layer=inlayer,
             output=outvect_tmp,
             overwrite=overwrite,
-            **vopts
+            **vopts,
         )
     except CalledModuleError:
         grass.fatal(_("Unable to import OGR datasource <%s>") % indsn)

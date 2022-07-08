@@ -14,84 +14,84 @@
 #
 #############################################################################
 #
-#%Module
-#% description: Delete segments where there is an existing plant
-#% overwrite: yes
-#%End
-#%option G_OPT_V_INPUT
-#%  key: hydro
-#%  label: Name of the vector map with the points (intake and restitution) of hydropower plants
-#%  required: yes
-#%end
-#%option G_OPT_V_FIELD
-#%  key: hydro_layer
-#%  label: Name of the vector map layer of the hydropower plants, with the following attributes: kind_label (intake/restitution), discharge [m3/s], id_point, id_plant
-#%  required: no
-#%  answer: 1
-#%end
-#%option G_OPT_V_INPUT
-#%  key: river
-#%  label: Name of the vector map with the streams
-#%  required: yes
-#%end
-#%option
-#%  key: output_streams
-#%  type: string
-#%  description: Name of the vector map with the stream segments without plants
-#%  required: yes
-#%end
-#%option
-#%  key: output_plants
-#%  type: string
-#%  description: Name of the vector map with the stream segments of the existing plants
-#%  required: no
-#%end
-#%option
-#%  key: hydro_kind_intake
-#%  type: string
-#%  description: Value contained in the column kind_label that indicates the plant is an intake
-#%  required: no
-#%  answer: intake
-#%end
-#%option
-#%  key: hydro_kind_turbine
-#%  type: string
-#%  description: Value contained in the column kind_label that indicates the plant is a restitution
-#%  required: no
-#%  answer: restitution
-#%end
-#%option G_OPT_R_ELEV
-#%  required: yes
-#%end
-#%option G_OPT_V_MAP
-#%  key: other
-#%  label: Name of the vector map with points (intake and restitution) of other plants such as irrigation, acqueducts, etc.
-#%  required: no
-#%end
-#%option G_OPT_V_INPUT
-#%  key: other_layer
-#%  label: Name of the vector map layer of other plants, with the following attributes: kind_label (intake/restitution), discharge [m3/s], id_point, id_plant
-#%  required: no
-#%  answer: 1
-#%end
-#%option
-#%  key: other_kind_intake
-#%  type: string
-#%  description: Value contained in the column kind_label that indicates the plant is an intake
-#%  required: no
-#%  answer: intake
-#%end
-#%option
-#%  key: other_kind_turbine
-#%  type: string
-#%  description: Value contained in the column kind_label that indicates the plant is a restitution
-#%  required: no
-#%  answer: restitution
-#%end
-#%flag
-#% key: d
-#% description: Debug with intermediate maps
-#%end
+# %Module
+# % description: Delete segments where there is an existing plant
+# % overwrite: yes
+# %End
+# %option G_OPT_V_INPUT
+# %  key: hydro
+# %  label: Name of the vector map with the points (intake and restitution) of hydropower plants
+# %  required: yes
+# %end
+# %option G_OPT_V_FIELD
+# %  key: hydro_layer
+# %  label: Name of the vector map layer of the hydropower plants, with the following attributes: kind_label (intake/restitution), discharge [m3/s], id_point, id_plant
+# %  required: no
+# %  answer: 1
+# %end
+# %option G_OPT_V_INPUT
+# %  key: river
+# %  label: Name of the vector map with the streams
+# %  required: yes
+# %end
+# %option
+# %  key: output_streams
+# %  type: string
+# %  description: Name of the vector map with the stream segments without plants
+# %  required: yes
+# %end
+# %option
+# %  key: output_plants
+# %  type: string
+# %  description: Name of the vector map with the stream segments of the existing plants
+# %  required: no
+# %end
+# %option
+# %  key: hydro_kind_intake
+# %  type: string
+# %  description: Value contained in the column kind_label that indicates the plant is an intake
+# %  required: no
+# %  answer: intake
+# %end
+# %option
+# %  key: hydro_kind_turbine
+# %  type: string
+# %  description: Value contained in the column kind_label that indicates the plant is a restitution
+# %  required: no
+# %  answer: restitution
+# %end
+# %option G_OPT_R_ELEV
+# %  required: yes
+# %end
+# %option G_OPT_V_MAP
+# %  key: other
+# %  label: Name of the vector map with points (intake and restitution) of other plants such as irrigation, acqueducts, etc.
+# %  required: no
+# %end
+# %option G_OPT_V_INPUT
+# %  key: other_layer
+# %  label: Name of the vector map layer of other plants, with the following attributes: kind_label (intake/restitution), discharge [m3/s], id_point, id_plant
+# %  required: no
+# %  answer: 1
+# %end
+# %option
+# %  key: other_kind_intake
+# %  type: string
+# %  description: Value contained in the column kind_label that indicates the plant is an intake
+# %  required: no
+# %  answer: intake
+# %end
+# %option
+# %  key: other_kind_turbine
+# %  type: string
+# %  description: Value contained in the column kind_label that indicates the plant is a restitution
+# %  required: no
+# %  answer: restitution
+# %end
+# %flag
+# % key: d
+# % description: Debug with intermediate maps
+# %end
 from __future__ import print_function
 
 import atexit

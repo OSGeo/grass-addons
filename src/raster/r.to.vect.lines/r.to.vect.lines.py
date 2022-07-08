@@ -20,40 +20,40 @@
 #   nviz elev=floor vector=wiggle_lines
 #
 
-#%module
-#% description: Convert raster rows to vector lines.
-#% keyword: raster
-#% keyword: conversion
-#% keyword: wiggles
-#%end
-#%option
-#% key: input
-#% type: string
-#% key_desc: name
-#% gisprompt: old,cell,raster
-#% required: yes
-#% description: Name of input raster map
-#%end
-#%option
-#% key: output
-#% type: string
-#% key_desc: name
-#% gisprompt: new,vector,vector
-#% required: yes
-#% description: Name for output vector map
-#%end
-#%option
-#% key: skip
-#% type: integer
-#% required: no
-#% description: Sample every Nth grid row
-#% answer: 10
-#% options: 1-100000
-#%end
-#%flag
-#% key: v
-#% description: Sample vertically (default is to sample horizontally)
-#%end
+# %module
+# % description: Convert raster rows to vector lines.
+# % keyword: raster
+# % keyword: conversion
+# % keyword: wiggles
+# %end
+# %option
+# % key: input
+# % type: string
+# % key_desc: name
+# % gisprompt: old,cell,raster
+# % required: yes
+# % description: Name of input raster map
+# %end
+# %option
+# % key: output
+# % type: string
+# % key_desc: name
+# % gisprompt: new,vector,vector
+# % required: yes
+# % description: Name for output vector map
+# %end
+# %option
+# % key: skip
+# % type: integer
+# % required: no
+# % description: Sample every Nth grid row
+# % answer: 10
+# % options: 1-100000
+# %end
+# %flag
+# % key: v
+# % description: Sample vertically (default is to sample horizontally)
+# %end
 
 import os
 import sys

@@ -17,75 +17,75 @@
 #
 ##############################################################################
 
-#%module
-#% description: Module for validating land change simulation on a grid
-#% keyword: raster
-#% keyword: statistics
-#% keyword: accuracy
-#% keyword: validation
-#%end
-#%option G_OPT_R_INPUT
-#% key: simulated
-#% description: Simulated land use raster
-#% required: yes
-#%end
-#%option G_OPT_R_INPUT
-#% key: reference
-#% description: Reference land use raster
-#% required: yes
-#%end
-#%option G_OPT_R_INPUT
-#% key: original
-#% label: Original land use raster
-#% description: Required for kappa simulation
-#% required: no
-#%end
-#%option G_OPT_R_OUTPUT
-#% key: allocation_disagreement
-#% required: no
-#% description: Output total allocation disagreement raster
-#%end
-#%option G_OPT_R_BASENAME_OUTPUT
-#% key: allocation_disagreement_basename
-#% description: Basename for per class allocation disagreement raster
-#% required: no
-#%end
-#%option G_OPT_R_OUTPUT
-#% key: quantity_disagreement
-#% description: Output total quantity disagreement raster
-#% required: no
-#%end
-#%option G_OPT_R_BASENAME_OUTPUT
-#% key: quantity_disagreement_basename
-#% description: Basename for per class quantity disagreement raster
-#% required: no
-#%end
-#%option G_OPT_R_OUTPUT
-#% key: kappa
-#% description: Output Cohen's kappa raster
-#% required: no
-#%end
-#%option G_OPT_R_OUTPUT
-#% key: kappasimulation
-#% description: Output kappa simulation raster
-#% required: no
-#%end
-#%option G_OPT_M_REGION
-#% required: yes
-#%end
-#%option
-#% key: nprocs
-#% type: integer
-#% description: Number of parallel processes
-#% required: yes
-#% answer: 1
-#%end
-#%rules
-#% required: allocation_disagreement, quantity_disagreement, kappasimulation
-#%end
-#%rules
-#% requires: kappasimulation, original
-#%end
+# %module
+# % description: Module for validating land change simulation on a grid
+# % keyword: raster
+# % keyword: statistics
+# % keyword: accuracy
+# % keyword: validation
+# %end
+# %option G_OPT_R_INPUT
+# % key: simulated
+# % description: Simulated land use raster
+# % required: yes
+# %end
+# %option G_OPT_R_INPUT
+# % key: reference
+# % description: Reference land use raster
+# % required: yes
+# %end
+# %option G_OPT_R_INPUT
+# % key: original
+# % label: Original land use raster
+# % description: Required for kappa simulation
+# % required: no
+# %end
+# %option G_OPT_R_OUTPUT
+# % key: allocation_disagreement
+# % required: no
+# % description: Output total allocation disagreement raster
+# %end
+# %option G_OPT_R_BASENAME_OUTPUT
+# % key: allocation_disagreement_basename
+# % description: Basename for per class allocation disagreement raster
+# % required: no
+# %end
+# %option G_OPT_R_OUTPUT
+# % key: quantity_disagreement
+# % description: Output total quantity disagreement raster
+# % required: no
+# %end
+# %option G_OPT_R_BASENAME_OUTPUT
+# % key: quantity_disagreement_basename
+# % description: Basename for per class quantity disagreement raster
+# % required: no
+# %end
+# %option G_OPT_R_OUTPUT
+# % key: kappa
+# % description: Output Cohen's kappa raster
+# % required: no
+# %end
+# %option G_OPT_R_OUTPUT
+# % key: kappasimulation
+# % description: Output kappa simulation raster
+# % required: no
+# %end
+# %option G_OPT_M_REGION
+# % required: yes
+# %end
+# %option
+# % key: nprocs
+# % type: integer
+# % description: Number of parallel processes
+# % required: yes
+# % answer: 1
+# %end
+# %rules
+# % required: allocation_disagreement, quantity_disagreement, kappasimulation
+# %end
+# %rules
+# % requires: kappasimulation, original
+# %end
 
 
 import os

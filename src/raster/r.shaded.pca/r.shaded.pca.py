@@ -13,79 +13,79 @@
 #
 #############################################################################
 
-#%module
-#% label: Creates relief shades from various directions and combines them into RGB composition.
-#% description: The combined shades highlight terrain features which wouldn't be visible using standard shading technique.
-#% keyword: raster
-#% keyword: elevation
-#% keyword: terrain
-#% keyword: visualization
-#%end
-#%option
-#% type: string
-#% gisprompt: old,cell,raster
-#% key: input
-#% description: Name of the input elevation raster map
-#% required: yes
-#%end
-#%option
-#% type: string
-#% gisprompt: new,cell,raster
-#% key: output
-#% description: Name for output PCA shaded relief map
-#% required: yes
-#%end
-#%option
-#% key: altitude
-#% type: double
-#% description: Altitude of the sun in degrees above the horizon
-#% options: 0-90
-#% answer: 30
-#%end
-#%option
-#% key: nazimuths
-#% type: integer
-#% description: The number of azimuths (suggested values are 4, 8, 16, 32)
-#% answer: 8
-#%end
-#%option
-#% key: zscale
-#% type: double
-#% description: Factor for exaggerating relief
-#% answer: 1
-#%end
-#%option
-#% key: scale
-#% type: double
-#% description: Azimuth of the sun in degrees to the east of north
-#% answer: 1
-#%end
-#%option
-#% key: units
-#% type: string
-#% description: Elevation units (overrides scale factor)
-#% options: intl,survey
-#% descriptions: intl;international feet;survey;survey feet
-#%end
-#%option
-#% key: shades_basename
-#% type: string
-#% label: Base name for output shades map
-#% description: A base of the name of shades maps for all azimuths. An underscore ('_') and a azimuth will be added to the base name. When empty, no maps will be outputted (although they need to be generated).
-#%end
-#%option
-#% key: pca_shades_basename
-#% type: string
-#% label: Base name for output PCA shades map
-#% description: A base of the name of PCA shades maps. An underscore ('_') and a azimuth will be added to the base name. When empty, no maps will be outputted (although they need to be generated).
-#%end
-#%option
-#% key: nprocs
-#% type: integer
-#% description: Number of r.shade.relief processes to run in parallel
-#% options: 1-
-#% answer: 1
-#%end
+# %module
+# % label: Creates relief shades from various directions and combines them into RGB composition.
+# % description: The combined shades highlight terrain features which wouldn't be visible using standard shading technique.
+# % keyword: raster
+# % keyword: elevation
+# % keyword: terrain
+# % keyword: visualization
+# %end
+# %option
+# % type: string
+# % gisprompt: old,cell,raster
+# % key: input
+# % description: Name of the input elevation raster map
+# % required: yes
+# %end
+# %option
+# % type: string
+# % gisprompt: new,cell,raster
+# % key: output
+# % description: Name for output PCA shaded relief map
+# % required: yes
+# %end
+# %option
+# % key: altitude
+# % type: double
+# % description: Altitude of the sun in degrees above the horizon
+# % options: 0-90
+# % answer: 30
+# %end
+# %option
+# % key: nazimuths
+# % type: integer
+# % description: The number of azimuths (suggested values are 4, 8, 16, 32)
+# % answer: 8
+# %end
+# %option
+# % key: zscale
+# % type: double
+# % description: Factor for exaggerating relief
+# % answer: 1
+# %end
+# %option
+# % key: scale
+# % type: double
+# % description: Azimuth of the sun in degrees to the east of north
+# % answer: 1
+# %end
+# %option
+# % key: units
+# % type: string
+# % description: Elevation units (overrides scale factor)
+# % options: intl,survey
+# % descriptions: intl;international feet;survey;survey feet
+# %end
+# %option
+# % key: shades_basename
+# % type: string
+# % label: Base name for output shades map
+# % description: A base of the name of shades maps for all azimuths. An underscore ('_') and a azimuth will be added to the base name. When empty, no maps will be outputted (although they need to be generated).
+# %end
+# %option
+# % key: pca_shades_basename
+# % type: string
+# % label: Base name for output PCA shades map
+# % description: A base of the name of PCA shades maps. An underscore ('_') and a azimuth will be added to the base name. When empty, no maps will be outputted (although they need to be generated).
+# %end
+# %option
+# % key: nprocs
+# % type: integer
+# % description: Number of r.shade.relief processes to run in parallel
+# % options: 1-
+# % answer: 1
+# %end
 
 
 import os
@@ -146,7 +146,7 @@ def run_r_shaded_relief(
         altitude=altitude,
         overwrite=core.overwrite(),
         quiet=True,
-        **params
+        **params,
     )
 
 

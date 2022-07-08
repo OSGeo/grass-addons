@@ -27,6 +27,14 @@ flag, otherwise they will be imported as lines. You can run <em>v.in.gps</em>
 multiple times and merge the line and point vectors with the <em>v.patch</em>
 command if you want, but take care when merging dissimilar attribute tables.
 
+<!--
+When we tested the script with a Garmin GPS we noticed that importing waypoints
+the <i>time</i> field is not correctly set. The data reported is
+a default system time, while with a gpx text file this thing did not
+happen. We believe that is a <i>gpsbabel</i> trouble in translating
+from <i>garmin</i> to <i>xcsv</i> ...
+-->
+
 <h2>EXAMPLES</h2>
 
 <h3>GPS device connected via USB adapter</h3>
@@ -80,22 +88,9 @@ v.in.gps -r -p file=/dev/gps format=garmin output=routePoints
 cs2cs from <a href="https://proj.org/">PROJ</a>
 
 <h2>AUTHORS</h2>
+
 Claudio Porta and Lucio Davide Spano, students of Computer Science at
 University of Pisa (Italy).<br>
 Commission from Faunalia Pontedera (PI)<br><br>
 Based on <em>v.in.garmin</em> for GRASS 6.0 by Hamish Bowman<br>
 and <em>v.in.garmin.sh</em> for GRASS 5 by Andreas Lange
-<br>
-
-<!--
-When we tested the script with a Garmin GPS we noticed that importing waypoints 
-the <i>time</i> field is not correctly set. The data reported is 
-a default system time, while with a gpx text file this thing did not 
-happen. We believe that is a <i>gpsbabel</i> trouble in translating 
-from <i>garmin</i> to <i>xcsv</i> ... 
--->
-
-<!--
-<p>
-<i>Last changed: $Date$</i>
--->

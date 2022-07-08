@@ -19,122 +19,122 @@
 #
 ############################################################################
 
-#%module
-#% description: Download user-requested products through the USGS TNM API
-#% keyword: import
-#% keyword: raster
-#% keyword: USGS
-#% keyword: NED
-#% keyword: NAIP
-#%end
+# %module
+# % description: Download user-requested products through the USGS TNM API
+# % keyword: import
+# % keyword: raster
+# % keyword: USGS
+# % keyword: NED
+# % keyword: NAIP
+# %end
 
-#%flag
-#% key: i
-#% description: Return USGS data information without downloading files
-#%end
+# %flag
+# % key: i
+# % description: Return USGS data information without downloading files
+# %end
 
-#%option
-#% key: product
-#% required: yes
-#% options: ned,naip,lidar
-#% label: USGS data product
-#% description: Available USGS data products to query
-#%end
+# %option
+# % key: product
+# % required: yes
+# % options: ned,naip,lidar
+# % label: USGS data product
+# % description: Available USGS data products to query
+# %end
 
-#%option G_OPT_R_OUTPUT
-#% key: output_name
-#% required: yes
-#%end
+# %option G_OPT_R_OUTPUT
+# % key: output_name
+# % required: yes
+# %end
 
-#%option
-#% key: ned_dataset
-#% required: no
-#% options: ned1sec, ned13sec, ned19sec
-#% answer: ned1sec
-#% label: NED dataset
-#% description: Available NED datasets to query
-#% descriptions: ned1sec;NED 1 arc-second;ned13sec;NED 1/3 arc-second;ned19sec;NED 1/9 arc-second
-#% guisection: NED
-#%end
+# %option
+# % key: ned_dataset
+# % required: no
+# % options: ned1sec, ned13sec, ned19sec
+# % answer: ned1sec
+# % label: NED dataset
+# % description: Available NED datasets to query
+# % descriptions: ned1sec;NED 1 arc-second;ned13sec;NED 1/3 arc-second;ned19sec;NED 1/9 arc-second
+# % guisection: NED
+# %end
 
-#%option
-#% key: input_srs
-#% type: string
-#% required: no
-#% multiple: no
-#% label: Input lidar dataset projection (WKT or EPSG, e.g. EPSG:4326)
-#% description: Override input lidar dataset coordinate system using EPSG code or WKT definition
-#% guisection: Lidar
-#%end
+# %option
+# % key: input_srs
+# % type: string
+# % required: no
+# % multiple: no
+# % label: Input lidar dataset projection (WKT or EPSG, e.g. EPSG:4326)
+# % description: Override input lidar dataset coordinate system using EPSG code or WKT definition
+# % guisection: Lidar
+# %end
 
-#%option
-#% key: resolution
-#% type: double
-#% required: no
-#% multiple: no
-#% description: Resolution of lidar-based DSM
-#% guisection: Lidar
-#%end
+# %option
+# % key: resolution
+# % type: double
+# % required: no
+# % multiple: no
+# % description: Resolution of lidar-based DSM
+# % guisection: Lidar
+# %end
 
-#%option
-#% key: title_filter
-#% type: string
-#% required: no
-#% multiple: no
-#% label: Filter available lidar tiles by their title (e.g. use "Phase4")
-#% description: To avoid combining lidar from multiple years, use first -i flag and filter by tile title.
-#% guisection: Lidar
-#%end
+# %option
+# % key: title_filter
+# % type: string
+# % required: no
+# % multiple: no
+# % label: Filter available lidar tiles by their title (e.g. use "Phase4")
+# % description: To avoid combining lidar from multiple years, use first -i flag and filter by tile title.
+# % guisection: Lidar
+# %end
 
-#%option
-#% key: resampling_method
-#% type: string
-#% required: no
-#% multiple: no
-#% options: default,nearest,bilinear,bicubic,lanczos,bilinear_f,bicubic_f,lanczos_f
-#% description: Resampling method to use
-#% descriptions: default;default method based on product;nearest;nearest neighbor;bilinear;bilinear interpolation;bicubic;bicubic interpolation;lanczos;lanczos filter;bilinear_f;bilinear interpolation with fallback;bicubic_f;bicubic interpolation with fallback;lanczos_f;lanczos filter with fallback
-#% answer: default
-#%end
+# %option
+# % key: resampling_method
+# % type: string
+# % required: no
+# % multiple: no
+# % options: default,nearest,bilinear,bicubic,lanczos,bilinear_f,bicubic_f,lanczos_f
+# % description: Resampling method to use
+# % descriptions: default;default method based on product;nearest;nearest neighbor;bilinear;bilinear interpolation;bicubic;bicubic interpolation;lanczos;lanczos filter;bilinear_f;bilinear interpolation with fallback;bicubic_f;bicubic interpolation with fallback;lanczos_f;lanczos filter with fallback
+# % answer: default
+# %end
 
-#%option
-#% key: memory
-#% type: integer
-#% required: no
-#% multiple: no
-#% label: Maximum memory to be used (in MB)
-#% description: Cache size for raster rows during import and reprojection
-#% answer: 300
-#% guisection: Speed
-#%end
+# %option
+# % key: memory
+# % type: integer
+# % required: no
+# % multiple: no
+# % label: Maximum memory to be used (in MB)
+# % description: Cache size for raster rows during import and reprojection
+# % answer: 300
+# % guisection: Speed
+# %end
 
-#%option
-#% key: nprocs
-#% type: integer
-#% required: no
-#% multiple: no
-#% description: Number of processes which will be used for parallel import and reprojection
-#% answer: 1
-#% guisection: Speed
-#%end
+# %option
+# % key: nprocs
+# % type: integer
+# % required: no
+# % multiple: no
+# % description: Number of processes which will be used for parallel import and reprojection
+# % answer: 1
+# % guisection: Speed
+# %end
 
-#%option G_OPT_M_DIR
-#% key: output_directory
-#% required: no
-#% label: Cache directory for download and processing
-#% description: Defaults to system user cache directory (e.g., .cache)
-#% guisection: Speed
-#%end
+# %option G_OPT_M_DIR
+# % key: output_directory
+# % required: no
+# % label: Cache directory for download and processing
+# % description: Defaults to system user cache directory (e.g., .cache)
+# % guisection: Speed
+# %end
 
-#%flag
-#% key: k
-#% description: Keep imported tiles in the mapset after patch
-#% guisection: Speed
-#%end
+# %flag
+# % key: k
+# % description: Keep imported tiles in the mapset after patch
+# % guisection: Speed
+# %end
 
-#%rules
-#% required: output_name, -i
-#%end
+# %rules
+# % required: output_name, -i
+# %end
 
 import sys
 import os
@@ -1009,7 +1009,7 @@ def main():
                         input=gui_output_layer,
                         elevation=gui_output_layer,
                         nprocs=nprocs,
-                        **rst_params
+                        **rst_params,
                     )
                 else:
                     gscript.run_command(
@@ -1061,7 +1061,7 @@ def main():
                     input=patch_names[0],
                     elevation=gui_output_layer,
                     nprocs=nprocs,
-                    **rst_params
+                    **rst_params,
                 )
                 if not preserve_imported_tiles:
                     gscript.run_command(

@@ -199,11 +199,11 @@ def ground_resistence(ground, borehole, period="6h"):
         * (
             c0
             + c1 * borehole
-            + c2 * borehole ** 2.0
+            + c2 * borehole**2.0
             + c3 * diffusivity
-            + c4 * diffusivity ** 2.0
+            + c4 * diffusivity**2.0
             + c5 * log_diff
-            + c6 * log_diff ** 2
+            + c6 * log_diff**2
             + c7 * borehole * diffusivity
             + c8 * borehole * log_diff
             + c9 * diffusivity * log_diff
@@ -582,7 +582,7 @@ def bh_resistence_grout(bh, ground_conductivity):
             + log(bh.radius / bh.distance)
             + (bh.k_grout - ground_conductivity)
             / (bh.k_grout + ground_conductivity)
-            * log(bh.radius ** 4.0 / (bh.radius ** 4.0 - (bh.distance / 2.0) ** 4.0))
+            * log(bh.radius**4.0 / (bh.radius**4.0 - (bh.distance / 2.0) ** 4.0))
         )
     )
 
@@ -759,7 +759,7 @@ def get_vars(out, bhe, basename, execute=True, **kwargs):
         bhe.borehole.radius,
         period="10y",
         execute=execute,
-        **kwargs
+        **kwargs,
     )
     medium_term = basename + out + "_medium_term"
     r_ground_resistence(
@@ -768,7 +768,7 @@ def get_vars(out, bhe, basename, execute=True, **kwargs):
         bhe.borehole.radius,
         period="1m",
         execute=execute,
-        **kwargs
+        **kwargs,
     )
     short_term = basename + out + "_short_term"
     r_ground_resistence(
@@ -777,7 +777,7 @@ def get_vars(out, bhe, basename, execute=True, **kwargs):
         bhe.borehole.radius,
         period="6h",
         execute=execute,
-        **kwargs
+        **kwargs,
     )
     fluid_temp = basename + out + "_fluid_temp"
     r_fluid_temperature_borehole(
@@ -941,41 +941,41 @@ def _temperature_penality(
         * (
             TP[0]
             + TP[1] * dd_ratio
-            + TP[2] * dd_ratio ** 2
-            + TP[3] * dd_ratio ** 3
+            + TP[2] * dd_ratio**2
+            + TP[3] * dd_ratio**3
             + TP[4] * ln_dim_time
-            + TP[5] * ln_dim_time ** 2
-            + TP[6] * ln_dim_time ** 3
+            + TP[5] * ln_dim_time**2
+            + TP[6] * ln_dim_time**3
             + TP[7] * number
-            + TP[8] * number ** 2
-            + TP[9] * number ** 3
+            + TP[8] * number**2
+            + TP[9] * number**3
             + TP[10] * ratio
-            + TP[11] * ratio ** 2
-            + TP[12] * ratio ** 3
+            + TP[11] * ratio**2
+            + TP[12] * ratio**3
             + TP[13] * dd_ratio * ln_dim_time
-            + TP[14] * dd_ratio * ln_dim_time ** 2
+            + TP[14] * dd_ratio * ln_dim_time**2
             + TP[15] * dd_ratio * number
-            + TP[16] * dd_ratio * number ** 2
+            + TP[16] * dd_ratio * number**2
             + TP[17] * dd_ratio * ratio
-            + TP[18] * dd_ratio * ratio ** 2
-            + TP[19] * dd_ratio ** 2 * ln_dim_time
-            + TP[20] * dd_ratio ** 2 * ln_dim_time ** 2
-            + TP[21] * dd_ratio ** 2 * number
-            + TP[22] * dd_ratio ** 2 * number ** 2
-            + TP[23] * dd_ratio ** 2 * ratio
-            + TP[24] * dd_ratio ** 2 * ratio ** 2
+            + TP[18] * dd_ratio * ratio**2
+            + TP[19] * dd_ratio**2 * ln_dim_time
+            + TP[20] * dd_ratio**2 * ln_dim_time**2
+            + TP[21] * dd_ratio**2 * number
+            + TP[22] * dd_ratio**2 * number**2
+            + TP[23] * dd_ratio**2 * ratio
+            + TP[24] * dd_ratio**2 * ratio**2
             + TP[25] * ln_dim_time * number
-            + TP[26] * ln_dim_time * number ** 2
+            + TP[26] * ln_dim_time * number**2
             + TP[27] * ln_dim_time * ratio
-            + TP[28] * ln_dim_time * ratio ** 2
-            + TP[29] * ln_dim_time ** 2 * number
-            + TP[30] * ln_dim_time ** 2 * number ** 2
-            + TP[31] * ln_dim_time ** 2 * ratio
-            + TP[32] * ln_dim_time ** 2 * ratio ** 2
+            + TP[28] * ln_dim_time * ratio**2
+            + TP[29] * ln_dim_time**2 * number
+            + TP[30] * ln_dim_time**2 * number**2
+            + TP[31] * ln_dim_time**2 * ratio
+            + TP[32] * ln_dim_time**2 * ratio**2
             + TP[33] * number * ratio
-            + TP[34] * number * ratio ** 2
-            + TP[35] * number ** 2 * ratio
-            + TP[36] * number ** 2 * ratio ** 2
+            + TP[34] * number * ratio**2
+            + TP[35] * number**2 * ratio
+            + TP[36] * number**2 * ratio**2
         )
     )
 
@@ -990,7 +990,7 @@ def _r_temperature_penality(
     number,
     ratio,
     execute=True,
-    **kwargs
+    **kwargs,
 ):
     """Return the temperature penality of a BHE field
 
@@ -1148,7 +1148,7 @@ def _r_get_length(
     ground_temp,
     temperature_penality,
     execute=True,
-    **kwargs
+    **kwargs,
 ):
     """Return a first attempt of the BHE field lenght
 
@@ -1268,7 +1268,7 @@ def r_temperature_penality(out, field, length, execute=True, **kwargs):
         field.number,
         field.ratio,
         execute=execute,
-        **kwargs
+        **kwargs,
     )
 
 
@@ -1364,7 +1364,7 @@ def r_field_length(
     length_single=None,
     tol=1e-3,
     execute=True,
-    **kwargs
+    **kwargs,
 ):
     """Return the total borefield length: L [m]
 
@@ -1419,7 +1419,7 @@ def r_field_length(
         gtemp,
         temp_penality,
         execute=execute,
-        **kwargs
+        **kwargs,
     )
     diff_template = basename + out + "_absdiff_{:02d}"
     index = 1
@@ -1441,7 +1441,7 @@ def r_field_length(
             gtemp,
             temp_penality,
             execute=execute,
-            **kwargs
+            **kwargs,
         )
     rename("raster", length1, out)
     return out

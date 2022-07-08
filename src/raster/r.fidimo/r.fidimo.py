@@ -11,180 +11,180 @@
 # DATE:			2013-04-11
 #
 #############################################################################
-#%Module
-#% description: Calculating fish dispersal in a river network from source populations with species specific dispersal parameters
-#% keyword: Fish Dispersal Model
-#%End
-#%option
-#% key: river
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: River network (raster, e.g. output from r.watershed)
-#% required: no
-#% guisection: Stream parameters
-#%end
-#%option
-#% key: coors
-#% type: string
-#% required: no
-#% multiple: no
-#% key_desc: x,y
-#% description: River networks' outlet coordinates: E,N
-#% guisection: Stream parameters
-#%End
-#%option
-#% key: barriers
-#% type: string
-#% gisprompt:old,vector,vector
-#% description: Barrier point file (vector map)
-#% required: no
-#% guisection: Stream parameters
-#%end
-#%option
-#% key: passability_col
-#% type: string
-#% required: no
-#% multiple: no
-#% key_desc: name
-#% description: Column name indicating passability value (0-1) of barrier
-#% guisection: Stream parameters
-#%End
-#%option
-#% key: n_source
-#% type: string
-#% key_desc: number[%]
-#% description: Either: Number of random cells with source populations
-#% required: no
-#% guisection: Source populations
-#%end
-#%option
-#% key: source_populations
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Or: Source population raster (relative or absolute occurence)
-#% required: no
-#% guisection: Source populations
-#%end
-#%Option
-#% key: species
-#% type: string
-#% required: no
-#% multiple: no
-#% options:Custom species,Catostomus commersoni,Moxostoma duquesnii,Moxostoma erythrurum,Ambloplites rupestris,Lepomis auritus,Lepomis cyanellus,Lepomis macrochirus,Lepomis megalotis,Micropterus dolomieui,Micropterus punctulatus,Micropterus salmoides,Pomoxis annularis,Cottus bairdii,Cottus gobio,Abramis brama,Barbus barbus,Cyprinus carpio carpio,Gobio gobio,Leuciscus idus,Rutilus rutilus,Squalius cephalus,Tinca tinca,Esox lucius,Fundulus heteroclitus heteroclitus,Ameiurus natalis,Ictalurus punctatus,Morone americana,Etheostoma flabellare,Etheostoma nigrum,Perca fluviatilis,Percina nigrofasciata,Sander lucioperca,Oncorhynchus mykiss, Oncorhynchus gilae,Salmo salar,Salmo trutta fario,Salvelinus fontinalis,Salvelinus malma malma,Thymallus thymallus,Aplodinotus grunniens,Salmo trutta,Gobio gobio,Rutilus rutilus
-#% description: Select fish species
-#% guisection: Dispersal parameters
-#%End
-#%Option
-#% key: l
-#% type: integer
-#% required: no
-#% multiple: no
-#% description: Fish Length [mm] (If no species is given, range=39-810)
-#% guisection: Dispersal parameters
-#%End
-#%Option
-#% key: ar
-#% type: double
-#% required: no
-#% multiple: no
-#% description: Aspect Ratio of Caudal Fin (If no species is given) (valid range 0.51 - 2.29)
-#% guisection: Dispersal parameters
-#%End
-#%Option
-#% key: t
-#% type: integer
-#% required: no
-#% multiple: no
-#% description: Time interval for model step [d]
-#% guisection: Dispersal parameters
-#% options: 1-3650
-#% answer: 30
-#%End
-#%option
-#% key: p
-#% type: double
-#% required: no
-#% multiple: no
-#% description: Share of the stationary component (valid range 0 - 1)
-#% answer:0.67
-#% guisection: Dispersal parameters
-#%End
-#%option
-#% key: habitat_attract
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Attractiveness of habitat used as weighting factor (sink effect, habitat-dependent dispersal)
-#% required: no
-#% guisection: Habitat dependency
-#%end
-#%option
-#% key: habitat_p
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Spatially varying and habitat-dependent p factor (float: 0-1, source effect, habitat-dependent dispersal)
-#% required: no
-#% guisection: Habitat dependency
-#%end
-#%Flag
-#% key: b
-#% description: Don't keep basic vector maps (source_points, barriers)
-#%end
-#%Flag
-#% key: a
-#% description: Keep all temporal vector and raster maps
-#%end
-#%Flag
-#% key: r
-#% description: Source population input are real fish counts per cell. Backtransformation into fish counts will be performed.
-#%end
-#%Option
-#% key: truncation
-#% type: string
-#% required: no
-#% multiple: no
-#% options: 0.9,0.95,0.99,0.995,0.999,0.99999,0.999999999,inf
-#% description: kernel truncation criterion (precision)
-#% answer: 0.99
-#% guisection: Optional
-#%End
-#%Option
-#% key: seed1
-#% type: integer
-#% required: no
-#% multiple: no
-#% description: fixed seed for generating dispersal parameters
-#% guisection: Optional
-#%End
-#%Option
-#% key: seed2
-#% type: integer
-#% required: no
-#% multiple: no
-#% description: fixed seed for multinomial realisation step
-#% guisection: Optional
-#%End
-#%Option
-#% key: output
-#% type: string
-#% gisprompt: new
-#% required: no
-#% multiple: no
-#% key_desc: name
-#% description: Base name for output raster
-#% guisection: Output
-#% answer: fidimo_out
-#%end
-#%Option
-#% key: statistical_interval
-#% type: string
-#% required: no
-#% multiple: no
-#% key_desc: name
-#% description: Statistical Intervals
-#% guisection: Output
-#% options:no,Confidence Interval,Prediction Interval,Random Value within Confidence Interval
-#% answer:no
-#%end
+# %Module
+# % description: Calculating fish dispersal in a river network from source populations with species specific dispersal parameters
+# % keyword: Fish Dispersal Model
+# %End
+# %option
+# % key: river
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: River network (raster, e.g. output from r.watershed)
+# % required: no
+# % guisection: Stream parameters
+# %end
+# %option
+# % key: coors
+# % type: string
+# % required: no
+# % multiple: no
+# % key_desc: x,y
+# % description: River networks' outlet coordinates: E,N
+# % guisection: Stream parameters
+# %End
+# %option
+# % key: barriers
+# % type: string
+# % gisprompt:old,vector,vector
+# % description: Barrier point file (vector map)
+# % required: no
+# % guisection: Stream parameters
+# %end
+# %option
+# % key: passability_col
+# % type: string
+# % required: no
+# % multiple: no
+# % key_desc: name
+# % description: Column name indicating passability value (0-1) of barrier
+# % guisection: Stream parameters
+# %End
+# %option
+# % key: n_source
+# % type: string
+# % key_desc: number[%]
+# % description: Either: Number of random cells with source populations
+# % required: no
+# % guisection: Source populations
+# %end
+# %option
+# % key: source_populations
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Or: Source population raster (relative or absolute occurrence)
+# % required: no
+# % guisection: Source populations
+# %end
+# %Option
+# % key: species
+# % type: string
+# % required: no
+# % multiple: no
+# % options:Custom species,Catostomus commersoni,Moxostoma duquesnii,Moxostoma erythrurum,Ambloplites rupestris,Lepomis auritus,Lepomis cyanellus,Lepomis macrochirus,Lepomis megalotis,Micropterus dolomieui,Micropterus punctulatus,Micropterus salmoides,Pomoxis annularis,Cottus bairdii,Cottus gobio,Abramis brama,Barbus barbus,Cyprinus carpio carpio,Gobio gobio,Leuciscus idus,Rutilus rutilus,Squalius cephalus,Tinca tinca,Esox lucius,Fundulus heteroclitus heteroclitus,Ameiurus natalis,Ictalurus punctatus,Morone americana,Etheostoma flabellare,Etheostoma nigrum,Perca fluviatilis,Percina nigrofasciata,Sander lucioperca,Oncorhynchus mykiss, Oncorhynchus gilae,Salmo salar,Salmo trutta fario,Salvelinus fontinalis,Salvelinus malma malma,Thymallus thymallus,Aplodinotus grunniens,Salmo trutta,Gobio gobio,Rutilus rutilus
+# % description: Select fish species
+# % guisection: Dispersal parameters
+# %End
+# %Option
+# % key: l
+# % type: integer
+# % required: no
+# % multiple: no
+# % description: Fish Length [mm] (If no species is given, range=39-810)
+# % guisection: Dispersal parameters
+# %End
+# %Option
+# % key: ar
+# % type: double
+# % required: no
+# % multiple: no
+# % description: Aspect Ratio of Caudal Fin (If no species is given) (valid range 0.51 - 2.29)
+# % guisection: Dispersal parameters
+# %End
+# %Option
+# % key: t
+# % type: integer
+# % required: no
+# % multiple: no
+# % description: Time interval for model step [d]
+# % guisection: Dispersal parameters
+# % options: 1-3650
+# % answer: 30
+# %End
+# %option
+# % key: p
+# % type: double
+# % required: no
+# % multiple: no
+# % description: Share of the stationary component (valid range 0 - 1)
+# % answer:0.67
+# % guisection: Dispersal parameters
+# %End
+# %option
+# % key: habitat_attract
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Attractiveness of habitat used as weighting factor (sink effect, habitat-dependent dispersal)
+# % required: no
+# % guisection: Habitat dependency
+# %end
+# %option
+# % key: habitat_p
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Spatially varying and habitat-dependent p factor (float: 0-1, source effect, habitat-dependent dispersal)
+# % required: no
+# % guisection: Habitat dependency
+# %end
+# %Flag
+# % key: b
+# % description: Don't keep basic vector maps (source_points, barriers)
+# %end
+# %Flag
+# % key: a
+# % description: Keep all temporal vector and raster maps
+# %end
+# %Flag
+# % key: r
+# % description: Source population input are real fish counts per cell. Backtransformation into fish counts will be performed.
+# %end
+# %Option
+# % key: truncation
+# % type: string
+# % required: no
+# % multiple: no
+# % options: 0.9,0.95,0.99,0.995,0.999,0.99999,0.999999999,inf
+# % description: kernel truncation criterion (precision)
+# % answer: 0.99
+# % guisection: Optional
+# %End
+# %Option
+# % key: seed1
+# % type: integer
+# % required: no
+# % multiple: no
+# % description: fixed seed for generating dispersal parameters
+# % guisection: Optional
+# %End
+# %Option
+# % key: seed2
+# % type: integer
+# % required: no
+# % multiple: no
+# % description: fixed seed for multinomial realisation step
+# % guisection: Optional
+# %End
+# %Option
+# % key: output
+# % type: string
+# % gisprompt: new
+# % required: no
+# % multiple: no
+# % key_desc: name
+# % description: Base name for output raster
+# % guisection: Output
+# % answer: fidimo_out
+# %end
+# %Option
+# % key: statistical_interval
+# % type: string
+# % required: no
+# % multiple: no
+# % key_desc: name
+# % description: Statistical Intervals
+# % guisection: Output
+# % options:no,Confidence Interval,Prediction Interval,Random Value within Confidence Interval
+# % answer:no
+# %end
 
 
 # import required base modules
@@ -336,12 +336,12 @@ def main():
     n_source = options["n_source"]  # number of random source points
     source_populations = options["source_populations"]
 
-    # Habitat attractivity maps
+    # Habitat attractiveness maps
     if options["habitat_attract"]:
         habitat_attract = options["habitat_attract"]
 
     # multiplication value as workaround for very small FLOAT values
-    # imporatant for transformation of source population raster into point vector
+    # important for transformation of source population raster into point vector
     scalar = 10000
 
     # Statistical interval
@@ -564,7 +564,7 @@ def main():
         value="river_raster_nearest_tmp_%d" % os.getpid(),
     )
 
-    # get value of nearest river cell
+    # get value of the nearest river cell
     grass.run_command(
         "r.grow",
         overwrite=True,
@@ -583,7 +583,7 @@ def main():
         distance_raster_grow_tmp="distance_raster_grow_tmp_%d" % os.getpid(),
     )
 
-    # grow by one cell to make sure taht the start point is the only cell
+    # grow by one cell to make sure that the start point is the only cell
     grass.run_command(
         "r.grow",
         overwrite=True,
@@ -676,7 +676,7 @@ def main():
     )
 
     ################ Preparation Source Populations ################
-    # Defining source points either as random points in river or from input raster
+    # Defining source points either as random points in the river or from input raster
     if options["n_source"]:
         grass.run_command(
             "r.random",
@@ -691,7 +691,7 @@ def main():
             columns="n_fish INT, prob_scalar DOUBLE",
         )
 
-        # Set starting propability of occurence to 1.0*scalar for all random source_points
+        # Set starting probability of occurrence to 1.0*scalar for all random source_points
         grass.write_command(
             "db.execute",
             input="-",
@@ -741,7 +741,7 @@ def main():
             columns="n_fish INT, prob_scalar DOUBLE",
         )
 
-        # populate n_fish and sample prob from input sourcepopulations raster (multiplied by scalar)
+        # populate n_fish and sample prob from input source_populations raster (multiplied by scalar)
         if flags["r"]:
             grass.run_command(
                 "v.what.rast",
@@ -796,7 +796,7 @@ def main():
         column="Strahler",
     )
 
-    # Adding information of habitat attractivenss to source points
+    # Adding information of habitat attractiveness to source points
     if options["habitat_attract"]:
         grass.run_command(
             "v.what.rast",
@@ -830,7 +830,7 @@ def main():
         + "_source_points",
     )
 
-    ########### Looping over nrun, over segements, over source points ##########
+    ########### Looping over nrun, over segments, over source points ##########
 
     if (
         str(options["statistical_interval"]) == "no"
@@ -897,7 +897,7 @@ def main():
                 p = float(k[7])
 
                 # Progress bar
-                # add here progressbar
+                # TODO: add here progress bar
 
                 # Debug messages
                 grass.debug(_("Start looping over source points"))
@@ -915,7 +915,7 @@ def main():
                 grass.debug(_("This is i:" + str(i)))
                 grass.debug(_("This is " + str(SO)))
 
-                # if Random Value within Confidence Interval than select a sigma value that is within the CI assuming a normal distribution of sigma within the CI
+                # if Random Value within Confidence Interval then select a sigma value that is within the CI assuming a normal distribution of sigma within the CI
                 if (
                     str(options["statistical_interval"])
                     == "Random Value within Confidence Interval"
@@ -975,7 +975,7 @@ def main():
 
                 grass.debug(
                     _(
-                        "Distance from each source point is calculated up to a treshold of: "
+                        "Distance from each source point is calculated up to a threshold of: "
                         + str(max_dist)
                     )
                 )
@@ -990,7 +990,7 @@ def main():
                     max_cost=max_dist,
                 )
 
-                # Getting upper and lower distance (cell boundaries) based on the fact that there are different flow lenghts through a cell depending on the direction (diagonal-orthogonal)
+                # Getting upper and lower distance (cell boundaries) based on the fact that there are different flow lengths through a cell depending on the direction (diagonal-orthogonal)
                 grass.mapcalc(
                     "$upper_distance = if($flow_direction==2||$flow_direction==4||$flow_direction==6||$flow_direction==8||$flow_direction==-2||$flow_direction==-4||$flow_direction==-6||$flow_direction==-8, $distance_from_point+($ds/2.0), $distance_from_point+($dd/2.0))",
                     upper_distance="upper_distance_tmp_%d" % os.getpid(),
@@ -1073,10 +1073,10 @@ def main():
                     start_coordinates=coors,
                 )
 
-                # Applying upstream split at network nodes based on inverse shreve stream order
+                # Applying upstream split at network nodes based on inverse Shreve stream order
                 grass.debug(
                     _(
-                        "Applying upstream split at network nodes based on inverse shreve stream order"
+                        "Applying upstream split at network nodes based on inverse Shreve stream order"
                     )
                 )
 
@@ -1215,7 +1215,7 @@ def main():
                             # if no upstream density to allocate than stop that "barrier-loop" and continue with next barrier
                             grass.message(
                                 _(
-                                    "No upstream denisty to allocate downstream for that barrier: "
+                                    "No upstream density to allocate downstream for that barrier: "
                                     + coors_barriers
                                 )
                             )
@@ -1317,11 +1317,11 @@ def main():
                                 "r.null", map="density_" + str(cat), setnull="0"
                             )
 
-                # Get a list of all densities processed so far within this segement
+                # Get a list of all densities processed so far within this segment
                 mapcalc_list_Aa.append("density_" + str(cat))
 
                 if options["habitat_attract"]:
-                    # Multiply (Weight) density point with relative attractiveness. realative attractive in relation to habitat attractivness at source
+                    # Multiply (Weight) density point with relative attractiveness. relative attractive in relation to habitat attractiveness at source
                     grass.mapcalc(
                         "$density_point_attract = $density_point*($habitat_attract/$source_habitat_attract)",
                         density_point_attract="density_attract_" + str(cat),
@@ -1342,7 +1342,7 @@ def main():
                     )
 
                 if flags["r"]:
-                    # Realisation of Probablity raster, Multinomial backtransformation from probability into fish counts per cell
+                    # Realisation of Probability raster, Multinomial backtransformation from probability into fish counts per cell
                     grass.debug(
                         _(
                             "Write Realisation (fish counts) from point to garray. This is point cat: "
@@ -1366,7 +1366,7 @@ def main():
                         "r.null", map="realised_density_" + str(cat), null="0"
                     )
 
-                    # Get a list of all realised densities processed so far within this segement
+                    # Get a list of all realised densities processed so far within this segment
                     mapcalc_list_Ab.append("realised_density_" + str(cat))
 
             # Aggregation per segment
@@ -1415,7 +1415,7 @@ def main():
         mapcalc_string_Ba_removal = ",".join(mapcalc_list_Ba)
 
         # Final raster map, Final map is sum of all
-        # density maps (for each segement), All contributing maps (string_Ba_removal) are deleted
+        # density maps (for each segment), All contributing maps (string_Ba_removal) are deleted
         # in the end.
         grass.mapcalc(
             "$density_final = $mapcalc_string_Ba_aggregate",

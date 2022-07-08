@@ -27,7 +27,7 @@ class Ant(agent.Agent):
 
     Ants are wandering around by chance until they find some goal cell,
     then they will mark their way back home with pheromone. Following ants
-    choose the marked cells on the playground more likely then unmarked
+    choose the marked cells on the playground more likely than unmarked
     spots.
 
     There are several optimizations / idealizations to choose from,
@@ -107,7 +107,7 @@ class Ant(agent.Agent):
         """
         Avoiding high values on the costsurface, combined with the
         marked pheromone values on a certain layer combined with a random
-        value, pick a posiiton out of a list of positions.
+        value, pick a position out of a list of positions.
         @param positions list of possible positions
         @return position the decision for a position
         """
@@ -119,7 +119,7 @@ class Ant(agent.Agent):
             if (penalty < self.world.minpenalty) or (penalty > self.world.maxpenalty):
                 positions.remove(p)
         if not positions:
-            # die as there is nowwhere to go to
+            # die as there is nowhere to go to
             self.snuffit()
             # make sure to not walk again..
             return [0, 0, 99, 99]
@@ -148,7 +148,7 @@ class Ant(agent.Agent):
     def markedposition(self, positions):
         """
         Based on the value on a certain layer combined with a random
-        value, pick a posiiton out of a list of positions.
+        value, pick a position out of a list of positions.
         @param positions list of possible positions
         @return position the decision for a position
         """
@@ -184,7 +184,7 @@ class Ant(agent.Agent):
 
     def walkhome(self):
         """
-        Do all the things necessary for performing a regualar step when
+        Do all the things necessary for performing a regular step when
         walking back home.
         """
         self.position = self.nextstep
@@ -205,7 +205,7 @@ class Ant(agent.Agent):
 
     def walkaround(self):
         """
-        Do all the things necessary for performing a regualar step when
+        Do all the things necessary for performing a regular step when
         walking around.
         """
         self.laststeps.append(self.position)

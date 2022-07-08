@@ -23,34 +23,34 @@
 # More information
 # Started December 2016
 
-#%module
-#% description: Set parameters for GSFLOW Hydrologic Response Units (HRUs)
-#% keyword: vector
-#% keyword: stream network
-#% keyword: hydrology
-#% keyword: GSFLOW
-#%end
+# %module
+# % description: Set parameters for GSFLOW Hydrologic Response Units (HRUs)
+# % keyword: vector
+# % keyword: stream network
+# % keyword: hydrology
+# % keyword: GSFLOW
+# %end
 
-#%option G_OPT_V_INPUT
-#%  key: hru_input
-#%  label: Sub-basins
-#%  required: yes
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_V_INPUT
+# %  key: hru_input
+# %  label: Sub-basins
+# %  required: yes
+# %  guidependency: layer,column
+# %end
 
-#%option G_OPT_V_INPUT
-#%  key: grid_input
-#%  label: MODFLOW grid
-#%  required: yes
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_V_INPUT
+# %  key: grid_input
+# %  label: MODFLOW grid
+# %  required: yes
+# %  guidependency: layer,column
+# %end
 
-#%option G_OPT_V_OUTPUT
-#%  key: output
-#%  label: Gravity reservoirs: union (AND) of sub-basins and MODFLOW grid
-#%  required: yes
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_V_OUTPUT
+# %  key: output
+# %  label: Gravity reservoirs: union (AND) of sub-basins and MODFLOW grid
+# %  required: yes
+# %  guidependency: layer,column
+# %end
 
 ##################
 # IMPORT MODULES #

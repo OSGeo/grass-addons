@@ -5,7 +5,7 @@
 MODULE:       r.connectivity.network
 AUTHOR(S):    Stefan Blumentrath <stefan dot blumentrath at nina dot no>
 PURPOSE:      Compute connectivity measures for a set of habitat patches
-              based on graph-theory (usig the igraph-package in R).
+              based on graph-theory (using the igraph-package in R).
 
               Recently, graph-theory has been characterised as an
               efficient and useful tool for conservation planning
@@ -17,7 +17,7 @@ PURPOSE:      Compute connectivity measures for a set of habitat patches
 
               r.connectivity.network is the 2nd tool of the
               r.connectivity.* toolchain and performs the (core) network
-              analysis (usig the igraph-package in R) on the network
+              analysis (using the igraph-package in R) on the network
               data prepared with r.connectivity.distance. This network
               data is analysed on graph, edge and vertex level.
 
@@ -26,8 +26,8 @@ PURPOSE:      Compute connectivity measures for a set of habitat patches
               largest cluster, average cluster size, diameter, density,
               modularity, number of communities, community size (in
               number of vertices) Network characteristics are visualised
-              in a plot showing an  overview over number of connections,
-              number of components and and the size of the largest
+              in a plot showing an  overview over the number of connections,
+              number of components and the size of the largest
               network component within the network with regards
               to cost-distance between patches.
 
@@ -77,70 +77,70 @@ ToDo:
 - - grass.parse_command('v.support', map=nodes, flags='g')[comments]
 """
 
-#%Module
-#% description: Compute connectivity measures for a set of habitat patches based on graph-theory
-#% keyword: raster
-#% keyword: vector
-#% keyword: graph theory
-#% keyword: network
-#% keyword: network analysis
-#%End
+# %Module
+# % description: Compute connectivity measures for a set of habitat patches based on graph-theory
+# % keyword: raster
+# % keyword: vector
+# % keyword: graph theory
+# % keyword: network
+# % keyword: network analysis
+# %End
 
-#%option G_OPT_V_INPUT
-#% required: yes
-#% key_desc: Network computed with r.connectivity.distance (input)
-#% description: Name of input vector map containing the network produced with r.connectivity.distance
-#%end
+# %option G_OPT_V_INPUT
+# % required: yes
+# % key_desc: Network computed with r.connectivity.distance (input)
+# % description: Name of input vector map containing the network produced with r.connectivity.distance
+# %end
 
-#%option G_OPT_M_DIR
-#% type: string
-#% key: qml_style
-#% required: no
-#% description: Directory for output of QML files for layer styling in QGIS
-#%end
+# %option G_OPT_M_DIR
+# % type: string
+# % key: qml_style
+# % required: no
+# % description: Directory for output of QML files for layer styling in QGIS
+# %end
 
-#%option
-#% type: string
-#% key: prefix
-#% required: yes
-#% description: Prefix for output tables
-#%end
+# %option
+# % type: string
+# % key: prefix
+# % required: yes
+# % description: Prefix for output tables
+# %end
 
-#%option
-#% key: connectivity_cutoff
-#% type: double
-#% description: Maximum cost distance for connectivity
-#% guisection: Settings
-#% required: no
-#% answer: 0.0
-#%end
+# %option
+# % key: connectivity_cutoff
+# % type: double
+# % description: Maximum cost distance for connectivity
+# % guisection: Settings
+# % required: no
+# % answer: 0.0
+# %end
 
-#%option
-#% key: lnbh_cutoff
-#% type: double
-#% description: Threshold defining a locale neighborhood (neighborhood = number of times connectivity_cutoff)
-#% guisection: Settings
-#% required: no
-#% answer: 3.0
-#%end
+# %option
+# % key: lnbh_cutoff
+# % type: double
+# % description: Threshold defining a locale neighborhood (neighborhood = number of times connectivity_cutoff)
+# % guisection: Settings
+# % required: no
+# % answer: 3.0
+# %end
 
-#%option
-#% key: convergence_threshold
-#% type: double
-#% description: Convergence threshold for the overview plot over the graph
-#% guisection: Settings
-#% required: no
-#% answer: 0.05
-#%end
+# %option
+# % key: convergence_threshold
+# % type: double
+# % description: Convergence threshold for the overview plot over the graph
+# % guisection: Settings
+# % required: no
+# % answer: 0.05
+# %end
 
-#%option
-#% key: cl_thresh
-#% type: integer
-#% description: Number of community levels to be traced in edge betweenness community
-#% guisection: Settings
-#% required: no
-#% answer: 0
-#%end
+# %option
+# % key: cl_thresh
+# % type: integer
+# % description: Number of community levels to be traced in edge betweenness community
+# % guisection: Settings
+# % required: no
+# % answer: 0
+# %end
 
 # Temporarily disabled
 ##%flag
@@ -149,62 +149,62 @@ ToDo:
 ##% guisection: Measures
 ##%end
 
-#%option
-#% key: base
-#% type: double
-#% description: A factor for defining the shape of the negative exponential decay kernel (e ^ base * exponent)
-#% guisection: Kernel
-#% required: no
-#% answer: -3.0
-#%end
+# %option
+# % key: base
+# % type: double
+# % description: A factor for defining the shape of the negative exponential decay kernel (e ^ base * exponent)
+# % guisection: Kernel
+# % required: no
+# % answer: -3.0
+# %end
 
-#%option
-#% key: exponent
-#% type: double
-#% description: Exponent of the negative exponential decay kernel (e ^ base * exponent)
-#% guisection: Kernel
-#% required: no
-#% answer: -4.5
-#%end
+# %option
+# % key: exponent
+# % type: double
+# % description: Exponent of the negative exponential decay kernel (e ^ base * exponent)
+# % guisection: Kernel
+# % required: no
+# % answer: -4.5
+# %end
 
-#%flag
-#% key: x
-#% description: Visualise negative exponential decay kernel and exit
-#% guisection: Output
-#%end
+# %flag
+# % key: x
+# % description: Visualise negative exponential decay kernel and exit
+# % guisection: Output
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key: kernel_plot
-#% description: File name for a plot of the negative exponential decay kernel (e ^ base * exponent) used in analysis (requires ghostscript installed)
-#% required : no
-#% guisection: Output
-#%end
+# %option G_OPT_F_OUTPUT
+# % key: kernel_plot
+# % description: File name for a plot of the negative exponential decay kernel (e ^ base * exponent) used in analysis (requires ghostscript installed)
+# % required : no
+# % guisection: Output
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key: overview_plot
-#% description: File name for a plot of an overview over network characteristics (requires ghostscript installed)
-#% required : no
-#% guisection: Output
-#%end
+# %option G_OPT_F_OUTPUT
+# % key: overview_plot
+# % description: File name for a plot of an overview over network characteristics (requires ghostscript installed)
+# % required : no
+# % guisection: Output
+# %end
 
-#%option
-#% key: cores
-#% type: integer
-#% description: Number of cores to be used for computation (if <= 1 no parallelisation is applied)
-#% guisection: Parallelisation
-#% required: no
-#% answer: 1
-#%end
+# %option
+# % key: cores
+# % type: integer
+# % description: Number of cores to be used for computation (if <= 1 no parallelisation is applied)
+# % guisection: Parallelisation
+# % required: no
+# % answer: 1
+# %end
 
-#%flag
-#% key: i
-#% description: Install required R packages in an interactive session if they are missing
-#%end
+# %flag
+# % key: i
+# % description: Install required R packages in an interactive session if they are missing
+# %end
 
-#%flag
-#% key: r
-#% description: Remove indirect connections from network
-#%end
+# %flag
+# % key: r
+# % description: Remove indirect connections from network
+# %end
 
 import atexit
 import os
@@ -388,7 +388,7 @@ def main():
     )["COMMAND"].split("\n")[0]
     # grass.parse_command('v.info', map=network_map, flags='h'
     #                     ).split('\n')[0].split(': ')[1]
-    # Parsing goes wrong in some cases (extractig with -tp) as input
+    # Parsing goes wrong in some cases (extracting with -tp) as input
     dist_cmd_dict = task.cmdstring_to_tuple(net_hist_str)
     command = os.environ["CMDLINE"]
 
@@ -421,7 +421,7 @@ def main():
     # Check if R is installed
     if not grass.find_program("R"):
         grass.fatal(
-            "R is required, but can not be found on the system.\n \
+            "R is required, but cannot be found on the system.\n \
                     Please make sure that R is installed and the path \
                     to R is added to the environment variables \
                     (see: http://grass.osgeo.org/wiki/R_statistics#MS_Windows). \
@@ -483,7 +483,7 @@ def main():
             ):
                 grass.fatal(
                     "ghostscript is required for postscript \
-                            output, can not find ghostscript \
+                            output, cannot find ghostscript \
                             (gswin32.exe), please install ghostscript \
                             first (or check environment path settings)"
                 )
@@ -860,7 +860,7 @@ dist_inv_ix <- sort(df_edgeremoval$distance, decreasing=FALSE, na.last=NA, index
 ps.options(encoding="CP1257.enc", family="Helvetica", horizontal=FALSE, fonts="Helvetica", paper="a4", pointsize=1/96, height=3.5, width=3.5)
 postscript(network_overview_ps)
 
-###Check axis lables!!!
+###Check axis labels!!!
 matplot(df_edgeremoval$distance/(10^(nchar(as.integer(max(df_edgeremoval$distance)))-2)), df_edgeremoval$cl_del_count*100/vertices_n, type="l", ylab="", xlab=c("Connectivity threshold", paste("(Cost distance between patches in ", as.character(10^(nchar(as.integer(max(df_edgeremoval$distance)))-2)), ")", sep="")), lty=1, yaxt="n", yaxs="r", ylim=c(0, 100), yaxs="i", xaxs="i")
 if (connectivity_cutoff>0) abline(v=connectivity_cutoff/10^(nchar(as.integer(max(df_edgeremoval$distance)))-2), col="red", lty=3)
 ifelse(connectivity_cutoff>0, legend("topleft",
@@ -871,7 +871,7 @@ axis(2, seq.int(0, 100, 25), labels=c("0 %", "25 %", "50 %", "75 %", "100 %"), y
 matplot(df_edgeremoval$distance/(10^(nchar(as.integer(max(df_edgeremoval$distance)))-2)), df_edgeremoval$cl_del_max_size*100/sum(V(g)$pop_proxy), type="l", lty=2, yaxt="n", yaxs="i", add=TRUE)
 lines(df_edgeremoval$distance/(10^(nchar(as.integer(max(df_edgeremoval$distance)))-2)), dist_inv_ix*100/edges_n, type="l", lty=3)
 lines(df_edgeremoval$distance/(10^(nchar(as.integer(max(df_edgeremoval$distance)))-2)), df_edgeremoval$cl_del_diam*100/diam_d, type="l", lty=4)
-#Lable axis 4!!!
+#Label axis 4!!!
 #axis(4, seq.int(0, 100, 25), yaxs="i", labels=seq.int(0, ceiling((as.integer(edges_n)/(10^(nchar(as.integer(edges_n))-2))))*(10^(nchar(as.integer(edges_n))-2)), ceiling((as.integer(edges_n)/(10^(nchar(as.integer(edges_n))-2))))*(10^(nchar(as.integer(edges_n))-2))/4))
 off <- dev.off(dev.cur())
 
@@ -886,7 +886,7 @@ off <- dev.off(dev.cur())
 #ps.options(encoding="CP1257.enc", family="Helvetica", horizontal=FALSE, fonts="Helvetica", paper="a4", pointsize=1/96, height=3.5, width=3.5)
 #postscript(network_overview_ps)
 
-####Check axis lables!!!
+####Check axis labels!!!
 #matplot(df_edgeremoval$distance/(10^(nchar(as.integer(max(df_edgeremoval$distance)))-2)), df_edgeremoval$cl_del_count*100/vertices_n, type="l", xlab=c("Grenseverdi for antatt konnektivitet mellom vernområdene", paste("basert på den funksjonale avstanden mellom dem i ", as.character(10^(nchar(as.integer(max(df_edgeremoval$distance)))-2)), sep="")), ylab="Antall vernområder / nettverkskomponenter", lty=1, yaxt="n", yaxs="r", ylim=c(0, 100), yaxs="i", xaxs="i")
 #if (connectivity_cutoff>0) abline(v=connectivity_cutoff, col="red", lty=3)
 #ifelse(connectivity_cutoff>0, legend("topleft", c("Andel nettverkskomponenter", "Størrelsen av den største nettverkskomponenten", "(i andel populasjons størrelse)", "Antall forbindelser i nettverket", "Andel av diameter av nettverket", "Antatt grenseverdi for konnektivitet"), lty=c(1, 2, 0, 3, 4, 3), col=c("black", "black", "black", "black", "black", "red"), inset=0.005, bty="o", box.lty=0, bg="White"), legend("topleft", c("Andel nettverkskomponenter", "Størrelsen av den største nettverkskomponenten", "(i andel populasjons størrelse)", "Antall forbindelser i nettverket", "Andel av diameter av nettverket"), lty=c(1, 2, 0, 3, 4), col=c("black", "black", "black", "black", "black"), inset=0.005, bty="o", box.lty=0, bg="White"))
@@ -894,7 +894,7 @@ off <- dev.off(dev.cur())
 #matplot(df_edgeremoval$distance, df_edgeremoval$cl_del_max_size*100/sum(V(g)$pop_proxy), type="l", lty=2, yaxt="n", yaxs="i", add=TRUE)
 #lines(df_edgeremoval$distance, dist_inv_ix*100/edges_n, type="l", lty=3)
 #lines(df_edgeremoval$distance, df_edgeremoval$cl_del_diam*100/diam_d, type="l", lty=4)
-##Lable axis 4!!!
+##Label axis 4!!!
 ##axis(4, seq.int(0, maks_forbindelser_ud*maks_nodes/maks_forbindelser_ud, 100*maks_nodes/maks_forbindelser_ud), yaxs="i", labels=seq.int(0, maks_forbindelser_ud, 100), ylab="Antall forbindelser")
 #off <- dev.off(dev.cur())
 }}
@@ -986,9 +986,9 @@ E(g_ud_d_cd)$bc_te_udc[unlist(biconnected_components_d_cd$tree_edges[c])] <- c
 
 ########################################################################
 ###Calculate edge betweenness
-##Results of the internal edge.betweeness.estimate function are slightly different from the one used here (always larger values):
+##Results of the internal edge.betweenness.estimate function are slightly different from the one used here (always larger values):
 ##see: E(g_ud_d)$cd_leb_ud <- edge.betweenness.estimate(g_ud_d, e=E(g_ud_d), directed=FALSE, lnbh_cutoff*connectivity_cutoff, weights=E(g_ud_d)$cd_u)
-##But since the internal edge.betweeness.estimate function is not reasonable to use with other weights than cost distance, the workarounds are used nevertheless
+##But since the internal edge.betweenness.estimate function is not reasonable to use with other weights than cost distance, the workarounds are used nevertheless
 ##Further investigation necessary!!!
 
 ###Calculate edge betweenness on the entire undirected graph with only direct edges
@@ -1100,7 +1100,7 @@ E(g)$cf_ebc_cc <- ifelse(com_pc_pre$com.x==com_pc_pre$com.y,0,1)
 
 }} else {{
 if (verbose) {{
-cat("Skipping comunity algorithms...\n")
+cat("Skipping community algorithms...\n")
 }}
 }}
 ########################################################################
@@ -1208,9 +1208,9 @@ for (p in 1:length(V(g))) {{
 
 ########################################################################
 ###Calculate vertex betweenness
-##Results of the internal betweeness.estimate function are slightly different from the one used here (always larger values)
+##Results of the internal betweenness.estimate function are slightly different from the one used here (always larger values)
 ##see: V(g_ud_d)$cd_lvb_ud <- betweenness.estimate(g_ud_d, vids = V(g_ud_d), directed = FALSE, lnbh_cutoff*connectivity_cutoff, weights = E(g_ud_d)$cd_u)
-##But since the internal betweeness.estimate function is not reasonable to use with other weights than cost distance, the workarounds are used nevertheless
+##But since the internal betweenness.estimate function is not reasonable to use with other weights than cost distance, the workarounds are used nevertheless
 ##Further investigation necessary!!!
 
 ###Calculate vertex betweenness on the undirected graph with only direct edges

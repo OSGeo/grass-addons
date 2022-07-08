@@ -13,69 +13,69 @@
 #
 #############################################################################
 
-#%module
-#% description: Detect features in images using a Mask R-CNN model
-#% keyword: ann
-#% keyword: vector
-#% keyword: raster
-#%end
-#%flag
-#%  key: e
-#%  description: External georeferencing in the images folder (when using images_directory)
-#%end
-#%option
-#% key: band1
-#% type: string
-#% label: Name of raster maps to use for detection as the first band (divided by ",")
-#%end
-#%option
-#% key: band2
-#% type: string
-#% label: Name of raster maps to use for detection as the second band (divided by ",")
-#%end
-#%option
-#% key: band3
-#% type: string
-#% label: Name of raster maps to use for detection as the third band (divided by ",")
-#%end
-#%option G_OPT_M_DIR
-#% key: images_directory
-#% label: Path to a directory with external images to detect
-#% required: no
-#%end
-#%option
-#% key: images_format
-#% type: string
-#% label: Format suffix of images
-#% description: .jpg, .tiff, .png, etc.
-#%end
-#%option
-#% key: model
-#% type: string
-#% label: Path to the .h5 file containing the model
-#% required: yes
-#% multiple: no
-#%end
-#%option
-#% key: classes
-#% type: string
-#% label: Names of classes separated with ","
-#% required: yes
-#% multiple: yes
-#%end
-#%option
-#% key: output_type
-#% type: string
-#% label: Type of output
-#% options: area, point
-#% answer: area
-#% required: no
-#%end
-#%rules
-#% requires_all: images_directory, images_format
-#% requires_all: band1, band2, band3
-#% required: images_directory, band1
-#%end
+# %module
+# % description: Detect features in images using a Mask R-CNN model
+# % keyword: ann
+# % keyword: vector
+# % keyword: raster
+# %end
+# %flag
+# %  key: e
+# %  description: External georeferencing in the images folder (when using images_directory)
+# %end
+# %option
+# % key: band1
+# % type: string
+# % label: Name of raster maps to use for detection as the first band (divided by ",")
+# %end
+# %option
+# % key: band2
+# % type: string
+# % label: Name of raster maps to use for detection as the second band (divided by ",")
+# %end
+# %option
+# % key: band3
+# % type: string
+# % label: Name of raster maps to use for detection as the third band (divided by ",")
+# %end
+# %option G_OPT_M_DIR
+# % key: images_directory
+# % label: Path to a directory with external images to detect
+# % required: no
+# %end
+# %option
+# % key: images_format
+# % type: string
+# % label: Format suffix of images
+# % description: .jpg, .tiff, .png, etc.
+# %end
+# %option
+# % key: model
+# % type: string
+# % label: Path to the .h5 file containing the model
+# % required: yes
+# % multiple: no
+# %end
+# %option
+# % key: classes
+# % type: string
+# % label: Names of classes separated with ","
+# % required: yes
+# % multiple: yes
+# %end
+# %option
+# % key: output_type
+# % type: string
+# % label: Type of output
+# % options: area, point
+# % answer: area
+# % required: no
+# %end
+# %rules
+# % requires_all: images_directory, images_format
+# % requires_all: band1, band2, band3
+# % required: images_directory, band1
+# %end
 
 
 import os

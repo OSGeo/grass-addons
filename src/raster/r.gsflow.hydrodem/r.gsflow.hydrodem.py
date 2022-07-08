@@ -22,44 +22,44 @@
 # More information
 # Started October 2017
 
-#%module
-#% description: Creates hydrologically correct MODFLOW DEM from higher-res DEM
-#% keyword: vector
-#% keyword: stream network
-#% keyword: hydrology
-#% keyword: GSFLOW
-#% keyword: GSFLOW
-#%end
+# %module
+# % description: Creates hydrologically correct MODFLOW DEM from higher-res DEM
+# % keyword: vector
+# % keyword: stream network
+# % keyword: hydrology
+# % keyword: GSFLOW
+# % keyword: GSFLOW
+# %end
 
-#%option G_OPT_R_INPUT
-#%  key: dem
-#%  label: Input higher-resolution elevation data
-#%  required: yes
-#%end
+# %option G_OPT_R_INPUT
+# %  key: dem
+# %  label: Input higher-resolution elevation data
+# %  required: yes
+# %end
 
-#%option G_OPT_V_INPUT
-#%  key: grid
-#%  label: MODFLOW grid
-#%  required: yes
-#%end
+# %option G_OPT_V_INPUT
+# %  key: grid
+# %  label: MODFLOW grid
+# %  required: yes
+# %end
 
-#%option G_OPT_V_INPUT
-#%  key: streams
-#%  label: Vector map of stream network (lines)
-#%  required: yes
-#%end
+# %option G_OPT_V_INPUT
+# %  key: streams
+# %  label: Vector map of stream network (lines)
+# %  required: yes
+# %end
 
-#%option G_OPT_R_OUTPUT
-#%  key: streams_modflow
-#%  label: Stream network at MODFLOW grid resolution
-#%  required: yes
-#%end
+# %option G_OPT_R_OUTPUT
+# %  key: streams_modflow
+# %  label: Stream network at MODFLOW grid resolution
+# %  required: yes
+# %end
 
-#%option G_OPT_R_OUTPUT
-#%  key: dem_modflow
-#%  label: Hydrologically corrected DEM at MODFLOW grid resolution
-#%  required: no
-#%end
+# %option G_OPT_R_OUTPUT
+# %  key: dem_modflow
+# %  label: Hydrologically corrected DEM at MODFLOW grid resolution
+# %  required: no
+# %end
 
 ##################
 # IMPORT MODULES #

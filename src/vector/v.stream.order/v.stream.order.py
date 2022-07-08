@@ -19,58 +19,58 @@
 #
 #############################################################################
 
-#%module
-#% description: Compute the stream order of stream networks stored in a vector map at specific outlet vector points
-#% keyword: vector
-#% keyword: hydrology
-#% keyword: stream network
-#% keyword: stream order
-#%end
-#%option G_OPT_V_INPUT
-#% description: Name of the stream networks vector map
-#%end
-#%option G_OPT_V_INPUT
-#% key: points
-#% label: Name of the input vector point map
-#% description: Name of the points vector map that defines the water outlets of the stream networks
-#%end
-#%option G_OPT_V_OUTPUT
-#% label: Name of the vector output map
-#% description: The name for the stream order vector output map
-#%end
-#%option
-#% key: threshold
-#% type: double
-#% description: threshold in projection units used to search for outflow points at the stream network
-#% required : no
-#% answer: 25
-#% multiple: no
-#%end
-#%option
-#% key: order
-#% type: string
-#% description: The stream order to compute
-#% required : no
-#% answer: strahler,shreve
-#% options: strahler,shreve,scheidegger,drwal
-#% multiple: yes
-#%end
-#%option
-#% key: columns
-#% type: string
-#% description: The columns that should be copied from the input stream vector map. By default all will be copied.
-#% answer: all
-#% required : no
-#% multiple: yes
-#%end
-#%option
-#% key: recursionlimit
-#% type: integer
-#% description:The Python recursion limit that should be used (Python default is 1000)
-#% required : no
-#% answer: 10000
-#% multiple: no
-#%end
+# %module
+# % description: Compute the stream order of stream networks stored in a vector map at specific outlet vector points
+# % keyword: vector
+# % keyword: hydrology
+# % keyword: stream network
+# % keyword: stream order
+# %end
+# %option G_OPT_V_INPUT
+# % description: Name of the stream networks vector map
+# %end
+# %option G_OPT_V_INPUT
+# % key: points
+# % label: Name of the input vector point map
+# % description: Name of the points vector map that defines the water outlets of the stream networks
+# %end
+# %option G_OPT_V_OUTPUT
+# % label: Name of the vector output map
+# % description: The name for the stream order vector output map
+# %end
+# %option
+# % key: threshold
+# % type: double
+# % description: threshold in projection units used to search for outflow points at the stream network
+# % required : no
+# % answer: 25
+# % multiple: no
+# %end
+# %option
+# % key: order
+# % type: string
+# % description: The stream order to compute
+# % required : no
+# % answer: strahler,shreve
+# % options: strahler,shreve,scheidegger,drwal
+# % multiple: yes
+# %end
+# %option
+# % key: columns
+# % type: string
+# % description: The columns that should be copied from the input stream vector map. By default all will be copied.
+# % answer: all
+# % required : no
+# % multiple: yes
+# %end
+# %option
+# % key: recursionlimit
+# % type: integer
+# % description:The Python recursion limit that should be used (Python default is 1000)
+# % required : no
+# % answer: 10000
+# % multiple: no
+# %end
 
 import os
 import sys

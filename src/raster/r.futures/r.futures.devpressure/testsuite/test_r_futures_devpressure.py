@@ -45,6 +45,7 @@ class TestDevpressure(TestCase):
             method="gravity",
             size=15,
             flags="n",
+            nprocs=2,
         )
         self.assertRastersNoDifference(
             actual=self.output, reference=self.result, precision=1e-6

@@ -16,36 +16,36 @@
 # TODO: add overwrite check for resulting flood/mti maps
 #############################################################################
 
-#%module
-#% description: Fast procedure to detect flood prone areas.
-#% keyword: raster
-#% keyword: hydrology
-#%end
-#%option
-#% key: map
-#% type: string
-#% gisprompt: old,raster,raster
-#% key_desc: elevation
-#% description: Name of elevation raster map
-#% required: yes
-#%end
-#%option
-#% key: flood
-#% type: string
-#% gisprompt: new,raster,raster
-#% key_desc: flood
-#% description: Name of output flood raster map
-#% required: yes
-#%end
-#%option
-#% key: mti
-#% type: string
-#% gisprompt: new,raster,raster
-#% key_desc: MTI
-#% label: Name of output MTI raster map
-#% description: Name of the output Modified Topographic Index (MTI) raster map
-#% required: yes
-#%END
+# %module
+# % description: Fast procedure to detect flood prone areas.
+# % keyword: raster
+# % keyword: hydrology
+# %end
+# %option
+# % key: map
+# % type: string
+# % gisprompt: old,raster,raster
+# % key_desc: elevation
+# % description: Name of elevation raster map
+# % required: yes
+# %end
+# %option
+# % key: flood
+# % type: string
+# % gisprompt: new,raster,raster
+# % key_desc: flood
+# % description: Name of output flood raster map
+# % required: yes
+# %end
+# %option
+# % key: mti
+# % type: string
+# % gisprompt: new,raster,raster
+# % key_desc: MTI
+# % label: Name of output MTI raster map
+# % description: Name of the output Modified Topographic Index (MTI) raster map
+# % required: yes
+# %END
 
 import sys
 import os
@@ -103,7 +103,7 @@ def main():
     grass.message("Slope map done. ")
 
     # n exponent
-    n = 0.016 * (resolution ** 0.46)
+    n = 0.016 * (resolution**0.46)
     grass.message("Exponent : %s " % n)
 
     # MTI threshold
@@ -139,7 +139,7 @@ def main():
 
     # Delete areas of less than a threshold of cells (corresponding to 1 square kilometer)
     # Calculating threshold
-    th = int(1000000 / resolution ** 2)
+    th = int(1000000 / resolution**2)
     grass.message("Deleting areas of less than %s cells.. " % th)
     grass.run_command(
         "r.area", input="r_clump", output="r_flood_th", lesser=th, flags="b"

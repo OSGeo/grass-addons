@@ -19,32 +19,32 @@
 #
 #
 ################################################################################
-#%module
-#% description: Outputs a hypsometric and hypsographic graph.
-#% keyword: raster
-#%end
+# %module
+# % description: Outputs a hypsometric and hypsographic graph.
+# % keyword: raster
+# %end
 
-#%option G_OPT_R_ELEV
-#% key: map
-#% required: yes
-#%end
+# %option G_OPT_R_ELEV
+# % key: map
+# % required: yes
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key: image
-#% key_desc: image
-#% description: Name for output graph file (png)
-#% required: yes
-#%end
+# %option G_OPT_F_OUTPUT
+# % key: image
+# % key_desc: image
+# % description: Name for output graph file (png)
+# % required: yes
+# %end
 
-#%flag
-#% key: a
-#% description: Generate hypsometric curve
-#%end
+# %flag
+# % key: a
+# % description: Generate hypsometric curve
+# %end
 
-#%flag
-#% key: b
-#% description: Generate hypsographic curve
-#%end
+# %flag
+# % key: b
+# % description: Generate hypsographic curve
+# %end
 
 import sys
 import os
@@ -75,7 +75,7 @@ def main():
 
     for i in range(len(stats)):
         zn[i, 3] = 1 - (zn[i, 2] / sum(zn[:, 1]))
-        zn[i, 4] = zn[i, 3] * (((res ** 2) / 1000000) * sum(zn[:, 1]))
+        zn[i, 4] = zn[i, 3] * (((res**2) / 1000000) * sum(zn[:, 1]))
         zn[i, 5] = (zn[i, 0] - min(zn[:, 0])) / (max(zn[:, 0]) - min(zn[:, 0]))
         kl[i, 0] = zn[i, 0]
         kl[i, 1] = 1 - (zn[i, 2] / totcell)

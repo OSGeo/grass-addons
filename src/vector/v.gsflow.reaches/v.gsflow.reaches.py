@@ -22,145 +22,145 @@
 # More information
 # Started December 2016
 
-#%module
-#% description: Build stream "reaches" that link PRMS segments to MODFLOW cells
-#% keyword: vector
-#% keyword: stream network
-#% keyword: hydrology
-#% keyword: GSFLOW
-#%end
+# %module
+# % description: Build stream "reaches" that link PRMS segments to MODFLOW cells
+# % keyword: vector
+# % keyword: stream network
+# % keyword: hydrology
+# % keyword: GSFLOW
+# %end
 
-#%option G_OPT_V_INPUT
-#%  key: segment_input
-#%  label: PRMS stream segments
-#%  required: yes
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_V_INPUT
+# %  key: segment_input
+# %  label: PRMS stream segments
+# %  required: yes
+# %  guidependency: layer,column
+# %end
 
-#%option G_OPT_V_INPUT
-#%  key: grid_input
-#%  label: MODFLOW grid
-#%  required: yes
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_V_INPUT
+# %  key: grid_input
+# %  label: MODFLOW grid
+# %  required: yes
+# %  guidependency: layer,column
+# %end
 
-#%option G_OPT_R_INPUT
-#%  key: elevation
-#%  label: DEM for slope along reaches
-#%  required: yes
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_R_INPUT
+# %  key: elevation
+# %  label: DEM for slope along reaches
+# %  required: yes
+# %  guidependency: layer,column
+# %end
 
-#%option G_OPT_V_OUTPUT
-#%  key: output
-#%  label: Reaches for GSFLOW
-#%  required: yes
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_V_OUTPUT
+# %  key: output
+# %  label: Reaches for GSFLOW
+# %  required: yes
+# %  guidependency: layer,column
+# %end
 
-#%option
-#%  key: s_min
-#%  type: double
-#%  description: Minimum reach slope
-#%  answer: 0.0001
-#%  required: no
-#%end
+# %option
+# %  key: s_min
+# %  type: double
+# %  description: Minimum reach slope
+# %  answer: 0.0001
+# %  required: no
+# %end
 
-#%option
-#%  key: h_stream
-#%  type: double
-#%  description: Stream channel depth (bank height) [m]
-#%  answer: 1
-#%  required: no
-#%end
+# %option
+# %  key: h_stream
+# %  type: double
+# %  description: Stream channel depth (bank height) [m]
+# %  answer: 1
+# %  required: no
+# %end
 
-#%option
-#%  key: upstream_easting_column_seg
-#%  type: string
-#%  description: Upstream easting (or x or lon) column name
-#%  answer: x1
-#%  required : no
-#%end
+# %option
+# %  key: upstream_easting_column_seg
+# %  type: string
+# %  description: Upstream easting (or x or lon) column name
+# %  answer: x1
+# %  required : no
+# %end
 
-#%option
-#%  key: upstream_northing_column_seg
-#%  type: string
-#%  description: Upstream northing (or y or lat) column name
-#%  answer: y1
-#%  required : no
-#%end
+# %option
+# %  key: upstream_northing_column_seg
+# %  type: string
+# %  description: Upstream northing (or y or lat) column name
+# %  answer: y1
+# %  required : no
+# %end
 
-#%option
-#%  key: downstream_easting_column_seg
-#%  type: string
-#%  description: Downstream easting (or x or lon) column name
-#%  answer: x2
-#%  required : no
-#%end
+# %option
+# %  key: downstream_easting_column_seg
+# %  type: string
+# %  description: Downstream easting (or x or lon) column name
+# %  answer: x2
+# %  required : no
+# %end
 
-#%option
-#%  key: downstream_northing_column_seg
-#%  type: string
-#%  description: Downstream northing (or y or lat) column name
-#%  answer: y2
-#%  required : no
-#%end
+# %option
+# %  key: downstream_northing_column_seg
+# %  type: string
+# %  description: Downstream northing (or y or lat) column name
+# %  answer: y2
+# %  required : no
+# %end
 
-#%option
-#%  key: tostream_cat_column_seg
-#%  type: string
-#%  description: Adjacent downstream segment cat (0 = offmap)
-#%  answer: tostream
-#%  required : no
-#%end
+# %option
+# %  key: tostream_cat_column_seg
+# %  type: string
+# %  description: Adjacent downstream segment cat (0 = offmap)
+# %  answer: tostream
+# %  required : no
+# %end
 
-#%option
-#%  key: strthick
-#%  type: double
-#%  description: Streambed sediment thickness [m]
-#%  answer: 1
-#%  required : no
-#%end
+# %option
+# %  key: strthick
+# %  type: double
+# %  description: Streambed sediment thickness [m]
+# %  answer: 1
+# %  required : no
+# %end
 
-#%option
-#%  key: strhc1
-#%  type: double
-#%  description: Streambed hydraulic conductivity [m/day]
-#%  answer: 5
-#%  required : no
-#%end
+# %option
+# %  key: strhc1
+# %  type: double
+# %  description: Streambed hydraulic conductivity [m/day]
+# %  answer: 5
+# %  required : no
+# %end
 
-#%option
-#%  key: thts
-#%  type: double
-#%  description: theta_sat: Streambed saturated water content (i.e. porosity) [unitless]
-#%  answer: 0.35
-#%  required : no
-#%end
+# %option
+# %  key: thts
+# %  type: double
+# %  description: theta_sat: Streambed saturated water content (i.e. porosity) [unitless]
+# %  answer: 0.35
+# %  required : no
+# %end
 
-#%option
-#%  key: thti
-#%  type: double
-#%  description: Streambed initial water content [unitless]
-#%  answer: 0.3
-#%  required : no
-#%end
+# %option
+# %  key: thti
+# %  type: double
+# %  description: Streambed initial water content [unitless]
+# %  answer: 0.3
+# %  required : no
+# %end
 
-#%option
-#%  key: eps
-#%  type: double
-#%  description: Epsilon: streambed Brooks-Corey exponent [unitless]
-#%  answer: 3.5
-#%  required : no
-#%end
+# %option
+# %  key: eps
+# %  type: double
+# %  description: Epsilon: streambed Brooks-Corey exponent [unitless]
+# %  answer: 3.5
+# %  required : no
+# %end
 
-#%option
-#%  key: uhc
-#%  type: double
-#%  description: Streambed unsaturated zone saturated hydraulic conductivity [m/day]
-#%  answer: 0.3
-#%  required : no
-#%end
+# %option
+# %  key: uhc
+# %  type: double
+# %  description: Streambed unsaturated zone saturated hydraulic conductivity [m/day]
+# %  answer: 0.3
+# %  required : no
+# %end
 
 # Default values strthick onwards from sagehen example
 

@@ -12,98 +12,98 @@
 #
 #############################################################################
 
-#%module
-#% description: Calculates zonal classes proportion describing raster areas's composition, e.g., in terms of land-cover classes.
-#% keyword: raster
-#% keyword: statistics
-#% keyword: zonal statistics
-#%end
-#%option G_OPT_R_INPUT
-#% key: zone_map
-#% label: Name for input raster map with areas
-#% description: Raster map with areas (all pixels of an area have same id), such as the output of r.clump
-#% required: yes
-#%end
-#%option G_OPT_R_INPUT
-#% key: raster
-#% description: Name of input categorical raster maps for statistics
-#% required: yes
-#%end
-#%option
-#% key: statistics
-#% type: string
-#% label: Statistics to calculate for each input raster map
-#% required: yes
-#% multiple: yes
-#% options: proportion,mode
-#% answer: proportion,mode
-#% guisection: Statistics
-#%end
-#%option
-#% key: prefix
-#% type: string
-#% label: Prefix for statistics name
-#% required: no
-#% guisection: Statistics
-#%end
-#%option
-#% key: decimals
-#% type: integer
-#% label: Number of decimals for proportion numbers
-#% answer: 5
-#% required: no
-#% guisection: Statistics
-#%end
-#%option
-#% key: classes_list
-#% type: string
-#% label: List of classes to be considered in the calculation, e.g. '21,34,35,56'
-#% required: no
-#% guisection: Statistics
-#%end
-#%option G_OPT_F_OUTPUT
-#% key: csvfile
-#% description: Name for output CSV file containing statistics
-#% required: no
-#% guisection: Output
-#%end
-#%option G_OPT_F_SEP
-#% guisection: Output
-#%end
-#%option G_OPT_V_OUTPUT
-#% key: vectormap
-#% description: Name for optional vector output map with statistics as attributes
-#% required: no
-#% guisection: Output
-#%end
-#%flag
-#% key: r
-#% description: Adjust region to input map
-#%end
-#%flag
-#% key: c
-#% description: Force check of input's layer type
-#%end
-#%flag
-#% key: n
-#% description: Consider null values in the calculations
-#% guisection: Statistics
-#%end
-#%flag
-#% key: p
-#% description: Proportions as percentages instead of zone's area ratio
-#% guisection: Statistics
-#%end
-#%flag
-#% key: l
-#% description: Compute statistics only for the classes provided in 'classes_list' parameter
-#% guisection: Statistics
-#%end
-#%rules
-#% required: csvfile,vectormap
-#% required: raster,statistics
-#% requires: -l, classes_list
-#%END
+# %module
+# % description: Calculates zonal classes proportion describing raster areas's composition, e.g., in terms of land-cover classes.
+# % keyword: raster
+# % keyword: statistics
+# % keyword: zonal statistics
+# %end
+# %option G_OPT_R_INPUT
+# % key: zone_map
+# % label: Name for input raster map with areas
+# % description: Raster map with areas (all pixels of an area have same id), such as the output of r.clump
+# % required: yes
+# %end
+# %option G_OPT_R_INPUT
+# % key: raster
+# % description: Name of input categorical raster maps for statistics
+# % required: yes
+# %end
+# %option
+# % key: statistics
+# % type: string
+# % label: Statistics to calculate for each input raster map
+# % required: yes
+# % multiple: yes
+# % options: proportion,mode
+# % answer: proportion,mode
+# % guisection: Statistics
+# %end
+# %option
+# % key: prefix
+# % type: string
+# % label: Prefix for statistics name
+# % required: no
+# % guisection: Statistics
+# %end
+# %option
+# % key: decimals
+# % type: integer
+# % label: Number of decimals for proportion numbers
+# % answer: 5
+# % required: no
+# % guisection: Statistics
+# %end
+# %option
+# % key: classes_list
+# % type: string
+# % label: List of classes to be considered in the calculation, e.g. '21,34,35,56'
+# % required: no
+# % guisection: Statistics
+# %end
+# %option G_OPT_F_OUTPUT
+# % key: csvfile
+# % description: Name for output CSV file containing statistics
+# % required: no
+# % guisection: Output
+# %end
+# %option G_OPT_F_SEP
+# % guisection: Output
+# %end
+# %option G_OPT_V_OUTPUT
+# % key: vectormap
+# % description: Name for optional vector output map with statistics as attributes
+# % required: no
+# % guisection: Output
+# %end
+# %flag
+# % key: r
+# % description: Adjust region to input map
+# %end
+# %flag
+# % key: c
+# % description: Force check of input's layer type
+# %end
+# %flag
+# % key: n
+# % description: Consider null values in the calculations
+# % guisection: Statistics
+# %end
+# %flag
+# % key: p
+# % description: Proportions as percentages instead of zone's area ratio
+# % guisection: Statistics
+# %end
+# %flag
+# % key: l
+# % description: Compute statistics only for the classes provided in 'classes_list' parameter
+# % guisection: Statistics
+# %end
+# %rules
+# % required: csvfile,vectormap
+# % required: raster,statistics
+# % requires: -l, classes_list
+# %END
 
 import os
 import csv

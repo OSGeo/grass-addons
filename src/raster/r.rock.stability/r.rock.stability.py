@@ -14,79 +14,79 @@
 #              for details.
 #
 ##############################################################################
-#%Module
-#% description: A tool for preliminary rock failure susceptibility mapping.
-#% keyword: rock mass
-#% keyword: planar failure
-#% keyword: toppling
-#% overwrite: yes
-#%End
-#%option
-#% key: dem
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Dtm of the zone
-#% required: yes
-#%end
-#%option
-#% key: imme
-#% type: integer
-#% description: Dip direction of the joint (0-360)
-#% options: 0-360
-#% required: yes
-#%end
-#%option
-#% key: incl
-#% type: integer
-#% description: Dip of the joint (0-90)
-#% options: 0-90
-#% required: yes
-#%end
-#%option
-#% key: f4
-#% type: string
-#% description: F4 index
-#% options: Natural Slope +15,Pre-splitting +10,Smooth blasting +8,Normal blasting or mechanical excavation 0,Poor blasting -8
-#% required: yes
-#%end
-#%option
-#% key: rmr
-#% type: string
-#% gisprompt: old,raster,raster
-#% description: RMR index
-#% required: yes
-#%end
+# %Module
+# % description: A tool for preliminary rock failure susceptibility mapping.
+# % keyword: rock mass
+# % keyword: planar failure
+# % keyword: toppling
+# % overwrite: yes
+# %End
+# %option
+# % key: dem
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Dtm of the zone
+# % required: yes
+# %end
+# %option
+# % key: imme
+# % type: integer
+# % description: Dip direction of the joint (0-360)
+# % options: 0-360
+# % required: yes
+# %end
+# %option
+# % key: incl
+# % type: integer
+# % description: Dip of the joint (0-90)
+# % options: 0-90
+# % required: yes
+# %end
+# %option
+# % key: f4
+# % type: string
+# % description: F4 index
+# % options: Natural Slope +15,Pre-splitting +10,Smooth blasting +8,Normal blasting or mechanical excavation 0,Poor blasting -8
+# % required: yes
+# %end
+# %option
+# % key: rmr
+# % type: string
+# % gisprompt: old,raster,raster
+# % description: RMR index
+# % required: yes
+# %end
 ################ouput######################
-#%option
-#% key: prefix
-#% type: string
-#% description: Prefix for output maps
-#% required: yes
-#%end
-#%option
-#% key: tc
-#% type: double
-#% description: Total Condition of joint, for SSPC output
-#% options: 0.018975 - 1.0165
-#% required: no
-#% guisection: SSPC
-#%end
-#%option
-#% key: imme2
-#% type: integer
-#% description: Dip direction of the joint (0-360). For SMR_wedge output
-#% options: 0-360
-#% required: no
-#% guisection: SMR_wedge
-#%end
-#%option
-#% key: incl2
-#% type: integer
-#% description: Dip of the joint (0-90). For SMR_wedge output
-#% options: 0-90
-#% required: no
-#% guisection: SMR_wedge
-#%end
+# %option
+# % key: prefix
+# % type: string
+# % description: Prefix for output maps
+# % required: yes
+# %end
+# %option
+# % key: tc
+# % type: double
+# % description: Total Condition of joint, for SSPC output
+# % options: 0.018975 - 1.0165
+# % required: no
+# % guisection: SSPC
+# %end
+# %option
+# % key: imme2
+# % type: integer
+# % description: Dip direction of the joint (0-360). For SMR_wedge output
+# % options: 0-360
+# % required: no
+# % guisection: SMR_wedge
+# %end
+# %option
+# % key: incl2
+# % type: integer
+# % description: Dip of the joint (0-90). For SMR_wedge output
+# % options: 0-90
+# % required: no
+# % guisection: SMR_wedge
+# %end
 
 import os
 import sys
