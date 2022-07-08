@@ -8,7 +8,7 @@
 #
 # PURPOSE:   This is a test file for r.random.walk
 #
-# COPYRIGHT: (C) 2021 by Corey T. White and the GRASS Development Team
+# COPYRIGHT: (C) 2022 by Corey T. White and the GRASS Development Team
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS
@@ -20,6 +20,14 @@
 import importlib
 from grass.gunittest.case import TestCase
 from grass.gunittest.main import test
+
+spec = importlib.util.spec_from_file_location(
+    name="random_walk_lib",
+    location="r.random.walk.py"
+)
+
+random_walk_lib = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(random_walk_lib)
 
 
 # Tests
@@ -120,64 +128,65 @@ class TestRandomWalk(TestCase):
             overwrite=True,
         )
 
-        # def test_take_step_dir_4(self):
-        #     """
-        #     Tests 4 directional step
-        #     """
-        #     step = take_step([0, 0], 4, black_list=[])
-        #     self.assertTrue(
-        #         step == [1, 0]
-        #         or step == [0, 1]  # North
-        #         or step == [-1, 0]  # East
-        #         or step == [0, -1],  # South  # West
-        #         f"Step outside of 4 directional bounds, {step}",
-        #     )
+    def test_take_step_dir_4(self):
+        """
+        Tests 4 directional step
+        """
+        step = random_walk_lib.take_step([0, 0], 4, black_list=[])
+        self.assertTrue(
+            step['position'] == [0, 0]       # Stay in place
+            or step['position'] == [1, 0]    # North
+            or step['position'] == [0, 1]    # East
+            or step['position'] == [-1, 0]   # South
+            or step['position'] == [0, -1],  # West
+            f"Step outside of 4 directional bounds, {step}"
+        )
 
-        # def test_take_step_dir_8(self):
-        #     """
-        #     Tests 8 directional step
-        #     """
-        #     step = take_step([0, 0], 8)
-        #     self.assertTrue(
-        #         step == [1, 0]
-        #         or step == [0, 1]  # N
-        #         or step == [-1, 0]  # E
-        #         or step == [0, -1]  # S
-        #         or step == [1, 1]  # W
-        #         or step == [-1, 1]  # NE
-        #         or step == [-1, -1]  # SE
-        #         or step == [1, -1],  # SW  # NW
-        #         f"Step outside of 8 directional bounds, {step}",
-        #     )
+    def test_take_step_dir_8(self):
+        """
+        Tests 8 directional step
+        """
+        step = random_walk_lib.take_step([0, 0], 8)
+        self.assertTrue(
+            step['position'] == [0, 0]
+            or step['position'] == [1, 0]    # N
+            or step['position'] == [0, 1]    # E
+            or step['position'] == [-1, 0]   # S
+            or step['position'] == [0, -1]   # W
+            or step['position'] == [1, 1]    # NE
+            or step['position'] == [-1, 1]   # SE
+            or step['position'] == [-1, -1]  # SW
+            or step['position'] == [1, -1],  # NW
+            f"Step outside of 8 directional bounds, {step}"
+        )
 
-        # def test_take_step_dir_4_blacklist(self):
-        #     """
-        #     Tests 4 directional step blacklist
-        #     """
-        #     step = take_step([0, 0], 4, black_list=[0, 1, 2])
-        #     self.assertTrue(
-        #         step != [1, 0]
-        #         and step != [0, 1]  # North
-        #         and step != [-1, 0]  # East
-        #         and step == [0, -1],  # South  # West
-        #         f"Used step from blacklist or outside of 4 directional bounds, {step}",
-        #     )
+    def test_take_step_dir_4_blacklist(self):
+        """
+        Tests 4 directional step blacklist
+        """
+        step = random_walk_lib.take_step([0, 0], 4, black_list=[0, 1, 2])
+        self.assertTrue(
+            step['direction'] != 0       # Stay still
+            and step['direction'] != 1   # North
+            and step['direction'] != 2,  # East
+            f"Used step from blacklist or outside of 4 directional bounds, {step}"
+        )
 
-        # def test_walker_is_not_stuck(self):
-        #     """
-        #     Test if walker is stuck and should return False the walker is not stuck
-        #     """
-        #     tested_directions = [0, 1, 2]
-        #     output = walker_is_stuck(tested_directions, 4)
-        #     self.assertFalse(output)
+    def test_walker_is_not_stuck(self):
+        """
+        Test if walker is stuck and should return False the walker is not stuck
+        """
+        tested_directions = [0, 1, 2]
+        output = random_walk_lib.walker_is_stuck(tested_directions, 4)
+        self.assertFalse(output)
 
-        # def test_walker_is_stuck(self):
-        #     """
-        #     Test if walker is stuck and should return True the walker is stuck
-        #     """
-        #     tested_directions = [0, 1, 2, 3]
-        #     output = walker_is_stuck(tested_directions, 4)
-        #     self.assertTrue(output)
+    def test_walker_is_stuck(self):
+        """
+        Test if walker is stuck and should return True the walker is stuck
+        """
+        tested_directions = [0, 1, 2, 3]
+        output = random_walk_lib.walker_is_stuck(tested_directions, 4)
+        self.assertTrue(output)
 
 
 if __name__ == "__main__":
