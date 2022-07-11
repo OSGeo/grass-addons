@@ -22,8 +22,7 @@ from grass.gunittest.case import TestCase
 from grass.gunittest.main import test
 
 spec = importlib.util.spec_from_file_location(
-    name="random_walk_lib",
-    location="r.random.walk.py"
+    name="random_walk_lib", location="r.random.walk.py"
 )
 
 random_walk_lib = importlib.util.module_from_spec(spec)
@@ -134,12 +133,12 @@ class TestRandomWalk(TestCase):
         """
         step = random_walk_lib.take_step([0, 0], 4, black_list=[])
         self.assertTrue(
-            step['position'] == [0, 0]       # Stay in place
-            or step['position'] == [1, 0]    # North
-            or step['position'] == [0, 1]    # East
-            or step['position'] == [-1, 0]   # South
-            or step['position'] == [0, -1],  # West
-            f"Step outside of 4 directional bounds, {step}"
+            step["position"] == [0, 0]  # Stay in place
+            or step["position"] == [1, 0]  # North
+            or step["position"] == [0, 1]  # East
+            or step["position"] == [-1, 0]  # South
+            or step["position"] == [0, -1],  # West
+            f"Step outside of 4 directional bounds, {step}",
         )
 
     def test_take_step_dir_8(self):
@@ -148,16 +147,16 @@ class TestRandomWalk(TestCase):
         """
         step = random_walk_lib.take_step([0, 0], 8)
         self.assertTrue(
-            step['position'] == [0, 0]
-            or step['position'] == [1, 0]    # N
-            or step['position'] == [0, 1]    # E
-            or step['position'] == [-1, 0]   # S
-            or step['position'] == [0, -1]   # W
-            or step['position'] == [1, 1]    # NE
-            or step['position'] == [-1, 1]   # SE
-            or step['position'] == [-1, -1]  # SW
-            or step['position'] == [1, -1],  # NW
-            f"Step outside of 8 directional bounds, {step}"
+            step["position"] == [0, 0]
+            or step["position"] == [1, 0]  # N
+            or step["position"] == [0, 1]  # E
+            or step["position"] == [-1, 0]  # S
+            or step["position"] == [0, -1]  # W
+            or step["position"] == [1, 1]  # NE
+            or step["position"] == [-1, 1]  # SE
+            or step["position"] == [-1, -1]  # SW
+            or step["position"] == [1, -1],  # NW
+            f"Step outside of 8 directional bounds, {step}",
         )
 
     def test_take_step_dir_4_blacklist(self):
@@ -166,10 +165,10 @@ class TestRandomWalk(TestCase):
         """
         step = random_walk_lib.take_step([0, 0], 4, black_list=[0, 1, 2])
         self.assertTrue(
-            step['direction'] != 0       # Stay still
-            and step['direction'] != 1   # North
-            and step['direction'] != 2,  # East
-            f"Used step from blacklist or outside of 4 directional bounds, {step}"
+            step["direction"] != 0  # Stay still
+            and step["direction"] != 1  # North
+            and step["direction"] != 2,  # East
+            f"Used step from blacklist or outside of 4 directional bounds, {step}",
         )
 
     def test_walker_is_not_stuck(self):
