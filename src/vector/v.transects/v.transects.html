@@ -40,6 +40,16 @@ to be in horizontal map units (e.g., degrees in the LatLong/WGS84 coordinate sys
 <p>
 <em><b>v.transects</b></em> may fail for a network of lines in Windows.
 
+<p>The categories of the input lines are stored in layer 2 of the output. To upload them
+  to the transects table, use v.to.db like this:
+  <br>
+  <div class=code><pre>
+v.transects input=lines output=transects transect_spacing=100
+v.db.addtable transects columns="line_cat"
+v.db.addtable transects layer=2
+v.to.db transects query_layer=2 query_column=cat option=query column=line_cat
+  </pre></div>
+
 <h2>EXAMPLES</h2>
 
 In these examples, the 
