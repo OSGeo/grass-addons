@@ -171,6 +171,11 @@ def main():
                     "No tile width or height provided, default tile size set: {h} rows x {w} cols."
                 ).format(h=height, w=width)
             )
+    else:
+        if width:
+            width = int(width)
+        if height:
+            height = int(height)
     overlap = int(options["overlap"])
     processes = options["nprocs"]
     patch_backend = options["patch_backend"]
