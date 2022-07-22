@@ -202,23 +202,6 @@ import matplotlib.pyplot as plt
 from ast import literal_eval
 from copy import deepcopy
 
-# Import Pandas library (View and manipulation of tables)
-# Still required for selecting in dataframes based on column names
-try:
-    import pandas as pd
-except:
-    gscript.fatal(_("Pandas is not installed"))
-
-# Import sklearn libraries
-try:
-    from sklearn.ensemble import RandomForestRegressor
-    from sklearn.feature_selection import SelectFromModel
-    from sklearn.model_selection import GridSearchCV
-except:
-    gscript.fatal(
-        _("Scikit-learn 0.24 or newer is not installed (python3-scikit-learn)")
-    )
-
 # Use a non-interactive backend: prevent the figure from popping up
 matplotlib.use("Agg")
 
@@ -227,6 +210,29 @@ matplotlib.use("Agg")
 TMP_MAPS = []  # Maps to cleanup
 TMP_CSV = []  # Csv to cleanup
 TMP_VECT = []  # Vector to cleanup
+
+
+def lazy_import():
+    """Lazy import py packages due compilation error on OS MS Windows
+    (missing py packages)
+    """
+    # Import Pandas library (View and manipulation of tables)
+    # Still required for selecting in dataframes based on column names
+    global pd, RandomForestRegressor, SelectFromModel, GridSearchCV
+    try:
+        import pandas as pd
+    except ModuleNotFoundError:
+        gscript.fatal(_("Pandas is not installed"))
+
+    # Import sklearn libraries
+    try:
+        from sklearn.ensemble import RandomForestRegressor
+        from sklearn.feature_selection import SelectFromModel
+        from sklearn.model_selection import GridSearchCV
+    except ModuleNotFoundError:
+        gscript.fatal(
+            _("Scikit-learn 0.24 or newer is not installed (python3-scikit-learn)")
+        )
 
 
 def cleanup():
@@ -968,6 +974,7 @@ def RandomForest(weighting_layer_name, vector, id):
 
 
 def main():
+    lazy_import()
     start_time = time.ctime()
     options, flags = gscript.parser()
     gscript.use_temp_region()  # define use of temporary regions
