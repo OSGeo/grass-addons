@@ -974,9 +974,9 @@ def RandomForest(weighting_layer_name, vector, id):
 
 
 def main():
-    lazy_import()
     start_time = time.ctime()
     options, flags = gscript.parser()
+    lazy_import()
     gscript.use_temp_region()  # define use of temporary regions
 
     ## Create global variables
