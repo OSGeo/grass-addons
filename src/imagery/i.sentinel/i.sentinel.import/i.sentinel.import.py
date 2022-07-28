@@ -487,9 +487,9 @@ class SentinelImporter(object):
                         if reproject:
                             self._args["resample"] = "nearest"
                             if self._projection_units_meters is True:
-                                self._args["resolution_value"] = self._raster_resolution(
-                                    shadow_file[0]
-                                )
+                                self._args[
+                                    "resolution_value"
+                                ] = self._raster_resolution(shadow_file[0])
                             gs.run_command(
                                 "r.import",
                                 input=shadow_file,
@@ -541,9 +541,13 @@ class SentinelImporter(object):
                     except Exception as e:
                         pass  # error already printed
                 else:
-                    gs.warning(_("Location projection units is not meters. "
-                                 "Removing small cloud/shadow areas using "
-                                 "the cloud_area_threshold parameter is skipped."))
+                    gs.warning(
+                        _(
+                            "Location projection units is not meters. "
+                            "Removing small cloud/shadow areas using "
+                            "the cloud_area_threshold parameter is skipped."
+                        )
+                    )
                     mask_cleaned = mask_selected
 
                 # Extract & Label clouds (and shadows)
