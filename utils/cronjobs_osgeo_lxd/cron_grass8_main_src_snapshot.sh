@@ -13,7 +13,7 @@
 
 MAINDIR=/home/neteler
 GMAJOR=8
-GMINOR=1
+GMINOR=3
 GVERSION=$GMAJOR.$GMINOR.git
 DOTVERSION=$GMAJOR.$GMINOR
 GSHORTGVERSION=$GMAJOR$GMINOR
@@ -55,6 +55,9 @@ $MYMAKE distclean > /dev/null 2>&1
 git status | grep '.rst' | xargs rm -f
 rm -rf lib/python/docs/_build/ lib/python/docs/_templates/layout.html
 rm -f config_${DOTVERSION}.git_log.txt ChangeLog
+
+# reset i18N POT files to git, just to be sure
+git checkout locale/templates/*.pot
 
 ## hard reset local git repo (just in case)
 #git checkout main && git reset --hard HEAD~1 && git reset --hard origin
