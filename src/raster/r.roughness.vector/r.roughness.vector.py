@@ -264,7 +264,7 @@ def main():
     if zcos == "":
         cosine_z = "cosine_z"
         #        cosine_z = grass.tempfile()
-        grass.mapcalc("${out} = cos(${rast1})", out="cosine_z", rast1=aspect_compass)
+        grass.mapcalc("${out} = cos(${rast1})", out="cosine_z", rast1=colat_angle)
     else:
         grass.message("Using previous calculated Y direction cosine values")
         cosine_z = zcos
