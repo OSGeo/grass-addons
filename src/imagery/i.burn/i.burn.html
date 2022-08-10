@@ -1,0 +1,61 @@
+<h2>DESCRIPTION</h2>
+
+<p>
+Understanding the spectral variation that vegetation suffers after being 
+subjected to a burnt shows that there is a significant reduction of albedo 
+in the near infrared region and a small increase of albedo in the shortwave infrared.
+
+<p>
+To this aim, some spectral indices were proposed and implemented in this addon, <em>i.burn</em>. 
+
+<p>
+Based on this idea, Key & Benson (2006) proposed the spectral index NBR - Normalized Burn Ratio, 
+which presents a normalized difference between the NIR and SWIR regions. In the same paper, Key & Benson (2006) 
+realized that if they did the difference verification between pre-fire and post-fire NBR, they would be able to 
+verify the severity of the burn and proposed the dNBR or differenced normalized burn ratio. 
+
+<p>
+Also in 2006, Roy et al. assessed the performance of the NBR.
+In 2007, Miller & Thode observed that the NBR field verification presented some classes of lower severity overestimated 
+and those of higher severity, underestimated or even non-existent. Thinking of solving the problem they proposed the RdNBR 
+or Relative dNBR, through normalization from pre-fire data.
+
+<p>
+In 2016, Teobaldo and Baptista adjust the dNBR and RdNBR to investigate the efficiency of regrowth, proposing the dNBR regrowth 
+and RdNBR regrowth, from replacing the NBRpre-fire by the NBRpost-fire and the NBRpost-fire by what they called the NBRregrowth  
+with a post-burn period, in order to verify the recomposition of the vegetation, in both indices.
+
+<p>
+The i.burn's purpose is calculates burn severity area and the regrowth efficiency from Landsat/Sentinel images.
+
+
+<h2>NOTES</h2>
+<p>
+<em>i.burn</em> i.burn works with sensor systems that image the NIR and SWIR bands, such as Landsat OLI bands 5 and 7 or Sentinel 2 bands 8A and 12. 
+Preferably use surface reflectance data, but studies can be performed with TOA radiance and reflectance data as well as DN data.
+
+
+
+<h2>REFERENCES</h2>
+<ul>
+  <li>Key, C.H.; Benson, N.C. 2006. Landscape Assessment (LA). In 'FIREMON: Fire Effects Monitoring and Inventory System'. (Eds DC Lutes, ReKeane, JF Carati, CH Key, NC Benson, LJ Gangi) USDA Forest Service, Rocky Mountains Research Station General, Technical Report RMRS-GTR-164-CD. p. LA-1-55.
+  <li>Roy, D.P.; Boschetti, L.; Trigg, S.N. 2006. Remote Sensing of Fire Severity: Assessing the Performance of the Normalized Burn Ratio. IEEE Geoscience and Remote Sensing Letters 3, 112-116. <a href="http://dx.doi.org/10.1109/LGRS.2005.858485">doi:10.1109/LGRS.2005.858485</a></li>
+  <li>Miller, J.D.; Thode, A.E. 2007. Quantifying burn severity in a heterogeneous landscape with a relative version of the delta Normalized Burn Ratio (dNBR). Remote Sensing of Environment 109, 66-80. <a href="https://doi.org/10.1016/j.rse.2006.12.006">doi:10.1016/j.res.2006.12.006</a></li>
+  <li>Teobaldo, D.; Baptista, G.M.M. 2016. Measurement of severity of fires and loss of carbon forest sink in the conservation units at Distrito Federal. Revista Brasileira de Geografia Física, v. 9, p. 250-264, 2016. <a href="http://doi.org/10.5935/1984-2295.20160017">doi:10.5935/1984-2295.20160017</a></li>
+</ul>
+
+<h2>SEE ALSO</h2>
+<em>
+<a href="i.vi.mpi.html">i.vi.mpi</a>,<a href="i.vi.html">i.vi</a>
+</em>
+
+<h2>AUTHORS</h2>
+<a href="http://carlosgrohmann.com/">Carlos H. Grohmann</a><br>
+Institute of Energy and Environment, University of Sao Paulo, Brazil<br>
+<a href="https://profgustavobaptista.com.br/">Gustavo M. Baptista</a><br>
+Geoscience Institute, University of Brasilia, Brazil<br>
+<a href="https://github.com/gustavoohs/">Gustavo H. Ferreira</a><br>
+Department of Geography, University of Brasilia, Brazil<br>
+
+<p>
+<i>Last changed: $Date: 2021-11-03 19:15:00 -0300 (Wed, 03 Nov 2021) $</i>
