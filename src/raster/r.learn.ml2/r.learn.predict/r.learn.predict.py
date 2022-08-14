@@ -155,11 +155,11 @@ def main():
         rules = []
 
         for val, lab in class_labels.items():
-            rules.append(",".join([str(val), str(lab)]))
+            rules.append("|".join([str(val), str(lab)]))
 
         rules = "\n".join(rules)
         rules_file = string_to_rules(rules)
-        r.category(map=output, rules=rules_file, separator="comma")
+        r.category(map=output, rules=rules_file, separator="pipe")
 
 
 if __name__ == "__main__":
