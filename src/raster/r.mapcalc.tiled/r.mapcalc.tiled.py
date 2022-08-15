@@ -161,13 +161,9 @@ def main():
         if not width:
             width = 1000
             warning = True
-        # else:
-        #     width = int(width)
         if not height:
             height = 1000
             warning = True
-        # else:
-        #     height = int(height)
         if warning:
             # square tiles tend to be slower than horizontal slices
             gscript.warning(
