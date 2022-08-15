@@ -204,7 +204,7 @@ class SentinelImporter(object):
 
     def _check_location_projection_meters(self):
         units = gs.parse_command("g.proj", flags="g")["units"]
-        if units != "meters":
+        if units != "meters" and units != "Meters":
             return False
         else:
             return True
