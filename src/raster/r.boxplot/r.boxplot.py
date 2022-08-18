@@ -843,7 +843,7 @@ def main(options, flags):
 
     if not options["raster_stat_color"]:
         raster_stat_color = "grey"
-    elif not ":" in options["raster_stat_color"]:
+    elif ":" not in options["raster_stat_color"]:
         raster_stat_color = options["raster_stat_color"]
     else:
         raster_stat_color = [
