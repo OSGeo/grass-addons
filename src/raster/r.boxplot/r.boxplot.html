@@ -1,17 +1,24 @@
+
 <h2>DESCRIPTION</h2>
 
 <p>
-<em>r.boxplot</em> draws boxplots of the raster values of a input raster
+<em>r.boxplot</em> draws boxplots of the raster values of an input raster
 layer. The user has the option to define a zonal (categorical) layer. In that
 case, a boxplot will be drawn for each zone, using the values of the input
-raster that fall within that zone.
+raster that fall within that zone. 
 
 <p>
-By default, the resulting plot is displayed on screen. 
-However, the user can also save the plot to file using the 
-<em>output</em> option. The format is determined by the extension 
-given by the user. So, if output = outputfile.png, the plot will 
-be saved as a png file.
+If there is a zonal map, the user can add a line and band to represent the
+median and interquartile range of the input layer.  Note that the
+entire input raster  is used to compute the median and IQR. If the zones of
+your zonal map do not cover the entire area, you can use <em>r.mask</em> to
+mask out the non-covered parts of the input map first. 
+
+<p>
+By default, the resulting plot is displayed on screen. However, the user can
+also save the plot to file using the <em>output</em> option. The format is
+determined by the extension given by the user. So, if output = outputfile.png,
+the plot will be saved as a png file.
 
 <p>
 The whiskers extend to the most extreme data point, which is no more than
@@ -30,7 +37,8 @@ There are a few layout options, including the option to rotate
 the plot and the x-axis labels, print the boxplot(s) with notches, sort the
 boxplot from low to high (ascending) or from high to low (descending) median,
 color the boxplots according to the corresponding categories of the zonal
-raster, and set the width of the boxplots.
+raster, set the type and color of the outliers, set the color and transparency
+of the raster's median line and IQR band, and set the width of the boxplots.
 
 
 <h2>NOTE</h2>
@@ -38,7 +46,7 @@ To include outliers, the function converts the raster cell with outlier
 values to a point vector layer. This may take some time if there are a
 lot of outliers. So, if you are working with very large raster layers,
 be cautious to not set the <i>range</i> value very low as that may result
-in a very large number of outliers. 
+in a huge number of outliers. 
 
 <p>
 The zonal map needs to be an integer map. If it is not, the function will exit
@@ -50,7 +58,12 @@ raster (-c flag) only works if the zonal map contains a color table. If it
 does not, the function exits with the error message that 'The zonal map
 does not have a color table'. If you think there is a color table, run 
 <i>r.colors.out</i> and check if the categories are integers. If not, that
-is the problem. If they are all integers, you probably have catched a bug.
+is the problem. If they are all integers, you probably have caught a bug.
+
+<p>
+If a zonal map is provided, the function will set a temporary region to match
+the extent and resolution of that layer. Setting the -g flag will let the
+function respects the current region settings instead.
 
 <h2>EXAMPLE</h2>
 
@@ -58,7 +71,7 @@ is the problem. If they are all integers, you probably have catched a bug.
 Draw a boxplot of the values of the <em>elevation</em> layer from the  
 <a href="https://grass.osgeo.org/download/data/">NC sample 
 dataset</a>. Set the -h flag to print the boxplot horizontally. Set the plot
-dimensions to 7 inch wide, 1 inch heigh.
+dimensions to 7 inch wide, 1 inch high.
 
 <div class="code"><pre>
 g.region raster=elevation
@@ -112,16 +125,31 @@ Draw boxplots of the values of the <em>elevation</em> layer per category from
 the <i>landclass96</i> layer from the same 
 <a href="https://grass.osgeo.org/download/data/">NC sample 
 dataset</a>. Set the -c flag to color the boxplots, use order=ascending 
-to order the boxplots from low to high median, and set the fontsize to 11. 
+to order the boxplots from low to high median, and set the font size to 11. 
 
 <div class="code"><pre>
 r.boxplot -c order=ascending fontsize=11 input=elevation zones=landclass96 output="r_boxplot_04.png"
 </pre>
 </div><br>
 
-<p>
-<img src="r_boxplot_04.png"><br>
+<h3>Example 5</h3>
+To make it easier to compare the elevation distribution across the different
+land use categories, you can plot a line and band representing the
+median and interquartile range (IQR) of the whole raster layer. 
 
+<div class="code"><pre>
+r.boxplot -c input=elevation zones=landclass96 raster_statistics=median,IQR
+</pre>
+</div><br>
+
+<p>
+Note, if the zones of your zonal map do not cover the entire area, you may want
+to use <em>r.mask</em> to mask out the non-covered parts of the input map, or
+alternatively, create a new input raster with only values within the zones
+of the zonal layer.
+
+<p>
+<img src="r_boxplot_05.png"><br>
 
 <h2>Acknowledgements</h2>
 This work was carried in the framework of the <a href="https://savethetiger.nl/" target="_blank">Save the tiger, save the grassland, save the water</a> 
