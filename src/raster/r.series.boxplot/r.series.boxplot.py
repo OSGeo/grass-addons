@@ -4,7 +4,7 @@
 #
 # MODULE:       r.series.boxplot
 # AUTHOR:       Paulo van Breugel
-# PURPOSE:      Draws boxplots of raster values of a series of input rasters.
+# PURPOSE:      Draws boxplots of a series of input rasters.
 #
 # COPYRIGHT:    (c) 2022 Paulo van Breugel, and the GRASS Development Team
 #               This program is free software under the GNU General Public
@@ -236,6 +236,7 @@ def main(options, flags):
     # lazy import matplotlib
     try:
         import matplotlib
+
         matplotlib.use("WXAgg")
         from matplotlib import pyplot as plt
     except ModuleNotFoundError:
