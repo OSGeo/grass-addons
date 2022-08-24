@@ -42,28 +42,28 @@
 # % label: Plot dimensions (width,height)
 # % description: Dimensions (width,height) of the figure in inches
 # % required: no
-# % guisection: Output
+# % guisection: Plot format
 # %end
 
 # %option
 # % key: dpi
 # % type: integer
 # % label: DPI
-# % description: resolution of plot
+# % description: Set the resolution of plot
 # % required: no
 # % guisection: Output
 # %end
 
 # %flag
 # % key: o
-# % label: include outliers
+# % label: Include outliers
 # % description: Draw boxplot(s) with outliers
 # % guisection: Statistics
 # %end
 
 # %flag
 # % key: n
-# % label: notch
+# % label: Draw the notch
 # % description: Draw boxplot(s) with notch
 # % guisection: Statistics
 # %end
@@ -72,7 +72,7 @@
 # % key: range
 # % type: double
 # % label: Range (value > 0)
-# % description: this determines how far the plot whiskers extend out from the box. If range is positive, the whiskers extend to the most extreme data point which is no more than range times the interquartile range from the box. A value of zero causes the whiskers to extend to the data extremes.
+# % description: This determines how far the plot whiskers extend out from the box. If range is positive, the whiskers extend to the most extreme data point which is no more than range times the interquartile range from the box. A value of zero causes the whiskers to extend to the data extremes.
 # % required: no
 # % answer: 1.5
 # % guisection: Statistics
@@ -81,42 +81,42 @@
 # %option
 # % key: text_labels
 # % type: string
-# % label: boxplot text labels
+# % label: Boxplot text labels
 # % description: Give labels of the boxplots (comma separated). If you leave this empty, the raster layer names will be used as labels.
 # % required: no
-# % guisection: Formatting
+# % guisection: Plot format
 # %end
 
 # %flag
 # % key: h
-# % label: horizontal boxplot(s)
+# % label: Horizontal boxplot(s)
 # % description: Draw the boxplot horizontal
-# % guisection: Formatting
+# % guisection: Plot format
 # %end
 
 # %option
 # % type: double
 # % options: 0-365
 # % key: rotate_labels
-# % label: rotate labels
-# % description: rotate labels (degrees)
-# % guisection: Formatting
+# % label: Rotate labels (degrees)
+# % description: Rotate labels (degrees)
+# % guisection: Plot format
 # %end
 
 # %option
 # % key: boxplot_width
 # % type: double
-# % label: boxplot width
+# % label: Set boxplot width
 # % description: The width of the boxplots (0,1])
 # % required: no
-# % guisection: Formatting
+# % guisection: Plot format
 # %end
 
 # %flag
 # % key: g
 # % label: grid lines
 # % description: add grid lines
-# % guisection: Formatting
+# % guisection: Plot format
 # %end
 
 # %options G_OPT_CN
@@ -125,7 +125,7 @@
 # % label: Boxplot color
 # % description: Color of the boxplots. See manual page for color notation options.
 # % required: no
-# % guisection: Formatting
+# % guisection: Boxplot format
 # %end
 
 # %option
@@ -133,7 +133,7 @@
 # % type: integer
 # % label: Font size
 # % description: Default font size
-# % guisection: Formatting
+# % guisection: Boxplot format
 # % required: no
 # %end
 
@@ -141,28 +141,27 @@
 # % key: flier_marker
 # % type: string
 # % label: Flier marker
-# % description: flier marker
+# % description: Set flier marker (see https://matplotlib.org/stable/api/markers_api.html for options)
 # % required: no
-# % guisection: Formatting
+# % guisection: Boxplot format
 # %end
 
 # %option
 # % key: flier_size
 # % type: string
 # % label: Flier size
-# % description: flier size
+# % description: Set flier size
 # % required: no
-# % guisection: Formatting
+# % guisection: Boxplot format
 # %end
 
 # %option G_OPT_C
 # % key: flier_color
 # % label: Flier color
-# % description: flier color
+# % description: Set flier color
 # % required: no
-# % guisection: Formatting
+# % guisection: Boxplot format
 # %end
-
 
 import sys
 import atexit
@@ -244,11 +243,37 @@ def main(options, flags):
 
     # input options
     rasters = options["map"].split(",")
-    text_labels = options["text_labels"]
     output = options["output"]
-    fontsize = options["fontsize"]
-    whisker_range = options["range"]
-    set_bxcolor = options["bxcolor"]
+    outliers = flags["o"]
+    if bool(options["rotate_labels"]):
+        rotate_label = float(options["rotate_labels"])
+    notch = flags["n"]
+    grid = flags["g"]
+    if options["fontsize"]:
+        plt.rcParams["font.size"] = int(options["fontsize"])
+    else:
+        plt.rcParams["font.size"] = 10
+    if options["range"]:
+        whisker_range = float(options["range"])
+    else:
+        whisker_range = 1.5
+    if whisker_range <= 0:
+        gs.fatal("The range value need to be larger than 0")
+    if options["dpi"]:
+        dpi = float(options["dpi"])
+    else:
+        dpi = 300
+    if flags["h"]:
+        vertical = False
+    else:
+        vertical = True
+    if options["plot_dimensions"]:
+        dimensions = [float(x) for x in options["plot_dimensions"].split(",")]
+    else:
+        if vertical:
+            dimensions = [6, 6]
+        else:
+            dimensions = [8, 4]
     bxp_width = options["boxplot_width"]
     if bool(bxp_width):
         bxp_width = float(bxp_width)
@@ -256,45 +281,7 @@ def main(options, flags):
             gs.fatal(_("The boxplot width needs to in the interval (0,1]"))
     else:
         bxp_width = 0.65
-    set_dpi = options["dpi"]
-    dimensions = options["plot_dimensions"]
-    flag_h = flags["h"]
-    outliers = flags["o"]
-    if bool(options["rotate_labels"]):
-        rotate_label = float(options["rotate_labels"])
-    notch = flags["n"]
-    grid = flags["g"]
-
-    # Check/set plot and print options
-    if whisker_range:
-        whisker_range = float(whisker_range)
-    else:
-        whisker_range = 1.5
-    if whisker_range <= 0:
-        gs.fatal("The range value need to be larger than 0")
-    if fontsize:
-        int(fontsize)
-    else:
-        fontsize = 10
-    if set_dpi:
-        dpi = float(set_dpi)
-    else:
-        dpi = 300
-    if fontsize:
-        plt.rcParams["font.size"] = fontsize
-    if flag_h:
-        vertical = False
-    else:
-        vertical = True
-    if dimensions:
-        dimensions = [float(x) for x in dimensions.split(",")]
-    else:
-        if vertical:
-            dimensions = [4, 8]
-        else:
-            dimensions = [8, 4]
-
-    # Check/set boxplot color options
+    set_bxcolor = options["bxcolor"]
     if set_bxcolor:
         if set_bxcolor[0] == "#":
             bxcolor = set_bxcolor[1:]
@@ -312,7 +299,9 @@ def main(options, flags):
             bxcolor = matplotlib.colors.to_rgba(bxcolor)
         else:
             gs.fatal(
-                "color definition cannot be interpreted as a color.  See manual page."
+                _(
+                    "color definition cannot be interpreted as a color.  See manual page."
+                )
             )
         brightness = bxcolor[0] * 0.299 + bxcolor[1] * 0.587 + bxcolor[2] * 0.114
         if bxcolor == (0.0, 0.0, 0.0, 0.0):
@@ -323,8 +312,6 @@ def main(options, flags):
             mcolor = [1, 1, 1, 0.7]
         bxcolor = [bxcolor for _i in range(len(rasters))]
         mcolor = [mcolor for _i in range(len(rasters))]
-
-    # Check/set flier format options
     if not options["flier_size"]:
         flier_size = 2
     else:
@@ -333,20 +320,21 @@ def main(options, flags):
         flier_marker = "o"
     else:
         flier_marker = options["flier_marker"]
-    flier_color = options["flier_color"]
-    if not flier_color:
+    if not options["flier_color"]:
         flier_color = "black"
-    elif ":" in flier_color:
+    elif ":" in options["flier_color"]:
         flier_color = [int(_x) / 255 for _x in options["flier_color"].split(":")]
+    else:
+        flier_color = options["flier_color"]
     if not matplotlib.colors.is_color_like(flier_color):
         gs.fatal(_("{} is not a valid color".format(options["flier_color"])))
-
-    # Get labels
-    if bool(text_labels):
-        list_text_labels = text_labels.split(",")
+    if bool(options["text_labels"]):
+        list_text_labels = options["text_labels"].split(",")
         if len(list_text_labels) != len(rasters):
             gs.fatal(
-                "The number of labels you provided is not equal to the number of input rasters"
+                _(
+                    "The number of labels you provided is not equal to the number of input rasters"
+                )
             )
         else:
             labels = list_text_labels
@@ -412,7 +400,7 @@ def main(options, flags):
             recode_rules = False
 
         # If outliers are asked for, extract their values
-        if outliers and recode_rules:
+        if outliers and bool(recode_rules):
             colname = strip_mapset(rastername)
             tmprast = create_temporary_name("tmp01")
             Module(
@@ -481,8 +469,10 @@ def main(options, flags):
             patch.set_facecolor(color)
         for median, mcolor in zip(bxplot["medians"], mcolor):
             median.set_color(mcolor)
-    if options["rotate_labels"]:
+    if options["rotate_labels"] and vertical:
         plt.xticks(rotation=rotate_label)
+    if options["rotate_labels"] and not vertical:
+        plt.yticks(rotation=rotate_label)
     if grid:
         if vertical:
             ax.yaxis.grid(True)
