@@ -165,71 +165,84 @@
 # %end
 
 
-import sys
 import atexit
+import sys
 import uuid
 from subprocess import PIPE
+
 from dateutil import parser
+
 import matplotlib.dates as mdates
+
 import grass.script as gs
 from grass.pygrass.modules import Module
 
 
-clean_layers = []
+clean_maps = []
 
 
 def create_unique_name(name):
     """Generate a temporary name which contains prefix
     Store the name in the global list.
+	
+		Parameters:
+			name (str): prefix to be used for unique string 
+	
+		Returns:
+			unique_string (str): Unique string with user defined prefix
     """
-    return name + str(uuid.uuid4().hex)
+    unique_string = f"{name}{uuid.uuid4().hex}"
+	return unique_string
 
 
 def create_temporary_name(prefix):
-    """Create temporary file name"""
+    """Create temporary file name and add this to clean_maps
+	
+		Parameters:
+			prefix (str): prefix for unique string
+			
+		Returns:
+			tmpf (str): Unique string with user defined prefix
+	"""
     tmpf = create_unique_name(prefix)
-    clean_layers.append(tmpf)
+    clean_maps.append(tmpf)
     return tmpf
 
 
 def cleanup():
     """Remove temporary maps specified in the global list"""
-    cleanrast = list(reversed(clean_layers))
-    for layername in cleanrast:
-        ffile = gs.find_file(
-            name=layername, element="cell", mapset=gs.gisenv()["MAPSET"]
-        )
-        if ffile["file"]:
-            Module(
-                "g.remove",
-                flags="f",
-                type="raster",
-                name=layername,
-                quiet=True,
+ 	maps = reversed(clean_maps)
+    mapset = gs.gisenv()["MAPSET"]
+    for map_name in maps:
+        for element in ("raster", "vector"):
+            found = gs.find_file(
+                name=map_name, element=element, mapset=mapset,
             )
-        vfile = gs.find_file(
-            element="vector", name=layername, mapset=gs.gisenv()["MAPSET"]
-        )
-        if vfile["file"]:
-            Module(
-                "g.remove",
-                flags="f",
-                type="vector",
-                name=layername,
-                quiet=True,
-            )
+            if found["file"]:
+                Module(
+                    "g.remove",
+                    flags="f",
+                    type=element,
+                    name=map_name,
+                    quiet=True,
+                )
 
 
-def strip_mapset(name):
+def strip_mapset(name, join_char="@"):
     """Strip Mapset name and '@' from map name
     >>> strip_mapset('elevation@PERMANENT')
     elevation
-    """
-    if "@" in name:
-        return name.split("@")[0]
-    return name
+	
+		Parameters:
+			name (str): map name
+			join_char (str): Character separating map and mapset name
+			
+		Returns
+			mapname without the mapset name
+	"""
+    return name.split(join_char)[0] if join_char in name else name
 
-
+	
 def main(options, flags):
     """
     Draws the boxplot of raster values. Optionally, this is done per category
@@ -364,8 +377,6 @@ def main(options, flags):
             "second": 1 / 86400 * bxp_width,
         }
         bxp_width = temp_options[temp_unit]
-    print(temp_lngt)
-    print(temp_unit)
 
     # Set boxplot colors
     set_bxcolor = options["bxcolor"]
