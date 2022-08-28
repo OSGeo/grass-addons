@@ -363,7 +363,7 @@ def out_of_bounds(position, region):
         return False
 
 
-def run_paralle(
+def run_parallel(
     tmp_rasters,
     processes,
     directions,
@@ -460,7 +460,7 @@ def main():
         gs.message(_("Memory Per Process: {0}".format(mem_for_process)))
         chunks_lst = list(get_chunks(_tmp_rasters, math.ceil(smooth / chunks_n)))
         chunks = len(chunks_lst)
-        futures = run_paralle(
+        futures = run_parallel(
             _tmp_rasters,
             processes,
             directions,
