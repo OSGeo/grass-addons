@@ -106,8 +106,9 @@
 # % key: fontsize
 # % type: integer
 # % label: Font size
-# % description: Default font size
+# % description: Font size labe
 # % guisection: Plot format
+# % answer: 10
 # % required: no
 # %end
 
@@ -181,6 +182,21 @@ from grass.pygrass.modules import Module
 clean_maps = []
 
 
+def lazy_import_py_modules():
+    """Lazy import Py modules"""
+    global matplotlib
+    global plt
+
+    # lazy import matplotlib
+    try:
+        import matplotlib
+
+        matplotlib.use("WXAgg")
+        from matplotlib import pyplot as plt
+    except ModuleNotFoundError:
+        gs.fatal(_("Matplotlib is not installed. Please, install it."))
+
+
 def create_unique_name(name):
     """Generate a temporary name which contains prefix
     Store the name in the global list.
@@ -237,22 +253,6 @@ def strip_mapset(name, join_char="@"):
     :return str: mapname without the mapset name
     """
     return name.split(join_char)[0] if join_char in name else name
-
-
-def get_range(option_whisker_range):
-    """Get and apply range for whisker (multiplication factor)
-
-    :param str option_whisker_range: the addon parameter 'range'
-
-    :return float: number representing the whisker range
-    """
-    if option_whisker_range:
-        whisker_range = float(option_whisker_range)
-    else:
-        whisker_range = 1.5
-    if whisker_range <= 0:
-        gs.fatal("The range value need to be larger than 0")
-    return whisker_range
 
 
 def get_rast_name_dates(option_input):
@@ -336,7 +336,7 @@ def get_output_options(option_dpi, option_dimensions, flag_h):
     else:
         vertical = True
     if option_dpi:
-        dpi = float(set_dpi)
+        dpi = float(option_dpi)
     else:
         dpi = 300
     if option_dimensions:
@@ -660,27 +660,25 @@ def main(options, flags):
     global plt
 
     # lazy import matplotlib
-    try:
-        import matplotlib
-
-        matplotlib.use("WXAgg")
-        from matplotlib import pyplot as plt
-    except ModuleNotFoundError:
-        gs.fatal(_("matplotlib is not installed"))
+    lazy_import_py_modules()
 
     # Plot format options
-    fontsize = options["fontsize"]
-    if fontsize:
-        int(fontsize)
-        plt.rcParams["font.size"] = fontsize
-    else:
-        fontsize = 10
+    plt.rcParams["font.size"] = int(options["fontsize"])
     if options["rotate_labels"]:
         rotate_label = float(options["rotate_labels"])
     grid = flags["g"]
 
     # Get range (if defined)
-    whisker_range = get_range(options["range"])
+    whisker_range = float(options["range"])
+    range_min_val = 0
+    if whisker_range <= range_min_val:
+        gs.fatal(
+            _(
+                "The range value need to be larger than {min_val}".format(
+                    min_val=range_min_val,
+                )
+            )
+        )
 
     # Get flier size, marker and color
     flier_size, flier_marker, flier_color = get_flier_options(
