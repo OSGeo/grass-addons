@@ -18,6 +18,7 @@
 #% keyword: random
 #% keyword: walk
 #% keyword: surface
+#% keyword: parallel
 #%end
 
 #%flag
@@ -27,20 +28,13 @@
 #%end
 
 #%flag
-#% key: parallel
-#% description: Run parallel processes.
-#% guisection: Parallel
-#%end
-
-#%flag
 #% key: seed
-#% description: Generate random seed.
+#% description: Generate random seed (result is non-deterministic).
 #%end
 
 #%flag
 #% key: tpath
 #% description: Each walker starts from the same point.
-#% guisection: Parallel
 #%end
 
 #%option G_OPT_R_OUTPUT
@@ -67,14 +61,7 @@
 #% guisection: Parameters
 #%end
 
-#%option
-#% key: memory
-#% type: integer
-#% required: no
-#% multiple: no
-#% description: How much memory to use.
-#% answer: 300
-#% guisection: Parallel
+#%option G_OPT_MEMORYMB
 #%end
 
 #%option
@@ -85,13 +72,7 @@
 #% description: Seed for random number generator
 #%end
 
-#%option
-#% key: nprocs
-#% type: integer
-#% multiple: no
-#% answer: 1
-#% description: Number of processes to run in parallel
-#% guisection: Parallel
+#%option G_OPT_M_NPROCS
 #%end
 
 #%option
@@ -101,22 +82,21 @@
 #% multiple: no
 #% answer: 10
 #% description: Number of walkers, only used when parallel is enabled
-#% guisection: Parallel
 #%end
 
-import os
-import sys
-import random
-import concurrent.futures
 import atexit
+import concurrent.futures
 import math
-import grass.script as gs
-from grass.pygrass import raster
-from grass.pygrass.gis.region import Region
-from grass.exceptions import CalledModuleError
-from grass.script.core import gisenv
+import os
+import random
+import sys
 import time
 
+import grass.script as gs
+from grass.exceptions import CalledModuleError
+from grass.pygrass import raster
+from grass.pygrass.gis.region import Region
+from grass.script.core import gisenv
 
 # import numpy as np
 TMP_SMOOTH_RASTERS = []
@@ -143,6 +123,7 @@ class GetOutOfLoop(Exception):
     pass
 
 
+## TODO: Rewrite this section to use differnt random distributions using values [0,1]
 def take_step(current_position, num_dir, black_list=None):
     """
     Calculates the next position of walker using either 4 or 8 possible directions.
@@ -242,7 +223,7 @@ def find_new_path(walk_output, current_pos, new_position, num_directions, step):
 
     while visited:
         if walker_is_stuck(tested_directions, num_directions):
-            print(f"Walker stuck on step {step}")
+            gs.message(_("Walker stuck on step {0}".format(step)))
             raise GetOutOfLoop
         else:
             # continue to check cells for an unvisited cell until one is found or walker is stuck
@@ -308,7 +289,7 @@ def random_walk(
         try:
             walk_output.put(start_pos[0], start_pos[1], 1)
         except (AttributeError, ValueError) as err:
-            print(err)
+            gs.message(_(err))
 
         current_pos = start_pos
         try:
@@ -369,7 +350,6 @@ def starting_position(surface_rows, surface_columns):
     """
     start_row = random.randint(0, surface_rows)
     start_column = random.randint(0, surface_columns)
-    # print(f'Start row {start_row}, start column {start_column}')
     return [start_row, start_column]
 
 
@@ -394,8 +374,9 @@ def run_paralle(
     memory,
     chunks,
 ):
-    print("Smoothed Walk")
-    print(f"Max CPUs: {os.cpu_count()}, Used CPUs: {processes}")
+    gs.message(_("Smoothed Walk"))
+    max_cpus = os.cpu_count() - 1
+    gs.message(_("Max CPUs: {0}, Used CPUs: {1}".format(max_cpus, processes)))
     start_pos = False
     if path_sampling:
         start_pos = starting_position(boundary[0], boundary[1])
@@ -424,6 +405,15 @@ def get_chunks(lst, n):
         yield lst[i : i + n]
 
 
+def is_parallel(processes):
+    """
+    Checks if the module should be ran in parallel based on users nproc setting.
+    param: int processes: The number of processes defined by the nproc option
+    return: bool
+    """
+    return True if processes > 1 else False
+
+
 def main():
     start = time.time()
     output_raster = options["output"]
@@ -437,7 +427,8 @@ def main():
 
     memory = options["memory"]
 
-    if flags["s"]:
+    # Only set the random seed if s flag is set to false
+    if flags["s"] != True:
         seed = options["seed"]
         random.seed(seed)
 
@@ -449,17 +440,16 @@ def main():
     # surface.open()
     # surface_rows = surface._rows
     # surface_columns = surface._cols
-    # print(f'Creating Performing Walk on Surface with {surface_rows} rows and {surface_columns} columns')
 
     reg = Region()
     cols = reg.cols
     rows = reg.rows
-    print(f"Region with {rows} rows and {cols} columns")
+    gs.message(_("Region with {0} rows and {1} columns".format(rows, cols)))
     boundary = [rows, cols]
     path_sampling = flags["t"]
-    # walk_output = random_walk(directions,[surface_rows, surface_columns],walk_output, steps, revisit)
-    parallel = flags["p"]
     processes = int(options["nprocs"])
+    # Run as parallel if user choses to use multiple processes
+    parallel = is_parallel(processes)
     if parallel:
         smooth = int(options["nwalkers"])
         _tmp_rasters = [f"{PREFIX}{i}" for i in range(0, smooth)]
@@ -467,11 +457,9 @@ def main():
         chunks_n = math.ceil(smooth / processes)
         # Divide memory into equal chunks for each of the processes
         mem_for_process = math.floor(int(memory) / processes)
-        print(f"Memory Per Process: {mem_for_process}")
+        gs.message(_("Memory Per Process: {0}".format(mem_for_process)))
         chunks_lst = list(get_chunks(_tmp_rasters, math.ceil(smooth / chunks_n)))
-        # print(list(map(lambda x: len(x), chunks_lst)))
         chunks = len(chunks_lst)
-        # print(f"Chunks: {chunks}")
         futures = run_paralle(
             _tmp_rasters,
             processes,
@@ -483,18 +471,17 @@ def main():
             mem_for_process,
             chunks,
         )
-        print("Getting Future Results")
+
         for future in concurrent.futures.as_completed(futures):
             try:
                 data = future.result()
-                # print(f"Data: {data}")
                 TMP_SMOOTH_RASTERS.append(data)
             except Exception as exc:
-                print(f"generated an exception: {exc}")
+                gs.message(_("generated an exception: {0}".format(exc)))
             else:
                 continue
 
-        gs.message((f"Averaging: {len(TMP_SMOOTH_RASTERS)} Rasters"))
+        gs.message(_("Averaging: {0} Rasters".format(len(TMP_SMOOTH_RASTERS))))
         if len(TMP_SMOOTH_RASTERS) > 0:
             # 1024 is the soft limit for most computures for number of allowed open files
             if len(TMP_SMOOTH_RASTERS) >= 1024:
@@ -503,7 +490,6 @@ def main():
                     input=TMP_SMOOTH_RASTERS,
                     output=output_raster,
                     method="average",
-                    overwrite=True,
                     flags="z",
                 )
             else:
@@ -512,16 +498,15 @@ def main():
                     input=TMP_SMOOTH_RASTERS,
                     output=output_raster,
                     method="average",
-                    overwrite=True,
                 )
 
     else:
-        print("Single Walk")
+        gs.message(_("Single Walk"))
         random_walk(directions, boundary, steps, revisit, False, memory, output_raster)
 
     # cleanup()
     end = time.time()
-    print(f"Runtime of the program is {end - start}")
+    gs.message(_("Runtime of the program is {0}".format(end - start)))
 
 
 if __name__ == "__main__":

@@ -18,6 +18,7 @@
 
 # Dependencies
 import importlib
+
 from grass.gunittest.case import TestCase
 from grass.gunittest.main import test
 
@@ -60,12 +61,7 @@ class TestRandomWalk(TestCase):
         # assertModule is used to call module which we test
         # we expect module to finish successfully
         self.assertModule(
-            "r.random.walk",
-            output=self.random_walk,
-            steps=1000,
-            overwrite=True,
-            seed=0,
-            flags="s",
+            "r.random.walk", output=self.random_walk, steps=1000, seed=0, flags="s"
         )
 
     def test_random_walk_with_overlap_4_dir_output(self):
@@ -73,12 +69,7 @@ class TestRandomWalk(TestCase):
         # assertModule is used to call module which we test
         # we expect module to finish successfully
         self.assertModule(
-            "r.random.walk",
-            output=self.random_walk,
-            steps=1000,
-            overwrite=True,
-            seed=0,
-            flags="sr",
+            "r.random.walk", output=self.random_walk, steps=1000, seed=0, flags="sr"
         )
 
     def test_random_walk_with_overlap_8_dir_output(self):
@@ -92,7 +83,6 @@ class TestRandomWalk(TestCase):
             directions="8",
             seed=0,
             flags="sr",
-            overwrite=True,
         )
 
     def test_random_walk_with_overlap_8_dir_parallel_output(self):
@@ -124,7 +114,6 @@ class TestRandomWalk(TestCase):
             nprocs=2,
             nwalkers=4,
             flags="srpt",
-            overwrite=True,
         )
 
     def test_take_step_dir_4(self):
