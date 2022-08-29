@@ -22,8 +22,8 @@
 #%end
 
 #%flag
-#% key: revisit
-#% description: Allow walker to revisit a cell.
+#% key: avoid
+#% description: Preform a self-avoiding random walk.
 #% guisection: Parameters
 #%end
 
@@ -80,8 +80,8 @@
 #% type: integer
 #% required: no
 #% multiple: no
-#% answer: 10
-#% description: Number of walkers, only used when parallel is enabled
+#% answer: 1
+#% description: Number of walkers.
 #%end
 
 import atexit
@@ -177,12 +177,6 @@ def take_step(current_position, num_dir, black_list=None):
     else:
         raise ValueError(f"Unsupported Direction Recieved: {direction}")
 
-    # stepx = random.randint(0, 2) -1
-    # stepy = random.randint(0, 2) -1
-    # current_row += stepy
-    # current_column += stepx
-    # new_position = [current_row, current_column]
-
     return {"position": new_position, "direction": direction}
 
 
@@ -263,7 +257,7 @@ def avoid_boundary(position, boundary):
 
 
 def random_walk(
-    num_directions, boundary, steps, revisit, start_position, memory, walk_output_name
+    num_directions, boundary, steps, avoid, start_position, memory, walk_output_name
 ):
     """
     Calulates a random walk on a raster surface.
@@ -273,7 +267,7 @@ def random_walk(
     :param list[row, column] boundary:
     :param RasterSegment walk_output:
     :param int steps:
-    :param bool revisit: Determines if the walker can revisit a cell it has
+    :param bool avoid: Determines if the walker can revisit a cell it has
         already visited.
     :param bool:list[row, column] start_position: A start position for the
         walk to be used for all concurrent walks or False to generate a new start posisition for each walker.
@@ -305,7 +299,7 @@ def random_walk(
                         current_pos, num_directions, black_list=out_of_bounds_directions
                     )
 
-                if not revisit:
+                if avoid:
                     # Don't allow walker to revisit same cell.
                     new_position = find_new_path(
                         walk_output, current_pos, new_position, num_directions, step
@@ -364,15 +358,7 @@ def out_of_bounds(position, region):
 
 
 def run_parallel(
-    tmp_rasters,
-    processes,
-    directions,
-    boundary,
-    steps,
-    revisit,
-    path_sampling,
-    memory,
-    chunks,
+    tmp_rasters, processes, directions, boundary, steps, avoid, path_sampling, memory
 ):
     gs.message(_("Smoothed Walk"))
     max_cpus = os.cpu_count() - 1
@@ -388,7 +374,7 @@ def run_parallel(
                 directions,
                 boundary,
                 steps,
-                revisit,
+                avoid,
                 start_pos,
                 memory,
                 tmpfile,
@@ -403,15 +389,6 @@ def get_chunks(lst, n):
     """Yield successive n-sized chunks from lst."""
     for i in range(0, len(lst), n):
         yield lst[i : i + n]
-
-
-def is_parallel(processes):
-    """
-    Checks if the module should be ran in parallel based on users nproc setting.
-    param: int processes: The number of processes defined by the nproc option
-    return: bool
-    """
-    return True if processes > 1 else False
 
 
 def main():
@@ -432,14 +409,8 @@ def main():
         seed = options["seed"]
         random.seed(seed)
 
-    # check for revisit flag
-    revisit = flags["r"]
-
-    ## Same as the comment above, I'm not sure if using an existing raster or computational region is prefered yet.
-    # surface = raster.RasterRow(input_raster)
-    # surface.open()
-    # surface_rows = surface._rows
-    # surface_columns = surface._cols
+    # check for avoid flag
+    avoid = flags["a"]
 
     reg = Region()
     cols = reg.cols
@@ -448,61 +419,49 @@ def main():
     boundary = [rows, cols]
     path_sampling = flags["t"]
     processes = int(options["nprocs"])
-    # Run as parallel if user choses to use multiple processes
-    parallel = is_parallel(processes)
-    if parallel:
-        smooth = int(options["nwalkers"])
-        _tmp_rasters = [f"{PREFIX}{i}" for i in range(0, smooth)]
-        TMP_RASTERS.append(_tmp_rasters)
-        chunks_n = math.ceil(smooth / processes)
-        # Divide memory into equal chunks for each of the processes
-        mem_for_process = math.floor(int(memory) / processes)
-        gs.message(_("Memory Per Process: {0}".format(mem_for_process)))
-        chunks_lst = list(get_chunks(_tmp_rasters, math.ceil(smooth / chunks_n)))
-        chunks = len(chunks_lst)
-        futures = run_parallel(
-            _tmp_rasters,
-            processes,
-            directions,
-            boundary,
-            steps,
-            revisit,
-            path_sampling,
-            mem_for_process,
-            chunks,
-        )
+    smooth = int(options["nwalkers"])
+    _tmp_rasters = [f"{PREFIX}{i}" for i in range(0, smooth)]
+    TMP_RASTERS.append(_tmp_rasters)
+    mem_for_process = math.floor(int(memory) / processes)
+    gs.message(_("Memory Per Process: {0}".format(mem_for_process)))
+    futures = run_parallel(
+        _tmp_rasters,
+        processes,
+        directions,
+        boundary,
+        steps,
+        avoid,
+        path_sampling,
+        mem_for_process,
+    )
 
-        for future in concurrent.futures.as_completed(futures):
-            try:
-                data = future.result()
-                TMP_SMOOTH_RASTERS.append(data)
-            except Exception as exc:
-                gs.message(_("generated an exception: {0}".format(exc)))
-            else:
-                continue
+    for future in concurrent.futures.as_completed(futures):
+        try:
+            data = future.result()
+            TMP_SMOOTH_RASTERS.append(data)
+        except Exception as exc:
+            gs.message(_("generated an exception: {0}".format(exc)))
+        else:
+            continue
 
-        gs.message(_("Averaging: {0} Rasters".format(len(TMP_SMOOTH_RASTERS))))
-        if len(TMP_SMOOTH_RASTERS) > 0:
-            # 1024 is the soft limit for most computures for number of allowed open files
-            if len(TMP_SMOOTH_RASTERS) >= 1024:
-                gs.run_command(
-                    "r.series",
-                    input=TMP_SMOOTH_RASTERS,
-                    output=output_raster,
-                    method="average",
-                    flags="z",
-                )
-            else:
-                gs.run_command(
-                    "r.series",
-                    input=TMP_SMOOTH_RASTERS,
-                    output=output_raster,
-                    method="average",
-                )
-
-    else:
-        gs.message(_("Single Walk"))
-        random_walk(directions, boundary, steps, revisit, False, memory, output_raster)
+    gs.message(_("Averaging: {0} Rasters".format(len(TMP_SMOOTH_RASTERS))))
+    if len(TMP_SMOOTH_RASTERS) > 0:
+        # 1024 is the soft limit for most computures for number of allowed open files
+        if len(TMP_SMOOTH_RASTERS) >= 1024:
+            gs.run_command(
+                "r.series",
+                input=TMP_SMOOTH_RASTERS,
+                output=output_raster,
+                method="average",
+                flags="z",
+            )
+        else:
+            gs.run_command(
+                "r.series",
+                input=TMP_SMOOTH_RASTERS,
+                output=output_raster,
+                method="average",
+            )
 
     # cleanup()
     end = time.time()

@@ -11,7 +11,7 @@ Using the North Carolina full sample dataset:
 g.region raster=elevation -p
 
 # calculate smoothed random walk from a single starting locations.
-r.random.walk -r -p -s -t output=random_walk_smooth_paths directions=8 steps=100000 memory=1800 seed=1 nprocs=6 nwalkers=100
+r.random.walk -at output=random_walk_smooth_paths directions=8 steps=100000 memory=1800 seed=1 nprocs=6 nwalkers=100
 </pre></div>
 <center>
     <img src="r_random_walk_example.png" width=600 border=0><br>
@@ -20,7 +20,7 @@ r.random.walk -r -p -s -t output=random_walk_smooth_paths directions=8 steps=100
 
 <div class="code"><pre>
 # calculate smoothed random walk from a multiple starting locations.
-r.random.walk -r -p -s output=random_walk_smooth directions=8 steps=100000 memory=1800 seed=1 nprocs=6 nwalkers=100
+r.random.walk -as output=random_walk_smooth directions=8 steps=100000 memory=1800 nprocs=6 nwalkers=100
 </pre></div>
 
 <center>
