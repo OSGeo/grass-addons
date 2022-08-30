@@ -25,6 +25,7 @@
 
 # %option G_OPT_F_INPUT
 # % key: settings
+# % required: no
 # % label: Full path to settings file (user, password)
 # %end
 
@@ -164,10 +165,13 @@ def scenename_split(scenename, datasource, esa_name_for_usgs=False):
         end_day_dt = dt_obj + timedelta(days=1)
         start_day = start_day_dt.strftime("%Y-%m-%d")
         end_day = end_day_dt.strftime("%Y-%m-%d")
-        # get query string
-        if not scenename.endswith(".SAFE"):
-            scenename = scenename + ".SAFE"
-        query_string = "filename={}".format(scenename)
+        if datasource == "GCS":
+            query_string = f"identifier={scenename}"
+        else:
+            # get query string
+            if not scenename.endswith(".SAFE"):
+                scenename = scenename + ".SAFE"
+            query_string = "filename={}".format(scenename)
     else:
         # when usgs downloads via identifier, start/end are ignored
         producttype = "S2MSI1C"
@@ -190,6 +194,10 @@ def main():
     datasource = options["datasource"]
     use_scenenames = flags["s"]
     ind_folder = flags["f"]
+    if use_scenenames and datasource == "GCS":
+        settings_required = False
+    else:
+        settings_required = True
 
     if datasource == "USGS_EE" and producttype != "S2MSI1C":
         grass.fatal(
@@ -216,8 +224,9 @@ def main():
         )
 
     # Test if all required data are there
-    if not os.path.isfile(settings):
-        grass.fatal(_("Settings file <{}> not found").format(settings))
+    if settings_required is True:
+        if not os.path.isfile(settings):
+            grass.fatal(_("Settings file <{}> not found").format(settings))
 
     # set some common environmental variables, like:
     os.environ.update(
@@ -305,16 +314,20 @@ def main():
             outpath = os.path.join(output, "dl_s2_%s" % str(idx + 1))
         else:
             outpath = output
+        download_kwargs = {
+            "start": start_date,
+            "end": end_date,
+            "producttype": producttype,
+            "query": query_string,
+            "output": outpath,
+            "datasource": datasource,
+        }
+        if settings_required is True:
+            download_kwargs["settings"] = settings
         i_sentinel_download = Module(
             "i.sentinel.download",
-            settings=settings,
-            start=start_date,
-            end=end_date,
-            producttype=producttype,
-            query=query_string,
-            output=outpath,
-            datasource=datasource,
             run_=False,
+            **download_kwargs,
         )
         queue_download.put(i_sentinel_download)
     queue_download.wait()
