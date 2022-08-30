@@ -28,27 +28,31 @@ module:
 
 ## How to compile AddOn code
 
-### C code/Scripts, with GRASS source code on your computer
+### C code/Scripts, with GRASS GIS core source code on your computer
 
-Preparations (assuming the source code in $HOME/grass/):
-(if you have already built GRASS from source you don't need to do this
-again. If adding to a binary install, the versions must match exactly.
-You need to git checkout the exact tag or commit used for the binary.)
+Preparations (assuming the [GRASS GIS core source code](https://github.com/OSGeo/grass)
+being stored in `$HOME/grass/` - if you have already built GRASS GIS core from
+source code you don't need to do this again. If adding to a binary install,
+the versions must match exactly. You need to `git checkout` the exact tag
+or commit used for the binary.)
 
 ```
+# GRASS GIS core source code
 ./configure # [optionally flags]
 make libs
 ```
 
+### Compilation of GRASS GIS AddOns
+
 The easiest way to compile GRASS AddOns modules into your GRASS code
-is by setting MODULE_TOPDIR on the fly to tell 'make' where to
+is by setting `MODULE_TOPDIR` on the fly to tell `make` where to
 find the prepared GRASS source code:
 
 ```
 make MODULE_TOPDIR=$HOME/grass/
 ```
 
-(adapt to your /path/to/grass/). Each module/script in the GRASS
+(adapt as needed to your `/path/to/grass/`). Each module/script in the GRASS
 AddOns git repository should have a Makefile to support easy
 installation.
 
@@ -59,12 +63,12 @@ make MODULE_TOPDIR=$HOME/grass/ install
 ```
 
 For system-wide installation this usually requires "root" privileges
-(so, also 'sudo' may help).
+(so, also `sudo` may help).
 
-### C code/Scripts, with GRASS binaries on your computer
+### C code/Scripts, with GRASS GIS binaries on your computer
 
-compile GRASS AddOns modules into your GRASS code by setting
-MODULE_TOPDIR to where to the GRASS binaries are located:
+In this case, compile GRASS AddOns modules into your installed GRASS code
+by setting `MODULE_TOPDIR` to where to the GRASS binaries are located:
 
 ```
 make MODULE_TOPDIR=/usr/lib/grass/
