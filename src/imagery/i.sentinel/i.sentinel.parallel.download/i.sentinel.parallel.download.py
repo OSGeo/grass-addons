@@ -166,7 +166,7 @@ def scenename_split(scenename, datasource, esa_name_for_usgs=False):
         start_day = start_day_dt.strftime("%Y-%m-%d")
         end_day = end_day_dt.strftime("%Y-%m-%d")
         if datasource == "GCS":
-            query_string = f"identifier={scenename}"
+            query_string = f"identifier={scenename.replace('.SAFE', '')}"
         else:
             # get query string
             if not scenename.endswith(".SAFE"):
