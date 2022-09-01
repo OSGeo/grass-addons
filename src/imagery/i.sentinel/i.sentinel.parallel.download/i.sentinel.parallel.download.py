@@ -149,7 +149,7 @@ def scenename_split(scenename, datasource, esa_name_for_usgs=False):
                            date -1 day
         end_day(string): Date in the format YYYY-MM-DD, it is the acquisition
                            date +1 day
-        query_string(string): string in the format "filename=..."
+        query_string(string): string in the format "identifier=..."
 
     """
     if datasource == "ESA_COAH" or datasource == "GCS" or esa_name_for_usgs is True:
@@ -165,13 +165,14 @@ def scenename_split(scenename, datasource, esa_name_for_usgs=False):
         end_day_dt = dt_obj + timedelta(days=1)
         start_day = start_day_dt.strftime("%Y-%m-%d")
         end_day = end_day_dt.strftime("%Y-%m-%d")
-        if datasource == "GCS":
-            query_string = f"identifier={scenename.replace('.SAFE', '')}"
-        else:
-            # get query string
-            if not scenename.endswith(".SAFE"):
-                scenename = scenename + ".SAFE"
-            query_string = "filename={}".format(scenename)
+        query_string = f"identifier={scenename.replace('.SAFE', '')}"
+        # if datasource == "GCS":
+        #     query_string = f"identifier={scenename.replace('.SAFE', '')}"
+        # else:
+        #     # get query string
+        #     if not scenename.endswith(".SAFE"):
+        #         scenename = scenename + ".SAFE"
+        #     query_string = "filename={}".format(scenename)
     else:
         # when usgs downloads via identifier, start/end are ignored
         producttype = "S2MSI1C"
