@@ -115,9 +115,6 @@ class MyGridModule(GridModule):
     def patch(self):
         """Patch the final results."""
         bboxes = split_region_tiles(width=self.width, height=self.height)
-        loc = Location()
-        mset = loc[self.mset.name]
-        mset.visible.extend(loc.mapsets())
         output_map = self.out_prefix[:]
         self.out_prefix = ""
         if self.patch_backend == "RasterRow":
