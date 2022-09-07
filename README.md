@@ -1,6 +1,30 @@
-# GRASS Addons git repository
+# GRASS GIS Addons
 
-## How to get write access here
+This is the official GRASS GIS Addons git repository.
+Head over to [GRASS GIS 7 Addons Manual
+pages](https://grass.osgeo.org/grass78/manuals/addons/)
+for an overview.
+
+## Install AddOns
+
+The simplest way to install GRASS GIS Addons is to use the `g.extension`
+module which is part of any GRASS GIS installation:
+
+<https://grass.osgeo.org/grass-stable/manuals/g.extension.html>
+
+The same module can also remove installed addons.
+
+## This repository
+
+### Clone locally
+
+Clone of the entire addons git repository:
+
+```
+git clone https://github.com/OSGeo/grass-addons.git grass_addons
+```
+
+### Write access
 
 Read access is granted to the public, write access
 must be requested, see here for details:
@@ -12,23 +36,9 @@ a [pull request](https://help.github.com/en/articles/about-pull-requests).
 
 In either case, please read the submitting rules at the bottom of this page.
 
-## How to get the AddOn code
+### Compile AddOns
 
-Clone of the entire AddOns git repository:
-
-```
-git clone https://github.com/OSGeo/grass-addons.git grass_addons
-```
-
-## How to install or remove AddOns in your GRASS installation
-
-The simplest way to install GRASS GIS AddOns is to use the `g.extension`
-module:
-<https://grass.osgeo.org/grass-stable/manuals/g.extension.html>
-
-## How to compile AddOn code
-
-### C code/Scripts, with GRASS source code on your computer
+#### With GRASS source code on your computer
 
 Preparations (assuming the source code in $HOME/grass/):
 (if you have already built GRASS from source you don't need to do this
@@ -61,7 +71,7 @@ make MODULE_TOPDIR=$HOME/grass/ install
 For system-wide installation this usually requires "root" privileges
 (so, also 'sudo' may help).
 
-### C code/Scripts, with GRASS binaries on your computer
+#### With GRASS binaries on your computer
 
 compile GRASS AddOns modules into your GRASS code by setting
 MODULE_TOPDIR to where to the GRASS binaries are located:
@@ -70,7 +80,7 @@ MODULE_TOPDIR to where to the GRASS binaries are located:
 make MODULE_TOPDIR=/usr/lib/grass/
 ```
 
-## How to submit contributions
+### Contribute
 
 To submit your GRASS GIS module here, please check
 
