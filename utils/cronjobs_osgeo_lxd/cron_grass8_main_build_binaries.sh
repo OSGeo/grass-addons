@@ -311,6 +311,14 @@ cp -p ~/.grass$GMAJOR/addons/logs/* $TARGETMAIN/addons/grass$GMAJOR/logs/
 ~/src/$BRANCH/bin.$ARCH/grass --tmp-location EPSG:4326 --exec ~/cronjobs/build-xml.py --build ~/.grass$GMAJOR/addons
 cp ~/.grass$GMAJOR/addons/modules.xml $TARGETMAIN/addons/grass$GMAJOR/modules.xml
 
+# regenerate keywords.html file with addons modules keywords
+export ARCH
+export ARCH_DISTDIR=$GRASSBUILDDIR/dist.$ARCH
+export GISBASE=$ARCH_DISTDIR
+export VERSION_NUMBER=$DOTVERSION
+python3 $GRASSBUILDDIR/man/build_keywords.py $TARGETMAIN/grass$GMAJOR$GMINOR/manuals/ $TARGETMAIN/grass$GMAJOR$GMINOR/manuals/addons/
+unset ARCH ARCH_DISTDIR GISBASE VERSION_NUMBER
+
 ############################################
 # create sitemaps to expand the hugo sitemap
 
