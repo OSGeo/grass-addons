@@ -30,5 +30,4 @@ cd /home/neteler/grass-website/ && \
    \mv /var/www/html_new/* /var/www/html/ && \
    ln -s /var/www/code_and_data/* /var/www/html/ && \
    rmdir /var/www/html_new && \
-   ln -s /var/www/html/files/sitemap.xml /var/www/html/ && \
    (cd /var/www/html/ ; /home/neteler/bin/fix_link_timestamp.sh .)
