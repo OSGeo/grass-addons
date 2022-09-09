@@ -88,7 +88,7 @@
 
 # %option
 # % type: double
-# % options: 0-365
+# % options: -90-90
 # % key: rotate_labels
 # % label: Rotate labels
 # % description: Rotate labels (degrees)
@@ -106,7 +106,7 @@
 # % key: fontsize
 # % type: integer
 # % label: Font size
-# % description: Font size labe
+# % description: Font size of labels
 # % guisection: Plot format
 # % answer: 10
 # % required: no
@@ -140,11 +140,32 @@
 # %end
 
 # %option
+# % key: bx_linewidth
+# % type: double
+# % label: boxplot linewidth
+# % description: The linewidth of the boxplots
+# % required: no
+# % guisection: Boxplot format
+# % answer: 1
+# %end
+
+# %option
+# % key: whisker_linewidth
+# % type: double
+# % label: Whisker and cap linewidth
+# % description: The linewidth of the whiskers and caps
+# % required: no
+# % guisection: Boxplot format
+# % answer: 1
+# %end
+
+# %option
 # % key: flier_marker
 # % type: string
 # % label: Flier marker
 # % description: Set flier marker (see https://matplotlib.org/stable/api/markers_api.html for options)
 # % required: no
+# % answer: o
 # % guisection: Boxplot format
 # %end
 
@@ -154,6 +175,7 @@
 # % label: Flier size
 # % description: Set the flier size
 # % required: no
+# % answer: 2
 # % guisection: Boxplot format
 # %end
 
@@ -162,6 +184,7 @@
 # % label: Flier color
 # % description: Set the flier color
 # % required: no
+# % answer: black
 # % guisection: Boxplot format
 # %end
 
@@ -255,68 +278,50 @@ def strip_mapset(name, join_char="@"):
     return name.split(join_char)[0] if join_char in name else name
 
 
-def get_rast_name_dates(option_input):
+def get_rast_name_dates(rasters, col_sep):
     """Create list of names, tic positions, dates and temporal type
-       of raster layers in input strds
+    of raster layers in input strds
 
-    :param str option_input: Name of the input strds
+    :param str rasters: rasters (output of the t.rast.list module)
+    :param str col_sep: column separator e.g. "2000_01_tempmean|
+                                               2000-01-01 00:00:00|absolute"
 
-    :return list: list with list of dates, list of raster names,
-                  list of tic positions and temporal type of
-                  raster layers
+    :return tuple: tuple with list of dates, list of raster names,
+                         list of tic positions and temporal type of
+                         raster layers
     """
-    # Get names, dates and types of raster layers
-    strds = option_input
-    strds_rasters = Module(
-        "t.rast.list",
-        flags="u",
-        input=strds,
-        columns=["name", "start_time", "temporal_type"],
-        stdout_=PIPE,
-    ).outputs.stdout
-    strds_rasters = strds_rasters.split("\n")
-    strds_rasters = [_f for _f in strds_rasters if _f]
-    rast_names = [z.split("|")[0] for z in strds_rasters]
-    rast_dates = [z.split("|")[1] for z in strds_rasters]
-
-    temp_type = [z.split("|")[2] for z in strds_rasters]
-    if not temp_type.count(temp_type[0]) == len(temp_type):
-        gs.fatal(
-            _("All raster layers in the strd need to be of the same temporal type")
-        )
-    else:
-        temp_type = temp_type[0]
-    if temp_type == "relative":
-        tic_positions = [int(z) for z in rast_dates]
-    else:
-        rast_dates = [parser.parse(timestr=datestr) for datestr in rast_dates]
-        tic_positions = mdates.date2num(rast_dates)
-    return [rast_names, rast_dates, tic_positions, temp_type]
+    raster_names = []
+    raster_dates = []
+    temp_types = set()
+    tic_positions = []
+    for raster in rasters.splitlines():
+        raster_name, raster_date, temp_type = raster.split(col_sep)
+        raster_names.append(raster_name)
+        raster_dates.append(raster_date)
+        temp_types.add(temp_type)
+        if temp_type == "relative":
+            tic_positions.append(int(raster_date))
+        else:
+            tic_positions.append(
+                mdates.date2num(
+                    parser.parse(timestr=raster_date),
+                )
+            )
+    return (raster_names, raster_dates, tic_positions, list(temp_types)[0])
 
 
-def get_flier_options(flier_size, flier_marker, flier_color):
-    """Set the flier size, marker and color
+def get_valid_color(color):
+    """Get valid Matplotlib color
 
-    :param str flier_size: size of flier
-    :param str flier_marker: flier marker
-    :param str flier_color: flier color
+    :param str color: input color
 
-    :return list: list with flier size, marker and color
+    :return str|list: color e.g. blue|[0.0, 0.0, 1.0]
     """
-    # Set flier options
-    if not flier_size:
-        flier_size = 2
-    else:
-        flier_size = int(flier_size)
-    if not flier_marker:
-        flier_marker = "o"
-    if not flier_color:
-        flier_color = "black"
-    elif ":" in flier_color:
-        flier_color = [int(_x) / 255 for _x in flier_color.split(":")]
-    if not matplotlib.colors.is_color_like(flier_color):
-        gs.fatal(_("{} is not a valid color".format(flier_color)))
-    return [flier_size, flier_marker, flier_color]
+    if ":" in color:
+        color = [int(x) / 255 for x in color.split(":")]
+    if not matplotlib.colors.is_color_like(color):
+        gs.fatal(_("{} is not a valid color.".format(color)))
+    return color
 
 
 def get_output_options(option_dpi, option_dimensions, flag_h):
@@ -504,8 +509,8 @@ def compute_notch(rastername, quant2, iqr):
         "r.univar", flags=["g", "t"], map=rastername, stdout_=PIPE
     ).outputs.stdout
     n_values = int(univar.replace("\r", "").split("\n")[1].split("|")[0])
-    lower_notch = quant2 - 1.57 * (iqr / n_values**2)
-    upper_notch = quant2 + 1.57 * (iqr / n_values**2)
+    lower_notch = quant2 - 1.57 * (iqr / n_values**0.5)
+    upper_notch = quant2 + 1.57 * (iqr / n_values**0.5)
     return [lower_notch, upper_notch]
 
 
@@ -613,8 +618,12 @@ def set_axis(ax, date_format, temp_unit, vertical, rast_dates, temp_lngt):
             date_fmt = mdates.DateFormatter(date_format)
         else:
             date_fmt = mdates.DateFormatter("hour %H")
-        start_time = mdates.date2num(rast_dates[0]) - 1 / 48 * temp_lngt
-        end_time = mdates.date2num(rast_dates[-1]) + 1 / 48 * temp_lngt
+        start_time = (
+            mdates.date2num(parser.parse(timestr=rast_dates[0])) - 1 / 48 * temp_lngt
+        )
+        end_time = (
+            mdates.date2num(parser.parse(timestr=rast_dates[-1])) + 1 / 48 * temp_lngt
+        )
         if vertical:
             ax.xaxis.set_major_formatter(date_fmt)
             ax.set_xlim(mdates.num2date(start_time), mdates.num2date(end_time))
@@ -626,8 +635,12 @@ def set_axis(ax, date_format, temp_unit, vertical, rast_dates, temp_lngt):
             date_fmt = mdates.DateFormatter(date_format)
         else:
             date_fmt = mdates.DateFormatter("min. %M")
-        start_time = mdates.date2num(rast_dates[0]) - 1 / 2880 * temp_lngt
-        end_time = mdates.date2num(rast_dates[-1]) + 1 / 2880 * temp_lngt
+        start_time = (
+            mdates.date2num(parser.parse(timestr=rast_dates[0])) - 1 / 2880 * temp_lngt
+        )
+        end_time = (
+            mdates.date2num(parser.parse(timestr=rast_dates[-1])) + 1 / 2880 * temp_lngt
+        )
         if vertical:
             ax.xaxis.set_major_formatter(date_fmt)
             ax.set_xlim(mdates.num2date(start_time), mdates.num2date(end_time))
@@ -639,8 +652,14 @@ def set_axis(ax, date_format, temp_unit, vertical, rast_dates, temp_lngt):
             date_fmt = mdates.DateFormatter(date_format)
         else:
             date_fmt = mdates.DateFormatter("sec. %S")
-        start_time = mdates.date2num(rast_dates[0]) - 1 / 172800 * temp_lngt
-        end_time = mdates.date2num(rast_dates[-1]) + 1 / 172800 * temp_lngt
+        start_time = (
+            mdates.date2num(parser.parse(timestr=rast_dates[0]))
+            - 1 / 172800 * temp_lngt
+        )
+        end_time = (
+            mdates.date2num(parser.parse(timestr=rast_dates[-1]))
+            + 1 / 172800 * temp_lngt
+        )
         if vertical:
             ax.xaxis.set_major_formatter(date_fmt)
             ax.set_xlim(mdates.num2date(start_time), mdates.num2date(end_time))
@@ -656,16 +675,11 @@ def main(options, flags):
     category of a zonal raster layer
     """
 
-    global matplotlib
-    global plt
-
     # lazy import matplotlib
     lazy_import_py_modules()
 
     # Plot format options
     plt.rcParams["font.size"] = int(options["fontsize"])
-    if options["rotate_labels"]:
-        rotate_label = float(options["rotate_labels"])
     grid = flags["g"]
 
     # Get range (if defined)
@@ -680,10 +694,14 @@ def main(options, flags):
             )
         )
 
+    # Line width boxplot and whiskers
+    bxp_linewidth = float(options["bx_linewidth"])
+    whisker_linewidth = float(options["whisker_linewidth"])
+
     # Get flier size, marker and color
-    flier_size, flier_marker, flier_color = get_flier_options(
-        options["flier_size"], options["flier_marker"], options["flier_color"]
-    )
+    flier_size = int(options["flier_size"])
+    flier_marker = options["flier_marker"]
+    flier_color = get_valid_color(color=options["flier_color"])
 
     # Output options
     output = options["output"]
@@ -692,20 +710,27 @@ def main(options, flags):
     )
 
     # Get names, dates, tic position and temporal type of raster layers
-    strds = options["input"]
-    rast_names, rast_dates, tic_positions, temp_type = get_rast_name_dates(strds)
+    rast_names, rast_dates, tic_positions, temp_type = gs.parse_command(
+        "t.rast.list",
+        flags="u",
+        input=options["input"],
+        columns=["name", "start_time", "temporal_type"],
+        parse=(get_rast_name_dates, {"col_sep": "|"}),
+    )
 
     # Get boxplot color color median lne
     bxcolor, mcolor, bxp_fill = get_bxp_color(options["bx_color"], len(rast_names))
 
     # Determine boxplot width (based on date type and granuality)
     bxp_width, temp_lngt, temp_unit = get_bx_width(
-        options["bx_width"], temp_type, strds
+        options["bx_width"],
+        temp_type,
+        options["input"],
     )
 
     # Create the stats and define the boxes
     boxes = []
-    for rasterid, rastername in enumerate(rast_names):
+    for _, rastername in enumerate(rast_names):
 
         # Compute boxplot stats
         (
@@ -748,12 +773,18 @@ def main(options, flags):
 
     # Plot the figure
     _, ax = plt.subplots(figsize=dimensions)
+    boxprops = dict(linewidth=bxp_linewidth)
+    whiskerprops = dict(linewidth=whisker_linewidth)
+    capprops = dict(linewidth=whisker_linewidth)
     bxplot = ax.bxp(
         boxes,
         positions=tic_positions,
         showfliers=True,
         widths=bxp_width,
         vert=vertical,
+        boxprops=boxprops,
+        whiskerprops=whiskerprops,
+        capprops=capprops,
         shownotches=bool(flags["n"]),
         patch_artist=bxp_fill,
         flierprops={
@@ -777,15 +808,30 @@ def main(options, flags):
             median.set_color(mediancolor)
 
     # Label orientation
-    if options["rotate_labels"] and vertical:
-        plt.xticks(rotation=rotate_label)
-    if options["rotate_labels"] and not vertical:
-        plt.yticks(rotation=rotate_label)
+    rotate_label = float(options["rotate_labels"])
+    if bool(rotate_label) and vertical:
+        if abs(rotate_label) <= 10 or abs(rotate_label) >= 80:
+            plt.xticks(rotation=rotate_label)
+        elif rotate_label < 0:
+            plt.xticks(rotation=rotate_label, ha="left", rotation_mode="anchor")
+        else:
+            plt.xticks(rotation=rotate_label, ha="right", rotation_mode="anchor")
+    if bool(rotate_label) and not vertical:
+        if abs(rotate_label) <= 10 or abs(rotate_label) >= 80:
+            plt.yticks(rotation=rotate_label)
+        elif rotate_label < 0:
+            plt.yticks(rotation=rotate_label, ha="left", rotation_mode="anchor")
+        else:
+            plt.yticks(rotation=rotate_label, ha="right", rotation_mode="anchor")
+
+    # Set grid (optional)
     if grid:
         if vertical:
             ax.yaxis.grid(True)
         else:
             ax.xaxis.grid(True)
+
+    # Print to file (optional)
     if output:
         plt.savefig(output, bbox_inches="tight", dpi=dpi)
         plt.close()
