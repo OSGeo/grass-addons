@@ -808,28 +808,28 @@ def main(options, flags):
             median.set_color(mediancolor)
 
     # Label orientation
-    rotate_label = float(options["rotate_labels"])
-    if bool(rotate_label) and vertical:
-        if abs(rotate_label) <= 10 or abs(rotate_label) >= 80:
-            plt.xticks(rotation=rotate_label)
-        elif rotate_label < 0:
-            plt.xticks(rotation=rotate_label, ha="left", rotation_mode="anchor")
+    if bool(options["rotate_labels"]) and vertical:
+        rotate_labels = float(options["rotate_labels"])
+        if abs(rotate_labels) <= 10 or abs(rotate_labels) >= 80:
+            plt.xticks(rotation=rotate_labels)
+        elif rotate_labels < 0:
+            plt.xticks(rotation=rotate_labels, ha="left", rotation_mode="anchor")
         else:
-            plt.xticks(rotation=rotate_label, ha="right", rotation_mode="anchor")
-    if bool(rotate_label) and not vertical:
-        if abs(rotate_label) <= 10 or abs(rotate_label) >= 80:
-            plt.yticks(rotation=rotate_label)
-        elif rotate_label < 0:
-            plt.yticks(rotation=rotate_label, ha="left", rotation_mode="anchor")
+            plt.xticks(rotation=rotate_labels, ha="right", rotation_mode="anchor")
+    if bool(options["rotate_labels"]) and not vertical:
+        rotate_labels = float(options["rotate_labels"])
+        if abs(rotate_labels) <= 10 or abs(rotate_labels) >= 80:
+            plt.yticks(rotation=rotate_labels)
         else:
-            plt.yticks(rotation=rotate_label, ha="right", rotation_mode="anchor")
+            plt.yticks(rotation=rotate_labels, ha="right", rotation_mode="anchor")
+    if vertical:
+        plt.xticks(rotation=45, ha="right", rotation_mode="anchor")
 
     # Set grid (optional)
-    if grid:
-        if vertical:
-            ax.yaxis.grid(True)
-        else:
-            ax.xaxis.grid(True)
+    if vertical:
+        ax.yaxis.grid(bool(grid))
+    else:
+        ax.xaxis.grid(bool(grid))
 
     # Print to file (optional)
     if output:
