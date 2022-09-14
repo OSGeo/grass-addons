@@ -29,16 +29,13 @@ optionally linked in an entry.
 
 - Naming and descriptions of parameters related to weather
   (coefficients versus the actual values)
-- Naming of critical temperature in interface and in code
+- Naming of critical and actual temperature in code
 
 ### Fix
 
-- Temperature raster for critical temperature is represented as integer,
-  not double or float.
 - Even after the upgrade to Raster class, there are still some legacy
   method names and integers instead of doubles (but does not influence
   computations).
-- Numerous sign-compare warnings.
 - Spelling in the code and comments.
 
 ## 2018-06-13 - Spotted Lanternfly
@@ -47,20 +44,6 @@ optionally linked in an entry.
 
 - Add SLF parameters to documentation.
 - Update README.
-
-### Change
-
-- The decision if to increase by week or month is done with conditional
-  (ternary) operator on one long line. Maybe enum and universal
-  functions for increase and end of year would make it shorter.
-- Season is just a std::pair, but a function to test if month is in
-  range (or a range class) would make shorter code without the access to
-  first and second members and two queries for month.
-
-### Fix
-
-- Compilation with and without the test module (now the test Makefile
-  needs to be used always)
 
 ## 2018-06-04 - Mortality Addition
 
@@ -71,14 +54,11 @@ optionally linked in an entry.
 
 ### Change
 
-- Several new lines of mortality model added to already long main
-  function.
 - Mortality cohorts may require better name since the individual can be
   potentially also a cohort or stand.
 
 ### Fix
 
-- Mortality-related objects are always created (and take memory).
 - Mortality-related infection cohort always updated in spore spread and
   need an additional parameter. However, the update is just a repeating
   previous line (perhaps some container optionally wrapping two images
@@ -89,8 +69,6 @@ optionally linked in an entry.
 ### Fix
 
 - Dead code for the specific multiple host species.
-- Several new lines of non-trivial saving of escaping spores added to
-  already long main function.
 
 ## 2017-01-28 - January 2017 Status
 
