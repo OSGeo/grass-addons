@@ -25,7 +25,7 @@ example reproducible: required packages, data, code.
     * do your best to remove everything that is not related to the problem.
      The shorter your code is, the easier it is to understand.
 
-## Pull 
+## Pull
 
 To contribute a change to PoPS Core or rPoPS, follow these steps:
 
@@ -35,8 +35,8 @@ To contribute a change to PoPS Core or rPoPS, follow these steps:
 1. Iterate until either we accept the PR or decide that it's not
    a good fit for this project.
 
-Each of these steps are described in more detail below. This might feel 
-overwhelming the first time you get set up, but it gets easier with practice. 
+Each of these steps are described in more detail below. This might feel
+overwhelming the first time you get set up, but it gets easier with practice.
 
 * [ ] Motivate the change in one paragraph, and include it in NEWS.
       In parentheses, reference your github user name and this issue:
