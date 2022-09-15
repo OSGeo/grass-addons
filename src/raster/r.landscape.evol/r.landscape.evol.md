@@ -505,8 +505,8 @@ be considered stable and ready for production use.
 
 ## SEE ALSO
 
-The <a href="http://medland.asu.edu/">MEDLAND</a> project at Arizona State University 
-	
+The <a href="http://medland.asu.edu/">MEDLAND</a> project at Arizona State University
+
 <a href="r.watershed.html">r.watershed</a>, <a href="r.terraflow.html">r.terraflow</a>, <a href="r.mapcalc.html">r.mapcalc</a>
 
 Mitasova, H., C. M. Barton, I. I. Ullah, J. Hofierka, and R. S. Harmon 2013 GIS-based soil erosion modeling. In Remote Sensing and GIScience in Geomorphology, edited by J. Shroder and M. P. Bishop. 3:228-258. San Diego: Academic Press.

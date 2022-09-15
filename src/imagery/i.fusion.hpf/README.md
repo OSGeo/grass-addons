@@ -94,7 +94,7 @@ After installation, from within a GRASS-GIS session, see help details via `i.fus
 * Make the -v messages shorter, yet more informative (ie report center cell)
 * Test. Will it compile in other systems?
 * Checking options to integrate in `i.pansharpen`. Think of FFM methods vs.
-  Others? 
+  Others?
 * Who else to thank?  Transfer from archive/
 * Improve [Documentation.lyx](https://gitlab.com/NikosAlexandris/i.fusion.hpf/blob/master/lyx/Documentation.lyx)
 

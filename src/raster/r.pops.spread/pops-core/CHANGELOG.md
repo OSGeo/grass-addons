@@ -126,7 +126,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
     day, week, or month. This is useful if the pest has multiple generations
     in a year. (Chris Jones)
 * Changed  
-  * Made extension of the 52 week to be 8 or 9 (leap years) days instead of 
+  * Made extension of the 52 week to be 8 or 9 (leap years) days instead of
     7 to ensure that the next year starts on Jan 1st. This makes forecasting
     into the future more streamlined. (Chris Jones)
 
