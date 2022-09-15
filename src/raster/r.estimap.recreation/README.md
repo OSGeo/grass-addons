@@ -1,23 +1,23 @@
-Description
------------
+# r.estimap.recreation
+
+## Description
 
 *r.estimap.recreation*
 is an implementation of the ESTIMAP recreation algorithm
 to support mapping and modelling of ecosystem services
 (Zulian, 2014).
 
-Examples
---------
+## Examples
 
 For the sake of demonstrating
 the usage of the module,
 we use the following "component" maps
 to derive a recreation *potential* map:
 
-- `input_area_of_interest`
-- `input_land_suitability`
-- `input_water_resources`
-- `input_protected_areas`
+* `input_area_of_interest`
+* `input_land_suitability`
+* `input_water_resources`
+* `input_protected_areas`
 
 <div>
 <p float="center">
@@ -30,7 +30,7 @@ to derive a recreation *potential* map:
 
 The maps shown above are available to download,
 among other sample maps, at:
-https://gitlab.com/natcapes/r.estimap.recreation.data.
+<https://gitlab.com/natcapes/r.estimap.recreation.data>.
 
 Note, the prefix
 `input_`
@@ -334,7 +334,7 @@ was produced via the following native GRASS GIS commands
 
 The `opportunity` map is actually an intermediate step of the algorithm. The
 option to output this map `opportunity` is meant for expert users who want to
-explore the fundamentals of the processing steps. As such, and by design, it 
+explore the fundamentals of the processing steps. As such, and by design, it
 requires to also request for the output option `spectrum`. Be aware that this
 design choice is applied in the case of the `unmet` output map option too.
 Building upon the previous command, we add the `opportunity` output option:
@@ -837,11 +837,11 @@ can be used too.
 
 This command will also:
 
-- export results of the mobility function
-in the files `output_supply.csv`
-and `output_use.csv`
-- add the following columns in the attribute table linked to the
-`input_vector_local_administrative_units` vector map:
+* export results of the mobility function
+  in the files `output_supply.csv`
+  and `output_use.csv`
+* add the following columns in the attribute table linked to the
+  `input_vector_local_administrative_units` vector map:
 
 <div class="code">
     spectrum_sum
@@ -915,50 +915,50 @@ to print as labels inside the units (in the vector map).
 The module offers a pre-processing functionality for all of the
 following input components:
 
--   landuse
--   suitability\_scores
+* landuse
+* suitability\_scores
 
 <!-- -->
 
--   landcover
--   land\_classes
+* landcover
+* land\_classes
 
 <!-- -->
 
--   lakes
--   lakes\_coefficients
--   default is set to: euclidean,1,30,0.008,1
+* lakes
+* lakes\_coefficients
+* default is set to: euclidean,1,30,0.008,1
 
 <!-- -->
 
--   coastline
--   coastline\_coefficients
--   default is set to: euclidean,1,30,0.008,1
--   coast\_geomorphology
+* coastline
+* coastline\_coefficients
+* default is set to: euclidean,1,30,0.008,1
+* coast\_geomorphology
 
 <!-- -->
 
--   bathing\_water
--   bathing\_coefficients
--   default is set to: euclidean,1,5,0.01101
+* bathing\_water
+* bathing\_coefficients
+* default is set to: euclidean,1,5,0.01101
 
 <!-- -->
 
--   protected
--   protected\_scores
--   11:11:0,12:12:0.6,2:2:0.8,3:3:0.6,4:4:0.6,5:5:1,6:6:0.8,7:7:0,8:8:0,9:9:0
+* protected
+* protected\_scores
+* 11:11:0,12:12:0.6,2:2:0.8,3:3:0.6,4:4:0.6,5:5:1,6:6:0.8,7:7:0,8:8:0,9:9:0
 
 <!-- -->
 
--   anthropic
--   anthropic\_distances
--   0:500:1,500.000001:1000:2,1000.000001:5000:3,5000.000001:10000:4,10000.00001:\*:5
+* anthropic
+* anthropic\_distances
+* 0:500:1,500.000001:1000:2,1000.000001:5000:3,5000.000001:10000:4,10000.00001:\*:5
 
 <!-- -->
 
--   roads
--   roads\_distances
--   0:500:1,500.000001:1000:2,1000.000001:5000:3,5000.000001:10000:4,10000.00001:\*:5
+* roads
+* roads\_distances
+* 0:500:1,500.000001:1000:2,1000.000001:5000:3,5000.000001:10000:4,10000.00001:\*:5
 
 A first look on how this works,
 is to experiment with
@@ -1067,16 +1067,14 @@ In case of a user requirement
 to provide an alternative scoring scheme,
 all what is required is either of
 
--   provide a new "rules" file with the desired set of scoring rules
--   provide a string to the `suitability_scores` option
+* provide a new "rules" file with the desired set of scoring rules
+* provide a string to the `suitability_scores` option
 
-Author
-------
+## Author
 
 Nikos Alexandris
 
-Licence
--------
+## Licence
 
 Copyright 2018 European Union
 
@@ -1087,7 +1085,7 @@ EUPL (the "Licence");
 You may not use this work except in compliance with the Licence.
 You may obtain a copy of the Licence at:
 
-https://joinup.ec.europa.eu/collection/eupl/eupl-text-11-12
+<https://joinup.ec.europa.eu/collection/eupl/eupl-text-11-12>
 
 Unless required by applicable law or agreed to in writing,
 software distributed under the Licence is distributed on an

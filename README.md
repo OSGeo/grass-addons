@@ -16,7 +16,7 @@ In either case, please read the submitting rules at the bottom of this page.
 
 Clone of the entire AddOns git repository:
 
-```
+```bash
 git clone https://github.com/OSGeo/grass-addons.git grass_addons
 ```
 
@@ -35,7 +35,7 @@ Preparations (assuming the source code in $HOME/grass/):
 again. If adding to a binary install, the versions must match exactly.
 You need to git checkout the exact tag or commit used for the binary.)
 
-```
+```bash
 ./configure # [optionally flags]
 make libs
 ```
@@ -44,7 +44,7 @@ The easiest way to compile GRASS AddOns modules into your GRASS code
 is by setting MODULE_TOPDIR on the fly to tell 'make' where to
 find the prepared GRASS source code:
 
-```
+```bash
 make MODULE_TOPDIR=$HOME/grass/
 ```
 
@@ -54,7 +54,7 @@ installation.
 
 Install then into your existing GRASS installation with
 
-```
+```bash
 make MODULE_TOPDIR=$HOME/grass/ install
 ```
 
@@ -66,7 +66,7 @@ For system-wide installation this usually requires "root" privileges
 compile GRASS AddOns modules into your GRASS code by setting
 MODULE_TOPDIR to where to the GRASS binaries are located:
 
-```
+```bash
 make MODULE_TOPDIR=/usr/lib/grass/
 ```
 
