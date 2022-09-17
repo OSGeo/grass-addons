@@ -2,10 +2,10 @@
 
 <em>t.rast.boxplot</em> draws boxplots of the raster in a space-time 
 raster data set (strds). The module can be used to display changes over 
-time, and how this varies within a region. It will plot all rasters in 
+time, and how this varies within a area. It will plot all rasters in 
 a strds. To display a subset of a strds, the user first needs to create 
-new strds with the required subset of raster layers. It will 
-furthermore plot the boxplots using the <i>temporal granularity</i> of 
+a new strds with the required subset of raster layers. It will 
+furthermore, plot the boxplots using the <i>temporal granularity</i> of 
 the strds. 
 
 <p>
@@ -13,14 +13,21 @@ The whiskers of the boxplots extend to the most extreme data point,
 which is no more than <i>range</i> &#10005; the interquartile range 
 (iqr) from the box. By default, a <i>range</i> of 1.5 is used, but the 
 user can change this. Note that range values need to be larger than 0. 
-By default, outliers are not included in the plot. Set the -o flag to 
-include them in the plot. 
 
 <p>
-There are a few layout options, including the option to rotate the 
-the x-axis labels, change the orientation of the plot, print the 
-boxplot(s) with notches, define the color of the boxplots, and set the 
-type of marker and color of the outliers (fliers) in the plot.
+There are a few plot format/layout options, including the option to 
+rotate the plot and the x-axis labels, print the boxplot(s) with 
+notches, and to include the outliers (by default, they are not 
+included). You can also set the limits of the y-axis (or the x-axis if 
+the -h flag is set). This makes it easier to compare the boxplots of 
+two time-series of, e.g., two different areas.
+
+<p>
+Option to format the boxplots include setting the width color of 
+the boxplots. An alternative to the latter is to set the
+colors of the boxplots according to the corresponding categories of 
+the zonal raster. In addition, the user can set the color 
+and width of the median line(s) and set the width of the boxplots.     
 
 <p>
 The default format of the date-time labels on the x-axis (or y-axis in 
@@ -42,13 +49,18 @@ output image.
 If you work with a large number of raster layers, of if the raster 
 layers are very large, try to avoid setting the 'range' value very low, 
 as that may result in a massive number of outliers, slowing down the 
-computations and rendering of the plot. 
+computations and rendering of the plot.
 
+The t.rast.boxplot module operates on the raster array defined by the 
+current region settings, not the original extent and resolution of the 
+input map. See <a 
+href="https://grass.osgeo.org/grass-stable/manuals/r.univar.html">g.region</a> 
+to understand the impact of the region settings on the calculations. 
 
 <h2>EXAMPLE</h2>
 
-The first two examples use the MODIS Land Surface Temperature mapset. First 
-download the North Caroline sample data set from <a 
+The first two examples use the MODIS Land Surface Temperature mapset. 
+First download the North Caroline sample data set from <a 
 href="https://grass.osgeo.org/download/data/#NorthCarolinaDataset">this 
 link</a>. Unzip the sample GRASS GIS dataset to a convenient location 
 on your computer. Next, download the MODIS mapset (<a 
@@ -59,13 +71,14 @@ mapset in GRASS GIS.
 <h3>Example 1</h3>
 
 Plot the time series, using the default settings, except that we set 
-rotate_labels to 90&#8451; to avoid overlapping labels. We furthermore 
-set the dimension of the plot to 8 inch wide and 4 inch height.
+the dimension of the plot to 12 inch (ca. 30 cm) wide and 8 inch (ca. 
+20 cm) height, and a dpi of 200
 
 <p>
 <div class="code"><pre>
-t.rast.boxplot input=LST_Day_monthly@modis_lst rotate_labels=90 \
-plot_dimensions=8,4
+g.region raster=landclass96
+t.rast.boxplot input=LST_Day_monthly@modis_lst \
+plot_dimensions=12,8 dpi=200
 </pre></div>
 
 <p>
@@ -77,16 +90,24 @@ plot_dimensions=8,4
 <h3>Example 2</h3>
 
 We use the same example as above, but this time, we change the color of 
-the boxplots to green (<i>bxcolor=green</i>), include the outliers 
-(<i>-o flag</i>). For the outliers (fliers) we use blue squares 
-(<i>flier_marker=s</i> & <i>flier_color=blue</i>). We furthermore plot 
-the boxplots horizontally (<i>-h flag</i>). Lastly, we add grid lines 
-(<i>-g flag</i>.
+the boxplots and median lines to respectively green 
+(<i>bx_color=green</i>) and white (<i>median_color=white</i>), use the 
+default plot dimensions, set the font size to 8, and include the 
+outliers (<i>-o flag</i>). Note that by plotting the outliers will 
+increase the time required to create the plot considerably.
+
+<p>
+For the outliers (fliers) we use orange squares (<i>flier_marker=s</i> 
+& <i>flier_color=orange</i>). We furthermore plot the boxplots 
+horizontally (<i>-h flag</i>) and add grid lines (<i>-g flag</i>. Note 
+that for horizontal plots, the labels are plotted horizontally (equal 
+to rotate_labels=0) by default.
 
 <p>
 <div class="code"><pre>
-t.rast.boxplot input=LST_Day_monthly@modis_lst plot_dimensions=8,4 \
-bxcolor=green flier_color=blue -o -h -g
+t.rast.boxplot -o -h -g  input=LST_Day_monthly@modis_lst \
+bx_color=green median_color=white median_lw=0.8 bx_lw=0.8 \
+flier_color=orange flier_size=1 flier_marker=s font_size=8
 </pre></div>
 
 <p> 
@@ -102,13 +123,18 @@ for the different formats in which colors can be specified.
 
 <h3>Example 3</h3>
 
-Now let's change the date labels, showing the Month as full name, 
-followed by the year.
+In the following example, the date labels are changed, showing the 
+abbreviated name of the month, followed by the year (<i>date_format="%B 
+%Y"</i>). The boxplot colors are set to white, and for the median line 
+we set the color to orange and the line width to 2. Lastly, the labels 
+are rotated 90&#8451; (the default for vertical plots is 
+rotate_labels=45).
 
 <p>
 <div class="code"><pre>
-t.rast.boxplot input=LST_Day_monthly@modis_lst rotate_labels=45 \
-plot_dimensions=8,4 date_format="%B %Y"
+t.rast.boxplot input=LST_Day_monthly@modis_lst rotate_labels=90 \
+date_format="%B %Y" bx_color=white median_lw=2 median_color=red \
+font_size=9
 </pre></div>
 
 <p>
@@ -117,7 +143,7 @@ plot_dimensions=8,4 date_format="%B %Y"
 <img src="t_rast_boxplot_03.png">
 </div>
 
-<h3>Example 3</h3>
+<h3>Example 4</h3>
 
 If we want to plot 3-monthly patterns instead, we first need to create 
 a new strds. In the example below, the function 
@@ -131,11 +157,12 @@ basename=LST_3monthly granularity="3 months" method=average
 </pre></div>
 
 <p>
-Now, we can plot the 3-monthly temporal pattern using the newly created strds as input.
+Now, we can plot the 3-monthly temporal pattern using the newly created 
+strds as input.
 
 <p>
 <div class="code"><pre>
-t.rast.boxplot input=LST_Day_3monthly@modis_lst plot_dimensions=8,4
+t.rast.boxplot input=LST_Day_3monthly@modis_lst
 </pre></div>
 
 <p>

@@ -103,7 +103,7 @@
 # %end
 
 # %option
-# % key: fontsize
+# % key: font_size
 # % type: integer
 # % label: Font size
 # % description: Font size of labels
@@ -117,6 +117,15 @@
 # % type: string
 # % label: Date format
 # % description: Set date format (see https://strftime.org/ for options)
+# % guisection: Plot format
+# % required: no
+# %end
+
+# %option
+# % key: axis_limits
+# % type: string
+# % label: limit value axis
+# % description: min and max value of y-axis, or x-axis if -h flag is set)
 # % guisection: Plot format
 # % required: no
 # %end
@@ -136,17 +145,36 @@
 # % label: Boxplot color
 # % description: Color of the boxplots. See manual page for color notation options.
 # % required: no
+# % answer: white
 # % guisection: Boxplot format
 # %end
 
 # %option
-# % key: bx_linewidth
+# % key: bx_lw
 # % type: double
 # % label: boxplot linewidth
 # % description: The linewidth of the boxplots
 # % required: no
 # % guisection: Boxplot format
 # % answer: 1
+# %end
+
+# %option
+# % key: median_lw
+# % type: double
+# % description: width of the boxplot median line
+# % required: no
+# % guisection: Boxplot format
+# % answer: 1.1
+# %end
+
+# %option G_OPT_C
+# % key: median_color
+# % label: Color of the boxlot median line
+# % description: Color of median
+# % required: no
+# % answer: orange
+# % guisection: Boxplot format
 # %end
 
 # %option
@@ -348,9 +376,9 @@ def get_output_options(option_dpi, option_dimensions, flag_h):
         dimensions = [float(x) for x in option_dimensions.split(",")]
     else:
         if vertical:
-            dimensions = [6, 6]
+            dimensions = [6, 4]
         else:
-            dimensions = [8, 4]
+            dimensions = [6, 4]
     return [dpi, dimensions, vertical]
 
 
@@ -395,54 +423,6 @@ def get_bx_width(option_bxp_width, temp_type, strds):
         }
         bxp_width = temp_options[temp_unit]
     return [bxp_width, temp_lngt, temp_unit]
-
-
-def get_bxp_color(bxp_color, number_layers):
-    """Get the user-defined colors for the boxplots, and compute
-    the colors of the median line.
-
-    :param str bxp_color: user defined boxplot color
-    :param str rast_layer: name of input raster layer
-
-    :return list: list of boxplot color (bxcolor and median line(mxcolor)
-    """
-    if bxp_color == "none":
-        bxp_fill = False
-        bxcolor = ""
-        mcolor = ""
-    elif bxp_color:
-        if bxp_color[0] == "#":
-            bxcolor = bxp_color[1:]
-            if len(bxcolor) == 3:
-                bxcolor = "".join(char + char for char in bxcolor)
-                bxcolor = f"#{bxcolor}"
-            else:
-                bxcolor = bxp_color
-        elif len(bxp_color.split(":")) >= 3 and len(bxp_color.split(":")) <= 4:
-            bxcolor = bxp_color.split(":")
-            bxcolor = [float(_x) / 255 for _x in bxcolor]
-        else:
-            bxcolor = bxp_color.replace(" ", "")
-        if matplotlib.colors.is_color_like(bxcolor):
-            bxcolor = matplotlib.colors.to_rgba(bxcolor)
-        else:
-            gs.warning(
-                _("color definition cannot be interpreted as a color. See manual page.")
-            )
-        if bxp_color == "none":
-            mcolor = ""
-        else:
-            brightness = bxcolor[0] * 0.299 + bxcolor[1] * 0.587 + bxcolor[2] * 0.114
-            if brightness > 149 / 255:
-                mcolor = [0, 0, 0, 0.7]
-            else:
-                mcolor = [1, 1, 1, 0.7]
-        bxcolor = [bxcolor for _i in range(number_layers)]
-        mcolor = [mcolor for _i in range(number_layers)]
-        bxp_fill = True
-    else:
-        bxp_fill = False
-    return [bxcolor, mcolor, bxp_fill]
 
 
 def bxp_stats(rastername, whisker_range):
@@ -569,6 +549,7 @@ def compute_outliers(rastername, min_value, max_value, lower_whisker, upper_whis
             flags="f",
             name=remove_names,
             type=["raster", "vector"],
+            quiet=True,
         )
     else:
         fliers = []
@@ -679,7 +660,7 @@ def main(options, flags):
     lazy_import_py_modules()
 
     # Plot format options
-    plt.rcParams["font.size"] = int(options["fontsize"])
+    plt.rcParams["font.size"] = int(options["font_size"])
     grid = flags["g"]
 
     # Get range (if defined)
@@ -695,13 +676,16 @@ def main(options, flags):
         )
 
     # Line width boxplot and whiskers
-    bxp_linewidth = float(options["bx_linewidth"])
+    bxp_linewidth = float(options["bx_lw"])
     whisker_linewidth = float(options["whisker_linewidth"])
 
     # Get flier size, marker and color
     flier_size = int(options["flier_size"])
     flier_marker = options["flier_marker"]
     flier_color = get_valid_color(color=options["flier_color"])
+
+    # Boxplot fill color
+    bxcolor = get_valid_color(options["bx_color"])
 
     # Output options
     output = options["output"]
@@ -717,9 +701,6 @@ def main(options, flags):
         columns=["name", "start_time", "temporal_type"],
         parse=(get_rast_name_dates, {"col_sep": "|"}),
     )
-
-    # Get boxplot color color median lne
-    bxcolor, mcolor, bxp_fill = get_bxp_color(options["bx_color"], len(rast_names))
 
     # Determine boxplot width (based on date type and granuality)
     bxp_width, temp_lngt, temp_unit = get_bx_width(
@@ -776,6 +757,8 @@ def main(options, flags):
     boxprops = dict(linewidth=bxp_linewidth)
     whiskerprops = dict(linewidth=whisker_linewidth)
     capprops = dict(linewidth=whisker_linewidth)
+    median_color = get_valid_color(options["median_color"])
+    medianprops = dict(linewidth=float(options["median_lw"]), color=median_color)
     bxplot = ax.bxp(
         boxes,
         positions=tic_positions,
@@ -784,9 +767,10 @@ def main(options, flags):
         vert=vertical,
         boxprops=boxprops,
         whiskerprops=whiskerprops,
+        medianprops=medianprops,
         capprops=capprops,
         shownotches=bool(flags["n"]),
-        patch_artist=bxp_fill,
+        patch_artist=True,
         flierprops={
             "marker": flier_marker,
             "markersize": flier_size,
@@ -800,12 +784,10 @@ def main(options, flags):
         ax, options["date_format"], temp_unit, vertical, rast_dates, temp_lngt
     )
 
-    # Set color median lines
-    if bxp_fill:
-        for patch, color in zip(bxplot["boxes"], bxcolor):
-            patch.set_facecolor(color)
-        for median, mediancolor in zip(bxplot["medians"], mcolor):
-            median.set_color(mediancolor)
+    # Set color boxplots
+    bxcolor = [bxcolor for _i in range(len(rast_names))]
+    for patch, color in zip(bxplot["boxes"], bxcolor):
+        patch.set_facecolor(color)
 
     # Label orientation
     if bool(options["rotate_labels"]) and vertical:
@@ -816,14 +798,22 @@ def main(options, flags):
             plt.xticks(rotation=rotate_labels, ha="left", rotation_mode="anchor")
         else:
             plt.xticks(rotation=rotate_labels, ha="right", rotation_mode="anchor")
-    if bool(options["rotate_labels"]) and not vertical:
+    elif bool(options["rotate_labels"]) and not vertical:
         rotate_labels = float(options["rotate_labels"])
         if abs(rotate_labels) <= 10 or abs(rotate_labels) >= 80:
             plt.yticks(rotation=rotate_labels)
         else:
             plt.yticks(rotation=rotate_labels, ha="right", rotation_mode="anchor")
-    if vertical:
+    elif vertical:
         plt.xticks(rotation=45, ha="right", rotation_mode="anchor")
+
+    # Set limits value axis
+    if bool(options["axis_limits"]):
+        minlim, maxlim = map(float, options["axis_limits"].split(","))
+        if bool(vertical):
+            plt.ylim([minlim, maxlim])
+        else:
+            plt.xlim([minlim, maxlim])
 
     # Set grid (optional)
     if vertical:
