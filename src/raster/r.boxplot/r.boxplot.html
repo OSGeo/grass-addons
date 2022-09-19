@@ -1,52 +1,62 @@
-
 <h2>DESCRIPTION</h2>
 
 <p>
-<em>r.boxplot</em> draws boxplots of the raster values of an input raster
-layer. The user has the option to define a zonal (categorical) layer. In that
-case, a boxplot will be drawn for each zone, using the values of the input
-raster that fall within that zone. 
+<em>r.boxplot</em> draws boxplots of the raster values of an input 
+raster layer. The user has the option to define a zonal (categorical) 
+layer. In that case, a boxplot will be drawn for each zone, using the 
+values of the input raster that fall within that zone. 
+
+<p> 
+If there is a zonal map, the user can add a line and band to 
+represent the median and interquartile range of the input layer. Note 
+that all values of the input raster (within the region's extent) 
+are used to compute the median and IQR. If the zones of your zonal map 
+cover only part of the region, you can use <em>r.mask</em> to mask out 
+the non-covered parts of the input map first. That will result in 
+an IQR and median representing the values that fall within the zones of
+the zonal map only.
 
 <p>
-If there is a zonal map, the user can add a line and band to represent the
-median and interquartile range of the input layer.  Note that the
-entire input raster  is used to compute the median and IQR. If the zones of
-your zonal map do not cover the entire area, you can use <em>r.mask</em> to
-mask out the non-covered parts of the input map first. 
+By default, the resulting plot is displayed on screen. However, the 
+user can also save the plot to file using the <em>output</em> option. 
+The format is determined by the extension given by the user. So, if 
+output = outputfile.png, the plot will be saved as a png file.
 
 <p>
-By default, the resulting plot is displayed on screen. However, the user can
-also save the plot to file using the <em>output</em> option. The format is
-determined by the extension given by the user. So, if output = outputfile.png,
-the plot will be saved as a png file.
+The whiskers extend to the most extreme data point, which is no 
+more than <i>range</i> &#10005; the interquartile range (iqr) from the 
+box. By default, a <i>range</i> of 1.5 is used, but the user can change 
+this. Note that range values need to be larger than 0.
 
 <p>
-The whiskers extend to the most extreme data point, which is no more than
-<i>range</i> &#10005; the interquartile range (iqr) from the box. By default,
-a <i>range</i> of 1.5 is used, but the user can change this. Note that range
-values need to be larger than 0.
+By default, outliers are not included in the plot. Set the -o flag 
+to include them in the plot. To also create a point vector map with the 
+locations of the outliers, the user needs to provide the name of the 
+output map using <i>map_outliers</i>.
 
 <p>
-By default, outliers are not included in the plot. Set the -o flag to include
-them in the plot. To also create a point vector map with the locations of the
-outliers, the user needs to provide the name of the output map using
-<i>map_outliers</i>.
-
-<p>
-There are a few layout options, including the option to rotate 
-the plot and the x-axis labels, print the boxplot(s) with notches, sort the
-boxplot from low to high (ascending) or from high to low (descending) median,
-color the boxplots according to the corresponding categories of the zonal
-raster, set the type and color of the outliers, set the color and transparency
-of the raster's median line and IQR band, and set the width of the boxplots.
+There are a few layout options, including the option to rotate the 
+plot and the x-axis labels, print the boxplot(s) with notches, sort the 
+boxplot from low to high (ascending) or from high to low (descending) 
+median, color the boxplots according to the corresponding categories of 
+the zonal raster, set the type and color of the outliers, set the color 
+and width of the median line(s), set the color and transparency of the 
+raster's median line and IQR band, and set the width of the boxplots.
 
 
 <h2>NOTE</h2>
-To include outliers, the function converts the raster cell with outlier
-values to a point vector layer. This may take some time if there are a
-lot of outliers. So, if you are working with very large raster layers,
-be cautious to not set the <i>range</i> value very low as that may result
-in a huge number of outliers. 
+
+The r.boxplot module operates on the raster array defined by the 
+current region settings, not the original extent and resolution of the 
+input map. See <a 
+href="https://grass.osgeo.org/grass-stable/manuals/r.univar.html">g.region</a> 
+to understand the impact of the region settings on the calculations. 
+
+To include outliers, the function converts the raster 
+cell with outlier values to a point vector layer. This may take some 
+time if there are a lot of outliers. So, if you are working with very 
+large raster layers, be cautious to not set the <i>range</i> value very 
+low as that may result in a huge number of outliers. 
 
 <p>
 The zonal map needs to be an integer map. If it is not, the function will exit
@@ -61,9 +71,9 @@ does not have a color table'. If you think there is a color table, run
 is the problem. If they are all integers, you probably have caught a bug.
 
 <p>
-If a zonal map is provided, the function will set a temporary region to match
-the extent and resolution of that layer. Setting the -g flag will let the
-function respects the current region settings instead.
+The module respects the mask (if set), and the region settings. This
+means you can quickly change the area for which to create a boxplot by
+simply changing the region and/or setting a (different) mask. 
 
 <h2>EXAMPLE</h2>
 
