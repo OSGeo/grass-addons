@@ -1,0 +1,45 @@
+# contact us at https://github.com/OSGeo/grass-website for constructive criticism!
+#
+# file is stored at
+#      grasslxd:/var/www/code_and_data/robots.txt
+
+User-agent: *
+Disallow: /cgi-bin/
+Disallow: /tmp/
+Disallow: /spearfish/
+Disallow: /stats/
+Disallow: /gdp/grassmanuals/
+Disallow: /gdp/html_grass4/
+Disallow: /gdp/html_grass5/
+Disallow: /grass51/manuals/
+Disallow: /grass5/manuals/html53_user/
+Disallow: /grass54/manuals/
+Disallow: /grass57/
+Disallow: /grass60/
+Disallow: /grass61/
+Disallow: /grass62/
+Disallow: /grass63/
+Disallow: /grass64/
+Disallow: /grass65/
+Disallow: /grass70/
+Disallow: /grass71/
+Disallow: /grass72/
+Disallow: /grass73/
+Disallow: /grass74/
+Disallow: /grass75/
+Disallow: /grass76/
+Disallow: /grass77/
+Disallow: /grass78/
+Disallow: /grass79/
+Disallow: /grass81/
+
+
+Sitemap: https://grass.osgeo.org/sitemap.xml
+Sitemap: https://grass.osgeo.org/sitemap_hugo.xml
+## bring SEO back and use numbers
+#Sitemap: https://grass.osgeo.org/grass-stable/manuals/sitemap_manuals.xml
+Sitemap: https://grass.osgeo.org/grass82/manuals/sitemap_manuals.xml
+#Sitemap: https://grass.osgeo.org/grass-stable/manuals/addons/sitemap_manuals.xml
+Sitemap: https://grass.osgeo.org/grass82/manuals/addons/sitemap_manuals.xml
+#Sitemap: https://grass.osgeo.org/grass-devel/manuals/sitemap_manuals.xml
+Sitemap: https://grass.osgeo.org/grass83/manuals/sitemap_manuals.xml
