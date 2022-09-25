@@ -35,13 +35,22 @@ to filter variables of interest.
 <h2>KNOWN ISSUES</h2>
 The VRT format is also used when linking NetCDF data that contains subdatasets,
 as subdatasets are currently not supported in <em>r.external</em>.
+<p>
+Reading NetCDF files directly via HTTP protocol (like in the examples below)
+is currently not supported on MS Windows.
+<p>
+GDAL versions prior to 3.4.1 do not support reading NetCDF files directly
+via HTTP protocol on newer Linux kernels either. Please make sure to have
+at least GDAL version 3.4.1 on recent Linux systems. See posts on the
+<a href=https://www.mail-archive.com/gdal-dev@lists.osgeo.org/msg37419.html>GDAL-dev mailing list</a>.
+for reference.
 
 <h2>REQUIREMENTS</h2>
 Support of semantic_labels is only available with GRASS GIS 8.0 or later.
 <em>t.rast.import.netcdf</em> uses the following non-standard Python modules:
 <ul>
 <li><a href="https://pypi.org/project/numpy">numpy</a></li>
-<li><a href="https://pypi.org/project/GDAL">gdal</a></li>
+<li><a href="https://pypi.org/project/GDAL">GDAL</a> (preferably version >= 3.4.1)</li>
 <li><a href="https://pypi.org/project/cf-units">cf-units</a></li>
 </ul>
 
