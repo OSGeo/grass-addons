@@ -20,6 +20,12 @@ the result of the patch. By default the maps are
 sorted by <b>desc</b> by the <i>start_time</i> so that the newest raster map
 is the first input map in <b>r.patch</b>/<b>r.buildvrt</b>.
 <p>
+Please note that the color table of the first input raster is used for the
+resulting map when the <b>v-flag</b> is used. Values in the resulting
+raster map that exeed the range of that first raster map will then be
+rendered on the screen like no data. In that case, please update the
+color table or the resulting map with <b>r.colors</b>
+<p>
 <em>t.rast.patch</em> is a simple wrapper for the raster module
 <b>r.patch</b> or <b>r.buildvrt</b>.
 
@@ -40,6 +46,8 @@ subsequent maps in the time series) using a virtual mosaic (<b>r.buildvrt</b>):
 <div class="code"><pre>
 t.rast.patch -v input=LST_Day_monthly@modis_lst output=LST_Day_patched_2016_vrt \
   where="start_time >= '2016-01' and start_time <= '2016-12'"
+# Assign a new color table that covers the entire range of the resulting map
+r.colors map=LST_Day_patched_2016_vrt color=grey
 r.info LST_Day_patched_2016_vrt
 </pre></div>
 
