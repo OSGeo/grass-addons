@@ -39,7 +39,7 @@ or commit used for the binary.)
 ```
 # GRASS GIS core source code
 ./configure # [optionally flags]
-make libs
+make
 ```
 
 ### Compilation of GRASS GIS AddOns
