@@ -213,9 +213,7 @@ def getRegionParams(self, opt_region):
             reg_mapset = reg_spl[1]
 
     if opt_region:
-        s = grass.read_command(
-            "g.region", quiet=True, flags="ug", region=opt_region
-        )
+        s = grass.read_command("g.region", quiet=True, flags="ug", region=opt_region)
         region_params = grass.parse_key_val(s, val_type=float)
         grass.verbose("Using region parameters for region %s" % opt_region)
     else:
@@ -223,6 +221,7 @@ def getRegionParams(self, opt_region):
         grass.verbose("Using current grass region")
 
     return region_params
+
 
 def computeBbox(self):
     """Get extent for WCS query (bbox) from region parameters
@@ -252,9 +251,7 @@ def validate_collections_option(collections, client):
     avaliable_collections = client.get_collections()
     if collections in avaliable_collections:
         return True
-    grass.warning(
-        _("The specified collections do not exisit.")
-    )
+    grass.warning(_("The specified collections do not exisit."))
     return False
 
 
@@ -264,22 +261,21 @@ def search_stac_api(client, **kwargs):
     grass.message(_(f"{search.matched()} items found"))
     return search
 
+
 def main():
     """Main function"""
 
     client_url = options["url"]
-    ids = options["ids"] # optional
-    collections = options["collections"] # Maybe limit to one?
-    limit = options["limit"] # optional
-    max_items = options["max_items"] # optional
-    bbox = options["bbox"] # optional
-    intersects = options["intersects"] # optional
-    datetime = options["datetime"] # optional
-    query = options["query"] # optional
-    filter = options["filter"] # optional
-    filter_lang = options["filter_lang"] # optional
-
-
+    ids = options["ids"]  # optional
+    collections = options["collections"]  # Maybe limit to one?
+    limit = options["limit"]  # optional
+    max_items = options["max_items"]  # optional
+    bbox = options["bbox"]  # optional
+    intersects = options["intersects"]  # optional
+    datetime = options["datetime"]  # optional
+    query = options["query"]  # optional
+    filter = options["filter"]  # optional
+    filter_lang = options["filter_lang"]  # optional
 
     client = Client.open(client_url)
     if validate_collections_option(collections, client):
@@ -293,7 +289,7 @@ def main():
             datetime=datetime,
             query=query,
             filter=filter,
-            filter_lang=filter_lang
+            filter_lang=filter_lang,
         )
 
 
