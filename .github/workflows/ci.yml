@@ -87,7 +87,7 @@ jobs:
     - name: Build addons
       run: |
         cd grass-addons/src
-        GRASS_INSTALL=$HOME/install/grass*
+        GRASS_INSTALL=$($HOME/install/bin/grass --config | sed -n '4{p;q}')
         make MODULE_TOPDIR=$GRASS_INSTALL
 
     - name: Get extra Python dependencies
