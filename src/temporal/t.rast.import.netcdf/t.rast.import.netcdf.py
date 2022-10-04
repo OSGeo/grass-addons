@@ -716,6 +716,7 @@ def parse_netcdf(
     valid_window,
     valid_relations,
     options,
+    flags,
     gisenv,
 ):
     """Parse and check netcdf file to extract relevant metadata"""
@@ -854,7 +855,7 @@ def parse_netcdf(
                     "id": s_d[1],
                     "url": sds_url
                     if options["print"]
-                    or (import_type == "r.in.gdal" and projections_match)
+                    or import_type == "r.in.gdal"
                     else create_vrt(
                         s_d[0],
                         gisenv,
@@ -1004,7 +1005,7 @@ def main():
             overwrite=gscript.overwrite(),
             run_=False,
             finish_=False,
-            flags=imp_flags + "ra",
+            flags=imp_flags + "ra" if flags["r"] else imp_flags + "a",
             memory=options["memory"],
         ),
         "r.timestamp": Module("r.timestamp", quiet=True, run_=False, finish_=False),
@@ -1035,6 +1036,7 @@ def main():
                 valid_window,
                 valid_relations,
                 options,
+                flags,
                 grass_env,
             )
             for in_url in inputs
@@ -1051,6 +1053,7 @@ def main():
                         valid_window,
                         valid_relations,
                         options,
+                        flags,
                         grass_env,
                     )
                     for in_url in inputs
@@ -1142,11 +1145,11 @@ def main():
             [
                 (
                     sds_dict,
-                    options,
+                    # options,
                     flags,
                     modules,
                     grass_env,
-                    nodata,
+                    # nodata,
                 )
                 for url_dict in inputs_dict.values()
                 for sds_dict in url_dict["sds"]
