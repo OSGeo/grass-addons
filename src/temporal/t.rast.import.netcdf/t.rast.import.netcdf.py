@@ -854,8 +854,7 @@ def parse_netcdf(
                     ),
                     "id": s_d[1],
                     "url": sds_url
-                    if options["print"]
-                    or import_type == "r.in.gdal"
+                    if options["print"] or import_type == "r.in.gdal"
                     else create_vrt(
                         s_d[0],
                         gisenv,
