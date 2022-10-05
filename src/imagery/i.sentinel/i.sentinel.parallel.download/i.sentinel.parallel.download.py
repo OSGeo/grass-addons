@@ -239,7 +239,7 @@ def main():
                 "Setting nprocs to {}"
             ).format(nprocs, mp.cpu_count(), mp.cpu_count() - 1)
         )
-        nprocs = mp.cpu_cound() - 1
+        nprocs = mp.cpu_count() - 1
 
     # sentinelsat allows only three parallel downloads
     elif nprocs > 2 and options["datasource"] == "ESA_COAH":
@@ -252,7 +252,7 @@ def main():
         nprocs = 2
 
     # usgs allows maximum 10 parallel downloads
-    elif nprocs > 10 and options["dataseource"] == "USGS_EE":
+    elif nprocs > 10 and options["datasource"] == "USGS_EE":
         grass.message(
             _(
                 "Maximum number of parallel processes for Downloading"
