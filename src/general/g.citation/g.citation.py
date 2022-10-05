@@ -96,11 +96,14 @@
 
 from __future__ import print_function
 
+import html
 import sys
 import os
 import re
 from collections import defaultdict
 import json
+from pathlib import Path
+from datetime import datetime
 from pprint import pprint
 
 import grass.script as gs
@@ -186,24 +189,51 @@ def clean_line_item(text):
     return text
 
 
-def get_year_from_documentation(text):
+def get_datetime_from_documentation(text):
     """Extract year from text containing SVN date entry
+    >>> text = "  Latest change: Monday Jun 28 11:54:09 2021 in commit: 1cfc0af029a35a5d6c7dae5ca7204d0eb85dbc55"
+    >>> get_datetime_from_documentation(text)
+    datetime.datetime(2022, 9, 18, 23, 55, 9)
+    """
+    datetime_capture = r"^  (Latest change: )(.*)( in commit: ).*"
+    match = re.search(datetime_capture, text, re.MULTILINE | re.DOTALL | re.IGNORECASE)
+    if match:
+        date_format = "%A %b %d %H:%M:%S %Y"
+    else:
+        datetime_capture = r"^  (Accessed: ).*([A-Z][a-z]{2} [A-Z][a-z]{2}\s+[0-9]{1,2} [0-9]{2}:[0-9]{2}:[0-9]{2} [0-9]{4}).*"
+        match = re.search(
+            datetime_capture, text, re.MULTILINE | re.DOTALL | re.IGNORECASE
+        )
+        date_format = "%a %b %d %H:%M:%S %Y"
+    try:
+        return datetime.strptime(match.group(2).replace("  ", " "), date_format)
+    except ValueError:
+        # TODO: raise or fatal? should be in library or module?
+        raise RuntimeError("Could not parse date from maual")
 
-    >>> text = "<p><i>Last changed: $Date: 2011-09-29 15:18:47 $</i>"
-    >>> get_year_from_documentation(text)
+
+def get_access_date_from_documentation_file_attributes(path):
+    """Extract year from file attributes of the documentation
+
+    >>> path = documentation_filename(name)
+    >>> get_year_from_documentation_file_attributes(path)
+    2011-10-14
+    """
+    date_installed = datetime.fromtimestamp(Path(path).stat().st_ctime).strftime(
+        "%Y-%m-%d"
+    )
+    return date_installed
+
+
+def get_year_from_documentation_file_attributes(path):
+    """Extract year from file attributes of the documentation
+
+    >>> path = documentation_filename(name)
+    >>> get_year_from_documentation_file_attributes(path)
     2011
     """
-    # we try to capture even when not properly worded (same below)
-    # offending modules: grep -IrnE '\$Date: ' | grep -v "Last changed:"
-    year_capture = (
-        r"<p>\s*<(i|em)>(Last changed: )?\$Date: ([\d]+)-\d\d-\d\d .*\$</(i|em)>"
-    )
-    match = re.search(year_capture, text, re.MULTILINE | re.DOTALL | re.IGNORECASE)
-    if match:
-        return int(match.group(3))
-    else:
-        # TODO: raise or fatal? should be in library or module?
-        raise RuntimeError("The text does not contain date entry")
+    year_installed = datetime.fromtimestamp(Path(path).stat().st_ctime).year
+    return int(year_installed)
 
 
 def get_email(text):
@@ -285,8 +315,7 @@ def get_orcid(text):
 
 def get_authors_from_documentation(text):
     r"""Extract authors and associated info from documentation
-
-    >>> text = '<h2><a name="author">AUTHOR</a></h2>\nPaul Kelly\n<p><i>Last changed:'
+    >>> text = '<h2><a name="author">AUTHOR</a></h2>\nPaul Kelly\n<br><h2>SOURCE CODE</h2>'
     >>> authors = get_authors_from_documentation(text)
     >>> print(authors[0]['name'])
     Paul Kelly
@@ -297,15 +326,13 @@ def get_authors_from_documentation(text):
     # HTML tags or section name can theoretically be different case.
     # The "last changed" part might be missing.
     # The i and em could be exchanged.
-    author_section_capture = (
-        r"<h2>.*AUTHOR.*</h2>(.*)<p>\s*<(i|em)>(Last changed:|\$Date:)"
-    )
-
+    author_section_capture = r"(<h2>.*AUTHOR.*</h2>)(.*)(<h2>.*SOURCE CODE.*</h2>)"
     match = re.search(
         author_section_capture, text, re.MULTILINE | re.DOTALL | re.IGNORECASE
     )
+
     if match:
-        author_section = match.group(1)
+        author_section = match.group(2)
     else:
         raise RuntimeError(_("Unable to find Authors section"))
 
@@ -324,7 +351,7 @@ def get_authors_from_documentation(text):
     authors = []
     feature_heading = None
     for line in raw_author_lines:
-        line = line.strip()  # strip after HTML tag strip
+        line = html.unescape(line.strip())  # strip after HTML tag strip
         if not line:
             continue
         institute = None
@@ -354,6 +381,8 @@ def get_authors_from_documentation(text):
             names = name.split(" and ", 1)
         elif " &amp; " in name:
             names = name.split(" &amp; ", 1)
+        elif " & " in name:
+            names = name.split(" & ", 1)
         else:
             names = [name]
         for name in names:
@@ -594,7 +623,7 @@ def print_cff(citation):
             else:
                 print("  - type:", reference["type"])
             print("    title:", reference["title"])
-            for key, value in reference.iteritems():
+            for key, value in reference.items():
                 if key in ["scope", "type", "title"]:
                     continue  # already handled
                 # TODO: add general serialization to YAML
@@ -608,7 +637,7 @@ def print_cff(citation):
                             print(
                                 "      - family-names: {family-names}".format(**author)
                             )
-                        for akey, avalue in author.iteritems():
+                        for akey, avalue in author.items():
                             if akey == "name":
                                 continue
                             print("        {akey}: {avalue}".format(**locals()))
@@ -639,8 +668,9 @@ def print_bibtex(citation):
 
     author_names = [author["name"] for author in citation["authors"]]
     print("  author = {", " and ".join(author_names), "},", sep="")
+    print("  howpublished = {", citation["code-url"], "},", sep="")
     print("  year = {", citation["year"], "}", sep="")
-
+    print("  note = {Accessed: ", citation["access"], "},", sep="")
     print("}")
 
 
@@ -792,7 +822,8 @@ def citation_for_module(name, add_grass=False):
     citation["grass-version"] = g_version["version"]
     citation["grass-build-date"] = g_version["build_date"]
     citation["authors"] = get_authors_from_documentation(text)
-    citation["year"] = get_year_from_documentation(text)
+    citation["year"] = get_datetime_from_documentation(text).year
+    citation["access"] = get_datetime_from_documentation(text).isoformat()
     code_url, code_history_url = get_code_urls_from_documentation(text)
     citation["code-url"] = code_url
     citation["url-code-history"] = code_history_url
@@ -805,8 +836,13 @@ def citation_for_module(name, add_grass=False):
 
 
 def get_core_modules():
+    # test.r3flow manual is non-standard and breaks 'g.citation -a',
+    # so here standard module prefixes are filtered
+    module_prefixes = ["d.", "db", "g.", "h.", "i.", "m.", "r.", "r3", "t.", "v."]
     # TODO: see what get_commands() does on MS Windows
-    modules = sorted(gs.get_commands()[0])
+    modules = sorted(
+        [cmd for cmd in gs.get_commands()[0] if cmd[0:2] in module_prefixes]
+    )
     return modules
 
 
