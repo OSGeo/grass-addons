@@ -3,3 +3,4 @@ pandas
 scikit-learn
 GDAL==${GDAL_VERSION}
 pygbif
+cf_units
