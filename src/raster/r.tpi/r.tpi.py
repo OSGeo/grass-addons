@@ -3,6 +3,9 @@
 # %module
 # % description: Calculates the multiscale topographic position index
 # % keyword: raster
+# % keyword: surface
+# % keyword: terrain
+# % keyword: topography
 # %end
 
 # %option G_OPT_R_INPUT

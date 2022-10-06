@@ -19,6 +19,7 @@
 # % description: Hierarchical segmentation
 # % keyword: imagery
 # % keyword: segment
+# % keyword: parallel
 # % overwrite: yes
 # %End
 # %option G_OPT_I_GROUP
@@ -36,7 +37,7 @@
 # %end
 # %option G_OPT_R_OUTPUT
 # % key: output
-# % description: Name of output sement raster map
+# % description: Name of output segment raster map
 # % required: yes
 # %end
 # %option
