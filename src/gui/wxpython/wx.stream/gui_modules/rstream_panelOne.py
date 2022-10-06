@@ -62,7 +62,7 @@ class CoorWindow(wx.Dialog):
         net,
         drain,
         id=wx.ID_ANY,
-        **kwargs
+        **kwargs,
     ):
         wx.Dialog.__init__(self, parent, id, **kwargs)
         self.parent = parent

@@ -107,7 +107,7 @@ class WebHDFSHook(BaseHook):
             overwrite=overwrite,
             n_threads=parallelism,
             progress=self.progress,
-            **kwargs
+            **kwargs,
         )
         logging.debug("Uploaded file {} to {}".format(source, destination))
 
@@ -121,7 +121,7 @@ class WebHDFSHook(BaseHook):
             local_path=local_path,
             overwrite=overwrite,
             n_threads=parallelism,
-            **kwargs
+            **kwargs,
         )
 
         logging.debug("Download file {} to {}".format(hdfs_path, local_path))
@@ -146,4 +146,4 @@ class WebHDFSHook(BaseHook):
 
         with client.write(hdfs, encoding="utf-8") as writer:
             for item in model.items():
-                writer.write(u"%s,%s\n" % item)
+                writer.write("%s,%s\n" % item)

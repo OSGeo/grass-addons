@@ -16,13 +16,23 @@ class TestGrassland(unittest.TestCase):
         if self.rastlayername:
             for m in grass.list_strings("rast"):
                 if self.rastlayername == m:
-                    print("We need a raster map to play with in this test," + " but it seems to exist already: '" + self.rastlayername + "'")
+                    print(
+                        "We need a raster map to play with in this test,"
+                        + " but it seems to exist already: '"
+                        + self.rastlayername
+                        + "'"
+                    )
                     self.assertTrue(False)
 
         if self.vectlayername:
             for m in grass.list_strings("vect"):
                 if self.vectlayername == m:
-                    print("We need a vector map to play with in this test," + " but it seems to exist already: '" + self.vectlayername + "'")
+                    print(
+                        "We need a vector map to play with in this test,"
+                        + " but it seems to exist already: '"
+                        + self.vectlayername
+                        + "'"
+                    )
                     self.assertTrue(False)
 
         self.pg = grassland.Grassland()
@@ -69,7 +79,7 @@ class TestGrassland(unittest.TestCase):
             self.assertRaises(
                 error.DataError,
                 self.pg.setgrasslayer,
-                *[self.rastlayername, self.rastlayername]
+                *[self.rastlayername, self.rastlayername],
             )
             ## so we need to write it first
             pass
@@ -120,7 +130,7 @@ class TestGrassland(unittest.TestCase):
             self.assertRaises(
                 error.DataError,
                 self.pg.writelayer,
-                *[self.rastlayername, self.rastlayername]
+                *[self.rastlayername, self.rastlayername],
             )
             # force write it again..
             self.pg.writelayer(self.rastlayername, self.rastlayername, True)
