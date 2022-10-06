@@ -28,10 +28,6 @@ exclude = '''
     | src/gui/wxpython/wx.wms/parse.py
     | src/gui/wxpython/wx.wms/wmsmenu.py
     | src/gui/wxpython/wx.wms/LoadConfig.py
-    | src/gui/wxpython/newgui/wxgui.py
-    | src/gui/wxpython/newgui/render2.py
-    | src/gui/wxpython/newgui/mapwindow.py
-    | src/gui/wxpython/newgui/frame.py
     | src/raster/r.agent/tests/test_grassland.py
 )
 '''

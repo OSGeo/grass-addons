@@ -134,8 +134,6 @@ class CoorWindow(wx.Dialog):
         original_s = float(dictRegion["south"])
         original_w = float(dictRegion["west"])
 
-        print original_rows, original_cols, original_nsres, original_ewres, original_e, original_n, original_s, original_w
-
         # new_ewres = 1/4 original_ewres
         # new_nsres = 1/4 original_nsres
         # TODO testing about time, to adjust optimal dimension of preview
@@ -189,7 +187,6 @@ class CoorWindow(wx.Dialog):
         # MFD
 
         if self.radioval2 == "True":
-            print self.radioval2
             grass.message("Creating flow accumulation map with MFD algorithm..")
             grass.run_command(
                 "r.watershed",
@@ -199,7 +196,6 @@ class CoorWindow(wx.Dialog):
                 flags="a",
                 overwrite=True,
             )
-            print self.r_acc
 
             grass.run_command(
                 "r.stream.extract",
@@ -213,7 +209,6 @@ class CoorWindow(wx.Dialog):
 
         # SFD
         elif self.radioval3 == "True":
-            print self.radioval3
             grass.message("Creating flow accumulation map with SFD algorithm..")
             grass.run_command(
                 "r.watershed",
@@ -224,7 +219,6 @@ class CoorWindow(wx.Dialog):
                 flags="sa",
                 overwrite=True,
             )
-            print self.r_acc
 
             grass.run_command(
                 "r.stream.extract",
@@ -247,18 +241,16 @@ class CoorWindow(wx.Dialog):
                 direction=self.r_drain,
                 overwrite=True,
             )
-            print self.v_net
 
         # Create temporary files to be visualized in the preview
         img_tmp = grass.tempfile() + ".png"
-        print img_tmp
         grass.run_command("d.mon", start="png", output=img_tmp)
         grass.run_command("d.rast", map=self.r_elev)
         grass.run_command("d.vect", map=self.v_net)
-        print "Exported in file " + img_tmp
+        print("Exported in file " + img_tmp_)
 
         directory = os.path.dirname(img_tmp)
-        print directory
+        print(directory)
 
         # set region to original region
 
@@ -292,7 +284,6 @@ class CoorWindow(wx.Dialog):
 
     def OnMouseAction(self, event):
         coor = self.mapwin.Pixel2Cell(event.GetPositionTuple()[:])
-        print coor
 
         self.x, self.y = coor
         self.x, self.y = "%0.3f" % self.x, "%0.3f" % self.y
@@ -544,8 +535,6 @@ class TabPanelOne(wx.Panel):
         self.SelectedText = self.acc
         self.r_acc = self.acc.GetValue()
 
-        print self.r_acc
-
     def OnSelectSFDAcc(self, event):
         """!Gets new flow accum map and assign it to var"""
         if self.selectedText:
@@ -625,8 +614,6 @@ class TabPanelOne(wx.Panel):
         )
         self.retCode = self.msg.ShowModal()
         if self.retCode == wx.ID_OK:
-            print "OK"
-
             # Raise a new Map Display
             self.mapdisp = self.layerManager.NewDisplay()
 
@@ -652,9 +639,6 @@ class TabPanelOne(wx.Panel):
             )
 
             coorWin.Show()
-
-        else:
-            print "Cancel"
 
     # -------------Network extraction-------------
 
@@ -699,11 +683,3 @@ class TabPanelOne(wx.Panel):
             direction=self.r_drain,
             overwrite=True,
         )
-
-        # Debug
-        print self.r_elev
-        print self.r_acc
-        print self.thre
-        # print self.r_stre
-        print self.v_net
-        print self.r_drain
