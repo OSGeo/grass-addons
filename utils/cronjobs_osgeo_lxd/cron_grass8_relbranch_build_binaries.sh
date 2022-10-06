@@ -35,9 +35,11 @@
 ##########################################
 PATH=/home/neteler/binaries/bin:/usr/bin:/bin:/usr/X11R6/bin:/usr/local/bin
 
-GMAJOR=8
-GMINOR=2
-GPATCH=1
+BRANCH=`curl https://api.github.com/repos/osgeo/grass/branches | grep release | grep '"name":' | cut -f4 -d'"' | sort -V | tail -n 1`
+
+GMAJOR=`echo $BRANCH | cut -f2 -d"_"`
+GMINOR=`echo $BRANCH | cut -f3 -d"_"`
+
 DOTVERSION=$GMAJOR.$GMINOR
 VERSION=$GMAJOR$GMINOR
 GVERSION=$GMAJOR
@@ -52,7 +54,6 @@ LDFLAGSSTRING='-s'
 MAINDIR=/home/neteler
 # where to find the GRASS sources (git clone):
 SOURCE=$MAINDIR/src/
-BRANCH=releasebranch_${GMAJOR}_$GMINOR
 GRASSBUILDDIR=$SOURCE/$BRANCH
 TARGETMAIN=/var/www/code_and_data
 TARGETDIR=$TARGETMAIN/grass${VERSION}/binary/linux/snapshot
@@ -294,6 +295,10 @@ for dir in `find ~/.grass$GMAJOR/addons -maxdepth 1 -type d`; do
         fi
     fi
 done
+
+# Get patch number
+GPATCH=$($GRASSBUILDDIR/bin.$ARCH/grass --config | sed -n '7{p;q}' | cut -f3 -d".")
+
 sh ~/cronjobs/grass-addons-index.sh $GMAJOR $GMINOR $GPATCH $TARGETHTMLDIR/addons/
 cp $TARGETHTMLDIR/grass_logo.png \
    $TARGETHTMLDIR/hamburger_menu.svg \

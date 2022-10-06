@@ -12,8 +12,12 @@
 ###################################################################
 
 MAINDIR=/home/neteler
-GMAJOR=8
-GMINOR=3
+
+BRANCH=main
+
+MAIN_VERSION=`curl https://raw.githubusercontent.com/osgeo/grass/$BRANCH/include/VERSION`
+GMAJOR=`echo "$MAIN_VERSION" | head -n 1`
+GMINOR=`echo "$MAIN_VERSION" | head -n 2 | tail -n 1`
 GVERSION=$GMAJOR.$GMINOR.git
 DOTVERSION=$GMAJOR.$GMINOR
 GSHORTGVERSION=$GMAJOR$GMINOR
@@ -21,7 +25,6 @@ GSHORTGVERSION=$GMAJOR$GMINOR
 ###################
 # where to find the GRASS sources (git clone):
 SOURCE=$MAINDIR/src/
-BRANCH=main
 # where to put the resulting .tar.gz file:
 TARGETMAIN=/var/www/code_and_data/
 TARGETDIR=$TARGETMAIN/grass${GSHORTGVERSION}/source/snapshot

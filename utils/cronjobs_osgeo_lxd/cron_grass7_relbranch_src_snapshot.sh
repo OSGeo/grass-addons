@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# script to build GRASS sources package from git relbranch of 7.8
+# script to build GRASS sources package from git relbranch of 7.X
 # (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
 # Markus Neteler 2002, 2003, 2005, 2006, 2007, 2008, 2012, 2014, 2015, 2016, 2017, 2018, 2019, 2020
 #
@@ -15,8 +15,12 @@
 ###################################################################
 
 MAINDIR=/home/neteler
-GMAJOR=7
-GMINOR=8
+
+BRANCH=`curl https://api.github.com/repos/osgeo/grass/branches | grep releasebranch_7 | grep '"name":' | cut -f4 -d'"' | sort -V | tail -n 1`
+
+GMAJOR=`echo $BRANCH | cut -f2 -d"_"`
+GMINOR=`echo $BRANCH | cut -f3 -d"_"`
+
 GVERSION=$GMAJOR.$GMINOR.git
 DOTVERSION=$GMAJOR.$GMINOR
 GSHORTGVERSION=$GMAJOR$GMINOR
@@ -24,7 +28,7 @@ GSHORTGVERSION=$GMAJOR$GMINOR
 ###################
 # where to find the GRASS sources (git clone):
 SOURCE=$MAINDIR/src/
-BRANCH=releasebranch_${GMAJOR}_${GMINOR}
+
 # where to put the resulting .tar.gz file:
 TARGETMAIN=/var/www/code_and_data/
 TARGETDIR=$TARGETMAIN/grass${GSHORTGVERSION}/source/snapshot

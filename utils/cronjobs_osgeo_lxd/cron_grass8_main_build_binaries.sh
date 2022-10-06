@@ -35,8 +35,9 @@
 #################################
 PATH=/home/neteler/binaries/bin:/usr/bin:/bin:/usr/X11R6/bin:/usr/local/bin
 
-GMAJOR=8
-GMINOR=3
+MAIN_VERSION=`curl https://raw.githubusercontent.com/osgeo/grass/main/include/VERSION`
+GMAJOR=`echo "$MAIN_VERSION" | head -n 1`
+GMINOR=`echo "$MAIN_VERSION" | head -n 2 | tail -n 1`
 GPATCH="dev"
 DOTVERSION=$GMAJOR.$GMINOR
 VERSION=$GMAJOR$GMINOR
@@ -55,6 +56,7 @@ SOURCE=$MAINDIR/src/
 BRANCH=main
 GRASSBUILDDIR=$SOURCE/$BRANCH
 TARGETMAIN=/var/www/code_and_data
+
 TARGETDIR=$TARGETMAIN/grass${VERSION}/binary/linux/snapshot
 TARGETHTMLDIR=$TARGETMAIN/grass${VERSION}/manuals/
 

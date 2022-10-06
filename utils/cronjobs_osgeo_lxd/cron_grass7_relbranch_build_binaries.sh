@@ -33,9 +33,11 @@
 #################################
 PATH=/home/neteler/binaries/bin:/usr/bin:/bin:/usr/X11R6/bin:/usr/local/bin
 
-GMAJOR=7
-GMINOR=8
-GPATCH=7 # required by grass-addons-index.sh
+BRANCH=`curl https://api.github.com/repos/osgeo/grass/branches | grep releasebranch_7 | grep '"name":' | cut -f4 -d'"' | sort -V | tail -n 1`
+
+GMAJOR=`echo $BRANCH | cut -f2 -d"_"`
+GMINOR=`echo $BRANCH | cut -f3 -d"_"`
+
 DOTVERSION=$GMAJOR.$GMINOR
 VERSION=$GMAJOR$GMINOR
 GVERSION=$GMAJOR
@@ -269,6 +271,11 @@ for dir in `find ~/.grass$GMAJOR/addons -maxdepth 1 -type d`; do
         fi
     fi
 done
+
+# Get patch number, required by grass-addons-index.sh
+GRASSBIN=$(find $GRASSBUILDDIR/bin.$ARCH/ -iname "grass*")
+GPATCH=$($GRASSBIN --config | sed -n '7{p;q}' | cut -f3 -d".")
+
 sh ~/cronjobs/grass-addons-index.sh $GMAJOR $GMINOR $GPATCH $TARGETHTMLDIR/addons/
 chmod -R a+r,g+w $TARGETHTMLDIR 2> /dev/null
 
