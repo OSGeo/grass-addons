@@ -313,9 +313,9 @@ def main():
     else:
         # TODO: XXX is a workaround for a bug in v.db.select -j
         json_text = gs.read_command(
-            "v.db.select", map=vector, layer=layer, flags="j", null="XXX", where=where
+            "v.db.select", map=vector, layer=layer, format="json", where=where
         )
-        table_contents = json.loads(json_text)
+        table_contents = json.loads(json_text)["records"]
 
     cmd = python_to_transaction(
         table=table,
