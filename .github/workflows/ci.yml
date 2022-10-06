@@ -98,7 +98,7 @@ jobs:
     - name: Set up R
       uses: r-lib/actions/setup-r@v1
       with:
-        r-version: "4.0.4"
+        r-version: "4.2.1"
 
     - name: Get R dependencies
       run: |
