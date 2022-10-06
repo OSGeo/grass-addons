@@ -280,6 +280,13 @@ for dir in `find ~/.grass$GMAJOR/addons -maxdepth 1 -type d`; do
     fi
 done
 
+<<<<<<< HEAD:utils/cronjobs_osgeo_lxd/cron_grass_legacy_releasebranch_build_binaries.sh
+=======
+# Get patch number, required by grass-addons-index.sh
+GRASSBIN=$(find $GRASSBUILDDIR/bin.$ARCH/ -iname "grass*")
+GPATCH=$($GRASSBIN --config | sed -n '7{p;q}' | cut -f3 -d".")
+
+>>>>>>> 7a59664cf (versionless cronjobs):utils/cronjobs_osgeo_lxd/cron_grass7_relbranch_build_binaries.sh
 sh ~/cronjobs/grass-addons-index.sh $GMAJOR $GMINOR $GPATCH $TARGETHTMLDIR/addons/
 chmod -R a+r,g+w $TARGETHTMLDIR 2> /dev/null
 # inject G8.x new version hint in a red box: into index.html and all addon manual pages
