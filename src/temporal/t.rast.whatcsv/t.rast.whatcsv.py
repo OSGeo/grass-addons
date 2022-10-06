@@ -80,8 +80,8 @@
 import sys
 import copy
 import csv
+import subprocess
 import grass.script as gscript
-from grass.script import core as gcore
 import grass.temporal as tgis
 import grass.pygrass.modules as pymod
 
@@ -127,11 +127,15 @@ def main(options, flags):
     if separator == "newline":
         separator = "\n"
 
-    r_what = gcore.read_command(
-        "r.what", map="dummy", output="-", separator=separator, quiet=True
+    r_what = pymod.Module(
+        "r.what",
+        map="dummy",
+        output="-",
+        separator=separator,
+        quiet=True,
+        stdout_=subprocess.PIPE,
+        run_=False,
     )
-    if len(s) == 0:
-        gcore.fatal(_("No data returned from query"))
 
     reader = csv.reader(open(csv_file, "r"), delimiter=separator)
 
