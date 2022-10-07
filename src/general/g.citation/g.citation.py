@@ -212,30 +212,6 @@ def get_datetime_from_documentation(text):
         raise RuntimeError("Could not parse date from maual")
 
 
-def get_access_date_from_documentation_file_attributes(path):
-    """Extract year from file attributes of the documentation
-
-    >>> path = documentation_filename(name)
-    >>> get_year_from_documentation_file_attributes(path)
-    2011-10-14
-    """
-    date_installed = datetime.fromtimestamp(Path(path).stat().st_ctime).strftime(
-        "%Y-%m-%d"
-    )
-    return date_installed
-
-
-def get_year_from_documentation_file_attributes(path):
-    """Extract year from file attributes of the documentation
-
-    >>> path = documentation_filename(name)
-    >>> get_year_from_documentation_file_attributes(path)
-    2011
-    """
-    year_installed = datetime.fromtimestamp(Path(path).stat().st_ctime).year
-    return int(year_installed)
-
-
 def get_email(text):
     """Get email from text
 
@@ -838,6 +814,7 @@ def citation_for_module(name, add_grass=False):
 def get_core_modules():
     # test.r3flow manual is non-standard and breaks 'g.citation -a',
     # so here standard module prefixes are filtered
+    # two characters are used, so db and r3 are not matched with a dot
     module_prefixes = ["d.", "db", "g.", "h.", "i.", "m.", "r.", "r3", "t.", "v."]
     # TODO: see what get_commands() does on MS Windows
     modules = sorted(
