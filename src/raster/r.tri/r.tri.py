@@ -15,6 +15,11 @@
 
 # %module
 # % description: Computes the Terrain Ruggedness Index.
+# % keyword: raster
+# % keyword: surface
+# % keyword: terrain
+# % keyword: ruggedness
+# % keyword: parallel
 # %end
 
 # %option G_OPT_R_INPUT

@@ -23,6 +23,7 @@
 # % keyword: regression
 # % keyword: machine learning
 # % keyword: scikit-learn
+# % keyword: parallel
 # %end
 
 # %option G_OPT_I_GROUP

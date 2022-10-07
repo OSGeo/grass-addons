@@ -23,6 +23,7 @@
 # % keyword: sampling
 # % keyword: raster
 # % keyword: time
+# % keyword: parallel
 # %end
 
 # %option G_OPT_V_INPUT

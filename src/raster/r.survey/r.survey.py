@@ -34,9 +34,10 @@
 
 # %Module
 # % description: Returns maps of visibility indexes from multiple survey points
-# % keywords: raster
-# % keywords: visibility
-# % keywords: survey
+# % keyword: raster
+# % keyword: visibility
+# % keyword: survey
+# % keyword: parallel
 # %end
 # %option G_OPT_V_INPUT
 # % key: points
@@ -1579,7 +1580,7 @@ def main():
                 ),
                 quiet=True,
             )
-        gscript.message(" Succesful run ")
+        gscript.message(" Successful run ")
     # in case of CTRL-C
     except KeyboardInterrupt as error:
         gscript.fatal(f"Program interruption: {error}")

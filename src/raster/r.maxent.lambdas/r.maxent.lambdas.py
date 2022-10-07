@@ -58,6 +58,7 @@ COPYRIGHT:    (C) 2019-2022 by the Norwegian Institute for Nature Research
 # % keyword: maxent
 # % keyword: ecology
 # % keyword: niche
+# % keyword: parallel
 # %End
 
 # %flag

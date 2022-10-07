@@ -26,6 +26,7 @@
 # % keyword: USGS
 # % keyword: NED
 # % keyword: NAIP
+# % keyword: parallel
 # %end
 
 # %flag

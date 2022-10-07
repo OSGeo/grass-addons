@@ -23,6 +23,7 @@
 # % keyword: machine learning
 # % keyword: scikit-learn
 # % keyword: training
+# % keyword: parallel
 # %end
 
 # %option G_OPT_I_GROUP

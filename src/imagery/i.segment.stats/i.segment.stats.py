@@ -18,6 +18,7 @@
 # % keyword: imagery
 # % keyword: segmentation
 # % keyword: statistics
+# % keyword: parallel
 # %end
 # %option G_OPT_R_MAP
 # % label: Name for input raster map with areas

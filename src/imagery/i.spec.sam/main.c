@@ -87,6 +87,7 @@ int main(int argc,char * argv[])
     module = G_define_module();
     G_add_keyword(_("imagery"));
     G_add_keyword(_("spectral angle mapping"));
+    G_add_keyword(_("parallel"));
     module->description =
         _("Performs Spectral angle mapping on satellite/aerial images");
 

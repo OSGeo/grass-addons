@@ -6,7 +6,7 @@ MODULE:       r.viewshed.exposure
 AUTHOR(S):    Zofie Cimburova, Stefan Blumentrath
 
 PURPOSE:      Computes visual exposure to defined exposure source using
-              weighted parametrised cummulative viewshed analysis
+              weighted parametrised cumulative viewshed analysis
 
 COPYRIGHT:    (C) 2022 by Zofie Cimburova, Stefan Blumentrath, and the GRASS
               GIS Development Team
@@ -23,12 +23,13 @@ for details.
 
 # %module
 # % label: Visual exposure to defined exposure source.
-# % description: Computes visual exposure to defined exposure source using weighted parametrised cummulative viewshed analysis.
+# % description: Computes visual exposure to defined exposure source using weighted parametrised cumulative viewshed analysis.
 # % keyword: raster
 # % keyword: viewshed
 # % keyword: line of sight
 # % keyword: LOS
 # % keyword: visual exposure
+# % keyword: parallel
 # %end
 
 # %option G_OPT_R_INPUT
@@ -289,7 +290,7 @@ def do_it_all(global_vars, target_pts_np):
     the previous partial viewsheds
     :param target_pts_np: Array of target points in global coordinate system
     :type target_pts_np: ndarray
-    :return: 2D array of weighted parametrised cummulative viewshed
+    :return: 2D array of weighted parametrised cumulative viewshed
     :rtype: ndarray
     """
     # Set counter
@@ -428,13 +429,13 @@ def do_it_all(global_vars, target_pts_np):
         # 5. Cummulate viewsheds
         # ======================================================================
         # Determine position of local parametrised viewshed within
-        # global cummulative viewshed
+        # global cumulative viewshed
         o_2 = [
             int(round((reg.north - loc_reg_n) / reg.nsres)),  # NS (rows)
             int(round((loc_reg_w - reg.west) / reg.ewres)),  # EW (cols)
         ]
 
-        # Add local parametrised viewshed to global cummulative viewshed
+        # Add local parametrised viewshed to global cumulative viewshed
         # replace nans with 0 in processed regions, keep nan where both are nan
         all_nan = np.all(
             np.isnan(
@@ -1109,7 +1110,7 @@ def main():
     if pfunction == "Fuzzy_viewshed" and range_inp == -1:
         grass.fatal(
             "Exposure range cannot be \
-            infinity for fuzzy viewshed approch."
+            infinity for fuzzy viewshed approach."
         )
 
     if pfunction == "Fuzzy_viewshed" and b_1 > range_inp:
@@ -1319,7 +1320,7 @@ def main():
     grass.debug("target_pts_np: {}".format(target_pts_np))
 
     # ==========================================================================
-    # Calculate weighted parametrised cummulative viewshed
+    # Calculate weighted parametrised cumulative viewshed
     # by iterating over target points T
     # ==========================================================================
     grass.verbose("Calculating partial viewsheds...")
@@ -1362,7 +1363,7 @@ def main():
     # Combine each chunk with dictionary
     combo = list(zip(itertools.repeat(global_vars), target_pnts))
 
-    # Calculate partial cummulative viewshed
+    # Calculate partial cumulative viewshed
     with Pool(cores) as pool:
         np_sum = pool.starmap(do_it_all, combo)
         pool.close()
@@ -1380,7 +1381,7 @@ def main():
     reg.set_current()
     reg.set_raster_region()
 
-    # Convert numpy array of cummulative viewshed to raster
+    # Convert numpy array of cumulative viewshed to raster
     numpy2raster(np_sum, mtype="FCELL", rastname=r_output, overwrite=True)
 
     # Remove temporary files and reset mask if needed

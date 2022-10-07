@@ -20,6 +20,7 @@
 # % keyword: elevation
 # % keyword: terrain
 # % keyword: visualization
+# % keyword: parallel
 # %end
 # %option
 # % type: string
