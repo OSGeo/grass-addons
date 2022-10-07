@@ -8,16 +8,6 @@ from grass.gunittest.gmodules import SimpleModule
 class CiteAllCase(TestCase):
     """Test if g.citation works for core modules and addons"""
 
-    @classmethod
-    def setUpClass(cls):
-        """No data needed"""
-        pass
-
-    @classmethod
-    def tearDownClass(cls):
-        """Nothing to remove"""
-        pass
-
     def test_core_modules(self):
         """Test that citation information is collected for all core modules"""
         module = SimpleModule("g.citation", flags="ad")
@@ -34,7 +24,7 @@ class CiteAllCase(TestCase):
             self.assertModule(module)
 
     def test_addons(self):
-        """Test that citation information is collected for all core modules"""
+        """Test that citation information is retrieved from addons"""
         module = SimpleModule("g.citation", module="g.citation")
         self.assertModule(module)
 
