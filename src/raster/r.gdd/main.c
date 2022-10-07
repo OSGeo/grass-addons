@@ -69,6 +69,7 @@ int main(int argc, char *argv[])
 
     module = G_define_module();
     G_add_keyword(_("raster"));
+    G_add_keyword(_("aggregation"));
     G_add_keyword(_("series"));
     G_add_keyword(_("parallel"));
     module->description =
