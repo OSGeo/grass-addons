@@ -38,8 +38,8 @@ class TestVDbPyUpdate(TestCase):
             expression="f'Phone num. {phone}'",
         )
         table = json.loads(
-            gs.read_command("v.db.select", map=self.vector_name, flags="j")
-        )
+            gs.read_command("v.db.select", map=self.vector_name, format="json")
+        )["records"]
         for row in table:
             self.assertTrue(
                 row["display_phone"].startswith("Phone num. "),
@@ -62,18 +62,19 @@ class TestVDbPyUpdate(TestCase):
             where="phone is not null",
         )
         table = json.loads(
-            gs.read_command("v.db.select", map=self.vector_name, flags="j")
-        )
+            gs.read_command("v.db.select", map=self.vector_name, format="json")
+        )["records"]
         for row in table:
-            if row["PHONE"].startswith("(919)"):
-                self.assertTrue(
-                    row["display_phone"].startswith("Phone num. (919)"),
-                    msg="Column does not contain the expected prefix: {row}".format(
-                        **locals()
-                    ),
-                )
-            else:
-                self.assertFalse(row["display_phone"].startswith("Phone num."))
+            if row["PHONE"]:
+                if row["PHONE"].startswith("(919)"):
+                    self.assertTrue(
+                        row["display_phone"].startswith("Phone num. (919)"),
+                        msg="Column does not contain the expected prefix: {row}".format(
+                            **locals()
+                        ),
+                    )
+                else:
+                    self.assertTrue(row["display_phone"] is None)
 
 
 if __name__ == "__main__":
