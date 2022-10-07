@@ -118,6 +118,17 @@
 # % guisection: Speed
 # %end
 
+# %option
+# % key: cache_size_tolerance
+# % type: integer
+# % required: yes
+# % multiple: no
+# % label: Tolerance for file size difference between cached file and stated download size
+# % description: The size difference is used to recognize failed downloads and corrupted files, but some difference occurs naturally
+# % answer: 20
+# % guisection: Speed
+# %end
+
 # %option G_OPT_M_DIR
 # % key: output_directory
 # % required: no
@@ -413,8 +424,9 @@ def main():
     gui_i_flag = flags["i"]
     gui_k_flag = flags["k"]
     work_dir = options["output_directory"]
-    memory = options["memory"]
-    nprocs = options["nprocs"]
+    memory = int(options["memory"])
+    nprocs = int(options["nprocs"])
+    cache_size_tolerance = int(options["cache_size_tolerance"])
 
     preserve_extracted_files = True
     use_existing_extracted_files = True
@@ -551,9 +563,6 @@ def main():
     # Assign needed parameters from returned JSON
     tile_API_count = int(return_JSON["total"])
     tiles_needed_count = 0
-    # TODO: Make the tolerance configurable.
-    # Some combinations produce >10 byte differences.
-    size_diff_tolerance = 5
     exist_dwnld_size = 0
 
     # Fatal error if API query returns no results for GUI input
@@ -591,7 +600,7 @@ def main():
         if file_exists:
             existing_local_file_size = os.path.getsize(local_file_path)
             # if local file is incomplete
-            if abs(existing_local_file_size - TNM_file_size) > size_diff_tolerance:
+            if abs(existing_local_file_size - TNM_file_size) > cache_size_tolerance:
                 gscript.verbose(
                     _(
                         "Size of local file {filename} ({local_size}) differs"
@@ -604,7 +613,7 @@ def main():
                         local_size=existing_local_file_size,
                         api_size=TNM_file_size,
                         difference=abs(existing_local_file_size - TNM_file_size),
-                        tolerance=size_diff_tolerance,
+                        tolerance=cache_size_tolerance,
                     )
                 )
                 # NLCD API query returns subsets that cannot be filtered before
@@ -916,7 +925,7 @@ def main():
                             resolution_value=product_resolution,
                             extent="region",
                             resample=product_interpolation,
-                            memory=int(float(memory) // int(nprocs)),
+                            memory=int(memory // nprocs),
                         ),
                     )
                 else:
@@ -979,6 +988,11 @@ def main():
 
     # v.surf.rst lidar params
     rst_params = dict(tension=25, smooth=0.1, npmin=100)
+    # Works for single digit numbers.
+    if gs.version()["version"] >= "8.2.0":
+        r_patch_kwargs = {"nprocs": nprocs, "memory": memory}
+    else:
+        r_patch_kwargs = {}
 
     # Check that downloaded files match expected count
     completed_tiles_count = len(local_tile_path_list)
@@ -994,7 +1008,10 @@ def main():
                         patch_names_i = [name + "." + i for name in patch_names]
                         output = gui_output_layer + "." + i
                         gscript.run_command(
-                            "r.patch", input=patch_names_i, output=output
+                            "r.patch",
+                            input=patch_names_i,
+                            output=output,
+                            **r_patch_kwargs,
                         )
                         gscript.raster_history(output)
                 elif gui_product == "lidar":
@@ -1013,7 +1030,10 @@ def main():
                     )
                 else:
                     gscript.run_command(
-                        "r.patch", input=patch_names, output=gui_output_layer
+                        "r.patch",
+                        input=patch_names,
+                        output=gui_output_layer,
+                        **r_patch_kwargs,
                     )
                     gscript.raster_history(gui_output_layer)
                 gscript.del_temp_region()
