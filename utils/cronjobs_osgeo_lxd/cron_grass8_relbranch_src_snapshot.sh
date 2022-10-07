@@ -14,9 +14,10 @@
 MAINDIR=/home/neteler
 
 BRANCH=`curl https://api.github.com/repos/osgeo/grass/branches | grep release | grep '"name":' | cut -f4 -d'"' | sort -V | tail -n 1`
+MAIN_VERSION=`curl https://raw.githubusercontent.com/osgeo/grass/$BRANCH/include/VERSION`
 
-GMAJOR=`echo $BRANCH | cut -f2 -d"_"`
-GMINOR=`echo $BRANCH | cut -f3 -d"_"`
+GMAJOR=`echo "$MAIN_VERSION" | sed -n '1{p;q}'`
+GMINOR=`echo "$MAIN_VERSION" | sed -n '2{p;q}'`
 
 GVERSION=$GMAJOR.$GMINOR.git
 DOTVERSION=$GMAJOR.$GMINOR

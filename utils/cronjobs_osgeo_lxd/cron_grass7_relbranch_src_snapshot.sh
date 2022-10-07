@@ -16,10 +16,16 @@
 
 MAINDIR=/home/neteler
 
-BRANCH=`curl https://api.github.com/repos/osgeo/grass/branches | grep releasebranch_7 | grep '"name":' | cut -f4 -d'"' | sort -V | tail -n 1`
+CURRENT_BRANCH=`curl https://api.github.com/repos/osgeo/grass/branches | grep release | grep '"name":' | cut -f4 -d'"' | sort -V | tail -n 1`
+CURRENT_VERSION=`curl https://raw.githubusercontent.com/osgeo/grass/$CURRENT_BRANCH/include/VERSION`
+CURRENT_MAJOR=`echo "$CURRENT_VERSION" | sed -n '1{p;q}'`
+GMAJOR=`expr $CURRENT_MAJOR - 1`
 
-GMAJOR=`echo $BRANCH | cut -f2 -d"_"`
-GMINOR=`echo $BRANCH | cut -f3 -d"_"`
+BRANCH=`curl https://api.github.com/repos/osgeo/grass/branches | grep releasebranch_$GMAJOR | grep '"name":' | cut -f4 -d'"' | sort -V | tail -n 1`
+
+MAIN_VERSION=`curl https://raw.githubusercontent.com/osgeo/grass/$BRANCH/include/VERSION`
+
+GMINOR=`echo "$MAIN_VERSION" | sed -n '2{p;q}'`
 
 GVERSION=$GMAJOR.$GMINOR.git
 DOTVERSION=$GMAJOR.$GMINOR

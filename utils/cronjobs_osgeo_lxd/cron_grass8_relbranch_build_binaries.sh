@@ -36,9 +36,11 @@
 PATH=/home/neteler/binaries/bin:/usr/bin:/bin:/usr/X11R6/bin:/usr/local/bin
 
 BRANCH=`curl https://api.github.com/repos/osgeo/grass/branches | grep release | grep '"name":' | cut -f4 -d'"' | sort -V | tail -n 1`
+MAIN_VERSION=`curl https://raw.githubusercontent.com/osgeo/grass/$BRANCH/include/VERSION`
 
-GMAJOR=`echo $BRANCH | cut -f2 -d"_"`
-GMINOR=`echo $BRANCH | cut -f3 -d"_"`
+GMAJOR=`echo "$MAIN_VERSION" | sed -n '1{p;q}'`
+GMINOR=`echo "$MAIN_VERSION" | sed -n '2{p;q}'`
+GPATCH=`echo "$MAIN_VERSION" | sed -n '3{p;q}' | sed 's/[^0-9]*//g'`
 
 DOTVERSION=$GMAJOR.$GMINOR
 VERSION=$GMAJOR$GMINOR
@@ -295,9 +297,6 @@ for dir in `find ~/.grass$GMAJOR/addons -maxdepth 1 -type d`; do
         fi
     fi
 done
-
-# Get patch number
-GPATCH=$($GRASSBUILDDIR/bin.$ARCH/grass --config | sed -n '7{p;q}' | cut -f3 -d".")
 
 sh ~/cronjobs/grass-addons-index.sh $GMAJOR $GMINOR $GPATCH $TARGETHTMLDIR/addons/
 cp $TARGETHTMLDIR/grass_logo.png \

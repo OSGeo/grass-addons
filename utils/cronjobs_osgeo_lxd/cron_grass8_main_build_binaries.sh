@@ -35,10 +35,13 @@
 #################################
 PATH=/home/neteler/binaries/bin:/usr/bin:/bin:/usr/X11R6/bin:/usr/local/bin
 
-MAIN_VERSION=`curl https://raw.githubusercontent.com/osgeo/grass/main/include/VERSION`
-GMAJOR=`echo "$MAIN_VERSION" | head -n 1`
-GMINOR=`echo "$MAIN_VERSION" | head -n 2 | tail -n 1`
-GPATCH="dev"
+BRANCH=main
+MAIN_VERSION=`curl https://raw.githubusercontent.com/osgeo/grass/$BRANCH/include/VERSION`
+
+GMAJOR=`echo "$MAIN_VERSION" | sed -n '1{p;q}'`
+GMINOR=`echo "$MAIN_VERSION" | sed -n '2{p;q}'`
+GPATCH=`echo "$MAIN_VERSION" | sed -n '3{p;q}'`
+
 DOTVERSION=$GMAJOR.$GMINOR
 VERSION=$GMAJOR$GMINOR
 GVERSION=$GMAJOR

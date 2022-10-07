@@ -33,10 +33,17 @@
 #################################
 PATH=/home/neteler/binaries/bin:/usr/bin:/bin:/usr/X11R6/bin:/usr/local/bin
 
-BRANCH=`curl https://api.github.com/repos/osgeo/grass/branches | grep releasebranch_7 | grep '"name":' | cut -f4 -d'"' | sort -V | tail -n 1`
+CURRENT_BRANCH=`curl https://api.github.com/repos/osgeo/grass/branches | grep release | grep '"name":' | cut -f4 -d'"' | sort -V | tail -n 1`
+CURRENT_VERSION=`curl https://raw.githubusercontent.com/osgeo/grass/$CURRENT_BRANCH/include/VERSION`
+CURRENT_MAJOR=`echo "$CURRENT_VERSION" | sed -n '1{p;q}'`
+GMAJOR=`expr $CURRENT_MAJOR - 1`
 
-GMAJOR=`echo $BRANCH | cut -f2 -d"_"`
-GMINOR=`echo $BRANCH | cut -f3 -d"_"`
+BRANCH=`curl https://api.github.com/repos/osgeo/grass/branches | grep releasebranch_$GMAJOR | grep '"name":' | cut -f4 -d'"' | sort -V | tail -n 1`
+
+MAIN_VERSION=`curl https://raw.githubusercontent.com/osgeo/grass/$BRANCH/include/VERSION`
+
+GMINOR=`echo "$MAIN_VERSION" | sed -n '2{p;q}'`
+GPATCH=`echo "$MAIN_VERSION" | sed -n '3{p;q}' | sed 's/[^0-9]*//g'`
 
 DOTVERSION=$GMAJOR.$GMINOR
 VERSION=$GMAJOR$GMINOR
@@ -271,10 +278,6 @@ for dir in `find ~/.grass$GMAJOR/addons -maxdepth 1 -type d`; do
         fi
     fi
 done
-
-# Get patch number, required by grass-addons-index.sh
-GRASSBIN=$(find $GRASSBUILDDIR/bin.$ARCH/ -iname "grass*")
-GPATCH=$($GRASSBIN --config | sed -n '7{p;q}' | cut -f3 -d".")
 
 sh ~/cronjobs/grass-addons-index.sh $GMAJOR $GMINOR $GPATCH $TARGETHTMLDIR/addons/
 chmod -R a+r,g+w $TARGETHTMLDIR 2> /dev/null
