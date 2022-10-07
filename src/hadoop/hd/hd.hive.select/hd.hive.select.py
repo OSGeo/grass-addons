@@ -68,7 +68,7 @@ def main():
             io.writelines(out)
             io.close()
     else:
-        print out
+        print(out)
 
 
 if __name__ == "__main__":
