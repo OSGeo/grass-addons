@@ -15,29 +15,29 @@ programmer's manual.
 * generate and deploy the GRASS GIS Web pages at <https://grass.osgeo.org/>:
   * `hugo_clean_and_update_job.sh`
 * GRASS GIS source code weekly snapshots:
-  * grass7-stable: `cron_grass7_relbranch_src_snapshot.sh`
-  * grass8-stable: `cron_grass8_relbranch_src_snapshot.sh`
-  * grass8-devel: `cron_grass8_main_src_snapshot.sh`
+  * grass-legacy: `cron_grass_legacy_relbranch_src_snapshot.sh`
+  * grass-stable: `cron_grass_relbranch_src_snapshot.sh`
+  * grass-devel: `cron_grass_main_src_snapshot.sh`
 * GRASS GIS Linux binary weekly snapshots:
-  * grass7-stable: `cron_grass7_relbranch_build_binaries.sh`
-  * grass8-stable: `cron_grass8_relbranch_build_binaries.sh`
+  * grass-legacy: `cron_grass_legacy_relbranch_build_binaries.sh`
+  * grass-stable: `cron_grass_relbranch_build_binaries.sh`
 * GRASS GIS addons manual pages:
-  * grass7-stable: within `cron_grass7_relbranch_build_binaries.sh`
-  * grass8-stable: within `cron_grass8_relbranch_build_binaries.sh`
-* GRASS GIS 7 addons overview page at <https://grass.osgeo.org/grass7/manuals/addons/>:
-  * `compile_addons_git.sh` - called from `cron_grass7_relbranch_build_binaries.sh`
-  * `build-xml.py` - called from `cron_grass7_relbranch_build_binaries.sh`,
+  * grass-legacy: within `cron_grass_legacy_relbranch_build_binaries.sh`
+  * grass-stable: within `cron_grass_relbranch_build_binaries.sh`
+* GRASS GIS legacy addons overview page at <https://grass.osgeo.org/grass7/manuals/addons/>:
+  * `compile_addons_git.sh` - called from `cron_grass_legacy_relbranch_build_binaries.sh`
+  * `build-xml.py` - called from `cron_grass_legacy_relbranch_build_binaries.sh`,
     generates the modules.xml file required for the g.extension module
-  * `grass-addons-index.sh` - called from `cron_grass7_relbranch_build_binaries.sh`
+  * `grass-addons-index.sh` - called from `cron_grass_legacy_relbranch_build_binaries.sh`
   * `get_page_description.py` - called from `grass-addons-index.sh`
-* GRASS GIS 8 addons overview page at <https://grass.osgeo.org/grass8/manuals/addons/>:
-  * `compile_addons_git.sh` - called from `cron_grass8_relbranch_build_binaries.sh`
-  * `build-xml.py` - called from `cron_grass8_relbranch_build_binaries.sh`
+* GRASS GIS addons overview page at <https://grass.osgeo.org/grass8/manuals/addons/>:
+  * `compile_addons_git.sh` - called from `cron_grass_relbranch_build_binaries.sh`
+  * `build-xml.py` - called from `cron_grass_relbranch_build_binaries.sh`
     generates the modules.xml file required for the g.extension module
-  * `grass-addons-index.sh` - called from `cron_grass8_relbranch_build_binaries.sh`
+  * `grass-addons-index.sh` - called from `cron_grass_relbranch_build_binaries.sh`
   * `get_page_description.py` - called from `grass-addons-index.sh`
 * GRASS GIS programmer's manual:
-  * within `cron_grass8_relbranch_build_binaries.sh`
+  * within `cron_grass_relbranch_build_binaries.sh`
 * compilation addons:
   * `compile_addons_git.sh` it's called with `$5` arg, addon is
 installed into own individual directory, with **bin/ docs/ etc/ scripts/**
