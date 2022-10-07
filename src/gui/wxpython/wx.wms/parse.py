@@ -59,16 +59,16 @@ class LayerData:
 
     def printLayerData(self, layerDataDict):
         for key, value in layerDataDict.iteritems():
-            print key
-            print value.name.string
-            print value.title.string
-            print value.abstract.string
+            print(key)
+            print(value.name.string)
+            print(value.title.string)
+            print(value.abstract.string)
             srss = value.srs
             for srs in srss:
                 a = srs.string
                 a = a.split(":")
-                print a[0] + " " + a[1]
-            print "--------------------------------------------"
+                print(a[0] + " " + a[1])
+            print("--------------------------------------------")
 
     def appendLayerTree(self, layerDataDict, LayerTree, layerTreeRoot):
         for key, value in layerDataDict.iteritems():
@@ -218,16 +218,16 @@ def test(xml, LayerTree, layerTreeRoot):
 def dfs(root, LayerTree, ltr):
 
     if not hasattr(root, "contents"):
-        print root.string
+        print(root.string)
         return
     else:
         id = ltr
-        print root.name
+        print(root.name)
         if root.name == "layer":
             names = root.findAll("name")
             if len(names) > 0:
                 id = LayerTree.AppendItem(ltr, names[0].string)
-                print names[0].string
+                print(names[0].string)
         children = root.contents
         for child in children:
             dfs(child, LayerTree, id)
@@ -268,8 +268,8 @@ def dfs1(node, LayerTree, ltr, lData):
             queryable = None
             try:
                 queryable = node.attributes["queryable"].value
-            except Exception, e:
-                print e
+            except Exception as e:
+                print(e)
                 queryable = 1
 
             name = getAttributeLayers(node, "name")

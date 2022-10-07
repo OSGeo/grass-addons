@@ -70,16 +70,16 @@ class LayerData:
         @param2:Dictionary holding values of type LayerData() object with keys as integers from 0 to len(layerDataDict)
         """
         for key, value in layerDataDict.iteritems():
-            print key
-            print value.name
-            print value.title
-            print value.abstract
+            print(key)
+            print(value.name)
+            print(value.title)
+            print(value.abstract)
             srss = value.srs
             for srs in srss:
                 a = srs.string
                 a = a.split(":")
-                print a[0] + " " + a[1]
-            print "--------------------------------------------"
+                print(a[0] + " " + a[1])
+            print("--------------------------------------------")
 
     def appendLayerTree(self, layerDataDict, LayerTree, layerTreeRoot):
         """
@@ -159,26 +159,26 @@ class ManageLayerTree:
             return
 
         currentLayerDetails = LayerTree.GetItemText(nodeId)
-        print currentLayerDetails
+        print(currentLayerDetails)
         if not (
             currentLayerDetails == "Layers" and currentLayerDetails.count(":") == 0
         ):
             currentLayerName = (currentLayerDetails.split(":")[0]).split("-")[1]
-            print "name = " + currentLayerName
+            print("name = " + currentLayerName)
             currentLayerKey = (currentLayerDetails.split(":")[0]).split("-")[0]
-            print "key = " + currentLayerKey
+            print("key = " + currentLayerKey)
             if currentLayerKey not in parent.selectedLayersKeys:
                 parent.selectedLayersKeys += [currentLayerKey]
-                print "selected layers = "
-                print parent.selectedLayersKeys
-                print "queryable = "
-                print int(parent.layerDataDict1[currentLayerKey].queryable)
+                print("selected layers = ")
+                print(parent.selectedLayersKeys)
+                print("queryable = ")
+                print(int(parent.layerDataDict1[currentLayerKey].queryable))
                 if int(parent.layerDataDict1[currentLayerKey].queryable) == 1:
                     parent.epsgList.Append("<" + currentLayerName + ">")
                     listEPSG = parent.layerDataDict1[currentLayerKey].srsList
                     parent.epsgList.AppendItems(listEPSG)
                     parent.layersString += "," + currentLayerName
-                    print "layersString = " + parent.layersString
+                    print("layersString = " + parent.layersString)
         # allChild = self.getAllChild(LayerTree, nodeId)
         # for child in allChild:
         #    self.layerTreeItemDFS(parent,LayerTree,child)
@@ -361,18 +361,18 @@ class wmsFrame(wx.Frame):
             self.keyToEPSGCodes = ld.setKeyToEPSGCodes(layerDataDict)
             self.selectedEPSG = None
             self.layerDataDict1 = test(xml, self.LayerTree, self.layerTreeRoot)
-            print self.layerDataDict1
+            print(self.layerDataDict1)
             self.LayerTree.Expand(self.layerTreeRoot)
-        except HTTPError, e:
+        except HTTPError as e:
             message = "The server couldn't fulfill the request."
             message = str(e)
-        except URLError, e:
+        except URLError as e:
             message = "Failed to reach a server."
             message = str(e)
-        except ValueError, e:
+        except ValueError as e:
             message = "Value error"
             message = str(e)
-        except Exception, e:
+        except Exception as e:
             message = "urlopen exception, unable to fetch data for getcapabilities"
             message = str(e)
         else:
@@ -431,7 +431,7 @@ class wmsFrame(wx.Frame):
             + "&layers="
         )
         getMap_request_url += self.layerName + "&bbox=" + bbox
-        print getMap_request_url
+        print(getMap_request_url)
         req = Request(getMap_request_url)
         try:
             message = "GetMaps request sent. Waiting for response..."
@@ -466,16 +466,16 @@ class wmsFrame(wx.Frame):
                 self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
                 NewImageFrame(TMP)
 
-        except HTTPError, e:
+        except HTTPError as e:
             message = "The server couldn't fulfill the request."
             message = str(e)
-        except URLError, e:
+        except URLError as e:
             message = "Failed to reach a server."
             message = str(e)
-        except ValueError, e:
+        except ValueError as e:
             message = "Value error"
             message = str(e)
-        except Exception, e:
+        except Exception as e:
             message = "urlopen exception, unable to fetch data for getcapabilities"
             message = str(e)
         else:
@@ -527,7 +527,7 @@ class wmsFrame(wx.Frame):
             try:
                 uid = self.map_servernameTouid[urlarr[0]]
                 self.selectedURL = self.servers[uid].url
-            except KeyError, e:
+            except KeyError as e:
                 message = "key error reported"
                 grass.warning(message)
         else:
@@ -555,7 +555,6 @@ class wmsFrame(wx.Frame):
         self.selectedLayerList = []
         keys = []
         self.layerName = ""
-        # print len(self.LayerTree.GetSelections())
         res = ""
         self.layersString = ""
         manageLT = ManageLayerTree()
@@ -564,10 +563,7 @@ class wmsFrame(wx.Frame):
             # res = res + ','+self.LayerTree.GetItemText(sellayer)
             manageLT.layerTreeItemDFS(self, self.LayerTree, sellayer)
 
-            # print child
-        print self.layersString[1:]
         self.layerName = self.layersString[1:]
-        # print self.layerDataDict1
         self.selectedEPSG = None
         event.Skip()
         """
@@ -592,7 +588,6 @@ class wmsFrame(wx.Frame):
             
           
         self.layerName = self.layerName[1:]
-        print self.layerName
         self.selectedEPSG = None"""
 
     def OnAddServer(self, event):  # wxGlade: wmsFrame.<event_handler>
@@ -737,14 +732,13 @@ class wmsFrame(wx.Frame):
 
     def printDict(self, dict):
         for key in dict.keys():
-            print "the key name is" + key + "and its value is"
+            print("the key name is" + key + "and its value is")
 
 
 # end of class wmsFrame
 
 
 def DisplayWMSMenu():
-    # print os.environ
     app = wx.PySimpleApp(0)
     wx.InitAllImageHandlers()
     wms_Frame = wmsFrame(None, -1, "")

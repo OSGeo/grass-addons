@@ -63,7 +63,7 @@ class HDFSHook(BaseHook):
             print(type(client.count(["/"])))
             print("-" * 40 + "\n")
             return False
-        except Exception, e:
+        except Exception as e:
             print("     EROOR: connection can not be established: %s \n" % e)
             print("***" * 30)
             return False

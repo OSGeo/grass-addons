@@ -323,8 +323,8 @@ class HiveSpatial(object):
             print("\n     Test connection (show databases;) \n       %s\n" % res)
             print("***" * 30)
             return True
-        except Exception, e:
-            print("     EROOR: connection can not be established:\n       %s\n" % e)
+        except Exception as e:
+            print("     ERROR: connection can not be established:\n       %s\n" % e)
             print("***" * 30)
             return False
 
@@ -333,7 +333,7 @@ class HiveSpatial(object):
         Function for adding jars to the hive path.
         :param jar_list: list of jars
         :type jar_list: list
-        :param path: if true , jar_list must incliudes path \
+        :param path: if true , jar_list must include path \
                  to jar, else by default jars must be in ${env:HIVE_HOME}
         :type path: bool
         :return:

@@ -66,14 +66,12 @@ class ListImg(wx.Listbook):
         old = event.GetOldSelection()
         new = event.GetSelection()
         sel = self.GetSelection()
-        print "OnPageChanged,  old:%d, new:%d, sel:%d\n" % (old, new, sel)
         event.Skip()
 
     def OnPageChanging(self, event):
         old = event.GetOldSelection()
         new = event.GetSelection()
         sel = self.GetSelection()
-        print "OnPageChanging, old:%d, new:%d, sel:%d\n" % (old, new, sel)
         event.Skip()
 
 
