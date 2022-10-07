@@ -35,6 +35,7 @@
 # % keyword: variance
 # % keyword: segmentation
 # % keyword: threshold
+# % keyword: parallel
 # %end
 #
 # %option G_OPT_I_GROUP
