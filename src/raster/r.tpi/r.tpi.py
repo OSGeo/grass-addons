@@ -50,9 +50,6 @@
 # %end
 
 import atexit
-import multiprocessing as mp
-import random
-import string
 import sys
 from subprocess import PIPE
 
