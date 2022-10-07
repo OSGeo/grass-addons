@@ -3,6 +3,7 @@
 num_points_expected=42
 num_cats_expected=7
 
+g.region raster=landclass96
 r.sample.category input=landclass96 output=landclass_points npoints=6 --o
 
 num_points=$(v.db.select -c landclass_points | wc -l)
