@@ -311,7 +311,6 @@ def main():
         )
         table_contents = csv_loads(csv_text, delimeter=sep, null=null)
     else:
-        # TODO: XXX is a workaround for a bug in v.db.select -j
         json_text = gs.read_command(
             "v.db.select", map=vector, layer=layer, format="json", where=where
         )
