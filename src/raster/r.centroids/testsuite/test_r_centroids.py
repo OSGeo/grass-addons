@@ -31,14 +31,13 @@ class TestCentroids(TestCase):
         # to not override mapset's region (which might be used by other tests)
         cls.use_temp_region()
         # cls.runModule or self.runModule is used for general module calls
-        cls.runModule("g.region", raster="basins")
+        cls.runModule("g.region", raster="basin")
 
     @classmethod
     def tearDownClass(cls):
         """Remove temporary region"""
         cls.del_temp_region()
 
-    @classmethod
     def tearDown(self):
         """
         Remove the outputs created from the centroids module
@@ -51,7 +50,7 @@ class TestCentroids(TestCase):
         # assertModule is used to call module which we test
         # we expect module to finish successfully
         self.assertModule(
-            "r.centroids", input="basins", output=self.centroids, overwrite=True
+            "r.centroids", input="basin", output=self.centroids, overwrite=True
         )
 
         self.assertVectorEqualsAscii(

@@ -42,8 +42,8 @@ def main():
     options, flags = gs.parser()
 
     # options and flags into variables
-    ipl = options["input"]
-    opl = options["output"]
+    in_raster = options["input"]
+    out_vector = options["output"]
     gs.run_command(
         "r.volume",
         quiet=True,
