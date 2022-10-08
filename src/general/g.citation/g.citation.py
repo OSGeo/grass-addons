@@ -210,7 +210,8 @@ def get_datetime_from_documentation(text):
     except ValueError:
         # TODO: raise or fatal? should be in library or module?
         raise RuntimeError(
-            "Cannot extract the time of the latest change from the manual"
+            "Cannot extract the time of the latest change from the manual."
+            "The respective entry does now seem to follow the expected standard."
         )
 
 
