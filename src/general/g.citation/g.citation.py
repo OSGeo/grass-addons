@@ -190,7 +190,7 @@ def clean_line_item(text):
 
 
 def get_datetime_from_documentation(text):
-    """Extract year from text containing SVN date entry
+    """Extract time of latest change from manual
     >>> text = "  Latest change: Monday Jun 28 11:54:09 2021 in commit: 1cfc0af029a35a5d6c7dae5ca7204d0eb85dbc55"
     >>> get_datetime_from_documentation(text)
     datetime.datetime(2022, 9, 18, 23, 55, 9)
@@ -209,7 +209,7 @@ def get_datetime_from_documentation(text):
         return datetime.strptime(match.group(2).replace("  ", " "), date_format)
     except ValueError:
         # TODO: raise or fatal? should be in library or module?
-        raise RuntimeError("Could not parse date from manual")
+        raise RuntimeError("Cannot extract the time of the latest change from the manual")
 
 
 def get_email(text):
