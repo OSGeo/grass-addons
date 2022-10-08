@@ -209,7 +209,7 @@ def get_datetime_from_documentation(text):
         return datetime.strptime(match.group(2).replace("  ", " "), date_format)
     except ValueError:
         # TODO: raise or fatal? should be in library or module?
-        raise RuntimeError("Could not parse date from maual")
+        raise RuntimeError("Could not parse date from manual")
 
 
 def get_email(text):
