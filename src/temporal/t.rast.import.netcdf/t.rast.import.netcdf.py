@@ -245,6 +245,7 @@ RESAMPLE_DICT = {
 }
 
 GRASS_VERSION = list(map(int, gscript.version()["version"].split(".")[0:2]))
+TGIS_VERSION = 2
 ALIGN_REGION = None
 
 
@@ -328,7 +329,7 @@ def parse_semantic_label_conf(conf_file):
     if conf_file is None or conf_file == "":
         return None
 
-    if GRASS_VERSION[0] < 8:
+    if GRASS_VERSION[0] < 8 or TGIS_VERSION < 3:
         gscript.warning(
             _(
                 "The semantic labels concept requires GRASS GIS version 8.0 or later.\n"
@@ -680,10 +681,11 @@ def create_vrt(
             transform,
             edge_densification=15,
         )
+        # Cropping to computational region should only be done with r-flag
         aligned_bbox = ALIGN_REGION(transformed_bbox)
-        print(aligned_bbox)
         kwargs["dstSRS"] = gisenv["LOCATION_PROJECTION"]
         kwargs["resampleAlg"] = resample
+        # Resolution should be probably taken from region rather than from source dataset
         kwargs["xRes"] = gt[1]
         kwargs["yRes"] = -gt[5]
         kwargs["outputBounds"] = (
@@ -976,6 +978,8 @@ def main():
 
     # Initialize TGIS
     tgis.init()
+    global TGIS_VERSION
+    TGIS_VERSION = tgis.get_tgis_db_version_from_metadata()
 
     # Get existing STRDS
     dataset_list = tgis.list_stds.get_dataset_list(
@@ -1167,7 +1171,7 @@ def main():
     for strds_name, r_maps in modified_strds.items():
         # Register raster maps in strds using tgis
         tgis_strds = tgis.SpaceTimeRasterDataset(strds_name + "@" + grass_env["MAPSET"])
-        if GRASS_VERSION >= [8, 0]:
+        if GRASS_VERSION >= [8, 0] and TGIS_VERSION >= 3:
             map_file = StringIO("\n".join(r_maps))
         else:
             map_file = gscript.tempfile()
