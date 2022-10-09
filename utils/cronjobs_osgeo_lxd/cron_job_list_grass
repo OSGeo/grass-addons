@@ -25,14 +25,14 @@
 
 # weekly source snapshots (target dir: /var/www/code_and_data/)
 30 02 * * 6 nice sh /home/neteler/cronjobs/cron_grass_main_src_snapshot.sh
-40 02 * * 6 nice sh /home/neteler/cronjobs/cron_grass_relbranch_src_snapshot.sh
-50 02 * * 6 nice sh /home/neteler/cronjobs/cron_grass_legacy_relbranch_src_snapshot.sh
+40 02 * * 6 nice sh /home/neteler/cronjobs/cron_grass_releasebranch_src_snapshot.sh
+50 02 * * 6 nice sh /home/neteler/cronjobs/cron_grass_legacy_releasebranch_src_snapshot.sh
 
 # daily Linux binary snapshots, also creates main manuals, addon manuals, and prog-manual (target dir: /var/www/code_and_data/)
 # old stable: G78
-05 05 * * * nice sh /home/neteler/cronjobs/cron_grass_legacy_relbranch_build_binaries.sh > /var/www/code_and_data/grass78/binary/linux/snapshot/build.log.txt 2>&1
+05 05 * * * nice sh /home/neteler/cronjobs/cron_grass_legacy_releasebranch_build_binaries.sh > /var/www/code_and_data/grass78/binary/linux/snapshot/build.log.txt 2>&1
 # stable: G82
-15 05 * * * nice sh /home/neteler/cronjobs/cron_grass_relbranch_build_binaries.sh > /var/www/code_and_data/grass82/binary/linux/snapshot/build.log.txt 2>&1
+15 05 * * * nice sh /home/neteler/cronjobs/cron_grass_releasebranch_build_binaries.sh > /var/www/code_and_data/grass82/binary/linux/snapshot/build.log.txt 2>&1
 # dev: G83
 25 05 * * * nice sh /home/neteler/cronjobs/cron_grass_main_build_binaries.sh > /var/www/code_and_data/grass83/binary/linux/snapshot/build.log.txt 2>&1
 
