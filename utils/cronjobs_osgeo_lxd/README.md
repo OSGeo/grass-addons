@@ -24,7 +24,7 @@ programmer's manual.
 * GRASS GIS addons manual pages:
   * grass-legacy: within `cron_grass_legacy_releasebranch_build_binaries.sh`
   * grass-stable: within `cron_grass_releasebranch_build_binaries.sh`
-* GRASS GIS legacy addons overview page at <https://grass.osgeo.org/grass7/manuals/addons/>:
+* GRASS GIS legacy addons overview page at <https://grass.osgeo.org/grass-legacy/manuals/addons/>:
   * `compile_addons_git.sh` - called from `cron_grass_legacy_releasebranch_build_binaries.sh`
   * `build-xml.py` - called from `cron_grass_legacy_releasebranch_build_binaries.sh`,
     generates the modules.xml file required for the g.extension module
