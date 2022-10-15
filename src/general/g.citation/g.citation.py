@@ -195,16 +195,14 @@ def get_datetime_from_documentation(text):
     >>> get_datetime_from_documentation(text)
     datetime.datetime(2022, 9, 18, 23, 55, 9)
     """
+    date_format = "%A %b %d %H:%M:%S %Y"
     datetime_capture = r"^  (Latest change: )(.*)( in commit: ).*"
     match = re.search(datetime_capture, text, re.MULTILINE | re.DOTALL | re.IGNORECASE)
-    if match:
-        date_format = "%A %b %d %H:%M:%S %Y"
-    else:
-        datetime_capture = r"^  (Accessed: ).*([A-Z][a-z]{2} [A-Z][a-z]{2}\s+[0-9]{1,2} [0-9]{2}:[0-9]{2}:[0-9]{2} [0-9]{4}).*"
+    if not match:
+        datetime_capture = r"^  (Accessed: )([a-z]{6,9} [a-z]{3} [0-9]{1,2} [0-9]{2}:[0-9]{2}:[0-9]{2} [0-9]{4}).*"
         match = re.search(
             datetime_capture, text, re.MULTILINE | re.DOTALL | re.IGNORECASE
         )
-        date_format = "%a %b %d %H:%M:%S %Y"
     try:
         return datetime.strptime(match.group(2).replace("  ", " "), date_format)
     except ValueError:
