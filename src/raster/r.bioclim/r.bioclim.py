@@ -14,7 +14,7 @@
 #############################################################################
 
 # %module
-# % description: Calcuates bioclimatic indices.
+# % description: Calcualtes bioclimatic indices.
 # % keyword: raster
 # % keyword: time series
 # % overwrite: yes
