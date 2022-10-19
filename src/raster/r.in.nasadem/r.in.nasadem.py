@@ -115,6 +115,7 @@ import shutil
 import time
 import zipfile as zfile
 import subprocess
+import urllib
 from six.moves.urllib import request as urllib2
 
 try:
@@ -294,14 +295,13 @@ def download_tile(tile, url, pid, version, username, password):
 
         request = urllib2.Request(remote_tile)
         response = urllib2.urlopen(request)
-
         fo = open(local_tile, "w+b")
         fo.write(response.read())
         fo.close
         time.sleep(0.5)
-    except:
-        goturl = 0
-        pass
+    except urllib.error.URLError as err:
+        grass.fatal(_(f"Download of tile {local_tile} from URL {remote_tile} was not "
+                      f"successful:\n{err}"))
 
     return goturl
 
@@ -310,14 +310,14 @@ def cleanup():
     if not in_temp:
         return
     os.chdir(currdir)
+    if TGTGISRC:
+        os.environ["GISRC"] = str(TGTGISRC)
     if tmpregionname:
         grass.run_command("g.region", region=tmpregionname)
         grass.run_command(
             "g.remove", type="region", name=tmpregionname, flags="f", quiet=True
         )
     grass.try_rmdir(tmpdir)
-    if TGTGISRC:
-        os.environ["GISRC"] = str(TGTGISRC)
     # remove temp location
     if TMPLOC:
         grass.try_rmdir(os.path.join(GISDBASE, TMPLOC))
@@ -514,7 +514,6 @@ def main():
 
             if local is None:
                 download_tile(tile, url, pid, nasadem_version, username, password)
-
             gotit = import_local_tile(tile, local, pid, nasadem_layer)
             if gotit == 1:
                 grass.verbose(_("Tile %s successfully imported") % tile)
