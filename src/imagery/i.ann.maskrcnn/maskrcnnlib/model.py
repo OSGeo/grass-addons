@@ -29,10 +29,15 @@ import keras.models as KM
 import utils
 
 # Requires TensorFlow 1.3+ and Keras 2.0.8+.
-from distutils.version import LooseVersion
-
-assert LooseVersion(tf.__version__) >= LooseVersion("1.3")
-assert LooseVersion(keras.__version__) >= LooseVersion("2.0.8")
+version_pattern = "([0-9]{1,3}).([0-9]{1,4})"
+assert list(map(int, re.match(version_pattern, tf.__version__).groups())) >= [1, 3]
+version_pattern = "([0-9]{1,3}).([0-9]{1,4}).([0-9]{1,4})"
+assert list(
+    map(
+        int,
+        re.match(version_pattern, keras.__version__).groups(),
+    )
+) >= [2, 0, 8]
 
 
 ############################################################
