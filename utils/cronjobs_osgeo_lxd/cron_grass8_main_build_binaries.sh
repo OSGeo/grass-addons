@@ -84,10 +84,10 @@ configure_grass()
 
 # cleanup
 rm -rf man/__pycache__/ python/libgrass_interface_generator/ctypesgen/parser/__pycache__/ \
-        python/libgrass_interface_generator/ctypesgen/printer_json/__pycache__/ \
-	python/libgrass_interface_generator/ctypesgen/printer_python/__pycache__/ \
-	python/libgrass_interface_generator/ctypesgen/processor/__pycache__/ \
-	config_$GMAJOR.$GMINOR.git_log.txt
+   python/libgrass_interface_generator/ctypesgen/printer_json/__pycache__/ \
+   python/libgrass_interface_generator/ctypesgen/printer_python/__pycache__/ \
+   python/libgrass_interface_generator/ctypesgen/processor/__pycache__/ \
+   config_$GMAJOR.$GMINOR.git_log.txt
 
 # reset i18N POT files
 git checkout locale/templates/*.pot
@@ -300,7 +300,11 @@ for dir in `find ~/.grass$GMAJOR/addons -maxdepth 1 -type d`; do
     fi
 done
 sh ~/cronjobs/grass-addons-index.sh $GMAJOR $GMINOR $GPATCH $TARGETHTMLDIR/addons/
-cp $TARGETHTMLDIR/grass_logo.png $TARGETHTMLDIR/grassdocs.css $TARGETHTMLDIR/addons/
+cp $TARGETHTMLDIR/grass_logo.png \
+   $TARGETHTMLDIR/hamburger_menu.svg \
+   $TARGETHTMLDIR/hamburger_menu_close.svg \
+   $TARGETHTMLDIR/grassdocs.css \
+   $TARGETHTMLDIR/addons/
 chmod -R a+r,g+w $TARGETHTMLDIR 2> /dev/null
 
 # cp logs from ~/.grass$GMAJOR/addons/logs/
