@@ -295,7 +295,11 @@ for dir in `find ~/.grass$GMAJOR/addons -maxdepth 1 -type d`; do
     fi
 done
 sh ~/cronjobs/grass-addons-index.sh $GMAJOR $GMINOR $GPATCH $TARGETHTMLDIR/addons/
-cp $TARGETHTMLDIR/grass_logo.png $TARGETHTMLDIR/grassdocs.css $TARGETHTMLDIR/addons/
+cp $TARGETHTMLDIR/grass_logo.png \
+   $TARGETHTMLDIR/hamburger_menu.svg \
+   $TARGETHTMLDIR/hamburger_menu_close.svg \
+   $TARGETHTMLDIR/grassdocs.css \
+   $TARGETHTMLDIR/addons/
 chmod -R a+r,g+w $TARGETHTMLDIR 2> /dev/null
 
 # cp logs from ~/.grass$GMAJOR/addons/logs/
