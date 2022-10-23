@@ -24,8 +24,6 @@ jobs:
             python-version: "3.8"
           - grass-version: releasebranch_8_2
             python-version: "3.8"
-          - grass-version: releasebranch_8_0
-            python-version: "3.7"
       fail-fast: false
 
     steps:
