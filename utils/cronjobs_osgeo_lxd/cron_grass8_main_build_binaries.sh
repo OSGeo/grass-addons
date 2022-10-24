@@ -83,7 +83,7 @@ configure_grass()
 #   --with-mysql --with-mysql-includes=/usr/include/mysql --with-mysql-libs=/usr/lib/mysql \
 
 # cleanup
-rm -rf config_$GMAJOR.$GMINOR.git_log.txt
+rm -f config_$GMAJOR.$GMINOR.git_log.txt
 
 # reset i18N POT files
 git checkout locale/templates/*.pot
