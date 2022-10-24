@@ -83,11 +83,7 @@ configure_grass()
 #   --with-mysql --with-mysql-includes=/usr/include/mysql --with-mysql-libs=/usr/lib/mysql \
 
 # cleanup
-rm -rf man/__pycache__/ python/libgrass_interface_generator/ctypesgen/parser/__pycache__/ \
-   python/libgrass_interface_generator/ctypesgen/printer_json/__pycache__/ \
-   python/libgrass_interface_generator/ctypesgen/printer_python/__pycache__/ \
-   python/libgrass_interface_generator/ctypesgen/processor/__pycache__/ \
-   config_$GMAJOR.$GMINOR.git_log.txt
+rm -f config_$GMAJOR.$GMINOR.git_log.txt
 
 # reset i18N POT files
 git checkout locale/templates/*.pot
