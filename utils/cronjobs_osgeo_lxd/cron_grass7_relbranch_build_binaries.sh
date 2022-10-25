@@ -1,8 +1,8 @@
 #!/bin/sh
 
-# script to build GRASS 7.x binaries + addons from the `releasebranch_7_0` binaries
+# script to build GRASS 7.x binaries + addons from the `releasebranch_7_x` binaries
 # (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
-# 2008, 2014, 2015, 2016, 2017, 2018, 2019, 2021
+# 2008, 2014, 2015, 2016, 2017, 2018, 2019, 2021, 2022
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
@@ -23,12 +23,11 @@
 # - generates the user 7 HTML manuals
 # - injects DuckDuckGo search field
 # - injects G8 new version box
+# - injects canonical URL
 
 # Preparations:
-#  - Install PROJ: http://trac.osgeo.org/proj/ incl Datum shift grids
-#     sh conf_proj4.sh
+#  - Install PROJ
 #  - Install GDAL: http://trac.osgeo.org/gdal/wiki/DownloadSource
-#     sh conf_gdal.sh
 #  - Install apt-get install texlive-latex-extra python3-sphinxcontrib.apidoc
 #  - Clone source from github
 #################################
@@ -272,10 +271,10 @@ for dir in `find ~/.grass$GMAJOR/addons -maxdepth 1 -type d`; do
 done
 sh ~/cronjobs/grass-addons-index.sh $GMAJOR $GMINOR $GPATCH $TARGETHTMLDIR/addons/
 chmod -R a+r,g+w $TARGETHTMLDIR 2> /dev/null
+
 # inject G8.x new version hint in a red box: into index.html and all addon manual pages
 (cd $TARGETHTMLDIR/addons/ ; sed -i -e "s: Addons Manual pages</h2>: Addons Manual pages</h2><p style=\"border\:3px; border-style\:solid; border-color\:#BC1818; padding\: 1em;\">Note\: This addon documentation is for an older version of GRASS GIS that will be discontinued soon. You should upgrade your GRASS GIS installation, and read the <a href=\"../../../grass-stable/manuals/addons/index.html\">current addon manual page</a>.</p>:g" index.html)
 (cd $TARGETHTMLDIR/addons/ ; for myfile in `ls *.html` ; do sed -i -e "s:<hr class=\"header\">:<hr class=\"header\"><p style=\"border\:3px; border-style\:solid; border-color\:#BC1818; padding\: 1em;\">Note\: This addon document is for an older version of GRASS GIS that will be discontinued soon. You should upgrade your GRASS GIS installation, and read the <a href=\"../../../../grass-stable/manuals/addons/$myfile\">current addon manual page</a>.</p>:g" $myfile ; done)
-
 
 # cp logs from ~/.grass$GMAJOR/addons/logs/
 mkdir -p $TARGETMAIN/addons/grass$GMAJOR/logs/
@@ -290,8 +289,16 @@ export ARCH
 export ARCH_DISTDIR=$GRASSBUILDDIR/dist.$ARCH
 export GISBASE=$ARCH_DISTDIR
 export VERSION_NUMBER=$DOTVERSION
-python3 $GRASSBUILDDIR/man/build_keywords.py $TARGETMAIN/grass$GMAJOR$GMINOR/manuals/ $TARGETMAIN/grass$GMAJOR$GMINOR/manuals/addons/
+python3 $GRASSBUILDDIR/man/build_keywords.py $TARGETHTMLDIR/ $TARGETHTMLDIR/addons/
 unset ARCH ARCH_DISTDIR GISBASE VERSION_NUMBER
+
+# canonical: once again after addon manual (re)creation, only where missing
+# SEO: inject canonical link in all (old) manual pages to point to latest stable (avoid duplicate content SEO punishment)
+# see https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls
+(cd $TARGETHTMLDIR/ ; for myfile in `grep -L 'link rel="canonical"' *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass-stable/manuals/$myfile\">\n</head>:g" $myfile ; done)
+(cd $TARGETHTMLDIR/addons/ ; for myfile in `grep -L 'link rel="canonical"' *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass-stable/manuals/addons/$myfile\">\n</head>:g" $myfile ; done)
+(cd $TARGETHTMLDIR/libpython/ ; for myfile in `grep -L 'link rel="canonical"' *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass-stable/manuals/libpython/$myfile\">\n</head>:g" $myfile ; done)
+
 
 ############################################
 # create sitemaps to expand the hugo sitemap
