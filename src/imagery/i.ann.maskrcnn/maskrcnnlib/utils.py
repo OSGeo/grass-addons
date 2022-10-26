@@ -23,6 +23,7 @@ import skimage.io
 import skimage.transform
 import urllib.request
 import glob
+import re
 import warnings
 
 # URL from which to download the latest COCO trained weights
