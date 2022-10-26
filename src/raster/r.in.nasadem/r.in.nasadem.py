@@ -301,9 +301,8 @@ def download_tile(tile, url, pid, version, username, password):
         time.sleep(0.5)
     except urllib.error.URLError as err:
         grass.fatal(
-            _(
-                f"Download of tile {local_tile} from URL {remote_tile} was not "
-                f"successful:\n{err}"
+            _("Download of tile {0} from URL {1} was not successful:\n{2}").format(
+                local_tile, remote_tile, err
             )
         )
 
