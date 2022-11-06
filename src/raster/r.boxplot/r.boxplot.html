@@ -63,12 +63,14 @@ The zonal map needs to be an integer map. If it is not, the function will exit
 with the error message, 'The zonal raster must be of type CELL (integer)'.
 
 <p>
-The option to color boxploxs using the colors of the categories of the zonal
-raster (-c flag) only works if the zonal map contains a color table. If it
-does not, the function exits with the error message that 'The zonal map
-does not have a color table'. If you think there is a color table, run 
-<i>r.colors.out</i> and check if the categories are integers. If not, that
-is the problem. If they are all integers, you probably have caught a bug.
+If the -c flag is used, the bxp_color and median_color are ignored, 
+even if set by the user. The option to color boxploxs using the colors 
+of the categories of the zonal raster (-c flag) only works if the zonal 
+map contains a color table. If it does not, the function exits with the 
+error message that 'The zonal map does not have a color table'. If you 
+think there is a color table, run <i>r.colors.out</i> and check if the 
+categories are integers. If not, that is the problem. If they are all 
+integers, you probably have caught a bug.
 
 <p>
 The module respects the mask (if set), and the region settings. This
