@@ -197,10 +197,6 @@
 # % requires: -c, zones
 # %end
 
-# %rules
-# % excludes: -c, bx_color
-# %end
-
 # %option
 # % key: bx_width
 # % type: double
@@ -238,10 +234,6 @@
 # % required: no
 # % answer: orange
 # % guisection: Boxplot format
-# %end
-
-# %rules
-# % excludes: -c, median_color
 # %end
 
 # %option
