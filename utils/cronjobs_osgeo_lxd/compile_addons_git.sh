@@ -29,7 +29,7 @@ else
 fi
 
 if [ -z "$3" ]; then
-    echo "Usage: $0 grass_major_version grass_minor_version git_path \
+    echo "Usage: $0 grass_major_version grass_minor_version git_patch \
 topdir addons_path grass_startup_program [separate]"
     echo "eg. $0 8 0 ~/src/grass_addons/grass${GMAJOR}/ \
 ~/src/releasebranch_${GMAJOR}_${GMINOR}/dist.${PLATFORM}-pc-linux-gnu \

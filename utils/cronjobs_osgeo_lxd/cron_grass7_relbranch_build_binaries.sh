@@ -128,7 +128,7 @@ cp -f *.csv $TARGETMAIN/uploads/grass/
 
 #configure
 echo "configuring"
-configure_grass || (echo "$0: an error occured" ; exit 1)
+configure_grass || (echo "$0: an error occurred" ; exit 1)
 pwd
 ARCH=`cat include/Make/Platform.make | grep ^ARCH | cut -d'=' -f2 | xargs`
 
@@ -257,7 +257,7 @@ sh ~/cronjobs/compile_addons_git.sh $GMAJOR \
    ~/src/$BRANCH/bin.$ARCH/grass$VERSION \
    1
 mkdir -p $TARGETHTMLDIR/addons/
-# copy indvidual addon html files into one target dir if compiled addon
+# copy individual addon html files into one target dir if compiled addon
 # has own dir e.g. ~/.grass7/addons/db.join/ with bin/ docs/ etc/ scripts/
 # subdir
 for dir in `find ~/.grass$GMAJOR/addons -maxdepth 1 -type d`; do
@@ -309,7 +309,7 @@ python3 $HOME/src/grass$GMAJOR-addons/utils/create_manuals_sitemap.py --dir=/var
 ############################################
 # cleanup
 cd $GRASSBUILDDIR
-$MYMAKE distclean  > /dev/null || (echo "$0: an error occured" ; exit 1)
+$MYMAKE distclean  > /dev/null || (echo "$0: an error occurred" ; exit 1)
 
 echo "Finished GRASS $VERSION $ARCH compilation."
 echo "Written to: $TARGETDIR"

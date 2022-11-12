@@ -69,7 +69,7 @@ and finally open a [pull request](https://help.github.com/en/articles/about-pull
 If you aim at full write access, this must be formally requested, see here for details:
 <https://trac.osgeo.org/grass/wiki/HowToContribute#WriteaccesstotheGRASSaddonsrepository>
 
-In either case, please note the folloing submitting rules: To successfully submit your
+In either case, please note the following submitting rules: To successfully submit your
 GRASS GIS AddOn module here, please check
 
 <https://grass.osgeo.org/development/>
