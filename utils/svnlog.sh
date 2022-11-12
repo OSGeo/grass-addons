@@ -73,7 +73,7 @@ if [ "$prefix" != "" ]; then
 	prefix="$prefix "
 fi
 
-# retreive and combine log messages
+# retrieve and combine log messages
 svn log $revs |
 awk \
 	--assign user="$user" \

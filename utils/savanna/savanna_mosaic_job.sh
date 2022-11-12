@@ -17,7 +17,7 @@
 export tile_output_name=$output_prefix"_"$day_unique_id
 # export temp_mapset=$tile_output_name
 # This could set up an infinite loops, so be careful.
-# We need to surpress the output -- this loop works fine
+# We need to suppress the output -- this loop works fine
 # except the output file will grow out of control.
 export GRASS_BATCH_JOB=$savanna_path/$savanna_mosaic_grass_file
 # for i in (( ; ; )); do

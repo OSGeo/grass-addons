@@ -44,7 +44,7 @@ subdir e.g. db.join addon dir `$HOME/.grass8/addons/db.join/`, instead of
 directory structure`$HOME/.grass8/addons/` where **bin/ docs/ etc/ scripts/**
 subdir are shared across all installed addons (this dir structure is used
 to install the addon using the `g.extension` module). Addon installed directory
-is setted via global variable [`GRASS_ADDON_BASE`](https://github.com/OSGeo/grass-addons/pull/656/commits/8c08184415ec32fe409bf09b2599b0506d7650ab#diff-f0fc8363c0e166fdbe9eecb74a9e261498ec0bbf15500e56b1bb1b5ba7afb900L119),
+is set via global variable [`GRASS_ADDON_BASE`](https://github.com/OSGeo/grass-addons/pull/656/commits/8c08184415ec32fe409bf09b2599b0506d7650ab#diff-f0fc8363c0e166fdbe9eecb74a9e261498ec0bbf15500e56b1bb1b5ba7afb900L119),
 e.g. for db.join addon is`GRASS_ADDON_BASE=$HOME/.grass8/addons/db.join/`.
 Before compilation and installation is downloaded [addons_paths.json](https://github.com/OSGeo/grass-addons/pull/656/commits/8c08184415ec32fe409bf09b2599b0506d7650ab#diff-f0fc8363c0e166fdbe9eecb74a9e261498ec0bbf15500e56b1bb1b5ba7afb900R128)
 but only once, for first compiled addon, and then this file is moved to

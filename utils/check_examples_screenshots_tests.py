@@ -15,7 +15,7 @@ modules = ["d.", "db.", "g.", "i.", "m.", "r3.", "r.", "t.", "v.", "wxGUI."]
 
 
 def is_module(name):
-    """Check if html page is refering to a module or not"""
+    """Check if html page is referring to a module or not"""
     right = False
     for mod in modules:
         if name.startswith(mod):

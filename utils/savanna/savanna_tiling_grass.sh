@@ -24,7 +24,7 @@ $gregion
 
 eval `$gregion -g`
 
-# Add additional search paths, if neccessary.
+# Add additional search paths, if necessary.
 g.mapsets addmapset=$additional_searchpaths 'fs= ,' 
 
 g.region -p
