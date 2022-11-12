@@ -64,7 +64,7 @@ def join_output(inputs, output, width, height, resize=None):
     :param str output: the output name
     :param int width: the width of images
     :param int height: the height of images
-    :param float resize: value beetwen 0 and 1 to resize the finale output
+    :param float resize: value between 0 and 1 to resize the final output
     """
     out = Image.new("RGB", (width * len(inputs), height), "white")
     x = 0
