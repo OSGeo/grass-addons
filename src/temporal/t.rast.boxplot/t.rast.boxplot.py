@@ -121,6 +121,13 @@
 # % required: no
 # %end
 
+# %flag
+# % key: d
+# % label: ConciseDateFormatter
+# % description: Us date format as compact as possible while still having complete date information. This will override the data_format setting.
+# % guisection: Plot format
+# %end
+
 # %option
 # % key: axis_limits
 # % type: string
@@ -780,9 +787,19 @@ def main(options, flags):
     )
 
     # Set granuality and format of date on x (or y) axis
-    ax = set_axis(
-        ax, options["date_format"], temp_unit, vertical, rast_dates, temp_lngt
-    )
+    if flags["d"]:
+        locator = mdates.AutoDateLocator(interval_multiples=True)
+        formatter = mdates.ConciseDateFormatter(locator)
+        if vertical:
+            ax.xaxis.set_major_locator(locator)
+            ax.xaxis.set_major_formatter(formatter)
+        else:
+            ax.yaxis.set_major_locator(locator)
+            ax.yaxis.set_major_formatter(formatter)
+    else:
+        ax = set_axis(
+            ax, options["date_format"], temp_unit, vertical, rast_dates, temp_lngt
+        )
 
     # Set color boxplots
     bxcolor = [bxcolor for _i in range(len(rast_names))]

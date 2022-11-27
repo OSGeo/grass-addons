@@ -35,6 +35,14 @@ options, see the <a href="https://strftime.org/">Python strftime
 cheatsheet</a>. 
 
 <p>
+Alternatively, the user can set the <i>-d flag</i>. With this option, 
+an attempt is made to figure out the best tick locations and format to 
+use, and to make the format as compact as possible while still having 
+complete date information. Note, this will override the 
+<i>data_format</i> setting. With this option, often not all boxplots 
+will get a label.
+
+<p>
 By default, the resulting plot is displayed on screen. However, the 
 user can also save the plot to file using the <em>output</em> option. 
 The format is determined by the extension given by the user. So, if 
@@ -49,11 +57,25 @@ layers are very large, try to avoid setting the 'range' value very low,
 as that may result in a massive number of outliers, slowing down the 
 computations and rendering of the plot.
 
+<p>
 The t.rast.boxplot module operates on the raster array defined by the 
 current region settings, not the original extent and resolution of the 
 input map. See <a 
 href="https://grass.osgeo.org/grass-stable/manuals/r.univar.html">g.region</a> 
 to understand the impact of the region settings on the calculations. 
+  
+<p>
+You can change the width of the boxplot using the <i>bx_width</i> 
+parameter. The default value is 0.75, which means that the boxplots
+0.75 the maximum width between two consecutive periods. Importantly,
+the function uses the time stamp unit (see 
+<a href="https://grass.osgeo.org/grass-stable/manuals/t.register.html">
+t.register</a>) to determine the maximum width. This means that if
+the time stamp unit is in days, but the raster layers represent e.g.,
+10-day periods, you need to multiply the <i>bx_width</i> value you would 
+normally use by 10 to get the same relative width. See 
+<a href="https://ecodiv.earth/post/drawing-boxplots-of-raster-values/">
+this post</a> for an example.
 
 <h2>EXAMPLE</h2>
 
