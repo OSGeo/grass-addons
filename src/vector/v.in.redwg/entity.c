@@ -129,7 +129,7 @@ void getEntTypeName(Dwg_Object *obj, char *name)
     case DWG_TYPE_VIEWPORT:
 	strcpy(name, "VIEWPORT");
 	break;
-    case DWG_TYPE_3DSOLID:
+    case DWG_TYPE__3DSOLID:
 	strcpy(name, "SOLID3D");
 	break;
     case DWG_TYPE_RAY:
@@ -233,7 +233,7 @@ int write_line(Dwg_Object * obj, int type, int level)
     db_append_string(&sql, buf);
 
     /* Weight */
-    sprintf(buf, ", %d", obj->tio.entity->lineweight);
+    sprintf(buf, ", %d", obj->tio.entity->linewt);
     db_append_string(&sql, buf);
 
     /* Layer name */
@@ -249,14 +249,14 @@ int write_line(Dwg_Object * obj, int type, int level)
     if (_type == 51)
       {
         layer = obj->tio.entity->layer->obj->tio.object->tio.LAYER;
-        printf ("IS A LAYER! name = %s", layer->entry_name);
+        printf ("IS A LAYER! name = %s", layer->name);
       }
     else printf("NOT A LAYER!");
     printf("\n");
 
     if (layer) {
-      if (layer->entry_name) {
-	db_set_string(&str, layer->entry_name);
+      if (layer->name) {
+	db_set_string(&str, layer->name);
 	db_double_quote_string(&str);
 	sprintf(buf, ", '%s'", db_get_string(&str));
       }
@@ -389,8 +389,8 @@ void write_entity(Dwg_Object *obj, Dwg_Object ** objects,
     case DWG_TYPE_TEXT:
         text = obj->tio.entity->tio.TEXT;
 	Txt = (char *)text->text_value;
-	Vect_append_point(Points, text->insertion_pt.x, text->insertion_pt.y,
-			  0); // insertion_poin.z ??
+	Vect_append_point(Points, text->ins_pt.x, text->ins_pt.y,
+			  0); // ins_pt.z ??
 	write_line(obj, GV_POINT, level);
 	break;
 
@@ -468,7 +468,7 @@ void write_entity(Dwg_Object *obj, Dwg_Object ** objects,
 	    insert->ins_pt.y, insert->ins_pt.z);
 	G_debug(3, " xscale, yscale, zscale: %f, %f, %f", insert->scale.x,
 	    insert->scale.y, insert->scale.z);
-	G_debug(3, " rotang: %f", insert->rotation_ang);
+	G_debug(3, " rotang: %f", insert->rotation);
 	/*
 	G_debug(3, " ncols, nrows: %d, %d", ent->insert.numcols,
 		ent->insert.numrows);
@@ -490,7 +490,7 @@ void write_entity(Dwg_Object *obj, Dwg_Object ** objects,
         _obj = insert->block_header->obj;
         _obj_obj = _obj->tio.object;
         blockhdr = _obj_obj->tio.BLOCK_HEADER;
-	if (blockhdr->entry_name[0] == ((unsigned char)'*')) //PSPACE OR MSPACE
+	if (blockhdr->name[0] == ((unsigned char)'*')) //PSPACE OR MSPACE
 	  {
             printf("Skipping PSPACE or MSPACE block\n");
             break;
@@ -512,7 +512,7 @@ void write_entity(Dwg_Object *obj, Dwg_Object ** objects,
                 Trans[level + 1].xscale = insert->scale.x;
                 Trans[level + 1].yscale = insert->scale.y;
                 Trans[level + 1].zscale = insert->scale.z;
-                Trans[level + 1].rotang = insert->rotation_ang;
+                Trans[level + 1].rotang = insert->rotation;
                 printf("Writing inserted entity. Level = %d\n", level+1);
                 write_entity(ent, objects, ent_counter, level+1);
                 ent = dwg_next_object(ent);
