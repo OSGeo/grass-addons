@@ -328,7 +328,7 @@ static int examineExample(int i1, SupportVectorMachine * SVM)
 	{
 	    int k0, k, i2;
 
-	    for (k0 = (int)(drand48() * SVM->end_support_i), k = k0;
+	    for (k0 = (int)(G_drand48() * SVM->end_support_i), k = k0;
 		 k < SVM->end_support_i + k0; k++) {
 		i2 = k % SVM->end_support_i;
 		if (SVM->alph[i2] > 0 && SVM->alph[i2] < SVM->Cw[i2]) {
@@ -340,7 +340,7 @@ static int examineExample(int i1, SupportVectorMachine * SVM)
 	{
 	    int k0, k, i2;
 
-	    for (k0 = (int)(drand48() * SVM->end_support_i), k = k0;
+	    for (k0 = (int)(G_drand48() * SVM->end_support_i), k = k0;
 		 k < SVM->end_support_i + k0; k++) {
 		i2 = k % SVM->end_support_i;
 		if (takeStep(i1, i2, SVM))
@@ -880,7 +880,7 @@ void estimate_cv_error(SupportVectorMachine * SVM)
 
 		if (n_span > SVM->d)
 		    for (i = 0; i < n_span; i++)
-			M[i][i] += drand48() * M[i][i] / 100.;
+			M[i][i] += G_drand48() * M[i][i] / 100.;
 
 		indx1 = 0;
 		for (i = 0; i < SVM->N; i++)

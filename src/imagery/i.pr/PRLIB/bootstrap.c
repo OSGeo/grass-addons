@@ -35,7 +35,7 @@ void Bootsamples(int n, double *prob, int *random_labels)
     cumprob = (double *)G_calloc(n, sizeof(double));
 
     for (i = 0; i < n; ++i) {
-	random[i] = (double)drand48();
+	random[i] = G_drand48();
 	random_labels[i] = n - 1;
 	random_labels_flag[i] = 0;
     }
