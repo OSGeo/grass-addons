@@ -197,14 +197,14 @@ int main(int argc, char *argv[])
     Trans[0].rotang = 0;
 
 
-    for(i=0; i < dwg_get_object_count(&dwg); i++)
+    for(i=0; i < dwg_get_num_objects(&dwg); i++)
       {
         fprintf(stdout, "Type: %u\n", dwg.object[i].type);
       }
-    fprintf(stdout, "%lu objects\n", dwg_get_object_count(&dwg));
+    fprintf(stdout, "%lu objects\n", dwg_get_num_objects(&dwg));
     fflush(stdout);
 
-    for (i = 0; i < dwg_get_object_count(&dwg); i++)
+    for (i = 0; i < dwg_get_num_objects(&dwg); i++)
     {
       if (import_object(&dwg.object[i]))
         {
@@ -240,7 +240,7 @@ list_layers(Dwg_Data * dwg)
   Dwg_Object_LAYER **layers = dwg_get_layers(dwg);
 
   for (i=0; i<l_count; i++) {
-    fprintf(stdout, "NAME: %s COLOR: %lu STATE: ", layers[i]->entry_name,
+    fprintf(stdout, "NAME: %s COLOR: %lu STATE: ", layers[i]->name,
           layers[i]->color.rgb);
     if (layers[i]->on)
         fprintf(stdout, "ON, ");
@@ -274,7 +274,7 @@ import_object(Dwg_Object * obj)
         {
           while (layers_opt->answers[i])
             {
-              if (strcmp((char*)layer->entry_name, layers_opt->answers[i]) == 0)
+              if (strcmp((char*)layer->name, layers_opt->answers[i]) == 0)
                 {
                   layer_found = 1;
                   break;
