@@ -65,6 +65,10 @@
 # % key: s
 # % label: List supported states and exit
 # %end
+# %flag
+# % key: f
+# % label: List filenames only without downloading
+# %end
 # %rules
 # % collective: dataset, code
 # % collective: start_date, end_date
@@ -177,7 +181,7 @@ def query_datasets():
         datasets.append({"id": item["id"], "sbDatasetTag": item["sbDatasetTag"]})
         for tag in item["tags"]:
             datasets.append({"id": tag["id"], "sbDatasetTag": tag["sbDatasetTag"]})
-    if len(datasets) == 0:
+    if not datasets:
         grass.fatal(_("Failed to fetch dataset metadata"))
     return datasets
 
@@ -214,6 +218,7 @@ def main():
     fs = separator(options["separator"])
     list_datasets = flags["d"]
     list_states = flags["s"]
+    list_filenames = flags["f"]
 
     if list_datasets:
         show_datasets(fs)
@@ -297,8 +302,14 @@ def main():
         if res.status_code != 200:
             grass.fatal(_("Failed to fetch product metadata for %s") % code["name"])
         ret = res.json()
+        filenames = []
         for item in ret["items"]:
-            download_file(item, code)
+            if list_filenames:
+                filenames.append(item["downloadURL"].split("/")[-1])
+            else:
+                download_file(item, code)
+        if filenames:
+            print(fs.join(filenames))
 
 
 if __name__ == "__main__":
