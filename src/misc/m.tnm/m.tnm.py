@@ -182,12 +182,19 @@ def query_datasets():
     return datasets
 
 
-def download_file(url, name):
+def download_file(item, code):
+    url = item["downloadURL"]
+    size = item["sizeInBytes"]
+    name = code["name"]
     res = requests.get(url, stream=True)
     if res.status_code != 200:
         return
     filename = url.split("/")[-1]
-    if os.path.exists(filename) and not grass.overwrite():
+    if (
+        os.path.exists(filename)
+        and os.path.getsize(filename) == size
+        and not grass.overwrite()
+    ):
         grass.message(_("Skipping existing file %s for %s") % (filename, name))
         return
     grass.message(_("Downloading %s for %s...") % (filename, name))
@@ -291,7 +298,7 @@ def main():
             grass.fatal(_("Failed to fetch product metadata for %s") % code["name"])
         ret = res.json()
         for item in ret["items"]:
-            download_file(item["downloadURL"], code["name"])
+            download_file(item, code)
 
 
 if __name__ == "__main__":
