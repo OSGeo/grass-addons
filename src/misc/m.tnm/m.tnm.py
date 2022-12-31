@@ -125,7 +125,7 @@ states = [
     {"fips": "78", "usps": "VI", "name": "United States Virgin Islands"},
 ]
 
-datasets_url = "https://tnmaccess.nationalmap.gov/api/v1/datasets?"
+datasets_url = "https://tnmaccess.nationalmap.gov/api/v1/datasets"
 products_url = (
     "https://tnmaccess.nationalmap.gov/api/v1/products?"
     + "datasets={datasets}&polyType={polyType}&polyCode={polyCode}"
