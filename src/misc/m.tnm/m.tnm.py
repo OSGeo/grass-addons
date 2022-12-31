@@ -296,13 +296,25 @@ def main():
         total = None
         filenames = []
         while not total or offset < total:
-            grass.message(_("Fetching product metadata for %s (offset=%d)...") % (code["name"], offset))
-            url = products_url.format(
-                    datasets=datasets, polyType=type_, polyCode=code["polyCode"], offset=offset
-                ) + date_params
+            grass.message(
+                _("Fetching product metadata for %s (offset=%d)...")
+                % (code["name"], offset)
+            )
+            url = (
+                products_url.format(
+                    datasets=datasets,
+                    polyType=type_,
+                    polyCode=code["polyCode"],
+                    offset=offset,
+                )
+                + date_params
+            )
             res = requests.get(url)
             if res.status_code != 200:
-                grass.fatal(_("Failed to fetch product metadata for %s (offset=%d)") % (code["name"], offset))
+                grass.fatal(
+                    _("Failed to fetch product metadata for %s (offset=%d)")
+                    % (code["name"], offset)
+                )
             ret = res.json()
             if not total:
                 total = ret["total"]
