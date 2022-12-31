@@ -1,0 +1,43 @@
+<h2>DESCRIPTION</h2>
+
+<em>m.tnm</em> downloads data for specified polygon codes from <a href="https://apps.nationalmap.gov/downloader/">The National Map (TNM)</a>.
+
+
+<h2>NOTES</h2>
+
+This module uses <a href="https://apps.nationalmap.gov/tnmaccess/">the TNM Access REST APIs</a> to download TNM data.
+
+
+<h2>EXAMPLES</h2>
+
+List supported datasets and exit:
+<div class="code"><pre>
+# use indices, IDs, or tags to select datasets, but indices can change between
+# sessions
+m.tnm -d
+</pre></div>
+
+List supported states and exit:
+<div class="code"><pre>
+# use FIPS codes, USPS codes, or names to select states for type=state
+m.tnm -s
+</pre></div>
+
+Download National Elevation Dataset (NED) 1-arcsecond files for Texas:
+<div class="code"><pre>
+# find the dataset ID
+m.tnm -d | grep "NED.* 1 arc-second"
+m.tnm dataset=one-arc-second-dem type=state code=TX
+</pre></div>
+
+Download National Watershed Boundary Dataset (WBD) files for HUC8 01010001:
+<div class="code"><pre>
+# find the dataset ID
+m.tnm -d | grep WBD
+m.tnm dataset=watershed-boundary-dataset type=huc8 code=01010001
+</pre></div>
+
+
+<h2>AUTHOR</h2>
+
+<a href="mailto:grass4u@gmail com">Huidae Cho</a>
