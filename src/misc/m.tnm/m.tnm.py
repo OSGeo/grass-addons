@@ -182,6 +182,7 @@ def query_datasets():
         datasets.append({"id": item["id"], "sbDatasetTag": item["sbDatasetTag"]})
         for tag in item["tags"]:
             datasets.append({"id": tag["id"], "sbDatasetTag": tag["sbDatasetTag"]})
+
     if not datasets:
         grass.fatal(_("Failed to fetch dataset metadata"))
     return datasets
@@ -193,15 +194,21 @@ def download_file(item, code):
     name = code["name"]
     res = requests.get(url, stream=True)
     if res.status_code != 200:
+        grass.warning(
+            _("Failed to download %s with status code %d") % (name, res.status_code)
+        )
         return
+
     filename = url.split("/")[-1]
-    if (
-        os.path.exists(filename)
-        and os.path.getsize(filename) == size
-        and not grass.overwrite()
-    ):
-        grass.message(_("Skipping existing file %s for %s") % (filename, name))
-        return
+    if os.path.exists(filename) and not grass.overwrite():
+        file_size = os.path.getsize(filename)
+        if file_size == size:
+            grass.message(_("Skipping existing file %s for %s") % (filename, name))
+            return
+        grass.warning(
+            _("File size (%d) mismatch with metadata (%d)") % (file_size, size)
+        )
+
     grass.message(_("Downloading %s for %s...") % (filename, name))
     with open(filename, "wb") as f:
         for chunk in res.iter_content(chunk_size=1024):
