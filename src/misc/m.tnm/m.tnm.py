@@ -296,10 +296,16 @@ def main():
         total = None
         filenames = []
         while not total or offset < total:
-            grass.message(
-                _("Fetching product metadata for %s (offset=%d)...")
-                % (code["name"], offset)
-            )
+            if total:
+                grass.message(
+                    _("Fetching product metadata for %s (offset %d of %d)...")
+                    % (code["name"], offset, total)
+                )
+            else:
+                grass.message(
+                    _("Fetching product metadata for %s (offset %d)...")
+                    % (code["name"], offset)
+                )
             url = (
                 products_url.format(
                     datasets=datasets,
@@ -311,10 +317,16 @@ def main():
             )
             res = requests.get(url)
             if res.status_code != 200:
-                grass.fatal(
-                    _("Failed to fetch product metadata for %s (offset=%d)")
-                    % (code["name"], offset)
-                )
+                if total:
+                    grass.fatal(
+                        _("Failed to fetch product metadata for %s (offset %d of %d)")
+                        % (code["name"], offset, total)
+                    )
+                else:
+                    grass.fatal(
+                        _("Failed to fetch product metadata for %s (offset %d)")
+                        % (code["name"], offset)
+                    )
             ret = res.json()
             if not total:
                 total = ret["total"]
