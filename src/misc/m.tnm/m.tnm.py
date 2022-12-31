@@ -38,6 +38,23 @@
 # % description: Polygon code (state name, USPS code, FIPS code, or HUC number)
 # % multiple: yes
 # %end
+# %option
+# % key: date_type
+# % type: string
+# % description: Date type for search
+# % options: created,updated,published
+# % answer: published
+# %end
+# %option
+# % key: start_date
+# % type: string
+# % description: Start date for search in YYYY-MM-DD
+# %end
+# %option
+# % key: end_date
+# % type: string
+# % description: End date for search in YYYY-MM-DD
+# %end
 # %option G_OPT_F_SEP
 # %end
 # %flag
@@ -50,6 +67,7 @@
 # %end
 # %rules
 # % collective: dataset, code
+# % collective: start_date, end_date
 # % required: dataset, -d, -s
 # %end
 
@@ -183,6 +201,9 @@ def main():
     dataset = options["dataset"].split(",")
     type_ = options["type"]
     code = options["code"].split(",")
+    date_type = options["date_type"]
+    start_date = options["start_date"]
+    end_date = options["end_date"]
     fs = separator(options["separator"])
     list_datasets = flags["d"]
     list_states = flags["s"]
@@ -242,10 +263,28 @@ def main():
                 grass.fatal(_("Invalid HUC%d: %s") % (n, h))
             sel_codes.append({"polyCode": h, "name": f"{type_.upper()} {h}"})
 
+    if start_date or end_date:
+        date_params = "&dateType="
+        if date_type == "created":
+            date_params += "dateCreated"
+        elif date_type == "updated":
+            date_params += "lastUpdated"
+        else:
+            date_params += "Publication"
+        if start_date:
+            date_params += f"&start={start_date}"
+        if end_date:
+            date_params += f"&end={end_date}"
+    else:
+        date_params = ""
+
     for code in sel_codes:
         grass.message(_("Fetching product metadata for %s...") % code["name"])
-        url = products_url.format(
-            datasets=datasets, polyType=type_, polyCode=code["polyCode"]
+        url = (
+            products_url.format(
+                datasets=datasets, polyType=type_, polyCode=code["polyCode"]
+            )
+            + date_params
         )
         res = requests.get(url)
         if res.status_code != 200:
