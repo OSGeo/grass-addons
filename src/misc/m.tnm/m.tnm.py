@@ -69,6 +69,10 @@
 # % key: f
 # % label: List filenames only without downloading
 # %end
+# %flag
+# % key: S
+# % label: Compare file size for skipping downloads
+# %end
 # %rules
 # % collective: dataset, code
 # % collective: start_date, end_date
@@ -188,25 +192,25 @@ def query_datasets():
     return datasets
 
 
-def download_file(item, code):
+def download_file(item, code, compare_file_size):
     url = item["downloadURL"]
+    filename = url.split("/")[-1]
     size = item["sizeInBytes"]
     name = code["name"]
     res = requests.get(url, stream=True)
     if res.status_code != 200:
         grass.warning(
-            _("Failed to download %s with status code %d") % (name, res.status_code)
+            _("Failed to download %s with status code %d") % (filename, res.status_code)
         )
         return
 
-    filename = url.split("/")[-1]
     if os.path.exists(filename) and not grass.overwrite():
         file_size = os.path.getsize(filename)
-        if file_size == size:
+        if not compare_file_size or file_size == size:
             grass.message(_("Skipping existing file %s for %s") % (filename, name))
             return
         grass.warning(
-            _("File size (%d) mismatch with metadata (%d)") % (file_size, size)
+            _("File size (%d) mismatches with metadata (%d)") % (file_size, size)
         )
 
     grass.message(_("Downloading %s for %s...") % (filename, name))
@@ -227,6 +231,7 @@ def main():
     list_datasets = flags["d"]
     list_states = flags["s"]
     list_filenames = flags["f"]
+    compare_file_size = flags["S"]
 
     if list_datasets:
         show_datasets(fs)
@@ -344,7 +349,7 @@ def main():
                 if list_filenames:
                     filenames.append(item["downloadURL"].split("/")[-1])
                 else:
-                    download_file(item, code)
+                    download_file(item, code, compare_file_size)
             offset += len(items)
         if filenames:
             print(fs.join(filenames))
