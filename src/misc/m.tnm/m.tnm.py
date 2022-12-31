@@ -151,7 +151,8 @@ api_url = "https://tnmaccess.nationalmap.gov/api/v1"
 datasets_url = f"{api_url}/datasets"
 products_url = (
     f"{api_url}/products?"
-    + "datasets={datasets}&polyType={polyType}&polyCode={polyCode}"
+    + "datasets={datasets}&polyType={polyType}&polyCode={polyCode}&"
+    + "offset={offset}"
 )
 
 
@@ -291,23 +292,29 @@ def main():
         date_params = ""
 
     for code in sel_codes:
-        grass.message(_("Fetching product metadata for %s...") % code["name"])
-        url = (
-            products_url.format(
-                datasets=datasets, polyType=type_, polyCode=code["polyCode"]
-            )
-            + date_params
-        )
-        res = requests.get(url)
-        if res.status_code != 200:
-            grass.fatal(_("Failed to fetch product metadata for %s") % code["name"])
-        ret = res.json()
+        offset = 0
+        total = None
         filenames = []
-        for item in ret["items"]:
-            if list_filenames:
-                filenames.append(item["downloadURL"].split("/")[-1])
-            else:
-                download_file(item, code)
+        while not total or offset < total:
+            grass.message(_("Fetching product metadata for %s (offset=%d)...") % (code["name"], offset))
+            url = products_url.format(
+                    datasets=datasets, polyType=type_, polyCode=code["polyCode"], offset=offset
+                ) + date_params
+            res = requests.get(url)
+            if res.status_code != 200:
+                grass.fatal(_("Failed to fetch product metadata for %s (offset=%d)") % (code["name"], offset))
+            ret = res.json()
+            if not total:
+                total = ret["total"]
+                grass.message(_("Number of files to download: %d") % total)
+
+            items = ret["items"]
+            for item in items:
+                if list_filenames:
+                    filenames.append(item["downloadURL"].split("/")[-1])
+                else:
+                    download_file(item, code)
+            offset += len(items)
         if filenames:
             print(fs.join(filenames))
 
