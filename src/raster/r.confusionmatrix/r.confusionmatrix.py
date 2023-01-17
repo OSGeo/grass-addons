@@ -2,13 +2,13 @@
 
 ############################################################################
 #
-# MODULE:	r.confusionmatrix
+# MODULE:	 r.confusionmatrix
 #
-# AUTHOR(S):    Anika Bettge <bettge at mundialis.de>
+# AUTHOR(S): Anika Weinmann <weinmann at mundialis.de>
 #
-# PURPOSE:      Calculates a confusion matrix and accuracies for a given classification using r.kappa.
+# PURPOSE:   Calculates a confusion matrix and accuracies for a given classification using r.kappa.
 #
-# COPYRIGHT:	(C) 2020 by mundialis and the GRASS Development Team
+# COPYRIGHT: (C) 2020 by mundialis and the GRASS Development Team
 #
 # 		This program is free software under the GNU General Public
 # 		License (>=v2). Read the file COPYING that comes with GRASS

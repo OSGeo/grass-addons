@@ -2,8 +2,8 @@
 Name:       r.confusionmatrix test
 Purpose:    Tests r.confusionmatrix input parsing.
             Uses NC full sample data set.
-Author:     Anika Bettge
-Copyright:  (C) 2020 Anika Bettge, mundialis, and the GRASS Development Team
+Author:     Anika Weinmann
+Copyright:  (C) 2020-2023 Anika Weinmann, mundialis, and the GRASS Development Team
 Licence:    This program is free software under the GNU General Public
             License (>=v2). Read the file COPYING that comes with GRASS
             for details.
@@ -67,7 +67,6 @@ class Testconfusionmatrix(TestCase):
         # check to see if output file exists
         self.assertFileExists(self.output_csv, msg="Output file does not exist")
         # check if the output file is equal to the reference file
-
         self.assertFilesEqualMd5(
             self.output_csv,
             "data/confusionmatrix_raster_matrix.csv",

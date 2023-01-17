@@ -1,6 +1,6 @@
 ,,Reference Map,landclass96_class1only
-,,Class_0,User Accuracy,Commission Error
-Classified Map,Class_0,73077,100.0,0.0
+,,1,User Accuracy,Commission Error
+Classified Map,1,73077,100.0,0.0
 landuse96_28m_class1only,,,,
 ,Producer Accuracy,100.0,Overall Accuracy,100.0
 ,Omission Error,0.0,Kappa coefficient,nan
