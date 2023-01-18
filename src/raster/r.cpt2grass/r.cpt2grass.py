@@ -129,12 +129,9 @@ def main(options, flags):
     input_file = options["input"]
     input_url = options["url"]
     if input_url:
-        try:
-            from six.moves.urllib.request import urlopen
-        except ImportError:
-            from urllib2 import urlopen
+        from urllib.request import urlopen
 
-        txt = urlopen(input_url).readlines()
+        txt = [line.decode("utf-8") for line in urlopen(input_url).readlines()]
     else:
         with open(input_file, "r") as f:
             txt = f.readlines()
