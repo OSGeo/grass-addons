@@ -54,13 +54,21 @@ you are using for example:
 
 ## Contributing
 
-This section is designed to clarify the branch structure and versioning of this repository (and interface repositories) and general naming of new features and bug fix branches, especially those that are take longer to develop.
+This section is designed to clarify the branch structure and versioning of
+this repository (and interface repositories) and general naming of new
+features and bug fix branches, especially those that are take longer to
+develop.
 
 ### Branch Structure
 
-1. **master** is the stable version of the model that is used for official releases.
-2. **fix-issuenumber** or **fix-bugdescription** are branched off of master then merged back via a pull request once bug is fixed.
-3. **new_feature** is where new features are developed before they are merged into Master via a pull request. For example, infect and vector are currently being developed and will be merged together prior to being merged to master for an official major version release.
+1. **master** is the stable version of the model that is used for official
+   releases.
+2. **fix-issuenumber** or **fix-bugdescription** are branched off of master
+   then merged back via a pull request once bug is fixed.
+3. **new_feature** is where new features are developed before they are merged
+   into Master via a pull request. For example, infect and vector are currently
+   being developed and will be merged together prior to being merged to master
+   for an official major version release.
 
 ### Bug Fixes
 
@@ -92,8 +100,9 @@ version 1.1 to version 2.0 and the R package and Grass module are updated
 to 2.0.0). When you are creating branches in your fork, we still recommend
 choosing informative names such as the one suggested above.
 
-If you are interested in contributing to PoPS and are not a core developer on the model, please take a look at following
-documents to make the process as seamless as possible.
+If you are interested in contributing to PoPS and are not a core developer
+on the model, please take a look at following documents to make the process
+as seamless as possible.
 
 1. [Contributor Code of Conduct](contributing_docs/CODE_OF_CONDUCT.md)
 1. [PoPS Core Style Guide](contributing_docs/STYLE_GUIDE.md)
@@ -120,15 +129,23 @@ repo or elsewhere and discuss planned changes with you.
 If you are interested in reviewing the code, you may want to focus at
 the following core functions rather than the API.
 
-simulation.remove : removes the pest or pathogen from the infested hosts based on some environmental threshold (currently only temperature is accounted for).
+simulation.remove : removes the pest or pathogen from the infested hosts
+based on some environmental threshold (currently only temperature is
+accounted for).
 
-simulation.generate : generates dispersing indivduls from all infested cells based as a function of local infected hosts and weather.
+simulation.generate : generates dispersing indivduls from all infested
+cells based as a function of local infected hosts and weather.
 
-simulation.disperse : creates dispersal locations for the dispersing individuals from the generate function.
+simulation.disperse : creates dispersal locations for the dispersing
+individuals from the generate function.
 
-simulation.mortality : causes mortality in infested/infected hosts based on mortality rate
+simulation.mortality : causes mortality in infested/infected hosts based
+on mortality rate
 
-The custom date class is used to easily manage different time steps within the model and account for differences in the way frequently used weather data sets treat leap years (DAYMET drops December 31st from leap years, PRISM keeps all days even for leap years)
+The custom date class is used to easily manage different time steps within
+the model and account for differences in the way frequently used weather
+data sets treat leap years (DAYMET drops December 31st from leap years,
+PRISM keeps all days even for leap years)
 
 ## Using the model
 
@@ -234,7 +251,7 @@ Note that not all tests are not fully automatic, so in couple cases
 this only testing if the code is running and not crashing
 (you will need to examine the source code to see the details).
 
-Additionally, create documentation using the following (_Doxygen_ required):
+Additionally, create documentation using the following (*Doxygen* required):
 
 ```bash
 cmake --build build --target docs
@@ -268,7 +285,7 @@ target_link_libraries(your_target PRIVATE pops-core)
 
 ### Authors
 
-_(alphabetical order)_
+*(alphabetical order)*:
 
 * Chris Jones
 * Margaret Lawrimore
@@ -277,7 +294,7 @@ _(alphabetical order)_
 
 ### Previous contributors
 
-_(alphabetical order)_
+*(alphabetical order)*:
 
 * Zexi Chen
 * Devon Gaydos

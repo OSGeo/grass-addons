@@ -55,9 +55,9 @@ you are using for example:
 
 ### Download and install
 
-The latest release of the *r.pops.spread* module is available in GRASS GIS Addons repository
-and can be installed directly in GRASS GIS through graphical user
-interface or using the following command:
+The latest release of the *r.pops.spread* module is available in GRASS GIS
+Addons repository and can be installed directly in GRASS GIS through graphical
+user interface or using the following command:
 
 ```bash
 g.extension r.pops.spread
@@ -87,8 +87,8 @@ so downloading as ZIP is not useful for this repo.
 
 ## Contributing
 
-Please see the [pops-core](https://github.com/ncsu-landscape-dynamics/pops-core#readme) repository
-for contributing best practices and release policies.
+Please see the [pops-core](https://github.com/ncsu-landscape-dynamics/pops-core#readme)
+repository for contributing best practices and release policies.
 Other than that, just open pull requests against this repo.
 
 ### Updating submodule to latest version
@@ -166,7 +166,7 @@ grass .../modeling/scenario1 --exec r.pops.spread ...
 
 ### Authors
 
-_(alphabetical order)_
+*(alphabetical order)*:
 
 * Chris Jones
 * Margaret Lawrimore
@@ -175,7 +175,7 @@ _(alphabetical order)_
 
 ### Previous contributors
 
-_(alphabetical order)_
+*(alphabetical order)*:
 
 * Zexi Chen
 * Devon Gaydos

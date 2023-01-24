@@ -1,6 +1,5 @@
 # Test r.mapcalc.tiled with different parameters vs. r.mapcalc
 
-
 `test.py` is a script for testing `r.mapcalc.tiled` vs `r.mapcalc`. In the
 `config.ini` you can set some general parameters like the map on which
 the region has to be set, the `r.mapcalc` expression and the number of
@@ -15,8 +14,8 @@ dataset) with:
 
 `python3 test.py config.ini`
 
-`visualization.py` is a script to visualize the result of the `test.py` output CSV file.
-It can be executed with
+`visualization.py` is a script to visualize the result of the `test.py` output
+CSV file. It can be executed with
 
 `python3 visualization.py rmapcalctiled_test.csv images`
 

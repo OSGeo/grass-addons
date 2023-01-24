@@ -36,9 +36,11 @@ docker build -t doozyx/clang-format-lint-action "github.com/DoozyX/clang-format-
 
 Then run the formatting using a Docker container in the top directory:
 
+<!-- markdownlint-disable line-length -->
 ```sh
 docker run --rm --workdir /src -v $(pwd):/src --entrypoint /clang-format/clang-format10 doozyx/clang-format-lint-action -i include/*/*.hpp tests/*.cpp
 ```
+<!-- markdownlint-enable line-length -->
 
 #### Functions and methods
 
