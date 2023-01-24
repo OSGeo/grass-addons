@@ -17,13 +17,17 @@
 #define GLOBAL extern
 #endif
 
-typedef int (f_method) (Position *, int, int, int *, int, int);
+typedef int(f_method)(Position *, int, int, int *, int, int);
 
 /* func.c */
-int f_circular(Position * list, int count, int neighbors, int *flagbuf, int nrows, int ncols);
-int f_random(Position * list, int count, int neighbors, int *flagbuf, int nrows, int ncols);
-int f_costbased(Position * list, int count, int neighbors, int *flagbuf, int nrows, int ncols);
-int gather_border(Position * res, int neighbors, int *flagbuf, int nrows, int ncols);
+int f_circular(Position *list, int count, int neighbors, int *flagbuf,
+               int nrows, int ncols);
+int f_random(Position *list, int count, int neighbors, int *flagbuf, int nrows,
+             int ncols);
+int f_costbased(Position *list, int count, int neighbors, int *flagbuf,
+                int nrows, int ncols);
+int gather_border(Position *res, int neighbors, int *flagbuf, int nrows,
+                  int ncols);
 
 /* global variables */
 GLOBAL DCELL *costmap;

@@ -11,13 +11,11 @@
 #include <math.h>
 #include <time.h>
 
-typedef struct
-{
+typedef struct {
     int x, y;
 } Point;
 
-typedef struct
-{
+typedef struct {
     Point *list;
     int count;
 } Point_List;

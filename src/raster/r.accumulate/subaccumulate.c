@@ -41,9 +41,8 @@ void subaccumulate(struct Map_info *Map, struct cell_map *dir_buf,
 static void trace_down(struct cell_map *dir_buf, struct raster_map *accum_buf,
                        double up_acc, int row, int col)
 {
-    static int next_cells[8][2] = {
-        {-1, 1}, {-1, 0}, {-1, -1}, {0, -1}, {1, -1}, {1, 0}, {1, 1}, {0, 1}
-    };
+    static int next_cells[8][2] = {{-1, 1}, {-1, 0}, {-1, -1}, {0, -1},
+                                   {1, -1}, {1, 0},  {1, 1},   {0, 1}};
     int dir;
 
     /* if the current cell is outside the computational region, stop tracing */

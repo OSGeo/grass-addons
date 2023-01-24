@@ -56,15 +56,18 @@ int find_probable_seed(struct Undeveloped *undev_cells, int region)
     while (first <= last) {
         if (undev_cells->cells[region][middle].cumulative_probability < p)
             first = middle + 1;
-        else if (undev_cells->cells[region][middle - 1].cumulative_probability < p &&
-                 undev_cells->cells[region][middle].cumulative_probability >= p) {
+        else if (undev_cells->cells[region][middle - 1].cumulative_probability <
+                     p &&
+                 undev_cells->cells[region][middle].cumulative_probability >=
+                     p) {
             return middle;
         }
         else
             last = middle - 1;
-        middle = (first + last)/2;
+        middle = (first + last) / 2;
     }
-    // TODO: returning at least something but should be something more meaningful
+    // TODO: returning at least something but should be something more
+    // meaningful
     return 0;
 }
 
@@ -77,8 +80,8 @@ int find_probable_seed(struct Undeveloped *undev_cells, int region)
  * \param[out] col column
  * \return index in undev_cells (not id of a cell)
  */
-int get_seed(struct Undeveloped *undev_cells, int region_idx, enum seed_search method,
-              int *row, int *col)
+int get_seed(struct Undeveloped *undev_cells, int region_idx,
+             enum seed_search method, int *row, int *col)
 {
     int i, id;
     if (method == RANDOM)
@@ -90,7 +93,6 @@ int get_seed(struct Undeveloped *undev_cells, int region_idx, enum seed_search m
     return i;
 }
 
-
 /*!
  * \brief Compute development probability for a cell
  * \param[in] segments segments
@@ -101,8 +103,7 @@ int get_seed(struct Undeveloped *undev_cells, int region_idx, enum seed_search m
  * \param[in] col column
  * \return probability
  */
-double get_develop_probability_xy(struct Segments *segments,
-                                  FCELL *values,
+double get_develop_probability_xy(struct Segments *segments, FCELL *values,
                                   struct Potential *potential_info,
                                   int region_index, int row, int col)
 {
@@ -114,25 +115,30 @@ double get_develop_probability_xy(struct Segments *segments,
     CELL pot_index;
 
     Segment_get(&segments->devpressure, (void *)&devpressure_val, row, col);
-    Segment_get(&segments->aggregated_predictor, (void *)&predictors_val, row, col);
+    Segment_get(&segments->aggregated_predictor, (void *)&predictors_val, row,
+                col);
     if (segments->use_potential_subregions)
-        Segment_get(&segments->potential_subregions, (void *)&pot_index, row, col);
+        Segment_get(&segments->potential_subregions, (void *)&pot_index, row,
+                    col);
     else
         pot_index = region_index;
-    
+
     probability = potential_info->intercept[pot_index];
     probability += potential_info->devpressure[pot_index] * devpressure_val;
     /* Aggregated value of all static predictors */
     probability += predictors_val;
     probability = 1.0 / (1.0 + exp(-probability));
     if (potential_info->incentive_transform) {
-        transformed_idx = (int) (probability * (potential_info->incentive_transform_size - 1));
-        if (transformed_idx >= potential_info->incentive_transform_size || transformed_idx < 0)
+        transformed_idx =
+            (int)(probability * (potential_info->incentive_transform_size - 1));
+        if (transformed_idx >= potential_info->incentive_transform_size ||
+            transformed_idx < 0)
             G_fatal_error("lookup position (%d) out of range [0, %d]",
-                          transformed_idx, potential_info->incentive_transform_size - 1);
+                          transformed_idx,
+                          potential_info->incentive_transform_size - 1);
         probability = potential_info->incentive_transform[transformed_idx];
     }
-    
+
     /* weights if applicable */
     if (segments->use_weight) {
         Segment_get(&segments->weight, (void *)&weight, row, col);
@@ -167,12 +173,13 @@ void recompute_probabilities(struct Undeveloped *undeveloped_cells,
     FCELL *values;
     float probability;
     float sum;
-    
+
     cols = Rast_window_cols();
     rows = Rast_window_rows();
     values = G_malloc(potential_info->max_predictors * sizeof(FCELL *));
-    
-    for (region_idx = 0; region_idx < undeveloped_cells->max_subregions; region_idx++) {
+
+    for (region_idx = 0; region_idx < undeveloped_cells->max_subregions;
+         region_idx++) {
         undeveloped_cells->num[region_idx] = 0;
     }
     for (row = 0; row < rows; row++) {
@@ -183,13 +190,15 @@ void recompute_probabilities(struct Undeveloped *undeveloped_cells,
             if (developed != -1)
                 continue;
             Segment_get(&segments->subregions, (void *)&region, row, col);
-            
+
             /* realloc if needed */
-            if (undeveloped_cells->num[region] >= undeveloped_cells->max[region]) {
+            if (undeveloped_cells->num[region] >=
+                undeveloped_cells->max[region]) {
                 new_size = 1.25 * undeveloped_cells->max[region];
-                undeveloped_cells->cells[region] = 
-                        (struct UndevelopedCell *) G_realloc(undeveloped_cells->cells[region],
-                                                             new_size * sizeof(struct UndevelopedCell));
+                undeveloped_cells->cells[region] =
+                    (struct UndevelopedCell *)G_realloc(
+                        undeveloped_cells->cells[region],
+                        new_size * sizeof(struct UndevelopedCell));
                 undeveloped_cells->max[region] = new_size;
             }
             id = get_idx_from_xy(row, col, cols);
@@ -197,29 +206,34 @@ void recompute_probabilities(struct Undeveloped *undeveloped_cells,
             undeveloped_cells->cells[region][idx].id = id;
             undeveloped_cells->cells[region][idx].tried = 0;
             /* get probability and update undevs and segment*/
-            probability = get_develop_probability_xy(segments, values,
-                                                     potential_info, region, row, col);
+            probability = get_develop_probability_xy(
+                segments, values, potential_info, region, row, col);
             Segment_put(&segments->probability, (void *)&probability, row, col);
             undeveloped_cells->cells[region][idx].probability = probability;
-            
+
             undeveloped_cells->num[region]++;
-            
         }
     }
     Segment_flush(&segments->probability);
 
     i = 0;
-    for (region_idx = 0; region_idx < undeveloped_cells->max_subregions; region_idx++) {
+    for (region_idx = 0; region_idx < undeveloped_cells->max_subregions;
+         region_idx++) {
         probability = undeveloped_cells->cells[region_idx][0].probability;
-        undeveloped_cells->cells[region_idx][0].cumulative_probability = probability;
+        undeveloped_cells->cells[region_idx][0].cumulative_probability =
+            probability;
         for (i = 1; i < undeveloped_cells->num[region_idx]; i++) {
             probability = undeveloped_cells->cells[region_idx][i].probability;
-            undeveloped_cells->cells[region_idx][i].cumulative_probability = 
-                    undeveloped_cells->cells[region_idx][i - 1].cumulative_probability + probability;
+            undeveloped_cells->cells[region_idx][i].cumulative_probability =
+                undeveloped_cells->cells[region_idx][i - 1]
+                    .cumulative_probability +
+                probability;
         }
-        sum = undeveloped_cells->cells[region_idx][i - 1].cumulative_probability;
+        sum =
+            undeveloped_cells->cells[region_idx][i - 1].cumulative_probability;
         for (i = 0; i < undeveloped_cells->num[region_idx]; i++) {
-            undeveloped_cells->cells[region_idx][i].cumulative_probability /= sum;
+            undeveloped_cells->cells[region_idx][i].cumulative_probability /=
+                sum;
         }
     }
 }
@@ -245,12 +259,11 @@ void recompute_probabilities(struct Undeveloped *undeveloped_cells,
  * \param overgrow allow patches to grow bigger than demand allows
  */
 void compute_step(struct Undeveloped *undev_cells, struct Demand *demand,
-                  enum seed_search search_alg,
-                  struct Segments *segments,
+                  enum seed_search search_alg, struct Segments *segments,
                   struct PatchSizes *patch_sizes, struct PatchInfo *patch_info,
                   struct DevPressure *devpressure_info, int *patch_overflow,
-                  int step, int region, struct KeyValueIntInt *reverse_region_map,
-                  bool overgrow)
+                  int step, int region,
+                  struct KeyValueIntInt *reverse_region_map, bool overgrow)
 {
     int i, idx;
     int region_id;
@@ -268,8 +281,7 @@ void compute_step(struct Undeveloped *undev_cells, struct Demand *demand,
     FCELL prob;
     CELL developed;
 
-
-    added_ids = (int *) G_malloc(sizeof(int) * patch_sizes->max_patch_size);
+    added_ids = (int *)G_malloc(sizeof(int) * patch_sizes->max_patch_size);
     n_to_convert = demand->table[region][step];
     n_done = 0;
     force_convert_all = false;
@@ -296,7 +308,7 @@ void compute_step(struct Undeveloped *undev_cells, struct Demand *demand,
         n_to_convert = undev_cells->num[region];
         force_convert_all = true;
     }
-    
+
     while (n_done < n_to_convert) {
         /* too many failed attempts, can't develop here any more */
         if (unsuccessful_tries > MAX_TRIES_ITER) {
@@ -306,21 +318,26 @@ void compute_step(struct Undeveloped *undev_cells, struct Demand *demand,
             break;
         }
 
-        /* if we can't find a seed, turn off the restriction to use only untried ones */
-        if (!allow_already_tried_ones && unsuccessful_tries > MAX_SEED_ITER * n_to_convert)
+        /* if we can't find a seed, turn off the restriction to use only untried
+         * ones */
+        if (!allow_already_tried_ones &&
+            unsuccessful_tries > MAX_SEED_ITER * n_to_convert)
             allow_already_tried_ones = true;
 
         /* get seed's row, col and index in undev cells array */
         idx = get_seed(undev_cells, region, search_alg, &seed_row, &seed_col);
-        /* skip if seed was already tried unless we switched of this check because we can't get any seed */
-        if (!allow_already_tried_ones && undev_cells->cells[region][idx].tried) {
+        /* skip if seed was already tried unless we switched of this check
+         * because we can't get any seed */
+        if (!allow_already_tried_ones &&
+            undev_cells->cells[region][idx].tried) {
             unsuccessful_tries++;
             continue;
         }
         /* mark as tried */
         undev_cells->cells[region][idx].tried = 1;
         /* see if seed was already developed during this time step */
-        Segment_get(&segments->developed, (void *)&developed, seed_row, seed_col);
+        Segment_get(&segments->developed, (void *)&developed, seed_row,
+                    seed_col);
         if (developed != -1) {
             unsuccessful_tries++;
             continue;
@@ -328,13 +345,15 @@ void compute_step(struct Undeveloped *undev_cells, struct Demand *demand,
         /* get probability */
         Segment_get(&segments->probability, (void *)&prob, seed_row, seed_col);
         /* challenge probability unless we need to convert all */
-        if(force_convert_all || G_drand48() < prob) {
+        if (force_convert_all || G_drand48() < prob) {
             /* ger random patch size */
             patch_size = get_patch_size(patch_sizes, region);
-            /* last year: we shouldn't grow bigger patches than we have space for */
+            /* last year: we shouldn't grow bigger patches than we have space
+             * for */
             if (!overgrow && patch_size + n_done > n_to_convert)
                 patch_size = n_to_convert - n_done;
-            /* grow patch and return the actual grown size which could be smaller */
+            /* grow patch and return the actual grown size which could be
+             * smaller */
             found = grow_patch(seed_row, seed_col, patch_size, step, region,
                                patch_info, segments, patch_overflow, added_ids);
             /* for development testing */
@@ -344,7 +363,8 @@ void compute_step(struct Undeveloped *undev_cells, struct Demand *demand,
             /* update devpressure for every newly developed cell */
             for (i = 0; i < found; i++) {
                 get_xy_from_idx(added_ids[i], Rast_window_cols(), &row, &col);
-                update_development_pressure_precomputed(row, col, segments, devpressure_info);
+                update_development_pressure_precomputed(row, col, segments,
+                                                        devpressure_info);
             }
             Segment_flush(&segments->devpressure);
             n_done += found;
@@ -355,4 +375,3 @@ void compute_step(struct Undeveloped *undev_cells, struct Demand *demand,
     G_debug(2, "There are %d extra cells for next timestep", extra);
     G_free(added_ids);
 }
-

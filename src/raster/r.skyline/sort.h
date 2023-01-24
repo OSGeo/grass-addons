@@ -1,4 +1,3 @@
-
 /***********************************************************************/
 /*
    sort.h
@@ -22,12 +21,10 @@
 
 /***********************************************************************/
 
-
 #ifndef SORT_H
 #define SORT_H
 
 #include "list.h"
-
 
 /***********************************************************************/
 /* Public functions                                                    */
@@ -45,8 +42,7 @@ void Pseudo_sort_decreasing_smallest_azimuth(struct node *head,
 /* Pseudo_sort_decreasing_smallest_azimuth (pointer to head,
    pointer to tail) */
 
-struct node *Mergesort_increasing_largest_azimuth(struct node *,
-                                                  struct node *);
+struct node *Mergesort_increasing_largest_azimuth(struct node *, struct node *);
 /* Mergesort_increasing_largest_azimuth (pointer to first data node
    in 'next largest' list, pointer to tail)
    Returns pointer to first data node in 'next largest' list */

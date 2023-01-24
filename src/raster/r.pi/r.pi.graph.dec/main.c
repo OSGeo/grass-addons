@@ -1,11 +1,10 @@
-/*
- ****************************************************************************
+/*****************************************************************************
  *
  * MODULE:       r.pi.graph.dec
  * AUTHOR(S):    Elshad Shirinov, Dr. Martin Wegmann
  *               Markus Metz (update to GRASS 7)
- * PURPOSE:      Graph Theory approach for connectivity analysis on patch 
- *                      level - successive removal of patches based on defined criteria
+ * PURPOSE:      Graph Theory approach for connectivity analysis on patch
+ *               level - successive removal of patches based on defined criteria
  *
  * COPYRIGHT:    (C) 2009-2011,2017 by the GRASS Development Team
  *
@@ -19,38 +18,36 @@
 
 #include "local_proto.h"
 
-struct neighborhood
-{
-    f_neighborhood *method;	/* routine to build adjacency matrix */
-    char *name;			/* method name */
-    char *text;			/* menu display - full description */
+struct neighborhood {
+    f_neighborhood *method; /* routine to build adjacency matrix */
+    char *name;             /* method name */
+    char *text;             /* menu display - full description */
 };
 
-struct index
-{
-    f_index *method;		/* routine to calculate cluster index */
-    char *name;			/* method name */
-    char *text;			/* menu display - full description */
+struct index {
+    f_index *method; /* routine to calculate cluster index */
+    char *name;      /* method name */
+    char *text;      /* menu display - full description */
 };
 
-struct choice
-{
-    f_choice *method;		/* routine to determine the next patch to delete */
-    char *name;			/* method name */
-    char *text;			/* menu display - full description */
+struct choice {
+    f_choice *method; /* routine to determine the next patch to delete */
+    char *name;       /* method name */
+    char *text;       /* menu display - full description */
 };
 
 static struct neighborhood neighborhoods[] = {
     {f_nearest_neighbor, "nearest_neighbor",
      "patches are connected with their nearest neighbors"},
     {f_relative_neighbor, "relative_neighbor",
-     "two patches are connected, if no other patch lies in the central lens between them"},
+     "two patches are connected, if no other patch lies in the central lens "
+     "between them"},
     {f_gabriel, "gabriel",
      "two patches are connected, if no other patch lies in the circle on them"},
     {f_spanning_tree, "spanning_tree",
-     "two patches are connected, if they are neighbors in the minimum spanning tree"},
-    {0, 0, 0}
-};
+     "two patches are connected, if they are neighbors in the minimum spanning "
+     "tree"},
+    {0, 0, 0}};
 
 static struct index indices[] = {
     {f_connectance_index, "connectance_index", "connectance index"},
@@ -69,19 +66,15 @@ static struct index indices[] = {
      "largest patch diameter in the cluster"},
     {f_graph_diameter_max, "graph_diameter",
      "longest minimal path in the cluster"},
-    {0, 0, 0}
-};
+    {0, 0, 0}};
 
 static struct choice choices[] = {
     {f_smallest_first, "smallest_first", "smallest patch is deleted first"},
     {f_biggest_first, "biggest_first", "biggest patch is deleted first"},
     {f_random, "random", "a random patch is deleted"},
-    {f_link_min, "link_min",
-     "the patch with the least links is deleted first"},
-    {f_link_max, "link_max",
-     "the patch with the most links is deleted first"},
-    {0, 0, 0}
-};
+    {f_link_min, "link_min", "the patch with the least links is deleted first"},
+    {f_link_max, "link_max", "the patch with the most links is deleted first"},
+    {0, 0, 0}};
 
 int main(int argc, char *argv[])
 {
@@ -93,7 +86,7 @@ int main(int argc, char *argv[])
     /* in and out file pointers */
     int in_fd;
     int out_fd;
-    FILE *out_fp;		/* ASCII - output */
+    FILE *out_fp; /* ASCII - output */
 
     /* parameters */
     int keyval;
@@ -130,16 +123,14 @@ int main(int argc, char *argv[])
     Patch *fragments;
 
     struct GModule *module;
-    struct
-    {
-	struct Option *input, *output, *id;
-	struct Option *keyval, *distance;
-	struct Option *neighborhood, *index;
-	struct Option *choice, *seed;
+    struct {
+        struct Option *input, *output, *id;
+        struct Option *keyval, *distance;
+        struct Option *neighborhood, *index;
+        struct Option *choice, *seed;
     } parm;
-    struct
-    {
-	struct Flag *adjacent, *landscape;
+    struct {
+        struct Flag *adjacent, *landscape;
     } flag;
 
     G_gisinit(argv[0]);
@@ -147,7 +138,7 @@ int main(int argc, char *argv[])
     module = G_define_module();
     G_add_keyword(_("raster"));
     module->description =
-	_("Graph Theory - successive criteria-based deletion of patches.");
+        _("Graph Theory - successive criteria-based deletion of patches.");
 
     parm.input = G_define_standard_option(G_OPT_R_INPUT);
 
@@ -176,7 +167,7 @@ int main(int argc, char *argv[])
     parm.distance->type = TYPE_DOUBLE;
     parm.distance->required = YES;
     parm.distance->description =
-	_("Bounding distance [0 for maximum distance]");
+        _("Bounding distance [0 for maximum distance]");
 
     parm.neighborhood = G_define_option();
     parm.neighborhood->key = "neighborhood";
@@ -184,11 +175,11 @@ int main(int argc, char *argv[])
     parm.neighborhood->required = YES;
     p = G_malloc(1024);
     for (n = 0; neighborhoods[n].name; n++) {
-	if (n)
-	    strcat(p, ",");
-	else
-	    *p = 0;
-	strcat(p, neighborhoods[n].name);
+        if (n)
+            strcat(p, ",");
+        else
+            *p = 0;
+        strcat(p, neighborhoods[n].name);
     }
     parm.neighborhood->options = p;
     parm.neighborhood->description = _("Neighborhood definition");
@@ -199,11 +190,11 @@ int main(int argc, char *argv[])
     parm.index->required = YES;
     p = G_malloc(1024);
     for (n = 0; indices[n].name; n++) {
-	if (n)
-	    strcat(p, ",");
-	else
-	    *p = 0;
-	strcat(p, indices[n].name);
+        if (n)
+            strcat(p, ",");
+        else
+            *p = 0;
+        strcat(p, indices[n].name);
     }
     parm.index->options = p;
     parm.index->description = _("Cluster index");
@@ -214,11 +205,11 @@ int main(int argc, char *argv[])
     parm.choice->required = YES;
     p = G_malloc(1024);
     for (n = 0; choices[n].name; n++) {
-	if (n)
-	    strcat(p, ",");
-	else
-	    *p = 0;
-	strcat(p, choices[n].name);
+        if (n)
+            strcat(p, ",");
+        else
+            *p = 0;
+        strcat(p, choices[n].name);
     }
     parm.choice->options = p;
     parm.choice->description = _("Cluster index");
@@ -232,15 +223,15 @@ int main(int argc, char *argv[])
     flag.adjacent = G_define_flag();
     flag.adjacent->key = 'a';
     flag.adjacent->description =
-	_("Set for 8 cell-neighbors. 4 cell-neighbors are default");
+        _("Set for 8 cell-neighbors. 4 cell-neighbors are default");
 
     flag.landscape = G_define_flag();
     flag.landscape->key = 'l';
-    flag.landscape->description =
-	_("Set to perform deletion for the whole landscape rather than cluster-wise");
+    flag.landscape->description = _("Set to perform deletion for the whole "
+                                    "landscape rather than cluster-wise");
 
     if (G_parser(argc, argv))
-	exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
 
     /* get names of input files */
     oldname = parm.input->answer;
@@ -253,12 +244,12 @@ int main(int argc, char *argv[])
     /* check if the new file name is correct */
     newname = parm.output->answer;
     if (G_legal_filename(newname) < 0)
-	G_fatal_error(_("<%s> is an illegal file name"), newname);
+        G_fatal_error(_("<%s> is an illegal file name"), newname);
 
     /* check if the id raster file name is correct */
     idname = parm.id->answer;
     if (G_legal_filename(idname) < 0)
-	G_fatal_error(_("<%s> is an illegal file name"), idname);
+        G_fatal_error(_("<%s> is an illegal file name"), idname);
 
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
@@ -268,7 +259,7 @@ int main(int argc, char *argv[])
     /* open cell files */
     in_fd = Rast_open_old(oldname, oldmapset);
     if (in_fd < 0)
-	G_fatal_error(_("Unable to open raster map <%s>"), oldname);
+        G_fatal_error(_("Unable to open raster map <%s>"), oldname);
 
     /* get key value */
     sscanf(parm.keyval->answer, "%d", &keyval);
@@ -276,36 +267,36 @@ int main(int argc, char *argv[])
     /* get distance */
     sscanf(parm.distance->answer, "%lf", &distance);
     if (distance == 0.0) {
-	distance = MAX_DOUBLE;
+        distance = MAX_DOUBLE;
     }
 
     /* get neighborhood definition */
     for (neighborhood = 0; (p = neighborhoods[neighborhood].name);
-	 neighborhood++) {
-	if ((strcmp(p, parm.neighborhood->answer) == 0))
-	    break;
+         neighborhood++) {
+        if ((strcmp(p, parm.neighborhood->answer) == 0))
+            break;
     }
     if (!p) {
-	G_fatal_error("<%s=%s> unknown %s", parm.neighborhood->key,
-		      parm.neighborhood->answer, parm.neighborhood->key);
+        G_fatal_error("<%s=%s> unknown %s", parm.neighborhood->key,
+                      parm.neighborhood->answer, parm.neighborhood->key);
     }
 
     /* get the cluster index */
     for (index = 0; (p = indices[index].name); index++)
-	if ((strcmp(p, parm.index->answer) == 0))
-	    break;
+        if ((strcmp(p, parm.index->answer) == 0))
+            break;
     if (!p) {
-	G_fatal_error("<%s=%s> unknown %s", parm.index->key,
-		      parm.index->answer, parm.index->key);
+        G_fatal_error("<%s=%s> unknown %s", parm.index->key, parm.index->answer,
+                      parm.index->key);
     }
 
     /* get the choice method */
     for (choice = 0; (p = choices[choice].name); choice++)
-	if ((strcmp(p, parm.choice->answer) == 0))
-	    break;
+        if ((strcmp(p, parm.choice->answer) == 0))
+            break;
     if (!p) {
-	G_fatal_error("<%s=%s> unknown %s", parm.choice->key,
-		      parm.choice->answer, parm.choice->key);
+        G_fatal_error("<%s=%s> unknown %s", parm.choice->key,
+                      parm.choice->answer, parm.choice->key);
     }
 
     /* get number of cell-neighbors */
@@ -315,13 +306,13 @@ int main(int argc, char *argv[])
     seed = time(NULL);
 
     if (parm.seed->answer) {
-	sscanf(parm.seed->answer, "%d", &seed);
+        sscanf(parm.seed->answer, "%d", &seed);
     }
     srand(seed);
 
     /* allocate the cell buffers */
-    cells = (Coords *) G_malloc(nrows * ncols * sizeof(Coords));
-    fragments = (Patch *) G_malloc(nrows * ncols * sizeof(Patch));
+    cells = (Coords *)G_malloc(nrows * ncols * sizeof(Coords));
+    fragments = (Patch *)G_malloc(nrows * ncols * sizeof(Patch));
 
     fragments[0].first_cell = cells;
     flagbuf = (int *)G_malloc(nrows * ncols * sizeof(int));
@@ -332,13 +323,13 @@ int main(int argc, char *argv[])
 
     /* read map */
     for (row = 0; row < nrows; row++) {
-	Rast_get_c_row(in_fd, result, row);
-	for (col = 0; col < ncols; col++) {
-	    if (result[col] == keyval)
-		flagbuf[row * ncols + col] = 1;
-	}
+        Rast_get_c_row(in_fd, result, row);
+        for (col = 0; col < ncols; col++) {
+            if (result[col] == keyval)
+                flagbuf[row * ncols + col] = 1;
+        }
 
-	G_percent(row + 1, nrows, 1);
+        G_percent(row + 1, nrows, 1);
     }
 
     /* close cell file */
@@ -347,18 +338,17 @@ int main(int argc, char *argv[])
     /*G_message("map");
        for(row = 0; row < nrows; row++) {
        for(col = 0; col< ncols; col++) {
-       fprintf(stderr, "%d", flagbuf[row * ncols + col]);           
+       fprintf(stderr, "%d", flagbuf[row * ncols + col]);
        }
        fprintf(stderr, "\n");
        } */
 
     /* find fragments */
     fragcount =
-	writeFragments_local(fragments, flagbuf, nrows, ncols, nbr_count);
+        writeFragments_local(fragments, flagbuf, nrows, ncols, nbr_count);
 
     /* allocate distance matrix */
-    distmatrix =
-	(DCELL *) G_malloc(fragcount * fragcount * sizeof(DCELL));
+    distmatrix = (DCELL *)G_malloc(fragcount * fragcount * sizeof(DCELL));
     memset(distmatrix, 0, fragcount * fragcount * sizeof(DCELL));
 
     /* generate the distance matrix */
@@ -390,7 +380,7 @@ int main(int argc, char *argv[])
 
     /* find clusters */
     patches = (int *)G_malloc(fragcount * sizeof(int));
-    clusters = (Cluster *) G_malloc((fragcount) * sizeof(Cluster));
+    clusters = (Cluster *)G_malloc((fragcount) * sizeof(Cluster));
 
     clusters[0].first_patch = patches;
 
@@ -404,9 +394,9 @@ int main(int argc, char *argv[])
        fprintf(stderr, "\n");
        } */
 
-    /* values: Before Deletion(cluster1, cluster2, ...), After First Deletion(...), After Second Deletion(...), ... */
-    values =
-	(DCELL *) G_malloc((fragcount + 1) * clustercount * sizeof(DCELL));
+    /* values: Before Deletion(cluster1, cluster2, ...), After First
+     * Deletion(...), After Second Deletion(...), ... */
+    values = (DCELL *)G_malloc((fragcount + 1) * clustercount * sizeof(DCELL));
     patch_notes = (int *)G_malloc(fragcount * sizeof(int));
     cluster_notes = (int *)G_malloc(fragcount * sizeof(int));
 
@@ -416,112 +406,111 @@ int main(int argc, char *argv[])
     /* write id raster maps */
 
     if (parm.id->answer) {
-	/* ================================== 
-	   ==========  cluster map  ========= 
-	   ================================== */
+        /* ==================================
+           ==========  cluster map  =========
+           ================================== */
 
-	/* open the new cellfile */
-	sprintf(fullname, "%s_clusters", idname);
-	out_fd = Rast_open_new(fullname, CELL_TYPE);
-	if (out_fd < 0)
-	    G_fatal_error(_("Cannot create raster map <%s>"), fullname);
+        /* open the new cellfile */
+        sprintf(fullname, "%s_clusters", idname);
+        out_fd = Rast_open_new(fullname, CELL_TYPE);
+        if (out_fd < 0)
+            G_fatal_error(_("Cannot create raster map <%s>"), fullname);
 
-	/* allocate and initialize the clustermap */
-	clustermap = (CELL *) G_malloc(nrows * ncols * sizeof(CELL));
-	Rast_set_c_null_value(clustermap, nrows * ncols);
+        /* allocate and initialize the clustermap */
+        clustermap = (CELL *)G_malloc(nrows * ncols * sizeof(CELL));
+        Rast_set_c_null_value(clustermap, nrows * ncols);
 
-	/* for each cluster */
-	for (i = 0; i < clustercount; i++) {
-	    /* for each patch in the cluster */
-	    int *this;
+        /* for each cluster */
+        for (i = 0; i < clustercount; i++) {
+            /* for each patch in the cluster */
+            int *this;
 
-	    for (this = clusters[i].first_patch;
-		 this < clusters[i].first_patch + clusters[i].count; this++) {
-		/* for each cell in the patch */
-		int cell_index;
-		int *other;
+            for (this = clusters[i].first_patch;
+                 this < clusters[i].first_patch + clusters[i].count; this ++) {
+                /* for each cell in the patch */
+                int cell_index;
+                int *other;
 
-		for (cell_index = 0; cell_index < fragments[*this].count;
-		     cell_index++) {
-		    Coords *cell = fragments[*this].first_cell + cell_index;
+                for (cell_index = 0; cell_index < fragments[*this].count;
+                     cell_index++) {
+                    Coords *cell = fragments[*this].first_cell + cell_index;
 
-		    clustermap[cell->y * ncols + cell->x] = i;
-		}
+                    clustermap[cell->y * ncols + cell->x] = i;
+                }
 
-		/* for each patch in the cluster */
+                /* for each patch in the cluster */
 
-		for (other = this + 1;
-		     other < clusters[i].first_patch + clusters[i].count;
-		     other++) {
-		    if (*other != *this &&
-			adjmatrix[*this * fragcount + *other]) {
-			Coords np1, np2;
+                for (other = this + 1;
+                     other < clusters[i].first_patch + clusters[i].count;
+                     other++) {
+                    if (*other != *this &&
+                        adjmatrix[*this * fragcount + *other]) {
+                        Coords np1, np2;
 
-			nearest_points(fragments, *this, *other, &np1, &np2);
+                        nearest_points(fragments, *this, *other, &np1, &np2);
 
-			draw_line(clustermap, -1, np1.x, np1.y, np2.x, np2.y,
-				  ncols, nrows, 1);
-		    }
-		}
-	    }
-	}
+                        draw_line(clustermap, -1, np1.x, np1.y, np2.x, np2.y,
+                                  ncols, nrows, 1);
+                    }
+                }
+            }
+        }
 
-	/* write output */
-	for (row = 0; row < nrows; row++) {
-	    Rast_put_c_row(out_fd, clustermap + row * ncols);
-	}
+        /* write output */
+        for (row = 0; row < nrows; row++) {
+            Rast_put_c_row(out_fd, clustermap + row * ncols);
+        }
 
-	G_free(clustermap);
+        G_free(clustermap);
 
-	/* close output file */
-	Rast_close(out_fd);
+        /* close output file */
+        Rast_close(out_fd);
 
-	/* ================================== 
-	   ============  id raster  ============
-	   ================================== */
+        /* ==================================
+           ============  id raster  ============
+           ================================== */
 
-	/* allocate result row variable */
-	d_res = Rast_allocate_d_buf();
+        /* allocate result row variable */
+        d_res = Rast_allocate_d_buf();
 
-	/* open new cellfile  */
-	sprintf(fullname, "%s_id", idname);
-	out_fd = Rast_open_new(fullname, CELL_TYPE);
-	if (out_fd < 0)
-	    G_fatal_error(_("Cannot create raster map <%s>"), fullname);
+        /* open new cellfile  */
+        sprintf(fullname, "%s_id", idname);
+        out_fd = Rast_open_new(fullname, CELL_TYPE);
+        if (out_fd < 0)
+            G_fatal_error(_("Cannot create raster map <%s>"), fullname);
 
-	/* write the output file */
-	for (row = 0; row < nrows; row++) {
-	    int patch_index;
+        /* write the output file */
+        for (row = 0; row < nrows; row++) {
+            int patch_index;
 
-	    Rast_set_d_null_value(d_res, ncols);
+            Rast_set_d_null_value(d_res, ncols);
 
-	    for (patch_index = 0; patch_index < fragcount; patch_index++) {
-		int cell_index;
+            for (patch_index = 0; patch_index < fragcount; patch_index++) {
+                int cell_index;
 
-		for (cell_index = 0;
-		     cell_index < fragments[patch_index].count;
-		     cell_index++) {
-		    Coords *cell =
-			fragments[patch_index].first_cell + cell_index;
-		    if (cell->y == row) {
-			d_res[cell->x] = patch_index;
-		    }
-		}
-	    }
+                for (cell_index = 0; cell_index < fragments[patch_index].count;
+                     cell_index++) {
+                    Coords *cell =
+                        fragments[patch_index].first_cell + cell_index;
+                    if (cell->y == row) {
+                        d_res[cell->x] = patch_index;
+                    }
+                }
+            }
 
-	    Rast_put_d_row(out_fd, d_res);
-	}
+            Rast_put_d_row(out_fd, d_res);
+        }
 
-	/* free result row */
-	G_free(d_res);
+        /* free result row */
+        G_free(d_res);
 
-	/* close output */
-	Rast_close(out_fd);
+        /* close output */
+        Rast_close(out_fd);
     }
 
     /* calculate indices once before deletion */
-    calc_index(values, clusters, clustercount, adjmatrix, fragments,
-	       fragcount, distmatrix);
+    calc_index(values, clusters, clustercount, adjmatrix, fragments, fragcount,
+               distmatrix);
 
     /*fprintf(stderr, "Values:");
        for(i = 0; i < clustercount; i++) {
@@ -534,103 +523,101 @@ int main(int argc, char *argv[])
     cur_values = values + clustercount;
     cur_pos = 0;
 
-    if (flag.landscape->answer) {	/* landscape wide deletion */
-	/* for each patch */
-	for (i = 0; i < fragcount; i++) {
-	    /* find next patch to delete */
-	    int patch =
-		choose_patch(-1, clusters, clustercount, adjmatrix, fragments,
-			     fragcount, distmatrix);
+    if (flag.landscape->answer) { /* landscape wide deletion */
+        /* for each patch */
+        for (i = 0; i < fragcount; i++) {
+            /* find next patch to delete */
+            int patch = choose_patch(-1, clusters, clustercount, adjmatrix,
+                                     fragments, fragcount, distmatrix);
 
-	    /* find the appropriate cluster */
-	    int j, k;
-	    int cluster = -1;
-	    int rel_patch;
+            /* find the appropriate cluster */
+            int j, k;
+            int cluster = -1;
+            int rel_patch;
 
-	    for (j = 0; j < clustercount; j++) {
-		int m;
+            for (j = 0; j < clustercount; j++) {
+                int m;
 
-		for (m = 0; m < clusters[j].count; m++) {
-		    if (clusters[j].first_patch[m] == patch) {
-			cluster = j;
-			rel_patch = m;
-			break;
-		    }
-		}
-	    }
+                for (m = 0; m < clusters[j].count; m++) {
+                    if (clusters[j].first_patch[m] == patch) {
+                        cluster = j;
+                        rel_patch = m;
+                        break;
+                    }
+                }
+            }
 
-	    if (cluster == -1) {
-		G_fatal_error("A clusterless patch nr.%d encountered!",
-			      patch);
-	    }
+            if (cluster == -1) {
+                G_fatal_error("A clusterless patch nr.%d encountered!", patch);
+            }
 
-	    /* save which patch from which cluster has been deleted */
-	    cluster_notes[cur_pos] = cluster;
-	    patch_notes[cur_pos] = patch;
-	    cur_pos++;
+            /* save which patch from which cluster has been deleted */
+            cluster_notes[cur_pos] = cluster;
+            patch_notes[cur_pos] = patch;
+            cur_pos++;
 
-	    /* delete this patch from the cluster */
-	    clusters[cluster].first_patch[rel_patch] =
-		clusters[cluster].first_patch[clusters[cluster].count - 1];
-	    clusters[cluster].count--;
+            /* delete this patch from the cluster */
+            clusters[cluster].first_patch[rel_patch] =
+                clusters[cluster].first_patch[clusters[cluster].count - 1];
+            clusters[cluster].count--;
 
-	    /* and from the adjacency matrix */
+            /* and from the adjacency matrix */
 
-	    for (k = 0; k < fragcount; k++) {
-		adjmatrix[k * fragcount + patch] = 0;
-		adjmatrix[patch * fragcount + k] = 0;
-	    }
+            for (k = 0; k < fragcount; k++) {
+                adjmatrix[k * fragcount + patch] = 0;
+                adjmatrix[patch * fragcount + k] = 0;
+            }
 
-	    /* calculate index */
-	    calc_index(cur_values, clusters, clustercount, adjmatrix,
-		       fragments, fragcount, distmatrix);
-	    cur_values += clustercount;
-	}
+            /* calculate index */
+            calc_index(cur_values, clusters, clustercount, adjmatrix, fragments,
+                       fragcount, distmatrix);
+            cur_values += clustercount;
+        }
     }
     else {
-	/* for each cluster */
-	for (i = 0; i < clustercount; i++) {
-	    int j, k;
+        /* for each cluster */
+        for (i = 0; i < clustercount; i++) {
+            int j, k;
 
-	    /* patch count times do */
-	    int count = clusters[i].count;
+            /* patch count times do */
+            int count = clusters[i].count;
 
-	    for (j = 0; j < count; j++) {
-		/* find next patch to delete */
-		int patch = choose_patch(i, clusters, clustercount, adjmatrix,
-					 fragments, fragcount, distmatrix);
-		int real_patch = clusters[i].first_patch[patch];
+            for (j = 0; j < count; j++) {
+                /* find next patch to delete */
+                int patch = choose_patch(i, clusters, clustercount, adjmatrix,
+                                         fragments, fragcount, distmatrix);
+                int real_patch = clusters[i].first_patch[patch];
 
-		/* save which patch from which cluster has been deleted */
-		cluster_notes[cur_pos] = i;
-		patch_notes[cur_pos] = real_patch;
-		cur_pos++;
+                /* save which patch from which cluster has been deleted */
+                cluster_notes[cur_pos] = i;
+                patch_notes[cur_pos] = real_patch;
+                cur_pos++;
 
-		/*int c;
-		   fprintf(stderr, "Patch notes:");
-		   for(c = 0; c < save_fc; c++) {
-		   fprintf(stderr, " %d", patch_notes[c]);
-		   }
-		   fprintf(stderr, "\n"); */
+                /*int c;
+                   fprintf(stderr, "Patch notes:");
+                   for(c = 0; c < save_fc; c++) {
+                   fprintf(stderr, " %d", patch_notes[c]);
+                   }
+                   fprintf(stderr, "\n"); */
 
-		/* delete this patch from the cluster */
-		clusters[i].first_patch[patch] =
-		    clusters[i].first_patch[clusters[i].count - 1];
-		clusters[i].count--;
+                /* delete this patch from the cluster */
+                clusters[i].first_patch[patch] =
+                    clusters[i].first_patch[clusters[i].count - 1];
+                clusters[i].count--;
 
-		/* and from the adjacency matrix */
+                /* and from the adjacency matrix */
 
-		for (k = 0; k < fragcount; k++) {
-		    adjmatrix[k * fragcount + real_patch] = 0;
-		    adjmatrix[real_patch * fragcount + k] = 0;
-		}
+                for (k = 0; k < fragcount; k++) {
+                    adjmatrix[k * fragcount + real_patch] = 0;
+                    adjmatrix[real_patch * fragcount + k] = 0;
+                }
 
-		/* calculate index */
-		calc_index(cur_values, clusters, clustercount, adjmatrix,
-			   fragments, fragcount, distmatrix);
-		cur_values += clustercount;
-	    }
-	}
+                /* calculate index */
+                calc_index(cur_values, clusters, clustercount, adjmatrix,
+                           fragments, fragcount, distmatrix);
+                cur_values += clustercount;
+            }
+        }
     }
 
     /* test output */
@@ -643,63 +630,61 @@ int main(int argc, char *argv[])
     /* write output */
     G_message("Writing output...");
 
-    /* ================================== 
-       ============  output  ============ 
+    /* ==================================
+       ============  output  ============
        ================================== */
 
     /* open ASCII-file or use stdout */
     if (strcmp(parm.output->answer, "-") != 0) {
-	if (!(out_fp = fopen(parm.output->answer, "w"))) {
-	    G_fatal_error(_("Error creating file <%s>"),
-			  parm.output->answer);
-	}
+        if (!(out_fp = fopen(parm.output->answer, "w"))) {
+            G_fatal_error(_("Error creating file <%s>"), parm.output->answer);
+        }
     }
     else {
-	out_fp = stdout;
+        out_fp = stdout;
     }
 
     /* write header */
     fprintf(out_fp, "cluster patch");
     for (i = 0; i < clustercount; i++) {
-	fprintf(out_fp, " cluster_index_%d", i);
+        fprintf(out_fp, " cluster_index_%d", i);
     }
     fprintf(out_fp, " change change_percent change_from_initial");
     fprintf(out_fp, "\n");
 
     /* write values */
     for (i = 0; i < fragcount + 1; i++) {
-	int cluster = i > 0 ? cluster_notes[i - 1] : -1;
-	int patch = i > 0 ? patch_notes[i - 1] : -1;
-	int j;
+        int cluster = i > 0 ? cluster_notes[i - 1] : -1;
+        int patch = i > 0 ? patch_notes[i - 1] : -1;
+        int j;
 
-	fprintf(out_fp, "%d %d", cluster, patch);
+        fprintf(out_fp, "%d %d", cluster, patch);
 
-	for (j = 0; j < clustercount; j++) {
-	    fprintf(out_fp, " %f", values[i * clustercount + j]);
-	}
+        for (j = 0; j < clustercount; j++) {
+            fprintf(out_fp, " %f", values[i * clustercount + j]);
+        }
 
-	if (i > 0 && cluster >= 0) {
-	    /* print changes */
-	    DCELL initval = values[cluster];
-	    DCELL oldval = values[(i - 1) * clustercount + cluster];
-	    DCELL newval = values[i * clustercount + cluster];
-	    DCELL change = newval - oldval;
-	    DCELL change_pr = change / oldval * 100.0;
-	    DCELL change_from_init = change / initval * 100.0;
+        if (i > 0 && cluster >= 0) {
+            /* print changes */
+            DCELL initval = values[cluster];
+            DCELL oldval = values[(i - 1) * clustercount + cluster];
+            DCELL newval = values[i * clustercount + cluster];
+            DCELL change = newval - oldval;
+            DCELL change_pr = change / oldval * 100.0;
+            DCELL change_from_init = change / initval * 100.0;
 
-	    fprintf(out_fp, " %f %f %f", change, change_pr,
-		    change_from_init);
-	}
-	else {
-	    fprintf(out_fp, " 0 0 0");
-	}
+            fprintf(out_fp, " %f %f %f", change, change_pr, change_from_init);
+        }
+        else {
+            fprintf(out_fp, " 0 0 0");
+        }
 
-	fprintf(out_fp, "\n");
+        fprintf(out_fp, "\n");
     }
 
     /* close output file */
     if (strcmp(parm.output->answer, "-") != 0) {
-	fclose(out_fp);
+        fclose(out_fp);
     }
 
     /* =============================

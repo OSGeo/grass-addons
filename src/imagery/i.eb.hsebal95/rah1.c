@@ -1,6 +1,6 @@
-#include<stdio.h>
-#include<math.h>
-#include"functions.h"
+#include <stdio.h>
+#include <math.h>
+#include "functions.h"
 
 #define PI 3.1415927
 

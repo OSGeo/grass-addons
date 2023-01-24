@@ -17,9 +17,9 @@
 #include <grass/glocale.h>
 #include "local_proto.h"
 #include "double_list.h"
-int read_rast(double east, double north, double dist, RASTER3D_Map * fd,
-              int coords, RASTER_MAP_TYPE data_type, FILE * fp,
-              char *null_string, RASTER3D_Region * region, int depth,
+int read_rast(double east, double north, double dist, RASTER3D_Map *fd,
+              int coords, RASTER_MAP_TYPE data_type, FILE *fp,
+              char *null_string, RASTER3D_Region *region, int depth,
               struct DoubleList *values)
 {
     static DCELL *dcell;

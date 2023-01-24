@@ -33,7 +33,6 @@ jmp_buf jmp;
 
 struct CHOICE *choice;
 
-
 int main(int argc, char **argv)
 {
     struct GModule *module;
@@ -47,153 +46,151 @@ int main(int argc, char **argv)
     module = G_define_module();
     G_add_keyword(_("raster"));
     module->description =
-	_("Calculates attribute, patch size, core (interior) size, shape, "
-	  "fractal dimension, and perimeter measures for sets of patches "
-	  "in a landscape.");
+        _("Calculates attribute, patch size, core (interior) size, shape, "
+          "fractal dimension, and perimeter measures for sets of patches "
+          "in a landscape.");
 
     /* call user_input to read in the parameters */
     user_input(argc, argv);
-
 
     /* display the parameter choices */
     fprintf(stderr, "\nPARAMETER CHOICES:\n");
     fprintf(stderr, "\tMAP:\t  %s\n", choice->fn);
     if (choice->wrum == 'r')
-	fprintf(stderr, "\tREGION:\t  %s\n", choice->reg);
+        fprintf(stderr, "\tREGION:\t  %s\n", choice->reg);
 
     fprintf(stderr, "\tSAMPLE:");
     if (choice->wrum == 'w')
-	fprintf(stderr, "\t  whole map    ");
+        fprintf(stderr, "\t  whole map    ");
     if (choice->wrum == 'm')
-	fprintf(stderr, "\t  moving window");
+        fprintf(stderr, "\t  moving window");
     if (choice->wrum == 'u')
-	fprintf(stderr, "\t  units        ");
+        fprintf(stderr, "\t  units        ");
     if (choice->wrum == 'r')
-	fprintf(stderr, "\t  regions      ");
+        fprintf(stderr, "\t  regions      ");
 
     fprintf(stderr, "\tTRACING:");
     if (choice->trace)
-	fprintf(stderr, "  8 neighbor\n");
+        fprintf(stderr, "  8 neighbor\n");
     else
-	fprintf(stderr, "  4 neighbor\n");
+        fprintf(stderr, "  4 neighbor\n");
 
     if (choice->coremap || choice->patchmap || choice->units)
-	fprintf(stderr, "\tOUTPUT MAPS:\n");
+        fprintf(stderr, "\tOUTPUT MAPS:\n");
     if (choice->coremap)
-	fprintf(stderr, "\t\t  interior\n");
+        fprintf(stderr, "\t\t  interior\n");
     if (choice->patchmap)
-	fprintf(stderr, "\t\t  num\n");
+        fprintf(stderr, "\t\t  num\n");
     if (choice->units)
-	fprintf(stderr, "\t\t  units_x\n");
+        fprintf(stderr, "\t\t  units_x\n");
 
     if (choice->att[0])
-	fprintf(stderr, "\tATTRIBUTE MEASURES:\n");
+        fprintf(stderr, "\tATTRIBUTE MEASURES:\n");
     if (choice->att[1])
-	fprintf(stderr, "\t\t  mean pixel attribute\n");
+        fprintf(stderr, "\t\t  mean pixel attribute\n");
     if (choice->att[2])
-	fprintf(stderr, "\t\t  st. dev. pixel attribute\n");
+        fprintf(stderr, "\t\t  st. dev. pixel attribute\n");
     if (choice->att[3])
-	fprintf(stderr, "\t\t  mean patch attribute\n");
+        fprintf(stderr, "\t\t  mean patch attribute\n");
     if (choice->att[4])
-	fprintf(stderr, "\t\t  st. dev. patch attribute\n");
+        fprintf(stderr, "\t\t  st. dev. patch attribute\n");
     if (choice->att[5])
-	fprintf(stderr, "\t\t  cover by gp\n");
+        fprintf(stderr, "\t\t  cover by gp\n");
     if (choice->att[6])
-	fprintf(stderr, "\t\t  density by gp\n");
+        fprintf(stderr, "\t\t  density by gp\n");
     if (choice->att[7])
-	fprintf(stderr, "\t\t  total density\n");
+        fprintf(stderr, "\t\t  total density\n");
     if (choice->att[8])
-	fprintf(stderr, "\t\t  eff. mesh no.\n");
+        fprintf(stderr, "\t\t  eff. mesh no.\n");
 
     if (choice->size[0])
-	fprintf(stderr, "\tSIZE MEASURES:\n");
+        fprintf(stderr, "\tSIZE MEASURES:\n");
     if (choice->size[1])
-	fprintf(stderr, "\t\t  mean patch size\n");
+        fprintf(stderr, "\t\t  mean patch size\n");
     if (choice->size[2])
-	fprintf(stderr, "\t\t  st. dev. patch size\n");
+        fprintf(stderr, "\t\t  st. dev. patch size\n");
     if (choice->size[3])
-	fprintf(stderr, "\t\t  mean patch size by gp\n");
+        fprintf(stderr, "\t\t  mean patch size by gp\n");
     if (choice->size[4])
-	fprintf(stderr, "\t\t  st. dev. patch size by gp\n");
+        fprintf(stderr, "\t\t  st. dev. patch size by gp\n");
     if (choice->size[5])
-	fprintf(stderr, "\t\t  no. by size class\n");
+        fprintf(stderr, "\t\t  no. by size class\n");
     if (choice->size[6])
-	fprintf(stderr, "\t\t  no. by size class by gp\n");
+        fprintf(stderr, "\t\t  no. by size class by gp\n");
     if (choice->size[7])
-	fprintf(stderr, "\t\t  eff. mesh size\n");
+        fprintf(stderr, "\t\t  eff. mesh size\n");
     if (choice->size[8])
-	fprintf(stderr, "\t\t  deg. landsc. division\n");
-
+        fprintf(stderr, "\t\t  deg. landsc. division\n");
 
     if (choice->core[0])
-	fprintf(stderr, "\tCORE MEASURES:\n");
+        fprintf(stderr, "\tCORE MEASURES:\n");
     if (choice->core[1])
-	fprintf(stderr, "\t\t  mean core size\n");
+        fprintf(stderr, "\t\t  mean core size\n");
     if (choice->core[2])
-	fprintf(stderr, "\t\t  st. dev. core size\n");
+        fprintf(stderr, "\t\t  st. dev. core size\n");
     if (choice->core[3])
-	fprintf(stderr, "\t\t  mean edge size\n");
+        fprintf(stderr, "\t\t  mean edge size\n");
     if (choice->core[4])
-	fprintf(stderr, "\t\t  st. dev. edge size\n");
+        fprintf(stderr, "\t\t  st. dev. edge size\n");
     if (choice->core[5])
-	fprintf(stderr, "\t\t  mean core size by gp\n");
+        fprintf(stderr, "\t\t  mean core size by gp\n");
     if (choice->core[6])
-	fprintf(stderr, "\t\t  st. dev. core size by gp\n");
+        fprintf(stderr, "\t\t  st. dev. core size by gp\n");
     if (choice->core[7])
-	fprintf(stderr, "\t\t  mean edge size by gp \n");
+        fprintf(stderr, "\t\t  mean edge size by gp \n");
     if (choice->core[8])
-	fprintf(stderr, "\t\t  st. dev. edge size by gp\n");
+        fprintf(stderr, "\t\t  st. dev. edge size by gp\n");
     if (choice->core[9])
-	fprintf(stderr, "\t\t  no. by size class \n");
+        fprintf(stderr, "\t\t  no. by size class \n");
     if (choice->core[10])
-	fprintf(stderr, "\t\t  no. by size class by gp\n");
+        fprintf(stderr, "\t\t  no. by size class by gp\n");
 
     if (choice->shape[0])
-	fprintf(stderr, "\tSHAPE MEASURES:\n");
+        fprintf(stderr, "\tSHAPE MEASURES:\n");
     if (choice->shape[1])
-	fprintf(stderr, "\t\t  mean patch shape\n");
+        fprintf(stderr, "\t\t  mean patch shape\n");
     if (choice->shape[2])
-	fprintf(stderr, "\t\t  st. dev. patch shape\n");
+        fprintf(stderr, "\t\t  st. dev. patch shape\n");
     if (choice->shape[3])
-	fprintf(stderr, "\t\t  mean patch shape by gp\n");
+        fprintf(stderr, "\t\t  mean patch shape by gp\n");
     if (choice->shape[4])
-	fprintf(stderr, "\t\t  st. dev. patch shape by gp\n");
+        fprintf(stderr, "\t\t  st. dev. patch shape by gp\n");
     if (choice->shape[5])
-	fprintf(stderr, "\t\t  no. by shape class\n");
+        fprintf(stderr, "\t\t  no. by shape class\n");
     if (choice->shape[6])
-	fprintf(stderr, "\t\t  no. by shape class by gp\n");
+        fprintf(stderr, "\t\t  no. by shape class by gp\n");
 
     if (choice->boundary[0])
-	fprintf(stderr, "\tBOUNDARY COMPLEXITY MEASURES:\n");
+        fprintf(stderr, "\tBOUNDARY COMPLEXITY MEASURES:\n");
     if (choice->boundary[1])
-	fprintf(stderr, "\t\t  mean twist number\n");
+        fprintf(stderr, "\t\t  mean twist number\n");
     if (choice->boundary[2])
-	fprintf(stderr, "\t\t  st. dev. twist number\n");
+        fprintf(stderr, "\t\t  st. dev. twist number\n");
     if (choice->boundary[3])
-	fprintf(stderr, "\t\t  mean omega index\n");
+        fprintf(stderr, "\t\t  mean omega index\n");
     if (choice->boundary[4])
-	fprintf(stderr, "\t\t  st. dev. omega index\n");
+        fprintf(stderr, "\t\t  st. dev. omega index\n");
 
     if (choice->perim[0])
-	fprintf(stderr, "\tPERIMETER MEASURES:\n");
+        fprintf(stderr, "\tPERIMETER MEASURES:\n");
     if (choice->perim[1])
-	fprintf(stderr, "\t\t  sum of perims\n");
+        fprintf(stderr, "\t\t  sum of perims\n");
     if (choice->perim[2])
-	fprintf(stderr, "\t\t  mean perim.\n");
+        fprintf(stderr, "\t\t  mean perim.\n");
     if (choice->perim[3])
-	fprintf(stderr, "\t\t  st. dev. perim.\n");
+        fprintf(stderr, "\t\t  st. dev. perim.\n");
     if (choice->perim[4])
-	fprintf(stderr, "\t\t  sum of perims. by gp\n");
+        fprintf(stderr, "\t\t  sum of perims. by gp\n");
     if (choice->perim[5])
-	fprintf(stderr, "\t\t  mean perim. by gp\n");
+        fprintf(stderr, "\t\t  mean perim. by gp\n");
     if (choice->perim[6])
-	fprintf(stderr, "\t\t  st. dev. perim. by gp\n");
+        fprintf(stderr, "\t\t  st. dev. perim. by gp\n");
 
     /* if not moving window, setup the
        r.le.out subdirectory */
 
     if (choice->wrum != 'm')
-	G_mkdir("r.le.out");
+        G_mkdir("r.le.out");
 
     patch_fore();
     G_free(choice);

@@ -3,12 +3,10 @@
 #include "globals.h"
 #include "loc_func.h"
 
-void Configure_view(View * view, char *name, char *mapset, double ns_res,
-		    double ew_res)
+void Configure_view(View *view, char *name, char *mapset, double ns_res,
+                    double ew_res)
 
-
-
-	/* original map resolution */
+/* original map resolution */
 {
     Erase_view(view);
     view->cell.configured = 0;
@@ -30,21 +28,21 @@ void Configure_view(View * view, char *name, char *mapset, double ns_res,
     view->cell.configured = 1;
 }
 
-int In_view(View * view, int x, int y)
+int In_view(View *view, int x, int y)
 {
     return (x >= view->left && x <= view->right && y >= view->top &&
-	    y <= view->bottom);
+            y <= view->bottom);
 }
 
-void Erase_view(View * view)
+void Erase_view(View *view)
 {
     R_standard_color(BLACK);
     R_box_abs(view->left, view->top, view->right, view->bottom);
 }
 
-double magnification(View * view)
+double magnification(View *view)
 {
     if (!view->cell.configured)
-	return ((double)0.0);
+        return ((double)0.0);
     return (view->cell.ew_res / view->cell.head.ew_res);
 }

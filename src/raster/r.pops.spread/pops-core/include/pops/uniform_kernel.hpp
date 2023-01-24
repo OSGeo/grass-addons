@@ -31,8 +31,7 @@ namespace pops {
  * However, it may work as a good starting point for cases where no
  * theory about the spread is available.
  */
-class UniformDispersalKernel
-{
+class UniformDispersalKernel {
 protected:
     int row_max_;
     int col_max_;
@@ -41,11 +40,10 @@ protected:
 
 public:
     UniformDispersalKernel(int row_max, int col_max)
-        : row_max_(row_max),
-          col_max_(col_max),
-          row_distribution(0, row_max),
+        : row_max_(row_max), col_max_(col_max), row_distribution(0, row_max),
           col_distribution(0, col_max)
-    {}
+    {
+    }
 
     /*! \copybrief RadialDispersalKernel::operator()()
      *
@@ -53,8 +51,8 @@ public:
      * The new position does not depend on the position of the current
      * disperser thus *row* and *col* are unused.
      */
-    template<typename Generator>
-    std::tuple<int, int> operator()(Generator& generator, int row, int col)
+    template <typename Generator>
+    std::tuple<int, int> operator()(Generator &generator, int row, int col)
     {
         row = row_distribution(generator);
         col = col_distribution(generator);
@@ -70,6 +68,6 @@ public:
     }
 };
 
-}  // namespace pops
+} // namespace pops
 
-#endif  // POPS_UNIFORM_KERNEL_HPP
+#endif // POPS_UNIFORM_KERNEL_HPP

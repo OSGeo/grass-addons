@@ -16,18 +16,17 @@
 #define GLOBAL extern
 #endif
 
-typedef struct
-{
+typedef struct {
     int x, y;
     DCELL f, g;
 } Path_Coords;
 
-typedef DCELL(f_statmethod) (DCELL *, int);
-typedef int (f_func) (DCELL *, int, int *, int, f_statmethod);
+typedef DCELL(f_statmethod)(DCELL *, int);
+typedef int(f_func)(DCELL *, int, int *, int, f_statmethod);
 
 void writeFrag_local(int row, int col, int nbr_cnt);
 
-DCELL value(DCELL * vals, int count);
+DCELL value(DCELL *vals, int count);
 
 /* heap.c */
 void heap_alloc(int size);
@@ -51,9 +50,9 @@ int f_path_dist(DCELL *, int, int *, int, f_statmethod);
 int parseToken(int *res, int pos, char *token);
 
 /* matrix.c */
-int writeDistMatrixAndID(char *name, Coords ** frags, int count);
-int writeAdjacencyMatrix(char *name, Coords ** frags, int count, int *nns,
-			 int nn_count);
+int writeDistMatrixAndID(char *name, Coords **frags, int count);
+int writeAdjacencyMatrix(char *name, Coords **frags, int count, int *nns,
+                         int nn_count);
 
 /* global variables */
 GLOBAL int nrows, ncols;
