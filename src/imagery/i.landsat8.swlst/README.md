@@ -4,7 +4,6 @@
 algorithm, estimating land surface temperature (LST), from the Thermal Infra-Red
 Sensor (TIRS) aboard Landsat 8 with an accuracy of better than 1.0 K.
 
-
 ## Quick examples
 
 After installation (see section *Installation* below), from within a GRASS-GIS
@@ -27,25 +26,26 @@ where:
 A faster call is to use existing maps for all in-between
 processing steps: at-satellite temperatures, cloud and emissivity maps.
 
-* At-satellite temperature maps (options `t10`, `t11`) may be derived via
+- At-satellite temperature maps (options `t10`, `t11`) may be derived via
   the `i.landsat.toar` module. Note that `i.landsat.toar` does not
   process single bands selectively.
 
-* The `clouds` option can be any user-defined map. Essentialy, it applies
+- The `clouds` option can be any user-defined map. Essentialy, it applies
   the given map as an inverted mask.
 
-* The emissivity maps, derived by the module itself, can be saved once
+- The emissivity maps, derived by the module itself, can be saved once
   via the `emissivity_out` and `delta_emissivity_out` options and used
   afterwards via the `emissivity` and `delta_emissivity` options. Expert
   users, however, may use emissivity maps from other sources directly.
   An example command may be:
 
 ```bash
-  i.landsat8.swlst t10=T10 t11=T11 clouds=Cloud_Map emissivity=Average_Emissivity_Map delta_emissivity=Delta_Emissivity_Map landcover=FROM_GLC -k -c
+  i.landsat8.swlst t10=T10 t11=T11 clouds=Cloud_Map \
+      emissivity=Average_Emissivity_Map delta_emissivity=Delta_Emissivity_Map \
+          landcover=FROM_GLC -k -c
 ```
 
 For details and more examples, read the manual.
-
 
 ## Description
 

@@ -9,7 +9,8 @@ programmer's manual.
 
 * cronjob schedule:
   * `cron_job_list_grass`
-  * IMPORTANT: to activate any cronjob change, run the following on `grasslxd` container (as user `neteler`):
+  * IMPORTANT: to activate any cronjob change, run the following on `grasslxd`
+    container (as user `neteler`):
     * `crontab $HOME/cronjobs/cron_job_list_grass && crontab -l`
 * generate and deploy the GRASS GIS Web pages at <https://grass.osgeo.org/>:
   * `hugo_clean_and_update_job.sh`
@@ -67,14 +68,16 @@ page is generated.
 Important: there are two web related directories on the server:
 
 * `/var/www/code_and_data/`: contains source code, sample data, etc.
-* `/var/www/html/`: contains the hugo generated files. The relevant subdirectories of `/var/www/code_and_data/` are linked here.
+* `/var/www/html/`: contains the hugo generated files. The relevant
+  subdirectories of `/var/www/code_and_data/` are linked here.
 
 ## Infrastructure
 
 The server is hosted as LXD container on `osgeo7`, see:
 <https://wiki.osgeo.org/wiki/SAC_Service_Status#GRASS_GIS_server>
 
-The container is only accessible via the related OSGeo ssh jumphost and registered ssh pubkey.
+The container is only accessible via the related OSGeo ssh jumphost and
+registered ssh pubkey.
 
 ## Cronjob execution
 

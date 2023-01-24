@@ -26,28 +26,29 @@ Source: Gangkofner, 2008
 
 ## From the original paper
 
-> Step 1: HP Filtering of the High-resolution Image to Extract the Structural
-> Detail
->
-> Step 2: Adding the HP Filtered Image to Each Band of the Multispectral Image
-> Using a Standard Deviation-based Injection Model
->
-> Step 3: Linear Histogram Match to Adapt SD and Mean of the Merged Image Bands
-> to Those of the Original MS Image Bands
->
-> Figure 1:
+```text
+Step 1: HP Filtering of the High-resolution Image to Extract the Structural
+Detail
 
-     ____________________________________________________________________________
-    +                                                                            +
-    | Pan Img ->  High Pass Filter  ->  HP Img                                   |
-    |                                      |                                     |
-    |                                      v                                     |
-    | MSx Img ->  Weighting Factors ->  Weighted HP Img                          |
-    |       |                              |                                     |
-    |       |                              v                                     |
-    |       +------------------------>  Addition to MSx Img  =>  Fused MSx Image |
-    +____________________________________________________________________________+
+Step 2: Adding the HP Filtered Image to Each Band of the Multispectral Image
+Using a Standard Deviation-based Injection Model
 
+Step 3: Linear Histogram Match to Adapt SD and Mean of the Merged Image Bands
+to Those of the Original MS Image Bands
+
+Figure 1:
+
+ ____________________________________________________________________________
++                                                                            +
+| Pan Img ->  High Pass Filter  ->  HP Img                                   |
+|                                      |                                     |
+|                                      v                                     |
+| MSx Img ->  Weighting Factors ->  Weighted HP Img                          |
+|       |                              |                                     |
+|       |                              v                                     |
+|       +------------------------>  Addition to MSx Img  =>  Fused MSx Image |
++____________________________________________________________________________+
+```
 
 ## Installation
 
@@ -57,7 +58,8 @@ See [GRASS Addons SVN repository, README file, Installation - Code Compilation](
 
 ### Steps
 
-Making the script `i.fusion.hpf` available from within any GRASS-GIS ver. 7.x session, may be done via the following steps:
+Making the script `i.fusion.hpf` available from within any GRASS-GIS ver. 7.x
+session, may be done via the following steps:
 
 1. launch a GRASS-GIS’ ver. 7.x session
 2. navigate into the script’s source directory
@@ -65,24 +67,27 @@ Making the script `i.fusion.hpf` available from within any GRASS-GIS ver. 7.x se
 
 ## Usage
 
-After installation, from within a GRASS-GIS session, see help details via `i.fusion.hpf --help`
+After installation, from within a GRASS-GIS session, see help details via
+`i.fusion.hpf --help`
 
 ### Remarks
 
 * easy to use, i.e.:
   * for one band `i.fusion.hpf pan=Panchromatic msx=${Band}`
   * for multiple bands `i.fusion.hpf pan=Panchromatic msx=Red,Green,Blue,NIR`
-* easy to test various parameters that define the High-Pass filter’s *kernel size* and *center value*
+* easy to test various parameters that define the High-Pass filter’s
+  *kernel size* and *center value*
 * should work with **any** kind of imagery (think of bitness)
-* the "black border" effect, possibly caused due to a non-perfect match of the high vs. the low resolution
-  of the input images, can be trimmed out by using the `trim` option --a floating point "trimming factor"
-  with which to multiply the pixel size of the low resolution image-- and shrink the extent of the output image
+* the "black border" effect, possibly caused due to a non-perfect match of the
+  high vs. the low resolution of the input images, can be trimmed out by using
+  the `trim` option --a floating point "trimming factor" with which to multiply
+  the pixel size of the low resolution image-- and shrink the extent of the
+  output image
 
 ## Implementation notes
 
 * First commit on Sat Oct 25 12:26:54 2014 +0300
 * Working state reached on Tue Nov 4 09:28:25 2014 +0200
-
 
 ## To Do
 
@@ -109,8 +114,9 @@ After installation, from within a GRASS-GIS session, see help details via `i.fus
   PHOTOGRAMMETRIC ENGINEERING & REMOTE SENSING, 74(9):1107–1118.
 * “ERDAS IMAGINE.” Accessed March 19, 2015. <http://doc.hexagongeospatial.com/ERDAS%20IMAGINE/ERDAS_IMAGINE_Help/#ii_hpfmerge_mergedialog.htm>.
 
-
-- Aniruddha Ghosh & P.K. Joshi (2013) Assessment of pan-sharpened very high-resolution WorldView-2 images, International Journal of Remote Sensing, 34:23, 8336-8359
+* Aniruddha Ghosh & P.K. Joshi (2013) Assessment of pan-sharpened very
+  high-resolution WorldView-2 images, International Journal of Remote Sensing,
+  34:23, 8336-8359
 
 ## Ευχαριστώ
 

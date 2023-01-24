@@ -24,7 +24,6 @@ optionally linked in an entry.
     use it as it creates complexity. Will need to return to add this in
     the future.
 
-
 ## 2019-10-29 - More raster generalizations
 
 * Add
@@ -57,7 +56,8 @@ optionally linked in an entry.
 ## 2019-07-09
 
 * Add
-  * Tests need to be written for weekly, daily, and multi-day timesteps for Date functionality.
+  * Tests need to be written for weekly, daily, and multi-day timesteps
+    for Date functionality.
 
 ## 2019-06-14
 
@@ -67,8 +67,10 @@ optionally linked in an entry.
 ## 2018-09-14 - SEID and multiple host handling
 
 * Add
-  * Exposed and Diseased classes should be added (need to think about how to handle in disperse).
-  * 3-D array for Susceptible, Exposed, Infected, Diseased classes to handle multiple species up to N.
+  * Exposed and Diseased classes should be added (need to think about how to
+    handle in disperse).
+  * 3-D array for Susceptible, Exposed, Infected, Diseased classes to handle
+    multiple species up to N.
   * Host-compentency score for handling multiple hosts.
 
 ## 2018-08-02 - PoPS Model Separation
