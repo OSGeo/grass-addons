@@ -2,7 +2,7 @@
 
 # script to build GRASS 8.x binaries + addons from the `releasebranch_8_2` binaries
 # (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
-# 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022
+# 2014-2023
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
@@ -37,7 +37,7 @@ PATH=/home/neteler/binaries/bin:/usr/bin:/bin:/usr/X11R6/bin:/usr/local/bin
 
 GMAJOR=8
 GMINOR=2
-GPATCH=0
+GPATCH=1
 DOTVERSION=$GMAJOR.$GMINOR
 VERSION=$GMAJOR$GMINOR
 GVERSION=$GMAJOR
