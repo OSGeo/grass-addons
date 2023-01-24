@@ -1,4 +1,3 @@
-
 /****************************************************************************
  *
  * MODULE:       i.edge
@@ -10,8 +9,8 @@
  * COPYRIGHT:    (C) 2012-2021 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
- *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
- *   	    	 for details.
+ *                        License (>=v2). Read the file COPYING that comes with
+ *GRASS for details.
  *
  *****************************************************************************/
 
@@ -29,13 +28,12 @@
 #include "canny.h"
 #include "gauss.h"
 
-
 /** Loads map into memory.
 
   \param[out] mat map in a matrix (row order), field have to be allocated
   */
-static int readMap(const char *name, const char *mapset, int nrows,
-                    int ncols, DCELL * mat)
+static int readMap(const char *name, const char *mapset, int nrows, int ncols,
+                   DCELL *mat)
 {
     int r, c;
     int map_fd;
@@ -83,18 +81,18 @@ static int readMap(const char *name, const char *mapset, int nrows,
     return check_reading;
 }
 
-
 /** Writes map from memory into the file.
 
   \param[in] map map in a matrix (row order)
   */
-static void writeMap(const char *name, int nrows, int ncols, CELL * map)
+static void writeMap(const char *name, int nrows, int ncols, CELL *map)
 {
-    unsigned char *outrast;     /* output buffer */
+    unsigned char *outrast; /* output buffer */
     int outfd;
     int r, c;
 
-    outfd = Rast_open_new(name, CELL_TYPE);     /* FIXME: using both open old and open new */
+    outfd = Rast_open_new(
+        name, CELL_TYPE); /* FIXME: using both open old and open new */
 
     outrast = Rast_allocate_buf(CELL_TYPE);
     for (r = 0; r < nrows; r++) {
@@ -103,7 +101,7 @@ static void writeMap(const char *name, int nrows, int ncols, CELL * map)
 
             CELL value = map[index];
 
-            ((CELL *) outrast)[c] = value;
+            ((CELL *)outrast)[c] = value;
         }
         Rast_put_row(outfd, outrast, CELL_TYPE);
     }
@@ -111,7 +109,6 @@ static void writeMap(const char *name, int nrows, int ncols, CELL * map)
 
     Rast_close(outfd);
 }
-
 
 /**
 
@@ -126,7 +123,7 @@ int main(int argc, char *argv[])
     char *mapset;               /* mapset name */
     int kernelWidth;
     double kernelRadius;
-    char *result;               /* output raster name */
+    char *result; /* output raster name */
     char *anglesMapName;
 
     static const double GAUSSIAN_CUT_OFF = 0.005;
@@ -138,18 +135,19 @@ int main(int argc, char *argv[])
     size_t dim_2;
     DCELL *mat1;
 
-    struct History history;     /* holds meta-data (title, comments,..) */
-    struct GModule *module;     /* GRASS module for parsing arguments */
+    struct History history; /* holds meta-data (title, comments,..) */
+    struct GModule *module; /* GRASS module for parsing arguments */
 
     /* options */
-    struct Option *input, *output, *angleOutput,
-        *lowThresholdOption, *highThresholdOption, *sigmaOption;
+    struct Option *input, *output, *angleOutput, *lowThresholdOption,
+        *highThresholdOption, *sigmaOption;
     struct Flag *nullflag;
 
     size_t r;
 
     /* initialize GIS environment */
-    G_gisinit(argv[0]);         /* reads grass env, stores program name to G_program_name() */
+    G_gisinit(
+        argv[0]); /* reads grass env, stores program name to G_program_name() */
 
     /* initialize module */
     module = G_define_module();
@@ -210,7 +208,6 @@ int main(int argc, char *argv[])
     low = (int)((lowThreshold * MAGNITUDE_SCALE) + 0.5);
     high = (int)((highThreshold * MAGNITUDE_SCALE) + 0.5);
 
-
     kernelRadius = atoi(sigmaOption->answer);
 
     result = output->answer;
@@ -235,7 +232,8 @@ int main(int argc, char *argv[])
     /*    struct Cell_head templCellhd; */
 
     /*    Rast_get_cellhd(name, mapset, &cellhd); */
-    /*    Rast_get_cellhd(first_map_R_name, first_map_R_mapset, &cellhd_zoom1); */
+    /*    Rast_get_cellhd(first_map_R_name, first_map_R_mapset, &cellhd_zoom1);
+     */
 
     /* controlling, if we can open input raster */
     Rast_get_cellhd(name, mapset, &cell_head);
@@ -243,10 +241,10 @@ int main(int argc, char *argv[])
 
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
-    dim_2 = (size_t)nrows *ncols;
+    dim_2 = (size_t)nrows * ncols;
 
     /* Memory allocation for map_1: */
-    mat1 = (DCELL *) G_calloc((dim_2), sizeof(DCELL));
+    mat1 = (DCELL *)G_calloc((dim_2), sizeof(DCELL));
 
     /* FIXME: it is necessary? */
     for (r = 0; r < dim_2; r++) {
@@ -260,44 +258,44 @@ int main(int argc, char *argv[])
      */
 
     if (!readMap(name, mapset, nrows, ncols, mat1)) {
-	if (!nullflag->answer)
-	    G_fatal_error(_("Input map contains no data"));
-	else {
-	    int outfd;
-	    CELL *outrast;     /* output buffer */
+        if (!nullflag->answer)
+            G_fatal_error(_("Input map contains no data"));
+        else {
+            int outfd;
+            CELL *outrast; /* output buffer */
 
-	    outfd = Rast_open_new(result, CELL_TYPE);
+            outfd = Rast_open_new(result, CELL_TYPE);
 
-	    outrast = Rast_allocate_buf(CELL_TYPE);
-	    Rast_set_c_null_value(outrast, ncols);
-	    for (i = 0; i < nrows; i++) {
-		Rast_put_row(outfd, outrast, CELL_TYPE);
-	    }
+            outrast = Rast_allocate_buf(CELL_TYPE);
+            Rast_set_c_null_value(outrast, ncols);
+            for (i = 0; i < nrows; i++) {
+                Rast_put_row(outfd, outrast, CELL_TYPE);
+            }
 
-	    Rast_close(outfd);
-	    /* add command line incantation to history file */
-	    Rast_short_history(result, "raster", &history);
-	    Rast_command_history(&history);
-	    Rast_write_history(result, &history);
+            Rast_close(outfd);
+            /* add command line incantation to history file */
+            Rast_short_history(result, "raster", &history);
+            Rast_command_history(&history);
+            Rast_write_history(result, &history);
 
-	    if (anglesMapName) {
-		outfd = Rast_open_new(anglesMapName, CELL_TYPE);
+            if (anglesMapName) {
+                outfd = Rast_open_new(anglesMapName, CELL_TYPE);
 
-		for (i = 0; i < nrows; i++) {
-		    Rast_put_row(outfd, outrast, CELL_TYPE);
-		}
+                for (i = 0; i < nrows; i++) {
+                    Rast_put_row(outfd, outrast, CELL_TYPE);
+                }
 
-		Rast_close(outfd);
-		/* add command line incantation to history file */
-		Rast_short_history(anglesMapName, "raster", &history);
-		Rast_command_history(&history);
-		Rast_write_history(anglesMapName, &history);
-	    }
+                Rast_close(outfd);
+                /* add command line incantation to history file */
+                Rast_short_history(anglesMapName, "raster", &history);
+                Rast_command_history(&history);
+                Rast_write_history(anglesMapName, &history);
+            }
 
-	    G_free(outrast);
+            G_free(outrast);
 
-	    exit(EXIT_SUCCESS);
-	}
+            exit(EXIT_SUCCESS);
+        }
     }
 
     /* **** */
@@ -307,45 +305,41 @@ int main(int argc, char *argv[])
     DCELL *kernel;
     DCELL *diffKernel;
 
-    kernel = (DCELL *) G_calloc((kernelWidth), sizeof(DCELL));
-    diffKernel = (DCELL *) G_calloc((kernelWidth), sizeof(DCELL));
+    kernel = (DCELL *)G_calloc((kernelWidth), sizeof(DCELL));
+    diffKernel = (DCELL *)G_calloc((kernelWidth), sizeof(DCELL));
     gaussKernel(kernel, diffKernel, kernelWidth, kernelRadius);
 
-    DCELL *yConv = (DCELL *) G_calloc((dim_2), sizeof(DCELL));
-    DCELL *xConv = (DCELL *) G_calloc((dim_2), sizeof(DCELL));
+    DCELL *yConv = (DCELL *)G_calloc((dim_2), sizeof(DCELL));
+    DCELL *xConv = (DCELL *)G_calloc((dim_2), sizeof(DCELL));
 
     for (r = 0; r < dim_2; r++) {
         yConv[r] = xConv[r] = 0;
     }
     gaussConvolution(mat1, kernel, xConv, yConv, nrows, ncols, kernelWidth);
 
-    DCELL *yGradient = (DCELL *) G_calloc((dim_2), sizeof(DCELL));
-    DCELL *xGradient = (DCELL *) G_calloc((dim_2), sizeof(DCELL));
+    DCELL *yGradient = (DCELL *)G_calloc((dim_2), sizeof(DCELL));
+    DCELL *xGradient = (DCELL *)G_calloc((dim_2), sizeof(DCELL));
 
     for (r = 0; r < dim_2; r++) {
         yGradient[r] = xGradient[r] = 0;
     }
 
-    computeXGradients(diffKernel, yConv, xGradient, nrows, ncols,
-                      kernelWidth);
-    computeYGradients(diffKernel, xConv, yGradient, nrows, ncols,
-                      kernelWidth);
+    computeXGradients(diffKernel, yConv, xGradient, nrows, ncols, kernelWidth);
+    computeYGradients(diffKernel, xConv, yGradient, nrows, ncols, kernelWidth);
 
-    CELL *magnitude = (CELL *) G_calloc((dim_2), sizeof(CELL));
+    CELL *magnitude = (CELL *)G_calloc((dim_2), sizeof(CELL));
 
     CELL *angle = NULL;
 
     if (anglesMapName != NULL) {
-        angle = (CELL *) G_calloc((dim_2), sizeof(CELL));
+        angle = (CELL *)G_calloc((dim_2), sizeof(CELL));
         Rast_set_null_value(angle, dim_2, CELL_TYPE);
     }
 
-    nonmaxSuppresion(xGradient, yGradient, magnitude, angle,
-                     nrows, ncols, kernelWidth,
-                     MAGNITUDE_SCALE, MAGNITUDE_LIMIT);
+    nonmaxSuppresion(xGradient, yGradient, magnitude, angle, nrows, ncols,
+                     kernelWidth, MAGNITUDE_SCALE, MAGNITUDE_LIMIT);
 
-
-    CELL *edges = (CELL *) G_calloc((dim_2), sizeof(CELL));
+    CELL *edges = (CELL *)G_calloc((dim_2), sizeof(CELL));
 
     for (r = 0; r < dim_2; r++) {
         edges[r] = 0;

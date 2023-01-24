@@ -32,56 +32,49 @@ using namespace pops;
 int test_quarantine()
 {
     int err = 0;
-    Raster<int> areas = {
-        {0, 1, 1, 0, 0},
-        {0, 0, 1, 4, 0},
-        {0, 0, 4, 4, 4},
-        {0, 3, 4, 4, 4},
-        {0, 0, 0, 4, 0}};
+    Raster<int> areas = {{0, 1, 1, 0, 0},
+                         {0, 0, 1, 4, 0},
+                         {0, 0, 4, 4, 4},
+                         {0, 3, 4, 4, 4},
+                         {0, 0, 0, 4, 0}};
 
     // infected rasters for 1st run and 3 years
-    Raster<int> infection11 = {
-        {0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 0},
-        {0, 0, 0, 1, 0},
-        {0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 0}};
+    Raster<int> infection11 = {{0, 0, 0, 0, 0},
+                               {0, 0, 0, 0, 0},
+                               {0, 0, 0, 1, 0},
+                               {0, 0, 0, 0, 0},
+                               {0, 0, 0, 0, 0}};
 
-    Raster<int> infection12 = {
-        {0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 0},
-        {0, 0, 0, 1, 0},
-        {0, 0, 0, 1, 0},
-        {0, 0, 0, 0, 0}};
+    Raster<int> infection12 = {{0, 0, 0, 0, 0},
+                               {0, 0, 0, 0, 0},
+                               {0, 0, 0, 1, 0},
+                               {0, 0, 0, 1, 0},
+                               {0, 0, 0, 0, 0}};
 
-    Raster<int> infection13 = {
-        {0, 0, 0, 0, 0},
-        {0, 0, 1, 0, 0},
-        {0, 0, 0, 1, 0},
-        {0, 0, 1, 1, 0},
-        {0, 0, 0, 0, 0}};
+    Raster<int> infection13 = {{0, 0, 0, 0, 0},
+                               {0, 0, 1, 0, 0},
+                               {0, 0, 0, 1, 0},
+                               {0, 0, 1, 1, 0},
+                               {0, 0, 0, 0, 0}};
 
     // infected rasters for 2nd run and 3 years
-    Raster<int> infection21 = {
-        {0, 0, 0, 0, 0},
-        {0, 0, 0, 1, 0},
-        {0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 0}};
+    Raster<int> infection21 = {{0, 0, 0, 0, 0},
+                               {0, 0, 0, 1, 0},
+                               {0, 0, 0, 0, 0},
+                               {0, 0, 0, 0, 0},
+                               {0, 0, 0, 0, 0}};
 
-    Raster<int> infection22 = {
-        {0, 0, 0, 0, 0},
-        {0, 0, 0, 1, 0},
-        {0, 0, 0, 1, 0},
-        {0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 0}};
+    Raster<int> infection22 = {{0, 0, 0, 0, 0},
+                               {0, 0, 0, 1, 0},
+                               {0, 0, 0, 1, 0},
+                               {0, 0, 0, 0, 0},
+                               {0, 0, 0, 0, 0}};
 
-    Raster<int> infection23 = {
-        {0, 0, 0, 1, 0},
-        {0, 0, 1, 0, 0},
-        {0, 0, 0, 1, 0},
-        {0, 0, 1, 1, 0},
-        {0, 0, 0, 0, 0}};
+    Raster<int> infection23 = {{0, 0, 0, 1, 0},
+                               {0, 0, 1, 0, 0},
+                               {0, 0, 0, 1, 0},
+                               {0, 0, 1, 1, 0},
+                               {0, 0, 0, 0, 0}};
 
     std::vector<QuarantineEscape<Raster<int>>> runs(
         2, QuarantineEscape<Raster<int>>(areas, 10, 10, 3));
@@ -105,27 +98,28 @@ int test_quarantine()
     std::vector<DistDir> d3 = distance_direction_to_quarantine(runs, 2);
     if (!(std::get<0>(d1.at(0)) == 10 && std::get<0>(d1.at(1)) == 0)) {
         std::cout << "Distance to quarantine boundary fails" << std::endl;
-        std::cout << std::get<0>(d1.at(0)) << " " << std::get<0>(d1.at(1)) << std::endl;
+        std::cout << std::get<0>(d1.at(0)) << " " << std::get<0>(d1.at(1))
+                  << std::endl;
         err++;
     }
     if (!(std::get<0>(d2.at(0)) == 10 && std::get<0>(d2.at(1)) == 0)) {
         std::cout << "Distance to quarantine boundary fails" << std::endl;
-        std::cout << std::get<0>(d2.at(0)) << " " << std::get<0>(d2.at(1)) << std::endl;
+        std::cout << std::get<0>(d2.at(0)) << " " << std::get<0>(d2.at(1))
+                  << std::endl;
         err++;
     }
     if (!(std::get<0>(d3.at(0)) == 0 && std::isnan(std::get<0>(d3.at(1))))) {
         std::cout << "Distance to quarantine boundary fails" << std::endl;
-        std::cout << std::get<0>(d3.at(0)) << " " << std::isnan(std::get<0>(d3.at(1)))
-                  << std::endl;
+        std::cout << std::get<0>(d3.at(0)) << " "
+                  << std::isnan(std::get<0>(d3.at(1))) << std::endl;
         err++;
     }
 
     std::string output = write_quarantine_escape(runs, 3);
-    std::string reference =
-        "step,escape_probability,dist0,dir0,dist1,dir1\n"
-        "0,0.0,10.0,0,0.0,0\n"
-        "1,0.0,10.0,0,0.0,0\n"
-        "2,0.5,0.0,180,,\n";
+    std::string reference = "step,escape_probability,dist0,dir0,dist1,dir1\n"
+                            "0,0.0,10.0,0,0.0,0\n"
+                            "1,0.0,10.0,0,0.0,0\n"
+                            "2,0.5,0.0,180,,\n";
     if (output != reference) {
         std::cout << output;
         std::cout << reference;
@@ -140,8 +134,8 @@ int test_quarantine()
         std::cout << "Distance fails" << std::endl;
         err++;
     }
-    if (!(runs[0].direction(0) == QuarantineDirection::N
-          && runs[1].direction(2) == QuarantineDirection::None)) {
+    if (!(runs[0].direction(0) == QuarantineDirection::N &&
+          runs[1].direction(2) == QuarantineDirection::None)) {
         std::cout << "Direction fails" << std::endl;
         err++;
     }
@@ -157,4 +151,4 @@ int main()
     return num_errors;
 }
 
-#endif  // POPS_TEST
+#endif // POPS_TEST

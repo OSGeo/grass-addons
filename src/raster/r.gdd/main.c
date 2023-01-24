@@ -1,4 +1,3 @@
-
 /****************************************************************************
  *
  * MODULE:       r.gdd
@@ -12,6 +11,7 @@
  *               for details.
  *
  *****************************************************************************/
+
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -22,20 +22,18 @@
 #include <grass/raster.h>
 #include <grass/glocale.h>
 
-#define IDX_GDD 1
+#define IDX_GDD     1
 #define IDX_WINKLER 2
-#define IDX_BEDD 3
-#define IDX_HUGLIN 4
+#define IDX_BEDD    3
+#define IDX_HUGLIN  4
 
-struct input
-{
+struct input {
     const char *name;
     int fd;
     FCELL *buf;
 };
 
-struct output
-{
+struct output {
     const char *name;
     int fd;
     FCELL *buf;
@@ -44,14 +42,12 @@ struct output
 int main(int argc, char *argv[])
 {
     struct GModule *module;
-    struct
-    {
-	struct Option *input, *add, *file, *output, *index, *range,
-	              *scale, *shift, *baseline, *cutoff;
+    struct {
+        struct Option *input, *add, *file, *output, *index, *range, *scale,
+            *shift, *baseline, *cutoff;
     } parm;
-    struct
-    {
-	struct Flag *nulls, *lazy;
+    struct {
+        struct Flag *nulls, *lazy;
     } flag;
     char *desc = NULL;
     int idx, i;
@@ -73,9 +69,9 @@ int main(int argc, char *argv[])
     G_add_keyword(_("series"));
     G_add_keyword(_("parallel"));
     module->description =
-	_("Makes each output cell value a "
-	  "function of the values assigned to the corresponding cells "
-	  "in the input raster map layers.");
+        _("Makes each output cell value a "
+          "function of the values assigned to the corresponding cells "
+          "in the input raster map layers.");
 
     parm.input = G_define_standard_option(G_OPT_R_INPUTS);
     parm.input->required = NO;
@@ -87,7 +83,8 @@ int main(int argc, char *argv[])
 
     parm.file = G_define_standard_option(G_OPT_F_INPUT);
     parm.file->key = "file";
-    parm.file->description = _("Input file with raster map names, one per line");
+    parm.file->description =
+        _("Input file with raster map names, one per line");
     parm.file->required = NO;
 
     parm.output = G_define_standard_option(G_OPT_R_OUTPUT);
@@ -101,12 +98,10 @@ int main(int argc, char *argv[])
     parm.index->options = "gdd,winkler,bedd,huglin";
     parm.index->answer = "gdd";
     parm.index->label = "Index to calculate";
-    G_asprintf(&desc,
-	       "gdd;%s;winkler;%s;bedd;%s;huglin;%s",
-	       _("Growing Degree Days"),
-	       _("Winkler index"),
-	       _("Biologically Effective Degree Days"),
-	       _("Huglin Heliothermal index"));
+    G_asprintf(&desc, "gdd;%s;winkler;%s;bedd;%s;huglin;%s",
+               _("Growing Degree Days"), _("Winkler index"),
+               _("Biologically Effective Degree Days"),
+               _("Huglin Heliothermal index"));
     parm.index->descriptions = desc;
 
     parm.scale = G_define_option();
@@ -152,133 +147,134 @@ int main(int argc, char *argv[])
     flag.lazy->description = _("Don't keep files open");
 
     if (G_parser(argc, argv))
-	exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
 
     lo = -1.0 / 0.0;
     hi = 1.0 / 0.0;
     if (parm.range->answer) {
-	lo = atof(parm.range->answers[0]);
-	hi = atof(parm.range->answers[1]);
+        lo = atof(parm.range->answers[0]);
+        hi = atof(parm.range->answers[1]);
     }
 
     if (parm.scale->answer)
-	tscale = atof(parm.scale->answer);
+        tscale = atof(parm.scale->answer);
     else
-	tscale = 1.;
+        tscale = 1.;
 
     if (parm.shift->answer)
-	tshift = atof(parm.shift->answer);
+        tshift = atof(parm.shift->answer);
     else
-	tshift = 0.;
+        tshift = 0.;
 
     baseline = atof(parm.baseline->answer);
     cutoff = atof(parm.cutoff->answer);
-    
+
     idx = 0;
     if (strcmp(parm.index->answer, "gdd") == 0)
-	idx = IDX_GDD;
+        idx = IDX_GDD;
     else if (strcmp(parm.index->answer, "winkler") == 0)
-	idx = IDX_WINKLER;
+        idx = IDX_WINKLER;
     else if (strcmp(parm.index->answer, "bedd") == 0)
-	idx = IDX_BEDD;
+        idx = IDX_BEDD;
     else if (strcmp(parm.index->answer, "huglin") == 0)
-	idx = IDX_HUGLIN;
+        idx = IDX_HUGLIN;
     else
-        G_fatal_error(_("Unknown index '%s' for option %s"),
-	              parm.index->answer, parm.index->key);
-    
+        G_fatal_error(_("Unknown index '%s' for option %s"), parm.index->answer,
+                      parm.index->key);
+
     if (cutoff <= baseline)
         G_fatal_error(_("'%s' must be > '%s'"), parm.cutoff->key,
-	                                        parm.baseline->key);
+                      parm.baseline->key);
 
     if (parm.input->answer && parm.file->answer)
         G_fatal_error(_("input= and file= are mutually exclusive"));
- 
+
     if (!parm.input->answer && !parm.file->answer)
         G_fatal_error(_("Please specify input= or file="));
 
     max_inputs = 0;
     /* process the input maps from the file */
     if (parm.file->answer) {
-	FILE *in;
-    
-	in = fopen(parm.file->answer, "r");
-	if (!in)
-	    G_fatal_error(_("Unable to open input file <%s>"), parm.file->answer);
-    
-	num_inputs = 0;
+        FILE *in;
 
-	for (;;) {
-	    char buf[GNAME_MAX];
-	    char *name;
-	    struct input *p;
+        in = fopen(parm.file->answer, "r");
+        if (!in)
+            G_fatal_error(_("Unable to open input file <%s>"),
+                          parm.file->answer);
 
-	    if (!G_getl2(buf, sizeof(buf), in))
-		break;
+        num_inputs = 0;
 
-	    name = G_chop(buf);
+        for (;;) {
+            char buf[GNAME_MAX];
+            char *name;
+            struct input *p;
 
-	    /* Ignore empty lines */
-	    if (!*name)
-		continue;
+            if (!G_getl2(buf, sizeof(buf), in))
+                break;
 
-	    if (num_inputs >= max_inputs) {
-		max_inputs += 100;
-		inputs = G_realloc(inputs, max_inputs * sizeof(struct input));
-	    }
-	    p = &inputs[num_inputs++];
+            name = G_chop(buf);
 
-	    p->name = G_store(name);
-	    G_verbose_message(_("Reading raster map <%s>..."), p->name);
-	    p->buf = Rast_allocate_f_buf();
-	    if (!flag.lazy->answer)
-		p->fd = Rast_open_old(p->name, "");
-	}
+            /* Ignore empty lines */
+            if (!*name)
+                continue;
 
-	if (num_inputs < 1)
-	    G_fatal_error(_("No raster map name found in input file"));
+            if (num_inputs >= max_inputs) {
+                max_inputs += 100;
+                inputs = G_realloc(inputs, max_inputs * sizeof(struct input));
+            }
+            p = &inputs[num_inputs++];
 
-	fclose(in);
+            p->name = G_store(name);
+            G_verbose_message(_("Reading raster map <%s>..."), p->name);
+            p->buf = Rast_allocate_f_buf();
+            if (!flag.lazy->answer)
+                p->fd = Rast_open_old(p->name, "");
+        }
+
+        if (num_inputs < 1)
+            G_fatal_error(_("No raster map name found in input file"));
+
+        fclose(in);
     }
     else {
-    	for (i = 0; parm.input->answers[i]; i++)
-	    ;
-    	num_inputs = i;
+        for (i = 0; parm.input->answers[i]; i++)
+            ;
+        num_inputs = i;
 
-    	if (num_inputs < 1)
-	    G_fatal_error(_("Raster map not found"));
+        if (num_inputs < 1)
+            G_fatal_error(_("Raster map not found"));
 
-    	inputs = G_malloc(num_inputs * sizeof(struct input));
+        inputs = G_malloc(num_inputs * sizeof(struct input));
 
-    	for (i = 0; i < num_inputs; i++) {
-	    struct input *p = &inputs[i];
+        for (i = 0; i < num_inputs; i++) {
+            struct input *p = &inputs[i];
 
-	    p->name = parm.input->answers[i];
-	    G_verbose_message(_("Reading raster map <%s>..."), p->name);
-	    p->buf = Rast_allocate_f_buf();
-	    if (!flag.lazy->answer)
-		p->fd = Rast_open_old(p->name, "");
-    	}
-	max_inputs = num_inputs;
+            p->name = parm.input->answers[i];
+            G_verbose_message(_("Reading raster map <%s>..."), p->name);
+            p->buf = Rast_allocate_f_buf();
+            if (!flag.lazy->answer)
+                p->fd = Rast_open_old(p->name, "");
+        }
+        max_inputs = num_inputs;
     }
 
     if (parm.add->answer) {
-	struct input *p;
+        struct input *p;
 
-	add_in = 1;
-	if (num_inputs + 1 >= max_inputs) {
-	    max_inputs += 2;
-	    inputs = G_realloc(inputs, max_inputs * sizeof(struct input));
-	}
-	p = &inputs[num_inputs];
-	p->name = parm.add->answer;
-	G_verbose_message(_("Reading raster map <%s>..."), p->name);
-	p->buf = Rast_allocate_f_buf();
-	if (!flag.lazy->answer)
-	    p->fd = Rast_open_old(p->name, "");
+        add_in = 1;
+        if (num_inputs + 1 >= max_inputs) {
+            max_inputs += 2;
+            inputs = G_realloc(inputs, max_inputs * sizeof(struct input));
+        }
+        p = &inputs[num_inputs];
+        p->name = parm.add->answer;
+        G_verbose_message(_("Reading raster map <%s>..."), p->name);
+        p->buf = Rast_allocate_f_buf();
+        if (!flag.lazy->answer)
+            p->fd = Rast_open_old(p->name, "");
     }
     else
-	add_in = 0;
+        add_in = 0;
 
     out = G_calloc(1, sizeof(struct output));
 
@@ -289,89 +285,88 @@ int main(int argc, char *argv[])
 
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
-    
+
     Rast_set_f_null_value(&fnull, 1);
 
     /* process the data */
     G_verbose_message(_("Percent complete..."));
 
     for (row = 0; row < nrows; row++) {
-	G_percent(row, nrows, 2);
+        G_percent(row, nrows, 2);
 
-	if (flag.lazy->answer) {
-	    /* Open the files only on run time */
-	    for (i = 0; i < num_inputs + add_in; i++) {
-		inputs[i].fd = Rast_open_old(inputs[i].name, "");
-		Rast_get_f_row(inputs[i].fd, inputs[i].buf, row);
-		Rast_close(inputs[i].fd);
-	    }
-	}
-	else {
-	    for (i = 0; i < num_inputs + add_in; i++)
-	        Rast_get_f_row(inputs[i].fd, inputs[i].buf, row);
-	}
+        if (flag.lazy->answer) {
+            /* Open the files only on run time */
+            for (i = 0; i < num_inputs + add_in; i++) {
+                inputs[i].fd = Rast_open_old(inputs[i].name, "");
+                Rast_get_f_row(inputs[i].fd, inputs[i].buf, row);
+                Rast_close(inputs[i].fd);
+            }
+        }
+        else {
+            for (i = 0; i < num_inputs + add_in; i++)
+                Rast_get_f_row(inputs[i].fd, inputs[i].buf, row);
+        }
 
-        #pragma omp for schedule (static) private (col)
+#pragma omp for schedule(static) private(col)
 
-	for (col = 0; col < ncols; col++) {
-	    int null = 0, non_null = 0;
-	    FCELL min, max, avg, result;
+        for (col = 0; col < ncols; col++) {
+            int null = 0, non_null = 0;
+            FCELL min, max, avg, result;
 
-	    min = fnull;
-	    max = fnull;
-	    avg = 0;
+            min = fnull;
+            max = fnull;
+            avg = 0;
 
-	    for (i = 0; i < num_inputs; i++) {
-		FCELL v = inputs[i].buf[col];
+            for (i = 0; i < num_inputs; i++) {
+                FCELL v = inputs[i].buf[col];
 
-		if (Rast_is_f_null_value(&v))
-		    null = 1;
-		else {
-		    v = v * tscale + tshift;
-		    if (parm.range->answer && (v < lo || v > hi)) {
-			null = 1;
-		    }
-		    else {
-			avg += v;
-			if (Rast_is_f_null_value(&min) || min > v)
-			    min = v;
-			if (Rast_is_f_null_value(&max) || max < v)
-			    max = v;
-			non_null++;
-		    }
-		}
-	    }
+                if (Rast_is_f_null_value(&v))
+                    null = 1;
+                else {
+                    v = v * tscale + tshift;
+                    if (parm.range->answer && (v < lo || v > hi)) {
+                        null = 1;
+                    }
+                    else {
+                        avg += v;
+                        if (Rast_is_f_null_value(&min) || min > v)
+                            min = v;
+                        if (Rast_is_f_null_value(&max) || max < v)
+                            max = v;
+                        non_null++;
+                    }
+                }
+            }
 
-	    if (!non_null || (null && flag.nulls->answer)) {
-		if (add_in)
-		    result = inputs[num_inputs].buf[col];
-		else
-		    result = fnull;
-	    }
-	    else {
+            if (!non_null || (null && flag.nulls->answer)) {
+                if (add_in)
+                    result = inputs[num_inputs].buf[col];
+                else
+                    result = fnull;
+            }
+            else {
 
-		avg /= non_null;
+                avg /= non_null;
 
-		if (idx == IDX_HUGLIN)
-		    avg = (avg + max) / 2.;
+                if (idx == IDX_HUGLIN)
+                    avg = (avg + max) / 2.;
 
-		if (avg < baseline)
-		    avg = baseline;
-		if (idx == IDX_BEDD && avg > cutoff)
-		    avg = cutoff;
+                if (avg < baseline)
+                    avg = baseline;
+                if (idx == IDX_BEDD && avg > cutoff)
+                    avg = cutoff;
 
-		result = avg - baseline;
+                result = avg - baseline;
 
-		if (result < 0.)
-		    result = 0.;
-		if (add_in)
-		    result += inputs[num_inputs].buf[col];
+                if (result < 0.)
+                    result = 0.;
+                if (add_in)
+                    result += inputs[num_inputs].buf[col];
+            }
+            out->buf[col] = result;
+        }
 
-	    }
-	    out->buf[col] = result;
-	}
-
-	Rast_put_f_row(out->fd, out->buf);
+        Rast_put_f_row(out->fd, out->buf);
     }
 
     G_percent(row, nrows, 2);
@@ -385,8 +380,8 @@ int main(int argc, char *argv[])
 
     /* Close input maps */
     if (!flag.lazy->answer) {
-    	for (i = 0; i < num_inputs + add_in; i++)
-	    Rast_close(inputs[i].fd);
+        for (i = 0; i < num_inputs + add_in; i++)
+            Rast_close(inputs[i].fd);
     }
 
     /* set gdd color table */

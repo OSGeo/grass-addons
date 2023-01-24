@@ -1,4 +1,3 @@
-
 /***********************************************************************/
 /*
    azimuth.c
@@ -14,21 +13,18 @@
 #include <math.h>
 #include "global_vars.h"
 
-#define AZ_PI  3.14159265358979323846
+#define AZ_PI     3.14159265358979323846
 #define AZ_RAD180 3.14159265358979323846
 #define AZ_RAD360 6.2831853071798
-
 
 /***********************************************************************/
 /* Public functions                                                    */
 
 /***********************************************************************/
 
-void calc_azimuth(int row, int col,
-                  int *ax, int *qd,
-                  double *smallest_azimuth,
-                  double *centre_azimuth,
-                  double *largest_azimuth, double *distance)
+void calc_azimuth(int row, int col, int *ax, int *qd, double *smallest_azimuth,
+                  double *centre_azimuth, double *largest_azimuth,
+                  double *distance)
 {
     double alpha;
     double row_diff, col_diff, x, y;
@@ -49,13 +45,13 @@ void calc_azimuth(int row, int col,
     col_diff = (double)(col - viewpt_col);
     row_diff = (double)(row - viewpt_row);
 
-    /* Work out which quadrant the cell falls in  
+    /* Work out which quadrant the cell falls in
 
        ---------
        | 4 | 1 |
        ---------
        | 3 | 2 |
-       ---------   
+       ---------
 
        or which axis is falls on
 
@@ -64,20 +60,20 @@ void calc_azimuth(int row, int col,
        |   |   |
        4 ----5---- 2
        |   |   |
-       ---------   
+       ---------
        3
      */
 
-    col_dir = 0;                /* cell same longitude as viewpt */
-    row_dir = 0;                /* cell same latitude as viewpt */
+    col_dir = 0; /* cell same longitude as viewpt */
+    row_dir = 0; /* cell same latitude as viewpt */
     if (col_diff < 0.0)
-        col_dir = -1;           /* cell to west of viewpt */
+        col_dir = -1; /* cell to west of viewpt */
     else if (col_diff > 0.0)
-        col_dir = 1;            /* cell to east of viewpt */
+        col_dir = 1; /* cell to east of viewpt */
     if (row_diff < 0.0)
-        row_dir = -1;           /* cell to north of viewpt */
+        row_dir = -1; /* cell to north of viewpt */
     else if (row_diff > 0.0)
-        row_dir = 1;            /* cell to south of viewpt */
+        row_dir = 1; /* cell to south of viewpt */
 
     switch (col_dir) {
     case (-1):
@@ -124,8 +120,7 @@ void calc_azimuth(int row, int col,
     *ax = axis;
     *qd = quad;
 
-
-    /* Calculate centre azimuths and centre-to-centre distances 
+    /* Calculate centre azimuths and centre-to-centre distances
        for cells which fall on axes */
 
     if (axis) {
@@ -153,7 +148,7 @@ void calc_azimuth(int row, int col,
         };
     }
     else
-        /* Calculate centre azimuths for cells which do not fall on axes */
+    /* Calculate centre azimuths for cells which do not fall on axes */
     {
         /* Calc orthogonal distances from centre to centre  */
 
@@ -215,8 +210,8 @@ void calc_azimuth(int row, int col,
 
             alpha = atan(x / y);
 
-            /* Convert alpha in radians to smallest_azimuth in degrees 
-               Recall here that corner with smallest azimuth will be 
+            /* Convert alpha in radians to smallest_azimuth in degrees
+               Recall here that corner with smallest azimuth will be
                in quadrant preceeding axis in which cell's centre lies */
 
             switch (axis) {
@@ -235,14 +230,14 @@ void calc_azimuth(int row, int col,
             };
         }
         else
-            /* Cell is viewpoint, so we will set smallest and largest
-               to 0.0 and 360.0 respectively */
+        /* Cell is viewpoint, so we will set smallest and largest
+           to 0.0 and 360.0 respectively */
         {
             *smallest_azimuth = 0.0;
         }
     }
     else
-        /* Calculate smallest azimuths for cells which do not fall on axes */
+    /* Calculate smallest azimuths for cells which do not fall on axes */
     {
         /* Calc orthogonal distances (viewpt centre to cell corner).
            Adjustments must be made according to which corner will have
@@ -324,8 +319,8 @@ void calc_azimuth(int row, int col,
 
             alpha = atan(x / y);
 
-            /* Convert alpha in radians to smallest_azimuth in degrees 
-               Recall here that corner with largest azimuth will be 
+            /* Convert alpha in radians to smallest_azimuth in degrees
+               Recall here that corner with largest azimuth will be
                in quadrant following axis on which cell's centre lies */
 
             switch (axis) {
@@ -344,14 +339,14 @@ void calc_azimuth(int row, int col,
             };
         }
         else
-            /* Cell is viewpoint, so we will set smallest and largest
-               to 0.0 and 360.0 respectively */
+        /* Cell is viewpoint, so we will set smallest and largest
+           to 0.0 and 360.0 respectively */
         {
             *largest_azimuth = 360.0;
         }
     }
     else
-        /* Calculate largest azimuths for cells which do not fall on axes */
+    /* Calculate largest azimuths for cells which do not fall on axes */
     {
         /* Calc orthogonal distances (viewpt centre to cell corner).
            Adjustments must be made according to which corner will have

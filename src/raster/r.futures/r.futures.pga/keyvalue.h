@@ -1,8 +1,7 @@
 #ifndef FUTURES_KEYVALUE_H
 #define FUTURES_KEYVALUE_H
 
-struct KeyValueIntInt
-{
+struct KeyValueIntInt {
     int nitems;
     int nalloc;
     int *key;

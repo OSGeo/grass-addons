@@ -4,14 +4,12 @@
 #include <sys/types.h>
 #include <grass/config.h>
 
-
 #ifndef USE_RAND
 
 #ifndef HAVE_DRAND48
-#define lrand48() (((long) rand() ^ ((long) rand() << 16)) & 0x7FFFFFFF)
+#define lrand48()   (((long)rand() ^ ((long)rand() << 16)) & 0x7FFFFFFF)
 #define srand48(sv) (srand((unsigned)(sv)))
 #endif
-
 
 long make_rand(void)
 {
@@ -20,7 +18,7 @@ long make_rand(void)
 
 void init_rand(void)
 {
-    srand48((long)time((time_t *) 0));
+    srand48((long)time((time_t *)0));
 }
 
 #else

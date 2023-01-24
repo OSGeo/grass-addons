@@ -11,12 +11,10 @@
  *
  */
 
-
 #ifndef __DOUBLE_LIST_H__
 #define __DOUBLE_LIST_H__
 
-struct DoubleList
-{
+struct DoubleList {
     int num_items;
     int max_items;
     double *items;

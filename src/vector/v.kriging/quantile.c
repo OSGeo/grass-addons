@@ -2,8 +2,7 @@
 
 /* These functions are taken from the module r.quantile (Clemens, G.) */
 
-struct bin
-{
+struct bin {
     unsigned long origin;
     double minimum, maximum;
     int base, count;
@@ -35,7 +34,7 @@ static inline int get_slot(double c)
 
 double get_quantile(int n)
 {
-    return (double)total *quants[n];    // # of lower values
+    return (double)total * quants[n]; // # of lower values
 }
 
 void get_slot_counts(int n, double *data)
@@ -49,33 +48,34 @@ void get_slot_counts(int n, double *data)
         // todo nan
         j = get_slot(data[i]);
 
-        slots[j]++;             // rise value of j-th slot
+        slots[j]++; // rise value of j-th slot
         total++;
     }
-    //G_percent(i, n, 2);
+    // G_percent(i, n, 2);
 }
 
 void initialize_bins(void)
 {
-    int slot;                   // index of slot
-    double next;                // percentile
-    int bin = 0;                // adjacent bin
+    int slot;    // index of slot
+    double next; // percentile
+    int bin = 0; // adjacent bin
     unsigned long accum = 0;
-    int quant = 0;              // index of percentile
+    int quant = 0; // index of percentile
 
     num_values = 0;
     next = get_quantile(quant); // # of lower values
 
     for (slot = 0; slot < num_slots; slot++) {
-        unsigned int count = slots[slot];       // assign # of elements in each slots to the count
-        unsigned long accum2 = accum + count;   // total # of elements
+        unsigned int count =
+            slots[slot]; // assign # of elements in each slots to the count
+        unsigned long accum2 = accum + count; // total # of elements
 
-        if (accum2 > next) {    // # of values is greater than percentile
+        if (accum2 > next) { // # of values is greater than percentile
             struct bin *b = &bins[bin]; // make bin
 
             slot_bins[slot] = ++bin;
 
-            b->origin = accum;  // origin of bin = total # of elements
+            b->origin = accum; // origin of bin = total # of elements
             b->base = num_values;
             b->count = 0;
             b->minimum = minimum + slot_size * slot;
@@ -114,7 +114,7 @@ void fill_bins(int n, double *data)
         values[b->base + b->count++] = data[i];
     }
 
-    //G_percent(i, n, 2);
+    // G_percent(i, n, 2);
 }
 
 int compare(const void *aa, const void *bb)
@@ -137,9 +137,9 @@ void sort_bins(void)
         struct bin *b = &bins[bin];
 
         qsort(&values[b->base], b->count, sizeof(double), compare);
-        //G_percent(bin, num_bins, 2);
+        // G_percent(bin, num_bins, 2);
     }
-    //G_percent(bin, num_bins, 2);
+    // G_percent(bin, num_bins, 2);
 }
 
 void compute_quantiles(int recode, double *quantile, struct write *report)
@@ -168,10 +168,9 @@ void compute_quantiles(int recode, double *quantile, struct write *report)
             if (i1 > b->count - 1)
                 i1 = b->count - 1;
 
-            v = (i0 == i1)
-                ? values[b->base + i0]
-                : values[b->base + i0] * (i1 - k) +
-                values[b->base + i1] * (k - i0);
+            v = (i0 == i1) ? values[b->base + i0]
+                           : values[b->base + i0] * (i1 - k) +
+                                 values[b->base + i1] * (k - i0);
         }
         else
             v = maximum;
@@ -188,11 +187,11 @@ double quantile(double q, int n, double *data, struct write *report)
     int i, recode = FALSE;
     double quantile;
 
-    num_slots = 1000000;        // # of slots
+    num_slots = 1000000; // # of slots
 
     num_quants = 1;
     quants = (double *)G_malloc(num_quants * sizeof(double));
-    quants[0] = q;              // compute quantile for 0.05
+    quants[0] = q; // compute quantile for 0.05
 
     // initialize list of slots
     slots = (unsigned int *)G_calloc(num_slots, sizeof(unsigned int));
@@ -207,7 +206,7 @@ double quantile(double q, int n, double *data, struct write *report)
     }
 
     slot_size = (maximum - minimum) / num_slots;
-    get_slot_counts(n, data);   // # of data in each slot 
+    get_slot_counts(n, data); // # of data in each slot
 
     bins = (struct bin *)G_calloc(num_quants, sizeof(struct bin));
     initialize_bins();

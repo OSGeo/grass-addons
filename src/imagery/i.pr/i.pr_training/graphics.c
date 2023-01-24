@@ -7,7 +7,7 @@ static View *makeview(double bottom, double top, double left, double right)
 {
     View *view;
 
-    view = (View *) G_malloc(sizeof(View));
+    view = (View *)G_malloc(sizeof(View));
 
     top = 100 - top;
     bottom = 100 - bottom;
@@ -18,13 +18,13 @@ static View *makeview(double bottom, double top, double left, double right)
     view->right = SCREEN_LEFT + (SCREEN_RIGHT - SCREEN_LEFT) * right / 100.0;
 
     if (view->top < SCREEN_TOP)
-	view->top = SCREEN_TOP;
+        view->top = SCREEN_TOP;
     if (view->bottom > SCREEN_BOTTOM)
-	view->bottom = SCREEN_BOTTOM;
+        view->bottom = SCREEN_BOTTOM;
     if (view->left < SCREEN_LEFT)
-	view->left = SCREEN_LEFT;
+        view->left = SCREEN_LEFT;
     if (view->right > SCREEN_RIGHT)
-	view->right = SCREEN_RIGHT;
+        view->right = SCREEN_RIGHT;
 
     Outline_box(view->top, view->bottom, view->left, view->right);
 
@@ -40,7 +40,6 @@ static View *makeview(double bottom, double top, double left, double right)
     return view;
 }
 
-
 void Init_graphics2()
 {
     /*
@@ -55,7 +54,6 @@ void Init_graphics2()
     SCREEN_BOTTOM = R_screen_bot();
     SCREEN_LEFT = R_screen_left();
     SCREEN_RIGHT = R_screen_rite();
-
 
     BLACK = D_translate_color("black");
     BLUE = D_translate_color("blue");
@@ -85,7 +83,6 @@ void Init_graphics2()
     Rast_init_colors(&VIEW_IMAGE->cell.colors);
 }
 
-
 void Init_graphics()
 {
     /*
@@ -100,7 +97,6 @@ void Init_graphics()
     SCREEN_BOTTOM = R_screen_bot();
     SCREEN_LEFT = R_screen_left();
     SCREEN_RIGHT = R_screen_rite();
-
 
     BLACK = D_translate_color("black");
     BLUE = D_translate_color("blue");
@@ -139,22 +135,20 @@ void Outline_box(top, bottom, left, right)
     R_cont_abs(left, top);
 }
 
-
 int Text_width(text)
-     char *text;
+char *text;
 {
     int top, bottom, left, right;
 
     R_get_text_box(text, &top, &bottom, &left, &right);
 
     if (right > left)
-	return right - left + 1;
+        return right - left + 1;
     else
-	return left - right + 1;
+        return left - right + 1;
 }
 
-void Text(text, top, bottom, left, right, edge)
-     char *text;
+void Text(text, top, bottom, left, right, edge) char *text;
 {
     R_set_window(top, bottom, left, right);
     R_move_abs(left + edge, bottom - edge);
@@ -180,22 +174,18 @@ void Downarrow(top, bottom, left, right)
     R_cont_rel((right - left) / 2, (top - bottom) / 2);
 }
 
-void display_map(cellhd, view, name, mapset)
-     struct Cell_head *cellhd;
-     View *view;
-     char *name;
-     char *mapset;
+void display_map(cellhd, view, name, mapset) struct Cell_head *cellhd;
+View *view;
+char *name;
+char *mapset;
 {
 
-    G_adjust_window_to_box(cellhd, &view->cell.head, view->nrows,
-			   view->ncols);
+    G_adjust_window_to_box(cellhd, &view->cell.head, view->nrows, view->ncols);
     Configure_view(view, name, mapset, cellhd->ns_res, cellhd->ew_res);
     drawcell(view);
 }
 
-
-void drawcell(view)
-     View *view;
+void drawcell(view) View *view;
 {
     int fd;
     int left, top;
@@ -207,21 +197,20 @@ void drawcell(view)
     int read_colors;
     char msg[100];
 
-
     if (!view->cell.configured)
-	return 0;
+        return 0;
     if (view == VIEW_MAP1 || view == VIEW_MAP1_ZOOM) {
-	colors = &VIEW_MAP1->cell.colors;
-	read_colors = view == VIEW_MAP1;
+        colors = &VIEW_MAP1->cell.colors;
+        read_colors = view == VIEW_MAP1;
     }
     else {
-	colors = &VIEW_IMAGE->cell.colors;
-	read_colors = view == VIEW_IMAGE;
+        colors = &VIEW_IMAGE->cell.colors;
+        read_colors = view == VIEW_IMAGE;
     }
     if (read_colors) {
-	Rast_free_colors(colors);
-	if (Rast_read_colors(view->cell.name, view->cell.mapset, colors) < 0)
-	    return 0;
+        Rast_free_colors(colors);
+        if (Rast_read_colors(view->cell.name, view->cell.mapset, colors) < 0)
+            return 0;
     }
 
     display_title(view);
@@ -238,15 +227,15 @@ void drawcell(view)
     Outline_box(top, top + nrows - 1, left, left + ncols - 1);
 
     {
-	char *getenv();
+        char *getenv();
 
-	if (getenv("NO_DRAW"))
-	    return 1;
+        if (getenv("NO_DRAW"))
+            return 1;
     }
 
     fd = Rast_open_old(view->cell.name, view->cell.mapset);
     if (fd < 0)
-	return 0;
+        return 0;
     cell = G_allocate_cell_buf();
 
     /*
@@ -255,11 +244,11 @@ void drawcell(view)
      */
 
     for (row = 0; row < nrows; row += repeat) {
-	R_move_abs(left, top + row);
-	if (G_get_map_row_nomask(fd, cell, row) < 0)
-	    break;
-	repeat = G_row_repeat_nomask(fd, row);
-	/*      D_raster (cell, ncols, repeat, colors); */
+        R_move_abs(left, top + row);
+        if (G_get_map_row_nomask(fd, cell, row) < 0)
+            break;
+        repeat = G_row_repeat_nomask(fd, row);
+        /*      D_raster (cell, ncols, repeat, colors); */
     }
     Rast_close(fd);
     G_free(cell);
@@ -277,8 +266,8 @@ void exit_button()
     R_standard_color(RED);
     size = VIEW_EXIT->nrows - 4;
     R_text_size(size, size);
-    Text("exit", VIEW_EXIT->top, VIEW_EXIT->bottom,
-	 VIEW_EXIT->left, VIEW_EXIT->right, 2);
+    Text("exit", VIEW_EXIT->top, VIEW_EXIT->bottom, VIEW_EXIT->left,
+         VIEW_EXIT->right, 2);
     R_standard_color(WHITE);
 }
 
@@ -291,27 +280,27 @@ void info_button()
     size = VIEW_INFO->nrows / 13;
     R_text_size(size, size);
     Text("UPPER LEFT PANEL:", VIEW_INFO->top, VIEW_INFO->top + size,
-	 VIEW_INFO->left, VIEW_INFO->right, 1);
+         VIEW_INFO->left, VIEW_INFO->right, 1);
     R_standard_color(YELLOW);
     Text("left: mark 1", VIEW_INFO->top + size, VIEW_INFO->top + 2 * size,
-	 VIEW_INFO->left, VIEW_INFO->right, 1);
-    Text("left: mark 2", VIEW_INFO->top + 2 * size,
-	 VIEW_INFO->top + 3 * size, VIEW_INFO->left, VIEW_INFO->right, 1);
-    Text("", VIEW_INFO->top + 4 * size,
-	 VIEW_INFO->top + 5 * size, VIEW_INFO->left, VIEW_INFO->right, 1);
+         VIEW_INFO->left, VIEW_INFO->right, 1);
+    Text("left: mark 2", VIEW_INFO->top + 2 * size, VIEW_INFO->top + 3 * size,
+         VIEW_INFO->left, VIEW_INFO->right, 1);
+    Text("", VIEW_INFO->top + 4 * size, VIEW_INFO->top + 5 * size,
+         VIEW_INFO->left, VIEW_INFO->right, 1);
     R_standard_color(GREEN);
     Text("LOWER LEFT PANEL:", VIEW_INFO->top + 5 * size,
-	 VIEW_INFO->top + 6 * size, VIEW_INFO->left, VIEW_INFO->right, 1);
+         VIEW_INFO->top + 6 * size, VIEW_INFO->left, VIEW_INFO->right, 1);
     R_standard_color(YELLOW);
     Text("left(double): select", VIEW_INFO->top + 6 * size,
-	 VIEW_INFO->top + 7 * size, VIEW_INFO->left, VIEW_INFO->right, 1);
-    Text("", VIEW_INFO->top + 8 * size,
-	 VIEW_INFO->top + 9 * size, VIEW_INFO->left, VIEW_INFO->right, 1);
+         VIEW_INFO->top + 7 * size, VIEW_INFO->left, VIEW_INFO->right, 1);
+    Text("", VIEW_INFO->top + 8 * size, VIEW_INFO->top + 9 * size,
+         VIEW_INFO->left, VIEW_INFO->right, 1);
     R_standard_color(GREEN);
     Text("UPPER RIGHT PANEL:", VIEW_INFO->top + 9 * size,
-	 VIEW_INFO->top + 10 * size, VIEW_INFO->left, VIEW_INFO->right, 1);
+         VIEW_INFO->top + 10 * size, VIEW_INFO->left, VIEW_INFO->right, 1);
     R_standard_color(YELLOW);
     Text("right(double): save", VIEW_INFO->top + 10 * size,
-	 VIEW_INFO->top + 11 * size, VIEW_INFO->left, VIEW_INFO->right, 1);
+         VIEW_INFO->top + 11 * size, VIEW_INFO->left, VIEW_INFO->right, 1);
     R_standard_color(WHITE);
 }

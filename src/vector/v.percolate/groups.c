@@ -1,4 +1,3 @@
-
 /***********************************************************************/
 /*
    groups.c
@@ -15,36 +14,37 @@
 #include "groups.h"
 #include "global_vars.h"
 
-
 /***********************************************************************/
 /* Public functions                                                    */
 
 /***********************************************************************/
 
-/* void allocateInitialGroupMembership (node* nodes, node** groups, long int numpoints) { */
-node **allocateInitialGroupMembership(node * nodes, long int numpoints)
+/* void allocateInitialGroupMembership (node* nodes, node** groups, long int
+ * numpoints) { */
+node **allocateInitialGroupMembership(node *nodes, long int numpoints)
 {
     int i;
     node **groups;
     node *ptr;
     node *prevPtr;
 
-    groups = (node **) malloc((numpoints + 1) * sizeof(node *));
+    groups = (node **)malloc((numpoints + 1) * sizeof(node *));
     if (!groups) {
-        G_fatal_error(_("\n\nFATAL ERROR - failure to allocate memory for groupList in allocateInitialGroupMembership()\n\n"));
+        G_fatal_error(_("\n\nFATAL ERROR - failure to allocate memory for "
+                        "groupList in allocateInitialGroupMembership()\n\n"));
     }
 
     /* Set up tails of group lists */
-    groups[ownGroup] = &nodes[0];       /* First point in point list */
+    groups[ownGroup] = &nodes[0]; /* First point in point list */
     for (i = 0; i < numpoints; i++) {
-        groups[i] = NULL;       /* No members yet */
+        groups[i] = NULL; /* No members yet */
         /* fprintf(stderr, "nodeList:%d   groupList:%d", nodes, groups); */
     }
 
     /* Set up initial membership (own group) and forward pointers */
     for (i = 0; i < (numpoints - 1); i++) {
-        nodes[i].group = ownGroup;      /* Member of own group only */
-        nodes[i].nGroup = &nodes[i + 1];        /* Next node */
+        nodes[i].group = ownGroup;       /* Member of own group only */
+        nodes[i].nGroup = &nodes[i + 1]; /* Next node */
     }
     nodes[numpoints - 1].group = ownGroup;
     nodes[numpoints - 1].nGroup = NULL; /* End of list */
@@ -60,10 +60,9 @@ node **allocateInitialGroupMembership(node * nodes, long int numpoints)
     return (groups);
 }
 
-
 /***********************************************************************/
 
-void printNodesInAllGroups(node * nodes, node ** groups)
+void printNodesInAllGroups(node *nodes, node **groups)
 {
     int g;
 
@@ -72,10 +71,9 @@ void printNodesInAllGroups(node * nodes, node ** groups)
     }
 }
 
-
 /***********************************************************************/
 
-void printNodesInGroup(node * nodes, node ** groups, int group)
+void printNodesInGroup(node *nodes, node **groups, int group)
 {
     node *ptr;
 
@@ -87,10 +85,9 @@ void printNodesInGroup(node * nodes, node ** groups, int group)
     }
 }
 
-
 /***********************************************************************/
 
-void insertNodeAtHeadGroupList(node * this, node ** groups, int group,
+void insertNodeAtHeadGroupList(node *this, node **groups, int group,
                                int iteration, float distance)
 {
 
@@ -100,9 +97,10 @@ void insertNodeAtHeadGroupList(node * this, node ** groups, int group,
     node *newGroupOldHead;
 
 #ifdef DEBUG
-    fprintf(stderr,
-            "\nthis cat= %d\nthis group= %d\n this nGroup= %d\n this pGroup= %d\n",
-            this->cat, this->group, this->nGroup, this->pGroup);
+    fprintf(
+        stderr,
+        "\nthis cat= %d\nthis group= %d\n this nGroup= %d\n this pGroup= %d\n",
+        this->cat, this->group, this->nGroup, this->pGroup);
 #endif
     oldGroup = this->group;
     oldNext = this->nGroup;
@@ -148,10 +146,9 @@ void insertNodeAtHeadGroupList(node * this, node ** groups, int group,
 #endif
 }
 
-
 /***********************************************************************/
 
-void printNodePositionInGroupList(node * this)
+void printNodePositionInGroupList(node *this)
 {
     fprintf(stderr, "\ncat=%d", this->cat);
     fprintf(stderr, " grp=%d", this->group);
@@ -170,7 +167,6 @@ void printNodePositionInGroupList(node * this)
     }
 }
 
-
 /***********************************************************************/
 
 int *allocateInitialGroupSize(long int numpoints)
@@ -180,7 +176,8 @@ int *allocateInitialGroupSize(long int numpoints)
 
     groupSizePtr = (int *)malloc((numpoints + 1) * sizeof(int));
     if (!groupSizePtr) {
-        G_fatal_error(_("\n\nFATAL ERROR - failure to allocate memory for groupSize in allocateInitialGroupSize()\n\n"));
+        G_fatal_error(_("\n\nFATAL ERROR - failure to allocate memory for "
+                        "groupSize in allocateInitialGroupSize()\n\n"));
     }
     else {
         for (i = 0; i <= numpoints; i++) {
@@ -191,7 +188,6 @@ int *allocateInitialGroupSize(long int numpoints)
     return (groupSizePtr);
 }
 
-
 /***********************************************************************/
 
 void freeGroupSize(int *groupSizePtr)
@@ -199,11 +195,9 @@ void freeGroupSize(int *groupSizePtr)
     G_free(groupSizePtr);
 }
 
-
 /***********************************************************************/
 
-
-void calculateGroupSize(int *groupSize, node ** groups, int group)
+void calculateGroupSize(int *groupSize, node **groups, int group)
 {
     node *ptr;
     int i = 0;
@@ -217,9 +211,7 @@ void calculateGroupSize(int *groupSize, node ** groups, int group)
     groupSize[group] = i;
 }
 
-
 /***********************************************************************/
-
 
 void incrementGroupSize(int *groupSize, int group)
 {
@@ -228,9 +220,7 @@ void incrementGroupSize(int *groupSize, int group)
     groupSize[group]++;
 }
 
-
 /***********************************************************************/
-
 
 void decrementGroupSize(int *groupSize, int group)
 {
@@ -239,31 +229,27 @@ void decrementGroupSize(int *groupSize, int group)
     groupSize[group]--;
 }
 
-
 /***********************************************************************/
-
 
 void addToGroupSize(int *groupSize, int group, int value)
 {
 
-    /*fprintf (stderr, "\n\nAdding %d to size of group %d (ids)", value, group); */
+    /*fprintf (stderr, "\n\nAdding %d to size of group %d (ids)", value, group);
+     */
     groupSize[group] += value;
 }
 
-
 /***********************************************************************/
-
 
 void subtractFromGroupSize(int *groupSize, int group, int value)
 {
 
-    /*fprintf (stderr, "\n\nSubtracting %d from size of group %d (ids)", value, group); */
+    /*fprintf (stderr, "\n\nSubtracting %d from size of group %d (ids)", value,
+     * group); */
     groupSize[group] -= value;
 }
 
-
 /***********************************************************************/
-
 
 void resetGroupSize(int *groupSize, int group)
 {
@@ -272,20 +258,17 @@ void resetGroupSize(int *groupSize, int group)
     groupSize[group] = 0;
 }
 
-
 /***********************************************************************/
-
 
 int getGroupSize(int *groupSize, int group)
 {
 
-    /* fprintf (stderr, "\n\nSize of group %d (ids) is %d", group, groupSize[group]); */
+    /* fprintf (stderr, "\n\nSize of group %d (ids) is %d", group,
+     * groupSize[group]); */
     return (groupSize[group]);
 }
 
-
 /***********************************************************************/
-
 
 void printGroupSize(int *groupSize, long int numpoints)
 {
@@ -298,17 +281,16 @@ void printGroupSize(int *groupSize, long int numpoints)
     fprintf(stderr, "\n");
 }
 
-
 /***********************************************************************/
 
-float updateGroupSizes(int *groupSize, int groupA, int groupB,
-                       int targetGroup)
+float updateGroupSizes(int *groupSize, int groupA, int groupB, int targetGroup)
 {
     long int fromSize, toSize, newSize;
     float numerator, denominator;
     float connectionCoefficient;
 
-    /*fprintf(stderr, "\nfg = %d  tg = %d  TG = %d", groupA, groupB, targetGroup); */
+    /*fprintf(stderr, "\nfg = %d  tg = %d  TG = %d", groupA, groupB,
+     * targetGroup); */
 
     if ((groupA == ownGroup) && (groupB == ownGroup)) {
         /* Neither node in a group other than own */
@@ -343,13 +325,13 @@ float updateGroupSizes(int *groupSize, int groupA, int groupB,
         else {
             if (groupA == targetGroup) {
                 toSize = getGroupSize(groupSize, groupA);
-                fromSize = 1;   /* Must be ownGroup */
+                fromSize = 1; /* Must be ownGroup */
                 incrementGroupSize(groupSize, targetGroup);
                 decrementGroupSize(groupSize, groupB);
             }
             else {
                 toSize = getGroupSize(groupSize, groupB);
-                fromSize = 1;   /* Must be ownGroup */
+                fromSize = 1; /* Must be ownGroup */
                 incrementGroupSize(groupSize, targetGroup);
                 decrementGroupSize(groupSize, groupA);
             }
@@ -360,29 +342,30 @@ float updateGroupSizes(int *groupSize, int groupA, int groupB,
        joining groups and the bigger the new group, the greater the
        coefficient */
     newSize = fromSize + toSize;
-    numerator = ((newSize - fromSize) <= (newSize - toSize)) ?
-        (newSize - fromSize) : (newSize - toSize);
-    denominator = ((newSize - fromSize) >= (newSize - toSize)) ?
-        (newSize - fromSize) : (newSize - toSize);
+    numerator = ((newSize - fromSize) <= (newSize - toSize))
+                    ? (newSize - fromSize)
+                    : (newSize - toSize);
+    denominator = ((newSize - fromSize) >= (newSize - toSize))
+                      ? (newSize - fromSize)
+                      : (newSize - toSize);
     connectionCoefficient = newSize * numerator / denominator;
     /*fprintf(stderr, "NS=%ld FS=%ld TS=%ld Num=%lf Den=%lf CC=%f",
-       newSize, fromSize, toSize, numerator, denominator, connectionCoefficient); */
+       newSize, fromSize, toSize, numerator, denominator,
+       connectionCoefficient); */
     return (connectionCoefficient);
 }
 
-
 /***********************************************************************/
-
 
 tGroupInfo *allocateInitialGroupInfo(long int numpoints)
 {
     tGroupInfo *groupInfoPtr;
     long int i;
 
-    groupInfoPtr =
-        (tGroupInfo *) malloc((numpoints + 1) * sizeof(tGroupInfo));
+    groupInfoPtr = (tGroupInfo *)malloc((numpoints + 1) * sizeof(tGroupInfo));
     if (!groupInfoPtr) {
-        G_fatal_error(_("\n\nFATAL ERROR - failure to allocate memory for groupAge in allocateInitialGroupAge()\n\n"));
+        G_fatal_error(_("\n\nFATAL ERROR - failure to allocate memory for "
+                        "groupAge in allocateInitialGroupAge()\n\n"));
     }
 
     for (i = 0; i < numpoints; i++) {
@@ -403,10 +386,9 @@ tGroupInfo *allocateInitialGroupInfo(long int numpoints)
     return (groupInfoPtr);
 }
 
-
 /***********************************************************************/
 
-void freeGroupInfo(tGroupInfo * groupInfoPtr)
+void freeGroupInfo(tGroupInfo *groupInfoPtr)
 {
     G_free(groupInfoPtr);
 }

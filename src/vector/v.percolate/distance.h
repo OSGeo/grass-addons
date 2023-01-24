@@ -1,4 +1,3 @@
-
 /***********************************************************************/
 /*
    distance.h
@@ -24,11 +23,8 @@
 #include "global_vars.h"
 #include "node.h"
 
-
 #ifndef DISTANCE_H
 #define DISTANCE_H
-
-
 
 /***********************************************************************/
 /* Public functions                                                    */
@@ -45,7 +41,8 @@ void freeDistanceMatrix(long int, float **);
 
 float computeDistanceMatrix(float **, long int, node *);
 
-/* float computeDistanceMatrix (float** matrix, long int numpoints, node* nodes */
+/* float computeDistanceMatrix (float** matrix, long int numpoints, node* nodes
+ */
 
 float computeMaxDistanceToNN(float **, long int, float, node *);
 
@@ -58,7 +55,7 @@ void printDistanceMatrix(float **, long int);
 
 void printDistanceMatrixWithNodeCats(float **, long int, node *);
 
-/* float printDistanceMatrix (float** matrix, long int numpoints, node* nodeList) */
-
+/* float printDistanceMatrix (float** matrix, long int numpoints, node*
+ * nodeList) */
 
 #endif

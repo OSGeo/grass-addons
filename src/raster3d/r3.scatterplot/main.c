@@ -21,13 +21,20 @@ TODO: additional attributes from additional maps? (may be too much)
 TODO: decimate every nth point
 TODO: set resolution internally to a lower one (resolution option)
 TODO: auto offset flag would benefit from coordinates in attribute table
-TODO: -r for placing into the region: i.e. it needs scale based on rast max, spacing and num of scatter plots
-TODO: flag to set color table so that each layer has separate color (like d.correlate or d.vect layer=-1 -c), good without -f
-TODO: flag or option to output real coordinates - useful for debugging and to see what is sampled
-TODO: layers and cats with RGB as in v.in.lidar ('std layer numbers' conflicting with multiple scatter plots)
-TODO: flag(s) to use depth (-d, always positive?) or z (-z, actual sign) as the 3rd (z) coordinate (to avoid need for r.mapcalc when correlation with z is needed as 3rd dimension)
+TODO: -r for placing into the region: i.e. it needs scale based on rast max,
+spacing and num of scatter plots
+TODO: flag to set color table so that each layer has separate color (like
+d.correlate or d.vect layer=-1 -c), good without -f
+TODO: flag or option to output real coordinates - useful for debugging and to
+see what is sampled
+TODO: layers and cats with RGB as in v.in.lidar ('std layer numbers' conflicting
+with multiple scatter plots)
+TODO: flag(s) to use depth (-d, always positive?) or z (-z, actual sign) as the
+3rd (z) coordinate (to avoid need for r.mapcalc when correlation with z is
+needed as 3rd dimension)
 TODO: layout: add max num per row so that a row is broken
-TODO: optimize for case z_raster == color_raster or even if one of inputs is z or color
+TODO: optimize for case z_raster == color_raster or even if one of inputs is z
+or color
 */
 
 #include <grass/gis.h>
@@ -55,7 +62,8 @@ struct ScatterFlags {
     struct Flag *notopo;
 };
 
-static void define_parameters(struct ScatterOptions *opt, struct ScatterFlags *flg)
+static void define_parameters(struct ScatterOptions *opt,
+                              struct ScatterFlags *flg)
 {
     struct GModule *module;
 
@@ -68,8 +76,8 @@ static void define_parameters(struct ScatterOptions *opt, struct ScatterFlags *f
     G_add_keyword(_("vector"));
     G_add_keyword(_("voxel"));
     module->label = _("Creates a scatter plot of 3D raster maps");
-    module->description =
-        _("Creates a scatter plot of two or more 3D raster maps as a vector map");
+    module->description = _(
+        "Creates a scatter plot of two or more 3D raster maps as a vector map");
 
     opt->input = G_define_standard_option(G_OPT_R3_INPUTS);
 
@@ -121,16 +129,14 @@ static void define_parameters(struct ScatterOptions *opt, struct ScatterFlags *f
 
     opt->position = G_define_standard_option(G_OPT_M_COORDS);
     opt->position->key = "position";
-    opt->position->label =
-        _("Place to the given coordinates");
+    opt->position->label = _("Place to the given coordinates");
     opt->position->description =
         _("The output coordinates will not represent the original values");
     opt->position->guisection = _("Layout");
 
     flg->auto_offset = G_define_flag();
     flg->auto_offset->key = 'f';
-    flg->auto_offset->label =
-        _("Automatically offset each scatter plot");
+    flg->auto_offset->label = _("Automatically offset each scatter plot");
     flg->auto_offset->description =
         _("The output coordinates will not represent the original values");
     flg->auto_offset->guisection = _("Layout");
@@ -155,7 +161,8 @@ static void define_parameters(struct ScatterOptions *opt, struct ScatterFlags *f
     opt->vector_mask->required = NO;
     opt->vector_mask->label = _("Areas to use in the scatter plots");
     opt->vector_mask->description =
-        _("Name of vector map with areas from where the scatter plot should be generated");
+        _("Name of vector map with areas from where the scatter plot should be "
+          "generated");
     opt->vector_mask->guisection = _("Mask");
 
     opt->vector_mask_field = G_define_standard_option(G_OPT_V_FIELD);
@@ -188,7 +195,8 @@ static void define_parameters(struct ScatterOptions *opt, struct ScatterFlags *f
     G_option_requires(flg->invert_mask, opt->vector_mask, NULL);
 }
 
-static void option_to_en(struct Option *option, double *easting, double *northing, struct Cell_head *region)
+static void option_to_en(struct Option *option, double *easting,
+                         double *northing, struct Cell_head *region)
 {
     if (!G_scan_easting(option->answers[0], easting, region->proj))
         G_fatal_error(_("Invalid easting: %s"), option->answers[0]);
@@ -198,10 +206,11 @@ static void option_to_en(struct Option *option, double *easting, double *northin
 
 static RASTER3D_Map *open_raster3d(char *name, RASTER3D_Region *region)
 {
-    RASTER3D_Map * map;
+    RASTER3D_Map *map;
 
     map = Rast3d_open_cell_old(name, G_find_raster3d(name, ""), region,
-                         RASTER3D_TILE_SAME_AS_FILE, RASTER3D_USE_CACHE_DEFAULT);
+                               RASTER3D_TILE_SAME_AS_FILE,
+                               RASTER3D_USE_CACHE_DEFAULT);
     if (map == NULL)
         Rast3d_fatal_error(_("Unable to open 3D raster map <%s>"), name);
     return map;
@@ -265,7 +274,8 @@ int main(int argc, char *argv[])
     /* strip any @mapset from vector output name */
     G_find_vector(buf, G_mapset());
     if (Vect_open_new(&output, opt.output->answer, 1) < 0)
-        G_fatal_error(_("Unable to create vector map <%s>"), opt.output->answer);
+        G_fatal_error(_("Unable to create vector map <%s>"),
+                      opt.output->answer);
     Vect_hist_command(&output);
 
     points = Vect_new_line_struct();
@@ -314,8 +324,8 @@ int main(int argc, char *argv[])
     if (opt.vector_mask->answer) {
         VectorMask_init(&vector_mask, opt.vector_mask->answer,
                         opt.vector_mask_field->answer,
-                        opt.vector_mask_cats->answer, opt.vector_mask_where->answer,
-                        flg.invert_mask->answer);
+                        opt.vector_mask_cats->answer,
+                        opt.vector_mask_where->answer, flg.invert_mask->answer);
         use_vector_mask = TRUE;
     }
 
@@ -326,9 +336,11 @@ int main(int argc, char *argv[])
                 continue;
             /* report when relevant */
             if (n_inputs > 2 && !flg.one_layer->answer)
-                G_message(_("Putting values from <%s> and <%s> into layer %d of <%s>"),
+                G_message(_("Putting values from <%s> and <%s> into layer %d "
+                            "of <%s>"),
                           *name1, *name2, layer, opt.output->answer);
-            G_debug(3, "save %s + %s to %d (%s)", *name1, *name2, layer, opt.output->answer);
+            G_debug(3, "save %s + %s to %d (%s)", *name1, *name2, layer,
+                    opt.output->answer);
             RASTER3D_Map *map1 = open_raster3d(*name1, &region);
             RASTER3D_Map *map2 = open_raster3d(*name2, &region);
 
@@ -337,9 +349,10 @@ int main(int argc, char *argv[])
                 for (col = 0; col < cols; col++) {
                     /* vector mask is expensive, so we first do 2D loops */
                     if (use_vector_mask) {
-                            Rast3d_coord2location(&region, row + 0.5, col + 0.5, 0, &ycoor, &xcoor, &unused);
-                            if (!VectorMask_point_in(&vector_mask, xcoor, ycoor))
-                                continue;
+                        Rast3d_coord2location(&region, row + 0.5, col + 0.5, 0,
+                                              &ycoor, &xcoor, &unused);
+                        if (!VectorMask_point_in(&vector_mask, xcoor, ycoor))
+                            continue;
                     }
                     for (depth = 0; depth < depths; depth++) {
                         x = Rast3d_get_double(map1, col, row, depth);
@@ -354,10 +367,11 @@ int main(int argc, char *argv[])
                                 continue;
                         }
                         if (color_raster) {
-                            fcat = Rast3d_get_float(color_raster, col, row, depth);
+                            fcat =
+                                Rast3d_get_float(color_raster, col, row, depth);
                             if (Rast_is_d_null_value(&fcat))
                                 continue;
-                            cat = (int) fcat;
+                            cat = (int)fcat;
                             /* TODO: what to do when value cannot be cat */
                         }
                         x *= xscale;
@@ -369,11 +383,12 @@ int main(int argc, char *argv[])
                             current_max_x = x;
                         Vect_cat_set(cats, layer, cat);
                         Vect_append_point(points, x, y, z);
-                        //Vect_append_point(points, xcoor, ycoor, z);
+                        // Vect_append_point(points, xcoor, ycoor, z);
                         Vect_write_line(&output, GV_POINT, points, cats);
                         Vect_reset_line(points);
                         Vect_reset_cats(cats);
-                        /* TODO: we can determine cat == GV_CAT_MAX ahead and tell user what to do */
+                        /* TODO: we can determine cat == GV_CAT_MAX ahead and
+                         * tell user what to do */
                         cat++;
                     }
                 }
@@ -396,7 +411,9 @@ int main(int argc, char *argv[])
     if (color_raster) {
         struct Colors colors;
 
-        Rast3d_read_colors(opt.color_raster->answer, G_find_raster3d(opt.color_raster->answer, ""), &colors);
+        Rast3d_read_colors(opt.color_raster->answer,
+                           G_find_raster3d(opt.color_raster->answer, ""),
+                           &colors);
         Vect_write_colors(opt.output->answer, G_mapset(), &colors);
     }
 

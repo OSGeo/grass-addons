@@ -17,19 +17,19 @@ static void *cache_get_s(struct cache *c, void *p, int row, int col)
 {
     Segment_get(&c->s, p, row, col);
 
-    return  p;
+    return p;
 }
 
 static void *cache_put_s(struct cache *c, void *p, int row, int col)
 {
     if (Segment_put(&c->s, p, row, col) != 1)
-	G_fatal_error(_("Unable to write to temporary file"));
+        G_fatal_error(_("Unable to write to temporary file"));
 
     return p;
 }
 
-int cache_create(struct cache *c, int nrows, int ncols, int srows,
-                 int scols, int nbytes, int nseg)
+int cache_create(struct cache *c, int nrows, int ncols, int srows, int scols,
+                 int nbytes, int nseg)
 {
     int nseg_total;
 
@@ -37,26 +37,25 @@ int cache_create(struct cache *c, int nrows, int ncols, int srows,
     c->rows = nrows;
     c->cols = ncols;
 
-    nseg_total = ((nrows + srows - 1) / srows) * 
-                 ((ncols + scols - 1) / scols);
+    nseg_total = ((nrows + srows - 1) / srows) * ((ncols + scols - 1) / scols);
 
     if (nseg < nseg_total) {
-	G_verbose_message("Using disk cache");
+        G_verbose_message("Using disk cache");
 
-	if (Segment_open(&c->s, G_tempfile(), nrows, ncols, srows, scols,
-			 nbytes, nseg) != 1)
-	    G_fatal_error("Unable to create temporary file");
+        if (Segment_open(&c->s, G_tempfile(), nrows, ncols, srows, scols,
+                         nbytes, nseg) != 1)
+            G_fatal_error("Unable to create temporary file");
 
-	c->r = NULL;
-	c->get = cache_get_s;
-	c->put = cache_put_s;
+        c->r = NULL;
+        c->get = cache_get_s;
+        c->put = cache_put_s;
     }
     else {
-	G_verbose_message("Using memory cache");
+        G_verbose_message("Using memory cache");
 
-	c->r = G_malloc(sizeof(char) * c->rows * c->cols * c->n);
-	c->get = cache_get_r;
-	c->put = cache_put_r;
+        c->r = G_malloc(sizeof(char) * c->rows * c->cols * c->n);
+        c->get = cache_get_r;
+        c->put = cache_put_r;
     }
 
     return 1;
@@ -65,10 +64,10 @@ int cache_create(struct cache *c, int nrows, int ncols, int srows,
 int cache_destroy(struct cache *c)
 {
     if (c->r == NULL) {
-	Segment_close(&c->s);
+        Segment_close(&c->s);
     }
     else {
-	G_free(c->r);
+        G_free(c->r);
     }
 
     return 1;

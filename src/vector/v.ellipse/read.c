@@ -3,7 +3,7 @@
 #include "proto.h"
 
 void load_points(struct Map_info *In, struct line_pnts *Points,
-		 struct line_cats *Cats)
+                 struct line_cats *Cats)
 {
     /* variables */
     struct line_pnts *OPoints;
@@ -16,15 +16,15 @@ void load_points(struct Map_info *In, struct line_pnts *Points,
 
     /* load points */
     while ((type = Vect_read_next_line(In, OPoints, Cats)) > 0) {
-	if (type == GV_LINE || type == GV_POINT || type == GV_CENTROID) {
-	    if (Vect_cat_get(Cats, 1, &cat) == 0) {
-		Vect_cat_set(Cats, 1, i);
-		i++;
-	    }
-	}
+        if (type == GV_LINE || type == GV_POINT || type == GV_CENTROID) {
+            if (Vect_cat_get(Cats, 1, &cat) == 0) {
+                Vect_cat_set(Cats, 1, i);
+                i++;
+            }
+        }
 
-	Vect_append_points(Points, OPoints, GV_FORWARD);
-	Vect_reset_line(OPoints);
+        Vect_append_points(Points, OPoints, GV_FORWARD);
+        Vect_reset_line(OPoints);
     }
 
     Vect_destroy_line_struct(OPoints);
