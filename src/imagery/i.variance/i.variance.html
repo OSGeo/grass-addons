@@ -1,7 +1,7 @@
 <h2>DESCRIPTION</h2>
 
-<p>Following the Woodcock and Strahler (1987), <em>i.variance</em> resamples 
-a raster <em>input</em> layer (normally a remotely sensed image) to 
+<p>Following the Woodcock and Strahler (1987), <em>i.variance</em> resamples
+a raster <em>input</em> layer (normally a remotely sensed image) to
 successively decreasing resolutions and calculates the mean local variance of
 the entire image at each resolution. Local variance is defined as the variance
 in a 3x3 window.
@@ -23,7 +23,7 @@ the resolution before and after in the iterations) as well as the difference in
 variance with the neighbor with most similar variance.
 
 <p>
-In addition, the user can choose to output the results in the form of a graph 
+In addition, the user can choose to output the results in the form of a graph
 plotting variance against resolution (<em>plot_output</em>) either to a file
 by giving a file name (its extension determines the output format) or to
 the screen using '-'. The entire data of variance depending on resolution can
@@ -34,16 +34,16 @@ also be saved in a csv file using <em>csv_output</em>.
 The aim of this module is to provide diagnostics to the user about the size of
 detectable "objects" in an image. This can provide helpful input to modules
 that take a window size or desired object size as input, such as, for example,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.texture.html">r.texture</a> and 
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.texture.html">r.texture</a> and
 <a href="https://grass.osgeo.org/grass-stable/manuals/i.segment.html">i.segment</a>.
 
 <p>
 As Woodcock and Strahler (1980) write: "The reasoning
-behind this measure is as follows. If the spatial resolution is 
-considerably finer than the objects in the scene, most of the measurements in 
-the image will be highly correlated with their neighbors and a measure of 
+behind this measure is as follows. If the spatial resolution is
+considerably finer than the objects in the scene, most of the measurements in
+the image will be highly correlated with their neighbors and a measure of
 local variance will be low. If the objects approximate the size of the
-resolution cells, then the likelihood of neighbors being similar decreases and 
+resolution cells, then the likelihood of neighbors being similar decreases and
 the local variance rises. As the size of the resolution cells increase and many
 objects are found in a single resolution cell, the local variance decreases."
 
@@ -51,12 +51,12 @@ objects are found in a single resolution cell, the local variance decreases."
 <h2>EXAMPLE</h2>
 
 <p>
-The three examples based on the North Carolina demo data orthophoto show how 
+The three examples based on the North Carolina demo data orthophoto show how
 different types of objects in images lead to different forms of the variance
 curve with different resolutions showing peak values of variance.
 
 <h3>Region 1</h3>
-<div class="code"><pre> 
+<div class="code"><pre>
 g.region n=220558 s=220066 w=639394 e=640114 res=1 -p
 i.variance ortho_2001_t792_1m@PERMANENT max_size=50 plot=region1_plot.png
 <br>
@@ -82,7 +82,7 @@ resolution,min_diff
 </center>
 
 <h3>Region 2</h3>
-<div class="code"><pre> 
+<div class="code"><pre>
 region 2
 g.region n=222166 s=221890 w=637562 e=637966 res=1 -p
 i.variance ortho_2001_t792_1m@PERMANENT max_size=50 plot=region2_plot.png
@@ -110,7 +110,7 @@ resolution,min_diff
 </center>
 
 <h3>Region 3</h3>
-<div class="code"><pre> 
+<div class="code"><pre>
 region 3
 g.region n=220723 s=220218 w=638347 e=639086 res=1
 i.variance ortho_2001_t792_1m@PERMANENT max_size=50 plot=region3_plot.png
@@ -139,8 +139,8 @@ resolution,min_diff
 
 <h2>REFERENCES</h2>
 
-Woodcock, C.E., Strahler, A.H., 1987. The factor of scale in remote sensing. 
-	Remote Sensing of Environment 21, 311–332. 
+Woodcock, C.E., Strahler, A.H., 1987. The factor of scale in remote sensing.
+	Remote Sensing of Environment 21, 311–332.
 	http://doi.org/10.1016/0034-4257(87)90015-0
 
 <h2>SEE ALSO</h2>
@@ -153,6 +153,6 @@ Woodcock, C.E., Strahler, A.H., 1987. The factor of scale in remote sensing.
 <a href="https://grass.osgeo.org/grass-stable/manuals/r.texture.html">r.texture</a>
 </em>
 
-<h2>AUTHOR</h2> 
+<h2>AUTHOR</h2>
 
 Moritz Lennert

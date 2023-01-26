@@ -1,22 +1,22 @@
 <h2>DESCRIPTION:</h2>
-<em>r.connectivity.distance</em> computes cost-distance between all 
-areas (patches) of an input vector map within a user defined Euclidean 
+<em>r.connectivity.distance</em> computes cost-distance between all
+areas (patches) of an input vector map within a user defined Euclidean
 distance threshold.
 
-<p>Recently, graph-theory has been characterised as an efficient and 
-useful tool for conservation planning (e.g. Bunn et al. 2000, 
+<p>Recently, graph-theory has been characterised as an efficient and
+useful tool for conservation planning (e.g. Bunn et al. 2000,
 Calabrese &amp; Fagan 2004, Minor &amp; Urban 2008, Zetterberg et. al. 2010).</p>
 
-<p>As a part of the r.connectivity.* tool-chain, <em>r.connectivity.distance</em> is 
-intended to make graph-theory more easily available to conservation 
+<p>As a part of the r.connectivity.* tool-chain, <em>r.connectivity.distance</em> is
+intended to make graph-theory more easily available to conservation
 planning.</p>
 
-<p><em>r.connectivity.distance</em> is the first tool of the 
-r.connectivity.*-toolchain (followed by <em>r.connectivity.network</em> 
+<p><em>r.connectivity.distance</em> is the first tool of the
+r.connectivity.*-toolchain (followed by <em>r.connectivity.network</em>
 and <em>r.connectivity.corridors</em>).</p>
 
-<p><em>r.connectivity.distance</em> loops through all polygons in the 
-input vector map and calculates the cost-distance to all the other 
+<p><em>r.connectivity.distance</em> loops through all polygons in the
+input vector map and calculates the cost-distance to all the other
 polygons within a user-defined Euclidean distance threshold.</p>
 
 <p>It produces two vector maps that hold the network:</p>
@@ -58,33 +58,33 @@ polygons within a user-defined Euclidean distance threshold.</p>
 </tr>
 <tr>
   <td>pop_proxy</td>
-  <td>the user defined population proxy to be used in further analysis, 
-representing a proxy for the amount of organisms potentially dispersing 
+  <td>the user defined population proxy to be used in further analysis,
+representing a proxy for the amount of organisms potentially dispersing
 from a patch (e.g. habitat area)</td>
   <td>double precision</td>
 </tr>
 </table>
 
-<p>On user request (<b>p-flag</b>) the shortest paths between the possible 
-combination of patches can be extracted (using <em>r.drain</em>), along 
+<p>On user request (<b>p-flag</b>) the shortest paths between the possible
+combination of patches can be extracted (using <em>r.drain</em>), along
 with start and stop points.</p>
 
-<p>In addition, <em>r.connectivity.distance</em> outputs a cost distance 
-raster map for every input area which later on are used in 
-<em>r.connectivity.corridors</em> (together with output from 
+<p>In addition, <em>r.connectivity.distance</em> outputs a cost distance
+raster map for every input area which later on are used in
+<em>r.connectivity.corridors</em> (together with output from
 <em>r.connectivity.network</em>) for corridor identification.</p>
 
-<p>Distance between patches is measured as border to border distance. With 
-the <b>border_dist</b> option, the user can define the number of cells 
+<p>Distance between patches is measured as border to border distance. With
+the <b>border_dist</b> option, the user can define the number of cells
 (n) along the border to be used for distance measuring.<br>
-The distance from a (start) patch to another (end) is measured as the 
-n-th closest cell on the border of the other (end) patch. An increased 
-number of border cells used for distance measuring also increases the 
-width of possible corridors computed with 
+The distance from a (start) patch to another (end) is measured as the
+n-th closest cell on the border of the other (end) patch. An increased
+number of border cells used for distance measuring also increases the
+width of possible corridors computed with
 <em>r.connectivity.corridors</em> later on.</p>
 
-<p>If an output directory is given for the <b>conefor_dir</b> option is 
-specified, also output suitable for further processing in 
+<p>If an output directory is given for the <b>conefor_dir</b> option is
+specified, also output suitable for further processing in
 <a href="http://www.conefor.org">CONEFOR</a> will be produced, namely:</p>
 <ul>
 <li>a node file</li>
@@ -94,25 +94,25 @@ specified, also output suitable for further processing in
 
 <h2>EXAMPLES</h2>
 The following example is based on the North Carolina dataset!
-<p><em>Please be aware that all input parameters of the following example are 
-purely hypothetical (though they intend to imitate a real life 
-situation) and chosen only for the matter of the exercise. Parameters 
-have to be adjusted in other cases according to ecological knowledge in 
+<p><em>Please be aware that all input parameters of the following example are
+purely hypothetical (though they intend to imitate a real life
+situation) and chosen only for the matter of the exercise. Parameters
+have to be adjusted in other cases according to ecological knowledge in
 order to give meaningful results!</em></p>
 
 <p>
-Let us assume we want to analyse the habitat connectivity for a 
-hypothetical species of the Hardwood Swamps in North Carolina. This 
-species lives only in the larger core area of the swamps (> 1ha) while 
+Let us assume we want to analyse the habitat connectivity for a
+hypothetical species of the Hardwood Swamps in North Carolina. This
+species lives only in the larger core area of the swamps (> 1ha) while
 the borders are no suitable habitats.<br>
-It is not the most mobile of species and can cover (under optimal 
+It is not the most mobile of species and can cover (under optimal
 conditions) maximal 1.5 km.
 </p>
 
 <h3>Prepare input data</h3>
-Before we can run the connectivity analysis with the r.connectivity.*-tools 
-we need to prepare the example input data. Because we want to use 
-cost distance as a distance measure we have to provide a cost raster map 
+Before we can run the connectivity analysis with the r.connectivity.*-tools
+we need to prepare the example input data. Because we want to use
+cost distance as a distance measure we have to provide a cost raster map
 in addition to the required vector map of (habitat) patches:
 
 <h3>Create input patch vector map</h3>
@@ -124,7 +124,7 @@ g.region -p rast=landuse96_28m align=landuse96_28m
 ### Patch input vector map
 ## Extract habitat patches
 # Condition 1: Category 11 = Bottomland Hardwoods/Hardwood Swamps
-# Condition 2: no border-cells are suitable  
+# Condition 2: no border-cells are suitable
 r.mapcalc expression="patches=if( \
 landuse96_28m[0,1]==11&& \
 landuse96_28m[0,-1]==11&& \
@@ -152,22 +152,22 @@ v.extract input=patches output=patches_1ha type=area layer=1 where="area_ha>1"
 
 <div style="margin: 10px">
 <a href="r_connectivity_distance_patches.png">
-<img src="r_connectivity_distance_patches.png" width="600" height="600" 
+<img src="r_connectivity_distance_patches.png" width="600" height="600"
 alt="Patch vector map example">
 </a><br>
-<i>Figure: Patch vector map as input to r.connectivity.distance, produced 
+<i>Figure: Patch vector map as input to r.connectivity.distance, produced
 in the example above.</i>
 </div>
 
 <h3>Create a cost raster:</h3>
 (see also: <em>r.cost</em>)
 
-<p>For the cost raster, we assume that areas which are developed with 
+<p>For the cost raster, we assume that areas which are developed with
 high intensity are absolute barriers for our species (not crossable at all).<br>
-Other developed and managed areas can be crossed, but only at high costs 
-(they are avoided where possible). Other Hardwood landcover types offer 
-best opportunity for the dispersal of our species (they are preferred), 
-while the costs for crossing the other landcover types is somewhere 
+Other developed and managed areas can be crossed, but only at high costs
+(they are avoided where possible). Other Hardwood landcover types offer
+best opportunity for the dispersal of our species (they are preferred),
+while the costs for crossing the other landcover types is somewhere
 in between.</p>
 <p>Hint: One might also add infrastructure like e.g. roads</p>
 
@@ -190,29 +190,29 @@ echo '0 = 56 #not classified (2*resolution (28m))
 18 = 28 #Mixed Hardwoods/Conifers (1*resolution (28m))
 20 = 42 #Water Bodies (1,5*resolution (28m))
 21 = 84 #Unconsolidated Sediment (3*resolution (28m))' | r.reclass \
-input=landuse96_28m output=costs rules=- --overwrite 
+input=landuse96_28m output=costs rules=- --overwrite
 </pre></div>
 
 <div style="margin: 10px">
 <a href="r_connectivity_distance_costs.png">
-<img src="r_connectivity_distance_costs.png" width="600" height="600" 
+<img src="r_connectivity_distance_costs.png" width="600" height="600"
 alt="Cost raster map example">
 </a><br>
-<i>Figure: Cost raster as input to r.connectivity.distance, produced in the 
+<i>Figure: Cost raster as input to r.connectivity.distance, produced in the
 example above.</i>
 </div>
 
 <h3>Create the network</h3>
-In the first step the network dataset is created, and the cost distance 
+In the first step the network dataset is created, and the cost distance
 between all possible pairs of vertices (patches) is calculated.
-<p>Our species is known to be unable to cover more than 1.5 km distance. 
-In order to identify potential for improving the connectivity of the 
-landscape for our species we set the cutoff distance (maximum search 
-distance for connections) to three times dispersal potential of our 
-species (4500). In lack of real population data we use the area (ha) as 
-a proxy. The distance between two patches is measured as the maximum 
-distance along the closest 500m of boundary of a patch (ca. 18 border 
-cells with 28m resolution). We store the resulting network data also 
+<p>Our species is known to be unable to cover more than 1.5 km distance.
+In order to identify potential for improving the connectivity of the
+landscape for our species we set the cutoff distance (maximum search
+distance for connections) to three times dispersal potential of our
+species (4500). In lack of real population data we use the area (ha) as
+a proxy. The distance between two patches is measured as the maximum
+distance along the closest 500m of boundary of a patch (ca. 18 border
+cells with 28m resolution). We store the resulting network data also
 in a format that is suitable as input to CONEFOR software.</p>
 
 <div class="code"><pre>
@@ -223,19 +223,19 @@ conefor_dir=./conefor
 
 <div style="margin: 10px">
 <a href="r_connectivity_distance_shortest_paths.png">
-<img src="r_connectivity_distance_shortest_paths.png" width="600" 
+<img src="r_connectivity_distance_shortest_paths.png" width="600"
 height="600" alt="Output network represented by shortest paths">
 </a><br>
-<i>Figure: Network produced with r.connectivity.distance, visually 
+<i>Figure: Network produced with r.connectivity.distance, visually
 represented by shortest paths and patch areas, produced in the example above.</i>
 </div>
 
 <div style="margin: 10px">
 <a href="r_connectivity_distance_network.png">
-<img src="r_connectivity_distance_network.png" width="600" height="600" 
+<img src="r_connectivity_distance_network.png" width="600" height="600"
 alt="Output network visualised as a simplified (straight) network">
 </a><br>
-<i>Figure: Network produced with r.connectivity.distance, simplified 
+<i>Figure: Network produced with r.connectivity.distance, simplified
 visualisation with straight lines, produced in the example above.</i>
 </div>
 
@@ -244,11 +244,11 @@ visualisation with straight lines, produced in the example above.</i>
 
 <h2>REFERENCE</h2>
 <dl>
-<dt><b>Framstad, E., Blumentrath, S., Erikstad, L. &amp; Bakkestuen, V. 
-2012</b> (in Norwegian): Naturfaglig evaluering av norske verneomr&aring;der. 
-Verneomr&aring;denes funksjon som &oslash;kologisk nettverk og toleranse 
-for klimaendringer. NINA Rapport 888: 126 pp. Norsk institutt for 
-naturforskning (NINA), Trondheim. 
+<dt><b>Framstad, E., Blumentrath, S., Erikstad, L. &amp; Bakkestuen, V.
+2012</b> (in Norwegian): Naturfaglig evaluering av norske verneomr&aring;der.
+Verneomr&aring;denes funksjon som &oslash;kologisk nettverk og toleranse
+for klimaendringer. NINA Rapport 888: 126 pp. Norsk institutt for
+naturforskning (NINA), Trondheim.
 <a href="http://www.nina.no/archive/nina/PppBasePdf/rapport/2012/888.pdf">
 	http://www.nina.no/archive/nina/PppBasePdf/rapport/2012/888.pdf</a></dt>
 </dl>

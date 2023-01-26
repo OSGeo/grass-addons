@@ -1,8 +1,8 @@
 <h2>DESCRIPTION</h2>
 
 <em>t.rast.what</em> is designed to sample space time raster datasets
-at specific point coordinates using <a href="https://grass.osgeo.org/grass-stable/manuals/r.what.html">r.what</a> internally. 
-The output of <a href="https://grass.osgeo.org/grass-stable/manuals/r.what.html">r.what</a> 
+at specific point coordinates using <a href="https://grass.osgeo.org/grass-stable/manuals/r.what.html">r.what</a> internally.
+The output of <a href="https://grass.osgeo.org/grass-stable/manuals/r.what.html">r.what</a>
 is transformed to different output layouts.
 The output layouts can be specified using the <em>layout</em> option.
 <p>
@@ -23,10 +23,10 @@ end of the processing.
 Coordinates can be provided as vector map using the <em>points</em> option
 or as comma separated coordinate list with the <em>coordinates </em>option.
 <p>
-An output file can be specified using the <em>output</em> option. 
-Stdout will be used if no output is specified or if the 
+An output file can be specified using the <em>output</em> option.
+Stdout will be used if no output is specified or if the
 <em>output</em> option is set to "-".
-    
+
 <h2>EXAMPLES</h2>
 
 <h3>Data preparation</h3>
@@ -101,7 +101,7 @@ start|end|115.0043586274;36.3593955783|79.6816763826;45.2391522853|97.4892579600
 1990-03-01 00:00:00|1990-04-01 00:00:00|3|3|3
 1990-04-01 00:00:00|1990-05-01 00:00:00|4|4|4
 
-# Timerow layout, one time series per row 
+# Timerow layout, one time series per row
 # using the where statement to select a subset of the STRDS
 # and stdout as output
 t.rast.what strds=A points=points \

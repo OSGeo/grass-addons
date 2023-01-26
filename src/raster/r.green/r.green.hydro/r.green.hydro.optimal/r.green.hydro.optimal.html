@@ -32,18 +32,18 @@ Input vector map availablestreams
 
 The following command computes the potential plants for a plant length range from 10 to 800 m and a distance between plants of 800 m :<br><br>
 
-<div class="code"><pre>r.green.hydro.optimal 
-discharge=discharge 
-river=availablestreams 
-elevation=elevation 
-len_plant=800 
-distance=800 
-output_plant=potentialsegments 
+<div class="code"><pre>r.green.hydro.optimal
+discharge=discharge
+river=availablestreams
+elevation=elevation
+len_plant=800
+distance=800
+output_plant=potentialsegments
 output_point=potentialpoints<br>
 d.vect map= potentialpoints color=red<br>
 d.vect map= potentialplants color=blue<br></pre></div><br>
 
-The output vector maps are shown in the following picture which gathers the potential segments vector map (potentialplants, in blue) and the potential intakes and restitution vector map (potentialpoints, in red) 
+The output vector maps are shown in the following picture which gathers the potential segments vector map (potentialplants, in blue) and the potential intakes and restitution vector map (potentialpoints, in red)
 <center>
 <img src="r_green_hydro_optimal_output.png" alt="potentialplants"><br>
 Output vector maps potentialplants (in blue) and potentialpoints (in red)

@@ -1,6 +1,6 @@
 <h2>DESCRIPTION</h2>
 
-Graph Theory for connectivity analysis. 
+Graph Theory for connectivity analysis.
 
 <h2>NOTES</h2>
 
@@ -10,18 +10,18 @@ Graph Theory for connectivity analysis.
 
 An example for the North Carolina sample dataset using class 5 (forest):
 
-Computing a graph of all patches (4 neighbourhood rule) using a maximum 
-distance of 10 pixel, the Gabriel method and as resulting index the 
+Computing a graph of all patches (4 neighbourhood rule) using a maximum
+distance of 10 pixel, the Gabriel method and as resulting index the
 <em> largest patch diameter</em>:
 <div class="code"><pre>
 r.pi.graph input=landclass96 output=landclass96_graph keyval=5 distance=10 neighborhood=gabriel index=largest_patch_diameter
 </pre></div>
 
 the results are 2 files: <br>
-landclass96_graph: the information of the index are provided (here a 
+landclass96_graph: the information of the index are provided (here a
 range of 3-589 of patch diameter)<br>
-landclass96_graph_clusters: the generated cluster IDs are provided 
-(here 16 clusters are identified), doing it with a distance of 5 pixel 
+landclass96_graph_clusters: the generated cluster IDs are provided
+(here 16 clusters are identified), doing it with a distance of 5 pixel
 is resulting in a total of 66 clusters.
 
 

@@ -45,7 +45,7 @@ done
 # #### plot using gnuplot
 # # 5==1min avg, 6==5min avg, 7==15min avg
 # data=7
-# 
+#
 # for server in xblade13 xblade14 ; do
 #   file=cpu_use.$server
 #   cat $file.log | sed -e 's/^#.*//' | cut -f2 -d/ | \
@@ -53,8 +53,8 @@ done
 #     '{ if(/./) {printf("%f %s\n", $1 + $2/24 + $3/(24*60), $4)} else {print} }' \
 #     > $file.prn
 # done
-# 
-# 
+#
+#
 # ( cat << EOF
 # set terminal svg size 800 480
 # set output "cpuload.svg"
@@ -65,12 +65,12 @@ done
 # #set label "httpd" at 147.332, 6.5
 # #set label "rsync" at 147.278, 3.9
 # set arrow from 146,1 to 160,1 nohead lt -1 lw 1.75
-# 
+#
 # plot "cpu_use.xblade14.prn" title 'xblade14' with lines lt 8, \
 #      "cpu_use.xblade13.prn" title 'xblade13' with lines lt 3
 # EOF
 # ) | gnuplot
-# 
+#
 # inkscape --file=cpuload.svg --export-png=cpuload.png -b white
 
 
@@ -92,11 +92,11 @@ x14_load_gt1 = length(find ( xblade14(:,2) > 1)) / length(xblade14(:,2))
 # 0.5197   52 %  (load is >1.0: 10.1% of the time )
 #
 # Matlab plotting code:  (perhaps SciPy/NumPy/PyPlot?)
-# 
+#
 # clf
 # set(gcf, 'color', 'w')
 # colormap([.5 .5 .5])
-# 
+#
 # subplot(211)
 # hist(xblade13(:,2),512)
 # xlim([0 1])
@@ -107,7 +107,7 @@ x14_load_gt1 = length(find ( xblade14(:,2) > 1)) / length(xblade14(:,2))
 # posn(2) = posn(2) * 0.5;
 # set(hT, 'Position', posn)
 # hL = line([1 1], [0 5000], 'color', 'k', 'LineStyle', ':');
-# 
+#
 # subplot(212)
 # hist(xblade14(:,2),255)
 # xlim([0 4])
@@ -118,5 +118,5 @@ x14_load_gt1 = length(find ( xblade14(:,2) > 1)) / length(xblade14(:,2))
 # posn(2) = posn(2) * 0.5;
 # set(hT, 'Position', posn)
 # hL = line([1 1], [0 1500], 'color', 'k', 'LineStyle', ':');
-# 
+#
 

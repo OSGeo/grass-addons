@@ -21,7 +21,7 @@ savanna takes a raster command and a region setting, and runs through these step
 1) Initialization: savanna creates a "grid" of polygons which represent the boundaries of each tile
 	which will be processed.  This grid is based on the tile size, the overlap size, and the extent
 	of the g.region.
-2) Tiling: each tile is processed as a SGE job using GRASS's batch mode and g.regions set to the 
+2) Tiling: each tile is processed as a SGE job using GRASS's batch mode and g.regions set to the
 	tile extents.
 3) Copying: each output tile is then cropped (if there is an overlap) and copied back into a central directory.
 4) Mosaic: all of the output tiles are then mosaicked back into a single image.
@@ -31,18 +31,18 @@ Usage:
 [COMING SOON]
 
 Configuring global parameters:
-Edit the "savanna_global_parameters.sh" file to fit your local installation.  
+Edit the "savanna_global_parameters.sh" file to fit your local installation.
 
 savanna_path: the full path to the savanna*.sh files (where you are probably reading this README)
-savanna_tmp: a path to the temporary outputs of savanna (this is where the output and error logfiles 
-	are stored of the run, so its a good place to check to see how the process is proceding and for 
+savanna_tmp: a path to the temporary outputs of savanna (this is where the output and error logfiles
+	are stored of the run, so its a good place to check to see how the process is proceding and for
 	troubleshooting.
-gridengine_settings: this is the full path to the gridengine "settings.sh" file.  Your local admin 
+gridengine_settings: this is the full path to the gridengine "settings.sh" file.  Your local admin
 	should know where this is, if gridengine is installed and running.  A standard install would be
 	something like "/pathto/ge6.2u5/default/common/settings.sh"
 
 Configuring savanna parameter file:
-[this will be a command line argument via getopts eventually, right now you have to edit savanna.sh to the 
+[this will be a command line argument via getopts eventually, right now you have to edit savanna.sh to the
 	parameter file.]
 Important: DON'T FORGET THE @mapset -- this scripts launches externally to GRASS, so it has no idea
 	what mapset you want to use.
@@ -72,7 +72,7 @@ tileoverlap: if your process requires some level of local neighborhood (e.g. slo
 	raster algebra via mapcalc, for instance, could have the overlap set to 0.
 	tileoverlap=10
 mask: UNUSED RIGHT NOW
-	
+
 TODO:
 Lots of error checking.
 Better command line interface.

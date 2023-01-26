@@ -1,38 +1,38 @@
 <h2>DESCRIPTION</h2>
 
-<em>v.in.natura2000</em> imports  <a href="http://www.eea.europa.eu/data-and-maps/data/ds_resolveuid/52E54BF3-ACDB-4959-9165-F3E4469BE610">Natura 2000 protected areas</a>. 
-The tool is implemented for the sqlite/spatialite version of this data 
-(size > 1 GB). Listing und import operations of <em>v.in.natura2000</em> 
-may be slow due to the huge data file size. Listing (already availabe 
-layers, biogeographic regions, EU member states codes, habitat codes, 
-species codes, protected area site types) and importing (all data, 
-protected areas of a defined habitat/species/member states/biogeographic 
-region) is limited to some small selection of  wide range of possible 
+<em>v.in.natura2000</em> imports  <a href="http://www.eea.europa.eu/data-and-maps/data/ds_resolveuid/52E54BF3-ACDB-4959-9165-F3E4469BE610">Natura 2000 protected areas</a>.
+The tool is implemented for the sqlite/spatialite version of this data
+(size > 1 GB). Listing und import operations of <em>v.in.natura2000</em>
+may be slow due to the huge data file size. Listing (already availabe
+layers, biogeographic regions, EU member states codes, habitat codes,
+species codes, protected area site types) and importing (all data,
+protected areas of a defined habitat/species/member states/biogeographic
+region) is limited to some small selection of  wide range of possible
 cases.
 
 <h3>Important notes</h3>
 
 <p>
-Topological correctness of the input data is not guaranteed, overlapping 
-of (many) polygones may occur. According to GRASS GIS topological model, 
-imported data may have more layers in case of overlapping polygones . 
+Topological correctness of the input data is not guaranteed, overlapping
+of (many) polygones may occur. According to GRASS GIS topological model,
+imported data may have more layers in case of overlapping polygones .
 
 The sqlite/spatialite data is shipped in EPSG:3035 projection.
 
-The script uses <a href="https://pypi.python.org/pypi/pyspatialite/3.0.1-alpha-0">pyspatialite</a> 
+The script uses <a href="https://pypi.python.org/pypi/pyspatialite/3.0.1-alpha-0">pyspatialite</a>
 for connecting to the sqlite/spatialite database.
 </p>
 
 <p>
-With the database update by end 2015 the column <i>PERCENTAGE_COVER</i> 
-in the HABITATS table was renamed to <i>PERCENTAGECOVER</i>. The addon 
-script was adapted accordingly; for Natura 2000 database versions < 
+With the database update by end 2015 the column <i>PERCENTAGE_COVER</i>
+in the HABITATS table was renamed to <i>PERCENTAGECOVER</i>. The addon
+script was adapted accordingly; for Natura 2000 database versions <
 2015, the column has to be renamed back.
 </p>
 
 <p>
-Depending on which taxonomy was used to identify species, different 
-species codes may be used for species across EU member states. Check the 
+Depending on which taxonomy was used to identify species, different
+species codes may be used for species across EU member states. Check the
 <a href="http://bd.eionet.europa.eu/activities/Natura_2000/reference_portal">Reference Portal for Natura 2000</a>
  (<i>Codelist for species (Annex II,IV,V)</i>) for species and their synonyms.</p>
 
@@ -40,11 +40,11 @@ species codes may be used for species across EU member states. Check the
 
 <div class="code">
  <pre>
-# list spatial layer(s) already availabe in the sqlite/spatialite database 
+# list spatial layer(s) already availabe in the sqlite/spatialite database
 v.in.natura2000 -l input=Natura2000_end2014.sqlite
 
 # import already available spatial layer
-v.in.natura2000 input=Natura2000_end2014.sqlite existing_layer=sv1800 
+v.in.natura2000 input=Natura2000_end2014.sqlite existing_layer=sv1800
 
 # list biogeographic regions
 v.in.natura2000 -b input=Natura2000_end2014.sqlite
@@ -80,7 +80,7 @@ output=pa_alpineregion biogeographic_region=Alpine
 # import protected areas of member state Austria
 v.in.natura2000 input=Natura2000_end2014.sqlite /
 output=pa_austria member_state=AT
- 
+
  </pre>
 </div>
 

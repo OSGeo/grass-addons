@@ -7,7 +7,7 @@ Italy
 http://mpba.fbk.eu/merlo
 
     * pr : C code for classification problems. It implements k-NN (multiclass), classification trees (multiclass), maximum likelihood (multiclass), Support Vector Machines (binary), bagging versions of all the base classifiers, AdaBoost for binary trees and support vector machines. It allows feature manipulation (normalization, principal components,...). It also implements feature selection techniques (RFE, E-RFE,...), statistical tests on variables, tools for resampling (cross-validation and bootstrap) and cost-sensitive techniques for trees and support vector machines. Feature selection techniques and statistical tests are not distributed in the current release.
-    * i.pr : a version of pr implemented in the GIS GRASS for dealing with images. 
+    * i.pr : a version of pr implemented in the GIS GRASS for dealing with images.
 
 ###############
 

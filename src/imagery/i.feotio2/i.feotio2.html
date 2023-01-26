@@ -23,12 +23,12 @@ double feolucey2000(double uvvis2, double uvvis4){
 }
 
 double feolawrence2002(double uvvis2, double uvvis4){
-	 //\cite{lawrence2002iron} 
+	 //\cite{lawrence2002iron}
 	 return(5.7*((-0.147+0.372*(-(uvvis4/uvvis2-1.22)/(uvvis2-0.04))+(-0.036)*pow((-(uvvis4/uvvis2-1.22)/(uvvis2-0.04)),2)))+2.15);
 }
 
 double feowilcox2005(double uvvis2, double uvvis4){
-	  //\cite{wilcox2005mapping}  
+	  //\cite{wilcox2005mapping}
 	  return(-137.97*((uvvis2*0.9834)+(uvvis4/uvvis2*0.1813))+57.46);
 }
 

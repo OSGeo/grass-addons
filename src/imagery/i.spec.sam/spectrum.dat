@@ -1,10 +1,10 @@
 # Band: r g b i1 i2 i3
 # Spektren zeilenweise eingeben!
-# 1. Sagebrush 
+# 1. Sagebrush
 # 2. Saltbush
 # 3. Ground
 # 4. Dry Grass
-#row0:  8.87  13.14  11.71  35.85 
+#row0:  8.87  13.14  11.71  35.85
 Matrix: 4 by 4
 row0:  8.87  13.14  11.71  35.85
 row1: 13.59  20.12  19.61  50.66

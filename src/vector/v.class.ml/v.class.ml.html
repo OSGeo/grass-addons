@@ -1,17 +1,17 @@
 <h2>DESCRIPTION</h2>
 
-<b>v.class.ml</b> uses machine-learning algorithms to classify a vector maps 
+<b>v.class.ml</b> uses machine-learning algorithms to classify a vector maps
 based on the values of its attribute table.
 
-The module uses different machine-learning libraries available for python 
+The module uses different machine-learning libraries available for python
 at the moment uses:
 <a href="http://scikit-learn.org/">scikit-learn</a> (package name may be
-"python-scikit-learn") and 
+"python-scikit-learn") and
 
-<a href="http://mlpy.sourceforge.net/">MLPY</a>, but should be possible to 
+<a href="http://mlpy.sourceforge.net/">MLPY</a>, but should be possible to
 add easily other python libraries.
 
-The module is though to be use in a modular way, using the flags it is 
+The module is though to be use in a modular way, using the flags it is
 possible to define which independent tasks should be execute.
 
 
@@ -21,16 +21,16 @@ possible to define which independent tasks should be execute.
   <dt><b>-e</b>
   <dd>Extract the training set from a vector map (vtraining).</dd>
   <dt><b>-n</b>
-  <dd>Store: attribute table data, columns names, categories training data, 
+  <dd>Store: attribute table data, columns names, categories training data,
   training index to a numpy binary files.</dd>
   <dt><b>-f</b>
-  <dd>Rank feature importances using a 
+  <dd>Rank feature importances using a
   <a href="http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.ExtraTreesClassifier.html">ExtraTreesClassifier</a> algorithm.</dd>
   <dt><b>-b</b>
-  <dd>Balance the training using the class with the minor number of training 
+  <dd>Balance the training using the class with the minor number of training
   samples or the parameter set in n_training.</dd>
   <dt><b>-o</b>
-  <dd>Optimize a balanced training dataset using the class with the minor 
+  <dd>Optimize a balanced training dataset using the class with the minor
   number of training samples or the parameter set in n_training.</dd>
   <dt><b>-c</b>
   <dd>Classify the whole dataset.</dd>
@@ -54,25 +54,25 @@ possible to define which independent tasks should be execute.
 must be prepared with <a href="https://grass.osgeo.org/grass-stable/manuals/grass.osgeo.org/grass-stable/manuals/v.category.html">v.category</a> to copy the
 categories to all the layers that will be created.
 
-<p>The <i>vtraining</i> parameter is a vector input map that can be used to 
-select the training areas. Currently only supervised classification is 
+<p>The <i>vtraining</i> parameter is a vector input map that can be used to
+select the training areas. Currently only supervised classification is
 implemented so this parameter is mandatory. The training vector map can
 be generated using the GRASS standard tool for supervised classification
 <a href="https://grass.osgeo.org/grass-stable/manuals/g.gui.iclass.html">g.gui.iclass</a>.
 
 <p>The <i>vlayer</i> parameter is the layer name or number of the
-attribute tables with the data that must be used as input for the 
+attribute tables with the data that must be used as input for the
 machine-learning algorithms.
 
-<p>The <i>tlayer</i> parameter is the layer name or number of the 
-attribute tables where are or will be stored the training data for 
+<p>The <i>tlayer</i> parameter is the layer name or number of the
+attribute tables where are or will be stored the training data for
 the machine-learning algorithms.
 
 <p>The <i>rlayer</i> parameter is the layer name or number the
 attribute tables where will be stored the machine-learning results.
 
 <p>The <i>npy_data</i> parameter is a string with the path to define where
-the binary <a href="http://www.numpy.org//">numpy</a> files containing the complete 
+the binary <a href="http://www.numpy.org//">numpy</a> files containing the complete
 dataset will be saved.
 
 <p>The <i>npy_cats</i> parameter is a string with the path to define where
@@ -83,7 +83,7 @@ the binary numpy files containing the column names of the data attribute table
 will be saved.
 
 <p>The <i>npy_index</i> parameter is a string with the path to define where
-the binary numpy files containing a boolean array to say if the category is 
+the binary numpy files containing a boolean array to say if the category is
 used or not as training.
 
 <p>The <i>npy_tdata</i> parameter is a string with the path to define where
@@ -100,30 +100,30 @@ dataset.
 <p>The <i>imp_csv</i> parameter is a string with the path to define where a CSV
 file containing the rank of the feature importances should be save.
 
-<p>The <i>imp_fig</i> parameter is a string with the path to define where a 
+<p>The <i>imp_fig</i> parameter is a string with the path to define where a
 figure file containing the rank of the feature importances should be save.
 
-<p>The <i>scalar</i> parameter is a string with scaler methods that will be 
-apply to pre-process the data. Two main methods are available: 
+<p>The <i>scalar</i> parameter is a string with scaler methods that will be
+apply to pre-process the data. Two main methods are available:
 with_mean, with_std.
 This is a quite common task therefore the default parameter apply both methods.
 
-<p>The <i>decomposition</i> parameter is a string with scaler methods that will 
+<p>The <i>decomposition</i> parameter is a string with scaler methods that will
 be apply to pre-process the data. The main decomposition methods available are:
-<a href="http://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html">PCA</a>, 
-<a href="http://scikit-learn.org/stable/modules/generated/sklearn.decomposition.KernelPCA.html">KernelPCA</a>, 
-<a href="http://scikit-learn.org/stable/modules/generated/sklearn.decomposition.ProbabilisticPCA.html">ProbabilisticPCA</a>, 
-<a href="http://scikit-learn.org/stable/modules/generated/sklearn.decomposition.RandomizedPCA.htmlc">RandomizedPCA</a>, 
-<a href="http://scikit-learn.org/stable/modules/generated/sklearn.decomposition.FastICA.html">FastICA</a>, 
-<a href="http://scikit-learn.org/stable/modules/generated/sklearn.decomposition.TruncatedSVD.html">TruncatedSVD</a>. 
-Each of this methods could take several parameters. Use "|" as separator 
-between the decomposition method name and its options, using the "," to 
-separate the options. For examples imagine that we want to decompose using 
-the KernelPCA method with 10 number of components and using a linear kernel, 
-so the correct string is: 
+<a href="http://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html">PCA</a>,
+<a href="http://scikit-learn.org/stable/modules/generated/sklearn.decomposition.KernelPCA.html">KernelPCA</a>,
+<a href="http://scikit-learn.org/stable/modules/generated/sklearn.decomposition.ProbabilisticPCA.html">ProbabilisticPCA</a>,
+<a href="http://scikit-learn.org/stable/modules/generated/sklearn.decomposition.RandomizedPCA.htmlc">RandomizedPCA</a>,
+<a href="http://scikit-learn.org/stable/modules/generated/sklearn.decomposition.FastICA.html">FastICA</a>,
+<a href="http://scikit-learn.org/stable/modules/generated/sklearn.decomposition.TruncatedSVD.html">TruncatedSVD</a>.
+Each of this methods could take several parameters. Use "|" as separator
+between the decomposition method name and its options, using the "," to
+separate the options. For examples imagine that we want to decompose using
+the KernelPCA method with 10 number of components and using a linear kernel,
+so the correct string is:
 "KernelPCA|n_components=10,kernel=linear"
 
-<p>The <i>n_training</i> parameter is an integer with the number of training 
+<p>The <i>n_training</i> parameter is an integer with the number of training
 that must be use per class. Some machine-learning methods are sensitive if the
 training dataset is balanced or not. As default all the training will be used.
 
@@ -135,33 +135,33 @@ used by the <b>v.class.ml</b> module.
 <p>The <i>pyvar</i> parameter is a string with the python variable name defined
 in the pyclassifiers file.
 
-<p>The <i>pyindx</i> parameter is a string with the indexes of the classifiers 
-that will be used. In the string you could define a range using the minus 
-character, or list the index usig the comma as separator, or combine both 
+<p>The <i>pyindx</i> parameter is a string with the indexes of the classifiers
+that will be used. In the string you could define a range using the minus
+character, or list the index usig the comma as separator, or combine both
 options together. For example: '1-5,34-36,40' it means that only classifiers
 with index: 1, 2, 3, 4, 5, 34, 35, 36 and 40 will be used.
 
-<p>The <i>pyindx_optimize</i> parameter is a integer with the classifier index 
-that will be used to optimize a balance training dataset. This option is used 
+<p>The <i>pyindx_optimize</i> parameter is a integer with the classifier index
+that will be used to optimize a balance training dataset. This option is used
 only if optimize is true otherwise will be ignored.
 
-<p>The <i>nan</i> parameter is a string that allows user to define for each 
-column in the attribute table which value or function should be used to 
+<p>The <i>nan</i> parameter is a string that allows user to define for each
+column in the attribute table which value or function should be used to
 substitute NaN values. The syntax could be: 'col0:9999,col1:9999'.
 The column name could be also a pattern, so it is possible to define a rule like:
 '*_mean:nanmean,*_max:nanmax' that substitute in all the columns
-that finish with '_mean' the mean value of the column and for column that end 
+that finish with '_mean' the mean value of the column and for column that end
 with '_max' the maximum value.
-This operation is needed because machine-learning algorithms are not able to 
+This operation is needed because machine-learning algorithms are not able to
 handle nan, inf, neginf, and posinf values.
 
-<p>The <i>inf</i> parameter is similar to nan, but instead of substituting nan 
+<p>The <i>inf</i> parameter is similar to nan, but instead of substituting nan
 values the rules will be applied for infinite values.
 
-<p>The <i>neginf</i> parameter is similar to nan, but instead of substituting nan 
+<p>The <i>neginf</i> parameter is similar to nan, but instead of substituting nan
 values the rules will be applied for negative infinite values.
 
-<p>The <i>posinf</i> parameter is similar to nan, but instead of substituting nan 
+<p>The <i>posinf</i> parameter is similar to nan, but instead of substituting nan
 values the rules will be applied for positive infinite values.
 
 <p>The <i>csv_test_cls</i> parameter is the file name/path where the results of
@@ -170,17 +170,17 @@ the classification test will be written.
 <p>The <i>report_class</i> parameter is the file name/path where a summary for
 each machine learning algorithms will be written.
 
-<p>The <i>svc_c_range</i> parameter is a range of C values that will be used 
+<p>The <i>svc_c_range</i> parameter is a range of C values that will be used
 when exploring the domain of the Support Vector Machine algorithms.
 
-<p>The <i>svc_gamma_range</i> parameter is a range of gamma values that will 
+<p>The <i>svc_gamma_range</i> parameter is a range of gamma values that will
 be used when exploring the domain of the Support Vector Machine algorithms.
 
-<p>The <i>svc_kernel_range</i> parameter is a range of kernel values that will 
+<p>The <i>svc_kernel_range</i> parameter is a range of kernel values that will
 be used when exploring the domain of the Support Vector Machine algorithms.
 
-<p>The <i>svc_n_jobs</i> parameter is an integer with the number of process 
-that will be used during the domain exploration of Support Vector Machine 
+<p>The <i>svc_n_jobs</i> parameter is an integer with the number of process
+that will be used during the domain exploration of Support Vector Machine
 algorithms.
 
 <p>The <i>svc_img</i> parameter is the file name/path pattern of the image that
@@ -189,13 +189,13 @@ will be generated from the domain exploration.
 <p>The <i>svc_c</i> parameter is the definitive C value that will be used
 for final classification.
 
-<p>The <i>svc_gamma</i> parameter is the definitive gamma value that will be 
+<p>The <i>svc_gamma</i> parameter is the definitive gamma value that will be
 used for final classification.
 
-<p>The <i>svc_kernel</i> parameter is the definitive kernel value that will be 
+<p>The <i>svc_kernel</i> parameter is the definitive kernel value that will be
 used for final classification.
 
-<p>The <i>rst_names</i> parameter is the name pattern that will be use to 
+<p>The <i>rst_names</i> parameter is the name pattern that will be use to
 generate the output raster map for each algorithm.
 
 

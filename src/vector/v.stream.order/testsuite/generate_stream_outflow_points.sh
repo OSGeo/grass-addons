@@ -5,7 +5,7 @@
 # Author: IGB-Berlin,Johannes Radinger; Implementation: Geoinformatikbuero Dassau GmbH , Soeren Gebbert
 # This tool was developed as part of the BiodivERsA-net project 'FISHCON'
 # and has been funded by the German Federal Ministry for Education and
-# Research (grant number 01LC1205). 
+# Research (grant number 01LC1205).
 
 cat > points.csv << EOF
 640781.56098|214897.033189

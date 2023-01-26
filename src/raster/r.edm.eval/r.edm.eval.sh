@@ -1,38 +1,38 @@
 #!/bin/sh
-# 
+#
 #set -x
 ########################################################################
-# 
+#
 # MODULE:       r.model.eval
 # AUTHOR(S):    Paulo van Breugel <paulo AT ecodiv.org>
-# PURPOSE:      To evaluate how well a modeled distribution predicts an 
-#               observed distribution. 
+# PURPOSE:      To evaluate how well a modeled distribution predicts an
+#               observed distribution.
 #
 # NOTES:        The observed distribution of e.g., a species, land
 #               cover unit or vegetation unit should be a binary map
 #               with 1 (present) and 0 (absent). The values of the
-#               modeled distribution can be any map that represents a 
-#               probability distribution in space. This could be based 
+#               modeled distribution can be any map that represents a
+#               probability distribution in space. This could be based
 #               on X, but it doesn't need to be. You can also, for example,
 #               evaluate how well the modeled distribution of a species X
 #               predicts the distribution of species Y or of land cover
 #               type Y.
 #
 # Disclaimer:   Only limited testing has been done. Use at own risk
-#   
+#
 # COPYRIGHT: (C) 2014 Paulo van Breugel
 #            http://ecodiv.org
 #            http://pvanb.wordpress.com/
-# 
-#            This program is free software under the GNU General Public 
-#            License (>=v2). Read the file COPYING that comes with GRASS 
-#            for details. 
-# 
+#
+#            This program is free software under the GNU General Public
+#            License (>=v2). Read the file COPYING that comes with GRASS
+#            for details.
+#
 ########################################################################
 #
-# %Module 
+# %Module
 # % description: Computes evaluation statistics of an environmental distribution model, based on a layer with observed and a layer with predicted values
-# %End 
+# %End
 
 # %option
 # % key: obs
@@ -186,7 +186,7 @@ oIFS=$IFS
 IFS=,
 arrIN=${GIS_OPT_OBS} `echo $nvar | awk 'BEGIN{FS="@"}{print $1}'`
 g.findfile element=cell file=${arrIN} > /dev/null
-if [ $? -gt 0 ] ; then 
+if [ $? -gt 0 ] ; then
     g.message -e 'The output map '${arrIN}' does not exists'
 exit 1
 fi
@@ -194,7 +194,7 @@ unset arrIN
 
 arrIN=${GIS_OPT_MOD} `echo $nvar | awk 'BEGIN{FS="@"}{print $1}'`
 g.findfile element=cell file=${arrIN} > /dev/null
-if [ $? -gt 0 ] ; then 
+if [ $? -gt 0 ] ; then
     g.message -e 'The output map '${arrIN}' does not exists'
 exit 1
 fi
@@ -205,7 +205,7 @@ unset arrIN
 ## Creating the R script
 #=======================================================================
 
-writeScript(){ 
+writeScript(){
 cat > $1 << "EOF"
 
 options(echo = TRUE)
@@ -268,7 +268,7 @@ if(bufpres>0){
     tmp.b <- "tmp_r_model_evaluation_0987654321b"
     tmp.c <- "tmp_r_model_evaluation_0987654321c"
     execGRASS("r.mapcalc", flags="overwrite", expression=paste(tmp.b," = if(", obsmap,"==1,0,null())", sep=""))
-    execGRASS("r.buffer", flags=c("z","overwrite"), input=tmp.b, output=tmp.c, distances=bufpres, units="kilometers")        
+    execGRASS("r.buffer", flags=c("z","overwrite"), input=tmp.b, output=tmp.c, distances=bufpres, units="kilometers")
     execGRASS("r.mapcalc", flags="overwrite", expression=paste(tmp.b, " = if(", tmp.c, "==2,1,", obsmap, ")", sep=""))
     obsmap <- tmp.b
     execGRASS("g.remove", flags="f", type="raster", name=tmp.c)
@@ -301,7 +301,7 @@ if(preval>0 & preval < 1){
     obsmap <- tmp.i
     execGRASS("g.remove", flags="f", type="raster", name=paste(tmp.f, tmp.g, tmp.h, tmp.e, sep=","), Sys_wait=TRUE)
 }else{
-    # Set number of presence and absence points  
+    # Set number of presence and absence points
     if(num.pres > 0 | num.abs > 0){
         pa_cnt <- execGRASS("r.univar", flags=c("t","g"), map=obsmap, zones=obsmap, intern=TRUE)
         pa_cnt <- get_output.GRASS(pa_cnt, separator="|", h=TRUE)[,c(1,3)]
@@ -321,7 +321,7 @@ if(preval>0 & preval < 1){
         execGRASS("r.mapcalc", expression=paste(tmp.g, obsmap, sep=" = "), Sys_wait=TRUE)
         execGRASS("r.null", map=tmp.g, setnull="1", Sys_wait=TRUE)
         execGRASS("r.random", input=tmp.g, raster_output=tmp.h, n=as.character(num.pres), Sys_wait=TRUE)
-    }       
+    }
     if(num.pres > 0 & num.abs == 0){
         tmp.h <- "tmp_r_model_evaluation_0987654321h"
         execGRASS("r.mapcalc", expression=paste(tmp.h, obsmap, sep=" = "), Sys_wait=TRUE)
@@ -369,7 +369,7 @@ if(backgr == 0){
     execGRASS("r.null", map=tmp.k, setnull="0", Sys_wait=TRUE)
     a1 <- execGRASS("r.stats", flags=c("c","n"), input=paste(tmp.k, tmp.d, sep=","), intern=TRUE)
     a1 <- get_output.GRASS(a1, separator=" ")
-    
+
     tmp.m <- "tmp_r_model_evaluation_0987654321m"
     execGRASS("r.mapcalc", flags="overwrite", expression=paste(tmp.m, obsmap, sep=" = "), Sys_wait=TRUE)
     execGRASS("r.null", map=tmp.m, setnull="1", Sys_wait=TRUE)
@@ -378,12 +378,12 @@ if(backgr == 0){
     a3 <- cbind(a2[,-3],a1[,3] + a2[,3])
     names(a3) <- names(a1)
     a <- rbind(a1, a3)
-    
-    # Clean up 
+
+    # Clean up
     execGRASS("g.remove", flags="f", type="raster", name=paste(tmp.k, tmp.m, sep=","))
 }
 
-# Clean up 
+# Clean up
 execGRASS("g.remove", flags="f", type="raster", name=tmp.d)
 if(bufabs>0){execGRASS("g.remove", flags="f", type="raster", name=tmp.a)}
 if(bufabs>0){execGRASS("g.remove", flags="f", type="raster", name=tmp.b)}
@@ -396,7 +396,7 @@ aa <- execGRASS("g.list", type="raster", pattern="tmp_r_model_evaluation_*", int
 if(length(aa)>0){
     execGRASS("g.remove", type="raster", pattern="tmp_r_model_evaluation_*", flags="f")
 }
-  
+
 # Calculate evaluation stats
 a.cast <- cast(a, V2 ~ V1)
 a.cast[] <- sapply(a.cast, function(x) replace(x,is.na(x),0))
@@ -428,14 +428,14 @@ threshold.bin <- n.bins - a.stats[which.max(a.stats$kappa),1]
 a.kappa_threshold <- x2[threshold.bin]
 
 sink(paste(fnames, "summary.txt", sep="_"))
-cat(paste("AUC", as.character(a.auc), sep=" = ")); cat("\n") 
+cat(paste("AUC", as.character(a.auc), sep=" = ")); cat("\n")
 cat(paste("maximum TSS", a.TSS, sep=" = ")); cat("\n")
-cat(paste("maximum TSS threshold", a.TSS_threshold, sep=" = ")); cat("\n") 
-cat(paste("maximum kappa", a.kappa_max, sep=" = ")); cat("\n") 
-cat(paste("maximum kappa threshold", a.kappa_threshold, sep=" = ")); cat("\n") 
-cat(paste("prevalence", prevalence, sep=" = ")); cat("\n") 
-cat(paste("presence points", n.presence, sep=" = ")); cat("\n") 
-cat(paste("absence points", n.absence, sep=" = ")); cat("\n") 
+cat(paste("maximum TSS threshold", a.TSS_threshold, sep=" = ")); cat("\n")
+cat(paste("maximum kappa", a.kappa_max, sep=" = ")); cat("\n")
+cat(paste("maximum kappa threshold", a.kappa_threshold, sep=" = ")); cat("\n")
+cat(paste("prevalence", prevalence, sep=" = ")); cat("\n")
+cat(paste("presence points", n.presence, sep=" = ")); cat("\n")
+cat(paste("absence points", n.absence, sep=" = ")); cat("\n")
 cat(paste("stats txt file =", paste(fnames, "summary.txt", sep="_"))); cat("\n")
 cat(paste("stats txt file =", paste(fnames, "stats.csv", sep="_"))); cat("\n")
 if(print.log==1){

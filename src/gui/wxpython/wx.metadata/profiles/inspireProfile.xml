@@ -125,7 +125,7 @@
             <gmd:descriptiveKeywords>
                 <gmd:MD_Keywords>
           {% for kw in k["keywords"] -%}{# tag='for kw in k["keywords"]',group = "Keywords",inbox="Free keywords",inboxmulti=1 #}
-                    
+
                     <gmd:keyword>
                         <gco:CharacterString>{{ kw }}{# tag="kw",ref="Part B 3.1", name ="Keyword",example="Land cover (INSPIRE Spatial Data Theme),humanCatalogueViewer (spatial data service,subcategory), water springs (AGROVOC), freshwater (GEMET Concepts)", desc ="Commonly used word(s) or formalised word(s) or phrase(s) used to describe the subject." , type = "string",inboxmulti=1, multi = 1, group = "Keywords", multiline=False, inbox="Free keywords",database="keywords" #} </gco:CharacterString>
                     </gmd:keyword>
@@ -188,7 +188,7 @@
             </gmd:spatialResolution>
       {% endfor -%}
       {% endif -%}
-      
+
       {% for lan in md.identification.resourcelanguage -%}{# tag="for lan in md.identification.resourcelanguage" , group= "Identification" ,inbox='Languages',inboxmulti=1, multiline= False, database="language" #}
             <gmd:language>
                 <gmd:LanguageCode codeList="http://www.isotc211.org/2005/resources/Codelist/ML_gmxCodelists.xml#LanguageCode" codeListValue="{{ lan }}{# tag="lan" , name="Metadata language" , ref= "Part B 10.3" , desc= "Language used for documenting metadata." , example = "eng" , type ="LanguageCode (ISO/TS 19139)" ,multi=0,inbox='Languages',inboxmulti=1, group= "Identification" , multiline= False, database="language" #}">{{ lan }}</gmd:LanguageCode>

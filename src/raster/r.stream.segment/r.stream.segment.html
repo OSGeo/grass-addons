@@ -17,7 +17,7 @@ stream identifiers)  Because streams network produced by <em>r.watershed</em> an
 and direction map produced by the same module. Stream background shall have NULL
 value or zero value. Background values of NULL are by default produced by
 <em>r.watershed</em> and <em>r.stream.extract</em>. If not 0 or NULL use <em><a
-href="r.mapcalc.html">r.mapcalc</a></em> to set background values to null.  
+href="r.mapcalc.html">r.mapcalc</a></em> to set background values to null.
 </dd>
 
 <dt><b>direction</b></dt>
@@ -26,7 +26,7 @@ href="r.mapcalc.html">r.mapcalc</a></em> to set background values to null.
 values in places where streams occur. NULL (nodata) cells are ignored, zero and
 negative values are valid direction data if they vary from -8 to 8 (CCW from
 East in steps of 45 degrees). Direction map shall be of type CELL values. Region
-resolution and map resolution must be the same. 
+resolution and map resolution must be the same.
 Also <em>stream_rast</em> network map must have the same resolution. It is checked by
 default. If resolutions differ the module informs about it and stops. Region
 boundary and maps boundary may be differ but it may lead to unexpected
@@ -75,7 +75,7 @@ Vector map where every segment has its own category and following attributes:
 <li><b>s_order</b>: integer, segment order
 <li><b>next_order</b>: integer, topological next segment order
 <li><b>direction</b>: double precision, full segment direction (0-360)
-<li><b>azimuth</b>: double precision, full segment azimuth (0-180) 
+<li><b>azimuth</b>: double precision, full segment azimuth (0-180)
 <li><b>length</b>: double precision, segment length
 <li><b>straight</b>: double precision, length of straight line between segment
 nodes
@@ -94,13 +94,13 @@ sector
 <li><b>out_drop</b>: double precision, drop of segment end sector
 <li><b>out_gradient</b>: double precision, gradient of segment end sector
 <li><b>tangent_dir</b>: double precision, direction of tangent in segment outlet
-to the next stream 
+to the next stream
 <li><b>tangent_azimuth</b>: double precision, azimuth of tangent in segment
-outlet to the next stream 
+outlet to the next stream
 <li><b>next_direction</b>: double precision, direction of next stream in join
-with current segment 
+with current segment
 <li><b>next_azimuth</b>: double precision, azimuth of next stream in join with
-current segment 
+current segment
 </ul>
 <img src="dirs.png">
 </dd>
@@ -168,7 +168,7 @@ streams is not fully compatible with Horton's original criterion.
 <p>
 The module can work only if direction map, stream_rast map and region have the same
 settings. It is also required that stream_rast map and direction map come from the
-same source. For lots of reason this limitation probably cannot be omitted.  
+same source. For lots of reason this limitation probably cannot be omitted.
 This means that if stream_rast map comes from <em>r.stream.extract</em>, also direction map from
 <em>r.stream.extract</em> must be used. If stream_rast network was generated with MFD method,
 also MFD direction map must be used.

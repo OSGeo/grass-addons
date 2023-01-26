@@ -1,38 +1,38 @@
-Here is a list of known issues with wms layer implementation. These bugs are known and are to be fixed soon. Please feel free to report an bugs you find in this version by email at sudeep495@gmail.com . This version is under development so, quite a number of bugs are expected. More these are reported, better it is. 
+Here is a list of known issues with wms layer implementation. These bugs are known and are to be fixed soon. Please feel free to report an bugs you find in this version by email at sudeep495@gmail.com . This version is under development so, quite a number of bugs are expected. More these are reported, better it is.
 
-1.Right Indented User Names 
+1.Right Indented User Names
 ڝڍڑڭڏڧڲڝڍڑڭڏڧڲ
-Arabic String or any right indented string doesnt work quite well with the current version. 
+Arabic String or any right indented string doesnt work quite well with the current version.
 
 2.Resizing not being done properly
 
-3.Coding Standards of wxgui programming not followed exactly till now. Code to be modified soon for that. 
+3.Coding Standards of wxgui programming not followed exactly till now. Code to be modified soon for that.
 
-4.UserName Password not checked if they are required by a particular server or not, currently hard coded. 
+4.UserName Password not checked if they are required by a particular server or not, currently hard coded.
 
-5.Layers fetched are not being displayed hierarchly, bug known, to be fixed. 
+5.Layers fetched are not being displayed hierarchly, bug known, to be fixed.
 
 6.In case, on adding or removing a server, if the write to file is unsuccessful, the application removes it from the serverlist, even though is not written in the file.
-So when the application restarts, all the changes done are lost, since data was not written to file successfuly. 
+So when the application restarts, all the changes done are lost, since data was not written to file successfuly.
 
 7.[done]Name of temporary file to be changed to ServersList.xml~ from tempList.xml
 
-8.[done]The Save/Dont Save/Cancel popup works fine for the first time, but for the 2nd time leads to PyDeadObjectError error. This bug is known and is of serious nature. Fix to be done soon. 
-Some other issues detected with this popup. Like when adding a new server name "</servername>" , and then click on save and then on quit, the popup appears, now click on cancel. After clicking on cancel, another popup appears and this continues. Serious issue. This popups code needs to be checked throughly. 
+8.[done]The Save/Dont Save/Cancel popup works fine for the first time, but for the 2nd time leads to PyDeadObjectError error. This bug is known and is of serious nature. Fix to be done soon.
+Some other issues detected with this popup. Like when adding a new server name "</servername>" , and then click on save and then on quit, the popup appears, now click on cancel. After clicking on cancel, another popup appears and this continues. Serious issue. This popups code needs to be checked throughly.
 
 9.On quiting the application it leads to segmentation error or even after quiting application the console doesnot quits. Need to use ctrl-c right now.
 
-10.If a single server is present, unable to select a server because selection depends on the change of selection. need to modify this. 
+10.If a single server is present, unable to select a server because selection depends on the change of selection. need to modify this.
 
-11.Tab doessnot work to switch between different fields while filling server info. 
+11.Tab doessnot work to switch between different fields while filling server info.
 
-12.If ServersList.xml doesnot exist, then when new servers are added in manager servers window, then on selecting getcapabities, somehow the self.map_servernameTouid doesnot gets updated and is shows a key error. 
+12.If ServersList.xml doesnot exist, then when new servers are added in manager servers window, then on selecting getcapabities, somehow the self.map_servernameTouid doesnot gets updated and is shows a key error.
 
-13.when a server requires username and password, this is not figured out yet. 
+13.when a server requires username and password, this is not figured out yet.
 
-14.[done]On giving servername = now++ and url = now++, and then saving it.  it behaves starngely in hitting quit after saving. 
+14.[done]On giving servername = now++ and url = now++, and then saving it.  it behaves starngely in hitting quit after saving.
 
-15.[done]To check the getmap functionality (now uses temp file) 
+15.[done]To check the getmap functionality (now uses temp file)
 
 16.To check return values of self.savexml()
 
@@ -56,8 +56,8 @@ Things done
 
 1.[Fixed]Username checked for delimeter presence
 2.[Fixed]On closing add server window, main window also closes.
-3.[Fixed]In addserver.py when pressing the quit button or closing it, main wmsmenu window closes, and it gives an error of maximum recurssion depth reached error. 
-4.[Fixed]Reply from wms server on getmap should be an image or a service exception, Now this check is being made. 
+3.[Fixed]In addserver.py when pressing the quit button or closing it, main wmsmenu window closes, and it gives an error of maximum recurssion depth reached error.
+4.[Fixed]Reply from wms server on getmap should be an image or a service exception, Now this check is being made.
 
 
 
@@ -71,7 +71,7 @@ Things done
 
 
 
-Following are issues reported by Maris and their current status. (Issues marked with [done] are fixed). 
+Following are issues reported by Maris and their current status. (Issues marked with [done] are fixed).
 
 
 Issues reportes by Maris , Mail 1

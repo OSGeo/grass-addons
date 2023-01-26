@@ -2,121 +2,121 @@ DIGITALGLOBE, INC.
 DEMONSTRATION
 END USER LICENSE AGREEMENT
 
-DigitalGlobe, Inc. ("DigitalGlobe") for a period of 90 
-days grants the Demonstrator (the "End User") a limited, 
-non-transferable, non-exclusive license to use the 
-DigitalGlobe® products and authorized third party products, 
-collectively referred to as "Product" or "Products", and 
-a limited right to develop Derived Works as defined below. 
-DigitalGlobe and End User may be referred to hereinafter 
-individually as a "Party" and collectively as "Parties."  
-All rights not expressly granted to End User are retained 
-by DigitalGlobe.  In consideration for the rights granted 
-under this End User License Agreement ("License"), End User 
-agrees to be bound to the terms herein and agrees that this 
-License shall govern the rights and obligations of the 
-Parties. In the event that this License is inconsistent 
-with any license included with the Products in electronic 
-form or in any "shrink-wrap" form delivered with the Products, 
+DigitalGlobe, Inc. ("DigitalGlobe") for a period of 90
+days grants the Demonstrator (the "End User") a limited,
+non-transferable, non-exclusive license to use the
+DigitalGlobe® products and authorized third party products,
+collectively referred to as "Product" or "Products", and
+a limited right to develop Derived Works as defined below.
+DigitalGlobe and End User may be referred to hereinafter
+individually as a "Party" and collectively as "Parties."
+All rights not expressly granted to End User are retained
+by DigitalGlobe.  In consideration for the rights granted
+under this End User License Agreement ("License"), End User
+agrees to be bound to the terms herein and agrees that this
+License shall govern the rights and obligations of the
+Parties. In the event that this License is inconsistent
+with any license included with the Products in electronic
+form or in any "shrink-wrap" form delivered with the Products,
 this License shall govern.
 
-1. AUTHORIZED USERS.  The demonstration license applies to 
-multiple users solely within the End User's organization at 
+1. AUTHORIZED USERS.  The demonstration license applies to
+multiple users solely within the End User's organization at
 multiple locations.
 
-2. LICENSE GRANTED AND PERMITTED USES.  By accepting the 
-terms of this license, the End User is permitted the rights 
-to use the Products internally at its facilities within its 
+2. LICENSE GRANTED AND PERMITTED USES.  By accepting the
+terms of this license, the End User is permitted the rights
+to use the Products internally at its facilities within its
 country of residence and to:
 
-i	Make an unlimited number of copies for demonstration 
+i	Make an unlimited number of copies for demonstration
 purposes.
-ii	Modify the Products or use the Products to create 
+ii	Modify the Products or use the Products to create
 Derived Works to support the demonstration activities.
-iii	Display the Products to users outside of the Authorized 
-User group with the DigitalGlobe logo conspicuously featured 
-and provide appropriate copyright attribution.  However, copies 
-of the Products shall not be given to those outside the 
+iii	Display the Products to users outside of the Authorized
+User group with the DigitalGlobe logo conspicuously featured
+and provide appropriate copyright attribution.  However, copies
+of the Products shall not be given to those outside the
 Authorized User group.
 
-3. ATTRIBUTION.  End User agrees that any embodiment of the 
-Products permitted under this License or any Derived Works 
-will contain the following notice: "Includes material 
+3. ATTRIBUTION.  End User agrees that any embodiment of the
+Products permitted under this License or any Derived Works
+will contain the following notice: "Includes material
 © DigitalGlobe, Inc. All rights reserved."
 
 4. PROHIBITED USES.   The End User shall not:
 
-i	Copy or reproduce the Products (even if merged with other 
-materials), other than as consistent with the Permitted Uses. 
-ii	Sell, license, transfer or disclose the Products or use 
+i	Copy or reproduce the Products (even if merged with other
+materials), other than as consistent with the Permitted Uses.
+ii	Sell, license, transfer or disclose the Products or use
 them in any manner not expressly authorized by this License.
-iii	Alter or remove any copyright notice or proprietary legend 
-contained in or on the Products or Derived Work.  
-iv	Retain any Products beyond the term of the demonstration 
-period or the term of the license.  End User must discontinue 
-use of the Products and certify in writing that all copies of 
-the Products have been destroyed or returned to DigitalGlobe.   
+iii	Alter or remove any copyright notice or proprietary legend
+contained in or on the Products or Derived Work.
+iv	Retain any Products beyond the term of the demonstration
+period or the term of the license.  End User must discontinue
+use of the Products and certify in writing that all copies of
+the Products have been destroyed or returned to DigitalGlobe.
 
-5. DERIVED WORKS.  Derived Works that End User may create 
-containing any data from the Products are subject to this 
-license and End User acknowledges, and will cause its employees 
-and agents to acknowledge, that DigitalGlobe and its licensors 
-will own all rights in any copy, translation, modification, 
+5. DERIVED WORKS.  Derived Works that End User may create
+containing any data from the Products are subject to this
+license and End User acknowledges, and will cause its employees
+and agents to acknowledge, that DigitalGlobe and its licensors
+will own all rights in any copy, translation, modification,
 adaptation of such Derived Work.
 
-6. TERMINATION.  Without prejudice to any other rights, DigitalGlobe 
-may terminate this License by written notice to the End User if the 
-End User fails to comply with the terms and conditions of this License.  
-Upon termination, End User must discontinue use of the Products and 
-certify in writing that all copies of the Products have been destroyed 
+6. TERMINATION.  Without prejudice to any other rights, DigitalGlobe
+may terminate this License by written notice to the End User if the
+End User fails to comply with the terms and conditions of this License.
+Upon termination, End User must discontinue use of the Products and
+certify in writing that all copies of the Products have been destroyed
 or returned to DigitalGlobe.
 
-7.	LIMITATIONS AND DISCLAIMER OF WARRANTY.  DigitalGlobe provides 
-a limited warranty for 30 days that the data delivered will be of 
-the area of interest ordered and the media used to carry the 
-Products will be from physical or material defects.  
-DigitalGlobe's sole liability shall be to replace the 
-media if the media (not the data encoded thereon) is defective 
-and the End User returns the media to DigitalGlobe within 30 
-days of delivery.  WITH THE EXCEPTION OF THE PRECEDING WARRANTY, 
-THE PRODUCTS ARE PROVIDED WITHOUT WARRANTY OF ANY KIND, EXPRESS 
-OR IMPLIED, AND ALL WARRANTIES OF MERCHANTABILITY, NON-INFRINGEMENT, 
-AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  DIGITALGLOBE 
-DOES NOT WARRANT THAT THE PRODUCTS WILL MEET THE END USER'S NEEDS 
-OR EXPECTATIONS, OR THAT OPERATIONS OF THE PRODUCTS WILL BE ERROR 
-FREE OR UNINTERRUPTED.  NO INFORMATION PROVIDED BY DIGITALGLOBE OR 
-ITS AGENTS, EMPLOYEES, OR ITS RESELLERS OR DISTRIBUTORS SHALL CREATE 
-A WARRANTY, OR IN ANY WAY INCREASE THE SCOPE OF THIS LIMITED WARRANTY, 
+7.	LIMITATIONS AND DISCLAIMER OF WARRANTY.  DigitalGlobe provides
+a limited warranty for 30 days that the data delivered will be of
+the area of interest ordered and the media used to carry the
+Products will be from physical or material defects.
+DigitalGlobe's sole liability shall be to replace the
+media if the media (not the data encoded thereon) is defective
+and the End User returns the media to DigitalGlobe within 30
+days of delivery.  WITH THE EXCEPTION OF THE PRECEDING WARRANTY,
+THE PRODUCTS ARE PROVIDED WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, AND ALL WARRANTIES OF MERCHANTABILITY, NON-INFRINGEMENT,
+AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  DIGITALGLOBE
+DOES NOT WARRANT THAT THE PRODUCTS WILL MEET THE END USER'S NEEDS
+OR EXPECTATIONS, OR THAT OPERATIONS OF THE PRODUCTS WILL BE ERROR
+FREE OR UNINTERRUPTED.  NO INFORMATION PROVIDED BY DIGITALGLOBE OR
+ITS AGENTS, EMPLOYEES, OR ITS RESELLERS OR DISTRIBUTORS SHALL CREATE
+A WARRANTY, OR IN ANY WAY INCREASE THE SCOPE OF THIS LIMITED WARRANTY,
 AND THE END USER IS NOT ENTITLED TO RELY ON ANY SUCH INFORMATION.
 
-8.	NO CONSEQUENTIAL DAMAGES.  IN NO EVENT SHALL DIGITALGLOBE BE 
-LIABLE FOR ANY CLAIM OR LOSS INCURRED BY THE END USER, INCLUDING 
-WITHOUT LIMITATION, COMPENSATORY, INCIDENTAL, INDIRECT, SPECIAL, 
+8.	NO CONSEQUENTIAL DAMAGES.  IN NO EVENT SHALL DIGITALGLOBE BE
+LIABLE FOR ANY CLAIM OR LOSS INCURRED BY THE END USER, INCLUDING
+WITHOUT LIMITATION, COMPENSATORY, INCIDENTAL, INDIRECT, SPECIAL,
 CONSEQUENTIAL, EXEMPLARY OR OTHER NONCOMPENSATORY DAMAGES.
 
-9.	MISCELLANEOUS.  
+9.	MISCELLANEOUS.
 
-i	This License Agreement constitutes the complete and exclusive 
-agreement between DigitalGlobe and the End User relating to its 
-subject matter.  This License Agreement supersedes all prior and 
-contemporaneous representations, correspondence, proposals or 
-agreements relating to its subject matter, whether oral or written.  
-This License Agreement may be modified only by a written amendment 
-signed by both DigitalGlobe and the End User.  If any provision is 
-determined to be invalid or unenforceable, the remaining provisions 
-of this License Agreement shall continue to be valid and enforceable.  
-Neither this License Agreement nor any of the rights granted by it may 
-be assigned or transferred by the End User without the prior written 
-consent of DigitalGlobe.  This restriction on assignments or transfers 
-shall apply to assignments or transfers by operation of law, as well as 
-by contract, merger or consolidation.  Any attempted assignment or 
+i	This License Agreement constitutes the complete and exclusive
+agreement between DigitalGlobe and the End User relating to its
+subject matter.  This License Agreement supersedes all prior and
+contemporaneous representations, correspondence, proposals or
+agreements relating to its subject matter, whether oral or written.
+This License Agreement may be modified only by a written amendment
+signed by both DigitalGlobe and the End User.  If any provision is
+determined to be invalid or unenforceable, the remaining provisions
+of this License Agreement shall continue to be valid and enforceable.
+Neither this License Agreement nor any of the rights granted by it may
+be assigned or transferred by the End User without the prior written
+consent of DigitalGlobe.  This restriction on assignments or transfers
+shall apply to assignments or transfers by operation of law, as well as
+by contract, merger or consolidation.  Any attempted assignment or
 transfer in derogation of this prohibition is void.
-ii	The End User shall be responsible for obtaining any and all 
-required governmental authorizations, including but not limited to 
-any export or import licenses, and foreign exchange permits. 
-iii	This Agreement shall be governed by the laws of the State of 
+ii	The End User shall be responsible for obtaining any and all
+required governmental authorizations, including but not limited to
+any export or import licenses, and foreign exchange permits.
+iii	This Agreement shall be governed by the laws of the State of
 Colorado.
- 
+
 DigitalGlobe, Inc.
 Demonstration EULA_4923 Rev. 1.0
 06/01/2004
