@@ -17,4 +17,3 @@ cat > points.csv << EOF
 EOF
 
 v.in.ascii output=stream_outflow input=points.csv x=1 y=2
-

@@ -752,25 +752,3 @@ void Extract_portion_of_double_matrix_semi(int r,int c,int br,int bc,DCELL **mat
 	wind[i][j] = mat[r - br + i][c - bc +j];
       }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

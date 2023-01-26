@@ -259,4 +259,3 @@ equal sign. The very first expression, hence, will give an error:
          map = testmap (rivers);
          map = test2map (rivers, cities);
          map = dltest (rivers, cities);
-

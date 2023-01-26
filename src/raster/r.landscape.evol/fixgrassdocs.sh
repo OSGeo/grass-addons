@@ -17,4 +17,3 @@ sed -r -i 's|<(/)?body>||g' $1
 sed -r 's|<(/)?strong>|<\1b>|g' $1 >$tf
 fmt -w 80 $tf >$1
 rm -f $tf
-

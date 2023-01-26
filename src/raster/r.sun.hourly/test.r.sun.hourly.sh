@@ -122,4 +122,3 @@ g.remove -ef type=rast pattern=${decimal_map_basename}${map_number_separator}${m
 
 rm ${temporal_map_names_file} ${temporal_dataset_file} ${temporal_created_dataset_file} ${temporal_created_map_names_file}
 t.remove -rf inputs=${temporal_map_basename}
-

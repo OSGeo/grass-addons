@@ -583,5 +583,3 @@ echo "    <user-toolboxes-list/>" >> $mtfile
 echo "    <addons/>" >> $mtfile
 echo "  </items>" >> $mtfile
 echo "</toolbox>" >> $mtfile
-
-

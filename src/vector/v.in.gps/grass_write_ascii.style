@@ -28,4 +28,3 @@ IFIELD LAT_DECIMAL,"","%.8f"
 IFIELD ALT_METERS,"","%f"
 IFIELD GMT_TIME,"","%m/%d/%Y+%H:%M:%S %p"
 IFIELD	DESCRIPTION, "" , "%s"
-

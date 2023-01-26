@@ -129,4 +129,3 @@ mogrify -trim r_connectivity_corridors_cf_u_sum_all.png
 
 # Optimize for SVN
 ../../../../tools/svn-image.sh r_connectivity_corridors_cf_u_sum_all.png
-

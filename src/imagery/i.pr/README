@@ -25,4 +25,3 @@ tell 'make' where to find GRASS:
   make MODULE_TOPDIR=$HOME/grass64/
 
 (adapt to your /path/to/grass6/ )
-

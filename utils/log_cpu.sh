@@ -119,4 +119,3 @@ x14_load_gt1 = length(find ( xblade14(:,2) > 1)) / length(xblade14(:,2))
 # set(hT, 'Position', posn)
 # hL = line([1 1], [0 1500], 'color', 'k', 'LineStyle', ':');
 #
-
