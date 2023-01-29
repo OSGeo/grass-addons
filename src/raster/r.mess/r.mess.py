@@ -440,7 +440,7 @@ def main(options, flags):
                 "GROUP BY {0} ORDER BY {0}"
             ).format(coln, tmpf0)
             volval = np.vstack(db.db_select(sql=sql3))
-            volval = volval.astype(np.float, copy=False)
+            volval = volval.astype(float, copy=False)
             a = np.cumsum(volval[:, 1], axis=0)
             b = np.sum(volval[:, 1], axis=0)
             c = a / b * 100

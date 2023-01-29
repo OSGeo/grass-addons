@@ -849,11 +849,11 @@ class SentinelImporter(object):
                                                 [
                                                     np.array(
                                                         ssssn.text.split(" "),
-                                                        dtype=np.float,
+                                                        dtype=float,
                                                     )
                                                     for ssssn in list(sssn)
                                                 ],
-                                                dtype=np.float,
+                                                dtype=float,
                                             )
                                         )
                                         meta["MEAN_SUN_ZENITH_GRID_ANGLE"] = mean_zenith
@@ -865,11 +865,11 @@ class SentinelImporter(object):
                                                 [
                                                     np.array(
                                                         ssssn.text.split(" "),
-                                                        dtype=np.float,
+                                                        dtype=float,
                                                     )
                                                     for ssssn in list(sssn)
                                                 ],
-                                                dtype=np.float,
+                                                dtype=float,
                                             )
                                         )
                                         meta[
