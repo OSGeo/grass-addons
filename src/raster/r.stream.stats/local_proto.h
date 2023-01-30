@@ -16,7 +16,7 @@ double seg_calculate_basins_area(SEGMENT *dirs, int r, int c);
 int seg_calculate_basins(SEGMENT *dirs);
 
 /* stats calculate */
-double stats_linear_reg(int max_order, double* statistic);
+double stats_linear_reg(int max_order, double *statistic);
 int stats(int order_max);
 
 /* stats print */

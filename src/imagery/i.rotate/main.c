@@ -2,14 +2,14 @@
  *
  * MODULE:       i.rotate
  * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
- * PURPOSE:      Calculates an arbitrary rotation of the image from the 
- * 		         center of the computing window
+ * PURPOSE:      Calculates an arbitrary rotation of the image from the
+ *                  center of the computing window
  *
  * COPYRIGHT:    (C) 2012 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
- *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
- *   	    	 for details.
+ *               License (>=v2). Read the file COPYING that comes with
+ *               GRASS for details.
  *
  *****************************************************************************/
 
@@ -24,7 +24,6 @@
 #include <grass/raster.h>
 #include <grass/gprojects.h>
 #include <grass/glocale.h>
-
 
 double **ad2d(int X, int Y)
 {
@@ -42,7 +41,7 @@ int main(int argc, char *argv[])
     int row, col;
     struct GModule *module;
     struct Option *in, *out, *n;
-    struct History history;     /*metadata */
+    struct History history; /*metadata */
     int infd, outfd;
     DCELL *inrast, *outrast;
     char outName[GNAME_MAX];
@@ -112,7 +111,7 @@ int main(int argc, char *argv[])
     for (row = 0; row < nrows; row++) {
         Rast_get_d_row(infd, inrast, row);
         for (col = 0; col < ncols; col++) {
-            d = ((DCELL *) inrast)[col];
+            d = ((DCELL *)inrast)[col];
             if (Rast_is_d_null_value(&d)) {
                 /* SKIPIT  */
                 /* matin[row+deltarow][col+deltacol]=-999.99; */
@@ -131,14 +130,10 @@ int main(int argc, char *argv[])
     /*Rotate the matrix */
     for (row = 0; row < nrows; row++) {
         for (col = 0; col < ncols; col++) {
-            newcol =
-                (col - 0.5 * ncols) * costheta + (row -
-                                                  0.5 * nrows) * sintheta +
-                0.5 * ncols;
-            newrow =
-                (row - 0.5 * nrows) * costheta - (col -
-                                                  0.5 * ncols) * sintheta +
-                0.5 * nrows;
+            newcol = (col - 0.5 * ncols) * costheta +
+                     (row - 0.5 * nrows) * sintheta + 0.5 * ncols;
+            newrow = (row - 0.5 * nrows) * costheta -
+                     (col - 0.5 * ncols) * sintheta + 0.5 * nrows;
             matout[newrow][newcol] = matin[row][col];
         }
     }
@@ -150,7 +145,7 @@ int main(int argc, char *argv[])
                 Rast_set_d_null_value(&outrast[col], 1);
             }
             else {
-                ((DCELL *) outrast)[col] = matout[row][col];
+                ((DCELL *)outrast)[col] = matout[row][col];
             }
         }
         Rast_put_d_row(outfd, outrast);

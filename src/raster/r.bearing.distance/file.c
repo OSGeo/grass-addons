@@ -24,7 +24,6 @@ FILE *Create_file(char *name, char *suffix, char *message, int overwrite)
     return (stream);
 }
 
-
 /**************************************************************************/
 
 /* void Functional_print (FILE *stream, tRecord *record, */
@@ -32,14 +31,16 @@ FILE *Create_file(char *name, char *suffix, char *message, int overwrite)
 /* { */
 /*   int m; */
 
-/*   fprintf (stream, "\n  1/Box_size     Occupied    Log_1/Box_Size  Log_Occupied       D"); */
+/*   fprintf (stream, "\n  1/Box_size     Occupied    Log_1/Box_Size
+ * Log_Occupied       D"); */
 /*   for (m = 0; m <= k; m ++) */
 /*     { */
 /*       if (record [m].size != 0) */
 /*      { */
 /*        fprintf (stream, "\n%12lu ", (unsigned long int) (pow (2, k - m))); */
 /*        fprintf (stream, "%12lu ", record [m].occupied); */
-/*        fprintf (stream, "           %6.3f ", record [m].log_reciprocal_size); */
+/*        fprintf (stream, "           %6.3f ", record [m].log_reciprocal_size);
+ */
 /*        fprintf (stream, "       %6.3f", record [m].log_occupied); */
 
 /*        /\* Fractal dimension only calculated for pairs */
@@ -56,6 +57,5 @@ FILE *Create_file(char *name, char *suffix, char *message, int overwrite)
 /*     } */
 /*   fflush (stream); */
 /* } */
-
 
 /**************************************************************************/

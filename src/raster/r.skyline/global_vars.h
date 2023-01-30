@@ -1,4 +1,3 @@
-
 /***********************************************************************/
 /*
    global_vars.h
@@ -16,7 +15,6 @@
 
 /***********************************************************************/
 
-
 #ifdef MAIN
 #define GLOBAL
 #else
@@ -28,7 +26,7 @@
 #include <grass/raster.h>
 #include <grass/glocale.h>
 
-#define NO_SKYLINE 999.0
+#define NO_SKYLINE     999.0
 #define VIEWPT_SKYLINE 1000.0
 
 GLOBAL RASTER_MAP_TYPE viewshed_buf_cell_type;
@@ -50,5 +48,5 @@ GLOBAL int e_col;
 GLOBAL int w_col;
 GLOBAL int n_row;
 GLOBAL int s_row;
-GLOBAL struct Cell_head window; /* Region info used for sites 
+GLOBAL struct Cell_head window; /* Region info used for sites
                                    option */

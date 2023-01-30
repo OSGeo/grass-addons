@@ -18,70 +18,64 @@
 #include <grass/glocale.h>
 #include <grass/rtree.h>
 
-
 #if defined(HAVE_LIBLAPACK) && defined(HAVE_LIBBLAS)
 #else /* defined(HAVE_LIBBLAS) */
 #warning G_matrix_product() not compiled; requires GRASS GIS compiled and installed with BLAS library support
 #endif /* HAVE_BLAS && HAVE_LAPACK */
 
 #ifndef PI
-#define PI M_PI
+#define PI           M_PI
 #define DEG2RAD(ang) (ang / 180. * PI)
 #define RAD2DEG(ang) (ang / PI * 180.)
 #endif
 
 #ifndef SQUARE
-#define SQUARE(a)      (a*a)
-#define POW3(a)        (a*a*a)
-#define POW4(a)        (a*a*a*a)
+#define SQUARE(a) (a * a)
+#define POW3(a)   (a * a * a)
+#define POW4(a)   (a * a * a * a)
 #endif
 
-struct opts
-{
+struct opts {
     struct Option *input, *output, *phase, *report, *crossvalid,
         *function_var_hz, *function_var_vert, *function_var_final,
         *function_var_final_vert, *form_file, *field, *intpl, *zcol, *trend_a,
-        *trend_b, *trend_c, *trend_d, *var_dir_hz, *var_dir_vert, *maxL,
-        *maxZ, *nL, *nZ, *td_hz, *td_vert, *nugget_hz, *nugget_vert,
-        *nugget_final, *nugget_final_vert, *sill_hz, *sill_vert, *sill_final,
-        *sill_final_vert, *range_hz, *range_vert, *range_final,
-        *range_final_vert;
+        *trend_b, *trend_c, *trend_d, *var_dir_hz, *var_dir_vert, *maxL, *maxZ,
+        *nL, *nZ, *td_hz, *td_vert, *nugget_hz, *nugget_vert, *nugget_final,
+        *nugget_final_vert, *sill_hz, *sill_vert, *sill_final, *sill_final_vert,
+        *range_hz, *range_vert, *range_final, *range_final_vert;
 };
 
-struct flgs
-{
-    struct Flag *d23;           /* 2D/3D interpolation */
+struct flgs {
+    struct Flag *d23; /* 2D/3D interpolation */
     struct Flag *bivariate;
     struct Flag *univariate;
     struct Flag *detrend;
 };
 
-struct select
-{
-    int n;                      // # of selected
-    int out;                    // # of the others
-    int total;                  // total number
-    int *indices;               // indices of selected
+struct select {
+    int n;        // # of selected
+    int out;      // # of the others
+    int total;    // total number
+    int *indices; // indices of selected
 };
 
-struct points                   // inputs
+struct points // inputs
 {
-    int n;                      // number of points 
-    double *r;                  // triples of coordinates (e.g. x0 y0 z0... xn yn zn)
-    struct RTree *R_tree;       // spatial index
-    struct RTree *Rtree_hz;     // spatial index
-    struct RTree *Rtree_vert;   // spatial index
-    double *r_min;              // min coords 
-    double *r_max;              // max coords 
-    double max_dist;            // maximum distance
-    double center[3];           // center
-    double *invals;             // values to be interpolated
-    struct select in_reg;       // points in region
+    int n;                // number of points
+    double *r;            // triples of coordinates (e.g. x0 y0 z0... xn yn zn)
+    struct RTree *R_tree; // spatial index
+    struct RTree *Rtree_hz;   // spatial index
+    struct RTree *Rtree_vert; // spatial index
+    double *r_min;            // min coords
+    double *r_max;            // max coords
+    double max_dist;          // maximum distance
+    double center[3];         // center
+    double *invals;           // values to be interpolated
+    struct select in_reg;     // points in region
     mat_struct *trend;
 };
 
-struct bivar
-{
+struct bivar {
     int vert;
     char *variogram;
 
@@ -96,76 +90,75 @@ struct bivar
     double h_range;
 };
 
-struct parameters
-{
-    int function;               // variogram function: lin, exp, spher, Gauss, bivar
-    int type;                   // variogram type: hz / vert / aniso / bivar
+struct parameters {
+    int function; // variogram function: lin, exp, spher, Gauss, bivar
+    int type;     // variogram type: hz / vert / aniso / bivar
     int const_val;
-    double dir;                 // azimuth for variogram computing
-    double td;                  // maximum azimuth 
+    double dir; // azimuth for variogram computing
+    double td;  // maximum azimuth
 
-    double radius;              // radius (squared maximum distance)
-    double max_dist;            // maximum distance - hz / aniso
-    double max_dist_vert;       // maximum distance - vert
+    double radius;        // radius (squared maximum distance)
+    double max_dist;      // maximum distance - hz / aniso
+    double max_dist_vert; // maximum distance - vert
 
-    int nLag;                   // number of lags - hz / aniso
-    double lag;                 // lag size
+    int nLag;   // number of lags - hz / aniso
+    double lag; // lag size
 
-    int nLag_vert;              // number of lags - vert
-    double lag_vert;            // lag size
+    int nLag_vert;   // number of lags - vert
+    double lag_vert; // lag size
 
-    double *h;                  // lag distance from search point - hz / aniso
-    double *vert;               // lag distance from search point - vert
+    double *h;    // lag distance from search point - hz / aniso
+    double *vert; // lag distance from search point - vert
 
-    int gamma_n;                // # of dissimilarities between input points
-    mat_struct *gamma;          // experimental variogram matrix
-    double gamma_sum;           // sum of gamma values  
+    int gamma_n;       // # of dissimilarities between input points
+    mat_struct *gamma; // experimental variogram matrix
+    double gamma_sum;  // sum of gamma values
 
     double nugget;
     double sill;
     double part_sill;
     double h_range;
 
-    struct bivar horizontal;    // horizontal variogram properties
-    struct bivar vertical;      // vertical variogram properties
+    struct bivar horizontal; // horizontal variogram properties
+    struct bivar vertical;   // vertical variogram properties
 
-    mat_struct *A;              // plan matrix
-    mat_struct *T;              // coefficients of theoretical variogram
-    mat_struct *GM;             // GM = theor_var(dist: input, output points)
+    mat_struct *A;  // plan matrix
+    mat_struct *T;  // coefficients of theoretical variogram
+    mat_struct *GM; // GM = theor_var(dist: input, output points)
 
-    char *name;                 // name of input vector layer 
-    char term[12];              // output format - gnuplot terminal 
-    char ext[4];                // output format - file format
+    char *name;    // name of input vector layer
+    char term[12]; // output format - gnuplot terminal
+    char ext[4];   // output format - file format
 };
 
-struct var_par                  // parameters of experimental variogram 
+struct var_par // parameters of experimental variogram
 {
     struct parameters hz;
     struct parameters vert;
     struct parameters fin;
 };
 
-struct krig_pars                // parameters of ordinary kriging
+struct krig_pars // parameters of ordinary kriging
 {
     int new;
     int first;
     int modified;
     mat_struct *GM;
-    mat_struct *GM_Inv;         // inverted GM (GM_sub) matrix
+    mat_struct *GM_Inv; // inverted GM (GM_sub) matrix
     mat_struct *rslt;
 };
 
-struct write
-{
-    char *name;                 // filename
+struct write {
+    char *name; // filename
     FILE *fp;
     time_t now;
 };
 
-struct int_par                  // Interpolation settings 
+struct int_par // Interpolation settings
 {
-    int i3;                     // TRUE = 3D interpolation, FALSE = 2D interpolation (user sets by flag) 
-    char v3;                    // TRUE = 3D layer, FALSE = 2D layer (according to Vect_is_3d()) 
+    int i3;  // TRUE = 3D interpolation, FALSE = 2D interpolation (user sets by
+             // flag)
+    char v3; // TRUE = 3D layer, FALSE = 2D layer (according to Vect_is_3d())
     int phase;
     int bivar;
     int univar;
@@ -175,39 +168,37 @@ struct int_par                  // Interpolation settings
     struct write *crossvalid;
 };
 
-struct reg_par                  // Region settings -> output extent and resolution 
+struct reg_par // Region settings -> output extent and resolution
 {
-    struct Cell_head reg_2d;    // region for 2D interpolation 
-    RASTER3D_Region reg_3d;     // region for 3D interpolation 
-    double west;                // region.west 
-    double east;                // region.east 
-    double north;               // region.north 
-    double south;               // region.south
-    double bot;                 // region.bottom 
-    double top;                 // region.top
-    double ew_res;              // east-west resolution 
-    double ns_res;              // north-south resolution 
-    double bt_res;              // bottom-top resolution 
-    int nrows;                  // # of rows 
-    int ncols;                  // # of cols 
-    int ndeps;                  // # of deps 
-    int nrcd;                   // # of cells
+    struct Cell_head reg_2d; // region for 2D interpolation
+    RASTER3D_Region reg_3d;  // region for 3D interpolation
+    double west;             // region.west
+    double east;             // region.east
+    double north;            // region.north
+    double south;            // region.south
+    double bot;              // region.bottom
+    double top;              // region.top
+    double ew_res;           // east-west resolution
+    double ns_res;           // north-south resolution
+    double bt_res;           // bottom-top resolution
+    int nrows;               // # of rows
+    int ncols;               // # of cols
+    int ndeps;               // # of deps
+    int nrcd;                // # of cells
 };
 
-struct trend
-{
+struct trend {
     double a;
     double b;
     double c;
     double d;
 };
 
-struct output
-{
+struct output {
     DCELL *dcell;
     int fd_2d;
     RASTER3D_Map *fd_3d;
-    char *name;                 // name of output 2D/3D raster 
+    char *name; // name of output 2D/3D raster
     int add_trend;
     double trend[4];
 };
@@ -234,15 +225,13 @@ double distance_diff(double *);
 double radius_hz_diff(double *);
 double zenith_angle(double *);
 void triple(double, double, double, double *);
-double lag_size(int, int, struct points *, struct parameters *,
-                struct write *);
+double lag_size(int, int, struct points *, struct parameters *, struct write *);
 int lag_number(double, double *);
 void optimize(double *, int *, double);
 void variogram_restricts(struct int_par *, struct points *,
                          struct parameters *);
 void geometric_anisotropy(struct int_par *, struct points *);
-double find_intersect_x(double *, double *, double *, double *,
-                        struct write *);
+double find_intersect_x(double *, double *, double *, double *, struct write *);
 double find_intersect_y(double *, double *, double *, double *, double,
                         struct write *);
 mat_struct *LSM(mat_struct *, mat_struct *);
@@ -300,10 +289,9 @@ struct ilist *list_NN(struct int_par *, double *, struct points *, double,
                       double);
 int compare_NN(struct ilist *, struct ilist *, int);
 void make_subsamples(struct int_par *, struct ilist *, double *, int, int,
-                     struct points *, struct parameters *,
-                     struct krig_pars *);
-double interpolate(struct int_par *, struct ilist *, double *,
-                   struct points *, struct parameters *, struct krig_pars *);
+                     struct points *, struct parameters *, struct krig_pars *);
+double interpolate(struct int_par *, struct ilist *, double *, struct points *,
+                   struct parameters *, struct krig_pars *);
 double trend(double *, struct output *, int, struct int_par *);
 int new_sample(struct int_par *, struct ilist *, struct ilist *,
                struct points *, int, int, int, double *, double, double,

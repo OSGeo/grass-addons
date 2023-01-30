@@ -36,18 +36,17 @@ namespace pops {
  * by one. The second element is moved to the front and the first
  * element is moved to the back.
  */
-template<typename Container>
-void rotate_left_by_one(Container& container)
+template <typename Container>
+void rotate_left_by_one(Container &container)
 {
     std::rotate(container.begin(), container.begin() + 1, container.end());
 }
 
 /** The type of a epidemiological model (SI or SEI)
  */
-enum class ModelType
-{
-    SusceptibleInfected,  ///< SI (susceptible - infected)
-    SusceptibleExposedInfected  ///< SEI (susceptible - exposed - infected)
+enum class ModelType {
+    SusceptibleInfected,       ///< SI (susceptible - infected)
+    SusceptibleExposedInfected ///< SEI (susceptible - exposed - infected)
 };
 
 /*! Get a corresponding enum value for a string which is a model type name.
@@ -55,28 +54,26 @@ enum class ModelType
  * Throws an std::invalid_argument exception if the value was not
  * found or is not supported (which is the same thing).
  */
-inline ModelType model_type_from_string(const std::string& text)
+inline ModelType model_type_from_string(const std::string &text)
 {
-    if (text == "SI" || text == "SusceptibleInfected" || text == "susceptible-infected"
-        || text == "susceptible_infected")
+    if (text == "SI" || text == "SusceptibleInfected" ||
+        text == "susceptible-infected" || text == "susceptible_infected")
         return ModelType::SusceptibleInfected;
-    else if (
-        text == "SEI" || text == "SusceptibleExposedInfected"
-        || text == "susceptible-exposed-infected"
-        || text == "susceptible_exposed_infected")
+    else if (text == "SEI" || text == "SusceptibleExposedInfected" ||
+             text == "susceptible-exposed-infected" ||
+             text == "susceptible_exposed_infected")
         return ModelType::SusceptibleExposedInfected;
     else
-        throw std::invalid_argument(
-            "model_type_from_string: Invalid"
-            " value '"
-            + text + "' provided");
+        throw std::invalid_argument("model_type_from_string: Invalid"
+                                    " value '" +
+                                    text + "' provided");
 }
 
 /*! Overload which allows to pass C-style string which is nullptr (NULL)
  *
  * @see model_type_from_string(const std::string& text)
  */
-inline ModelType model_type_from_string(const char* text)
+inline ModelType model_type_from_string(const char *text)
 {
     // call the string version
     return model_type_from_string(text ? std::string(text) : std::string());
@@ -109,9 +106,9 @@ inline ModelType model_type_from_string(const char* text)
  * type are perfomed and a signed type might be required in the future.
  * A default is provided, but it can be changed in the future.
  */
-template<typename IntegerRaster, typename FloatRaster, typename RasterIndex = int>
-class Simulation
-{
+template <typename IntegerRaster, typename FloatRaster,
+          typename RasterIndex = int>
+class Simulation {
 private:
     RasterIndex rows_;
     RasterIndex cols_;
@@ -123,7 +120,8 @@ private:
     std::default_random_engine generator_;
 
 public:
-    /** Creates simulation object and seeds the internal random number generator.
+    /** Creates simulation object and seeds the internal random number
+     * generator.
      *
      * The same random number generator is used throughout the simulation
      * and is seeded once at the beginning.
@@ -137,37 +135,31 @@ public:
      * @param random_seed Number to seed the random number generator
      * @param rows Number of rows
      * @param cols Number of columns
-     * @param dispersers_stochasticity Enable stochasticity in generating of dispersers
-     * @param establishment_stochasticity Enable stochasticity in establishment step
+     * @param dispersers_stochasticity Enable stochasticity in generating of
+     * dispersers
+     * @param establishment_stochasticity Enable stochasticity in establishment
+     * step
      * @param movement_stochasticity Enable stochasticity in movement of hosts
      */
-    Simulation(
-        unsigned random_seed,
-        RasterIndex rows,
-        RasterIndex cols,
-        ModelType model_type = ModelType::SusceptibleInfected,
-        unsigned latency_period = 0,
-        bool dispersers_stochasticity = true,
-        bool establishment_stochasticity = true,
-        bool movement_stochasticity = true)
-        : rows_(rows),
-          cols_(cols),
+    Simulation(unsigned random_seed, RasterIndex rows, RasterIndex cols,
+               ModelType model_type = ModelType::SusceptibleInfected,
+               unsigned latency_period = 0,
+               bool dispersers_stochasticity = true,
+               bool establishment_stochasticity = true,
+               bool movement_stochasticity = true)
+        : rows_(rows), cols_(cols),
           dispersers_stochasticity_(dispersers_stochasticity),
           establishment_stochasticity_(establishment_stochasticity),
           movement_stochasticity_(movement_stochasticity),
-          model_type_(model_type),
-          latency_period_(latency_period)
+          model_type_(model_type), latency_period_(latency_period)
     {
         generator_.seed(random_seed);
     }
 
     Simulation() = delete;
 
-    void remove(
-        IntegerRaster& infected,
-        IntegerRaster& susceptible,
-        const FloatRaster& temperature,
-        double lethal_temperature)
+    void remove(IntegerRaster &infected, IntegerRaster &susceptible,
+                const FloatRaster &temperature, double lethal_temperature)
     {
         for (int i = 0; i < rows_; i++) {
             for (int j = 0; j < cols_; j++) {
@@ -181,13 +173,10 @@ public:
         }
     }
 
-    void mortality(
-        IntegerRaster& infected,
-        double mortality_rate,
-        int current_year,
-        int first_mortality_year,
-        IntegerRaster& mortality,
-        std::vector<IntegerRaster>& mortality_tracker_vector)
+    void mortality(IntegerRaster &infected, double mortality_rate,
+                   int current_year, int first_mortality_year,
+                   IntegerRaster &mortality,
+                   std::vector<IntegerRaster> &mortality_tracker_vector)
     {
         if (current_year >= (first_mortality_year)) {
             int mortality_current_year = 0;
@@ -200,8 +189,8 @@ public:
                         int mortality_in_year_index = 0;
                         if (mortality_tracker_vector[year_index](i, j) > 0) {
                             mortality_in_year_index =
-                                mortality_rate
-                                * mortality_tracker_vector[year_index](i, j);
+                                mortality_rate *
+                                mortality_tracker_vector[year_index](i, j);
                             mortality_tracker_vector[year_index](i, j) -=
                                 mortality_in_year_index;
                             mortality(i, j) += mortality_in_year_index;
@@ -228,24 +217,21 @@ public:
      * @param total_hosts Total number of hosts
      * @param step the current step of the simulation
      * @param last_index the last index to not be used from movements
-     * @param movements a vector of ints with row_from, col_from, row_to, col_to, and
-     * num_hosts
-     * @param movement_schedule a vector matching movements with the step at which the
-     * movement from movements are applied
+     * @param movements a vector of ints with row_from, col_from, row_to,
+     * col_to, and num_hosts
+     * @param movement_schedule a vector matching movements with the step at
+     * which the movement from movements are applied
      *
      * @note Mortality and non-host individuals are not supported in movements.
      */
-    unsigned movement(
-        IntegerRaster& infected,
-        IntegerRaster& susceptible,
-        IntegerRaster& mortality_tracker,
-        IntegerRaster& total_hosts,
-        unsigned step,
-        unsigned last_index,
-        const std::vector<std::vector<int>>& movements,
-        std::vector<unsigned> movement_schedule)
+    unsigned movement(IntegerRaster &infected, IntegerRaster &susceptible,
+                      IntegerRaster &mortality_tracker,
+                      IntegerRaster &total_hosts, unsigned step,
+                      unsigned last_index,
+                      const std::vector<std::vector<int>> &movements,
+                      std::vector<unsigned> movement_schedule)
     {
-        UNUSED(mortality_tracker);  // Mortality is not supported by movements.
+        UNUSED(mortality_tracker); // Mortality is not supported by movements.
         for (unsigned i = last_index; i < movements.size(); i++) {
             auto moved = movements[i];
             unsigned move_schedule = movement_schedule[i];
@@ -267,14 +253,15 @@ public:
             else {
                 total_hosts_moved = hosts;
             }
-            if (infected(row_from, col_from) > 0
-                && susceptible(row_from, col_from) > 0) {
-                inf_ratio = double(infected(row_from, col_from))
-                            / double(total_hosts(row_from, col_from));
+            if (infected(row_from, col_from) > 0 &&
+                susceptible(row_from, col_from) > 0) {
+                inf_ratio = double(infected(row_from, col_from)) /
+                            double(total_hosts(row_from, col_from));
                 int infected_mean = total_hosts_moved * inf_ratio;
                 if (infected_mean > 0) {
                     if (movement_stochasticity_) {
-                        std::poisson_distribution<int> distribution(infected_mean);
+                        std::poisson_distribution<int> distribution(
+                            infected_mean);
                         infected_moved = distribution(generator_);
                     }
                     else {
@@ -292,14 +279,12 @@ public:
                     susceptible_moved = susceptible(row_from, col_from);
                 }
             }
-            else if (
-                infected(row_from, col_from) > 0
-                && susceptible(row_from, col_from) == 0) {
+            else if (infected(row_from, col_from) > 0 &&
+                     susceptible(row_from, col_from) == 0) {
                 infected_moved = total_hosts_moved;
             }
-            else if (
-                infected(row_from, col_from) == 0
-                && susceptible(row_from, col_from) > 0) {
+            else if (infected(row_from, col_from) == 0 &&
+                     susceptible(row_from, col_from) > 0) {
                 susceptible_moved = total_hosts_moved;
             }
             else {
@@ -325,12 +310,9 @@ public:
      * @param reproductive_rate reproductive rate (used unmodified when weather
      * coefficient is not used)
      */
-    void generate(
-        IntegerRaster& dispersers,
-        const IntegerRaster& infected,
-        bool weather,
-        const FloatRaster& weather_coefficient,
-        double reproductive_rate)
+    void generate(IntegerRaster &dispersers, const IntegerRaster &infected,
+                  bool weather, const FloatRaster &weather_coefficient,
+                  double reproductive_rate)
     {
         double lambda = reproductive_rate;
         for (int i = 0; i < rows_; i++) {
@@ -389,7 +371,8 @@ public:
      * @param[in,out] susceptible Susceptible hosts
      * @param[in,out] exposed_or_infected Exposed or infected hosts
      * @param[in,out] mortality_tracker Newly infected hosts (if applicable)
-     * @param[in] total_populations All host and non-host individuals in the area
+     * @param[in] total_populations All host and non-host individuals in the
+     * area
      * @param[in,out] outside_dispersers Dispersers escaping the rasters
      * @param weather Whether or not weather coefficients should be used
      * @param[in] weather_coefficient Weather coefficient for each location
@@ -400,18 +383,15 @@ public:
      * @note If the parameters or their default values don't correspond
      * with the disperse_and_infect() function, it is a bug.
      */
-    template<typename DispersalKernel>
-    void disperse(
-        const IntegerRaster& dispersers,
-        IntegerRaster& susceptible,
-        IntegerRaster& exposed_or_infected,
-        IntegerRaster& mortality_tracker,
-        const IntegerRaster& total_populations,
-        std::vector<std::tuple<int, int>>& outside_dispersers,
-        bool weather,
-        const FloatRaster& weather_coefficient,
-        DispersalKernel& dispersal_kernel,
-        double establishment_probability = 0.5)
+    template <typename DispersalKernel>
+    void disperse(const IntegerRaster &dispersers, IntegerRaster &susceptible,
+                  IntegerRaster &exposed_or_infected,
+                  IntegerRaster &mortality_tracker,
+                  const IntegerRaster &total_populations,
+                  std::vector<std::tuple<int, int>> &outside_dispersers,
+                  bool weather, const FloatRaster &weather_coefficient,
+                  DispersalKernel &dispersal_kernel,
+                  double establishment_probability = 0.5)
     {
         std::uniform_real_distribution<double> distribution_uniform(0.0, 1.0);
         int row;
@@ -423,31 +403,38 @@ public:
                     for (int k = 0; k < dispersers(i, j); k++) {
                         std::tie(row, col) = dispersal_kernel(generator_, i, j);
 
-                        if (row < 0 || row >= rows_ || col < 0 || col >= cols_) {
-                            // export dispersers dispersed outside of modeled area
-                            outside_dispersers.emplace_back(std::make_tuple(row, col));
+                        if (row < 0 || row >= rows_ || col < 0 ||
+                            col >= cols_) {
+                            // export dispersers dispersed outside of modeled
+                            // area
+                            outside_dispersers.emplace_back(
+                                std::make_tuple(row, col));
                             continue;
                         }
                         if (susceptible(row, col) > 0) {
                             double probability_of_establishment =
-                                (double)(susceptible(row, col))
-                                / total_populations(row, col);
-                            double establishment_tester = 1 - establishment_probability;
+                                (double)(susceptible(row, col)) /
+                                total_populations(row, col);
+                            double establishment_tester =
+                                1 - establishment_probability;
                             if (establishment_stochasticity_)
-                                establishment_tester = distribution_uniform(generator_);
+                                establishment_tester =
+                                    distribution_uniform(generator_);
 
                             if (weather)
                                 probability_of_establishment *=
                                     weather_coefficient(i, j);
-                            if (establishment_tester < probability_of_establishment) {
+                            if (establishment_tester <
+                                probability_of_establishment) {
                                 exposed_or_infected(row, col) += 1;
                                 susceptible(row, col) -= 1;
-                                if (model_type_ == ModelType::SusceptibleInfected) {
+                                if (model_type_ ==
+                                    ModelType::SusceptibleInfected) {
                                     mortality_tracker(row, col) += 1;
                                 }
-                                else if (
-                                    model_type_
-                                    == ModelType::SusceptibleExposedInfected) {
+                                else if (model_type_ ==
+                                         ModelType::
+                                             SusceptibleExposedInfected) {
                                     // no-op
                                 }
                                 else {
@@ -504,16 +491,14 @@ public:
      * @param infected Infected hosts
      * @param mortality_tracker Newly infected hosts
      */
-    void infect_exposed(
-        unsigned step,
-        std::vector<IntegerRaster>& exposed,
-        IntegerRaster& infected,
-        IntegerRaster& mortality_tracker)
+    void infect_exposed(unsigned step, std::vector<IntegerRaster> &exposed,
+                        IntegerRaster &infected,
+                        IntegerRaster &mortality_tracker)
     {
         if (model_type_ == ModelType::SusceptibleExposedInfected) {
             if (step >= latency_period_) {
                 // Oldest item needs to be in the front
-                auto& oldest = exposed.front();
+                auto &oldest = exposed.front();
                 // Move hosts to infected raster
                 infected += oldest;
                 mortality_tracker += oldest;
@@ -562,44 +547,33 @@ public:
      * has parameter *exposed* which is the same as the one from the
      * infect_exposed() function.
      */
-    template<typename DispersalKernel>
+    template <typename DispersalKernel>
     void disperse_and_infect(
-        unsigned step,
-        const IntegerRaster& dispersers,
-        IntegerRaster& susceptible,
-        std::vector<IntegerRaster>& exposed,
-        IntegerRaster& infected,
-        IntegerRaster& mortality_tracker,
-        const IntegerRaster& total_populations,
-        std::vector<std::tuple<int, int>>& outside_dispersers,
-        bool weather,
-        const FloatRaster& weather_coefficient,
-        DispersalKernel& dispersal_kernel,
+        unsigned step, const IntegerRaster &dispersers,
+        IntegerRaster &susceptible, std::vector<IntegerRaster> &exposed,
+        IntegerRaster &infected, IntegerRaster &mortality_tracker,
+        const IntegerRaster &total_populations,
+        std::vector<std::tuple<int, int>> &outside_dispersers, bool weather,
+        const FloatRaster &weather_coefficient,
+        DispersalKernel &dispersal_kernel,
         double establishment_probability = 0.5)
     {
-        auto* infected_or_exposed = &infected;
+        auto *infected_or_exposed = &infected;
         if (model_type_ == ModelType::SusceptibleExposedInfected) {
             // The empty - not yet exposed - raster is in the back
             // and will become youngest exposed one.
             infected_or_exposed = &exposed.back();
         }
-        this->disperse(
-            dispersers,
-            susceptible,
-            *infected_or_exposed,
-            mortality_tracker,
-            total_populations,
-            outside_dispersers,
-            weather,
-            weather_coefficient,
-            dispersal_kernel,
-            establishment_probability);
+        this->disperse(dispersers, susceptible, *infected_or_exposed,
+                       mortality_tracker, total_populations, outside_dispersers,
+                       weather, weather_coefficient, dispersal_kernel,
+                       establishment_probability);
         if (model_type_ == ModelType::SusceptibleExposedInfected) {
             this->infect_exposed(step, exposed, infected, mortality_tracker);
         }
     }
 };
 
-}  // namespace pops
+} // namespace pops
 
-#endif  // POPS_SIMULATION_HPP
+#endif // POPS_SIMULATION_HPP

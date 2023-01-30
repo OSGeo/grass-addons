@@ -1,17 +1,17 @@
 #include "local_proto.h"
 
 /*
-  These functions are mostly taken from the module v.hull (Aime, A., Neteler, M., Ducke, B., Landa, M.)
+  These functions are mostly taken from the module v.hull (Aime, A., Neteler,
+  M., Ducke, B., Landa, M.)
 */
 
 /* Define Boolean type - not necessary in C++*/
-typedef enum
-  { BFALSE, BTRUE } bool;
+typedef enum { BFALSE, BTRUE } bool;
 
 /* Define vertex indices. */
-#define X   0
-#define Y   1
-#define Z   2
+#define X 0
+#define Y 1
+#define Z 2
 
 /* Define structures for vertices, edges and faces */
 typedef struct tVertexStructure tsVertex;
@@ -23,38 +23,35 @@ typedef tsEdge *tEdge;
 typedef struct tFaceStructure tsFace;
 typedef tsFace *tFace;
 
-struct tVertexStructure
-{
-  double v[3];
-  int vnum;
-  tEdge duplicate;		/* pointer to incident cone edge (or NULL) */
-  bool onhull;		/* T iff point on hull. */
-  bool mark;			/* T iff point already processed. */
-  tVertex next, prev;
+struct tVertexStructure {
+    double v[3];
+    int vnum;
+    tEdge duplicate; /* pointer to incident cone edge (or NULL) */
+    bool onhull;     /* T iff point on hull. */
+    bool mark;       /* T iff point already processed. */
+    tVertex next, prev;
 };
 
-struct tEdgeStructure
-{
-  tFace adjface[2];
-  tVertex endpts[2];
-  tFace newface;	/* pointer to incident cone face. */
-  bool del;		/* T iff edge should be delete. */
-  tEdge next, prev;
+struct tEdgeStructure {
+    tFace adjface[2];
+    tVertex endpts[2];
+    tFace newface; /* pointer to incident cone face. */
+    bool del;      /* T iff edge should be delete. */
+    tEdge next, prev;
 };
 
-struct tFaceStructure
-{
-  tEdge edge[3];
-  tVertex vertex[3];
-  bool visible;		/* T iff face visible from new point. */
-  tFace next, prev;
+struct tFaceStructure {
+    tEdge edge[3];
+    tVertex vertex[3];
+    bool visible; /* T iff face visible from new point. */
+    tFace next, prev;
 };
 
 /* Define flags */
-#define ONHULL   	TRUE
-#define REMOVED  	TRUE
-#define VISIBLE  	TRUE
-#define PROCESSED	TRUE
+#define ONHULL    TRUE
+#define REMOVED   TRUE
+#define VISIBLE   TRUE
+#define PROCESSED TRUE
 
 /* Global variable definitions */
 tVertex vertices = NULL;

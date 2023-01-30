@@ -17,31 +17,29 @@
 #define GLOBAL extern
 #endif
 
-typedef struct
-{
+typedef struct {
     int x, y;
     double dir;
     DCELL path;
     int finished;
 } Individual;
 
-typedef struct
-{
+typedef struct {
     int x, y;
     double dir;
     double weight;
 } WeightedCoords;
 
-typedef struct
-{
+typedef struct {
     int x, y;
 } Displacement;
 
-typedef DCELL(f_statmethod) (DCELL *, int);
+typedef DCELL(f_statmethod)(DCELL *, int);
 
 /* search.c */
-void perform_search(DCELL * values, int *map, DCELL * costmap, int size,
-		    f_statmethod **stats, int stat_count, int n, int fragcount, int sx, int sy);
+void perform_search(DCELL *values, int *map, DCELL *costmap, int size,
+                    f_statmethod **stats, int stat_count, int n, int fragcount,
+                    int sx, int sy);
 
 /* global parameters */
 GLOBAL double percent;
@@ -58,6 +56,5 @@ GLOBAL Coords *cells;
 
 GLOBAL Individual *indi_array;
 GLOBAL int *patch_imi;
-
 
 #endif /* LOCAL_PROTO_H */

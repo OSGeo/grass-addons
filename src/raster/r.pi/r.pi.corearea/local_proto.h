@@ -17,28 +17,26 @@
 #define GLOBAL extern
 #endif
 
-typedef struct
-{
+typedef struct {
     double x, y;
 } Vector2;
 
-typedef struct
-{
+typedef struct {
     Position *positions;
     Position **borders;
     int count;
 } PatchBorderList;
 
-typedef DCELL(f_statmethod) (DCELL *, int);
-typedef DCELL(f_propmethod) (DCELL, DCELL);
+typedef DCELL(f_statmethod)(DCELL *, int);
+typedef DCELL(f_propmethod)(DCELL, DCELL);
 
 /* func.c */
 void find_borders(int *flagbuf, int nrows, int ncols, int fragcount);
 void init_border_values(double distance, double angle, int buffer,
-			f_statmethod stat, double dist_weight,
-			int nrows, int ncols, int fragcount);
-void propagate(int neighbor_count, f_propmethod prop_method,
-               int nrows, int ncols, int fragcount);
+                        f_statmethod stat, double dist_weight, int nrows,
+                        int ncols, int fragcount);
+void propagate(int neighbor_count, f_propmethod prop_method, int nrows,
+               int ncols, int fragcount);
 
 /* prop_method.c */
 DCELL linear(DCELL value, DCELL propcost);

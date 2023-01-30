@@ -2,14 +2,12 @@
 #include <grass/glocale.h>
 #include "global.h"
 
-struct neighbor
-{
+struct neighbor {
     int row;
     int col;
 };
 
-struct neighbor_stack
-{
+struct neighbor_stack {
     struct neighbor *up;
     int n;
     int nalloc;
@@ -175,10 +173,8 @@ static void push_up(struct neighbor_stack *up_stack, struct neighbor *up)
 {
     if (up_stack->n == up_stack->nalloc) {
         up_stack->nalloc += REALLOC_INCREMENT;
-        up_stack->up =
-            (struct neighbor *)G_realloc(up_stack->up,
-                                         up_stack->nalloc *
-                                         sizeof(struct neighbor));
+        up_stack->up = (struct neighbor *)G_realloc(
+            up_stack->up, up_stack->nalloc * sizeof(struct neighbor));
     }
     up_stack->up[up_stack->n++] = *up;
 }
@@ -191,10 +187,8 @@ static struct neighbor pop_up(struct neighbor_stack *up_stack)
         up = up_stack->up[--up_stack->n];
         if (up_stack->n == up_stack->nalloc - REALLOC_INCREMENT) {
             up_stack->nalloc -= REALLOC_INCREMENT;
-            up_stack->up =
-                (struct neighbor *)G_realloc(up_stack->up,
-                                             up_stack->nalloc *
-                                             sizeof(struct neighbor));
+            up_stack->up = (struct neighbor *)G_realloc(
+                up_stack->up, up_stack->nalloc * sizeof(struct neighbor));
         }
     }
 

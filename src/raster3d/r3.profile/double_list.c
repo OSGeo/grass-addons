@@ -11,7 +11,6 @@
  *
  */
 
-
 #include <stdio.h>
 #include <string.h>
 
@@ -28,9 +27,9 @@ int double_list_add_item(struct DoubleList *double_list, double item)
 
     if (double_list->num_items >= double_list->max_items) {
         double_list->max_items += SIZE_INCREMENT;
-        double_list->items = G_realloc(double_list->items,
-                                       (size_t) double_list->max_items *
-                                       sizeof(double));
+        double_list->items =
+            G_realloc(double_list->items,
+                      (size_t)double_list->max_items * sizeof(double));
     }
     /* n contains the index */
     double_list->items[n] = item;

@@ -31,12 +31,11 @@ using namespace pops;
 int test_sum()
 {
     int err = 0;
-    Raster<int> infected = {
-        {0, 0, 0, 0, 25},
-        {1, 0, 0, 0, 0},
-        {0, 0, 1, 0, 0},
-        {0, 0, 5, 0, 0},
-        {0, 0, 0, 0, 0}};
+    Raster<int> infected = {{0, 0, 0, 0, 25},
+                            {1, 0, 0, 0, 0},
+                            {0, 0, 1, 0, 0},
+                            {0, 0, 5, 0, 0},
+                            {0, 0, 0, 0, 0}};
 
     unsigned sum = sum_of_infected(infected);
 
@@ -51,12 +50,11 @@ int test_sum()
 int test_area()
 {
     int err = 0;
-    Raster<int> infected = {
-        {0, 0, 0, 0, 25},
-        {1, 0, 0, 0, 0},
-        {0, 0, 1, 0, 0},
-        {0, 0, 5, 0, 0},
-        {0, 0, 0, 0, 0}};
+    Raster<int> infected = {{0, 0, 0, 0, 25},
+                            {1, 0, 0, 0, 0},
+                            {0, 0, 1, 0, 0},
+                            {0, 0, 5, 0, 0},
+                            {0, 0, 0, 0, 0}};
 
     double area = area_of_infected(infected, 0.5, 1);
 
@@ -78,4 +76,4 @@ int main()
     return num_errors;
 }
 
-#endif  // POPS_TEST
+#endif // POPS_TEST

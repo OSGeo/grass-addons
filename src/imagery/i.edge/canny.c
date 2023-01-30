@@ -3,10 +3,10 @@
    http://www.tomgibara.com/computer-vision/canny-edge-detector
    Public Domain.
 
-   NOTE from Java source code: The elements of the method below (specifically the technique for
-   non-maximal suppression and the technique for gradient computation)
-   are derived from an implementation posted in the following forum (with the
-   clear intent of others using the code):
+   NOTE from Java source code: The elements of the method below (specifically
+   the technique for non-maximal suppression and the technique for gradient
+   computation) are derived from an implementation posted in the following forum
+   (with the clear intent of others using the code):
    http://forum.java.sun.com/thread.jspa?threadID=546211&start=45&tstart=0
    My code effectively mimics the algorithm exhibited above.
    Since I don't know the providence of the code that was posted it is a
@@ -41,7 +41,7 @@
 
 #include <math.h>
 
-void computeXGradients(DCELL * diffKernel, DCELL * yConv, DCELL * xGradient,
+void computeXGradients(DCELL *diffKernel, DCELL *yConv, DCELL *xGradient,
                        int rows, int cols, int kernelWidth)
 {
     int initX = kernelWidth - 1;
@@ -72,8 +72,7 @@ void computeXGradients(DCELL * diffKernel, DCELL * yConv, DCELL * xGradient,
     }
 }
 
-
-void computeYGradients(DCELL * diffKernel, DCELL * xConv, DCELL * yGradient,
+void computeYGradients(DCELL *diffKernel, DCELL *xConv, DCELL *yGradient,
                        int rows, int cols, int kernelWidth)
 {
     int initY = cols * (kernelWidth - 1);
@@ -95,9 +94,8 @@ void computeYGradients(DCELL * diffKernel, DCELL * xConv, DCELL * yGradient,
             int yOffset = cols;
 
             for (i = 1; i < kernelWidth; i++) {
-                sum +=
-                    diffKernel[i] * (xConv[index - yOffset] -
-                                     xConv[index + yOffset]);
+                sum += diffKernel[i] *
+                       (xConv[index - yOffset] - xConv[index + yOffset]);
                 yOffset += cols;
             }
             yGradient[index] = sum;
@@ -153,34 +151,34 @@ static double custom_hypot(double x, double y)
  * variable (3) and reused in the mirror case (4).
  *
  */
-static int isLocalMax(double xGrad, double yGrad, double gradMag,
-                      double neMag, double seMag, double swMag, double nwMag,
-                      double nMag, double eMag, double sMag, double wMag)
+static int isLocalMax(double xGrad, double yGrad, double gradMag, double neMag,
+                      double seMag, double swMag, double nwMag, double nMag,
+                      double eMag, double sMag, double wMag)
 {
     double tmp, tmp1, tmp2;
 
     if (xGrad * yGrad <= 0.0f) {
         if (fabs(xGrad) >= fabs(yGrad)) {
             tmp = fabs(xGrad * gradMag);
-            tmp1 = fabs(yGrad * neMag - (xGrad + yGrad) * eMag) /*(3) */ ;
-            tmp2 = fabs(yGrad * swMag - (xGrad + yGrad) * wMag) /*(4) */ ;
+            tmp1 = fabs(yGrad * neMag - (xGrad + yGrad) * eMag) /*(3) */;
+            tmp2 = fabs(yGrad * swMag - (xGrad + yGrad) * wMag) /*(4) */;
         }
         else {
             tmp = fabs(yGrad * gradMag);
-            tmp1 = fabs(xGrad * neMag - (yGrad + xGrad) * nMag) /*(3) */ ;
-            tmp2 = fabs(xGrad * swMag - (yGrad + xGrad) * sMag) /*(4) */ ;
+            tmp1 = fabs(xGrad * neMag - (yGrad + xGrad) * nMag) /*(3) */;
+            tmp2 = fabs(xGrad * swMag - (yGrad + xGrad) * sMag) /*(4) */;
         }
     }
     else {
-        if (fabs(xGrad) >= fabs(yGrad) /*(2) */ ) {
+        if (fabs(xGrad) >= fabs(yGrad) /*(2) */) {
             tmp = fabs(xGrad * gradMag);
-            tmp1 = fabs(yGrad * seMag + (xGrad - yGrad) * eMag) /*(3) */ ;
-            tmp2 = fabs(yGrad * nwMag + (xGrad - yGrad) * wMag) /*(4) */ ;
+            tmp1 = fabs(yGrad * seMag + (xGrad - yGrad) * eMag) /*(3) */;
+            tmp2 = fabs(yGrad * nwMag + (xGrad - yGrad) * wMag) /*(4) */;
         }
         else {
             tmp = fabs(yGrad * gradMag);
-            tmp1 = fabs(xGrad * seMag + (yGrad - xGrad) * sMag) /*(3) */ ;
-            tmp2 = fabs(xGrad * nwMag + (yGrad - xGrad) * nMag) /*(4) */ ;
+            tmp1 = fabs(xGrad * seMag + (yGrad - xGrad) * sMag) /*(3) */;
+            tmp2 = fabs(xGrad * nwMag + (yGrad - xGrad) * nMag) /*(4) */;
         }
     }
     if (tmp >= tmp1 && tmp > tmp2) {
@@ -189,9 +187,8 @@ static int isLocalMax(double xGrad, double yGrad, double gradMag,
     return 0;
 }
 
-void nonmaxSuppresion(DCELL * xGradient, DCELL * yGradient, CELL * magnitude,
-                      CELL * angle,
-                      int rows, int cols, int kernelWidth,
+void nonmaxSuppresion(DCELL *xGradient, DCELL *yGradient, CELL *magnitude,
+                      CELL *angle, int rows, int cols, int kernelWidth,
                       int magnitudeScale, int magnitudeLimit)
 {
     int initX = kernelWidth;
@@ -243,24 +240,19 @@ void nonmaxSuppresion(DCELL * xGradient, DCELL * yGradient, CELL * magnitude,
 
             double eMag = custom_hypot(xGradient[indexE], yGradient[indexE]);
 
-            double neMag =
-                custom_hypot(xGradient[indexNE], yGradient[indexNE]);
+            double neMag = custom_hypot(xGradient[indexNE], yGradient[indexNE]);
 
-            double seMag =
-                custom_hypot(xGradient[indexSE], yGradient[indexSE]);
+            double seMag = custom_hypot(xGradient[indexSE], yGradient[indexSE]);
 
-            double swMag =
-                custom_hypot(xGradient[indexSW], yGradient[indexSW]);
+            double swMag = custom_hypot(xGradient[indexSW], yGradient[indexSW]);
 
-            double nwMag =
-                custom_hypot(xGradient[indexNW], yGradient[indexNW]);
+            double nwMag = custom_hypot(xGradient[indexNW], yGradient[indexNW]);
 
             if (isLocalMax(xGrad, yGrad, gradMag, neMag, seMag, swMag, nwMag,
                            nMag, eMag, sMag, wMag)) {
-                magnitude[index] =
-                    gradMag >=
-                    magnitudeLimit ? MAGNITUDE_MAX : (int)(magnitudeScale *
-                                                           gradMag + 0.5);
+                magnitude[index] = gradMag >= magnitudeLimit
+                                       ? MAGNITUDE_MAX
+                                       : (int)(magnitudeScale * gradMag + 0.5);
                 /*
                    NOTE: The orientation of the edge is not employed by this
                    implementation. It is a simple matter to compute it at
@@ -279,7 +271,7 @@ void nonmaxSuppresion(DCELL * xGradient, DCELL * yGradient, CELL * magnitude,
     }
 }
 
-static void follow(CELL * edges, CELL * magnitude, int x1, int y1, int i1,
+static void follow(CELL *edges, CELL *magnitude, int x1, int y1, int i1,
                    int threshold, int rows, int cols)
 {
     int x0 = x1 == 0 ? x1 : x1 - 1;
@@ -299,8 +291,8 @@ static void follow(CELL * edges, CELL * magnitude, int x1, int y1, int i1,
         for (y = y0; y <= y2; y++) {
             int i2 = x + y * cols;
 
-            if ((y != y1 || x != x1) && edges[i2] == 0
-                && magnitude[i2] >= threshold) {
+            if ((y != y1 || x != x1) && edges[i2] == 0 &&
+                magnitude[i2] >= threshold) {
                 follow(edges, magnitude, x, y, i2, threshold, rows, cols);
                 return;
             }
@@ -309,7 +301,7 @@ static void follow(CELL * edges, CELL * magnitude, int x1, int y1, int i1,
 }
 
 /* edges.fill(0) */
-void performHysteresis(CELL * edges, CELL * magnitude, int low, int high,
+void performHysteresis(CELL *edges, CELL *magnitude, int low, int high,
                        int rows, int cols)
 {
     /*
@@ -335,7 +327,7 @@ void performHysteresis(CELL * edges, CELL * magnitude, int low, int high,
     }
 }
 
-void thresholdEdges(CELL * edges, int rows, int cols)
+void thresholdEdges(CELL *edges, int rows, int cols)
 {
     size_t i;
     size_t max = (size_t)rows * cols;

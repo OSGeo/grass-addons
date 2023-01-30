@@ -9,21 +9,20 @@
 #include <grass/dbmi.h>
 
 #ifdef MAIN
-#  define GLOBAL
+#define GLOBAL
 #else
-#  define GLOBAL extern
+#define GLOBAL extern
 #endif
 
 #define SQR(x) ((x) * (x))
 
-typedef struct
-{
+typedef struct {
     int r, c;
-    int di, dj;			/* shift */
+    int di, dj; /* shift */
     int cat;
     double accum;
     int stream;
-    int status;			/* 1=skipped,2=unresolved,3=snapped,4=correct */
+    int status; /* 1=skipped,2=unresolved,3=snapped,4=correct */
 } OUTLET;
 
 GLOBAL int nextr[9];

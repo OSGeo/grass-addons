@@ -1,4 +1,3 @@
-
 /***********************************************************************/
 /*
    azimuth.c
@@ -45,13 +44,13 @@ double calc_azimuth(int row, int col, int reverse)
     col_diff = (double)(col - point_col);
     row_diff = (double)(row - point_row);
 
-    /* Work out which quadrant the cell falls in  
+    /* Work out which quadrant the cell falls in
 
        ---------
        | 4 | 1 |
        ---------
        | 3 | 2 |
-       ---------   
+       ---------
 
        or which axis is falls on
 
@@ -60,20 +59,20 @@ double calc_azimuth(int row, int col, int reverse)
        |   |   |
        4 ----5---- 2
        |   |   |
-       ---------   
+       ---------
        3
      */
 
-    col_dir = 0;                /* cell same longitude as point */
-    row_dir = 0;                /* cell same latitude as point */
+    col_dir = 0; /* cell same longitude as point */
+    row_dir = 0; /* cell same latitude as point */
     if (col_diff < 0.0)
-        col_dir = -1;           /* cell to west of point */
+        col_dir = -1; /* cell to west of point */
     else if (col_diff > 0.0)
-        col_dir = 1;            /* cell to east of point */
+        col_dir = 1; /* cell to east of point */
     if (row_diff < 0.0)
-        row_dir = -1;           /* cell to north of point */
+        row_dir = -1; /* cell to north of point */
     else if (row_diff > 0.0)
-        row_dir = 1;            /* cell to south of point */
+        row_dir = 1; /* cell to south of point */
 
     switch (col_dir) {
     case (-1):
@@ -181,7 +180,8 @@ double calc_azimuth(int row, int col, int reverse)
                 break;
             case (2):
                 azimuth = (AZ_RAD360 - alpha) * 180.0 / AZ_PI;
-                /* Shouldn't produce 360, since that should only occur for cell on axis) */
+                /* Shouldn't produce 360, since that should only occur for cell
+                 * on axis) */
                 break;
             case (3):
                 azimuth = alpha * 180.0 / AZ_PI;
@@ -213,11 +213,10 @@ double calc_azimuth(int row, int col, int reverse)
     return azimuth;
 }
 
-
 /***********************************************************************/
 /*
    This variant computes the axial difference such that if the bearing
-   is aligned with the reference bearing then the result is zero. If the 
+   is aligned with the reference bearing then the result is zero. If the
    the bearing is orthogonal to the reference bearing then the result is
    +90. Intermediate differences fall between 0 and +90.
  */
@@ -236,20 +235,18 @@ double calc_azimuth_axial_diff(double reference_bearing, double bearing)
     return (diff);
 }
 
-
 /***********************************************************************/
 /*
    This variant computes the axial difference such that if the bearing
-   is aligned with the reference bearing then the result is zero. If the 
+   is aligned with the reference bearing then the result is zero. If the
    the bearing is orthogonal to the reference bearing then the result is
    +/-90. Intermediate differences fall between 0 and +/-90. The difference is
    positive if the bearing is between 0 and 180 degree clockwise of the
-   reference bearing. The difference is negative if the bearing is 
+   reference bearing. The difference is negative if the bearing is
    between 0 and 180 degrees anticlockwise of the reference bearing.
  */
 
-double calc_azimuth_axial_diff_signed(double reference_bearing,
-                                      double bearing)
+double calc_azimuth_axial_diff_signed(double reference_bearing, double bearing)
 {
     double diff;
     double relative_bearing;
@@ -279,8 +276,6 @@ double calc_azimuth_axial_diff_signed(double reference_bearing,
     return (diff);
 }
 
-
-
 /***********************************************************************/
 
 double calc_azimuth_clockwise_diff(double reference_bearing, double bearing)
@@ -294,7 +289,6 @@ double calc_azimuth_clockwise_diff(double reference_bearing, double bearing)
 
     return (diff);
 }
-
 
 /***********************************************************************/
 
@@ -346,7 +340,6 @@ int calc_segment(double diff)
 
 /***********************************************************************/
 
-
 /***********************************************************************/
 
 double calc_distance(int row, int col)
@@ -366,13 +359,13 @@ double calc_distance(int row, int col)
     col_diff = (double)(col - point_col);
     row_diff = (double)(row - point_row);
 
-    /* Work out which quadrant the cell falls in  
+    /* Work out which quadrant the cell falls in
 
        ---------
        | 4 | 1 |
        ---------
        | 3 | 2 |
-       ---------   
+       ---------
 
        or which axis is falls on
 
@@ -381,20 +374,20 @@ double calc_distance(int row, int col)
        |   |   |
        4 ----5---- 2
        |   |   |
-       ---------   
+       ---------
        3
      */
 
-    col_dir = 0;                /* cell same longitude as point */
-    row_dir = 0;                /* cell same latitude as point */
+    col_dir = 0; /* cell same longitude as point */
+    row_dir = 0; /* cell same latitude as point */
     if (col_diff < 0.0)
-        col_dir = -1;           /* cell to west of point */
+        col_dir = -1; /* cell to west of point */
     else if (col_diff > 0.0)
-        col_dir = 1;            /* cell to east of point */
+        col_dir = 1; /* cell to east of point */
     if (row_diff < 0.0)
-        row_dir = -1;           /* cell to north of point */
+        row_dir = -1; /* cell to north of point */
     else if (row_diff > 0.0)
-        row_dir = 1;            /* cell to south of point */
+        row_dir = 1; /* cell to south of point */
 
     switch (col_dir) {
     case (-1):
@@ -426,13 +419,11 @@ double calc_distance(int row, int col)
         break;
     };
 
-
     /* Calculate centre-to-centre distances for cells which fall on
        axes */
 
     point_col = (int)Rast_easting_to_col(east, &window);
     point_row = (int)Rast_northing_to_row(north, &window);
-
 
     ew_diff = fabs(east - Rast_col_to_easting(col, &window));
     ns_diff = fabs(north - Rast_row_to_northing(row, &window));

@@ -1,4 +1,3 @@
-
 /***********************************************************************/
 /*
    percolate.h
@@ -27,10 +26,8 @@
 #include "edge_array.h"
 #include "file.h"
 
-
 #ifndef PERCOLATE_H
 #define PERCOLATE_H
-
 
 /***********************************************************************/
 /* Public functions                                                    */
@@ -39,6 +36,6 @@
 
 void percolate(float, float, float, long int, char *, char *, int);
 
-/* void percolateOneDistance (mindist, interval, maxdist, numpoints, 
+/* void percolateOneDistance (mindist, interval, maxdist, numpoints,
    text_file_name, group_text_file_name, Modulo) */
 #endif

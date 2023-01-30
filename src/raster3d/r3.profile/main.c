@@ -28,7 +28,6 @@ struct Colors colors;
 
 static double dist, e, n;
 
-
 int main(int argc, char *argv[])
 {
     char *name, *outfile;
@@ -47,13 +46,11 @@ int main(int argc, char *argv[])
     double e1, e2, n1, n2;
     RASTER_MAP_TYPE data_type;
     struct Cell_head window;
-    struct
-    {
-        struct Option *opt1, *profile, *res, *output, *raster_output,
-            *null_str, *coord_file, *units;
+    struct {
+        struct Option *opt1, *profile, *res, *output, *raster_output, *null_str,
+            *coord_file, *units;
         struct Flag *g, *c, *m;
-    }
-    parm;
+    } parm;
     struct GModule *module;
 
     G_gisinit(argv[0]);
@@ -87,9 +84,8 @@ int main(int argc, char *argv[])
     parm.coord_file->required = NO;
     parm.coord_file->label =
         _("Name of input file containing coordinate pairs");
-    parm.coord_file->description =
-        _("Use instead of the 'coordinates' option. "
-          "\"-\" reads from stdin.");
+    parm.coord_file->description = _("Use instead of the 'coordinates' option. "
+                                     "\"-\" reads from stdin.");
 
     parm.res = G_define_option();
     parm.res->key = "resolution";
@@ -103,8 +99,8 @@ int main(int argc, char *argv[])
 
     parm.g = G_define_flag();
     parm.g->key = 'g';
-    parm.g->description =
-        _("Output easting and northing in first two columns of four column output");
+    parm.g->description = _("Output easting and northing in first two columns "
+                            "of four column output");
 
     parm.c = G_define_flag();
     parm.c->key = 'c';
@@ -123,7 +119,7 @@ int main(int argc, char *argv[])
 
     clr = 0;
     if (parm.c->answer)
-        clr = 1;                /* color output */
+        clr = 1; /* color output */
 
     null_string = parm.null_str->answer;
 
@@ -156,8 +152,7 @@ int main(int argc, char *argv[])
         res = atof(parm.res->answer);
         /* Catch bad resolution ? */
         if (res <= 0)
-            G_fatal_error(_("Illegal resolution %g [%s]"), res / factor,
-                          unit);
+            G_fatal_error(_("Illegal resolution %g [%s]"), res / factor, unit);
     }
     else {
         /* Do average of EW and NS res */
@@ -183,7 +178,7 @@ int main(int argc, char *argv[])
 
     /* Open Raster File */
     int cache = RASTER3D_USE_CACHE_DEFAULT;
-    int type = FCELL_TYPE;      /* or RASTER3D_TILE_SAME_AS_FILE */
+    int type = FCELL_TYPE; /* or RASTER3D_TILE_SAME_AS_FILE */
     /* TODO: mapset support correct? */
     RASTER3D_Map *fd =
         Rast3d_open_cell_old(name, "", RASTER3D_DEFAULT_WINDOW, type, cache);
@@ -237,7 +232,6 @@ int main(int argc, char *argv[])
                 G_fatal_error(_("Could not open <%s>"),
                               parm.coord_file->answer);
 
-
             for (n = 1; input(b1, ebuf, b2, nbuf, label, coor_fp); n++) {
                 G_debug(4, "stdin line %d: ebuf=[%s]  nbuf=[%s]", n, ebuf,
                         nbuf);
@@ -246,15 +240,16 @@ int main(int argc, char *argv[])
                     G_fatal_error(_("Invalid coordinates %s %s"), ebuf, nbuf);
 
                 if (havefirst)
-                    do_profile(e1, e2, n1, n2, coords, res, fd, data_type,
-                               fp, null_string, unit, factor, &region, depth,
+                    do_profile(e1, e2, n1, n2, coords, res, fd, data_type, fp,
+                               null_string, unit, factor, &region, depth,
                                &values);
                 e1 = e2;
                 n1 = n2;
                 havefirst = TRUE;
             }
 
-            /* TODO: we can't use stdin in loop like this, need to store the coords */
+            /* TODO: we can't use stdin in loop like this, need to store the
+             * coords */
             if (coor_fp != stdin)
                 fclose(coor_fp);
         }
@@ -268,15 +263,13 @@ int main(int argc, char *argv[])
             if (k == 0) {
                 /* Only one coordinate pair supplied */
                 G_scan_easting(parm.profile->answers[0], &e1, G_projection());
-                G_scan_northing(parm.profile->answers[1], &n1,
-                                G_projection());
+                G_scan_northing(parm.profile->answers[1], &n1, G_projection());
                 e2 = e1;
                 n2 = n1;
 
                 /* Get profile info */
                 do_profile(e1, e2, n1, n2, coords, res, fd, data_type, fp,
-                           null_string, unit, factor, &region, depth,
-                           &values);
+                           null_string, unit, factor, &region, depth, &values);
             }
             else {
                 for (i = 0; i <= k - 2; i += 2) {
@@ -290,10 +283,9 @@ int main(int argc, char *argv[])
                                     G_projection());
 
                     /* Get profile info */
-                    do_profile(e1, e2, n1, n2, coords, res, fd, data_type,
-                               fp, null_string, unit, factor, &region, depth,
+                    do_profile(e1, e2, n1, n2, coords, res, fd, data_type, fp,
+                               null_string, unit, factor, &region, depth,
                                &values);
-
                 }
             }
         }
@@ -303,7 +295,8 @@ int main(int argc, char *argv[])
             output_region.north = res * region.depths;
             output_region.west = 0;
             output_region.east = region.tb_res * values.num_items;
-            /* TODO: ew_res is more complex than just res, perhaps mean of distances if we store them */
+            /* TODO: ew_res is more complex than just res, perhaps mean of
+             * distances if we store them */
             output_region.ew_res = res;
             output_region.ns_res = region.tb_res;
 
@@ -334,14 +327,14 @@ int main(int argc, char *argv[])
     Rast_write_colors(parm.raster_output->answer, G_mapset(), &colors);
 
     exit(EXIT_SUCCESS);
-}                               /* Done with main */
+} /* Done with main */
 
 /* Calculate the Profile Now */
 /* Establish parameters */
-int do_profile(double e1, double e2, double n1, double n2,
-               int coords, double res, RASTER3D_Map * fd, int data_type,
-               FILE * fp, char *null_string, const char *unit, double factor,
-               RASTER3D_Region * region, int depth, struct DoubleList *values)
+int do_profile(double e1, double e2, double n1, double n2, int coords,
+               double res, RASTER3D_Map *fd, int data_type, FILE *fp,
+               char *null_string, const char *unit, double factor,
+               RASTER3D_Region *region, int depth, struct DoubleList *values)
 {
     double rows, cols, LEN;
     double Y, X, k;
@@ -353,7 +346,8 @@ int do_profile(double e1, double e2, double n1, double n2,
     G_message(_("Approx. transect length: %f [%s]"), LEN / factor, unit);
 
     if (!G_point_in_region(e2, n2))
-        G_warning(_("Endpoint coordinates are outside of current region settings"));
+        G_warning(
+            _("Endpoint coordinates are outside of current region settings"));
 
     /* Calculate Azimuth of Line */
     if (rows == 0 && cols == 0) {
@@ -419,4 +413,4 @@ int do_profile(double e1, double e2, double n1, double n2,
      * return dist;
      */
     return 0;
-}                               /* done with do_profile */
+} /* done with do_profile */

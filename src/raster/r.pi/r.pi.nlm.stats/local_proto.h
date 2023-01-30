@@ -17,32 +17,30 @@
 #define GLOBAL extern
 #endif
 
-typedef struct
-{
+typedef struct {
     int x, y;
 } Point;
 
-typedef DCELL(f_statmethod) (DCELL *, int);
-typedef int (f_func) (DCELL *, Coords **, int);
+typedef DCELL(f_statmethod)(DCELL *, int);
+typedef int(f_func)(DCELL *, Coords **, int);
 
 void print_buffer(int *buffer, int sx, int sy);
 void print_map(double *map, int size);
 
 /* func.c */
 void FractalIter(double *map, double d, double dmod, int n, int size);
-double DownSample(double *map, double min, int x, int y, int newcols, int newrows,
-		  int oldsize);
+double DownSample(double *map, double min, int x, int y, int newcols,
+                  int newrows, int oldsize);
 double CutValues(double *map, double mapcover, int size);
-double UpSample(int *map, int x, int y, int oldcols, int oldrows,
-		int newsize);
+double UpSample(int *map, int x, int y, int oldcols, int oldrows, int newsize);
 void MinMax(double *map, double *min, double *max, int size);
 
 /* method.c */
-int f_nearest_dist(DCELL * vals, Coords ** frags, int count);
-int f_area(DCELL * vals, Coords ** frags, int count);
-int f_perim(DCELL * vals, Coords ** frags, int count);
-int f_shapeindex(DCELL * vals, Coords ** frags, int count);
-int f_frac_dim(DCELL * vals, Coords ** frags, int count);
+int f_nearest_dist(DCELL *vals, Coords **frags, int count);
+int f_area(DCELL *vals, Coords **frags, int count);
+int f_perim(DCELL *vals, Coords **frags, int count);
+int f_shapeindex(DCELL *vals, Coords **frags, int count);
+int f_frac_dim(DCELL *vals, Coords **frags, int count);
 
 /* fractal.c */
 void create_map(int *res, int size);

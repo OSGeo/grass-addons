@@ -2,12 +2,12 @@
 #include "globals.h"
 #include "loc_func.h"
 
-void display_one_point(View * view, double east, double north)
+void display_one_point(View *view, double east, double north)
 {
     int row, col, x, y;
 
-     /*TODO*/ northing_to_row(&view->cell.head, north, &row);	// + .5;
-    easting_to_col(&view->cell.head, east, &col);	// + .5;
+    /*TODO*/ northing_to_row(&view->cell.head, north, &row); // + .5;
+    easting_to_col(&view->cell.head, east, &col);            // + .5;
     y = row_to_view(view, row);
     x = col_to_view(view, col);
     dot(x, y);
@@ -32,15 +32,14 @@ void dot(x, y)
 }
 
 int point_in_view(view, east, north)
-     View *view;
-     double north, east;
+View *view;
+double north, east;
 {
-    if ((north <= view->cell.head.north) &&
-	(north >= view->cell.head.south) &&
-	(east <= view->cell.head.east) && (east >= view->cell.head.west))
-	return 1;
+    if ((north <= view->cell.head.north) && (north >= view->cell.head.south) &&
+        (east <= view->cell.head.east) && (east >= view->cell.head.west))
+        return 1;
     else
-	return 0;
+        return 0;
 }
 
 void rectangle(x_screen1, y_screen1, x_screen2, y_screen2)

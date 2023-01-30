@@ -6,9 +6,7 @@
 
 #include "keyvalue.h"
 
-
-struct Demand
-{
+struct Demand {
     const char *filename;
     int **table;
     int *years;
@@ -17,8 +15,7 @@ struct Demand
     const char *separator;
 };
 
-struct Potential
-{
+struct Potential {
     const char *filename;
     double **predictors;
     double *intercept;
@@ -30,8 +27,7 @@ struct Potential
     const char *separator;
 };
 
-struct PatchSizes
-{
+struct PatchSizes {
     const char *filename;
     // array of patches
     int **patch_sizes;
@@ -41,18 +37,15 @@ struct PatchSizes
     int max_patch_size;
     // use single column for all regions
     bool single_column;
-
 };
 
-struct SegmentMemory
-{
+struct SegmentMemory {
     int rows;
     int cols;
     int in_memory;
 };
 
-struct Segments
-{
+struct Segments {
     SEGMENT developed;
     SEGMENT subregions;
     SEGMENT potential_subregions;
@@ -64,8 +57,7 @@ struct Segments
     bool use_potential_subregions;
 };
 
-struct RasterInputs
-{
+struct RasterInputs {
     const char *developed;
     const char *regions;
     const char *potential_regions;
@@ -74,9 +66,7 @@ struct RasterInputs
     const char *weights;
 };
 
-
-struct UndevelopedCell
-{
+struct UndevelopedCell {
 
     size_t id;
     float probability;
@@ -84,8 +74,7 @@ struct UndevelopedCell
     bool tried;
 };
 
-struct Undeveloped
-{
+struct Undeveloped {
     int max_subregions;
     size_t *max;
     size_t *num;
@@ -95,16 +84,19 @@ struct Undeveloped
 size_t estimate_undev_size(struct RasterInputs inputs);
 void initialize_incentive(struct Potential *potential_info, float exponent);
 void read_input_rasters(struct RasterInputs inputs, struct Segments *segments,
-                        struct SegmentMemory segment_info, struct KeyValueIntInt *region_map,
+                        struct SegmentMemory segment_info,
+                        struct KeyValueIntInt *region_map,
                         struct KeyValueIntInt *reverse_region_map,
                         struct KeyValueIntInt *potential_region_map);
 void read_predictors(struct RasterInputs inputs, struct Segments *segments,
                      const struct Potential *potential,
                      const struct SegmentMemory segment_info);
-void read_demand_file(struct Demand *demandInfo, struct KeyValueIntInt *region_map);
-void read_potential_file(struct Potential *potentialInfo, struct KeyValueIntInt *region_map,
-                         int num_predictors);
-void read_patch_sizes(struct PatchSizes *patch_sizes, struct KeyValueIntInt *region_map,
+void read_demand_file(struct Demand *demandInfo,
+                      struct KeyValueIntInt *region_map);
+void read_potential_file(struct Potential *potentialInfo,
+                         struct KeyValueIntInt *region_map, int num_predictors);
+void read_patch_sizes(struct PatchSizes *patch_sizes,
+                      struct KeyValueIntInt *region_map,
                       double discount_factor);
 
 #endif // FUTURES_INPUTS_H

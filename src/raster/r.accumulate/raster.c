@@ -5,13 +5,13 @@ void set(struct raster_map *buf, int row, int col, double value)
 {
     switch (buf->type) {
     case CELL_TYPE:
-        buf->map.c[row][col] = (CELL) value;
+        buf->map.c[row][col] = (CELL)value;
         break;
     case FCELL_TYPE:
-        buf->map.f[row][col] = (FCELL) value;
+        buf->map.f[row][col] = (FCELL)value;
         break;
     case DCELL_TYPE:
-        buf->map.d[row][col] = (DCELL) value;
+        buf->map.d[row][col] = (DCELL)value;
         break;
     }
 }

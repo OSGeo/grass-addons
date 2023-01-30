@@ -17,32 +17,31 @@
 #define GLOBAL extern
 #endif
 
-typedef struct
-{
+typedef struct {
     int x, y;
 } Point;
 
-typedef struct
-{
+typedef struct {
     int x, y;
     int patch;
 } PatchPoint;
 
-typedef DCELL(f_statmethod) (DCELL *, int);
-typedef DCELL(f_compensate) (DCELL, int);
+typedef DCELL(f_statmethod)(DCELL *, int);
+typedef DCELL(f_compensate)(DCELL, int);
 
 void print_buffer(int *buffer, int sx, int sy);
-void print_d_buffer(DCELL * buffer, int sx, int sy);
+void print_d_buffer(DCELL *buffer, int sx, int sy);
 void print_map(double *map, int size);
-void print_array(DCELL * buffer, int size);
+void print_array(DCELL *buffer, int size);
 void print_fragments();
 
 /* voronoi.c */
-void voronoi(DCELL * values, int *map, int sx, int sy, int diag_move, int fragcount);
-void calc_neighbors(DCELL * res, DCELL * focals, f_statmethod **methods,
-		    int stat_count, f_compensate compensate,
-		    int neighbor_level, int fragcount);
-void getNeighborCount(DCELL * res, int fragcount);
+void voronoi(DCELL *values, int *map, int sx, int sy, int diag_move,
+             int fragcount);
+void calc_neighbors(DCELL *res, DCELL *focals, f_statmethod **methods,
+                    int stat_count, f_compensate compensate, int neighbor_level,
+                    int fragcount);
+void getNeighborCount(DCELL *res, int fragcount);
 
 /* compensation.c */
 DCELL none(DCELL value, int frag);

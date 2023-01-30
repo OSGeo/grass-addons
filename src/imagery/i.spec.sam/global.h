@@ -29,8 +29,7 @@ extern DCELL **result_cell;
 extern int *resultfd;
 
 extern DCELL **error_cell;
-extern int  error_fd;
+extern int error_fd;
 
 extern char result_name[80];
 extern char *result_prefix;
-

@@ -1,7 +1,8 @@
 ﻿/*
  * r.univar
  *
- *  Calculates univariate statistics from the non-null cells of a GRASS raster map
+ *  Calculates univariate statistics from the non-null cells of a GRASS raster
+ * map
  *
  *   Copyright (C) 2004-2006, 2012 by the GRASS Development Team
  *   Author(s): Hamish Bowman, University of Otago, New Zealand
@@ -58,8 +59,8 @@ void set_params()
     param.tolerance->required = NO;
     param.tolerance->multiple = NO;
     param.tolerance->answer = "0.5";
-    param.tolerance->description =
-        _("Tolerance to consider float number equal to another when computing the mode");
+    param.tolerance->description = _("Tolerance to consider float number equal "
+                                     "to another when computing the mode");
     param.tolerance->guisection = _("Extended");
 
     param.separator = G_define_standard_option(G_OPT_F_SEP);
@@ -67,8 +68,7 @@ void set_params()
 
     param.shell_style = G_define_flag();
     param.shell_style->key = 'g';
-    param.shell_style->description =
-        _("Print the stats in shell script style");
+    param.shell_style->description = _("Print the stats in shell script style");
     param.shell_style->guisection = _("Formatting");
 
     param.extended = G_define_flag();
@@ -78,7 +78,8 @@ void set_params()
 
     param.table = G_define_flag();
     param.table->key = 't';
-    param.table->description = _("Table output format instead of standard output format");
+    param.table->description =
+        _("Table output format instead of standard output format");
     param.table->guisection = _("Formatting");
 
     return;
@@ -86,11 +87,9 @@ void set_params()
 
 static int open_raster(const char *infile);
 static univar_stat *univar_stat_with_percentiles();
-static void process_raster(univar_stat * stats,
-                           int fd, int fdz,
+static void process_raster(univar_stat *stats, int fd, int fdz,
                            const struct Cell_head *region);
 static void init_zones(int fdz, const struct Cell_head *region);
-
 
 void init_zones(int fdz, const struct Cell_head *region)
 {
@@ -104,7 +103,7 @@ void init_zones(int fdz, const struct Cell_head *region)
     CELL *zptr;
 
     zone_info.n_alloc = 0;
-    zone_info.len = (int *) G_calloc(zone_info.n_zones, sizeof(int));
+    zone_info.len = (int *)G_calloc(zone_info.n_zones, sizeof(int));
 
     zoneraster_row = Rast_allocate_c_buf();
     G_message("Reading the zones map.");
@@ -121,7 +120,7 @@ void init_zones(int fdz, const struct Cell_head *region)
             zone_info.len[zone] += 1;
             zptr++;
         }
-    G_percent(row, rows, 2);
+        G_percent(row, rows, 2);
     }
     /* find the max lenght to understand how much memory nust be allocated */
     for (zone = 0; zone < n_zones; zone++) {
@@ -130,9 +129,6 @@ void init_zones(int fdz, const struct Cell_head *region)
     }
     return;
 }
-
-
-
 
 /* *************************************************************** */
 /* **** the main functions for r.univar ************************** */
@@ -156,8 +152,8 @@ int main(int argc, char *argv[])
     G_add_keyword(_("statistics"));
     G_add_keyword(_("univariate statistics"));
     G_add_keyword(_("zonal statistics"));
-    module->description =
-        _("Calculates univariate statistics from the non-null cells of a raster map.");
+    module->description = _("Calculates univariate statistics from the "
+                            "non-null cells of a raster map.");
 
     /* Define the different options */
     set_params();
@@ -185,8 +181,8 @@ int main(int argc, char *argv[])
     if (strcmp(zone_info.sep, "comma") == 0)
         zone_info.sep = ",";
 
-    zone_info.min = 0.0 / 0.0;        /* set to nan as default */
-    zone_info.max = 0.0 / 0.0;        /* set to nan as default */
+    zone_info.min = 0.0 / 0.0; /* set to nan as default */
+    zone_info.max = 0.0 / 0.0; /* set to nan as default */
     zone_info.n_zones = 0;
 
     fdz = -1;
@@ -216,15 +212,13 @@ int main(int argc, char *argv[])
     sscanf(param.tolerance->answers[0], "%lf", &param.tol);
 
     /* count the input rasters given */
-    for (p = (char **)param.inputfile->answers, rasters = 0;
-         *p; p++, rasters++) ;
+    for (p = (char **)param.inputfile->answers, rasters = 0; *p; p++, rasters++)
+        ;
 
     /* process all input rasters */
     int map_type = param.extended->answer ? -2 : -1;
 
-    stats = ((map_type == -1)
-             ? create_univar_stat_struct(-1, 0)
-             : 0);
+    stats = ((map_type == -1) ? create_univar_stat_struct(-1, 0) : 0);
 
     for (p = param.inputfile->answers; *p; p++) {
         fd = open_raster(*p);
@@ -284,7 +278,7 @@ static int open_raster(const char *infile)
 static univar_stat *univar_stat_with_percentiles()
 {
     univar_stat *stats;
-    unsigned int z, p, n_perc=0;
+    unsigned int z, p, n_perc = 0;
     unsigned int n_zones = zone_info.n_zones;
 
     while (param.percentile->answers[n_perc])
@@ -293,9 +287,9 @@ static univar_stat *univar_stat_with_percentiles()
     /* allocate memory */
     G_debug(3, "Allocate memory for percentile, n_perc=%d", n_perc);
     param.n_perc = n_perc;
-    param.index_perc = (int *) G_calloc(n_perc + 1, sizeof(int));
-    param.quant_perc = (double *) G_calloc(n_perc + 1, sizeof(double));
-    param.perc = (double *) G_calloc(n_perc + 1, sizeof(double));
+    param.index_perc = (int *)G_calloc(n_perc + 1, sizeof(int));
+    param.quant_perc = (double *)G_calloc(n_perc + 1, sizeof(double));
+    param.perc = (double *)G_calloc(n_perc + 1, sizeof(double));
     for (p = 0; p < n_perc; p++) {
         G_debug(3, "Percentile: %s", param.percentile->answers[p]);
         sscanf(param.percentile->answers[p], "%lf", &(param.perc[p]));
@@ -306,13 +300,13 @@ static univar_stat *univar_stat_with_percentiles()
         stats[z].size = zone_info.len[z];
         stats[z].zone = z + zone_info.min;
         stats[z].cat = Rast_get_c_cat(&stats[z].zone, &(zone_info.cats));
-        stats[z].perc = (double *) G_calloc(n_perc, sizeof(double));
+        stats[z].perc = (double *)G_calloc(n_perc, sizeof(double));
     }
     return stats;
 }
 
-static void
-process_raster(univar_stat * stats, int fd, int fdz, const struct Cell_head *region)
+static void process_raster(univar_stat *stats, int fd, int fdz,
+                           const struct Cell_head *region)
 {
     /* use G_window_rows(), G_window_cols() here? */
     const unsigned int rows = region->rows;
@@ -359,15 +353,15 @@ process_raster(univar_stat * stats, int fd, int fdz, const struct Cell_head *reg
                 continue;
             }
 
-            if (param.extended->answer && stats[zone].array == NULL){
+            if (param.extended->answer && stats[zone].array == NULL) {
                 stats[zone].n_alloc = zone_info.len[zone] + 1;
-                stats[zone].array = (DCELL *) G_calloc(stats[zone].n_alloc,
-                                                       sizeof(DCELL));
+                stats[zone].array =
+                    (DCELL *)G_calloc(stats[zone].n_alloc, sizeof(DCELL));
             }
 
-            val = ((map_type == DCELL_TYPE) ? *((DCELL *) ptr)
-                   : (map_type == FCELL_TYPE) ? *((FCELL *) ptr)
-                   : *((CELL *) ptr));
+            val = ((map_type == DCELL_TYPE)   ? *((DCELL *)ptr)
+                   : (map_type == FCELL_TYPE) ? *((FCELL *)ptr)
+                                              : *((CELL *)ptr));
 
             compute_stats(&stats[zone], val, zone_info.len[zone]);
 

@@ -1,4 +1,3 @@
-
 /****************************************************************************
  *
  * MODULE:       i.wavelet
@@ -9,12 +8,13 @@
  *               (-i): Recompose temporal/spectral dimensions
  *               using as input [HP2 + LP2] to recreate LP1
  *               and using as input HP1 along with the recreated LP1
- *               to produced the new data set. 
+ *               to produced the new data set.
  *
  * COPYRIGHT:    (C) 2013 by the GRASS Development Team
  *
- *               This program is free software under the GNU Lesser General Public
- *   	    	 License. Read the file COPYING that comes with GRASS for details.
+ *               This program is free software under the GNU Lesser General
+ *               Public License. Read the file COPYING that comes with GRASS
+ *               for details.
  *
  *****************************************************************************/
 
@@ -33,27 +33,27 @@
 
 int main(int argc, char *argv[])
 {
-    struct Cell_head cellhd;	/*region+header info */
+    struct Cell_head cellhd; /*region+header info */
     int nrows, ncols;
     int row, col;
     struct GModule *module;
     struct Option *input, *output;
-    struct Option *ihp1, *ihp2, *ilp2;/*Recompose*/
-    struct Option *olp1, *ohp1, *ohp2, *olp2;/*Decompose*/
-    struct Option *resolution;/*wavelet resolution*/
+    struct Option *ihp1, *ihp2, *ilp2;        /*Recompose*/
+    struct Option *olp1, *ohp1, *ohp2, *olp2; /*Decompose*/
+    struct Option *resolution;                /*wavelet resolution*/
     struct Flag *flag1, *flag2, *flag3;
-    struct History history;	/*metadata */
-    struct Colors colors;	/*Color rules */
+    struct History history; /*metadata */
+    struct Colors colors;   /*Color rules */
 
     /************************************/
-    char *temp;			/*input raster name */
-    char *result;		/*output raster name */
+    char *temp;   /*input raster name */
+    char *result; /*output raster name */
     /*File Descriptors */
     int nfiles;
     int infd[MAXFILES];
     int outfd[MAXFILES];
-    int outfd1[MAXFILES],outfd2[MAXFILES];
-    int outfd3[MAXFILES],outfd4[MAXFILES];
+    int outfd1[MAXFILES], outfd2[MAXFILES];
+    int outfd3[MAXFILES], outfd4[MAXFILES];
     char **names;
     char **ptr;
     int i = 0, n = 0;
@@ -63,17 +63,17 @@ int main(int argc, char *argv[])
     unsigned char *hp1[MAXFILES];
     unsigned char *hp2[MAXFILES];
 
-    RASTER_MAP_TYPE in_data_type[MAXFILES];	/* 0=numbers  1=text */
-    DCELL **outlp1,**outhp1,**outlp2,**outhp2;
+    RASTER_MAP_TYPE in_data_type[MAXFILES]; /* 0=numbers  1=text */
+    DCELL **outlp1, **outhp1, **outlp2, **outhp2;
     CELL val1, val2;
-    int res=0;/*wavelet sample rate option*/
-    char buffer[16];/*create file names with number extensions*/
-    
+    int res = 0;     /*wavelet sample rate option*/
+    char buffer[16]; /*create file names with number extensions*/
+
     /************************************/
-    struct Ref ref;             /*group handling Decompose*/
-    struct Ref reflp2, refhp2, refhp1;/*group handling Recompose*/
-    int *fd0,*fd1,*fd2,*fd3,*fd4;/*file descriptors group rasters*/
-    /*DCELL **buf0,*buf1,*buf2,*buf3,*buf4;*//*buffers lines group rasters */
+    struct Ref ref;                           /*group handling Decompose*/
+    struct Ref reflp2, refhp2, refhp1;        /*group handling Recompose*/
+    int *fd0, *fd1, *fd2, *fd3, *fd4;         /*file descriptors group rasters*/
+    /*DCELL **buf0,*buf1,*buf2,*buf3,*buf4;*/ /*buffers lines group rasters */
     /************************************/
     G_gisinit(argv[0]);
 
@@ -81,7 +81,8 @@ int main(int argc, char *argv[])
     G_add_keyword(_("imagery"));
     G_add_keyword(_("wavelet"));
     G_add_keyword(_("fusion"));
-    module->description = _("Decompostion/Recomposition in temporal dimension using wavelets");
+    module->description =
+        _("Decompostion/Recomposition in temporal dimension using wavelets");
 
     /* Define the different options for decomposition */
     input = G_define_standard_option(G_OPT_I_GROUP);
@@ -138,7 +139,8 @@ int main(int argc, char *argv[])
 
     flag3 = G_define_flag();
     flag3->key = 'D';
-    flag3->description = _("Use Daubechies wavelets (specify resolution=4,6,8,10,12,14,16,18,20");
+    flag3->description = _(
+        "Use Daubechies wavelets (specify resolution=4,6,8,10,12,14,16,18,20");
     flag3->guisection = _("Wavelets");
 
     /* Define the different values required */
@@ -153,36 +155,39 @@ int main(int argc, char *argv[])
 
     nfiles = 1;
     if (G_parser(argc, argv))
-	exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
 
-    if (flag3->answer){
-        if (resolution->answer){
+    if (flag3->answer) {
+        if (resolution->answer) {
             res = atoi(resolution->answer);
-            if (res==4||res==6||res==8||res==10||res==12
-                ||res==14||res==16||res==18||res==20){
-	        /** Good to go with Flag3 => Daubechies **/
-            }else{
-            G_fatal_error(_("To use Daubechies, you need a valid resolution"));
+            if (res == 4 || res == 6 || res == 8 || res == 10 || res == 12 ||
+                res == 14 || res == 16 || res == 18 || res == 20) {
+                /** Good to go with Flag3 => Daubechies **/
             }
-        } else {
+            else {
+                G_fatal_error(
+                    _("To use Daubechies, you need a valid resolution"));
+            }
+        }
+        else {
             G_fatal_error(_("To use Daubechies, you need a valid resolution"));
         }
-    } 
+    }
 
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
     DCELL *dc;
-    if (!(flag1->answer)){
+    if (!(flag1->answer)) {
         /* ****** DECOMPOSITION ******* */
         if (!I_get_group_ref(input->answer, &ref))
             G_fatal_error(_("Unable to read REF file for group <%s>"),
-                input->answer);
+                          input->answer);
         if (ref.nfiles <= 0)
             G_fatal_error(_("Group <%s> contains no raster maps"),
-                input->answer);
+                          input->answer);
         /* Read Imagery Group */
         fd0 = G_malloc(ref.nfiles * sizeof(int));
-        DCELL **buf0 = (DCELL **) G_malloc(ref.nfiles * sizeof(DCELL *));
+        DCELL **buf0 = (DCELL **)G_malloc(ref.nfiles * sizeof(DCELL *));
         for (n = 0; n < ref.nfiles; n++) {
             buf0[n] = Rast_allocate_d_buf();
             fd0[n] = Rast_open_old(ref.file[n].name, ref.file[n].mapset);
@@ -196,54 +201,55 @@ int main(int argc, char *argv[])
         /* Create New output raster files */
         for (n = 0; n < ref.nfiles; n++) {
             snprintf(buffer, sizeof(buffer), "%d", n);
-            temp=strcat(olp1->answer,".");
-            result=strcat(temp,buffer);
+            temp = strcat(olp1->answer, ".");
+            result = strcat(temp, buffer);
             outfd1[n] = Rast_open_new(result, 1);
             outlp1[n] = Rast_allocate_d_buf();
-            temp=strcat(ohp1->answer,".");
-            result=strcat(temp,buffer);
+            temp = strcat(ohp1->answer, ".");
+            result = strcat(temp, buffer);
             outfd2[n] = Rast_open_new(result, 1);
             outhp1[n] = Rast_allocate_d_buf();
-            temp=strcat(olp2->answer,".");
-            result=strcat(temp,buffer);
+            temp = strcat(olp2->answer, ".");
+            result = strcat(temp, buffer);
             outfd3[n] = Rast_open_new(result, 1);
             outlp2[n] = Rast_allocate_d_buf();
-            temp=strcat(ohp2->answer,".");
-            result=strcat(temp,buffer);
+            temp = strcat(ohp2->answer, ".");
+            result = strcat(temp, buffer);
             outfd4[n] = Rast_open_new(result, 1);
             outhp2[n] = Rast_allocate_d_buf();
         }
         /* read row */
         for (row = 0; row < nrows; row++) {
-	    for (n = 0; n < ref.nfiles; n++) {
+            for (n = 0; n < ref.nfiles; n++) {
                 /* Read one row of the signal input images */
-	        Rast_get_d_row(fd0[n], buf0[n], row);
-	    }
+                Rast_get_d_row(fd0[n], buf0[n], row);
+            }
             /* Process pixels */
             /* #pragma parallel default(shared) private(col)*/
             for (col = 0; col < ncols; col++) {
                 /* Extract temporal array */
-	        for (n = 0; n < ref.nfiles; n++) {
+                for (n = 0; n < ref.nfiles; n++) {
                     dc[n] = buf0[n][col];
                 }
-	        if (flag2->answer) {
-		    dwt_haar_l2(dc, ref.nfiles, buf1, buf2, buf3, buf4);
-	        }
-	        else /*if (flag3->answer) which is daubechies only so far*/ {
-		    dwt_l2(dc, ref.nfiles, buf1, buf2, buf3, buf4, d[res-4], d[res-3], res);
-	        }
-	        for (n = 0; n < ref.nfiles; n++) {
-	            ((DCELL **) outlp1)[n][col] = buf1[n];
-	            ((DCELL **) outhp1)[n][col] = buf2[n];
-	            ((DCELL **) outlp2)[n][col] = buf3[n];
-	            ((DCELL **) outhp2)[n][col] = buf4[n];
+                if (flag2->answer) {
+                    dwt_haar_l2(dc, ref.nfiles, buf1, buf2, buf3, buf4);
+                }
+                else /*if (flag3->answer) which is daubechies only so far*/ {
+                    dwt_l2(dc, ref.nfiles, buf1, buf2, buf3, buf4, d[res - 4],
+                           d[res - 3], res);
+                }
+                for (n = 0; n < ref.nfiles; n++) {
+                    ((DCELL **)outlp1)[n][col] = buf1[n];
+                    ((DCELL **)outhp1)[n][col] = buf2[n];
+                    ((DCELL **)outlp2)[n][col] = buf3[n];
+                    ((DCELL **)outhp2)[n][col] = buf4[n];
                 }
             }
-	    for (n = 0; n < ref.nfiles; n++) {
-	        Rast_put_d_row(fd1[n], outlp1[n]);
-	        Rast_put_d_row(fd2[n], outhp1[n]);
-	        Rast_put_d_row(fd3[n], outlp2[n]);
-	        Rast_put_d_row(fd4[n], outhp2[n]);
+            for (n = 0; n < ref.nfiles; n++) {
+                Rast_put_d_row(fd1[n], outlp1[n]);
+                Rast_put_d_row(fd2[n], outhp1[n]);
+                Rast_put_d_row(fd3[n], outlp2[n]);
+                Rast_put_d_row(fd4[n], outhp2[n]);
             }
         }
         for (n = 0; n < ref.nfiles; n++) {
@@ -261,44 +267,45 @@ int main(int argc, char *argv[])
         G_free(buf2);
         G_free(buf3);
         G_free(buf4);
-    } else {
+    }
+    else {
         /* ****** RECOMPOSITION ******* */
         if (!I_get_group_ref(ilp2->answer, &reflp2))
             G_fatal_error(_("Unable to read REF file for group <%s>"),
-                ilp2->answer);
+                          ilp2->answer);
         if (reflp2.nfiles <= 0)
             G_fatal_error(_("Group <%s> contains no raster maps"),
-                ilp2->answer);
+                          ilp2->answer);
         if (!I_get_group_ref(ihp2->answer, &refhp2))
             G_fatal_error(_("Unable to read REF file for group <%s>"),
-                ihp2->answer);
+                          ihp2->answer);
         if (refhp2.nfiles <= 0)
             G_fatal_error(_("Group <%s> contains no raster maps"),
-                ihp2->answer);
+                          ihp2->answer);
         if (!I_get_group_ref(ihp1->answer, &refhp1))
             G_fatal_error(_("Unable to read REF file for group <%s>"),
-                ihp1->answer);
+                          ihp1->answer);
         if (refhp1.nfiles <= 0)
             G_fatal_error(_("Group <%s> contains no raster maps"),
-                ihp1->answer);
+                          ihp1->answer);
 
         /* Read LP2 Imagery Group */
         fd0 = G_malloc(reflp2.nfiles * sizeof(int));
-        DCELL **ibuf0 = (DCELL **) G_malloc(reflp2.nfiles * sizeof(DCELL *));
+        DCELL **ibuf0 = (DCELL **)G_malloc(reflp2.nfiles * sizeof(DCELL *));
         for (n = 0; n < reflp2.nfiles; n++) {
             ibuf0[n] = Rast_allocate_d_buf();
             fd0[n] = Rast_open_old(reflp2.file[n].name, reflp2.file[n].mapset);
         }
         /* Read HP2 Imagery Group */
         fd1 = G_malloc(refhp2.nfiles * sizeof(int));
-        DCELL **ibuf1 = (DCELL **) G_malloc(refhp2.nfiles * sizeof(DCELL *));
+        DCELL **ibuf1 = (DCELL **)G_malloc(refhp2.nfiles * sizeof(DCELL *));
         for (n = 0; n < refhp2.nfiles; n++) {
             ibuf1[n] = Rast_allocate_d_buf();
             fd1[n] = Rast_open_old(refhp2.file[n].name, refhp2.file[n].mapset);
         }
         /* Read HP1 Imagery Group */
         fd2 = G_malloc(refhp1.nfiles * sizeof(int));
-        DCELL **ibuf2 = (DCELL **) G_malloc(refhp1.nfiles * sizeof(DCELL *));
+        DCELL **ibuf2 = (DCELL **)G_malloc(refhp1.nfiles * sizeof(DCELL *));
         for (n = 0; n < refhp1.nfiles; n++) {
             ibuf2[n] = Rast_allocate_d_buf();
             fd2[n] = Rast_open_old(refhp1.file[n].name, refhp1.file[n].mapset);
@@ -308,46 +315,48 @@ int main(int argc, char *argv[])
         DCELL *buf0 = G_malloc(reflp2.nfiles * sizeof(DCELL *));
         DCELL *buf1 = G_malloc(refhp2.nfiles * sizeof(DCELL *));
         DCELL *buf2 = G_malloc(refhp1.nfiles * sizeof(DCELL *));
-        DCELL *buf3 = G_malloc(refhp1.nfiles * sizeof(DCELL *));/*LP1 in functions*/
+        DCELL *buf3 =
+            G_malloc(refhp1.nfiles * sizeof(DCELL *)); /*LP1 in functions*/
         /* Create New output raster files */
-        DCELL **outbuf = (DCELL **) G_malloc(refhp1.nfiles * sizeof(DCELL *));
+        DCELL **outbuf = (DCELL **)G_malloc(refhp1.nfiles * sizeof(DCELL *));
         for (n = 0; n < refhp1.nfiles; n++) {
             snprintf(buffer, sizeof(buffer), "%d", n);
-            temp=strcat(output->answer,".");
-            result=strcat(temp,buffer);
+            temp = strcat(output->answer, ".");
+            result = strcat(temp, buffer);
             outfd[n] = Rast_open_new(result, 1);
             outrast[n] = Rast_allocate_d_buf();
         }
         /* read row */
         for (row = 0; row < nrows; row++) {
             /* Read one row of the input images */
-	    for (n = 0; n < reflp2.nfiles; n++) 
-	        Rast_get_d_row(fd0[n], ibuf0[n], row);
-	    for (n = 0; n < refhp2.nfiles; n++) 
-	        Rast_get_d_row(fd1[n], ibuf1[n], row);
-	    for (n = 0; n < refhp1.nfiles; n++) 
-	        Rast_get_d_row(fd2[n], ibuf2[n], row);
+            for (n = 0; n < reflp2.nfiles; n++)
+                Rast_get_d_row(fd0[n], ibuf0[n], row);
+            for (n = 0; n < refhp2.nfiles; n++)
+                Rast_get_d_row(fd1[n], ibuf1[n], row);
+            for (n = 0; n < refhp1.nfiles; n++)
+                Rast_get_d_row(fd2[n], ibuf2[n], row);
             /* Process pixels */
             /* #pragma parallel default(shared) private(col)*/
             for (col = 0; col < ncols; col++) {
                 /* Extract temporal array */
-	        for (n = 0; n < reflp2.nfiles; n++) 
+                for (n = 0; n < reflp2.nfiles; n++)
                     buf0[n] = ibuf0[n][col];
-	        for (n = 0; n < refhp2.nfiles; n++) 
+                for (n = 0; n < refhp2.nfiles; n++)
                     buf1[n] = ibuf1[n][col];
-	        for (n = 0; n < refhp1.nfiles; n++) 
+                for (n = 0; n < refhp1.nfiles; n++)
                     buf2[n] = ibuf2[n][col];
-	        if (flag2->answer) {
+                if (flag2->answer) {
                     idwt_haar_l2(buf3, buf2, buf0, buf1, refhp1.nfiles, rc);
-	        }
-	        else /*if (flag3->answer) which is daubechies only so far*/ {
-                    idwt_l2(buf3, buf2, buf0, buf1, refhp1.nfiles, rc, d[res-4], d[res-3], res);
-	        }
-	        for (n = 0; n < refhp1.nfiles; n++) 
-	            ((DCELL **) outbuf)[n][col] = rc[n];
+                }
+                else /*if (flag3->answer) which is daubechies only so far*/ {
+                    idwt_l2(buf3, buf2, buf0, buf1, refhp1.nfiles, rc,
+                            d[res - 4], d[res - 3], res);
+                }
+                for (n = 0; n < refhp1.nfiles; n++)
+                    ((DCELL **)outbuf)[n][col] = rc[n];
             }
-	    for (n = 0; n < refhp1.nfiles; n++)
-	        Rast_put_d_row(outfd[n], outbuf[n]);
+            for (n = 0; n < refhp1.nfiles; n++)
+                Rast_put_d_row(outfd[n], outbuf[n]);
         }
         for (n = 0; n < ref.nfiles; n++) {
             G_free(outlp1[n]);

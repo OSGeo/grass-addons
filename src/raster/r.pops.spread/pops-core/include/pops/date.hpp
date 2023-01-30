@@ -29,8 +29,7 @@ namespace pops {
  * This class represents and manipulates dates in way which is most
  * useful for the PoPS simulation, i.e. by weeks and months.
  */
-class Date
-{
+class Date {
 
 private:
     int year_;
@@ -41,10 +40,10 @@ private:
         {0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}};
 
 public:
-    Date(const Date& d) : year_(d.year_), month_(d.month_), day_(d.day_) {}
+    Date(const Date &d) : year_(d.year_), month_(d.month_), day_(d.day_) {}
     Date(int y, int m, int d) : year_(y), month_(m), day_(d) {}
     Date(std::string date);
-    Date& operator=(const Date&) = default;
+    Date &operator=(const Date &) = default;
     inline void increased_by_days(int num_days);
     inline void increased_by_week();
     inline void increased_by_month();
@@ -62,26 +61,17 @@ public:
     inline bool is_last_day_of_month();
     inline bool is_last_week_of_month();
     inline bool is_leap_year();
-    int month() const
-    {
-        return month_;
-    }
-    int year() const
-    {
-        return year_;
-    }
-    int day() const
-    {
-        return day_;
-    }
+    int month() const { return month_; }
+    int year() const { return year_; }
+    int day() const { return day_; }
     inline int weeks_from_date(Date start);
-    inline friend std::ostream& operator<<(std::ostream& os, const Date& d);
-    inline friend bool operator>(const Date& d1, const Date& d2);
-    inline friend bool operator>=(const Date& d1, const Date& d2);
-    inline friend bool operator<(const Date& d1, const Date& d2);
-    inline friend bool operator<=(const Date& d1, const Date& d2);
-    inline friend bool operator==(const Date& d1, const Date& d2);
-    inline friend bool operator!=(const Date& d1, const Date& d2);
+    inline friend std::ostream &operator<<(std::ostream &os, const Date &d);
+    inline friend bool operator>(const Date &d1, const Date &d2);
+    inline friend bool operator>=(const Date &d1, const Date &d2);
+    inline friend bool operator<(const Date &d1, const Date &d2);
+    inline friend bool operator<=(const Date &d1, const Date &d2);
+    inline friend bool operator==(const Date &d1, const Date &d2);
+    inline friend bool operator!=(const Date &d1, const Date &d2);
 };
 
 /*!
@@ -105,7 +95,7 @@ Date::Date(std::string date)
         throw std::invalid_argument("Invalid date specified");
 }
 
-std::ostream& operator<<(std::ostream& os, const Date& d)
+std::ostream &operator<<(std::ostream &os, const Date &d)
 {
     os << d.year_ << '-' << d.month_ << '-' << d.day_;
     return os;
@@ -211,7 +201,7 @@ bool Date::is_leap_year()
     return false;
 }
 
-bool operator>(const Date& d1, const Date& d2)
+bool operator>(const Date &d1, const Date &d2)
 {
     if (d1.year_ < d2.year_)
         return false;
@@ -231,12 +221,12 @@ bool operator>(const Date& d1, const Date& d2)
     }
 }
 
-bool operator<=(const Date& d1, const Date& d2)
+bool operator<=(const Date &d1, const Date &d2)
 {
     return !(d1 > d2);
 }
 
-bool operator<(const Date& d1, const Date& d2)
+bool operator<(const Date &d1, const Date &d2)
 {
     if (d1.year_ > d2.year_)
         return false;
@@ -256,19 +246,19 @@ bool operator<(const Date& d1, const Date& d2)
     }
 }
 
-bool operator>=(const Date& d1, const Date& d2)
+bool operator>=(const Date &d1, const Date &d2)
 {
     return !(d1 < d2);
 }
 
-bool operator==(const Date& d1, const Date& d2)
+bool operator==(const Date &d1, const Date &d2)
 {
     if (d1.year_ == d2.year_ && d1.month_ == d2.month_ && d1.day_ == d2.day_)
         return true;
     return false;
 }
 
-bool operator!=(const Date& d1, const Date& d2)
+bool operator!=(const Date &d1, const Date &d2)
 {
     if (d1 == d2)
         return false;
@@ -446,8 +436,7 @@ int Date::weeks_from_date(Date start)
 /*!
  * Holds begining and end of a season and decides what is in season
  */
-class Season
-{
+class Season {
 public:
     Season(int start, int end) : start_month_(start), end_month_(end) {}
     /*!
@@ -465,6 +454,6 @@ private:
     int end_month_;
 };
 
-}  // namespace pops
+} // namespace pops
 
-#endif  // POPS_DATE_HPP
+#endif // POPS_DATE_HPP

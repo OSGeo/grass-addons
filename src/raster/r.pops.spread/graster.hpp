@@ -28,13 +28,12 @@ extern "C" {
 #include <string>
 #include <type_traits>
 
-
 /** Convert pops::Date to GRASS GIS TimeStamp */
-void date_to_grass(pops::Date date, struct TimeStamp* timestamp)
+void date_to_grass(pops::Date date, struct TimeStamp *timestamp)
 {
     struct DateTime date_time;
-    datetime_set_type(&date_time, DATETIME_ABSOLUTE,
-                      DATETIME_YEAR, DATETIME_DAY, 0);
+    datetime_set_type(&date_time, DATETIME_ABSOLUTE, DATETIME_YEAR,
+                      DATETIME_DAY, 0);
     datetime_set_year(&date_time, date.year());
     datetime_set_month(&date_time, date.month());
     datetime_set_day(&date_time, date.day());
@@ -46,90 +45,89 @@ void date_to_grass(pops::Date date, struct TimeStamp* timestamp)
 // the following overloads based on the type of buffer.
 
 /** Overload for get row function */
-inline void grass_raster_get_row(int fd, DCELL* buffer, int row)
+inline void grass_raster_get_row(int fd, DCELL *buffer, int row)
 {
     Rast_get_d_row(fd, buffer, row);
 }
 
 /** Overload for get row function */
-inline void grass_raster_get_row(int fd, FCELL* buffer, int row)
+inline void grass_raster_get_row(int fd, FCELL *buffer, int row)
 {
     Rast_get_f_row(fd, buffer, row);
 }
 
 /** Overload for get row function */
-inline void grass_raster_get_row(int fd, CELL* buffer, int row)
+inline void grass_raster_get_row(int fd, CELL *buffer, int row)
 {
     Rast_get_c_row(fd, buffer, row);
 }
 
 /** Overload for is null value function */
-inline bool grass_raster_is_null_value(const DCELL* value)
+inline bool grass_raster_is_null_value(const DCELL *value)
 {
     return Rast_is_d_null_value(value);
 }
 
 /** Overload for is null value function */
-inline bool grass_raster_is_null_value(const FCELL* value)
+inline bool grass_raster_is_null_value(const FCELL *value)
 {
     return Rast_is_f_null_value(value);
 }
 
 /** Overload for is null value function */
-inline bool grass_raster_is_null_value(const CELL* value)
+inline bool grass_raster_is_null_value(const CELL *value)
 {
     return Rast_is_c_null_value(value);
 }
 
 /** Set a value to zero (0) if it is null (GRASS GIS NULL) */
 template <typename Number>
-inline void set_null_to_zero(Number* value)
+inline void set_null_to_zero(Number *value)
 {
     if (grass_raster_is_null_value(value))
         *value = 0;
 }
 
 /** Overload for put row function */
-inline void grass_raster_put_row(int fd, DCELL* buffer)
+inline void grass_raster_put_row(int fd, DCELL *buffer)
 {
     Rast_put_d_row(fd, buffer);
 }
 
 /** Overload for put row function */
-inline void grass_raster_put_row(int fd, FCELL* buffer)
+inline void grass_raster_put_row(int fd, FCELL *buffer)
 {
     Rast_put_f_row(fd, buffer);
 }
 
 /** Overload for put row function */
-inline void grass_raster_put_row(int fd, CELL* buffer)
+inline void grass_raster_put_row(int fd, CELL *buffer)
 {
     Rast_put_c_row(fd, buffer);
 }
 
 /** Overload for set null value function */
-inline void grass_raster_set_null(DCELL* buffer, int num_values = 1)
+inline void grass_raster_set_null(DCELL *buffer, int num_values = 1)
 {
     Rast_set_d_null_value(buffer, num_values);
 }
 
 /** Overload for set null value function */
-inline void grass_raster_set_null(FCELL* buffer, int num_values = 1)
+inline void grass_raster_set_null(FCELL *buffer, int num_values = 1)
 {
     Rast_set_f_null_value(buffer, num_values);
 }
 
 /** Overload for set null value function */
-inline void grass_raster_set_null(CELL* buffer, int num_values = 1)
+inline void grass_raster_set_null(CELL *buffer, int num_values = 1)
 {
     Rast_set_c_null_value(buffer, num_values);
 }
 
 /** Policy settings for handling null values in the input */
-enum class NullInputPolicy
-{
-    NullsAsZeros,  ///< Convert null values to zeros
-    NoConversions  ///< Don't do any conversions
+enum class NullInputPolicy {
+    NullsAsZeros, ///< Convert null values to zeros
+    NoConversions ///< Don't do any conversions
 };
 
 // Null values in all inputs we have mean 0 for the model, so using it
@@ -137,10 +135,9 @@ enum class NullInputPolicy
 constexpr auto DefaultNullInputPolicy = NullInputPolicy::NullsAsZeros;
 
 /** Policy settings for handling null values in the output */
-enum class NullOutputPolicy
-{
-    ZerosAsNulls,  ///< Convert zeros to null values
-    NoConversions  ///< Don't do any conversions
+enum class NullOutputPolicy {
+    ZerosAsNulls, ///< Convert zeros to null values
+    NoConversions ///< Don't do any conversions
 };
 
 // We are not producing any null values in the model, so there is no
@@ -159,16 +156,15 @@ constexpr auto DefaultNullOutputPolicy = NullOutputPolicy::NoConversions;
  * Given the types of GRASS GIS raster maps, it supports only
  * int, float, and double (CELL, FCELL, and DCELL).
  */
-template<typename Number>
-inline pops::Raster<Number> raster_from_grass(
-        const char* name,
-        NullInputPolicy null_policy = DefaultNullInputPolicy
-        )
+template <typename Number>
+inline pops::Raster<Number>
+raster_from_grass(const char *name,
+                  NullInputPolicy null_policy = DefaultNullInputPolicy)
 {
     unsigned rows = Rast_window_rows();
     unsigned cols = Rast_window_cols();
     pops::Raster<Number> rast(rows, cols);
-    Number* data = rast.data();
+    Number *data = rast.data();
 
     int fd = Rast_open_old(name, "");
     for (unsigned row = 0; row < rows; row++) {
@@ -186,11 +182,10 @@ inline pops::Raster<Number> raster_from_grass(
 }
 
 /** Overload of raster_from_grass(const char *) */
-template<typename Number>
-inline pops::Raster<Number> raster_from_grass(
-        const std::string& name,
-        NullInputPolicy null_policy = DefaultNullInputPolicy
-        )
+template <typename Number>
+inline pops::Raster<Number>
+raster_from_grass(const std::string &name,
+                  NullInputPolicy null_policy = DefaultNullInputPolicy)
 {
     return raster_from_grass<Number>(name.c_str(), null_policy);
 }
@@ -202,41 +197,34 @@ inline pops::Raster<Number> raster_from_grass(
  * being a member of this struct is issued.
  */
 template <typename Number>
-struct GrassRasterMapType
-{};
+struct GrassRasterMapType {};
 
 /** Specialization for GRASS GIS raster map type convertor */
 template <>
 struct GrassRasterMapType<CELL>
-    : std::integral_constant<RASTER_MAP_TYPE, CELL_TYPE>
-{};
+    : std::integral_constant<RASTER_MAP_TYPE, CELL_TYPE> {};
 
 /** Specialization for GRASS GIS raster map type convertor */
 template <>
 struct GrassRasterMapType<FCELL>
-    : std::integral_constant<RASTER_MAP_TYPE, FCELL_TYPE>
-{};
+    : std::integral_constant<RASTER_MAP_TYPE, FCELL_TYPE> {};
 
 /** Specialization for GRASS GIS raster map type convertor */
 template <>
 struct GrassRasterMapType<DCELL>
-    : std::integral_constant<RASTER_MAP_TYPE, DCELL_TYPE>
-{};
+    : std::integral_constant<RASTER_MAP_TYPE, DCELL_TYPE> {};
 
 /** Write a Raster to a GRASS GIS raster map.
  *
  * When used, the template is resolved based on the parameter.
  */
-template<typename Number>
+template <typename Number>
 void inline raster_to_grass(
-        pops::Raster<Number> raster,
-        const char* name,
-        NullOutputPolicy null_policy = DefaultNullOutputPolicy,
-        const char* title = nullptr,
-        struct TimeStamp* timestamp = nullptr
-        )
+    pops::Raster<Number> raster, const char *name,
+    NullOutputPolicy null_policy = DefaultNullOutputPolicy,
+    const char *title = nullptr, struct TimeStamp *timestamp = nullptr)
 {
-    Number* data = raster.data();
+    Number *data = raster.data();
     unsigned rows = raster.rows();
     unsigned cols = raster.cols();
 
@@ -269,46 +257,38 @@ void inline raster_to_grass(
 }
 
 /** Overload of raster_to_grass() */
-template<typename Number>
-inline void raster_to_grass(
-        pops::Raster<Number> raster,
-        const std::string& name,
-        NullOutputPolicy null_policy = DefaultNullOutputPolicy
-        )
+template <typename Number>
+inline void
+raster_to_grass(pops::Raster<Number> raster, const std::string &name,
+                NullOutputPolicy null_policy = DefaultNullOutputPolicy)
 {
     raster_to_grass<Number>(raster, name.c_str(), null_policy);
 }
 
 /** Overload of raster_to_grass() */
-template<typename Number>
-inline void raster_to_grass(
-        pops::Raster<Number> raster,
-        const std::string& name,
-        const std::string& title,
-        NullOutputPolicy null_policy = DefaultNullOutputPolicy
-        )
+template <typename Number>
+inline void
+raster_to_grass(pops::Raster<Number> raster, const std::string &name,
+                const std::string &title,
+                NullOutputPolicy null_policy = DefaultNullOutputPolicy)
 {
-    raster_to_grass<Number>(raster, name.c_str(), null_policy,
-                            title.c_str());
+    raster_to_grass<Number>(raster, name.c_str(), null_policy, title.c_str());
 }
 
 /** Overload of raster_to_grass()
  *
  * Converts PoPS date to GRASS GIS timestamp.
  */
-template<typename Number>
-inline void raster_to_grass(
-        pops::Raster<Number> raster,
-        const std::string& name,
-        const std::string& title,
-        const pops::Date& date,
-        NullOutputPolicy null_policy = DefaultNullOutputPolicy
-        )
+template <typename Number>
+inline void
+raster_to_grass(pops::Raster<Number> raster, const std::string &name,
+                const std::string &title, const pops::Date &date,
+                NullOutputPolicy null_policy = DefaultNullOutputPolicy)
 {
     struct TimeStamp timestamp;
     date_to_grass(date, &timestamp);
-    raster_to_grass<Number>(raster, name.c_str(), null_policy,
-                            title.c_str(), &timestamp);
+    raster_to_grass<Number>(raster, name.c_str(), null_policy, title.c_str(),
+                            &timestamp);
 }
 
 // these two determine the types of numbers used to represent the
@@ -325,21 +305,19 @@ typedef int Integer;
 // const std::string& as parameter while supporting both.
 
 /** Wrapper to read GRASS GIS raster into floating point Raster */
-template<typename String>
-inline pops::Raster<Float> raster_from_grass_float(
-        String name,
-        NullInputPolicy null_policy = DefaultNullInputPolicy
-        )
+template <typename String>
+inline pops::Raster<Float>
+raster_from_grass_float(String name,
+                        NullInputPolicy null_policy = DefaultNullInputPolicy)
 {
     return raster_from_grass<Float>(name, null_policy);
 }
 
 /** Wrapper to read GRASS GIS raster into integer type Raster */
-template<typename String>
-inline pops::Raster<Integer> raster_from_grass_integer(
-        String name,
-        NullInputPolicy null_policy = DefaultNullInputPolicy
-        )
+template <typename String>
+inline pops::Raster<Integer>
+raster_from_grass_integer(String name,
+                          NullInputPolicy null_policy = DefaultNullInputPolicy)
 {
     return raster_from_grass<Integer>(name, null_policy);
 }

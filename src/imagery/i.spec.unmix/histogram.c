@@ -20,8 +20,6 @@ int do_histogram(const char *name, const char *mapset)
     if (fd < 0)
         return 0;
 
-
-
     G_get_window(&region);
 
     nrows = region.rows;

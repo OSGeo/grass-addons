@@ -2,7 +2,8 @@
  *
  * MODULE:       r.fuzzy.set
  * AUTHOR(S):    Jarek Jasiewicz <jarekj amu.edu.pl>
- * PURPOSE:      Calculate membership value of any raster map according user's rules
+ * PURPOSE:      Calculate membership value of any raster map according user's
+ *               rules
  * COPYRIGHT:    (C) 1999-2010 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
@@ -20,19 +21,17 @@
 char *input, *output;
 float shape, height;
 int type, side;
-double p[4];			/* inflection points */
+double p[4]; /* inflection points */
 int num_points;
 
 int main(int argc, char *argv[])
 {
     struct GModule *module;
-    struct Option *par_input,
-	*par_output,
-	*par_points, *par_side, *par_type, *par_height, *par_shape;
+    struct Option *par_input, *par_output, *par_points, *par_side, *par_type,
+        *par_height, *par_shape;
 
     struct Cell_head cellhd;
     struct History history;
-
 
     char *mapset;
     int nrows, ncols;
@@ -49,7 +48,7 @@ int main(int argc, char *argv[])
     G_add_keyword(_("raster"));
     G_add_keyword(_("fuzzy logic"));
     module->description = _("Calculate membership value of any "
-			    "raster map according user's rules.");
+                            "raster map according user's rules.");
 
     par_input = G_define_standard_option(G_OPT_R_INPUT);
     par_input->description = _("Raster map to be fuzzified");
@@ -105,55 +104,55 @@ int main(int argc, char *argv[])
     par_height->guisection = _("Default options");
 
     if (G_parser(argc, argv))
-	exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
 
     input = par_input->answer;
     output = par_output->answer;
 
     if (!strcmp(par_type->answer, "Linear"))
-	type = LINEAR;
+        type = LINEAR;
     else if (!strcmp(par_type->answer, "S-shaped"))
-	type = SSHAPE;
+        type = SSHAPE;
     else if (!strcmp(par_type->answer, "J-shaped"))
-	type = JSHAPE;
+        type = JSHAPE;
     else if (!strcmp(par_type->answer, "G-shaped"))
-	type = GSHAPE;
+        type = GSHAPE;
 
     if (!strcmp(par_side->answer, "both"))
-	side = BOTH;
+        side = BOTH;
     else if (!strcmp(par_side->answer, "left"))
-	side = LEFT;
+        side = LEFT;
     else if (!strcmp(par_side->answer, "right"))
-	side = RIGHT;
+        side = RIGHT;
 
     shape = atof(par_shape->answer);
     if (shape < -1. || shape > 1.)
-	G_fatal_error(_("Shape modifier must be between -1 and 1 but is %f"),
-		      shape);
+        G_fatal_error(_("Shape modifier must be between -1 and 1 but is %f"),
+                      shape);
 
     height = atof(par_height->answer);
     if (height > 1 || height < 0)
-	G_fatal_error(_("Height modifier must be between 0 and 1 but is %f"),
-		      height);
+        G_fatal_error(_("Height modifier must be between 0 and 1 but is %f"),
+                      height);
 
-    num_points = sscanf(par_points->answer,
-			"%lf,%lf,%lf,%lf", &p[0], &p[1], &p[2], &p[3]);
+    num_points = sscanf(par_points->answer, "%lf,%lf,%lf,%lf", &p[0], &p[1],
+                        &p[2], &p[3]);
 
     if (!side && num_points != 4)
-	G_fatal_error(_("Wrong number of values: got %d but need 4"),
-		      num_points);
+        G_fatal_error(_("Wrong number of values: got %d but need 4"),
+                      num_points);
 
     if (side && num_points != 2)
-	G_fatal_error(_("Wrong number of values: got %d but need 2"),
-		      num_points);
+        G_fatal_error(_("Wrong number of values: got %d but need 2"),
+                      num_points);
 
     if (num_points == 2) {
-	if (p[0] > p[1])
-	    G_fatal_error(_("Point sequence must be: a <= b"));
+        if (p[0] > p[1])
+            G_fatal_error(_("Point sequence must be: a <= b"));
     }
     else {
-	if (p[0] > p[1] || p[1] > p[2] || p[2] > p[3])
-	    G_fatal_error(_("Point sequence must be: a <= b; b <= c; c <= d;"));
+        if (p[0] > p[1] || p[1] > p[2] || p[2] > p[3])
+            G_fatal_error(_("Point sequence must be: a <= b; b <= c; c <= d;"));
     }
 
     /* end of interface */
@@ -161,7 +160,7 @@ int main(int argc, char *argv[])
     mapset = (char *)G_find_raster2(input, "");
 
     if (mapset == NULL)
-	G_fatal_error(_("Raster map <%s> not found"), input);
+        G_fatal_error(_("Raster map <%s> not found"), input);
 
     infd = Rast_open_old(input, mapset);
     Rast_get_cellhd(input, mapset, &cellhd);
@@ -177,60 +176,60 @@ int main(int argc, char *argv[])
 
     /* processing */
     for (row = 0; row < nrows; row++) {
-	G_percent(row, nrows, 2);
-	CELL c;
-	FCELL f;
-	DCELL d;
+        G_percent(row, nrows, 2);
+        CELL c;
+        FCELL f;
+        DCELL d;
 
-	Rast_get_row(infd, in_buf, row, raster_type);
+        Rast_get_row(infd, in_buf, row, raster_type);
 
-	for (col = 0; col < ncols; col++) {
+        for (col = 0; col < ncols; col++) {
 
-	    switch (raster_type) {
+            switch (raster_type) {
 
-	    case CELL_TYPE:
-		c = ((CELL *) in_buf)[col];
-		if (Rast_is_null_value(&c, CELL_TYPE))
-		    Rast_set_f_null_value(&tmp, 1);
-		else {
-		    if (0 > (tmp = fuzzy((FCELL) c)))
-			G_warning
-			    ("Cannot determine membership at row %d, col %d",
-			     row, col);
-		    ((FCELL *) out_buf)[col] = tmp;
-		}
-		break;
+            case CELL_TYPE:
+                c = ((CELL *)in_buf)[col];
+                if (Rast_is_null_value(&c, CELL_TYPE))
+                    Rast_set_f_null_value(&tmp, 1);
+                else {
+                    if (0 > (tmp = fuzzy((FCELL)c)))
+                        G_warning(
+                            "Cannot determine membership at row %d, col %d",
+                            row, col);
+                    ((FCELL *)out_buf)[col] = tmp;
+                }
+                break;
 
-	    case FCELL_TYPE:
-		f = ((FCELL *) in_buf)[col];
-		if (Rast_is_null_value(&f, FCELL_TYPE))
-		    Rast_set_f_null_value(&tmp, 1);
-		else {
-		    tmp = fuzzy((FCELL) f);
-		    if (0 > (tmp = fuzzy((FCELL) f)))
-			G_warning
-			    ("Cannot determine membership at row %d, col %d",
-			     row, col);
-		    ((FCELL *) out_buf)[col] = tmp;
-		}
-		break;
+            case FCELL_TYPE:
+                f = ((FCELL *)in_buf)[col];
+                if (Rast_is_null_value(&f, FCELL_TYPE))
+                    Rast_set_f_null_value(&tmp, 1);
+                else {
+                    tmp = fuzzy((FCELL)f);
+                    if (0 > (tmp = fuzzy((FCELL)f)))
+                        G_warning(
+                            "Cannot determine membership at row %d, col %d",
+                            row, col);
+                    ((FCELL *)out_buf)[col] = tmp;
+                }
+                break;
 
-	    case DCELL_TYPE:
-		d = ((DCELL *) in_buf)[col];
-		if (Rast_is_null_value(&d, DCELL_TYPE))
-		    Rast_set_f_null_value(&tmp, 1);
-		else {
-		    if (0 > (tmp = fuzzy((FCELL) d)))
-			G_warning
-			    ("Cannot determine membership at row %d, col %d",
-			     row, col);
-		    ((FCELL *) out_buf)[col] = tmp;
-		}
-		break;
-	    }
-	}
-	Rast_put_row(outfd, out_buf, FCELL_TYPE);
-    }				/* end for */
+            case DCELL_TYPE:
+                d = ((DCELL *)in_buf)[col];
+                if (Rast_is_null_value(&d, DCELL_TYPE))
+                    Rast_set_f_null_value(&tmp, 1);
+                else {
+                    if (0 > (tmp = fuzzy((FCELL)d)))
+                        G_warning(
+                            "Cannot determine membership at row %d, col %d",
+                            row, col);
+                    ((FCELL *)out_buf)[col] = tmp;
+                }
+                break;
+            }
+        }
+        Rast_put_row(outfd, out_buf, FCELL_TYPE);
+    } /* end for */
 
     G_free(in_buf);
     G_free(out_buf);

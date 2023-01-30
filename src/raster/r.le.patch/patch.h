@@ -21,7 +21,6 @@
 #ifndef __PATCH_H__
 #define __PATCH_H__
 
-
 #include <grass/config.h>
 #include <stdio.h>
 #include <sys/types.h>
@@ -33,39 +32,35 @@
 #include <string.h>
 #include <grass/gis.h>
 
-#define  SML   0.5
+#define SML 0.5
 // undefine library's MIN macro
 #undef MIN
-#define  MIN   2
-#define  EQ(a, b)    (a-b < 0.01 && a-b > -0.01 )
-#define  BIG   1000000000.0
-#define  PI    M_PI
+#define MIN      2
+#define EQ(a, b) (a - b < 0.01 && a - b > -0.01)
+#define BIG      1000000000.0
+#define PI       M_PI
 
 extern jmp_buf jmp;
 
-typedef struct __dirdesc
-{
-    int dd_fd;			/* file descriptor */
-    long dd_loc;		/* buf offset of entry from last readddir() */
-    long dd_size;		/* amount of valid data in buffer */
-    long dd_bsize;		/* amount of entries read at a time */
-    long dd_off;		/* Current offset in dir (for telldir) */
-    char *dd_buf;		/* directory data buffer */
+typedef struct __dirdesc {
+    int dd_fd;     /* file descriptor */
+    long dd_loc;   /* buf offset of entry from last readddir() */
+    long dd_size;  /* amount of valid data in buffer */
+    long dd_bsize; /* amount of entries read at a time */
+    long dd_off;   /* Current offset in dir (for telldir) */
+    char *dd_buf;  /* directory data buffer */
 } DIR;
 
-extern DIR *opendir( /* char *dirname */ );
-extern struct dirent *readdir( /* DIR *dirp */ );
-extern int closedir( /* DIR *dirp */ );
+extern DIR *opendir(/* char *dirname */);
+extern struct dirent *readdir(/* DIR *dirp */);
+extern int closedir(/* DIR *dirp */);
 
-
-typedef struct pt
-{
+typedef struct pt {
     int row, col;
     struct pt *next;
 } PT;
 
-typedef struct patch
-{
+typedef struct patch {
     double att;
     int num, n, s, e, w, npts;
     double c_row, c_col;
@@ -78,8 +73,7 @@ typedef struct patch
     struct patch *next;
 } PATCH;
 
-struct CHOICE
-{
+struct CHOICE {
     char fn[GNAME_MAX], reg[GMAPSET_MAX], out[GNAME_MAX], wrum;
     int core2, size2, shape2, edge, fb, coremap, units;
     int perim2, trace, patchmap;
@@ -87,13 +81,11 @@ struct CHOICE
     int att[9], size[9], shape[8], boundary[5], perim[8], core[11];
 };
 
-typedef struct reglist
-{
+typedef struct reglist {
     int att;
     int n, s, e, w;
     struct reglist *next;
 } REGLIST;
-
 
 /** main.c **/
 void user_input();
@@ -122,11 +114,10 @@ FILE *fopen0();
 FILE *fopen1();
 FILE *fopen2();
 
-
 /** trace.c **/
 void cell_clip_drv(int, int, int, int, double **, int, float);
 void cell_clip(DCELL **, DCELL **, int, int, int, int, int, float, int *,
-	       int *);
+               int *);
 int is_not_empty_buffer();
 int center_is_not_null();
 void trace();
@@ -134,7 +125,6 @@ PATCH *get_bd();
 void clockwise();
 void counterclockwise();
 int yes_nb();
-
 
 /** patch.c **/
 void df_patch();
@@ -166,6 +156,5 @@ void save_core();
 void save_size();
 void save_shape();
 void fit();
-
 
 #endif /* __PATCH_H__ */

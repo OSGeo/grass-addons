@@ -18,19 +18,17 @@
 #define GLOBAL extern
 #endif
 
-typedef struct
-{
+typedef struct {
     int x, y;
 } Point;
 
-typedef DCELL(f_statmethod) (DCELL *, int);
-typedef void (f_func) (DCELL *, Coords **, int, f_statmethod);
+typedef DCELL(f_statmethod)(DCELL *, int);
+typedef void(f_func)(DCELL *, Coords **, int, f_statmethod);
 
 /* func.c */
-void f_distance(DCELL * vals, Coords ** frags, int count,
-		f_statmethod statmethod);
-void f_area(DCELL * vals, Coords ** frags, int count,
-	    f_statmethod statmethod);
+void f_distance(DCELL *vals, Coords **frags, int count,
+                f_statmethod statmethod);
+void f_area(DCELL *vals, Coords **frags, int count, f_statmethod statmethod);
 
 /* global parameters */
 GLOBAL Coords **fragments;

@@ -14,29 +14,29 @@ int parseToken(int *res, int pos, char *token)
     c = token;
     tb = begin;
     while (*c != '-' && *c != 0) {
-	*tb = *c;
-	c++;
-	tb++;
+        *tb = *c;
+        c++;
+        tb++;
     }
     G_strip(begin);
 
     if (*c == 0) {
-	res[pos] = atoi(begin);
-	return 1;
+        res[pos] = atoi(begin);
+        return 1;
     }
     c++;
 
     te = end;
     while (*c != 0) {
-	*te = *c;
-	c++;
-	te++;
+        *te = *c;
+        c++;
+        te++;
     }
 
     G_strip(end);
 
     for (i = atoi(begin), count = 0; i <= atoi(end); i++, count++) {
-	res[pos + count] = i;
+        res[pos + count] = i;
     }
     return count;
 }
@@ -49,20 +49,19 @@ int parseInput(int *res, char *input)
 
     c = input;
     while (*c != 0) {
-	/* clear token */
-	memset(token, 0, GNAME_MAX);
-	t = token;
+        /* clear token */
+        memset(token, 0, GNAME_MAX);
+        t = token;
 
+        /* read token */
+        while (*c != ',' && *c != 0) {
+            *t = *c;
+            c++;
+            t++;
+        }
+        c++;
 
-	/* read token */
-	while (*c != ',' && *c != 0) {
-	    *t = *c;
-	    c++;
-	    t++;
-	}
-	c++;
-
-	actPos += parseToken(res, actPos, token);
+        actPos += parseToken(res, actPos, token);
     }
 
     return actPos;

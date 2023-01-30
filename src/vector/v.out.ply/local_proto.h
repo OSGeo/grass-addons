@@ -1,6 +1,6 @@
 /* args.c */
-void parse_args(int, char **, char **, char**, int *, int *, char **,
-                char ***, int *);
+void parse_args(int, char **, char **, char **, int *, int *, char **, char ***,
+                int *);
 
 /* body.c */
 int write_ply_body_ascii(FILE *, struct Map_info *, int, int, int,

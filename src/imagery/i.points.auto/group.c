@@ -31,28 +31,29 @@ int get_group(void)
     /* check if selected source image is in group */
     /* split file in name and mapset */
     if (G_name_is_fully_qualified(group.img, xname, xmapset)) {
-	sname = xname;
-	smapset = xmapset;
+        sname = xname;
+        smapset = xmapset;
     }
     else {
-	sname = group.img;
-	smapset = NULL;
+        sname = group.img;
+        smapset = NULL;
     }
     check_ok = 0;
-    
+
     for (i = 0; i < group.ref.nfiles; i++) {
-	if (!strcmp(sname, group.ref.file[i].name)) {
-	    if (!smapset)
-		check_ok = 1;
-	    else if (!strcmp(smapset, group.ref.file[i].mapset)) {
-		check_ok = 1;
-	    }
-	}
-	if (check_ok)
-	    break;
+        if (!strcmp(sname, group.ref.file[i].name)) {
+            if (!smapset)
+                check_ok = 1;
+            else if (!strcmp(smapset, group.ref.file[i].mapset)) {
+                check_ok = 1;
+            }
+        }
+        if (check_ok)
+            break;
     }
     if (!check_ok)
-        G_fatal_error(_("Source map <%s> is not in group <%s>"), group.img, group.name);
+        G_fatal_error(_("Source map <%s> is not in group <%s>"), group.img,
+                      group.name);
 
     return 1;
 }

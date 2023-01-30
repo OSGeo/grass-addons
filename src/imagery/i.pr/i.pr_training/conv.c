@@ -1,36 +1,35 @@
 #include "globals.h"
-int view_to_col(View * view, int x)
+int view_to_col(View *view, int x)
 {
     return x - view->cell.left;
 }
 
-int view_to_row(View * view, int y)
+int view_to_row(View *view, int y)
 {
     return y - view->cell.top;
 }
 
-int col_to_view(View * view, int col)
+int col_to_view(View *view, int col)
 {
     return view->cell.left + col;
 }
 
-int row_to_view(View * view, int row)
+int row_to_view(View *view, int row)
 {
     return view->cell.top + row;
 }
 
 void row_to_northing(struct Cell_head *cellhd, int row, double location,
-		     double *north)
+                     double *north)
 {
     *north = cellhd->north - (row + location) * cellhd->ns_res;
 }
 
 void col_to_easting(struct Cell_head *cellhd, int col, double location,
-		    double *east)
+                    double *east)
 {
     *east = cellhd->west + (col + location) * cellhd->ew_res;
 }
-
 
 void northing_to_row(struct Cell_head *cellhd, double north, int *row)
 {
@@ -42,8 +41,7 @@ void easting_to_col(struct Cell_head *cellhd, double east, int *col)
     *col = (east - cellhd->west) / cellhd->ew_res;
 }
 
-void from_screen_to_geo(View * view, int x, int y, double *east,
-			double *north)
+void from_screen_to_geo(View *view, int x, int y, double *east, double *north)
 {
     int row, col;
 

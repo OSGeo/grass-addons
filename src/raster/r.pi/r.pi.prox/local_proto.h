@@ -19,8 +19,7 @@
 
 /* func.c */
 int f_proximity(DCELL *, Coords **, int, int, int);
-int f_modified_prox(DCELL * vals, Coords ** frags, int count, int min,
-		    int max);
+int f_modified_prox(DCELL *vals, Coords **frags, int count, int min, int max);
 int f_neighborhood(DCELL *, Coords **, int, int, int);
 
 /* global variables */

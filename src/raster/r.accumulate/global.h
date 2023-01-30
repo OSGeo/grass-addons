@@ -8,31 +8,28 @@
 #define REALLOC_INCREMENT 1024
 
 #ifndef DBL_MAX
-#define DBL_MAX 1.797693E308    /* DBL_MAX approximation */
+#define DBL_MAX 1.797693E308 /* DBL_MAX approximation */
 #endif
 #define OUTLET -DBL_MAX
 
-#define NE 1
-#define N 2
-#define NW 3
-#define W 4
-#define SW 5
-#define S 6
-#define SE 7
-#define E 8
+#define NE     1
+#define N      2
+#define NW     3
+#define W      4
+#define SW     5
+#define S      6
+#define SE     7
+#define E      8
 
-struct cell_map
-{
+struct cell_map {
     int nrows, ncols;
     CELL **c;
 };
 
-struct raster_map
-{
+struct raster_map {
     RASTER_MAP_TYPE type;
     int nrows, ncols;
-    union
-    {
+    union {
         void **v;
         CELL **c;
         FCELL **f;
@@ -40,20 +37,17 @@ struct raster_map
     } map;
 };
 
-struct point_list
-{
+struct point_list {
     int nalloc, n;
     double *x, *y;
 };
 
-struct line
-{
+struct line {
     struct line_pnts *Points;
     double length;
 };
 
-struct line_list
-{
+struct line_list {
     int nalloc, n;
     struct line **lines;
 };
@@ -66,11 +60,9 @@ struct line_list
 
 GLOBAL int dir_checks[3][3][2]
 #ifdef _MAIN_C_
-    = {
-    {{SE, NW}, {S, N}, {SW, NE}},
-    {{E, W}, {0, 0}, {W, E}},
-    {{NE, SW}, {N, S}, {NW, SE}}
-}
+    = {{{SE, NW}, {S, N}, {SW, NE}},
+       {{E, W}, {0, 0}, {W, E}},
+       {{NE, SW}, {N, S}, {NW, SE}}}
 #endif
 ;
 

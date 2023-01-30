@@ -23,17 +23,20 @@ void VectorMask_init(struct VectorMask *vector_mask, const char *name,
     vector_mask->cats = NULL;
     vector_mask->layer = Vect_get_field_number(vector_mask->map_info, layer);
     if (vector_mask->layer > 0 && (cats || where))
-        vector_mask->cats = Vect_cats_set_constraint(vector_mask->map_info, vector_mask->layer,
-                                                     where, cats);
+        vector_mask->cats = Vect_cats_set_constraint(
+            vector_mask->map_info, vector_mask->layer, where, cats);
     vector_mask->map_bbox = G_malloc(sizeof(struct bound_box));
     Vect_get_map_box(vector_mask->map_info, vector_mask->map_bbox);
     vector_mask->nareas = Vect_get_num_areas(vector_mask->map_info);
-    vector_mask->area_bboxes = G_malloc(vector_mask->nareas * sizeof(struct bound_box));
-    vector_mask->area_cats = G_malloc(vector_mask->nareas * sizeof(struct line_cats *));
+    vector_mask->area_bboxes =
+        G_malloc(vector_mask->nareas * sizeof(struct bound_box));
+    vector_mask->area_cats =
+        G_malloc(vector_mask->nareas * sizeof(struct line_cats *));
     int i;
     struct line_cats *area_cats;
     for (i = 1; i <= vector_mask->nareas; i++) {
-        Vect_get_area_box(vector_mask->map_info, i, &vector_mask->area_bboxes[i - 1]);
+        Vect_get_area_box(vector_mask->map_info, i,
+                          &vector_mask->area_bboxes[i - 1]);
         if (vector_mask->cats) {
             /* it would be nice to allocate whole list at once
              * with a library function */
@@ -74,8 +77,8 @@ int VectorMask_point_in(struct VectorMask *vector_mask, double x, double y)
      *   T  T continue
      *   T  F return T
      */
-    //if (!Vect_point_in_box_2d(x, y, vector_mask->map_bbox))
-    //    return vector_mask->inverted;
+    // if (!Vect_point_in_box_2d(x, y, vector_mask->map_bbox))
+    //     return vector_mask->inverted;
     int is_out = TRUE;
     int i;
     for (i = 1; i <= vector_mask->nareas; i++) {
@@ -85,7 +88,8 @@ int VectorMask_point_in(struct VectorMask *vector_mask, double x, double y)
                                          vector_mask->layer, vector_mask->cats))
                 continue;
         }
-        if (Vect_point_in_area(x, y, vector_mask->map_info, i, &vector_mask->area_bboxes[i - 1])) {
+        if (Vect_point_in_area(x, y, vector_mask->map_info, i,
+                               &vector_mask->area_bboxes[i - 1])) {
             is_out = FALSE;
             break;
         }

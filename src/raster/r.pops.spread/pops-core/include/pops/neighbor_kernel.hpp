@@ -32,8 +32,7 @@ namespace pops {
  * one cell in each cooresponding cardial direction, i.e., 1 S and 1 E
  * for SE.
  */
-class DeterministicNeighborDispersalKernel
-{
+class DeterministicNeighborDispersalKernel {
 protected:
     Direction direction_;
 
@@ -51,17 +50,18 @@ public:
      */
     DeterministicNeighborDispersalKernel(Direction dispersal_direction)
         : direction_(dispersal_direction)
-    {}
+    {
+    }
 
     /*! \copybrief RadialDispersalKernel::operator()()
      *
      * Thehere is no randomness, so the *generator*
      * is unused.
      */
-    template<typename Generator>
-    std::tuple<int, int> operator()(Generator& generator, int row, int col)
+    template <typename Generator>
+    std::tuple<int, int> operator()(Generator &generator, int row, int col)
     {
-        UNUSED(generator);  // Deterministic does not need random numbers.
+        UNUSED(generator); // Deterministic does not need random numbers.
         switch (direction_) {
         case Direction::E:
             col += 1;
@@ -108,6 +108,6 @@ public:
     }
 };
 
-}  // namespace pops
+} // namespace pops
 
-#endif  // POPS_NEIGHBOR_KERNEL_HPP
+#endif // POPS_NEIGHBOR_KERNEL_HPP

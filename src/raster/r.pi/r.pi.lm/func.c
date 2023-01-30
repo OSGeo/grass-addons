@@ -1,8 +1,8 @@
 #include "local_proto.h"
 
-void linear_regression(DCELL * x, DCELL * y, int count, DCELL * res_offset,
-		       DCELL * res_slope, DCELL * res_residuals,
-		       DCELL * res_correlation)
+void linear_regression(DCELL *x, DCELL *y, int count, DCELL *res_offset,
+                       DCELL *res_slope, DCELL *res_residuals,
+                       DCELL *res_correlation)
 {
     int i;
     DCELL sum_x = 0;
@@ -20,20 +20,20 @@ void linear_regression(DCELL * x, DCELL * y, int count, DCELL * res_offset,
     DCELL corr;
 
     if (count <= 0)
-	return;
+        return;
 
     for (i = 0; i < count; i++) {
-	DCELL xi = x[i];
-	DCELL yi = y[i];
+        DCELL xi = x[i];
+        DCELL yi = y[i];
 
-	sum_x += xi;
-	sum_y += yi;
-	sum_xy += xi * yi;
-	sum_xx += xi * xi;
-	sum_yy += yi * yi;
+        sum_x += xi;
+        sum_y += yi;
+        sum_xy += xi * yi;
+        sum_xx += xi * xi;
+        sum_yy += yi * yi;
     }
 
-    r_n = 1.0 / (DCELL) count;
+    r_n = 1.0 / (DCELL)count;
     var_x = (sum_xx - sum_x * sum_x * r_n) * r_n;
     var_y = (sum_yy - sum_y * sum_y * r_n) * r_n;
     covar = (sum_xy - sum_x * sum_y * r_n) * r_n;
@@ -46,6 +46,6 @@ void linear_regression(DCELL * x, DCELL * y, int count, DCELL * res_offset,
     *res_correlation = corr;
 
     for (i = 0; i < count; i++) {
-	res_residuals[i] = y[i] - (alpha + beta * x[i]);
+        res_residuals[i] = y[i] - (alpha + beta * x[i]);
     }
 }

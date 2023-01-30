@@ -1,4 +1,3 @@
-
 #ifndef __LOCAL_PROTO_H__
 #define __LOCAL_PROTO_H__
 
@@ -11,49 +10,43 @@
 #include "seg.h"
 #include "flag.h"
 
-#define INDEX(r, c) ((GW_LARGE_INT)(r) * ncols + (c))
-#define MAXDEPTH 1000     /* maximum supported tree depth of stream network */
+#define INDEX(r, c) ((GW_LARGE_INT)(r)*ncols + (c))
+#define MAXDEPTH    1000 /* maximum supported tree depth of stream network */
 
-struct ddir
-{
+struct ddir {
     int pos;
     int dir;
 };
 
-struct point
-{
+struct point {
     int r, c;
 };
 
 struct heap_point {
-   GW_LARGE_INT added;
-   CELL ele;
-   int r, c;
+    GW_LARGE_INT added;
+    CELL ele;
+    int r, c;
 };
 
-struct sink_list
-{
+struct sink_list {
     int r, c;
     struct sink_list *next;
 };
 
-struct snode
-{
+struct snode {
     int r, c;
     int id;
-    int n_trib;           /* number of tributaries */
-    int n_trib_total;     /* number of all upstream stream segments */
-    int n_alloc;          /* n allocated tributaries */
+    int n_trib;       /* number of tributaries */
+    int n_trib_total; /* number of all upstream stream segments */
+    int n_alloc;      /* n allocated tributaries */
     int *trib;
     double *acc;
 };
 
-struct dir_flag
-{
-   char dir;
-   char flag;
+struct dir_flag {
+    char dir;
+    char flag;
 };
-
 
 extern struct snode *stream_node;
 extern int nrows, ncols;

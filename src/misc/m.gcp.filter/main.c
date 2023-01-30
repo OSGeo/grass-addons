@@ -1,9 +1,8 @@
-
 /****************************************************************************
  *
  * MODULE:       m.gcp.filter
  * AUTHOR(S):    Markus Metz
- * 		 based on m.transform
+ *                  based on m.transform
  * PURPOSE:      Utility to filter GCPs with RMS threshold
  * COPYRIGHT:    (C) 2006-2014 by the GRASS Development Team
  *
@@ -23,14 +22,12 @@
 #include <grass/imagery.h>
 #include <grass/glocale.h>
 
-struct Max
-{
+struct Max {
     int idx;
     double val;
 };
 
-struct Stats
-{
+struct Stats {
     struct Max x, y, g;
     double sum2, rms;
 };
@@ -56,13 +53,13 @@ static struct Stats fwd, rev;
 static void update_max(struct Max *m, int n, double k)
 {
     if (k > m->val) {
-	m->idx = n;
-	m->val = k;
+        m->idx = n;
+        m->val = k;
     }
 }
 
 static void update_stats(struct Stats *st, int n, double dx, double dy,
-			 double dg, double d2)
+                         double dg, double d2)
 {
     update_max(&st->x, n, dx);
     update_max(&st->y, n, dy);
@@ -78,159 +75,158 @@ static void diagonal(double *dg, double *d2, double dx, double dy)
 
 static void compute_transformation(void)
 {
-    static const int order_pnts[3] = { 3, 6, 10 };
+    static const int order_pnts[3] = {3, 6, 10};
     int n;
 
     equation_stat =
-	I_compute_georef_equations(&points, E12, N12, E21, N21, order);
+        I_compute_georef_equations(&points, E12, N12, E21, N21, order);
 
     if (equation_stat == 0)
-	G_fatal_error(_("Not enough points, %d are required"),
-		      order_pnts[order - 1]);
+        G_fatal_error(_("Not enough points, %d are required"),
+                      order_pnts[order - 1]);
 
     if (equation_stat <= 0)
-	G_fatal_error(_("Error conducting transform (%d)"), equation_stat);
+        G_fatal_error(_("Error conducting transform (%d)"), equation_stat);
 
     count = 0;
 
     for (n = 0; n < points.count; n++) {
-	double e1, n1, e2, n2;
-	double fx, fy, fd, fd2;
-	double rx, ry, rd, rd2;
+        double e1, n1, e2, n2;
+        double fx, fy, fd, fd2;
+        double rx, ry, rd, rd2;
 
-	if (points.status[n] <= 0)
-	    continue;
+        if (points.status[n] <= 0)
+            continue;
 
-	count++;
+        count++;
 
-	if (need_fwd) {
-	    I_georef(points.e1[n], points.n1[n], &e2, &n2, E12, N12, order);
+        if (need_fwd) {
+            I_georef(points.e1[n], points.n1[n], &e2, &n2, E12, N12, order);
 
-	    fx = fabs(e2 - points.e2[n]);
-	    fy = fabs(n2 - points.n2[n]);
+            fx = fabs(e2 - points.e2[n]);
+            fy = fabs(n2 - points.n2[n]);
 
-	    diagonal(&fd, &fd2, fx, fy);
+            diagonal(&fd, &fd2, fx, fy);
 
-	    update_stats(&fwd, n, fx, fy, fd, fd2);
-	}
+            update_stats(&fwd, n, fx, fy, fd, fd2);
+        }
 
-	if (need_rev) {
-	    I_georef(points.e2[n], points.n2[n], &e1, &n1, E21, N21, order);
+        if (need_rev) {
+            I_georef(points.e2[n], points.n2[n], &e1, &n1, E21, N21, order);
 
-	    rx = fabs(e1 - points.e1[n]);
-	    ry = fabs(n1 - points.n1[n]);
+            rx = fabs(e1 - points.e1[n]);
+            ry = fabs(n1 - points.n1[n]);
 
-	    diagonal(&rd, &rd2, rx, ry);
+            diagonal(&rd, &rd2, rx, ry);
 
-	    update_stats(&rev, n, rx, ry, rd, rd2);
-	}
+            update_stats(&rev, n, rx, ry, rd, rd2);
+        }
     }
 
     if (count > 0) {
-	fwd.rms = sqrt(fwd.sum2 / count);
-	rev.rms = sqrt(rev.sum2 / count);
+        fwd.rms = sqrt(fwd.sum2 / count);
+        rev.rms = sqrt(rev.sum2 / count);
     }
 }
 
 static void filter(void)
 {
-    static const int order_pnts[3] = { 3, 6, 10 };
+    static const int order_pnts[3] = {3, 6, 10};
     int i, nvalid;
     double rms1, *rms, *c;
-    
+
     nvalid = 0;
     for (i = 0; i < points.count; i++) {
-	if (points.status[i] > 0)
-	    nvalid++;
+        if (points.status[i] > 0)
+            nvalid++;
     }
 
     if (nvalid < order_pnts[order - 1])
-	G_fatal_error(_("Not enough points, %d are required"),
-		      order_pnts[order - 1]);
+        G_fatal_error(_("Not enough points, %d are required"),
+                      order_pnts[order - 1]);
 
     if (nvalid == order_pnts[order - 1]) {
-	G_warning(_("The number of valid points can not be reduced"));
+        G_warning(_("The number of valid points can not be reduced"));
 
-	printf("use=%d\n", nvalid);
-	printf("filtered=%d\n", filtered);
-	printf("rms=0\n");
+        printf("use=%d\n", nvalid);
+        printf("filtered=%d\n", filtered);
+        printf("rms=0\n");
 
-	return;
+        return;
     }
 
     if (niter <= 0)
-	niter = nvalid;
+        niter = nvalid;
 
     rms1 = -1;
     if (need_fwd)
-	rms = &fwd.rms;
+        rms = &fwd.rms;
     else
-	rms = &rev.rms;
-    
+        rms = &rev.rms;
+
     c = rms;
     if (!use_rms) {
-	if (need_fwd)
-	    c = &fwd.g.val;
-	else
-	    c = &rev.g.val;
+        if (need_fwd)
+            c = &fwd.g.val;
+        else
+            c = &rev.g.val;
     }
-    
+
     i = 0;
     while (i < niter) {
-	/* reset stats */
-	fwd.sum2 = fwd.rms = 0;
-	fwd.x.idx = -1;
-	fwd.x.val = -1;
-	fwd.y.idx = -1;
-	fwd.y.val = -1;
-	fwd.g.idx = -1;
-	fwd.g.val = -1;
-	
-	rev.sum2 = rev.rms = 0;
-	rev.x.idx = -1;
-	rev.x.val = -1;
-	rev.y.idx = -1;
-	rev.y.val = -1;
-	rev.g.idx = -1;
-	rev.g.val = -1;
+        /* reset stats */
+        fwd.sum2 = fwd.rms = 0;
+        fwd.x.idx = -1;
+        fwd.x.val = -1;
+        fwd.y.idx = -1;
+        fwd.y.val = -1;
+        fwd.g.idx = -1;
+        fwd.g.val = -1;
 
-	compute_transformation();
-	i++;
-	
-	if (rms1 == -1) {
-	    rms1 = *rms;
-	}
+        rev.sum2 = rev.rms = 0;
+        rev.x.idx = -1;
+        rev.x.val = -1;
+        rev.y.idx = -1;
+        rev.y.val = -1;
+        rev.g.idx = -1;
+        rev.g.val = -1;
 
-	if (*c < threshold)
-	    break;
+        compute_transformation();
+        i++;
 
-	if (need_fwd) {
-	    if (fwd.g.val > 0) {
-		points.status[fwd.g.idx] = 0;
-		filtered++;
-		nvalid--;
-	    }
-	    else
-		break;
-	}
-	else {
-	    if (rev.g.val > 0) {
-		points.status[rev.g.idx] = 0;
-		filtered++;
-		nvalid--;
-	    }
-	    else
-		break;
-	}
+        if (rms1 == -1) {
+            rms1 = *rms;
+        }
 
-	if (nvalid == order_pnts[order - 1])
-	    break;
+        if (*c < threshold)
+            break;
+
+        if (need_fwd) {
+            if (fwd.g.val > 0) {
+                points.status[fwd.g.idx] = 0;
+                filtered++;
+                nvalid--;
+            }
+            else
+                break;
+        }
+        else {
+            if (rev.g.val > 0) {
+                points.status[rev.g.idx] = 0;
+                filtered++;
+                nvalid--;
+            }
+            else
+                break;
+        }
+
+        if (nvalid == order_pnts[order - 1])
+            break;
     }
     printf("use=%d\n", nvalid);
     printf("filtered=%d\n", filtered);
     printf("rms=%g\n", *rms);
 }
-
 
 int main(int argc, char **argv)
 {
@@ -245,8 +241,7 @@ int main(int argc, char **argv)
     G_add_keyword(_("miscellaneous"));
     G_add_keyword(_("transformation"));
     G_add_keyword("GCP");
-    module->description =
-	_("Filter Ground Control Points (GCPs).");
+    module->description = _("Filter Ground Control Points (GCPs).");
 
     grp = G_define_standard_option(G_OPT_I_GROUP);
 
@@ -271,7 +266,8 @@ int main(int argc, char **argv)
 
     rev_flag = G_define_flag();
     rev_flag->key = 'b';
-    rev_flag->description = _("Use backward transformations (default: forward transformations)");
+    rev_flag->description =
+        _("Use backward transformations (default: forward transformations)");
 
     dev_flag = G_define_flag();
     dev_flag->key = 'd';
@@ -282,23 +278,21 @@ int main(int argc, char **argv)
     up_flag->description = _("Update GCPs");
 
     if (G_parser(argc, argv))
-	exit(EXIT_FAILURE);
-
+        exit(EXIT_FAILURE);
 
     name = grp->answer;
     order = atoi(val->answer);
     threshold = atof(thresh->answer);
     if (threshold <= 0)
-	G_fatal_error(_("Option '%s' must be positive"), thresh->key);
+        G_fatal_error(_("Option '%s' must be positive"), thresh->key);
     if (threshold != threshold)
-	G_fatal_error(_("Invalid option '%s'"), thresh->key);
+        G_fatal_error(_("Invalid option '%s'"), thresh->key);
     niter = -1;
     if (maxiter->answer)
-	niter = atoi(maxiter->answer);
-
+        niter = atoi(maxiter->answer);
 
     if (!I_get_control_points(name, &points))
-	G_fatal_error(_("Unable to read points for group <%s>"), name);
+        G_fatal_error(_("Unable to read points for group <%s>"), name);
 
     filtered = 0;
 
@@ -309,7 +303,7 @@ int main(int argc, char **argv)
     filter();
 
     if (up_flag->answer && filtered > 0)
-	I_put_control_points(name, &points);
+        I_put_control_points(name, &points);
 
     exit(EXIT_SUCCESS);
 }

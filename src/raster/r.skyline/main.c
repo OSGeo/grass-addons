@@ -1,4 +1,3 @@
-
 /***********************************************************************/
 /*
    r.skyline
@@ -38,7 +37,7 @@
 
    ACKNOWLEDGEMENTS
 
-   Mergesort in sort.c uses algorithm from R. Sedgewick, 1990, 
+   Mergesort in sort.c uses algorithm from R. Sedgewick, 1990,
    'Algorithms in C', Reading, MA: Addison Wesley
 
    Skyline index emerged out of conversations with Barney Harris
@@ -79,8 +78,8 @@
 
    Parameters:
    viewshed=name [required] Raster map containing first viewshed map
-   viewshed_2=name [required] Raster map containing second viewshed map (for skyline index)
-   dem=string Raster map containing elevation data
+   viewshed_2=name [required] Raster map containing second viewshed map (for
+   skyline index) dem=string Raster map containing elevation data
    hoz_azimuth=string Raster map name for storing far horizon azimuth
    hoz_inclination=string Raster map name for storing far horizon inclination
    hoz_type=string Raster map name for storing horizon type
@@ -97,7 +96,7 @@
 
    NOTES
 
-   ***** 
+   *****
 
    TO DO
 
@@ -109,7 +108,6 @@
  */
 
 /***********************************************************************/
-
 
 #define MAIN
 
@@ -124,7 +122,6 @@
 #include "raster_file.h"
 #include "skyline.h"
 #include "sort.h"
-
 
 int main(int argc, char *argv[])
 {
@@ -156,7 +153,7 @@ int main(int argc, char *argv[])
     int nrows, ncols, row, col;
     int side_ew_cells, side_ns_cells;
     int e_box1, w_box1, n_box1, s_box1;
-    struct node edge_tail;      /* Dummy tail node common to all lists */
+    struct node edge_tail; /* Dummy tail node common to all lists */
     struct node edge_head, *edge_cur;
     struct node *quad1_hoz_head, *quad2_hoz_head, *quad3_hoz_head,
         *quad4_hoz_head;
@@ -165,11 +162,10 @@ int main(int argc, char *argv[])
     struct Option *edges, *skyline, *profile, *opt_viewpt, *opt_max_dist;
     int overwrite;
 
+    /***********************************************************************
+       Options
 
-/***********************************************************************
-   Options                                                             
-
-***********************************************************************/
+    ***********************************************************************/
 
     /* Initialize the GIS calls and sort out error handling */
 
@@ -183,8 +179,8 @@ int main(int argc, char *argv[])
     G_add_keyword(_("viewshed"));
     G_add_keyword(_("horizon"));
     G_add_keyword(_("skyline"));
-    module->description =
-        _("Compute the skyline index and / or find the horizon cells in a raster viewshed.");
+    module->description = _("Compute the skyline index and / or find the "
+                            "horizon cells in a raster viewshed.");
 
     /* Define the options */
 
@@ -217,8 +213,7 @@ int main(int argc, char *argv[])
     hoz_az->type = TYPE_STRING;
     hoz_az->required = NO;
     hoz_az->gisprompt = "new,cell,raster";
-    hoz_az->description =
-        _("Raster map name for storing far horizon azimuth");
+    hoz_az->description = _("Raster map name for storing far horizon azimuth");
 
     hoz_inc = G_define_option();
     hoz_inc->key = "hoz_inclination";
@@ -261,8 +256,7 @@ int main(int argc, char *argv[])
     opt_viewpt->type = TYPE_STRING;
     opt_viewpt->required = YES;
     opt_viewpt->key_desc = "x,y";
-    opt_viewpt->description =
-        _("Coordinate identifying the viewing location");
+    opt_viewpt->description = _("Coordinate identifying the viewing location");
 
     opt_max_dist = G_define_option();
     opt_max_dist->key = "max_dist";
@@ -339,16 +333,15 @@ int main(int argc, char *argv[])
     edges_buf_cell_type = edges_map_cell_type;
     skyline_buf_cell_type = skyline_map_cell_type;
 
+    /***********************************************************************
+       Check region and find bounding box for analysis
 
-/***********************************************************************
-   Check region and find bounding box for analysis                     
-
-***********************************************************************/
+    ***********************************************************************/
 
     /* Get current region */
     G_get_window(&window);
     nrows = Rast_window_rows();
-    n_row = 0;                  /* Origin is top left */
+    n_row = 0; /* Origin is top left */
     s_row = nrows - 1;
     ncols = Rast_window_cols();
     w_col = 0;
@@ -358,7 +351,8 @@ int main(int argc, char *argv[])
        deal Lat/Long  */
 
     if ((G_projection() == PROJECTION_LL))
-        G_fatal_error(_("Lat/Long support is not (yet) implemented for this module."));
+        G_fatal_error(
+            _("Lat/Long support is not (yet) implemented for this module."));
 
     /* Check for integer resolution.  Algorithm is not robust in
        cases where resolution is non-integer */
@@ -370,9 +364,10 @@ int main(int argc, char *argv[])
 
     /* Check that viewpoint falls within current region */
 
-    if (east < window.west || east > window.east
-        || north > window.north || north < window.south) {
-        G_fatal_error(_("Specified observer location outside database region "));
+    if (east < window.west || east > window.east || north > window.north ||
+        north < window.south) {
+        G_fatal_error(
+            _("Specified observer location outside database region "));
     }
 
     /* Calculate coordinates of bounding box for analysis */
@@ -381,7 +376,6 @@ int main(int argc, char *argv[])
     w_coord = east - max_dist;
     n_coord = north + max_dist;
     s_coord = north - max_dist;
-
 
     /* Correct coordinates if max distance >= current region.  Detect =
        because horizon cells that fall on edge of region will not be
@@ -415,14 +409,15 @@ int main(int argc, char *argv[])
     /* Warn if max distance exceeds current region */
 
     if (clipped) {
-        G_warning(_("Maximum viewing distance exceeds current region.\n    It is recommended that you use the option to produce a\n    'horizon type' map. "));
+        G_warning(_("Maximum viewing distance exceeds current region.\n    It "
+                    "is recommended that you use the option to produce a\n    "
+                    "'horizon type' map. "));
     }
 
+    /***********************************************************************
+      Open first viewshed map and set up lists for keeping track of edges
 
-/***********************************************************************
-  Open first viewshed map and set up lists for keeping track of edges       
-
-***********************************************************************/
+    ***********************************************************************/
 
     viewshed_fd = Open_raster_infile(view->answer, view_mapset, "",
                                      &viewshed_map_cell_type, message);
@@ -442,11 +437,10 @@ int main(int argc, char *argv[])
     Print_raster_buf_row_col(viewshed_buf, viewshed_buf_cell_type, stderr);
 #endif
 
+    /***********************************************************************
+      Find viewshed edges and, if requested, write them
 
-/***********************************************************************
-  Find viewshed edges and, if requested, write them                   
-
-***********************************************************************/
+    ***********************************************************************/
 
     G_message(_("Finding edges of viewshed\n"));
 
@@ -468,8 +462,7 @@ int main(int argc, char *argv[])
         /* Open raster map and allocate memory */
 
         edges_fd = Open_raster_outfile(edges->answer, current_mapset,
-                                       edges_map_cell_type,
-                                       overwrite, message);
+                                       edges_map_cell_type, overwrite, message);
         if (edges_fd < 0)
             G_warning("%s", message);
         else {
@@ -486,31 +479,30 @@ int main(int argc, char *argv[])
 
             /* Write and close output file */
 
-            Write_raster_outfile(edges_buf, edges_fd,
-                                 edges_buf_cell_type, edges_map_cell_type);
+            Write_raster_outfile(edges_buf, edges_fd, edges_buf_cell_type,
+                                 edges_map_cell_type);
             Close_raster_file(edges_fd);
             G_free(edges_buf);
         }
     }
 
+    /***********************************************************************
+      Find horizon and write horizon azimuth map
 
-/***********************************************************************
-  Find horizon and write horizon azimuth map                          
-
-***********************************************************************/
+    ***********************************************************************/
 
     if (do_hoz_az | do_hoz_inc | do_profile | do_skyline) {
         G_message(_("Finding horizon\n"));
 
         if (!Find_horizon(&edge_head, &edge_tail))
-            G_fatal_error(_("No edges detected "));     /* Should never get here */
+            G_fatal_error(_("No edges detected ")); /* Should never get here */
 
         if (do_hoz_az) {
             /* Open raster map and allocate memory */
 
-            hoz_az_fd = Open_raster_outfile(hoz_az->answer, current_mapset,
-                                            hoz_az_map_cell_type,
-                                            overwrite, message);
+            hoz_az_fd =
+                Open_raster_outfile(hoz_az->answer, current_mapset,
+                                    hoz_az_map_cell_type, overwrite, message);
             if (hoz_az_fd < 0)
                 G_warning("%s", message);
             else {
@@ -536,18 +528,17 @@ int main(int argc, char *argv[])
             }
         }
 
+        /***********************************************************************
+          Write horizon inclination map if requested
 
-/***********************************************************************
-  Write horizon inclination map if requested                          
-
-***********************************************************************/
+        ***********************************************************************/
 
         if (do_hoz_inc) {
             /* Open raster map and allocate memory */
 
-            hoz_inc_fd = Open_raster_outfile(hoz_inc->answer, current_mapset,
-                                             hoz_inc_map_cell_type,
-                                             overwrite, message);
+            hoz_inc_fd =
+                Open_raster_outfile(hoz_inc->answer, current_mapset,
+                                    hoz_inc_map_cell_type, overwrite, message);
             if (hoz_inc_fd < 0)
                 G_warning("%s", message);
             else {
@@ -573,19 +564,17 @@ int main(int argc, char *argv[])
             }
         }
 
+        /***********************************************************************
+           Write horizon type map if requested
 
-/***********************************************************************
-   Write horizon type map if requested                                 
-
-***********************************************************************/
+        ***********************************************************************/
 
         if (do_hoz_type) {
             /* Open raster map and allocate memory */
 
             hoz_type_fd =
                 Open_raster_outfile(hoz_type->answer, current_mapset,
-                                    hoz_type_map_cell_type, overwrite,
-                                    message);
+                                    hoz_type_map_cell_type, overwrite, message);
             if (hoz_type_fd < 0)
                 G_warning("%s", message);
             else {
@@ -611,19 +600,18 @@ int main(int argc, char *argv[])
             }
         }
 
+        /***********************************************************************
+                 Compute and write skyline index if requested
 
-/***********************************************************************
-         Compute and write skyline index if requested
+                   If only one viewshed map has been specified we use this, but
+        print a warning.  If a second viewshed map has been specified we assume
+                   that this was created using observer and target offsets such
+        that the inclination values are those from each cell in the viewshed
+                   looking back towards the 'viewpoint'.
 
-           If only one viewshed map has been specified we use this, but print
-           a warning.  If a second viewshed map has been specified we assume
-           that this was created using observer and target offsets such that
-           the inclination values are those from each cell in the viewshed
-           looking back towards the 'viewpoint'.
 
-         
 
-***********************************************************************/
+        ***********************************************************************/
 
         if (do_skyline) {
             /* Open, read inclination values and close viewshed map */
@@ -636,8 +624,10 @@ int main(int argc, char *argv[])
                 viewshed_fd =
                     Open_raster_infile(view->answer, view_mapset, "",
                                        &viewshed_map_cell_type, message);
-                G_warning
-                    (_("Computing skyline index using same viewshed maps for horizon and line-of-sight from viewshed cells - is this really what you want (see manual page)"));
+                G_warning(
+                    _("Computing skyline index using same viewshed maps for "
+                      "horizon and line-of-sight from viewshed cells - is this "
+                      "really what you want (see manual page)"));
             }
 
             if (viewshed_fd < 0)
@@ -668,17 +658,19 @@ int main(int argc, char *argv[])
                     edge_cur = List_next_horizon(edge_cur);
                 }
 
-                /* Calc outer bounding box for cells that could be visible given max
-                   distance.  There is no point in processing cells outside that. */
+                /* Calc outer bounding box for cells that could be visible given
+                   max distance.  There is no point in processing cells outside
+                   that. */
 
                 side_ew_cells = floor(max_dist / window.ew_res);
-                e_box1 = viewpt_col + side_ew_cells;    /* col origin at west */
+                e_box1 = viewpt_col + side_ew_cells; /* col origin at west */
                 w_box1 = viewpt_col - side_ew_cells;
                 side_ns_cells = floor(max_dist / window.ns_res);
-                n_box1 = viewpt_row - side_ns_cells;    /* row origin at north */
+                n_box1 = viewpt_row - side_ns_cells; /* row origin at north */
                 s_box1 = viewpt_row + side_ns_cells;
 
-                /* Adjust outer bounding box if it is clipped by current region */
+                /* Adjust outer bounding box if it is clipped by current region
+                 */
 
                 if (e_box1 >= e_col)
                     e_box1 = e_col;
@@ -708,30 +700,26 @@ int main(int argc, char *argv[])
 
                 min_skyline_index = 360.0;
                 max_skyline_index = -360.0;
-                for (row = n_box1; row <= s_box1; row++) {      /* row origin at north */
+                for (row = n_box1; row <= s_box1;
+                     row++) { /* row origin at north */
                     for (col = w_box1; col <= e_box1; col++) {
-                        inclination = Get_buffer_value_d_row_col(viewshed_buf,
-                                                                 viewshed_buf_cell_type,
-                                                                 row, col);
-                        if (!
-                            (Rast_is_null_value
-                             (&inclination, viewshed_buf_cell_type))) {
-                            skyline_index =
-                                compute_skyline_index(row, col, inclination,
-                                                      &edge_head,
-                                                      quad1_hoz_head,
-                                                      quad2_hoz_head,
-                                                      quad3_hoz_head,
-                                                      quad4_hoz_head);
+                        inclination = Get_buffer_value_d_row_col(
+                            viewshed_buf, viewshed_buf_cell_type, row, col);
+                        if (!(Rast_is_null_value(&inclination,
+                                                 viewshed_buf_cell_type))) {
+                            skyline_index = compute_skyline_index(
+                                row, col, inclination, &edge_head,
+                                quad1_hoz_head, quad2_hoz_head, quad3_hoz_head,
+                                quad4_hoz_head);
 
-                            /* skyline_index = compute_skyline_index_simple (row, col, inclination, */
-                            /*                                            &edge_head); */
+                            /* skyline_index = compute_skyline_index_simple
+                             * (row, col, inclination, */
+                            /*                                            &edge_head);
+                             */
 
-
-                            Set_buffer_value_d_row_col(viewshed_buf,
-                                                       skyline_index,
-                                                       viewshed_buf_cell_type,
-                                                       row, col);
+                            Set_buffer_value_d_row_col(
+                                viewshed_buf, skyline_index,
+                                viewshed_buf_cell_type, row, col);
 
                             if (skyline_index < min_skyline_index)
                                 min_skyline_index = skyline_index;
@@ -741,17 +729,17 @@ int main(int argc, char *argv[])
                     }
                 }
 
-                /* Mark the original viewpoint, only needed if using 
+                /* Mark the original viewpoint, only needed if using
                    compute_skyline_index_simple () */
                 /* Set_buffer_value_d_row_col (viewshed_buf, VIEWPT_SKYLINE, */
-                /*                                  viewshed_buf_cell_type, viewpt_row, viewpt_col); */
+                /*                                  viewshed_buf_cell_type,
+                 * viewpt_row, viewpt_col); */
 
                 /* Write all the skyline index values out to a new raster map */
 
-                skyline_fd =
-                    Open_raster_outfile(skyline->answer, current_mapset,
-                                        skyline_map_cell_type, overwrite,
-                                        message);
+                skyline_fd = Open_raster_outfile(
+                    skyline->answer, current_mapset, skyline_map_cell_type,
+                    overwrite, message);
                 if (skyline_fd < 0)
                     G_warning("%s", message);
                 else {
@@ -763,17 +751,17 @@ int main(int argc, char *argv[])
                                          skyline_map_cell_type);
                     Close_raster_file(skyline_fd);
 
-                    /* Random access to viewshed map no longer needed so free memory */
+                    /* Random access to viewshed map no longer needed so free
+                     * memory */
                     G_free(viewshed_buf);
                 }
             }
         }
 
+        /***********************************************************************
+           Write ASCII file of sorted azimuths if requested
 
-/***********************************************************************
-   Write ASCII file of sorted azimuths if requested                    
-
-***********************************************************************/
+        ***********************************************************************/
 
         if (do_profile) {
             /* If map of elevation values provided */
@@ -789,8 +777,7 @@ int main(int argc, char *argv[])
                     G_message(_("Reading elevation from <%s@%s>\n"),
                               dem->answer, dem_mapset);
 
-                    dem_buf =
-                        Allocate_raster_buf_with_null(dem_buf_cell_type);
+                    dem_buf = Allocate_raster_buf_with_null(dem_buf_cell_type);
                     Read_raster_infile(dem_buf, dem_fd, dem_buf_cell_type,
                                        dem_map_cell_type);
                     Close_raster_file(dem_fd);
@@ -813,8 +800,7 @@ int main(int argc, char *argv[])
             /* Open ASCII text file */
 
             strcpy(profile_name, profile->answer);
-            profile_str = Create_file(profile_name, ".csv",
-                                      message, overwrite);
+            profile_str = Create_file(profile_name, ".csv", message, overwrite);
             if (profile_str == NULL)
                 G_warning("%s", message);
             else {
@@ -825,8 +811,7 @@ int main(int argc, char *argv[])
                     fprintf(profile_str,
                             "Azimuth,Inclination,Distance,Elevation,Type\n");
                 else
-                    fprintf(profile_str,
-                            "Azimuth,Inclination,Distance,Type\n");
+                    fprintf(profile_str, "Azimuth,Inclination,Distance,Type\n");
 
                 edge_cur = List_next_horizon(&edge_head);
                 while (edge_cur != edge_cur->next_horizon) {
@@ -844,11 +829,10 @@ int main(int argc, char *argv[])
         }
     }
 
+    /***********************************************************************
+      Create support files
 
-/***********************************************************************
-  Create support files                                                
-
-***********************************************************************/
+    ***********************************************************************/
 
     G_message(_("Creating support files\n"));
 
