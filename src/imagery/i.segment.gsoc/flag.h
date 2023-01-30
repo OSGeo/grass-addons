@@ -1,14 +1,13 @@
 #ifndef __FLAG_H__
 #define __FLAG_H__
 
-
 /* flag.[ch] is a set of routines which will set up an array of bits
  ** that allow the programmer to "flag" cells in a raster map.
  **
  ** FLAG *
  ** flag_create(nrows,ncols)
  ** int nrows, ncols;
- **     opens the structure flag.  
+ **     opens the structure flag.
  **     The flag structure will be a two dimensional array of bits the
  **     size of nrows by ncols.  Will initalize flags to zero (unset).
  **
@@ -21,7 +20,7 @@
  **     sets all values in flags to zero.
  **
  * following 3 were changed to macros, same usage
- * 
+ *
  ** flag_unset(flags, row, col)
  ** FLAG *flags;
  ** int row, col;
@@ -43,19 +42,20 @@
  ** April 03, 1989
  */
 #define FLAG struct _flagsss_
-FLAG {
+FLAG
+{
     int nrows, ncols, leng;
     unsigned char **array;
 };
 
-#define FLAG_UNSET(flags,row,col) \
-	(flags)->array[(row)][(col)>>3] &= ~(1<<((col) & 7))
+#define FLAG_UNSET(flags, row, col) \
+    (flags)->array[(row)][(col) >> 3] &= ~(1 << ((col)&7))
 
-#define FLAG_SET(flags,row,col) \
-	(flags)->array[(row)][(col)>>3] |= (1<<((col) & 7))
+#define FLAG_SET(flags, row, col) \
+    (flags)->array[(row)][(col) >> 3] |= (1 << ((col)&7))
 
-#define FLAG_GET(flags,row,col) \
-	(flags)->array[(row)][(col)>>3] & (1<<((col) & 7))
+#define FLAG_GET(flags, row, col) \
+    (flags)->array[(row)][(col) >> 3] & (1 << ((col)&7))
 
 /* flag.c */
 int flag_clear_all(FLAG *);

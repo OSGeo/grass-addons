@@ -1,11 +1,11 @@
-/*
- ****************************************************************************
+/*****************************************************************************
  *
  * MODULE:       r.pi.nlm.circ
  * AUTHOR(S):    Elshad Shirinov, Dr. Martin Wegmann
  *               Markus Metz (update to GRASS 7)
- * PURPOSE:      a simple r.nlm (neutral landscape model) module based on circular growth
- * 
+ * PURPOSE:      a simple r.nlm (neutral landscape model) module based on
+ *               circular growth
+ *
  * COPYRIGHT:    (C) 2009-2011,2017 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
@@ -22,20 +22,20 @@ void print_buffer(int *buffer, int sx, int sy)
 
     fprintf(stderr, "buffer:\n");
     for (y = 0; y < sy; y++) {
-	for (x = 0; x < sx; x++) {
-	    switch (buffer[x + y * sx]) {
-	    case TYPE_NOTHING:
-		fprintf(stderr, " * ");
-		break;
-	    case TYPE_NOGO:
-		fprintf(stderr, "X ");
-		break;
-	    default:
-		fprintf(stderr, "%d ", buffer[x + y * sx]);
-		break;
-	    }
-	}
-	fprintf(stderr, "\n");
+        for (x = 0; x < sx; x++) {
+            switch (buffer[x + y * sx]) {
+            case TYPE_NOTHING:
+                fprintf(stderr, " * ");
+                break;
+            case TYPE_NOGO:
+                fprintf(stderr, "X ");
+                break;
+            default:
+                fprintf(stderr, "%d ", buffer[x + y * sx]);
+                break;
+            }
+        }
+        fprintf(stderr, "\n");
     }
 }
 
@@ -47,17 +47,17 @@ void print_list(int patch_count)
 
     fprintf(stderr, "list_array:\n");
     for (i = 0; i < patch_count; i++) {
-	cnt = list_count(i);
-	list = list_patch(i);
+        cnt = list_count(i);
+        list = list_patch(i);
 
-	fprintf(stderr, "patch %d: ", i);
-	for (j = 0; j < cnt; j++)
-	    fprintf(stderr, "(%d, %d)", list[j].x, list[j].y);
-	fprintf(stderr, "\n");
+        fprintf(stderr, "patch %d: ", i);
+        for (j = 0; j < cnt; j++)
+            fprintf(stderr, "(%d, %d)", list[j].x, list[j].y);
+        fprintf(stderr, "\n");
     }
 }
 
-/* 
+/*
    plants new cell for the specified patch
    WARNING:     no tests are performed to determine
    if position is legal
@@ -75,40 +75,40 @@ void plant(int *buffer, int sx, int sy, int x, int y, int patch)
     list_remove(patch, list_indexOf(patch, x, y));
 
     for (ix = left; ix <= right; ix++) {
-	for (iy = bottom; iy <= top; iy++) {
-	    /* don't add the cell itself */
-	    if (!(ix == x && iy == y)) {
-		index = ix + iy * sx;
-		cell = buffer[index];
-		switch (cell) {
-		case TYPE_NOTHING:
-		    /* mark cell as owned by patch */
-		    buffer[index] = patch;
-		    /* if not already on list add cell to border list */
-		    index = list_indexOf(patch, ix, iy);
-		    if (index < 0)
-			list_add(patch, ix, iy);
-		    break;
-		case TYPE_NOGO:
-		    /* well basically nothing to do here :) */
-		    break;
-		default:
-		    /* test if cell is owned by other patch */
-		    if (cell != patch) {
-			/* mark cell as "no go" */
-			buffer[index] = TYPE_NOGO;
-			/* remove cell from owners border list */
-			list_remove(cell, list_indexOf(cell, ix, iy));
-		    }
-		    break;
-		}		/* switch */
-	    }			/* if */
-	}			/* for x */
-    }				/* for y */
+        for (iy = bottom; iy <= top; iy++) {
+            /* don't add the cell itself */
+            if (!(ix == x && iy == y)) {
+                index = ix + iy * sx;
+                cell = buffer[index];
+                switch (cell) {
+                case TYPE_NOTHING:
+                    /* mark cell as owned by patch */
+                    buffer[index] = patch;
+                    /* if not already on list add cell to border list */
+                    index = list_indexOf(patch, ix, iy);
+                    if (index < 0)
+                        list_add(patch, ix, iy);
+                    break;
+                case TYPE_NOGO:
+                    /* well basically nothing to do here :) */
+                    break;
+                default:
+                    /* test if cell is owned by other patch */
+                    if (cell != patch) {
+                        /* mark cell as "no go" */
+                        buffer[index] = TYPE_NOGO;
+                        /* remove cell from owners border list */
+                        list_remove(cell, list_indexOf(cell, ix, iy));
+                    }
+                    break;
+                } /* switch */
+            }     /* if */
+        }         /* for x */
+    }             /* for y */
 }
 
 void create_patches(int *buffer, int sx, int sy, int patch_count,
-		    int pixel_count)
+                    int pixel_count)
 {
     int pixels = pixel_count;
     int i, j;
@@ -120,71 +120,71 @@ void create_patches(int *buffer, int sx, int sy, int patch_count,
 
     /* create seeds for later patches */
     for (i = 0; i < patch_count; i++) {
-	int x, y;
+        int x, y;
 
-	if (pixels <= 0)
-	    break;
+        if (pixels <= 0)
+            break;
 
-	/* find appropriate position */
-	do {
-	    x = Random(sx);
-	    y = Random(sy);
-	} while (buffer[x + y * sx] != TYPE_NOTHING);
-	buffer[x + y * sx] = i;
-	plant(buffer, sx, sy, x, y, i);
-	pixels--;
+        /* find appropriate position */
+        do {
+            x = Random(sx);
+            y = Random(sy);
+        } while (buffer[x + y * sx] != TYPE_NOTHING);
+        buffer[x + y * sx] = i;
+        plant(buffer, sx, sy, x, y, i);
+        pixels--;
 
-	/*fprintf(stderr, "x = %d, y = %d\n", x, y);
-	   print_buffer(buffer, sx, sy);
-	   print_list(patch_count); */
+        /*fprintf(stderr, "x = %d, y = %d\n", x, y);
+           print_buffer(buffer, sx, sy);
+           print_list(patch_count); */
     }
 
     /* now plant new cells at random but always at the border */
     while (pixels > 0) {
-	int patch, pos;
-	Point p;
-	int flag;
+        int patch, pos;
+        Point p;
+        int flag;
 
-	/* test if there are some free places */
-	flag = 0;
-	for (patch = 0; patch < patch_count; patch++) {
-	    cnt = list_count(patch);
-	    if (cnt > 0) {
-		flag = 1;
-		break;
-	    }
-	}
+        /* test if there are some free places */
+        flag = 0;
+        for (patch = 0; patch < patch_count; patch++) {
+            cnt = list_count(patch);
+            if (cnt > 0) {
+                flag = 1;
+                break;
+            }
+        }
 
-	if (!flag)
-	    return;
+        if (!flag)
+            return;
 
-	/* find patch with free places at the border */
-	do {
-	    patch = Random(patch_count);
-	    cnt = list_count(patch);
-	} while (cnt <= 0);
+        /* find patch with free places at the border */
+        do {
+            patch = Random(patch_count);
+            cnt = list_count(patch);
+        } while (cnt <= 0);
 
-	/* pick free position */
-	pos = Random(cnt);
-	p = list_get(patch, pos);
-	plant(buffer, sx, sy, p.x, p.y, patch);
-	pixels--;
+        /* pick free position */
+        pos = Random(cnt);
+        p = list_get(patch, pos);
+        plant(buffer, sx, sy, p.x, p.y, patch);
+        pixels--;
 
-	/*fprintf(stderr, "x = %d, y = %d\n", p.x, p.y);
-	   print_buffer(buffer, sx, sy);
-	   print_list(patch_count); */
+        /*fprintf(stderr, "x = %d, y = %d\n", p.x, p.y);
+           print_buffer(buffer, sx, sy);
+           print_list(patch_count); */
     }
 
     /* remove marked cells, which are still on the list */
     for (i = 0; i < patch_count; i++) {
-	cnt = list_count(i);
-	list = list_patch(i);
-	for (j = 0; j < cnt; j++) {
-	    int x = list[j].x;
-	    int y = list[j].y;
+        cnt = list_count(i);
+        list = list_patch(i);
+        for (j = 0; j < cnt; j++) {
+            int x = list[j].x;
+            int y = list[j].y;
 
-	    buffer[x + y * sx] = TYPE_NOTHING;
-	}
+            buffer[x + y * sx] = TYPE_NOTHING;
+        }
     }
 }
 
@@ -209,11 +209,10 @@ int main(int argc, char *argv[])
     CELL *result;
 
     struct GModule *module;
-    struct
-    {
-	struct Option *output, *size;
-	struct Option *landcover, *count;
-	struct Option *randseed, *title;
+    struct {
+        struct Option *output, *size;
+        struct Option *landcover, *count;
+        struct Option *randseed, *title;
     } parm;
 
     G_gisinit(argv[0]);
@@ -221,7 +220,7 @@ int main(int argc, char *argv[])
     module = G_define_module();
     G_add_keyword(_("raster"));
     module->description =
-	_("Creates a random landscape with defined attributes.");
+        _("Creates a random landscape with defined attributes.");
 
     parm.output = G_define_standard_option(G_OPT_R_OUTPUT);
 
@@ -258,12 +257,12 @@ int main(int argc, char *argv[])
     parm.title->description = _("Title for resultant raster map");
 
     if (G_parser(argc, argv))
-	    exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
 
     /* check if the new file name is correct */
     newname = parm.output->answer;
     if (G_legal_filename(newname) < 0)
-	G_fatal_error(_("<%s> is an illegal file name"), newname);
+        G_fatal_error(_("<%s> is an illegal file name"), newname);
 
     /* get size */
     sscanf(parm.size->answers[0], "%d", &sx);
@@ -278,10 +277,10 @@ int main(int argc, char *argv[])
 
     /* get random seed and init random */
     if (parm.randseed->answer) {
-	sscanf(parm.randseed->answer, "%d", &rand_seed);
+        sscanf(parm.randseed->answer, "%d", &rand_seed);
     }
     else {
-	rand_seed = time(NULL);
+        rand_seed = time(NULL);
     }
     srand(rand_seed);
 
@@ -290,7 +289,7 @@ int main(int argc, char *argv[])
     fprintf(stderr, "output = %s\n", newname);
     fprintf(stderr, "sx = %d, sy = %d\n", sx, sy);
     fprintf(stderr, "landcover = %f, pixel_count = %d\n", landcover,
-	    pixel_count);
+            pixel_count);
     fprintf(stderr, "patch_count = %d\n", patch_count);
     fprintf(stderr, "rand_seed = %d\n\n", rand_seed);
 
@@ -311,7 +310,7 @@ int main(int argc, char *argv[])
        list_set(1, 1, 3, 4);
 
        i = list_indexOf(1, 1, 2);
-       fprintf(stderr, "test: %d\n\n", i); 
+       fprintf(stderr, "test: %d\n\n", i);
 
        fprintf(stderr, "list_array:\n");
        for(i = 0; i < patch_count; i++) {
@@ -327,20 +326,20 @@ int main(int argc, char *argv[])
     /* write output file */
     out_fd = Rast_open_new(newname, CELL_TYPE);
     if (out_fd < 0)
-	G_fatal_error(_("Cannot create raster map <%s>"), newname);
+        G_fatal_error(_("Cannot create raster map <%s>"), newname);
 
     for (j = 0; j < sy; j++) {
-	for (i = 0; i < sx; i++) {
-	    int cell = buffer[i + j * sx];
+        for (i = 0; i < sx; i++) {
+            int cell = buffer[i + j * sx];
 
-	    if (cell >= 0) {
-		result[i] = 1;
-	    }
-	    else {
-		Rast_set_c_null_value(result + i, 1);
-	    }
-	}
-	Rast_put_c_row(out_fd, result);
+            if (cell >= 0) {
+                result[i] = 1;
+            }
+            else {
+                Rast_set_c_null_value(result + i, 1);
+            }
+        }
+        Rast_put_c_row(out_fd, result);
     }
     Rast_close(out_fd);
 

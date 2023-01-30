@@ -4,7 +4,7 @@
  * AUTHOR(S):    Jarek Jasiewicz <jarekj amu.edu.pl>
  * PURPOSE:      Calculate area of clumped areas. Remove areas smaller than
  *               given threshold.
- * 
+ *
  * COPYRIGHT:    (C) 1999-2010 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
@@ -49,31 +49,34 @@ int main(int argc, char *argv[])
     G_add_keyword(_("raster"));
     G_add_keyword(_("statistics"));
     G_add_keyword(_("area"));
-    module->description =
-        _("Calculates area of clumped areas and remove areas smaller or greater than given threshold.");
+    module->description = _("Calculates area of clumped areas and remove areas "
+                            "smaller or greater than given threshold.");
 
     input = G_define_standard_option(G_OPT_R_INPUT);
-    input->description = _("Name of cell category map, e.g., maps created with r.clump");
+    input->description =
+        _("Name of cell category map, e.g., maps created with r.clump");
 
     output = G_define_standard_option(G_OPT_R_OUTPUT);
-    output->description = _("Name of output raster with categories representing area size (in cells)");
+    output->description = _("Name of output raster with categories "
+                            "representing area size (in cells)");
 
-    lesser = G_define_option();        /* input stream mask file - optional */
+    lesser = G_define_option(); /* input stream mask file - optional */
     lesser->key = "lesser";
     lesser->type = TYPE_INTEGER;
     lesser->answer = "0";
-    lesser->description = _("Remove areas with number of cells lower than given value (0 for none):");
+    lesser->description = _("Remove areas with number of cells lower than "
+                            "given value (0 for none):");
 
-    greater = G_define_option();        /* input stream mask file - optional */
+    greater = G_define_option(); /* input stream mask file - optional */
     greater->key = "greater";
     greater->type = TYPE_INTEGER;
     greater->answer = "-1";
-    greater->description = _("Remove areas with number of cells greater than given value (-1 for none):");
+    greater->description = _("Remove areas with number of cells greater than "
+                             "given value (-1 for none):");
 
     flag_binary = G_define_flag();
     flag_binary->key = 'b';
     flag_binary->description = _("Binary output");
-
 
     if (G_parser(argc, argv))
         exit(EXIT_FAILURE);
@@ -92,8 +95,9 @@ int main(int argc, char *argv[])
     gt = grt > 0 ? grt : cellhd.rows * cellhd.cols;
 
     if (Rast_map_type(input->answer, mapset) != CELL_TYPE)
-        G_fatal_error(_("<%s> is not of type CELL, probably not crated with r.clump"),
-                      input->answer);
+        G_fatal_error(
+            _("<%s> is not of type CELL, probably not crated with r.clump"),
+            input->answer);
 
     Rast_init_range(&range);
     Rast_read_range(input->answer, mapset, &range);
@@ -119,7 +123,7 @@ int main(int argc, char *argv[])
                 ncells[in_buf[col]]++;
             }
         }
-    }                                /* end for row */
+    } /* end for row */
 
     if (les != 0 || grt != -1) {
         for (i = 1; i < c_max + 1; ++i)
@@ -151,7 +155,7 @@ int main(int argc, char *argv[])
                 out_buf[col] = ncells[in_buf[col]];
         }
         Rast_put_row(outfd, out_buf, CELL_TYPE);
-    }                                /* end for row */
+    } /* end for row */
 
     G_free(ncells);
     G_free(in_buf);

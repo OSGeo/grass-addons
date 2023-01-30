@@ -23,16 +23,15 @@
 #include "double_list.h"
 
 /* main.c */
-int do_profile(double e1, double e2, double n1, double n2,
-               int coords, double res, RASTER3D_Map * fd, int data_type,
-               FILE * fp, char *null_string, const char *unit, double factor,
-               RASTER3D_Region * region, int depth,
-               struct DoubleList *values);
+int do_profile(double e1, double e2, double n1, double n2, int coords,
+               double res, RASTER3D_Map *fd, int data_type, FILE *fp,
+               char *null_string, const char *unit, double factor,
+               RASTER3D_Region *region, int depth, struct DoubleList *values);
 
 /* read_rast.c */
-int read_rast(double east, double north, double dist, RASTER3D_Map * fd,
-              int coords, RASTER_MAP_TYPE data_type, FILE * fp,
-              char *null_string, RASTER3D_Region * region, int depth,
+int read_rast(double east, double north, double dist, RASTER3D_Map *fd,
+              int coords, RASTER_MAP_TYPE data_type, FILE *fp,
+              char *null_string, RASTER3D_Region *region, int depth,
               struct DoubleList *values);
 
 /* input.c */

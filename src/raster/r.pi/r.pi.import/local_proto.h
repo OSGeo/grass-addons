@@ -22,10 +22,11 @@
 #define GLOBAL extern
 #endif
 
-typedef DCELL(f_statmethod) (DCELL *, int);
+typedef DCELL(f_statmethod)(DCELL *, int);
 
 /* parse.c */
-void parse(DCELL * values, char *file_name, int id_col, int val_col, int fragcount);
+void parse(DCELL *values, char *file_name, int id_col, int val_col,
+           int fragcount);
 
 /* global variables */
 GLOBAL Coords **fragments;

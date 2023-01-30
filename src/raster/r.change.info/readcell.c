@@ -11,12 +11,12 @@ int readcell(int row, int nrows, int ncols)
     rotate_bufs();
 
     if (row < nrows) {
-	for (i = 0; i < ncb.nin; i++)
-	    Rast_get_c_row(ncb.in[i].fd, ncb.in[i].buf[ncb.nsize - 1], row);
+        for (i = 0; i < ncb.nin; i++)
+            Rast_get_c_row(ncb.in[i].fd, ncb.in[i].buf[ncb.nsize - 1], row);
     }
     else {
-	for (i = 0; i < ncb.nin; i++)
-	    Rast_set_c_null_value(ncb.in[i].buf[ncb.nsize - 1], ncols);
+        for (i = 0; i < ncb.nin; i++)
+            Rast_set_c_null_value(ncb.in[i].buf[ncb.nsize - 1], ncols);
     }
 
     return 0;

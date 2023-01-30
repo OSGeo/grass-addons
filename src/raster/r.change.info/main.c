@@ -1,4 +1,3 @@
-
 /****************************************************************************
  *
  * MODULE:       r.change.info
@@ -6,7 +5,7 @@
  *               based on r.neighbors
  *
  * PURPOSE:      Change assessment for categorical raster series
- * 
+ *
  * COPYRIGHT:    (C) 2014 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
@@ -14,6 +13,7 @@
  *               for details.
  *
  *****************************************************************************/
+
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -27,11 +27,10 @@
 
 typedef DCELL dfunc(void);
 
-struct menu
-{
-    dfunc *method;		/* routine to compute new value */
-    char *name;			/* method name */
-    char *text;			/* menu display - full description */
+struct menu {
+    dfunc *method; /* routine to compute new value */
+    char *name;    /* method name */
+    char *text;    /* menu display - full description */
 };
 
 #define NO_CATS 0
@@ -44,25 +43,24 @@ static struct menu menu[] = {
     {gain3, "gain3", "Information gain for category and size distributions"},
     {ratio1, "ratio1", "Information gain ratio for category distributions"},
     {ratio2, "ratio2", "Information gain ratio for size distributions"},
-    {ratio3, "ratio3", "Information gain ratio for category and size distributions"},
+    {ratio3, "ratio3",
+     "Information gain ratio for category and size distributions"},
     {gini1, "gini1", "Gini impurity for category distributions"},
     {gini2, "gini2", "Gini impurity for size distributions"},
     {gini3, "gini3", "Gini impurity for category and size distributions"},
     {dist1, "dist1", "Statistical distance for category distributions"},
     {dist2, "dist2", "Statistical distance for size distributions"},
-    {dist3, "dist3", "Statistical distance for category and size distributions"},
+    {dist3, "dist3",
+     "Statistical distance for category and size distributions"},
     {chisq1, "chisq1", "CHI-square for category distributions"},
     {chisq2, "chisq2", "CHI-square for size distributions"},
     {chisq3, "chisq3", "CHI-square for category and size distributions"},
-    {NULL, NULL, NULL}
-};
+    {NULL, NULL, NULL}};
 
 struct ncb ncb;
 struct changeinfo ci;
 
-
-struct output
-{
+struct output {
     const char *name;
     char title[1024];
     int fd;
@@ -75,8 +73,8 @@ static int find_method(const char *method_name)
     int i;
 
     for (i = 0; menu[i].name; i++)
-	if (strcmp(menu[i].name, method_name) == 0)
-	    return i;
+        if (strcmp(menu[i].name, method_name) == 0)
+            return i;
 
     G_fatal_error(_("Unknown method <%s>"), method_name);
 
@@ -84,7 +82,6 @@ static int find_method(const char *method_name)
 }
 
 int make_colors(struct Colors *colr, DCELL min, DCELL max);
-
 
 int main(int argc, char *argv[])
 {
@@ -110,16 +107,13 @@ int main(int argc, char *argv[])
     struct Cell_head window, owind;
     struct History history;
     struct GModule *module;
-    struct
-    {
-	struct Option *input, *output;
-	struct Option *method, *wsize, *step, *alpha;
+    struct {
+        struct Option *input, *output;
+        struct Option *method, *wsize, *step, *alpha;
     } parm;
-    struct
-    {
-	struct Flag *align, *circle;
+    struct {
+        struct Flag *align, *circle;
     } flag;
-
 
     G_gisinit(argv[0]);
 
@@ -128,8 +122,7 @@ int main(int argc, char *argv[])
     G_add_keyword(_("statistics"));
     G_add_keyword(_("change detection"));
     G_add_keyword(_("landscape structure"));
-    module->description =
-	_("Landscape change assessment");
+    module->description = _("Landscape change assessment");
 
     parm.input = G_define_standard_option(G_OPT_R_INPUTS);
 
@@ -144,34 +137,34 @@ int main(int argc, char *argv[])
     parm.method->answer = "ratio3";
     dlen = 0;
     for (n = 0; menu[n].name; n++) {
-	dlen += strlen(menu[n].name);
+        dlen += strlen(menu[n].name);
     }
     dlen += n;
     p = G_malloc(dlen);
     for (n = 0; menu[n].name; n++) {
-	if (n)
-	    strcat(p, ",");
-	else
-	    *p = 0;
-	strcat(p, menu[n].name);
+        if (n)
+            strcat(p, ",");
+        else
+            *p = 0;
+        strcat(p, menu[n].name);
     }
     parm.method->options = p;
     parm.method->description = _("Change assessment");
     dlen = 0;
     for (n = 0; menu[n].name; n++) {
-	dlen += strlen(menu[n].name);
-	dlen += strlen(menu[n].text);
+        dlen += strlen(menu[n].name);
+        dlen += strlen(menu[n].text);
     }
     dlen += n * 2;
     pp = G_malloc(dlen);
     for (n = 0; menu[n].name; n++) {
-	if (n)
-	    strcat(pp, ";");
-	else
-	    *pp = 0;
-	strcat(pp, menu[n].name);
-	strcat(pp, ";");
-	strcat(pp, menu[n].text);
+        if (n)
+            strcat(pp, ";");
+        else
+            *pp = 0;
+        strcat(pp, menu[n].name);
+        strcat(pp, ";");
+        strcat(pp, menu[n].text);
     }
     parm.method->descriptions = pp;
     parm.method->multiple = YES;
@@ -210,46 +203,50 @@ int main(int argc, char *argv[])
     flag.circle->guisection = _("Moving window");
 
     if (G_parser(argc, argv))
-	exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
 
     sscanf(parm.wsize->answer, "%d", &ncb.nsize);
     if (ncb.nsize <= 1)
-	G_fatal_error(_("Window size must be > 1"));
+        G_fatal_error(_("Window size must be > 1"));
     ncb.n = ncb.nsize * ncb.nsize;
 
     sscanf(parm.step->answer, "%d", &step);
     if (step <= 0)
-	G_fatal_error(_("Processing step must be positive"));
-    
+        G_fatal_error(_("Processing step must be positive"));
+
     if (step > ncb.nsize)
-	G_fatal_error(_("Processing step can not be larger than window size"));
+        G_fatal_error(_("Processing step can not be larger than window size"));
 
     sscanf(parm.alpha->answer, "%lf", &alpha);
     if (alpha <= 0)
-	G_fatal_error(_("Alpha for general entropy must be positive"));
+        G_fatal_error(_("Alpha for general entropy must be positive"));
     set_alpha(alpha);
 
     for (i = 0; parm.input->answers[i]; i++)
-	;
+        ;
     ncb.nin = i;
     if (ncb.nin < 2)
-	G_fatal_error(_("At least two input maps are required"));
-    
+        G_fatal_error(_("At least two input maps are required"));
+
     ncb.in = G_malloc(ncb.nin * sizeof(struct input));
-    
+
     for (i = 0; i < ncb.nin; i++)
-	ncb.in[i].name = parm.input->answers[i];
+        ncb.in[i].name = parm.input->answers[i];
 
     Rast_get_cellhd(ncb.in[0].name, "", &cellhd);
     G_get_window(&window);
     if (!flag.align->answer) {
-	Rast_align_window(&window, &cellhd);
+        Rast_align_window(&window, &cellhd);
     }
     if (cellhd.rows < ncb.nsize)
-	G_fatal_error(_("The current region is too small, it must have at least %d rows"), ncb.nsize);
+        G_fatal_error(
+            _("The current region is too small, it must have at least %d rows"),
+            ncb.nsize);
     nrows = cellhd.rows;
     if (cellhd.cols < ncb.nsize)
-	G_fatal_error(_("The current region is too small, it must have at least %d cols"), ncb.nsize);
+        G_fatal_error(
+            _("The current region is too small, it must have at least %d cols"),
+            ncb.nsize);
     ncols = cellhd.cols;
 
     /* adjust the input window */
@@ -262,27 +259,27 @@ int main(int argc, char *argv[])
 
     rspill = nrows - ncb.nsize - (orows - 1) * step;
     if (rspill) {
-	/* shrink input window */
-	roff = rspill / 2;
-	if (roff) {
-	    /* shift input north */
-	    window.north -= roff * window.ns_res;
-	}
-	/* shift input south */
-	window.south += (rspill - roff) * window.ns_res;
-	window.rows -= rspill;
+        /* shrink input window */
+        roff = rspill / 2;
+        if (roff) {
+            /* shift input north */
+            window.north -= roff * window.ns_res;
+        }
+        /* shift input south */
+        window.south += (rspill - roff) * window.ns_res;
+        window.rows -= rspill;
     }
     cspill = ncols - ncb.nsize - (ocols - 1) * step;
     if (cspill) {
-	/* shrink input window */
-	coff = cspill / 2;
-	if (coff) {
-	    /* shift input west */
-	    window.west += coff * window.ew_res;
-	}
-	/* shift input east */
-	window.east -= (cspill - coff) * window.ew_res;
-	window.cols -= cspill;
+        /* shrink input window */
+        coff = cspill / 2;
+        if (coff) {
+            /* shift input west */
+            window.west += coff * window.ew_res;
+        }
+        /* shift input east */
+        window.east -= (cspill - coff) * window.ew_res;
+        window.cols -= cspill;
     }
     /* not needed */
     G_adjust_Cell_head(&window, 0, 0);
@@ -300,11 +297,11 @@ int main(int argc, char *argv[])
     owind.ew_res = step * window.ew_res;
 
     if (ncb.nsize != step) {
-	owind.north = owind.north - ((ncb.nsize - step) / 2.0) * window.ns_res;
-	owind.south = owind.south + ((ncb.nsize - step) / 2.0) * window.ns_res;
+        owind.north = owind.north - ((ncb.nsize - step) / 2.0) * window.ns_res;
+        owind.south = owind.south + ((ncb.nsize - step) / 2.0) * window.ns_res;
 
-	owind.east = owind.east - ((ncb.nsize - step) / 2.0) * window.ew_res;
-	owind.west = owind.west + ((ncb.nsize - step) / 2.0) * window.ew_res;
+        owind.east = owind.east - ((ncb.nsize - step) / 2.0) * window.ew_res;
+        owind.west = owind.west + ((ncb.nsize - step) / 2.0) * window.ew_res;
     }
     /* needed */
     G_adjust_Cell_head(&owind, 1, 1);
@@ -313,44 +310,46 @@ int main(int argc, char *argv[])
 
     /* open input raster maps */
     for (i = 0; i < ncb.nin; i++) {
-	ncb.in[i].fd = Rast_open_old(ncb.in[i].name, "");
-	map_type = Rast_get_map_type(ncb.in[i].fd);
-	if (map_type != CELL_TYPE)
-	    G_warning(_("Input raster <%s> is not of type CELL"), ncb.in[i].name);
+        ncb.in[i].fd = Rast_open_old(ncb.in[i].name, "");
+        map_type = Rast_get_map_type(ncb.in[i].fd);
+        if (map_type != CELL_TYPE)
+            G_warning(_("Input raster <%s> is not of type CELL"),
+                      ncb.in[i].name);
     }
 
     /* process the output maps */
     for (i = 0; parm.output->answers[i]; i++)
-	;
+        ;
     num_outputs = i;
 
     for (i = 0; parm.method->answers[i]; i++)
-	;
+        ;
     if (num_outputs != i)
-	G_fatal_error(_("output= and method= must have the same number of values"));
+        G_fatal_error(
+            _("output= and method= must have the same number of values"));
 
     outputs = G_calloc(num_outputs, sizeof(struct output));
 
     ncb.mask = NULL;
 
     for (i = 0; i < num_outputs; i++) {
-	struct output *out = &outputs[i];
-	const char *output_name = parm.output->answers[i];
-	const char *method_name = parm.method->answers[i];
-	int method = find_method(method_name);
+        struct output *out = &outputs[i];
+        const char *output_name = parm.output->answers[i];
+        const char *method_name = parm.method->answers[i];
+        int method = find_method(method_name);
 
-	out->name = output_name;
-	out->method_fn = menu[method].method;
+        out->name = output_name;
+        out->method_fn = menu[method].method;
 
-	out->buf = Rast_allocate_d_output_buf();
-	out->fd = Rast_open_new(output_name, DCELL_TYPE);
+        out->buf = Rast_allocate_d_output_buf();
+        out->fd = Rast_open_new(output_name, DCELL_TYPE);
 
-	sprintf(out->title, "%s, %dx%d window, step %d",
-		menu[method].text, ncb.nsize, ncb.nsize, step);
+        sprintf(out->title, "%s, %dx%d window, step %d", menu[method].text,
+                ncb.nsize, ncb.nsize, step);
     }
 
     if (flag.circle->answer)
-	circle_mask();
+        circle_mask();
 
     /* initialize change info */
     frexp(ncb.n, &ci.nsizebins);
@@ -362,13 +361,13 @@ int main(int argc, char *argv[])
     Rast_read_range(ncb.in[0].name, "", &range);
     Rast_get_range_min_max(&range, &min, &max);
     for (i = 1; i < ncb.nin; i++) {
-	Rast_init_range(&range);
-	Rast_read_range(ncb.in[i].name, "", &range);
-	Rast_get_range_min_max(&range, &imin, &imax);
-	if (min > imin)
-	    min = imin;
-	if (max < imax)
-	    max = imax;
+        Rast_init_range(&range);
+        Rast_read_range(ncb.in[i].name, "", &range);
+        Rast_get_range_min_max(&range, &imin, &imax);
+        if (min > imin)
+            min = imin;
+        if (max < imax)
+            max = imax;
     }
     ci.tmin = min;
     ci.ntypes = max - min + 1;
@@ -388,17 +387,17 @@ int main(int argc, char *argv[])
     ci.ch = G_malloc(ncb.nin * sizeof(struct c_h));
 
     for (i = 0; i < ncb.nin; i++) {
-	ci.ch[i].palloc = ci.ntypes;
-	ci.ch[i].pst = G_malloc(ci.ntypes * sizeof(struct pst));
+        ci.ch[i].palloc = ci.ntypes;
+        ci.ch[i].pst = G_malloc(ci.ntypes * sizeof(struct pst));
 
-	ci.ch[i].pid_curr = G_malloc(ncb.nsize * sizeof(int));
-	ci.ch[i].pid_prev = G_malloc(ncb.nsize * sizeof(int));
+        ci.ch[i].pid_curr = G_malloc(ncb.nsize * sizeof(int));
+        ci.ch[i].pid_prev = G_malloc(ncb.nsize * sizeof(int));
 
-	if (i > 0) {
-	    ci.dt[i] = ci.dt[i - 1] + ci.ntypes;
-	    ci.ds[i] = ci.ds[i - 1] + ci.nsizebins;
-	    ci.dts[i] = ci.dts[i - 1] + ci.dts_size;
-	}
+        if (i > 0) {
+            ci.dt[i] = ci.dt[i - 1] + ci.ntypes;
+            ci.ds[i] = ci.ds[i - 1] + ci.nsizebins;
+            ci.dts[i] = ci.dts[i - 1] + ci.dts_size;
+        }
     }
 
     /* allocate the cell buffers */
@@ -407,72 +406,73 @@ int main(int argc, char *argv[])
     /* initialize the cell bufs with 'nsize - 1' rows of the old cellfile */
     readrow = 0;
     for (row = 0; row < ncb.nsize - 1; row++)
-	readcell(readrow++, nrows, ncols);
+        readcell(readrow++, nrows, ncols);
 
     for (row = 0; row < nrows - ncb.nsize + 1; row++) {
-	G_percent(row, nrows, 5);
-	readcell(readrow++, nrows, ncols);
-	
-	if (row % step)
-	    continue;
+        G_percent(row, nrows, 5);
+        readcell(readrow++, nrows, ncols);
 
-	for (col = 0, ocol = 0; col < ncols - ncb.nsize + 1; col += step, ocol++) {
+        if (row % step)
+            continue;
 
-	    n = gather(col);
+        for (col = 0, ocol = 0; col < ncols - ncb.nsize + 1;
+             col += step, ocol++) {
 
-	    for (i = 0; i < num_outputs; i++) {
-		struct output *out = &outputs[i];
-		DCELL *rp = &out->buf[ocol];
+            n = gather(col);
 
-		if (n == 0) {
-		    Rast_set_d_null_value(rp, 1);
-		}
-		else {
-		    *rp = (*out->method_fn)();
-		}
-	    }
-	}
+            for (i = 0; i < num_outputs; i++) {
+                struct output *out = &outputs[i];
+                DCELL *rp = &out->buf[ocol];
 
-	for (i = 0; i < num_outputs; i++) {
-	    struct output *out = &outputs[i];
+                if (n == 0) {
+                    Rast_set_d_null_value(rp, 1);
+                }
+                else {
+                    *rp = (*out->method_fn)();
+                }
+            }
+        }
 
-	    Rast_put_d_row(out->fd, out->buf);
-	}
+        for (i = 0; i < num_outputs; i++) {
+            struct output *out = &outputs[i];
+
+            Rast_put_d_row(out->fd, out->buf);
+        }
     }
     G_percent(row, nrows, 2);
 
     for (i = 0; i < ncb.nin; i++)
-	Rast_close(ncb.in[i].fd);
-
+        Rast_close(ncb.in[i].fd);
 
     for (i = 0; i < num_outputs; i++) {
-	char ncs;
-	int nc;
-	
-	Rast_close(outputs[i].fd);
+        char ncs;
+        int nc;
 
-	Rast_short_history(outputs[i].name, "raster", &history);
-	Rast_command_history(&history);
-	ncs = parm.method->answers[i][strlen(parm.method->answers[i]) - 1];
-	nc = 0;
-	if (ncs == '1')
-	    nc = ci.ntypes;
-	else if (ncs == '2')
-	    nc = ci.nsizebins;
-	else if (ncs == '3')
-	    nc = ci.dts_size;
-	Rast_format_history(&history, HIST_DATSRC_1,
-			    "Change assessment with %s, %d classes, window size %d, step %d",
-			    parm.method->answers[i], nc, ncb.nsize, step);
-	Rast_write_history(outputs[i].name, &history);
-	
-	Rast_put_cell_title(outputs[i].name, outputs[i].title);
+        Rast_close(outputs[i].fd);
 
-	Rast_init_fp_range(&drange);
-	Rast_read_fp_range(outputs[i].name, G_mapset(), &drange);
-	Rast_get_fp_range_min_max(&drange, &dmin, &dmax);
-	make_colors(&colr, dmin, dmax);
-	Rast_write_colors(outputs[i].name, G_mapset(), &colr);
+        Rast_short_history(outputs[i].name, "raster", &history);
+        Rast_command_history(&history);
+        ncs = parm.method->answers[i][strlen(parm.method->answers[i]) - 1];
+        nc = 0;
+        if (ncs == '1')
+            nc = ci.ntypes;
+        else if (ncs == '2')
+            nc = ci.nsizebins;
+        else if (ncs == '3')
+            nc = ci.dts_size;
+        Rast_format_history(
+            &history, HIST_DATSRC_1,
+            "Change assessment with %s, %d classes, window size %d, step %d",
+            parm.method->answers[i], nc, ncb.nsize, step);
+        Rast_write_history(outputs[i].name, &history);
+
+        Rast_put_cell_title(outputs[i].name, outputs[i].title);
+
+        Rast_init_fp_range(&drange);
+        Rast_read_fp_range(outputs[i].name, G_mapset(), &drange);
+        Rast_get_fp_range_min_max(&drange, &dmin, &dmax);
+        make_colors(&colr, dmin, dmax);
+        Rast_write_colors(outputs[i].name, G_mapset(), &colr);
     }
 
     exit(EXIT_SUCCESS);
@@ -485,11 +485,11 @@ int make_colors(struct Colors *colr, DCELL min, DCELL max)
     DCELL rng;
 
     if (Rast_is_d_null_value(&min)) {
-	min = 0;
-	max = 1;
+        min = 0;
+        max = 1;
     }
     if (min > 0)
-	min = 0;
+        min = 0;
 
     rng = max - min;
 
@@ -522,6 +522,6 @@ int make_colors(struct Colors *colr, DCELL min, DCELL max)
     g2 = 0;
     b2 = 0;
     Rast_add_d_color_rule(&val1, r1, g1, b1, &val2, r2, g2, b2, colr);
-    
+
     return 1;
 }

@@ -32,34 +32,27 @@
 
 namespace pops {
 
-using std::pow;
-using std::tan;
+using std::abs;
+using std::ceil;
 using std::exp;
 using std::log;
-using std::ceil;
-using std::abs;
+using std::pow;
+using std::tan;
 
 /*!
  * Cauchy distribution
- * Includes probability density function and inverse cumulative distribution function
- * pdf returns the probability that the variate has the value x
- * icdf returns the upper range that encompasses x percent of the distribution (e.g for
- * 99% input .99)
+ * Includes probability density function and inverse cumulative distribution
+ * function pdf returns the probability that the variate has the value x icdf
+ * returns the upper range that encompasses x percent of the distribution (e.g
+ * for 99% input .99)
  */
-class CauchyDistribution
-{
+class CauchyDistribution {
 public:
     CauchyDistribution(double scale) : s(scale) {}
 
-    double pdf(double x)
-    {
-        return 1 / ((s * M_PI) * (1 + (pow(x / s, 2))));
-    }
+    double pdf(double x) { return 1 / ((s * M_PI) * (1 + (pow(x / s, 2)))); }
     // Inverse cdf (quantile function)
-    double icdf(double x)
-    {
-        return s * tan(M_PI * (x - 0.5));
-    }
+    double icdf(double x) { return s * tan(M_PI * (x - 0.5)); }
 
 private:
     // scale parameter - 1 for standard
@@ -68,20 +61,16 @@ private:
 
 /*!
  * Exponential distribution
- * Includes probability density function and inverse cumulative distribution function
- * pdf returns the probability that the variate has the value x
- * icdf returns the upper range that encompasses x percent of the distribution (e.g for
- * 99% input 0.99)
+ * Includes probability density function and inverse cumulative distribution
+ * function pdf returns the probability that the variate has the value x icdf
+ * returns the upper range that encompasses x percent of the distribution (e.g
+ * for 99% input 0.99)
  */
-class ExponentialDistribution
-{
+class ExponentialDistribution {
 public:
     ExponentialDistribution(double scale) : beta(scale) {}
     // assumes mu is 0 which is traditionally accepted
-    double pdf(double x)
-    {
-        return (1 / beta) * (exp(-x / beta));
-    }
+    double pdf(double x) { return (1 / beta) * (exp(-x / beta)); }
     // Inverse cdf (quantile function)
     double icdf(double x)
     {
@@ -100,7 +89,8 @@ private:
 };
 
 /*!
- * Dispersal kernel for deterministic spread to cell with highest probability of spread
+ * Dispersal kernel for deterministic spread to cell with highest probability of
+ * spread
  *
  * Dispersal Kernel type determines use of Exponential or Cauchy distribution
  * to find probability.
@@ -108,13 +98,13 @@ private:
  * dispersal_percentage is the percent of all possible dispersal to be included
  * in the moving window size (e.g for 99% input 0.99).
  *
- * Useful for testing as it is deterministic and provides fully replicable results
+ * Useful for testing as it is deterministic and provides fully replicable
+ * results
  */
-template<typename IntegerRaster>
-class DeterministicDispersalKernel
-{
+template <typename IntegerRaster>
+class DeterministicDispersalKernel {
 protected:
-    const IntegerRaster& dispersers_;
+    const IntegerRaster &dispersers_;
     // row/col position of middle cell
     int mid_row = 0;
     int mid_col = 0;
@@ -138,19 +128,13 @@ protected:
     double north_south_resolution;
 
 public:
-    DeterministicDispersalKernel(
-        DispersalKernelType dispersal_kernel,
-        const IntegerRaster& dispersers,
-        double dispersal_percentage,
-        double ew_res,
-        double ns_res,
-        double distance_scale)
-        : dispersers_(dispersers),
-          cauchy(distance_scale),
-          exponential(distance_scale),
-          kernel_type_(dispersal_kernel),
-          east_west_resolution(ew_res),
-          north_south_resolution(ns_res)
+    DeterministicDispersalKernel(DispersalKernelType dispersal_kernel,
+                                 const IntegerRaster &dispersers,
+                                 double dispersal_percentage, double ew_res,
+                                 double ns_res, double distance_scale)
+        : dispersers_(dispersers), cauchy(distance_scale),
+          exponential(distance_scale), kernel_type_(dispersal_kernel),
+          east_west_resolution(ew_res), north_south_resolution(ns_res)
     {
         // We initialize max distance only for the supported kernels.
         // For the others, we report the error only when really called
@@ -172,14 +156,15 @@ public:
         for (int i = 0; i < number_of_rows; i++) {
             for (int j = 0; j < number_of_columns; j++) {
                 double distance_to_center = std::sqrt(
-                    pow((abs(mid_row - i) * east_west_resolution), 2)
-                    + pow((abs(mid_col - j) * north_south_resolution), 2));
+                    pow((abs(mid_row - i) * east_west_resolution), 2) +
+                    pow((abs(mid_col - j) * north_south_resolution), 2));
                 // determine probability based on distance
                 if (kernel_type_ == DispersalKernelType::Cauchy) {
                     probability(i, j) = abs(cauchy.pdf(distance_to_center));
                 }
                 else if (kernel_type_ == DispersalKernelType::Exponential) {
-                    probability(i, j) = abs(exponential.pdf(distance_to_center));
+                    probability(i, j) =
+                        abs(exponential.pdf(distance_to_center));
                 }
                 sum += probability(i, j);
             }
@@ -190,21 +175,22 @@ public:
 
     /*! Generates a new position for the spread.
      *
-     *  Creates a copy of the probability matrix to mark where dispersers are assigned.
-     *  New window created any time a new cell is selected from simulation.disperse
+     *  Creates a copy of the probability matrix to mark where dispersers are
+     * assigned. New window created any time a new cell is selected from
+     * simulation.disperse
      *
-     *  Selects next row/col value based on the cell with the highest probability
-     *  in the window.
+     *  Selects next row/col value based on the cell with the highest
+     * probability in the window.
      *
      */
-    template<class Generator>
-    std::tuple<int, int> operator()(Generator& generator, int row, int col)
+    template <class Generator>
+    std::tuple<int, int> operator()(Generator &generator, int row, int col)
     {
-        UNUSED(generator);  // Deterministic does not need random numbers.
-        if (kernel_type_ != DispersalKernelType::Cauchy
-            && kernel_type_ != DispersalKernelType::Exponential) {
-            throw std::invalid_argument(
-                "DeterministicDispersalKernel: Unsupported dispersal kernel type");
+        UNUSED(generator); // Deterministic does not need random numbers.
+        if (kernel_type_ != DispersalKernelType::Cauchy &&
+            kernel_type_ != DispersalKernelType::Exponential) {
+            throw std::invalid_argument("DeterministicDispersalKernel: "
+                                        "Unsupported dispersal kernel type");
         }
         // reset the window if considering a new cell
         if (row != prev_row || col != prev_col) {
@@ -232,9 +218,11 @@ public:
             }
         }
 
-        // subtracting 1/number of dispersers ensures we always move the same proportion
-        // of the individuals to each cell no matter how many are dispersing
-        probability_copy(max_prob_row, max_prob_col) -= proportion_of_dispersers;
+        // subtracting 1/number of dispersers ensures we always move the same
+        // proportion of the individuals to each cell no matter how many are
+        // dispersing
+        probability_copy(max_prob_row, max_prob_col) -=
+            proportion_of_dispersers;
         prev_row = row;
         prev_col = col;
 
@@ -243,6 +231,6 @@ public:
     }
 };
 
-}  // namespace pops
+} // namespace pops
 
-#endif  // POPS_DETERMINISTIC_KERNEL_HPP
+#endif // POPS_DETERMINISTIC_KERNEL_HPP

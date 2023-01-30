@@ -1,4 +1,3 @@
-
 /***********************************************************************/
 /*
    list.h
@@ -10,7 +9,7 @@
    NOTES
    This implementation of a linked list uses a fixed head and tail node,
    neither of which contain data.  This means that the first data node
-   is obtained via the head 'next' and 'prev' pointers (e.g. 
+   is obtained via the head 'next' and 'prev' pointers (e.g.
    head->next_smallest, etc.).
 
    List_get_length returns the number of data items (i.e. the total
@@ -20,21 +19,18 @@
 
 /***********************************************************************/
 
-
 #ifndef LIST_H
 #define LIST_H
 
 #include <stdio.h>
 #include "grass/gis.h"
 
-
 /***********************************************************************/
 /* Node structure                                                      */
 
 /***********************************************************************/
 
-struct node
-{
+struct node {
     int type;
     int row;
     int col;
@@ -52,7 +48,6 @@ struct node
     struct node *next_largest;
     struct node *next_horizon;
 };
-
 
 /***********************************************************************/
 /* Public functions                                                    */
@@ -88,8 +83,8 @@ void List_init(struct node *, struct node *);
 
 /* List_init (pointer to head, pointer to tail) */
 
-struct node *List_insert_after(int, int, int, int, int, double,
-                               double, double, double, double, struct node *);
+struct node *List_insert_after(int, int, int, int, int, double, double, double,
+                               double, double, struct node *);
 /* List_insert_after (edge type, row, column, axis, quadrant, inclination,
    smallest azimuth, centre azimuth, largest azimuth, distance, pointer to
    node afetr which to add new node in the 'next smallest' list)
@@ -137,8 +132,7 @@ void List_retrieve_elevation_from_buf(void *, struct node *, RASTER_MAP_TYPE);
 /* List_retrieve_elevation_from_buf (pointer to buffer,
    pointer to node to store elevation, buffer data type) */
 
-void List_retrieve_inclination_from_buf(void *, struct node *,
-                                        RASTER_MAP_TYPE);
+void List_retrieve_inclination_from_buf(void *, struct node *, RASTER_MAP_TYPE);
 /* List_retrieve_inclination_from_raster (pointer to buffer,
    pointer to node to store inclination, buffer data type) */
 
@@ -174,7 +168,6 @@ void List_write_type_to_buf(void *, struct node *, RASTER_MAP_TYPE);
 
 /* List_write_type_to_buf  (pointer to buffer, pointer to node containing
    type, buffer data type) */
-
 
 /***********************************************************************/
 /* Debug functions                                                     */

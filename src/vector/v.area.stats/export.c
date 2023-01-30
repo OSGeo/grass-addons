@@ -6,7 +6,6 @@
 #include <grass/glocale.h>
 #include "global.h"
 
-
 char *join(const char *sep, char **string_list, int llen, char *buf)
 {
     int i;
@@ -24,7 +23,6 @@ char *join(const char *sep, char **string_list, int llen, char *buf)
     return buf;
 }
 
-
 int get_str_length(char **string_list, int llen, int seplen)
 {
     int i;
@@ -37,12 +35,12 @@ int get_str_length(char **string_list, int llen, int seplen)
     return slen;
 }
 
-
-
 int get_vals(char **str_vals, struct value val)
 {
-    G_debug(3, "Copy the values from the struct"
-            " for area <%d> to a list of strings.", val.area_id);
+    G_debug(3,
+            "Copy the values from the struct"
+            " for area <%d> to a list of strings.",
+            val.area_id);
     sprintf(str_vals[AREA_ID], "%d", val.area_id);
     sprintf(str_vals[CAT], "%d", val.cat);
     sprintf(str_vals[NISLES], "%d", val.nisles);
@@ -77,7 +75,7 @@ int export2csv(int length)
     G_debug(2, "Allocate memory for row buffer");
     get_vals(str_vals, Values[0]);
     buflen = get_str_length(str_vals, LENVALS, strlen(options.separator));
-    buflen += 128;              /* for safety reasons */
+    buflen += 128; /* for safety reasons */
     char *buf = (char *)G_calloc(buflen, sizeof(char));
 
     G_debug(2, "Open the file to write the results.");

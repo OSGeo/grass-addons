@@ -5,7 +5,7 @@
 #include "window.h"
 
 /* Gini index = 1 - Simpson
- * 
+ *
  * dist: array of distributions
  * nd: number of cells in each distribution
  * n: number of distributions
@@ -21,37 +21,36 @@ DCELL gini(double **dist, int *nd, int n, int dsize)
     gini_avg = 0;
     n_comb = 0;
     for (d = 0; d < n; d++) {
-	n_comb += nd[d];
-	gini_d[d] = 1;
+        n_comb += nd[d];
+        gini_d[d] = 1;
     }
     for (i = 0; i < dsize; i++) {
 
-	/* combined distribution */
-	p_avg = 0;
-	for (d = 0; d < n; d++) {
-	    if (dist[d][i] > 0 && nd[d] > 0) {
-		p_avg += dist[d][i];
-		p = dist[d][i] / nd[d];
-		gini_d[d] -= p * p;
-	    }
-	}
-	
-	/* gini of combined distribution */
-	if (p_avg > 0) {
-	    p_avg /= n_comb;
-	    gini -= p_avg * p_avg;
+        /* combined distribution */
+        p_avg = 0;
+        for (d = 0; d < n; d++) {
+            if (dist[d][i] > 0 && nd[d] > 0) {
+                p_avg += dist[d][i];
+                p = dist[d][i] / nd[d];
+                gini_d[d] -= p * p;
+            }
+        }
 
-	}
+        /* gini of combined distribution */
+        if (p_avg > 0) {
+            p_avg /= n_comb;
+            gini -= p_avg * p_avg;
+        }
     }
     /* average gini of single distributions */
     gini_avg = 0;
     for (d = 0; d < n; d++) {
-	gini_avg += ((double) nd[d] / n_comb) * gini_d[d];
+        gini_avg += ((double)nd[d] / n_comb) * gini_d[d];
     }
     G_free(gini_d);
 
     if (gini == 0)
-	return 0;
+        return 0;
 
     return gini - gini_avg;
 

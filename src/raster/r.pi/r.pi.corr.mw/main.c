@@ -1,5 +1,4 @@
-/*
- ****************************************************************************
+/*****************************************************************************
  *
  * MODULE:       r.pi.corr.mw
  * AUTHOR(S):    Elshad Shirinov, Dr. Martin Wegmann
@@ -26,8 +25,7 @@
 #include "ncb.h"
 #include "local_proto.h"
 
-
-typedef int (ifunc) (void);
+typedef int(ifunc)(void);
 
 struct ncb ncb;
 
@@ -45,13 +43,12 @@ int main(int argc, char *argv[])
     int copycolr;
     struct Colors colr;
     struct GModule *module;
-    struct
-    {
-	struct Option *input1, *input2, *output;
-	struct Option *size, *max;
-	struct Option *title;
+    struct {
+        struct Option *input1, *input2, *output;
+        struct Option *size, *max;
+        struct Option *title;
     } parm;
-    DCELL *values1, *values2;	/* list of neighborhood values */
+    DCELL *values1, *values2; /* list of neighborhood values */
 
     G_gisinit(argv[0]);
 
@@ -81,8 +78,8 @@ int main(int argc, char *argv[])
     parm.max->type = TYPE_INTEGER;
     parm.max->required = YES;
     parm.max->description = _("Scaling factor for results");
-    parm.max->description =
-	_("In order to receive more information of the decimal places, set it to e.g. 1000");
+    parm.max->description = _("In order to receive more information of the "
+                              "decimal places, set it to e.g. 1000");
 
     parm.title = G_define_option();
     parm.title->key = "title";
@@ -92,7 +89,7 @@ int main(int argc, char *argv[])
     parm.title->description = _("Title for resultant raster map");
 
     if (G_parser(argc, argv))
-	exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
 
     /* get names of input files */
     p1 = ncb.oldcell1.name = parm.input1->answer;
@@ -108,7 +105,7 @@ int main(int argc, char *argv[])
     /* check if new file name is correct */
     p = ncb.newcell.name = parm.output->answer;
     if (G_legal_filename(p) < 0)
-	G_fatal_error(_("<%s> is an illegal file name"), p);
+        G_fatal_error(_("<%s> is an illegal file name"), p);
     ncb.newcell.mapset = G_mapset();
 
     /* get window size */
@@ -120,17 +117,17 @@ int main(int argc, char *argv[])
     /* open cell files */
     in_fd1 = Rast_open_old(ncb.oldcell1.name, ncb.oldcell1.mapset);
     if (in_fd1 < 0)
-	G_fatal_error(_("Unable to open raster map <%s>"), ncb.oldcell1.name);
+        G_fatal_error(_("Unable to open raster map <%s>"), ncb.oldcell1.name);
     in_fd2 = Rast_open_old(ncb.oldcell2.name, ncb.oldcell2.mapset);
     if (in_fd2 < 0)
-	G_fatal_error(_("Unable to open raster map <%s>"), ncb.oldcell2.name);
+        G_fatal_error(_("Unable to open raster map <%s>"), ncb.oldcell2.name);
 
     /* get map type */
     map_type = Rast_map_type(ncb.oldcell1.name, ncb.oldcell1.mapset);
 
     /* copy color table? */
     copycolr =
-	(Rast_read_colors(ncb.oldcell1.name, ncb.oldcell1.mapset, &colr) > 0);
+        (Rast_read_colors(ncb.oldcell1.name, ncb.oldcell1.mapset, &colr) > 0);
 
     /* get the neighborhood size */
     sscanf(parm.size->answer, "%d", &ncb.nsize);
@@ -141,93 +138,90 @@ int main(int argc, char *argv[])
 
     /* allocate the cell buffers */
     allocate_bufs();
-    values1 = (DCELL *) G_malloc(ncb.nsize * ncb.nsize * sizeof(DCELL));
-    values2 = (DCELL *) G_malloc(ncb.nsize * ncb.nsize * sizeof(DCELL));
+    values1 = (DCELL *)G_malloc(ncb.nsize * ncb.nsize * sizeof(DCELL));
+    values2 = (DCELL *)G_malloc(ncb.nsize * ncb.nsize * sizeof(DCELL));
     result = Rast_allocate_d_buf();
 
     /* get title, initialize the category and stat info */
     if (parm.title->answer)
-	strcpy(ncb.title, parm.title->answer);
+        strcpy(ncb.title, parm.title->answer);
     else
-	sprintf(ncb.title, "%dx%d neighborhood correlation: %s and %s",
-		ncb.nsize, ncb.nsize, ncb.oldcell1.name, ncb.oldcell2.name);
-
+        sprintf(ncb.title, "%dx%d neighborhood correlation: %s and %s",
+                ncb.nsize, ncb.nsize, ncb.oldcell1.name, ncb.oldcell2.name);
 
     /* initialize the cell bufs with 'dist' rows of the old cellfile */
 
     readrow = 0;
     for (row = 0; row < ncb.dist; row++) {
-	readcell(in_fd1, 1, readrow, nrows, ncols);
-	readcell(in_fd2, 2, readrow, nrows, ncols);
-	readrow++;
+        readcell(in_fd1, 1, readrow, nrows, ncols);
+        readcell(in_fd2, 2, readrow, nrows, ncols);
+        readrow++;
     }
 
     /* open the new cellfile */
     out_fd = Rast_open_new(ncb.newcell.name, map_type);
     if (out_fd < 0)
-	G_fatal_error(_("Cannot create raster map <%s>"), ncb.newcell.name);
+        G_fatal_error(_("Cannot create raster map <%s>"), ncb.newcell.name);
 
     G_message(_("Percent complete ... "));
 
     for (row = 0; row < nrows; row++) {
-	G_percent(row, nrows, 2);
-	/* read the next row into buffer */
-	readcell(in_fd1, 1, readrow, nrows, ncols);
-	readcell(in_fd2, 2, readrow, nrows, ncols);
-	readrow++;
-	for (col = 0; col < ncols; col++) {
-	    DCELL sum1 = 0;
-	    DCELL sum2 = 0;
-	    DCELL mul, mul1, mul2;
-	    double count = 0;
-	    DCELL ii, jj;
+        G_percent(row, nrows, 2);
+        /* read the next row into buffer */
+        readcell(in_fd1, 1, readrow, nrows, ncols);
+        readcell(in_fd2, 2, readrow, nrows, ncols);
+        readrow++;
+        for (col = 0; col < ncols; col++) {
+            DCELL sum1 = 0;
+            DCELL sum2 = 0;
+            DCELL mul, mul1, mul2;
+            double count = 0;
+            DCELL ii, jj;
 
-	    /* set pointer to actual position in the result */
-	    DCELL *rp = &result[col];
+            /* set pointer to actual position in the result */
+            DCELL *rp = &result[col];
 
-	    mul = mul1 = mul2 = 0;
+            mul = mul1 = mul2 = 0;
 
-	    /* gather values from actual window */
-	    gather(values1, 1, col);
-	    gather(values2, 2, col);
-	    /* go through all values of the window */
-	    for (i = 0; i < ncb.nsize * ncb.nsize; i++) {
-		/* ignore values if both are nan */
-		if (!
-		    (Rast_is_d_null_value(&values1[i]) &&
-		     Rast_is_d_null_value(&values2[i]))) {
-		    if (!Rast_is_d_null_value(&values1[i])) {
-			sum1 += values1[i];
-			mul1 += values1[i] * values1[i];
-		    }
-		    if (!Rast_is_d_null_value(&values2[i])) {
-			sum2 += values2[i];
-			mul2 += values2[i] * values2[i];
-		    }
-		    if (!Rast_is_d_null_value(&values1[i]) &&
-			!Rast_is_d_null_value(&values2[i]))
-			mul += values1[i] * values2[i];
-		    /* count the number of values actually processed */
-		    count++;
-		}
-	    }
-	    if (count <= 1.1) {
-		*rp = 0;
-		continue;
-	    }
-	    /* calculate normalization */
-	    ii = sqrt((mul1 - sum1 * sum1 / count) / (count - 1.0));
-	    jj = sqrt((mul2 - sum2 * sum2 / count) / (count - 1.0));
+            /* gather values from actual window */
+            gather(values1, 1, col);
+            gather(values2, 2, col);
+            /* go through all values of the window */
+            for (i = 0; i < ncb.nsize * ncb.nsize; i++) {
+                /* ignore values if both are nan */
+                if (!(Rast_is_d_null_value(&values1[i]) &&
+                      Rast_is_d_null_value(&values2[i]))) {
+                    if (!Rast_is_d_null_value(&values1[i])) {
+                        sum1 += values1[i];
+                        mul1 += values1[i] * values1[i];
+                    }
+                    if (!Rast_is_d_null_value(&values2[i])) {
+                        sum2 += values2[i];
+                        mul2 += values2[i] * values2[i];
+                    }
+                    if (!Rast_is_d_null_value(&values1[i]) &&
+                        !Rast_is_d_null_value(&values2[i]))
+                        mul += values1[i] * values2[i];
+                    /* count the number of values actually processed */
+                    count++;
+                }
+            }
+            if (count <= 1.1) {
+                *rp = 0;
+                continue;
+            }
+            /* calculate normalization */
+            ii = sqrt((mul1 - sum1 * sum1 / count) / (count - 1.0));
+            jj = sqrt((mul2 - sum2 * sum2 / count) / (count - 1.0));
 
-	    /* set result */
-	    *rp =
-		maxval * (mul -
-			  sum1 * sum2 / count) / (ii * jj * (count - 1.0));
-	    if (Rast_is_d_null_value(rp))
-		Rast_set_d_null_value(rp, 1);
-	}
-	/* write actual result row to the output file */
-	Rast_put_d_row(out_fd, result);
+            /* set result */
+            *rp = maxval * (mul - sum1 * sum2 / count) /
+                  (ii * jj * (count - 1.0));
+            if (Rast_is_d_null_value(rp))
+                Rast_set_d_null_value(rp, 1);
+        }
+        /* write actual result row to the output file */
+        Rast_put_d_row(out_fd, result);
     }
     G_percent(row, nrows, 2);
 
@@ -236,7 +230,7 @@ int main(int argc, char *argv[])
     Rast_close(out_fd);
 
     if (copycolr)
-	Rast_write_colors(ncb.newcell.name, ncb.newcell.mapset, &colr);
+        Rast_write_colors(ncb.newcell.name, ncb.newcell.mapset, &colr);
 
     exit(EXIT_SUCCESS);
 }

@@ -33,61 +33,61 @@ int load_map(int ele_fd)
     ele_buf = Rast_allocate_buf(ele_map_type);
 
     if (ele_buf == NULL) {
-	G_warning(_("Could not allocate memory"));
-	return -1;
+        G_warning(_("Could not allocate memory"));
+        return -1;
     }
 
     ele_scale = 1;
     if (ele_map_type == FCELL_TYPE || ele_map_type == DCELL_TYPE)
-	ele_scale = 1000;	/* should be enough to do the trick */
+        ele_scale = 1000; /* should be enough to do the trick */
 
     G_debug(1, "start loading %d rows, %d cols", nrows, ncols);
     for (r = 0; r < nrows; r++) {
 
-	G_percent(r, nrows, 2);
+        G_percent(r, nrows, 2);
 
-	Rast_get_row(ele_fd, ele_buf, r, ele_map_type);
-	ptr = ele_buf;
+        Rast_get_row(ele_fd, ele_buf, r, ele_map_type);
+        ptr = ele_buf;
 
-	for (c = 0; c < ncols; c++) {
+        for (c = 0; c < ncols; c++) {
 
-	    df.flag = 0;
+            df.flag = 0;
 
-	    /* check for masked and NULL cells */
-	    if (Rast_is_null_value(ptr, ele_map_type)) {
-		FLAG_SET(df.flag, NULLFLAG);
-		FLAG_SET(df.flag, INLISTFLAG);
-		FLAG_SET(df.flag, WORKEDFLAG);
-		FLAG_SET(df.flag, WORKED2FLAG);
-		Rast_set_c_null_value(&ele_value, 1);
-	    }
-	    else {
-		switch (ele_map_type) {
-		case CELL_TYPE:
-		    ele_value = *((CELL *) ptr);
-		    break;
-		case FCELL_TYPE:
-		    dvalue = *((FCELL *) ptr);
-		    dvalue *= ele_scale;
-		    ele_value = ele_round(dvalue);
-		    break;
-		case DCELL_TYPE:
-		    dvalue = *((DCELL *) ptr);
-		    dvalue *= ele_scale;
-		    ele_value = ele_round(dvalue);
-		    break;
-		}
+            /* check for masked and NULL cells */
+            if (Rast_is_null_value(ptr, ele_map_type)) {
+                FLAG_SET(df.flag, NULLFLAG);
+                FLAG_SET(df.flag, INLISTFLAG);
+                FLAG_SET(df.flag, WORKEDFLAG);
+                FLAG_SET(df.flag, WORKED2FLAG);
+                Rast_set_c_null_value(&ele_value, 1);
+            }
+            else {
+                switch (ele_map_type) {
+                case CELL_TYPE:
+                    ele_value = *((CELL *)ptr);
+                    break;
+                case FCELL_TYPE:
+                    dvalue = *((FCELL *)ptr);
+                    dvalue *= ele_scale;
+                    ele_value = ele_round(dvalue);
+                    break;
+                case DCELL_TYPE:
+                    dvalue = *((DCELL *)ptr);
+                    dvalue *= ele_scale;
+                    ele_value = ele_round(dvalue);
+                    break;
+                }
 
-		n_points++;
-	    }
+                n_points++;
+            }
 
-	    cseg_put(&ele, &ele_value, r, c);
-	    seg_put(&dirflag, (char *)&df, r, c);
+            cseg_put(&ele, &ele_value, r, c);
+            seg_put(&dirflag, (char *)&df, r, c);
 
-	    ptr = G_incr_void_ptr(ptr, ele_size);
-	}
+            ptr = G_incr_void_ptr(ptr, ele_size);
+        }
     }
-    G_percent(nrows, nrows, 1);	/* finish it */
+    G_percent(nrows, nrows, 1); /* finish it */
 
     Rast_close(ele_fd);
     G_free(ele_buf);

@@ -3,11 +3,11 @@
 int GetCell(double *map, int x, int y, int size, double val, double *res)
 {
     if ((x >= 0) && (x < size) && (y >= 0) && (y < size)) {
-	*res = map[x + y * size];
-	if (Rast_is_d_null_value(res)) {
-	    *res = val;
-	}
-	return 1;
+        *res = map[x + y * size];
+        if (Rast_is_d_null_value(res)) {
+            *res = val;
+        }
+        return 1;
     }
 
     *res = 0;
@@ -17,14 +17,15 @@ int GetCell(double *map, int x, int y, int size, double val, double *res)
 
 void SetCell(double *map, int x, int y, int size, double value)
 {
-    /*      fprintf(stderr, "writing value = %f to x = %d y = %d\n", value, x, y); */
+    /*      fprintf(stderr, "writing value = %f to x = %d y = %d\n", value, x,
+     * y); */
     if (!Rast_is_d_null_value(&map[x + y * size]))
-	map[x + y * size] = value;
+        map[x + y * size] = value;
     /*      fprintf(stderr, "map[%d,%d] = %f\n", x, y, map[x + y * size]); */
 }
 
-double DownSample(double *map, double min, int x, int y, int newcols, int newrows,
-		  int oldsize)
+double DownSample(double *map, double min, int x, int y, int newcols,
+                  int newrows, int oldsize)
 {
     int topleftX = oldsize * x / newcols;
     int topleftY = oldsize * y / newrows;
@@ -37,12 +38,12 @@ double DownSample(double *map, double min, int x, int y, int newcols, int newrow
     double sum = 0;
 
     for (i = topleftX; i < bottomrightX; i++) {
-	for (j = topleftY; j < bottomrightY; j++) {
-	    if (GetCell(map, i, j, oldsize, min, &cell)) {
-		cnt++;
-		sum += cell;
-	    }
-	}
+        for (j = topleftY; j < bottomrightY; j++) {
+            if (GetCell(map, i, j, oldsize, min, &cell)) {
+                cnt++;
+                sum += cell;
+            }
+        }
     }
 
     return sum / (double)cnt;
@@ -76,7 +77,7 @@ double UpSample(int *map, int x, int y, int oldcols, int oldrows, int newsize)
     double res = 0;
 
     if (map[oldx + oldy * oldcols] != 0) {
-	Rast_set_d_null_value(&res, 1);
+        Rast_set_d_null_value(&res, 1);
     }
     return res;
 }
@@ -89,15 +90,15 @@ void MinMax(double *map, double *min, double *max, int size)
     *max = MIN_DOUBLE;
 
     if (size == 0)
-	return;
+        return;
 
     for (i = 1; i < size; i++) {
-	if (!Rast_is_d_null_value(&map[i])) {
-	    if (map[i] < *min)
-		*min = map[i];
-	    if (map[i] > *max)
-		*max = map[i];
-	}
+        if (!Rast_is_d_null_value(&map[i])) {
+            if (map[i] < *min)
+                *min = map[i];
+            if (map[i] > *max)
+                *max = map[i];
+        }
     }
 }
 
@@ -113,53 +114,53 @@ double CutValues(double *map, double mapcover, int size)
     /* get parameters */
     MinMax(map, &min, &max, size);
     if (min == max)
-	G_fatal_error("CutValues(): min %g == max %g", min, max);
+        G_fatal_error("CutValues(): min %g == max %g", min, max);
     span = max - min;
     pixels = Round(size * mapcover);
 
     /* classify heights */
     memset(values, 0, RESOLUTION * sizeof(int));
     for (i = 0; i < size; i++) {
-	index = floor(RESOLUTION * (map[i] - min) / span);
-	if (index >= RESOLUTION)
-	    index = RESOLUTION - 1;
-	/*              index:= RES * map[i] / span - c; */
-	values[index]++;
+        index = floor(RESOLUTION * (map[i] - min) / span);
+        if (index >= RESOLUTION)
+            index = RESOLUTION - 1;
+        /*              index:= RES * map[i] / span - c; */
+        values[index]++;
     }
 
     /* accumulate top to bottom */
     for (i = RESOLUTION - 1; i > 0; i--) {
-	values[i - 1] += values[i];
+        values[i - 1] += values[i];
     }
 
     /* find matching height */
     bottom = 0;
     top = RESOLUTION - 1;
     while (bottom < top) {
-	if (values[bottom] >= pixels)
-	    bottom++;
-	if (values[top] < pixels)
-	    top--;
+        if (values[bottom] >= pixels)
+            bottom++;
+        if (values[top] < pixels)
+            top--;
     }
     if (values[bottom] < pixels)
-	bottom--;
+        bottom--;
     if (values[top] >= pixels)
-	top++;
+        top++;
 
     /* find the closest to the landcover */
     topdif = abs(values[top] - pixels);
     bottomdif = abs(values[bottom] - pixels);
 
     if (topdif < bottomdif) {
-	return span * top / RESOLUTION + min;
+        return span * top / RESOLUTION + min;
     }
     else {
-	return span * bottom / RESOLUTION + min;
+        return span * bottom / RESOLUTION + min;
     }
 }
 
-void FractalStep(double *map, double min, Point v1, Point v2, Point v3, Point v4,
-		 double d, int size)
+void FractalStep(double *map, double min, Point v1, Point v2, Point v3,
+                 Point v4, double d, int size)
 {
     Point mid;
     double val1, val2, val3, val4;
@@ -170,13 +171,13 @@ void FractalStep(double *map, double min, Point v1, Point v2, Point v3, Point v4
     int cnt = 0;
 
     if (GetCell(map, v1.x, v1.y, size, min, &val1))
-	cnt++;
+        cnt++;
     if (GetCell(map, v2.x, v2.y, size, min, &val2))
-	cnt++;
+        cnt++;
     if (GetCell(map, v3.x, v3.y, size, min, &val3))
-	cnt++;
+        cnt++;
     if (GetCell(map, v4.x, v4.y, size, min, &val4))
-	cnt++;
+        cnt++;
 
     /* calculate midpoints */
     mid.x = (v1.x + v2.x + v3.x + v4.x) / 4;
@@ -211,52 +212,52 @@ void FractalIter(double *map, double d, double dmod, int n, int size)
     step = size - 1;
 
     for (i = 0; i < n; i++) {
-	/* do diamond step */
-	for (x = 0; x < (1 << i); x++) {
-	    for (y = 0; y < (1 << i); y++) {
-		v1.x = x * step;
-		v1.y = y * step;
-		v2.x = (x + 1) * step;
-		v2.y = y * step;
-		v3.x = x * step;
-		v3.y = (y + 1) * step;
-		v4.x = (x + 1) * step;
-		v4.y = (y + 1) * step;
+        /* do diamond step */
+        for (x = 0; x < (1 << i); x++) {
+            for (y = 0; y < (1 << i); y++) {
+                v1.x = x * step;
+                v1.y = y * step;
+                v2.x = (x + 1) * step;
+                v2.y = y * step;
+                v3.x = x * step;
+                v3.y = (y + 1) * step;
+                v4.x = (x + 1) * step;
+                v4.y = (y + 1) * step;
 
-		FractalStep(map, min, v1, v2, v3, v4, actd, size);
-	    }
-	}
+                FractalStep(map, min, v1, v2, v3, v4, actd, size);
+            }
+        }
 
-	/* adjust step */
-	step >>= 1;
+        /* adjust step */
+        step >>= 1;
 
-	/* do square step */
-	xdisp = 1;
-	for (y = 1; y <= (1 << (i + 0)); y++) {
-	    for (x = 1; x <= (1 << i) - xdisp - 1; x++) {
-		dx = 2 * x + xdisp;
-		v1.x = dx * step;
-		v1.y = (y - 1) * step;
-		v2.x = (dx + 1) * step;
-		v2.y = y * step;
-		v3.x = dx * step;
-		v3.y = (y + 1) * step;
-		v4.x = (dx - 1) * step;
-		v4.y = y * step;
+        /* do square step */
+        xdisp = 1;
+        for (y = 1; y <= (1 << (i + 0)); y++) {
+            for (x = 1; x <= (1 << i) - xdisp - 1; x++) {
+                dx = 2 * x + xdisp;
+                v1.x = dx * step;
+                v1.y = (y - 1) * step;
+                v2.x = (dx + 1) * step;
+                v2.y = y * step;
+                v3.x = dx * step;
+                v3.y = (y + 1) * step;
+                v4.x = (dx - 1) * step;
+                v4.y = y * step;
 
-		FractalStep(map, min, v1, v2, v3, v4, actd, size);
-	    }
+                FractalStep(map, min, v1, v2, v3, v4, actd, size);
+            }
 
-	    /* switch row offset */
-	    if (xdisp == 0) {
-		xdisp = 1;
-	    }
-	    else {
-		xdisp = 0;
-	    }
-	}
+            /* switch row offset */
+            if (xdisp == 0) {
+                xdisp = 1;
+            }
+            else {
+                xdisp = 0;
+            }
+        }
 
-	/* adjust displacement */
-	actd = actd * dmod;
+        /* adjust displacement */
+        actd = actd * dmod;
     }
 }
