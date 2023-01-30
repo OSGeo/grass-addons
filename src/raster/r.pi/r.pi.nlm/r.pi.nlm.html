@@ -1,33 +1,33 @@
 <h2>DESCRIPTION</h2>
 
-Creates a random generated map with values 0 or 1" "by given landcover 
-and agglomeration value. 
+Creates a random generated map with values 0 or 1" "by given landcover
+and agglomeration value.
 
 <h2>NOTES</h2>
 
-Related to r.pi.nlm.circ but using fractal landscapes instead of 
-circular growth. Per default the size of the whole region is used for 
-generating a random landscape, this can be constraint by assigning a 
-class in a raster map with acts as mask for the generation of the 
-random landscape (<em>nullval</em>). The landcover can be set manually, 
-randomly or be taken from the input class coverage. The agglomeration 
-level (<em>sharpness</em>) can be set manually or randomly. If similar 
-random landscape with differing e.g. percentage coverage should be 
-generated, then the <em>seed</em> can be set using any number and 
+Related to r.pi.nlm.circ but using fractal landscapes instead of
+circular growth. Per default the size of the whole region is used for
+generating a random landscape, this can be constraint by assigning a
+class in a raster map with acts as mask for the generation of the
+random landscape (<em>nullval</em>). The landcover can be set manually,
+randomly or be taken from the input class coverage. The agglomeration
+level (<em>sharpness</em>) can be set manually or randomly. If similar
+random landscape with differing e.g. percentage coverage should be
+generated, then the <em>seed</em> can be set using any number and
 reused for any subsequent analysis.
 
 <h2>EXAMPLE</h2>
 
 An example for the North Carolina sample dataset:
 
-A random landscape with random percentage coverage and agglomeration 
+A random landscape with random percentage coverage and agglomeration
 factor:<br>
 <div class="code"><pre>
 r.pi.nlm output=nlm.1 landcover=50
 </pre></div>
 
 
-A random landscape is generated using the percentage coverage of class 
+A random landscape is generated using the percentage coverage of class
 5. The agglomeration factor is set randomly:<br>
 <div class="code"><pre>
 r.pi.nlm input=landclass96 output=nlm.2 keyval=5

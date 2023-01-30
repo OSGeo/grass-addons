@@ -1,16 +1,16 @@
 <h2>DESCRIPTION</h2>
 
-<p><i>r.tpi</i>calculates a multiscale version of the Topographic Position Index (TPI) 
-  of Guisan et al. (1999). The TPI is calculated by averaging a DEM over a 
-  user-specified moving window size and subtracting the original DEM from the averaged 
-  version to get the residual. This has the effect of extracting finer-scale landforms 
-  from regional-scale relief. Positive TPI values represent ridges or hills, and 
+<p><i>r.tpi</i>calculates a multiscale version of the Topographic Position Index (TPI)
+  of Guisan et al. (1999). The TPI is calculated by averaging a DEM over a
+  user-specified moving window size and subtracting the original DEM from the averaged
+  version to get the residual. This has the effect of extracting finer-scale landforms
+  from regional-scale relief. Positive TPI values represent ridges or hills, and
   negative TPI values represent valleys or pits.
 </p>
 
 <p>Unlike the original TPI, <i>r.tpi</i> implements a multiscale version that calculates
-  a standardized TPI over multiple neighborhood radii from <i>minradius</i> to 
-  <i>maxradius</i>, starting at the largest neighborhood size. For subsequent steps, 
+  a standardized TPI over multiple neighborhood radii from <i>minradius</i> to
+  <i>maxradius</i>, starting at the largest neighborhood size. For subsequent steps,
   the standardized TPI is updated with pixels where the absolute TPI values exceed the
   TPI values of the previous step. For large neighborhoods &gt 15, resampling is used
   rather than a focal function to generalize the DEM.

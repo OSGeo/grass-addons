@@ -4,35 +4,35 @@
 in time domain. It requires <em>python-scipy</em> (version 0.14 or later).
 
 <p>
-<em>-c</em>: Find optimal parameters of used filter. The function to 
-optimize depends on difference between original and filtered signals and 
+<em>-c</em>: Find optimal parameters of used filter. The function to
+optimize depends on difference between original and filtered signals and
 on derivates of the filtered signal.
 <p>
-<em>-u</em>: Filter using upper boundary of the signal values (Useful for 
+<em>-u</em>: Filter using upper boundary of the signal values (Useful for
 vegetation indexes filtering).
 <p>
-<em>input</em>: Raster names of equally spaced time series <em>X</em>. 
+<em>input</em>: Raster names of equally spaced time series <em>X</em>.
 <p>
-<em>result_prefix</em>: Prefix for raster names of filterd <em>X</em>. 
+<em>result_prefix</em>: Prefix for raster names of filterd <em>X</em>.
 <p>
-<em>method</em>: Filtering method. Implemented filters are Savitzky-Golay 
+<em>method</em>: Filtering method. Implemented filters are Savitzky-Golay
 filter <em>savgol</em> and median filter <em>median</em>.
 <p>
-<em>winsize</em>: The length of the filter window. <em>winsize</em> must 
+<em>winsize</em>: The length of the filter window. <em>winsize</em> must
 be a positive odd integer.
 <p>
-<em>order</em>: The order of the polynomial used to fit the samples. The 
+<em>order</em>: The order of the polynomial used to fit the samples. The
 <em>order</em> must be less than <em>winsize</em> (Savitzky-Golay only).
 <p>
 <em>iterations</em>: Number of filtering iterations.
 <p>
-<em>opt_points</em>: If <em>-c</em> is specifed, then random sample 
-<em>opt_points</em> and use them in parameter optimization. 
+<em>opt_points</em>: If <em>-c</em> is specifed, then random sample
+<em>opt_points</em> and use them in parameter optimization.
 <p>
-<em>diff_penalty</em>: Penalty for difference between original and 
+<em>diff_penalty</em>: Penalty for difference between original and
 filtered signals (see Notes).
 <p>
-<em>deriv_penalty</em>: Penalty for derivates of filtered signal 
+<em>deriv_penalty</em>: Penalty for derivates of filtered signal
 (see Notes).
 
 <h2>NOTES</h2>
@@ -40,28 +40,28 @@ filtered signals (see Notes).
 <em>X</em> must be equally spaced time series. If the series isn't equally
 spaced, insert NULL raster maps into <em>X</em>.
 
-<p> There is a procedure for searching for good filtering parameters: 
-it uses <em>opt_points</em> random points and perfoms filtering in that 
-points. The result of the filtering can be tested for quality. The 
-quality function is a trade of two features: accuracy and smoothing. 
-Accuracy can be estimated as the (abs) difference between original and 
-filtered data, quality of smoothing can be estimated as absalute values 
-of the derivates. So there are two parameters <em>diff_penalty</em> and 
+<p> There is a procedure for searching for good filtering parameters:
+it uses <em>opt_points</em> random points and perfoms filtering in that
+points. The result of the filtering can be tested for quality. The
+quality function is a trade of two features: accuracy and smoothing.
+Accuracy can be estimated as the (abs) difference between original and
+filtered data, quality of smoothing can be estimated as absalute values
+of the derivates. So there are two parameters <em>diff_penalty</em> and
 <em>deriv_penalty</em> that can ajust the trade-of.
-<p> 
-So the optimizing procedure performs loop over filtering parameters and 
-calculates the next penalty function: 
-<div class="code"><pre> 
+<p>
+So the optimizing procedure performs loop over filtering parameters and
+calculates the next penalty function:
+<div class="code"><pre>
 penalty = diff_penalty * sum(abs(Xi-Fi)) + sum(abs(dFi))
 </pre></div>
-where <em>Xi</em> are original signals in the samplig points, <em>Fi</em> are 
+where <em>Xi</em> are original signals in the samplig points, <em>Fi</em> are
 filtered signals in the sampling points.
-<p> 
+<p>
 The optimal parameters are used for signal filtering in the whole region.
 
 <p>
-If <em>-u</em> flag is specifed, then filter uses Chen's algorithm (see 
-link bellow). The algorithm is usefull for vegetation indexes filtering. 
+If <em>-u</em> flag is specifed, then filter uses Chen's algorithm (see
+link bellow). The algorithm is usefull for vegetation indexes filtering.
 It creates a curve that flows on upper boundary of the signal.
 
 
@@ -69,7 +69,7 @@ It creates a curve that flows on upper boundary of the signal.
 Create test data: <em>X = sin(t) + E</em>,
 where <em>X</em> is raster time series, <em>E</em> is a error term.
 <div class="code"><pre>
-for T in $(seq -w 0 10 360) 
+for T in $(seq -w 0 10 360)
 do
   name="test_raster"$T
   r.mapcalc -s "$name = sin($T) + rand(-0.3, 0.3)"
@@ -96,14 +96,14 @@ i.spectral -g raster=$fmaps coor=$center_easting,$center_northing out=flt.png
 <center>
 <img src="signal.png" border="0" alt="Values of the time series in the central point">
 <img src="flt.png" border="0" alt="Filtered values of the time series in the central point">
-</center> 
+</center>
 
 <h2>REFERENCES</h2>
 
-Chen, Jin; Jonsson, Per; Tamura, Masayuki; Gu, Zhihui; Matsushita, 
-Bunkei; Eklundh, Lars. (2004). <i>A simple method for reconstructing a 
-high-quality NDVI time-series data set based on the Savitzky-Golay 
-filter</i>. <b>Remote Sensing of Environment</b>, 91, 332-344, doi:<a 
+Chen, Jin; Jonsson, Per; Tamura, Masayuki; Gu, Zhihui; Matsushita,
+Bunkei; Eklundh, Lars. (2004). <i>A simple method for reconstructing a
+high-quality NDVI time-series data set based on the Savitzky-Golay
+filter</i>. <b>Remote Sensing of Environment</b>, 91, 332-344, doi:<a
 href="https://doi.org/10.1016/j.rse.2004.03.014">10.1016/j.rse.2004.03.014</a>.
 
 <h2>SEE ALSO</h2>

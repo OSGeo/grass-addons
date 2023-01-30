@@ -1,18 +1,18 @@
 <h2>DESCRIPTION</h2>
 
-<em>i.lswt</em> computes Lake Water Surface Temperature (LSWT) from 
+<em>i.lswt</em> computes Lake Water Surface Temperature (LSWT) from
 moderate resolution polar orbiting satellites with dual thermal channels.
-Given the Top Of Atmosphere(TOA) Brightness Temperatures (BT) derived 
-from the thermal channels of the supported satellites, the module 
+Given the Top Of Atmosphere(TOA) Brightness Temperatures (BT) derived
+from the thermal channels of the supported satellites, the module
 computes surface temperature. For water surface
-(lakes/inland water bodies), the module uses a simplified 
+(lakes/inland water bodies), the module uses a simplified
 non-linear split-window algorithm.
 
 <h2>NOTES</h2>
 
 The non-linear split window equation used here is:
 <div class="code"><pre>LSWT = Ti + c1 * (Ti - Tj) + c2 * (Ti - Tj) ^ 2 + c0</pre></div>
-Where Ti and Tj are Brightness temperatures derived from dual thermal 
+Where Ti and Tj are Brightness temperatures derived from dual thermal
 channels 10.5 - 11.5 micro m and 11.5 - 12.5 micro m respectively.
 The split window equation and the coefficients c0,c1,c2 are taken from Jimenez-Munoz et.al (2008).
 

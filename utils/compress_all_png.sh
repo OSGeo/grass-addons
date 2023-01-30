@@ -46,4 +46,3 @@ svn diff $MODIFIED
 #
 #svn commit $MODIFIED -m "Run 'optipng -o5' to compress PNG images"
 #
-

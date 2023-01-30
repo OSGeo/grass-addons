@@ -1,29 +1,29 @@
 <h2>DESCRIPTION</h2>
 
-<em>v.in.gbif</em> imports <a href="http://www.gbif.org/">GBIF</a> 
+<em>v.in.gbif</em> imports <a href="http://www.gbif.org/">GBIF</a>
 species distribution data. GBIF data is by definition in WGS84 geographic coordinates.
 
 <p>
-The species distribution data downloaded from <a href="http://www.gbif.org/">GBIF</a> 
+The species distribution data downloaded from <a href="http://www.gbif.org/">GBIF</a>
 hast to be unzipped before importing the csv file.
 </p>
 
 <p>
-<em>v.in.gbif</em> saves the data to an intermediate <a href="http://www.gdal.org">GDAL</a> 
-<a href="http://www.gdal.org/drv_vrt.html">VRT - Virtual Datasource</a> 
+<em>v.in.gbif</em> saves the data to an intermediate <a href="http://www.gdal.org">GDAL</a>
+<a href="http://www.gdal.org/drv_vrt.html">VRT - Virtual Datasource</a>
 which will be imported by <a href="https://grass.osgeo.org/grass-stable/manuals/v.in.ogr.html">v.in.ogr</a>. The VRT data set
 can be copied to a user defined directory by <i>-c</i> flag and used in any GDAL aware software.
 
-As some column names in the original data set are similar to <a 
-href="http://www.postgresql.org/docs/devel/static/sql-keywords-appendix.html">SQL reserverd key words</a>, 
-the columns will renamed with the prefix <i>g_</i>. 
+As some column names in the original data set are similar to <a
+href="http://www.postgresql.org/docs/devel/static/sql-keywords-appendix.html">SQL reserverd key words</a>,
+the columns will renamed with the prefix <i>g_</i>.
 </p>
 
 <p>
- By the <i>-r</i> flag an on-the-fly reprojection of the data can be 
-invoked using <a href="https://grass.osgeo.org/grass-stable/manuals/v.import.html">v.import</a>, if the location is 
-not in WGS84. Quality of on-the-fly reprojection is not garanteed. The 
-traditional reprojection procedure in GRASS GIS can also be used 
+ By the <i>-r</i> flag an on-the-fly reprojection of the data can be
+invoked using <a href="https://grass.osgeo.org/grass-stable/manuals/v.import.html">v.import</a>, if the location is
+not in WGS84. Quality of on-the-fly reprojection is not garanteed. The
+traditional reprojection procedure in GRASS GIS can also be used
 instead.
 </p>
 
@@ -33,7 +33,7 @@ instead.
  <pre>
   # import GBIF data
   v.in.gbif input=0004248-150811131857512.csv output=chondrilla
-  
+
   # create GDAL VRT files based upon GBIF data in user defined directory by -c flag
   v.in.gbif -c input=0004248-150811131857512.csv /
   output=chondrilla dir=C:\data\

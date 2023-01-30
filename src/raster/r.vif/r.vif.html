@@ -35,17 +35,17 @@ in another function directly (see example).
 <h2>NOTES</h2>
 
 To compute the vif all data layers are read in as a numpy array (non-data cells
-are ignored). When input layers are large or there are many input layers, 
+are ignored). When input layers are large or there are many input layers,
 memory usage may become problematic. In such cases the user may opt to sample
 raster values for random locations and use that to compute the vif. The quantity
 of random locations to be generated either can be defined as a positive integer,
-or as a percentage of the raster map layer's cells (see 
+or as a percentage of the raster map layer's cells (see
 <a href="https://grass.osgeo.org/grass-stable/manuals/r.random.html">r.random</a>
 for details).
 
 <p>When using a random sub-set of raster cells as input, the user has the option
 to specifies the random seed used to generate the cells. The alternatively is to
-set the -s flag. In that case a radnom seed will be used. This yields a 
+set the -s flag. In that case a radnom seed will be used. This yields a
 non-deterministic result, i.e., vif values may vary between runs. If the sub-set
 is too small it may even lead to differences in variables selected when running
 the step-wise procedure. Special care should be taken when many of the equations

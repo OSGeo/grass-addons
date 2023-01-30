@@ -1,7 +1,7 @@
 <h2>DESCRIPTION</h2>
 
 <em>v.mapcalc</em> performs overlay and buffer functions on
-vector map layers. New vector map layers can be created which are 
+vector map layers. New vector map layers can be created which are
 expressions of existing vector map layers, boolean vector operations
 and buffer functions.
 
@@ -12,16 +12,16 @@ The module expects its input as expression in the following form: <br>
 <br>
 <br>
 
-This structure is similar to r.mapcalc, see <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a></em>. 
-Where <b>result</b> is the name of a vector map layer that will contain the result of the calculation and 
+This structure is similar to r.mapcalc, see <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a></em>.
+Where <b>result</b> is the name of a vector map layer that will contain the result of the calculation and
 <b>expression</b> is any valid combination of boolean and buffer operations for existing vector map layers. <br>
 
-The input is given by using the first module option <i>expression=</i> . This option passes a <b>quoted</b> 
+The input is given by using the first module option <i>expression=</i> . This option passes a <b>quoted</b>
 expression on the command line, for example: <br>
-<div class="code"><pre>v.mapcalc expression="A = B"</pre></div> 
+<div class="code"><pre>v.mapcalc expression="A = B"</pre></div>
 Where <b>A</b> is the new vector map layer that will be equal to the existing vector map layer <b>B</b> in this case. <br>
-<div class="code"><pre>v.mapcalc "A = B"</pre></div> 
-will give the same result. 
+<div class="code"><pre>v.mapcalc "A = B"</pre></div>
+will give the same result.
 
 <h3>OPERATORS AND FUNCTIONS</h3>
 
@@ -46,26 +46,26 @@ And vector functions:
 </pre></div>
 
 <h2>NOTES</h2>
-As shown in the operator table above, the boolean vector operators do not have different precedence. 
-In default setting the expression will be left associatively evaluated. To define specific precedence use parentheses 
+As shown in the operator table above, the boolean vector operators do not have different precedence.
+In default setting the expression will be left associatively evaluated. To define specific precedence use parentheses
 around these expressions, for example:<br>
 
 <div class="code"><pre>
  v.mapcalc expression="D = A & B | C"
 </pre></div>
-Here the first intermediate result is the intersection of vector map layers <b>A & B</b>.  
+Here the first intermediate result is the intersection of vector map layers <b>A & B</b>.
 This intermediate vector map layer is taken to create the union with vector map <b>C</b> to get the final result <b>D</b>.
 It represents the default behaviour of left associativity.
 
 <div class="code"><pre>
  v.mapcalc expression="D = A & (B | C)"
 </pre></div>
-Here the first intermediate result is taken from the parenthesized union of vector map layers <b>B | C</b>.  
-Afterwards the intersection of the intermediate vector map layer and <b>A</b> will be evaluated to get the final 
+Here the first intermediate result is taken from the parenthesized union of vector map layers <b>B | C</b>.
+Afterwards the intersection of the intermediate vector map layer and <b>A</b> will be evaluated to get the final
 result vector map layer <b>D</b>.
 <br>
 <br>
-It should be noticed, that the order in which the operations are performed does matter. 
+It should be noticed, that the order in which the operations are performed does matter.
 Different order of operations can lead to a different result.
 
 <h2>EXAMPLES</h2>

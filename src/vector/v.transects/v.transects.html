@@ -1,12 +1,12 @@
 <h2>DESCRIPTION</h2>
 
-<em>v.transects</em> creates equally spaced geometries along 
+<em>v.transects</em> creates equally spaced geometries along
 input lines. Depending on the selected <b>metric</b>, the distances
 are measured either as straight distances between the transects or along the line.
 Straight distance is better when the lines are complicated (shorelines)
 and using the distance along line would result in big differences in the transect spacing.
 <p>
-The geometries can be lines or quadrilateral areas. Lines 
+The geometries can be lines or quadrilateral areas. Lines
 and areas are generated to be perpendicular to either the input line
 (select <em>line</em> for parameter <b>transect_perpendicular</b>),
 or to the line connecting the transect points
@@ -33,22 +33,22 @@ while the blue ones use <code>transect_perpendicular=trend</code>.
 
 <h2>NOTES</h2>
 
-Input vector lines that are shorter than <b>transect_spacing</b> are ignored. 
+Input vector lines that are shorter than <b>transect_spacing</b> are ignored.
 <p>
 <b>transect_spacing</b>, <b>dleft</b>, and <b>dright</b> are interpreted
-to be in horizontal map units (e.g., degrees in the LatLong/WGS84 coordinate system). 
+to be in horizontal map units (e.g., degrees in the LatLong/WGS84 coordinate system).
 <p>
 <em><b>v.transects</b></em> may fail for a network of lines in Windows.
 
 <h2>EXAMPLES</h2>
 
-In these examples, the 
+In these examples, the
 <a href="http://fatra.cnr.ncsu.edu/geospatial-modeling-course/data/NagsHead_series.zip">Nags Head (19MB)</a>
-mapset is used to generate a shoreline and shore-perpendicular geometries. To use the mapset, unpack it into the 
+mapset is used to generate a shoreline and shore-perpendicular geometries. To use the mapset, unpack it into the
 <a href="https://grass.osgeo.org/sampledata/north_carolina/nc_basic_spm_grass7.zip">nc_spm_08_grass7 (50MB)</a>
 location.
 
- 
+
 <h3>Example 1) - Generate line transects along shoreline</h3>
 
 <p>Generate 20 cross-shore transects along 2008 shoreline (1m contour)
@@ -67,7 +67,7 @@ v.info NH_2008_transects
 <h3>Example 2) - Generate line transects specifying the left and right length</h3>
 
 <p>
-Generate longer, more parallel transects by specifying dleft and dright and 
+Generate longer, more parallel transects by specifying dleft and dright and
 smoothing the input line
 <br>
 <div class=code><pre>
@@ -83,7 +83,7 @@ v.transects input=NH_2008_1m_smoothed \
 <h3>Example 3) - Generate area transects along shoreline</h3>
 
 <p>
-Generate longer, more parallel transects by specifying dleft and dright and 
+Generate longer, more parallel transects by specifying dleft and dright and
 smoothing the input line<br>
 <div class=code><pre>
 g.region raster=NH_2008_1m

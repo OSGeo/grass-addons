@@ -1,20 +1,20 @@
 <h2>DESCRIPTION</h2>
 
-<em>v.fixed.segmentpoints</em> creates segment points along a vector 
-line with fixed distances by using the <em>v.segment</em> module. A 
-category of one line has to be given. Start and end point of the line 
-will be considered. The distance option is limited to an integer number. 
-As a <em>prefix</em> (starting with a letter) has to be given, resulting 
-vectors are <em>prefix</em>_singleline and 
-<em>prefix</em>_segmentpoints, resulting external files are 
+<em>v.fixed.segmentpoints</em> creates segment points along a vector
+line with fixed distances by using the <em>v.segment</em> module. A
+category of one line has to be given. Start and end point of the line
+will be considered. The distance option is limited to an integer number.
+As a <em>prefix</em> (starting with a letter) has to be given, resulting
+vectors are <em>prefix</em>_singleline and
+<em>prefix</em>_segmentpoints, resulting external files are
 <em>prefix</em>_segmentpoints and <em>prefix</em>_segmentpoints.csv.
 
 <p>
-The next to last point may be closer to the last point as the given 
-distance. Distance information for every point is added to the vector 
+The next to last point may be closer to the last point as the given
+distance. Distance information for every point is added to the vector
 attribute table. The attribute is then exported as CSV file.
 
-The <em>category (cat)</em> of the input line is stored in the column 
+The <em>category (cat)</em> of the input line is stored in the column
 <em>cat_line</em> of the <em>prefix</em>_segmentpoints attribute table.
 
 <h2>EXAMPLE</h2>
@@ -27,7 +27,7 @@ The <em>category (cat)</em> of the input line is stored in the column
 </div>
 
 <h2>DEPENDENCIES</h2>
- 
+
 <ul>
 <li>v.segment</li>
 </ul>

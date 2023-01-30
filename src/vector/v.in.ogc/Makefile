@@ -2,7 +2,7 @@ MODULE_TOPDIR = ../..
 
 PGM = v.in.ogc
 
-SUBDIRS = v.in.ogc.features 
+SUBDIRS = v.in.ogc.features
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 

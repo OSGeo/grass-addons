@@ -1,28 +1,28 @@
 <h2>DESCRIPTION</h2>
 
 <p>
-<em>v.class.mlR</em> is a wrapper module that uses the R caret package 
-for machine learning in R to classify objects using training features 
+<em>v.class.mlR</em> is a wrapper module that uses the R caret package
+for machine learning in R to classify objects using training features
 by supervised learning.
 
 <p>The user provides a set of objects (or segments) to be classified, including
-all feature variables describing these object, and a set of objects to be used 
-as training data, including the same feature variables as those describing the 
-unknown objects, plus one additional column indicating the class each training 
-falls into. The training data can, but does not have to be, a subset of the set 
+all feature variables describing these object, and a set of objects to be used
+as training data, including the same feature variables as those describing the
+unknown objects, plus one additional column indicating the class each training
+falls into. The training data can, but does not have to be, a subset of the set
 of objects to be classified.
 
 <p>The user can provide input either as vector maps (<em>segments_map</em>
 and <em>training_map</em>, or as csv files (<em>segments_file</em> and
 <em>training file</em>, or a combination of both. Csv files have to be
-formatted in line with the default output of 
+formatted in line with the default output of
 <a href"v.db.select.html">v.db.select</a>, i.e. with a header. The field
 separator can be set with the <em>separator</em> parameter.
-Output can consist of either additional columns in the vector input map 
-of features, a text file (<em>classification_results</em>) or reclassed 
+Output can consist of either additional columns in the vector input map
+of features, a text file (<em>classification_results</em>) or reclassed
 raster maps (<em>classified_map</em>).
 
-<p>When using text file input, the training data should not contain an id 
+<p>When using text file input, the training data should not contain an id
 column. The object data  (i.e., full set of data to be classified) should have
 the ids in the first column.
 
@@ -30,62 +30,62 @@ the ids in the first column.
 that contains the class values (<em>train_class_column</em>), the prefix
 of the columns that will contain the final class after classification
 (<em>output_class_column</em>) as well as the prefix of the columns that
-will contain the probability values linked to these classifications 
+will contain the probability values linked to these classifications
 (<em>output_prob_column</em> - see below).
 
-<p>Different classifiers are proposed <em>classifiers</em>: 
-k-nearest neighbor (knn), support vector machine with a radial kernel 
-(svmRadial), support vector machine with a linear kernel (svmLinear), random 
-forest (rf), C5.0 (C5.0) and XGBoost (xgbTree) decision trees and recursive 
+<p>Different classifiers are proposed <em>classifiers</em>:
+k-nearest neighbor (knn), support vector machine with a radial kernel
+(svmRadial), support vector machine with a linear kernel (svmLinear), random
+forest (rf), C5.0 (C5.0) and XGBoost (xgbTree) decision trees and recursive
 partitioning (rpart). Each of these classifiers is tuned automatically through
-repeated cross-validation. Caret will automatically determine a reasonable set 
-of values for tuning. See the 
-<a href="http://topepo.github.io/caret/modelList.html">caret webpage</a> 
+repeated cross-validation. Caret will automatically determine a reasonable set
+of values for tuning. See the
+<a href="http://topepo.github.io/caret/modelList.html">caret webpage</a>
 for more information about the tuning parameters for each classifier, and
 more generally for the information about how caret works. By default, the
-module creates 10 5-fold partitions for cross-validation and tests 10 
-possible values of the tuning parameters. These values can be changed 
+module creates 10 5-fold partitions for cross-validation and tests 10
+possible values of the tuning parameters. These values can be changed
 using, repectively, the <em>partitions</em>, <em>folds</em> and
 <em>tunelength</em> parameters.
 
 <p>The user can define a customized tunegrid for each classifier, using
 the <em>tunegrids</em> parameter. Any customized tunegrid has to be defined
-as a Python dictionary, with the classifiers as keys, and the input to 
-expand.grid() as content as defined 
+as a Python dictionary, with the classifiers as keys, and the input to
+expand.grid() as content as defined
 <a href="http://topepo.github.io/caret/model-training-and-tuning.html#alternate-tuning-grids">
 	in the caret documentation</a>.
 
-<p>For example, to define customized tuning grids for svmRadial and 
+<p>For example, to define customized tuning grids for svmRadial and
 RandomForest, the user can define the paramter as:<br>
 <div class="code"><pre>
 tunegrids="{'svmRadial': 'sigma=c(0.01,0.05,0.1), C=c(1,16,128)', 'rf': 'mtry=c(3,10,20)'}"
 </pre></div>
 
 <p>Tuning is potentially very time consuming. Using only a subset of the training
-data for tuning can thus speed up the process significantly, without losing 
-much quality in the tuning results. For training, depending on the number of 
+data for tuning can thus speed up the process significantly, without losing
+much quality in the tuning results. For training, depending on the number of
 features used, some R functions can reach their capacity limit.
-The user can, therefore, define a maximum size of samples per class both for 
-tuning (<em>tuning_sample_size</em>) and for training 
+The user can, therefore, define a maximum size of samples per class both for
+tuning (<em>tuning_sample_size</em>) and for training
 (<em>training_sample_size</em>).
 
-<p>Classifying using too many features (i.e. variables describing the objects 
+<p>Classifying using too many features (i.e. variables describing the objects
 to be classified) as input can have negative effects on classification accuracy
 (Georganos et al, 2018). The module therefore provides the possibility to run a
-feature selection algorithm on the training data in order to identify those 
+feature selection algorithm on the training data in order to identify those
 features that are the most efficient for classification. Using less features
-also speeds up the tuning, training and classification processes. To activate 
-feature selection, the user has to set the <em>max_features</em> parameter to 
-the maximum number of features that the model should select. Often, less than 
-this maximum will be selected. The method used for feature selection is recursive 
-feature elimination based on a random forest model. Note thus that feature 
+also speeds up the tuning, training and classification processes. To activate
+feature selection, the user has to set the <em>max_features</em> parameter to
+the maximum number of features that the model should select. Often, less than
+this maximum will be selected. The method used for feature selection is recursive
+feature elimination based on a random forest model. Note thus that feature
 selection might be sub-optimal for other classifiers, notably non tree-based.
 
-<p>The module can be run only for tuning and training a model, but without 
-<p>Optionally, the module can be run for tuning and training only, 
+<p>The module can be run only for tuning and training a model, but without
+<p>Optionally, the module can be run for tuning and training only,
 i.e., no prediction (<em>-t flag</em>). Any trained model can be saved to a
 file (<em>output_model_file</em>) which can then be read into the module
-at a later stage for the prediction step (<em>input_model_file</em>). This can be 
+at a later stage for the prediction step (<em>input_model_file</em>). This can be
 particularly useful for cluster computing approaches where a trained model
 can be applied to different datasets in parallel.
 
@@ -96,37 +96,37 @@ run.
 
 <p>The user can chose to include the individual classifiers results in
 the output (the attributes and/or the raster maps) using the <em>i</em>
-flag, but by default the output will be the result of a voting scheme 
-merging the results of the different classifiers. Votes can be weighted 
+flag, but by default the output will be the result of a voting scheme
+merging the results of the different classifiers. Votes can be weighted
 according to a user-defined mode (<em>weighting_mode</em>): simple majority
-vote without weighting, i.e. all weights are equal (smv), simple weighted 
-majority vote (swv), best-worst weighted vote (bwwv) and quadratic 
-best-worst weighted vote (qbwwv). For more details about these voting 
-modes see Moreno-Seco et al (2006). By default, the weights are calculated 
-based on the accuracy metric, but the user can chose the kappa value as an 
+vote without weighting, i.e. all weights are equal (smv), simple weighted
+majority vote (swv), best-worst weighted vote (bwwv) and quadratic
+best-worst weighted vote (qbwwv). For more details about these voting
+modes see Moreno-Seco et al (2006). By default, the weights are calculated
+based on the accuracy metric, but the user can chose the kappa value as an
 alternative (<em>weighting_metric</em>).
 
-<p>In the output (as attribute columns or text file) each weighting schemes 
+<p>In the output (as attribute columns or text file) each weighting schemes
 result is provided accompanied by a value that can be considered as an
-estimation of the probability of the classification after weighted vote, 
+estimation of the probability of the classification after weighted vote,
 based on equation (2) in Moreno et al (2006), page 709. At this stage, this
 estimation does not, however, take into account the probabilities determined
 individually by each classifier.
 
-<p>Optional output of the module include detailed information about the 
-different classifier models and their cross-validation results 
-<em>model_details</em> (for details of these results see the train, 
-resamples and confusionMatrix.train functions in the caret package),  a 
-box-and-whisker plot indicating the resampling variance based on the 
-cross-validation for each classifier (<em>bw_plot_file</em>), a csv 
-file containing accuracy measures (overall accuracy and kappa) for each 
+<p>Optional output of the module include detailed information about the
+different classifier models and their cross-validation results
+<em>model_details</em> (for details of these results see the train,
+resamples and confusionMatrix.train functions in the caret package),  a
+box-and-whisker plot indicating the resampling variance based on the
+cross-validation for each classifier (<em>bw_plot_file</em>), a csv
+file containing accuracy measures (overall accuracy and kappa) for each
 classifier (<em>accuracy_file</em>), and a file containing variable importance
-as determined by the classifier (for those classifiers that allow such 
-calculation). When the <em>-p</em> flag is given, 
+as determined by the classifier (for those classifiers that allow such
+calculation). When the <em>-p</em> flag is given,
 the module also provides probabilities per class for each classifier (at least
 for those where caret can calculate such probabilities). This allows to evaluate
-the confidence of classification of each object. 
-The user can also chose to 
+the confidence of classification of each object.
+The user can also chose to
 write the R script constructed and used internally to a text file for study or
 further modification.
 
@@ -134,33 +134,33 @@ further modification.
 
 <p>
 The module can be used in a tool chain together with <a href="https://grass.osgeo.org/grass-stable/manuals/i.segment.html">i.segment</a>
-and the addon <em>i.segment.stats</em> for object-based classification of 
+and the addon <em>i.segment.stats</em> for object-based classification of
 satellite imagery.
 
 <p><em>WARNING:</em> The option output files are created by R and currently
-no checking is done of whether files of the same name already exist. If they 
-exist, they are silently overwritten, regardless of whether the GRASS GIS 
+no checking is done of whether files of the same name already exist. If they
+exist, they are silently overwritten, regardless of whether the GRASS GIS
 <em>--o</em> flag is set or not.
 
-<p>The module makes no effort to check the input data for NA values or 
-anything else that might perturb the analyses. It is up to the user to 
+<p>The module makes no effort to check the input data for NA values or
+anything else that might perturb the analyses. It is up to the user to
 proceed to relevant checks before launching the module.
 
 <h2>DEPENDENCIES</h2>
 
-<p>This module uses R. It is the user's responsibility to make sure R is 
+<p>This module uses R. It is the user's responsibility to make sure R is
 installed and can be called from the environment this module is running in.
-See the relevant 
-<a href="https://grasswiki.osgeo.org/wiki/R_statistics/Installation">wiki page</a> 
-for more information. The module tries to install necessary R packages 
-automatically if necessary. These include : 'caret', 'kernlab', 'e1071', 
+See the relevant
+<a href="https://grasswiki.osgeo.org/wiki/R_statistics/Installation">wiki page</a>
+for more information. The module tries to install necessary R packages
+automatically if necessary. These include : 'caret', 'kernlab', 'e1071',
 'randomForest', and 'rpart'. Other packages can be necessary such as 'ggplot2',
 'lattice' (for the plots), and 'doParallel' (if parallel processing is desired).
 
 <h2>TODO</h2>
 
 <ul>
-	<li>Check for existing file created by R as no overwrite check is 
+	<li>Check for existing file created by R as no overwrite check is
 		done in R</li>
 	<li>Use class probabilities determined by individual classifiers
 		to calculate overall class probabilities</li>

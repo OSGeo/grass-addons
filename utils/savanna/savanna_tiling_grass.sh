@@ -25,7 +25,7 @@ $gregion
 eval `$gregion -g`
 
 # Add additional search paths, if necessary.
-g.mapsets addmapset=$additional_searchpaths 'fs= ,' 
+g.mapsets addmapset=$additional_searchpaths 'fs= ,'
 
 g.region -p
 # echo $tiling_grid"@"$init_mapset

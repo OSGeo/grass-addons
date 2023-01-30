@@ -8,7 +8,7 @@ In the section "input column", the column names in the table of the map with the
 
 Each section of the module calculates a cost. The used formula are valid for all the currencies but the values have to be adapted. The default values related to a cost are considered in Euro. <br><br>
 
-First, we define the <b>total cost</b> which is the sum of all the fixed costs corresponding to the construction and the implementation of the plant. It includes: 
+First, we define the <b>total cost</b> which is the sum of all the fixed costs corresponding to the construction and the implementation of the plant. It includes:
 
 <blockquote><b>- Compensation cost:</b><br><br>
 
@@ -101,7 +101,7 @@ It concerns the construction cost of the water intake structure. It is considere
 
 All these costs define the <b>Total cost</b>:<br><br>
 <center>Total cost = (CCM+CL+CEX+CEM+CST+CIN+CGRD)(1+&alpha;+&beta;)</center>
-<blockquote>where CCM is the 
+<blockquote>where CCM is the
  [currency];<br>
 CL is the Supply and installation cost for pipeline and electroline [currency];<br>
 CEX is the Excavation cost [currency];<br>
@@ -127,7 +127,7 @@ The <b>yearly revenue</b> corresponds to the money gained selling all the electr
 power is the installed power of the plant [kW]; <br>
 price is the energy price [currency/kW] (default value: 0.09 Euro/kW); <br>
 yh is the yearly operation hours of the plant [hours] (default value: 6500); <br>
-&alpha; is the coefficient to transform installed power to mean power (default value: 
+&alpha; is the coefficient to transform installed power to mean power (default value:
 0.5); <br>
 c is a constant (default value: 0)</blockquote><br><br>
 
@@ -165,27 +165,27 @@ structure of the potential plants
 The following command updates the table of structplants and segplants adding the costs:<br><br>
 
 Notes:<br>
-The rules files for the reclassification needed for the following command can be created as shown in the section NOTES above for the rules_landvalue.<br> 
+The rules files for the reclassification needed for the following command can be created as shown in the section NOTES above for the rules_landvalue.<br>
 To create the other rule files this link might be helpful: <a href="https://grass.osgeo.org/grass-stable/manuals/r.category.html">r.category</a> <br>
 The file techplants (input vector map with the structure of the plants) has to be created for example by r.green.hydro.technical before entering the following code.
 <div class="code"><pre>
-r.green.hydro.financial 
-plant=potentialplants 
+r.green.hydro.financial
+plant=potentialplants
 struct=techplants
-struct_column_head=net_head 
-landuse=landuse 
-rules_landvalue=/pathtothefile/landvalue.rules 
-rules_tributes=/pathtothefile/tributes.rules 
-rules_stumpage=/pathtothefile/stumpage.rules 
-rules_rotation=/pathtothefile/rotation.rules 
-rules_age=/pathtothefile/age.rules 
-slope=slope 
-rules_min_exc=/pathtothefile/excmin.rules 
-rules_max_exc=/pathtothefile/excmax.rules 
-electro=grid 
-output_struct=ecoplants 
-compensation=comp 
-excavation=exc 
+struct_column_head=net_head
+landuse=landuse
+rules_landvalue=/pathtothefile/landvalue.rules
+rules_tributes=/pathtothefile/tributes.rules
+rules_stumpage=/pathtothefile/stumpage.rules
+rules_rotation=/pathtothefile/rotation.rules
+rules_age=/pathtothefile/age.rules
+slope=slope
+rules_min_exc=/pathtothefile/excmin.rules
+rules_max_exc=/pathtothefile/excmax.rules
+electro=grid
+output_struct=ecoplants
+compensation=comp
+excavation=exc
 upper=upper</pre></div><br>
 
 It also creates four new raster maps (ecoplants, comp, exc and upper):<br>

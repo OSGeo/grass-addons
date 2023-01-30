@@ -4,7 +4,7 @@
 #
 # MODULE:       mk_isis_menu.sh
 # AUTHOR(S):    Yann Chemin
-# PURPOSE:      Run through $ISISROOT/Isis/bin/* and 
+# PURPOSE:      Run through $ISISROOT/Isis/bin/* and
 #               build a wxpython menu toolbox
 # COPYRIGHT:    (C) 2014 by the GRASS Development Team
 #
@@ -22,7 +22,7 @@
 tbfile="$HOME/.grass8/toolboxes/toolboxes.xml"
 #Main menu
 mmfile="$HOME/.grass8/toolboxes/main_menu.xml"
-#Menu tree 
+#Menu tree
 mtfile="$HOME/.grass8/toolboxes/module_tree.xml"
 #For building
 #tbfile="$ISISROOT/../toolboxes.xml"
@@ -509,7 +509,7 @@ echo "          </items>" >> $tbfile
 echo "        </menu>" >> $tbfile
 #Next set
 echo "      <separator />" >> $tbfile
-#Report Labels and History 
+#Report Labels and History
 echo "        <menu>" >> $tbfile
 echo "          <label>Report Label and History</label>" >> $tbfile
 echo "          <items>" >> $tbfile
@@ -583,5 +583,3 @@ echo "    <user-toolboxes-list/>" >> $mtfile
 echo "    <addons/>" >> $mtfile
 echo "  </items>" >> $mtfile
 echo "</toolbox>" >> $mtfile
-
-

@@ -343,4 +343,3 @@ Hydro economic
 
 - output:
   * add column or txt file? with Net Present Value [€]
-

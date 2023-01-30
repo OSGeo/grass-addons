@@ -11,7 +11,7 @@ ETCDIR = $(ETC)/$(PGM)
 
 ETCFILES := $(patsubst %,$(ETCDIR)/%.py,$(MODULES))
 
-default: $(ETCFILES) script 
+default: $(ETCFILES) script
 
 $(ETCDIR):
 	$(MKDIR) $@

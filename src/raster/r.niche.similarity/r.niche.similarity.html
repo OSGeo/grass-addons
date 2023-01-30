@@ -1,49 +1,49 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.niche.similarity</em> 
+<em>r.niche.similarity</em>
 
-<p>A module to compute two metrics to quantify niche similarity or 
+<p>A module to compute two metrics to quantify niche similarity or
 overlap between all pairs of input raster layers.
 
-<p>One is the niche equivalency or similarity for two species 
-following Warren et al. (2008) based on Schoeners D (Schoener, 
-1968). This metric ranges from 0 to 1, representing respectively no 
-overlap and an identical distribution. 
+<p>One is the niche equivalency or similarity for two species
+following Warren et al. (2008) based on Schoeners D (Schoener,
+1968). This metric ranges from 0 to 1, representing respectively no
+overlap and an identical distribution.
 
-<p>The other is the niche overlap metric which indicates the niche 
-overlap from predictions of species distributions with the I 
-similarity statistic of Warren et al. (2009), which is based on 
-Hellinger Distances (van der Vaart, 1998). The statistic ranges from 
-0 (no overlap) to 1 (the distributions are identical). 
+<p>The other is the niche overlap metric which indicates the niche
+overlap from predictions of species distributions with the I
+similarity statistic of Warren et al. (2009), which is based on
+Hellinger Distances (van der Vaart, 1998). The statistic ranges from
+0 (no overlap) to 1 (the distributions are identical).
 
-<p>By default the results are written to screen, but they can also 
-be written to a text file with two columns for the names of each 
-pair of rasters, a third column for the type of statistic (D or I) 
+<p>By default the results are written to screen, but they can also
+be written to a text file with two columns for the names of each
+pair of rasters, a third column for the type of statistic (D or I)
 and a fourth column for the D or I statistic.
 
 <h2>Notes</h2>
 
-This implementation is especially suitable if you are working 
-with very large data sets. Results were checked against the 
+This implementation is especially suitable if you are working
+with very large data sets. Results were checked against the
 niche.overlap function in the phyloclim package for R, which also uses
-the corrected formulation of I as published in an erratum of the 
+the corrected formulation of I as published in an erratum of the
 article by Warren et al (2008).
 
-<h2>REFERENCES</h2> 
+<h2>REFERENCES</h2>
 
 <ul>
-<li>Warren, D. L., Glor, R. E., & Turelli, M. 2008. 
-Environmental Niche Equivalency Versus Conservatism: Quantitative 
+<li>Warren, D. L., Glor, R. E., & Turelli, M. 2008.
+Environmental Niche Equivalency Versus Conservatism: Quantitative
 Approaches to Niche Evolution. Evolution 62(11): 2868-2883</li>
-<li> Warren, D. L., R. E. Glor, and M. Turelli. 2010. ENMTools: a 
-toolbox for comparative studies of environmental niche models. Ecography 
+<li> Warren, D. L., R. E. Glor, and M. Turelli. 2010. ENMTools: a
+toolbox for comparative studies of environmental niche models. Ecography
 33:607-611.</li>
-<li>Robert J. Hijmans, Steven Phillips, John 
-Leathwick and Jane Elith (2013). dismo: Species distribution 
-modeling. R package version 0.8-5. 
+<li>Robert J. Hijmans, Steven Phillips, John
+Leathwick and Jane Elith (2013). dismo: Species distribution
+modeling. R package version 0.8-5.
 http://CRAN.R-project.org/package=dismo</li>
-<li>Christoph Heibl and Clement Calenge (2012). phyloclim: Integrating 
-Phylogenetics and Climatic Niche Modeling. R package version 0.9-0. 
+<li>Christoph Heibl and Clement Calenge (2012). phyloclim: Integrating
+Phylogenetics and Climatic Niche Modeling. R package version 0.9-0.
 http://CRAN.R-project.org/package=phyloclim</li>
 </ul>
 

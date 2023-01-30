@@ -1,16 +1,16 @@
 <h2>DESCRIPTION</h2>
 
-<em>v.net.curvedarcs</em> is a frontend to 
-<em><a href="https://grass.osgeo.org/grass-stable/manuals/v.net.html">v.net</a></em> and 
+<em>v.net.curvedarcs</em> is a frontend to
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/v.net.html">v.net</a></em> and
 <em><a href="https://grass.osgeo.org/grass-stable/manuals/v.segment.html">v.segment</a></em>
- that creates curved arcs between given start and end points. 
-The user provides a point vector map and a text file (see Notes section) with 
-start and end point categories as well as a flow volume for this link which 
+ that creates curved arcs between given start and end points.
+The user provides a point vector map and a text file (see Notes section) with
+start and end point categories as well as a flow volume for this link which
 will be transferred to the attribute table of the curved arcs.
 
 <p>
 The user can determine the nature of the curve with the <em>minimum_offset</em>
-and <em>maximum_offset</em> parameters. The longest curve's maximum offset 
+and <em>maximum_offset</em> parameters. The longest curve's maximum offset
 from a straight line is equal to the value of <em>maximum_offset</em> in
 map units. The other curves maximum offset from a straight line is calulated
 as length(x)/max_length * max_offset. In other words, shorter lines are less

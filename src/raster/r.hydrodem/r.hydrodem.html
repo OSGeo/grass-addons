@@ -1,26 +1,26 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.hydrodem</em> applies hydrological conditioning (sink removal) to 
-a required input <em>elevation</em> map. If the conditioned elevation 
-map is going to be used as input elevation for <em>r.watershed</em>, 
-only small sinks should be removed and the amount of modifications 
-restricted with the <b>mod</b> option. For other modules such as 
-<em>r.terraflow</em> or third-party software, full sink removal is 
+<em>r.hydrodem</em> applies hydrological conditioning (sink removal) to
+a required input <em>elevation</em> map. If the conditioned elevation
+map is going to be used as input elevation for <em>r.watershed</em>,
+only small sinks should be removed and the amount of modifications
+restricted with the <b>mod</b> option. For other modules such as
+<em>r.terraflow</em> or third-party software, full sink removal is
 recommended.
 
 <h2>OPTIONS</h2>
 
 <dl>
-<dt><b>input</b> 
+<dt><b>input</b>
 
 <dd>Input map, required: Digital elevation model to be corrected. Gaps
 in the elevation map that are located within the area of interest should
-be filled beforehand, e.g. with <em>r.fillnulls</em> or 
+be filled beforehand, e.g. with <em>r.fillnulls</em> or
 <em>r.resamp.bspline</em>, to avoid distortions.
 <p>
 <dt><b>output</b>
 <dd>Output map, required: Hydrologically conditioned digital elevation
-model. By default, only minor modifications are done and not all sinks 
+model. By default, only minor modifications are done and not all sinks
 are removed.
 <p>
 <dt><b>size</b>
@@ -28,18 +28,18 @@ are removed.
 Default is 4, if in doubt, decrease and not increase.
 <p>
 <dt><b>mod</b>
-<dd>All sinks will be removed that require not more than <b>mod</b> 
-cells to be modifed. Often, rather large sinks can be removed by 
+<dd>All sinks will be removed that require not more than <b>mod</b>
+cells to be modifed. Often, rather large sinks can be removed by
 carving through only few cells. Default is 4, if in doubt, increase
 and not decrease.
 <p>
 <dt><b>-a</b>
 <dd><b>Not recommended if input for <em>r.watershed</em> is generated.</b>
 <br>
-With the <b>-a</b> flag set, all sinks will be removed using an impact 
-reduction approach based on Lindsay &amp; Creed (2005). The output will be a 
+With the <b>-a</b> flag set, all sinks will be removed using an impact
+reduction approach based on Lindsay &amp; Creed (2005). The output will be a
 depression-less digital elevation model, suitable for e.g.
-<em>r.terraflow</em> or other hydrological analyses that require a 
+<em>r.terraflow</em> or other hydrological analyses that require a
 depression-less DEM as input.
 </dl>
 
@@ -52,19 +52,19 @@ In most cases, the removal of one-cell extrema could already be
 sufficient to improve <em>r.watershed</em> results in difficult terrain,
 particularly nearly flat areas.
 <p>
-The impact reduction algorithm used by <em>r.hydrodem</em> is based on 
-Lindsay &amp; Creed (2005), with some additional checks for 
-hydrological consistency. With complete sink removal, results of 
+The impact reduction algorithm used by <em>r.hydrodem</em> is based on
+Lindsay &amp; Creed (2005), with some additional checks for
+hydrological consistency. With complete sink removal, results of
 <em>r.terraflow</em> are very similar to results of <em>r.watershed</em>.
 <p>
-<em>r.hydrodem</em> uses the same method to determine drainage directions 
+<em>r.hydrodem</em> uses the same method to determine drainage directions
 like <em>r.watershed</em>.
 <p>
 
 <h2>REFERENCES</h2>
-Lindsay, J. B., and Creed, I. F. 2005. Removal of artifact depressions 
-from digital elevation models: towards a minimum impact approach. 
-Hydrological Processes 19, 3113-3126. 
+Lindsay, J. B., and Creed, I. F. 2005. Removal of artifact depressions
+from digital elevation models: towards a minimum impact approach.
+Hydrological Processes 19, 3113-3126.
 DOI: <a href=http://dx.doi.org/10.1002/hyp.5835>10.1002/hyp.5835</a>
 
 
@@ -73,8 +73,8 @@ DOI: <a href=http://dx.doi.org/10.1002/hyp.5835>10.1002/hyp.5835</a>
 <em>
 <a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a>,
 <a href="https://grass.osgeo.org/grass-stable/manuals/r.terraflow.html">r.terraflow</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.fill.dir.html">r.fill.dir</a>, 
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.fillnulls.html">r.fillnulls</a>, 
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.fill.dir.html">r.fill.dir</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.fillnulls.html">r.fillnulls</a>,
 <a href="https://grass.osgeo.org/grass-stable/manuals/r.resamp.bspline.html">r.resamp.bspline</a>
 </em>
 

@@ -1,33 +1,33 @@
 <h2>DESCRIPTION</h2>
 
-Isolation or connectivity of singular patches of a defined landcover 
-class using individual-based dispersal models. This function is based 
-on a maximum amount of energy for each individuals dispersing through 
-the landscape which is deminished by a fricition or cost map. Unlike 
-the related function <em>r.pi.energy</em> does this function allows 
-individuals to stay or move within a patch until the energy is 
+Isolation or connectivity of singular patches of a defined landcover
+class using individual-based dispersal models. This function is based
+on a maximum amount of energy for each individuals dispersing through
+the landscape which is deminished by a fricition or cost map. Unlike
+the related function <em>r.pi.energy</em> does this function allows
+individuals to stay or move within a patch until the energy is
 depleted.
 
 <h2>NOTES</h2>
 
-Amount of successful immigrants or emigrants are not taken individual 
-into account which emigrated from and immigrated into the same patch 
+Amount of successful immigrants or emigrants are not taken individual
+into account which emigrated from and immigrated into the same patch
 (pseudo immigration).
 <p>
-The suitability matrix impacts the step direction, while the costmap 
+The suitability matrix impacts the step direction, while the costmap
 relates to the depletion of assigned energy.
 <p>
-If individuals are moving beyond the mapset borders the indivuals are 
+If individuals are moving beyond the mapset borders the indivuals are
 set back to their original source patches.
 
 <h2>EXAMPLE</h2>
 
 An example for the North Carolina sample dataset:
 
-The amount of successful emigrants (*_emi), immigrants (*_imi), the 
-percentage of immigrants per patch (*_imi_percent), the amount of lost 
-indivuals (*_lost), the amount of migrants (*_mig), successful 
-(*_mig_succ) and unsuccessful migrants (_mig_unsucc) can be retrieved 
+The amount of successful emigrants (*_emi), immigrants (*_imi), the
+percentage of immigrants per patch (*_imi_percent), the amount of lost
+indivuals (*_lost), the amount of migrants (*_mig), successful
+(*_mig_succ) and unsuccessful migrants (_mig_unsucc) can be retrieved
 using this command:
 <div class="code"><pre>
 r.pi.energy input=landclass96 output=energy1 keyval=5 n=1000 step_length=5 energy=10 percent=80
@@ -42,9 +42,9 @@ r.pi.energy input=landclass96 output=energy1 keyval=5 n=1000 step_length=5 energ
 
 introducing a suitability for the movement:
 <div class="code"><pre>
-# the suitability for the next step selection is defined as: class 5 
-# and 3 (forest and grassland) have a high suitability, while shrubland 
-# (class 4) only a moderate and water and developed areas (class 6 and 1) 
+# the suitability for the next step selection is defined as: class 5
+# and 3 (forest and grassland) have a high suitability, while shrubland
+# (class 4) only a moderate and water and developed areas (class 6 and 1)
 # have a very low suitability:
 
 r.mapcalc "suit_raster = if(landclass96==5,100,if(landclass96 == 3, 100, if (landclass96==1,1, if(landclass96==6,1,if(landclass96==4,50)))))"
@@ -63,7 +63,7 @@ increasing the attraction to move towards patches to 10:
 r.pi.energy input=landclass96 output=energyiter keyval=5 n=1000 step_length=5 energy=10 percent=80 stats=average multiplicator=10
 </pre></div>
 
-output of each movement location for a defined step frequency. Here 
+output of each movement location for a defined step frequency. Here
 every 10th step is provided as output raster:
 <div class="code"><pre>
 r.pi.energy input=landclass96 output=energyiter keyval=5 n=1000 step_length=5 energy=10 percent=80 stats=average out_freq=10

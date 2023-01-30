@@ -1,32 +1,32 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.viewshed.cva</em> is a module that allows for the 
-construction of "Cumulative Viewshed", or "visualscape" maps from a 
-series of input points stored in a vector points map. The routine is 
-a python wrapper script that iterative loops through each input 
-point, calculating a viewshed map, and then creates an output map 
-that is coded by the number of input locations that can "see" each 
+<em>r.viewshed.cva</em> is a module that allows for the
+construction of "Cumulative Viewshed", or "visualscape" maps from a
+series of input points stored in a vector points map. The routine is
+a python wrapper script that iterative loops through each input
+point, calculating a viewshed map, and then creates an output map
+that is coded by the number of input locations that can "see" each
 cell. <em>r.viewshed.cva</em> uses the GRASS GIS module <em>r.viewshed</em>
-for the viewshed analysis. <em>r.viewshed</em> is very fast, 
-thus allowing for a cumulative viewshed analysis to run in a 
-reasonable amount of time. The final cumulative viewshed map is 
-computed using the "count" method of <em>r.series</em>, rather than 
-with mapcalc, as it better handles the null values in the individual 
-constituent viewshed maps (and allows for interim viewshed maps to 
+for the viewshed analysis. <em>r.viewshed</em> is very fast,
+thus allowing for a cumulative viewshed analysis to run in a
+reasonable amount of time. The final cumulative viewshed map is
+computed using the "count" method of <em>r.series</em>, rather than
+with mapcalc, as it better handles the null values in the individual
+constituent viewshed maps (and allows for interim viewshed maps to
 be coded in any way).
 
 <h3>Options and flags</h3>
 
-<em>r.viewshed.cva</em> requires an input elevation map, <b>input</b>, 
+<em>r.viewshed.cva</em> requires an input elevation map, <b>input</b>,
 and an input vector points map, <b>vector</b>. There is currently only
  one native flag for <em>r.viewshed.cva</em>, <b>-k</b>, which allows
- you to keep the interim viewshed maps made for each input point. 
-Optionally, option <b>name_column</b> can be used with <b>-k</b> to specify 
-the suffix of the kept viewshed maps by a particular column in the 
-input vector points' database. If no value is specified for <b>name_column</b>, 
+ you to keep the interim viewshed maps made for each input point.
+Optionally, option <b>name_column</b> can be used with <b>-k</b> to specify
+the suffix of the kept viewshed maps by a particular column in the
+input vector points' database. If no value is specified for <b>name_column</b>,
 then the cat value will be used.
 <p>
-All other flags and options are inherited from 
+All other flags and options are inherited from
 <em>r.viewshed</em>
 (see the <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.viewshed.html">r.viewshed</a></em>
 help page for more information on these).
@@ -34,10 +34,10 @@ help page for more information on these).
 <h2>NOTES</h2>
 
 The input vector points map can be manually digitized (with <em>
-v.digit</em>) over topographic or cultural features, or can be 
+v.digit</em>) over topographic or cultural features, or can be
 created as a series of random points (with <em>r.random</em> or <em>
-v.random</em>). Note that using the flag -k allows you to keep any 
-interim viewshed maps created during the analysis, and these resultant 
+v.random</em>). Note that using the flag -k allows you to keep any
+interim viewshed maps created during the analysis, and these resultant
 viewshed maps will be named according to the cat number of the original
 input points. This is also useful for simple creating a large number
 of individual viewsheds from points in a vector file.

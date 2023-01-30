@@ -1,38 +1,38 @@
 <h2>DESCRIPTION</h2>
 
 <p>
-<em>d.vect.colbp</em> draws a boxplot of the values in a vector 
-<em>map</em> attribute <em>column</em>. The user can use the 
-<em>where</em> option to only select a subset of the attribute table. 
-There is also the option to group the values of the column according to 
-the categories in a second column (<em>group_by</em> and create one plot 
+<em>d.vect.colbp</em> draws a boxplot of the values in a vector
+<em>map</em> attribute <em>column</em>. The user can use the
+<em>where</em> option to only select a subset of the attribute table.
+There is also the option to group the values of the column according to
+the categories in a second column (<em>group_by</em> and create one plot
 with for each group a separate boxplot.
 
 <p>
-By default, the resulting plot is displayed on screen (default). 
-However, the user can also save the plot to file using the 
-<em>plot_output</em> option. The format is determined by the extension 
-given by the user. So, if plot_output = outputfile.png, the plot will 
+By default, the resulting plot is displayed on screen (default).
+However, the user can also save the plot to file using the
+<em>plot_output</em> option. The format is determined by the extension
+given by the user. So, if plot_output = outputfile.png, the plot will
 be saved as a png file.
 
 <p>
-There are a few additonal layout options, including the option to rotate 
-the plot and the x-axis labels. Furthermore, the user can optinally plot 
+There are a few additonal layout options, including the option to rotate
+the plot and the x-axis labels. Furthermore, the user can optinally plot
 the boxplot(s) with notches and without outliers.
 
 <h2>NOTE</h2>
 <p>
-This script, based on d.vect.colhist, is a quick and dirty solution 
-sing basic matplotlib, and will need some further fine-tuning and 
+This script, based on d.vect.colhist, is a quick and dirty solution
+sing basic matplotlib, and will need some further fine-tuning and
 testing.
 
 <h2>EXAMPLE</h2>
 
 <h3>Example 1</h3>
-Use the vector layer <em>schools_wake</em> from the 
-<a href="https://grass.osgeo.org/download/data/">NC sample 
-dataset</a> to create boxplots of the core capacity of the schools in 
-Wake County, North Carolina. Use the <em>Where</em> clause to exclude 
+Use the vector layer <em>schools_wake</em> from the
+<a href="https://grass.osgeo.org/download/data/">NC sample
+dataset</a> to create boxplots of the core capacity of the schools in
+Wake County, North Carolina. Use the <em>Where</em> clause to exclude
 all records with no data.
 
 <div class="code"><pre>
@@ -46,11 +46,11 @@ d.vect.colbp -n map=schools_wake column=CORECAPACI where="CORECAPACI >0"
 
 
 <h3>Example 2</h3>
-Use the vector layer <em>schools_wake</em> from the 
-<a href="https://grass.osgeo.org/download/data/">NC sample 
-dataset</a> to create boxplots of the core capacity of the schools in 
-Wake County, North Carolina, grouped by city. Use the <em>Where</em> 
-clause to exclude all records with no data. 
+Use the vector layer <em>schools_wake</em> from the
+<a href="https://grass.osgeo.org/download/data/">NC sample
+dataset</a> to create boxplots of the core capacity of the schools in
+Wake County, North Carolina, grouped by city. Use the <em>Where</em>
+clause to exclude all records with no data.
 
 <div class="code">
 <pre>
@@ -66,4 +66,4 @@ d.vect.colbp -h --overwrite map=schools_wake column=CORECAPACI where="CORECAPACI
 <h2>AUTHOR</h2>
 
 Paulo van Breugel<br>
-Based on the d.vect.colhist addon by Moritz Lennert  
+Based on the d.vect.colhist addon by Moritz Lennert

@@ -1,10 +1,10 @@
 <h2>DESCRIPTION</h2>
 
-<em>v.in.ply</em> imports a vector map in PLY vector format. A PLY 
-file always holds a number of vertices which are imported as points. PLY 
-vertices can have a number of properties in addition to their 
-coordinates. These properties are stored in an attribute table. For 
-larger PLY files with many vertices (&gt; 1000) it is highly recommended 
+<em>v.in.ply</em> imports a vector map in PLY vector format. A PLY
+file always holds a number of vertices which are imported as points. PLY
+vertices can have a number of properties in addition to their
+coordinates. These properties are stored in an attribute table. For
+larger PLY files with many vertices (&gt; 1000) it is highly recommended
 to not use DBF as database driver, but SQLite (default in GRASS GIS 7),
 PostgreSQL or MySQL, because the DBF driver is rather slow and can
 consume a lot of memory. The database driver can be set with <em>db.connect</em>.

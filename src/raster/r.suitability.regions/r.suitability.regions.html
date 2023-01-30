@@ -1,49 +1,49 @@
 <h2>DESCRIPTION</h2>
 
-Multi-criteria or suitability analyses are useful methods to map the 
-relative suitability. For example, they can be used to map the relative 
-habitat suitability of a species, based on multiple criteria. A typical 
-outcome of such analyses is a raster layer with suitability scores 
-between 0 (not suitable) and 1 (very suitable). 
+Multi-criteria or suitability analyses are useful methods to map the
+relative suitability. For example, they can be used to map the relative
+habitat suitability of a species, based on multiple criteria. A typical
+outcome of such analyses is a raster layer with suitability scores
+between 0 (not suitable) and 1 (very suitable).
 
-<p>Often, the next step is to use this suitability map to identify 
-suitable area/region, e.g., to delineate potential areas for nature 
-conservation. With this addon you can identify regions of contiguous 
-cells that have a suitability score above a certain threshold and a 
+<p>Often, the next step is to use this suitability map to identify
+suitable area/region, e.g., to delineate potential areas for nature
+conservation. With this addon you can identify regions of contiguous
+cells that have a suitability score above a certain threshold and a
 minimum size. There are a number of additional options explored below.
 
 <h3>Option 1 - basic use</h3>
 
-The user defines a threshold suitability score. All raster cells with a 
-suitability score equal or above the threshold are reclassified as 
-suitable. All other raster cells are reclassified to NODATA. Next, all 
-contiguous raster cells (i.e., all neighboring rastercells) are 
-clumped. Clumps below an user-defined size (minimum area for fragments) 
-are subsequently removed. See <a 
-href="https://grass.osgeo.org/grass-stable/manuals/r.reclass.area.html" 
-target="_blank">r.reclass.area</a> for more details. 
+The user defines a threshold suitability score. All raster cells with a
+suitability score equal or above the threshold are reclassified as
+suitable. All other raster cells are reclassified to NODATA. Next, all
+contiguous raster cells (i.e., all neighboring rastercells) are
+clumped. Clumps below an user-defined size (minimum area for fragments)
+are subsequently removed. See <a
+href="https://grass.osgeo.org/grass-stable/manuals/r.reclass.area.html"
+target="_blank">r.reclass.area</a> for more details.
 
 <p><img src="option01.png"><i>
-<br>Figure 1: identifying regions of 
-contiguous raster cells with a suitability score of 0.7 or 
+<br>Figure 1: identifying regions of
+contiguous raster cells with a suitability score of 0.7 or
 more.</i></p>
 
-<p>You would use this to find suitable areas for a species that cannot 
-or is not likely to venture into areas where conditions are not 
-optimal. 
+<p>You would use this to find suitable areas for a species that cannot
+or is not likely to venture into areas where conditions are not
+optimal.
 
 <h3>Option 2 - focal area</h3>
 
-To consider the requirements (of e.g., a species) at a landscape scale, 
-the habitat suitability of the surrounding cells can be taken 
-into account as well. This is done by first computing a raster where 
-the value for each output cell is a function (maximum, median, 1st 
-quartile or 3rd quartile) of the values of all the input cells in a 
-user-defined neighborhood. For example, take the 5x5 
-neighborhood below. Using the maximum as statistic, the central cell 
-would be assigned a value of 5. Using the median, it would be assigned 
-the value 2. See <a 
-href="https://grass.osgeo.org/grass-stable/manuals/r.neighbors.html" 
+To consider the requirements (of e.g., a species) at a landscape scale,
+the habitat suitability of the surrounding cells can be taken
+into account as well. This is done by first computing a raster where
+the value for each output cell is a function (maximum, median, 1st
+quartile or 3rd quartile) of the values of all the input cells in a
+user-defined neighborhood. For example, take the 5x5
+neighborhood below. Using the maximum as statistic, the central cell
+would be assigned a value of 5. Using the median, it would be assigned
+the value 2. See <a
+href="https://grass.osgeo.org/grass-stable/manuals/r.neighbors.html"
 target="_blank">r.neighbors</a> for more details.
 
 <div class="code"><pre>
@@ -54,134 +54,134 @@ target="_blank">r.neighbors</a> for more details.
 1 2 3 2 1
 </pre></div>
 
-<p>Next, the resulting output map is used instead of the original 
-suitability map to identify the raster cells with a score equal to or 
-above the user-defined threshold value. So, raster cells are selected 
-if they have a suitability score equal or above the threshold value, or 
-if at least one raster cell (maximum), half of the raster cells 
-(median), 25% of the raster cells (1st quartile), or 75% of the raster 
-cells (3rd quartile) in the neighborhood have a suitability score equal 
-or above the given threshold.  
+<p>Next, the resulting output map is used instead of the original
+suitability map to identify the raster cells with a score equal to or
+above the user-defined threshold value. So, raster cells are selected
+if they have a suitability score equal or above the threshold value, or
+if at least one raster cell (maximum), half of the raster cells
+(median), 25% of the raster cells (1st quartile), or 75% of the raster
+cells (3rd quartile) in the neighborhood have a suitability score equal
+or above the given threshold.
 
-<p>As in the first use case, the selected raster cells are clumped into contiguous 
-regions, and regions that are smaller than an user-defined size are 
-removed. This option would be a good choice if the target species has 
-no problem to briefly stay in non-suitable habitat, e.g., to cross it 
-on their way to more suitable habitat. As the example below shows, it 
+<p>As in the first use case, the selected raster cells are clumped into contiguous
+regions, and regions that are smaller than an user-defined size are
+removed. This option would be a good choice if the target species has
+no problem to briefly stay in non-suitable habitat, e.g., to cross it
+on their way to more suitable habitat. As the example below shows, it
 results in larger regions than in the previous option.
 
 <p><img src="option02.png"><i>
-<br>Figure 2: Like figure 1, but based on the 
-median suitability scores of the neighboring cells within a radius of 
+<br>Figure 2: Like figure 1, but based on the
+median suitability scores of the neighboring cells within a radius of
 300 meter (3x3 moving window).</i></p>
 
 <h3>Option 3 - barriers</h3>
 
-The user has the option to define an absolute minimum suitability 
-score. Raster cells with a suitability below this score are always 
-considered unsuitable, irrespective of the suitability scores of the 
-surrounding raster cells. This option only affects the results of 
+The user has the option to define an absolute minimum suitability
+score. Raster cells with a suitability below this score are always
+considered unsuitable, irrespective of the suitability scores of the
+surrounding raster cells. This option only affects the results of
 option 2.
 
-<p>The minimum suitability score can be used to identify barriers or areas where a 
-species cannot cross. For example, a road can break up larger regions 
-of otherwise suitable habitats into smaller fragments. For species that 
-cannot cross roads, this effectively results in smaller isolated 
-populations rather than one large (meta-)population. It can even result 
-in a net loss of habitat if one or more of the fragments are too small 
-to maintain a population (the user can set a minimum area size to 
-account for this). 
+<p>The minimum suitability score can be used to identify barriers or areas where a
+species cannot cross. For example, a road can break up larger regions
+of otherwise suitable habitats into smaller fragments. For species that
+cannot cross roads, this effectively results in smaller isolated
+populations rather than one large (meta-)population. It can even result
+in a net loss of habitat if one or more of the fragments are too small
+to maintain a population (the user can set a minimum area size to
+account for this).
 
 <p><img src="option03.png"><i>
-<br>Figure 3: Like figure 2, but considering 
-raster cells with suitability 0 (mostly roads) as absolute barriers. 
-Diagonally connected raster cells are not considered to form a 
+<br>Figure 3: Like figure 2, but considering
+raster cells with suitability 0 (mostly roads) as absolute barriers.
+Diagonally connected raster cells are not considered to form a
 contiguous region.</i></p>
 
-<p>Note that for line elements like roads, results may differ if the 
-option to 'include the diagonal neighbors when defining clumps' 
+<p>Note that for line elements like roads, results may differ if the
+option to 'include the diagonal neighbors when defining clumps'
 (flag d) is selected. For example, in figure 4, diagonally connected
 cells are considered as neighbors. As a consequence, the suitable areas
 on both sides of the road are considered to be part of the same region.
-I.e., the road does not act as a barrier here. 
+I.e., the road does not act as a barrier here.
 
 <p><img src="option04.png"><i>
-<br>Figure 4: Like figure 3, but this time, 
-diagonally connected raster cells are considered to form a contiguous 
+<br>Figure 4: Like figure 3, but this time,
+diagonally connected raster cells are considered to form a contiguous
 region.</i></p>
 
 <h3>Option 4 - compact areas</h3>
 
-The user can opt to include patches of unsuitable areas that fall 
-within suitable regions into the final selection of suitable regions. 
-Only gaps smaller than a user-defined maximum size will be included. 
+The user can opt to include patches of unsuitable areas that fall
+within suitable regions into the final selection of suitable regions.
+Only gaps smaller than a user-defined maximum size will be included.
 
-<p>This option can be used to end up with more compact areas. This may 
-be desirable for visualisation purposes, or it may in fact be 
-acceptable to include such areas in the final selection of a region. 
+<p>This option can be used to end up with more compact areas. This may
+be desirable for visualisation purposes, or it may in fact be
+acceptable to include such areas in the final selection of a region.
 
 <p><img src="option05.png"><i>
-<br>Figure 5: Like figure 3 (left), but here 
-gaps (areas within a suitable region) of 500 hectares or less were 
-included in the final selection (middle). The right map shows the 
-suitable areas within the selected regions (green) and the filled gaps 
+<br>Figure 5: Like figure 3 (left), but here
+gaps (areas within a suitable region) of 500 hectares or less were
+included in the final selection (middle). The right map shows the
+suitable areas within the selected regions (green) and the filled gaps
 (yellow).</i></p>
 
-<p>Selecting this option will generate a second map which shows the 
-'filled patches'. This makes it easier to e.g., inspect the 
-feasibility or desirability to actually include these areas in a 
-protected area. 
+<p>Selecting this option will generate a second map which shows the
+'filled patches'. This makes it easier to e.g., inspect the
+feasibility or desirability to actually include these areas in a
+protected area.
 
 <h3>Compactness of the regions</h3>
 
-<p>To compare the compactness of the resulting regions, the compactness 
-of an area is calculated using the formula below (see also <a 
-href="https://grass.osgeo.org/grass-stable/manuals/v.to.db.html">v.to.db</a>. 
+<p>To compare the compactness of the resulting regions, the compactness
+of an area is calculated using the formula below (see also <a
+href="https://grass.osgeo.org/grass-stable/manuals/v.to.db.html">v.to.db</a>.
 
 <p><pre><code>compactness = perimeter / (2 * sqrt(PI * area))</code></pre>
 
-<p>This will create a layer with the basename with the suffix 
-'compactness'. The compactness will also be calculated as one of the 
-region statistics if the option to save the result as a vector layer is 
+<p>This will create a layer with the basename with the suffix
+'compactness'. The compactness will also be calculated as one of the
+region statistics if the option to save the result as a vector layer is
 selected (see under 'other options' below.
 
 <h3>Other options</h3>
 
-The user can opt to save two intermediate layers: the layer showing all 
-raster cells with a suitability higher than the threshold (flag k; file 
-name with the suffix <i>_allsuitableareas</i>), and the layer with the 
-suitability based on focal statistics (flag f; file name with suffix 
-<i>_focalsuitability</i>). There is furthermore the option to create a 
-layer with the average suitability per clump (flag z), and a layer with 
+The user can opt to save two intermediate layers: the layer showing all
+raster cells with a suitability higher than the threshold (flag k; file
+name with the suffix <i>_allsuitableareas</i>), and the layer with the
+suitability based on focal statistics (flag f; file name with suffix
+<i>_focalsuitability</i>). There is furthermore the option to create a
+layer with the average suitability per clump (flag z), and a layer with
 the surface area (in hectares) of the clumped regions (flag a).
 
-<p>Selecting the 'v' flag will create a vector layer with the regions. 
-The attribute table of this vector layer will include columns with the 
-surface area (m2), compactness, fractal dimension (<i>fd</i>), and 
-average suitability. For the meaning of compactness, see above. The 
-fractal dimension of the boundary of a polygon is calculated using the 
-formula below (see also <a 
+<p>Selecting the 'v' flag will create a vector layer with the regions.
+The attribute table of this vector layer will include columns with the
+surface area (m2), compactness, fractal dimension (<i>fd</i>), and
+average suitability. For the meaning of compactness, see above. The
+fractal dimension of the boundary of a polygon is calculated using the
+formula below (see also <a
 href="https://grass.osgeo.org/grass-stable/manuals/v.to.db.html">v.to.db</a>.
 
 <p><pre><code>fd = 2 * (log(perimeter) / log(area))</code></pre>
 
 <h2>NOTE</h2>
 
-This addon uses the <i>r.reclass.area</i> function to find the clumps. 
-Like in that function, the user can opt to consider diagonally 
-connected raster cells to be part of a contiguous region. Using this 
-option will in most cases result in less compact regions. It may 
-furthermore result in regions that would otherwise be considered as 
+This addon uses the <i>r.reclass.area</i> function to find the clumps.
+Like in that function, the user can opt to consider diagonally
+connected raster cells to be part of a contiguous region. Using this
+option will in most cases result in less compact regions. It may
+furthermore result in regions that would otherwise be considered as
 separate regions to appear as one large region instead.
 
-<p>The option to calculate the area of clumped regions should only be used 
-with projected layers because the assumption is that all cells 
+<p>The option to calculate the area of clumped regions should only be used
+with projected layers because the assumption is that all cells
 have the same size.
 
 <h2>Examples</h2>
 
 See <a href="https://ecodiv.earth/TutorialsNotes/SuitabilityRegions/index.html">this tutorial</a> for examples.
-  
+
 <h2>See also</h2>
 
 <ul>

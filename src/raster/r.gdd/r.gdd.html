@@ -1,10 +1,10 @@
 <h2>DESCRIPTION</h2>
 
 <em>r.gdd</em> calculates (accumulated) growing degree days
-(<a href="https://en.wikipedia.org/wiki/Growing_degree-day">GDDs</a>), 
+(<a href="https://en.wikipedia.org/wiki/Growing_degree-day">GDDs</a>),
 <a href="https://en.wikipedia.org/wiki/Winkler_index">Winkler indices</a>,
 Biologically Effective Degree Days (BEDD), and
-Huglin indices from several input maps with temperature data for different 
+Huglin indices from several input maps with temperature data for different
 times of the day.
 <p>
 <b>GDDs</b> are calculated as
@@ -16,71 +16,71 @@ The <b>Winkler index</b> is calculated as
 <div class="code"><pre>
     wi = average - baseline
 </pre></div>
-usually accumulated for the period April 1<sup>st</sup> to October 
-31<sup>st</sup> (northern hemisphere) or the period October 
-1<sup>st</sup> to April 30<sup>th</sup> 
+usually accumulated for the period April 1<sup>st</sup> to October
+31<sup>st</sup> (northern hemisphere) or the period October
+1<sup>st</sup> to April 30<sup>th</sup>
 (southern hemisphere).
 <p>
 <b>BEDDs</b> are calculated as
 <div class="code"><pre>
     bedd = average - baseline
 </pre></div>
-with an optional upper <em>cutoff</em> applied to the average. Vine 
-development kinetics for example reach a plateau at an average daily 
+with an optional upper <em>cutoff</em> applied to the average. Vine
+development kinetics for example reach a plateau at an average daily
 temperature of 19&deg;C.
 <p>
 The <b>Huglin heliothermal index</b> is calculated as
 <div class="code"><pre>
     hi = (average + max) / 2 - baseline
 </pre></div>
-usually accumulated for the period April 1<sup>st</sup> to September 
-30<sup>th</sup> (northern hemisphere) or the period September 
+usually accumulated for the period April 1<sup>st</sup> to September
+30<sup>th</sup> (northern hemisphere) or the period September
 1<sup>st</sup> to April 30<sup>th</sup> (southern hemisphere).
 <p>
-Any averages above the <em>cutoff</em> value are set to 
-<em>cutoff</em>, and any <em>average</em> values below the 
-<em>baseline</em> value are set to <em>baseline</em>. Negative results 
-are set to 0 (zero). 
+Any averages above the <em>cutoff</em> value are set to
+<em>cutoff</em>, and any <em>average</em> values below the
+<em>baseline</em> value are set to <em>baseline</em>. Negative results
+are set to 0 (zero).
 <p>
-The <em>shift</em> and <em>scale</em> values are applied directly to the 
-input values. The <em>baseline</em>, <em>cutoff</em>, and <em>range</em> 
+The <em>shift</em> and <em>scale</em> values are applied directly to the
+input values. The <em>baseline</em>, <em>cutoff</em>, and <em>range</em>
 options are applied to the shifted and scaled values.
 <p>
-If an existing map is provided with the <em>add</em> option, the 
-values of this map are added to the output, thus accumulating the 
+If an existing map is provided with the <em>add</em> option, the
+values of this map are added to the output, thus accumulating the
 selected index.
 
 <h2>NOTES</h2>
 
-The <em>scale</em> and <em>shift</em> parameters are used to transform 
+The <em>scale</em> and <em>shift</em> parameters are used to transform
 input values with
 <div class="code"><pre>
     new = old * scale + shift
 </pre></div>
 <p>
-With the <em>-n</em> flag, any cell for which any of the 
-corresponding input cells are NULL is automatically set to NULL 
+With the <em>-n</em> flag, any cell for which any of the
+corresponding input cells are NULL is automatically set to NULL
 (NULL propagation) and the index is not calculated.
 <p>
-Without the <em>-n</em> flag, all non-NULL cells are used to 
+Without the <em>-n</em> flag, all non-NULL cells are used to
 calculate the selected index.
 <p>
-If the <em>range=</em> option is given, any values which fall outside 
-that range will be treated as if they were NULL. Note that the range is 
-applied to the scaled and shifted input data. The <em>range</em> 
-parameter can be set to <em>low,high</em> thresholds: 
-values outside of this range are treated as NULL (i.e., they will be 
-ignored by most aggregates, or will cause the result to be NULL if -n 
-is given). The <em>low,high</em> thresholds are floating point, so use 
-<em>-inf</em> or <em>inf</em> for a single threshold (e.g., 
-<em>range=0,inf</em> to ignore negative values, or 
+If the <em>range=</em> option is given, any values which fall outside
+that range will be treated as if they were NULL. Note that the range is
+applied to the scaled and shifted input data. The <em>range</em>
+parameter can be set to <em>low,high</em> thresholds:
+values outside of this range are treated as NULL (i.e., they will be
+ignored by most aggregates, or will cause the result to be NULL if -n
+is given). The <em>low,high</em> thresholds are floating point, so use
+<em>-inf</em> or <em>inf</em> for a single threshold (e.g.,
+<em>range=0,inf</em> to ignore negative values, or
 <em>range=-inf,-200.4</em> to ignore values above -200.4).
 <p>
-The number of raster maps to be processed is given by the limit of the 
-operating system. For example, both the hard and soft limits are 
-typically 1024. The soft limit can be changed with e.g. 
-<tt>ulimit -n 1500</tt> (UNIX-based operating systems) but not higher 
-than the hard limit. If it is too low, you can as superuser add an 
+The number of raster maps to be processed is given by the limit of the
+operating system. For example, both the hard and soft limits are
+typically 1024. The soft limit can be changed with e.g.
+<tt>ulimit -n 1500</tt> (UNIX-based operating systems) but not higher
+than the hard limit. If it is too low, you can as superuser add an
 entry in
 
 <div class="code"><pre>
@@ -93,18 +93,18 @@ This would raise the hard limit to 1500 file. Be warned that more
 files open need more RAM.
 
 <p>
-Use the <em>file</em> option to analyze large amount of raster maps 
-without hitting open files limit and the size limit of command line 
-arguments. The computation is slower than the <em>input</em> option 
-method. For every sinlge row in the output map(s) all input maps are 
-opened and closed. The amount of RAM will rise linear with the 
-number of specified input maps. The input and file options are 
-mutually exclusive. Input is a text file with a new line separated 
+Use the <em>file</em> option to analyze large amount of raster maps
+without hitting open files limit and the size limit of command line
+arguments. The computation is slower than the <em>input</em> option
+method. For every sinlge row in the output map(s) all input maps are
+opened and closed. The amount of RAM will rise linear with the
+number of specified input maps. The input and file options are
+mutually exclusive. Input is a text file with a new line separated
 list of raster map names.
 
 <h2>EXAMPLES</h2>
 
-Example with MODIS Land Surface Temperature, transforming values from 
+Example with MODIS Land Surface Temperature, transforming values from
 Kelvin * 50 to degrees Celsius:
 <div class="code"><pre>
 r.gdd in=MOD11A1.Day,MOD11A1.Night,MYD11A1.Day,MYD11A1.Night out=MCD11A1.GDD \

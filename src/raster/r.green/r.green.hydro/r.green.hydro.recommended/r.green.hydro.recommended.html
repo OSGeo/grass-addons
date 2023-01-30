@@ -8,7 +8,7 @@ The difference between this module and r.green.hydro.optimal is that here we can
 
 <h2>Explanation of Parameters</h2>
 
-<blockquote>-<b> elevation</b>=name [required] <br> 
+<blockquote>-<b> elevation</b>=name [required] <br>
 raster map, to calculate the gross head <br><br>
 
 -<b> river</b>=name [required] <br>
@@ -34,7 +34,7 @@ current discharge; raster for each point of these rivers or raster map with the 
 
 <blockquote>[required (only if discharge_current=currentdischarge)]<br><br>-<b> mfd</b>=name <br>
 minimum amount of water to remain in the river to preserve the ecosystem <br>
-In this case, the discharge considered in the calculation will be the current discharge minus the MFD read in your input raster map.<br> 
+In this case, the discharge considered in the calculation will be the current discharge minus the MFD read in your input raster map.<br>
 The module r.green.hydro.discharge can compute the raster map of the MFD according to the legislation of some regions.<br><br>
 
 <u><b>or</b></u><br><br>
@@ -50,22 +50,22 @@ percentage used to calculate the MFD as an amount of the natural discharge <br>
 areas to exclude from the planning of hydropower stations; only the rivers outside these excluded areas will be considered to compute the potential plants<br><br>
 
 -<b> buff</b>=double [optional] <br>
-buffer around the excluded areas <br><br> 
+buffer around the excluded areas <br><br>
 
 -<b> points_view</b>=name [optional] <br>
-input vector map with points of interest <br><br> 
+input vector map with points of interest <br><br>
 
 -<b> visibility_resolution</b>=float [optional] <br>
 vision from the points of interest <br>
-An area corresponding to the fields of vision from the points of interest is computed, the latter correspond to visibility zones. <br> 
-You can choose to exclude these areas or the areas where several visibility zones are superimposed. <br><br>  
+An area corresponding to the fields of vision from the points of interest is computed, the latter correspond to visibility zones. <br>
+You can choose to exclude these areas or the areas where several visibility zones are superimposed. <br><br>
 
 -<b> n_points</b>=integer [optional] <br>
-number of points for the visibility corresponding to the number of visibility zones which are superimposed <br> 
+number of points for the visibility corresponding to the number of visibility zones which are superimposed <br>
 For example, if this number is 3, the areas where two or less visibility zones are superimposed will be excluded. <br><br>
 
 -<b> output_vis</b>=name [optional] <br>
-name of the output vector with the viewed areas <br><br> 
+name of the output vector with the viewed areas <br><br>
 
 -<b> p_min</b>=double [optional] <br>
 minimum mean power of the plant <br><br></blockquote>
@@ -84,7 +84,7 @@ The module maximizes the power over a given range by a brute-force search in ord
 
 <h2>EXAMPLES</h2>
 
-<b>EXAMPLE 1</b><br><br> 
+<b>EXAMPLE 1</b><br><br>
 
 This example is based on the case-study of the Gesso and Vermenagna valleys located in the Piedmont Region, in South-West Italy, close to the Italian and French border.<br><br>
 
@@ -102,7 +102,7 @@ First of all reset the region settings with g.region making them match the map e
 
 To create the map of this example, you can type in the following code in the command console or if you prefer you can only type in the main function names like r.green.hydro.recommended, d.vect or v.buffer in the console and specify the other parameters of the code like elevation or efficiency by using the graphical user interface.<br>
 <div class="code"><pre>
-r.green.hydro.recommended              \ 
+r.green.hydro.recommended              \
     elevation=elevation                \
     river=availablestreams             \
     efficiency=0.9                     \
@@ -113,9 +113,9 @@ r.green.hydro.recommended              \
     discharge_current=currentdischarge \
     mfd=mvf                            \
     area=nationalparks                 \
-    buff=100                           \ 
-    p_min=20                                     
-                                                     
+    buff=100                           \
+    p_min=20
+
 d.vect map=output_plant color=blue
 
 v.buffer input=nationalparks output=buff_park distance=100
@@ -160,7 +160,7 @@ r.green.hydro.recommended              \
     distance=150                       \
     area=nationalparks                 \
     buff=200                           \
-    output_plant=potentialplants       
+    output_plant=potentialplants
 
 d.vect map=potentialplants color=blue
 
@@ -190,7 +190,7 @@ r.green.hydro.recommended                \
     points_view=pointsinterest           \
     n_points=1                           \
     output_plant=potentialplants         \
-    output_vis=vis                      
+    output_vis=vis
 
 d.vect map= potentialpoints color=red
 
@@ -222,4 +222,3 @@ output vector map: superimposition of the potential segments vector file (potent
 <h2>AUTHORS</h2>
 
 Giulia Garegnani (Eurac Research, Bolzano, Italy), Manual written by Julie Gros.
-

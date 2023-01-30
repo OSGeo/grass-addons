@@ -33,11 +33,11 @@ is generated as output.
 
     In addition all columns from the stream network input map
     are copied to the output vector map. The input vector map columns that
-    should be copied will be automagically renamed in the output vector map, 
+    should be copied will be automagically renamed in the output vector map,
     if the column names are conflicting with each other. Use the <i>columns</i>
-    parameter to specifiy a subset of columns that should be copied. 
+    parameter to specifiy a subset of columns that should be copied.
     The keyword <i>all</i> is used to copy all columns to the output vector map
-    that are found in the input vector map (default). 
+    that are found in the input vector map (default).
 
 </p>
 
@@ -47,7 +47,7 @@ is generated as output.
       Each independent stream network must be properly connected.
       The implemented stream order algorithms rely on topological relations between lines and nodes
       and are not designed to handle loops and channels in the stream networks correctly.<br><br>
-      
+
       The network traversing method, that is used to compute the stream order numbers,
       is recursively implemented. In case of large stream networks, or networks
       with many loops, the maximum recursion depth of Python may be reached.
@@ -67,7 +67,7 @@ Be aware of the wrong stream directions that will be adjusted by v.stream.order.
 <img src="stream_network_order_strahler.png" border="0" height="240" width="200"><br>
 
 Strahler's stream order is a modification of Horton's streams order which fixes
-the ambiguity of Horton's ordering. 
+the ambiguity of Horton's ordering.
 In Strahler's ordering the main channel is not determined; instead the ordering
 is based on the hierarchy of tributaries. The
 ordering follows these rules:
@@ -81,7 +81,7 @@ ordering follows these rules:
 Strahler's stream ordering starts in initial links which assigns order one. It
 proceeds downstream. At every node it verifies that there are at least 2 equal
 tributaries with maximum order. If not it continues with highest order, if yes
-it increases the node's order by 1 and continues downstream with new order. 
+it increases the node's order by 1 and continues downstream with new order.
 <p>
     <b>Advantages and disadvantages of Strahler's ordering: </b>
     Strahler's stream order has a good mathematical background. All catchments with
@@ -106,7 +106,7 @@ it increases the node's order by 1 and continues downstream with new order.
 That ordering method is similar to Consisted Associated Integers proposed by
 Scheidegger. It assigns magnitude of 1 for every initial channel. The magnitude
 of the following channel is the sum of magnitudes of its tributaries. The number
-of a particular link is the number of initials which contribute to it. 
+of a particular link is the number of initials which contribute to it.
 
 <h3>Scheidegger's stream magnitude</h3>
 
@@ -153,7 +153,7 @@ cat > points.csv << EOF
 EOF
 
 v.in.ascii output=streams_outlets input=points.csv x=1 y=2
-    
+
 v.stream.order input=streams@PERMANENT points=streams_outlets \
     output=streams_order threshold=25 order=strahler,shreve
 

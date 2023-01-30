@@ -2,33 +2,33 @@
 
 TODO: Create a description specific for 3D version
 
-<em>r.forestfrag</em> Computes the forest fragmentation following 
-the methodology proposed by Riitters et. al (2000). See 
-<a href="http://www.consecol.org/vol4/iss2/art3/">this article</a> for a 
+<em>r.forestfrag</em> Computes the forest fragmentation following
+the methodology proposed by Riitters et. al (2000). See
+<a href="http://www.consecol.org/vol4/iss2/art3/">this article</a> for a
 detailed explanation.
 
-<p>It follows a "sliding window" algorithm with overlapping windows. 
-The amount of forest and its occurence as adjacent forest pixels 
-within fixed- area "moving-windows" surrounding each forest pixel is 
-measured. The window size is user-defined. The result is stored at 
-the location of the center pixel. Thus, a pixel value in the derived 
-map refers to "between-pixel" fragmentation around the corresponding 
+<p>It follows a "sliding window" algorithm with overlapping windows.
+The amount of forest and its occurence as adjacent forest pixels
+within fixed- area "moving-windows" surrounding each forest pixel is
+measured. The window size is user-defined. The result is stored at
+the location of the center pixel. Thus, a pixel value in the derived
+map refers to "between-pixel" fragmentation around the corresponding
 forest location.
 
 <p>As input it requires a binary map with (1) forest and (0)
 non-forest. Obviously, one can replace forest any other land cover
 type. If one wants to exclude the influence of a specific land cover
 type, e.g., water bodies, it should be classified as no-data (NA) in
-the input map. See e.g., 
+the input map. See e.g.,
 <a href="https://pvanb.wordpress.com/2016/03/25/update-of-r-forestfrag-addon/">blog post</a>.
 
-<p>Let <em>Pf</em> be the proportion of pixels in the window that 
-are forested. Define <em>Pff</em> (strictly) as the proportion of 
-all adjacent (cardinal directions only) pixel pairs that include at 
+<p>Let <em>Pf</em> be the proportion of pixels in the window that
+are forested. Define <em>Pff</em> (strictly) as the proportion of
+all adjacent (cardinal directions only) pixel pairs that include at
 least one forest pixel, for which both pixels are forested. <em>Pff</em>
- thus (roughly) estimates the conditional probability that, 
-given a pixel of forest, its neighbor is also forest. The 
-classification model then identifies six fragmentation categories as: 
+ thus (roughly) estimates the conditional probability that,
+given a pixel of forest, its neighbor is also forest. The
+classification model then identifies six fragmentation categories as:
 
 <div class="code"><pre>
 interior:       Pf = 1.0
@@ -39,23 +39,23 @@ perforated:     Pf &ge; 0.6 and Pf - Pff > 0
 undetermined:   Pf &ge; 0.6 and Pf = Pff
 </pre></div>
 
-<h2>NOTES</h2> 
+<h2>NOTES</h2>
 
 <ul>
-<li>The moving window size is user-defined (default=3) 
-and must be an odd number. If an even number is given the function 
+<li>The moving window size is user-defined (default=3)
+and must be an odd number. If an even number is given the function
 will stop with an error message.
 <li>No-data cells are ignored. This means that statistics at the
-raster edges are based on fewer cells (smaller) moving windows. If this 
+raster edges are based on fewer cells (smaller) moving windows. If this
 is a problem, the user can choose to have the output raster trimmed
 with a number of raster cells equal to 1/2 * the size of the moving
 window.
-<li>The function respects the region. The user has however the option 
+<li>The function respects the region. The user has however the option
 to set the region to match the input layer.
 </ul>
 
 
-<h2>REFERENCES</h2> 
+<h2>REFERENCES</h2>
 
 Petras, V., Newcomb D. J., Mitasova, H. 2017.
 <em>Generalized 3D fragmentation index derived from lidar point clouds.</em>

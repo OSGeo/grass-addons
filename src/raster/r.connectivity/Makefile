@@ -4,10 +4,10 @@ PGM = r.connectivity
 
 SUBDIRS = r.connectivity.distance  \
 	r.connectivity.network  \
-	r.connectivity.corridors    
+	r.connectivity.corridors
 
 ###  libconnectivity \
-	
+
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
 default: parsubdirs htmldir

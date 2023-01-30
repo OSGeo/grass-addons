@@ -1,15 +1,15 @@
 <h2>DESCRIPTION</h2>
 
-<em>v.centerpoint</em> calculates center points for point clouds, lines 
-and areas. Center points can be centers of gravity (coordinates' mean) or 
-geometric medians (points of minimum distance, which is more robust 
+<em>v.centerpoint</em> calculates center points for point clouds, lines
+and areas. Center points can be centers of gravity (coordinates' mean) or
+geometric medians (points of minimum distance, which is more robust
 in case of outliers.
 <p>
-For points, center points are calculated considering all points. For 
-lines and areas, center points are calculated for each line or area 
+For points, center points are calculated considering all points. For
+lines and areas, center points are calculated for each line or area
 separately.
 <p>
-If no output vector is given, center points are printed to stdout in 
+If no output vector is given, center points are printed to stdout in
 ASCII point format:
 <div class="code"><pre>
 &lt;easting&gt;|&lt;northing&gt;|&lt;height&gt;|&lt;cat&gt;
@@ -26,8 +26,8 @@ The category values are
   <li><b>8</b> - median of each area using area triangulation</li>
   <li><b>9</b> - median of each area using boundaries</li>
 </ul>
-If an output vector is given, categories of the respective lines and 
-areas are transferred from the selected layer to layer 1. Layer 2 holds 
+If an output vector is given, categories of the respective lines and
+areas are transferred from the selected layer to layer 1. Layer 2 holds
 the same category values as for output to stdout.
 
 <h4>Point centers</h4>
@@ -40,24 +40,24 @@ the same category values as for output to stdout.
 <h4>Line centers</h4>
 <ul>
   <li><b>mid</b> - the mid point of each line, lies exactly on the line</li>
-  <li><b>mean</b> - center of gravity, mean of all line segments, might 
+  <li><b>mean</b> - center of gravity, mean of all line segments, might
   not lie on the line</li>
-  <li><b>median</b> - geometric median, minimum distance to all line 
+  <li><b>median</b> - geometric median, minimum distance to all line
   segments, might not lie on the line</li>
 </ul>
 
 <h4>Area centers</h4>
 <ul>
   <li><b>mean</b> - center of gravity, calculated using area triangulation</li>
-  <li><b>median</b> - geometric median, minimum distance to area 
+  <li><b>median</b> - geometric median, minimum distance to area
   triangulation, might not lie inside the area</li>
-  <li><b>bmedian</b> - geometric median, minimum distance to boundary 
+  <li><b>bmedian</b> - geometric median, minimum distance to boundary
   segments, might not lie inside the area</li>
 </ul>
 
 <h2>EXAMPLE</h2>
 
-Calculate center of gravity for the LiDAR point cloud 'elev_lid_bepts' 
+Calculate center of gravity for the LiDAR point cloud 'elev_lid_bepts'
 in the North Carolina sample dataset:
 <div class="code"><pre>
 v.centerpoint input=elev_lid_bepts output=elev_lid_bepts_mean

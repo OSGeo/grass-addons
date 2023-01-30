@@ -6,11 +6,11 @@ calculated on the basis of the DTM and strongly influenced by the resolution
 of this latter.
 
 <h3>Important:</h3>
-Before running the program, the region should be aligned perfectly with the 
-input map. The cell size taken in consideration is the one specified in the 
-region settings. If it doesn't match with the elevation map, the result is 
+Before running the program, the region should be aligned perfectly with the
+input map. The cell size taken in consideration is the one specified in the
+region settings. If it doesn't match with the elevation map, the result is
 nonsense.
-Note that this program only supports projected coordinate systems, LatLong 
+Note that this program only supports projected coordinate systems, LatLong
 is not supported.
 
 <h2>NOTES</h2>
@@ -33,19 +33,19 @@ The proposed procedure may help in the delineation of flood prone areas
 especially in basins with marked topography. The method is sensitive to the
 DEM resolution, but a cell size of ~100m is sufficient to reach good
 performances for the catchments investigated here. The procedure is also
-tested adopting DEMs from different sources, such as the shuttle radar 
+tested adopting DEMs from different sources, such as the shuttle radar
 topography mission (SRTM) DEM, ASTER GDEM, and national elevation data.
 This experiment highlights the reliability with the SRTM DEM for the
 delineation of flood prone areas. A useful relationship between model parameters
 and the reference scale of the DEM was also obtained providing a strategy
-for the application of this method in different contexts. 
+for the application of this method in different contexts.
 <p>
 The use of the modified topographic index should not be considered as an
 alternative to standard hydrological-hydraulic simulations for flood mapping,
 but it may represent a useful and rapid tool for a preliminary delineation
 of flooding areas in ungauged basins and in areas where expensive and time
 consuming hydrological-hydraulic simulations are not affordable or economically
-convenient. 
+convenient.
 
 <h2>EXAMPLE</h2>
 
@@ -59,17 +59,17 @@ r.hazard.flood map=elevation flood=flood mti=mti
 <a href="https://grass.osgeo.org/grass-stable/manuals/r.area.html">r.area</a>
 </em>
 
-<h2>CITE AS</h2> 
+<h2>CITE AS</h2>
 
-<em>Di Leo M., Manfreda S., Fiorentino M., An automated procedure for 
-the detection of flood prone areas: r.hazard.flood, Geomatics Workbooks 
-n.10, 2011. 
+<em>Di Leo M., Manfreda S., Fiorentino M., An automated procedure for
+the detection of flood prone areas: r.hazard.flood, Geomatics Workbooks
+n.10, 2011.
 (<a href="http://geomatica.como.polimi.it/workbooks/n10/GW10-FOSS4Git_2011.pdf">PDF</a>)
 </em>
 
 <h2>REFERENCES</h2>
-<em>Manfreda S., Di Leo M., Sole A., Detection of Flood Prone Areas using 
-Digital Elevation Models, Journal of Hydrologic Engineering, 
+<em>Manfreda S., Di Leo M., Sole A., Detection of Flood Prone Areas using
+Digital Elevation Models, Journal of Hydrologic Engineering,
 (10.1061/(ASCE)HE.1943-5584.0000367), 2011.</em>
 
 <h2>AUTHOR</h2>

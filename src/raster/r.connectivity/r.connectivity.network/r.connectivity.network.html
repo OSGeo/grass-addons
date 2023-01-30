@@ -1,21 +1,21 @@
 <h2>DESCRIPTION</h2>
 
-r.connectivity.network is the 2nd tool of the r.connectivity.* tool-set and 
-performs network analysis (using the igraph-package in R). It requires a network 
-dataset produced with r.connectivity.distance, and conducts analysis on the graph, 
+r.connectivity.network is the 2nd tool of the r.connectivity.* tool-set and
+performs network analysis (using the igraph-package in R). It requires a network
+dataset produced with r.connectivity.distance, and conducts analysis on the graph,
 edge and vertex level.
 
-<p>The analysis is based on a negative exponential decay kernel (as described 
-e.g. in Bunn et al. (2000), which characterizes the probability of dispersal 
-over increasing cost distance. The user can modify the function and thus 
-form of the kernel according to the dispersal characteristics of her/his 
-species or habitat type. Form of the curve can be controlled with the <b>base</b> 
-and <b>exponent</b> options. The resulting kernel can be visually inspected 
-using the <b>x-flag</b>. If the <b>kernel_plot</b> option is given a plot 
-of the kernel is saved in the format depending on the ending of the file name 
+<p>The analysis is based on a negative exponential decay kernel (as described
+e.g. in Bunn et al. (2000), which characterizes the probability of dispersal
+over increasing cost distance. The user can modify the function and thus
+form of the kernel according to the dispersal characteristics of her/his
+species or habitat type. Form of the curve can be controlled with the <b>base</b>
+and <b>exponent</b> options. The resulting kernel can be visually inspected
+using the <b>x-flag</b>. If the <b>kernel_plot</b> option is given a plot
+of the kernel is saved in the format depending on the ending of the file name
 defined by the user.</p>
 
-If an overview plot is requested in the <em>overview</em> option, 
+If an overview plot is requested in the <em>overview</em> option,
 network characteristics are visualised in a plot showing an overview over:
 <ul>
 <li>the number of connections,</li>
@@ -26,7 +26,7 @@ over increasing cost-distance between patches.
 
 <div align="center" style="margin: 10px">
 <a href="r_connectivity_network_kernel.png">
-<img src="r_connectivity_network_kernel.png" width="600" height="600" 
+<img src="r_connectivity_network_kernel.png" width="600" height="600"
 alt="Dispersal kernel used in the example below" border="0">
 </a><br>
 <i>Figure: Dispersal kernel used for network analysis in the example below.</i>
@@ -34,17 +34,17 @@ alt="Dispersal kernel used in the example below" border="0">
 
 <h3>Output column names</h3>
 
-Due to limitations in dbf, the length of field names is limited to ten signs. 
-Thus, names of the edge and vertex measures are abbreviated in the vector 
-attribute table. This was (mostly) done using the following pattern for 
+Due to limitations in dbf, the length of field names is limited to ten signs.
+Thus, names of the edge and vertex measures are abbreviated in the vector
+attribute table. This was (mostly) done using the following pattern for
 column names (of vertex and edge measures):
 <dl>
 	<dd>weight _ measure _ (sub)graph</dd>
 </dl>
 
 <h3>(Sub)Graphs</h3>
-In r.connectivity.network a graph is built from the network dataset produced 
-in r.connectivity.distance. From this full and directed graph a set of 
+In r.connectivity.network a graph is built from the network dataset produced
+in r.connectivity.distance. From this full and directed graph a set of
 (sub)graphs is extracted, specified by:
 <ul>
 <li>u = for the undirected graph</li>
@@ -57,29 +57,29 @@ in r.connectivity.distance. From this full and directed graph a set of
 <dl>
 
 <dd><b>Number of edges</b></dd>
-<dd>The number of edges is the number of connections between pairs of vertices 
+<dd>The number of edges is the number of connections between pairs of vertices
 in the network.</dd>
 
 <dd><b>Number of vertices</b></dd>
-<dd>The number of vertices is the number of polygons (patches) from the input 
+<dd>The number of vertices is the number of polygons (patches) from the input
 vector map which are analysed in the r.connectivity.*.</dd>
 
 <dd><b>Cluster</b></dd>
-<dd> A cluster is a group of vertices which are connected with each other, but 
-not with the rest of vertices in a graph (a single isolated vertex can be a 
+<dd> A cluster is a group of vertices which are connected with each other, but
+not with the rest of vertices in a graph (a single isolated vertex can be a
 cluster as well).</dd>
 
 <dd><b>Diameter</b></dd>
 <dd>The diameter of a graph is the length of the longest geodesic.</dd>
 
 <dd><b>Density</b></dd>
-<dd>The density of a graph is the ratio of the number of edges and the number 
+<dd>The density of a graph is the ratio of the number of edges and the number
 of possible edges.</dd>
 </dl>
 
 <div align="center" style="margin: 10px">
 <a href="r_connectivity_network_overview.png">
-<img src="r_connectivity_network_overview.png" width="600" height="600" 
+<img src="r_connectivity_network_overview.png" width="600" height="600"
 alt="Overview plot over fragmentation of the network with increasing" border="0">
 </a><br>
 <i>Figure: Overview plot over fragmentation of the network when edges of
@@ -101,48 +101,48 @@ increasing length are removed, produced in the example below.</i>
 <dt><b>Weights</b></dt>
 
 <dd><b>Cost distance (cd)</b></dd>
-<dd>Cost distance is calculated for the directed (cd) and undirected graph (cd_u). 
-The cd weight for directed edges is exactly like measured in r.connectivity.distance, 
-the cd weight for undirected edges is the average cost distance of the two directed edges 
-between a pair of vertices (mean( a--b, b-a)). The cost distance weight does not take the 
-user defined dispersal information (the population proxy for the different patches and 
+<dd>Cost distance is calculated for the directed (cd) and undirected graph (cd_u).
+The cd weight for directed edges is exactly like measured in r.connectivity.distance,
+the cd weight for undirected edges is the average cost distance of the two directed edges
+between a pair of vertices (mean( a--b, b-a)). The cost distance weight does not take the
+user defined dispersal information (the population proxy for the different patches and
 the dispersal kernel) into account.</dd>
 
 <dd><b>Negative exponential decay kernel flow (distk)</b></dd>
-<dd>The negative exponential decay kernel is defined by the variables <em>euler</em>, 
-<em>base</em>, and <em>exponent</em> specified by the user. It is calculated for the 
+<dd>The negative exponential decay kernel is defined by the variables <em>euler</em>,
+<em>base</em>, and <em>exponent</em> specified by the user. It is calculated for the
 directed (distk) and undirected edges(distk_u) using the following formulas:</dd>
 <dd><em>distk = euler ^ ( ( basis * ( 10 ^ exponent ) )*( cd))</em></dd>
 <dd><em>distk_u = euler ^ ( ( basis * ( 10 ^ exponent ) )*( cd_u))</em></dd>
 
 <dd><b>Maximum potential flow (mf)</b></dd>
-<dd>For the maximum potential flow (mf) weight the user defined dispersal information 
-(the population proxy and the dispersal kernel) is used to model the flow of propagules 
-between a pair of vertices. This weight is based on the assumption that propagules disperse 
-evenly and in full amount into all surrounding patches. Maximum potential flow is 
+<dd>For the maximum potential flow (mf) weight the user defined dispersal information
+(the population proxy and the dispersal kernel) is used to model the flow of propagules
+between a pair of vertices. This weight is based on the assumption that propagules disperse
+evenly and in full amount into all surrounding patches. Maximum potential flow is
 calculated using the following formula:</dd>
 <dd>mf = disk * pop_proxy</dd>
-<dd>Maximum potential flow is calculated for the directed graph as incoming (mf_i) and 
-outgoing (mf_o) flow as well as for the undirected graph (mf_u). Unlike the cost distance 
-weight, mf represents the "closeness" of a pair of vertices. For some (most) algorithms it 
-had to be inverted in order to give meaningful results (mf_inv = Inverted maximum potential 
+<dd>Maximum potential flow is calculated for the directed graph as incoming (mf_i) and
+outgoing (mf_o) flow as well as for the undirected graph (mf_u). Unlike the cost distance
+weight, mf represents the "closeness" of a pair of vertices. For some (most) algorithms it
+had to be inverted in order to give meaningful results (mf_inv = Inverted maximum potential
 flow for directed edges, mf_inv_u = Inverted maximum potential flow for undirected edges).</dd>
 
 <dd><b>Competing potential flow (cf)</b></dd>
-<dd>The competing potential flow (cf) weight is based on the work by Ranius & Roberge 2011. 
-Like in the maximum potential flow (mf) weight, the user defined dispersal information 
-(the population proxy and the negative exponential decay kernel) is used to model the flow 
-of propagules between a pair of vertices. But here it is assumed that the total amount 
-of propagules is limited to the population proxy given by the user, and that this amount 
-is distributed according to the "attractiveness" (defined by population size and cost 
+<dd>The competing potential flow (cf) weight is based on the work by Ranius & Roberge 2011.
+Like in the maximum potential flow (mf) weight, the user defined dispersal information
+(the population proxy and the negative exponential decay kernel) is used to model the flow
+of propagules between a pair of vertices. But here it is assumed that the total amount
+of propagules is limited to the population proxy given by the user, and that this amount
+is distributed according to the "attractiveness" (defined by population size and cost
 distance) of the surrounding patches.</dd>
-<dd>Competing potential flow is calculated for the directed (cf) and undirected (cf_u) 
-graph. Unlike the cost distance weight, cf represents the "closeness" between a pair 
-of vertices. For some (most) algorithms it had to be inverted in order to give meaningful 
-results (cf_inv = Inverted competing potential flow for directed edges, cf_inv_u = 
+<dd>Competing potential flow is calculated for the directed (cf) and undirected (cf_u)
+graph. Unlike the cost distance weight, cf represents the "closeness" between a pair
+of vertices. For some (most) algorithms it had to be inverted in order to give meaningful
+results (cf_inv = Inverted competing potential flow for directed edges, cf_inv_u =
 Inverted competing potential flow for undirected edges).<br><br></dd>
 
-<dd>The mf and cf weights are inverted (mf_inv, cf_inv) by multiplying them with -1 
+<dd>The mf and cf weights are inverted (mf_inv, cf_inv) by multiplying them with -1
 followed by linear normalising to the original maximum and minimum values.<br><br></dd>
 
 
@@ -150,88 +150,88 @@ followed by linear normalising to the original maximum and minimum values.<br><b
 <dt><b>Output parameters</b></dt>
 
 <dd><b>Shortest connections (isshort)</b></dd>
-<dd>In r.connectivity.network all edges are classified if they represent the 
-shortest path from the start- to the end-vertex, which is stored as a logical 
-value (0 = FALSE or 1 = TRUE). Shortest connections are identified for every 
-weight (isshort_cd, isshort_mf, isshort_cf). Finally the isshort attribute 
-is set to 1 if an edge represents the shortest path for either the cd-weight, 
+<dd>In r.connectivity.network all edges are classified if they represent the
+shortest path from the start- to the end-vertex, which is stored as a logical
+value (0 = FALSE or 1 = TRUE). Shortest connections are identified for every
+weight (isshort_cd, isshort_mf, isshort_cf). Finally the isshort attribute
+is set to 1 if an edge represents the shortest path for either the cd-weight,
 the mf-weight or the cf-weight (or 0 otherwise).</dd>
 
 <dd><b>Biconnected components (bc)</b></dd>
-<dd>If the removal of a single vertex and its adjacent edges does not disconnect 
+<dd>If the removal of a single vertex and its adjacent edges does not disconnect
 the graph (increase the number of clusters) it is part of a biconnected component.</dd>
 
 <dd><b>Bridges (is_br)</b></dd>
-<dd>A bridge is an edge whose removal increases the number of clusters in a graph. 
+<dd>A bridge is an edge whose removal increases the number of clusters in a graph.
 Edges are classified either as bridge (1) or not (0).</dd>
 
 <dd><b>Edge betweenness (eb)</b></dd>
-<dd>The edge betweenness (eb) value represents the number of shortest paths that go 
-through an edge, considering the shortest paths between all possible pairs of vertices. 
-Edge betweenness is calculated with all three weights for the entire directed graph 
-(cd_eb_u, mf_eb_u, cf_eb_u), the undirected graph with only direct edges (cd_eb_ud, 
-mf_eb_ud, cf_eb_ud), and the undirected graph with only direct edges shorter than cost 
+<dd>The edge betweenness (eb) value represents the number of shortest paths that go
+through an edge, considering the shortest paths between all possible pairs of vertices.
+Edge betweenness is calculated with all three weights for the entire directed graph
+(cd_eb_u, mf_eb_u, cf_eb_u), the undirected graph with only direct edges (cd_eb_ud,
+mf_eb_ud, cf_eb_ud), and the undirected graph with only direct edges shorter than cost
 distance threshold (cd_eb_udc, mf_eb_udc, cf_eb_udc).</dd>
 
 <dd><b>Local edge betweenness (leb)</b></dd>
 <dd>The local edge betweenness (leb) value represents the number of shortest paths
- that go through an edge, considering the shortest paths between all possible 
- pairs of vertices which are shorter than the user defined local 
- neighbourhood (lnbh_threshold). Local edge betweenness is calculated with all 
- three weights for the entire directed graph (cd_leb_u, mf_leb_u, cf_leb_u), 
- the undirected graph with only direct edges (cd_leb_ud, mf_leb_ud, cf_leb_ud), 
- and the undirected graph with only direct edges shorter than cost distance 
+ that go through an edge, considering the shortest paths between all possible
+ pairs of vertices which are shorter than the user defined local
+ neighbourhood (lnbh_threshold). Local edge betweenness is calculated with all
+ three weights for the entire directed graph (cd_leb_u, mf_leb_u, cf_leb_u),
+ the undirected graph with only direct edges (cd_leb_ud, mf_leb_ud, cf_leb_ud),
+ and the undirected graph with only direct edges shorter than cost distance
  threshold (cd_leb_udc, mf_leb_udc, cf_leb_udc).</dd>
 
 <dd><b>Edge betweenness community (ebc)</b></dd>
-<dd>Some groups of vertices can be densely connected with each other but only 
-little connected to other vertices. Such groups of relative intense connected 
-vertices are communities. One algorithm to identify communities in a graph is 
-edge betweenness community (ebc). Edge betweenness community is calculated 
-in an iterative loop, where, first edge betweenness is calculated, then the 
-edge with the largest edge betweenness value is removed, edge betweenness is 
+<dd>Some groups of vertices can be densely connected with each other but only
+little connected to other vertices. Such groups of relative intense connected
+vertices are communities. One algorithm to identify communities in a graph is
+edge betweenness community (ebc). Edge betweenness community is calculated
+in an iterative loop, where, first edge betweenness is calculated, then the
+edge with the largest edge betweenness value is removed, edge betweenness is
 recalculated and so on. The algorithm produces mainly two edge measures:</dd>
 <dd>1. the order in which edges were deleted (ebc_r)</dd>
 <dd>2. the edge betweenness value of an edge at the time of removal</dd>
 
-<dd>For large graphs calculating edge betweenness community can take a long time. 
-Therefore, it is only calculated on request (y-flag) and only for one weight (cf). 
+<dd>For large graphs calculating edge betweenness community can take a long time.
+Therefore, it is only calculated on request (y-flag) and only for one weight (cf).
 It is only calculated for the entire (undirected) graph.</dd>
 
 <dd><b>Minimum spanning trees (mst)</b></dd>
-<dd>A minimum spanning tree (mst) is a subgraph consisting of the minimal possible 
-number of edges  (= number of vertices - 1) connecting all vertices to a minimal 
-possible number of clusters, while the sum of all edge weights is minimised. 
-If the graph consists of more than one cluster, the result of the minimum spanning 
-tree algorithm is a so-called minimum spanning forest, consisting of the minimum 
-spanning tree for each cluster. In the context of nature conservation, the minimum 
-spanning tree is sometimes referred to as the "backbone" of an area network 
-(Bunn etal. 2000). In r.connectivity.network the minimum spanning tree/forest 
-is calculated with all weights (cd, mf, cf) and for all undirected (sub)graphs 
-(u, ud, udc) resulting in the following (logical) edge measures: 
-cd_mst_u, cd_mst_ud, cd_mst_udc, mf_mst_u, mf_mst_ud, mf_mst_udc, 
-cf_mst_u, cf_mst_ud, cf_mst_udc, where edges are either part of the minimum 
+<dd>A minimum spanning tree (mst) is a subgraph consisting of the minimal possible
+number of edges  (= number of vertices - 1) connecting all vertices to a minimal
+possible number of clusters, while the sum of all edge weights is minimised.
+If the graph consists of more than one cluster, the result of the minimum spanning
+tree algorithm is a so-called minimum spanning forest, consisting of the minimum
+spanning tree for each cluster. In the context of nature conservation, the minimum
+spanning tree is sometimes referred to as the "backbone" of an area network
+(Bunn etal. 2000). In r.connectivity.network the minimum spanning tree/forest
+is calculated with all weights (cd, mf, cf) and for all undirected (sub)graphs
+(u, ud, udc) resulting in the following (logical) edge measures:
+cd_mst_u, cd_mst_ud, cd_mst_udc, mf_mst_u, mf_mst_ud, mf_mst_udc,
+cf_mst_u, cf_mst_ud, cf_mst_udc, where edges are either part of the minimum
 spanning tree/forest (1) or not (0).</dd>
 
 <dd><b>Potential cluster connectors (cl_pc_u)</b></dd>
 <dd>A cluster is a group of vertices which are connected with each other, but
- not with the rest of vertices in a graph (a single isolated vertex can be a 
-cluster as well). Potential cluster connectors are edges which are longer 
-than the connectivity threshold, and connect clusters in the subgraph with 
+ not with the rest of vertices in a graph (a single isolated vertex can be a
+cluster as well). Potential cluster connectors are edges which are longer
+than the connectivity threshold, and connect clusters in the subgraph with
 only edges shorter than the connectivity threshold.</dd>
 
 <dd><b>Potential community connectors (cf_ebc_pc, cf_iebc_pc)</b></dd>
-<dd>Potential community connectors are edges which connect communities identified 
+<dd>Potential community connectors are edges which connect communities identified
 by the edge betweenness community algorithm for a user defined community level.</dd>
 </dl>
 
 <div align="center" style="margin: 10px">
 <a href="r_connectivity_network_ebc_udc.png">
-<img src="r_connectivity_network_ebc_udc.png" width="600" height="600" 
-alt="Edge betweenness of the network for all edges on the Minimum 
+<img src="r_connectivity_network_ebc_udc.png" width="600" height="600"
+alt="Edge betweenness of the network for all edges on the Minimum
 Spanning Tree (MST)" border="0">
 </a><br>
-<i>Figure: Edge betweenness of the network for all edges on the Minimum 
+<i>Figure: Edge betweenness of the network for all edges on the Minimum
 Spanning Tree (MST).</i>
 </div>
 
@@ -239,7 +239,7 @@ Spanning Tree (MST).</i>
 <dl>
 <dt><b>Input parameters</b></dt>
 <dd><b>Patch ID (patch_id)</b></dd>
-<dd>ID of the vertex = category value (cat) of the patch vector given by the user 
+<dd>ID of the vertex = category value (cat) of the patch vector given by the user
 in r.connectivity.distance.</dd>
 
 <dd><b>Population proxy (pop_proxy)</b></dd>
@@ -247,146 +247,146 @@ in r.connectivity.distance.</dd>
 
 <dt><b>Output parameters</b></dt>
 <dd><b>Cluster membership (cl)</b></dd>
-<dd>A cluster is a group of vertices which are connected with each other, 
-but not with the rest of vertices in a graph (a single isolated vertex is a 
-cluster as well). The cluster membership value (integer) is the id of the 
+<dd>A cluster is a group of vertices which are connected with each other,
+but not with the rest of vertices in a graph (a single isolated vertex is a
+cluster as well). The cluster membership value (integer) is the id of the
 cluster a vertex belongs to.
 
 <dd><b>Community structure and membership (cf_(i)ebc_cs, cf_(i)ebc_cl)</b></dd>
-<dd>The edge betweenness community algorithm is used to analyse the community 
-structure of a graph. It results in a hierarchical structure which describes 
-how a graph is split up by the edge removal process into an increasing number 
-of communities. The hierarchical community structure is stored as the 
-(character) vertex attribute "cf_ebc_cs". The community membership value 
-(integer) is the id of the community (identified by edge betweenness community) 
+<dd>The edge betweenness community algorithm is used to analyse the community
+structure of a graph. It results in a hierarchical structure which describes
+how a graph is split up by the edge removal process into an increasing number
+of communities. The hierarchical community structure is stored as the
+(character) vertex attribute "cf_ebc_cs". The community membership value
+(integer) is the id of the community (identified by edge betweenness community)
 a vertex belongs to (on a user defined level of community division).</dd>
 
 <dd><b>Articulation points (art_p)</b></dd>
-<dd>Articulation points (art_p) are vertices whose removal would increase 
-the number of clusters in a graph. Articulation points are identified for 
-the entire directed graph (art_p_u), the undirected graph with only direct 
-edges (art_p_ud), and the undirected graph with only direct edges shorter 
-than the cost distance threshold (art_p_udc). Articulation points (art_p) are a 
-(logical) measure of the graph structure and do not take edge weights into 
+<dd>Articulation points (art_p) are vertices whose removal would increase
+the number of clusters in a graph. Articulation points are identified for
+the entire directed graph (art_p_u), the undirected graph with only direct
+edges (art_p_ud), and the undirected graph with only direct edges shorter
+than the cost distance threshold (art_p_udc). Articulation points (art_p) are a
+(logical) measure of the graph structure and do not take edge weights into
 account. Vertices are either articulation points (1) or not (0).</dd>
 
 <dd><b>Articulation (art)</b></dd>
-<dd>The articulation value (integer) (art) is the number of new clusters which 
-would occur when a vertex is removed. The articulation value (art) is a measure 
+<dd>The articulation value (integer) (art) is the number of new clusters which
+would occur when a vertex is removed. The articulation value (art) is a measure
 of the graph structure and does not take edge weights into account.</dd>
 
 <dd><b>Degree centrality (deg)</b></dd>
-<dd>Degree centrality of a vertex is defined as the number of vertices connected 
-to this vertex. This (integer) measure is a measure of the graph structure and 
-does not take edge weights into account. Degree centrality is calculated for 
+<dd>Degree centrality of a vertex is defined as the number of vertices connected
+to this vertex. This (integer) measure is a measure of the graph structure and
+does not take edge weights into account. Degree centrality is calculated for
 all three undirected graphs (deg_u, deg_ud, deg_udc).</dd>
 
 <dd><b>Eigenvector centrality (evc)</b></dd>
-<dd>Eigenvector centrality (evc) in r.connectivity.network is a variation of the 
-eigenvector centrality algorithm provided by the igraph library (see also: Csardi 
-& Nepusz 2006). In r.connectivity.network eigenvector centrality is the sum of 
+<dd>Eigenvector centrality (evc) in r.connectivity.network is a variation of the
+eigenvector centrality algorithm provided by the igraph library (see also: Csardi
+& Nepusz 2006). In r.connectivity.network eigenvector centrality is the sum of
 incoming potential flow of a vertex.</dd>
 
-<dd>Because eigenvector centrality takes the direction of potential flows into 
-account it is calculated only for the directed graph and the directed graph with 
-only edges shorter than connectivity threshold, using both cf and mf weight 
-(cf_evc_u, cf_evc_uc, mf_evc_u, mf_evc_uc). Eigenvector centrality is stored 
+<dd>Because eigenvector centrality takes the direction of potential flows into
+account it is calculated only for the directed graph and the directed graph with
+only edges shorter than connectivity threshold, using both cf and mf weight
+(cf_evc_u, cf_evc_uc, mf_evc_u, mf_evc_uc). Eigenvector centrality is stored
 with double precision.</dd>
 
 
 <dd><b>Closeness centrality (cl)</b></dd>
-<dd>Closeness centrality represents the number of steps which are necessary 
-to access every other vertex from a given vertex. Closeness centrality 
-(integer) is calculated with all three weights for the entire directed 
-graph (cd_cl_u, mf_cl_u, cf_cl_u), the undirected graph with only direct 
-edges (cd_cl_ud, mf_cl_ud, cf_cl_ud), and the undirected graph with only 
-direct edges shorter than cost distance threshold 
+<dd>Closeness centrality represents the number of steps which are necessary
+to access every other vertex from a given vertex. Closeness centrality
+(integer) is calculated with all three weights for the entire directed
+graph (cd_cl_u, mf_cl_u, cf_cl_u), the undirected graph with only direct
+edges (cd_cl_ud, mf_cl_ud, cf_cl_ud), and the undirected graph with only
+direct edges shorter than cost distance threshold
 (cd_cl_udc, mf_cl_udc, cf_cl_udc).</dd>
 
 <dd><b>Vertex betweenness (vb)</b></dd>
-<dd>The vertex betweenness (vb) value represents the number of shortest paths 
-that go through a vertex (but that do not start or end in that vertex), 
-considering the shortest paths between all possible pairs of vertices. 
-Vertex betweenness is calculated with all three weights for the entire 
-directed graph (cd_vb_u, mf_vb_u, cf_vb_u), the undirected graph with 
-only direct edges  (cd_vb_ud, mf_vb_ud, cf_vb_ud), and the undirected 
-graph with only direct edges shorter than cost distance threshold 
+<dd>The vertex betweenness (vb) value represents the number of shortest paths
+that go through a vertex (but that do not start or end in that vertex),
+considering the shortest paths between all possible pairs of vertices.
+Vertex betweenness is calculated with all three weights for the entire
+directed graph (cd_vb_u, mf_vb_u, cf_vb_u), the undirected graph with
+only direct edges  (cd_vb_ud, mf_vb_ud, cf_vb_ud), and the undirected
+graph with only direct edges shorter than cost distance threshold
 (cd_vb_udc, mf_vb_udc, cf_vb_udc).</dd>
 
 <dd><b>Local vertex betweenness (lvb)</b></dd>
-<dd>The local vertex betweenness (lvb) value represents the number of shortest 
-paths that go through a vertex (but that do not start or end in that vertex), 
-considering the shortest paths between all possible pairs of vertices which are 
-shorter than the user defined local neighbourhood (lnbh_threshold). Local vertex 
-betweenness is calculated with all three weights for the entire directed graph 
-(cd_vb_u, mf_vb_u, cf_vb_u), the undirected graph with only direct edges 
-(cd_vb_ud, mf_vb_ud, cf_vb_ud), and the undirected graph with only direct edges 
+<dd>The local vertex betweenness (lvb) value represents the number of shortest
+paths that go through a vertex (but that do not start or end in that vertex),
+considering the shortest paths between all possible pairs of vertices which are
+shorter than the user defined local neighbourhood (lnbh_threshold). Local vertex
+betweenness is calculated with all three weights for the entire directed graph
+(cd_vb_u, mf_vb_u, cf_vb_u), the undirected graph with only direct edges
+(cd_vb_ud, mf_vb_ud, cf_vb_ud), and the undirected graph with only direct edges
 shorter than cost distance threshold (cd_vb_udc, mf_vb_udc, cf_vb_udc).</dd>
 
 <dd><b>Neighbourhood size (nbh_s)</b></dd>
-<dd>The neighbourhood size (nbh_s) is the number of other vertices which 
+<dd>The neighbourhood size (nbh_s) is the number of other vertices which
 can be reached from a vertex.</dd>
 
 <dd><b>Local neighbourhood size (nbh_sl)</b></dd>
-<dd>The local neighbourhood size (nbh_sl) is the number of other vertices 
-which can be reached from a vertex along a path which is shorter than the 
+<dd>The local neighbourhood size (nbh_sl) is the number of other vertices
+which can be reached from a vertex along a path which is shorter than the
 user defined local neighbourhood.</dd>
 
 </dl>
 <div align="center" style="margin: 10px">
 <a href="r_connectivity_network_deg_udc.png">
-<img src="r_connectivity_network_deg_udc.png" width="600" height="600" 
+<img src="r_connectivity_network_deg_udc.png" width="600" height="600"
 alt="Eigenvector centrality computed for the patches in the network" border="0">
 </a><br>
 <i>Figure: Degree centrality computed for the patches in the network.</i>
 </div>
 
 <h2>REQUIREMENTS</h2>
-For running this tool R language and environment for statistical computing and graphics 
-has to be installed (see: <a href="http://www.r-project.org">http://www.r-project.org</a>) 
+For running this tool R language and environment for statistical computing and graphics
+has to be installed (see: <a href="http://www.r-project.org">http://www.r-project.org</a>)
 together with the R-Python bridge rpy2.
-On Windows the path to R has to be added to the %path% variable in the environment settings 
+On Windows the path to R has to be added to the %path% variable in the environment settings
 (see: <a href="https://grasswiki.osgeo.org/wiki/R_statistics/Installation#MS_Windows">
-https://grass.osgeo.org/wiki/R_statistics#MS_Windows</a>) and GRASS GIS has to be started after 
+https://grass.osgeo.org/wiki/R_statistics#MS_Windows</a>) and GRASS GIS has to be started after
 that.<br>Furthermore the <a href="http://cran.r-project.org/web/packages/igraph/index.html">
-igraph</a> package in R is required with version 1.0 or newer.<br>For parallel processing 
-(at the moment only supported for Linux) the R packages 
-<a href="http://cran.r-project.org/web/packages/doMC/index.html">doMC</a>, 
-<a href="http://cran.r-project.org/web/packages/multicore/index.html">multicore</a>, 
-<a href="http://cran.r-project.org/web/packages/iterators/index.html">iterators</a>, 
-<a href="http://cran.r-project.org/web/packages/codetools/index.html">codetools</a> and 
+igraph</a> package in R is required with version 1.0 or newer.<br>For parallel processing
+(at the moment only supported for Linux) the R packages
+<a href="http://cran.r-project.org/web/packages/doMC/index.html">doMC</a>,
+<a href="http://cran.r-project.org/web/packages/multicore/index.html">multicore</a>,
+<a href="http://cran.r-project.org/web/packages/iterators/index.html">iterators</a>,
+<a href="http://cran.r-project.org/web/packages/codetools/index.html">codetools</a> and
 <a href="http://cran.r-project.org/web/packages/foreach/index.html">foreach</a> are required as well.<br>
-All R packages can be installed by running the AddOn using the <b>i-flag (-i)</b>. 
+All R packages can be installed by running the AddOn using the <b>i-flag (-i)</b>.
 Installation of R packages requires internet access.<br>
-For postscript output (overview and kernel plot) also <a href="https://www.ghostscript.com/">ghostscript</a> 
-is required. 
+For postscript output (overview and kernel plot) also <a href="https://www.ghostscript.com/">ghostscript</a>
+is required.
 
 
 <h2>EXAMPLE</h2>
 
-<em>The following example is based on the North Carolina dataset 
+<em>The following example is based on the North Carolina dataset
 and continued from the example in r.connectivity.distance.</em><br>
 
 <h3>Analyse the network</h3>
 (r.connectivity.network)
-In the next step network analysis is performed. We define the connectivity 
-cutoff (maximum cost distance where connectivity is assumed) to be 1500.0 
-cost distance units, which represents the maximum known dispersal ability 
-of our species. The dispersal kernel is adjusted to characteristics of this 
-species by setting the exponent to -3, which gives a steeper decrease in 
-successful dispersal with increasing cost distance. Only very few dispersal 
-units of our species are expected to cross more than ca. 900 cost distance 
-units successfully (see: ./hws_connectivity/kernel.eps after running the 
-command or run it with the x-flag (-x) for only displaying the kernel).<br> 
-Connectivity metrics results are stored in the attribute table of the 
-vector maps on vertex (patches, map name: "prefix" _ vertex_measures) 
-and edge level (connections, map name: "prefix" _ edge_measures). 
-An overview over connectivity metrics on the graph level (the entire network) 
-is stored in "folder" (./hws_connectivity). We requested also an R-plot of 
-the dispersal kernel and an R-plot giving an overview over network 
+In the next step network analysis is performed. We define the connectivity
+cutoff (maximum cost distance where connectivity is assumed) to be 1500.0
+cost distance units, which represents the maximum known dispersal ability
+of our species. The dispersal kernel is adjusted to characteristics of this
+species by setting the exponent to -3, which gives a steeper decrease in
+successful dispersal with increasing cost distance. Only very few dispersal
+units of our species are expected to cross more than ca. 900 cost distance
+units successfully (see: ./hws_connectivity/kernel.eps after running the
+command or run it with the x-flag (-x) for only displaying the kernel).<br>
+Connectivity metrics results are stored in the attribute table of the
+vector maps on vertex (patches, map name: "prefix" _ vertex_measures)
+and edge level (connections, map name: "prefix" _ edge_measures).
+An overview over connectivity metrics on the graph level (the entire network)
+is stored in "folder" (./hws_connectivity). We requested also an R-plot of
+the dispersal kernel and an R-plot giving an overview over network
 characteristics to be stored in the same folder.
 
-<p>Users with a multi-processor computer (e.g. dual-core) may speed up processing 
+<p>Users with a multi-processor computer (e.g. dual-core) may speed up processing
 by setting cores > 1 in r.connectivity.network.</p>
 
 <div class="code"><pre>
@@ -400,41 +400,41 @@ prefix=hws_connectivity cores=1
 
 <h2>REFERENCE</h2>
 <dl>
-<dt><b>Bunn, A. G., Urban, D. L. &amp; Keitt, T. H. 2000</b>: Landscape connectivity: 
-A conservation application of graph theory. Journal of Environmental Management 
-(2000) 59: 265-278 
+<dt><b>Bunn, A. G., Urban, D. L. &amp; Keitt, T. H. 2000</b>: Landscape connectivity:
+A conservation application of graph theory. Journal of Environmental Management
+(2000) 59: 265-278
 <a href="http://www.sciencedirect.com/science/article/pii/S0301479700903736">
 http://www.sciencedirect.com/science/article/pii/S0301479700903736</a></dt>
-<dt><b>Calabrese, J. M. &amp; Fagan, W. F. 2004</b>: A comparison-shopper's guide to 
-connectivity metrics. Front Ecol Environ 2 (10): 529-536 
+<dt><b>Calabrese, J. M. &amp; Fagan, W. F. 2004</b>: A comparison-shopper's guide to
+connectivity metrics. Front Ecol Environ 2 (10): 529-536
 <a href="http://dx.doi.org/10.1890/1540-9295(2004)002[0529:ACGTCM]2.0.CO;2">
 http://dx.doi.org/10.1890/1540-9295(2004)002[0529:ACGTCM]2.0.CO;2</a></dt>
-<dt><b>Minor, E. S. &amp; Urban, D. L. 2008</b>: A Graph-Theory Framework for 
-Evaluating Landscape Connectivity and Conservation Planning. Conservation 
-Biology 22 (2): 297-307 
+<dt><b>Minor, E. S. &amp; Urban, D. L. 2008</b>: A Graph-Theory Framework for
+Evaluating Landscape Connectivity and Conservation Planning. Conservation
+Biology 22 (2): 297-307
 <a href="http://www.uic.edu/labs/minor/minor&amp;urban2008.pdf">
 http://www.uic.edu/labs/minor/minor&amp;urban2008.pdf</a></dt>
-<dt><b>Zetterberg, A.,  M&ouml;rtberg, U. M. &amp; Balfors, B. 2010</b>: Making 
-graph theory operational for landscape ecological assessments, planning, and 
-design. Landscape and Urban Planning (2010) 95: 181-191 
+<dt><b>Zetterberg, A.,  M&ouml;rtberg, U. M. &amp; Balfors, B. 2010</b>: Making
+graph theory operational for landscape ecological assessments, planning, and
+design. Landscape and Urban Planning (2010) 95: 181-191
 <a href="http://www.sciencedirect.com/science/article/pii/S0169204610000204">
 http://www.sciencedirect.com/science/article/pii/S0169204610000204</a></dt>
-<dt><b>Ranius, T. &amp; Roberge, J.-M. 2011</b>: Effects of intensified forestry 
-on the landscape-scale extinction risk of dead wood dependent species. 
-Biodiversity and Conservation 20 (13): 2867-2882 
+<dt><b>Ranius, T. &amp; Roberge, J.-M. 2011</b>: Effects of intensified forestry
+on the landscape-scale extinction risk of dead wood dependent species.
+Biodiversity and Conservation 20 (13): 2867-2882
 <a href="http://www.springerlink.com/content/ch9qtv2665h624q4/">
 http://www.springerlink.com/content/ch9qtv2665h624q4/</a></dt>
-<dt><b>Framstad, E., Blumentrath, S., Erikstad, L. &amp; Bakkestuen, V. 
-2012</b> (in Norwegian): Naturfaglig evaluering av norske verneomr&aring;der. 
-Verneomr&aring;denes funksjon som &oslash;kologisk nettverk og toleranse 
-for klimaendringer. NINA Rapport 888: 126 pp. Norsk institutt for 
-naturforskning (NINA), Trondheim. 
+<dt><b>Framstad, E., Blumentrath, S., Erikstad, L. &amp; Bakkestuen, V.
+2012</b> (in Norwegian): Naturfaglig evaluering av norske verneomr&aring;der.
+Verneomr&aring;denes funksjon som &oslash;kologisk nettverk og toleranse
+for klimaendringer. NINA Rapport 888: 126 pp. Norsk institutt for
+naturforskning (NINA), Trondheim.
 <a href="http://www.nina.no/archive/nina/PppBasePdf/rapport/2012/888.pdf">
 	http://www.nina.no/archive/nina/PppBasePdf/rapport/2012/888.pdf</a></dt>
-<dt><b>Csardi G. &amp; Nepusz T. 2006</b>: The igraph software package for 
-complex network research, InterJournal, Complex Systems 1695. 2006. 
+<dt><b>Csardi G. &amp; Nepusz T. 2006</b>: The igraph software package for
+complex network research, InterJournal, Complex Systems 1695. 2006.
 <a href="http://igraph.sf.net">http://igraph.sf.net</a></dt>
-<dt><b>Csardi, G. 2012</b>: igraph: Network analysis and visualization. 
+<dt><b>Csardi, G. 2012</b>: igraph: Network analysis and visualization.
 <a href="http://cran.r-project.org/web/packages/igraph/index.html">
 http://cran.r-project.org/web/packages/igraph/index.html</a></dt>
 </dl>
@@ -442,8 +442,8 @@ http://cran.r-project.org/web/packages/igraph/index.html</a></dt>
 
 <h2>SEE ALSO</h2>
 <em>
-<a href="r.connectivity.html">r.connectivity</a>, 
-<a href="r.connectivity.distance.html">r.connectivity.distance</a>, 
+<a href="r.connectivity.html">r.connectivity</a>,
+<a href="r.connectivity.distance.html">r.connectivity.distance</a>,
 <a href="r.connectivity.corridors.html">r.connectivity.corridors</a>
 </em>
 

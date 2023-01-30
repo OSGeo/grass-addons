@@ -1,29 +1,29 @@
 <h2>DESCRIPTION</h2>
 
-<em>m.gcp.filter</em> filters GCPs using the distance between the 
-computed coordinates and the actual coordinates of each GCP. The result 
-of the filtering (number of points to use after filtering, number of 
+<em>m.gcp.filter</em> filters GCPs using the distance between the
+computed coordinates and the actual coordinates of each GCP. The result
+of the filtering (number of points to use after filtering, number of
 points filtered out, final RMS error) is printed out.
 
 <p>
-The transformation equations are computed anew for each iteration. The 
-GCP with the largest distance between the computed coordinates and the 
-actual coordinates is deactivated and the next iteration is started. 
-Filtering stops when the overall RMS error is below the given 
-<b>threshold</b> or when the number of active GCPs is equal to the 
-required minimum number of points or when the optional maximum number 
-of iterations (option <b>iterations</b>) has been reached. With the 
-<b>-d</b> flag, the largest GCP error is used instead of the overall 
+The transformation equations are computed anew for each iteration. The
+GCP with the largest distance between the computed coordinates and the
+actual coordinates is deactivated and the next iteration is started.
+Filtering stops when the overall RMS error is below the given
+<b>threshold</b> or when the number of active GCPs is equal to the
+required minimum number of points or when the optional maximum number
+of iterations (option <b>iterations</b>) has been reached. With the
+<b>-d</b> flag, the largest GCP error is used instead of the overall
 RMS error.
 
 <p>
-<em>m.gcp.filter</em> uses by default the results of forward 
-transformations (source to target) for filtering. With the <b>-b</b> 
-flag, the results of backward transformations (target to source) are 
+<em>m.gcp.filter</em> uses by default the results of forward
+transformations (source to target) for filtering. With the <b>-b</b>
+flag, the results of backward transformations (target to source) are
 used.
 
 <p>
-The status of GCPs (active / inactive) is only updated with the <b>-u</b> 
+The status of GCPs (active / inactive) is only updated with the <b>-u</b>
 flag. GCPs that have been filtered out will be deactivated, not deleted.
 
 <h2>NOTES</h2>
@@ -33,7 +33,7 @@ flag. GCPs that have been filtered out will be deactivated, not deleted.
 <div class="code"><pre>
     e = [E0 E1][1].[1]
         [E2  0][e] [n]
-   
+
     n = [N0 N1][1].[1]
         [N2  0][e] [n]
 </pre></div>
@@ -43,7 +43,7 @@ order=2:
     e = [E0 E1 E3][1 ] [1 ]
         [E2 E4  0][e ].[n ]
         [E5  0  0][e&sup2;] [n&sup2;]
-   
+
     n = [N0 N1 N3][1 ] [1 ]
         [N2 N4  0][e ].[n ]
         [N5  0  0][e&sup2;] [n&sup2;]
@@ -55,7 +55,7 @@ order=3:
         [E2 E4 E7  0][e ].[n ]
         [E5 E8  0  0][e&sup2;] [n&sup2;]
         [E9  0  0  0][e&sup3;] [n&sup3;]
-   
+
     n = [N0 N1 N3 N6][1 ] [1 ]
         [N2 N4 N7  0][e ].[n ]
         [N5 N8  0  0][e&sup2;] [n&sup2;]

@@ -6,7 +6,7 @@ parallel processing while avoiding border effects.
 
 <p>
 The approach used in <em>i.cutlines</em> is inspired by Soares et al (2016).
-The module first uses an edge detection algorithm (which the user can chose 
+The module first uses an edge detection algorithm (which the user can chose
 with the <b>edge_detection</b> parameter) to identify edges in the image. It
 then uses <a href="https://grass.osgeo.org/grass-stable/manuals/r.cost.html">r.cost</a>
 and <a href="https://grass.osgeo.org/grass-stable/manuals/r.drain">r.drain</a> to
@@ -23,11 +23,11 @@ more the module will follow the detected edges.
 In order to avoid that all lines gather into one single lowest cost path, the
 module defines a lane for each desired line. The parameter
 <b>lane_border_multiplier</b> defines the a multiplier of the
-<b>no_edge_friction</b> value, in order to define the cost to 
-cross that line, i.e. the lower the value, the more likely cutlines will join 
+<b>no_edge_friction</b> value, in order to define the cost to
+cross that line, i.e. the lower the value, the more likely cutlines will join
 each other across lanes. Output is in the form of vector polygon tiles. The user
-can decide a minimum size defined in map units (<b>min_tile_size</b>). Tiles 
-smaller than that size will be merged with the neighboring tile they share the 
+can decide a minimum size defined in map units (<b>min_tile_size</b>). Tiles
+smaller than that size will be merged with the neighboring tile they share the
 longest border with.
 
 <p>
@@ -42,23 +42,23 @@ module or the <a href="i.edge.html">i.edge</a> addon. For the former, the user
 can determine the <b>zc_threshold</b> and the <b>zc_width</b> parameters. For
 the latter, the <b>canny_low_threshold</b>, <b>canny_high_threshold</b> and
 <b>canny_sigma</b> parameters. See the manual page of the respective modules
-for details about these parameters which might need tuning to fit to the 
-specific image. As these modules read the entire image into RAM, 
-<em>i.cutlines</em> allows the user to run split the image into rectangular 
-tiles and to process each tile separately. Tiles can be defined with the 
-<b>tile_width</b>, <b>tile_height</b> and <b>overlap</b> parameters. If 
+for details about these parameters which might need tuning to fit to the
+specific image. As these modules read the entire image into RAM,
+<em>i.cutlines</em> allows the user to run split the image into rectangular
+tiles and to process each tile separately. Tiles can be defined with the
+<b>tile_width</b>, <b>tile_height</b> and <b>overlap</b> parameters. If
 <b>processes</b> is higher than one, these tiles will be processed in parallel
 as will the <a href="https://grass.osgeo.org/grass-stable/manuals/r.cost.html">r.cost</a> calls for the two directions.
 
 <p>
-The <b>memory</b> parameter determines the memory used both for the 
+The <b>memory</b> parameter determines the memory used both for the
 <a href="https://grass.osgeo.org/grass-stable/manuals/r.cost.html">r.cost</a> runs.
 
 <h2>NOTES</h2>
 
 Until GRASS GIS version 7.4 included, there was a parameter name conflict between
 <a href="https://grass.osgeo.org/grass-stable/manuals/i.zc.html">i.zc</a> and the
-GridModule class in pygrass. For older GRASS GIS versions tiled edge 
+GridModule class in pygrass. For older GRASS GIS versions tiled edge
 detection is thus only possible with <a href="i.edge.html">i.edge</a>.
 
 <h2>EXAMPLES</h2>
@@ -70,7 +70,7 @@ edge detection without tiling,
 default parameters and 10 horizontal and 10 vertical cutlines, creating
 vector polygon output:
 
-<div class="code"><pre> 
+<div class="code"><pre>
 # ortho photo subarea
 g.region raster=ortho_2001_t792_1m n=221070 s=219730 -p
 i.cutlines input=ortho_2001_t792_1m number_lines=10 output=ortho_tiles_zc
@@ -109,12 +109,12 @@ Revista Brasileira de Cartografia 68 (6),
 
 <h2>SEE ALSO</h2>
 
-<a href="https://grass.osgeo.org/grass-stable/manuals/i.zc.html">i.zc</a>, 
-<a href="i.edge.html">i.edge</a>, 
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.tile.html">r.tile</a>, 
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.mkgrid.html">v.mkgrid</a>, 
+<a href="https://grass.osgeo.org/grass-stable/manuals/i.zc.html">i.zc</a>,
+<a href="i.edge.html">i.edge</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.tile.html">r.tile</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/v.mkgrid.html">v.mkgrid</a>,
 <a href="https://grass.osgeo.org/grass-stable/manuals/i.segment.html">i.segment</a>
 
-<h2>AUTHOR</h2> 
+<h2>AUTHOR</h2>
 
 Moritz Lennert

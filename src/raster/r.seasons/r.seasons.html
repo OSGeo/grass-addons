@@ -1,58 +1,58 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.seasons</em> counts the number of seasons in a time series. A 
-season is defined as a time period of at least <em>min_length</em> 
-length in which values are above the threshold set. If the <em>-l</em> 
-flag is used, a season will be a time period in which values are below 
-the threshold set. As threshold, either a fixed value for the whole 
-region can be specified with the <em>threshold_value</em> option, or a 
-raster map with per-cell threshold values can be supplied with the 
+<em>r.seasons</em> counts the number of seasons in a time series. A
+season is defined as a time period of at least <em>min_length</em>
+length in which values are above the threshold set. If the <em>-l</em>
+flag is used, a season will be a time period in which values are below
+the threshold set. As threshold, either a fixed value for the whole
+region can be specified with the <em>threshold_value</em> option, or a
+raster map with per-cell threshold values can be supplied with the
 <em>threshold_map</em> option.
 
 <p>
-The <em>nout</em> output map holds the number of detected seasons. Output 
-raster maps with the start and end dates of each season are produced 
+The <em>nout</em> output map holds the number of detected seasons. Output
+raster maps with the start and end dates of each season are produced
 for at most <em>n</em> number of seasons.
 
 <p>
-A season is a period of time that might include gaps up to <em>max_gap</em>. 
-For each season identified, two start dates and two end dates are determined. 
-The start date "start1" and the end date "end1" indicate the start and 
-end of the core season, while the start date "start2" and the end date 
-"end2" indicate the start and end of the full season including some 
-periods shorter than <em>min_length</em> separated by gaps shorter than 
-<em>max_gap</em> at the beginning and end of the season. A 
-<b>core season</b> is at least <em>min_length</em> long and might 
-contain gaps shorter than the <em>max_gap</em> inbetween, but not at the 
-beginning or end. A <b>full season</b>, on the other hand, can have 
-blocks shorter than <em>min_length</em> at the beginning or end as long 
-as these blocks are separated by gaps shorter than the <em>max_gap</em>. 
-Let's consider an example to visualize core and full seasons. We have 
-a certain time series in which 0 means below the threshold and 1 means 
+A season is a period of time that might include gaps up to <em>max_gap</em>.
+For each season identified, two start dates and two end dates are determined.
+The start date "start1" and the end date "end1" indicate the start and
+end of the core season, while the start date "start2" and the end date
+"end2" indicate the start and end of the full season including some
+periods shorter than <em>min_length</em> separated by gaps shorter than
+<em>max_gap</em> at the beginning and end of the season. A
+<b>core season</b> is at least <em>min_length</em> long and might
+contain gaps shorter than the <em>max_gap</em> inbetween, but not at the
+beginning or end. A <b>full season</b>, on the other hand, can have
+blocks shorter than <em>min_length</em> at the beginning or end as long
+as these blocks are separated by gaps shorter than the <em>max_gap</em>.
+Let's consider an example to visualize core and full seasons. We have
+a certain time series in which 0 means below the threshold and 1 means
 that the value is above the threshold set:
 <div class="code"><pre>
 000101111010111101000
-</pre></div>	
-If <em>min_length=4</em> and <em>max_gap=2</em>, core and full seasons 
-will be identified as follows: 
+</pre></div>
+If <em>min_length=4</em> and <em>max_gap=2</em>, core and full seasons
+will be identified as follows:
 <div class="code"><pre>
-# core season: 
+# core season:
 000001111111111100000
 #full season
 000111111111111111000
 </pre></div>
 
 <p>
-The length of the longest core and full seasons can be stored in the 
+The length of the longest core and full seasons can be stored in the
 <em>max_length_core</em> and <em>max_length_full</em> output maps.
 
 <h2>NOTES</h2>
 
-The maximum number of raster maps that can be processed is given by the 
-per-user limit of the operating system. For example, the soft limits 
-for users are typically 1024. The soft limit can be changed with e.g. 
-<tt>ulimit -n 4096</tt> (UNIX-based operating systems) but not higher 
-than the hard limit. If it is too low, you can as superuser add an 
+The maximum number of raster maps that can be processed is given by the
+per-user limit of the operating system. For example, the soft limits
+for users are typically 1024. The soft limit can be changed with e.g.
+<tt>ulimit -n 4096</tt> (UNIX-based operating systems) but not higher
+than the hard limit. If it is too low, you can as superuser add an
 entry in
 
 <div class="code"><pre>
@@ -61,27 +61,27 @@ entry in
 your_username  hard    nofile          4096
 </pre></div>
 
-This would raise the hard limit to 4096 files. Also have a look at the 
+This would raise the hard limit to 4096 files. Also have a look at the
 overall limit of the operating system
 <div class="code"><pre>
 cat /proc/sys/fs/file-max
 </pre></div>
 which is on modern Linux systems several 100,000 files.
 
-<p>Use the <em>-z</em> flag to analyze large amount of raster maps 
-without hitting open files limit and the size limit of command line 
-arguments. This will however increase the processing time. For every 
-single row in the output map(s) all input maps are opened and closed. 
-The amount of RAM will rise linear with the number of specified input 
+<p>Use the <em>-z</em> flag to analyze large amount of raster maps
+without hitting open files limit and the size limit of command line
+arguments. This will however increase the processing time. For every
+single row in the output map(s) all input maps are opened and closed.
+The amount of RAM will rise linear with the number of specified input
 maps.
 <p>
-The input and file options are mutually exclusive. Input is a 
+The input and file options are mutually exclusive. Input is a
 text file with a new line separated list of raster map names.
 
 <h2>EXAMPLES</h2>
 
-Determine occurrence/number of seasons with their respective start and 
-end dates (in the form of map indexes) in global NDVI data. Let's use 
+Determine occurrence/number of seasons with their respective start and
+end dates (in the form of map indexes) in global NDVI data. Let's use
 the example from <em>i.modis.import</em> to download and import NDVI
 global data and, create a time series with it:
 
@@ -103,7 +103,7 @@ t.create type=strds temporaltype=absolute output=ndvi_16_5600m \
 t.register input=ndvi_16_5600m file=$HOME/list_for_tregister.csv
 </pre></div>
 
-First, visualize the NDVI time series in a particular point with 
+First, visualize the NDVI time series in a particular point with
 <em>g.gui.tplot</em>:
 
 <div class="code"><pre>
@@ -120,15 +120,15 @@ g.gui.tplot strds=ndvi_16_5600m coordinates=146.537059538,-29.744835966
 </div>
 
 <p>
-Now, identify seasons based on a fixed threshold and a minimum duration. 
-The threshold and duration were visually estimated from the time series 
+Now, identify seasons based on a fixed threshold and a minimum duration.
+The threshold and duration were visually estimated from the time series
 plot for the example.
 
 <div class="code"><pre>
 r.seasons input=`g.list rast pat=MOD13* sep=,` prefix=ndvi_season n=3 \
   nout=ndvi_season threshold_value=3000 min_length=6
 
-# the outputs are: 
+# the outputs are:
 g.list type=raster pattern=ndvi_season*
 ndvi_season
 ndvi_season1_end1

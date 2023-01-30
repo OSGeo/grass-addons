@@ -9,7 +9,7 @@ wraps the import, the atmospheric and the topographic correction using respectiv
 <a href="https://grass.osgeo.org/grass-stable/manuals/i.atcorr.html">i.atcorr</a> and <a href="https://grass.osgeo.org/grass-stable/manuals/i.topo.corr.html">i.topo.corr</a>.<br>
 It works both with Sentinel-2A and 2B images.<br>
 The aim is to provide a simplified module which allows importing images, which
-area downloaded using 
+area downloaded using
 <a href="i.sentinel.download.html">i.sentinel.download</a> or any other sources,
 and performing the atmospheric correction avoiding users to provide all the
 required input parameters manually. In fact, regarding the atmospheric
@@ -33,7 +33,7 @@ can choose the proper option from a drop-down menu thus avoiding to enter the
 corresponding code. In any case, <em>i.sentinel.preproc</em> writes a temporary control
 file, changing it according to the band number, following the syntax rules and
 codes of <em>i.atcorr</em> and then it runs <em>i.atcorr</em> for all bands.
-Using the <em>c</em> flag <em>i.sentinel.preproc</em> is able to perform also 
+Using the <em>c</em> flag <em>i.sentinel.preproc</em> is able to perform also
 the topographic correction using <a href="https://grass.osgeo.org/grass-stable/manuals/i.topo.corr.html">i.topo.corr</a>
 creating the needed information as the illumination model based on the elevation
 model provided by the user.
@@ -46,7 +46,7 @@ model provided by the user.
 
 <p>
 When all bands have been processed by the integrated version of <em>i.atcorr</em>, an
-histogram equalization grayscale color scheme is applied. 
+histogram equalization grayscale color scheme is applied.
 
 <p>
 If the <b>-t</b> flag is set, a text file ready to be used as input for
@@ -92,9 +92,9 @@ retrieve the metadata file.
 <em>i.sentinel.preproc</em> allows performing atmospheric correction of all bands of a
 Sentinel-2 scene with a single process using <em>i.atcorr</em>. Unlike <em>i.atcorr</em>, it
 writes the control file changing it according to the band number. The only
-required inputs are:   
-<ul> 
-    <li><b>input_dir</b> = the *.SAFE directory where the image and metadata file (MTD_MSIL1C.xml or S2A_OPER_MTD_SAFL1C_PDMC_*.xml depending on naming convention) are stored, 
+required inputs are:
+<ul>
+    <li><b>input_dir</b> = the *.SAFE directory where the image and metadata file (MTD_MSIL1C.xml or S2A_OPER_MTD_SAFL1C_PDMC_*.xml depending on naming convention) are stored,
     <li><b>elevation</b> = raster of a digital elevation model,
     <li><b>visibility or AOD value</b> = raster of a visibility map or an AOD value (<em>see AOD section</em>),
     <li><b>Atmospheric model</b> = to be choosen from the drop-down menu,
@@ -108,7 +108,7 @@ The module writes the control file automatically starting from the input above.
 <h4>Control file</h4>
 
 <em>i.atcorr</em> requires a control file to parametrize the 6S algorithm on which it is
-based. 
+based.
 
 <p>
 Below an example of the control file, taken from the <em>i.atcorr</em> manual page, of a
@@ -137,7 +137,7 @@ map and bands.
 <p>
 The geometrical condition of the satellite are read from the metadata file and
 converted to the corresponding <em>i.atcorr</em> code, 25 for Sentinel-2A mission and 26
-for Sentinel-2B. 
+for Sentinel-2B.
 
 <p>
 <li><b> Date, time, longitude and latitude </b>
@@ -156,7 +156,7 @@ coordinates.
 <li><b> Atmospheric model</b>
 <p>
 Only some options are available:
-<ul> 
+<ul>
     <li>Automatic
     <li>No gaseous absorption
     <li>Tropical
@@ -191,13 +191,13 @@ options from those available.
 Also in this case, only some options are available and users have to select the
 desired one from the drop-down menu, then it is converted to the corresponding
 code and added to the control file.
-<ul> 
-    <li>no aerosols	 
-    <li>continental model	 
-    <li>maritime model	 
-    <li>urban model	 
-    <li>shettle model for background desert aerosol	 
-    <li>biomass burning	 
+<ul>
+    <li>no aerosols
+    <li>continental model
+    <li>maritime model
+    <li>urban model
+    <li>shettle model for background desert aerosol
+    <li>biomass burning
     <li>stratospheric model
 </ul><br>
 No automatic procedure has been implemented in this case.
@@ -225,7 +225,7 @@ automatically retrieved from an AERONET file to be given as input instead of
 the AOD value.<br> <em>i.sentinel.preproc</em> reads the AERONET file, identify the
 closest available date to the scene date and compute AOD at 550nm using the
 closest upper and lower wavelength to 550 (e.g. 500nm and 675nm) and applying
-the Angstrom coefficient. 
+the Angstrom coefficient.
 <p>
 
 The type of AERONET file is a Combined file for All Points (Level 1.5 or
@@ -273,7 +273,7 @@ set to -1000.
 <p>
 The number of the band changes automatically according to the band that is
 processed at that moment. The module reads the name of the band and converts it
-into the corresponding code. 
+into the corresponding code.
 </ol>
 
 <h3>Topographic correction</h3>
@@ -296,7 +296,7 @@ i.sentinel.preproc -a -t input_dir=/path/S2A_MSIL1C_20180315T160021_N0206_R097_T
   aeronet_file=path/180301_180331_EPA-Res_Triangle_Pk.dubovik suffix=cor text_file=/path/input_cloud_mask.txt
 </pre></div>
 <p>
-Here is the control file automatically written for Band 02 of the input scene 
+Here is the control file automatically written for Band 02 of the input scene
 <div class="code"><pre>
 25
 5 4 19.74 -78.728 35.749
@@ -375,5 +375,5 @@ Sentinel User Guide</a>.</li>
 <h2>AUTHORS</h2>
 
 Roberta Fagandini, GSoC 2018 student<br>
-<a href="https://wiki.osgeo.org/wiki/User:Mlennert">Moritz Lennert</a><br> 
+<a href="https://wiki.osgeo.org/wiki/User:Mlennert">Moritz Lennert</a><br>
 <a href="https://wiki.osgeo.org/wiki/User:Robertomarzocchi">Roberto Marzocchi</a>

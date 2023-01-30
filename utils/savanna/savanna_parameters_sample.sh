@@ -12,4 +12,3 @@ export tilexsize="500"
 export tileysize="500"
 export tileoverlap="10"
 export mask="ned_ca_masked_epsg3310_comet_00008m"
-

@@ -42,10 +42,10 @@ r.random input=landclass96 npoints=1000 raster=training_pixels
 
 <p>Then we can use these training pixels to perform a classification on the more recently obtained
   landsat 7 image:</p>
-  
+
 <div class="code">
   <pre>
-# train a random forest classification model using r.learn.train 
+# train a random forest classification model using r.learn.train
 r.learn.train group=lsat7_2000 training_map=training_pixels \
   model_name=RandomForestClassifier n_estimators=500 save_model=rf_model.gz
 

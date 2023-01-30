@@ -1,6 +1,6 @@
 <h2>DESCRIPTION</h2>
 
-<p>The module <em>v.in.pygbif</em> is a wrapper around the 
+<p>The module <em>v.in.pygbif</em> is a wrapper around the
 <a href="http://pygbif.readthedocs.io/en/latest/index.html">pygbif</a> package.
 <br>
 Thus, <em>pygbif</em> is a dependency of v.in.pygbif. pygbif can be installed like this:</p>
@@ -9,25 +9,25 @@ Thus, <em>pygbif</em> is a dependency of v.in.pygbif. pygbif can be installed li
 pip install pygbif [--user]
 </pre></div>
 
-<p>Through <em>pygbif</em>, the module allows to download data from the Global Biodiversity 
-Information Facility (<a href="http://www.gbif.org">GBIF</a>) using different search/filter 
+<p>Through <em>pygbif</em>, the module allows to download data from the Global Biodiversity
+Information Facility (<a href="http://www.gbif.org">GBIF</a>) using different search/filter
 criteria.</p>
-<p>Since some of the Darwin Core attribute columns represent SQL key-words, the prefix "g_" 
-was added to all attribute columns. The names of taxa provided at input to the search are 
+<p>Since some of the Darwin Core attribute columns represent SQL key-words, the prefix "g_"
+was added to all attribute columns. The names of taxa provided at input to the search are
 written to the column "g_search".</p>
-<p>The point data is downloaded and projected into the current location. By default 
-import is limited to the current computational region in order to avoid 
-possible projection errors, e.g. when projecting global data into UTM locations. 
+<p>The point data is downloaded and projected into the current location. By default
+import is limited to the current computational region in order to avoid
+possible projection errors, e.g. when projecting global data into UTM locations.
 However, in lat&frasl;lon location this limitation can be skiped using the <b><em>-r</em></b>
 flag.<br>
-Providing a mask automatically overrides the limitation of the search to the current 
+Providing a mask automatically overrides the limitation of the search to the current
 computational region.</p>
 
 <p>Terminology in <b>v.in.pygbif</b> is oriented on the <em>Darwin Core</em> standard:
 <a href="http://rs.tdwg.org/dwc/"> http://rs.tdwg.org/dwc/</a>.</p>
 
-<p>Please note that the GBIF Search API has a hard limit of 200,000 occurrences 
-per request. If you want to fetch more records, either subivide your area of 
+<p>Please note that the GBIF Search API has a hard limit of 200,000 occurrences
+per request. If you want to fetch more records, either subivide your area of
 interest or split up your search by using different search criteria.<br>
 When a list of taxa is given as input, <b>v.in.pygbif</b> issues a search for each taxon
 individually. Thus, in order to split up a search it is recommended to either use different

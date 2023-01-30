@@ -1,12 +1,12 @@
 <h2>DESCRIPTION:</h2>
-The purpose of the <em>v.rast.bufferstats</em> module is to provide 
-local environmental context to a series of input geometries. 
-It computes statistics from multiple input raster maps within multiple 
+The purpose of the <em>v.rast.bufferstats</em> module is to provide
+local environmental context to a series of input geometries.
+It computes statistics from multiple input raster maps within multiple
 buffers around selected geometries in the input vector map.
 <p>Available statistics are either</p>
 <ol type="a">
 <li>statistics provided by <em>r.univar</em> or</li>
-<li>if the <em>t-flag</em> is checked - area of, number of and/or the most frequent (mode) raster categories 
+<li>if the <em>t-flag</em> is checked - area of, number of and/or the most frequent (mode) raster categories
 within the buffers using <em>r.stats</em>.</li>
 </ol>
 
@@ -17,7 +17,7 @@ cat | prefix | buffer| statistic/measure | value<br>
 separated by the user defined separator (default is |).</p>
 
 <h2>NOTE</h2>
-The module temporarily modifies the computational region. The region is set to the 
+The module temporarily modifies the computational region. The region is set to the
 extent of the respective buffers, while the alignment of the current region is kept.
 
 <h2>EXAMPLES</h2>
@@ -38,10 +38,10 @@ v.rast.bufferstats input=bridges_wake raster=altitude,slope,aspect buffers=100,2
 </pre></div>
 
 <h2>KNOWN ISSUES</h2>
-In order to avoid topological issues with overlapping buffers, the module loops over the 
+In order to avoid topological issues with overlapping buffers, the module loops over the
 input geometries. However, this comes at costs with regards to performance.
-For a larger number of geometries in the vector map, it can be therefore more appropriate to 
-compute neighborhood statistics with <em>r.neighbors</em> and to extract (<em>v.what.rast</em>, 
+For a larger number of geometries in the vector map, it can be therefore more appropriate to
+compute neighborhood statistics with <em>r.neighbors</em> and to extract (<em>v.what.rast</em>,
 <em>r.what</em>) or aggregate (<em>v.rast.stats</em>) from those maps with neighborhood statistics.
 
 <p>

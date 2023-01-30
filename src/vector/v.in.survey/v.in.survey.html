@@ -1,29 +1,29 @@
 <h2>DESCRIPTION</h2>
 
-<em>v.in.survey</em> imports points from ASCII file into specific vector layers by point names. The script 
-joins several modules to perform following steps: 
+<em>v.in.survey</em> imports points from ASCII file into specific vector layers by point names. The script
+joins several modules to perform following steps:
 <ul>
 	<li>The data is sorted according to point names to keep points from separated layers together.</li>
-	<li>The script <b>scans input file and creates separate files for each layer</b>. Layers are distinguished by 
-	point names that provide information on layer name, vector type and point identifier. More detailed information about 
-	how to draft point names in your dataset (during data acquisition or in post-processing) is provided in <b>Notes</b> 
+	<li>The script <b>scans input file and creates separate files for each layer</b>. Layers are distinguished by
+	point names that provide information on layer name, vector type and point identifier. More detailed information about
+	how to draft point names in your dataset (during data acquisition or in post-processing) is provided in <b>Notes</b>
 	section.<br>&nbsp;</li>
-	<li>Line and polygon data are <b>converted to standard format</b> (input data should respect topological rules to get 
+	<li>Line and polygon data are <b>converted to standard format</b> (input data should respect topological rules to get
 	geometrically correct layers).<br>&nbsp;</li>
-	<li>Then, <b>new vector layer</b> is created using <i>v.in.ascii</i>. Points are stored in point layer; lines and polygons in 
-	line layer at this moment. Lines that store polygon data are converted to new polygon layer using <i>v.centroid</i>.<br>&nbsp; 
-	<li><b>Attribute table is maintained</b> for line and polygon layers (points are imported in point format with the attributes 
+	<li>Then, <b>new vector layer</b> is created using <i>v.in.ascii</i>. Points are stored in point layer; lines and polygons in
+	line layer at this moment. Lines that store polygon data are converted to new polygon layer using <i>v.centroid</i>.<br>&nbsp;
+	<li><b>Attribute table is maintained</b> for line and polygon layers (points are imported in point format with the attributes
 	as well).
 	<ul>
 		<li>in case of line layers, categories are added at first using <i>v.category</i>,</li>
 		<li>attribute table is created using <i>v.db.addtable</i>,</li>
 		<li>column that stores layer name is updated using <i>v.db.update</i>.<br>&nbsp;</li>
 	</ul></li>
-	<li>There is an option to <b>merge the features</b> by <i>v.patch</i> using various patterns to detect desired layers. 
+	<li>There is an option to <b>merge the features</b> by <i>v.patch</i> using various patterns to detect desired layers.
 	For more details, see <b>Notes</b>.<br>&nbsp;</li>
 	<li>Finally, <i>v.clean</i> is performed to <b>clean the topology</b> if any layers have been merged. </li>
 	<li>If desired, <b>conversion to DXF</b> file is performed as well.</li>
-</ul>	
+</ul>
 
 <h2>NOTES</h2>
 <h3>Input data</h3>
@@ -35,7 +35,7 @@ Several recommendations how to format the data:
 		Point_name		easting	northing	[elevation]
 		name.code.number	x	y		[z]
 		</pre></div>
-	It does not depend on the coordinate order in the input file. The user can set up number of column for each coordinate 
+	It does not depend on the coordinate order in the input file. The user can set up number of column for each coordinate
 	(as in <i>v.in.ascii</i>).<br>&nbsp;</li>
 	<li>Point name provides information that is substantial for new layer creation - name and desired type of vector. Required
 	 <b>format of the point name</b> looks like this:
@@ -63,10 +63,10 @@ Several recommendations how to format the data:
 				</pre></div>
 	 		</td>
 	 		<td>
-	 			information about vector type of the new layer (point, line, polygon). You may define your own codes that 
-	 			refer directly to the geometry (e.g. <i>point</i>, <i>line</i>, <i>poly</i> etc. including various 
-	 			abbreviations). Or you may specify that e.g. <i>tree</i>, <i>bush</i> etc. are codes for point features, 
-	 			<i>river</i>, <i>profile</i> etc. refer to line segments and <i>lake</i> and 
+	 			information about vector type of the new layer (point, line, polygon). You may define your own codes that
+	 			refer directly to the geometry (e.g. <i>point</i>, <i>line</i>, <i>poly</i> etc. including various
+	 			abbreviations). Or you may specify that e.g. <i>tree</i>, <i>bush</i> etc. are codes for point features,
+	 			<i>river</i>, <i>profile</i> etc. refer to line segments and <i>lake</i> and
 	 			<i>house</i> represent new polygon layers.
 	 		</td>
 	 	</tr>
@@ -82,10 +82,10 @@ Several recommendations how to format the data:
 	 	</tr>
 	 </table></li>
 	<li>if using a <b>header or columns' names</b>, refer this in <i>skip</i> parameter<br>&nbsp;</li>
-	<li>if necessary to <b>merge</b> any layers, please give them a name with specific prefix, which should be used as 
+	<li>if necessary to <b>merge</b> any layers, please give them a name with specific prefix, which should be used as
 	merging rule as well. Merging rule that is based on suffix or another part of the layer name is not recognized.<br>&nbsp;</li>
-	<li>if the module <b>crashes suddenly</b> during large dataset processing, 
-	it might be caused by incomplete data writing to the layer input file. Please divide input data into several smaller 
+	<li>if the module <b>crashes suddenly</b> during large dataset processing,
+	it might be caused by incomplete data writing to the layer input file. Please divide input data into several smaller
 	files (probably depends on your computer performance).</li>
 </ul>
 
@@ -94,26 +94,26 @@ If you wish to convert the data to DXF, please use <i>-x</i> flag. Then, it is n
 <ul>
 <li>the <b>name of DXF file</b>. The file will be written into the output directory.</li>
 <li><b>drawing units</b>. Default value: <i>metric</i>. Another option: <i>imperial</i>.</li>
-<li><b>height of the text</b>. Default value: 0.0 (the height will be derived as a fraction (0.003) of longer side of a rectangular 
+<li><b>height of the text</b>. Default value: 0.0 (the height will be derived as a fraction (0.003) of longer side of a rectangular
 mapset region)</li>
 </ul>
-Output drawing consists of geometry layers (point, line and polygon) supplemented with text. The text layers contain elevation of the vertices 
+Output drawing consists of geometry layers (point, line and polygon) supplemented with text. The text layers contain elevation of the vertices
 and labels of the points and of the objects as <i>Fig. 4</i> shows.
 
 <h2>EXAMPLES</h2>
-This example is based on the sample dataset of North Carolina 
-(<a href="https://grass.osgeo.org/sampledata/north_carolina/nc_spm_08_grass7.zip">nc_spm_08_grass7</a>). 
-Point vector layer <i>hospitals</i>, line vector layer <i>railroads</i> and polygon vector layer <i>soil_general</i> have 
-been exported to the text files, vertices have been renamed and the files have been merged. This final input was used as 
+This example is based on the sample dataset of North Carolina
+(<a href="https://grass.osgeo.org/sampledata/north_carolina/nc_spm_08_grass7.zip">nc_spm_08_grass7</a>).
+Point vector layer <i>hospitals</i>, line vector layer <i>railroads</i> and polygon vector layer <i>soil_general</i> have
+been exported to the text files, vertices have been renamed and the files have been merged. This final input was used as
 test data for the script.
 
 <div class="code"><pre>
 v.in.survey input=test_data.dat separator=tab skip=1 easting=2 northing=3 pt_rules=pt ln_rules=ln poly_rules=poly outdir=NC_test
 </pre></div>
 
-As might be seen in <i>Fig. 1</i>, points and lines fit original dataset well, but areas are broken. 
-This is caused by input data - it was created exporting lines from areas and then exporting points from lines. Boundary of each 
-area was split into lines according to topological rule that vertices of the line are given by its intersection with at least 
+As might be seen in <i>Fig. 1</i>, points and lines fit original dataset well, but areas are broken.
+This is caused by input data - it was created exporting lines from areas and then exporting points from lines. Boundary of each
+area was split into lines according to topological rule that vertices of the line are given by its intersection with at least
 two other lines. Thus, each new area was generated as the space surrounded by a line and connection between its vertices.
 
 <p>
@@ -142,13 +142,13 @@ two other lines. Thus, each new area was generated as the space surrounded by a 
 	</tr>
 </table>
 
-<p>To fix broken areas, original lines have been merged using <i>v.edit</i> according to their categories. Then points have been 
-exported again and they were copied to enclose each area - respecting lines and the directions as might be seen in 
-<i>Fig. 2</i>. In <i>Fig. 3</i>, there is shown that areas fit well too after editing input file. 
+<p>To fix broken areas, original lines have been merged using <i>v.edit</i> according to their categories. Then points have been
+exported again and they were copied to enclose each area - respecting lines and the directions as might be seen in
+<i>Fig. 2</i>. In <i>Fig. 3</i>, there is shown that areas fit well too after editing input file.
 
 <p> If it is necessary also to merge some of the layers, then merging rules can be set up:
 <div class="code"><pre>
-	v.in.survey input=test_data_small_corrected_soils.dat separator=tab easting=2 northing=3 pt_rules=pt ln_rules=ln poly_rules=poly \ 
+	v.in.survey input=test_data_small_corrected_soils.dat separator=tab easting=2 northing=3 pt_rules=pt ln_rules=ln poly_rules=poly \
 	outdir=NC_test_small_merge merge_lyrs=road,soil
 </pre></div>
 
@@ -167,8 +167,8 @@ exported again and they were copied to enclose each area - respecting lines and 
 </table>
 
 <p>
-The colours in DXF drawing have been set up automatically. In this case, labels of roads and elevation labels of soil types 
-have been switched of because of too large amount of the data. Examples of more detailed exports can be seen in 
+The colours in DXF drawing have been set up automatically. In this case, labels of roads and elevation labels of soil types
+have been switched of because of too large amount of the data. Examples of more detailed exports can be seen in
 <i>(Stopkova, 2016)</i>.
 
 <h2>WARNINGS</h2>
@@ -180,13 +180,13 @@ Any imported layer does not match given <i>item</i> referring how to merge layer
 <i>ERROR: Too many columns. Use input data in format 'name east north [elev]', please.</i><br>
 Current version supports only import of 2D or 3D geometry and point name. Edit input file and run script again.
 
-<p><i>ERROR: Please rename point in line i according to the script request in format 
+<p><i>ERROR: Please rename point in line i according to the script request in format
 'lyr_name.vect_type_code.number'.</i><br>
-Point name is expected to provide information in particular format. Edit point name in <i>i</i><sup>th</sup> line of the 
+Point name is expected to provide information in particular format. Edit point name in <i>i</i><sup>th</sup> line of the
 input file and run script again.
 
 <p><i>ERROR: Please do not use SQL forbidden characters in your input data. Remove all 'char' from the file.</i><br>
-Any special characters are not allowed in the data. Please use just <i>dots</i> to separate parts of point names. If 
+Any special characters are not allowed in the data. Please use just <i>dots</i> to separate parts of point names. If
 necessary, make the names more clear using <i>underscores</i>.
 
 <p><i>ERROR: Not enough points to make line layer &lt;layer&gt;.</i><br>
@@ -195,19 +195,19 @@ These errors may refer to:
 <ul>
 	<li>a typographical mistake in particular point's name. Edit point's name in the input file and run script again.
 	<li>mixed layers. See <i>(Stopkova, 2016)</i> for more details. Edit point's name in the input file and run script again.
-	<li>broken geometry (just one point referring to a line or less than three points referring to a polygon). Please remove 
+	<li>broken geometry (just one point referring to a line or less than three points referring to a polygon). Please remove
 	these points or edit their vector type (middle part of point name) to refer to a point.
 </ul>
 
 <h3>Script settings:</h3>
 <i>ERROR: Wrong separator type.</i><br>
-The separator does not fit the data file. Please set up another type: <i>pipe</i>, <i>comma</i>, <i>space</i>, <i>tab</i>, 
+The separator does not fit the data file. Please set up another type: <i>pipe</i>, <i>comma</i>, <i>space</i>, <i>tab</i>,
 <i>newline</i>. Default: <i>pipe</i>
 
-<p><i>ERROR: Vector layer <i>layer</i> is not point, neither line, nor boundary. Please check your input data and rules that 
+<p><i>ERROR: Vector layer <i>layer</i> is not point, neither line, nor boundary. Please check your input data and rules that
 you have typed in.</i><br>
-Vector type information (middle part of the point name) does not match to any of geometry codes that you have 
-entered. Please compare input settings with point names in the data file, complete input settings (or edit input data) 
+Vector type information (middle part of the point name) does not match to any of geometry codes that you have
+entered. Please compare input settings with point names in the data file, complete input settings (or edit input data)
 and run the script again.</p>
 
 <p><i>ERROR: Please redefine merging option &lt;char&gt;. Different vector types match this rule.</i><br>
@@ -239,10 +239,10 @@ Merging different vector types is not allowed. This might be matter of comparing
 </table>
 
 <p>
-In the left column, there are summarized line objects that should be merged to one single layers called 
-<i>river</i>. This merge is possible, as all the features are represented by line. In the right column, there 
-are summarized rivers as well. But they cannot be merged, because the Danube river is represented by polygon and the rest of the 
-features are lines. It would be better to use merging criteria <i>river_stream</i> 
+In the left column, there are summarized line objects that should be merged to one single layers called
+<i>river</i>. This merge is possible, as all the features are represented by line. In the right column, there
+are summarized rivers as well. But they cannot be merged, because the Danube river is represented by polygon and the rest of the
+features are lines. It would be better to use merging criteria <i>river_stream</i>
 to separate just line object to be merged.
 
 <h3>Files:</h3>
@@ -251,11 +251,11 @@ Missing input file.
 
 <h3>Output layers:</h3>
 <i>ERROR: Vector layer &lt;layer&gt; exists. Please remove the layer or rename the input points.</i><br>
-There is a layer with identical name in the mapset. Overwrite it, rename it or rename the layer in the input file 
-(edit points names). However, this error usually happens if points that belong to several layers are mixed in the file as well. How to prevent this, 
+There is a layer with identical name in the mapset. Overwrite it, rename it or rename the layer in the input file
+(edit points names). However, this error usually happens if points that belong to several layers are mixed in the file as well. How to prevent this,
 examples in <i>(Stopkova, 2016)</i> can demonstrate.
 
-<p><b>Empty layer</b> (not reported in command output): if the layer exists but is empty, please check the input points. This might happened 
+<p><b>Empty layer</b> (not reported in command output): if the layer exists but is empty, please check the input points. This might happened
 because of wrong point order (especially if the point order has been edited).
 
 <h3>DXF conversion:</h3>
@@ -275,8 +275,8 @@ Anything else cannot be accepted (in accordance to DXF settings). Default value:
 <a href="https://grass.osgeo.org/grass-stable/manuals/v.out.dxf.html">v.out.dxf</a>
 </em>
 <br><br>
-Stopkova, E. (in print). Open-source tool for automatic import of coded surveying data to multiple vector layers in GIS 
-environment. In <i>Geoinformatics FCE CTU</i>. Vol. 15, No. 2 (2016). Prague: Czech Technical University, Faculty of Civil 
+Stopkova, E. (in print). Open-source tool for automatic import of coded surveying data to multiple vector layers in GIS
+environment. In <i>Geoinformatics FCE CTU</i>. Vol. 15, No. 2 (2016). Prague: Czech Technical University, Faculty of Civil
 Engineering. ISSN 1802-2669. <a href="https://doi.org/10.14311/gi.15.2.2">DOI</a>.
 
 <h2>AUTHOR</h2>

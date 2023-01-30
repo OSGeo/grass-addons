@@ -1,10 +1,10 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.diversity</em> calculates selected diversity indices by 
+<em>r.diversity</em> calculates selected diversity indices by
 calling various <em>r.li</em> commands.
 
 <p>
-This script uses the Pielou, Renyi, Shannon and Simpson indices. The 
+This script uses the Pielou, Renyi, Shannon and Simpson indices. The
 output is a map for each index.
 
 <h2>NOTES</h2>
@@ -18,14 +18,14 @@ values with comma (,) and a range with minus (-).<br>
 If you calculate Renyi entropy remember to add the <b>alpha</b> option.
 Alpha option support single and multi values but not a range.<br>
 
-If the input raster contains NULL value cells, <em>r.diversity</em> 
-returns -1 for these cells.<br> 
+If the input raster contains NULL value cells, <em>r.diversity</em>
+returns -1 for these cells.<br>
 If the user wants to keep NULL values instead, run subsequently on the
-resulting map:<br> 
+resulting map:<br>
 
-<div class="code"><pre> 
+<div class="code"><pre>
 r.null map=my_map setnull=-1
-</pre></div> 
+</pre></div>
 
 <h2>EXAMPLES</h2>
 
@@ -61,7 +61,7 @@ r.diversity input=ndvi_map prefix=diversity size=3,9 exclude=pielou alpha=3
 <a href="https://grass.osgeo.org/grass-stable/manuals/r.li.renyi.html">r.li.renyi</a>,
 <a href="https://grass.osgeo.org/grass-stable/manuals/r.li.shannon.html">r.li.shannon</a>,
 <a href="https://grass.osgeo.org/grass-stable/manuals/r.li.simpson.html">r.li.simpson</a>
-</em> 
+</em>
 
 <h2>AUTHORS</h2>
 

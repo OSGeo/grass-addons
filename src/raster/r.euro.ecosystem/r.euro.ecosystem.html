@@ -1,18 +1,18 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.euro.ecosystem</em> defines colors and raster category labels 
+<em>r.euro.ecosystem</em> defines colors and raster category labels
 for <a href="http://www.eea.europa.eu/data-and-maps/data/ds_resolveuid/CHSZOPRV0D">Ecosystem types of Europe</a>.
 
 <p>
-The data can be downloaded at <a href="http://www.eea.europa.eu/data-and-maps/data/ds_resolveuid/CHSZOPRV0D">EEA</a> 
-for level 1 (based on <a href="http://www.eea.europa.eu/themes/biodiversity/eunis/ds_resolveuid/6RGHTVEOZK">EUNIS</a> 
+The data can be downloaded at <a href="http://www.eea.europa.eu/data-and-maps/data/ds_resolveuid/CHSZOPRV0D">EEA</a>
+for level 1 (based on <a href="http://www.eea.europa.eu/themes/biodiversity/eunis/ds_resolveuid/6RGHTVEOZK">EUNIS</a>
 habitat classification level 1) and level 2 (based on EUNIS habitat classification level 2).
 </p>
 
 <p>
-The dataset combines the Corine based MAES ecosystem classes with the 
-non-spatial EUNIS habitat classification for a better biological 
-characterization of ecosystems across Europe. As such it represents 
+The dataset combines the Corine based MAES ecosystem classes with the
+non-spatial EUNIS habitat classification for a better biological
+characterization of ecosystems across Europe. As such it represents
 probabilities of EUNIS habitat presence for each MAES ecosystem type.
 </p>
 
@@ -32,10 +32,10 @@ Raster data definition rules are donated by EEA.
   r.external input="es_l1_100m.tif" output=es_l1_100m
   # define colors and raster category labels
   r.euro.ecosystem -1 input=es_l1_100m
-  
-  # link to ecosystem raster data level 2  
+
+  # link to ecosystem raster data level 2
   r.external input="es_l2_100m.tif" output=es_l2_100m
-  # define colors and raster category labels  
+  # define colors and raster category labels
   r.euro.ecosystem -2 input=es_l2_100m
  </pre>
 </div>

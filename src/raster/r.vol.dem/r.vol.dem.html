@@ -18,13 +18,13 @@ procedure adjusts additionally the voxel's size which influences the
 3D resolution of the entire stratum. Furthermore, it is possible to
 adjust the height and width of the voxel in order to obtain a cube or
 cuboid voxel shape. In general, the smaller the voxel's size the higher
-the resolution, the more precise 3D units. 
+the resolution, the more precise 3D units.
 
 <h2>NOTES</h2>
 
 The input data for the 3D interpolation which requires at least two
 raster DEMs. They have to be entered in a certain rank, with the lowest,
-according to elevation, DEM first. 
+according to elevation, DEM first.
 <p>
 The list of label values is one for each 3D layer (labels=value): Since
 one can enter an infinite number of DEMs it is possible adjust certain
@@ -41,10 +41,10 @@ algorithm to use. The user can chose between an up or down filling
 direction. The default adjustment is the upwards algorithm. The results
 can become very different according to the shape and extension of the DEMs.
 <p>
-The <em>-c</em> flag calculates 3D cell counts for each layer: This option 
+The <em>-c</em> flag calculates 3D cell counts for each layer: This option
 counts the number of voxels for each 3D layer label. Unfortunately, this
 count is not stored in the <em>r3.info</em> information. Thus, if one
-needs this information afterwards, one has to repeat the whole calculation. 
+needs this information afterwards, one has to repeat the whole calculation.
 <p>
 The <em>-f</em> flag fills through NULL value areas in DEMs: Null value
 areas are areas which lie outside a 3D layer defined by two successive DEMs
@@ -79,9 +79,9 @@ as cubes in nviz which gives an idea of the voxel layer. Unfortunately,
 there is still an error in the module using this flag (state 01.06.2006)
 that can be corrected by the following procedure:
 The module <em>r.vol.dem</em> creates a temporary txt-file in the HOME
-directory. Opening this file one will find a line which starts with 
+directory. Opening this file one will find a line which starts with
 "# v.in.ascii". This line needs to be copied without the #-sign and
-executed in the GRASS bash shell. 
+executed in the GRASS bash shell.
 <p>
 The <em>-p</em> flag exports VTK point data instead of cell data: This
 option reflects the fact that the visualisation program ParaView which
@@ -91,19 +91,19 @@ flag is recommended. The VTK floating point precision is 1/1000 of the
 current GRASS location's map unit.
 <p>
 The <em>-q</em> flag disables on-screen progress display:
-This option does not yet work. 
+This option does not yet work.
 <p>
 The <em>-s</em> flag skips topology error checking:
 The module checks the input DEMs for intersection before running the
 algorithm. If such an unwanted intersection is found, the algorithm creates
 an errormap (see <em>errormap</em> option) and stops the entire 3D
-interpolation process. Using this flag one can skip this precaution. 
+interpolation process. Using this flag one can skip this precaution.
 <p>
 The <em>-v</em> flag generates a vtk-file for visualisation with e.g.
 ParaView: Since the GRASS visualisation module nviz is unable to show
 voxel as (semitransparent) cubes, the Open Source visualisation
 program ParaView is now commonly used for the visualisation of GRASS GIS
-maps and especially for 3D visualisations. Hence, the output GRASS GIS 
+maps and especially for 3D visualisations. Hence, the output GRASS GIS
 files have to be converted into a ParaView readable format.
 <p>
 The <em>-z</em> flag fits active region's z range to input DEMs:

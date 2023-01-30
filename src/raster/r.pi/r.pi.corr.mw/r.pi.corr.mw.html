@@ -9,16 +9,16 @@ writing the result into a new raster map.
 
 <h2>NOTES</h2>
 
-This module computes the correlation between two raster files but 
-unlike <em>r.pi.lm</em> for moving windows of a specific size. This 
+This module computes the correlation between two raster files but
+unlike <em>r.pi.lm</em> for moving windows of a specific size. This
 module is partly based on <em>r.neighbors</em> and <em>r.covar</em>.
 
 <h2>EXAMPLE</h2>
 
 An example for the North Carolina sample dataset:
 
-Correlation of all pixels within a 7x7 sized window of two rasters 
-(elevation and slope). The output is multiplied by 10000 for higher 
+Correlation of all pixels within a 7x7 sized window of two rasters
+(elevation and slope). The output is multiplied by 10000 for higher
 precision
 <div class="code"><pre>
 g.region rast=elevation -p

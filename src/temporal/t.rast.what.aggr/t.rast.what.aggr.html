@@ -1,32 +1,32 @@
 <h2>DESCRIPTION</h2>
 
-<em>t.rast.what.aggr</em> samples a space time raster dataset at points 
+<em>t.rast.what.aggr</em> samples a space time raster dataset at points
 from a vector map and returns aggregated values either printing
-them to stdout or updating the attribute table. A single date 
-for the aggregation can be provided with the option <em>date</em> or 
+them to stdout or updating the attribute table. A single date
+for the aggregation can be provided with the option <em>date</em> or
 alteratively, different dates for each point in the vector map
-can be passed through the option <em>date_column</em>. 
-Either <em>date</em> or <em>date_column</em> must be provided. 
-The aggregation is done by default backwards in time starting from the 
-date provided and with the <em>granularity</em> set. Alternatively, the 
+can be passed through the option <em>date_column</em>.
+Either <em>date</em> or <em>date_column</em> must be provided.
+The aggregation is done by default backwards in time starting from the
+date provided and with the <em>granularity</em> set. Alternatively, the
 data can be aggregated forward in time by using the <em>a</em> flag.
-By default, the output is printed to stdout. To write the output into 
-the attribute table of the vector map, <em>u</em> flag must be set and 
+By default, the output is printed to stdout. To write the output into
+the attribute table of the vector map, <em>u</em> flag must be set and
 the target column should be created beforehand
-(See <a href="https://grass.osgeo.org/grass-stable/manuals/v.db.addcolumn.html">v.db.addcolumn</a>). 
+(See <a href="https://grass.osgeo.org/grass-stable/manuals/v.db.addcolumn.html">v.db.addcolumn</a>).
 Alternatively, <em>c</em> flag creates the columns using the name of the
 space time raster dataset (strds) and the method(s) as column name(s).
 
 <h2>NOTES</h2>
 
 For <i>method=mode</i> the module requires
-<a href="https://www.scipy.org/scipylib/index.html">scipy</a> 
-library to be installed. 
+<a href="https://www.scipy.org/scipylib/index.html">scipy</a>
+library to be installed.
 
 <h2>EXAMPLES</h2>
 
-Average NDVI for the previous 2 months starting from 2015-05-01 
-(i.e.: date="2015-05-01") for all points in the vector map. 
+Average NDVI for the previous 2 months starting from 2015-05-01
+(i.e.: date="2015-05-01") for all points in the vector map.
 
 <div class="code"><pre>
 t.rast.what.aggr input=GR_GSOM_stations strds=ndvi_16_5600m \
@@ -52,12 +52,12 @@ t.rast.what.aggr input=GR_GSOM_stations strds=ndvi_16_5600m \
 4|2015-05-01|4985.0|4820.0|5169.0
 </pre></div>
 
-Average NDVI for the previous 2 months, starting from different 
+Average NDVI for the previous 2 months, starting from different
 dates for each point in the vector map (i.e.: providing date_column).
 
 <div class="code"><pre>
 t.rast.what.aggr input=GR_GSOM_stations strds=ndvi_16_5600m \
- granularity="2 months" date_column=fechas 
+ granularity="2 months" date_column=fechas
 
 1|2015-01-01|*
 2|2015-02-01|5254.0
@@ -65,7 +65,7 @@ t.rast.what.aggr input=GR_GSOM_stations strds=ndvi_16_5600m \
 4|2015-04-01|4399.66666667
 </pre></div>
 
-Minimum and maximum NDVI for the previous 2 months, starting 
+Minimum and maximum NDVI for the previous 2 months, starting
 from different dates for each point in the vector map (i.e.: providing
 date_column).
 
@@ -73,14 +73,14 @@ date_column).
 t.rast.what.aggr input=GR_GSOM_stations strds=ndvi_16_5600m \
  date_column=fechas granularity="2 months" \
  method=minimum,maximum
- 
+
 1|2015-01-01|*|*
 2|2015-02-01|5254.0|5254.0
 3|2015-03-01|5944.0|6119.0
 4|2015-04-01|3786.0|4820.0
 </pre></div>
 
-Minimum and maximum NDVI for the 2 months after (i.e.: set -a flag) 
+Minimum and maximum NDVI for the 2 months after (i.e.: set -a flag)
 the date provided in <em>date_column</em>. Note that in this example the
 first point gets populated.
 
@@ -95,7 +95,7 @@ t.rast.what.aggr -a input=GR_GSOM_stations date_column=fechas \
 </pre></div>
 
 Minimum and maximum NDVI for the previous 2 months, starting from
-different dates for each point in the vector map (i.e.: providing 
+different dates for each point in the vector map (i.e.: providing
 date_column) and write the output into the vector atrribute's table.
 
 <div class="code"><pre>
@@ -107,7 +107,7 @@ v.db.addcolumn map=GR_GSOM_stations column="ndvi_max double precision"
 t.rast.what.aggr -u input=GR_GSOM_stations strds=ndvi_16_5600m \
  date_column=fechas granularity="2 months" columns=ndvi_min,ndvi_max \
  method=minimum,maximum
- 
+
 # check the result
 v.db.select map=GR_GSOM_stations
 
@@ -145,4 +145,4 @@ cat|station|name|long|lat|fechas|ndvi_mean|ndvi_max|ndvi_16_5600m_minimum|ndvi_1
 <h2>AUTHORS</h2>
 
 Luca Delucchi<br>
-Documentation by Veronica Andreo 
+Documentation by Veronica Andreo

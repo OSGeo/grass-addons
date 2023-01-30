@@ -4,21 +4,21 @@
 The module <em>r.stream.snap</em> is a supplementary module for
 <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html">r.stream.extract</a></em> and
 <em><a href="r.stream.basins.html">r.stream.basins</a></em> to correct
-the position of outlets or stream initial points as they do not lie on 
+the position of outlets or stream initial points as they do not lie on
 the streamlines.
 
 <p>
-For the outlet, the point is snapped to the nearest point which lies on 
-the streamline. 
+For the outlet, the point is snapped to the nearest point which lies on
+the streamline.
 
 <p>
-For the stream initial points, when there is a small tributary near 
-the main stream, the accumulation threshold shall be high enough to 
-force the program ignoring this tributary and snap to the main stream. 
-If there is no accumulation map, the points will be snapped to the 
-nearest stream line, which in particular situations may be wrong. 
-Because the <em>r.stream.*</em> modules are prepared to work with MFD 
-accumulation maps, both stream network and accumulation map are 
+For the stream initial points, when there is a small tributary near
+the main stream, the accumulation threshold shall be high enough to
+force the program ignoring this tributary and snap to the main stream.
+If there is no accumulation map, the points will be snapped to the
+nearest stream line, which in particular situations may be wrong.
+Because the <em>r.stream.*</em> modules are prepared to work with MFD
+accumulation maps, both stream network and accumulation map are
 necessary.
 
 <p>
@@ -28,8 +28,8 @@ different way: the threshold is used to select only those points in the
 search radius which have accumulation value greater than the given
 threshold. The next mean value of these points is calculated and its
 value is taken as a new threshold. This procedure guarantees that
-points are snapped to the center of the stream tube. While for inits 
-small thresholds are in use, it is probable that points were snapped to 
+points are snapped to the center of the stream tube. While for inits
+small thresholds are in use, it is probable that points were snapped to
 the stream tube border instead of its center.
 
 <p>
@@ -45,14 +45,14 @@ raster map, than accumulation or stream raster map only.
 by <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html">r.stream.extract</a></em> or
 <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a></em>. If used, the
 points are snapped to the nearest streamline point whose accumulation
-is greater than the threshold. If the accumulation is not used, the 
+is greater than the threshold. If the accumulation is not used, the
 point is snapped to the nearest stream.
 </dd>
 
 <dt><b>accumulation</b></dt>
-<dd>Accumulation map created with 
+<dd>Accumulation map created with
 <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a></em> and used to
-generate the stream network with 
+generate the stream network with
 <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html">r.stream.extract</a></em>. If
 the stream network is not used, the point is adaptively snapped to the
 point where the value is greater than mean values of accumulation
@@ -68,7 +68,7 @@ not snapped.
 </dd>
 
 <dt><b>threshold</b></dt>
-<dd>Minimum value of accumulation to snap the point. This option is 
+<dd>Minimum value of accumulation to snap the point. This option is
 added to the snap stream inits to the stream tubes
 and to distinguish between local tributaries and main streams.
 </dd>

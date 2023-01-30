@@ -6,23 +6,23 @@ analysis between patches.
 
 <h2>NOTES</h2>
 
-Several output raster are generated with the defined <em>output</em> 
-file name and a suffix of the information provided. All files named 
-*.FP.* are providing information concerning the focus patch. All files 
+Several output raster are generated with the defined <em>output</em>
+file name and a suffix of the information provided. All files named
+*.FP.* are providing information concerning the focus patch. All files
 named *.TP.* are providing informaton about the target patches.<br>
 
    ...<p>
 
-The user must specify the names of the raster map layers to be used for 
-<em>input</em> and <em>output</em>, the <em>keyval</em> the 
-<em>ratio</em> (area/odd or odd/area) and <em>stats</em> used (i.e., 
+The user must specify the names of the raster map layers to be used for
+<em>input</em> and <em>output</em>, the <em>keyval</em> the
+<em>ratio</em> (area/odd or odd/area) and <em>stats</em> used (i.e.,
 average).
 <p>
 Within <em>r.pi.odc</em> the following setting have to be set:
 
 <h3>keyval setting:</h3>
 
-The <em>keyval</em> operator determines which category value is taken 
+The <em>keyval</em> operator determines which category value is taken
 for the Patch Index analysis.
 
 <h3>Ratio setting:</h3>
@@ -31,11 +31,11 @@ The <em>ratio</em> operators determine what measure is applied.
 
 <h3>Neighbourhood level:</h3>
 
-The <em>neighbor_level</em> operator determines which neighbourhood 
-level is used. <em>0</em> produces output for the focus patch itself, 
-<em>1</em> assigns the connectivity information of the first 
-omnidirectional neighbours to the focus patch, hence the connectivity 
-of the surrouding fragments. This value can be increased for analysing 
+The <em>neighbor_level</em> operator determines which neighbourhood
+level is used. <em>0</em> produces output for the focus patch itself,
+<em>1</em> assigns the connectivity information of the first
+omnidirectional neighbours to the focus patch, hence the connectivity
+of the surrouding fragments. This value can be increased for analysing
 the more distant neighbours.
 
 <h3>Output:</h3>
@@ -45,11 +45,11 @@ Various output files are autmatically created with the pattern $output.*
 The ...
 
 
-<em>FP</em> describes attributes of the fokus patch (area and area of 
+<em>FP</em> describes attributes of the fokus patch (area and area of
 the odd)
 
-<em>TP</em> describes attributes of the target patch (all neighbouring 
-patches around the FP) - separated by the statsmethod (average, median, 
+<em>TP</em> describes attributes of the target patch (all neighbouring
+patches around the FP) - separated by the statsmethod (average, median,
 variance, stddev)
 
 <em>ratio</em> describes which ratio is taken for all TPs.

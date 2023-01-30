@@ -2,14 +2,14 @@
 
 <p><em>i.segment.uspo</em> provides unsupervised segmentation parameter
 optimization for <em><a href="https://grass.osgeo.org/grass-stable/manuals/i.segment.html">i.segment</a></em> determined
-by the compromise between intra-segment variance and inter-segment spatial 
+by the compromise between intra-segment variance and inter-segment spatial
 autocorrelation.
 
 
 <p>
 The module runs segmentation across a user defined set of thresholds and minimum
-segment sizes, as well, for the mean shift algorithm, a set of spectral and 
-spatial bandwiths. For the mean shift algorithm, you can also activate adaptive 
+segment sizes, as well, for the mean shift algorithm, a set of spectral and
+spatial bandwiths. For the mean shift algorithm, you can also activate adaptive
 bandwidth using the <em>-a</em> flag.
 
 <p>The user provides an imagery <b>group</b> and the name of an <b>output</b>
@@ -21,26 +21,26 @@ to not test the entire image, but rather to test specific areas in the image
 that might be characterstic for specific types of land cover.
 
 <p>The module then selects the parameters providing the highest values of a
-given optimization function. The number of "best" parameter combinations to 
+given optimization function. The number of "best" parameter combinations to
 provide to the user per <b>region</b> is defined by <b>number_best</b>.
 
 <p>Two optimization functions are available via the <b>optimization_function</b>
 parameter: A simple sum of the normalized criteria values as defined by
-Espindola et al (2006), or the F-function as defined by Johnson et al (2015). 
-When using the F-function, the user can determine the <b>f_function_alpha</b> 
+Espindola et al (2006), or the F-function as defined by Johnson et al (2015).
+When using the F-function, the user can determine the <b>f_function_alpha</b>
 value which determines the relative weight of the intra-segment variance as
 compared to the inter-segment spatial autocorrelation. A value of 0.5 gives
 the former half weight of the latter, A value of 2 gives the former double
 weight than the latter.
-	
+
 <p>
 The optimization functions use intra-segment variance and inter-segment spatial
 autocorrelation. For the latter, the user can chose to use either <a
 href="https://en.wikipedia.org/wiki/Moran%27s_I">Moran's I</a> or <a
-href="https://en.wikipedia.org/wiki/Geary%27s_C">Geary's C</a>. 
+href="https://en.wikipedia.org/wiki/Geary%27s_C">Geary's C</a>.
 
-<p>The user can chose between non-hierarchical (default) and hierarchical 
-segmentation using the <b>h</b> flag. The latter uses each segmentation at a 
+<p>The user can chose between non-hierarchical (default) and hierarchical
+segmentation using the <b>h</b> flag. The latter uses each segmentation at a
 given threshold level as seed for the segmentation at the next threshold level
 within a given minimum segment size. Note that this leads to less optimal
 parallelization as for a given minsize, all segmentations have to be done
@@ -56,7 +56,7 @@ criteria value.
 <p> The module uses high-level parallelization (running different segmentations
 in parallel and then running the collection of parameter values in parallel).
 The parameter <b>processes</b> allows to define how many processes should be run
-in parallel. Note that when using hierarchical segmentation the number of parallel 
+in parallel. Note that when using hierarchical segmentation the number of parallel
 processes is limited to the number of different mininum segment sizes to test.
 
 <p> The <b>k</b> flag allows to keep all segmentation maps created during the
@@ -73,24 +73,24 @@ and other types of validation of the results, possibly comparing several of the
 "best" solutions, remain necessary.
 
 <p> Even though the module allows the user to test different <em>minsizes</em>,
-it is probably better to run the module with minsizes=1 and then adapt the 
-minsize in the final run of <a href="https://grass.osgeo.org/grass-stable/manuals/i.segment.html">i.segment</a> depending 
+it is probably better to run the module with minsizes=1 and then adapt the
+minsize in the final run of <a href="https://grass.osgeo.org/grass-stable/manuals/i.segment.html">i.segment</a> depending
 on the desired minimum mapping unit.
 
-<p> In hierarchical segmentation mode, each segmentation is used as seed for 
+<p> In hierarchical segmentation mode, each segmentation is used as seed for
 the next hierarchical level. This means that these segmentations have to be
 run sequentially. Currently, parallelization is thus only used if more than one
-value was given for <em>minsize</em>. In a future version, parallelization 
+value was given for <em>minsize</em>. In a future version, parallelization
 should optionally be run by region if the number of regions is larger than
 the number of different <em>minsize</em> values.
 
 <h2>EXAMPLE</h2>
 
-<div class="code"><pre> 
+<div class="code"><pre>
 g.region -au n=220767 s=220392 w=638129 e=638501 res=1 save=region1
 g.region -au n=222063 s=221667 w=637659 e=638058 res=1 save=region2
 i.group ortho input=ortho_2001_t792_1m
-i.segment.uspo group=ortho regions=region1,region2 \ 
+i.segment.uspo group=ortho regions=region1,region2 \
 	output=ortho_parameters.csv segment_map=ortho_uspo \
 	threshold_start=0.02 threshold_stop=0.21 threshold_step=0.02 \
 	minsizes=5,10,15 number_best=5 processes=4 memory=4000
@@ -121,6 +121,6 @@ Geo-Information, 4(4), pp. 2292-2305, <a href="http://dx.doi.org/10.3390/ijgi404
 <a href="r.neighborhoodmatrix.html">r.neighborhoodmatrix</a>
 </em>
 
-<h2>AUTHOR</h2> 
+<h2>AUTHOR</h2>
 
 Moritz Lennert

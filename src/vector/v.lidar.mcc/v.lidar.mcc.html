@@ -4,41 +4,41 @@
 <em>v.lidar.mcc</em> is a modified implementation of the Multiscale Curvature Classification (MCC) algorithm proposed by Evans &amp; Hudak 2007.
 </p>
 <p>
-The aim of the MCC-procedure is to filter non-ground returns caused by vegetation cover from point clouds 
+The aim of the MCC-procedure is to filter non-ground returns caused by vegetation cover from point clouds
 produced with any kind of LiDAR instrument (e.g. also instruments without intensity information).<br>
 </p>
 <p>
-The basic principle of the algorithm is to classify those points as non-ground points which deviate more than a user-defined 
-threshold (<b>t</b>) from a surface which was interpolated from the full point cloud as a thin plate (here implemented with a bilinear spline 
-interpolation with Tykhonov regularization through <em><a href="https://grass.osgeo.org/grass-stable/manuals/v.outlier.html">v.outlier</a></em>). Tension (<b>f</b>) and spline steps (<b>s</b>) parameter 
+The basic principle of the algorithm is to classify those points as non-ground points which deviate more than a user-defined
+threshold (<b>t</b>) from a surface which was interpolated from the full point cloud as a thin plate (here implemented with a bilinear spline
+interpolation with Tykhonov regularization through <em><a href="https://grass.osgeo.org/grass-stable/manuals/v.outlier.html">v.outlier</a></em>). Tension (<b>f</b>) and spline steps (<b>s</b>) parameter
 are passed to the relevant parameters in <em><a href="https://grass.osgeo.org/grass-stable/manuals/v.outlier.html">v.outlier</a></em>.
 </p>
 <p>
-On each scale domain <em>v.lidar.mcc</em> calls <em><a href="https://grass.osgeo.org/grass-stable/manuals/v.outlier.html">v.outlier</a></em> repeatedly until the algorithm converges, i.e. 
-less than the amount of points (percentage of input points to the iteration) defined in the convergence threshold (<b>j</b>) are classified as non-ground points. 
-Scale domains are defined in relation to the current region. With a number of scale domains <b>(nl)</b> greater than 1 scale domains are distributed evenly "around" 
-the current region. With the default number of three scale domains, the first scale domaine uses half the resolution of the current region, scale domain 
+On each scale domain <em>v.lidar.mcc</em> calls <em><a href="https://grass.osgeo.org/grass-stable/manuals/v.outlier.html">v.outlier</a></em> repeatedly until the algorithm converges, i.e.
+less than the amount of points (percentage of input points to the iteration) defined in the convergence threshold (<b>j</b>) are classified as non-ground points.
+Scale domains are defined in relation to the current region. With a number of scale domains <b>(nl)</b> greater than 1 scale domains are distributed evenly "around"
+the current region. With the default number of three scale domains, the first scale domaine uses half the resolution of the current region, scale domain
 two uses the current region and scale domain three uses 1,5 times the resolution of the current region.
 </p>
 
 <h2>NOTES</h2>
 <p>
-The optimal settings for the parameters of <em>v.lidar.mcc</em> depend very much on the resolution of the current region and the density of the LiDAR data, 
-as well as terrain and vegetation. 
-Therefore, a bit of try and error is usually required in order to find the optimal settings. 
-In general spline steps (<b>s</b>) and curvature tolerance threshold (<b>t</b>) parameters have most influence on the results, where larger spline steps and 
+The optimal settings for the parameters of <em>v.lidar.mcc</em> depend very much on the resolution of the current region and the density of the LiDAR data,
+as well as terrain and vegetation.
+Therefore, a bit of try and error is usually required in order to find the optimal settings.
+In general spline steps (<b>s</b>) and curvature tolerance threshold (<b>t</b>) parameters have most influence on the results, where larger spline steps and
 a lower curvature tolerance threshold lead to more points clasified as non-ground points, but possibly also to increased clasification errors in complex terrain.
 </p>
 <p>
-The algorithm by Evans &amp; Hudak 2007 was developed for filtering LiDAR data in dense forest areas where not necessarily all pixels 
+The algorithm by Evans &amp; Hudak 2007 was developed for filtering LiDAR data in dense forest areas where not necessarily all pixels
 have a ground return point which is why a simple local minimum filering often is not sufficient.
 </p>
 <p>
-In principle the algorithm works also on shrub-vegetation, however due to the lower vegetation type the curvature threshold will have to be 
-lowered. In this case special attention should be payed to edges and peaks in the terrain which may be affected by low curvature tolerance thresholds. 
+In principle the algorithm works also on shrub-vegetation, however due to the lower vegetation type the curvature threshold will have to be
+lowered. In this case special attention should be payed to edges and peaks in the terrain which may be affected by low curvature tolerance thresholds.
 Therfore using a smaller cell size and wider spline steps is recommended for filtering lower structures like shrubs.
 </p>
-<p>The effect and output of the filtering process can be visually inspected already during iterations when the resulting layer with non-ground points is 
+<p>The effect and output of the filtering process can be visually inspected already during iterations when the resulting layer with non-ground points is
 displayed while the classification is running.<br>
 However, especially the first runs on scale domains with a small pixels size can be relatively time consuming.
 </p>
@@ -85,14 +85,14 @@ optipng -o5 v_lidar_mcc.png
 <h2>SEE ALSO</h2>
 
 <em>
-  <a href="https://grass.osgeo.org/grass-stable/manuals/v.surf.bspline.html">v.surf.bspline</a>, 
-  <a href="https://grass.osgeo.org/grass-stable/manuals/v.outlier.html">v.outlier</a>, 
+  <a href="https://grass.osgeo.org/grass-stable/manuals/v.surf.bspline.html">v.surf.bspline</a>,
+  <a href="https://grass.osgeo.org/grass-stable/manuals/v.outlier.html">v.outlier</a>,
   <a href="https://grass.osgeo.org/grass-stable/manuals/v.lidar.edgedetection.html">v.lidar.edgedetection</a>
 </em>
 
 <h2>REFERENCES</h2>
-Evans, J. S. &amp; Hudak, A. T. 2007: A Multiscale Curvature Algorithm for Classifying Discrete Return LiDAR in Forested Environments. 
-IEEE TRANSACTIONS ON GEOSCIENCE AND REMOTE SENSING 45(4): 1029 - 1038. 
+Evans, J. S. &amp; Hudak, A. T. 2007: A Multiscale Curvature Algorithm for Classifying Discrete Return LiDAR in Forested Environments.
+IEEE TRANSACTIONS ON GEOSCIENCE AND REMOTE SENSING 45(4): 1029 - 1038.
 <a href="http://www.fs.fed.us/rm/pubs_other/rmrs_2007_evans_j001.pdf">http://www.fs.fed.us/rm/pubs_other/rmrs_2007_evans_j001.pdf</a><br>
 <a href="http://sourceforge.net/p/mcclidar/wiki/Home/">http://sourceforge.net/p/mcclidar/wiki/Home/</a>
 

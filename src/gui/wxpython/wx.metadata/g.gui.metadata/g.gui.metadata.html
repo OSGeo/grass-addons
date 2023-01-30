@@ -4,24 +4,24 @@
 to <a href="http://www.iso.org/iso/catalogue_detail.htm?csnumber=26020">ISO 19115</a>.
 
 <p>
-The metadata editor includes a graphical interface for converting metadata 
-from r.info and v.info into ISO based metadata, editing metadata files and 
-creating metadata templates. In addition, the graphical module allows validating 
+The metadata editor includes a graphical interface for converting metadata
+from r.info and v.info into ISO based metadata, editing metadata files and
+creating metadata templates. In addition, the graphical module allows validating
 INSPIRE and GRASS Basic profile.
 
 <h2>NOTES</h2>
 
-For dependencies and installation instructions see the dedicated 
+For dependencies and installation instructions see the dedicated
 <a href="http://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support">wiki page</a>.
 
 <h3>Naming of metadata files and storage</h3>
 
-Default location for exported metadata files is the <i>metadata</i> directory 
-in the map's mapset. For raster maps, the prefix derived from the current 
-nomenclature is <em>raster</em>, and for vector maps <em>vector</em>. The files 
+Default location for exported metadata files is the <i>metadata</i> directory
+in the map's mapset. For raster maps, the prefix derived from the current
+nomenclature is <em>raster</em>, and for vector maps <em>vector</em>. The files
 end with <em>.xml</em> extension.
 <p>
-For example, default metadata file name for the vector map &quot;roads&quot; 
+For example, default metadata file name for the vector map &quot;roads&quot;
 is <em>vector_roads.xml</em>.
 
 <h3>Metadata profile</h3>
@@ -31,78 +31,78 @@ items stored in GRASS native metadata format and INSPIRE profile. The
 intersect (subset) includes all available GRASS metadata. Metadata
 which cannot be assigned to ISO based attributes are stored in
 metadata attribute <em>abstract</em>. The <i>inspire</i> profile
-fulfills the criteria of INSPIRE profile. Values that cannot be read from 
-native GRASS metadata are filled by the text string <tt>'$NULL'</tt>. 
+fulfills the criteria of INSPIRE profile. Values that cannot be read from
+native GRASS metadata are filled by the text string <tt>'$NULL'</tt>.
 This rule applies for both profiles.
 
 <h4>Profile for temporal dataset</h4>
 
-This function is based on t.info.iso which allows to create ISO based metadata 
-for temporal maps. Product of this function cannot be compiled by INSPIRE profile 
+This function is based on t.info.iso which allows to create ISO based metadata
+for temporal maps. Product of this function cannot be compiled by INSPIRE profile
 because an additional attribute from ISO 19115 package have been added.
 <!-- have or have not? -->
 
 <h3>Creation of metadata</h3>
 
-The editor offers two editing modes. The first one allows to create metadata 
-from selected GRASS maps from an active location. The second one allows editing 
+The editor offers two editing modes. The first one allows to create metadata
+from selected GRASS maps from an active location. The second one allows editing
 of an external metadata file.
 
 <h4>Metadata editor for spatial and temporal maps</h4>
 
-The basis of this editor is similar to r|v.info.iso. After the selection of the 
-map, the editor converts native metadata of map to ISO based metadata. 
-By exported xml file is metadata editor initialized. 
+The basis of this editor is similar to r|v.info.iso. After the selection of the
+map, the editor converts native metadata of map to ISO based metadata.
+By exported xml file is metadata editor initialized.
 <!-- This last sentence is not clear-->
 There are three options to select:
-<b>basic</b>, <b>inspire</b> or <b>load custom</b>. The last one allows to load 
-a metadata profile from a file, for example in the case of using a predefined 
-template. The intersection of GRASS Basic profile (all the available metadata 
+<b>basic</b>, <b>inspire</b> or <b>load custom</b>. The last one allows to load
+a metadata profile from a file, for example in the case of using a predefined
+template. The intersection of GRASS Basic profile (all the available metadata
 for the selected map) and loaded custom profile will proceed with this selection.
 <!-- This last sentence is not clear-->
 
 <h4> External metadata editor</h4>
 
-This editor mode allows to load user own templates and xml files for editing. 
+This editor mode allows to load user own templates and xml files for editing.
 This option does not support any connection with GRASS maps metadata.
 
 <h3>Defining templates</h3>
 
 <p>
-This function allows to create pattern of metadata profile. In other words it 
-supports defining fixed values to template. When using created template, the 
-editor does not initialize texts inputs of defined values. These attributes are 
-only visible in the Tree Browser in the editor. Direct link on this function is 
+This function allows to create pattern of metadata profile. In other words it
+supports defining fixed values to template. When using created template, the
+editor does not initialize texts inputs of defined values. These attributes are
+only visible in the Tree Browser in the editor. Direct link on this function is
 multiple editing mode (see below).
 <p>
-If the check-box of metadata attribute is checked, the OWSLib object in the 
-template will be replaced by value. Unchecked attributes will not change this 
+If the check-box of metadata attribute is checked, the OWSLib object in the
+template will be replaced by value. Unchecked attributes will not change this
 'part' of the template.
 <p>
-The yellow background of the text fields indicates metadata attributes that 
+The yellow background of the text fields indicates metadata attributes that
 cannot be read from GRASS map information.
 
 <h3>Editing metadata of multiple map selection</h3>
 
-This option can be used by selecting multiple maps in the data catalog. It is 
-possible to use predifined templates with this editing mode. 
+This option can be used by selecting multiple maps in the data catalog. It is
+possible to use predifined templates with this editing mode.
 <!--To use pre-defined template for this editing mode is suitable-->
 
 <h3>Validation of metadata profile </h3>
 
-On the right side of editor there is a validator of metadata. Currently, 
-validator is able to validate two build-in profiles. 
+On the right side of editor there is a validator of metadata. Currently,
+validator is able to validate two build-in profiles.
 <!--For selection of profile “Load custom” is set by default the inspire profile.-->
 
 <h3>Updating GRASS native metadata </h3>
 
-The g.gui.metadata module allows to update native GRASS metadata with the 
-modules r.support and v.support. The intersection between ISO based metadata 
+The g.gui.metadata module allows to update native GRASS metadata with the
+modules r.support and v.support. The intersection between ISO based metadata
 and r|v.support is limited by the available parameters for these modules.
 
 <h3>Creating reports for GRASS maps in PDF format</h3>
 
-This function allows to automatically generate metadata reports as PDF documents. 
+This function allows to automatically generate metadata reports as PDF documents.
 Missing values are replaced by "Unknown" string.
 
 <h2>SEE ALSO</h2>

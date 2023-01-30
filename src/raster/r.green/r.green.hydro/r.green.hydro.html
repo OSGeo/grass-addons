@@ -30,13 +30,13 @@ The <em>r.green.hydro</em> suite consists of the following six different parts:<
 
 - <a href="r.green.hydro.theoretical.html">r.green.hydro.theoretical</a><br>
   calculates for each basin the theoretical maximum hydropower energy potential<br>
-  input raster maps: &nbsp; &nbsp;- discharge along river network  &nbsp; &nbsp; - elevation of the considered region<br>  
+  input raster maps: &nbsp; &nbsp;- discharge along river network  &nbsp; &nbsp; - elevation of the considered region<br>
   input vector map: &nbsp;&nbsp; &nbsp; &nbsp;existing plant position<br>
   output vector maps: - available river segments &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - optimal plant position<br><br>
 
 - <a href="r.green.hydro.recommended.html">r.green.hydro.recommended</a><br>
   detects the potential plant position considering legal and ecological constraints and the user's recommendations<br>
-  input raster maps: &nbsp; &nbsp;- discharge along river network  &nbsp; &nbsp; - elevation of the considered region &nbsp; &nbsp; - minimum flow discharge<br>  
+  input raster maps: &nbsp; &nbsp;- discharge along river network  &nbsp; &nbsp; - elevation of the considered region &nbsp; &nbsp; - minimum flow discharge<br>
   input vector maps: &nbsp;&nbsp; - existing plant position  &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;-  areas excluded from calculation<br>
   output vector maps: - available river segments &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - optimal plant position<br><br>
 
@@ -47,19 +47,19 @@ The <em>r.green.hydro</em> suite consists of the following six different parts:<
 
 - <a href="r.green.hydro.financial.html">r.green.hydro.financial</a><br>
   computes the economic costs and values of the plants<br>
-  input raster maps: &nbsp; &nbsp;- landuse  &nbsp; &nbsp; - slope<br>  
+  input raster maps: &nbsp; &nbsp;- landuse  &nbsp; &nbsp; - slope<br>
   input vector maps: &nbsp;&nbsp;- segments of the potential plants &nbsp;&nbsp;- plant structure &nbsp;&nbsp;&nbsp;&nbsp;- electric grid<br>
   output vector map: &nbsp;&nbsp; structure of the potential plants with a re-organized table with e.g. power, gross head, total cost<br><br>
 
 - <a href="r.green.hydro.structure.html">r.green.hydro.structure</a><br>
   computes the derivation channel and the penstock for each potential plant on both sides of the river<br>
-  input raster map: &nbsp; &nbsp; &nbsp; elevation of the considered region<br>  
+  input raster map: &nbsp; &nbsp; &nbsp; elevation of the considered region<br>
   input vector map: &nbsp;&nbsp; &nbsp; &nbsp;segments of the potential plants<br>
   output vector map: &nbsp;&nbsp; structure for each plant on both sides of the river<br><br>
 
 - <a href="r.green.hydro.optimal.html">r.green.hydro.optimal</a><br>
   detects the position of the potential hydropower plants that can produce the highest possible power<br>
-  input raster maps: &nbsp; &nbsp;- discharge along river network  &nbsp; &nbsp; - elevation of the considered region <br>  
+  input raster maps: &nbsp; &nbsp;- discharge along river network  &nbsp; &nbsp; - elevation of the considered region <br>
   input vector map: &nbsp;&nbsp; &nbsp; &nbsp;considered rivers<br>
   output vector maps: - potential river segments &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - intake and restitution of each potential plant<br><br>
 

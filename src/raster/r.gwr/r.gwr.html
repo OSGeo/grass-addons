@@ -1,6 +1,6 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.gwr</em> calculates a geographically weighted multiple linear 
+<em>r.gwr</em> calculates a geographically weighted multiple linear
 regression from raster maps, according to the formula
 <div class="code"><pre>
 Y = b0 + sum(bi*Xi) + E
@@ -22,32 +22,32 @@ b0 is the intercept, X0 is set to 1
 </pre></div>
 
 <p>
-The &beta; coefficients are localized, i.e. determined for each cell 
-individually. These &beta; coefficients are the most important output 
-of <em>r.gwr</em>. Spatial patterns and localized outliers in these 
-coefficients can reveal details of the relation of Y to X. Outliers in 
-the &beta; coefficients can also be caused by a small bandwidth and can 
+The &beta; coefficients are localized, i.e. determined for each cell
+individually. These &beta; coefficients are the most important output
+of <em>r.gwr</em>. Spatial patterns and localized outliers in these
+coefficients can reveal details of the relation of Y to X. Outliers in
+the &beta; coefficients can also be caused by a small bandwidth and can
 be removed by increasing the bandwidth.
 
 <p>
-Geographically weighted regressions should be used as a diagnostic tool 
-and not as an interpolation method. If a geographically weighted 
-regression provides a higher R squared than the corresponding global 
-regression, then a crucial predictor is missing in the model. If that 
-missing predictor can not be estimated or is supposed to behave 
-randomly, a geographically weighted regression might be used for 
-interpolation, but the result, in particular the variation of the 
-&beta; coefficients needs to be judged according to prior assumptions. 
-See also the manual and the examples of the R package 
+Geographically weighted regressions should be used as a diagnostic tool
+and not as an interpolation method. If a geographically weighted
+regression provides a higher R squared than the corresponding global
+regression, then a crucial predictor is missing in the model. If that
+missing predictor can not be estimated or is supposed to behave
+randomly, a geographically weighted regression might be used for
+interpolation, but the result, in particular the variation of the
+&beta; coefficients needs to be judged according to prior assumptions.
+See also the manual and the examples of the R package
 <a href="http://cran.rstudio.com/web/packages/spgwr/index.html">spgwr</a>.
 
 <p>
-<em>r.gwr</em> is designed for large datasets that can not be processed 
-in R. A p value is therefore not provided, because even very small, 
-meaningless effects will become significant with a large number of 
-cells. Instead it is recommended to judge by the amount of variance 
-explained (R squared for a given variable) and the gain in AIC (AIC 
-without a given variable minus AIC global must be positive) whether the 
+<em>r.gwr</em> is designed for large datasets that can not be processed
+in R. A p value is therefore not provided, because even very small,
+meaningless effects will become significant with a large number of
+cells. Instead it is recommended to judge by the amount of variance
+explained (R squared for a given variable) and the gain in AIC (AIC
+without a given variable minus AIC global must be positive) whether the
 inclusion of a given explaining variable in the model is justified.
 
 <h4>The explaining variables</h4>
@@ -71,23 +71,23 @@ expressing the gain by including the current variable in addition to all
 other variables, not only the previous variables.
 
 <h4>Bandwidth</h4>
-The bandwidth is the crucial parameter for geographically weighed 
-regressions. A too small bandwidth will essentially use the weighed 
-average, any predictors are mostly ignored. A too large bandwidth will 
-produce results similar to a global regression, and spatial 
+The bandwidth is the crucial parameter for geographically weighed
+regressions. A too small bandwidth will essentially use the weighed
+average, any predictors are mostly ignored. A too large bandwidth will
+produce results similar to a global regression, and spatial
 non-stationarity can not be explored.
 
 <h4>Adaptive bandwidth</h4>
-Instead of using a fixed bandwidth (search radius for each cell), an 
-adaptive bandwidth can be used by specifying the number of points to be 
-used for each local regression with the <em>npoints</em> option. The 
-module will find the nearest <em>npoints</em> points for each cell, 
-adapt the bandwith accordingly and then calculate a local weighted 
+Instead of using a fixed bandwidth (search radius for each cell), an
+adaptive bandwidth can be used by specifying the number of points to be
+used for each local regression with the <em>npoints</em> option. The
+module will find the nearest <em>npoints</em> points for each cell,
+adapt the bandwith accordingly and then calculate a local weighted
 regression.
 
 <h4>Kernel functions</h4>
-The kernel function has little influence on the result, much more 
-important is the bandwidth. Available kernel funtions to calculate 
+The kernel function has little influence on the result, much more
+important is the bandwidth. Available kernel funtions to calculate
 weights are
 
 <dl>
@@ -107,16 +107,16 @@ d = distance to the current cell<br>
 bw = bandwidth
 
 <h4>Masking</h4>
-A <em>mask</em> map can be provided (e.g. with <b>r.mask</b>) to restrict LWR to those cells 
+A <em>mask</em> map can be provided (e.g. with <b>r.mask</b>) to restrict LWR to those cells
 where the mask map is not NULL and not 0 (zero).
 
 <h2>REFERENCES</h2>
 
-Brunsdon, C., Fotheringham, A.S., and Charlton, M.E., 1996, 
-Geographically Weighted Regression: A Method for Exploring Spatial 
+Brunsdon, C., Fotheringham, A.S., and Charlton, M.E., 1996,
+Geographically Weighted Regression: A Method for Exploring Spatial
 Nonstationarity, Geographical Analysis, 28(4), 281- 298<br>
-Fotheringham, A.S., Brunsdon, C., and Charlton, M.E., 2002, 
-Geographically Weighted Regression: The Analysis of Spatially Varying 
+Fotheringham, A.S., Brunsdon, C., and Charlton, M.E., 2002,
+Geographically Weighted Regression: The Analysis of Spatially Varying
 Relationships, Chichester: Wiley.<br>
 
 <h2>SEE ALSO</h2>
@@ -125,7 +125,7 @@ Relationships, Chichester: Wiley.<br>
 <br>
 <a href="http://gwr.nuim.ie/">http://gwr.nuim.ie/</a>
 <br>
-R package 
+R package
 <a href="http://cran.rstudio.com/web/packages/spgwr/index.html">spgwr</a>
 
 <h2>AUTHOR</h2>

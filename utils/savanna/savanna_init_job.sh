@@ -26,4 +26,3 @@ grass64 -c -text $grassdata_directory/$base_location/$init_mapset
 #  fi
 # sleep 1
 # done
-

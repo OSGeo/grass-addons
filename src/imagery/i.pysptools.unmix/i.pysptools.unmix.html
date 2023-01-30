@@ -1,53 +1,53 @@
 <h2>DESCRIPTION</h2>
 
-<em>i.pysptools.unmix</em> extracts endmembers from imagery group and performs 
-spectral unmixing using 
+<em>i.pysptools.unmix</em> extracts endmembers from imagery group and performs
+spectral unmixing using
 <a href="https://pysptools.sourceforge.io/">pysptools</a>. The module creates
 an endmember text file and endmember raster maps.
 
 <p>
-The module is a wrapper around the <b>pysptools</b> Python library, that integrates 
-its functionality for 
-<a href="https://pysptools.sourceforge.io/eea.html">Endmember Extraction</a> 
-and <a href="https://pysptools.sourceforge.io/abundance_maps.html">Spectral 
+The module is a wrapper around the <b>pysptools</b> Python library, that integrates
+its functionality for
+<a href="https://pysptools.sourceforge.io/eea.html">Endmember Extraction</a>
+and <a href="https://pysptools.sourceforge.io/abundance_maps.html">Spectral
 Unmixing</a> into GRASS GIS.
 </p>
 <p>
-It requires that the Python libraries <b>pysptools</b> and <b>scikit-learn</b> 
+It requires that the Python libraries <b>pysptools</b> and <b>scikit-learn</b>
 are installed (see below).
 </p>
 <p>
-Supported algorithms for 
-<a href="https://pysptools.sourceforge.io/eea.html">Endmember Extraction</a> 
+Supported algorithms for
+<a href="https://pysptools.sourceforge.io/eea.html">Endmember Extraction</a>
 are:
 </p>
 <ul>
-<li><i>NFINDR</i>: N-FINDR endmembers induction algorithm after Winter (1999), 
-that also makes use of an Automatic Target Generation Process (ATGP) (Plaza & 
+<li><i>NFINDR</i>: N-FINDR endmembers induction algorithm after Winter (1999),
+that also makes use of an Automatic Target Generation Process (ATGP) (Plaza &
 Chang 2006). (<i>Default</i>)</li>
 <li><i>FIPPI</i>: Fast Iterative Pixel Purity Index after Chang (2006)</li>
 <li><i>PPI</i>: Pixel Purity Index</li>
 </ul>
 <p>
-Supported algorithms for 
+Supported algorithms for
 <a href="https://pysptools.sourceforge.io/abundance_maps.html">Spectral Unmixing</a>
  are:
 </p>
 <ul>
-<li><i>FCLS</i>: Fully Constrained Least Squares (FCLS): Estimates endmember 
-abundance per pixel with the constraint that values are non-negative and sum up 
+<li><i>FCLS</i>: Fully Constrained Least Squares (FCLS): Estimates endmember
+abundance per pixel with the constraint that values are non-negative and sum up
 to one per pixel (<i>Default</i>)</li>
-<li><i>UCLS</i>: Unconstrained Least Squares (UCLS): Estimates endmember 
+<li><i>UCLS</i>: Unconstrained Least Squares (UCLS): Estimates endmember
 abundance per pixel in an unconstrained way</li>
-<li><i>NNLS</i>: Non-negative Constrained Least Squares (NNLS): Estimates endmember 
+<li><i>NNLS</i>: Non-negative Constrained Least Squares (NNLS): Estimates endmember
 abundance per pixel with the constraint that values are non-negative</li>
 </ul>
 
 <h2>NOTES</h2>
 
 <p>
-Number of endmembers to extract (<i>endmember_n</i>) is supposed to be lower 
-than the number of bands in the imagery group. Only the <i>PPI</i> method can 
+Number of endmembers to extract (<i>endmember_n</i>) is supposed to be lower
+than the number of bands in the imagery group. Only the <i>PPI</i> method can
 extract more endmembers than there are bands in the imagery group.
 </p>
 
@@ -92,17 +92,17 @@ i.spec.unmix group=lsat7_2002 matrix=sample/spectrum.dat result=lsat7_2002_unmix
 
 <ul>
 <li>
-Chang, C.-I. 2006: A fast iterative algorithm for implementation of pixel 
+Chang, C.-I. 2006: A fast iterative algorithm for implementation of pixel
 purity index. Geoscience and Remote Sensing Letters, IEEE, 3(1): 63-67.
 </li>
 <li>
 Plaza, A. &amp; Chang, C.-I. 2006: Impact of Initialization on Design of
-Endmember Extraction Algorithms. Geoscience and Remote Sensing, 
+Endmember Extraction Algorithms. Geoscience and Remote Sensing,
 IEEE Transactions. 44(11): 3397-3407.
 </li>
 <li>
-Winter, M. E. 1999: N-FINDR: an algorithm for fast autonomous spectral 
-end-member determination in hyperspectral data. Presented at the 
+Winter, M. E. 1999: N-FINDR: an algorithm for fast autonomous spectral
+end-member determination in hyperspectral data. Presented at the
 Imaging Spectrometry V, Denver, CO, USA, (3753): 266-275.
 </li>
 </ul>

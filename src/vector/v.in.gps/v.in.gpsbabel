@@ -1,5 +1,5 @@
 #!/bin/sh
-# 
+#
 ############################################################################
 #
 # MODULE:      v.in.gpsbabel
@@ -12,7 +12,7 @@
 #	       License (>=v2). Read the file COPYING that comes with GRASS
 #	       for details.
 #
-# AUTHORS:     Claudio Porta & Lucio Davide Spano, students of Computer 
+# AUTHORS:     Claudio Porta & Lucio Davide Spano, students of Computer
 #		  Science, University of Pisa (Italy).
 #		Commission from Faunalia Pontedera (PI)
 #
@@ -115,7 +115,7 @@ LOCATION="$GISDBASE"/"$LOCATION_NAME"/"$MAPSET"
 
 PROG=`basename "$0"`
 
-#### check for gpsbabel 
+#### check for gpsbabel
  if [ ! -x "`which gpsbabel`" ] ; then
     g.message -e "The gpsbabel program was not found, please install it first.
                   http://gpsbabel.sourceforge.net"
@@ -153,7 +153,7 @@ fi
 trap 'rm -f "${TEMPFILE}."*' 2 3 15
 
 
-#### process command line arguments 
+#### process command line arguments
 WPT=1 ; RTE=0 ; TRK=0 ; KEEP_WGS84=0; VERBOSE=0
 
 
@@ -165,7 +165,7 @@ fi
 if [ -n "$GIS_OPT_OUTPUT" ] ; then
     NAME="$GIS_OPT_OUTPUT"
     if [ $VERBOSE -eq 1 ] ; then
-	g.message message="output=$NAME" 
+	g.message message="output=$NAME"
     fi
 fi
 if [ -n "$GIS_OPT_INPUT" ] ; then
@@ -254,13 +254,13 @@ STYLE="$GISBASE/etc/grass_write_ascii.style"
 
 if [ $CREATE_POINTS -eq 1 ] ; then
     if [ $WPT -eq 1 ] ; then
-	g.message "Loading Waypoints from <$GIS_OPT_INPUT>..." 
+	g.message "Loading Waypoints from <$GIS_OPT_INPUT>..."
 	TYPE="-w"
     elif [ $RTE -eq 1 ] ; then
-	g.message "Loading Routes as points from <$GIS_OPT_INPUT>..." 
+	g.message "Loading Routes as points from <$GIS_OPT_INPUT>..."
 	TYPE="-r"
     elif [ $TRK -eq 1 ] ; then
-	g.message "Loading Tracks as points from <$GIS_OPT_INPUT>..." 
+	g.message "Loading Tracks as points from <$GIS_OPT_INPUT>..."
 	TYPE="-t"
     fi
 
@@ -276,10 +276,10 @@ if [ $CREATE_POINTS -eq 1 ] ; then
 
 else
     if [ $RTE -eq 1 ] ; then
-	g.message "Loading Routes from <$GIS_OPT_INPUT>..." 
+	g.message "Loading Routes from <$GIS_OPT_INPUT>..."
 	TYPE="-r"
     elif [ $TRK -eq 1 ] ; then
-	g.message "Loading Tracks from <$GIS_OPT_INPUT>..." 
+	g.message "Loading Tracks from <$GIS_OPT_INPUT>..."
 	TYPE="-t"
     fi
     gpsbabel $TYPE -i $GIS_OPT_FORMAT -f "$GPSdevice" $PROGVERBOSE \
@@ -318,10 +318,10 @@ if [ $CREATE_POINTS -eq 1 ] ; then
 
     #### reproject if needed
     if [ "$IN_PROJ" = "$OUT_PROJ" ] || [ $KEEP_WGS84 -eq 1 ] ; then
-	g.message "No projection transformation performed" 
+	g.message "No projection transformation performed"
 	cp "${TEMPFILE}.base" "${TEMPFILE}.P_base"
     else
-	g.message "Attempting waypoint projection transform with cs2cs" 
+	g.message "Attempting waypoint projection transform with cs2cs"
 
 	eval cs2cs -f %.9f `echo $IN_PROJ` +to `echo $OUT_PROJ` \
 	  < "${TEMPFILE}.base" > "${TEMPFILE}.P_base"
@@ -350,7 +350,7 @@ if [ $CREATE_POINTS -eq 1 ] ; then
 
     #### output or import
     if [ -z "$NAME" ] ; then
-	g.message "ASCII file redirected to stdout" 
+	g.message "ASCII file redirected to stdout"
 	cat "${TEMPFILE}.asc" 2> /dev/null
     else
 	#### import into new points file
@@ -400,10 +400,10 @@ else # CREATE_LINES
 	cat "$TEMPFILE.gpx" | grep -n "</rte>" > "$TEMPFILE.bytes"
 	# number of routes
 	cat "$TEMPFILE.bytes" | grep -c "</rte>" > "$TEMPFILE.var"
-	ROUTE_NUMBER=0 
+	ROUTE_NUMBER=0
 	read ROUTE_NUMBER < "$TEMPFILE.var" # route number to process
 	READ_BYTES=0 # offset of bytes already read
-	cp "$TEMPFILE.gpx" "$TEMPFILE.gpx2" # file to be "eaten" by head commands in while 
+	cp "$TEMPFILE.gpx" "$TEMPFILE.gpx2" # file to be "eaten" by head commands in while
 	ROUTE_ID=0 # route identifier
 
 	while [ "$ROUTE_NUMBER" -gt 0 ] ; do
@@ -412,11 +412,11 @@ else # CREATE_LINES
 	    read END_BYTE < "$TEMPFILE.var" # this route ends at END_BYTE in $TEMPFILE.gpx file
 
 	    TO_READ=0
-	    TO_READ="`expr $END_BYTE - $READ_BYTES`"    # bytes to read from $TEMPFILE.gpx2 file 
+	    TO_READ="`expr $END_BYTE - $READ_BYTES`"    # bytes to read from $TEMPFILE.gpx2 file
 	    READ_BYTES="`expr $READ_BYTES + $TO_READ`"  # update readed bytes
 
 	    # list of points in route
-	    head -n $TO_READ "$TEMPFILE.gpx2" | grep "<rtept" > "$TEMPFILE.points" 
+	    head -n $TO_READ "$TEMPFILE.gpx2" | grep "<rtept" > "$TEMPFILE.points"
 	    POINTS=0 # number of points in route
 	    cat "$TEMPFILE.points" | grep -c "<rtept" > "$TEMPFILE.var"
 	    read POINTS < "$TEMPFILE.var"
@@ -483,10 +483,10 @@ else # CREATE_LINES
 	cat "$TEMPFILE.gpx" | grep -n "</trkseg>" > "$TEMPFILE.bytes"
 	# number of tracks
 	cat "$TEMPFILE.bytes" | grep -c "</trkseg>" > "$TEMPFILE.var"
-	TRACK_NUMBER=0 
+	TRACK_NUMBER=0
 	read TRACK_NUMBER < "$TEMPFILE.var" # route number to process
 	READ_BYTES=0 # offset of bytes already read
-	cp "$TEMPFILE.gpx" "$TEMPFILE.gpx2" # file to be "eaten" by head commands in while 
+	cp "$TEMPFILE.gpx" "$TEMPFILE.gpx2" # file to be "eaten" by head commands in while
 	TRACK_ID=0 # track identifier
 	while [ "$TRACK_NUMBER" -gt 0 ] ; do
 	    head -n 1 "$TEMPFILE.bytes" | cut -f 1 -d ':'> "$TEMPFILE.var"
@@ -494,12 +494,12 @@ else # CREATE_LINES
 	    read END_BYTE < "$TEMPFILE.var" # this route ends at END_BYTE in $TEMPFILE.gpx file
 	    TO_READ=0
 
-	    TO_READ="`expr $END_BYTE - $READ_BYTES`"    # bytes to read from $TEMPFILE.gpx2 file 
+	    TO_READ="`expr $END_BYTE - $READ_BYTES`"    # bytes to read from $TEMPFILE.gpx2 file
 	    READ_BYTES="`expr $READ_BYTES + $TO_READ`"  # update readed bytes
 
 	    # list of points in route
-	    head -n $TO_READ "$TEMPFILE.gpx2" | grep "<trkpt" > "$TEMPFILE.points" 
-	    POINTS=0 # number of points in track 
+	    head -n $TO_READ "$TEMPFILE.gpx2" | grep "<trkpt" > "$TEMPFILE.points"
+	    POINTS=0 # number of points in track
 	    cat "$TEMPFILE.points" | grep -c "<trkpt" > "$TEMPFILE.var"
 	    read POINTS < "$TEMPFILE.var"
 	    echo "L $POINTS 1" >> "$TEMPFILE.base"
@@ -573,14 +573,14 @@ else # CREATE_LINES
 	    read B_PNT < "$TEMPFILE.var"
 
 	    TO_READ="`expr $B_GPX - $B_PNT`"
-	    
+
 	    tail -c $TO_READ "$TEMPFILE.gpx2" > "$TEMPFILE.points"
 	    mv "$TEMPFILE.points" "$TEMPFILE.gpx2"
 	done
 
 	# create attr table: cat(int), start_time varchar(40), start_lat(double precision), start_lon(double precision), \
 	#			end_time varchar(40), end_lat(double precision), end_lon(double precision)
-	
+
 	ATTR_FILE="${TEMPFILE}.track_atts"
 	ATTR_COLS='cat int, start_time varchar(40), start_lat double precision, start_lon double precision, end_time varchar(40), end_lat double precision, end_lon double precision'
     fi
@@ -588,11 +588,11 @@ else # CREATE_LINES
 
     #### reproject if needed
     if [ "$IN_PROJ" = "$OUT_PROJ" ] || [ $KEEP_WGS84 -eq 1 ] ; then
-	g.message "No projection transformation performed" 
+	g.message "No projection transformation performed"
 	cat "${TEMPFILE}.base" | awk 'BEGIN {;} $1=="L" { print } ; \
 	    $1!="L" { printf(" %s %s\n", $1, $2) } END {;}' > "${TEMPFILE}.P_base"
     else
-	g.message "Attempting waypoint projection transform with cs2cs" 
+	g.message "Attempting waypoint projection transform with cs2cs"
 
 	eval cs2cs -tL -f %.9f `echo $IN_PROJ` +to `echo $OUT_PROJ` \
 	   < "${TEMPFILE}.base" > "${TEMPFILE}.P_mid"
@@ -607,7 +607,7 @@ else # CREATE_LINES
 	    EXITCODE=1
 	fi
 	if [ $EXITCODE -ne 0 ] ; then
-	    g.message "Projection transform failed, retaining WGS84" 
+	    g.message "Projection transform failed, retaining WGS84"
 	    g.message message=""
 	    cat "${TEMPFILE}.base" | awk 'BEGIN {;} $1=="L" { print } ; \
 		$1!="L" { printf(" %s %s\n", $1, $2) } END {;}' > "${TEMPFILE}.P_base"
@@ -643,11 +643,11 @@ EOF
 
     #### if no name for vector file given, cat to stdout
     if [ -z "$NAME" ] ; then
-	g.message "ASCII file redirected to stdout" 
+	g.message "ASCII file redirected to stdout"
 	cat "${TEMPFILE}.dig" 2> /dev/null
     else
-	#### import to binary vector file 
-	g.message "Importing with v.in.ascii" 
+	#### import to binary vector file
+	g.message "Importing with v.in.ascii"
 	v.in.ascii format=standard output="$NAME" input="${TEMPFILE}.dig"
 
 	#### check success/failure
@@ -714,6 +714,6 @@ v.support map="$NAME" cmdhist="${CMDLINE}"
 rm -f "${TEMPFILE}."* "${TEMPFILE}"
 
 #### end
-g.message "Done." 
+g.message "Done."
 
 exit $EXITCODE

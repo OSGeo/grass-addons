@@ -10,17 +10,17 @@ areas can be the output of <em><a href="https://grass.osgeo.org/grass-stable/man
 Available statistics are those related to the shape, size and position of the
 areas (see the <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.object.geometry.html">r.object.geometry</a></em>
 man page for more information on the statistics) and aggregated statistics
-of pixel values of other raster maps (see 
+of pixel values of other raster maps (see
 <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.univar.html">r.univar</a></em> for details).
 
 <p>
-In addition, for each of the above statistics, the <b>-n</b> flag allows the 
+In addition, for each of the above statistics, the <b>-n</b> flag allows the
 user to request the output of the mean and the standard deviation of the values
 of the neighboring objects (all direct neighbors, diagonal neighbors included),
-which allows gathering some context information for each object. For this 
+which allows gathering some context information for each object. For this
 feature, the <em><a href="r.neighborhoodmatrix.html">r.neighborhoodmatrix</a></em>
-addon has to be installed. Currently, the module calculates these context 
-statistics for all available shape and spectral statistics. 
+addon has to be installed. Currently, the module calculates these context
+statistics for all available shape and spectral statistics.
 
 <p>
 The user can chose between output in the form of a vector map of the
@@ -29,12 +29,12 @@ and/or in the form of a CSV text file (<b>csvfile</b>).
 
 <p>
 Because of the way <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.univar.html">r.univar</a></em> functions, it
-is difficult to handle cases where in some raster maps values are all null 
-in some of the areas. Because of this, <em>i.segment.stats</em> checks the 
-raster maps for existing null values and excludes them if it find any, emitting 
+is difficult to handle cases where in some raster maps values are all null
+in some of the areas. Because of this, <em>i.segment.stats</em> checks the
+raster maps for existing null values and excludes them if it find any, emitting
 a warning to inform the user. The user can decide to ignore this check using the
 <b>c</b> flag, for example when there are only a few null cells and no complete
-areas with only null cells (i.e. the module can calculate statistics for areas 
+areas with only null cells (i.e. the module can calculate statistics for areas
 with some null cells in them).
 
 <h2>NOTES</h2>
@@ -54,7 +54,7 @@ which can then be called from this module.
 
 <p>
 Problems can arise in the calculation of some form statistics for certain
-segment forms. If errors arise, the user might want to try to run 
+segment forms. If errors arise, the user might want to try to run
 <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.clump.html">r.clump</a></em> on the input raster file before running
 <em>i.segment.stats</em>.
 
@@ -66,7 +66,7 @@ with the <b>csvfile</b> output.
 <p>
 The processing of several raster input files for which to calculate per-segment
 statistics can be parallelized by setting the <b>processes</b> parameter to the
-number of desired parallel processes, with at most one process per raster to 
+number of desired parallel processes, with at most one process per raster to
 be treated.
 
 
@@ -86,7 +86,7 @@ i.segment.stats map=ls_pan_seg01 csvfile=segstats.csv vectormap=ls_pan_seg01 \
 <em>
 <a href="https://grass.osgeo.org/grass-stable/manuals/i.segment.html">i.segment</a>,
 <a href="https://grass.osgeo.org/grass-stable/manuals/r.univar.html">r.univar</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.rast.stats.html">v.rast.stats</a>, 
+<a href="https://grass.osgeo.org/grass-stable/manuals/v.rast.stats.html">v.rast.stats</a>,
 <a href="https://grass.osgeo.org/grass-stable/manuals/r.object.geometry.html">r.object.geometry</a>
 </em>
 <p>
