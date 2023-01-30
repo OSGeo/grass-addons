@@ -1,11 +1,11 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.fill.category</em> replaces the values of pixels of a given category with values 
+<em>r.fill.category</em> replaces the values of pixels of a given category with values
 of the surrounding pixels and stores the output in
 a new raster map layer. The module can be used to eliminate one category from a raster map
 without leaving areas with NULL values, like for example when using <em>r.reclass.area</em>.
 <p>
-Areas with the given category are eroded and their pixels 
+Areas with the given category are eroded and their pixels
 value is replaced with the values given by the mode of the surrounding pixels.
 </p>
 <p>
@@ -13,7 +13,7 @@ value is replaced with the values given by the mode of the surrounding pixels.
 to replace is left or the maximum number of iterations is reached.
 </p>
 <p>
-Optionally, <em>r.fill.category</em> can create an MPEG file animating the replacement process. 
+Optionally, <em>r.fill.category</em> can create an MPEG file animating the replacement process.
 </p>
 
 <h2>PARAMETERS</h2>
@@ -34,7 +34,7 @@ If the user provides the name of an MPEG output file, an animation is created by
 The <b>quality</b> (1-5) parameter controls the quality of the MPEG, lower values will yield higher quality images, but with less compression (i.e. larger MPEG file size). Switching from <i>quality=1</i> to <i>quality=5</i> reduces the MPEG file size of about 40%, although the actual compression ratio depends on the number of frames.
 </p>
 <p>
-The module <em>r.out.mpeg</em> is used to generate the MPEG file, therefore the program mpeg_encode (aka ppmtompeg) must be available. 
+The module <em>r.out.mpeg</em> is used to generate the MPEG file, therefore the program mpeg_encode (aka ppmtompeg) must be available.
 See <em>r.out.mpeg</em> manual for more information.
 </p>
 <p>

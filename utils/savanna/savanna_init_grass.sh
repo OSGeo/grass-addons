@@ -27,28 +27,28 @@ fi
 
 # Calculate the base number of tiles to use.
 numxtiles=$(echo "scale=0; (($w - $e)/$ewres)/$tilexsize" | bc)
-if ((numxtiles < 0)) ; then 
+if ((numxtiles < 0)) ; then
         let "numxtiles = numxtiles * -1"
 fi
 smallxtilesize=$(echo "scale=0; (($w - $e)/$ewres) % $tilexsize" | bc)
-if ((smallxtilesize != 0)); then 
-        let 'numxtiles++'       
+if ((smallxtilesize != 0)); then
+        let 'numxtiles++'
 fi
 
 numytiles=$(echo "scale=0; (($n - $s)/$nsres)/$tileysize" | bc)
-if ((numytiles < 0)) 
+if ((numytiles < 0))
         then let "numytiles = numytiles * -1"
-fi 
+fi
 smallytilesize=$(echo "scale=0; (($n - $s)/$nsres) % $tileysize" | bc)
-if ((smallytilesize != 0)) 
-        then let 'numytiles++'  
+if ((smallytilesize != 0))
+        then let 'numytiles++'
 fi
 
 eval $gregion
 let 'boxx = ewres*tilexsize'
 let 'boxy = nsres*tileysize'
 
-v.mkgrid map=$tiling_grid grid=$numytiles,$numxtiles position=coor coor=$w,$s box=$boxy,$boxx angle=0 --overwrite --quiet 
+v.mkgrid map=$tiling_grid grid=$numytiles,$numxtiles position=coor coor=$w,$s box=$boxy,$boxx angle=0 --overwrite --quiet
 if [ $? -ne 0 ] ; then
         echo 'Error in v.mkgrid...'
         exit 1              #Abandon the loop.

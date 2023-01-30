@@ -32,16 +32,16 @@ where:<br>
 the <em>dist_weight</em> has a range between 0 and 1 and results in:
 
 <ul>
-<li>0 &lt; dist_weight &lt; 0.5: the weighting curve decreases at low 
+<li>0 &lt; dist_weight &lt; 0.5: the weighting curve decreases at low
 distances to the fragment and lowers to a weight of 0 at d=d_max
 
 <li>dist_weight = 0.5: linear decrease of weight until weight of 0 at d = d_max
 
-<li>0.5 &lt; dist_weight &lt; 1: the weighting curve decreases slowly 
-at low distances and approaches weight value of 0 at higher distances 
+<li>0.5 &lt; dist_weight &lt; 1: the weighting curve decreases slowly
+at low distances and approaches weight value of 0 at higher distances
 from the fragment, the weight value 0 is reached at d = d_max
 
-<li>dist_weight = 1: no distance weight applied, common static edge 
+<li>dist_weight = 1: no distance weight applied, common static edge
 depth used
 </ul>
 

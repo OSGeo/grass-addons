@@ -1,26 +1,26 @@
 <h2>DESCRIPTION</h2>
 
-<em>v.habitat.dem</em> calculates DEM and solar derived characteristics 
-of habitat vector polygons. The user must specify the input <b>elevation raster</b> 
-map, a <b>habitat vector</b> map with a <b>numeric unique ID</b> column 
-and a <b>prefix</b> used for all results. 
+<em>v.habitat.dem</em> calculates DEM and solar derived characteristics
+of habitat vector polygons. The user must specify the input <b>elevation raster</b>
+map, a <b>habitat vector</b> map with a <b>numeric unique ID</b> column
+and a <b>prefix</b> used for all results.
 
 <p>
-A preliminary visual delineation of habitats based upon digital 
-orthophotos is a common task for an ecologist before fieldwork. 
-Ecological site conditions of habitats are often influenced amongst 
-others by terrain forms, solar irradiance and irradiation. 
-<em>v.habitat.dem</em> gives some DEM derived characteristics for a 
-quick validation of the preliminary visual habitat delineation. 
+A preliminary visual delineation of habitats based upon digital
+orthophotos is a common task for an ecologist before fieldwork.
+Ecological site conditions of habitats are often influenced amongst
+others by terrain forms, solar irradiance and irradiation.
+<em>v.habitat.dem</em> gives some DEM derived characteristics for a
+quick validation of the preliminary visual habitat delineation.
 </p>
 
 <h2>NOTES</h2>
 
-The location has to be in a projected coordination system. Before 
-running <em>v.habitat.dem</em> the region has to be aligned to the 
-<b>elevation raster</b> map and the <b>habitat vector</b> map by 
-<em>g.region</em>. During calculations, especially for solar 
-characteristics, the region will be extended by a user input (default 
+The location has to be in a projected coordination system. Before
+running <em>v.habitat.dem</em> the region has to be aligned to the
+<b>elevation raster</b> map and the <b>habitat vector</b> map by
+<em>g.region</em>. During calculations, especially for solar
+characteristics, the region will be extended by a user input (default
 5.000). The results are as good as the DEM quality and resolution is.
 
 <h3>Terrain characteristics</h3>
@@ -28,56 +28,56 @@ characteristics, the region will be extended by a user input (default
 <b>Slope</b> and <b>aspect</b> are calculated by <em>r.slope.aspect</em>.
 
 <p>
-The <b>slope</b> output raster map contains slope values, stated in 
-degrees of inclination from the horizontal. 
+The <b>slope</b> output raster map contains slope values, stated in
+degrees of inclination from the horizontal.
 <br>
-The <b>aspect</b> output raster map indicates the direction that slopes 
-are facing. The aspect categories represent the number degrees of east. 
+The <b>aspect</b> output raster map indicates the direction that slopes
+are facing. The aspect categories represent the number degrees of east.
 </p>
 
 <p>
-<b>Accumulation</b>, <b>drainage direction</b> and <b>topographic index</b> 
-are calculated by <em>r.watershed</em>. The flag <b>-a</b> (use positive 
-flow accumulation even for likely underestimates) is used as default. 
+<b>Accumulation</b>, <b>drainage direction</b> and <b>topographic index</b>
+are calculated by <em>r.watershed</em>. The flag <b>-a</b> (use positive
+flow accumulation even for likely underestimates) is used as default.
 </p>
 
 <p>
-The <b>accumulation</b> map contains the absolute value of each cell in 
-this output map and is the amount of overland flow that traverses the 
-cell. This value will be the number of upland cells plus one if no 
+The <b>accumulation</b> map contains the absolute value of each cell in
+this output map and is the amount of overland flow that traverses the
+cell. This value will be the number of upland cells plus one if no
 overland flow map is given.
 <br>
-The <b>drainage direction</b> map contains drainage direction. Provides 
-the "aspect" for each cell measured CCW from East. 
+The <b>drainage direction</b> map contains drainage direction. Provides
+the "aspect" for each cell measured CCW from East.
 <br>
-The <b>topographic index</b> raster map contains topographic index TCI 
-and is computed as <tt>ln(&alpha; / tan(&beta;))</tt> where &alpha; a is 
-the cumulativeupslope area draining through a point per unit contour 
-length and <tt>tan(&beta;)</tt> is the local slope angle. The TCI 
-reflects the tendency of water to accumulate at any point in the 
-catchment and the tendency for gravitaional forces to move that water 
-downslope. This value will be negative if <tt>&alpha; / tan(&beta;) &lt; 1</tt>. 
+The <b>topographic index</b> raster map contains topographic index TCI
+and is computed as <tt>ln(&alpha; / tan(&beta;))</tt> where &alpha; a is
+the cumulativeupslope area draining through a point per unit contour
+length and <tt>tan(&beta;)</tt> is the local slope angle. The TCI
+reflects the tendency of water to accumulate at any point in the
+catchment and the tendency for gravitaional forces to move that water
+downslope. This value will be negative if <tt>&alpha; / tan(&beta;) &lt; 1</tt>.
 </p>
 
 Terrain forms are calculated by <em>r.geomorphon</em>.
 
 <p>
-Geomorphon is a new concept of presentation and analysis of terrain 
-forms using machine vision approach. This concept utilises 8-tuple 
-pattern of the visibility neighbourhood and breaks well known limitation 
-of standard calculus approach where all terrain forms cannot be detected 
-in a single window size. The pattern arises from a comparison of a focus 
-pixel with its eight neighbours starting from the one located to the 
-east and continuing counterclockwise producing a ternary operator. All 
-options in the <em>r.geomorphon</em>-calculation are set to default 
-(<b>skip = 0</b>, <b>search = 3</b>, <b>flat = 1</b>, <b>dist = 0</b>) 
-where <b>search</b> determines the length on the geodesic distances in 
-all eight directions where line-of-sight is calculated, <b>skip</b> 
-determines length on the geodesic distances at the beginning of 
-calculation all eight directions where line-of-sight is yet calculated, 
-<b>flat</b> defines the difference (in degrees) between zenith and nadir 
-line-of-sight which indicate flat direction and <b>dist</b> determines > 
-flat distance. 
+Geomorphon is a new concept of presentation and analysis of terrain
+forms using machine vision approach. This concept utilises 8-tuple
+pattern of the visibility neighbourhood and breaks well known limitation
+of standard calculus approach where all terrain forms cannot be detected
+in a single window size. The pattern arises from a comparison of a focus
+pixel with its eight neighbours starting from the one located to the
+east and continuing counterclockwise producing a ternary operator. All
+options in the <em>r.geomorphon</em>-calculation are set to default
+(<b>skip = 0</b>, <b>search = 3</b>, <b>flat = 1</b>, <b>dist = 0</b>)
+where <b>search</b> determines the length on the geodesic distances in
+all eight directions where line-of-sight is calculated, <b>skip</b>
+determines length on the geodesic distances at the beginning of
+calculation all eight directions where line-of-sight is yet calculated,
+<b>flat</b> defines the difference (in degrees) between zenith and nadir
+line-of-sight which indicate flat direction and <b>dist</b> determines >
+flat distance.
 </p>
 
 <p>
@@ -100,16 +100,16 @@ The most common terrain forms calculated by <em>r.geomorphon</em> are:
 The LS factor
 
 <p>
-The LS is the slope length-gradient factor. The LS factor represents a 
-ratio of soil loss under given conditions to that at a site with the 
-"standard" slope steepness of 9% and slope length of 22.13m. The steeper 
-and longer the slope, the higher the risk for erosion. 
+The LS is the slope length-gradient factor. The LS factor represents a
+ratio of soil loss under given conditions to that at a site with the
+"standard" slope steepness of 9% and slope length of 22.13m. The steeper
+and longer the slope, the higher the risk for erosion.
 </p>
 
 <p>
-The LS factor is calculated accordingly Neteler & Mitasova 2008 in 
-<em>r.mapcalc</em> with flow accumulation of <em>r.flow</em> and slope 
-of <em>r.slope.aspect</em> 
+The LS factor is calculated accordingly Neteler & Mitasova 2008 in
+<em>r.mapcalc</em> with flow accumulation of <em>r.flow</em> and slope
+of <em>r.slope.aspect</em>
 </p>
 
 <div class="code">
@@ -137,19 +137,19 @@ The colors of the LS factor map are set to:
  <li><b>DEM altitude</b>: minimum, maximum, range, average, median</li>
  <li><b>slope</b>: minimum, maximum, range, average, median</li>
  <li><b>aspect</b>: minimum, maximum, range, average, median</li>
- <li><b>geomorphons</b>: absolute area of flat, summit, ridge, shoulder, spur, slope, hollow, footslope, valley, depression</li> 
+ <li><b>geomorphons</b>: absolute area of flat, summit, ridge, shoulder, spur, slope, hollow, footslope, valley, depression</li>
 </ul>
 
 <p>
-Additionally the mutual occurrence by <em>r.coin</em> of unique habitat 
-ID and geomorphons in percent of the row is printed to the output. 
+Additionally the mutual occurrence by <em>r.coin</em> of unique habitat
+ID and geomorphons in percent of the row is printed to the output.
 </p>
 
 <h3>Simple check of terrain characteristics</h3>
 
 <p>
-Simple checks regarding aspect and slope per unique habitat ID are 
-evaluated and marked in the attribute table as follow: 
+Simple checks regarding aspect and slope per unique habitat ID are
+evaluated and marked in the attribute table as follow:
 </p>
 
 <ul>
@@ -164,31 +164,31 @@ evaluated and marked in the attribute table as follow:
 </ul>
 
 <p>
-These simple checks may indicate reconsidering of some preliminary 
+These simple checks may indicate reconsidering of some preliminary
 visual habitat delineations.
 </p>
 
 <h3>Solar characteristics</h3>
 
 <p>
-The solar characterstics (direct sunlight / shadows caused by terrain 
-for a certain day in the year) are calculated by <em>r.sun.hourly</em> 
-based upon <em>r.sun</em>. The <b>-b</b>-flag is used to create binary 
-rasters instead of irradiation rasters. The user can define start time 
-of interval, end time of interval, time step for running <em>r.sun</em>, 
-number of day of the year and the year. As default is set summer 
-solstice (21st June 2014, 8:00-18:00, 1 hour time step). 
+The solar characterstics (direct sunlight / shadows caused by terrain
+for a certain day in the year) are calculated by <em>r.sun.hourly</em>
+based upon <em>r.sun</em>. The <b>-b</b>-flag is used to create binary
+rasters instead of irradiation rasters. The user can define start time
+of interval, end time of interval, time step for running <em>r.sun</em>,
+number of day of the year and the year. As default is set summer
+solstice (21st June 2014, 8:00-18:00, 1 hour time step).
 </p>
 
 <p>
-The results of the <em>r.sun.hourly</em>-analysis are automatically 
-registered into a temporal database. The space time raster dataset can 
-be easily animated in the <em>g.gui.animation</em>-tool. 
+The results of the <em>r.sun.hourly</em>-analysis are automatically
+registered into a temporal database. The space time raster dataset can
+be easily animated in the <em>g.gui.animation</em>-tool.
 </p>
 
 <h2>EXAMPLE</h2>
 
-<!-- NC example 
+<!-- NC example
 g.copy vector=zipcodes_wake,myzipcodes_wake
 g.region -a raster=elevation vector=myzipcodes_wake align=elevation -p
 v.habitat.dem elevation=elevation vector=myzipcodes_wake column=cat prefix=a dir=tmp
@@ -211,7 +211,7 @@ g.gui.animation strds=a_beam_rad
 </pre></div>
 
 <h2>DEPENDENCIES</h2>
- 
+
 <ul>
 <li>r.geomorphon</li>
 <li>r.sun.hourly (addon)</li>

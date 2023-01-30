@@ -129,7 +129,7 @@ meanwhile, I'd be happy if others advance on this (the core of
 v.mapcalc and/or plugins), and I'll do everything to answer questions
 someone might have trying to do so.
 
--- 
+--
 Christoph Simon
 ciccio@kiosknet.com.br
 
@@ -259,4 +259,3 @@ equal sign. The very first expression, hence, will give an error:
          map = testmap (rivers);
          map = test2map (rivers, cities);
          map = dltest (rivers, cities);
-

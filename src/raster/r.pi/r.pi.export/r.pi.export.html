@@ -1,8 +1,8 @@
 <h2>DESCRIPTION</h2>
 
-This module exports raster patch values (no single pixels, but single 
-individual patch values), which can be used for subsequent analysis in 
-R and later import into GRASS again, using 
+This module exports raster patch values (no single pixels, but single
+individual patch values), which can be used for subsequent analysis in
+R and later import into GRASS again, using
 <a href="r.pi.import.html">r.pi.import</a>.
 
 <h2>NOTES</h2>
@@ -24,20 +24,20 @@ r.pi.export input=landclass96_forestclass5_area output=patch_area_out values=pat
 </pre></div>
 
 various resulting files are generated:<br>
-<em>patch_area_out</em>: a text file with the <em>average</em>, 
-<em>variance</em> and <em>minimum</em> statistics as defined above and 
-additionally informaton about the percentage coverage 
-(<em>landcover</em>) and the number of fragments (<em>number</em>) of 
+<em>patch_area_out</em>: a text file with the <em>average</em>,
+<em>variance</em> and <em>minimum</em> statistics as defined above and
+additionally informaton about the percentage coverage
+(<em>landcover</em>) and the number of fragments (<em>number</em>) of
 the analysed landcover.
 
 <br>
 
-<em>patch_area_values</em>: a text file with the actual patch values 
-not the statistics. The first column is providing the corresponding 
-patch ID, which is also existing in the <em>forestclass5_ID</em> raster 
-map (here:0-878). The second column is providing the percentage cover 
-of each patch (sum is equal the overall coverage: 0.506). The third 
-column is holding the actual patch index value (here area; e.g. patch 
+<em>patch_area_values</em>: a text file with the actual patch values
+not the statistics. The first column is providing the corresponding
+patch ID, which is also existing in the <em>forestclass5_ID</em> raster
+map (here:0-878). The second column is providing the percentage cover
+of each patch (sum is equal the overall coverage: 0.506). The third
+column is holding the actual patch index value (here area; e.g. patch
 0: 12).
 
 <h2>SEE ALSO</h2>

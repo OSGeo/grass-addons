@@ -18,7 +18,7 @@ visual format of rule file. Lines beginning with <b>#</b> are comments.
 <li><b>set_name</b>: Any name of the fuzzy set. Must not contain symbols: <i>
 %,$ and #</i>
 <li><b>side</b>: Option indicate if set is fuzzified of both sides (both), left
-or right side. Available: <i>both, left, right</i>. 
+or right side. Available: <i>both, left, right</i>.
 <li><b>points</b>: A list containing 4 (A,B,C,D) or 2 A,B) points separated by
 comma. Points define location of sets of boundaries. Points may not to be in
 map range, but it may lead to only 0 o 1 membership for the whole map. For
@@ -27,7 +27,7 @@ and C core of the fuzzy set. Between A and B and C and D are set's boundaries.
 If side is "both" it require 4 points, else 2 points. Points values must be
 not-decreasing.
 <li><b>shape</b>: Parameter defined the shape of the fuzzy boundary. Available:
-<i>sshaped, linear, jshaped, gshaped</i>. The same boundaries are applied to 
+<i>sshaped, linear, jshaped, gshaped</i>. The same boundaries are applied to
 both sides of fuzzy set.
 <li><b>hedge</b>: Shape modifier the positive number means dilatation (power the
 fuzzy set by 2) the negative means concentration (square root of fuzzy set). The
@@ -117,7 +117,7 @@ sum as T-conorm;
 </dd>
 <dt><b>imp</b> (implication)</dt>
 <dd>Implication determines the method of reshapening of consequents (fuzzy set)
-by antecedents (single value) : 
+by antecedents (single value) :
 <ul>
 <li><b>minimum</b> means the lowest value of the antecedents and output set
 definition. It usually creates trapezoidal consequent set definition.
@@ -204,7 +204,7 @@ A,B,C,D inflection point,
 <h2>EXAMPLE</h2>
 <p>
 Fuzzy sets are sets whose elements have degrees of membership. Zadeh (1965)
-introduced Fuzzy sets as an extension of the classical notion of sets. Classical 
+introduced Fuzzy sets as an extension of the classical notion of sets. Classical
 membership of elements in a set are binary terms: an element either belongs or
 does not belong to the set. Fuzzy set theory use the gradual assessment of the
 membership of elements in a set. A membership function valued in the real unit
@@ -255,7 +255,7 @@ every map, and a second with fuzzy rules. For this example:
 
 <p>MAPS file example (text file):</p>
 
-Note: the raster map names are specified with a "%" character (here 
+Note: the raster map names are specified with a "%" character (here
 "% elevation" and "% distance" are the input maps). The single output map
 must be named "%_OUTPUT_", in the map file, but the actual raster will
 be assigned the name from the "output" option to "r.fuzzy.system"
@@ -286,7 +286,7 @@ $ veryprob {distance = near & elevation = low}
 
 Finally we need run r.fuzzy.system:
 <div class="code"><pre>
-r.fuzzy.system maps=flood.map rules=flood.rul output=flood 
+r.fuzzy.system maps=flood.map rules=flood.rul output=flood
 </pre></div>
 
 The resulting map should look like the image below. Yellow colour means no risk, red high

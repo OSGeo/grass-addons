@@ -16,11 +16,11 @@ in the library. The curvature term prevents the discontinuities from being
 shortened too much when the parameter alpha is set to very high values,
 (this happens very rarely). <br>
 
-An overview of the underlying theory with some applications can be found in 
+An overview of the underlying theory with some applications can be found in
 <a href="http://dx.doi.org/10.1016/j.isprsjprs.2012.02.005">[3]</a>.<br>
-Other examples of use of the module can be found 
-<a href="http://www.ing.unitn.it/~vittia/sw/sw_index.html">here</a> 
-and in 
+Other examples of use of the module can be found
+<a href="http://www.ing.unitn.it/~vittia/sw/sw_index.html">here</a>
+and in
 <a href="http://download.osgeo.org/osgeo/foss4g/2009/SPREP/2Thu/Parkside%20GO4/1500/Thu%20G04%201545%20Zatelli.pdf">this presentation [FOSS4G 2009 - pdf]</a>.<br>
 For details on the numerical implementation see [4].
 
@@ -37,14 +37,14 @@ The segmentation depends on the parameters alpha and lambda:
 <li> alpha controls how many discontinuities are allowed to exist.
 <li> lambda controls the smoothness of the solution.
 <li> It is not possible to select the values of the parameters in an
-     automatic way. Test some different values to understand their 
+     automatic way. Test some different values to understand their
      influence on the results.<br>
      Try the following procedure:
 <ul>
   <li> run the module with both alpha and lambda set to 1.0
-  <li> run the module with alpha set to 1.0 and different values for lambda<br> 
+  <li> run the module with alpha set to 1.0 and different values for lambda<br>
        e.g., 0.01, 0.1, 1, 10, 100
-  <li> run the module with lambda set to 1.0 and different values for alpha<br> 
+  <li> run the module with lambda set to 1.0 and different values for alpha<br>
        e.g., 0.01, 0.1, 1, 10, 100
   <li> see how the segmentations change and select the values that
        produce the result that best fits your requirements.
@@ -53,12 +53,12 @@ The segmentation depends on the parameters alpha and lambda:
 
 The module computes the segmentation by means of an iterative
 procedure.<br>
-The module stops either when the number of iterations reaches the maximum 
-number of iterations [mxi] or when the maximum difference between the solutions 
+The module stops either when the number of iterations reaches the maximum
+number of iterations [mxi] or when the maximum difference between the solutions
 of two successive iterations is less than the convergence tolerance [tol].<br>
-To stop the iteration procedure, it is easier to act on the maximum number of 
+To stop the iteration procedure, it is easier to act on the maximum number of
 iterations parameter [mxi] than on the convergence tolerance parameter [tol].<br>
-The number of iterations needed to reach the convergence tolerance increases 
+The number of iterations needed to reach the convergence tolerance increases
 for high values of the parameter lambda. The larger the total number of pixels
 of the input raster map the larger the number of iterations will be.<br>
 <br>
@@ -72,7 +72,7 @@ To avoid to inappropriately re-sampled the input raster map, the settings
 for the current region should be set so that:
 <ul>
 <li> the resolution of the region matches the resolution of the input raster map;
-<li> the boundaries of the region are lined up along the edges of the nearest 
+<li> the boundaries of the region are lined up along the edges of the nearest
      cells in the input raster map.
 </ul>
 
@@ -125,7 +125,7 @@ r.smooth.seg in_g=ortho_2001_t792_1m out_u=u4_OF out_z=z4_OF lambda=1 alpha=200 
 
 <h2>REFERENCES</h2>
 
-<ul> 
+<ul>
 <li> <b>[1]</b> D. Mumford and J. Shah. <em>Optimal Approximation by
 Piecewise Smooth Functions and Associated Variational Problems</em>. <br>
 Communications on Pure Applied Mathematics, 42(5):577-685, 1989.<br>
@@ -136,7 +136,7 @@ recovery of smooth boundaries</em>. <br> Image and Vision Computing,
 15(9):705-712, 1997.<br>
 DOI: 10.1016/S0262-8856(97)00002-4
 
-<li> <b>[3]</b> A. Vitti. <em>The Mumford-Shah variational model 
+<li> <b>[3]</b> A. Vitti. <em>The Mumford-Shah variational model
 for image segmentation: An overview of the theory, implementation and use</em>. <br>
 ISPRS Journal of Photogrammetry and Remote Sensing, 69:50-64, 2012.<br>
 DOI: 10.1016/j.isprsjprs.2012.02.005
@@ -160,7 +160,7 @@ href="http://www.ing.unitn.it/~vittia/misc/vitti_phd.pdf">http://www.ing.unitn.i
 
 <h2>AUTHOR</h2>
 
-Alfonso Vitti <br> 
-&nbsp; Dept. Civil, Environmental and Mechanical Engineering <br> 
+Alfonso Vitti <br>
+&nbsp; Dept. Civil, Environmental and Mechanical Engineering <br>
 &nbsp; University of Trento - Italy<br>
 &nbsp; alfonso.vitti [at] unitn.it

@@ -1,17 +1,17 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.mapcalc.tiled</em> cuts a raster input map into tiles and runs 
+<em>r.mapcalc.tiled</em> cuts a raster input map into tiles and runs
 <a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a> over these tiles before patching the
 result together into a single output raster map.
 
 <p>
 The user provides the map calculation <b>expression</b>. The output map name
-is automatically extracted from that expression by extracting the string before 
+is automatically extracted from that expression by extracting the string before
 the '='. If the <b>expression</b> is more complex, the user can also provide the
 the output map name with the parameter <b>output</b>
 
 <p>
-Tiles can be defined with the <b>width</b>, <b>height</b> and 
+Tiles can be defined with the <b>width</b>, <b>height</b> and
 <b>overlap</b> parameters. If no <b>width</b> and <b>height</b>
 is specified, they are automatically computed from the number of processes
 and current computational region (with GRASS GIS v8.2 and above).
@@ -40,7 +40,7 @@ This backend can only be used with 0 overlap.
 Run <b>r.mapcalc</b> over tiles with size 1000x1000 using 4 parallel processes
 (North Carolina sample dataset):
 
-<div class="code"><pre> 
+<div class="code"><pre>
 g.region raster=ortho_2001_t792_1m
 r.mapcalc.tiled expression="bright_pixels = if(ortho_2001_t792_1m > 200, 1, 0)" \
    width=1000 height=1000 nprocs=4
@@ -48,8 +48,8 @@ r.mapcalc.tiled expression="bright_pixels = if(ortho_2001_t792_1m > 200, 1, 0)" 
 
 <h2>SEE ALSO</h2>
 
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a> 
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a>
 
-<h2>AUTHOR</h2> 
+<h2>AUTHOR</h2>
 
 Moritz Lennert

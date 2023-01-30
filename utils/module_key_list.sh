@@ -126,6 +126,6 @@ parameter/@name
 flag/@name
 "
 
-xml2 < "$TEMPFILE.xml" | grep '/@name=' | 
+xml2 < "$TEMPFILE.xml" | grep '/@name=' |
    grep -v '/flag/@name=verbose$\|/flag/@name=quiet' | \
    2csv -d'|' $BASE $FIELDS | less

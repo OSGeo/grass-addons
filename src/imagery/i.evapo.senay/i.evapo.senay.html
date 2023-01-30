@@ -1,13 +1,13 @@
 <h2>DESCRIPTION</h2>
 
-<em>i.evapo.senay</em> Calculates the diurnal actual 
-evapotranspiration after Senay (2007). This is converting all Net 
-radiation from the diurnal period into ET, then uses Senay equation 
+<em>i.evapo.senay</em> Calculates the diurnal actual
+evapotranspiration after Senay (2007). This is converting all Net
+radiation from the diurnal period into ET, then uses Senay equation
 for evaporative fraction.
 <p>
-It takes input maps of Albedo, surface skin temperature, latitude, 
-day of year, single-way transmissivity and takes input value of the 
-density of fresh water. 
+It takes input maps of Albedo, surface skin temperature, latitude,
+day of year, single-way transmissivity and takes input value of the
+density of fresh water.
 <p>
 DEM is used for calculating min and max temperature for Senay equation.
 <p>
@@ -17,14 +17,14 @@ The "-s" flag permits output map of evaporative fraction from Senay.
 If you are trying to map irrigated crops, and you know there is at least
 one crop pixel that is evapotranspiring at maximum (ETa=ETpot), then read this.
 <p>
-<em>i.evapo.senay</em> is highly dependent on the wet pixel being 
-the lowest temperature in the crop pixels to work for non water 
-stressed crops, force it that way, even if it breaks non crop areas. 
-I suggest you reduce your region to the irrigation system 
-boundaries, checking that it includes a bit of dry area for the 
+<em>i.evapo.senay</em> is highly dependent on the wet pixel being
+the lowest temperature in the crop pixels to work for non water
+stressed crops, force it that way, even if it breaks non crop areas.
+I suggest you reduce your region to the irrigation system
+boundaries, checking that it includes a bit of dry area for the
 hot/dry pixel.
 <p>
-Since it is a direct relationship to LST, evaporative fraction can 
+Since it is a direct relationship to LST, evaporative fraction can
 be very sensitive to the kind of pixel sample you feed it with.
 
 <h2>TODO</h2>
@@ -47,8 +47,8 @@ be very sensitive to the kind of pixel sample you feed it with.
 <li>Senay 2007</li>
 </ul>
 
-<p>Chemin, Y., 2012. 
-A Distributed Benchmarking Framework for Actual ET Models, 
+<p>Chemin, Y., 2012.
+A Distributed Benchmarking Framework for Actual ET Models,
 in: Irmak, A. (Ed.), Evapotranspiration - Remote Sensing and Modeling. InTech.
 (<a href="http://www.intechopen.com/books/evapotranspiration-remote-sensing-and-modeling/a-distributed-benchmarking-framework-for-actual-et-models">PDF</a>)
 

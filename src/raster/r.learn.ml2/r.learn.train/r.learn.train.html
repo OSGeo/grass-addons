@@ -1,6 +1,6 @@
 <h2>DESCRIPTION</h2>
 
-<p><em>r.learn.train</em> performs training data extraction, supervised machine learning and 
+<p><em>r.learn.train</em> performs training data extraction, supervised machine learning and
 	cross-validation using the python package <em>scikit learn</em>. The choice of machine
 	learning algorithm is set using the <em>model_name</em> parameter. For more details relating
 	to the classifiers, refer to the <a href="http://scikit-learn.org/stable/"> scikit learn documentation</a>.
@@ -9,7 +9,7 @@
 	using the <em>training_points</em> parameter. If a vector map is used then the <em>field</em>
 	parameter also needs to indicate which column in the vector attribute table contains the
 	labels/values for training.</p>
-	
+
 	<p>For regression models the <em>field </em>parameter must contain only numeric values. For
 		classification models the field can contain integer-encoded labels, or it can represent
 		text categories that will automatically be encoded as integer values (in alphabetical
@@ -33,7 +33,7 @@
 	<tr>
 		<td>SGDClassifier, SGDRegressor</td>
 		<td>Linear models for classification and regression using stochastic gradient descent
-			optimization suitable for large datasets. Supports l1, l2 and elastic net 
+			optimization suitable for large datasets. Supports l1, l2 and elastic net
 			regularization</td>
 	</tr>
 	<tr>
@@ -177,7 +177,7 @@
 
 <p>Scikit learn does not specifically recognize raster predictors that represent non-ordinal,
 	categorical values, for example if using a landcover map as a predictor. Predictive
-	performances may be improved if the categories in these maps are one-hot encoded before 
+	performances may be improved if the categories in these maps are one-hot encoded before
 	training. The parameter <em>categorical_maps</em> can be used to select rasters that in
 	contained within the imagery group to apply one-hot encoding before training.</p>
 
@@ -243,7 +243,7 @@ r.random input=landclass96 npoints=1000 raster=training_pixels
 
 <div class="code">
 	<pre>
-# train a random forest classification model using r.learn.train 
+# train a random forest classification model using r.learn.train
 r.learn.train group=lsat7_2000 training_map=training_pixels \
 	model_name=RandomForestClassifier n_estimators=500 save_model=rf_model.gz
 

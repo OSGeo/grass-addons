@@ -1,17 +1,17 @@
 <h2>DESCRIPTION</h2>
 
-<em>v.what.strds.timestamp</em> matches points with a timestamp in 
-the attribute table (<i>timestamp_column</i>) (e.g. recordings from 
-stationary (temperature logger, wildlife camera traps) or non-stationary 
-sensors (e.g GPS collars)) with Space Time Raster Datasets (STRDS) based 
-on point locaitions in space and time. Raster values at the specific 
-space-time position are written into the user-defined <i>column</i> in 
+<em>v.what.strds.timestamp</em> matches points with a timestamp in
+the attribute table (<i>timestamp_column</i>) (e.g. recordings from
+stationary (temperature logger, wildlife camera traps) or non-stationary
+sensors (e.g GPS collars)) with Space Time Raster Datasets (STRDS) based
+on point locaitions in space and time. Raster values at the specific
+space-time position are written into the user-defined <i>column</i> in
 the attribute table of the input vector map.
 
 <h2>NOTES</h2>
 
-The SQLite DB backend does not provide specific date/datetime datatypes. 
-However, text columns with ISO formated date strings are supported for 
+The SQLite DB backend does not provide specific date/datetime datatypes.
+However, text columns with ISO formated date strings are supported for
 the <em>timestamp_column</em> as well.
 
 <p>
@@ -55,7 +55,7 @@ v.in.ascii in=sampling_points.txt out=sampling_points x=3 y=4 cat=1 \
     columns='cat int, sampling_time date, x double precision, y double precision' \
      separator="," skip=1
 
-# Assign LST values to sampling points at time of sampling 
+# Assign LST values to sampling points at time of sampling
 v.what.strds.timestamp input=sampling_points \
     timestamp_column=sampling_time column=lst_at_sampling_time \
     strds=LST_Day_monthly@modis_lst
@@ -85,19 +85,19 @@ r.what -n map=MOD11B3.A2015091.h11v05.single_LST_Day_6km@modis_lst \
 # add extra column for LST in degree Celsius
 v.db.addcolumn map=sampling_points column="lst_celsius double precision"
 # rescale original MODIS LST to degree Celsius
-v.db.update map=sampling_points column="lst_celsius" query_column="lst_at_sampling_time * 0.02 - 273.15" 
+v.db.update map=sampling_points column="lst_celsius" query_column="lst_at_sampling_time * 0.02 - 273.15"
 v.db.select sampling_points
 </pre></div>
 
 <h2>SEE ALSO</h2>
 <em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.what.rast.html">v.what.rast</a>, 
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.what.strds.html">v.what.strds</a>, 
+<a href="https://grass.osgeo.org/grass-stable/manuals/v.what.rast.html">v.what.rast</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/v.what.strds.html">v.what.strds</a>,
 <a href="https://grass.osgeo.org/grass-stable/manuals/t.rast.what.html">r.connectivity.corridors</a>
 </em>
 
 <h2>AUTHOR</h2>
 
 Stefan Blumentrath, Norwegian Institute for Nature Research (NINA)<br>
-Written for the 2018 <a href="https://irsae.no">IRSAE</a> GRASS GIS course at 
+Written for the 2018 <a href="https://irsae.no">IRSAE</a> GRASS GIS course at
 Studenterhytta, Oslo

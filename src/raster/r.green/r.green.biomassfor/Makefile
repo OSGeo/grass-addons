@@ -10,7 +10,7 @@ SUBDIRS = libforest\
           r.green.biomassfor.legal \
           r.green.biomassfor.impact \
           r.green.biomassfor.co2
-          
+
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
 default: parsubdirs htmldir

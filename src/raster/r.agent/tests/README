@@ -13,4 +13,3 @@ All tests except for tests.test_grassland should run without
 the GRASS environment. For tests.test_grassland you must start
 the tests inside the GRASS console respectively:
  GRASS 6.4.4 (foobar):~/path/r.agent.aco > unit2 discover -v -p "test*.py"
-

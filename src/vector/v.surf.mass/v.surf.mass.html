@@ -1,16 +1,16 @@
 <h2>DESCRIPTION</h2>
 
-<em>v.surf.mass</em> creates a raster surface from vector areas, 
-preserving the value of the area attribute. For example, if the selected 
-area attibute is the population count, the sum of all pixel values in a 
+<em>v.surf.mass</em> creates a raster surface from vector areas,
+preserving the value of the area attribute. For example, if the selected
+area attibute is the population count, the sum of all pixel values in a
 given area is equal to the area's population count.
 
 
 <h2>NOTES</h2>
 
-The current region needs to be prepared with 
-<a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a>, choosing a resolution such that 
-the smallest area is covered by at least four pixels. The current region 
+The current region needs to be prepared with
+<a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a>, choosing a resolution such that
+the smallest area is covered by at least four pixels. The current region
 should be completely inside the bounding box of the vector.
 
 
@@ -43,7 +43,7 @@ v.to.db map=precip_annual column=area option=area units=meters
 v.db.univar precip_annual column=area
 
 # The smallest area with some population is 1.20789e+08 square meters
-# and with a resolution of 5000 meters covered by appr. four pixels 
+# and with a resolution of 5000 meters covered by appr. four pixels
 # (depending on the shape of the area). Adjust region for that:
 g.region res=5000 -ap
 
@@ -76,8 +76,8 @@ d.rast.leg precip_annual_pycno
 
 <h2>REFERENCES</h2>
 
-Tobler WR. 1979. Smooth Pycnophylactic Interpolation for Geographical 
-Regions. Journal of the American Statistical Association, 74 (367): 
+Tobler WR. 1979. Smooth Pycnophylactic Interpolation for Geographical
+Regions. Journal of the American Statistical Association, 74 (367):
 519-530 (<a href="http://www.geog.ucsb.edu/~kclarke/Geography232/Pycno.pdf">PDF</a>).
 
 <h2>AUTHOR</h2>

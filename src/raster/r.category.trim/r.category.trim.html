@@ -6,7 +6,7 @@ setting the extent to something smaller than the extent of the
 original map using g.region and/or by setting a mask using r.mask,
 after which you simply run r.mapcalc "newmap = oldmap".
 
-<p>You may have noticed that when creating the new map, all 
+<p>You may have noticed that when creating the new map, all
 category labels and colour table of the original map are copied over
 to the new map, even for category values that are not in the new
 map. If you are working with categorical maps, this may not be what
@@ -64,7 +64,7 @@ the r.colors.out_sld plugin, and (2) in QGIS, use the SLD4raster plugin to
 convert this to a qml file.
 
 <p>When you use the option to recode the map, you need to set an
-output map as well. It uses the <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.recode.html">r.recode</a></em> 
+output map as well. It uses the <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.recode.html">r.recode</a></em>
 function, with the 'a' flag set, i.e., the region is
 aligned to the input raster map.
 

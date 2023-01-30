@@ -44,11 +44,11 @@ Matrix:
  ?: G_matrix_inverse
  ?: G_matrix_LU_solve
 
-sm_mlt:  
+sm_mlt:
 
-m_input: Do you mean something that would            
+m_input: Do you mean something that would
 initialise a matrix from an array like x[i][j]?
 
-v_input:Probably get params:                 
-[rows,cols] and G_matrix_init(), then set values with                           
+v_input:Probably get params:
+[rows,cols] and G_matrix_init(), then set values with
 G_set_matrix_element. See my remarks above re. G_vector_init()

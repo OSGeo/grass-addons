@@ -7,10 +7,10 @@ drainage networks.
 
 <h2>NOTES</h2>
 
-The module can work only if <b>direction</b> map, <b>stream_rast</b> 
+The module can work only if <b>direction</b> map, <b>stream_rast</b>
 map and the computational region have the same settings.
-It is also required that the <b>stream_rast</b> map and the 
-<b>direction</b> map come from the same source. This means if <b>stream_rast</b> 
+It is also required that the <b>stream_rast</b> map and the
+<b>direction</b> map come from the same source. This means if <b>stream_rast</b>
 map comes from
 <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html">r.stream.extract</a></em> also the
 <b>direction</b> map
@@ -19,7 +19,7 @@ must be used. If stream network was generated with MFD method also MFD
 direction map must be used. Nowadays if direction map comes from
 <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html">r.stream.extract</a></em> must be
 patched by direction map
-from <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a></em> (with 
+from <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a></em> (with
 <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.patch.html">r.patch</a></em>).
 
 <p>
@@ -85,7 +85,7 @@ table associated, where stream network topology can be stored. Because
 <em>r.stream.order</em> is prepared to work either
 with <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a></em> or
 <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html">r.stream.extract</a></em>, it may
-be used to create corrected stream vector from 
+be used to create corrected stream vector from
 <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a></em> results.
 
 <p>
@@ -164,8 +164,8 @@ the initial channel, it goes back to the last undetermined branch,
 assigns its Strahler order as Horton order and goes upstream to the
 next initial links. In that way stream orders remain unchanged from
 the point where Horton's order have been determined to the source.
-  
-<h4>Advantages and disadvantages of Horton's ordering</h4> 
+
+<h4>Advantages and disadvantages of Horton's ordering</h4>
 
 The main advantages of Horton's ordering is that it produces natural
 stream ordering with main streams and its tributaries. The main
@@ -216,7 +216,7 @@ formula: <tt>floor(log(shreve,2))+1</tt>
 r.mapcalc expr="drwal = int(log(shreve,2.0)) + 1.0"
 </pre></div>
 
-<h4>Advantages and disadvantages of Drwal's hierarchy</h4> 
+<h4>Advantages and disadvantages of Drwal's hierarchy</h4>
 
 The main advantages of Drwal's hierarchy is that it produces a natural
 stream ordering with which takes into advantage both ordering and
@@ -314,7 +314,7 @@ r.stream.order stream_rast=streams direction=direction elevation=elevation \
 podstawa oceny struktury odplywu na terenach m;odoglacjalnych</i>, Rozprawy i
 monografie, Gdansk 1982, 130 pp (in Polish)
 <li>Hack, J., (1957), <i>Studies of longitudinal stream profiles in Virginia and
-Maryland</i>, 
+Maryland</i>,
 U.S. Geological Survey Professional Paper, 294-B
 <li>Horton, R. E. (1945), <i>Erosional development of streams and their drainage
 basins: hydro-physical approach to quantitative morphology</i>, Geological

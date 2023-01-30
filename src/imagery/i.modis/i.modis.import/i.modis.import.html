@@ -105,7 +105,7 @@ i.modis.import -q files=/path/to/listfile mrtpath=/path/to/mrt spectral="( 1 )"
 <p>
 Import of a single subset of layers (i.e.: spectral="( 1 )") from each file of a
 list and write an <em>outfile</em> to be used with <em>t.register</em> to assign
-timestamps to maps in the temporal database and register them in a spacetime 
+timestamps to maps in the temporal database and register them in a spacetime
 dataset. This option uses GDAL:
 
 <div class="code"><pre>
@@ -152,7 +152,7 @@ i.modis.import -m files=$HOME/listfileMOD11A1.061.txt \
  spectral="( 1 1 0 0 0 0 0 0 0 0 0 0 )"
 </pre></div>
 
-Extract and apply the mandatory QA band (for more details see 
+Extract and apply the mandatory QA band (for more details see
 <a href="https://grass.osgeo.org/grass-stable/manuals/i.modis.qc.html">i.modis.qc</a>):
 
 <div class="code"><pre>
@@ -192,7 +192,7 @@ It is also possible to create a time series using the list of maps with start an
 end time written by <em>i.modis.import</em> with the <em>w</em> flag and outfile option.
 
 <div class="code"><pre>
-# Import mosaics of LST Day for all dates using the list of downloaded files from 
+# Import mosaics of LST Day for all dates using the list of downloaded files from
 # i.modis.download (see above) and get a list of the imported files along with
 # dates to use with t.register in the temporal framework
 i.modis.import -mw files=$HOME/listfileMOD11A1.061.txt \

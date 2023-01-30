@@ -13,7 +13,7 @@ C
 C The input is from stdin and has the following format
 C
 C First line contains one positive integer N, the diminension of the matrix
-C The the matrix of real values follows N reals per line each separated by 
+C The the matrix of real values follows N reals per line each separated by
 C white space:
 C
 C   3
@@ -36,7 +36,7 @@ C where E is the eigen value (and it relative importance)
 C and   V are the eigenvector for this eigenvalue.
 C       N are the normalized eigenvector for this eigenvalue.
 C       W are the N vector multiplied by the square root of the magnitude
-C         of the eigen value (E). 
+C         of the eigen value (E).
 
 C
        DOUBLE PRECISION A(30,30),W1,W2,WR(30),WI(30),Z(30,30),FV1(30)

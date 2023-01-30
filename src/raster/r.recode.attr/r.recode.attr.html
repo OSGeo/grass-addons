@@ -1,34 +1,34 @@
 
 <h2>DESCRIPTION</h2>
 
-The <em>r.reclass.attr</em> plugin let you reclass/recode a raster 
-layer based on values in a csv table. The csv file should include at 
-least two columns. The first column should correspond to (part of) 
-the raster values. The other columns should hold the 
-reclassification values. 
+The <em>r.reclass.attr</em> plugin let you reclass/recode a raster
+layer based on values in a csv table. The csv file should include at
+least two columns. The first column should correspond to (part of)
+the raster values. The other columns should hold the
+reclassification values.
 
-<p>For each column in the csv (comma separated text) file (except 
-the first one) a new map will be created, replacing the raster 
-values corresponding to the first column with those in the second 
-(3rd, 4th, etc) column. 
+<p>For each column in the csv (comma separated text) file (except
+the first one) a new map will be created, replacing the raster
+values corresponding to the first column with those in the second
+(3rd, 4th, etc) column.
 
-<p>The user can define the names of the output map(s). If only one 
-output name is provided and the rules file contains more than two 
-columns, the function will create output names by appending for each 
-recode layer the corresponding column name to the output name 
-provided by the user. 
+<p>The user can define the names of the output map(s). If only one
+output name is provided and the rules file contains more than two
+columns, the function will create output names by appending for each
+recode layer the corresponding column name to the output name
+provided by the user.
 
 <h2>NOTES</h2>
-The script uses r.recode to allow the user to reclass integer values 
+The script uses r.recode to allow the user to reclass integer values
 to floating point values. However, like <a href="https://grass.osgeo.org/grass-stable/manuals/r.reclass.html">r.reclass</a>
-you can only convert number one to one (and not like <a href="https://grass.osgeo.org/grass-stable/manuals/r.recode.html">r.recode</a> 
+you can only convert number one to one (and not like <a href="https://grass.osgeo.org/grass-stable/manuals/r.recode.html">r.recode</a>
 ranges of values to one value or a new range of values)
 
 <h2>TODO</h2>
 <ul>
-    <li>Use r.reclass instead of r.recode when possible (if input 
+    <li>Use r.reclass instead of r.recode when possible (if input
     raster is integer and all reclass values are integers)</li>
-    <li>Allow text files with different types of separators (now only 
+    <li>Allow text files with different types of separators (now only
     comma separated files)</li>
 </ul>
 
@@ -36,13 +36,13 @@ ranges of values to one value or a new range of values)
 
 <p>See <a href="http://pvanb.wordpress.com/2014/12/13/recode-your-raster-file-in-grass-gis-using-a-csv-file/">this blog post</a> for an example.
 
- 
+
 <h2>SEE ALSO</h2>
 <em>
 <a href="https://grass.osgeo.org/grass-stable/manuals/r.reclass.html">r.reclass</a>,
 <a href="https://grass.osgeo.org/grass-stable/manuals/r.recode.html">r.recode</a>
 </em>
- 
+
 <h2>AUTHOR</h2>
 
 Paulo van Breugel, paulo at ecodiv.org

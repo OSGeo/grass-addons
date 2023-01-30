@@ -8,7 +8,7 @@ features_selection.c
   and Maria Serafini
 
   for
-  
+
   Features Selction with SVM
 */
 
@@ -85,7 +85,7 @@ soft_margin_boosting.c
   The following routines are written and tested by Stefano Merler
 
   for
-  
+
   Soft Boosting implementation (quadratic programming)
 */
 
@@ -110,7 +110,7 @@ entropy.c
   The following routines are written and tested by Stefano Merler
 
   for
-  
+
   Entropy management
 */
 
@@ -138,7 +138,7 @@ min_quadratic.c
   The following routines are written and tested by Stefano Merler
 
   for
-  
+
   quadratic programming
 */
 
@@ -154,7 +154,7 @@ void mqc(M,m,n,H,h,mH,K,k,mK,eps,x,minvalue)
   int i,j,l;
 
   double **invM;
-  double **HM,**HMH,*tnH,**HMK,**KM,**KMK,*tnK,**tH,**tK;  
+  double **HM,**HMH,*tnH,**HMK,**KM,**KMK,*tnK,**tH,**tK;
   double mMm;
   double gap;
   double *alpha,*beta;
@@ -170,17 +170,17 @@ void mqc(M,m,n,H,h,mH,K,k,mK,eps,x,minvalue)
     HM=(double**)calloc(mH,sizeof(double*));
     for(i=0;i<mH;i++)
       HM[i]=(double*)calloc(n,sizeof(double));
-    
+
     HMH=(double**)calloc(mH,sizeof(double*));
     for(i=0;i<mH;i++)
       HMH[i]=(double*)calloc(mH,sizeof(double));
-    
+
     tnH=(double*)calloc(mH,sizeof(double));
-    
+
     tH=(double**)calloc(n,sizeof(double*));
     for(i=0;i<n;i++)
       tH[i]=(double*)calloc(mH,sizeof(double));
-    
+
     for(i=0;i<mH;i++)
       for(j=0;j<n;j++)
 	tH[j][i]=H[i][j];
@@ -196,17 +196,17 @@ void mqc(M,m,n,H,h,mH,K,k,mK,eps,x,minvalue)
     KM=(double**)calloc(mK,sizeof(double*));
     for(i=0;i<mK;i++)
       KM[i]=(double*)calloc(n,sizeof(double));
-    
+
     KMK=(double**)calloc(mK,sizeof(double*));
     for(i=0;i<mK;i++)
       KMK[i]=(double*)calloc(mK,sizeof(double));
-    
+
     tnK=(double*)calloc(mK,sizeof(double));
 
     tK=(double**)calloc(n,sizeof(double*));
     for(i=0;i<n;i++)
       tK[i]=(double*)calloc(mK,sizeof(double));
-    
+
     for(i=0;i<mK;i++)
       for(j=0;j<n;j++)
 	tK[j][i]=K[i][j];
@@ -227,15 +227,15 @@ void mqc(M,m,n,H,h,mH,K,k,mK,eps,x,minvalue)
   if(mH>0 && mK>0)
     product_double_matrix_double_matrix(HM,tK,mH,n,mK,HMK);
 
-  if(mK>0){  
+  if(mK>0){
     product_double_matrix_double_matrix(K,invM,mK,n,n,KM);
     product_double_matrix_double_matrix(KM,tK,mK,n,mK,KMK);
     product_double_matrix_double_vector(KM,m,mK,n,tnK);
     for(i=0;i<mK;i++)
       tnK[i] += 2.*k[i];
   }
-  
- 
+
+
   mMm=0.0;
   for(i=0;i<n;i++)
     for(j=0;j<n;j++)
@@ -252,20 +252,20 @@ void mqc(M,m,n,H,h,mH,K,k,mK,eps,x,minvalue)
   while(gap>eps){
     if(mH>0 && mK>0){
       for(l=0;l<mH;l++){
-	
+
 	tmpalpha=.0;
 	for(i=0;i<mH;i++)
 	  if(alpha[i]>0)
 	    tmpalpha += HMH[i][l]*alpha[i];
-	
+
 	tmpalpha += tnH[l];
-	
-	
+
+
 	for(i=0;i<mK;i++)
 	  tmpalpha += HMK[l][i]*beta[i];
-	
+
 	alpha[l] -= tmpalpha/HMH[l][l];
-	
+
 	if(alpha[l] < .0)
 	  alpha[l] = .0;
       }
@@ -274,27 +274,27 @@ void mqc(M,m,n,H,h,mH,K,k,mK,eps,x,minvalue)
 	tmpbeta=.0;
 	for(i=0;i<mK;i++)
 	  tmpbeta += KMK[i][l]*beta[i];
-	
+
 	tmpbeta += tnK[l];
-	
-	
+
+
 	for(i=0;i<mH;i++)
 	  if(alpha[i]>0)
 	    tmpbeta += HMK[i][l]*alpha[i];
-	
+
 	beta[l] -= tmpbeta/KMK[l][l];
 
       }
     }else if(mH>0 && mK==0){
       for(l=0;l<mH;l++){
-	
+
 	tmpalpha=.0;
 	for(i=0;i<mH;i++)
 	  if(alpha[i]>0)
 	    tmpalpha += HMH[i][l]*alpha[i];
-	
+
 	tmpalpha += tnH[l];
-	
+
 	alpha[l] -= tmpalpha/HMH[l][l];
 	if(alpha[l] < .0)
 	  alpha[l] = .0;
@@ -304,9 +304,9 @@ void mqc(M,m,n,H,h,mH,K,k,mK,eps,x,minvalue)
 	tmpbeta=.0;
 	for(i=0;i<mK;i++)
 	  tmpbeta += KMK[i][l]*beta[i];
-	
+
 	tmpbeta += tnK[l];
-	
+
 	beta[l] -= tmpbeta/KMK[l][l];
 
       }
@@ -334,12 +334,12 @@ void mqc(M,m,n,H,h,mH,K,k,mK,eps,x,minvalue)
       for(j=0;j<mK;j++)
 	tmpL += beta[i]*beta[j]*KMK[i][j];
     L -= .5*tmpL;
-    
+
     tmpL=.0;
     for(i=0;i<mK;i++)
       tmpL += beta[i]*tnK[i];
     L -= tmpL;
-   
+
     tmpL=.0;
     for(i=0;i<mH;i++)
       if(alpha[i]>0)
@@ -348,7 +348,7 @@ void mqc(M,m,n,H,h,mH,K,k,mK,eps,x,minvalue)
     L -= tmpL;
 
     L *= .5;
-    
+
     /*value of the objective function*/
     f=mMm-L;
 
@@ -362,7 +362,7 @@ void mqc(M,m,n,H,h,mH,K,k,mK,eps,x,minvalue)
     for(i=0;i<mK;i++)
       tmpf += beta[i]*tnK[i];
     f -= .5*tmpf;
-    
+
     /* gap between dual Lagrangian and objective function (stopping criteria)*/
     gap=fabs((f-L)/(f+1.));
     printf("%f\n",gap);
@@ -373,14 +373,14 @@ void mqc(M,m,n,H,h,mH,K,k,mK,eps,x,minvalue)
 
   for(l=0;l<n;l++){
     x[l] = .0;
-    
+
     for(i=0;i<mH;i++)
       if(alpha[i]>0)
 	x[l] +=HM[i][l]*alpha[i];
 
     for(i=0;i<mK;i++)
       x[l] +=KM[i][l]*beta[i];
-    
+
     for(i=0;i<n;i++)
       x[l] +=invM[l][i]*m[i];
 
@@ -393,7 +393,7 @@ void mqc(M,m,n,H,h,mH,K,k,mK,eps,x,minvalue)
 
   /*value of the function*/
   *minvalue=f;
-  
+
 
   /*free memory*/
   for(i=0;i<n;i++)
@@ -433,7 +433,7 @@ void mqc(M,m,n,H,h,mH,K,k,mK,eps,x,minvalue)
       free(HMK[i]);
     free(HMK);
   }
-    
+
 }
 
 
@@ -445,13 +445,13 @@ blob.c
   The following routines are written and tested by Stefano Merler
 
   for
-  
+
   Blob and BlobSites structure management
 */
 
 void extract_sites_from_blob(blobs,npoints,nblobs,cellhd,sites,matrix)
      /*extract geographical coordinates of the blob centers
-       and store results in a BlobSites structure, containing the minimum 
+       and store results in a BlobSites structure, containing the minimum
        value of the blob too (computation based on matrix)*/
      Blob *blobs;
      int npoints,nblobs;
@@ -478,8 +478,8 @@ test.c
   The following routines are borrowed from "Numerical Recipes in C"
   and rearranged by Stefano Merler
 
-  for 
-  
+  for
+
   statistical test computation
 
   Supported functions for:
@@ -490,7 +490,7 @@ test.c
 
 void ksone_normal(data,n,p1,p2,d,prob)
      /*
-       KS test for normal distribution. data is the array of data 
+       KS test for normal distribution. data is the array of data
        of length n. p1 and p2 mean and sd of the normal distribution
        tested. On output d is the value of the test and prob
        the p-value
@@ -498,10 +498,10 @@ void ksone_normal(data,n,p1,p2,d,prob)
      double *data,*d,*prob;
      int n;
      double p1,p2;
-     
+
 void kstwo(data1,n1,data2,n2,d,prob)
      /*
-       KS test for testing 2 distribution. data1 is the first 
+       KS test for testing 2 distribution. data1 is the first
        array of data of length n1. data2 is the second array
        of data of length n2. On output d is the value of the
        test and prob the p-value
@@ -522,7 +522,7 @@ double cumulative_normal_distribution(mu,sigma,x)
        distribution with mean mu and
        standard deviation sigma, i.e.
        integral from -Inf to x
-  
+
      */
      double mu,sigma,x;
 void tutest(data1,n1,data2,n2,t,prob)
@@ -539,7 +539,7 @@ read_models.c
   The following routines are written and tested by Stefano Merler
 
   for
-  
+
   loading different model types
 */
 
@@ -563,7 +563,7 @@ nn.c
   The following routines are written and tested by Stefano Merler
 
   for
-  
+
   structure NearestNeighbor management
 */
 
@@ -578,38 +578,38 @@ void compute_nn(nn,nsamples,nvar,data,data_class)
      int *data_class;
 void write_nn(file,nn,features)
      /*
-       write nn structure to a file 
+       write nn structure to a file
      */
      char *file;
      NearestNeighbor *nn;
      Features *features;
 int predict_nn_multiclass(nn,x,k,nclasses,classes)
-     /* 
-	multiclass problems: given a nn model, return the predicted class of a test point x 
+     /*
+	multiclass problems: given a nn model, return the predicted class of a test point x
 	using k-nearest neighbor for the prediction. the array classes (of length nclasses)
 	shall contain all the possible classes to be predicted
      */
-     NearestNeighbor *nn;	
+     NearestNeighbor *nn;
      double *x;
      int k;
      int *classes;
      int nclasses;
 double predict_nn_2class(nn,x,k,nclasses,classes)
-     /* 
-	2 class problems: given a nn model, return the majority of the class (with sign) 
-	of a test point x using k-nearest neighbor for the prediction. 
-	the array classes (of length nclasses)	shall contain all the possible 
+     /*
+	2 class problems: given a nn model, return the majority of the class (with sign)
+	of a test point x using k-nearest neighbor for the prediction.
+	the array classes (of length nclasses)	shall contain all the possible
 	classes to be predicted
      */
-     NearestNeighbor *nn;	
+     NearestNeighbor *nn;
      double *x;
      int k;
      int *classes;
      int nclasses;
 void test_nn(nn,features,k,file)
      /*
-       test nn model on a set of data (features) using k-nearest neighbor 
-       and write the results into a file. To standard output accuracy 
+       test nn model on a set of data (features) using k-nearest neighbor
+       and write the results into a file. To standard output accuracy
        and error on each class
      */
      NearestNeighbor *nn;
@@ -625,7 +625,7 @@ svm.c
   The following routines are written and tested by Stefano Merler
 
   for
-  
+
   structures SupportVectorMachine adn  BSupportVectorMachine management
 */
 
@@ -644,7 +644,7 @@ void estimate_cv_error(SVM)
      SupportVectorMachine *SVM;
 void write_svm(file,svm,features)
      /*
-       write svm structure to a file 
+       write svm structure to a file
      */
      SupportVectorMachine *svm;
      char *file;
@@ -658,7 +658,7 @@ void test_svm(svm,features,file)
      Features *features;
      char *file;
 double predict_svm(svm,x)
-     /* 
+     /*
 	given a svm model, return the predicted margin of a test point x
      */
      SupportVectorMachine *svm;
@@ -706,15 +706,15 @@ void compute_svm_boosting(bsvm,boosting,w,nsamples,nvar,data,data_class,
      int weights_boosting;
 
 double predict_bsvm(bsvm,x)
-     /* 
+     /*
 	given a bsvm model, return the predicted margin of a test point x
      */
-     BSupportVectorMachine *bsvm;	
+     BSupportVectorMachine *bsvm;
      double *x;
 void test_bsvm(bsvm,features,file)
      /*
-       test bagging or boosting svm model on a set of data (features) 
-       and write the results into a file. To standard output accuracy 
+       test bagging or boosting svm model on a set of data (features)
+       and write the results into a file. To standard output accuracy
        and error on each class
      */
      BSupportVectorMachine *bsvm;
@@ -733,7 +733,7 @@ features.c
   The following routines are written and tested by Stefano Merler
 
   for
-  
+
   structure Feature management
 */
 void compute_features(features)
@@ -786,7 +786,7 @@ void read_features(file,features,npc)
 					    sizeof(double));
     }
     features->class=(int *)G_calloc(features->nexamples,sizeof(int));
-    
+
     line=GetLine(fp);
     line=GetLine(fp);
 void read_header_features(fp,features)
@@ -804,7 +804,7 @@ gm.c
   The following routines are written and tested by Stefano Merler
 
   for
-  
+
   structure GaussianMixture management
 */
 
@@ -823,7 +823,7 @@ void compute_gm(gm,nsamples,nvar,data,data_class,nclasses,classes)
      int nclasses;
 void write_gm(file,gm,features)
      /*
-       write gm structure to a file 
+       write gm structure to a file
      */
      char *file;
      GaussianMixture *gm;
@@ -842,15 +842,15 @@ void compute_test_gm(gm)
      */
      GaussianMixture *gm;
 int predict_gm_multiclass(gm,x)
-     /* 
-	multiclass problems: given a gm model, return the predicted class 
+     /*
+	multiclass problems: given a gm model, return the predicted class
 	of a test point x
      */
      GaussianMixture *gm;
      double *x;
 double predict_gm_2class(gm,x)
-     /* 
-	2 class problems: given a gm model , return the posterior of class (with sign) for 
+     /*
+	2 class problems: given a gm model , return the posterior of class (with sign) for
 	a test point x
      */
      GaussianMixture *gm;
@@ -864,12 +864,12 @@ training.c
   The following routines are written and tested by Stefano Merler
 
   for
-  
+
   structure Training management
 */
 
 void inizialize_training(training)
-     /* 
+     /*
 	alloc memory for training (see global.h for details)
      */
      Training *training;
@@ -892,18 +892,18 @@ tree.c
   The following routines are written and tested by Stefano Merler
 
   for
-  
+
   structure Tree and BTree management
 */
 
 void  compute_tree(tree,nsamples,nvar,data,data_class,nclasses,
 		   classes,stamps,minsize,costs)
      /*
-       receives in input training data of dimensions nsamples x nvar, 
+       receives in input training data of dimensions nsamples x nvar,
        with class labels data_class, the possible classes (of length nclasses)
-       and computes a tree model; optionally, the user can build stamps 
-       and decide the minimal number of cases within a node as 
-       stopping criteria. 
+       and computes a tree model; optionally, the user can build stamps
+       and decide the minimal number of cases within a node as
+       stopping criteria.
      */
      Tree *tree;
      int nsamples,nvar;
@@ -925,12 +925,12 @@ void compute_tree_boosting(btree,boosting,w,nsamples,nvar,data,data_class,
 			   nclasses,classes, stamps,minsize,weights_boosting,
 			   costs)
      /*
-       receives in input training data of dimensions nsamples x nvar, 
+       receives in input training data of dimensions nsamples x nvar,
        with class labels data_class, the possible classes (of length nclasses)
        and computes a boosting tree model (number of models = boosting) using w
        as parameter for the cost sensitive procedure;
-       optionally, the user can build stamps and decide the 
-       minimal number of cases within a node as stopping criteria. 
+       optionally, the user can build stamps and decide the
+       minimal number of cases within a node as stopping criteria.
      */
      BTree *btree;
      int boosting;
@@ -947,11 +947,11 @@ void compute_tree_boosting(btree,boosting,w,nsamples,nvar,data,data_class,
 void compute_tree_bagging(btree,bagging,nsamples,nvar,data,data_class,
 			 nclasses,classes,stamps,minsize,costs)
      /*
-       receives in input training data of dimensions nsamples x nvar, 
+       receives in input training data of dimensions nsamples x nvar,
        with class labels data_class, the possible classes (of length nclasses)
        and computes a bagging tree model (number of models = bagging);
-       optionally, the user can build stamps and decide the 
-       minimal number of cases within a node as stopping criteria. 
+       optionally, the user can build stamps and decide the
+       minimal number of cases within a node as stopping criteria.
      */
      BTree *btree;
      int bagging;
@@ -971,18 +971,18 @@ void write_bagging_boosting_tree(file,btree,features)
      BTree *btree;
      Features *features;
 int predict_tree_multiclass(tree,x)
-     /* 
-	multiclass problems: given a tree model, return the predicted class 
+     /*
+	multiclass problems: given a tree model, return the predicted class
 	of a test point x
      */
-     Tree *tree;	
+     Tree *tree;
      double *x;
 double predict_tree_2class(tree,x)
-     /* 
+     /*
 	2 class problems: given a tree model, return the proportion of data
 	in the terminal node (with sign) of a test point x
      */
-     Tree *tree;	
+     Tree *tree;
      double *x;
 void test_tree(tree,features,file)
      /*
@@ -993,24 +993,24 @@ void test_tree(tree,features,file)
      Features *features;
      char *file;
 double predict_btree_2class(btree,x)
-     /* 
+     /*
 	for 2 classes problems: given a btree model, return the predicted
 	margin of a test point x
      */
-     BTree *btree;	
+     BTree *btree;
      double *x;
 int predict_btree_multiclass(btree,x,nclasses,classes)
-     /* 
+     /*
 	for multiclasses problems: given a btree model, return the predicted
 	class of a test point x
      */
-     BTree *btree;	
+     BTree *btree;
      double *x;
      int *classes;
      int nclasses;
 void test_btree(btree,features,file)
      /*
-       test a btree model on a set of data 
+       test a btree model on a set of data
        (features) and write the results into a file. To standard output
        accuracy and error on each class
      */
@@ -1026,10 +1026,10 @@ matrix.c
   The following routines are written and tested by Stefano Merler
 
   for
-  
+
   management of matrices and arrays
 
-  Supported function for 
+  Supported function for
   - product matrix matrix or vector matrix
   - transpose matrix
   - conversion of matrix to array
@@ -1038,18 +1038,18 @@ matrix.c
 
 void product_double_matrix_double_matrix(x,y,r,cr,c,out)
      /*
-       product of matrices x * y, 
-       r = rows of x 
+       product of matrices x * y,
+       r = rows of x
        cr= cols of x = rows of y
        c = cols of y
-       out is the r x c matrix. 
+       out is the r x c matrix.
      */
      double **x, **y, **out;
      int r,cr,c;
 void product_double_matrix_double_vector(x,y,r,cr,out)
      /*
-       vector x matrix y * x, 
-       r = rows of x 
+       vector x matrix y * x,
+       r = rows of x
        cr= cols of x = elements of y
        out is the output vector (r elements) . Memory for out is not stored.
      */
@@ -1057,16 +1057,16 @@ void product_double_matrix_double_vector(x,y,r,cr,out)
      int r,cr;
 void product_double_vector_double_matrix(x,y,rr,c,out)
      /*
-       vector x matrix y * x, 
-       rr = rows of x = elements of y 
-       c= cols of x 
+       vector x matrix y * x,
+       rr = rows of x = elements of y
+       c= cols of x
        out is the output vector (c elements) . Memory for out is not stored.
      */
      double **x, *y, *out;
      int rr,c;
 void transpose_double_matrix(x,n)
      /*
-       transpose, and overwrite, the input matrix x 
+       transpose, and overwrite, the input matrix x
        of dimension n x n
      */
      double **x;
@@ -1083,7 +1083,7 @@ void double_matrix_to_vector(mat,rows,cols,vect)
 void extract_portion_of_double_matrix(r,c,br,bc,mat,wind)
      /*
        extract a squared portion of a matrix mat
-       given a the indeces of the center [r,c] 
+       given a the indeces of the center [r,c]
        and the semilength of the borders [br,bc]
        Output to array wind
      */
@@ -1105,13 +1105,13 @@ pca.c
   The following routines are written and tested by Stefano Merler
 
   for
-  
+
   structure Pca management
 */
 
 
 void inizialize_pca(pca,dim)
-     /* 
+     /*
 	alloc memory for Pca structure pca of dimension dim
      */
      Pca *pca;
@@ -1131,9 +1131,9 @@ random.c
 
 /*
   The following routines are borrowed from "Numerical Recipes in C"
-  
-  for 
-  
+
+  for
+
   extraction of samples from normal and uniform distributions
 */
 
@@ -1158,7 +1158,7 @@ bootstrap.c
   The following routines are written and tested by Stefano Merler
 
   for
-  
+
   bootstrap, probabily based, samples estraction
 */
 
@@ -1170,7 +1170,7 @@ void Bootsamples(n,prob,random_labels)
      int n;
      double *prob;
      int *random_labels;
-     
+
 void Bootsamples_rseed(n,prob,random_labels,idum)
      /*
        given an array of probabilities of length n, extract a bootstrap sample
@@ -1180,7 +1180,7 @@ void Bootsamples_rseed(n,prob,random_labels,idum)
      double *prob;
      int *random_labels;
      int *idum;
-     
+
 
 #########################
 dist.c
@@ -1190,7 +1190,7 @@ dist.c
   The following routines are written and tested by Stefano Merler
 
   for
-  
+
   Distance between arrays computation
 */
 
@@ -1228,17 +1228,17 @@ open.c
   The following routines are written and tested by Stefano Merler
 
   for
-  
+
   open new raster maps
 */
 
 int open_new_CELL(name)
-     /* 
+     /*
 	open a new raster map of name name in CELL format
      */
      char *name;
 int open_new_DCELL(name)
-     /* 
+     /*
 	open a new raster map of name name in DELL format
      */
      char *name;
@@ -1251,18 +1251,18 @@ percent.c
   The following routines are written and tested by Stefano Merler
 
   for
-  
+
   status of a loop computation
 */
 
 void percent (n,d,s)
      /*
        compute percentage (and print to stderr)
-       of work done within a loop. 
+       of work done within a loop.
        n actual number, d total number, s step
      */
      int n,d,s;
-     
+
 
 #########################
 getline.c
@@ -1272,7 +1272,7 @@ getline.c
   The following routine is written and tested by Stefano Merler
 
   for
-  
+
   getting a line from a buffered stream
 */
 
@@ -1288,15 +1288,15 @@ sort.c
 
 /*
   The following routines is borrowed from "Numerical Recipes in C"
-  
+
   for
 
-  sortinf of an array 
+  sortinf of an array
 */
 
 void shell(n,arr)
-     /*  
-	 sort and rearranges an array arr of length n 
+     /*
+	 sort and rearranges an array arr of length n
 	 into ascending order
      */
      double *arr;
@@ -1307,8 +1307,8 @@ void indexx_1(n,arrin,indx)
        without modify it. The order of the sording will be
        contained into the indx array
      */
-     int n, indx[];	
-     double arrin[];	
+     int n, indx[];
+     double arrin[];
 
 #########################
 integration.c
@@ -1319,10 +1319,10 @@ integration.c
   other are written and tested by Stefano Merler
 
   for
-  
+
   integration of function using the trapezoidal rule
 
-  Supported function for 
+  Supported function for
   - non-parametric functions
   - functions depending from 1 parameter
   - functions depending from 2 parameters
@@ -1330,7 +1330,7 @@ integration.c
 
 
 double trapzd(func,a,b,n)
-     /* 
+     /*
 	trapezoidal rule for func=func(x) on interval [a,b]
 	n = steps number
      */
@@ -1338,7 +1338,7 @@ double trapzd(func,a,b,n)
      double (*func)();
      int n;
 double trapzd1(func,p1,a,b,n)
-     /* 
+     /*
 	trapezoidal rule for func=func(x; p1) on interval [a,b]
 	p1 free parameter
 	n = steps number
@@ -1348,7 +1348,7 @@ double trapzd1(func,p1,a,b,n)
      double (*func)();
      int n;
 double trapzd2(func,p1,p2,a,b,n)
-     /* 
+     /*
 	trapezoidal rule for func=func(x; p1,p2) on interval [a,b]
 	p1 and p2 free parameters
 	n = steps number
@@ -1358,13 +1358,13 @@ double trapzd2(func,p1,p2,a,b,n)
      double (*func)();
      int n;
 double qtrap(func,a,b)
-     /* 
+     /*
 	trapezoidal rule for func=func(x) with stopping rule
      */
      double a,b;
      double (*func)();
 double qtrap1(func,p1,a,b)
-     /* 
+     /*
 	trapezoidal rule for func=func(x) on interval [a,b]
 	with internal stopping rule
 	p1  free parameter
@@ -1373,7 +1373,7 @@ double qtrap1(func,p1,a,b)
      double p1;
      double (*func)();
 double qtrap2(func,p1,p2,a,b)
-     /* 
+     /*
 	trapezoidal rule for func=func(x) on interval [a,b]
 	with internal stopping rule
 	p1 and p2 free parameters
@@ -1398,7 +1398,7 @@ eigen.c
 
 void tred2(a,n,d,e)
      /*
-       Houserholder method for reduction of simmetric n x n matrix a to 
+       Houserholder method for reduction of simmetric n x n matrix a to
        tridiagonal form: on output a contains the ortogonal transformation
        matrix, d contains the diagonal elements, and e the off-diagonal.
       */
@@ -1406,27 +1406,27 @@ void tred2(a,n,d,e)
      int n;
 int tqli(d,e,n,z)
      /*
-       QL algorithm: compute eigenvalues and eigenvectors 
-       of simmetric tridiagonal matrix. On input, d diagonal 
-       and e off-diagonal elements of the matrix (usually the 
+       QL algorithm: compute eigenvalues and eigenvectors
+       of simmetric tridiagonal matrix. On input, d diagonal
+       and e off-diagonal elements of the matrix (usually the
        output of tred2), z the matrix output of tred2.
        On output d eigenvalues, z eigenvectors.
       */
      double d[],e[],**z;
      int n;
-void eigen_of_double_matrix(M, Vectors, lambda, n) 
-     /* 
-	Computes eigenvalues (and eigen vectors if desired) for	
+void eigen_of_double_matrix(M, Vectors, lambda, n)
+     /*
+	Computes eigenvalues (and eigen vectors if desired) for
 	symmetric matrix M of dimension n x n.
  	Vectors and lambda contain the (obvious) output.
      */
-     double 	**M;	
-     double  **Vectors; 
-     double  *lambda;   
-     int	n;	
+     double 	**M;
+     double  **Vectors;
+     double  *lambda;
+     int	n;
 void eigsrt(d,z,bands)
-     /* sort eigenvalues d in descending order, and rearranges 
-	eigenvectors z correspondingly. bands contains the number 
+     /* sort eigenvalues d in descending order, and rearranges
+	eigenvectors z correspondingly. bands contains the number
 	of eigenvalues = rows of z = cols of z
      */
      double *d,**z;
@@ -1439,7 +1439,7 @@ stats.c
 /*
   The following routing are written and tested by Stefano Merler
 
-  for 
+  for
 
   statistical description of data
 
@@ -1452,47 +1452,47 @@ stats.c
 */
 
 double mean_of_double_array(x,n)
-     /* 
+     /*
 	compute the mean of an array x of lenth n
      */
      double *x;
      int n;
 double var_of_double_array(x,n)
-     /* 
+     /*
 	compute the var of an array x of length n
      */
      double *x;
      int n;
 double sd_of_double_array(x,n)
-     /* 
+     /*
 	compute the sd of an array x of length n
      */
      double *x;
      int n;
 double var_of_double_array_given_mean(x,n,mean)
-     /* 
+     /*
 	compute the var of an array x of length n
-	without computation of the mean mean, 
+	without computation of the mean mean,
 	given in input
      */
      double *x;
      double mean;
      int n;
 double sd_of_double_array_given_mean(x,n,mean)
-     /* 
+     /*
 	compute the sd of an array x of length n
-	without computation of the mean, 
+	without computation of the mean,
 	given in input
      */
      double *x;
      double mean;
      int n;
 void mean_and_var_of_double_matrix_by_row(x,n,m,mean,var)
-     /* 
+     /*
 	each row of the input matrix x (dimension n x m)
-	is considered an independent array of data. 
-	The function compute mean and var of each row, 	
-	stored within the array mean and var. 
+	is considered an independent array of data.
+	The function compute mean and var of each row,
+	stored within the array mean and var.
      */
      double **x;
      int n;
@@ -1500,11 +1500,11 @@ void mean_and_var_of_double_matrix_by_row(x,n,m,mean,var)
      double *mean;
      double *var;
 void mean_and_sd_of_double_matrix_by_row(x,n,m,mean,sd)
-     /* 
+     /*
 	each row of the input matrix x (dimension n x m)
-	is considered an independent array of data. 
-	The function compute mean and sd of each row, 	
-	stored within the array mean and sd. 
+	is considered an independent array of data.
+	The function compute mean and sd of each row,
+	stored within the array mean and sd.
      */
      double **x;
      int n;
@@ -1512,11 +1512,11 @@ void mean_and_sd_of_double_matrix_by_row(x,n,m,mean,sd)
      double *mean;
      double *sd;
 void mean_and_var_of_double_matrix_by_col(x,n,m,mean,var)
-     /* 
+     /*
 	each col of the input matrix x (dimension n x m)
-	is considered an independent array of data. 
-	The function compute mean and var of each col, 	
-	stored within the array mean and sd. 
+	is considered an independent array of data.
+	The function compute mean and var of each col,
+	stored within the array mean and sd.
      */
      double **x;
      int n;
@@ -1524,11 +1524,11 @@ void mean_and_var_of_double_matrix_by_col(x,n,m,mean,var)
      double *mean;
      double *var;
 void mean_and_sd_of_double_matrix_by_col(x,n,m,mean,sd)
-     /* 
+     /*
 	each col of the input matrix x (dimension n x m)
-	is considered an independent array of data. 
-	The function compute mean and sd of each col, 	
-	stored within the array mean and sd. 
+	is considered an independent array of data.
+	The function compute mean and sd of each col,
+	stored within the array mean and sd.
      */
      double **x;
      int n;
@@ -1536,7 +1536,7 @@ void mean_and_sd_of_double_matrix_by_col(x,n,m,mean,sd)
      double *mean;
      double *sd;
 double auto_covariance_of_2_double_array(x,y,n)
-     /* 
+     /*
 	compute the auto covariance of 2 array x and y of length n
      */
      double *x;
@@ -1555,7 +1555,7 @@ double entropy(p,n)
        compute and return entropy of an array p (his components to be intended
        as proportions) of length n
      */
-     double *p;	
+     double *p;
      int n;
 double gaussian_kernel(x,y,n,kp)
      /*
@@ -1589,7 +1589,7 @@ lu.c
   other are written and tested by Stefano Merler
 
   for
-  
+
   LU matrix decomposition, linear equation solution (Ax=b), inversion
   of matrices and deteminant computation
 */
@@ -1601,23 +1601,23 @@ void ludcmp(a,n,indx,d)
      int n,*indx;
      double **a,*d;
 void lubksb(a,n,indx,b)
-     /* 
+     /*
 	Solve linear equation Ax=B
-	a has to be a LU decomposed n x n matrix, and indx 
+	a has to be a LU decomposed n x n matrix, and indx
 	is usually the output of ludcmp.
 	On output, b contains the solution
      */
      double **a,b[];
      int n,*indx;
 void inverse_of_double_matrix(A,inv_A,n)
-     /* 
+     /*
 	Inverse of a matrix A of dimension n x n.
 	Output stored in inv_A
-     */	
+     */
      double **A,**inv_A;
      int n;
 double determinant_of_double_matrix(A,n)
-     /* 
+     /*
 	determinant of a double matrix A of dimension n x n
      */
      double **A;

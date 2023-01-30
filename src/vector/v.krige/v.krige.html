@@ -85,7 +85,7 @@ there are lots of guides over the Internet to help you.
 
 <h3>Computation time issues</h3>
 
-Please note that although high number of input data points and/or high 
+Please note that although high number of input data points and/or high
 region resolution contribute to a better output, both will also slow down
 the kriging calculation.
 
@@ -125,7 +125,7 @@ Check the result of previous line ("number of NULL attributes" must be
 v.univar map=rand2k_elev_filt type=point column=elevation
 </pre></div>
 
-<b>Part 3: reconstruct DEM through kriging</b>. The simplest way to run 
+<b>Part 3: reconstruct DEM through kriging</b>. The simplest way to run
 <em>v.krige</em> from CLI is using automatic variogram fit (note:
 requires R's automap package). Output map name is optional, the
 modules creates it automatically appending "_kriging" to the input
@@ -147,7 +147,7 @@ v.krige input=rand2k_elev_filt column=elevation \
 # define variogram model, create variance map as well
 v.krige input=rand2k_elev_filt column=elevation \
         output=rand2k_elev_filt_kriging output_var=rand2k_elev_filt_kriging_var \
-        model=Mat psill=2500 nugget=0 range=1000 
+        model=Mat psill=2500 nugget=0 range=1000
 </pre></div>
 
 Or run wxGUI, to interactively fit the variogram and explore options:
@@ -198,7 +198,7 @@ Overview: <a href="https://grasswiki.osgeo.org/wiki/Interpolation">Interpolation
 <h2>REFERENCES</h2>
 
 Isaaks and Srivastava, 1989: "An Introduction to Applied Geostatistics"
- (ISBN 0-19-505013-4) 
+ (ISBN 0-19-505013-4)
 
 
 <h2>AUTHOR</h2>

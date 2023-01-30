@@ -12,7 +12,7 @@ Instead of the minimum size of the exterior watershed basin you can also enter t
 
 <h2>EXPLANATION</h2>
 
-The maximum potential hydropower establishes the theoretical maximum of energy that the study basin can produce assuming that all water resources are used to produce energy.<br> 
+The maximum potential hydropower establishes the theoretical maximum of energy that the study basin can produce assuming that all water resources are used to produce energy.<br>
 In real life this situation does not arise, because of environmental flows, other water uses and economic cost analysis.<br><br>
 
 The underlying methods of calculation explained below are based on the considerations and formulas used in the article "A GIS-based assessment of maximum potential hydropower production in La Plata Basin under global changes" written by M. Peviani, I. Popescu, L. Brandimarte, J.Alterach and P. Cuya. <br><br>
@@ -28,7 +28,7 @@ The scheme divides the subbasins in upper portions, whose energy production is o
 
 <center>
 <img src="r_green_hydro_theoretical_streams.png" alt="structure"><br><br>
-Subbasin scheme to calculate maximum potential hydropower 
+Subbasin scheme to calculate maximum potential hydropower
 </center><br><br>
 
 The maximum potential hydropower for the upstream subbasins is given by the energy formula applied to the upstream inflows:<br><br>
@@ -66,7 +66,7 @@ The total maximum hydropower potential of the overall given basin is the sum of 
 
 <h2>EXAMPLES</h2>
 
-<b>EXAMPLE 1</b><br><br> 
+<b>EXAMPLE 1</b><br><br>
 
 This example is based on the case-study of the Gesso and Vermenagna valleys located in the Piedmont Region, in South-West Italy, close to the Italian and French border.<br><br>
 
@@ -81,9 +81,9 @@ For a faster run of this example, the input maps elevation and discharge are lim
 r.mask vector=boundary.<br><br>
 
 To create the map of this example, you can type in the following code in the command console or if you prefer you can only type in the main function r.green.hydro.theoretical in the console and specify the other parameters of the code like elevation or discharge by using the graphical user interface.<br>
-<div class="code"><pre>                             
+<div class="code"><pre>
 r.green.hydro.theoretical elevation=elevation discharge=naturaldischarge rivers=streams lakes=lakes basins=basin stream=stream output=out</pre></div><br>
- 
+
 In the map below, you can see the output vector map with the basin potential.<br><br>
 <center><br>
 <img src="r_green_hydro_theoretical_output.png" alt="output park"><br><br>
