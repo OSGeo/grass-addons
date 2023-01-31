@@ -124,9 +124,8 @@ git checkout -b new-feature
 ### Making changes
 
 You can use your favorite tools to change source code or other files
-in the local copy of the code. When make changes, please follow
-Submitting Guidelines at
-<http://trac.osgeo.org/grass/wiki/Submitting>.
+in the local copy of the code. When make changes, please follow the
+[Submitting Guidelines] (https://github.com/OSGeo/grass/blob/main/doc/development/submitting/submitting.md).
 
 ### Committing
 
