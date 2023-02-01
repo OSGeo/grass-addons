@@ -1,9 +1,10 @@
+---
 name: Python Black Formatting
 
 on:
   push:
     branches:
-    - grass*
+      - grass*
   pull_request:
 
 jobs:
@@ -16,8 +17,8 @@ jobs:
       matrix:
         include:
           - os: ubuntu-22.04
-            python-version: "3.10"
-            black-version: "22.3.0"
+            python-version: '3.10'
+            black-version: 22.3.0
 
     runs-on: ${{ matrix.os }}
 

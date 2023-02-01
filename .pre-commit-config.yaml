@@ -40,3 +40,9 @@ repos:
     hooks:
       - id: clang-format
         types_or: [c, c++, javascript, json, objective-c]
+  - repo: https://github.com/adrienverge/yamllint.git
+    rev: v1.29.0
+    hooks:
+      - id: yamllint
+        args: [--format, parsable, --strict, -d,
+               '{extends: default, rules: {truthy: disable, line-length: {max: 120, allow-non-breakable-words: true}}}']
