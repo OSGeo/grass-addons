@@ -1,11 +1,12 @@
+---
 name: Build and test
 
 on:
   push:
   pull_request:
   schedule:
-  # 01:00 Pacific Time (in UTC), every day (late night PT)
-  - cron:  '0 8 * * *'
+    # 01:00 Pacific Time (in UTC), every day (late night PT)
+    - cron: 0 8 * * *
 
 jobs:
   build:
@@ -21,95 +22,96 @@ jobs:
         # only.
         include:
           - grass-version: main
-            python-version: "3.10"
+            python-version: '3.10'
           - grass-version: releasebranch_8_2
-            python-version: "3.10"
+            python-version: '3.10'
       fail-fast: false
 
     steps:
 
-    - name: Checkout core
-      uses: actions/checkout@v3
-      with:
-        repository: OSGeo/grass
-        ref: ${{ matrix.grass-version }}
-        path: grass
+      - name: Checkout core
+        uses: actions/checkout@v3
+        with:
+          repository: OSGeo/grass
+          ref: ${{ matrix.grass-version }}
+          path: grass
 
-    - name: Checkout addons
-      uses: actions/checkout@v3
-      with:
-        path: grass-addons
+      - name: Checkout addons
+        uses: actions/checkout@v3
+        with:
+          path: grass-addons
 
-    - name: Get dependencies
-      run: |
-        sudo apt-get update -y
-        sudo apt-get install -y wget git gawk findutils
-        xargs -a <(awk '! /^ *(#|$)/' "grass-addons/.github/workflows/apt.txt") -r -- \
-            sudo apt-get install -y --no-install-recommends --no-install-suggests
+      - name: Get dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y wget git gawk findutils
+          xargs -a <(awk '! /^ *(#|$)/' "grass-addons/.github/workflows/apt.txt") -r -- \
+              sudo apt-get install -y --no-install-recommends --no-install-suggests
 
-    - name: Set up Python ${{ matrix.python-version }} as default Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
+      - name: Set up Python ${{ matrix.python-version }} as default Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Get Python dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r grass-addons/.github/workflows/requirements.txt
+      - name: Get Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r grass-addons/.github/workflows/requirements.txt
 
-    - name: Create installation directory
-      run: |
-        mkdir $HOME/install
+      - name: Create installation directory
+        run: |
+          mkdir $HOME/install
 
-    - name: Set number of cores for compilation
-      run: |
-        echo "MAKEFLAGS=-j$(nproc)" >> $GITHUB_ENV
+      - name: Set number of cores for compilation
+        run: |
+          echo "MAKEFLAGS=-j$(nproc)" >> $GITHUB_ENV
 
-    - name: Set LD_LIBRARY_PATH for GRASS GIS compilation
-      run: |
-        echo "LD_LIBRARY_PATH=$HOME/install/lib" >> $GITHUB_ENV
+      - name: Set LD_LIBRARY_PATH for GRASS GIS compilation
+        run: |
+          echo "LD_LIBRARY_PATH=$HOME/install/lib" >> $GITHUB_ENV
 
-    - name: Build GRASS GIS core
-      run: |
-        cd grass
-        ../grass-addons/.github/workflows/build_grass.sh $HOME/install
+      - name: Build GRASS GIS core
+        run: |
+          cd grass
+          ../grass-addons/.github/workflows/build_grass.sh $HOME/install
 
-    - name: Add the bin directory to PATH
-      run: |
-        echo "$HOME/install/bin" >> $GITHUB_PATH
+      - name: Add the bin directory to PATH
+        run: |
+          echo "$HOME/install/bin" >> $GITHUB_PATH
 
-    - name: Make simple grass command available (not needed in G8)
-      run: |
-        if [ ! -e $HOME/install/bin/grass ] ; then ln -s $HOME/install/bin/grass* $HOME/install/bin/grass ; fi
+      - name: Make simple grass command available (not needed in G8)
+        run: |
+          if [ ! -e $HOME/install/bin/grass ] ; then \
+            ln -s $HOME/install/bin/grass*   $HOME/install/bin/grass ; fi
 
-    - name: Build addons
-      run: |
-        cd grass-addons/src
-        GRASS_INSTALL=$($HOME/install/bin/grass --config | sed -n '4{p;q}')
-        make MODULE_TOPDIR=$GRASS_INSTALL
+      - name: Build addons
+        run: |
+          cd grass-addons/src
+          GRASS_INSTALL=$($HOME/install/bin/grass --config | sed -n '4{p;q}')
+          make MODULE_TOPDIR=$GRASS_INSTALL
 
-    - name: Get extra Python dependencies
-      run: |
-        export GDAL_VERSION=$(gdal-config --version)
-        pip install -r grass-addons/.github/workflows/extra_requirements.txt
+      - name: Get extra Python dependencies
+        run: |
+          export GDAL_VERSION=$(gdal-config --version)
+          pip install -r grass-addons/.github/workflows/extra_requirements.txt
 
-    - name: Set up R
-      uses: r-lib/actions/setup-r@v2
-      with:
-        r-version: "4.2.1"
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 4.2.1
 
-    - name: Get R dependencies
-      run: |
-        grass-addons/.github/workflows/install_r_packages.R
+      - name: Get R dependencies
+        run: |
+          grass-addons/.github/workflows/install_r_packages.R
 
-    - name: Run tests
-      run: |
-        cd grass-addons/src
-        ../.github/workflows/test.sh
+      - name: Run tests
+        run: |
+          cd grass-addons/src
+          ../.github/workflows/test.sh
 
-    - name: Make HTML test report available
-      uses: actions/upload-artifact@v2
-      with:
-        name: testreport-grass-${{ matrix.grass-version }}-python-${{ matrix.python-version }}
-        path: grass-addons/src/testreport
-        retention-days: 3
+      - name: Make HTML test report available
+        uses: actions/upload-artifact@v2
+        with:
+          name: testreport-grass-${{ matrix.grass-version }}-python-${{ matrix.python-version }}
+          path: grass-addons/src/testreport
+          retention-days: 3

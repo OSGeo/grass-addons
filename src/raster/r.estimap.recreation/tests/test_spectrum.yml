@@ -1,111 +1,111 @@
 ---
 
-- mapset: "spectrum_land_natural_water_infrastructure"
+- mapset: spectrum_land_natural_water_infrastructure
   flags: []
   inputs:
     land:
-      - "input_land_suitability"
+      - input_land_suitability
     natural:
-      - "input_protected_areas"
+      - input_protected_areas
     water:
-      - "input_water_resources"
+      - input_water_resources
     infrastructure:
-      - "input_distance_to_infrastructure"
+      - input_distance_to_infrastructure
   outputs:
     csvs: {}
     maps:
       spectrum:
-        name: "output_spectrum"
-        hash: "c2cd4efe34b36c101bc4a0e09f8893de"
+        name: output_spectrum
+        hash: c2cd4efe34b36c101bc4a0e09f8893de
 
-- mapset: "spectrum_land_natural_multiwater_infrastructure"
+- mapset: spectrum_land_natural_multiwater_infrastructure
   flags: []
   inputs:
     land:
-      - "input_land_suitability"
+      - input_land_suitability
     natural:
-      - "input_protected_areas"
+      - input_protected_areas
     water:
-      - "input_water_resources"
-      - "input_bathing_water_quality"
+      - input_water_resources
+      - input_bathing_water_quality
     infrastructure:
-      - "input_distance_to_infrastructure"
+      - input_distance_to_infrastructure
   outputs:
     csvs: {}
     maps:
       spectrum:
-        name: "output_spectrum"
-        hash: "97093c89cdfd8c4cb3cf5d6ed8385bad"
+        name: output_spectrum
+        hash: 97093c89cdfd8c4cb3cf5d6ed8385bad
 
-- mapset: "spectrum_land_multinatural_multiwater_infrastructure"
+- mapset: spectrum_land_multinatural_multiwater_infrastructure
   flags: []
   inputs:
     land:
-      - "input_land_suitability"
+      - input_land_suitability
     natural:
-      - "input_protected_areas"
-      - "input_urban_green"
+      - input_protected_areas
+      - input_urban_green
     water:
-      - "input_water_resources"
-      - "input_bathing_water_quality"
+      - input_water_resources
+      - input_bathing_water_quality
     infrastructure:
-      - "input_distance_to_infrastructure"
+      - input_distance_to_infrastructure
   outputs:
     csvs: {}
     maps:
       spectrum:
-        name: "output_spectrum"
-        hash: "5c5b503e6016709de82d77761777c183"
+        name: output_spectrum
+        hash: 5c5b503e6016709de82d77761777c183
 
-- mapset: "spectrum_opportunity_land_natural_multiwater_infrastructure"
+- mapset: spectrum_opportunity_land_natural_multiwater_infrastructure
   flags: []
   inputs:
     mask:
-      - "input_area_of_interest"
+      - input_area_of_interest
     land:
-      - "input_land_suitability"
+      - input_land_suitability
     water:
-      - "input_water_resources"
-      - "input_bathing_water_quality"
+      - input_water_resources
+      - input_bathing_water_quality
     natural:
-      - "input_protected_areas"
+      - input_protected_areas
     infrastructure:
-      - "input_distance_to_infrastructure"
+      - input_distance_to_infrastructure
   outputs:
     csvs: {}
     maps:
       spectrum:
-        name: "output_spectrum"
-        hash: "5dfa79aad18d2d88045055962a720323"
+        name: output_spectrum
+        hash: 5dfa79aad18d2d88045055962a720323
       opportunity:
-        name: "output_opportunity"
-        hash: "b1e630a2e1637a5019406b6fa0eff80b"
+        name: output_opportunity
+        hash: b1e630a2e1637a5019406b6fa0eff80b
 
-- mapset: "spectrum_opportunity_mask_land_multinatural_multiwater_infrastructure"
+- mapset: spectrum_opportunity_mask_land_multinatural_multiwater_infrastructure
   flags: []
   inputs:
     mask:
-      - "input_area_of_interest"
+      - input_area_of_interest
     land:
-      - "input_land_suitability"
+      - input_land_suitability
     natural:
-      - "input_protected_areas"
-      - "input_urban_green"
+      - input_protected_areas
+      - input_urban_green
     water:
-      - "input_water_resources"
-      - "input_bathing_water_quality"
+      - input_water_resources
+      - input_bathing_water_quality
     infrastructure:
-      - "input_distance_to_infrastructure"
+      - input_distance_to_infrastructure
     base:
-      - "input_local_administrative_units"
+      - input_local_administrative_units
     population:
-      - "input_population_2015"
+      - input_population_2015
   outputs:
     csvs: {}
     maps:
       spectrum:
-        name: "output_spectrum"
-        hash: "ef472bad986fc4e17d05eb2e321e9a18"
+        name: output_spectrum
+        hash: ef472bad986fc4e17d05eb2e321e9a18
       opportunity:
-        name: "output_opportunity"
-        hash: "b1e630a2e1637a5019406b6fa0eff80b"
+        name: output_opportunity
+        hash: b1e630a2e1637a5019406b6fa0eff80b

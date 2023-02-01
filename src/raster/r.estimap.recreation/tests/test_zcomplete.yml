@@ -1,56 +1,56 @@
 ---
 
-- mapset: "complete_example"
+- mapset: complete_example
   flags: []
   inputs:
     land:
-      - "input_land_suitability"
+      - input_land_suitability
     natural:
-      - "input_protected_areas"
-      - "input_urban_green"
+      - input_protected_areas
+      - input_urban_green
     water:
-      - "input_water_resources"
-      - "input_bathing_water_quality"
+      - input_water_resources
+      - input_bathing_water_quality
     infrastructure:
-      - "input_distance_to_infrastructure"
+      - input_distance_to_infrastructure
     landcover:
-      - "input_corine_land_cover_2006"
+      - input_corine_land_cover_2006
     land_classes:
-      - "tests/data/corine_accounting_to_maes_land_classes.txt"
+      - tests/data/corine_accounting_to_maes_land_classes.txt
     mask:
-      - "input_area_of_interest"
+      - input_area_of_interest
     base:
-      - "input_local_administrative_units"
+      - input_local_administrative_units
     aggregation:
-      - "input_regions"
+      - input_regions
     population:
-      - "input_population_2015"
+      - input_population_2015
     timestamp:
       - '2015'
   outputs:
     csvs:
       supply:
-        name: "tests/data/grassdb_estimap_recreation/complete_example/output_supply_table.csv"
-        hash: "38c2bd83d5e0dbf3b176076f07634ea1"
+        name: tests/data/grassdb_estimap_recreation/complete_example/output_supply_table.csv
+        hash: 38c2bd83d5e0dbf3b176076f07634ea1
       use:
-        name: "tests/data/grassdb_estimap_recreation/complete_example/output_use_table.csv"
-        hash: "e35d5d76fea628fc4f6a76f96cfd490c"
+        name: tests/data/grassdb_estimap_recreation/complete_example/output_use_table.csv
+        hash: e35d5d76fea628fc4f6a76f96cfd490c
     maps:
       potential:
-        name: "output_potential"
-        hash: "9debf43186df217b42661c64d9458b5b"
+        name: output_potential
+        hash: 9debf43186df217b42661c64d9458b5b
       opportunity:
-        name: "output_opportunity"
-        hash: "b1e630a2e1637a5019406b6fa0eff80b"
+        name: output_opportunity
+        hash: b1e630a2e1637a5019406b6fa0eff80b
       spectrum:
-        name: "output_spectrum"
-        hash: "ef472bad986fc4e17d05eb2e321e9a18"
+        name: output_spectrum
+        hash: ef472bad986fc4e17d05eb2e321e9a18
       demand:
-        name: "output_demand"
-        hash: "04da19713717b81768d4d32e08ca2e74"
+        name: output_demand
+        hash: 04da19713717b81768d4d32e08ca2e74
       unmet:
-        name: "output_unmet_demand"
-        hash: "d2d1371d3cc6e1fa7dce0a434964ad8c"
+        name: output_unmet_demand
+        hash: d2d1371d3cc6e1fa7dce0a434964ad8c
       flow:
-        name: "output_flow"
-        hash: "0d987f55f4cbebec3640fb69a2a239ea"
+        name: output_flow
+        hash: 0d987f55f4cbebec3640fb69a2a239ea

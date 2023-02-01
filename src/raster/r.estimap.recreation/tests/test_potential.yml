@@ -1,74 +1,74 @@
 ---
 
-- mapset: "potential_land"
+- mapset: potential_land
   flags: []
   inputs:
     land:
-      - "input_land_suitability"
+      - input_land_suitability
   outputs:
     csvs: {}
     maps:
       potential:
-        name: "output_potential"
-        hash: "cbdfb2c0a36d614b775ba6ef8be2a5c8"
+        name: output_potential
+        hash: cbdfb2c0a36d614b775ba6ef8be2a5c8
 
-- mapset: "potential_land_with_mask"
+- mapset: potential_land_with_mask
   flags: []
   inputs:
     mask:
-      - "input_area_of_interest"
+      - input_area_of_interest
     land:
-      - "input_land_suitability"
+      - input_land_suitability
   outputs:
     csvs: {}
     maps:
       potential:
-        name: "output_potential"
-        hash: "06f7b01b17b47dffb9e0db30c152624d"
+        name: output_potential
+        hash: 06f7b01b17b47dffb9e0db30c152624d
 
-- mapset: "potential_land_and_water"
+- mapset: potential_land_and_water
   flags: []
   inputs:
     land:
-      - "input_land_suitability"
+      - input_land_suitability
     water:
-      - "input_water_resources"
+      - input_water_resources
   outputs:
     csvs: {}
     maps:
       potential:
-        name: "output_potential"
-        hash: "1de424242c86610e872ce5ea8218c7cd"
+        name: output_potential
+        hash: 1de424242c86610e872ce5ea8218c7cd
 
-- mapset: "potential_land_and_water_and_natural"
+- mapset: potential_land_and_water_and_natural
   flags: []
   inputs:
     land:
-      - "input_land_suitability"
+      - input_land_suitability
     natural:
-      - "input_protected_areas"
+      - input_protected_areas
     water:
-      - "input_water_resources"
+      - input_water_resources
   outputs:
     csvs: {}
     maps:
       potential:
-        name: "output_potential"
-        hash: "92adf4a66a05b33f2274923c11f25667"
+        name: output_potential
+        hash: 92adf4a66a05b33f2274923c11f25667
 
-- mapset: "potential_land_and_multiple_water_and_natural"
+- mapset: potential_land_and_multiple_water_and_natural
   flags: []
   inputs:
     land:
-      - "input_land_suitability"
+      - input_land_suitability
     natural:
-      - "input_protected_areas"
+      - input_protected_areas
     water:
-      - "input_water_resources"
-      - "input_bathing_water_quality"
+      - input_water_resources
+      - input_bathing_water_quality
   outputs:
     csvs: {}
     maps:
       potential:
-        name: "output_potential"
-        hash: "6316933a5a0b119369fe60e4f44a43ca"
+        name: output_potential
+        hash: 6316933a5a0b119369fe60e4f44a43ca
