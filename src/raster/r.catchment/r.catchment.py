@@ -158,10 +158,10 @@ def main():
     area = float(options["area"])
     buff = options["buffer"]
     mapval = options["map_val"]
-    
+
     # error checks for incompatible variables
     # through a fatal warning and do not proceed.
-    if options["in_cost"] != '' and flags["i"]:
+    if options["in_cost"] != "" and flags["i"]:
         grass.fatal("Flag 'i' cannot be used with input option 'in_cost'")
     if flags["l"] & flags["i"]:
         grass.fatal("Flag 'i' cannot be used with flag 'l'")
@@ -197,11 +197,11 @@ def main():
     grass.message("Wanted buffer area=%s\n" % int(area))
 
     ####################################################
-    
+
     # assemble flag string
     flagstring = ""
     if flags["k"]:
-        flagstring += 'k'
+        flagstring += "k"
         grass.verbose("Using Knight's move")
     # check for, and do iterative procedure
     if flags["i"]:
@@ -257,12 +257,12 @@ def main():
         counter = 0
         for site in masterlist:
             if options["name_column"] != "":
-                ptname = site[3] # name column
+                ptname = site[3]  # name column
             else:
-                ptname = site[2] # cat number
+                ptname = site[2]  # cat number
             grass.verbose(
                 _("Calculating cost-surface for location %s,%s (point name = %s)")
-                % (site[0], site[1], ptname) # coordinates
+                % (site[0], site[1], ptname)  # coordinates
             )
             # need additional number for cases when points have the same category (e.g. from v.to.points)
             tempry = "cost_surface_{ptname}_{c}".format(ptname=ptname, c=counter)
@@ -315,11 +315,11 @@ def main():
             grass.verbose("No slope mask created")
         # calculate all the catchments
         count = 0
-        for cost, site in zip(cost_list,masterlist):
+        for cost, site in zip(cost_list, masterlist):
             if options["name_column"] != "":
-                ptname = site[3] # name column
+                ptname = site[3]  # name column
             else:
-                ptname = site[2] # cat number
+                ptname = site[2]  # cat number
             # 'tempry' is the current output catchment name
             tempry = "{buff}_{ptname}_{c}".format(buff=buff, ptname=ptname, c=counter)
             counter += 1
@@ -392,7 +392,7 @@ def main():
                     type="raster",
                     name="cost.reclass.%s" % pid,
                 )
-            
+
             else:
                 grass.verbose("Removing interim cost map...")
                 grass.run_command(
@@ -429,7 +429,7 @@ def main():
             grass.message("Keeping original MASK")
         grass.verbose("     DONE!")
         return
-    else: # Run with the full set of points.
+    else:  # Run with the full set of points.
         if bool(options["in_cost"]) is True:
             grass.verbose("Using input cost surface")
             cost = options["in_cost"]
