@@ -22,6 +22,13 @@ This is useful for delimiting catchments that are of generally flat
 land (e.g., areas where agriculture are likely).
 
 <p>
+Optionally, you can iteratively loop through a series of input
+starting points, and create catchments for each point. You can also
+opt to save the cost map produced by r.walk for each input point.
+This can be a useful timesaver for the creation of many cost maps
+and/or catchment maps with minimal manual repetition.
+
+<p>
 Important: The user must run <b>g.region</b> first to make sure that
 the region boundaries and the resolution match the input elevation map.
 
@@ -36,12 +43,18 @@ defined location/region). The final required parameter is <b>map_val
 part of the catchment in the output map, <b>buffer</b>. The optional
 value, <b>sigma</b> is the slope threshold cut off value. Slopes
 above <b>sigma</b> will be masked out during the determination of
-the catchment configuration. There are two native flags for <em>
-r.catchment</em>. <b>-c</b> allows you to keep the interim cost
-surface maps made. <b>-l</b> allows you to show a list of the cost
-values in that cost map, along with the size of the catchments they
-delineate. All other flags and options are inherited from
-<em>r.walk</em> (see the
+the catchment configuration. The optional value <b>name_column</b>
+is to be used in conjunction with the <b>-i</b> flag (see below).
+There are three native flags for <em>r.catchment</em>. <b>-c</b>
+allows you to keep the interim cost surface maps made. <b>-l</b> allows 
+you to show a list of the costv alues in that cost map, along with
+the size of the catchments they delineate. <b>-i</b> enable "iterative"
+mode. Here, the module will loop through all the points in the input
+vector file <b>start_points</b>, calculating a cost map and catchment
+map around each point. If <b>name_column</b> is specified, then each
+output map will contain the text value in that column as an prefix.
+Otherwise, the cat number for each vector point will be used.
+All other flags and options are inherited from <em>r.walk</em> (see the
 <a href="https://grass.osgeo.org/grass-stable/manuals/r.walk.html">r.walk</a>
 help page for more information on these).
 
@@ -58,20 +71,23 @@ a <b>friction</b> map, however, and, if used, r.walk will consider
 these costs this as well when determining the cost surface used to
 determine the catchment.
 
-The input vector points map can be manually digitized (with <em>
-v.digit</em>) over topographic or cultural features, or can be
-created as a series of random points (with <em>r.random</em> or <em>
-v.random</em>).
+The input <b>start_points</b> map should be a vector points map.
+If the file contains other types of features (areas, lines, centroids), 
+these will be ignored. If you desire, a start points map could be
+manually digitized (with <em>v.digit</em>) over topographic or
+cultural features, or could be created as a series of random points
+ (with <em>r.random</em> or <em>v.random</em>).
 
-In the case of multiple input points, the routine will attempt to
-equally divide the area (<b>area</b>) between all input points to
-determine catchments for each point. The total area of all these
-catchments will sum (close) to <b>area</b>. If two input points are
-close, their catchments may overlap. In this case, the routine will
-"meld" the two, and the melded catchment will still be of an area
-close to <b>area</b>. If truly overlapping catchments are desired,
-then the routine should be run independently for each individual
-start point.
+Unless the <b>-i</b> flag is used, in the case of multiple input points,
+the routine will attempt to equally divide the area (<b>area</b>)
+between all input points tod etermine catchments for each point. The
+total area of all these catchments will sum (close) to <b>area</b>.
+If two input points are close, their catchments may overlap. In this
+case, the routine will "meld" the two, and the melded catchment will
+till be of an area close to <b>area</b>. If truly overlapping
+catchments are desired, then the routine should be run with the
+<b>-i</b> flag. This will create completely independent catchments
+around each input point.
 <p>
 
 <h2>EXAMPLES</h2>
@@ -95,4 +111,4 @@ sigma=15 area=5000000 map_val=1
 
 Isaac Ullah
 <p>
-Updated for GRASS 7, 23, Feb. 2015.
+Updated for GRASS 8, 02, Feb. 2023.
