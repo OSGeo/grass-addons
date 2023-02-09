@@ -735,7 +735,9 @@ class SentinelDownloader(object):
             return
         # Check for previously downloaded scenes
         existing_files = [
-            os.path.join(output, f) for f in os.listdir(output) if re.search(r".zip$|.safe$|.ZIP$|.SAFE$", f)
+            os.path.join(output, f)
+            for f in os.listdir(output)
+            if re.search(r".zip$|.safe$|.ZIP$|.SAFE$", f)
         ]
         if len(existing_files) <= 1:
             return
