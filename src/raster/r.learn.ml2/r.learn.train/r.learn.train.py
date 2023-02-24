@@ -565,6 +565,8 @@ def main():
 
     # extract training data ---------------------------------------------------
     if load_training != "":
+        gs.message("Loading training data")
+
         X, y, cat, class_labels, group_id = load_training_data(load_training)
 
         if class_labels is not None:
