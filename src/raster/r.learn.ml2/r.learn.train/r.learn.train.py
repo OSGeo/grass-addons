@@ -431,7 +431,6 @@ def process_param_grid(hyperparams):
 
 
 def main():
-
     # Lazy import libraries
     from rlearnlib.utils import (
         predefined_estimators,
@@ -584,7 +583,6 @@ def main():
             y = y.flatten()
 
             with RasterRow(training_map) as src:
-
                 if mode == "classification":
                     src_cats = {v: k for (k, v, m) in src.cats}
                     class_labels = {k: k for k in np.unique(y)}
@@ -810,9 +808,7 @@ def main():
                 .std()
             )
 
-            gs.message(
-                name + "\t" + str(score_mean.round(3)) + "\t" + str(score_std.round(3))
-            )
+            gs.message(f"{name}\t{score_mean:.3}\t{score_std:.3}")
 
         if mode == "classification":
             gs.message(os.linesep)
