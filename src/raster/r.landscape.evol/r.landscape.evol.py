@@ -395,7 +395,6 @@ def landscapeEvol(m, o, p, q, res, s, f):
         float(s[4][m]) * stormtimet
     )  # Calculate the length of time at peak flow depth
 
-
     # If first iteration, use input maps. Otherwise, use maps generated from
     # previous iterations, with no iteration numbers appended to map names
     if o == 1:
@@ -753,7 +752,7 @@ def landscapeEvol(m, o, p, q, res, s, f):
 
     sdcolors = ["100% 0:249:47", "20% 78:151:211", "6% 194:84:171", "0% 227:174:217"]
     sdc = grass.feed_command("r.colors", quiet=True, map=new_soil, rules="-")
-    sdc.stdin.write("\n".join(sdcolors).encode('utf-8'))
+    sdc.stdin.write("\n".join(sdcolors).encode("utf-8"))
     sdc.stdin.close()
 
     nccolors = [
@@ -768,7 +767,7 @@ def landscapeEvol(m, o, p, q, res, s, f):
         "-100 127:0:255",
     ]
     ncc = grass.feed_command("r.colors", quiet=True, map=netchange, rules="-")
-    ncc.stdin.write("\n".join(nccolors).encode('utf-8'))
+    ncc.stdin.write("\n".join(nccolors).encode("utf-8"))
     ncc.stdin.close()
 
     sdc.wait()
