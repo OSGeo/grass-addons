@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 ############################################################################
 #
@@ -150,9 +150,9 @@
 # % answer: 0.05
 # % guisection: Climate
 # %end
-# %option
+# %option G_OPT_F_INPUT
 # % key: climfile
-# % gisprompt: old,file,file
+# % required: no
 # % description: Path to climate file of comma separated values of "rain,R,storms,stormlength,stormi", with a new line for each year of the simulation. This option will override values or maps entered above.
 # % guisection: Climate
 # %end
@@ -160,7 +160,7 @@
 # % key: manningn
 # % description: Map or constant of the value of Manning's "N" value for channelized flow. (Employed in stream power and shear stress equations) (0.03 = clean/straight stream channel, 0.035 = major river, 0.04 = sluggish stream with pools, 0.06 = very clogged streams [unitless])
 # % answer: 0.03
-# % required : no
+# % required: no
 # % guisection: Hydrology
 # %end
 # %option G_OPT_R_MAP
@@ -176,7 +176,7 @@
 # % description: Value for the flow convergence variable in r.watershed. Small values make water spread out, high values make it converge in narrower channels.
 # % answer: 5
 # % options: 1,2,3,4,5,6,7,8,9,10
-# % required : no
+# % required: no
 # % guisection: Hydrology
 # %end
 
@@ -299,16 +299,19 @@ def main():
     region1 = grass.region()
 
     # This is the main loop for interating landscape evolution!
-    for x in range(int(years)):
-        grass.message(
-            "\n##################################################\n"
-            + "\n*************************\n"
-            + "Starting Iteration = %s" % (x + 1)
-            + "\n*************************\n"
-        )
-        landscapeEvol(x, (x + 1), prefx, statsout, region1["nsres"], masterlist, f)
+    if years == 1:
+        landscapeEvol(0, 1, prefx, statsout, region1["nsres"], masterlist, f)
+    else:
+        for x in range(int(years)):
+            grass.message(
+                "\n##################################################\n"
+                + "\n*************************\n"
+                + "Starting Iteration = %s" % (x + 1)
+                + "\n*************************\n"
+            )
+            landscapeEvol(x, (x + 1), prefx, statsout, region1["nsres"], masterlist, f)
 
-    # Since we are now done with the loop, close the stats file.
+        # Since we are now done with the loop, close the stats file.
     f.close()
     grass.message("\nIterations complete!\n" + "\nDone with everything!")
     sys.exit(0)
@@ -392,19 +395,24 @@ def landscapeEvol(m, o, p, q, res, s, f):
         float(s[4][m]) * stormtimet
     )  # Calculate the length of time at peak flow depth
 
-    # Maps that will update at each iteration to record state of landscape
-    old_dem = "%s%s%04d" % (p, outdem, m)
-    old_soil = "%s%s%04d" % (p, outsoil, m)
-    slope = "%sslope%04d" % (p, o)
-    netchange = "%sED_rate%04d" % (p, o)
-    new_dem = "%s%s%04d" % (p, outdem, o)
-    new_soil = "%s%s%04d" % (p, outsoil, o)
-
     # If first iteration, use input maps. Otherwise, use maps generated from
-    # previous iterations
+    # previous iterations, with no iteration numbers appended to map names
     if o == 1:
-        grass.run_command("g.copy", raster=elev + "," + old_dem, quiet=True)
-
+        old_dem = elev
+        old_soil = old_soil = "%s%s%s" % (p, outsoil, pid)
+        slope = "%sslope" % (p)
+        netchange = "%sED_rate" % (p)
+        new_dem = "%s%s" % (p, outdem)
+        new_soil = "%s%s" % (p, outsoil)
+    else:
+        # Iterative mode, so we will make some maps that will update
+        # at each iteration to record state of landscape
+        old_dem = "%s%s%04d" % (p, outdem, m)
+        old_soil = "%s%s%04d" % (p, outsoil, m)
+        slope = "%sslope%04d" % (p, o)
+        netchange = "%sED_rate%04d" % (p, o)
+        new_dem = "%s%s%04d" % (p, outdem, o)
+        new_soil = "%s%s%04d" % (p, outsoil, o)
     # Grab the number of cells in the starting DEM
     numcells = grass.parse_command(
         "r.univar",
@@ -879,6 +887,8 @@ def landscapeEvol(m, o, p, q, res, s, f):
         if flags["r"] is True:
             grass.message("Not keeping an Erosion and Deposition rate map.")
             mapstoremove.append(netchange)
+        if o == 1:
+            mapstoremove.append(old_soil)
         if len(mapstoremove) == 0:
             pass
         else:
