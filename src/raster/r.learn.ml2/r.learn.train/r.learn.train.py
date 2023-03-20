@@ -596,7 +596,7 @@ def main():
             X, y, cat = stack.extract_points(training_points, field)
             y = y.flatten()
 
-            if y.dtype in (np.object_, np.object):
+            if y.dtype in (np.object_, object):
                 from sklearn.preprocessing import LabelEncoder
 
                 le = LabelEncoder()
