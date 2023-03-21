@@ -44,7 +44,7 @@
 # % answer: 5
 # %end
 # %option
-# % key: minsize
+# % key: min_size
 # % type: integer
 # % required: no
 # % description: Minimum size of areas in map units
@@ -87,7 +87,7 @@ def main():
     else:
         get_name = get_tmp_name
     ground = options["input"]
-    size_threshold = options["minsize"]
+    size_threshold = options["min_size"]
     if size_threshold:
         size_threshold = int(size_threshold)
     else:

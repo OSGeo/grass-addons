@@ -4,7 +4,7 @@ based on lidar data. These values are used for hydro-flattening a digital elevat
 The <b>input</b> raster is expected to represent ground surface created by binning lidar data
 (e.g., using <em><a href="r.in.pdal.html">r.in.pdal</a></em>) with averaged ground elevation.
 Small gaps in the input are expected. Large gaps are interpreted as water bodies.
-The minimum size of a water body can be set with <b>minsize</b> option in map units.
+The minimum size of a water body can be set with <b>min_size</b> option in map units.
 
 <p>
 The output <b>water_elevation</b> is a raster map with water bodies filled with
