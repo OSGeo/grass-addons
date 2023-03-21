@@ -302,9 +302,8 @@ def main():
             },
             "subset": {},
             "extent": ["1 x 1 degree", "15 x 15 minute"],
-            "format": "IMG",
-            "extension": "img",
-            "zip": True,
+            "format": "IMG,GeoTIFF",
+            "extension": "img,tif",
             "srs": "wgs84",
             "srs_proj4": "+proj=longlat +ellps=GRS80 +datum=NAD83 +nodefs",
             "interpolation": "bilinear",
@@ -325,7 +324,6 @@ def main():
             "extent": ["3 x 3 degree"],
             "format": "GeoTIFF",
             "extension": "tif",
-            "zip": True,
             "srs": "wgs84",
             "srs_proj4": "+proj=longlat +ellps=GRS80 +datum=NAD83 +nodefs",
             "interpolation": "nearest",
@@ -340,7 +338,6 @@ def main():
             ],
             "format": "JPEG2000",
             "extension": "jp2",
-            "zip": False,
             "srs": "wgs84",
             "srs_proj4": "+proj=longlat +ellps=GRS80 +datum=NAD83 +nodefs",
             "interpolation": "nearest",
@@ -353,7 +350,6 @@ def main():
             "extent": [""],
             "format": "LAS,LAZ",
             "extension": "las,laz",
-            "zip": True,
             "srs": "",
             "srs_proj4": "+proj=longlat +ellps=GRS80 +datum=NAD83 +nodefs",
             "interpolation": "nearest",
@@ -369,7 +365,6 @@ def main():
     product = nav_string["product"]
     product_format = nav_string["format"]
     product_extensions = tuple(nav_string["extension"].split(","))
-    product_is_zip = nav_string["zip"]
     product_srs = nav_string["srs"]
     product_proj4 = nav_string["srs_proj4"]
     product_interpolation = nav_string["interpolation"]
@@ -541,20 +536,19 @@ def main():
 
     except:
         gscript.fatal(_("Unable to load USGS JSON object."))
-
     # Functions down_list() and exist_list() used to determine
     # existing files and those that need to be downloaded.
     def down_list():
         dwnld_url.append(TNM_file_URL)
-        dwnld_size.append(TNM_file_size)
+        dwnld_size.append(TNM_file_size if TNM_file_size else 0)
         TNM_file_titles.append(TNM_file_title)
-        if product_is_zip:
+        if TNM_file_URL.endswith(".zip"):
             extract_zip_list.append(local_zip_path)
 
     def exist_list():
         exist_TNM_titles.append(TNM_file_title)
         exist_dwnld_url.append(TNM_file_URL)
-        if product_is_zip:
+        if TNM_file_URL.endswith(".zip"):
             exist_zip_list.append(local_zip_path)
             extract_zip_list.append(local_zip_path)
         else:
@@ -583,7 +577,7 @@ def main():
     for f in return_JSON["items"]:
         TNM_file_title = f["title"]
         TNM_file_URL = str(f["downloadURL"])
-        TNM_file_size = int(f["sizeInBytes"])
+        TNM_file_size = int(f["sizeInBytes"]) if f["sizeInBytes"] else None
         TNM_file_name = TNM_file_URL.split(product_url_split)[-1]
         if gui_product == "ned":
             local_file_path = os.path.join(work_dir, ned_data_abbrv + TNM_file_name)
@@ -600,7 +594,7 @@ def main():
         if file_exists:
             existing_local_file_size = os.path.getsize(local_file_path)
             # if local file is incomplete
-            if abs(existing_local_file_size - TNM_file_size) > cache_size_tolerance:
+            if TNM_file_size and abs(existing_local_file_size - TNM_file_size) > cache_size_tolerance:
                 gscript.verbose(
                     _(
                         "Size of local file {filename} ({local_size}) differs"
@@ -631,12 +625,12 @@ def main():
                 if not gui_subset:
                     tiles_needed_count += 1
                     exist_list()
-                    exist_dwnld_size += TNM_file_size
+                    exist_dwnld_size += TNM_file_size if TNM_file_size else 0
                 else:
                     if gui_subset in TNM_file_title:
                         tiles_needed_count += 1
                         exist_list()
-                        exist_dwnld_size += TNM_file_size
+                        exist_dwnld_size += TNM_file_size if TNM_file_size else 0
                     else:
                         continue
         else:
@@ -674,6 +668,7 @@ def main():
         gscript.message(exist_msg)
 
     # formats JSON size from bites into needed units for combined file size
+    total_size_str = "0"
     if dwnld_size:
         total_size = sum(dwnld_size)
         len_total_size = len(str(total_size))
@@ -683,8 +678,6 @@ def main():
         if len_total_size >= 10:
             total_size_float = total_size * 1e-9
             total_size_str = str("{0:.2f}".format(total_size_float) + " GB")
-    else:
-        total_size_str = "0"
 
     # Prints 'none' if all tiles available locally
     if TNM_file_titles:
@@ -757,14 +750,16 @@ def main():
             )
             # download files in chunks rather than write complete files to memory
             dwnld_req = urlopen(url, timeout=12)
-            download_bytes = int(dwnld_req.info()["Content-Length"])
+            download_bytes = dwnld_req.info()["Content-Length"]
             CHUNK = 16 * 1024
             with open(local_file_path, "wb+") as local_file:
                 count = 0
-                steps = int(download_bytes / CHUNK) + 1
+                if download_bytes:
+                    steps = int(int(download_bytes) / CHUNK) + 1
                 while True:
                     chunk = dwnld_req.read(CHUNK)
-                    gscript.percent(count, steps, 10)
+                    if download_bytes:
+                        gscript.percent(count, steps, 10)
                     count += 1
                     if not chunk:
                         break
@@ -772,7 +767,7 @@ def main():
                 gscript.percent(1, 1, 1)
             local_file.close()
             # determine if file is a zip archive or another format
-            if product_is_zip:
+            if local_file_path.endswith(".zip"):
                 local_zip_path_list.append(local_file_path)
             else:
                 local_tile_path_list.append(local_file_path)
@@ -799,11 +794,8 @@ def main():
     if exist_tile_list:
         for t in exist_tile_list:
             local_tile_path_list.append(t)
-    if product_is_zip:
-        if file_download_count == 0:
-            pass
-        else:
-            gscript.message("Extracting data...")
+    if local_zip_path_list:
+        gscript.message("Extracting data...")
         # for each zip archive, extract needed file
         files_to_process = len(local_zip_path_list)
         for i, z in enumerate(local_zip_path_list):
