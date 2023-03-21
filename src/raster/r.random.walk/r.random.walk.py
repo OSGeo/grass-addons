@@ -175,7 +175,7 @@ def take_step(current_position, num_dir, black_list=None):
         # Move Top Left (NW)
         new_position = [current_row + 1, current_column - 1]
     else:
-        raise ValueError(f"Unsupported Direction Recieved: {direction}")
+        raise ValueError(f"Unsupported direction received: {direction}")
 
     return {"position": new_position, "direction": direction}
 
