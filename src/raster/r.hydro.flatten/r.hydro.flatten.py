@@ -75,25 +75,33 @@ def get_tmp_name(basename):
     return name
 
 
-def get_intermediate_name(basename):
-    return f"intermediate_{basename}"
-
-
 def main():
     options, flags = gs.parser()
     keep = flags["k"]
     if keep:
-        get_name = get_intermediate_name
+
+        def get_name(basename):
+            return f"intermediate_{basename}"
+
     else:
-        get_name = get_tmp_name
+
+        def get_name(basename):
+            name = gs.append_node_pid(basename)
+            RAST_REMOVE.append(name)
+            return name
+
     ground = options["input"]
     size_threshold = options["min_size"]
     if size_threshold:
         size_threshold = int(size_threshold)
     else:
         size_threshold = None
+    # r.fill.stats settings
+    filling_distance = 3
+    filling_cells = 6
     region = gs.region()
     radius = sqrt(region["nsres"] * region["ewres"])
+    # distance range to get a 1-cell wide edge in "clump1"
     max_radius = radius * 4.01
     min_radius = radius * 3.01
     tmp_rfillstats = get_name("rfillstats")
@@ -102,8 +110,8 @@ def main():
         flags="k",
         input=ground,
         output=tmp_rfillstats,
-        distance=3,
-        cells=6,
+        distance=filling_distance,
+        cells=filling_cells,
     )
     tmp_water_buffer = get_name("water_buffer")
     gs.run_command(
