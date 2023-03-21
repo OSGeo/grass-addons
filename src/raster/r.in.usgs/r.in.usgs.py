@@ -594,7 +594,10 @@ def main():
         if file_exists:
             existing_local_file_size = os.path.getsize(local_file_path)
             # if local file is incomplete
-            if TNM_file_size and abs(existing_local_file_size - TNM_file_size) > cache_size_tolerance:
+            if (
+                TNM_file_size
+                and abs(existing_local_file_size - TNM_file_size) > cache_size_tolerance
+            ):
                 gscript.verbose(
                     _(
                         "Size of local file {filename} ({local_size}) differs"
@@ -863,7 +866,9 @@ def main():
 
     if gui_d_flag:
         local_files = "\n".join(local_tile_path_list)
-        gs.message(_("The following local files were downloaded: \n{}").format(local_files))
+        gs.message(
+            _("The following local files were downloaded: \n{}").format(local_files)
+        )
         return
 
     has_pdal = gscript.find_program(pgm="v.in.pdal")
