@@ -32,7 +32,7 @@ r.in.usgs product=lidar output_directory=/tmp title_filter=Phase2 -d
 r.in.pdal input=/tmp/USGS_LPC_NC_Phase2_2014_LA_37_20164902_.laz output=ground -w class_filter=2,13
 # convert elevation from feet to meters
 r.mapcalc "ground_m = ground * 0.304800609601219"
-# derive
+# derive elevation of water bodies and standard deviation
 r.hydro.flatten input=ground_m water_elevation=water_elevation water_elevation_stddev=water_elevation_stddev percentile=10 misize=4000
 </pre></div>
 
