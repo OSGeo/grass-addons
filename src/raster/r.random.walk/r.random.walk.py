@@ -23,7 +23,7 @@
 
 #%flag
 #% key: avoid
-#% description: Preform a self-avoiding random walk.
+#% description: Perform a self-avoiding random walk
 #% guisection: Parameters
 #%end
 
