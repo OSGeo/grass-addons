@@ -44,7 +44,7 @@
 
 # %option G_OPT_R_OUTPUT
 # % key: output_name
-# % required: yes
+# % required: no
 # %end
 
 # %option
@@ -139,13 +139,18 @@
 # %end
 
 # %flag
+# % key: d
+# % description: Download files only
+# %end
+
+# %flag
 # % key: k
 # % description: Keep imported tiles in the mapset after patch
 # % guisection: Speed
 # %end
 
 # %rules
-# % required: output_name, -i
+# % required: output_name, -i, -d
 # %end
 
 import sys
@@ -408,21 +413,15 @@ def main():
         gui_dataset = "Imagery - 1 meter (NAIP)"
         product_tag = nav_string["product"]
 
-    has_pdal = gscript.find_program(pgm="v.in.pdal")
     if gui_product == "lidar":
         gui_dataset = "Lidar Point Cloud (LPC)"
         product_tag = nav_string["product"]
-        if not has_pdal:
-            gscript.warning(
-                _(
-                    "Module v.in.pdal is missing,"
-                    " any downloaded data will not be processed."
-                )
-            )
+
     # Assigning further parameters from GUI
     gui_output_layer = options["output_name"]
     gui_resampling_method = options["resampling_method"]
     gui_i_flag = flags["i"]
+    gui_d_flag = flags["d"]
     gui_k_flag = flags["k"]
     work_dir = options["output_directory"]
     memory = int(options["memory"])
@@ -870,6 +869,12 @@ def main():
                 )
             )
 
+    if gui_d_flag:
+        local_files = "\n".join(local_tile_path_list)
+        gs.message(_("The following local files were downloaded: \n{}").format(local_files))
+        return
+
+    has_pdal = gscript.find_program(pgm="v.in.pdal")
     if gui_product == "lidar" and not has_pdal:
         gs.fatal(_("Module v.in.pdal is missing, cannot process downloaded data."))
 
