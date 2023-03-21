@@ -538,6 +538,7 @@ def main():
         gscript.fatal(_("Unable to load USGS JSON object."))
     # Functions down_list() and exist_list() used to determine
     # existing files and those that need to be downloaded.
+
     def down_list():
         dwnld_url.append(TNM_file_URL)
         dwnld_size.append(TNM_file_size if TNM_file_size else 0)
