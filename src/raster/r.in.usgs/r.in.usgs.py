@@ -784,7 +784,7 @@ def main():
                     "Network or formatting error: {err}"
                 ).format(url=url, err=error)
             )
-        except StandardError as error:
+        except Exception as error:
             cleanup_list.append(local_file_path)
             gs.fatal(_("Download of {url} failed: {err}").format(url=url, err=error))
 
