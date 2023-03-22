@@ -1,0 +1,82 @@
+<h2>DESCRIPTION</h2>
+The tool derives single elevation value for water bodies
+based on lidar data. These values are used for hydro-flattening a digital elevation model.
+The <b>input</b> raster is expected to represent ground surface created by binning lidar data
+(e.g., using <em><a href="r.in.pdal.html">r.in.pdal</a></em>) with averaged ground elevation.
+Small gaps in the input are expected. Large gaps are interpreted as water bodies.
+The minimum size of a water body can be set with <b>min_size</b> option in map units.
+
+<p>
+The output <b>water_elevation</b> is a raster map of water bodies where each water body
+has a single value representing the water level elevation derived from the lidar data
+at the edge of a water body.
+Since the elevation varies along the edge, option <b>percentile</b> is used to determine
+a single value. The variation along the edge can be examined with the <b>water_elevation_stddev</b>
+output representing the standard deviation of the lidar elevation values
+along the water body's edge. Higher deviation suggests problematic areas
+that need to be further inspected.
+
+<p>
+To keep the intermediate results for inspection, use flag <b>-k</b>.
+
+<h2>NOTES</h2>
+While this tool was designed for water bodies, it can be used for other purposes,
+e.g., for filling a gap in digital elevation models caused by excluding buildings.
+<p>
+This tool does not interpolate gaps in data, rather it derives a single value
+for each gap. The result can be used to fill gaps and the tool can be run on large areas.
+For actual gap interpolation, which is typically more computationally intensive,
+see <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.fillnuls.html">r.fillnulls</a></em>.
+
+<h2>EXAMPLE</h2>
+We will download a lidar tile with <em><a href="r.in.usgs.html">r.in.usgs</a></em> addon,
+use <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.in.pdal.html">r.in.pdal</a></em>
+to bin the elevation points at 1 meter resolution, and derive elevation levels for lakes
+with minimum size of 4000 m^2.
+
+<div class="code"><pre>
+# select study area and resolution
+g.region n=213300 s=211900 w=653900 e=655300 res=1
+# download lidar tile into /tmp
+r.in.usgs product=lidar output_directory=/tmp title_filter=Phase2 -d
+# bin point elevation using ground and road points with reprojection
+r.in.pdal input=/tmp/USGS_LPC_NC_Phase2_2014_LA_37_20164902_.laz output=ground -w class_filter=2,13
+# convert elevation from feet to meters
+r.mapcalc "ground_m = ground * 0.304800609601219"
+# derive elevation of water bodies and standard deviation
+r.hydro.flatten input=ground_m water_elevation=water_elevation water_elevation_stddev=water_elevation_stddev percentile=10 misize=4000
+</pre></div>
+
+<div align="center" style="margin: 10px">
+<!--
+r.colors map=ground_m,water_elevation color=elevation
+r.to.vect -t input=water_elevation output=water_elevation type=area
+d.rast map=ground_m
+d.rast map=water_elevation
+d.rast map=water_elevation_stddev
+d.vect map=water_elevation color=77:77:77:255 fill_color=none
+d.legend -t -b raster=water_elevation_stddev title="Stddev [m]" digits=2 border_color=none
+-->
+  <img src="r_hydro_flatten_input.png" alt="input for r.hydro.flatten" border="0">
+  <img src="r_hydro_flatten_output_elevation.png" alt="output elevation from r.hydro.flatten" border="0">
+  <img src="r_hydro_flatten_output_stddev.png" alt="output stddev from r.hydro.flatten" border="0">
+  <br>
+  <i>Figure: Input binned elevation representing ground with gaps (left),
+     input overlayed with elevation values estimated for gaps and highlighted with an outline (middle),
+     input overlayed with standard deviation of the elevation along the edge of the gaps (right).</i>
+</div>
+
+<h2>REFERENCE</h2>
+Method based on workflow <a href="https://www.youtube.com/watch?v=p9KCfufNYgE">presented</a>
+at NC GIS Conference 2021 by Doug Newcomb.
+
+<h2>SEE ALSO</h2>
+<em>
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.in.pdal.html">r.in.pdal</a>,
+<a href="r.in.usgs.html">r.in.usgs</a>,
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.fillnulls.html">r.fillnulls</a></em>
+<em>
+
+<h2>AUTHOR</h2>
+
+Anna Petrasova, <a href="http://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a>
