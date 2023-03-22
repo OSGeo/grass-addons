@@ -30,7 +30,8 @@
 # %end
 # %option G_OPT_R_OUTPUT
 # % key: water_elevation
-# % description: Raster map of derived water elevation
+# % description: Represents single elevation value for each water body
+# % label: Raster map of derived water elevation
 # %end
 # %option G_OPT_R_OUTPUT
 # % key: water_elevation_stddev

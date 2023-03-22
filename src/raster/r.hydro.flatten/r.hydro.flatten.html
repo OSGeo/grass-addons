@@ -7,8 +7,9 @@ Small gaps in the input are expected. Large gaps are interpreted as water bodies
 The minimum size of a water body can be set with <b>min_size</b> option in map units.
 
 <p>
-The output <b>water_elevation</b> is a raster map with water bodies filled with
-a value representing their elevation based on the lidar data at the edge of each water body.
+The output <b>water_elevation</b> is a raster map of water bodies where each water body
+has a single value representing the water level elevation derived from the lidar data
+at the edge of a water body.
 Since the elevation varies along the edge, option <b>percentile</b> is used to determine
 a single value. The variation along the edge can be examined with the <b>water_elevation_stddev</b>
 output representing the standard deviation of the lidar elevation values
@@ -17,6 +18,15 @@ that need to be further inspected.
 
 <p>
 To keep the intermediate results for inspection, use flag <b>-k</b>.
+
+<h2>NOTES</h2>
+While this tool was designed for water bodies, it can be used for other purposes,
+e.g., for filling a gap in digital elevation models caused by excluding buildings.
+<p>
+This tool does not interpolate gaps in data, rather it derives a single value
+for each gap. The result can be used to fill gaps and the tool can be run on large areas.
+For actual gap interpolation, which is typically more computationally intensive,
+see <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.fillnuls.html">r.fillnulls</a></em>.
 
 <h2>EXAMPLE</h2>
 We will download a lidar tile with <em><a href="r.in.usgs.html">r.in.usgs</a></em> addon,
@@ -63,7 +73,8 @@ at NC GIS Conference 2021 by Doug Newcomb.
 <h2>SEE ALSO</h2>
 <em>
 <a href="https://grass.osgeo.org/grass-stable/manuals/r.in.pdal.html">r.in.pdal</a>,
-<a href="r.in.usgs.html">r.in.usgs</a>
+<a href="r.in.usgs.html">r.in.usgs</a>,
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.fillnulls.html">r.fillnulls</a></em>
 <em>
 
 <h2>AUTHOR</h2>
