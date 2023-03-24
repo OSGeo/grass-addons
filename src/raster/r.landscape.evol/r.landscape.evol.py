@@ -350,6 +350,7 @@ def landscapeEvol(m, o, p, q, res, s, f):
     convergence = options["convergence"]
     manningn = options["manningn"]
     p = options["prefx"]
+    years = options["number"]
 
     # Make some variables for temporary map names
     aspect = "%saspect%04d" % (p, o)
@@ -395,15 +396,22 @@ def landscapeEvol(m, o, p, q, res, s, f):
         float(s[4][m]) * stormtimet
     )  # Calculate the length of time at peak flow depth
 
-    # If first iteration, use input maps. Otherwise, use maps generated from
-    # previous iterations, with no iteration numbers appended to map names
-    if o == 1:
+    # If single or first iteration, use input maps. Otherwise, use maps generated from
+    # previous iterations. If single run, no iteration numbers appended to map names.
+    if years == 1:
         old_dem = elev
         old_soil = old_soil = "%s%s%s" % (p, outsoil, pid)
         slope = "%sslope" % (p)
         netchange = "%sED_rate" % (p)
         new_dem = "%s%s" % (p, outdem)
         new_soil = "%s%s" % (p, outsoil)
+    elif o == 1:
+        old_dem = elev
+        old_soil = old_soil = "%s%s%s" % (p, outsoil, pid)
+        slope = "%sslope%04d" % (p, o)
+        netchange = "%sED_rate%04d" % (p, o)
+        new_dem = "%s%s%04d" % (p, outdem, o)
+        new_soil = "%s%s%04d" % (p, outsoil, o)
     else:
         # Iterative mode, so we will make some maps that will update
         # at each iteration to record state of landscape
