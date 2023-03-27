@@ -1,0 +1,31 @@
+<h2>DESCRIPTION</h2>
+<b>t.rast.climatologies</b> is a module to calculate climatologies for singol days or months
+in a time series creating as output a new relative space time raster dataset
+
+<h2>EXAMPLE</h2>
+
+<h3>Daily series</h3>
+Starting from a space time raster dataset it create a new space time raster dataset containing the daily maps of average for a multi year dataset
+<div class="code">
+    <pre>
+        t.rast.climatologies strds=myinput output=dailyoutput
+    </pre>
+</div>
+
+<h3>Monthly series</h3>
+Starting from a space time raster dataset it create two new space time raster datasets containing the monthly maps of minimum and maximum for a multi year dataset
+<div class="code">
+    <pre>
+        t.rast.climatologies strds=myinput granularity=month method=min,max output=monthlyoutputmin,monthlyoutputmax
+    </pre>
+</div>
+
+<h2>SEE ALSO</h2>
+
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.series.html">r.series</a>
+<a href="https://grass.osgeo.org/grass-stable/manuals/t.rast.series.html">t.rast.series</a>
+
+
+<h2>AUTHOR</h2>
+
+Luca Delucchi, <i>Fondazione Edmund Mach</i>
