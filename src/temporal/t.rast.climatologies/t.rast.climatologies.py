@@ -105,7 +105,7 @@ def main():
     # check if quantile value is used correctly
     if "quantile" in method and not quantile:
         gscript.fatal(_("Number requested methods and output maps do not match."))
-    elif quantile and not "quantile" in method:
+    elif quantile and "quantile" not in method:
         gscript.warning(
             _("Quantile option set but quantile not selected in method option")
         )
@@ -132,15 +132,15 @@ def main():
     if temporal_type != "absolute":
         gscript.fatal(
             _(
-                f"Space time raster dataset is not absolute, this module require an absolute one"
+                "Space time raster dataset is not absolute, this module require an absolute one"
             )
         )
     maps = insp.get_registered_maps_as_objects(None, "start_time", None)
     if maps is None:
         gscript.fatal(
             _(
-                f"No maps selected in space time raster dataset {strds};"
-                " it could be empty or where option returno none data"
+                "No maps selected in space time raster dataset {};"
+                " it could be empty or where option returno none data".format(strds)
             )
         )
         return False
