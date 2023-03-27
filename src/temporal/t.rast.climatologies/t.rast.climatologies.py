@@ -91,6 +91,7 @@ import grass.pygrass.modules as pymod
 import grass.script as gscript
 import grass.temporal as tgis
 
+
 def main():
     strds = options["strds"]
     output = options["output"]
@@ -105,7 +106,9 @@ def main():
     if "quantile" in method and not quantile:
         gscript.fatal(_("Number requested methods and output maps do not match."))
     elif quantile and not "quantile" in method:
-        gscript.warning(_("Quantile option set but quantile not selected in method option"))
+        gscript.warning(
+            _("Quantile option set but quantile not selected in method option")
+        )
 
     # Check if number of methods and output maps matches
     if "quantile" in method:
@@ -128,13 +131,17 @@ def main():
     temporal_type, semantic_type, title, description = insp.get_initial_values()
     if temporal_type != "absolute":
         gscript.fatal(
-            _(f"Space time raster dataset is not absolute, this module require an absolute one")
+            _(
+                f"Space time raster dataset is not absolute, this module require an absolute one"
+            )
         )
     maps = insp.get_registered_maps_as_objects(None, "start_time", None)
     if maps is None:
         gscript.fatal(
-            _(f"No maps selected in space time raster dataset {strds};"
-              " it could be empty or where option returno none data")
+            _(
+                f"No maps selected in space time raster dataset {strds};"
+                " it could be empty or where option returno none data"
+            )
         )
         return False
     # start the r.series module to be used in a ParallelModuleQueue
@@ -150,10 +157,12 @@ def main():
     if gran == "day":
         outunit = "days"
         # for each day
-        for doy in range(1,367):
+        for doy in range(1, 367):
             doystr = "{:03d}".format(doy)
             thiswhere = f"strftime('%j', start_time) == '{doy}'"
-            selemaps = insp.get_registered_maps_as_objects(thiswhere, "start_time", None)
+            selemaps = insp.get_registered_maps_as_objects(
+                thiswhere, "start_time", None
+            )
             maps_name = [sam.get_id() for sam in selemaps]
             # check if there are maps for that day
             if len(maps_name) > 0:
@@ -162,7 +171,9 @@ def main():
                 runmod.inputs.input = ",".join(maps_name)
                 runmod.outputs.output = outname
                 process_queue.put(runmod)
-                map_layer = tgis.space_time_datasets.RasterDataset(f"{outname}@{mapset}")
+                map_layer = tgis.space_time_datasets.RasterDataset(
+                    f"{outname}@{mapset}"
+                )
                 extent = tgis.RelativeTemporalExtent(
                     start_time=doy - 1,
                     end_time=doy,
@@ -170,15 +181,17 @@ def main():
                 )
                 map_layer.set_temporal_extent(extent=extent)
                 outmaps.append(map_layer)
-                
+
             if doy % 10 == 0:
                 gscript.percent(doy, 366, 1)
     else:
         outunit = "months"
-        for month in range(1,13):
+        for month in range(1, 13):
             monthstr = "{:02d}".format(month)
             thiswhere = f"strftime('%m', start_time) == '{monthstr}'"
-            selemaps = insp.get_registered_maps_as_objects(thiswhere, "start_time", None)
+            selemaps = insp.get_registered_maps_as_objects(
+                thiswhere, "start_time", None
+            )
             maps_name = [sam.get_id() for sam in selemaps]
             if len(maps_name) > 0:
                 outname = f"{basename}_{monthstr}"
@@ -186,7 +199,9 @@ def main():
                 runmod.inputs.input = ",".join(maps_name)
                 runmod.outputs.output = outname
                 process_queue.put(runmod)
-                map_layer = tgis.space_time_datasets.RasterDataset(f"{outname}@{mapset}")
+                map_layer = tgis.space_time_datasets.RasterDataset(
+                    f"{outname}@{mapset}"
+                )
                 extent = tgis.RelativeTemporalExtent(
                     start_time=month - 1,
                     end_time=month,
@@ -223,6 +238,7 @@ def main():
         output_strds.metadata.update(dbif)
 
     dbif.close()
+
 
 if __name__ == "__main__":
     options, flags = gscript.parser()
