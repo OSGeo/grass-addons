@@ -258,7 +258,9 @@ def write_register_file(filenames, register_output):
             fd.write("{img}{sep}{ts}".format(img=map_name, sep=sep, ts=timestamp))
             if has_band_ref:
                 try:
-                    band_ref = re.match(r".*_B([1-9]+).*", map_name).groups()
+                    band_ref = re.match(
+                        r".*_(B([1-9]+)|QA_PIXEL|QA_RADSAT|QA_AEROSOL).*", map_name
+                    ).groups()
                     band_ref = band_ref[0] if band_ref[0] else band_ref[1]
                 except AttributeError:
                     gs.warning(
