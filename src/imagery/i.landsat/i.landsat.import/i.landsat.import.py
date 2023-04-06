@@ -148,11 +148,14 @@ def _untar(inputdir, untardir):
             gs.fatal(_("Directory <{}> is not writable.").format(untardir))
 
     if options["pattern_file"]:
-        filter_f = "*" + options["pattern_file"] + "*.tar*"
+        filter_f = "*" + options["pattern_file"] + "*"
     else:
-        filter_f = "*.tar*"
+        filter_f = "*"
 
-    scenes_to_untar = glob.glob(os.path.join(inputdir, filter_f))
+    # find .tar archives (new archiving standard for Landsat as of 2023) and
+    # .tar.gz (downloads of older date)
+    scenes_to_untar = glob.glob(os.path.join(inputdir, f"{filter_f}.tar"))
+    scenes_to_untar.extend(glob.glob(os.path.join(inputdir, f"{filter_f}.tar.gz")))
 
     for scene in scenes_to_untar:
         with tarfile.open(name=scene, mode="r") as tar:
