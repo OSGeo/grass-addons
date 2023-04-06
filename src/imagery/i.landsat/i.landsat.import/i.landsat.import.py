@@ -259,7 +259,7 @@ def write_register_file(filenames, register_output):
             if has_band_ref:
                 try:
                     band_ref = re.match(
-                        r".*_(B([1-9]+)|QA_PIXEL|QA_RADSAT|QA_AEROSOL).*", map_name
+                        r".*_(B([1-9]+)|QA_(RADSAT|PIXEL|AEROSOL)).*", map_name
                     ).groups()
                     band_ref = band_ref[0] if band_ref[0] else band_ref[1]
                 except AttributeError:
