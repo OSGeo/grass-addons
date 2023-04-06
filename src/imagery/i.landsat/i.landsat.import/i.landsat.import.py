@@ -148,9 +148,9 @@ def _untar(inputdir, untardir):
             gs.fatal(_("Directory <{}> is not writable.").format(untardir))
 
     if options["pattern_file"]:
-        filter_f = "*" + options["pattern_file"] + "*.tar.gz"
+        filter_f = "*" + options["pattern_file"] + "*.tar*"
     else:
-        filter_f = "*.tar.gz"
+        filter_f = "*.tar*"
 
     scenes_to_untar = glob.glob(os.path.join(inputdir, filter_f))
 
