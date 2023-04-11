@@ -412,7 +412,7 @@ def main():
         grass.run_command(
             "g.remove", flags="f", type="raster", pattern=tmp_pattern, quiet=True
         )
-        sys.exit(1)
+        return
 
     precl = prec.split(",")
 
