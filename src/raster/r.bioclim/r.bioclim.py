@@ -78,7 +78,6 @@
 # % description: Number of parallel processes to launch
 # %End
 
-import sys
 import os
 import string
 import grass.script as grass
