@@ -2,15 +2,7 @@
 MODULE_TOPDIR = ..
 
 # display gui misc
-SUBDIRS = \
-	db \
-	display \
-	general \
-	imagery \
-	raster \
-	raster3d \
-	vector \
-	temporal
+SUBDIRS := $(shell find ./ -maxdepth 2 -mindepth 2 -name "Makefile" -exec dirname {} \; | xargs -I {} basename {} )
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
