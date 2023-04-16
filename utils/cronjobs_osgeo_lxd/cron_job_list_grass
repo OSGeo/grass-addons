@@ -30,7 +30,7 @@
 
 # daily Linux binary snapshots, also creates main manuals, addon manuals, and prog-manual (target dir: /var/www/code_and_data/)
 # old stable: G78
-05 05 * * * nice sh /home/neteler/cronjobs/cron_grass_legacy_releasebranch_build_binaries.sh > /var/www/code_and_data/grass78/binary/linux/snapshot/build.log.txt 2>&1
+05 05 * * * nice sh /home/neteler/cronjobs/cron_grass_legacy_releasebranch_build_binaries.sh > /var/www/code_and_data/grass-legacy/binary/linux/snapshot/build.log.txt 2>&1
 # stable: G82
 15 05 * * * nice sh /home/neteler/cronjobs/cron_grass_releasebranch_build_binaries.sh > /var/www/code_and_data/grass82/binary/linux/snapshot/build.log.txt 2>&1
 # dev: G83
