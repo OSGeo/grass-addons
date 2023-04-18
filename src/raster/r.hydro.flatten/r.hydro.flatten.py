@@ -100,6 +100,9 @@ def main():
     # r.fill.stats settings
     filling_distance = 3
     filling_cells = 6
+    # we set r.buffer to have 1 more 1-cell band than grown by r.fill.stats
+    # and the category of that strip is number of distance bands + 1
+    buffer_last_strip = filling_distance + 2
     region = gs.region()
     region_m = gs.parse_command("g.region", flags="gm")
     resolution_m = (float(region_m["nsres"]) + float(region_m["ewres"])) / 2
@@ -119,7 +122,7 @@ def main():
         "r.buffer",
         input=tmp_holes,
         output=tmp_buffer,
-        distances=[x * resolution_m for x in range(1, filling_distance + 2)],
+        distances=[x * resolution_m for x in range(1, buffer_last_strip)],
         units="meters",
     )
     tmp_reclass_for_clump = get_name("reclass_for_clump")
@@ -128,13 +131,13 @@ def main():
         input=tmp_buffer,
         output=tmp_reclass_for_clump,
         rules="-",
-        stdin=f"1 thru {filling_distance + 2} = 1",
+        stdin=f"1 thru {buffer_last_strip} = 1",
     )
     tmp_clump = get_name("clump")
     gs.run_command("r.clump", flags="d", input=tmp_reclass_for_clump, output=tmp_clump)
     tmp_strip = get_name("strip")
     gs.mapcalc(
-        f"{tmp_strip} = if ({tmp_buffer} == {filling_distance + 2}, {tmp_clump}, null())"
+        f"{tmp_strip} = if ({tmp_buffer} == {buffer_last_strip}, {tmp_clump}, null())"
     )
     tmp_water_elevation = get_name("water_elevation")
     gs.run_command(
@@ -162,12 +165,12 @@ def main():
     )
     tmp_water_elevation_dist_res = get_name("water_elevation_dist_res")
     gs.mapcalc(
-        f"{tmp_water_elevation_dist_res} = if ({tmp_buffer} < {filling_distance + 2}, "
+        f"{tmp_water_elevation_dist_res} = if ({tmp_buffer} < {buffer_last_strip}, "
         f"{tmp_water_elevation_dist}, null())"
     )
     tmp_water_stddev_dist_res = get_name("water_stddev_dist_res")
     gs.mapcalc(
-        f"{tmp_water_stddev_dist_res} = if ({tmp_buffer} < {filling_distance + 2}, "
+        f"{tmp_water_stddev_dist_res} = if ({tmp_buffer} < {buffer_last_strip}, "
         f"{tmp_water_stddev_dist}, null())"
     )
     if size_threshold:
