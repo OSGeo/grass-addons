@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# script to build GRASS 7.x binaries + addons from the `releasebranch_7_0` binaries
+# script to build GRASS 7.x binaries + addons from the `releasebranch_x_y` binaries
 # (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
 # 2008, 2014, 2015, 2016, 2017, 2018, 2019, 2021
 #
