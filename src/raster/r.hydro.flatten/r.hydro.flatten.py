@@ -101,10 +101,8 @@ def main():
     filling_distance = 3
     filling_cells = 6
     region = gs.region()
-    radius = sqrt(region["nsres"] * region["ewres"])
-    # distance range to get a 1-cell wide edge in "clump1"
-    max_radius = radius * 4.01
-    min_radius = radius * 3.01
+    region_m = gs.parse_command("g.region", flags="gm")
+    resolution_m = (float(region_m["nsres"]) + float(region_m["ewres"])) / 2
     tmp_rfillstats = get_name("rfillstats")
     gs.run_command(
         "r.fill.stats",
@@ -114,25 +112,34 @@ def main():
         distance=filling_distance,
         cells=filling_cells,
     )
-    tmp_water_buffer = get_name("water_buffer")
+    tmp_holes = get_name("holes")
+    gs.mapcalc(f"{tmp_holes} = if(isnull({tmp_rfillstats}), 1, null())")
+    tmp_buffer = get_name("buffer")
     gs.run_command(
-        "r.grow.distance",
-        flags="n",
-        input=tmp_rfillstats,
-        distance=tmp_water_buffer,
-        metric="squared",
-        max_distance=max_radius * max_radius,
+        "r.buffer",
+        input=tmp_holes,
+        output=tmp_buffer,
+        distances=[x * resolution_m for x in range(1, filling_distance + 2)],
+        units="meters",
     )
-    tmp_clump1 = get_name("clump1")
+    tmp_reclass_for_clump = get_name("reclass_for_clump")
+    gs.write_command(
+        "r.reclass",
+        input=tmp_buffer,
+        output=tmp_reclass_for_clump,
+        rules="-",
+        stdin=f"1 thru {filling_distance + 2} = 1",
+    )
+    tmp_clump = get_name("clump")
+    gs.run_command("r.clump", flags="d", input=tmp_reclass_for_clump, output=tmp_clump)
+    tmp_strip = get_name("strip")
     gs.mapcalc(
-        f"{tmp_clump1} = if ({tmp_water_buffer} < ({min_radius} * {min_radius}), null(), 1)"
+        f"{tmp_strip} = if ({tmp_buffer} == {filling_distance + 2}, {tmp_clump}, null())"
     )
-    tmp_clump2 = get_name("clump2")
-    gs.run_command("r.clump", flags="d", input=tmp_clump1, output=tmp_clump2)
     tmp_water_elevation = get_name("water_elevation")
     gs.run_command(
         "r.stats.quantile",
-        base=tmp_clump2,
+        base=tmp_strip,
         cover=tmp_rfillstats,
         percentiles=options["percentile"],
         output=tmp_water_elevation,
@@ -140,7 +147,7 @@ def main():
     tmp_water_stddev = get_name("water_stddev")
     gs.run_command(
         "r.stats.zonal",
-        base=tmp_clump2,
+        base=tmp_strip,
         cover=tmp_rfillstats,
         method="stddev",
         output=tmp_water_stddev,
@@ -155,12 +162,12 @@ def main():
     )
     tmp_water_elevation_dist_res = get_name("water_elevation_dist_res")
     gs.mapcalc(
-        f"{tmp_water_elevation_dist_res} = if ({tmp_water_buffer} < {min_radius} * {min_radius}, "
+        f"{tmp_water_elevation_dist_res} = if ({tmp_buffer} < {filling_distance + 2}, "
         f"{tmp_water_elevation_dist}, null())"
     )
     tmp_water_stddev_dist_res = get_name("water_stddev_dist_res")
     gs.mapcalc(
-        f"{tmp_water_stddev_dist_res} = if ({tmp_water_buffer} < {min_radius} * {min_radius}, "
+        f"{tmp_water_stddev_dist_res} = if ({tmp_buffer} < {filling_distance + 2}, "
         f"{tmp_water_stddev_dist}, null())"
     )
     if size_threshold:
