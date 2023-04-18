@@ -2,7 +2,7 @@
 
 # script to build GRASS 7.x binaries + addons from the `releasebranch_x_y` binaries
 # (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
-# 2008, 2014, 2015, 2016, 2017, 2018, 2019, 2021
+# 2008-2023
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
