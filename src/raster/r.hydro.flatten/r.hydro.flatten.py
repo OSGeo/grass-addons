@@ -67,7 +67,7 @@ RAST_REMOVE = []
 
 def cleanup():
     if RAST_REMOVE:
-        gs.run_command("g.remove", flags="f", type="raster", name=RAST_REMOVE)
+        gs.run_command("g.remove", flags="fb", type="raster", name=RAST_REMOVE)
 
 
 def get_tmp_name(basename):
