@@ -1,6 +1,10 @@
 <h2>DESCRIPTION</h2>
 The <em>r.random.walk</em> module generates a 2D random walk across the current computational region.
-The module provides control of the number of steps and directions (4 or 8) a walker can take and allows the walker's behavior to be set to be self-avoiding (Madras et al., 1996) or allow revisits. The output displays the frequency the walker visited each cell or the average frequency. The module can run multiple walks in parallel. It either samples the same starting location for each walk or generates a unique starting position for each walker.
+The module provides control of the number of steps and directions (4 or 8) a walker can take and allows 
+the walker's behavior to be set to be self-avoiding (Madras et al., 1996) or allow revisits. The output displays
+the frequency the walker visited each cell or the average frequency. The module can run multiple walks in
+parallel. It either samples the same starting location for each walk or generates a unique starting position
+for each walker.
 
 <h2>EXAMPLE</h2>
 Using the North Carolina full sample dataset:
@@ -33,4 +37,4 @@ r.random.walk -as output=random_walk_smooth directions=8 steps=100000 memory=180
 <a href="https://grass.osgeo.org/grass-stable/manuals/r.surf.random.html">r.surf.random</a>
 
 <h2>AUTHOR</h2>
-Corey T. White, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a><br>
+Corey T. White, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a>

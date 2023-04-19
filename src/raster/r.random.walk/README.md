@@ -1,5 +1,3 @@
-# r.random.walk
-
 GRASS GIS module that calculates a 2D random walk over the computational region.
 
 The module provides control of the number of steps and directions (4 or 8) the walker can take, and allows the walkers behavior to be set to revisit or self-avoiding walk (Madras and Slade, 2013). The output displays the frequency the walker visited each cell if the walker is allowed to revisit cells. During a self-avoiding walk If the walker behavior is set the starting cell and ending cell are labled.

@@ -65,7 +65,7 @@ class TestRandomWalk(TestCase):
         )
 
     def test_random_walk_with_overlap_4_dir_output(self):
-        """Test that r.random.walk runs with overlaps are  expected output"""
+        """Test that r.random.walk runs with overlaps are expected output"""
         # assertModule is used to call module which we test
         # we expect module to finish successfully
         self.assertModule(

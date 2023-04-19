@@ -93,12 +93,10 @@ import sys
 import time
 
 import grass.script as gs
-from grass.exceptions import CalledModuleError
 from grass.pygrass import raster
 from grass.pygrass.gis.region import Region
-from grass.script.core import gisenv
 
-# import numpy as np
+
 TMP_SMOOTH_RASTERS = []
 TMP_RASTERS = []
 PREFIX = "r_random_walk_temp_walk_"
@@ -116,14 +114,10 @@ def cleanup():
 
 
 class GetOutOfLoop(Exception):
-    """
-    Throw to break out of nested loop.
-    """
-
-    pass
+    """Throw to break out of nested loop."""
 
 
-## TODO: Rewrite this section to use differnt random distributions using values [0,1]
+## TODO: Rewrite this section to use different random distributions using values [0,1]
 def take_step(current_position, num_dir, black_list=None):
     """
     Calculates the next position of walker using either 4 or 8 possible directions.
@@ -136,7 +130,7 @@ def take_step(current_position, num_dir, black_list=None):
         black_list = []
 
     if num_dir not in [4, 8]:
-        raise ValueError(f"Unsupported num_dir Recieved: {num_dir}")
+        raise ValueError(f"Unsupported num_dir: {num_dir}")
 
     direction = random.choice(
         [ele for ele in range(num_dir + 1) if ele not in black_list]
@@ -233,7 +227,7 @@ def avoid_boundary(position, boundary):
     Generates a list of directions to avoid, so that the walk can continue in bounds.
     :param Dict{position: list[row, column], direction: int} position: The last tried position and directions.
     :param list[row, column] boundary: The maximum row and column values for the region.
-    :return list[int]: A list of directions to avoid, so the bioundary is not crossed.
+    :return list[int]: A list of directions to avoid, so the boundary is not crossed.
     """
 
     brows, bcols = boundary
@@ -262,7 +256,7 @@ def random_walk(
     """
     Calulates a random walk on a raster surface.
     :param int num_directions: The number of directions to consider on walk.
-        Values represtent either 4 or 8 direction walks and must be set as
+        Values represent either 4 or 8 direction walks and must be set as
         either 4 or 8.
     :param list[row, column] boundary:
     :param RasterSegment walk_output:
@@ -270,7 +264,7 @@ def random_walk(
     :param bool avoid: Determines if the walker can revisit a cell it has
         already visited.
     :param bool:list[row, column] start_position: A start position for the
-        walk to be used for all concurrent walks or False to generate a new start posisition for each walker.
+        walk to be used for all concurrent walks or False to generate a new start position for each walker.
     :param int memory: The total memory assigned to the RasterSegment.
     :param string walk_output_name: The name of raster file getting created.
     :return RasterSegment
@@ -446,7 +440,7 @@ def main():
 
     gs.message(_("Averaging: {0} Rasters".format(len(TMP_SMOOTH_RASTERS))))
     if len(TMP_SMOOTH_RASTERS) > 0:
-        # 1024 is the soft limit for most computures for number of allowed open files
+        # 1024 is the soft limit for most operating systems for number of allowed open files
         if len(TMP_SMOOTH_RASTERS) >= 1024:
             gs.run_command(
                 "r.series",
