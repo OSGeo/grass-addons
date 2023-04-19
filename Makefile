@@ -1,7 +1,7 @@
 
 MODULE_TOPDIR = ..
 
-SUBDIRS := ${sort ${dir ${wildcard */Makefile}}}
+SUBDIRS = src
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
