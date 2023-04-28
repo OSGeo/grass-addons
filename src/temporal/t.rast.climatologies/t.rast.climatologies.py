@@ -4,7 +4,7 @@
 #
 # MODULE:       t.rast.climatologies
 # AUTHOR(S):    Luca Delucchi, Fondazione Edmund Mach
-# PURPOSE:      t.rast.climatologies calculate climatologies for space time raster dataset
+# PURPOSE:      t.rast.climatologies calculates climatologies for space time raster datasets
 #
 # COPYRIGHT:        (C) 2023 by Luca Delucchi
 #
@@ -15,7 +15,7 @@
 ################################################
 
 # %module
-# % description: Calculate climatologies in a space time raster dataset
+# % description: Calculates climatologies from a space time raster dataset of absolute temporal type
 # % keyword: temporal
 # % keyword: raster
 # % keyword: aggregation
@@ -34,7 +34,7 @@
 # %option
 # % key: basename
 # % type: string
-# % label: Basename of the new generated output maps
+# % label: Basename of the newly generated output maps
 # % description: Either a numerical suffix or the start time (s-flag) separated by an underscore will be attached to create a unique identifier
 # % required: yes
 # % multiple: no
@@ -73,7 +73,7 @@
 # %option
 # % key: nprocs
 # % type: integer
-# % description: Number of r.null processes to run in parallel
+# % description: Number of processes to run in parallel
 # % required: no
 # % multiple: no
 # % answer: 1
@@ -81,7 +81,7 @@
 
 #%flag
 #% key: s
-#% description: Do not create space time raster dataset
+#% description: Do not create a space time raster dataset as output
 #%end
 
 import sys
@@ -132,15 +132,15 @@ def main():
     if temporal_type != "absolute":
         gscript.fatal(
             _(
-                "Space time raster dataset is not absolute, this module require an absolute one"
+                "Space time raster dataset temporal type is not absolute, this module requires absolute time"
             )
         )
     maps = insp.get_registered_maps_as_objects(None, "start_time", None)
     if maps is None:
         gscript.fatal(
             _(
-                "No maps selected in space time raster dataset {};"
-                " it could be empty or where option returno none data".format(strds)
+                "No maps selected in the space time raster dataset {};"
+                " it might be empty or the where option returns no data".format(strds)
             )
         )
         return False
@@ -152,7 +152,7 @@ def main():
         mod.inputs.quantile = quantile
     process_queue = pymod.ParallelModuleQueue(int(nprocs))
     mapset = tgis.core.get_current_mapset()
-    # depending on granularity it calculate by daily or monthly data
+    # depending on granularity it calculates daily or monthly climatologies
     outmaps = []
     if gran == "day":
         outunit = "days"
@@ -218,7 +218,7 @@ def main():
             "strds",
             "relative",
             f"{gran} {method} climatologies",
-            f"Climatologies create from {strds}, {gran} {method} maps",
+            f"Climatologies created from {strds}, {gran} {method} maps",
             semantic_type,
             dbif,
             gscript.overwrite(),
