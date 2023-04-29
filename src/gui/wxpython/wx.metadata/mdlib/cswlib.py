@@ -1435,9 +1435,7 @@ class CSWConnectionPanel(wx.Panel):
         self.panelRight.SetSizer(rightPanelSizer)
         self.panelLeft.SetSizer(self.configureSizer)
 
-        self.splitterConn.SplitVertically(
-            self.panelLeft, self.panelRight,
-        )
+        self.splitterConn.SplitVertically(self.panelLeft, self.panelRight)
         self.splitterConn.SetSashGravity(0.2)
         self.splitterConn.SetMinimumPaneSize(200)
         self.mainsizer.Add(self.splitterConn, 1, wx.EXPAND)
