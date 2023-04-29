@@ -1121,7 +1121,7 @@ class MdMainFrame(wx.Frame):
 
             self.ntbRight = NotebookRight(self.splitter, self.xmlPath)
 
-            self.splitter.SplitVertically(self.editor, self.ntbRight, sashPosition=0.65)
+            self.splitter.SplitVertically(self.editor, self.ntbRight)
             self.splitter.SetSashGravity(0.65)
             self.leftPanel.Hide()
             self.Hsizer.Add(self.splitter, proportion=1, flag=wx.EXPAND)
