@@ -1658,7 +1658,7 @@ class MdValidator(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
         self.text = wx.TextCtrl(
-            parent,
+            self,
             id=wx.ID_ANY,
             size=(0, 55),
             style=wx.VSCROLL
