@@ -967,7 +967,7 @@ class CSWBrowserPanel(wx.Panel):
         upSearchSizer.Add(self.qtypeCb, 1, wx.EXPAND)
 
         self.leftSearchSizer.Add(upSearchSizer, 1, wx.EXPAND)
-        self.rightSearchSizer.Add(wx.StaticText(self), 0)
+        self.rightSearchSizer.Add(wx.StaticText(self.pnlLeft), 0)
         mainSearchSizer.Add(self.leftSearchSizer, wx.EXPAND)
         mainSearchSizer.Add(self.rightSearchSizer)
 
