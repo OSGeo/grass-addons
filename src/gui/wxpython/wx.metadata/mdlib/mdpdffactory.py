@@ -12,13 +12,14 @@ Classes:
  - mdpdffactory::Point
 """
 
+import io
 import math
 import os
 import subprocess
 import sys
 import tempfile
 
-from core.gcmd import GWarning
+from core.gcmd import GError, GWarning
 
 from grass.pygrass.modules.interface.env import G_debug
 from grass.script import core as grass
@@ -56,8 +57,9 @@ class PdfCreator(object):
         @:param pdf_file- path and name of generated report
         """
         try:
-            global Image, PageBreak, Paragraph, Table
+            global Image, PageBreak, Paragraph, Table, PilImage
 
+            from PIL import Image as PilImage
             from reportlab.platypus import (
                 Image,
                 PageBreak,
@@ -271,7 +273,7 @@ class PdfCreator(object):
             [[maxx, minx], [maxy, miny]],
         )
 
-        ##################### Add google picture(extend) ##################################
+        ##################### Add OpenStreetMap picture(extend) ##################################
         try:
             gmap = Image(mapPath.link1, 200, 200)
             gmap1 = Image(mapPath.link2, 200, 200)
@@ -279,7 +281,10 @@ class PdfCreator(object):
             self.doc.add(PageBreak())
         except:
             GWarning(
-                "Cannot download metadata picture of extend provided by Google API. Please check internet connection."
+                _(
+                    "Cannot download metadata picture of extend provided"
+                    " by OpenStreetMap. Please check internet connection."
+                )
             )
 
         ##################### Temporal ##################################
@@ -671,8 +676,13 @@ class MapBBFactory:
     """Class for compute bounding box for static map with using osm API"""
 
     def __init__(self, coords, size=[200, 200]):
-        # Static map img generator https://github.com/jperelli/osm-static-maps
-        self.static_map_service_url = "https://osm-static-maps.herokuapp.com/"
+        self._map_img_polygon_style = {
+            "pathOptions": {
+                "color": "#3388ff",
+                "weight": 3,
+                "fillOpacity": 0,
+            },
+        }
         self.pixels_per_lon_degree = []
         self.pixels_per_lon_radian = []
         self.pixel_origo = []
@@ -691,9 +701,53 @@ class MapBBFactory:
 
         bounds = self.CalcBoundsFromPoints(coords[0], coords[1])
         corners = self.calcCornersFromBounds(bounds)
+        self._update_polygon_geometry_style(map_extent=corners)
         center = self.CalcCenterFromBounds(bounds)
         zoom = self.CalculateBoundsZoomLevel(bounds, size)
+        self._is_osmsm_installed()
         self.link1, self.link2 = self.buildLink(center, zoom, corners)
+
+    def _is_osmsm_installed(self):
+        """Check if osmsm static map image OpenStreetMap generator is
+        installed
+
+        https://github.com/jperelli/osm-static-maps
+        """
+        try:
+            grass.call(["osmsm"], stdout=subprocess.PIPE)
+        except OSError:
+            GError(
+                _(
+                    "Could not found osmsm static map image OpenStreetMap"
+                    " generator. Please install it."
+                )
+            )
+
+    def _update_polygon_geometry_style(self, map_extent):
+        """Update polygon geometry style
+
+        :param map_extent list: list of Polygon feature dict without
+                                style pathOptions dict key
+
+        updated list with pathOptions dict key:
+
+        [{'geometry': {'coordinates': [[[-78.77462049,
+                                         35.80918894],
+                                        [-78.77462049,
+                                         35.68792712],
+                                        [-78.60830318,
+                                         35.68792712],
+                                        [-78.60830318,
+                                         35.80918894],
+                                        [-78.77462049,
+                                         35.80918894]]],
+                       'pathOptions': {'color': '#3388ff',
+                                       'fillOpacity': 0,
+                                       'weight': 3},
+                       'type': 'Polygon'},
+
+        """
+        map_extent[0]["geometry"].update(self._map_img_polygon_style)
 
     def calcCornersFromBounds(self, bounds):
         """
@@ -725,43 +779,71 @@ class MapBBFactory:
         ]
 
     def buildLink(self, center, zoom, corners):
-        size = str(self.size[0]) + "x" + str(self.size[1])
+        """Generate map static images with osmsm OpenStreetMap geodata
 
-        pic0 = (
-            "{service_url}?"
-            "geojson={geojson}&"
-            "center={lat},{lng}&"
-            "zoom={zoom}&"
-            "size={size}".format(
-                geojson=corners,
-                service_url=self.static_map_service_url,
-                lat=center["lat"],
-                lng=center["lng"],
-                zoom=zoom,
-                size=size,
+        https://github.com/jperelli/osm-static-maps
+
+        :param zoom int: map zoom
+        :param corners list: list of Polygon feature with style pathOptions
+                             dict key
+                            [{'geometry': {'coordinates': [[[-78.77462049,
+                                                             35.80918894],
+                                                            [-78.77462049,
+                                                             35.68792712],
+                                                            [-78.60830318,
+                                                             35.68792712],
+                                                            [-78.60830318,
+                                                             35.80918894],
+                                                            [-78.77462049,
+                                                             35.80918894]]],
+                                           'pathOptions': {'color': '#3388ff',
+                                                           'fillOpacity': 0,
+                                                           'weight': 3},
+                                           'type': 'Polygon'},
+                              'type': 'Feature'}]
+
+        :return list: list of map images paths
+        """
+        pics = []
+        temp = tempfile.gettempdir()
+        pic_cmd = [
+            "osmsm",
+            f"-W {self.size[0]}",
+            f"-H {self.size[1]}",
+            f"-c {center['lat']},{center['lng']}",
+            f"-g {corners[0]['geometry']}",
+        ]
+        # reduced zoom
+        pic_with_reduced_zoom_cmd = [
+            *pic_cmd,
+            f"-z {zoom - 4}",
+        ]
+        for index, pic_cmd in enumerate([pic_cmd, pic_with_reduced_zoom_cmd]):
+            pic = grass.Popen(
+                pic_cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
             )
-        )
-        pic0 = pic0.replace(" ", "")
-        G_debug(3, "Static map img url: {}".format(pic0))
-
-        pic1 = (
-            "{service_url}?"
-            "geojson={geojson}&"
-            "center={lat},{lng}&"
-            "zoom={zoom}&"
-            "size={size}".format(
-                geojson=corners,
-                service_url=self.static_map_service_url,
-                lat=center["lat"],
-                lng=center["lng"],
-                zoom=zoom - 4,
-                size=size,
-            )
-        )
-        pic1 = pic1.replace(" ", "")
-        G_debug(3, "Static map (reduced zoom) img url: {}".format(pic1))
-
-        return pic0, pic1
+            pic, error = pic.communicate(0)
+            if error:
+                GError(
+                    _(
+                        "Failed get static map image with osmsm. {}"
+                    ).format(
+                        grass.decode(error),
+                    )
+                )
+            else:
+                G_debug(
+                    3,
+                    f"Generate static map{index}.png img with param arg: {pic_cmd}",
+                )
+                pic_file = os.path.join(temp, f"map{index}.png")
+                pic = io.BytesIO(pic)
+                pic = PilImage.open(pic)
+                pic.save(pic_file)
+                pics.append(pic_file)
+        return pics
 
     def CalcCenterFromBounds(self, bounds):
         """Calculates the center point given southwest/northeast lat/lng
