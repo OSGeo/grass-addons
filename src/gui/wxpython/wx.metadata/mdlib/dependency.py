@@ -19,6 +19,7 @@
 #############################################################################
 
 import importlib
+import subprocess
 import sys
 
 
@@ -120,10 +121,29 @@ def check_dependencies(module_name, check_version=False):
         sys.stderr.write(message)
 
 
+def check_osmsm_lib():
+    """Check if osmsm JavaScript static map image OpenStreetMap generator
+    is installed
+
+    https://github.com/jperelli/osm-static-maps
+    """
+    lib = "osmsm"
+    try:
+        subprocess.call([lib], stdout=subprocess.PIPE)
+    except OSError:
+        message = "{name} JavaScript {text} <{url}>.\n".format(
+            name=lib,
+            text="library is missing. Check requirements on the manual page",
+            url=URL,
+        )
+        sys.stderr.write(message)
+
+
 def main():
     for module in MODULES:
         if check_dependencies(module_name=module):
             print("{name} is installed.".format(name=module))
+    check_osmsm_lib()
 
 
 if __name__ == "__main__":
