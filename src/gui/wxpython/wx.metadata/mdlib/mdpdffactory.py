@@ -52,7 +52,6 @@ class MyTheme(DefaultTheme):
 
 class PdfCreator(object):
     def __init__(self, MD_metadata, pdf_file, map, type, filename, profile):
-
         """@:param MD_metadata- instance of metadata(owslib)
         @:param pdf_file- path and name of generated report
         """
@@ -345,7 +344,6 @@ class PdfCreator(object):
         return text
 
     def _parseMDOWS(self, md=None):
-
         if md is None:
             md = self.md
         metadata = {}
@@ -827,9 +825,7 @@ class MapBBFactory:
             pic, error = pic.communicate(0)
             if error:
                 GError(
-                    _(
-                        "Failed get static map image with osmsm. {}"
-                    ).format(
+                    _("Failed get static map image with osmsm. {}").format(
                         grass.decode(error),
                     )
                 )
