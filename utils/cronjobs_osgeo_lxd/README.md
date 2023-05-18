@@ -1,5 +1,18 @@
 # Cronjobs OSGeo LXD
 
+## Version overview
+
+| **label**   | **version number** |
+| ----------- | ------------------ |
+| legacy      | 7.8                |
+| old current | 8.2                |
+| new current | 8.3                |
+| preview     | 8.4                |
+
+Last update: 17 May 2023
+
+The name of the files reflects the GRASS GIS version being compiled/packaged.
+
 ## What's this?
 
 This directory contains the relevant files to generate and deploy the GRASS GIS
@@ -15,29 +28,31 @@ programmer's manual.
 * generate and deploy the GRASS GIS Web pages at <https://grass.osgeo.org/>:
   * `hugo_clean_and_update_job.sh`
 * GRASS GIS source code weekly snapshots:
-  * grass7-stable: `cron_grass7_relbranch_src_snapshot.sh`
-  * grass8-stable: `cron_grass8_relbranch_src_snapshot.sh`
-  * grass8-devel: `cron_grass8_main_src_snapshot.sh`
+  * grass7-stable (legacy): `cron_grass7_legacy_src_snapshot.sh`
+  * grass8-old-current (current stable): `cron_grass8_old_current_src_snapshot.sh`
+  * grass8-new-current (new stable): `cron_grass8_new_current_src_snapshot.sh`
+  * grass8-preview (development): `cron_grass8_preview_src_snapshot.sh`
 * GRASS GIS Linux binary weekly snapshots:
-  * grass7-stable: `cron_grass7_relbranch_build_binaries.sh`
-  * grass8-stable: `cron_grass8_relbranch_build_binaries.sh`
+  * grass7-stable (legacy): `cron_grass7_legacy_build_binaries.sh`
+  * grass8-old-current (current stable): `cron_grass8_old_current_build_binaries.sh`
+  * grass8-new-current (new stable): `cron_grass8_new_current_build_binaries.sh`
+  * grass8-preview (development): `cron_grass8_preview_build_binaries.sh`
 * GRASS GIS addons manual pages:
-  * grass7-stable: within `cron_grass7_relbranch_build_binaries.sh`
-  * grass8-stable: within `cron_grass8_relbranch_build_binaries.sh`
+  * addon manual pages are generated within above Linux binary weekly snapshots
 * GRASS GIS 7 addons overview page at <https://grass.osgeo.org/grass7/manuals/addons/>:
-  * `compile_addons_git.sh` - called from `cron_grass7_relbranch_build_binaries.sh`
-  * `build-xml.py` - called from `cron_grass7_relbranch_build_binaries.sh`,
+  * `compile_addons_git.sh` - called from `cron_grass7_legacy_build_binaries.sh`
+  * `build-xml.py` - called from `cron_grass7_legacy_build_binaries.sh`,
     generates the modules.xml file required for the g.extension module
-  * `grass-addons-index.sh` - called from `cron_grass7_relbranch_build_binaries.sh`
+  * `grass-addons-index.sh` - called from `cron_grass7_legacy_build_binaries.sh`
   * `get_page_description.py` - called from `grass-addons-index.sh`
 * GRASS GIS 8 addons overview page at <https://grass.osgeo.org/grass8/manuals/addons/>:
-  * `compile_addons_git.sh` - called from `cron_grass8_relbranch_build_binaries.sh`
-  * `build-xml.py` - called from `cron_grass8_relbranch_build_binaries.sh`
+  * `compile_addons_git.sh` - called from `cron_grass8_XXX_build_binaries.sh`
+  * `build-xml.py` - called from `cron_grass8_XXX_build_binaries.sh`
     generates the modules.xml file required for the g.extension module
-  * `grass-addons-index.sh` - called from `cron_grass8_relbranch_build_binaries.sh`
+  * `grass-addons-index.sh` - called from `cron_grass8_XXX_build_binaries.sh`
   * `get_page_description.py` - called from `grass-addons-index.sh`
 * GRASS GIS programmer's manual:
-  * within `cron_grass8_relbranch_build_binaries.sh`
+  * within `cron_grass8_XXX_build_binaries.sh`
 * compilation addons:
   * `compile_addons_git.sh` it's called with `$5` arg, addon is
 installed into own individual directory, with **bin/ docs/ etc/ scripts/**
@@ -74,7 +89,7 @@ Important: there are two web related directories on the server:
 ## Infrastructure
 
 The server is hosted as LXD container on `osgeo7`, see:
-<https://wiki.osgeo.org/wiki/SAC_Service_Status#GRASS_GIS_server>
+<https://wiki.osgeo.org/wiki/SAC_Service_Status#grass>
 
 The container is only accessible via the related OSGeo ssh jumphost and
 registered ssh pubkey.

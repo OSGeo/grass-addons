@@ -1,8 +1,8 @@
 #!/bin/sh
 
-# script to build GRASS 8.x binaries + addons from the `releasebranch_8_2` binaries
+# script to build GRASS 8 preview (8.4) binaries + addons from the `main`
 # (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
-# 2014-2023
+# 2022-2023
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
@@ -17,27 +17,27 @@
 # - generates the user 8 HTML manuals
 # - injects DuckDuckGo search field
 
-# Preparations, on server:
-#  - Install PROJ incl Datum shift grids
-#  - Install GDAL:
+# Preparations, on OSGeo server (neteler@grasslxd):
+#  - Install PROJ: http://trac.osgeo.org/proj/ incl Datum shift grids
+#     sh conf_proj4.sh
+#  - Install GDAL: http://trac.osgeo.org/gdal/wiki/DownloadSource
+#     sh conf_gdal.sh
 #  - Install apt-get install texlive-latex-extra python3-sphinxcontrib.apidoc
 #  - Clone source from github:
 #    mkdir -p ~/src ; cd ~/src
-#    git clone https://github.com/OSGeo/grass.git releasebranch_8_2
-#    cd releasebranch_8_2
-#    git checkout releasebranch_8_2
+#    git clone https://github.com/OSGeo/grass.git main
 #  - Prepare target directories:
 #    cd /var/www/code_and_data/
-#    mkdir grass82
+#    mkdir grass84
 #    cd /var/www/html/
-#    ln -s /var/www/code_and_data/grass82 .
+#    ln -s /var/www/code_and_data/grass84 .
 #
-##########################################
+#################################
 PATH=/home/neteler/binaries/bin:/usr/bin:/bin:/usr/X11R6/bin:/usr/local/bin
 
 GMAJOR=8
-GMINOR=2
-GPATCH=1
+GMINOR=4
+GPATCH="0dev"  # required by grass-addons-index.sh
 DOTVERSION=$GMAJOR.$GMINOR
 VERSION=$GMAJOR$GMINOR
 GVERSION=$GMAJOR
@@ -52,12 +52,14 @@ LDFLAGSSTRING='-s'
 MAINDIR=/home/neteler
 # where to find the GRASS sources (git clone):
 SOURCE=$MAINDIR/src/
-BRANCH=releasebranch_${GMAJOR}_$GMINOR
+BRANCH=main
 GRASSBUILDDIR=$SOURCE/$BRANCH
 TARGETMAIN=/var/www/code_and_data
 TARGETDIR=$TARGETMAIN/grass${VERSION}/binary/linux/snapshot
 TARGETHTMLDIR=$TARGETMAIN/grass${VERSION}/manuals/
-TARGETPROGMAN=$TARGETMAIN/programming${GVERSION}
+
+# not built for dev version
+## TARGETPROGMAN=$TARGETMAIN/programming${GVERSION}
 
 MYBIN=$MAINDIR/binaries
 
@@ -81,9 +83,9 @@ configure_grass()
 #   --with-mysql --with-mysql-includes=/usr/include/mysql --with-mysql-libs=/usr/lib/mysql \
 
 # cleanup
-rm -rf config_$GMAJOR.$GMINOR.git_log.txt
+rm -f config_$GMAJOR.$GMINOR.git_log.txt
 
-# reset i18N POT files to git, just to be sure
+# reset i18N POT files
 git checkout locale/templates/*.pot
 
 CFLAGS=$CFLAGSSTRING LDFLAGS=$LDFLAGSSTRING ./configure \
@@ -185,27 +187,26 @@ $MYMAKE htmldocs-single || (echo "$0 htmldocs-single: an error occurred" ; exit 
 
 cd $GRASSBUILDDIR/
 
-# clean old TARGETPROGMAN stuff from last run
-if  [ -z "$TARGETPROGMAN" ] ; then
- echo "\$TARGETPROGMAN undefined, error!"
- exit 1
-fi
-mkdir -p $TARGETPROGMAN
-rm -f $TARGETPROGMAN/*.*
+## clean old TARGETPROGMAN stuff from last run
+#if  [ -z "$TARGETPROGMAN" ] ; then
+# echo "\$TARGETPROGMAN undefined, error!"
+# exit 1
+#fi
+#mkdir -p $TARGETPROGMAN
+#rm -f $TARGETPROGMAN/*.*
+#
+## copy over doxygen manual
+#cp -r html/*  $TARGETPROGMAN/
+#
+#echo "Copied HTML progman to https://grass.osgeo.org/programming${GVERSION}"
+## fix permissions
+#chgrp -R grass $TARGETPROGMAN/*
+#chmod -R a+r,g+w $TARGETPROGMAN/
+#chmod -R a+r,g+w $TARGETPROGMAN/*
+## bug in doxygen
+#(cd $TARGETPROGMAN/ ; ln -s index.html main.html)
 
-# copy over doxygen manual
-cp -r html/*  $TARGETPROGMAN/
-
-echo "Copied HTML progman to https://grass.osgeo.org/programming${GVERSION}"
-# fix permissions
-chgrp -R grass $TARGETPROGMAN/*
-chmod -R a+r,g+w $TARGETPROGMAN/
-chmod -R a+r,g+w $TARGETPROGMAN/*
-# bug in doxygen
-(cd $TARGETPROGMAN/ ; ln -s index.html main.html)
-
-##### generate i18N POT files, needed for https://www.transifex.com/grass-gis/
-# from G82+ onwards the gettext POT files are managed in git
+##### copy i18N POT files, needed for https://www.transifex.com/grass-gis/
 (cd locale ;
 mkdir -p $TARGETDIR/transifex/
 cp templates/*.pot $TARGETDIR/transifex/
@@ -334,7 +335,7 @@ echo "Finished GRASS $VERSION $ARCH compilation."
 echo "Written to: $TARGETDIR"
 echo "Copied HTML ${GVERSION} manual to https://grass.osgeo.org/grass${VERSION}/manuals/"
 echo "Copied pygrass progman ${GVERSION} to https://grass.osgeo.org/grass${VERSION}/manuals/libpython/"
-echo "Copied HTML ${GVERSION} progman to https://grass.osgeo.org/programming${GVERSION}"
+#echo "Copied HTML ${GVERSION} progman to https://grass.osgeo.org/programming${GVERSION}"
 echo "Copied Addons ${GVERSION} to https://grass.osgeo.org/grass${VERSION}/manuals/addons/"
 
 exit 0

@@ -1,8 +1,8 @@
 #!/bin/sh
 
-# script to build GRASS 8.dev binaries + addons from the `main`
+# script to build GRASS 8 new_current (8.3) binaries + addons from the `main`
 # (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
-# 2022
+# 2022-2023
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
@@ -37,7 +37,7 @@ PATH=/home/neteler/binaries/bin:/usr/bin:/bin:/usr/X11R6/bin:/usr/local/bin
 
 GMAJOR=8
 GMINOR=3
-GPATCH="dev"
+GPATCH="0dev"  # required by grass-addons-index.sh
 DOTVERSION=$GMAJOR.$GMINOR
 VERSION=$GMAJOR$GMINOR
 GVERSION=$GMAJOR
