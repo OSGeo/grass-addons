@@ -221,7 +221,7 @@ def main(options, flags):
         IND = [["Statistic", "Layer 1", "Layer 2", "value"], Dind, Iind, Cind]
         import csv
 
-        with open(OPF, "wb") as f:
+        with open(OPF, "w") as f:
             writer = csv.writer(f)
             writer.writerows(IND)
         gs.info(_("Results written to {}").format(OPF))
