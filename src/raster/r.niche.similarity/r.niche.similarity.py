@@ -70,7 +70,6 @@ import os
 import sys
 import atexit
 import uuid
-import string
 import grass.script as gs
 
 # Cleanup
@@ -88,8 +87,8 @@ def tmpname(prefix):
     """Generate a tmp name which contains prefix, store the name in the
     global list.
     """
-    tmpf = prefix + str(uuid.uuid4())
-    tmpf = string.replace(tmpf, "-", "_")
+    tmpf = 'prefix{}'.format(uuid.uuid4())
+    tmpf = tmpf.replace("-", "_")
     CLEAN_LAY.append(tmpf)
     return tmpf
 
