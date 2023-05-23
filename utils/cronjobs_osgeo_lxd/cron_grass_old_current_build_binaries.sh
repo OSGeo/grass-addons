@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# script to build GRASS 8 old_current (8.2) binaries + addons from the `releasebranch_8_2` binaries
+# script to build GRASS GIS old current binaries + addons from the `releasebranch_8_2` binaries
 # (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
 # 2014-2023
 #

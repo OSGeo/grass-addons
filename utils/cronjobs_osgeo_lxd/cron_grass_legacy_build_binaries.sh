@@ -1,8 +1,8 @@
 #!/bin/sh
 
-# script to build GRASS 7 legacy (7.8) binaries + addons from the `releasebranch_7_8` branch
+# script to build GRASS GIS legacy binaries + addons from the `releasebranch_7_8` branch
 # (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
-# 2008, 2014, 2015, 2016, 2017, 2018, 2019, 2021-2023
+# 2008-2023
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #

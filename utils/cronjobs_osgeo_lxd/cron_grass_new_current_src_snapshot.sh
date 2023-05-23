@@ -1,8 +1,8 @@
 #!/bin/sh
 
-# script to build GRASS 8 new_current (8.3) sources package from the main branch
+# script to build GRASS GIS new current sources package from the main branch
 # (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
-# Markus Neteler 2002, 2003, 2005, 2006, 2007, 2008, 2012, 2015, 2018-2022
+# Markus Neteler 2002-2022
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #

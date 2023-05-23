@@ -1,8 +1,8 @@
 #!/bin/sh
 
-# script to build GRASS 7 legacy (7.8) source package from the `releasebranch_7_8` branch
+# script to build GRASS GIS legacy source package from the `releasebranch_7_8` branch
 # (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
-# Markus Neteler 2002, 2003, 2005, 2006, 2007, 2008, 2012, 2014-2023
+# Markus Neteler 2002-2023
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #

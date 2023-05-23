@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# script to build GRASS 8 preview (8.4) binaries + addons from the `main`
+# script to build GRASS GIS preview binaries + addons from the `main`
 # (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
 # 2022-2023
 #

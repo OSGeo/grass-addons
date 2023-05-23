@@ -1,8 +1,8 @@
 #!/bin/sh
 
-# script to build GRASS 8 preview (8.4) source package from the main branch
+# script to build GRASS GIS preview source package from the main branch
 # (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
-# Markus Neteler 2002, 2003, 2005, 2006, 2007, 2008, 2012, 2015, 2018-2023
+# Markus Neteler 2002-2023
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
