@@ -27,15 +27,15 @@ programmer's manual.
 * generate and deploy the GRASS GIS Web pages at <https://grass.osgeo.org/>:
   * `hugo_clean_and_update_job.sh`
 * GRASS GIS source code weekly snapshots:
-  * grass-legacy (legacy): `cron_grass_legacy_src_snapshot.sh`
-  * grass-old-current (current stable): `cron_grass_old_current_src_snapshot.sh`
-  * grass-new-current (upcoming stable): `cron_grass_new_current_src_snapshot.sh`
-  * grass-preview (development): `cron_grass_preview_src_snapshot.sh`
+  * `cron_grass_legacy_src_snapshot.sh`
+  * `cron_grass_old_current_src_snapshot.sh`
+  * `cron_grass_new_current_src_snapshot.sh`
+  * `cron_grass_preview_src_snapshot.sh`
 * GRASS GIS Linux binary weekly snapshots:
-  * grass-legacy (legacy): `cron_grass_legacy_build_binaries.sh`
-  * grass-old-current (current stable): `cron_grass_old_current_build_binaries.sh`
-  * grass-new-current (upcoming stable): `cron_grass_new_current_build_binaries.sh`
-  * grass-preview (development): `cron_grass_preview_build_binaries.sh`
+  * `cron_grass_legacy_build_binaries.sh`
+  * `cron_grass_old_current_build_binaries.sh`
+  * `cron_grass_new_current_build_binaries.sh`
+  * `cron_grass_preview_build_binaries.sh`
 * GRASS GIS addons manual pages:
   * addon manual pages are generated within above Linux binary weekly snapshots
 * GRASS GIS 7 addons overview page at <https://grass.osgeo.org/grass7/manuals/addons/>:
