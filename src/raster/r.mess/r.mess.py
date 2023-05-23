@@ -493,7 +493,7 @@ def main(options, flags):
                 e2 = envmax + 1
 
             a0 = volval[:, 0] * digits2
-            a0 = a0.astype(np.int, copy=False)
+            a0 = a0.astype(int, copy=False)
             a1 = np.hstack([(e1), a0])
             a2 = np.hstack([a0 - 1, (e2)])
             b1 = np.hstack([(0), c])
