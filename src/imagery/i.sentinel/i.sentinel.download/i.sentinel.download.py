@@ -667,7 +667,8 @@ class SentinelDownloader(object):
         products_df = self._api.to_dataframe(products)
         if len(products_df) < 1:
             gs.message(_("No product found"))
-            return
+            sys.exit()
+            
 
         # sort and limit to first sorted product
         if sortby:
@@ -1085,7 +1086,7 @@ class SentinelDownloader(object):
                         scenes.remove(scene)
         if len(scenes) < 1:
             gs.message(_("No product found"))
-            return
+            sys.exit()
         scenes_df = pandas.DataFrame.from_dict(scenes)
         if sortby:
             # replace sortby keywords with USGS keywords
