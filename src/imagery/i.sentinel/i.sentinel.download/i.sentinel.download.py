@@ -668,7 +668,6 @@ class SentinelDownloader(object):
         if len(products_df) < 1:
             gs.message(_("No product found"))
             sys.exit()
-            
 
         # sort and limit to first sorted product
         if sortby:
