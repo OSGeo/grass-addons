@@ -126,22 +126,28 @@ for c in "db" "display" "general" "gui/wxpython" "imagery" "misc" "raster" "rast
     else
         path="$ADDON_PATH"
     fi
-
     export GRASS_ADDON_BASE=$path
-    if [ ! -f $GRASS_ADDON_BASE ]; then
+    if [ ! -d $GRASS_ADDON_BASE ]; then
         # Create addon dir first for download addons_paths.json file if
         # addon has own dir e.g. ~/.grass8/addons/db.join/ with bin/ docs/
         # etc/ scripts/ subdir (check condition $SEP -eq 1)
         mkdir $GRASS_ADDON_BASE
     fi
-    # Try download Add-Ons json file paths
-    if [ ! -f "$GRASS_ADDON_BASE/$ADDONS_PATHS_JSON_FILE" ] && [ ! -f "$(dirname $GRASS_ADDON_BASE)/$ADDONS_PATHS_JSON_FILE" ]; then
-        $GRASS_STARTUP_PROGRAM --tmp-location EPSG:4326 --exec g.extension -j
-        # Prevent download addons_paths.json file for every addon compilation if
-        # addon has own dir e.g. ~/.grass8/addons/db.join/ with bin/ docs/
-        # etc/ scripts/ subdir (check condition $SEP -eq 1)
-        if [ ! -f "$(dirname $GRASS_ADDON_BASE)/$ADDONS_PATHS_JSON_FILE" ]; then
-            mv "$GRASS_ADDON_BASE/$ADDONS_PATHS_JSON_FILE" "$(dirname $GRASS_ADDON_BASE)/$ADDONS_PATHS_JSON_FILE"
+    # GRASS GIS 8.3.dev version g.extension module and utils/mkhtml.py
+    # script file use git addons repo instead of GitHub REST API and
+    # g.extension module -j flag was completely removed
+    # After GRASS GIS PR 2717 will be backported this condition can be removed
+    # (line 142-153)
+    if [ "$GMINOR" -lt "3" ]; then
+        # Try download Add-Ons json file paths
+        if [ ! -f "$GRASS_ADDON_BASE/$ADDONS_PATHS_JSON_FILE" ] && [ ! -f "$(dirname $GRASS_ADDON_BASE)/$ADDONS_PATHS_JSON_FILE" ]; then
+            $GRASS_STARTUP_PROGRAM --tmp-location EPSG:4326 --exec g.extension -j
+            # Prevent download addons_paths.json file for every addon compilation if
+            # addon has own dir e.g. ~/.grass8/addons/db.join/ with bin/ docs/
+            # etc/ scripts/ subdir (check condition $SEP -eq 1)
+            if [ ! -f "$(dirname $GRASS_ADDON_BASE)/$ADDONS_PATHS_JSON_FILE" ]; then
+                mv "$GRASS_ADDON_BASE/$ADDONS_PATHS_JSON_FILE" "$(dirname $GRASS_ADDON_BASE)/$ADDONS_PATHS_JSON_FILE"
+            fi
         fi
     fi
     echo "<tr><td><tt>$c/$m</tt></td>" >> "$ADDON_PATH/logs/${INDEX_FILE}.html"
@@ -170,6 +176,14 @@ for c in "db" "display" "general" "gui/wxpython" "imagery" "misc" "raster" "rast
     cd $pwd
     unset GRASS_ADDON_BASE
 done
+
+# After GRASS GIS PR 2717 will be backported this condition can be removed
+# (line 182-186)
+if [ "$GMINOR" -gt "2" ]; then
+    # Remove addons Git repo directory which is used for getting addon path inside
+    # utils/mkhtml.py script file for making HTML man page
+    rm -rf "$ADDON_PATH/grass-addons/"
+fi
 
 echo "</table><hr />
 <div style=\"text-align: right\">Valid: <a href=\"http://validator.w3.org/check/referer\">XHTML</a></div>

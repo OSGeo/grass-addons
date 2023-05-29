@@ -1,5 +1,17 @@
 # Cronjobs OSGeo LXD
 
+## Version overview
+
+| **label**   | **meaning**                                                     |
+| ----------- | --------------------------------------------------------------- |
+| legacy      | legacy stable version, no longer recommended for use            |
+| old current | current stable version, widely used                             |
+| new current | upcoming stable version, for early adopters                     |
+| preview     | development version, for developers and new feature enthusiasts |
+
+The name of the cronjob files reflects the GRASS GIS version being compiled/packaged.
+The actual version numbers are only coded in the scripts themselves.
+
 ## What's this?
 
 This directory contains the relevant files to generate and deploy the GRASS GIS
@@ -15,29 +27,31 @@ programmer's manual.
 * generate and deploy the GRASS GIS Web pages at <https://grass.osgeo.org/>:
   * `hugo_clean_and_update_job.sh`
 * GRASS GIS source code weekly snapshots:
-  * grass-legacy: `cron_grass_legacy_releasebranch_src_snapshot.sh`
-  * grass-stable: `cron_grass_releasebranch_src_snapshot.sh`
-  * grass-devel: `cron_grass_main_src_snapshot.sh`
+  * `cron_grass_legacy_src_snapshot.sh`
+  * `cron_grass_old_current_src_snapshot.sh`
+  * `cron_grass_new_current_src_snapshot.sh`
+  * `cron_grass_preview_src_snapshot.sh`
 * GRASS GIS Linux binary weekly snapshots:
-  * grass-legacy: `cron_grass_legacy_releasebranch_build_binaries.sh`
-  * grass-stable: `cron_grass_releasebranch_build_binaries.sh`
+  * `cron_grass_legacy_build_binaries.sh`
+  * `cron_grass_old_current_build_binaries.sh`
+  * `cron_grass_new_current_build_binaries.sh`
+  * `cron_grass_preview_build_binaries.sh`
 * GRASS GIS addons manual pages:
-  * grass-legacy: within `cron_grass_legacy_releasebranch_build_binaries.sh`
-  * grass-stable: within `cron_grass_releasebranch_build_binaries.sh`
-* GRASS GIS legacy addons overview page at <https://grass.osgeo.org/grass-legacy/manuals/addons/>:
-  * `compile_addons_git.sh` - called from `cron_grass_legacy_releasebranch_build_binaries.sh`
-  * `build-xml.py` - called from `cron_grass_legacy_releasebranch_build_binaries.sh`,
+  * addon manual pages are generated within above Linux binary weekly snapshots
+* GRASS GIS 7 addons overview page at <https://grass.osgeo.org/grass7/manuals/addons/>:
+  * `compile_addons_git.sh` - called from `cron_grass_legacy_build_binaries.sh`
+  * `build-xml.py` - called from `cron_grass_legacy_build_binaries.sh`,
     generates the modules.xml file required for the g.extension module
-  * `grass-addons-index.sh` - called from `cron_grass_legacy_releasebranch_build_binaries.sh`
+  * `grass-addons-index.sh` - called from `cron_grass_legacy_build_binaries.sh`
   * `get_page_description.py` - called from `grass-addons-index.sh`
-* GRASS GIS addons overview page at <https://grass.osgeo.org/grass-stable/manuals/addons/>:
-  * `compile_addons_git.sh` - called from `cron_grass_releasebranch_build_binaries.sh`
-  * `build-xml.py` - called from `cron_grass_releasebranch_build_binaries.sh`
+* GRASS GIS 8 addons overview page at <https://grass.osgeo.org/grass8/manuals/addons/>:
+  * `compile_addons_git.sh` - called from `cron_grass_XXX_build_binaries.sh`
+  * `build-xml.py` - called from `cron_grass_XXX_build_binaries.sh`
     generates the modules.xml file required for the g.extension module
-  * `grass-addons-index.sh` - called from `cron_grass_releasebranch_build_binaries.sh`
+  * `grass-addons-index.sh` - called from `cron_grass_XXX_build_binaries.sh`
   * `get_page_description.py` - called from `grass-addons-index.sh`
 * GRASS GIS programmer's manual:
-  * within `cron_grass_releasebranch_build_binaries.sh`
+  * within `cron_grass_XXX_build_binaries.sh`
 * compilation addons:
   * `compile_addons_git.sh` it's called with `$5` arg, addon is
 installed into own individual directory, with **bin/ docs/ etc/ scripts/**
@@ -74,7 +88,7 @@ Important: there are two web related directories on the server:
 ## Infrastructure
 
 The server is hosted as LXD container on `osgeo7`, see:
-<https://wiki.osgeo.org/wiki/SAC_Service_Status#GRASS_GIS_server>
+<https://wiki.osgeo.org/wiki/SAC_Service_Status#grass>
 
 The container is only accessible via the related OSGeo ssh jumphost and
 registered ssh pubkey.

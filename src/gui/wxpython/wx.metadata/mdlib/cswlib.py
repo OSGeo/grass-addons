@@ -967,7 +967,7 @@ class CSWBrowserPanel(wx.Panel):
         upSearchSizer.Add(self.qtypeCb, 1, wx.EXPAND)
 
         self.leftSearchSizer.Add(upSearchSizer, 1, wx.EXPAND)
-        self.rightSearchSizer.Add(wx.StaticText(self), 0)
+        self.rightSearchSizer.Add(wx.StaticText(self.pnlLeft), 0)
         mainSearchSizer.Add(self.leftSearchSizer, wx.EXPAND)
         mainSearchSizer.Add(self.rightSearchSizer)
 
@@ -1435,9 +1435,7 @@ class CSWConnectionPanel(wx.Panel):
         self.panelRight.SetSizer(rightPanelSizer)
         self.panelLeft.SetSizer(self.configureSizer)
 
-        self.splitterConn.SplitVertically(
-            self.panelLeft, self.panelRight, sashPosition=0.8
-        )
+        self.splitterConn.SplitVertically(self.panelLeft, self.panelRight)
         self.splitterConn.SetSashGravity(0.2)
         self.splitterConn.SetMinimumPaneSize(200)
         self.mainsizer.Add(self.splitterConn, 1, wx.EXPAND)
