@@ -41,6 +41,10 @@ VERSION=$GMAJOR$GMINOR
 GVERSION=$GMAJOR
 
 ###################
+# fail early
+set -e
+
+# compiler optimization
 CFLAGSSTRING='-O2'
 CFLAGSSTRING='-Werror-implicit-function-declaration -fno-common'
 LDFLAGSSTRING='-s'
@@ -61,7 +65,7 @@ MYBIN=$MAINDIR/binaries
 
 ############################## nothing to change below:
 
-MYMAKE="nice make LD_LIBRARY_PATH=$MYBIN/lib:/usr/lib:/usr/local/lib"
+MYMAKE="nice make -j2 LD_LIBRARY_PATH=$MYBIN/lib:/usr/lib:/usr/local/lib"
 
 # catch CTRL-C and other breaks:
 trap "echo 'user break.' ; exit" 2 3 9 15
@@ -109,6 +113,8 @@ CFLAGS=$CFLAGSSTRING LDFLAGS=$LDFLAGSSTRING ./configure \
 mkdir -p $TARGETDIR
 cd $GRASSBUILDDIR/
 
+# clean up
+touch include/Make/Platform.make
 $MYMAKE distclean > /dev/null 2>&1
 
 # cleanup leftover garbage

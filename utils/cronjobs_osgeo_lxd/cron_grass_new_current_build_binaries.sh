@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# script to build GRASS GIS new current binaries + addons from the `main`
+# script to build GRASS GIS new current binaries + addons + progman from the `releasebranch_8_3` binaries
 # (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
 # 2022-2023
 #
@@ -17,15 +17,15 @@
 # - generates the user 8 HTML manuals
 # - injects DuckDuckGo search field
 
-# Preparations, on OSGeo server (neteler@grasslxd):
-#  - Install PROJ: http://trac.osgeo.org/proj/ incl Datum shift grids
-#     sh conf_proj4.sh
-#  - Install GDAL: http://trac.osgeo.org/gdal/wiki/DownloadSource
-#     sh conf_gdal.sh
+# Preparations, on server:
+#  - Install PROJ incl Datum shift grids
+#  - Install GDAL:
 #  - Install apt-get install texlive-latex-extra python3-sphinxcontrib.apidoc
 #  - Clone source from github:
 #    mkdir -p ~/src ; cd ~/src
-#    git clone https://github.com/OSGeo/grass.git main
+#    git clone https://github.com/OSGeo/grass.git releasebranch_8_3
+#    cd releasebranch_8_3
+#    git checkout releasebranch_8_3
 #  - Prepare target directories:
 #    cd /var/www/code_and_data/
 #    mkdir grass83
@@ -43,6 +43,10 @@ VERSION=$GMAJOR$GMINOR
 GVERSION=$GMAJOR
 
 ###################
+# fail early
+set -e
+
+# compiler optimization
 CFLAGSSTRING='-O2'
 CFLAGSSTRING='-Werror-implicit-function-declaration -fno-common'
 LDFLAGSSTRING='-s'
@@ -52,20 +56,20 @@ LDFLAGSSTRING='-s'
 MAINDIR=/home/neteler
 # where to find the GRASS sources (git clone):
 SOURCE=$MAINDIR/src/
-BRANCH=main
+BRANCH=releasebranch_${GMAJOR}_$GMINOR
 GRASSBUILDDIR=$SOURCE/$BRANCH
 TARGETMAIN=/var/www/code_and_data
 TARGETDIR=$TARGETMAIN/grass${VERSION}/binary/linux/snapshot
 TARGETHTMLDIR=$TARGETMAIN/grass${VERSION}/manuals/
 
-# not built for dev version
-## TARGETPROGMAN=$TARGETMAIN/programming${GVERSION}
+# only built for new stable (not built for dev version or old stable)
+TARGETPROGMAN=$TARGETMAIN/programming${GVERSION}
 
 MYBIN=$MAINDIR/binaries
 
 ############################## nothing to change below:
 
-MYMAKE="nice make LD_LIBRARY_PATH=$MYBIN/lib:/usr/lib:/usr/local/lib"
+MYMAKE="nice make -j2 LD_LIBRARY_PATH=$MYBIN/lib:/usr/lib:/usr/local/lib"
 
 # catch CTRL-C and other breaks:
 trap "echo 'user break.' ; exit" 2 3 9 15
@@ -85,7 +89,7 @@ configure_grass()
 # cleanup
 rm -f config_$GMAJOR.$GMINOR.git_log.txt
 
-# reset i18N POT files
+# reset i18N POT files to git, just to be sure
 git checkout locale/templates/*.pot
 
 CFLAGS=$CFLAGSSTRING LDFLAGS=$LDFLAGSSTRING ./configure \
@@ -118,6 +122,8 @@ CFLAGS=$CFLAGSSTRING LDFLAGS=$LDFLAGSSTRING ./configure \
 mkdir -p $TARGETDIR
 cd $GRASSBUILDDIR/
 
+# clean up
+touch include/Make/Platform.make
 $MYMAKE distclean > /dev/null 2>&1
 
 # cleanup leftover garbage
@@ -174,7 +180,7 @@ echo "Copied pygrass progman to http://grass.osgeo.org/grass${VERSION}/manuals/l
 echo "Injecting DuckDuckGo search field into manual main page..."
 (cd $TARGETHTMLDIR/ ; sed -i -e "s+</table>+</table><\!\-\- injected in cron_grass8_relbranch_build_binaries.sh \-\-> <center><iframe src=\"https://duckduckgo.com/search.html?site=grass.osgeo.org%26prefill=Search%20manual%20pages%20at%20DuckDuckGo\" style=\"overflow:hidden;margin:0;padding:0;width:410px;height:40px;\" frameborder=\"0\"></iframe></center>+g" index.html)
 
-cp -p AUTHORS CHANGES CITING COPYING GPL.TXT INSTALL REQUIREMENTS.html $TARGETDIR/
+cp -p AUTHORS CHANGES CITING CITATION.cff COPYING GPL.TXT INSTALL.md REQUIREMENTS.md $TARGETDIR/
 
 # clean wxGUI sphinx manual etc
 (cd $GRASSBUILDDIR/ ; $MYMAKE cleansphinx)
@@ -206,11 +212,12 @@ cd $GRASSBUILDDIR/
 ## bug in doxygen
 #(cd $TARGETPROGMAN/ ; ln -s index.html main.html)
 
-##### copy i18N POT files, needed for https://www.transifex.com/grass-gis/
-(cd locale ;
-mkdir -p $TARGETDIR/transifex/
-cp templates/*.pot $TARGETDIR/transifex/
-)
+##### copy i18N POT files, originally needed for https://www.transifex.com/grass-gis/
+### note: from G82+ onwards the gettext POT files are managed in git and OSGeo Weblate
+#(cd locale ;
+#mkdir -p $TARGETDIR/transifex/
+#cp templates/*.pot $TARGETDIR/transifex/
+#)
 
 ##### generate i18N stats for HTML page path (WebSVN):
 ## Structure:  grasslibs_ar.po 144 translated messages 326 fuzzy translations 463 untranslated messages.
@@ -335,7 +342,7 @@ echo "Finished GRASS $VERSION $ARCH compilation."
 echo "Written to: $TARGETDIR"
 echo "Copied HTML ${GVERSION} manual to https://grass.osgeo.org/grass${VERSION}/manuals/"
 echo "Copied pygrass progman ${GVERSION} to https://grass.osgeo.org/grass${VERSION}/manuals/libpython/"
-#echo "Copied HTML ${GVERSION} progman to https://grass.osgeo.org/programming${GVERSION}"
+echo "Copied HTML ${GVERSION} progman to https://grass.osgeo.org/programming${GVERSION}"
 echo "Copied Addons ${GVERSION} to https://grass.osgeo.org/grass${VERSION}/manuals/addons/"
 
 exit 0
