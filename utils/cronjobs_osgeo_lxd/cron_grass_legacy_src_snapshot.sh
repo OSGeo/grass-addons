@@ -1,19 +1,22 @@
 #!/bin/sh
 
-# script to build GRASS 8.x sources package from the main branch
+# script to build GRASS GIS legacy source package from the `releasebranch_7_8` branch
 # (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
-# Markus Neteler 2002, 2003, 2005, 2006, 2007, 2008, 2012, 2015, 2018-2022
+# Markus Neteler 2002-2023
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
-## prep
-# git clone https://github.com/OSGeo/grass.git main
+## prep, neteler@osgeo6:$
+# mkdir -p ~/src
+# cd ~/src
+# for i in 2 4 6 ; do git clone ​https://github.com/OSGeo/grass.git releasebranch_7_$i ; done
+# for i in 2 4 6 ; do (cd releasebranch_7_$i ;  git checkout releasebranch_7_$i ) ; done
 #
 ###################################################################
 
 MAINDIR=/home/neteler
-GMAJOR=8
-GMINOR=3
+GMAJOR=7
+GMINOR=8
 GVERSION=$GMAJOR.$GMINOR.git
 DOTVERSION=$GMAJOR.$GMINOR
 GSHORTGVERSION=$GMAJOR$GMINOR
@@ -21,7 +24,7 @@ GSHORTGVERSION=$GMAJOR$GMINOR
 ###################
 # where to find the GRASS sources (git clone):
 SOURCE=$MAINDIR/src/
-BRANCH=main
+BRANCH=releasebranch_${GMAJOR}_${GMINOR}
 # where to put the resulting .tar.gz file:
 TARGETMAIN=/var/www/code_and_data/
 TARGETDIR=$TARGETMAIN/grass${GSHORTGVERSION}/source/snapshot
@@ -56,11 +59,8 @@ git status | grep '.rst' | xargs rm -f
 rm -rf lib/python/docs/_build/ lib/python/docs/_templates/layout.html
 rm -f config_${DOTVERSION}.git_log.txt ChangeLog
 
-# reset i18N POT files to git, just to be sure
-git checkout locale/templates/*.pot
-
-## hard reset local git repo (just in case)
-#git checkout main && git reset --hard HEAD~1 && git reset --hard origin
+# be sure to be on branch
+git checkout $BRANCH
 
 echo "git update..."
 git fetch --all --prune       || halt_on_error "git fetch error!"
