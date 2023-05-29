@@ -19,8 +19,9 @@
 
 # %module
 # % description: Opens a workspace file and creates a map sheet according to its visible contents.
+# % keyword: misc
+# % keyword: printing
 # % keyword: map
-# % keyword: print
 # % keyword: layout
 # % keyword: workspace
 # %end
