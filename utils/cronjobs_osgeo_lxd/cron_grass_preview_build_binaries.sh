@@ -250,13 +250,13 @@ gcc -v 2>&1 | grep -v Reading >> grass-$DOTVERSION\_$ARCH\_bin.txt
 
 # clean old version off
 rm -f $TARGETDIR/grass-$DOTVERSION\_$ARCH\_bin.txt
-rm -f $TARGETDIR/grass-$DOTVERSION*.tar.gz
-rm -f $TARGETDIR/grass-$DOTVERSION*install.sh
+rm -f $TARGETDIR/grass-${DOTVERSION}*.tar.gz
+rm -f $TARGETDIR/grass-${DOTVERSION}*install.sh
 
 ############################################
 echo "Copy new binary version into web space:"
-cp -p grass-$DOTVERSION\_$ARCH\_bin.txt grass-$DOTVERSION*.tar.gz grass-$DOTVERSION*install.sh $TARGETDIR
-rm -f grass-$DOTVERSION\_$ARCH\_bin.txt grass-$DOTVERSION*.tar.gz grass-$DOTVERSION*install.sh
+cp -p grass-$DOTVERSION\_$ARCH\_bin.txt grass-${DOTVERSION}*.tar.gz grass-${DOTVERSION}*install.sh $TARGETDIR
+rm -f grass-$DOTVERSION\_$ARCH\_bin.txt grass-${DOTVERSION}*.tar.gz grass-${DOTVERSION}*install.sh
 
 # generate manual ZIP package
 (cd $TARGETHTMLDIR/.. ; rm -f $TARGETHTMLDIR/*html_manual.zip ; zip -r /tmp/grass-${DOTVERSION}_html_manual.zip manuals/)
