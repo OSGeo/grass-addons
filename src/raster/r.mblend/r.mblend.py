@@ -85,6 +85,7 @@ def cleanup():
         gscript.run_command(
             "g.remove", type="all", name=TMP_MAPS.pop(), flags="f", quiet=True
         )
+    return None
 
 
 def compute_d_max(region):
@@ -214,6 +215,7 @@ def main():
     # Get points in low resolution farther away from high resolution raster
     dist_high = getTemporaryIdentifier()
     weights = getTemporaryIdentifier()
+    interpol_area_inner_buff = "tmp_interpol_inner_buff"
     interpol_area_points = getTemporaryIdentifier()
     pre_interpol_area_points = getTemporaryIdentifier()
     weight_points = getTemporaryIdentifier()
@@ -232,9 +234,17 @@ def main():
     gscript.message(
         _("[r.mblend] Extract points from interpolation area " + "boundary")
     )
+    inner_buff = -cell_side/2
+    gscript.run_command(
+        "v.buffer",
+        input=interpol_area,
+        output=interpol_area_inner_buff,
+        type="area",
+        distance=inner_buff,
+    )
     gscript.run_command(
         "v.to.points",
-        input=interpol_area,
+        input=interpol_area_inner_buff,
         output=pre_interpol_area_points,
         type="boundary",
         dmax=d_max,
