@@ -82,6 +82,10 @@
 # %exclusive: -s,seed
 # %end
 
+# %rules
+# %required: -s,seed
+# %end
+
 # %flag
 # % key: n
 # % description: set non-selected values to 0 (default to NULL)
