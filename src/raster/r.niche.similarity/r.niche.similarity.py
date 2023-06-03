@@ -83,19 +83,23 @@ def cleanup():
         gs.run_command("g.remove", type="raster", name=rast, quiet=True, flags="f")
 
 
-def tmpname(prefix):
-    """Generate a tmp name which contains prefix, store the name in the
-    global list.
+def create_unique_name(name):
+    """Generate a tmp name which contains prefix
+    Store the name in the global list.
+    Use only for raster maps.
     """
-    tmpf = 'prefix{}'.format(uuid.uuid4())
-    tmpf = tmpf.replace("-", "_")
+    return name + str(uuid.uuid4().hex)
+
+
+def create_temporary_name(prefix):
+    tmpf = create_unique_name(prefix)
     CLEAN_LAY.append(tmpf)
     return tmpf
 
 
 def D_index(n1, n2, v1, v2, txtf):
     """Calculate D (Schoener's 1968)"""
-    tmpf0 = tmpname("rniche")
+    tmpf0 = create_temporary_name("rniche")
     gs.mapcalc(
         "$tmpf0 = abs(double($n1)/$v1 - double($n2)/$v2)",
         tmpf0=tmpf0,
@@ -119,7 +123,7 @@ def I_index(n1, v1, n2, v2, txtf):
     """Calculate I (Warren et al. 2008). Note that the sqrt in the
     H formulation and the ^2 in the I formation  cancel each other out,
     hence the formulation below"""
-    tmpf1 = tmpname("rniche")
+    tmpf1 = create_temporary_name("rniche")
     gs.mapcalc(
         "$tmpf1 = (sqrt(double($n1)/$v1) - sqrt(double($n2)/$v2))^2",
         tmpf1=tmpf1,
@@ -218,7 +222,7 @@ def main(options, flags):
 
     # Write results to csv file
     if OPF:
-        IND = [["Statistic", "Layer 1", "Layer 2", "value"], Dind, Iind, Cind]
+        IND = [["Statistic", "Layer 1", "Layer 2", "value"]] + Dind + Iind + Cind
         import csv
 
         with open(OPF, "w") as f:
