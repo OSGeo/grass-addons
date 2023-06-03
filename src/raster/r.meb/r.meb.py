@@ -147,8 +147,7 @@ def cleanup():
 
 
 def create_unique_name(name):
-    """Create unique name string.
-    """
+    """Create unique name string."""
     return name + str(uuid.uuid4().hex)
 
 
@@ -212,7 +211,6 @@ def EB(simlay, reflay):
 
 
 def main(options, flags):
-
     # Check if running in GRASS
     gisbase = os.getenv("GISBASE")
     if not gisbase:
