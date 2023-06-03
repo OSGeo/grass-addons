@@ -35,29 +35,6 @@ producing a smooth transition, without artefacts.<br><br>
 <img width=40% src=blended.png>
 </center>
 
-<h2>I/O PARAMETERS</h2>
-
-<b>high</b>: Higher resolution input DEM.<br><br>
-
-<b>low</b>: Lower resolution input DEM, its extent should be larger than,
-and overlap, the higher resolution raster.<br><br>
-
-<b>output</b>: Name of the output blended DEM to create.<br><br>
-
-<h2>CONTROL PARAMETERS</h2>
-
-<b>far_edge</b>: Percentage of the distance to the edge of the high resolution
-DEM used to determine the far edge. When the blending occurs along a single
-edge (as in the example above) a number closer to 100 tends to produce more
-even results. With more blending edges (e.g. high resolution DEM sits on the
-middle of the low resolution DEM) a lower number may produce a more regular
-blend. Default value: 95.<br><br>
-
-<b>inter_points</b>: Number of points to use in the interpolation of the
-differences DEM. The higher this number is the smoother will be the
-resulting blending, but at the expense of increased computation time. Default
-value: 50. 
-
 <h2>EXAMPLES</h2>
 
 Merge the <tt>best_dem</tt> and <tt>other_dem</tt> raster maps from the current mapset:
@@ -88,5 +65,3 @@ ISRIC - World Soil Information
 <br>
 Jo&atilde;o Paulo Leit&atilde;o<br>
 EAWAG: Swiss Federal Institute of Aquatic Science and Technology.
-
-
