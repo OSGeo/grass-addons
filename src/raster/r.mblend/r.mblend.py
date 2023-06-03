@@ -233,7 +233,7 @@ def main():
     gscript.message(
         _("[r.mblend] Extract points from interpolation area " + "boundary")
     )
-    inner_buff = -cell_side/2
+    inner_buff = -cell_side / 2
     gscript.run_command(
         "v.buffer",
         input=interpol_area,
