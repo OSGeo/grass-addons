@@ -18,7 +18,7 @@
 #               and median of MES values in B (MESb), divided by the median of
 #               the absolute deviations of MESb from the median of MESb (MAD)
 #
-# COPYRIGHT: (C) 2014-2022 by Paulo van Breugel and the GRASS Development Team
+# COPYRIGHT: (C) 2014-2023 by Paulo van Breugel and the GRASS Development Team
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS
@@ -134,7 +134,7 @@ COLORS_MES = """\
 # Functions
 # ---------------------------------------------------------------------------
 
-# create set to store names of temporary maps to be deleted upon exit
+# create set to store names of temporary maps to be deleted upon exit.
 CLEAN_RAST = []
 
 
@@ -146,14 +146,18 @@ def cleanup():
             gs.run_command("g.remove", type="raster", name=rast, quiet=True, flags="f")
 
 
-# Create temporary name
-def tmpname(prefix):
+def create_unique_name(name):
+    """Create unique name string.
+    """
+    return name + str(uuid.uuid4().hex)
+
+
+def create_temporary_name(prefix):
     """Generate a tmp name which contains prefix
     Store the name in the global list.
     Use only for raster maps.
     """
-    tmpf = prefix + str(uuid.uuid4())
-    tmpf = tmpf.replace("-", "_")
+    tmpf = create_unique_name(prefix)
     CLEAN_RAST.append(tmpf)
     return tmpf
 
@@ -170,7 +174,7 @@ def raster_exists(envlay):
 def EB(simlay, reflay):
     """Computation of the envirionmental bias and print to stdout"""
     # Median and mad for whole region (within current mask)
-    tmpf4 = tmpname("reb4")
+    tmpf4 = create_temporary_name("reb4")
     CLEAN_RAST.append(tmpf4)
     d = gs.read_command("r.quantile", quiet=True, input=simlay, percentiles="50")
     d = d.split(":")
@@ -182,7 +186,7 @@ def EB(simlay, reflay):
     gs.run_command("g.remove", quiet=True, flags="f", type="raster", name=tmpf4)
 
     # Median and mad for reference layer
-    tmpf5 = tmpname("reb5")
+    tmpf5 = create_temporary_name("reb5")
     CLEAN_RAST.append(tmpf5)
     gs.mapcalc(
         "$tmpf5 = if($reflay==1, $simlay, null())",
@@ -225,7 +229,7 @@ def main(options, flags):
     if out:
         tmpf0 = out
     else:
-        tmpf0 = tmpname("reb0")
+        tmpf0 = create_temporary_name("reb0")
     filename = options["file"]
     ref = options["ref"]
     flag_m = flags["m"]
@@ -263,14 +267,14 @@ def main(options, flags):
     # ------------------------------------------------------------------------
 
     # Create temporary copy of ref layer
-    tmpref0 = tmpname("reb1")
+    tmpref0 = create_temporary_name("reb1")
     CLEAN_RAST.append(tmpref0)
     gs.run_command("g.copy", quiet=True, raster=(ref, tmpref0))
 
     ipi = []
     for j in range(len(ipl)):
         # Calculate the frequency distribution
-        tmpf1 = tmpname("reb1")
+        tmpf1 = create_temporary_name("reb1")
         CLEAN_RAST.append(tmpf1)
         laytype = gs.raster_info(ipl[j])["datatype"]
         if laytype == "CELL":
@@ -317,11 +321,11 @@ def main(options, flags):
         text_file.close()
 
         # Create the recode layer and calculate the IES
-        tmpf2 = tmpname("reb2")
+        tmpf2 = create_temporary_name("reb2")
         CLEAN_RAST.append(tmpf2)
         gs.run_command("r.recode", input=tmpf1, output=tmpf2, rules=tmprule)
 
-        tmpf3 = tmpname("reb3")
+        tmpf3 = create_temporary_name("reb3")
         CLEAN_RAST.append(tmpf3)
 
         calcc = (
