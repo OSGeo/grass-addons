@@ -49,4 +49,4 @@ jobs:
           Deps: "grass8"
 
       - name: Compile GRASS GIS Addons
-        run: D:\msys64\usr\bin\bash.exe -l (''+(Get-Location)+'\.github\workflows\osgeo4w_build_addons.sh') (Get-Location)
+        run: D:\msys64\usr\bin\bash.exe -l (''+(Get-Location)+'\.github\workflows\osgeo4w_build_addons.sh 84') (Get-Location)
