@@ -82,6 +82,10 @@
 # %exclusive: -s,seed
 # %end
 
+# %rules
+# %required: -s,seed
+# %end
+
 # %flag
 # % key: n
 # % description: set non-selected values to 0 (default to NULL)
@@ -119,7 +123,6 @@ def tmpname(name):
 
 # main function
 def main(options, flags):
-
     # check if GISBASE is set
     if "GISBASE" not in os.environ:
         gs.fatal("You must be in GRASS GIS to run this program")
