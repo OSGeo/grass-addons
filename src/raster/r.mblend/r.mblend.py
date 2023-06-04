@@ -37,7 +37,7 @@
 # % key: far_edge
 # % key_desc: value
 # % type: double
-# % label: Percentage of distance to high resolution raster used to determine far edge. Number between 0 and 100. 
+# % label: Percentage of distance to high resolution raster used to determine far edge. Number between 0 and 100.
 # % description: When the blending occurs along a single edge a number closer to 100 tends to produce more even results. With more blending edges (e.g. high resolution DEM sits on the middle of the low resolution DEM) a lower number may produce a more regular blend.
 # % answer: 95
 # % multiple: no
