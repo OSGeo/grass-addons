@@ -90,7 +90,7 @@ class TestClimatologies(TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        """Remove the temporary region"""
+        """Remove the time series"""
         cls.runModule("t.remove", flags="rf", type="strds", inputs="daily")
 
     def test_1(self):

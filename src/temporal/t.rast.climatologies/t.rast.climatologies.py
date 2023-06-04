@@ -24,7 +24,6 @@
 # %end
 
 # %option G_OPT_STRDS_INPUT
-# % key: strds
 # %end
 
 # %option G_OPT_STRDS_OUTPUT
