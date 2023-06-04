@@ -173,12 +173,8 @@ function build_addons {
     done
 }
 
-if test -z $1 ; then
-    while read release; do
-        build_addons $release
-    done < releases.csv
-else
-    build_addons $1
-fi
+while read release; do
+    build_addons $release
+done < $(pwd)/releases.csv
 
 exit 0
