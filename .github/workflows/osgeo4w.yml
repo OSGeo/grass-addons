@@ -47,3 +47,6 @@ jobs:
             -s http://download.osgeo.org/osgeo4w/v2/ -P ${{ env.Deps }}' -Wait
         env:
           Deps: "grass8"
+
+      - name: Compile GRASS GIS Addons
+        run: D:\msys64\usr\bin\bash.exe -l (''+(Get-Location)+'\.github\workflows\osgeo4w_build_addons.sh') (Get-Location)
