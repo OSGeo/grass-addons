@@ -10,7 +10,7 @@ impacts your add-on.
 ## Requirements
 
 The unit tests depend on software that you must install in your system
-beforehand: Subversion and the GRASS development files. On a packaged operating
+beforehand: Subversion and the GRASS development package. On a packaged operating
 system like Ubuntu or Debian Linux this can be achieved with:
 
 ```bash
