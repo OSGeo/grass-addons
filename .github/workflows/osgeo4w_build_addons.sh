@@ -175,6 +175,6 @@ function build_addons {
 
 while read release; do
     build_addons $release
-done < $(pwd)/github/workflows/grass_versions.csv
+done < $(pwd)/.github/workflows/grass_versions.csv
 
 exit 0
