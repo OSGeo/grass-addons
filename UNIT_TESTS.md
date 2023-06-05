@@ -41,7 +41,7 @@ vim testsuite/test_mymodule.py
 ```
 
 The [unit testing
-documentation](https://grass.osgeo.org/grass82/manuals/libpython/gunittest_testing.html)
+documentation](https://grass.osgeo.org/grass-stable/manuals/libpython/gunittest_testing.html)
 in the GRASS Reference Manual provides an overview on how to create unit tests
 for C/C++ and Python code. Going through existing unit tests of a module
 like
@@ -56,8 +56,8 @@ to install this local version on your GRASS installation, as in the example
 below.
 
 ```bash
-grass ~/GRASSDATA/location/mapset
-g.extension r.mblend url=/home/duque004/git/grass-addons/src/raster/r.mblend
+grass /home/user/GRASSDATA/location/mapset
+g.extension r.mblend url=/home/user/git/grass-addons/src/raster/r.mymodule
 ```
 
 You can then run the unit tests from the GRASS session, for example:
@@ -69,6 +69,6 @@ python3 testsuite/test_mymodule.py
 ## Submit a unit test
 
 The [general contribution
-guidelines](https://github.com/OSGeo/grass-addons/blob/grass8/CONTRIBUTING.md#changing-code-and-documentation)
+guidelines](https://github.com/OSGeo/grass-addons/blob/master/CONTRIBUTING.md#changing-code-and-documentation)
 apply to unit tests. To facilitate the work of reviewers it is better to
 submit the unit tests in a dedicated pull request.
