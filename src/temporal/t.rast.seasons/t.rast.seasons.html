@@ -1,0 +1,29 @@
+<h2>DESCRIPTION</h2>
+<em><b>t.rast.aggregate.seasons</b></em> calculate a new space time
+raster dataset with statics at astronomical seasonal level from an input space time
+raster dataset. It use <a href="https://grass.osgeo.org/grass-stable/manuals/t.rast.aggregate.ds.html">t.rast.aggregate.ds</a>
+to calculate aggragated data.
+Astronomical seasons are defined as:
+<ul>
+    <li><em>Spring</em> 20 March - 21 June</li>
+    <li><em>Summer</em> 21 June - 20 September</li>
+    <li><em>Autumn</em> 20 September - 21 December</li>
+    <li><em>Winter</em> 21 December - 20 March (following year)</li>
+</ul>
+<p>
+
+<h2>EXAMPLES</h2>
+Calculate seasonal data from
+<div class="code"><pre>
+    t.rast.aggregate.seasons input=mystrds basename=mystrds_seasons
+</pre></div>
+
+<h2>SEE ALSO</h2>
+<em>
+    <a href="https://grass.osgeo.org/grass-stable/manuals/t.rast.aggregate.ds.html">t.rast.aggregate.ds</a>
+    <a href="https://grass.osgeo.org/grass-stable/manuals/r.series.html">r.null</a>
+</em>
+
+<h2>AUTHOR</h2>
+
+Luca Delucchi, Fondazione Edmund Mach
