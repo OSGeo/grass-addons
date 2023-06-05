@@ -1,11 +1,11 @@
 # Unit Tests
 
-Besides the code of the module itself, it is important to submit in addition a
-suite of tests. They guarantee your add-on remains functional when changes are
+In addition to the code of the module itself, it is important to include a suite of
+tests. They guarantee that your add-on will remain functional when changes are
 applied to the code on which it depends. Once committed to GitHub, the unit
-tests are run automatically by the CI/CD pipeline every time the code in the
+tests are automatically run by the CI/CD pipeline every time the code in the
 repository is modified. Notifications are issued if a modification somehow
-impacts your add-on.
+affects your add-on.
 
 ## Requirements
 
