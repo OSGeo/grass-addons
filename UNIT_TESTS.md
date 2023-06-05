@@ -25,7 +25,7 @@ in the main GRASS repository.
 ## Create a unit test
 
 Unit tests must be stored in a subfolder named `testsuite` inside the add-on
-folder. For example, if you contributed a raster module named r.mymodule you
+folder. For example, if you contributed a raster module named `r.mymodule` you
 would run:
 
 ```bash
