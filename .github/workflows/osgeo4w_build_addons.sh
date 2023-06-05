@@ -1,10 +1,9 @@
 #!/bin/sh
 # Compile GRASS GIS Addons
-#
-# Options:
-#  - src postfix, eg. '_trunk'
+set -e
 
-# export PATH=/c/osgeo4w${PLATFORM}/bin:/c/msys${PLATFORM}/usr/bin:/c/msys${PLATFORM}/mingw${PLATFORM}/bin:${PATH}
+test -d "$1" && cd "$1"
+
 export PATH=/c/msys64/usr/bin:${PATH}
 # export PYTHONPATH=
 export LANGUAGE=C
