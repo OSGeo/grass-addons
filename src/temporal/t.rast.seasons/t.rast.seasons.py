@@ -78,6 +78,7 @@ import grass.pygrass.modules as pymod
 from grass.pygrass.vector import VectorTopo
 from grass.pygrass.vector.geometry import Point
 
+
 def main():
     strds = options["input"]
 
@@ -88,11 +89,11 @@ def main():
     mapset = tgis.core.get_current_mapset()
 
     try:
-        vals = options["years"].split('-')
+        vals = options["years"].split("-")
         years = range(vals)
     except:
         try:
-            years = options["years"].split(',')
+            years = options["years"].split(",")
         except:
             if strds.find("@") >= 0:
                 id_ = strds
@@ -117,31 +118,29 @@ def main():
             name = f"sample_{seas}_{year}"
             vect = VectorTopo(name)
             vect.open("w")
-            point = Point(0,0)
+            point = Point(0, 0)
             vect.write(point, cat=1)
             vect.close()
-            map_layer = tgis.space_time_datasets.VectorDataset(
-                f"{name}@{mapset}"
-            )
+            map_layer = tgis.space_time_datasets.VectorDataset(f"{name}@{mapset}")
             if seas == "spring":
                 extent = tgis.AbsoluteTemporalExtent(
                     start_time=datetime(int(year), 3, 20),
-                    end_time=datetime(int(year), 6, 21)
+                    end_time=datetime(int(year), 6, 21),
                 )
             elif seas == "summer":
                 extent = tgis.AbsoluteTemporalExtent(
                     start_time=datetime(int(year), 6, 21),
-                    end_time=datetime(int(year), 9, 20)
+                    end_time=datetime(int(year), 9, 20),
                 )
             elif seas == "autumn":
                 extent = tgis.AbsoluteTemporalExtent(
                     start_time=datetime(int(year), 9, 20),
-                    end_time=datetime(int(year), 12, 21)
+                    end_time=datetime(int(year), 12, 21),
                 )
             elif seas == "winter":
                 extent = tgis.AbsoluteTemporalExtent(
                     start_time=datetime(int(year), 12, 21),
-                    end_time=datetime(int(year) + 1, 3, 20)
+                    end_time=datetime(int(year) + 1, 3, 20),
                 )
             map_layer.set_temporal_extent(extent=extent)
             season_vect.append(map_layer)
