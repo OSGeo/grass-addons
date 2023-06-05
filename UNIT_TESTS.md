@@ -70,5 +70,5 @@ python3 testsuite/test_mymodule.py
 
 The [general contribution
 guidelines](https://github.com/OSGeo/grass-addons/blob/grass8/CONTRIBUTING.md#changing-code-and-documentation)
-apply to unit tests. To facilitate the work of the reviewer it is better to
+apply to unit tests. To facilitate the work of reviewers it is better to
 submit the unit tests in a dedicated pull request.
