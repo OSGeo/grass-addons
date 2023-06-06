@@ -44,6 +44,15 @@
 # % description: Reproject raster data using r.import if needed
 # %end
 
+#%option
+#% key: collections
+#% type: string
+#% required: no
+#% multiple: yes
+#% description: List of one or more Collection IDs or pystac.Collection instances. Only Items in one of the provided Collections will be searched
+#% guisection: Request
+#%end
+
 # %option
 # % key: max_items
 # % type: integer
@@ -73,15 +82,6 @@
 # % answer: 100
 # % guisection: Request
 # %end
-
-#%option
-#% key: collections
-#% type: string
-#% required: no
-#% multiple: yes
-#% description: List of one or more Collection IDs or pystac.Collection instances. Only Items in one of the provided Collections will be searched
-#% guisection: Request
-#%end
 
 # %option
 # % key: bbox
@@ -241,7 +241,7 @@ def computeBbox(self):
     return boundingbox
 
 
-def validate_collections_option(client, collections = []):
+def validate_collections_option(client, collections=[]):
     """Validate that the collection the user specificed is valid
 
     Args:
@@ -256,9 +256,8 @@ def validate_collections_option(client, collections = []):
         return True
     grass.warning(_("The specified collections do not exisit."))
 
-
     for collection in avaliable_collections:
-         grass.warning(_(f"{collection} collection found"))
+        grass.warning(_(f"{collection} collection found"))
 
     return False
 
@@ -274,6 +273,7 @@ def fetchAsset():
     """Fetch Asset"""
     pass
 
+
 def get_all_collections(client):
     """Get a list of collections from STAC Client"""
     collections = client.get_collections()
@@ -282,6 +282,7 @@ def get_all_collections(client):
     for i in collection_list:
         grass.message(_(i.id))
     return collection_list
+
 
 def get_collection_items(client, collection_name):
     """Get collection"""
@@ -319,16 +320,16 @@ def main():
     grass.message(_(f"Catalog: {client.title}"))
 
     collections_only = flags["c"]
-    collection_itmes_only = flags['i']
+    collection_itmes_only = flags["i"]
 
     if collections_only:
         collection_list = get_all_collections(client)
         return None
 
     if collection_itmes_only:
-        collection_item_list = get_collection_items(client, collections)   
-        return None   
-      
+        collection_item_list = get_collection_items(client, collections)
+        return None
+
     if validate_collections_option(client, collections):
         items = search_stac_api(
             client=client,
