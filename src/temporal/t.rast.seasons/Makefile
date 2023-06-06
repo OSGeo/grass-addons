@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = t.rast.aggregate.seasons
+PGM = t.rast.seasons
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 

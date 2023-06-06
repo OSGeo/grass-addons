@@ -1,8 +1,7 @@
 <h2>DESCRIPTION</h2>
-<em><b>t.rast.aggregate.seasons</b></em> calculate a new space time
-raster dataset with statics at astronomical seasonal level from an input space time
-raster dataset. It use <a href="https://grass.osgeo.org/grass-stable/manuals/t.rast.aggregate.ds.html">t.rast.aggregate.ds</a>
-to calculate aggragated data.
+<em><b>t.rast.seasons</b></em> aggregates an input space time
+raster dataset at astronomical seasons level using a statistical method selected by the user. It uses <a href="https://grass.osgeo.org/grass-stable/manuals/t.rast.aggregate.ds.html">t.rast.aggregate.ds</a>
+to detect and copy the astronomical seasons granularity.
 Astronomical seasons are defined as:
 <ul>
     <li><em>Spring</em> 20 March - 21 June</li>
@@ -15,7 +14,7 @@ Astronomical seasons are defined as:
 <h2>EXAMPLES</h2>
 Calculate seasonal data from
 <div class="code"><pre>
-    t.rast.aggregate.seasons input=mystrds basename=mystrds_seasons
+    t.rast.seasons input=mystrds basename=mystrds_seasons
 </pre></div>
 
 <h2>SEE ALSO</h2>

@@ -3,9 +3,9 @@
 
 ################################################
 #
-# MODULE:       t.rast.aggregate.seasons
+# MODULE:       t.rast.seasons
 # AUTHOR(S):    Luca Delucchi
-# PURPOSE:      Create new .
+# PURPOSE:      Aggregates an input strds with astronomical seasons granularity.
 #
 # COPYRIGHT:    (C) 2018 by Luca Delucchi
 #
@@ -57,7 +57,7 @@
 # %option
 # % key: nprocs
 # % type: integer
-# % description: Number of r.null processes to run in parallel
+# % description: Number of processes to run in parallel
 # % required: no
 # % multiple: no
 # % answer: 1
