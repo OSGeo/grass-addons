@@ -5,7 +5,7 @@
 # MODULE:       r.in.stac
 # AUTHOR:       Corey T. White, Center for Geospatial Analytics, North Carolina State University
 # PURPOSE:      Import data into GRASS from SpatioTemporal Asset Catalogs (STAC) APIs.
-# COPYRIGHT:    (C) 2022 Corey White
+# COPYRIGHT:    (C) 2023 Corey White
 #               This program is free software under the GNU General
 #               Public License (>=v2). Read the file COPYING that
 #               comes with GRASS for details.
@@ -22,6 +22,7 @@
 # %option
 # % key: url
 # % type: string
+# % answer: https://earth-search.aws.element84.com/v1/
 # % description: STAC API Client URL (examples at https://stacspec.org/en/about/datasets/ )
 # % required: yes
 # %end
@@ -76,7 +77,7 @@
 #%option
 #% key: collections
 #% type: string
-#% required: yes
+#% required: no
 #% multiple: yes
 #% description: List of one or more Collection IDs or pystac.Collection instances. Only Items in one of the provided Collections will be searched
 #% guisection: Request
@@ -85,12 +86,14 @@
 # %option
 # % key: bbox
 # % type: string
+# % required: no
 # % description: The bounding box of the request (example [-72.5,40.5,-72,41])
 # % guisection: Request
 # %end
 
 # %option G_OPT_V_INPUT
 # % key: intersects
+# % required: no
 # % description: Results filtered to only those intersecting the geometry.
 # % guisection: Request
 # %end
@@ -238,7 +241,7 @@ def computeBbox(self):
     return boundingbox
 
 
-def validate_collections_option(collections, client):
+def validate_collections_option(client, collections = []):
     """Validate that the collection the user specificed is valid
 
     Args:
@@ -252,6 +255,11 @@ def validate_collections_option(collections, client):
     if collections in avaliable_collections:
         return True
     grass.warning(_("The specified collections do not exisit."))
+
+
+    for collection in avaliable_collections:
+         grass.warning(_(f"{collection} collection found"))
+
     return False
 
 
@@ -260,6 +268,36 @@ def search_stac_api(client, **kwargs):
     search = client.search(**kwargs)
     grass.message(_(f"{search.matched()} items found"))
     return search
+
+
+def fetchAsset():
+    """Fetch Asset"""
+    pass
+
+def get_all_collections(client):
+    """Get a list of collections from STAC Client"""
+    collections = client.get_collections()
+    collection_list = list(collections)
+    grass.message(_(f"{len(collection_list)} collections found:"))
+    for i in collection_list:
+        grass.message(_(i.id))
+    return collection_list
+
+def get_collection_items(client, collection_name):
+    """Get collection"""
+    collection = client.get_collection(collection_name)
+    grass.message(_(f"Collection: {collection.title}"))
+    grass.message(_(f"Description: {collection.description}"))
+    grass.message(_(f"Spatial Extent: {collection.extent.spatial.bboxes}"))
+    grass.message(_(f"Temporal Extent: {collection.extent.temporal.intervals}"))
+    grass.message(_(f"License: {collection.license}"))
+    return collection
+
+    # items = collection.get_all_items()
+    # grass.message(_(len(list(items))))
+    # return items
+    # for i in items:
+    #     grass.message(_(i.id))
 
 
 def main():
@@ -278,7 +316,20 @@ def main():
     filter_lang = options["filter_lang"]  # optional
 
     client = Client.open(client_url)
-    if validate_collections_option(collections, client):
+    grass.message(_(f"Catalog: {client.title}"))
+
+    collections_only = flags["c"]
+    collection_itmes_only = flags['i']
+
+    if collections_only:
+        collection_list = get_all_collections(client)
+        return None
+
+    if collection_itmes_only:
+        collection_item_list = get_collection_items(client, collections)   
+        return None   
+      
+    if validate_collections_option(client, collections):
         items = search_stac_api(
             client=client,
             ids=ids,
@@ -291,6 +342,7 @@ def main():
             filter=filter,
             filter_lang=filter_lang,
         )
+        print(items)
 
 
 if __name__ == "__main__":
