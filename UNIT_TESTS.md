@@ -9,12 +9,12 @@ impacts your add-on.
 
 ## Requirements
 
-The unit tests depend on software that you must install in your system
-beforehand: Subversion and the GRASS development package. On a packaged operating
-system like Ubuntu or Debian Linux this can be achieved with:
+The unit tests depend on the GRASS development package. It might already be
+installed on your system, but make sure. On a packaged operating system like
+Ubuntu or Debian Linux this can be achieved with:
 
 ```bash
-sudo apt install subversion grass-dev
+sudo apt install grass-dev
 ```
 
 If you have not done so yet, it is also helpful to install pre-commit. Follow
@@ -52,23 +52,31 @@ is also insightful.
 
 In most circumstances you will wish to run the unit tests against a local
 version of the add-on that you recently modified or created. To do so you need
-to install this local version on your GRASS installation, as in the example
-below.
+to install this local version on your GRASS installation.
+
+First start a new grass session. Does not matter on which location or mapset.
 
 ```bash
 grass /home/user/GRASSDATA/location/mapset
+```
+
+Then use the flexibility of `g.extension` to install the add-on from the file
+system.
+
+```bash
 g.extension r.mblend url=/home/user/git/grass-addons/src/raster/r.mymodule
 ```
 
-You can then run the unit tests from the GRASS session, for example:
+You can now run the unit tests from the GRASS session, for example:
 
 ```bash
-python3 testsuite/test_mymodule.py
+python testsuite/test_mymodule.py
 ```
 
 ## Submit a unit test
 
 The [general contribution
 guidelines](https://github.com/OSGeo/grass-addons/blob/master/CONTRIBUTING.md#changing-code-and-documentation)
-apply to unit tests. To facilitate the work of reviewers it is better to
-submit the unit tests in a dedicated pull request.
+apply to unit tests. In case you are submitting a new add-on, the unit tests
+should feature in the pull request with the module itself. Otherwise submit the
+unit tests in a dedicated pull request to facilitate the work of the reviewers.
