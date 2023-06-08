@@ -10,12 +10,11 @@ affects your add-on.
 ## Requirements
 
 The unit tests depend on the GRASS development package. It might already be
-installed on your system, but make sure. On a packaged operating system like
+installed on your system, but make it sure. On a packaged operating system like
 Ubuntu or Debian Linux this can be achieved with:
 
 ```bash
 sudo apt install grass-dev
-```
 
 If you have not done so yet, it is also helpful to install pre-commit. Follow
 [the
