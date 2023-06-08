@@ -5,7 +5,7 @@
  AUTHOR(S):    Stefan Blumentrath
  PURPOSE:      Import netCDF files that adhere to the CF convention as a
                Space Time Raster Dataset (STRDS)
- COPYRIGHT:    (C) 2021 by stefan.blumentrath, and the GRASS Development Team
+ COPYRIGHT:    (C) 2023 by stefan.blumentrath, and the GRASS Development Team
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -690,9 +690,9 @@ def create_vrt(
         kwargs["yRes"] = -gt[5]
         kwargs["outputBounds"] = (
             aligned_bbox["west"],
-            aligned_bbox["north"],
-            aligned_bbox["east"],
             aligned_bbox["south"],
+            aligned_bbox["east"],
+            aligned_bbox["north"],
         )
 
         if nodata is not None:
