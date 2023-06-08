@@ -1,11 +1,11 @@
 # Unit Tests
 
-In addition to the code of the module itself, it is important to include a suite of
-tests. They guarantee that your add-on will remain functional when changes are
-applied to the code on which it depends. Once committed to GitHub, the unit
-tests are automatically run by the CI/CD pipeline every time the code in the
-repository is modified. Notifications are issued if a modification somehow
-affects your add-on.
+In addition to the code of the module itself, it is important to include a
+suite of tests. They guarantee that your add-on will remain functional when
+changes are applied to the code on which it depends. Once committed to GitHub,
+the unit tests are automatically run by the CI/CD pipeline every time the code
+in the repository is modified. Notifications are issued if a modification
+somehow affects your add-on.
 
 ## Requirements
 
@@ -15,6 +15,13 @@ Ubuntu or Debian Linux this can be achieved with:
 
 ```bash
 sudo apt install grass-dev
+```
+
+Or on Fedora/CentOS with:
+
+```bash
+sudo dnf install grass-devel
+```
 
 If you have not done so yet, it is also helpful to install pre-commit. Follow
 [the
