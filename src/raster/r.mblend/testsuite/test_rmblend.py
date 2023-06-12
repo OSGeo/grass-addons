@@ -1,9 +1,11 @@
 from grass.gunittest.case import TestCase
 from grass.gunittest.main import test
-from grass.gunittest.gmodules import SimpleModule
 
 
 class TestRMblend(TestCase):
+    """Simple tests for the r.mblend add-on. Makes sure it works and produces
+    reasonable results.
+    """
 
     low_res = "low_res"
     high_res_1 = "high_res_1"
