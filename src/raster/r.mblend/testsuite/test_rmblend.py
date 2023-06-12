@@ -61,7 +61,7 @@ class TestRMblend(TestCase):
             inter_points=100,
         )
         self.assertRasterExists(name=self.result_1)
-        values = "min=1\nmax=2\nmean=1.187\nstddev=0.316"
+        values = {"min": 1, "max": 2, "mean": 1.187, "stddev": 0.316}
         self.assertRasterFitsUnivar(
             raster=self.result_1, reference=values, precision=1e-3
         )
@@ -74,7 +74,7 @@ class TestRMblend(TestCase):
             far_edge=50,
         )
         self.assertRasterExists(name=self.result_2)
-        values = "min=1\nmax=2\nmean=1.448\nstddev=0.417"
+        values = {"min": 1, "max": 2, "mean": 1.448, "stddev": 0.417}
         self.assertRasterFitsUnivar(
             raster=self.result_2, reference=values, precision=1e-3
         )
