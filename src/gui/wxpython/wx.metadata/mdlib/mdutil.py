@@ -31,8 +31,6 @@ from grass.pygrass.modules import Module
 from grass.pygrass.utils import get_lib_path
 from grass.script import core as grass
 
-from owslib import util
-
 import wx
 
 
@@ -40,6 +38,7 @@ class Owslib:
     """Lazy import of 'owslib.iso' module"""
 
     iso = importlib.import_module("owslib.iso", "owslib")
+    util = importlib.import_module("owslib.util", "owslib")
 
 
 class StaticContext(object):
@@ -230,7 +229,6 @@ def grassProfileValidator(md):
             md.identification.temporalextent_start is (None or "")
             or md.identification.temporalextent_end is (None or "")
         ):
-
             result["errors"].append(
                 "Both gmd:EX_TemporalExtent and gmd:CI_Date are missing"
             )
@@ -304,7 +302,6 @@ def isnpireValidator(md):
         errors += 20
     else:
         if md.identification.contact is None or len(md.identification.contact) < 1:
-
             result["errors"].append(
                 "gmd:CI_ResponsibleParty: Organization name is missing"
             )
@@ -372,7 +369,6 @@ def isnpireValidator(md):
                 errors += 1
 
         if md.identification.keywords is None or len(md.identification.keywords) < 1:
-
             result["errors"].append("gmd:MD_Keywords: Keywords are missing")
             result["errors"].append("gmd:thesaurusName: Thesaurus title is missing")
             result["errors"].append("gmd:thesaurusName: Thesaurus date is missing")
@@ -385,7 +381,6 @@ def isnpireValidator(md):
                 or len(md.identification.keywords[0]["keywords"]) < 1
                 or str(md.identification.keywords[0]["keywords"]) == "[u'']"
             ):
-
                 result["errors"].append("gmd:MD_Keywords: Keywords are missing")
                 errors += 1
             if md.identification.keywords[0]["thesaurus"] is None:
@@ -484,7 +479,6 @@ def isnpireValidator(md):
         result["errors"].append("gmd:DQ_ConformanceResult: Title is missing")
         errors += 4
     else:
-
         if md.dataquality.lineage is (None or ""):
             result["errors"].append("gmd:LI_Lineage is missing")
             errors += 1
@@ -517,7 +511,6 @@ def isnpireValidator(md):
         result["errors"].append("gmd:role: Role is missing")
         errors += 3
     else:
-
         if md.contact[0].organization is (None or ""):
             result["errors"].append("gmd:contact: Organization name is missing")
             errors += 1
@@ -556,11 +549,11 @@ class MD_DataIdentification_MOD(Owslib.iso.MD_DataIdentification):
             val3 = None
             val4 = None
             extents = md.findall(
-                util.nspath_eval("gmd:extent", Owslib.iso.namespaces),
+                Owslib.util.nspath_eval("gmd:extent", Owslib.iso.namespaces),
             )
             extents.extend(
                 md.findall(
-                    util.nspath_eval("srv:extent", Owslib.iso.namespaces),
+                    Owslib.util.nspath_eval("srv:extent", Owslib.iso.namespaces),
                 ),
             )
             for extent in extents:
@@ -571,12 +564,12 @@ class MD_DataIdentification_MOD(Owslib.iso.MD_DataIdentification):
                         "gml:TM_PeriodDuration/gml:duration"
                     )
                     val2 = extent.find(
-                        util.nspath_eval(
+                        Owslib.util.nspath_eval(
                             duration,
                             Owslib.iso.namespaces,
                         ),
                     )  # TODO
-                self.temporalType = util.testXMLValue(val2)
+                self.temporalType = Owslib.util.testXMLValue(val2)
 
                 if val1 is None:
                     time_unit_type = (
@@ -586,12 +579,12 @@ class MD_DataIdentification_MOD(Owslib.iso.MD_DataIdentification):
                         "gml:unit/gml:TimeUnitType"
                     )
                     val1 = extent.find(
-                        util.nspath_eval(
+                        Owslib.util.nspath_eval(
                             time_unit_type,
                             Owslib.iso.namespaces,
                         ),
                     )
-                self.timeUnit = util.testXMLValue(val1)
+                self.timeUnit = Owslib.util.testXMLValue(val1)
                 if val3 is None:
                     positive_int = (
                         "gmd:EX_Extent/gmd:temporalElement/"
@@ -600,12 +593,12 @@ class MD_DataIdentification_MOD(Owslib.iso.MD_DataIdentification):
                         "gml:radix/gco:positiveInteger"
                     )
                     val3 = extent.find(
-                        util.nspath_eval(
+                        Owslib.util.nspath_eval(
                             positive_int,
                             Owslib.iso.namespaces,
                         ),
                     )
-                self.radixT = util.testXMLValue(val3)
+                self.radixT = Owslib.util.testXMLValue(val3)
 
                 if val4 is None:
                     integer = (
@@ -615,12 +608,12 @@ class MD_DataIdentification_MOD(Owslib.iso.MD_DataIdentification):
                         "gml:factor/gco:Integer"
                     )
                     val4 = extent.find(
-                        util.nspath_eval(
+                        Owslib.util.nspath_eval(
                             integer,
                             Owslib.iso.namespaces,
                         ),
                     )
-                self.factor = util.testXMLValue(val4)
+                self.factor = Owslib.util.testXMLValue(val4)
 
 
 class MD_MetadataMOD(Owslib.iso.MD_Metadata):
@@ -630,13 +623,13 @@ class MD_MetadataMOD(Owslib.iso.MD_Metadata):
         Owslib.iso.MD_Metadata.__init__(self, md)
         if md is not None:
             val = md.find(
-                util.nspath_eval(
+                Owslib.util.nspath_eval(
                     "gmd:identificationInfo/gmd:MD_DataIdentification",
                     Owslib.iso.namespaces,
                 ),
             )
             val2 = md.find(
-                util.nspath_eval(
+                Owslib.util.nspath_eval(
                     "gmd:identificationInfo/srv:SV_ServiceIdentification",
                     Owslib.iso.namespaces,
                 ),
@@ -657,13 +650,13 @@ class MD_MetadataMOD(Owslib.iso.MD_Metadata):
 
             self.identificationinfo = []
             for idinfo in md.findall(
-                util.nspath_eval(
+                Owslib.util.nspath_eval(
                     "gmd:identificationInfo",
                     Owslib.iso.namespaces,
                 ),
             ):
                 val = list(idinfo)[0]
-                tagval = util.xmltag_split(val.tag)
+                tagval = Owslib.util.xmltag_split(val.tag)
                 if tagval == "MD_DataIdentification":
                     self.identificationinfo.append(
                         MD_DataIdentification_MOD(val, "dataset"),
@@ -678,7 +671,7 @@ class MD_MetadataMOD(Owslib.iso.MD_Metadata):
                     )
 
             val = md.find(
-                util.nspath_eval(
+                Owslib.util.nspath_eval(
                     "gmd:distributionInfo/gmd:MD_Distribution",
                     Owslib.iso.namespaces,
                 ),
