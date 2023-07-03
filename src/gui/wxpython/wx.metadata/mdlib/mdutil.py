@@ -657,14 +657,18 @@ def get_md_metadatamod_inst(*args, **kwargs):
                 )
 
                 if val is not None:
-                    self.identification = get_md_dataidentification_mod_inst(val, "dataset")
+                    self.identification = get_md_dataidentification_mod_inst(
+                        val, "dataset"
+                    )
                     self.serviceidentification = None
                 elif val2 is not None:
                     self.identification = get_md_dataidentification_mod_inst(
                         val2,
                         "service",
                     )
-                    self.serviceidentification = owslib_iso.SV_ServiceIdentification(val2)
+                    self.serviceidentification = owslib_iso.SV_ServiceIdentification(
+                        val2
+                    )
                 else:
                     self.identification = None
                     self.serviceidentification = None
@@ -697,4 +701,5 @@ def get_md_metadatamod_inst(*args, **kwargs):
                         owslib_iso.namespaces,
                     ),
                 )
+
     return MD_MetadataMOD(*args, **kwargs)
