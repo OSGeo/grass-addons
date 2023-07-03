@@ -41,7 +41,6 @@ import wx
 import wx.lib.scrolledpanel as scrolled
 
 from . import globalvar
-from . import mdutil
 from .mdjinjaparser import JinjaTemplateParser
 
 # =========================================================================
@@ -57,12 +56,14 @@ class MdFileWork:
     def __init__(self, pathToXml=None):
 
         try:
-            global Environment, FileSystemLoader, etree, GError, GMessage
+            global Environment, FileSystemLoader, etree, GError, GMessage, mdutil
 
             from jinja2 import Environment, FileSystemLoader
             from lxml import etree
 
             from core.gcmd import GError, GMessage
+
+            from . import mdutil
         except ModuleNotFoundError as e:
             msg = e.msg
             sys.exit(
@@ -81,7 +82,7 @@ class MdFileWork:
         @return: initialized md object by input xml
         """
         if path is None:
-            self.md = mdutil.MD_MetadataMOD(md=None)
+            self.md = mdutil.get_md_metadatamod_inst(md=None)
             return self.md
         else:
             io = open(path, "r")
@@ -96,7 +97,7 @@ class MdFileWork:
             try:
                 tree = etree.parse(path)
                 root = tree.getroot()
-                self.md = mdutil.MD_MetadataMOD(root)
+                self.md = mdutil.get_md_metadatamod_inst(root)
 
                 return self.md
 
