@@ -2,7 +2,7 @@
 
 ############################################################################
 #
-# MODULE:       v.move.points
+# MODULE:       v.rast.move
 #
 # AUTHOR(S):    Vaclav Petras
 #
