@@ -43,7 +43,7 @@ float fuzzy(FCELL cell)
 
     if (type == SSHAPE) {
         m = pow(2, exp(2 * abs(shape)));
-        return (shape < 0) ? pow(1 - cos(x * PI2), m) : pow(sin(x * PI2), m);
+        return (shape < 0) ? 1 - pow(cos(x * PI2), m) : pow(sin(x * PI2), m);
     }
 
     return -1; /* error */
