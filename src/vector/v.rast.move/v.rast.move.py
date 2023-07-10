@@ -6,7 +6,7 @@
 #
 # AUTHOR(S):    Vaclav Petras
 #
-# PURPOSE:      Update a column values using Python expressions
+# PURPOSE:      Move individual vertices of features
 #
 # COPYRIGHT:    (C) 2023 by Vaclav Petras and the GRASS Development Team
 #
@@ -17,7 +17,7 @@
 #############################################################################
 
 # %module
-# % description: Move points by distance specified in a raster
+# % description: Move vertices by distance specified in a raster
 # % keyword: vector
 # % keyword:
 # % keyword:
@@ -43,6 +43,8 @@
 # %option G_OPT_V_OUTPUT
 # %end
 
+"""Produce new vector map with vertices moved based on raster values"""
+
 import math
 
 import grass.script as gs
@@ -59,6 +61,10 @@ class OutOfBounds(RuntimeError):
 def move_vector(
     input_vector_name, output_vector_name, x_raster_name, y_raster_name, handle_nulls
 ):
+    """Move features in existing vector vertex by vertex
+
+    Does not call fatal, but raises exceptions.
+    """
     # Lazy import ctypes
     # pylint: disable=import-outside-toplevel
     import ctypes
@@ -149,7 +155,9 @@ def move_vector(
     x_raster.close()
     y_raster.close()
 
+
 def main():
+    """Process options and check inputs before calling the processing function"""
     options, unused_flags = gs.parser()
 
     input_vector_name = options["input"]
