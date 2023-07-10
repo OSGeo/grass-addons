@@ -35,6 +35,7 @@
 # % key: nulls
 # % type: string
 # % options: zeros,warning,error
+# % answer: warning
 # % label: Handling of null values
 # % description: Null (no-data) values in rasters will be considered zeros, cause a warning or an error
 # % description: zeros;Null value will be converted to zeros;warning;A null value will cause a warning (one for each raster) and will be converted to zero;error;A null value will cause an error
@@ -131,22 +132,22 @@ def move_vector(
             Vect_cat_set(new_line.c_cats, 1, first_cat.value)
             output_vector.write(new_line)
 
+    detail = _("(set nulls to 'zeros' to silence this warning)")
     if x_null:
         gs.warning(
-            _("Null value encountered in {raster} (X): {n}x").format(
-                raster=x_raster_name, n=x_null
+            _("Null value encountered in {raster} (X): {n}x {detail}").format(
+                raster=x_raster_name, n=x_null, detail=detail
             )
         )
     if y_null:
         gs.warning(
-            _("Null value encountered in {raster} (Y): {n}x").format(
-                raster=y_raster_name, n=y_null
+            _("Null value encountered in {raster} (Y): {n}x {detail}").format(
+                raster=y_raster_name, n=y_null, detail=detail
             )
         )
 
     x_raster.close()
     y_raster.close()
-
 
 def main():
     options, unused_flags = gs.parser()
@@ -155,6 +156,17 @@ def main():
     x_raster_name = options["x_raster"]
     y_raster_name = options["y_raster"]
     output_vector_name = options["output"]
+
+    for name in set([x_raster_name, y_raster_name]):
+        raster_type = gs.raster_info(name)["datatype"]
+        if raster_type == "CELL":
+            gs.warning(
+                _(
+                    "Raster input {name} is CELL (integer), but null-value "
+                    "handling is supported only for floating-point rasters "
+                    "(FCELL and DCELL)"
+                ).format(name=name)
+            )
 
     try:
         move_vector(
