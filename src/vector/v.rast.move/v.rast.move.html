@@ -1,13 +1,58 @@
 <h2>DESCRIPTION</h2>
 
 <em>v.rast.move</em> takes values from raster maps and adds them to X and Y
-coordinates of features in a vector map.
+coordinates of features in a vector map vertex by vertex.
+
+Null values in rasters are turned into zeros by default and a warning is
+generated. This behavior can be modified by the <b>nulls</b> option to
+either silence the warning with explicit <code>nulls="zeros"</code>
+or the warning can be turned into an error with <code>nulls="error"</code>.
+
+The rasters are loaded based on the computational region, so the most
+advantageous use of resources is to set the computational region to
+match the vector. To avoid issues with vector coordinates at the border
+of the computational region, it is best to also grow the region one cell
+on each side. Vector features outside of the computational region always
+result in an error being reported (regardless of the <b>nulls</b> option),
+but the rasters can have any extent as along as the computational region
+is set to match the vector.
 
 <h2>NOTES</h2>
+
+Unlike <em>v.perturb</em> which moves points randomly, <em>v.rast.move</em>
+works on vertices of lines and uses same value for all vertices at a given
+cell. Unlike v.transform used with raster values in attribute columns,
+<em>v.rast.move</em> operates on individual vertices in the line, not on the
+whole line (attributes are associated with features, not their vertices).
 
 <h2>EXAMPLES</h2>
 
 <h3>Shift in X direction</h3>
+
+<!-- The original code is in the notebook. -->
+
+This example uses the North Carolina sample dataset.
+
+Set the computational region to match the vector map and use
+100-meter resolution.
+
+<div class="code"><pre>
+g.region vector=roadsmajor res=100
+</pre></div>
+
+Generate rasters for a shift in X direction (one raster is a wave, the other is zero):
+
+<div class="code"><pre>
+g.region vector=roadsmajor res=100
+r.mapcalc expression="a = 1000 * sin(row())"
+r.mapcalc expression="b = 0"
+</pre></div>
+
+Use the rasters to move the vector:
+
+<div class="code"><pre>
+v.rast.move input=roadsmajor output=roads_moved x_raster=a y_raster=b
+</pre></div>
 
 <div align="center" style="margin: 10px">
   <a href="v_rast_move.png">
@@ -24,36 +69,24 @@ coordinates of features in a vector map.
 
 <ul>
   <li>
-    <em><a href="v.db.addcolumn.html">v.db.addcolumn</a></em>
-    to add a new column (to be filled with values later),
+    <em><a href="v.transform.html">v.transform</a></em>
+    for changing coordinates for the whole vector map or
+    feature by feature based on the attributes,
   </li>
   <li>
-    <em><a href="v.db.update.html">v.db.update</a></em>
-    for attribute updates using SQL,
+    <em><a href="v.perturb.html">v.perturb</a></em>
+    for randomly changing point positions by small amounts,
   </li>
   <li>
-    <em><a href="db.execute.html">db.execute</a></em>
-    to execute general SQL statements,
+    <em><a href="r.mapcalc.html">r.mapcalc</a></em>
+    for generating or adjusting the raster maps,
   </li>
   <li>
-    <em><a href="v.db.addtable.html">v.db.addtable</a></em>
-    to add a new table to an existing vector map,
-  </li>
-  <li>
-    <em><a href="v.db.connect.html">v.db.connect</a></em>
-    to find details about attribute storage,
-  </li>
-  <li>
-    <em><a href="v.db.join.html">v.db.join</a></em>
-    to add columns from one table to another,
-  </li>
-  <li>
-    <em><a href="v.db.select.html">v.db.select</a></em>
-    to obtain values from an attribute and test WHERE clauses.
+    <em><a href="g.region.html">g.region</a></em>
+    to set the computational region before the computation.
   </li>
 </ul>
 
-
 <h2>AUTHOR</h2>
 
-Vaclav Petras, <a href="http://geospatial.ncsu.edu/">NCSU Center for Geospatial Analytics</a>
+Vaclav Petras, <a href="http://geospatial.ncsu.edu/">NCSU Center for Geospatial Analytics, GeoForAll Lab</a>
