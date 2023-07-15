@@ -174,3 +174,8 @@ local _grass8_ branch in order to get there the change you just contributed.
 
 GRASS GIS maintainers use additional workflows besides the one described
 above. These are detailed at <https://trac.osgeo.org/grass/wiki/HowToGit>
+
+## Unit tests
+
+Consider including a unit test suite with your addon. More details in [these
+instructions](doc/development/submitting/UNIT_TESTS.md).
