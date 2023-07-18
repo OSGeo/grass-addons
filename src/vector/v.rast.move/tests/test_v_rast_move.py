@@ -71,6 +71,7 @@ def test_nulls_fail(line_dataset):
             nulls="error",
         )
 
+
 def test_non_lines_ignored(line_dataset):
     """Check geometry of the result"""
     result = "result_mix"
