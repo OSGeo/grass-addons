@@ -65,16 +65,16 @@ It is important that "origin" points to your fork.
 
 ### Update before creating a feature branch
 
-* Make sure your are starting with the branch for the latest version, i.e., _grass8_:
-
-```bash
-git checkout grass8
-```
-
 * Download updates from all branches from the _upstream_ remote:
 
 ```bash
 git fetch upstream
+```
+
+* Make sure your are starting with the branch for the latest version, i.e., _grass8_:
+
+```bash
+git switch grass8
 ```
 
 * Update your local branch to match the one in the upstream repository:
@@ -98,13 +98,7 @@ git stash
 git rebase upstream/grass8
 ```
 
-* Apply your local changes on top:
-
-```bash
-git stash apply
-```
-
-* Remove the stash record (optional):
+* Apply your local changes on top of the updated code:
 
 ```bash
 git stash pop
@@ -118,7 +112,7 @@ based on it.
 * Create a new feature branch and switch to it:
 
 ```bash
-git checkout -b new-feature
+git switch -c new-feature
 ```
 
 ### Making changes
@@ -157,6 +151,9 @@ you what URL to use to create a pull request. You can follow that URL
 or you can go any time later to your fork on GitHub, display the
 branch `new-feature`, and GitHub will show you button to create
 a pull request.
+
+Some contributors use GitHub CLI which allows them to create the pull request
+from command line in one step together with pushing the changes to GitHub.
 
 ### After creating a pull request
 
