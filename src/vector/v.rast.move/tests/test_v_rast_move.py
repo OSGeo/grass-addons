@@ -70,3 +70,18 @@ def test_nulls_fail(line_dataset):
             output=result,
             nulls="error",
         )
+
+def test_non_lines_ignored(line_dataset):
+    """Check geometry of the result"""
+    result = "result_mix"
+    gs.run_command(
+        "v.rast.move",
+        input=line_dataset.mix_name,
+        x_raster=line_dataset.x,
+        y_raster=line_dataset.y,
+        output=result,
+    )
+    metadata = gs.vector_info(result)
+    assert metadata["lines"] == 1
+    assert metadata["points"] == 0
+    assert metadata["nodes"] == 2

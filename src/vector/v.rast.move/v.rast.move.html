@@ -1,7 +1,8 @@
 <h2>DESCRIPTION</h2>
 
 <em>v.rast.move</em> takes values from raster maps and adds them to X and Y
-coordinates of features in a vector map vertex by vertex.
+coordinates of features in a vector map vertex by vertex. Works on lines
+only, other features are ignored and not included in the result.
 
 Null values in rasters are turned into zeros by default and a warning is
 generated. This behavior can be modified by the <b>nulls</b> option to

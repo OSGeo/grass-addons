@@ -55,7 +55,7 @@ class NullValue(RuntimeError):
 
 
 class OutOfBounds(RuntimeError):
-    """Raised when vector extent is large than region (raster) extent"""
+    """Raised when vector extent is larger than region (raster) extent"""
 
 
 def move_vector(
@@ -74,7 +74,7 @@ def move_vector(
     from grass.pygrass.utils import coor2pixel
     from grass.pygrass.vector import VectorTopo
     from grass.pygrass.vector.geometry import Line, Point
-    from grass.lib.vector import Vect_cat_set, Vect_cat_get
+    from grass.lib.vector import Vect_cat_set, Vect_cat_get, GV_LINE
 
     x_raster = RasterSegment(x_raster_name)
     x_raster.open("r")
@@ -89,6 +89,8 @@ def move_vector(
         output_vector_name, mode="w"
     ) as output_vector:
         for feature in input_vector:
+            if feature.gtype != GV_LINE:
+                continue
             first_cat = ctypes.c_int()
             Vect_cat_get(feature.c_cats, 1, ctypes.byref(first_cat))
             new_point_list = []
