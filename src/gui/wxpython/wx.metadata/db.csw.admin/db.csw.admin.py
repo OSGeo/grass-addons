@@ -283,7 +283,7 @@ class CswAdmin:
 
         if self.COMMAND not in ["post_xml"]:
             SCP = configparser.ConfigParser()
-            SCP.readfp(open(self.CFG))
+            SCP.read_file(open(self.CFG))
 
             self.DATABASE = SCP.get("repository", "database")
             self.URL = SCP.get("server", "url")
