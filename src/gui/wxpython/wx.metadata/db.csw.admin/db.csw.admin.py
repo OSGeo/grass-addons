@@ -350,10 +350,10 @@ class CswAdmin:
 
         SCP = configparser.ConfigParser()
         try:
-            SCP.readfp(open(conf))
+            SCP.read_file(open(conf))
         except:
             shutil.copy2(defaultConf, conf)
-            SCP.readfp(open(conf))
+            SCP.read_file(open(conf))
 
         DATABASE = SCP.get('repository', 'database')
         #URL = SCP.get('server', 'url')
