@@ -24,6 +24,8 @@ jobs:
           - grass-version: main
             python-version: '3.10'
           - grass-version: releasebranch_8_2
+            python-version: '3.7'
+          - grass-version: releasebranch_8_3
             python-version: '3.10'
       fail-fast: false
 
