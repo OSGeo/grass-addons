@@ -283,7 +283,7 @@ class CswAdmin:
 
         if self.COMMAND not in ["post_xml"]:
             SCP = configparser.SafeConfigParser()
-            SCP.readfp(open(self.CFG))
+            SCP.read_file(open(self.CFG))
 
             self.DATABASE = SCP.get("repository", "database")
             self.URL = SCP.get("server", "url")
@@ -350,10 +350,10 @@ class CswAdmin:
 
         SCP = ConfigParser.SafeConfigParser()
         try:
-            SCP.readfp(open(conf))
+            SCP.read_file(open(conf))
         except:
             shutil.copy2(defaultConf, conf)
-            SCP.readfp(open(conf))
+            SCP.read_file(open(conf))
 
         DATABASE = SCP.get('repository', 'database')
         #URL = SCP.get('server', 'url')
