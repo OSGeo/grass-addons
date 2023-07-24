@@ -457,7 +457,7 @@ def maps_avg(out_, basename, suffixes):
     """
     maps = "+".join([basename + suf for suf in suffixes])
     grass.mapcalc(
-        "{out_} = ({new}) / {maps_count}".format(out_=out_, new=maps, maps_count=len(suffices)), overwrite=True, quiet=True
+        "{out_} = ({new}) / {maps_count}".format(out_=out_, new=maps, maps_count=len(suffixes)), overwrite=True, quiet=True
     )
 
 
