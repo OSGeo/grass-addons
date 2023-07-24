@@ -457,7 +457,11 @@ def maps_avg(out_, basename, suffixes):
     """
     maps = "+".join([basename + suf for suf in suffixes])
     grass.mapcalc(
-        "{out_} = ({new}) / {maps_count}".format(out_=out_, new=maps, maps_count=len(suffixes)), overwrite=True, quiet=True
+        "{out_} = ({new}) / {maps_count}".format(
+            out_=out_, new=maps, maps_count=len(suffixes)
+        ),
+        overwrite=True,
+        quiet=True,
     )
 
 
@@ -513,7 +517,11 @@ def main():
     end_day = int(options["end_day"])
     day_step = int(options["day_step"])
 
-    if day_step > 1 and method == "sum" and (beam_rad or diff_rad or refl_rad or glob_rad or insol_time):
+    if (
+        day_step > 1
+        and method == "sum"
+        and (beam_rad or diff_rad or refl_rad or glob_rad or insol_time)
+    ):
         grass.fatal(
             _("Day step higher then 1 would produce" " meaningless cumulative maps.")
         )

@@ -32,7 +32,7 @@
 # import system libraries
 from __future__ import print_function
 
-import imp
+import importlib
 import os
 import platform
 import shutil
@@ -464,10 +464,10 @@ def fix_missing_libraries(install=False):
     available in the current path."""
     to_be_installed = []
     for lib in CHECK_LIBRARIES:
-        try:
-            imp.find_module(lib)
+        module_spec = importlib.util.find_spec(lib)
+        if module_spec is not None:
             print(lib, "available in the sys path")
-        except ImportError:
+        else:
             to_be_installed.append(lib)
 
     if to_be_installed:
