@@ -154,7 +154,7 @@
 # %option
 # % key: step
 # % type: double
-# % description: Time step when computing all-day radiation sums [decimal hours]
+# % description: Time step when computing all-day radiation [decimal hours]
 # % answer: 0.5
 # %end
 
@@ -246,6 +246,16 @@
 # % multiple: no
 # % label: Solar constant [W/m^2]
 # % description: If not specified, r.sun default will be used.
+# %end
+
+# %option
+# % key: method
+# % type: string
+# % required: no
+# % multiple: no
+# % label: The method to use
+# % options: sum,avg
+# % answer: sum
 # %end
 
 # %option
@@ -431,13 +441,23 @@ def check_daily_map_names(basename, mapset, start_day, end_day, day_step):
             )
 
 
-def sum_maps(sum_, basename, suffixes):
+def maps_sum(out_, basename, suffixes):
     """
     Sum up multiple raster maps
     """
     maps = "+".join([basename + suf for suf in suffixes])
     grass.mapcalc(
-        "{sum_} = {new}".format(sum_=sum_, new=maps), overwrite=True, quiet=True
+        "{out_} = {new}".format(out_=out_, new=maps), overwrite=True, quiet=True
+    )
+
+
+def maps_avg(out_, basename, suffixes):
+    """
+    Get average value from multiple raster maps.
+    """
+    maps = "+".join([basename + suf for suf in suffixes])
+    grass.mapcalc(
+        "{out_} = ({new}) / {maps_count}".format(out_=out_, new=maps, maps_count=len(suffices)), overwrite=True, quiet=True
     )
 
 
@@ -458,6 +478,7 @@ def main():
     albedo_value = options["albedo_value"]
     horizon_basename = options["horizon_basename"]
     horizon_step = options["horizon_step"]
+    method = options["method"]
 
     # outputs
     beam_rad = options["beam_rad"]
@@ -492,7 +513,7 @@ def main():
     end_day = int(options["end_day"])
     day_step = int(options["day_step"])
 
-    if day_step > 1 and (beam_rad or diff_rad or refl_rad or glob_rad or insol_time):
+    if day_step > 1 and method == "sum" and (beam_rad or diff_rad or refl_rad or glob_rad or insol_time):
         grass.fatal(
             _("Day step higher then 1 would produce" " meaningless cumulative maps.")
         )
@@ -649,16 +670,23 @@ def main():
             # Empty process list
             proc_list = []
 
+    # process multiple maps into the desired one
+    if method == "avg":
+        stats_func = maps_avg
+    else:
+        # sum (original behavior) as a fallback
+        stats_func = maps_sum
+
     if beam_rad:
-        sum_maps(beam_rad, beam_rad_basename, suffixes_all)
+        stats_func(beam_rad, beam_rad_basename, suffixes_all)
     if diff_rad:
-        sum_maps(diff_rad, diff_rad_basename, suffixes_all)
+        stats_func(diff_rad, diff_rad_basename, suffixes_all)
     if refl_rad:
-        sum_maps(refl_rad, refl_rad_basename, suffixes_all)
+        stats_func(refl_rad, refl_rad_basename, suffixes_all)
     if glob_rad:
-        sum_maps(glob_rad, glob_rad_basename, suffixes_all)
+        stats_func(glob_rad, glob_rad_basename, suffixes_all)
     if insol_time:
-        sum_maps(insol_time, insol_time_basename, suffixes_all)
+        stats_func(insol_time, insol_time_basename, suffixes_all)
 
     # FIXME: how percent really works?
     # core.percent(1, 1, 1)
