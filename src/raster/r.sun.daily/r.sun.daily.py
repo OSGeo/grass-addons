@@ -254,7 +254,7 @@
 # % required: no
 # % multiple: no
 # % label: The method to use
-# % options: sum,avg
+# % options: sum,average
 # % answer: sum
 # %end
 
@@ -671,7 +671,7 @@ def main():
             proc_list = []
 
     # process multiple maps into the desired one
-    if method == "avg":
+    if method == "average":
         stats_func = maps_avg
     else:
         # sum (original behavior) as a fallback
