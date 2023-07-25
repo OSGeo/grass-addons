@@ -253,7 +253,7 @@
 # % type: string
 # % required: no
 # % multiple: no
-# % label: The method to use
+# % label: Method for daily maps aggregation
 # % options: sum,average
 # % answer: sum
 # %end
