@@ -168,7 +168,7 @@
 # % key: beam_rad
 # % type: string
 # % gisprompt: new,cell,raster
-# % description: Output beam irradiation raster map cumulated for the whole period of time [Wh.m-2.day-1]
+# % description: Output beam irradiation raster map aggregated for the whole period of time [Wh.m-2.day-1]
 # % required: no
 # %end
 
@@ -176,7 +176,7 @@
 # % key: diff_rad
 # % type: string
 # % gisprompt: new,cell,raster
-# % description: Output diffuse irradiation raster map cumulated for the whole period of time [Wh.m-2.day-1]
+# % description: Output diffuse irradiation raster map aggregated for the whole period of time [Wh.m-2.day-1]
 # % required: no
 # %end
 
@@ -184,7 +184,7 @@
 # % key: refl_rad
 # % type: string
 # % gisprompt: new,cell,raster
-# % description: Output ground reflected irradiation raster map cumulated for the whole period of time [Wh.m-2.day-1]
+# % description: Output ground reflected irradiation raster map aggregated for the whole period of time [Wh.m-2.day-1]
 # % required: no
 # %end
 
@@ -192,7 +192,7 @@
 # % key: glob_rad
 # % type: string
 # % gisprompt: new,cell,raster
-# % description: Output global (total) irradiance/irradiation raster map cumulated for the whole period of time [Wh.m-2.day-1]
+# % description: Output global (total) irradiance/irradiation raster map aggregated for the whole period of time [Wh.m-2.day-1]
 # % required: no
 # %end
 
@@ -200,7 +200,7 @@
 # % key: insol_time
 # % type: string
 # % gisprompt: new,cell,raster
-# % description: Output insolation time raster map cumulated for the whole period of time [h]
+# % description: Output insolation time raster map aggregated for the whole period of time [h]
 # % required: no
 # %end
 
@@ -235,7 +235,7 @@
 # %option
 # % key: insol_time_basename
 # % type: string
-# % label: Base name for output insolation time raster map cumulated for the whole period of time [h]
+# % label: Base name for output insolation time raster map aggregated for the whole period of time [h]
 # % description: Underscore and day number are added to the base name for daily maps
 # %end
 
