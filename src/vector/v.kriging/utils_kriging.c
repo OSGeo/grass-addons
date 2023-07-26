@@ -713,7 +713,7 @@ void crossvalidation(struct int_par *xD, struct points *pnts,
             correct_indices(direction, list, r, pnts, var_par);
 
             GM_sub = submatrix(list, GM,
-                               xD->report);   // create submatrix using indices
+                               xD->report);    // create submatrix using indices
             GM_Inv = G_matrix_inverse(GM_sub); // inverse matrix
             G_matrix_free(GM_sub);
 
