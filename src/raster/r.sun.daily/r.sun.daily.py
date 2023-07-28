@@ -446,9 +446,7 @@ def maps_sum(out_, basename, suffixes):
     Sum up multiple raster maps
     """
     maps = "+".join([basename + suf for suf in suffixes])
-    grass.mapcalc(
-        "{out_} = {new}".format(out_=out_, new=maps), overwrite=True, quiet=True
-    )
+    grass.mapcalc(f"{out_} = {maps}", overwrite=True, quiet=True)
 
 
 def maps_avg(out_, basename, suffixes):
@@ -457,9 +455,7 @@ def maps_avg(out_, basename, suffixes):
     """
     maps = "+".join([basename + suf for suf in suffixes])
     grass.mapcalc(
-        "{out_} = ({new}) / {maps_count}".format(
-            out_=out_, new=maps, maps_count=len(suffixes)
-        ),
+        f"{out_} = ({maps}) / {len(suffixes)}",
         overwrite=True,
         quiet=True,
     )
