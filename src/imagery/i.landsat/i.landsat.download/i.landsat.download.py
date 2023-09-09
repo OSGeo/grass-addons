@@ -164,7 +164,7 @@ def main():
         # stdin
         import getpass
 
-        user = raw_input(_("Insert username: "))
+        user = input(_("Insert username: "))
         password = getpass.getpass(_("Insert password: "))
 
     else:
