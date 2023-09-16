@@ -123,6 +123,9 @@ import grass.script as gs
 
 
 # Functions
+def prRed(skk): print("\033[91m {}\033[00m" .format(skk))
+
+
 CLEAN_RAST = []
 
 
@@ -348,7 +351,12 @@ def main(options, flags):
                     vifstat = compute_vif2(x, y)
                 else:
                     # Compute vif using sample
-                    y = p[:, k]
+                    try:
+                        y = p[:, k]
+                    except Exception as e:
+                        prRed(f"An exception occurred: {str(e)}")
+                        prRed("Tip: check if all input rasters have values"
+                              " within the computation region.")
                     x = np.delete(p, k, axis=1)
                     vifstat = compute_vif(x, y)
 
