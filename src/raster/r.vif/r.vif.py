@@ -355,8 +355,7 @@ def main(options, flags):
                         y = p[:, k]
                     except Exception as e:
                         prRed(f"An exception occurred: {str(e)}")
-                        prRed("Tip: check if all input rasters have values"
-                              " within the computation region.")
+                        prRed("Tip: check if all input rasters have values within the computation region")
                     x = np.delete(p, k, axis=1)
                     vifstat = compute_vif(x, y)
 
