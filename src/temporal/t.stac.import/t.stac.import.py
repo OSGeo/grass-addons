@@ -2,8 +2,8 @@
 
 ############################################################################
 #
-# MODULE:       r.in.stac
-# AUTHOR:       Corey T. White, Center for Geospatial Analytics, North Carolina State University
+# MODULE:       t.stac.import
+# AUTHOR:       Corey T. White, OpenPlains Inc.
 # PURPOSE:      Import data into GRASS from SpatioTemporal Asset Catalogs (STAC) APIs.
 # COPYRIGHT:    (C) 2023 Corey White
 #               This program is free software under the GNU General

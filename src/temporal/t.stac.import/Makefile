@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.in.stac
+PGM = t.stac.import
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 

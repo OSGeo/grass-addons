@@ -2,11 +2,11 @@
 
 ############################################################################
 #
-# NAME:      r_in_stac
+# NAME:      t_stac_import
 #
 # AUTHOR:    Corey T. White
 #
-# PURPOSE:   This is a test file for r.in.stac
+# PURPOSE:   This is a test file for t.stac.import
 #
 # COPYRIGHT: (C) 2023 by Corey T. White and the GRASS Development Team
 #
@@ -24,7 +24,7 @@ from grass.gunittest.main import test
 from pystac_client import Client
 
 spec = importlib.util.spec_from_file_location(
-    name="in_stac_lib", location="r.in.stac.py"
+    name="in_stac_lib", location="t.stac.import.py"
 )
 
 in_stac_lib = importlib.util.module_from_spec(spec)
@@ -37,10 +37,9 @@ spec.loader.exec_module(in_stac_lib)
 EARTH_SEARCH_API_URL = "https://earth-search.aws.element84.com/v1/"
 # MUNDIALIS_API_URL = "https://openeo.mundialis.de/api/v1.0/"
 
+
 # Tests
 class TestStacImport(TestCase):
-   
-
     @classmethod
     def setUpClass(cls):
         """Ensures expected computational region"""
@@ -67,9 +66,7 @@ class TestStacImport(TestCase):
         """Test r.in.stac"""
         # assertModule is used to call module which we test
         # we expect module to finish successfully
-        self.assertModule(
-            "r.in.stac", url=EARTH_SEARCH_API_URL, flags="c"
-        )
+        self.assertModule("r.in.stac", url=EARTH_SEARCH_API_URL, flags="c")
 
     def test_search_collection_items(self):
         """Test r.in.stac"""
@@ -79,7 +76,6 @@ class TestStacImport(TestCase):
             "r.in.stac", url=EARTH_SEARCH_API_URL, collections="naip", flags="i"
         )
 
-
     def test_validate_collection(self):
         """
         Tests searching STAC client with no collection set
@@ -88,6 +84,7 @@ class TestStacImport(TestCase):
         # EARTH_SEARCH_API_URL
         isValid = in_stac_lib.validate_collections_option(client)
         self.assertFalse(isValid)
+
 
 if __name__ == "__main__":
     test()
