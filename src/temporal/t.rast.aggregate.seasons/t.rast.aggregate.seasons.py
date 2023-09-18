@@ -26,6 +26,10 @@
 # %option G_OPT_STRDS_INPUT
 # %end
 
+# %option G_OPT_STRDS_OUTPUT
+# % required: no
+# %end
+
 # %option
 # % key: years
 # % type: string
@@ -82,6 +86,8 @@ from grass.pygrass.vector.geometry import Point
 def main():
     strds = options["input"]
 
+    output_name = options["output"]
+
     tgis.init()
     # We need a database interface
     dbif = tgis.SQLDatabaseInterfaceConnection()
@@ -108,6 +114,11 @@ def main():
     basename = options["basename"]
     nprocs = int(options["nprocs"])
     register_null = flags["n"]
+
+    if output_name:
+        out_strds = output_name
+    else:
+        out_strds = basename
 
     seasons_name = ["spring", "summer", "autumn", "winter"]
 
@@ -180,7 +191,7 @@ def main():
     for year in years:
         mymod = copy.deepcopy(mod)
         mymod.inputs.sample = f"sample_seasons_{year}@{mapset}"
-        mymod.outputs.output = f"{basename}_{year}"
+        mymod.outputs.output = f"{out_strds}_{year}"
         process_queue.put(mymod)
 
         if count % 10 == 0:
@@ -189,13 +200,18 @@ def main():
     # Wait for unfinished processes
     process_queue.wait()
 
+    out_maps = []
     # remove space time vector datasets
     for year in years:
-        remod = pymod.Module("t.register")
+        remod = pymod.Module("t.remove")
         remod.inputs.inputs = f"sample_seasons_{year}@{mapset}"
-        remod.flags.d = True
+        remod.flags.r = True
         remod.flags.f = True
         remod.flags.quiet = True
+        if output_name:
+            listmaps = pymod.Module("t.rast.list")
+            listmaps.inputs.input = f"{out_strds_{year}}"
+            listmaps.inputs.columns = ["name"]
 
 
 if __name__ == "__main__":
