@@ -63,17 +63,17 @@ class TestStacImport(TestCase):
         pass
 
     def test_search_collections(self):
-        """Test r.in.stac"""
+        """Test t.stac.import"""
         # assertModule is used to call module which we test
         # we expect module to finish successfully
-        self.assertModule("r.in.stac", url=EARTH_SEARCH_API_URL, flags="c")
+        self.assertModule("t.stac.import", url=EARTH_SEARCH_API_URL, flags="c")
 
     def test_search_collection_items(self):
-        """Test r.in.stac"""
+        """Test t.stac.import"""
         # assertModule is used to call module which we test
         # we expect module to finish successfully
         self.assertModule(
-            "r.in.stac", url=EARTH_SEARCH_API_URL, collections="naip", flags="i"
+            "t.stac.import", url=EARTH_SEARCH_API_URL, collections="naip", flags="i"
         )
 
     def test_validate_collection(self):
