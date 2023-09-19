@@ -29,13 +29,13 @@
 
 # %flag
 # % key: c
-# % description: Get the avaliable collections then exit
+# % description: Get the available collections then exit
 # % guisection: Request
 # %end
 
 # %flag
 # % key: i
-# % description: Get the avaliable items from collections then exit
+# % description: Get the available items from collections then exit
 # % guisection: Request
 # %end
 
@@ -224,18 +224,18 @@ def validate_collections_option(client, collections=[]):
         client (Client): A PyStac Client
 
     Returns:
-        boolean: Returns true if the collection is avaliable.
+        boolean: Returns true if the collection is available.
     """
-    avaliable_collections = client.get_collections()
-    avaliable_collections_ids = [c.id for c in list(avaliable_collections)]
+    available_collections = client.get_collections()
+    available_collections_ids = [c.id for c in list(available_collections)]
 
-    gs.warning(_(f"Avaliable Collections: {avaliable_collections_ids}"))
+    gs.warning(_(f"Available Collections: {available_collections_ids}"))
 
-    if collections in avaliable_collections_ids:
+    if collections in available_collections_ids:
         return True
 
     for collection in collections:
-        if collection not in avaliable_collections_ids:
+        if collection not in available_collections_ids:
             gs.warning(_(f"{collection} collection not found"))
 
     return False
