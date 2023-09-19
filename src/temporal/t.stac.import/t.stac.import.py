@@ -195,7 +195,7 @@ import sys
 import base64
 import subprocess
 from pystac_client import Client
-import grass.script as grass
+import grass.script as gs
 
 try:
     from pystac_client import Client
@@ -203,7 +203,7 @@ except ImportError:
     from pystac_client import Client
 
 
-def getRegionParams(self, opt_region):
+def get_region_params(self, opt_region):
     """Get region parameters from region specified or active default region
 
     @return region_params as a dictionary
@@ -216,17 +216,17 @@ def getRegionParams(self, opt_region):
             reg_mapset = reg_spl[1]
 
     if opt_region:
-        s = grass.read_command("g.region", quiet=True, flags="ug", region=opt_region)
-        region_params = grass.parse_key_val(s, val_type=float)
-        grass.verbose("Using region parameters for region %s" % opt_region)
+        s = gs.read_command("g.region", quiet=True, flags="ug", region=opt_region)
+        region_params = gs.parse_key_val(s, val_type=float)
+        gs.verbose("Using region parameters for region %s" % opt_region)
     else:
-        region_params = grass.region()
-        grass.verbose("Using current grass region")
+        region_params = gs.region()
+        gs.verbose("Using current grass region")
 
     return region_params
 
 
-def computeBbox(self):
+def compute_bbox(self):
     """Get extent for WCS query (bbox) from region parameters
 
     @return bounding box defined by list [minx,miny,maxx,maxy]
@@ -235,7 +235,7 @@ def computeBbox(self):
     boundingbox = list()
     for f in boundingboxvars:
         boundingbox.append(self.params["region"][f])
-    grass.verbose(
+    gs.verbose(
         "Boundingbox coordinates:\n %s  \n [West, South, Eest, North]" % boundingbox
     )
     return boundingbox
@@ -254,10 +254,10 @@ def validate_collections_option(client, collections=[]):
     avaliable_collections = client.get_collections()
     if collections in avaliable_collections:
         return True
-    grass.warning(_("The specified collections do not exisit."))
+    gs.warning(_("The specified collections do not exisit."))
 
     for collection in avaliable_collections:
-        grass.warning(_(f"{collection} collection found"))
+        gs.warning(_(f"{collection} collection found"))
 
     return False
 
@@ -265,11 +265,11 @@ def validate_collections_option(client, collections=[]):
 def search_stac_api(client, **kwargs):
     """Search the STAC API"""
     search = client.search(**kwargs)
-    grass.message(_(f"{search.matched()} items found"))
+    gs.message(_(f"{search.matched()} items found"))
     return search
 
 
-def fetchAsset():
+def fetch_asset():
     """Fetch Asset"""
     pass
 
@@ -278,27 +278,27 @@ def get_all_collections(client):
     """Get a list of collections from STAC Client"""
     collections = client.get_collections()
     collection_list = list(collections)
-    grass.message(_(f"{len(collection_list)} collections found:"))
+    gs.message(_(f"{len(collection_list)} collections found:"))
     for i in collection_list:
-        grass.message(_(i.id))
+        gs.message(_(i.id))
     return collection_list
 
 
 def get_collection_items(client, collection_name):
     """Get collection"""
     collection = client.get_collection(collection_name)
-    grass.message(_(f"Collection: {collection.title}"))
-    grass.message(_(f"Description: {collection.description}"))
-    grass.message(_(f"Spatial Extent: {collection.extent.spatial.bboxes}"))
-    grass.message(_(f"Temporal Extent: {collection.extent.temporal.intervals}"))
-    grass.message(_(f"License: {collection.license}"))
+    gs.message(_(f"Collection: {collection.title}"))
+    gs.message(_(f"Description: {collection.description}"))
+    gs.message(_(f"Spatial Extent: {collection.extent.spatial.bboxes}"))
+    gs.message(_(f"Temporal Extent: {collection.extent.temporal.intervals}"))
+    gs.message(_(f"License: {collection.license}"))
     return collection
 
     # items = collection.get_all_items()
-    # grass.message(_(len(list(items))))
+    # gs.message(_(len(list(items))))
     # return items
     # for i in items:
-    #     grass.message(_(i.id))
+    #     gs.message(_(i.id))
 
 
 def main():
@@ -317,7 +317,7 @@ def main():
     filter_lang = options["filter_lang"]  # optional
 
     client = Client.open(client_url)
-    grass.message(_(f"Catalog: {client.title}"))
+    gs.message(_(f"Catalog: {client.title}"))
 
     collections_only = flags["c"]
     collection_itmes_only = flags["i"]
@@ -347,5 +347,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())
