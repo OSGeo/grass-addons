@@ -85,6 +85,17 @@ class TestStacImport(TestCase):
         isValid = in_stac_lib.validate_collections_option(client)
         self.assertFalse(isValid)
 
+    def test_import_asset(self):
+        """
+        Tests importing STAC asset
+        """
+        self.assertModule(
+            "t.stac.import",
+            url=EARTH_SEARCH_API_URL,
+            collections=["naip"],
+            bbox="-72.5,40.5,-72,41",
+        )
+
 
 if __name__ == "__main__":
     test()

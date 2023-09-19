@@ -252,12 +252,16 @@ def validate_collections_option(client, collections=[]):
         boolean: Returns true if the collection is avaliable.
     """
     avaliable_collections = client.get_collections()
-    if collections in avaliable_collections:
-        return True
-    gs.warning(_("The specified collections do not exisit."))
+    avaliable_collections_ids = [c.id for c in list(avaliable_collections)]
 
-    for collection in avaliable_collections:
-        gs.warning(_(f"{collection} collection found"))
+    gs.warning(_(f"Avaliable Collections: {avaliable_collections_ids}"))
+
+    if collections in avaliable_collections_ids:
+        return True
+
+    for collection in collections:
+        if collection not in avaliable_collections_ids:
+            gs.warning(_(f"{collection} collection not found"))
 
     return False
 
@@ -301,15 +305,40 @@ def get_collection_items(client, collection_name):
     #     gs.message(_(i.id))
 
 
+def import_items(
+    items,
+    region_params=None,
+    reprojection=None,
+    output=None,
+    strds_output=None,
+    method=None,
+    resolution=None,
+    memory=None,
+):
+    """Import items"""
+    for item in items:
+        gs.message(_(f"Item: {item.id}"))
+        gs.message(_(f"Spatial Extent: {item.geometry}"))
+        gs.message(_(f"Temporal Extent: {item.datetime}"))
+        gs.message(_(f"Assets: {item.assets}"))
+        gs.message(_(f"Links: {item.links}"))
+        gs.message(_(f"Properties: {item.properties}"))
+        gs.message(_(f"Collection ID: {item.collection_id}"))
+
+
 def main():
     """Main function"""
 
     client_url = options["url"]
     ids = options["ids"]  # optional
     collections = options["collections"]  # Maybe limit to one?
-    limit = options["limit"]  # optional
-    max_items = options["max_items"]  # optional
+    limit = int(options["limit"])  # optional
+    max_items = int(options["max_items"])  # optional
     bbox = options["bbox"]  # optional
+
+    # if bbox:
+    #     bbox = [float(i) for i in bbox.strip("[]").split(",")]
+
     intersects = options["intersects"]  # optional
     datetime = options["datetime"]  # optional
     query = options["query"]  # optional
@@ -331,19 +360,22 @@ def main():
         return None
 
     if validate_collections_option(client, collections):
-        items = search_stac_api(
+        items_search = search_stac_api(
             client=client,
-            ids=ids,
+            collections=collections,
             limit=limit,
             max_items=max_items,
-            bbox=bbox,
-            intersects=intersects,
-            datetime=datetime,
-            query=query,
-            filter=filter,
-            filter_lang=filter_lang,
+            # bbox=[-72.5, 40.5, -72.0, 41.0],
+            # intersects=intersects,
+            # datetime=datetime,
+            # query=query,
+            # filter=filter,
+            # filter_lang=filter_lang,
         )
-        print(items)
+        gs.message(_("Import Items..."))
+        import_items(list(items_search.items()))
+
+    # if reprojection:
 
 
 if __name__ == "__main__":
