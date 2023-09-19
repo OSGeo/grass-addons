@@ -102,7 +102,12 @@ class TestStacImport(TestCase):
         Tests importing STAC asset
         """
         self.assertModule(
-            "t.stac.import", url=EARTH_SEARCH_API_URL, collections=["naip"], limit=2
+            "t.stac.import",
+            url=EARTH_SEARCH_API_URL,
+            collections=["naip"],
+            limit=2,
+            method="bilinear",
+            memory=2000,
         )
 
 

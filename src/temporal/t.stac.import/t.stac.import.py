@@ -195,6 +195,7 @@ import os
 import sys
 import base64
 import subprocess
+from multiprocessing.pool import ThreadPool
 from pystac_client import Client
 import grass.script as gs
 
@@ -247,9 +248,32 @@ def search_stac_api(client, **kwargs):
     return search
 
 
-def fetch_asset():
-    """Fetch Asset"""
-    pass
+def import_grass_raster(params):
+    url, output, resample_method, memory = params
+    # output = params[1]
+    # resample_method = params[2]
+    # memory = params["memory"]
+    # input_url = f"/vsicurl://{url}"
+    input_url = f"/vsis3://{url}"
+
+    gs.parse_command(
+        "r.import",
+        input=input_url,
+        output=output,
+        resample=resample_method,
+        memory=memory,
+        flags="o",
+        quiet=True,
+    )
+
+
+def download_assets(urls, filenames, resample_method, memory):
+    """Downloads a list of images from the given URLs to the given filenames."""
+
+    pool = ThreadPool()
+    pool.map(import_grass_raster, zip(urls, filenames, resample_method, memory))
+    pool.close()
+    pool.join()
 
 
 def get_all_collections(client):
@@ -284,15 +308,36 @@ def import_items(
     memory=None,
 ):
     """Import items"""
+
+    asset_download_list = []
+    asset_name_list = []
+
     for item in items:
         gs.message(_(f"Item: {item.id}"))
+        asset_name_list.append(item.id)
+
         gs.message(_(f"Spatial Extent: {item.geometry} \n"))
         gs.message(_(f"Temporal Extent: {item.datetime} \n"))
         gs.message(_(f"Assets: {item.assets} \n"))
+
+        for asset in item.assets:
+            if asset == "image":
+                asset_download_list.append(item.assets[asset].href)
+            # gs.message(_(f"Asset: {item.assets[asset]} \n"))
+
         gs.message(_(f"Links: {item.links} \n"))
         gs.message(_(f"Properties: {item.properties} \n"))
         gs.message(_(f"Collection ID: {item.collection_id} \n"))
         gs.message(_("*" * 80))
+
+    gs.message(_(f"Asset Download List: {asset_download_list} \n"))
+    resample_method_list = [method] * len(asset_download_list)
+    memory_list = [memory] * len(asset_download_list)
+    gs.message(_(f"Asset Name List: {asset_name_list} \n"))
+    gs.message(_(f"Asset Download List: {resample_method_list} \n"))
+    gs.message(_(f"Asset Download List: {memory_list} \n"))
+
+    return [asset_download_list, asset_name_list, resample_method_list, memory_list]
 
 
 def main():
@@ -310,6 +355,15 @@ def main():
     query = options["query"]  # optional
     filter = options["filter"]  # optional
     filter_lang = options["filter_lang"]  # optional
+
+    # GRASS import options
+    method = options["method"]  # optional
+    memory = int(options["memory"])  # optional
+    resolution = options["resolution"]  # optional
+
+    # Output options
+    strds_output = options["strds_output"]  # optional
+    output = options["output"]  # optional
 
     client = Client.open(client_url)
     gs.message(_(f"Catalog: {client.title}"))
@@ -344,7 +398,10 @@ def main():
             # filter_lang=filter_lang,
         )
         gs.message(_("Import Items..."))
-        import_items(list(items_search.items()))
+        asset_list, asset_name_list, method_list, memory_list = import_items(
+            list(items_search.items()), method=method, memory=memory
+        )
+        download_assets(asset_list, asset_name_list, method_list, memory_list)
 
 
 if __name__ == "__main__":
