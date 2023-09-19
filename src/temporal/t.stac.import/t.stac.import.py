@@ -85,8 +85,9 @@
 
 # %option
 # % key: bbox
-# % type: string
+# % type: double
 # % required: no
+# % multiple: yes
 # % description: The bounding box of the request (example [-72.5,40.5,-72,41])
 # % guisection: Request
 # %end
@@ -203,42 +204,15 @@ except ImportError:
     from pystac_client import Client
 
 
-def get_region_params(self, opt_region):
-    """Get region parameters from region specified or active default region
-
-    @return region_params as a dictionary
-    """
-
-    if opt_region:
-        reg_spl = opt_region.strip().split("@", 1)
-        reg_mapset = "."
-        if len(reg_spl) > 1:
-            reg_mapset = reg_spl[1]
-
-    if opt_region:
-        s = gs.read_command("g.region", quiet=True, flags="ug", region=opt_region)
-        region_params = gs.parse_key_val(s, val_type=float)
-        gs.verbose("Using region parameters for region %s" % opt_region)
-    else:
-        region_params = gs.region()
-        gs.verbose("Using current grass region")
-
-    return region_params
-
-
-def compute_bbox(self):
-    """Get extent for WCS query (bbox) from region parameters
-
-    @return bounding box defined by list [minx,miny,maxx,maxy]
-    """
-    boundingboxvars = ("w", "s", "e", "n")
-    boundingbox = list()
-    for f in boundingboxvars:
-        boundingbox.append(self.params["region"][f])
-    gs.verbose(
-        "Boundingbox coordinates:\n %s  \n [West, South, Eest, North]" % boundingbox
-    )
-    return boundingbox
+def region_to_wgs84_decimal_degrees_bbox():
+    """convert region bbox to wgs84 decimal degrees bbox"""
+    region = gs.parse_command("g.region", quiet=True, flags="ubg")
+    bbox = [
+        float(c)
+        for c in [region["ll_w"], region["ll_s"], region["ll_e"], region["ll_n"]]
+    ]
+    gs.message(_("BBOX: {}".format(bbox)))
+    return bbox
 
 
 def validate_collections_option(client, collections=[]):
@@ -298,12 +272,6 @@ def get_collection_items(client, collection_name):
     gs.message(_(f"License: {collection.license}"))
     return collection
 
-    # items = collection.get_all_items()
-    # gs.message(_(len(list(items))))
-    # return items
-    # for i in items:
-    #     gs.message(_(i.id))
-
 
 def import_items(
     items,
@@ -318,12 +286,13 @@ def import_items(
     """Import items"""
     for item in items:
         gs.message(_(f"Item: {item.id}"))
-        gs.message(_(f"Spatial Extent: {item.geometry}"))
-        gs.message(_(f"Temporal Extent: {item.datetime}"))
-        gs.message(_(f"Assets: {item.assets}"))
-        gs.message(_(f"Links: {item.links}"))
-        gs.message(_(f"Properties: {item.properties}"))
-        gs.message(_(f"Collection ID: {item.collection_id}"))
+        gs.message(_(f"Spatial Extent: {item.geometry} \n"))
+        gs.message(_(f"Temporal Extent: {item.datetime} \n"))
+        gs.message(_(f"Assets: {item.assets} \n"))
+        gs.message(_(f"Links: {item.links} \n"))
+        gs.message(_(f"Properties: {item.properties} \n"))
+        gs.message(_(f"Collection ID: {item.collection_id} \n"))
+        gs.message(_("*" * 80))
 
 
 def main():
@@ -335,9 +304,6 @@ def main():
     limit = int(options["limit"])  # optional
     max_items = int(options["max_items"])  # optional
     bbox = options["bbox"]  # optional
-
-    # if bbox:
-    #     bbox = [float(i) for i in bbox.strip("[]").split(",")]
 
     intersects = options["intersects"]  # optional
     datetime = options["datetime"]  # optional
@@ -359,13 +325,18 @@ def main():
         collection_item_list = get_collection_items(client, collections)
         return None
 
+    # Set the bbox to the current region if the user did not specify the bbox or intersects option
+    if not bbox and not intersects:
+        gs.message(_("Setting bbox to current region: {}".format(bbox)))
+        bbox = region_to_wgs84_decimal_degrees_bbox()
+
     if validate_collections_option(client, collections):
         items_search = search_stac_api(
             client=client,
             collections=collections,
             limit=limit,
             max_items=max_items,
-            # bbox=[-72.5, 40.5, -72.0, 41.0],
+            bbox=bbox
             # intersects=intersects,
             # datetime=datetime,
             # query=query,
@@ -374,8 +345,6 @@ def main():
         )
         gs.message(_("Import Items..."))
         import_items(list(items_search.items()))
-
-    # if reprojection:
 
 
 if __name__ == "__main__":
