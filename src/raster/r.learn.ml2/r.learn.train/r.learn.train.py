@@ -424,7 +424,7 @@ def process_param_grid(hyperparams):
     if hyperparams["max_depth"] == 0:
         hyperparams["max_depth"] = None
     if hyperparams["max_features"] == 0:
-        hyperparams["max_features"] = "auto"
+        hyperparams["max_features"] = "sqrt"
     param_grid = {k: v for k, v in param_grid.items() if v is not None}
 
     return hyperparams, param_grid
