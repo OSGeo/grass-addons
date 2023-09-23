@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = m.tnm
+PGM = m.download.tnm
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 

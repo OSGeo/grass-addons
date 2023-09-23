@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 ############################################################################
 #
-# MODULE:       m.tnm
+# MODULE:       m.download.tnm
 # AUTHOR(S):    Huidae Cho <grass4u gmail.com>
 # PURPOSE:      Downloads data for specified polygon codes from The National
 #               Map (TNM).
 #
-# COPYRIGHT:    (C) 2022 by Huidae Cho and the GRASS Development Team
+# COPYRIGHT:    (C) 2023 by Huidae Cho and the GRASS Development Team
 #
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
