@@ -10,7 +10,7 @@
 #               wrapper around ProjPicker
 #               <https://pypi.org/project/projpicker/>.
 #
-# COPYRIGHT:    (C) 2021 by Huidae Cho and the GRASS Development Team
+# COPYRIGHT:    (C) 2021-2023 by Huidae Cho and the GRASS Development Team
 #
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
