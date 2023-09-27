@@ -56,7 +56,6 @@
 # % description: End date for search in YYYY-MM-DD
 # %end
 # %option G_OPT_F_SEP
-# % answer: newline
 # %end
 # %flag
 # % key: d
