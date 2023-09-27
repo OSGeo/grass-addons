@@ -56,6 +56,7 @@
 # % description: End date for search in YYYY-MM-DD
 # %end
 # %option G_OPT_F_SEP
+# % answer: newline
 # %end
 # %flag
 # % key: d
@@ -64,6 +65,10 @@
 # %flag
 # % key: s
 # % label: List supported states and exit
+# %end
+# %flag
+# % key: u
+# % label: List URLs only without downloading
 # %end
 # %flag
 # % key: f
@@ -230,6 +235,7 @@ def main():
     fs = separator(options["separator"])
     list_datasets = flags["d"]
     list_states = flags["s"]
+    list_urls = flags["u"]
     list_filenames = flags["f"]
     compare_file_size = flags["S"]
 
@@ -306,7 +312,7 @@ def main():
     for code in sel_codes:
         offset = 0
         total = None
-        filenames = []
+        files = []
         while not total or offset < total:
             if total:
                 grass.message(
@@ -346,13 +352,15 @@ def main():
 
             items = ret["items"]
             for item in items:
-                if list_filenames:
-                    filenames.append(item["downloadURL"].split("/")[-1])
+                if list_urls:
+                    files.append(item["downloadURL"])
+                elif list_filenames:
+                    files.append(item["downloadURL"].split("/")[-1])
                 else:
                     download_file(item, code, compare_file_size)
             offset += len(items)
-        if filenames:
-            print(fs.join(filenames))
+        if files:
+            print(fs.join(files))
 
 
 if __name__ == "__main__":
