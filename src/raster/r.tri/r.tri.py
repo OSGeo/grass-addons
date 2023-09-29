@@ -106,7 +106,7 @@ def focal_expr(radius, circular=False):
     if circular:
         mask = distance_from_centre(radius) <= radius
     else:
-        mask = np.ones((size, size), dtype=np.bool)
+        mask = np.ones((size, size), dtype=bool)
     mask[centre, centre] = False
 
     # mask and flatten the offsets
