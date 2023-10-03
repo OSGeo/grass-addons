@@ -156,6 +156,7 @@ def _untar(inputdir, untardir):
 
     for scene in scenes_to_untar:
         with tarfile.open(name=scene, mode="r") as tar:
+
             def is_within_directory(directory, target):
                 
                 abs_directory = os.path.abspath(directory)
@@ -166,7 +167,6 @@ def _untar(inputdir, untardir):
                 return prefix == abs_directory
             
             def safe_extract(tar, path=".", members=None, *, numeric_owner=False):
-            
                 for member in tar.getmembers():
                     member_path = os.path.join(path, member.name)
                     if not is_within_directory(path, member_path):
@@ -174,7 +174,6 @@ def _untar(inputdir, untardir):
             
                 tar.extractall(path, members, numeric_owner=numeric_owner) 
                 
-            
             safe_extract(tar, untardir)
 
     untared_tifs = glob.glob(os.path.join(untardir, "*.TIF"))
