@@ -1,0 +1,28 @@
+<h2>DESCRIPTION</h2>
+
+The <em>i.sar.amplitude</em> module is used to calculate an amplitude image from a real and imaginary band of an SLC SAR image. It is intended for any SAR image whose real and
+imaginary bands have been imported to GRASS. The module uses <a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a> to compute the output. 
+
+<h2>EXAMPLES</h2>
+
+<h3>Calculate the amplitude map from a SAOCOM-1 imaginary and real bands</h3>
+
+<div class="code"><pre>
+i.sar.amplitude real='SAO1B_20211222_hh_real' imag='SAO1B_20211222_hh_imag' output=real='SAO1B_20211222_hh_amplitude'
+</pre></div>
+
+<h2>REFERENCES</h2>
+
+Reference or references to paper related to the tool or references which algorithm the tool is based on.
+
+<h2>SEE ALSO</h2>
+
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a>,
+<a href="../../i.saocom/i.saocom.import/i.saocom.import.html">i.saocom.import</a>,
+<a href="../../i.saocom/i.sar.amplitude/i.saocom.geocode.html">i.saocom.geocode</a>,
+<a href="../i.sar.speckle/i.sar.speckle.html">i.sar.speckle</a>,
+<a href="../i.sar.pauliRGB/i.sar.pauliRGB.html">i.sar.pauliRGB</a>
+
+<h2>AUTHORS</h2>
+
+Santiago Seppi, CONAE, Argentina

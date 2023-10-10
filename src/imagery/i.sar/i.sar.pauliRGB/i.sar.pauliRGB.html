@@ -1,0 +1,43 @@
+<h2>DESCRIPTION</h2>
+
+The <em>i.sar.pauliRGB</em> module is used to generate the three bands that form the Pauli RGB SAR composition. The input are amplitude images and the output are three bands:
+
+<dl>
+  <dt>- Band for the red channel, equal to <em>HH-VV</em></dd>
+  <dt>- Band for the green channel, equal to <em>2*HV</em></dd>
+  <dt>- Band for the blue channel, equal to <em>HH+VV</em></dd>
+</dl>
+
+The output bands are prefixed with the value given to the <b>basename</b> option. Color enhancement can be optionally applied with the <b>strength</b> option, the parameter used
+in <a href="https://grass.osgeo.org/grass-stable/manuals/i.colors.enhance.html">i.colors.enhance</a>. 
+
+<h2>EXAMPLES</h2>
+
+<h3>Create the Pauli RGB bands and apply a color enhance with a strength of 98%</h3>
+
+<div class="code"><pre>
+i.sar.pauliRGB hh='SAO1B_20211222_hh_amp_mean7x7' vv='SAO1B_20211222_vv_amp_mean7x7' hv='SAO1B_20211222_hv_amp_mean7x7' basename='SAO1B_20211222' strength=98
+
+#Check the creation of the Pauli bands:
+g.list type='raster' pattern='*Pauli*'
+
+#Output:
+SAO1B_20211222_Pauli_Blue
+SAO1B_20211222_Pauli_Green
+SAO1B_20211222_Pauli_Red
+</pre></div>
+
+<h2>REFERENCES</h2>
+
+<a href="https://esdynamics.geo.uni-tuebingen.de/wiki/files/remote_sensing/pdf/Manual-POLSAR.pdf">GAMMA Remote Sensing AG. User's Guide: Polarimetric Tools.</a>
+ 
+<h2>SEE ALSO</h2>
+
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/i.colors.enhance.html">i.colors.enhance</a>,
+<a href="../i.sar.speckle/i.sar.speckle.html">i.sar.speckle</a>,
+<a href="../i.sar.amplitude/i.sar.amplitude.html">i.sar.amplitude</a>
+
+<h2>AUTHOR</h2>
+
+Santiago Seppi, CONAE, Argentina
