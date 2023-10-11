@@ -69,7 +69,6 @@ from grass.pygrass.modules.shortcuts import raster as r
 
 
 def lee_filter(img, size, img_out):
-
     pid = str(os.getpid())
     img_mean = "tmp%s_img_mean" % pid
     img_sqr = "tmp%s_img_sqr" % pid
@@ -109,22 +108,28 @@ def lee_filter(img, size, img_out):
 
     return img_out
 
-def mean_filter(img, size, img_out):
 
+def mean_filter(img, size, img_out):
     # Local mean
     r.neighbors(input=img, size=size, method="average", output=img_out)
 
     return img_out
 
+
 def gauss_filter(img, size, std, img_out):
-
     # Gauss function
-    r.neighbors(input=img, size=size, weighting_function = "gaussian", weighting_factor = std, output=img_out)
+    r.neighbors(
+        input=img,
+        size=size,
+        weighting_function="gaussian",
+        weighting_factor=std,
+        output=img_out,
+    )
 
-    return img_out    
+    return img_out
+
 
 def main():
-
     method = options["method"]  # algorithm for speckle removal
     img = options["input"]  # name of input image
     img_out = options["output"]  # name of output image
@@ -141,14 +146,14 @@ def main():
         g.message(_("Applying Lee Filter"))
         img_out = lee_filter(img, size, img_out)
         g.message(_("Done."))
-        
-    elif method == 'mean':
+
+    elif method == "mean":
         g.message(_("Applying Mean Filter"))
         img_out = mean_filter(img, size, img_out)
         g.message(_("Done."))
 
-    elif method == 'gauss':
-        std = options['std']
+    elif method == "gauss":
+        std = options["std"]
         g.message(_("Applying Gauss Filter"))
         img_out = gauss_filter(img, size, std, img_out)
         g.message(_("Done."))

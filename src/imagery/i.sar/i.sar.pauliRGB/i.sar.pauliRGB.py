@@ -54,27 +54,31 @@ import subprocess
 import sys
 
 import grass.script as grass
-		
+
+
 def main():
-	hh = options['hh']
-	vv = options['vv']
-	hv = options['hv']
-	basename = options['basename']
-	strength = options['strength']
-	pauli_red = f'{basename}_Pauli_Red = {hh}-{vv}' 
-	grass.mapcalc(exp=pauli_red)
-	pauli_green = f'{basename}_Pauli_Green = 2*{hv}' 
-	grass.mapcalc(exp=pauli_green)
-	pauli_blue = f'{basename}_Pauli_Blue = {hh}+{vv}' 
-	grass.mapcalc(exp=pauli_blue)
-	
-	if strength:
-		grass.run_command("i.colors.enhance",
-					   red=f'{basename}_Pauli_Red',
-					   green=f'{basename}_Pauli_Green', 
-					   blue=f'{basename}_Pauli_Blue',
-					   strength=strength)
+    hh = options["hh"]
+    vv = options["vv"]
+    hv = options["hv"]
+    basename = options["basename"]
+    strength = options["strength"]
+    pauli_red = f"{basename}_Pauli_Red = {hh}-{vv}"
+    grass.mapcalc(exp=pauli_red)
+    pauli_green = f"{basename}_Pauli_Green = 2*{hv}"
+    grass.mapcalc(exp=pauli_green)
+    pauli_blue = f"{basename}_Pauli_Blue = {hh}+{vv}"
+    grass.mapcalc(exp=pauli_blue)
+
+    if strength:
+        grass.run_command(
+            "i.colors.enhance",
+            red=f"{basename}_Pauli_Red",
+            green=f"{basename}_Pauli_Green",
+            blue=f"{basename}_Pauli_Blue",
+            strength=strength,
+        )
+
 
 if __name__ == "__main__":
-	options, flags = grass.parser()
-	main()
+    options, flags = grass.parser()
+    main()

@@ -41,9 +41,9 @@ import grass.script as gs
 def main():
     options, flags = gs.parser()
     real = options["real"]
-    imag = options['imag']
+    imag = options["imag"]
     raster_output = options["output"]
-    amplitude_formula = f'{raster_output} = sqrt(pow({real},2) + pow({imag},2))'
+    amplitude_formula = f"{raster_output} = sqrt(pow({real},2) + pow({imag},2))"
 
     gs.mapcalc(exp=amplitude_formula)
 
