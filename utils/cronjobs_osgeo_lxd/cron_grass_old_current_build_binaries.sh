@@ -16,6 +16,8 @@
 # - generates the pyGRASS 8 HTML manual
 # - generates the user 8 HTML manuals
 # - injects DuckDuckGo search field
+# - injects G8 new version box
+# - injects canonical URL
 
 # Preparations, on server:
 #  - Install PROJ incl Datum shift grids
@@ -181,6 +183,17 @@ echo "Injecting DuckDuckGo search field into manual main page..."
 
 cp -p AUTHORS CHANGES CITING CITATION.cff COPYING GPL.TXT INSTALL.md REQUIREMENTS.html $TARGETDIR/
 
+# inject G8.x new current version hint in a red box:
+(cd $TARGETHTMLDIR/ ; for myfile in `ls *.html` ; do sed -i -e "s:<hr class=\"header\">:<hr class=\"header\"><p style=\"border\:3px; border-style\:solid; border-color\:#BC1818; padding\: 1em;\">Note\: This document is for an older version of GRASS GIS that will be discontinued soon. You should upgrade, and read the <a href=\"../../../grass83/manuals/$myfile\">current manual page</a>.</p>:g" $myfile ; done)
+# also for Python
+(cd $TARGETHTMLDIR/libpython/ ; for myfile in `ls *.html` ; do sed -i -e "s:<hr class=\"header\">:<hr class=\"header\"><p style=\"border\:3px; border-style\:solid; border-color\:#FF2121; padding\: 1em;\">Note\: This document is for an older version of GRASS GIS that will be discontinued soon. You should upgrade, and read the <a href=\"../../../../grass83/manuals/libpython/$myfile\">current Python manual page</a>.</p>:g" $myfile ; done)
+
+# SEO: inject canonical link into all (old) manual pages to point to latest stable (avoid duplicate content SEO punishment)
+# see https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls
+(cd $TARGETHTMLDIR/ ; for myfile in `ls *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass83/manuals/$myfile\">\n</head>:g" $myfile ; done)
+(cd $TARGETHTMLDIR/addons/ ; for myfile in `ls *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass83/manuals/addons/$myfile\">\n</head>:g" $myfile ; done)
+(cd $TARGETHTMLDIR/libpython/ ; for myfile in `ls *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass83/manuals/libpython/$myfile\">\n</head>:g" $myfile ; done)
+
 # clean wxGUI sphinx manual etc
 (cd $GRASSBUILDDIR/ ; $MYMAKE cleansphinx)
 
@@ -211,12 +224,8 @@ cd $GRASSBUILDDIR/
 ## bug in doxygen
 #(cd $TARGETPROGMAN/ ; ln -s index.html main.html)
 
-##### copy i18N POT files, originally needed for https://www.transifex.com/grass-gis/
-### note: from G82+ onwards the gettext POT files are managed in git and OSGeo Weblate
-#(cd locale ;
-#mkdir -p $TARGETDIR/transifex/
-#cp templates/*.pot $TARGETDIR/transifex/
-#)
+
+# note: from G82+ onwards the gettext POT files are managed in git and OSGeo Weblate
 
 ##### generate i18N stats for HTML page path (WebSVN):
 ## Structure:  grasslibs_ar.po 144 translated messages 326 fuzzy translations 463 untranslated messages.
