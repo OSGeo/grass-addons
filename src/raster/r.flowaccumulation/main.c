@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * MODULE:       r.accum
+ * MODULE:       r.flowaccumulation
  *
  * AUTHOR(S):    Huidae Cho <grass4u gmail.com>
  *
