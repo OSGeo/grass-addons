@@ -491,23 +491,23 @@ int main(int argc, char *argv[])
 
         accum_buf.nrows = nrows;
         accum_buf.ncols = ncols;
-        accum_buf.map.v = (void **)G_malloc(nrows * sizeof(void *));
+        accum_buf.cells.v = (void **)G_malloc(nrows * sizeof(void *));
 
         /* optionally, read a weight map */
-        weight_buf.map.v = NULL;
+        weight_buf.cells.v = NULL;
         if (weight_name) {
             int weight_fd = Rast_open_old(weight_name, "");
 
             accum_buf.type = weight_buf.type = Rast_get_map_type(weight_fd);
             weight_buf.nrows = nrows;
             weight_buf.ncols = ncols;
-            weight_buf.map.v = (void **)G_malloc(nrows * sizeof(void *));
+            weight_buf.cells.v = (void **)G_malloc(nrows * sizeof(void *));
             G_message(_("Reading weight map..."));
             for (row = 0; row < nrows; row++) {
                 G_percent(row, nrows, 1);
-                weight_buf.map.v[row] =
+                weight_buf.cells.v[row] =
                     (void *)Rast_allocate_buf(weight_buf.type);
-                Rast_get_row(weight_fd, weight_buf.map.v[row], row,
+                Rast_get_row(weight_fd, weight_buf.cells.v[row], row,
                              weight_buf.type);
             }
             G_percent(1, 1, 1);
@@ -528,9 +528,9 @@ int main(int argc, char *argv[])
                                        : _("Reading subaccumulation map..."));
             for (row = 0; row < nrows; row++) {
                 G_percent(row, nrows, 1);
-                accum_buf.map.v[row] =
+                accum_buf.cells.v[row] =
                     (void *)Rast_allocate_buf(accum_buf.type);
-                Rast_get_row(accum_fd, accum_buf.map.v[row], row,
+                Rast_get_row(accum_fd, accum_buf.cells.v[row], row,
                              accum_buf.type);
             }
             G_percent(1, 1, 1);
@@ -544,7 +544,7 @@ int main(int argc, char *argv[])
             for (row = 0; row < nrows; row++) {
                 G_percent(row, nrows, 1);
                 done[row] = (char *)G_calloc(ncols, 1);
-                accum_buf.map.v[row] =
+                accum_buf.cells.v[row] =
                     (void *)Rast_allocate_buf(accum_buf.type);
             }
             G_percent(1, 1, 1);
@@ -562,10 +562,10 @@ int main(int argc, char *argv[])
         }
 
         /* free buffer memory */
-        if (weight_buf.map.v) {
+        if (weight_buf.cells.v) {
             for (row = 0; row < nrows; row++)
-                G_free(weight_buf.map.v[row]);
-            G_free(weight_buf.map.v);
+                G_free(weight_buf.cells.v[row]);
+            G_free(weight_buf.cells.v);
         }
 
         /* write out buffer to the accumulation map if requested */
@@ -576,7 +576,7 @@ int main(int argc, char *argv[])
             G_message(_("Writing accumulation map..."));
             for (row = 0; row < nrows; row++) {
                 G_percent(row, nrows, 1);
-                Rast_put_row(accum_fd, accum_buf.map.v[row], accum_buf.type);
+                Rast_put_row(accum_fd, accum_buf.cells.v[row], accum_buf.type);
             }
             G_percent(1, 1, 1);
             Rast_close(accum_fd);
@@ -595,7 +595,7 @@ int main(int argc, char *argv[])
         }
     }
     else
-        accum_buf.map.v = NULL;
+        accum_buf.cells.v = NULL;
 
     /* delineate stream networks */
     if (stream_name) {
@@ -625,7 +625,8 @@ int main(int argc, char *argv[])
             G_message(_("Writing subaccumulation map..."));
             for (row = 0; row < nrows; row++) {
                 G_percent(row, nrows, 1);
-                Rast_put_row(subaccum_fd, accum_buf.map.v[row], accum_buf.type);
+                Rast_put_row(subaccum_fd, accum_buf.cells.v[row],
+                             accum_buf.type);
             }
             G_percent(1, 1, 1);
             Rast_close(subaccum_fd);
@@ -664,10 +665,10 @@ int main(int argc, char *argv[])
     }
 
     /* free buffer memory */
-    if (accum_buf.map.v) {
+    if (accum_buf.cells.v) {
         for (row = 0; row < nrows; row++)
-            G_free(accum_buf.map.v[row]);
-        G_free(accum_buf.map.v);
+            G_free(accum_buf.cells.v[row]);
+        G_free(accum_buf.cells.v);
     }
 
     /* delineate subwatersheds; this process overwrites dir_buf to save memory
