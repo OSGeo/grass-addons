@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
             G_important_message(_("Flow direction format assumed to be "
                                   "degrees CCW from East divided by 45"));
         }
-        if (dir_max <= 128) {
+        else if (dir_max <= 128) {
             dir_format = DIR_POW2;
             G_important_message(_("Flow direction format assumed to be "
                                   "powers of 2 CW from East"));
