@@ -1,0 +1,83 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.accum</em> calculates flow accumulation from a flow direction raster map
+using the Memory-Efficient Flow Accumulation (MEFA) parallel algorithm by Cho
+(2023).
+
+<h2>NOTES</h2>
+
+Unlike <em>r.watershed</em>, but just like <em>r.accumulate</em>,
+<em>r.accum</em> does not require elevation data to calculate flow
+accumulation.  Instead, this module only uses a flow direction raster map to
+trace and accumulate the amount of flow draining through and including each
+cell.
+
+<em>r.accum</em> supports parallel computation of flow accumulation using
+OpenMP while <em>r.accumulate</em> does not.
+
+<p>The module recognizes three different formats of flow directions:
+<div align="center">
+<img src="r_accum_formats.png" alt="degree">
+</div>
+
+<p>Since the module does not use elevation data (i.e., slope), flow
+accumulation is calculated by single flow direction (SFD) routing and may not
+be comparable to the result from multiple flow direction (MFD) routing.
+
+<h2>EXAMPLES</h2>
+
+These examples use the North Carolina sample dataset.
+
+<p>Calculate flow accumulation using <em>r.watershed</em> and
+<em>r.accum</em>:
+<div class="code"><pre>
+# set computational region
+g.region -p raster=elevation
+
+# calculate positive flow accumulation and drainage directions using r.watershed
+# for comparison, use -s (SFD)
+r.watershed -sa elevation=elevation accumulation=flow_accum drainage=drain_directions
+
+# calculate flow accumulation using r.accum
+r.accum input=drain_directions output=flow_accum_new
+
+# copy color table
+r.colors map=flow_accum_new raster=flow_accum
+
+# check difference between flow_accum and flow_accum_new
+r.mapcalc expression="accum_diff=if(flow_accum-flow_accum_new, flow_accum-flow_accum_new, null())"
+</pre></div>
+
+<img src="r_accum_nc_example.png">
+
+<p>For some reason, there are slight differences between the two output maps.
+The yellow and purple cells show the difference raster map (<i>accum_diff</i>).
+The red arrows and numbers represent drainage directions
+(<i>drain_directions</i>) and flow accumulation by <em>r.watershed</em>
+(<i>flow_accum</i>), respectively. Note that some cells close to headwater
+cells are assigned 1 even though they are located downstream of other cells.
+
+<p><img src="r_accum_r_watershed_nc_example.png">
+
+<p>For comparison, these numbers show the new flow accumulation by
+<em>r.accum</em> (<i>flow_accum_new</i>). The same cells are properly
+accumulated from the headwater cells.
+
+<p><img src="r_accum_nc_comparison.png">
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.accumulate.html">r.accumulate</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html">r.stream.extract</a>,
+<a href="r.stream.distance.html">r.stream.distance</a>
+</em>
+
+<h2>REFERENCES</h2>
+
+Huidae Cho, July 2023. <em>Memory-Efficient Flow Accumulation Using a Look-Around Approach and Its OpenMP Parallelization</em> Environmental Modelling &amp; Software 167, 105771. <a href="https://doi.org/10.1016/j.envsoft.2023.105771">10.1016/j.envsoft.2023.105771</a>.
+
+<h2>AUTHOR</h2>
+
+<a href="mailto:grass4u@gmail com">Huidae Cho</a>, New Mexico State University
