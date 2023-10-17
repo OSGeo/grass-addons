@@ -5,7 +5,7 @@
  * AUTHOR(S):    Huidae Cho <grass4u gmail.com>
  *
  * PURPOSE:      Calculates weighted flow accumulation, subwatersheds, stream
- *                 networks, and longest flow paths using a flow direction map.
+ *               networks, and longest flow paths using a flow direction map.
  *
  * COPYRIGHT:    (C) 2018, 2020 by Huidae Cho and the GRASS Development Team
  *
