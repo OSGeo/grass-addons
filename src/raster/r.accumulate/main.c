@@ -5,7 +5,7 @@
  * AUTHOR(S):    Huidae Cho <grass4u gmail.com>
  *
  * PURPOSE:      Calculates weighted flow accumulation, subwatersheds, stream
- *                 networks, and longest flow paths using a flow direction map.
+ *               networks, and longest flow paths using a flow direction map.
  *
  * COPYRIGHT:    (C) 2018, 2020 by Huidae Cho and the GRASS Development Team
  *
@@ -64,7 +64,8 @@ int main(int argc, char *argv[])
         *accum_name, *subaccum_name, *subwshed_name, *stream_name, *outlet_name,
         *lfp_name;
     int dir_fd;
-    double dir_format, thresh;
+    unsigned char dir_format;
+    double thresh;
     struct Range dir_range;
     CELL dir_min, dir_max;
     char neg_accum, zero_accum, accum_lfp, conf_stream, recur;
