@@ -6,7 +6,7 @@
  *
  * PURPOSE:      Calculates flow accumulation from a flow direction raster map
  *               using the Memory-Efficient Flow Accumulation (MEFA) parallel
- *               algorithm by Cho (2023)
+ *               algorithm by Cho (2023).
  *
  * COPYRIGHT:    (C) 2023 by Huidae Cho and the GRASS Development Team
  *
