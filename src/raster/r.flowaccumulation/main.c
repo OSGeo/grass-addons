@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
     module->description =
         _("Calculates flow accumulation from a flow direction raster map using "
           "the Memory-Efficient Flow Accumulation (MEFA) parallel algorithm by "
-          "Cho (2023)");
+          "Cho (2023).");
 
     opt.dir = G_define_standard_option(G_OPT_R_INPUT);
     opt.dir->description = _("Name of input direction raster map");

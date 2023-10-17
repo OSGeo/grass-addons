@@ -12,8 +12,9 @@ accumulation.  Instead, this module only uses a flow direction raster map to
 trace and accumulate the amount of flow draining through and including each
 cell.
 
-<em>r.flowaccumulation</em> supports parallel computation of flow accumulation
-using OpenMP while <em>r.accumulate</em> does not.
+<p><em>r.flowaccumulation</em> supports parallel computation of flow
+accumulation using OpenMP while <em>r.accumulate</em> does not.
+However, for weighted flow accumulation, use <em>r.accumulate</em>.
 
 <p>The module recognizes three different formats of flow directions:
 <div align="center">
