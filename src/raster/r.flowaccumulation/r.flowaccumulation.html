@@ -8,12 +8,13 @@ algorithm by Cho (2023).
 
 Unlike <em>r.watershed</em>, but just like <em>r.accumulate</em>,
 <em>r.flowaccumulation</em> does not require elevation data to calculate flow
-accumulation.  Instead, this module only uses a flow direction raster map to
+accumulation. Instead, this module only uses a flow direction raster map to
 trace and accumulate the amount of flow draining through and including each
 cell.
 
-<em>r.flowaccumulation</em> supports parallel computation of flow accumulation
-using OpenMP while <em>r.accumulate</em> does not.
+<p><em>r.flowaccumulation</em> supports parallel computation of flow
+accumulation using OpenMP while <em>r.accumulate</em> does not. However, for
+weighted flow accumulation, use <em>r.accumulate</em>.
 
 <p>The module recognizes three different formats of flow directions:
 <div align="center">
