@@ -1,7 +1,7 @@
 <h2>DESCRIPTION</h2>
 
 <em>r.accumulate</em> calculates weighted flow accumulation, subwatersheds,
-stream networks, and longest flow paths using a flow direction map.
+stream networks, and longest flow paths (Cho 2020) using a flow direction map.
 
 <h2>NOTES</h2>
 
@@ -62,12 +62,12 @@ subwatersheds).
 
 With <b>longest_flow_path</b> option, the module will create a longest flow
 path vector map for outlet points specified by <b>coordinates</b> and/or
-<b>outlet</b> with <b>outlet_layer</b> option. By default, longest flow paths
-will be created as if there were subwatersheds at the outlets by calculating
-the subaccumulation map. Downstream longest flow paths will never traverse
-through upstream outlets. With <b>-a</b> flag, longest flow paths will be
-created in an accumulated manner resulting in an overlap between downstream and
-upstream longest flow paths.
+<b>outlet</b> with <b>outlet_layer</b> option, using the algorithm by Cho
+(2020). By default, longest flow paths will be created as if there were
+subwatersheds at the outlets by calculating the subaccumulation map. Downstream
+longest flow paths will never traverse through upstream outlets. With <b>-a</b>
+flag, longest flow paths will be created in an accumulated manner resulting in
+an overlap between downstream and upstream longest flow paths.
 
 <p>You can assign unique IDs to longest flow paths using <b>id</b> (with
 <b>coordinates</b>) and/or <b>outlet_id_column</b> (with <b>outlet</b>).
