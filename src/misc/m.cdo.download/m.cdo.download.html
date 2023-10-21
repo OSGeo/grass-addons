@@ -1,0 +1,64 @@
+<h2>DESCRIPTION</h2>
+
+<em>m.cdo.download</em> downloads data from
+<a href="https://www.ncei.noaa.gov/cdo-web/webservices/v2">NCEI's Climate Data
+Online (CDO)</a> using their v2 API.
+
+<h2>NOTES</h2>
+
+This module uses <a href="https://www.ncei.noaa.gov/cdo-web/api/v2/">the CDO
+Web Services v2 API</a> to download CDO data.
+
+<h2>EXAMPLES</h2>
+
+List available datasets:
+<div class="code"><pre>
+m.cdo.download fetch=datasets
+</pre></div>
+
+List available dataset IDs without column names:
+<div class="code"><pre>
+m.cdo.download -c fetch=datasets fields=id
+</pre></div>
+
+List available stations within (47.5204,-122.2047)-(47.6139,-122.1065):
+<div class="code"><pre>
+m.cdo.download fetch=stations extent=47.5204,-122.2047,47.6139,-122.1065
+</pre></div>
+
+List available &quot;Precipitation&quot; data types:
+<div class="code"><pre>
+m.cdo.download fetch=datatypes field=id,mindate,maxdate,name |
+	grep "|Precipitation"
+</pre></div>
+
+List available stations with PRCP data:
+<div class="code"><pre>
+m.cdo.download fetch=stations datatypeid=PRCP
+</pre></div>
+
+Fetch daily PRCP data for a station with mindate &le; 2023-01-01 and save it
+into a file:
+<div class="code"><pre>
+# find dataset IDs for data type PRCP; let's use GHCND (Daily Summary)
+m.cdo.download fetch=datasets datatypeid=PRCP
+
+# find the first station ID with mindate &le; 2023-01-01
+stationid=$(m.cdo.download -c fetch=stations datatypeid=PRCP \
+	startdate=2023-01-01 fields=id limit=1)
+
+# fetch actual data and save it to data.txt
+m.cdo.download fetch=data datasetid=GHCND datatypeid=PRCP \
+	stationid=$stationid startdate=2023-01-01 enddate=2023-10-15 \
+	output=data.txt
+</pre></div>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="m.tnm.download.html">m.tnm.download</a>
+</em>
+
+<h2>AUTHOR</h2>
+
+<a href="mailto:grass4u@gmail com">Huidae Cho</a>, New Mexico State University
