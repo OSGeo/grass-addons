@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 ############################################################################
 #
-# MODULE:       m.download.tnm
+# MODULE:       m.tnm.download
 # AUTHOR(S):    Huidae Cho <grass4u gmail.com>
 # PURPOSE:      Downloads data for specified polygon codes from The National
 #               Map (TNM).
