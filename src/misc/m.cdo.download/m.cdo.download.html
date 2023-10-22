@@ -32,23 +32,23 @@ m.cdo.download fetch=datatypes field=id,mindate,maxdate,name |
 	grep "|Precipitation"
 </pre></div>
 
-List available stations with PRCP data:
+List 10 available stations with PRCP and TAVG data starting 2023-01-01:
 <div class="code"><pre>
-m.cdo.download fetch=stations datatypeid=PRCP
+m.cdo.download fetch=stations datatypeid=PRCP,TAVG startdate=2023-01-01 limit=10
 </pre></div>
 
-Fetch daily PRCP data for a station with mindate &le; 2023-01-01 and save it
-into a file:
+Fetch daily PRCP and TAVG data for a station with mindate &le; 2023-01-01 and
+save it into a file:
 <div class="code"><pre>
-# find dataset IDs for data type PRCP; let's use GHCND (Daily Summary)
-m.cdo.download fetch=datasets datatypeid=PRCP
+# find dataset IDs for data types PRCP and TAVG; let's use GHCND (Daily Summary)
+m.cdo.download fetch=datasets datatypeid=PRCP,TAVG
 
 # find the first station ID with mindate &le; 2023-01-01
-stationid=$(m.cdo.download -c fetch=stations datatypeid=PRCP \
+stationid=$(m.cdo.download -c fetch=stations datatypeid=PRCP,TAVG \
 	startdate=2023-01-01 fields=id limit=1)
 
 # fetch actual data and save it to data.txt
-m.cdo.download fetch=data datasetid=GHCND datatypeid=PRCP \
+m.cdo.download fetch=data datasetid=GHCND datatypeid=PRCP,TAVG \
 	stationid=$stationid startdate=2023-01-01 enddate=2023-10-15 \
 	output=data.txt
 </pre></div>
