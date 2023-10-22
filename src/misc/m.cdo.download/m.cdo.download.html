@@ -9,6 +9,14 @@ Online (CDO)</a> using their v2 API.
 This module uses <a href="https://www.ncei.noaa.gov/cdo-web/api/v2/">the CDO
 Web Services v2 API</a> to download CDO data.
 
+<p>To access the API services, obtain CDO API tokens from
+<a href="https://www.ncei.noaa.gov/cdo-web/token">here</a> and define an
+environment variable <tt>CDO_API_TOKENS</tt>. Use commas to separate multiple
+tokens. For example, two tokens can be stored as follows:
+<div class="code"><pre>
+export CDO_API_TOKENS=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+</pre></div>
+
 <h2>EXAMPLES</h2>
 
 <p>List available datasets:
@@ -67,7 +75,7 @@ xy=$(awk -F'|' '{
 		for (i = 1; i &lt;= NF; i++)
 			if ($i == &quot;latitude&quot;)
 				latind = i
-			else if ($i == "quot;longitude"quot;)
+			else if ($i == &quot;longitude&quot;)
 				lonind = i
 		printf &quot;x=%s y=%s&quot;, lonind, latind
 		exit
