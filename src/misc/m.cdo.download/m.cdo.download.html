@@ -63,15 +63,15 @@ m.cdo.download stations output=cdo_stations.txt
 
 # import cdo_stations.txt
 xy=$(awk -F'|' '{
-        if (NR == 1) {
-                for (i = 1; i &lt;= NF; i++)
-                        if ($i == &quot;latitude&quot;)
-                                latind = i
-                        else if ($i == "quot;longitude"quot;)
-                                lonind = i
-                printf &quot;x=%s y=%s&quot;, lonind, latind
-                exit
-        }
+	if (NR == 1) {
+		for (i = 1; i &lt;= NF; i++)
+			if ($i == &quot;latitude&quot;)
+				latind = i
+			else if ($i == "quot;longitude"quot;)
+				lonind = i
+		printf &quot;x=%s y=%s&quot;, lonind, latind
+		exit
+	}
 }' cdo_stations.txt)
 v.in.ascii input=cdo_stations.txt output=cdo_stations skip=1 $xy
 
