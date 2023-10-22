@@ -11,34 +11,34 @@ Web Services v2 API</a> to download CDO data.
 
 <h2>EXAMPLES</h2>
 
-List available datasets:
+<p>List available datasets:
 <div class="code"><pre>
 m.cdo.download fetch=datasets
 </pre></div>
 
-List available dataset IDs without column names:
+<p>List available dataset IDs without column names:
 <div class="code"><pre>
 m.cdo.download -c fetch=datasets fields=id
 </pre></div>
 
-List available stations within (47.5204,-122.2047)-(47.6139,-122.1065):
+<p>List available stations within (47.5204,-122.2047)-(47.6139,-122.1065):
 <div class="code"><pre>
 m.cdo.download fetch=stations extent=47.5204,-122.2047,47.6139,-122.1065
 </pre></div>
 
-List available &quot;precipitation&quot; and &quot;average temperature&quot;
+<p>List available &quot;precipitation&quot; and &quot;average temperature&quot;
 data types:
 <div class="code"><pre>
 m.cdo.download fetch=datatypes field=id,mindate,maxdate,name |
 grep -i "|precipitation\||average temperature"
 </pre></div>
 
-List 10 available stations with PRCP and TAVG data starting 2023-01-01:
+<p>List 10 available stations with PRCP and TAVG data starting 2023-01-01:
 <div class="code"><pre>
 m.cdo.download fetch=stations datatypeid=PRCP,TAVG startdate=2023-01-01 limit=10
 </pre></div>
 
-Fetch daily PRCP and TAVG data for a station with mindate &le; 2023-01-01 and
+<p>Fetch daily PRCP and TAVG data for a station with mindate &le; 2023-01-01 and
 save it into a file:
 <div class="code"><pre>
 # find dataset IDs for data types PRCP and TAVG; let's use GHCND (Daily Summary)
@@ -54,7 +54,7 @@ m.cdo.download fetch=data datasetid=GHCND datatypeid=PRCP,TAVG \
 	output=data.txt
 </pre></div>
 
-Create a point vector map with all stations:
+<p>Create a point vector map with all stations:
 <div class="code"><pre>
 # from a latlong location
 
@@ -88,6 +88,8 @@ for old_new in $(echo $old_cols $new_cols |
 	v.db.renamecolumn map=cdo_stations column=$old_new
 done
 </pre></div>
+
+<img src="m_cdo_download_cdo_stations.png" alt="CDO stations">
 
 <h2>SEE ALSO</h2>
 
