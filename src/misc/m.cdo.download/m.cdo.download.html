@@ -30,7 +30,7 @@ List available &quot;precipitation&quot; and &quot;average temperature&quot;
 data types:
 <div class="code"><pre>
 m.cdo.download fetch=datatypes field=id,mindate,maxdate,name |
-	grep -i "|precipitation\||average temperature"
+grep -i "|precipitation\||average temperature"
 </pre></div>
 
 List 10 available stations with PRCP and TAVG data starting 2023-01-01:
@@ -52,6 +52,41 @@ stationid=$(m.cdo.download -c fetch=stations datatypeid=PRCP,TAVG \
 m.cdo.download fetch=data datasetid=GHCND datatypeid=PRCP,TAVG \
 	stationid=$stationid startdate=2023-01-01 enddate=2023-10-15 \
 	output=data.txt
+</pre></div>
+
+Create a point vector map with all stations:
+<div class="code"><pre>
+# from a latlong location
+
+# download metadata for all stations
+m.cdo.download stations output=cdo_stations.txt
+
+# import cdo_stations.txt
+xy=$(awk -F'|' '{
+        if (NR == 1) {
+                for (i = 1; i &lt;= NF; i++)
+                        if ($i == &quot;latitude&quot;)
+                                latind = i
+                        else if ($i == "quot;longitude"quot;)
+                                lonind = i
+                printf &quot;x=%s y=%s&quot;, lonind, latind
+                exit
+        }
+}' cdo_stations.txt)
+v.in.ascii input=cdo_stations.txt output=cdo_stations skip=1 $xy
+
+# rename columns
+old_cols=$(db.columns table=cdo_stations exclude=cat)
+new_cols=$(head -1 cdo_stations.txt | sed 's/|/ /g')
+
+for old_new in $(echo $old_cols $new_cols |
+	awk '{
+		n = NF/2
+		for (i = 1; i &lt;= n; i++)
+			printf &quot;%s,%s\n&quot;, $i, $(i + n)
+	}'); do
+	v.db.renamecolumn map=cdo_stations column=$old_new
+done
 </pre></div>
 
 <h2>SEE ALSO</h2>
