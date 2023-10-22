@@ -81,7 +81,7 @@ new_cols=$(head -1 cdo_stations.txt | sed 's/|/ /g')
 
 for old_new in $(echo $old_cols $new_cols |
 	awk '{
-		n = NF/2
+		n = NF / 2
 		for (i = 1; i &lt;= n; i++)
 			printf &quot;%s,%s\n&quot;, $i, $(i + n)
 	}'); do
