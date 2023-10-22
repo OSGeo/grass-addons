@@ -26,10 +26,11 @@ List available stations within (47.5204,-122.2047)-(47.6139,-122.1065):
 m.cdo.download fetch=stations extent=47.5204,-122.2047,47.6139,-122.1065
 </pre></div>
 
-List available &quot;Precipitation&quot; data types:
+List available &quot;precipitation&quot; and &quot;average temperature&quot;
+data types:
 <div class="code"><pre>
 m.cdo.download fetch=datatypes field=id,mindate,maxdate,name |
-	grep "|Precipitation"
+	grep -i "|precipitation\||average temperature"
 </pre></div>
 
 List 10 available stations with PRCP and TAVG data starting 2023-01-01:
