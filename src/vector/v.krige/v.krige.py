@@ -229,7 +229,7 @@ class Controller:
 
         Variograms = {}
 
-        if model is "":
+        if model == "":
             robjects.r.require("automap")
             DottedParams = {}
             DottedParams["fix.values"] = robjects.r.c(nugget, range, psill)
@@ -267,7 +267,7 @@ class Controller:
 
     def DoKriging(self, formula, inputdata, grid, model, block):
         DottedParams = {"debug.level": -1}  # let krige() print percentage status
-        if block is not "":  # @FIXME(anne): but it's a string!! and krige accepts it!!
+        if block != "":  # @FIXME(anne): but it's a string!! and krige accepts it!!
             DottedParams["block"] = block
         KrigingResult = robjects.r.krige(
             formula, inputdata, grid, model, **DottedParams
@@ -284,7 +284,7 @@ class Controller:
             history="Issued from command v.krige " + command,
         )
         if (
-            command.find("model") is -1
+            command.find("model") == -1
         ):  # if the command has no model option, add automap chosen model
             grass.run_command(
                 "r.support",
@@ -329,7 +329,7 @@ class Controller:
 
         logger.message(_("Fitting variogram..."))
 
-        if block is not "":
+        if block != "":
             self.predictor = "x+y"
         else:
             self.predictor = "1"
@@ -363,7 +363,7 @@ class Controller:
             command=command,
             variograms=self.Variogram,
         )
-        if output_var is not "":
+        if output_var != "":
             self.ExportMap(
                 map=KrigingResult,
                 column="var1.var",
@@ -405,13 +405,13 @@ def main(argv=None):
         options, flags = argv
 
         # @TODO: Work on verbosity. Sometimes it's too verbose (R), sometimes not enough.
-        if grass.find_file(options["input"], element="vector")["fullname"] is "":
+        if grass.find_file(options["input"], element="vector")["fullname"] == "":
             grass.fatal(_("Vector map <%s> not found") % options["input"])
 
         # @TODO: elaborate input string, if contains mapset or not.. thanks again to Bob for testing on 64bit.
 
         # create output map name, if not specified
-        if options["output"] is "":
+        if options["output"] == "":
             try:  # to strip mapset name from fullname. Ugh.
                 options["input"] = options["input"].split("@")[0]
             except:
@@ -425,14 +425,14 @@ def main(argv=None):
         ):
             grass.fatal(_("option: <output>: Raster map already exists."))
 
-        if options["output_var"] is not "" and (
+        if options["output_var"] != "" and (
             grass.find_file(options["output_var"], element="cell")["fullname"]
             and os.getenv("GRASS_OVERWRITE") is None
         ):
             grass.fatal(_("option: <output>: Variance raster map already exists."))
 
         importR()
-        if options["model"] is "":
+        if options["model"] == "":
             try:
                 robjects.r.require("automap")
             except ImportError as e:
@@ -441,9 +441,9 @@ def main(argv=None):
                 )
         else:
             if (
-                options["psill"] is ""
-                or options["nugget"] is ""
-                or options["range"] is ""
+                options["psill"] == ""
+                or options["nugget"] == ""
+                or options["range"] == ""
             ):
                 grass.fatal(
                     _(
@@ -455,7 +455,7 @@ def main(argv=None):
         command = ""
         notnulloptions = {}
         for k, v in list(options.items()):
-            if v is not "":
+            if v != "":
                 notnulloptions[k] = v
         command = command.join(
             "%s=%s " % (k, v) for k, v in list(notnulloptions.items())
@@ -463,7 +463,7 @@ def main(argv=None):
 
         # re-cast integers from strings, as parser() cast everything to string.
         for each in ("psill", "nugget", "range", "kappa"):
-            if options[each] is not "":
+            if options[each] != "":
                 options[each] = float(options[each])
             else:
                 options[each] = robjects.r("""NA""")
