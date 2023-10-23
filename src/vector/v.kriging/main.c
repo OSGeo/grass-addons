@@ -383,7 +383,7 @@ int main(int argc, char *argv[])
 
     // Open report file if desired
     if (xD.phase == 0) {
-	report->name = opt.report->answer;
+        report->name = opt.report->answer;
 
         if (report->name) {
             // initial phase: check if the file exists
