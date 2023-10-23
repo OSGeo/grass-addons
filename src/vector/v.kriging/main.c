@@ -383,9 +383,9 @@ int main(int argc, char *argv[])
 
     // Open report file if desired
     if (xD.phase == 0) {
-        if (opt.report->answer) {
-            report->name = opt.report->answer;
+	report->name = opt.report->answer;
 
+        if (report->name) {
             // initial phase: check if the file exists
             if (access(report->name, F_OK) != -1) {
                 G_fatal_error(
@@ -504,8 +504,9 @@ int main(int argc, char *argv[])
      *-------------------
      * 3D interpolation + 3D points = 3D GIS
      * 3D interpolation + 2D points = 2,5D -> 3D GIS (needs attribute column
-     *with z and 3D region) 2D interpolation + 3D points = 3D -> 2,5D GIS 2D
-     *interpolation + 2D points = 2,5D GIS */
+     *                                                with z and 3D region)
+     * 2D interpolation + 3D points = 3D -> 2,5D GIS
+     * 2D interpolation + 2D points = 2,5D GIS */
 
     // 3D interpolation
     if (xD.i3 == TRUE) {             // 3D interpolation:
