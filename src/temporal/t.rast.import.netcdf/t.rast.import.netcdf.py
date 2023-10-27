@@ -322,22 +322,37 @@ def get_time_dimensions(meta):
     return time_dates
 
 
+def check_semantic_label_support(module_options):
+    """Check if the current version of GRASS GIS and TGIS support the
+    semantic label concept"""
+    if GRASS_VERSION[0] < 8:
+        if module_options["semantic_labels"]:
+            gscript.warning(
+                _(
+                    "The semantic labels concept requires GRASS GIS version 8.0 or later.\n"
+                    "Ignoring the semantic label configuration file <{conf_file}>"
+                ).format(conf_file=module_options["semantic_labels"])
+            )
+        return False
+
+    if TGIS_VERSION < 3:
+        if module_options["semantic_labels"]:
+            gscript.warning(
+                _(
+                    "The semantic labels concept requires TGIS version 3 or later.\n"
+                    "Ignoring the semantic label configuration file <{conf_file}>"
+                ).format(conf_file=module_options["semantic_labels"])
+            )
+        return False
+
+    return True
+
+
 def parse_semantic_label_conf(conf_file):
     """Read user provided mapping of subdatasets / variables to semantic labels
     Return a dict with mapping, bands that are not mapped in this file are skipped
     from import"""
-    if conf_file is None or conf_file == "":
-        return None
-
-    if GRASS_VERSION[0] < 8 or TGIS_VERSION < 3:
-        gscript.warning(
-            _(
-                "The semantic labels concept requires GRASS GIS version 8.0 or later.\n"
-                "Ignoring the semantic label configuration file <{conf_file}>".format(
-                    conf_file=conf_file
-                )
-            )
-        )
+    if conf_file is None or conf_file == "" or SEMANTIC_LABEL_SUPPORT is False:
         return None
 
     semantic_label = {}
@@ -349,13 +364,10 @@ def parse_semantic_label_conf(conf_file):
                 )
             )
         )
-    # Lazy import GRASS GIS 8 function if needed
-    from grass.lib.raster import Rast_legal_semantic_label
-
     with open(conf_file, "r") as c_file:
         configuration = c_file.read()
         for idx, line in enumerate(configuration.split("\n")):
-            if line.startswith("#") or line == "":
+            if line.startswith("#") or "=" not in line:
                 continue
             if len(line.split("=")) == 2:
                 line = line.split("=")
@@ -371,14 +383,14 @@ def parse_semantic_label_conf(conf_file):
                             )
                         )
                     )
-            else:
-                gscript.fatal(
-                    _(
-                        "Invalid format of semantic label configuration in file <{}>".format(
-                            conf_file
-                        )
-                    )
+    if not semantic_label:
+        gscript.fatal(
+            _(
+                "Invalid formated or empty semantic label configuration in file <{}>".format(
+                    conf_file
                 )
+            )
+        )
 
     return semantic_label
 
@@ -441,6 +453,8 @@ def get_metadata(netcdf_metadata, subdataset="", semantic_label=None):
     )
     if semantic_label is not None:
         meta["semantic_label"] = semantic_label[subdataset]
+    elif SEMANTIC_LABEL_SUPPORT and Rast_legal_semantic_label(subdataset):
+        meta["semantic_label"] = subdataset
 
     return meta
 
@@ -776,6 +790,7 @@ def parse_netcdf(
     for s_d in sds:
         sds_metadata = s_d[0].GetMetadata()
         sds_url = s_d[0].GetDescription()
+        raster_count = s_d[0].RasterCount
         if "NETCDF_DIM_time_VALUES" in sds_metadata:
             # Apply temporal filter
             sd_time_dimensions = get_time_dimensions(sds_metadata)
@@ -806,11 +821,8 @@ def parse_netcdf(
             # Get metadata
             grass_metadata = get_metadata(sds_metadata, s_d[1], semantic_label)
             # Compile mapname
-            mapname_list = []
-            infile = Path(in_url).name.split(":")
-            mapname_list.append(legalize_name_string(infile[0]))
-            if sds_url.startswith("NETCDF"):
-                mapname_list.append(legalize_name_string(sds_url.split(":")[-1]))
+            infile = Path(in_url).stem.split(":")
+            map_name = legalize_name_string(infile[0])
             location_crs = osr.SpatialReference()
             location_crs.ImportFromWkt(reference_crs)
             subdataset_crs = s_d[0].GetSpatialRef()
@@ -829,21 +841,19 @@ def parse_netcdf(
             maps = []
             bands = []
             for i, band in enumerate(requested_time_dimensions):
-                mapname = "_".join(
-                    mapname_list + [start_time_dimensions[i].strftime("%Y_%m_%d")]
-                )
+                if raster_count > 1:
+                    map_name = f"{map_name}_{start_time_dimensions[i].strftime('%Y%m%dT%H%M%S')}"
+                map_name = f"{map_name}.{grass_metadata.get('semantic_label') or i + 1}"
                 bands.append(i + 1)
                 maps.append(
                     "{map}@{mapset}|{start_time}|{end_time}|{semantic_label}".format(
-                        map=mapname,
+                        map=map_name,
                         mapset=gisenv["MAPSET"],
                         start_time=start_time_dimensions[i].strftime(
                             "%Y-%m-%d %H:%M:%S"
                         ),
                         end_time=end_time_dimensions[i].strftime("%Y-%m-%d %H:%M:%S"),
-                        semantic_label=""
-                        if "semantic_label" not in grass_metadata
-                        else grass_metadata["semantic_label"],
+                        semantic_label=grass_metadata.get("semantic_label") or "",
                     )
                 )
             # Store metadata in dictionary
@@ -954,6 +964,13 @@ def main():
         if not in_url.endswith(".nc"):
             gscript.fatal(_("<{}> does not seem to be a NetCDF file".format(in_url)))
 
+    # Initialize TGIS
+    tgis.init()
+    global TGIS_VERSION
+    TGIS_VERSION = tgis.get_tgis_db_version_from_metadata()
+
+    global SEMANTIC_LABEL_SUPPORT
+    SEMANTIC_LABEL_SUPPORT = check_semantic_label_support(options)
     semantic_label = parse_semantic_label_conf(options["semantic_labels"])
 
     # Get GRASS GIS environment info
@@ -975,11 +992,6 @@ def main():
     # Current region
     global ALIGN_REGION
     ALIGN_REGION = partial(align_windows, region=Region())
-
-    # Initialize TGIS
-    tgis.init()
-    global TGIS_VERSION
-    TGIS_VERSION = tgis.get_tgis_db_version_from_metadata()
 
     # Get existing STRDS
     dataset_list = tgis.list_stds.get_dataset_list(
@@ -1116,7 +1128,6 @@ def main():
 
     # Get unique list of STRDS to be created or modified
     for strds in relevant_strds_dict:
-
         # Append if exists and overwrite allowed (do not update metadata)
         if (
             strds not in existing_strds or (gscript.overwrite and not flags["a"])
@@ -1204,5 +1215,12 @@ if __name__ == "__main__":
                 "to be installed)."
             )
         )
+
+    try:
+        from grass.lib.raster import Rast_legal_semantic_label
+
+        SEMANTIC_LABEL_SUPPORT = True
+    except Exception:
+        SEMANTIC_LABEL_SUPPORT = False
 
     sys.exit(main())
