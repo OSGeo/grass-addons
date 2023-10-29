@@ -93,7 +93,7 @@ def main():
 
     # calculate radi for generalization
     radi = np.logspace(
-        np.log(minradius), np.log(maxradius), steps, base=np.exp(1), dtype=np.int
+        np.log(minradius), np.log(maxradius), steps, base=np.exp(1), dtype="int"
     )
     radi = np.unique(radi)
     sizes = radi * 2 + 1
