@@ -91,7 +91,7 @@ class TestNetCDFImport(TestCase):
             flags="lo",
             input=self.input_sentinel[0],
             output=self.output_sentinel,
-            semantic_labels="semantic_labels_sentinel2.conf",
+            semantic_labels="data/semantic_labels_sentinel2.conf",
             memory=2048,
             nprocs=2,
         )
@@ -123,7 +123,7 @@ class TestNetCDFImport(TestCase):
             flags="lo",
             input=self.input_sentinel[0],
             output=self.output_sentinel,
-            semantic_labels="semantic_labels_sentinel2.conf",
+            semantic_labels="data/semantic_labels_sentinel2.conf",
             memory=2048,
             nprocs=2,
         )
@@ -132,7 +132,7 @@ class TestNetCDFImport(TestCase):
             flags="loa",
             input=self.input_sentinel[1],
             output=self.output_sentinel,
-            semantic_labels="semantic_labels_sentinel2.conf",
+            semantic_labels="data/semantic_labels_sentinel2.conf",
             memory=2048,
             nprocs=2,
         )
@@ -144,7 +144,7 @@ class TestNetCDFImport(TestCase):
             flags="lo",
             input=",".join(self.input_sentinel),
             output=self.output_sentinel,
-            semantic_labels="semantic_labels_sentinel2.conf",
+            semantic_labels="data/semantic_labels_sentinel2.conf",
             memory=2048,
             nprocs=2,
         )
@@ -158,7 +158,7 @@ class TestNetCDFImport(TestCase):
             flags="lo",
             input=self.input_file,
             output=self.output_sentinel,
-            semantic_labels="semantic_labels_sentinel2.conf",
+            semantic_labels="data/semantic_labels_sentinel2.conf",
             memory=2048,
             nprocs=2,
         )
@@ -170,7 +170,7 @@ class TestNetCDFImport(TestCase):
             flags="lo",
             input=self.input_climate,
             output=self.output_climate,
-            semantic_labels="semantic_labels_senorge.conf",
+            semantic_labels="data/semantic_labels_senorge.conf",
             start_time="2021-01-01",
             end_time="2021-01-03 12:12:12",
             memory=2048,
