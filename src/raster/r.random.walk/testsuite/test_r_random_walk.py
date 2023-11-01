@@ -17,16 +17,20 @@
 #############################################################################
 
 # Dependencies
-import importlib
+import shutil
+
+from importlib.machinery import SourceFileLoader
+from importlib.util import spec_from_loader, module_from_spec
 
 from grass.gunittest.case import TestCase
 from grass.gunittest.main import test
 
-spec = importlib.util.spec_from_file_location(
-    name="random_walk_lib", location="r.random.walk.py"
+spec = spec_from_loader(
+    "random_walk_lib",
+    SourceFileLoader("random_walk_lib", shutil.which("r.random.walk")),
 )
 
-random_walk_lib = importlib.util.module_from_spec(spec)
+random_walk_lib = module_from_spec(spec)
 spec.loader.exec_module(random_walk_lib)
 
 
