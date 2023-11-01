@@ -17,7 +17,7 @@ The tool will write the output to a Geotiff external file in the directory speci
 
 <div class="code"><pre>
 #Calculate the amplitude image 
-i.sar.amplitude real='SAO1B_20211222_hh_real' imag='SAO1B_20211222_hh_imag' output='SAO1B_20211222_hh_amp' 
+i.sar.amplitude real=SAO1B_20211222_hh_real imag=SAO1B_20211222_hh_imag output=SAO1B_20211222_hh_amp
 
 #Geocode it and import it to new location. The external temporary raster will be saved as GeoTiff in the $HOME directory
 i.saocom.geocode map=SAO1B_20211222_hh_amp basename=SAO1B_20211222 dbase=$HOME location=saocom_geo
