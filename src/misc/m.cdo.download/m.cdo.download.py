@@ -150,7 +150,8 @@
 
 import sys
 import os
-import requests
+import urllib.request
+import urllib.error
 import json
 import grass.script as grass
 from grass.script.utils import separator
@@ -181,11 +182,10 @@ def fetch_once(endpoint, offset, limit):
     response = None
 
     for token in tokens:
-        ret = requests.get(request_url, headers={"token": token})
-        if ret.status_code != 200:
-            continue
         try:
-            response = ret.json()
+            request = urllib.request.Request(request_url, headers={"token": token})
+            with urllib.request.urlopen(request) as f:
+                response = json.load(f)
         except:
             continue
         if "message" in response:
