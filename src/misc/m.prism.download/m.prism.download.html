@@ -24,13 +24,13 @@ Download daily precipitation from 2020-01-01 to today:
 m.prism.download -d | grep "daily" # found daily/ppt
 
 # just list URLs for now
-m.prism.download dataset=daily/ppt start_date=2020-01-01 end_date=today -u
+m.prism.download dataset=daily/ppt start_date=2020-01-01 end_date=today -u sep=newline
 
 # actually download files
 m.prism.download dataset=daily/ppt start_date=2020-01-01 end_date=today
 
 # do something with the downloaded files
-for file in $(m.prism.download dataset=daily/ppt start_date=2020-01-01 end_date=today -f); do
+for file in $(m.prism.download dataset=daily/ppt start_date=2020-01-01 end_date=today -f sep=newline); do
 	echo $file
 	unzip $file
 	# more tasks...
