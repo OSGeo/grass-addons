@@ -32,12 +32,4 @@ long long timeval_diff(struct timeval *, struct timeval *, struct timeval *);
 /* accumulate.c */
 void accumulate(struct raster_map *, struct raster_map *);
 
-#ifdef _MAIN_C_
-#define GLOBAL
-#else
-#define GLOBAL extern
-#endif
-
-GLOBAL CELL cell_null;
-
 #endif

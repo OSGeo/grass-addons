@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <grass/raster.h>
 #include "global.h"
 
 #define ACCUM(row, col) accum_map->cells[(size_t)(row)*ncols + (col)]
@@ -40,7 +41,7 @@ void accumulate(struct raster_map *dir_map, struct raster_map *accum_map)
 #pragma omp parallel for schedule(dynamic) private(col)
     for (row = 0; row < nrows; row++) {
         for (col = 0; col < ncols; col++)
-            if (DIR(row, col) != cell_null)
+            if (!Rast_is_c_null_value(&DIR(row, col)))
                 UP(row, col) = FIND_UP(row, col);
     }
 #endif
@@ -50,7 +51,7 @@ void accumulate(struct raster_map *dir_map, struct raster_map *accum_map)
         for (col = 0; col < ncols; col++)
             /* if the current cell is not null and has no upstream cells, start
              * tracing down */
-            if (DIR(row, col) != cell_null && !UP(row, col))
+            if (!Rast_is_c_null_value(&DIR(row, col)) && !UP(row, col))
                 trace_down(dir_map, accum_map, row, col, 1);
     }
 
@@ -102,7 +103,7 @@ static void trace_down(struct raster_map *dir_map, struct raster_map *accum_map,
     /* if the downstream cell is null or any upstream cells of the downstream
      * cell have never been visited, stop tracing down */
     if (row < 0 || row >= nrows || col < 0 || col >= ncols ||
-        DIR(row, col) == cell_null || !(up = UP(row, col)) ||
+        Rast_is_c_null_value(&DIR(row, col)) || !(up = UP(row, col)) ||
         !(accum_up = sum_up(accum_map, row, col, up)))
         return;
 
