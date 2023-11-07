@@ -173,14 +173,14 @@ def urlopen(url):
 
 def show_datasets(fs):
     datasets = query_datasets()
-    print(f"INDEX{fs}ID{fs}TAG")
+    print(f"index{fs}id{fs}tag")
     for i in range(len(datasets)):
         dataset = datasets[i]
         print(f"{i}{fs}{dataset['id']}{fs}{dataset['sbDatasetTag']}")
 
 
 def show_states(fs):
-    print(f"FIPS{fs}USPS{fs}NAME")
+    print(f"fips{fs}usps{fs}name")
     for state in states:
         print(f"{state['fips']}{fs}{state['usps']}{fs}{state['name']}")
 
