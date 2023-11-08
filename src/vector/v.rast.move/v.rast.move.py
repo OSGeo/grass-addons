@@ -20,6 +20,7 @@
 # % description: Move vertices by distance specified in a raster
 # % keyword: vector
 # % keyword: transformation
+# % keyword: geometry
 # % keyword: raster
 # % keyword: lines
 # %end
