@@ -177,8 +177,6 @@ int main(int argc, char *argv[])
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
 
-    Rast_set_c_null_value(&cell_null, 1);
-
     dir_map = G_malloc(sizeof *dir_map);
     dir_map->nrows = nrows;
     dir_map->ncols = ncols;
@@ -188,17 +186,17 @@ int main(int argc, char *argv[])
         Rast_get_c_row(dir_fd, dir_map->cells + ncols * row, row);
         if (dir_format == DIR_DEG) {
             for (col = 0; col < ncols; col++)
-                if (DIR(row, col) != cell_null)
+                if (!Rast_is_c_null_value(&DIR(row, col)))
                     DIR(row, col) = pow(2, abs(DIR(row, col) / 45.));
         }
         else if (dir_format == DIR_DEG45) {
             for (col = 0; col < ncols; col++)
-                if (DIR(row, col) != cell_null)
+                if (!Rast_is_c_null_value(&DIR(row, col)))
                     DIR(row, col) = pow(2, 8 - abs(DIR(row, col)));
         }
         else {
             for (col = 0; col < ncols; col++)
-                if (DIR(row, col) != cell_null)
+                if (!Rast_is_c_null_value(&DIR(row, col)))
                     DIR(row, col) = abs(DIR(row, col));
         }
     }
