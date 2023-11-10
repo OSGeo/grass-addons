@@ -63,7 +63,7 @@
 
 
 import os
-import grass.script as grass
+import grass.script as gs
 from grass.pygrass.modules.shortcuts import general as g
 from grass.pygrass.modules.shortcuts import raster as r
 
