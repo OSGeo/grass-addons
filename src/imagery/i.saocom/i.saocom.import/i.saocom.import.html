@@ -43,8 +43,8 @@ indicates the imported polarization, which for SAOCOM images can be any of ['hh'
 <h3>Import specific polarizations and apply multilooking</h3>
 
 <div class="code"><pre>
-zip_file = 'S1B_OPER_SAR_EOSSP__CORE_L1A_OLF_20211225T165228.zip'
-i.saocom.import data=zip_file is_zip ='yes' basename='SAO1B_20211222' pols=['hh','vv'] multilook=[4,2]
+zip_file = S1B_OPER_SAR_EOSSP__CORE_L1A_OLF_20211225T165228.zip
+i.saocom.import data=zip_file is_zip =yes basename=SAO1B_20211222 pols=hh,vv multilook=4,2
 </pre></div>
 
 The previous example will import only the <em>hh</em> and <em>vv</em> vv polarizations, and in case none of them are found the program will let the user know which are the available polarization channels in the dataset. The multilooking factor will be of 4 in azimuth direction and 2 in range direction.
