@@ -55,7 +55,7 @@
 # %end
 # %option
 # % key: std
-# % type: float
+# % type: double
 # % description: Standard deviation value in case gaussian filter is selected
 # % answer: 1
 # % required: no
