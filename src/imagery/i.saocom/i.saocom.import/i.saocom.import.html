@@ -33,8 +33,8 @@ grass -c XY saocom -e
 Then, run <em>i.saocom.import</em> from a zip file containing pols = ['hh','hv','vh','vv']:
 
 <div class="code"><pre>
-zip_file = 'S1B_OPER_SAR_EOSSP__CORE_L1A_OLF_20211225T165228.zip'
-i.saocom.import data=zip_file is_zip='yes' basename='SAO1B_20211222'
+zip_file = S1B_OPER_SAR_EOSSP__CORE_L1A_OLF_20211225T165228.zip
+i.saocom.import data=zip_file is_zip=yes basename=SAO1B_20211222
 </pre></div>
 
 The previous example will create two bands using the given <b>basename</b> as prefix: <em>SAO1B_20211222_[pol]_r</em> (real band) <em>SAO1B_20211222_[pol]_i</em> (imaginary band). <em>[pol]</em>
