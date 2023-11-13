@@ -50,9 +50,6 @@
 # % required: no
 # %end
 
-import subprocess
-import sys
-
 import grass.script as gs
 
 

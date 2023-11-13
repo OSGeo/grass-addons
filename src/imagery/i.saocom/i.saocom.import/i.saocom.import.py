@@ -73,7 +73,6 @@ from zipfile import ZipFile
 import rasterio
 from rasterio.mask import mask
 from rasterio.vrt import WarpedVRT
-import geopandas as gpd
 import numpy as np
 from xml.etree import ElementTree as ET
 from osgeo import gdal

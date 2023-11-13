@@ -47,7 +47,7 @@
 # % description: Whether the data directory is zipped or not. Only required if geocoding is to ble applied on the original files
 # %end
 # %option
-# % key: pols
+# % key: polarizations
 # % type: string
 # % required: no
 # % multiple: yes
@@ -89,15 +89,9 @@ import numpy as np
 import grass.script as gs
 from grass.pygrass.modules.shortcuts import general as g
 from grass.pygrass.modules.shortcuts import raster as r
-from zipfile import ZipFile
 import rasterio
-from rasterio.mask import mask
-from rasterio.vrt import WarpedVRT
-import geopandas as gpd
 import numpy as np
-from xml.etree import ElementTree as ET
 from osgeo import gdal
-from affine import Affine
 import pandas as pd
 import shutil
 from grass.exceptions import ParameterError
@@ -204,7 +198,7 @@ def main():
     input_map = options["map"]
     data = options["data"]
     zip_v = options["is_zip"]
-    pols = options["pols"]
+    pols = options["polarizations"]
     multilook = options["multilook"]
     basename = options["basename"]
     location = options["location"]

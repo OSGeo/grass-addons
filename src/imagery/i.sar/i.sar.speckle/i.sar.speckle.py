@@ -62,17 +62,17 @@
 # %end
 
 
-import os
+#import os
 import grass.script as gs
 import atexit
-from grass.pygrass.modules.shortcuts import general as g
+#from grass.pygrass.modules.shortcuts import general as g
 from grass.pygrass.modules.shortcuts import raster as r
 
 def remove(name):
     gs.run_command("g.remove", type="raster", name=name, flags="f", quiet=True, errors="ignore")
 
 def lee_filter(img, size, img_out):
-    pid = str(os.getpid())
+    #pid = str(os.getpid())
     # ~ img_mean = "tmp%s_img_mean" % pid
     # ~ img_sqr = "tmp%s_img_sqr" % pid
     # ~ img_sqr_mean = "tmp%s_img_sqr_mean" % pid
