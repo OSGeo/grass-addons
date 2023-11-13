@@ -2,6 +2,12 @@
 
 The <em>i.saocom.geocode</em> module allows the projection of SAOCOM-1 L1A raw or derived products from radar coordinates to a cartographic coordinate system (CS). This can be applied to bands imported by <em>i.saocom.import</em>, any raster map calculated from these inputs, or directly to the SAOCOM original files. The tool does not currently support the geocoding of image subsets, so the whole extent must be processed.
 
+<p>
+<center>
+<img src="saocomGeocodeWF.png" width="1100" height="600">
+<p><em>Graphical description of the workflow followed by <em>i.saocom.geocode</em></em>
+</center>
+
 <h2>NOTES</h2>
 
 When the tool is directly run on the original SAOCOM files, it will internally call <em>i.saocom.import</em> to import the real and imaginary bands to a temporary XY unprojected location. In this case the <b>data</b> option must be used. If the user wants to geocode already imported files, the <b>map</b> option must be specified. The tool will not allow the use of both options, either one of them must be selected.
