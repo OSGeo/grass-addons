@@ -7,7 +7,7 @@ These GeoTiff files are then imported to GRASS GIS using <em>r.import</em> and s
 associated to these files will be created within de <em>cell_misc</em> directory, in case the user performs later geocoding with <em>i.saocom.geocode</em>. This GCP information is extracted from the original SAOCOM-1 matrix using Python <em>rasterio</em> library and will account for any multilooking applied to the images.
 
 <p>
-By default <em>i.saocom.import</em> will process all the available polarizations, which can be selected with the <b>pols</b> option. 
+By default <em>i.saocom.import</em> will process all the available polarizations, which can be selected with the <b>polarizations</b> option. 
 The module assumes by default that the data is zipped but this can be changed with the <b>is_zip</b> option. The user can also apply a multilooking factor, which must be indicated as a list, followinf the order <em>[az_loos,rg_looks]</em>.
 By default no multilooking is applied. The module requires to specify a <b>basename</b> value which will be used as prefix for all the polarization bands to be imported. 
 
@@ -36,7 +36,7 @@ Firstly, an unprojected (XY) location must be created, the example below creates
 grass -c XY saocom -e
 </pre></div>
 
-Then, run <em>i.saocom.import</em> from a zip file containing pols = ['hh','hv','vh','vv']:
+Then, run <em>i.saocom.import</em> from a zip file containing polarizations = ['hh','hv','vh','vv']:
 
 <div class="code"><pre>
 zip_file = S1B_OPER_SAR_EOSSP__CORE_L1A_OLF_20211225T165228.zip
@@ -50,7 +50,7 @@ indicates the imported polarization, which for SAOCOM images can be any of ['hh'
 
 <div class="code"><pre>
 zip_file = S1B_OPER_SAR_EOSSP__CORE_L1A_OLF_20211225T165228.zip
-i.saocom.import data=zip_file is_zip =yes basename=SAO1B_20211222 pols=hh,vv multilook=4,2
+i.saocom.import data=zip_file is_zip =yes basename=SAO1B_20211222 polarizations=hh,vv multilook=4,2
 </pre></div>
 
 The previous example will import only the <em>hh</em> and <em>vv</em> vv polarizations, and in case none of them are found the program will let the user know which are the available polarization channels in the dataset. The multilooking factor will be of 4 in azimuth direction and 2 in range direction.

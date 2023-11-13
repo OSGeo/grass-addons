@@ -42,7 +42,7 @@
 # % description: Whether the data directory is zipped or not
 # %end
 # %option
-# % key: pols
+# % key: polarizations
 # % type: string
 # % required: yes
 # % multiple: yes
@@ -194,7 +194,7 @@ def main():
     data = options["data"]
     zip_v = options["is_zip"]
     basename = options["basename"]
-    pols = options["pols"]
+    pols = options["polarizations"]
     multilook = options["multilook"]
 
     if zip_v == "yes":
