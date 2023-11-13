@@ -99,8 +99,7 @@ def lee_filter(img, size, img_out):
     # Local variance
     r.mapcalc("%s = %s - (%s^2)" % (img_variance, img_sqr_mean, img_mean))
     # Overall variance
-    return_univar = gs.read_command("r.univar", map=img, flags="ge")
-    univar_stats = gs.parse_key_val(return_univar)
+    univar_stats = gs.parse_command("r.univar", map=img, flags="ge")
     overall_variance = univar_stats["variance"]
     # Weights
     r.mapcalc(
