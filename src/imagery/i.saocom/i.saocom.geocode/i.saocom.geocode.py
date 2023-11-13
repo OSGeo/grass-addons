@@ -86,7 +86,7 @@
 
 import os
 import numpy as np
-import grass.script as grass
+import grass.script as gs
 from grass.pygrass.modules.shortcuts import general as g
 from grass.pygrass.modules.shortcuts import raster as r
 from zipfile import ZipFile
@@ -152,7 +152,7 @@ def read_gcps(gcp_base_folder):
 
 def geocode_file(input_map, basename, outdir, output_map, format="GTiff"):
     # Write the map to Geotiff file
-    grass.run_command(
+    gs.run_command(
         "r.out.gdal",
         input=input_map,
         output=os.path.join(outdir, output_map),
@@ -162,7 +162,7 @@ def geocode_file(input_map, basename, outdir, output_map, format="GTiff"):
     ds = rasterio.open(os.path.join(outdir, output_map))
     ds = ds.read()[0]
     # Read the GCPS dataframe
-    env = grass.gisenv()
+    env = gs.gisenv()
     gcp_base_folder = os.path.join(
         env["GISDBASE"], env["LOCATION_NAME"], env["MAPSET"], "cell_misc", basename
     )
@@ -180,21 +180,21 @@ def export_to_location(outdir, location, input_map, int_map, env):
         f"gdalwarp {os.path.join(outdir,int_map)} {os.path.join(outdir,output_warp)}"
     )
 
-    grass.warning(_("Switching location"))
+    gs.warning(_("Switching location"))
 
     # Create the new location with EPSG:4326, in case it does not exist
     location_folder = env["GISDBASE"]
     out_location = os.path.join(location_folder, location)
     if not os.path.exists(out_location):
-        grass.create_location(
+        gs.create_location(
             env["GISDBASE"],
             location,
             epsg=4326,
             desc="Location created by i.saocom.geocode",
         )
 
-    grass.run_command("g.mapset", mapset="PERMANENT", location=location)
-    grass.run_command(
+    gs.run_command("g.mapset", mapset="PERMANENT", location=location)
+    gs.run_command(
         "r.import", input=os.path.join(outdir, output_warp), output=f"{input_map}"
     )
     os.remove(os.path.join(outdir, output_warp))
@@ -209,26 +209,26 @@ def main():
     basename = options["basename"]
     location = options["location"]
     outdir = options["dbase"]
-    env = grass.gisenv()
+    env = gs.gisenv()
 
     if not input_map and not data:
-        grass.fatal(_("Either one of input map or data folder/zip must be specified"))
+        gs.fatal(_("Either one of input map or data folder/zip must be specified"))
 
     if input_map and data:
-        grass.fatal(
+        gs.fatal(
             _("Either one of input map or data folder/zip must be specified, not both")
         )
 
     if not input_map and data:
         # Import real and imaginary bands to a temporary location and geocode them to external file
-        grass.message(_("Running i.saocom.import"))
-        grass.create_location(
+        gs.message(_("Running i.saocom.import"))
+        gs.create_location(
             env["GISDBASE"], f"{basename}_XY_tempLocation", overwrite=1
         )
-        grass.run_command(
+        gs.run_command(
             "g.mapset", mapset="PERMANENT", location=f"{basename}_XY_tempLocation"
         )
-        grass.run_command(
+        gs.run_command(
             "i.saocom.import",
             data=data,
             is_zip=zip_v,
@@ -237,11 +237,11 @@ def main():
             basename=basename,
         )
         # Get the list of maps to be geocoded
-        map_list = grass.list_grouped(type="raster", pattern=f"{basename}*")[
+        map_list = gs.list_grouped(type="raster", pattern=f"{basename}*")[
             "PERMANENT"
         ]
         for m in map_list:
-            grass.run_command("g.region", raster=m)
+            gs.run_command("g.region", raster=m)
             geocode_file(
                 input_map=m,
                 basename=basename,
@@ -260,18 +260,18 @@ def main():
             # Remove intermediate files
             os.remove(os.path.join(outdir, f"{m}.tif"))
             # Go back to temporary location to continue exporting
-            grass.run_command(
+            gs.run_command(
                 "g.mapset", mapset="PERMANENT", location=f"{basename}_XY_tempLocation"
             )
         # Go back to original location
-        grass.run_command(
+        gs.run_command(
             "g.mapset", mapset=env["MAPSET"], location=env["LOCATION_NAME"]
         )
         shutil.rmtree(os.path.join(env["GISDBASE"], f"{basename}_XY_tempLocation"))
 
     if input_map and not data:
         # Check if this an XY location
-        proj = grass.read_command("g.proj", flags="g").split("=")[1].split("\n")[0]
+        proj = gs.read_command("g.proj", flags="g").split("=")[1].split("\n")[0]
         if proj != "xy_location_unprojected":
             raise ValueError(
                 "Current location is not XY unprojected (radar coordinates)"
@@ -293,11 +293,11 @@ def main():
         # Remove intermediate files
         os.remove(os.path.join(outdir, f"{input_map}.tif"))
         # Go back to original location
-        grass.run_command(
+        gs.run_command(
             "g.mapset", mapset=env["MAPSET"], location=env["LOCATION_NAME"]
         )
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main()

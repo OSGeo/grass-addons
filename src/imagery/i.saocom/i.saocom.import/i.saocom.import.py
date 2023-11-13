@@ -66,7 +66,7 @@
 
 import os
 import numpy as np
-import grass.script as grass
+import grass.script as gs
 from grass.pygrass.modules.shortcuts import general as g
 from grass.pygrass.modules.shortcuts import raster as r
 from zipfile import ZipFile
@@ -176,7 +176,7 @@ def save_bands(bands, basename):
         # Change the band metadata:
         # Data type must be changed from complex to float
         bands[band]["metadata"]["dtype"] = np.float32
-        # The Y-resolution must be set to negative, otherwise GRASS will interpret the map is flipped
+        # The Y-resolution must be set to negative, otherwise gs.will interpret the map is flipped
         geoTs = bands[band]["metadata"]["transform"]
         bands[band]["metadata"]["transform"] = Affine(
             geoTs[0], geoTs[1], geoTs[2], geoTs[3], -geoTs[4], geoTs[5]
@@ -203,7 +203,7 @@ def main():
         bands, gcps, dataset_pols = read_bands_folder(data, pols)
 
     if len(bands) == 0 or len(gcps) == 0:
-        grass.fatal(
+        gs.fatal(
             _(
                 f"None of the specified polarizations were found in the dataset \n Please try one of the folowing: {dataset_pols}"
             )
@@ -220,11 +220,11 @@ def main():
 
         if multilook[0] != 1 or multilook[2] != 1:
             # ~ print(f'Appying ML factor: {multilook}')
-            grass.message(_(f"Appying ML factor: {multilook}"))
+            gs.message(_(f"Appying ML factor: {multilook}"))
             for band in bands:
                 dim = bands[band]["array"].shape
                 # ~ print('Original shape ', bands[band]['array'].shape)
-                grass.message(_(f"Original shape {dim}"))
+                gs.message(_(f"Original shape {dim}"))
                 ml_dic = apply_multilook(
                     bands[band], int(multilook[0]), int(multilook[2])
                 )
@@ -232,40 +232,40 @@ def main():
                 bands[band]["metadata"] = ml_dic["metadata"]
                 dim = bands[band]["array"].shape
                 # ~ print('Shape after ML', bands[band]['array'].shape)
-                grass.message(_(f"Shape after ML {dim}"))
+                gs.message(_(f"Shape after ML {dim}"))
             # Update GCP information
             # ~ print('Updating GCP information for later geocoding')
-            grass.message(_("Updating GCP information for later geocoding"))
+            gs.message(_("Updating GCP information for later geocoding"))
             df["row"] /= int(multilook[0])
             df["col"] /= int(multilook[2])
 
         # ~ print('Saving real and imaginary bands to intermediate GeoTiff outputs')
-        grass.message(
+        gs.message(
             _("Saving real and imaginary bands to intermediate GeoTiff outputs")
         )
         save_bands(bands, basename)
 
-        # ~ print('Reading real and imaginary bands into GRASS GIS, and cleaning intermediate files')
-        grass.message(
+        # ~ print('Reading real and imaginary bands into gs.GIS, and cleaning intermediate files')
+        gs.message(
             _(
-                "Reading real and imaginary bands into GRASS GIS, and cleaning intermediate files"
+                "Reading real and imaginary bands into gs.GIS, and cleaning intermediate files"
             )
         )
         for band in bands:
             input_r = f"{basename}_{band}_real.tif"
             input_i = f"{basename}_{band}_imag.tif"
-            grass.run_command(
+            gs.run_command(
                 "r.import", input=input_r, output=input_r.split(".tif")[0]
             )
-            grass.run_command(
+            gs.run_command(
                 "r.import", input=input_i, output=input_i.split(".tif")[0]
             )
             os.remove(input_r)
             os.remove(input_i)
 
         # ~ print('Saving GCP information as support file')
-        grass.message(_("Saving GCP information as support file"))
-        env = grass.gisenv()
+        gs.message(_("Saving GCP information as support file"))
+        env = gs.gisenv()
         gcp_base_folder = os.path.join(
             env["GISDBASE"], env["LOCATION_NAME"], env["MAPSET"], "cell_misc", basename
         )
@@ -275,5 +275,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main()
