@@ -2,7 +2,7 @@
 
 ############################################################################
 #
-# MODULE:	i.sar.saocomSLC
+# MODULE:	i.sar.paulirgb
 #
 # AUTHOR:   Santiago Seppi
 #
