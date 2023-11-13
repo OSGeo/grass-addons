@@ -3,7 +3,7 @@ MODULE_TOPDIR =../..
 PGM = i.sar
 
 SUBDIRS = i.sar.amplitude \
-        i.sar.pauliRGB \
+        i.sar.paulirgb \
         i.sar.speckle \
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make

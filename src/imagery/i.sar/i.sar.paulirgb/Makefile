@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = i.sar.pauliRGB
+PGM = i.sar.paulirgb
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 
