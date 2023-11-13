@@ -87,14 +87,11 @@
 import os
 import numpy as np
 import grass.script as gs
-from grass.pygrass.modules.shortcuts import general as g
-from grass.pygrass.modules.shortcuts import raster as r
 import rasterio
 import numpy as np
 from osgeo import gdal
 import pandas as pd
 import shutil
-from grass.exceptions import ParameterError
 
 
 def save_GeoTiff(fn, crs, transform, mat, meta=None, nodata=None, bandnames=[]):

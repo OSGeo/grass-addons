@@ -67,14 +67,9 @@
 import os
 import numpy as np
 import grass.script as gs
-from grass.pygrass.modules.shortcuts import general as g
-from grass.pygrass.modules.shortcuts import raster as r
 from zipfile import ZipFile
 import rasterio
-from rasterio.mask import mask
-from rasterio.vrt import WarpedVRT
 import numpy as np
-from xml.etree import ElementTree as ET
 from osgeo import gdal
 from affine import Affine
 import pandas as pd
@@ -97,8 +92,6 @@ def apply_multilook(dataset, azLooks, rgLooks):
     multilook y los metadatos actualizados
     """
 
-    import numpy as np
-    from rasterio import Affine
 
     array = dataset["array"].copy()
     metadata = dataset["metadata"].copy()
