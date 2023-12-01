@@ -184,7 +184,7 @@ COPYRIGHT:    (C) 2018-2023 by Roberta Fagandini, and the GRASS Development Team
 # %rules
 # % collective: blue,green,red,nir,nir8a,swir11,swir12
 # % excludes: mtd_file,metadata,sun_position
-# % required: cloud_mask,cloud_raster,shadow_mask,shadow_raster
+# % required: cloud_mask,cloud_raster,shadow_mask,shadow_raster,output
 # % excludes: -c,shadow_mask,shadow_raster
 # % required: input_file,blue,green,red,nir,nir8a,swir11,swir12,mtd_file
 # % requires: output,mtd_file,metadata,input_file,sun_position
@@ -741,11 +741,16 @@ def main():
         gs.mapcalc(
             f"{output}=if(isnull({clouds}),if(isnull({TMP_NAME}_selected),0,if(isnull({dark_pixels}),0,2)),1)"
         )
+        gs.write_command(
+            "r.category",
+            map=output,
+            rules="-",
+            stdin="0\tNo clouds\n1\tCloud\n2\tCloud shadow\n",
+        )
         gs.raster_history(output, overwrite=True)
 
     if options["shadow_raster"] or options["shadow_mask"]:
         if gs.raster_info(f"{TMP_NAME}_selected")["max"] is None:
-            print(gs.raster_info(f"{TMP_NAME}_selected")["max"])
             gs.warning(_("No shadows have been detected"))
             create_empty_maps(options, map_keys=["shadow_raster"])
         gs.mapcalc(
