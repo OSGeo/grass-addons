@@ -17,6 +17,7 @@ void accumulate_recursive(struct cell_map *dir_buf,
     ncols = dir_buf->ncols;
 
     G_message(_("Accumulating flows recursively..."));
+#pragma omp parallel for schedule(dynamic) private(col)
     for (row = 0; row < nrows; row++) {
         G_percent(row, nrows, 1);
         for (col = 0; col < ncols; col++)

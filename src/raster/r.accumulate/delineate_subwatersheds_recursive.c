@@ -66,6 +66,7 @@ void delineate_subwatersheds_recursive(struct cell_map *dir_buf, char **done,
     G_percent(1, 1, 1);
 
     G_message(_("Nullifying cells outside subwatersheds..."));
+#pragma omp parallel for schedule(dynamic) private(col)
     for (i = 0; i < nrows; i++) {
         G_percent(i, nrows, 1);
         for (j = 0; j < ncols; j++)

@@ -20,6 +20,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <grass/gis.h>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 #include <grass/raster.h>
 #include <grass/vector.h>
 #include <grass/dbmi.h>
@@ -29,6 +32,8 @@
 #define DIR_UNKNOWN 0
 #define DIR_DEG     1
 #define DIR_DEG45   2
+
+
 
 int main(int argc, char *argv[])
 {
@@ -63,6 +68,9 @@ int main(int argc, char *argv[])
     char *dir_name, *weight_name, *input_accum_name, *input_subaccum_name,
         *accum_name, *subaccum_name, *subwshed_name, *stream_name, *outlet_name,
         *lfp_name;
+#ifdef _OPENMP
+    int nprocs;
+#endif
     int dir_fd;
     unsigned char dir_format;
     double thresh;
@@ -133,7 +141,12 @@ int main(int argc, char *argv[])
     opt.accum->type = TYPE_STRING;
     opt.accum->description =
         _("Name for output weighted flow accumulation map");
-
+#ifdef _OPENMP
+    opt.nprocs = G_define_standard_option(G_OPT_M_NPROCS);
+    opt.nprocs->label = opt.nprocs->description;
+    opt.nprocs->description = _("0 to use OMP_NUM_THREADS");
+    opt.nprocs->answer = "0";
+#endif
     opt.subaccum = G_define_standard_option(G_OPT_R_OUTPUT);
     opt.subaccum->key = "subaccumulation";
     opt.subaccum->required = NO;
@@ -278,7 +291,18 @@ int main(int argc, char *argv[])
 
     if (G_parser(argc, argv))
         exit(EXIT_FAILURE);
+#ifdef _OPENMP
+    nprocs = atoi(opt.nprocs->answer);
+    if (nprocs < 0)
+        G_fatal_error(_("<%s> must be >= 0"), opt.nprocs->key);
 
+    if (nprocs >= 1)
+        omp_set_num_threads(nprocs);
+    nprocs = omp_get_max_threads();
+    G_message(n_("Using %d thread for serial computation",
+                 "Using %d threads for parallel computation", nprocs),
+              nprocs);
+#endif
     dir_name = opt.dir->answer;
     weight_name = opt.weight->answer;
     input_accum_name = opt.input_accum->answer;
