@@ -2,6 +2,7 @@
 """
 MODULE:       i.sentinel.mask
 AUTHOR(S):    Roberta Fagandini, Moritz Lennert, Roberto Marzocchi
+              Stefan Blumentrath (raster based cloud shadow identification)
 PURPOSE:      Creates clouds and shadows masks for Sentinel-2 images
 COPYRIGHT:    (C) 2018-2023 by Roberta Fagandini, and the GRASS Development Team
               This program is free software under the GNU General Public
