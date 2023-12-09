@@ -22,12 +22,12 @@
 # - generates the pyGRASS 7 HTML manual
 # - generates the user 7 HTML manuals
 # - injects DuckDuckGo search field
-# - injects G8 new version box
+# - injects G8 is the new version box
 # - injects canonical URL
 
 # Preparations:
 #  - Install PROJ
-#  - Install GDAL: http://trac.osgeo.org/gdal/wiki/DownloadSource
+#  - Install GDAL
 #  - Install apt-get install texlive-latex-extra python3-sphinxcontrib.apidoc
 #  - Clone source from github
 #################################
@@ -59,7 +59,8 @@ GRASSBUILDDIR=$SOURCE/$BRANCH
 TARGETMAIN=/var/www/code_and_data
 TARGETDIR=$TARGETMAIN/grass${VERSION}/binary/linux/snapshot
 TARGETHTMLDIR=$TARGETMAIN/grass${VERSION}/manuals/
-# programmer's manual is only built from the relbranch_8_0
+# progman not built for older dev versions or old stable, only for preview
+#TARGETPROGMAN=$TARGETMAIN/programming${GVERSION}
 
 MYBIN=$MAINDIR/binaries
 
@@ -82,6 +83,11 @@ configure_grass()
 # which package?
 #   --with-mysql --with-mysql-includes=/usr/include/mysql --with-mysql-libs=/usr/lib/mysql \
 
+# cleanup
+rm -f config_$GMAJOR.$GMINOR.git_log.txt
+
+# reset i18N POT files to git, just to be sure
+git checkout locale/templates/*.pot
 
 CFLAGS=$CFLAGSSTRING LDFLAGS=$LDFLAGSSTRING ./configure \
   --with-cxx \
@@ -187,12 +193,7 @@ cp -p AUTHORS CHANGES CITING COPYING GPL.TXT INSTALL REQUIREMENTS.html $TARGETDI
 # clean wxGUI sphinx manual etc
 (cd $GRASSBUILDDIR/ ; $MYMAKE cleansphinx)
 
-##### generate i18N POT files, needed for https://www.transifex.com/grass-gis/
-(cd locale ;
-$MYMAKE pot
-mkdir -p $TARGETDIR/transifex/
-cp templates/*.pot $TARGETDIR/transifex/
-)
+# note: the gettext POT files are managed in git and OSGeo Weblate
 
 ##### generate i18N stats for HTML page path (WebSVN):
 ## Structure:  grasslibs_ar.po 144 translated messages 326 fuzzy translations 463 untranslated messages.
@@ -298,9 +299,9 @@ export VERSION_NUMBER=$DOTVERSION
 python3 $GRASSBUILDDIR/man/build_keywords.py $TARGETHTMLDIR/ $TARGETHTMLDIR/addons/
 unset ARCH ARCH_DISTDIR GISBASE VERSION_NUMBER
 
-# canonical: once again after addon manual (re)creation, only where missing
 # SEO: inject canonical link in all (old) manual pages to point to latest stable (avoid duplicate content SEO punishment)
 # see https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls
+# canonical: once again after addon manual (re)creation, only where missing
 (cd $TARGETHTMLDIR/ ; for myfile in `grep -L 'link rel="canonical"' *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass82/manuals/$myfile\">\n</head>:g" $myfile ; done)
 (cd $TARGETHTMLDIR/addons/ ; for myfile in `grep -L 'link rel="canonical"' *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass82/manuals/addons/$myfile\">\n</head>:g" $myfile ; done)
 (cd $TARGETHTMLDIR/libpython/ ; for myfile in `grep -L 'link rel="canonical"' *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass82/manuals/libpython/$myfile\">\n</head>:g" $myfile ; done)
@@ -316,6 +317,7 @@ python3 $HOME/src/grass$GMAJOR-addons/utils/create_manuals_sitemap.py --dir=/var
 # cleanup
 cd $GRASSBUILDDIR
 $MYMAKE distclean  > /dev/null || (echo "$0: an error occurred" ; exit 1)
+rm -rf lib/html/ lib/latex/
 
 echo "Finished GRASS $VERSION $ARCH compilation."
 echo "Written to: $TARGETDIR"
