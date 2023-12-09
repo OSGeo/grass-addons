@@ -3,90 +3,134 @@
 <p>
 <em>v.scatterplot</em> draws a scatterplot of the value in one 
 column against the values in another column. Optionally, a linear or 
-polynomial trendline with user-defined degrees can be drawn on top.
+polynomial trend line with user-defined degrees can be drawn on top.
 
 <p>
 There are a few additional layout options, including the option to 
 set the color of the dots, the color, line type, and width of the 
-trendline, and the font size of the axis and tic labels.
+Trend line, and the font size of the axis and tic labels.
 
 <p>
-Instead of a fixed color, dots can be colored by the spatial 
-density of nearby points, using the option <em>type=density</em>. The 
-spatial density is computed by grouping the points in 2D bins. The 
-number of bins along the x-axis and y-axis is user-defined.
+Instead of a fixed color, dots can be colored using colors from a 
+user-defined column, or by the spatial density of nearby points, using 
+the option <em>type=density</em>. The spatial density is computed by 
+grouping the points in 2D bins. The number of bins along the x-axis and 
+y-axis is user-defined.
 
 <p>
 By default, the resulting plot is displayed on screen (default). 
 However, the user can also save the plot to a file using the 
 <em>file_name</em> option. The format is determined by the extension 
 given by the user. So, if file_name = outputfile.png, the plot will be 
-saved as a png file.
+saved as a PNG file.
 
-<h2>EXAMPLE</h2>
+<h2>EXAMPLES</h2>
 
 <h3>Example 1</h3>
 
-Download the NC sample dataset and MODIS Land 
-Surface Temperature mapset from <a 
-href="https://grass.osgeo.org/download/data/">GRASS GIS website</a>
+<p>
+For the examples below, the NCA sample data set from <a 
+href="https://grass.osgeo.org/download/data/">GRASS GIS website</a> 
+will be used
+
+<p> Create a new mapset and Use the layer 
+<i>lsat7_2002_10@PERMANENT</i> to set the region.
+
+<div class="code"><pre>
+g.mapset -c mapset=scatterplot
+g.region raster=lsat7_2002_10@PERMANENT
+</pre>
+</div>
 
 <p>
-Use the raster layers <em>elev_state_500m</em> from the PERMANENT 
-mapset of the NC sample dataset to set the region and mask.
+Get the list of Landsat layers from the Permanent mapset. Use this as 
+input for <em>i.pca</em> to create principal component layers.
 
 <div class="code"><pre>
-g.region raster=slope
-r.mask raster=elev_state_500m
+lcc=`g.list type="raster" mapset="PERMANENT" pattern="lsat7_*" sep=,`
+i.pca -n input=$lcc output=pca rescale=0,100
 </pre>
 </div>
 
-Create a vector point layer with 1000 random points. Add an attribute 
-table with two columns <em>slope</em> and <em>elevation</em>
+<p>
+Create 5000 random points, retrieve the raster value from the first two 
+PCA layers for each point location of the random points, and write 
+these values to the columns <i>pca_1</i> and <i>pca_2</i> in the 
+attribute table of <i>randompoints</i>.
 
 <div class="code"><pre>
-r.random input=elev_state_500m npoints=1000 vector=randompoints seed=10
+r.random input=elevation npoints=5000 vector=randompoints seed=10
+v.what.rast map=randompoints raster=pca.1 column=pca_1
+v.what.rast map=randompoints raster=pca.2 column=pca_2
 </pre>
 </div>
 
-Sample the raster values of the raster layers <em>elev_state_500m</em> 
-from the PERMANENT MAPSET and 
-<em>MOD11B3.A2016336.h11v05.single_LST_Day_6km</em> from the modis_lst 
-mapset.
+<p>
+Create a scatterplot, plotting the values from the column 
+<i>pca_1</i> on the X-axis and <i>pca_2</i> on the Y-asix, with 
+blue dots.
 
 <div class="code"><pre>
-v.what.rast map=randompoints raster=elev_state_500m column=elevation
-v.what.rast map=randompoints raster=MOD11B3.A2016336.h11v05.single_LST_Day_6km@modis_lst column=temperature
-</pre>
-</div>
-
-Draw a scatterplot of the elevation values against the slope values.
-
-<div class="code"><pre>
-v.scatterplot map=randompoints x=elevation y=temperature
+v.scatterplot map=randompoints x=pca_1 y=pca_2 color=blue
 </pre>
 </div>
 
 <p>
 <img src="v_scatterplot_01.png"><br> <em>Figure 1. Scatterplot of 
-elevation against temperature in 1000 randomly selected locations</em>
+pca_1 against pca_1</em>
 
-Draw a density scatter of the elevation values against the slope 
-values. Add a dashed linear trendline with a red color.
+
+<h3>Example 2</h3>
+
+<p>
+Create a density scatter of the values from <i>pca_1</i> and 
+<i>pca_2</i>. Add a red dashed polynomial trend line with degree 2.
 
 <div class="code"><pre>
-v.scatterplot map=randompoints x=elevation y=temperature \
-              line_color=252:0:0:255 type=density bins=10,10 \
-              trendline=linear
+v.scatterplot map=randompoints x=pca_1 y=pca_2 trendline=polynomial \
+              degree=2 line_color=red type=density bins=10,10
 </pre>
 </div>
 
 <p>
-<img src="v_scatterplot_02.png"><br> <em>Figure 1. Density 
-scatterplot of elevation against temperature in 1000 randomly selected 
-locations. Dashed red line is the trendline.</em>
+<img src="v_scatterplot_02.png"><br> <em>Figure 2. Density scatterplot
+of pca_1 against pca_1</em>. The dashed red line gives the polynomial trend line (R&sup2;=0.149)
 
+<h3>Example 3</h3>
+
+<p>
+Retrieves raster value from the raster layer <i>landclass96</i>, 
+and write these values to the column <i>landuse</i> in the attribute 
+table of <i>randompoints</i>. Next, transfer the raster colors of the 
+raster layer <i>landclass96</i> to the new column <i>RGB</i> of the 
+attribute table of <i>randompoints</i>.
+
+
+<div class="code"><pre>
+v.what.rast map=randompoints raster=landclass96 column=landuse
+v.colors map=randompoints use=attr column=landuse \
+         raster=landclass96@PERMANENT rgb_column=RGB
+</pre>
+</div>
+
+<p>
+Create a scatterplot, using the colors from the RGB column. Set the 
+size of the dots to 8.
+
+<div class="code"><pre>
+v.scatterplot map=randompoints x=pca_1 y=pca_2 s=8 rgbcolumn=RGB
+</pre>
+</div>
+
+<p>
+<img src="v_scatterplot_03.png"><br> <em>Figure 3. Scatterplot of 
+pca_1 against pca_1. Colors represent the land use categories in the 
+point locations based on the landclass96 map.</em>
 
 <h2>AUTHOR</h2>
 
-Paulo van Breugel
+Paulo van Breugel 
+Applied Geo-information Sciences
+HAS green academy, University of Applied Sciences
+
+
