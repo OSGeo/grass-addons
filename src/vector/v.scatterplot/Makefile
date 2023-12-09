@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = d.vect.scatter
+PGM = v.scatterplot
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 
