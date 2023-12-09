@@ -1,0 +1,92 @@
+<h2>DESCRIPTION</h2>
+
+<p>
+<em>d.vect.scatter</em> draws a scatterplot of the value in one 
+column against the values in another column. Optionally, a linear or 
+polynomial trendline with user-defined degrees can be drawn on top.
+
+<p>
+There are a few additional layout options, including the option to 
+set the color of the dots, the color, line type, and width of the 
+trendline, and the font size of the axis and tic labels.
+
+<p>
+Instead of a fixed color, dots can be colored by the spatial 
+density of nearby points, using the option <em>type=density</em>. The 
+spatial density is computed by grouping the points in 2D bins. The 
+number of bins along the x-axis and y-axis is user-defined.
+
+<p>
+By default, the resulting plot is displayed on screen (default). 
+However, the user can also save the plot to a file using the 
+<em>file_name</em> option. The format is determined by the extension 
+given by the user. So, if file_name = outputfile.png, the plot will be 
+saved as a png file.
+
+<h2>EXAMPLE</h2>
+
+<h3>Example 1</h3>
+
+Download the NC sample dataset and MODIS Land 
+Surface Temperature mapset from <a 
+href="https://grass.osgeo.org/download/data/">GRASS GIS website</a>
+
+<p>
+Use the raster layers <em>elev_state_500m</em> from the PERMANENT 
+mapset of the NC sample dataset to set the region and mask.
+
+<div class="code"><pre>
+g.region raster=slope
+r.mask raster=elev_state_500m
+</pre>
+</div>
+
+Create a vector point layer with 1000 random points. Add an attribute 
+table with two columns <em>slope</em> and <em>elevation</em>
+
+<div class="code"><pre>
+r.random input=elev_state_500m npoints=1000 vector=randompoints seed=10
+</pre>
+</div>
+
+Sample the raster values of the raster layers <em>elev_state_500m</em> 
+from the PERMANENT MAPSET and 
+<em>MOD11B3.A2016336.h11v05.single_LST_Day_6km</em> from the modis_lst 
+mapset.
+
+<div class="code"><pre>
+v.what.rast map=randompoints raster=elev_state_500m column=elevation
+v.what.rast map=randompoints raster=MOD11B3.A2016336.h11v05.single_LST_Day_6km@modis_lst column=temperature
+</pre>
+</div>
+
+Draw a scatterplot of the elevation values against the slope values.
+
+<div class="code"><pre>
+v.scatterplot map=randompoints x=elevation y=temperature
+</pre>
+</div>
+
+<p>
+<img src="d_vect_scatter_01.png"><br> <em>Figure 1. Scatterplot of 
+elevation against temperature in 1000 randomly selected locations</em>
+
+Draw a density scatter of the elevation values against the slope 
+values. Add a dashed linear trendline with a red color.
+
+<div class="code"><pre>
+v.scatterplot map=randompoints x=elevation y=temperature \
+              line_color=252:0:0:255 type=density bins=10,10 \
+              trendline=linear
+</pre>
+</div>
+
+<p>
+<img src="d_vect_scatter_02.png"><br> <em>Figure 1. Density 
+scatterplot of elevation against temperature in 1000 randomly selected 
+locations. Dashed red line is the trendline.</em>
+
+
+<h2>AUTHOR</h2>
+
+Paulo van Breugel
