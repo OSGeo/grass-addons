@@ -12,16 +12,15 @@
 # - configures, compiles
 # - packages the binaries
 # - generated the install scripts
-# - generates the programmer's 8 HTML manual
 # - generates the pyGRASS 8 HTML manual
 # - generates the user 8 HTML manuals
 # - injects DuckDuckGo search field
-# - injects G8 new version box
+# - injects G8 is the new version box
 # - injects canonical URL
 
 # Preparations, on server:
 #  - Install PROJ incl Datum shift grids
-#  - Install GDAL:
+#  - Install GDAL
 #  - Install apt-get install texlive-latex-extra python3-sphinxcontrib.apidoc
 #  - Clone source from github:
 #    mkdir -p ~/src ; cd ~/src
@@ -34,7 +33,7 @@
 #    cd /var/www/html/
 #    ln -s /var/www/code_and_data/grass82 .
 #
-##########################################
+#################################
 PATH=/home/neteler/binaries/bin:/usr/bin:/bin:/usr/X11R6/bin:/usr/local/bin
 
 GMAJOR=8
@@ -63,8 +62,9 @@ GRASSBUILDDIR=$SOURCE/$BRANCH
 TARGETMAIN=/var/www/code_and_data
 TARGETDIR=$TARGETMAIN/grass${VERSION}/binary/linux/snapshot
 TARGETHTMLDIR=$TARGETMAIN/grass${VERSION}/manuals/
-# not built for dev version or old stable
-## TARGETPROGMAN=$TARGETMAIN/programming${GVERSION}
+
+# progman not built for older dev versions or old stable, only for preview
+#TARGETPROGMAN=$TARGETMAIN/programming${GVERSION}
 
 MYBIN=$MAINDIR/binaries
 
@@ -205,6 +205,7 @@ $MYMAKE htmldocs-single || (echo "$0 htmldocs-single: an error occurred" ; exit 
 
 cd $GRASSBUILDDIR/
 
+#### unused, only done in "preview" script
 ## clean old TARGETPROGMAN stuff from last run
 #if  [ -z "$TARGETPROGMAN" ] ; then
 # echo "\$TARGETPROGMAN undefined, error!"
@@ -223,7 +224,7 @@ cd $GRASSBUILDDIR/
 #chmod -R a+r,g+w $TARGETPROGMAN/*
 ## bug in doxygen
 #(cd $TARGETPROGMAN/ ; ln -s index.html main.html)
-
+#### end unused
 
 # note: from G82+ onwards the gettext POT files are managed in git and OSGeo Weblate
 
@@ -350,7 +351,7 @@ echo "Finished GRASS $VERSION $ARCH compilation."
 echo "Written to: $TARGETDIR"
 echo "Copied HTML ${GVERSION} manual to https://grass.osgeo.org/grass${VERSION}/manuals/"
 echo "Copied pygrass progman ${GVERSION} to https://grass.osgeo.org/grass${VERSION}/manuals/libpython/"
-#echo "Copied HTML ${GVERSION} progman to https://grass.osgeo.org/programming${GVERSION}"
+## echo "Copied HTML ${GVERSION} progman to https://grass.osgeo.org/programming${GVERSION}"
 echo "Copied Addons ${GVERSION} to https://grass.osgeo.org/grass${VERSION}/manuals/addons/"
 
 exit 0
