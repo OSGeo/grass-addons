@@ -54,6 +54,47 @@
 # %end
 
 # %option
+# % key: type
+# % type: string
+# % label: plot type
+# % description: Type of plot (scatter, density)
+# % required: no
+# % answer: scatter
+# % options: scatter, density
+# % guisection: Stats
+# %end
+
+# %option
+# % key: bins
+# % type: string
+# % label: 2D bins
+# % description: The number of bins in x and y dimension.
+# % required: no
+# % answer: 30,30
+# % guisection: Stats
+# %end
+
+# %option
+# % key: trendline
+# % type: string
+# % label: Trendline
+# % description: Plot trendline
+# % required: no
+# % options: linear, polynomial
+# % guisection: Stats
+# %end
+
+# %option
+# % key: degree
+# % type: integer
+# % label: Degree
+# % description: Degree polynomial trendline
+# % required: no
+# % answer: 1
+# % guisection: Stats
+# %end
+
+# %option
 # % key: title
 # % type: string
 # % label: Plot title
@@ -72,14 +113,35 @@
 # % guisection: Aesthetics
 # %end
 
+# %option
+# % key: s
+# % type: double
+# % label: Marker size
+# % description: Set marker size
+# % required: no
+# % guisection: Aesthetics
+# %end
+
 # %option G_OPT_C
 # % key: color
 # % type: string
 # % label: Dot color
 # % description: Color of dots
 # % required: no
-# % answer: blue
 # % guisection: Aesthetics
+# %end
+
+# %option G_OPT_DB_COLUMN
+# % key: rgbcolumn
+# % type: string
+# % label: RGB column
+# % description: Column with RGB values defining the dot colors
+# % required: no
+# % guisection: Aesthetics
+# %end
+
+# %rules
+# % exclusive: color,rgbcolumn
 # %end
 
 # %option G_OPT_C
@@ -142,47 +204,6 @@
 # % guisection: Output
 # %end
 
-# %option
-# % key: type
-# % type: string
-# % label: plot type
-# % description: Type of plot (scatter, density)
-# % required: no
-# % answer: scatter
-# % options: scatter, density
-# % guisection: Stats
-# %end
-
-# %option
-# % key: bins
-# % type: string
-# % label: 2D bins
-# % description: The number of bins in x and y dimension.
-# % required: no
-# % answer: 30,30
-# % guisection: Stats
-# %end
-
-# %option
-# % key: trendline
-# % type: string
-# % label: Trendline
-# % description: Plot trendline
-# % required: no
-# % options: linear, polynomial
-# % guisection: Stats
-# %end
-
-# %option
-# % key: degree
-# % type: integer
-# % label: Degree
-# % description: Degree polynomial trendline
-# % required: no
-# % answer: 1
-# % guisection: Stats
-# %end
-
 import atexit
 import sys
 import uuid
@@ -242,7 +263,7 @@ def lazy_import_scipy():
         return "noscipy"
 
 
-def scatter_plot(X, Y, X_name, Y_name, title, color, marker, dimensions, fontsize):
+def scatter_plot(X, Y, X_name, Y_name, title, color, marker, s, dimensions, fontsize):
     """
     Create scatterplot
 
@@ -253,6 +274,7 @@ def scatter_plot(X, Y, X_name, Y_name, title, color, marker, dimensions, fontsiz
     :param str title: label for plot title (empty is not title)
     :param str color: color of the dots in the scatterplot
     :param str marker: the mark type for the scatterplot dots
+    :param float s: size of marker
     :param list dimensions: plot dimensions (width, height)
     :param float fontsize: fontsize of all text (tic labes are 1pnt smaller)
 
@@ -263,7 +285,10 @@ def scatter_plot(X, Y, X_name, Y_name, title, color, marker, dimensions, fontsiz
     plt.rcParams["font.size"] = fontsize
     for label in ax.get_xticklabels() + ax.get_yticklabels():
         label.set_fontsize(fontsize - 1)
-    ax.scatter(X, Y, color=color, marker=marker)
+    if s:
+        ax.scatter(X, Y, color=color, marker=marker, s=s)
+    else:
+        ax.scatter(X, Y, color=color, marker=marker)
     plt.xlabel(X_name, fontsize=fontsize)
     plt.ylabel(Y_name, fontsize=fontsize)
     if len(title) != 0:
@@ -327,7 +352,7 @@ def main(options, flags):
     Optionally, color the dots according to their density
     """
 
-    # lazy import matplotlib
+    # lazy import modules
     lazy_import_matplotlib()
     if options["type"] == "density":
         has_scipy = lazy_import_scipy()
@@ -351,11 +376,26 @@ def main(options, flags):
     plot_title = options["title"]
     file_name = options["file_name"]
     bins = [int(x) for x in options["bins"].split(",")]
-    dot_color = get_valid_color(options["color"])
+    if options["rgbcolumn"]:
+        rgbcolumn = gs.read_command(
+            "v.db.select",
+            map=options["map"],
+            columns=options["rgbcolumn"],
+            flags="c",
+        ).splitlines()
+        dot_color = [get_valid_color(x) for x in rgbcolumn]
+    elif options["color"]:
+        dot_color = get_valid_color(options["color"])
+    else:
+        dot_color = get_valid_color("blue")
     line_color = get_valid_color(options["line_color"])
     line_style = options["line_style"]
     line_width = options["line_width"]
     dot_marker = options["marker"]
+    if options["s"]:
+        s = float(options["s"])
+    else:
+        s = False
 
     # Plot scatterplot
     if options["type"] == "scatter":
@@ -367,6 +407,7 @@ def main(options, flags):
             title=plot_title,
             color=dot_color,
             marker=dot_marker,
+            s=s,
             dimensions=plot_dimensions,
             fontsize=float(options["fontsize"]),
         )
