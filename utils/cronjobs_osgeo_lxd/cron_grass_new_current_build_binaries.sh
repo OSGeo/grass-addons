@@ -108,7 +108,6 @@ CFLAGS=$CFLAGSSTRING LDFLAGS=$LDFLAGSSTRING ./configure \
   --with-blas --with-blas-includes=/usr/include/atlas/ \
   --with-lapack --with-lapack-includes=/usr/include/atlas/ \
   --with-zstd \
-  --with-liblas \
   2>&1 | tee config_$DOTVERSION.git_log.txt
 
  if [ $? -ne 0 ] ; then
