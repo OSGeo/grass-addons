@@ -36,12 +36,12 @@ plotted on top of the scatterplot, following the method described <a
 href="https://carstenschelp.github.io/2018/09/14/Plot_Confidence_Ellipse_001.html">here</a>, 
 and using the code described <a 
 href="https://matplotlib.org/stable/gallery/statistics/confidence_ellipse.html">here</a>. 
-The radiuses of the ellipse can be controlled by n_std which is the 
-number of standard deviations. The default is 2 stdv, which results in 
-an ellipse that encloses around 95% of the points. Optionally, separate 
+The radius of the ellipse can be controlled by n_sd which is the number 
+of standard deviations (SD). The default is 2 SD, which results in an 
+ellipse that encloses around 95% of the points. Optionally, separate 
 confidence ellipses can be drawn for groups defined in the column 
 <i>groups</i>. Groups can be assigned a random color, or a color based 
-on the rgb colors in an user-defined column. Note, all records in the 
+on the RGB colors in a user-defined column. Note, all records in the 
 group should have the same color.
 
 <p>
@@ -156,7 +156,7 @@ point locations based on the landclass96 map.</em>
 <h3>Example 4</h3>
 
 <p>
-Rename the pca layers to remove the dots from the name. Next, use the 
+Rename the PCA layers to remove the dots from the name. Next, use the 
 <a 
 href="https://grass.osgeo.org/grass82/manuals/addons/v.what.rast.label.html">v.what.rast.label</a> 
 addon to sample the values of the raster layers <i>pca.1</i> and 
@@ -176,7 +176,7 @@ v.colors map=randompoints2 use=attr column=landclass96_ID \
 <p>
 Extract the points with the categories forest (5), water (6) and 
 developed (1). Create a scatterplot of pca_1 against pca_2 and add the 
-2 stdv confidence ellipse of the covariance of the two variables for 
+2 SD confidence ellipse of the covariance of the two variables for 
 each of the land use categories, coloring both the dots and ellipses 
 using the landclass colors.
 
@@ -191,7 +191,7 @@ v.scatterplot -e map=forwatdev x=pca_1 y=pca_2 rgbcolumn=RGB s=5  \
 
 <p>
 <img src="v_scatterplot_04.png"><br> <em>Figure 4. Scatterplot with 
-confidence ellipses per land class. Radius of the ellipses is 2 standard deviations.</em>
+confidence ellipses per land class. The radius of the ellipses is 2 SD.</em>
 
 
 <h2>AUTHOR</h2>

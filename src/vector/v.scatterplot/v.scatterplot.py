@@ -229,10 +229,10 @@
 # % end
 
 # %option
-# % key: n_std
+# % key: n_sd
 # % type: string
 # % label: standard deviations
-# % description: Draw the covariance confidence ellipse(s) with radius of n standard deviations (n_std).
+# % description: Draw the covariance confidence ellipse(s) with radius of n standard deviations (n_sd).
 # % answer: 2
 # % guisection: Ellipse
 # %end
@@ -501,14 +501,14 @@ def density_scatter(
     return ax, fig
 
 
-def confidence_ellipse(x, y, ax, n_std, facecolor="none", **kwargs):
+def confidence_ellipse(x, y, ax, n_sd, facecolor="none", **kwargs):
     """
     Create a plot of the covariance confidence ellipse of *x* and *y*.
 
     :param array x: input data x-axis.
     :param array y: input data y-axis.
     :param matplotlib.axes.Axes ax: The axes object to draw the ellipse into.
-    :param float n_std: The number of standard deviations to determine the ellipse's radiuses.
+    :param float n_sd: The number of standard deviations to determine the ellipse's radiuses.
 
     :return matplotlib.patches.Ellipse
     """
@@ -529,11 +529,11 @@ def confidence_ellipse(x, y, ax, n_std, facecolor="none", **kwargs):
     # Calculating the standard deviation of x from
     # the squareroot of the variance and multiplying
     # with the given number of standard deviations.
-    scale_x = np.sqrt(cov[0, 0]) * n_std
+    scale_x = np.sqrt(cov[0, 0]) * n_sd
     mean_x = np.mean(x)
 
     # calculating the standard deviation of y ...
-    scale_y = np.sqrt(cov[1, 1]) * n_std
+    scale_y = np.sqrt(cov[1, 1]) * n_sd
     mean_y = np.mean(y)
 
     transf = (
@@ -703,7 +703,7 @@ def main(options, flags):
                 X,
                 Y,
                 ax,
-                n_std=float(options["n_std"]),
+                n_sd=float(options["n_sd"]),
                 edgecolor="white",
                 linewidth=edge_width * 1.5,
                 linestyle=edge_style,
@@ -713,7 +713,7 @@ def main(options, flags):
                 X,
                 Y,
                 ax,
-                n_std=float(options["n_std"]),
+                n_sd=float(options["n_sd"]),
                 edgecolor=edge_color,
                 linewidth=edge_width,
                 linestyle=edge_style,
@@ -739,7 +739,7 @@ def main(options, flags):
                     sub_x,
                     sub_y,
                     ax,
-                    n_std=float(options["n_std"]),
+                    n_sd=float(options["n_sd"]),
                     edgecolor="white",
                     linewidth=edge_width * 1.8,
                     linestyle="-",
@@ -749,7 +749,7 @@ def main(options, flags):
                     sub_x,
                     sub_y,
                     ax,
-                    n_std=float(options["n_std"]),
+                    n_sd=float(options["n_sd"]),
                     edgecolor=edge_color,
                     linewidth=edge_width,
                     linestyle=edge_style,
