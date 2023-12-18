@@ -24,74 +24,65 @@
 
 # %option G_OPT_V_MAP
 # % key: map
+# % label: Input map
 # % description: input vector layer
 # % required: yes
-# % label: Input map
 # % guisection: Input
 # %end
 
 # %option G_OPT_DB_COLUMN
 # % key: x
-# % description: Column with X values
+# % label: Name of x column
+# % description: Name of the column with x values
 # % required: yes
-# % label: X column
 # % guisection: Input
 # %end
 
 # %option G_OPT_DB_COLUMN
 # % key: y
-# % description: Column with Y values
+# % label: Name of y column
+# % description: Name of the column with y values
 # % required: yes
-# % label: Y column
 # % guisection: Input
-# %end
-
-# %option G_OPT_F_OUTPUT
-# % key: file_name
-# % label: Name of the output file (extension decides format)
-# % required: no
-# % guisection: Output
 # %end
 
 # %option
 # % key: type
 # % type: string
-# % label: plot type
+# % label: Plot type
 # % description: Type of plot (scatter, density)
 # % required: no
 # % answer: scatter
 # % options: scatter, density
-# % guisection: Stats
+# % guisection: Output
 # %end
 
-# %option
-# % key: bins
-# % type: string
-# % label: 2D bins
-# % description: The number of bins in x and y dimension.
+# %option G_OPT_F_OUTPUT
+# % key: file_name
+# % label: Name of the output file (extension decides format)
+# % description: Name of the output file. The format is determined by the file extension.
 # % required: no
-# % answer: 30,30
-# % guisection: Stats
+# % guisection: Output
 # %end
 
 # %option
-# % key: trendline
+# % key: plot_dimensions
 # % type: string
-# % label: Trendline
-# % description: Plot trendline
+# % label: Plot dimensions (width,height)
+# % description: Dimensions (width,height) of the figure in inches
 # % required: no
-# % options: linear, polynomial
-# % guisection: Stats
+# % answer: 6.4,4.8
+# % guisection: Output
 # %end
 
 # %option
-# % key: degree
+# % key: dpi
 # % type: integer
-# % label: Degree
-# % description: Degree polynomial trendline
+# % label: DPI
+# % description: Resolution of plot in dpi's
 # % required: no
-# % answer: 1
-# % guisection: Stats
+# % answer: 100
+# % guisection: Output
 # %end
 
 # %option
@@ -101,6 +92,16 @@
 # % description: The title of the plot
 # % required: no
 # % guisection: Aesthetics
+# %end
+
+# %option
+# % key: fontsize
+# % type: double
+# % label: Font size
+# % answer: 10
+# % description: The basis font size (default = 10)
+# % guisection: Aesthetics
+# % required: no
 # %end
 
 # %option
@@ -135,13 +136,60 @@
 # % key: rgbcolumn
 # % type: string
 # % label: RGB column
-# % description: Column with RGB values defining the dot colors
+# % description: Column with RGB values defining the colors of the dots of the scatterplot
 # % required: no
 # % guisection: Aesthetics
 # %end
 
 # %rules
 # % exclusive: color,rgbcolumn
+# %end
+
+# %option
+# % key: bins
+# % type: string
+# % label: 2D bins
+# % description: The number of bins in x and y dimension. Density is expressed as the number of points falling within the x and y boundaries of a bin.
+# % required: no
+# % answer: 30,30
+# % guisection: Density
+# %end
+
+# %option
+# % key: density_colormap
+# % type: string
+# % label: Density plot color map
+# % description: Select the color map to be used for the density scatter plot
+# % required: no
+# % answer: viridis
+# % options: viridis,plasma,inferno,magma,cividis,Greys,Purples,Blues,Greens,Oranges,Reds,YlOrBr,YlOrRd,OrRd,PuRd,RdPu,BuPu,GnBu,PuBu,YlGnBu,PuBuGn,BuGn,YlGn
+# % guisection: Density
+# %end
+
+# % flag
+# % key: r
+# % description: Reverse color map
+# % guisection: Density
+# % end
+
+# %option
+# % key: trendline
+# % type: string
+# % label: Trendline
+# % description: Plot trendline
+# % required: no
+# % options: linear, polynomial
+# % guisection: Trendline
+# %end
+
+# %option
+# % key: degree
+# % type: integer
+# % label: Degree
+# % description: Degree polynomial trendline
+# % required: no
+# % answer: 1
+# % guisection: Trendline
 # %end
 
 # %option G_OPT_C
@@ -151,7 +199,7 @@
 # % description: Color of the trendline
 # % required: no
 # % answer: darkgrey
-# % guisection: Aesthetics
+# % guisection: Trendline
 # %end
 
 # %option
@@ -161,7 +209,7 @@
 # % description: Line style trendline
 # % required: no
 # % answer: --
-# % guisection: Aesthetics
+# % guisection: Trendline
 # %end
 
 # %option
@@ -171,37 +219,115 @@
 # % description: Line width of the trendline
 # % required: no
 # % answer: 2
-# % guisection: Aesthetics
+# % guisection: Trendline
 # %end
 
-# %option
-# % key: fontsize
-# % type: double
-# % label: Font size
-# % answer: 10
-# % description: Default font size
-# % guisection: Aesthetics
-# % required: no
-# %end
+# % flag
+# % key: e
+# % description: Draw a covariance confidence ellipse(s)
+# % guisection: Ellipse
+# % end
 
 # %option
-# % key: plot_dimensions
+# % key: n_std
 # % type: string
-# % label: Plot dimensions (width,height)
-# % description: Dimensions (width,height) of the figure in inches
+# % label: standard deviations
+# % description: Draw the covariance confidence ellipse(s) with radius of n standard deviations (n_std).
+# % answer: 2
+# % guisection: Ellipse
+# %end
+
+# %option G_OPT_C
+# % key: ellipse_color
+# % type: string
+# % label: Ellipse color
+# % description: Color of the ellipse
 # % required: no
-# % answer: 6,4
-# % guisection: Output
+# % answer: red
+# % guisection: Ellipse
 # %end
 
 # %option
-# % key: dpi
-# % type: integer
-# % label: DPI
-# % description: resolution of plot
+# % key: ellipse_alpha
+# % type: double
+# % label: Opacity ellipse fill.
+# % description: Opacity of the fill color of the ellipse.
 # % required: no
-# % answer: 96
-# % guisection: Output
+# % answer: 0.1
+# % options: 0-1
+# % guisection: Ellipse
+# %end
+
+# %option
+# % key: ellipse_edge_style
+# % type: string
+# % label: Ellipse edge style
+# % description: Line style of the ellipse
+# % required: no
+# % answer: -
+# % guisection: Ellipse
+# %end
+
+# %option
+# % key: ellipse_edge_width
+# % type: double
+# % label: Ellipse edge width
+# % description: Width of the ellipse edge
+# % required: no
+# % answer: 1.5
+# % guisection: Ellipse
+# %end
+
+# %option G_OPT_DB_COLUMN
+# % key: groups
+# % type: string
+# % label: Column grouping the features in categories
+# % description: Colum with categories. If selected, a separate ellipse will be drawn for each group/category
+# % guisection: Ellipse
+# %end
+
+# %option G_OPT_DB_COLUMN
+# % key: groups_rgb
+# % type: string
+# % label: RGB column for ellipse categories
+# % description: Column with RGB values per category. These will be used to define the color of the ellipse.
+# % required: no
+# % guisection: Ellipse
+# %end
+
+# %option
+# % key: ellipse_legend
+# % type: string
+# % label: legend for ellipses
+# % description: Print the legend for the ellipses (only for if ellipses for groups are drawn)
+# % required: no
+# % answer: yes
+# % options: yes,no
+# % guisection: Ellipse
+# %end
+
+# %rules
+# % requires: groups_rgb,groups
+# %end
+
+# %rules
+# % requires: ellipse_legend,groups
+# %end
+
+# %option
+# % key: xlim
+# % type: string
+# % label: X axis range (min,max)
+# % description: Set the X axis range to be displayed
+# % required: no
+# %end
+
+# %option
+# % key: ylim
+# % type: string
+# % label: Y axis range (min,max)
+# % description: Set the Y axis range to be displayed
+# % required: no
 # %end
 
 import atexit
@@ -212,6 +338,7 @@ from subprocess import PIPE
 import grass.script as gs
 from grass.pygrass.modules import Module
 from numpy.polynomial import Polynomial
+import random
 
 
 def lazy_import_matplotlib():
@@ -236,7 +363,7 @@ def get_valid_color(color):
 
     :param str color: input color
 
-    :return str|list: color e.g. blue|[0.0, 0.0, 1.0]
+    :return list: rgba list, e.g. [0.0, 0.0, 1.0, 1]
     """
     if ":" in color:
         color = [int(x) for x in color.split(":")]
@@ -244,6 +371,7 @@ def get_valid_color(color):
             color[:] = [x / 255 for x in color]
     if not matplotlib.colors.is_color_like(color):
         gs.fatal(_("{} is not a valid color.".format(color)))
+    color = matplotlib.colors.to_rgba(color)
     return color
 
 
@@ -296,7 +424,20 @@ def scatter_plot(X, Y, X_name, Y_name, title, color, marker, s, dimensions, font
     return ax, fig
 
 
-def density_scatter(X, Y, X_name, Y_name, bins, title, marker, dimensions, fontsize):
+def density_scatter(
+    X,
+    Y,
+    X_name,
+    Y_name,
+    bins,
+    title,
+    marker,
+    s,
+    dimensions,
+    fontsize,
+    density_colormap,
+    reverse_colors,
+):
     """
     Scatter plot colored by 2d histogram
 
@@ -306,10 +447,12 @@ def density_scatter(X, Y, X_name, Y_name, bins, title, marker, dimensions, fonts
     :param str Y_name: label for y-axis
     :param list bins: histogram bin size (x,y)
     :param str title: label for plot title (empty is not title)
-    :param str color: color of the dots in the scatterplot
     :param str marker: the mark type for the scatterplot dots
+    :param float s: size of marker
     :param list dimensions: plot dimensions (width, height)
     :param float fontsize: fontsize of all text (tic labes are 1pnt smaller)
+    :param str density_colormap: the name of the color map to be used
+    :param bool reverse_colors: true means the color map will be reversed
 
     :return print ax, fig
     """
@@ -334,16 +477,84 @@ def density_scatter(X, Y, X_name, Y_name, bins, title, marker, dimensions, fonts
     idx = z.argsort()
     x, y, z = np.array(X)[idx], np.array(Y)[idx], z[idx]
 
-    ax.scatter(x, y, c=z, marker=marker)
+    cmap = matplotlib.cm.get_cmap(density_colormap)
+    if reverse_colors:
+        cmap = cmap.reversed()
+    if s:
+        ax.scatter(x, y, c=z, s=s, marker=marker, cmap=cmap)
+    else:
+        ax.scatter(x, y, c=z, marker=marker, cmap=cmap)
     plt.xlabel(X_name, fontsize=fontsize)
     plt.ylabel(Y_name, fontsize=fontsize)
     if len(title) != 0:
         plt.title(title)
 
+    # Create a ScalarMappable for the colorbar
+    # Set an empty array to allow the ScalarMappable to be used for the legend
     norm = Normalize(vmin=np.min(z), vmax=np.max(z))
-    cbar = fig.colorbar(cm.ScalarMappable(norm=norm))
+    sm = matplotlib.cm.ScalarMappable(cmap=cmap, norm=norm)
+    sm.set_array([])
+
+    # Add colorbar to the right of the plo
+    cbar = fig.colorbar(sm, ax=ax)
     cbar.ax.set_ylabel("Number of points per bin")
     return ax, fig
+
+
+def confidence_ellipse(x, y, ax, n_std, facecolor="none", **kwargs):
+    """
+    Create a plot of the covariance confidence ellipse of *x* and *y*.
+
+    :param array x: input data x-axis.
+    :param array y: input data y-axis.
+    :param matplotlib.axes.Axes ax: The axes object to draw the ellipse into.
+    :param float n_std: The number of standard deviations to determine the ellipse's radiuses.
+
+    :return matplotlib.patches.Ellipse
+    """
+    cov = np.cov(x, y)
+    pearson = cov[0, 1] / np.sqrt(cov[0, 0] * cov[1, 1])
+    # Using a special case to obtain the eigenvalues of this
+    # two-dimensional dataset.
+    ell_radius_x = np.sqrt(1 + pearson)
+    ell_radius_y = np.sqrt(1 - pearson)
+    ellipse = matplotlib.patches.Ellipse(
+        (0, 0),
+        width=ell_radius_x * 2,
+        height=ell_radius_y * 2,
+        facecolor=facecolor,
+        **kwargs
+    )
+
+    # Calculating the standard deviation of x from
+    # the squareroot of the variance and multiplying
+    # with the given number of standard deviations.
+    scale_x = np.sqrt(cov[0, 0]) * n_std
+    mean_x = np.mean(x)
+
+    # calculating the standard deviation of y ...
+    scale_y = np.sqrt(cov[1, 1]) * n_std
+    mean_y = np.mean(y)
+
+    transf = (
+        matplotlib.transforms.Affine2D()
+        .rotate_deg(45)
+        .scale(scale_x, scale_y)
+        .translate(mean_x, mean_y)
+    )
+
+    ellipse.set_transform(transf + ax.transData)
+    return ax.add_patch(ellipse)
+
+
+def random_color():
+    """
+    Function to generate a random color
+
+    :return list with rgb elements
+    """
+    hex_color = "#{:06x}".format(random.randint(0, 0xFFFFFF))
+    return matplotlib.colors.hex2color(hex_color)
 
 
 def main(options, flags):
@@ -359,17 +570,36 @@ def main(options, flags):
         if has_scipy == "noscipy":
             options["type"] = "scatter"
 
-    # Extract the column values and labels
+    # Extract the column values and labels for x and y columns
     columns = "{},{}".format(options["x"], options["y"])
+    sql_stat = "{} != '' AND {} != ''".format(options["x"], options["y"])
+    if options["rgbcolumn"]:
+        columns = "{},{}".format(columns, options["rgbcolumn"])
+        sql_stat = "{} AND {} != ''".format(sql_stat, options["rgbcolumn"])
+    if options["groups"]:
+        columns = "{},{}".format(columns, options["groups"])
+        sql_stat = "{} AND {} != ''".format(sql_stat, options["groups"])
+    if options["groups_rgb"]:
+        columns = "{},{}".format(columns, options["groups_rgb"])
+        sql_stat = "{} AND {} != ''".format(sql_stat, options["groups_rgb"])
     df = gs.read_command(
         "v.db.select",
         map=options["map"],
         columns=columns,
-        where="{} != '' AND {} != ''".format(options["x"], options["y"]),
+        where=sql_stat,
     ).splitlines()
-    X_name, Y_name = df[0].split("|")
+    X_name, Y_name = df[0].split("|")[0:2]
     X = [float(i.split("|")[0]) for i in df[1:]]
     Y = [float(j.split("|")[1]) for j in df[1:]]
+    n = 2
+    if options["rgbcolumn"]:
+        rgbcolumn = [get_valid_color(j.split("|")[n]) for j in df[1:]]
+        n += 1
+    if options["groups"]:
+        groups = [j.split("|")[n] for j in df[1:]]
+        n += 1
+    if options["groups_rgb"]:
+        groups_rgb = [get_valid_color(j.split("|")[n]) for j in df[1:]]
 
     # Plot parameters & aesthetics
     plot_dimensions = [float(x) for x in options["plot_dimensions"].split(",")]
@@ -377,13 +607,7 @@ def main(options, flags):
     file_name = options["file_name"]
     bins = [int(x) for x in options["bins"].split(",")]
     if options["rgbcolumn"]:
-        rgbcolumn = gs.read_command(
-            "v.db.select",
-            map=options["map"],
-            columns=options["rgbcolumn"],
-            flags="c",
-        ).splitlines()
-        dot_color = [get_valid_color(x) for x in rgbcolumn]
+        dot_color = rgbcolumn
     elif options["color"]:
         dot_color = get_valid_color(options["color"])
     else:
@@ -411,6 +635,7 @@ def main(options, flags):
             dimensions=plot_dimensions,
             fontsize=float(options["fontsize"]),
         )
+
     # Plot density plot
     else:
         ax, p = density_scatter(
@@ -421,8 +646,11 @@ def main(options, flags):
             bins=bins,
             title=plot_title,
             marker=dot_marker,
+            s=s,
             dimensions=plot_dimensions,
             fontsize=float(options["fontsize"]),
+            density_colormap=options["density_colormap"],
+            reverse_colors=flags["r"],
         )
 
     if options["trendline"] == "linear":
@@ -462,6 +690,81 @@ def main(options, flags):
             linestyle=line_style,
             linewidth=line_width,
         )
+
+    # Plot confidence ellipse based on all data
+    if flags["e"]:
+        if not options["groups"]:
+            edge_color = get_valid_color(options["ellipse_color"])
+            edge_width = float(options["ellipse_edge_width"])
+            edge_style = options["ellipse_edge_style"]
+            face_color = list(edge_color)
+            face_color[-1] = float(options["ellipse_alpha"])
+            confidence_ellipse(
+                X,
+                Y,
+                ax,
+                n_std=float(options["n_std"]),
+                edgecolor="white",
+                linewidth=edge_width * 1.5,
+                linestyle=edge_style,
+                facecolor="none",
+            )
+            confidence_ellipse(
+                X,
+                Y,
+                ax,
+                n_std=float(options["n_std"]),
+                edgecolor=edge_color,
+                linewidth=edge_width,
+                linestyle=edge_style,
+                facecolor=face_color,
+            )
+        else:
+            group_names = list(set(groups))
+            for group_name in group_names:
+                indices = [
+                    index for index, value in enumerate(groups) if value == group_name
+                ]
+                sub_x = [X[i] for i in indices]
+                sub_y = [Y[i] for i in indices]
+                if options["groups_rgb"]:
+                    edge_color = groups_rgb[indices[0]]
+                else:
+                    edge_color = get_valid_color(random_color())
+                edge_width = float(options["ellipse_edge_width"])
+                edge_style = options["ellipse_edge_style"]
+                face_color = list(edge_color)
+                face_color[-1] = float(options["ellipse_alpha"])
+                confidence_ellipse(
+                    sub_x,
+                    sub_y,
+                    ax,
+                    n_std=float(options["n_std"]),
+                    edgecolor="white",
+                    linewidth=edge_width * 1.8,
+                    linestyle="-",
+                    facecolor="none",
+                )
+                confidence_ellipse(
+                    sub_x,
+                    sub_y,
+                    ax,
+                    n_std=float(options["n_std"]),
+                    edgecolor=edge_color,
+                    linewidth=edge_width,
+                    linestyle=edge_style,
+                    facecolor=face_color,
+                    label=group_name,
+                )
+            if options["ellipse_legend"]:
+                fontsize = float(options["fontsize"]) * 0.9
+                plt.legend(fontsize=fontsize)
+    if options["xlim"]:
+        xlim = [float(i) for i in options["xlim"].split(",")]
+        ax.set_xlim(xlim)
+    if options["ylim"]:
+        ylim = [float(i) for i in options["ylim"].split(",")]
+        ax.set_ylim(ylim)
 
     if bool(file_name):
         file_name = file_name
