@@ -523,7 +523,7 @@ def confidence_ellipse(x, y, ax, n_sd, facecolor="none", **kwargs):
         width=ell_radius_x * 2,
         height=ell_radius_y * 2,
         facecolor=facecolor,
-        **kwargs
+        **kwargs,
     )
 
     # Calculating the standard deviation of x from
