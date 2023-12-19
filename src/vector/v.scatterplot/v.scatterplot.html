@@ -1,6 +1,5 @@
 <h2>DESCRIPTION</h2>
 
-<p>
 <em>v.scatterplot</em> draws a scatterplot of the value in one column 
 against the values in another column. There are a few layout 
 options, including the option to set the color of the dots, the color, 
@@ -54,7 +53,6 @@ different plots.
 
 <h3>Example 1</h3>
 
-<p>
 For the examples below, the NCA sample data set from <a 
 href="https://grass.osgeo.org/download/data/">GRASS GIS website</a> 
 will be used
@@ -102,13 +100,13 @@ v.scatterplot map=randompoints x=pca_1 y=pca_2 color=blue
 </div>
 
 <p>
-<img src="v_scatterplot_01.png"><br> <em>Figure 1. Scatterplot of 
-pca_1 against pca_1</em>
-
-
+<div align="center" style="margin: 10px"> <a 
+href="v_scatterplot_01.png"> <img src="v_scatterplot_01.png" alt=" 
+Scatterplot of pca_1 against pca_2" border="0"> </a><br> <i>Figure 1. 
+Scatterplot of pca_1 against pca_2.</i> </div>
+  
 <h3>Example 2</h3>
 
-<p>
 Create a density scatter of the values from <i>pca_1</i> and 
 <i>pca_2</i>. Add a red dashed polynomial trend line with degree 2.
 
@@ -119,12 +117,14 @@ v.scatterplot map=randompoints x=pca_1 y=pca_2 trendline=polynomial \
 </div>
 
 <p>
-<img src="v_scatterplot_02.png"><br> <em>Figure 2. Density scatterplot
-of pca_1 against pca_1</em>. The dashed red line gives the polynomial trend line (R&sup2;=0.149)
+<div align="center" style="margin: 10px"> <a 
+href="v_scatterplot_02.png"> <img src="v_scatterplot_02.png" alt=" 
+Density scatterplot of pca_1 against pca_2" border="0"> </a><br> 
+<i>Figure 2. Density scatterplot of pca_1 against pca_2. The dashed red 
+line gives the polynomial trend line (R&sup2;=0.149)</i> </div>
 
 <h3>Example 3</h3>
 
-<p>
 Retrieves raster value from the raster layer <i>landclass96</i>, 
 and write these values to the column <i>landuse</i> in the attribute 
 table of <i>randompoints</i>. Next, transfer the raster colors of the 
@@ -149,19 +149,22 @@ v.scatterplot map=randompoints x=pca_1 y=pca_2 s=8 rgbcolumn=RGB
 </div>
 
 <p>
-<img src="v_scatterplot_03.png"><br> <em>Figure 3. Scatterplot of 
-pca_1 against pca_1. Colors represent the land use categories in the 
-point locations based on the landclass96 map.</em>
+<div align="center" style="margin: 10px"> <a 
+href="v_scatterplot_03.png"> <img src="v_scatterplot_03.png" alt=" 
+Scatterplot of pca_1 against pca_1. Colors represent the land use 
+categories in the point locations based on the landclass96 map." 
+border="0"> </a><br> <i>Figure 3. Scatterplot of pca_1 against pca_1. 
+Colors represent the land use categories in the point locations based 
+on the landclass96 map.</i> </div>
 
 <h3>Example 4</h3>
 
-<p>
 Rename the PCA layers to remove the dots from the name. Next, use the 
 <a 
 href="https://grass.osgeo.org/grass-stable/manuals/addons/v.what.rast.label.html">v.what.rast.label</a> 
 addon to sample the values of the raster layers <em>pca.1</em> and 
-<em>pca.2</em>, and the values + labels of the <em>landclass96</em>. Add a 
-column with the landclass colors using <i>v.colors</i>.
+<em>pca.2</em>, and the values + labels of the <em>landclass96</em>. 
+Add a column with the landclass colors using <i>v.colors</i>.
 
 <div class="code"><pre>
 g.rename raster=pca.1,pca_1
@@ -190,14 +193,25 @@ v.scatterplot -e map=forwatdev x=pca_1 y=pca_2 rgbcolumn=RGB s=5  \
 </div>
 
 <p>
-<div align="center" style="margin: 10px">
-<a href="v_scatterplot_04.png">
-<img src="v_scatterplot_04.png" alt="v.scatterplot: confidence ellipses per land class" border="0">
-</a><br>
-<i>Figure 4. Scatterplot with confidence ellipses per land class.
+<div align="center" style="margin: 10px"> <a 
+href="v_scatterplot_04.png"> <img src="v_scatterplot_04.png" 
+alt="v.scatterplot: confidence ellipses per land class" border="0"> 
+</a><br> <i>Figure 4. Scatterplot with confidence ellipses per land 
+class.
  The radius of the ellipses is 2 SD.</i>
 </div>
 
+<h2>SEE ALSO</h2>
+
+<em>
+  <a href="https://grass.osgeo.org/grass-stable/manuals/addons/d.vect.colbp.html">d.vect.colbp</a>,
+  <a href="https://grass.osgeo.org/grass-stable/manuals/addons/d.vect.colhist.html">d.vect.colhist</a>,
+  <a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.boxplot.html">r.boxplot</a>,
+  <a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.series.boxplot.html">r.series.boxplot</a>,
+  <a href="https://grass.osgeo.org/grass-stable/manuals/addons/t.rast.boxplot.html">t.rast.boxplot</a>,
+  <a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.scatterplot.html">r.scatterplot</a>
+  <a href="https://grass.osgeo.org/grass-stable/manuals/addons/r3.scatterplot.html">r3.scatterplot</a>
+</em>
 
 <h2>AUTHOR</h2>
 
