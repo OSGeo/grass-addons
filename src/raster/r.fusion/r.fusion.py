@@ -3,13 +3,13 @@
 #
 # MODULE:       r.fusion
 #
-# AUTHOR(S):    Markus Metz
+# AUTHOR(S):    Markus Metz, mundialis
 #
 # PURPOSE:      Image fusion: similar to pan-sharpening, but more general
 #               burn the spatial detail of a high-res raster into a
 #               low-res raster, preserving the values of the low-res raster
 #
-# COPYRIGHT:    (c) 2023 Markus Metz
+# COPYRIGHT:    (c) 2023 Markus Metz and the GRASS development team
 #
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
