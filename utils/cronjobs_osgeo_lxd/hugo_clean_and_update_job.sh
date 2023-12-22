@@ -23,12 +23,11 @@
 cd /home/neteler/grass-website/ && \
    git pull origin master && \
    rm -rf /home/neteler/grass-website/public/* && \
-   nice /usr/local/bin/hugo && \
+   nice hugo && \
    mkdir /var/www/html_new && \
    \cp -rp /home/neteler/grass-website/public/* /var/www/html_new/ && \
    rm -fr /var/www/html/* && \
    \mv /var/www/html_new/* /var/www/html/ && \
    ln -s /var/www/code_and_data/* /var/www/html/ && \
    rmdir /var/www/html_new && \
-   ln -s /var/www/html/files/sitemap.xml /var/www/html/ && \
    (cd /var/www/html/ ; /home/neteler/bin/fix_link_timestamp.sh .)

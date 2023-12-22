@@ -46,30 +46,28 @@ void user_input(int argc, char **argv)
     out->required = NO;
 
     if (G_parser(argc, argv))
-	exit(EXIT_FAILURE);
-
+        exit(EXIT_FAILURE);
 
     strcpy(choice->fn, name->answer);
 
     if (out->answer)
-	strcpy(choice->out, out->answer);
+        strcpy(choice->out, out->answer);
     else
-	strcpy(choice->out, "");
+        strcpy(choice->out, "");
 
     /* if the 4 neighbor tracing flag -t
-       is specified, then set the 
+       is specified, then set the
        choice->trace flag to 1 */
 
     choice->trace = 1;
     if (trace->answer)
-	choice->trace = 0;
+        choice->trace = 0;
 
     /* if the -p flag is specified, then
        set the choice->perim2 flag to 0 */
 
     if (bound->answer)
-	choice->perim2 = 0;
+        choice->perim2 = 0;
     else
-	choice->perim2 = 1;
-
+        choice->perim2 = 1;
 }

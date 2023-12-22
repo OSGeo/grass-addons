@@ -82,7 +82,7 @@ class GrassMD:
         context = mdutil.StaticContext()
         self.dirpath = os.path.join(context.lib_path, "profiles")
         # metadata object from OWSLIB ( for define md values)
-        self.md = mdutil.MD_MetadataMOD(md=None)
+        self.md = mdutil.get_md_metadatamod_inst(md=None)
         self.profilePath = None  # path to file with xml templates
 
         if self.type == "raster":
@@ -245,7 +245,7 @@ class GrassMD:
         self.profileName = "TEMPORAL"
 
         # OWSLib md object
-        self.md.identification = mdutil.MD_DataIdentification_MOD()
+        self.md.identification = mdutil.get_md_dataidentification_mod_inst()
         self.md.dataquality = DQ_DataQuality()
         self.md.distribution = MD_Distribution()
         self.md.identification.extent = EX_Extent()
@@ -341,7 +341,7 @@ class GrassMD:
             self.profilePath = profile
 
         # OWSLib md object
-        self.md.identification = mdutil.MD_DataIdentification_MOD()
+        self.md.identification = mdutil.get_md_dataidentification_mod_inst()
         self.md.dataquality = DQ_DataQuality()
         self.md.distribution = MD_Distribution()
         self.md.identification.extent = EX_Extent()
@@ -529,7 +529,7 @@ class GrassMD:
 
     def readXML(self, xml_file):
         """create instance of metadata(owslib) from xml file"""
-        self.md = mdutil.MD_MetadataMOD(etree.parse(xml_file))
+        self.md = mdutil.get_md_metadatamod_inst(etree.parse(xml_file))
 
     def getMapInfo(self):
         xml_out_name = (

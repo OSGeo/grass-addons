@@ -1,22 +1,21 @@
 #include <grass/raster.h>
 
-struct input
-{
+struct input {
     int fd;
     const char *name;
-    CELL **buf;		/* for reading raster map */
+    CELL **buf; /* for reading raster map */
 };
 
-struct ncb			/* neighborhood control block */
+struct ncb /* neighborhood control block */
 {
-    int nsize;			/* radius * 2 + 1 */
+    int nsize; /* radius * 2 + 1 */
 #if 0
-    double dist;		/* radius of the neighborhood */
+    double dist;                /* radius of the neighborhood */
 #endif
-    int n;			/* number of unmasked cells */
+    int n; /* number of unmasked cells */
     char **mask;
     struct Categories cats;
-    int nin;			/* number of input maps */
+    int nin; /* number of input maps */
     struct input *in;
 };
 

@@ -30,8 +30,7 @@
 
 namespace pops {
 
-class Config
-{
+class Config {
 public:
     // Seed
     int random_seed{0};
@@ -48,7 +47,7 @@ public:
     double establishment_probability{0};
     // Temperature
     bool use_lethal_temperature{false};
-    double lethal_temperature{-273.15};  // 0 K
+    double lethal_temperature{-273.15}; // 0 K
     int lethal_temperature_month{0};
     bool weather{false};
     double reproductive_rate{0};
@@ -71,7 +70,7 @@ public:
     // Mortality
     bool use_mortality{false};
     double mortality_rate{0};
-    int first_mortality_year{0};  // TODO: document that it starts at 1, not 0
+    int first_mortality_year{0}; // TODO: document that it starts at 1, not 0
     // Quarantine
     bool use_quarantine{false};
     std::string quarantine_frequency;
@@ -88,11 +87,12 @@ public:
 
     void create_schedules()
     {
-        scheduler_ = Scheduler(date_start_, date_end_, step_unit_, step_num_units_);
-        spread_schedule_ =
-            scheduler_.schedule_spread(Season(season_start_month_, season_end_month_));
-        output_schedule_ =
-            schedule_from_string(scheduler_, output_frequency, output_frequency_n);
+        scheduler_ =
+            Scheduler(date_start_, date_end_, step_unit_, step_num_units_);
+        spread_schedule_ = scheduler_.schedule_spread(
+            Season(season_start_month_, season_end_month_));
+        output_schedule_ = schedule_from_string(scheduler_, output_frequency,
+                                                output_frequency_n);
         mortality_schedule_ = scheduler_.schedule_action_end_of_year();
         if (use_lethal_temperature)
             lethal_schedule_ =
@@ -106,7 +106,7 @@ public:
         schedules_created_ = true;
     }
 
-    const Scheduler& scheduler() const
+    const Scheduler &scheduler() const
     {
         if (!schedules_created_)
             throw std::logic_error(
@@ -114,7 +114,7 @@ public:
         return scheduler_;
     }
 
-    const std::vector<bool>& spread_schedule() const
+    const std::vector<bool> &spread_schedule() const
     {
         if (!schedules_created_)
             throw std::logic_error(
@@ -122,48 +122,48 @@ public:
         return spread_schedule_;
     }
 
-    const std::vector<bool>& mortality_schedule() const
+    const std::vector<bool> &mortality_schedule() const
     {
         if (!schedules_created_)
-            throw std::logic_error(
-                "Schedules were not created before calling mortality_schedule()");
+            throw std::logic_error("Schedules were not created before calling "
+                                   "mortality_schedule()");
         return mortality_schedule_;
     }
 
-    const std::vector<bool>& lethal_schedule() const
+    const std::vector<bool> &lethal_schedule() const
     {
         if (!use_lethal_temperature)
-            throw std::logic_error(
-                "lethal_schedule() not available when use_lethal_temperature is false");
+            throw std::logic_error("lethal_schedule() not available when "
+                                   "use_lethal_temperature is false");
         if (!schedules_created_)
             throw std::logic_error(
                 "Schedules were not created before calling lethal_schedule()");
         return lethal_schedule_;
     }
 
-    const std::vector<bool>& spread_rate_schedule() const
+    const std::vector<bool> &spread_rate_schedule() const
     {
         if (!use_spreadrates)
-            throw std::logic_error(
-                "spread_rate_schedule() not available when use_spreadrates is false");
+            throw std::logic_error("spread_rate_schedule() not available when "
+                                   "use_spreadrates is false");
         if (!schedules_created_)
-            throw std::logic_error(
-                "Schedules were not created before calling spread_rate_schedule()");
+            throw std::logic_error("Schedules were not created before calling "
+                                   "spread_rate_schedule()");
         return spread_rate_schedule_;
     }
 
-    const std::vector<bool>& quarantine_schedule() const
+    const std::vector<bool> &quarantine_schedule() const
     {
         if (!use_quarantine)
-            throw std::logic_error(
-                "quarantine_schedule() not available when use_quarantine is false");
+            throw std::logic_error("quarantine_schedule() not available when "
+                                   "use_quarantine is false");
         if (!schedules_created_)
-            throw std::logic_error(
-                "Schedules were not created before calling quarantine_schedule()");
+            throw std::logic_error("Schedules were not created before calling "
+                                   "quarantine_schedule()");
         return quarantine_schedule_;
     }
 
-    const std::vector<bool>& output_schedule() const
+    const std::vector<bool> &output_schedule() const
     {
         if (!schedules_created_)
             throw std::logic_error(
@@ -174,16 +174,16 @@ public:
     unsigned num_mortality_years()
     {
         if (!schedules_created_)
-            throw std::logic_error(
-                "Schedules were not created before calling num_mortality_years()");
+            throw std::logic_error("Schedules were not created before calling "
+                                   "num_mortality_years()");
         return get_number_of_scheduled_actions(mortality_schedule_);
     }
 
     unsigned num_lethal()
     {
         if (!use_lethal_temperature)
-            throw std::logic_error(
-                "num_lethal() not available when use_lethal_temperature is false");
+            throw std::logic_error("num_lethal() not available when "
+                                   "use_lethal_temperature is false");
         if (!schedules_created_)
             throw std::logic_error(
                 "Schedules were not created before calling num_lethal()");
@@ -204,55 +204,40 @@ public:
     unsigned quarantine_num_steps()
     {
         if (!use_quarantine)
-            throw std::logic_error(
-                "quarantine_num_steps() not available when use_quarantine is false");
+            throw std::logic_error("quarantine_num_steps() not available when "
+                                   "use_quarantine is false");
         if (!schedules_created_)
-            throw std::logic_error(
-                "Schedules were not created before calling quarantine_num_steps()");
+            throw std::logic_error("Schedules were not created before calling "
+                                   "quarantine_num_steps()");
         return get_number_of_scheduled_actions(quarantine_schedule_);
     }
 
-    const Date& date_start() const
-    {
-        return date_start_;
-    }
+    const Date &date_start() const { return date_start_; }
 
-    template<typename... Args>
-    void set_date_start(Args&&... args)
+    template <typename... Args>
+    void set_date_start(Args &&...args)
     {
         date_start_ = Date(std::forward<Args>(args)...);
     }
 
-    const Date& date_end() const
-    {
-        return date_end_;
-    }
+    const Date &date_end() const { return date_end_; }
 
-    template<typename... Args>
-    void set_date_end(Args&&... args)
+    template <typename... Args>
+    void set_date_end(Args &&...args)
     {
         date_end_ = Date(std::forward<Args>(args)...);
     }
 
-    StepUnit step_unit() const
-    {
-        return step_unit_;
-    }
+    StepUnit step_unit() const { return step_unit_; }
 
-    void set_step_unit(StepUnit step_unit)
-    {
-        step_unit_ = step_unit;
-    }
+    void set_step_unit(StepUnit step_unit) { step_unit_ = step_unit; }
 
-    void set_step_unit(const std::string& text)
+    void set_step_unit(const std::string &text)
     {
         step_unit_ = step_unit_enum_from_string(text);
     }
 
-    unsigned step_num_units() const
-    {
-        return step_num_units_;
-    }
+    unsigned step_num_units() const { return step_num_units_; }
 
     void set_step_num_units(unsigned step_num_units)
     {
@@ -266,7 +251,8 @@ public:
         season_end_month_ = end;
     }
 
-    void set_season_start_end_month(const std::string& start, const std::string& end)
+    void set_season_start_end_month(const std::string &start,
+                                    const std::string &end)
     {
         season_start_month_ = std::stoi(start);
         season_end_month_ = std::stoi(end);
@@ -293,6 +279,6 @@ private:
     std::vector<bool> quarantine_schedule_;
 };
 
-}  // namespace pops
+} // namespace pops
 
-#endif  // POPS_CONFIG_HPP
+#endif // POPS_CONFIG_HPP

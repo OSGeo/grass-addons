@@ -1,7 +1,7 @@
 <h2>DESCRIPTION</h2>
 
-Complete Spatial Randomness (CSR) analysis based on a moving window.  
-This function uses either the Clark and Evans (1954) or Donnelly (1978) 
+Complete Spatial Randomness (CSR) analysis based on a moving window.
+This function uses either the Clark and Evans (1954) or Donnelly (1978)
 aggregation index for testing of clustering of point patterns.
 
 <h2>NOTES</h2>
@@ -12,7 +12,7 @@ aggregation index for testing of clustering of point patterns.
 
 An example for the North Carolina sample dataset:
 
-Compute the CSR for the whole landscape of <em>landclass96</em> using 
+Compute the CSR for the whole landscape of <em>landclass96</em> using
 class 5 (1000 iteration) using the Clark Evans method:<br>
 <div class="code"><pre>
 v.random output=randompoints n=100 zmin=0.0 zmax=0.0
@@ -21,8 +21,8 @@ r.pi.csr.mw input=randompoints keyval=1 n=1000 method=clark_evans output=csr1
 </pre></div>
 The results for the whole landscape is prompted to the console.
 
-Compute the CSR for a defined moving window size of 
-<em>landclass96</em> using class 5 (1000 iteration, Clark Evans 
+Compute the CSR for a defined moving window size of
+<em>landclass96</em> using class 5 (1000 iteration, Clark Evans
 method):<br>
 <div class="code"><pre>
 r.pi.csr.mw input=randompoints keyval=5 n=1000 method=clark_evans size=7 output=csr1

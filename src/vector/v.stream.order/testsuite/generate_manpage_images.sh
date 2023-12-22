@@ -2,7 +2,7 @@
 # Author: IGB-Berlin,Johannes Radinger; Implementation: Geoinformatikbuero Dassau GmbH , Soeren Gebbert
 # This tool was developed as part of the BiodivERsA-net project 'FISHCON'
 # and has been funded by the German Federal Ministry for Education and
-# Research (grant number 01LC1205). 
+# Research (grant number 01LC1205).
 
 # Generate the map and images for the HTML documentation
 export GRASS_OVERWRITE=1

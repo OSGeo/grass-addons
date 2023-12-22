@@ -1,18 +1,18 @@
 <h2>DESCRIPTION</h2>
 
-<em><b>r.bioclim</b></em> calculates various bioclimatic indices from 
-monthly temperature and optional precipitation time series. The time 
-series can be averages for several years or monthly values for a 
-specific year. In any case all 12 months must be provided. If a 
-precipitation time series is not provided, only those indices based on 
-temperature are calculated. The names of the output maps are 
-&lt;output&gt;bio01, &lt;output&gt;bio02, &lt;output&gt;bio03, etc. If 
-the suffix bioXY needs to be separated from the <b>output</b> prefix, 
+<em><b>r.bioclim</b></em> calculates various bioclimatic indices from
+monthly temperature and optional precipitation time series. The time
+series can be averages for several years or monthly values for a
+specific year. In any case all 12 months must be provided. If a
+precipitation time series is not provided, only those indices based on
+temperature are calculated. The names of the output maps are
+&lt;output&gt;bio01, &lt;output&gt;bio02, &lt;output&gt;bio03, etc. If
+the suffix bioXY needs to be separated from the <b>output</b> prefix,
 that separator must be part of the prefix, e.g. <i>output=eurolst_</i>.
 <p>
-If the input temperatures are scaled, e.g. as input = Celsius * 10, then 
-the <b>inscale</b> option must be set to 10. Similarly, the <b>outscale</b> 
-option is by default 10, and temperature output is in this case Celsius * 10. 
+If the input temperatures are scaled, e.g. as input = Celsius * 10, then
+the <b>inscale</b> option must be set to 10. Similarly, the <b>outscale</b>
+option is by default 10, and temperature output is in this case Celsius * 10.
 Exceptions are BIO3, BIO4, and BIO15 which are always multiplied by 100
 (see below). The reason that <b>outscale</b> is set to 10 by default is that
 the output layers are integers (for compatibility with WORLDCLIM), and a
@@ -20,25 +20,33 @@ scaling factor of 10 (or higher power of 10) ensures a minimum of precision.
 
 <h2>NOTES</h2>
 <h4>Quarter years</h4>
-The bioclimatic indices referring to the wettest, driest, warmest or 
-coldest quarter can be computed in two different ways. The default is 
-to divide a year into four quarters (quarters=4). Using this option the 
-first quarter refers to Jan - Mar, the second quarter to Apr - Jun, and 
-the last quarter to Oct - Dec. It is the method used to create the 250 m 
-<a href="http://gis.cri.fmach.it/eurolst-bioclim/">EuroLST bioclim</a> 
+The bioclimatic indices referring to the wettest, driest, warmest or
+coldest quarter can be computed in two different ways. The default is
+to divide a year into four quarters (quarters=4). Using this option the
+first quarter refers to Jan - Mar, the second quarter to Apr - Jun, and
+the last quarter to Oct - Dec. It is the method used to create the 250 m
+<a href="http://gis.cri.fmach.it/eurolst-bioclim/">EuroLST bioclim</a>
 data and should be used with records for a specific year.
 
 <p>
-The second option is to divide the year in 12 quarters. With this 
-option the quarterly parameters are not aligned to any calendar 
-quarters. Instead, the first quarter refers to Jan - Mar, the second 
-quarter to Feb - Apr, and the last quarter to Dec - Feb. This is the 
-same method as used by the biovars function in the <a 
-href="http://www.r-project.org/">R</a> package <a 
-href="http://cran.r-project.org/web/packages/dismo/index.html">dismo</a> 
-and how the bioclimatic variables provided by <a 
-href="http://worldclim.org/bioclim">Worldclim</a> were computed. This 
+The second option is to divide the year in 12 quarters. With this
+option the quarterly parameters are not aligned to any calendar
+quarters. Instead, the first quarter refers to Jan - Mar, the second
+quarter to Feb - Apr, and the last quarter to Dec - Feb. This is the
+same method as used by the biovars function in the <a
+href="http://www.r-project.org/">R</a> package <a
+href="http://cran.r-project.org/web/packages/dismo/index.html">dismo</a>
+and how the bioclimatic variables provided by <a
+href="http://worldclim.org/bioclim">Worldclim</a> were computed. This
 option should be used when long-term averages are used as input.
+
+<h4>Precipitation data</h4>
+Check the unit of measure of precipitation data. To calculate the bio18 and bio19
+<b>r.bioclim</b> rounds the value of the raster to the closest integer value. If the unit
+of measure of your data is, for example, kg m-2 m-1 (i.e., fluxes per second) as in
+<a href="https://chelsa-climate.org/">CHELSA</a> data you will gain a raster map with
+zero values for the bio18 and bio19, because the precipitation values
+are very close to 0.
 
 <h4>List of bioclimatic indices</h4>
 
@@ -83,7 +91,7 @@ r.bioclim tmin=`g.list type=rast pat=tmin_* map=. sep=,` \
 <h2>REFERENCES</h2>
 
 <ul>
-<li> <a href="http://worldclim.org/bioclim">Worldclim: Bioclim</a></li>
+<li> <a href="https://www.worldclim.org/data/bioclim.html">Worldclim: Bioclimatic variables</a></li>
 </ul>
 
 <h2>AUTHOR</h2>

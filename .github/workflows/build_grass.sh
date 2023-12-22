@@ -36,6 +36,7 @@ export INSTALL_PREFIX=$1
     --with-geos \
     --with-sqlite \
     --with-fftw \
+    --without-pdal \
     --with-netcdf
 
 make

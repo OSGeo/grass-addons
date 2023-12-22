@@ -1,0 +1,120 @@
+<h2>DESCRIPTION</h2>
+
+<em>t.rast.import.netcdf</em> imports content of one or more NetCDF files into a
+GRASS GIS Space Time Raster Dataset (STRDS). NetCDF files are expected to follow
+the <a href="https://cfconventions.org/">CF-convention</a>. Files not adhering
+to those standards may fail to import.
+
+<p>
+Input URL(s) to NetCDF files can be provided in the <b>input</b> option as either
+a file, with one URL to a dataset per line, a comma-separated list of URLs or a
+single URL. "-" causes input to be taken from stdin.
+
+<p>
+The module works for both local and remote data (e.g. on a Thredds Server). Data
+can be imported via <em>r.in.gdal</em> or linked with <em>r.external</em>.
+
+<p>
+<em>t.rast.import.netcdf</em> can use GDALs Virtual Raster format (VRT) if data's
+Coordinate Reference system differs from the one of the current location where they
+are supposed to be imported.
+
+<p>
+Starting with GRASS GIS version 8.0, different variables or subdatasets in a
+NetCDF file can be imported as "semantic_label" into one STRDS. To achieve this,
+a configuration file has to be provided in the <b>semantic_labels</b> option.
+That configuration file maps subdatasets in the NetCDF file to GRASS GIS
+semantic_labels. Each line in that file must have the following format:
+<code>
+input_netcdf_subdataset=grass_gis_semantic_label
+</code>
+The equal sign <i>=</i> is required.
+If a semantic_labels configuration file is provided, the import of subdatasets
+is limited to those subdatasets listed in the file. Hence, it can be used
+to filter variables of interest.
+
+<h2>KNOWN ISSUES</h2>
+The VRT format is also used when linking NetCDF data that contains subdatasets,
+as subdatasets are currently not supported in <em>r.external</em>.
+<p>
+Reading NetCDF files directly via HTTP protocol (like in the examples below)
+is currently not supported on MS Windows.
+<p>
+GDAL versions prior to 3.4.1 do not support reading NetCDF files directly
+via HTTP protocol on newer Linux kernels either. Please make sure to have
+at least GDAL version 3.4.1 on recent Linux systems. See posts on the
+<a href=https://www.mail-archive.com/gdal-dev@lists.osgeo.org/msg37419.html>GDAL-dev mailing list</a>.
+for reference.
+
+<h2>REQUIREMENTS</h2>
+Support of semantic_labels is only available with GRASS GIS 8.0 or later.
+<em>t.rast.import.netcdf</em> uses the following non-standard Python modules:
+<ul>
+<li><a href="https://pypi.org/project/numpy">numpy</a></li>
+<li><a href="https://pypi.org/project/GDAL">GDAL</a> (preferably version >= 3.4.1)</li>
+<li><a href="https://pypi.org/project/cf-units">cf-units</a></li>
+</ul>
+
+<h2>EXAMPLES</h2>
+<h3>Link Sentinel-2 scenes from the Norwegian Ground Segment</h3>
+<div class="code"><pre>
+# Choose Scenes to import (see also m.crawl.thredds module)
+echo "https://nbstds.met.no/thredds/fileServer/NBS/S2A/2021/02/28/S2A_MSIL1C_20210228T103021_N0202_R108_T35WPU_20210228T201033_DTERRENGDATA.nc
+https://nbstds.met.no/thredds/fileServer/NBS/S2A/2021/02/28/S2A_MSIL1C_20210228T103021_N0202_R108_T32VNL_20210228T201033_DTERRENGDATA.nc" > nc.txt
+
+# Create a semantic_label configuration file
+echo "B1=S2_1
+B2=S2_2" > semantic_labels.conf
+
+# Import data (link NetCDF files without downloading them)
+t.rast.import.netcdf -l input=nc.txt output=S2A semantic_labels=semantic_labels.conf \
+memory=2048 nprocs=2 nodata="-1"
+</pre></div>
+
+<h3>Import Norwegian Climate data</h3>
+<div class="code"><pre>
+# Create a semantic_label configuration file
+echo "tg=temperature_avg
+tn=temperature_min" > semantic_labels.conf
+
+# Import data within a selected time window
+t.rast.import.netcdf output=SeNorge semantic_labels=semantic_labels.conf \
+memory=2048 nprocs=2 start_time="2020-08-01" end_time="2021-08-01" \
+input=https://thredds.met.no/thredds/fileServer/senorge/seNorge_2018/Archive/seNorge2018_2020.nc
+</pre></div>
+
+<h3>Append to STRDS from previous imports</h3>
+<div class="code"><pre>
+# Choose dataset to import (see also m.crawl.thredds module)
+
+# Create a semantic_label configuration file
+echo "tg=temperature_avg
+tn=temperature_min" > semantic_labels.conf
+
+# Import data within a selected time window
+t.rast.import.netcdf output=SeNorge semantic_labels=semantic_labels.conf \
+memory=2048 nprocs=2 -a start_time="2020-08-01" end_time="2021-08-01" \
+input=https://thredds.met.no/thredds/fileServer/senorge/seNorge_2018/Archive/seNorge2018_2021.nc
+</pre></div>
+
+<h2>TODO</h2>
+<ol>
+<li>Capture and store extended metadata in a way that allows for filtering
+of relevant maps.</li>
+<li>Improve printing of metadata and file structure</li>
+<li>Support more options of Virtual Raster files (data type, ...)</li>
+</ol>
+
+
+<h2>SEE ALSO</h2>
+<em>
+<a href="https://grass.osgeo.org/grass-stable/manuals/t.rast.import.html">t.rast.import</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r3.out.netcdf.html">r3.out.netcdf</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.semantic_labels.html">r.semantic_labels</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/i.bands_library.html">i.bands_library</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.support.html">r.support</a>
+<a href="https://grass.osgeo.org/grass-stable/manuals/addons/m.crawl.thredds.html">m.crawl.thredds</a>,
+</em>
+
+<h2>AUTHORS</h2>
+Stefan Blumentrath, <a href="https://www.nina.no/Kontakt/Ansatte/Ansattinformasjon.aspx?AnsattID=14230">Norwegian Institute for Nature Research (NINA), Oslo</a>

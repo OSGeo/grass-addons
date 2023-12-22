@@ -1,10 +1,10 @@
+# i.landsat8.swist
+
 *i.landsat8.swlst* is a GRASS GIS add-on, implementing a practical Split-Window (SW)
 algorithm, estimating land surface temperature (LST), from the Thermal Infra-Red
 Sensor (TIRS) aboard Landsat 8 with an accuracy of better than 1.0 K.
 
-
-Quick examples
-==============
+## Quick examples
 
 After installation (see section *Installation* below), from within a GRASS-GIS
 session, retrieve usage details via `i.landsat8.swlst --help`
@@ -26,28 +26,28 @@ where:
 A faster call is to use existing maps for all in-between
 processing steps: at-satellite temperatures, cloud and emissivity maps.
 
-  * At-satellite temperature maps (options `t10`, `t11`) may be derived via
+- At-satellite temperature maps (options `t10`, `t11`) may be derived via
   the `i.landsat.toar` module. Note that `i.landsat.toar` does not
   process single bands selectively.
 
-  * The `clouds` option can be any user-defined map. Essentialy, it applies
-    the given map as an inverted mask.
+- The `clouds` option can be any user-defined map. Essentialy, it applies
+  the given map as an inverted mask.
 
-  * The emissivity maps, derived by the module itself, can be saved once
-    via the `emissivity_out` and `delta_emissivity_out` options and used
-    afterwards via the `emissivity` and `delta_emissivity` options. Expert
-    users, however, may use emissivity maps from other sources directly.
-    An example command may be:
+- The emissivity maps, derived by the module itself, can be saved once
+  via the `emissivity_out` and `delta_emissivity_out` options and used
+  afterwards via the `emissivity` and `delta_emissivity` options. Expert
+  users, however, may use emissivity maps from other sources directly.
+  An example command may be:
 
 ```bash
-  i.landsat8.swlst t10=T10 t11=T11 clouds=Cloud_Map emissivity=Average_Emissivity_Map delta_emissivity=Delta_Emissivity_Map landcover=FROM_GLC -k -c 
+  i.landsat8.swlst t10=T10 t11=T11 clouds=Cloud_Map \
+      emissivity=Average_Emissivity_Map delta_emissivity=Delta_Emissivity_Map \
+          landcover=FROM_GLC -k -c
 ```
 
 For details and more examples, read the manual.
 
-
-Description
-===========
+## Description
 
 The algorithm removes the atmospheric effect through differential
 atmospheric absorption in the two adjacent thermal infrared channels
@@ -78,10 +78,12 @@ it is stated:
 The combination of the brightness temperatures to estimate the LST bases upon
 the equation:
 
+```text
 LST = b0 +
     + ( b1 + b2 * ( 1 - ae ) / ae + b3 * de / ae^2 ) * ( t10 + t11 ) / 2 +
     + ( b4 + b5 * ( 1 - ae ) / ae + b6 * de / ae^2 ) * ( t10 - t11 ) / 2 +
     + b7 * ( t10 - t11 )^2
+```
 
 Note, however, **the last quadratic term** of the Split-Window equation **is
 applied only over barren land**. [Reference Required!]
@@ -96,34 +98,28 @@ To produce an LST map, the algorithm requires at minimum:
 - a Finer Resolution Observation & Monitoring of Global Land Cover (FROM-GLC)
   product
 
-Installation
-============
+## Installation
 
-## Requirements
----------------
+### Requirements
 
-see [GRASS Addons SVN repository, README file, Installation - Code
+See [GRASS Addons SVN repository, README file, Installation - Code
 Compilation](https://svn.osgeo.org/grass/grass-addons/README)
 
-## Steps
+### Steps
 
 Making the script `i.lansat8.swlst` available from within any GRASS-GIS ver.
 7.x session, may be done via the following steps:
 
-1.  launch a GRASS-GIS’ ver. 7.x session
+1. launch a GRASS-GIS’ ver. 7.x session
 
-2.  navigate into the script’s source directory
+2. navigate into the script’s source directory
 
-3.  execute `make MODULE_TOPDIR=$GISBASE`
+3. execute `make MODULE_TOPDIR=$GISBASE`
 
-
-
-Implementation notes
-====================
+## Implementation notes
 
 - Created on Wed Mar 18 10:00:53 2015
 - First all-through execution: Tue May 12 21:50:42 EEST 2015
-
 
 ## To Do
 
@@ -133,14 +129,13 @@ Implementation notes
   match for subranges 1, 2, 3, 4, and 5)~~
 
 - Evaluate BIG mapcalc expressions -- are they correct?  I guess so ;-)
-
-    - ~~Expression for Column Water Vapor~~
-    - ~~CWV output values range -- is it rational?~~ It was not. There is a
-      typo in paper [0]. The correct order of the coefficients is in papers [1,
-      2].
-    - ~~Expression for Land Surface Temperature~~
-    - ~~LST output values range -- is it rational?  At the moment, not!~~
-      Fixed. The main Split-Window equation was wrong.
+  - ~~Expression for Column Water Vapor~~
+  - ~~CWV output values range -- is it rational?~~ It was not. There is a
+    typo in paper [0]. The correct order of the coefficients is in papers [1,
+    2].
+  - ~~Expression for Land Surface Temperature~~
+  - ~~LST output values range -- is it rational?  At the moment, not!~~
+    Fixed. The main Split-Window equation was wrong.
 
 - ~~Why is the LST out of range when using a fixed land cover class?~~ Cloudy
   pixels are, mainly, the reason. Better cloud masking is the solution.
@@ -184,7 +179,7 @@ Implementation notes
 [\*] Details: the authors followed the CBEM method. Based on the FROM-GLC map,
 they derived the following look-up table (LUT):
 
-```
+```text
 Emissivity Class|TIRS10|TIRS11
 Cropland|0.971|0.968
 Forest|0.995|0.996
@@ -198,27 +193,22 @@ Barren Land|0.969|0.978
 Snow and ice|0.992|0.998
 ```
 
-References
-==========
+## References
 
--   [0] Du, Chen; Ren, Huazhong; Qin, Qiming; Meng, Jinjie; Zhao,
-    Shaohua. 2015. "A Practical Split-Window Algorithm for Estimating
-    Land Surface Temperature from Landsat 8 Data." Remote Sens. 7, no.
-    1: 647-665.
-    http://www.mdpi.com/2072-4292/7/1/647/htm\#sthash.ba1pt9hj.dpuf
+- [0] Du, Chen; Ren, Huazhong; Qin, Qiming; Meng, Jinjie; Zhao,
+  Shaohua. 2015. "A Practical Split-Window Algorithm for Estimating
+  Land Surface Temperature from Landsat 8 Data." Remote Sens. 7, no.
+  1: 647-665.
+  <http://www.mdpi.com/2072-4292/7/1/647/htm\#sthash.ba1pt9hj.dpuf>
+- [1] Huazhong Ren, Chen Du, Qiming Qin, Rongyuan Liu, Jinjie Meng,
+  and Jing Li. "Atmospheric Water Vapor Retrieval from Landsat 8 and
+  Its Validation." 3045--3048. IEEE, 2014.
+- [2] Ren, H., Du, C., Liu, R., Qin, Q., Yan, G., Li, Z. L., & Meng, J.
+  (2015). Atmospheric water vapor retrieval from Landsat 8 thermal infrared
+  images. Journal of Geophysical Research: Atmospheres, 120(5), 1723-1738.
+- [3] FROM-GLC products, <http://data.ess.tsinghua.edu.cn/>
 
--   [1] Huazhong Ren, Chen Du, Qiming Qin, Rongyuan Liu, Jinjie Meng,
-    and Jing Li. "Atmospheric Water Vapor Retrieval from Landsat 8 and
-    Its Validation." 3045--3048. IEEE, 2014.
-
--   [2] Ren, H., Du, C., Liu, R., Qin, Q., Yan, G., Li, Z. L., & Meng, J.
-    (2015). Atmospheric water vapor retrieval from Landsat 8 thermal infrared
-    images. Journal of Geophysical Research: Atmospheres, 120(5), 1723-1738.
-
--   [3] FROM-GLC products, <http://data.ess.tsinghua.edu.cn/>
-
-Ευχαριστώ
-=========
+## Ευχαριστώ
 
 - Yann Chemin
 - Pietro Zambelli
@@ -226,5 +216,5 @@ References
 - Sajid Pareeth
 - Georgios Alexandris, Anthoula Alexandri
 - Special thanks to author Huazhong Ren for commenting on questions (personal
-communication)
+  communication)
 - Stefan Blumentrath

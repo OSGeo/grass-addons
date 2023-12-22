@@ -134,18 +134,18 @@
                <gmd:temporalElement>
                   <gmd:EX_TemporalExtent>
                      <gmd:extent>
-                        <gml:timeLength xsi:type="gml:TimePeriodType">	
+                        <gml:timeLength xsi:type="gml:TimePeriodType">
                         	<gml:timeInterval xsi:type="gml:TimeIntervalLengthType">
                         	<gml:unit>
                 							<gml:TimeUnitType>{{ md.identification.timeUnit }}{# tag="md.identification.timeUnit" , name="Granularity" , ref= "ISO/DIS 19108" , desc= "CharacterString is the name of the unit of measure used to express the length of the interval" ,inbox="Temporal Resolution", example = "month" , type ="string" , group= "Temporal" ,multi=0 , inboxmulti= 0, multiline= False #}</gml:TimeUnitType>
                 							</gml:unit>
                 							<radix>
                 							<gco:positiveInteger>{{ md.identification.radixT }}{# tag="md.identification.radixT" , name="Multiplier" , ref= "ISO/DIS 19108" , desc= "Integer is a positive integer that is the base of the multiplier of the unit" ,inbox="Temporal Resolution", example = "10" , type ="integer" , group= "Temporal" ,multi=0 , inboxmulti= 0, multiline= False #}</gco:positiveInteger>
-                							</radix>	
+                							</radix>
                 							<factor>
                 							<gco:Integer>{{ md.identification.factor }}{# tag="md.identification.factor" , name="Factor" , ref= "ISO/DIS 19108" , desc= "Factor is an integer that is the exponent of the base" , example = "3" , type ="string" ,inbox="Temporal Resolution", group= "Temporal" ,multi=0 , inboxmulti= 0, multiline= False #}</gco:Integer>
-                							</factor>	
-							</gml:timeInterval>			
+                							</factor>
+							</gml:timeInterval>
 						</gml:timeLength>
                      </gmd:extent>
                   </gmd:EX_TemporalExtent>

@@ -164,7 +164,7 @@ def main():
         # stdin
         import getpass
 
-        user = raw_input(_("Insert username: "))
+        user = input(_("Insert username: "))
         password = getpass.getpass(_("Insert password: "))
 
     else:
@@ -180,8 +180,6 @@ def main():
 
         except IOError as e:
             gs.fatal(_("Unable to open settings file: {}").format(e))
-
-    landsat_api = landsatxplore.api.API(user, password)
 
     if user is None or password is None:
         gs.fatal(_("No user or password given"))
@@ -229,6 +227,7 @@ def main():
         ee.logout()
 
     else:
+        landsat_api = landsatxplore.api.API(user, password)
 
         bb = get_bb(options["map"])
 

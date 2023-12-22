@@ -8,6 +8,6 @@ default: script
 
 # $(ETC)/i.modis/i.modis.download/%: % | $(ETC)/i.modis/i.modis.download
 # 	$(INSTALL) $< $@
-# 
+#
 # $(ETC)/i.modis/i.modis.download:
 # 	$(MKDIR) $@

@@ -1,7 +1,7 @@
 <h2>DESCRIPTION</h2>
 
 <em>r.pi.index</em> is a patch based fragmentation analysis package.
-Computation of basic fragmentation indices can be accomplished. 
+Computation of basic fragmentation indices can be accomplished.
 
 <p>
 Available options for the index to be computed for patches within
@@ -12,17 +12,17 @@ distance to euclidean nearest neighbour (ENN).
 
 <h2>NOTES</h2>
 
-The <em>Nearest Neighbour Index</em> (ENN) analyse the Euclidean 
-Nearest Neighbour to the first neighbouring patch. The output value is 
-in pixel and can be converted to a distance values using g.region 
-resolution information. <em>r.pi.enn</em> and <em>r.pi.fnn</em> 
-provide the same analysis concerning the first nearest neighbour (NN), 
-but are extended to the n-th NN. However due to code construction does 
+The <em>Nearest Neighbour Index</em> (ENN) analyse the Euclidean
+Nearest Neighbour to the first neighbouring patch. The output value is
+in pixel and can be converted to a distance values using g.region
+resolution information. <em>r.pi.enn</em> and <em>r.pi.fnn</em>
+provide the same analysis concerning the first nearest neighbour (NN),
+but are extended to the n-th NN. However due to code construction does
 the <em>r.pi.index</em> distance analysis to first ENN perform faster.
 
 
 <em>Methods:</em>
-The <em>method</em> operators determine what algorithm is applied 
+The <em>method</em> operators determine what algorithm is applied
 on the patches.
 <em>r.pi.index</em>
 can perform the following operations:
@@ -30,40 +30,40 @@ can perform the following operations:
 <p>
 
 <dl>
-<dt><b>Area</b> 
+<dt><b>Area</b>
 
 <dd>The <em>Area</em> computes the area of each patch.
 
-<dt><b>Perimeter</b> 
+<dt><b>Perimeter</b>
 
 <dd>The <em>Perimeter</em> computes the perimeter of each patch.
 
-<dt><b>Area-Perimeter ratio</b> 
+<dt><b>Area-Perimeter ratio</b>
 
 <dd>The <em>Area-Perimeter ratio</em> divides the patch perimeter by the area.
 
-<dt><b>SHAPE Index</b> 
+<dt><b>SHAPE Index</b>
 
-<dd>The <em>SHAPE Index</em> divides the patch perimete by the minimum perimeter 
+<dd>The <em>SHAPE Index</em> divides the patch perimete by the minimum perimeter
 possible for a maximally compact patch of the corresponding patch area.
 
-<dt><b>Border Index</b> 
+<dt><b>Border Index</b>
 
 <dd>The <em>Border Index</em> ....
 
-<dt><b>Compactness Index</b> 
+<dt><b>Compactness Index</b>
 
 <dd>The <em>Compactness Index</em> ....
 
-<dt><b>Asymmetry Index</b> 
+<dt><b>Asymmetry Index</b>
 
 <dd>The <em>Border Index</em> ....
 
-<dt><b>Fractal Dimension Index</b> 
+<dt><b>Fractal Dimension Index</b>
 
 <dd>The <em>Fractal Dimension Index</em> ....
 
-<dt><b>Nearest Neighbour Index</b> 
+<dt><b>Nearest Neighbour Index</b>
 
 <dd>The <em>Nearest Neighbour Index</em> computes the Euclidean distance
 to the first nearest neighbour patch.
@@ -72,7 +72,7 @@ to the first nearest neighbour patch.
 
 <h2>EXAMPLE</h2>
 
-Examples based on the North Carolina sample dataset are provided below. 
+Examples based on the North Carolina sample dataset are provided below.
 Indices are calculated for the landscape class 5 (forest).
 
 set region settings to used landcover class map:
@@ -86,7 +86,7 @@ g.region rast=landclass96
 computation of patch size (patch definition: 4-neighbourhood rule)
 <div class="code"><pre>
 r.pi.index input=landclass96 output=landclass96_forestclass5_area keyval=5 method=area
-# improve colouring of resulting map: 
+# improve colouring of resulting map:
 r.colors landclass96_forestclass5_area col=bgyr
 </pre></div>
 

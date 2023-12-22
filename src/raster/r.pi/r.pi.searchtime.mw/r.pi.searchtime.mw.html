@@ -1,37 +1,37 @@
 
 <h2>DESCRIPTION</h2>
 
-Analysis of landscape connectivity using individual-based dispersal 
+Analysis of landscape connectivity using individual-based dispersal
 model inside a moving window.
 
-This module provides information about the patch connectivity within a 
+This module provides information about the patch connectivity within a
 moving window.
 
 
 <h2>NOTES</h2>
 
-The suitability matrix impacts the step direction of individuals. If 
-individuals are moving beyond the mapset borders the indivuals are set 
+The suitability matrix impacts the step direction of individuals. If
+individuals are moving beyond the mapset borders the indivuals are set
 back to their original source patches.
 
 <h2>EXAMPLE</h2>
 
 An example for the North Carolina sample dataset:
 
-The patch relevance concerning connectivity are based on patches of the 
-<em>landclass96</em> raster class 5 amd the time (amount of steps) from 
-emigration to immigration is computed. The step length is set to 5 
-pixel, the output statistics are set to <em>average</em> time and 
-<em>variance</em> of searchtime. For each patch 1000 individuals were 
-released and the model stopped when at least 80% of all individuals 
-sucessfully immigrated. The command below is computing the time for the 
+The patch relevance concerning connectivity are based on patches of the
+<em>landclass96</em> raster class 5 amd the time (amount of steps) from
+emigration to immigration is computed. The step length is set to 5
+pixel, the output statistics are set to <em>average</em> time and
+<em>variance</em> of searchtime. For each patch 1000 individuals were
+released and the model stopped when at least 80% of all individuals
+sucessfully immigrated. The command below is computing the time for the
 whole landscape and the result is prompted to the screen<br>
 <div class="code"><pre>
 r.pi.searchtime.mw input=landclass96 output=searchtime_mw1 keyval=5 step_length=5 stats=average,variance percent=80 n=1000
 </pre></div>
 
-for a graphical output a moving window size needs to be defined (here 
-7x7 pixel) and the amount of steps until immigration per moving window 
+for a graphical output a moving window size needs to be defined (here
+7x7 pixel) and the amount of steps until immigration per moving window
 is provided in the output raster:
 <div class="code"><pre>
 r.pi.searchtime.mw input=landclass96 output=searchtime_mw1 keyval=5 step_length=5 stats=average,variance percent=80 n=1000 size=7
@@ -48,13 +48,13 @@ increasing the attraction to move towards patches to 10:
 r.pi.searchtime.mw input=landclass96 output=searchtime_mw1 keyval=5 step_length=5 stats=average,variance percent=80 n=1000 size=7 multiplicator=10
 </pre></div>
 
-the previous examples assumed a homogeneous matrix, a heterogenous 
-matrix can be included using a raster file which values are taken as 
+the previous examples assumed a homogeneous matrix, a heterogenous
+matrix can be included using a raster file which values are taken as
 costs for movement (0-100):
 <div class="code"><pre>
-# it is assumed that our species is a forest species and cannot move 
-# through water, hence a cost of 100, does not like urban areas (class: 
-# 6, cost: 10) but can disperse through shrubland (class 4, cost=1) 
+# it is assumed that our species is a forest species and cannot move
+# through water, hence a cost of 100, does not like urban areas (class:
+# 6, cost: 10) but can disperse through shrubland (class 4, cost=1)
 # better than through grassland (class 3, cost: 2):
 r.mapcalc "suit_raster = if(landclass96==5,1,if(landclass96 == 1, 10, if (landclass96==3,2, if(landclass96==4,1,if(landclass96==6,100)))))"
 r.pi.searchtime.mw input=landclass96 output=searchtime1 keyval=5 step_length=5 stats=average,variance percent=80 n=1000 size=7 suitability=suit_raster

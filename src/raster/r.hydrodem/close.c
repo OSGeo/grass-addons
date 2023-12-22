@@ -18,34 +18,35 @@ int close_map(char *ele_rast, int ele_map_type)
     ele_buf = Rast_allocate_buf(ele_map_type);
 
     for (r = 0; r < nrows; r++) {
-	G_percent(r, nrows, 2);
+        G_percent(r, nrows, 2);
 
-	Rast_set_null_value(ele_buf, ncols, ele_map_type);	/* reset row to all NULL */
+        Rast_set_null_value(ele_buf, ncols,
+                            ele_map_type); /* reset row to all NULL */
 
-	ele_ptr = ele_buf;
+        ele_ptr = ele_buf;
 
-	for (c = 0; c < ncols; c++) {
-	    cseg_get(&ele, &ele_val, r, c);
+        for (c = 0; c < ncols; c++) {
+            cseg_get(&ele, &ele_val, r, c);
 
-	    if (!Rast_is_c_null_value(&ele_val)) {
+            if (!Rast_is_c_null_value(&ele_val)) {
 
-		switch (ele_map_type) {
-		case CELL_TYPE:
-		    *((CELL *) ele_ptr) = ele_val;
-		    break;
-		case FCELL_TYPE:
-		    *((FCELL *) ele_ptr) = (FCELL) ele_val / ele_scale;
-		    break;
-		case DCELL_TYPE:
-		    *((DCELL *) ele_ptr) = (DCELL) ele_val / ele_scale;
-		    break;
-		}
-	    }
-	    ele_ptr = G_incr_void_ptr(ele_ptr, ele_size);
-	}
-	Rast_put_row(ele_fd, ele_buf, ele_map_type);
+                switch (ele_map_type) {
+                case CELL_TYPE:
+                    *((CELL *)ele_ptr) = ele_val;
+                    break;
+                case FCELL_TYPE:
+                    *((FCELL *)ele_ptr) = (FCELL)ele_val / ele_scale;
+                    break;
+                case DCELL_TYPE:
+                    *((DCELL *)ele_ptr) = (DCELL)ele_val / ele_scale;
+                    break;
+                }
+            }
+            ele_ptr = G_incr_void_ptr(ele_ptr, ele_size);
+        }
+        Rast_put_row(ele_fd, ele_buf, ele_map_type);
     }
-    G_percent(nrows, nrows, 2);	/* finish it */
+    G_percent(nrows, nrows, 2); /* finish it */
 
     Rast_close(ele_fd);
     G_free(ele_buf);

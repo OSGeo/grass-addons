@@ -1,23 +1,23 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.width.funct</em> produces the Width Function of a basin. The Width 
-Function W(x) gives the number of the cells in a basin at a flow 
-distance x from the outlet (it is also referred as distance-area 
-function). It is important to underline the fact that the distance 
-is not the euclidean one, but it is measured along the flowpath 
+<em>r.width.funct</em> produces the Width Function of a basin. The Width
+Function W(x) gives the number of the cells in a basin at a flow
+distance x from the outlet (it is also referred as distance-area
+function). It is important to underline the fact that the distance
+is not the euclidean one, but it is measured along the flowpath
 towards the outlet.
 
 <h3>Input</h3>
 
-<em>Distance to outlet map: </em>Input map, required. It is obtained 
+<em>Distance to outlet map: </em>Input map, required. It is obtained
 by r.stream.distance (with the option: distance to outlet, flag -o).
-<p>	
+<p>
 <em>Output plot: </em> Path and name of the plot.
 
 <h3>Output</h3>
 
-It provides the quantiles of the area - distance distribution and 
-the plot of the Width Function. In x axis is reported the distance 
+It provides the quantiles of the area - distance distribution and
+the plot of the Width Function. In x axis is reported the distance
 and in y axis is the area.
 
 <h2>EXAMPLE</h2>
@@ -29,9 +29,9 @@ g.region raster=elevation -p
 
 # Calculate flow direction
 r.stream.extract elevation=elevation threshold=1000 \
-direction=direction 
+direction=direction
 
-# Create outlet point 
+# Create outlet point
 echo "637304.924954,218617.100523" | v.in.ascii input=- sep=',' out=outlet
 
 # Convert outlet point to raster
@@ -59,17 +59,17 @@ r.width.funct map=dist2out image=/tmp/my_basin
 
 <h2>REFERENCES</h2>
 <ul>
-<li><em>Rodriguez-Iturbe I., Rinaldo A. &mdash; Fractal River 
+<li><em>Rodriguez-Iturbe I., Rinaldo A. &mdash; Fractal River
 Basins, Chance and Self-Organization. Cambridge Press (2001)</em>
-<li><em>In Italian: Di Leo M., Di Stefano M., Claps P., Sole A. 
-&mdash; Caratterizzazione morfometrica del bacino idrografico in 
-GRASS GIS (Morphometric characterization of the catchment in GRASS 
+<li><em>In Italian: Di Leo M., Di Stefano M., Claps P., Sole A.
+&mdash; Caratterizzazione morfometrica del bacino idrografico in
+GRASS GIS (Morphometric characterization of the catchment in GRASS
 GIS environment),
 <a href="http://geomatica.como.polimi.it/workbooks/">Geomatics Workbooks</a>,
 n. 9 (2010)</em>
 </ul>
-        
+
 <h2>AUTHORS</h2>
 
-Margherita Di Leo (grass-dev AT lists DOT osgeo DOT org), Massimo Di 
+Margherita Di Leo (grass-dev AT lists DOT osgeo DOT org), Massimo Di
 Stefano, Francesco Di Stefano

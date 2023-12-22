@@ -3,13 +3,14 @@
  * MODULE:    r.colors.contrast
  * AUTHOR(S): Yann Chemin
  * PURPOSE:   Change the contrast of a band
- * 
+ *
  * COPYRIGHT: (C) 2017 by the GRASS Development Team
  *
  *            This program is free software under the GPL (>=v2)
  *            Read the file COPYING that comes with GRASS for details.
  *
  ****************************************************************************/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <grass/gis.h>
@@ -26,11 +27,8 @@ int main(int argc, char *argv[])
 
     /* GRASS module options */
     struct GModule *module;
-    struct
-    {
-        struct Option
-            *input, *output,
-            *contrast, *f_offset, *min, *max;
+    struct {
+        struct Option *input, *output, *contrast, *f_offset, *min, *max;
     } parm;
 
     /* program settings */
@@ -57,8 +55,7 @@ int main(int argc, char *argv[])
     G_add_keyword(_("imagery"));
     G_add_keyword(_("contrast"));
     G_add_keyword(_("brightness"));
-    module->description =
-        _("Change the contrast/brightness of a raster.");
+    module->description = _("Change the contrast/brightness of a raster.");
 
     /* parameters */
 
@@ -76,16 +73,14 @@ int main(int argc, char *argv[])
     parm.min->key_desc = "value";
     parm.min->required = YES;
     parm.min->type = TYPE_DOUBLE;
-    parm.min->description =
-        _("Minimum input/output data value");
+    parm.min->description = _("Minimum input/output data value");
 
     parm.max = G_define_option();
     parm.max->key = "maximum";
     parm.max->key_desc = "value";
     parm.max->required = YES;
     parm.max->type = TYPE_DOUBLE;
-    parm.max->description =
-        _("Maximum input/output data value");
+    parm.max->description = _("Maximum input/output data value");
 
     parm.contrast = G_define_option();
     parm.contrast->key = "contrast";
@@ -123,7 +118,6 @@ int main(int argc, char *argv[])
     Rast_get_cellhd(input, "", &cellhd);
     in_fd = Rast_open_old(input, "");
     RASTER_MAP_TYPE IN_TYPE = Rast_get_map_type(in_fd);
-    
 
     /* Open output map with right data type */
     out_fd = Rast_open_new(output, IN_TYPE);
@@ -132,79 +126,82 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    switch(IN_TYPE){
-	    case CELL_TYPE:
-		inrastc = Rast_allocate_c_buf();
-		outrastc = Rast_allocate_c_buf();
-		for (row = 0; row < nrows; row++)
-		{
-			G_percent(row, nrows, 2);
-			Rast_get_c_row(in_fd, inrastc, row);
-			for (col = 0; col < ncols; col++)
-			{
-				pix = (double) inrastc[col];
-	    			if (Rast_is_d_null_value(&pix)){
-				Rast_set_c_null_value(&outrastc[col], 1);
-				}else{
-				pixout=contrast*pix+brightness;
-				if(pixout<min) pixout=min;
-				if(pixout>max) pixout=max;
-				outrastc[col] = (int) pixout;
-				}
-			}
-			Rast_put_c_row(out_fd, outrastc);
-		}
-    		G_free(inrastc);
-    		G_free(outrastc);
-		break;
-	    case FCELL_TYPE:
-		inrastf = Rast_allocate_f_buf();
-		outrastf = Rast_allocate_f_buf();
-		for (row = 0; row < nrows; row++)
-		{
-			G_percent(row, nrows, 2);
-			Rast_get_f_row(in_fd, inrastf, row);
-			for (col = 0; col < ncols; col++)
-			{
-				pix = (double) inrastf[col];
-	    			if (Rast_is_d_null_value(&pix)){
-				Rast_set_f_null_value(&outrastf[col], 1);
-				}else{
-				pixout=contrast*pix+brightness;
-				if(pixout<min) pixout=min;
-				if(pixout>max) pixout=max;
-				outrastf[col] = (float) pixout;
-				}
-			}
-			Rast_put_f_row(out_fd, outrastf);
-		}
-   		G_free(inrastf);
-    		G_free(outrastf);
-		break;
-	    case DCELL_TYPE:
-		inrastd = Rast_allocate_d_buf();
-		outrastd = Rast_allocate_d_buf();
-		for (row = 0; row < nrows; row++)
-		{
-			G_percent(row, nrows, 2);
-			Rast_get_d_row(in_fd, inrastd, row);
-			for (col = 0; col < ncols; col++)
-			{
-				pix = inrastd[col];
-	    			if (Rast_is_d_null_value(&pix)){
-				Rast_set_d_null_value(&outrastd[col], 1);
-				}else{
-				pixout=contrast*pix+brightness;
-				if(pixout<min) pixout=min;
-				if(pixout>max) pixout=max;
-				outrastd[col] = pixout;
-				}
-			}
-			Rast_put_d_row(out_fd, outrastd);
-		}
-   	 	G_free(inrastd);
-    		G_free(outrastd);
-		break;
+    switch (IN_TYPE) {
+    case CELL_TYPE:
+        inrastc = Rast_allocate_c_buf();
+        outrastc = Rast_allocate_c_buf();
+        for (row = 0; row < nrows; row++) {
+            G_percent(row, nrows, 2);
+            Rast_get_c_row(in_fd, inrastc, row);
+            for (col = 0; col < ncols; col++) {
+                pix = (double)inrastc[col];
+                if (Rast_is_d_null_value(&pix)) {
+                    Rast_set_c_null_value(&outrastc[col], 1);
+                }
+                else {
+                    pixout = contrast * pix + brightness;
+                    if (pixout < min)
+                        pixout = min;
+                    if (pixout > max)
+                        pixout = max;
+                    outrastc[col] = (int)pixout;
+                }
+            }
+            Rast_put_c_row(out_fd, outrastc);
+        }
+        G_free(inrastc);
+        G_free(outrastc);
+        break;
+    case FCELL_TYPE:
+        inrastf = Rast_allocate_f_buf();
+        outrastf = Rast_allocate_f_buf();
+        for (row = 0; row < nrows; row++) {
+            G_percent(row, nrows, 2);
+            Rast_get_f_row(in_fd, inrastf, row);
+            for (col = 0; col < ncols; col++) {
+                pix = (double)inrastf[col];
+                if (Rast_is_d_null_value(&pix)) {
+                    Rast_set_f_null_value(&outrastf[col], 1);
+                }
+                else {
+                    pixout = contrast * pix + brightness;
+                    if (pixout < min)
+                        pixout = min;
+                    if (pixout > max)
+                        pixout = max;
+                    outrastf[col] = (float)pixout;
+                }
+            }
+            Rast_put_f_row(out_fd, outrastf);
+        }
+        G_free(inrastf);
+        G_free(outrastf);
+        break;
+    case DCELL_TYPE:
+        inrastd = Rast_allocate_d_buf();
+        outrastd = Rast_allocate_d_buf();
+        for (row = 0; row < nrows; row++) {
+            G_percent(row, nrows, 2);
+            Rast_get_d_row(in_fd, inrastd, row);
+            for (col = 0; col < ncols; col++) {
+                pix = inrastd[col];
+                if (Rast_is_d_null_value(&pix)) {
+                    Rast_set_d_null_value(&outrastd[col], 1);
+                }
+                else {
+                    pixout = contrast * pix + brightness;
+                    if (pixout < min)
+                        pixout = min;
+                    if (pixout > max)
+                        pixout = max;
+                    outrastd[col] = pixout;
+                }
+            }
+            Rast_put_d_row(out_fd, outrastd);
+        }
+        G_free(inrastd);
+        G_free(outrastd);
+        break;
     }
 
     /* close all maps */
@@ -213,21 +210,20 @@ int main(int argc, char *argv[])
 
     /* write metadata into result and error maps */
     Rast_short_history(parm.output->answer, "raster", &hist);
-    Rast_put_cell_title(parm.output->answer,
-        "Result from r.colors.contrast");
-    switch(IN_TYPE){
-	case CELL_TYPE:
-    	    Rast_append_format_history(&hist,
-        	"          min=%d, max=%d",(int) min, (int) max);
-	    break;
-	case FCELL_TYPE:
-    	    Rast_append_format_history(&hist,
-                "          min=%.3f, max=%.3f", min, max);
-	    break;
-	case DCELL_TYPE:
-    	    Rast_append_format_history(&hist,
-        	"          min=%.3f, max=%.3f", min, max);
-	    break;
+    Rast_put_cell_title(parm.output->answer, "Result from r.colors.contrast");
+    switch (IN_TYPE) {
+    case CELL_TYPE:
+        Rast_append_format_history(&hist, "          min=%d, max=%d", (int)min,
+                                   (int)max);
+        break;
+    case FCELL_TYPE:
+        Rast_append_format_history(&hist, "          min=%.3f, max=%.3f", min,
+                                   max);
+        break;
+    case DCELL_TYPE:
+        Rast_append_format_history(&hist, "          min=%.3f, max=%.3f", min,
+                                   max);
+        break;
     }
     Rast_write_history(parm.output->answer, &hist);
 

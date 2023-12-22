@@ -10,7 +10,7 @@ char *gets() ;
 #define FGET	    gets(buffer)
 #define READLINE	if (FGET==NULL) quit() ;\
 					sscanf (buffer,"%d%d%d%d",\
-					&cur_row, &col_b, &col_e, &cat) 
+					&cur_row, &col_b, &col_e, &cat)
 
 main(argc, argv)
 	int argc;
@@ -70,13 +70,13 @@ main(argc, argv)
 		col_ptr = record ;
 		for(atcol=0; atcol<num_cols; atcol++)
 			*(col_ptr++) = 0 ;
-		
+
 	/* If we've hit the end of the file, write out some zero rows and quit */
 		if (cur_row > num_rows)
 		{
 			while (atrow < num_rows)
 			{
-				G_put_map_row(newmap, record) ; 
+				G_put_map_row(newmap, record) ;
 				atrow++ ;
 			}
 			G_close_cell(newmap) ;
@@ -86,7 +86,7 @@ main(argc, argv)
 	/* write out enough rows to get to current row */
 		while (atrow < cur_row + ROW_SHIFT)
 		{
-			G_put_map_row(newmap, record) ; 
+			G_put_map_row(newmap, record) ;
 			atrow++ ;
 		}
 
@@ -98,7 +98,7 @@ main(argc, argv)
 			READLINE ;
 		} while (cur_row == (atrow - ROW_SHIFT)) ;
 
-		G_put_map_row(newmap, record) ; 
+		G_put_map_row(newmap, record) ;
 	}
 	fprintf(stderr, "Close: %d\n", G_close_cell(newmap)) ;
 }

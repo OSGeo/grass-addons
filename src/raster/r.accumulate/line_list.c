@@ -30,9 +30,8 @@ void add_line(struct line_list *ll, struct line *l)
 {
     if (ll->n == ll->nalloc) {
         ll->nalloc += REALLOC_INCREMENT;
-        ll->lines =
-            (struct line **)G_realloc(ll->lines,
-                                      ll->nalloc * sizeof(struct line *));
+        ll->lines = (struct line **)G_realloc(
+            ll->lines, ll->nalloc * sizeof(struct line *));
         if (!ll->lines)
             G_fatal_error(_("Unable to increase line list"));
     }

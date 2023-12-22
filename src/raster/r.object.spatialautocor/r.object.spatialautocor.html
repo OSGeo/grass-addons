@@ -21,7 +21,7 @@ Calculate the spatial autocorrelation of altitude in the elevation map using
 individual patches in the landclass96 (North Carolina sample dataset) as objects:
 
 <p>
-<div class="code"><pre> 
+<div class="code"><pre>
 g.region raster=elevation
 r.clump landclass96 output=objects
 r.object.spatialautocor ob=objects var=elevation method=moran
@@ -30,7 +30,7 @@ r.object.spatialautocor ob=objects var=elevation method=geary
 
 <h2>REFERENCES</h2>
 
-Moran, P.A.P., 1950. Notes on Continuous Stochastic Phenomena. Biometrika 37, 17-23. 
+Moran, P.A.P., 1950. Notes on Continuous Stochastic Phenomena. Biometrika 37, 17-23.
 <a href="https://dx.doi.org/10.2307%2F2332142">https://dx.doi.org/10.2307%2F2332142</a>
 <br><br>
 Geary, R.C., 1954. The Contiguity Ratio and Statistical Mapping. The Incorporated Statistician 5, 115.
@@ -40,6 +40,6 @@ Geary, R.C., 1954. The Contiguity Ratio and Statistical Mapping. The Incorporate
 
 <a href="r.neighborhoodmatrix.html">r.neighborhoodmatrix</a><br>
 
-<h2>AUTHOR</h2> 
+<h2>AUTHOR</h2>
 
 Moritz Lennert

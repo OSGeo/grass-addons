@@ -1,87 +1,87 @@
-# GRASS Addons git repository
+# GRASS GIS Addons Code Repository
 
-## How to get write access here
+## How to get the addon code
 
-Read access is granted to the public, write access
-must be requested, see here for details:
-<https://trac.osgeo.org/grass/wiki/HowToContribute#WriteaccesstotheGRASSaddonsrepository>
+Clone of the entire repository:
 
-However, it is also possible to fork this repository, insert your AddOn or fix
-an existing one in a new branch and finally open
-a [pull request](https://help.github.com/en/articles/about-pull-requests).
-
-In either case, please read the submitting rules at the bottom of this page.
-
-## How to get the AddOn code
-
-Clone of the entire AddOns git repository:
-
-```
-git clone https://github.com/OSGeo/grass-addons.git grass_addons
+```bash
+git clone https://github.com/OSGeo/grass-addons.git grass-addons
 ```
 
-## How to install or remove AddOns in your GRASS installation
+## How to install or remove addons in your GRASS installation
 
-The simplest way to install GRASS GIS AddOns is to use the `g.extension`
+The simplest way to install GRASS GIS Addons is to use the `g.extension`
 module:
 <https://grass.osgeo.org/grass-stable/manuals/g.extension.html>
 
-## How to compile AddOn code
+`g.extension` can install from the online repository (the default) or from
+local source code (not available on Windows).
 
-### C code/Scripts, with GRASS source code on your computer
+## How to compile addon code
 
-Preparations (assuming the source code in $HOME/grass/):
-(if you have already built GRASS from source you don't need to do this
-again. If adding to a binary install, the versions must match exactly.
-You need to git checkout the exact tag or commit used for the binary.)
+### Compilation with GRASS GIS binaries on your computer
 
+In this case, compile GRASS addon modules into your installed GRASS code
+by setting `MODULE_TOPDIR` to where to the GRASS binaries are located:
+
+```bash
+make MODULE_TOPDIR=/usr/lib/grass/
 ```
+
+### Compilation with GRASS GIS core source code locally compiled
+
+Preparations (assuming the [GRASS GIS core source code](https://github.com/OSGeo/grass)
+being stored in `$HOME/grass/` - if you have already built GRASS GIS core from
+source code you don't need to do this again. If adding to a binary install,
+the versions must match exactly. You need to `git checkout` the exact tag
+or commit used for the binary.)
+
+```bash
+# GRASS GIS core source code
 ./configure # [optionally flags]
-make libs
+make
 ```
 
-The easiest way to compile GRASS AddOns modules into your GRASS code
-is by setting MODULE_TOPDIR on the fly to tell 'make' where to
+The easiest way to compile GRASS addons modules into your GRASS code
+is by setting `MODULE_TOPDIR` on the fly to tell `make` where to
 find the prepared GRASS source code:
 
-```
+```bash
 make MODULE_TOPDIR=$HOME/grass/
 ```
 
-(adapt to your /path/to/grass/). Each module/script in the GRASS
-AddOns git repository should have a Makefile to support easy
+(adapt as needed to your `/path/to/grass/`). Each module in the GRASS
+Addons repository should have a Makefile to support easy
 installation.
 
 Install then into your existing GRASS installation with
 
-```
+```bash
 make MODULE_TOPDIR=$HOME/grass/ install
 ```
 
-For system-wide installation this usually requires "root" privileges
-(so, also 'sudo' may help).
+For system-wide installation the install step usually requires "root" privileges
+(so, also `sudo` may help).
 
-### C code/Scripts, with GRASS binaries on your computer
+## How to submit your contributions
 
-compile GRASS AddOns modules into your GRASS code by setting
-MODULE_TOPDIR to where to the GRASS binaries are located:
+While read access is granted to the public, for submissions you best fork
+this repository, insert your addon or fix an existing one in a new branch
+and finally open a [pull request](https://help.github.com/en/articles/about-pull-requests).
 
-```
-make MODULE_TOPDIR=/usr/lib/grass/
-```
-
-## How to submit contributions
-
-To submit your GRASS GIS module here, please check
+Please note the following submitting rules: To successfully
+submit your GRASS GIS Addon module here, please check
 
 <https://grass.osgeo.org/development/>
 
-The submission must be compliant with the GRASS
+Your submission must be compliant with the GRASS
 submission rules as found in the GRASS source code
-and RFC2 (Legal aspects of submission):
+and [RFC2 (Legal aspects of submission)](https://github.com/OSGeo/grass/blob/main/doc/development/rfc/legal_aspects_of_code_contributions.md).
 
-<https://trac.osgeo.org/grass/wiki/RFC>
+Also please read submitting instructions before creating a pull request:
 
-Also read submitting instructions before committing any changes!
+<https://github.com/OSGeo/grass/tree/main/doc/development/submitting>
 
-<https://trac.osgeo.org/grass/wiki/Submitting>
+If you aim at becomming code maintainer with full write access, this must be
+formally requested, see here for details:
+<https://trac.osgeo.org/grass/wiki/HowToContribute#WriteaccesstotheGRASSaddonsrepository>

@@ -1,27 +1,27 @@
 #include "local_proto.h"
 
-int gather_positions(Position * res, int *map, int *mask, int x, int y,
-		     int sx, int sizex, int sizey, int patch_only)
+int gather_positions(Position *res, int *map, int *mask, int x, int y, int sx,
+                     int sizex, int sizey, int patch_only)
 {
     int i, j;
     int count = 0;
 
     for (j = y; j < y + sizey; j++) {
-	for (i = x; i < x + sizex; i++) {
-	    /* test if position should be considered */
-	    if (mask[j * sx + i] &&
-		((!patch_only || (patch_only && map[j * sx + i] > -1)))) {
-		res[count].x = i;
-		res[count].y = j;
-		count++;
-	    }
-	}
+        for (i = x; i < x + sizex; i++) {
+            /* test if position should be considered */
+            if (mask[j * sx + i] &&
+                ((!patch_only || (patch_only && map[j * sx + i] > -1)))) {
+                res[count].x = i;
+                res[count].y = j;
+                count++;
+            }
+        }
     }
 
     return count;
 }
 
-int perform_test(Position * positions, int count, int *map, int sx)
+int perform_test(Position *positions, int count, int *map, int sx)
 {
     int p1, p2;
     int x1, x2, y1, y2;
@@ -41,15 +41,15 @@ int perform_test(Position * positions, int count, int *map, int sx)
 
     /* compare values */
     if (val1 > -1 && val1 == val2) {
-	return 1;
+        return 1;
     }
     else {
-	return 0;
+        return 0;
     }
 }
 
-void perform_analysis(DCELL * values, int *map, int *mask, int n, int size,
-		      int patch_only, int sx, int sy)
+void perform_analysis(DCELL *values, int *map, int *mask, int n, int size,
+                      int patch_only, int sx, int sy)
 {
     int x, y, nx, ny, sizex, sizey, i;
     Position *pos_arr;
@@ -58,10 +58,10 @@ void perform_analysis(DCELL * values, int *map, int *mask, int n, int size,
     int progress = 0;
 
     if (size > 0) {
-	pos_arr = (Position *) G_malloc(size * size * sizeof(Position));
+        pos_arr = (Position *)G_malloc(size * size * sizeof(Position));
     }
     else {
-	pos_arr = (Position *) G_malloc(sx * sy * sizeof(Position));
+        pos_arr = (Position *)G_malloc(sx * sy * sizeof(Position));
     }
 
     nx = size > 0 ? sx - size + 1 : 1;
@@ -71,27 +71,26 @@ void perform_analysis(DCELL * values, int *map, int *mask, int n, int size,
 
     /* for each window */
     for (y = 0; y < ny; y++) {
-	for (x = 0; x < nx; x++) {
-	    /* get relevant positions */
-	    count =
-		gather_positions(pos_arr, map, mask, x, y, sx, sizex, sizey,
-				 patch_only);
+        for (x = 0; x < nx; x++) {
+            /* get relevant positions */
+            count = gather_positions(pos_arr, map, mask, x, y, sx, sizex, sizey,
+                                     patch_only);
 
-	    if (count > 0) {
-		/* perform test n times */
-		value = 0;
-		for (i = 0; i < n; i++) {
-		    value += perform_test(pos_arr, count, map, sx);
-		}
-	    }
-	    else {
-		value = -1;
-	    }
-	    values[y * nx + x] = (DCELL) value / (DCELL) n;
+            if (count > 0) {
+                /* perform test n times */
+                value = 0;
+                for (i = 0; i < n; i++) {
+                    value += perform_test(pos_arr, count, map, sx);
+                }
+            }
+            else {
+                value = -1;
+            }
+            values[y * nx + x] = (DCELL)value / (DCELL)n;
 
-	    progress++;
-	    G_percent(progress, nx * ny, 1);
-	}
+            progress++;
+            G_percent(progress, nx * ny, 1);
+        }
     }
 
     return;

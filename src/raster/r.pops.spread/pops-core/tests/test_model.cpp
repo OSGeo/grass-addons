@@ -91,8 +91,8 @@ int test_with_reduced_stochasticity()
         get_number_of_scheduled_actions(config.spread_rate_schedule());
     unsigned quarantine_num_steps =
         get_number_of_scheduled_actions(config.quarantine_schedule());
-    SpreadRate<Raster<int>> spread_rate(
-        infected, config.ew_res, config.ns_res, rate_num_steps);
+    SpreadRate<Raster<int>> spread_rate(infected, config.ew_res, config.ns_res,
+                                        rate_num_steps);
     QuarantineEscape<Raster<int>> quarantine(
         zeros, config.ew_res, config.ns_res, quarantine_num_steps);
 
@@ -103,24 +103,10 @@ int test_with_reduced_stochasticity()
     int step = 0;
 
     Model<Raster<int>, Raster<double>, Raster<double>::IndexType> model(config);
-    model.run_step(
-        step++,
-        infected,
-        susceptible,
-        total_hosts,
-        dispersers,
-        empty_integer,
-        mortality_tracker,
-        died,
-        empty_float,
-        empty_float[0],
-        treatments,
-        zeros,
-        outside_dispersers,
-        spread_rate,
-        quarantine,
-        zeros,
-        movements);
+    model.run_step(step++, infected, susceptible, total_hosts, dispersers,
+                   empty_integer, mortality_tracker, died, empty_float,
+                   empty_float[0], treatments, zeros, outside_dispersers,
+                   spread_rate, quarantine, zeros, movements);
     if (dispersers != expected_dispersers) {
         cout << "reduced_stochasticity: dispersers (actual, expected):\n"
              << dispersers << "  !=\n"
@@ -153,7 +139,8 @@ int test_deterministic()
     Raster<int> total_hosts = susceptible;
     Raster<int> zeros(infected.rows(), infected.cols(), 0);
 
-    Raster<int> expected_mortality_tracker = {{10, 0, 0}, {0, 10, 0}, {0, 0, 2}};
+    Raster<int> expected_mortality_tracker = {
+        {10, 0, 0}, {0, 10, 0}, {0, 0, 2}};
     Raster<int> expected_infected = {{15, 0, 0}, {0, 15, 0}, {0, 0, 4}};
 
     Raster<int> dispersers(infected.rows(), infected.cols());
@@ -212,33 +199,20 @@ int test_deterministic()
     config.ns_res = 30;
     unsigned rate_num_steps =
         get_number_of_scheduled_actions(config.spread_rate_schedule());
-    SpreadRate<Raster<int>> spread_rate(
-        infected, config.ew_res, config.ns_res, rate_num_steps);
-    QuarantineEscape<Raster<int>> quarantine(zeros, config.ew_res, config.ns_res, 0);
+    SpreadRate<Raster<int>> spread_rate(infected, config.ew_res, config.ns_res,
+                                        rate_num_steps);
+    QuarantineEscape<Raster<int>> quarantine(zeros, config.ew_res,
+                                             config.ns_res, 0);
 
     auto expected_dispersers = config.reproductive_rate * infected;
 
     int step = 0;
 
     Model<Raster<int>, Raster<double>, Raster<double>::IndexType> model(config);
-    model.run_step(
-        step++,
-        infected,
-        susceptible,
-        total_hosts,
-        dispersers,
-        empty_integer,
-        mortality_tracker,
-        died,
-        empty_float,
-        empty_float[0],
-        treatments,
-        zeros,
-        outside_dispersers,
-        spread_rate,
-        quarantine,
-        zeros,
-        movements);
+    model.run_step(step++, infected, susceptible, total_hosts, dispersers,
+                   empty_integer, mortality_tracker, died, empty_float,
+                   empty_float[0], treatments, zeros, outside_dispersers,
+                   spread_rate, quarantine, zeros, movements);
     if (dispersers != expected_dispersers) {
         cout << "deterministic: dispersers (actual, expected):\n"
              << dispersers << "  !=\n"
@@ -271,7 +245,8 @@ int test_deterministic_exponential()
     Raster<int> total_hosts = susceptible;
     Raster<int> zeros(infected.rows(), infected.cols(), 0);
 
-    Raster<int> expected_mortality_tracker = {{10, 0, 0}, {0, 10, 0}, {0, 0, 2}};
+    Raster<int> expected_mortality_tracker = {
+        {10, 0, 0}, {0, 10, 0}, {0, 0, 2}};
     Raster<int> expected_infected = {{15, 0, 0}, {0, 15, 0}, {0, 0, 4}};
 
     Raster<int> dispersers(infected.rows(), infected.cols());
@@ -329,33 +304,20 @@ int test_deterministic_exponential()
     config.ns_res = 30;
     unsigned rate_num_steps =
         get_number_of_scheduled_actions(config.spread_rate_schedule());
-    SpreadRate<Raster<int>> spread_rate(
-        infected, config.ew_res, config.ns_res, rate_num_steps);
-    QuarantineEscape<Raster<int>> quarantine(zeros, config.ew_res, config.ns_res, 0);
+    SpreadRate<Raster<int>> spread_rate(infected, config.ew_res, config.ns_res,
+                                        rate_num_steps);
+    QuarantineEscape<Raster<int>> quarantine(zeros, config.ew_res,
+                                             config.ns_res, 0);
 
     auto expected_dispersers = config.reproductive_rate * infected;
 
     int step = 0;
 
     Model<Raster<int>, Raster<double>, Raster<double>::IndexType> model(config);
-    model.run_step(
-        step++,
-        infected,
-        susceptible,
-        total_hosts,
-        dispersers,
-        empty_integer,
-        mortality_tracker,
-        died,
-        empty_float,
-        empty_float[0],
-        treatments,
-        zeros,
-        outside_dispersers,
-        spread_rate,
-        quarantine,
-        zeros,
-        movements);
+    model.run_step(step++, infected, susceptible, total_hosts, dispersers,
+                   empty_integer, mortality_tracker, died, empty_float,
+                   empty_float[0], treatments, zeros, outside_dispersers,
+                   spread_rate, quarantine, zeros, movements);
     if (dispersers != expected_dispersers) {
         cout << "deterministic exponential: dispersers (actual, expected):\n"
              << dispersers << "  !=\n"
@@ -374,7 +336,8 @@ int test_deterministic_exponential()
         return 1;
     }
     if (mortality_tracker[0] != expected_mortality_tracker) {
-        cout << "deterministic exponential: mortality tracker (actual, expected):\n"
+        cout << "deterministic exponential: mortality tracker (actual, "
+                "expected):\n"
              << mortality_tracker[0] << "  !=\n"
              << expected_mortality_tracker << "\n";
         return 1;
@@ -447,9 +410,10 @@ int test_model_sei_deterministic()
     config.ns_res = 30;
     unsigned rate_num_steps =
         get_number_of_scheduled_actions(config.spread_rate_schedule());
-    SpreadRate<Raster<int>> spread_rate(
-        infected, config.ew_res, config.ns_res, rate_num_steps);
-    QuarantineEscape<Raster<int>> quarantine(zeros, config.ew_res, config.ns_res, 0);
+    SpreadRate<Raster<int>> spread_rate(infected, config.ew_res, config.ns_res,
+                                        rate_num_steps);
+    QuarantineEscape<Raster<int>> quarantine(zeros, config.ew_res,
+                                             config.ns_res, 0);
 
     // There should be still the original number of infected when dispersers are
     // created.
@@ -458,25 +422,12 @@ int test_model_sei_deterministic()
     auto expected_infected = config.reproductive_rate * infected + infected;
 
     Model<Raster<int>, Raster<double>, Raster<double>::IndexType> model(config);
-    for (unsigned int step = 0; step < config.scheduler().get_num_steps(); ++step) {
-        model.run_step(
-            step,
-            infected,
-            susceptible,
-            total_hosts,
-            dispersers,
-            exposed,
-            mortality_tracker,
-            died,
-            empty_float,
-            empty_float[0],
-            treatments,
-            zeros,
-            outside_dispersers,
-            spread_rate,
-            quarantine,
-            zeros,
-            movements);
+    for (unsigned int step = 0; step < config.scheduler().get_num_steps();
+         ++step) {
+        model.run_step(step, infected, susceptible, total_hosts, dispersers,
+                       exposed, mortality_tracker, died, empty_float,
+                       empty_float[0], treatments, zeros, outside_dispersers,
+                       spread_rate, quarantine, zeros, movements);
     }
     if (dispersers != expected_dispersers) {
         cout << "sei_deterministic: dispersers (actual, expected):\n"
@@ -560,19 +511,20 @@ int test_model_sei_deterministic_with_treatments()
     std::vector<Raster<double>> empty_float;
     Treatments<Raster<int>, Raster<double>> treatments(config.scheduler());
     Raster<double> simple_treatment = {{1, 0, 0}, {0, 0, 0}, {0, 0, 0}};
-    treatments.add_treatment(
-        simple_treatment, Date(2020, 1, 1), 0, TreatmentApplication::AllInfectedInCell);
+    treatments.add_treatment(simple_treatment, Date(2020, 1, 1), 0,
+                             TreatmentApplication::AllInfectedInCell);
     Raster<double> pesticide_treatment = {{0, 0, 0}, {0, 0.5, 0}, {0, 0, 0}};
-    treatments.add_treatment(
-        pesticide_treatment, Date(2020, 1, 1), 365, TreatmentApplication::Ratio);
+    treatments.add_treatment(pesticide_treatment, Date(2020, 1, 1), 365,
+                             TreatmentApplication::Ratio);
     config.use_treatments = true;
     config.ew_res = 30;
     config.ns_res = 30;
     unsigned rate_num_steps =
         get_number_of_scheduled_actions(config.spread_rate_schedule());
-    SpreadRate<Raster<int>> spread_rate(
-        infected, config.ew_res, config.ns_res, rate_num_steps);
-    QuarantineEscape<Raster<int>> quarantine(zeros, config.ew_res, config.ns_res, 0);
+    SpreadRate<Raster<int>> spread_rate(infected, config.ew_res, config.ns_res,
+                                        rate_num_steps);
+    QuarantineEscape<Raster<int>> quarantine(zeros, config.ew_res,
+                                             config.ns_res, 0);
 
     // There should be still the original number of infected when dispersers are
     // created.
@@ -580,13 +532,14 @@ int test_model_sei_deterministic_with_treatments()
     // One E to I transition should happen.
     auto expected_infected = config.reproductive_rate * infected + infected;
     // Apply treatment to expected results (assuming rate == 1)
-    // (modifying int with double is not allowed in Raster, so we have to be explicit)
-    // Remove infected
+    // (modifying int with double is not allowed in Raster, so we have to be
+    // explicit) Remove infected
     for (int row = 0; row < expected_infected.rows(); ++row)
         for (int col = 0; col < expected_infected.rows(); ++col)
             expected_infected(row, col) *= !simple_treatment(row, col);
     // Reduced number of infected
-    // (assuming 1 infection (E to I) step completed, i.e. 1 initial state + 1 step)
+    // (assuming 1 infection (E to I) step completed, i.e. 1 initial state + 1
+    // step)
     for (int row = 0; row < expected_infected.rows(); ++row)
         for (int col = 0; col < expected_infected.rows(); ++col)
             if (pesticide_treatment(row, col) > 0)
@@ -594,33 +547,22 @@ int test_model_sei_deterministic_with_treatments()
                     2 * pesticide_treatment(row, col) * infected(row, col);
 
     Model<Raster<int>, Raster<double>, Raster<double>::IndexType> model(config);
-    for (unsigned int step = 0; step < config.scheduler().get_num_steps(); ++step) {
-        model.run_step(
-            step,
-            infected,
-            susceptible,
-            total_hosts,
-            dispersers,
-            exposed,
-            mortality_tracker,
-            died,
-            empty_float,
-            empty_float[0],
-            treatments,
-            zeros,
-            outside_dispersers,
-            spread_rate,
-            quarantine,
-            zeros,
-            movements);
+    for (unsigned int step = 0; step < config.scheduler().get_num_steps();
+         ++step) {
+        model.run_step(step, infected, susceptible, total_hosts, dispersers,
+                       exposed, mortality_tracker, died, empty_float,
+                       empty_float[0], treatments, zeros, outside_dispersers,
+                       spread_rate, quarantine, zeros, movements);
     }
     if (!outside_dispersers.empty()) {
-        cout << "sei_deterministic_with_treatments: There are outside_dispersers ("
+        cout << "sei_deterministic_with_treatments: There are "
+                "outside_dispersers ("
              << outside_dispersers.size() << ") but there should be none\n";
         return 1;
     }
     if (infected != expected_infected) {
-        cout << "sei_deterministic_with_treatments: infected (actual, expected):\n"
+        cout << "sei_deterministic_with_treatments: infected (actual, "
+                "expected):\n"
              << infected << "  !=\n"
              << expected_infected << "\n";
         return 1;
@@ -642,4 +584,4 @@ int main()
     return ret;
 }
 
-#endif  // POPS_TEST
+#endif // POPS_TEST

@@ -196,4 +196,3 @@ See also log files of compilation:
 generate $MAJOR $MINOR $PATCH $4
 
 exit 0
-

@@ -53,9 +53,9 @@ GRASS raster map would actually occupy.</li>
 <h2>EXAMPLE</h2>
 
 <div class="code"><pre>
-g.region raster=elevation@PERMANENT -p 
-r.random input=elevation@PERMANENT n=100000 raster_output=random_points 
-r.surf.nnbathy input=random_points output=raster_map 
+g.region raster=elevation@PERMANENT -p
+r.random input=elevation@PERMANENT n=100000 raster_output=random_points
+r.surf.nnbathy input=random_points output=raster_map
 d.rast map=raster_map
 </pre></div>
 
@@ -70,7 +70,7 @@ d.rast map=raster_map
 
 <em>
   <a href="v.surf.nnbathy.html">v.surf.nnbathy</a>
-</em> 
+</em>
 
 
 <h2>AUTHOR</h2>

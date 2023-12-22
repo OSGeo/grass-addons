@@ -18,6 +18,7 @@
 # % keyword: raster
 # % keyword: solar
 # % keyword: sun energy
+# % keyword: parallel
 # % overwrite: yes
 # %end
 # %option

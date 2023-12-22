@@ -32,7 +32,7 @@ set to NULL.</dd>
 <em>r.watershed</em> or <em>r.stream.extract</em>. If the <em>r.stream.extract</em>
 output map is used, it contains non-NULL values only in places where streams are
 present. NULL cells are ignored; zero and negative values are valid direction data
-if they vary from -8 to 8 (CCW from East in steps of 45 degrees). The direction 
+if they vary from -8 to 8 (CCW from East in steps of 45 degrees). The direction
 map shall be of integer type (CELL). The region resolution and map resolution
 must be the same. Also the <em>stream_rast</em> network map must have the same
 resolution. If resolutions differ the module informs about it and stops. Region
@@ -128,4 +128,3 @@ plot(sorted,stdist~stgrad,type="l")
 
 Jarek Jasiewicz, Adam Mickiewicz University, Geoecology and Geoinformation
 Institute.
-

@@ -798,13 +798,13 @@ class ServerAdd(wx.Frame):
                 message = "Invalid GetCapabilties response"
             if isServiceException(xml):
                 message = "Service Exception"
-        except HTTPError, e:
+        except HTTPError as e:
             message = "The server couldn't fulfill the request."
-        except URLError, e:
+        except URLError as e:
             message = "Failed to reach a server."
-        except ValueError, e:
+        except ValueError as e:
             message = "Value error"
-        except Exception, e:
+        except Exception as e:
             message = "urlopen exception, unable to fetch data for getcapabilities"
             message = str(e)
 

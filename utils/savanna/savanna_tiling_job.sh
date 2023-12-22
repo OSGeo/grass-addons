@@ -27,4 +27,3 @@ grass64 -c -text $grassdata_directory/$base_location/$tile_mapset
   fi
 # sleep 1
 # done
-

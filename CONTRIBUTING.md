@@ -29,57 +29,57 @@ GRASS GIS developer mailing list.
 * Fork the repository.
 * Clone your fork (use SSH or HTTPS URL):
 
-```
+```bash
 git clone git@github.com:your_GH_account/grass-addons.git
 ```
 
 * Enter the directory
 
-```
+```bash
 cd grass-addons/
 ```
 
 * Add main GRASS GIS Addons repository as "upstream" (use HTTPS URL):
 
-```
+```bash
 git remote add upstream https://github.com/OSGeo/grass-addons
 ```
 
 * Your remotes now should be "origin" which is your fork and "upstream" which
   is this main GRASS GIS Addons repository. You can confirm that using:
 
-```
+```bash
 git remote -v
 ```
 
 * You should see something like:
 
-```
-origin	git@github.com:your_GH_account/grass-addons.git (fetch)
-origin	git@github.com:your_GH_account/grass-addons.git (push)
-upstream	https://github.com/OSGeo/grass-addons.git (fetch)
-upstream	https://github.com/OSGeo/grass-addons.git (push)
+```text
+origin  git@github.com:your_GH_account/grass-addons.git (fetch)
+origin  git@github.com:your_GH_account/grass-addons.git (push)
+upstream        https://github.com/OSGeo/grass-addons.git (fetch)
+upstream        https://github.com/OSGeo/grass-addons.git (push)
 ```
 
 It is important that "origin" points to your fork.
 
 ### Update before creating a feature branch
 
-* Make sure your are starting with the branch for the latest version, i.e., _grass8_:
-
-```
-git checkout grass8
-```
-
 * Download updates from all branches from the _upstream_ remote:
 
-```
+```bash
 git fetch upstream
+```
+
+* Make sure your are starting with the branch for the latest version, i.e., _grass8_:
+
+```bash
+git switch grass8
 ```
 
 * Update your local branch to match the one in the upstream repository:
 
-```
+```bash
 git rebase upstream/grass8
 ```
 
@@ -88,25 +88,19 @@ git rebase upstream/grass8
 If `rebase` fails with "error: cannot rebase: You have unstaged changes...",
 then move your uncommitted local changes to "stash" using:
 
-```
+```bash
 git stash
 ```
 
 * Now you can rebase:
 
-```
+```bash
 git rebase upstream/grass8
 ```
 
-* Apply your local changes on top:
+* Apply your local changes on top of the updated code:
 
-```
-git stash apply
-```
-
-* Remove the stash record (optional):
-
-```
+```bash
 git stash pop
 ```
 
@@ -117,29 +111,28 @@ based on it.
 
 * Create a new feature branch and switch to it:
 
-```
-git checkout -b new-feature
+```bash
+git switch -c new-feature
 ```
 
 ### Making changes
 
 You can use your favorite tools to change source code or other files
-in the local copy of the code. When make changes, please follow
-Submitting Guidelines at
-<http://trac.osgeo.org/grass/wiki/Submitting>.
+in the local copy of the code. When make changes, please follow the
+[Submitting Guidelines](https://github.com/OSGeo/grass/blob/main/doc/development/submitting/submitting.md).
 
 ### Committing
 
 * Add files to the commit (changed ones or new ones):
 
-```
+```bash
 git add file1
 git add file2
 ```
 
 * Commit the change (first word is the module name):
 
-```
+```bash
 git commit -m "module: added a new feature"
 ```
 
@@ -147,7 +140,7 @@ git commit -m "module: added a new feature"
 
 * Push your local feature branch to your fork:
 
-```
+```bash
 git push origin new-feature
 ```
 
@@ -158,6 +151,9 @@ you what URL to use to create a pull request. You can follow that URL
 or you can go any time later to your fork on GitHub, display the
 branch `new-feature`, and GitHub will show you button to create
 a pull request.
+
+Some contributors use GitHub CLI which allows them to create the pull request
+from command line in one step together with pushing the changes to GitHub.
 
 ### After creating a pull request
 
@@ -175,3 +171,8 @@ local _grass8_ branch in order to get there the change you just contributed.
 
 GRASS GIS maintainers use additional workflows besides the one described
 above. These are detailed at <https://trac.osgeo.org/grass/wiki/HowToGit>
+
+## Unit tests
+
+Consider including a unit test suite with your addon. More details in [these
+instructions](doc/development/submitting/UNIT_TESTS.md).

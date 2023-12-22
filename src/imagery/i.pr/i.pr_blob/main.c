@@ -1,4 +1,3 @@
-
 /****************************************************************
  *
  * MODULE:     i.pr
@@ -79,9 +78,10 @@ int main(int argc, char *argv[])
     opt5->type = TYPE_DOUBLE;
     opt5->required = YES;
     opt5->description =
-	"maximum value of the map for defining a blob\n\n\tThe output is a site file, BUT it will be printed to standard output.";
+        "maximum value of the map for defining a blob\n\n\tThe output is a "
+        "site file, BUT it will be printed to standard output.";
 
-  /***** Start of main *****/
+    /***** Start of main *****/
     G_gisinit(argv[0]);
 
     module = G_define_module();
@@ -89,63 +89,62 @@ int main(int argc, char *argv[])
     G_add_keyword(_("image processing"));
     G_add_keyword(_("pattern recognition"));
     module->description =
-	_("Module to search for blobs. "
-	  "i.pr: Pattern Recognition environment for image processing. Includes kNN, "
-	  "Decision Tree and SVM classification techniques. Also includes "
-	  "cross-validation and bagging methods for model validation.");
+        _("Module to search for blobs. "
+          "i.pr: Pattern Recognition environment for image processing. "
+          "Includes kNN, "
+          "Decision Tree and SVM classification techniques. Also includes "
+          "cross-validation and bagging methods for model validation.");
 
     if (G_parser(argc, argv) < 0)
-	exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
 
     sscanf(opt2->answer, "%d", &minp);
     sscanf(opt3->answer, "%d", &maxp);
     sscanf(opt4->answer, "%lf", &minv);
     sscanf(opt5->answer, "%lf", &maxv);
 
-
     if ((mapset = (char *)G_find_raster2(opt1->answer, "")) == NULL) {
-	sprintf(tempbuf, "can't open raster map <%s> for reading",
-		opt1->answer);
-	G_fatal_error(tempbuf);
+        sprintf(tempbuf, "can't open raster map <%s> for reading",
+                opt1->answer);
+        G_fatal_error(tempbuf);
     }
 
     if ((fd = Rast_open_old(opt1->answer, mapset)) < 0) {
-	sprintf(tempbuf, "error opening raster map <%s>", opt1->answer);
-	G_fatal_error(tempbuf);
+        sprintf(tempbuf, "error opening raster map <%s>", opt1->answer);
+        G_fatal_error(tempbuf);
     }
 
     G_get_window(&cellhd);
 
-    rowbuf = (DCELL *) G_calloc(cellhd.cols * cellhd.rows, sizeof(DCELL));
+    rowbuf = (DCELL *)G_calloc(cellhd.cols * cellhd.rows, sizeof(DCELL));
     tf = rowbuf;
     matrix = (double **)G_calloc(cellhd.rows, sizeof(double *));
     for (i = 0; i < cellhd.rows; i++)
-	matrix[i] = (double *)G_calloc(cellhd.cols, sizeof(double));
+        matrix[i] = (double *)G_calloc(cellhd.cols, sizeof(double));
 
     for (i = 0; i < cellhd.rows; i++) {
-	Rast_get_d_row(fd, tf, i);
-	for (j = 0; j < cellhd.cols; j++) {
-	    if (Rast_is_d_null_value(tf))
-		*tf = maxv + 1.0;
-	    matrix[i][j] = *tf;
-	    tf++;
-	}
+        Rast_get_d_row(fd, tf, i);
+        for (j = 0; j < cellhd.cols; j++) {
+            if (Rast_is_d_null_value(tf))
+                *tf = maxv + 1.0;
+            matrix[i][j] = *tf;
+            tf++;
+        }
     }
     Rast_close(fd);
 
     nblobs = 0;
     npoints = 0;
-    find_blob(matrix, cellhd.rows, cellhd.cols, &blobs, &npoints, &nblobs,
-	      minv, maxv);
-    sites = (BlobSites *) G_calloc(nblobs, sizeof(BlobSites));
+    find_blob(matrix, cellhd.rows, cellhd.cols, &blobs, &npoints, &nblobs, minv,
+              maxv);
+    sites = (BlobSites *)G_calloc(nblobs, sizeof(BlobSites));
 
     extract_sites_from_blob(blobs, npoints, nblobs, &cellhd, sites, matrix);
 
     for (i = 0; i < nblobs; i++)
-	if ((sites[i].n >= minp) && (sites[i].n <= maxp))
-	    fprintf(stdout, "%f|%f|#%d%s%f\n", sites[i].east, sites[i].north,
-		    sites[i].n, "%", sites[i].min);
-
+        if ((sites[i].n >= minp) && (sites[i].n <= maxp))
+            fprintf(stdout, "%f|%f|#%d%s%f\n", sites[i].east, sites[i].north,
+                    sites[i].n, "%", sites[i].min);
 
     return 0;
 }

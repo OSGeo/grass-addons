@@ -194,11 +194,10 @@ def main():
 
 
 if __name__ == "__main__":
+    options, flags = grass.parser()
     # Lazy import for scipy.signal.fftconvolve
     try:
         from scipy.signal import fftconvolve
     except ImportError:
         grass.fatal(_("Cannot import fftconvolve from scipy"))
-
-    options, flags = grass.parser()
     sys.exit(main())

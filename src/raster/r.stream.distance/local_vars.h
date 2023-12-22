@@ -7,30 +7,30 @@
 #include <grass/raster.h>
 
 #ifdef MAIN
-#  define GLOBAL
+#define GLOBAL
 #else
-#  define GLOBAL extern
+#define GLOBAL extern
 #endif
 
-#define SQRT2 1.414214
-#define UPSTREAM 0
+#define SQRT2      1.414214
+#define UPSTREAM   0
 #define DOWNSTREAM 1
 
 typedef struct {
-	int r,c;
+    int r, c;
 } OUTLET;
 
 typedef struct {
-	int r,c;
-  double cur_dist;
-  double target_elev;
+    int r, c;
+    double cur_dist;
+    double target_elev;
 } POINT;
 
 GLOBAL int nextr[9];
 GLOBAL int nextc[9];
 
-GLOBAL OUTLET* outlets;
+GLOBAL OUTLET *outlets;
 GLOBAL int nrows, ncols;
 GLOBAL int fifo_max;
-GLOBAL POINT* fifo_points;
+GLOBAL POINT *fifo_points;
 GLOBAL int accum;

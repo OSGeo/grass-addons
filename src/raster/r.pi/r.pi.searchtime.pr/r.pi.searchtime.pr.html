@@ -1,34 +1,34 @@
 
 <h2>DESCRIPTION</h2>
 
-Analysis of patch relevance to maintain the landscape connectivity 
-using individual-based dispersal model for connectivity analysis 
+Analysis of patch relevance to maintain the landscape connectivity
+using individual-based dispersal model for connectivity analysis
 (time-based).
 <p>
-This modules provides information about the importance of single 
-patches for maintaining the connectivity of individual fragments 
-derived of a landcover classification. Unlike <em>r.pi.energy.pr</em> 
-this module provides information about the differences in time from 
-emigration to immigration. The individual based dispersal model results 
-are based on the step length and range, the perception distance and the 
+This modules provides information about the importance of single
+patches for maintaining the connectivity of individual fragments
+derived of a landcover classification. Unlike <em>r.pi.energy.pr</em>
+this module provides information about the differences in time from
+emigration to immigration. The individual based dispersal model results
+are based on the step length and range, the perception distance and the
 attractivity to move towards patches.
 
 <h2>NOTES</h2>
 
-The suitability matrix impacts the step direction of individuals. If 
-individuals are moving beyond the mapset borders the indivuals are set 
+The suitability matrix impacts the step direction of individuals. If
+individuals are moving beyond the mapset borders the indivuals are set
 back to their original source patches.
 
 <h2>EXAMPLE</h2>
 
 An example for the North Carolina sample dataset:
 <p>
-The patch relevance concerning connectivity are based on patches of the 
-<em>landclass96</em> raster class 5 amd the time (amount of steps) from 
-emigration to immigration is computed. The step length is set to 5 
-pixel, the output statistics are set to <em>average</em> time and 
-<em>variance</em> of searchtime. For each patch 1000 individuals were 
-released and the model stopped when at least 80% of all individuals 
+The patch relevance concerning connectivity are based on patches of the
+<em>landclass96</em> raster class 5 amd the time (amount of steps) from
+emigration to immigration is computed. The step length is set to 5
+pixel, the output statistics are set to <em>average</em> time and
+<em>variance</em> of searchtime. For each patch 1000 individuals were
+released and the model stopped when at least 80% of all individuals
 sucessfully immigrated:<br>
 <div class="code"><pre>
 r.pi.searchtime.pr input=landclass96 output=searchtime_iter1 keyval=5 step_length=5 stats=average,variance percent=80 n=1000 dif_stats=average
@@ -54,13 +54,13 @@ output of a raster which immigration counts:
 r.pi.searchtime.pr input=landclass96 output=searchtime1 keyval=5 step_length=5 stats=average,variance percent=80 n=1000 dif_stats=average out_immi=immi_counts
 </pre></div>
 
-the previous examples assumed a homogeneous matrix, a heterogenous 
-matrix can be included using a raster file which values are taken as 
+the previous examples assumed a homogeneous matrix, a heterogenous
+matrix can be included using a raster file which values are taken as
 costs for movement (0-100):
 <div class="code"><pre>
-# it is assumed that our species is a forest species and cannot move 
-# through water, hence a cost of 100, does not like urban areas 
-# (class: 6, cost: 10) but can disperse through shrubland (class 4, 
+# it is assumed that our species is a forest species and cannot move
+# through water, hence a cost of 100, does not like urban areas
+# (class: 6, cost: 10) but can disperse through shrubland (class 4,
 # cost=1) better than through grassland (class 3, cost: 2):
 
 r.mapcalc "suit_raster = if(landclass96==5,1,if(landclass96 == 1, 10, if (landclass96==3,2, if(landclass96==4,1,if(landclass96==6,100)))))"

@@ -115,9 +115,6 @@ class MyGridModule(GridModule):
     def patch(self):
         """Patch the final results."""
         bboxes = split_region_tiles(width=self.width, height=self.height)
-        loc = Location()
-        mset = loc[self.mset.name]
-        mset.visible.extend(loc.mapsets())
         output_map = self.out_prefix[:]
         self.out_prefix = ""
         if self.patch_backend == "RasterRow":
@@ -152,18 +149,18 @@ def main():
     # v8.2 GridModule doesn't require tile size anymore
     # this is proxy for v8.2
     # can be removed in v9.0
+    if width:
+        width = int(width)
+    if height:
+        height = int(height)
     if not parallel_rpatch_available:
         warning = False
         if not width:
             width = 1000
             warning = True
-        else:
-            width = int(width)
         if not height:
             height = 1000
             warning = True
-        else:
-            height = int(height)
         if warning:
             # square tiles tend to be slower than horizontal slices
             gscript.warning(

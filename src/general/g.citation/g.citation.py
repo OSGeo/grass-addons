@@ -96,11 +96,14 @@
 
 from __future__ import print_function
 
+import html
 import sys
 import os
 import re
 from collections import defaultdict
 import json
+from pathlib import Path
+from datetime import datetime
 from pprint import pprint
 
 import grass.script as gs
@@ -186,24 +189,28 @@ def clean_line_item(text):
     return text
 
 
-def get_year_from_documentation(text):
-    """Extract year from text containing SVN date entry
-
-    >>> text = "<p><i>Last changed: $Date: 2011-09-29 15:18:47 $</i>"
-    >>> get_year_from_documentation(text)
-    2011
+def get_datetime_from_documentation(text):
+    """Extract time of latest change from manual
+    >>> text = "  Latest change: Monday Jun 28 11:54:09 2021 in commit: 1cfc0af029a35a5d6c7dae5ca7204d0eb85dbc55"
+    >>> get_datetime_from_documentation(text)
+    datetime.datetime(2022, 9, 18, 23, 55, 9)
     """
-    # we try to capture even when not properly worded (same below)
-    # offending modules: grep -IrnE '\$Date: ' | grep -v "Last changed:"
-    year_capture = (
-        r"<p>\s*<(i|em)>(Last changed: )?\$Date: ([\d]+)-\d\d-\d\d .*\$</(i|em)>"
-    )
-    match = re.search(year_capture, text, re.MULTILINE | re.DOTALL | re.IGNORECASE)
-    if match:
-        return int(match.group(3))
-    else:
+    date_format = "%A %b %d %H:%M:%S %Y"
+    datetime_capture = r"^  (Latest change: )(.*)( in commit: ).*"
+    match = re.search(datetime_capture, text, re.MULTILINE | re.DOTALL | re.IGNORECASE)
+    if not match:
+        datetime_capture = r"^  (Accessed: )([a-z]{6,9} [a-z]{3} [0-9]{1,2} [0-9]{2}:[0-9]{2}:[0-9]{2} [0-9]{4}).*"
+        match = re.search(
+            datetime_capture, text, re.MULTILINE | re.DOTALL | re.IGNORECASE
+        )
+    try:
+        return datetime.strptime(match.group(2).replace("  ", " "), date_format)
+    except ValueError:
         # TODO: raise or fatal? should be in library or module?
-        raise RuntimeError("The text does not contain date entry")
+        raise RuntimeError(
+            "Cannot extract the time of the latest change from the manual."
+            "The respective entry does now seem to follow the expected standard."
+        )
 
 
 def get_email(text):
@@ -285,8 +292,7 @@ def get_orcid(text):
 
 def get_authors_from_documentation(text):
     r"""Extract authors and associated info from documentation
-
-    >>> text = '<h2><a name="author">AUTHOR</a></h2>\nPaul Kelly\n<p><i>Last changed:'
+    >>> text = '<h2><a name="author">AUTHOR</a></h2>\nPaul Kelly\n<br><h2>SOURCE CODE</h2>'
     >>> authors = get_authors_from_documentation(text)
     >>> print(authors[0]['name'])
     Paul Kelly
@@ -297,15 +303,13 @@ def get_authors_from_documentation(text):
     # HTML tags or section name can theoretically be different case.
     # The "last changed" part might be missing.
     # The i and em could be exchanged.
-    author_section_capture = (
-        r"<h2>.*AUTHOR.*</h2>(.*)<p>\s*<(i|em)>(Last changed:|\$Date:)"
-    )
-
+    author_section_capture = r"(<h2>.*AUTHOR.*</h2>)(.*)(<h2>.*SOURCE CODE.*</h2>)"
     match = re.search(
         author_section_capture, text, re.MULTILINE | re.DOTALL | re.IGNORECASE
     )
+
     if match:
-        author_section = match.group(1)
+        author_section = match.group(2)
     else:
         raise RuntimeError(_("Unable to find Authors section"))
 
@@ -324,7 +328,7 @@ def get_authors_from_documentation(text):
     authors = []
     feature_heading = None
     for line in raw_author_lines:
-        line = line.strip()  # strip after HTML tag strip
+        line = html.unescape(line.strip())  # strip after HTML tag strip
         if not line:
             continue
         institute = None
@@ -354,6 +358,8 @@ def get_authors_from_documentation(text):
             names = name.split(" and ", 1)
         elif " &amp; " in name:
             names = name.split(" &amp; ", 1)
+        elif " & " in name:
+            names = name.split(" & ", 1)
         else:
             names = [name]
         for name in names:
@@ -537,8 +543,11 @@ def author_name_to_cff(text):
     return {"given": given, "particle": particle, "family": family, "suffix": suffix}
 
 
-def print_cff(citation):
+def print_cff(citation, output):
     """Create Citation File Format file from citation dictionary
+
+    :param dict citation: module citation
+    :output_io.TextIOWrapper output: sys.stdout or text file stream
 
     >>> authors = [{'name': 'Joe Doe', 'orcid': '0000-0000-0000-0000'}]
     >>> cit = {'module': 'g.tst', 'authors': authors, 'year': 2011}
@@ -556,9 +565,12 @@ def print_cff(citation):
     date-released: 2018-06-07
     license: GPL-2.0-or-later
     """
-    print("cff-version: 1.0.3")
-    print('message: "If you use this software, please cite it as below."')
-    print("authors:")
+    print("cff-version: 1.0.3", file=output)
+    print(
+        'message: "If you use this software, please cite it as below."',
+        file=output,
+    )
+    print("authors:", file=output)
     for author in citation["authors"]:
         # note: CFF 1.0.3 specifies mandatory family, mandatory given,
         # optional particle (e.g. van), and optional suffix (e.g. III),
@@ -566,62 +578,84 @@ def print_cff(citation):
         # or given or which have different order
         # here we just split based on first space into given and family
         name = author_name_to_cff(author["name"])
-        print("  - family-names:", name["family"])
-        print("    given-names:", name["given"])
+        print("  - family-names:", name["family"], file=output)
+        print("    given-names:", name["given"], file=output)
         if author["orcid"]:
-            print("    orcid:", author["orcid"])
-    print('title: "GRASS GIS: ', citation["module"], ' module"', sep="")
-    print("version:", citation["grass-version"])
+            print("    orcid:", author["orcid"], file=output)
+    print(
+        'title: "GRASS GIS: ',
+        citation["module"],
+        ' module"',
+        sep="",
+        file=output,
+    )
+    print("version:", citation["grass-version"], file=output)
     # CFF 1.0.3 does not say expplicitely except for Date (so not any
     # string), so assuming YAML timestamp
     # (http://yaml.org/type/timestamp.html)
     # now we have only the year, so using Jan 1
-    print("date-released:", citation["grass-build-date"])
+    print("date-released:", citation["grass-build-date"], file=output)
     # license string according to https://spdx.org/licenses/
     # we know license of GRASS modules should be GPL>=2
-    print("license: GPL-2.0-or-later")
+    print("license: GPL-2.0-or-later", file=output)
     if citation.get("keywords", None):
-        print("keywords:")
+        print("keywords:", file=output)
         for keyword in citation["keywords"]:
-            print("  -", keyword)
+            print("  -", keyword, file=output)
     if citation.get("references", None):
-        print("references:")
+        print("references:", file=output)
         for reference in citation["references"]:
             # making sure scope, type, and title are first
             if reference.get("scope", None):
-                print("  - scope:", reference["scope"])
-                print("    type:", reference["type"])
+                print("  - scope:", reference["scope"], file=output)
+                print("    type:", reference["type"], file=output)
             else:
-                print("  - type:", reference["type"])
-            print("    title:", reference["title"])
-            for key, value in reference.iteritems():
+                print("  - type:", reference["type"], file=output)
+            print("    title:", reference["title"], file=output)
+            for key, value in reference.items():
                 if key in ["scope", "type", "title"]:
                     continue  # already handled
                 # TODO: add general serialization to YAML
                 elif key == "authors":
-                    print("    authors:")
+                    print("    authors:", file=output)
                     for author in value:
                         # special order for the name of entity
                         if "name" in author:
-                            print("      - name: {name}".format(**author))
+                            print(
+                                "      - name: {name}".format(**author),
+                                file=output,
+                            )
                         elif "family-names" in author:
                             print(
-                                "      - family-names: {family-names}".format(**author)
+                                "      - family-names: {family-names}".format(**author),
+                                file=output,
                             )
-                        for akey, avalue in author.iteritems():
+                        for akey, avalue in author.items():
                             if akey == "name":
                                 continue
-                            print("        {akey}: {avalue}".format(**locals()))
+                            print(
+                                "        {akey}: {avalue}".format(**locals()),
+                                file=output,
+                            )
                 elif key == "keywords":
-                    print("    keywords:")
+                    print("    keywords:", file=output)
                     for keyword in value:
-                        print("      - {keyword}".format(**locals()))
+                        print(
+                            "      - {keyword}".format(**locals()),
+                            file=output,
+                        )
                 else:
-                    print("    {key}: {value}".format(**locals()))
+                    print(
+                        "    {key}: {value}".format(**locals()),
+                        file=output,
+                    )
 
 
-def print_bibtex(citation):
+def print_bibtex(citation, output):
     """Create BibTeX entry from citation dictionary
+
+    :param dict citation: module citation
+    :output_io.TextIOWrapper output: sys.stdout or text file stream
 
     >>> print_bibtex({'module': 'g.tst', 'authors': [{'name': 'Joe Doe'}], 'year': 2011})
     @software{g.tst,
@@ -633,46 +667,106 @@ def print_bibtex(citation):
     # TODO: make this an option to allow for software in case it is supported
     entry_type = "misc"
     key = remove_dots_from_module_name(citation["module"])
-    print("@", entry_type, "{", key, ",", sep="")
+    print("@", entry_type, "{", key, ",", sep="", file=output)
 
-    print("  title = {{", "GRASS GIS: ", citation["module"], " module}},", sep="")
+    print(
+        "  title = {{",
+        "GRASS GIS: ",
+        citation["module"],
+        " module}},",
+        sep="",
+        file=output,
+    )
 
     author_names = [author["name"] for author in citation["authors"]]
-    print("  author = {", " and ".join(author_names), "},", sep="")
-    print("  year = {", citation["year"], "}", sep="")
+    print(
+        "  author = {",
+        " and ".join(author_names),
+        "},",
+        sep="",
+        file=output,
+    )
+    print(
+        "  howpublished = {",
+        citation["code-url"],
+        "},",
+        sep="",
+        file=output,
+    )
+    print("  year = {", citation["year"], "}", sep="", file=output)
+    print(
+        "  note = {Accessed: ",
+        citation["access"],
+        "},",
+        sep="",
+        file=output,
+    )
+    print("}", file=output)
 
-    print("}")
 
+def print_json(citation, output):
+    """Create JSON dump from the citation dictionary
 
-def print_json(citation):
-    """Create JSON dump from the citation dictionary"""
+    :param dict citation: module citation
+    :output_io.TextIOWrapper output: sys.stdout or text file stream
+    """
     cleaned = remove_empty_values_from_dict(citation)
     # since the format is already compact, let's make it even more
     # compact by omitting the spaces after separators
-    print(json.dumps(cleaned, separators=(",", ":")))
+    print(json.dumps(cleaned, separators=(",", ":")), file=output)
 
 
-def print_pretty_json(citation):
-    """Create pretty-printed JSON dump from the citation dictionary"""
+def print_pretty_json(citation, output):
+    """Create pretty-printed JSON dump from the citation dictionary
+
+    :param dict citation: module citation
+    :output_io.TextIOWrapper output: sys.stdout or text file stream
+    """
     cleaned = remove_empty_values_from_dict(citation)
     # the default separator for list items would leave space at the end
     # of each line, so providing a custom one
     # only small indent needed, so using 2
     # sorting keys because only that can provide consistent output
-    print(json.dumps(cleaned, separators=(",", ": "), indent=2, sort_keys=True))
+    print(
+        json.dumps(
+            cleaned,
+            separators=(",", ": "),
+            indent=2,
+            sort_keys=True,
+        ),
+        file=output,
+    )
 
 
-def print_csl_json(citation):
-    """Create pretty-printed CSL JSON from the citation dictionary"""
+def print_csl_json(citation, output):
+    """Create pretty-printed CSL JSON from the citation dictionary
+
+    :param dict citation: module citation
+    :output_io.TextIOWrapper output: sys.stdout or text file stream
+    """
     csl = internal_to_csl_json(citation)
     # the default separator for list items would leave space at the end
     # of each line, so providing a custom one
     # only small indent needed, so using 2
     # sorting keys because only that can provide consistent output
-    print(json.dumps(csl, separators=(",", ": "), indent=2, sort_keys=True))
+    print(
+        json.dumps(
+            csl,
+            separators=(",", ": "),
+            indent=2,
+            sort_keys=True,
+        ),
+        file=output,
+    )
 
 
-def print_chicago_footnote(citation):
+def print_chicago_footnote(citation, output):
+    """Create chicago-footnote from the citation dictionary
+
+    :param dict citation: module citation
+    :output_io.TextIOWrapper output: sys.stdout or text file stream
+    """
+
     num_authors = len(citation["authors"])
     authors_text = ""
     for i, author in enumerate(citation["authors"]):
@@ -685,18 +779,22 @@ def print_chicago_footnote(citation):
     title = "GRASSS GIS module {}".format(citation["module"])
     print(
         "{authors_text}, {title} ({grass-version}), computer software"
-        " ({year}).".format(authors_text=authors_text, title=title, **citation)
+        " ({year}).".format(authors_text=authors_text, title=title, **citation),
+        file=output,
     )
 
 
-def print_plain(citation):
+def print_plain(citation, output):
     """Create citation from dictionary as plain text
+
+    :param dict citation: module citation
+    :output_io.TextIOWrapper output: sys.stdout or text file stream
 
     >>> print_plain({'module': 'g.tst', 'authors': [{'name': 'Joe Doe'}]})
     GRASS GIS module g.tst
     Joe Doe
     """
-    print("GRASS GIS module", citation["module"])
+    print("GRASS GIS module", citation["module"], file=output)
     num_authors = len(citation["authors"])
     authors_text = ""
     for i, author in enumerate(citation["authors"]):
@@ -709,7 +807,7 @@ def print_plain(citation):
             authors_text += " ({feature})".format(**author)
         if i < num_authors - 1:
             authors_text += "\n"
-    print(authors_text)
+    print(authors_text, file=output)
 
 
 # private dict for format name to function call
@@ -722,12 +820,19 @@ _FORMAT_FUNCTION = {
     "csl-json": print_csl_json,
     "chicago-footnote": print_chicago_footnote,
     "plain": print_plain,
-    "dict": lambda d: pprint(dict(d)),  # only plain dict pretty prints
+    "dict": lambda d, output: pprint(
+        dict(d), stream=output
+    ),  # only plain dict pretty prints
 }
 
 
-def print_citation(citation, format):
-    """Create citation from dictionary in a given format"""
+def print_citation(citation, format, output):
+    """Create citation from dictionary in a given format
+
+    :param dict citation: module citation
+    :param str format: citation format
+    :output_io.TextIOWrapper output: sys.stdout or text file stream
+    """
     # only catch the specific dict access, don't call the function
 
     # funs with special handling of parameters first
@@ -741,7 +846,7 @@ def print_citation(citation, format):
         function = _FORMAT_FUNCTION[format]
     except KeyError:
         raise RuntimeError(_("Unsupported format or style: %s" % format))
-    function(citation)
+    function(citation, output)
 
 
 def grass_cff_reference(grass_version, scope=None):
@@ -792,7 +897,8 @@ def citation_for_module(name, add_grass=False):
     citation["grass-version"] = g_version["version"]
     citation["grass-build-date"] = g_version["build_date"]
     citation["authors"] = get_authors_from_documentation(text)
-    citation["year"] = get_year_from_documentation(text)
+    citation["year"] = get_datetime_from_documentation(text).year
+    citation["access"] = get_datetime_from_documentation(text).isoformat()
     code_url, code_history_url = get_code_urls_from_documentation(text)
     citation["code-url"] = code_url
     citation["url-code-history"] = code_history_url
@@ -805,8 +911,14 @@ def citation_for_module(name, add_grass=False):
 
 
 def get_core_modules():
+    # test.r3flow manual is non-standard and breaks 'g.citation -a',
+    # so here standard module prefixes are filtered
+    # two characters are used, so db and r3 are not matched with a dot
+    module_prefixes = ["d.", "db", "g.", "h.", "i.", "m.", "r.", "r3", "t.", "v."]
     # TODO: see what get_commands() does on MS Windows
-    modules = sorted(gs.get_commands()[0])
+    modules = sorted(
+        [cmd for cmd in gs.get_commands()[0] if cmd[0:2] in module_prefixes]
+    )
     return modules
 
 
@@ -828,6 +940,31 @@ def main(options, flags):
                 _("Option format=citeproc requires also" " the option style to be set")
             )
     vertical_separator = options["vertical_separator"]
+    output = options["output"]
+    if output:
+        try:
+            output = open(output, "w")
+        except FileNotFoundError:
+            gs.fatal(
+                _(
+                    "No such file or directory '{output_file}'."
+                    " Please choose correct output file path.".format(
+                        output_file=output,
+                    )
+                )
+            )
+        except PermissionError:
+            gs.fatal(
+                _(
+                    "Permission denied '{output_file}'."
+                    " Please change the permission of the output file"
+                    " to allow writing.".format(
+                        output_file=output,
+                    )
+                )
+            )
+    else:
+        output = sys.stdout
 
     error_count = 0
     for name in names:
@@ -835,8 +972,8 @@ def main(options, flags):
             citation = citation_for_module(name, add_grass=flags["d"])
             if vertical_separator:
                 # TODO: decide if we want the newline here or not
-                print(vertical_separator)
-            print_citation(citation, output_format)
+                print(vertical_separator, file=output)
+            print_citation(citation, output_format, output)
         except RuntimeError as error:
             message = _("Module {name}: {error}".format(**locals()))
             if flags["s"]:
@@ -844,7 +981,9 @@ def main(options, flags):
                 error_count += 1
                 continue
             else:
+                output.close()
                 gs.fatal(message)
+    output.close()
     if flags["s"] and len(names) > 1:
         gs.warning(_("Errors in parsing {} modules").format(error_count))
 

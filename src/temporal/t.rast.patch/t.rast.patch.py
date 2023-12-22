@@ -55,6 +55,11 @@
 # % description: Do not create color and category files
 # %end
 
+# %flag
+# % key: v
+# % description: Patch to virtual raster map (r.buildvrt)
+# %end
+
 # %option
 # % key: sort
 # % description: Sort order (see sort parameter)
@@ -62,6 +67,9 @@
 # % answer: desc
 # %end
 
+#%rules
+#% excludes: -v,-s,-z
+#%end
 
 import grass.script as grass
 from grass.exceptions import CalledModuleError
@@ -79,6 +87,7 @@ def main():
     add_time = flags["t"]
     patch_s = flags["s"]
     patch_z = flags["z"]
+    patch_module = "r.buildvrt" if flags["v"] else "r.patch"
 
     # Make sure the temporal database exists
     tgis.init()
@@ -109,7 +118,7 @@ def main():
 
         try:
             grass.run_command(
-                "r.patch",
+                patch_module,
                 overwrite=grass.overwrite(),
                 input=(",").join(ordered_rasts),
                 output=output,

@@ -17,10 +17,10 @@
 #define GLOBAL extern
 #endif
 
-typedef DCELL(f_statmethod) (DCELL *, int);
-typedef int (f_func) (DCELL *, int, int *, int, f_statmethod);
+typedef DCELL(f_statmethod)(DCELL *, int);
+typedef int(f_func)(DCELL *, int, int *, int, f_statmethod);
 
-DCELL value(DCELL * vals, int count);
+DCELL value(DCELL *vals, int count);
 
 int get_dist_matrix(int count);
 
@@ -35,9 +35,9 @@ int f_path_dist(DCELL *, int, int *, int, f_statmethod);
 int parseToken(int *res, int pos, char *token);
 
 /* matrix.c */
-int writeDistMatrixAndID(char *name, Coords ** frags, int count);
-int writeAdjacencyMatrix(char *name, Coords ** frags, int count, int *nns,
-			 int nn_count);
+int writeDistMatrixAndID(char *name, Coords **frags, int count);
+int writeAdjacencyMatrix(char *name, Coords **frags, int count, int *nns,
+                         int nn_count);
 
 /* global variables */
 GLOBAL int nrows, ncols;

@@ -16,8 +16,8 @@ extern "C" {
   \param[out] mat map in a matrix (row order), field have to be allocated
   */
 template <typename Matrix>
-void read_raster_map(const char *name, const char *mapset, int nrows,
-                            int ncols, Matrix& mat)
+void read_raster_map(const char *name, const char *mapset, int nrows, int ncols,
+                     Matrix &mat)
 {
 
     int r, c;
@@ -71,12 +71,14 @@ void apply_hough_colors_to_map(const char *name)
 }
 
 template <typename Matrix>
-void create_raster_map(const char *name, struct Cell_head *window, const Matrix& mat)
+void create_raster_map(const char *name, struct Cell_head *window,
+                       const Matrix &mat)
 {
     struct Cell_head original_window;
     CELL *cell_real;
     int rows, cols; /* number of rows and columns */
-    long totsize; /* total number of data points */ // FIXME: make clear the size_t usage
+    long totsize;
+    /* total number of data points */ // FIXME: make clear the size_t usage
     int mapfd;
 
     /* get the rows and columns in the current window */
@@ -120,10 +122,11 @@ void create_raster_map(const char *name, struct Cell_head *window, const Matrix&
 }
 
 /**
-  \param cellhd raster map header, used for converting rows/cols to easting/northing
+  \param cellhd raster map header, used for converting rows/cols to
+  easting/northing
   */
-void create_vector_map(const char * name, const SegmentList& segments,
-                       const Cell_head* cellhd)
+void create_vector_map(const char *name, const SegmentList &segments,
+                       const Cell_head *cellhd)
 {
     struct Map_info Map;
     Vect_open_new(&Map, name, 0);
@@ -133,10 +136,8 @@ void create_vector_map(const char * name, const SegmentList& segments,
     Cats = Vect_new_cats_struct();
     points = Vect_new_line_struct();
 
-
-    for (size_t i = 0; i < segments.size(); ++i)
-    {
-        const Segment& seg = segments[i];
+    for (size_t i = 0; i < segments.size(); ++i) {
+        const Segment &seg = segments[i];
 
         double y1 = Rast_row_to_northing(seg.first.first, cellhd);
         double x1 = Rast_col_to_easting(seg.first.second, cellhd);
@@ -144,7 +145,8 @@ void create_vector_map(const char * name, const SegmentList& segments,
         double x2 = Rast_col_to_easting(seg.second.second, cellhd);
 
         Vect_reset_cats(Cats);
-        Vect_cat_set(Cats, 1, i+1); // cat is segment number (counting from one)
+        Vect_cat_set(Cats, 1,
+                     i + 1); // cat is segment number (counting from one)
 
         Vect_reset_line(points);
         Vect_append_point(points, x1, y1, 0);
@@ -155,46 +157,44 @@ void create_vector_map(const char * name, const SegmentList& segments,
 
     Vect_destroy_cats_struct(Cats);
     Vect_destroy_line_struct(points);
-    
+
     Vect_build(&Map);
     Vect_close(&Map);
 }
 
 template <typename Matrix>
-void extract_line_segments(const Matrix &I,
-                           const HoughTransform::Peaks& peaks,
-                           const HoughTransform::TracebackMap& houghMap,
+void extract_line_segments(const Matrix &I, const HoughTransform::Peaks &peaks,
+                           const HoughTransform::TracebackMap &houghMap,
                            ExtractParametres extractParametres,
-                           SegmentList& segments)
+                           SegmentList &segments)
 {
-    for (size_t i = 0; i < peaks.size(); ++i)
-    {
-        const HoughTransform::Peak& peak = peaks[i];
+    for (size_t i = 0; i < peaks.size(); ++i) {
+        const HoughTransform::Peak &peak = peaks[i];
 
         double theta = peak.coordinates.second;
 
         HoughTransform::TracebackMap::const_iterator coordsIt =
-                houghMap.find(peak.coordinates);
-        if (coordsIt != houghMap.end())
-        {
-            const HoughTransform::CoordinatesList& lineCoordinates = coordsIt->second;
+            houghMap.find(peak.coordinates);
+        if (coordsIt != houghMap.end()) {
+            const HoughTransform::CoordinatesList &lineCoordinates =
+                coordsIt->second;
 
             LineSegmentsExtractor extractor(I, extractParametres);
 
-            extractor.extract(lineCoordinates, (theta-90)/180*M_PI, segments);
+            extractor.extract(lineCoordinates, (theta - 90) / 180 * M_PI,
+                              segments);
         }
-        else
-        {
+        else {
             // logic error
         }
     }
 }
 
 void hough_peaks(HoughParametres houghParametres,
-                 ExtractParametres extractParametres,
-                 const char *name, const char *mapset, size_t nrows, size_t ncols,
-                 const char *anglesMapName,
-                 const char *houghImageName, const char *result)
+                 ExtractParametres extractParametres, const char *name,
+                 const char *mapset, size_t nrows, size_t ncols,
+                 const char *anglesMapName, const char *houghImageName,
+                 const char *result)
 {
     typedef matrix::Matrix<DCELL> Matrix;
     Matrix I(nrows, ncols);
@@ -202,29 +202,26 @@ void hough_peaks(HoughParametres houghParametres,
 
     HoughTransform hough(I, houghParametres);
 
-    if (anglesMapName != NULL)
-    {
+    if (anglesMapName != NULL) {
         Matrix angles(nrows, ncols);
         read_raster_map(anglesMapName, mapset, nrows, ncols, angles);
         hough.compute(angles);
     }
-    else
-    {
+    else {
         hough.compute();
     }
 
     hough.findPeaks();
 
-    if (houghImageName != NULL)
-    {
+    if (houghImageName != NULL) {
         struct Cell_head window;
         Rast_get_cellhd(name, "", &window);
         create_raster_map(houghImageName, &window, hough.getHoughMatrix());
         apply_hough_colors_to_map(houghImageName);
     }
 
-    const HoughTransform::Peaks& peaks = hough.getPeaks();
-    const HoughTransform::TracebackMap& houghMap = hough.getHoughMap();
+    const HoughTransform::Peaks &peaks = hough.getPeaks();
+    const HoughTransform::TracebackMap &houghMap = hough.getHoughMap();
     SegmentList segments;
 
     extract_line_segments(I, peaks, houghMap, extractParametres, segments);

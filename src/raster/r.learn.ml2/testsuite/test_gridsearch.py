@@ -98,7 +98,7 @@ class TestGridSearch(TestCase):
 
         # check output tune scores
         df = pd.read_csv(self.param_file)
-        self.assertEquals(df.shape[0], 2)
+        self.assertEqual(df.shape[0], 2)
         self.assertIn("param_min_samples_leaf", df.columns.values)
 
 

@@ -8,7 +8,7 @@ AUTHOR(S): Helmut Kudrnovsky <alectoria AT gmx at>
 PURPOSE:   Sets colors and category labels of European ecosystem raster data sets.
            Rules can be defined for level 1 and level 2 data.
            Color and category label rules donated by European Environment Agency (EEA).
-           
+
 
 COPYRIGHT: (C) 2015, 2019 by the GRASS Development Team
 

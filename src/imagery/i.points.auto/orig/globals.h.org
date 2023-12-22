@@ -86,29 +86,3 @@ double northing_to_row();
 double easting_to_col();
 
 #undef INIT
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

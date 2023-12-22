@@ -15,6 +15,11 @@
 
 # %module
 # % description: Computes the Terrain Ruggedness Index.
+# % keyword: raster
+# % keyword: surface
+# % keyword: terrain
+# % keyword: ruggedness
+# % keyword: parallel
 # %end
 
 # %option G_OPT_R_INPUT
@@ -101,7 +106,7 @@ def focal_expr(radius, circular=False):
     if circular:
         mask = distance_from_centre(radius) <= radius
     else:
-        mask = np.ones((size, size), dtype=np.bool)
+        mask = np.ones((size, size), dtype=bool)
     mask[centre, centre] = False
 
     # mask and flatten the offsets

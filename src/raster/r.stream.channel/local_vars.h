@@ -7,29 +7,28 @@
 #include <grass/raster.h>
 
 #define SQRT2 1.414214
-	
-typedef struct {
-	int stream_num;
-	int number_of_cells;
-	int order;
-	long int * points;
-	float * elevation;
-	double * distance;
-	unsigned int init_r;
-	unsigned int init_c;
-} STREAM;	
 
+typedef struct {
+    int stream_num;
+    int number_of_cells;
+    int order;
+    long int *points;
+    float *elevation;
+    double *distance;
+    unsigned int init_r;
+    unsigned int init_c;
+} STREAM;
 
 #ifdef MAIN
-#	define GLOBAL
+#define GLOBAL
 #else
-#	define GLOBAL extern
+#define GLOBAL extern
 #endif
 
 GLOBAL int nextr[9];
 GLOBAL int nextc[9];
 
-GLOBAL int nrows, ncols; 
-GLOBAL STREAM* stream_attributes;
+GLOBAL int nrows, ncols;
+GLOBAL STREAM *stream_attributes;
 
 GLOBAL struct Cell_head window;

@@ -1,30 +1,30 @@
 
 <h2>DESCRIPTION</h2>
 
-Individual-based dispersal model for connectivity analysis (time-based) 
+Individual-based dispersal model for connectivity analysis (time-based)
 <p>
-This module provides information about the isolation or connectivity 
-of individual fragments derived of a landcover classification. Unlike 
-<em>r.pi.energy</em> this module provides information about the time 
-from emigration to immigration. The individual based dispersal model 
-results are based on the step length and range, the perception distance 
+This module provides information about the isolation or connectivity
+of individual fragments derived of a landcover classification. Unlike
+<em>r.pi.energy</em> this module provides information about the time
+from emigration to immigration. The individual based dispersal model
+results are based on the step length and range, the perception distance
 and the attractivity to move towards patches.
 
 <h2>NOTES</h2>
 
-The suitability matrix impacts the step direction of individuals. If 
-individuals are moving beyond the mapset borders the indivuals are set 
+The suitability matrix impacts the step direction of individuals. If
+individuals are moving beyond the mapset borders the indivuals are set
 back to their original source patches.
 
 <h2>EXAMPLE</h2>
 
 An example for the North Carolina sample dataset:
 <p>
-The connectivity of patches of the <em>landclass96</em> class 5 are 
-computed using the time from emigration to immigration. The step length 
-is set to 5 pixel, the output statistics are set to <em>average</em> 
-time and <em>variance</em> of searchtime. For each patch 1000 
-individuals were released and the model stopped when at least 80% of 
+The connectivity of patches of the <em>landclass96</em> class 5 are
+computed using the time from emigration to immigration. The step length
+is set to 5 pixel, the output statistics are set to <em>average</em>
+time and <em>variance</em> of searchtime. For each patch 1000
+individuals were released and the model stopped when at least 80% of
 all individuals sucessfully immigrated:
 <div class="code"><pre>
 r.pi.searchtime input=landclass96 output=searchtime1 keyval=5 step_length=5 stats=average,variance percent=80 n=1000
@@ -50,7 +50,7 @@ limiting the amount of steps to 10:
 r.pi.searchtime input=landclass96 output=searchtime1 keyval=5 step_length=5 stats=average,variance percent=80 n=1000 maxsteps=10
 </pre></div>
 
-output of each movement location for a defined step frequency. Here 
+output of each movement location for a defined step frequency. Here
 every 10th step is provided as output raster:
 <div class="code"><pre>
 r.pi.searchtime input=landclass96 output=searchtime1 keyval=5 step_length=5 stats=average,variance percent=80 n=1000 out_freq=10
@@ -61,7 +61,7 @@ output of a raster which immigration counts:
 r.pi.searchtime input=landclass96 output=searchtime1 keyval=5 step_length=5 stats=average,variance percent=80 n=1000 out_immi=immi_counts
 </pre></div>
 
-output of a binary immigration matrix. Each patch emigration and 
+output of a binary immigration matrix. Each patch emigration and
 immigration for all patch combinations is recorded as 0 or 1:
 <div class="code"><pre>
 r.pi.searchtime input=landclass96 output=searchtime1 keyval=5 step_length=5 stats=average,variance percent=80 n=1000 binary_matrix=binary_matrix.txt
@@ -72,13 +72,13 @@ output of a matrix with immigration counts for each patch:
 r.pi.searchtime input=landclass96 output=searchtime1 keyval=5 step_length=5 stats=average,variance percent=80 n=1000 immi_matrix=immi_counts.txt
 </pre></div>
 
-the previous examples assumed a homogeneous matrix, a heterogenous 
-matrix can be included using a raster file which values are taken as 
+the previous examples assumed a homogeneous matrix, a heterogenous
+matrix can be included using a raster file which values are taken as
 costs for movement (0-100):
 <div class="code"><pre>
-# it is assumed that our species is a forest species and cannot move 
-# through water, hence a cost of 100, does not like urban areas 
-# (class: 6, cost: 10) but can disperse through shrubland (class 4, 
+# it is assumed that our species is a forest species and cannot move
+# through water, hence a cost of 100, does not like urban areas
+# (class: 6, cost: 10) but can disperse through shrubland (class 4,
 # cost=1) better than through grassland (class 3, cost: 2):
 
 r.mapcalc "suit_raster = if(landclass96==5,1,if(landclass96 == 1, 10, if (landclass96==3,2, if(landclass96==4,1,if(landclass96==6,100)))))"

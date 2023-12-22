@@ -1,4 +1,3 @@
-
 /****************************************************************************
  *
  * MODULE:       v.to.db
@@ -32,8 +31,7 @@ int main(int argc, char *argv[])
     G_add_keyword(_("vector"));
     G_add_keyword(_("attribute table"));
     G_add_keyword(_("database"));
-    module->description =
-        _("Populates attribute values from vector features.");
+    module->description = _("Populates attribute values from vector features.");
     module->overwrite = 1;
 
     parse_command_line(argc, argv);
@@ -49,7 +47,8 @@ int main(int argc, char *argv[])
 
     if (Fi == NULL) {
         G_fatal_error(_("Database connection not defined for layer %d. "
-                        "Use v.db.connect first."), options.field);
+                        "Use v.db.connect first."),
+                      options.field);
     }
 
     /* allocate array for values */

@@ -1,12 +1,10 @@
-
 /*******************************************************************************
-r.sun: rsunglobals.h. This program was writen by Jaro Hofierka in Summer 1993 and re-engineered
-in 1996-1999. In cooperation with Marcel Suri and Thomas Huld from JRC in Ispra
-a new version of r.sun was prepared using ESRA solar radiation formulas.
-See manual pages for details.
-(C) 2002 Copyright Jaro Hofierka, Gresaka 22, 085 01 Bardejov, Slovakia, 
-              and GeoModel, s.r.o., Bratislava, Slovakia
-email: hofierka@geomodel.sk,marcel.suri@jrc.it,suri@geomodel.sk
+r.sun: rsunglobals.h. This program was writen by Jaro Hofierka in Summer 1993
+and re-engineered in 1996-1999. In cooperation with Marcel Suri and Thomas Huld
+from JRC in Ispra a new version of r.sun was prepared using ESRA solar radiation
+formulas. See manual pages for details. (C) 2002 Copyright Jaro Hofierka,
+Gresaka 22, 085 01 Bardejov, Slovakia, and GeoModel, s.r.o., Bratislava,
+Slovakia email: hofierka@geomodel.sk,marcel.suri@jrc.it,suri@geomodel.sk
 *******************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or
@@ -30,12 +28,12 @@ email: hofierka@geomodel.sk,marcel.suri@jrc.it,suri@geomodel.sk
 
 #define EARTHRADIUS 6371000.
 /* undefined value for terrain aspect */
-#define UNDEF    0.
+#define UNDEF       0.
 /* internal undefined value for NULL */
-#define UNDEFZ   -9999.
+#define UNDEFZ      -9999.
 
 /* Constant for calculating angular loss */
-#define a_r 0.155
+#define a_r         0.155
 
 extern int varCount_global;
 extern int bitCount_global;
@@ -57,5 +55,4 @@ extern const double rad2deg;
 extern struct pj_info iproj;
 extern struct pj_info oproj;
 
-
-extern void (*func) (int, int);
+extern void (*func)(int, int);

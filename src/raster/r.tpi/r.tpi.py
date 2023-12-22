@@ -3,6 +3,9 @@
 # %module
 # % description: Calculates the multiscale topographic position index
 # % keyword: raster
+# % keyword: surface
+# % keyword: terrain
+# % keyword: topography
 # %end
 
 # %option G_OPT_R_INPUT
@@ -47,9 +50,6 @@
 # %end
 
 import atexit
-import multiprocessing as mp
-import random
-import string
 import sys
 from subprocess import PIPE
 
@@ -93,7 +93,7 @@ def main():
 
     # calculate radi for generalization
     radi = np.logspace(
-        np.log(minradius), np.log(maxradius), steps, base=np.exp(1), dtype=np.int
+        np.log(minradius), np.log(maxradius), steps, base=np.exp(1), dtype="int"
     )
     radi = np.unique(radi)
     sizes = radi * 2 + 1

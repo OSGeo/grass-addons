@@ -10,7 +10,7 @@
 
 static double vf = -0.5;
 
-double (*w_fn) (double, double);
+double (*w_fn)(double, double);
 
 double epanechnikov(double d2, double bw)
 {
@@ -22,7 +22,7 @@ double epanechnikov(double d2, double bw)
     w = 0;
 
     if (d2 <= bw2d) {
-	w = 1 - d2 / bw2;
+        w = 1 - d2 / bw2;
     }
 
     return w;
@@ -38,10 +38,10 @@ double bisquare(double d2, double bw)
     w = 0;
 
     if (d2 <= bw2d) {
-	t = 1 - d2 / bw2;
-	w = t * t;
+        t = 1 - d2 / bw2;
+        w = t * t;
     }
-    
+
     return w;
 }
 
@@ -57,10 +57,10 @@ double tricubic(double d2, double bw)
     w = 0;
 
     if (d3 <= bw3d) {
-	t = 1 - d3 / bw3;
-	w = t * t * t;
+        t = 1 - d3 / bw3;
+        w = t * t * t;
     }
-    
+
     return w;
 }
 
@@ -75,7 +75,7 @@ double gauss(double d2, double bw)
     w = 0;
 
     if (d2 <= bw2) {
-	w = exp(vf * d2 / bw2);
+        w = exp(vf * d2 / bw2);
     }
 
     return w;
@@ -87,15 +87,15 @@ void set_wfn(char *name, int vfu)
     vf = vfu / -2.;
 
     if (*name == 'g')
-	w_fn = gauss;
+        w_fn = gauss;
     else if (*name == 'e')
-	w_fn = epanechnikov;
+        w_fn = epanechnikov;
     else if (*name == 'b')
-	w_fn = bisquare;
+        w_fn = bisquare;
     else if (*name == 't')
-	w_fn = tricubic;
+        w_fn = tricubic;
     else
-	G_fatal_error(_("Invalid kernel option '%s'"), name);
+        G_fatal_error(_("Invalid kernel option '%s'"), name);
 }
 
 double **calc_weights(int bw)
@@ -107,12 +107,12 @@ double **calc_weights(int bw)
 
     count = 0;
     for (r = -bw; r <= bw; r++) {
-	for (c = -bw; c <= bw; c++) {
-	    d2 = r * r + c * c;
-	    w[r + bw][c + bw] = w_fn(d2, bw);
-	    if (w[r + bw][c + bw] > 0)
-		count++;
-	}
+        for (c = -bw; c <= bw; c++) {
+            d2 = r * r + c * c;
+            w[r + bw][c + bw] = w_fn(d2, bw);
+            if (w[r + bw][c + bw] > 0)
+                count++;
+        }
     }
     G_verbose_message(_("%d cells for bandwidth %d"), count, bw);
 

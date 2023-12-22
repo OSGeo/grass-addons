@@ -22,6 +22,11 @@
 
 # %module
 # % description: Vector Ruggedness Measure
+# % keyword: raster
+# % keyword: surface
+# % keyword: terrain
+# % keyword: ruggedness
+# % keyword: parallel
 # %end
 
 # %option G_OPT_R_INPUTS

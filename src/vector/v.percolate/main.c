@@ -1,4 +1,3 @@
-
 /***********************************************************************/
 /*
    v.percolate
@@ -48,9 +47,9 @@
 
    PURPOSE
 
-   1) Implements continuum percolation analysis.  Identifies clusters of point locations
-   at multiple threshold distances.  For each input point the module outputs the 
-   following information at each threshdold distance: 
+   1) Implements continuum percolation analysis.  Identifies clusters of point
+   locations at multiple threshold distances.  For each input point the module
+   outputs the following information at each threshdold distance:
 
    - An ID chosen from the fields in the input vector map
    - Spatial coordinate
@@ -62,18 +61,19 @@
    - Threshold distance at which the point most recently joined a new cluster
    - Maximum connection coefficient obtained
 
-   2) In addition to idnetifying clusters, this module also computes an experimental
-   connection coefficient for each point location.  This is intended to capture
-   a property roughly analogous to Betweeness Centrality in network analysis.  The
-   connection coefficient is smaller if a point location joins 2 small clusters or
-   1 large and 1 small cluster, and greater is it joins 2 large clusters.
+   2) In addition to idnetifying clusters, this module also computes an
+   experimental connection coefficient for each point location.  This is
+   intended to capture a property roughly analogous to Betweeness Centrality in
+   network analysis.  The connection coefficient is smaller if a point location
+   joins 2 small clusters or 1 large and 1 small cluster, and greater is it
+   joins 2 large clusters.
 
 
    *****
 
    NOTES
 
-   ***** 
+   *****
 
    TO DO
 
@@ -112,7 +112,6 @@
 #include "vector.h"
 #include "percolate.h"
 
-
 int main(int argc, char *argv[])
 {
     struct GModule *module;
@@ -127,7 +126,6 @@ int main(int argc, char *argv[])
     float **DistanceMatrix;
     char text_file_name[256];
     char group_text_file_name[256];
-
 
     G_gisinit(argv[0]);
     G_sleep_on_error(0);
@@ -191,8 +189,8 @@ int main(int argc, char *argv[])
     thresh_inc->type = TYPE_DOUBLE;
     thresh_inc->required = NO;
     thresh_inc->answer = "0.0";
-    thresh_inc->description =
-        _("Amount by which distance threshold is incremented between minthresh and maxthresh");
+    thresh_inc->description = _("Amount by which distance threshold is "
+                                "incremented between minthresh and maxthresh");
     thresh_inc->guisection = _("Output");
 
     max_thresh = G_define_option();
@@ -208,7 +206,8 @@ int main(int argc, char *argv[])
     interval->type = TYPE_INTEGER;
     interval->answer = "0";
     interval->description =
-        _("Choose interval output. E.g. interval 10 will produce output for every tenth node-pair assigned cluster membership. Zero disables");
+        _("Choose interval output. E.g. interval 10 will produce output for "
+          "every tenth node-pair assigned cluster membership. Zero disables");
     interval->guisection = _("Output");
 
     keep = G_define_option();
@@ -255,7 +254,8 @@ int main(int argc, char *argv[])
         G_fatal_error(_("min < 0"));
     }
     if (max <= 0) {
-        G_message(_("max will be set to max distance between any two points in the input map"));
+        G_message(_("max will be set to max distance between any two points in "
+                    "the input map"));
     }
     if (min > max) {
         G_fatal_error(_("min > max"));
@@ -266,20 +266,17 @@ int main(int argc, char *argv[])
 
     overwrite = G_check_overwrite(argc, argv);
 
-
 #ifdef VALIDATE
     fprintf(stderr, "\n***** Validation run ************************\n\n");
 #endif
 
+    /***********************************************************************
+      Read points and compute distance matrix
 
-/***********************************************************************
-  Read points and compute distance matrix                             
-
-***********************************************************************/
+    ***********************************************************************/
 
 #ifdef VALIDATE
-    fprintf(stderr,
-            _("\n\n----- Loading vector file -------------------\n\n"));
+    fprintf(stderr, _("\n\n----- Loading vector file -------------------\n\n"));
 #endif
     numpoints = read_input_vector(input->answer, input_field->answer);
     if (numpoints < 2) {
@@ -287,8 +284,7 @@ int main(int argc, char *argv[])
     }
 
 #ifdef VALIDATE
-    fprintf(stderr,
-            _("\n\n----- Computing distance matrix--------------\n\n"));
+    fprintf(stderr, _("\n\n----- Computing distance matrix--------------\n\n"));
 #endif
     /* Compute a distance matrix based on shortest distance */
 
@@ -313,10 +309,10 @@ int main(int argc, char *argv[])
         inc = (max - min) / 10;
     }
 
-/***********************************************************************
-  Create and sort edge list                                           
+    /***********************************************************************
+      Create and sort edge list
 
-***********************************************************************/
+    ***********************************************************************/
 
     /* Create a list of all edges (non-directional, i.e. A-B is B-A) */
 
@@ -332,11 +328,10 @@ int main(int argc, char *argv[])
 
     freeDistanceMatrix(numpoints, DistanceMatrix);
 
+    /***********************************************************************
+      Allocate initial group membership
 
-/***********************************************************************
-  Allocate initial group membership                                   
-
-***********************************************************************/
+    ***********************************************************************/
 
     ownGroup = numpoints;
     /* allocateInitialGroupMembership (nodeList, groupList, numpoints); */
@@ -358,10 +353,10 @@ int main(int argc, char *argv[])
     /* fprintf (stderr, "\n\nSorted edge list (node names) is:"); */
     /* printEdgeArrayWithNodeNames (edgeList, nEdges, nodeList); */
 
-/***********************************************************************
-  Do percolation                                                      
+    /***********************************************************************
+      Do percolation
 
-***********************************************************************/
+    ***********************************************************************/
 
 #ifdef VALIDATE
     fprintf(stderr, "\n\n----- Doing percolation  --------------------\n\n");
@@ -369,8 +364,9 @@ int main(int argc, char *argv[])
     fprintf(stderr, "\nMaximum threshold = %6.1f", max);
 
     if (modulo > 0) {
-        G_message(_("\nOutputing results by every %d node-pair assignment to group"),
-                  modulo);
+        G_message(
+            _("\nOutputing results by every %d node-pair assignment to group"),
+            modulo);
     }
     else {
         G_message(_("\nOutputing results at distance thresholds:"));

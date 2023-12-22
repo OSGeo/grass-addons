@@ -88,7 +88,7 @@ For every order (std) means that statistics are calculated with standard deviati
 <ul>
 <li>number of streams
 <li>total length of streams of a given order
-<li>total area of basins of a given order 
+<li>total area of basins of a given order
 <li>drainage density
 <li>stream density
 <li>average length of streams of a given order (std)
@@ -111,7 +111,7 @@ For the whole basin:
 
 <ul>
 <li>total number of streams
-<li>total length of streams 
+<li>total length of streams
 <li>total basin area
 <li>drainage density
 <li>stream density
@@ -176,8 +176,8 @@ r.stream.stats -o stream_rast=horton direction=direction elevation=elevation > t
 R
 # now in R
 r=read.csv("tmp_file", skip=1, header=TRUE)
-plot(num_of_streams~order, data=r, log="y", 
-     main="Sperafish area", 
+plot(num_of_streams~order, data=r, log="y",
+     main="Sperafish area",
      sub=paste("Bifurcation ratio: ",
                round(1/10^model$coefficients[2], 3)))
 model=lm(log10(num_of_streams)~order, data=r)

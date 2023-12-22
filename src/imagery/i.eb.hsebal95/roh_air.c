@@ -1,6 +1,6 @@
-#include<stdio.h>
-#include<math.h>
-#include"functions.h"
+#include <stdio.h>
+#include <math.h>
+#include "functions.h"
 
 double rohair(double dem, double tempk, double dtair)
 {

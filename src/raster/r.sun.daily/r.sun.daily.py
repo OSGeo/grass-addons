@@ -20,6 +20,7 @@
 # % keyword: raster
 # % keyword: solar
 # % keyword: sun energy
+# % keyword: parallel
 # %end
 
 # %option G_OPT_R_ELEV
@@ -153,7 +154,7 @@
 # %option
 # % key: step
 # % type: double
-# % description: Time step when computing all-day radiation sums [decimal hours]
+# % description: Time step when computing all-day radiation [decimal hours]
 # % answer: 0.5
 # %end
 
@@ -167,7 +168,7 @@
 # % key: beam_rad
 # % type: string
 # % gisprompt: new,cell,raster
-# % description: Output beam irradiation raster map cumulated for the whole period of time [Wh.m-2.day-1]
+# % description: Output beam irradiation raster map aggregated for the whole period of time [Wh.m-2.day-1]
 # % required: no
 # %end
 
@@ -175,7 +176,7 @@
 # % key: diff_rad
 # % type: string
 # % gisprompt: new,cell,raster
-# % description: Output diffuse irradiation raster map cumulated for the whole period of time [Wh.m-2.day-1]
+# % description: Output diffuse irradiation raster map aggregated for the whole period of time [Wh.m-2.day-1]
 # % required: no
 # %end
 
@@ -183,7 +184,7 @@
 # % key: refl_rad
 # % type: string
 # % gisprompt: new,cell,raster
-# % description: Output ground reflected irradiation raster map cumulated for the whole period of time [Wh.m-2.day-1]
+# % description: Output ground reflected irradiation raster map aggregated for the whole period of time [Wh.m-2.day-1]
 # % required: no
 # %end
 
@@ -191,7 +192,7 @@
 # % key: glob_rad
 # % type: string
 # % gisprompt: new,cell,raster
-# % description: Output global (total) irradiance/irradiation raster map cumulated for the whole period of time [Wh.m-2.day-1]
+# % description: Output global (total) irradiance/irradiation raster map aggregated for the whole period of time [Wh.m-2.day-1]
 # % required: no
 # %end
 
@@ -199,7 +200,7 @@
 # % key: insol_time
 # % type: string
 # % gisprompt: new,cell,raster
-# % description: Output insolation time raster map cumulated for the whole period of time [h]
+# % description: Output insolation time raster map aggregated for the whole period of time [h]
 # % required: no
 # %end
 
@@ -234,7 +235,7 @@
 # %option
 # % key: insol_time_basename
 # % type: string
-# % label: Base name for output insolation time raster map cumulated for the whole period of time [h]
+# % label: Base name for output insolation time raster map aggregated for the whole period of time [h]
 # % description: Underscore and day number are added to the base name for daily maps
 # %end
 
@@ -245,6 +246,16 @@
 # % multiple: no
 # % label: Solar constant [W/m^2]
 # % description: If not specified, r.sun default will be used.
+# %end
+
+# %option
+# % key: method
+# % type: string
+# % required: no
+# % multiple: no
+# % label: Method for daily maps aggregation
+# % options: sum,average
+# % answer: sum
 # %end
 
 # %option
@@ -430,13 +441,23 @@ def check_daily_map_names(basename, mapset, start_day, end_day, day_step):
             )
 
 
-def sum_maps(sum_, basename, suffixes):
+def maps_sum(out_, basename, suffixes):
     """
     Sum up multiple raster maps
     """
     maps = "+".join([basename + suf for suf in suffixes])
+    grass.mapcalc(f"{out_} = {maps}", overwrite=True, quiet=True)
+
+
+def maps_avg(out_, basename, suffixes):
+    """
+    Get average value from multiple raster maps.
+    """
+    maps = "+".join([basename + suf for suf in suffixes])
     grass.mapcalc(
-        "{sum_} = {new}".format(sum_=sum_, new=maps), overwrite=True, quiet=True
+        f"{out_} = ({maps}) / {len(suffixes)}",
+        overwrite=True,
+        quiet=True,
     )
 
 
@@ -457,6 +478,7 @@ def main():
     albedo_value = options["albedo_value"]
     horizon_basename = options["horizon_basename"]
     horizon_step = options["horizon_step"]
+    method = options["method"]
 
     # outputs
     beam_rad = options["beam_rad"]
@@ -491,7 +513,11 @@ def main():
     end_day = int(options["end_day"])
     day_step = int(options["day_step"])
 
-    if day_step > 1 and (beam_rad or diff_rad or refl_rad or glob_rad or insol_time):
+    if (
+        day_step > 1
+        and method == "sum"
+        and (beam_rad or diff_rad or refl_rad or glob_rad or insol_time)
+    ):
         grass.fatal(
             _("Day step higher then 1 would produce" " meaningless cumulative maps.")
         )
@@ -648,16 +674,23 @@ def main():
             # Empty process list
             proc_list = []
 
+    # process multiple maps into the desired one
+    if method == "average":
+        stats_func = maps_avg
+    else:
+        # sum (original behavior) as a fallback
+        stats_func = maps_sum
+
     if beam_rad:
-        sum_maps(beam_rad, beam_rad_basename, suffixes_all)
+        stats_func(beam_rad, beam_rad_basename, suffixes_all)
     if diff_rad:
-        sum_maps(diff_rad, diff_rad_basename, suffixes_all)
+        stats_func(diff_rad, diff_rad_basename, suffixes_all)
     if refl_rad:
-        sum_maps(refl_rad, refl_rad_basename, suffixes_all)
+        stats_func(refl_rad, refl_rad_basename, suffixes_all)
     if glob_rad:
-        sum_maps(glob_rad, glob_rad_basename, suffixes_all)
+        stats_func(glob_rad, glob_rad_basename, suffixes_all)
     if insol_time:
-        sum_maps(insol_time, insol_time_basename, suffixes_all)
+        stats_func(insol_time, insol_time_basename, suffixes_all)
 
     # FIXME: how percent really works?
     # core.percent(1, 1, 1)

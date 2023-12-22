@@ -14,7 +14,7 @@
 #############################################################################
 
 # %module
-# % description: Calcuates bioclimatic indices.
+# % description: Calculates bioclimatic indices.
 # % keyword: raster
 # % keyword: time series
 # % overwrite: yes
@@ -78,7 +78,6 @@
 # % description: Number of parallel processes to launch
 # %End
 
-import sys
 import os
 import string
 import grass.script as grass
@@ -412,7 +411,7 @@ def main():
         grass.run_command(
             "g.remove", flags="f", type="raster", pattern=tmp_pattern, quiet=True
         )
-        sys.exit(1)
+        return
 
     precl = prec.split(",")
 
