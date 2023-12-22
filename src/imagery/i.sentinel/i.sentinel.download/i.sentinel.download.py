@@ -69,7 +69,7 @@
 # % description: Sentinel product type to filter
 # % label: USGS Earth Explorer only supports S2MSI1C
 # % required: no
-# % options: SLC,GRD,OCN,S2MSI1C,S2MSI2A,S2MSI2Ap,S3OL1EFR,S3OL1ERR,S3OL1SPC,S3OL1RAC,S3OL2WFR,S3OL2WRR,S3OL2LFR,S3OL2LRR,S3SL2LST,S3SL2FRP,S3SY2SYN,S3SY2VGP,S3SY2VG1,S3SY2V10,S3SY2AOD,S3SR2LAN
+# % options: SLC,GRD,OCN,S2MSI1C,S2MSI2A,S2MSI2Ap,S3OL1EFR,S3OL1ERR,S3OL1SPC,S3OL1RAC,S3SL1RBT,S3OL2WFR,S3OL2WRR,S3OL2LFR,S3OL2LRR,S3SL2LST,S3SL2FRP,S3SY2SYN,S3SY2VGP,S3SY2VG1,S3SY2V10,S3SY2AOD,S3SR2LAN
 # % answer: S2MSI2A
 # % guisection: Filter
 # %end
@@ -667,7 +667,7 @@ class SentinelDownloader(object):
         products_df = self._api.to_dataframe(products)
         if len(products_df) < 1:
             gs.message(_("No product found"))
-            return
+            sys.exit()
 
         # sort and limit to first sorted product
         if sortby:
@@ -1085,7 +1085,7 @@ class SentinelDownloader(object):
                         scenes.remove(scene)
         if len(scenes) < 1:
             gs.message(_("No product found"))
-            return
+            sys.exit()
         scenes_df = pandas.DataFrame.from_dict(scenes)
         if sortby:
             # replace sortby keywords with USGS keywords

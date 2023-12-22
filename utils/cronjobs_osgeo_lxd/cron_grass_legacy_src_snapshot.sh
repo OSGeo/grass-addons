@@ -21,6 +21,9 @@ GVERSION=$GMAJOR.$GMINOR.git
 DOTVERSION=$GMAJOR.$GMINOR
 GSHORTGVERSION=$GMAJOR$GMINOR
 
+# fail early
+set -e
+
 ###################
 # where to find the GRASS sources (git clone):
 SOURCE=$MAINDIR/src/
@@ -32,7 +35,7 @@ PACKAGENAME=grass-${GVERSION}_
 
 ############################## nothing to change below:
 
-MYMAKE="nice make"
+MYMAKE="nice make -j2"
 TAR=tar
 
 # catch CTRL-C and other breaks:
@@ -51,7 +54,8 @@ mkdir -p $TARGETDIR
 cd $SOURCE/$BRANCH/
 date
 
-#clean up
+# clean up
+touch include/Make/Platform.make
 $MYMAKE distclean > /dev/null 2>&1
 
 # cleanup leftover garbage

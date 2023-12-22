@@ -27,17 +27,18 @@
 # %end
 # %option LOW
 # % key: low
-# % description: Low resolution input raster.
+# % label: Low resolution input raster.
 # %end
 # %option OUTPUT
 # % key: output
-# % description: Name of output raster.
+# % label: Name of output raster.
 # %end
 # %option FAR_EDGE
 # % key: far_edge
 # % key_desc: value
 # % type: double
-# % description: Percentage of distance to high resolution raster used to determine far edge. Number between 0 and 100.
+# % label: Percentage of distance to high resolution raster used to determine far edge. Number between 0 and 100.
+# % description: When the blending occurs along a single edge a number closer to 100 tends to produce more even results. With more blending edges (e.g. high resolution DEM sits on the middle of the low resolution DEM) a lower number may produce a more regular blend.
 # % answer: 95
 # % multiple: no
 # % required: no
@@ -46,14 +47,15 @@
 # % key: inter_points
 # % key_desc: value
 # % type: integer
-# % description: Number of points to use in interpolation. A higher number produces a smoother result but requires a lengthier computation.
+# % label: Number of points to use in interpolation.
+# % description: A higher number produces a smoother result but requires a lengthier computation.
 # % answer: 50
 # % multiple: no
 # % required: no
 # %end
 # %flag
 # % key: a
-# % description: Assign the average difference between the two rasters to the far edge (instead of zero).
+# % label: Assign the average difference between the two rasters to the far edge (instead of zero).
 # %end
 
 import os
@@ -214,6 +216,7 @@ def main():
     # Get points in low resolution farther away from high resolution raster
     dist_high = getTemporaryIdentifier()
     weights = getTemporaryIdentifier()
+    interpol_area_inner_buff = getTemporaryIdentifier()
     interpol_area_points = getTemporaryIdentifier()
     pre_interpol_area_points = getTemporaryIdentifier()
     weight_points = getTemporaryIdentifier()
@@ -232,9 +235,17 @@ def main():
     gscript.message(
         _("[r.mblend] Extract points from interpolation area " + "boundary")
     )
+    inner_buff = -cell_side / 2
+    gscript.run_command(
+        "v.buffer",
+        input=interpol_area,
+        output=interpol_area_inner_buff,
+        type="area",
+        distance=inner_buff,
+    )
     gscript.run_command(
         "v.to.points",
-        input=interpol_area,
+        input=interpol_area_inner_buff,
         output=pre_interpol_area_points,
         type="boundary",
         dmax=d_max,

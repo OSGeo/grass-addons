@@ -65,6 +65,8 @@ int main(int argc, char *argv[])
 
     module = G_define_module();
     G_add_keyword(_("raster"));
+    G_add_keyword(_("landscape structure analysis"));
+    G_add_keyword(_("patch index"));
     module->description = _("Import and generation of patch raster data");
 
     parm.input = G_define_option();

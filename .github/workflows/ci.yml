@@ -24,20 +24,22 @@ jobs:
           - grass-version: main
             python-version: '3.10'
           - grass-version: releasebranch_8_2
+            python-version: '3.7'
+          - grass-version: releasebranch_8_3
             python-version: '3.10'
       fail-fast: false
 
     steps:
 
       - name: Checkout core
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: OSGeo/grass
           ref: ${{ matrix.grass-version }}
           path: grass
 
       - name: Checkout addons
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: grass-addons
 
@@ -49,7 +51,7 @@ jobs:
               sudo apt-get install -y --no-install-recommends --no-install-suggests
 
       - name: Set up Python ${{ matrix.python-version }} as default Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -110,7 +112,7 @@ jobs:
           ../.github/workflows/test.sh
 
       - name: Make HTML test report available
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: testreport-grass-${{ matrix.grass-version }}-python-${{ matrix.python-version }}
           path: grass-addons/src/testreport

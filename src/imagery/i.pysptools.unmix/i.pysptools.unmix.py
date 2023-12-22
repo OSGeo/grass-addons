@@ -234,8 +234,8 @@ def main():
 
         # Build numpy stack from imagery group
         raster = r.raster2numpy(map[0], mapset=map[1])
-        if raster == np.float64:
-            raster = float32(raster)
+        if raster.dtype == np.float64:
+            raster = raster.astype(np.float32)
             gs.warning(
                 "{} is of type Float64.\
                         Float64 is currently not supported.\

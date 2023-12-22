@@ -17,11 +17,9 @@
 # - generates the user 8 HTML manuals
 # - injects DuckDuckGo search field
 
-# Preparations, on OSGeo server (neteler@grasslxd):
-#  - Install PROJ: http://trac.osgeo.org/proj/ incl Datum shift grids
-#     sh conf_proj4.sh
-#  - Install GDAL: http://trac.osgeo.org/gdal/wiki/DownloadSource
-#     sh conf_gdal.sh
+# Preparations, on server:
+#  - Install PROJ incl Datum shift grids
+#  - Install GDAL
 #  - Install apt-get install texlive-latex-extra python3-sphinxcontrib.apidoc
 #  - Clone source from github:
 #    mkdir -p ~/src ; cd ~/src
@@ -43,6 +41,10 @@ VERSION=$GMAJOR$GMINOR
 GVERSION=$GMAJOR
 
 ###################
+# fail early
+set -e
+
+# compiler optimization
 CFLAGSSTRING='-O2'
 CFLAGSSTRING='-Werror-implicit-function-declaration -fno-common'
 LDFLAGSSTRING='-s'
@@ -58,14 +60,15 @@ TARGETMAIN=/var/www/code_and_data
 TARGETDIR=$TARGETMAIN/grass${VERSION}/binary/linux/snapshot
 TARGETHTMLDIR=$TARGETMAIN/grass${VERSION}/manuals/
 
-# not built for dev version
-## TARGETPROGMAN=$TARGETMAIN/programming${GVERSION}
+# progman compiled below (i.e., only for preview)
+# progman not built for older dev versions or old stable
+TARGETPROGMAN=$TARGETMAIN/programming${GVERSION}
 
 MYBIN=$MAINDIR/binaries
 
 ############################## nothing to change below:
 
-MYMAKE="nice make LD_LIBRARY_PATH=$MYBIN/lib:/usr/lib:/usr/local/lib"
+MYMAKE="nice make -j2 LD_LIBRARY_PATH=$MYBIN/lib:/usr/lib:/usr/local/lib"
 
 # catch CTRL-C and other breaks:
 trap "echo 'user break.' ; exit" 2 3 9 15
@@ -85,7 +88,7 @@ configure_grass()
 # cleanup
 rm -f config_$GMAJOR.$GMINOR.git_log.txt
 
-# reset i18N POT files
+# reset i18N POT files to git, just to be sure
 git checkout locale/templates/*.pot
 
 CFLAGS=$CFLAGSSTRING LDFLAGS=$LDFLAGSSTRING ./configure \
@@ -105,7 +108,6 @@ CFLAGS=$CFLAGSSTRING LDFLAGS=$LDFLAGSSTRING ./configure \
   --with-blas --with-blas-includes=/usr/include/atlas/ \
   --with-lapack --with-lapack-includes=/usr/include/atlas/ \
   --with-zstd \
-  --with-liblas \
   2>&1 | tee config_$DOTVERSION.git_log.txt
 
  if [ $? -ne 0 ] ; then
@@ -118,6 +120,8 @@ CFLAGS=$CFLAGSSTRING LDFLAGS=$LDFLAGSSTRING ./configure \
 mkdir -p $TARGETDIR
 cd $GRASSBUILDDIR/
 
+# clean up
+touch include/Make/Platform.make
 $MYMAKE distclean > /dev/null 2>&1
 
 # cleanup leftover garbage
@@ -174,7 +178,7 @@ echo "Copied pygrass progman to http://grass.osgeo.org/grass${VERSION}/manuals/l
 echo "Injecting DuckDuckGo search field into manual main page..."
 (cd $TARGETHTMLDIR/ ; sed -i -e "s+</table>+</table><\!\-\- injected in cron_grass8_relbranch_build_binaries.sh \-\-> <center><iframe src=\"https://duckduckgo.com/search.html?site=grass.osgeo.org%26prefill=Search%20manual%20pages%20at%20DuckDuckGo\" style=\"overflow:hidden;margin:0;padding:0;width:410px;height:40px;\" frameborder=\"0\"></iframe></center>+g" index.html)
 
-cp -p AUTHORS CHANGES CITING COPYING GPL.TXT INSTALL REQUIREMENTS.html $TARGETDIR/
+cp -p AUTHORS CHANGES CITING CITATION.cff COPYING GPL.TXT INSTALL.md REQUIREMENTS.md $TARGETDIR/
 
 # clean wxGUI sphinx manual etc
 (cd $GRASSBUILDDIR/ ; $MYMAKE cleansphinx)
@@ -187,30 +191,27 @@ $MYMAKE htmldocs-single || (echo "$0 htmldocs-single: an error occurred" ; exit 
 
 cd $GRASSBUILDDIR/
 
-## clean old TARGETPROGMAN stuff from last run
-#if  [ -z "$TARGETPROGMAN" ] ; then
-# echo "\$TARGETPROGMAN undefined, error!"
-# exit 1
-#fi
-#mkdir -p $TARGETPROGMAN
-#rm -f $TARGETPROGMAN/*.*
-#
-## copy over doxygen manual
-#cp -r html/*  $TARGETPROGMAN/
-#
-#echo "Copied HTML progman to https://grass.osgeo.org/programming${GVERSION}"
-## fix permissions
-#chgrp -R grass $TARGETPROGMAN/*
-#chmod -R a+r,g+w $TARGETPROGMAN/
-#chmod -R a+r,g+w $TARGETPROGMAN/*
-## bug in doxygen
-#(cd $TARGETPROGMAN/ ; ln -s index.html main.html)
+echo "Generating latest programmer's manual..."
+# clean old TARGETPROGMAN stuff from last run
+if  [ -z "$TARGETPROGMAN" ] ; then
+ echo "\$TARGETPROGMAN undefined, error!"
+ exit 1
+fi
+mkdir -p $TARGETPROGMAN
+rm -f $TARGETPROGMAN/*.*
 
-##### copy i18N POT files, needed for https://www.transifex.com/grass-gis/
-(cd locale ;
-mkdir -p $TARGETDIR/transifex/
-cp templates/*.pot $TARGETDIR/transifex/
-)
+# copy over doxygen manual
+cp -r html/*  $TARGETPROGMAN/
+
+echo "Copied HTML progman to https://grass.osgeo.org/programming${GVERSION}"
+# fix permissions
+chgrp -R grass $TARGETPROGMAN/*
+chmod -R a+r,g+w $TARGETPROGMAN/
+chmod -R a+r,g+w $TARGETPROGMAN/*
+# bug in doxygen
+(cd $TARGETPROGMAN/ ; ln -s index.html main.html)
+
+# note: from G82+ onwards the gettext POT files are managed in git and OSGeo Weblate
 
 ##### generate i18N stats for HTML page path (WebSVN):
 ## Structure:  grasslibs_ar.po 144 translated messages 326 fuzzy translations 463 untranslated messages.
@@ -245,13 +246,13 @@ gcc -v 2>&1 | grep -v Reading >> grass-$DOTVERSION\_$ARCH\_bin.txt
 
 # clean old version off
 rm -f $TARGETDIR/grass-$DOTVERSION\_$ARCH\_bin.txt
-rm -f $TARGETDIR/grass-$DOTVERSION*.tar.gz
-rm -f $TARGETDIR/grass-$DOTVERSION*install.sh
+rm -f $TARGETDIR/grass-${DOTVERSION}*.tar.gz
+rm -f $TARGETDIR/grass-${DOTVERSION}*install.sh
 
 ############################################
 echo "Copy new binary version into web space:"
-cp -p grass-$DOTVERSION\_$ARCH\_bin.txt grass-$DOTVERSION*.tar.gz grass-$DOTVERSION*install.sh $TARGETDIR
-rm -f grass-$DOTVERSION\_$ARCH\_bin.txt grass-$DOTVERSION*.tar.gz grass-$DOTVERSION*install.sh
+cp -p grass-$DOTVERSION\_$ARCH\_bin.txt grass-${DOTVERSION}*.tar.gz grass-${DOTVERSION}*install.sh $TARGETDIR
+rm -f grass-$DOTVERSION\_$ARCH\_bin.txt grass-${DOTVERSION}*.tar.gz grass-${DOTVERSION}*install.sh
 
 # generate manual ZIP package
 (cd $TARGETHTMLDIR/.. ; rm -f $TARGETHTMLDIR/*html_manual.zip ; zip -r /tmp/grass-${DOTVERSION}_html_manual.zip manuals/)
@@ -335,7 +336,7 @@ echo "Finished GRASS $VERSION $ARCH compilation."
 echo "Written to: $TARGETDIR"
 echo "Copied HTML ${GVERSION} manual to https://grass.osgeo.org/grass${VERSION}/manuals/"
 echo "Copied pygrass progman ${GVERSION} to https://grass.osgeo.org/grass${VERSION}/manuals/libpython/"
-#echo "Copied HTML ${GVERSION} progman to https://grass.osgeo.org/programming${GVERSION}"
+echo "Copied HTML ${GVERSION} progman to https://grass.osgeo.org/programming${GVERSION}"
 echo "Copied Addons ${GVERSION} to https://grass.osgeo.org/grass${VERSION}/manuals/addons/"
 
 exit 0

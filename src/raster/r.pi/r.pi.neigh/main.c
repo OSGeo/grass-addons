@@ -85,6 +85,8 @@ int main(int argc, char *argv[])
 
     module = G_define_module();
     G_add_keyword(_("raster"));
+    G_add_keyword(_("landscape structure analysis"));
+    G_add_keyword(_("neighbourhood analysis"));
     module->description =
         _("Neighbourhood analysis - value of patches within a defined range.");
 
