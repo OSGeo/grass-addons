@@ -1,0 +1,44 @@
+### UNUSED, see grass8 branch
+### UNUSED
+### UNUSED
+
+##################################################
+# crontab entries
+# see: https://github.com/OSGeo/grass-addons/tree/grass7/utils/cronjobs_osgeo_lxd/
+
+# IMPORTANT: only a single crontab file may exist. The GRASS GIS 7 + 8 addons are generated in the grass8 branch.
+
+# add GRASS GIS build jobs here and then run on `grasslxd`server:
+# crontab $HOME/cronjobs/cron_job_list_grass && crontab -l
+
+#MAILTO=neteler@osgeo.org
+#STDOUT=/dev/null
+
+# +---------------- minute (0 - 59)
+# |  +------------- hour (0 - 23)
+# |  |  +---------- day of month (1 - 31)
+# |  |  |  +------- month (1 - 12)
+# |  |  |  |  +---- day of week (0 - 6) (Sunday=0 or 7)
+# |  |  |  |  |
+# *  *  *  *  *  command to be executed
+
+## check every 15 min, fetch from GitHub and build with hugo (target dir: /var/www/html/)
+#*/15 * * * * nice sh /home/neteler/cronjobs/hugo_clean_and_update_job.sh
+
+# run at 00:30:00 and 12:30:00 each day: fetches code from GitHub and builds it with hugo (target dir: /var/www/html/)
+30 */12 * * * nice sh /home/neteler/cronjobs/hugo_clean_and_update_job.sh
+
+# weekly source snapshots (target dir: /var/www/code_and_data/)
+30 02 * * 6 nice sh /home/neteler/cronjobs/cron_grass8_main_src_snapshot.sh
+46 02 * * 6 nice sh /home/neteler/cronjobs/cron_grass7_main_src_snapshot.sh
+#59 02 * * 6 nice sh /home/neteler/cronjobs/cron_grass76_src_relbr76_snapshot.sh
+#12 03 * * 6 nice sh /home/neteler/cronjobs/cron_grass74_src_relbr74_snapshot.sh
+
+# daily Linux binary snapshots, also creates main manuals, addon manuals, and prog-manual (target dir: /var/www/code_and_data/)
+05 05 * * * nice sh /home/neteler/cronjobs/cron_grass8_relbranch_build_binaries.sh > /var/www/code_and_data/grass80/binary/linux/snapshot/build.log.txt 2>&1
+05 06 * * * nice sh /home/neteler/cronjobs/cron_grass7_relbranch_build_binaries.sh > /var/www/code_and_data/grass78/binary/linux/snapshot/build.log.txt 2>&1
+#05 07 * * * nice sh /home/neteler/cronjobs/cron_grass76_releasebranch_76_build_bins.sh  > /var/www/code_and_data/grass76/binary/linux/snapshot/build.log.txt 2>&1
+#05 08 * * * nice sh /home/neteler/cronjobs/cron_grass74_releasebranch_74_build_bins.sh  > /var/www/code_and_data/grass74/binary/linux/snapshot/build.log.txt 2>&1
+
+# generate osgeo_mailman_stats/ + email
+# ...note: runs as a root cronjob on osgeo6 machine (lists.osgeo.org server)

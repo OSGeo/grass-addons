@@ -1,0 +1,63 @@
+[flake8]
+ignore =
+    E203,  # whitespace before ':' (Black)
+    W503,  # line break before binary operator (Black)
+    E265, # block comment should start with '# '
+    E266, # too many leading '#' for block comment
+    E402, # module level import not at top of file
+    E501, # line too long (161 > 150 characters)
+    E712, # comparison to False should be 'if cond is False:' or 'if not cond:'
+    E722, # do not use bare 'except'
+    E741, # ambiguous variable name 'l'
+    E999, # SyntaxError: invalid syntax
+    F401, # 'grass.script.core.gisenv' imported but unused
+    F402, # import 'ant' from line 15 shadowed by loop variable
+    F403, # 'from ... import *' used; unable to detect undefined names
+    F405, # '_' may be undefined, or defined from star imports: datetime
+    F507, # '...' % ... has 5 placeholder(s) but 7 substitution(s)
+    F509, # '...' % ... has unsupported format character '='
+    F521, # '...'.format(...) has invalid format string: Single '}' encountered in format string
+    F522, # '...'.format(...) has unused named argument(s): overwrite
+    F523, # '...'.format(...) has unused arguments at position(s): 0
+    F632, # use ==/!= to compare constant literals (str, bytes, int, float, tuple)
+    F811, # redefinition of unused 'GMessage' from line 35
+    F811, # redefinition of unused 'grass' from line 67
+    F811, # redefinition of unused 'test_getpenalty' from line 84
+    F811, # redefinition of unused 'transform' from line 153
+    F821, # undefined name '_'
+    F841, # local variable 'center' is assigned to but never used
+    W605, # invalid escape sequence '\_'
+
+
+per-file-ignores =
+    src/display/d.frame/d.frame.py: E302
+    src/gui/wxpython/wx.wms/wmsmenu.py: W293
+    src/gui/wxpython/wx.wms/WMSMapDisplay.py: W29
+    src/gui/wxpython/wx.wms/parse.py: E101, W191
+    src/raster/r.landscape.evol.old/r.landscape.evol.old.py: E302
+    src/raster/r.object.spatialautocor/r.object.spatialautocor.py: E302
+    src/raster/r.roughness.vector/r.roughness.vector.py: E302
+    src/raster/r.recode.attr/r.recode.attr.py: E302
+    src/raster/r.centroids/testsuite/test_r_centroids.py: E302
+    src/raster/r.euro.ecosystem/r.euro.ecosystem.py: W293
+    src/raster/r.soillossbare/r.soillossbare.py: E101, W191
+    src/raster/r.basin/r.basin.py: E302
+    src/raster/r.denoise/r.denoise.py: E302
+    src/imagery/i.landsat8.swlst/csv_to_dictionary.py: E302
+    src/imagery/i.nightlights.intercalibration/i.nightlights.intercalibration.py: E302
+    src/imagery/i.nightlights.intercalibration/test_intercalibration_models.py: E302
+    src/imagery/i.landsat/i.landsat.download/i.landsat.download.py: E302
+    src/hadoop/hd/dependency.py: E211
+
+
+max-line-length = 88
+exclude =
+    .git,
+    __pycache__,
+    .env,
+    .venv,
+    env,
+    venv,
+    ENV,
+    env.bak,
+    venv.bak,

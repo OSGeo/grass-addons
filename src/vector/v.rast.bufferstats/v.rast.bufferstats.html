@@ -10,30 +10,30 @@ buffers around selected geometries in the input vector map.
 within the buffers using <em>r.stats</em>.</li>
 </ol>
 
-<p>If <em>output</em> option is specified, results are written to file or 
-stdout in stead of attribute table of the input map. 
-File output is produced with the following column order:<br>
+<p>If the <em>output</em> option is specified, results are written to a text
+file or stdout instead of the attribute table of the input map.
+The output file is produced with the following column order:<br>
 cat | prefix | buffer| statistic/measure | value<br>
 separated by the user defined separator (default is |).</p>
 
 <h2>NOTE</h2>
 The module temporarily modifies the computational region. The region is set to the 
-extent of the respecive buffers, while the alignement of the current region is kept.
+extent of the respective buffers, while the alignment of the current region is kept.
 
 <h2>EXAMPLES</h2>
 <div class="code"><pre>
-
+# Preparations
 g.region -p raster=elevation,geology_30m
-v.clip --o -r input=bridges output=bridges_wake
+v.clip -r input=bridges output=bridges_wake
 
 # Tabulate area of land cover map
 g.region -p raster=elevation,geology_30m align=geology_30m
 v.rast.bufferstats -t input=bridges_wake raster=geology_30m buffers=100,250,500 column_prefix=geology
 
-# Compute terrain statistics
+# Compute terrain statistics and update vector attribute table
 g.region -p raster=elevation,geology_30m align=elevation
 r.slope.aspect elevation=elevation slope=slope aspect=aspect
-v.rast.bufferstats input= raster=altitude,slope,aspect buffers=100,250,500 column_prefix=altitude,slope,aspect methods=minimum,maximum,average,stddev percentile=5,95
+v.rast.bufferstats input=bridges_wake raster=altitude,slope,aspect buffers=100,250,500 column_prefix=altitude,slope,aspect methods=minimum,maximum,average,stddev percentile=5,95
 
 </pre></div>
 

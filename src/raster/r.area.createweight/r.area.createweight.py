@@ -202,23 +202,37 @@ import matplotlib.pyplot as plt
 from ast import literal_eval
 from copy import deepcopy
 
-# Import Pandas library (View and manipulation of tables)
-# Still required for selecting in dataframes based on column names
-try:
-    import pandas as pd
-except:
-    gscript.fatal(_("Pandas is not installed"))
-
-# Import sklearn libraries
-try:
-    from sklearn.ensemble import RandomForestRegressor
-    from sklearn.feature_selection import SelectFromModel
-    from sklearn.model_selection import GridSearchCV
-except:
-    gscript.fatal(_("Scikit learn 0.24 or newer is not installed"))
-
 # Use a non-interactive backend: prevent the figure from popping up
 matplotlib.use("Agg")
+
+
+# For list of files to cleanup
+TMP_MAPS = []  # Maps to cleanup
+TMP_CSV = []  # Csv to cleanup
+TMP_VECT = []  # Vector to cleanup
+
+
+def lazy_import():
+    """Lazy import py packages due compilation error on OS MS Windows
+    (missing py packages)
+    """
+    # Import Pandas library (View and manipulation of tables)
+    # Still required for selecting in dataframes based on column names
+    global pd, RandomForestRegressor, SelectFromModel, GridSearchCV
+    try:
+        import pandas as pd
+    except ModuleNotFoundError:
+        gscript.fatal(_("Pandas is not installed"))
+
+    # Import sklearn libraries
+    try:
+        from sklearn.ensemble import RandomForestRegressor
+        from sklearn.feature_selection import SelectFromModel
+        from sklearn.model_selection import GridSearchCV
+    except ModuleNotFoundError:
+        gscript.fatal(
+            _("Scikit-learn 0.24 or newer is not installed (python3-scikit-learn)")
+        )
 
 
 def cleanup():
@@ -962,16 +976,13 @@ def RandomForest(weighting_layer_name, vector, id):
 def main():
     start_time = time.ctime()
     options, flags = gscript.parser()
+    lazy_import()
     gscript.use_temp_region()  # define use of temporary regions
 
     ## Create global variables
     global TMP_MAPS, TMP_CSV, TMP_VECT, vector_map, allstatfile, min_fimportance, param_grid, kfold, basemap_a, basemap_b, distance_to, tile_size, n_jobs, id, response_variable, plot, log_f, log_text, log_text_extend, basemap_a_category_list, basemap_b_category_list, rasta_class_list, rastb_class_list, output_units_layer
 
     ## Create empty variables
-    # For list of files to cleanup
-    TMP_MAPS = []  # Maps to cleanup
-    TMP_CSV = []  # Csv to cleanup
-    TMP_VECT = []  # Vector to cleanup
     raster_list = []  # List of the input rasters
     raster_list_prep = []  # List to rename rasters after pre-processing
     log_text = ""  # Log for random forest

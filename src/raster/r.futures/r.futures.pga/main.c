@@ -151,6 +151,7 @@ int main(int argc, char **argv)
     int num_steps;
     int nseg;
     int region;
+    int region_id;
     int step;
     float memory;
     double discount_factor;
@@ -533,6 +534,9 @@ int main(int argc, char **argv)
         if (step == num_steps - 1)
             overgrow = false;
         for (region = 0; region < region_map->nitems; region++) {
+            KeyValueIntInt_find(reverse_region_map, region, &region_id);
+            G_verbose_message("Computing step %d (out of %d), region %d (%d out of %d)", step + 1, num_steps, region_id,
+                              region + 1, region_map->nitems);
             compute_step(undev_cells, &demand_info, search_alg, &segments,
                          &patch_sizes, &patch_info, &devpressure_info, patch_overflow,
                          step, region, reverse_region_map, overgrow);

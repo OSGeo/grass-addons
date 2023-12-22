@@ -12,7 +12,7 @@
 #               categories values, whereby the category labels and colors are
 #               retained.
 #
-# COPYRIGHT: (C) 2015-2017 Paulo van Breugel and the GRASS Development Team
+# COPYRIGHT: (C) 2015-2021 Paulo van Breugel and the GRASS Development Team
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS
@@ -143,9 +143,11 @@ def main(options, flags):
         for j in range(len(RID)):
             RECO = "{0}{1}:{1}:{2}\n".format(RECO, RID[j], RIDN[j])
             A = list(map(int, [i for i, x in enumerate(CCAT) if x == RIDI[j]]))
-            CV.append(RCOL[A[0]].split(" ")[1])
-            CR = "{}{} {}\n".format(CR, RIDN[j], CV[j])
-            CL = "{}{}|{}\n".format(CL, RIDN[j], RLAB[j])
+            if A:
+                ADCR = RCOL[A[0]].split(" ")[1]
+                CR = "{}{} {}\n".format(CR, RIDN[j], ADCR)
+                CL = "{}{}|{}\n".format(CL, RIDN[j], RLAB[j])
+                CV.append(ADCR)
 
         CR = "{}nv 255:255:255\ndefault 255:255:255\n".format(CR)
         Module(
@@ -173,17 +175,20 @@ def main(options, flags):
         # Write color rules and assign colors
         for j in range(len(RIDI)):
             A = list(map(int, [i for i, x in enumerate(CCAT) if x == RIDI[j]]))
-            CV.append(RCOL[A[0]].split(" ")[1])
-            CR = CR + str(RIDI[j]) + " " + CV[j] + "\n"
+            if A:
+                ADCR = RCOL[A[0]].split(" ")[1]
+                CR = CR + str(RIDI[j]) + " " + ADCR + "\n"
+                CV.append(ADCR)
         CR = "{}nv 255:255:255\ndefault 255:255:255\n".format(CR)
         Module("r.colors", map=OP, rules="-", stdin_=CR, quiet=True)
 
     # If attribute table (csv format) should be written
     if len(CSV) > 0:
         if flags_n:
-            RCAT1 = [w.replace("|", ",") for w in [_f for _f in CL.split("\n") if _f]]
+            RCAT1 = [w.replace("|", ",'") for w in [_f for _f in CL.split("\n") if _f]]
         else:
-            RCAT1 = [w.replace("\t", ",") for w in RCAT]
+            RCAT1 = [w.replace("\t", ",'") for w in RCAT]
+        RCAT1 = ["{}'".format(w) for w in RCAT1]
         RCAT1.insert(0, "CATEGORY,CATEGORY LABEL")
         CV1 = list(CV)
         CV1.insert(0, "RGB")
@@ -196,15 +201,17 @@ def main(options, flags):
         RGB = [w.replace(":", ",") for w in CV]
         if flags_n:
             RCAT = [_f for _f in CL.split("\n") if _f]
-            RCAT = [w.replace("|", ",") for w in RCAT]
         else:
-            RCAT = [w.replace("\t", ",") for w in RCAT]
+            RCAT = [w.replace("\t", "|") for w in RCAT]
         with open(QGIS, "w") as text_file:
             text_file.write("# QGIS color map for {}\n".format(OP))
             text_file.write("INTERPOLATION:EXACT\n")
             for k in range(len(RCAT)):
-                RC2 = RCAT[k].split(",")
-                text_file.write("{},{},255,{}\n".format(RC2[0], RGB[k], RC2[1]))
+                RC2 = RCAT[k].split("|")
+                if RC2[1]:
+                    text_file.write("{},{},255,{}\n".format(RC2[0], RGB[k], RC2[1]))
+                else:
+                    text_file.write("{},{},255,{}\n".format(RC2[0], RGB[k], "-"))
 
 
 if __name__ == "__main__":

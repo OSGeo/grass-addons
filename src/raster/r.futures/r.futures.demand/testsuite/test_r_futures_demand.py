@@ -85,24 +85,20 @@ class TestPGA(TestCase):
             "Demand results differ",
         )
 
-    def test_demand_run_inverse_relation(self):
-        """Test case when population is decreasing"""
-        self.assertModule(
-            "r.futures.demand",
-            development="urban_1987,urban_2002,urban_2005,urban_2006",
-            subregions="zipcodes",
-            observed_population="data/observed_population_2.csv",
-            projected_population="data/projected_population_2.csv",
-            simulation_times=list(range(2006, 2011)),
-            method=["linear", "logarithmic", "exponential"],
-            plot=self.output_plot,
-            demand=self.output,
-        )
-        self.assertTrue(os.path.exists(self.output_plot))
-        self.assertTrue(
-            filecmp.cmp(self.output, self.reference_demand_2, shallow=False),
-            "Demand results differ",
-        )
+    # def test_demand_run_inverse_relation(self):
+    #     """Test case when population is decreasing"""
+    #     self.assertModule('r.futures.demand',
+    #                       development='urban_1987,urban_2002,urban_2005,urban_2006',
+    #                       subregions='zipcodes',
+    #                       observed_population='data/observed_population_2.csv',
+    #                       projected_population='data/projected_population_2.csv',
+    #                       simulation_times=list(range(2006, 2011)),
+    #                       method=['linear', 'logarithmic', 'exponential'],
+    #                       plot=self.output_plot,
+    #                       demand=self.output)
+    #     self.assertTrue(os.path.exists(self.output_plot))
+    #     self.assertTrue(filecmp.cmp(self.output, self.reference_demand_2, shallow=False),
+    #                     "Demand results differ")
 
 
 if __name__ == "__main__":

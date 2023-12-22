@@ -117,6 +117,8 @@ import grass.script as gs
 from grass.pygrass.gis.region import Region
 from grass.pygrass.modules.shortcuts import general as g
 from grass.pygrass.modules.shortcuts import raster as r
+from grass.exceptions import ParameterError
+
 
 if "GISBASE" not in os.environ:
     print("You must be in GRASS GIS to run this program.")
@@ -492,6 +494,7 @@ def smooth_dem(DEM):
 
     smoothed = rand_id("smoothed{}".format(L + 1))
     TMP_RAST[L].append(smoothed)
+
     r.neighbors(input=DEM, output=smoothed, size=11, gauss=3)
 
     return smoothed

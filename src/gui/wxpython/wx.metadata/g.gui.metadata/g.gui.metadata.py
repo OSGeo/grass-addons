@@ -44,7 +44,6 @@ set_gui_path()
 from core.debug import Debug
 
 # from datacatalog.tree import LocationMapTree
-from core.utils import GetListOfLocations, ListOfMapsets
 
 grass.utils.set_path(modulename="wx.metadata", dirname="mdlib", path="..")
 
@@ -82,9 +81,10 @@ class LocationMapTree(wx.TreeCtrl):
         super(LocationMapTree, self).__init__(parent, id=wx.ID_ANY, style=style)
 
         try:
-            global RunCommand
+            global GetListOfLocations, ListOfMapsets, RunCommand
 
             from core.gcmd import RunCommand
+            from core.utils import GetListOfLocations, ListOfMapsets
         except ModuleNotFoundError as e:
             msg = e.msg
             sys.exit(
@@ -1121,7 +1121,7 @@ class MdMainFrame(wx.Frame):
 
             self.ntbRight = NotebookRight(self.splitter, self.xmlPath)
 
-            self.splitter.SplitVertically(self.editor, self.ntbRight, sashPosition=0.65)
+            self.splitter.SplitVertically(self.editor, self.ntbRight)
             self.splitter.SetSashGravity(0.65)
             self.leftPanel.Hide()
             self.Hsizer.Add(self.splitter, proportion=1, flag=wx.EXPAND)
@@ -1658,7 +1658,7 @@ class MdValidator(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
         self.text = wx.TextCtrl(
-            parent,
+            self,
             id=wx.ID_ANY,
             size=(0, 55),
             style=wx.VSCROLL

@@ -1,4 +1,4 @@
-MODULE_TOPDIR = ../../grass7.0/grass_trunk
+MODULE_TOPDIR = ../..
 
 PGM = v.mapcalc
 

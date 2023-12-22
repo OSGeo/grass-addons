@@ -259,8 +259,8 @@ class SentinelImporter(object):
         if len(safes) < 1:
             gs.fatal(
                 _(
-                    "Nothing found to import. Please check input and pattern_file options."
-                )
+                    "No Sentinel files found to import in directory <{}>. Please check input and pattern_file options."
+                ).format(self.unzip_dir)
             )
 
         for safe in safes:
@@ -874,7 +874,7 @@ class SentinelImporter(object):
                     continue
 
                 timestamp = meta["timestamp"]
-                timestamp_str = timestamp.strftime("%-d %b %Y %H:%M:%S.%f")
+                timestamp_str = timestamp.strftime("%d %b %Y %H:%M:%S.%f")
                 descr_list = []
                 for dkey in meta.keys():
                     if dkey != "timestamp":

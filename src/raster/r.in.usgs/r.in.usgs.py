@@ -11,7 +11,7 @@
 #
 # PURPOSE:   Download user-requested products through the USGS TNM API.
 #
-# COPYRIGHT: (C) 2017-2019 Zechariah Krautwurst and the GRASS Development Team
+# COPYRIGHT: (C) 2017-2021 Zechariah Krautwurst and the GRASS Development Team
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS
@@ -44,12 +44,6 @@
 #%option G_OPT_R_OUTPUT
 #% key: output_name
 #% required: yes
-#%end
-
-#%option G_OPT_M_DIR
-#% key: output_directory
-#% required: yes
-#% description: Directory for USGS data download and processing
 #%end
 
 #%option
@@ -124,9 +118,17 @@
 #% guisection: Speed
 #%end
 
+#%option G_OPT_M_DIR
+#% key: output_directory
+#% required: no
+#% label: Cache directory for download and processing
+#% description: Defaults to system user cache directory (e.g., .cache)
+#% guisection: Speed
+#%end
+
 #%flag
 #% key: k
-#% description: Keep extracted files after GRASS import and patch
+#% description: Keep imported tiles in the mapset after patch
 #% guisection: Speed
 #%end
 
@@ -144,10 +146,46 @@ from six.moves.urllib.parse import quote_plus
 from multiprocessing import Process, Manager
 import json
 import atexit
+from pathlib import Path
 
+import grass.script as gs
 from grass.exceptions import CalledModuleError
 
 cleanup_list = []
+
+
+def get_cache_dir(name):
+    """Get the default user cache directory
+
+    The name parameter is used to distinguish cache data from different
+    components, e.g., from different modules.
+
+    The function creates the directory (including all its parent directories)
+    if it does not exist.
+    """
+    app_version = gs.version()["version"]
+    if sys.platform.startswith("win"):
+        # App name, directory, and the assumption that the directory
+        # should be used are derived from the startup script.
+        # Major version is part of the directory name.
+        app_name = "GRASS{}".format(app_version.split(".", maxsplit=1)[0])
+        path = Path(os.getenv("APPDATA")) / app_name / "Cache" / name
+    elif sys.platform.startswith("darwin"):
+        app_name = "grass"
+        path = Path("~/Library/Caches").expanduser() / app_name / app_version / name
+    else:
+        app_name = "grass"
+        # According to XDG Base Directory Specification 0.8:
+        # If $XDG_CACHE_HOME is either not set or empty, a default equal
+        # to $HOME/.cache should be used.
+        env_var = os.getenv("XDG_CACHE_HOME")
+        if env_var:
+            path = Path(env_var)
+        else:
+            path = Path("~/.cache").expanduser()
+        path = path / app_name / app_version / name
+    path.mkdir(parents=True, exist_ok=True)
+    return path
 
 
 def get_current_mapset():
@@ -378,14 +416,16 @@ def main():
     memory = options["memory"]
     nprocs = options["nprocs"]
 
-    preserve_extracted_files = gui_k_flag
+    preserve_extracted_files = True
     use_existing_extracted_files = True
     preserve_imported_tiles = gui_k_flag
     use_existing_imported_tiles = True
 
-    if not os.path.isdir(work_dir):
+    if not work_dir:
+        work_dir = get_cache_dir("r_in_usgs")
+    elif not os.path.isdir(work_dir):
         gscript.fatal(
-            _("Directory <{}> does not exist." " Please create it.").format(work_dir)
+            _("Directory <{}> does not exist. Please create it.").format(work_dir)
         )
 
     # Returns current units
@@ -458,7 +498,7 @@ def main():
     except HTTPError as error:
         gscript.fatal(
             _(
-                "HTTP(S) error from USGS TNM API:" " {code}: {reason} ({instructions})"
+                "HTTP(S) error from USGS TNM API: {code}: {reason} ({instructions})"
             ).format(
                 reason=error.reason, code=error.code, instructions=try_again_messge
             )
@@ -515,76 +555,60 @@ def main():
     # Some combinations produce >10 byte differences.
     size_diff_tolerance = 5
     exist_dwnld_size = 0
-    if tile_API_count > 0:
-        dwnld_size = []
-        dwnld_url = []
-        TNM_file_titles = []
-        exist_dwnld_url = []
-        exist_TNM_titles = []
-        exist_zip_list = []
-        exist_tile_list = []
-        extract_zip_list = []
-        # for each file returned, assign variables to needed parameters
-        for f in return_JSON["items"]:
-            TNM_file_title = f["title"]
-            TNM_file_URL = str(f["downloadURL"])
-            TNM_file_size = int(f["sizeInBytes"])
-            TNM_file_name = TNM_file_URL.split(product_url_split)[-1]
-            if gui_product == "ned":
-                local_file_path = os.path.join(work_dir, ned_data_abbrv + TNM_file_name)
-                local_zip_path = os.path.join(work_dir, ned_data_abbrv + TNM_file_name)
-                local_tile_path = os.path.join(work_dir, ned_data_abbrv + TNM_file_name)
-            else:
-                local_file_path = os.path.join(work_dir, TNM_file_name)
-                local_zip_path = os.path.join(work_dir, TNM_file_name)
-                local_tile_path = os.path.join(work_dir, TNM_file_name)
-            file_exists = os.path.exists(local_file_path)
-            file_complete = None
-            # If file exists, do not download,
-            # but if incomplete (e.g. interupted download), redownload.
-            if file_exists:
-                existing_local_file_size = os.path.getsize(local_file_path)
-                # if local file is incomplete
-                if abs(existing_local_file_size - TNM_file_size) > size_diff_tolerance:
-                    gscript.verbose(
-                        _(
-                            "Size of local file {filename} ({local_size}) differs"
-                            " from a file size specified in the API ({api_size})"
-                            " by {difference} bytes"
-                            " which is more than tolerance ({tolerance})."
-                            " It will be downloaded again."
-                        ).format(
-                            filename=local_file_path,
-                            local_size=existing_local_file_size,
-                            api_size=TNM_file_size,
-                            difference=abs(existing_local_file_size - TNM_file_size),
-                            tolerance=size_diff_tolerance,
-                        )
+
+    # Fatal error if API query returns no results for GUI input
+    if tile_API_count == 0:
+        gs.fatal(
+            _("USGS TNM API error or no tiles available for given input parameters")
+        )
+
+    dwnld_size = []
+    dwnld_url = []
+    TNM_file_titles = []
+    exist_dwnld_url = []
+    exist_TNM_titles = []
+    exist_zip_list = []
+    exist_tile_list = []
+    extract_zip_list = []
+    # for each file returned, assign variables to needed parameters
+    for f in return_JSON["items"]:
+        TNM_file_title = f["title"]
+        TNM_file_URL = str(f["downloadURL"])
+        TNM_file_size = int(f["sizeInBytes"])
+        TNM_file_name = TNM_file_URL.split(product_url_split)[-1]
+        if gui_product == "ned":
+            local_file_path = os.path.join(work_dir, ned_data_abbrv + TNM_file_name)
+            local_zip_path = os.path.join(work_dir, ned_data_abbrv + TNM_file_name)
+            local_tile_path = os.path.join(work_dir, ned_data_abbrv + TNM_file_name)
+        else:
+            local_file_path = os.path.join(work_dir, TNM_file_name)
+            local_zip_path = os.path.join(work_dir, TNM_file_name)
+            local_tile_path = os.path.join(work_dir, TNM_file_name)
+        file_exists = os.path.exists(local_file_path)
+        file_complete = None
+        # If file exists, do not download,
+        # but if incomplete (e.g. interupted download), redownload.
+        if file_exists:
+            existing_local_file_size = os.path.getsize(local_file_path)
+            # if local file is incomplete
+            if abs(existing_local_file_size - TNM_file_size) > size_diff_tolerance:
+                gscript.verbose(
+                    _(
+                        "Size of local file {filename} ({local_size}) differs"
+                        " from a file size specified in the API ({api_size})"
+                        " by {difference} bytes"
+                        " which is more than tolerance ({tolerance})."
+                        " It will be downloaded again."
+                    ).format(
+                        filename=local_file_path,
+                        local_size=existing_local_file_size,
+                        api_size=TNM_file_size,
+                        difference=abs(existing_local_file_size - TNM_file_size),
+                        tolerance=size_diff_tolerance,
                     )
-                    # NLCD API query returns subsets that cannot be filtered before
-                    # results are returned. gui_subset is used to filter results.
-                    if not gui_subset:
-                        tiles_needed_count += 1
-                        down_list()
-                    else:
-                        if gui_subset in TNM_file_title:
-                            tiles_needed_count += 1
-                            down_list()
-                        else:
-                            continue
-                else:
-                    if not gui_subset:
-                        tiles_needed_count += 1
-                        exist_list()
-                        exist_dwnld_size += TNM_file_size
-                    else:
-                        if gui_subset in TNM_file_title:
-                            tiles_needed_count += 1
-                            exist_list()
-                            exist_dwnld_size += TNM_file_size
-                        else:
-                            continue
-            else:
+                )
+                # NLCD API query returns subsets that cannot be filtered before
+                # results are returned. gui_subset is used to filter results.
                 if not gui_subset:
                     tiles_needed_count += 1
                     down_list()
@@ -592,13 +616,29 @@ def main():
                     if gui_subset in TNM_file_title:
                         tiles_needed_count += 1
                         down_list()
+                    else:
                         continue
-
-    # return fatal error if API query returns no results for GUI input
-    elif tile_API_count == 0:
-        gscript.fatal(
-            _("TNM API ERROR or Zero tiles available for given input parameters.")
-        )
+            else:
+                if not gui_subset:
+                    tiles_needed_count += 1
+                    exist_list()
+                    exist_dwnld_size += TNM_file_size
+                else:
+                    if gui_subset in TNM_file_title:
+                        tiles_needed_count += 1
+                        exist_list()
+                        exist_dwnld_size += TNM_file_size
+                    else:
+                        continue
+        else:
+            if not gui_subset:
+                tiles_needed_count += 1
+                down_list()
+            else:
+                if gui_subset in TNM_file_title:
+                    tiles_needed_count += 1
+                    down_list()
+                    continue
 
     # number of files to be downloaded
     file_download_count = len(dwnld_url)
@@ -674,7 +714,7 @@ def main():
     print(data_info)
 
     if gui_i_flag:
-        gscript.info(_("To download USGS data, remove <i> flag, and rerun r.in.usgs."))
+        gs.message(_("To download USGS data, remove <i> flag, and rerun r.in.usgs."))
         sys.exit()
 
     # USGS data download process
@@ -700,6 +740,12 @@ def main():
             file_name = url.split(product_url_split)[-1]
             local_file_path = os.path.join(work_dir, file_name)
         try:
+            download_count += 1
+            gs.message(
+                _("Download {current} of {total}...").format(
+                    current=download_count, total=TNM_count
+                )
+            )
             # download files in chunks rather than write complete files to memory
             dwnld_req = urlopen(url, timeout=12)
             download_bytes = int(dwnld_req.info()["Content-Length"])
@@ -716,27 +762,21 @@ def main():
                     local_file.write(chunk)
                 gscript.percent(1, 1, 1)
             local_file.close()
-            download_count += 1
             # determine if file is a zip archive or another format
             if product_is_zip:
                 local_zip_path_list.append(local_file_path)
             else:
                 local_tile_path_list.append(local_file_path)
-            file_complete = "Download {0} of {1}: COMPLETE".format(
-                download_count, TNM_count
+        except URLError as error:
+            gs.fatal(
+                _(
+                    "USGS download request for {url} has timed out. "
+                    "Network or formatting error: {err}"
+                ).format(url=url, err=error)
             )
-            gscript.info(file_complete)
-        except URLError:
-            gscript.fatal(
-                _("USGS download request has timed out. Network or formatting error.")
-            )
-        except StandardError:
+        except StandardError as error:
             cleanup_list.append(local_file_path)
-            if download_count:
-                file_failed = "Download {0} of {1}: FAILED".format(
-                    download_count, TNM_count
-                )
-                gscript.fatal(file_failed)
+            gs.fatal(_("Download of {url} failed: {err}").format(url=url, err=error))
 
     # sets already downloaded zip files or tiles to be extracted or imported
     # our pre-stats for extraction are broken, collecting stats during
@@ -786,7 +826,7 @@ def main():
                                     os.remove(extracted_tile)
                             if remove_and_extract:
                                 extracted_tiles_num += 1
-                                read_zip.extract(f, work_dir)
+                                read_zip.extract(f, str(work_dir))
                 if os.path.exists(extracted_tile):
                     local_tile_path_list.append(extracted_tile)
                     if not preserve_extracted_files:
@@ -802,9 +842,7 @@ def main():
         gscript.percent(1, 1, 1)
         # TODO: do this before the extraction begins
         gscript.verbose(
-            _(
-                "Extracted {extracted} new tiles and" " used {used} existing tiles"
-            ).format(
+            _("Extracted {extracted} new tiles and used {used} existing tiles").format(
                 used=used_existing_extracted_tiles_num, extracted=extracted_tiles_num
             )
         )
@@ -823,9 +861,7 @@ def main():
             )
 
     if gui_product == "lidar" and not has_pdal:
-        gscript.fatal(
-            _("Module v.in.pdal is missing," " cannot process downloaded data.")
-        )
+        gs.fatal(_("Module v.in.pdal is missing, cannot process downloaded data."))
 
     # operations for extracted or complete files available locally
     # We are looking only for the existing maps in the current mapset,
@@ -862,7 +898,7 @@ def main():
                 used_existing_imported_tiles_num += 1
             else:
                 in_info = _(
-                    "Importing and reprojecting {name}" " ({count} out of {total})..."
+                    "Importing and reprojecting {name} ({count} out of {total})..."
                 ).format(name=LT_file_name, count=i + 1, total=files_to_import)
                 gscript.info(in_info)
 
@@ -880,7 +916,7 @@ def main():
                             resolution_value=product_resolution,
                             extent="region",
                             resample=product_interpolation,
-                            memory=memory,
+                            memory=int(float(memory) // int(nprocs)),
                         ),
                     )
                 else:
@@ -933,7 +969,7 @@ def main():
         assert not process_count
 
     gscript.verbose(
-        _("Imported {imported} new tiles and" " used {used} existing tiles").format(
+        _("Imported {imported} new tiles and used {used} existing tiles").format(
             used=used_existing_imported_tiles_num, imported=imported_tiles_num
         )
     )
@@ -1043,11 +1079,6 @@ def main():
         gscript.fatal(
             _("Error in getting or importing the data (see above). Please retry.")
         )
-
-    # Keep source files if 'k' flag active
-    if gui_k_flag:
-        src_msg = ("<k> flag selected: Source tiles remain in '{0}'").format(work_dir)
-        gscript.info(src_msg)
 
     # set appropriate color table
     if gui_product == "ned":
