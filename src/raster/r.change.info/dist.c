@@ -4,10 +4,10 @@
 #include "ncb.h"
 #include "window.h"
 
-/* Average statistical distance between average distribution and 
- * observed distributions: 
+/* Average statistical distance between average distribution and
+ * observed distributions:
  * sum of the absolute differences divided by the number of distributions
- * 
+ *
  * dist: array of distributions
  * nd: number of cells in each distribution
  * n: number of distributions
@@ -22,31 +22,31 @@ DCELL dist(double **dist, int *nd, int n, int dsize)
     d_dist = 0;
     n_comb = 0;
     for (d = 0; d < n; d++) {
-	n_comb += nd[d];
+        n_comb += nd[d];
     }
     for (i = 0; i < dsize; i++) {
 
-	/* Create combined distribution */
-	p_avg = 0;
-	for (d = 0; d < n; d++) {
-	    if (dist[d][i] > 0 && nd[d] > 0) {
-		p_avg += dist[d][i];
-	    }
-	}
-	/* Difference to combined distribution */
-	if (p_avg > 0) {
-	    p_avg /= n_comb;
-	    for (d = 0; d < n; d++) {
-		if (nd[d] > 0) {
-		    dp = p_avg - dist[d][i] / nd[d];
-		    d_dist += fabs(dp);
-		}
-	    }
-	}
+        /* Create combined distribution */
+        p_avg = 0;
+        for (d = 0; d < n; d++) {
+            if (dist[d][i] > 0 && nd[d] > 0) {
+                p_avg += dist[d][i];
+            }
+        }
+        /* Difference to combined distribution */
+        if (p_avg > 0) {
+            p_avg /= n_comb;
+            for (d = 0; d < n; d++) {
+                if (nd[d] > 0) {
+                    dp = p_avg - dist[d][i] / nd[d];
+                    d_dist += fabs(dp);
+                }
+            }
+        }
     }
 
     if (d_dist == 0)
-	return 0;
+        return 0;
 
     return d_dist / (2 * (n - 1));
 }

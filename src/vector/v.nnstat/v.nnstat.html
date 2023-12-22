@@ -6,8 +6,8 @@
 <h3>Comparison of 2D and 3D NNA</h3>
 On the example of dataset that contains 2000 randomly distributed points, basic settings of analysis dimension (2D or 3D) will be examined:
 <ul>
-<li> <b>2D NNA</b> may be performed using <b>2D vector layer</b>. If 2D NNA is required to be 
-performed using <b>3D vector layer</b>, <u>flag <i>-2</i></u> should be marked. The results of 
+<li> <b>2D NNA</b> may be performed using <b>2D vector layer</b>. If 2D NNA is required to be
+performed using <b>3D vector layer</b>, <u>flag <i>-2</i></u> should be marked. The results of
 both cases can be seen below.
 
 <div class="code"><pre>
@@ -64,7 +64,7 @@ Output in the command line:
 				Average distance between the nearest neighbours ........... 225.859 [units]
 				Average expected distance between the nearest neighbours .. 223.228 [units]
 				Ratio rA/rE ............... 1.011785
-				
+
 				*** Results of two-tailed test of the mean ***
 				Null hypothesis: Point set is randomly distributed within the region.
 				Standard variate of the normal curve> c = 1.008239
@@ -74,13 +74,13 @@ Output in the command line:
 	</tr>
 </table>
 
-<p><b>NOTE:</b> Comparing the results of 2D NNA with results summarized in 
-(<a href="http://geoinformatics.fsv.cvut.cz/pdf/geoinformatics-fce-ctu-2013-11.pdf">Stopkova, 2013</a>), there can be 
-seen small difference between the values of area. It is assumed to be caused by differences in transformed coordinates of 
+<p><b>NOTE:</b> Comparing the results of 2D NNA with results summarized in
+(<a href="http://geoinformatics.fsv.cvut.cz/pdf/geoinformatics-fce-ctu-2013-11.pdf">Stopkova, 2013</a>), there can be
+seen small difference between the values of area. It is assumed to be caused by differences in transformed coordinates of
 the convex hull that have been computed using two versions of the module.
 
-<li> <b>3D NNA</b> can be performed just using <b>3D vector layer</b>. If 3D NNA is required to be performed using 
-<b>2D vector layer</b>, <u>name of the column in attribute table that contains elevation values</u> must be set. 
+<li> <b>3D NNA</b> can be performed just using <b>3D vector layer</b>. If 3D NNA is required to be performed using
+<b>2D vector layer</b>, <u>name of the column in attribute table that contains elevation values</u> must be set.
 The results of both cases can be seen below.
 
 <div class="code"><pre>
@@ -108,7 +108,7 @@ Output in the command line:
 				Average distance between the nearest neighbours ........... 346.072 [units]
 				Average expected distance between the nearest neighbours .. 323.531 [units]
 				Ratio rA/rE ............... 1.069670
-				
+
 				*** Results of two-tailed test of the mean ***
 				Null hypothesis: Point set is randomly distributed within the region.
 				Standard variate of the normal curve> c = 0.191691
@@ -144,7 +144,7 @@ Output in the command line:
 				Average distance between the nearest neighbours ........... 346.072 [units]
 				Average expected distance between the nearest neighbours .. 323.531 [units]
 				Ratio rA/rE ............... 1.069670
-				
+
 				*** Results of two-tailed test of the mean ***
 				Null hypothesis: Point set is randomly distributed within the region.
 				Standard variate of the normal curve> c = 0.191691

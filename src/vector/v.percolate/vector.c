@@ -1,4 +1,3 @@
-
 /***********************************************************************/
 /*
    vector.c
@@ -13,7 +12,6 @@
 /***********************************************************************/
 
 #include "vector.h"
-
 
 /***********************************************************************/
 /* Public functions                                                    */
@@ -50,15 +48,12 @@ long int read_input_vector(char *input_name, char *input_field)
 
     if (doName) {
         db_CatValArray_init(&AttributeArray);
-        if (!
-            (FieldInfo =
-             Vect_get_field(&V_points,
-                            Vect_get_field_number(&V_points, input_field))))
+        if (!(FieldInfo = Vect_get_field(
+                  &V_points, Vect_get_field_number(&V_points, input_field))))
             G_fatal_error(_("Database connection not defined for layer <%s>"),
                           input_field);
-        if ((Driver =
-             db_start_driver_open_database(FieldInfo->driver,
-                                           FieldInfo->database)) == NULL)
+        if ((Driver = db_start_driver_open_database(
+                 FieldInfo->driver, FieldInfo->database)) == NULL)
             G_fatal_error(_("Unable to open database <%s> by driver <%s>"),
                           FieldInfo->database, FieldInfo->driver);
         else {
@@ -68,9 +63,7 @@ long int read_input_vector(char *input_name, char *input_field)
             db_set_error_handler_driver(Driver);
         }
 
-
-        db_get_column(Driver, FieldInfo->table, input_id_col,
-                      &attributeColumn);
+        db_get_column(Driver, FieldInfo->table, input_id_col, &attributeColumn);
         if (attributeColumn) {
             attributeType = db_get_column_sqltype(attributeColumn);
             attributeValue = db_get_column_value(attributeColumn);
@@ -114,7 +107,7 @@ long int read_input_vector(char *input_name, char *input_field)
     nodeList = constructNodeArray(numpoints);
     /*nodeList = (node*) G_malloc(sizeof(node) * numpoints); */
     /* TODO: Waste of memory - replace with dynamically grown linked list? */
-    groupList = (node **) G_malloc(sizeof(node *) * (numpoints + 1));
+    groupList = (node **)G_malloc(sizeof(node *) * (numpoints + 1));
 
     for (i = 0; i < numpoints; ++i) {
         type = Vect_read_next_line(&V_points, Points, Cats);
@@ -130,12 +123,12 @@ long int read_input_vector(char *input_name, char *input_field)
                certain that the order of points is necesarily preserved in
                all associated database tables */
 
-            if (db_select_value
-                (Driver, FieldInfo->table, FieldInfo->key, *Cats->cat,
-                 input_id_col, attributeValue) > 0) {
+            if (db_select_value(Driver, FieldInfo->table, FieldInfo->key,
+                                *Cats->cat, input_id_col, attributeValue) > 0) {
                 db_convert_value_to_string(attributeValue, attributeType,
                                            &attributeString);
-                /* TODO: Very low-level access; there must be a better way to do this! */
+                /* TODO: Very low-level access; there must be a better way to do
+                 * this! */
                 if (strlen(attributeString.string) <= (NAME_LEN)) {
                     strcpy(nodeList[i].name, attributeString.string);
                 }
@@ -143,9 +136,9 @@ long int read_input_vector(char *input_name, char *input_field)
                     strncpy(nodeList[i].name, attributeString.string,
                             (NAME_LEN));
                     nodeList[i].name[NAME_LEN] = '\0';
-                    G_warning(_("ID value %s truncated to %s for point (cat = %d)"),
-                              attributeString.string, nodeList[i].name,
-                              *Cats->cat);
+                    G_warning(
+                        _("ID value %s truncated to %s for point (cat = %d)"),
+                        attributeString.string, nodeList[i].name, *Cats->cat);
                 }
             }
             else {

@@ -1,4 +1,3 @@
-
 /***********************************************************************/
 /*
    edge_array.h
@@ -11,7 +10,6 @@
  */
 
 /***********************************************************************/
-
 
 #ifndef EDGE_ARRAY_H
 #define EDGE_ARRAY_H
@@ -29,7 +27,6 @@
 #include "node.h"
 #include "file.h"
 
-
 /***********************************************************************/
 /* Public functions                                                    */
 
@@ -44,6 +41,5 @@ void printEdgeArrayWithNodeNames(edge *, long int, node *);
 void sortEdgeArray(edge *);
 
 /*void CSVoutput (node*, long int); */
-
 
 #endif

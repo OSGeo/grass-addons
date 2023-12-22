@@ -29,9 +29,8 @@ typedef std::tuple<bool, bool, bool, bool> BBoxBool;
 /**
  * Class storing and computing step spread rate for one simulation.
  */
-template<typename Raster>
-class SpreadRate
-{
+template <typename Raster>
+class SpreadRate {
 private:
     int width;
     int height;
@@ -69,7 +68,7 @@ private:
      * north, south, east, west coordinates (as number of rows/cols),
      * If there is no infection, sets -1 to all directions.
      */
-    BBoxInt infection_boundary(const Raster& raster)
+    BBoxInt infection_boundary(const Raster &raster)
     {
         int n = height - 1;
         int s = 0;
@@ -112,16 +111,14 @@ private:
     }
 
 public:
-    SpreadRate(const Raster& raster, double ew_res, double ns_res, unsigned num_steps)
-        : width(raster.cols()),
-          height(raster.rows()),
-          west_east_resolution(ew_res),
-          north_south_resolution(ns_res),
+    SpreadRate(const Raster &raster, double ew_res, double ns_res,
+               unsigned num_steps)
+        : width(raster.cols()), height(raster.rows()),
+          west_east_resolution(ew_res), north_south_resolution(ns_res),
           num_steps(num_steps),
           boundaries(num_steps + 1, std::make_tuple(0, 0, 0, 0)),
-          rates(
-              num_steps,
-              std::make_tuple(std::nan(""), std::nan(""), std::nan(""), std::nan("")))
+          rates(num_steps, std::make_tuple(std::nan(""), std::nan(""),
+                                           std::nan(""), std::nan("")))
     {
         boundaries.at(0) = infection_boundary(raster);
     }
@@ -131,10 +128,7 @@ public:
     /**
      * Returns rate for certain year of simulation
      */
-    const BBoxFloat& step_rate(unsigned step) const
-    {
-        return rates[step];
-    }
+    const BBoxFloat &step_rate(unsigned step) const { return rates[step]; }
 
     /**
      * Computes spread rate in n, s, e, w directions
@@ -144,13 +138,13 @@ public:
      * If spread rate is zero and the bbox is touching the edge,
      * that means spread is out of bounds and rate is set to NaN.
      */
-    void compute_step_spread_rate(const Raster& raster, unsigned step)
+    void compute_step_spread_rate(const Raster &raster, unsigned step)
     {
         BBoxInt bbox = infection_boundary(raster);
         boundaries.at(step + 1) = bbox;
         if (!is_boundary_valid(bbox)) {
-            rates.at(step) =
-                std::make_tuple(std::nan(""), std::nan(""), std::nan(""), std::nan(""));
+            rates.at(step) = std::make_tuple(std::nan(""), std::nan(""),
+                                             std::nan(""), std::nan(""));
             return;
         }
         int n1, n2, s1, s2, e1, e2, w1, w2;
@@ -181,9 +175,9 @@ public:
  * from vector of spread rates.
  * Checks if any rate is nan to not include it in the average.
  */
-template<typename Raster>
-BBoxFloat
-average_spread_rate(const std::vector<SpreadRate<Raster>>& rates, unsigned step)
+template <typename Raster>
+BBoxFloat average_spread_rate(const std::vector<SpreadRate<Raster>> &rates,
+                              unsigned step)
 {
     // loop through stochastic runs
     double n, s, e, w;
@@ -216,5 +210,5 @@ average_spread_rate(const std::vector<SpreadRate<Raster>>& rates, unsigned step)
     return std::make_tuple(avg_n, avg_s, avg_e, avg_w);
 }
 
-}  // namespace pops
-#endif  // POPS_SPREAD_RATE_HPP
+} // namespace pops
+#endif // POPS_SPREAD_RATE_HPP

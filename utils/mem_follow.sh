@@ -16,4 +16,3 @@ while [ "`ps -C $FOLLOW > /dev/null; echo $?`" -eq 0 ] ; do
 
    sleep $SLEEP
 done
-

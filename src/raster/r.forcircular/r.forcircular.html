@@ -80,7 +80,7 @@ Subsequently, the use of indicators belonging to the 4R framework of the
 circular economy (Reduce, Reuse, Recycle, Recover) allows to evaluate the level
 of circularity of the forest-wood supply chain. Finally, the application of
 spatial multicriteria analysis (SMCA) (specifically with compromise programming
-– CP – technique) permits to merge in a unique measure the level of circular
+- CP - technique) permits to merge in a unique measure the level of circular
 bioeconomy for production of traditional wood assortments and bioenergy in
 forest areas. In the SMCA procedure, each indicator is weighted according to
 on-line questionnaire proposed to decision makers operating in the forest-based
@@ -123,7 +123,7 @@ The quantification of circular bioeconomy indicators is developed in the
 framework of provisioning forest ecosystem services. For this reason, the
 indicators and results of SMCA process are computed on forest surface with
 financial efficiency of production process or, in other terms, the area
-where a positive stumpage value can be reached. The calculation of stumpage 
+where a positive stumpage value can be reached. The calculation of stumpage
 value is carried out following the approach of another GRASS GIS add-on: <a
 href="r.green.biomassfor.html">r.green.biomassfor</a>.
 
@@ -133,24 +133,24 @@ conversion of vector intp raster. Then, through a multistep approach, the
 technical and the economic availability
 of biomass (both traditional wood assortments and woodchips for bioenergy
 production) are quantified. Technical availability depicts forest surface
-where the extraction of wood material is possible. 
-The approach combines type of mechanisation, limits for slope, 
+where the extraction of wood material is possible.
+The approach combines type of mechanisation, limits for slope,
 distance from roads and roughness. <br>
 In forest area where extraction is possible, the stumpage value is
-quantified as a combination of differenct factors such as 
-hourly unitary cost of each production process, worker costs, 
+quantified as a combination of differenct factors such as
+hourly unitary cost of each production process, worker costs,
 hourly productivity and administrative costs.
 <br>
-The user can setthe upper and – if needed – lower limits for slope and
+The user can setthe upper and - if needed - lower limits for slope and
 distance
-from roads to obtain the technical surface: 
+from roads to obtain the technical surface:
 
 <div align="center" style="margin: 10px">
 <a href="tech_function.png"><img src="tech_function.png" width="600"></a>
 </div>
 In forest area where extraction is possible, the stumpage value is
 quantified as
-follow: 
+follow:
 
 <div align="center" style="margin: 10px">
 <a href="stumpage_function.png"><img src="stumpage_function.png" width="600"></a>
@@ -160,12 +160,12 @@ positive revenue. <br> <br>
 The importance of each circular bioeconomy index derives from the work of
 Paletto et al. (see Paletto A, Becagli C, Geri F, et al (2022) Use of
 Participatory Processes in Wood Residue Management from a Circular
-Bioeconomy Perspective: An Approach Adopted in Italy. Energies 15:1011) 
-where – starting from a total sample of 56 decision makers operating 
-in forest-based sectorin Italy – 30 decision makers 
-filled out a questionnaire. 
-The decision makers involved in the study have been identified 
-based on their knowledge and experience in the fields of bioeconomy, 
+Bioeconomy Perspective: An Approach Adopted in Italy. Energies 15:1011)
+where - starting from a total sample of 56 decision makers operating
+in forest-based sectorin Italy - 30 decision makers
+filled out a questionnaire.
+The decision makers involved in the study have been identified
+based on their knowledge and experience in the fields of bioeconomy,
 circular economic, and forest policy.
 According to the outputs provided by Paletto et al., the values of indices currently
 applied in <em>r.forcircular</em> (but modifiable by users) are: i1=0.15,
@@ -173,19 +173,19 @@ i2=0.12, i3=0.12, i4=0.13, i5=0.14, i6=0.17, i7=0.16.
 
 <p>
 <em>r.forcircular</em> highlights the output in both numerical and
-geographical format. By means of zonal statistics operations following 
-results can be reported for the forest surface where stumpage value is 
-greater then 0: annual availability of assortments (m<sup>3</sup>/y) 
-recalibrated in category of harvested material (i.e., roundwood, timber 
-pole, firewood, woodchips converted in bioenergy and expressed in MWh/y), 
-annual stumpage value (&euro;/y), average annual stumpage value 
+geographical format. By means of zonal statistics operations following
+results can be reported for the forest surface where stumpage value is
+greater then 0: annual availability of assortments (m<sup>3</sup>/y)
+recalibrated in category of harvested material (i.e., roundwood, timber
+pole, firewood, woodchips converted in bioenergy and expressed in MWh/y),
+annual stumpage value (&euro;/y), average annual stumpage value
 (&euro;/ha·y-1), average stumpage value at harvesting
 (&euro;/ha) and avoided CO<sub>2</sub> emissions (tCO<sub>2</sub>/y). <br>
 <br>
 Quantification of circular bioeconomy is expressed by a SMCA procedure based
 on compromise programming (CP) technique. CP depicts the distance from the
 so-called “ideal” point, a hypothetical alternative defined as the most
-suitable level for each indicator (i) in the considered scenario. 
+suitable level for each indicator (i) in the considered scenario.
 The distance from ideal point (DIP) is measured with the decision rule: <br>
 <a href="dip.png"><img src="dip.png" width="300"></a><br>
 
@@ -197,7 +197,7 @@ Arno valleys (province of Florence, Tuscany, Italy). The territory is
 mountainous and is located in the central Apennine. The surface of Municipality
 Union is 49,500 hectares with a forest index of 62%. Woodlands are
 mainly composed by broadleaved forests (84%), followed by conifers (10%) and
-mixed forests of broadleaved and conifers (6%). 
+mixed forests of broadleaved and conifers (6%).
 Below you can see the vector parcel file, with a field structure like the
 manatory field scheme described above.
 <div align="center" style="margin: 10px">
@@ -236,8 +236,8 @@ stumpage value and the annual avoided emission: <br><br>
 The output text results are the follow:
 <div class="code"><pre>
 #############################
-End of process 
-Name of output maps: 
+End of process
+Name of output maps:
 rep_roundwood -> roundwood (m3/y): 8507.3917
 rep_timber -> timber pole (m3/y): 195.4894
 rep_firewood -> firewood (m3/y): 7239.1150

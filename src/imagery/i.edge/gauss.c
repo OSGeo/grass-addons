@@ -14,8 +14,8 @@ static double gaussian(double x, double sigma)
     return exp(-(x * x) / (2.0 * sigma * sigma));
 }
 
-void gaussKernel(DCELL * gaussKernel, DCELL * diffKernel,
-                 int kernelWidth, double kernelRadius)
+void gaussKernel(DCELL *gaussKernel, DCELL *diffKernel, int kernelWidth,
+                 double kernelRadius)
 {
     int kwidth;
 
@@ -27,14 +27,14 @@ void gaussKernel(DCELL * gaussKernel, DCELL * diffKernel,
         double g3 = gaussian(kwidth + 0.5, kernelRadius);
 
         gaussKernel[kwidth] =
-            (g1 + g2 +
-             g3) / 3. / (2.0 * (double)M_PI * kernelRadius * kernelRadius);
+            (g1 + g2 + g3) / 3. /
+            (2.0 * (double)M_PI * kernelRadius * kernelRadius);
         diffKernel[kwidth] = g3 - g2;
     }
 }
 
-void gaussConvolution(DCELL * image, DCELL * kernel, DCELL * xConv,
-                      DCELL * yConv, int rows, int cols, int kernelWidth)
+void gaussConvolution(DCELL *image, DCELL *kernel, DCELL *xConv, DCELL *yConv,
+                      int rows, int cols, int kernelWidth)
 {
     int x;
     size_t y;
@@ -61,12 +61,10 @@ void gaussConvolution(DCELL * image, DCELL * kernel, DCELL * xConv,
             int yOffset = cols;
 
             for (; xOffset < kernelWidth;) {
-                sumY +=
-                    kernel[xOffset] * (image[index - yOffset] +
-                                       image[index + yOffset]);
-                sumX +=
-                    kernel[xOffset] * (image[index - xOffset] +
-                                       image[index + xOffset]);
+                sumY += kernel[xOffset] *
+                        (image[index - yOffset] + image[index + yOffset]);
+                sumX += kernel[xOffset] *
+                        (image[index - xOffset] + image[index + xOffset]);
                 yOffset += cols;
                 xOffset++;
             }

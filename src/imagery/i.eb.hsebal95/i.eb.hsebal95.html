@@ -1,22 +1,22 @@
 <h2>DESCRIPTION</h2>
 
-<i>i.eb.h_sebal95 </i> computes the <i>sensible heat flux</i> [W/m2] 
+<i>i.eb.h_sebal95 </i> computes the <i>sensible heat flux</i> [W/m2]
 after Bastiaanssen, 1995 in [1].
 
-<p><em>i.eb.h_sebal95</em> given the vegetation height (hc), humidity (RU), 
-wind speed at two meters height (WS), temperature (T), digital terrain model (DEM), 
-and net radiation (NSR) raster input maps, 
+<p><em>i.eb.h_sebal95</em> given the vegetation height (hc), humidity (RU),
+wind speed at two meters height (WS), temperature (T), digital terrain model (DEM),
+and net radiation (NSR) raster input maps,
 calculates the sensible heat flux map (h0).
 
-<p>Optionally the user can activate a flag (-z) 
-that allows him setting to zero all of the negative evapotranspiration cells; 
-in fact these negative values motivated by the condensation of the air water 
-vapour content, are sometime undesired because they can produce  computational 
-problems. The usage of the flag -n detect that the module is run in night hours 
+<p>Optionally the user can activate a flag (-z)
+that allows him setting to zero all of the negative evapotranspiration cells;
+in fact these negative values motivated by the condensation of the air water
+vapour content, are sometime undesired because they can produce  computational
+problems. The usage of the flag -n detect that the module is run in night hours
 and the appropriate soil heat flux is calculated.
 
-<p>The algorithm implements well known approaches: the hourly 
-Penman-Monteith method as presented in Allen et al. (1998) for land 
+<p>The algorithm implements well known approaches: the hourly
+Penman-Monteith method as presented in Allen et al. (1998) for land
 surfaces and the Penman method (Penman, 1948) for water surfaces.<br>
 
 <p>Land and water surfaces are idenfyied by Vh:<br>
@@ -51,17 +51,17 @@ surfaces and the Penman method (Penman, 1948) for water surfaces.<br>
  <dd>Output evapotranspiration raster [mm/h]. Required.</dd>
 
 </dl>
-      
+
 
 <h2>NOTES</h2>
 
-<p>Net solar radiation map in MJ/(m2*h) can be computed from the 
-combination of the <em>r.sun<em>, run in mode 1, and the r.mapcalc 
+<p>Net solar radiation map in MJ/(m2*h) can be computed from the
+combination of the <em>r.sun<em>, run in mode 1, and the r.mapcalc
 commands.
 
-<p>The sum of the three radiation components outputted by r.sun (beam, diffuse, and reflected) 
-multiplied by the Wh to Mj conversion factor (0.0036) and optionally by a 
-clear sky factor [0-1] allows the generation of a map to be used as 
+<p>The sum of the three radiation components outputted by r.sun (beam, diffuse, and reflected)
+multiplied by the Wh to Mj conversion factor (0.0036) and optionally by a
+clear sky factor [0-1] allows the generation of a map to be used as
 an NSR input for the <em>i.evapo.pm</em> command.
 <br>
 example:
@@ -83,12 +83,12 @@ example:
   <p>[1] Bastiaanssen, W.G.M., 1995.
   Estimation of Land surface paramters by remote sensing under clear-sky conditions. PhD thesis, Wageningen University, Wageningen, The Netherlands.
 
-  <p>[2] Allen, R.G., L.S. Pereira, D. Raes, and M. Smith. 1998. 
-  Crop Evapotranspiration: Guidelines for computing crop water requirements. 
-  Irrigation and Drainage Paper 56, Food and Agriculture Organization of the 
+  <p>[2] Allen, R.G., L.S. Pereira, D. Raes, and M. Smith. 1998.
+  Crop Evapotranspiration: Guidelines for computing crop water requirements.
+  Irrigation and Drainage Paper 56, Food and Agriculture Organization of the
   United Nations, Rome, pp. 300
-       
-  <p>[3] Penman, H. L. 1948. Natural evaporation from open water, 
+
+  <p>[3] Penman, H. L. 1948. Natural evaporation from open water,
   bare soil and grass. Proc. Roy. Soc. London, A193, pp. 120-146.
 
 

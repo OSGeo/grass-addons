@@ -1,26 +1,26 @@
 <h2>DESCRIPTION</h2>
 
-Removing unreliable pixels is a fundamental and one of the first steps in 
-remote sensing. Landsat imagery provides a Quality Assessment (QA) band which 
+Removing unreliable pixels is a fundamental and one of the first steps in
+remote sensing. Landsat imagery provides a Quality Assessment (QA) band which
 can be used for this purpose.
 
 <p>The <em>i.landsat.qa</em> module generates reclassification rule files which
-can be used in <a href="https://grass.osgeo.org/grass-stable/manuals/r.reclass.html">r.reclass</a> for filtering the 
-QA band according to pixel quality characteristics the user defines as 
-unacceptable. It works with both Collection 1 and Collection 2 data from 
-Landsat 8 OLI/TIRS, 4-7 TM/ETM+. The <b>dataset</b> the QA band belongs to 
-is specified like in <a href="i.landsat.download.html">i.landsat.download</a>. 
+can be used in <a href="https://grass.osgeo.org/grass-stable/manuals/r.reclass.html">r.reclass</a> for filtering the
+QA band according to pixel quality characteristics the user defines as
+unacceptable. It works with both Collection 1 and Collection 2 data from
+Landsat 8 OLI/TIRS, 4-7 TM/ETM+. The <b>dataset</b> the QA band belongs to
+is specified like in <a href="i.landsat.download.html">i.landsat.download</a>.
 </p>
 
 <p>Values defined as unacceptable for a given condition will be set to NULL
 in the output raster map. All other values will be set to 1.</p>
 
-<p>The Quality Assessment (QA) band from Landsat contains 16bit integer 
-values that represent "bit-packed combinations of surface, atmosphere, and 
-sensor conditions that can affect the overall usefulness of a given pixel". 
+<p>The Quality Assessment (QA) band from Landsat contains 16bit integer
+values that represent "bit-packed combinations of surface, atmosphere, and
+sensor conditions that can affect the overall usefulness of a given pixel".
 <br>
 
-<p>The following quality relevant conditions are represented as "single bits" 
+<p>The following quality relevant conditions are represented as "single bits"
 in the Landsat QA band:</p>
 
 <table border="1" padding="0" spacing="1">
@@ -86,7 +86,7 @@ in the Landsat QA band:</p>
   </tr>
 </table>
 
-<p>The following quality relevant conditions are represented as "double bits" 
+<p>The following quality relevant conditions are represented as "double bits"
 in the Landsat QA band:</p>
 
 <table border="1" padding="0" spacing="1">
@@ -131,19 +131,19 @@ in the Landsat QA band:</p>
   </tr>
   <tr>
     <td>Low</td>
-	<td>Algorithm has low to no confidence that this condition exists 
+	<td>Algorithm has low to no confidence that this condition exists
 	(0-33 percent confidence)</td>
 	<td>01</td>
   </tr>
   <tr>
     <td>Medium</td>
-	<td>Algorithm has medium confidence that this condition exists 
+	<td>Algorithm has medium confidence that this condition exists
 	(34-66 percent confidence)</td>
 	<td>10</td>
   </tr>
   <tr>
     <td>High</td>
-	<td>Algorithm has high confidence that this condition exists 
+	<td>Algorithm has high confidence that this condition exists
 	(67-100 percent confidence)</td>
 	<td>11</td>
   </tr>
@@ -151,14 +151,14 @@ in the Landsat QA band:</p>
 
 <h2>NOTES</h2>
 
-The Landsat Quality Assessment band is an artificial band which represents 
+The Landsat Quality Assessment band is an artificial band which represents
 an analysis based on <a href=https://landsat.usgs.gov/documents/LDCM_CVT_ADD.pdf>
-defined algorithms</a>. The USGS provides the users with the following note on 
+defined algorithms</a>. The USGS provides the users with the following note on
 how the QA band should be used:
 
-<p>"Rigorous science applications seeking to optimize the value of pixels used 
-in a study will find QA bits useful as a first level indicator of certain 
-conditions. Otherwise, users are advised that this file contains information 
+<p>"Rigorous science applications seeking to optimize the value of pixels used
+in a study will find QA bits useful as a first level indicator of certain
+conditions. Otherwise, users are advised that this file contains information
 that can be easily misinterpreted and it is not recommended for general use."</p>
 
 <h2>EXAMPLE</h2>

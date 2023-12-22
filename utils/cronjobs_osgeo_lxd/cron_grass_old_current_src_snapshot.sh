@@ -1,25 +1,25 @@
 #!/bin/sh
 
-# script to build GRASS sources package from git relbranch of 7.8
+# script to build GRASS GIS old current source package from the release branch
 # (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
-# Markus Neteler 2002, 2003, 2005, 2006, 2007, 2008, 2012, 2014, 2015, 2016, 2017, 2018, 2019, 2020
+# Markus Neteler 2002-2023
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
-## prep, neteler@osgeo6:$
-# mkdir -p ~/src
-# cd ~/src
-# for i in 2 4 6 ; do git clone ​https://github.com/OSGeo/grass.git releasebranch_7_$i ; done
-# for i in 2 4 6 ; do (cd releasebranch_7_$i ;  git checkout releasebranch_7_$i ) ; done
+## prep
+# git clone https://github.com/OSGeo/grass.git release_branch_8_2
 #
 ###################################################################
 
 MAINDIR=/home/neteler
-GMAJOR=7
-GMINOR=8
+GMAJOR=8
+GMINOR=2
 GVERSION=$GMAJOR.$GMINOR.git
 DOTVERSION=$GMAJOR.$GMINOR
 GSHORTGVERSION=$GMAJOR$GMINOR
+
+# fail early
+set -e
 
 ###################
 # where to find the GRASS sources (git clone):
@@ -32,7 +32,7 @@ PACKAGENAME=grass-${GVERSION}_
 
 ############################## nothing to change below:
 
-MYMAKE="nice make"
+MYMAKE="nice make -j2"
 TAR=tar
 
 # catch CTRL-C and other breaks:
@@ -51,7 +51,8 @@ mkdir -p $TARGETDIR
 cd $SOURCE/$BRANCH/
 date
 
-#clean up
+# clean up
+touch include/Make/Platform.make
 $MYMAKE distclean > /dev/null 2>&1
 
 # cleanup leftover garbage
@@ -59,8 +60,11 @@ git status | grep '.rst' | xargs rm -f
 rm -rf lib/python/docs/_build/ lib/python/docs/_templates/layout.html
 rm -f config_${DOTVERSION}.git_log.txt ChangeLog
 
-# be sure to be on branch
-git checkout $BRANCH
+# reset i18N POT files to git, just to be sure
+git checkout locale/templates/*.pot
+
+## hard reset local git repo (just in case)
+#git checkout main && git reset --hard HEAD~1 && git reset --hard origin
 
 echo "git update..."
 git fetch --all --prune       || halt_on_error "git fetch error!"
@@ -91,7 +95,7 @@ rm -f $TARGETDIR/ChangeLog.gz
 
 #publish the new one:
 cd $BRANCH/
-cp -p ChangeLog AUTHORS CHANGES CITING COPYING GPL.TXT INSTALL REQUIREMENTS.html $TARGETDIR
+cp -p ChangeLog AUTHORS CHANGES CITING CITATION.cff COPYING GPL.TXT INSTALL.md REQUIREMENTS.html $TARGETDIR
 
 cd ..
 gzip $TARGETDIR/ChangeLog

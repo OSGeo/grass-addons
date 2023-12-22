@@ -29,7 +29,7 @@ Carolina sample dataset and included also visualization examples.
 # set computational region
 g.region raster=elev_lid792_1m
 # prepare input data
-v.to.rast -d input=streams output=rural_streams use=val val=1 
+v.to.rast -d input=streams output=rural_streams use=val val=1
 
 # compute a flooding scenario
 r.lake.series elevation=elev_lid792_1m seed=rural_streams \

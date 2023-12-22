@@ -4,45 +4,45 @@
 interpolation with regularization. The <b>input</b> is a 2D
 or 3D vector <em>points</em> map. Values to interpolate can be the z
 values of 3D points or the values in a user-specified attribute column
-in a 2D or 3D vector map. Output is a raster map. Optionally, several 
-raster maps can be specified to be used as covariables which will 
-improve results in areas with few points. The module can be regarded 
+in a 2D or 3D vector map. Output is a raster map. Optionally, several
+raster maps can be specified to be used as covariables which will
+improve results in areas with few points. The module can be regarded
 as a combination of a multiple regression and spline interpolation.
 
 <p>
-The <b>min</b> options specifies the minimum number of points to be 
-used for interpolation. If the number of input points is smaller than 
-or equal to the minimum number of points, global TPS interpolation is 
-used. If the number of input points is larger than the minimum number 
-of points, tiled local TPS interpolation is used. Tile sizes are 
-variable and dependent on the extents of the <b>min</b> nearest 
+The <b>min</b> options specifies the minimum number of points to be
+used for interpolation. If the number of input points is smaller than
+or equal to the minimum number of points, global TPS interpolation is
+used. If the number of input points is larger than the minimum number
+of points, tiled local TPS interpolation is used. Tile sizes are
+variable and dependent on the extents of the <b>min</b> nearest
 neighbors when a new tile is generated.
 
 <p>
-The <b>smooth</b> option can be used to reduce the influence of the 
-splines and increase the influence of the covariables. Without 
-covariables, the resulting surface will be smoother. With covariables 
-and a large smooting value, the resulting surface will be mainly 
+The <b>smooth</b> option can be used to reduce the influence of the
+splines and increase the influence of the covariables. Without
+covariables, the resulting surface will be smoother. With covariables
+and a large smooting value, the resulting surface will be mainly
 determined by the multiple regression component.
 
 <p>
-The <b>overlap</b> option controls how much tiles are overlapping when 
-the <b>min</b> option is smaller than the numer of input points. 
-Tiling artefacts occur with low values for the <b>min</b> option and the 
-<b>overlap</b> option. Increasing both options will reduce tiling 
-artefacts but processing will take more time. Values for the 
+The <b>overlap</b> option controls how much tiles are overlapping when
+the <b>min</b> option is smaller than the numer of input points.
+Tiling artefacts occur with low values for the <b>min</b> option and the
+<b>overlap</b> option. Increasing both options will reduce tiling
+artefacts but processing will take more time. Values for the
 <b>overlap</b> option must be between 0 and 1.
 
 <p>
-The module works best with evenly spaced sparse points. In case of 
-highly unevenly spaced points, e.g. remote sensing data with gaps due 
-to cloud cover, the <b>thin</b> option should be used in order to avoid 
-tiling artefacts, otherwise a high number of minimum points and a large 
+The module works best with evenly spaced sparse points. In case of
+highly unevenly spaced points, e.g. remote sensing data with gaps due
+to cloud cover, the <b>thin</b> option should be used in order to avoid
+tiling artefacts, otherwise a high number of minimum points and a large
 <b>overlap</b> value are required, slowing down the module.
 
 <p>
-The <b>memory</b> option controls only how much memory should be used 
-for the covariables and the intermediate output. The input points are 
+The <b>memory</b> option controls only how much memory should be used
+for the covariables and the intermediate output. The input points are
 always completely loaded to memory.
 
 <h2>EXAMPLES</h2>
@@ -54,7 +54,7 @@ g.region -p rast=elev_state_500m
 </pre></div>
 
 <h3>Basic interpolation</h3>
-Interpolation of 30 year precipitation normals in the North Carlolina 
+Interpolation of 30 year precipitation normals in the North Carlolina
 sample dataset:
 
 <div class="code"><pre>
@@ -117,19 +117,19 @@ optipng -o5 v_surf_tps.png
 <h2>REFERENCES</h2>
 
 <ul>
-  <li>Hutchinson MF, 1995, Interpolating mean rainfall using thin plate 
-    smoothing splines. International Journal of Geographical Information 
+  <li>Hutchinson MF, 1995, Interpolating mean rainfall using thin plate
+    smoothing splines. International Journal of Geographical Information
     Systems, 9(4), pp. 385-403</li>
-  <li>Wahba G, 1990, Spline models for observational data. In CBMS-NSF 
-    Regional Conference Series in Applied Mathematics. Philadelpia: 
+  <li>Wahba G, 1990, Spline models for observational data. In CBMS-NSF
+    Regional Conference Series in Applied Mathematics. Philadelpia:
     Society for Industrial and Applied Mathematics</li>
 </ul>
 
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.surf.rst.html">v.surf.rst</a>, 
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.surf.bspline.html">v.surf.rst</a>, 
+<a href="https://grass.osgeo.org/grass-stable/manuals/v.surf.rst.html">v.surf.rst</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/v.surf.bspline.html">v.surf.rst</a>,
 <a href="https://grass.osgeo.org/grass-stable/manuals/v.surf.idw.html">v.surf.idw</a>
 </em>
 

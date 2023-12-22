@@ -6,7 +6,7 @@ LIB_NAME = grass_rpi.$(GRASS_LIB_VERSION_NUMBER)
 
 LIB_OBJS := $(subst .c,.o,$(wildcard *.c))
 
-DEPENDENCIES = $(GISDEP) 
+DEPENDENCIES = $(GISDEP)
 
 include $(MODULE_TOPDIR)/include/Make/Lib.make
 

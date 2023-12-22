@@ -401,7 +401,7 @@ def plot_extra(cls, labels, fmt="png", **kwargs):
             name=name,
             label=labels[cl],
         )
-    cnf = np.array(cls["confusion matrix"], dtype=np.float)
+    cnf = np.array(cls["confusion matrix"], dtype=float)
     sc = cnf.sum(axis=0)
     norm = sc / sc.sum(axis=1)[:, None]
     plot_confusion_matrix(

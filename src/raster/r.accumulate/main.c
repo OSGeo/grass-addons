@@ -1,4 +1,3 @@
-
 /****************************************************************************
  *
  * MODULE:       r.accumulate
@@ -6,7 +5,7 @@
  * AUTHOR(S):    Huidae Cho <grass4u gmail.com>
  *
  * PURPOSE:      Calculates weighted flow accumulation, subwatersheds, stream
- *		 networks, and longest flow paths using a flow direction map.
+ *               networks, and longest flow paths using a flow direction map.
  *
  * COPYRIGHT:    (C) 2018, 2020 by Huidae Cho and the GRASS Development Team
  *
@@ -28,14 +27,13 @@
 #include "global.h"
 
 #define DIR_UNKNOWN 0
-#define DIR_DEG 1
-#define DIR_DEG45 2
+#define DIR_DEG     1
+#define DIR_DEG45   2
 
 int main(int argc, char *argv[])
 {
     struct GModule *module;
-    struct
-    {
+    struct {
         struct Option *dir;
         struct Option *format;
         struct Option *weight;
@@ -54,8 +52,7 @@ int main(int argc, char *argv[])
         struct Option *idcol;
         struct Option *lfp;
     } opt;
-    struct
-    {
+    struct {
         struct Flag *neg_accum;
         struct Flag *zero_accum;
         struct Flag *accum_lfp;
@@ -64,10 +61,11 @@ int main(int argc, char *argv[])
     } flag;
     char *desc;
     char *dir_name, *weight_name, *input_accum_name, *input_subaccum_name,
-        *accum_name, *subaccum_name, *subwshed_name, *stream_name,
-        *outlet_name, *lfp_name;
+        *accum_name, *subaccum_name, *subwshed_name, *stream_name, *outlet_name,
+        *lfp_name;
     int dir_fd;
-    double dir_format, thresh;
+    unsigned char dir_format;
+    double thresh;
     struct Range dir_range;
     CELL dir_min, dir_max;
     char neg_accum, zero_accum, accum_lfp, conf_stream, recur;
@@ -90,7 +88,8 @@ int main(int argc, char *argv[])
     G_add_keyword(_("stream network"));
     G_add_keyword(_("longest flow path"));
     module->description =
-        _("Calculates weighted flow accumulation, subwatersheds, stream networks, and longest flow paths using a flow direction map.");
+        _("Calculates weighted flow accumulation, subwatersheds, stream "
+          "networks, and longest flow paths using a flow direction map.");
 
     opt.dir = G_define_standard_option(G_OPT_R_INPUT);
     opt.dir->key = "direction";
@@ -103,10 +102,10 @@ int main(int argc, char *argv[])
     opt.format->required = YES;
     opt.format->options = "auto,degree,45degree";
     opt.format->answer = "auto";
-    G_asprintf(&desc, "auto;%s;degree;%s;45degree;%s",
-               _("auto-detect direction format"),
-               _("degrees CCW from East"),
-               _("degrees CCW from East divided by 45 (e.g. r.watershed directions)"));
+    G_asprintf(
+        &desc, "auto;%s;degree;%s;45degree;%s",
+        _("auto-detect direction format"), _("degrees CCW from East"),
+        _("degrees CCW from East divided by 45 (e.g. r.watershed directions)"));
     opt.format->descriptions = desc;
 
     opt.weight = G_define_standard_option(G_OPT_R_INPUT);
@@ -226,8 +225,6 @@ int main(int argc, char *argv[])
      * supported; also, accumulated longest flow paths cannot be calculated
      * from subaccumulation */
     G_option_excludes(opt.input_subaccum, opt.accum, flag.accum_lfp, NULL);
-    /* subwatersheds cannot be accumulated */
-    G_option_exclusive(opt.subwshed, flag.accum_lfp, NULL);
     /* these three inputs are mutually exclusive because one is an output of
      * another */
     G_option_exclusive(opt.weight, opt.input_accum, opt.input_subaccum, NULL);
@@ -273,7 +270,8 @@ int main(int argc, char *argv[])
                       NULL);
     /* accumulated lfp requires longest flow paths */
     G_option_requires(flag.accum_lfp, opt.lfp, NULL);
-    /* recursive algorithm requires accumulation, subwatersheds, or longest flow paths */
+    /* recursive algorithm requires accumulation, subwatersheds, or longest flow
+     * paths */
     G_option_requires(flag.recur, opt.accum, opt.subwshed, opt.lfp, NULL);
     /* confluence delineation requires output streams */
     G_option_requires(flag.conf_stream, opt.stream, NULL);
@@ -297,12 +295,14 @@ int main(int argc, char *argv[])
     idcol = opt.idcol->answer;
 
     if (opt.id->answers && outlet_name && !outlet_idcol)
-        G_fatal_error(_("Option <%s> must be specified when <%s> and <%s> are present"),
-                      opt.outlet_idcol->key, opt.id->key, opt.outlet->key);
+        G_fatal_error(
+            _("Option <%s> must be specified when <%s> and <%s> are present"),
+            opt.outlet_idcol->key, opt.id->key, opt.outlet->key);
 
     if (outlet_idcol && opt.coords->answers && !opt.id->answers)
-        G_fatal_error(_("Option <%s> must be specified when <%s> and <%s> are present"),
-                      opt.id->key, opt.outlet_idcol->key, opt.coords->key);
+        G_fatal_error(
+            _("Option <%s> must be specified when <%s> and <%s> are present"),
+            opt.id->key, opt.outlet_idcol->key, opt.coords->key);
 
     dir_fd = Rast_open_old(dir_name, "");
     if (Rast_get_map_type(dir_fd) != CELL_TYPE)
@@ -323,25 +323,28 @@ int main(int argc, char *argv[])
     }
     else if (strcmp(opt.format->answer, "45degree") == 0) {
         if (dir_max > 8)
-            G_fatal_error(_("Directional degrees divided by 45 can not be > 8"));
+            G_fatal_error(
+                _("Directional degrees divided by 45 can not be > 8"));
         dir_format = DIR_DEG45;
     }
     else if (strcmp(opt.format->answer, "auto") == 0) {
         if (dir_max <= 8) {
             dir_format = DIR_DEG45;
-            G_important_message(_("Input direction format assumed to be degrees CCW from East divided by 45"));
+            G_important_message(_("Input direction format assumed to be "
+                                  "degrees CCW from East divided by 45"));
         }
         else if (dir_max <= 360) {
             dir_format = DIR_DEG;
-            G_important_message(_("Input direction format assumed to be degrees CCW from East"));
+            G_important_message(_(
+                "Input direction format assumed to be degrees CCW from East"));
         }
         else
-            G_fatal_error(_("Unable to detect format of input direction map <%s>"),
-                          dir_name);
+            G_fatal_error(
+                _("Unable to detect format of input direction map <%s>"),
+                dir_name);
     }
     if (dir_format == DIR_UNKNOWN)
-        G_fatal_error(_("Invalid directions format '%s'"),
-                      opt.format->answer);
+        G_fatal_error(_("Invalid directions format '%s'"), opt.format->answer);
     /* end of r.path */
 
     /* read outlet coordinates and IDs */
@@ -388,14 +391,13 @@ int main(int argc, char *argv[])
 
         if (outlet_idcol) {
             Fi = Vect_get_field(&Map, field);
-            driver =
-                db_start_driver_open_database(Fi->driver,
-                                              Vect_subst_var(Fi->database,
-                                                             &Map));
+            driver = db_start_driver_open_database(
+                Fi->driver, Vect_subst_var(Fi->database, &Map));
             if (db_column_Ctype(driver, Fi->table, outlet_idcol) !=
                 DB_C_TYPE_INT)
-                G_fatal_error(_("Column <%s> in vector map <%s> must be of integer type"),
-                              outlet_idcol, outlet_name);
+                G_fatal_error(
+                    _("Column <%s> in vector map <%s> must be of integer type"),
+                    outlet_idcol, outlet_name);
         }
 
         Points = Vect_new_line_struct();
@@ -419,10 +421,11 @@ int main(int argc, char *argv[])
             if (driver) {
                 dbValue val;
 
-                if (db_select_value
-                    (driver, Fi->table, Fi->key, cat, outlet_idcol, &val) < 0)
-                    G_fatal_error(_("Unable to read column <%s> in vector map <%s>"),
-                                  outlet_idcol, outlet_name);
+                if (db_select_value(driver, Fi->table, Fi->key, cat,
+                                    outlet_idcol, &val) < 0)
+                    G_fatal_error(
+                        _("Unable to read column <%s> in vector map <%s>"),
+                        outlet_idcol, outlet_name);
 
                 id[n++] = db_get_value_int(&val);
             }
@@ -442,9 +445,9 @@ int main(int argc, char *argv[])
     }
 
     if (outlet_pl.n)
-        G_message(n_
-                  ("%d outlet specified", "%d outlets specified",
-                   outlet_pl.n), outlet_pl.n);
+        G_message(
+            n_("%d outlet specified", "%d outlets specified", outlet_pl.n),
+            outlet_pl.n);
 
     thresh = opt.thresh->answer ? atof(opt.thresh->answer) : 0.0;
     neg_accum = flag.neg_accum->answer;
@@ -459,7 +462,7 @@ int main(int argc, char *argv[])
     /* read the direction map */
     dir_buf.nrows = nrows;
     dir_buf.ncols = ncols;
-    dir_buf.c = (CELL **) G_malloc(nrows * sizeof(CELL *));
+    dir_buf.c = (CELL **)G_malloc(nrows * sizeof(CELL *));
     G_message(_("Reading direction map..."));
     for (row = 0; row < nrows; row++) {
         G_percent(row, nrows, 1);
@@ -489,23 +492,23 @@ int main(int argc, char *argv[])
 
         accum_buf.nrows = nrows;
         accum_buf.ncols = ncols;
-        accum_buf.map.v = (void **)G_malloc(nrows * sizeof(void *));
+        accum_buf.cells.v = (void **)G_malloc(nrows * sizeof(void *));
 
         /* optionally, read a weight map */
-        weight_buf.map.v = NULL;
+        weight_buf.cells.v = NULL;
         if (weight_name) {
             int weight_fd = Rast_open_old(weight_name, "");
 
             accum_buf.type = weight_buf.type = Rast_get_map_type(weight_fd);
             weight_buf.nrows = nrows;
             weight_buf.ncols = ncols;
-            weight_buf.map.v = (void **)G_malloc(nrows * sizeof(void *));
+            weight_buf.cells.v = (void **)G_malloc(nrows * sizeof(void *));
             G_message(_("Reading weight map..."));
             for (row = 0; row < nrows; row++) {
                 G_percent(row, nrows, 1);
-                weight_buf.map.v[row] =
+                weight_buf.cells.v[row] =
                     (void *)Rast_allocate_buf(weight_buf.type);
-                Rast_get_row(weight_fd, weight_buf.map.v[row], row,
+                Rast_get_row(weight_fd, weight_buf.cells.v[row], row,
                              weight_buf.type);
             }
             G_percent(1, 1, 1);
@@ -518,18 +521,17 @@ int main(int argc, char *argv[])
 
         /* optionally, read an accumulation or subaccumulation map */
         if (input_accum_name || input_subaccum_name) {
-            int accum_fd =
-                Rast_open_old(input_accum_name ? input_accum_name :
-                              input_subaccum_name, "");
+            int accum_fd = Rast_open_old(
+                input_accum_name ? input_accum_name : input_subaccum_name, "");
 
             accum_buf.type = Rast_get_map_type(accum_fd);
-            G_message(input_accum_name ? _("Reading accumulation map...") :
-                      _("Reading subaccumulation map..."));
+            G_message(input_accum_name ? _("Reading accumulation map...")
+                                       : _("Reading subaccumulation map..."));
             for (row = 0; row < nrows; row++) {
                 G_percent(row, nrows, 1);
-                accum_buf.map.v[row] =
+                accum_buf.cells.v[row] =
                     (void *)Rast_allocate_buf(accum_buf.type);
-                Rast_get_row(accum_fd, accum_buf.map.v[row], row,
+                Rast_get_row(accum_fd, accum_buf.cells.v[row], row,
                              accum_buf.type);
             }
             G_percent(1, 1, 1);
@@ -543,7 +545,7 @@ int main(int argc, char *argv[])
             for (row = 0; row < nrows; row++) {
                 G_percent(row, nrows, 1);
                 done[row] = (char *)G_calloc(ncols, 1);
-                accum_buf.map.v[row] =
+                accum_buf.cells.v[row] =
                     (void *)Rast_allocate_buf(accum_buf.type);
             }
             G_percent(1, 1, 1);
@@ -561,10 +563,10 @@ int main(int argc, char *argv[])
         }
 
         /* free buffer memory */
-        if (weight_buf.map.v) {
+        if (weight_buf.cells.v) {
             for (row = 0; row < nrows; row++)
-                G_free(weight_buf.map.v[row]);
-            G_free(weight_buf.map.v);
+                G_free(weight_buf.cells.v[row]);
+            G_free(weight_buf.cells.v);
         }
 
         /* write out buffer to the accumulation map if requested */
@@ -575,24 +577,26 @@ int main(int argc, char *argv[])
             G_message(_("Writing accumulation map..."));
             for (row = 0; row < nrows; row++) {
                 G_percent(row, nrows, 1);
-                Rast_put_row(accum_fd, accum_buf.map.v[row], accum_buf.type);
+                Rast_put_row(accum_fd, accum_buf.cells.v[row], accum_buf.type);
             }
             G_percent(1, 1, 1);
             Rast_close(accum_fd);
 
             /* write history */
-            Rast_put_cell_title(accum_name,
-                                weight_name ? _("Weighted flow accumulation")
-                                : (neg_accum ?
-                                   _("Flow accumulation with likely underestimates")
-                                   : _("Flow accumulation")));
+            Rast_put_cell_title(
+                accum_name,
+                weight_name
+                    ? _("Weighted flow accumulation")
+                    : (neg_accum
+                           ? _("Flow accumulation with likely underestimates")
+                           : _("Flow accumulation")));
             Rast_short_history(accum_name, "raster", &hist);
             Rast_command_history(&hist);
             Rast_write_history(accum_name, &hist);
         }
     }
     else
-        accum_buf.map.v = NULL;
+        accum_buf.cells.v = NULL;
 
     /* delineate stream networks */
     if (stream_name) {
@@ -622,19 +626,19 @@ int main(int argc, char *argv[])
             G_message(_("Writing subaccumulation map..."));
             for (row = 0; row < nrows; row++) {
                 G_percent(row, nrows, 1);
-                Rast_put_row(subaccum_fd, accum_buf.map.v[row],
+                Rast_put_row(subaccum_fd, accum_buf.cells.v[row],
                              accum_buf.type);
             }
             G_percent(1, 1, 1);
             Rast_close(subaccum_fd);
 
             /* write history */
-            Rast_put_cell_title(subaccum_name,
-                                weight_name ?
-                                _("Weighted flow subaccumulation")
-                                : (neg_accum ?
-                                   _("Flow subaccumulation with likely underestimates")
-                                   : _("Flow subaccumulation")));
+            Rast_put_cell_title(
+                subaccum_name, weight_name
+                                   ? _("Weighted flow subaccumulation")
+                                   : (neg_accum ? _("Flow subaccumulation with "
+                                                    "likely underestimates")
+                                                : _("Flow subaccumulation")));
             Rast_short_history(subaccum_name, "raster", &hist);
             Rast_command_history(&hist);
             Rast_write_history(subaccum_name, &hist);
@@ -662,10 +666,10 @@ int main(int argc, char *argv[])
     }
 
     /* free buffer memory */
-    if (accum_buf.map.v) {
+    if (accum_buf.cells.v) {
         for (row = 0; row < nrows; row++)
-            G_free(accum_buf.map.v[row]);
-        G_free(accum_buf.map.v);
+            G_free(accum_buf.cells.v[row]);
+        G_free(accum_buf.cells.v);
     }
 
     /* delineate subwatersheds; this process overwrites dir_buf to save memory

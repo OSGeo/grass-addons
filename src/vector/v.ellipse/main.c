@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
     G_add_keyword(_("geometry"));
     G_add_keyword(_("best-fitting ellipse"));
     module->description =
-	_("Computes the best-fitting ellipse for given vector data.");
+        _("Computes the best-fitting ellipse for given vector data.");
 
     /* define options */
     old = G_define_standard_option(G_OPT_V_INPUT);
@@ -59,10 +59,10 @@ int main(int argc, char *argv[])
 
     /* call parser */
     if (G_parser(argc, argv))
-	exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
 
     /* read step size */
-    stepsize = atof(stepopt->answer);	/* conversion to double stepopt->answer */
+    stepsize = atof(stepopt->answer); /* conversion to double stepopt->answer */
 
     G_debug(1, "step size: %f degrees", stepsize);
 
@@ -72,13 +72,13 @@ int main(int argc, char *argv[])
     /* open input vector map */
     Vect_set_open_level(2);
     if (1 > Vect_open_old(&In, old->answer, ""))
-	G_fatal_error(_("Unable to open vector map <%s> on topological level"),
-		      old->answer);
+        G_fatal_error(_("Unable to open vector map <%s> on topological level"),
+                      old->answer);
 
     /* open output vector map */
     if (0 > Vect_open_new(&Out, new->answer, WITHOUT_Z)) {
-	Vect_close(&In);
-	G_fatal_error(_("Unable to create vector map <%s>"), new->answer);
+        Vect_close(&In);
+        G_fatal_error(_("Unable to create vector map <%s>"), new->answer);
     }
     Vect_set_error_handler_io(&In, &Out);
 
@@ -97,8 +97,8 @@ int main(int argc, char *argv[])
     ok = fitting_ellipse(Points, pars);
     G_debug(1, "exit %d", ok);
     if (ok) {
-	create_ellipse(pars, Ellipse, Cats2, stepsize);
-	write_ellipse(&Out, Ellipse, Cats2);
+        create_ellipse(pars, Ellipse, Cats2, stepsize);
+        write_ellipse(&Out, Ellipse, Cats2);
     }
 
     Vect_destroy_line_struct(Points);

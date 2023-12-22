@@ -94,8 +94,7 @@ void write2file_varSetsIntro(int code, struct write *report)
 
     variogram_type(code, type);
 
-    fprintf(report->fp,
-            "\n************************************************\n");
+    fprintf(report->fp, "\n************************************************\n");
     fprintf(report->fp, "*** Variogram settings - %s ***\n\n", type);
 }
 
@@ -132,7 +131,7 @@ void write2file_varSets(struct write *report, struct parameters *var_pars)
 }
 
 void write2file_variogram_E(struct int_par *xD, struct parameters *var_pars,
-                            mat_struct * c_M)
+                            mat_struct *c_M)
 {
     int i, j;
     int n_h;
@@ -148,39 +147,40 @@ void write2file_variogram_E(struct int_par *xD, struct parameters *var_pars,
     c = &c_M->vals[0];
     gamma = &var_pars->gamma->vals[0];
 
-    fprintf(report->fp,
-            "\n************************************************\n");
+    fprintf(report->fp, "\n************************************************\n");
     fprintf(report->fp, "*** Experimental variogram - %s ***\n\n", type);
 
-    if (var_pars->type == 2) {  // bivariate variogram:
+    if (var_pars->type == 2) { // bivariate variogram:
         vert = &var_pars->vertical.h[0];
 
         for (i = 0; i < var_pars->vertical.nLag; i++) { // write header - verts
             if (i == 0) {
-                fprintf(report->fp, "  lagV  ||");      // column for h
+                fprintf(report->fp, "  lagV  ||"); // column for h
             }
             fprintf(report->fp, " %f ||", *vert);
             vert++;
         }
         fprintf(report->fp, "\n");
 
-        for (i = 0; i < var_pars->vertical.nLag; i++) { // write header - h c gamma
+        for (i = 0; i < var_pars->vertical.nLag;
+             i++) { // write header - h c gamma
             if (i == 0) {
-                fprintf(report->fp, "  lagHZ ||");      // column for h
+                fprintf(report->fp, "  lagHZ ||"); // column for h
             }
             fprintf(report->fp, " c | ave ||");
         }
         fprintf(report->fp, "\n");
 
-        for (i = 0; i < var_pars->vertical.nLag; i++) { // write header - h c gamma
+        for (i = 0; i < var_pars->vertical.nLag;
+             i++) { // write header - h c gamma
             if (i == 0) {
-                fprintf(report->fp, "--------||");      // column for h
+                fprintf(report->fp, "--------||"); // column for h
             }
             fprintf(report->fp, "-----------");
         }
         fprintf(report->fp, "\n");
     }
-    else {                      // univariate variogram
+    else { // univariate variogram
         fprintf(report->fp, " lag ||  # of pairs | average\n");
         fprintf(report->fp, "------------------------------------\n");
     }
@@ -190,19 +190,19 @@ void write2file_variogram_E(struct int_par *xD, struct parameters *var_pars,
     n_h = var_pars->type == 2 ? var_pars->horizontal.nLag : var_pars->nLag;
     for (i = 0; i < n_h; i++) {
         fprintf(report->fp, "%f ||", *h);
-        if (var_pars->type == 2) {      // bivariate variogram
+        if (var_pars->type == 2) { // bivariate variogram
             for (j = 0; j < var_pars->vertical.nLag; j++) {
                 fprintf(report->fp, " %d | %f ||", (int)*c, *gamma);
                 c++;
                 gamma++;
-            }                   // end for j
+            } // end for j
             fprintf(report->fp, "\n");
             for (j = 0; j < var_pars->vertical.nLag; j++) {
                 fprintf(report->fp, "-----------");
             }
             fprintf(report->fp, "\n");
         }
-        else {                  // univariate variogram
+        else { // univariate variogram
             fprintf(report->fp, " %d | %f\n", (int)*c, *gamma);
             c++;
             gamma++;
@@ -226,100 +226,107 @@ void write_temporary2file(struct int_par *xD, struct parameters *var_pars)
     int nLag = type == 2 ? var_pars->horizontal.nLag : var_pars->nLag;
     int nLag_vert = type == 2 ? var_pars->vertical.nLag : var_pars->nLag;
     double *h = type == 2 ? var_pars->horizontal.h : var_pars->h;
-    double *vert = type == 2 ? var_pars->vertical.h : var_pars->h;;
+    double *vert = type == 2 ? var_pars->vertical.h : var_pars->h;
+    ;
     double *gamma = var_pars->gamma->vals;
     double sill = var_pars->sill;
 
-    int i;                      // index
+    int i; // index
     FILE *fp;
     int file_length;
 
     /* Introduction */
     switch (type) {
-    case 0:                    // horizontal variogram
+    case 0: // horizontal variogram
         fp = fopen("variogram_hz_tmp.txt", "w");
         if (xD->report->name) { // write name of report file
             file_length = strlen(xD->report->name);
-            if (file_length < 4) {      // 4 types of variogram
-                G_fatal_error(_("File name must contain more than 2 characters..."));   // todo: error
+            if (file_length < 4) { // 4 types of variogram
+                G_fatal_error(_("File name must contain more than 2 "
+                                "characters...")); // todo: error
             }
             fprintf(fp, "%d 9 %s\n", file_length, xD->report->name);
         }
-        fprintf(fp, "%d\n", var_pars->type);    // write # of lags
+        fprintf(fp, "%d\n", var_pars->type); // write # of lags
         break;
 
-    case 1:                    // vertical variogram
+    case 1: // vertical variogram
         fp = fopen("variogram_vert_tmp.txt", "w");
         if (xD->report->name) { // write name of report file
             file_length = strlen(xD->report->name);
             if (file_length < 3) {
-                G_fatal_error(_("File name must contain more than 2 characters..."));   // todo: error
+                G_fatal_error(_("File name must contain more than 2 "
+                                "characters...")); // todo: error
             }
             fprintf(fp, "%d 9 %s\n", file_length, xD->report->name);
         }
-        fprintf(fp, "%d\n", var_pars->type);    // write type
+        fprintf(fp, "%d\n", var_pars->type); // write type
         break;
 
-    case 2:                    // bivariate variogram
+    case 2: // bivariate variogram
         fp = fopen("variogram_final_tmp.txt", "w");
 
         if (xD->report->name) { // write name of report file
             file_length = strlen(xD->report->name);
-            if (file_length < 4) {      // 4 types of variogram
-                G_fatal_error(_("File name must contain more than 2 characters..."));   // todo: error
+            if (file_length < 4) { // 4 types of variogram
+                G_fatal_error(_("File name must contain more than 2 "
+                                "characters...")); // todo: error
             }
             fprintf(fp, "%d 9 %s\n", file_length, xD->report->name);
         }
 
-        fprintf(fp, "%d\n", var_pars->type);    // write type
-        fprintf(fp, "%d\n", var_pars->vertical.nLag);   // write # of lags
-        fprintf(fp, "%f\n", var_pars->vertical.lag);    // write size of lag
-        fprintf(fp, "%f\n", var_pars->vertical.max_dist);       // write maximum distance
+        fprintf(fp, "%d\n", var_pars->type);          // write type
+        fprintf(fp, "%d\n", var_pars->vertical.nLag); // write # of lags
+        fprintf(fp, "%f\n", var_pars->vertical.lag);  // write size of lag
+        fprintf(fp, "%f\n",
+                var_pars->vertical.max_dist); // write maximum distance
 
         fprintf(fp, "%d\n", var_pars->horizontal.nLag); // write # of lags
         fprintf(fp, "%f\n", var_pars->horizontal.lag);  // write size of lag
-        fprintf(fp, "%f\n", var_pars->horizontal.max_dist);     // write maximum distance
+        fprintf(fp, "%f\n",
+                var_pars->horizontal.max_dist); // write maximum distance
         break;
 
-    case 3:                    // anisotropic variogram
+    case 3: // anisotropic variogram
         fp = fopen("variogram_final_tmp.txt", "w");
         if (xD->report->name) { // write name of report file
             file_length = strlen(xD->report->name);
-            if (file_length < 4) {      // 4 types of variogram
-                G_fatal_error(_("File name must contain more than 4 characters..."));   // todo: error
+            if (file_length < 4) { // 4 types of variogram
+                G_fatal_error(_("File name must contain more than 4 "
+                                "characters...")); // todo: error
             }
             fprintf(fp, "%d 9 %s\n", file_length, xD->report->name);
         }
-        fprintf(fp, "%d\n", var_pars->type);    // write type
-        fprintf(fp, "%f\n", xD->aniso_ratio);   // write ratio of anisotropy 
+        fprintf(fp, "%d\n", var_pars->type);  // write type
+        fprintf(fp, "%f\n", xD->aniso_ratio); // write ratio of anisotropy
         break;
     }
 
     if (type != 2) {
-        fprintf(fp, "%d\n", nLag);      // write # of lags
-        fprintf(fp, "%f\n", var_pars->lag);     // write size of lag
-        fprintf(fp, "%f\n", var_pars->max_dist);        // write maximum distance
+        fprintf(fp, "%d\n", nLag);               // write # of lags
+        fprintf(fp, "%f\n", var_pars->lag);      // write size of lag
+        fprintf(fp, "%f\n", var_pars->max_dist); // write maximum distance
     }
     if (type != 1) {
-        fprintf(fp, "%f\n", var_pars->td);      // write maximum distance
+        fprintf(fp, "%f\n", var_pars->td); // write maximum distance
     }
 
     switch (type) {
-    case 2:                    // bivariate variogram
+    case 2: // bivariate variogram
         nLag = var_pars->horizontal.nLag;
         nLag_vert = var_pars->vertical.nLag;
         // write h
-        for (i = 0; i < nLag; i++) {    // write experimental variogram
+        for (i = 0; i < nLag; i++) { // write experimental variogram
             fprintf(fp, "%f\n", *h);
             h++;
         }
         // write vert
-        for (i = 0; i < nLag_vert; i++) {       // write experimental variogram
+        for (i = 0; i < nLag_vert; i++) { // write experimental variogram
             fprintf(fp, "%f\n", *vert);
             vert++;
         }
         // write gamma
-        for (i = 0; i < nLag * nLag_vert; i++) {        // write experimental variogram
+        for (i = 0; i < nLag * nLag_vert; i++) { // write experimental variogram
             fprintf(fp, "%f\n", *gamma);
             gamma++;
         }
@@ -327,12 +334,12 @@ void write_temporary2file(struct int_par *xD, struct parameters *var_pars)
         fprintf(fp, "%f\n", var_pars->vertical.sill);   // write sill
         break;
     default:
-        for (i = 0; i < nLag; i++) {    // write experimental variogram
+        for (i = 0; i < nLag; i++) { // write experimental variogram
             fprintf(fp, "%f %f\n", *h, *gamma);
             h++;
             gamma++;
         }
-        fprintf(fp, "%f", sill);        // write sill
+        fprintf(fp, "%f", sill); // write sill
         break;
     }
 
@@ -341,7 +348,7 @@ void write_temporary2file(struct int_par *xD, struct parameters *var_pars)
 
 void report_error(struct write *report)
 {
-    if (report->name) {         // close report file
+    if (report->name) { // close report file
         fprintf(report->fp, "Error (see standard output). Process killed...");
         fclose(report->fp);
     }

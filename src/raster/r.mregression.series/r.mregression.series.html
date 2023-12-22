@@ -1,6 +1,6 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.mregression.series</em> is a module to calculate multiple 
+<em>r.mregression.series</em> is a module to calculate multiple
 linear regression parameters between several time series, e.g. NDVI and
 elevation, precipitation. It s a front-end for models from  <em>python-statmodels</em> package.
 <p>
@@ -11,25 +11,25 @@ assigned to the corresponding cells in the input raster map series.
 
 The module assumes a simple linear regression of the form
 <div class="code"><pre>
-    Y(t) = b1 * X1(t) + b2 * X2(t) + ... + bn * Xn(t) 
+    Y(t) = b1 * X1(t) + b2 * X2(t) + ... + bn * Xn(t)
 </pre></div>
 <p>
 
 The module uses two models: ordinary least squares and robust linear models.
 
 <h2>NOTES</h2>
-The module performs multiple linear regression, use 
+The module performs multiple linear regression, use
 <a href="r.regression.series.html">r.regression.series</a> for regression with one predictor.
 
 <p>
-The number of predictor variables (<em>X</em> maps) must be the same in 
-each (time) series (see examples below). If the different predictors have 
-different or irregular time intervals, NULL raster maps can be inserted 
-into time series to make time intervals equal. 
+The number of predictor variables (<em>X</em> maps) must be the same in
+each (time) series (see examples below). If the different predictors have
+different or irregular time intervals, NULL raster maps can be inserted
+into time series to make time intervals equal.
 <p>
-The list of raster inputs (including NULLs) is passed to the 
-regression function. The function computes the parameters over the 
-non-NULL values, producing a NULL result only if there aren't enough 
+The list of raster inputs (including NULLs) is passed to the
+regression function. The function computes the parameters over the
+non-NULL values, producing a NULL result only if there aren't enough
 non-NULL values for computing.
 
 
@@ -40,10 +40,10 @@ of the next structure: the first line is a header, other lines provide names
 of the <em>Y</em> and <em>X</em> maps. The header contains the names of the
 input and output variables.
 <p>
-For example the csv file for regression between NDVI and (elevation, 
+For example the csv file for regression between NDVI and (elevation,
 precipitation)
 <div class="code"><pre>
-    NDVI = b1*Elevation + b2*Precipitation 
+    NDVI = b1*Elevation + b2*Precipitation
 </pre></div>
 could be the next file:
 <div class="code"><pre>
@@ -53,11 +53,11 @@ ndvi_2,elev_2,precip_2
 ...
 ndvi_n,elev_n,precip_n
 </pre></div>
-"ndvi_t" are names of the NDVI rasters, "precip_t" are names 
-of precipitation rasters. The names of the first and the 
+"ndvi_t" are names of the NDVI rasters, "precip_t" are names
+of precipitation rasters. The names of the first and the
 second predictor variables are "elevation" and "precipitation" accordingly.
 <p>
-The second paramether is  <em>result_prefix</em>. It is used for 
+The second paramether is  <em>result_prefix</em>. It is used for
 construction of the coefficient names. For example if result_prefix="coef.",
 the names of the regression coefficients will be "coef.elevation"
 and "coef.precipitation".
@@ -67,9 +67,9 @@ and "coef.precipitation".
 r.mregression.series samples=settings result_prefix="coef."
 </pre></div>
 <p>
-If the regression model includes the intercept 
+If the regression model includes the intercept
 <div class="code"><pre>
-    NDVI = b0 + b1*Elevation + b2*Precipitation 
+    NDVI = b0 + b1*Elevation + b2*Precipitation
 </pre></div>
 then the constant map should be used:
 <div class="code"><pre>
@@ -87,7 +87,7 @@ Then the command
 <div class="code"><pre>
 r.mregression.series samples=settings result_prefix="coef."
 </pre></div>
-produces three raster maps: "coef.offset", "coef.elevation", "coef.precipitation".    
+produces three raster maps: "coef.offset", "coef.elevation", "coef.precipitation".
 
 <h3>EXAMPLE 1</h3>
 Create test data for the example. Suppose we have five <em>Y</em> maps and
@@ -127,7 +127,7 @@ r.mapcalc -s "y4 = 12 + 5* x41 + 3*x42 + rand(0, 4)"
 r.mapcalc -s "y5 = 12 + 5* x51 + 3*x52 + rand(0, 4)"
 </pre></div>
 <p>
-So we have five test rasters <em>Y</em> and <em>X</em>. 
+So we have five test rasters <em>Y</em> and <em>X</em>.
 Forget for a moment that we know the function and try
 to find the coeffitients.
 <p>
@@ -146,7 +146,7 @@ Run the command
 r.mregression.series samples=settings.csv result_prefix="coef."
 </pre></div>
 <p>
-Three raster maps will be created: "coef.bias", "coef.x1", "coef.x2".    
+Three raster maps will be created: "coef.bias", "coef.x1", "coef.x2".
 This rasters contains the fitted coefitients.
 
 

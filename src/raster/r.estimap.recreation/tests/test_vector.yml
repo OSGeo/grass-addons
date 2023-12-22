@@ -1,34 +1,34 @@
 ---
 
-- mapset: "vector_supply_and_use"
+- mapset: vector_supply_and_use
   flags: []
   inputs:
     mask:
-      - "input_area_of_interest"
+      - input_area_of_interest
     land:
-      - "input_land_suitability"
+      - input_land_suitability
     natural:
-      - "input_protected_areas"
+      - input_protected_areas
     water:
-      - "input_water_resources"
+      - input_water_resources
     infrastructure:
-      - "input_distance_to_infrastructure"
+      - input_distance_to_infrastructure
     base:
-      - "input_local_administrative_units"
+      - input_local_administrative_units
     base_vector:
-      - "input_vector_local_administrative_units"
+      - input_vector_local_administrative_units
     population:
-      - "input_population_2015"
+      - input_population_2015
     landcover:
-      - "input_corine_land_cover_2006"
+      - input_corine_land_cover_2006
     land_classes:
-      - "tests/data/corine_accounting_to_maes_land_classes.txt"
+      - tests/data/corine_accounting_to_maes_land_classes.txt
   outputs:
     csvs:
       supply:
-        name: "tests/data/grassdb_estimap_recreation/supply_and_use/output_supply_table.csv"
+        name: tests/data/grassdb_estimap_recreation/supply_and_use/output_supply_table.csv
         hash:
       use:
-        name: "tests/data/grassdb_estimap_recreation/supply_and_use/output_use_table.csv"
+        name: tests/data/grassdb_estimap_recreation/supply_and_use/output_use_table.csv
         hash:
     maps: {}

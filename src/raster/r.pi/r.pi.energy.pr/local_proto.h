@@ -17,8 +17,7 @@
 #define GLOBAL extern
 #endif
 
-typedef struct
-{
+typedef struct {
     int x, y;
     double dir;
     DCELL energy;
@@ -28,23 +27,21 @@ typedef struct
     int lost;
 } Individual;
 
-typedef struct
-{
+typedef struct {
     int x, y;
     double dir;
     double weight;
 } WeightedCoords;
 
-typedef struct
-{
+typedef struct {
     int x, y;
 } Displacement;
 
-typedef DCELL(f_statmethod) (DCELL *, int);
+typedef DCELL(f_statmethod)(DCELL *, int);
 
 /* search.c */
-void perform_search(int *map, DCELL * costmap, int remove_indi, int n, int fragcount, int sx, int sy);
-
+void perform_search(int *map, DCELL *costmap, int remove_indi, int n,
+                    int fragcount, int sx, int sy);
 
 /* parameters */
 GLOBAL int keyval;
@@ -64,13 +61,13 @@ GLOBAL Individual *indi_array;
 GLOBAL int *immigrants;
 GLOBAL int *migrants;
 GLOBAL int *emigrants;
-GLOBAL int *patch_registry;	/* ( patch1(indi1, indi2, ...), patch2(...), ... ) */
+GLOBAL int
+    *patch_registry; /* ( patch1(indi1, indi2, ...), patch2(...), ... ) */
 GLOBAL int *lost;
 GLOBAL int *migrants_succ;
 GLOBAL char *deleted_arr;
 
 GLOBAL char *newname;
 GLOBAL char outname[GNAME_MAX];
-
 
 #endif /* LOCAL_PROTO_H */

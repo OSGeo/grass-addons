@@ -1,4 +1,3 @@
-
 /***********************************************************************/
 /*
    sort.c
@@ -22,25 +21,22 @@
 
 /***********************************************************************/
 
-
 #include <math.h>
 #include "global_vars.h"
 #include "list.h"
-
 
 /***********************************************************************/
 /* Prototypes for private functions                                    */
 
 /***********************************************************************/
 
-struct node *Merge_increasing_smallest_azimuth(struct node *,
-                                               struct node *, struct node *);
-struct node *Merge_increasing_largest_azimuth(struct node *,
-                                              struct node *, struct node *);
+struct node *Merge_increasing_smallest_azimuth(struct node *, struct node *,
+                                               struct node *);
+struct node *Merge_increasing_largest_azimuth(struct node *, struct node *,
+                                              struct node *);
 struct node *Merge_increasing_centre_horizon_azimuth(struct node *,
                                                      struct node *,
                                                      struct node *);
-
 
 /***********************************************************************/
 /* Public functions                                                    */
@@ -61,13 +57,12 @@ struct node *Mergesort_increasing_smallest_azimuth(struct node *head,
         }
         b = head->next_smallest;
         head->next_smallest = tail;
-        return Merge_increasing_smallest_azimuth
-            (Mergesort_increasing_smallest_azimuth(a, tail),
-             Mergesort_increasing_smallest_azimuth(b, tail), tail);
+        return Merge_increasing_smallest_azimuth(
+            Mergesort_increasing_smallest_azimuth(a, tail),
+            Mergesort_increasing_smallest_azimuth(b, tail), tail);
     }
     return head;
 }
-
 
 /***********************************************************************/
 
@@ -92,7 +87,6 @@ void Pseudo_sort_decreasing_smallest_azimuth(struct node *head,
     }
 }
 
-
 /***********************************************************************/
 
 struct node *Mergesort_increasing_largest_azimuth(struct node *head,
@@ -109,13 +103,12 @@ struct node *Mergesort_increasing_largest_azimuth(struct node *head,
         }
         b = head->next_largest;
         head->next_largest = tail;
-        return Merge_increasing_largest_azimuth
-            (Mergesort_increasing_largest_azimuth(a, tail),
-             Mergesort_increasing_largest_azimuth(b, tail), tail);
+        return Merge_increasing_largest_azimuth(
+            Mergesort_increasing_largest_azimuth(a, tail),
+            Mergesort_increasing_largest_azimuth(b, tail), tail);
     }
     return head;
 }
-
 
 /***********************************************************************/
 
@@ -140,11 +133,10 @@ void Pseudo_sort_decreasing_largest_azimuth(struct node *head,
     }
 }
 
-
 /***********************************************************************/
 
-struct node *Mergesort_increasing_centre_horizon_azimuth
-    (struct node *head, struct node *tail)
+struct node *Mergesort_increasing_centre_horizon_azimuth(struct node *head,
+                                                         struct node *tail)
 {
     struct node *a, *b;
 
@@ -157,21 +149,19 @@ struct node *Mergesort_increasing_centre_horizon_azimuth
         }
         b = head->next_horizon;
         head->next_horizon = tail;
-        return Merge_increasing_centre_horizon_azimuth
-            (Mergesort_increasing_centre_horizon_azimuth(a, tail),
-             Mergesort_increasing_centre_horizon_azimuth(b, tail), tail);
+        return Merge_increasing_centre_horizon_azimuth(
+            Mergesort_increasing_centre_horizon_azimuth(a, tail),
+            Mergesort_increasing_centre_horizon_azimuth(b, tail), tail);
     }
     return head;
 }
-
 
 /***********************************************************************/
 /* Private functions                                                   */
 
 /***********************************************************************/
 
-struct node *Merge_increasing_largest_azimuth(struct node *a,
-                                              struct node *b,
+struct node *Merge_increasing_largest_azimuth(struct node *a, struct node *b,
                                               struct node *tail)
 {
     struct node *c;
@@ -196,11 +186,9 @@ struct node *Merge_increasing_largest_azimuth(struct node *a,
     return c;
 }
 
-
 /***********************************************************************/
 
-struct node *Merge_increasing_smallest_azimuth(struct node *a,
-                                               struct node *b,
+struct node *Merge_increasing_smallest_azimuth(struct node *a, struct node *b,
                                                struct node *tail)
 {
     struct node *c;
@@ -224,7 +212,6 @@ struct node *Merge_increasing_smallest_azimuth(struct node *a,
 
     return c;
 }
-
 
 /***********************************************************************/
 

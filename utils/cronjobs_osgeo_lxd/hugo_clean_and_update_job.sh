@@ -23,7 +23,7 @@
 cd /home/neteler/grass-website/ && \
    git pull origin master && \
    rm -rf /home/neteler/grass-website/public/* && \
-   nice /usr/local/bin/hugo && \
+   nice hugo && \
    mkdir /var/www/html_new && \
    \cp -rp /home/neteler/grass-website/public/* /var/www/html_new/ && \
    rm -fr /var/www/html/* && \

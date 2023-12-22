@@ -2,7 +2,7 @@ MODULE_TOPDIR = ../../..
 
 PRINCLUDE = ../include/
 EXTRA_CFLAGS = $(VECT_CFLAGS) -I$(PRINCLUDE)
-PRLIB = -lgrass_pr
+PRLIB = -lgrass_pr.$(GRASS_LIB_VERSION_NUMBER)
 
 PGM = i.pr.sites_aggregate
 

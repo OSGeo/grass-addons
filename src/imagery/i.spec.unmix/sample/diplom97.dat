@@ -12,11 +12,11 @@
 # 2: Vegetation growing (young)
 # 3: Bare soil
 # 4: Soil/Vegetation?
-# 
+#
 # Rows, Columns
 Matrix: 5 by 6
-row0: 0 0 0 14 7 0 
-row1: 1 4 2 81 21 7 
-row2: 1 5 4 52 35 8 
-row3: 14 20 27 54 56 49 
-row4: 2 3 5 33 40 22 
+row0: 0 0 0 14 7 0
+row1: 1 4 2 81 21 7
+row2: 1 5 4 52 35 8
+row3: 14 20 27 54 56 49
+row4: 2 3 5 33 40 22

@@ -1,18 +1,18 @@
 /*****************************************************************************
-*
-* MODULE:	i.evapo.pt
-* AUTHOR:	Yann Chemin yann.chemin@gmail.com 
-*
-* PURPOSE:	To estimate the daily evapotranspiration by means
-*		of Zhang and Kimberley.
-*
-* COPYRIGHT:	(C) 2007-2012 by the GRASS Development Team
-*
-*		This program is free software under the GNU General Public
-*		Licence (>=2). Read the file COPYING that comes with GRASS
-*		for details.
-*
-***************************************************************************/
+ *
+ * MODULE:       i.evapo.pt
+ * AUTHOR:       Yann Chemin yann.chemin@gmail.com
+ *
+ * PURPOSE:      To estimate the daily evapotranspiration by means
+ *               of Zhang and Kimberley.
+ *
+ * COPYRIGHT:    (C) 2007-2012 by the GRASS Development Team
+ *
+ *               This program is free software under the GNU General Public
+ *               Licence (>=2). Read the file COPYING that comes with GRASS
+ *               for details.
+ *
+ ***************************************************************************/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,7 +22,8 @@
 #include <grass/raster.h>
 #include <grass/glocale.h>
 
-double zk_daily_et(double biome_type, double ndvi, double tday, double sh, double patm,double Rn, double G, double dem);
+double zk_daily_et(double biome_type, double ndvi, double tday, double sh,
+                   double patm, double Rn, double G, double dem);
 
 int main(int argc, char *argv[])
 {
@@ -67,17 +68,20 @@ int main(int argc, char *argv[])
     G_add_keyword(_("imagery"));
     G_add_keyword(_("evapotranspiration"));
     module->description =
-	_("Computes global evapotranspiration calculation after Zhang, Kimball, Nemani and Running formulation, 2010.");
-    
+        _("Computes global evapotranspiration calculation after Zhang, "
+          "Kimball, Nemani and Running formulation, 2010.");
+
     /* Define different options */
 
     input_biomt = G_define_standard_option(G_OPT_R_INPUT);
     input_biomt->key = "biome_type";
-    input_biomt->description = _("Name of input IGBP biome type raster map [-]");
+    input_biomt->description =
+        _("Name of input IGBP biome type raster map [-]");
 
     input_ndvi = G_define_standard_option(G_OPT_R_INPUT);
     input_ndvi->key = "ndvi";
-    input_ndvi->description = _("Name of input Normalized Difference Vegetation Index raster map [-]");
+    input_ndvi->description = _(
+        "Name of input Normalized Difference Vegetation Index raster map [-]");
 
     input_tday = G_define_standard_option(G_OPT_R_INPUT);
     input_tday->key = "airtemperature";
@@ -89,25 +93,29 @@ int main(int argc, char *argv[])
 
     input_patm = G_define_standard_option(G_OPT_R_INPUT);
     input_patm->key = "atmosphericpressure";
-    input_patm->description = _("Name of input atmospheric pressure raster map [Pa]");
+    input_patm->description =
+        _("Name of input atmospheric pressure raster map [Pa]");
 
     input_rnetd = G_define_standard_option(G_OPT_R_INPUT);
     input_rnetd->key = "netradiation";
-    input_rnetd->description = _("Name of input net radiation raster map [MJ/m2/d]");
+    input_rnetd->description =
+        _("Name of input net radiation raster map [MJ/m2/d]");
 
     input_g0 = G_define_standard_option(G_OPT_R_INPUT);
     input_g0->key = "soilheatflux";
-    input_g0->description = _("Name of input soil heat flux raster map [MJ/m2/d]");
+    input_g0->description =
+        _("Name of input soil heat flux raster map [MJ/m2/d]");
 
     input_dem = G_define_standard_option(G_OPT_R_INPUT);
     input_dem->key = "elevation";
     input_dem->description = _("Name of input elevation raster map [m]");
 
     output = G_define_standard_option(G_OPT_R_OUTPUT);
-    output->description = _("Name of output evapotranspiration raster map [mm/d]");
+    output->description =
+        _("Name of output evapotranspiration raster map [mm/d]");
 
     if (G_parser(argc, argv))
-	exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
 
     /* get entered parameters */
     biomt = input_biomt->answer;
@@ -164,51 +172,54 @@ int main(int argc, char *argv[])
     /* start the loop through cells */
     for (row = 0; row < nrows; row++) {
 
-	G_percent(row, nrows, 2);
-	/* read input raster row into line buffer */
-	Rast_get_d_row(infd_biomt, inrast_biomt, row);
-	Rast_get_d_row(infd_ndvi, inrast_ndvi, row);
-	Rast_get_d_row(infd_tday, inrast_tday, row);
-	Rast_get_d_row(infd_sh, inrast_sh, row);
-	Rast_get_d_row(infd_patm, inrast_patm, row);
-	Rast_get_d_row(infd_rnetd, inrast_rnetd, row);
-	Rast_get_d_row(infd_g0, inrast_g0, row);
-	Rast_get_d_row(infd_dem, inrast_dem, row);
+        G_percent(row, nrows, 2);
+        /* read input raster row into line buffer */
+        Rast_get_d_row(infd_biomt, inrast_biomt, row);
+        Rast_get_d_row(infd_ndvi, inrast_ndvi, row);
+        Rast_get_d_row(infd_tday, inrast_tday, row);
+        Rast_get_d_row(infd_sh, inrast_sh, row);
+        Rast_get_d_row(infd_patm, inrast_patm, row);
+        Rast_get_d_row(infd_rnetd, inrast_rnetd, row);
+        Rast_get_d_row(infd_g0, inrast_g0, row);
+        Rast_get_d_row(infd_dem, inrast_dem, row);
 
-	for (col = 0; col < ncols; col++) {
-	    /* read current cell from line buffer */
-            d_biomt = ((DCELL *) inrast_biomt)[col];
-            d_ndvi = ((DCELL *) inrast_ndvi)[col];
-            d_tday = ((DCELL *) inrast_tday)[col];
-            d_sh = ((DCELL *) inrast_sh)[col];
-            d_patm = ((DCELL *) inrast_patm)[col];
-            d_rnetd = ((DCELL *) inrast_rnetd)[col];
-            d_g0 = ((DCELL *) inrast_g0)[col];
-            d_dem = ((DCELL *) inrast_dem)[col];
+        for (col = 0; col < ncols; col++) {
+            /* read current cell from line buffer */
+            d_biomt = ((DCELL *)inrast_biomt)[col];
+            d_ndvi = ((DCELL *)inrast_ndvi)[col];
+            d_tday = ((DCELL *)inrast_tday)[col];
+            d_sh = ((DCELL *)inrast_sh)[col];
+            d_patm = ((DCELL *)inrast_patm)[col];
+            d_rnetd = ((DCELL *)inrast_rnetd)[col];
+            d_g0 = ((DCELL *)inrast_g0)[col];
+            d_dem = ((DCELL *)inrast_dem)[col];
 
-	    /*Calculate ET */
-            if(Rast_is_d_null_value(&d_biomt) ||
+            /*Calculate ET */
+            if (Rast_is_d_null_value(&d_biomt) ||
                 Rast_is_d_null_value(&d_ndvi) ||
-                Rast_is_d_null_value(&d_tday) ||
-                Rast_is_d_null_value(&d_sh) ||
+                Rast_is_d_null_value(&d_tday) || Rast_is_d_null_value(&d_sh) ||
                 Rast_is_d_null_value(&d_patm) ||
-                Rast_is_d_null_value(&d_rnetd) ||
-                Rast_is_d_null_value(&d_g0) ||
+                Rast_is_d_null_value(&d_rnetd) || Rast_is_d_null_value(&d_g0) ||
                 Rast_is_d_null_value(&d_dem)) {
-                    Rast_set_d_null_value(&outrast[col], 1);
+                Rast_set_d_null_value(&outrast[col], 1);
             }
             else {
-		if(d_rnetd-d_g0<0) d_g0=d_rnetd*0.1;
-	        d_daily_et=zk_daily_et(d_biomt,d_ndvi,d_tday,d_sh,d_patm,d_rnetd,d_g0,d_dem);
-    //            G_message("%f %f %f %f %f %f %f %f %f",d_biomt,d_ndvi,d_tday,d_sh,d_patm,d_rnetd,d_g0,d_dem,d_daily_et);
-                if (d_daily_et == -28768)  Rast_set_d_null_value(&outrast[col], 1);
+                if (d_rnetd - d_g0 < 0)
+                    d_g0 = d_rnetd * 0.1;
+                d_daily_et = zk_daily_et(d_biomt, d_ndvi, d_tday, d_sh, d_patm,
+                                         d_rnetd, d_g0, d_dem);
+                //            G_message("%f %f %f %f %f %f %f %f
+                //            %f",d_biomt,d_ndvi,d_tday,d_sh,d_patm,d_rnetd,d_g0,d_dem,d_daily_et);
+                if (d_daily_et == -28768)
+                    Rast_set_d_null_value(&outrast[col], 1);
                 /* write calculated ETP to output line buffer */
-	        else outrast[col] = d_daily_et;
+                else
+                    outrast[col] = d_daily_et;
             }
-	}
+        }
 
-	/* write output line buffer to output raster file */
-	Rast_put_d_row(outfd, outrast);
+        /* write output line buffer to output raster file */
+        Rast_put_d_row(outfd, outrast);
     }
     /* free buffers and close input maps */
 

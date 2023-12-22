@@ -1,5 +1,4 @@
-/*
- ****************************************************************************
+/*****************************************************************************
  *
  * MODULE:       r.pi.rectangle
  * AUTHOR(S):    Elshad Shirinov, Dr. Martin Wegmann
@@ -17,10 +16,9 @@
 
 #include "local_proto.h"
 
-struct alignment
-{
-    char *name;			/* method name */
-    char *text;			/* menu display - full description */
+struct alignment {
+    char *name; /* method name */
+    char *text; /* menu display - full description */
     int index;
 };
 
@@ -30,8 +28,7 @@ static struct alignment alignments[] = {
     {"top-right", "Key pixel will be the top-right of the buffer.", 2},
     {"bottom-left", "Key pixel will be the bottom-left of the buffer.", 3},
     {"bottom-right", "Key pixel will be the bottom-right of the buffer.", 4},
-    {0, 0, 0}
-};
+    {0, 0, 0}};
 
 int main(int argc, char *argv[])
 {
@@ -62,24 +59,25 @@ int main(int argc, char *argv[])
     int n;
 
     struct GModule *module;
-    struct
-    {
-	struct Option *input, *output;
-	struct Option *keyval, *x, *y;
-	struct Option *alignment;
-	struct Option *title;
+    struct {
+        struct Option *input, *output;
+        struct Option *keyval, *x, *y;
+        struct Option *alignment;
+        struct Option *title;
     } parm;
 
     G_gisinit(argv[0]);
 
     module = G_define_module();
     G_add_keyword(_("raster"));
+    G_add_keyword(_("landscape structure analysis"));
+    G_add_keyword(_("study area"));
     module->description =
-	_("Generates a rectangle based on a corner coordinate.");
+        _("Generates a rectangle based on a corner coordinate.");
 
     parm.input = G_define_standard_option(G_OPT_R_INPUT);
     parm.input->description =
-	_("Raster map with single pixels representing sampling points");
+        _("Raster map with single pixels representing sampling points");
 
     parm.output = G_define_standard_option(G_OPT_R_OUTPUT);
 
@@ -87,22 +85,21 @@ int main(int argc, char *argv[])
     parm.keyval->key = "keyval";
     parm.keyval->type = TYPE_INTEGER;
     parm.keyval->required = YES;
-    parm.keyval->description =
-	_("Pixel value in the input raster to be used");
+    parm.keyval->description = _("Pixel value in the input raster to be used");
 
     parm.x = G_define_option();
     parm.x->key = "x";
     parm.x->type = TYPE_INTEGER;
     parm.x->required = YES;
     parm.x->description =
-	_("Extent of generated area on the x axis (width) in pixel");
+        _("Extent of generated area on the x axis (width) in pixel");
 
     parm.y = G_define_option();
     parm.y->key = "y";
     parm.y->type = TYPE_INTEGER;
     parm.y->required = YES;
     parm.y->description =
-	_("Extent of generated area on the y axis (height) in pixel");
+        _("Extent of generated area on the y axis (height) in pixel");
 
     parm.alignment = G_define_option();
     parm.alignment->key = "alignment";
@@ -110,15 +107,16 @@ int main(int argc, char *argv[])
     parm.alignment->required = YES;
     str = G_malloc(1024);
     for (n = 0; alignments[n].name; n++) {
-	if (n)
-	    strcat(str, ",");
-	else
-	    *str = 0;
-	strcat(str, alignments[n].name);
+        if (n)
+            strcat(str, ",");
+        else
+            *str = 0;
+        strcat(str, alignments[n].name);
     }
     parm.alignment->options = str;
     parm.alignment->description =
-	_("Alignment of the rectangle relative to the input pixel. options: center, top-left, top-right, bottom");
+        _("Alignment of the rectangle relative to the input pixel. options: "
+          "center, top-left, top-right, bottom");
 
     parm.title = G_define_option();
     parm.title->key = "title";
@@ -128,7 +126,7 @@ int main(int argc, char *argv[])
     parm.title->description = _("Title for resultant raster map");
 
     if (G_parser(argc, argv))
-	exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
 
     /* get name of input file */
     oldname = parm.input->answer;
@@ -141,7 +139,7 @@ int main(int argc, char *argv[])
     /* check if the new file name is correct */
     newname = parm.output->answer;
     if (G_legal_filename(newname) < 0)
-	G_fatal_error(_("<%s> is an illegal file name"), newname);
+        G_fatal_error(_("<%s> is an illegal file name"), newname);
 
     /* read keyval */
     sscanf(parm.keyval->answer, "%d", &keyval);
@@ -158,22 +156,21 @@ int main(int argc, char *argv[])
 
     /* find alignment */
     for (n = 0; (str = alignments[n].name); n++)
-	if (strcmp(str, parm.alignment->answer) == 0)
-	    break;
+        if (strcmp(str, parm.alignment->answer) == 0)
+            break;
     if (str) {
-	align = alignments[n].index;
+        align = alignments[n].index;
     }
     else {
-	G_warning(_("<%s=%s> unknown %s"),
-		  parm.alignment->key, parm.alignment->answer,
-		  parm.alignment->key);
-	G_usage();
-	exit(EXIT_FAILURE);
+        G_warning(_("<%s=%s> unknown %s"), parm.alignment->key,
+                  parm.alignment->answer, parm.alignment->key);
+        G_usage();
+        exit(EXIT_FAILURE);
     }
 
     /* allocate map buffers */
-    map = (CELL *) G_malloc(sx * sy * sizeof(CELL));
-    newmap = (CELL *) G_malloc(sx * sy * sizeof(CELL));
+    map = (CELL *)G_malloc(sx * sy * sizeof(CELL));
+    newmap = (CELL *)G_malloc(sx * sy * sizeof(CELL));
     result = Rast_allocate_c_buf();
 
     /* fill newmap with null */
@@ -182,23 +179,23 @@ int main(int argc, char *argv[])
     /* open map */
     in_fd = Rast_open_old(oldname, oldmapset);
     if (in_fd < 0)
-	G_fatal_error(_("Unable to open raster map <%s>"), oldname);
+        G_fatal_error(_("Unable to open raster map <%s>"), oldname);
 
     /* read map */
     G_message("Reading map:");
     for (row = 0; row < sy; row++) {
-	Rast_get_c_row(in_fd, map + row * sx, row);
+        Rast_get_c_row(in_fd, map + row * sx, row);
 
-	G_percent(row + 1, sy, 1);
+        G_percent(row + 1, sy, 1);
     }
 
     /* create buffers */
     for (row = 0; row < sy; row++) {
-	for (col = 0; col < sx; col++) {
-	    if (map[row * sx + col] == keyval) {
-		set_buffer(newmap, col, row, x, y, sx, sy, align);
-	    }
-	}
+        for (col = 0; col < sx; col++) {
+            if (map[row * sx + col] == keyval) {
+                set_buffer(newmap, col, row, x, y, sx, sy, align);
+            }
+        }
     }
 
     /* close map */
@@ -210,19 +207,19 @@ int main(int argc, char *argv[])
     /* open new cell file  */
     out_fd = Rast_open_new(newname, CELL_TYPE);
     if (out_fd < 0)
-	G_fatal_error(_("Cannot create raster map <%s>"), newname);
+        G_fatal_error(_("Cannot create raster map <%s>"), newname);
 
     /* write output */
     for (row = 0; row < sy; row++) {
-	Rast_set_c_null_value(result, sx);
+        Rast_set_c_null_value(result, sx);
 
-	for (col = 0; col < sx; col++) {
-	    result[col] = newmap[row * sx + col];
-	}
+        for (col = 0; col < sx; col++) {
+            result[col] = newmap[row * sx + col];
+        }
 
-	Rast_put_c_row(out_fd, result);
+        Rast_put_c_row(out_fd, result);
 
-	G_percent(row + 1, sy, 1);
+        G_percent(row + 1, sy, 1);
     }
 
     /* close new file */

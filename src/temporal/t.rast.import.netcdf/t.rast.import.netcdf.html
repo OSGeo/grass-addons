@@ -16,13 +16,13 @@ can be imported via <em>r.in.gdal</em> or linked with <em>r.external</em>.
 
 <p>
 <em>t.rast.import.netcdf</em> can use GDALs Virtual Raster format (VRT) if data's
-Coordinate Reference system differs from the one of the current location where they 
+Coordinate Reference system differs from the one of the current location where they
 are supposed to be imported.
 
 <p>
 Starting with GRASS GIS version 8.0, different variables or subdatasets in a
 NetCDF file can be imported as "semantic_label" into one STRDS. To achieve this,
-a configuration file has to be provided in the <b>semantic_labels</b> option. 
+a configuration file has to be provided in the <b>semantic_labels</b> option.
 That configuration file maps subdatasets in the NetCDF file to GRASS GIS
 semantic_labels. Each line in that file must have the following format:
 <code>

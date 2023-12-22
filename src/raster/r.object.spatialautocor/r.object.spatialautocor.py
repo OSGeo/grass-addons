@@ -26,6 +26,8 @@
 # % keyword: raster
 # % keyword: statistics
 # % keyword: spatial autocorrelation
+# % keyword: Moran I
+# % keyword: Geary G
 # %end
 #
 # %option G_OPT_R_INPUT

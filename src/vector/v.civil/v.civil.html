@@ -6,12 +6,12 @@
 <h2>USAGE</h2>
 
 To run the program for the first time, a map with one horizontal polygon, is
-required. 
+required.
 
 <p>
 There are three options:
 The flag <em>-r</em> for run the program,
-The flag <em>-p</em> Update solution from polygon (if you modific the polygon), 
+The flag <em>-p</em> Update solution from polygon (if you modific the polygon),
 The flag <em>-t</em> Update solution from table plan (walk with dc_ and lr_)
 
 <p>
@@ -118,11 +118,11 @@ displaced lines in horizontal.
 The flag <em>-a</em> add a new table. Displ or Marks.
 
 <p>
-The flag <em>-i</em> insert a rows in table. List of pks for each row. 
+The flag <em>-i</em> insert a rows in table. List of pks for each row.
 
 <p>
-The flag <em>-n</em> add a new displ line, ei, a new column in displ table. 
-You must give a start and end distances and height. And number of column 
+The flag <em>-n</em> add a new displ line, ei, a new column in displ table.
+You must give a start and end distances and height. And number of column
 and side to insert.
 
 <p>
@@ -233,7 +233,7 @@ The columns for editing by the user are:
 <ul>
     <li><b>cut_left</b>: Cut slope left</li>
     <li><b>cut_right</b>: Cut slope right</li>
-    <li><b>fill_left</b>: Fill slope left</li> 
+    <li><b>fill_left</b>: Fill slope left</li>
     <li><b>fill_right</b>: Fill slope right</li>
 </ul>
 
@@ -338,7 +338,7 @@ If we move some vertex of polygon we must run with the flag 'p' to update the ro
 <img src="./img2_1.png" width="500" height="406" alt="">
 
 <p>
-If we change some values of columns 'dc_' (long of circle) or 'lr_' (long of straight), or fill the last line (with 'dc_' and 'lr_' too, 
+If we change some values of columns 'dc_' (long of circle) or 'lr_' (long of straight), or fill the last line (with 'dc_' and 'lr_' too,
 a new vertex are inserted and a new line) we must run with the flag 't' to update the road.
 
 <p>
@@ -364,7 +364,7 @@ And now we have to set the elevation of those vertices and the <em>kv</em> param
 <img src="./img_tables3.png" width="400" height="166" alt="">
 
 <p>
-Now choose vertical option to get the vertical map in horizontal and the longitudinal profile, and give a 
+Now choose vertical option to get the vertical map in horizontal and the longitudinal profile, and give a
 <em>DEM</em> in the terrain option.
 
 <pre><code>
@@ -372,7 +372,7 @@ v.road -r name=Circuit vert=vert,profile dem=elev_lid792_1m
 </code></pre>
 
 <p>
-And we obtain the map <em>Circuit__Vertical</em> and <em>Circuit__LongProfile </em>, and their tables. 
+And we obtain the map <em>Circuit__Vertical</em> and <em>Circuit__LongProfile </em>, and their tables.
 
 <p>
 <img src="./img3_2.png" width="500" height="406" alt="">
@@ -385,7 +385,7 @@ And we obtain the map <em>Circuit__Vertical</em> and <em>Circuit__LongProfile </
 For first time, this table have two rows, who are the nodes of the polygon, and for that the first and the last points of the central axis.
 
 <p>
-The displaced lines are defined in sec_left,sec_right columns with a list separated with ";", starting from left to right in each side of the central axis. 
+The displaced lines are defined in sec_left,sec_right columns with a list separated with ";", starting from left to right in each side of the central axis.
 Each displaced line is defined with distance to the central axis and height to the central axis (d,h).
 
 <p>
@@ -396,26 +396,26 @@ To get more vertices we have to add new rows to this table with <em>tabletools</
 
 <p>
 In this example we are going to define two displaced lines in the left side to the central axis and two for right side with slope 2%  to out.
- 
+
 <p>
 <img src="./img_tables4_1.png" width="400" height="166" alt="">
 
 <p>
-The platform lines define, the lanes of a road, the platform limits, ... Those lines can be parallel to the central axis of a road (or not). 
+The platform lines define, the lanes of a road, the platform limits, ... Those lines can be parallel to the central axis of a road (or not).
 If it's so, we need to know that the parallel to a clothoid is not a clothoid. Then we have two ways to do the platform lines.
 
 <p>
-In the first way, mode exact "e", we need to calculate a new displaced central axis, e.i., a parallel to the polygon not to the central axis. 
-The new alignment or displaced line created within the new polygon have new clothoids for the transitions. 
+In the first way, mode exact "e", we need to calculate a new displaced central axis, e.i., a parallel to the polygon not to the central axis.
+The new alignment or displaced line created within the new polygon have new clothoids for the transitions.
 To run this mode, the first and the last points, of a section of the road, must have the same displaced distance.
 
 <p>
-The widening parameter of the section above, only will be calculate in this mode, because the widening growing in the clothoid, 
+The widening parameter of the section above, only will be calculate in this mode, because the widening growing in the clothoid,
 then is applied only to the displaced lines calculated with clothoid.
 
 <p>
-The second way, mode lineal "l", we calculate the perpendicular displaced distance to each point of the central axis, 
-to obtain a parallel to it, where the transitions won't be clothoids. Then we can't know where are the tangents of transitions. 
+The second way, mode lineal "l", we calculate the perpendicular displaced distance to each point of the central axis,
+to obtain a parallel to it, where the transitions won't be clothoids. Then we can't know where are the tangents of transitions.
 But in this mode, the displaced distance for the first and the last points don't have to be the same in a section of the road. A lineal variation will be done between those points.
 
 <p>
@@ -428,22 +428,22 @@ Into this second way, the variation don't have to be only lineal. We can define 
 Between two points, if the second input distance equal zero, the line will be stopped. If the second input distance equal -1, this point will not be processed and the next one will be considered.
 
 <pre><code>
-v.road -r name=Circuit plan=displ 
+v.road -r name=Circuit plan=displ
 </code></pre>
 
-And we obtain the map Circuit__Displaced, and their tables. 
+And we obtain the map Circuit__Displaced, and their tables.
 
 <p>
 <img src="./img4.png" width="500" height="406" alt="">
 
 <p>
-With distance to the central axis and height of the lines we can obtain different forms, that we'll see in the cross sections. 
+With distance to the central axis and height of the lines we can obtain different forms, that we'll see in the cross sections.
 
 <p>
 <img src="./img_a_vcivilroad_7.png" width="400" height="200" alt="">
 
 <p>
-Now we can add new lines by hand or with TableTools option. 
+Now we can add new lines by hand or with TableTools option.
 
 <pre><code>
 v.road -e name=Circuit displline=add side=left ncol=3 sedist="10 -0.2; 10 -0.2"
@@ -455,7 +455,7 @@ v.road -e name=Circuit displline=add side=right ncol=3 sedist="10 -0.2; 10 -0.2"
 And add new points. We are going to cut the last line in pk 900 and 1700.
 
 <pre><code>
-v.road -e name=Circuit@road add=row tab_type=Displ pklist=876,900,1074,1690,1700,1811 
+v.road -e name=Circuit@road add=row tab_type=Displ pklist=876,900,1074,1690,1700,1811
 </code></pre>
 
 <p>
@@ -477,7 +477,7 @@ Mode exact "e" in the first two lines, without widening and with widening set to
 <h3>Terr</h3>
 
 <p>
-The cut/fill are calculated with the first displaced line of the left side and the last displaced line of the right side, 
+The cut/fill are calculated with the first displaced line of the left side and the last displaced line of the right side,
 and with the slope given in the columns cut_left, cut_right, fill_left, fill_right.
 
 <p>
@@ -494,7 +494,7 @@ v.road -r name=Circuit terr=slopes,sareas,topo dem=elev_lid792_1m
 </code></pre>
 
 <p>
-And we obtain the map Circuit__Slopes, Circuit__Slopes_Areas, Circuit__Topo and Circuit__Topo_Hull, and their tables. 
+And we obtain the map Circuit__Slopes, Circuit__Slopes_Areas, Circuit__Topo and Circuit__Topo_Hull, and their tables.
 
 <p>
 <img src="./img5.png" width="500" height="406" alt="">
@@ -512,10 +512,10 @@ In this table where we are going to define transversals 2D lines to the central 
 This lines contains the cutoff with the displaced lines.
 
 <p>
-When this table is created, have two rows, who are the first and the last points of the central axis. 
+When this table is created, have two rows, who are the first and the last points of the central axis.
 
 <p>
-In the columns dist_left, dist_right we can define the distance left and right to the central axis and in the column npk the distance between lines. 
+In the columns dist_left, dist_right we can define the distance left and right to the central axis and in the column npk the distance between lines.
 
 <p>
 <img src="./img_tables6_1.png" width="400" height="166" alt="">
@@ -528,7 +528,7 @@ v.road -r name=Circuit trans=trans,profiles dem=elev_lid792_1m
 </code></pre>
 
 <p>
-And we obtain the map Circuit__Trans and Circuit__TransProfiles, and their tables. 
+And we obtain the map Circuit__Trans and Circuit__TransProfiles, and their tables.
 
 <p>
 <img src="./img6.png" width="500" height="406" alt="">
@@ -581,7 +581,7 @@ v.road -o name=Circuit dem=elev_lid792_1m topotools=delaunay,curved,cut_hull
 </code></pre>
 
 <p>
-And we obtain the map Circuit__Topo_Tin and Circuit__Topo_Curves, and their tables. 
+And we obtain the map Circuit__Topo_Tin and Circuit__Topo_Curves, and their tables.
 
 <p>
 <img src="./img8_2.png" width="500" height="406" alt="">
@@ -763,7 +763,7 @@ P  1 1
 P  1 1
  638602.453907 220281.587467
  6    2
-" | v.in.ascii -n input=- output=Circuit format=standard --o 
+" | v.in.ascii -n input=- output=Circuit format=standard --o
 
 v.db.addtable map=Circuit table=Circuit_Plan layer=2 key=cat2 columns="pk_eje double precision,radio double precision,a_in double precision,a_out double precision,widening double precision,superelev varchar(25),dc_ double precision,lr_ double precision"
 v.db.addtable map=Circuit table=Circuit_Displ layer=8 key=cat8 columns="pk double precision,sec_left varchar(25),sec_right varchar(25),type_left varchar(25),type_right varchar(25)"
@@ -824,5 +824,5 @@ UPDATE Circuit_Terr SET pk='2208.88779535',cut_left='2.0',cut_right='2.0',fill_l
 UPDATE Circuit_Trans SET pk='0.0',dist_left='20.0',dist_right='20.0',npk='20.0' WHERE cat6=1;
 UPDATE Circuit_Trans SET pk='2208.88779535',dist_left='20.0',dist_right='20.0',npk='20.0' WHERE cat6=2;
 UPDATE Circuit SET name='Circuit' WHERE cat=1;
-" | db.execute input=- 
+" | db.execute input=-
 </code></pre>

@@ -1,56 +1,54 @@
 ---
 
-- mapset: "demand"
+- mapset: demand
   flags: []
   inputs:
     mask:
-      - "input_area_of_interest"
+      - input_area_of_interest
     land:
-      - "input_land_suitability"
+      - input_land_suitability
     natural:
-      - "input_protected_areas,input_urban_green"
+      - input_protected_areas,input_urban_green
     water:
-      - "input_water_resources"
-      - "input_bathing_water_quality"
+      - input_water_resources
+      - input_bathing_water_quality
     infrastructure:
-      - "input_distance_to_infrastructure"
+      - input_distance_to_infrastructure
     base:
-      - "input_local_administrative_units"
+      - input_local_administrative_units
     population:
-      - "input_population_2015"
+      - input_population_2015
   outputs:
     csvs: {}
     maps:
       demand:
-        name: "output_demand"
-        hash: "c4dfa32feaec811a106a38f9679e8840"
+        name: output_demand
+        hash: c4dfa32feaec811a106a38f9679e8840
 
-- mapset: "unmet_demand"
+- mapset: unmet_demand
   flags: []
   inputs:
     mask:
-      - "input_area_of_interest"
+      - input_area_of_interest
     land:
-      - "input_land_suitability"
+      - input_land_suitability
     natural:
-      - "input_protected_areas,input_urban_green"
+      - input_protected_areas,input_urban_green
     water:
-      - "input_water_resources"
-      - "input_bathing_water_quality"
+      - input_water_resources
+      - input_bathing_water_quality
     infrastructure:
-      - "input_distance_to_infrastructure"
+      - input_distance_to_infrastructure
     base:
-      - "input_local_administrative_units"
+      - input_local_administrative_units
     population:
-      - "input_population_2015"
+      - input_population_2015
   outputs:
     csvs: {}
     maps:
       demand:
-        name: "output_demand"
-        hash: "c4dfa32feaec811a106a38f9679e8840"
+        name: output_demand
+        hash: c4dfa32feaec811a106a38f9679e8840
       unmet:
-        name: "output_unmet_demand"
-        hash: "8ca9a64eca84a31ea396ebc6c33ac9c3"
-
-
+        name: output_unmet_demand
+        hash: 8ca9a64eca84a31ea396ebc6c33ac9c3

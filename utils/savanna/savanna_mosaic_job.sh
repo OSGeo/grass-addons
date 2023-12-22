@@ -33,5 +33,3 @@ grass64 -c -text $grassdata_directory/$base_location/$init_mapset
 # eval rm -rf $grassdata_directory'/'$base_location'/'$tile_output_name'*'
 # ls $grassdata_directory'/'$base_location'/'$tile_output_name'*'
 # echo $grassdata_directory"/"$base_location"/"$tile_output_name"_*"
-
-

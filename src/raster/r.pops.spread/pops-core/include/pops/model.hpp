@@ -36,9 +36,8 @@
 
 namespace pops {
 
-template<typename IntegerRaster, typename FloatRaster, typename RasterIndex>
-class Model
-{
+template <typename IntegerRaster, typename FloatRaster, typename RasterIndex>
+class Model {
 private:
     Config config_;
     DispersalKernelType natural_kernel;
@@ -50,23 +49,22 @@ private:
     unsigned last_index{0};
 
 public:
-    Model(const Config& config)
+    Model(const Config &config)
         : config_(config),
           natural_kernel(kernel_type_from_string(config.natural_kernel_type)),
           anthro_kernel(kernel_type_from_string(config.anthro_kernel_type)),
           uniform_kernel(config.rows, config.cols),
-          natural_neighbor_kernel(direction_from_string(config.natural_direction)),
-          anthro_neighbor_kernel(direction_from_string(config.anthro_direction)),
+          natural_neighbor_kernel(
+              direction_from_string(config.natural_direction)),
+          anthro_neighbor_kernel(
+              direction_from_string(config.anthro_direction)),
           simulation_(
-              config.random_seed,
-              config.rows,
-              config.cols,
+              config.random_seed, config.rows, config.cols,
               model_type_from_string(config.model_type),
-              config.latency_period_steps,
-              config.generate_stochasticity,
-              config.establishment_stochasticity,
-              config.movement_stochasticity)
-    {}
+              config.latency_period_steps, config.generate_stochasticity,
+              config.establishment_stochasticity, config.movement_stochasticity)
+    {
+    }
 
     /**
      * @brief Run one step of the simulation.
@@ -78,8 +76,8 @@ public:
      * total number of hosts because movement does not support non-host
      * individuals.
      *
-     * No treatment can be applied when movement is active because host movement does
-     * not support resistant hosts.
+     * No treatment can be applied when movement is active because host movement
+     * does not support resistant hosts.
      *
      * *dispersers* is for internal use and for tracking dispersers creation.
      * The input values are ignored and the output is not the current existing
@@ -89,12 +87,14 @@ public:
      * @param step Step number in the simulation.
      * @param[in,out] infected Infected hosts
      * @param[in,out] susceptible Susceptible hosts
-     * @param[in,out] total_populations All host and non-host individuals in the area
+     * @param[in,out] total_populations All host and non-host individuals in the
+     * area
      * @param[out] dispersers Dispersing individuals (used internally)
      * @param exposed[in,out] Exposed hosts (if SEI model is active)
-     * @param mortality_tracker[in,out] Mortality tracker used to generate *died*
-     * @param died[out] Infected hosts which died this step based on the mortality
-     * schedule
+     * @param mortality_tracker[in,out] Mortality tracker used to generate
+     * *died*
+     * @param died[out] Infected hosts which died this step based on the
+     * mortality schedule
      * @param temperatures[in] Vector of temperatures used to evaluate lethal
      * temperature
      * @param weather_coefficient[in] Weather coefficient (for the current step)
@@ -102,8 +102,8 @@ public:
      * treatments)
      * @param resistant[in,out] Resistant hosts (host temporarily removed from
      * susceptable hosts)
-     * @param outside_dispersers[in,out] Dispersers escaping the rasters (adds to the
-     * vector)
+     * @param outside_dispersers[in,out] Dispersers escaping the rasters (adds
+     * to the vector)
      * @param spread_rate[in,out] Spread rate tracker
      * @param quarantine[in,out] Quarantine escape tracker
      * @param quarantine_areas[in] Quarantine areas
@@ -113,58 +113,40 @@ public:
      * and Simulation::disperse_and_infect() functions, so these can be used
      * for further reference.
      */
-    void run_step(
-        int step,
-        IntegerRaster& infected,
-        IntegerRaster& susceptible,
-        IntegerRaster& total_populations,
-        IntegerRaster& dispersers,
-        std::vector<IntegerRaster>& exposed,
-        std::vector<IntegerRaster>& mortality_tracker,
-        IntegerRaster& died,
-        const std::vector<FloatRaster>& temperatures,
-        const FloatRaster& weather_coefficient,
-        Treatments<IntegerRaster, FloatRaster>& treatments,
-        IntegerRaster& resistant,
-        std::vector<std::tuple<int, int>>& outside_dispersers,  // out
-        SpreadRate<IntegerRaster>& spread_rate,  // out
-        QuarantineEscape<IntegerRaster>& quarantine,  // out
-        const IntegerRaster& quarantine_areas,
-        const std::vector<std::vector<int>> movements)
+    void run_step(int step, IntegerRaster &infected, IntegerRaster &susceptible,
+                  IntegerRaster &total_populations, IntegerRaster &dispersers,
+                  std::vector<IntegerRaster> &exposed,
+                  std::vector<IntegerRaster> &mortality_tracker,
+                  IntegerRaster &died,
+                  const std::vector<FloatRaster> &temperatures,
+                  const FloatRaster &weather_coefficient,
+                  Treatments<IntegerRaster, FloatRaster> &treatments,
+                  IntegerRaster &resistant,
+                  std::vector<std::tuple<int, int>> &outside_dispersers, // out
+                  SpreadRate<IntegerRaster> &spread_rate,                // out
+                  QuarantineEscape<IntegerRaster> &quarantine,           // out
+                  const IntegerRaster &quarantine_areas,
+                  const std::vector<std::vector<int>> movements)
     {
         RadialDispersalKernel<IntegerRaster> natural_radial_kernel(
-            config_.ew_res,
-            config_.ns_res,
-            natural_kernel,
+            config_.ew_res, config_.ns_res, natural_kernel,
             config_.natural_scale,
             direction_from_string(config_.natural_direction),
-            config_.natural_kappa,
-            config_.deterministic,
-            dispersers,
+            config_.natural_kappa, config_.deterministic, dispersers,
             config_.dispersal_percentage);
         RadialDispersalKernel<IntegerRaster> anthro_radial_kernel(
-            config_.ew_res,
-            config_.ns_res,
-            anthro_kernel,
-            config_.anthro_scale,
+            config_.ew_res, config_.ns_res, anthro_kernel, config_.anthro_scale,
             direction_from_string(config_.anthro_direction),
-            config_.anthro_kappa,
-            config_.deterministic,
-            dispersers,
+            config_.anthro_kappa, config_.deterministic, dispersers,
             config_.dispersal_percentage);
         SwitchDispersalKernel<IntegerRaster> natural_selectable_kernel(
-            natural_kernel,
-            natural_radial_kernel,
-            uniform_kernel,
+            natural_kernel, natural_radial_kernel, uniform_kernel,
             natural_neighbor_kernel);
         SwitchDispersalKernel<IntegerRaster> anthro_selectable_kernel(
-            anthro_kernel,
-            anthro_radial_kernel,
-            uniform_kernel,
+            anthro_kernel, anthro_radial_kernel, uniform_kernel,
             anthro_neighbor_kernel);
         DispersalKernel<IntegerRaster> dispersal_kernel(
-            natural_selectable_kernel,
-            anthro_selectable_kernel,
+            natural_selectable_kernel, anthro_selectable_kernel,
             config_.use_anthropogenic_kernel,
             config_.percent_natural_dispersal);
         int mortality_simulation_year =
@@ -173,59 +155,43 @@ public:
         if (config_.use_lethal_temperature && config_.lethal_schedule()[step]) {
             int lethal_step =
                 simulation_step_to_action_step(config_.lethal_schedule(), step);
-            simulation_.remove(
-                infected,
-                susceptible,
-                temperatures[lethal_step],
-                config_.lethal_temperature);
+            simulation_.remove(infected, susceptible, temperatures[lethal_step],
+                               config_.lethal_temperature);
         }
         // actual spread
         if (config_.spread_schedule()[step]) {
-            simulation_.generate(
-                dispersers,
-                infected,
-                config_.weather,
-                weather_coefficient,
-                config_.reproductive_rate);
+            simulation_.generate(dispersers, infected, config_.weather,
+                                 weather_coefficient,
+                                 config_.reproductive_rate);
 
             simulation_.disperse_and_infect(
-                step,
-                dispersers,
-                susceptible,
-                exposed,
-                infected,
-                mortality_tracker[mortality_simulation_year],
-                total_populations,
-                outside_dispersers,
-                config_.weather,
-                weather_coefficient,
-                dispersal_kernel,
-                config_.establishment_probability);
+                step, dispersers, susceptible, exposed, infected,
+                mortality_tracker[mortality_simulation_year], total_populations,
+                outside_dispersers, config_.weather, weather_coefficient,
+                dispersal_kernel, config_.establishment_probability);
             if (config_.use_movements) {
                 last_index = simulation_.movement(
-                    infected,
-                    susceptible,
+                    infected, susceptible,
                     mortality_tracker[mortality_simulation_year],
-                    total_populations,
-                    step,
-                    last_index,
-                    movements,
+                    total_populations, step, last_index, movements,
                     config_.movement_schedule);
             }
         }
         // treatments
         if (config_.use_treatments) {
-            bool managed =
-                treatments.manage(step, infected, exposed, susceptible, resistant);
+            bool managed = treatments.manage(step, infected, exposed,
+                                             susceptible, resistant);
             if (managed && config_.use_mortality) {
                 // same conditions as the mortality code below
-                // TODO: make the mortality timing available as a separate function in
-                // the library or simply go over all valid cohorts
-                if (mortality_simulation_year >= config_.first_mortality_year - 1) {
-                    auto max_index =
-                        mortality_simulation_year - (config_.first_mortality_year - 1);
+                // TODO: make the mortality timing available as a separate
+                // function in the library or simply go over all valid cohorts
+                if (mortality_simulation_year >=
+                    config_.first_mortality_year - 1) {
+                    auto max_index = mortality_simulation_year -
+                                     (config_.first_mortality_year - 1);
                     for (int age = 0; age <= max_index; age++) {
-                        treatments.manage_mortality(step, mortality_tracker[age]);
+                        treatments.manage_mortality(step,
+                                                    mortality_tracker[age]);
                     }
                 }
             }
@@ -242,31 +208,28 @@ public:
             // (so we can skip these years)
             // sim year - (dying year - 1) < 0
             // sim year < dying year - 1
-            // TODO: died.zero(); should be done by the caller if needed, document!
+            // TODO: died.zero(); should be done by the caller if needed,
+            // document!
             simulation_.mortality(
-                infected,
-                config_.mortality_rate,
-                mortality_simulation_year,
-                config_.first_mortality_year - 1,
-                died,
-                mortality_tracker);
+                infected, config_.mortality_rate, mortality_simulation_year,
+                config_.first_mortality_year - 1, died, mortality_tracker);
         }
         // compute spread rate
         if (config_.use_spreadrates && config_.spread_rate_schedule()[step]) {
-            unsigned rates_step =
-                simulation_step_to_action_step(config_.spread_rate_schedule(), step);
+            unsigned rates_step = simulation_step_to_action_step(
+                config_.spread_rate_schedule(), step);
             spread_rate.compute_step_spread_rate(infected, rates_step);
         }
         // compute quarantine escape
         if (config_.use_quarantine && config_.quarantine_schedule()[step]) {
-            unsigned action_step =
-                simulation_step_to_action_step(config_.quarantine_schedule(), step);
-            quarantine.infection_escape_quarantine(
-                infected, quarantine_areas, action_step);
+            unsigned action_step = simulation_step_to_action_step(
+                config_.quarantine_schedule(), step);
+            quarantine.infection_escape_quarantine(infected, quarantine_areas,
+                                                   action_step);
         }
     }
 };
 
-}  // namespace pops
+} // namespace pops
 
-#endif  // POPS_MODEL_HPP
+#endif // POPS_MODEL_HPP

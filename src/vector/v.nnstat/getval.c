@@ -1,7 +1,7 @@
 #include "local_proto.h"
 
-
-/* get array of values from attribute column (function based on part of v.buffer2 (Radim Blazek, Rosen Matev)) */
+/* get array of values from attribute column (function based on part of
+ * v.buffer2 (Radim Blazek, Rosen Matev)) */
 double *get_col_values(struct Map_info *map, int field, const char *column)
 {
     int i, nrec, ctype;
@@ -12,25 +12,27 @@ double *get_col_values(struct Map_info *map, int field, const char *column)
 
     double *values, *vals;
 
-    db_CatValArray_init(&cvarr);        /* array of categories and values initialised */
+    db_CatValArray_init(
+        &cvarr); /* array of categories and values initialised */
 
-    Fi = Vect_get_field(map, field);    /* info about call of DB */
+    Fi = Vect_get_field(map, field); /* info about call of DB */
     if (Fi == NULL)
-        G_fatal_error(_("Database connection not defined for layer %d"),
-                      field);
-    Driver = db_start_driver_open_database(Fi->driver, Fi->database);   /* started connection to DB */
+        G_fatal_error(_("Database connection not defined for layer %d"), field);
+    Driver = db_start_driver_open_database(
+        Fi->driver, Fi->database); /* started connection to DB */
     if (Driver == NULL)
         G_fatal_error(_("Unable to open database <%s> by driver <%s>"),
                       Fi->database, Fi->driver);
 
-    /* Note do not check if the column exists in the table because it may be expression */
+    /* Note do not check if the column exists in the table because it may be
+     * expression */
 
     /* TODO: only select values we need instead of all in column */
 
-    /* Select pairs key/value to array, values are sorted by key (must be integer) */
+    /* Select pairs key/value to array, values are sorted by key (must be
+     * integer) */
     nrec =
-        db_select_CatValArray(Driver, Fi->table, Fi->key, column, NULL,
-                              &cvarr);
+        db_select_CatValArray(Driver, Fi->table, Fi->key, column, NULL, &cvarr);
     if (nrec < 0)
         G_fatal_error(_("Unable to select data from table <%s>"), Fi->table);
     G_message(_("Reading elevations from attribute table: %d records selected"),
@@ -59,31 +61,33 @@ double *get_col_values(struct Map_info *map, int field, const char *column)
 }
 
 /* get coordinates of input points */
-void
-read_points(struct Map_info *map, int field, struct nna_par *xD,
-            const char *zcol, struct points *pnts)
+void read_points(struct Map_info *map, int field, struct nna_par *xD,
+                 const char *zcol, struct points *pnts)
 {
     int ctrl, n, type, nskipped, pass;
 
-    struct line_pnts *Points;   // structures to hold line *Points (map)
-    double *rx, *ry, *rz;       // pointers to the coordinates
-    double *z_attr, *z;         // pointers to attribute z values
+    struct line_pnts *Points; // structures to hold line *Points (map)
+    double *rx, *ry, *rz;     // pointers to the coordinates
+    double *z_attr, *z;       // pointers to attribute z values
 
     Points = Vect_new_line_struct();
-    n = pnts->n = Vect_get_num_primitives(map, GV_POINT);       /* topology required */
+    n = pnts->n =
+        Vect_get_num_primitives(map, GV_POINT); /* topology required */
     pnts->r = (double *)G_malloc(n * 3 * sizeof(double));
 
     rx = &pnts->r[0];
     ry = &pnts->r[1];
     rz = &pnts->r[2];
 
-    pnts->R_tree = create_spatial_index(xD);    // create spatial index (R-tree)
+    pnts->R_tree = create_spatial_index(xD); // create spatial index (R-tree)
 
-    /* Get 3rd coordinate of 2D points from attribute column -> 3D interpolation */
-    if (xD->v3 == FALSE && zcol != NULL) {      // 2D input layer with z attribute column:
+    /* Get 3rd coordinate of 2D points from attribute column -> 3D interpolation
+     */
+    if (xD->v3 == FALSE &&
+        zcol != NULL) { // 2D input layer with z attribute column:
         xD->zcol = (char *)G_malloc(strlen(zcol) * sizeof(char));
         strcpy(xD->zcol, zcol);
-        z_attr = get_col_values(map, field, zcol);      // read attribute z values
+        z_attr = get_col_values(map, field, zcol); // read attribute z values
         z = &z_attr[0];
     }
     else {
@@ -111,18 +115,19 @@ read_points(struct Map_info *map, int field, struct nna_par *xD,
 
         // 3D points or 2D points without attribute column -> 2D interpolation
         if (xD->zcol == NULL) { // z attribute column not available:
-            if (xD->v3 == TRUE && xD->i3 == FALSE) {    // 2D NNA:
+            if (xD->v3 == TRUE && xD->i3 == FALSE) { // 2D NNA:
                 *rz = 0.;
             }
-            else {              // 3D NNA:
+            else { // 3D NNA:
                 *rz = Points->z[0];
             }
         }
-        else {                  // z attribute column available: 
+        else { // z attribute column available:
             *rz = *z;
             z++;
         }
-        insert_rectangle(xD->i3, ctrl, pnts);   // insert rectangle into spatial index
+        insert_rectangle(xD->i3, ctrl,
+                         pnts); // insert rectangle into spatial index
 
         /* Find extends */
         if (ctrl == 0) {
@@ -145,8 +150,7 @@ read_points(struct Map_info *map, int field, struct nna_par *xD,
     }
 
     if (nskipped > 0) {
-        G_warning(_("%d features skipped, only points are accepted"),
-                  nskipped);
+        G_warning(_("%d features skipped, only points are accepted"), nskipped);
     }
 
     Vect_destroy_line_struct(Points);
@@ -160,9 +164,8 @@ read_points(struct Map_info *map, int field, struct nna_par *xD,
     double dy = pnts->r_max[1] - pnts->r_min[1];
     double dz = pnts->r_max[2] - pnts->r_min[2];
 
-    pnts->max_dist =
-        xD->i3 ==
-        TRUE ? sqrt(dx * dx + dy * dy + dz * dz) : sqrt(dx * dx + dy * dy);
+    pnts->max_dist = xD->i3 == TRUE ? sqrt(dx * dx + dy * dy + dz * dz)
+                                    : sqrt(dx * dx + dy * dy);
 
     G_message(_("Input coordinates have been read..."));
 

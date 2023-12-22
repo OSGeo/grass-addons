@@ -16,8 +16,8 @@ void upheap(int pos)
     int i = pos;
 
     while (i > 0 && heap[i].f < heap[(i - 1) / 2].f) {
-	exchange(i, (i - 1) / 2);
-	i = (i - 1) / 2;
+        exchange(i, (i - 1) / 2);
+        i = (i - 1) / 2;
     }
 }
 
@@ -27,21 +27,21 @@ void downheap(int pos)
 
     /* actual element has left son */
     if (son < heapsize) {
-	/* actual element has right son, which is the smaller son */
-	if (son + 1 < heapsize && heap[son + 1].f < heap[son].f)
-	    son++;
-	/* son is now the smaller son */
-	/* if son smaller then actual element */
-	if (heap[pos].f > heap[son].f) {
-	    exchange(pos, son);
-	    downheap(son);
-	}
+        /* actual element has right son, which is the smaller son */
+        if (son + 1 < heapsize && heap[son + 1].f < heap[son].f)
+            son++;
+        /* son is now the smaller son */
+        /* if son smaller then actual element */
+        if (heap[pos].f > heap[son].f) {
+            exchange(pos, son);
+            downheap(son);
+        }
     }
 }
 
 void heap_alloc(int size)
 {
-    heap = (Path_Coords *) G_malloc(size * sizeof(Path_Coords));
+    heap = (Path_Coords *)G_malloc(size * sizeof(Path_Coords));
 }
 
 void heap_free()
@@ -55,9 +55,9 @@ Path_Coords heap_delete(int pos)
 
     heap[pos] = heap[--heapsize];
     if (pos > 0 && heap[pos].f < heap[(pos - 1) / 2].f)
-	upheap(pos);
+        upheap(pos);
     else
-	downheap(pos);
+        downheap(pos);
     return res;
 }
 
@@ -78,10 +78,10 @@ int heap_search(int x, int y)
     int i;
 
     for (i = 0; i < heapsize; i++) {
-	Path_Coords *act = heap + i;
+        Path_Coords *act = heap + i;
 
-	if (act->x == x && act->y == y)
-	    return i;
+        if (act->x == x && act->y == y)
+            return i;
     }
     return -1;
 }

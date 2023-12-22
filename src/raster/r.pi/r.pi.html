@@ -1,108 +1,85 @@
+<!-- meta page name: r.pi -->
+<!-- meta page name description: Toolset for multiscale analysis of landscape patch structure. -->
+
+<h2>KEYWORDS</h2>
+
+<a href="raster.html">raster</a>, <a href="topic_landscape_structure_analysis.html">landscape structure analysis</a>, <a href="keywords.html#neutral landscapes">neutral landscapes</a>, <a href="keywords.html#patch index">patch index</a>
+
 <h2>DESCRIPTION</h2>
 
-<em>r.pi</em> (raster patch index) provides various functions to analyse 
-spatial attributes of a landscape. It has a focus on patch-based indices 
+<em>r.pi</em> (raster patch index) provides various functions to analyse
+spatial attributes of a landscape. It has a focus on patch-based indices
 but delivers class-based indices as well. <em>r.le</em> and its successor
 <em>r.li</em> provide landscape indices.
 
 <p>
 A list with a short description of the <em>r.pi</em> modules can be found
-below. More in depth description of a certain module (commands, flags, 
-options) can be found in the  respective folder (like 
+below. More in depth description of a certain module (commands, flags,
+options) can be found in the  respective folder (like
 <em><a href="r.pi.graph.html">r.pi.graph</a></em>). The functions/algorithms
 of the modules are not yet very extensive but will be expanded in the
 future. Please submit any bug/feature you might encounter to improve the
 functionality.
 <p>
-The program will interactively query the user for input, output and 
-options (GUI). However the module can be also run from the terminal 
+The program will interactively query the user for input, output and
+options (GUI). However the module can be also run from the terminal
 prompt (CLI) and might be implemented in e.g. a bash-script.
 <p>
-It is highly recommended to read the help pages or e.g the overview 
+It is highly recommended to read the help pages or e.g the overview
 documents of
 <a href="http://www.umass.edu/landeco/research/fragstats/documents/fragstats_documents.html">Fragstats</a>
 to get a better impression of problems, possibilities and caveats.
 
 
-<h2>OVERVIEW</h2>
-
-<ul>
-<li><em>r.pi.rectangle</em>  - Performs statistical analysis on values of patches from the given raster map.
-<li><em>r.pi.energy</em>  - Individual-based dispersal model for connectivity analysis - energy based.
-<li><em>r.pi.energy.pr</em>  - Individual-based dispersal model for connectivity analysis (energy based) using iterative patch removal.
-<li><em>r.pi.fragment.dist</em>  - Calculates correlation of two raster maps by calculating correlation function of two corresponding rectangular areas for each raster point and writing the result into a new raster map.
-<li><em>r.pi.enn</em>  - Determines patches of given value and performs a nearest-neighbor analysis.
-<li><em>r.pi.index</em>  - Computation of fragmentation indices.
-<li><em>r.pi.enn.pr</em>  - Patch relevance for Euclidean Nearest Neighbor patches.
-<li><em>r.pi.neigh</em>  - Neighbourhood analysis - value of patches within a defined range.
-<li><em>r.pi.enn</em>  - Analysis of n-th Euclidean Nearest Neighbor distance.
-<li><em>r.pi.nlm</em>  - Creates a random generated map with values 0 or 1by given landcover and fragment count.
-<li><em>r.pi.nlm.circ</em>  - Creates a random landscape with defined attributes.
-<li><em>r.pi.nlm.stats</em>  - Neutral Landscape Generator - index statistics
-<li><em>r.pi.corearea</em>  - Variable edge effects and core area analysis
-<li><em>r.pi.corr.mw</em>  - Moving window correlation analysis.
-<li><em>r.pi.csr.mw</em>  - Complete Spatial Randomness analysis on moving window.
-<li><em>r.pi.export</em>  - Export of patch based information.
-<li><em>r.pi.graph</em>  - Graph Theory for connectivity analysis.
-<li><em>r.pi.graph.pr</em>  - Graph Theory - iterative removal (patch relevance analysis).
-<li><em>r.pi.graph.red</em>  - Graph Theory - decreasing distance threshold option.
-<li><em>r.pi.grow</em>  - Size and suitability based region growing.
-<li><em>r.pi.import</em>  - Import and generation of patch raster data
-<li><em>r.pi.index</em>  - Basic patch based indices
-<li><em>r.pi.lm</em>  - Linear regression analysis for patches.
-<li><em>r.pi.prob.mw</em>  - Probability analysis of 2 random points being in the same patch.
-<li><em>r.pi.rectangle</em>  - Generates a rectangle based on a corner coordinate.
-<li><em>r.pi.searchtime</em>  - Individual-based dispersal model for connectivity analysis (time-based)
-<li><em>r.pi.searchtime.pr</em>  - Individual-based dispersal model for connectivity analysis (time-based) using iterative removal of patches
-<li><em>r.pi.searchtime.mw</em>  - Individual-based dispersal model for connectivity analysis (time-based) using moving window
-</ul>
-
-
 <h3>General and Connectivity Indices</h3>
 
 <ul>
-<li><b><a href="r.pi.index.html">r.pi.index</a></b>: Calculations of basic indices (area, SHAPE etc.) </li>
-<li><b><a href="r.pi.enn.html">r.pi.enn</a></b>:  Area, SHAPE and distance to n-th Euclidean Nearest Neighbor</li>
-<li><b><a href="r.pi.fnn.html">r.pi.fnn</a></b>:  Area, SHAPE and distance to n-th Functional Nearest Neighbor</li>
+<li><b><a href="r.pi.index.html">r.pi.index</a></b>: Calculations of basic indices (area, SHAPE etc.)</li>
+<li><b><a href="r.pi.enn.html">r.pi.enn</a></b>: Area, SHAPE and distance to n-th Euclidean Nearest Neighbor</li>
+<li><b><a href="r.pi.fnn.html">r.pi.fnn</a></b>: Area, SHAPE and distance to n-th Functional Nearest Neighbor</li>
+<li><b><a href="r.pi.grow.html">r.pi.grow</a></b>: Size and suitability based region growing</li>
 <li><b><a href="r.pi.odc.html">r.pi.odc</a></b>: Area and distance to omnidirectional n-th Nearest Neighbors</li>
 <li><b><a href="r.pi.neigh.html">r.pi.neigh</a></b>: Extraction of values of patches in defined buffer region</li>
 <li><b><a href="r.pi.prox.html">r.pi.prox</a></b>: Calculation of Proximity and Modified Proximity Index for patches in buffer region</li>
 <li><b><a href="r.pi.graph.html">r.pi.graph</a></b>: Various connectivity indices within the Graph Theory </li>
+<li><b><a href="r.pi.graph.pr.html">r.pi.graph.pr</a></b>: Graph Theory - iterative removal (patch relevance analysis)</li>
 </ul>
 
 
 <h3>Individual-based dispersal models</h3>
 <ul>
-<li><b><a href="r.pi.searchtime.html">r.pi.searchtime</a></b>:Searchtime and Immigration rate</li>
+<li><b><a href="r.pi.searchtime.html">r.pi.searchtime</a></b>: Searchtime and Immigration rate</li>
+<li><b><a href="r.pi.searchtime.mw.html">r.pi.searchtime.mw</a></b>: Individual-based dispersal model for connectivity analysis (time-based) using moving window</li>
 <li><b><a href="r.pi.energy.html">r.pi.energy</a></b>: Immigration, Migration and successfull emigration rate</li>
-<li><b><a href="r.pi.searchtime.mw.html">r.pi.searchtime.mw</a></b>:Related to <em>r.pi.searchtime</em> but using a Moving Windows approach</li>
+<li><b><a href="r.pi.searchtime.mw.html">r.pi.searchtime.mw</a></b>: Related to <em>r.pi.searchtime</em> but using a Moving Windows approach</li>
 </ul>
 
 <h3>Patch-Relevance</h3>
 <ul>
-<li><b><a href="r.pi.enn.pr.html">r.pi.enn.pr</a></b>:Relevance of patches for maintenance of distance to first Nearest Neighbor</li>
-<li><b><a href="r.pi.searchtime.pr.html">r.pi.searchtime.pr</a></b>:Relevance of patches for maintenance of searchtime</li>
-<li><b><a href="r.pi.energy.pr.html">r.pi.energy.pr</a></b>:Relevance of patches for maintenance of immigration rate</li>
-<li><b><a href="r.pi.graph.red.html">r.pi.graph.red</a></b>:Relevance of patches ....</li>
-<li><b><a href="r.pi.graph.dec.html">r.pi.graph.dec</a></b>:Relevance of patches ....</li>
+<li><b><a href="r.pi.enn.pr.html">r.pi.enn.pr</a></b>: Patch relevance for Euclidean nearest neighbor patches</li>
+<li><b><a href="r.pi.searchtime.pr.html">r.pi.searchtime.pr</a></b>: Relevance of patches for maintenance of searchtime</li>
+<li><b><a href="r.pi.energy.pr.html">r.pi.energy.pr</a></b>: Relevance of patches for maintenance of immigration rate</li>
+<li><b><a href="r.pi.graph.red.html">r.pi.graph.red</a></b>: Graph Theory - decreasing distance threshold option</li>
+<li><b><a href="r.pi.graph.dec.html">r.pi.graph.dec</a></b>: Graph Theory - successive criteria-based deletion of patches</li>
 </ul>
 
 <h3>Neutral Landscape Model</h3>
 <ul>
 <li><b><a href="r.pi.nlm.html">r.pi.nlm</a></b>: Generation of a neutral landscape (fractal)</li>
-<li><b><a href="r.pi.nlm.stats.html">r.pi.nlm.stats</a></b>:Statistical analysis of landscapes based on permutation of neutral landscapes</li>
-<li><b><a href="r.pi.nlm.circ.html">r.pi.nlm.circ</a>c</b>:Generation of a neutral landscape (circular)</li>
+<li><b><a href="r.pi.nlm.stats.html">r.pi.nlm.stats</a></b>: Statistical analysis of landscapes based on permutation of neutral landscapes</li>
+<li><b><a href="r.pi.nlm.circ.html">r.pi.nlm.circ</a></b>: Generation of a neutral landscape (circular)</li>
 </ul>
 
 <h3>Various modules</h3>
 <ul>
-<li><b><a href="r.pi.corearea.html">r.pi.corearea</a></b>:Calculation of core area based on costmatrix</li>
-<li><b><a href="r.pi.prob.mw.html">r.pi.prob.mw</a></b>:Probability of two random points being in the same patch</li>
+<li><b><a href="r.pi.corearea.html">r.pi.corearea</a></b>: Calculation of core area based on costmatrix</li>
+<li><b><a href="r.pi.csr.mw.html">r.pi.csr.mw</a></b>: Complete Spatial Randomness analysis on moving window.</li>
+<li><b><a href="r.pi.prob.mw.html">r.pi.prob.mw</a></b>: Probability of two random points being in the same patch</li>
 <li><b><a href="r.pi.rectangle.html">r.pi.rectangle</a></b>: Generation of rectangles based on coordinate points</li>
-<li><b><a href="r.pi.import.html">r.pi.import</a></b>:Import of values to corresponding patches</li>
-<li><b><a href="r.pi.export.html">r.pi.export</a></b>:Export of values from patches</li>
-<li><b><a href="r.pi.lm.html">r.pi.lm</a></b>:Residuals of a Linear Regression between 2 rasters are provided as raster</li>
-<li><b><a href="r.pi.corr.mw.html">r.pi.corr.mw</a></b>:Moving window correlation between two raster maps</li>
+<li><b><a href="r.pi.import.html">r.pi.import</a></b>: Import of values to corresponding patches</li>
+<li><b><a href="r.pi.export.html">r.pi.export</a></b>: Export of values from patches</li>
+<li><b><a href="r.pi.lm.html">r.pi.lm</a></b>: Linear regression analysis for patches</li>
+<li><b><a href="r.pi.corr.mw.html">r.pi.corr.mw</a></b>: Moving window correlation between two raster maps</li>
 </ul>
 
 <h2>EXAMPLES</h2>
@@ -185,9 +162,10 @@ the module and might also be influenced by the resolution.
 <h2>REFERENCE</h2>
 
 <ul>
-<li>Wegmann, M., Leutner, B., Metz, M., Neteler, M., Dech, S., Rocchini, D.:
-r.pi: Semi-automatic spatial pattern analysis of remotely sensed land
-cover data. Submitted.</li>
+<li>Wegmann, M., Leutner, B. F., Metz, M., Neteler, M., Dech, S., &amb; Rocchini, D. (2018).
+<i>r. pi: A grass gis package for semi‐automatic spatial pattern analysis of remotely sensed
+land cover data.</i> Methods in Ecology and Evolution, 9(1), 191-199.
+<a href="https://doi.org/10.1111/2041-210X.12827">https://doi.org/10.1111/2041-210X.12827</a></li>
 </ul>
 
 <h2>Disclaimer</h2>
@@ -208,3 +186,5 @@ Department of Remote Sensing <br>
 University of Wuerzburg, Germany
 <p>
 Port to GRASS GIS 7: Markus Metz
+<p>
+Documentation improvements: Markus Neteler

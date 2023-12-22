@@ -7,11 +7,9 @@
 This program is free software under the GNU General Public License
 (>=v2). Read the file COPYING that comes with GRASS for details.
 
-
 ## AUTHOR
 
 Brian Miles - brian_miles@unc.edu
-
 
 ## DESCRIPTION
 
@@ -61,7 +59,6 @@ sudo make GRASS_HOME=./ GRASS_APP=/Applications/GRASS-6.4.app deploy
 Assuming you have unpacked r.findtheriver into your local copy of
 modbuild/module (see ReadMe-OSX.rtf) and the current directory is
 r.findtheriver.
-
 
 Linux/Unix
 

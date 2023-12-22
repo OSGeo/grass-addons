@@ -21,4 +21,3 @@ $(ETC)/bmif_to_cell: $(OBJDIR)/bmf_to_cll.o $(DEPENDENCIES)
 
 $(ETC)/poly_to_bmif: $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $^ $(FMODE_OBJ)
-
