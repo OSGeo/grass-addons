@@ -1,0 +1,137 @@
+<h2>DESCRIPTION</h2>
+
+The <em>i.sentinel3.import</em> module allows importing Copernicus Sentinel-3 products
+downloaded by the <em><a href="i.sentinel.download.html">i.sentinel.download</a></em>
+module.
+
+<p>
+By default <em>i.sentinel3.import</em> imports all Sentinel-3 scene files found
+in the <b>input</b> directory. The number of scene files can be optionally
+reduced by the <b>pattern</b> option or filtered by modification time using the
+<b>modified_after</b> and/or <b>modified_before</b> option. In the <b>pattern</b>
+option, a regular expression for filtering the file names should be given, e.g.
+"0179_076_100_0900_LN2" for importing only specific tiles.
+<p>
+The <em>Sentinel-3</em> products are provided in different formats. Not all of
+them are currently directly supported by GDAL. Some, like the e.g. the LST products
+consist of several netCDF4 files, where geometry and image information are stored in
+different files. Therefore, a GRASS GIS specific import routine has been implemented
+for those formats. This routine imports the data pixel-wise after transforming them
+from WGS84 into the projection of the current LOCATION. <em>r.in.xyz</em> is then
+used to read the coordinates into a GRASS GIS raster map.
+Thus, the <em>the user has to set the computational region extent and
+resolution appropriately, to import the data of interest in the correct resolution</em>.
+
+<p>
+By default, ancillary data and quality flag data are imported as well - as artificial
+bands. Import of those additional data layers can be deactivated using the <b>ancillary_bands</b>
+and <b>quality_bands</b> option.
+
+<p>
+For each imported band both scene and band specific metadata are written into the map history
+(<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.support.html">r.support</a></em>).
+In addition, the scene name is stored as <em>source1</em> and the imported or linked file name as
+<em>source2</em>. Also, sensing time is written into the timestamp of the
+map. After import, the metadata can be retrieved with <em>r.info -e</em>
+as shown below.
+
+
+<h2>NOTES</h2>
+
+<p>
+Currently, only import of SL_2_LST__ products from Sentinel-3 SLSTR sensor are supported.
+<p>
+By means of the <b>register_file</b> option <em>i.sentinel3.import</em> allows
+creating a file which can be used to register imported imagery data
+into a space-time raster dateset (STRDS) with
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/t.register.html">t.register</a></em>.
+See example below.
+
+<p>
+<h3>Metadata storage</h3>
+
+By using the <b>-j</b> flag the band metadata are additionally stored
+in JSON format (in the current mapset under <tt>cell_misc</tt>).
+
+
+<h2>EXAMPLES</h2>
+
+<h3>List Sentinel bands</h3>
+
+At first, print the list of raster files to be imported with <b>-p</b> flag. For
+each file also product content is printed:
+
+<div class="code"><pre>
+i.sentinel3.import -p input=./data/ nprocs=4 modified_before="2021-09-09" \
+product=LST basename=S3_LST
+
+...
+</pre></div>
+
+<h3>Import Sentinel-3 data</h3>
+Import all Sentinel-3 data found in <i>data</i> directory and store metadata
+as JSON files within the GRASS GIS database directory:
+<div class="code"><pre>
+i.sentinel3.import -a -c -j input=./data/ nprocs=4 modified_before="2021-09-09" \
+product=LST basename=S3_LST
+</pre></div>
+
+
+<h3>Register imported Sentinel-3 data into STRDS</h3>
+
+<div class="code"><pre>
+i.sentinel3.import -a -c -j input=./data/ register_output=./data/reg.txt nprocs=4 \
+modified_before="2021-09-09" product=LST basename=S3_LST
+
+# register imported data into existing STRDS
+t.register input=Sentinel_3 file=data/reg.txt
+</pre></div>
+
+A register file typically contains two columns: imported raster map
+name and timestamp separated by <tt>|</tt>. In the case of current
+development version of GRASS GIS which supports band references concept
+(see <em><a href="https://grass.osgeo.org/grass-devel/manuals/g.bands.html">g.bands</a></em> module for details) a
+register file is extended by a third column containg band reference
+information, see the examples below.
+
+<div class="code"><pre>
+# register file produced by stable GRASS GIS 7.8 version
+S3_imp_surface_temperature_20210907T205026|2021-09-07T20:50:26.285902+00:00|2021-09-07T20:53:25.977846+00:00
+S3_imp_surface_temperature_standard_error_20210907T205026|2021-09-07T20:50:26.285902+00:00|2021-09-07T20:53:25.977846+00:00
+S3_imp_confidence_20210907T205026|2021-09-07T20:50:26.285902+00:00|2021-09-07T20:53:25.977846+00:00
+...
+# register file produced by development GRASS GIS 7.9 version
+S3_imp_surface_temperature_20210907T205026|2021-09-07T20:50:26.285902+00:00|2021-09-07T20:53:25.977846+00:00|S3_surface_temperature
+S3_imp_surface_temperature_standard_error_20210907T205026|2021-09-07T20:50:26.285902+00:00|2021-09-07T20:53:25.977846+00:00|S3_surface_temperature_standard_error
+S3_imp_confidence_20210907T205026|2021-09-07T20:50:26.285902+00:00|2021-09-07T20:53:25.977846+00:00|S3_confidence
+</pre></div>
+
+<h2>REQUIREMENTS</h2>
+The following Python libraries are required
+<ul>
+<li>GDAL (install through system software management)</li>
+<li>numpy</li>
+<li>netcdf4</li>
+<li>cf-units (for unit conversion)</li>
+</ul>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="i.sentinel.html">Overview of i.sentinel toolset</a>
+</em>
+<p>
+<em>
+<a href="i.sentinel.download.html">i.sentinel.download</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.in.xyz.html">r.in.xyz</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/t.register.html">t.register</a>
+</em>
+
+<h2>AUTHOR</h2>
+
+Stefan Blumentrath, <a href="https://www.nina.no/">NINA</a>, Norway
+
+<!--
+<p>
+<i>Last changed: $Date$</i>
+-->
