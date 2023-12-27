@@ -15,7 +15,7 @@
 #############################################################################
 
 # %module
-# % description: Draws the boxplot of the rasters of a space-time raster dataset
+# % description: Draws the boxplot of the raster maps of a space-time raster dataset
 # % keyword: display
 # % keyword: raster
 # % keyword: plot
