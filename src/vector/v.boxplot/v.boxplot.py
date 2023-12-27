@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ############################################################################
 #
-# MODULE:       d.vect.colboxplot
+# MODULE:       v.boxplot
 # AUTHOR:       Paulo van Breugel
 # PURPOSE:      Draws the boxplot(s) of values in a vector attribute column
 #
-# COPYRIGHT:    (c) 2019 Paulo van Breugel, and the GRASS Development Team
+# COPYRIGHT:    (c) 2019-2023 Paulo van Breugel, and the GRASS Development Team
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
 #               for details.
