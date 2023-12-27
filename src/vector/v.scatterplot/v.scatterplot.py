@@ -675,11 +675,23 @@ def main(options, flags):
         numerator = np.sum((Y - y_predict) ** 2)
         denominator = np.sum((Y - mean_y) ** 2)
         R2 = 1 - (numerator / denominator)
+
+        gs.message("---------------------------------------")
         gs.message(
             "The R2 for the {} trendline(degree={}) is {}".format(
                 options["trendline"], degree, round(R2, 3)
             )
         )
+        # Print the regression equation
+        coefficients = np.round(trend_model.convert().coef)
+        equation = f"Y = {coefficients[degree]:.2f} * X^{degree}"
+        for i in range(degree - 1, 0, -1):
+            print(i)
+            equation += f" + {coefficients[i]:.2f} * X^{i}"
+        equation += f" + {coefficients[0]:.2f}"
+        gs.message("Trend line Equation:")
+        gs.message(equation)
+        gs.message("---------------------------------------")
 
         # Plot trend line
         xx, yy = trend_model.linspace()
