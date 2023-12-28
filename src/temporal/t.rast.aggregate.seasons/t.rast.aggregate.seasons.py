@@ -86,6 +86,7 @@ from grass.pygrass.vector.geometry import Point
 
 remove_dataset = {"stvds": [], "strds": []}
 
+
 def cleanup():
     """
     Clean up temporary maps
@@ -115,7 +116,7 @@ def main():
     dbif.connect()
     mapset = tgis.core.get_current_mapset()
 
-    if options["years"] != '':
+    if options["years"] != "":
         try:
             vals = options["years"].split("-")
             years = range(vals)
@@ -232,7 +233,7 @@ def main():
     process_queue.wait()
 
     if len(outputs) > 1:
-        pymod.Module("t.merge", inputs=','.join(outputs), output=output_name)
+        pymod.Module("t.merge", inputs=",".join(outputs), output=output_name)
 
     return True
 

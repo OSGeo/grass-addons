@@ -10,6 +10,7 @@ import grass.temporal as tgis
 from grass.gunittest.case import TestCase
 from grass.gunittest.main import test
 
+
 class TestClimatologies(TestCase):
     @classmethod
     def setUpClass(cls):
@@ -111,5 +112,6 @@ class TestClimatologies(TestCase):
             input="monthly",
         )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     test()
