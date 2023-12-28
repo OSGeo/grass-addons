@@ -74,16 +74,38 @@
 
 import copy
 import sys
+import atexit
 from datetime import datetime
 
 import grass.temporal as tgis
-import grass.script as gscript
+import grass.script as gs
 import grass.pygrass.modules as pymod
 from grass.pygrass.vector import VectorTopo
 from grass.pygrass.vector.geometry import Point
 
+remove_years = []
+remove_mapset = []
+
+def cleanup():
+    """
+    Clean up temporary maps
+    """
+    # remove space time vector datasets
+    import pdb; pdb.set_trace()
+    for year in remove_years:
+        remod = pymod.Module("t.remove", run_=False)
+        remod.inputs.inputs = f"sample_seasons_{year}@{remove_mapset[0]}"
+        remod.inputs.type = "stvds"
+        remod.flags.r = True
+        remod.flags.f = True
+        remod.flags.d = True
+        remod.flags.quiet = True
+        remod.get_bash()
+        remod.run()
+
 
 def main():
+    options, flags = gs.parser()
     strds = options["input"]
 
     output_name = options["output"]
@@ -93,22 +115,26 @@ def main():
     dbif = tgis.SQLDatabaseInterfaceConnection()
     dbif.connect()
     mapset = tgis.core.get_current_mapset()
+    remove_mapset.append(mapset)
 
-    try:
-        vals = options["years"].split("-")
-        years = range(vals)
-    except:
+    if options["years"] != '':
         try:
-            years = options["years"].split(",")
+            vals = options["years"].split("-")
+            years = range(vals)
         except:
-            if strds.find("@") >= 0:
-                id_ = strds
-            else:
-                id_ = strds + "@" + gscript.gisenv()["MAPSET"]
-            dataset = tgis.dataset_factory("strds", id_)
-            dataset.select(dbif)
-            ext = dataset.get_temporal_extent()
-            years = range(ext.start_time.year, ext.end_time.year)
+            try:
+                years = options["years"].split(",")
+            except:
+                gs.fatal(_("Invalid option years"))
+    else:
+        if strds.find("@") >= 0:
+            id_ = strds
+        else:
+            id_ = f'{strds}@{gs.gisenv()["MAPSET"]}'
+        dataset = tgis.dataset_factory("strds", id_)
+        dataset.select(dbif)
+        ext = dataset.get_temporal_extent()
+        years = range(ext.start_time.year, ext.end_time.year)
 
     method = options["method"]
     basename = options["basename"]
@@ -120,12 +146,13 @@ def main():
     else:
         out_strds = basename
 
-    seasons_name = ["spring", "summer", "autumn", "winter"]
+    seasons = ["spring", "summer", "autumn", "winter"]
 
     # create new space time vector datasets one for each year to be used as sampler
     for year in years:
         season_vect = []
-        for seas in seasons_name:
+        remove_years.append(year)
+        for seas in seasons:
             name = f"sample_{seas}_{year}"
             vect = VectorTopo(name)
             vect.open("w")
@@ -163,7 +190,7 @@ def main():
             f"Season vector for the year {year}",
             "mean",
             dbif,
-            gscript.overwrite(),
+            gs.overwrite(),
         )
         tgis.register_map_object_list(
             "vector",
@@ -177,13 +204,14 @@ def main():
     process_queue = pymod.ParallelModuleQueue(int(nprocs))
 
     # create t.rast.aggregate.ds module to be copied
-    mod = pymod.Module("t.rast.aggregate.ds")
+    mod = pymod.Module("t.rast.aggregate.ds", run_=False)
     mod.inputs.input = strds
     mod.inputs.method = method
     mod.inputs.basename = basename
     mod.inputs.type = "stvds"
     mod.flags.quiet = True
     mod.flags.n = register_null
+    mod.flags.overwrite = gs.overwrite()
 
     count = 0
 
@@ -195,25 +223,14 @@ def main():
         process_queue.put(mymod)
 
         if count % 10 == 0:
-            gscript.percent(count, len(years), 1)
+            gs.percent(count, len(years), 1)
 
     # Wait for unfinished processes
     process_queue.wait()
 
-    out_maps = []
-    # remove space time vector datasets
-    for year in years:
-        remod = pymod.Module("t.remove")
-        remod.inputs.inputs = f"sample_seasons_{year}@{mapset}"
-        remod.flags.r = True
-        remod.flags.f = True
-        remod.flags.quiet = True
-        if output_name:
-            listmaps = pymod.Module("t.rast.list")
-            listmaps.inputs.input = f"{out_strds_{year}}"
-            listmaps.inputs.columns = ["name"]
+    return True
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
-    sys.exit(main())
+    atexit.register(cleanup)
+    main()

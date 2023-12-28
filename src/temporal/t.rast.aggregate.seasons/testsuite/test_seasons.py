@@ -7,10 +7,8 @@ for details.
 """
 
 import grass.temporal as tgis
-import datetime
 from grass.gunittest.case import TestCase
-from grass.gunittest.gmodules import SimpleModule
-
+from grass.gunittest.main import test
 
 class TestClimatologies(TestCase):
     @classmethod
@@ -83,7 +81,7 @@ class TestClimatologies(TestCase):
     def test_no_years(self):
         """Test on all years"""
         self.assertModule(
-            "t.rast.seasons",
+            "t.rast.aggregate.seasons",
             input="monthly",
             output="monthly_seasons",
             basename="seasons",
@@ -96,7 +94,7 @@ class TestClimatologies(TestCase):
     def test_one_year(self):
         """Test just one year"""
         self.assertModule(
-            "t.rast.seasons",
+            "t.rast.aggregate.seasons",
             input="monthly",
             basename="season_2002",
             years=2002,
@@ -109,6 +107,9 @@ class TestClimatologies(TestCase):
     def test_error_missing_basename(self):
         """Test if basename is missing"""
         self.assertModuleFail(
-            "t.rast.seasons",
+            "t.rast.aggregate.seasons",
             input="monthly",
         )
+
+if __name__ == '__main__':
+    test()
