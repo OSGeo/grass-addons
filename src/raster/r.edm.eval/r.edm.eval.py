@@ -29,25 +29,21 @@
 # % description: Computes evaluation statistics for a given prediction layer
 # %End
 
-# %option
+# %option G_OPT_R_INPUT
 # % key: reference
 # % type: string
 # % gisprompt: old,cell,raster
 # % description: Name of raster layer containing references classes
-# % key_desc: Raster name
 # % required: yes
 # % multiple: no
 # % guisection: Input
 # %end
 
-# %option
+# %option G_OPT_R_INPUTS
 # % key: prediction
 # % type: string
-# % gisprompt: old,cell,raster
 # % description: Name of raster layer with predictions
-# % key_desc: Raster name
 # % required: yes
-# % multiple: no
 # % guisection: Input
 # %end
 
@@ -163,6 +159,7 @@ from subprocess import PIPE
 import grass.script as gs
 from grass.pygrass.modules import Module
 import pandas as pd
+import random
 
 clean_layers = []
 
@@ -294,7 +291,7 @@ def compute_stats(modelled, reference, n_bins, background):
     dfw["FN"] = (dfw_sum[0] + dfw_sum[1]) - (dfw["TP"] + dfw["FP"] + dfw["TN"])
     dfw = dfw.iloc[:, 2:6]
     dfw["TPR"] = dfw["TP"] / (dfw["TP"] + dfw["FN"])
-    if background:
+    if background:  # gives the wrong results - check where this goes wrong
         dfw["FPR"] = dfw["FP"] / (dfw_sum[0] + dfw_sum[1])
     else:
         dfw["FPR"] = dfw["FP"] / (dfw["FP"] + dfw["TN"])
@@ -323,50 +320,36 @@ def compute_stats(modelled, reference, n_bins, background):
 
     dfw["ID"] = dfw.index
     dfexport = pd.merge(classbounds_df, dfw, on="ID", how="left")
+    dfexport["rasterlayer"] = modelled
 
     return dfexport, dfw_stats
 
 
-def roc_plot(X, Y, dimensions, fontsize, background):
+def random_color():
     """
-    Create roc plot
+    Function to generate a random color
 
-    :param list X: X values
-    :param list Y: Y values
-    :param list dimensions: plot dimensions (width, height)
-    :param float fontsize: fontsize of all text (tic labes are 1pnt smaller)
-
-    :return print ax, fig
+    :return list with rgb elements
     """
-
-    fig, ax = plt.subplots(figsize=dimensions)
-    plt.rcParams["font.size"] = fontsize
-    for label in ax.get_xticklabels() + ax.get_yticklabels():
-        label.set_fontsize(fontsize - 1)
-    ax.plot([0, 1], [0, 1], color="grey", ls="-", linewidth=1)
-    ax.plot(X, Y, color="blue", linewidth=1.5)
-    plt.ylabel("True positive rate", fontsize=fontsize)
-    if background:
-        plt.xlabel("Fraction predicted of all points", fontsize=fontsize)
-    else:
-        plt.xlabel("False negative rate", fontsize=fontsize)
-    ax.set_xticks(np.arange(0, 1.1, 0.1))
-    ax.set_yticks(np.arange(0, 1.1, 0.1))
-    plt.grid(True, color="lightgrey", lw=0.5)
-    return ax, fig
+    hex_color = "#{:06x}".format(random.randint(0, 0xFFFFFF))
+    return matplotlib.colors.hex2color(hex_color)
 
 
-def is_integer(input):
+def get_valid_color(color):
+    """Get valid Matplotlib color
+
+    :param str color: input color
+
+    :return list: rgba list, e.g. [0.0, 0.0, 1.0, 1]
     """
-    Check if a layer is an integer
-
-    :param string input: name input layer
-
-    :return bool true false
-    """
-    info = gs.parse_command("r.info", map=input, flags="g")
-    data_type = info["datatype"]
-    return data_type == "CELL"
+    if ":" in color:
+        color = [int(x) for x in color.split(":")]
+        if max(color) > 1:
+            color[:] = [x / 255 for x in color]
+    if not matplotlib.colors.is_color_like(color):
+        gs.fatal(_("{} is not a valid color.".format(color)))
+    color = matplotlib.colors.to_rgba(color)
+    return color
 
 
 def main(options, flags):
@@ -378,7 +361,9 @@ def main(options, flags):
 
     # Check if reference layer is integer
     reference = options["reference"]
-    if not is_integer(input=reference):
+    info = gs.parse_command("r.info", map=reference, flags="g")
+    data_type = info["datatype"]
+    if not data_type == "CELL":
         gs.fatal("The 'reference' layer is not an integer map")
 
     # Check if reference map is binary
@@ -462,28 +447,38 @@ def main(options, flags):
 
     # recode steps
     lazy_import_pandas()
-    dfw, dfw_stats = compute_stats(
-        modelled=options["prediction"],
-        reference=reference,
-        n_bins=int(options["n_bins"]) + 1,
-        background=flags["b"],
-    )
-    gs.message(_("AUC = {}".format(round(dfw_stats["auc"], 4))))
-    gs.message(_("maximum TSS =  {}".format(round(dfw_stats["tss_max"], 4))))
-    gs.message(_("maximum kappa =  {}".format(round(dfw_stats["kappa_max"], 4))))
-    gs.message(
-        _("treshold maximum TSS = {}".format(round(dfw_stats["tss_threshold"], 4)))
-    )
-    gs.message(
-        _("treshold maximum kappa = {}".format(round(dfw_stats["kappa_threshold"], 4)))
-    )
-    gs.message(
-        _(
-            "treshold minimum distance to (0,1) = {}".format(
-                round(dfw_stats["min_dist_threshold"], 4)
+    predictions = options["prediction"].split(",")
+    dfw2 = []
+    for modelled in predictions:
+        dfw1, dfw_stats = compute_stats(
+            modelled=modelled,
+            reference=reference,
+            n_bins=int(options["n_bins"]) + 1,
+            background=flags["b"],
+        )
+        gs.message(_("\n--- performance {} ---".format(modelled.split("@")[0])))
+        gs.message(_("AUC = {}".format(round(dfw_stats["auc"], 4))))
+        gs.message(_("maximum TSS =  {}".format(round(dfw_stats["tss_max"], 4))))
+        gs.message(_("maximum kappa =  {}".format(round(dfw_stats["kappa_max"], 4))))
+        gs.message(
+            _("treshold maximum TSS = {}".format(round(dfw_stats["tss_threshold"], 4)))
+        )
+        gs.message(
+            _(
+                "treshold maximum kappa = {}".format(
+                    round(dfw_stats["kappa_threshold"], 4)
+                )
             )
         )
-    )
+        gs.message(
+            _(
+                "treshold minimum distance to (0,1) = {}".format(
+                    round(dfw_stats["min_dist_threshold"], 4)
+                )
+            )
+        )
+        dfw2.append(dfw1)
+    dfw = pd.concat(dfw2)
     if options["csv"]:
         dfw.drop(columns=["ID", "distance"])
         dfw.to_csv(options["csv"], index=False)
@@ -493,19 +488,39 @@ def main(options, flags):
         lazy_import_matplotlib()
         plot_dimensions = [float(x) for x in options["plot_dimensions"].split(",")]
         fontsize = float(options["fontsize"])
-        ax, p = roc_plot(
-            X=dfw["FPR"],
-            Y=dfw["TPR"],
-            dimensions=plot_dimensions,
-            fontsize=fontsize,
-            background=flags["b"],
-        )
-    if bool(options["figure"]):
-        p.savefig(options["figure"], bbox_inches="tight", dpi=float(options["dpi"]))
-    if flags["p"]:
-        p.tight_layout()
-        plt.show(block=False)
-        plt.show()
+        fig, ax = plt.subplots(figsize=plot_dimensions)
+        plt.rcParams["font.size"] = fontsize
+        for label in ax.get_xticklabels() + ax.get_yticklabels():
+            label.set_fontsize(fontsize - 1)
+        rdf = pd.DataFrame([[0, 0], [1, 1]], columns=["x", "y"])
+        ax.plot(rdf["x"], rdf["y"], color="grey", ls="-", linewidth=1)
+        if len(predictions) == 1:
+            ax = dfw.plot(
+                ax=ax, x="FPR", y="TPR", color="blue", linewidth=1.5, legend=False
+            )
+        else:
+            for key, grp in dfw.groupby(["rasterlayer"]):
+                key = key.split("@")[0]
+                ax = grp.plot(
+                    ax=ax, kind="line", x="FPR", y="TPR", linewidth=1.5, label=key
+                )
+        plt.ylabel("True positive rate", fontsize=fontsize)
+        if flags["b"]:
+            plt.xlabel("Fraction predicted of all points", fontsize=fontsize)
+        else:
+            plt.xlabel("False negative rate", fontsize=fontsize)
+        ax.set_xticks(np.arange(0, 1.1, 0.1))
+        ax.set_yticks(np.arange(0, 1.1, 0.1))
+        plt.grid(True, color="lightgrey", lw=0.5)
+
+        if bool(options["figure"]):
+            fig.savefig(
+                options["figure"], bbox_inches="tight", dpi=float(options["dpi"])
+            )
+        if flags["p"]:
+            fig.tight_layout()
+            plt.show(block=False)
+            plt.show()
 
 
 if __name__ == "__main__":
