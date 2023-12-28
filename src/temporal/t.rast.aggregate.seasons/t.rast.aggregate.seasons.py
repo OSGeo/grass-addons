@@ -91,7 +91,6 @@ def cleanup():
     Clean up temporary maps
     """
     # remove space time vector datasets
-    import pdb; pdb.set_trace()
     for year in remove_years:
         remod = pymod.Module("t.remove", run_=False)
         remod.inputs.inputs = f"sample_seasons_{year}@{remove_mapset[0]}"
@@ -100,7 +99,6 @@ def cleanup():
         remod.flags.f = True
         remod.flags.d = True
         remod.flags.quiet = True
-        remod.get_bash()
         remod.run()
 
 
