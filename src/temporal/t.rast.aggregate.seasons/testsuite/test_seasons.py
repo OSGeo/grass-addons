@@ -76,7 +76,7 @@ class TestClimatologies(TestCase):
     @classmethod
     def tearDownClass(cls):
         """Remove the time series"""
-        cls.runModule("t.remove", flags="rf", type="strds", inputs="daily")
+        cls.runModule("t.remove", flags="rf", type="strds", inputs="monthly")
 
     def test_no_years(self):
         """Test on all years"""
@@ -89,20 +89,20 @@ class TestClimatologies(TestCase):
             verbose=True,
         )
         out = tgis.open_old_stds("monthly_seasons", type="strds")
-        self.assertEqual(out.metadata.get_number_of_maps(), 8)
+        self.assertEqual(out.metadata.get_number_of_maps(), 7)
 
     def test_one_year(self):
         """Test just one year"""
         self.assertModule(
             "t.rast.aggregate.seasons",
             input="monthly",
-            basename="season_2002",
+            basename="oneseason",
             years=2002,
             overwrite=True,
             verbose=True,
         )
-        out = tgis.open_old_stds("monthly_seasons", type="strds")
-        self.assertEqual(out.metadata.get_number_of_maps(), 4)
+        out = tgis.open_old_stds("oneseason_2002", type="strds")
+        self.assertEqual(out.metadata.get_number_of_maps(), 3)
 
     def test_error_missing_basename(self):
         """Test if basename is missing"""

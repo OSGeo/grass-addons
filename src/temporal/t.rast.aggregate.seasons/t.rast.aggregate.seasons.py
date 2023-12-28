@@ -27,6 +27,8 @@
 # %end
 
 # %option G_OPT_STRDS_OUTPUT
+# % label: The name of a singular space time raster dataset
+# % description: Using this option all the yearly space time raster datasets will be merged in a singular space time raster dataset
 # % required: no
 # %end
 
@@ -41,7 +43,7 @@
 # %option
 # % key: basename
 # % type: string
-# % label: Basename of the new generated output maps and space time raster dataset
+# % label: Basename of the new generated output maps and space time raster datasets
 # % description: A numerical suffix separated by an underscore will be attached to create a unique identifier
 # % required: yes
 # % multiple: no
@@ -73,7 +75,6 @@
 # %end
 
 import copy
-import sys
 import atexit
 from datetime import datetime
 
@@ -83,23 +84,23 @@ import grass.pygrass.modules as pymod
 from grass.pygrass.vector import VectorTopo
 from grass.pygrass.vector.geometry import Point
 
-remove_years = []
-remove_mapset = []
+remove_dataset = {"stvds": [], "strds": []}
 
 def cleanup():
     """
     Clean up temporary maps
     """
     # remove space time vector datasets
-    for year in remove_years:
-        remod = pymod.Module("t.remove", run_=False)
-        remod.inputs.inputs = f"sample_seasons_{year}@{remove_mapset[0]}"
-        remod.inputs.type = "stvds"
-        remod.flags.r = True
-        remod.flags.f = True
-        remod.flags.d = True
-        remod.flags.quiet = True
-        remod.run()
+    for typ, maps in remove_dataset.items():
+        for map in maps:
+            remod = pymod.Module("t.remove", run_=False)
+            remod.inputs.inputs = map
+            remod.inputs.type = typ
+            remod.flags.r = True
+            remod.flags.f = True
+            remod.flags.d = True
+            remod.flags.quiet = True
+            remod.run()
 
 
 def main():
@@ -113,7 +114,6 @@ def main():
     dbif = tgis.SQLDatabaseInterfaceConnection()
     dbif.connect()
     mapset = tgis.core.get_current_mapset()
-    remove_mapset.append(mapset)
 
     if options["years"] != '':
         try:
@@ -139,17 +139,11 @@ def main():
     nprocs = int(options["nprocs"])
     register_null = flags["n"]
 
-    if output_name:
-        out_strds = output_name
-    else:
-        out_strds = basename
-
     seasons = ["spring", "summer", "autumn", "winter"]
 
     # create new space time vector datasets one for each year to be used as sampler
     for year in years:
         season_vect = []
-        remove_years.append(year)
         for seas in seasons:
             name = f"sample_{seas}_{year}"
             vect = VectorTopo(name)
@@ -180,8 +174,9 @@ def main():
                 )
             map_layer.set_temporal_extent(extent=extent)
             season_vect.append(map_layer)
+        temp_season = f"sample_seasons_{year}"
         outsp = tgis.open_new_stds(
-            f"sample_seasons_{year}",
+            temp_season,
             "stvds",
             "absolute",
             f"Season vector year {year}",
@@ -198,26 +193,36 @@ def main():
             None,
             dbif,
         )
+        remove_dataset["stvds"].append(temp_season)
 
     process_queue = pymod.ParallelModuleQueue(int(nprocs))
 
     # create t.rast.aggregate.ds module to be copied
-    mod = pymod.Module("t.rast.aggregate.ds", run_=False)
+    mod = pymod.Module("t.rast.aggregate.ds")
     mod.inputs.input = strds
     mod.inputs.method = method
     mod.inputs.basename = basename
     mod.inputs.type = "stvds"
-    mod.flags.quiet = True
+    mod.flags.quiet = False
     mod.flags.n = register_null
     mod.flags.overwrite = gs.overwrite()
 
     count = 0
 
+    outputs = []
     # for each year calculate seasonal aggregation
     for year in years:
+        print(year)
         mymod = copy.deepcopy(mod)
         mymod.inputs.sample = f"sample_seasons_{year}@{mapset}"
-        mymod.outputs.output = f"{out_strds}_{year}"
+        if output_name:
+            myout = f"{output_name}_{year}"
+            remove_dataset["strds"].append(myout)
+            outputs.append(myout)
+            mymod.outputs.output = myout
+        else:
+            mymod.outputs.output = f"{basename}_{year}"
+        print(mymod.get_bash())
         process_queue.put(mymod)
 
         if count % 10 == 0:
@@ -225,6 +230,9 @@ def main():
 
     # Wait for unfinished processes
     process_queue.wait()
+
+    if len(outputs) > 1:
+        pymod.Module("t.merge", inputs=','.join(outputs), output=output_name)
 
     return True
 
