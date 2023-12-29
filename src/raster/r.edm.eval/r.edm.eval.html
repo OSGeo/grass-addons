@@ -1,17 +1,22 @@
 <h2>DESCRIPTION</h2>
 
-The <em>r.roc</em> addon returns some evaluation statistics, 
+The <em>r.roc</em> addon returns a few evaluation statistics, 
 including the area under the curve (AUC), the maximum true skill 
 statistic (TSS), and the maximum kappa. For all three statistics, the 
 corresponding probability threshold values are also given. Optionally, 
 it draws the receiver operating characteristic (ROC) curve.
 
 <p>
-The addon takes as input two raster layers. One raster layer 
-(<em>observations</em>) should be encoded with 1 (presence/cases) and 0 
-(absences/controls). The second layer (<em>predictions</em>should give 
-the predicted values. This typically are probability or suitability 
-scores between 0 and 1, but it will work on other scales too.
+The addon takes as input a raster layer with 
+observations(<em>observations</em>) and one or more 
+<em>predictions</em> layers. The <em>observations</em> layer 
+should be encoded with 1 (presence/cases) and 0 (absences/controls). 
+The (<em>predictions</em> layer gives the predicted values (e.g., the 
+outcome of a model). This typically are probability or suitability 
+scores between 0 and 1, but it will work on other scales too. With two 
+or more <em>predictions</em> layers, statistics are calculated for each 
+prediction layer separately. This allows one to compare predictions of 
+different models.
 
 <p>
 By default, the prediction layer is divided in 200 bins (the user can 
@@ -94,7 +99,7 @@ href="https://pandas.pydata.org/">Pandas library.</a>
 <h2>EXAMPLES</h2>
 
 Run this example in the "landsat" mapset of the North Carolina sample 
-data set location. First create a binary map with herbaceous land cover 
+data set location. First, create a binary map with herbaceous land cover 
 (1) and other (0). Next, create a raster layer with training pixels 
 using <em>r.learn.train</em> and <em>r.learn.predict</em> from the <a 
 href="https://grass.osgeo.org/grass-stable/manuals/addons/r.learn.ml2.html"></a>r.learn.ml2</a> 
@@ -113,7 +118,7 @@ Then we can use these training pixels to perform a classification on
 the more recently obtained landsat 7 image using <em>r.learn.train</em>.
 
 <div class="code"><pre>
-# train a random forest classification model using r.learn.train
+# train a random forest regression model using r.learn.train
 r.learn.train group=lsat7_2000 training_map=training_pixels \
 	model_name=RandomForestRegressor n_estimators=500 \
 	save_model=rf_model.gz cv=2
@@ -155,6 +160,54 @@ optionally be saved to file).
 href="r_edm_eval_01.png"> <img src="r_edm_eval_01.png" alt=" 
 ROC curve" border="0"> </a></div>
 
+<p>
+Let's try how well a logistic regression performs, and compare this 
+with the previous results.
+
+<div class="code"><pre>
+# train a logistic regression model using r.learn.train
+r.learn.train group=lsat7_2000 training_map=training_pixels \
+	model_name=LogisticRegression save_model=lr_model.gz cv=2
+	
+# perform prediction using r.learn.predict -p
+r.learn.predict group=lsat7_2000 load_model=lr_model.gz \
+   output=lr_regressor
+</pre>
+</div>
+
+<div class="code"><pre>
+r.edm.eval -p reference=herbaceous prediction=rf_regressor,lr_regressor_1
+</pre>
+</div>
+
+<p>
+The accuracy measures are printed on screen.
+
+<div class="code"><pre>
+AUC = 0.8362
+maximum TSS = 0.5289
+maximum kappa = 0.4438
+treshold maximum TSS = 0.1118
+treshold maximum kappa = 0.2936
+treshold minimum distance to (0,1) = 0.0979
+
+--- performance lr_regressor_1 ---
+AUC = 0.8384
+maximum TSS = 0.5621
+maximum kappa = 0.4669
+treshold maximum TSS = 0.1047
+treshold maximum kappa = 0.1995
+treshold minimum distance to (0,1) = 0.0848
+</pre>
+</div>
+
+And the accompanying ROC curve is shown below (the figure can optionally be saved to file). 
+
+<p>
+<div align="center" style="margin: 10px"> <a href="r_edm_eval_02.png"> 
+<img src="r_edm_eval_02.png" alt=" ROC curve of random forest 
+regression model and logistic regression model." border="0"> </a></div>
+
 
 <h2>REFERENCES</h2>
 
@@ -192,3 +245,4 @@ phenomenon or statistical artefact? Journal of Applied Ecology 41:
 <h2>AUTHOR</h2>
 
 Paulo van Breugel
+

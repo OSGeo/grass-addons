@@ -8,13 +8,15 @@
 #
 # NOTES:        The observed distribution of e.g., a species, land
 #               cover unit or vegetation unit should be a binary map
-#               with 1 (present) and 0 (absent). The values of the
-#               modeled distribution can be any map that represents a
-#               probability distribution in space. This could be based
-#               on X, but it doesn't need to be. You can also, for example,
-#               evaluate how well the modeled distribution of a species X
-#               predicts the distribution of species Y or of land cover
-#               type Y.
+#               with 1 (present) and 0 (absent). Alternatively, the
+#               user can define what values represent presence and
+#               absence. The values of the modeled distribution can
+#               be any map that represents a probability distribution
+#               in space. This could be based on X, but it doesn't
+#               need to be. You can also, for example, evaluate how
+#               well the modeled distribution of a species X
+#               predicts the distribution of species Y or of land
+#               cover type Y.
 #
 # COPYRIGHT: (C) 2014-2023 Paulo van Breugel
 #            http://ecodiv.earth
@@ -267,18 +269,53 @@ def compute_stats(modelled, reference, n_bins, background):
     tmp_rocsteps = create_temporary_name("eval4_")
     Module("r.recode", input=modelled, output=tmp_rocsteps, rules=file_name)
 
-    stat_presabs = Module(
-        "r.stats",
-        flags="cn",
-        input=f"{reference},{tmp_rocsteps}",
-        separator="pipe",
-        stdout_=PIPE,
-    ).outputs.stdout
-    stats_outlines = stat_presabs.replace("\r", "").strip().split("\n")
-    v1 = [float(z.split("|")[0]) for z in stats_outlines]
-    v2 = [float(z.split("|")[1]) for z in stats_outlines]
-    v3 = [float(z.split("|")[2]) for z in stats_outlines]
-    df = pd.DataFrame(zip(v1, v2, v3), columns=["v1", "v2", "v3"])
+    if background:
+        bkgr_a = create_temporary_name("bkgr1_")
+        Module("r.mapcalc", expression=f"{bkgr_a} = {reference}")
+        Module("r.null", map=bkgr_a, setnull=0)
+        stat_presab1 = Module(
+            "r.stats",
+            flags="cn",
+            input=f"{bkgr_a},{tmp_rocsteps}",
+            separator="pipe",
+            stdout_=PIPE,
+        ).outputs.stdout
+        stats_outline1 = stat_presab1.replace("\r", "").strip().split("\n")
+        v1 = [float(z.split("|")[0]) for z in stats_outline1]
+        v2 = [float(z.split("|")[1]) for z in stats_outline1]
+        v3 = [float(z.split("|")[2]) for z in stats_outline1]
+        df1 = pd.DataFrame(zip(v1, v2, v3), columns=["v1", "v2", "v3"])
+        bkgr_b = create_temporary_name("bkgr2_")
+        recode_rules = f"{0}:{1}:0\n"
+        Module(
+            "r.recode", input=reference, output=bkgr_b, rules="-", stdin_=recode_rules
+        )
+        stat_presab2 = Module(
+            "r.stats",
+            flags="cn",
+            input=f"{bkgr_b},{tmp_rocsteps}",
+            separator="pipe",
+            stdout_=PIPE,
+        ).outputs.stdout
+        stats_outline2 = stat_presab2.replace("\r", "").strip().split("\n")
+        v1 = [float(z.split("|")[0]) for z in stats_outline2]
+        v2 = [float(z.split("|")[1]) for z in stats_outline2]
+        v3 = [float(z.split("|")[2]) for z in stats_outline2]
+        df2 = pd.DataFrame(zip(v1, v2, v3), columns=["v1", "v2", "v3"])
+        df = pd.concat([df1, df2])
+    else:
+        stat_presabs = Module(
+            "r.stats",
+            flags="cn",
+            input=f"{reference},{tmp_rocsteps}",
+            separator="pipe",
+            stdout_=PIPE,
+        ).outputs.stdout
+        stats_outlines = stat_presabs.replace("\r", "").strip().split("\n")
+        v1 = [float(z.split("|")[0]) for z in stats_outlines]
+        v2 = [float(z.split("|")[1]) for z in stats_outlines]
+        v3 = [float(z.split("|")[2]) for z in stats_outlines]
+        df = pd.DataFrame(zip(v1, v2, v3), columns=["v1", "v2", "v3"])
 
     # Calculate evaluation stats per threshold
     dfw = pd.pivot_table(
@@ -291,10 +328,7 @@ def compute_stats(modelled, reference, n_bins, background):
     dfw["FN"] = (dfw_sum[0] + dfw_sum[1]) - (dfw["TP"] + dfw["FP"] + dfw["TN"])
     dfw = dfw.iloc[:, 2:6]
     dfw["TPR"] = dfw["TP"] / (dfw["TP"] + dfw["FN"])
-    if background:  # gives the wrong results - check where this goes wrong
-        dfw["FPR"] = dfw["FP"] / (dfw_sum[0] + dfw_sum[1])
-    else:
-        dfw["FPR"] = dfw["FP"] / (dfw["FP"] + dfw["TN"])
+    dfw["FPR"] = dfw["FP"] / (dfw["FP"] + dfw["TN"])
     dfw["TNR"] = dfw["TN"] / (dfw["TN"] + dfw["FP"])
     dfw["TSS"] = dfw["TPR"] - dfw["FPR"]
     dfw["kappa"] = (
