@@ -43,7 +43,7 @@ float velocita_breccia(int i, double h)
 {
     // double h;
     // int i;
-    // float g=9.81;
+    // float g = 9.81;
     float v;
 
     if (i == 1) {
@@ -62,7 +62,7 @@ void shallow_water(double **m_h1, double **m_u1, double **m_v1, float **m_z,
                    int method, int num_cell, int num_break, double t)
 {
 
-    /*FUNCTION VARIABLES*/
+    /* FUNCTION VARIABLES */
     double h_dx, h_sx, h_up, h_dw, Fup, Fdw, Fdx, Fsx, Gup, Gdw, Gdx, Gsx;
     double u_sx, u_dx, v_dx, v_sx, v_up, v_dw, u_up, u_dw;
 
@@ -82,23 +82,24 @@ void shallow_water(double **m_h1, double **m_u1, double **m_v1, float **m_z,
 
     // DESCRIPTION OF METHOD
     // First cycle: Calculation of new water heights at time t + 1:
-    //      - Downstream of the dam: Apply continuity equation to shallow water
-    //        In practice, the new height is evaluated through a balance
-    //        of the incoming and outgoing flows in the two main directions
-    //      - Upstream of the dam:
-    //          - In methods 1 and 2:
-    //              - The continuity equation is applied to the volume of the lake
-    //                Physically this leads to a less realistic but avoids
-    //                the oscillations that causes numerical instability.
-    //          - In the more general case the equations are applied to the whole lake
+    //  - Downstream of the dam: Apply continuity equation to shallow water.
+    //    In practice, the new height is evaluated through a balance
+    //    of the incoming and outgoing flows in the two main directions
+    //  - Upstream of the dam:
+    //      - In methods 1 and 2:
+    //          - The continuity equation is applied to the volume of the lake.
+    //            Physically this leads to a less realistic but avoids the
+    //            oscillations that causes numerical instability.
+    //      - In the more general case, the equations are applied to the whole
+    //        lake
 
     for (row = 1; row < nrows - 1; row++) {
         for (col = 1; col < ncols - 1; col++) {
             if (m_lake[row][col] == 0 && m_DAMBREAK[row][col] <= 0) {
 
-                //*******************************************/
-                /* CONTINUITY EQUATION --> h(t+1)           */
-                //*******************************************/
+                /*******************************************
+                 * CONTINUITY EQUATION --> h(t+1)
+                 *******************************************/
                 // x direction
                 // right intercell
                 if (m_u1[row][col] > 0 && m_u1[row][col + 1] > 0) {
@@ -168,8 +169,9 @@ void shallow_water(double **m_h1, double **m_u1, double **m_v1, float **m_z,
                 }
                 F = Fdx - Fsx;
 
-                // dGup =m_v1[row][col] * m_h1[row][col]; y direction
-                // intercell up
+                /* dGup = m_v1[row][col] * m_h1[row][col]; */
+                // y direction
+                //  intercell up
                 if (m_v1[row][col] > 0 && m_v1[row - 1][col] > 0) {
                     Gup = m_v1[row][col] * m_h1[row][col];
                 }
@@ -242,67 +244,103 @@ void shallow_water(double **m_h1, double **m_u1, double **m_v1, float **m_z,
                 m_h2[row][col] = m_h1[row][col] - timestep / res_ew * F -
                                  timestep / res_ns * G;
 
-                /*if ((row==20||row==21||row==22||row==23)&&(col==18||col==19)){
-                        printf("EQ. CONTINUITY --> row:%d, col:%d\n)",row,
-                col);
-                        printf("m_h1[row][col]:%f,m_u1[row][col]:%f,m_v1[row][col]:%f",m_h1[row][col],m_u1[row][col],m_v1[row][col]);
-                        printf("m_h1[row][col+1]:%f,m_h1[row][col-1]:%f,m_h1[row+1][col]:%f,
-                m_h1[row-1][col]:%f\n",m_h1[row][col+1],m_h1[row][col-1],m_h1[row+1][col],
-                m_h1[row-1][col]); printf("h_dx:%f, h_sx:%f, h_up%f,
-                h_dw:%f\n",h_dx, h_sx, h_up, h_dw);
-                        printf("m_u1[row][col+1]:%f,m_u1[row][col-1]:%f,m_v1[row+1][col]:%f,
-                m_v1[row-1][col]:%f\n",m_u1[row][col+1],m_u1[row][col-1],m_v1[row+1][col],
-                m_v1[row-1][col]); printf("v_up: %f,v_dw:%f,u_dx:%f,u_sx:%f
-                \n",v_up, v_dw, u_dx, u_sx); printf("Fdx: %f,Fsx: %f, F: %f,
-                Gup:%f, Gdw:%f, G: %f\n",Fdx, Fsx, F,Gup, Gdw, G);
-                        printf("m_h2(row,col): %f\n \n", m_h2[row][col]);
-                }*/
+                /* if ((row == 20 || row == 21 || row == 22 || row == 23) &&
+                    (col == 18 || col == 19)) {
+                    printf("EQ. CONTINUITY --> row:%d, col:%d\n)", row, col);
+                    printf("m_h1[row][col]:%f, "
+                           "m_u1[row][col]:%f, "
+                           "m_v1[row][col]:%f",
+                           m_h1[row][col], m_u1[row][col], m_v1[row][col]);
+                    printf("m_h1[row][col+1]:%f, "
+                           "m_h1[row][col-1]:%f, "
+                           "m_h1[row+1][col]:%f, "
+                           "m_h1[row-1][col]:% f\n",
+                           m_h1[row][col + 1], m_h1[row][col - 1],
+                           m_h1[row + 1][col], m_h1[row - 1][col]);
+                    printf("h_dx:%f, h_sx:%f, h_up%f, h_dw:%f\n", h_dx, h_sx,
+                           h_up, h_dw);
+                    printf("m_u1[row][col+1]:%f, "
+                           "m_u1[row][col-1]:%f, "
+                           "m_v1[row+1][col]:%f, "
+                           "m_v1[row-1][col]:%f\n",
+                           m_u1[row][col + 1], m_u1[row][col - 1],
+                           m_v1[row + 1][col], m_v1[row - 1][col]);
+                    printf("v_up: %f, v_dw:%f, "
+                           "u_dx:%f, u_sx:%f\n",
+                           v_up, v_dw, u_dx, u_sx);
+                    printf("Fdx: %f,Fsx: %f, F: %f, "
+                           "Gup:%f, Gdw:%f, G: %f\n",
+                           Fdx, Fsx, F, Gup, Gdw, G);
+                    printf("m_h2(row,col): %f\n \n", m_h2[row][col]);
+                } */
 
-                /*if( (row==1 || row==(nrows-2) || col==1 || col==(ncols-2)) &&
-  (m_v2[1][col]>0 || m_v2[nrows-2][col]<0 || m_u1[row][1]<0 ||
-  m_u1[row][ncols-2]>0 )){ if (warn==0){ G_warning("At the time %.3f the
-  computational region is smaller than inundation",t); warn=1;
-                G_message("warn=%d",warn);
-        }
-  }*/
+                /* if (((row == 1 || row == (nrows - 2)) ||
+                     (col == 1 || col == (ncols - 2))) &&
+                    (m_v2[1][col] > 0 || m_v2[nrows - 2][col] < 0 ||
+                     m_u1[row][1] < 0 || m_u1[row][ncols - 2] > 0)) {
+                    if (warn == 0) {
+                        G_warning("At the time %.3f the computational region "
+                                  "is smaller than inundation",
+                                  t);
+                        warn = 1;
+                        G_message("warn=%d", warn);
+                    }
+                } */
 
                 if (m_h2[row][col] < 0) {
-                    /*G_warning("At the time %f h is lesser than 0
-               h(%d,%d)=%f",t, row,col,m_h2[row][col]); printf("row:%d, col:%d,
-               H less than zero: %.30lf)",row, col, m_h2[row][col]);
-               printf("DATA:\n");
-                    printf("row:%d,col%d,hmin:%g,h2:%.30lf \n
-               ",row,col,hmin,m_h2[row][col]); printf("m_z[row][col]:%f\n",
-               m_z[row][col]); printf("m_h1[row][col]:%.30lf\n",m_h1[row][col]);
-                    printf("m_u1[row][col]:%.30lf,m_v1[row][col]:%.30lf\n",m_u1[row][col],
-               m_v1[row][col]);
-                    printf("m_z[row][col+1]:%f,m_z[row][col-1]:%f,m_z[row+1][col]:%f,
-               m_z[row-1][col]:%f\n",m_z[row][col+1],m_z[row][col-1],m_z[row+1][col],
-               m_z[row-1][col]);
-                    printf("m_h1[row][col+1]:%.30lf,m_h1[row][col-1]:%.30lf,m_h1[row+1][col]:%.30lf,
-               m_h1[row-1][col]:%.30lf\n",m_h1[row][col+1],m_h1[row][col-1],m_h1[row+1][col],
-               m_h1[row-1][col]); printf("h_dx:%f, h_sx:%f, h_up%f,
-               h_dw:%f\n",h_dx, h_sx, h_up, h_dw);
-                    printf("m_u1[row][col+1]:%.30lf,m_u1[row][col-1]:%.30lf,m_v1[row+1][col]:%.30lf,
-               m_v1[row-1][col]:%.30lf\n",m_u1[row][col+1],m_u1[row][col-1],m_v1[row+1][col],
-               m_v1[row-1][col]); printf("timestep: %.30lf, res_ew: %.30lf,
-               res_ns:%.30lf\n",timestep, res_ew, res_ns); printf("v_up:
-               %f,v_dw:%f,u_dx:%f,u_sx:%f \n",v_up, v_dw, u_dx, u_sx);
-                    printf("Fdx: %.30lf,Fsx: %.30lf, F: %.30lf, Gup:%.30lf,
-               Gdw:%.30lf, G: %.30lf\n",Fdx, Fsx, F,Gup, Gdw, G); printf("row:
-               %d, col %d, m_h1(row,col): %.30lf, m_h2(row,col): %.30lf \n",row,
-               col,m_h1[row][col], m_h2[row][col]);
-                    printf("m_DAMBREAk(ROW,COL):%f \n",m_DAMBREAK[row][col]);
-                    while(!getchar()){ }*/
+                    /* G_warning("At the time %f h is lesser than 0
+                    h(%d,%d)=%f", t, row, col, m_h2[row][col]); printf("row:%d,
+                    col:%d, H less than zero: %.30lf)", row, col,
+                    m_h2[row][col]); printf("DATA:\n");
+                    printf("row:%d,col%d,hmin:%g,h2:%.30lf\n", row, col, hmin,
+                           m_h2[row][col]);
+                    printf("m_z[row][col]:%f\n", m_z[row][col]);
+                    printf("m_h1[row][col]:%.30lf\n", m_h1[row][col]);
+                    printf("m_u1[row][col]:%.30lf, m_v1[row][col]:%.30lf\n",
+                           m_u1[row][col], m_v1[row][col]);
+                    printf("m_z[row][col+1]:%f, "
+                           "m_z[row][col-1]:%f, "
+                           "m_z[row+1][col]:%f, "
+                           "m_z[row-1][col]:%f\n",
+                           m_z[row][col + 1], m_z[row][col - 1],
+                           m_z[row + 1][col], m_z[row - 1][col]);
+                    printf("m_h1[row][col+1]:%.30lf, "
+                           "m_h1[row][col-1]:%.30lf, "
+                           "m_h1[row+1][col]:%.30lf, "
+                           "m_h1[row-1][col]:%.30lf\n",
+                           m_h1[row][col + 1], m_h1[row][col - 1],
+                           m_h1[row + 1][col], m_h1[row - 1][col]);
+                    printf("h_dx:%f, h_sx:%f, "
+                           "h_up%f, h_dw:%f\n",
+                           h_dx, h_sx, h_up, h_dw);
+                    printf("m_u1[row][col+1]:%.30lf, "
+                           "m_u1[row][col-1]:%.30lf, "
+                           "m_v1[row+1][col]:%.30lf, "
+                           "m_v1[row-1][col]:%.30lf\n",
+                           m_u1[row][col + 1], m_u1[row][col - 1],
+                           m_v1[row + 1][col], m_v1[row - 1][col]);
+                    printf("timestep: %.30lf, res_ew: %.30lf, res_ns:%.30lf\n",
+                           timestep, res_ew, res_ns);
+                    printf("v_up: %f, v_dw:%f, u_dx:%f, u_sx:%f \n", v_up, v_dw,
+                           u_dx, u_sx);
+                    printf("Fdx: %.30lf, Fsx: %.30lf, F: %.30lf, "
+                           "Gup:%.30lf, Gdw:%.30lf, G: %.30lf\n",
+                           Fdx, Fsx, F, Gup, Gdw, G);
+                    printf("row: %d, col %d, "
+                           "m_h1(row,col): %.30lf, m_h2(row,col): %.30lf \n",
+                           row, col, m_h1[row][col], m_h2[row][col]);
+                    printf("m_DAMBREAK(ROW,COL):%f \n", m_DAMBREAK[row][col]);
+                    while (!getchar()) {
+                    } */
                     m_h2[row][col] = 0;
                 }
 
             } // end continuity downstream (IF check)
 
             if (method == 1 || method == 2) {
-                //*******************************************************************
-                // Calculation of flow rate Q coming out of the lake only in the case of spillway Hp (hypothesis)
-                /* Hypothesis: method 1 or 2   */
+                // Calculation of flow rate Q coming out of the lake only in the
+                // case of spillway Hp (hypothesis)
+                /* Hypothesis: method 1 or 2 */
                 if (m_DAMBREAK[row][col] > 0) {
                     if ((m_z[row][col] + m_h1[row][col]) >
                         (m_z[row][col + 1] + m_h1[row][col + 1])) {
@@ -353,10 +391,10 @@ void shallow_water(double **m_h1, double **m_u1, double **m_v1, float **m_z,
             fall = (Q * timestep - vol_res) / (num_cell * res_ew * res_ns);
         }
         else {
-            // if (warn1==0){
+            // if (warn1 == 0) {
             G_warning("At the time %.0fs no water go out from lake", t);
-            //        warn1=1;
-            //}
+            //     warn1 = 1;
+            // }
         }
         vol_res = 0.0;
         Q = 0.0;
@@ -369,10 +407,10 @@ void shallow_water(double **m_h1, double **m_u1, double **m_v1, float **m_z,
                         m_h2[row][col] = 0.0;
                         if (m_h1[row][col] > 0) {
                             num_break--;
-                            /*if (num_break==0){
-                                    G_warning("At the time %.0fs no water go out
-                            from lake",t);
-                            }*/
+                            /* if (num_break == 0) {
+                                G_warning("At the time %.0fs no water go out "
+                                          "from lake", t);
+                            } */
                         }
                     }
                 }
@@ -403,7 +441,7 @@ void shallow_water(double **m_h1, double **m_u1, double **m_v1, float **m_z,
         for (col = 1; col < ncols - 1; col++) {
             if (m_lake[row][col] == 0 && m_h2[row][col] >= hmin) {
 
-                /**********************************************************************************************************************/
+                /*******************************************************/
                 /* EQUATIONS OF MOTION IN DIRECTION X */
                 // right intercell
                 if (m_u1[row][col] > 0 && m_u1[row][col + 1] > 0) {
@@ -552,7 +590,7 @@ void shallow_water(double **m_h1, double **m_u1, double **m_v1, float **m_z,
                 }
                 G = Gup - Gdw;
 
-                // Courant number  --> UPWIND METHOD
+                // Courant number --> UPWIND METHOD
                 if (m_u1[row][col] > 0 && m_u1[row][col + 1] > 0 &&
                     m_u1[row][col - 1] > 0) {
                     test = 1;
@@ -670,12 +708,12 @@ void shallow_water(double **m_h1, double **m_u1, double **m_v1, float **m_z,
                         (m_z[row][col + 1] + m_h2[row][col + 1]))
                         m_u2[row][col] = velocita_breccia(
                             method,
-                            m_h2[row][col]); //velocity on the spillway
+                            m_h2[row][col]); // velocity on the spillway
                     else if ((m_z[row][col] + m_h2[row][col]) >
                              (m_z[row][col - 1] + m_h2[row][col - 1]))
                         m_u2[row][col] = -velocita_breccia(
                             method,
-                            m_h2[row][col]); //velocity on the spillway
+                            m_h2[row][col]); // velocity on the spillway
                     else
                         m_u2[row][col] = 0.0;
                 }
@@ -686,48 +724,62 @@ void shallow_water(double **m_h1, double **m_u1, double **m_v1, float **m_z,
                                       timestep / res_ns * G + timestep * S);
                 }
                 // No velocity against the dam
-                /*if (m_z[row][col+1]> water_elevation && m_u2[row][col]>0)
-                m_u2[row][col]=0.0;
-                if (m_z[row][col-1] > water_elevation && m_u2[row][col]<0)
-                m_u2[row][col]=0.0;*/
+                // if (m_z[row][col + 1] > water_elevation
+                //     && m_u2[row][col] > 0) {
+                //     m_u2[row][col] = 0.0;
+                // }
+                // if (m_z[row][col - 1] > water_elevation
+                //     && m_u2[row][col] < 0) {
+                //     m_u2[row][col] = 0.0;
+                // }
 
                 if ((timestep / res_ew *
                      (fabs(m_u2[row][col]) + sqrt(g * m_h2[row][col]))) > 1.0) {
                     G_warning("At time %f the Courant-Friedrich-Lewy stability "
                               "condition isn't respected",
                               t);
-                    /*G_message("X component of velocity \n");
-                    G_message("row:%d, col%d \n",row,col);
-                    G_message("dZ_dx_down:%f, dZ_dx_up:%f,cr_up:%f,
-                    cr_down:%f\n" , dZ_dx_down,dZ_dx_up, cr_up, cr_down);
-                    G_message("Z_piu:%f,Z_meno:%f\n", Z_piu, Z_meno);
-                    G_message("dZ_dx:%f\n",dZ_dx);
-                    G_message("m_h1[row][col]:%f, m_h2[row][col]:%f,
-                    m_z[row][col]:%f\n",m_h1[row][col], m_h2[row][col],
-                    m_z[row][col]); G_message("m_h2[row][col+1]:%f,
-                    m_z[row][col+1]:%f,m_h2[row][col-1]:%f, m_z[row][col-1]:%f
-                    \n",m_h2[row][col+1],
-                    m_z[row][col+1],m_h2[row][col-1],m_z[row][col-1]);
-                    G_message("m_h2[row][col+1]:%f,m_h2[row][col-1]:%f,\n",m_h2[row][col+1],m_h2[row][col-1]);
-                    G_message("h_up: %f,h_dw:%f,h_dx:%f,h_sx:%f \n",h_up, h_dw,
-                    h_dx, h_sx); G_message("Fdx: %f,Fsx: %f, F: %f, Gup:%f,
-                    Gdw:%f, G: %.60lf,  S: %.60lf \n",Fdx, Fsx, F,Gup, Gdw, G,
-                    S); G_message("m_u1[row][col-1]:%f, m_h1[row][col-1]:%f,
-                    m_u1[row][col+1]:%f,
-                    m_h1[row][col+1]:%f\n",m_u1[row][col-1], m_h1[row][col-1],
-                    m_u1[row][col+1], m_h1[row][col+1]); G_message("timestep:%f,
-                    res_ew:%f\n",timestep,res_ew);
-                    G_message("m_u2[row][col]:%f,m_u1[row][col]:%f\n\n",
-                    m_u2[row][col],m_u1[row][col]); G_warning("   ");*/
+                    /* G_message("X component of velocity \n");
+                    G_message("row:%d, col%d \n", row, col);
+                    G_message(
+                        "dZ_dx_down:%f, dZ_dx_up:%f, cr_up:%f, cr_down:%f\n",
+                        dZ_dx_down, dZ_dx_up, cr_up, cr_down);
+                    G_message("Z_piu:%f, Z_meno:%f\n", Z_piu, Z_meno);
+                    G_message("dZ_dx:%f\n", dZ_dx);
+                    G_message("m_h1[row][col]:%f, "
+                              "m_h2[row][col]:%f, "
+                              "m_z[row][col]:%f\n",
+                              m_h1[row][col], m_h2[row][col], m_z[row][col]);
+                    G_message("m_h2[row][col+1]:%f, "
+                              "m_z[row][col+1]:%f, "
+                              "m_h2[row][col-1]:%f, "
+                              "m_z[row][col-1]:%f\n",
+                              m_h2[row][col + 1], m_z[row][col + 1],
+                              m_h2[row][col - 1], m_z[row][col - 1]);
+                    G_message("m_h2[row][col+1]:%f, "
+                              "m_h2[row][col-1]:%f,\n",
+                              m_h2[row][col + 1], m_h2[row][col - 1]);
+                    G_message("h_up: %f, h_dw:%f, h_dx:%f, h_sx:%f\n", h_up,
+                              h_dw, h_dx, h_sx);
+                    G_message("Fdx: %f,Fsx: %f, F: %f, "
+                              "Gup:%f, Gdw:%f, G: %.60lf,  S: %.60lf \n",
+                              Fdx, Fsx, F, Gup, Gdw, G, S);
+                    G_message("m_u1[row][col-1]:%f, m_h1[row][col-1]:%f, "
+                              "m_u1[row][col+1]:%f, m_h1[row][col+1]:%f\n",
+                              m_u1[row][col - 1], m_h1[row][col - 1],
+                              m_u1[row][col + 1], m_h1[row][col + 1]);
+                    G_message("timestep:%f, res_ew:%f\n", timestep, res_ew);
+                    G_message("m_u2[row][col]:%f, m_u1[row][col]:%f\n\n",
+                              m_u2[row][col], m_u1[row][col]);
+                    G_warning("   "); */
                 }
 
                 if (fabs(m_u2[row][col] >= 1000)) {
                     G_warning("At the time %f u(%d,%d)=%f", t, row, col,
                               m_u2[row][col]);
                 }
-                /******************************************************************************************************************************/
+                /*************************************************************/
 
-                /******************************************************************************************************************************/
+                /*************************************************************/
                 /* EQUATIONS OF MOTION IN DIRECTION Y */
                 // right intercell
                 if (m_u1[row][col] > 0 && m_u1[row][col + 1] > 0) {
@@ -1002,10 +1054,14 @@ void shallow_water(double **m_h1, double **m_u1, double **m_v1, float **m_z,
                 }
 
                 // No velocity against the dam
-                /*if (m_z[row-1][col] > water_elevation && m_v2[row][col] >0)
-                        m_v2[row][col]=0.0;
-                if (m_z[row+1][col] > water_elevation && m_v2[row][col] < 0 )
-                        m_v2[row][col]=0.0;*/
+                // if (m_z[row - 1][col] > water_elevation
+                //     && m_v2[row][col] > 0) {
+                //     m_v2[row][col] = 0.0;
+                // }
+                // if (m_z[row + 1][col] > water_elevation
+                //     && m_v2[row][col] < 0) {
+                //     m_v2[row][col] = 0.0;
+                // }
 
                 if ((timestep / res_ns *
                      (abs(abs(m_v2[row][col]) + sqrt(g * m_h2[row][col])))) >
@@ -1013,38 +1069,58 @@ void shallow_water(double **m_h1, double **m_u1, double **m_v1, float **m_z,
                     G_warning("At time: %f the Courant-Friedrich-Lewy "
                               "stability condition isn't respected",
                               t);
-                    /*G_message("EQ. MOTION DIR Y' --> row:%d, col:%d\n)",row,
-                    col);
-                    G_message("m_h1[row][col]:%f,m_u1[row][col]:%f,m_v1[row][col]:%f",m_h1[row][col],m_u1[row][col],m_v1[row][col]);
-                    G_message("m_h1[row][col+1]:%f,m_h1[row][col-1]:%f,m_h1[row+1][col]:%f,
-                    m_h1[row-1][col]:%f\n",m_h1[row][col+1],m_h1[row][col-1],m_h1[row+1][col],
-                    m_h1[row-1][col]); G_message("h_dx:%f, h_sx:%f, h_up%f,
-                    h_dw:%f\n",h_dx, h_sx, h_up, h_dw);
-                    G_message("m_u1[row][col+1]:%f,m_u1[row][col-1]:%f,m_v1[row+1][col]:%f,
-                    m_v1[row-1][col]:%f\n",m_u1[row][col+1],m_u1[row][col-1],m_v1[row+1][col],
-                    m_v1[row-1][col]); G_message("v_up:
-                    %f,v_dw:%f,u_dx:%f,u_sx:%f \n",v_up, v_dw, u_dx, u_sx);
-                    G_message("Fdx: %f,Fsx: %f, F: %f, Gup:%f, Gdw:%f, G:
-                    %f\n",Fdx, Fsx, F,Gup, Gdw, G);
-                    G_message("m_h2[row][col+1]:%f,m_h2[row][col-1]:%f,m_h2[row+1][col]:%f,
-                    m_h2[row-1][col]:%f\n",m_h1[row][col+1],m_h1[row][col-1],m_h1[row+1][col],
-                    m_h1[row-1][col]); G_message("dZ_dy_down:%f,
-                    dZ_dy_up:%f,cr_up:%f, cr_down:%f\n" , dZ_dy_down,dZ_dy_up,
-                    cr_up, cr_down); G_message("Z_piu:%f,Z_meno:%f\n", Z_piu,
-                    Z_meno); G_message("dZ_dy:%f,\n",dZ_dy);
-                    G_message("u:%f,v:%f,V:%f\n", u,v,V);
-                    G_message("R_i:%f,manning[row][col]:%f\n", R_i,
-                    m_m[row][col]); G_message("S=%f\n",S);
+                    /* G_message("EQ. MOTION DIR Y' --> row:%d, col:%d\n)", row,
+                              col);
+                    G_message("m_h1[row][col]:%f, "
+                              "m_u1[row][col]:%f, "
+                              "m_v1[row][col]:%f",
+                              m_h1[row][col], m_u1[row][col], m_v1[row][col]);
+                    G_message("m_h1[row][col+1]:%f, "
+                              "m_h1[row][col-1]:%f, "
+                              "m_h1[row+1][col]:%f, "
+                              "m_h1[row-1][col]:%f\n",
+                              m_h1[row][col + 1], m_h1[row][col - 1],
+                              m_h1[row + 1][col], m_h1[row - 1][col]);
+                    G_message("h_dx:%f, h_sx:%f, h_up%f, h_dw:%f\n", h_dx, h_sx,
+                              h_up, h_dw);
+                    G_message("m_u1[row][col+1]:%f, "
+                              "m_u1[row][col-1]:%f, "
+                              "m_v1[row+1][col]:%f, "
+                              "m_v1[row-1][col]:%f\n",
+                              m_u1[row][col + 1], m_u1[row][col - 1],
+                              m_v1[row + 1][col], m_v1[row - 1][col]);
+                    G_message("v_up: %f,v_dw:%f,u_dx:%f,u_sx:%f \n", v_up, v_dw,
+                              u_dx, u_sx);
+                    G_message("Fdx: %f,Fsx: %f, F: %f, "
+                              "Gup:%f, Gdw:%f, G: %f\n",
+                              Fdx, Fsx, F, Gup, Gdw, G);
+                    G_message("m_h2[row][col+1]:%f, "
+                              "m_h2[row][col-1]:%f, "
+                              "m_h2[row+1][col]:%f, "
+                              "m_h2[row-1][col]:%f\n",
+                              m_h1[row][col + 1], m_h1[row][col - 1],
+                              m_h1[row + 1][col], m_h1[row - 1][col]);
+                    G_message("dZ_dy_down:%f, dZ_dy_up:%f, "
+                              "cr_up:%f, cr_down:%f\n",
+                              dZ_dy_down, dZ_dy_up, cr_up, cr_down);
+                    G_message("Z_piu:%f, Z_meno:%f\n", Z_piu, Z_meno);
+                    G_message("dZ_dy:%f,\n", dZ_dy);
+                    G_message("u:%f, v:%f, V:%f\n", u, v, V);
+                    G_message("R_i:%f, manning[row][col]:%f\n", R_i,
+                              m_m[row][col]);
+                    G_message("S=%f\n", S);
                     G_message("m_v2(row,col): %f\n \n", m_v2[row][col]);
-                    G_warning("   ");*/
+                    G_warning("   "); */
                 }
 
-                //************** Prints ********************************************************
-                //if ((t>6.8 && m_v2[row][col]!=m_v1[row][col]) && (row==87) && (col == 193)) {
-                /*if (fabs(m_v2[row][col])>=1000.0){
-                    G_warning("At the time %f v(%d,%d)=%f", t,
-                    row,col,m_v2[row][col]);
-                }*/
+                /*************************** Prints ***************************/
+                // if ((t > 6.8 && m_v2[row][col] != m_v1[row][col]) &&
+                //     (row == 87) && (col == 193)) {
+                /* if (fabs(m_v2[row][col]) >= 1000.0) {
+                    G_warning("At the time %f v(%d,%d)=%f",
+                              t, row, col, m_v2[row][col]);
+                } */
+                // }
             }
             else {
                 // Remove h<hmin when empty
