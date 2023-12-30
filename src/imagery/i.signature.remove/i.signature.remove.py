@@ -14,39 +14,39 @@
 #
 #############################################################################
 
-#%module
-#% description: Removes signature file in a group/subgroup.
-#% keyword: imagery
-#% keyword: map management
-#% keyword: remove
-#% keyword: signature
-#% keyword: group
-#%end
+# %module
+# % description: Removes signature file in a group/subgroup.
+# % keyword: imagery
+# % keyword: map management
+# % keyword: remove
+# % keyword: signature
+# % keyword: group
+# %end
 
-#%flag
-#% key: f
-#% description: Force removal (required for actual deletion of files)
-#%end
+# %flag
+# % key: f
+# % description: Force removal (required for actual deletion of files)
+# %end
 
-#%option G_OPT_I_GROUP
-#% description: Group used to print signature file
-#% required : no
-#%end
+# %option G_OPT_I_GROUP
+# % description: Group used to print signature file
+# % required : no
+# %end
 
-#%option G_OPT_I_SUBGROUP
-#% description: Subroup used to print signature file
-#% required : no
-#%end
+# %option G_OPT_I_SUBGROUP
+# % description: Subroup used to print signature file
+# % required : no
+# %end
 
-#%option
-#% key: signature
-#% type: string
-#% gisprompt: old,sig,sigfile
-#% label: Input signature file
-#% description: The name of the input signature file to copy
-#% multiple: yes
-#% required: yes
-#%end
+# %option
+# % key: signature
+# % type: string
+# % gisprompt: old,sig,sigfile
+# % label: Input signature file
+# % description: The name of the input signature file to copy
+# % multiple: yes
+# % required: yes
+# %end
 
 import os
 import sys

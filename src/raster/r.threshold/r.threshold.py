@@ -16,26 +16,26 @@
 #
 ################################################################################
 
-#%module
-#% description: Find optimal threshold for stream extraction
-#% keyword: raster
-#% keyword: hydrology
-#% keyword: threshold
-#%end
+# %module
+# % description: Find optimal threshold for stream extraction
+# % keyword: raster
+# % keyword: hydrology
+# % keyword: threshold
+# %end
 
-#%option
-#% key: acc
-#% type: string
-#% gisprompt: old,raster,raster
-#% key_desc: acc
-#% description: Name of accumulation raster map
-#% required: yes
-#%END
+# %option
+# % key: acc
+# % type: string
+# % gisprompt: old,raster,raster
+# % key_desc: acc
+# % description: Name of accumulation raster map
+# % required: yes
+# %END
 
-#%flag
-#% key: g
-#% description: Print the threshold value in shell script style
-#%end
+# %flag
+# % key: g
+# % description: Print the threshold value in shell script style
+# %end
 
 from __future__ import print_function
 import os

@@ -1,0 +1,60 @@
+Command being timed: "r.viewshed.exposure --q --o dsm=Hoydedata_DSM_OB_2019_1m@u_zofie.cimburova output=tmp_GVI_P6262600_50_binary source=NINA_trees_OB_2017_polygons_1m@u_zofie.cimburova observer_elevation=1.5 max_distance=50 approach=binary sample_density=100 memory=500 cores=1"
+point_id: P6262600
+radius: 50
+method: binary
+gvi: 122.0
+User time (s): 83.77
+System time (s): 36.95
+Percent of CPU: 68%
+Elapsed time (h:mm:ss or m:ss): 2:56.74
+Maximum resident set size (kbytes): 59444
+Exit status: 0
+
+Command being timed: "r.viewshed.exposure --q --o dsm=Hoydedata_DSM_OB_2019_1m@u_zofie.cimburova output=tmp_GVI_P6262600_50_distance_decay source=NINA_trees_OB_2017_polygons_1m@u_zofie.cimburova observer_elevation=1.5 max_distance=50 approach=distance_decay sample_density=100 memory=500 cores=1"
+point_id: P6262600
+radius: 50
+method: distance_decay
+gvi: 0.257341
+User time (s): 85.58
+System time (s): 36.97
+Percent of CPU: 64%
+Elapsed time (h:mm:ss or m:ss): 3:08.80
+Maximum resident set size (kbytes): 59584
+Exit status: 0
+
+Command being timed: "r.viewshed.exposure --q --o dsm=Hoydedata_DSM_OB_2019_1m@u_zofie.cimburova output=tmp_GVI_P6262600_50_vertical_angle source=NINA_trees_OB_2017_polygons_1m@u_zofie.cimburova observer_elevation=1.5 max_distance=50 approach=vertical_angle sample_density=100 memory=500 cores=1"
+point_id: P6262600
+radius: 50
+method: vertical_angle
+gvi: 0.08209553
+User time (s): 108.83
+System time (s): 42.68
+Percent of CPU: 67%
+Elapsed time (h:mm:ss or m:ss): 3:45.91
+Maximum resident set size (kbytes): 59436
+Exit status: 0
+
+Command being timed: "r.viewshed.exposure --q --o dsm=Hoydedata_DSM_OB_2019_1m@u_zofie.cimburova output=tmp_GVI_P6262600_50_solid_angle source=NINA_trees_OB_2017_polygons_1m@u_zofie.cimburova observer_elevation=1.5 max_distance=50 approach=solid_angle sample_density=100 memory=500 cores=1"
+point_id: P6262600
+radius: 50
+method: solid_angle
+gvi: 0.09768238
+User time (s): 106.02
+System time (s): 38.62
+Percent of CPU: 63%
+Elapsed time (h:mm:ss or m:ss): 3:46.54
+Maximum resident set size (kbytes): 59528
+Exit status: 0
+
+Command being timed: "r.viewshed.exposure --q --o dsm=Hoydedata_DSM_OB_2019_1m@u_zofie.cimburova output=tmp_GVI_P6262600_200_binary source=NINA_trees_OB_2017_polygons_1m@u_zofie.cimburova observer_elevation=1.5 max_distance=200 approach=binary sample_density=100 memory=500 cores=1"
+point_id: P6262600
+radius: 200
+method: binary
+gvi: 471.0
+User time (s): 3818.32
+System time (s): 939.26
+Percent of CPU: 58%
+Elapsed time (h:mm:ss or m:ss): 2:14:53
+Maximum resident set size (kbytes): 75836
+Exit status: 0
+

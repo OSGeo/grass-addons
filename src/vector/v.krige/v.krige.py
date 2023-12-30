@@ -17,85 +17,85 @@ for details.
 
 # g.parser information
 
-#%module
-#% description: Performs ordinary or block kriging for vector maps.
-#% keyword: vector
-#% keyword: interpolation
-#% keyword: raster
-#% keyword: kriging
-#%end
+# %module
+# % description: Performs ordinary or block kriging for vector maps.
+# % keyword: vector
+# % keyword: interpolation
+# % keyword: raster
+# % keyword: kriging
+# %end
 
-#%option G_OPT_V_INPUT
-#% description: Name of point vector map containing sample data
-#%end
-#%option G_OPT_DB_COLUMN
-#% description: Name of attribute column with numerical value to be interpolated
-#% required: yes
-#%end
-#%option G_OPT_R_OUTPUT
-#% label: Name for output raster map
-#% description: If omitted, will be <input name>_kriging
-#% required : no
-#%end
-#%option
-#% key: package
-#% type: string
-#% options: gstat
-#% answer: gstat
-#% description: R package to use
-#% required: no
-#%end
-#%option
-#% key: model
-#% type: string
-#% options: Nug,Exp,Sph,Gau,Exc,Mat,Ste,Cir,Lin,Bes,Pen,Per,Hol,Log,Pow,Spl,Leg,Err,Int
-#% multiple: yes
-#% label: Variogram model(s)
-#% description: Leave empty to test all models (requires automap)
-#% required: no
-#%end
-#%option
-#% key: block
-#% type: integer
-#% multiple: no
-#% label: Block size (square block)
-#% description: Block size. Used by block kriging.
-#% required: no
-#%end
-#%option
-#% key: range
-#% type: integer
-#% label: Range value
-#% description: Automatically fixed if not set
-#% required : no
-#%end
-#%option
-#% key: nugget
-#% type: integer
-#% label: Nugget value
-#% description: Automatically fixed if not set
-#% required : no
-#%end
-#%option
-#% key: psill
-#% type: integer
-#% label: Partial sill value
-#% description: Automatically fixed if not set
-#% required : no
-#%end
-#%option
-#% key: kappa
-#% type: double
-#% label: Kappa value
-#% description: Automatically fixed if not set
-#% required : no
-#%end
-#%option G_OPT_R_OUTPUT
-#% key: output_var
-#% label: Name for output variance raster map
-#% description: If omitted, will be <input name>_kriging.var
-#% required : no
-#%end
+# %option G_OPT_V_INPUT
+# % description: Name of point vector map containing sample data
+# %end
+# %option G_OPT_DB_COLUMN
+# % description: Name of attribute column with numerical value to be interpolated
+# % required: yes
+# %end
+# %option G_OPT_R_OUTPUT
+# % label: Name for output raster map
+# % description: If omitted, will be <input name>_kriging
+# % required : no
+# %end
+# %option
+# % key: package
+# % type: string
+# % options: gstat
+# % answer: gstat
+# % description: R package to use
+# % required: no
+# %end
+# %option
+# % key: model
+# % type: string
+# % options: Nug,Exp,Sph,Gau,Exc,Mat,Ste,Cir,Lin,Bes,Pen,Per,Hol,Log,Pow,Spl,Leg,Err,Int
+# % multiple: yes
+# % label: Variogram model(s)
+# % description: Leave empty to test all models (requires automap)
+# % required: no
+# %end
+# %option
+# % key: block
+# % type: integer
+# % multiple: no
+# % label: Block size (square block)
+# % description: Block size. Used by block kriging.
+# % required: no
+# %end
+# %option
+# % key: range
+# % type: integer
+# % label: Range value
+# % description: Automatically fixed if not set
+# % required : no
+# %end
+# %option
+# % key: nugget
+# % type: integer
+# % label: Nugget value
+# % description: Automatically fixed if not set
+# % required : no
+# %end
+# %option
+# % key: psill
+# % type: integer
+# % label: Partial sill value
+# % description: Automatically fixed if not set
+# % required : no
+# %end
+# %option
+# % key: kappa
+# % type: double
+# % label: Kappa value
+# % description: Automatically fixed if not set
+# % required : no
+# %end
+# %option G_OPT_R_OUTPUT
+# % key: output_var
+# % label: Name for output variance raster map
+# % description: If omitted, will be <input name>_kriging.var
+# % required : no
+# %end
 
 import os
 import sys

@@ -19,202 +19,202 @@
 #  GNU General Public License for more details.
 #
 #############################################################################/
-#%Module
-#% description: Simulates the cumulative effect of erosion and deposition on a landscape over time.
-#% keyword: raster
-#% keyword: modelling
-#%End
-#%option
-#% key: elev
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Input elevation map (DEM of surface)
-#% required : yes
-#%end
-#%option
-#% key: initbdrk
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Bedrock elevations map (DEM of bedrock)
-#% answer:
-#% required : yes
-#%end
-#%option
-#% key: k
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Soil erodability index (K factor) map or constant
-#% answer: 0.42
-#% required : no
-#% guisection: Landscape Evolution
-#%end
-#%option
-#% key: sdensity
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Soil density map or constant [T/m3] for conversion from mass to volume
-#% answer: 1.2184
-#% required : no
-#% guisection: Landscape Evolution
-#%end
-#%option
-#% key: kt
-#% type: double
-#% description: Stream transport efficiency variable (0.001 for a soft substrate, 0.0001 for a normal substrate, 0.00001 for a hard substrate, 0.000001 for a very hard substrate)
-#% answer: 0.0001
-#% required : no
-#% options : 0.001,0.0001,0.00001,0.000001
-#% guisection: Landscape Evolution
-#%end
-#%option
-#% key: loadexp
-#% type: double
-#% description: Stream transport type variable (1.5 for mainly bedload transport, 2.5 for mainly suspended load transport)
-#% answer: 1.5
-#% options: 1.5,2.5
-#% required : no
-#% guisection: Landscape Evolution
-#%end
-#%option
-#% key: kappa
-#% type: double
-#% description: Hillslope diffusion (Kappa) rate map or constant [m/kyr]
-#% answer: 1
-#% required : no
-#% guisection: Landscape Evolution
-#%end
-#%option
-#% key: c
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Landcover index (C factor) map or constant
-#% answer: 0.005
-#% required : no
-#% guisection: Landscape Evolution
-#%end
-#%option
-#% key: rain
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Precip totals for the average storm [mm] (or path to climate file of comma separated values of "rain,R,storms,stormlength", with a new line for each year of the simulation)
-#% answer: 20.61
-#% guisection: Climate
-#%end
-#%option
-#% key: r
-#% type: string
-#% description: Rainfall (R factor) constant (AVERAGE FOR WHOLE MAP AREA) (or path to climate file of comma separated values of "rain,R,storms,stormlength", with a new line for each year of the simulation)
-#% answer: 4.54
-#% guisection: Climate
-#%end
-#%option
-#% key: storms
-#% type: string
-#% description: Number of storms per year (integer) (or path to climate file of comma separated values of "rain,R,storms,stormlength", with a new line for each year of the simulation)
-#% answer: 25
-#% guisection: Climate
-#%end
-#%option
-#% key: stormlength
-#% type: string
-#% description: Average length of the storm [h] (or path to climate file of comma separated values of "rain,R,storms,stormlength", with a new line for each year of the simulation)
-#% answer: 24.0
-#% guisection: Climate
-#%end
-#%option
-#% key: speed
-#% type: double
-#% description: Average velocity of flowing water in the drainage [m/s]
-#% answer: 1.4
-#% required : no
-#% guisection: Hydrology
-#%end
-#%option
-#% key: manningn
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Map or constant of the value of Manning's "N" value for channelized flow.
-#% answer: 0.05
-#% required : no
-#% guisection: Hydrology
-#%end
-#%option
-#% key: flowcontrib
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Map or constant indicating how much each cell contributes to downstream flow (as a "percentage" from 0-100). If no map or value entered, routine will assume 100% downstream contribution
-#% required : no
-#% guisection: Hydrology
-#%end
-#%option
-#% key: convergence
-#% type: integer
-#% description: Value for the flow convergence variable in r.watershed. Small values make water spread out, high values make it converge in narrower channels.
-#% answer: 5
-#% options: 1,2,3,4,5,6,7,8,9,10
-#% required : no
-#% guisection: Hydrology
-#%end
-#%option
-#% key: cutoff1
-#% type: double
-#% description: Flow accumulation breakpoint value for shift from diffusion to overland flow
-#% answer: 0
-#% required : no
-#% guisection: Hydrology
-#%end
-#%option
-#% key: cutoff2
-#% type: double
-#% description: Flow accumulation breakpoint value for shift from overland flow to rill/gully flow (if value is the same as cutoff1, no sheetwash procesess will be modeled)
-#% answer: 100
-#% required : no
-#% guisection: Hydrology
-#%end
-#%option
-#% key: cutoff3
-#% type: double
-#% description: Flow accumulation breakpoint value for shift from rill/gully flow to stream flow (if value is the same as cutoff2, no rill procesess will be modeled)
-#% answer: 100
-#% required : no
-#% guisection: Hydrology
-#%end
-#%option
-#% key: smoothing
-#% type: string
-#% description: Amount of additional smoothing (answer "no" unless you notice large spikes in the erdep rate map)
-#% answer: no
-#% options: no,low,high
-#% required : yes
-#%end
-#%option
-#% key: prefx
-#% type: string
-#% description: Prefix for all output maps
-#% answer: levol_
-#% required : yes
-#%end
-#%option
-#% key: outdem
-#% type: string
-#% description: Name stem for output elevation map(s) (preceded by prefix and followed by numerical suffix if more than one iteration)
-#% answer: elevation
-#% required: yes
-#%end
-#%option
-#% key: outsoil
-#% type: string
-#% description: Name stem for the output soil depth map(s) (preceded by prefix and followed by numerical suffix if more than one iteration)
-#% answer: soildepth
-#% required: yes
-#%end
-#%option
-#% key: number
-#% type: integer
-#% description: Number of iterations (cycles) to run
-#% answer: 1
-#% required : yes
-#%end
+# %Module
+# % description: Simulates the cumulative effect of erosion and deposition on a landscape over time.
+# % keyword: raster
+# % keyword: modelling
+# %End
+# %option
+# % key: elev
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Input elevation map (DEM of surface)
+# % required : yes
+# %end
+# %option
+# % key: initbdrk
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Bedrock elevations map (DEM of bedrock)
+# % answer:
+# % required : yes
+# %end
+# %option
+# % key: k
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Soil erodability index (K factor) map or constant
+# % answer: 0.42
+# % required : no
+# % guisection: Landscape Evolution
+# %end
+# %option
+# % key: sdensity
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Soil density map or constant [T/m3] for conversion from mass to volume
+# % answer: 1.2184
+# % required : no
+# % guisection: Landscape Evolution
+# %end
+# %option
+# % key: kt
+# % type: double
+# % description: Stream transport efficiency variable (0.001 for a soft substrate, 0.0001 for a normal substrate, 0.00001 for a hard substrate, 0.000001 for a very hard substrate)
+# % answer: 0.0001
+# % required : no
+# % options : 0.001,0.0001,0.00001,0.000001
+# % guisection: Landscape Evolution
+# %end
+# %option
+# % key: loadexp
+# % type: double
+# % description: Stream transport type variable (1.5 for mainly bedload transport, 2.5 for mainly suspended load transport)
+# % answer: 1.5
+# % options: 1.5,2.5
+# % required : no
+# % guisection: Landscape Evolution
+# %end
+# %option
+# % key: kappa
+# % type: double
+# % description: Hillslope diffusion (Kappa) rate map or constant [m/kyr]
+# % answer: 1
+# % required : no
+# % guisection: Landscape Evolution
+# %end
+# %option
+# % key: c
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Landcover index (C factor) map or constant
+# % answer: 0.005
+# % required : no
+# % guisection: Landscape Evolution
+# %end
+# %option
+# % key: rain
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Precip totals for the average storm [mm] (or path to climate file of comma separated values of "rain,R,storms,stormlength", with a new line for each year of the simulation)
+# % answer: 20.61
+# % guisection: Climate
+# %end
+# %option
+# % key: r
+# % type: string
+# % description: Rainfall (R factor) constant (AVERAGE FOR WHOLE MAP AREA) (or path to climate file of comma separated values of "rain,R,storms,stormlength", with a new line for each year of the simulation)
+# % answer: 4.54
+# % guisection: Climate
+# %end
+# %option
+# % key: storms
+# % type: string
+# % description: Number of storms per year (integer) (or path to climate file of comma separated values of "rain,R,storms,stormlength", with a new line for each year of the simulation)
+# % answer: 25
+# % guisection: Climate
+# %end
+# %option
+# % key: stormlength
+# % type: string
+# % description: Average length of the storm [h] (or path to climate file of comma separated values of "rain,R,storms,stormlength", with a new line for each year of the simulation)
+# % answer: 24.0
+# % guisection: Climate
+# %end
+# %option
+# % key: speed
+# % type: double
+# % description: Average velocity of flowing water in the drainage [m/s]
+# % answer: 1.4
+# % required : no
+# % guisection: Hydrology
+# %end
+# %option
+# % key: manningn
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Map or constant of the value of Manning's "N" value for channelized flow.
+# % answer: 0.05
+# % required : no
+# % guisection: Hydrology
+# %end
+# %option
+# % key: flowcontrib
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Map or constant indicating how much each cell contributes to downstream flow (as a "percentage" from 0-100). If no map or value entered, routine will assume 100% downstream contribution
+# % required : no
+# % guisection: Hydrology
+# %end
+# %option
+# % key: convergence
+# % type: integer
+# % description: Value for the flow convergence variable in r.watershed. Small values make water spread out, high values make it converge in narrower channels.
+# % answer: 5
+# % options: 1,2,3,4,5,6,7,8,9,10
+# % required : no
+# % guisection: Hydrology
+# %end
+# %option
+# % key: cutoff1
+# % type: double
+# % description: Flow accumulation breakpoint value for shift from diffusion to overland flow
+# % answer: 0
+# % required : no
+# % guisection: Hydrology
+# %end
+# %option
+# % key: cutoff2
+# % type: double
+# % description: Flow accumulation breakpoint value for shift from overland flow to rill/gully flow (if value is the same as cutoff1, no sheetwash procesess will be modeled)
+# % answer: 100
+# % required : no
+# % guisection: Hydrology
+# %end
+# %option
+# % key: cutoff3
+# % type: double
+# % description: Flow accumulation breakpoint value for shift from rill/gully flow to stream flow (if value is the same as cutoff2, no rill procesess will be modeled)
+# % answer: 100
+# % required : no
+# % guisection: Hydrology
+# %end
+# %option
+# % key: smoothing
+# % type: string
+# % description: Amount of additional smoothing (answer "no" unless you notice large spikes in the erdep rate map)
+# % answer: no
+# % options: no,low,high
+# % required : yes
+# %end
+# %option
+# % key: prefx
+# % type: string
+# % description: Prefix for all output maps
+# % answer: levol_
+# % required : yes
+# %end
+# %option
+# % key: outdem
+# % type: string
+# % description: Name stem for output elevation map(s) (preceded by prefix and followed by numerical suffix if more than one iteration)
+# % answer: elevation
+# % required: yes
+# %end
+# %option
+# % key: outsoil
+# % type: string
+# % description: Name stem for the output soil depth map(s) (preceded by prefix and followed by numerical suffix if more than one iteration)
+# % answer: soildepth
+# % required: yes
+# %end
+# %option
+# % key: number
+# % type: integer
+# % description: Number of iterations (cycles) to run
+# % answer: 1
+# % required : yes
+# %end
 
 
 # #%option
@@ -225,58 +225,58 @@
 # #% required : yes
 # #%end
 
-#%flag
-#% key: p
-#% description: -p Output a vector points map with sampled values of flow accumulation and curvatures suitable for determining cutoff values. NOTE: Overrides all other output options, and exits after completion. The output vector points map will be named  "PREFIX_#_randomly_sampled_points".
-#% guisection: Optional
-#%end
-#%flag
-#% key: 1
-#% description: -1 Calculate streams as 1D difference instead of 2D divergence
-#% guisection: Landscape Evolution
-#%end
-#%flag
-#% key: c
-#% description: -c Calculate streams with a shear stress equation, rather than a stream-power equation
-#% guisection: Landscape Evolution
-#%end
-#%flag
-#% key: k
-#% description: -k Keep ALL temporary maps (overides flags -drst). This will make A LOT of maps!
-#% guisection: Optional
-#%end
-#%flag
-#% key: d
-#% description: -d Don't output yearly soil depth maps
-#% guisection: Optional
-#%end
-#%flag
-#% key: r
-#% description: -r Don't output yearly maps of the erosion/deposition rates ("ED_rate" map, in vertical meters)
-#% guisection: Optional
-#%end
-#%flag
-#% key: s
-#% description: -s Keep all slope maps
-#% guisection: Optional
-#%end
-#%flag
-#% key: t
-#% description: -t Keep yearly maps of the Transport Capacity at each cell ("Qs" maps)
-#% guisection: Optional
-#%end
-#%flag
-#% key: e
-#% description: -e Keep yearly maps of the Excess Transport Capacity (divergence) at each cell ("DeltaQs" maps)
-#% guisection: Optional
-#%end
-#%Option
-#% key: statsout
-#% type: string
-#% description: Name for the statsout text file (optional, if none provided, a default name will be used)
-#% required: no
-#% guisection: Optional
-#%end
+# %flag
+# % key: p
+# % description: -p Output a vector points map with sampled values of flow accumulation and curvatures suitable for determining cutoff values. NOTE: Overrides all other output options, and exits after completion. The output vector points map will be named  "PREFIX_#_randomly_sampled_points".
+# % guisection: Optional
+# %end
+# %flag
+# % key: 1
+# % description: -1 Calculate streams as 1D difference instead of 2D divergence
+# % guisection: Landscape Evolution
+# %end
+# %flag
+# % key: c
+# % description: -c Calculate streams with a shear stress equation, rather than a stream-power equation
+# % guisection: Landscape Evolution
+# %end
+# %flag
+# % key: k
+# % description: -k Keep ALL temporary maps (overides flags -drst). This will make A LOT of maps!
+# % guisection: Optional
+# %end
+# %flag
+# % key: d
+# % description: -d Don't output yearly soil depth maps
+# % guisection: Optional
+# %end
+# %flag
+# % key: r
+# % description: -r Don't output yearly maps of the erosion/deposition rates ("ED_rate" map, in vertical meters)
+# % guisection: Optional
+# %end
+# %flag
+# % key: s
+# % description: -s Keep all slope maps
+# % guisection: Optional
+# %end
+# %flag
+# % key: t
+# % description: -t Keep yearly maps of the Transport Capacity at each cell ("Qs" maps)
+# % guisection: Optional
+# %end
+# %flag
+# % key: e
+# % description: -e Keep yearly maps of the Excess Transport Capacity (divergence) at each cell ("DeltaQs" maps)
+# % guisection: Optional
+# %end
+# %Option
+# % key: statsout
+# % type: string
+# % description: Name for the statsout text file (optional, if none provided, a default name will be used)
+# % required: no
+# % guisection: Optional
+# %end
 
 import sys
 import os

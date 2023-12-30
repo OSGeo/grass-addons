@@ -32,52 +32,52 @@
 #
 #############################################################################
 
-#%Module
-#% description: Exports a vector map to a GPS receiver or file format supported by GPSBabel.
-#% keyword: vector
-#% keyword: export
-#% keyword: GPS
-#%End
-#%flag
-#% key: w
-#% description: Export as waypoints
-#%end
-#%flag
-#% key: r
-#% description: Export as routes
-#%end
-#%flag
-#% key: t
-#% description: Export as tracks
-#%end
+# %Module
+# % description: Exports a vector map to a GPS receiver or file format supported by GPSBabel.
+# % keyword: vector
+# % keyword: export
+# % keyword: GPS
+# %End
+# %flag
+# % key: w
+# % description: Export as waypoints
+# %end
+# %flag
+# % key: r
+# % description: Export as routes
+# %end
+# %flag
+# % key: t
+# % description: Export as tracks
+# %end
 ############ TODO:
 ##%flag
 ##% key: z
 ##% description: Export altitude from 3D vector's z-coordinate
 ##%end
 ############
-#%option G_OPT_V_INPUT
-#%end
-#%option G_OPT_V_TYPE
-#% options: point,centroid,line,boundary
-#% answer: point,centroid,line,boundary
-#%end
-#%option G_OPT_F_OUTPUT
-#% description: Name for output file or GPS device
-#%end
-#%option
-#% key: format
-#% type: string
-#% description: GPSBabel supported output format
-#% answer: gpx
-#%end
-#%option G_OPT_V_FIELD
-#% required: no
-#% guisection: Subset
-#%end
-#%option G_OPT_DB_WHERE
-#% guisection: Subset
-#%end
+# %option G_OPT_V_INPUT
+# %end
+# %option G_OPT_V_TYPE
+# % options: point,centroid,line,boundary
+# % answer: point,centroid,line,boundary
+# %end
+# %option G_OPT_F_OUTPUT
+# % description: Name for output file or GPS device
+# %end
+# %option
+# % key: format
+# % type: string
+# % description: GPSBabel supported output format
+# % answer: gpx
+# %end
+# %option G_OPT_V_FIELD
+# % required: no
+# % guisection: Subset
+# %end
+# %option G_OPT_DB_WHERE
+# % guisection: Subset
+# %end
 
 import sys
 import os

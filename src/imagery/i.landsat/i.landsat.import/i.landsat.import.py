@@ -14,109 +14,109 @@
 #
 #############################################################################
 
-#%module
-#% description: Imports Landsat satellite data downloaded using i.landsat.download.
-#% keyword: imagery
-#% keyword: satellite
-#% keyword: Landsat
-#% keyword: import
-#%end
+# %module
+# % description: Imports Landsat satellite data downloaded using i.landsat.download.
+# % keyword: imagery
+# % keyword: satellite
+# % keyword: Landsat
+# % keyword: import
+# %end
 
-#%option G_OPT_M_DIR
-#% key: input
-#% description: Name of input directory with downloaded Landsat data
-#% required: yes
-#%end
+# %option G_OPT_M_DIR
+# % key: input
+# % description: Name of input directory with downloaded Landsat data
+# % required: yes
+# %end
 
-#%option G_OPT_M_DIR
-#% key: unzip_dir
-#% description: Name of directory into which Landsat zip-files are extracted (default=input)
-#% required: no
-#%end
+# %option G_OPT_M_DIR
+# % key: unzip_dir
+# % description: Name of directory into which Landsat zip-files are extracted (default=input)
+# % required: no
+# %end
 
-#%option
-#% key: pattern
-#% description: Band name pattern to import
-#% guisection: Filter
-#%end
+# %option
+# % key: pattern
+# % description: Band name pattern to import
+# % guisection: Filter
+# %end
 
-#%option
-#% key: pattern_file
-#% description: File name pattern to import
-#% guisection: Filter
-#%end
+# %option
+# % key: pattern_file
+# % description: File name pattern to import
+# % guisection: Filter
+# %end
 
-#%option
-#% key: extent
-#% type: string
-#% required: no
-#% multiple: no
-#% options: input,region
-#% answer: input
-#% description: Output raster map extent
-#% descriptions: region;extent of current region;input;extent of input map
-#% guisection: Output
-#%end
+# %option
+# % key: extent
+# % type: string
+# % required: no
+# % multiple: no
+# % options: input,region
+# % answer: input
+# % description: Output raster map extent
+# % descriptions: region;extent of current region;input;extent of input map
+# % guisection: Output
+# %end
 
-#%option
-#% key: resample
-#% type: string
-#% required: no
-#% multiple: no
-#% options: nearest,bilinear,bicubic,lanczos,bilinear_f,bicubic_f,lanczos_f
-#% description: Resampling method to use for reprojection
-#% descriptions: nearest;nearest neighbor;bilinear;bilinear interpolation;bicubic;bicubic interpolation;lanczos;lanczos filter;bilinear_f;bilinear interpolation with fallback;bicubic_f;bicubic interpolation with fallback;lanczos_f;lanczos filter with fallback
-#% answer: nearest
-#% guisection: Output
-#%end
+# %option
+# % key: resample
+# % type: string
+# % required: no
+# % multiple: no
+# % options: nearest,bilinear,bicubic,lanczos,bilinear_f,bicubic_f,lanczos_f
+# % description: Resampling method to use for reprojection
+# % descriptions: nearest;nearest neighbor;bilinear;bilinear interpolation;bicubic;bicubic interpolation;lanczos;lanczos filter;bilinear_f;bilinear interpolation with fallback;bicubic_f;bicubic interpolation with fallback;lanczos_f;lanczos filter with fallback
+# % answer: nearest
+# % guisection: Output
+# %end
 
-#%option
-#% key: memory
-#% type: integer
-#% required: no
-#% multiple: no
-#% label: Maximum memory to be used (in MB)
-#% description: Cache size for raster rows
-#% answer: 300
-#% guisection: Settings
-#%end
+# %option
+# % key: memory
+# % type: integer
+# % required: no
+# % multiple: no
+# % label: Maximum memory to be used (in MB)
+# % description: Cache size for raster rows
+# % answer: 300
+# % guisection: Settings
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key: register_output
-#% description: Name for output file to use with t.register
-#% required: no
-#% guisection: Output
-#%end
+# %option G_OPT_F_OUTPUT
+# % key: register_output
+# % description: Name for output file to use with t.register
+# % required: no
+# % guisection: Output
+# %end
 
-#%flag
-#% key: r
-#% description: Reproject raster data using r.import if needed
-#% guisection: Settings
-#%end
+# %flag
+# % key: r
+# % description: Reproject raster data using r.import if needed
+# % guisection: Settings
+# %end
 
-#%flag
-#% key: l
-#% description: Link raster data instead of importing
-#% guisection: Settings
-#%end
+# %flag
+# % key: l
+# % description: Link raster data instead of importing
+# % guisection: Settings
+# %end
 
-#%flag
-#% key: o
-#% description: Override projection check (use current location's projection)
-#% guisection: Settings
-#%end
+# %flag
+# % key: o
+# % description: Override projection check (use current location's projection)
+# % guisection: Settings
+# %end
 
-#%flag
-#% key: p
-#% description: Print raster data to be imported and exit
-#% guisection: Print
-#%end
+# %flag
+# % key: p
+# % description: Print raster data to be imported and exit
+# % guisection: Print
+# %end
 
-#%rules
-#% exclusive: -l,-r,-p
-#% exclusive: -o,-r
-#% exclusive: extent,-l
-#%end
+# %rules
+# % exclusive: -l,-r,-p
+# % exclusive: -o,-r
+# % exclusive: extent,-l
+# %end
 
 import os
 import sys

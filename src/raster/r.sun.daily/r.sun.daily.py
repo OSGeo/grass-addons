@@ -15,261 +15,261 @@
 #
 #############################################################################
 
-#%module
-#% description: Runs r.sun for multiple days in loop (mode 2)
-#% keyword: raster
-#% keyword: solar
-#% keyword: sun energy
-#%end
+# %module
+# % description: Runs r.sun for multiple days in loop (mode 2)
+# % keyword: raster
+# % keyword: solar
+# % keyword: sun energy
+# %end
 
-#%option G_OPT_R_ELEV
-#% key: elevation
-#% type: string
-#% description: Name of the input elevation raster map [meters]
-#% gisprompt: old,cell,raster
-#% required : yes
-#%end
+# %option G_OPT_R_ELEV
+# % key: elevation
+# % type: string
+# % description: Name of the input elevation raster map [meters]
+# % gisprompt: old,cell,raster
+# % required : yes
+# %end
 
-#%option
-#% key: aspect
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Name of the input aspect map (terrain aspect or azimuth of the solar panel) [decimal degrees]
-#%end
+# %option
+# % key: aspect
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Name of the input aspect map (terrain aspect or azimuth of the solar panel) [decimal degrees]
+# %end
 
-#%option
-#% key: slope
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Name of the input slope raster map (terrain slope or solar panel inclination) [decimal degrees]
-#%end
+# %option
+# % key: slope
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Name of the input slope raster map (terrain slope or solar panel inclination) [decimal degrees]
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: linke
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Name of the Linke atmospheric turbidity coefficient input raster map [-]
-#% required : no
-#%end
+# %option G_OPT_R_INPUT
+# % key: linke
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Name of the Linke atmospheric turbidity coefficient input raster map [-]
+# % required : no
+# %end
 
-#%option
-#% key: linke_value
-#% key_desc: float
-#% type: double
-#% description: A single value of the Linke atmospheric turbidity coefficient [-]
-#% options: 0.0-7.0
-#% answer: 3.0
-#% required : no
-#%end
+# %option
+# % key: linke_value
+# % key_desc: float
+# % type: double
+# % description: A single value of the Linke atmospheric turbidity coefficient [-]
+# % options: 0.0-7.0
+# % answer: 3.0
+# % required : no
+# %end
 
-#% rules
-#%  exclusive: linke, linke_value
-#% end
+# % rules
+# %  exclusive: linke, linke_value
+# % end
 
-#%option G_OPT_R_INPUT
-#% key: albedo
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Name of the ground albedo coefficient input raster map [-]
-#% required : no
-#%end
+# %option G_OPT_R_INPUT
+# % key: albedo
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Name of the ground albedo coefficient input raster map [-]
+# % required : no
+# %end
 
-#%option
-#% key: albedo_value
-#% key_desc: float
-#% type: double
-#% description: A single value of the ground albedo coefficient [-]
-#% options: 0.0-1.0
-#% answer: 0.2
-#% required : no
-#%end
+# %option
+# % key: albedo_value
+# % key_desc: float
+# % type: double
+# % description: A single value of the ground albedo coefficient [-]
+# % options: 0.0-1.0
+# % answer: 0.2
+# % required : no
+# %end
 
-#% rules
-#%  exclusive: albedo, albedo_value
-#% end
+# % rules
+# %  exclusive: albedo, albedo_value
+# % end
 
-#%option G_OPT_R_INPUT
-#% key: lat
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Name of input raster map containing latitudes (if projection undefined) [decimal degrees]
-#% required : no
-#%end
+# %option G_OPT_R_INPUT
+# % key: lat
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Name of input raster map containing latitudes (if projection undefined) [decimal degrees]
+# % required : no
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: long
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Name of input raster map containing longitudes (if projection undefined) [decimal degrees]
-#% required : no
-#%end
+# %option G_OPT_R_INPUT
+# % key: long
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Name of input raster map containing longitudes (if projection undefined) [decimal degrees]
+# % required : no
+# %end
 
-#%option G_OPT_R_BASENAME_INPUT
-#% key: horizon_basename
-#% key_desc: basename
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: The horizon information input map basename
-#% required : no
-#%end
+# %option G_OPT_R_BASENAME_INPUT
+# % key: horizon_basename
+# % key_desc: basename
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: The horizon information input map basename
+# % required : no
+# %end
 
-#%option
-#% key: horizon_step
-#% key_desc: stepsize
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Angle step size for multidirectional horizon [degrees]
-#% required : no
-#%end
+# %option
+# % key: horizon_step
+# % key_desc: stepsize
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Angle step size for multidirectional horizon [degrees]
+# % required : no
+# %end
 
-#% rules
-#%  requires_all: horizon_basename, horizon_step
-#% end
+# % rules
+# %  requires_all: horizon_basename, horizon_step
+# % end
 
-#%option
-#% key: start_day
-#% type: integer
-#% description: Start day (of year) of interval
-#% options: 1-365
-#% required : yes
-#%end
+# %option
+# % key: start_day
+# % type: integer
+# % description: Start day (of year) of interval
+# % options: 1-365
+# % required : yes
+# %end
 
-#%option
-#% key: end_day
-#% type: integer
-#% description: End day (of year) of interval
-#% options: 1-365
-#% required : yes
-#%end
+# %option
+# % key: end_day
+# % type: integer
+# % description: End day (of year) of interval
+# % options: 1-365
+# % required : yes
+# %end
 
-#%option
-#% key: day_step
-#% type: integer
-#% description: Run r.sun for every n-th day [days]
-#% options: 1-365
-#% answer: 1
-#%end
+# %option
+# % key: day_step
+# % type: integer
+# % description: Run r.sun for every n-th day [days]
+# % options: 1-365
+# % answer: 1
+# %end
 
-#%option
-#% key: step
-#% type: double
-#% description: Time step when computing all-day radiation sums [decimal hours]
-#% answer: 0.5
-#%end
+# %option
+# % key: step
+# % type: double
+# % description: Time step when computing all-day radiation sums [decimal hours]
+# % answer: 0.5
+# %end
 
-#%option
-#% key: civil_time
-#% type: double
-#% description: Civil time zone value, if none, the time will be local solar time
-#%end
+# %option
+# % key: civil_time
+# % type: double
+# % description: Civil time zone value, if none, the time will be local solar time
+# %end
 
-#%option
-#% key: beam_rad
-#% type: string
-#% gisprompt: new,cell,raster
-#% description: Output beam irradiation raster map cumulated for the whole period of time [Wh.m-2.day-1]
-#% required: no
-#%end
+# %option
+# % key: beam_rad
+# % type: string
+# % gisprompt: new,cell,raster
+# % description: Output beam irradiation raster map cumulated for the whole period of time [Wh.m-2.day-1]
+# % required: no
+# %end
 
-#%option
-#% key: diff_rad
-#% type: string
-#% gisprompt: new,cell,raster
-#% description: Output diffuse irradiation raster map cumulated for the whole period of time [Wh.m-2.day-1]
-#% required: no
-#%end
+# %option
+# % key: diff_rad
+# % type: string
+# % gisprompt: new,cell,raster
+# % description: Output diffuse irradiation raster map cumulated for the whole period of time [Wh.m-2.day-1]
+# % required: no
+# %end
 
-#%option
-#% key: refl_rad
-#% type: string
-#% gisprompt: new,cell,raster
-#% description: Output ground reflected irradiation raster map cumulated for the whole period of time [Wh.m-2.day-1]
-#% required: no
-#%end
+# %option
+# % key: refl_rad
+# % type: string
+# % gisprompt: new,cell,raster
+# % description: Output ground reflected irradiation raster map cumulated for the whole period of time [Wh.m-2.day-1]
+# % required: no
+# %end
 
-#%option
-#% key: glob_rad
-#% type: string
-#% gisprompt: new,cell,raster
-#% description: Output global (total) irradiance/irradiation raster map cumulated for the whole period of time [Wh.m-2.day-1]
-#% required: no
-#%end
+# %option
+# % key: glob_rad
+# % type: string
+# % gisprompt: new,cell,raster
+# % description: Output global (total) irradiance/irradiation raster map cumulated for the whole period of time [Wh.m-2.day-1]
+# % required: no
+# %end
 
-#%option
-#% key: insol_time
-#% type: string
-#% gisprompt: new,cell,raster
-#% description: Output insolation time raster map cumulated for the whole period of time [h]
-#% required: no
-#%end
+# %option
+# % key: insol_time
+# % type: string
+# % gisprompt: new,cell,raster
+# % description: Output insolation time raster map cumulated for the whole period of time [h]
+# % required: no
+# %end
 
-#%option
-#% key: beam_rad_basename
-#% type: string
-#% label: Base name for output beam irradiation raster maps [Wh.m-2.day-1]
-#% description: Underscore and day number are added to the base name for daily maps
-#%end
+# %option
+# % key: beam_rad_basename
+# % type: string
+# % label: Base name for output beam irradiation raster maps [Wh.m-2.day-1]
+# % description: Underscore and day number are added to the base name for daily maps
+# %end
 
-#%option
-#% key: diff_rad_basename
-#% type: string
-#% label: Base name for output diffuse irradiation raster maps [Wh.m-2.day-1]
-#% description: Underscore and day number are added to the base name for daily maps
-#%end
+# %option
+# % key: diff_rad_basename
+# % type: string
+# % label: Base name for output diffuse irradiation raster maps [Wh.m-2.day-1]
+# % description: Underscore and day number are added to the base name for daily maps
+# %end
 
-#%option
-#% key: refl_rad_basename
-#% type: string
-#% label: Base name for output ground reflected irradiation raster maps [Wh.m-2.day-1]
-#% description: Underscore and day number are added to the base name for daily maps
-#%end
+# %option
+# % key: refl_rad_basename
+# % type: string
+# % label: Base name for output ground reflected irradiation raster maps [Wh.m-2.day-1]
+# % description: Underscore and day number are added to the base name for daily maps
+# %end
 
-#%option
-#% key: glob_rad_basename
-#% type: string
-#% label: Base name for output global (total) irradiance/irradiation raster maps [Wh.m-2.day-1]
-#% description: Underscore and day number are added to the base name for daily maps
-#%end
+# %option
+# % key: glob_rad_basename
+# % type: string
+# % label: Base name for output global (total) irradiance/irradiation raster maps [Wh.m-2.day-1]
+# % description: Underscore and day number are added to the base name for daily maps
+# %end
 
-#%option
-#% key: insol_time_basename
-#% type: string
-#% label: Base name for output insolation time raster map cumulated for the whole period of time [h]
-#% description: Underscore and day number are added to the base name for daily maps
-#%end
+# %option
+# % key: insol_time_basename
+# % type: string
+# % label: Base name for output insolation time raster map cumulated for the whole period of time [h]
+# % description: Underscore and day number are added to the base name for daily maps
+# %end
 
-#%option
-#% key: solar_constant
-#% type: double
-#% required: no
-#% multiple: no
-#% label: Solar constant [W/m^2]
-#% description: If not specified, r.sun default will be used.
-#%end
+# %option
+# % key: solar_constant
+# % type: double
+# % required: no
+# % multiple: no
+# % label: Solar constant [W/m^2]
+# % description: If not specified, r.sun default will be used.
+# %end
 
-#%option
-#% key: nprocs
-#% type: integer
-#% description: Number of r.sun processes to run in parallel
-#% options: 1-
-#% answer: 1
-#%end
+# %option
+# % key: nprocs
+# % type: integer
+# % description: Number of r.sun processes to run in parallel
+# % options: 1-
+# % answer: 1
+# %end
 
-#%flag
-#% key: t
-#% description: Dataset name is the same as the base name for the output series of maps
-#% label: Register created series of output maps into temporal dataset
-#%end
+# %flag
+# % key: t
+# % description: Dataset name is the same as the base name for the output series of maps
+# % label: Register created series of output maps into temporal dataset
+# %end
 
-#%flag
-#% key: p
-#% description: Do not incorporate the shadowing effect of terrain
-#%end
+# %flag
+# % key: p
+# % description: Do not incorporate the shadowing effect of terrain
+# %end
 
-#%flag
-#% key: m
-#% description: Use the low-memory version of the program
-#%end
+# %flag
+# % key: m
+# % description: Use the low-memory version of the program
+# %end
 
 import os
 import atexit

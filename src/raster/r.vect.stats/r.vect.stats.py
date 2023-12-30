@@ -13,32 +13,32 @@
 #
 #############################################################################
 
-#%module
-#% description: Bins vector points into a raster map.
-#% keyword: raster
-#% keyword: vector
-#% keyword: points
-#% keyword: binning
-#%end
-#%option G_OPT_V_INPUT
-#%end
-#%option G_OPT_R_OUTPUT
-#%end
-#%option G_OPT_DB_COLUMN
-#% description: Name of attribute column for statistics
-#% guisection: Attributes
-#%end
-#%option
-#% key: method
-#% type: string
-#% required: no
-#% multiple: no
-#% options: n,min,max,range,sum,mean,stddev,variance,coeff_var,median,percentile,skewness,trimmean
-#% description: Statistic to use for raster values
-#% descriptions: n;Number of points in cell;min;Minimum value of point values in cell;max;Maximum value of point values in cell;range;Range of point values in cell;sum;Sum of point values in cell;mean;Mean (average) value of point values in cell;stddev;Standard deviation of point values in cell;variance;Variance of point values in cell;coeff_var;Coefficient of variance of point values in cell;median;Median value of point values in cell;percentile;Pth (nth) percentile of point values in cell;skewness;Skewness of point values in cell;trimmean;Trimmed mean of point values in cell
-#% answer: mean
-#% guisection: Attributes
-#%end
+# %module
+# % description: Bins vector points into a raster map.
+# % keyword: raster
+# % keyword: vector
+# % keyword: points
+# % keyword: binning
+# %end
+# %option G_OPT_V_INPUT
+# %end
+# %option G_OPT_R_OUTPUT
+# %end
+# %option G_OPT_DB_COLUMN
+# % description: Name of attribute column for statistics
+# % guisection: Attributes
+# %end
+# %option
+# % key: method
+# % type: string
+# % required: no
+# % multiple: no
+# % options: n,min,max,range,sum,mean,stddev,variance,coeff_var,median,percentile,skewness,trimmean
+# % description: Statistic to use for raster values
+# % descriptions: n;Number of points in cell;min;Minimum value of point values in cell;max;Maximum value of point values in cell;range;Range of point values in cell;sum;Sum of point values in cell;mean;Mean (average) value of point values in cell;stddev;Standard deviation of point values in cell;variance;Variance of point values in cell;coeff_var;Coefficient of variance of point values in cell;median;Median value of point values in cell;percentile;Pth (nth) percentile of point values in cell;skewness;Skewness of point values in cell;trimmean;Trimmed mean of point values in cell
+# % answer: mean
+# % guisection: Attributes
+# %end
 
 import sys
 

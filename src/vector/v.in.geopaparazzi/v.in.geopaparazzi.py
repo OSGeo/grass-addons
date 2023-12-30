@@ -13,41 +13,41 @@
 #               comes with GRASS for details.
 #
 #############################################################################
-#%module
-#% description: Imports data from Geopaparazzi database.
-#% keyword: vector
-#%end
-#%flag
-#% key: b
-#% description: Import bookmarks
-#%end
-#%flag
-#% key: i
-#% description: Import images
-#%end
-#%flag
-#% key: n
-#% description: Import notes
-#%end
-#%flag
-#% key: t
-#% description: Import tracks
-#%end
-#%flag
-#% key: z
-#% description: Create a 3D elements (not for bookmarks)
-#%end
-#%option G_OPT_DB_DATABASE
-#% description: Input Geopaparazzi database
-#% required : yes
-#%end
-#%option
-#% key: basename
-#% type: string
-#% gisprompt: new_file,file,output
-#% description: Base name for output file
-#% required : yes
-#%end
+# %module
+# % description: Imports data from Geopaparazzi database.
+# % keyword: vector
+# %end
+# %flag
+# % key: b
+# % description: Import bookmarks
+# %end
+# %flag
+# % key: i
+# % description: Import images
+# %end
+# %flag
+# % key: n
+# % description: Import notes
+# %end
+# %flag
+# % key: t
+# % description: Import tracks
+# %end
+# %flag
+# % key: z
+# % description: Create a 3D elements (not for bookmarks)
+# %end
+# %option G_OPT_DB_DATABASE
+# % description: Input Geopaparazzi database
+# % required : yes
+# %end
+# %option
+# % key: basename
+# % type: string
+# % gisprompt: new_file,file,output
+# % description: Base name for output file
+# % required : yes
+# %end
 
 import json
 import os

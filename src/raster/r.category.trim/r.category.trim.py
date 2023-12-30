@@ -1,18 +1,17 @@
 #!/usr/bin/env python
-
 #
 ########################################################################
 #
 # MODULE:       r.category.trim
 # AUTHOR(S):    Paulo van Breugel (paulo AT ecodiv DOT earth)
-# DESCRIPTION:  Export the categories, category labels and color codes (RGB)
-#               as csv file or as a QGIS color map file. It will first remove
-#               non-existing categories and their color definitions.
+# DESCRIPTION:  Export the categories, category labels and colour codes (RGB)
+#               as csv file or as a QGIS colour map file. It will first remove
+#               non-existing categories and their colour definitions.
 #               Optionally, map values can be reclassed into consecutive
 #               categories values, whereby the category labels and colors are
 #               retained.
 #
-# COPYRIGHT: (C) 2015-2021 Paulo van Breugel and the GRASS Development Team
+# COPYRIGHT: (C) 2015-2022 Paulo van Breugel and the GRASS Development Team
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS
@@ -20,72 +19,68 @@
 #
 ########################################################################
 #
-#%Module
-#% description: Export categories and corresponding colors as QGIS color file or csv file. Non-existing categories and their color definitions will be removed.
-#% keyword: raster
-#% keyword: color
-#% keyword: color table
-#% keyword: category
-#%End
+# %Module
+# % description: Export categories and corresponding colors as QGIS color file or csv file. Non-existing categories and their color definitions will be removed.
+# % keyword: raster
+# % keyword: color
+# % keyword: color table
+# % keyword: category
+# %End
 
-#%option
-#% key: input
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: input map
-#% key_desc: name
-#% required: yes
-#% multiple: no
-#% guisection: Raster
-#%end
+# %option
+# % key: input
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: input map
+# % key_desc: name
+# % required: yes
+# % multiple: no
+# % guisection: Raster
+# %end
 
-#%option
-#% key: output
-#% type: string
-#% gisprompt: new,cell,raster
-#% description: output map
-#% key_desc: name
-#% required: no
-#% multiple: no
-#% guisection: Raster
-#%end
+# %option
+# % key: output
+# % type: string
+# % gisprompt: new,cell,raster
+# % description: output map
+# % key_desc: name
+# % required: no
+# % multiple: no
+# % guisection: Raster
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key:csv
-#% description: Attribute table (csv format)
-#% key_desc: name
-#% required: no
-#% guisection: Export
-#%end
+# %option G_OPT_F_OUTPUT
+# % key:csv
+# % description: Attribute table (csv format)
+# % key_desc: name
+# % required: no
+# % guisection: Export
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key:qgis
-#% description: QGIS color file (txt format)
-#% key_desc: name
-#% required: no
-#% guisection: Export
-#%end
+# %option G_OPT_F_OUTPUT
+# % key:qgis
+# % description: QGIS color file (txt format)
+# % key_desc: name
+# % required: no
+# % guisection: Export
+# %end
 
-#%flag:
-#% key: n
-#% description: Recode layer to get consecutive category values
-#%end
+# %flag:
+# % key: n
+# % description: Recode layer to get consecutive category values
+# %end
 
-#%rules
-#% requires_all: -n, output
-#%end
-
-# =======================================================================
-## General
-# =======================================================================
+# %rules
+# % requires_all: -n, output
+# %end
 
 # import libraries
 import os
 import sys
+import re
 from subprocess import PIPE
 from grass.pygrass.modules import Module
 import grass.script as gs
-import re
 
 
 def main(options, flags):
@@ -102,116 +97,166 @@ def main(options, flags):
         return 0
 
     # Input
-    IP = options["input"]
-    OP = options["output"]
-    CSV = options["csv"]
-    QGIS = options["qgis"]
-    flags_n = flags["n"]
+    input_raster = options["input"]
+    output_raster = options["output"]
+    output_csv = options["csv"]
+    output_colorfile = options["qgis"]
+    flag_recode = flags["n"]
 
     # Check if raster is integer
-    iscell = gs.raster.raster_info(IP)["datatype"]
+    iscell = gs.raster.raster_info(input_raster)["datatype"]
     if iscell != "CELL":
         gs.error(_("Input should be an integer raster layer"))
 
     # Get map category values and their labels
-    CATV = Module("r.category", map=IP, stdout_=PIPE).outputs.stdout
-    RCAT = CATV.split("\n")
-    RCAT = [_f for _f in RCAT if _f]
-    RID = [z.split("\t")[0] for z in RCAT]
-    RIDI = list(map(int, RID))
+    rcategory_output = Module(
+        "r.category", map=input_raster, stdout_=PIPE
+    ).outputs.stdout
+    raster_cats = rcategory_output.split("\n")
+    raster_cats = [_f for _f in raster_cats if _f]
+    raster_id = [z.split("\t")[0] for z in raster_cats]
+    raster_id_list = list(map(int, raster_id))
 
     # Get full color table
-    RCOL = gs.read_command("r.colors.out", map=IP).split("\n")
-    RCOL = [x for x in RCOL if "nv" not in x and "default" not in x]
-    RCOL = [_f for _f in RCOL if _f]
-    CCAT = [z.split(" ")[0] for z in RCOL]
-    idx = [i for i, item in enumerate(CCAT) if not re.search("\.", item)]
-    CCAT = [CCAT[i] for i in idx]
-    RCOL = [RCOL[i] for i in idx]
-    CCAT = list(map(int, CCAT))
+    raster_color = gs.read_command("r.colors.out", map=input_raster).split("\n")
+    raster_color = [x for x in raster_color if "nv" not in x and "default" not in x]
+    raster_color = [_f for _f in raster_color if _f]
+    raster_color_cat = [z.split(" ")[0] for z in raster_color]
+    idx = [i for i, item in enumerate(raster_color_cat) if not re.search("\.", item)]
+    raster_color_cat = [raster_color_cat[i] for i in idx]
+    raster_color = [raster_color[i] for i in idx]
+    raster_color_cat = list(map(int, raster_color_cat))
 
     # Set strings / list to be used in loop
-    CR = ""
-    RECO = ""
-    CL = ""
-    CV = []
+    color_rules = ""
+    recode_rules = ""
+    category_string = ""
+    cv_string = []
 
     # recode to consecutive category values
-    if flags_n:
-        RIDN = list(range(1, len(RID) + 1))
-        RLAB = [z.split("\t")[1] for z in RCAT]
-        for j in range(len(RID)):
-            RECO = "{0}{1}:{1}:{2}\n".format(RECO, RID[j], RIDN[j])
-            A = list(map(int, [i for i, x in enumerate(CCAT) if x == RIDI[j]]))
-            if A:
-                ADCR = RCOL[A[0]].split(" ")[1]
-                CR = "{}{} {}\n".format(CR, RIDN[j], ADCR)
-                CL = "{}{}|{}\n".format(CL, RIDN[j], RLAB[j])
-                CV.append(ADCR)
+    if flag_recode:
+        raster_id_new = list(range(1, len(raster_id) + 1))
+        raster_lab = [z.split("\t")[1] for z in raster_cats]
+        for j in range(len(raster_id)):
+            recode_rules = "{0}{1}:{1}:{2}\n".format(
+                recode_rules, raster_id[j], raster_id_new[j]
+            )
+            select_color = list(
+                map(
+                    int,
+                    [
+                        i
+                        for i, x in enumerate(raster_color_cat)
+                        if x == raster_id_list[j]
+                    ],
+                )
+            )
+            if select_color:
+                add_color = raster_color[select_color[0]].split(" ")[1]
+                color_rules = "{}{} {}\n".format(
+                    color_rules, raster_id_new[j], add_color
+                )
+                category_string = "{}{}|{}\n".format(
+                    category_string, raster_id_new[j], raster_lab[j]
+                )
+                cv_string.append(add_color)
 
-        CR = "{}nv 255:255:255\ndefault 255:255:255\n".format(CR)
+        color_rules = "{}nv 255:255:255\ndefault 255:255:255\n".format(color_rules)
         Module(
             "r.recode",
             flags="a",
-            input=IP,
-            output=OP,
+            input=input_raster,
+            output=output_raster,
             rules="-",
-            stdin_=RECO,
+            stdin_=recode_rules,
             quiet=True,
         )
-        Module("r.colors", map=OP, rules="-", stdin_=CR, quiet=True)
-        Module("r.category", map=OP, rules="-", stdin_=CL, quiet=True, separator="pipe")
+        Module("r.colors", map=output_raster, rules="-", stdin_=color_rules, quiet=True)
+        Module(
+            "r.category",
+            map=output_raster,
+            rules="-",
+            stdin_=category_string,
+            quiet=True,
+            separator="pipe",
+        )
     else:
         # Check if new layer should be created
-        if len(OP) > 0:
-            k = "{},{}".format(IP, OP)
+        if len(output_raster) > 0:
+            k = "{},{}".format(input_raster, output_raster)
             gs.run_command("g.copy", raster=k)
         else:
-            OP = IP
+            output_raster = input_raster
 
         # Remove redundant categories
-        Module("r.category", map=OP, rules="-", stdin_=CATV, quiet=True)
+        Module(
+            "r.category",
+            map=output_raster,
+            rules="-",
+            stdin_=rcategory_output,
+            quiet=True,
+        )
 
         # Write color rules and assign colors
-        for j in range(len(RIDI)):
-            A = list(map(int, [i for i, x in enumerate(CCAT) if x == RIDI[j]]))
-            if A:
-                ADCR = RCOL[A[0]].split(" ")[1]
-                CR = CR + str(RIDI[j]) + " " + ADCR + "\n"
-                CV.append(ADCR)
-        CR = "{}nv 255:255:255\ndefault 255:255:255\n".format(CR)
-        Module("r.colors", map=OP, rules="-", stdin_=CR, quiet=True)
+        for j in range(len(raster_id_list)):
+            select_color = list(
+                map(
+                    int,
+                    [
+                        i
+                        for i, x in enumerate(raster_color_cat)
+                        if x == raster_id_list[j]
+                    ],
+                )
+            )
+            if select_color:
+                add_color = raster_color[select_color[0]].split(" ")[1]
+                color_rules = (
+                    color_rules + str(raster_id_list[j]) + " " + add_color + "\n"
+                )
+                cv_string.append(add_color)
+        color_rules = "{}nv 255:255:255\ndefault 255:255:255\n".format(color_rules)
+        Module("r.colors", map=output_raster, rules="-", stdin_=color_rules, quiet=True)
 
     # If attribute table (csv format) should be written
-    if len(CSV) > 0:
-        if flags_n:
-            RCAT1 = [w.replace("|", ",'") for w in [_f for _f in CL.split("\n") if _f]]
+    if len(output_csv) > 0:
+        if flag_recode:
+            raster_cat1 = [
+                w.replace("|", ",'")
+                for w in [_f for _f in category_string.split("\n") if _f]
+            ]
         else:
-            RCAT1 = [w.replace("\t", ",'") for w in RCAT]
-        RCAT1 = ["{}'".format(w) for w in RCAT1]
-        RCAT1.insert(0, "CATEGORY,CATEGORY LABEL")
-        CV1 = list(CV)
-        CV1.insert(0, "RGB")
-        with open(CSV, "w") as text_file:
-            for k in range(len(RCAT1)):
-                text_file.write("{},{}\n".format(RCAT1[k], CV1[k]))
+            raster_cat1 = [w.replace("\t", ",'") for w in raster_cats]
+        raster_cat1 = ["{}'".format(w) for w in raster_cat1]
+        raster_cat1.insert(0, "CATEGORY,CATEGORY LABEL")
+        cv_string1 = list(cv_string)
+        cv_string1.insert(0, "RGB")
+        with open(output_csv, "w") as text_file:
+            for k in range(len(raster_cat1)):
+                text_file.write("{},{}\n".format(raster_cat1[k], cv_string1[k]))
 
     # If QGIS Color Map text files should be written
-    if len(QGIS) > 0:
-        RGB = [w.replace(":", ",") for w in CV]
-        if flags_n:
-            RCAT = [_f for _f in CL.split("\n") if _f]
+    if len(output_colorfile) > 0:
+        rgb_string = [w.replace(":", ",") for w in cv_string]
+        if flag_recode:
+            raster_cats = [_f for _f in category_string.split("\n") if _f]
         else:
-            RCAT = [w.replace("\t", "|") for w in RCAT]
-        with open(QGIS, "w") as text_file:
-            text_file.write("# QGIS color map for {}\n".format(OP))
+            raster_cats = [w.replace("\t", "|") for w in raster_cats]
+        with open(output_colorfile, "w") as text_file:
+            text_file.write("# QGIS color map for {}\n".format(output_raster))
             text_file.write("INTERPOLATION:EXACT\n")
-            for k in range(len(RCAT)):
-                RC2 = RCAT[k].split("|")
-                if RC2[1]:
-                    text_file.write("{},{},255,{}\n".format(RC2[0], RGB[k], RC2[1]))
+            for k in range(len(raster_cats)):
+                raster_cats2 = raster_cats[k].split("|")
+                if raster_cats2[1]:
+                    text_file.write(
+                        "{},{},255,{}\n".format(
+                            raster_cats2[0], rgb_string[k], raster_cats2[1]
+                        )
+                    )
                 else:
-                    text_file.write("{},{},255,{}\n".format(RC2[0], RGB[k], "-"))
+                    text_file.write(
+                        "{},{},255,{}\n".format(raster_cats2[0], rgb_string[k], "-")
+                    )
 
 
 if __name__ == "__main__":

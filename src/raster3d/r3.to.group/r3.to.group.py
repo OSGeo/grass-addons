@@ -13,47 +13,47 @@
 #
 #############################################################################
 
-#%module
-#% description: Convert a 3D raster map to imagery group
-#% keyword: raster3d
-#% keyword: conversion
-#% keyword: raster
-#% keyword: imagery
-#% keyword: voxel
-#% keyword: map management
-#%end
-#%option G_OPT_R3_INPUT
-#%end
-#%option G_OPT_I_GROUP
-#%end
-#%option G_OPT_I_SUBGROUP
-#% required: no
-#%end
-#%option G_OPT_R_BASENAME_OUTPUT
-#% key: basename
-#% required: no
-#%end
-#%option G_OPT_R_TYPE
-#% required: no
-#%end
-#%option
-#% key: multiply
-#% type: double
-#% required: no
-#% label: Value to multiply the raster values with
-#% description: Coefficient a in the equation y = ax + b
-#%end
-#%option
-#% key: add
-#% type: double
-#% required: no
-#% label: Value to add to the raster values
-#% description: Coefficient b in the equation y = ax + b
-#%end
-#%flag
-#% key: a
-#% description: Add to group or subgroup if it already exists
-#%end
+# %module
+# % description: Convert a 3D raster map to imagery group
+# % keyword: raster3d
+# % keyword: conversion
+# % keyword: raster
+# % keyword: imagery
+# % keyword: voxel
+# % keyword: map management
+# %end
+# %option G_OPT_R3_INPUT
+# %end
+# %option G_OPT_I_GROUP
+# %end
+# %option G_OPT_I_SUBGROUP
+# % required: no
+# %end
+# %option G_OPT_R_BASENAME_OUTPUT
+# % key: basename
+# % required: no
+# %end
+# %option G_OPT_R_TYPE
+# % required: no
+# %end
+# %option
+# % key: multiply
+# % type: double
+# % required: no
+# % label: Value to multiply the raster values with
+# % description: Coefficient a in the equation y = ax + b
+# %end
+# %option
+# % key: add
+# % type: double
+# % required: no
+# % label: Value to add to the raster values
+# % description: Coefficient b in the equation y = ax + b
+# %end
+# %flag
+# % key: a
+# % description: Add to group or subgroup if it already exists
+# %end
 
 
 import grass.script as gs

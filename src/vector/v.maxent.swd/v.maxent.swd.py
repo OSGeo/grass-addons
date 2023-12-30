@@ -36,125 +36,125 @@
 #
 # REQUIREMENTS:
 # -
-#%Module
-#% description: Export raster values at given point locations as text file in SWD format for input in Maxent
-#% keyword: vector
-#% keyword: export
-#% keyword: Maxent
-#%End
+# %Module
+# % description: Export raster values at given point locations as text file in SWD format for input in Maxent
+# % keyword: vector
+# % keyword: export
+# % keyword: Maxent
+# %End
 
-#%option
-#% key: species
-#% type: string
-#% description: vector map(s) of species occurence
-#% required : yes
-#% multiple : yes
-#% gisprompt: old,vector
-#% guisection: point data
-#%end
+# %option
+# % key: species
+# % type: string
+# % description: vector map(s) of species occurence
+# % required : yes
+# % multiple : yes
+# % gisprompt: old,vector
+# % guisection: point data
+# %end
 
-#%option
-#% key: species_name
-#% type: string
-#% description: Alias-name(s) for species (default: map names).
-#% required : no
-#% guisection: point data
-#%end
+# %option
+# % key: species_name
+# % type: string
+# % description: Alias-name(s) for species (default: map names).
+# % required : no
+# % guisection: point data
+# %end
 
-#%option
-#% key: evp_maps
-#% type: string
-#% description: Environmental parameter map(s)
-#% required : yes
-#% multiple : yes
-#% gisprompt: old,cell,raster
-#% guisection: environment
-#%end
+# %option
+# % key: evp_maps
+# % type: string
+# % description: Environmental parameter map(s)
+# % required : yes
+# % multiple : yes
+# % gisprompt: old,cell,raster
+# % guisection: environment
+# %end
 
-#%option
-#% key: alias_names
-#% type: string
-#% description: Alias names for environmental parameter(s)
-#% required : no
-#% guisection: environment
-#%end
+# %option
+# % key: alias_names
+# % type: string
+# % description: Alias names for environmental parameter(s)
+# % required : no
+# % guisection: environment
+# %end
 
-#%option
-#% key: evp_cat
-#% type: string
-#% description: Categorial environmental parameter map(s)
-#% required : no
-#% multiple : yes
-#% gisprompt: old,cell,raster
-#% guisection: environment
-#%end
+# %option
+# % key: evp_cat
+# % type: string
+# % description: Categorial environmental parameter map(s)
+# % required : no
+# % multiple : yes
+# % gisprompt: old,cell,raster
+# % guisection: environment
+# %end
 
-#%option
-#% key: alias_cat
-#% type: string
-#% description: Alias names for categorial parameter(s)
-#% required : no
-#% guisection: environment
-#%end
+# %option
+# % key: alias_cat
+# % type: string
+# % description: Alias names for categorial parameter(s)
+# % required : no
+# % guisection: environment
+# %end
 
-#%option
-#% key: nbgp
-#% type: string
-#% description: Number or percentage of background points
-#% key_desc: number
-#% answer : 10000
-#% required: no
-#% guisection: point data
-#%end
+# %option
+# % key: nbgp
+# % type: string
+# % description: Number or percentage of background points
+# % key_desc: number
+# % answer : 10000
+# % required: no
+# % guisection: point data
+# %end
 
-#%option
-#% key: bgp
-#% type: string
-#% description: Vector layer with background / absence points
-#% required : no
-#% multiple : no
-#% gisprompt: old,vector
-#% guisection: point data
-#%end
+# %option
+# % key: bgp
+# % type: string
+# % description: Vector layer with background / absence points
+# % required : no
+# % multiple : no
+# % gisprompt: old,vector
+# % guisection: point data
+# %end
 
-#%rules
-#%exclusive: nbgp,bgp
-#%end
+# %rules
+# %exclusive: nbgp,bgp
+# %end
 
-#%flag
-#% key: e
-#% description: include the original columns in input layers in export to swd file
-#%end
+# %flag
+# % key: e
+# % description: include the original columns in input layers in export to swd file
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key: bgr_output
-#% description: Background SWD file
-#% required : yes
-#% multiple: no
-#% guisection: output
-#%end
+# %option G_OPT_F_OUTPUT
+# % key: bgr_output
+# % description: Background SWD file
+# % required : yes
+# % multiple: no
+# % guisection: output
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key: species_output
-#% description: Species SWD file
-#% required : yes
-#% multiple: no
-#% guisection: output
-#%end
+# %option G_OPT_F_OUTPUT
+# % key: species_output
+# % description: Species SWD file
+# % required : yes
+# % multiple: no
+# % guisection: output
+# %end
 
-#%flag
-#% key: h
-#% description: skip header in csv
-#%end
+# %flag
+# % key: h
+# % description: skip header in csv
+# %end
 
-#%option
-#% key: nodata
-#% type: integer
-#% description: nodata value in output files
-#% key_desc: number
-#% answer : -9999
-#% required: no
-#%end
+# %option
+# % key: nodata
+# % type: integer
+# % description: nodata value in output files
+# % key_desc: number
+# % answer : -9999
+# % required: no
+# %end
 
 # ----------------------------------------------------------------------------
 # Standard

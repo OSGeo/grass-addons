@@ -41,103 +41,103 @@ REQUIREMENTS:
  -
 """
 
-#%Module
-#% description: Exports map data as input to MaxEnt in SWD format
-#% keyword: raster
-#% keyword: export
-#% keyword: maxent
-#% keyword: ecology
-#% keyword: niche
-#%End
+# %Module
+# % description: Exports map data as input to MaxEnt in SWD format
+# % keyword: raster
+# % keyword: export
+# % keyword: maxent
+# % keyword: ecology
+# % keyword: niche
+# %End
 #
-#%flag
-#% key: z
-#% description: Zoom computational region to species data (may speed up processing)
-#% guisection: Species
-#%end
+# %flag
+# % key: z
+# % description: Zoom computational region to species data (may speed up processing)
+# % guisection: Species
+# %end
 #
-#%option G_OPT_F_INPUT
-#% key: alias_input
-#% type: string
-#% description: File containg map and alias name(s) for environmental parameter(s)
-#% guisection: Background
-#% required: no
-#%end
+# %option G_OPT_F_INPUT
+# % key: alias_input
+# % type: string
+# % description: File containg map and alias name(s) for environmental parameter(s)
+# % guisection: Background
+# % required: no
+# %end
 #
-#%option G_OPT_R_INPUTS
-#% key: env_maps
-#% description: Environmental parameter map(s)
-#% guisection: Background
-#% required : no
-#%end
+# %option G_OPT_R_INPUTS
+# % key: env_maps
+# % description: Environmental parameter map(s)
+# % guisection: Background
+# % required : no
+# %end
 #
-#%option
-#% key: alias_names
-#% type: string
-#% description: Alias names for environmental parameter map(s)
-#% guisection: Background
-#% required : no
-#%end
+# %option
+# % key: alias_names
+# % type: string
+# % description: Alias names for environmental parameter map(s)
+# % guisection: Background
+# % required : no
+# %end
 #
-#%option G_OPT_F_OUTPUT
-#% key: bgr_output
-#% description: Output SWD file for the environmental data of the background landscape
-#% guisection: Background
-#% required : no
-#%end
+# %option G_OPT_F_OUTPUT
+# % key: bgr_output
+# % description: Output SWD file for the environmental data of the background landscape
+# % guisection: Background
+# % required : no
+# %end
 #
-#%option G_OPT_F_OUTPUT
-#% key: alias_output
-#% description: CSV-like output file with alias names in first column and map names in second column, separated by comma
-#% guisection: Background
-#% required : no
-#%end
+# %option G_OPT_F_OUTPUT
+# % key: alias_output
+# % description: CSV-like output file with alias names in first column and map names in second column, separated by comma
+# % guisection: Background
+# % required : no
+# %end
 #
-#%option G_OPT_R_INPUT
-#% key: bgr_mask
-#% description: Map to be used as mask for the background landscape
-#% guisection: Background
-#% required : no
-#%end
+# %option G_OPT_R_INPUT
+# % key: bgr_mask
+# % description: Map to be used as mask for the background landscape
+# % guisection: Background
+# % required : no
+# %end
 #
-#%option G_OPT_R_INPUTS
-#% key: species_masks
-#% description: Raster map(s) of specie occurence
-#% guisection: Species
-#% required : no
-#%end
+# %option G_OPT_R_INPUTS
+# % key: species_masks
+# % description: Raster map(s) of specie occurence
+# % guisection: Species
+# % required : no
+# %end
 #
-#%option G_OPT_F_OUTPUT
-#% key: species_output
-#% description: Output SWD file for the specie(s) related environmental data
-#% guisection: Output
-#% required : no
-#%end
+# %option G_OPT_F_OUTPUT
+# % key: species_output
+# % description: Output SWD file for the specie(s) related environmental data
+# % guisection: Output
+# % required : no
+# %end
 #
-#%option
-#% key: species_names
-#% type: string
-#% description: Alias-name(s) for species to be used in MaxEnt SWD file instead of map names, separated by comma (default: map names).
-#% guisection: Species
-#% required : no
-#%end
+# %option
+# % key: species_names
+# % type: string
+# % description: Alias-name(s) for species to be used in MaxEnt SWD file instead of map names, separated by comma (default: map names).
+# % guisection: Species
+# % required : no
+# %end
 #
-#%Option
-#% key: null_value
-#% type: integer
-#% required: no
-#% description: Integer representing NO DATA cell value (default: -9999)
-#% guisection: Output
-#% answer: -9999
-#%end
+# %Option
+# % key: null_value
+# % type: integer
+# % required: no
+# % description: Integer representing NO DATA cell value (default: -9999)
+# % guisection: Output
+# % answer: -9999
+# %end
 #
-#%rules
-#% required: alias_input,env_maps
-#% exclusive: alias_input,alias_output
-#% requires: alias_output,alias_names
-#% requires: species_names,species_masks
-#% requires: species_output,species_masks
-#%end
+# %rules
+# % required: alias_input,env_maps
+# % exclusive: alias_input,alias_output
+# % requires: alias_output,alias_names
+# % requires: species_names,species_masks
+# % requires: species_output,species_masks
+# %end
 
 import atexit
 import os

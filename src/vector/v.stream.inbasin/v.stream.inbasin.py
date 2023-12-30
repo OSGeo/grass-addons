@@ -22,77 +22,77 @@
 # More information
 # Started 14 October 2016
 
-#%module
-#% description: Subset a stream network into just one of its basins
-#% keyword: vector
-#% keyword: stream network
-#% keyword: basins
-#% keyword: hydrology
-#% keyword: geomorphology
-#%end
+# %module
+# % description: Subset a stream network into just one of its basins
+# % keyword: vector
+# % keyword: stream network
+# % keyword: basins
+# % keyword: hydrology
+# % keyword: geomorphology
+# %end
 
-#%option G_OPT_V_INPUT
-#%  key: input_streams
-#%  label: Stream network
-#%  required: yes
-#%end
+# %option G_OPT_V_INPUT
+# %  key: input_streams
+# %  label: Stream network
+# %  required: yes
+# %end
 
-#%option G_OPT_V_INPUT
-#%  key: input_basins
-#%  label: Subbasins built alongside stream network
-#%  required: no
-#%end
+# %option G_OPT_V_INPUT
+# %  key: input_basins
+# %  label: Subbasins built alongside stream network
+# %  required: no
+# %end
 
-#%option G_OPT_R_INPUT
-#%  key: draindir
-#%  label: Drainage directions (needed if exact coordinates used)
-#%  required: no
-#%end
+# %option G_OPT_R_INPUT
+# %  key: draindir
+# %  label: Drainage directions (needed if exact coordinates used)
+# %  required: no
+# %end
 
-#%option
-#%  key: cat
-#%  label: Farthest downstream segment category
-#%  required: no
-#%  guidependency: layer,column
-#%end
+# %option
+# %  key: cat
+# %  label: Farthest downstream segment category
+# %  required: no
+# %  guidependency: layer,column
+# %end
 
-#%option
-#%  key: x_outlet
-#%  label: Approx. pour point x/Easting: will find closest segment
-#%  required: no
-#%  guidependency: layer,column
-#%end
+# %option
+# %  key: x_outlet
+# %  label: Approx. pour point x/Easting: will find closest segment
+# %  required: no
+# %  guidependency: layer,column
+# %end
 
-#%option
-#%  key: y_outlet
-#%  label: Approx. pour point y/Northing: will find closest segment
-#%  required: no
-#%  guidependency: layer,column
-#%end
+# %option
+# %  key: y_outlet
+# %  label: Approx. pour point y/Northing: will find closest segment
+# %  required: no
+# %  guidependency: layer,column
+# %end
 
-#%option G_OPT_V_OUTPUT
-#%  key: output_basin
-#%  label: Vector output drainage basin
-#%  required: no
-#%end
+# %option G_OPT_V_OUTPUT
+# %  key: output_basin
+# %  label: Vector output drainage basin
+# %  required: no
+# %end
 
-#%option G_OPT_V_OUTPUT
-#%  key: output_streams
-#%  label: Streams within vector output drainage basin
-#%  required: no
-#%end
+# %option G_OPT_V_OUTPUT
+# %  key: output_streams
+# %  label: Streams within vector output drainage basin
+# %  required: no
+# %end
 
-#%option G_OPT_V_OUTPUT
-#%  key: output_pour_point
-#%  label: Basin outlet
-#%  required: no
-#%end
+# %option G_OPT_V_OUTPUT
+# %  key: output_pour_point
+# %  label: Basin outlet
+# %  required: no
+# %end
 
-#%flag
-#%  key: s
-#%  description: Snap provided coordinates to nearest segment endpoint
-#%  guisection: Settings
-#%end
+# %flag
+# %  key: s
+# %  description: Snap provided coordinates to nearest segment endpoint
+# %  guisection: Settings
+# %end
 
 ##################
 # IMPORT MODULES #

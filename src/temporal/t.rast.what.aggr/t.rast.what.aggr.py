@@ -17,132 +17,132 @@
 #
 #############################################################################
 
-#%module
-#% description: Sample a space time raster dataset at specific vector point map returning aggregate values and write the output to stdout or to attribute table
-#% keyword: temporal
-#% keyword: sampling
-#% keyword: raster
-#% keyword: time
-#%end
+# %module
+# % description: Sample a space time raster dataset at specific vector point map returning aggregate values and write the output to stdout or to attribute table
+# % keyword: temporal
+# % keyword: sampling
+# % keyword: raster
+# % keyword: time
+# %end
 
-#%option G_OPT_V_INPUT
-#%end
+# %option G_OPT_V_INPUT
+# %end
 
-#%option G_OPT_STRDS_INPUT
-#% key: strds
-#%end
+# %option G_OPT_STRDS_INPUT
+# % key: strds
+# %end
 
-#%option G_OPT_DB_COLUMN
-#% key: date_column
-#% description: Name of the column containing starting dates for aggregates
-#% required: no
-#%end
+# %option G_OPT_DB_COLUMN
+# % key: date_column
+# % description: Name of the column containing starting dates for aggregates
+# % required: no
+# %end
 
-#%option
-#% key: date
-#% type: string
-#% description: The starting date for aggregation
-#% required: no
-#% multiple: no
-#%end
+# %option
+# % key: date
+# % type: string
+# % description: The starting date for aggregation
+# % required: no
+# % multiple: no
+# %end
 
-#%option
-#% key: final_date
-#% type: string
-#% description: The end date for aggregation, requires date option
-#% required: no
-#% multiple: no
-#%end
+# %option
+# % key: final_date
+# % type: string
+# % description: The end date for aggregation, requires date option
+# % required: no
+# % multiple: no
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% required: no
-#% description: Name for the output file or "-" in case stdout should be used
-#% answer: -
-#%end
+# %option G_OPT_F_OUTPUT
+# % required: no
+# % description: Name for the output file or "-" in case stdout should be used
+# % answer: -
+# %end
 
-#%option G_OPT_DB_COLUMNS
-#% key: final_date_column
-#% description: Column with ending date for aggregation, requires date_columns option
-#%end
+# %option G_OPT_DB_COLUMNS
+# % key: final_date_column
+# % description: Column with ending date for aggregation, requires date_columns option
+# %end
 
-#%option G_OPT_DB_COLUMNS
-#%end
+# %option G_OPT_DB_COLUMNS
+# %end
 
-#%option
-#% key: granularity
-#% type: string
-#% description: Aggregation granularity, format absolute time "x years, x months, x weeks, x days, x hours, x minutes, x seconds" or an integer value for relative time
-#% required: no
-#% multiple: no
-#%end
+# %option
+# % key: granularity
+# % type: string
+# % description: Aggregation granularity, format absolute time "x years, x months, x weeks, x days, x hours, x minutes, x seconds" or an integer value for relative time
+# % required: no
+# % multiple: no
+# %end
 
-#%option
-#% key: method
-#% type: string
-#% description: Aggregate operation to be performed on the raster maps
-#% required: yes
-#% multiple: yes
-#% options: average,median,mode,minimum,maximum,stddev,sum,variance,quart1,quart3,perc90,quantile
-#% answer: average
-#%end
+# %option
+# % key: method
+# % type: string
+# % description: Aggregate operation to be performed on the raster maps
+# % required: yes
+# % multiple: yes
+# % options: average,median,mode,minimum,maximum,stddev,sum,variance,quart1,quart3,perc90,quantile
+# % answer: average
+# %end
 
-#%option G_OPT_F_SEP
-#%end
+# %option G_OPT_F_SEP
+# %end
 
-#%option
-#% key: nprocs
-#% type: integer
-#% description: Number of processes to run in parallel
-#% required: no
-#% multiple: no
-#% answer: 1
-#%end
+# %option
+# % key: nprocs
+# % type: integer
+# % description: Number of processes to run in parallel
+# % required: no
+# % multiple: no
+# % answer: 1
+# %end
 
-#%option
-#% key: date_format
-#% type: string
-#% description: Tha date format
-#% required: no
-#% answer: %Y-%m-%d
-#%end
+# %option
+# % key: date_format
+# % type: string
+# % description: Tha date format
+# % required: no
+# % answer: %Y-%m-%d
+# %end
 
-#%flag
-#% key: u
-#% label: Update attribute table of input vector map
-#% description: Instead of creating a new vector map update the attribute table with value(s)
-#%end
+# %flag
+# % key: u
+# % label: Update attribute table of input vector map
+# % description: Instead of creating a new vector map update the attribute table with value(s)
+# %end
 
-#%flag
-#% key: a
-#% label: Query STRDS with dates after the 'date' or 'column_date' value
-#% description: Usually t.rast.what.aggr aggregate values before the selected dates, using a flag it will query values after the selected dates
-#%end
+# %flag
+# % key: a
+# % label: Query STRDS with dates after the 'date' or 'column_date' value
+# % description: Usually t.rast.what.aggr aggregate values before the selected dates, using a flag it will query values after the selected dates
+# %end
 
-#%flag
-#% key: c
-#% label: Create new columns, it combine STRDS and method names
-#% description: Create new columns for the selected methods, it combine STRDS and method names
-#%end
+# %flag
+# % key: c
+# % label: Create new columns, it combine STRDS and method names
+# % description: Create new columns for the selected methods, it combine STRDS and method names
+# %end
 
-#%rules
-#% exclusive: date,date_column
-#%end
+# %rules
+# % exclusive: date,date_column
+# %end
 
-#%rules
-#% requires: date, final_date, granularity
-#%end
+# %rules
+# % requires: date, final_date, granularity
+# %end
 
-#%rules
-#% requires: date_column, final_date_column, granularity
-#%end
+# %rules
+# % requires: date_column, final_date_column, granularity
+# %end
 
-#%rules
-#% requires: final_date, date
-#%end
+# %rules
+# % requires: final_date, date
+# %end
 
-#%rules
-#% requires: final_date_column, date_column
-#%end
+# %rules
+# % requires: final_date_column, date_column
+# %end
 
 from datetime import datetime
 from datetime import timedelta

@@ -22,41 +22,41 @@
 #  GNU General Public License for more details.
 #
 ############################################################################
-#%Module
-#%  description: Queries vector map with overlaping "spaghetti" polygons (e.g. Landsat footprints) at given location. Polygons must have not intersected boundaries.
-#%  keyword: vector
-#%  keyword: topology
-#%End
-#%Option
-#%  key: input
-#%  type: string
-#%  required: yes
-#%  multiple: no
-#%  key_desc: name
-#%  description: Name of input polygon vector map
-#%  gisprompt: old,vector,vector
-#%End
-#%Option
-#%  key: output
-#%  type: string
-#%  required: no
-#%  multiple: no
-#%  key_desc: name
-#%  description: Name of output vector map
-#%  gisprompt: new,vector,vector
-#%End
-#%Option
-#%  key: coor
-#%  type: string
-#%  required: yes
-#%  multiple: no
-#%  key_desc: name
-#%  description: Coordinates to query
-#%End
-#%Flag
-#%  key: p
-#%  description: Only print selected polygons
-#%End
+# %Module
+# %  description: Queries vector map with overlaping "spaghetti" polygons (e.g. Landsat footprints) at given location. Polygons must have not intersected boundaries.
+# %  keyword: vector
+# %  keyword: topology
+# %End
+# %Option
+# %  key: input
+# %  type: string
+# %  required: yes
+# %  multiple: no
+# %  key_desc: name
+# %  description: Name of input polygon vector map
+# %  gisprompt: old,vector,vector
+# %End
+# %Option
+# %  key: output
+# %  type: string
+# %  required: no
+# %  multiple: no
+# %  key_desc: name
+# %  description: Name of output vector map
+# %  gisprompt: new,vector,vector
+# %End
+# %Option
+# %  key: coor
+# %  type: string
+# %  required: yes
+# %  multiple: no
+# %  key_desc: name
+# %  description: Coordinates to query
+# %End
+# %Flag
+# %  key: p
+# %  description: Only print selected polygons
+# %End
 ############################################################################
 
 import sys

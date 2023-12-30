@@ -11,7 +11,7 @@ the standard error is, compared with what it would be if that
 variable were uncorrelated with the other predictor variables in the
 model.
 
-<p>By default the VIF is calculated for each variable. If the user
+<p>By default, the VIF is calculated for each variable. If the user
 sets a VIF threshold value (maxvif) a stepwise variable selection
 procedure [2] is used whereby after computing the VIF for each
 explanatory variable, the variable with the highest VIF is removed.
@@ -26,27 +26,30 @@ the variable <i>bio_5</i> to be retained. If in any step this
 variable has the highest VIF, the variable with the next highest VIF
 will be removed instead (see the examples).
 
-<p>The user can set the 's' flag to only print the finally selected
+<p>The user can set the 'v' flag to only print the finally selected
 variables to the standard output (console). Note that this only
 works when the stepwise selection procedure is invoked, i.e., when
 the maxvif is set. This option makes it easier to use the output of r.vif
-in another function directly (see example ).
+in another function directly (see example).
 
 <h2>NOTES</h2>
 
 To compute the vif all data layers are read in as a numpy array (non-data cells
-are ignored). When input layers are large or many memory usage may become
-problematic. In such cases the user may opt to sample raster values for random
-locations and use that to compute the vif. The quantity of random locations to
-be generated either can be defined as a positive integer, or as a percentage of
-the raster map layer's cells (see <a href="https://grass.osgeo.org/grass-stable/manuals/r.random.html">r.random</a> for
-details).
+are ignored). When input layers are large or there are many input layers, 
+memory usage may become problematic. In such cases the user may opt to sample
+raster values for random locations and use that to compute the vif. The quantity
+of random locations to be generated either can be defined as a positive integer,
+or as a percentage of the raster map layer's cells (see 
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.random.html">r.random</a>
+for details).
 
-<p>Using random sub-set of raster cells as input means that the vif values may
-vary between runs. If the sub-set is too small it may even lead to differences
-in variables selected when running the step-wise procedure. Special care should
-be taken when many of the equations are underdetermined (the value of vif is
-shown as <i>Inf</i>).
+<p>When using a random sub-set of raster cells as input, the user has the option
+to specifies the random seed used to generate the cells. The alternatively is to
+set the -s flag. In that case a radnom seed will be used. This yields a 
+non-deterministic result, i.e., vif values may vary between runs. If the sub-set
+is too small it may even lead to differences in variables selected when running
+the step-wise procedure. Special care should be taken when many of the equations
+are undetermined (the value of vif is shown as <i>Inf</i>).
 
 <p>As an alternative, the user can set the <em>f</em> flag to evoke the
 'low-memory option'. This will use the <a
@@ -61,7 +64,7 @@ The following examples are based on the nc_climate_spm_2000_2012 sample data
 set which you can download from
 <a href="https://grass.osgeo.org/download/data/">GRASS GIS
 sample data download page</a>. This data set contains monthly rainfall and
-temperature data for the years 2000 - 2012. In the examples below the monthly
+temperature data for the years 2000 - 2012. In the examples below, the monthly
 data of 2000 is used. The analyses are run on a smaller region, set below, to
 reduce the run time.
 
@@ -218,8 +221,3 @@ Variance Inflation Factor Cutoff Values. Quality Engineering 14:
 <h2>AUTHOR</h2>
 
 Paulo van Breugel, paulo at ecodiv.earth
-
-<!--
-<p>
-<i>Last changed: $Date$</i>
--->

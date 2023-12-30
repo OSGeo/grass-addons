@@ -16,48 +16,48 @@
 #            or f.write("{}\n".format(grass.db_begin_transaction(fi['driver']))) ?
 #############################################################################
 
-#%module
-#% description: Joins a database table to another database table.
-#% keyword: database
-#% keyword: attribute table
-#%end
+# %module
+# % description: Joins a database table to another database table.
+# % keyword: database
+# % keyword: attribute table
+# %end
 
-#%option G_OPT_DB_TABLE
-#% description: Table to which to join other table
-#% required : yes
-#%end
+# %option G_OPT_DB_TABLE
+# % description: Table to which to join other table
+# % required : yes
+# %end
 
-#%option G_OPT_DB_COLUMN
-#% description: Identifier column (e.g.: cat) in the table to be used for join
-#% required : yes
-#%end
+# %option G_OPT_DB_COLUMN
+# % description: Identifier column (e.g.: cat) in the table to be used for join
+# % required : yes
+# %end
 
-#%option G_OPT_DB_DATABASE
-#%end
+# %option G_OPT_DB_DATABASE
+# %end
 
-#%option G_OPT_DB_DRIVER
-#% options: dbf,odbc,ogr,sqlite,pg
-#%end
+# %option G_OPT_DB_DRIVER
+# % options: dbf,odbc,ogr,sqlite,pg
+# %end
 
-#%option G_OPT_DB_TABLE
-#% key: other_table
-#% description: Other table name
-#% required: yes
-#% guidependency: ocolumn,scolumns
-#%end
+# %option G_OPT_DB_TABLE
+# % key: other_table
+# % description: Other table name
+# % required: yes
+# % guidependency: ocolumn,scolumns
+# %end
 
-#%option G_OPT_DB_COLUMN
-#% key: other_column
-#% description: Identifier column (e.g.: id) in the other table used for join
-#% required: yes
-#%end
+# %option G_OPT_DB_COLUMN
+# % key: other_column
+# % description: Identifier column (e.g.: id) in the other table used for join
+# % required: yes
+# %end
 
-#%option G_OPT_DB_COLUMN
-#% key: subset_columns
-#% multiple: yes
-#% required: no
-#% description: Subset of columns from the other table
-#%end
+# %option G_OPT_DB_COLUMN
+# % key: subset_columns
+# % multiple: yes
+# % required: no
+# % description: Subset of columns from the other table
+# %end
 
 import sys
 import string

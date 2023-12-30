@@ -14,27 +14,27 @@
 #
 #########################################################################
 
-#%module
-#% description: Sorts a vector point map according to a numeric column
-#%end
-#%option G_OPT_V_INPUT
-#% required: yes
-#%end
-#%option G_OPT_V_FIELD
-#% required: yes
-#% answer: 1
-#%end
-#%option G_OPT_V_OUTPUT
-#% required: yes
-#%end
-#%option G_OPT_DB_COLUMN
-#% description: Name of attribute column used for sorting
-#% required: yes
-#%end
-#%flag
-#% key: r
-#% description: do not reverse sort
-#%end
+# %module
+# % description: Sorts a vector point map according to a numeric column
+# %end
+# %option G_OPT_V_INPUT
+# % required: yes
+# %end
+# %option G_OPT_V_FIELD
+# % required: yes
+# % answer: 1
+# %end
+# %option G_OPT_V_OUTPUT
+# % required: yes
+# %end
+# %option G_OPT_DB_COLUMN
+# % description: Name of attribute column used for sorting
+# % required: yes
+# %end
+# %flag
+# % key: r
+# % description: do not reverse sort
+# %end
 
 import sys
 import os
