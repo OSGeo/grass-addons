@@ -6,12 +6,12 @@
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
 
-typedef CGAL::Triangulation_3<K>           Triangulation;
-typedef CGAL::Delaunay_triangulation_3<K>  DelaunayTriangulation;
-typedef Triangulation::Point          Point;
+typedef CGAL::Triangulation_3<K> Triangulation;
+typedef CGAL::Delaunay_triangulation_3<K> DelaunayTriangulation;
+typedef Triangulation::Point Point;
 
 /* read.cpp */
-int read_points(struct Map_info *, int, std::vector<Point>&);
+int read_points(struct Map_info *, int, std::vector<Point> &);
 
 /* write.cpp */
 void write_lines(struct Map_info *, int, const Triangulation *);

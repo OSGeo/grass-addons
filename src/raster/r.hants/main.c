@@ -1,4 +1,3 @@
-
 /****************************************************************************
  *
  * MODULE:       r.hants
@@ -14,6 +13,7 @@
  *               for details.
  *
  *****************************************************************************/
+
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -26,15 +26,13 @@
 #include <grass/glocale.h>
 #include <grass/gmath.h>
 
-struct input
-{
+struct input {
     const char *name;
     int fd;
     DCELL *buf;
 };
 
-struct output
-{
+struct output {
     const char *name;
     int fd;
     DCELL *buf;
@@ -44,95 +42,92 @@ static int solvemat(double **m, double a[], double B[], int n)
 {
     int i, j, i2, j2, imark;
     double factor, temp, *tempp;
-    double pivot;		/* ACTUAL VALUE OF THE LARGEST PIVOT CANDIDATE */
+    double pivot; /* ACTUAL VALUE OF THE LARGEST PIVOT CANDIDATE */
 
     for (i = 0; i < n; i++) {
-	j = i;
+        j = i;
 
-	/* find row with largest magnitude value for pivot value */
+        /* find row with largest magnitude value for pivot value */
 
-	pivot = m[i][j];
-	imark = i;
-	for (i2 = i + 1; i2 < n; i2++) {
-	    temp = fabs(m[i2][j]);
-	    if (temp > fabs(pivot)) {
-		pivot = m[i2][j];
-		imark = i2;
-	    }
-	}
+        pivot = m[i][j];
+        imark = i;
+        for (i2 = i + 1; i2 < n; i2++) {
+            temp = fabs(m[i2][j]);
+            if (temp > fabs(pivot)) {
+                pivot = m[i2][j];
+                imark = i2;
+            }
+        }
 
-	/* if the pivot is very small then the points are nearly co-linear */
-	/* co-linear points result in an undefined matrix, and nearly */
-	/* co-linear points results in a solution with rounding error */
+        /* if the pivot is very small then the points are nearly co-linear */
+        /* co-linear points result in an undefined matrix, and nearly */
+        /* co-linear points results in a solution with rounding error */
 
-	if (pivot == 0.0) {
-	    G_warning(_("Matrix is unsolvable"));
-	    return 0;
-	}
+        if (pivot == 0.0) {
+            G_warning(_("Matrix is unsolvable"));
+            return 0;
+        }
 
-	/* if row with highest pivot is not the current row, switch them */
+        /* if row with highest pivot is not the current row, switch them */
 
-	if (imark != i) {
-	    /*
-	    for (j2 = 0; j2 < n; j2++) {
-		temp = m[imark][j2];
-		m[imark][j2] = m[i][j2];
-		m[i][j2] = temp;
-	    }
-	    */
+        if (imark != i) {
+            /*
+            for (j2 = 0; j2 < n; j2++) {
+                temp = m[imark][j2];
+                m[imark][j2] = m[i][j2];
+                m[i][j2] = temp;
+            }
+            */
 
-	    tempp = m[imark];
-	    m[imark] = m[i];
-	    m[i] = tempp;
+            tempp = m[imark];
+            m[imark] = m[i];
+            m[i] = tempp;
 
-	    temp = a[imark];
-	    a[imark] = a[i];
-	    a[i] = temp;
-	}
+            temp = a[imark];
+            a[imark] = a[i];
+            a[i] = temp;
+        }
 
-	/* compute zeros above and below the pivot, and compute
-	   values for the rest of the row as well */
+        /* compute zeros above and below the pivot, and compute
+           values for the rest of the row as well */
 
-	for (i2 = 0; i2 < n; i2++) {
-	    if (i2 != i) {
-		factor = m[i2][j] / pivot;
-		for (j2 = j; j2 < n; j2++)
-		    m[i2][j2] -= factor * m[i][j2];
-		a[i2] -= factor * a[i];
-	    }
-	}
+        for (i2 = 0; i2 < n; i2++) {
+            if (i2 != i) {
+                factor = m[i2][j] / pivot;
+                for (j2 = j; j2 < n; j2++)
+                    m[i2][j2] -= factor * m[i][j2];
+                a[i2] -= factor * a[i];
+            }
+        }
     }
 
     /* SINCE ALL OTHER VALUES IN THE MATRIX ARE ZERO NOW, CALCULATE THE
        COEFFICIENTS BY DIVIDING THE COLUMN VECTORS BY THE DIAGONAL VALUES. */
 
     for (i = 0; i < n; i++) {
-	B[i] = a[i] / m[i][i];
+        B[i] = a[i] / m[i][i];
     }
 
     return 1;
 }
 
-
 int main(int argc, char *argv[])
 {
     struct GModule *module;
-    struct
-    {
-	struct Option *input, *file, *suffix,
-	              *amp,	/* prefix for amplitude output */
-	              *phase,	/* prefix for phase output */
-	              *nf,	/* number of harmonics */
-		      *fet,	/* fit error tolerance */
-		      *dod,	/* degree of over-determination */
-	              *range,	/* low/high threshold */
-		      *ts,	/* time steps*/
-		      *bl,	/* length of base period */
-		      *delta;	/* threshold for high amplitudes */
+    struct {
+        struct Option *input, *file, *suffix,
+            *amp,   /* prefix for amplitude output */
+            *phase, /* prefix for phase output */
+            *nf,    /* number of harmonics */
+            *fet,   /* fit error tolerance */
+            *dod,   /* degree of over-determination */
+            *range, /* low/high threshold */
+            *ts,    /* time steps*/
+            *bl,    /* length of base period */
+            *delta; /* threshold for high amplitudes */
     } parm;
-    struct
-    {
-	struct Flag *lo, *hi, *lazy, *int_only;
+    struct {
+        struct Flag *lo, *hi, *lazy, *int_only;
     } flag;
     int i, j, k;
     int num_inputs;
@@ -161,16 +156,16 @@ int main(int argc, char *argv[])
     G_add_keyword(_("raster"));
     G_add_keyword(_("series"));
     G_add_keyword(_("filtering"));
-    module->description =
-	_("Approximates a periodic time series "
-	  "and creates approximated output.");
+    module->description = _("Approximates a periodic time series "
+                            "and creates approximated output.");
 
     parm.input = G_define_standard_option(G_OPT_R_INPUTS);
     parm.input->required = NO;
 
     parm.file = G_define_standard_option(G_OPT_F_INPUT);
     parm.file->key = "file";
-    parm.file->description = _("Input file with raster map names, one per line");
+    parm.file->description =
+        _("Input file with raster map names, one per line");
     parm.file->required = NO;
 
     parm.suffix = G_define_option();
@@ -179,7 +174,8 @@ int main(int argc, char *argv[])
     parm.suffix->required = NO;
     parm.suffix->answer = "_hants";
     parm.suffix->label = _("Suffix for output maps");
-    parm.suffix->description = _("The suffix will be appended to input map names");
+    parm.suffix->description =
+        _("The suffix will be appended to input map names");
 
     parm.amp = G_define_option();
     parm.amp->key = "amplitude";
@@ -254,205 +250,209 @@ int main(int argc, char *argv[])
     flag.int_only->description = _("Do not extrapolate, only interpolate");
 
     if (G_parser(argc, argv))
-	exit(EXIT_FAILURE);
-
+        exit(EXIT_FAILURE);
 
     if (parm.input->answer && parm.file->answer)
         G_fatal_error(_("input= and file= are mutually exclusive"));
- 
+
     if (!parm.input->answer && !parm.file->answer)
         G_fatal_error(_("Please specify input= or file="));
 
     if (parm.amp->answer && parm.phase->answer) {
-	if (strcmp(parm.amp->answer, parm.phase->answer) == 0)
-	    G_fatal_error(_("'%s' and '%s' options must be different"),
-			  parm.amp->key, parm.phase->key);
+        if (strcmp(parm.amp->answer, parm.phase->answer) == 0)
+            G_fatal_error(_("'%s' and '%s' options must be different"),
+                          parm.amp->key, parm.phase->key);
     }
     do_amp = parm.amp->answer != NULL;
     do_phase = parm.phase->answer != NULL;
 
     nf = atoi(parm.nf->answer);
     if (nf < 1)
-	G_fatal_error(_("The number of frequencies must be > 0"));
+        G_fatal_error(_("The number of frequencies must be > 0"));
 
     fet = DBL_MAX;
     if (parm.fet->answer) {
-	fet = atof(parm.fet->answer);
-	if (fet < 0)
-	    G_fatal_error(_("The fit error tolerance must be >= 0"));
+        fet = atof(parm.fet->answer);
+        if (fet < 0)
+            G_fatal_error(_("The fit error tolerance must be >= 0"));
     }
     dod = 0;
     if (parm.dod->answer) {
-	dod = atoi(parm.dod->answer);
-	if (dod < 0)
-	    G_fatal_error(_("The degree of over-determination must be >= 0"));
+        dod = atoi(parm.dod->answer);
+        if (dod < 0)
+            G_fatal_error(_("The degree of over-determination must be >= 0"));
     }
     lo = -DBL_MAX;
     hi = DBL_MAX;
     if (parm.range->answer) {
-	lo = atof(parm.range->answers[0]);
-	hi = atof(parm.range->answers[1]);
+        lo = atof(parm.range->answers[0]);
+        hi = atof(parm.range->answers[1]);
     }
     delta = 0;
     if (parm.delta->answer) {
-	delta = atof(parm.delta->answer);
-	if (delta < 0 || delta > 1)
-	    G_fatal_error(_("The threshold for high amplitudes must be >= 0 and <= 1"));
+        delta = atof(parm.delta->answer);
+        if (delta < 0 || delta > 1)
+            G_fatal_error(
+                _("The threshold for high amplitudes must be >= 0 and <= 1"));
     }
-    
+
     rejlo = flag.lo->answer;
     rejhi = flag.hi->answer;
     if ((rejlo || rejhi) && !parm.fet->answer)
-	G_fatal_error(_("Fit error tolerance is required when outliers should be rejected"));
+        G_fatal_error(_("Fit error tolerance is required when outliers should "
+                        "be rejected"));
 
     interp_only = flag.int_only->answer;
 
     /* process the input maps from the file */
     if (parm.file->answer) {
-	FILE *in;
-	int max_inputs;
-    
-	in = fopen(parm.file->answer, "r");
-	if (!in)
-	    G_fatal_error(_("Unable to open input file <%s>"), parm.file->answer);
-    
-	num_inputs = 0;
-	max_inputs = 0;
+        FILE *in;
+        int max_inputs;
 
-	for (;;) {
-	    char buf[GNAME_MAX];
-	    char *name;
-	    struct input *p;
+        in = fopen(parm.file->answer, "r");
+        if (!in)
+            G_fatal_error(_("Unable to open input file <%s>"),
+                          parm.file->answer);
 
-	    if (!G_getl2(buf, sizeof(buf), in))
-		break;
+        num_inputs = 0;
+        max_inputs = 0;
 
-	    name = G_chop(buf);
+        for (;;) {
+            char buf[GNAME_MAX];
+            char *name;
+            struct input *p;
 
-	    /* Ignore empty lines */
-	    if (!*name)
-		continue;
+            if (!G_getl2(buf, sizeof(buf), in))
+                break;
 
-	    if (num_inputs >= max_inputs) {
-		max_inputs += 100;
-		inputs = G_realloc(inputs, max_inputs * sizeof(struct input));
-	    }
-	    p = &inputs[num_inputs++];
+            name = G_chop(buf);
 
-	    p->name = G_store(name);
-	    G_verbose_message(_("Reading raster map <%s>..."), p->name);
-	    p->buf = Rast_allocate_d_buf();
-	    if (!flag.lazy->answer)
-		p->fd = Rast_open_old(p->name, "");
-	}
+            /* Ignore empty lines */
+            if (!*name)
+                continue;
 
-	if (num_inputs < 1)
-	    G_fatal_error(_("No raster map name found in input file"));
+            if (num_inputs >= max_inputs) {
+                max_inputs += 100;
+                inputs = G_realloc(inputs, max_inputs * sizeof(struct input));
+            }
+            p = &inputs[num_inputs++];
 
-	fclose(in);
+            p->name = G_store(name);
+            G_verbose_message(_("Reading raster map <%s>..."), p->name);
+            p->buf = Rast_allocate_d_buf();
+            if (!flag.lazy->answer)
+                p->fd = Rast_open_old(p->name, "");
+        }
+
+        if (num_inputs < 1)
+            G_fatal_error(_("No raster map name found in input file"));
+
+        fclose(in);
     }
     else {
-    	for (i = 0; parm.input->answers[i]; i++)
-	    ;
-    	num_inputs = i;
+        for (i = 0; parm.input->answers[i]; i++)
+            ;
+        num_inputs = i;
 
-    	if (num_inputs < 1)
-	    G_fatal_error(_("Raster map not found"));
+        if (num_inputs < 1)
+            G_fatal_error(_("Raster map not found"));
 
-    	inputs = G_malloc(num_inputs * sizeof(struct input));
+        inputs = G_malloc(num_inputs * sizeof(struct input));
 
-    	for (i = 0; i < num_inputs; i++) {
-	    struct input *p = &inputs[i];
+        for (i = 0; i < num_inputs; i++) {
+            struct input *p = &inputs[i];
 
-	    p->name = parm.input->answers[i];
-	    G_verbose_message(_("Reading raster map <%s>..."), p->name);
-	    p->buf = Rast_allocate_d_buf();
-	    if (!flag.lazy->answer)
-		p->fd = Rast_open_old(p->name, "");
-    	}
+            p->name = parm.input->answers[i];
+            G_verbose_message(_("Reading raster map <%s>..."), p->name);
+            p->buf = Rast_allocate_d_buf();
+            if (!flag.lazy->answer)
+                p->fd = Rast_open_old(p->name, "");
+        }
     }
     if (num_inputs < 3)
-	G_fatal_error(_("At least 3 input maps are required"));
+        G_fatal_error(_("At least 3 input maps are required"));
 
     /* length of base period */
     if (parm.bl->answer)
-	bl = atoi(parm.bl->answer);
+        bl = atoi(parm.bl->answer);
     else
-	bl = num_inputs;
+        bl = num_inputs;
 
     /* open output maps */
     num_outputs = num_inputs;
 
     outputs = G_calloc(num_outputs, sizeof(struct output));
-    
+
     suffix = parm.suffix->answer;
     if (!suffix)
-	suffix = "_hants";
+        suffix = "_hants";
 
     for (i = 0; i < num_outputs; i++) {
-	struct output *out = &outputs[i];
-	char xname[GNAME_MAX], xmapset[GMAPSET_MAX];
-	const char *uname;
-	char output_name[GNAME_MAX];
+        struct output *out = &outputs[i];
+        char xname[GNAME_MAX], xmapset[GMAPSET_MAX];
+        const char *uname;
+        char output_name[GNAME_MAX];
 
-	uname = inputs[i].name;
-	if (G_name_is_fully_qualified(inputs[i].name, xname, xmapset))
-	    uname = xname;
-	sprintf(output_name, "%s%s", uname, suffix);
+        uname = inputs[i].name;
+        if (G_name_is_fully_qualified(inputs[i].name, xname, xmapset))
+            uname = xname;
+        sprintf(output_name, "%s%s", uname, suffix);
 
-	out->name = G_store(output_name);
-	out->buf = Rast_allocate_d_buf();
-	out->fd = Rast_open_new(output_name, DCELL_TYPE);
+        out->name = G_store(output_name);
+        out->buf = Rast_allocate_d_buf();
+        out->fd = Rast_open_new(output_name, DCELL_TYPE);
     }
 
     nr = 2 * nf + 1;
 
     if (nr > num_inputs)
-	G_fatal_error(_("The maximum number of frequencies for %d input maps is %d."),
-	                num_inputs, (num_inputs - 1) / 2);
+        G_fatal_error(
+            _("The maximum number of frequencies for %d input maps is %d."),
+            num_inputs, (num_inputs - 1) / 2);
 
     noutmax = num_inputs - nr - dod;
 
     if (noutmax < 0)
-	G_fatal_error(_("The degree of overdetermination can not be larger than %d "
-			"for %d input maps and %d frequencies."),
-			dod + noutmax, num_inputs, nf);
+        G_fatal_error(
+            _("The degree of overdetermination can not be larger than %d "
+              "for %d input maps and %d frequencies."),
+            dod + noutmax, num_inputs, nf);
 
     if (noutmax == 0)
-	G_warning(_("Missing values can not be reconstructed, "
-	            "please reduce either '%s' or '%s'"),
-		    parm.nf->key, parm.dod->key);
+        G_warning(_("Missing values can not be reconstructed, "
+                    "please reduce either '%s' or '%s'"),
+                  parm.nf->key, parm.dod->key);
 
     if (do_amp) {
-	/* open output amplitude */
-	out_amp = G_calloc(nf, sizeof(struct output));
+        /* open output amplitude */
+        out_amp = G_calloc(nf, sizeof(struct output));
 
-	for (i = 0; i < nf; i++) {
-	    struct output *out = &out_amp[i];
-	    char output_name[GNAME_MAX];
-	    
-	    sprintf(output_name, "%s.%d", parm.amp->answer, i);
+        for (i = 0; i < nf; i++) {
+            struct output *out = &out_amp[i];
+            char output_name[GNAME_MAX];
 
-	    out->name = G_store(output_name);
-	    out->buf = Rast_allocate_d_buf();
-	    out->fd = Rast_open_new(output_name, DCELL_TYPE);
-	}
+            sprintf(output_name, "%s.%d", parm.amp->answer, i);
+
+            out->name = G_store(output_name);
+            out->buf = Rast_allocate_d_buf();
+            out->fd = Rast_open_new(output_name, DCELL_TYPE);
+        }
     }
 
     if (do_phase) {
-	/* open output phase */
-	out_phase = G_calloc(nf, sizeof(struct output));
+        /* open output phase */
+        out_phase = G_calloc(nf, sizeof(struct output));
 
-	for (i = 0; i < nf; i++) {
-	    struct output *out = &out_phase[i];
-	    char output_name[GNAME_MAX];
-	    
-	    sprintf(output_name, "%s.%d", parm.phase->answer, i);
+        for (i = 0; i < nf; i++) {
+            struct output *out = &out_phase[i];
+            char output_name[GNAME_MAX];
 
-	    out->name = G_store(output_name);
-	    out->buf = Rast_allocate_d_buf();
-	    out->fd = Rast_open_new(output_name, DCELL_TYPE);
-	}
+            sprintf(output_name, "%s.%d", parm.phase->answer, i);
+
+            out->name = G_store(output_name);
+            out->buf = Rast_allocate_d_buf();
+            out->fd = Rast_open_new(output_name, DCELL_TYPE);
+        }
     }
 
     /* initialise variables */
@@ -468,16 +468,18 @@ int main(int argc, char *argv[])
     useval = G_malloc(num_inputs * sizeof(int));
 
     if (parm.ts->answer) {
-    	for (i = 0; parm.ts->answers[i]; i++);
-	if (i != num_inputs)
-	    G_fatal_error(_("Number of time steps does not match number of input maps"));
-    	for (i = 0; parm.ts->answers[i]; i++)
-	    ts[i] = atof(parm.ts->answers[i]);
+        for (i = 0; parm.ts->answers[i]; i++)
+            ;
+        if (i != num_inputs)
+            G_fatal_error(
+                _("Number of time steps does not match number of input maps"));
+        for (i = 0; parm.ts->answers[i]; i++)
+            ts[i] = atof(parm.ts->answers[i]);
     }
     else {
-	for (i = 0; i < num_inputs; i++) {
-	    ts[i] = i;
-	}
+        for (i = 0; i < num_inputs; i++) {
+            ts[i] = i;
+        }
     }
 
     mat = G_alloc_matrix(nr, num_inputs);
@@ -491,302 +493,304 @@ int main(int argc, char *argv[])
     rc = G_alloc_vector(num_inputs);
 
     for (i = 0; i < nr * nr; i++)
-	Azero[i] = 0;
+        Azero[i] = 0;
 
     for (i = 0; i < bl; i++) {
-	double ang = 2.0 * M_PI * i / bl;
+        double ang = 2.0 * M_PI * i / bl;
 
-	cs[i] = cos(ang);
-	sn[i] = sin(ang);
+        cs[i] = cos(ang);
+        sn[i] = sin(ang);
     }
     for (j = 0; j < num_inputs; j++) {
-	mat[0][j] = 1.;
-	mat_t[j][0] = 1.;
+        mat[0][j] = 1.;
+        mat_t[j][0] = 1.;
     }
 
     for (i = 0; i < nr / 2; i++) {
-	int i1 = 2 * i + 1;
-	int i2 = 2 * i + 2;
+        int i1 = 2 * i + 1;
+        int i2 = 2 * i + 2;
 
-	for (j = 0; j < num_inputs; j++) {
+        for (j = 0; j < num_inputs; j++) {
 
-	    int idx = (int) ((i + 1) * (ts[j])) % bl;
+            int idx = (int)((i + 1) * (ts[j])) % bl;
 
-	    if (idx >= bl)
-		G_fatal_error("cs/sn index out of range: %d, %d", idx, bl);
+            if (idx >= bl)
+                G_fatal_error("cs/sn index out of range: %d, %d", idx, bl);
 
-	    if (i2 >= nr)
-		G_fatal_error("mat index out of range: %d, %d", 2 * i + 2, nr);
-		
-	    mat[i1][j] = cs[idx];
-	    mat[i2][j] = sn[idx];
-	    mat_t[j][i1] = mat[i1][j];
-	    mat_t[j][i2] = mat[i2][j];
-	}
+            if (i2 >= nr)
+                G_fatal_error("mat index out of range: %d, %d", 2 * i + 2, nr);
+
+            mat[i1][j] = cs[idx];
+            mat[i2][j] = sn[idx];
+            mat_t[j][i1] = mat[i1][j];
+            mat_t[j][i2] = mat[i2][j];
+        }
     }
 
     /* process the data */
     G_message(_("Harmonic analysis of %d input maps..."), num_inputs);
 
     for (row = 0; row < nrows; row++) {
-	G_percent(row, nrows, 4);
+        G_percent(row, nrows, 4);
 
-	if (flag.lazy->answer) {
-	    /* Open the files only on run time */
-	    for (i = 0; i < num_inputs; i++) {
-		inputs[i].fd = Rast_open_old(inputs[i].name, "");
-		Rast_get_d_row(inputs[i].fd, inputs[i].buf, row);
-		Rast_close(inputs[i].fd);
-	    }
-	}
-	else {
-	    for (i = 0; i < num_inputs; i++)
-	        Rast_get_d_row(inputs[i].fd, inputs[i].buf, row);
-	}
+        if (flag.lazy->answer) {
+            /* Open the files only on run time */
+            for (i = 0; i < num_inputs; i++) {
+                inputs[i].fd = Rast_open_old(inputs[i].name, "");
+                Rast_get_d_row(inputs[i].fd, inputs[i].buf, row);
+                Rast_close(inputs[i].fd);
+            }
+        }
+        else {
+            for (i = 0; i < num_inputs; i++)
+                Rast_get_d_row(inputs[i].fd, inputs[i].buf, row);
+        }
 
-	for (col = 0; col < ncols; col++) {
-	    int null = 0, non_null = 0;
+        for (col = 0; col < ncols; col++) {
+            int null = 0, non_null = 0;
 
-	    first = last = -1;
+            first = last = -1;
 
-	    for (i = 0; i < num_inputs; i++) {
-		DCELL v = inputs[i].buf[col];
+            for (i = 0; i < num_inputs; i++) {
+                DCELL v = inputs[i].buf[col];
 
-		useval[i] = 0;
-		if (Rast_is_d_null_value(&v)) {
-		    null++;
-		}
-		else if (parm.range->answer && (v < lo || v > hi)) {
-		    Rast_set_d_null_value(&v, 1);
-		    null++;
-		}
-		else {
-		    non_null++;
-		    useval[i] = 1;
+                useval[i] = 0;
+                if (Rast_is_d_null_value(&v)) {
+                    null++;
+                }
+                else if (parm.range->answer && (v < lo || v > hi)) {
+                    Rast_set_d_null_value(&v, 1);
+                    null++;
+                }
+                else {
+                    non_null++;
+                    useval[i] = 1;
 
-		    if (first == -1)
-			first = i;
-		    last = i;
-		}
+                    if (first == -1)
+                        first = i;
+                    last = i;
+                }
 
-		values[i] = v;
-	    }
-	    nout = null;
+                values[i] = v;
+            }
+            nout = null;
 
-	    if (!interp_only) {
-		first = 0;
-		last = num_inputs - 1;
-	    }
+            if (!interp_only) {
+                first = 0;
+                last = num_inputs - 1;
+            }
 
-	    /* HANTS */
-	    if (nout <= noutmax) {
-		int n = 0, done = 0;
+            /* HANTS */
+            if (nout <= noutmax) {
+                int n = 0, done = 0;
 
-		while (!done) {
-		    
-		    /* za = mat * y */
+                while (!done) {
 
-		    /* A = mat * diag(p) * mat' */
+                    /* za = mat * y */
 
-		    /* mat: nr, num_inputs
-		     * diag(p): num_inputs, num_inputs 
-		     * mat_t: num_inputs, nr
-		     * A temp: nr, num_inputs
-		     * A: nr, nr */
+                    /* A = mat * diag(p) * mat' */
 
-		    memcpy(Av, Azero, asize);
-		    for (i = 0; i < nr; i++) {
-			za[i] = 0;
-			for (j = 0; j < num_inputs; j++) {
-			    if (useval[j]) {
-				za[i] += mat[i][j] * values[j];
+                    /* mat: nr, num_inputs
+                     * diag(p): num_inputs, num_inputs
+                     * mat_t: num_inputs, nr
+                     * A temp: nr, num_inputs
+                     * A: nr, nr */
 
-				for (k = 0; k < nr; k++)
-				    A[i][k] += mat[i][j] * mat_t[j][k];
-			    }
-			}
+                    memcpy(Av, Azero, asize);
+                    for (i = 0; i < nr; i++) {
+                        za[i] = 0;
+                        for (j = 0; j < num_inputs; j++) {
+                            if (useval[j]) {
+                                za[i] += mat[i][j] * values[j];
 
-			if (i > 0) {
-			    A[i][i] += delta;
-			}
-		    }
-		    
-		    /* zr = A \ za
-		     * solve A * zr = za */
-		    if (!solvemat(A, za, zr, nr)) {
-			done = -1;
-			Rast_set_d_null_value(rc, num_outputs);
-			break;
-		    }
-		    /* G_math_solver_gauss(A, zr, za, nr) is much slower */
+                                for (k = 0; k < nr; k++)
+                                    A[i][k] += mat[i][j] * mat_t[j][k];
+                            }
+                        }
 
-		    /* rc = mat' * zr */
-		    maxerrlo = maxerrhi = 0;
-		    for (i = 0; i < num_inputs; i++) {
-			rc[i] = 0;
-			for (j = 0; j < nr; j++) {
-			    rc[i] += mat_t[i][j] * zr[j];
-			}
-			if (useval[i]) {
-			    if (maxerrlo < rc[i] - values[i])
-				maxerrlo = rc[i] - values[i];
-			    if (maxerrhi < values[i] - rc[i])
-				maxerrhi = values[i] - rc[i];
-			}
-		    }
-		    if (rejlo || rejhi) {
-			done = 1;
-			if (rejlo && maxerrlo > fet)
-			    done = 0;
-			if (rejhi && maxerrhi > fet)
-			    done = 0;
-		    
-			if (!done) {
-			    /* filter outliers */
-			    for (i = 0; i < num_inputs; i++) {
+                        if (i > 0) {
+                            A[i][i] += delta;
+                        }
+                    }
 
-				if (useval[i]) {
-				    if (rejlo && rc[i] - values[i] > maxerrlo * 0.5) {
-					useval[i] = 0;
-					nout++;
-				    }
-				    if (rejhi && values[i] - rc[i] > maxerrhi * 0.5) {
-					useval[i] = 0;
-					nout++;
-				    }
-				}
-			    }
-			}
-		    }
+                    /* zr = A \ za
+                     * solve A * zr = za */
+                    if (!solvemat(A, za, zr, nr)) {
+                        done = -1;
+                        Rast_set_d_null_value(rc, num_outputs);
+                        break;
+                    }
+                    /* G_math_solver_gauss(A, zr, za, nr) is much slower */
 
-		    n++;
-		    if (n >= num_inputs)
-			done = 1;
-		    if (nout > noutmax)
-			done = 1;
-		}
+                    /* rc = mat' * zr */
+                    maxerrlo = maxerrhi = 0;
+                    for (i = 0; i < num_inputs; i++) {
+                        rc[i] = 0;
+                        for (j = 0; j < nr; j++) {
+                            rc[i] += mat_t[i][j] * zr[j];
+                        }
+                        if (useval[i]) {
+                            if (maxerrlo < rc[i] - values[i])
+                                maxerrlo = rc[i] - values[i];
+                            if (maxerrhi < values[i] - rc[i])
+                                maxerrhi = values[i] - rc[i];
+                        }
+                    }
+                    if (rejlo || rejhi) {
+                        done = 1;
+                        if (rejlo && maxerrlo > fet)
+                            done = 0;
+                        if (rejhi && maxerrhi > fet)
+                            done = 0;
 
-		i = 0;
-		while (i < first) {
-		    struct output *out = &outputs[i];
+                        if (!done) {
+                            /* filter outliers */
+                            for (i = 0; i < num_inputs; i++) {
 
-		    Rast_set_d_null_value(&out->buf[col], 1);
-		    i++;
-		}
+                                if (useval[i]) {
+                                    if (rejlo &&
+                                        rc[i] - values[i] > maxerrlo * 0.5) {
+                                        useval[i] = 0;
+                                        nout++;
+                                    }
+                                    if (rejhi &&
+                                        values[i] - rc[i] > maxerrhi * 0.5) {
+                                        useval[i] = 0;
+                                        nout++;
+                                    }
+                                }
+                            }
+                        }
+                    }
 
-		for (i = first; i <= last; i++) {
-		    struct output *out = &outputs[i];
+                    n++;
+                    if (n >= num_inputs)
+                        done = 1;
+                    if (nout > noutmax)
+                        done = 1;
+                }
 
-		    out->buf[col] = rc[i];
-		    if (rc[i] < lo)
-			out->buf[col] = lo;
-		    else if (rc[i] > hi)
-			out->buf[col] = hi;
-		}
+                i = 0;
+                while (i < first) {
+                    struct output *out = &outputs[i];
 
-		i = last + 1;
-		while (i < num_outputs) {
-		    struct output *out = &outputs[i];
+                    Rast_set_d_null_value(&out->buf[col], 1);
+                    i++;
+                }
 
-		    Rast_set_d_null_value(&out->buf[col], 1);
-		    i++;
-		}
+                for (i = first; i <= last; i++) {
+                    struct output *out = &outputs[i];
 
-		if (do_amp || do_phase) {
-		    /* amplitude and phase */
-		    /* skip constant */
+                    out->buf[col] = rc[i];
+                    if (rc[i] < lo)
+                        out->buf[col] = lo;
+                    else if (rc[i] > hi)
+                        out->buf[col] = hi;
+                }
 
-		    for (i = 1; i < nr; i += 2) {
-			int ifr = i >> 1;
+                i = last + 1;
+                while (i < num_outputs) {
+                    struct output *out = &outputs[i];
 
-			if (do_amp) {
-			    out_amp[ifr].buf[col] = sqrt(zr[i] * zr[i] +
-						    zr[i + 1] * zr[i + 1]);
-			}
+                    Rast_set_d_null_value(&out->buf[col], 1);
+                    i++;
+                }
 
-			if (do_phase) {
-			    double angle = atan2(zr[i + 1], zr[i]) * 180 / M_PI;
+                if (do_amp || do_phase) {
+                    /* amplitude and phase */
+                    /* skip constant */
 
-			    if (angle < 0)
-				angle += 360;
-			    out_phase[ifr].buf[col] = angle;
-			}
-		    }
-		}
-	    }
-	    else {
-		for (i = 0; i < num_outputs; i++) {
-		    struct output *out = &outputs[i];
+                    for (i = 1; i < nr; i += 2) {
+                        int ifr = i >> 1;
 
-		    Rast_set_d_null_value(&out->buf[col], 1);
-		}
-		if (do_amp || do_phase) {
-		    for (i = 0; i < nf; i++) {
-			if (do_amp)
-			    Rast_set_d_null_value(&out_amp[i].buf[col], 1);
-			if (do_phase)
-			    Rast_set_d_null_value(&out_phase[i].buf[col], 1);
-		    }
-		}
-	    }
-	}
+                        if (do_amp) {
+                            out_amp[ifr].buf[col] =
+                                sqrt(zr[i] * zr[i] + zr[i + 1] * zr[i + 1]);
+                        }
 
-	for (i = 0; i < num_outputs; i++)
-	    Rast_put_d_row(outputs[i].fd, outputs[i].buf);
-	
-	if (do_amp || do_phase) {
-	    for (i = 0; i < nf; i++) {
-		if (do_amp)
-		    Rast_put_d_row(out_amp[i].fd, out_amp[i].buf);
-		if (do_phase)
-		    Rast_put_d_row(out_phase[i].fd, out_phase[i].buf);
-	    }
-	}
+                        if (do_phase) {
+                            double angle = atan2(zr[i + 1], zr[i]) * 180 / M_PI;
+
+                            if (angle < 0)
+                                angle += 360;
+                            out_phase[ifr].buf[col] = angle;
+                        }
+                    }
+                }
+            }
+            else {
+                for (i = 0; i < num_outputs; i++) {
+                    struct output *out = &outputs[i];
+
+                    Rast_set_d_null_value(&out->buf[col], 1);
+                }
+                if (do_amp || do_phase) {
+                    for (i = 0; i < nf; i++) {
+                        if (do_amp)
+                            Rast_set_d_null_value(&out_amp[i].buf[col], 1);
+                        if (do_phase)
+                            Rast_set_d_null_value(&out_phase[i].buf[col], 1);
+                    }
+                }
+            }
+        }
+
+        for (i = 0; i < num_outputs; i++)
+            Rast_put_d_row(outputs[i].fd, outputs[i].buf);
+
+        if (do_amp || do_phase) {
+            for (i = 0; i < nf; i++) {
+                if (do_amp)
+                    Rast_put_d_row(out_amp[i].fd, out_amp[i].buf);
+                if (do_phase)
+                    Rast_put_d_row(out_phase[i].fd, out_phase[i].buf);
+            }
+        }
     }
 
     G_percent(row, nrows, 2);
 
     /* Close input maps */
     if (!flag.lazy->answer) {
-    	for (i = 0; i < num_inputs; i++)
-	    Rast_close(inputs[i].fd);
+        for (i = 0; i < num_inputs; i++)
+            Rast_close(inputs[i].fd);
     }
 
     /* close output maps */
     for (i = 0; i < num_outputs; i++) {
-	struct output *out = &outputs[i];
+        struct output *out = &outputs[i];
 
-	Rast_close(out->fd);
+        Rast_close(out->fd);
 
-	Rast_short_history(out->name, "raster", &history);
-	Rast_command_history(&history);
-	Rast_write_history(out->name, &history);
+        Rast_short_history(out->name, "raster", &history);
+        Rast_command_history(&history);
+        Rast_write_history(out->name, &history);
     }
 
     if (do_amp) {
-	/* close output amplitudes */
-	for (i = 0; i < nf; i++) {
-	    struct output *out = &out_amp[i];
+        /* close output amplitudes */
+        for (i = 0; i < nf; i++) {
+            struct output *out = &out_amp[i];
 
-	    Rast_close(out->fd);
+            Rast_close(out->fd);
 
-	    Rast_short_history(out->name, "raster", &history);
-	    Rast_command_history(&history);
-	    Rast_write_history(out->name, &history);
-	}
+            Rast_short_history(out->name, "raster", &history);
+            Rast_command_history(&history);
+            Rast_write_history(out->name, &history);
+        }
     }
 
     if (do_phase) {
-	/* close output phases */
-	for (i = 0; i < nf; i++) {
-	    struct output *out = &out_phase[i];
+        /* close output phases */
+        for (i = 0; i < nf; i++) {
+            struct output *out = &out_phase[i];
 
-	    Rast_close(out->fd);
+            Rast_close(out->fd);
 
-	    Rast_short_history(out->name, "raster", &history);
-	    Rast_command_history(&history);
-	    Rast_write_history(out->name, &history);
-	}
+            Rast_short_history(out->name, "raster", &history);
+            Rast_command_history(&history);
+            Rast_write_history(out->name, &history);
+        }
     }
 
     exit(EXIT_SUCCESS);

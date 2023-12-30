@@ -1,16 +1,14 @@
 #ifndef HOUGHPARAMETERS_H
 #define HOUGHPARAMETERS_H
 
-struct HoughParametres
-{
+struct HoughParametres {
     double angleWidth;
     int maxPeaksNum;
     int threshold;
     int sizeOfNeighbourhood;
 };
 
-struct ExtractParametres
-{
+struct ExtractParametres {
     int gapSize;
     int maxNumOfGaps;
     int maxGap;

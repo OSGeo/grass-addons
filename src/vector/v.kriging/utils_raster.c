@@ -7,8 +7,9 @@ void open_layer(struct int_par *xD, struct reg_par *reg, struct output *out)
 
     /* 2D Raster layer */
     if (xD->i3 == FALSE) {
-        out->dcell = (DCELL *) Rast_allocate_buf(DCELL_TYPE);
-        out->fd_2d = Rast_open_new(out->name, DCELL_TYPE);      /* open output raster */
+        out->dcell = (DCELL *)Rast_allocate_buf(DCELL_TYPE);
+        out->fd_2d =
+            Rast_open_new(out->name, DCELL_TYPE); /* open output raster */
         if (out->fd_2d < 0) {
             report_error(report);
             G_fatal_error(_("Unable to create 2D raster <%s>"), out->name);
@@ -16,7 +17,9 @@ void open_layer(struct int_par *xD, struct reg_par *reg, struct output *out)
     }
     /* 3D Raster layer */
     if (xD->i3 == TRUE) {
-        out->fd_3d = (RASTER3D_Map *) Rast3d_open_cell_new(out->name, DCELL_TYPE, RASTER3D_USE_CACHE_XYZ, &reg->reg_3d);        // initialize pointer to 3D region
+        out->fd_3d = (RASTER3D_Map *)Rast3d_open_cell_new(
+            out->name, DCELL_TYPE, RASTER3D_USE_CACHE_XYZ,
+            &reg->reg_3d); // initialize pointer to 3D region
 
         if (out->fd_3d == NULL) {
             report_error(report);
@@ -26,7 +29,7 @@ void open_layer(struct int_par *xD, struct reg_par *reg, struct output *out)
 }
 
 void write2layer(struct int_par *xD, struct reg_par *reg, struct output *out,
-                 mat_struct * rslt)
+                 mat_struct *rslt)
 {
     // Local variables
     int i3 = xD->i3;
@@ -34,7 +37,7 @@ void write2layer(struct int_par *xD, struct reg_par *reg, struct output *out,
     struct write *report = &xD->report;
 
     int col, row, dep;
-    int pass = 0;               /* Number of processed cells */
+    int pass = 0; /* Number of processed cells */
     double trend, value, r0[3];
     int nulval = 0;
 
@@ -47,32 +50,35 @@ void write2layer(struct int_par *xD, struct reg_par *reg, struct output *out,
                 }
 
                 switch (i3) {
-                case FALSE:    /* set value to cell (2D) */
-                    out->dcell[col] = (DCELL) (value);
+                case FALSE: /* set value to cell (2D) */
+                    out->dcell[col] = (DCELL)(value);
                     break;
 
-                case TRUE:     /* set value to voxel (based on part of r3.gwflow (Soeren Gebbert)) */
+                case TRUE: /* set value to voxel (based on part of r3.gwflow
+                              (Soeren Gebbert)) */
                     if (Rast3d_put_double(out->fd_3d, col, row, dep, value) ==
                         0) {
                         report_error(report);
-                        G_fatal_error(_("Error writing cell (%d,%d,%d) with value %f."),
-                                      row, col, dep, value);
+                        G_fatal_error(
+                            _("Error writing cell (%d,%d,%d) with value %f."),
+                            row, col, dep, value);
                     }
 
                     break;
                 }
                 pass++;
-            }                   // end col
+            } // end col
             if (i3 == FALSE) {
                 Rast_put_row(out->fd_2d, out->dcell, DCELL_TYPE);
             }
-        }                       // end row
-    }                           // end dep
+        } // end row
+    }     // end dep
 
     switch (i3) {
     case TRUE:
-        if (!Rast3d_close(out->fd_3d)) {        // Close 3D raster map
-            G_fatal_error(_("Something went wrong with 3D raster: the pointer disappeared before closing..."));
+        if (!Rast3d_close(out->fd_3d)) { // Close 3D raster map
+            G_fatal_error(_("Something went wrong with 3D raster: the pointer "
+                            "disappeared before closing..."));
         }
         break;
     case FALSE:
@@ -85,7 +91,8 @@ void write2layer(struct int_par *xD, struct reg_par *reg, struct output *out,
     }
 
     if (pass != ndeps * ncols * nrows) {
-        G_fatal_error(_("The number of processed cells (%d) is smaller than total number of cells (%d)..."),
+        G_fatal_error(_("The number of processed cells (%d) is smaller than "
+                        "total number of cells (%d)..."),
                       pass, ndeps * ncols * nrows);
     }
 }

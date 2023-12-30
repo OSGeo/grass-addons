@@ -1,5 +1,4 @@
-/*
- ****************************************************************************
+/*****************************************************************************
  *
  * MODULE:       r.pi.graph
  * AUTHOR(S):    Elshad Shirinov, Dr. Martin Wegmann
@@ -18,31 +17,30 @@
 
 #include "local_proto.h"
 
-struct neighborhood
-{
-    f_neighborhood *method;	/* routine to build adjacency matrix */
-    char *name;			/* method name */
-    char *text;			/* menu display - full description */
+struct neighborhood {
+    f_neighborhood *method; /* routine to build adjacency matrix */
+    char *name;             /* method name */
+    char *text;             /* menu display - full description */
 };
 
-struct index
-{
-    f_index *method;		/* routine to calculate cluster index */
-    char *name;			/* method name */
-    char *text;			/* menu display - full description */
+struct index {
+    f_index *method; /* routine to calculate cluster index */
+    char *name;      /* method name */
+    char *text;      /* menu display - full description */
 };
 
 static struct neighborhood neighborhoods[] = {
     {f_nearest_neighbor, "nearest_neighbor",
      "patches are connected with their nearest neighbors"},
     {f_relative_neighbor, "relative_neighbor",
-     "two patches are connected, if no other patch lies in the central lens between them"},
+     "two patches are connected, if no other patch lies in the central lens "
+     "between them"},
     {f_gabriel, "gabriel",
      "two patches are connected, if no other patch lies in the circle on them"},
     {f_spanning_tree, "spanning_tree",
-     "two patches are connected, if they are neighbors in the minimum spanning tree"},
-    {0, 0, 0}
-};
+     "two patches are connected, if they are neighbors in the minimum spanning "
+     "tree"},
+    {0, 0, 0}};
 
 static struct index indices[] = {
     {f_connectance_index, "connectance_index", "connectance index"},
@@ -61,8 +59,7 @@ static struct index indices[] = {
      "largest patch diameter in the cluster"},
     {f_graph_diameter_max, "graph_diameter",
      "longest minimal path in the cluster"},
-    {0, 0, 0}
-};
+    {0, 0, 0}};
 
 int main(int argc, char *argv[])
 {
@@ -101,17 +98,14 @@ int main(int argc, char *argv[])
     int fragcount;
 
     struct GModule *module;
-    struct
-    {
-	struct Option *input, *output;
-	struct Option *keyval, *distance;
-	struct Option *neighborhood, *index;
+    struct {
+        struct Option *input, *output;
+        struct Option *keyval, *distance;
+        struct Option *neighborhood, *index;
     } parm;
-    struct
-    {
-	struct Flag *adjacent, *quiet;
+    struct {
+        struct Flag *adjacent, *quiet;
     } flag;
-
 
     G_gisinit(argv[0]);
 
@@ -139,7 +133,7 @@ int main(int argc, char *argv[])
     parm.distance->type = TYPE_DOUBLE;
     parm.distance->required = YES;
     parm.distance->description =
-	_("Bounding distance [0 for maximum distance]");
+        _("Bounding distance [0 for maximum distance]");
 
     parm.neighborhood = G_define_option();
     parm.neighborhood->key = "neighborhood";
@@ -147,11 +141,11 @@ int main(int argc, char *argv[])
     parm.neighborhood->required = YES;
     p = G_malloc(1024);
     for (n = 0; neighborhoods[n].name; n++) {
-	if (n)
-	    strcat(p, ",");
-	else
-	    *p = 0;
-	strcat(p, neighborhoods[n].name);
+        if (n)
+            strcat(p, ",");
+        else
+            *p = 0;
+        strcat(p, neighborhoods[n].name);
     }
     parm.neighborhood->options = p;
     parm.neighborhood->description = _("Neighborhood definition");
@@ -162,11 +156,11 @@ int main(int argc, char *argv[])
     parm.index->required = YES;
     p = G_malloc(1024);
     for (n = 0; indices[n].name; n++) {
-	if (n)
-	    strcat(p, ",");
-	else
-	    *p = 0;
-	strcat(p, indices[n].name);
+        if (n)
+            strcat(p, ",");
+        else
+            *p = 0;
+        strcat(p, indices[n].name);
     }
     parm.index->options = p;
     parm.index->description = _("Cluster index");
@@ -174,10 +168,10 @@ int main(int argc, char *argv[])
     flag.adjacent = G_define_flag();
     flag.adjacent->key = 'a';
     flag.adjacent->description =
-	_("Set for 8 cell-neighbors. 4 cell-neighbors are default");
+        _("Set for 8 cell-neighbors. 4 cell-neighbors are default");
 
     if (G_parser(argc, argv))
-	exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
 
     /* get names of input files */
     oldname = parm.input->answer;
@@ -190,7 +184,7 @@ int main(int argc, char *argv[])
     /* check if the new file name is correct */
     newname = parm.output->answer;
     if (G_legal_filename(newname) < 0)
-	G_fatal_error(_("<%s> is an illegal file name"), newname);
+        G_fatal_error(_("<%s> is an illegal file name"), newname);
 
     /* get size */
     nrows = Rast_window_rows();
@@ -199,10 +193,10 @@ int main(int argc, char *argv[])
     /* open cell files */
     in_fd = Rast_open_old(oldname, oldmapset);
     if (in_fd < 0)
-	G_fatal_error(_("Unable to open raster map <%s>"), oldname);
+        G_fatal_error(_("Unable to open raster map <%s>"), oldname);
 
     /* get map type */
-    map_type = DCELL_TYPE;	/* G_raster_map_type(oldname, oldmapset); */
+    map_type = DCELL_TYPE; /* G_raster_map_type(oldname, oldmapset); */
 
     /* get key value */
     sscanf(parm.keyval->answer, "%d", &keyval);
@@ -210,36 +204,36 @@ int main(int argc, char *argv[])
     /* get distance */
     sscanf(parm.distance->answer, "%lf", &distance);
     if (distance == 0.0) {
-	distance = MAX_DOUBLE;
+        distance = MAX_DOUBLE;
     }
 
     /* get neighborhood definition */
     for (neighborhood = 0; (p = neighborhoods[neighborhood].name);
-	 neighborhood++) {
-	if ((strcmp(p, parm.neighborhood->answer) == 0))
-	    break;
+         neighborhood++) {
+        if ((strcmp(p, parm.neighborhood->answer) == 0))
+            break;
     }
     if (!p) {
-	G_fatal_error("<%s=%s> unknown %s", parm.neighborhood->key,
-		      parm.neighborhood->answer, parm.neighborhood->key);
-	exit(EXIT_FAILURE);
+        G_fatal_error("<%s=%s> unknown %s", parm.neighborhood->key,
+                      parm.neighborhood->answer, parm.neighborhood->key);
+        exit(EXIT_FAILURE);
     }
 
     /* get the cluster index */
     for (index = 0; (p = indices[index].name); index++)
-	if ((strcmp(p, parm.index->answer) == 0))
-	    break;
+        if ((strcmp(p, parm.index->answer) == 0))
+            break;
     if (!p) {
-	G_fatal_error("<%s=%s> unknown %s", parm.index->key,
-		      parm.index->answer, parm.index->key);
+        G_fatal_error("<%s=%s> unknown %s", parm.index->key, parm.index->answer,
+                      parm.index->key);
     }
 
     /* get number of cell-neighbors */
     nbr_count = flag.adjacent->answer ? 8 : 4;
 
     /* allocate the cell buffers */
-    cells = (Coords *) G_malloc(nrows * ncols * sizeof(Coords));
-    fragments = (Coords **) G_malloc(nrows * ncols * sizeof(Coords *));
+    cells = (Coords *)G_malloc(nrows * ncols * sizeof(Coords));
+    fragments = (Coords **)G_malloc(nrows * ncols * sizeof(Coords *));
     fragments[0] = cells;
     flagbuf = (int *)G_malloc(nrows * ncols * sizeof(int));
     result = Rast_allocate_c_buf();
@@ -248,13 +242,13 @@ int main(int argc, char *argv[])
 
     /* read map */
     for (row = 0; row < nrows; row++) {
-	Rast_get_c_row(in_fd, result, row);
-	for (col = 0; col < ncols; col++) {
-	    if (result[col] == keyval)
-		flagbuf[row * ncols + col] = 1;
-	}
+        Rast_get_c_row(in_fd, result, row);
+        for (col = 0; col < ncols; col++) {
+            if (result[col] == keyval)
+                flagbuf[row * ncols + col] = 1;
+        }
 
-	G_percent(row + 1, nrows, 1);
+        G_percent(row + 1, nrows, 1);
     }
 
     /* close cell file */
@@ -263,7 +257,7 @@ int main(int argc, char *argv[])
     /*G_message("map");
        for(row = 0; row < nrows; row++) {
        for(col = 0; col< ncols; col++) {
-       fprintf(stderr, "%d", flagbuf[row * ncols + col]);           
+       fprintf(stderr, "%d", flagbuf[row * ncols + col]);
        }
        fprintf(stderr, "\n");
        } */
@@ -272,7 +266,7 @@ int main(int argc, char *argv[])
     fragcount = writeFragments(fragments, flagbuf, nrows, ncols, nbr_count);
 
     /* allocate distance matrix */
-    distmatrix = (DCELL *) G_malloc(fragcount * fragcount * sizeof(DCELL));
+    distmatrix = (DCELL *)G_malloc(fragcount * fragcount * sizeof(DCELL));
     memset(distmatrix, 0, fragcount * fragcount * sizeof(DCELL));
 
     /* generate the distance matrix */
@@ -315,7 +309,7 @@ int main(int argc, char *argv[])
        fprintf(stderr, "\n");
        } */
 
-    values = (DCELL *) G_malloc(clustercount * sizeof(DCELL));
+    values = (DCELL *)G_malloc(clustercount * sizeof(DCELL));
 
     calc_index = indices[index].method;
     calc_index(values, fragcount);
@@ -329,91 +323,91 @@ int main(int argc, char *argv[])
     /* write output */
     G_message("Writing output...");
 
-    /* ================================== 
-       ============  output  ============ 
+    /* ==================================
+       ============  output  ============
        ================================== */
 
     /* open the new cellfile  */
     out_fd = Rast_open_new(newname, map_type);
     if (out_fd < 0)
-	G_fatal_error(_("Cannot create raster map <%s>"), newname);
+        G_fatal_error(_("Cannot create raster map <%s>"), newname);
 
     /* allocate result row variable */
     d_res = Rast_allocate_d_buf();
 
     /* write values */
     for (row = 0; row < nrows; row++) {
-	Rast_set_d_null_value(d_res, ncols);
+        Rast_set_d_null_value(d_res, ncols);
 
-	for (i = 0; i < clustercount; i++) {
-	    for (curpos = clusters[i]; curpos < clusters[i + 1]; curpos++) {
-		Coords *cell;
+        for (i = 0; i < clustercount; i++) {
+            for (curpos = clusters[i]; curpos < clusters[i + 1]; curpos++) {
+                Coords *cell;
 
-		for (cell = fragments[*curpos]; cell < fragments[*curpos + 1];
-		     cell++) {
-		    if (cell->y == row) {
-			d_res[cell->x] = values[i];
-		    }
-		}
-	    }
-	}
+                for (cell = fragments[*curpos]; cell < fragments[*curpos + 1];
+                     cell++) {
+                    if (cell->y == row) {
+                        d_res[cell->x] = values[i];
+                    }
+                }
+            }
+        }
 
-	Rast_put_d_row(out_fd, d_res);
+        Rast_put_d_row(out_fd, d_res);
 
-	G_percent(row + 1, 2 * nrows, 1);
+        G_percent(row + 1, 2 * nrows, 1);
     }
 
     /* close output file */
     Rast_close(out_fd);
 
-    /* ================================== 
-       ==========  cluster map  ========= 
+    /* ==================================
+       ==========  cluster map  =========
        ================================== */
 
     /* open the new cellfile  */
     sprintf(fullname, "%s_clusters", newname);
     out_fd = Rast_open_new(fullname, CELL_TYPE);
     if (out_fd < 0)
-	G_fatal_error(_("Cannot create raster map <%s>"), newname);
+        G_fatal_error(_("Cannot create raster map <%s>"), newname);
 
     /* allocate and initialize the clustermap */
-    clustermap = (CELL *) G_malloc(nrows * ncols * sizeof(CELL));
+    clustermap = (CELL *)G_malloc(nrows * ncols * sizeof(CELL));
     Rast_set_c_null_value(clustermap, nrows * ncols);
 
     /* for each cluster */
     for (i = 0; i < clustercount; i++) {
-	/* for each patch in the cluster */
-	int *this;
+        /* for each patch in the cluster */
+        int *this;
 
-	for (this = clusters[i]; this < clusters[i + 1]; this++) {
-	    /* for each cell in the patch */
-	    Coords *cell;
-	    int *other;
+        for (this = clusters[i]; this < clusters[i + 1]; this ++) {
+            /* for each cell in the patch */
+            Coords *cell;
+            int *other;
 
-	    for (cell = fragments[*this]; cell < fragments[*this + 1]; cell++) {
-		clustermap[cell->y * ncols + cell->x] = i;
-	    }
+            for (cell = fragments[*this]; cell < fragments[*this + 1]; cell++) {
+                clustermap[cell->y * ncols + cell->x] = i;
+            }
 
-	    /* for each patch in the cluster */
+            /* for each patch in the cluster */
 
-	    for (other = clusters[i]; other < clusters[i + 1]; other++) {
-		if (*other != *this && adjmatrix[*this * fragcount + *other]) {
-		    Coords np1, np2;
+            for (other = clusters[i]; other < clusters[i + 1]; other++) {
+                if (*other != *this && adjmatrix[*this * fragcount + *other]) {
+                    Coords np1, np2;
 
-		    nearest_points(fragments, *this, *other, &np1, &np2);
+                    nearest_points(fragments, *this, *other, &np1, &np2);
 
-		    draw_line(clustermap, -1, np1.x, np1.y, np2.x, np2.y,
-			      ncols, nrows, 1);
-		}
-	    }
-	}
+                    draw_line(clustermap, -1, np1.x, np1.y, np2.x, np2.y, ncols,
+                              nrows, 1);
+                }
+            }
+        }
     }
 
     /* write output */
     for (row = 0; row < nrows; row++) {
-	Rast_put_c_row(out_fd, clustermap + row * ncols);
+        Rast_put_c_row(out_fd, clustermap + row * ncols);
 
-	G_percent(nrows + row + 1, 2 * nrows, 1);
+        G_percent(nrows + row + 1, 2 * nrows, 1);
     }
 
     /* G_free(clustermap); */
@@ -421,15 +415,15 @@ int main(int argc, char *argv[])
     /* close output file */
     Rast_close(out_fd);
 
-    /* ================================== 
-       ==========  convex hull  ========= 
+    /* ==================================
+       ==========  convex hull  =========
        ================================== */
 
     /* open the new cellfile  */
     sprintf(fullname, "%s_hull", newname);
     out_fd = Rast_open_new(fullname, CELL_TYPE);
     if (out_fd < 0)
-	G_fatal_error(_("Cannot create raster map <%s>"), newname);
+        G_fatal_error(_("Cannot create raster map <%s>"), newname);
 
     /* clear the clustermap */
     Rast_set_c_null_value(clustermap, nrows * ncols);
@@ -439,9 +433,9 @@ int main(int argc, char *argv[])
 
     /* write output */
     for (row = 0; row < nrows; row++) {
-	Rast_put_c_row(out_fd, clustermap + row * ncols);
+        Rast_put_c_row(out_fd, clustermap + row * ncols);
 
-	G_percent(nrows + row + 1, 2 * nrows, 1);
+        G_percent(nrows + row + 1, 2 * nrows, 1);
     }
 
     G_free(clustermap);

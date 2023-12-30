@@ -22,8 +22,8 @@ namespace pops {
  * Computes sum of infected hosts
  * from all cells of a raster.
  */
-template<typename IntegerRaster>
-unsigned sum_of_infected(const IntegerRaster& infected)
+template <typename IntegerRaster>
+unsigned sum_of_infected(const IntegerRaster &infected)
 {
     unsigned sum = 0;
     for (int j = 0; j < infected.rows(); j++) {
@@ -37,8 +37,9 @@ unsigned sum_of_infected(const IntegerRaster& infected)
  * Computes infected area as number
  * of cell > 0 times cell size.
  */
-template<typename IntegerRaster>
-double area_of_infected(const IntegerRaster& infected, double ew_res, double ns_res)
+template <typename IntegerRaster>
+double area_of_infected(const IntegerRaster &infected, double ew_res,
+                        double ns_res)
 {
     unsigned cells = 0;
     for (int j = 0; j < infected.rows(); j++) {
@@ -50,5 +51,5 @@ double area_of_infected(const IntegerRaster& infected, double ew_res, double ns_
     return cells * ew_res * ns_res;
 }
 
-}  // namespace pops
-#endif  // POPS_STATISTICS_HPP
+} // namespace pops
+#endif // POPS_STATISTICS_HPP

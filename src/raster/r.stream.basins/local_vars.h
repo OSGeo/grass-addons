@@ -9,26 +9,26 @@
 #include <grass/dbmi.h>
 
 #ifdef MAIN
-#  define GLOBAL
+#define GLOBAL
 #else
-#  define GLOBAL extern
+#define GLOBAL extern
 #endif
 
 typedef struct {
-	int r,c;
-	int val;
+    int r, c;
+    int val;
 } OUTLET;
 
 typedef struct {
-	int r,c;
-	} POINT;
+    int r, c;
+} POINT;
 
 GLOBAL int nextr[9];
 GLOBAL int nextc[9];
 
-GLOBAL OUTLET* outlets;
-GLOBAL OUTLET* border_outlets;
-GLOBAL int* categories;
+GLOBAL OUTLET *outlets;
+GLOBAL OUTLET *border_outlets;
+GLOBAL int *categories;
 GLOBAL int nrows, ncols;
 GLOBAL int fifo_max;
-GLOBAL POINT* fifo_points;
+GLOBAL POINT *fifo_points;

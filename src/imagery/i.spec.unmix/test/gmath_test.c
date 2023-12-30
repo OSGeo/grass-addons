@@ -6,94 +6,85 @@
 #include <grass/gis.h>
 #include "../la_extra.h"
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
 
-  int i, j;
-  mat_struct *m1, *m2, *m_sum, *m_sub, *m_scale, *m3, *m4;
-  vec_struct *v1;
-  
-  double testmat1[5][3] = {  1.0, 3.4, 8.1,
-			     1.5, 1.5, 2.3,
-			     2.0, 2.2, 1.7,
-			     2.5, 6.3, 6.1,
-			     3.0, 1.6, 5.0
-  };
+    int i, j;
+    mat_struct *m1, *m2, *m_sum, *m_sub, *m_scale, *m3, *m4;
+    vec_struct *v1;
 
-  double testmat2[5][3] = {  7.3, 0.5, 2.6,
-			     6.9, 1.2, 2.8,
-			     5.5, 1.9, 5.1,
-			     9.3, 7.7, 7.0,
-			     0.5, 3.1, 3.8
-  };
+    double testmat1[5][3] = {1.0, 3.4, 8.1, 1.5, 1.5, 2.3, 2.0, 2.2,
+                             1.7, 2.5, 6.3, 6.1, 3.0, 1.6, 5.0};
 
-  double testvec1[5] = { 1 2 3 4 5 }
-  
-  double testc = 4.3;
+    double testmat2[5][3] = {7.3, 0.5, 2.6, 6.9, 1.2, 2.8, 5.5, 1.9,
+                             5.1, 9.3, 7.7, 7.0, 0.5, 3.1, 3.8};
 
-  
-  /* Initialise the matrix structures */
+    double testvec1[5] =
+    { 1 2 3 4 5 }
 
-  m1 = G_matrix_init(5, 3, 5);
-  m2 = G_matrix_init(5, 3, 5);
+    double testc = 4.3;
 
-  for( i = 0; i < 5; i++ )
-    for( j = 0; j < 3; j++ ) {
+    /* Initialise the matrix structures */
 
-      G_matrix_set_element(m1, i, j, testmat1[i][j]);
-      G_matrix_set_element(m2, i, j, testmat2[i][j]);
-    }
+    m1 = G_matrix_init(5, 3, 5);
+    m2 = G_matrix_init(5, 3, 5);
 
-  /* Add the matrices */
+    for (i = 0; i < 5; i++)
+        for (j = 0; j < 3; j++) {
 
-  m_sum = G_matrix_add(m1, m2);
+            G_matrix_set_element(m1, i, j, testmat1[i][j]);
+            G_matrix_set_element(m2, i, j, testmat2[i][j]);
+        }
 
-  /* Subtract */
+    /* Add the matrices */
 
-  m_sub = G_matrix_subtract(m1, m2);
+    m_sum = G_matrix_add(m1, m2);
 
-  /* Scale the matrix by a given scalar value */
+    /* Subtract */
 
-  m_scale = G_matrix_scale(m1, testc);
+    m_sub = G_matrix_subtract(m1, m2);
 
-  /* Multiply two matrices */
+    /* Scale the matrix by a given scalar value */
 
-  m3 = G_matrix_transpose(m1);
+    m_scale = G_matrix_scale(m1, testc);
 
-  m4 = G_matrix_product(m3, m2);
+    /* Multiply two matrices */
 
+    m3 = G_matrix_transpose(m1);
 
-  /* Print out the results */
+    m4 = G_matrix_product(m3, m2);
 
-  printf("*** TEST OF MATRIX WRAPPER FUNCTIONS ***\n\n");
+    /* Print out the results */
 
-  printf("1. Simple matrix manipulations\n\n");
+    printf("*** TEST OF MATRIX WRAPPER FUNCTIONS ***\n\n");
 
-  printf("    Matrix 1:\n");
-  G_matrix_print(m1);
+    printf("1. Simple matrix manipulations\n\n");
 
-  printf("    Matrix 2:\n");
-  G_matrix_print(m2);
+    printf("    Matrix 1:\n");
+    G_matrix_print(m1);
 
-  printf("    Sum (m1 + m2):\n");
-  G_matrix_print(m_sum);
+    printf("    Matrix 2:\n");
+    G_matrix_print(m2);
 
-  printf("    Difference (m1 - m2):\n");
-  G_matrix_print(m_sub);
+    printf("    Sum (m1 + m2):\n");
+    G_matrix_print(m_sum);
 
-  printf("    Scale (c x m1):\n");
-  G_matrix_print(m_scale);
+    printf("    Difference (m1 - m2):\n");
+    G_matrix_print(m_sub);
 
-  printf("    Multiply transpose of M1 by M2 (m1~ x m2):\n");
-  G_matrix_print(m4);
+    printf("    Scale (c x m1):\n");
+    G_matrix_print(m_scale);
 
-  G_matrix_free(m1);
-  G_matrix_free(m2);
-  G_matrix_free(m_sum);
-  G_matrix_free(m_sub);
-  G_matrix_free(m_scale);
-  G_matrix_free(m3);
-  G_matrix_free(m4);
+    printf("    Multiply transpose of M1 by M2 (m1~ x m2):\n");
+    G_matrix_print(m4);
 
-  return 0;
+    G_matrix_free(m1);
+    G_matrix_free(m2);
+    G_matrix_free(m_sum);
+    G_matrix_free(m_sub);
+    G_matrix_free(m_scale);
+    G_matrix_free(m3);
+    G_matrix_free(m4);
 
+    return 0;
 }

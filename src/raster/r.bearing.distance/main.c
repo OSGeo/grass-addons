@@ -1,4 +1,3 @@
-
 /***********************************************************************/
 /*
    r.bearing.distance
@@ -39,8 +38,8 @@
 
    1) Given a point location, specified as a pair of coordinates,
    computes the bearing and/or straight-line distance from that point
-   towards every non-null cell.  There are several options for the type 
-   of bearing returned, as documented in the man page. 
+   towards every non-null cell.  There are several options for the type
+   of bearing returned, as documented in the man page.
 
    *****
 
@@ -48,14 +47,17 @@
 
    r.bearing.distance
    r.bearing.distance --help
-   r.bearing.distance [-rabse] input=name coordinate=x,y [reference_bearing=double] [bearing=string] [distance=string] [segment=string] [csv_seg=string] [csv_ax=string] [--overwrite] [--help] [--verbose] [--quiet] [--ui]
+   r.bearing.distance [-rabse] input=name coordinate=x,y
+   [reference_bearing=double] [bearing=string] [distance=string]
+   [segment=string] [csv_seg=string] [csv_ax=string] [--overwrite] [--help]
+   [--verbose] [--quiet] [--ui]
 
    Flags:
    -r Reverse bearing (i.e. bearing towards point location)
    -a Bearing difference is axial (0 - 90 degrees) rather than clockwise)
-   -b Bearing difference is axial and signed (0 - +/-90 degrees) rather than clockwise)
-   -s Segments are clockwise from zero rather than centred on zero
-   -e Compute eight segments rather than four
+   -b Bearing difference is axial and signed (0 - +/-90 degrees) rather than
+   clockwise) -s Segments are clockwise from zero rather than centred on zero -e
+   Compute eight segments rather than four
 
    --overwrite Allow output files to overwrite existing files
    --help Print usage summary
@@ -64,11 +66,11 @@
    --ui Force launching GUI dialog
 
    Parameters:
-   input=name [required] Raster map containing non-null cells for which bearing is to be computed
-   coordinate=x,y [required] Coordinate identifying the point location
-   reference_bearing=double Bearing in degrees from N (for calculation of bearing difference map)
-   bearing=string Raster map name for storing the bearing
-   distance=string Raster map name for storing the distance
+   input=name [required] Raster map containing non-null cells for which bearing
+   is to be computed coordinate=x,y [required] Coordinate identifying the point
+   location reference_bearing=double Bearing in degrees from N (for calculation
+   of bearing difference map) bearing=string Raster map name for storing the
+   bearing distance=string Raster map name for storing the distance
    segment=string Raster map name for storing the segment
    csv_seg=string Output plain text CSV file for segment counts
    csv_ax=string Output plain text CSV file for axial difference counts
@@ -77,14 +79,13 @@
 
    NOTES
 
-   ***** 
+   *****
 
    TO DO
 
  */
 
 /***********************************************************************/
-
 
 #define MAIN
 
@@ -96,7 +97,6 @@
 #include "raster_file.h"
 #include "azimuth.h"
 #include "file.h"
-
 
 int main(int argc, char *argv[])
 {
@@ -126,11 +126,10 @@ int main(int argc, char *argv[])
     struct Flag *reverse, *axial, *axial_signed, *square, *eight;
     int overwrite;
 
+    /***********************************************************************
+      Options
 
-/***********************************************************************
-  Options                                                             
-
-***********************************************************************/
+    ***********************************************************************/
 
     /* Initialize the GIS calls and sort out error handling */
 
@@ -144,8 +143,8 @@ int main(int argc, char *argv[])
     G_add_keyword(_("azimuth"));
     G_add_keyword(_("direction"));
     G_add_keyword(_("bearing"));
-    module->description =
-        _("Find the bearing and/or straight-line distance from all non-null cells to the specified point.");
+    module->description = _("Find the bearing and/or straight-line distance "
+                            "from all non-null cells to the specified point.");
 
     /* Define the options */
 
@@ -155,8 +154,8 @@ int main(int argc, char *argv[])
     input->required = YES;
     input->gisprompt = "old,cell,raster";
     input->key_desc = "name";
-    input->description =
-        _("Raster map containing non-null cells for which bearing is to be computed");
+    input->description = _("Raster map containing non-null cells for which "
+                           "bearing is to be computed");
 
     point = G_define_option();
     point->key = "coordinate";
@@ -170,8 +169,8 @@ int main(int argc, char *argv[])
     ref_bearing->type = TYPE_DOUBLE;
     ref_bearing->required = NO;
     ref_bearing->key_desc = "double";
-    ref_bearing->description =
-        _("Bearing in degrees from N (for calculation of bearing difference map)");
+    ref_bearing->description = _("Bearing in degrees from N (for calculation "
+                                 "of bearing difference map)");
 
     bearing_map = G_define_option();
     bearing_map->key = "bearing";
@@ -198,8 +197,7 @@ int main(int argc, char *argv[])
     csv_seg->key = "csv_seg";
     csv_seg->type = TYPE_STRING;
     csv_seg->required = NO;
-    csv_seg->description =
-        _("Output plain text  CSV file for segment counts");
+    csv_seg->description = _("Output plain text  CSV file for segment counts");
 
     csv_ax = G_define_option();
     csv_ax->key = "csv_ax";
@@ -215,13 +213,13 @@ int main(int argc, char *argv[])
 
     axial = G_define_flag();
     axial->key = 'a';
-    axial->description =
-        _("Bearing difference is axial (0 - 90 degrees) rather than clockwise) ");
+    axial->description = _(
+        "Bearing difference is axial (0 - 90 degrees) rather than clockwise) ");
 
     axial_signed = G_define_flag();
     axial_signed->key = 'b';
-    axial_signed->description =
-        _("Bearing difference is axial and signed (0 - +/-90 degrees) rather than clockwise) ");
+    axial_signed->description = _("Bearing difference is axial and signed (0 - "
+                                  "+/-90 degrees) rather than clockwise) ");
 
     square = G_define_flag();
     square->key = 's';
@@ -265,7 +263,8 @@ int main(int argc, char *argv[])
         if ((reference_bearing >= 0.0) && (reference_bearing <= 360.0))
             do_relative_bearing = 1;
         else
-            G_fatal_error(_("Reference bearing must be between 0.0 and 360.0 inclusive"));
+            G_fatal_error(
+                _("Reference bearing must be between 0.0 and 360.0 inclusive"));
     }
     else {
         do_relative_bearing = 0;
@@ -290,16 +289,15 @@ int main(int argc, char *argv[])
     output_buf_cell_type = FCELL_TYPE;
     segment_buf_cell_type = DCELL_TYPE;
 
+    /***********************************************************************
+      Check region and find bounding box for analysis
 
-/***********************************************************************
-  Check region and find bounding box for analysis                     
-
-***********************************************************************/
+    ***********************************************************************/
 
     /* Get current region */
     G_get_window(&window);
     nrows = Rast_window_rows();
-    n_row = 0;                  /* Origin is top left */
+    n_row = 0; /* Origin is top left */
     s_row = nrows - 1;
     ncols = Rast_window_cols();
     w_col = 0;
@@ -309,7 +307,8 @@ int main(int argc, char *argv[])
        deal with Lat/Long  */
 
     if ((G_projection() == PROJECTION_LL))
-        G_fatal_error(_("Lat/Long support is not (yet) implemented for this module."));
+        G_fatal_error(
+            _("Lat/Long support is not (yet) implemented for this module."));
 
     /* Check for integer resolution.  Algorithm is not robust in
        cases where resolution is non-integer */
@@ -321,8 +320,8 @@ int main(int argc, char *argv[])
 
     /* Check that point location falls within current region */
 
-    if (east < window.west || east > window.east
-        || north > window.north || north < window.south) {
+    if (east < window.west || east > window.east || north > window.north ||
+        north < window.south) {
         G_fatal_error(_("Specified point location outside database region "));
     }
 
@@ -331,11 +330,10 @@ int main(int argc, char *argv[])
     point_col = (int)Rast_easting_to_col(east, &window);
     point_row = (int)Rast_northing_to_row(north, &window);
 
+    /***********************************************************************
+      Open input map and set up input and output buffers for processing
 
-/***********************************************************************
-  Open input map and set up input and output buffers for processing   
-
-***********************************************************************/
+    ***********************************************************************/
 
     input_fd = Open_raster_infile(input->answer, input_mapset, "",
                                   &input_map_cell_type, message);
@@ -355,11 +353,10 @@ int main(int argc, char *argv[])
     Print_raster_buf_row_col(input_buf, input_buf_cell_type, stderr);
 #endif
 
+    /***********************************************************************
+      Compute bearings
 
-/***********************************************************************
-  Compute bearings                                                    
-
-***********************************************************************/
+    ***********************************************************************/
 
     if (do_bearing || do_segments) {
         if (!do_segments)
@@ -369,8 +366,7 @@ int main(int argc, char *argv[])
 
         output_buf = Allocate_raster_buf_with_null(output_buf_cell_type);
         if (do_segments)
-            segment_buf =
-                Allocate_raster_buf_with_null(segment_buf_cell_type);
+            segment_buf = Allocate_raster_buf_with_null(segment_buf_cell_type);
 
         /* Reset counters */
         for (i = 0; i <= 8; i++)
@@ -379,20 +375,20 @@ int main(int argc, char *argv[])
         for (i = 0; i < N_AXIAL_COUNT_CATS; i++)
             axial_counts[i] = 0;
 
-        for (row = n_row; row <= s_row; row++) {        /* row origin at north */
+        for (row = n_row; row <= s_row; row++) { /* row origin at north */
             for (col = w_col; col <= e_col; col++) {
-                data = Get_buffer_value_d_row_col(input_buf,
-                                                  input_buf_cell_type,
-                                                  row, col);
+                data = Get_buffer_value_d_row_col(
+                    input_buf, input_buf_cell_type, row, col);
 
-                /* Point location could be NULL in input map, so we test it first */
+                /* Point location could be NULL in input map, so we test it
+                 * first */
                 if ((row == point_row) && (col == point_col)) {
                     /* Cell is point location so set appropriate values */
                     bearing = IS_POINT;
-                    /* Set_buffer_value_d_row_col (output_buf, bearing, 
+                    /* Set_buffer_value_d_row_col (output_buf, bearing,
                        output_buf_cell_type, row, col); */
-                    Set_buffer_null_d_row_col(output_buf,
-                                              output_buf_cell_type, row, col);
+                    Set_buffer_null_d_row_col(output_buf, output_buf_cell_type,
+                                              row, col);
                 }
                 else {
                     /* Cell is not point location */
@@ -403,42 +399,59 @@ int main(int argc, char *argv[])
                         cell_counts[0]++;
                         if (do_relative_bearing) {
                             if (axial->answer)
-                                relative_bearing = calc_azimuth_axial_diff
-                                    (reference_bearing, bearing);
+                                relative_bearing = calc_azimuth_axial_diff(
+                                    reference_bearing, bearing);
                             else {
                                 if (axial_signed->answer)
                                     relative_bearing =
-                                        calc_azimuth_axial_diff_signed
-                                        (reference_bearing, bearing);
+                                        calc_azimuth_axial_diff_signed(
+                                            reference_bearing, bearing);
                                 else
                                     relative_bearing =
-                                        calc_azimuth_clockwise_diff
-                                        (reference_bearing, bearing);
+                                        calc_azimuth_clockwise_diff(
+                                            reference_bearing, bearing);
                             }
-                            Set_buffer_value_d_row_col(output_buf,
-                                                       relative_bearing,
-                                                       output_buf_cell_type,
-                                                       row, col);
+                            Set_buffer_value_d_row_col(
+                                output_buf, relative_bearing,
+                                output_buf_cell_type, row, col);
                             if ((axial->answer || axial_signed->answer) &&
                                 csv_ax->answer != NULL) {
-			       axial_counts[NALL]++;
-			       axial_counts[SUMALL] += relative_bearing;
-			       axial_counts[RUN_MEAN_ALL_CUR] = axial_counts[RUN_MEAN_ALL_PREV] +
-				 ((relative_bearing - axial_counts[RUN_MEAN_ALL_PREV]) / axial_counts[NALL]);
-			       axial_counts[RUN_Q_ALL_CUR] = axial_counts[RUN_Q_ALL_PREV] +
-				 ((relative_bearing - axial_counts[RUN_MEAN_ALL_PREV]) * (relative_bearing - axial_counts[RUN_MEAN_ALL_CUR]));
-			       axial_counts[RUN_MEAN_ALL_PREV] = axial_counts[RUN_MEAN_ALL_CUR];
-			       axial_counts[RUN_Q_ALL_PREV] = axial_counts[RUN_Q_ALL_CUR];
-			       /* Positive relative bearings only */
-			       if (relative_bearing > 0) {
+                                axial_counts[NALL]++;
+                                axial_counts[SUMALL] += relative_bearing;
+                                axial_counts[RUN_MEAN_ALL_CUR] =
+                                    axial_counts[RUN_MEAN_ALL_PREV] +
+                                    ((relative_bearing -
+                                      axial_counts[RUN_MEAN_ALL_PREV]) /
+                                     axial_counts[NALL]);
+                                axial_counts[RUN_Q_ALL_CUR] =
+                                    axial_counts[RUN_Q_ALL_PREV] +
+                                    ((relative_bearing -
+                                      axial_counts[RUN_MEAN_ALL_PREV]) *
+                                     (relative_bearing -
+                                      axial_counts[RUN_MEAN_ALL_CUR]));
+                                axial_counts[RUN_MEAN_ALL_PREV] =
+                                    axial_counts[RUN_MEAN_ALL_CUR];
+                                axial_counts[RUN_Q_ALL_PREV] =
+                                    axial_counts[RUN_Q_ALL_CUR];
+                                /* Positive relative bearings only */
+                                if (relative_bearing > 0) {
                                     axial_counts[NPOS]++;
                                     axial_counts[SUMPOS] += relative_bearing;
-				    axial_counts[RUN_MEAN_POS_CUR] = axial_counts[RUN_MEAN_POS_PREV] +
-				      ((relative_bearing - axial_counts[RUN_MEAN_POS_PREV]) / axial_counts[NPOS]);
-				    axial_counts[RUN_Q_POS_CUR] = axial_counts[RUN_Q_POS_PREV] +
-				      ((relative_bearing - axial_counts[RUN_MEAN_POS_PREV]) * (relative_bearing - axial_counts[RUN_MEAN_POS_CUR]));
-				    axial_counts[RUN_MEAN_POS_PREV] = axial_counts[RUN_MEAN_POS_CUR];
-				    axial_counts[RUN_Q_POS_PREV] = axial_counts[RUN_Q_POS_CUR];
+                                    axial_counts[RUN_MEAN_POS_CUR] =
+                                        axial_counts[RUN_MEAN_POS_PREV] +
+                                        ((relative_bearing -
+                                          axial_counts[RUN_MEAN_POS_PREV]) /
+                                         axial_counts[NPOS]);
+                                    axial_counts[RUN_Q_POS_CUR] =
+                                        axial_counts[RUN_Q_POS_PREV] +
+                                        ((relative_bearing -
+                                          axial_counts[RUN_MEAN_POS_PREV]) *
+                                         (relative_bearing -
+                                          axial_counts[RUN_MEAN_POS_CUR]));
+                                    axial_counts[RUN_MEAN_POS_PREV] =
+                                        axial_counts[RUN_MEAN_POS_CUR];
+                                    axial_counts[RUN_Q_POS_PREV] =
+                                        axial_counts[RUN_Q_POS_CUR];
                                     if (relative_bearing <= 22.5)
                                         axial_counts[NPOS22_5]++;
                                     else if (relative_bearing <= 45)
@@ -449,16 +462,26 @@ int main(int argc, char *argv[])
                                         axial_counts[NPOS90]++;
                                 }
                                 else {
-				  /* Negative relative bearings only */
+                                    /* Negative relative bearings only */
                                     if (relative_bearing < 0) {
-				        axial_counts[NNEG]++;
-                                        axial_counts[SUMNEG] += relative_bearing;
-					axial_counts[RUN_MEAN_NEG_CUR] = axial_counts[RUN_MEAN_NEG_PREV] +
-					  ((relative_bearing - axial_counts[RUN_MEAN_NEG_PREV]) / axial_counts[NNEG]);
-					axial_counts[RUN_Q_NEG_CUR] = axial_counts[RUN_Q_NEG_PREV] +
-					  ((relative_bearing - axial_counts[RUN_MEAN_NEG_PREV]) * (relative_bearing - axial_counts[RUN_MEAN_NEG_CUR]));
-					axial_counts[RUN_MEAN_NEG_PREV] = axial_counts[RUN_MEAN_NEG_CUR];
-					axial_counts[RUN_Q_NEG_PREV] = axial_counts[RUN_Q_NEG_CUR];
+                                        axial_counts[NNEG]++;
+                                        axial_counts[SUMNEG] +=
+                                            relative_bearing;
+                                        axial_counts[RUN_MEAN_NEG_CUR] =
+                                            axial_counts[RUN_MEAN_NEG_PREV] +
+                                            ((relative_bearing -
+                                              axial_counts[RUN_MEAN_NEG_PREV]) /
+                                             axial_counts[NNEG]);
+                                        axial_counts[RUN_Q_NEG_CUR] =
+                                            axial_counts[RUN_Q_NEG_PREV] +
+                                            ((relative_bearing -
+                                              axial_counts[RUN_MEAN_NEG_PREV]) *
+                                             (relative_bearing -
+                                              axial_counts[RUN_MEAN_NEG_CUR]));
+                                        axial_counts[RUN_MEAN_NEG_PREV] =
+                                            axial_counts[RUN_MEAN_NEG_CUR];
+                                        axial_counts[RUN_Q_NEG_PREV] =
+                                            axial_counts[RUN_Q_NEG_CUR];
                                         if (relative_bearing >= -22.5)
                                             axial_counts[NNEG22_5]++;
                                         else if (relative_bearing >= -45)
@@ -469,7 +492,7 @@ int main(int argc, char *argv[])
                                             axial_counts[NNEG90]++;
                                     }
                                     else {
-				      /* Relative bearings of zero */
+                                        /* Relative bearings of zero */
                                         axial_counts[NZERO]++;
                                     }
                                 }
@@ -487,9 +510,8 @@ int main(int argc, char *argv[])
                                 segment = calc_segment(relative_bearing);
                             else
                                 segment =
-                                    calc_segment(calc_azimuth_clockwise_diff
-                                                 (reference_bearing,
-                                                  bearing));
+                                    calc_segment(calc_azimuth_clockwise_diff(
+                                        reference_bearing, bearing));
                             Set_buffer_value_c_row_col(segment_buf, segment,
                                                        segment_buf_cell_type,
                                                        row, col);
@@ -503,14 +525,14 @@ int main(int argc, char *argv[])
 
         /* Open raster maps and allocate memory */
 
-        output_fd = Open_raster_outfile(bearing_map->answer, current_mapset,
-                                        output_map_cell_type,
-                                        overwrite, message);
+        output_fd =
+            Open_raster_outfile(bearing_map->answer, current_mapset,
+                                output_map_cell_type, overwrite, message);
         if (output_fd < 0)
             G_warning("%s", message);
         else {
-            Write_raster_outfile(output_buf, output_fd,
-                                 output_buf_cell_type, output_map_cell_type);
+            Write_raster_outfile(output_buf, output_fd, output_buf_cell_type,
+                                 output_map_cell_type);
             Close_raster_file(output_fd);
         }
 
@@ -519,8 +541,7 @@ int main(int argc, char *argv[])
         if (do_segments) {
             segment_fd =
                 Open_raster_outfile(segment_map->answer, current_mapset,
-                                    segment_map_cell_type, overwrite,
-                                    message);
+                                    segment_map_cell_type, overwrite, message);
             if (segment_fd < 0)
                 G_warning("%s", message);
             else {
@@ -532,35 +553,30 @@ int main(int argc, char *argv[])
 
             G_free(segment_buf);
         }
-
     }
 
+    /***********************************************************************
+      Compute distance
 
-
-/***********************************************************************
-  Compute distance                                                    
-
-***********************************************************************/
+    ***********************************************************************/
 
     if (do_distance) {
         G_message(_("Computing distances\n"));
 
         output_buf = Allocate_raster_buf_with_null(output_buf_cell_type);
 
-        for (row = n_row; row <= s_row; row++) {        /* row origin at north */
+        for (row = n_row; row <= s_row; row++) { /* row origin at north */
             for (col = w_col; col <= e_col; col++) {
-                data = Get_buffer_value_d_row_col(input_buf,
-                                                  input_buf_cell_type,
-                                                  row, col);
+                data = Get_buffer_value_d_row_col(
+                    input_buf, input_buf_cell_type, row, col);
 
-                /* Point location could be NULL in input map, so we test it first */
+                /* Point location could be NULL in input map, so we test it
+                 * first */
                 if ((row == point_row) && (col == point_col)) {
                     /* Cell is point location so set appropriate values */
                     distance = 0.0;
                     Set_buffer_value_d_row_col(output_buf, distance,
-                                               output_buf_cell_type, row,
-                                               col);
-
+                                               output_buf_cell_type, row, col);
                 }
                 else {
                     /* Cell is not point location */
@@ -576,36 +592,33 @@ int main(int argc, char *argv[])
             }
         }
 
-
         /* Open raster map and allocate memory */
 
-        output_fd = Open_raster_outfile(distance_map->answer, current_mapset,
-                                        output_map_cell_type,
-                                        overwrite, message);
+        output_fd =
+            Open_raster_outfile(distance_map->answer, current_mapset,
+                                output_map_cell_type, overwrite, message);
         if (output_fd < 0)
             G_warning("%s", message);
         else {
-            Write_raster_outfile(output_buf, output_fd,
-                                 output_buf_cell_type, output_map_cell_type);
+            Write_raster_outfile(output_buf, output_fd, output_buf_cell_type,
+                                 output_map_cell_type);
             Close_raster_file(output_fd);
         }
 
         G_free(output_buf);
     }
 
+    /***********************************************************************
+      Release input_buf memory
 
-/***********************************************************************
-  Release input_buf memory                                            
-
-***********************************************************************/
+    ***********************************************************************/
 
     G_free(input_buf);
 
+    /***********************************************************************
+      Create support files
 
-/***********************************************************************
-  Create support files                                                
-
-***********************************************************************/
+    ***********************************************************************/
 
     G_message(_("Creating support files\n"));
 
@@ -671,13 +684,12 @@ int main(int argc, char *argv[])
     /* Output segment data to CSV file */
     if (do_segments) {
         if (csv_seg->answer != NULL) {
-            csv_seg_str = Create_file(csv_seg->answer, ".csv",
-                                      message, overwrite);
+            csv_seg_str =
+                Create_file(csv_seg->answer, ".csv", message, overwrite);
             if (csv_seg_str == NULL)
                 G_warning(_("Not writing CSV file: %s"), message);
             else {
-                G_message(_("\nSaving results to file '%s' "),
-                          csv_seg->answer);
+                G_message(_("\nSaving results to file '%s' "), csv_seg->answer);
 
                 /* Write header */
                 fprintf(csv_seg_str, "Input");
@@ -710,13 +722,12 @@ int main(int argc, char *argv[])
     /* Output axial difference data to CSV file */
     if (axial->answer || axial_signed->answer) {
         if (csv_ax->answer != NULL) {
-            csv_ax_str = Create_file(csv_ax->answer, ".csv",
-                                     message, overwrite);
+            csv_ax_str =
+                Create_file(csv_ax->answer, ".csv", message, overwrite);
             if (csv_ax_str == NULL)
                 G_warning(_("Not writing CSV file: %s"), message);
             else {
-                G_message(_("\nSaving results to file '%s' "),
-                          csv_ax->answer);
+                G_message(_("\nSaving results to file '%s' "), csv_ax->answer);
 
                 /* Write header */
                 fprintf(csv_ax_str, "Input");
@@ -736,11 +747,11 @@ int main(int argc, char *argv[])
                 fprintf(csv_ax_str, ",SUM_NEG");
                 fprintf(csv_ax_str, ",SUM_ALL");
                 fprintf(csv_ax_str, ",MEAN_POS");
-		fprintf(csv_ax_str, ",SDEV_POS");
+                fprintf(csv_ax_str, ",SDEV_POS");
                 fprintf(csv_ax_str, ",MEAN_NEG");
-		fprintf(csv_ax_str, ",SDEV_NEG");
+                fprintf(csv_ax_str, ",SDEV_NEG");
                 fprintf(csv_ax_str, ",MEAN_ALL");
-		fprintf(csv_ax_str, ",SDEV_ALL");
+                fprintf(csv_ax_str, ",SDEV_ALL");
                 fprintf(csv_ax_str, "\n");
                 fflush(csv_ax_str);
 
@@ -748,7 +759,7 @@ int main(int argc, char *argv[])
                 /*long int n_all = (long)axial_counts[NPOS] +
                     (long)axial_counts[NNEG] + axial_counts[NZERO];
                 double sum_all =
-		axial_counts[SUMPOS] + axial_counts[SUMNEG] + 0;*/
+                axial_counts[SUMPOS] + axial_counts[SUMNEG] + 0;*/
                 fprintf(csv_ax_str, "%s", input->answer);
                 fprintf(csv_ax_str, ",%ld", (long)axial_counts[NZERO]);
                 fprintf(csv_ax_str, ",%ld", (long)axial_counts[NPOS22_5]);
@@ -766,69 +777,68 @@ int main(int argc, char *argv[])
                 fprintf(csv_ax_str, ",%ld", (long)axial_counts[SUMNEG]);
                 fprintf(csv_ax_str, ",%ld", (long)axial_counts[SUMALL]);
 
-		/* Mean pos
+                /* Mean pos
                 if (axial_counts[NPOS] > 0)
                     fprintf(csv_ax_str, ",%lf",
                             axial_counts[SUMPOS] / axial_counts[NPOS]);
                 else
-		fprintf(csv_ax_str, ",%s", "NA");*/
-		/* Running mean pos */
+                fprintf(csv_ax_str, ",%s", "NA");*/
+                /* Running mean pos */
                 if (axial_counts[NPOS] > 0)
-                    fprintf(csv_ax_str, ",%lf",
-                            axial_counts[RUN_MEAN_POS_CUR]);
+                    fprintf(csv_ax_str, ",%lf", axial_counts[RUN_MEAN_POS_CUR]);
                 else
-		  fprintf(csv_ax_str, ",%s", "NA");
-		/* Standard deviation pos */ 
-		if (axial_counts[NPOS] > 0)
-		  fprintf(csv_ax_str, ",%lf",
-			  sqrt (axial_counts[RUN_Q_POS_CUR] / axial_counts[NPOS]));
+                    fprintf(csv_ax_str, ",%s", "NA");
+                /* Standard deviation pos */
+                if (axial_counts[NPOS] > 0)
+                    fprintf(
+                        csv_ax_str, ",%lf",
+                        sqrt(axial_counts[RUN_Q_POS_CUR] / axial_counts[NPOS]));
                 else
                     fprintf(csv_ax_str, ",%s", "NA");
 
-		/* Mean neg
+                /* Mean neg
                 if (axial_counts[NNEG] > 0)
                     fprintf(csv_ax_str, ",%lf",
                             axial_counts[SUMNEG] / axial_counts[NNEG]);
                 else
-		fprintf(csv_ax_str, ",%s", "NA");*/
-		/* Running mean neg */
+                fprintf(csv_ax_str, ",%s", "NA");*/
+                /* Running mean neg */
                 if (axial_counts[NNEG] > 0)
-                    fprintf(csv_ax_str, ",%lf",
-                            axial_counts[RUN_MEAN_NEG_CUR]);
+                    fprintf(csv_ax_str, ",%lf", axial_counts[RUN_MEAN_NEG_CUR]);
                 else
-		  fprintf(csv_ax_str, ",%s", "NA");
-		/* Standard deviation neg */ 
-		if (axial_counts[NNEG] > 0)
-		  fprintf(csv_ax_str, ",%lf",
-			  sqrt (axial_counts[RUN_Q_NEG_CUR] / axial_counts[NNEG]));
+                    fprintf(csv_ax_str, ",%s", "NA");
+                /* Standard deviation neg */
+                if (axial_counts[NNEG] > 0)
+                    fprintf(
+                        csv_ax_str, ",%lf",
+                        sqrt(axial_counts[RUN_Q_NEG_CUR] / axial_counts[NNEG]));
                 else
                     fprintf(csv_ax_str, ",%s", "NA");
 
-		/* Mean all 
-		if (n_all > 0)
+                /* Mean all
+                if (n_all > 0)
                     fprintf(csv_ax_str, ",%lf", sum_all / n_all);
                 else
-		fprintf(csv_ax_str, ",%s", "NA");*/
-		/* Running mean all */
+                fprintf(csv_ax_str, ",%s", "NA");*/
+                /* Running mean all */
                 if (axial_counts[NALL] > 0)
-                    fprintf(csv_ax_str, ",%lf",
-                            axial_counts[RUN_MEAN_ALL_CUR]);
-                else
-		  fprintf(csv_ax_str, ",%s", "NA");
-		/* Standard deviation all */ 
-		if (axial_counts[NALL] > 0)
-		  fprintf(csv_ax_str, ",%lf",
-			  sqrt (axial_counts[RUN_Q_ALL_CUR] / axial_counts[NALL]));
+                    fprintf(csv_ax_str, ",%lf", axial_counts[RUN_MEAN_ALL_CUR]);
                 else
                     fprintf(csv_ax_str, ",%s", "NA");
-		fprintf(csv_ax_str, "\n");
+                /* Standard deviation all */
+                if (axial_counts[NALL] > 0)
+                    fprintf(
+                        csv_ax_str, ",%lf",
+                        sqrt(axial_counts[RUN_Q_ALL_CUR] / axial_counts[NALL]));
+                else
+                    fprintf(csv_ax_str, ",%s", "NA");
+                fprintf(csv_ax_str, "\n");
                 fflush(csv_ax_str);
 
                 fclose(csv_ax_str);
             }
         }
     }
-
 
     G_message(_("\nJob finished\n"));
 

@@ -3,7 +3,7 @@
 #include "proto.h"
 
 void write_ellipse(struct Map_info *Out, struct line_pnts *Ellipse,
-		   struct line_cats *Cats)
+                   struct line_cats *Cats)
 {
     /* variables */
     double xc, yc;
@@ -18,8 +18,8 @@ void write_ellipse(struct Map_info *Out, struct line_pnts *Ellipse,
     n = Ellipse->n_points;
 
     for (i = 0; i < n; i++) {
-	xc += Ellipse->x[i];
-	yc += Ellipse->y[i];
+        xc += Ellipse->x[i];
+        yc += Ellipse->y[i];
     }
 
     xc /= n;

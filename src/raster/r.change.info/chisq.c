@@ -10,7 +10,7 @@
  *   pexp[i] = p * (ncells[i] / ncellstot)
  *   then
  *   sum of all (p[i] - pexp[i])^2 / pexp[i]
- * 
+ *
  * dist: array of distributions
  * nd: number of cells in each distribution
  * n: number of distributions
@@ -24,26 +24,27 @@ DCELL chisq(double **dist, int *nd, int n, int dsize)
     result = 0;
     n_comb = 0;
     for (d = 0; d < n; d++) {
-	n_comb += nd[d];
+        n_comb += nd[d];
     }
     for (i = 0; i < dsize; i++) {
 
-	/* create combined distribution */
-	p_sum = 0;
-	for (d = 0; d < n; d++) {
-	    if (dist[d][i] > 0 && nd[d] > 0) {
-		p_sum += dist[d][i];
-	    }
-	}
-	/* squared and normalized difference to combined distribution */
-	if (p_sum > 0) {
-	    for (d = 0; d < n; d++) {
-		if (nd[d] > 0) {
-		    p_exp = p_sum * nd[d] / n_comb;
-		    result += (dist[d][i] - p_exp) * (dist[d][i] - p_exp) / p_exp;
-		}
-	    }
-	}
+        /* create combined distribution */
+        p_sum = 0;
+        for (d = 0; d < n; d++) {
+            if (dist[d][i] > 0 && nd[d] > 0) {
+                p_sum += dist[d][i];
+            }
+        }
+        /* squared and normalized difference to combined distribution */
+        if (p_sum > 0) {
+            for (d = 0; d < n; d++) {
+                if (nd[d] > 0) {
+                    p_exp = p_sum * nd[d] / n_comb;
+                    result +=
+                        (dist[d][i] - p_exp) * (dist[d][i] - p_exp) / p_exp;
+                }
+            }
+        }
     }
 
     return result;

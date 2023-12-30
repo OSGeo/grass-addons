@@ -1,4 +1,3 @@
-
 /***********************************************************************/
 /*
    find_edges.c
@@ -29,12 +28,11 @@
    since there might be neighbouring cells outside the region, or
    beyond the maximum viewing distance, which fall with the viewshed -
    we just don't know.  For that reason we ensure that edge types are
-   attributed such that 3 overides 2 overides 1 
+   attributed such that 3 overides 2 overides 1
 
  */
 
 /***********************************************************************/
-
 
 #include <math.h>
 #include "global_vars.h"
@@ -42,18 +40,16 @@
 #include "azimuth.h"
 #include "raster_file.h"
 
-
 /***********************************************************************/
 /* Prototypes for private functions                                    */
 
 /***********************************************************************/
 
 int check_if_real_edge(int, int, int, int, int, void *);
-void find_edges_no_checking(int, int, int, int, int, int,
-                            void *, struct node *, CELL);
-void find_edges_check_max_dist(int, int, int, int, int, int,
-                               void *, struct node *, CELL);
-
+void find_edges_no_checking(int, int, int, int, int, int, void *, struct node *,
+                            CELL);
+void find_edges_check_max_dist(int, int, int, int, int, int, void *,
+                               struct node *, CELL);
 
 /***********************************************************************/
 /* Public functions                                                    */
@@ -84,12 +80,12 @@ void find_edges(int nrows, int ncols, void *map_buf, struct node *edge_cur)
 
     orthogonal_dist = sqrt((max_dist * max_dist) / 2);
     orthogonal_ew_cells = floor(orthogonal_dist / window.ew_res);
-    e_box1 = viewpt_col + orthogonal_ew_cells - 1;      /* col origin at west */
+    e_box1 = viewpt_col + orthogonal_ew_cells - 1; /* col origin at west */
     w_box1 = viewpt_col - orthogonal_ew_cells + 1;
     /* e_box1 = viewpt_col + orthogonal_ew_cells; /\* col origin at west *\/ */
     /* w_box1 = viewpt_col - orthogonal_ew_cells; */
     orthogonal_ns_cells = floor(orthogonal_dist / window.ns_res);
-    n_box1 = viewpt_row - orthogonal_ns_cells + 1;      /* row origin at north */
+    n_box1 = viewpt_row - orthogonal_ns_cells + 1; /* row origin at north */
     s_box1 = viewpt_row + orthogonal_ns_cells - 1;
     /* n_box1 = viewpt_row - orthogonal_ns_cells; /\* row origin at north *\/ */
     /* s_box1 = viewpt_row + orthogonal_ns_cells; */
@@ -171,31 +167,28 @@ void find_edges(int nrows, int ncols, void *map_buf, struct node *edge_cur)
     }
 
     /*  Find edges in boxes */
-    find_edges_no_checking(e_box1, w_box1, n_box1, s_box1,
-                           nrows, ncols, map_buf, edge_cur, 1);
+    find_edges_no_checking(e_box1, w_box1, n_box1, s_box1, nrows, ncols,
+                           map_buf, edge_cur, 1);
     if (box2)
-        find_edges_check_max_dist(e_box2, w_box2, n_box2, s_box2,
-                                  nrows, ncols, map_buf, edge_cur, 2);
+        find_edges_check_max_dist(e_box2, w_box2, n_box2, s_box2, nrows, ncols,
+                                  map_buf, edge_cur, 2);
     if (box3)
-        find_edges_check_max_dist(e_box3, w_box3, n_box3, s_box3,
-                                  nrows, ncols, map_buf, edge_cur, 3);
+        find_edges_check_max_dist(e_box3, w_box3, n_box3, s_box3, nrows, ncols,
+                                  map_buf, edge_cur, 3);
     if (box4)
-        find_edges_check_max_dist(e_box4, w_box4, n_box4, s_box4,
-                                  nrows, ncols, map_buf, edge_cur, 4);
+        find_edges_check_max_dist(e_box4, w_box4, n_box4, s_box4, nrows, ncols,
+                                  map_buf, edge_cur, 4);
     if (box5)
-        find_edges_check_max_dist(e_box5, w_box5, n_box5, s_box5,
-                                  nrows, ncols, map_buf, edge_cur, 5);
+        find_edges_check_max_dist(e_box5, w_box5, n_box5, s_box5, nrows, ncols,
+                                  map_buf, edge_cur, 5);
 }
-
-
 
 /***********************************************************************/
 /* Private functions                                                   */
 
 /***********************************************************************/
 
-void find_edges_no_checking(int e, int w, int n, int s,
-                            int nrows, int ncols,
+void find_edges_no_checking(int e, int w, int n, int s, int nrows, int ncols,
                             void *map_buf, struct node *edge_cur, CELL box)
 
 /* Any cells examined in this function can not fall at max. viewing
@@ -210,40 +203,37 @@ void find_edges_no_checking(int e, int w, int n, int s,
 
     /* Check all cells in box */
 
-    for (row = n; row <= s; row++) {    /* row origin at north */
+    for (row = n; row <= s; row++) { /* row origin at north */
         for (col = w; col <= e; col++) {
             edge = 0;
-            data = Get_buffer_value_d_row_col(map_buf,
-                                              viewshed_buf_cell_type,
+            data = Get_buffer_value_d_row_col(map_buf, viewshed_buf_cell_type,
                                               row, col);
             /* If cell is in viewshed */
             if (!(Rast_is_null_value(&data, viewshed_buf_cell_type)))
-                /* if (data > 0.0) */
+            /* if (data > 0.0) */
             {
                 /* If cell falls on edge of region */
 
-                if (row == n_row || row == s_row ||
-                    col == w_col || col == e_col)
+                if (row == n_row || row == s_row || col == w_col ||
+                    col == e_col)
                     edge = 3;
                 else {
                     /* We now know cell is not at max. viewing distance
                        (type 2) or on edge of region (type 3), but is it a real
                        edge (type 1)? */
 
-                    edge = check_if_real_edge(row, col, nrows, ncols,
-                                              edge, map_buf);
+                    edge = check_if_real_edge(row, col, nrows, ncols, edge,
+                                              map_buf);
                 }
-                /* Process an edge (type 3, 2 or 1) 
+                /* Process an edge (type 3, 2 or 1)
                    if not also viewpoint */
 
                 if (edge && !((row == viewpt_row) && (col == viewpt_col))) {
                     calc_azimuth(row, col, &axis, &quad, &smallest_azimuth,
-                                 &centre_azimuth, &largest_azimuth,
-                                 &distance);
+                                 &centre_azimuth, &largest_azimuth, &distance);
                     List_insert_after(edge, row, col, axis, quad, data,
-                                      smallest_azimuth,
-                                      centre_azimuth, largest_azimuth,
-                                      distance, edge_cur);
+                                      smallest_azimuth, centre_azimuth,
+                                      largest_azimuth, distance, edge_cur);
                 }
             }
         }
@@ -252,8 +242,7 @@ void find_edges_no_checking(int e, int w, int n, int s,
 
 /***********************************************************************/
 
-void find_edges_check_max_dist(int e, int w, int n, int s,
-                               int nrows, int ncols,
+void find_edges_check_max_dist(int e, int w, int n, int s, int nrows, int ncols,
                                void *map_buf, struct node *edge_cur, CELL box)
 
 /* Any cells examined in this function could fall at max. viewing
@@ -273,15 +262,15 @@ void find_edges_check_max_dist(int e, int w, int n, int s,
 
     /* Check all cells */
 
-    for (row = n; row <= s; row++) {    /* row origin at north */
+    for (row = n; row <= s; row++) { /* row origin at north */
         for (col = w; col <= e; col++) {
             edge = 0;
             data = Get_buffer_value_d_row_col(map_buf, viewshed_buf_cell_type,
                                               row, col);
             if (!(Rast_is_null_value(&data, viewshed_buf_cell_type)))
-                /* if (data > 0.0) */
+            /* if (data > 0.0) */
 
-                /* Check whether within or at max distance */
+            /* Check whether within or at max distance */
             {
                 /* Calc orthogonal distances from centre of viewpoint to
                    centre of cell */
@@ -298,7 +287,7 @@ void find_edges_check_max_dist(int e, int w, int n, int s,
                 /* Now calc alpha */
 
                 if (x == 0)
-                    alpha = 3.1415926535899 / 2;        /* 90 degrees in radians */
+                    alpha = 3.1415926535899 / 2; /* 90 degrees in radians */
                 else
                     alpha = atan(y / x);
 
@@ -315,8 +304,10 @@ void find_edges_check_max_dist(int e, int w, int n, int s,
 
                 /* if (x >= y)  */
                 /*        { */
-                /*          min_rad_distance = (x - (0.5 * window.ew_res)) / cos (alpha); */
-                /*          max_rad_distance = (x + (0.5 * window.ew_res)) / cos (alpha); */
+                /*          min_rad_distance = (x - (0.5 * window.ew_res)) / cos
+                 * (alpha); */
+                /*          max_rad_distance = (x + (0.5 * window.ew_res)) / cos
+                 * (alpha); */
                 /*        } */
                 /* else */
                 /*        { */
@@ -327,11 +318,12 @@ void find_edges_check_max_dist(int e, int w, int n, int s,
                 /*            } */
                 /*          else */
                 /*            { */
-                /*              min_rad_distance = (y - (0.5 * window.ns_res)) / sin (alpha); */
-                /*              max_rad_distance = (y + (0.5 * window.ns_res)) / sin (alpha); */
+                /*              min_rad_distance = (y - (0.5 * window.ns_res)) /
+                 * sin (alpha); */
+                /*              max_rad_distance = (y + (0.5 * window.ns_res)) /
+                 * sin (alpha); */
                 /*            } */
                 /*        } */
-
 
                 if (x >= y) {
                     min_rad_distance = (x - window.ew_res) / cos(alpha);
@@ -351,8 +343,7 @@ void find_edges_check_max_dist(int e, int w, int n, int s,
                 /* Check whether max distance falls within this cell, in
                    which case cell is at max. distance (type 2). */
 
-                if (max_dist > min_rad_distance &&
-                    max_dist <= max_rad_distance)
+                if (max_dist > min_rad_distance && max_dist <= max_rad_distance)
                     edge = 2;
 
                 /* If cell is within or at max dist */
@@ -361,8 +352,8 @@ void find_edges_check_max_dist(int e, int w, int n, int s,
                     /* If cell falls on the edge of the region, set edge
                        type to 3 */
 
-                    if (row == n_row || row == s_row ||
-                        col == w_col || col == e_col)
+                    if (row == n_row || row == s_row || col == w_col ||
+                        col == e_col)
                         edge = 3;
                     else {
                         /* If cell does not fall on edge of region (type
@@ -380,20 +371,16 @@ void find_edges_check_max_dist(int e, int w, int n, int s,
 
                 if (edge && !((row == viewpt_row) && (col == viewpt_col))) {
                     calc_azimuth(row, col, &axis, &quad, &smallest_azimuth,
-                                 &centre_azimuth, &largest_azimuth,
-                                 &distance);
+                                 &centre_azimuth, &largest_azimuth, &distance);
 
                     List_insert_after(edge, row, col, axis, quad, data,
-                                      smallest_azimuth,
-                                      centre_azimuth, largest_azimuth,
-                                      distance, edge_cur);
-
+                                      smallest_azimuth, centre_azimuth,
+                                      largest_azimuth, distance, edge_cur);
                 }
             }
         }
     }
 }
-
 
 /***********************************************************************/
 
@@ -408,7 +395,7 @@ int check_if_real_edge(int row, int col, int nrows, int ncols, int edge,
     DCELL data_to_test;
 
     if (edge != 0)
-        return edge;            /* Shouldn't get here if function called appropriately */
+        return edge; /* Shouldn't get here if function called appropriately */
 
     for (test_row = row - 1; test_row <= row + 1; test_row++) {
         if (edge == 1)
@@ -424,10 +411,8 @@ int check_if_real_edge(int row, int col, int nrows, int ncols, int edge,
                current region, therefore cells in neighbourhood +/- 1
                must be within current region */
 
-            data_to_test =
-                Get_buffer_value_d_row_col(map_buf,
-                                           viewshed_buf_cell_type,
-                                           test_row, test_col);
+            data_to_test = Get_buffer_value_d_row_col(
+                map_buf, viewshed_buf_cell_type, test_row, test_col);
 
             /* If any of neighbouring cells = NULL then this cell must
                fall on real edge (type 1), because we already know that

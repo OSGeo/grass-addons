@@ -9,8 +9,8 @@
 #define GLOBAL extern
 #endif
 
-extern int f_area(DCELL * vals, Coords ** frags, int);
-extern int f_perim(DCELL * vals, Coords ** frags, int);
+extern int f_area(DCELL *vals, Coords **frags, int);
+extern int f_perim(DCELL *vals, Coords **frags, int);
 extern int f_shapeindex(DCELL *, Coords **, int);
 extern int f_borderindex(DCELL *, Coords **, int);
 extern int f_compactness(DCELL *, Coords **, int);

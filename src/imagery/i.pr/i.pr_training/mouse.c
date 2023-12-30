@@ -1,7 +1,6 @@
 #include <grass/raster.h>
 #include "globals.h"
 
-
 void Mouse_pointer(int *x, int *y, int *button)
 {
     static int curx, cury;

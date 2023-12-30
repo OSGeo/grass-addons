@@ -1,13 +1,13 @@
-
 /****************************************************************************
  *
  * MODULE:       i.spec.unmix
  *
- * AUTHOR(S):    Markus Neteler  <neteler osgeo.org>: 1998, Original GRASS 5 version
+ * AUTHOR(S):    Markus Neteler  <neteler osgeo.org>: 1998,
+ *                  Original GRASS 5 version
  *               Mohammed Rashad <rashadkm gmail.com>: 2012, update to GRASS 7
  *
  * PURPOSE:      Spectral mixture analysis of satellite/aerial images
- * 
+ *
  * Notes:        The original version was implemented with MESCHACH, the actual
  *               version is instead using BLAS/LAPACK via GMATHLIB.
  *               An error minimization approach is used instead of Single Value
@@ -35,7 +35,6 @@
 #error GRASS is not configured with LAPACK
 #endif
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
@@ -46,16 +45,15 @@
 #include <grass/glocale.h>
 #include "global.h"
 
-
-#define GAMMA 10		/* last row value in Matrix and last b vector element
-				 * for constraint Sum xi = 1 (GAMMA=weight) 
-				 */
+#define GAMMA                                                \
+    10 /* last row value in Matrix and last b vector element \
+        * for constraint Sum xi = 1 (GAMMA=weight)           \
+        */
 
 static double find_max(double x, double y)
 {
     return ((x * (x > y)) + (y * (x <= y)));
 }
-
 
 int main(int argc, char *argv[])
 {
@@ -78,8 +76,7 @@ int main(int argc, char *argv[])
     double mu;
     float anglefield[255][255];
     double error = 0.0;
-    struct
-    {
+    struct {
         struct Option *group, *matrixfile, *result, *error, *iter;
     } parm;
 
@@ -121,13 +118,9 @@ int main(int argc, char *argv[])
     if (G_parser(argc, argv))
         exit(EXIT_FAILURE);
 
-
     /* here we go... A is created here */
-    A = open_files(parm.matrixfile->answer,
-                   parm.group->answer,
-                   parm.result->answer,
-                   parm.iter->answer, parm.error->answer);
-
+    A = open_files(parm.matrixfile->answer, parm.group->answer,
+                   parm.result->answer, parm.iter->answer, parm.error->answer);
 
     /* ATTENTION: Internally we work here with col-oriented matrixfile,
      *  but the user has to enter the spectra row-wise for his/her's
@@ -141,7 +134,7 @@ int main(int argc, char *argv[])
      *                 |
      **/
 
-    /* 1. Check matrix orthogonality: 
+    /* 1. Check matrix orthogonality:
      *    Ref: Youngsinn Sohn, Roger M. McCoy 1997: Mapping desert shrub
      *    rangeland using spectral unmixing and modeling spectral
      *    mixtrues with TM data. Photogrammetric Engineering &
@@ -182,16 +175,16 @@ int main(int argc, char *argv[])
                 /* save angle in degree */
                 anglefield[i][j] = spectral_angle(Avector1, Avector2);
 
-		G_vector_free(Avector2);
+                G_vector_free(Avector2);
             }
         }
 
         G_vector_free(Avector1);
-
     }
 
-    G_message("%s",
-              _("Checking linear dependencies (orthogonality check) of Matrix A..."));
+    G_message(
+        "%s",
+        _("Checking linear dependencies (orthogonality check) of Matrix A..."));
 
     for (i = 0; i < A->cols; i++)
         for (j = 0; j < A->cols; j++)
@@ -212,10 +205,10 @@ int main(int argc, char *argv[])
     if (!error)
         G_message(_("Spectral matrix is o.k. Proceeding..."));
 
-    /* Begin calculations 
+    /* Begin calculations
      * 1. contraint SUM xi = 1
      *   add last row "1" elements to Matrix A, store in A_tilde
-     *   A_tilde is one row-dimension more than A 
+     *   A_tilde is one row-dimension more than A
      */
 
     /* memory allocation */
@@ -225,16 +218,14 @@ int main(int argc, char *argv[])
 
     for (i = 0; i < A->rows; i++)
         for (j = 0; j < A->cols; j++)
-            G_matrix_set_element(A_tilde, i, j,
-                                 G_matrix_get_element(A, i, j));
+            G_matrix_set_element(A_tilde, i, j, G_matrix_get_element(A, i, j));
 
     /* fill last row with 1 elements */
     for (j = 0; j < A_tilde->cols; j++) {
         G_matrix_set_element(A_tilde, i, j, GAMMA);
     }
 
-
-    /* now we have an overdetermined (non-square) system 
+    /* now we have an overdetermined (non-square) system
 
      * We have a least square problem here: error minimization
      *                             T          -1         T
@@ -242,12 +233,11 @@ int main(int argc, char *argv[])
      *
      * A_tilde is the non-square matrix with first constraint in last row.
      * b is pixel vector from satellite image
-     * 
+     *
      * Solve this by deriving above equation and searching the
      * minimum of this error function in an iterative loop within
      * both constraints.
      */
-
 
     /* calculate the transpose of A_tilde */
     A_tilde_trans = G_matrix_transpose(A_tilde);
@@ -256,7 +246,7 @@ int main(int argc, char *argv[])
      * step size must be small enough for covergence  of iteration:
      *  mu = 0.000001;      step size for spectra in range of W/m^2/um
      *  mu = 0.000000001;   step size for spectra in range of mW/m^2/um
-     *  mu = 0.000001;      step size for spectra in range of reflectance   
+     *  mu = 0.000001;      step size for spectra in range of reflectance
      */
 
     /* check  max_total for number of digits to configure mu size */
@@ -265,17 +255,17 @@ int main(int argc, char *argv[])
     /* TODO: Missing? startvector = G_vector_init (0, 0, RVEC); */
     startvector = G_vector_init(A->cols, 1, RVEC);
 
-
     if (startvector == NULL)
         G_fatal_error(_("Unable to allocate memory for vector"));
 
     /* TODO: Missing? A_times_startvector = G_vector_init (0, 0, RVEC); */
-    A_times_startvector = G_vector_init(A_tilde->rows, 1, RVEC);        /* length: no. of bands   */
+    A_times_startvector =
+        G_vector_init(A_tilde->rows, 1, RVEC); /* length: no. of bands   */
     /* TODO: Missing? errorvector = G_vector_init (0, 0, RVEC); */
-    errorvector = G_vector_init(A_tilde->rows, 1, RVEC);        /* length: no. of bands   */
+    errorvector =
+        G_vector_init(A_tilde->rows, 1, RVEC); /* length: no. of bands   */
     /* TODO: Missing? temp = G_vector_init (0, 0, RVEC); */
-    temp = G_vector_init(A_tilde->cols, 1, RVEC);       /* length: no. of spectra */
-
+    temp = G_vector_init(A_tilde->cols, 1, RVEC); /* length: no. of spectra */
 
     /* length: no. of bands   */
     if (A_times_startvector == NULL)
@@ -295,7 +285,7 @@ int main(int argc, char *argv[])
         G_fatal_error(_("Unable to allocate memory for matrix"));
 
     /* Now we can calculated the fractions pixelwise */
-    G_get_window(&region);      /* get geographical region */
+    G_get_window(&region); /* get geographical region */
 
     nrows = region.rows;
     ncols = region.cols;
@@ -333,11 +323,10 @@ int main(int argc, char *argv[])
             G_matrix_set_element(b_gamma, 0, Ref.nfiles, GAMMA);
 
             for (k = 0; k < A_tilde->cols; k++)
-                G_matrix_set_element(startvector, 0, k,
-                                     (1.0 / A_tilde->cols));
+                G_matrix_set_element(startvector, 0, k, (1.0 / A_tilde->cols));
 
             /* calculate fraction vector for current pixel
-               Result is stored in fractions vector       
+               Result is stored in fractions vector
                with second constraint: Sum x_i = 1
              */
 
@@ -356,7 +345,8 @@ int main(int argc, char *argv[])
                     G_matrix_scalar_mul(mu, A_tilde_trans, A_tilde_trans_mu);
 
                 G_matvect_product(A_tilde_trans_mu, errorvector, temp);
-                G_vector_sub(startvector, temp, startvector);   /* update startvector */
+                G_vector_sub(startvector, temp,
+                             startvector); /* update startvector */
 
                 for (k = 0; k < A_tilde->cols; k++)
                     /* no. of spectra times */
@@ -377,30 +367,31 @@ int main(int argc, char *argv[])
 
             vec_struct *fraction;
 
-            /* G_message("fcol %d  and A->cols %d", startvector->dim, A->cols); */
-            fraction = G_vector_init(A->cols, 1, RVEC); /* length: no. of spectra */
+            /* G_message("fcol %d  and A->cols %d", startvector->dim, A->cols);
+             */
+            fraction =
+                G_vector_init(A->cols, 1, RVEC); /* length: no. of spectra */
             error = deviation / G_vector_norm_euclid(b_gamma);
             fraction = G_vector_copy(startvector, NO_COMPACT);
 
             /* write result in full percent */
-            for (i = 0; i < A->cols; i++)       /* no. of spectra */
+            for (i = 0; i < A->cols; i++) /* no. of spectra */
                 result_cell[i][col] =
-                    (CELL) (100 * G_matrix_get_element(fraction, 0, i) *
-                            100.0 / 255.0);
+                    (CELL)(100 * G_matrix_get_element(fraction, 0, i) * 100.0 /
+                           255.0);
 
             /* save error and iterations */
-	    if (error_fd >= 0)
-                error_cell[col] = (CELL) (100 * error);
-	    if (iter_fd >= 0)
+            if (error_fd >= 0)
+                error_cell[col] = (CELL)(100 * error);
+            if (iter_fd >= 0)
                 iter_cell[col] = iterations;
 
             G_vector_free(fraction);
             G_vector_free(b_gamma);
-        }                       /* end cols loop */
-
+        } /* end cols loop */
 
         /* write the resulting rows into output files:  */
-        for (i = 0; i < A->cols; i++)   /* no. of spectra  */
+        for (i = 0; i < A->cols; i++) /* no. of spectra  */
             Rast_put_c_row(resultfd[i], result_cell[i]);
 
         if (error_fd >= 0)
@@ -409,12 +400,12 @@ int main(int argc, char *argv[])
         if (iter_fd >= 0)
             Rast_put_c_row(iter_fd, iter_cell);
 
-    }                           /* rows loop  */
+    } /* rows loop  */
 
     G_percent(row, nrows, 2);
 
     /* close files  */
-    for (i = 0; i < Ref.nfiles; i++)    /* no. of bands  */
+    for (i = 0; i < Ref.nfiles; i++) /* no. of bands  */
         Rast_unopen(cellfd[i]);
 
     /* make grey scale color table for output maps */
@@ -422,62 +413,68 @@ int main(int argc, char *argv[])
     Rast_set_c_color(0, 0, 0, 0, &colors);
     Rast_set_c_color(100, 255, 255, 255, &colors);
 
-    for (i = 0; i < A->cols; i++) {     /* no. of spectra  */
-	sprintf(result_name, "%s.%d", parm.result->answer, (i + 1));
+    for (i = 0; i < A->cols; i++) { /* no. of spectra  */
+        sprintf(result_name, "%s.%d", parm.result->answer, (i + 1));
 
-	/* close output map */
-	Rast_close(resultfd[i]);
+        /* close output map */
+        Rast_close(resultfd[i]);
 
-	/* set colors */
-	Rast_write_colors(result_name, G_mapset(), &colors);
+        /* set colors */
+        Rast_write_colors(result_name, G_mapset(), &colors);
 
-	/* write map history (meta data) */
-	Rast_short_history(result_name, "raster", &hist);
-	Rast_format_history(&hist, HIST_DATSRC_1, "Group: %s", parm.group->answer);
-	Rast_format_history(&hist, HIST_DATSRC_2, "Matrix file: %s", parm.matrixfile->answer);
-	Rast_format_history(&hist, HIST_KEYWRD, "Spectrum %d:", i + 1);
-	Rast_command_history(&hist);
-	Rast_write_history(result_name, &hist);
+        /* write map history (meta data) */
+        Rast_short_history(result_name, "raster", &hist);
+        Rast_format_history(&hist, HIST_DATSRC_1, "Group: %s",
+                            parm.group->answer);
+        Rast_format_history(&hist, HIST_DATSRC_2, "Matrix file: %s",
+                            parm.matrixfile->answer);
+        Rast_format_history(&hist, HIST_KEYWRD, "Spectrum %d:", i + 1);
+        Rast_command_history(&hist);
+        Rast_write_history(result_name, &hist);
 
         /* create histogram */
         do_histogram(result_name, G_mapset());
     }
 
     if (error_fd >= 0) {
-	CELL min, max;
-	struct Range range;
+        CELL min, max;
+        struct Range range;
 
         Rast_close(error_fd);
 
         sprintf(result_name, "%s", parm.error->answer);
 
         /* set colors to gyr */
-	Rast_read_range(result_name, G_mapset(), &range);
-	Rast_get_range_min_max(&range, &min, &max);
-	Rast_make_colors(&colors, "gyr", min, max);
-	Rast_write_colors(result_name, G_mapset(), &colors);
+        Rast_read_range(result_name, G_mapset(), &range);
+        Rast_get_range_min_max(&range, &min, &max);
+        Rast_make_colors(&colors, "gyr", min, max);
+        Rast_write_colors(result_name, G_mapset(), &colors);
 
-	/* write map history (meta data) */
-	Rast_short_history(result_name, "raster", &hist);
-	Rast_format_history(&hist, HIST_DATSRC_1, "Group: %s", parm.group->answer);
-	Rast_format_history(&hist, HIST_DATSRC_2, "Matrix file: %s", parm.matrixfile->answer);
-	Rast_set_history(&hist, HIST_KEYWRD, "unmixing error");
-	Rast_command_history(&hist);
-	Rast_write_history(result_name, &hist);
+        /* write map history (meta data) */
+        Rast_short_history(result_name, "raster", &hist);
+        Rast_format_history(&hist, HIST_DATSRC_1, "Group: %s",
+                            parm.group->answer);
+        Rast_format_history(&hist, HIST_DATSRC_2, "Matrix file: %s",
+                            parm.matrixfile->answer);
+        Rast_set_history(&hist, HIST_KEYWRD, "unmixing error");
+        Rast_command_history(&hist);
+        Rast_write_history(result_name, &hist);
     }
 
     if (iter_fd >= 0) {
         Rast_close(iter_fd);
 
-	sprintf(result_name, "%s", parm.iter->answer);
+        sprintf(result_name, "%s", parm.iter->answer);
 
-	/* write map history (meta data) */
-	Rast_short_history(result_name, "raster", &hist);
-	Rast_format_history(&hist, HIST_DATSRC_1, "Group: %s", parm.group->answer);
-	Rast_format_history(&hist, HIST_DATSRC_2, "Matrix file: %s", parm.matrixfile->answer);
-	Rast_set_history(&hist, HIST_KEYWRD, "number of iterations");
-	Rast_command_history(&hist);
-	Rast_write_history(result_name, &hist);
+        /* write map history (meta data) */
+        Rast_short_history(result_name, "raster", &hist);
+        Rast_format_history(&hist, HIST_DATSRC_1, "Group: %s",
+                            parm.group->answer);
+        Rast_format_history(&hist, HIST_DATSRC_2, "Matrix file: %s",
+                            parm.matrixfile->answer);
+        Rast_set_history(&hist, HIST_KEYWRD, "number of iterations");
+        Rast_command_history(&hist);
+        Rast_write_history(result_name, &hist);
     }
 
     G_matrix_free(A);

@@ -13,10 +13,11 @@
 #define GLOBAL extern
 #endif
 
-typedef DCELL(f_func) (DCELL * values, int count);
+typedef DCELL(f_func)(DCELL *values, int count);
 
 /* func.c */
-void compute_values(DCELL * vals, int fragcount, int min, int max, f_func stat_method);
+void compute_values(DCELL *vals, int fragcount, int min, int max,
+                    f_func stat_method);
 
 /* global variables */
 GLOBAL Coords **fragments;
