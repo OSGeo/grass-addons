@@ -1,8 +1,8 @@
 #!/bin/sh
 
-# script to build GRASS 8.x sources package from the main branch
+# script to build GRASS GIS new current sources package from the main branch
 # (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
-# Markus Neteler 2002, 2003, 2005, 2006, 2007, 2008, 2012, 2015, 2018-2022
+# Markus Neteler 2002-2022
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
@@ -18,6 +18,9 @@ GVERSION=$GMAJOR.$GMINOR.git
 DOTVERSION=$GMAJOR.$GMINOR
 GSHORTGVERSION=$GMAJOR$GMINOR
 
+# fail early
+set -e
+
 ###################
 # where to find the GRASS sources (git clone):
 SOURCE=$MAINDIR/src/
@@ -29,7 +32,7 @@ PACKAGENAME=grass-${GVERSION}_
 
 ############################## nothing to change below:
 
-MYMAKE="nice make"
+MYMAKE="nice make -j2"
 TAR=tar
 
 # catch CTRL-C and other breaks:
@@ -48,7 +51,8 @@ mkdir -p $TARGETDIR
 cd $SOURCE/$BRANCH/
 date
 
-#clean up
+# clean up
+touch include/Make/Platform.make
 $MYMAKE distclean > /dev/null 2>&1
 
 # cleanup leftover garbage
@@ -91,7 +95,7 @@ rm -f $TARGETDIR/ChangeLog.gz
 
 #publish the new one:
 cd $BRANCH/
-cp -p ChangeLog AUTHORS CHANGES CITING COPYING GPL.TXT INSTALL REQUIREMENTS.html $TARGETDIR
+cp -p ChangeLog AUTHORS CHANGES CITING CITATION.cff COPYING GPL.TXT INSTALL.md REQUIREMENTS.md $TARGETDIR
 
 cd ..
 gzip $TARGETDIR/ChangeLog

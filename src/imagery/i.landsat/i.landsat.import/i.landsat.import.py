@@ -148,15 +148,36 @@ def _untar(inputdir, untardir):
             gs.fatal(_("Directory <{}> is not writable.").format(untardir))
 
     if options["pattern_file"]:
-        filter_f = "*" + options["pattern_file"] + "*.tar.gz"
+        filter_f = "*" + options["pattern_file"] + "*"
     else:
-        filter_f = "*.tar.gz"
+        filter_f = "*"
 
-    scenes_to_untar = glob.glob(os.path.join(inputdir, filter_f))
+    # find .tar archives (new archiving standard for Landsat as of 2023) and
+    # .tar.gz (downloads of older date)
+    scenes_to_untar = glob.glob(os.path.join(inputdir, f"{filter_f}.tar"))
+    scenes_to_untar.extend(glob.glob(os.path.join(inputdir, f"{filter_f}.tar.gz")))
 
     for scene in scenes_to_untar:
         with tarfile.open(name=scene, mode="r") as tar:
-            tar.extractall(untardir)
+
+            def is_within_directory(directory, target):
+
+                abs_directory = os.path.abspath(directory)
+                abs_target = os.path.abspath(target)
+
+                prefix = os.path.commonprefix([abs_directory, abs_target])
+
+                return prefix == abs_directory
+
+            def safe_extract(tar, path=".", members=None, *, numeric_owner=False):
+                for member in tar.getmembers():
+                    member_path = os.path.join(path, member.name)
+                    if not is_within_directory(path, member_path):
+                        raise RuntimeError(_("Attempted path traversal in tar file"))
+
+                tar.extractall(path, members, numeric_owner=numeric_owner)
+
+            safe_extract(tar, untardir)
 
     untared_tifs = glob.glob(os.path.join(untardir, "*.TIF"))
     return untared_tifs
@@ -255,7 +276,9 @@ def write_register_file(filenames, register_output):
             fd.write("{img}{sep}{ts}".format(img=map_name, sep=sep, ts=timestamp))
             if has_band_ref:
                 try:
-                    band_ref = re.match(r".*_B([1-9]+).*", map_name).groups()
+                    band_ref = re.match(
+                        r".*_(B([1-9]+)|QA_(RADSAT|PIXEL|AEROSOL)).*", map_name
+                    ).groups()
                     band_ref = band_ref[0] if band_ref[0] else band_ref[1]
                 except AttributeError:
                     gs.warning(

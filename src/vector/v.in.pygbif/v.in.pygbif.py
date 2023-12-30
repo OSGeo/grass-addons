@@ -779,7 +779,12 @@ def main():
                         res["identifier"],
                         res["recordedBy"],
                         res["identificationID"],
-                        ",".join(res["identifiers"]),
+                        ",".join(
+                            [
+                                identifier["identifier"]
+                                for identifier in res["identifiers"]
+                            ]
+                        ),
                         "{}".format(res["dateIdentified"])
                         if res["dateIdentified"]
                         else None,

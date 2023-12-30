@@ -4,11 +4,12 @@
 # MODULE:       v.stream.inbasin
 #
 # AUTHOR(S):    Andrew Wickert
+#               Vaclav Petras (v8 fixes and interface improvements)
 #
 # PURPOSE:      Build a drainage basin from the subwatersheds of a river
 #               network, based on the structure of the network.
 #
-# COPYRIGHT:    (c) 2016 Andrew Wickert
+# COPYRIGHT:    (c) 2016-2023 Andrew Wickert and the GRASS Development Team
 #
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
@@ -18,9 +19,6 @@
 #
 # REQUIREMENTS:
 #      -  uses inputs from v.stream.network
-
-# More information
-# Started 14 October 2016
 
 # %module
 # % description: Subset a stream network into just one of its basins
@@ -53,21 +51,12 @@
 # %  key: cat
 # %  label: Farthest downstream segment category
 # %  required: no
-# %  guidependency: layer,column
 # %end
 
-# %option
-# %  key: x_outlet
-# %  label: Approx. pour point x/Easting: will find closest segment
+# %option G_OPT_M_COORDS
+# %  label: Pour point coordinates
+# %  description: The alogorithm will find the closest stream segment
 # %  required: no
-# %  guidependency: layer,column
-# %end
-
-# %option
-# %  key: y_outlet
-# %  label: Approx. pour point y/Northing: will find closest segment
-# %  required: no
-# %  guidependency: layer,column
 # %end
 
 # %option G_OPT_V_OUTPUT
@@ -94,6 +83,11 @@
 # %  guisection: Settings
 # %end
 
+# %rules
+# % required: coordinates,cat
+# % exclusive: coordinates,cat
+# %end
+
 ##################
 # IMPORT MODULES #
 ##################
@@ -101,15 +95,10 @@
 import numpy as np
 
 # GRASS
-from grass.pygrass.modules.shortcuts import general as g
 from grass.pygrass.modules.shortcuts import raster as r
 from grass.pygrass.modules.shortcuts import vector as v
-from grass.pygrass.gis import region
-from grass.pygrass import vector  # Change to "v"?
+from grass.pygrass import vector
 from grass.script import vector_db_select
-from grass.pygrass.vector import Vector, VectorTopo
-from grass.pygrass.raster import RasterRow
-from grass.pygrass import utils
 from grass import script as gscript
 from grass.pygrass.vector.geometry import Point
 
@@ -137,8 +126,11 @@ def main():
     streams = options["input_streams"]
     basins = options["input_basins"]
     downstream_cat = options["cat"]
-    x_outlet = float(options["x_outlet"])
-    y_outlet = float(options["y_outlet"])
+    if options["coordinates"]:
+        x_outlet, y_outlet = options["coordinates"].split(",")
+        x_outlet, y_outlet = float(x_outlet), float(y_outlet)
+    else:
+        x_outlet, y_outlet = None, None
     output_basins = options["output_basin"]
     output_streams = options["output_streams"]
     output_pour_point = options["output_pour_point"]
@@ -147,12 +139,6 @@ def main():
 
     # print options
     # print flags
-
-    # Check that either x,y or cat are set
-    if (downstream_cat != "") or ((x_outlet != "") and (y_outlet != "")):
-        pass
-    else:
-        gscript.fatal('You must set either "cat" or "x_outlet" and "y_outlet".')
 
     # NEED TO ADD IF-STATEMENT HERE TO AVOID AUTOMATIC OVERWRITING!!!!!!!!!!!
     if snapflag or (downstream_cat != ""):
@@ -186,11 +172,11 @@ def main():
             )
             # v.distance(_from_='tmp', to=streams, upload='cat', column='strcat')
             downstream_cat = gscript.vector_db_select(map="tmp", columns="strcat")
-            downstream_cat = int(downstream_cat["values"].values()[0][0])
+            downstream_cat = int(downstream_cat["values"][1][0])
 
         # Attributes of streams
         colNames = np.array(vector_db_select(streams)["columns"])
-        colValues = np.array(vector_db_select(streams)["values"].values())
+        colValues = np.array(list(vector_db_select(streams)["values"].values()))
         tostream = colValues[:, colNames == "tostream"].astype(int).squeeze()
         cats = colValues[:, colNames == "cat"].astype(int).squeeze()  # = "fromstream"
 
@@ -265,7 +251,7 @@ def main():
             _pp = gscript.vector_db_select(
                 map=streams, columns="x2,y2", where="cat=" + str(downstream_cat)
             )
-            _xy = np.squeeze(_pp["values"].values())
+            _xy = np.squeeze(list(_pp["values"].values()))
             _x = float(_xy[0])
             _y = float(_xy[1])
         else:

@@ -117,6 +117,7 @@ def main():
         gs.fatal("Need to set probabilities=True if prob_only=True")
 
     # reload fitted model and training data
+    gs.message("Loading fitted model and training data ...")
     estimator, y, class_labels = joblib.load(model_load)
 
     # define RasterStack

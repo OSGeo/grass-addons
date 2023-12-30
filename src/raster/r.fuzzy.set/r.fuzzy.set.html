@@ -75,7 +75,7 @@ GIS operations.
 Depending on type of the boundary different equation are used to determine its
 shape:
 <p>
-<b>Linear:</b> the membership is calculated according following equation:<br>
+<b>Linear:</b> the membership is calculated according following equation:
 <pre><code>
 value  <=  A -> x = 0
 A < value > B -> x = (value-A)/(B-A)
@@ -87,32 +87,37 @@ where x: membership
 </code></pre>
 
 <p>
-<b>S-shaped:</b> it use following equation:
+<b>S-shaped:</b> the membership is calculated according following equation:
 <pre><code>
 sin(x * Pi/2)^m (for positive shape parameter)
 1-cos(x * Pi/2)^m (for negative shape parameter)
 
 where x: membership, and
-m = 2^exp(2,shape) (for positive shape parameter)
-m = 2^(1+shape) (for negative shape parameter)
-where m: shape parameter.
+m = 2^exp(2 * |shape|) 
+For default shape=0, m = 2 (most common parameter for that equation).
 </code></pre>
-
-For default shape parameter = 0 m is = 2 which is most common parameter for
-that equation.
 
 <p>
-<b>G-shaped and J shaped:</b> it use following equations:
+<b>G-shaped:</b> the membership is calculated according following equation:
 <pre><code>
-tan(x * Pi/4)^m (for J-shaped)
-tan(x * Pi/4)^1/m (for G-shaped)
+tan(x * Pi/4)^1/m
 
 where x: membership, and
-m = 2^exp(2,shape) (for positive shape parameter)
-m = 2^(1+shape) (for negative shape parameter)
-where m: shape parameter.
+m = 2^exp(-2 * shape) (for negative shape parameter)
+m = 2^(1-shape) (for positive shape parameter)
+For default shape=0, m = 2 (most common parameter for that equation).
 </code></pre>
 
+<p>
+<b>J shaped:</b> it use following equations:
+<pre><code>
+tan(x * Pi/4)^m
+
+where x: membership, and
+m = 2^exp(2 * shape) (for positive shape parameter)
+m = 2^(1+shape) (for negative shape parameter)
+For default shape=0, m = 2 (most common parameter for that equation).
+</code></pre>
 
 <h2>SEE ALSO</h2>
 
@@ -127,10 +132,10 @@ where m: shape parameter.
 
 <ul>
 <li>Jasiewicz, J. (2011). A new GRASS GIS fuzzy inference system for massive data analysis.
-Computers & Geosciences (37) 1525-1531. DOI <a href=https://doi.org/10.1016/j.cageo.2010.09.008">https://doi.org/10.1016/j.cageo.2010.09.008</a>
+Computers & Geosciences (37) 1525-1531. DOI <a href=https://doi.org/10.1016/j.cageo.2010.09.008>https://doi.org/10.1016/j.cageo.2010.09.008</a>
 
 <li>Zadeh, L.A. (1965). "Fuzzy sets". Information and Control 8 (3): 338–353.
-<a href="https://doi.org/10.1016/S0019-9958(65)90241-X"><a href="https://doi.org/10.1016/S0019-9958(65)90241-X"</a>.
+<a href="https://doi.org/10.1016/S0019-9958(65)90241-X">https://doi.org/10.1016/S0019-9958(65)90241-X</a>.
 
 <li>Novák, Vilém (1989). Fuzzy Sets and Their Applications. Bristol: Adam Hilger.
 ISBN 0-85274-583-4.

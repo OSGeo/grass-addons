@@ -424,14 +424,13 @@ def process_param_grid(hyperparams):
     if hyperparams["max_depth"] == 0:
         hyperparams["max_depth"] = None
     if hyperparams["max_features"] == 0:
-        hyperparams["max_features"] = "auto"
+        hyperparams["max_features"] = "sqrt"
     param_grid = {k: v for k, v in param_grid.items() if v is not None}
 
     return hyperparams, param_grid
 
 
 def main():
-
     # Lazy import libraries
     from rlearnlib.utils import (
         predefined_estimators,
@@ -566,6 +565,8 @@ def main():
 
     # extract training data ---------------------------------------------------
     if load_training != "":
+        gs.message("Loading training data ...")
+
         X, y, cat, class_labels, group_id = load_training_data(load_training)
 
         if class_labels is not None:
@@ -584,7 +585,6 @@ def main():
             y = y.flatten()
 
             with RasterRow(training_map) as src:
-
                 if mode == "classification":
                     src_cats = {v: k for (k, v, m) in src.cats}
                     class_labels = {k: k for k in np.unique(y)}
@@ -596,7 +596,7 @@ def main():
             X, y, cat = stack.extract_points(training_points, field)
             y = y.flatten()
 
-            if y.dtype in (np.object_, np.object):
+            if y.dtype in (np.object_, object):
                 from sklearn.preprocessing import LabelEncoder
 
                 le = LabelEncoder()
@@ -810,9 +810,7 @@ def main():
                 .std()
             )
 
-            gs.message(
-                name + "\t" + str(score_mean.round(3)) + "\t" + str(score_std.round(3))
-            )
+            gs.message(f"{name}\t{score_mean:.3}\t{score_std:.3}")
 
         if mode == "classification":
             gs.message(os.linesep)
