@@ -55,11 +55,11 @@ you are using for example:
 
 ### Download and install
 
-The latest release of the *r.pops.spread* module is available in GRASS GIS Addons repository
-and can be installed directly in GRASS GIS through graphical user
-interface or using the following command:
+The latest release of the *r.pops.spread* module is available in GRASS GIS
+Addons repository and can be installed directly in GRASS GIS through graphical
+user interface or using the following command:
 
-```
+```bash
 g.extension r.pops.spread
 ```
 
@@ -72,13 +72,13 @@ Just use Git, but note that the
 PoPS Core library is in a submodule, so use `--recursive` when cloning,
 for example:
 
-```
+```bash
 git clone --recursive git@github.com:ncsu-landscape-dynamics/r.pops.spread.git
 ```
 
 If you have already cloned, you can obtain the submodules using:
 
-```
+```bash
 git submodule update --init
 ```
 
@@ -87,8 +87,8 @@ so downloading as ZIP is not useful for this repo.
 
 ## Contributing
 
-Please see the [pops-core](https://github.com/ncsu-landscape-dynamics/pops-core#readme) repository
-for contributing best practices and release policies.
+Please see the [pops-core](https://github.com/ncsu-landscape-dynamics/pops-core#readme)
+repository for contributing best practices and release policies.
 Other than that, just open pull requests against this repo.
 
 ### Updating submodule to latest version
@@ -96,7 +96,7 @@ Other than that, just open pull requests against this repo.
 To update the submodule, i.e. update submodule's commit used in this
 repository, use:
 
-```
+```bash
 git submodule update --remote
 ```
 
@@ -109,7 +109,7 @@ to changes in the submodule repository.
 
 ### Updating the code of the submodule
 
-```
+```bash
 cd pops
 git checkout master
 git add file.hpp
@@ -117,7 +117,7 @@ git commit -m "this and that change"
 git push
 ```
 
-```
+```bash
 cd ..
 git commit pops -m "update to latest pops commit"
 git push
@@ -134,29 +134,39 @@ You can use Linux to run the model in the following way.
 
 Open an terminal and install dependencies:
 
-    sudo apt-get install grass grass-dev
+```bash
+sudo apt-get install grass grass-dev
+```
 
 Download this repo using Git (see above):
 
-    git clone ...
+```bash
+git clone ...
+```
 
 Change the current directory to the model directory:
 
-    cd ...
+```bash
+cd ...
+```
 
 Compile:
 
-    grass --tmp-location XY --exec g.extension module=r.pops.spread url=.
+```bash
+grass --tmp-location XY --exec g.extension module=r.pops.spread url=.
+```
 
 Run (assuming you checked how to create a GRASS GIS mapset with our data):
 
-    grass .../modeling/scenario1 --exec r.pops.spread ...
+```bash
+grass .../modeling/scenario1 --exec r.pops.spread ...
+```
 
 ## Authors and contributors
 
 ### Authors
 
-_(alphabetical order)_
+*(alphabetical order)*:
 
 * Chris Jones
 * Margaret Lawrimore
@@ -165,7 +175,7 @@ _(alphabetical order)_
 
 ### Previous contributors
 
-_(alphabetical order)_
+*(alphabetical order)*:
 
 * Zexi Chen
 * Devon Gaydos

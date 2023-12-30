@@ -15,6 +15,11 @@
 
 # %module
 # % description: Computes the Terrain Ruggedness Index.
+# % keyword: raster
+# % keyword: surface
+# % keyword: terrain
+# % keyword: ruggedness
+# % keyword: parallel
 # %end
 
 # %option G_OPT_R_INPUT
@@ -173,7 +178,7 @@ def idw_weights(radius, p, circular=False):
     # create inverse distance weights
     W = dist.copy()
     W[centre, centre] = np.inf
-    W = 1 / (W ** p)
+    W = 1 / (W**p)
 
     # normalize weights to sum to 1 (excluding centre)
     W[centre, centre] = np.inf

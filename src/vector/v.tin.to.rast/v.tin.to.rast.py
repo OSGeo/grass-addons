@@ -52,13 +52,9 @@ except:
             print("You must be in GRASS GIS to run this program.")
             sys.exit(1)
 
-grass_version = grass.version().get("version")[0:2]
-if grass_version != "7.":
-    grass.fatal(_("Sorry, this script works in GRASS 7.* only"))
-else:
-    from grass.lib.gis import *
-    from grass.lib.vector import *
-    from grass.lib.raster import *
+from grass.lib.gis import *
+from grass.lib.vector import *
+from grass.lib.raster import *
 
 
 def cleanup():
@@ -189,7 +185,7 @@ def main():
     )
     grass.raster_history(output)
 
-    grass.message(_("Done."))
+    grass.message(_("Done: generated raster map <%s>" % output))
 
 
 if __name__ == "__main__":

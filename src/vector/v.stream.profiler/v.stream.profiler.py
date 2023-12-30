@@ -159,10 +159,18 @@ def main():
     network by referencing its category (cat) number in a new column. "0"
     means that the river exits the map.
     """
-    import matplotlib  # required by windows
+    try:
+        import matplotlib
 
-    matplotlib.use("wxAGG")  # required by windows
-    from matplotlib import pyplot as plt
+        matplotlib.use("WXAgg")
+        from matplotlib import pyplot as plt
+    except ImportError as e:
+        raise ImportError(
+            _(
+                'v.stream.profiler needs the "matplotlib" '
+                "(python-matplotlib) package to be installed. {0}"
+            ).format(e)
+        )
 
     options, flags = gscript.parser()
 
@@ -220,7 +228,7 @@ def main():
 
         _dx = np.diff(coords[:, 0])
         _dy = np.diff(coords[:, 1])
-        x_downstream_0 = np.hstack((0, np.cumsum((_dx ** 2 + _dy ** 2) ** 0.5)))
+        x_downstream_0 = np.hstack((0, np.cumsum((_dx**2 + _dy**2) ** 0.5)))
         x_downstream = x_downstream_0.copy()
 
     elif options["direction"] == "upstream":

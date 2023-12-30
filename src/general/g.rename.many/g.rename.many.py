@@ -131,7 +131,7 @@ def map_exists(name, type, mapset=None):
         mapset=mapset,
         stdout=PIPE,
         stderr=PIPE,
-        **extra_params
+        **extra_params,
     )
     output, errors = process.communicate()
     info = parse_key_val(output)

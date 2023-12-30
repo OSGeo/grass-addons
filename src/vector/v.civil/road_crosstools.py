@@ -291,7 +291,7 @@ class Intersections(object):
         r_a = self._get_radio_leng(self.plant2, radio, dist2)
         r_c = self.plant1.center.distance(self.plant2.center)
 
-        ang_a = math.acos((r_b ** 2 + r_c ** 2 - r_a ** 2) / (2 * r_b * r_c))
+        ang_a = math.acos((r_b**2 + r_c**2 - r_a**2) / (2 * r_b * r_c))
         # ang_b = math.acos((r_a ** 2 + r_c ** 2 - r_b ** 2) / (2 * r_a * r_c))
         # ang_c = math.pi - ang_a - ang_b
 

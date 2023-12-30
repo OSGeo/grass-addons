@@ -102,7 +102,7 @@ def main():
     ret = grass.db_select(
         sql="SELECT COUNT(*) FROM topology.topology "
         "WHERE name = '%s'" % options["topo_schema"],
-        **pg_conn
+        **pg_conn,
     )
 
     if not ret or int(ret[0][0]) == 1:

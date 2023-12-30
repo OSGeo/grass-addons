@@ -157,6 +157,7 @@ int main(int argc, char *argv[])
     G_add_keyword(_("raster"));
     G_add_keyword(_("landslide"));
     G_add_keyword(_("model"));
+    G_add_keyword(_("parallel"));
     module->description =
 	_("Estimates run-out and deposition of landslide phenomena over a complex topography.");
 

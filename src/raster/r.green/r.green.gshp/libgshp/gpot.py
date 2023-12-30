@@ -79,7 +79,7 @@ def norm_time(time, borehole_radius, ground_conductivity, ground_capacity):
     ...                                                   # doctest: +ELLIPSIS
     1.1147973744292237e-06
     """
-    return borehole_radius ** 2.0 / (
+    return borehole_radius**2.0 / (
         4 * ground_conductivity / ground_capacity * 0.000001 * time
     )
 
@@ -91,7 +91,7 @@ def r_norm_time(
     ground_conductivity,
     ground_capacity,
     execute=True,
-    **kwargs
+    **kwargs,
 ):
     """Normalized time in s
 
@@ -214,7 +214,7 @@ def r_power(
     borehole_resistence,
     gmax,
     execute=True,
-    **kwargs
+    **kwargs,
 ):
     """Return the potential power using the g.pot method in W
 

@@ -20,6 +20,7 @@
 # % keyword: raster
 # % keyword: solar
 # % keyword: sun energy
+# % keyword: parallel
 # %end
 
 # %option G_OPT_R_ELEV
@@ -387,7 +388,7 @@ def run_r_sun(
         step=step,
         overwrite=core.overwrite(),
         quiet=True,
-        **params
+        **params,
     )
 
 

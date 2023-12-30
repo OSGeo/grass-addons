@@ -124,7 +124,7 @@ def gabor2d(win_size, orientation=0, wavelength=5, aspect=0.5, offset=0, ntype="
     xr = x * np.cos(orientation) + y * np.sin(orientation)
     yr = -x * np.sin(orientation) + y * np.cos(orientation)
 
-    gaussian = np.exp(-((xr ** 2 + aspect ** 2 * yr ** 2) / (2 * stddev ** 2)))
+    gaussian = np.exp(-((xr**2 + aspect**2 * yr**2) / (2 * stddev**2)))
     if ntype == "imag":
         sf = np.sin(2 * np.pi * xr / wavelength + offset)
     else:
@@ -162,7 +162,7 @@ def main():
     if flags["q"]:
         if not threshold:
             grass.fatal(_("A percentile threshold is needed to quantify."))
-        q = [2 ** i for i in range(len(orientation))]
+        q = [2**i for i in range(len(orientation))]
     else:
         q = 0
 
@@ -194,11 +194,10 @@ def main():
 
 
 if __name__ == "__main__":
+    options, flags = grass.parser()
     # Lazy import for scipy.signal.fftconvolve
     try:
         from scipy.signal import fftconvolve
     except ImportError:
         grass.fatal(_("Cannot import fftconvolve from scipy"))
-
-    options, flags = grass.parser()
     sys.exit(main())

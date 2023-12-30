@@ -79,7 +79,7 @@ def main():
         format="point",
         separator=sep,
         flags="r",
-        **out_args
+        **out_args,
     )
     in_process = gs.start_command(
         "r.in.xyz",

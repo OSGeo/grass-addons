@@ -104,7 +104,7 @@ def main():
         try:
             map_build.build()
             map_string += "%s," % map
-        except Exception, e:
+        except Exception as e:
             grass.warning("Error: %s\n     Map < %s >  conversion failed" % (e, block))
 
     path, folder_name = os.path.split(tmp_dir)

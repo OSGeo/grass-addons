@@ -20,6 +20,7 @@
 # % keyword: elevation
 # % keyword: terrain
 # % keyword: visualization
+# % keyword: parallel
 # %end
 # %option
 # % type: string
@@ -146,7 +147,7 @@ def run_r_shaded_relief(
         altitude=altitude,
         overwrite=core.overwrite(),
         quiet=True,
-        **params
+        **params,
     )
 
 

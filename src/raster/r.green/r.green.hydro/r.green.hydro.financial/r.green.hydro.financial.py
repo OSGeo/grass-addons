@@ -627,7 +627,7 @@ def get_cnames(
     expr,
     _names_cache=ne.utils.CacheDict(256) if ne else ne,
     _numexpr_cache=ne.utils.CacheDict(256) if ne else ne,
-    **kwargs
+    **kwargs,
 ):
     if not isinstance(expr, (str, unicode)):
         raise ValueError("must specify expression as a string")
@@ -647,7 +647,7 @@ def vcolcalc(
     expr,
     condition=lambda x: x is None,
     notfinitesubstitute=None,
-    **kwargs
+    **kwargs,
 ):
     equal = expr.index("=")
     if equal < 0:
@@ -805,9 +805,9 @@ def get_electro_length(opts):
         new = VectorTopo(elines)  # new vec with elines
         new.layer = 1
         cols = [
-            (u"cat", "INTEGER PRIMARY KEY"),
-            (u"plant_id", "VARCHAR(10)"),
-            (u"side", "VARCHAR(10)"),
+            ("cat", "INTEGER PRIMARY KEY"),
+            ("plant_id", "VARCHAR(10)"),
+            ("side", "VARCHAR(10)"),
         ]
         new.open("w", tab_cols=cols)
         reg = Region()

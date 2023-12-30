@@ -11,7 +11,7 @@ jobs:
   build:
     name: ${{ matrix.grass-version }} (Python ${{ matrix.python-version }})
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
@@ -21,22 +21,22 @@ jobs:
         # only.
         include:
           - grass-version: main
-            python-version: "3.8"
-          - grass-version: releasebranch_8_0
-            python-version: "3.7"
+            python-version: "3.10"
+          - grass-version: releasebranch_8_2
+            python-version: "3.10"
       fail-fast: false
 
     steps:
 
     - name: Checkout core
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         repository: OSGeo/grass
         ref: ${{ matrix.grass-version }}
         path: grass
 
     - name: Checkout addons
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         path: grass-addons
 
@@ -48,7 +48,7 @@ jobs:
             sudo apt-get install -y --no-install-recommends --no-install-suggests
 
     - name: Set up Python ${{ matrix.python-version }} as default Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -85,7 +85,7 @@ jobs:
     - name: Build addons
       run: |
         cd grass-addons/src
-        GRASS_INSTALL=$HOME/install/grass*
+        GRASS_INSTALL=$($HOME/install/bin/grass --config | sed -n '4{p;q}')
         make MODULE_TOPDIR=$GRASS_INSTALL
 
     - name: Get extra Python dependencies
@@ -94,9 +94,9 @@ jobs:
         pip install -r grass-addons/.github/workflows/extra_requirements.txt
 
     - name: Set up R
-      uses: r-lib/actions/setup-r@v1
+      uses: r-lib/actions/setup-r@v2
       with:
-        r-version: "4.0.4"
+        r-version: "4.2.1"
 
     - name: Get R dependencies
       run: |

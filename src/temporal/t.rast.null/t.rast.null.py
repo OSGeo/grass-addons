@@ -20,6 +20,7 @@
 # % keyword: temporal
 # % keyword: raster
 # % keyword: null data
+# % keyword: parallel
 # %end
 
 # %option G_OPT_STRDS_INPUT

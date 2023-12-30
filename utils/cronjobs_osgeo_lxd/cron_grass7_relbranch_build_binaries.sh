@@ -1,8 +1,8 @@
 #!/bin/sh
 
-# script to build GRASS 7.x binaries + addons from the `releasebranch_7_0` binaries
+# script to build GRASS 7.x binaries + addons from the `releasebranch_7_x` binaries
 # (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
-# 2008, 2014, 2015, 2016, 2017, 2018, 2019, 2021
+# 2008, 2014, 2015, 2016, 2017, 2018, 2019, 2021, 2022
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
@@ -22,12 +22,12 @@
 # - generates the pyGRASS 7 HTML manual
 # - generates the user 7 HTML manuals
 # - injects DuckDuckGo search field
+# - injects G8 new version box
+# - injects canonical URL
 
 # Preparations:
-#  - Install PROJ: http://trac.osgeo.org/proj/ incl Datum shift grids
-#     sh conf_proj4.sh
+#  - Install PROJ
 #  - Install GDAL: http://trac.osgeo.org/gdal/wiki/DownloadSource
-#     sh conf_gdal.sh
 #  - Install apt-get install texlive-latex-extra python3-sphinxcontrib.apidoc
 #  - Clone source from github
 #################################
@@ -35,6 +35,7 @@ PATH=/home/neteler/binaries/bin:/usr/bin:/bin:/usr/X11R6/bin:/usr/local/bin
 
 GMAJOR=7
 GMINOR=8
+GPATCH=7 # required by grass-addons-index.sh
 DOTVERSION=$GMAJOR.$GMINOR
 VERSION=$GMAJOR$GMINOR
 GVERSION=$GMAJOR
@@ -127,7 +128,7 @@ cp -f *.csv $TARGETMAIN/uploads/grass/
 
 #configure
 echo "configuring"
-configure_grass || (echo "$0: an error occured" ; exit 1)
+configure_grass || (echo "$0: an error occurred" ; exit 1)
 pwd
 ARCH=`cat include/Make/Platform.make | grep ^ARCH | cut -d'=' -f2 | xargs`
 
@@ -162,9 +163,20 @@ cp -rp dist.$ARCH/docs/html/* $TARGETHTMLDIR/
 echo "Copied pygrass progman to http://grass.osgeo.org/grass${VERSION}/manuals/libpython/"
 
 echo "Injecting DuckDuckGo search field into manual main page..."
-(cd $TARGETHTMLDIR/ ; sed -i -e "s+</table>+</table><\!\-\- injected in cron_grass7_relbranch_build_binaries.sh \-\-> <center><iframe src=\"https://duckduckgo.com/search.html?site=grass.osgeo.org\&prefill=Search manual pages at DuckDuckGo\" style=\"overflow:hidden;margin:0;padding:0;width:410px;height:40px;\" frameborder=\"0\"></iframe></center>+g" index.html)
+(cd $TARGETHTMLDIR/ ; sed -i -e "s+</table>+</table><\!\-\- injected in cron_grass7_relbranch_build_binaries.sh \-\-> <center><iframe src=\"https://duckduckgo.com/search.html?site=grass.osgeo.org%26prefill=Search%20manual%20pages%20at%20DuckDuckGo\" style=\"overflow:hidden;margin:0;padding:0;width:410px;height:40px;\" frameborder=\"0\"></iframe></center>+g" index.html)
 
 cp -p AUTHORS CHANGES CITING COPYING GPL.TXT INSTALL REQUIREMENTS.html $TARGETDIR/
+
+# inject G8.x new version hint in a red box:
+(cd $TARGETHTMLDIR/ ; for myfile in `ls *.html` ; do sed -i -e "s:<hr class=\"header\">:<hr class=\"header\"><p style=\"border\:3px; border-style\:solid; border-color\:#BC1818; padding\: 1em;\">Note\: This document is for an older version of GRASS GIS that will be discontinued soon. You should upgrade, and read the <a href=\"../../../grass82/manuals/$myfile\">current manual page</a>.</p>:g" $myfile ; done)
+# also for Python
+(cd $TARGETHTMLDIR/libpython/ ; for myfile in `ls *.html` ; do sed -i -e "s:<hr class=\"header\">:<hr class=\"header\"><p style=\"border\:3px; border-style\:solid; border-color\:#FF2121; padding\: 1em;\">Note\: This document is for an older version of GRASS GIS that will be discontinued soon. You should upgrade, and read the <a href=\"../../../../grass82/manuals/libpython/$myfile\">current Python manual page</a>.</p>:g" $myfile ; done)
+
+# SEO: inject canonical link in all (old) manual pages to point to latest stable (avoid duplicate content SEO punishment)
+# see https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls
+(cd $TARGETHTMLDIR/ ; for myfile in `ls *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass82/manuals/$myfile\">\n</head>:g" $myfile ; done)
+(cd $TARGETHTMLDIR/addons/ ; for myfile in `ls *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass82/manuals/addons/$myfile\">\n</head>:g" $myfile ; done)
+(cd $TARGETHTMLDIR/libpython/ ; for myfile in `ls *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass82/manuals/libpython/$myfile\">\n</head>:g" $myfile ; done)
 
 # clean wxGUI sphinx manual etc
 (cd $GRASSBUILDDIR/ ; $MYMAKE cleansphinx)
@@ -245,7 +257,7 @@ sh ~/cronjobs/compile_addons_git.sh $GMAJOR \
    ~/src/$BRANCH/bin.$ARCH/grass$VERSION \
    1
 mkdir -p $TARGETHTMLDIR/addons/
-# copy indvidual addon html files into one target dir if compiled addon
+# copy individual addon html files into one target dir if compiled addon
 # has own dir e.g. ~/.grass7/addons/db.join/ with bin/ docs/ etc/ scripts/
 # subdir
 for dir in `find ~/.grass$GMAJOR/addons -maxdepth 1 -type d`; do
@@ -257,8 +269,12 @@ for dir in `find ~/.grass$GMAJOR/addons -maxdepth 1 -type d`; do
         fi
     fi
 done
-sh ~/cronjobs/grass-addons-index.sh $GMAJOR $GMINOR $TARGETHTMLDIR/addons/
+sh ~/cronjobs/grass-addons-index.sh $GMAJOR $GMINOR $GPATCH $TARGETHTMLDIR/addons/
 chmod -R a+r,g+w $TARGETHTMLDIR 2> /dev/null
+
+# inject G8.x new version hint in a red box: into index.html and all addon manual pages
+(cd $TARGETHTMLDIR/addons/ ; sed -i -e "s: Addons Manual pages</h2>: Addons Manual pages</h2><p style=\"border\:3px; border-style\:solid; border-color\:#BC1818; padding\: 1em;\">Note\: This addon documentation is for an older version of GRASS GIS that will be discontinued soon. You should upgrade your GRASS GIS installation, and read the <a href=\"../../../grass82/manuals/addons/index.html\">current addon manual page</a>.</p>:g" index.html)
+(cd $TARGETHTMLDIR/addons/ ; for myfile in `ls *.html` ; do sed -i -e "s:<hr class=\"header\">:<hr class=\"header\"><p style=\"border\:3px; border-style\:solid; border-color\:#BC1818; padding\: 1em;\">Note\: This addon document is for an older version of GRASS GIS that will be discontinued soon. You should upgrade your GRASS GIS installation, and read the <a href=\"../../../../grass82/manuals/addons/$myfile\">current addon manual page</a>.</p>:g" $myfile ; done)
 
 # cp logs from ~/.grass$GMAJOR/addons/logs/
 mkdir -p $TARGETMAIN/addons/grass$GMAJOR/logs/
@@ -267,6 +283,22 @@ cp -p ~/.grass$GMAJOR/addons/logs/* $TARGETMAIN/addons/grass$GMAJOR/logs/
 # generate addons module.xml file (required for g.extension module)
 ~/src/$BRANCH/bin.$ARCH/grass$VERSION --tmp-location EPSG:4326 --exec ~/cronjobs/build-xml.py --build ~/.grass$GMAJOR/addons
 cp ~/.grass$GMAJOR/addons/modules.xml $TARGETMAIN/addons/grass$GMAJOR/modules.xml
+
+# regenerate keywords.html file with addons modules keywords
+export ARCH
+export ARCH_DISTDIR=$GRASSBUILDDIR/dist.$ARCH
+export GISBASE=$ARCH_DISTDIR
+export VERSION_NUMBER=$DOTVERSION
+python3 $GRASSBUILDDIR/man/build_keywords.py $TARGETHTMLDIR/ $TARGETHTMLDIR/addons/
+unset ARCH ARCH_DISTDIR GISBASE VERSION_NUMBER
+
+# canonical: once again after addon manual (re)creation, only where missing
+# SEO: inject canonical link in all (old) manual pages to point to latest stable (avoid duplicate content SEO punishment)
+# see https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls
+(cd $TARGETHTMLDIR/ ; for myfile in `grep -L 'link rel="canonical"' *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass82/manuals/$myfile\">\n</head>:g" $myfile ; done)
+(cd $TARGETHTMLDIR/addons/ ; for myfile in `grep -L 'link rel="canonical"' *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass82/manuals/addons/$myfile\">\n</head>:g" $myfile ; done)
+(cd $TARGETHTMLDIR/libpython/ ; for myfile in `grep -L 'link rel="canonical"' *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass82/manuals/libpython/$myfile\">\n</head>:g" $myfile ; done)
+
 
 ############################################
 # create sitemaps to expand the hugo sitemap
@@ -277,7 +309,7 @@ python3 $HOME/src/grass$GMAJOR-addons/utils/create_manuals_sitemap.py --dir=/var
 ############################################
 # cleanup
 cd $GRASSBUILDDIR
-$MYMAKE distclean  > /dev/null || (echo "$0: an error occured" ; exit 1)
+$MYMAKE distclean  > /dev/null || (echo "$0: an error occurred" ; exit 1)
 
 echo "Finished GRASS $VERSION $ARCH compilation."
 echo "Written to: $TARGETDIR"

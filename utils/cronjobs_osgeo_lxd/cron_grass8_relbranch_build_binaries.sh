@@ -1,17 +1,10 @@
 #!/bin/sh
 
-# script to build GRASS 8.x binaries + addons from the `releasebranch_8_0` binaries
+# script to build GRASS 8.x binaries + addons from the `releasebranch_8_2` binaries
 # (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
-# 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021
+# 2014-2023
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
-#
-## prep, on neteler@grasslxd:$
-# mkdir -p ~/src
-# cd ~/src
-# # G80 ...
-# for i in 0 ; do git clone https://github.com/OSGeo/grass.git releasebranch_8_$i ; done
-# for i in 0 ; do (cd releasebranch_8_$i ;  git checkout releasebranch_8_$i ) ; done
 #
 ###################################################################
 # how it works:
@@ -24,18 +17,27 @@
 # - generates the user 8 HTML manuals
 # - injects DuckDuckGo search field
 
-# Preparations:
-#  - Install PROJ: http://trac.osgeo.org/proj/ incl Datum shift grids
-#     sh conf_proj4.sh
-#  - Install GDAL: http://trac.osgeo.org/gdal/wiki/DownloadSource
-#     sh conf_gdal.sh
+# Preparations, on server:
+#  - Install PROJ incl Datum shift grids
+#  - Install GDAL:
 #  - Install apt-get install texlive-latex-extra python3-sphinxcontrib.apidoc
-#  - Clone source from github
-#################################
+#  - Clone source from github:
+#    mkdir -p ~/src ; cd ~/src
+#    git clone https://github.com/OSGeo/grass.git releasebranch_8_2
+#    cd releasebranch_8_2
+#    git checkout releasebranch_8_2
+#  - Prepare target directories:
+#    cd /var/www/code_and_data/
+#    mkdir grass82
+#    cd /var/www/html/
+#    ln -s /var/www/code_and_data/grass82 .
+#
+##########################################
 PATH=/home/neteler/binaries/bin:/usr/bin:/bin:/usr/X11R6/bin:/usr/local/bin
 
 GMAJOR=8
-GMINOR=0
+GMINOR=2
+GPATCH=1
 DOTVERSION=$GMAJOR.$GMINOR
 VERSION=$GMAJOR$GMINOR
 GVERSION=$GMAJOR
@@ -78,6 +80,11 @@ configure_grass()
 # which package?
 #   --with-mysql --with-mysql-includes=/usr/include/mysql --with-mysql-libs=/usr/lib/mysql \
 
+# cleanup
+rm -rf config_$GMAJOR.$GMINOR.git_log.txt
+
+# reset i18N POT files to git, just to be sure
+git checkout locale/templates/*.pot
 
 CFLAGS=$CFLAGSSTRING LDFLAGS=$LDFLAGSSTRING ./configure \
   --with-cxx \
@@ -128,7 +135,7 @@ cp -f *.csv $TARGETMAIN/uploads/grass/
 
 #configure
 echo "configuring"
-configure_grass || (echo "$0: an error occured" ; exit 1)
+configure_grass || (echo "$0: an error occurred" ; exit 1)
 pwd
 ARCH=`cat include/Make/Platform.make | grep ^ARCH | cut -d'=' -f2 | xargs`
 
@@ -163,7 +170,7 @@ cp -rp dist.$ARCH/docs/html/* $TARGETHTMLDIR/
 echo "Copied pygrass progman to http://grass.osgeo.org/grass${VERSION}/manuals/libpython/"
 
 echo "Injecting DuckDuckGo search field into manual main page..."
-(cd $TARGETHTMLDIR/ ; sed -i -e "s+</table>+</table><\!\-\- injected in cron_grass8_relbranch_build_binaries.sh \-\-> <center><iframe src=\"https://duckduckgo.com/search.html?site=grass.osgeo.org\&prefill=Search manual pages at DuckDuckGo\" style=\"overflow:hidden;margin:0;padding:0;width:410px;height:40px;\" frameborder=\"0\"></iframe></center>+g" index.html)
+(cd $TARGETHTMLDIR/ ; sed -i -e "s+</table>+</table><\!\-\- injected in cron_grass8_relbranch_build_binaries.sh \-\-> <center><iframe src=\"https://duckduckgo.com/search.html?site=grass.osgeo.org%26prefill=Search%20manual%20pages%20at%20DuckDuckGo\" style=\"overflow:hidden;margin:0;padding:0;width:410px;height:40px;\" frameborder=\"0\"></iframe></center>+g" index.html)
 
 cp -p AUTHORS CHANGES CITING COPYING GPL.TXT INSTALL REQUIREMENTS.html $TARGETDIR/
 
@@ -173,8 +180,8 @@ cp -p AUTHORS CHANGES CITING COPYING GPL.TXT INSTALL REQUIREMENTS.html $TARGETDI
 ############
 # generate doxygen programmers's G8 manual
 cd $GRASSBUILDDIR/
-#$MYMAKE htmldocs-single > /dev/null || (echo "$0 htmldocs-single: an error occured" ; exit 1)
-$MYMAKE htmldocs-single || (echo "$0 htmldocs-single: an error occured" ; exit 1)
+#$MYMAKE htmldocs-single > /dev/null || (echo "$0 htmldocs-single: an error occurred" ; exit 1)
+$MYMAKE htmldocs-single || (echo "$0 htmldocs-single: an error occurred" ; exit 1)
 
 cd $GRASSBUILDDIR/
 
@@ -198,8 +205,8 @@ chmod -R a+r,g+w $TARGETPROGMAN/*
 (cd $TARGETPROGMAN/ ; ln -s index.html main.html)
 
 ##### generate i18N POT files, needed for https://www.transifex.com/grass-gis/
+# from G82+ onwards the gettext POT files are managed in git
 (cd locale ;
-$MYMAKE pot
 mkdir -p $TARGETDIR/transifex/
 cp templates/*.pot $TARGETDIR/transifex/
 )
@@ -275,7 +282,7 @@ sh ~/cronjobs/compile_addons_git.sh $GMAJOR \
    ~/src/$BRANCH/bin.$ARCH/grass \
    1
 mkdir -p $TARGETHTMLDIR/addons/
-# copy indvidual addon html files into one target dir if compiled addon
+# copy individual addon html files into one target dir if compiled addon
 # has own dir e.g. ~/.grass8/addons/db.join/ with bin/ docs/ etc/ scripts/
 # subdir
 for dir in `find ~/.grass$GMAJOR/addons -maxdepth 1 -type d`; do
@@ -287,8 +294,12 @@ for dir in `find ~/.grass$GMAJOR/addons -maxdepth 1 -type d`; do
         fi
     fi
 done
-sh ~/cronjobs/grass-addons-index.sh $GMAJOR $GMINOR $TARGETHTMLDIR/addons/
-cp $TARGETHTMLDIR/grass_logo.png $TARGETHTMLDIR/grassdocs.css $TARGETHTMLDIR/addons/
+sh ~/cronjobs/grass-addons-index.sh $GMAJOR $GMINOR $GPATCH $TARGETHTMLDIR/addons/
+cp $TARGETHTMLDIR/grass_logo.png \
+   $TARGETHTMLDIR/hamburger_menu.svg \
+   $TARGETHTMLDIR/hamburger_menu_close.svg \
+   $TARGETHTMLDIR/grassdocs.css \
+   $TARGETHTMLDIR/addons/
 chmod -R a+r,g+w $TARGETHTMLDIR 2> /dev/null
 
 # cp logs from ~/.grass$GMAJOR/addons/logs/
@@ -299,6 +310,14 @@ cp -p ~/.grass$GMAJOR/addons/logs/* $TARGETMAIN/addons/grass$GMAJOR/logs/
 ~/src/$BRANCH/bin.$ARCH/grass --tmp-location EPSG:4326 --exec ~/cronjobs/build-xml.py --build ~/.grass$GMAJOR/addons
 cp ~/.grass$GMAJOR/addons/modules.xml $TARGETMAIN/addons/grass$GMAJOR/modules.xml
 
+# regenerate keywords.html file with addons modules keywords
+export ARCH
+export ARCH_DISTDIR=$GRASSBUILDDIR/dist.$ARCH
+export GISBASE=$ARCH_DISTDIR
+export VERSION_NUMBER=$DOTVERSION
+python3 $GRASSBUILDDIR/man/build_keywords.py $TARGETMAIN/grass$GMAJOR$GMINOR/manuals/ $TARGETMAIN/grass$GMAJOR$GMINOR/manuals/addons/
+unset ARCH ARCH_DISTDIR GISBASE VERSION_NUMBER
+
 ############################################
 # create sitemaps to expand the hugo sitemap
 
@@ -308,7 +327,7 @@ python3 $HOME/src/grass$GMAJOR-addons/utils/create_manuals_sitemap.py --dir=/var
 ############################################
 # cleanup
 cd $GRASSBUILDDIR
-$MYMAKE distclean  > /dev/null || (echo "$0: an error occured" ; exit 1)
+$MYMAKE distclean  > /dev/null || (echo "$0: an error occurred" ; exit 1)
 rm -rf lib/html/ lib/latex/
 
 echo "Finished GRASS $VERSION $ARCH compilation."

@@ -104,7 +104,7 @@ class ConnectionManager:
         try:
             self.session.commit()
             self._set_active_connection(self.conn_type, self.connectionDict["conn_id"])
-        except IntegrityError, e:
+        except IntegrityError as e:
             grass.message(
                 "       ERROR conn_id already exists. Will be overwritten...\n"
             )
@@ -169,7 +169,7 @@ class ConnectionManager:
             grass.message("***" * 30)
             grass.message("\n     Table of connection has been removed \n")
             grass.message("***" * 30)
-        except Exception, e:
+        except Exception as e:
             grass.message("***" * 30)
             grass.message("\n     No table exists\n")
             grass.message("***" * 30)
@@ -188,7 +188,7 @@ class ConnectionManager:
             for row in result:
                 grass.message("       %s\n" % row)
             cn.close()
-        except Exception, e:
+        except Exception as e:
             grass.message(e)
             grass.message("        No connection\n")
         grass.message("***" * 30)
@@ -286,7 +286,7 @@ class ConnectionManager:
             grass.message("       conn_id= %s \n" % id)
             cn.execute('DELETE FROM connection WHERE conn_id="%s"' % id)
             cn.close()
-        except Exception, e:
+        except Exception as e:
             grass.message("       ERROR: %s \n" % e)
             # grass.message('     No connection with conn_id %s'%id)
         grass.message("***" * 30)
@@ -326,7 +326,7 @@ class HiveTableBuilder:
         self.layer = layer
 
     def get_structure(self):
-        raise NotImplemented
+        raise NotImplementedError
 
         table = VectorDBInfoBase(self.map)
         map_info = table.GetTableDesc(self.map)
@@ -343,7 +343,7 @@ class HiveTableBuilder:
                 )
 
     def _get_map(self):
-        raise NotImplemented
+        raise NotImplementedError
 
 
 class JSONBuilder:
@@ -478,7 +478,7 @@ class GrassMapBuilder(object):
         self.attr = attributes
 
     def build(self):
-        raise NotImplemented
+        raise NotImplementedError
 
     def remove_line(self, lineNumber):
         with open(self.file, "r+") as outputFile:

@@ -19,10 +19,10 @@ try:
 
     haveRDigit = True
     errorMsg = ""
-except (ImportError, NameError), err:
+except (ImportError, NameError) as err:
     haveRDigit = False
     errorMsg = err
-    print errorMsg
+    print(errorMsg)
     GV_LINES = -1
 
     class IRDigit:

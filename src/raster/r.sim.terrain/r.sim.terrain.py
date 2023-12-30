@@ -20,6 +20,7 @@ COPYRIGHT: (C) 2016 Brendan Harmon and the GRASS Development Team
 # % keyword: terrain
 # % keyword: landscape
 # % keyword: evolution
+# % keyword: parallel
 # %end
 
 # %option G_OPT_R_ELEV

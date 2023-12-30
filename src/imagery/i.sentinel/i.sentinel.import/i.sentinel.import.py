@@ -175,6 +175,8 @@ class SentinelImporter(object):
         if not os.path.exists(unzip_dir):
             gs.fatal(_("Directory <{}> does not exist").format(unzip_dir))
 
+        self._projection_units_meters = self._check_location_projection_meters()
+
     def __del__(self):
         # remove temporary maps
         for map in self._map_list:
@@ -199,6 +201,13 @@ class SentinelImporter(object):
                 shutil.rmtree(dirpath)
             except OSError:
                 pass
+
+    def _check_location_projection_meters(self):
+        units = gs.parse_command("g.proj", flags="g")["units"]
+        if units != "meters" and units != "Meters":
+            return False
+        else:
+            return True
 
     def filter(self, pattern=None):
         if pattern:
@@ -287,8 +296,9 @@ class SentinelImporter(object):
             if reproject:
                 module = "r.import"
                 self._args["resample"] = "bilinear"
-                self._args["resolution"] = "value"
                 self._args["extent"] = options["extent"]
+                if self._projection_units_meters is True:
+                    self._args["resolution"] = "value"
             else:
                 module = "r.in.gdal"
                 self._args["flags"] = "o" if override else None
@@ -372,7 +382,7 @@ class SentinelImporter(object):
     def _import_file(self, filename, module, args):
         mapname = self._map_name(filename)
         gs.message(_("Processing <{}>...").format(mapname))
-        if module == "r.import":
+        if module == "r.import" and self._projection_units_meters is True:
             self._args["resolution_value"] = self._raster_resolution(filename)
         try:
             gs.run_command(module, input=filename, output=mapname, **self._args)
@@ -451,8 +461,9 @@ class SentinelImporter(object):
                     )
                 )
                 if reproject:
-                    self._args["resolution_value"] = self._raster_resolution(f)
                     self._args["resample"] = "bilinear"
+                    if self._projection_units_meters is True:
+                        self._args["resolution_value"] = self._raster_resolution(f)
                     gs.run_command(
                         "r.import", input=f, output=clouds_imported, **self._args
                     )
@@ -474,10 +485,11 @@ class SentinelImporter(object):
                             "_".join([items[5], items[2], "SCL_20m.jp2"])
                         )
                         if reproject:
-                            self._args["resolution_value"] = self._raster_resolution(
-                                shadow_file[0]
-                            )
                             self._args["resample"] = "nearest"
+                            if self._projection_units_meters is True:
+                                self._args[
+                                    "resolution_value"
+                                ] = self._raster_resolution(shadow_file[0])
                             gs.run_command(
                                 "r.import",
                                 input=shadow_file,
@@ -516,17 +528,27 @@ class SentinelImporter(object):
                 gs.use_temp_region()
                 gs.run_command("g.region", raster=mask_selected)
 
-                # Cleaning small patches
-                try:
-                    gs.run_command(
-                        "r.reclass.area",
-                        input=mask_selected,
-                        output=mask_cleaned,
-                        value=area_threshold,
-                        mode="greater",
+                # Cleaning small patches, only works for non latlong locations
+                if self._projection_units_meters is True:
+                    try:
+                        gs.run_command(
+                            "r.reclass.area",
+                            input=mask_selected,
+                            output=mask_cleaned,
+                            value=area_threshold,
+                            mode="greater",
+                        )
+                    except Exception as e:
+                        pass  # error already printed
+                else:
+                    gs.warning(
+                        _(
+                            "Location projection units is not meters. "
+                            "Removing small cloud/shadow areas using "
+                            "the cloud_area_threshold parameter is skipped."
+                        )
                     )
-                except Exception as e:
-                    pass  # error already printed
+                    mask_cleaned = mask_selected
 
                 # Extract & Label clouds (and shadows)
                 gs.run_command("r.null", map=mask_cleaned, setnull="0")
@@ -827,11 +849,11 @@ class SentinelImporter(object):
                                                 [
                                                     np.array(
                                                         ssssn.text.split(" "),
-                                                        dtype=np.float,
+                                                        dtype=float,
                                                     )
                                                     for ssssn in list(sssn)
                                                 ],
-                                                dtype=np.float,
+                                                dtype=float,
                                             )
                                         )
                                         meta["MEAN_SUN_ZENITH_GRID_ANGLE"] = mean_zenith
@@ -843,11 +865,11 @@ class SentinelImporter(object):
                                                 [
                                                     np.array(
                                                         ssssn.text.split(" "),
-                                                        dtype=np.float,
+                                                        dtype=float,
                                                     )
                                                     for ssssn in list(sssn)
                                                 ],
-                                                dtype=np.float,
+                                                dtype=float,
                                             )
                                         )
                                         meta[

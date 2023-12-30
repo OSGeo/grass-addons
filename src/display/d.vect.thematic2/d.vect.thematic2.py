@@ -1357,7 +1357,7 @@ end
                 icon=icon,
                 size=ptsize,
                 quiet=True,
-                **kwargs
+                **kwargs,
             )
 
             if themetype != "graduated_lines":

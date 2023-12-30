@@ -226,8 +226,6 @@ int main(int argc, char *argv[])
      * supported; also, accumulated longest flow paths cannot be calculated
      * from subaccumulation */
     G_option_excludes(opt.input_subaccum, opt.accum, flag.accum_lfp, NULL);
-    /* subwatersheds cannot be accumulated */
-    G_option_exclusive(opt.subwshed, flag.accum_lfp, NULL);
     /* these three inputs are mutually exclusive because one is an output of
      * another */
     G_option_exclusive(opt.weight, opt.input_accum, opt.input_subaccum, NULL);

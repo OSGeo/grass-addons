@@ -145,8 +145,8 @@ class HiveCliHook(BaseHook, HiveSpatial):
             print("***" * 30)
 
             return True
-        except Exception, e:
-            print("      EROOR: connection can not be established:\n      %s\n" % e)
+        except Exception as e:
+            print("      ERROR: connection can not be established:\n      %s\n" % e)
             print("***" * 30)
             return False
 
@@ -463,7 +463,7 @@ class HiveServer2Hook(BaseHook, HiveSpatial):
                 try:
                     cur.execute(hql)
 
-                except Exception, e:
+                except Exception as e:
                     print("Execute error: %s" % e)
                     return None
                 if fatch:

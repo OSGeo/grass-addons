@@ -29,8 +29,13 @@
 50 02 * * 6 nice sh /home/neteler/cronjobs/cron_grass7_relbranch_src_snapshot.sh
 
 # daily Linux binary snapshots, also creates main manuals, addon manuals, and prog-manual (target dir: /var/www/code_and_data/)
-05 05 * * * nice sh /home/neteler/cronjobs/cron_grass8_relbranch_build_binaries.sh > /var/www/code_and_data/grass80/binary/linux/snapshot/build.log.txt 2>&1
-05 06 * * * nice sh /home/neteler/cronjobs/cron_grass7_relbranch_build_binaries.sh > /var/www/code_and_data/grass78/binary/linux/snapshot/build.log.txt 2>&1
+# old stable: G78
+00 05 * * * nice sh /home/neteler/cronjobs/cron_grass7_relbranch_build_binaries.sh > /var/www/code_and_data/grass78/binary/linux/snapshot/build.log.txt 2>&1
+# stable: G82
+35 05 * * * nice sh /home/neteler/cronjobs/cron_grass8_relbranch_build_binaries.sh > /var/www/code_and_data/grass82/binary/linux/snapshot/build.log.txt 2>&1
+# dev: G83
+10 06 * * * nice sh /home/neteler/cronjobs/cron_grass8_main_build_binaries.sh > /var/www/code_and_data/grass83/binary/linux/snapshot/build.log.txt 2>&1
+
 
 # generate osgeo_mailman_stats/ + email
 # ...note: runs as a root cronjob on osgeo6 machine (lists.osgeo.org server)
