@@ -1,73 +1,73 @@
 <h2>DESCRIPTION</h2>
 
-The Multivariate Environmental Bias (MEB) takes the medium 
-conditions in an reference area <em>N</em> and computes how much conditions in 
-a subset of <em>N </em> (<em>S</em>) deviate from these medium 
-conditions (van Breugel et al. 2015). This can for example be used to 
-see how well conditions in the protected areas of a country represent 
+The Multivariate Environmental Bias (MEB) takes the medium
+conditions in an reference area <em>N</em> and computes how much conditions in
+a subset of <em>N </em> (<em>S</em>) deviate from these medium
+conditions (van Breugel et al. 2015). This can for example be used to
+see how well conditions in the protected areas of a country represent
 conditions in the whole country.
 
 <p>
-The measure is based on the Multivariate Environmental Similarity 
-(<em>MES</em>) surface, which was proposed by Elith et al (2010).  The MESS 
-measures the similarity in a set of variables between any given location in 
+The measure is based on the Multivariate Environmental Similarity
+(<em>MES</em>) surface, which was proposed by Elith et al (2010).  The MESS
+measures the similarity in a set of variables between any given location in
 an area and the locations in a reference area.
 
 <p>
-The first step to compute the MES for a location <em>P</em> is to calculate 
-how similar conditions in <em>P</em> are compared to the conditions 
-in the reference area <em>N</em>, based on variable <em>V<sub>i</sub></em>. 
-The similarity 
-is expressed as the deviation from <em>V<sub>i</sub></em> 
- in <em>P</em> from the median of <em>V<sub>i</sub></em> in <em>N</em>. This 
-is done for all variables of interest (V<sub>1</sub>, V<sub>2</sub>, 
+The first step to compute the MES for a location <em>P</em> is to calculate
+how similar conditions in <em>P</em> are compared to the conditions
+in the reference area <em>N</em>, based on variable <em>V<sub>i</sub></em>.
+The similarity
+is expressed as the deviation from <em>V<sub>i</sub></em>
+ in <em>P</em> from the median of <em>V<sub>i</sub></em> in <em>N</em>. This
+is done for all variables of interest (V<sub>1</sub>, V<sub>2</sub>,
 ...V<sub>j</sub>).
 
 <p>
-In the original equation proposed by Elith et al (2010) the final 
-<em>MES</em> in location <em>P</em> is computed as the minimum of the 
-similarity values (<em>IES<sub>minimum</sub></em>) of the individual 
-variables (<em>V<sub>j</sub></em>) in <em>P</em>. However, to compute the 
-<em>MEB</em> using the mean or median may be a better choice as they take 
-into account the similarity along all environmnetal axes and not only the one 
-that deviates most. The user therefore has the option to use the mean 
-(<em>IES<sub>mean</sub></em>) or median (<em>IES<sub>median</sub></em>) of 
-the <em>IES</em> instead (there is still the option to use the minimum as 
+In the original equation proposed by Elith et al (2010) the final
+<em>MES</em> in location <em>P</em> is computed as the minimum of the
+similarity values (<em>IES<sub>minimum</sub></em>) of the individual
+variables (<em>V<sub>j</sub></em>) in <em>P</em>. However, to compute the
+<em>MEB</em> using the mean or median may be a better choice as they take
+into account the similarity along all environmnetal axes and not only the one
+that deviates most. The user therefore has the option to use the mean
+(<em>IES<sub>mean</sub></em>) or median (<em>IES<sub>median</sub></em>) of
+the <em>IES</em> instead (there is still the option to use the minimum as
 well).
 
 <p>
-The <em>MEB</em> is computed as the absolute difference of the median of the 
-<em>MES</em> in the whole target area (MES<sub>N</sub>) and the 
-median of the <em>MES</em> in the subset (<em>MES<sub>S</sub></em>), divided 
-by the median absolute deviation (<em><a 
-href="http://en.wikipedia.org/wiki/Median_absolute_deviation">MAD</a></em>) 
-of the <em>MES</em> in <em>N</em>. It is also possible to compute 
-the bias based on the individual variables (IEB) in which case the 
-<em>IES</em> instead of the <em>MES</em> is used. 
+The <em>MEB</em> is computed as the absolute difference of the median of the
+<em>MES</em> in the whole target area (MES<sub>N</sub>) and the
+median of the <em>MES</em> in the subset (<em>MES<sub>S</sub></em>), divided
+by the median absolute deviation (<em><a
+href="http://en.wikipedia.org/wiki/Median_absolute_deviation">MAD</a></em>)
+of the <em>MES</em> in <em>N</em>. It is also possible to compute
+the bias based on the individual variables (IEB) in which case the
+<em>IES</em> instead of the <em>MES</em> is used.
 
 <p>
 <img src="r_meb_concept.png">
 
 <p>
-The addon creates a MES layer and a table (saved to csv file) with the median 
-value of each variable in the region and in the reference area, the median 
-absolute deviation (mad) and the environmental bias (eb). Optionally, this 
-can be computed for the individual variables as well. The user has the option 
+The addon creates a MES layer and a table (saved to csv file) with the median
+value of each variable in the region and in the reference area, the median
+absolute deviation (mad) and the environmental bias (eb). Optionally, this
+can be computed for the individual variables as well. The user has the option
 to have the addon compute the <em>MEB</em> based on the <em>MES
-</em> computed using the minimum, average and/or median of the IES layers 
+</em> computed using the minimum, average and/or median of the IES layers
 (see above)
-    
+
 <h2>NOTE</h2>
 
-Input variables are expected to be or to represent continuous variables. 
+Input variables are expected to be or to represent continuous variables.
 
 <h2>Example</h2>
 
-In the example below the <em>MEB</em> is computed for a map 'forestmap' which 
+In the example below the <em>MEB</em> is computed for a map 'forestmap' which
 gives the distribution of forest (1) and other land cover types (0).
-As environmental variables, the bio1, bio3 and bio9 are used. 
+As environmental variables, the bio1, bio3 and bio9 are used.
 
-<div class="code"><pre>r.meb -m -n -o env=bio_1,bio_3,bio_9 ref=forestmap 
+<div class="code"><pre>r.meb -m -n -o env=bio_1,bio_3,bio_9 ref=forestmap
 output=Test file=Test
 Median Test_MES_mean (all region) = 47.338
 Median Test_MES_mean (ref. area) = 69.798
@@ -87,20 +87,20 @@ EB = 2.348
 The results are written to Test.csv
 </pre></div>
 
-<h2>CITATION</h2> 
+<h2>CITATION</h2>
 
-van Breugel P, Kindt R, Lilles&oslash;  J-PB, van Breugel M (2015) 
-Environmental Gap Analysis to Prioritize Conservation Efforts in Eastern 
-Africa. 
+van Breugel P, Kindt R, Lilles&oslash;  J-PB, van Breugel M (2015)
+Environmental Gap Analysis to Prioritize Conservation Efforts in Eastern
+Africa.
 PLoS ONE 10(4): e0121444. doi: 10.1371/journal.pone.0121444
 
-<h2>REFERENCES</h2> 
+<h2>REFERENCES</h2>
 
 <ul>
-    <li>Elith, J, Kearney, M, and Phillips, S. 2010. The art of modelling 
+    <li>Elith, J, Kearney, M, and Phillips, S. 2010. The art of modelling
 range-shifting species. Methods in Ecology and Evolution 1:330-342.</li>
-    <li>van Breugel P, Kindt R, Lilles&oslash;  J-PB, van Breugel M. 2015. 
-Environmental Gap Analysis to Prioritize Conservation Efforts in Eastern 
+    <li>van Breugel P, Kindt R, Lilles&oslash;  J-PB, van Breugel M. 2015.
+Environmental Gap Analysis to Prioritize Conservation Efforts in Eastern
 Africa. PLoS ONE 10(4): e0121444. doi: 10.1371/journal.pone.0121444.</li>
 </ul>
 

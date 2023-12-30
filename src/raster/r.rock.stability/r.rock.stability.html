@@ -1,7 +1,7 @@
 <h2>DESCRIPTION</h2>
 <p>Two important steps can be recognised in the rockfall analysis: the potential failure detection and the run out simulation. Analyzing the stability of rock slopes, most important kinematisms are slidings (planar or wedge) and topplings. r.rock.stability is a module that allows users to apply geomechanical classifications (SMR and SSPC) for the preliminary assessment of the susceptibility of rock slopes to failures induced by these kinematisms.
 
-<p><b>SMR approach (default)</b>:SMR (Slope Mass Rating) is a widely used geomechanical classification developed by Romana (1995). 
+<p><b>SMR approach (default)</b>:SMR (Slope Mass Rating) is a widely used geomechanical classification developed by Romana (1995).
 The final SMR rating is obtained by means of next expression: SMR=RMRb+(F1*F2*F3)+F4
 where:
 <ul>
@@ -18,7 +18,7 @@ where:
   </li>
 </ul>
 <p>r.rock.stability calculate F1, F2 and F3 index by combining DEM (slope and aspect) and joint dip and dip direction.
-<p>F1, F2 and F3 are calculated according two functions of Romana (1995) and of Tom&#224;s et al. (2007). The functions proposed by Romana are discrete, instead Tom&#224;s et al. (2007) proposed continuous functions that reduced subjective interpretations. 
+<p>F1, F2 and F3 are calculated according two functions of Romana (1995) and of Tom&#224;s et al. (2007). The functions proposed by Romana are discrete, instead Tom&#224;s et al. (2007) proposed continuous functions that reduced subjective interpretations.
 <p><b>SSPC approach (optional)</b>: inserting TC value (or a map of TC values) it's possible to obtain a SSPC map according to Hack's classification (Hack, 1998). Only a part of the method introduced by Hack is used in the module: the orientation dependent stability (the stability depend on relation between slope and discontinuity orientation). According to the author:
 <ul>
   <li>sliding occurs if: TC &lt; 0,0113*AP</li>
@@ -35,16 +35,16 @@ where:
   <li>0,75 Straight</li>
 </ul>
 <p>
-<b>Rs</b> (roughness in small scale - area of 0,2x0,2m2): 
+<b>Rs</b> (roughness in small scale - area of 0,2x0,2m2):
 <ul>
   <li>0,95 Rough stepped </li>
   <li>0,90 Smooth stepped</li>
   <li>0,85 Polished stepped</li>
-  <li>0,80 Rough undulating</li> 
+  <li>0,80 Rough undulating</li>
   <li>0,75 Smooth undulating</li>
-  <li>0,70 Polished undulating</li> 
+  <li>0,70 Polished undulating</li>
   <li>0,65 Rough planar</li>
-  <li>0,60 Smooth planar</li> 
+  <li>0,60 Smooth planar</li>
   <li>0,55 Polished planar.</li>
 </ul>
 <p>
@@ -66,17 +66,17 @@ where:
 <h2>INPUT</h2>
 
 
-<p><b>Digital Elevation Model</b> = name 
+<p><b>Digital Elevation Model</b> = name
     <ul>Name of elevation raster map</ul>
-<p><b>Dip direction</b> = string 
+<p><b>Dip direction</b> = string
     <ul>Value of the direction of the discontinuity measured clockwise starting from North. North is 0&#176; or 360&#176;, East (90&#176;). South (180&#176;), West (270&#176;)</ul>
-<p><b>Dip</b> = string 
+<p><b>Dip</b> = string
     <ul>Angle of inclination of the discontinuity relative to a horizontal plane.</ul>
-<p><b>F4</b> = string 
+<p><b>F4</b> = string
     <ul>Correction factor according to Romana's classification</ul>
-<p><b>RMR</b> = string or map 
+<p><b>RMR</b> = string or map
     <ul>Value of RMRb according to Bieniawski's classification</ul>
-<p><b>TC (optional)</b> = string or map 
+<p><b>TC (optional)</b> = string or map
     <ul>Value of TC according to Hack's classification</ul>
 <p><b>Output prefix</b> = name
     <ul>Name of prefix used for output raster maps</ul>
@@ -141,12 +141,11 @@ where:
 <p>BIENIAWSKI Z.T. (1989). Engineering Rock Mass Classifications. John Wiley and Sons: New York.
 <p>FILIPELLO A., GIULIANI A., MANDRONE G. (2010) - Rock Slopes Failure Susceptibility Analysis: From Remote Sensing Measurements to Geographic Information System Raster Modules. American Journal of Environmental Sciences 6 (6): 489-494, 2010 ISSN 1553-345X &#169; 2010 Science Publications.
 <p>HACK HRGK (1998) Slope stability probability classification, SSPC, 2nd edn. ITC, Enschede, The Netherlands, 258 pp, ISBN 90 6164 154 3
-<p>ROMANA M. (1995). The geomechanical classification SMR for slope correction. Proc. Int. Congress on Rock Mechanics 3: 1085-1092. 
+<p>ROMANA M. (1995). The geomechanical classification SMR for slope correction. Proc. Int. Congress on Rock Mechanics 3: 1085-1092.
 <p>TOM&#192;S, R., DELGADO, J.,SERON, J.B. (2007). Modification of slope mass rating(SMR) by continuous functions. International Journal of Rock Mechanics and Mining Sciences 44: 1062-1069.
 
 <h2>SEE ALSO</h2>
 
 <h2>AUTHORS</h2>
-<p>Andrea Filipello, University of Turin, Italy 
+<p>Andrea Filipello, University of Turin, Italy
 <p>Daniele Strigaro, University of Milan, Italy
-

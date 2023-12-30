@@ -1,17 +1,17 @@
 <h2>DESCRIPTION</h2>
 
-<em>v.isochrones</em> creates a vector polygon map of isochrones 
-(<b>isochrones</b>) based on a roads map (<b>map</b>) with speed 
-or cost attribute (<b>cost_column</b>), one or several starting points 
-(<b>start_points</b>) and time steps (in minutes) for the isochrones 
-(<b>time_steps</b>). The module is actually a front-end to different 
+<em>v.isochrones</em> creates a vector polygon map of isochrones
+(<b>isochrones</b>) based on a roads map (<b>map</b>) with speed
+or cost attribute (<b>cost_column</b>), one or several starting points
+(<b>start_points</b>) and time steps (in minutes) for the isochrones
+(<b>time_steps</b>). The module is actually a front-end to different
 GRASS GIS modules, and the user can chose the approach with the <b>method</b> option
 (see the notes section for details).
 
 <p>
-The spatial precision of the analysis is defined by the current computational 
-region. The user can define this with 
-<em><a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a></em>. 
+The spatial precision of the analysis is defined by the current computational
+region. The user can define this with
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a></em>.
 Care should be taken to not define a too high resolution for the spatial extent
 covered. Otherwise the user might be confronted with memory issues.
 
@@ -21,26 +21,26 @@ covered. Otherwise the user might be confronted with memory issues.
 Two approaches are currently implemented in the module:
 
 <p>
-The first (default) approach is based on <em><a href="https://grass.osgeo.org/grass-stable/manuals/v.net.iso.html">v.net.iso</a></em>. The output 
+The first (default) approach is based on <em><a href="https://grass.osgeo.org/grass-stable/manuals/v.net.iso.html">v.net.iso</a></em>. The output
 of that module is then used to assign isochrone values to all pixels based on the nearest
 road segment that is within a given distance (<b>max_distance</b>). The <b>-i</b> flag allows
 to calculate a separate isochrone map for each starting point.
-For this approach, the input road map currently has to be prepared by adding all nodes (using 
-<em><a href="https://grass.osgeo.org/grass-stable/manuals/v.net.html">v.net</a></em> with 'operation=nodes' and the '-c' flag. 
-For each starting point, the algorithm then finds the closest node on the network 
-and calculates the isochrones from there. This allows to use the same network for 
-many analyses without having to go through the time of adding the starting points 
-at each run. In addition, a <b>cost_column</b> has to be present in the attribute table containing for each line segment 
+For this approach, the input road map currently has to be prepared by adding all nodes (using
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/v.net.html">v.net</a></em> with 'operation=nodes' and the '-c' flag.
+For each starting point, the algorithm then finds the closest node on the network
+and calculates the isochrones from there. This allows to use the same network for
+many analyses without having to go through the time of adding the starting points
+at each run. In addition, a <b>cost_column</b> has to be present in the attribute table containing for each line segment
 the time of traversal in minutes (i.e. length/speed).
 
 <p>
-The second approach is based on <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.cost.html">r.cost</a></em>. 
+The second approach is based on <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.cost.html">r.cost</a></em>.
 It transforms the roads to raster (here <b>cost_column</b> has to point to an attribute
 column containing speed in km/h), assigning a user chosen <b>offroad_speed</b> to all offroad
-pixels, calculates time cost from the starting points and then transforms the result into 
-discrete vector polygons based on the time steps chosen. Optionally, the user can chose to 
+pixels, calculates time cost from the starting points and then transforms the result into
+discrete vector polygons based on the time steps chosen. Optionally, the user can chose to
 keep the a raster output of <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.cost.html">r.cost</a></em> (<b>timemap</b>).
-Current region settings are used to define the maximal extension and the resolution 
+Current region settings are used to define the maximal extension and the resolution
 at which the cost map is calculated. The <b>memory</b> option allows to decide how much
 memory the <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.cost.html">r.cost</a></em> module can use (see the r.cost man page
 for more details). One big advantage of the this second approach is that the road network
@@ -90,7 +90,7 @@ v.isochrones map=myroads cost_column=speed start_points=start isochrones=isochro
 
 <em>
 <a href="https://grass.osgeo.org/grass-stable/manuals/r.cost.html">r.cost</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.net.iso.html">v.net.iso</a> 
+<a href="https://grass.osgeo.org/grass-stable/manuals/v.net.iso.html">v.net.iso</a>
 </em>
 
 <h2>AUTHOR</h2>

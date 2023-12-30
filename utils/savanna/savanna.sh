@@ -30,7 +30,7 @@ export prefix="savanna_"$unique_prefix_suffix
 # Some standard naming for temp files.
 export tiling_grid_suffix="_tiling_grid"
 
-# Create working directory.   
+# Create working directory.
 # Should use mktemp -d
 export working_tmp=$savanna_tmp/$prefix
 mkdir $working_tmp

@@ -21,4 +21,3 @@ $(BIN)/$(PGM): $(OBJ)
 
 clean:
 	-rm -f *.o
-

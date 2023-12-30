@@ -1,14 +1,14 @@
 <h2>DESCRIPTION</h2>
 
 <em>v.neighborhoodmatrix</em> identifies all adjacency relations between
-polygons in a vector map and exports these as a 2xn matrix where n is the 
-number of neighborhood relations with each relation only listed in one 
-direction (i.e. if a is neighbor of b, the list will contain a,b, but 
+polygons in a vector map and exports these as a 2xn matrix where n is the
+number of neighborhood relations with each relation only listed in one
+direction (i.e. if a is neighbor of b, the list will contain a,b, but
 not b,a) unless the <em>b</em> flag is specified.
 By default, neighbors are identified by the category numbers. Using the
 <em>idcolumn</em> parameter the user can define a column to use as identifier
 of the polygons.
-If a path to an output file is specified, the matrix will be written to that 
+If a path to an output file is specified, the matrix will be written to that
 file, otherwise it will be sent to standard output.
 
 <h2>NOTES</h2>
@@ -27,7 +27,7 @@ to standard output identifying each tract by its category value:
 v.neighborhoodmatrix in=census_wake2000
 </pre></div>
 
-Idem, but identifying each tract by its STFID code and sending the output to a 
+Idem, but identifying each tract by its STFID code and sending the output to a
 file:
 
 <div class="code"><pre>

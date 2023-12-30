@@ -2,7 +2,7 @@
 <dl>
 <dt><b>input</b></dt>
 <dd>Name of input raster map to be fuzzified. This map may be of any type and may
-require null values. 
+require null values.
 </dd>
 <dt><b>points</b></dt>
 <dd>A list containing 4 (A,B,C,D) or 2 (A,B) points defining set boundaries.
@@ -51,7 +51,7 @@ details.
 </dd>
 <dt><b>height</b></dt>
 <dd>Optional height modifier. Range from 0 to 1. The default value is 1 and
-indicates full membership. If height is less than one the 
+indicates full membership. If height is less than one the
 maximum membership is equal to height. See image: Fuzzy set definition.</dd>
 </dl>
 
@@ -59,7 +59,7 @@ maximum membership is equal to height. See image: Fuzzy set definition.</dd>
 
 <h4>Definition of fuzzy set</h4>
 Fuzzy sets are sets whose elements have degrees of membership. Zadeh (1965)
-introduced Fuzzy sets as an extension of the classical notion of sets. Classical 
+introduced Fuzzy sets as an extension of the classical notion of sets. Classical
 membership of elements in a set are binary terms: an element either belongs or
 does not belong to the set. Fuzzy set theory use the gradual assessment of the
 membership of elements in a set. A membership function valued in the real unit
@@ -92,7 +92,7 @@ where x: membership
 sin(x * Pi/2)^m (for positive shape parameter)
 1-cos(x * Pi/2)^m (for negative shape parameter)
 
-where x: membership, and 
+where x: membership, and
 m = 2^exp(2,shape) (for positive shape parameter)
 m = 2^(1+shape) (for negative shape parameter)
 where m: shape parameter.
@@ -102,17 +102,17 @@ For default shape parameter = 0 m is = 2 which is most common parameter for
 that equation.
 
 <p>
-<b>G-shaped and J shaped:</b> it use following equations: 
+<b>G-shaped and J shaped:</b> it use following equations:
 <pre><code>
 tan(x * Pi/4)^m (for J-shaped)
 tan(x * Pi/4)^1/m (for G-shaped)
 
-where x: membership, and 
+where x: membership, and
 m = 2^exp(2,shape) (for positive shape parameter)
 m = 2^(1+shape) (for negative shape parameter)
 where m: shape parameter.
 </code></pre>
- 
+
 
 <h2>SEE ALSO</h2>
 

@@ -8,7 +8,7 @@ Classes:
  - wmsFrame
 Functions:
  - DisplayWMSMenu
- 
+
 (C) 2006-2011 by the GRASS Development Team
 This program is free software under the GNU General Public
 License (>=v2). Read the file COPYING that comes with GRASS
@@ -585,8 +585,8 @@ class wmsFrame(wx.Frame):
             lEPSG = self.keyToEPSGCodes[key]
             self.epsgList.Append('<'+layerName+'>')
             self.epsgList.AppendItems(lEPSG)
-            
-          
+
+
         self.layerName = self.layerName[1:]
         self.selectedEPSG = None"""
 

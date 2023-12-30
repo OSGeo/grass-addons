@@ -1,19 +1,19 @@
 <h2>DESCRIPTION</h2>
 This module uses SVM from the <em> scikit-learn </em> python package to perform
-classification on regions of raster maps. These regions can be the output of 
-<em><a href="https://grass.osgeo.org/grass-stable/manuals/i.segment.html">i.segment</a></em> 
+classification on regions of raster maps. These regions can be the output of
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/i.segment.html">i.segment</a></em>
 or
 <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.clump.html">r.clump</a></em>.
 
 <p>
-The module enables learning with only a small initial labeled data set via 
+The module enables learning with only a small initial labeled data set via
 <em>active learning</em>. This semi-supervised learning algorithm interactively
 query the user to label the regions that are most useful to improve the overall
 classification score.  With this technique, the number of examples to learn the
 classification is often much lower than the number of examples needed in normal
 supervised algorithms. You should start the classification with a small training
-set and run the module multiple times to label new informative samples to 
-improve the classification score. The score metric is the number of correctly 
+set and run the module multiple times to label new informative samples to
+improve the classification score. The score metric is the number of correctly
 predicted labels over the total number of samples in the test set.
 
 <p>
@@ -26,7 +26,7 @@ labeled samples are not redundant with each other.
 
 <p>
 The learning data should be composed of features extracted from the regions, for
-example with the 
+example with the
 <em><a href="i.segment.stats.html">i.segment.stats</a></em> module.
 The features of the training set, the test set and the unlabeled set should be
 in three different files in csv format. The first line of each file must be a
@@ -39,7 +39,7 @@ Example of a training and test files :
 	<div class="code">
 		<pre>
 			cat,Class_num,attr1,attr2,attr3
-			167485,4,3.546,456.76,6.76 
+			167485,4,3.546,456.76,6.76
 			183234,6,5.76,1285.54,9.45
 			173457,2,5.65,468.76,6.78
 		</pre>
@@ -50,7 +50,7 @@ Example of an unlabeled file :
 	<div class="code">
 		<pre>
 			cat,attr1,attr2,attr3
-			167485,3.546,456.76,6.76 
+			167485,3.546,456.76,6.76
 			183234,5.76,1285.54,9.45
 			173457,5.65,468.76,6.78
 		</pre>
@@ -162,7 +162,7 @@ the update file.
 	</pre>
 </div>
 
-	
+
 <h2>NOTES</h2>
 
 This module requires the <em> scikit-learn </em> python package. This module
@@ -183,6 +183,6 @@ Symposium. doi:10.1109/igarss.2009.5417857<br>
 [2] Tuia, D. et al (2011). A Survey of Active Learning Algorithms for Supervised Remote Sensing Image Classification. IEEE Journal of Selected Topics in Signal Processing, 5(3), 606-617. doi:10.1109/jstsp.2011.2139193
 
 
-<h2>AUTHOR</h2> 
+<h2>AUTHOR</h2>
 
 Lucas Lef&egrave;vre (ULB, Brussels, Belgium)

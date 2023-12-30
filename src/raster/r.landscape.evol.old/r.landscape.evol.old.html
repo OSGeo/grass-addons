@@ -37,9 +37,9 @@ values of flow accumulation (amount of upslope area in square meters)
 that determine where surface processes change from soil-creep to
 laminar overland flow (sheetwash), from laminar overland flow to
 channelized overland flow (rills/gullies), and from channelized
-overland flow to full stream flow respectively. Note that some 
-experimentation is required in order to find the best possible values 
-for these cutoffs, and the -p flag will provide some output data that 
+overland flow to full stream flow respectively. Note that some
+experimentation is required in order to find the best possible values
+for these cutoffs, and the -p flag will provide some output data that
 may be useful for this. <b>kappa</b> is the
 rate of diffusion for soil-creep in meters per 1000 years. <b>sdensity</b>
 is the density of the soil in grams per cubic centimeters. <b>rain</b>
@@ -60,7 +60,7 @@ the critical slope threshold above which the model will simulate the
 cumulative effects of mass wasting (landsliding). These
 measures all need to be determined empirically for a given landscape
 under a given climatic condition, but the defaults are average values
-for the Circum-Mediterranean Basin. 
+for the Circum-Mediterranean Basin.
 
 <p>By default, <em>r.watershed</em> is used to calculate flow
 accumulation modeling using the MFD algorithm included in  GRASS 6.4
@@ -73,7 +73,7 @@ encouraged to used GRASS 6.4 or higher.
 the file that contains the statistics of erosion, deposition, and
 soil depths over all iterations. The default name is
 <tt>&quot;mapset&quot;_&quot;prefix&quot;_lsevol_stats.txt</tt> (in
-the users home directory). 
+the users home directory).
 
 <h3>Calculating Erosion and Deposition</h3>
 
@@ -102,7 +102,7 @@ developed for hillslopes, small watersheds, and small channels (i.e.,
 rills and gullies) (Warren, et al. 2005), and is less applicable to
 larger streams and rivers. Therefore we use a different process
 equation to model erosion and deposition in stream channels (see
-below). 
+below).
 
 <p>Net erosion and deposition rates on hillslopes are computed from
 the change in sediment flow across cells of a DEM that have flow
@@ -141,7 +141,7 @@ and R-factor (<i>R</i>) components
 of the RUSLE and have been calculated empirically for a variety of
 setting (Boellstorff and Benito 2005; MartÃnez-Casasnovas, 2000;
 Essa 2004; Hammad, et al. 2004; Renard, et al. 1997; Renard and
-Freimund 1994). 
+Freimund 1994).
 
 <p>For areas of the DEM that have flow accumulation values greater
 than  <b>cutoff3 </b>(ie. areas
@@ -210,7 +210,7 @@ flux values resulting in the calculation of alternating deep pits and
 high mounds at sensitive areas on the landscape. To overcome this,
 <em>r.landscape.evol</em> uses a neighborhood algorithm in <em>r.mapcalc</em>
 to put the calculated value of <i>T</i> back into the cell that is
-most uplsope from where it is originally calculated. 
+most uplsope from where it is originally calculated.
 
 <p>Additionally, control must be kept for the amount of erodible
 sediment available to moved. <em>r.landscape.evol</em> explicitly
@@ -222,7 +222,7 @@ processes. A simple logical algorithm is used to prevent unduly large
 amounts of erosion from being calculated in areas devoid of erodible
 materials (ie. at bedrock outcrops). Where this condition occurs, <i>K</i>
 or <i>K</i><sub><i>t </i></sub>is made to be very small, resulting in
-only extremely small amounts of erosion. 
+only extremely small amounts of erosion.
 
 <p>Another major issue is that the total flux <i>T </i>is in units of
 Tons/Ha, which means it must be converted in order to calculate the
@@ -237,7 +237,7 @@ the  density of the soil, and <i>Res </i>is the cell resolution
 (width). In order to convert the output back to Tons/Ha (standard
 rate for USPED/RUSLE equations), you can multiply the <b>netchange</b>
 output map by &quot;(10000 x raster cell resolution x <b>sdensity</b>)&quot; to
-create a map of soil erosion/deposition rates across the landscape. 
+create a map of soil erosion/deposition rates across the landscape.
 
 <h3>Determining Cutoff Points</h3>
 
@@ -261,41 +261,41 @@ Map showing the spatial patterns of the cutoffs determined from the previous fig
 <h2>SEE ALSO</h2>
 <ul>
 	<li><p>The <a href="http://medland.asu.edu/">MEDLAND</a>
-	project at Arizona State University 
-	
+	project at Arizona State University
+
 	<li><p><a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a>, <a href="https://grass.osgeo.org/grass-stable/manuals/r.terraflow.html">r.terraflow</a>,
-	<a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a> 
-	
+	<a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a>
+
 	<li><p>Mitasova, H., C. M. Barton, I. I. Ullah, J. Hofierka, and R. S. Harmon 2013 GIS-based soil erosion modeling. In Remote Sensing and GIScience in Geomorphology, edited by J. Shroder and M. P. Bishop. 3:228-258. San Diego: Academic Press.
 
-	
+
 </ul>
 <h2>REFERENCES</h2>
 <p>American Society of Agricultural Engineers 2003 Honoring the
 Universal Soil Loss Equation: Historic Landmark Dedication Pamphlet.
 Purdue University Department of Agricultural and Biological
-Engineering. 
+Engineering.
 
 <p>Clevis, Q., G. E. Tucker, G. Lock, S. T. Lancaster, N. Gasparini,
 A. Desitter and R. L. Bras 2006 Geoarchaeological simulation of
 meandering river deposits and settlement distributions: A
-three-dimensional approach. Geoarchaeology 21(8):843-874. 
+three-dimensional approach. Geoarchaeology 21(8):843-874.
 
 <p>Degani, A., L. A. Lewis and B. B. Downing 1979 Interactive
 Computer Simulation of the Spatial Process of Soil Erosion.
-Professional Geographer 31(2):184-190. 
+Professional Geographer 31(2):184-190.
 
 <p>Howard, A. D. 1980. Thresholds in river regimes. Thresholds
-in geomorphology, 227-258. 
+in geomorphology, 227-258.
 
 <p>Mitas, L. and H. Mitasova 1998 Distributed soil erosion simulation
 for effective erosion prevention. Water Resources Research
-34(3):505-516. 
+34(3):505-516.
 
 <p>Mitasova, H., J. Hofierka, M. Zlocha and L. R. Iverson 1996
 Modelling topographic potential for erosion and deposition using GIS.
 International Journal of Geographical Information Systems
-10(5):629-641. 
+10(5):629-641.
 
 <p>Mitasova, H. and L. Mitas 2001a Modeling Physical Systems. In
 Geographic Information Systems and Environmental Modeling, edited by
@@ -303,7 +303,7 @@ B. O. Parks, M. Crane and K. C. Clarke, pp. 189-210. Prentice Hall,
 New York. 2001b Multiscale soil erosion simulations for land use
 management. In Landscape erosion and landscape evolution modeling,
 edited by R. Harmon and W. Doe, pp. 321-347. Kluwer Academic/Plenum
-Publishers, New York. 
+Publishers, New York.
 
 <p>Mitasova, H., L. Mitas and W. M. Brown 2001 Multiscale simulation
 of land use impact on soil erosion and deposition patterns. In
@@ -311,12 +311,12 @@ Sustaining the Global Farm. Selected Papers from the 10th
 International Soil Conservation Organization Meeting, May 1999,
 Purdue University, edited by D. E. Stott, R. H. Mohtar and G. C.
 Steinhardt, pp. 1163-1169. USDA-ARS National Soil Erosion Research
-Laboratory, Purdue. 
+Laboratory, Purdue.
 
 <p>Mitasova, H., L. Mitas, W. M. Brown and D. Johnston 1996
 Multidimensional Soil Erosion/Deposition Modeling Part III: Process
 based erosion simulation. Geographic Modeling and Systems Laboratory,
-University of Illinois at Urban-Champaign. 
+University of Illinois at Urban-Champaign.
 
 <p>Mitasova, H., C. Thaxton, J. Hofierka, R. McLaughlin, A. Moore and
 M. L 2004 Path sampling method for modeling overland water flow,
@@ -324,49 +324,49 @@ sediment transport and short term terrain evolution in Open Source
 GIS. In Proceedings of the XVth International Conference on
 Computational Methods in Water Resources (CMWR XV), edited by C. T.
 Miller, M. W. Farthing, V. G. Gray and G. F. Pinder, pp. 1479-1490.
-Elsevier, Chapel Hill, NC, USA. 
+Elsevier, Chapel Hill, NC, USA.
 
 <p>Peeters, I., T. Rommens, G. Verstraeten, G. Govers, A. Van
 Rompaey, J. Poesen and K. Van Oost 2006 Reconstructing ancient
-topography through erosion modelling. Geomorphology 78(3-4):250-264. 
+topography through erosion modelling. Geomorphology 78(3-4):250-264.
 
 <p>Rawls, W. J. 1983 Estimating soil bulk denisty from particle size
-analysis and organic matter content. Soil Science 135(2):123. 
+analysis and organic matter content. Soil Science 135(2):123.
 
 <p>Renard, K. G., G. R. Foster, G. A. Weesies, D. K. McCool and D. C.
 Yoder 1997 Predicting soil erosion by water: a guide to conservation
 planning with the Revised Universal Soil Loss Equation (RUSLE). In
 Agriculture Handbook, pp. 1-51. vol. 703. US Department of
-Agriculture, Washington, DC. 
+Agriculture, Washington, DC.
 
 <p>Renard, K. G. and J. R. Freimund 1994 Using monthly precipitation
 data to estimate the R-factor in the revised USLE. Journal of
-Hydrology 157(1-4):287-306. 
+Hydrology 157(1-4):287-306.
 
 <p>Singh, R. and V. S. Phadke 2006 Assessing soil loss by water
 erosion in Jamni River Basin, Bundelkhand region, India, adopting
 universal soil loss equation using GIS. Current Science
-90(10):1431-1435. 
+90(10):1431-1435.
 
 <p>Tucker, G. E.  and G. R Hancock 2010 Modelling landscape
 evolution. Earth Surface Processes
-and Landforms 35(1): 28-50.  
+and Landforms 35(1): 28-50.
 
 <p>Warren, S. D., H. Mitasova, M. G. Hohmann, S. Landsberger, F. Y.
 Iskander, T. S. Ruzycki and G. M. Senseman 2005 Validation of a 3-D
 enhancement of the Universal Soil Loss Equation for prediction of
-soil erosion and sediment deposition. Catena 64:281-296. 
+soil erosion and sediment deposition. Catena 64:281-296.
 
 <p>Wischmeier, W. H. 1976 Use and Misuse of the Universal Soil Loss
-Equation. Journal of Soil and Water Conservation 31:5-9. 
+Equation. Journal of Soil and Water Conservation 31:5-9.
 
 <p>Wischmeier, W. H., C. B. Johnson and B. V. Cross 1971 A Soil
 Erodibility Nomograph for Farmland and Construction Sites. Journal of
-Soil and Water Conservation 26:189-92. 
+Soil and Water Conservation 26:189-92.
 
 <p>Wischmeier, W. H. and D. D. Smith 1978 Predicting Rainfall-Erosion
 Losses - A Guide to Conservation Planning. USDA Agriculture Handbook
-282. 
+282.
 
 
 <h2>AUTHORS</h2>

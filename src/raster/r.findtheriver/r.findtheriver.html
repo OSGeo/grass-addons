@@ -25,8 +25,8 @@ the threshold, the pixel is deemed to be a stream pixel.</p>
 <p><em>r.findtheriver</em> will automatically compute the window and threshold if
 they are not supplied by the user.  The window is determined based on
 a THRESHOLD_DISTANCE / cell resolution of the UAA map.  The threshold
-is determined by subtracting the log10 of the UAA value at the input 
-gage coordinate from the log10 of the maximum UAA value of the map, 
+is determined by subtracting the log10 of the UAA value at the input
+gage coordinate from the log10 of the maximum UAA value of the map,
 and then rounding down to the nearest integer, in other words:
 threshold = floor( log(maxUAA) - log(gageUAA) ).</p>
 

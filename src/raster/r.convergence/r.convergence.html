@@ -1,14 +1,14 @@
 <h2>OPTIONS</h2>
 <dl>
 <dt><b>-s</b></dt>
-<dd>Increase convergence if slope value is high. 
-Slope parameter radically slows down computation time, 
-especially if the window parameter is high. 
-If slope is used, a slope modifier is used according to the formula: 
-sin(current)*sin(target) + cos(current)*cos(target). 
-If the slope of current and target cells are equal, 
-this modifier's value will be 1. 
-The modifier is applied with the formula: 
+<dd>Increase convergence if slope value is high.
+Slope parameter radically slows down computation time,
+especially if the window parameter is high.
+If slope is used, a slope modifier is used according to the formula:
+sin(current)*sin(target) + cos(current)*cos(target).
+If the slope of current and target cells are equal,
+this modifier's value will be 1.
+The modifier is applied with the formula:
 acos(cos(convergence) * modifier)
 </dd>
 
@@ -16,16 +16,16 @@ acos(cos(convergence) * modifier)
 <dd>Use circular window instead of square (default)</dd>
 
 <dt><b>input</b></dt>
-<dd>Digital elevation model. Data can be of any type and any projection. 
-To calculate relief convergence, <em>r.convergence</em> uses real distances 
+<dd>Digital elevation model. Data can be of any type and any projection.
+To calculate relief convergence, <em>r.convergence</em> uses real distances
 which is recalculated into cell distance, according formula:<br>
 <code>distance_between_current_cell_and_target_cell/distance_between_current_cell_and_nearest_neighbour_cell.</code>
-It is important if convergence is calculated for large areas in Lat/Lon 
+It is important if convergence is calculated for large areas in Lat/Lon
 projection.
 </dd>
 
 <dt><b>weights</b></dt>
-<dd>Parameter describing the reduction of the impact of the cell 
+<dd>Parameter describing the reduction of the impact of the cell
 due to its distance, where distance in cells:
 <ul>
 <li><b>standard:</b> no decay</li>
@@ -37,15 +37,15 @@ due to its distance, where distance in cells:
 </dd>
 
 <dt><b>window</b></dt>
-<dd>Window size. Must be odd. For now there are no limits in window size. 
-<em>r.convergence</em> uses the window size instead of classical radius for 
+<dd>Window size. Must be odd. For now there are no limits in window size.
+<em>r.convergence</em> uses the window size instead of classical radius for
 compatibility with other GRASS GIS commands.</dd>
 
 
 <dt><b>output</b></dt>
-<dd>Map of convergence index. 
-The values ranges from -100 (max divergent, real peaks and ridges) 
-by 0 (planar areas) to 100 (max convergent, real pits and channels). 
+<dd>Map of convergence index.
+The values ranges from -100 (max divergent, real peaks and ridges)
+by 0 (planar areas) to 100 (max convergent, real pits and channels).
 Classical convergence index presented with degrees (-90 to 90)</dd>
 </dl>
 
@@ -62,19 +62,19 @@ Classical convergence index presented with degrees (-90 to 90)</dd>
 <br>
 <i>Figure 1: Convergence index for maximum divergence, maximum convergence, and planar</i>
 </div>
-Convergence index is a terrain parameter which shows the structure of 
-the relief as a set of convergent areas (channels) and divergent areas 
-(ridges). It represents the agreement of aspect direction of 
-surrounding cells with the theoretical matrix direction. Convergence 
-index is mean (or weighted mean if weights are used) aspect difference 
-between real aspect and theoretical maximum divergent direction matrix 
-representing ideal peak (see figure) minus 90 degrees. So if there is 
-maximum agreement with divergent matrix the convergence index is (0 - 
-90) * 10/9 = -100. If there is ideal sink (maximum convergence) the 
-convergence index is (180 -90) * 10/9 = 100. Slope and aspect are 
-calculated internally with the same formula as in <em>r.slope.aspect</em>. 
-Convergence index is very useful for analysis of lineaments especially 
-represented by ridges or channel systems as well as valley recognition 
+Convergence index is a terrain parameter which shows the structure of
+the relief as a set of convergent areas (channels) and divergent areas
+(ridges). It represents the agreement of aspect direction of
+surrounding cells with the theoretical matrix direction. Convergence
+index is mean (or weighted mean if weights are used) aspect difference
+between real aspect and theoretical maximum divergent direction matrix
+representing ideal peak (see figure) minus 90 degrees. So if there is
+maximum agreement with divergent matrix the convergence index is (0 -
+90) * 10/9 = -100. If there is ideal sink (maximum convergence) the
+convergence index is (180 -90) * 10/9 = 100. Slope and aspect are
+calculated internally with the same formula as in <em>r.slope.aspect</em>.
+Convergence index is very useful for analysis of lineaments especially
+represented by ridges or channel systems as well as valley recognition
 tool.
 
 
@@ -99,4 +99,3 @@ B&ouml;hner J., Blaschke T., Montanarella, L. (eds.) (2008). SAGA Seconds Out. H
 <h2>AUTHOR</h2>
 
 Jarek Jasiewicz
-

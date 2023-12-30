@@ -61,12 +61,12 @@ Usage:
 Parameters:
         map   Input raster maps (max 25) for extracting the training
               examples.
-                The first one will be used for graphical output 
+                The first one will be used for graphical output
                 in case vis_map option not set
     vis_map   Raster map for visualization.
-   training   Name of the output file containing the training raster 
+   training   Name of the output file containing the training raster
               maps.
-                If this file already exists, the new data will 
+                If this file already exists, the new data will
                 be appended to the end of the file.
      vector   Name of the  site file containing labelled location.
                 Substitutes the interactive procedure of site selection.
@@ -249,9 +249,9 @@ Parameters:
     normalize   Numbers of the layers to be normalized.
          mean   Numbers of the layers on which to compute the mean value.
      variance   Numbers of the layers on which to compute the variance.
-    prin_comp   Numbers of the layers on which to compute the principal 
+    prin_comp   Numbers of the layers on which to compute the principal
                 components.
-     class_pc   Classes of the data to be used for computing the 
+     class_pc   Classes of the data to be used for computing the
                 principal components.
                 If not set, all the examples will be used.
   standardize   Numbers of features to be standardize.
@@ -274,15 +274,15 @@ Usage:
 
 Parameters:
   features   Input file containing the features (output of i.pr_features).
-     layer   Number of the layer to be analized (concerning with the 
+     layer   Number of the layer to be analized (concerning with the
              principal components).
-                Ignored if features does not contain principal 
+                Ignored if features does not contain principal
                 components model.
              default: 1
        npc   Number of principal components to be analized.
                 If this number is greater then the dimension of the data,
                 all the principal components will be considered.
-                Ignored if features does not contain principal 
+                Ignored if features does not contain principal
                 components model.
 \end{verbatim}
 
@@ -330,13 +330,13 @@ per boosting di trees \`e possibile sviluppare (il tutto \'e
 sperimentale) la versione soft del modello con il parametro
 soft\_margin\_boosting. Una versione cost-sensitive per la support
 vector machine singola \`e ottenibile utilizzando il parametro
-svm\_cost. 
+svm\_cost.
 \`E possibile inoltre utilizzare una versione regolarizzata dell'algoritmo
 AdaBoost specificando il numero di intervalli (parametro reg) in cui
-suddividere il misclassification ratio (quindi il numero di 
-training set generati), in questo caso il validation set \`e indispnsabile, in 
-alternativa \`e possibile scegliere manualmente il valore di misclassification 
-ratio al disopra del quale i campioni vengono eliminati dal training set 
+suddividere il misclassification ratio (quindi il numero di
+training set generati), in questo caso il validation set \`e indispnsabile, in
+alternativa \`e possibile scegliere manualmente il valore di misclassification
+ratio al disopra del quale i campioni vengono eliminati dal training set
 (parametro misclass\_ratio).
 Per alcuni modelli sono implementate solo classificazione
 binarie in accordo al seguente prospetto:
@@ -384,21 +384,21 @@ Flags:
   -n   selected model: nearest neighbor.
 
 Parameters:
-              features   Input file containing the features 
+              features   Input file containing the features
                          (output of i.pr_features).
                  model   Name of the output file containing the model.
-            validation   Input file containing other features for the 
-                         training and for the evaluation of the performances 
-                         of the model on an independent test set 
+            validation   Input file containing other features for the
+                         training and for the evaluation of the performances
+                         of the model on an independent test set
                          (for regularized AdaBoost).
-                  test   Input file containing other features for the 
-                         evaluation of the performances of the model 
+                  test   Input file containing other features for the
+                         evaluation of the performances of the model
                          on an independent test set.
-                   npc   Number of the principal components to be used 
+                   npc   Number of the principal components to be used
                          for the model development.
-                         If not set all the principal components 
+                         If not set all the principal components
                          will be used.
-                         Ignored if features does not contain 
+                         Ignored if features does not contain
                          principal  components model.
                bagging   Number of bagging models.
                          If bagging = 0 the classical model will
@@ -406,52 +406,52 @@ Parameters:
                          Implemented for trees and svm only.
                          default: 0
               boosting   Number of boosting models.
-                         If boosting = 0 the classical model will 
+                         If boosting = 0 the classical model will
                          be implemented.
                          Implemented for trees and svm only.
                          default: 0
                    reg   Number of misclassification ratio intervals.
                          default: 0
-        misclass_ratio   For regularized AdaBoost: misclassification ratio 
+        misclass_ratio   For regularized AdaBoost: misclassification ratio
                          for hard point shaving and compute the new model.
                          default: 1.00
            reg_verbose   For regularized AdaBoost:
-                         - if it is set = 1 the current value of 
-                           misclassification ratio and the current 
+                         - if it is set = 1 the current value of
+                           misclassification ratio and the current
                            error will be printed.
                          - if it is set to >1 the number of
-                           loops, accuracy and the current value of 
+                           loops, accuracy and the current value of
                            misclassification ratio will be printed.
                          For shaving and compute:
-                         - if it is set >0 the numbers of samples 
+                         - if it is set >0 the numbers of samples
                            shaved will be printed.
                          default: 0
      progressive_error   Progressive estimate of the model error
                          increasing the number of aggregated models
                          options: 0,1
                          default: 0
-         cost_boosting   Cost parameter for the implementation of 
+         cost_boosting   Cost parameter for the implementation of
                          cost-sensitive procedure(w in [0,2]).
                          w>1 results higher weight on examples of class 1.
                          w<1 results higher weight on examples of class -1.
                          w=1 corresponds to standard Adaboost.
                          default: 1.0
-      weights_boosting   For boosting: if weights_boosting = 1, a file 
-                         containing the evolution of the weights associated 
+      weights_boosting   For boosting: if weights_boosting = 1, a file
+                         containing the evolution of the weights associated
                          to data points will be produced.
                          options: 0,1
                          default: 0
-     parallel_boosting   For boosting: number of true boosting steps for 
+     parallel_boosting   For boosting: number of true boosting steps for
                          parallel boosting.
                          Implemented only for trees!!
                          default: 0
-  soft_margin_boosting   For boosting: if soft_margin_boosting = 1, 
-                         sof margin of Ababoost will bee used. 
+  soft_margin_boosting   For boosting: if soft_margin_boosting = 1,
+                         sof margin of Ababoost will bee used.
                          Implemented only with trees. (Sperimental!!!!!!!!)
                          options: 0,1
                          default: 0
-           tree_stamps   For trees: if tree_stamps = 1, a single split 
-                         tree will be procuded, if tree_stamps = 0, 
+           tree_stamps   For trees: if tree_stamps = 1, a single split
+                         tree will be procuded, if tree_stamps = 0,
                          a classical tree will be procuded.
                          options: 0,1
                          default: 0
@@ -462,15 +462,15 @@ Parameters:
             svm_kernel   For svm: type of employed kernel.
                          options: gaussian,linear,2pbk
                          default: linear
-                svm_kp   For svm: kernel parameter (Required parameter if 
+                svm_kp   For svm: kernel parameter (Required parameter if
                          you are using gaussian kernel).
                  svm_C   For svm: optimization parameter (Required parameter).
-              svm_cost   Cost parameter for the implementation of 
+              svm_cost   Cost parameter for the implementation of
                          cost-sensitive procedure(w in [-1,1]).
                          w>0 results higher weight on examples of class 1.
                          w<0 results higher weight on examples of class -1.
                          w=0 corresponds to standard SVM.
-                         Not yet implemented (and may be it will be 
+                         Not yet implemented (and may be it will be
                          never implemented) for bagging and boosting.
                          default: 0.0
                svm_tol   For svm: tollerance parameter.
@@ -482,11 +482,11 @@ Parameters:
                          default: 0
           svm_maxloops   For svm: maximum number of optimization steps.
                          default: 1000
-           svm_verbose   For svm: if it is set to 1 the number of loops will 
+           svm_verbose   For svm: if it is set to 1 the number of loops will
                          be printed.
                          options: 0,1
                          default: 0
-                  nn_k   For nn: Number of neighbor to be considered during 
+                  nn_k   For nn: Number of neighbor to be considered during
                          the test phase.
                          default: 1
 \end{verbatim}
@@ -545,15 +545,15 @@ Usage:
 
 Parameters:
    input_map   Input raster maps to be classified.
-                It is required a number of maps at least equal to the number 
-                of maps used for the training. If this number is greater 
+                It is required a number of maps at least equal to the number
+                of maps used for the training. If this number is greater
                 the last maps will be ignored.
-                WARNING: the order in which the maps are given should 
+                WARNING: the order in which the maps are given should
                 be compared  with that used for the training.
        model   Input file containing the model (output of i .pr_model).
-                If the data used for model development are not GRASS_data 
+                If the data used for model development are not GRASS_data
                 the program will abort.
-  output_map   Name of the output raster map conaining the resulting 
+  output_map   Name of the output raster map conaining the resulting
                classification.
 \end{verbatim}
 
@@ -575,9 +575,9 @@ Flags:
 
 Parameters:
   features   Input file containing the features (output of i.pr_features).
-    n_sets   Number of subsets (>=1). If you set n_sets=1 and select 
+    n_sets   Number of subsets (>=1). If you set n_sets=1 and select
              cross-validation, leave one out cv will be implemented.
-      seed   Seed for the initialization (>=0), which specifies a 
+      seed   Seed for the initialization (>=0), which specifies a
              starting point for the random number sequence. Replicate
              same experiment.
              default: 0
@@ -604,5 +604,3 @@ Parameters:
   features_out   Name of the output file containing the features.
 \end{verbatim}
 \end{document}
-
-

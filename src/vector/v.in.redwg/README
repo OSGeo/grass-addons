@@ -1,12 +1,12 @@
-v.in.redwg requires GNU LibreDWG. To get this library go to 
+v.in.redwg requires GNU LibreDWG. To get this library go to
 http://gnu.org/s/libredwg (no official release yet, you need to check out the
 source code and compile).
 
-Warning: some trick might be needed to build it since I created the Makefile 
-while attached to the main grass tree (svn trunk). I did not try to build it 
+Warning: some trick might be needed to build it since I created the Makefile
+while attached to the main grass tree (svn trunk). I did not try to build it
 after committing to the GRASS-Addons-svn, but I will try to fix it and clean up
 the code soon.
 
 Not to mention that this is still in alpha stage, as LibreDWG, although I
-managed to get some concrete results. Not all entity types are supported 
+managed to get some concrete results. Not all entity types are supported
 (warning printed).

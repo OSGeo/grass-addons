@@ -4,34 +4,34 @@
 <em><b>r.damflood</b></em> - The definition of flooding areas is of considerable
 importance for both the risk analysis and the emergency management.
 This module, in particular, is an embedded GRASS GIS hydrodynamic 2D model
-that allows to obtain flooding areas due to a failure of a dam, given 
-the geometry of the reservoir and of the downstream area, 
+that allows to obtain flooding areas due to a failure of a dam, given
+the geometry of the reservoir and of the downstream area,
 the initial conditions and the dam breach geometry.
 <br>
 
 The numerical model solves the conservative form of the shallow water equations
 (SWE) using a finite volume method (FVM);
 the intercell flux is computed by the upwind method and the water-level
-gradient is evaluated by weighted average of both upwind and downwind gradient. 
+gradient is evaluated by weighted average of both upwind and downwind gradient.
 Additional details of the specific numerical scheme adopted in the model are
 presented in references [1].<br>
 
 The module allows to generate raster time series, of water depth and
 flow velocity, with time resolution defined by the user.
 Each time series is identified by a number of raster maps named with a common
-prefix as specified by the user and the time instant which it refers 
-expressed in seconds from the dam failure, joined by the underscore character 
+prefix as specified by the user and the time instant which it refers
+expressed in seconds from the dam failure, joined by the underscore character
 (e.g.; myvel_125, myvel_250, myvel_375, etc.).<br>
 
-Because this new module has been implemented with the aim to provide an 
-instrument for risk assessment fully within a GIS environment, it should be 
+Because this new module has been implemented with the aim to provide an
+instrument for risk assessment fully within a GIS environment, it should be
 able to provide intensity maps directly applicable in those analyses.
-In floods, intensity generally corresponds to the maximum flow depth, 
+In floods, intensity generally corresponds to the maximum flow depth,
 but in the particular case of flash floods, where velocities are normally high,
 it is recommended to use as an intensity indicator the maximum between
 the water depth and the product of water velocity and water depth.
 For this reason, with this module, in addition to the water depth and velocity
-maps, the user can choose a variety of output raster maps: maximum water depth, 
+maps, the user can choose a variety of output raster maps: maximum water depth,
 maximum water velocity, and maximum intensity raster maps.<br>
 
 In case of numerical stability problems, the user is warned, and the
@@ -60,12 +60,12 @@ The required inputs are:
 
 
 <h4>Output map and additional output options</h4>
-First the user can set a specific time lag [<b>deltat</b>] expressed in 
+First the user can set a specific time lag [<b>deltat</b>] expressed in
 <em>seconds</em>, that is used for the output map (depth and velocity)
 generation.
-It is also possible to generate the output maps, like water flow depth and 
+It is also possible to generate the output maps, like water flow depth and
 velocity maps, at some precise times. These additional series of instants
-are set with the <b>opt_t</b> parameter, expressed in <em>seconds</em> 
+are set with the <b>opt_t</b> parameter, expressed in <em>seconds</em>
 from the beginning of the simulation.
 
 The user can choose between one of the following time series raster maps as
@@ -75,21 +75,20 @@ output:
     <li>flow velocity [<b>vel</b>],</li>
 <!--Finally, the user can choose as additional output: <br>  -->
 <li>a raster map with maximum water depth [<b>hmax</b>],
-    relative flooding intensity [<b>i_hmax</b>], 
-    that is the product of water depth and velocity, 
+    relative flooding intensity [<b>i_hmax</b>],
+    that is the product of water depth and velocity,
     and the relative time of occurrence [<b>t_hmax</b>],</li>
-<li>a raster map with maximum water velocity [<b>vmax</b>], 
-    relative flooding intensity [<b>i_vmax</b>], 
+<li>a raster map with maximum water velocity [<b>vmax</b>],
+    relative flooding intensity [<b>i_vmax</b>],
     and the relative time of occurrence [<b>t_vmax</b>],</li>
-<li>a raster map with maximum flooding intensity [<b>imax</b>] 
+<li>a raster map with maximum flooding intensity [<b>imax</b>]
     and the relative time of occurrence[<b>t_imax</b>],</li>
-<li>a raster map with the time of arriving of the Wave-Front 
+<li>a raster map with the time of arriving of the Wave-Front
     [<b>wavefront</b>]</li>
 </ul>
-where and the raster maps are coded as "prefix" + "_" + "elapsed seconds": 
+where and the raster maps are coded as "prefix" + "_" + "elapsed seconds":
 e.g. <em>mydepth_125</em>.<br>
 <br>
-
 <em>Obviously at least one output map prefix must be specified.</em> <br>
 
 The unit of measurements of output raster maps are expressed using the
@@ -119,9 +118,9 @@ or evaluate the initial velocity using the overflow spillway equation: <br>
 </sup>&#8730;<span style="text-decoration:overline"class="radicand">
 <var>(2 <em>g h)</em></var></span><br>
 
-where <em>V</em> is the water flow velocity expressed in m/s, 
-<em>g</em> is the gravitational acceleration expressed in m/s<sup>2</sup> 
-and <em>h</em> is the water depth in correspondence of the dam breach 
+where <em>V</em> is the water flow velocity expressed in m/s,
+<em>g</em> is the gravitational acceleration expressed in m/s<sup>2</sup>
+and <em>h</em> is the water depth in correspondence of the dam breach
 expressed in meters (m). <br>
 
 
@@ -141,14 +140,14 @@ methods for the initial velocity estimation.
 
 <h2>REFERENCES</h2>
 [1] Cannata M. & Marzocchi R. (2012). Two-dimensional dam break flooding simulation: a GIS embedded approach. - Natural Hazards 61(3):1143-1159 <br>
-[2] <a href="http://gfoss2009.crs4.it/en/system/files/marzocchi_cannata_licensed.pdf" 
-target="_blank">Pdf</a> presentation of the work at the 
-"X Meeting degli Utenti Italiani di GRASS - GFOSS" (It) 
+[2] <a href="http://gfoss2009.crs4.it/en/system/files/marzocchi_cannata_licensed.pdf"
+target="_blank">Pdf</a> presentation of the work at the
+"X Meeting degli Utenti Italiani di GRASS - GFOSS" (It)
 <a href="http://gfoss2009.crs4.it/en/node/61" target="_blank">web-page</a><br>
-[3] Pdf presentation of the work at the FOSS4G 2009 (En) - 
-<a href="http://2009.foss4g.org/researchpapers/#researchpaper_10" 
+[3] Pdf presentation of the work at the FOSS4G 2009 (En) -
+<a href="http://2009.foss4g.org/researchpapers/#researchpaper_10"
 target="_blank">web-page</a><br>
-[4] Pdf presentation of the work at the Geoitalia 2011 conference (En) - 
+[4] Pdf presentation of the work at the Geoitalia 2011 conference (En) -
 <a href="https://dl.dropbox.com/u/3019930/marzocchi_cannata_geoitalia2011.pdf"
 target="_blank">document</a><br>
 

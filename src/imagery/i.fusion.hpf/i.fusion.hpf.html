@@ -5,10 +5,10 @@
 lower resolution multispectral data, resulting in an output with both excellent
 detail and a realistic representation of original multispectral scene colors.
 
-The process involves a convolution using a High Pass Filter (HPF) on the high 
-resolution data, then combining this with the lower resolution multispectral 
-data. Optionally, a linear histogram matching technique is performed in a way that 
-matches the resulting Pan-Sharpened image to the statistical mean and standard 
+The process involves a convolution using a High Pass Filter (HPF) on the high
+resolution data, then combining this with the lower resolution multispectral
+data. Optionally, a linear histogram matching technique is performed in a way that
+matches the resulting Pan-Sharpened image to the statistical mean and standard
 deviation of the original multi-spectral image.
 
 <h3>Background</h3>
@@ -44,7 +44,7 @@ Source: Gangkofner, 2008
     <li> Grasping and testing the various parameters that define the High-Pass
         filter's kernel size and center value is a matter of short time.</li>
     <li> Works with any number and type of raster imagery (8-bit, 16-bit)</li>
-    <li> The "black border" effect, possibly caused due to a non-perfect match of the high vs. the low 
+    <li> The "black border" effect, possibly caused due to a non-perfect match of the high vs. the low
         resolution of the input images, can be trimmed out by using the <code>trim</code>
         option --a floating point "trimming factor" with which to multiply the
         pixel size of the low resolution image-- and shrink the extent of the

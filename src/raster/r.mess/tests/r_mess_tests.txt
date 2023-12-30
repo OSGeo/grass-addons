@@ -106,10 +106,3 @@ r.mess2 -c -k -m -n env=bio1,bio12,bio15 \
 
 r.mask raster=ppa
 r.mess2 -c -k -m -n env=bio1,bio12,bio15 output=Ex_17
-
-
-
-
-
-
-
