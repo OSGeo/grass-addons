@@ -86,6 +86,10 @@ def main():
     style_name = options["style_name"]  # done
     map = options["map"]  # done
 
+    # check if input file exists
+    if not grass.find_file(map)["file"]:
+        grass.fatal(_("Raster map <%s> not found") % map)
+
     # Get map metadata
     mapinfo = grass.parse_command("r.info", flags="e", map=map)
 

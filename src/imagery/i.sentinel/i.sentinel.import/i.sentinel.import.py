@@ -352,6 +352,23 @@ class SentinelImporter(object):
     def _map_name(filename):
         return os.path.splitext(os.path.basename(filename))[0]
 
+    def _extract_semantic_label(self, map_name):
+        semantic_label = None
+        try:
+            semantic_label = re.match(
+                r".*_B([0-18][0-9A]).*|.*_([S][C][L])_.*", map_name
+            ).groups()
+            semantic_label = (
+                semantic_label[0] if semantic_label[0] else semantic_label[1]
+            )
+            semantic_label = semantic_label.lstrip("0")
+            semantic_label = "S2_{}".format(semantic_label)
+        except AttributeError:
+            gs.warning(
+                _("Unable to determine band reference for <{}>").format(map_name)
+            )
+        return semantic_label
+
     def _import_file(self, filename, module, args):
         mapname = self._map_name(filename)
         gs.message(_("Processing <{}>...").format(mapname))
@@ -902,14 +919,19 @@ class SentinelImporter(object):
                 )
                 if flags["j"] and not os.path.isdir(json_standard_folder):
                     os.makedirs(json_standard_folder)
-                for band in bands:
-                    gs.run_command(
-                        "r.support",
-                        map=map_name,
-                        source1=ip,
-                        source2=img_file,
-                        history=descr,
+                support_args = {
+                    "map": map_name,
+                    "source1": ip,
+                    "source2": img_file,
+                    "history": descr,
+                }
+                # Band references/semantic labels available from GRASS GIS 8.0.0 onwards
+                if float(gs.version()["version"][0:3]) >= 7.9:
+                    support_args["semantic_label"] = self._extract_semantic_label(
+                        map_name
                     )
+                for band in bands:
+                    gs.run_command("r.support", **support_args)
                     gs.run_command("r.timestamp", map=map_name, date=timestamp_str)
                     if flags["j"]:
                         metadatajson = os.path.join(
@@ -934,7 +956,6 @@ class SentinelImporter(object):
 
         if not ip_timestamp:
             gs.warning(_("Unable to determine timestamps. No metadata file found"))
-        has_band_ref = float(gs.version()["version"][0:3]) >= 7.9
         sep = "|"
         with open(filename, "w") as fd:
             for img_file in self.files:
@@ -948,21 +969,16 @@ class SentinelImporter(object):
                 fd.write(
                     "{img}{sep}{ts}".format(img=map_name, sep=sep, ts=timestamp_str)
                 )
-                if has_band_ref:
-                    try:
-                        band_ref = re.match(
-                            r".*_B([0-18][0-9A]).*|.*_([S][C][L])_.*", map_name
-                        ).groups()
-                        band_ref = band_ref[0] if band_ref[0] else band_ref[1]
-                        band_ref = band_ref.lstrip("0")
-                    except AttributeError:
-                        gs.warning(
-                            _("Unable to determine band reference for <{}>").format(
-                                map_name
-                            )
-                        )
+                # Band references/semantic labels available from GRASS GIS 8.0.0 onwards
+                if float(gs.version()["version"][0:3]) >= 7.9:
+                    semantic_label = self._extract_semantic_label(map_name)
+                    if semantic_label is None:
                         continue
-                    fd.write("{sep}{br}".format(sep=sep, br="S2_{}".format(band_ref)))
+                    fd.write(
+                        "{sep}{semantic_label}".format(
+                            sep=sep, semantic_label=semantic_label
+                        )
+                    )
                 fd.write(os.linesep)
 
 
