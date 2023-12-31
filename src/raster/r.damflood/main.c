@@ -792,8 +792,8 @@ int main(int argc, char *argv[])
                 }
                 else {
                     G_fatal_error(
-                        _("Couldn't find the dambreak. Please select the correct "
-                          "map or adjust the computational region."));
+                        _("Couldn't find the dambreak. Please select the "
+                          "correct map or adjust the computational region."));
                 }
 
                 if (m_DAMBREAK[row][col] > 0) {
