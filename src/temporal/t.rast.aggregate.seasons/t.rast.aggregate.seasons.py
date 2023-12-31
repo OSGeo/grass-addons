@@ -35,7 +35,7 @@
 # %option
 # % key: years
 # % type: string
-# % label: List of years, separator could be comma (list) or minus (range)
+# % label: List of years, separator may be comma (list) or minus (range)
 # % multiple: yes
 # % required: no
 # %end
