@@ -792,7 +792,7 @@ int main(int argc, char *argv[])
                 }
                 else {
                     G_fatal_error(
-                        _("Couldn't find the dambreak. Please select a correct "
+                        _("Couldn't find the dambreak. Please select the correct "
                           "map or adjust the computational region."));
                 }
 
@@ -835,14 +835,14 @@ int main(int argc, char *argv[])
         for (row = 1; row < nrows - 1; row++) {
             for (col = 1; col < ncols - 1; col++) {
                 if (m_DAMBREAK[row][col] > 0) {
-                    // I think it makes sense
+                    // Checks if it makes sense
                     m_h2[row][col] = m_h1[row][col] - fall;
                     if (m_h2[row][col] <= 0) {
                         m_h2[row][col] = 0.0;
                         if (m_h1[row][col] > 0) {
-                            // This warning must be modified since it is valid
-                            // for every cell ---> You have to put a generic one
-                            // that is valid when all cells have h=0
+                            // This warning is modified since it is valid
+                            // for every cell ---> A generic one is needed
+                            // for the case when all cells have h=0
                             num_break--;
                             if (num_break == 0) {
                                 if (warn1 == 0) {

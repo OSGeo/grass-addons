@@ -88,7 +88,7 @@ void shallow_water(double **m_h1, double **m_u1, double **m_v1, float **m_z,
     //  - Upstream of the dam:
     //      - In methods 1 and 2:
     //          - The continuity equation is applied to the volume of the lake.
-    //            Physically this leads to a less realistic but avoids the
+    //            Physically this leads to less realism but avoids the
     //            oscillations that causes numerical instability.
     //      - In the more general case, the equations are applied to the whole
     //        lake
@@ -435,7 +435,7 @@ void shallow_water(double **m_h1, double **m_u1, double **m_v1, float **m_z,
     // and then compute u(t+1) and v(t+1)
     //
     // NOTE:
-    // u(i,j) and v(i,j) are the average velocities of cells i,j
+    // u(i,j) and v(i,j) are the average velocities of cell i,j
     /*******************************************************************/
     for (row = 1; row < nrows - 1; row++) {
         for (col = 1; col < ncols - 1; col++) {
