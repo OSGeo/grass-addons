@@ -43,7 +43,7 @@
 # %option
 # % key: basename
 # % type: string
-# % label: Basename of the new generated output maps and space time raster datasets
+# % label: Basename of the new generated output maps and space time raster datasets if output option is not used
 # % description: A numerical suffix separated by an underscore will be attached to create a unique identifier
 # % required: yes
 # % multiple: no
@@ -97,7 +97,6 @@ def cleanup():
             remod = pymod.Module("t.remove", run_=False)
             remod.inputs.inputs = map
             remod.inputs.type = typ
-            remod.flags.r = True
             remod.flags.f = True
             remod.flags.d = True
             remod.flags.quiet = True

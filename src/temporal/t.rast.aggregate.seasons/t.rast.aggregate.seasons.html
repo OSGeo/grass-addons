@@ -12,11 +12,25 @@ Astronomical seasons are defined as:
 </ul>
 <p>
 
+Using the <em>output</em> option it will create a unified space time raster dataset with the name set in this option,
+otherwise it will create a space time raster dataset for each year in the input space time raster dataset.
+
 <h2>EXAMPLES</h2>
-Calculate seasonal data from an input space time raster datasets with an output space time raster datasets
+Calculate seasonal data from an input space time raster dataset with a unified output space time raster dataset
 <div class="code"><pre>
     t.rast.aggregate.seasons input=mystrds basename=mystrds_seasons output=outstrds
 </pre></div>
+
+Calculate seasonal data from an input space time raster dataset with yearly output space time raster datasets
+<div class="code"><pre>
+    t.rast.aggregate.seasons input=mystrds basename=mystrds_seasons
+</pre></div>
+
+<h2>NOTES</h2>
+If one of the season is not fully covered by the input space time raster dataset that season will not be created by the module.
+For example if you have a daily space time raster dataset for just one year it will create only raster maps for 3 seasons (Spring, Summer, Autumn),
+the Winter one will be avoided since your input space time raster dataset as data only until the end of the year but it miss the data
+from January to March.
 
 <h2>SEE ALSO</h2>
 <em>
