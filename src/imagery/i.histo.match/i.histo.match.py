@@ -43,6 +43,7 @@
 # %end
 
 # %option G_OPT_DB_DATABASE
+# % description: DEPRECATED, do not use
 # % required : no
 # %end
 
