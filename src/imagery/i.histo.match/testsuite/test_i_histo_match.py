@@ -26,47 +26,38 @@ class TestHistogramMatching(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        """Not needed for the module"""
+        """Set region and initialize temp name"""
         cls.tmp_name = gs.tempname(12)
-
-    def tearDown(self):
-        """Remove the output created from the module"""
+        gs.use_temp_region()
         gs.run_command(
-            "g.remove",
-            flags="f",
-            quiet=True,
-            type="raster",
-            pattern=f"*{self.tmp_name}*",
+            "g.region", raster=["lsat5_1987_10@landsat", "lsat7_2000_10@landsat"]
         )
-        gs.utils.try_remove("")
-
-    def test_output_created(self):
-        """Check that the output is created"""
-        # run the module
-        histo_match = SimpleModule(
-            # create the output with histogram matching
-            "i.histo.match",
-            input=["lsat7_2002_10", "lsat7_2002_30"],
-            suffix=self.tmp_name,
-            output=self.tmp_name,
-        )
-        self.assertModule(histo_match)
-        self.assertRasterExists(f"lsat7_2002_10.{self.tmp_name}")
-        self.assertRasterExists(f"lsat7_2002_30.{self.tmp_name}")
-        self.assertRasterExists(self.tmp_name)
-        univar_ref = """n=810
-null_cells=1009790
-cells=1010600
-min=26
+        # Both input scenes have identical extent, so the mosaic equals the first input
+        cls.univar_ref = """n=250325
+null_cells=0
+cells=250325
+min=50
 max=255
-range=229
-mean=77.3333333333333
-mean_of_abs=77.3333333333333
-stddev=31.8480574828685
-variance=1014.2987654321
-coeff_var=41.1828329519852
-sum=62640"""
-        info_ref = """north=228513
+range=205
+mean=75.7602476780186
+mean_of_abs=75.7602476780186
+stddev=14.402540504151
+variance=207.515108919252
+coeff_var=19.0106829710508
+sum=18964867"""
+        cls.univar_ref_2000 = """n=250325
+null_cells=0
+cells=250325
+min=51
+max=255
+range=204
+mean=75.5963048037551
+mean_of_abs=75.5963048037551
+stddev=14.6466292864087
+variance=214.547156524566
+coeff_var=19.3747952686718
+sum=18923669"""
+        cls.info_ref = """north=228513
 south=214975.5
 east=645012
 west=629992.5
@@ -77,11 +68,55 @@ cols=527
 cells=250325
 datatype=CELL
 ncats=0"""
-        self.assertRasterFitsUnivar(
-            raster=self.tmp_name, reference=univar_ref, precision=0.01
+
+    @classmethod
+    def tearDownClass(cls):
+        """Not needed for the module"""
+        gs.del_temp_region()
+
+    def tearDown(self):
+        """Remove the output created from the module"""
+        gs.run_command(
+            "g.remove",
+            flags="f",
+            quiet=True,
+            type="raster",
+            pattern=f"*{self.tmp_name}*",
         )
+
+    def test_output_created(self):
+        """Check that the output is created with reference univar statistics"""
+        # Run the module
+        histo_match = SimpleModule(
+            # Create the output with histogram matching
+            "i.histo.match",
+            input=["lsat5_1987_10@landsat", "lsat7_2000_10@landsat"],
+            suffix=self.tmp_name,
+            output=self.tmp_name,
+        )
+        self.assertModule(histo_match)
+        # Check that output exists
+        self.assertRasterExists(f"lsat5_1987_10.{self.tmp_name}")
+        self.assertRasterExists(f"lsat7_2000_10.{self.tmp_name}")
+        self.assertRasterExists(self.tmp_name)
+        # Check unvar statistics against reference
+        gs.run_command("g.region", raster=self.tmp_name, align=self.tmp_name)
+        self.assertRasterFitsUnivar(
+            raster=self.tmp_name, reference=self.univar_ref, precision=0.01
+        )
+        self.assertRasterFitsUnivar(
+            raster=f"lsat5_1987_10.{self.tmp_name}",
+            reference=self.univar_ref,
+            precision=0.01,
+        )
+        self.assertRasterFitsUnivar(
+            raster=f"lsat7_2000_10.{self.tmp_name}",
+            reference=self.univar_ref_2000,
+            precision=0.01,
+        )
+        # Check raster info
         self.assertRasterFitsInfo(
-            raster=self.tmp_name, reference=info_ref, precision=0.01
+            raster=self.tmp_name, reference=self.info_ref, precision=0.01
         )
 
 
