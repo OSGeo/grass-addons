@@ -65,7 +65,6 @@ import grass.script as gscript
 
 # initialize global vars
 rm_rasters = []
-current_region = None
 
 
 def cleanup():
@@ -77,19 +76,6 @@ def cleanup():
         if gscript.find_file(name=rmrast, element="cell")["file"]:
             gscript.run_command("g.remove", type="raster", name=rmrast, **kwargs)
 
-    # set region back to original region
-    if current_region:
-        gscript.run_command(
-            "g.region",
-            w=current_region["w"],
-            s=current_region["s"],
-            e=current_region["e"],
-            n=current_region["n"],
-            ewres=current_region["ewres"],
-            nsres=current_region["nsres"],
-            quiet=True,
-        )
-
 
 def main():
     lowres_map = options["input"]
@@ -98,6 +84,7 @@ def main():
     fusion_method = options["method"]
     fit_range = flags["r"]
 
+    gscript.use_temp_region()
     current_region = gscript.region()
 
     # get range of lowres raster
