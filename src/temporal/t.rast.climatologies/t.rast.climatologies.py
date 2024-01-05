@@ -88,6 +88,9 @@ from datetime import datetime
 
 
 def main():
+    import grass.pygrass.modules as pymod
+    import grass.script as gscript
+    import grass.temporal as tgis
     options, flags = gscript.parser()
     strds = options["input"]
     output = options["output"]
@@ -237,8 +240,4 @@ def main():
 
 
 if __name__ == "__main__":
-    import grass.pygrass.modules as pymod
-    import grass.script as gscript
-    import grass.temporal as tgis
-
     main()
