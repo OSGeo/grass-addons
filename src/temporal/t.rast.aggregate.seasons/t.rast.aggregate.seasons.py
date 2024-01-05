@@ -205,7 +205,6 @@ def main():
     mod.inputs.type = "stvds"
     mod.flags.quiet = False
     mod.flags.n = register_null
-    mod.flags.overwrite = gs.overwrite()
 
     count = 0
 
