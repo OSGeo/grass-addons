@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = d.vect.colbp
+PGM = v.boxplot
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 
