@@ -15,7 +15,7 @@ class TestClimatologies(TestCase):
     @classmethod
     def setUpClass(cls):
         """Initiate the temporal GIS and set the region"""
-        tgis.init(True)  # Raise on error instead of exit(1)
+        tgis.init(raise_fatal_error=True)
         cls.use_temp_region()
         cls.runModule("g.region", s=0, n=80, w=0, e=120, b=0, t=50, res=10, res3=10)
 
