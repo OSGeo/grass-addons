@@ -234,8 +234,6 @@ def main():
     if len(outputs) > 1:
         pymod.Module("t.merge", inputs=",".join(outputs), output=output_name)
 
-    return True
-
 
 if __name__ == "__main__":
     atexit.register(cleanup)
