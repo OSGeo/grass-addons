@@ -91,6 +91,7 @@ def main():
     import grass.pygrass.modules as pymod
     import grass.script as gscript
     import grass.temporal as tgis
+
     options, flags = gscript.parser()
     strds = options["input"]
     output = options["output"]
