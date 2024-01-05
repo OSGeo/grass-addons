@@ -183,7 +183,6 @@ def main():
             f"Season vector for the year {year}",
             "mean",
             dbif,
-            gs.overwrite(),
         )
         tgis.register_map_object_list(
             "vector",
