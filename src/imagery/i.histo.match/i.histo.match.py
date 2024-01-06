@@ -2,12 +2,13 @@
 
 """
  MODULE:       i.histo.match
- AUTHOR(S):    Luca Delucchi, Fondazione E. Mach (Italy)
+ AUTHOR(S):    Stefan Blumentrath (Norway) parallel / Numpy re-implementation
+               of the original module written by:
+               Luca Delucchi, Fondazione E. Mach (Italy)
                original PERL code was developed by:
                Laura Zampa (2004) student of Dipartimento di Informatica e
                Telecomunicazioni, Facoltà di Ingegneria,
                University of Trento  and ITC-irst, Trento (Italy)
-               Parallel/Numpy implementation by Stefan Blumentrath
 
  PURPOSE:      Calculate histogram matching of several images
  COPYRIGHT:    (C) 2011-2024 by the GRASS Development Team
