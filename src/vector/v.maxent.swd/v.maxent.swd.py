@@ -450,8 +450,7 @@ def main(options, flags):
         bgrdir = tempfile.mkdtemp()
 
         # Get list with species names
-        specs = options["species"]
-        specs = specs.split(",")
+        specs = options["species"].split(",")
         specsn = options["species_name"]
         if specsn == "":
             specsn = [z.split("@")[0] for z in specs]
