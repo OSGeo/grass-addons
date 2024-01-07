@@ -1,0 +1,86 @@
+<h2>DESCRIPTION</h2>
+
+With <em>r.maxent.train</em> a Maxent presence only model can be 
+created using the <em>Maxent software</em>. As input, the addon 
+requires two comma-separated files, one with the species locations and 
+another of background points locations. Both need to include columns 
+with the X, Y and sample values of the environmental variables that you 
+want to use as predictor variables. You can use the <a 
+href="r.out.maxent_swd.html">r.out.maxent_swd</a> or <a 
+href="v.maxent.swd.html">v.maxent.swd</a> addons to create these files. 
+For more details about the structure of these files, see the <a 
+href="https://biodiversityinformatics.amnh.org/open_source/maxent/">Maxent 
+website</a>.
+
+<p>
+The only other requirement is to provide an output folder. With 
+these inputs, a Maxent model will be created. If you also provide a 
+folder with prediction raster layers, the module will create a 
+prediction raster layer as well. 
+
+<p>
+The addon provides access to nearly all parameters available in the 
+Maxent software. On the above-mentioned website, you can find a 
+tutorial that explains most of these options. For the other options, 
+see the Maxent help file.
+
+
+<h2>NOTES</h2>
+
+A new addon is being developed that 
+will allow you to use the model to performs predictions based on 
+different sets of prediction layers. For now, check the Maxent tutorial 
+for instructions on how you can use Maxent itself to perform predictions 
+based on a set of prediction layers. Note that the <em>v.maxent.swd</em> 
+addons provides an easy way to export the prediction layers in the 
+right format.
+
+<p>
+The addon requires the Maxent software. You can download the software 
+from the <a 
+href="http://biodiversityinformatics.amnh.org/open_source/maxent">Maxent 
+website</a>. The software includes a <em>Maxent.jar</em> file. You can 
+simply point to that file (<em>maxent</em> options) when using the 
+addon. If you plan to use the addon more often, the easier solution 
+will be to copy the Maxent.jar file to the addon/script directory. On 
+GNU/Linux, the default directory is $HOME/.grass8/addons. On MS-Windows 
+it is %APPDATA%\Roaming\GRASS8\addons. The name of the directory is 
+stored in the GRASS_ADDON_BASE environmental variable. Alternatively, 
+open GRASS GIS AND type `echo $GRASS_ADDON_BASE` on the command line. 
+This will give you the location of the default addon directory on your 
+Computer.
+
+
+
+<h2>REFERENCES</h2>
+
+<ul>
+<li>Steven J. Phillips, Miroslav Dud&iacute;k, Robert E. Schapire. 2020: Maxent software
+for modeling species niches and distributions (Version 3.4.1).
+Available from url: <a href="http://biodiversityinformatics.amnh.org/open_source/maxent">
+http://biodiversityinformatics.amnh.org/open_source/maxent</a>
+and <a href="https://github.com/mrmaxent/Maxent">https://github.com/mrmaxent/Maxent</a></li>
+<li>Steven J. Phillips, Miroslav Dud&iacute;k, Robert E. Schapire. 2004: A maximum entropy
+approach to species distribution modeling. In Proceedings of the Twenty-First International
+Conference on Machine Learning, pages 655-662, 2004.</li>
+<li>Steven J. Phillips, Robert P. Anderson, Robert E. Schapire. 2006: Maximum entropy
+modeling of species geographic distributions. Ecological Modelling, 190:231-259, 2006.</li>
+<li>Jane Elith, Steven J. Phillips, Trevor Hastie, Miroslav Dud&iacute;k, Yung En Chee,
+Colin J. Yates. 2011: A statistical explanation of MaxEnt for ecologists. Diversity and
+Distributions, 17:43-57, 2011.</li>
+</ul>
+
+<h2>SEE ALSO</h2>
+
+See also 
+
+<ul>
+<li><a href="v.maxent.swd.html">v.maxent.swd</a>, creating species and background swd files and prediction rasters that can be used directly by the <em>r.maxent.train</em> addon (or the Maxent software itself) to create species distribution models.</li>
+<li><a href="r.out.maxent_swd.html">r.out.maxent_swd</a>, creating species and background swd files based on species distribution data in raster format.</li>
+</ul>
+
+<h2>AUTHOR</h2>
+
+Paulo van Breugel, <a href="http://Ecodiv.earth">https://ecodiv.earth</a><br>
+
+
