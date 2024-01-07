@@ -42,9 +42,9 @@ range=205
 mean=75.7602476780186
 mean_of_abs=75.7602476780186
 stddev=14.402540504151
-variance=207.515108919252
+variance=207.43317297371
 coeff_var=19.0106829710508
-sum=18964867"""
+sum=18964684"""
         cls.univar_ref_2000 = """n=250325
 null_cells=0
 cells=250325
@@ -54,9 +54,9 @@ range=204
 mean=75.5963048037551
 mean_of_abs=75.5963048037551
 stddev=14.6466292864087
-variance=214.547156524566
+variance=214.523749453485
 coeff_var=19.3747952686718
-sum=18923669"""
+sum=18923645"""
         cls.info_ref = """north=228513
 south=214975.5
 east=645012
@@ -82,6 +82,43 @@ ncats=0"""
             quiet=True,
             type="raster",
             pattern=f"*{self.tmp_name}*",
+        )
+
+    def test_parallel_output_statistics(self):
+        """Check that the output from parallel processing
+        is created with reference univar statistics"""
+        # Run the module
+        histo_match = SimpleModule(
+            # Create the output with histogram matching
+            "i.histo.match",
+            input=["lsat5_1987_10@landsat", "lsat7_2000_10@landsat"],
+            suffix=self.tmp_name,
+            output=self.tmp_name,
+            nprocs=2,
+        )
+        self.assertModule(histo_match)
+        # Check that output exists
+        self.assertRasterExists(f"lsat5_1987_10.{self.tmp_name}")
+        self.assertRasterExists(f"lsat7_2000_10.{self.tmp_name}")
+        self.assertRasterExists(self.tmp_name)
+        # Check unvar statistics against reference
+        gs.run_command("g.region", raster=self.tmp_name, align=self.tmp_name)
+        self.assertRasterFitsUnivar(
+            raster=self.tmp_name, reference=self.univar_ref, precision=0.01
+        )
+        self.assertRasterFitsUnivar(
+            raster=f"lsat5_1987_10.{self.tmp_name}",
+            reference=self.univar_ref,
+            precision=0.01,
+        )
+        self.assertRasterFitsUnivar(
+            raster=f"lsat7_2000_10.{self.tmp_name}",
+            reference=self.univar_ref_2000,
+            precision=0.01,
+        )
+        # Check raster info
+        self.assertRasterFitsInfo(
+            raster=self.tmp_name, reference=self.info_ref, precision=0.01
         )
 
     def test_output_created(self):
