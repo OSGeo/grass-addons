@@ -312,7 +312,7 @@ def main(options, flags):
     else:
         environmental_layers = evp
         env_vars = evpn
-
+    cols = ["species", "Long", "Lat"] + env_vars
     # Write alias output if requested
     if options["alias_output"]:
         gs.message(_("Creating alias file"))
@@ -423,7 +423,6 @@ def main(options, flags):
         )
 
         # Export the data to csv file and remove temporary file
-        cols = ["species", "Long", "Lat"] + env_vars
         gs.run_command(
             "v.db.select",
             flags=header,
@@ -473,12 +472,14 @@ def main(options, flags):
                 )
                 sqlst = f"update {specname} SET {env_vars[j]} = {str(nodata)} WHERE {env_vars[j]} ISNULL"
                 gs.run_command("db.execute", sql=sqlst, quiet=True)
-            gs.run_command(
-                "v.db.addcolumn",
-                map=specname,
-                columns="species VARCHAR(250)",
-                quiet=True,
-            )
+            existing_columns = gs.read_command("db.columns", table=specname).split("\n")
+            if "species" not in existing_columns:
+                gs.run_command(
+                    "v.db.addcolumn",
+                    map=specname,
+                    columns="species VARCHAR(250)",
+                    quiet=True,
+                )
             sqlst = f"update {specname} SET species = '{specsn[i]}'"
             gs.run_command("db.execute", sql=sqlst, quiet=True)
 
