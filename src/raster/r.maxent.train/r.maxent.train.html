@@ -15,8 +15,15 @@ website</a>.
 <p>
 The only other requirement is to provide an output folder. With 
 these inputs, a Maxent model will be created. If you also provide a 
-folder with prediction raster layers, the module will create a 
-prediction raster layer as well. 
+folder with environmental raster layers with names corresponding to the 
+names of the environmental variables in the SWD files, the module will 
+create a prediction (suitability distribution) raster layer as well. 
+
+<p>
+Note that the Maxent software generates ascii files without projection 
+information. That means you need to make sure yourself that the 
+environmental layers you provide are in the same reference coordinate 
+system as your current mapset. 
 
 <p>
 The addon provides access to nearly all parameters available in the 
@@ -26,14 +33,6 @@ see the Maxent help file.
 
 
 <h2>NOTES</h2>
-
-A new addon is being developed that 
-will allow you to use the model to performs predictions based on 
-different sets of prediction layers. For now, check the Maxent tutorial 
-for instructions on how you can use Maxent itself to perform predictions 
-based on a set of prediction layers. Note that the <em>v.maxent.swd</em> 
-addons provides an easy way to export the prediction layers in the 
-right format.
 
 <p>
 The addon requires the Maxent software. You can download the software 
@@ -50,7 +49,13 @@ open GRASS GIS AND type `echo $GRASS_ADDON_BASE` on the command line.
 This will give you the location of the default addon directory on your 
 Computer.
 
-
+A new addon is being developed that 
+will allow you to use the model to performs predictions based on 
+different sets of prediction layers. For now, check the Maxent tutorial 
+for instructions on how you can use Maxent itself to perform predictions 
+based on a set of prediction layers. Note that the <em>v.maxent.swd</em> 
+addons provides an easy way to export the prediction layers in the 
+right format.
 
 <h2>REFERENCES</h2>
 
