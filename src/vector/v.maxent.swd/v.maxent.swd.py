@@ -529,6 +529,7 @@ def main(options, flags):
         + bool(options["alias_output"])
         + bool(options["bgr_output"])
         + bool(options["species"])
+        + bool(options["export_rasters"])
     )
     if exported == 0:
         gs.message("Nothing exported/created. Give at least one required output.")
