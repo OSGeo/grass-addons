@@ -121,16 +121,28 @@
 # % guisection: point data
 # %end
 
+# %option G_OPT_F_OUTPUT
+# % key: bgr_output
+# % description: Background SWD file
+# % required : no
+# % multiple: no
+# % guisection: output
+# %end
+
 # %rules
 # %exclusive: nbgp,bgp
 # %end
 
-# %option G_OPT_F_OUTPUT
-# % key: bgr_output
-# % description: Background SWD file
-# % required : yes
-# % multiple: no
-# % guisection: output
+# %rules
+# %requires: nbgp,bgr_output
+# %end
+
+# %rules
+# %requires: bgp,bgr_output
+# %end
+
+# %rules
+# %requires: bgr_output,nbgp,bgp
 # %end
 
 # %option G_OPT_F_OUTPUT
@@ -142,7 +154,7 @@
 # %end
 
 # %rules
-# %requires: species_output,species
+# %collective: species_output,species
 # %end
 
 # %option G_OPT_F_OUTPUT
@@ -166,7 +178,6 @@
 # % required: no
 # % options: ascii,GeoTIFF
 # %end
-
 
 # %flag
 # % key: h
@@ -199,7 +210,6 @@
 # import libraries
 import os
 import sys
-import tempfile
 import atexit
 import sys
 import uuid
@@ -209,16 +219,8 @@ import grass.script as gs
 CLEAN_LAY = []
 
 
-def create_unique_name(name):
-    """Generate a tmp name which contains prefix
-    Store the name in the global list.
-    Use only for raster maps.
-    """
-    return name + str(uuid.uuid4().hex)
-
-
 def create_temporary_name(prefix):
-    tmpf = create_unique_name(prefix)
+    tmpf = f"{prefix}{str(uuid.uuid4().hex)}"
     CLEAN_LAY.append(tmpf)
     return tmpf
 
@@ -267,7 +269,6 @@ def main(options, flags):
     evp = options["evp_maps"]
     evp = evp.split(",")
     evpn = options["alias_names"]
-    alias_output = options["alias_output"]
     bgrout = options["bgr_output"]
     if os.path.isfile(bgrout):
         bgrout2 = CreateFileName(bgrout)
@@ -308,11 +309,14 @@ def main(options, flags):
             )
         environmental_layers = evp + evpc
         env_vars = evpn + evpcn
+    else:
+        environmental_layers = evp
+        env_vars = evpn
 
     # Write alias output if requested
-    if alias_output:
+    if options["alias_output"]:
         gs.message(_("Creating alias file"))
-        with open(alias_output, "w") as alias_out:
+        with open(options["alias_output"], "w") as alias_out:
             for idx, name in enumerate(env_vars):
                 alias_out.write("{},{}\n".format(name, environmental_layers[idx]))
 
@@ -366,22 +370,12 @@ def main(options, flags):
     # --------------------------------------------------------------------------
     # Background points
     # --------------------------------------------------------------------------
-
-    # Create / copy to tmp layer
-    bgpname = create_temporary_name("bgp")
-    gs.message(_("Creating SWD file with background points"))
-    if bool(options["bgp"]):
-        gs.run_command("g.copy", vector=[options["bgp"], bgpname], quiet=True)
-    else:
-        if bool(options["seed"]):
-            gs.run_command(
-                "r.random",
-                input=environmental_layers[0],
-                npoints=bgpn,
-                vector=bgpname,
-                quiet=True,
-                seed=int(options["seed"]),
-            )
+    if bool(options["bgr_output"]):
+        # Create / copy to tmp layer
+        bgpname = create_temporary_name("bgp")
+        gs.message(_("Creating SWD file with background points"))
+        if bool(options["bgp"]):
+            gs.run_command("g.copy", vector=[options["bgp"], bgpname], quiet=True)
         else:
             gs.run_command(
                 "r.random",
@@ -389,65 +383,63 @@ def main(options, flags):
                 npoints=bgpn,
                 vector=bgpname,
                 quiet=True,
-                flags="s",
+                seed=options["seed"],
             )
-        gs.run_command("v.db.droptable", flags="f", map=bgpname, quiet=True)
-        gs.run_command("v.db.addtable", map=bgpname, table=bgpname, quiet=True)
 
-    # Upload environmental values for point locations to attribute table
-    for j in range(len(env_vars)):
+        # Upload environmental values for point locations to attribute table
+        for j in range(len(env_vars)):
+            gs.run_command(
+                "v.what.rast",
+                map=bgpname,
+                raster=environmental_layers[j],
+                column=env_vars[j],
+                quiet=True,
+            )
+            sqlst = (
+                "update "
+                + bgpname
+                + " SET "
+                + env_vars[j]
+                + " = "
+                + str(nodata)
+                + " WHERE "
+                + env_vars[j]
+                + " ISNULL"
+            )
+            gs.run_command("db.execute", sql=sqlst, quiet=True)
         gs.run_command(
-            "v.what.rast",
+            "v.db.addcolumn", map=bgpname, columns="species VARCHAR(250)", quiet=True
+        )
+        sqlst = "update " + bgpname + " SET species = 'background'"
+        gs.run_command("db.execute", sql=sqlst, quiet=True)
+
+        # Upload x and y coordinates
+        gs.run_command(
+            "v.to.db",
             map=bgpname,
-            raster=environmental_layers[j],
-            column=env_vars[j],
+            option="coor",
+            columns="Long,Lat",
             quiet=True,
         )
-        sqlst = (
-            "update "
-            + bgpname
-            + " SET "
-            + env_vars[j]
-            + " = "
-            + str(nodata)
-            + " WHERE "
-            + env_vars[j]
-            + " ISNULL"
+
+        # Export the data to csv file and remove temporary file
+        cols = ["species", "Long", "Lat"] + env_vars
+        gs.run_command(
+            "v.db.select",
+            flags=header,
+            map=bgpname,
+            columns=cols,
+            separator=",",
+            file=bgrout,
+            quiet=True,
         )
-        gs.run_command("db.execute", sql=sqlst, quiet=True)
-    gs.run_command(
-        "v.db.addcolumn", map=bgpname, columns="species VARCHAR(250)", quiet=True
-    )
-    sqlst = "update " + bgpname + " SET species = 'background'"
-    gs.run_command("db.execute", sql=sqlst, quiet=True)
-
-    # Upload x and y coordinates
-    gs.run_command(
-        "v.to.db",
-        map=bgpname,
-        option="coor",
-        columns="Long,Lat",
-        quiet=True,
-    )
-
-    # Export the data to csv file and remove temporary file
-    cols = ["species", "Long", "Lat"] + env_vars
-    gs.run_command(
-        "v.db.select",
-        flags=header,
-        map=bgpname,
-        columns=cols,
-        separator=",",
-        file=bgrout,
-        quiet=True,
-    )
 
     # --------------------------------------------------------------------------
     # Presence points
     # --------------------------------------------------------------------------
     if bool(options["species"]):
         gs.message(_("Creating SWD file with presence points"))
-        bgrdir = tempfile.mkdtemp()
+        bgrdir = gs.tempdir()
 
         # Get list with species names
         specs = options["species"].split(",")
@@ -456,6 +448,13 @@ def main(options, flags):
             specsn = [z.split("@")[0] for z in specs]
         else:
             specsn = specsn.split(",")
+            if len(specsn) != len(specs):
+                gs.fatal(
+                    (
+                        "Number of species occurence maps does not match number"
+                        " \nof provided species names. No SWD file with presences created"
+                    )
+                )
         specout = options["species_output"]
 
         # Write for each species a temp swd file
@@ -512,7 +511,7 @@ def main(options, flags):
                     file=bgrtmp,
                     quiet=True,
                 )
-
+        # todo: see if the above can be appended to reduce I/O
         # Combine species swd files
         filenames = os.path.join(bgrdir, "prespoints")
         filenames = [filenames + str(i) for i in range(len(specs))]
@@ -524,6 +523,14 @@ def main(options, flags):
         # Remove temporary text files
         for m in filenames:
             os.remove(m)
+    exported = (
+        bool(options["bgr_output"])
+        + bool(options["alias_output"])
+        + bool(options["bgr_output"])
+        + bool(options["species"])
+    )
+    if exported == 0:
+        gs.message("Nothing exported/created. Give at least one required output.")
 
 
 if __name__ == "__main__":
