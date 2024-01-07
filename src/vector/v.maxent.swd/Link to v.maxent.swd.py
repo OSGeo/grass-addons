@@ -1,1 +1,0 @@
-/home/paulo/Github/grass-addons/src/vector/v.maxent.swd/v.maxent.swd.py
