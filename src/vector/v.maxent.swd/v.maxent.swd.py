@@ -516,7 +516,7 @@ def main(options, flags):
         # Combine species swd files
         filenames = os.path.join(bgrdir, "prespoints")
         filenames = [filenames + str(i) for i in range(len(specs))]
-        with open(specout, "w") as outfile:
+        with open(specout, "a") as outfile:
             for fname in filenames:
                 with open(fname) as infile:
                     outfile.write(infile.read().rstrip() + "\n")
