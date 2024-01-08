@@ -832,7 +832,7 @@ def main(options, flags):
                 gs.run_command(
                     "v.db.addcolumn",
                     map=prediction_layers[0],
-                    columns=f"tmp999 double precision",
+                    columns="tmp999 double precision",
                     quiet=True,
                 )
                 gs.run_command(
