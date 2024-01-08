@@ -453,6 +453,10 @@ def main(options, flags):
             file=bgrout,
             quiet=True,
         )
+        prjout = bgrout.replace("csv", "prj")
+        proj_string = gs.read_command("g.proj", flags="fe").strip()
+        with open(prjout, "w") as outfile:
+            outfile.write(proj_string)
 
     # --------------------------------------------------------------------------
     # Presence points
@@ -533,7 +537,6 @@ def main(options, flags):
                     file=bgrtmp,
                     quiet=True,
                 )
-        # todo: see if the above can be appended to reduce I/O
         # Combine species swd files
         filenames = os.path.join(bgrdir, "prespoints")
         filenames = [filenames + str(i) for i in range(len(specs))]
@@ -541,6 +544,10 @@ def main(options, flags):
             for fname in filenames:
                 with open(fname) as infile:
                     outfile.write(infile.read().rstrip() + "\n")
+        prjout = specout.replace("csv", "prj")
+        proj_string = gs.read_command("g.proj", flags="fe").strip()
+        with open(prjout, "w") as outfile:
+            outfile.write(proj_string)
 
         # Remove temporary text files
         for m in filenames:
