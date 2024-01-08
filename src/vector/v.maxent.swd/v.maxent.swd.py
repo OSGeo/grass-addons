@@ -180,6 +180,12 @@
 # %end
 
 # %flag
+# % key: e
+# % label: Automatically adapt resolution
+# % description: When the ns and ew resolution are not the same, nearest neighbor resampling will be used to ensure both are the same.
+# %end
+
+# %flag
 # % key: h
 # % description: skip header in csv
 # %end
@@ -259,12 +265,27 @@ def CreateFileName(outputfile):
     return flname
 
 
-# ----------------------------------------------------------------------------
-# Main
-# ----------------------------------------------------------------------------
-
-
 def main(options, flags):
+    """Check if X and Y resolution is equal"""
+    regioninfo = gs.parse_command("g.region", flags="g")
+    if regioninfo["nsres"] != regioninfo["ewres"]:
+        if flags["e"]:
+            new_resolution = min(float(regioninfo["nsres"]), float(regioninfo["ewres"]))
+            gs.run_command("g.region", flags="a", res=new_resolution)
+            gs.message(
+                "The ns and ew resolution of the current computational region are"
+                " not the same\n. Resampling to the smallest of the two ({})".format(
+                    round(new_resolution, 12)
+                )
+            )
+        else:
+            gs.fatal(
+                "The ns and ew resolution of the computational region do not match.\n"
+                "Change the resolution yourself or set the -e flag. Using the\n"
+                "-e flag will adjust the resolution so both the ns and ew resolution\n"
+                "match the smallest of the two, using nearest neighbor resampling."
+            )
+
     # variables
     evp = options["evp_maps"]
     evp = evp.split(",")
