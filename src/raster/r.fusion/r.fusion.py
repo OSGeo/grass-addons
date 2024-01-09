@@ -93,7 +93,6 @@ def main():
         "r.univar",
         map=lowres_map,
         flags="g",
-        parse=(gscript.parse_key_val, {"sep": "="}),
     )
     # get info of lowres raster
     infolr = gscript.raster_info(lowres_map)
@@ -114,7 +113,6 @@ def main():
         "r.univar",
         map=highres_map,
         flags="g",
-        parse=(gscript.parse_key_val, {"sep": "="}),
     )
     # get info of highres raster
     infohr = gscript.raster_info(highres_map)
@@ -142,7 +140,7 @@ def main():
         # rescale highres raster to lowres raster
         scale_factor = (lrmax - lrmin) / (hrmax - hrmin)
         # formula: rescaled = (highres - hrmin) * scale_factor + lrmin
-        highres_map_scaled = f"highres_map_scaled_tmp_{os.getpid()}"
+        highres_map_scaled = gscript.append_node_pid("highres_map_scaled_tmp")
         exp = f"{highres_map_scaled} = ({highres_map} - {hrmin}) * {scale_factor} + {lrmin}"
         gscript.mapcalc(exp)
         rm_rasters.append(highres_map_scaled)
@@ -160,7 +158,7 @@ def main():
         quiet=True,
     )
     gscript.run_command("g.region", align=lowres_map)
-    highres_map_low = f"highres_map_low_tmp_{os.getpid()}"
+    highres_map_low = gscript.append_node_pid("highres_map_low_tmp")
     gscript.run_command(
         "r.resamp.stats", input=last_result, output=highres_map_low, method="median"
     )
@@ -169,7 +167,7 @@ def main():
     if fusion_method == "difference":
         # difference method: A - B + B = A
         gscript.message(_("Applying difference method..."))
-        hig_low_diff = f"hig_low_diff_tmp_{os.getpid()}"
+        hig_low_diff = gscript.append_node_pid("hig_low_diff_tmp")
         exp = f"{hig_low_diff} = {lowres_map} - {highres_map_low}"
         gscript.mapcalc(exp)
         rm_rasters.append(hig_low_diff)
@@ -189,7 +187,7 @@ def main():
         # interpolate differences
         radius1 = 1.5 * (infolr["nsres"] + infolr["ewres"]) / 2.0
         radius2 = 3.0 * (infolr["nsres"] + infolr["ewres"]) / 2.0
-        hig_low_diff_high = f"hig_low_diff_high_tmp_{os.getpid()}"
+        hig_low_diff_high = gscript.append_node_pid("hig_low_diff_high_tmp")
         gscript.run_command(
             "r.resamp.filter",
             input=hig_low_diff,
@@ -200,7 +198,7 @@ def main():
         rm_rasters.append(hig_low_diff_high)
 
         # add the interpolated difference to the highres map
-        lowres_high = f"lowres_high_tmp_{os.getpid()}"
+        lowres_high = gscript.append_node_pid("lowres_high_tmp")
         exp = f"{lowres_high} = {hig_low_diff_high} + {last_result}"
         gscript.mapcalc(exp)
         rm_rasters.append(lowres_high)
@@ -208,7 +206,7 @@ def main():
     else:
         # proportion method: A / B * B = A
         gscript.message(_("Applying proportion method..."))
-        hig_low_prop = f"hig_low_prop_tmp_{os.getpid()}"
+        hig_low_prop = gscript.append_node_pid("hig_low_prop_tmp")
         exp = f"{hig_low_prop} = float({lowres_map}) / {highres_map_low}"
         gscript.mapcalc(exp)
         rm_rasters.append(hig_low_prop)
@@ -228,7 +226,7 @@ def main():
         # interpolate proportions
         radius1 = 1.5 * (infolr["nsres"] + infolr["ewres"]) / 2.0
         radius2 = 3.0 * (infolr["nsres"] + infolr["ewres"]) / 2.0
-        hig_low_prop_high = f"hig_low_prop_high_tmp_{os.getpid()}"
+        hig_low_prop_high = gscript.append_node_pid("hig_low_prop_high_tmp")
         gscript.run_command(
             "r.resamp.filter",
             input=hig_low_prop,
@@ -239,7 +237,7 @@ def main():
         rm_rasters.append(hig_low_prop_high)
 
         # multiply the interpolated proportions with the highres map
-        lowres_high = f"lowres_high_tmp_{os.getpid()}"
+        lowres_high = gscript.append_node_pid("lowres_high_tmp")
         exp = f"{lowres_high} = {hig_low_prop_high} * {last_result}"
         gscript.mapcalc(exp)
         rm_rasters.append(lowres_high)
@@ -250,7 +248,6 @@ def main():
             "r.univar",
             map=lowres_high,
             flags="g",
-            parse=(gscript.parse_key_val, {"sep": "="}),
         )
         stats_fused["min"] = float(stats_fused["min"])
         stats_fused["max"] = float(stats_fused["max"])
@@ -290,7 +287,7 @@ def main():
                 # to the range [inmin, use_perc]
                 fused_min = stats_fused["min"]
                 # scale_factor = (use_perc - lrmin) / (use_perc - fused_min)
-                out_minscaled = f"out_minscaled_{os.getpid()}"
+                out_minscaled = gscript.append_node_pid("out_minscaled")
 
                 # linear scaling, creates some artefacts in the histogram
                 # exp = (
@@ -327,7 +324,7 @@ def main():
                 # to the range [use_perc, inmax]
                 fused_max = stats_fused["max"]
                 # scale_factor = (lrmax - use_perc) / (fused_max - use_perc)
-                out_maxscaled = f"out_maxscaled_{os.getpid()}"
+                out_maxscaled = gscript.append_node_pid("out_maxscaled")
 
                 # linear scaling, creates some artefacts in the histogram
                 # exp = (
