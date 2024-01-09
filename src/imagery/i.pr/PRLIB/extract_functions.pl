@@ -1,6 +1,7 @@
 #!/usr/local/bin/perl
 
-require 'getopts.pl';
+use strict;
+require getopts;
 
 &Getopts('f');
 
@@ -20,8 +21,8 @@ if(!$opt_f){
 		    print "\n#########################\n$files[$nfiles]\n#########################\n\n";
 		}
 	    $done = 1;
-	    open(FILE,$files[$nfiles]);
-	    while(<FILE>){
+	    open(my $FILE,"<",$files[$nfiles]);
+	    while(<$FILE>){
 		if(!/\#/){
 		    print $_;
 		}else{
@@ -29,12 +30,12 @@ if(!$opt_f){
 		}
 	    }
 	  START:
-	    while(<FILE>){
+	    while(<$FILE>){
 	      NEWfun:
 		if(!/;/ && !/static/){
 		    if(/void /){
 			print $_;
-			while(<FILE>){
+			while(<$FILE>){
 			    if(!/\{/){
 				print $_;
 			    }else{
@@ -44,7 +45,7 @@ if(!$opt_f){
 		    }
 		    if(/double /){
 			print $_;
-			while(<FILE>){
+			while(<$FILE>){
 			    if(!/\{/){
 				print $_;
 			    }else{
@@ -64,7 +65,7 @@ if(!$opt_f){
 		    }
 		    if(/int /){
 			print $_;
-			while(<FILE>){
+			while(<$FILE>){
 			    if(!/\{/){
 				print $_;
 			    }else{
@@ -74,7 +75,7 @@ if(!$opt_f){
 		    }
 		    if(/char /){
 			print $_;
-			while(<FILE>){
+			while(<$FILE>){
 			    if(!/\{/){
 				print $_;
 			    }else{
@@ -84,7 +85,7 @@ if(!$opt_f){
 		    }
 		}
 	    }
-	    close(FILE);
+	    close($FILE);
 
 	}
 	$nfiles = $nfiles - 1;
@@ -98,14 +99,14 @@ if(!$opt_f){
 		    print "\n/*\n$files[$nfiles]\n*/\n\n";
 		}
 	    $done = 1;
-	    open(FILE,$files[$nfiles]);
-	    while(<FILE>){
+	    open(my $FILE,"<",$files[$nfiles]);
+	    while(<$FILE>){
 	      NEWfun:
 		if(!/;/ && !/static/){
 		    if(/void /){
 			($func,$param)=split(/\(/,$_);
 			print $func,"();\n";
-			while(<FILE>){
+			while(<$FILE>){
 			    if(!/\{/){
 			    }else{
 				goto NEWfun;
@@ -115,7 +116,7 @@ if(!$opt_f){
 		    if(/double /){
 			($func,$param)=split(/\(/,$_);
 			print $func,"();\n";
-			while(<FILE>){
+			while(<$FILE>){
 			    if(!/\{/){
 			    }else{
 				goto NEWfun;
@@ -125,7 +126,7 @@ if(!$opt_f){
 		    if(/float /){
 			($func,$param)=split(/\(/,$_);
 			print $func,"();\n";
-			while(<FILE>){
+			while(<$FILE>){
 			    if(!/\{/){
 			    }else{
 				goto NEWfun;
@@ -135,7 +136,7 @@ if(!$opt_f){
 		    if(/int /){
 			($func,$param)=split(/\(/,$_);
 			print $func,"();\n";
-			while(<FILE>){
+			while(<$FILE>){
 			    if(!/\{/){
 			    }else{
 				goto NEWfun;
@@ -145,7 +146,7 @@ if(!$opt_f){
 		    if(/char /){
 			($func,$param)=split(/\(/,$_);
 			print $func,"();\n";
-			while(<FILE>){
+			while(<$FILE>){
 			    if(!/\{/){
 			    }else{
 				goto NEWfun;
@@ -154,7 +155,7 @@ if(!$opt_f){
 		    }
 		}
 	    }
-	    close(FILE);
+	    close($FILE);
 
 	}
 	$nfiles = $nfiles - 1;
