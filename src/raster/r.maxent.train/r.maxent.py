@@ -499,7 +499,7 @@ def Check_if_layer_exist(layer):
     Checks if layer exist in current mapset
     """
     mapset = gs.gisenv()["MAPSET"]
-    filename = gs.find_file("study_area", element="vector", mapset="Sloth")["name"]
+    filename = gs.find_file(layer, element="vector", mapset=mapset)["name"]
     return len(filename) > 0
 
 
