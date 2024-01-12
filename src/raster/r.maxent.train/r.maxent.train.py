@@ -1,5 +1,4 @@
-#!/usr/bin/env python3
-
+#!/usr/bin/env python
 #
 ############################################################################
 #
@@ -18,8 +17,8 @@
 #
 #############################################################################
 
-# %Module
-# % description: Add
+# %module
+# % description: Create/train a Maxent model
 # % keyword: modeling
 # % keyword: Maxent
 # %end
@@ -28,16 +27,16 @@
 # % key: samplesfile
 # % label: Sample file presence locations
 # % description: Please enter the name of a file containing presence locations for one or more species.
-# % guisection: Input
-# % required : no
+# % guisection: Basic
+# % required: yes
 # %end
 
 # %option G_OPT_F_BIN_INPUT
 # % key: environmentallayersfile
 # % label: Sample file with background locations
 # % description:  Please enter the file name of the SWD file with environmental variables (can be created with v.maxent.swd or r.out.maxent_swd).
-# % guisection: Input
-# % required : no
+# % guisection: Basic
+# % required: yes
 # %end
 
 # %option
@@ -45,16 +44,31 @@
 # % type: string
 # % label: Prefix that identifies categorical data
 # % description: Toggle continuous/categorical for environmental variables whose names begin with this prefix (default: all continuous)
-# % guisection: Input
-# % required : no
+# % guisection: Basic
 # %end
 
 # %option G_OPT_M_DIR
 # % key: projectionlayers
 # % label: Location of an alternate set of environmental variables.
 # % description: Location of an alternate set of environmental variables. Maxent models will be projected onto these variables.
-# % guisection: Input
-# % required : no
+# % guisection: Basic
+# % required: no
+# %end
+
+# %option G_OPT_M_DIR
+# % key: outputdirectory
+# % label: Directory where outputs will be written.
+# % description: Directory where outputs will be written. This should be different from the environmental layers directory.
+# % guisection: Basic
+# % required: yes
+# %end
+
+# %option
+# % key: suffix
+# % type: string
+# % label: Suffix for name(s) of prediction layer(s)
+# % description: Add a suffix to the name(s) of imported prediction layer(s)
+# % guisection: Basic
 # %end
 
 # %option
@@ -63,53 +77,7 @@
 # % description: Value to be interpreted as nodata values in SWD sample data
 # % answer : -9999
 # % required: no
-# % guisection: Input
-# %end
-
-# %option G_OPT_M_DIR
-# % key: outputdirectory
-# % label: Directory where outputs will be written.
-# % description: Directory where outputs will be written. This should be different from the environmental layers directory.
-# % guisection: Output
-# % required : yes
-# %end
-
-# %option
-# % key: suffix
-# % type: string
-# % label: Suffix for name(s) of prediction layer(s)
-# % description: Add a suffix to the name(s) of imported prediction layer(s)
-# % guisection: Output
-# %end
-
-# %option
-# % key: outputformat
-# % type: string
-# % label: Representation probability
-# % description: Representation of probabilities used in writing output grids. See Help for details.
-# % options: cloglog,logistic,cumulative,raw
-# % answer: cloglog
-# % guisection: Output
-# %end
-
-# %option
-# % key: askoverwrite
-# % type: string
-# % label: Overwrite existing results
-# % description: If output files already exist for a species being modeled, pop up a window asking whether to overwrite or skip. Default is to overwrite.
-# % options: yes,no
-# % answer: yes
-# % guisection: Output
-# %end
-
-# %option
-# % key: writeplotdata
-# % type: string
-# % label: Write response curve data to file
-# % description: Write output files containing the data used to make response curves, for import into external plotting software.
-# % options: yes,no
-# % answer: no
-# % guisection: Output
+# % guisection: Basic
 # %end
 
 # %option
@@ -130,6 +98,36 @@
 # % options: yes,no
 # % answer: no
 # % guisection: Output
+# %end
+
+# %option
+# % key: responsecurves
+# % type: string
+# % label: Create response curves.
+# % description: Create graphs showing how predicted relative probability of occurrence depends on the value of each environmental variable.
+# % options: yes,no
+# % answer: no
+# % guisection: Output
+# %end
+
+# %option
+# % key: writeplotdata
+# % type: string
+# % label: Write response curve data to file
+# % description: Write output files containing the data used to make response curves, for import into external plotting software.
+# % options: yes,no
+# % answer: no
+# % guisection: Output
+# %end
+
+# %option
+# % key: outputformat
+# % type: string
+# % label: Representation probability
+# % description: Representation of probabilities used in writing output grids. See Help for details.
+# % options: cloglog,logistic,cumulative,raw
+# % answer: cloglog
+# % guisection: Parameters
 # %end
 
 # %option
@@ -262,7 +260,7 @@
 # % description: If replicates > 1, do multiple runs using crossvalidate,bootstrap or subsample. See the Maxent help file for the difference.
 # % guisection: Validation
 # % options: crossvalidate,bootstrap,subsample
-# % answer:crossvalidate
+# % answer: crossvalidate
 # %end
 
 # %option
@@ -273,35 +271,6 @@
 # % guisection: Validation
 # % answer: 1
 # % options:1-20
-# %end
-
-# %option
-# % key: responsecurves
-# % type: string
-# % label: Create response curves.
-# % description: Create graphs showing how predicted relative probability of occurrence depends on the value of each environmental variable.
-# % options: yes,no
-# % answer: no
-# % guisection: Visualization
-# %end
-
-# %option
-# % key: logscale
-# % type: string
-# % label: Use a logarithmic scale for color-coding.
-# % description: If selected, all pictures of models will use a logarithmic scale for color-coding.
-# % options: yes,no
-# % answer: yes
-# % guisection: Visualization
-# %end
-
-# %option
-# % key: maximumbackground
-# % type: integer
-# % label: Maximum number of background points
-# % description: If the number of background points / grid cells is larger than this number, then this number of cells is chosen randomly for background points.
-# % answer: 10000
-# % guisection: Advanced
 # %end
 
 # %option
@@ -433,9 +402,14 @@
 # % guisection: Advanced
 # %end
 
-# %option G_OPT_M_NPROCS
-# % key: threads
-# % label: Number of processor threads to use.
+# %option
+# % key: randomseed
+# % type: string
+# % label: Use a random seed
+# % description: If selected, a different random seed will be used for each run, so a different random test/train partition will be made and a different random subset of the background will be used, if applicable.
+# % answer: no
+# % options: no,yes
+# % guisection: Advanced
 # %end
 
 # %option G_OPT_F_BIN_INPUT
@@ -445,20 +419,25 @@
 # % required: no
 # %end
 
+# %option G_OPT_M_NPROCS
+# % key: threads
+# % label: Number of processor threads to use.
+# %end
+
 # %option G_OPT_MEMORYMB
 # % Description: Maximum memory to be used by Maxent (in MB)
 # %end
 
 # %flag
-# % key: r
-# % label: skipifexists
-# % description: If output files already exist for a species being modeled, skip the species without remaking the model.
+# % key: v
+# % label: Make the Maxent user interface visible
+# % description: Show the Maxent interface and do not start automatically. Use for debugging.
 # %end
 
 # %flag
-# % key: m
-# % label: Show Maxent GUI
-# % description: Show the Maxent interface and don't run automatically.
+# % key: w
+# % label: Do not autorun Maxent
+# % description: When you select this option, Maxent will not start before you hit the start option. Requires the -v flag to be set as well
 # %end
 
 # %flag
@@ -467,20 +446,48 @@
 # % description: If selected, a different random seed will be used for each run, so a different random test/train partition will be made and a different random subset of the background will be used, if applicable.
 # %end
 
+# %flag
+# % key: i
+# % label: Copy maxent.jar to addon directory
+# % description: copy the maxent.jar (path provided with the 'maxent' parameter) to the addon scripts directory.
+# %end
+
+# %flag
+# % key: u
+# % label: Overwrites maxent.jar in addon directory
+# % description: copy the maxent.jar (path provided with the 'maxent' parameter) to the addon scripts directory. If the file already exist in the addon directory, it is overwritten.
+# %end
+
+# %flag
+# % key:
+# % label: Overwrite
+# % description: Overwrite files and grass gis layers
+# %end
+
 # %rules
 # % exclusive: replicates,randomtestpoints
 # %end
+
+# %rules
+# % requires: -w, -v
+# %end
+
+# %rules
+# % exclusive: -i, -u
+# %end
+
 
 # %rules
 # % requires_all: fadebyclamping, doclamp
 # %end
 
 # import libraries
+import csv
 import os
 import sys
 import subprocess
+import shutil
 import grass.script as gs
-import csv
 import numpy as np
 
 
@@ -504,15 +511,56 @@ def Check_if_layer_exist(layer):
 
 
 def main(options, flags):
-    # -----------------------------------------------------------------
-    # Building the string
-    # -----------------------------------------------------------------
+    # Set verbosity level
+    if gs.verbosity() > 2:
+        function_verbosity = False
+    else:
+        function_verbosity = True
+
+    # Checking availability of maxent.jar
+    # ------------------------------------------------------------------
     if bool(options["maxent"]):
         maxent_file = options["maxent"]
         if not os.path.isfile(maxent_file):
             gs.fatal(
                 _("The maxent.jar file was not found on the location you provided")
             )
+        file_name = os.path.basename(os.path.basename(maxent_file))
+        maxent_path = os.environ.get("GRASS_ADDON_BASE")
+        maxent_copy = os.path.join(maxent_path, "scripts", "maxent.jar")
+        if file_name != "maxent.jar":
+            gs.fatal(
+                _(
+                    "The name of the maxent program should be 'maxent.jar',"
+                    " not '{}'".format(file_name)
+                )
+            )
+        if bool(flags["i"]):
+            if os.path.isfile(maxent_copy):
+                gs.fatal(
+                    _(
+                        "There is already a maxent.jar file in the scripts \n"
+                        "directory. Remove the -i flag. If you want to update \n"
+                        " the maxent.jar file, use the -u flag instead."
+                    )
+                )
+            else:
+                shutil.copyfile(maxent_file, maxent_copy)
+                gs.message(
+                    _(
+                        "Copied the maxent.jar file to the grass gis addon script directory .\n\n"
+                    ),
+                    flags="i",
+                )
+        if bool(flags["u"]):
+            shutil.copyfile(maxent_file, maxent_copy)
+            gs.message(
+                _(
+                    "Copied the maxent.jar file to the grass gis addon script directory .\n\n"
+                ),
+                flags="i",
+            )
+
     else:
         maxent_file = os.environ.get("GRASS_ADDON_BASE")
         maxent_file = os.path.join(maxent_file, "scripts", "maxent.jar")
@@ -524,121 +572,129 @@ def main(options, flags):
                     "See the manual page for instructions."
                 )
             )
-    str = (
+
+    # Input parameters - building command line string
+    # ------------------------------------------------------------------
+
+    # names options
+    comment_line_string = (
         f"java -mx{options['memory']}m -jar {maxent_file}"
         f" environmentallayers={options['environmentallayersfile']}"
-        f"{str} samplesfile={options['samplesfile']}"
-        )
-    if bool(options["togglelayertype"]):
-        str = f"{str} togglelayertype={options['togglelayertype']} prefixes=true"
+        f" samplesfile={options['samplesfile']}"
+        f" outputdirectory={options['outputdirectory']}"
+        f" testsamplesfile={options['testsamplesfile']}"
+        f" replicatetype={options['replicatetype']}"
+        f" writemess=false warnings=true tooltips=true"
+    )
+
+    # Named input variable
     if bool(options["projectionlayers"]):
-        str = f"{str} projectionlayers={options['projectionlayers']}"
+        comment_line_string = (
+            f"{comment_line_string} projectionlayers={options['projectionlayers']}"
+        )
     if options["nodata"] != "-9999":
-        str = f"{str} nodata={options['nodata']}"
-    str = f"{str} outputdirectory={options['outputdirectory']}"
+        comment_line_string = f"{comment_line_string} nodata={options['nodata']}"
     if options["outputformat"] != "cloglog":
-        str = f"{str} outputformat={options['outputformat']}"
-    if options["askoverwrite"] == "no":
-        str = f"{str} askoverwrite=false"
-    if options["writebackgroundpredictions"] == "yes":
-        str = f"{str} writebackgroundpredictions=true"
-    if options["writeplotdata"] == "yes":
-        str = f"{str} writeplotdata=true"
-    if options["extrapolate"] == "no":
-        str = f"{str} extrapolate=false"
-    if options["removeduplicates"] == "no":
-        str = f"{str} removeduplicates=false"
-    if options["doclamp"] == "no":
-        str = f"{str} doclamp=false"
-    if options["fadebyclamping"] == "yes":
-        str = f"{str} fadebyclamping=true"
-    if options["linear"] == "no":
-        str = f"{str} linear=false"
-    if options["quadratic"] == "no":
-        str = f"{str} quadratic=false"
-    if options["product"] == "no":
-        str = f"{str} product=false"
-    if options["hinge"] == "no":
-        str = f"{str} hinge=false"
-    if options["threshold"] == "yes":
-        str = f"{str} threshold=true"
-    if options["autofeature"] == "no":
-        str = f"{str} autofeature=false"
-    if options["jackknife"] == "yes":
-        str = f"{str} jackknife =true"
+        comment_line_string = (
+            f"{comment_line_string} outputformat={options['outputformat']}"
+        )
+
+    # True/false
+    bool_options = {"togglelayertype": "prefixes=true"}
+    option_list = [val for key, val in bool_options.items() if bool(options.get(key))]
+    comment_line_string += " ".join(option_list)
+
+    # Building the command line string - option = no
+    bool_false = {
+        "askoverwrite": "askoverwrite=false",
+        "extrapolate": "extrapolate=false",
+        "removeduplicates": "removeduplicates=false",
+        "doclamp": "doclamp=false",
+        "linear": "linear=false",
+        "quadratic": "quadratic=false",
+        "product": "product=false",
+        "hinge": "hinge=false",
+        "autofeature": "autofeature=false",
+        "logscale": "logscale=false",
+        "addsamplestobackground": "addsamplestobackground=false",
+    }
+    option_false = [val for key, val in bool_false.items() if options.get(key) == "no"]
+    comment_line_string += " ".join(option_false)
+
+    # Building the command line string - option = yes
+    bool_true = {
+        "writebackgroundpredictions": "writebackgroundpredictions=true",
+        "writeplotdata": "writeplotdata=true",
+        "fadebyclamping": "fadebyclamping=true",
+        "threshold": "threshold=true",
+        "jackknife": "jackknife=true",
+        "responsecurves": "responsecurves=true",
+        "addallsamplestobackground": "addallsamplestobackground=true",
+    }
+    option_true = [val for key, val in bool_true.items() if options.get(key) == "yes"]
+    comment_line_string += " ".join(option_true)
+
+    # Building the command line string - conditional on input value
     if int(options["randomtestpoints"]) > 0:
-        str = f"{str} randomtestpoints={int(options['randomtestpoints'])}"
-    if bool(options["testsamplesfile"]):
-        str = f"{str} testsamplesfile={options['testsamplesfile']}"
+        comment_line_string = (
+            f"{comment_line_string} randomtestpoints={int(options['randomtestpoints'])}"
+        )
     if int(options["replicates"]) > 1:
-        str = f"{str} replicates={int(options['replicates'])}"
-    if options["replicatetype"] != "crossvalidate":
-        str = f"{str} replicatetype={options['maximumbackground']}"
-    if options["responsecurves"] == "yes":
-        str = f"{str} responsecurves=true"
-    if options["logscale"] == "no":
-        str = f"{str} logscale=false"
-    if options["maximumbackground"] != "10000":
-        str = f"{str} maximumbackground={int(options['maximumbackground'])}"
-    if options["betamultiplier"] != "1.0":
-        str = f"{str} betamultiplier={float(options['betamultiplier'])}"
-    if options["addsamplestobackground"] == "no":
-        str = f"{str} addsamplestobackground=false"
-    if options["addallsamplestobackground"] == "yes":
-        str = f"{str} addallsamplestobackground=true"
-    if options["maximumiterations"] != "500":
-        str = f"{str} maximumiterations={int(options['maximumiterations'])}"
-    if options["convergencethreshold"] != "0.00005":
-        str = f"{str} convergencethreshold={float(options['convergencethreshold'])}"
-    if options["lq2lqptthreshold"] != "80":
-        str = f"{str} lq2lqptthreshold={int(options['lq2lqptthreshold'])}"
-    if options["l2lqthreshold"] != "10":
-        str = f"{str} l2lqthreshold={int(options['l2lqthreshold'])}"
-    if options["hingethreshold"] != "15":
-        str = f"{str} hingethreshold={int(options['hingethreshold'])}"
-    if options["beta_threshold"] != "-1.0":
-        str = f"{str} beta_threshold={float(options['beta_threshold'])}"
-    if options["beta_categorical"] != "-1.0":
-        str = f"{str} beta_categorical={float(options['beta_categorical'])}"
-    if options["beta_lqp"] != "-1.0":
-        str = f"{str} beta_lqp={float(options['beta_lqp'])}"
-    if options["beta_hinge"] != "-1.0":
-        str = f"{str} beta_hinge={float(options['beta_hinge'])}"
-    if options["defaultprevalence"] != "0.5":
-        str = f"{str} defaultprevalence={float(options['defaultprevalence'])}"
-    if flags["r"]:
-        str = f"{str} skipifexists=true"
-    if flags["s"]:
-        str = f"{str} randomseed=true"
-    if options["threads"] != "1":
-        str = f"{str} threads={int(options['threads'])}"
-    if bool(flags["m"]):
-        str = f"{str} autorun=false visible=true"
-    else:
-        str = f"{str} autorun=true visible=false"
+        comment_line_string = (
+            f"{comment_line_string} replicates={int(options['replicates'])}"
+        )
     if bool(options["projectionlayers"]) and options["replicates"] == "1":
-        str = f"{str} outputgrids=true"
+        comment_line_string = f"{comment_line_string} outputgrids=true"
     else:
-        str = f"{str} outputgrids=false"
-    str = f"{str} writemess=false warnings=true tooltips=true"
+        comment_line_string = f"{comment_line_string} outputgrids=false"
+    bool_val = {
+        "betamultiplier": "1.0",
+        "maximumiterations": "500",
+        "convergencethreshold": "0.00005",
+        "lq2lqptthreshold": "80",
+        "l2lqthreshold": "10",
+        "hingethreshold": "15",
+        "beta_threshold": "-1.0",
+        "beta_categorical": "-1.0",
+        "beta_lqp": "-1.0",
+        "beta_hinge": "-1.0",
+        "defaultprevalence": "0.5",
+        "threads": "1",
+    }
+    option_val = [
+        f"{key}={options.get(key)}"
+        for key, val in bool_val.items()
+        if options.get(key) != val
+    ]
+    comment_line_string += " ".join(option_val)
+
+    # Flags
+    bool_flags = {
+        "s": "randomseed=true",
+        "w": "autorun=false",
+        "v": "visible=true",
+    }
+    options_flags = [val for key, val in bool_flags.items() if bool(flags.get(key))]
+    comment_line_string += " ".join(options_flags)
 
     # -----------------------------------------------------------------
     # Run Maxent, train and create the model
     # -----------------------------------------------------------------
-    gs.message(_("Maxent runtime messages"))
-    gs.message(_("-----------------------"))
+    gs.message(_("Maxent runtime messages"), flags="i")
+    gs.message(_("-----------------------"), flags="i")
     popen = subprocess.Popen(
-        str, stdout=subprocess.PIPE, shell=True, universal_newlines=True
+        comment_line_string, stdout=subprocess.PIPE, shell=True, universal_newlines=True
     )
     for stdout_line in iter(popen.stdout.readline, ""):
         print(stdout_line),
-    gs.message(_("-----------------------\n"))
+    gs.message(_("-----------------------\n"), flags="i")
     gs.message(
         _(
             "Done, you can find the model outputs in:\n {}\n".format(
                 options["outputdirectory"]
             )
-        )
+        ),
+        flags="i",
     )
     gs.message(_("-----------------------\n"))
 
@@ -660,9 +716,9 @@ def main(options, flags):
                 valtype, options["replicates"]
             )
         )
-        gs.message(_(msg))
+        gs.message(_(msg), flags="i")
     else:
-        gs.message(_("The AUC of the model is printed below:\n"))
+        gs.message(_("The AUC of the model is printed below:\n"), flags="i")
 
     statistics_file = os.path.join(options["outputdirectory"], "maxentResults.csv")
     with open(statistics_file, "r") as file:
@@ -675,20 +731,20 @@ def main(options, flags):
 
     statistics = rows[len(rows) - 1]
     i = variables.index("#Training samples")
-    gs.message(f"Number of training samples: {statistics[i]}")
+    gs.message(_(f"Number of training samples: {statistics[i]}"), flags="i")
     i = variables.index("#Background points")
-    gs.message(f"Number of background points: {statistics[i]}")
+    gs.message(_(f"Number of background points: {statistics[i]}"), flags="i")
     i = variables.index("Training AUC")
-    gs.message(f"Training AUC: {statistics[i]}")
+    gs.message(_(f"Training AUC: {statistics[i]}"), flags="i")
     try:
         i = variables.index("Test AUC")
         msg = f"Test AUC: {statistics[i]}"
         i = variables.index("AUC Standard Deviation")
-        gs.message(_("{} (+/- {})".format(msg, statistics[i])))
+        gs.message(_("{} (+/- {})".format(msg, statistics[i])), flags="i")
     except ValueError:
-        gs.message("Test AUC: no test data was provided")
+        gs.message(_("Test AUC: no test data was provided"), flags="i")
 
-    gs.message(_("-----------------------\n"))
+    gs.message(_("-----------------------\n"), flags="i")
 
     # -----------------------------------------------------------------
     # Transpose the maxentResults.csv file and save
@@ -704,16 +760,18 @@ def main(options, flags):
     # -----------------------------------------------------------------
     all_files = all_files = os.listdir(options["outputdirectory"])
     # Check if v.db.pyupdate is installed
-    plugins_installed = gs.read_command("g.extension", flags="a", quiet=True).split(
-        "\n"
-    )
+    plugins_installed = gs.read_command(
+        "g.extension", flags="a", quiet=function_verbosity
+    ).split("\n")
 
     # -----------------------------------------------------------------
     # Import sampleprediction files(s) grass gis
     # -----------------------------------------------------------------
     outputformat = options["outputformat"]
     if options["importsamplepredictions"] == "yes":
-        gs.message(_("Importing the point layers with predictions in grass gis\n"))
+        gs.message(
+            _("Importing the point layers with predictions in grass gis\n"), flags="i"
+        )
 
         # Get names of samplePrediction files
         if int(options["replicates"]) > 1:
@@ -745,7 +803,7 @@ def main(options, flags):
             msg = "Importing samplePrediction layer {} of {}".format(
                 index + 1, len(prediction_csv)
             )
-            gs.message(_(msg))
+            gs.message(_(msg), flags="i")
             inputfile = os.path.join(options["outputdirectory"], file)
             if Check_if_layer_exist(prediction_layers[index]):
                 gs.fatal(
@@ -762,7 +820,7 @@ def main(options, flags):
                 separator="comma",
                 skip=1,
                 columns=coldef,
-                quiet=True,
+                quiet=function_verbosity,
             )
             # Remove unused columns
             for col in ["Raw", "Cumulative", "Cloglog"]:
@@ -771,7 +829,7 @@ def main(options, flags):
                         "v.db.dropcolumn",
                         map=prediction_layers[index],
                         columns=col,
-                        quiet=True,
+                        quiet=function_verbosity,
                     )
             # Rename colomn for first layer
             if len(prediction_csv) > 1 and index == 0:
@@ -780,7 +838,7 @@ def main(options, flags):
                     "v.db.renamecolumn",
                     map=prediction_layers[0],
                     column=col_rename,
-                    quiet=True,
+                    quiet=function_verbosity,
                 )
             # Spatial join of layer to first layer
             if int(options["replicates"]) > 1 and index > 0:
@@ -807,7 +865,7 @@ def main(options, flags):
                     flags="f",
                     type="vector",
                     name=prediction_layers[index],
-                    quiet=True,
+                    quiet=function_verbosity,
                 )
 
         # Calculate columns with summary stats
@@ -835,7 +893,7 @@ def main(options, flags):
                     "v.db.addcolumn",
                     map=prediction_layers[0],
                     columns="tmp999 double precision",
-                    quiet=True,
+                    quiet=function_verbosity,
                 )
                 gs.run_command(
                     "v.db.pyupdate",
@@ -861,7 +919,7 @@ def main(options, flags):
                     "v.db.addcolumn",
                     map=prediction_layers[0],
                     columns=f"{nm}_range double precision",
-                    quiet=True,
+                    quiet=function_verbosity,
                 )
                 gs.run_command(
                     "v.db.pyupdate",
@@ -880,14 +938,14 @@ def main(options, flags):
                     "v.db.dropcolumn",
                     map=prediction_layers[0],
                     columns="tmp999",
-                    quiet=True,
+                    quiet=function_verbosity,
                 )
                 for d in vars:
                     gs.run_command(
                         "v.db.dropcolumn",
                         map=prediction_layers[0],
                         columns=d,
-                        quiet=True,
+                        quiet=function_verbosity,
                     )
             else:
                 gs.message(
@@ -897,18 +955,22 @@ def main(options, flags):
             if Check_if_layer_exist(newname):
                 gs.fatal(_("The layer {} already exists (2)".format(newname)))
             gs.run_command(
-                "g.rename", vector=f"{prediction_layers[0]},{newname}", quiet=True
+                "g.rename",
+                vector=f"{prediction_layers[0]},{newname}",
+                quiet=function_verbosity,
             )
             gs.message(
                 _(
                     "Created the layer {} with the {} sample predictions".format(
                         outputformat, newname
                     )
-                )
+                ),
+                flags="i",
             )
         else:
             gs.message(
-                _("Created the layer {} in grass gis".format(prediction_layers[0]))
+                _("Created the layer {} in grass gis".format(prediction_layers[0])),
+                flags="i",
             )
 
         # Defined color column
@@ -923,7 +985,7 @@ def main(options, flags):
                 "v.db.dropcolumn",
                 map=inputmap,
                 columns="Test_vs_train",
-                quiet=True,
+                quiet=function_verbosity,
             )
         gs.run_command(
             "v.colors",
@@ -931,16 +993,17 @@ def main(options, flags):
             use="attr",
             column=color_column,
             color="bcyr",
-            quiet=True,
+            quiet=function_verbosity,
         )
 
     # -----------------------------------------------------------------
     # Import the background file with predicted values in grass
     # -----------------------------------------------------------------
     if options["writebackgroundpredictions"] == "yes":
-        gs.message(_("-----------------------\n"))
+        gs.message(_("-----------------------\n"), flags="i")
         gs.message(
-            _("Creating point layers with predictions at background locations\n")
+            _("Creating point layers with predictions at background locations\n"),
+            flags="i",
         )
 
         # Import background predictions in case of replicates = 1
@@ -963,7 +1026,7 @@ def main(options, flags):
                 "Cumulative double precision,"
                 "Cloglog double precision"
             )
-            gs.message(_("Importing backgroundPrediction layer"))
+            gs.message(_("Importing backgroundPrediction layer"), flags="i")
             inputfile = os.path.join(options["outputdirectory"], prediction_bgr)
             if Check_if_layer_exist(prediction_bgrlay):
                 gs.fatal(_("The layer {} already exists (3)".format(prediction_bgrlay)))
@@ -974,7 +1037,11 @@ def main(options, flags):
                 separator="comma",
                 skip=1,
                 columns=coldef,
-                quiet=True,
+                overwrite=flags["o"],
+                quiet=function_verbosity,
+            )
+            colnames = list(
+                gs.parse_command("db.columns", table=prediction_bgrlay).keys()
             )
             nm = colnames[find_index_case_insensitive(colnames, outputformat)]
             gs.run_command(
@@ -983,7 +1050,7 @@ def main(options, flags):
                 use="attr",
                 column=nm,
                 color="bcyr",
-                quiet=True,
+                quiet=function_verbosity,
             )
 
         # Import background prediction points in case of replicates > 1
@@ -1002,7 +1069,7 @@ def main(options, flags):
                 msg = "Importing backgroundPrediction layer {} {} of {}".format(
                     prediction_bgrlay[index], index + 1, len(prediction_bgr)
                 )
-                gs.message(_(msg))
+                gs.message(_(msg), flags="i")
                 inputfile = os.path.join(options["outputdirectory"], file)
                 with open(inputfile) as f:
                     header_line = f.readline().strip("\n").split(",")
@@ -1024,7 +1091,8 @@ def main(options, flags):
                     separator="comma",
                     skip=1,
                     columns=coldef,
-                    quiet=True,
+                    overwrite=flags["o"],
+                    quiet=function_verbosity,
                 )
 
                 # Create color table
@@ -1034,19 +1102,22 @@ def main(options, flags):
                     use="attr",
                     column=coldef[2].replace(" double precision", ""),
                     color="bcyr",
-                    quiet=True,
+                    quiet=function_verbosity,
                 )
 
     # -----------------------------------------------------------------
     # Import the raster filesin grass
     # -----------------------------------------------------------------
     if bool(options["projectionlayers"]):
-        gs.message(_("-----------------------\n"))
-        gs.message("Importing the projection layers")
+        gs.message(_("-----------------------\n"), flags="i")
+        gs.message(_("Importing the projection layers"), flags="i")
         asciilayers = [asc for asc in all_files if asc.endswith(".asc")]
         grasslayers = [gr.replace(".asc", f"{options['suffix']}") for gr in asciilayers]
         for idx, asci in enumerate(asciilayers):
-            gs.message("Importing layer {} of {}".format(idx + 1, len(grasslayers)))
+            gs.message(
+                _("Importing layer {} of {}".format(idx + 1, len(grasslayers))),
+                flags="i",
+            )
             asciifile = os.path.join(options["outputdirectory"], asci)
             if Check_if_layer_exist(asciifile):
                 gs.fatal(_("The layer {} already exists (5)".format(grasslayers[idx])))
@@ -1056,10 +1127,11 @@ def main(options, flags):
                 input=asciifile,
                 output=grasslayers[idx],
                 memory=int(options["memory"]),
-                quiet=True,
+                quiet=function_verbosity,
+                overwrite=flags["o"],
             )
-            gs.message(_("Imported {}".format(grasslayers[idx])))
-    gs.message(_("---------Done----------\n"))
+            gs.message(_("Imported {}".format(grasslayers[idx])), flags="i")
+    gs.message(_("---------Done----------\n"), flags="i")
 
 
 if __name__ == "__main__":
