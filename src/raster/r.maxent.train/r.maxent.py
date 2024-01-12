@@ -5,7 +5,7 @@
 #
 # MODULE:       r.maxent.train
 # AUTHOR(S):    Paulo van Breugel
-# PURPOSE:      Maxent modelling using the Maxent software
+# PURPOSE:      Maxent modeling using the Maxent software
 #               (https://biodiversityinformatics.amnh.org/open_source/maxent/),
 #               exposing most options/parameters.
 #
