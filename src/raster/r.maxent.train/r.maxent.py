@@ -22,7 +22,7 @@
 # % description: Add
 # % keyword: modeling
 # % keyword: Maxent
-# %End
+# %end
 
 # %option G_OPT_F_BIN_INPUT
 # % key: samplesfile
