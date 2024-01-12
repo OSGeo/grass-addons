@@ -524,9 +524,11 @@ def main(options, flags):
                     "See the manual page for instructions."
                 )
             )
-    str = f"java -mx{options['memory']}m -jar {maxent_file}"
-    str = f"{str} environmentallayers={options['environmentallayersfile']}"
-    str = f"{str} samplesfile={options['samplesfile']}"
+    str = (
+        f"java -mx{options['memory']}m -jar {maxent_file}"
+        f" environmentallayers={options['environmentallayersfile']}"
+        f"{str} samplesfile={options['samplesfile']}"
+        )
     if bool(options["togglelayertype"]):
         str = f"{str} togglelayertype={options['togglelayertype']} prefixes=true"
     if bool(options["projectionlayers"]):
