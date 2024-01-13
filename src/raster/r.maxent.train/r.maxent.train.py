@@ -48,7 +48,7 @@
 # %end
 
 # %option G_OPT_M_DIR
-# % key: environmentallayers
+# % key: projectionlayers
 # % label: Location of an alternate set of environmental variables.
 # % description: Location of an alternate set of environmental variables. Maxent models will be projected onto these variables. The result will be imported in grass gis.
 # % guisection: Input
@@ -128,7 +128,7 @@
 # %end
 
 # %rules
-# % requires: predictionlayer, environmentallayers
+# % requires: predictionlayer, projectionlayers
 # %end
 
 # %flag
@@ -585,9 +585,9 @@ def main(options, flags):
             envp, samp
         )
         gs.fatal(_(msg))
-    envir_layers = options["environmentallayers"]
+    envir_layers = options["projectionlayers"]
     if bool(envir_layers):
-        envir_files = os.listdir(options["environmentallayers"])
+        envir_files = os.listdir(options["projectionlayers"])
         envir_names = [asc for asc in envir_files if asc.endswith(".asc")]
         envir_names = [n.replace(".asc", "") for n in envir_names]
         if not set(header_samples[3:]).issubset(envir_names):
@@ -634,7 +634,7 @@ def main(options, flags):
         "nodata": "-9999",
         "outputformat": "cloglog",
         "togglelayertype": "",
-        "environmentallayers": "",
+        "projectionlayers": "",
         "testsamplesfile": "",
     }
     maxent_command += [
@@ -662,8 +662,6 @@ def main(options, flags):
         "d": "removeduplicates=false",
         "s": "randomseed=true",
         "x": "addallsamplestobackground=true",
-        "v": "visible=false",
-        "m": "autorun=true",
     }
     maxent_command += [val for key, val in bool_flags.items() if flags.get(key)]
     bool_flags = {
@@ -673,7 +671,7 @@ def main(options, flags):
     maxent_command += [val for key, val in bool_flags.items() if not flags.get(key)]
 
     # Building the command line string - conditional on multiple input value
-    if bool(options["environmentallayers"]):
+    if bool(options["projectionlayers"]):
         if options["replicates"] == "1":
             maxent_command += ["outputgrids=true"]
         else:
@@ -1096,7 +1094,7 @@ def main(options, flags):
 
     # Import the raster files in grass
     # -----------------------------------------------------------------
-    if options["environmentallayers"]:
+    if options["projectionlayers"]:
         gs.info(_("-----------------------\n"))
         gs.info(_("Importing the raster projection layers"))
 
