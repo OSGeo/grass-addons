@@ -611,7 +611,7 @@ def main(options, flags):
         f"environmentallayers={options['environmentallayersfile']}",
         f"samplesfile={options['samplesfile']}",
         f"outputdirectory={options['outputdirectory']}",
-        f"writemess=false",
+        "writemess=false",
     ]
 
     # If not default value
