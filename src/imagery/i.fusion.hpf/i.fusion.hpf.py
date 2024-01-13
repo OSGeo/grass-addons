@@ -189,14 +189,7 @@ if "GISBASE" not in os.environ:
 # TODO: avoid PyGRASS altogether
 import grass.script as grass
 
-# from grass.pygrass.raster.abstract import Info
-from grass.pygrass.utils import get_lib_path
-
-# add "etc" directory to $PATH
-path = get_lib_path("i.fusion.hpf", "")
-if path is None:
-    raise ImportError("Not able to find the path %s directory." % path)
-sys.path.append(path)
+grass.utils.set_path(modulename="i.fusion.hpf")
 
 # import modules from "etc"
 from high_pass_filter import (
