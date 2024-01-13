@@ -189,7 +189,7 @@ if "GISBASE" not in os.environ:
 # TODO: avoid PyGRASS altogether
 import grass.script as grass
 
-grass.utils.set_path(modulename="i.fusion.hpf")
+grass.utils.set_path(modulename="i.fusion.hpf", dirname="etc")
 
 # import modules from "etc"
 from high_pass_filter import (
