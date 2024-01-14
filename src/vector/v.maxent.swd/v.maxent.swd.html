@@ -1,22 +1,31 @@
 <h2>DESCRIPTION</h2>
 
-<em>v.maxent.swd</em> Produce a set of SWD files as input to MaxEnt 3.3.3k
-(version 3.4.1 untested, but should work as well), based on a point vector
-layer(s) of species distribution(s), a point layer with background points and
-user-defined raster layers. The user can also let the function create the
-background point file. (respecting region and mask, if set).
+<em>v.maxent.swd</em> Produce a set of SWD files as input to MaxEnt 
+3.3.3k+, based on a point vector layer(s) of species distribution(s), a 
+point layer with background points and user-defined raster layers. The 
+user can also let the function create the background point file. 
+(respecting region and mask, if set).
 
-<p>The SWD file format is a simple CSV-like file file format as
-described in Elith et al. 2011. The first three fields provide the
-species name, x-coordinate and y-coordinate, while subsequent fields
-contain the values of the user-selected environmental parameters.
-Note that the coordinates are not used by the MaxEnt program if all
-environmental data is given in the SWD format file.
+<p>
+The SWD file format is a simple CSV-like file format as described 
+in Elith et al. 2011. The first three fields provide the species name, 
+x-coordinate and y-coordinate, while subsequent fields contain the 
+values of the user-selected environmental parameters. Note that the 
+coordinates are not used by the MaxEnt program if all environmental 
+data is given in the SWD format file.
 
-<p>The user can provide one or more species point files, which will be
-combined in one SWD file. The map names of both the species point
-layers and the environmental parameters can be replaced by alias
-names, which will be used by MaxEnt.
+<p>
+The user can provide one or more species point files, which will be 
+combined in one SWD file. The map names of both the species point 
+layers and the environmental parameters can be replaced by alias names, 
+which will be used by MaxEnt.
+
+<p>
+If alias names are used, a CSV file (alias_file) can be created with 
+alias names in the first column and map names in the second column, 
+separated by comma, without header. This can be used as input in 
+r.maxent.lambdas (but note that this addon does not seem to work with 
+outputs from Maxent 3.4+).
 
 <h2>NOTES</h2>
 
@@ -24,31 +33,63 @@ The SWD output files are simple comma delimited text
 files (.csv) and can therefore be easily read in in for example R
 and subsequently used in other models / functions.
 
+<p>
+Maxent expects the raster cells to be perfectly square. I.e., the n-s 
+and e-w resolution need to be the same. v.maxent.swd will fail if this 
+is not the case. If this happens, you should change the resolution.
+
+<p>
+Following the grass gis convention, the resolution of an exported 
+raster is determined by the region settings. So make sure to set the 
+resolution of the region so that the n-s and e-w resolution match. To 
+accomplish this, you can use (replaced the *** for the desired 
+resolution):
+
+<div class="code"><pre>
+g.region -a res=***
+</pre></div>
+
+<p>
+Alternatively, you can set the <i>-e flag</i>. This will run g.region 
+for you, adjusting the resolution so both the ns and ew resolutionn 
+match the smallest of the two, using nearest neighbor resampling.
+
+<p>
+This addon is a vector based alternative to <em>r.out.maxent_swd</em>. 
+It can be more efficient with sparse data points. The main difference 
+is that with this addon you can have more than one sample point per 
+raster cell. points per raster cell. If this is not desired, use 
+r.out.maxent_swd. Another difference is the option to export the 
+predictor raster layers to a user-defined folder. This can be used in 
+Maxent, Maxnet addon for R or other software.
+
 <h2>SEE ALSO</h2>
 
 <ul>
-    <li>MaxEnt 3.3.3k (version 3.4.1 untested, but should work as well)
-    (<a href="http://biodiversityinformatics.amnh.org/open_source/maxent/">
-    http://biodiversityinformatics.amnh.org/open_source/maxent/</a>)</li>
-    <li>The <a
-    href="http://svn.osgeo.org/grass/grass-addons/grass6/raster/r.out.maxent_swd/r.out.maxent_swd.html">
-    r.out.maxent_swd</a> script (for GRASS GIS 6.*) for an alternative
-    implementation</li>
+	<li>MaxEnt 3.4.1 (<a 
+	href="http://biodiversityinformatics.amnh.org/open_source/maxent/"> 
+	http://biodiversityinformatics.amnh.org/open_source/maxent/</a>)</li> 
+	<li><a href="r.out.maxent_swd.html">r.out.maxent_swd</a>, the original
+	implementation using species distribution data in raster format.</li>
+	<li><a href="r.maxent.lambdas.html">r.maxent.lambdas</a> addon to
+	compute raw or logistic prediction maps from MaxEnt lambdas files.</li>
 </ul>
 
 <h2>REFERENCES</h2>
 
 <ul>
-    <li> Steven J. Phillips, Miroslav Dudík, Robert E. Schapire.A maximum
-    entropy approach to species distribution modeling. In Proceedings of the
-    Twenty-First International Conference on Machine Learning, pages 655-662,
-    2004.</li>
-    <li>Steven J. Phillips, Robert P. Anderson, Robert E. Schapire. Maximum
-    entropy modeling of species geographic distributions. Ecological Modelling,
-    190:231-259, 2006.</li>
-    <li>Jane Elith, Steven J. Phillips, Trevor Hastie, Miroslav Dudík, Yung En
-    Chee, Colin J. Yates. A statistical explanation of MaxEnt for ecologists.
-    Diversity and Distributions, 17:43-57, 2011. </li>
+	<li> Steven J. Phillips, Miroslav Dudík, Robert E. Schapire.A 
+	maximum entropy approach to species distribution modeling. In 
+	Proceedings of the Twenty-First International Conference on Machine 
+	Learning, pages 655-662, 2004.</li>
+	<li>Steven J. Phillips, Robert 
+	P. Anderson, Robert E. Schapire. Maximum entropy modeling of 
+	species geographic distributions. Ecological Modelling, 
+	190:231-259, 2006.</li>
+	<li>Jane Elith, Steven J. Phillips, Trevor 
+	Hastie, Miroslav Dudík, Yung En Chee, Colin J. Yates. A statistical 
+	explanation of MaxEnt for ecologists. Diversity and Distributions, 
+	17:43-57, 2011. </li>
 </ul>
 
 <h2>AUTHOR</h2>
