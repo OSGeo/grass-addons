@@ -112,6 +112,19 @@ class TestClimatologies(TestCase):
             input="monthly",
         )
 
+    def test_meteorological(self):
+        self.assertModule(
+            "t.rast.aggregate.seasons",
+            input="monthly",
+            output="meteo_seasons",
+            basename="meteoseasons",
+            overwrite=True,
+            verbose=True,
+            flags=["m"]
+        )
+        out = tgis.open_old_stds("meteo_seasons", type="strds")
+        self.assertEqual(out.metadata.get_number_of_maps(), 8)
+
 
 if __name__ == "__main__":
     test()

@@ -74,6 +74,12 @@
 # % description: Register Null maps
 # %end
 
+# %flag
+# % key: m
+# % description: Use meteorological seasons
+# %end
+
+
 import copy
 import atexit
 from datetime import datetime
@@ -103,11 +109,38 @@ def cleanup():
             remod.run()
 
 
+def leap_year(year):
+    """Function to calculate if it is a leap year or not
+
+    Args:
+        year (int): the year to check
+
+    Returns:
+        bool: True if it is a leap year otherwise Falses
+    """
+    # divided by 100 means century year (ending with 00)
+    # century year divided by 400 is leap year
+    if (year % 400 == 0) and (year % 100 == 0):
+        return True
+
+    # not divided by 100 means not a century year
+    # year divided by 4 is a leap year
+    elif (year % 4 ==0) and (year % 100 != 0):
+        return True
+
+    # if not divided by both 400 (century year) and 4 (not century year)
+    # year is not leap year
+    else:
+        return False
+
+
 def main():
     options, flags = gs.parser()
     strds = options["input"]
 
     output_name = options["output"]
+
+    meteorological = flags["m"]
 
     tgis.init()
     # We need a database interface
@@ -152,26 +185,58 @@ def main():
             vect.write(point, cat=1)
             vect.close()
             map_layer = tgis.space_time_datasets.VectorDataset(f"{name}@{mapset}")
+            year_int = int(year)
+            # check if it is meteorological or astronomic season for each season
             if seas == "spring":
-                extent = tgis.AbsoluteTemporalExtent(
-                    start_time=datetime(int(year), 3, 20),
-                    end_time=datetime(int(year), 6, 21),
-                )
+                if meteorological:
+                    extent = tgis.AbsoluteTemporalExtent(
+                        start_time=datetime(year_int, 3, 1),
+                        end_time=datetime(year_int, 5, 31),
+                    )
+                else:
+                    extent = tgis.AbsoluteTemporalExtent(
+                        start_time=datetime(year_int, 3, 20),
+                        end_time=datetime(year_int, 6, 21),
+                    )
             elif seas == "summer":
-                extent = tgis.AbsoluteTemporalExtent(
-                    start_time=datetime(int(year), 6, 21),
-                    end_time=datetime(int(year), 9, 20),
-                )
+                if meteorological:
+                    extent = tgis.AbsoluteTemporalExtent(
+                        start_time=datetime(year_int, 6, 1),
+                        end_time=datetime(year_int, 8, 30),
+                    )
+                else:
+                    extent = tgis.AbsoluteTemporalExtent(
+                        start_time=datetime(year_int, 6, 21),
+                        end_time=datetime(year_int, 9, 20),
+                    )
             elif seas == "autumn":
-                extent = tgis.AbsoluteTemporalExtent(
-                    start_time=datetime(int(year), 9, 20),
-                    end_time=datetime(int(year), 12, 21),
-                )
+                if meteorological:
+                    extent = tgis.AbsoluteTemporalExtent(
+                        start_time=datetime(year_int, 9, 1),
+                        end_time=datetime(year_int, 11, 30),
+                    )
+                else:
+                    extent = tgis.AbsoluteTemporalExtent(
+                        start_time=datetime(year_int, 9, 20),
+                        end_time=datetime(year_int, 12, 21),
+                    )
             elif seas == "winter":
-                extent = tgis.AbsoluteTemporalExtent(
-                    start_time=datetime(int(year), 12, 21),
-                    end_time=datetime(int(year) + 1, 3, 20),
-                )
+                if meteorological:
+                    if leap_year(year):
+                        extent = tgis.AbsoluteTemporalExtent(
+                            start_time=datetime(year_int, 12, 1),
+                            end_time=datetime(year_int + 1, 2, 29),
+                        )
+                    else:
+                        extent = tgis.AbsoluteTemporalExtent(
+                            start_time=datetime(year_int, 12, 1),
+                            end_time=datetime(year_int + 1, 2, 28),
+                        )
+                else:
+                    extent = tgis.AbsoluteTemporalExtent(
+                        start_time=datetime(year_int, 12, 21),
+                        end_time=datetime(year_int + 1, 3, 20),
+                    )
             map_layer.set_temporal_extent(extent=extent)
             season_vect.append(map_layer)
         temp_season = f"sample_seasons_{year}"
