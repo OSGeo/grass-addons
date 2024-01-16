@@ -120,7 +120,7 @@ class TestClimatologies(TestCase):
             basename="meteoseasons",
             overwrite=True,
             verbose=True,
-            flags=["m"]
+            flags=["m"],
         )
         out = tgis.open_old_stds("meteo_seasons", type="strds")
         self.assertEqual(out.metadata.get_number_of_maps(), 8)
