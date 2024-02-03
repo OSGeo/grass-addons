@@ -957,7 +957,7 @@ def main(options, flags):
             vector=f"{prediction_layers[0]},{newname}",
             quiet=function_verbosity,
         )
-        gs.info(_("Created the layer {} in grass gis".format(newname)))
+        gs.info(_("Created the layer {} in GRASS GIS".format(newname)))
 
         # Defined color column
         if "v.db.pyupdate" in plugins_installed:
