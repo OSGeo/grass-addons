@@ -426,7 +426,7 @@
 # %flag
 # % key: i
 # % label: Copy maxent.jar to addon directory
-# % description: copy the maxent.jar (path provided with the 'maxent' parameter) to the addon scripts directory.
+# % description: Copy the maxent.jar (path provided with the 'maxent' parameter) to the addon scripts directory.
 # %end
 
 # %flag
