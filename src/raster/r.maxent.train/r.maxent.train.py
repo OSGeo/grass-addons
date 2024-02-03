@@ -469,15 +469,6 @@ def find_index_case_insensitive(lst, target):
     return -1  # Return -1 if the element is not found
 
 
-def Check_if_layer_exist(layer):
-    """
-    Checks if layer exist in current mapset
-    """
-    mapset = gs.gisenv()["MAPSET"]
-    filename = gs.find_file(layer, element="vector", mapset=mapset)["name"]
-    return len(filename) > 0
-
-
 def create_temporary_name(prefix):
     tmpf = f"{prefix}{str(uuid.uuid4().hex)}"
     CLEAN_LAY.append(tmpf)

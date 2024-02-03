@@ -23,7 +23,10 @@ create a prediction (suitability distribution) raster layer as well.
 Note that the Maxent software generates ASCII files without projection 
 information. That means you need to make sure yourself that the 
 environmental layers you provide are in the same reference coordinate 
-system as your current mapset. 
+system as your current mapset. An easy way to ensure this is by using 
+the <em>r.out.maxent_swd</em> from the same mapset to create those 
+input environmental layers for Maxent.<!--See the example workflow in 
+the Examples-->
 
 <p>
 The addon provides access to nearly all parameters available in the 
@@ -34,28 +37,36 @@ see the Maxent help file.
 
 <h2>NOTES</h2>
 
-<p>
 This addon requires the Maxent software. You can download the software 
 from the <a 
-href="http://biodiversityinformatics.amnh.org/open_source/maxent">Maxent 
-website</a>. The software includes a <em>Maxent.jar</em> file. You can 
-simply point to that file (<em>maxent</em> options) when using the 
-addon. If you plan to use the addon more often, the easier solution 
-will be to copy the Maxent.jar file to the addon/script directory. On 
-GNU/Linux, the default directory is $HOME/.grass8/addons. On MS-Windows 
-it is %APPDATA%\Roaming\GRASS8\addons. The name of the directory is 
-stored in the GRASS_ADDON_BASE environmental variable. Alternatively, 
-open GRASS GIS AND type `echo $GRASS_ADDON_BASE` on the command line. 
-This will give you the location of the default addon directory on your 
-Computer.
+href="https://biodiversityinformatics.amnh.org/open_source/maxent">Maxent 
+website</a>. The software includes a <em>Maxent.jar</em> file. The 
+first time you run the addon, you need to use the <b>maxent</b> 
+parameter to set the path to the Maxent.jar file. Set the <b>-i</b> 
+flag to copy the jar file to the addon/script directory. On subsequent 
+runs, you do not need to set the <b>maxent</b> parameter anymore.
 
-A new addon is being developed that 
-will allow you to use the model to perform predictions based on 
-different sets of prediction layers. For now, check the Maxent tutorial 
-for instructions on how you can use Maxent itself to perform predictions 
-based on a set of prediction layers. Note that the <em>v.maxent.swd</em> 
-addon provides an easy way to export the prediction layers in the 
-right format.
+<p>
+If you want to update the Maxent.jar file, use the <b>-u</b> flag. 
+Removing the Maxent.jar file needs to be done manually. Go to the GRASS 
+GIS addon directory, and delete the Maxent.jar file. To find the addon 
+directory, open GRASS GIS AND type `echo $GRASS_ADDON_BASE` on the 
+command line.
+
+<!--
+<p>
+You can use the addon <em>r.maxent.predict</em> perform predictions 
+based on different sets of prediction layers. Note that the 
+<em>v.maxent.swd</em> addon provides an easy way to export the 
+prediction layers in the right format.
+-->
+
+<h2>Examples</h2>
+
+<!--
+Add example of workflow
+-->
+
 
 <h2>REFERENCES</h2>
 
@@ -75,13 +86,24 @@ Colin J. Yates. 2011: A statistical explanation of MaxEnt for ecologists. Divers
 Distributions, 17:43-57, 2011.</li>
 </ul>
 
+
 <h2>SEE ALSO</h2>
 
 See also 
 
 <ul>
-<li><a href="v.maxent.swd.html">v.maxent.swd</a>, creating species and background swd files and prediction rasters that can be used directly by the <em>r.maxent.train</em> addon (or the Maxent software itself) to create species distribution models.</li>
-<li><a href="r.out.maxent_swd.html">r.out.maxent_swd</a>, creating species and background swd files based on species distribution data in raster format.</li>
+<li><a href="v.maxent.swd.html">v.maxent.swd</a>, creating species and 
+background swd files and prediction rasters that can be used directly 
+by the <em>r.maxent.train</em> addon (or the Maxent software itself) to 
+create species distribution models.</li>
+<li><a href="r.out.maxent_swd.html">r.out.maxent_swd</a>, creating 
+species and background swd files based on species distribution data in 
+raster format.</li>
+<!--
+<li><a href="r.maxent.predict.html">r.maxent.predict</a>, creating a 
+suitability layer based on a set of environmental layers and a Maxent 
+model, e.g., created using the r.maxent.train addon.</li>
+-->
 </ul>
 
 <h2>AUTHOR</h2>
