@@ -21,7 +21,7 @@
 # % description: Create and train a Maxent model
 # % keyword: modeling
 # % keyword: Maxent
-# %End
+# %end
 
 # %option G_OPT_F_BIN_INPUT
 # % key: samplesfile
