@@ -1092,7 +1092,7 @@ def main(options, flags):
                     quiet=function_verbosity,
                 )
 
-    # Import the raster files in grass
+    # Import the raster files in GRASS
     # -----------------------------------------------------------------
     if options["projectionlayers"]:
         gs.info(_("-----------------------\n"))
