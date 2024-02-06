@@ -27,24 +27,19 @@ Cohen's kappa and the true skill statistic.
 
 <div class="code"><pre>
 TPR = TP / (TP + FN)
-</pre>
-</div>
+</pre></div>
 <div class="code"><pre>
 FPR = FP / (FP + TN)
-</pre>
-</div>
+</pre></div>
 <div class="code"><pre>
 TNR = TN / (TN + FP)
-</pre>
-</div>
+</pre></div>
 <div class="code"><pre>
 TSS = TPR - FPR
-</pre>
-</div>
+</pre></div>
 <div class="code"><pre>
 Kappa = 2 * (TP * TN - FN * FP) / ((TP + FP) * (FP + TN) + (TP + FN) * (FN + TN)))
-</pre>
-</div>
+</pre></div>
 
 <p>
 These values can be saved to a CSV file, together with the 
@@ -93,25 +88,24 @@ calculate his/her own using the table in the CSV file. See the
 References list for a few useful references in that respect.
 
 <p>
-This module depends on the Python <a 
-href="https://pandas.pydata.org/">Pandas library.</a>
+This module depends on the Python
+<a href="https://pandas.pydata.org/">Pandas library.</a>
 
 <h2>EXAMPLES</h2>
 
 Run this example in the "landsat" mapset of the North Carolina sample 
 data set location. First, create a binary map with herbaceous land cover 
 (1) and other (0). Next, create a raster layer with training pixels 
-using <em>r.learn.train</em> and <em>r.learn.predict</em> from the <a 
-href="https://grass.osgeo.org/grass-stable/manuals/addons/r.learn.ml2.html"></a>r.learn.ml2</a> 
-addon. Note, <em>r.learn.train</em> can compute its own accuracy 
+using <em>r.learn.train</em> and <em>r.learn.predict</em> from the
+<a href="r.learn.ml2.html">r.learn.ml2</a> addon.
+Note, <em>r.learn.train</em> can compute its own accuracy
 measures as well.
 
 <div class="code"><pre>
 g.region raster=landclass96
 r.mapcalc "herbaceous = if(landclass96 == 3, 1, 0)"
 r.random input=herbaceous npoints=1000 raster=training_pixels seed=10
-</pre>
-</div>
+</pre></div>
 
 <p>
 Then we can use these training pixels to perform a classification on 
@@ -126,8 +120,7 @@ r.learn.train group=lsat7_2000 training_map=training_pixels \
 # perform prediction using r.learn.predict
 r.learn.predict group=lsat7_2000 load_model=rf_model.gz \
    output=rf_regressor
-</pre>
-</div>
+</pre></div>
 
 <p>
 Now we can see how well the model performed using the 
@@ -135,8 +128,7 @@ Now we can see how well the model performed using the
 
 <div class="code"><pre>
 r.edm.eval -p reference=herbaceous prediction=rf_regressor
-</pre>
-</div>
+</pre></div>
 
 <p>
 The accuracy measures are printed on screen.
@@ -148,17 +140,18 @@ maximum kappa = 0.4438
 treshold maximum TSS = 0.1118
 treshold maximum kappa = 0.2936
 treshold minimum distance to (0,1) = 0.0979
-</pre>
-</div>
+</pre></div>
 
 <p>
-And the accompanying ROC curve is shown below (the figure can 
+And the accompanying ROC curve is shown below (the figure can
 optionally be saved to file).
 
 <p>
-<div align="center" style="margin: 10px"> <a 
-href="r_edm_eval_01.png"> <img src="r_edm_eval_01.png" alt=" 
-ROC curve" border="0"> </a></div>
+<div align="center" style="margin: 10px">
+<a href="r_edm_eval_01.png">
+ <img src="r_edm_eval_01.png" alt="ROC curve" border="0">
+</a>
+</div>
 
 <p>
 Let's try how well a logistic regression performs, and compare this 
@@ -172,13 +165,11 @@ r.learn.train group=lsat7_2000 training_map=training_pixels \
 # perform prediction using r.learn.predict -p
 r.learn.predict group=lsat7_2000 load_model=lr_model.gz \
    output=lr_regressor
-</pre>
-</div>
+</pre></div>
 
 <div class="code"><pre>
 r.edm.eval -p reference=herbaceous prediction=rf_regressor,lr_regressor_1
-</pre>
-</div>
+</pre></div>
 
 <p>
 The accuracy measures are printed on screen.
@@ -198,52 +189,54 @@ maximum kappa = 0.4669
 treshold maximum TSS = 0.1047
 treshold maximum kappa = 0.1995
 treshold minimum distance to (0,1) = 0.0848
-</pre>
-</div>
+</pre></div>
 
 And the accompanying ROC curve is shown below (the figure can optionally be saved to file). 
 
 <p>
-<div align="center" style="margin: 10px"> <a href="r_edm_eval_02.png"> 
-<img src="r_edm_eval_02.png" alt=" ROC curve of random forest 
-regression model and logistic regression model." border="0"> </a></div>
+<div align="center" style="margin: 10px">
+<a href="r_edm_eval_02.png">
+ <img src="r_edm_eval_02.png"
+      alt="ROC curve of random forest regression model and logistic regression model." border="0">
+</a></div>
 
 
 <h2>REFERENCES</h2>
 
-Jiménez-Valverde, A. 2012. Insights into the area under the receiver 
+Jiménez-Valverde, A. 2012. Insights into the area under the receiver
 operating characteristic curve (AUC) as a discrimination measure in 
 species distribution modelling. Global Ecology and Biogeography 21: 
 498-507
 
 <p>
-Lobo, J. M., Jim&eacute;nez-Valverde, A., & Real, R. 2008. AUC: a 
+Lobo, J. M., Jim&eacute;nez-Valverde, A., &amp; Real, R. 2008. AUC: a
 misleading measure of the performance of predictive distribution 
 models. Global Ecology and Biogeography 17: 145-151.
 
 <p>
-Hijmans, R. J. 2012. Cross-validation of species distribution models: 
+Hijmans, R. J. 2012. Cross-validation of species distribution models:
 removing spatial sorting bias and calibration with a null model. 
 Ecology 93: 679-688.
 
 <p>
-Allouche, O., Tsoar, A., & Kadmon, R. 2006. Assessing the accuracy of 
+Allouche, O., Tsoar, A., &amp; Kadmon, R. 2006. Assessing the accuracy of
 species distribution models: prevalence, kappa and the true skill 
 statistic (TSS). Journal of Applied Ecology 43: 1223-1232.
 
 <p>
-McPherson, J. M., Jetz, W., & Rogers, D. J. 2004. The effects of 
+McPherson, J. M., Jetz, W., &amp; Rogers, D. J. 2004. The effects of
 species' range sizes on the accuracy of distribution models: ecological 
 phenomenon or statistical artefact? Journal of Applied Ecology 41: 
 811-823.
 
 <h2>SEE ALSO</h2>
 
-<em><a href="r.confusionmatrix.html">r.confusionmatrix</a></em>,
-<em><a href="r.learn.ml2.html">r.learn.ml2</a></em>
+<em>
+<a href="r.confusionmatrix.html">r.confusionmatrix</a>,
+<a href="r.learn.ml2.html">r.learn.ml2</a>
+</em>
 
 
 <h2>AUTHOR</h2>
 
 Paulo van Breugel
-
