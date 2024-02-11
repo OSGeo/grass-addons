@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 ############################################################################
 #
@@ -27,7 +27,7 @@
 # %end
 
 # %option G_OPT_F_BIN_INPUT
-# % key: lambdaFile
+# % key: lambdafile
 # % label: Lambda model file
 # % description: Lambda model file created by Maxent or the r.maxent.train addon.
 # % guisection: input
@@ -37,7 +37,7 @@
 # %option
 # % key: evp_maps
 # % type: string
-# % description: Environmental parameter map(s)
+# % description: Names of the raster layers representing the environmental variables used in the Maxent model.
 # % required : yes
 # % multiple : yes
 # % gisprompt: old,cell,raster
@@ -47,7 +47,8 @@
 # %option
 # % key: alias_names
 # % type: string
-# % description: Alias names for environmental parameter(s)
+# % label: alias names
+# % description: Names of the environmental parameter(s) as used in the model. These need to be given in the same order as the corresponding raster layers.
 # % required : no
 # % guisection: input
 # %end
@@ -55,23 +56,27 @@
 # %option G_OPT_F_BIN_INPUT
 # % key: alias_file
 # % label: Alias file
-# % description: A csv file with in the first column the names of the explanatory variables and the second column with the names of the names of the corresponding raster layers.
+# % description: A csv file with in the first column the names of the explanatory variable names as used in the model, and in the second column the names of the names of the corresponding raster layers.
 # % guisection: input
 # % required: no
+# %end
+
+# %rules
+# % excludes: alias_file,alias_names,evp_maps
 # %end
 
 # %flag
 # % key: c
 # % label: Do not apply clamping
 # % description: Do not apply clamping when projecting.
-# % guisection: Parameters
+# % guisection: parameters
 # %end
 
 # %flag
 # % key: f
 # % label: Fade effect clamping
 # % description: Reduce prediction at each point in projections by the difference between clamped and non-clamped output at that point.
-# % guisection: Parameters
+# % guisection: parameters
 # %end
 
 # %rules
@@ -84,7 +89,6 @@
 # % description: Give the path to the Maxent executable file (maxent.jar)
 # % required: no
 # %end
-
 
 
 # %option G_OPT_M_NPROCS
@@ -235,42 +239,25 @@ def main(options, flags):
             )
             gs.fatal(_(msg))
 
+    options = {
+        "lambdaFile": "Bradypus_tridactylus.lambdas",
+        "evp_maps": "bio02,bio04",
+        "alias_names": "bio02,bio04",
+        "alias_file": "/home/paulo/data/aliasfile.csv",
+        "maxent": "maxent.jar",
+        "threads": 8,
+        "memory": 30000,
+    }
+    flags = {"c": False, "f": False, "v": False, "i": False, "u": False}
 
-
-
-options = {"lambdaFile":"Bradypus_tridactylus.lambdas", "evp_maps":"bio02,bio04",
-           "alias_names":"bio02,bio04", "alias_file":"alias.csv", "maxent":"maxent.jar",
-           "threads":8, "memory":30000}
-flags = {"c":False, "f":False, "v":False, "i":False, "u":False}
-
-
-
-    # Check variable names in swd files and environmental layers
+    # Names of variables and corresponding layer names
     # ------------------------------------------------------------------
+    if bool(options["alias_file"]):
+        import csv
 
-    envir_layers = options["environmentallayersfile"]
-    sample_layers = options["samplesfile"]
-    with open(envir_layers) as f:
-        header_environ = f.readline().strip("\n").split(",")
-    with open(sample_layers) as f:
-        header_samples = f.readline().strip("\n").split(",")
-    if header_samples != header_environ:
-        envp = os.path.basename(envir_layers)
-        samp = os.path.basename(sample_layers)
-        msg = "The columnnames in the {} and {} files are not the same".format(
-            envp, samp
-        )
-        gs.fatal(_(msg))
-    envir_layers = options["projectionlayers"]
-    if bool(envir_layers):
-        envir_files = os.listdir(options["projectionlayers"])
-        envir_names = [asc for asc in envir_files if asc.endswith(".asc")]
-        envir_names = [n.replace(".asc", "") for n in envir_names]
-        if not set(header_samples[3:]).issubset(envir_names):
-            msg = "Not all variables are available as ascii files in:\n {}".format(
-                envir_layers
-            )
-            gs.fatal(_(msg))
+        with open(options["alias_file"]) as csv_file:
+            row_data = list(csv.reader(csv_file, delimiter=","))
+        col_data = list(zip(*row_data))
 
     # Input parameters - building command line string
     # ------------------------------------------------------------------
