@@ -1104,6 +1104,17 @@ def main(options, flags):
                 quiet=function_verbosity,
             )
             gs.info(_("Imported {}".format(grasslayers[idx])))
+
+    # Write file with variable names (to check in r.maxent.predict)
+    # -----------------------------------------------------------------
+    variablenames = os.path.join(
+        options["outputdirectory"], "maxent_explanatory_variable_names.csv"
+    )
+
+    with open(variablenames, "w") as alias_var:
+        for x in envir_names:
+            alias_var.write("{},".format(x))
+
     gs.info(_("---------Done----------\n"))
 
 
