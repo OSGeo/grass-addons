@@ -53,19 +53,21 @@ GIS addon directory, and delete the Maxent.jar file. To find the addon
 directory, open GRASS GIS AND type `echo $GRASS_ADDON_BASE` on the 
 command line.
 
-<!--
 <p>
 You can use the addon <em>r.maxent.predict</em> perform predictions 
 based on different sets of prediction layers. Note that the 
 <em>v.maxent.swd</em> addon provides an easy way to export the 
 prediction layers in the right format.
--->
 
 <h2>Examples</h2>
 
-<!--
-Add example of workflow
--->
+
+
+
+
+r.maxent.train -y -b -g samplesfile=/home/paulo/data/maxentpredict/spec_swd.csv environmentallayersfile=/home/paulo/data/maxentpredict/bgrd_swd.csv togglelayertype=landuse projectionlayers=/home/paulo/data/maxentpredict/envlayers suffix=_model2 outputdirectory=/home/paulo/data/maxentpredict/output_model1
+
+
 
 
 <h2>REFERENCES</h2>
