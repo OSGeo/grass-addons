@@ -25,7 +25,7 @@ information. That means you need to make sure yourself that the
 environmental layers you provide are in the same reference coordinate 
 system as your current mapset. An easy way to ensure this is by using 
 the <em>r.out.maxent_swd</em> from the same mapset to create those 
-input environmental layers for Maxent.See the example workflow in 
+input environmental layers for Maxent. See the example workflow in 
 the Examples.
 
 <p>
@@ -88,14 +88,14 @@ about the GRASS GIS database.
 <p>
 Unzip the file, start up GRASS GIS, open the GRASS GIS database to 
 which you copied the folder <i>sampledata</i>, switch to the Location 
-<i>sampledata</i> and than open the mapset <i>southamerica</i>. 
+<i>sampledata</i> and then open the mapset <i>southamerica</i>. 
 
 <h3>2) Preparing input data</h3>
 
 You can use the <em>v.maxent.swd</em> to create the required input 
 layers. The code below creates the SWD file with the locations where 
 the species has been recorded (<b>species_output</b>) and a SWD file 
-with radomly created background point locations (<b>bgr_ouput</b>). The 
+with randomly created background point locations (<b>bgr_ouput</b>). The 
 SWD files contain for each location the values of the raster layers 
 selected with the <b>evp_maps</b> parameter. With the parameter 
 <b>export_rasters</b> you tell the addon to export the raster layers as 
@@ -129,8 +129,8 @@ to train the model).
 
 <p>
 With the flags <em>-y</em> and <em>-b></em>,point layers with 
-respectively the sample predictions and the predictions at the 
-background point locations is created. Their values correspond to the 
+respectively, the sample predictions and the predictions at the 
+background point locations are created. Their values correspond to the 
 values of the raster prediction layer.
 
 <div class="code">
@@ -160,9 +160,17 @@ In your current mapset, you'll find the raster prediction layer, and
 the sample and background point layers with the predicted values.
 
 <p>
+<div align="left" style="margin: 10px"> <a href="r_maxent_train.png"> 
+<img src="r_maxent_train.png" alt="Output layers in grass gis" 
+border="0"> </a><br><i>Besides the files created by Maxent in the 
+output folder, you will have three new layers in your mapset, viz., the 
+prediction raster layer and the sample and background point layers with 
+the prediction values.</i> </div>
+
+
+<p>
 You can use the addon <em>r.maxent.predict</em> to perform predictions 
-based on the outcomes of this addon for e.g. future conditions or for a 
-different area.
+based on future conditions or for a different area.
 
 <h2>REFERENCES</h2>
 
