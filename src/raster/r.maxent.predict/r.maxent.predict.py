@@ -66,6 +66,21 @@
 # %end
 
 # %flag
+# % key: e
+# % label: Automatically adapt resolution
+# % description: When the ns and ew resolution are not the same, nearest neighbor resampling will be used to ensure both are the same.
+# % guisection: output
+# %end
+
+# %option G_OPT_R_OUTPUT
+# % key: output
+# % label: Prediction raster layer
+# % description: The name of the raster layer with the predicted suitability scores
+# % guisection: output
+# % required: yes
+# %end
+
+# %flag
 # % key: c
 # % label: Do not apply clamping
 # % description: Do not apply clamping when projecting.
@@ -184,6 +199,18 @@ def repl_char(keep, strlist, replwith):
     return nwlist
 
 
+def check_layers_exist(layers):
+    """
+    Check if all layers in a list exist in accessible mapsets.
+    """
+    missing_layers = []
+    for layer in layers:
+        # Check if the layer exists in the current mapset
+        if not gs.find_file(name=layer)["fullname"]:
+            missing_layers.append(layer)
+    return missing_layers
+
+
 # Main
 # ------------------------------------------------------------------
 def main(options, flags):
@@ -253,11 +280,23 @@ def main(options, flags):
     # Names of variables and corresponding layer names
     # ------------------------------------------------------------------
     if bool(options["alias_file"]):
-        import csv
-
         with open(options["alias_file"]) as csv_file:
             row_data = list(csv.reader(csv_file, delimiter=","))
         col_data = list(zip(*row_data))
+        chlay = check_layers_exist(col_data[0])
+        if len(chlay) > 0:
+            gs_message(
+                _(
+                    "The layer(s) {} do not exist in the accessible mapsets".format(
+                        ", ".join(chlay)
+                    )
+                )
+            )
+        else:
+            for n, varname in enumerate(col_data[0]):
+
+
+
 
     # Input parameters - building command line string
     # ------------------------------------------------------------------
