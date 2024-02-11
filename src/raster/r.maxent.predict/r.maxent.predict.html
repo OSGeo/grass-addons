@@ -1,0 +1,113 @@
+<h2>DESCRIPTION</h2>
+
+With <em>r.maxent.train</em> a Maxent presence only model can be 
+created using the <em>Maxent software</em>. As input, the addon 
+requires two comma-separated files, one with the species locations and 
+another of background points locations. Both need to include columns 
+with the X, Y and sample values of the environmental variables that you 
+want to use as predictor variables. You can use the <a 
+href="r.out.maxent_swd.html">r.out.maxent_swd</a> or <a 
+href="v.maxent.swd.html">v.maxent.swd</a> addons to create these files. 
+For more details about the structure of these files, see the <a 
+href="https://biodiversityinformatics.amnh.org/open_source/maxent/">Maxent 
+website</a>.
+
+<p>
+The only other requirement is to provide an output folder. With 
+these inputs, a Maxent model will be created. If you also provide a 
+folder with environmental raster layers with names corresponding to the 
+names of the environmental variables in the SWD files, the module will 
+create a prediction (suitability distribution) raster layer as well. 
+
+<p>
+Note that the Maxent software generates ASCII files without projection 
+information. That means you need to make sure yourself that the 
+environmental layers you provide are in the same reference coordinate 
+system as your current mapset. An easy way to ensure this is by using 
+the <em>r.out.maxent_swd</em> from the same mapset to create those 
+input environmental layers for Maxent.<!--See the example workflow in 
+the Examples-->
+
+<p>
+The addon provides access to nearly all parameters available in the 
+Maxent software. On the above-mentioned website, you can find a 
+tutorial that explains most of these options. For the other options, 
+see the Maxent help file.
+
+
+<h2>NOTES</h2>
+
+This addon requires the Maxent software. You can download the software 
+from the <a 
+href="https://biodiversityinformatics.amnh.org/open_source/maxent">Maxent 
+website</a>. The software includes a <em>Maxent.jar</em> file. The 
+first time you run the addon, you need to use the <b>maxent</b> 
+parameter to set the path to the Maxent.jar file. Set the <b>-i</b> 
+flag to copy the jar file to the addon/script directory. On subsequent 
+runs, you do not need to set the <b>maxent</b> parameter anymore.
+
+<p>
+If you want to update the Maxent.jar file, use the <b>-u</b> flag. 
+Removing the Maxent.jar file needs to be done manually. Go to the GRASS 
+GIS addon directory, and delete the Maxent.jar file. To find the addon 
+directory, open GRASS GIS AND type `echo $GRASS_ADDON_BASE` on the 
+command line.
+
+<!--
+<p>
+You can use the addon <em>r.maxent.predict</em> perform predictions 
+based on different sets of prediction layers. Note that the 
+<em>v.maxent.swd</em> addon provides an easy way to export the 
+prediction layers in the right format.
+-->
+
+<h2>Examples</h2>
+
+<!--
+Add example of workflow
+-->
+
+
+<h2>REFERENCES</h2>
+
+<ul>
+<li>Steven J. Phillips, Miroslav Dud&iacute;k, Robert E. Schapire. 2020: Maxent software
+for modeling species niches and distributions (Version 3.4.1).
+Available from url: <a href="https://biodiversityinformatics.amnh.org/open_source/maxent">
+https://biodiversityinformatics.amnh.org/open_source/maxent</a>
+and <a href="https://github.com/mrmaxent/Maxent">https://github.com/mrmaxent/Maxent</a></li>
+<li>Steven J. Phillips, Miroslav Dud&iacute;k, Robert E. Schapire. 2004: A maximum entropy
+approach to species distribution modeling. In Proceedings of the Twenty-First International
+Conference on Machine Learning, pages 655-662, 2004.</li>
+<li>Steven J. Phillips, Robert P. Anderson, Robert E. Schapire. 2006: Maximum entropy
+modeling of species geographic distributions. Ecological Modelling, 190:231-259, 2006.</li>
+<li>Jane Elith, Steven J. Phillips, Trevor Hastie, Miroslav Dud&iacute;k, Yung En Chee,
+Colin J. Yates. 2011: A statistical explanation of MaxEnt for ecologists. Diversity and
+Distributions, 17:43-57, 2011.</li>
+</ul>
+
+
+<h2>SEE ALSO</h2>
+
+See also 
+
+<ul>
+<li><a href="v.maxent.swd.html">v.maxent.swd</a>, creating species and 
+background swd files and prediction rasters that can be used directly 
+by the <em>r.maxent.train</em> addon (or the Maxent software itself) to 
+create species distribution models.</li>
+<li><a href="r.out.maxent_swd.html">r.out.maxent_swd</a>, creating 
+species and background swd files based on species distribution data in 
+raster format.</li>
+<!--
+<li><a href="r.maxent.predict.html">r.maxent.predict</a>, creating a 
+suitability layer based on a set of environmental layers and a Maxent 
+model, e.g., created using the r.maxent.train addon.</li>
+-->
+</ul>
+
+<h2>AUTHOR</h2>
+
+Paulo van Breugel, <a href="https://ecodiv.earth">https://ecodiv.earth</a><br>
+
+
