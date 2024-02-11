@@ -413,14 +413,8 @@
 
 # %flag
 # % key: v
-# % label: Make the Maxent user interface visible
-# % description: Show the Maxent interface and do not start automatically. Use for debugging.
-# %end
-
-# %flag
-# % key: m
-# % label: Do not autorun Maxent
-# % description: When you select this option, Maxent will not start before you hit the start option. This will set the -v flag to true (overriding user choice).
+# % label: Show the Maxent user interface
+# % description: Use this flag to show the Maxent interface. Note that when you select this option, Maxent will not start before you hit the start option.
 # %end
 
 # %flag
@@ -589,10 +583,6 @@ def main(options, flags):
 
     # Input parameters - building command line string
     # ------------------------------------------------------------------
-    # Conditional
-    if flags["m"]:
-        flags["v"] = True
-
     # names options
     maxent_command = [
         "java",
@@ -662,6 +652,12 @@ def main(options, flags):
     maxent_command += [val for key, val in bool_flags.items() if not flags.get(key)]
 
     # Building the command line string - conditional on multiple input value
+    if bool(flags["v"]):
+        maxent_command += ["visible=true"]
+        maxent_command += ["autorun=false"]
+    else:
+        maxent_command += ["visible=false"]
+        maxent_command += ["autorun=true"]
     if bool(options["projectionlayers"]):
         if options["replicates"] == "1":
             maxent_command += ["outputgrids=true"]
