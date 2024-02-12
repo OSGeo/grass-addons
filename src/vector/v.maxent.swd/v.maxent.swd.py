@@ -6,7 +6,7 @@
 # MODULE:       v.maxent.swd
 # AUTHOR(S):    Paulo van Breugel
 # PURPOSE:      Produce a set of text file (SWD file) which can be used as
-#               input to MaxEnt 3.3.3. It may also provide the input data
+#               input to MaxEnt 3.4+. It may also provide the input data
 #               presence and absence/background for other modeling tools
 #               in e.g. R
 #
@@ -36,12 +36,12 @@
 #
 # REQUIREMENTS:
 # -
-# %Module
-# % description: Export raster values at given point locations as text file in SWD format for input in Maxent
+# %module
+# % description: Export raster values at given point locations as text file in SWD format for input in Maxent. In addition, the addon can export the environmental raster layers as ascii files.
 # % keyword: vector
 # % keyword: export
 # % keyword: Maxent
-# %End
+# %end
 
 # %option
 # % key: species
@@ -106,7 +106,6 @@
 # % type: string
 # % description: Number or percentage of background points
 # % key_desc: number
-# % answer : 10000
 # % required: no
 # % guisection: point data
 # %end
@@ -119,6 +118,21 @@
 # % multiple : no
 # % gisprompt: old,vector
 # % guisection: point data
+# %end
+
+# %flag
+# % key: t
+# % label: Thin species and background points
+# % description: Select this flag if you want to limit the species and background points to maximum one point per raster cell. Note that this is already the case for the background points with the nbgp option.
+# % guisection: output
+# %end
+
+# %option G_OPT_F_OUTPUT
+# % key: species_output
+# % description: Species SWD file
+# % required : no
+# % multiple: no
+# % guisection: output
 # %end
 
 # %option G_OPT_F_OUTPUT
@@ -143,14 +157,6 @@
 
 # %rules
 # %requires: bgr_output,nbgp,bgp
-# %end
-
-# %option G_OPT_F_OUTPUT
-# % key: species_output
-# % description: Species SWD file
-# % required : no
-# % multiple: no
-# % guisection: output
 # %end
 
 # %rules
@@ -219,6 +225,7 @@ import sys
 import atexit
 import sys
 import uuid
+import pathlib
 import grass.script as gs
 
 
@@ -253,6 +260,7 @@ def cleanup():
 
 
 def CreateFileName(outputfile):
+    """Create temporary file name"""
     flname = outputfile
     k = 0
     while os.path.isfile(flname):
@@ -263,6 +271,15 @@ def CreateFileName(outputfile):
         else:
             flname = fn[0] + "_" + str(k) + "." + fn[1]
     return flname
+
+
+def thin_points(layer, newname):
+    """
+    Thin point layer, reducing to density to maximum one per raster layer
+    """
+    tmprast = create_temporary_name("thin")
+    gs.run_command("v.to.rast", input=layer, type="point", output=tmprast, use="value")
+    gs.run_command("r.to.vect", input=tmprast, output=newname, type="point")
 
 
 def main(options, flags):
@@ -291,6 +308,7 @@ def main(options, flags):
     evp = evp.split(",")
     evpn = options["alias_names"]
     bgrout = options["bgr_output"]
+    bkgr_file_extension = pathlib.Path(bgrout).suffix
     if os.path.isfile(bgrout):
         bgrout2 = CreateFileName(bgrout)
         gs.message(
@@ -363,15 +381,31 @@ def main(options, flags):
                 exporturl = os.path.join(
                     options["export_rasters"], f"{evpn[idx]}.{raster_extension}"
                 )
-                gs.run_command(
-                    "r.out.gdal",
-                    input=name,
-                    output=exporturl,
-                    format=raster_format,
-                    nodata=int(options["nodata"]),
-                    flags="c",
-                    quiet=True,
-                )
+                laytype = gs.raster_info(name)["datatype"]
+                if laytype == "CELL" and (
+                    int(options["nodata"]) < 0 or int(options["nodata"]) > 255
+                ):
+                    gs.run_command(
+                        "r.out.gdal",
+                        input=name,
+                        output=exporturl,
+                        format=raster_format,
+                        nodata=int(options["nodata"]),
+                        flags="c",
+                        type="Int32",
+                        quiet=True,
+                    )
+                else:
+                    gs.run_command(
+                        "r.out.gdal",
+                        input=name,
+                        output=exporturl,
+                        format=raster_format,
+                        nodata=options["nodata"],
+                        flags="c",
+                        quiet=True,
+                    )
+
         if len(evpc) > 0:
             for idx, name in enumerate(evpc):
                 exporturl = os.path.join(
@@ -396,7 +430,10 @@ def main(options, flags):
         bgpname = create_temporary_name("bgp")
         gs.message(_("Creating SWD file with background points"))
         if bool(options["bgp"]):
-            gs.run_command("g.copy", vector=[options["bgp"], bgpname], quiet=True)
+            if bool(flags["t"]):
+                thin_points(options["bgp"], bgpname)
+            else:
+                gs.run_command("g.copy", vector=[options["bgp"], bgpname], quiet=True)
         else:
             gs.run_command(
                 "r.random",
@@ -453,7 +490,10 @@ def main(options, flags):
             file=bgrout,
             quiet=True,
         )
-        prjout = bgrout.replace("csv", "prj")
+        if bkgr_file_extension == "":
+            prjout = f"{bgrout}.prj"
+        else:
+            prjout = bgrout.replace(bkgr_file_extension, "prj")
         proj_string = gs.read_command("g.proj", flags="fe").strip()
         with open(prjout, "w") as outfile:
             outfile.write(proj_string)
@@ -480,13 +520,17 @@ def main(options, flags):
                     )
                 )
         specout = options["species_output"]
+        spec_file_extension = pathlib.Path(specout).suffix
 
         # Write for each species a temp swd file
         for i in range(len(specs)):
             # Upload environmental values for point locations to attribute table
             bgrtmp = os.path.join(bgrdir, "prespoints{}".format(i))
             specname = create_temporary_name("sp")
-            gs.run_command("g.copy", vector=[specs[i], specname], quiet=True)
+            if bool(flags["t"]):
+                thin_points(specs[i], specname)
+            else:
+                gs.run_command("g.copy", vector=[specs[i], specname], quiet=True)
             for j in range(len(env_vars)):
                 gs.run_command(
                     "v.what.rast",
@@ -544,7 +588,10 @@ def main(options, flags):
             for fname in filenames:
                 with open(fname) as infile:
                     outfile.write(infile.read().rstrip() + "\n")
-        prjout = specout.replace("csv", "prj")
+        if spec_file_extension == "":
+            prjout = f"{specout}.prj"
+        else:
+            prjout = specout.replace(spec_file_extension, "prj")
         proj_string = gs.read_command("g.proj", flags="fe").strip()
         with open(prjout, "w") as outfile:
             outfile.write(proj_string)
