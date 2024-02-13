@@ -197,6 +197,7 @@ def strip_mapset(name, join_char="@"):
 # ------------------------------------------------------------------
 def main(options, flags):
 
+    temp_directory = "/home/paulo/Desktop"
     # Set verbosity level
     # ------------------------------------------------------------------
     if gs.verbosity() > 2:
@@ -292,8 +293,8 @@ def main(options, flags):
             layer_names = col_data[1]
     else:
         layer_names = options["raster"].split(",")
-        if bool(options["alias"]):
-            file_names = options["alias"].split(",")
+        if bool(options["variables"]):
+            file_names = options["variables"].split(",")
         else:
             file_names = [strip_mapset(x) for x in layer_names]
 
