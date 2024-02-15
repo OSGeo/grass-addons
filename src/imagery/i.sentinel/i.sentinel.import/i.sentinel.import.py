@@ -407,7 +407,7 @@ class SentinelImporter(object):
             pass  # error already printed
 
     def get_safe_dir(self, filename):
-        return filename[:filename.find(".SAFE")+len(".SAFE")].split(os.path.sep)[-1]
+        return filename[: filename.find(".SAFE") + len(".SAFE")].split(os.path.sep)[-1]
 
     def get_unique_safe_dirs(self, files):
         return set(map(lambda f: self.get_safe_dir(f), files))
@@ -461,7 +461,10 @@ class SentinelImporter(object):
             )
 
             # check if mask alrady exist
-            if gs.find_file(name=map_name, element=output, mapset=".")["file"] and not overwrite:
+            if (
+                gs.find_file(name=map_name, element=output, mapset=".")["file"]
+                and not overwrite
+            ):
                 gs.message(
                     _(
                         "option <output>: <{}> exists. To overwrite, use the --overwrite flag".format(
