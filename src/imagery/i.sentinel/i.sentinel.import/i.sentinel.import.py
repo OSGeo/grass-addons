@@ -180,11 +180,11 @@ class SentinelImporter(object):
     def __del__(self):
         # remove temporary maps
         for map in self._map_list:
-            if gs.find_file(map, element="cell")["file"]:
+            if gs.find_file(map, element="cell", mapset=".")["file"]:
                 gs.run_command(
                     "g.remove", flags="fb", type="raster", name=map, quiet=True
                 )
-            if gs.find_file(map, element="vector")["file"]:
+            if gs.find_file(map, element="vector", mapset=".")["file"]:
                 gs.run_command(
                     "g.remove", flags="f", type="vector", name=map, quiet=True
                 )
