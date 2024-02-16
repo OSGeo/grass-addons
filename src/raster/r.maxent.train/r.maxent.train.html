@@ -50,8 +50,13 @@ runs, you do not need to set the <b>maxent</b> parameter anymore.
 If you want to update the Maxent.jar file, use the <b>-u</b> flag. 
 Removing the Maxent.jar file needs to be done manually. Go to the GRASS 
 GIS addon directory, and delete the Maxent.jar file. To find the addon 
-directory, open GRASS GIS and type `echo $GRASS_ADDON_BASE` on the 
-command line.
+directory, open GRASS GIS and on the command line, type:
+
+<div class="code">
+<pre>echo 
+$GRASS_ADDON_BASE
+</pre>
+</div>
 
 <p>
 The <em>r.maxent.train</em> addons runs Maxent in the background. If 
@@ -130,16 +135,16 @@ Use the output of <em>v.maxent.swd</em> as input for
 The outputs will be written to this folder.
 
 <p>
-The <em>projectionlayers</em> parameter is optionally. If you set it, a 
+The <b>projectionlayers</b> parameter is optionally. If you set it, a 
 raster prediction layer will be created that represent the potential 
 suitability distribution under current conditions (the conditions used 
 to train the model).
 
 <p>
-With the flags <em>-y</em> and <em>-b></em>,point layers with 
-respectively, the sample predictions and the predictions at the 
-background point locations are created. Their values correspond to the 
-values of the raster prediction layer.
+With the <b>-y</b> and <b>-b</b> flags the point layers with the sample 
+predictions and the predictions at the background point locations are 
+created. Their values correspond to the values of the raster prediction 
+layer.
 
 <div class="code">
 <pre>
@@ -165,15 +170,12 @@ website</a>.
 
 <p>
 In your current mapset, you'll find the raster prediction layer, and 
-the sample and background point layers with the predicted values.
+the sample and background point layers with the predicted values. 
 
 <p>
 <div align="left" style="margin: 10px"> <a href="r_maxent_train.png"> 
 <img src="r_maxent_train.png" alt="Output layers in grass gis" 
-border="0"> </a><br><i>Besides the files created by Maxent in the 
-output folder, you will have three new layers in your mapset, viz., the 
-prediction raster layer and the sample and background point layers with 
-the prediction values.</i> </div>
+border="0"> </a><br><i>The example creates the prediction raster layer 'model_1_suitability_current',  the sample point layer 'model_1_samplepred' and the background point layer 'model_bgrdpred' (for the latter, ony part of the map is shown here).</i> </div>
 
 
 <p>
