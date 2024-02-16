@@ -54,7 +54,7 @@
 # %option G_OPT_F_BIN_INPUT
 # % key: alias_file
 # % label: csv file with variable and layer names
-# % description: A csv file with in the first column the names of the explanatory variable names as used in the model, and in the second column the names of the names of the corresponding raster layers.
+# % description: A csv file with in the first column the names of the explanatory variables used in the model, and in the second column the names of corresponding raster layers. Make both are provided in the same order.
 # % guisection: input
 # % required: no
 # %end

@@ -1,50 +1,48 @@
 <h2>DESCRIPTION</h2>
 
-With <em>r.maxent.train</em> a Maxent presence only model can be 
-created using the <em>Maxent software</em>. As input, the addon 
-requires two comma-separated files, one with the species locations and 
-another of background points locations. Both need to include columns 
-with the X, Y and sample values of the environmental variables that you 
-want to use as predictor variables. You can use the <a 
-href="r.out.maxent_swd.html">r.out.maxent_swd</a> or <a 
-href="v.maxent.swd.html">v.maxent.swd</a> addons to create these files. 
-For more details about the structure of these files, see the <a 
-href="https://biodiversityinformatics.amnh.org/open_source/maxent/">Maxent 
-website</a>.
+The <em>r.maxent.predict</em> addon can be used to apply a previously 
+calculated Maxent model to a new set of environmental raster data.
 
 <p>
-The only other requirement is to provide an output folder. With 
-these inputs, a Maxent model will be created. If you also provide a 
-folder with environmental raster layers with names corresponding to the 
-names of the environmental variables in the SWD files, the module will 
-create a prediction (suitability distribution) raster layer as well. 
+It requires a .lambdas file describing a Maxent model, and the name 
+of raster layers for all predictor variables described in the lambdas 
+file. The .lambdas file can be created by the <em>r.maxent.train</em> 
+addon, or by the Maxent software directly.
 
 <p>
-Note that the Maxent software generates ASCII files without projection 
-information. That means you need to make sure yourself that the 
-environmental layers you provide are in the same reference coordinate 
-system as your current mapset. An easy way to ensure this is by using 
-the <em>r.out.maxent_swd</em> from the same mapset to create those 
-input environmental layers for Maxent.<!--See the example workflow in 
-the Examples-->
+For convenience, <em>r.maxent.train</em> creates a file 
+<i>maxent_explanatory_variable_names.csv</i>, which you can check for 
+the names of the predictor variables. If these are different from the 
+input raster layers, you can provide the variable names using the 
+<em>variables</em> parameter. Alternatively, you can provide csv file 
+with the names of the explanatory variables (first column)and the names 
+of the corresponding raster layers (second column).
 
 <p>
-The addon provides access to nearly all parameters available in the 
-Maxent software. On the above-mentioned website, you can find a 
-tutorial that explains most of these options. For the other options, 
-see the Maxent help file.
-
+Maxent includes the option of “clamping” projections. This constrains 
+the values for environmental values in the projected range to the limit 
+of that variable that is found in the training range. By default, 
+Maxent applied clamping. You can disable this by setting the 
+<em>-c</em> flag. You also have the option to reduce the prediction at 
+each point in projections by the difference between clamped and 
+non-clamped output at that point. Use the <em>-f</em> to enable this 
+option.
 
 <h2>NOTES</h2>
 
 This addon requires the Maxent software. You can download the software 
 from the <a 
 href="https://biodiversityinformatics.amnh.org/open_source/maxent">Maxent 
-website</a>. The software includes a <em>Maxent.jar</em> file. The 
-first time you run the addon, you need to use the <b>maxent</b> 
-parameter to set the path to the Maxent.jar file. Set the <b>-i</b> 
-flag to copy the jar file to the addon/script directory. On subsequent 
-runs, you do not need to set the <b>maxent</b> parameter anymore.
+website</a>. The software includes a <em>Maxent.jar</em> file.
+
+<p>
+The addon expects a copy of the executable in the GRASS GIS addon 
+directory. If it is not there, you need to provide the path to the 
+<i>maxent.jar</i> file using the <b>maxent</b> parameter. To avoid 
+having to provide this each time again, you can use the <b>-i</b> flag. 
+If set, the <i>maxent.jar</i> file will be copied to the addon/script 
+directory. Note, if you already did this when running 
+<em>r.maxent.train</em>, there is not need to repeat it hear.
 
 <p>
 If you want to update the Maxent.jar file, use the <b>-u</b> flag. 
@@ -52,14 +50,6 @@ Removing the Maxent.jar file needs to be done manually. Go to the GRASS
 GIS addon directory, and delete the Maxent.jar file. To find the addon 
 directory, open GRASS GIS AND type `echo $GRASS_ADDON_BASE` on the 
 command line.
-
-<!--
-<p>
-You can use the addon <em>r.maxent.predict</em> perform predictions 
-based on different sets of prediction layers. Note that the 
-<em>v.maxent.swd</em> addon provides an easy way to export the 
-prediction layers in the right format.
--->
 
 <h2>Examples</h2>
 
