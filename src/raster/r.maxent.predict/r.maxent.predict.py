@@ -197,7 +197,6 @@ def strip_mapset(name, join_char="@"):
 # ------------------------------------------------------------------
 def main(options, flags):
 
-    temp_directory = "/home/paulo/Desktop"
     # Set verbosity level
     # ------------------------------------------------------------------
     if gs.verbosity() > 2:
