@@ -84,7 +84,7 @@
 # %flag
 # % key: y
 # % label: Create a vector point layer from the sample predictions
-# % description: Import the the file(s) with sample predictions as point feature layer.
+# % description: Import the file(s) with sample predictions as point feature layer.
 # % guisection: Output
 # %end
 
