@@ -2,7 +2,7 @@
 
 The <em>r.maxent.predict</em> addon can be used to apply a previously 
 calculated Maxent model to a new set of environmental raster data. It 
-requires a <i>.lambdas file</i> file describing a Maxent model, and the 
+requires a <i>.lambdas</i> file describing a Maxent model, and the 
 name of raster layers for all predictor variables described in the 
 lambdas file. The <i>.lambdas file</i> can be created by the 
 <em>r.maxent.train</em> addon, or by the Maxent software directly.
@@ -68,7 +68,7 @@ BCC-CSM2-MR and SSP 585.
 
 <p>
 The zip file contains a folder <i>sampledata</i>. This is a location 
-with five sub-folders <i>PERMANENT</i>, <i>sloth</i>, <i>current</i>, 
+with five subfolders <i>PERMANENT</i>, <i>sloth</i>, <i>current</i>, 
 <i>future</i> and <i>model01</i>. Copy this Location to a GRASS 
 Database (use an existing one or create one first). If you are not 
 familiar with the concept of <i>Locations</i> and <i>Mapsets</i>, 
@@ -132,13 +132,13 @@ The output is a folder with the so-called SWD files  with the XY
 coordinates for the species presence location (<i>spec_swd.csv</i>) and 
 the background locations (<i>bgrd_swd.csv</i>. Both also include the 
 values of the input raster layers for the given point locations. In 
-addition, there is the sub-folder <i>envlayers</i> with the 
+addition, there is the subfolder <i>envlayers</i> with the 
 environmental raster layers in <i>ascii</i> format.
 
 <h3>2: Train the model</h3>
 
 Use the output of <em>v.maxent.swd</em> as input for 
-<em>rmaxent.train</em>. First create a sub-folder <i>output_model1</i>, 
+<em>r.maxent.train</em>. First create a subfolder <i>output_model1</i>, 
 so we can write the output to that folder.
 
 <p>
@@ -181,11 +181,11 @@ the sample and background point layers with the predicted values.
 
 <p>
 <div align="left" style="margin: 10px"> <a href="r_maxent_train.png"> 
-<img src="r_maxent_train.png" alt="Output layers in grass gis" 
+<img src="r_maxent_train.png" alt="Output layers in GRASS GIS" 
 border="0"> </a><br><i>The example creates the prediction raster layer 
 'model_1_suitability_current',  the sample point layer 
 'model_1_samplepred' and the background point layer 'model_bgrdpred' 
-(for the latter, ony part of the map is shown here).</i> </div>
+(for the latter, only part of the map is shown here).</i> </div>
 
 <h3>3: Create a prediction layer</h3>
 
@@ -212,7 +212,7 @@ the figure below). Not sure that is realistic.
 <p>
 <div align="left" style="margin: 10px"> <a 
 href="r_maxent_predict_02.png"> <img src="r_maxent_predict_02.png" 
-alt="Predicted suitabilty map for Bradypus tridactylus for the period 
+alt="Predicted suitability map for Bradypus tridactylus for the period 
 2061-2080 based on the GCM BCC-CSM2-MR and SSP 585." border="0"> 
 </a><br><i>Predicted suitabilty for the period 2061-2080 based on the 
 GCM BCC-CSM2-MR and SSP 585.</i> </div>

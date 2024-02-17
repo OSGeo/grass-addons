@@ -46,7 +46,7 @@
 # % key: variables
 # % type: string
 # % label: variable names
-# % description: Names of the environmental parameter(s) as used in the model. These need to be given in the same order as the corresponding raster layers. If left out, the names are assumed to be the same as the  name of the raster layers.
+# % description: Names of the environmental parameter(s) as used in the model. These need to be given in the same order as the corresponding raster layers. If left out, the names are assumed to be the same as the name of the raster layers.
 # % required : no
 # % guisection: input
 # %end
@@ -115,7 +115,7 @@
 # %flag
 # % key: u
 # % label: Overwrites maxent.jar in addon directory
-# % description: Copy the maxent.jar (path provided with the 'maxent' parameter) to the addon scripts directory. If the file already exist in the addon directory, it is overwritten.
+# % description: Copy the maxent.jar (path provided with the 'maxent' parameter) to the addon scripts directory. If the file already exists in the addon directory, it is overwritten.
 # %end
 
 # %flag
@@ -139,7 +139,7 @@ import grass.script as gs
 temp_directory = gs.tempdir()
 
 
-# Funtions
+# Functions
 # ------------------------------------------------------------------
 def find_index_case_insensitive(lst, target):
     """
@@ -253,11 +253,11 @@ def main(options, flags):
                 gs.fatal(_(msg))
             else:
                 shutil.copyfile(maxent_file, maxent_copy)
-                msg = "Copied the maxent.jar file to the grass gis addon script directory .\n\n"
+                msg = "Copied the maxent.jar file to the GRASS GIS addon script directory .\n\n"
                 gs.info(_(msg))
         if bool(flags["u"]):
             shutil.copyfile(maxent_file, maxent_copy)
-            msg = "Copied the maxent.jar file to the grass gis addon script directory .\n\n"
+            msg = "Copied the maxent.jar file to the GRASS GIS addon script directory .\n\n"
             gs.info(_(msg))
     else:
         maxent_file = os.environ.get("GRASS_ADDON_BASE")
@@ -364,7 +364,7 @@ def main(options, flags):
     # -----------------------------------------------------------------
     # Import the resulting layer in GRASS GIS
     # -----------------------------------------------------------------
-    gs.info(_("Importing the predicted suitability layer in grass gis\n"))
+    gs.info(_("Importing the predicted suitability layer in GRASS GIS\n"))
     gs.run_command(
         "r.in.gdal",
         flags="o",
