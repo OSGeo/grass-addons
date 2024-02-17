@@ -227,7 +227,7 @@
 # %flag
 # % key: a
 # % label: Do not use automatic selection of feature classes
-# % description: By default, Maxent automatically select which feature classes to use, based on number of training samples. Use this flag to disable autoselection of features.
+# % description: By default, Maxent automatically selects which feature classes to use, based on number of training samples. Use this flag to disable autoselection of features.
 # % guisection: Parameters
 # %end
 
