@@ -349,7 +349,7 @@
 # %option
 # % key: beta_lqp
 # % type: double
-# % label: Regularization parameter for lin, quad en prod features
+# % label: Regularization parameter for lin, quad and prod features
 # % description: Regularization parameter to be applied to all linear, quadratic and product features; negative value enables automatic setting.
 # % answer: -1.0
 # % guisection: Advanced
