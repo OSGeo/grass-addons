@@ -426,7 +426,7 @@
 # %flag
 # % key: u
 # % label: Overwrites maxent.jar in addon directory
-# % description: Copy the maxent.jar (path provided with the 'maxent' parameter) to the addon scripts directory. If the file already exist in the addon directory, it is overwritten.
+# % description: Copy the maxent.jar (path provided with the 'maxent' parameter) to the addon scripts directory. If the file already exists in the addon directory, it is overwritten.
 # %end
 
 # %rules
