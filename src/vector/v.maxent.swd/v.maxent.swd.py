@@ -493,7 +493,7 @@ def main(options, flags):
         if bkgr_file_extension == "":
             prjout = f"{bgrout}.prj"
         else:
-            prjout = bgrout.replace(bkgr_file_extension, "prj")
+            prjout = bgrout.replace(bkgr_file_extension, ".prj")
         proj_string = gs.read_command("g.proj", flags="fe").strip()
         with open(prjout, "w") as outfile:
             outfile.write(proj_string)
@@ -591,7 +591,7 @@ def main(options, flags):
         if spec_file_extension == "":
             prjout = f"{specout}.prj"
         else:
-            prjout = specout.replace(spec_file_extension, "prj")
+            prjout = specout.replace(spec_file_extension, ".prj")
         proj_string = gs.read_command("g.proj", flags="fe").strip()
         with open(prjout, "w") as outfile:
             outfile.write(proj_string)
