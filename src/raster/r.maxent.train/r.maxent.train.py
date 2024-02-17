@@ -322,7 +322,7 @@
 # %option
 # % key: hingethreshold
 # % type: integer
-# % label: Theshold for hinge feature
+# % label: Threshold for hinge feature
 # % description: Number of samples at which hinge features start being used.
 # % answer: 15
 # % guisection: Advanced
