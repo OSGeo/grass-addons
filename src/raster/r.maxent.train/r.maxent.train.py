@@ -304,7 +304,7 @@
 # %option
 # % key: lq2lqptthreshold
 # % type: integer
-# % label: Theshold for product and threshold features
+# % label: Threshold for product and threshold features
 # % description: Number of samples at which product and threshold features start being used.
 # % answer: 80
 # % guisection: Advanced
