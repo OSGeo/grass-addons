@@ -249,7 +249,7 @@
 # % key: randomtestpoints
 # % type: integer
 # % label: Percentage of random test points
-# % description: Percentage of presence localities to be randomly set aside as test points, used to compute AUC, omission etc.
+# % description: Percentage of presence localities to be randomly set aside as test points, used to compute the AUC, omission, etc.
 # % answer: 0
 # % guisection: Validation
 # %end
