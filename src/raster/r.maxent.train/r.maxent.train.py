@@ -704,7 +704,7 @@ def main(options, flags):
             valtype = "subsampling"
         msg = (
             "A {0} with {1} replications was carried out.\n"
-            "The average and standard deviaton of the AUC of the"
+            "The average and standard deviation of the AUC of the"
             "\n {1} submodels are presented below.\n\n".format(
                 valtype, options["replicates"]
             )
