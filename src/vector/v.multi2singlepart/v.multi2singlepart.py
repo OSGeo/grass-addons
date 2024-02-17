@@ -26,12 +26,12 @@
 
 # %option G_OPT_V_INPUT
 # % description: Input vector layer
-# % required : yes
+# % required: yes
 # %end
 
 # %option G_OPT_V_OUTPUT
 # % description: Output vector layer
-# % required : yes
+# % required: yes
 # %end
 
 # ----------------------------------------------------------------------------
