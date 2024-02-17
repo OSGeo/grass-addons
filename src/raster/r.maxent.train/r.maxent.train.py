@@ -812,7 +812,7 @@ def main(options, flags):
                         columns=col,
                         quiet=function_verbosity,
                     )
-            # Rename colomn for first layer
+            # Rename column for first layer
             if len(prediction_csv) > 1 and index == 0:
                 col_rename = f"{nm},{nm}_1"
                 gs.run_command(
