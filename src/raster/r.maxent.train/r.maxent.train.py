@@ -258,7 +258,7 @@
 # % key: testsamplesfile
 # % type: string
 # % label: Test presence locations
-# % description: Use the presence localities in this csv file to compute statistics (AUC, omission etc.).
+# % description: Use the presence localities in this csv file to compute statistics (AUC, omission, etc.).
 # % guisection: Validation
 # % required: no
 # %end
