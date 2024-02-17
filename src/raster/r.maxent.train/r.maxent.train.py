@@ -240,7 +240,7 @@
 
 # %flag
 # % key: j
-# % label: Use jacknife validation
+# % label: Use jackknife validation
 # % description: Measure importance of each environmental variable by training with each environmental variable first omitted, then used in isolation.
 # % guisection: Validation
 # %end
