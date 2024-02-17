@@ -313,7 +313,7 @@
 # %option
 # % key: l2lqthreshold
 # % type: integer
-# % label: Theshold for quadratic feature
+# % label: Threshold for quadratic feature
 # % description: Number of samples at which quadratic features start being used.
 # % answer: 10
 # % guisection: Advanced
