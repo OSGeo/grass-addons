@@ -21,9 +21,31 @@ weighted flow accumulation, use <em>r.accumulate</em>.
 <img src="r_flowaccumulation_formats.png" alt="degree">
 </div>
 
-<p>Since the module does not use elevation data (i.e., slope), flow
+<p>Since the module does not use elevation data (e.g., slope), flow
 accumulation is calculated by single flow direction (SFD) routing and may not
-be comparable to the result from multiple flow direction (MFD) routing.
+be comparable to the result from multiple flow direction (MFD) routing
+
+<p>The module allows cell values to overflow the maximum value of the specified
+output <b>type</b> to avoid excessive checks. With the <b>-o</b> flag, it
+prints a fatal error and exits if an overflow occurs.
+
+<p>The module uses extra memory to store an intermediate output matrix and it
+is generally faster than with the <b>-m</b> flag because intermediate results
+need not be calculated repeatedly. On heavy swapping, however, computation can
+be faster with the <b>-m</b> flag because of reduced memory allocation. With
+this flag, intermediate results are calculated as needed and never stored in
+memory.
+
+<p>Cells in the output matrix are initialized to null and need not be nullified
+after computation. With the <b>-z</b> flag, they are initialized to zero and
+those outside flow accumulation are nullified later. With this flag, it can be
+faster on heavy swapping because of less write operations for nullifying
+remaining zero cells outside flow accumulation, compared to null-initialization
+of the entire region without this flag. However, when there is not much
+swapping (e.g., data fit in the physical memory), the <b>-z</b> flag can be
+slower with additional zero-comparison operations. The <b>-Z</b> flag is
+similar to the <b>-z</b> flag, but zero cells are not nullified and are saved
+in the output map.
 
 <h2>EXAMPLES</h2>
 
