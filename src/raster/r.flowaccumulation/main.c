@@ -118,7 +118,8 @@ int main(int argc, char *argv[])
 
     flag.leave_zero = G_define_flag();
     flag.leave_zero->key = 'Z';
-    flag.leave_zero->label = _("Use and leave zero instead of nullifying it");
+    flag.leave_zero->label =
+        _("Initialize to and leave zero instead of nullifying it");
 
     G_option_exclusive(flag.use_zero, flag.leave_zero, NULL);
 
