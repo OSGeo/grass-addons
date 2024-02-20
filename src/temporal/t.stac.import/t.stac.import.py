@@ -5,7 +5,7 @@
 # MODULE:       t.stac.import
 # AUTHOR:       Corey T. White, OpenPlains Inc.
 # PURPOSE:      Import data into GRASS from SpatioTemporal Asset Catalogs (STAC) APIs.
-# COPYRIGHT:    (C) 2023 Corey White
+# COPYRIGHT:    (C) 2024 Corey White
 #               This program is free software under the GNU General
 #               Public License (>=v2). Read the file COPYING that
 #               comes with GRASS for details.
@@ -17,12 +17,12 @@
 # % keyword: raster
 # % keyword: import
 # % keyword: STAC
+# % keyword: temporal
 # %end
 
 # %option
 # % key: url
 # % type: string
-# % answer: https://earth-search.aws.element84.com/v1/
 # % description: STAC API Client URL (examples at https://stacspec.org/en/about/datasets/ )
 # % required: yes
 # %end
@@ -56,7 +56,7 @@
 # %option
 # % key: max_items
 # % type: integer
-# % description:  The maximum number of items to return from the search, even if there are more matching results.
+# % description: The maximum number of items to return from the search, even if there are more matching results.
 # % multiple: no
 # % required: no
 # % answer: 10
@@ -79,7 +79,6 @@
 # % description: List of one or more Item ids to filter on.
 # % multiple: no
 # % required: no
-# % answer: 100
 # % guisection: Request
 # %end
 
@@ -195,14 +194,19 @@ import os
 import sys
 import base64
 import subprocess
-from multiprocessing.pool import ThreadPool
+
+# from multiprocessing.pool import ThreadPool
 from pystac_client import Client
+from pystac import MediaType
 import grass.script as gs
+from grass.exceptions import CalledModuleError
 
 try:
     from pystac_client import Client
 except ImportError:
     from pystac_client import Client
+from concurrent.futures import ThreadPoolExecutor
+from tqdm import tqdm
 
 
 def region_to_wgs84_decimal_degrees_bbox():
@@ -223,7 +227,7 @@ def validate_collections_option(client, collections=[]):
         collections (String[]): User defined collection
         client (Client): A PyStac Client
 
-    Returns:
+    Returns:grass r.import unable to determine number raster bands
         boolean: Returns true if the collection is available.
     """
     available_collections = client.get_collections()
@@ -248,32 +252,67 @@ def search_stac_api(client, **kwargs):
     return search
 
 
+def check_url_type(url):
+    """
+    Check if the URL is 's3://', 'gs://', or 'http(s)://'.
+
+    Parameters:
+    - url (str): The URL to check.
+
+    Returns:
+    - str: 's3', 'gs', 'http', or 'unknown' based on the URL type.
+    """
+    if url.startswith("s3://"):
+        return url.replace("s3://", "/vsis3/")
+    elif url.startswith("gs://"):
+        return url.replace("gs://", "/vsigs/")
+    elif url.startswith("http://") or url.startswith("https://"):
+        return url
+    else:
+        gs.message(_(f"Unknown Protocol: {url}"))
+        return "unknown"
+
+
 def import_grass_raster(params):
     url, output, resample_method, memory = params
-    # output = params[1]
-    # resample_method = params[2]
-    # memory = params["memory"]
-    # input_url = f"/vsicurl://{url}"
-    input_url = f"/vsis3://{url}"
 
-    gs.parse_command(
-        "r.import",
-        input=input_url,
-        output=output,
-        resample=resample_method,
-        memory=memory,
-        flags="o",
-        quiet=True,
-    )
+    input_url = check_url_type(url)
+
+    try:
+        gs.message(_(f"Importing: {output}"))
+        gs.parse_command(
+            "r.import",
+            input=input_url,
+            output=output,
+            resample=resample_method,
+            memory=memory,
+            quiet=True,
+        )
+    except CalledModuleError as e:
+        gs.fatal(_("Error importing raster: {}".format(e.stderr)))
+
+
+def create_strds(strds_output, asset_name_list):
+    """Create a space-time raster dataset and add the imported rasters to it."""
+    gs.parse_command("t.create", output=strds_output, type="strds", title=strds_output)
+    for asset_name in asset_name_list:
+        gs.parse_command(
+            "t.register", input=asset_name, type="rast", output=strds_output
+        )
 
 
 def download_assets(urls, filenames, resample_method, memory):
     """Downloads a list of images from the given URLs to the given filenames."""
 
-    pool = ThreadPool()
-    pool.map(import_grass_raster, zip(urls, filenames, resample_method, memory))
-    pool.close()
-    pool.join()
+    with tqdm(total=len(urls), desc="Downloading assets") as pbar:
+        with ThreadPoolExecutor(max_workers=20) as executor:
+            try:
+                for _ in executor.map(
+                    import_grass_raster, zip(urls, filenames, resample_method, memory)
+                ):
+                    pbar.update(1)
+            except Exception as e:
+                gs.fatal(_("Error importing raster: {}".format(str(e))))
 
 
 def get_all_collections(client):
@@ -294,6 +333,8 @@ def get_collection_items(client, collection_name):
     gs.message(_(f"Spatial Extent: {collection.extent.spatial.bboxes}"))
     gs.message(_(f"Temporal Extent: {collection.extent.temporal.intervals}"))
     gs.message(_(f"License: {collection.license}"))
+    gs.message(_(f"Links: {collection.links}"))
+    gs.message(_(f"Properties: {collection.extra_fields}"))
     return collection
 
 
@@ -302,7 +343,6 @@ def import_items(
     region_params=None,
     reprojection=None,
     output=None,
-    strds_output=None,
     method=None,
     resolution=None,
     memory=None,
@@ -314,15 +354,34 @@ def import_items(
 
     for item in items:
         gs.message(_(f"Item: {item.id}"))
-        asset_name_list.append(item.id)
-
         gs.message(_(f"Spatial Extent: {item.geometry} \n"))
         gs.message(_(f"Temporal Extent: {item.datetime} \n"))
         gs.message(_(f"Assets: {item.assets} \n"))
 
-        for asset in item.assets:
-            if asset == "image":
-                asset_download_list.append(item.assets[asset].href)
+        for key, asset in item.assets.items():
+            media_type = asset.media_type
+            # gs.message(_(f"Asset {key}: {media_type} \n"))
+            # gs.message(_(f"Asset: {asset.to_dict()} \n"))
+            if media_type == MediaType.COG:
+                url = asset.href
+                asset_download_list.append(url)
+                asset_name = os.path.splitext(os.path.basename(url))[0]
+                asset_name_list.append(f"{item.id}.{asset_name}")
+
+                gs.message(_(f"Added asset to download queue: {asset.to_dict()} \n"))
+            # if media_type == MediaType.GEOTIFF:
+            # asset_download_list.append(asset.href)
+            # gs.message(_(f"Added asset to download queue: {asset} \n"))
+            # if media_type == MediaType.JPEG:
+            #     asset_download_list.append(asset.href)
+            #     gs.message(_(f"Added asset to download queue: {asset} \n"))
+            # if media_type == MediaType.PNG:
+            #     asset_download_list.append(asset.href)
+            #     gs.message(_(f"Added asset to download queue: {asset} \n"))
+            # if media_type == MediaType.TIFF:
+            #     asset_download_list.append(asset.href)
+            #     gs.message(_(f"Added asset to download queue: {asset} \n"))
+
             # gs.message(_(f"Asset: {item.assets[asset]} \n"))
 
         gs.message(_(f"Links: {item.links} \n"))
@@ -334,24 +393,40 @@ def import_items(
     resample_method_list = [method] * len(asset_download_list)
     memory_list = [memory] * len(asset_download_list)
     gs.message(_(f"Asset Name List: {asset_name_list} \n"))
-    gs.message(_(f"Asset Download List: {resample_method_list} \n"))
-    gs.message(_(f"Asset Download List: {memory_list} \n"))
+    gs.message(_(f"Asset Resample List: {resample_method_list} \n"))
+    gs.message(_(f"Asset Memory List: {memory_list} \n"))
 
     return [asset_download_list, asset_name_list, resample_method_list, memory_list]
 
 
 def main():
     """Main function"""
-
+    search_params = {}  # Store STAC API search parameters
     client_url = options["url"]
-    ids = options["ids"]  # optional
+    ids = options["ids"]  # item ids optional
     collections = options["collections"]  # Maybe limit to one?
     limit = int(options["limit"])  # optional
     max_items = int(options["max_items"])  # optional
     bbox = options["bbox"]  # optional
 
     intersects = options["intersects"]  # optional
+    if intersects:
+        # Convert the vector to a geojson
+        # I don't love this is their a better way to do this?
+        output_geojson = "tmp_stac_intersects.geojson"
+        gs.run_command(
+            "v.out.ogr", input=intersects, output=output_geojson, format="GeoJSON"
+        )
+        with open(output_geojson, "r") as f:
+            intersects_geojson = f.read()
+            search_params["intersects"] = intersects_geojson
+            f.close()
+        os.remove(output_geojson)
+
     datetime = options["datetime"]  # optional
+    if datetime:
+        search_params["datetime"] = datetime
+
     query = options["query"]  # optional
     filter = options["filter"]  # optional
     filter_lang = options["filter_lang"]  # optional
@@ -372,11 +447,11 @@ def main():
     collection_itmes_only = flags["i"]
 
     if collections_only:
-        collection_list = get_all_collections(client)
+        get_all_collections(client)
         return None
 
     if collection_itmes_only:
-        collection_item_list = get_collection_items(client, collections)
+        get_collection_items(client, collections)
         return None
 
     # Set the bbox to the current region if the user did not specify the bbox or intersects option
@@ -384,24 +459,22 @@ def main():
         gs.message(_("Setting bbox to current region: {}".format(bbox)))
         bbox = region_to_wgs84_decimal_degrees_bbox()
 
+    # Add search parameters to search_params
+    search_params["collections"] = collections
+    search_params["limit"] = limit
+    search_params["max_items"] = max_items
+    search_params["bbox"] = bbox
+
     if validate_collections_option(client, collections):
-        items_search = search_stac_api(
-            client=client,
-            collections=collections,
-            limit=limit,
-            max_items=max_items,
-            bbox=bbox
-            # intersects=intersects,
-            # datetime=datetime,
-            # query=query,
-            # filter=filter,
-            # filter_lang=filter_lang,
-        )
+        items_search = search_stac_api(client=client, **search_params)
         gs.message(_("Import Items..."))
         asset_list, asset_name_list, method_list, memory_list = import_items(
             list(items_search.items()), method=method, memory=memory
         )
         download_assets(asset_list, asset_name_list, method_list, memory_list)
+        if strds_output:
+            create_strds(strds_output, asset_name_list)
+            # Register the space time raster dataset
 
 
 if __name__ == "__main__":
