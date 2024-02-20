@@ -39,18 +39,13 @@
 # % guisection: Request
 # %end
 
-# %flag
-# % key: r
-# % description: Reproject raster data using r.import if needed
-# %end
-
-#%option
-#% key: collections
-#% type: string
-#% required: no
-#% multiple: yes
-#% description: List of one or more Collection IDs or pystac.Collection instances. Only Items in one of the provided Collections will be searched
-#% guisection: Request
+# %option
+# % key: collections
+# % type: string
+# % required: no
+# % multiple: yes
+# % description: List of one or more Collection IDs or pystac.Collection instances. Only Items in one of the provided Collections will be searched
+# % guisection: Request
 #%end
 
 # %option
@@ -87,7 +82,7 @@
 # % type: double
 # % required: no
 # % multiple: yes
-# % description: The bounding box of the request (example [-72.5,40.5,-72,41])
+# % description: The bounding box of the request in WGS84 (example [-72.5,40.5,-72,41]). (default is current region)
 # % guisection: Request
 # %end
 
@@ -103,6 +98,7 @@
 # % label: Datetime Filter
 # % description: Either a single datetime or datetime range used to filter results.
 # % required: no
+# % guisection: Request
 # %end
 
 # %option
@@ -133,16 +129,6 @@
 # % guisection: Request
 # %end
 
-# %option
-# % key: region
-# % type: double
-# % label: Import subregion only (default is current region)
-# % description: Format: xmin,ymin,xmax,ymax - usually W,S,E,N
-# % key_desc: xmin,ymin,xmax,ymax
-# % multiple: no
-# % required: no
-# %end
-
 # %option G_OPT_R_OUTPUT
 # % key: output
 # % description: The output raster
@@ -168,7 +154,7 @@
 # % description: Resampling method to use for reprojection (required if location projection not longlat)
 # % descriptions: nearest;nearest neighbor;bilinear;bilinear interpolation;bicubic;bicubic interpolation;lanczos;lanczos filter;bilinear_f;bilinear interpolation with fallback;bicubic_f;bicubic interpolation with fallback;lanczos_f;lanczos filter with fallback
 # % guisection: Output
-# % answer: bilinear_f
+# % answer: nearest
 # %end
 
 # %option
@@ -180,20 +166,14 @@
 # % guisection: Output
 # %end
 
-# %option
-# % key: memory
-# % type: integer
-# % required: no
-# % multiple: no
-# % label: Maximum memory to be used (in MB)
-# % description: Cache size for raster rows
-# % answer: 300
-# %end
+#%option G_OPT_M_NPROCS
+#%end
+
+#%option G_OPT_MEMORYMB
+#%end
 
 import os
 import sys
-import base64
-import subprocess
 
 # from multiprocessing.pool import ThreadPool
 from pystac_client import Client
@@ -301,13 +281,21 @@ def create_strds(strds_output, asset_name_list):
         )
 
 
-def download_assets(urls, filenames, resample_method, memory):
+def download_assets(urls, filenames, resample_method, memory, nprocs=1):
     """Downloads a list of images from the given URLs to the given filenames."""
+    max_cpus = os.cpu_count() - 1
+    if nprocs > max_cpus:
+        gs.warning(
+            _(
+                "Number of processes {nprocs} is greater than the number of CPUs {max_cpus}."
+            )
+        )
+        nprocs = max_cpus
 
     with tqdm(total=len(urls), desc="Downloading assets") as pbar:
-        with ThreadPoolExecutor(max_workers=20) as executor:
+        with ThreadPoolExecutor(max_workers=nprocs) as executor:
             try:
-                for _ in executor.map(
+                for _a in executor.map(
                     import_grass_raster, zip(urls, filenames, resample_method, memory)
                 ):
                     pbar.update(1)
@@ -325,6 +313,17 @@ def get_all_collections(client):
     return collection_list
 
 
+def print_summary(data):
+    """Print summary of json data"""
+    for key, value in data.items():
+        if isinstance(value, dict):
+            gs.message(_(f"{key}:"))
+            for subkey, subvalue in value.items():
+                gs.message(_(f"  {subkey}: {subvalue}"))
+        else:
+            gs.message(_(f"{key}: {value}"))
+
+
 def get_collection_items(client, collection_name):
     """Get collection"""
     collection = client.get_collection(collection_name)
@@ -334,7 +333,8 @@ def get_collection_items(client, collection_name):
     gs.message(_(f"Temporal Extent: {collection.extent.temporal.intervals}"))
     gs.message(_(f"License: {collection.license}"))
     gs.message(_(f"Links: {collection.links}"))
-    gs.message(_(f"Properties: {collection.extra_fields}"))
+    gs.message(_("Properties..."))
+    print_summary(collection.extra_fields)
     return collection
 
 
@@ -434,6 +434,7 @@ def main():
     # GRASS import options
     method = options["method"]  # optional
     memory = int(options["memory"])  # optional
+    nprocs = int(options["nprocs"])
     resolution = options["resolution"]  # optional
 
     # Output options
@@ -471,7 +472,7 @@ def main():
         asset_list, asset_name_list, method_list, memory_list = import_items(
             list(items_search.items()), method=method, memory=memory
         )
-        download_assets(asset_list, asset_name_list, method_list, memory_list)
+        download_assets(asset_list, asset_name_list, method_list, memory_list, nprocs)
         if strds_output:
             create_strds(strds_output, asset_name_list)
             # Register the space time raster dataset
