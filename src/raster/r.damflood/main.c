@@ -11,12 +11,12 @@
  * COPYRIGHT:    (C) 2008 by Istituto Scienze della Terra-SUPSI
  *
  *               This program is free software under the GNU General Public
- *               Licence (>=2). Read the file COPYING that cames with GRASS
+ *               Licence (>=2). Read the file COPYING that comes with GRASS
  *               for details.
  *
  ***************************************************************************/
 
-/* libraries*/
+/* Libraries */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,12 +30,13 @@
 #include <grass/dbmi.h>
 #include <grass/linkm.h>
 #include <grass/bitmap.h>
-/* function here defined */
-#include "SWE.h" /*function that solve the shallow water equations*/
+
+/* Functions defined in here */
+#include "SWE.h" /* Function that solves the shallow water equations */
 
 // #include <grass/interpf.h>
 
-/* simple functions*/
+/* Simple functions */
 #define min(A, B)        ((A) < (B) ? (A) : (B))
 #define max(A, B)        ((A) > (B) ? (A) : (B))
 #define min4(A, B, C, D) min(min(A, B), min(C, D))
@@ -46,11 +47,10 @@
 #define g                9.81
 
 // #define hmin 0.01
-/* lo calcolo dopo in funzione della velocita' massima
+/* Calculated later as a function of maximum velocity
 #define timestep 0.1 */
 
-/*
- * global function declaration
+/* // global function declaration
 
 extern CELL f_c(CELL);
 extern FCELL f_f(FCELL);
@@ -69,8 +69,7 @@ FCELL f_calc(FCELL x)
 DCELL d_calc(DCELL x)
 {
     return x;
-}
- */
+} */
 
 int **G_alloc_imatrix(int rows, int cols)
 {
@@ -143,7 +142,7 @@ void G_free_vector(double *v)
     return;
 }
 
-//*********************************************************************************************
+//****************************************************************
 /* main program */
 int main(int argc, char *argv[])
 {
@@ -154,10 +153,10 @@ int main(int argc, char *argv[])
     } startpt;
 
     startpt *a_start,*tmp_start;*/
-    struct Cell_head cellhd; /* it stores region information and header
+    struct Cell_head cellhd; /* Stores region information and header
                                 information of rasters */
     struct Cell_head window;
-    // struct History history;  /* holds meta-data */
+    // struct History history;  /* Holds metadata */
 
     /* input-output raster file descriptor */
     int infd_ELEV, infd_LAKE, infd_DAMBREAK, infd_MANNING, infd_U, infd_V;
@@ -165,22 +164,21 @@ int main(int argc, char *argv[])
         outfd_I_HMAX;
     int outfd_VMAX, outfd_T_VMAX, outfd_I_VMAX, outfd_DIR_VMAX, outfd_IMAX,
         outfd_T_IMAX, outfd_WAVEFRONT;
-    // float g=9.81; define iniziale!
 
-    /* mapset name locator */
+    /* Mapset name locator */
     char *mapset_ELEV, *mapset_LAKE, *mapset_DAMBREAK, *mapset_MANNING,
         *mapset_U, *mapset_V;
 
-    /* buffer for input-output raster */
-    FCELL *inrast_ELEV;     /* elevation map [m]*/
-    DCELL *inrast_LAKE;     /* water elevation in the map [m]*/
-    FCELL *inrast_DAMBREAK; /* break in the dam*/
-    FCELL *inrast_MANNING;  /* manning*/
+    /* Buffer for input-output raster */
+    FCELL *inrast_ELEV;     /* Elevation map [m] */
+    DCELL *inrast_LAKE;     /* Water elevation in the map [m] */
+    FCELL *inrast_DAMBREAK; /* Break in the dam */
+    FCELL *inrast_MANNING;  /* Manning */
     DCELL *inrast_U;
     DCELL *inrast_V;
-    DCELL *outrast_VEL; /* velocity [m/s] */
+    DCELL *outrast_VEL; /* Velocity [m/s] */
     DCELL *outrast_VEL_DIR;
-    DCELL *outrast_H; /* water elevation output [m]*/
+    DCELL *outrast_H; /* Water elevation output [m] */
     DCELL *outrast_HMAX;
     DCELL *outrast_I_HMAX;
     DCELL *outrast_T_HMAX;
@@ -191,7 +189,8 @@ int main(int argc, char *argv[])
     DCELL *outrast_IMAX;
     DCELL *outrast_T_IMAX;
     DCELL *outrast_WAVEFRONT;
-    /* cell counters */
+
+    /* Cell counters */
     int nrows, ncols;
     int row, col;
     int num_cell, num_break;
@@ -200,13 +199,14 @@ int main(int argc, char *argv[])
     float Q = 0.0, vol_res, fall, volume = 0.0;
     float res_ew, res_ns;
 
-    /* memory matrix */
+    /* Memory matrix */
     double **m_h1, **m_h2, **m_u1, **m_u2, **m_v1, **m_v2;
     float **m_z, **m_DAMBREAK, **m_m;
     float **m_hmax, **m_t_hmax, **m_i_hmax, **m_vmax, **m_t_vmax, **m_i_vmax,
         **m_dir_vmax, **m_imax, **m_t_imax, **m_wavefront;
     int **m_lake;
-    /*  other variables  */
+
+    /*  Other variables  */
     double water_elevation, profondita_soglia;
     double hmin = 0.1;
     int pippo;
@@ -216,29 +216,30 @@ int main(int argc, char *argv[])
     int m = 1, M = 1;
     int i, i_cont;
     double vel_0 = 0.0, vel_max = 0.0, t;
-    /**********************************************************************************/
+
+    /**************************************************************************/
     // Parameters for the optimization of timestep using the CFL stability
     // condition
     float timestep, velocity;
     float timestep_ct, timestep_ct_temp;
-    /**********************************************************************************/
+    /**************************************************************************/
+
     int DELTAT, TSTOP;
     char name1[20], name2[20], name3[20], name4[20], name5[20], name6[20],
         name7[20], name8[20], name9[20];
     int tmp_int;
     char tmp[15];
-    /********************/
-    // optional instants//
+
+    // Optional instants
     int ntimes, pp;
     double *times;
     double opt_t, time;
-    /********************/
 
-    /* variables to handle user inputs and outputs */
+    /* Variables to handle user inputs and outputs */
     char *ELEV, *LAKE, *DAMBREAK, *MANNING, *U, *V, *OUT_VEL, *OUT_H, *OUT_HMAX,
         *OUT_VMAX, *OUT_IMAX, *OUT_WAVEFRONT;
 
-    /***********************************************************************************************************************/
+    /*************************************************************************/
     /* GRASS structure */
     struct GModule *module;
     struct Option *input_ELEV, *input_LAKE, *input_DAMBREAK, *input_MANNING,
@@ -252,7 +253,8 @@ int main(int argc, char *argv[])
     struct {
         struct Option *met;
     } opt;
-    /* initialize GRASS */
+
+    /* Initialize GRASS */
     G_gisinit(argv[0]);
 
     // pgm_name = argv[0];
@@ -265,7 +267,6 @@ int main(int argc, char *argv[])
         _("Estimate the area potentially inundated in case of dam break");
 
     // OPTIONS
-
     flag_d = G_define_flag();
     flag_d->key = 'd';
     flag_d->description =
@@ -283,11 +284,12 @@ int main(int argc, char *argv[])
     opt.met->answer = "dambreak-without_hypotesis";
     // opt.met->guisection  = _("Options");
 
-    /* LEGENDA
-    total_dambreak-without_hypotesis = nessuna ipotesi sulla velocita' iniziale
-    total_dambreak = Hp altezza critica --> velocita' iniziale (h critica) =
-    0.93*sqrt(h); small_dam_breach = Hp stramazzo --> velocita' iniziale =
-    0.4*sqrt(2*g*h)
+    /* LEGEND
+    total_dambreak-without_hypotesis = No hypothesis about initial velocity
+    total_dambreak = Hypothesis critical height
+        --> initial velocity (critical h) = 0.93*sqrt(h)
+    small_dam_breach = Hypothesis spillway
+        --> initial velocity = 0.4*sqrt(2*g*h)
     */
 
     input_TIMESTEP = G_define_option();
@@ -437,14 +439,14 @@ int main(int argc, char *argv[])
     if (G_parser(argc, argv))
         exit(EXIT_FAILURE);
 
-    /***********************************************************************************************************************/
-    /* get entered parameters */
+    /**************************************************************************/
+    /* Get entered parameters */
     ELEV = input_ELEV->answer;
     LAKE = input_LAKE->answer;
     DAMBREAK = input_DAMBREAK->answer;
     MANNING = input_MANNING->answer;
     sscanf(input_TIMESTEP->answer, "%f", &timestep);
-    // timestep=input_TIMESTEP->answer;
+    // timestep = input_TIMESTEP->answer;
     if (input_U->answer != NULL && input_V->answer != NULL) {
         U = input_U->answer;
         V = input_V->answer;
@@ -482,7 +484,7 @@ int main(int argc, char *argv[])
     // DELTAT = atoi(input_DELTAT->answer);
     TSTOP = atoi(input_TSTOP->answer);
 
-    /* find maps in mapset */
+    /* Find maps in mapset */
     mapset_ELEV = (char *)G_find_raster2(ELEV, "");
     if (mapset_ELEV == NULL)
         G_fatal_error(_("cell file [%s] not found"), ELEV);
@@ -518,7 +520,7 @@ int main(int argc, char *argv[])
             G_fatal_error(_("cell file [%s] not found"), V);
     }
 
-    /* open input raster files */
+    /* Open input raster files */
     if ((infd_ELEV = Rast_open_old(ELEV, mapset_ELEV)) < 0)
         G_fatal_error(_("Cannot open cell file [%s]"), ELEV);
     if ((infd_LAKE = Rast_open_old(LAKE, mapset_LAKE)) < 0)
@@ -555,7 +557,7 @@ int main(int argc, char *argv[])
             "You choose flow direction map without flow velocity prefix name");
     }
 
-    /* check legal output name */
+    /* Check legal output name */
     if (OUT_H) {
         if (G_legal_filename(OUT_H) < 0)
             G_fatal_error(_("[%s] is an illegal name"), OUT_H);
@@ -580,7 +582,7 @@ int main(int argc, char *argv[])
         if (G_legal_filename(OUT_WAVEFRONT) < 0)
             G_fatal_error(_("[%s] is an illegal name"), OUT_WAVEFRONT);
     }
-    /* type of dam failure*/
+    /* Type of dam failure*/
     if (strcmp(opt.met->answer, "uniform drop in of lake") == 0)
         method = 1;
     else if (strcmp(opt.met->answer, "small dam breach") == 0)
@@ -596,11 +598,11 @@ int main(int argc, char *argv[])
     inrast_ELEV = Rast_allocate_f_buf();
     // inrast_LAKE = Rast_allocate_buf(Rast_map_type(LAKE, mapset_LAKE));
     inrast_LAKE = Rast_allocate_d_buf();
-    // inrast_DAMBREAK = Rast_allocate_buf(Rast_map_type(DAMBREAK,
-    // mapset_DAMBREAK));
+    // inrast_DAMBREAK =
+    //     Rast_allocate_buf(Rast_map_type(DAMBREAK, mapset_DAMBREAK));
     inrast_DAMBREAK = Rast_allocate_f_buf();
-    // inrast_MANNING = Rast_allocate_buf(Rast_map_type(MANNING,
-    // mapset_MANNING));
+    // inrast_MANNING =
+    //     Rast_allocate_buf(Rast_map_type(MANNING, mapset_MANNING));
     inrast_MANNING = Rast_allocate_f_buf();
     if (input_U->answer != NULL && input_V->answer != NULL) {
         inrast_U = Rast_allocate_d_buf();
@@ -612,14 +614,15 @@ int main(int argc, char *argv[])
     else if (input_V->answer != NULL && input_U->answer == NULL) {
         inrast_V = Rast_allocate_d_buf();
     }
-    /* get windows rows & cols */
+
+    /* Get windows rows & cols */
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
     G_get_window(&window);
     res_ew = window.ew_res;
     res_ns = window.ns_res;
 
-    /* allocate memory matrix */
+    /* Allocate memory matrix */
     m_DAMBREAK = G_alloc_fmatrix(nrows, ncols);
     m_m = G_alloc_fmatrix(nrows, ncols);
     m_z = G_alloc_fmatrix(nrows, ncols);
@@ -654,7 +657,7 @@ int main(int argc, char *argv[])
     for (row = 0; row < nrows; row++) {
         G_percent(row, nrows, 2);
 
-        /* read a line input maps into buffers*/
+        /* Read a line input maps into buffers*/
         Rast_get_f_row(infd_ELEV, inrast_ELEV, row);
         Rast_get_d_row(infd_LAKE, inrast_LAKE, row);
         Rast_get_f_row(infd_DAMBREAK, inrast_DAMBREAK, row);
@@ -669,18 +672,18 @@ int main(int argc, char *argv[])
         else if (input_V->answer != NULL && input_U->answer == NULL) {
             Rast_get_d_row(infd_V, inrast_V, row);
         }
-        /*if (G_get_f_raster_row (infd_ELEV, inrast_ELEV, row) < 0)
-          G_fatal_error (_("Could not read from <%s>"),ELEV);
-        if (G_get_d_raster_row (infd_LAKE, inrast_LAKE, row) < 0)
-          G_fatal_error (_("Could not read from <%s>"),LAKE);
-        if (G_get_f_raster_row (infd_DAMBREAK, inrast_DAMBREAK, row) < 0)
-          G_fatal_error (_("Could not read from <%s>"),DAMBREAK);
-        if (G_get_f_raster_row (infd_MANNING, inrast_MANNING, row) < 0)
-          G_fatal_error (_("Could not read from <%s>"),MANNING);*/
+        // if (G_get_f_raster_row(infd_ELEV, inrast_ELEV, row) < 0)
+        //     G_fatal_error(_("Could not read from <%s>"), ELEV);
+        // if (G_get_d_raster_row(infd_LAKE, inrast_LAKE, row) < 0)
+        //     G_fatal_error(_("Could not read from <%s>"), LAKE);
+        // if (G_get_f_raster_row(infd_DAMBREAK, inrast_DAMBREAK, row) < 0)
+        //     G_fatal_error(_("Could not read from <%s>"), DAMBREAK);
+        // if (G_get_f_raster_row(infd_MANNING, inrast_MANNING, row) < 0)
+        //     G_fatal_error(_("Could not read from <%s>"), MANNING);
 
-        /* read every cell in the line buffers */
+        /* Read every cell in the line buffers */
         for (col = 0; col < ncols; col++) {
-            /* store values in memory matrix (attenzione valori nulli!)*/
+            /* Store values in memory matrix (attention null values!) */
             m_DAMBREAK[row][col] = ((FCELL *)inrast_DAMBREAK)[col];
             m_m[row][col] = ((FCELL *)inrast_MANNING)[col];
             m_z[row][col] = ((FCELL *)inrast_ELEV)[col];
@@ -752,7 +755,7 @@ int main(int argc, char *argv[])
 
     if (method == 1 || method == 2) {
         num_cell = 0;
-        /* cerco il lago */
+        /* Search for lakes */
         for (row = 0; row < nrows; row++) {
             for (col = 0; col < ncols; col++) {
                 if (m_h1[row][col] != 0) {
@@ -766,76 +769,80 @@ int main(int argc, char *argv[])
             }
         }
         num_break = 0;
+
         G_message("Searching dam breach");
         for (row = 0; row < nrows; row++) {
             for (col = 0; col < ncols; col++) {
-                /*  rottura diga */
+                /*  Dam break */
                 if (m_DAMBREAK[row][col] > 0) {
                     num_break++;
                     G_message("(%d,%d)Cell Dam Breach n° %d", row, col,
                               num_break);
-                    // printf("ho trovato la rottura diga (%d,%d)=\n", row,col);
-                    // while(!getchar()){ }
+                    // printf("I found the dam break (%d,%d)=\n", row, col);
+                    // while (!getchar()) {
+                    // }
                     profondita_soglia = water_elevation -
                                         (m_z[row][col] - m_DAMBREAK[row][col]);
                     vel_0 = velocita_breccia(method, profondita_soglia);
                     volume = volume + profondita_soglia * res_ew * res_ns;
-                    // printf("Q=%.2f\n",Q);
+                    // printf("Q=%.2f\n", Q);
                     // vel_0 = 0.93 * sqrt(profondita_soglia);
                     if (vel_0 > vel_max)
                         vel_max = vel_0;
                 }
                 else {
                     G_fatal_error(
-                        _("Don't find the dambreak - Please select a correct "
-                          "map or adjust the computational region"));
+                        _("Couldn't find the dambreak. Please select the "
+                          "correct map or adjust the computational region."));
                 }
 
                 if (m_DAMBREAK[row][col] > 0) {
-                    // cambio il DTM inserendo la rottura della diga
+                    // Change the DTM by inserting the dam break
                     m_z[row][col] = m_z[row][col] - m_DAMBREAK[row][col];
                     m_lake[row][col] = 0;
                     m_h1[row][col] = profondita_soglia;
-                    // printf("la velocità vel_max vale: %f\n",vel_max);
-                    // while(!getchar()){ }
+                    // printf("The velocity vel_max is valid: %f\n", vel_max);
+                    // while (!getchar()) {
+                    // }
                 }
             }
         }
-        G_message("the number of lake cell is': %d\n", num_cell);
+        G_message("The number of lake cell is': %d\n", num_cell);
 
-        /**************************************/
-        /* timestep in funzione di V_0 e res */
-        /**************************************/
-        // timestep=0.01;
-        // timestep= ((res_ns+res_ew)/2.0)/(vel_max*50.0);
+        /*********************************************
+         * timestep as a function of V_0 and res
+         *********************************************/
+        // timestep = 0.01;
+        // timestep = ((res_ns + res_ew) / 2.0) / (vel_max * 50.0);
         //  DEVELOPEMENT
-        //*****************************************************************************
+        //*********************************************************************/
         G_message("vel on the dam break cells is %.2f, and timestep is %.2f",
                   vel_max, timestep);
     }
 
-    //*****************************************************************************
-    // Uniform drop in of lake (method=1 or method =2)
-    //*****************************************************************************
+    /***************************************************************************
+     * Uniform drop in of lake (method=1 or method=2)
+     **************************************************************************/
     if (method == 1 || method == 2) {
-        /* calcolo l'abbassamento sul lago*/
+        /* Lake depth reduction calculation */
         if (num_cell != 0) {
             fall = (volume) / (num_cell * res_ew * res_ns);
-            // printf("volume=%f, fall=%f\n",volume,fall);
-            // while(!getchar()){ }
+            // printf("volume=%f, fall=%f\n", volume, fall);
+            // while (!getchar()) {
+            // }
         }
 
         for (row = 1; row < nrows - 1; row++) {
             for (col = 1; col < ncols - 1; col++) {
                 if (m_DAMBREAK[row][col] > 0) {
-                    // ragiona se ha senso
+                    // Checks if it makes sense
                     m_h2[row][col] = m_h1[row][col] - fall;
                     if (m_h2[row][col] <= 0) {
                         m_h2[row][col] = 0.0;
                         if (m_h1[row][col] > 0) {
-                            // questo warning va modificato perchè vale per ogni
-                            // cella ---> bisogna metterne uno generico che
-                            // valga quando tutte le celle sono con h=0
+                            // This warning is modified since it is valid
+                            // for every cell ---> A generic one is needed
+                            // for the case when all cells have h=0
                             num_break--;
                             if (num_break == 0) {
                                 if (warn1 == 0) {
@@ -857,18 +864,18 @@ int main(int argc, char *argv[])
                     }
                 }
             }
-        } // end two for cicles
+        } // end two for cycles
     }     // end if
-    // there isn't interest to find where is the lake --> everywhere
+    // There isn't interest to find where is the lake --> everywhere
     // m_lake[row][col]=0
     if (method == 3) {
         for (row = 0; row < nrows; row++) {
             for (col = 0; col < ncols; col++) {
-                /*  rottura diga */
+                /*  Dam break */
                 if (m_DAMBREAK[row][col] > 0) {
                     m_z[row][col] = m_z[row][col] - m_DAMBREAK[row][col];
                     m_DAMBREAK[row][col] = -1.0;
-                    // timestep=0.01;
+                    // timestep = 0.01;
                     m_lake[row][col] = 0;
                 }
                 else {
@@ -878,36 +885,35 @@ int main(int argc, char *argv[])
         }
     }
 
-    G_percent(nrows, nrows, 1); /* finish it */
+    G_percent(nrows, nrows, 1); /* Finish it */
 
     G_message("Model running");
 
-    /* calculate time step loop */
+    /* Calculate time step loop */
     for (t = 0; t <= TSTOP; t += timestep) {
         // printf("************************************************\n");
-        // while(!getchar()){ }
+        // while (!getchar()) { }
         // G_percent(t, TSTOP, timestep);
-        //  ciclo sui tempi
-        // G_message("timestep =%f,t=%f",timestep,t);
+        // Loop over time
+        // G_message("timestep =%f,t=%f", timestep, t);
         if (t > M * 100) {
             if (M * 100 != (m - 1) * DELTAT)
                 G_percent(ceil(t), TSTOP, 2);
             G_message("t:%d", M * 100);
             M++;
         }
-        // printf("t:%lf\n",t);
+        // printf("t:%lf\n", t);
 
-        // G_message("Function SWE - t=%f, TSTOP=%d",t,TSTOP);
+        // G_message("Function SWE - t=%f, TSTOP=%d", t, TSTOP);
 
         shallow_water(m_h1, m_u1, m_v1, m_z, m_DAMBREAK, m_m, m_lake, m_h2,
                       m_u2, m_v2, row, col, nrows, ncols, timestep, res_ew,
                       res_ns, method, num_cell, num_break, t);
 
-        //*************************************** overwriting
-        //*********************************************
+        //**************************** Overwriting ****************************/
         timestep_ct = 0;
         if (t < TSTOP) {
-            /* open new cicle */
+            /* Open new cycle */
             for (row = 1; row < nrows - 1; row++) {
                 for (col = 1; col < ncols - 1; col++) {
                     if ((row == 1 || row == (nrows - 2) || col == 1 ||
@@ -919,11 +925,11 @@ int main(int argc, char *argv[])
                                       "region is smaller than inundation",
                                       t);
                             reg_lim = 1;
-                        } /* warning  message only a time */
+                        } /* Warning message only a time */
                     }     /* velocities at the limit of computational region */
 
-                    //********************************************************************
-                    // timestep optimization using the CFL stability condition
+                    //*********************************************************/
+                    // Timestep optimization using the CFL stability condition
                     if (m_h2[row][col] >= hmin) {
                         timestep_ct_temp = max(
                             (fabs(m_u2[row][col]) + sqrt(g * m_h2[row][col])) /
@@ -932,12 +938,15 @@ int main(int argc, char *argv[])
                                 res_ns);
                         if (timestep_ct_temp > timestep_ct) {
                             timestep_ct = timestep_ct_temp;
-                            // G_message("t=%f,row=%d,col=%d,timestep_ct=%f,m_u2=%f
-                            // m_v2=%f
-                            // m_h2=%f",t,row,col,timestep_ct,m_u2[row][col],m_v2[row][col],m_h2[row][col]);
+                            // G_message("t=%f, row=%d, col=%d, "
+                            //           "timestep_ct=%f, "
+                            //           "m_u2=%f, m_v2=%f, m_h2=%f",
+                            //           t, row, col,
+                            //           timestep_ct, m_u2[row][col],
+                            //           m_v2[row][col], m_h2[row][col]);
                         }
                     }
-                    //********************************************************************
+                    /**********************************************************/
 
                     m_u1[row][col] = m_u2[row][col];
                     m_v1[row][col] = m_v2[row][col];
@@ -1030,26 +1039,24 @@ int main(int argc, char *argv[])
             }
         }
 
-        /*------------------------------   new timestep
-         * -------------------------------------*/
+        /*--------------------------- New timestep ---------------------------*/
         timestep = 0.1 / timestep_ct;
-        /*-------------------------------------------------------------------------------------*/
-        // G_message("timestep =%f,m=%d, t=%f",timestep,m, t);
+        /*--------------------------------------------------------------------*/
+        // G_message("timestep=%f, m=%d, t=%f", timestep, m, t);
 
-        /*----------------------------------------------------------------------------------------------*/
-        /* qualcosa non va in questo if
-         */
-        /*----------------------------------------------------------------------------------------------*/
+        /*--------------------------------------------------------------------
+         * Something is wrong with this if
+        /*--------------------------------------------------------------------*/
 
-        /* controllo se devo scrivere outputs */
+        /* Check if we need to write outputs */
         if ((input_DELTAT->answer != NULL) || (parm.opt_t->answer != NULL)) {
             if ((((m * DELTAT - t) <= timestep && (m * DELTAT) < TSTOP) &&
                  (input_DELTAT->answer != NULL)) ||
                 ((pp < ntimes && (times[pp] - t) < timestep) &&
                  (parm.opt_t->answer != NULL))) {
-                if ((m * DELTAT - t) <= timestep &&
-                    m * DELTAT < TSTOP) { /* devo cambiare il nome del raster e
-                                             aggiungere ogni volta _timestep*/
+                if ((m * DELTAT - t) <= timestep && m * DELTAT < TSTOP) {
+                    /* We need to change the raster name and add _timestep at
+                     * each time */
                     if (OUT_H) {
                         sprintf(name1, "%s%d", OUT_H, m * DELTAT);
                     }
@@ -1068,7 +1075,8 @@ int main(int argc, char *argv[])
                     G_message("Time: %lf, writing an optional output maps %d",
                               t, pp);
                 }
-                /* controlling if we can write the raster */
+
+                /* Controlling if we can write the raster */
                 if (OUT_H) {
                     if ((outfd_H = Rast_open_new(name1, DCELL_TYPE)) < 0) {
                         G_fatal_error(_("Could not open <%s>"), name1);
@@ -1085,7 +1093,7 @@ int main(int argc, char *argv[])
                         G_fatal_error(_("Could not open <%s>"), name3);
                     }
                 }
-                /* allocate output buffer */
+                /* Allocate output buffer */
                 if (OUT_VEL) {
                     outrast_VEL = Rast_allocate_d_buf();
                 }
@@ -1097,7 +1105,7 @@ int main(int argc, char *argv[])
                 }
                 for (row = 0; row < nrows; row++) {
                     for (col = 0; col < ncols; col++) {
-                        /* copy matrix in buffer */
+                        /* Copy matrix in buffer */
                         if (OUT_VEL) {
                             ((DCELL *)outrast_VEL)[col] =
                                 sqrt(pow(m_u1[row][col], 2.0) +
@@ -1152,8 +1160,9 @@ int main(int argc, char *argv[])
                             ((DCELL *)outrast_H)[col] = m_h1[row][col];
                         }
 
-                    } /* end_col*/
-                    /*copia righe !!! */
+                    } /* end_col */
+
+                    /* Copy lines */
                     if (OUT_VEL) {
                         Rast_put_d_row(outfd_VEL, outrast_VEL);
                     }
@@ -1163,8 +1172,9 @@ int main(int argc, char *argv[])
                     if (flag_d->answer) {
                         Rast_put_d_row(outfd_VEL_DIR, outrast_VEL_DIR);
                     }
-                } /* end row */
-                /* memory cleanup */
+                } /* End row */
+
+                /* Memory cleanup */
                 if (OUT_VEL) {
                     G_free(outrast_VEL);
                 }
@@ -1174,7 +1184,8 @@ int main(int argc, char *argv[])
                 if (flag_d->answer) {
                     G_free(outrast_VEL_DIR);
                 }
-                /* close the raster maps */
+
+                /* Close the raster maps */
                 if (OUT_VEL) {
                     Rast_close(outfd_VEL);
                 }
@@ -1184,21 +1195,21 @@ int main(int argc, char *argv[])
                 if (flag_d->answer) {
                     Rast_close(outfd_VEL_DIR);
                 }
-                // timestep=0.1/timestep_ct;
+                // timestep = 0.1 / timestep_ct;
             }
-        } /* end if write outputs*/
-          /* else {
-                  //G_message("timestep =%f,t=%f",timestep,t);
-                  //pippo=1;
-                  G_message("Function SWE - t=%f, TSTOP=%d",t,TSTOP);
-                  //G_percent(t, TSTOP, timestep);
-          } */
-          // G_message("Function SWE applied - t=%f, TSTOP=%d",t,TSTOP);
-        // G_message("timestep =%f,t=%f",timestep,t);
-    } /* end time loop*/
+        } /* End if write outputs */
+        /* else {
+            // G_message("timestep=%f, t=%f", timestep, t);
+            // pippo = 1;
+            G_message("Function SWE - t=%f, TSTOP=%d", t, TSTOP);
+            // G_percent(t, TSTOP, timestep);
+        } */
+        // G_message("Function SWE applied - t=%f, TSTOP=%d", t, TSTOP);
+        // G_message("timestep=%f, t=%f", timestep, t);
+    } /* End time loop*/
 
     //*******************************************************************
-    // write final flooding map
+    // Write final flooding map
     if (OUT_H) {
         sprintf(name1, "%s%d", OUT_H, TSTOP);
     }
@@ -1259,7 +1270,7 @@ int main(int argc, char *argv[])
             G_fatal_error(_("Could not open <%s>"), OUT_WAVEFRONT);
     }
 
-    /* allocate output buffer */
+    /* Allocate output buffer */
     if (OUT_H) {
         outrast_H = Rast_allocate_d_buf();
     }
@@ -1292,12 +1303,12 @@ int main(int argc, char *argv[])
         outrast_WAVEFRONT = Rast_allocate_d_buf();
     }
 
-    G_percent(nrows, nrows, 1); /* finish it */
+    G_percent(nrows, nrows, 1); /* Finish it */
 
     for (row = 0; row < nrows; row++) {
         G_percent(row, nrows, 2);
         for (col = 0; col < ncols; col++) {
-            /* copy matrix in buffer */
+            /* Copy matrix in buffer */
             if (OUT_H) {
                 ((DCELL *)outrast_H)[col] = m_h1[row][col];
             }
@@ -1420,12 +1431,13 @@ int main(int argc, char *argv[])
                     ((DCELL *)outrast_WAVEFRONT)[col] = m_wavefront[row][col];
                 }
             }
+        } /* end_col */
 
-        } /* end_col*/
         if (OUT_H) {
             Rast_put_row(outfd_H, outrast_H, TYPE_DOUBLE);
-            /*if (G_put_raster_row (outfd_H, outrast_H, TYPE_DOUBLE) < 0)
-                    G_fatal_error (_("Cannot write to <%s>"),name2);*/
+            // if (G_put_raster_row(outfd_H, outrast_H, TYPE_DOUBLE) < 0) {
+            //     G_fatal_error(_("Cannot write to <%s>"), name2);
+            // }
         }
         if (OUT_VEL) {
             Rast_put_row(outfd_VEL, outrast_VEL, TYPE_DOUBLE);
@@ -1459,8 +1471,8 @@ int main(int argc, char *argv[])
         }
         // G_message("pippo, row=%d e nrows=%d", row, nrows);
     } // end row
-      /* chiudi i file */
 
+    /* Close files */
     if (OUT_H) {
         G_message("Writing the output final map %s", name1);
     }
@@ -1485,7 +1497,7 @@ int main(int argc, char *argv[])
         G_message("Writing the output final map %s", OUT_WAVEFRONT);
     }
 
-    G_percent(nrows, nrows, 1); /* finish it */
+    G_percent(nrows, nrows, 1); /* Finish it */
     if (OUT_VEL) {
         G_free(outrast_VEL);
         Rast_close(outfd_VEL);
@@ -1531,14 +1543,14 @@ int main(int argc, char *argv[])
     }
 
     //************************************************************************
-    // da sistemare
+    // TODO: Fix the following
     //************************************************************************
-    /* add command line incantation to history file */
+    /* Add command line incantation to history file */
     // G_short_history(result, "raster", &history);
     // G_command_history(&history);
     // G_write_history(result, &history);
 
-    /* deallocate memory matrix */
+    /* Deallocate memory matrix */
     G_free_fmatrix(m_DAMBREAK);
     G_free_fmatrix(m_m);
     G_free_fmatrix(m_z);
