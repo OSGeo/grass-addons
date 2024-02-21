@@ -52,24 +52,20 @@ or datetime instances. For open-ended ranges, use either".."
 ('2020-01-01:00:00:00Z/..', ['2020-01-01:00:00:00Z', '..']) or
 a value of None (['2020-01-01:00:00:00Z', None]).
 
-    If using a simple date string, the datetime can be specified in YYYY-mm-dd
-    format, optionally truncating to YYYY-mm or just YYYY. Simple date strings
-    will be expanded to include the entire time period, for example:
+If using a simple date string, the datetime can be specified in YYYY-mm-dd
+format, optionally truncating to YYYY-mm or just YYYY. Simple date strings
+will be expanded to include the entire time period, for example:
 
-    2017 expands to 2017-01-01T00:00:00Z/2017-12-31T23:59:59Z
+* 2017 expands to 2017-01-01T00:00:00Z/2017-12-31T23:59:59Z
+* 2017-06 expands to 2017-06-01T00:00:00Z/2017-06-30T23:59:59Z
+* 2017-06-10 expands to 2017-06-10T00:00:00Z/2017-06-10T23:59:59Z
 
-    2017-06 expands to 2017-06-01T00:00:00Z/2017-06-30T23:59:59Z
+If used in a range, the end of the range expands to
+the end of that day/month/year, for example:
 
-    2017-06-10 expands to 2017-06-10T00:00:00Z/2017-06-10T23:59:59Z
-
-    If used in a range, the end of the range expands to the end of that
-    day/month/year, for example:
-
-    2017/2018 expands to 2017-01-01T00:00:00Z/2018-12-31T23:59:59Z
-
-    2017-06/2017-07 expands to 2017-06-01T00:00:00Z/2017-07-31T23:59:59Z
-
-    2017-06-10/2017-06-11 expands to 2017-06-10T00:00:00Z/2017-06-11T23:59:59Z
+* 2017/2018 expands to 2017-01-01T00:00:00Z/2018-12-31T23:59:59Z
+* 2017-06/2017-07 expands to 2017-06-01T00:00:00Z/2017-07-31T23:59:59Z
+* 2017-06-10/2017-06-11 expands to 2017-06-10T00:00:00Z/2017-06-11T23:59:59Z
 
 **query** – List or JSON of query parameters as per the STAC API query extension
 
@@ -95,8 +91,28 @@ fields. Use items_as_dicts to avoid object unmarshalling errors.
 
 ### S3 and GCS Requester Pays Support
 
-[GDAL Docs](https://gdal.org/user/virtual_file_systems.html#introduction)
+* [GDAL Docs](https://gdal.org/user/virtual_file_systems.html#introduction)
+* [STAC API - S3 Requester Pays](https://gdal.org/user/virtual_file_systems.html#vsis3-aws-s3-files)
+* [STAC API - GCS Requester Pays](https://gdal.org/user/virtual_file_systems.html#vsigs-google-cloud-storage-files)
 
-## Usage
+## Basic Usage
 
-Check the STAC API for the available collections.
+1. Check the STAC API for the available collections.
+
+    ```bash
+    t.stac.import -c urlhttps://earth-search.aws.element84.com/v1/
+    ```
+
+2. Search for items in the collection.
+
+    ```bash
+    t.stac.import -i url=https://earth-search.aws.element84.com/v1/
+    collections=sentinel-2-l2a
+    ```
+
+3. Import (dry-run) the items into GRASS GIS.
+
+    ```bash
+    t.stac.import -d url=https://earth-search.aws.element84.com/v1/
+    collections=sentinel-2-l2a
+    ```
