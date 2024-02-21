@@ -186,6 +186,36 @@
 # % guisection: Output
 # %end
 
+# %option
+# % key: user_name
+# % type: string
+# % required: no
+# % multiple: no
+# % description: Basic Auth username
+# % guisection: Authentication
+# %end
+
+# %option
+# % key: userpass
+# % label: Password
+# % type: string
+# % required: no
+# % multiple: no
+# % description: Basic Auth password
+# % guisection: Authentication
+# %end
+
+# %option
+# % key: token
+# % label: API Token
+# % type: string
+# % required: no
+# % multiple: no
+# % description: API Token
+# % guisection: Authentication
+# %end
+
+
 #%option G_OPT_M_NPROCS
 #%end
 
@@ -196,6 +226,7 @@ import os
 import sys
 import json
 import requests
+import base64
 
 # from multiprocessing.pool import ThreadPool
 from pystac_client import Client
@@ -213,6 +244,31 @@ except ImportError:
     from pystac_client import Client
 from concurrent.futures import ThreadPoolExecutor
 from tqdm import tqdm
+
+
+def encode_credentials(username, password):
+    """Encode username and password for basic authentication"""
+    return base64.b64encode(f"{username}:{password}".encode("utf-8")).decode("utf-8")
+
+
+def set_request_headers(**kwargs):
+    """Set request headers"""
+    username = kwargs.get("username")
+    password = kwargs.get("password")
+    token = kwargs.get("token")
+    req_headers = {}
+
+    if (username and password) and token:
+        raise ValueError("Provide either username and password or token, not both")
+
+    if username and password:
+        b64_userpass = encode_credentials(username, password)
+        req_headers["Authorization"] = f"Basic {b64_userpass}"
+
+    if token:
+        req_headers["Authorization"] = f"Bearer {token}"
+
+    return req_headers
 
 
 def region_to_wgs84_decimal_degrees_bbox():
@@ -295,7 +351,7 @@ def import_grass_raster(params):
 
     try:
         gs.message(_(f"Importing: {output}"))
-        gs.parse_command(
+        gs.parse_coset_request_headersmmand(
             "r.import",
             input=input_url,
             output=output,
@@ -519,6 +575,11 @@ def main():
     filter = options["filter"]  # optional
     filter_lang = options["filter_lang"]  # optional
 
+    # Authentication options
+    user_name = options["user_name"]  # optional
+    userpass = options["userpass"]  # optional
+    token = options["token"]  # optional
+
     intersects = options["intersects"]  # optional
     if intersects:
         # Convert the vector to a geojson
@@ -544,7 +605,12 @@ def main():
     # output = options["output"]  # optional
 
     try:
-        client = Client.open(client_url)
+
+        req_headers = set_request_headers(
+            username=user_name, password=userpass, token=token
+        )
+
+        client = Client.open(client_url, headers=req_headers)
         gs.message(_(f"Client Id: {client.id}"))
         gs.message(_(f"Client Title: {client.title}"))
         gs.message(_(f"Client Title: {client.description}"))
