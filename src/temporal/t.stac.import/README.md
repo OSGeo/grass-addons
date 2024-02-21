@@ -96,3 +96,7 @@ fields. Use items_as_dicts to avoid object unmarshalling errors.
 ### S3 and GCS Requester Pays Support
 
 [GDAL Docs](https://gdal.org/user/virtual_file_systems.html#introduction)
+
+## Usage
+
+Check the STAC API for the available collections.
