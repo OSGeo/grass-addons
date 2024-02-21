@@ -35,6 +35,7 @@ spec.loader.exec_module(in_stac_lib)
 # USGS_3DEP_Point_Cloud = "https://stacindex.org/catalogs/usgs-3dep-lidar#/"
 # OSC_Catalog = "https://eoepca.github.io/open-science-catalog-metadata/catalog.json"
 EARTH_SEARCH_API_URL = "https://earth-search.aws.element84.com/v1/"
+PLANENTARY_COMPUTER_API_URL = "https://planetarycomputer.microsoft.com/api/stac/v1"
 # MUNDIALIS_API_URL = "https://openeo.mundialis.de/api/v1.0/"
 # GEO_PLATFORM_API_URL = "https://geoplatform.gov/stac/"
 

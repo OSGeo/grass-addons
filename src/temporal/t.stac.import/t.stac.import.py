@@ -135,13 +135,6 @@
 
 # %option
 # % key: filter_lang
-# % description: Language variant used in the filter body. If filter is a dictionary or not provided, defaults to ‘cql2-json’. If filter is a string, defaults to cql2-text.
-# % required: no
-# % guisection: Request
-# %end
-
-# %option
-# % key: filter_lang
 # % type: string
 # % required: no
 # % multiple: no
@@ -215,6 +208,16 @@
 # % guisection: Authentication
 # %end
 
+# %option
+# % key: pc_subscription_key
+# % label: Planetary Computer Subscription Key
+# % type: string
+# % required: no
+# % multiple: no
+# % description: Your Planetary Computer Subscription Key (Ocp-Apim-Subscription-Key)
+# % guisection: Authentication
+# %end
+
 
 #%option G_OPT_M_NPROCS
 #%end
@@ -256,6 +259,8 @@ def set_request_headers(**kwargs):
     username = kwargs.get("username")
     password = kwargs.get("password")
     token = kwargs.get("token")
+    pl_subscription_key = kwargs.get("pc_subscription_key")
+
     req_headers = {}
 
     if (username and password) and token:
@@ -267,6 +272,9 @@ def set_request_headers(**kwargs):
 
     if token:
         req_headers["Authorization"] = f"Bearer {token}"
+
+    if pl_subscription_key:
+        req_headers["Ocp-Apim-Subscription-Key"] = pl_subscription_key
 
     return req_headers
 
@@ -319,7 +327,12 @@ def search_stac_api(client, **kwargs):
         gs.fatal(_("Error searching STAC API: {}".format(e)))
     except NotImplementedError as e:
         gs.fatal(_("Error searching STAC API: {}".format(e)))
-    gs.message(_(f"{search.matched()} items found"))
+
+    try:
+        gs.message(_(f"Items found: {search.matched()}"))
+    except AttributeError:
+        gs.warning(_("No items found"))
+
     return search
 
 
@@ -351,7 +364,7 @@ def import_grass_raster(params):
 
     try:
         gs.message(_(f"Importing: {output}"))
-        gs.parse_coset_request_headersmmand(
+        gs.parse_command(
             "r.import",
             input=input_url,
             output=output,
@@ -579,6 +592,7 @@ def main():
     user_name = options["user_name"]  # optional
     userpass = options["userpass"]  # optional
     token = options["token"]  # optional
+    pc_subscription_key = options["pc_subscription_key"]  # optional
 
     intersects = options["intersects"]  # optional
     if intersects:
@@ -607,7 +621,10 @@ def main():
     try:
 
         req_headers = set_request_headers(
-            username=user_name, password=userpass, token=token
+            username=user_name,
+            password=userpass,
+            token=token,
+            pc_subscription_key=pc_subscription_key,
         )
 
         client = Client.open(client_url, headers=req_headers)
