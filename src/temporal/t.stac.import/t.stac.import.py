@@ -134,6 +134,16 @@
 # %end
 
 # %option
+# % key: asset_keys
+# % label: Asset Keys
+# % type: string
+# % required: no
+# % multiple: yes
+# % description: List of one or more asset keys to filter item downloads. \nUse -d (dry run) option to get a list of available asset keys.
+# % guisection: Assets
+#%end
+
+# %option
 # % key: filter_lang
 # % type: string
 # % required: no
@@ -398,6 +408,7 @@ def import_grass_raster(params):
             extent=extent,
             resolution=resolution,
             resolution_value=resolution_value,
+            # title=title,
             memory=memory,
             quiet=True,
         )
@@ -555,7 +566,7 @@ def report_stac_item(item):
 
 
 # TODO: Complete functionality to import all media types
-def import_items(items):
+def import_items(items, asset_keys=None):
     """Import items"""
 
     asset_download_list = []
@@ -566,8 +577,17 @@ def import_items(items):
         # print_summary(item.to_dict())
         for key, asset in item.assets.items():
             media_type = asset.media_type
-            # gs.message(_(f"Asset {key}: {media_type} \n"))
-            # gs.message(_(f"Asset: {asset.to_dict()} \n"))
+            if asset_keys and key not in asset_keys:
+                continue
+
+            gs.message(_("\nAsset"))
+            gs.message(_(f"Asset Key: {key}"))
+            gs.message(_(f"Asset Title: {asset.title}"))
+            gs.message(_(f"Asset Description: {asset.description}"))
+            gs.message(_(f"Asset Media Type: {media_type}"))
+            gs.message(_(f"Asset Roles: {asset.roles}"))
+            gs.message(_(f"Asset Href: {asset.href}"))
+
             if media_type == MediaType.COG:
                 url = asset.href
                 asset_download_list.append(url)
@@ -612,6 +632,10 @@ def main():
     query = options["query"]  # optional
     filter = options["filter"]  # optional
     filter_lang = options["filter_lang"]  # optional
+
+    # Asset options
+    asset_keys_input = options["asset_keys"]  # optional
+    asset_keys = asset_keys_input.split(",") if asset_keys_input else None
 
     # Authentication options
     user_name = options["user_name"]  # optional
@@ -745,7 +769,9 @@ def main():
     if validate_collections_option(client, collections):
         items_search = search_stac_api(client=client, **search_params)
         gs.message(_("Import Items..."))
-        asset_list, asset_name_list = import_items(list(items_search.items()))
+        asset_list, asset_name_list = import_items(
+            list(items_search.items()), asset_keys
+        )
         gs.message(_(f"{len(asset_list)} Assets Ready for download..."))
 
         if not dry_run:
