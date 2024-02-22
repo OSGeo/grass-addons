@@ -172,11 +172,35 @@
 
 # %option
 # % key: resolution
+# % type: string
+# % required: no
+# % multiple: no
+# % options: estimated,value,region
+# % description: Resolution of output raster map (default: estimated)
+# % descriptions: estimated;estimated resolution;value; user-specified resolution;region;current region resolution
+# % guisection: Output
+# % answer: estimated
+# %end
+
+# %option
+# % key: resolution_value
 # % type: double
 # % required: no
 # % multiple: no
-# % description: Resolution of output raster map (required if location projection not longlat)
+# % description: Resolution of output raster map (use with option resolution=value)
 # % guisection: Output
+# %end
+
+# %option
+# % key: extent
+# % type: string
+# % required: no
+# % multiple: no
+# % options: input,region
+# % description: Output raster map extent
+# % descriptions: input;extent of input map;region; extent of current region
+# % guisection: Output
+# % answer: input
 # %end
 
 # %option
@@ -350,16 +374,18 @@ def check_url_type(url):
         return url.replace("s3://", "/vsis3/")
     elif url.startswith("gs://"):
         return url.replace("gs://", "/vsigs/")
-    elif url.startswith("http://") or url.startswith("https://"):
-        return url
+    elif url.startswith("https://"):
+        return url.replace("https://", "/vsicurl/https://")
+    elif url.startswith("http://"):
+        gs.warning(_("HTTP is not secure. Using HTTPS instead."))
+        return url.replace("https://", "/vsicurl/https://")
     else:
         gs.message(_(f"Unknown Protocol: {url}"))
         return "unknown"
 
 
 def import_grass_raster(params):
-    url, output, resample_method, memory = params
-
+    url, output, resample_method, extent, resolution, resolution_value, memory = params
     input_url = check_url_type(url)
 
     try:
@@ -369,6 +395,9 @@ def import_grass_raster(params):
             input=input_url,
             output=output,
             resample=resample_method,
+            extent=extent,
+            resolution=resolution,
+            resolution_value=resolution_value,
             memory=memory,
             quiet=True,
         )
@@ -385,8 +414,23 @@ def create_strds(strds_output, asset_name_list):
         )
 
 
-def download_assets(urls, filenames, resample_method, memory, nprocs=1):
+def download_assets(
+    urls,
+    filenames,
+    resample_method,
+    resample_extent,
+    resolution,
+    resolution_value,
+    memory=300,
+    nprocs=1,
+):
     """Downloads a list of images from the given URLs to the given filenames."""
+    number_of_assets = len(urls)
+    resample_extent_list = [resample_extent] * number_of_assets
+    resolution_list = [resolution] * number_of_assets
+    resolution_value_list = [resolution_value] * number_of_assets
+    resample_method_list = [resample_method] * number_of_assets
+    memory_list = [memory] * number_of_assets
     max_cpus = os.cpu_count() - 1
     if nprocs > max_cpus:
         gs.warning(
@@ -400,7 +444,16 @@ def download_assets(urls, filenames, resample_method, memory, nprocs=1):
         with ThreadPoolExecutor(max_workers=nprocs) as executor:
             try:
                 for _a in executor.map(
-                    import_grass_raster, zip(urls, filenames, resample_method, memory)
+                    import_grass_raster,
+                    zip(
+                        urls,
+                        filenames,
+                        resample_method_list,
+                        resample_extent_list,
+                        resolution_list,
+                        resolution_value_list,
+                        memory_list,
+                    ),
                 ):
                     pbar.update(1)
             except Exception as e:
@@ -436,6 +489,15 @@ def print_summary(data, depth=1):
             gs.message(_(f"# {indentation}{key}: {value}"))
 
 
+def print_attribute(item, attribute, message=None):
+    """Print an attribute of the item and handle AttributeError."""
+    message = message if message else attribute.capitalize()
+    try:
+        gs.message(_(f"{message}: {getattr(item, attribute)}"))
+    except AttributeError:
+        gs.info(_(f"{message} not found."))
+
+
 def get_collection_items(client, collection_name):
     """Get collection"""
     try:
@@ -446,32 +508,17 @@ def get_collection_items(client, collection_name):
     gs.message(_("*" * 80))
     gs.message(_(f"Collection Id: {collection.id}"))
 
-    try:
-        gs.message(_(f"Collection Title: {collection.title}"))
-    except AttributeError:
-        gs.info(_("Collection Title not found."))
+    print_attribute(collection, "title", "Collection Title")
 
-    gs.message(_(f"Collection Title: {collection.title}"))
     gs.message(_(f"Description: {collection.description}"))
     gs.message(_(f"Spatial Extent: {collection.extent.spatial.bboxes}"))
     gs.message(_(f"Temporal Extent: {collection.extent.temporal.intervals}"))
 
-    try:
-        gs.message(_(f"License: {collection.license}"))
-    except AttributeError:
-        gs.info(_("License information not found."))
-
-    try:
-        gs.message(_(f"keywords: {collection.keywords}"))
-    except AttributeError:
-        gs.info(_("Keywords not found."))
-
-    gs.message(_(f"Links: {collection.links}"))
-
-    try:
-        gs.message(_(f"Extensions: {collection.stac_extensions}"))
-    except AttributeError:
-        gs.info(_("Extensions not found."))
+    print_attribute(collection, "license")
+    print_attribute(collection, "keywords")
+    print_attribute(collection, "links")
+    print_attribute(collection, "providers")
+    print_attribute(collection, "stac_extensions", "Extensions")
 
     try:
         gs.message(_("\n# Summaries:"))
@@ -488,52 +535,34 @@ def get_collection_items(client, collection_name):
     return collection.to_dict()
 
 
+def report_stac_item(item):
+    """Print a report of the STAC item to the console."""
+    gs.message(_(f"Collection ID: {item.collection_id}"))
+    gs.message(_(f"Item: {item.id}"))
+    gs.message(_(f"Geometry: {item.geometry}"))
+    gs.message(_(f"Bbox: {item.bbox}"))
+
+    print_attribute(item, "datetime", "Datetime")
+    print_attribute(item, "start_datetime", "Start Datetime")
+    print_attribute(item, "end_datetime", "End Datetime")
+
+    gs.message(_(f"Links: {item.links}"))
+
+    print_attribute(item, "extra_fields", "Extra Fields")
+    print_attribute(item, "stac_extensions", "Extensions")
+
+    gs.message(_(f"Properties: {item.properties}"))
+
+
 # TODO: Complete functionality to import all media types
-def import_items(
-    items,
-    region_params=None,
-    reprojection=None,
-    output=None,
-    method=None,
-    resolution=None,
-    memory=None,
-):
+def import_items(items):
     """Import items"""
 
     asset_download_list = []
     asset_name_list = []
 
     for item in items:
-        gs.message(_(f"Collection ID: {item.collection_id} \n"))
-        gs.message(_(f"Item: {item.id}"))
-        gs.message(_(f"Geometry: {item.geometry} \n"))
-        gs.message(_(f"Bbox: {item.bbox} \n"))
-
-        try:
-            gs.message(_(f"Datetime: {item.datetime} \n"))
-        except AttributeError:
-            try:
-                gs.message(_(f"Start Datetime: {item.start_datetime} \n"))
-            except AttributeError:
-                gs.info(_("Start Datetime not found."))
-            try:
-                gs.message(_(f"End Datetime: {item.end_datetime} \n"))
-            except AttributeError:
-                gs.info(_("End Datetime not found."))
-
-        gs.message(_(f"Links: {item.links} \n"))
-
-        try:
-            gs.message(_(f"Extra Fields: {item.extra_fields} \n"))
-        except AttributeError:
-            gs.info(_("Extra Fields not found."))
-
-        try:
-            gs.message(_(f"Extensions: {item.stac_extensions}"))
-        except AttributeError:
-            gs.info(_("Extensions not found."))
-
-        gs.message(_(f"Properties: {item.properties} \n"))
+        report_stac_item(item)
         # print_summary(item.to_dict())
         for key, asset in item.assets.items():
             media_type = asset.media_type
@@ -563,11 +592,7 @@ def import_items(
 
         gs.message(_("*" * 80))
 
-    # gs.message(_(f"Asset Download List: {asset_download_list} \n"))
-    resample_method_list = [method] * len(asset_download_list)
-    memory_list = [memory] * len(asset_download_list)
-
-    return [asset_download_list, asset_name_list, resample_method_list, memory_list]
+    return [asset_download_list, asset_name_list]
 
 
 def main():
@@ -612,11 +637,16 @@ def main():
     method = options["method"]  # optional
     memory = int(options["memory"])  # optional
     nprocs = int(options["nprocs"])
-    # resolution = options["resolution"]  # optional
 
     # Output options
+
+    # Raster options
+    resolution = options["resolution"]  # optional
+    resolution_value = options["resolution_value"]  # optional
+    extent = options["extent"]  # optional
+
+    # Space Time Raster Dataset options
     strds_output = options["strds_output"]  # optional
-    # output = options["output"]  # optional
 
     try:
 
@@ -630,7 +660,7 @@ def main():
         client = Client.open(client_url, headers=req_headers)
         gs.message(_(f"Client Id: {client.id}"))
         gs.message(_(f"Client Title: {client.title}"))
-        gs.message(_(f"Client Title: {client.description}"))
+        gs.message(_(f"Client Description: {client.description}"))
         gs.message(_(f"Client STAC Extensions: {client.stac_extensions}"))
         gs.message(_(f"Client Extra Fields: {client.extra_fields}"))
         gs.message(_(f"Client links: {client.links}"))
@@ -715,14 +745,22 @@ def main():
     if validate_collections_option(client, collections):
         items_search = search_stac_api(client=client, **search_params)
         gs.message(_("Import Items..."))
-        asset_list, asset_name_list, method_list, memory_list = import_items(
-            list(items_search.items()), method=method, memory=memory
-        )
+        asset_list, asset_name_list = import_items(list(items_search.items()))
         gs.message(_(f"{len(asset_list)} Assets Ready for download..."))
 
         if not dry_run:
+            # Download the assets
+            # TODO: This code needs to be cleaned up and tested
+            # Just pass the whole asset dict to the download function instead of the lists.
             download_assets(
-                asset_list, asset_name_list, method_list, memory_list, nprocs
+                asset_list,
+                asset_name_list,
+                method,
+                extent,
+                resolution,
+                resolution_value,
+                memory,
+                nprocs,
             )
             if strds_output:
                 create_strds(strds_output, asset_name_list)
