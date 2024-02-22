@@ -478,7 +478,7 @@ def get_all_collections(client):
         collection_list = list(collections)
         gs.message(_(f"Collections found: {len(collection_list)}"))
         for i in collection_list:
-            gs.message(_(i.id))
+            gs.message(_(f"{i.id}: {i.title}"))
         return collection_list
     except APIError as e:
         gs.fatal(_("Error getting collections: {}".format(e)))
@@ -583,7 +583,7 @@ def import_items(items, asset_keys=None):
             gs.message(_("\nAsset"))
             gs.message(_(f"Asset Key: {key}"))
             gs.message(_(f"Asset Title: {asset.title}"))
-            gs.message(_(f"Asset Description: {asset.description}"))
+            gs.message(_(f"Asset Dekeywordscription: {asset.description}"))
             gs.message(_(f"Asset Media Type: {media_type}"))
             gs.message(_(f"Asset Roles: {asset.roles}"))
             gs.message(_(f"Asset Href: {asset.href}"))
@@ -720,12 +720,14 @@ def main():
     dry_run = flags["d"]
 
     if collections_only:
-        get_all_collections(client)
+        collection = get_all_collections(client)
+        # TODO: Add flag to return json for use with python
         return None
 
     if collection_itmes_only:
         for collection in collections:
             get_collection_items(client, collection)
+        # TODO: Add flag to return json for use with python
         return None
 
     if options["ids"]:
