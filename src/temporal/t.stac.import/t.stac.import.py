@@ -162,7 +162,7 @@
 
 # %option G_OPT_STRDS_OUTPUT
 # % key: strds_output
-# % description: Data will be imported as a space time dataset.
+# % description: (WIP) Data will be imported as a space time dataset.
 # % required: no
 # % multiple: no
 # % guisection: Output
@@ -363,9 +363,11 @@ def search_stac_api(client, **kwargs):
         gs.fatal(_("Error searching STAC API: {}".format(e)))
 
     try:
-        gs.message(_(f"Items found: {search.matched()}"))
-    except AttributeError:
-        gs.warning(_("No items found"))
+        gs.message(_(f"Search Matched: {search.matched()}"))
+        gs.message(_(f"Pages found: {len(list(search.pages()))}"))
+        gs.message(_(f"Items found: {len(list(search.items()))}"))
+    except e:
+        gs.warning(_(f"No items found: {e}"))
 
     return search
 
@@ -381,9 +383,11 @@ def check_url_type(url):
     - str: 's3', 'gs', 'http', or 'unknown' based on the URL type.
     """
     if url.startswith("s3://"):
-        return url.replace("s3://", "/vsis3/")
+        return url.replace("s3://", "/vsis3/")  # Amazon S3
     elif url.startswith("gs://"):
-        return url.replace("gs://", "/vsigs/")
+        return url.replace("gs://", "/vsigs/")  # Google Cloud Storage
+    elif url.startswith("abfs://"):
+        return url.replace("abfs://", "/vsiaz/")  # Azure Blob File System
     elif url.startswith("https://"):
         return url.replace("https://", "/vsicurl/https://")
     elif url.startswith("http://"):
@@ -416,12 +420,20 @@ def import_grass_raster(params):
         gs.fatal(_("Error importing raster: {}".format(e.stderr)))
 
 
-def create_strds(strds_output, asset_name_list):
+def create_strds(strds_output, asset_list, format="absolute"):
     """Create a space-time raster dataset and add the imported rasters to it."""
     gs.parse_command("t.create", output=strds_output, type="strds", title=strds_output)
-    for asset_name in asset_name_list:
+    # Check if datetime exists
+    # Check if start_datetime and end_datetime exists
+    for asset in asset_list:
         gs.parse_command(
-            "t.register", input=asset_name, type="rast", output=strds_output
+            "t.register",
+            input=asset.name,
+            type="rast",
+            output=strds_output,
+            format=format,
+            start=asset.datetime,
+            end=asset.datetime,
         )
 
 
@@ -569,6 +581,31 @@ def report_stac_item(item):
 def import_items(items, asset_keys=None):
     """Import items"""
 
+    # PARQUET = "application/x-parquet"
+    # NETCDF = "application/x-netcdf"
+    # ZARR = "application/x-zarr"
+
+    VECTOR_MEDIA_TYPES = [
+        MediaType.GEOJSON,
+        MediaType.GEOPACKAGE,
+        MediaType.FLATGEOBUF,
+        MediaType.JSON,
+        MediaType.TEXT,
+        MediaType.XML,
+        # PARQUET
+    ]
+
+    RASTER_MEDIA_TYPES = [
+        MediaType.GEOTIFF,
+        MediaType.COG,
+        MediaType.JPEG,
+        MediaType.PNG,
+        MediaType.TIFF,
+        MediaType.JPEG2000,
+    ]
+
+    HDF_MEDIA_TYPES = [MediaType.HDF5, MediaType.HDF]
+
     asset_download_list = []
     asset_name_list = []
 
@@ -583,32 +620,32 @@ def import_items(items, asset_keys=None):
             gs.message(_("\nAsset"))
             gs.message(_(f"Asset Key: {key}"))
             gs.message(_(f"Asset Title: {asset.title}"))
-            gs.message(_(f"Asset Dekeywordscription: {asset.description}"))
+            gs.message(_(f"Asset Description: {asset.description}"))
             gs.message(_(f"Asset Media Type: {media_type}"))
             gs.message(_(f"Asset Roles: {asset.roles}"))
             gs.message(_(f"Asset Href: {asset.href}"))
 
-            if media_type == MediaType.COG:
+            # if media_type == MediaType.COG:
+            #     url = asset.href
+            #     asset_download_list.append(url)
+            #     asset_name = os.path.splitext(os.path.basename(url))[0]
+            #     asset_name_list.append(f"{item.id}.{asset_name}")
+
+            #     gs.message(_(f"Asset added to download queue: {asset.to_dict()} \n"))
+
+            if media_type in RASTER_MEDIA_TYPES:
                 url = asset.href
                 asset_download_list.append(url)
                 asset_name = os.path.splitext(os.path.basename(url))[0]
                 asset_name_list.append(f"{item.id}.{asset_name}")
 
                 gs.message(_(f"Asset added to download queue: {asset.to_dict()} \n"))
-            # if media_type == MediaType.GEOTIFF:
-            # asset_download_list.append(asset.href)
-            # gs.message(_(f"Added asset to download queue: {asset} \n"))
-            # if media_type == MediaType.JPEG:
-            #     asset_download_list.append(asset.href)
-            #     gs.message(_(f"Added asset to download queue: {asset} \n"))
-            # if media_type == MediaType.PNG:
-            #     asset_download_list.append(asset.href)
-            #     gs.message(_(f"Added asset to download queue: {asset} \n"))
-            # if media_type == MediaType.TIFF:
-            #     asset_download_list.append(asset.href)
-            #     gs.message(_(f"Added asset to download queue: {asset} \n"))
 
-            # gs.message(_(f"Asset: {item.assets[asset]} \n"))
+            # if media_type in VECTOR_MEDIA_TYPES:
+            #     url = asset.href
+            #     asset_download_list.append(url)
+            #     asset_name = os.path.splitext(os.path.basename(url))[0]
+            #     asset_name_list.append(f"{item.id}.{asset_name}")
 
         gs.message(_("*" * 80))
 
