@@ -3,6 +3,9 @@ name: General linting
 
 on:
   push:
+    branches:
+      - grass[0-9]+
+      - master
   pull_request:
 
 concurrency:
