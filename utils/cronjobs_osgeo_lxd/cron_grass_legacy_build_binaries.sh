@@ -173,7 +173,7 @@ rm -f $TARGETHTMLDIR/*.*
 \mv /tmp/addons $TARGETHTMLDIR
 
 cp -rp dist.$ARCH/docs/html/* $TARGETHTMLDIR/
-echo "Copied pygrass progman to http://grass.osgeo.org/grass${VERSION}/manuals/libpython/"
+echo "Copied pygrass progman to https://grass.osgeo.org/grass${VERSION}/manuals/libpython/"
 
 # search to be improved with mkdocs or similar; for now we use DuckDuckGo
 echo "Injecting DuckDuckGo search field into manual main page..."

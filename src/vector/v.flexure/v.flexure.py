@@ -17,7 +17,7 @@
 #############################################################################
 #
 # REQUIREMENTS:
-#      -  gFlex: http://csdms.colorado.edu/wiki/gFlex
+#      -  gFlex: https://csdms.colorado.edu/wiki/Model:GFlex
 #         (should be downloaded automatically along with the module)
 #         github repository: https://github.com/awickert/gFlex
 
@@ -137,7 +137,7 @@ from grass.pygrass import vector
 def get_points_xy(vect_name):
     """
     to find x and y using pygrass, see my (A. Wickert's) StackOverflow answer:
-    http://gis.stackexchange.com/questions/28061/how-to-access-vector-coordinates-in-grass-gis-from-python
+    https://gis.stackexchange.com/a/132786
     """
     points = vector.VectorTopo(vect_name)
     points.open("r")

@@ -9,8 +9,8 @@
 #               attribute table (csv file) as input
 #
 # COPYRIGHT: (C) 2015 Paulo van Breugel
-#            http://ecodiv.org
-#            http://pvanb.wordpress.com/
+#            https://ecodiv.earth
+#            https://pvanb.wordpress.com/
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS
