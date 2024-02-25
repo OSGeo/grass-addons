@@ -19,7 +19,7 @@
 #               cover type Y.
 #
 # COPYRIGHT: (C) 2014-2023 Paulo van Breugel
-#            http://ecodiv.earth
+#            https://ecodiv.earth
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS

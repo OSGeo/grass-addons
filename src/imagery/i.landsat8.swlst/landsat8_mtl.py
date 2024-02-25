@@ -28,7 +28,8 @@ def set_mtlfile():
 class Landsat8_MTL:
     """
     Retrieve metadata from a Landsat8 MTL file.
-    See <http://landsat.usgs.gov/Landsat8_Using_Product.php>.
+    See <https://www.usgs.gov/landsat-missions/using-usgs-landsat-level-1-data-product>
+    (originally <https://web.archive.org/web/20160413103023/https://landsat.usgs.gov/Landsat8_Using_Product.php>).
 
     ToDo:
 

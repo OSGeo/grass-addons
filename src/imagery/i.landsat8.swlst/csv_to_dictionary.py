@@ -11,8 +11,8 @@ ToDo:
 * Deduplication!
 """
 
-# based on: <http://pastebin.com/tnyhmCJz>
-# see: <http://stackoverflow.com/q/29141609/1172302>
+# based on: <https://pastebin.com/tnyhmCJz>
+# see: <https://stackoverflow.com/q/29141609/1172302>
 
 # real data
 AE_STRING = """Emissivity Class|TIRS10|TIRS11
@@ -77,7 +77,7 @@ def to_tuple(string):
 
 def replace_dot_comma_space(string):
     """
-    Source: <http://stackoverflow.com/a/9479972/1172302>
+    Source: <https://stackoverflow.com/a/9479972/1172302>
     """
     replacements = (
         (".", ""),
@@ -141,7 +141,7 @@ def csv_to_dictionary(csv):
     as values. Note, "strings" of interest are hardcoded!
 
     Also, fix the re-definition of the function transform(). See
-    <http://stackoverflow.com/q/30204197/1172302>
+    <https://stackoverflow.com/q/30204197/1172302>
 
     Parameters
     ----------
