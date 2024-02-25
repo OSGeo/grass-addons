@@ -37,5 +37,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           FILTER_REGEX_EXCLUDE: ".*/src/gui/wxpython/wx.metadata/profiles/.*.xml"
           IGNORE_GENERATED_FILES: true
+          VALIDATE_CLANG_FORMAT: false # Until we continue to check it in another workflow
+          VALIDATE_CPP: false # Until a configuration file is created to not contradict clang-format
           VALIDATE_PYTHON_FLAKE8: false
           VALIDATE_R: false
