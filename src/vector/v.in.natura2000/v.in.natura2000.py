@@ -150,7 +150,7 @@ def main():
     except:
         grass.fatal(
             "pyspatialite is needed to run this script.\n"
-            "source: https://pypi.python.org/pypi/pyspatialite \n"
+            "source: https://pypi.org/project/pyspatialite \n"
             "Please activate/install it in your python stack."
         )
 

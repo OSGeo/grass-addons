@@ -121,7 +121,7 @@ class Classifier:
         except ImportError:
             grass.fatal(
                 _(
-                    "Cannot import mlpy (http://mlpy.sourceforge.net)"
+                    "Cannot import mlpy (https://mlpy.sourceforge.net)"
                     " library."
                     " Please install it or ensure that it is on path"
                     " (use PYTHONPATH variable)."
