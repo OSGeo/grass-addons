@@ -5,7 +5,7 @@
 #
 # MODULE:       v.multi2singlepart
 # AUTHOR(S):    Paulo van Breugel
-# PURPOSE:      Split multipart polygons into singlepart polygon features
+# PURPOSE:      Split multipart polygon features into singlepart features
 #
 # COPYRIGHT:   (C) 2024 Paulo van Breugel and the GRASS Development Team
 #              http://ecodiv.earth
@@ -19,7 +19,7 @@
 # REQUIREMENTS:
 # -
 # %module
-# % description: Split multi-polygon features into single polygon features.
+# % description: Split multi-part polygons into single-part polygons.
 # % keyword: vector
 # % keyword: geometry
 # %end
@@ -85,12 +85,19 @@ def main(options, flags):
     cols = [x for x in cols[1:] if x != ""]
     gs.run_command("v.db.dropcolumn", map=tmplayer, columns=cols)
 
+    # Check topology
+    top = gs.parse_command("v.info", flags="t", map=tmplayer)
+    if int(top["areas"]) == 0:
+        gs.fatal(_("The layer does not contain areas. Exiting..."))
+
     # Overlay the original and copied layer
     gs.run_command(
         "v.overlay",
         ainput=options["input"],
         binput=tmplayer,
         operator="and",
+        atype="area",
+        btype="area",
         output=options["output"],
     )
 
