@@ -180,11 +180,11 @@ class SentinelImporter(object):
     def __del__(self):
         # remove temporary maps
         for map in self._map_list:
-            if gs.find_file(map, element="cell")["file"]:
+            if gs.find_file(map, element="cell", mapset=".")["file"]:
                 gs.run_command(
                     "g.remove", flags="fb", type="raster", name=map, quiet=True
                 )
-            if gs.find_file(map, element="vector")["file"]:
+            if gs.find_file(map, element="vector", mapset=".")["file"]:
                 gs.run_command(
                     "g.remove", flags="f", type="vector", name=map, quiet=True
                 )
@@ -406,9 +406,24 @@ class SentinelImporter(object):
         except CalledModuleError as e:
             pass  # error already printed
 
+    def get_safe_dir(self, filename):
+        return filename[: filename.find(".SAFE") + len(".SAFE")].split(os.path.sep)[-1]
+
+    def get_unique_safe_dirs(self, files):
+        return set(map(lambda f: self.get_safe_dir(f), files))
+
     def import_cloud_masks(
-        self, area_threshold, prob_threshold, output, shadows, reproject
+        self, pattern, area_threshold, prob_threshold, output, shadows, reproject
     ):
+        def filter_cloud_masks(files, pattern):
+            files_safe_dirs = self.get_unique_safe_dirs(files)
+            files_f = []
+            for f in self._filter(pattern):
+                safe_dir = self.get_safe_dir(f)
+                if safe_dir in files_safe_dirs:
+                    files_f.append(f)
+            return files_f
+
         try:
             if os.environ["GRASS_OVERWRITE"] == "1":
                 overwrite = True
@@ -416,10 +431,13 @@ class SentinelImporter(object):
             overwrite = False
 
         # Import cloud masks for L2A products
-        files_L2A = self._filter("MSK_CLDPRB_20m.jp2")
+        if pattern:
+            files_L2A = filter_cloud_masks(self.files, "MSK_CLDPRB_20m.jp2")
+        else:
+            files_L2A = self._filter("MSK_CLDPRB_20m.jp2")
 
         for f in files_L2A:
-            safe_dir = os.path.dirname(f).split(os.path.sep)[-4]
+            safe_dir = self.get_safe_dir(f)
             items = safe_dir.split("_")
 
             # Define names of final & temporary maps
@@ -443,7 +461,10 @@ class SentinelImporter(object):
             )
 
             # check if mask alrady exist
-            if gs.find_file(name=map_name, element=output)["file"] and not overwrite:
+            if (
+                gs.find_file(name=map_name, element=output, mapset=".")["file"]
+                and not overwrite
+            ):
                 gs.message(
                     _(
                         "option <output>: <{}> exists. To overwrite, use the --overwrite flag".format(
@@ -625,21 +646,23 @@ class SentinelImporter(object):
                 )
 
         # Import of simplified cloud masks for Level-1C products
-        all_files = self._filter("MSK_CLOUDS_B00.gml")
-        files_L1C = []
+        if pattern:
+            all_files = filter_cloud_masks(self.files, "MSK_CLOUDS_B00.gml")
+        else:
+            all_files = self._filter("MSK_CLOUDS_B00.gml")
 
+        files_L1C = []
+        safe_dirs_l2a = self.get_unique_safe_dirs(files_L2A)
         for f in all_files:
-            safe_dir = os.path.dirname(f).split(os.path.sep)[-4]
-            if safe_dir not in [
-                os.path.dirname(file).split(os.path.sep)[-4] for file in files_L2A
-            ]:
+            if self.get_safe_dir(f) not in safe_dirs_l2a:
+                # processes only cloud mask which were not already processed as L2A
                 files_L1C.append(f)
 
         if len(files_L1C) > 0:
             from osgeo import ogr
 
             for f in files_L1C:
-                safe_dir = os.path.dirname(f).split(os.path.sep)[-4]
+                safe_dir = self.get_safe_dir(f)
                 items = safe_dir.split("_")
 
                 # Define names of final & temporary maps
@@ -650,7 +673,7 @@ class SentinelImporter(object):
 
                 # check if mask alrady exist
                 if (
-                    gs.find_file(name=map_name, element=output)["file"]
+                    gs.find_file(name=map_name, element=output, mapset=".")["file"]
                     and not overwrite
                 ):
                     gs.fatal(
@@ -1027,6 +1050,7 @@ def main():
     if flags["c"]:
         # import cloud mask if requested
         importer.import_cloud_masks(
+            options["pattern"],
             options["cloud_area_threshold"],
             options["cloud_probability_threshold"],
             options["cloud_output"],
