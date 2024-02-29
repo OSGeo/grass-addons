@@ -707,12 +707,16 @@ class SentinelDownloader(object):
             if kw_idx == 1:
                 time_string = self._products_df_sorted[time_kw[kw_idx]].iloc[idx]
             else:
-                time_string = self._products_df_sorted[time_kw[kw_idx]].iloc[idx].strftime(
-                    "%Y-%m-%dT%H:%M:%SZ"
+                time_string = (
+                    self._products_df_sorted[time_kw[kw_idx]]
+                    .iloc[idx]
+                    .strftime("%Y-%m-%dT%H:%M:%SZ")
                 )
             print_str += " {0} {1}".format(time_string, ccp)
             if kw_idx == 0:
-                print_str += " {0}".format(self._products_df_sorted["producttype"].iloc[idx])
+                print_str += " {0}".format(
+                    self._products_df_sorted["producttype"].iloc[idx]
+                )
                 print_str += " {0}".format(self._products_df_sorted["size"].iloc[idx])
 
             print(print_str)
@@ -819,7 +823,9 @@ class SentinelDownloader(object):
                     )
                 )
                 # download
-                out = self._api.download(self._products_df_sorted["uuid"].iloc[idx], output)
+                out = self._api.download(
+                    self._products_df_sorted["uuid"].iloc[idx], output
+                )
                 if sleep:
                     x = 1
                     online = out["Online"]
@@ -911,8 +917,10 @@ class SentinelDownloader(object):
                 feature.SetGeometry(newgeom)
             for key in attrs.keys():
                 if key == "ingestiondate":
-                    value = self._products_df_sorted[key].iloc[idx].strftime(
-                        "%Y-%m-%dT%H:%M:%SZ"
+                    value = (
+                        self._products_df_sorted[key]
+                        .iloc[idx]
+                        .strftime("%Y-%m-%dT%H:%M:%SZ")
                     )
                 else:
                     value = self._products_df_sorted[key].iloc[idx]
