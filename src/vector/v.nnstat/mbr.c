@@ -78,7 +78,8 @@ int convexHull(struct points *pnts, struct convex *hull)
 
     /* sort points in ascending x order
      * modified according to
-     * https://www.physicsforums.com/threads/sorting-2d-array-with-qsort-keeping-rows-in-order-c.546209/ */
+     * https://www.physicsforums.com/threads/sorting-2d-array-with-qsort-keeping-rows-in-order-c.546209/
+     */
     qsort(&r[0][0], n, 3 * sizeof(double), cmpPoints);
 
     hull->hull = (int *)G_malloc(n * 3 * sizeof(int));
