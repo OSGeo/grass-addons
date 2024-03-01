@@ -8,7 +8,8 @@
 #               surface (MESS) as proposed by Elith et al., 2010,
 #               Methods in Ecology & Evolution, 1(330–342).
 #
-# COPYRIGHT: (C) 2014-2022 by Paulo van Breugel and the GRASS Development Team
+# COPYRIGHT: (C) 2014-2024 by Paulo van Breugel and the GRASS Development
+#            Team
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS
@@ -192,9 +193,19 @@ def main(options, flags):
         return 0
 
     # Reference / sample area or points
-    ref_rast = options["ref_rast"]
     ref_vect = options["ref_vect"]
-    if ref_rast:
+    if bool(ref_vect):
+        topology_check = gs.parse_command("v.info", map=ref_vect, flags="t")
+        if topology_check["points"] == "0":
+            gs.fatal(
+                _(
+                    "the reference vector layer {} does not contain points".format(
+                        ref_vect
+                    )
+                )
+            )
+    ref_rast = options["ref_rast"]
+    if bool(ref_rast):
         reftype = gs.raster_info(ref_rast)
         if reftype["datatype"] != "CELL":
             gs.fatal(_("The ref_rast map must have type CELL (integer)"))
@@ -281,7 +292,7 @@ def main(options, flags):
         rname = tmpname("tmp3")
         Module("r.mapcalc", expression="{} = MASK".format(rname), quiet=True)
 
-    if ref_rast:
+    if bool(ref_rast):
         vtl = ref_rast
 
         # Create temporary layer based on reference layer
