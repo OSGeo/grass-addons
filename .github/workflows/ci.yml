@@ -71,39 +71,40 @@ jobs:
 
       - name: Create installation directory
         run: |
-          mkdir $HOME/install
+          mkdir "$HOME/install"
 
       - name: Set number of cores for compilation
         run: |
-          echo "MAKEFLAGS=-j$(nproc)" >> $GITHUB_ENV
+          echo "MAKEFLAGS=-j$(nproc)" >> "$GITHUB_ENV"
 
       - name: Set LD_LIBRARY_PATH for GRASS GIS compilation
         run: |
-          echo "LD_LIBRARY_PATH=$HOME/install/lib" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=$HOME/install/lib" >> "$GITHUB_ENV"
 
       - name: Build GRASS GIS core
         run: |
           cd grass
-          ../grass-addons/.github/workflows/build_grass.sh $HOME/install
+          ../grass-addons/.github/workflows/build_grass.sh "$HOME/install"
 
       - name: Add the bin directory to PATH
         run: |
-          echo "$HOME/install/bin" >> $GITHUB_PATH
+          echo "$HOME/install/bin" >> "$GITHUB_PATH"
 
       - name: Make simple grass command available (not needed in G8)
         run: |
-          if [ ! -e $HOME/install/bin/grass ] ; then \
-            ln -s $HOME/install/bin/grass*   $HOME/install/bin/grass ; fi
+          if [ ! -e "$HOME/install/bin/grass" ] ; then \
+            ln -s "$HOME"/install/bin/grass*   "$HOME"/install/bin/grass ; fi
 
       - name: Build addons
         run: |
           cd grass-addons/src
-          GRASS_INSTALL=$($HOME/install/bin/grass --config | sed -n '4{p;q}')
-          make MODULE_TOPDIR=$GRASS_INSTALL
+          GRASS_INSTALL="$("$HOME/install/bin/grass" --config | sed -n '4{p;q}')"
+          make MODULE_TOPDIR="$GRASS_INSTALL"
 
       - name: Get extra Python dependencies
         run: |
-          export GDAL_VERSION=$(gdal-config --version)
+          GDAL_VERSION="$(gdal-config --version)"
+          export GDAL_VERSION
           pip install -r grass-addons/.github/workflows/extra_requirements.txt
 
       - name: Set up R

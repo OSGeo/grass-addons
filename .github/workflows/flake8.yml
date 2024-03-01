@@ -2,8 +2,20 @@
 name: Python Flake8 Code Quality
 
 on:
-  - push
-  - pull_request
+  push:
+    branches:
+      - grass[0-9]+
+      - master
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress:
+    # Do not cancel on protected branches, like grass8
+    ${{ github.ref_protected != true }}
+
+permissions: {}
 
 jobs:
   flake8:
@@ -15,7 +27,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: "3.10"
 
       - name: Install
         run: |
@@ -24,4 +36,4 @@ jobs:
 
       - name: Run Flake8
         run: |
-          flake8 --count --statistics --show-source --jobs=$(nproc) .
+          flake8 --count --statistics --show-source --jobs="$(nproc)" .
