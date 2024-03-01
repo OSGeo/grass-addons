@@ -48,6 +48,8 @@ jobs:
           VALIDATE_PERL: false # Until issues are fixed
           VALIDATE_PYTHON_BLACK: false # Until code is upgraded to a newer black version
           VALIDATE_PYTHON_FLAKE8: false
+          VALIDATE_PYTHON_ISORT: false # Until issues are fixed
+          VALIDATE_PYTHON_MYPY: false # Issue with module name wx.wms
           VALIDATE_PYTHON_PYLINT: false # Until issues are fixed
           VALIDATE_R: false
           VALIDATE_RENOVATE: false # Until configuration file is upgraded
