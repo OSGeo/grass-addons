@@ -3,17 +3,27 @@ name: Build and test
 
 on:
   push:
+    branches:
+      - grass[0-9]+
+      - master
   pull_request:
   schedule:
     # 01:00 Pacific Time (in UTC), every day (late night PT)
     - cron: 0 8 * * *
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress:
+    # Do not cancel on protected branches, like grass8
+    ${{ github.ref_protected != true }}
+
+permissions: {}
 
 jobs:
   build:
     name: ${{ matrix.grass-version }} (Python ${{ matrix.python-version }})
-
     runs-on: ubuntu-22.04
-
     strategy:
       matrix:
         # Test with relevant active branches or tags and supported Python
@@ -22,15 +32,14 @@ jobs:
         # only.
         include:
           - grass-version: main
-            python-version: '3.10'
+            python-version: "3.11"
           - grass-version: releasebranch_8_2
-            python-version: '3.7'
+            python-version: "3.7"
           - grass-version: releasebranch_8_3
-            python-version: '3.10'
+            python-version: "3.10"
       fail-fast: false
 
     steps:
-
       - name: Checkout core
         uses: actions/checkout@v4
         with:
