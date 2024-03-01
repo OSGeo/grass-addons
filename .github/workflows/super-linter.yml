@@ -43,6 +43,7 @@ jobs:
           VALIDATE_CHECKOV: false # Until issues are fixed
           VALIDATE_CLANG_FORMAT: false # Until we continue to check it in another workflow
           VALIDATE_CPP: false # Until a configuration file is created to not contradict clang-format
+          VALIDATE_GITLEAKS: false # Until configured to ignore g.parser key in main.c files
           VALIDATE_HTML: false # Until configured, some valid findings
           VALIDATE_LATEX: false # Until issues are fixed, some valid findings
           VALIDATE_NATURAL_LANGUAGE: false # Until issues are fixed, lots of valid suggestions
