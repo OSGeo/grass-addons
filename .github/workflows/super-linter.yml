@@ -7,6 +7,7 @@ on:
       - grass[0-9]+
       - master
   pull_request:
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -38,6 +39,7 @@ jobs:
           FILTER_REGEX_EXCLUDE: ".*/src/gui/wxpython/wx.metadata/profiles/.*.xml"
           IGNORE_GENERATED_FILES: true
           LOG_LEVEL: NOTICE
+          VALIDATE_BASH: false # Until issues are fixed, some valid warnings
           VALIDATE_CHECKOV: false # Until issues are fixed
           VALIDATE_CLANG_FORMAT: false # Until we continue to check it in another workflow
           VALIDATE_CPP: false # Until a configuration file is created to not contradict clang-format
