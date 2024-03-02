@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - grass[0-9]+
-      - master
   pull_request:
   schedule:
     # 01:00 Pacific Time (in UTC), every day (late night PT)
