@@ -20,20 +20,25 @@
 # % keyword: display
 # % keyword: raster
 # % keyword: plot
-# % keyword: boxplot
+# % keyword: line plot
 # % keyword: statistics
 # %end
 
 # %option G_OPT_STRDS_INPUT
-# % description: input space-time raster dataset
+# % description: Input space-time raster dataset.
 # % required: yes
+# % guisection: Input
+# %end
+
+# %option G_OPT_T_WHERE
+# % description: WHERE conditions of SQL statement without 'where' keyword used in the temporal GIS framework. Example: start_time > '2001-01-01 12:30:00'
 # % guisection: Input
 # %end
 
 # %option G_OPT_R_MAP
 # % key: zones
 # % label: Zonal raster
-# % description: categorical map with zones
+# % description: Categorical map with zones for which the trend lines need to be drawn.
 # % required: no
 # % guisection: Input
 # %end
@@ -41,7 +46,7 @@
 # %option G_OPT_F_OUTPUT
 # % key: output
 # % key_desc: File name
-# % label: Name of output image file
+# % label: Name of output image file.
 # % required: no
 # % guisection: Output
 # %end
@@ -50,16 +55,25 @@
 # % key: dpi
 # % type: integer
 # % label: DPI
-# % description: Resolution of plot
+# % description: Resolution of plot.
 # % required: no
 # % guisection: Output
 # %end
 
 # %option
-# % key: stddev
+# % key: error
+# % type: string
+# % label: error bar
+# % description: Error bar to indicate the error or uncertainty per category. Options are error bar in standard deviations (sd) or standard error (se). Leave empty to ommit the error bar.
+# % options: sd,se
+# % guisection: Statistics
+# %end
+
+# %option
+# % key: n
 # % type: double
-# % label: stddev
-# % description: Width of error bar in terms of number of standard deviations.
+# % label: multiply sd/se
+# % description: Width of error bar in terms of number of standard error or standard deviation.
 # % required: no
 # % guisection: Statistics
 # %end
@@ -68,34 +82,55 @@
 # % key: plot_dimensions
 # % type: string
 # % label: Plot dimensions (width,height)
-# % description: Dimensions (width,height) of the figure in inches
+# % description: Dimensions (width,height) of the figure in inches.
 # % required: no
 # % guisection: Plot format
 # %end
 
 # %option
+# % key: rotate_labels
 # % type: double
 # % options: -90-90
-# % key: rotate_labels
 # % label: Rotate labels
-# % description: Rotate labels (degrees)
+# % description: Rotate labels (degrees).
 # % guisection: Plot format
 # %end
 
 # %flag
 # % key: g
 # % label: Add grid lines
-# % description: Add grid lines
+# % description: Add grid lines.
 # % guisection: Plot format
+# %end
+
+# %flag
+# % key: l
+# % label: Legend
+# % description: Select this if you want to plot the legend. This only works if a cover layer is provided.
+# % guisection: Plot format
+# %end
+
+# %rules
+# % requires: -l, zones
 # %end
 
 # %option
 # % key: font_size
 # % type: integer
 # % label: Font size
-# % description: Font size of labels
+# % description: Font size of labels.
 # % guisection: Plot format
 # % answer: 10
+# % required: no
+# %end
+
+# %option
+# % key: date_interval
+# % type: string
+# % label: Date interval
+# % description: Set interval for plotting of the dates/times
+# % options: year,month,week,day,hour,minute
+# % guisection: Plot format
 # % required: no
 # %end
 
@@ -103,23 +138,16 @@
 # % key: date_format
 # % type: string
 # % label: Date format
-# % description: Set date format (see https://strftime.org/ for options)
+# % description: Set date format (see https://strftime.org/ for options).
 # % guisection: Plot format
 # % required: no
-# %end
-
-# %flag
-# % key: d
-# % label: ConciseDateFormatter
-# % description: Us date format as compact as possible while still having complete date information. This will override the data_format setting.
-# % guisection: Plot format
 # %end
 
 # %option
 # % key: axis_limits
 # % type: string
 # % label: limit value axis
-# % description: min and max value of y-axis, or x-axis if -h flag is set)
+# % description: min and max value of y-axis, or x-axis if -h flag is set).
 # % guisection: Plot format
 # % required: no
 # %end
@@ -128,10 +156,10 @@
 # % key: line_width
 # % type: double
 # % label: Line width
-# % description: The width of the line(s)
+# % description: The width of the line(s).
 # % required: no
 # % answer: 1
-# % guisection: Line format
+# % guisection: Plot format
 # %end
 
 # %options G_OPT_CN
@@ -141,7 +169,7 @@
 # % description: Color of the line. See manual page for color notation options. Cannot be used together with the zonal raster.
 # % required: no
 # % answer: blue
-# % guisection: Line format
+# % guisection: Plot format
 # %end
 
 # %rules
@@ -151,7 +179,7 @@
 # %option
 # % key: alpha
 # % type: double
-# % description: Transparency of the error band
+# % description: Transparency of the error band.
 # % required: no
 # % options: 0-1
 # % answer: 0.2
@@ -164,11 +192,11 @@
 # % answer: 1
 # %end
 
-import atexit
 import sys
 from datetime import datetime
 from dateutil import parser
 import grass.script as gs
+from math import sqrt
 import matplotlib.dates as mdates
 
 
@@ -202,14 +230,14 @@ def get_valid_color(color):
 
 
 def get_rast_name_dates(rasters, col_sep):
-    """Create list of names, tic positions, dates and temporal type
+    """Create list of names, dates and temporal type
     of raster layers in input strds
 
-    :param str rasters: rasters (output of the t.rast.list module)
+    :param str rasters: list with names of the rasters in the input strds
     :param str col_sep: column separator e.g. "2000_01_tempmean|
                                                2000-01-01 00:00:00|absolute"
 
-    :return tuple: tuple with list of dates, list of raster names
+    :return tuple: tuple with list of dates and names of raster layers in strds
     """
     raster_names = []
     raster_dates = []
@@ -232,10 +260,23 @@ def check_integer(name):
         gs.fatal(_("The zonal raster must be of type CELL (integer)"))
 
 
-def get_categories(zones):
-    """Get list of categories and IDs of cover layer"""
+def get_categories(coverlayer, zone_cats):
+    """Get list of categories and IDs of cover layer
 
-    cats = gs.read_command("r.category", map=zones, separator="pipe").split("\n")
+    :param str zones: name of zonal layer
+
+    :return list: Nested list with list of zonal categories and list with labels of categories
+    """
+
+    if zone_cats:
+        cats = gs.read_command(
+            "r.category", map=coverlayer, cats=zone_cats, separator="pipe"
+        ).split("\n")
+    else:
+        cats = gs.read_command("r.category", map=coverlayer, separator="pipe").split(
+            "\n"
+        )
+
     cats = [_f for _f in cats if _f]
     cats_ids = [int(x.split("|")[0]) for x in cats]
     cats_names = [x.split("|")[1] for x in cats]
@@ -245,32 +286,31 @@ def get_categories(zones):
     return [cats_ids, cats_names]
 
 
-def line_stats(strds, coverlayer, stddev, cats_ids, threads):
+def line_stats(strds, coverlayer, error, n, threads, temp_type, where):
     """Compute line statistics
 
     :param str strds: name of input strds
     :param str coverlayer: name of cover layer
-    :param float stddev: width of c.i. in stddev
+    :param str error: Error bar in standard deviations (sd) or standard error (se).
+    :param float n: Width of error bar in terms of sd or se
     :param int threads: number of threads
+    :param str temp_type: temporal type of the strds
 
     :return list: list with dates, mean value and upper and lower limit of c.i.
     """
-    # Get type
-    t_info = gs.parse_command("t.info", flags="g", input=strds)
-    temp_type = t_info["temporal_type"]
-
     # Get stats
     univar = gs.read_command(
-        "t.rast.univar", input=strds, zones=coverlayer, nproc=threads
+        "t.rast.univar", input=strds, zones=coverlayer, where=where, nproc=threads
     ).split("\n")
     univar = [_f for _f in univar if _f]
     univar = [x.split("|") for x in univar]
 
-    # Get positions
+    # Get positions of variables
     idx_start = [idx for idx, name in enumerate(univar[0]) if name == "start"][0]
     idx_end = [idx for idx, name in enumerate(univar[0]) if name == "end"][0]
     idx_mean = [idx for idx, name in enumerate(univar[0]) if name == "mean"][0]
-    idx_stddev = [idx for idx, name in enumerate(univar[0]) if name == "stddev"][0]
+    idx_sd = [idx for idx, name in enumerate(univar[0]) if name == "stddev"][0]
+    idx_n = [idx for idx, name in enumerate(univar[0]) if name == "non_null_cells"][0]
 
     # Get date time and values
     mean_vals = list()
@@ -278,12 +318,13 @@ def line_stats(strds, coverlayer, stddev, cats_ids, threads):
     lower_limit_vals = list()
     if bool(coverlayer):
         idx_zone = [idx for idx, name in enumerate(univar[0]) if name == "zone"][0]
+        zone_ids = list(dict.fromkeys([int(zoneid[idx_zone]) for zoneid in univar[1:]]))
         if temp_type == "absolute":
             if not bool(idx_end):
                 date_points = [
                     datetime.strptime(x[idx_start], "%Y-%m-%d %H:%M:%S")
                     for x in univar[1:]
-                    if int(x[idx_zone]) == cats_ids[0]
+                    if int(x[idx_zone]) == zone_ids[0]
                 ]
             else:
                 date_start = [
@@ -293,7 +334,7 @@ def line_stats(strds, coverlayer, stddev, cats_ids, threads):
                         )
                     )
                     for x in univar[1:]
-                    if int(x[idx_zone]) == cats_ids[0]
+                    if int(x[idx_zone]) == zone_ids[0]
                 ]
                 date_end = [
                     int(
@@ -302,7 +343,7 @@ def line_stats(strds, coverlayer, stddev, cats_ids, threads):
                         )
                     )
                     for x in univar[1:]
-                    if int(x[idx_zone]) == cats_ids[0]
+                    if int(x[idx_zone]) == zone_ids[0]
                 ]
                 date_points = [
                     datetime.fromtimestamp(s + (e - s) / 2).strftime(
@@ -318,40 +359,51 @@ def line_stats(strds, coverlayer, stddev, cats_ids, threads):
                 date_points = [
                     int(x[idx_start])
                     for x in univar[1:]
-                    if int(x[idx_zone]) == cats_ids[0]
+                    if int(x[idx_zone]) == zone_ids[0]
                 ]
             else:
                 date_start = [
                     int(x[idx_start])
                     for x in univar[1:]
-                    if int(x[idx_zone]) == cats_ids[0]
+                    if int(x[idx_zone]) == zone_ids[0]
                 ]
                 date_end = [
                     int(x[idx_end])
                     for x in univar[1:]
-                    if int(x[idx_zone]) == cats_ids[0]
+                    if int(x[idx_zone]) == zone_ids[0]
                 ]
                 date_points = [s + (e - s) / 2 for s, e in zip(date_start, date_end)]
-        for i, n in enumerate(cats_ids):
+        for i, _ in enumerate(zone_ids):
             m = [
                 float(x[idx_mean])
                 for x in univar[1:]
-                if int(x[idx_zone]) == cats_ids[i]
+                if int(x[idx_zone]) == zone_ids[i]
             ]
-            s = [
-                float(x[idx_stddev])
-                for x in univar[1:]
-                if int(x[idx_zone]) == cats_ids[i]
-            ]
-            upper_limit_vals.append([m + s * stddev for m, s in zip(m, s)])
-            lower_limit_vals.append([m - s * stddev for m, s in zip(m, s)])
             mean_vals.append(m)
+            if error:
+                s = [
+                    float(x[idx_sd])
+                    for x in univar[1:]
+                    if int(x[idx_zone]) == zone_ids[i]
+                ]
+                if error == "se":
+                    d = [
+                        float(x[idx_n])
+                        for x in univar[1:]
+                        if int(x[idx_zone]) == zone_ids[i]
+                    ]
+                    s = [si / sqrt(di) if di != 0 else 0 for si, di in zip(s, d)]
+                upper_limit_vals.append([m + s * n for m, s in zip(m, s)])
+                lower_limit_vals.append([m - s * n for m, s in zip(m, s)])
     else:
         if temp_type == "absolute":
             if not bool(idx_end):
                 date_points = [
                     datetime.strptime(x[idx_start], "%Y-%m-%d %H:%M:%S")
                     for x in univar[1:]
+                ]
+                date_points = [
+                    datetime.strptime(dp, "%Y-%m-%d %H:%M:%S") for dp in date_points
                 ]
             else:
                 date_start = [
@@ -376,6 +428,9 @@ def line_stats(strds, coverlayer, stddev, cats_ids, threads):
                     )
                     for s, e in zip(date_start, date_end)
                 ]
+                date_points = [
+                    datetime.strptime(dp, "%Y-%m-%d %H:%M:%S") for dp in date_points
+                ]
         else:
             if not bool(idx_end):
                 date_points = [int(x[idx_start]) for x in univar[1:]]
@@ -384,93 +439,33 @@ def line_stats(strds, coverlayer, stddev, cats_ids, threads):
                 date_end = [int(x[idx_end]) for x in univar[1:]]
                 date_points = [s + (e - s) / 2 for s, e in zip(date_start, date_end)]
         m = [float(x[idx_mean]) for x in univar[1:]]
-        s = [float(x[idx_stddev]) for x in univar[1:]]
-        upper_limit_vals[0] = [m + s * stddev for m, s in zip(m, s)]
-        lower_limit_vals[0] = [m - s * stddev for m, s in zip(m, s)]
         mean_vals.append(m)
+        if error:
+            s = [float(x[idx_sd]) for x in univar[1:]]
+            if error == "se":
+                d = [float(x[idx_n]) for x in univar[1:]]
+                s = [si / sqrt(di) for si, di in zip(s, d)]
+            upper_limit_vals.append([m + s * n for m, s in zip(m, s)])
+            lower_limit_vals.append([m - s * n for m, s in zip(m, s)])
+        zone_ids = ""
 
     # Return values
-    return [date_points, mean_vals, upper_limit_vals, lower_limit_vals]
+    return [date_points, mean_vals, upper_limit_vals, lower_limit_vals, zone_ids]
 
 
-def get_raster_colors(raster, cats_ids):
-    """Get colors of cover layer"""
-    cz = gs.read_command("r.colors.out", map=raster).split("\n")
+def get_raster_colors(coverlayer, cats_ids):
+    """Get colors of cover layer
+
+    :param str coverlayer: name of zonal raster layer
+    :param list cats_ids: list with categories from the zonal map
+
+    :return list: list with colors of the zones in the zonal map
+    """
+    cz = gs.read_command("r.colors.out", map=coverlayer).split("\n")
     cz = [_f for _f in cz if _f]
     cz = [x.split(" ") for x in cz]
     cz = [get_valid_color(x[1]) for x in cz if x[0] in str(cats_ids)]
     return cz
-
-
-def set_axis(ax, date_format, temp_unit, rast_dates, temp_lngt):
-    """Define granuality and format x (or y) axis
-
-    :param str date_format: user defined date format
-    :param str temp_unit: temporal granuality of strds
-    :param list rast_dates: list with dates of input rasters
-    :param float temp_lngt: temporal resolution (in time_unit units)
-    """
-
-    if "year" in temp_unit:
-        if bool(date_format):
-            date_fmt = mdates.DateFormatter(date_format)
-        else:
-            date_fmt = mdates.DateFormatter("%Y")
-        ax.xaxis.set_major_formatter(date_fmt)
-    if "month" in temp_unit:
-        if bool(date_format):
-            date_fmt = mdates.DateFormatter(date_format)
-        else:
-            date_fmt = mdates.DateFormatter("%Y-%m")
-        ax.xaxis.set_major_formatter(date_fmt)
-    if "day" in temp_unit:
-        if bool(date_format):
-            date_fmt = mdates.DateFormatter(date_format)
-        else:
-            date_fmt = mdates.DateFormatter("%Y-%m-%d")
-        ax.xaxis.set_major_formatter(date_fmt)
-    if "hour" in temp_unit:
-        if bool(date_format):
-            date_fmt = mdates.DateFormatter(date_format)
-        else:
-            date_fmt = mdates.DateFormatter("hour %H")
-        start_time = (
-            mdates.date2num(parser.parse(timestr=rast_dates[0])) - 1 / 48 * temp_lngt
-        )
-        end_time = (
-            mdates.date2num(parser.parse(timestr=rast_dates[-1])) + 1 / 48 * temp_lngt
-        )
-        ax.xaxis.set_major_formatter(date_fmt)
-        ax.set_xlim(mdates.num2date(start_time), mdates.num2date(end_time))
-    if "minute" in temp_unit:
-        if bool(date_format):
-            date_fmt = mdates.DateFormatter(date_format)
-        else:
-            date_fmt = mdates.DateFormatter("min. %M")
-        start_time = (
-            mdates.date2num(parser.parse(timestr=rast_dates[0])) - 1 / 2880 * temp_lngt
-        )
-        end_time = (
-            mdates.date2num(parser.parse(timestr=rast_dates[-1])) + 1 / 2880 * temp_lngt
-        )
-        ax.xaxis.set_major_formatter(date_fmt)
-        ax.set_xlim(mdates.num2date(start_time), mdates.num2date(end_time))
-    if "second" in temp_unit:
-        if bool(date_format):
-            date_fmt = mdates.DateFormatter(date_format)
-        else:
-            date_fmt = mdates.DateFormatter("sec. %S")
-        start_time = (
-            mdates.date2num(parser.parse(timestr=rast_dates[0]))
-            - 1 / 172800 * temp_lngt
-        )
-        end_time = (
-            mdates.date2num(parser.parse(timestr=rast_dates[-1]))
-            + 1 / 172800 * temp_lngt
-        )
-        ax.xaxis.set_major_formatter(date_fmt)
-        ax.set_xlim(mdates.num2date(start_time), mdates.num2date(end_time))
-    return ax
 
 
 def main(options, flags):
@@ -482,72 +477,89 @@ def main(options, flags):
     # lazy import matplotlib
     lazy_import_py_modules()
 
-    # Get cover cateogory IDs and colors
-    if bool(options["zones"]):
+    # Get strds type
+    t_info = gs.parse_command("t.info", flags="g", input=options["input"])
+    temp_type = t_info["temporal_type"]
+
+    # Get stats
+    if options["n"]:
+        n = float(options["n"])
+    else:
+        n = 1
+    x, y_mean, y_ul, y_ll, zone_ids = line_stats(
+        strds=options["input"],
+        coverlayer=options["zones"],
+        error=options["error"],
+        n=n,
+        threads=int(options["nprocs"]),
+        temp_type=temp_type,
+        where=options["where"],
+    )
+
+    # Get IDs and colors of the categories of the zonal layer
+    if options["zones"]:
         check_integer(options["zones"])
-        cats_ids, cats_names = get_categories(options["zones"])
+        cats_ids, cats_names = get_categories(
+            coverlayer=options["zones"], zone_cats=zone_ids
+        )
         line_colors = get_raster_colors(options["zones"], cats_ids)
     else:
         line_colors = get_valid_color(options["line_color"])
+        cats_ids = ""
 
-    # Get stats
-    x, y_mean, y_ul, y_ll = line_stats(
-        strds=options["input"],
-        coverlayer=options["zones"],
-        stddev=float(options["stddev"]),
-        cats_ids=cats_ids,
-        threads=int(options["nprocs"]),
-    )
-
-    # Plot format options
-    plt.rcParams["font.size"] = int(options["font_size"])
-    grid = flags["g"]
-    if bool(options["line_width"]):
-        line_width = float(options["line_width"])
-
-    # Output options
+    # Output settings
     output = options["output"]
     if bool(options["dpi"]):
         dpi = float(options["dpi"])
     else:
         dpi = 300
+
+    # Plot format settings
+    plt.rcParams["font.size"] = int(options["font_size"])
+    grid = flags["g"]
+    if bool(options["line_width"]):
+        line_width = float(options["line_width"])
     if options["plot_dimensions"]:
         dimensions = [float(x) for x in options["plot_dimensions"].split(",")]
     else:
         dimensions = [6, 4]
 
     # Plot the figure
-    _, ax = plt.subplots(figsize=dimensions)
-    for i, _ in enumerate(cats_ids):
-        ax.plot(x, y_mean[i], label=cats_names[i], color=line_colors[i])
-        ax.fill_between(
-            x, y_ll[i], y_ul[i], color=line_colors[i], alpha=float(options["alpha"])
-        )
-
-    # Set granuality and format of date on x (or y) axis
-    strds_info = gs.parse_command("t.info", flags="g", input=options["input"])
-    temp_unit = strds_info["granularity"]
-    temp_lngt = temp_unit.split(" ")[0].replace("'", "")
-    rast_names, rast_dates = gs.parse_command(
-        "t.rast.list",
-        flags="u",
-        input=options["input"],
-        columns=["name", "start_time", "temporal_type"],
-        parse=(get_rast_name_dates, {"col_sep": "|"}),
-    )
-    if flags["d"]:
-        locator = mdates.AutoDateLocator(interval_multiples=True)
-        formatter = mdates.ConciseDateFormatter(locator)
-        ax.xaxis.set_major_locator(locator)
-        ax.xaxis.set_major_formatter(formatter)
+    fig, ax = plt.subplots(figsize=dimensions)
+    if options["zones"]:
+        if options["error"]:
+            for i, _ in enumerate(cats_ids):
+                ax.fill_between(
+                    x,
+                    y_ll[i],
+                    y_ul[i],
+                    color=line_colors[i],
+                    alpha=float(options["alpha"]),
+                )
+        for i, _ in enumerate(cats_ids):
+            ax.plot(x, y_mean[i], label=cats_names[i], color=line_colors[i])
     else:
-        ax = set_axis(
-            ax,
-            date_format=options["date_format"],
-            temp_unit=temp_unit,
-            rast_dates=rast_dates,
-            temp_lngt=temp_lngt,
-        )
+        ax.plot(x, y_mean[0], color=line_colors)
+        if options["error"]:
+            ax.fill_between(
+                x, y_ll[0], y_ul[0], color=line_colors, alpha=float(options["alpha"])
+            )
+
+    # Set granularity and format of date on x axis
+    if temp_type == "absolute":
+        if not options["date_interval"]:
+            locator = mdates.AutoDateLocator(interval_multiples=True)
+        else:
+            dt = options["date_interval"].capitalize()
+            date_locator = f"mdates.{dt}Locator()"
+            locator = eval(date_locator)
+        ax.xaxis.set_major_locator(locator)
+        if options["date_format"]:
+            formatter = mdates.DateFormatter(options["date_format"])
+            ax.xaxis.set_major_formatter(formatter)
+        else:
+            formatter = mdates.ConciseDateFormatter(locator)
+            ax.xaxis.set_major_formatter(formatter)
 
     # Label orientation
     if bool(options["rotate_labels"]):
@@ -562,10 +574,14 @@ def main(options, flags):
     # Set limits value axis
     if bool(options["axis_limits"]):
         minlim, maxlim = map(float, options["axis_limits"].split(","))
-        plt.xlim([minlim, maxlim])
+        plt.ylim([minlim, maxlim])
 
     # Set grid (optional)
     ax.xaxis.grid(bool(grid))
+
+    # Add legend
+    if flags["l"] and options["zones"]:
+        ax.legend()
 
     # Print to file (optional)
     if output:
