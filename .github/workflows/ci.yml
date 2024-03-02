@@ -92,7 +92,7 @@ jobs:
       - name: Make simple grass command available (not needed in G8)
         run: |
           if [ ! -e "$HOME/install/bin/grass" ] ; then \
-            ln -s "$HOME"/install/bin/grass*   "$HOME"/install/bin/grass ; fi
+            ln -s "$HOME"/install/bin/grass* "$HOME"/install/bin/grass ; fi
 
       - name: Build addons
         run: |
