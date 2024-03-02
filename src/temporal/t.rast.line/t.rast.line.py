@@ -169,6 +169,7 @@ import sys
 from datetime import datetime
 from dateutil import parser
 import grass.script as gs
+import matplotlib.dates as mdates
 
 
 def lazy_import_py_modules():
@@ -200,6 +201,25 @@ def get_valid_color(color):
     return color
 
 
+def get_rast_name_dates(rasters, col_sep):
+    """Create list of names, tic positions, dates and temporal type
+    of raster layers in input strds
+
+    :param str rasters: rasters (output of the t.rast.list module)
+    :param str col_sep: column separator e.g. "2000_01_tempmean|
+                                               2000-01-01 00:00:00|absolute"
+
+    :return tuple: tuple with list of dates, list of raster names
+    """
+    raster_names = []
+    raster_dates = []
+    for raster in rasters.splitlines():
+        raster_name, raster_date, temp_type = raster.split(col_sep)
+        raster_names.append(raster_name)
+        raster_dates.append(raster_date)
+    return (raster_names, raster_dates)
+
+
 def check_integer(name):
     """Check if map values are integer
 
@@ -225,7 +245,7 @@ def get_categories(zones):
     return [cats_ids, cats_names]
 
 
-def line_stats(strds, coverlayer, cats_ids, stddev, threads):
+def line_stats(strds, coverlayer, stddev, cats_ids, threads):
     """Compute line statistics
 
     :param str strds: name of input strds
@@ -237,7 +257,6 @@ def line_stats(strds, coverlayer, cats_ids, stddev, threads):
     """
     # Get type
     t_info = gs.parse_command("t.info", flags="g", input=strds)
-    map_time = t_info["map_time"]
     temp_type = t_info["temporal_type"]
 
     # Get stats
@@ -290,6 +309,9 @@ def line_stats(strds, coverlayer, cats_ids, stddev, threads):
                         "%Y-%m-%d %H:%M:%S"
                     )
                     for s, e in zip(date_start, date_end)
+                ]
+                date_points = [
+                    datetime.strptime(dp, "%Y-%m-%d %H:%M:%S") for dp in date_points
                 ]
         else:
             if not bool(idx_end):
@@ -380,12 +402,11 @@ def get_raster_colors(raster, cats_ids):
     return cz
 
 
-def set_axis(ax, date_format, temp_unit, vertical, rast_dates, temp_lngt):
+def set_axis(ax, date_format, temp_unit, rast_dates, temp_lngt):
     """Define granuality and format x (or y) axis
 
     :param str date_format: user defined date format
     :param str temp_unit: temporal granuality of strds
-    :param bool vertical: orientation boxplots
     :param list rast_dates: list with dates of input rasters
     :param float temp_lngt: temporal resolution (in time_unit units)
     """
@@ -395,28 +416,19 @@ def set_axis(ax, date_format, temp_unit, vertical, rast_dates, temp_lngt):
             date_fmt = mdates.DateFormatter(date_format)
         else:
             date_fmt = mdates.DateFormatter("%Y")
-        if vertical:
-            ax.xaxis.set_major_formatter(date_fmt)
-        else:
-            ax.yaxis.set_major_formatter(date_fmt)
+        ax.xaxis.set_major_formatter(date_fmt)
     if "month" in temp_unit:
         if bool(date_format):
             date_fmt = mdates.DateFormatter(date_format)
         else:
             date_fmt = mdates.DateFormatter("%Y-%m")
-        if vertical:
-            ax.xaxis.set_major_formatter(date_fmt)
-        else:
-            ax.yaxis.set_major_formatter(date_fmt)
+        ax.xaxis.set_major_formatter(date_fmt)
     if "day" in temp_unit:
         if bool(date_format):
             date_fmt = mdates.DateFormatter(date_format)
         else:
             date_fmt = mdates.DateFormatter("%Y-%m-%d")
-        if vertical:
-            ax.xaxis.set_major_formatter(date_fmt)
-        else:
-            ax.yaxis.set_major_formatter(date_fmt)
+        ax.xaxis.set_major_formatter(date_fmt)
     if "hour" in temp_unit:
         if bool(date_format):
             date_fmt = mdates.DateFormatter(date_format)
@@ -428,12 +440,8 @@ def set_axis(ax, date_format, temp_unit, vertical, rast_dates, temp_lngt):
         end_time = (
             mdates.date2num(parser.parse(timestr=rast_dates[-1])) + 1 / 48 * temp_lngt
         )
-        if vertical:
-            ax.xaxis.set_major_formatter(date_fmt)
-            ax.set_xlim(mdates.num2date(start_time), mdates.num2date(end_time))
-        else:
-            ax.yaxis.set_major_formatter(date_fmt)
-            ax.set_ylim(mdates.num2date(start_time), mdates.num2date(end_time))
+        ax.xaxis.set_major_formatter(date_fmt)
+        ax.set_xlim(mdates.num2date(start_time), mdates.num2date(end_time))
     if "minute" in temp_unit:
         if bool(date_format):
             date_fmt = mdates.DateFormatter(date_format)
@@ -445,12 +453,8 @@ def set_axis(ax, date_format, temp_unit, vertical, rast_dates, temp_lngt):
         end_time = (
             mdates.date2num(parser.parse(timestr=rast_dates[-1])) + 1 / 2880 * temp_lngt
         )
-        if vertical:
-            ax.xaxis.set_major_formatter(date_fmt)
-            ax.set_xlim(mdates.num2date(start_time), mdates.num2date(end_time))
-        else:
-            ax.yaxis.set_major_formatter(date_fmt)
-            ax.set_ylim(mdates.num2date(start_time), mdates.num2date(end_time))
+        ax.xaxis.set_major_formatter(date_fmt)
+        ax.set_xlim(mdates.num2date(start_time), mdates.num2date(end_time))
     if "second" in temp_unit:
         if bool(date_format):
             date_fmt = mdates.DateFormatter(date_format)
@@ -464,12 +468,8 @@ def set_axis(ax, date_format, temp_unit, vertical, rast_dates, temp_lngt):
             mdates.date2num(parser.parse(timestr=rast_dates[-1]))
             + 1 / 172800 * temp_lngt
         )
-        if vertical:
-            ax.xaxis.set_major_formatter(date_fmt)
-            ax.set_xlim(mdates.num2date(start_time), mdates.num2date(end_time))
-        else:
-            ax.yaxis.set_major_formatter(date_fmt)
-            ax.set_ylim(mdates.num2date(start_time), mdates.num2date(end_time))
+        ax.xaxis.set_major_formatter(date_fmt)
+        ax.set_xlim(mdates.num2date(start_time), mdates.num2date(end_time))
     return ax
 
 
@@ -494,8 +494,8 @@ def main(options, flags):
     x, y_mean, y_ul, y_ll = line_stats(
         strds=options["input"],
         coverlayer=options["zones"],
-        cats_ids=cats_ids,
         stddev=float(options["stddev"]),
+        cats_ids=cats_ids,
         threads=int(options["nprocs"]),
     )
 
@@ -524,6 +524,31 @@ def main(options, flags):
             x, y_ll[i], y_ul[i], color=line_colors[i], alpha=float(options["alpha"])
         )
 
+    # Set granuality and format of date on x (or y) axis
+    strds_info = gs.parse_command("t.info", flags="g", input=options["input"])
+    temp_unit = strds_info["granularity"]
+    temp_lngt = temp_unit.split(" ")[0].replace("'", "")
+    rast_names, rast_dates = gs.parse_command(
+        "t.rast.list",
+        flags="u",
+        input=options["input"],
+        columns=["name", "start_time", "temporal_type"],
+        parse=(get_rast_name_dates, {"col_sep": "|"}),
+    )
+    if flags["d"]:
+        locator = mdates.AutoDateLocator(interval_multiples=True)
+        formatter = mdates.ConciseDateFormatter(locator)
+        ax.xaxis.set_major_locator(locator)
+        ax.xaxis.set_major_formatter(formatter)
+    else:
+        ax = set_axis(
+            ax,
+            date_format=options["date_format"],
+            temp_unit=temp_unit,
+            rast_dates=rast_dates,
+            temp_lngt=temp_lngt,
+        )
+
     # Label orientation
     if bool(options["rotate_labels"]):
         rotate_labels = float(options["rotate_labels"])
@@ -537,10 +562,7 @@ def main(options, flags):
     # Set limits value axis
     if bool(options["axis_limits"]):
         minlim, maxlim = map(float, options["axis_limits"].split(","))
-        if bool(vertical):
-            plt.ylim([minlim, maxlim])
-        else:
-            plt.xlim([minlim, maxlim])
+        plt.xlim([minlim, maxlim])
 
     # Set grid (optional)
     ax.xaxis.grid(bool(grid))
