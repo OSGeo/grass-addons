@@ -194,9 +194,9 @@ def main(options, flags):
 
     # Reference / sample area or points
     ref_vect = options["ref_vect"]
-    if bool(ref_vect):
-        topology_check = gs.parse_command("v.info", map=ref_vect, flags="t")
-        if topology_check["points"] == "0":
+    if ref_vect:
+        topology_check = gs.vector_info_topo(ref_vect)
+        if topology_check["points"] == 0:
             gs.fatal(
                 _(
                     "the reference vector layer {} does not contain points".format(
@@ -205,7 +205,7 @@ def main(options, flags):
                 )
             )
     ref_rast = options["ref_rast"]
-    if bool(ref_rast):
+    if ref_rast:
         reftype = gs.raster_info(ref_rast)
         if reftype["datatype"] != "CELL":
             gs.fatal(_("The ref_rast map must have type CELL (integer)"))
@@ -292,7 +292,7 @@ def main(options, flags):
         rname = tmpname("tmp3")
         Module("r.mapcalc", expression="{} = MASK".format(rname), quiet=True)
 
-    if bool(ref_rast):
+    if ref_rast:
         vtl = ref_rast
 
         # Create temporary layer based on reference layer
