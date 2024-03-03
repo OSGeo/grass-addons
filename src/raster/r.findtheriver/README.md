@@ -9,7 +9,7 @@ This program is free software under the GNU General Public License
 
 ## AUTHOR
 
-Brian Miles - brian_miles@unc.edu
+Brian Miles - <brian_miles@unc.edu>
 
 ## DESCRIPTION
 

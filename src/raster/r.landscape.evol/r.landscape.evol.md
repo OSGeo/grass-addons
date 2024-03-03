@@ -323,13 +323,13 @@ uniform stream width and depth. Ideally, the width and depth of the carved
 channels should decrease in width and depth from the basin outlet to the stream
 sources. To do this requires several steps. First extract an
 appropriately-scaled stream network using _r.watershed_ and/or
-_r.stream.extract__ and an appropriate interior basin threshold parameter to
+_r.stream.extract_ and an appropriate interior basin threshold parameter to
 isolate main trunk streams with some smaller tributary branches. Use this
 output raster streams map as the input to the addon module _r.stream.order_
 with the output option for the Shreve stream order. This will create a raster
 streams map where trunk streams are coded with a large number, and tributaries
 with smaller numbers. Use _r.univar_ to determine the maximum Shreve value, and
-then use _r.mapcalc__ to standardize the values between 0 and 1 by dividing the
+then use _r.mapcalc_ to standardize the values between 0 and 1 by dividing the
 Shreve-scaled streams map by the maximum Shreve order value (ensure that you
 use a decimal point behind the maximum value number so that a floating point
 map will be made). The standardized Shreve order streams raster map is then
