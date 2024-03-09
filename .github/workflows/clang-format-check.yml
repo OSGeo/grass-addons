@@ -60,6 +60,7 @@ jobs:
       - name: Add code suggestions
         uses: reviewdog/action-suggester@3d7fde6859623ad6174df5fd662677a0eb63310a # v1.11.0
         with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           tool_name: clang-format
           fail_on_error: true
           cleanup: false
