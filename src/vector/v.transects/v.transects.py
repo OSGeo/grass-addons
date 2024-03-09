@@ -46,6 +46,7 @@
 # %end
 # %option G_OPT_V_TYPE
 # % multiple: no
+# % label: Output type
 # % options: point,line,area
 # % answer: line
 # %end
@@ -120,17 +121,20 @@ def loadVector(vector):
     while ":" in vectorAscii[l]:
         l += 1
     v = []
+    cats = []
     while l < len(vectorAscii):
         line = vectorAscii[l].split()
         if line[0] in ["L", "B", "A"]:
-            skip = len(line) - 2
+            ncat = int(line[2]) if len(line) > 2 else 0
             vertices = int(line[1])
             l += 1
             v.append([])
             for i in range(vertices):
                 v[-1].append(list(map(float, vectorAscii[l].split()[:2])))
                 l += 1
-            l += skip
+            if ncat > 0:
+                cats += [vectorAscii[l].split()[1]]
+            l += ncat
         elif line[0] in ["P", "C", "F", "K"]:
             skip = len(line) - 2
             vertices = int(line[1])
@@ -142,7 +146,7 @@ def loadVector(vector):
             grass.fatal(_("Problem with line: <%s>") % vectorAscii[l])
     if len(v) < 1:
         grass.fatal(_("Zero lines found in vector map <%s>") % vector)
-    return v
+    return v, cats
 
 
 def get_transects_locs(vector, transect_spacing, dist_function, last_point):
@@ -184,9 +188,9 @@ def get_transect_ends(transect_locs, vectors, trend, dleft, dright):
     if not trend:
         for k, transect in enumerate(transect_locs):
             # if a line in input vec was shorter than transect_spacing
+            transect_ends.append([])
             if len(transect) < 2:
                 continue  # then don't put a transect on it
-            transect_ends.append([])
             transect = array(transect)
             v = NR(*vectors[k][0])  # vector pointing parallel to transect
             transect_ends[-1].append(
@@ -200,9 +204,9 @@ def get_transect_ends(transect_locs, vectors, trend, dleft, dright):
     else:
         for transect in transect_locs:
             # if a line in input vec was shorter than transect_spacing
+            transect_ends.append([])
             if len(transect) < 2:
                 continue  # then don't put a transect on it
-            transect_ends.append([])
             transect = array(transect)
             v = NR(transect[0], transect[1])  # vector pointing parallel to transect
             transect_ends[-1].append(
@@ -240,20 +244,30 @@ def NR(ip, fp):
     return array([-y / r, x / r])
 
 
-def writeTransects(transects, output):
+def writeTransects(transects, cats, output):
     """!Writes transects."""
     transects_str = ""
-    for transect in transects:
+    ncats = 2 if cats else 1
+    cat = 1
+    linecat = True if cats else ''
+    for i, transect in enumerate(transects):
+        if len(transect) == 0:
+            continue
+        # add line category in layer 2
+        if linecat:
+            linecat = "2 %s\n" % cats[i]
         transects_str += "\n".join(
             [
-                "L 2\n"
+                "L 2 %s\n" % ncats
                 + " ".join(map(str, end_points[0]))
                 + "\n"
                 + " ".join(map(str, end_points[1]))
                 + "\n"
-                for end_points in transect
+                + "1 %s \n%s" % (cat + ii, linecat)
+                for ii, end_points in enumerate(transect)
             ]
         )
+        cat += len(transect)
     # JL Rewrote Temporary File Logic for Windows
     _, temp_path = tempfile.mkstemp()
     a = open(temp_path, "w")
@@ -270,6 +284,8 @@ def writeQuads(transects, output):
     quad_str = ""
     cnt = 1
     for line in transects:
+        if len(line) == 0:
+            continue
         for tran in range(len(line) - 1):
             pt1 = " ".join(map(str, line[tran][0]))
             pt2 = " ".join(map(str, line[tran][1]))
@@ -378,7 +394,7 @@ def main():
         grass.fatal(_("vector <%s> does not contain lines") % vector)
 
     #################################
-    v = loadVector(vector)
+    v, cats = loadVector(vector)
     if options["metric"] == "straight":
         dist = dist_euclidean
     else:
@@ -391,7 +407,7 @@ def main():
     temp_map = tempmap()
     if shape == "line" or not shape:
         transect_ends = get_transect_ends(transect_locs, vectors, trend, dleft, dright)
-        writeTransects(transect_ends, temp_map)
+        writeTransects(transect_ends, cats, temp_map)
     elif shape == "area":
         transect_ends = get_transect_ends(transect_locs, vectors, trend, dleft, dright)
         writeQuads(transect_ends, temp_map)
