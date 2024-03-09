@@ -39,9 +39,9 @@ struct output {
     FCELL *buf;
 };
 
-int main(int argc, char *argv[])
+int main(int argc, char * argv[])
 {
-    struct GModule *module;
+    struct GModule * module;
     struct {
         struct Option *input, *add, *file, *output, *index, *range, *scale,
             *shift, *baseline, *cutoff;
@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
     } flag;
     char *desc = NULL;
     int idx, i;
-    int num_inputs, max_inputs, add_in;
+ int num_inputs, max_inputs, add_in;
     struct input *inputs = NULL;
     struct output *out = NULL;
     struct History history;
