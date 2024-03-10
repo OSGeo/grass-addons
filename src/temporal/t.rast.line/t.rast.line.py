@@ -537,9 +537,15 @@ def main(options, flags):
                     alpha=float(options["alpha"]),
                 )
         for i, _ in enumerate(cats_ids):
-            ax.plot(x, y_mean[i], label=cats_names[i], color=line_colors[i])
+            ax.plot(
+                x,
+                y_mean[i],
+                label=cats_names[i],
+                color=line_colors[i],
+                linewidth=line_width,
+            )
     else:
-        ax.plot(x, y_mean[0], color=line_colors)
+        ax.plot(x, y_mean[0], color=line_colors, linewidth=line_width)
         if options["error"]:
             ax.fill_between(
                 x, y_ll[0], y_ul[0], color=line_colors, alpha=float(options["alpha"])
@@ -577,7 +583,7 @@ def main(options, flags):
         plt.ylim([minlim, maxlim])
 
     # Set grid (optional)
-    ax.xaxis.grid(bool(grid))
+    ax.xaxis.grid(bool(grid), linewidth=line_width / 2, alpha=0.5)
 
     # Add legend
     if flags["l"] and options["zones"]:
