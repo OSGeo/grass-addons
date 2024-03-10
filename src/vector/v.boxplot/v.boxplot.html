@@ -1,0 +1,78 @@
+<h2>DESCRIPTION</h2>
+
+<p>
+<em>v.boxplot</em> draws a boxplot of the values in a vector
+<em>map</em> attribute <em>column</em>. The user can use the
+<em>where</em> option to only select a subset of the attribute table.
+There is also the option to group the values of the column according to
+the categories in a second column (<em>group_by</em> and create one plot
+with for each group a separate boxplot.
+
+<p>
+By default, the resulting plot is displayed on screen (default). 
+However, the user can also save the plot to file using the 
+<em>plot_output</em> option. The format is determined by the extension 
+given by the user. So, if <tt>plot_output = outputfile.png</tt>tt>, the 
+plot will be saved as a png file.
+
+<p>
+There are a few additonal layout options, including the option to rotate
+the plot and the x-axis labels. Furthermore, the user can optinally plot
+the boxplot(s) with notches and without outliers.
+
+<h2>EXAMPLE</h2>
+
+<h3>Example 1</h3>
+Use the vector layer <em>schools_wake</em> from the
+<a href="https://grass.osgeo.org/download/data/">NC sample
+dataset</a> to create boxplots of the core capacity of the schools in
+Wake County, North Carolina. Use the <em>Where</em> clause to exclude
+all records with no data.
+
+<div class="code"><pre>
+v.boxplot -n map=schools_wake column=CORECAPACI where="CORECAPACI >0"
+</pre>
+</div>
+
+<p>
+<div align="center" style="margin: 10px"> <a href="v_boxplot_01.png"> 
+<img src="v_boxplot_01.png" alt="v.boxplot: Boxplot of core capacity of 
+schools in Wake County." border="0"> </a><br> <i>Figure 1: Boxplot of 
+core capacity of schools in Wake County.</i> </div>
+
+<h3>Example 2</h3>
+Use the vector layer <em>schools_wake</em> from the
+<a href="https://grass.osgeo.org/download/data/">NC sample
+dataset</a> to create boxplots of the core capacity of the schools in
+Wake County, North Carolina, grouped by city. Use the <em>Where</em>
+clause to exclude all records with no data.
+
+<div class="code">
+<pre>
+v.boxplot -h --overwrite map=schools_wake column=CORECAPACI where="CORECAPACI >0" group_by=ADDRCITY order=ascending
+	</pre>
+</div>
+
+<p>
+<div align="center" style="margin: 10px"> <a 
+href="v_boxplot_02.png"> <img src="v_boxplot_02.png" alt="v.boxplot: 
+Boxplot of core capacity of schools in Wake County, grouped by city" 
+border="0"> </a><br> <i>Figure 2: Boxplot of core capacity of schools 
+in Wake County, grouped by city.</i> </div>
+
+<h2>SEE ALSO</h2>
+
+<em>
+  <a href="https://grass.osgeo.org/grass-stable/manuals/addons/v.scatterplot.html">v.scatterplot</a>,
+  <a href="https://grass.osgeo.org/grass-stable/manuals/addons/d.vect.colhist.html">d.vect.colhist</a>,
+  <a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.boxplot.html">r.boxplot</a>,
+  <a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.series.boxplot.html">r.series.boxplot</a>,
+  <a href="https://grass.osgeo.org/grass-stable/manuals/addons/t.rast.boxplot.html">t.rast.boxplot</a>,
+  <a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.scatterplot.html">r.scatterplot</a>
+  <a href="https://grass.osgeo.org/grass-stable/manuals/addons/r3.scatterplot.html">r3.scatterplot</a>
+</em>
+
+<h2>AUTHOR</h2>
+
+Paulo van Breugel<br>
+Based on the d.vect.colhist addon by Moritz Lennert

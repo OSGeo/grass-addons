@@ -55,6 +55,9 @@ int main(int argc, char *argv[])
 
     module = G_define_module();
     G_add_keyword(_("raster"));
+    G_add_keyword(_("landscape structure analysis"));
+    G_add_keyword(_("linear regression analysis"));
+    G_add_keyword(_("regression"));
     module->description = _("Linear regression analysis for patches.");
 
     parm.input1 = G_define_standard_option(G_OPT_R_INPUT);

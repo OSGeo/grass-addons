@@ -4,8 +4,17 @@ name: Python Black Formatting
 on:
   push:
     branches:
-      - grass*
+      - grass[0-9]+
   pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress:
+    # Do not cancel on protected branches, like grass8
+    ${{ github.ref_protected != true }}
+
+permissions: {}
 
 jobs:
   run-black:
@@ -17,16 +26,16 @@ jobs:
       matrix:
         include:
           - os: ubuntu-22.04
-            python-version: '3.10'
+            python-version: "3.10"
             black-version: 22.3.0
 
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
