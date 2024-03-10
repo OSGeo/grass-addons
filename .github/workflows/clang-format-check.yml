@@ -86,6 +86,7 @@ jobs:
         run: |
           {
             echo ''
+            # shellcheck disable=SC2016
             echo 'All fixed files are included in the `formatted-*` artifact. This artifact can be downloaded and copied to the repository to replace unformatted files with the formatted files.'
           } >> "$GITHUB_STEP_SUMMARY"
           exit 1
