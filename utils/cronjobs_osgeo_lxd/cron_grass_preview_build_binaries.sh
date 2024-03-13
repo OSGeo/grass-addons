@@ -2,7 +2,7 @@
 
 # script to build GRASS GIS preview binaries + addons from the `main`
 # (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
-# 2022-2023
+# 2022-2024
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
@@ -105,6 +105,7 @@ CFLAGS=$CFLAGSSTRING LDFLAGS=$LDFLAGSSTRING ./configure \
   --with-pdal \
   --with-fftw \
   --with-nls \
+  --with-libsvm \
   --with-blas --with-blas-includes=/usr/include/atlas/ \
   --with-lapack --with-lapack-includes=/usr/include/atlas/ \
   --with-zstd \
