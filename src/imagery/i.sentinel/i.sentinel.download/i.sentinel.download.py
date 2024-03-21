@@ -663,12 +663,6 @@ class SentinelDownloader(object):
                     and any([orbit_nr > 175 for orbit_nr in relativeorbitnumber])
                 )
             ):
-                for orbit_nr in relativeorbitnumber:
-                    print(
-                        orbit_nr,
-                        orbit_nr > 385,
-                        any([orbit_nr > 385 for orbit_nr in relativeorbitnumber]),
-                    )
                 gs.warning(
                     _("The relative orbit number is out of range for {}").format(
                         args["platformname"]
