@@ -31,8 +31,6 @@
 # %end
 
 # %option G_OPT_R_OUTPUT
-# % key_desc: File name
-# % label: Name of output raster layer
 # %end
 
 # %flag
