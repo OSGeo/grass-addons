@@ -45,7 +45,6 @@
 # % description: After downloading and importing the requested layer, set the region back to the original computation region.
 # %end
 
-
 import atexit
 import sys
 import grass.script as gs
