@@ -41,7 +41,7 @@
 
 # %flag
 # % key: g
-# % label: Set to computational region
+# % label: Set to original computational region
 # % description: After downloading and importing the requested layer, set the region back to the original computation region.
 # %end
 
@@ -50,7 +50,6 @@ import atexit
 import sys
 import grass.script as gs
 from math import floor
-import uuid
 
 # create set to store names of temporary maps to be deleted upon exit
 CLEAN_LAY = []
@@ -61,16 +60,17 @@ def cleanup():
     maps = reversed(CLEAN_LAY)
     mapset = gs.gisenv()["MAPSET"]
     for map_name in maps:
-        for element in ("raster", "vector", "region"):
+        for element in ("raster", "vector"):
             found = gs.find_file(name=map_name, element=element, mapset=mapset)
             if found["file"]:
                 gs.run_command(
                     "g.remove", flags="f", type=element, name=map_name, quiet=True
                 )
+    gs.del_temp_region()
 
 
 def create_temporary_name(prefix):
-    tmpf = f"{prefix}{str(uuid.uuid4().hex)}"
+    tmpf = gs.append_node_pid(prefix)
     CLEAN_LAY.append(tmpf)
     return tmpf
 
@@ -93,8 +93,7 @@ def main(options, flags):
 
     # Get coordinates current region extent
     if flags["g"]:
-        region_original = create_temporary_name("region_")
-        gs.run_command("g.region", save=region_original)
+        gs.use_temp_region()
     region_current = gs.parse_command("g.region", flags="gu")
 
     # Create a polygon grid layer with cells that match the AHN  6.5x5 km 'kaartbladen'
@@ -170,8 +169,6 @@ def main(options, flags):
             options["product"], options["output"]
         ),
     )
-    if flags["g"]:
-        gs.run_command("g.region", region=region_original)
 
 
 if __name__ == "__main__":
