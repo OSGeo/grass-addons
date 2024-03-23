@@ -23,12 +23,9 @@ jobs:
         include:
           - os: ubuntu-22.04
             python-version: "3.10"
-            black-version: 22.3.0
+            black-version: 24.3.0
 
     runs-on: ${{ matrix.os }}
-    env:
-      TOOL_NAME: black
-
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
