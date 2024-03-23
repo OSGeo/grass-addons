@@ -37,10 +37,10 @@ jobs:
             echo "Checking if tool ${tool_name} left suggestions in ${INPUT_TOOL_NAME_FILE}"
             if [[ -f "${INPUT_TOOL_NAME_FILE}" ]]; then
               echo "${INPUT_TOOL_NAME_FILE} was found for tool ${tool_name}"
-              echo "$INPUT_TOOL_NAME=true" >> "${GITHUB_OUTPUT}"
+              echo "$tool_name=true" >> "${GITHUB_OUTPUT}"
             else
               echo "${INPUT_TOOL_NAME_FILE} was not found for tool ${tool_name}"
-              echo "$INPUT_TOOL_NAME=false" >> "${GITHUB_OUTPUT}"
+              echo "$tool_name=false" >> "${GITHUB_OUTPUT}"
             fi
           done
         env:
