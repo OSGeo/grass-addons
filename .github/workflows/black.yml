@@ -1,21 +1,17 @@
 ---
 name: Python Black Formatting
-
 on:
   push:
     branches:
       - grass[0-9]+
   pull_request:
   workflow_dispatch:
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress:
     # Do not cancel on protected branches, like grass8
     ${{ github.ref_protected != true }}
-
 permissions: {}
-
 jobs:
   run-black:
     name: Black ${{ matrix.black-version }}
@@ -30,14 +26,18 @@ jobs:
             black-version: 22.3.0
 
     runs-on: ${{ matrix.os }}
+    env:
+      TOOL_NAME: black
 
     steps:
-      - uses: actions/checkout@v4
-
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          persist-credentials: false
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c # v5.0.0
         with:
           python-version: ${{ matrix.python-version }}
+          cache: "pip"
 
       - name: Install
         run: |
@@ -46,4 +46,11 @@ jobs:
 
       - name: Run Black
         run: |
-          black --check --diff .
+          black .
+      - name: Create and uploads code suggestions to apply
+        id: diff
+        uses: ./.github/actions/create-upload-suggestions
+        with:
+          tool-name: black
+          # To keep repo's file structure in formatted changes artifact
+          extra-upload-changes: .clang-format
