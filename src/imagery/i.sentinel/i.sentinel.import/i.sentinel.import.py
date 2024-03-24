@@ -508,9 +508,9 @@ class SentinelImporter(object):
                         if reproject:
                             self._args["resample"] = "nearest"
                             if self._projection_units_meters is True:
-                                self._args[
-                                    "resolution_value"
-                                ] = self._raster_resolution(shadow_file[0])
+                                self._args["resolution_value"] = (
+                                    self._raster_resolution(shadow_file[0])
+                                )
                             gs.run_command(
                                 "r.import",
                                 input=shadow_file,
@@ -895,9 +895,9 @@ class SentinelImporter(object):
                                                 dtype=float,
                                             )
                                         )
-                                        meta[
-                                            "MEAN_SUN_AZIMUTH_GRID_ANGLE"
-                                        ] = mean_azimuth
+                                        meta["MEAN_SUN_AZIMUTH_GRID_ANGLE"] = (
+                                            mean_azimuth
+                                        )
                     sa_mean = tile_angles.find("Mean_Sun_Angle")
                     if sa_mean is not None:
                         for it in list(sa_mean):

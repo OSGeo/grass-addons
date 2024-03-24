@@ -78,6 +78,7 @@ from grass.script.core import (
     warning,
 )
 
+
 # check if monitor is running
 def check_monitor():
     return read_command("d.mon", flags="p", quiet=True).strip()

@@ -449,16 +449,16 @@ def do_it_all(global_vars, target_pts_np):
             axis=0,
         )
 
-        np_cum[
-            o_2[0] : o_2[0] + lreg_shape[0], o_2[1] : o_2[1] + lreg_shape[1]
-        ] = np.nansum(
-            [
-                np_cum[
-                    o_2[0] : o_2[0] + lreg_shape[0], o_2[1] : o_2[1] + lreg_shape[1]
+        np_cum[o_2[0] : o_2[0] + lreg_shape[0], o_2[1] : o_2[1] + lreg_shape[1]] = (
+            np.nansum(
+                [
+                    np_cum[
+                        o_2[0] : o_2[0] + lreg_shape[0], o_2[1] : o_2[1] + lreg_shape[1]
+                    ],
+                    np_viewshed,
                 ],
-                np_viewshed,
-            ],
-            axis=0,
+                axis=0,
+            )
         )
 
         np_cum[o_2[0] : o_2[0] + lreg_shape[0], o_2[1] : o_2[1] + lreg_shape[1]][
