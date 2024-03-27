@@ -326,13 +326,17 @@ def main():
         dataset_urls = [
             "".join(
                 [
-                    service.get("service").lower() + options["separator"]
-                    if "service" in options["print"]
-                    else "",
+                    (
+                        service.get("service").lower() + options["separator"]
+                        if "service" in options["print"]
+                        else ""
+                    ),
                     service.get("url"),
-                    options["separator"] + str(dataset.size)
-                    if "data_size" in options["print"]
-                    else "",
+                    (
+                        options["separator"] + str(dataset.size)
+                        if "data_size" in options["print"]
+                        else ""
+                    ),
                 ]
             )
             for dataset in catalog.datasets

@@ -12,77 +12,77 @@
 #
 #############################################################################
 
-#%module
-#% description: Performs a 2D random walk inside the computational region and returns the resulting walk.
-#% keyword: raster
-#% keyword: random
-#% keyword: walk
-#% keyword: surface
-#% keyword: parallel
-#%end
+# %module
+# % description: Performs a 2D random walk inside the computational region and returns the resulting walk.
+# % keyword: raster
+# % keyword: random
+# % keyword: walk
+# % keyword: surface
+# % keyword: parallel
+# %end
 
-#%flag
-#% key: avoid
-#% description: Perform a self-avoiding random walk
-#% guisection: Parameters
-#%end
+# %flag
+# % key: avoid
+# % description: Perform a self-avoiding random walk
+# % guisection: Parameters
+# %end
 
-#%flag
-#% key: seed
-#% description: Generate random seed (result is non-deterministic).
-#%end
+# %flag
+# % key: seed
+# % description: Generate random seed (result is non-deterministic).
+# %end
 
-#%flag
-#% key: tpath
-#% description: Each walker starts from the same point.
-#%end
+# %flag
+# % key: tpath
+# % description: Each walker starts from the same point.
+# %end
 
-#%option G_OPT_R_OUTPUT
-#%end
+# %option G_OPT_R_OUTPUT
+# %end
 
-#%option
-#% key: steps
-#% type: integer
-#% required: no
-#% multiple: no
-#% description: How many steps to take during walk.
-#% answer: 100000
-#% guisection: Parameters
-#%end
+# %option
+# % key: steps
+# % type: integer
+# % required: no
+# % multiple: no
+# % description: How many steps to take during walk.
+# % answer: 100000
+# % guisection: Parameters
+# %end
 
-#%option
-#% key: directions
-#% type: string
-#% required: no
-#% multiple: no
-#% options: 4, 8
-#% description: How many directions should be used during walk.
-#% answer: 4
-#% guisection: Parameters
-#%end
+# %option
+# % key: directions
+# % type: string
+# % required: no
+# % multiple: no
+# % options: 4, 8
+# % description: How many directions should be used during walk.
+# % answer: 4
+# % guisection: Parameters
+# %end
 
-#%option G_OPT_MEMORYMB
-#%end
+# %option G_OPT_MEMORYMB
+# %end
 
-#%option
-#% key: seed
-#% type: integer
-#% required: no
-#% multiple: no
-#% description: Seed for random number generator
-#%end
+# %option
+# % key: seed
+# % type: integer
+# % required: no
+# % multiple: no
+# % description: Seed for random number generator
+# %end
 
-#%option G_OPT_M_NPROCS
-#%end
+# %option G_OPT_M_NPROCS
+# %end
 
-#%option
-#% key: nwalkers
-#% type: integer
-#% required: no
-#% multiple: no
-#% answer: 1
-#% description: Number of walkers.
-#%end
+# %option
+# % key: nwalkers
+# % type: integer
+# % required: no
+# % multiple: no
+# % answer: 1
+# % description: Number of walkers.
+# %end
 
 import atexit
 import concurrent.futures

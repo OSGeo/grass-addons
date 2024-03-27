@@ -865,16 +865,18 @@ def parse_netcdf(
                         else options["output"]
                     ),
                     "id": s_d[1],
-                    "url": sds_url
-                    if options["print"] or import_type == "r.in.gdal"
-                    else create_vrt(
-                        s_d[0],
-                        gisenv,
-                        resample,
-                        options["nodata"],
-                        projections_match,
-                        transform,
-                        recreate=gscript.overwrite(),
+                    "url": (
+                        sds_url
+                        if options["print"] or import_type == "r.in.gdal"
+                        else create_vrt(
+                            s_d[0],
+                            gisenv,
+                            resample,
+                            options["nodata"],
+                            projections_match,
+                            transform,
+                            recreate=gscript.overwrite(),
+                        )
                     ),  # create VRT here???
                     "grass_metadata": grass_metadata,
                     "extended_metadata": sds_metadata,

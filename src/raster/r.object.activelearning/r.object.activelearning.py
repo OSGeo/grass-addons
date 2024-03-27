@@ -105,7 +105,6 @@ import sys
 
 
 def load_data(file_path, labeled=False, skip_header=1, scale=True):
-
     """
     Load the data from a csv file
 

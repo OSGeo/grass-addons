@@ -67,9 +67,9 @@
 # % answer: desc
 # %end
 
-#%rules
-#% excludes: -v,-s,-z
-#%end
+# %rules
+# % excludes: -v,-s,-z
+# %end
 
 import grass.script as grass
 from grass.exceptions import CalledModuleError

@@ -222,6 +222,7 @@ from intercalibration_models import Elvidge, Liu2012, Wu2013
 # any constants? -------------------------------------------------------------
 MODELS = {"elvidge": Elvidge, "liu2012": Liu2012, "wu2013": Wu2013}
 
+
 # helper functions ----------------------------------------------------------
 def cleanup():
     """

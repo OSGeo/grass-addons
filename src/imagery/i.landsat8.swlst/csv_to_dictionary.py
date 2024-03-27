@@ -42,6 +42,7 @@ from collections import namedtuple
 import random
 import functools
 
+
 # helper functions
 def set_csvfile():
     """

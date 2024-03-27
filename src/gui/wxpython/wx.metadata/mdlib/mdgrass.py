@@ -33,7 +33,6 @@ from . import mdutil  # metadata lib
 
 
 class GrassMD:
-
     """
     @var self.map:  name of choosen map by user
     @var self.type: typ of map representation(cell, vector, r3)

@@ -601,14 +601,14 @@ def main(opts, flgs):
     c_hf_noslope = {
         "forwarder": 1,
         "skidder": 0.8,
-        "tractor": 0.65
+        "tractor": 0.65,
         # ,"other": 0.5
     }
 
     c_c_noslope = {
         "forwarder": 1.2,
         "skidder": 1,
-        "tractor": 0.85
+        "tractor": 0.85,
         # ,"other": 0.7
     }
 

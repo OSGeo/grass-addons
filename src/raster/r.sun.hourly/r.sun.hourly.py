@@ -861,9 +861,11 @@ def main():
                 start,
                 step,
                 title="Beam irradiance" if mode1 else "Beam irradiation",
-                desc="Output beam irradiance raster maps [W.m-2]"
-                if mode1
-                else "Output beam irradiation raster maps [Wh.m-2]",
+                desc=(
+                    "Output beam irradiance raster maps [W.m-2]"
+                    if mode1
+                    else "Output beam irradiation raster maps [Wh.m-2]"
+                ),
             )
         if diff_rad_basename_user:
             registerToTemporal(
@@ -873,9 +875,11 @@ def main():
                 start,
                 step,
                 title="Diffuse irradiance" if mode1 else "Diffuse irradiation",
-                desc="Output diffuse irradiance raster maps [W.m-2]"
-                if mode1
-                else "Output diffuse irradiation raster maps [Wh.m-2]",
+                desc=(
+                    "Output diffuse irradiance raster maps [W.m-2]"
+                    if mode1
+                    else "Output diffuse irradiation raster maps [Wh.m-2]"
+                ),
             )
         if refl_rad_basename_user:
             registerToTemporal(
@@ -885,9 +889,11 @@ def main():
                 start,
                 step,
                 title="Reflected irradiance" if mode1 else "Reflected irradiation",
-                desc="Output reflected irradiance raster maps [W.m-2]"
-                if mode1
-                else "Output reflected irradiation raster maps [Wh.m-2]",
+                desc=(
+                    "Output reflected irradiance raster maps [W.m-2]"
+                    if mode1
+                    else "Output reflected irradiation raster maps [Wh.m-2]"
+                ),
             )
         if glob_rad_basename_user:
             registerToTemporal(
@@ -897,9 +903,11 @@ def main():
                 start,
                 step,
                 title="Total irradiance" if mode1 else "Total irradiation",
-                desc="Output total irradiance raster maps [W.m-2]"
-                if mode1
-                else "Output total irradiation raster maps [Wh.m-2]",
+                desc=(
+                    "Output total irradiance raster maps [W.m-2]"
+                    if mode1
+                    else "Output total irradiation raster maps [Wh.m-2]"
+                ),
             )
         if incidout_basename:
             registerToTemporal(

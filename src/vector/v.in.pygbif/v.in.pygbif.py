@@ -747,9 +747,11 @@ def main():
                         res["kingdom"],
                         res["kingdomKey"],
                         "{}".format(res["eventDate"]) if res["eventDate"] else None,
-                        "{}".format(res["verbatimEventDate"])
-                        if res["verbatimEventDate"]
-                        else None,
+                        (
+                            "{}".format(res["verbatimEventDate"])
+                            if res["verbatimEventDate"]
+                            else None
+                        ),
                         res["startDayOfYear"],
                         res["endDayOfYear"],
                         res["year"],
@@ -785,21 +787,27 @@ def main():
                                 for identifier in res["identifiers"]
                             ]
                         ),
-                        "{}".format(res["dateIdentified"])
-                        if res["dateIdentified"]
-                        else None,
+                        (
+                            "{}".format(res["dateIdentified"])
+                            if res["dateIdentified"]
+                            else None
+                        ),
                         "{}".format(res["modified"]) if res["modified"] else None,
                         res["institutionCode"],
-                        "{}".format(res["lastInterpreted"])
-                        if res["lastInterpreted"]
-                        else None,
+                        (
+                            "{}".format(res["lastInterpreted"])
+                            if res["lastInterpreted"]
+                            else None
+                        ),
                         "{}".format(res["lastParsed"]) if res["lastParsed"] else None,
                         res["references"],
                         ",".join(res["relations"]),
                         res["catalogNumber"],
-                        "{}".format(res["occurrenceDetails"])
-                        if res["occurrenceDetails"]
-                        else None,
+                        (
+                            "{}".format(res["occurrenceDetails"])
+                            if res["occurrenceDetails"]
+                            else None
+                        ),
                         res["datasetKey"],
                         res["datasetName"],
                         res["collectionCode"],

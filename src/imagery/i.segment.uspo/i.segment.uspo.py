@@ -739,13 +739,15 @@ def create_optimization_list(variancelist, autocorlist, opt_function, alpha, dir
         optlist = [normvariance[x] + normautocor[x] for x in range(len(normvariance))]
     if opt_function == "f":
         optlist = [
-            (1 + alpha**2)
-            * (
-                (normvariance[x] * normautocor[x])
-                / float(alpha**2 * normautocor[x] + normvariance[x])
+            (
+                (1 + alpha**2)
+                * (
+                    (normvariance[x] * normautocor[x])
+                    / float(alpha**2 * normautocor[x] + normvariance[x])
+                )
+                if (normautocor[x] + normvariance[x]) > 0
+                else 0
             )
-            if (normautocor[x] + normvariance[x]) > 0
-            else 0
             for x in range(len(normvariance))
         ]
     return optlist
