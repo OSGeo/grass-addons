@@ -70,6 +70,7 @@ void calculate_lfp_recursive(struct Map_info *Map, struct cell_map *dir_buf,
     /* loop through all outlets and find the longest flow path for each */
     cat = 1;
     G_message(_("Calculating longest flow paths recursively..."));
+#pragma omp parallel for schedule(dynamic) private(j)
     for (i = 0; i < outlet_pl->n; i++) {
         int row = (int)Rast_northing_to_row(outlet_pl->y[i], &window);
         int col = (int)Rast_easting_to_col(outlet_pl->x[i], &window);
@@ -101,6 +102,7 @@ void calculate_lfp_recursive(struct Map_info *Map, struct cell_map *dir_buf,
         }
 
         /* write out longest flow paths */
+    
         for (j = 0; j < hl.n; j++) {
             int r = hl.head[j].row;
             int c = hl.head[j].col;
@@ -277,7 +279,7 @@ static int trace_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
 
     /* sort upstream cells by max_length in descending order */
     qsort(up, nup, sizeof(struct neighbor), compare_neighbor_max_length);
-
+#pragma omp parallel for schedule(dynamic) private(i)
     /* trace up upstream cells */
     for (i = 0; i < nup; i++) {
         /* skip the current cell if its theoretical longest upstream length is

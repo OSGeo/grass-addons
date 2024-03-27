@@ -30,6 +30,7 @@ void delineate_streams(struct Map_info *Map, struct cell_map *dir_buf,
 
     /* loop through all cells to find headwater cells */
     G_message(_("Delineating streams..."));
+#pragma omp parallel for schedule(dynamic) private(col)
     for (row = 0; row < nrows; row++) {
         G_percent(row, nrows, 1);
         for (col = 0; col < ncols; col++) {

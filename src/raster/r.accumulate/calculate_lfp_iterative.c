@@ -76,6 +76,7 @@ void calculate_lfp_iterative(struct Map_info *Map, struct cell_map *dir_buf,
     /* loop through all outlets and find the longest flow path for each */
     cat = 1;
     G_message(_("Calculating longest flow paths iteratively..."));
+#pragma omp parallel for schedule(dynamic) private(j)
     for (i = 0; i < outlet_pl->n; i++) {
         int row = (int)Rast_northing_to_row(outlet_pl->y[i], &window);
         int col = (int)Rast_easting_to_col(outlet_pl->x[i], &window);
@@ -243,7 +244,7 @@ static void trace_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
     free_up_stack(&up_stack);
 
     init_point_list(&pl);
-
+#pragma omp parallel for schedule(dynamic) private(i)
     for (i = 0; i < hl.n; i++) {
         int r = hl.head[i].row;
         int c = hl.head[i].col;

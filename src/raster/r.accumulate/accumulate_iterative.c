@@ -38,6 +38,7 @@ void accumulate_iterative(struct cell_map *dir_buf,
     ncols = dir_buf->ncols;
 
     G_message(_("Accumulating flows iteratively..."));
+#pragma omp parallel for schedule(dynamic) private(col)
     for (row = 0; row < nrows; row++) {
         G_percent(row, nrows, 1);
         for (col = 0; col < ncols; col++)
@@ -76,6 +77,7 @@ static void trace_up(struct cell_map *dir_buf, struct raster_map *weight_buf,
     push_up(&up_stack, &cur);
 
     /* push upstream cells */
+#pragma omp parallel for schedule(dynamic) private(i)
     for (i = 0; i < nup; i++)
         push_up(&up_stack, &up[i]);
 
@@ -235,7 +237,6 @@ static char is_incomplete(struct cell_map *dir_buf, int row, int col)
         incomplete = 1;
     else {
         int i, j;
-
         for (i = -1; i <= 1 && !incomplete; i++) {
             if (row + i < 0 || row + i >= nrows)
                 continue;
