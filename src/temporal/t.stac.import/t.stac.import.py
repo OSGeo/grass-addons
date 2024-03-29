@@ -64,7 +64,7 @@
 # % multiple: yes
 # % description: List of one or more Collection IDs or pystac.Collection instances. Only Items in one of the provided Collections will be searched
 # % guisection: Request
-#%end
+# %end
 
 # %option
 # % key: max_items
