@@ -256,8 +256,8 @@
 #%option G_OPT_M_NPROCS
 #%end
 
-#%option G_OPT_MEMORYMB
-#%end
+# %option G_OPT_MEMORYMB
+# %end
 
 import os
 import sys
