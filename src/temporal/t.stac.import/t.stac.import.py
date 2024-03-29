@@ -253,8 +253,8 @@
 # %end
 
 
-#%option G_OPT_M_NPROCS
-#%end
+# %option G_OPT_M_NPROCS
+# %end
 
 # %option G_OPT_MEMORYMB
 # %end
