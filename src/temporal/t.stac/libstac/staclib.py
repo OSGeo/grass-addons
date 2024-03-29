@@ -35,6 +35,31 @@ def set_request_headers(**kwargs):
     return req_headers
 
 
+def generate_indentation(depth):
+    """Generate indentation for summary"""
+    return "    " * depth
+
+
+def print_summary(data, depth=1):
+    """Print summary of json data recursively increasing indentation."""
+    for key, value in data.items():
+        indentation = generate_indentation(depth)
+        if isinstance(value, dict):
+            gs.message(_(f"#\n# {indentation}{key}:"))
+            print_summary(value, depth=depth + 1)
+        else:
+            gs.message(_(f"# {indentation}{key}: {value}"))
+
+
+def print_attribute(item, attribute, message=None):
+    """Print an attribute of the item and handle AttributeError."""
+    message = message if message else attribute.capitalize()
+    try:
+        gs.message(_(f"{message}: {getattr(item, attribute)}"))
+    except AttributeError:
+        gs.info(_(f"{message} not found."))
+
+
 def region_to_wgs84_decimal_degrees_bbox():
     """convert region bbox to wgs84 decimal degrees bbox"""
     region = gs.parse_command("g.region", quiet=True, flags="ubg")
