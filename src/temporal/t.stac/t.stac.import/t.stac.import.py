@@ -390,6 +390,9 @@ def check_url_type(url):
         return url.replace("abfs://", "/vsiaz/")  # Azure Blob File System
     elif url.startswith("https://"):
         return url.replace("https://", "/vsicurl/https://")
+        # TODO: Add check for cloud provider that uses https
+        # return url.replace("https://", "/vsiaz/")  # Azure Blob File System
+        # return url
     elif url.startswith("http://"):
         gs.warning(_("HTTP is not secure. Using HTTPS instead."))
         return url.replace("https://", "/vsicurl/https://")
