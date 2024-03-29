@@ -141,7 +141,7 @@
 # % multiple: yes
 # % description: List of one or more asset keys to filter item downloads. \nUse -d (dry run) option to get a list of available asset keys.
 # % guisection: Assets
-#%end
+# %end
 
 # %option
 # % key: filter_lang
