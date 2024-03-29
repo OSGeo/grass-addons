@@ -29,27 +29,24 @@ class TestStacItem(TestCase):
     def setUpClass(cls):
         """Ensures expected computational region"""
         cls.url = "https://earth-search.aws.element84.com/v1/"
-        # to not override mapset's region (which might be used by other tests)
-        cls.use_temp_region()
-        # cls.runModule or self.runModule is used for general module calls
-        cls.runModule("g.region", raster="elevation")
+        cls.collections = "naip"
 
     @classmethod
     def tearDownClass(cls):
         """Remove temporary region"""
-        cls.del_temp_region()
+        pass
 
     def test_search_collections(self):
         """Test t.stac.collection without vector metadata creation"""
         # assertModule is used to call module which we test
         # we expect module to finish successfully
-        self.assertModule("t.stac.item", url=self.url, collection="naip")
+        self.assertModule("t.stac.item", url=self.url, collections=self.collections)
 
     def test_collections_not_found(self):
         """Test t.stac.collection with vector metadata creation"""
         # assertModule is used to call module which we test
         # we expect module to finish successfully
-        self.assertModule("t.stac.item", url=self.url, collection="naip546")
+        self.assertModule("t.stac.item", url=self.url, collections="naip546")
 
 
 if __name__ == "__main__":

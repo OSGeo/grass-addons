@@ -77,7 +77,7 @@
 
 import os
 import sys
-import pprint
+from pprint import pprint
 
 # from multiprocessing.pool import ThreadPool
 from pystac_client import Client
@@ -142,7 +142,7 @@ def get_collection_items(client, collection_name):
 
     libstac.print_attribute(collection, "title", "Collection Title")
 
-    gs.message(_(f"Description: {collection.description}"))
+    # gs.message(_(f"Description: {collection.description}"))
     gs.message(_(f"Spatial Extent: {collection.extent.spatial.bboxes}"))
     gs.message(_(f"Temporal Extent: {collection.extent.temporal.intervals}"))
 
@@ -186,81 +186,6 @@ def report_stac_item(item):
     gs.message(_(f"Properties: {item.properties}"))
 
 
-# TODO: Complete functionality to import all media types
-def import_items(items, asset_keys=None):
-    """Import items"""
-
-    # PARQUET = "application/x-parquet"
-    # NETCDF = "application/x-netcdf"
-    # ZARR = "application/x-zarr"
-
-    VECTOR_MEDIA_TYPES = [
-        MediaType.GEOJSON,
-        MediaType.GEOPACKAGE,
-        MediaType.FLATGEOBUF,
-        MediaType.JSON,
-        MediaType.TEXT,
-        MediaType.XML,
-        # PARQUET
-    ]
-
-    RASTER_MEDIA_TYPES = [
-        MediaType.GEOTIFF,
-        MediaType.COG,
-        MediaType.JPEG,
-        MediaType.PNG,
-        MediaType.TIFF,
-        MediaType.JPEG2000,
-    ]
-
-    HDF_MEDIA_TYPES = [MediaType.HDF5, MediaType.HDF]
-
-    asset_download_list = []
-    asset_name_list = []
-
-    for item in items:
-        report_stac_item(item)
-        # print_summary(item.to_dict())
-        for key, asset in item.assets.items():
-            media_type = asset.media_type
-            if asset_keys and key not in asset_keys:
-                continue
-
-            gs.message(_("\nAsset"))
-            gs.message(_(f"Asset Key: {key}"))
-            gs.message(_(f"Asset Title: {asset.title}"))
-            gs.message(_(f"Asset Description: {asset.description}"))
-            gs.message(_(f"Asset Media Type: {media_type}"))
-            gs.message(_(f"Asset Roles: {asset.roles}"))
-            gs.message(_(f"Asset Href: {asset.href}"))
-
-            # if media_type == MediaType.COG:
-            #     url = asset.href
-            #     asset_download_list.append(url)
-            #     asset_name = os.path.splitext(os.path.basename(url))[0]
-            #     asset_name_list.append(f"{item.id}.{asset_name}")
-
-            #     gs.message(_(f"Asset added to download queue: {asset.to_dict()} \n"))
-
-            if media_type in RASTER_MEDIA_TYPES:
-                url = asset.href
-                asset_download_list.append(url)
-                asset_name = os.path.splitext(os.path.basename(url))[0]
-                asset_name_list.append(f"{item.id}.{asset_name}")
-
-                gs.message(_(f"Asset added to download queue: {asset.to_dict()} \n"))
-
-            # if media_type in VECTOR_MEDIA_TYPES:
-            #     url = asset.href
-            #     asset_download_list.append(url)
-            #     asset_name = os.path.splitext(os.path.basename(url))[0]
-            #     asset_name_list.append(f"{item.id}.{asset_name}")
-
-        gs.message(_("*" * 80))
-
-    return [asset_download_list, asset_name_list]
-
-
 def main():
     """Main function"""
 
@@ -275,6 +200,8 @@ def main():
     token = options["token"]  # optional
     pc_subscription_key = options["pc_subscription_key"]  # optional
 
+    collection_items_output = []
+
     try:
 
         req_headers = libstac.set_request_headers(
@@ -288,8 +215,12 @@ def main():
     except APIError as e:
         gs.fatal(_("APIError Error opening STAC API: {}".format(e)))
 
-    collection_items = get_collection_items(client, collections)
-    pprint(collection_items)
+    for collection in collections:
+        if validate_collections_option(client, collections):
+            collection_items = get_collection_items(client, collection)
+            collection_items_output.append(collection_items)
+
+    return pprint(collection_items_output)
 
 
 if __name__ == "__main__":
