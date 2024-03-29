@@ -48,7 +48,7 @@ static double trace_up(struct cell_map *dir_buf, struct raster_map *weight_buf,
 
     /* if a weight map is specified (no negative accumulation is implied), use
      * the weight value at the current cell; otherwise use 1 */
-    accum = weight_buf->map.v ? get(weight_buf, row, col) : 1.0;
+    accum = weight_buf->cells.v ? get(weight_buf, row, col) : 1.0;
 
     /* loop through all neighbor cells and see if any of them drains into the
      * current cell (are there upstream cells?) */

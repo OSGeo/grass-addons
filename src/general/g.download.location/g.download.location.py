@@ -76,6 +76,7 @@ class DownloadError(Exception):
 # startup screen Download button
 # all should go to "grass.scripts.tools"
 
+
 # copy from g.extension
 def move_extracted_files(extract_dir, target_dir, files):
     """Fix state of extracted file by moving them to different diretcory

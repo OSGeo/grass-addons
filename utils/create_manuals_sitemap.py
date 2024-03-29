@@ -47,9 +47,9 @@ def main():
     url = args.url.rstrip("/")
     root = ET.Element("urlset")
     root.attrib["xmlns:xsi"] = "http://www.w3.org/2001/XMLSchema-instance"
-    root.attrib[
-        "xsi:schemaLocation"
-    ] = "http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd"
+    root.attrib["xsi:schemaLocation"] = (
+        "http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd"
+    )
     root.attrib["xmlns"] = "http://www.sitemaps.org/schemas/sitemap/0.9"
 
     htmls = glob.glob1(args.dir, "*.html")

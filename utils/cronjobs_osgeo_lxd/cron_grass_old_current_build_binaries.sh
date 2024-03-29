@@ -2,7 +2,7 @@
 
 # script to build GRASS GIS old current binaries + addons from the `releasebranch_8_2` binaries
 # (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
-# 2014-2023
+# 2014-2024
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
@@ -12,14 +12,15 @@
 # - configures, compiles
 # - packages the binaries
 # - generated the install scripts
-# - generates the programmer's 8 HTML manual
 # - generates the pyGRASS 8 HTML manual
 # - generates the user 8 HTML manuals
 # - injects DuckDuckGo search field
+# - injects "G8 is the new version" box into core and addon manual pages
+# - injects canonical URL
 
 # Preparations, on server:
 #  - Install PROJ incl Datum shift grids
-#  - Install GDAL:
+#  - Install GDAL
 #  - Install apt-get install texlive-latex-extra python3-sphinxcontrib.apidoc
 #  - Clone source from github:
 #    mkdir -p ~/src ; cd ~/src
@@ -32,15 +33,19 @@
 #    cd /var/www/html/
 #    ln -s /var/www/code_and_data/grass82 .
 #
-##########################################
+#################################
 PATH=/home/neteler/binaries/bin:/usr/bin:/bin:/usr/X11R6/bin:/usr/local/bin
 
+# https://github.com/OSGeo/grass/tags
 GMAJOR=8
 GMINOR=2
 GPATCH=1 # required by grass-addons-index.sh
 DOTVERSION=$GMAJOR.$GMINOR
 VERSION=$GMAJOR$GMINOR
 GVERSION=$GMAJOR
+
+# NEW_CURRENT: set to GMINOR from above + 1:
+NEW_CURRENT=83
 
 ###################
 # fail early
@@ -61,8 +66,9 @@ GRASSBUILDDIR=$SOURCE/$BRANCH
 TARGETMAIN=/var/www/code_and_data
 TARGETDIR=$TARGETMAIN/grass${VERSION}/binary/linux/snapshot
 TARGETHTMLDIR=$TARGETMAIN/grass${VERSION}/manuals/
-# not built for dev version or old stable
-## TARGETPROGMAN=$TARGETMAIN/programming${GVERSION}
+
+# progman not built for older dev versions or old stable, only for preview
+#TARGETPROGMAN=$TARGETMAIN/programming${GVERSION}
 
 MYBIN=$MAINDIR/binaries
 
@@ -108,7 +114,6 @@ CFLAGS=$CFLAGSSTRING LDFLAGS=$LDFLAGSSTRING ./configure \
   --with-blas --with-blas-includes=/usr/include/atlas/ \
   --with-lapack --with-lapack-includes=/usr/include/atlas/ \
   --with-zstd \
-  --with-liblas \
   2>&1 | tee config_$DOTVERSION.git_log.txt
 
  if [ $? -ne 0 ] ; then
@@ -176,10 +181,10 @@ rm -f $TARGETHTMLDIR/*.*
 cp -rp dist.$ARCH/docs/html/* $TARGETHTMLDIR/
 echo "Copied pygrass progman to http://grass.osgeo.org/grass${VERSION}/manuals/libpython/"
 
+cp -p AUTHORS CHANGES CITING CITATION.cff COPYING GPL.TXT INSTALL.md REQUIREMENTS.html $TARGETDIR/
+
 echo "Injecting DuckDuckGo search field into manual main page..."
 (cd $TARGETHTMLDIR/ ; sed -i -e "s+</table>+</table><\!\-\- injected in cron_grass8_relbranch_build_binaries.sh \-\-> <center><iframe src=\"https://duckduckgo.com/search.html?site=grass.osgeo.org%26prefill=Search%20manual%20pages%20at%20DuckDuckGo\" style=\"overflow:hidden;margin:0;padding:0;width:410px;height:40px;\" frameborder=\"0\"></iframe></center>+g" index.html)
-
-cp -p AUTHORS CHANGES CITING CITATION.cff COPYING GPL.TXT INSTALL.md REQUIREMENTS.html $TARGETDIR/
 
 # clean wxGUI sphinx manual etc
 (cd $GRASSBUILDDIR/ ; $MYMAKE cleansphinx)
@@ -192,6 +197,7 @@ $MYMAKE htmldocs-single || (echo "$0 htmldocs-single: an error occurred" ; exit 
 
 cd $GRASSBUILDDIR/
 
+#### unused, only done in "preview" script
 ## clean old TARGETPROGMAN stuff from last run
 #if  [ -z "$TARGETPROGMAN" ] ; then
 # echo "\$TARGETPROGMAN undefined, error!"
@@ -210,13 +216,9 @@ cd $GRASSBUILDDIR/
 #chmod -R a+r,g+w $TARGETPROGMAN/*
 ## bug in doxygen
 #(cd $TARGETPROGMAN/ ; ln -s index.html main.html)
+#### end unused
 
-##### copy i18N POT files, originally needed for https://www.transifex.com/grass-gis/
-### note: from G82+ onwards the gettext POT files are managed in git and OSGeo Weblate
-#(cd locale ;
-#mkdir -p $TARGETDIR/transifex/
-#cp templates/*.pot $TARGETDIR/transifex/
-#)
+# note: from G82+ onwards the gettext POT files are managed in git and OSGeo Weblate
 
 ##### generate i18N stats for HTML page path (WebSVN):
 ## Structure:  grasslibs_ar.po 144 translated messages 326 fuzzy translations 463 untranslated messages.
@@ -326,6 +328,22 @@ python3 $GRASSBUILDDIR/man/build_keywords.py $TARGETMAIN/grass$GMAJOR$GMINOR/man
 unset ARCH ARCH_DISTDIR GISBASE VERSION_NUMBER
 
 ############################################
+
+echo "Injecting G8.x new current version hint in a red box into MAN pages..."
+# inject G8.x new current version hint in a red box:
+(cd $TARGETHTMLDIR/ ; for myfile in `ls *.html` ; do sed -i -e "s:<hr class=\"header\">:<hr class=\"header\"><p style=\"border\:3px; border-style\:solid; border-color\:#BC1818; padding\: 1em;\">Note\: This document is for an older version of GRASS GIS that will be discontinued soon. You should upgrade, and read the <a href=\"../../../grass${NEW_CURRENT}/manuals/$myfile\">current manual page</a>.</p>:g" $myfile ; done)
+# also for addons
+(cd $TARGETHTMLDIR/addons/ ; for myfile in `ls *.html` ; do sed -i -e "s:<hr class=\"header\">:<hr class=\"header\"><p style=\"border\:3px; border-style\:solid; border-color\:#BC1818; padding\: 1em;\">Note\: This document is for an older version of GRASS GIS that will be discontinued soon. You should upgrade, and read the <a href=\"../../../grass${NEW_CURRENT}/manuals/addons/$myfile\">current manual page</a>.</p>:g" $myfile ; done)
+# also for Python
+(cd $TARGETHTMLDIR/libpython/ ; for myfile in `ls *.html` ; do sed -i -e "s:<hr class=\"header\">:<hr class=\"header\"><p style=\"border\:3px; border-style\:solid; border-color\:#FF2121; padding\: 1em;\">Note\: This document is for an older version of GRASS GIS that will be discontinued soon. You should upgrade, and read the <a href=\"../../../../grass${NEW_CURRENT}/manuals/libpython/$myfile\">current Python manual page</a>.</p>:g" $myfile ; done)
+
+# SEO: inject canonical link into all (old) manual pages to point to latest stable (avoid "duplicate content" SEO punishment)
+# see https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls
+(cd $TARGETHTMLDIR/ ; for myfile in `ls *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass${NEW_CURRENT}/manuals/$myfile\">\n</head>:g" $myfile ; done)
+(cd $TARGETHTMLDIR/addons/ ; for myfile in `ls *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass${NEW_CURRENT}/manuals/addons/$myfile\">\n</head>:g" $myfile ; done)
+(cd $TARGETHTMLDIR/libpython/ ; for myfile in `ls *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass${NEW_CURRENT}/manuals/libpython/$myfile\">\n</head>:g" $myfile ; done)
+
+############################################
 # create sitemaps to expand the hugo sitemap
 
 python3 $HOME/src/grass$GMAJOR-addons/utils/create_manuals_sitemap.py --dir=/var/www/code_and_data/grass$GMAJOR$GMINOR/manuals/ --url=https://grass.osgeo.org/grass$GMAJOR$GMINOR/manuals/ -o
@@ -341,7 +359,7 @@ echo "Finished GRASS $VERSION $ARCH compilation."
 echo "Written to: $TARGETDIR"
 echo "Copied HTML ${GVERSION} manual to https://grass.osgeo.org/grass${VERSION}/manuals/"
 echo "Copied pygrass progman ${GVERSION} to https://grass.osgeo.org/grass${VERSION}/manuals/libpython/"
-#echo "Copied HTML ${GVERSION} progman to https://grass.osgeo.org/programming${GVERSION}"
+## echo "Copied HTML ${GVERSION} progman to https://grass.osgeo.org/programming${GVERSION}"
 echo "Copied Addons ${GVERSION} to https://grass.osgeo.org/grass${VERSION}/manuals/addons/"
 
 exit 0

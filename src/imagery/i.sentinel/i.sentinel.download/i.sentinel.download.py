@@ -69,7 +69,7 @@
 # % description: Sentinel product type to filter
 # % label: USGS Earth Explorer only supports S2MSI1C
 # % required: no
-# % options: SLC,GRD,OCN,S2MSI1C,S2MSI2A,S2MSI2Ap,S3OL1EFR,S3OL1ERR,S3OL1SPC,S3OL1RAC,S3OL2WFR,S3OL2WRR,S3OL2LFR,S3OL2LRR,S3SL2LST,S3SL2FRP,S3SY2SYN,S3SY2VGP,S3SY2VG1,S3SY2V10,S3SY2AOD,S3SR2LAN
+# % options: SLC,GRD,OCN,S2MSI1C,S2MSI2A,S2MSI2Ap,S3OL1EFR,S3OL1ERR,S3OL1SPC,S3OL1RAC,S3SL1RBT,S3OL2WFR,S3OL2WRR,S3OL2LFR,S3OL2LRR,S3SL2LST,S3SL2FRP,S3SY2SYN,S3SY2VGP,S3SY2VG1,S3SY2V10,S3SY2AOD,S3SR2LAN
 # % answer: S2MSI2A
 # % guisection: Filter
 # %end
@@ -695,25 +695,29 @@ class SentinelDownloader(object):
         for idx in range(len(self._products_df_sorted[id_kw[kw_idx]])):
             if cloud_kw[kw_idx] in self._products_df_sorted:
                 ccp = "{0:2.0f}%".format(
-                    float(self._products_df_sorted[cloud_kw[kw_idx]][idx])
+                    float(self._products_df_sorted[cloud_kw[kw_idx]].iloc[idx])
                 )
             else:
                 ccp = "cloudcover_NA"
 
             print_str = "{0} {1}".format(
-                self._products_df_sorted[id_kw[kw_idx]][idx],
-                self._products_df_sorted[identifier_kw[kw_idx]][idx],
+                self._products_df_sorted[id_kw[kw_idx]].iloc[idx],
+                self._products_df_sorted[identifier_kw[kw_idx]].iloc[idx],
             )
             if kw_idx == 1:
-                time_string = self._products_df_sorted[time_kw[kw_idx]][idx]
+                time_string = self._products_df_sorted[time_kw[kw_idx]].iloc[idx]
             else:
-                time_string = self._products_df_sorted[time_kw[kw_idx]][idx].strftime(
-                    "%Y-%m-%dT%H:%M:%SZ"
+                time_string = (
+                    self._products_df_sorted[time_kw[kw_idx]]
+                    .iloc[idx]
+                    .strftime("%Y-%m-%dT%H:%M:%SZ")
                 )
             print_str += " {0} {1}".format(time_string, ccp)
             if kw_idx == 0:
-                print_str += " {0}".format(self._products_df_sorted["producttype"][idx])
-                print_str += " {0}".format(self._products_df_sorted["size"][idx])
+                print_str += " {0}".format(
+                    self._products_df_sorted["producttype"].iloc[idx]
+                )
+                print_str += " {0}".format(self._products_df_sorted["size"].iloc[idx])
 
             print(print_str)
 
@@ -749,11 +753,11 @@ class SentinelDownloader(object):
                 creation_time = datetime.fromtimestamp(
                     os.path.getctime(existing_file[0])
                 )
-                if self._products_df_sorted["ingestiondate"][idx] <= creation_time:
+                if self._products_df_sorted["ingestiondate"].iloc[idx] <= creation_time:
                     gs.message(
                         _(
                             "Skipping scene: {} which is already downloaded.".format(
-                                self._products_df_sorted["identifier"][idx]
+                                self._products_df_sorted["identifier"].iloc[idx]
                             )
                         )
                     )
@@ -788,8 +792,8 @@ class SentinelDownloader(object):
                 except EarthExplorerError as e:
                     time.sleep(1)
             for idx in range(len(self._products_df_sorted["entity_id"])):
-                scene = self._products_df_sorted["entity_id"][idx]
-                identifier = self._products_df_sorted["display_id"][idx]
+                scene = self._products_df_sorted["entity_id"].iloc[idx]
+                identifier = self._products_df_sorted["display_id"].iloc[idx]
                 zip_file = os.path.join(output, "{}.zip".format(identifier))
                 gs.message(_("Downloading {}...").format(identifier))
                 try:
@@ -812,14 +816,16 @@ class SentinelDownloader(object):
             for idx in range(len(self._products_df_sorted["uuid"])):
                 gs.message(
                     "{} -> {}.SAFE".format(
-                        self._products_df_sorted["uuid"][idx],
+                        self._products_df_sorted["uuid"].iloc[idx],
                         os.path.join(
-                            output, self._products_df_sorted["identifier"][idx]
+                            output, self._products_df_sorted["identifier"].iloc[idx]
                         ),
                     )
                 )
                 # download
-                out = self._api.download(self._products_df_sorted["uuid"][idx], output)
+                out = self._api.download(
+                    self._products_df_sorted["uuid"].iloc[idx], output
+                )
                 if sleep:
                     x = 1
                     online = out["Online"]
@@ -827,7 +833,7 @@ class SentinelDownloader(object):
                         # sleep is in minutes so multiply by 60
                         time.sleep(int(sleep) * 60)
                         out = self._api.download(
-                            self._products_df_sorted["uuid"][idx], output
+                            self._products_df_sorted["uuid"].iloc[idx], output
                         )
                         x += 1
                         if x > maxretry:
@@ -898,7 +904,7 @@ class SentinelDownloader(object):
 
         # features
         for idx in range(len(self._products_df_sorted["uuid"])):
-            wkt = self._products_df_sorted["footprint"][idx]
+            wkt = self._products_df_sorted["footprint"].iloc[idx]
             feature = ogr.Feature(layer.GetLayerDefn())
             newgeom = ogr.CreateGeometryFromWkt(wkt)
             # convert polygons to multi-polygons
@@ -911,11 +917,13 @@ class SentinelDownloader(object):
                 feature.SetGeometry(newgeom)
             for key in attrs.keys():
                 if key == "ingestiondate":
-                    value = self._products_df_sorted[key][idx].strftime(
-                        "%Y-%m-%dT%H:%M:%SZ"
+                    value = (
+                        self._products_df_sorted[key]
+                        .iloc[idx]
+                        .strftime("%Y-%m-%dT%H:%M:%SZ")
                     )
                 else:
-                    value = self._products_df_sorted[key][idx]
+                    value = self._products_df_sorted[key].iloc[idx]
                 feature.SetField(key, value)
             layer.CreateFeature(feature)
             feature = None

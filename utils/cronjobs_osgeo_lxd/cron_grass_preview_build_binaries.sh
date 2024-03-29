@@ -2,7 +2,7 @@
 
 # script to build GRASS GIS preview binaries + addons from the `main`
 # (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
-# 2022-2023
+# 2022-2024
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
@@ -19,7 +19,7 @@
 
 # Preparations, on server:
 #  - Install PROJ incl Datum shift grids
-#  - Install GDAL:
+#  - Install GDAL
 #  - Install apt-get install texlive-latex-extra python3-sphinxcontrib.apidoc
 #  - Clone source from github:
 #    mkdir -p ~/src ; cd ~/src
@@ -30,7 +30,7 @@
 #    cd /var/www/html/
 #    ln -s /var/www/code_and_data/grass84 .
 #
-##########################################
+#################################
 PATH=/home/neteler/binaries/bin:/usr/bin:/bin:/usr/X11R6/bin:/usr/local/bin
 
 GMAJOR=8
@@ -60,8 +60,9 @@ TARGETMAIN=/var/www/code_and_data
 TARGETDIR=$TARGETMAIN/grass${VERSION}/binary/linux/snapshot
 TARGETHTMLDIR=$TARGETMAIN/grass${VERSION}/manuals/
 
-# not built for dev version or old stable
-## TARGETPROGMAN=$TARGETMAIN/programming${GVERSION}
+# progman compiled below (i.e., only for preview)
+# progman not built for older dev versions or old stable
+TARGETPROGMAN=$TARGETMAIN/programming${GVERSION}
 
 MYBIN=$MAINDIR/binaries
 
@@ -104,10 +105,10 @@ CFLAGS=$CFLAGSSTRING LDFLAGS=$LDFLAGSSTRING ./configure \
   --with-pdal \
   --with-fftw \
   --with-nls \
+  --with-libsvm \
   --with-blas --with-blas-includes=/usr/include/atlas/ \
   --with-lapack --with-lapack-includes=/usr/include/atlas/ \
   --with-zstd \
-  --with-liblas \
   2>&1 | tee config_$DOTVERSION.git_log.txt
 
  if [ $? -ne 0 ] ; then
@@ -191,31 +192,27 @@ $MYMAKE htmldocs-single || (echo "$0 htmldocs-single: an error occurred" ; exit 
 
 cd $GRASSBUILDDIR/
 
-## clean old TARGETPROGMAN stuff from last run
-#if  [ -z "$TARGETPROGMAN" ] ; then
-# echo "\$TARGETPROGMAN undefined, error!"
-# exit 1
-#fi
-#mkdir -p $TARGETPROGMAN
-#rm -f $TARGETPROGMAN/*.*
-#
-## copy over doxygen manual
-#cp -r html/*  $TARGETPROGMAN/
-#
-#echo "Copied HTML progman to https://grass.osgeo.org/programming${GVERSION}"
-## fix permissions
-#chgrp -R grass $TARGETPROGMAN/*
-#chmod -R a+r,g+w $TARGETPROGMAN/
-#chmod -R a+r,g+w $TARGETPROGMAN/*
-## bug in doxygen
-#(cd $TARGETPROGMAN/ ; ln -s index.html main.html)
+echo "Generating latest programmer's manual..."
+# clean old TARGETPROGMAN stuff from last run
+if  [ -z "$TARGETPROGMAN" ] ; then
+ echo "\$TARGETPROGMAN undefined, error!"
+ exit 1
+fi
+mkdir -p $TARGETPROGMAN
+rm -f $TARGETPROGMAN/*.*
 
-##### copy i18N POT files, originally needed for https://www.transifex.com/grass-gis/
-### note: from G82+ onwards the gettext POT files are managed in git and OSGeo Weblate
-#(cd locale ;
-#mkdir -p $TARGETDIR/transifex/
-#cp templates/*.pot $TARGETDIR/transifex/
-#)
+# copy over doxygen manual
+cp -r html/*  $TARGETPROGMAN/
+
+echo "Copied HTML progman to https://grass.osgeo.org/programming${GVERSION}"
+# fix permissions
+chgrp -R grass $TARGETPROGMAN/*
+chmod -R a+r,g+w $TARGETPROGMAN/
+chmod -R a+r,g+w $TARGETPROGMAN/*
+# bug in doxygen
+(cd $TARGETPROGMAN/ ; ln -s index.html main.html)
+
+# note: from G82+ onwards the gettext POT files are managed in git and OSGeo Weblate
 
 ##### generate i18N stats for HTML page path (WebSVN):
 ## Structure:  grasslibs_ar.po 144 translated messages 326 fuzzy translations 463 untranslated messages.
@@ -340,7 +337,7 @@ echo "Finished GRASS $VERSION $ARCH compilation."
 echo "Written to: $TARGETDIR"
 echo "Copied HTML ${GVERSION} manual to https://grass.osgeo.org/grass${VERSION}/manuals/"
 echo "Copied pygrass progman ${GVERSION} to https://grass.osgeo.org/grass${VERSION}/manuals/libpython/"
-#echo "Copied HTML ${GVERSION} progman to https://grass.osgeo.org/programming${GVERSION}"
+echo "Copied HTML ${GVERSION} progman to https://grass.osgeo.org/programming${GVERSION}"
 echo "Copied Addons ${GVERSION} to https://grass.osgeo.org/grass${VERSION}/manuals/addons/"
 
 exit 0
