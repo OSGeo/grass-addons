@@ -9,29 +9,46 @@
 #endif
 
 #if ACCUM_RAST_TYPE == CELL_TYPE
-#define ACCUMULATE(o, m, z)  accumulate_c##o##m##z
-#define NULLIFY_ZERO         nullify_zero_c
-#define ACCUM_MAP_CELLS      accum_map->cells.c
-#define ACCUM_TYPE           int
-#define SET_ACCUM_NULL(cell) Rast_set_c_null_value(cell, 1)
-#define IS_ACCUM_NULL(cell)  Rast_is_c_null_value(cell)
+#define ACCUMULATE(o, m, z, w) accumulate_c##o##m##z##w
+#define NULLIFY_ZERO           nullify_zero_c
+#define ACCUM_MAP_CELLS        accum_map->cells.c
+#define ACCUM_TYPE             int
+#define SET_ACCUM_NULL(cell)   Rast_set_c_null_value(cell, 1)
+#define IS_ACCUM_NULL(cell)    Rast_is_c_null_value(cell)
+#ifdef USE_WEIGHT
+#define WEIGHT_MAP_CELLS weight_map->cells.c
+#endif
 #elif ACCUM_RAST_TYPE == FCELL_TYPE
-#define ACCUMULATE(o, m, z)  accumulate_f##o##m##z
-#define NULLIFY_ZERO         nullify_zero_f
-#define ACCUM_MAP_CELLS      accum_map->cells.f
-#define ACCUM_TYPE           float
-#define SET_ACCUM_NULL(cell) Rast_set_f_null_value(cell, 1)
-#define IS_ACCUM_NULL(cell)  Rast_is_f_null_value(cell)
+#define ACCUMULATE(o, m, z, w) accumulate_f##o##m##z##w
+#define NULLIFY_ZERO           nullify_zero_f
+#define ACCUM_MAP_CELLS        accum_map->cells.f
+#define ACCUM_TYPE             float
+#define SET_ACCUM_NULL(cell)   Rast_set_f_null_value(cell, 1)
+#define IS_ACCUM_NULL(cell)    Rast_is_f_null_value(cell)
+#ifdef USE_WEIGHT
+#define WEIGHT_MAP_CELLS weight_map->cells.f
+#endif
 #else
-#define ACCUMULATE(o, m, z)  accumulate_d##o##m##z
-#define NULLIFY_ZERO         nullify_zero_d
-#define ACCUM_MAP_CELLS      accum_map->cells.d
-#define ACCUM_TYPE           double
-#define SET_ACCUM_NULL(cell) Rast_set_d_null_value(cell, 1)
-#define IS_ACCUM_NULL(cell)  Rast_is_d_null_value(cell)
+#define ACCUMULATE(o, m, z, w) accumulate_d##o##m##z##w
+#define NULLIFY_ZERO           nullify_zero_d
+#define ACCUM_MAP_CELLS        accum_map->cells.d
+#define ACCUM_TYPE             double
+#define SET_ACCUM_NULL(cell)   Rast_set_d_null_value(cell, 1)
+#define IS_ACCUM_NULL(cell)    Rast_is_d_null_value(cell)
+#ifdef USE_WEIGHT
+#define WEIGHT_MAP_CELLS weight_map->cells.d
+#endif
 #endif
 
 #define ACCUM(row, col) ACCUM_MAP_CELLS[(size_t)(row)*ncols + (col)]
+
+#ifdef USE_WEIGHT
+#define WEIGHT(row, col) WEIGHT_MAP_CELLS[(size_t)(row)*ncols + (col)]
+#define IS_WEIGHT_NULL   IS_ACCUM_NULL
+#else
+#define WEIGHT(row, col) 1
+#endif
+
 #define FIND_UP(row, col)                                                     \
     ((row > 0 ? (col > 0 && DIR(row - 1, col - 1) == SE ? NW : 0) |           \
                     (DIR(row - 1, col) == S ? N : 0) |                        \
@@ -53,9 +70,13 @@ static unsigned char *up_cells;
 #endif
 
 static int nrows, ncols;
+static ACCUM_TYPE accum_not_ready;
 
-static void trace_down(struct raster_map *, struct raster_map *, int, int,
-                       ACCUM_TYPE);
+static void trace_down(struct raster_map *,
+#ifdef USE_WEIGHT
+                       struct raster_map *,
+#endif
+                       struct raster_map *, int, int, ACCUM_TYPE);
 static ACCUM_TYPE sum_up(struct raster_map *, int, int, int);
 
 void ACCUMULATE(
@@ -70,12 +91,26 @@ void ACCUMULATE(
 #ifdef USE_ZERO
     z
 #endif
-    )(struct raster_map *dir_map, struct raster_map *accum_map)
+    ,
+#ifdef USE_WEIGHT
+    w
+#endif
+    )(struct raster_map *dir_map,
+#ifdef USE_WEIGHT
+      struct raster_map *weight_map,
+#endif
+      struct raster_map *accum_map)
 {
     int row, col;
 
     nrows = dir_map->nrows;
     ncols = dir_map->ncols;
+
+#ifdef USE_WEIGHT
+    SET_ACCUM_NULL(&accum_not_ready);
+#else
+    accum_not_ready = 0;
+#endif
 
 #ifndef USE_ZERO
 #pragma omp parallel for schedule(dynamic)
@@ -101,8 +136,16 @@ void ACCUMULATE(
         for (col = 0; col < ncols; col++)
             /* if the current cell is not null and has no upstream cells, start
              * tracing down */
-            if (DIR(row, col) && !UP(row, col))
-                trace_down(dir_map, accum_map, row, col, 1);
+            if (DIR(row, col) && !UP(row, col)
+#ifdef USE_WEIGHT
+                && !IS_WEIGHT_NULL(&WEIGHT(row, col))
+#endif
+            )
+                trace_down(dir_map,
+#ifdef USE_WEIGHT
+                           weight_map,
+#endif
+                           accum_map, row, col, WEIGHT(row, col));
     }
 
 #ifndef USE_LESS_MEMORY
@@ -110,7 +153,8 @@ void ACCUMULATE(
 #endif
 }
 
-#if !defined CHECK_OVERFLOW && !defined USE_LESS_MEMORY && !defined USE_ZERO
+#if !defined CHECK_OVERFLOW && !defined USE_LESS_MEMORY && \
+    !defined USE_ZERO && !defined USE_WEIGHT
 void NULLIFY_ZERO(struct raster_map *accum_map)
 {
     int row, col;
@@ -126,8 +170,12 @@ void NULLIFY_ZERO(struct raster_map *accum_map)
 }
 #endif
 
-static void trace_down(struct raster_map *dir_map, struct raster_map *accum_map,
-                       int row, int col, ACCUM_TYPE accum)
+static void trace_down(struct raster_map *dir_map,
+#ifdef USE_WEIGHT
+                       struct raster_map *weight_map,
+#endif
+                       struct raster_map *accum_map, int row, int col,
+                       ACCUM_TYPE accum)
 {
     int up;
     ACCUM_TYPE accum_up = 0;
@@ -189,12 +237,27 @@ static void trace_down(struct raster_map *dir_map, struct raster_map *accum_map,
     /* if the downstream cell is null or any upstream cells of the downstream
      * cell have never been visited, stop tracing down */
     if (row < 0 || row >= nrows || col < 0 || col >= ncols || !DIR(row, col) ||
-        !(up = UP(row, col)) || !(accum_up = sum_up(accum_map, row, col, up)))
+        !(up = UP(row, col))
+#ifndef USE_WEIGHT
+        || (accum_up = sum_up(accum_map, row, col, up)) == accum_not_ready
+#endif
+    )
         return;
+#ifdef USE_WEIGHT
+    else {
+        accum_up = sum_up(accum_map, row, col, up);
+        if (IS_ACCUM_NULL(&accum_up))
+            return;
+    }
+#endif
 
     /* use gcc -O2 or -O3 flags for tail-call optimization
      * (-foptimize-sibling-calls) */
-    trace_down(dir_map, accum_map, row, col, accum_up + 1);
+    trace_down(dir_map,
+#ifdef USE_WEIGHT
+               weight_map,
+#endif
+               accum_map, row, col, accum_up + WEIGHT(row, col));
 }
 
 /* if any upstream cells have never been visited, 0 is returned; otherwise, the
@@ -211,7 +274,7 @@ static ACCUM_TYPE sum_up(struct raster_map *accum_map, int row, int col, int up)
         accum = ACCUM(row - 1, col - 1);
         if (IS_ACCUM_NULL(&accum))
 #endif
-            return 0;
+            return accum_not_ready;
         sum += accum;
     }
     if (up & N) {
@@ -221,7 +284,7 @@ static ACCUM_TYPE sum_up(struct raster_map *accum_map, int row, int col, int up)
         accum = ACCUM(row - 1, col);
         if (IS_ACCUM_NULL(&accum))
 #endif
-            return 0;
+            return accum_not_ready;
         sum += accum;
     }
     if (up & NE) {
@@ -231,7 +294,7 @@ static ACCUM_TYPE sum_up(struct raster_map *accum_map, int row, int col, int up)
         accum = ACCUM(row - 1, col + 1);
         if (IS_ACCUM_NULL(&accum))
 #endif
-            return 0;
+            return accum_not_ready;
         sum += accum;
     }
     if (up & W) {
@@ -241,7 +304,7 @@ static ACCUM_TYPE sum_up(struct raster_map *accum_map, int row, int col, int up)
         accum = ACCUM(row, col - 1);
         if (IS_ACCUM_NULL(&accum))
 #endif
-            return 0;
+            return accum_not_ready;
         sum += accum;
     }
     if (up & E) {
@@ -251,7 +314,7 @@ static ACCUM_TYPE sum_up(struct raster_map *accum_map, int row, int col, int up)
         accum = ACCUM(row, col + 1);
         if (IS_ACCUM_NULL(&accum))
 #endif
-            return 0;
+            return accum_not_ready;
         sum += accum;
     }
     if (up & SW) {
@@ -261,7 +324,7 @@ static ACCUM_TYPE sum_up(struct raster_map *accum_map, int row, int col, int up)
         accum = ACCUM(row + 1, col - 1);
         if (IS_ACCUM_NULL(&accum))
 #endif
-            return 0;
+            return accum_not_ready;
         sum += accum;
     }
     if (up & S) {
@@ -271,7 +334,7 @@ static ACCUM_TYPE sum_up(struct raster_map *accum_map, int row, int col, int up)
         accum = ACCUM(row + 1, col);
         if (IS_ACCUM_NULL(&accum))
 #endif
-            return 0;
+            return accum_not_ready;
         sum += accum;
     }
     if (up & SE) {
@@ -281,7 +344,7 @@ static ACCUM_TYPE sum_up(struct raster_map *accum_map, int row, int col, int up)
         accum = ACCUM(row + 1, col + 1);
         if (IS_ACCUM_NULL(&accum))
 #endif
-            return 0;
+            return accum_not_ready;
         sum += accum;
     }
 
