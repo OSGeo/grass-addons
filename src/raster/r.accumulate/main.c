@@ -41,6 +41,7 @@ int main(int argc, char *argv[])
         struct Option *input_subaccum;
         struct Option *accum;
         struct Option *subaccum;
+        struct Option *accum_type;
         struct Option *subwshed;
         struct Option *stream;
         struct Option *thresh;
@@ -61,8 +62,8 @@ int main(int argc, char *argv[])
     } flag;
     char *desc;
     char *dir_name, *weight_name, *input_accum_name, *input_subaccum_name,
-        *accum_name, *subaccum_name, *subwshed_name, *stream_name, *outlet_name,
-        *lfp_name;
+        *accum_name, *subaccum_name, *accum_type, *subwshed_name, *stream_name,
+        *outlet_name, *lfp_name;
     int dir_fd;
     unsigned char dir_format;
     double thresh;
@@ -140,6 +141,12 @@ int main(int argc, char *argv[])
     opt.subaccum->type = TYPE_STRING;
     opt.subaccum->description =
         _("Name for output weighted flow subaccumulation map");
+
+    opt.accum_type = G_define_standard_option(G_OPT_R_TYPE);
+    opt.accum_type->key = "accumulation_type";
+    opt.accum_type->required = NO;
+    opt.accum_type->description =
+        _("Type of accumulation raster map to be created");
 
     opt.subwshed = G_define_standard_option(G_OPT_R_OUTPUT);
     opt.subwshed->key = "subwatershed";
@@ -285,6 +292,7 @@ int main(int argc, char *argv[])
     input_subaccum_name = opt.input_subaccum->answer;
     accum_name = opt.accum->answer;
     subaccum_name = opt.subaccum->answer;
+    accum_type = opt.accum_type->answer;
     subwshed_name = opt.subwshed->answer;
     stream_name = opt.stream->answer;
     outlet_name = opt.outlet->answer;
@@ -540,6 +548,25 @@ int main(int argc, char *argv[])
         /* accumulate flows if input accumulation is not given */
         else {
             char **done = (char **)G_malloc(nrows * sizeof(char *));
+
+            /* only for output accumulation */
+            if (strcmp(accum_type, "CELL") == 0) {
+                if (accum_buf.type != CELL_TYPE)
+                    G_warning(_("Accumulation type promoted to %s"),
+                              accum_buf.type == FCELL_TYPE ? "FCELL" : "DCELL");
+            }
+            else if (strcmp(accum_type, "FCELL") == 0) {
+                if (accum_buf.type != FCELL_TYPE) {
+                    if (weight_buf.type == DCELL_TYPE)
+                        G_warning(_("Accumulation type promoted to %s"),
+                                  accum_buf.type == FCELL_TYPE ? "FCELL"
+                                                               : "DCELL");
+                    else
+                        accum_buf.type = FCELL_TYPE;
+                }
+            }
+            else if (accum_buf.type != DCELL_TYPE)
+                accum_buf.type = DCELL_TYPE;
 
             G_message(_("Allocating buffers..."));
             for (row = 0; row < nrows; row++) {
