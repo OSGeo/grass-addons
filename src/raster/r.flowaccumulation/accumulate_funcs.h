@@ -15,9 +15,6 @@
 #define ACCUM_TYPE             int
 #define SET_ACCUM_NULL(cell)   Rast_set_c_null_value(cell, 1)
 #define IS_ACCUM_NULL(cell)    Rast_is_c_null_value(cell)
-#ifdef USE_WEIGHT
-#define WEIGHT_MAP_CELLS weight_map->cells.c
-#endif
 #elif ACCUM_RAST_TYPE == FCELL_TYPE
 #define ACCUMULATE(o, m, z, w) accumulate_f##o##m##z##w
 #define NULLIFY_ZERO           nullify_zero_f
@@ -25,9 +22,6 @@
 #define ACCUM_TYPE             float
 #define SET_ACCUM_NULL(cell)   Rast_set_f_null_value(cell, 1)
 #define IS_ACCUM_NULL(cell)    Rast_is_f_null_value(cell)
-#ifdef USE_WEIGHT
-#define WEIGHT_MAP_CELLS weight_map->cells.f
-#endif
 #else
 #define ACCUMULATE(o, m, z, w) accumulate_d##o##m##z##w
 #define NULLIFY_ZERO           nullify_zero_d
@@ -35,16 +29,24 @@
 #define ACCUM_TYPE             double
 #define SET_ACCUM_NULL(cell)   Rast_set_d_null_value(cell, 1)
 #define IS_ACCUM_NULL(cell)    Rast_is_d_null_value(cell)
-#ifdef USE_WEIGHT
-#define WEIGHT_MAP_CELLS weight_map->cells.d
-#endif
 #endif
 
-#define ACCUM(row, col) ACCUM_MAP_CELLS[(size_t)(row)*ncols + (col)]
+#define ACCUM(row, col) ACCUM_MAP_CELLS[INDEX(row, col)]
 
 #ifdef USE_WEIGHT
-#define WEIGHT(row, col) WEIGHT_MAP_CELLS[(size_t)(row)*ncols + (col)]
-#define IS_WEIGHT_NULL   IS_ACCUM_NULL
+#define WEIGHT(row, col)                               \
+    (weight_map->type == CELL_TYPE                     \
+         ? weight_map->cells.c[INDEX(row, col)]        \
+         : (weight_map->type == FCELL_TYPE             \
+                ? weight_map->cells.f[INDEX(row, col)] \
+                : weight_map->cells.d[INDEX(row, col)]))
+#define IS_WEIGHT_NULL(row, col)                                              \
+    (weight_map->type == CELL_TYPE                                            \
+         ? Rast_is_c_null_value(&weight_map->cells.c[INDEX(row, col)])        \
+         : (weight_map->type == FCELL_TYPE                                    \
+                ? Rast_is_f_null_value(&weight_map->cells.f[INDEX(row, col)]) \
+                : Rast_is_d_null_value(                                       \
+                      &weight_map->cells.d[INDEX(row, col)])))
 #else
 #define WEIGHT(row, col) 1
 #endif
@@ -65,7 +67,7 @@
 #ifdef USE_LESS_MEMORY
 #define UP(row, col) FIND_UP(row, col)
 #else
-#define UP(row, col) up_cells[(size_t)(row)*ncols + (col)]
+#define UP(row, col) up_cells[INDEX(row, col)]
 static unsigned char *up_cells;
 #endif
 
@@ -138,7 +140,7 @@ void ACCUMULATE(
              * tracing down */
             if (DIR(row, col) && !UP(row, col)
 #ifdef USE_WEIGHT
-                && !IS_WEIGHT_NULL(&WEIGHT(row, col))
+                && !IS_WEIGHT_NULL(row, col)
 #endif
             )
                 trace_down(dir_map,
