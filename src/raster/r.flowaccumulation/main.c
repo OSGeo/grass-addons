@@ -289,19 +289,23 @@ int main(int argc, char *argv[])
     accum_map->nrows = nrows;
     accum_map->ncols = ncols;
 
-    if (weight_map) {
+    if (strcmp(type, "CELL") == 0)
+        accum_map->type = CELL_TYPE;
+    else if (strcmp(type, "FCELL") == 0)
+        accum_map->type = FCELL_TYPE;
+    else
+        accum_map->type = DCELL_TYPE;
+
+    /* promote accum_map type as necessary and print a warning */
+    if (weight_map && accum_map->type != DCELL_TYPE &&
+        accum_map->type != weight_map->type &&
+        (accum_map->type == CELL_TYPE || weight_map->type == DCELL_TYPE)) {
         accum_map->type = weight_map->type;
-        accum_map->cell_size = weight_map->cell_size;
+        G_warning(_("Accumulation type promoted to %s"),
+                  weight_map->type == FCELL_TYPE ? "FCELL" : "DCELL");
     }
-    else {
-        if (strcmp(type, "CELL") == 0)
-            accum_map->type = CELL_TYPE;
-        else if (strcmp(type, "FCELL") == 0)
-            accum_map->type = FCELL_TYPE;
-        else
-            accum_map->type = DCELL_TYPE;
-        accum_map->cell_size = Rast_cell_size(accum_map->type);
-    }
+
+    accum_map->cell_size = Rast_cell_size(accum_map->type);
 
     if (use_zero)
         accum_map->cells.v =
