@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
     flag.leave_zero->label =
         _("Initialize to and leave zero instead of nullifying it");
 
-    G_option_excludes(opt.weight, opt.type, flag.check_overflow, flag.use_zero,
+    G_option_excludes(opt.weight, flag.check_overflow, flag.use_zero,
                       flag.leave_zero, NULL);
     G_option_exclusive(flag.use_zero, flag.leave_zero, NULL);
 
