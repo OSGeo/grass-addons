@@ -507,6 +507,7 @@ int main(int argc, char *argv[])
 
                 dir_buf.c[row][col] = dir >= NE && dir <= E ? dir : 0;
             }
+            break;
         }
     }
     G_percent(1, 1, 1);
