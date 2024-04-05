@@ -225,20 +225,22 @@ int main(int argc, char *argv[])
     for (row = 0; row < nrows; row++) {
         G_percent(row, nrows, 1);
         Rast_get_c_row(dir_fd, dir_buf, row);
-        if (dir_format == DIR_DEG) {
+        switch (dir_format) {
+        case DIR_DEG:
             for (col = 0; col < ncols; col++)
                 if (!Rast_is_c_null_value(&dir_buf[col]))
                     DIR(row, col) = pow(2, abs(dir_buf[col] / 45.));
-        }
-        else if (dir_format == DIR_DEG45) {
+            break;
+        case DIR_DEG45:
             for (col = 0; col < ncols; col++)
                 if (!Rast_is_c_null_value(&dir_buf[col]))
                     DIR(row, col) = pow(2, 8 - abs(dir_buf[col]));
-        }
-        else {
+            break;
+        default:
             for (col = 0; col < ncols; col++)
                 if (!Rast_is_c_null_value(&dir_buf[col]))
                     DIR(row, col) = abs(dir_buf[col]);
+            break;
         }
     }
     G_percent(1, 1, 1);
