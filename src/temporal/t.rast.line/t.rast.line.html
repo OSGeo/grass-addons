@@ -1,201 +1,213 @@
 <h2>DESCRIPTION</h2>
 
-<em>t.rast.boxplot</em> draws boxplots of the raster in a space-time
-raster data set (strds). The module can be used to display changes over
-time, and how this varies within a area. It will plot all rasters in
-a strds. To display a subset of a strds, the user first needs to create
-a new strds with the required subset of raster layers. It will
-furthermore, plot the boxplots using the <i>temporal granularity</i> of
-the strds.
+<em>t.rast.line</em> draws trend lines of the average values of the 
+input raster layers in a space-time raster database (strd). The trend 
+line represents the average values of the whole computational region. 
+The user can optionally opt to show an error bar for each trend line 
+using the <b>error</b> option. The error bar can be based on the 
+standard deviation (SD) or standard error (SE). The user can multiply 
+the SD or SE to increase or decrease the width of the error band using 
+the <b>n</b> option. 
 
 <p>
-The whiskers of the boxplots extend to the most extreme data point,
-which is no more than <i>range</i> &#10005; the interquartile range
-(iqr) from the box. By default, a <i>range</i> of 1.5 is used, but the
-user can change this. Note that range values need to be larger than 0.
+If a zonal raster map is provided, using the <b>zones</b> option, trend 
+lines are plotted for each zone (category) in the zonal raster layer. 
+The zonal raster should be a single, static integer raster map. 
 
 <p>
-There are a few plot format/layout options, including the option to
-rotate the plot and the x-axis labels, print the boxplot(s) with
-notches, and to include the outliers (by default, they are not
-included). You can also set the limits of the y-axis (or the x-axis if
-the -h flag is set). This makes it easier to compare the boxplots of
-two time-series of, e.g., two different areas.
+The function will plot all rasters in strds. Alternatively, the user 
+can select a subset of the raster layers using the WHERE conditions.
 
 <p>
-There are various option to format the boxplots, e.g., setting the
-width and color of the boxplots, the color and thickness of the median
-line(s), whisker line width, and flier marker type and color.
+By default, the resulting plot is displayed on screen. However, the 
+user can also save the plot to file using the <b>output</b> option. The 
+format is determined by the extension given by the user. So, if output 
+= outputfile.png, the plot will be saved as a *png* file. The user can 
+set the output size (in inches) and resolution (dpi) of the output 
+image.
 
 <p>
-The default format of the date-time labels on the x-axis (or y-axis in
-case the boxplots are plotted horizontally) depend on the temporal
-granularity of the data. This can be changed by the user. For a list of
-options, see the <a href="https://strftime.org/">Python strftime
-cheatsheet</a>.
+There are a few plot format and layout options, including the option to 
+plot grid lines and the legend, rotate the labels, change the font size 
+of the labels, and change the date format.
 
 <p>
-Alternatively, the user can set the <i>-d flag</i>. With this option,
-an attempt is made to figure out the best tick locations and format to
-use, and to make the format as compact as possible while still having
-complete date information. Note, this will override the
-<i>data_format</i> setting. With this option, often not all boxplots
-will get a label.
+If a zonal map is provided, the lines will take the colors of the 
+categories on that map. If the zonal map does not have a color table, 
+the lines will be assigned random colors.
 
 <p>
-By default, the resulting plot is displayed on screen. However, the
-user can also save the plot to file using the <em>output</em> option.
-The format is determined by the extension given by the user. So, if
-output = outputfile.png, the plot will be saved as a *png* file. The
-user can set the output size (in inches) and resolution (dpi) of the
-output image.
+The default format of the date-time labels on the x-axis depend on the 
+temporal granularity of the data. This can be changed by the user using 
+the <b>date_format</b> option. For a list of options, see the <a 
+href="https://strftime.org/">Python strftime cheatsheet</a>.
 
 <h2>NOTE</h2>
 
-If you work with a large number of raster layers, of if the raster
-layers are very large, try to avoid setting the 'range' value very low,
-as that may result in a massive number of outliers, slowing down the
-computations and rendering of the plot.
+The user can specify the number of threads to be used with the nprocs 
+parameter. However, note that parallelization does not work when the 
+MASK is set. If speed is an issue, it is recommended to create a new 
+zonal layer using, e.g., <em>r.mapcalc</em>, remove the MASK and use 
+the newly created zonal layer.
 
 <p>
-The t.rast.boxplot module operates on the raster array defined by the
-current region settings, not the original extent and resolution of the
-input map. See <a
-href="https://grass.osgeo.org/grass-stable/manuals/r.univar.html">g.region</a>
+The t.rast.line module operates on the raster array defined by the 
+current region settings, not the original extent and resolution of the 
+input map. See <a 
+href="https://grass.osgeo.org/grass-stable/manuals/r.univar.html">g.region</a> 
 to understand the impact of the region settings on the calculations.
-
-<p>
-You can change the width of the boxplot using the <i>bx_width</i>
-parameter. The default value is 0.75, which means that the boxplots
-0.75 the maximum width between two consecutive periods. Importantly,
-the function uses the time stamp unit (see
-<a href="https://grass.osgeo.org/grass-stable/manuals/t.register.html">
-t.register</a>) to determine the maximum width. This means that if
-the time stamp unit is in days, but the raster layers represent e.g.,
-10-day periods, you need to multiply the <i>bx_width</i> value you would
-normally use by 10 to get the same relative width. See
-<a href="https://ecodiv.earth/post/drawing-boxplots-of-raster-values/">
-this post</a> for an example.
 
 <h2>EXAMPLE</h2>
 
-The first two examples use the MODIS Land Surface Temperature mapset.
-First download the North Caroline sample data set from <a
-href="https://grass.osgeo.org/download/data/#NorthCarolinaDataset">this
-link</a>. Unzip the sample GRASS GIS dataset to a convenient location
-on your computer. Next, download the MODIS mapset (<a
-href="https://grass.osgeo.org/grass82/manuals/temporalintro.html">link</a>)
-and unzip this in the NC location of the NC database. Now, open the
-mapset in GRASS GIS.
+The next two examples use the North Carolina sample data (NC) and North 
+Carolina Climate 2000-2012 data sets, which can be downloaded from (<a 
+href="https://grass.osgeo.org/download/data/#NorthCarolinaDataset">this 
+download page</a>).
+
+<p>
+First step is to create temporal datasets <i>tempmean</i> and 
+<i>precip_sum</i> for respectively the rainfall and temperature time 
+series, as described in <a 
+href="http://ncsu-geoforall-lab.github.io/grass-temporal-workshop">this 
+tutorial</a>. These will serve as input for the examples below. The 
+<i>landclass_96</i> raster layer in the PERMANENT mapset of the NC 
+project (location) will be used as zonal map.
 
 <h3>Example 1</h3>
 
-Plot the time series, using the default settings, except that we set
-the dimension of the plot to 12 inch (ca. 30 cm) wide and 8 inch (ca.
-20 cm) height, and a dpi of 200
+Plot the tempmean time series. Note that you can speed up the process 
+considerably by making use of the cores and threads of your computer. 
+You can set the number of threads to be used with the <b>nprocs</b> 
+option. 
 
 <p>
 <div class="code"><pre>
-g.region raster=landclass96
-t.rast.boxplot input=LST_Day_monthly@modis_lst \
-plot_dimensions=12,8 dpi=200
+g.region raster=2000_01_tempmean@climate_2000_2012
+t.rast.line input=tempmean@climate_2000_2012 nprocs=10
 </pre></div>
 
 <p>
 <div align="center" style="margin: 10px">
-<img src="t_rast_boxplot_01.png">
+<img src="t_rast_line_01.png">
 </div>
 
 <h3>Example 2</h3>
 
-We use the same example as above, but this time, we change the color of
-the boxplots and median lines to respectively green
-(<i>bx_color=green</i>) and white (<i>median_color=white</i>), use the
-default plot dimensions, set the font size to 8, and include the
-outliers (<i>-o flag</i>). Note that by plotting the outliers will
-increase the time required to create the plot considerably.
-
-<p>
-For the outliers (fliers) we use orange squares (<i>flier_marker=s</i>
-& <i>flier_color=orange</i>). We furthermore plot the boxplots
-horizontally (<i>-h flag</i>) and add grid lines (<i>-g flag</i>. Note
-that for horizontal plots, the labels are plotted horizontally (equal
-to rotate_labels=0) by default.
+Plot the rainfall time series. Set the color of the line to green, and 
+choose the option to plot an error band based on the <i>standard 
+deviation</i> using the <b>error</b> option.
 
 <p>
 <div class="code"><pre>
-t.rast.boxplot -o -h -g  input=LST_Day_monthly@modis_lst \
-bx_color=green median_color=white median_lw=0.8 bx_lw=0.8 \
-flier_color=orange flier_size=1 flier_marker=s font_size=8
+t.rast.line input=precip_sum@climate_2000_2012 \
+    error=sd line_color=0:128:0:255 nprocs=10
 </pre></div>
 
 <p>
-See <a
-href="https://matplotlib.org/stable/tutorials/colors/colors.html">here</a>
-for the different formats in which colors can be specified.
-
-<p>
 <div align="center" style="margin: 10px">
-<img src="t_rast_boxplot_02.png">
+<img src="t_rast_line_02.png">
 </div>
 
 <h3>Example 3</h3>
 
-In the following example, the date labels are changed, showing the
-abbreviated name of the month, followed by the year (<i>date_format="%B
-%Y"</i>). The boxplot colors are set to white, and for the median line
-we set the color to orange and the line width to 2. Lastly, the labels
-are rotated 90&#8451; (the default for vertical plots is
-rotate_labels=45).
+Now, compare the temporal rainfall patterns in the inland Avery County 
+and Brunswick County on the coast. Set the flag <b>-l</b> to include a 
+legend. 
 
 <p>
 <div class="code"><pre>
-t.rast.boxplot input=LST_Day_monthly@modis_lst rotate_labels=90 \
-date_format="%B %Y" bx_color=white median_lw=2 median_color=red \
-font_size=9
+# Create a zonal map
+echo "11 = 1 Avery
+19 = 2 Brunswick
+* = NULL" > recl.txt
+
+r.reclass input=boundary_county_500m@PERMANENT \
+    output=comparison_counties rules=recl.txt --overwrite
+
+t.rast.line -l input=tempmean@climate_2000_2012 \
+    zones=comparison_counties error=sd nprocs=10
 </pre></div>
 
 <p>
+	
+<p>
 <div align="center" style="margin: 10px">
-<img src="t_rast_boxplot_03.png">
+<img src="t_rast_line_03.png">
 </div>
+
+<p>
+Because the zonal map does not have a color table, the lines have a 
+random color. 
 
 <h3>Example 4</h3>
 
-If we want to plot 3-monthly patterns instead, we first need to create
-a new strds. In the example below, the function
-<em>t.rast.aggregate</em> is used to aggregate the LST_Day_monthly to a
-3 month granularity.
+If you want the colors of the trend lines to match the color of the 
+zonal categories, make sure to define the category colors. 
 
 <p>
 <div class="code"><pre>
-t.rast.aggregate input=LST_Day_monthly@modis_lst output=LST_Day_3monthly \
-basename=LST_3monthly granularity="3 months" method=average
+# Define colors
+echo "1 purple
+2 green"> color_rules.txt
+r.colors map=comparison_counties rules=color_rules.txt
+
+# Create the plot
+
+t.rast.line -l -g input=tempmean@climate_2000_2012 \
+    zones=comparison_counties error=sd nprocs=10
 </pre></div>
 
 <p>
-Now, we can plot the 3-monthly temporal pattern using the newly created
-strds as input.
-
-<p>
-<div class="code"><pre>
-t.rast.boxplot input=LST_Day_3monthly@modis_lst
-</pre></div>
-
-<p>
-As you can see below, the plot plots the boxplots using the 3-month
-granularity of the input strds.
+Whether this was the right color choice is debatable, but, the colors 
+of the graph match those of the zones of the map. Note that with the 
+<b>-g</b>, vertical grid lines are drawn.
 
 <p>
 <div align="center" style="margin: 10px">
-<img src="t_rast_boxplot_04.png">
+<img src="t_rast_line_04c.png">
+</div>
+
+<h3>Example 5</h3>
+
+You can zoom in on a specific period using the <b>where</b> option. For example, to plot the trend line for the time period 01-01-2004 to 01-01-2010, you can use the following:
+
+<p>
+<div class="code"><pre>
+t.rast.line -l -g input=tempmean@climate_2000_2012 \
+    zones=comparison_counties error=sd nprocs=10 \
+    where="start_time > '2004-01-01' AND start_time < '2010-01-01'"
+</pre></div>
+
+<p>
+<div align="center" style="margin: 10px">
+<img src="t_rast_line_05.png">
+</div>
+
+<h3>Example 6</h3>
+
+If you want to create and compare two plots, it might be useful to 
+force both to use a specific scale by using the <b>y_axis_limits</b> 
+parameter and the same y-axis label by using the <b>y_label</b> 
+parameter.
+
+<p>
+<div class="code"><pre>
+t.rast.line -l -g input=tempmean@climate_2000_2012 \
+    zones=comparison_counties error=sd nprocs=10 \
+    y_axis_limits=-10,40 y_label="mean temperature"
+    
+</pre></div>
+
+<p>
+<div align="center" style="margin: 10px">
+<img src="t_rast_line_06.png">
 </div>
 
 <h2>Acknowledgements</h2>
 
-This work was carried in the framework of the <a
-href="https://savethetiger.nl/" target="_blank">Save the tiger, save
-the grassland, save the water</a> project by the <a
+This work was carried out within the framework of the <a
+href="https://savethetiger.nl/" target="_blank">Save the Tiger, Save
+the Grassland, Save the Water</a> project by the <a
 href="https://www.has.nl/en/has-research/research-groups/innovative-bio-monitoring-research-group"
 target="_blank">Innovative Bio-Monitoring research group</a> of the HAS
 University of Applied Sciences.
@@ -203,16 +215,16 @@ University of Applied Sciences.
 <h2>SEE ALSO</h2>
 
 <em>
+<a href="https://grass.osgeo.org/grass-stable/manuals/addons/t.rast.boxplot.html">r.boxplot.html</a>,
 <a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.boxplot.html">r.boxplot.html</a>,
 <a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.series.boxplot.html">r.series.boxplot.html</a>,
 <a href="https://grass.osgeo.org/grass-stable/manuals/addons/d.vect.colbp.html">d.vect.colbp</a>,
 <a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.scatterplot.html">r.scatterplot</a>,
 <a href="https://grass.osgeo.org/grass-stable/manuals/r.stats.zonal.html">r.stats.zonal</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/t.rast.aggregate.html">t.rast.aggregate</a>
 </em>
 
 <h2>AUTHOR</h2>
 
 Paulo van Breugel<br> Applied Geo-information Sciences<br> <a
-href="https://www.hasuniversity.nl/">HAS University of Applied
+href="https://www.has.nl/">HAS green academy, University of Applied
 Sciences</a><br>

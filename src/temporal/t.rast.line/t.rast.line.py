@@ -1,12 +1,13 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 ############################################################################
 #
 # MODULE:       t.rast.line
 # AUTHOR:       Paulo van Breugel
-# PURPOSE:      Draws a line diagram with lines showing the average values
-#               for categories in a user-defined category layer over time.
-#               based on the raster layers in a space time raster database.
+# PURPOSE:      Draws trend lines based on the raster layers in a space time
+#               raster database, showing for each time step the average value
+#               of the raster values. If a zonal map is set, trendlines are
+#               drawn for each of the zones of the zonal layer.
 #
 # COPYRIGHT:    (c) 2024 Paulo van Breugel, and the GRASS Development Team
 #               This program is free software under the GNU General Public
@@ -61,6 +62,15 @@
 # %end
 
 # %option
+# % key: plot_dimensions
+# % type: string
+# % label: Plot dimensions (width,height)
+# % description: Dimensions (width,height) of the figure in inches.
+# % required: no
+# % guisection: Output
+# %end
+
+# %option
 # % key: error
 # % type: string
 # % label: error bar
@@ -79,20 +89,19 @@
 # %end
 
 # %option
-# % key: plot_dimensions
-# % type: string
-# % label: Plot dimensions (width,height)
-# % description: Dimensions (width,height) of the figure in inches.
-# % required: no
+# % key: rotate_labels
+# % type: double
+# % options: -90-90
+# % label: Rotate labels x-axis
+# % description: Rotate labels (degrees).
 # % guisection: Plot format
 # %end
 
 # %option
-# % key: rotate_labels
-# % type: double
-# % options: -90-90
-# % label: Rotate labels
-# % description: Rotate labels (degrees).
+# % key: y_label
+# % type: string
+# % label: y-axis label
+# % description: Define the title on the y-axis
 # % guisection: Plot format
 # %end
 
@@ -144,10 +153,10 @@
 # %end
 
 # %option
-# % key: axis_limits
+# % key: y_axis_limits
 # % type: string
-# % label: limit value axis
-# % description: min and max value of y-axis, or x-axis if -h flag is set).
+# % label: Set value range y-axis
+# % description: Set the min and max value of y-axis.
 # % guisection: Plot format
 # % required: no
 # %end
@@ -192,12 +201,23 @@
 # % answer: 1
 # %end
 
+import os
 import sys
 from datetime import datetime
-from dateutil import parser
 import grass.script as gs
 from math import sqrt
 import matplotlib.dates as mdates
+from random import random
+
+
+clean_layers = []
+
+
+def create_temporary_name(prefix):
+    """Create temporary file name"""
+    tmpf = gs.append_node_pid("tmp_")
+    clean_layers.append(tmpf)
+    return tmpf
 
 
 def lazy_import_py_modules():
@@ -229,6 +249,18 @@ def get_valid_color(color):
     return color
 
 
+def generate_random_color():
+    """Get random colors
+
+    :return str: list with rgb color
+    """
+
+    red = random()
+    green = random()
+    blue = random()
+    return (red, green, blue)
+
+
 def get_rast_name_dates(rasters, col_sep):
     """Create list of names, dates and temporal type
     of raster layers in input strds
@@ -249,21 +281,32 @@ def get_rast_name_dates(rasters, col_sep):
 
 
 def check_integer(name):
-    """Check if map values are integer
+    """Check if map values are integer and not a reclass.
+    if not an integer, the module will fail with message.
+    In addition, if the map type is 'reclass', a new layer
+    is created based on this reclass.
 
     :param str name: name zonal map
 
-    :return str: no return if map is of type integer, otherwise error message
+    :return str: return the name of the zonal layer
     """
     input_info = gs.raster_info(name)
     if input_info["datatype"] != "CELL":
         gs.fatal(_("The zonal raster must be of type CELL (integer)"))
+    if input_info["maptype"] == "reclass":
+        tmp_name = create_temporary_name("zonal_")
+        gs.mapcalc(f"{tmp_name} = {name}", quiet=True)
+        gs.run_command("r.colors", map=tmp_name, raster=name, quiet=True)
+        gs.run_command("r.category", map=tmp_name, raster=name, quiet=True)
+        name = tmp_name
+    return name
 
 
 def get_categories(coverlayer, zone_cats):
     """Get list of categories and IDs of cover layer
 
     :param str zones: name of zonal layer
+    :param str zone_cats: list with categories.
 
     :return list: Nested list with list of zonal categories and list with labels of categories
     """
@@ -464,7 +507,18 @@ def get_raster_colors(coverlayer, cats_ids):
     cz = gs.read_command("r.colors.out", map=coverlayer).split("\n")
     cz = [_f for _f in cz if _f]
     cz = [x.split(" ") for x in cz]
-    cz = [get_valid_color(x[1]) for x in cz if x[0] in str(cats_ids)]
+    cz = [x for x in cz if x[0] != "nv" and x[0] != "default"]
+    if len(cz) == len(cats_ids):
+        cz = [get_valid_color(x[1]) for x in cz if x[0] in str(cats_ids)]
+    else:
+        cz = [generate_random_color() for x, _ in enumerate(cats_ids)]
+        gs.message(
+            _(
+                "The zonal map does not seem to have a color table. "
+                "Assigned random colors to the categories of the zonal map. "
+                "Tip: use the legend option to set the legend."
+            )
+        )
     return cz
 
 
@@ -477,32 +531,39 @@ def main(options, flags):
     # lazy import matplotlib
     lazy_import_py_modules()
 
+    if options["zones"]:
+        zonal_layer = check_integer(options["zones"])
+    else:
+        zonal_layer = options["zones"]
+
     # Get strds type
+    gs.message("Getting the strds metadata...")
     t_info = gs.parse_command("t.info", flags="g", input=options["input"])
     temp_type = t_info["temporal_type"]
 
     # Get stats
+    gs.message("Getting the statistics. This may take a while...")
     if options["n"]:
         n = float(options["n"])
     else:
         n = 1
     x, y_mean, y_ul, y_ll, zone_ids = line_stats(
         strds=options["input"],
-        coverlayer=options["zones"],
+        coverlayer=zonal_layer,
         error=options["error"],
         n=n,
         threads=int(options["nprocs"]),
         temp_type=temp_type,
         where=options["where"],
     )
+    gs.message("Creating the graph...")
 
     # Get IDs and colors of the categories of the zonal layer
     if options["zones"]:
-        check_integer(options["zones"])
         cats_ids, cats_names = get_categories(
-            coverlayer=options["zones"], zone_cats=zone_ids
+            coverlayer=zonal_layer, zone_cats=zone_ids
         )
-        line_colors = get_raster_colors(options["zones"], cats_ids)
+        line_colors = get_raster_colors(zonal_layer, zone_ids)
     else:
         line_colors = get_valid_color(options["line_color"])
         cats_ids = ""
@@ -551,6 +612,12 @@ def main(options, flags):
                 x, y_ll[0], y_ul[0], color=line_colors, alpha=float(options["alpha"])
             )
 
+    # Set y-axis label
+    if options["y_label"]:
+        plt.ylabel(options["y_label"])
+    else:
+        plt.ylabel(t_info["name"])
+
     # Set granularity and format of date on x axis
     if temp_type == "absolute":
         if not options["date_interval"]:
@@ -578,12 +645,13 @@ def main(options, flags):
             plt.xticks(rotation=rotate_labels, ha="right", rotation_mode="anchor")
 
     # Set limits value axis
-    if bool(options["axis_limits"]):
-        minlim, maxlim = map(float, options["axis_limits"].split(","))
+    if bool(options["y_axis_limits"]):
+        minlim, maxlim = map(float, options["y_axis_limits"].split(","))
         plt.ylim([minlim, maxlim])
 
     # Set grid (optional)
-    ax.xaxis.grid(bool(grid), linewidth=line_width / 2, alpha=0.5)
+    if bool(grid):
+        ax.xaxis.grid(linewidth=line_width / 2, alpha=0.5)
 
     # Add legend
     if flags["l"] and options["zones"]:
@@ -593,6 +661,8 @@ def main(options, flags):
     if output:
         plt.savefig(output, bbox_inches="tight", dpi=dpi)
         plt.close()
+        path_name = os.path.split(output)
+        gs.message(f"Done, you can find the file {path_name[1]} in {path_name[0]}")
     else:
         plt.tight_layout()
         plt.show()
