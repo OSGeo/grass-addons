@@ -43,10 +43,15 @@ slower with additional zero-comparison operations. The <b>-Z</b> flag is
 similar to the <b>-z</b> flag, but zero cells are not nullified and are saved
 in the output map.
 
-<p>Weighted flow accumulation can be computed using a <b>weight</b> raster map.
-When this option is given, its raster type is used for flow accumulation, and
-the <b>type</b> option, <b>-o</b>, <b>-z</b>, and <b>-Z</b> flags cannot be
-specified.
+<p>Weighted flow accumulation can be computed using the <b>weight</b> option.
+When this option is given, the data type for flow accumulation is automatically
+promoted to that of the weight map if the <b>type</b> option is not explicitly
+given, but one can choose to use a different data type if needed (e.g., FCELL
+for CELL weights, DCELL for FCELL weights). However, CELL cannot be used for
+FCELL or DCELL weighting to maintain floating-point precision. Similarly, FCELL
+cannot be used for DCELL weighting. The data type will be promoted in these
+cases, ignoring the user request. The <b>-o</b>, <b>-z</b>, and <b>-Z</b> flags
+cannot be used with the <b>weight</b> option.
 
 <h2>EXAMPLES</h2>
 
