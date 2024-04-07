@@ -56,7 +56,7 @@
 # % key: dpi
 # % type: integer
 # % label: DPI
-# % description: Resolution of plot.
+# % description: Plot resolution in DPI.
 # % required: no
 # % guisection: Output
 # %end
