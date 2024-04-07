@@ -1,9 +1,9 @@
 <h2>DESCRIPTION</h2>
 
 <em>t.rast.line</em> draws trend lines of the average values of the 
-input raster layers in a space-time raster database (strd). The trend 
-line represents the average values of the whole computational region. 
-The user can optionally opt to show an error bar for each trend line 
+input raster layers in a space-time raster dataset (strds). The trend 
+line represents the average values of the current computational region. 
+The user can optionally show an error bar for each trend line 
 using the <b>error</b> option. The error bar can be based on the 
 standard deviation (SD) or standard error (SE). The user can multiply 
 the SD or SE to increase or decrease the width of the error band using 
@@ -19,12 +19,11 @@ The function will plot all rasters in strds. Alternatively, the user
 can select a subset of the raster layers using the WHERE conditions.
 
 <p>
-By default, the resulting plot is displayed on screen. However, the 
-user can also save the plot to file using the <b>output</b> option. The 
+By default, the resulting plot is displayed on a new screen. However, the 
+user can also save the plot to a file using the <b>output</b> option. The 
 format is determined by the extension given by the user. So, if output 
 = outputfile.png, the plot will be saved as a *png* file. The user can 
-set the output size (in inches) and resolution (dpi) of the output 
-image.
+set the output size (in inches) and resolution (dpi).
 
 <p>
 There are a few plot format and layout options, including the option to 
@@ -44,7 +43,7 @@ href="https://strftime.org/">Python strftime cheatsheet</a>.
 
 <h2>NOTE</h2>
 
-The user can specify the number of threads to be used with the nprocs 
+The user can specify the number of threads to be used with the <b>nprocs</b> 
 parameter. However, note that parallelization does not work when the 
 MASK is set. If speed is an issue, it is recommended to create a new 
 zonal layer using, e.g., <em>r.mapcalc</em>, remove the MASK and use 
@@ -59,15 +58,15 @@ to understand the impact of the region settings on the calculations.
 
 <h2>EXAMPLE</h2>
 
-The next two examples use the North Carolina sample data (NC) and North 
+The next two examples use the North Carolina full (NC) and North 
 Carolina Climate 2000-2012 data sets, which can be downloaded from (<a 
 href="https://grass.osgeo.org/download/data/#NorthCarolinaDataset">this 
 download page</a>).
 
 <p>
 First step is to create temporal datasets <i>tempmean</i> and 
-<i>precip_sum</i> for respectively the rainfall and temperature time 
-series, as described in <a 
+<i>precip_sum</i> for the rainfall and temperature time 
+series respectively, as described in <a 
 href="http://ncsu-geoforall-lab.github.io/grass-temporal-workshop">this 
 tutorial</a>. These will serve as input for the examples below. The 
 <i>landclass_96</i> raster layer in the PERMANENT mapset of the NC 
@@ -82,8 +81,8 @@ option.
 
 <p>
 <div class="code"><pre>
-g.region raster=2000_01_tempmean@climate_2000_2012
-t.rast.line input=tempmean@climate_2000_2012 nprocs=10
+g.region raster=2000_01_tempmean
+t.rast.line input=tempmean nprocs=10
 </pre></div>
 
 <p>
@@ -99,8 +98,7 @@ deviation</i> using the <b>error</b> option.
 
 <p>
 <div class="code"><pre>
-t.rast.line input=precip_sum@climate_2000_2012 \
-    error=sd line_color=0:128:0:255 nprocs=10
+t.rast.line input=precip_sum error=sd line_color=0:128:0:255 nprocs=10
 </pre></div>
 
 <p>
@@ -121,11 +119,9 @@ echo "11 = 1 Avery
 19 = 2 Brunswick
 * = NULL" > recl.txt
 
-r.reclass input=boundary_county_500m@PERMANENT \
-    output=comparison_counties rules=recl.txt --overwrite
+r.reclass input=boundary_county_500m output=comparison_counties rules=recl.txt
 
-t.rast.line -l input=tempmean@climate_2000_2012 \
-    zones=comparison_counties error=sd nprocs=10
+t.rast.line -l input=tempmean zones=comparison_counties error=sd nprocs=10
 </pre></div>
 
 <p>
@@ -153,8 +149,7 @@ r.colors map=comparison_counties rules=color_rules.txt
 
 # Create the plot
 
-t.rast.line -l -g input=tempmean@climate_2000_2012 \
-    zones=comparison_counties error=sd nprocs=10
+t.rast.line -l -g input=tempmean zones=comparison_counties error=sd nprocs=10
 </pre></div>
 
 <p>
@@ -169,12 +164,13 @@ of the graph match those of the zones of the map. Note that with the
 
 <h3>Example 5</h3>
 
-You can zoom in on a specific period using the <b>where</b> option. For example, to plot the trend line for the time period 01-01-2004 to 01-01-2010, you can use the following:
+You can zoom in on a specific period using the <b>where</b> option. 
+For example, to plot the trend line for the time period 01-01-2004 to 
+01-01-2010, you can use the following:
 
 <p>
 <div class="code"><pre>
-t.rast.line -l -g input=tempmean@climate_2000_2012 \
-    zones=comparison_counties error=sd nprocs=10 \
+t.rast.line -l -g input=tempmean zones=comparison_counties error=sd nprocs=10 \
     where="start_time > '2004-01-01' AND start_time < '2010-01-01'"
 </pre></div>
 
@@ -192,10 +188,9 @@ parameter.
 
 <p>
 <div class="code"><pre>
-t.rast.line -l -g input=tempmean@climate_2000_2012 \
+t.rast.line -l -g input=tempmean \
     zones=comparison_counties error=sd nprocs=10 \
     y_axis_limits=-10,40 y_label="mean temperature"
-    
 </pre></div>
 
 <p>
