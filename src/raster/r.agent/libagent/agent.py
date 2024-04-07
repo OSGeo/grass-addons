@@ -8,6 +8,7 @@ COPYRIGHT:    (C) 2015 by Michael Lustenberger and the GRASS Development Team
               License (>=v2). Read the file COPYING that comes with GRASS
               for details.
 """
+
 # from random import choice, randint
 from random import randint
 
