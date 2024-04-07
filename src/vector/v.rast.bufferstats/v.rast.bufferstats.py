@@ -708,9 +708,11 @@ def main():
                                 updates.append(
                                     "\t{}_{} = {}".format(
                                         prefix,
-                                        vals[-2].strip()
-                                        if valid_labels[rm]
-                                        else vals[0].strip(),
+                                        (
+                                            vals[-2].strip()
+                                            if valid_labels[rm]
+                                            else vals[0].strip()
+                                        ),
                                         vals[-1].strip().rstrip("%"),
                                     )
                                 )
@@ -795,15 +797,17 @@ def main():
                             updates.append(
                                 "\t{}_{}".format(
                                     prefix,
-                                    u_stats[int_dict[m][0]]
-                                    if is_number(
-                                        u_stats[int_dict[m][0]].split(" = ")[1]
-                                    )
-                                    else " = ".join(
-                                        [
-                                            u_stats[int_dict[m][0]].split(" = ")[0],
-                                            "NULL",
-                                        ]
+                                    (
+                                        u_stats[int_dict[m][0]]
+                                        if is_number(
+                                            u_stats[int_dict[m][0]].split(" = ")[1]
+                                        )
+                                        else " = ".join(
+                                            [
+                                                u_stats[int_dict[m][0]].split(" = ")[0],
+                                                "NULL",
+                                            ]
+                                        )
                                     ),
                                 )
                             )

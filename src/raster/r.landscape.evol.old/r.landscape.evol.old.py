@@ -287,6 +287,7 @@ grass_install_tree = os.getenv("GISBASE")
 sys.path.append(grass_install_tree + os.sep + "etc" + os.sep + "python")
 import grass.script as grass
 
+
 # Now define  "main",  our main block of code, here defined because of the way g.parser needs to be called with python codes for grass (see below)
 # m = last iteration number, o = iteration number, p = prefx, q = statsout, r = resolution of input elev map, s = master list of lists of climate data
 def main(m, o, p, q, r, s):

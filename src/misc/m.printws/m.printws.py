@@ -646,7 +646,7 @@ def main():
             )
 
     textmacros = {}
-    #%nam% macros are kept for backward compatibility
+    # %nam% macros are kept for backward compatibility
     textmacros["%TIME24%"] = time.strftime("%H:%M:%S")
     textmacros["%DATEYMD%"] = time.strftime("%Y.%m.%d")
     textmacros["%DATEMDY%"] = time.strftime("%m/%d/%Y")

@@ -278,9 +278,7 @@ def add_columns(vector, cols):
 def diam_pen(discharge, length, gross_head, percentage, epsilon=0.015):
     def diam(x, *args):
         q, l, h, p, e = args
-        return sqrt(
-            (100 * 8 * l * q**2) / (p * h * pi**2 * 9.81 * x**5)
-        ) + 2 * log10(
+        return sqrt((100 * 8 * l * q**2) / (p * h * pi**2 * 9.81 * x**5)) + 2 * log10(
             (e * 0.001) / (3.71 * x)
             + (2.51 * 0.000001 * pi)
             / (4 * q * l)
@@ -339,9 +337,7 @@ def losses_Colebrooke(discharge, length, diameter, epsilon=0.015):
 
     out = fsolve(coeff_f, 0, args=(discharge, diameter, epsilon))
     f = 1 / out**2
-    h_colebrooke = (f[0] * 8 * length * discharge**2) / (
-        pi**2 * diameter**5 * 9.81
-    )
+    h_colebrooke = (f[0] * 8 * length * discharge**2) / (pi**2 * diameter**5 * 9.81)
     return h_colebrooke
 
 
