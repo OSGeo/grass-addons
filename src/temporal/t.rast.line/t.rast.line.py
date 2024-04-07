@@ -201,6 +201,7 @@
 # % answer: 1
 # %end
 
+import atexit
 import os
 import sys
 from datetime import datetime
@@ -218,6 +219,26 @@ def create_temporary_name(prefix):
     tmpf = gs.append_node_pid("tmp_")
     clean_layers.append(tmpf)
     return tmpf
+
+
+def cleanup():
+    """Remove temporary maps specified in the global list"""
+    maps = reversed(clean_layers)
+    mapset = gs.gisenv()["MAPSET"]
+    for map_name in maps:
+        found = gs.find_file(
+            name=map_name,
+            element="raster",
+            mapset=mapset,
+        )
+        if found["file"]:
+            gs.run_command(
+                "g.remove",
+                flags="f",
+                type="raster",
+                name=map_name,
+                quiet=True,
+            )
 
 
 def lazy_import_py_modules():
@@ -508,15 +529,14 @@ def get_raster_colors(coverlayer, cats_ids):
     cz = [_f for _f in cz if _f]
     cz = [x.split(" ") for x in cz]
     cz = [x for x in cz if x[0] != "nv" and x[0] != "default"]
-    if len(cz) == len(cats_ids):
-        cz = [get_valid_color(x[1]) for x in cz if x[0] in str(cats_ids)]
-    else:
+    cz = [get_valid_color(x[1]) for x in cz if x[0] in str(cats_ids)]
+    if len(cz) != len(cats_ids):
         cz = [generate_random_color() for x, _ in enumerate(cats_ids)]
         gs.message(
             _(
-                "The zonal map does not seem to have a color table. "
-                "Assigned random colors to the categories of the zonal map. "
-                "Tip: use the legend option to set the legend."
+                "The zonal map does not seem to have a color table."
+                "Assigned random colors to the categories of the zonal"
+                "map. Tip: use the legend option to set the legend."
             )
         )
     return cz
@@ -532,13 +552,19 @@ def main(options, flags):
     lazy_import_py_modules()
 
     if options["zones"]:
+        ffile = gs.find_file(options["zones"], element="cell")
+        if not ffile["fullname"]:
+            gs.fatal("The layer {} does not exist".format(options["zones"]))
         zonal_layer = check_integer(options["zones"])
     else:
         zonal_layer = options["zones"]
 
     # Get strds type
     gs.message("Getting the strds metadata...")
-    t_info = gs.parse_command("t.info", flags="g", input=options["input"])
+    try:
+        t_info = gs.parse_command("t.info", flags="g", input=options["input"])
+    except:
+        gs.fatal("Exiting...")
     temp_type = t_info["temporal_type"]
 
     # Get stats
@@ -670,4 +696,5 @@ def main(options, flags):
 
 
 if __name__ == "__main__":
+    atexit.register(cleanup)
     sys.exit(main(*gs.parser()))
