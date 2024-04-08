@@ -43,8 +43,6 @@
 # %end
 
 # %option G_OPT_F_OUTPUT
-# % key: output
-# % key_desc: File name
 # % label: Name of output image file.
 # % required: no
 # % guisection: Output
@@ -201,6 +199,7 @@ import os
 import sys
 from datetime import datetime
 import grass.script as gs
+from grass.exceptions import CalledModuleError
 from math import sqrt
 import matplotlib.dates as mdates
 from random import random
@@ -558,8 +557,8 @@ def main(options, flags):
     gs.message("Getting the strds metadata...")
     try:
         t_info = gs.parse_command("t.info", flags="g", input=options["input"])
-    except:
-        gs.fatal("Exiting...")
+    except CalledModuleError:
+        return False
     temp_type = t_info["temporal_type"]
 
     # Get stats
@@ -683,7 +682,7 @@ def main(options, flags):
         plt.savefig(output, bbox_inches="tight", dpi=dpi)
         plt.close()
         path_name = os.path.split(output)
-        gs.message(f"Done, you can find the file {path_name[1]} in {path_name[0]}")
+        gs.message(_(f"Done, you can find the file {path_name[1]} in {path_name[0]}"))
     else:
         plt.tight_layout()
         plt.show()
