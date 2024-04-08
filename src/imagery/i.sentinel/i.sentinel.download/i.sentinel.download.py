@@ -182,7 +182,6 @@ import logging
 import time
 from collections import OrderedDict
 
-# from glob import glob
 from datetime import datetime
 from subprocess import PIPE
 
