@@ -1262,12 +1262,14 @@ def main():
                 "end": options["end"],
                 "sortby": sortby,
                 "asc": options["order"] == "asc",
-                "relativeorbitnumber": {
-                    int(orbit_nr)
-                    for orbit_nr in options["relativeorbitnumber"].split(",")
-                }
-                if options["relativeorbitnumber"]
-                else None,
+                "relativeorbitnumber": (
+                    {
+                        int(orbit_nr)
+                        for orbit_nr in options["relativeorbitnumber"].split(",")
+                    }
+                    if options["relativeorbitnumber"]
+                    else None
+                ),
             }
 
             if options["datasource"] == "ESA_COAH" or options["datasource"] == "GCS":
