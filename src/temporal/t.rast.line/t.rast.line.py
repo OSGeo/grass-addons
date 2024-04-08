@@ -18,6 +18,7 @@
 
 # %module
 # % description: Draws line plots of the raster maps in a space-time raster dataset
+# % keyword: temporal
 # % keyword: display
 # % keyword: raster
 # % keyword: plot
@@ -26,13 +27,10 @@
 # %end
 
 # %option G_OPT_STRDS_INPUT
-# % description: Input space-time raster dataset.
-# % required: yes
 # % guisection: Input
 # %end
 
 # %option G_OPT_T_WHERE
-# % description: WHERE conditions of SQL statement without 'where' keyword used in the temporal GIS framework. Example: start_time > '2001-01-01 12:30:00'
 # % guisection: Input
 # %end
 
@@ -196,9 +194,6 @@
 # %end
 
 # %option G_OPT_M_NPROCS
-# % key: nprocs
-# % label: Number of processor threads to use.
-# % answer: 1
 # %end
 
 import atexit
