@@ -431,7 +431,7 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where):
                     if int(x[idx_zone]) == zone_ids[0]
                 ]
                 date_points = [s + (e - s) / 2 for s, e in zip(date_start, date_end)]
-        for i, _ in enumerate(zone_ids):
+        for i, num in enumerate(zone_ids):
             m = [
                 float(x[idx_mean])
                 for x in univar[1:]
@@ -519,18 +519,23 @@ def get_raster_colors(coverlayer, cats_ids):
 
     :return list: list with colors of the zones in the zonal map
     """
+    # Get colors
     cz = gs.read_command("r.colors.out", map=coverlayer).split("\n")
     cz = [_f for _f in cz if _f]
     cz = [x.split(" ") for x in cz]
     cz = [x for x in cz if x[0] != "nv" and x[0] != "default"]
-    cz = [get_valid_color(x[1]) for x in cz if x[0] in str(cats_ids)]
-    if len(cz) != len(cats_ids):
-        cz = [generate_random_color() for x, _ in enumerate(cats_ids)]
+    # Check if color table exists
+    if all(num[0].isdigit() for num in cz):
+        # Get valid color
+        cz = [get_valid_color(x[1]) for x in cz if int(x[0]) in cats_ids]
+    else:
+        # Create random colors
+        cz = [generate_random_color() for x, ids in enumerate(cats_ids)]
         gs.message(
             _(
-                "The zonal map does not seem to have a color table."
+                "The zonal map does not seem to have a color table. "
                 "Assigned random colors to the categories of the zonal"
-                "map. Tip: use the legend option to set the legend."
+                "map."
             )
         )
     return cz
@@ -554,7 +559,7 @@ def main(options, flags):
         zonal_layer = options["zones"]
 
     # Get strds type
-    gs.message("Getting the strds metadata...")
+    gs.message(_("Getting the strds metadata..."))
     try:
         t_info = gs.parse_command("t.info", flags="g", input=options["input"])
     except CalledModuleError:
@@ -562,7 +567,7 @@ def main(options, flags):
     temp_type = t_info["temporal_type"]
 
     # Get stats
-    gs.message("Getting the statistics. This may take a while...")
+    gs.message(_("Getting the statistics. This may take a while..."))
     if options["n"]:
         n = float(options["n"])
     else:
@@ -576,7 +581,7 @@ def main(options, flags):
         temp_type=temp_type,
         where=options["where"],
     )
-    gs.message("Creating the graph...")
+    gs.message(_("Creating the figure..."))
 
     # Get IDs and colors of the categories of the zonal layer
     if options["zones"]:
@@ -606,10 +611,11 @@ def main(options, flags):
         dimensions = [6, 4]
 
     # Plot the figure
+    gs.message(_(f"Figure created. Close the window with the figure to continue."))
     fig, ax = plt.subplots(figsize=dimensions)
     if options["zones"]:
         if options["error"]:
-            for i, _ in enumerate(cats_ids):
+            for i, num in enumerate(cats_ids):
                 ax.fill_between(
                     x,
                     y_ll[i],
@@ -617,7 +623,7 @@ def main(options, flags):
                     color=line_colors[i],
                     alpha=float(options["alpha"]),
                 )
-        for i, _ in enumerate(cats_ids):
+        for i, num in enumerate(cats_ids):
             ax.plot(
                 x,
                 y_mean[i],
