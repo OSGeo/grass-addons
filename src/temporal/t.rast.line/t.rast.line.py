@@ -611,7 +611,7 @@ def main(options, flags):
         dimensions = [6, 4]
 
     # Plot the figure
-    gs.message(_(f"Figure created. Close the window with the figure to continue."))
+    gs.message(_("Figure created. Close the window with the figure to continue."))
     fig, ax = plt.subplots(figsize=dimensions)
     if options["zones"]:
         if options["error"]:
