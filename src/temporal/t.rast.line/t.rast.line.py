@@ -597,7 +597,6 @@ def main(options, flags):
     except CalledModuleError:
         return False
     temp_type = t_info["temporal_type"]
-    temp_unit = t_info["unit"]
 
     # Get stats
     gs.message(_("Getting the statistics. This may take a while..."))
@@ -680,7 +679,7 @@ def main(options, flags):
 
     # Set x-axis label if relative strds
     if temp_type == "relative":
-        plt.xlabel(temp_unit)
+        plt.xlabel(t_info["unit"])
 
     # Set granularity and format of date on x axis
     if temp_type == "absolute":
