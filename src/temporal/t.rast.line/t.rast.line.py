@@ -101,6 +101,16 @@
 # % guisection: Plot format
 # %end
 
+# %option
+# % key: x_position
+# % type: string
+# % label: date points
+# % description: For maps with time intervals, choose to use the start date, end date or date in between these two (default).
+# % options: start,end,mid
+# % answer: mid
+# % guisection: Plot format
+# %end
+
 # %flag
 # % key: g
 # % label: Add grid lines
@@ -199,6 +209,7 @@ import os
 import sys
 from datetime import datetime
 import grass.script as gs
+import grass.temporal as tgis
 from grass.exceptions import CalledModuleError
 from math import sqrt
 import matplotlib.dates as mdates
@@ -344,7 +355,7 @@ def get_categories(coverlayer, zone_cats):
     return [cats_ids, cats_names]
 
 
-def line_stats(strds, coverlayer, error, n, threads, temp_type, where):
+def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_position):
     """Compute line statistics
 
     :param str strds: name of input strds
@@ -385,33 +396,46 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where):
                     if int(x[idx_zone]) == zone_ids[0]
                 ]
             else:
-                date_start = [
-                    int(
-                        datetime.strptime(x[idx_start], "%Y-%m-%d %H:%M:%S").strftime(
-                            "%s"
+                if x_position == "start":
+                    date_points = [
+                        datetime.strptime(x[idx_start], "%Y-%m-%d %H:%M:%S")
+                        for x in univar[1:]
+                        if int(x[idx_zone]) == zone_ids[0]
+                    ]
+                elif x_position == "end":
+                    date_points = [
+                        datetime.strptime(x[idx_end], "%Y-%m-%d %H:%M:%S")
+                        for x in univar[1:]
+                        if int(x[idx_zone]) == zone_ids[0]
+                    ]
+                else:
+                    date_start = [
+                        int(
+                            datetime.strptime(
+                                x[idx_start], "%Y-%m-%d %H:%M:%S"
+                            ).strftime("%s")
                         )
-                    )
-                    for x in univar[1:]
-                    if int(x[idx_zone]) == zone_ids[0]
-                ]
-                date_end = [
-                    int(
-                        datetime.strptime(x[idx_end], "%Y-%m-%d %H:%M:%S").strftime(
-                            "%s"
+                        for x in univar[1:]
+                        if int(x[idx_zone]) == zone_ids[0]
+                    ]
+                    date_end = [
+                        int(
+                            datetime.strptime(x[idx_end], "%Y-%m-%d %H:%M:%S").strftime(
+                                "%s"
+                            )
                         )
-                    )
-                    for x in univar[1:]
-                    if int(x[idx_zone]) == zone_ids[0]
-                ]
-                date_points = [
-                    datetime.fromtimestamp(s + (e - s) / 2).strftime(
-                        "%Y-%m-%d %H:%M:%S"
-                    )
-                    for s, e in zip(date_start, date_end)
-                ]
-                date_points = [
-                    datetime.strptime(dp, "%Y-%m-%d %H:%M:%S") for dp in date_points
-                ]
+                        for x in univar[1:]
+                        if int(x[idx_zone]) == zone_ids[0]
+                    ]
+                    date_points = [
+                        datetime.fromtimestamp(s + (e - s) / 2).strftime(
+                            "%Y-%m-%d %H:%M:%S"
+                        )
+                        for s, e in zip(date_start, date_end)
+                    ]
+                    date_points = [
+                        datetime.strptime(dp, "%Y-%m-%d %H:%M:%S") for dp in date_points
+                    ]
         else:
             if not bool(idx_end):
                 date_points = [
@@ -430,7 +454,14 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where):
                     for x in univar[1:]
                     if int(x[idx_zone]) == zone_ids[0]
                 ]
-                date_points = [s + (e - s) / 2 for s, e in zip(date_start, date_end)]
+                if x_position == "start":
+                    date_points = date_start
+                elif x_position == "end":
+                    date_points = date_end
+                else:
+                    date_points = [
+                        s + (e - s) / 2 for s, e in zip(date_start, date_end)
+                    ]
         for i, num in enumerate(zone_ids):
             m = [
                 float(x[idx_mean])
@@ -560,6 +591,7 @@ def main(options, flags):
 
     # Get strds type
     gs.message(_("Getting the strds metadata..."))
+
     try:
         t_info = gs.parse_command("t.info", flags="g", input=options["input"])
     except CalledModuleError:
@@ -580,6 +612,7 @@ def main(options, flags):
         threads=int(options["nprocs"]),
         temp_type=temp_type,
         where=options["where"],
+        x_position=options["x_position"],
     )
     gs.message(_("Creating the figure..."))
 
