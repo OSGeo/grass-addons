@@ -209,7 +209,6 @@ import os
 import sys
 from datetime import datetime
 import grass.script as gs
-import grass.temporal as tgis
 from grass.exceptions import CalledModuleError
 from math import sqrt
 import matplotlib.dates as mdates
@@ -377,9 +376,9 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_positio
     # Get positions of variables
     idx_start = [idx for idx, name in enumerate(univar[0]) if name == "start"][0]
     idx_end = [idx for idx, name in enumerate(univar[0]) if name == "end"][0]
-    idx_mean = [idx for idx, name in enumerate(univar[0]) if name == "mean"][0]
-    idx_sd = [idx for idx, name in enumerate(univar[0]) if name == "stddev"][0]
-    idx_n = [idx for idx, name in enumerate(univar[0]) if name == "non_null_cells"][0]
+    idy_mean = [idx for idx, name in enumerate(univar[0]) if name == "mean"][0]
+    idy_sd = [idx for idx, name in enumerate(univar[0]) if name == "stddev"][0]
+    idy_n = [idx for idx, name in enumerate(univar[0]) if name == "non_null_cells"][0]
 
     # Get date time and values
     mean_vals = list()
@@ -396,37 +395,28 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_positio
                     if int(x[idx_zone]) == zone_ids[0]
                 ]
             else:
-                if x_position == "start":
-                    date_points = [
-                        datetime.strptime(x[idx_start], "%Y-%m-%d %H:%M:%S")
-                        for x in univar[1:]
-                        if int(x[idx_zone]) == zone_ids[0]
-                    ]
-                elif x_position == "end":
-                    date_points = [
+                s_points = [
+                    datetime.strptime(x[idx_start], "%Y-%m-%d %H:%M:%S")
+                    for x in univar[1:]
+                    if int(x[idx_zone]) == zone_ids[0]
+                ]
+                # Check if end slots have date or None
+                e_tmp = [x for x in univar[1:] if int(x[idx_zone]) == zone_ids[0]]
+                e_points = [
+                    (
                         datetime.strptime(x[idx_end], "%Y-%m-%d %H:%M:%S")
-                        for x in univar[1:]
-                        if int(x[idx_zone]) == zone_ids[0]
-                    ]
+                        if x[idx_end] != "None"
+                        else datetime.strptime(x[idx_start], "%Y-%m-%d %H:%M:%S")
+                    )
+                    for x in e_tmp
+                ]
+                if x_position == "start":
+                    date_points = s_points
+                elif x_position == "end":
+                    date_points = e_points
                 else:
-                    date_start = [
-                        int(
-                            datetime.strptime(
-                                x[idx_start], "%Y-%m-%d %H:%M:%S"
-                            ).strftime("%s")
-                        )
-                        for x in univar[1:]
-                        if int(x[idx_zone]) == zone_ids[0]
-                    ]
-                    date_end = [
-                        int(
-                            datetime.strptime(x[idx_end], "%Y-%m-%d %H:%M:%S").strftime(
-                                "%s"
-                            )
-                        )
-                        for x in univar[1:]
-                        if int(x[idx_zone]) == zone_ids[0]
-                    ]
+                    date_start = [int(x.strftime("%s")) for x in s_points]
+                    date_end = [int(x.strftime("%s")) for x in e_points]
                     date_points = [
                         datetime.fromtimestamp(s + (e - s) / 2).strftime(
                             "%Y-%m-%d %H:%M:%S"
@@ -449,10 +439,11 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_positio
                     for x in univar[1:]
                     if int(x[idx_zone]) == zone_ids[0]
                 ]
+                # Check if end slots have date or None
+                e_tmp = [x for x in univar[1:] if int(x[idx_zone]) == zone_ids[0]]
                 date_end = [
-                    int(x[idx_end])
-                    for x in univar[1:]
-                    if int(x[idx_zone]) == zone_ids[0]
+                    int(x[idx_end]) if x[idx_end] != "None" else int(x[idx_start])
+                    for x in e_tmp
                 ]
                 if x_position == "start":
                     date_points = date_start
@@ -464,20 +455,20 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_positio
                     ]
         for i, num in enumerate(zone_ids):
             m = [
-                float(x[idx_mean])
+                float(x[idy_mean])
                 for x in univar[1:]
                 if int(x[idx_zone]) == zone_ids[i]
             ]
             mean_vals.append(m)
             if error:
                 s = [
-                    float(x[idx_sd])
+                    float(x[idy_sd])
                     for x in univar[1:]
                     if int(x[idx_zone]) == zone_ids[i]
                 ]
                 if error == "se":
                     d = [
-                        float(x[idx_n])
+                        float(x[idy_n])
                         for x in univar[1:]
                         if int(x[idx_zone]) == zone_ids[i]
                     ]
@@ -491,48 +482,57 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_positio
                     datetime.strptime(x[idx_start], "%Y-%m-%d %H:%M:%S")
                     for x in univar[1:]
                 ]
-                date_points = [
-                    datetime.strptime(dp, "%Y-%m-%d %H:%M:%S") for dp in date_points
-                ]
             else:
-                date_start = [
-                    int(
-                        datetime.strptime(x[idx_start], "%Y-%m-%d %H:%M:%S").strftime(
-                            "%s"
-                        )
+                s_points = [
+                    datetime.strptime(x[idx_start], "%Y-%m-%d %H:%M:%S")
+                    for x in univar[1:]
+                ]
+                # Check if end slots have date or None
+                e_points = [
+                    (
+                        datetime.strptime(x[idx_end], "%Y-%m-%d %H:%M:%S")
+                        if x[idx_end] != "None"
+                        else datetime.strptime(x[idx_start], "%Y-%m-%d %H:%M:%S")
                     )
                     for x in univar[1:]
                 ]
-                date_end = [
-                    int(
-                        datetime.strptime(x[idx_end], "%Y-%m-%d %H:%M:%S").strftime(
-                            "%s"
+                if x_position == "start":
+                    date_points = s_points
+                elif x_position == "end":
+                    date_points = e_points
+                else:
+                    date_start = [int(x.strftime("%s")) for x in s_points]
+                    date_end = [int(x.strftime("%s")) for x in e_points]
+                    date_points = [
+                        datetime.fromtimestamp(s + (e - s) / 2).strftime(
+                            "%Y-%m-%d %H:%M:%S"
                         )
-                    )
-                    for x in univar[1:]
-                ]
-                date_points = [
-                    datetime.fromtimestamp(s + (e - s) / 2).strftime(
-                        "%Y-%m-%d %H:%M:%S"
-                    )
-                    for s, e in zip(date_start, date_end)
-                ]
-                date_points = [
-                    datetime.strptime(dp, "%Y-%m-%d %H:%M:%S") for dp in date_points
-                ]
+                        for s, e in zip(date_start, date_end)
+                    ]
+                    date_points = [
+                        datetime.strptime(dp, "%Y-%m-%d %H:%M:%S") for dp in date_points
+                    ]
         else:
             if not bool(idx_end):
                 date_points = [int(x[idx_start]) for x in univar[1:]]
             else:
-                date_start = [int(x[idx_start]) for x in univar[1:]]
-                date_end = [int(x[idx_end]) for x in univar[1:]]
-                date_points = [s + (e - s) / 2 for s, e in zip(date_start, date_end)]
-        m = [float(x[idx_mean]) for x in univar[1:]]
+                s_points = [int(x[idx_start]) for x in univar[1:]]
+                e_points = [
+                    int(x[idx_end]) if x[idx_end] != "None" else int(x[idx_start])
+                    for x in univar[1:]
+                ]
+                if x_position == "start":
+                    date_points = s_points
+                elif x_position == "end":
+                    date_points = e_points
+                else:
+                    date_points = [s + (e - s) / 2 for s, e in zip(s_points, e_points)]
+        m = [float(x[idy_mean]) for x in univar[1:]]
         mean_vals.append(m)
         if error:
-            s = [float(x[idx_sd]) for x in univar[1:]]
+            s = [float(x[idy_sd]) for x in univar[1:]]
             if error == "se":
-                d = [float(x[idx_n]) for x in univar[1:]]
+                d = [float(x[idy_n]) for x in univar[1:]]
                 s = [si / sqrt(di) for si, di in zip(s, d)]
             upper_limit_vals.append([m + s * n for m, s in zip(m, s)])
             lower_limit_vals.append([m - s * n for m, s in zip(m, s)])
@@ -597,6 +597,7 @@ def main(options, flags):
     except CalledModuleError:
         return False
     temp_type = t_info["temporal_type"]
+    temp_unit = t_info["unit"]
 
     # Get stats
     gs.message(_("Getting the statistics. This may take a while..."))
@@ -676,6 +677,10 @@ def main(options, flags):
         plt.ylabel(options["y_label"])
     else:
         plt.ylabel(t_info["name"])
+
+    # Set x-axis label if relative strds
+    if temp_type == "relative":
+        plt.xlabel(temp_unit)
 
     # Set granularity and format of date on x axis
     if temp_type == "absolute":
