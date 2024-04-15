@@ -112,12 +112,12 @@ r.boxplot -r input=elevation zone=landclass96 output="r_boxplot_02.png"
 Draw boxplots of the values of the <em>elevation</em> layer per category from
 the <i>landclass96</i> layer from the same
 <a href="https://grass.osgeo.org/download/data/">NC sample
-dataset</a>. Set the -o flag to include outliers. Use order=ascending
+dataset</a>. Set the -o flag to include outliers. Use bx_sort=ascending
 to order the boxplots from low to high median. Provide a name for the outlier
 map to save the outlier locations as a point vector map.
 
 <div class="code"><pre>
-r.boxplot -o order=ascending input=elevation zones=landclass96 output="r_boxplot_03.png" map_outliers="outliers"
+r.boxplot -o bx_sort=ascending input=elevation zones=landclass96 output="r_boxplot_03.png" map_outliers="outliers"
 </pre>
 </div><br>
 
@@ -136,11 +136,11 @@ raster cells are outliers.</p>
 Draw boxplots of the values of the <em>elevation</em> layer per category from
 the <i>landclass96</i> layer from the same
 <a href="https://grass.osgeo.org/download/data/">NC sample
-dataset</a>. Set the -c flag to color the boxplots, use order=ascending
+dataset</a>. Set the -c flag to color the boxplots, use bx_sort=ascending
 to order the boxplots from low to high median, and set the font size to 11.
 
 <div class="code"><pre>
-r.boxplot -c order=ascending fontsize=11 input=elevation zones=landclass96 output="r_boxplot_04.png"
+r.boxplot -c bx_sort=ascending fontsize=11 input=elevation zones=landclass96 output="r_boxplot_04.png"
 </pre>
 </div><br>
 
