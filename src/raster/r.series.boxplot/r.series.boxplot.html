@@ -6,8 +6,8 @@ variation.
 
 <p>
 The whiskers of the boxplots extend to the most extreme data point,
-which is no more than <i>range</i> &#10005; the interquartile range
-(iqr) from the box. By default, a <i>range</i> of 1.5 is used, but the
+which is no more than <b>range</b> &#10005; the interquartile range
+(iqr) from the box. By default, a <b>range</b> of 1.5 is used, but the
 user can change this. Note that range values need to be larger than 0.
 By default, outliers are not included in the plot. Set the -o flag to
 include them in the plot.
@@ -23,16 +23,16 @@ need to be the same as the number of input raster layers.
 
 <p>
 By default, the resulting plot is displayed on screen. However, the
-user can also save the plot to file using the <em>output</em> option.
+user can also save the plot to file using the <b>output</b> option.
 The format is determined by the extension given by the user. So, if
-output = outputfile.png, the plot will be saved as a *png* file. The
+<b>output = outputfile.png</b>, the plot will be saved as a PNG file. The
 user can set the output size (in inches) and resolution (dpi) of the
 output image.
 
 <h2>NOTE</h2>
 
 If you work with a large number of raster layers, of if the raster
-layers are very large, try to avoid setting the 'range' value very low,
+layers are very large, try to avoid setting the range value very low,
 as that may result in a massive number of outliers, slowing down the
 computations and rendering of the plot.
 
@@ -40,8 +40,8 @@ computations and rendering of the plot.
 <h2>EXAMPLE</h2>
 
 The examples use the North Carolina full dataset, which you can
-download from
-[here](https://grass.osgeo.org/download/data/#NorthCarolinaDataset).
+download from 
+<a href="https://grass.osgeo.org/download/data/#NorthCarolinaDataset" target="_blank">here</a>.
 
 <h3>Example 1</h3>
 
@@ -71,7 +71,7 @@ bxcolor=green rotate_labels=45 fontsize=14
 </pre></div>
 
 <p>
-See [here](https://matplotlib.org/stable/tutorials/colors/colors.html)
+See <a href="https://matplotlib.org/stable/tutorials/colors/colors.html" target="_blank">here</a>
 for the different formats in which colors can be specified.
 
 <p>
@@ -108,7 +108,7 @@ University of Applied Sciences.
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.boxplot.html">r.boxplot.html</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.boxplot.html">r.boxplot</a>,
 <a href="https://grass.osgeo.org/grass-stable/manuals/addons/d.vect.colbp.html">d.vect.colbp</a>,
 <a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.scatterplot.html">r.scatterplot</a>,
 <a href="https://grass.osgeo.org/grass-stable/manuals/r.stats.zonal.html">r.stats.zonal</a>
