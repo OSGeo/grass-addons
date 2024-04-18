@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 ############################################################################
 #
-# MODULE:       d.vect.colhist
+# MODULE:       v.histogram
 # AUTHOR:       Moritz Lennert
 # PURPOSE:      Draws the histogram of values in a vector attribute column
 #
@@ -14,9 +14,9 @@
 
 # %module
 # % description: Draws the histogram of values in a vector attribute column
-# % keyword: display
 # % keyword: vector
-# % keyword: geology
+# % keyword: plot
+# % keyword: histogram
 # %end
 # %option G_OPT_V_MAP
 # %end
@@ -24,7 +24,7 @@
 # %end
 # %option G_OPT_DB_COLUMN
 # % key: column
-# % description: Attribute column containing azimuth
+# % description: Attribute column to create histogram from
 # % required: yes
 # %end
 # %option G_OPT_DB_WHERE
