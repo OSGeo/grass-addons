@@ -260,6 +260,15 @@ def lazy_import_py_modules():
         gs.fatal(_("Matplotlib is not installed. Please, install it."))
 
 
+def checkmask():
+    """Check if there is a MASK set
+
+    :return bool: true (mask present) or false (mask not present)
+    """
+    ffile = gs.find_file(name="MASK", element="cell", mapset=gs.gisenv()["MAPSET"])
+    return ffile["name"] == "MASK"
+
+
 def get_valid_color(color):
     """Get valid Matplotlib color
 
@@ -589,6 +598,21 @@ def main(options, flags):
     else:
         zonal_layer = options["zones"]
 
+    # Check if mask exists. If so, set nprocs to 1
+    if checkmask():
+        nprocs = 1
+        gs.warning(
+            _(
+                "Parallel processing disabled due to active MASK."
+                " For larger maps or time series, parallel"
+                " processing can speed up the drawing of your"
+                " plot considerably. If it is too slow, consider "
+                "removing the mask."
+            )
+        )
+    else:
+        nprocs = int(options["nprocs"])
+
     # Get strds type
     gs.message(_("Getting the strds metadata..."))
 
@@ -609,7 +633,7 @@ def main(options, flags):
         coverlayer=zonal_layer,
         error=options["error"],
         n=n,
-        threads=int(options["nprocs"]),
+        threads=nprocs,
         temp_type=temp_type,
         where=options["where"],
         x_position=options["x_position"],
