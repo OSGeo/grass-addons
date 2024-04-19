@@ -102,10 +102,10 @@
 # %end
 
 # %option
-# % key: x_position
+# % key: x_value
 # % type: string
 # % label: date points
-# % description: For maps with time intervals, choose to use the start date, end date or date in between these two (default).
+# % description: For maps with time intervals, choose to use the start date, end date or date in between these two (default) as x-values.
 # % options: start,end,mid
 # % answer: mid
 # % guisection: Plot format
@@ -363,7 +363,7 @@ def get_categories(coverlayer, zone_cats):
     return [cats_ids, cats_names]
 
 
-def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_position):
+def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_value):
     """Compute line statistics
 
     :param str strds: name of input strds
@@ -419,9 +419,9 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_positio
                     )
                     for x in e_tmp
                 ]
-                if x_position == "start":
+                if x_value == "start":
                     date_points = s_points
-                elif x_position == "end":
+                elif x_value == "end":
                     date_points = e_points
                 else:
                     date_start = [int(x.strftime("%s")) for x in s_points]
@@ -454,9 +454,9 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_positio
                     int(x[idx_end]) if x[idx_end] != "None" else int(x[idx_start])
                     for x in e_tmp
                 ]
-                if x_position == "start":
+                if x_value == "start":
                     date_points = date_start
-                elif x_position == "end":
+                elif x_value == "end":
                     date_points = date_end
                 else:
                     date_points = [
@@ -505,9 +505,9 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_positio
                     )
                     for x in univar[1:]
                 ]
-                if x_position == "start":
+                if x_value == "start":
                     date_points = s_points
-                elif x_position == "end":
+                elif x_value == "end":
                     date_points = e_points
                 else:
                     date_start = [int(x.strftime("%s")) for x in s_points]
@@ -530,9 +530,9 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_positio
                     int(x[idx_end]) if x[idx_end] != "None" else int(x[idx_start])
                     for x in univar[1:]
                 ]
-                if x_position == "start":
+                if x_value == "start":
                     date_points = s_points
-                elif x_position == "end":
+                elif x_value == "end":
                     date_points = e_points
                 else:
                     date_points = [s + (e - s) / 2 for s, e in zip(s_points, e_points)]
@@ -636,7 +636,7 @@ def main(options, flags):
         threads=nprocs,
         temp_type=temp_type,
         where=options["where"],
-        x_position=options["x_position"],
+        x_value=options["x_value"],
     )
     gs.message(_("Creating the figure..."))
 
