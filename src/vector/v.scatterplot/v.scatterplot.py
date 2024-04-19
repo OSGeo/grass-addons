@@ -16,7 +16,6 @@
 
 # %module
 # % description: Plots the values of two columns in the attribute table of an input vector layer in a scatterplot.
-# % keyword: display
 # % keyword: vector
 # % keyword: plot
 # % keyword: scatterplot

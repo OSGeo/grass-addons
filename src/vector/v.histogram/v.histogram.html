@@ -1,10 +1,10 @@
 <h2>DESCRIPTION</h2>
 
 <p>
-<em>d.vect.colhist</em> draws a histogram of the values in a vector
-<em>map</em> attribute <em>column</em>. The user use the <em>where</em>
+<em>v.histogram</em> draws a histogram of the values in a vector
+map attribute column. Users can use the <b>where</b>
 option to only select a subset of the attribute table and can determine the
-number of <em>bins</em> (bars) used for the histogram. The <em>plot_output</em>
+number of <b>bins</b> (bars) used for the histogram. The <b>plot_output</b>
 parameter determines whether the result is displayed on screen (default) or
 exported to a graphics file.
 
@@ -18,12 +18,12 @@ histogram tool.
 
 Show the histogram of median age values in the census block map:
 <div class="code"><pre>
-d.vect.colhist map=censusblk_swwake column=MEDIAN_AGE where="TOTAL_POP>0"
+v.histogram map=censusblk_swwake column=MEDIAN_AGE where="TOTAL_POP>0"
 </pre></div>
 
 <center>
 <img src="d_vect_colhist.png" border="1"><br>
-Histogram of median age values of census blocks
+Histogram of median age values in census blocks
 </center>
 
 <h2>AUTHOR</h2>
