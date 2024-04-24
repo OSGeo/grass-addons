@@ -32,7 +32,7 @@ jobs:
           # list of files that changed across commits
           fetch-depth: 0
       - name: Lint code base
-        uses: super-linter/super-linter@v6.3.1
+        uses: super-linter/super-linter@v6.4.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           FILTER_REGEX_EXCLUDE: ".*/src/gui/wxpython/wx.metadata/profiles/.*.xml"
@@ -44,6 +44,7 @@ jobs:
           VALIDATE_CPP: false # Until a configuration file is created to not contradict clang-format
           VALIDATE_GITLEAKS: false # Until configured to ignore g.parser key in main.c files
           VALIDATE_HTML: false # Until configured, some valid findings
+          VALIDATE_JSCPD: false # Too many detections, should be enabled only for changed files
           VALIDATE_LATEX: false # Until issues are fixed, some valid findings
           VALIDATE_NATURAL_LANGUAGE: false # Until issues are fixed, lots of valid suggestions
           VALIDATE_PERL: false # Until issues are fixed
@@ -52,6 +53,7 @@ jobs:
           VALIDATE_PYTHON_ISORT: false # Until issues are fixed
           VALIDATE_PYTHON_MYPY: false # Issue with module name wx.wms
           VALIDATE_PYTHON_PYLINT: false # Until issues are fixed
+          VALIDATE_PYTHON_RUFF: false # Until ruff is configured and most issues fixed
           VALIDATE_R: false
           VALIDATE_RENOVATE: false # Until configuration file is upgraded
           VALIDATE_SHELL_SHFMT: false # Until reformatting failing files
