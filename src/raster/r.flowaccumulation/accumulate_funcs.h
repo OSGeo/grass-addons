@@ -34,12 +34,12 @@
 #define ACCUM(row, col) ACCUM_MAP_CELLS[INDEX(row, col)]
 
 #ifdef USE_WEIGHT
-#define WEIGHT(row, col)                               \
-    (weight_map->type == CELL_TYPE                     \
-         ? weight_map->cells.c[INDEX(row, col)]        \
-         : (weight_map->type == FCELL_TYPE             \
-                ? weight_map->cells.f[INDEX(row, col)] \
-                : weight_map->cells.d[INDEX(row, col)]))
+#define WEIGHT(row, col)                                            \
+    ((ACCUM_TYPE)(weight_map->type == CELL_TYPE                     \
+                      ? weight_map->cells.c[INDEX(row, col)]        \
+                      : (weight_map->type == FCELL_TYPE             \
+                             ? weight_map->cells.f[INDEX(row, col)] \
+                             : weight_map->cells.d[INDEX(row, col)])))
 #define IS_WEIGHT_NULL(row, col)                                              \
     (weight_map->type == CELL_TYPE                                            \
          ? Rast_is_c_null_value(&weight_map->cells.c[INDEX(row, col)])        \
@@ -245,12 +245,11 @@ static void trace_down(struct raster_map *dir_map,
 #endif
     )
         return;
+
 #ifdef USE_WEIGHT
-    else {
-        accum_up = sum_up(accum_map, row, col, up);
-        if (IS_ACCUM_NULL(&accum_up))
-            return;
-    }
+    accum_up = sum_up(accum_map, row, col, up);
+    if (IS_ACCUM_NULL(&accum_up) || IS_WEIGHT_NULL(row, col))
+        return;
 #endif
 
     /* use gcc -O2 or -O3 flags for tail-call optimization
