@@ -145,12 +145,10 @@ int main(int argc, char *argv[])
     if (nprocs < 1)
         G_fatal_error(_("<%s> must be >= 1"), opt.nprocs->key);
 
+    omp_set_num_threads(nprocs);
 #pragma omp parallel
 #pragma omp single
-    {
-        omp_set_num_threads(nprocs);
-        nprocs = omp_get_num_threads();
-    }
+    nprocs = omp_get_num_threads();
     G_message(n_("Using %d thread for serial computation",
                  "Using %d threads for parallel computation", nprocs),
               nprocs);
