@@ -52,13 +52,14 @@ int main(int argc, char *argv[])
         struct Flag *use_less_memory;
         struct Flag *use_zero;
         struct Flag *leave_zero;
+        struct Flag *null_weight;
     } flag;
     char *desc;
     char *dir_name, *format, *weight_name, *accum_name, *type;
 #ifdef _OPENMP
     int nprocs;
 #endif
-    int check_overflow, use_less_memory, use_zero;
+    int check_overflow, use_less_memory, use_zero, null_weight;
     int dir_fd, accum_fd;
     unsigned char dir_format;
     struct Range dir_range;
@@ -127,6 +128,10 @@ int main(int argc, char *argv[])
     flag.leave_zero->label =
         _("Initialize to and leave zero instead of nullifying it");
 
+    flag.null_weight = G_define_flag();
+    flag.null_weight->key = 'n';
+    flag.null_weight->label = _("Treat null weight as zero");
+
     G_option_excludes(opt.weight, flag.check_overflow, flag.use_zero,
                       flag.leave_zero, NULL);
     G_option_exclusive(flag.use_zero, flag.leave_zero, NULL);
@@ -157,6 +162,7 @@ int main(int argc, char *argv[])
     check_overflow = flag.check_overflow->answer;
     use_less_memory = flag.use_less_memory->answer;
     use_zero = flag.use_zero->answer ? 1 : 2 * flag.leave_zero->answer;
+    null_weight = flag.null_weight->answer;
 
     /* read direction raster */
     G_message(_("Reading flow direction raster <%s>..."), dir_name);
@@ -279,6 +285,29 @@ int main(int argc, char *argv[])
         }
         G_percent(1, 1, 1);
         Rast_close(weight_fd);
+
+        if (null_weight) {
+#pragma omp parallel for schedule(dynamic) private(col)
+            for (row = 0; row < nrows; row++)
+                for (col = 0; col < ncols; col++)
+                    switch (weight_map->type) {
+                    case CELL_TYPE:
+                        if (Rast_is_c_null_value(
+                                &weight_map->cells.c[INDEX(row, col)]))
+                            weight_map->cells.c[INDEX(row, col)] = 0;
+                        break;
+                    case FCELL_TYPE:
+                        if (Rast_is_f_null_value(
+                                &weight_map->cells.f[INDEX(row, col)]))
+                            weight_map->cells.f[INDEX(row, col)] = 0;
+                        break;
+                    default:
+                        if (Rast_is_d_null_value(
+                                &weight_map->cells.d[INDEX(row, col)]))
+                            weight_map->cells.d[INDEX(row, col)] = 0;
+                        break;
+                    }
+        }
 
         gettimeofday(&end_time, NULL);
         G_message(_("Input time for weight: %f seconds"),

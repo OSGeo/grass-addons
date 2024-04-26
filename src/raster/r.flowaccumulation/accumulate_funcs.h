@@ -34,12 +34,12 @@
 #define ACCUM(row, col) ACCUM_MAP_CELLS[INDEX(row, col)]
 
 #ifdef USE_WEIGHT
-#define WEIGHT(row, col)                               \
-    (weight_map->type == CELL_TYPE                     \
-         ? weight_map->cells.c[INDEX(row, col)]        \
-         : (weight_map->type == FCELL_TYPE             \
-                ? weight_map->cells.f[INDEX(row, col)] \
-                : weight_map->cells.d[INDEX(row, col)]))
+#define WEIGHT(row, col)                                            \
+    ((ACCUM_TYPE)(weight_map->type == CELL_TYPE                     \
+                      ? weight_map->cells.c[INDEX(row, col)]        \
+                      : (weight_map->type == FCELL_TYPE             \
+                             ? weight_map->cells.f[INDEX(row, col)] \
+                             : weight_map->cells.d[INDEX(row, col)])))
 #define IS_WEIGHT_NULL(row, col)                                              \
     (weight_map->type == CELL_TYPE                                            \
          ? Rast_is_c_null_value(&weight_map->cells.c[INDEX(row, col)])        \
@@ -47,10 +47,41 @@
                 ? Rast_is_f_null_value(&weight_map->cells.f[INDEX(row, col)]) \
                 : Rast_is_d_null_value(                                       \
                       &weight_map->cells.d[INDEX(row, col)])))
+#define FIND_UP(row, col)                                                    \
+    ((row > 0 ? (col > 0 && DIR(row - 1, col - 1) == SE &&                   \
+                         !IS_WEIGHT_NULL(row - 1, col - 1)                   \
+                     ? NW                                                    \
+                     : 0) |                                                  \
+                    (DIR(row - 1, col) == S && !IS_WEIGHT_NULL(row - 1, col) \
+                         ? N                                                 \
+                         : 0) |                                              \
+                    (col < ncols - 1 && DIR(row - 1, col + 1) == SW &&       \
+                             !IS_WEIGHT_NULL(row - 1, col + 1)               \
+                         ? NE                                                \
+                         : 0)                                                \
+              : 0) |                                                         \
+     (col > 0 && DIR(row, col - 1) == E && !IS_WEIGHT_NULL(row, col - 1)     \
+          ? W                                                                \
+          : 0) |                                                             \
+     (col < ncols - 1 && DIR(row, col + 1) == W &&                           \
+              !IS_WEIGHT_NULL(row, col + 1)                                  \
+          ? E                                                                \
+          : 0) |                                                             \
+     (row < nrows - 1                                                        \
+          ? (col > 0 && DIR(row + 1, col - 1) == NE &&                       \
+                     !IS_WEIGHT_NULL(row + 1, col - 1)                       \
+                 ? SW                                                        \
+                 : 0) |                                                      \
+                (DIR(row + 1, col) == N && !IS_WEIGHT_NULL(row + 1, col)     \
+                     ? S                                                     \
+                     : 0) |                                                  \
+                (col < ncols - 1 && DIR(row + 1, col + 1) == NW &&           \
+                         !IS_WEIGHT_NULL(row + 1, col + 1)                   \
+                     ? SE                                                    \
+                     : 0)                                                    \
+          : 0))
 #else
 #define WEIGHT(row, col) 1
-#endif
-
 #define FIND_UP(row, col)                                                     \
     ((row > 0 ? (col > 0 && DIR(row - 1, col - 1) == SE ? NW : 0) |           \
                     (DIR(row - 1, col) == S ? N : 0) |                        \
@@ -63,6 +94,7 @@
                 (DIR(row + 1, col) == N ? S : 0) |                            \
                 (col < ncols - 1 && DIR(row + 1, col + 1) == NW ? SE : 0)     \
           : 0))
+#endif
 
 #ifdef USE_LESS_MEMORY
 #define UP(row, col) FIND_UP(row, col)
@@ -245,12 +277,11 @@ static void trace_down(struct raster_map *dir_map,
 #endif
     )
         return;
+
 #ifdef USE_WEIGHT
-    else {
-        accum_up = sum_up(accum_map, row, col, up);
-        if (IS_ACCUM_NULL(&accum_up))
-            return;
-    }
+    accum_up = sum_up(accum_map, row, col, up);
+    if (IS_ACCUM_NULL(&accum_up) || IS_WEIGHT_NULL(row, col))
+        return;
 #endif
 
     /* use gcc -O2 or -O3 flags for tail-call optimization
