@@ -711,6 +711,8 @@ def main(options, flags):
             locator = mdates.AutoDateLocator(interval_multiples=True)
         else:
             dt = options["date_interval"].capitalize()
+            if dt == "Week":
+                dt = "Weekday"
             date_locator = f"mdates.{dt}Locator()"
             locator = eval(date_locator)
         ax.xaxis.set_major_locator(locator)
