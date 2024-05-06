@@ -132,9 +132,14 @@ def format_order(number, zeros):
 
 
 def frange(x, y, step):
-    while x <= y:
-        yield x
-        x += step
+    return [
+        val / 1000 
+        for val in range(
+            int(x * 1000), 
+            int((y + step) * 1000), 
+            int(step * 1000)
+        )
+    ]
 
 
 def check_maps_exist(maps, mapset):
