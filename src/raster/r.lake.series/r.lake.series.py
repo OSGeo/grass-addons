@@ -191,9 +191,7 @@ def main():
     title = _("r.lake series")
     desctiption = _("r.lake series")
 
-    water_levels = [
-        step for step in frange(start_water_level, end_water_level, water_level_step)
-    ]
+    water_levels = frange(start_water_level, end_water_level, water_level_step)
     outputs = ["%s%s%s" % (basename, "_", water_level) for water_level in water_levels]
 
     if not gcore.overwrite():
