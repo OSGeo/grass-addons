@@ -133,12 +133,8 @@ def format_order(number, zeros):
 
 def frange(x, y, step):
     return [
-        val / 1000 
-        for val in range(
-            int(x * 1000), 
-            int((y + step) * 1000), 
-            int(step * 1000)
-        )
+        val / 1000
+        for val in range(int(x * 1000), int((y + step) * 1000), int(step * 1000))
     ]
 
 
