@@ -117,6 +117,7 @@ Created on Tue Oct 15 21:18:00 2013
 # TODO: remove unused functions
 
 import sys
+import decimal
 
 from grass.script import core as gcore
 import grass.temporal as tgis
@@ -132,10 +133,13 @@ def format_order(number, zeros):
 
 
 def frange(x, y, step):
-    return [
-        val / 1000
-        for val in range(int(x * 1000), int((y + step) * 1000), int(step * 1000))
+    exponent = abs(decimal.Decimal(str(step)).as_tuple().exponent)
+    scale = 10**exponent
+    array = [
+        val / scale
+        for val in range(int(x * scale), int((y + step) * scale), int(step * scale))
     ]
+    return array, exponent
 
 
 def check_maps_exist(maps, mapset):
@@ -187,8 +191,13 @@ def main():
     title = _("r.lake series")
     desctiption = _("r.lake series")
 
-    water_levels = frange(start_water_level, end_water_level, water_level_step)
-    outputs = ["%s%s%s" % (basename, "_", water_level) for water_level in water_levels]
+    water_levels, number_of_decimals = frange(
+        start_water_level, end_water_level, water_level_step
+    )
+    outputs = [
+        f"{basename}_{water_level:.{number_of_decimals}f}"
+        for water_level in water_levels
+    ]
 
     if not gcore.overwrite():
         check_maps_exist(outputs, mapset)
