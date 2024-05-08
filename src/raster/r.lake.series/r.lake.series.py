@@ -141,6 +141,7 @@ def frange(x, y, step, precision):
     ]
     return array
 
+
 def check_maps_exist(maps, mapset):
     for map_ in maps:
         if gcore.find_file(map_, element="cell", mapset=mapset)["file"]:
