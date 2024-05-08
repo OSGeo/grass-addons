@@ -136,12 +136,10 @@ def frange(x, y, step, precision):
     scale = 10**precision
     array = [
         val / scale
-        for val in range(
-            int(x * scale), int((y + float(step)) * scale), int(float(step) * scale)
-        )
+        for val in range(int(x * scale), int((y + step) * scale), int(step * scale))
+        if val / scale <= y
     ]
     return array
-
 
 def check_maps_exist(maps, mapset):
     for map_ in maps:
@@ -194,7 +192,7 @@ def main():
 
     precision = abs(decimal.Decimal(water_level_step).as_tuple().exponent)
     water_levels = frange(
-        start_water_level, end_water_level, water_level_step, precision
+        start_water_level, end_water_level, float(water_level_step), precision
     )
     outputs = [
         f"{basename}_{water_level:.{precision}f}" for water_level in water_levels
