@@ -103,7 +103,7 @@
 # %end
 
 # %option
-# % key: font_size
+# % key: fontsize
 # % type: integer
 # % label: Font size
 # % description: Font size of labels
@@ -667,7 +667,7 @@ def main(options, flags):
     lazy_import_py_modules()
 
     # Plot format options
-    plt.rcParams["font.size"] = int(options["font_size"])
+    plt.rcParams["font.size"] = int(options["fontsize"])
     grid = flags["g"]
 
     # Get range (if defined)

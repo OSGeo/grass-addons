@@ -30,7 +30,6 @@
 # %option G_OPT_DB_WHERE
 # %end
 # %option G_OPT_F_OUTPUT
-# % key: plot_output
 # % label: Name for graphic output file for plot (extension decides format, - for screen)
 # % required: yes
 # % answer: -
@@ -58,7 +57,7 @@ def main():
     layer = options["layer"]
     column = options["column"]
     bins = int(options["bins"])
-    plot_output = options["plot_output"]
+    plot_output = options["output"]
     where = options["where"] if options["where"] else None
 
     if where:

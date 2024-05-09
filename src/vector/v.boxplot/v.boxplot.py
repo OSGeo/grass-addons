@@ -40,7 +40,6 @@
 # %end
 
 # %option G_OPT_F_OUTPUT
-# % key: plot_output
 # % required: no
 # % guisection: General
 # %end
@@ -106,7 +105,7 @@ def main():
     vector = options["map"]
     column = options["column"]
     group_by = options["group_by"] if options["group_by"] else None
-    output = options["plot_output"] if options["plot_output"] else None
+    output = options["output"] if options["output"] else None
     where = (
         options["where"] + " AND " + column + " IS NOT NULL"
         if options["where"]

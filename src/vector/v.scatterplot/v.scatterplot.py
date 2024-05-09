@@ -22,7 +22,6 @@
 # %end
 
 # %option G_OPT_V_MAP
-# % key: map
 # % label: Input map
 # % description: input vector layer
 # % required: yes
@@ -57,7 +56,6 @@
 # %end
 
 # %option G_OPT_F_OUTPUT
-# % key: file_name
 # % label: Name of the output file (extension decides format)
 # % description: Name of the output file. The format is determined by the file extension.
 # % required: no
@@ -603,7 +601,7 @@ def main(options, flags):
     # Plot parameters & aesthetics
     plot_dimensions = [float(x) for x in options["plot_dimensions"].split(",")]
     plot_title = options["title"]
-    file_name = options["file_name"]
+    file_name = options["output"]
     bins = [int(x) for x in options["bins"].split(",")]
     if options["rgbcolumn"]:
         dot_color = rgbcolumn
