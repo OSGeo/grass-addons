@@ -52,8 +52,8 @@ href="https://strftime.org/">Python strftime cheatsheet</a>.
 <p>
 The <b>where</b> options allows allows performing different selections 
 of maps registered in the space-time datasets. For example, with 
-<i>start_time < '2020-01-01'</i> the time series is limited to all maps 
-with a start time before the given date. For more details, see <a 
+<i>start_time &lt; '2020-01-01'</i> the time series is limited to all 
+maps with a start time before the given date. For more details, see <a 
 href="https://grass.osgeo.org/grass83/manuals/temporalintro.html#modules-to-process-space-time-raster-datasets">this 
 page</a> for more details.
 
@@ -187,8 +187,14 @@ For example, to plot the trend line for the time period 01-01-2004 to
 <p>
 <div class="code"><pre>
 t.rast.line -l -g input=tempmean zones=comparison_counties error=sd nprocs=10 \
-    where="start_time > '2004-01-01' AND start_time < '2010-01-01'"
+    where="start_time > '2004-01-01  00:00:00' AND start_time < '2010-01-01'"
 </pre></div>
+
+
+<p>
+When using greater than (>), the date alone is not enough, also also 
+the time needs to be set explicitly. This is not needed when using 
+smaller than (<). 
 
 <p>
 <div align="center" style="margin: 10px">
