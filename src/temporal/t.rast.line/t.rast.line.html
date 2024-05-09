@@ -187,8 +187,14 @@ For example, to plot the trend line for the time period 01-01-2004 to
 <p>
 <div class="code"><pre>
 t.rast.line -l -g input=tempmean zones=comparison_counties error=sd nprocs=10 \
-    where="start_time > '2004-01-01' AND start_time < '2010-01-01'"
+    where="start_time > '2004-01-01  00:00:00' AND start_time < '2010-01-01'"
 </pre></div>
+
+
+<p>
+When using greater than (>), the date alone is not enough, also also 
+the time needs to be set explicitly. This is not needed when using 
+smaller than (<). 
 
 <p>
 <div align="center" style="margin: 10px">
