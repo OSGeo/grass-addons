@@ -130,7 +130,7 @@
 # %end
 
 # %option
-# % key: font_size
+# % key: fontsize
 # % type: integer
 # % label: Font size
 # % description: Font size of labels.
@@ -658,7 +658,7 @@ def main(options, flags):
         dpi = 300
 
     # Plot format settings
-    plt.rcParams["font.size"] = int(options["font_size"])
+    plt.rcParams["font.size"] = int(options["fontsize"])
     grid = flags["g"]
     if bool(options["line_width"]):
         line_width = float(options["line_width"])
