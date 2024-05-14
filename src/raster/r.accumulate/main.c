@@ -146,6 +146,7 @@ int main(int argc, char *argv[])
     opt.accum_type = G_define_standard_option(G_OPT_R_TYPE);
     opt.accum_type->key = "accumulation_type";
     opt.accum_type->required = NO;
+    opt.accum_type->answer = "CELL";
     opt.accum_type->description =
         _("Type of accumulation raster map to be created");
 
