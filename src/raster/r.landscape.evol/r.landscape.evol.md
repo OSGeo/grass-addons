@@ -438,10 +438,10 @@ individual storm with the total for each storm entered as **rain**,
 **stormtime** equal to the total number of seconds each storm lasted,
 **storms** set to 1, and **stormi** set to some proportion of the storm where
 flow was at or near peak depths (e.g. 0.05). Daily rainfall totals can be
-entered as **rain** in sequence, with **stormtime** set to 84600 seconds,
+entered as **rain** in sequence, with **stormtime** set to 86400 seconds,
 **storms** set to 1, and **stormi** set to some proportion where flow is at
 peak (e.g., 0.05). Monthly totals can be broken up into proportions per rain
-day, entered as **rain** with **stormtime** set to 84600 seconds, **storms**
+day, entered as **rain** with **stormtime** set to 86400 seconds, **storms**
 set to the number of storms that occurred that month, and **stormi** set to
 some proportion where flow is at or near peak depth (e.g., 0.05). Weekly,
 yearly, decadal, etc., totals can be entered in the same manner.
