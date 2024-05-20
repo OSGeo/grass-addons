@@ -4,7 +4,7 @@
 # MODULE:         Locate suitable regions
 # AUTHOR(S):      Paulo van Breugel
 # PURPOSE:        From suitability map to suitable regions
-# COPYRIGHT: (C) 2021 by Paulo van Breugel and the GRASS Development Team
+# COPYRIGHT: (C) 2021-2024 by Paulo van Breugel and the GRASS Development Team
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS
@@ -43,16 +43,24 @@
 
 # %option
 # % key: percentile_threshold
-# % label: Percentile threshold
-# % description: Percentile above which suitability scores are included in the search for suitable regions. For example, using a 0.95 percentile means that the raster cells with the 5% highest suitability scores are are used as input in the delineation of contiguous suitable regions.
+# % label: Percentile threshold (deprecated)
+# % description: Percentile above which suitability scores are included in the search for suitable regions. For example, using a 0.95 percentile means that the raster cells with the 5% highest suitability scores are are used as input in the delineation of contiguous suitable regions (deprecated, use percentage instead).
 # % type: string
 # % key_desc: percentile
+# %end
+
+# %option
+# % key: percentage
+# % label: Percentage to select
+# % description: The percentage of raster cells with the highest suitability scores that are to be used as input in the delineation of contiguous suitable regions.
+# % type: string
+# % key_desc: percentage
 # % guisection: Input
 # %end
 
 # %rules
-# % required: suitability_threshold,percentile_threshold
-# % exclusive: suitability_threshold,percentile_threshold
+# % required: suitability_threshold,percentage,percentile_threshold
+# % exclusive: suitability_threshold,percentage,percentile_threshold
 # %end
 
 # %option
@@ -211,6 +219,9 @@ def main(options, flags):
     out_filename = options["output"]
     suitability_threshold = options["suitability_threshold"]
     percentile_threshold = options["percentile_threshold"]
+    percentage_select = options["percentage"]
+    if options["percentage"]:
+        percentile_threshold = 100 - float(options["percentage"])
     minimum_suitability = options["minimum_suitability"]
     minimum_size = float(options["minimum_size"])
     size = int(options["size"])
