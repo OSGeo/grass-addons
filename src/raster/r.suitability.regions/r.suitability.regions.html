@@ -6,10 +6,11 @@ habitat suitability of a species, based on multiple criteria. A typical
 outcome of such analyses is a raster layer with suitability scores
 between 0 (not suitable) and 1 (very suitable).
 
-<p>Often, the next step is to use this suitability map to identify
-suitable area/region, e.g., to delineate potential areas for nature
-conservation. With this addon you can identify regions of contiguous
-cells that have a suitability score above a certain threshold and a
+<p>
+Often, the next step is to use this suitability map to identify 
+suitable area/region, e.g., to delineate potential areas for nature 
+conservation. With this addon you can identify regions of contiguous 
+cells that have a suitability score above a certain threshold and a 
 minimum size. There are a number of additional options explored below.
 
 <h3>Option 1 - basic use</h3>
@@ -23,14 +24,15 @@ are subsequently removed. See <a
 href="https://grass.osgeo.org/grass-stable/manuals/r.reclass.area.html"
 target="_blank">r.reclass.area</a> for more details.
 
-<p><img src="option01.png"><i>
+<p>
+<img src="r_suitability_regions_01.png"><i>
 <br>Figure 1: identifying regions of
 contiguous raster cells with a suitability score of 0.7 or
 more.</i></p>
 
-<p>You would use this to find suitable areas for a species that cannot
-or is not likely to venture into areas where conditions are not
-optimal.
+<p>
+You would use this to find suitable areas for a species that cannot or 
+is not likely to venture into areas where conditions are not optimal.
 
 <h3>Option 2 - focal area</h3>
 
@@ -73,7 +75,7 @@ to cross it on their way to more suitable habitat. As the example below
 shows, it results in larger regions than in the previous option.
 
 <p>
-<img src="option02.png"><i> <br>Figure 2: Like figure 1, but based on 
+<img src="r_suitability_regions_02.png"><i> <br>Figure 2: Like figure 1, but based on 
 the median suitability scores of the neighboring cells within a radius 
 of 300 meter (3x3 moving window).</i></p>
 
@@ -96,7 +98,7 @@ are too small to maintain a population (the user can set a minimum area
 size to account for this).
 
 <p>
-<img src="option03.png"><i> <br>Figure 3: Like figure 2, but 
+<img src="r_suitability_regions_03.png"><i> <br>Figure 3: Like figure 2, but 
 considering raster cells with suitability 0 (mostly roads) as absolute 
 barriers. Diagonally connected raster cells are not considered to form 
 a contiguous region.</i></p>
@@ -110,7 +112,7 @@ both sides of the road are considered to be part of the same region.
 I.e., the road does not act as a barrier here.
 
 <p>
-<img src="option04.png"><i> <br>Figure 4: Like figure 3, but this time, 
+<img src="r_suitability_regions_04.png"><i> <br>Figure 4: Like figure 3, but this time, 
 diagonally connected raster cells are considered to form a contiguous 
 region.</i></p>
 
@@ -126,7 +128,7 @@ desirable for visualisation purposes, or it may in fact be acceptable
 to include such areas in the final selection of a region.
 
 <p>
-<img src="option05.png"><i> <br>Figure 5: Like figure 3 (left), but 
+<img src="r_suitability_regions_05.png"><i> <br>Figure 5: Like figure 3 (left), but 
 here gaps (areas within a suitable region) of 500 hectares or less were 
 included in the final selection (middle). The right map shows the 
 suitable areas within the selected regions (green) and the filled gaps 
@@ -200,7 +202,13 @@ tutorial</a> for examples.
 <li><a href="https://grass.osgeo.org/grass-stable/manuals/r.reclass.area.html">r.reclass.area</a></li>
 <li><a href="https://grass.osgeo.org/grass-stable/manuals/r.clump.html">r.clump</a></li>
 <li><a href="https://grass.osgeo.org/grass-stable/manuals/v.to.db.html">v.to.db</a></li>
+<li><a href="r.area">r.area</a></li>
 </ul>
+
+<h2>REQUIREMENTS</h2>
+
+If you use the option to compute the area per clump (using the 
+<b>-a</b> flag), you need to install the <em>r.area</em> module first.
 
 <h2>AUTHOR</h2>
 
