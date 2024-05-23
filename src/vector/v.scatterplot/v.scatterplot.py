@@ -7,7 +7,7 @@
 # PURPOSE:      Plots the values of two columns in the attribute table
 #               of an input vector layer in a scatterplot.
 #
-# COPYRIGHT:    (c) 2023 Paulo van Breugel, and the GRASS Development Team
+# COPYRIGHT:    (c) 2023-2024 Paulo van Breugel, and the GRASS Development Team
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
 #               for details.
@@ -305,6 +305,36 @@
 # % guisection: Ellipse
 # %end
 
+# %option
+# % key: quadrants
+# % type: string
+# % label: quadrants
+# % description: Print the mean or median on x and y-axis
+# % required: no
+# % options: mean,median
+# % guisection: Quadrants
+# %end
+
+# %option G_OPT_C
+# % key: quandrant_linecolor
+# % type: string
+# % label: Line color
+# % description: Color of the lines making up the quadrants
+# % required: no
+# % answer: grey
+# % guisection: Quadrants
+# %end
+
+# %option
+# % key: quandrant_linewidth
+# % type: double
+# % label: quandrant line width
+# % description: Line width of the lines dividing the points in four quadrants.
+# % required: no
+# % answer: 1
+# % guisection: Quadrants
+# %end
+
 # %rules
 # % requires: groups_rgb,groups
 # %end
@@ -312,6 +342,18 @@
 # %rules
 # % requires: ellipse_legend,groups
 # %end
+
+# %flag
+# % key: g
+# % label: Add grid lines
+# % description: Add grid lines.
+# % guisection: Aesthetics
+# %end
+
+# %rules
+# % excludes: quadrants,-g
+# %end
+
 
 # %option
 # % key: xlim
@@ -652,6 +694,29 @@ def main(options, flags):
             reverse_colors=flags["r"],
         )
 
+    # Quadrants
+    if options["quadrants"]:
+        if options["quadrants"] == "mean":
+            X_div = np.mean(X)
+            Y_div = np.mean(Y)
+        else:
+            X_div = np.median(X)
+            Y_div = np.median(Y)
+        quadrant_color = get_valid_color(options["quandrant_linecolor"])
+        quadrant_linewidth = float(options["quandrant_linewidth"])
+        ax.axhline(
+            y=Y_div, color=quadrant_color, linewidth=quadrant_linewidth, zorder=0
+        )
+        ax.axvline(
+            x=X_div, color=quadrant_color, linewidth=quadrant_linewidth, zorder=0
+        )
+
+    # Set grid (optional)
+    if flags["g"]:
+        ax.xaxis.grid(linewidth=0.5, alpha=0.5)
+        ax.yaxis.grid(linewidth=0.5, alpha=0.5)
+
+    # Trendline
     if options["trendline"] == "linear":
         degree = 1
         if int(options["degree"]) != "1":
@@ -770,6 +835,7 @@ def main(options, flags):
             if options["ellipse_legend"]:
                 fontsize = float(options["fontsize"]) * 0.9
                 plt.legend(fontsize=fontsize)
+
     if options["xlim"]:
         xlim = [float(i) for i in options["xlim"].split(",")]
         ax.set_xlim(xlim)
