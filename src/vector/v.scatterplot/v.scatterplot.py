@@ -228,10 +228,10 @@
 # % end
 
 # %option
-# % key: n_sd
+# % key: n
 # % type: string
 # % label: standard deviations
-# % description: Draw the covariance confidence ellipse(s) with radius of n standard deviations (n_sd).
+# % description: Draw the covariance confidence ellipse(s) with radius of n standard deviations.
 # % answer: 2
 # % guisection: Ellipse
 # %end
@@ -356,7 +356,7 @@
 
 
 # %option
-# % key: xlim
+# % key: x_axis_limits
 # % type: string
 # % label: X axis range (min,max)
 # % description: Set the X axis range to be displayed
@@ -364,7 +364,7 @@
 # %end
 
 # %option
-# % key: ylim
+# % key: y_axis_limits
 # % type: string
 # % label: Y axis range (min,max)
 # % description: Set the Y axis range to be displayed
@@ -542,14 +542,14 @@ def density_scatter(
     return ax, fig
 
 
-def confidence_ellipse(x, y, ax, n_sd, facecolor="none", **kwargs):
+def confidence_ellipse(x, y, ax, n, facecolor="none", **kwargs):
     """
     Create a plot of the covariance confidence ellipse of *x* and *y*.
 
     :param array x: input data x-axis.
     :param array y: input data y-axis.
     :param matplotlib.axes.Axes ax: The axes object to draw the ellipse into.
-    :param float n_sd: The number of standard deviations to determine the ellipse's radiuses.
+    :param float n: The number of standard deviations or errors to determine the ellipse's radiuses.
 
     :return matplotlib.patches.Ellipse
     """
@@ -570,11 +570,11 @@ def confidence_ellipse(x, y, ax, n_sd, facecolor="none", **kwargs):
     # Calculating the standard deviation of x from
     # the squareroot of the variance and multiplying
     # with the given number of standard deviations.
-    scale_x = np.sqrt(cov[0, 0]) * n_sd
+    scale_x = np.sqrt(cov[0, 0]) * n
     mean_x = np.mean(x)
 
     # calculating the standard deviation of y ...
-    scale_y = np.sqrt(cov[1, 1]) * n_sd
+    scale_y = np.sqrt(cov[1, 1]) * n
     mean_y = np.mean(y)
 
     transf = (
@@ -779,7 +779,7 @@ def main(options, flags):
                 X,
                 Y,
                 ax,
-                n_sd=float(options["n_sd"]),
+                n=float(options["n"]),
                 edgecolor="white",
                 linewidth=edge_width * 1.5,
                 linestyle=edge_style,
@@ -789,7 +789,7 @@ def main(options, flags):
                 X,
                 Y,
                 ax,
-                n_sd=float(options["n_sd"]),
+                n=float(options["n"]),
                 edgecolor=edge_color,
                 linewidth=edge_width,
                 linestyle=edge_style,
@@ -815,7 +815,7 @@ def main(options, flags):
                     sub_x,
                     sub_y,
                     ax,
-                    n_sd=float(options["n_sd"]),
+                    n=float(options["n"]),
                     edgecolor="white",
                     linewidth=edge_width * 1.8,
                     linestyle="-",
@@ -825,7 +825,7 @@ def main(options, flags):
                     sub_x,
                     sub_y,
                     ax,
-                    n_sd=float(options["n_sd"]),
+                    n=float(options["n"]),
                     edgecolor=edge_color,
                     linewidth=edge_width,
                     linestyle=edge_style,
@@ -836,11 +836,11 @@ def main(options, flags):
                 fontsize = float(options["fontsize"]) * 0.9
                 plt.legend(fontsize=fontsize)
 
-    if options["xlim"]:
-        xlim = [float(i) for i in options["xlim"].split(",")]
+    if options["x_axis_limits"]:
+        xlim = [float(i) for i in options["x_axis_limits"].split(",")]
         ax.set_xlim(xlim)
-    if options["ylim"]:
-        ylim = [float(i) for i in options["ylim"].split(",")]
+    if options["y_axis_limits"]:
+        ylim = [float(i) for i in options["y_axis_limits"].split(",")]
         ax.set_ylim(ylim)
 
     if bool(file_name):
