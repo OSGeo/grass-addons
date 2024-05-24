@@ -547,7 +547,7 @@ def confidence_ellipse(x, y, ax, n, facecolor="none", **kwargs):
     :param array x: input data x-axis.
     :param array y: input data y-axis.
     :param matplotlib.axes.Axes ax: The axes object to draw the ellipse into.
-    :param float n: The number of standard deviations or errors to determine the ellipse's radiuses.
+    :param float n: The number of standard deviations to determine the ellipse's radiuses.
 
     :return matplotlib.patches.Ellipse
     """
