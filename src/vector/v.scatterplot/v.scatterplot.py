@@ -327,7 +327,7 @@
 # % key: quandrant_linewidth
 # % type: double
 # % label: quandrant line width
-# % description: Line width of the lines dividing the points in four quadrants.
+# % description: Line width of the lines dividing the points in four quadrants
 # % required: no
 # % answer: 1
 # % guisection: Quadrants
