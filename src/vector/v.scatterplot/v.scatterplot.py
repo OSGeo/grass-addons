@@ -344,7 +344,7 @@
 # %flag
 # % key: g
 # % label: Add grid lines
-# % description: Add grid lines.
+# % description: Add grid lines
 # % guisection: Aesthetics
 # %end
 
