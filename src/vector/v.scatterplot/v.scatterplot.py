@@ -7,7 +7,7 @@
 # PURPOSE:      Plots the values of two columns in the attribute table
 #               of an input vector layer in a scatterplot.
 #
-# COPYRIGHT:    (c) 2023 Paulo van Breugel, and the GRASS Development Team
+# COPYRIGHT:    (c) 2023-2024 Paulo van Breugel, and the GRASS Development Team
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
 #               for details.
@@ -22,7 +22,6 @@
 # %end
 
 # %option G_OPT_V_MAP
-# % key: map
 # % label: Input map
 # % description: input vector layer
 # % required: yes
@@ -57,7 +56,6 @@
 # %end
 
 # %option G_OPT_F_OUTPUT
-# % key: file_name
 # % label: Name of the output file (extension decides format)
 # % description: Name of the output file. The format is determined by the file extension.
 # % required: no
@@ -228,10 +226,10 @@
 # % end
 
 # %option
-# % key: n_sd
+# % key: n
 # % type: string
 # % label: standard deviations
-# % description: Draw the covariance confidence ellipse(s) with radius of n standard deviations (n_sd).
+# % description: Draw the covariance confidence ellipse(s) with radius of n standard deviations.
 # % answer: 2
 # % guisection: Ellipse
 # %end
@@ -305,6 +303,36 @@
 # % guisection: Ellipse
 # %end
 
+# %option
+# % key: quadrants
+# % type: string
+# % label: quadrants
+# % description: Print the mean or median on x and y-axis
+# % required: no
+# % options: mean,median
+# % guisection: Quadrants
+# %end
+
+# %option G_OPT_C
+# % key: quandrant_linecolor
+# % type: string
+# % label: Line color
+# % description: Color of the lines making up the quadrants
+# % required: no
+# % answer: grey
+# % guisection: Quadrants
+# %end
+
+# %option
+# % key: quandrant_linewidth
+# % type: double
+# % label: quandrant line width
+# % description: Line width of the lines dividing the points in four quadrants
+# % required: no
+# % answer: 1
+# % guisection: Quadrants
+# %end
+
 # %rules
 # % requires: groups_rgb,groups
 # %end
@@ -313,8 +341,20 @@
 # % requires: ellipse_legend,groups
 # %end
 
+# %flag
+# % key: g
+# % label: Add grid lines
+# % description: Add grid lines
+# % guisection: Aesthetics
+# %end
+
+# %rules
+# % excludes: quadrants,-g
+# %end
+
+
 # %option
-# % key: xlim
+# % key: x_axis_limits
 # % type: string
 # % label: X axis range (min,max)
 # % description: Set the X axis range to be displayed
@@ -322,7 +362,7 @@
 # %end
 
 # %option
-# % key: ylim
+# % key: y_axis_limits
 # % type: string
 # % label: Y axis range (min,max)
 # % description: Set the Y axis range to be displayed
@@ -500,14 +540,14 @@ def density_scatter(
     return ax, fig
 
 
-def confidence_ellipse(x, y, ax, n_sd, facecolor="none", **kwargs):
+def confidence_ellipse(x, y, ax, n, facecolor="none", **kwargs):
     """
     Create a plot of the covariance confidence ellipse of *x* and *y*.
 
     :param array x: input data x-axis.
     :param array y: input data y-axis.
     :param matplotlib.axes.Axes ax: The axes object to draw the ellipse into.
-    :param float n_sd: The number of standard deviations to determine the ellipse's radiuses.
+    :param float n: The number of standard deviations to determine the ellipse's radiuses.
 
     :return matplotlib.patches.Ellipse
     """
@@ -528,11 +568,11 @@ def confidence_ellipse(x, y, ax, n_sd, facecolor="none", **kwargs):
     # Calculating the standard deviation of x from
     # the squareroot of the variance and multiplying
     # with the given number of standard deviations.
-    scale_x = np.sqrt(cov[0, 0]) * n_sd
+    scale_x = np.sqrt(cov[0, 0]) * n
     mean_x = np.mean(x)
 
     # calculating the standard deviation of y ...
-    scale_y = np.sqrt(cov[1, 1]) * n_sd
+    scale_y = np.sqrt(cov[1, 1]) * n
     mean_y = np.mean(y)
 
     transf = (
@@ -603,7 +643,7 @@ def main(options, flags):
     # Plot parameters & aesthetics
     plot_dimensions = [float(x) for x in options["plot_dimensions"].split(",")]
     plot_title = options["title"]
-    file_name = options["file_name"]
+    file_name = options["output"]
     bins = [int(x) for x in options["bins"].split(",")]
     if options["rgbcolumn"]:
         dot_color = rgbcolumn
@@ -652,6 +692,30 @@ def main(options, flags):
             reverse_colors=flags["r"],
         )
 
+    # Quadrants
+    if options["quadrants"]:
+        if options["quadrants"] == "mean":
+            X_div = np.mean(X)
+            Y_div = np.mean(Y)
+        else:
+            X_div = np.median(X)
+            Y_div = np.median(Y)
+        quadrant_color = get_valid_color(options["quandrant_linecolor"])
+        quadrant_linewidth = float(options["quandrant_linewidth"])
+        ax.axhline(
+            y=Y_div, color=quadrant_color, linewidth=quadrant_linewidth, zorder=0
+        )
+        ax.axvline(
+            x=X_div, color=quadrant_color, linewidth=quadrant_linewidth, zorder=0
+        )
+
+    # Set grid (optional)
+    if flags["g"]:
+        ax.set_axisbelow(True)
+        ax.xaxis.grid(linewidth=0.5, alpha=0.5)
+        ax.yaxis.grid(linewidth=0.5, alpha=0.5)
+
+    # Trendline
     if options["trendline"] == "linear":
         degree = 1
         if int(options["degree"]) != "1":
@@ -714,7 +778,7 @@ def main(options, flags):
                 X,
                 Y,
                 ax,
-                n_sd=float(options["n_sd"]),
+                n=float(options["n"]),
                 edgecolor="white",
                 linewidth=edge_width * 1.5,
                 linestyle=edge_style,
@@ -724,7 +788,7 @@ def main(options, flags):
                 X,
                 Y,
                 ax,
-                n_sd=float(options["n_sd"]),
+                n=float(options["n"]),
                 edgecolor=edge_color,
                 linewidth=edge_width,
                 linestyle=edge_style,
@@ -750,7 +814,7 @@ def main(options, flags):
                     sub_x,
                     sub_y,
                     ax,
-                    n_sd=float(options["n_sd"]),
+                    n=float(options["n"]),
                     edgecolor="white",
                     linewidth=edge_width * 1.8,
                     linestyle="-",
@@ -760,7 +824,7 @@ def main(options, flags):
                     sub_x,
                     sub_y,
                     ax,
-                    n_sd=float(options["n_sd"]),
+                    n=float(options["n"]),
                     edgecolor=edge_color,
                     linewidth=edge_width,
                     linestyle=edge_style,
@@ -770,11 +834,12 @@ def main(options, flags):
             if options["ellipse_legend"]:
                 fontsize = float(options["fontsize"]) * 0.9
                 plt.legend(fontsize=fontsize)
-    if options["xlim"]:
-        xlim = [float(i) for i in options["xlim"].split(",")]
+
+    if options["x_axis_limits"]:
+        xlim = [float(i) for i in options["x_axis_limits"].split(",")]
         ax.set_xlim(xlim)
-    if options["ylim"]:
-        ylim = [float(i) for i in options["ylim"].split(",")]
+    if options["y_axis_limits"]:
+        ylim = [float(i) for i in options["y_axis_limits"].split(",")]
         ax.set_ylim(ylim)
 
     if bool(file_name):
