@@ -102,6 +102,32 @@ from datetime import *
 import grass.script as gs
 
 
+def get_bb(vector=None):
+    args = {}
+    if vector:
+        args["vector"] = vector
+    # are we in LatLong location?
+    kv = gs.parse_command("g.proj", flags="j")
+    if "+proj" not in kv:
+        gs.fatal("Unable to get bounding box: unprojected location not supported")
+    if kv["+proj"] != "longlat":
+        info = gs.parse_command("g.region", flags="uplg", **args)
+        return {
+            "lonmin": info["nw_long"],
+            "latmin": info["sw_lat"],
+            "lonmax": info["ne_long"],
+            "latmax": info["nw_lat"],
+        }
+    else:
+        info = gs.parse_command("g.region", flags="upg", **args)
+        return {
+            "lonmin": info["w"],
+            "latmin": info["s"],
+            "lonmax": info["e"],
+            "latmax": info["n"],
+        }
+
+
 def main():
     # products: https://github.com/CS-SI/eodag/blob/develop/eodag/resources/product_types.yml
 
@@ -115,7 +141,11 @@ def main():
     product_type = options["dataset"]
 
     # TODO: Allow user to specify a shape file path
-    geom = {"lonmin": 1, "latmin": 43, "lonmax": 2, "latmax": 44}
+    # use boudning box of current computational region
+    geom = (
+        get_bb()
+    )  # demo_location {"lonmin": 1, "latmin": 43, "lonmax": 2, "latmax": 44}
+    print(geom)
 
     search_parameters = {
         "items_per_page": items_per_page,

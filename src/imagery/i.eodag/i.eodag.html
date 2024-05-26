@@ -23,7 +23,7 @@
 <h2>SYNOPSIS</h2>
 <div id="name"><b>i.eodag.py</b><br></div>
 <b>i.eodag.py --help</b><br>
-<div id="synopsis"><b>i.eodag.py</b> [-<b>l</b>] <b>dataset</b>=<em>string</em>  [<b>provider</b>=<em>string</em>]  <b>start</b>=<em>string</em> <b>end</b>=<em>string</em>  [<b>timeout</b>=<em>integer</em>]   [--<b>help</b>]  [--<b>verbose</b>]  [--<b>quiet</b>]  [--<b>ui</b>]
+<div id="synopsis"><b>i.eodag.py</b> [-<b>l</b>] <b>dataset</b>=<em>string</em>  [<b>output</b>=<em>name</em>]   [<b>provider</b>=<em>string</em>]   [<b>start</b>=<em>string</em>]   [<b>end</b>=<em>string</em>]   [<b>relation</b>=<em>string</em>]   [<b>clouds</b>=<em>integer</em>]   [<b>timeout</b>=<em>integer</em>]   [--<b>help</b>]  [--<b>verbose</b>]  [--<b>quiet</b>]  [--<b>ui</b>]
 </div>
 
 <div id="flags">
@@ -48,15 +48,27 @@
 <dl>
 <dt><b>dataset</b>=<em>string</em>&nbsp;<b>[required]</b></dt>
 <dd>Imagery dataset to search for</dd>
+<dd>Default: <em>S1_SAR_GRD</em></dd>
+
+<dt><b>output</b>=<em>name</em></dt>
+<dd>Name for output directory where to store downloaded data OR search results</dd>
 
 <dt><b>provider</b>=<em>string</em></dt>
 <dd>Provider to use for searching/downloading, if none is provided the searching will be done according to the config file priority</dd>
 
-<dt><b>start</b>=<em>string</em>&nbsp;<b>[required]</b></dt>
-<dd>Start date ('YYYY-MM-DD')</dd>
+<dt><b>start</b>=<em>string</em></dt>
+<dd>Start date ('YYYY-MM-DD'), by default it is 60 days ago</dd>
 
-<dt><b>end</b>=<em>string</em>&nbsp;<b>[required]</b></dt>
+<dt><b>end</b>=<em>string</em></dt>
 <dd>End date ('YYYY-MM-DD')</dd>
+
+<dt><b>relation</b>=<em>string</em></dt>
+<dd>Relation with area of interest</dd>
+<dd>Options: <em>intersects,  contains,  within</em></dd>
+<dd>Default: <em>intersects</em></dd>
+
+<dt><b>clouds</b>=<em>integer</em></dt>
+<dd>Maximum cloud cover percentage for Landsat scene</dd>
 
 <dt><b>timeout</b>=<em>integer</em></dt>
 <dd>Download timeout in seconds</dd>
