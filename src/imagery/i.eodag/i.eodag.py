@@ -2,7 +2,7 @@
 
 ############################################################################
 #
-# MODULE:      i.landsat.download
+# MODULE:      i.eodag
 #
 # AUTHOR(S):   Hamed Elgizery
 # MENTOR(S):   Luca Delucchi, Veronica Andreo, Stefan Blumentrath
@@ -42,6 +42,14 @@
 # % description: Name for output directory where to store downloaded data OR search results
 # % required: no
 # % guisection: Output
+# %end
+
+# %option
+# % key: id
+# % type: string
+# % multiple: yes
+# % description: List of scenes IDs to download
+# % guisection: Filter
 # %end
 
 # %option
@@ -97,12 +105,23 @@
 # % description: List the search result without downloading
 # %end
 
+# %flag
+# % key: e
+# % description: Extract the downloaded the datasets
+# %end
+
+# %flag
+# % key: d
+# % description: Delete the product archieve after downloading
+# %end
+
 
 import sys
 import os
 import getpass
 from datetime import *
 import grass.script as gs
+from grass.exceptions import ParameterError
 
 
 def create_dir(dir):
@@ -144,94 +163,143 @@ def get_bb(vector=None):
         }
 
 
+def download_products(products_list):
+    dag.download_all(products_list)
+
+
+def download_by_id(query_id: str):
+    print(f"Searching for product ending with: {query_id[-min(len(query_id), 8):]}")
+    product, count = dag.search(id=query_id)
+    if count != 1:
+        raise ParameterError("Product couldn't be uniquely identified")
+    if not product[0].properties["id"].startswith(query_id):
+        raise ParameterError("Product wasn't found")
+    print(f"Poduct ending with: {query_id[-min(len(query_id), 8):]} is found.")
+    print("Downloading...")
+    dag.download(product[0])
+
+
+def download_by_ids(ids: list):
+    for id in ids:
+        try:
+            download_by_id(id)
+        except ParameterError:
+            gs.error(
+                f"Product ending with: {id[-min(len(id), 8):]}, failed to download"
+            )
+
+
+def setup_environment_variables():
+    os.environ[f"EODAG__{options['provider']}__DOWNLOAD__EXTRACT"] = str(flags["e"])
+    os.environ[f"EODAG__{options['provider']}__DOWNLOAD__DELETE_ARCHIV"] = str(
+        flags["d"]
+    )
+
+    if options["output"]:
+        os.environ[f"EODAG__{options['provider']}__DOWNLOAD__OUTPUTS_PREFIX"] = options[
+            "output"
+        ]
+
+
 def main():
     # products: https://github.com/CS-SI/eodag/blob/develop/eodag/resources/product_types.yml
 
-    # TODO: Add option for setting a differnt config file path
+    # setting the envirionmnets variable has to come before the dag initialization
+    setup_environment_variables()
+
+    global dag
     dag = EODataAccessGateway()
+
     if options["provider"]:
         dag.set_preferred_provider(options["provider"])
 
-    items_per_page = 20
-    # TODO: Check that the product exists, could be handled by catching exceptions when searching...
-    product_type = options["dataset"]
+    # Download by ids... if ids are provided only these ids will be downloaded
+    if options["id"]:
+        ids = options["id"].split(",")
+        download_by_ids(ids)
+    else:
+        # TODO: Add option for setting a differnt config file path
 
-    # TODO: Allow user to specify a shape file path
-    # use boudning box of current computational region
-    geom = (
-        # get_bb()
-        {
-            "lonmin": 1.9,
-            "latmin": 43.9,
-            "lonmax": 2,
-            "latmax": 44,
-        }  # hardcoded for testing
-    )
-    print(geom)
+        items_per_page = 20
+        # TODO: Check that the product exists, could be handled by catching exceptions when searching...
+        product_type = options["dataset"]
 
-    search_parameters = {
-        "items_per_page": items_per_page,
-        "productType": product_type,
-        # TODO: Convert to a shapely object
-        "geom": geom,
-    }
-
-    if options["clouds"]:
-        search_parameters["cloudCover"] = options["clouds"]
-
-    start_date = options["start"]
-    delta_days = timedelta(60)
-    if not options["start"]:
-        start_date = date.today() - delta_days
-        start_date = start_date.strftime("%Y-%m-%d")
-
-    end_date = options["end"]
-    if not options["end"]:
-        end_date = date.today().strftime("%Y-%m-%d")
-
-    if end_date < start_date:
-        gs.fatal(
-            _(f"End Date ({end_date}) cannot come before Start Date ({start_date})")
+        # TODO: Allow user to specify a shape file path
+        geom = (
+            # use boudning box of current computational region
+            # get_bb()
+            {
+                "lonmin": 1.9,
+                "latmin": 43.9,
+                "lonmax": 2,
+                "latmax": 44,
+            }  # hardcoded for testing
         )
 
-    search_parameters["start"] = start_date
-    search_parameters["end"] = end_date
+        gs.verbose(geom)
 
-    search_results = dag.search_all(**search_parameters)
-    num_results = len(search_results)
-    print(f"Found {num_results} matching scenes " f"of type {product_type}")
-    if flags["l"]:
-        # TODO: Oragnize output format better
-        idx = 0
-        for product in search_results:
-            print(
-                f'Product #{idx} - ID:{product.properties["id"]},provider:{product.provider}'
+        search_parameters = {
+            "items_per_page": items_per_page,
+            "productType": product_type,
+            # TODO: Convert to a shapely object
+            "geom": geom,
+        }
+
+        if options["clouds"]:
+            search_parameters["cloudCover"] = options["clouds"]
+
+        start_date = options["start"]
+        delta_days = timedelta(60)
+        if not options["start"]:
+            start_date = date.today() - delta_days
+            start_date = start_date.strftime("%Y-%m-%d")
+
+        end_date = options["end"]
+        if not options["end"]:
+            end_date = date.today().strftime("%Y-%m-%d")
+
+        if end_date < start_date:
+            gs.fatal(
+                _(f"End Date ({end_date}) cannot come before Start Date ({start_date})")
             )
-            idx += 1
-    else:
-        create_dir(options["output"])
-        dag.download_all(search_results, outputs_prefix=options["output"])
 
-        # TODO: Consider adding a quicklook flag
-        """
-        import matplotlib.pyplot as plt
-        import matplotlib.image as mpimg
+        search_parameters["start"] = start_date
+        search_parameters["end"] = end_date
 
-        fig = plt.figure(figsize=(10, 8))
-        for i, product in enumerate(search_results, start=1):
-            if i > 7 * 8:
-                break
-            # This line takes care of downloading the quicklook
-            quicklook_path = product.get_quicklook()
+        search_results = dag.search_all(**search_parameters)
+        num_results = len(search_results)
+        print(f"Found {num_results} matching scenes " f"of type {product_type}")
+        if flags["l"]:
+            # TODO: Oragnize output format better
+            idx = 0
+            for product in search_results:
+                print(
+                    f'Product #{idx} - ID:{product.properties["id"]},provider:{product.provider}'
+                )
+                idx += 1
+        else:
+            download_products(search_results)
 
-            # Plot the quicklook
-            img = mpimg.imread(quicklook_path)
-            ax = fig.add_subplot(7, 8, i)
-            ax.set_title(i - 1)
-            plt.imshow(img)
-        plt.tight_layout()
-        plt.show()
-        """
+            # TODO: Consider adding a quicklook flag
+            """
+            import matplotlib.pyplot as plt
+            import matplotlib.image as mpimg
+
+            fig = plt.figure(figsize=(10, 8))
+            for i, product in enumerate(search_results, start=1):
+                if i > 7 * 8:
+                    break
+                # This line takes care of downloading the quicklook
+                quicklook_path = product.get_quicklook()
+
+                # Plot the quicklook
+                img = mpimg.imread(quicklook_path)
+                ax = fig.add_subplot(7, 8, i)
+                ax.set_title(i - 1)
+                plt.imshow(img)
+            plt.tight_layout()
+            plt.show()
+            """
 
 
 if __name__ == "__main__":
@@ -243,8 +311,8 @@ if __name__ == "__main__":
         from eodag.api.product.metadata_mapping import DEFAULT_METADATA_MAPPING
         from eodag.utils import get_geometry_from_various
 
-        # for debuggin
-        # setup_logging(verbose=3)
+        # for debugging -> 3
+        setup_logging(verbose=1)
     except:
         gs.fatal(_("Cannot import eodag. Please intall the library first."))
 

@@ -23,7 +23,7 @@
 <h2>SYNOPSIS</h2>
 <div id="name"><b>i.eodag.py</b><br></div>
 <b>i.eodag.py --help</b><br>
-<div id="synopsis"><b>i.eodag.py</b> [-<b>l</b>] <b>dataset</b>=<em>string</em>  [<b>output</b>=<em>name</em>]   [<b>provider</b>=<em>string</em>]   [<b>start</b>=<em>string</em>]   [<b>end</b>=<em>string</em>]   [<b>relation</b>=<em>string</em>]   [<b>clouds</b>=<em>integer</em>]   [<b>timeout</b>=<em>integer</em>]   [--<b>help</b>]  [--<b>verbose</b>]  [--<b>quiet</b>]  [--<b>ui</b>]
+<div id="synopsis"><b>i.eodag.py</b> [-<b>led</b>] <b>dataset</b>=<em>string</em>  [<b>output</b>=<em>name</em>]   [<b>id</b>=<em>string</em>[,<i>string</i>,...]]   [<b>provider</b>=<em>string</em>]   [<b>start</b>=<em>string</em>]   [<b>end</b>=<em>string</em>]   [<b>relation</b>=<em>string</em>]   [<b>clouds</b>=<em>integer</em>]   [<b>timeout</b>=<em>integer</em>]   [--<b>help</b>]  [--<b>verbose</b>]  [--<b>quiet</b>]  [--<b>ui</b>]
 </div>
 
 <div id="flags">
@@ -31,6 +31,12 @@
 <dl>
 <dt><b>-l</b></dt>
 <dd>List the search result without downloading</dd>
+
+<dt><b>-e</b></dt>
+<dd>Extract the downloaded the datasets</dd>
+
+<dt><b>-d</b></dt>
+<dd>Delete the product archieve after downloading</dd>
 
 <dt><b>--help</b></dt>
 <dd>Print usage summary</dd>
@@ -52,6 +58,9 @@
 
 <dt><b>output</b>=<em>name</em></dt>
 <dd>Name for output directory where to store downloaded data OR search results</dd>
+
+<dt><b>id</b>=<em>string[,<i>string</i>,...]</em></dt>
+<dd>List of scenes IDs to download</dd>
 
 <dt><b>provider</b>=<em>string</em></dt>
 <dd>Provider to use for searching/downloading, if none is provided the searching will be done according to the config file priority</dd>
