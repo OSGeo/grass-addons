@@ -3,7 +3,10 @@
 ############################################################################
 #
 # MODULE:      i.landsat.download
+#
 # AUTHOR(S):   Hamed Elgizery
+# MENTOR(S):   Luca Delucchi, Veronica Andreo, Stefan Blumentrath
+#
 # PURPOSE:     Downloads imagery datasets e.g. Landsat, Sentinel, and MODIS
 #              using EODAG API.
 # COPYRIGHT:   (C) 2024-2025 by Hamed Elgizery, and the GRASS development team
@@ -102,6 +105,19 @@ from datetime import *
 import grass.script as gs
 
 
+def create_dir(dir):
+    if not os.path.isdir(dir):
+        try:
+            os.makedirs(dir)
+            return 0
+        except Exception as e:
+            gs.warning(_("Could not create directory {}").format(dir))
+            return 1
+    else:
+        gs.verbose(_("Directory {} already exists").format(dir))
+        return 0
+
+
 def get_bb(vector=None):
     args = {}
     if vector:
@@ -143,8 +159,14 @@ def main():
     # TODO: Allow user to specify a shape file path
     # use boudning box of current computational region
     geom = (
-        get_bb()
-    )  # demo_location {"lonmin": 1, "latmin": 43, "lonmax": 2, "latmax": 44}
+        # get_bb()
+        {
+            "lonmin": 1.9,
+            "latmin": 43.9,
+            "lonmax": 2,
+            "latmax": 44,
+        }  # hardcoded for testing
+    )
     print(geom)
 
     search_parameters = {
@@ -175,18 +197,41 @@ def main():
     search_parameters["start"] = start_date
     search_parameters["end"] = end_date
 
-    search_result = dag.search_all(**search_parameters)
-    num_results = len(search_result)
+    search_results = dag.search_all(**search_parameters)
+    num_results = len(search_results)
     print(f"Found {num_results} matching scenes " f"of type {product_type}")
     if flags["l"]:
+        # TODO: Oragnize output format better
         idx = 0
-        for product in search_result:
+        for product in search_results:
             print(
                 f'Product #{idx} - ID:{product.properties["id"]},provider:{product.provider}'
             )
             idx += 1
     else:
-        pass
+        create_dir(options["output"])
+        dag.download_all(search_results, outputs_prefix=options["output"])
+
+        # TODO: Consider adding a quicklook flag
+        """
+        import matplotlib.pyplot as plt
+        import matplotlib.image as mpimg
+
+        fig = plt.figure(figsize=(10, 8))
+        for i, product in enumerate(search_results, start=1):
+            if i > 7 * 8:
+                break
+            # This line takes care of downloading the quicklook
+            quicklook_path = product.get_quicklook()
+
+            # Plot the quicklook
+            img = mpimg.imread(quicklook_path)
+            ax = fig.add_subplot(7, 8, i)
+            ax.set_title(i - 1)
+            plt.imshow(img)
+        plt.tight_layout()
+        plt.show()
+        """
 
 
 if __name__ == "__main__":
@@ -195,6 +240,8 @@ if __name__ == "__main__":
     try:
         from eodag import EODataAccessGateway
         from eodag import setup_logging
+        from eodag.api.product.metadata_mapping import DEFAULT_METADATA_MAPPING
+        from eodag.utils import get_geometry_from_various
 
         # for debuggin
         # setup_logging(verbose=3)
