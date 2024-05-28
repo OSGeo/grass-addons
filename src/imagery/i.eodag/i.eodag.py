@@ -64,14 +64,14 @@
 # %option
 # % key: start
 # % type: string
-# % description: Start date ('YYYY-MM-DD'), by default it is 60 days ago
+# % description: Start date (in any ISO 8601 format), by default it is 60 days ago
 # % guisection: Filter
 # %end
 
 # %option
 # % key: end
 # % type: string
-# % description: End date ('YYYY-MM-DD')
+# % description: End date (in any ISO 8601 format)
 # % guisection: Filter
 # %end
 
@@ -252,22 +252,25 @@ def main():
             search_parameters["cloudCover"] = options["clouds"]
 
         start_date = options["start"]
-        delta_days = timedelta(60)
         if not options["start"]:
-            start_date = date.today() - delta_days
-            start_date = start_date.strftime("%Y-%m-%d")
+            delta_days = timedelta(60)
+            start_date = str(datetime.now() - delta_days)
+        start_date = datetime.fromisoformat(start_date)
 
         end_date = options["end"]
         if not options["end"]:
-            end_date = date.today().strftime("%Y-%m-%d")
+            end_date = str(datetime.now())
+        end_date = datetime.fromisoformat(end_date)
 
         if end_date < start_date:
             gs.fatal(
                 _(f"End Date ({end_date}) cannot come before Start Date ({start_date})")
             )
 
-        search_parameters["start"] = start_date
-        search_parameters["end"] = end_date
+        # Requires further testing to make sure the isoformat works with all the providers
+        # TODO: Normalize to UTC
+        search_parameters["start"] = start_date.isoformat()[:-6]  # Remove the timezone
+        search_parameters["end"] = end_date.isoformat()[:-6]
 
         search_results = dag.search_all(**search_parameters)
         num_results = len(search_results)
@@ -316,7 +319,7 @@ if __name__ == "__main__":
         from eodag.utils import get_geometry_from_various
 
         # for debugging -> 3
-        setup_logging(verbose=1)
+        setup_logging(verbose=2)
     except:
         gs.fatal(_("Cannot import eodag. Please intall the library first."))
 
