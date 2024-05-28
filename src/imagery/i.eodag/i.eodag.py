@@ -20,6 +20,7 @@
 
 # %Module
 # % description: Eodag interface to install imagery datasets from various providers.
+# % keyword: imagery
 # % keyword: eodag
 # % keyword: sentinel
 # % keyword: landsat
@@ -132,9 +133,8 @@ def create_dir(dir):
         except Exception as e:
             gs.warning(_("Could not create directory {}").format(dir))
             return 1
-    else:
-        gs.verbose(_("Directory {} already exists").format(dir))
-        return 0
+    gs.verbose(_("Directory {} already exists").format(dir))
+    return 0
 
 
 def get_bb(vector=None):
@@ -153,14 +153,13 @@ def get_bb(vector=None):
             "lonmax": info["ne_long"],
             "latmax": info["nw_lat"],
         }
-    else:
-        info = gs.parse_command("g.region", flags="upg", **args)
-        return {
-            "lonmin": info["w"],
-            "latmin": info["s"],
-            "lonmax": info["e"],
-            "latmax": info["n"],
-        }
+    info = gs.parse_command("g.region", flags="upg", **args)
+    return {
+        "lonmin": info["w"],
+        "latmin": info["s"],
+        "lonmax": info["e"],
+        "latmax": info["n"],
+    }
 
 
 def download_products(products_list):
@@ -168,14 +167,16 @@ def download_products(products_list):
 
 
 def download_by_id(query_id: str):
-    print(f"Searching for product ending with: {query_id[-min(len(query_id), 8):]}")
+    gs.verbose(
+        _(f"Searching for product ending with: {query_id[-min(len(query_id), 8):]}")
+    )
     product, count = dag.search(id=query_id)
     if count != 1:
         raise ParameterError("Product couldn't be uniquely identified")
     if not product[0].properties["id"].startswith(query_id):
         raise ParameterError("Product wasn't found")
-    print(f"Poduct ending with: {query_id[-min(len(query_id), 8):]} is found.")
-    print("Downloading...")
+    gs.verbose(_(f"Poduct ending with: {query_id[-min(len(query_id), 8):]} is found."))
+    gs.verbose(_("Downloading..."))
     dag.download(product[0])
 
 
@@ -185,7 +186,7 @@ def download_by_ids(ids: list):
             download_by_id(id)
         except ParameterError:
             gs.error(
-                f"Product ending with: {id[-min(len(id), 8):]}, failed to download"
+                _(f"Product ending with: {id[-min(len(id), 8):]}, failed to download")
             )
 
 
@@ -204,7 +205,10 @@ def setup_environment_variables():
 def main():
     # products: https://github.com/CS-SI/eodag/blob/develop/eodag/resources/product_types.yml
 
-    # setting the envirionmnets variable has to come before the dag initialization
+    # TODO: Add option for setting a differnt config file path
+    global options, flags
+    options, flags = gs.parser()
+    # setting the envirionmnets variables has to come before the dag initialization
     setup_environment_variables()
 
     global dag
@@ -218,7 +222,6 @@ def main():
         ids = options["id"].split(",")
         download_by_ids(ids)
     else:
-        # TODO: Add option for setting a differnt config file path
 
         items_per_page = 20
         # TODO: Check that the product exists, could be handled by catching exceptions when searching...
@@ -268,13 +271,15 @@ def main():
 
         search_results = dag.search_all(**search_parameters)
         num_results = len(search_results)
-        print(f"Found {num_results} matching scenes " f"of type {product_type}")
+        gs.message(_(f"Found {num_results} matching scenes " f"of type {product_type}"))
         if flags["l"]:
             # TODO: Oragnize output format better
             idx = 0
             for product in search_results:
                 print(
-                    f'Product #{idx} - ID:{product.properties["id"]},provider:{product.provider}'
+                    _(
+                        f'Product #{idx} - ID:{product.properties["id"]},provider:{product.provider}'
+                    )
                 )
                 idx += 1
         else:
@@ -303,7 +308,6 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = gs.parser()
 
     try:
         from eodag import EODataAccessGateway
