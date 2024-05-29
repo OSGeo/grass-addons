@@ -224,6 +224,7 @@ def setup_environment_variables():
 def normalize_time(datetime_str: str):
     normalized_datetime = datetime.fromisoformat(datetime_str)
     normalized_datetime = normalized_datetime.replace(microsecond=0)
+    normalized_datetime = normalized_datetime.replace(tzinfo=None)
     return normalized_datetime.isoformat()
 
 
@@ -328,7 +329,6 @@ def main():
 
 
 if __name__ == "__main__":
-
     try:
         options, flags = gs.parser()
 
