@@ -52,6 +52,12 @@
 # % required: no
 # %end
 
+# %option G_OPT_F_INPUT
+# % key: config
+# % label: Full path to yaml config file, following the format https://eodag.readthedocs.io/en/stable/getting_started_guide/configure.html#yaml-user-configuration-file
+# % description: '-' for standard input
+# %end
+
 # %option
 # % key: id
 # % type: string
@@ -130,18 +136,14 @@ import getpass
 from datetime import *
 import grass.script as gs
 from grass.exceptions import ParameterError
+from pathlib import Path
 
 
-def create_dir(dir):
-    if not os.path.isdir(dir):
-        try:
-            os.makedirs(dir)
-            return 0
-        except Exception as e:
-            gs.warning(_("Could not create directory {}").format(dir))
-            return 1
-    gs.verbose(_("Directory {} already exists").format(dir))
-    return 0
+def create_dir(directory):
+    try:
+        p = Path(directory).mkdir(parents=True, exist_ok=True)
+    except Exception as e:
+        gs.fatal(_("Could not create directory {}").format(dir))
 
 
 def get_bb(vector=None):
@@ -220,6 +222,9 @@ def setup_environment_variables():
             "EODAG__{}__DOWNLOAD__OUTPUTS_PREFIX".format(options["provider"])
         ] = options["output"]
 
+    if options["config"]:
+        os.environ["EODAG_CFG_FILE"] = options["config"]
+
 
 def normalize_time(datetime_str: str):
     normalized_datetime = datetime.fromisoformat(datetime_str)
@@ -231,7 +236,6 @@ def normalize_time(datetime_str: str):
 def main():
     # products: https://github.com/CS-SI/eodag/blob/develop/eodag/resources/product_types.yml
 
-    # TODO: Add option for setting a differnt config file path
     # setting the envirionmnets variables has to come before the dag initialization
     setup_environment_variables()
 
