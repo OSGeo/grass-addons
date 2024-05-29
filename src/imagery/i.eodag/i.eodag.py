@@ -45,6 +45,13 @@
 # % guisection: Output
 # %end
 
+# %option G_OPT_M_DIR
+# % key: format
+# % type: string
+# % description: Don't download and show/save search results as: plain;Plain text output;json;JSON
+# % required: no
+# %end
+
 # %option
 # % key: id
 # % type: string
@@ -144,7 +151,7 @@ def get_bb(vector=None):
     # are we in LatLong location?
     kv = gs.parse_command("g.proj", flags="j")
     if "+proj" not in kv:
-        gs.fatal("Unable to get bounding box: unprojected location not supported")
+        gs.fatal(_("Unable to get bounding box: unprojected location not supported"))
     if kv["+proj"] != "longlat":
         info = gs.parse_command("g.region", flags="uplg", **args)
         return {
@@ -168,46 +175,62 @@ def download_products(products_list):
 
 def download_by_id(query_id: str):
     gs.verbose(
-        _(f"Searching for product ending with: {query_id[-min(len(query_id), 8):]}")
+        _(
+            "Searching for product ending with: {}".format(
+                query_id[-min(len(query_id), 8) :]
+            )
+        )
     )
     product, count = dag.search(id=query_id)
     if count != 1:
         raise ParameterError("Product couldn't be uniquely identified")
     if not product[0].properties["id"].startswith(query_id):
         raise ParameterError("Product wasn't found")
-    gs.verbose(_(f"Poduct ending with: {query_id[-min(len(query_id), 8):]} is found."))
+    gs.verbose(
+        _("Poduct ending with: {} is found.".format(query_id[-min(len(query_id), 8) :]))
+    )
     gs.verbose(_("Downloading..."))
     dag.download(product[0])
 
 
-def download_by_ids(ids: list):
-    for id in ids:
+def download_by_ids(products_ids: list):
+    for product_id in products_ids:
         try:
-            download_by_id(id)
+            download_by_id(product_id)
         except ParameterError:
             gs.error(
-                _(f"Product ending with: {id[-min(len(id), 8):]}, failed to download")
+                _(
+                    "Product ending with: {}, failed to download".format(
+                        id[-min(len(id), 8) :]
+                    )
+                )
             )
 
 
 def setup_environment_variables():
-    os.environ[f"EODAG__{options['provider']}__DOWNLOAD__EXTRACT"] = str(flags["e"])
-    os.environ[f"EODAG__{options['provider']}__DOWNLOAD__DELETE_ARCHIV"] = str(
+    os.environ["EODAG__{}__DOWNLOAD__EXTRACT".format(options["provider"])] = str(
+        flags["e"]
+    )
+    os.environ["EODAG__{}__DOWNLOAD__DELETE_ARCHIV".format(options["provider"])] = str(
         flags["d"]
     )
 
     if options["output"]:
-        os.environ[f"EODAG__{options['provider']}__DOWNLOAD__OUTPUTS_PREFIX"] = options[
-            "output"
-        ]
+        os.environ[
+            "EODAG__{}__DOWNLOAD__OUTPUTS_PREFIX".format(options["provider"])
+        ] = options["output"]
+
+
+def normalize_time(datetime_str: str):
+    normalized_datetime = datetime.fromisoformat(datetime_str)
+    normalized_datetime = normalized_datetime.replace(microsecond=0)
+    return normalized_datetime.isoformat()
 
 
 def main():
     # products: https://github.com/CS-SI/eodag/blob/develop/eodag/resources/product_types.yml
 
     # TODO: Add option for setting a differnt config file path
-    global options, flags
-    options, flags = gs.parser()
     # setting the envirionmnets variables has to come before the dag initialization
     setup_environment_variables()
 
@@ -251,26 +274,38 @@ def main():
         if options["clouds"]:
             search_parameters["cloudCover"] = options["clouds"]
 
+        # Assumes that the user enter time in UTC
+        end_date = options["end"]
+        if not options["end"]:
+            end_date = datetime.utcnow().isoformat()
+        try:
+            end_date = normalize_time(end_date)
+        except Exception as e:
+            gs.debug(e)
+            gs.fatal(_("Could not parse 'end' time."))
+
         start_date = options["start"]
         if not options["start"]:
             delta_days = timedelta(60)
-            start_date = str(datetime.now() - delta_days)
-        start_date = datetime.fromisoformat(start_date)
-
-        end_date = options["end"]
-        if not options["end"]:
-            end_date = str(datetime.now())
-        end_date = datetime.fromisoformat(end_date)
+            start_date = (datetime.fromisoformat(end_date) - delta_days).isoformat()
+        try:
+            start_date = normalize_time(start_date)
+        except Exception as e:
+            gs.debug(e)
+            gs.fatal(_("Could not parse 'start' time."))
 
         if end_date < start_date:
             gs.fatal(
-                _(f"End Date ({end_date}) cannot come before Start Date ({start_date})")
+                _(
+                    "End Date ({}) can not come before Start Date ({})".format(
+                        end_date, start_date
+                    )
+                )
             )
 
-        # Requires further testing to make sure the isoformat works with all the providers
-        # TODO: Normalize to UTC
-        search_parameters["start"] = start_date.isoformat()[:-6]  # Remove the timezone
-        search_parameters["end"] = end_date.isoformat()[:-6]
+        # TODO: Requires further testing to make sure the isoformat works with all the providers
+        search_parameters["start"] = start_date
+        search_parameters["end"] = end_date
 
         search_results = dag.search_all(**search_parameters)
         num_results = len(search_results)
@@ -281,42 +316,24 @@ def main():
             for product in search_results:
                 print(
                     _(
-                        f'Product #{idx} - ID:{product.properties["id"]},provider:{product.provider}'
+                        "Product #{} - ID:{},provider:{}".format(
+                            idx, product.properties["id"], product.provider
+                        )
                     )
                 )
                 idx += 1
         else:
-            download_products(search_results)
-
             # TODO: Consider adding a quicklook flag
-            """
-            import matplotlib.pyplot as plt
-            import matplotlib.image as mpimg
-
-            fig = plt.figure(figsize=(10, 8))
-            for i, product in enumerate(search_results, start=1):
-                if i > 7 * 8:
-                    break
-                # This line takes care of downloading the quicklook
-                quicklook_path = product.get_quicklook()
-
-                # Plot the quicklook
-                img = mpimg.imread(quicklook_path)
-                ax = fig.add_subplot(7, 8, i)
-                ax.set_title(i - 1)
-                plt.imshow(img)
-            plt.tight_layout()
-            plt.show()
-            """
+            download_products(search_results)
 
 
 if __name__ == "__main__":
 
     try:
+        options, flags = gs.parser()
+
         from eodag import EODataAccessGateway
         from eodag import setup_logging
-        from eodag.api.product.metadata_mapping import DEFAULT_METADATA_MAPPING
-        from eodag.utils import get_geometry_from_various
 
         # for debugging -> 3
         setup_logging(verbose=2)
