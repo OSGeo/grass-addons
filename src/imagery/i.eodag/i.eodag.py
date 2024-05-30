@@ -45,11 +45,13 @@
 # % guisection: Output
 # %end
 
-# %option G_OPT_M_DIR
+# %option
 # % key: format
 # % type: string
-# % description: Don't download and show/save search results as: plain;Plain text output;json;JSON
+# % description: Output format
 # % required: no
+# % options: plain,json
+# % answer: json
 # %end
 
 # %option G_OPT_F_INPUT
@@ -243,7 +245,6 @@ def no_fallback_search(search_parameters, provider):
     except Exception as e:
         gs.verbose(e)
         gs.fatal(_("Server error, try again."))
-        return SearchResult([])
 
     # https://eodag.readthedocs.io/en/stable/api_reference/core.html#eodag.api.core.EODataAccessGateway.search_iter_page
     # This will use the prefered provider by default
@@ -338,9 +339,8 @@ def main():
 
         search_results = no_fallback_search(search_parameters, options["provider"])
         num_results = len(search_results)
-        # print([p.properties["storageStatus"] for p in search_results])
 
-        gs.message(
+        gs.verbose(
             _("Found {} matching scenes of type {}".format(num_results, product_type))
         )
         if flags["l"]:
@@ -357,6 +357,8 @@ def main():
                 idx += 1
         else:
             # TODO: Consider adding a quicklook flag
+            # TODO: Add timeout and wait parameters for downloading offline products...
+            # https://eodag.readthedocs.io/en/stable/getting_started_guide/product_storage_status.html
             download_products(search_results)
 
 
@@ -367,8 +369,13 @@ if __name__ == "__main__":
         from eodag import setup_logging
         from eodag.api.search_result import SearchResult
 
-        # for debugging -> 3
-        setup_logging(verbose=1)
+        debug_level = int(gs.read_command("g.gisenv", get="DEBUG"))
+        if not debug_level:
+            setup_logging(1)
+        elif debug_level == 1:
+            setup_logging(2)
+        else:
+            setup_logging(3)
     except:
         gs.fatal(_("Cannot import eodag. Please intall the library first."))
 
