@@ -56,6 +56,7 @@
 # % key: config
 # % label: Full path to yaml config file, following the format https://eodag.readthedocs.io/en/stable/getting_started_guide/configure.html#yaml-user-configuration-file
 # % description: '-' for standard input
+# % required: no
 # %end
 
 # %option
@@ -70,7 +71,7 @@
 # % key: provider
 # % type: string
 # % description: Provider to use for searching/downloading, if none is provided the searching will be done according to the config file priority
-# % required: no
+# % required: yes
 # % guisection: Filter
 # %end
 
@@ -233,6 +234,29 @@ def normalize_time(datetime_str: str):
     return normalized_datetime.isoformat()
 
 
+def no_fallback_search(search_parameters, provider):
+    try:
+        server_poke = dag.search(**search_parameters, provider=provider)
+        if server_poke[1] == 0:
+            gs.verbose(_("No products found"))
+            return SearchResult([])
+    except Exception as e:
+        gs.verbose(e)
+        gs.fatal(_("Server error, try again."))
+        return SearchResult([])
+
+    # https://eodag.readthedocs.io/en/stable/api_reference/core.html#eodag.api.core.EODataAccessGateway.search_iter_page
+    # This will use the prefered provider by default
+    search_result = dag.search_iter_page(**search_parameters)
+
+    # TODO: Would it be useful if user could iterate through the pages manually, and look for the product themselves?
+    try:
+        return list(search_result)[0]
+    except Exception as e:
+        gs.verbose(e)
+        gs.fatal(_("Server error, try again."))
+
+
 def main():
     # products: https://github.com/CS-SI/eodag/blob/develop/eodag/resources/product_types.yml
 
@@ -263,7 +287,7 @@ def main():
                 "lonmin": 1.9,
                 "latmin": 43.9,
                 "lonmax": 2,
-                "latmax": 44,
+                "latmax": 45,
             }  # hardcoded for testing
         )
 
@@ -312,9 +336,13 @@ def main():
         search_parameters["start"] = start_date
         search_parameters["end"] = end_date
 
-        search_results = dag.search_all(**search_parameters)
+        search_results = no_fallback_search(search_parameters, options["provider"])
         num_results = len(search_results)
-        gs.message(_(f"Found {num_results} matching scenes " f"of type {product_type}"))
+        # print([p.properties["storageStatus"] for p in search_results])
+
+        gs.message(
+            _("Found {} matching scenes of type {}".format(num_results, product_type))
+        )
         if flags["l"]:
             # TODO: Oragnize output format better
             idx = 0
@@ -333,14 +361,14 @@ def main():
 
 
 if __name__ == "__main__":
+    options, flags = gs.parser()
     try:
-        options, flags = gs.parser()
-
         from eodag import EODataAccessGateway
         from eodag import setup_logging
+        from eodag.api.search_result import SearchResult
 
         # for debugging -> 3
-        setup_logging(verbose=2)
+        setup_logging(verbose=1)
     except:
         gs.fatal(_("Cannot import eodag. Please intall the library first."))
 
