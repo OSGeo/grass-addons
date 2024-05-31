@@ -1,32 +1,43 @@
 <h2>DESCRIPTION:</h2>
-<em>r.connectivity.distance</em> computes cost-distance between all
+
+<em>r.connectivity.distance</em> computes cost-distances between all
 areas (patches) of an input vector map within a user defined Euclidean
 distance threshold.
 
-<p>Recently, graph-theory has been characterised as an efficient and
-useful tool for conservation planning (e.g. Bunn et al. 2000,
-Calabrese &amp; Fagan 2004, Minor &amp; Urban 2008, Zetterberg et. al. 2010).</p>
+<p>
+Recently, graph-theory has been characterised as an efficient and 
+useful tool for conservation planning (e.g. Bunn et al. 2000, Calabrese 
+&amp; Fagan 2004, Minor &amp; Urban 2008, Zetterberg et. al. 2010).
 
-<p>As a part of the r.connectivity.* tool-chain, <em>r.connectivity.distance</em> is
-intended to make graph-theory more easily available to conservation
-planning.</p>
+<p>
+As a part of the r.connectivity.* tool-chain, 
+<em>r.connectivity.distance</em> is intended to make graph-theory more 
+easily available to conservation planning.</p>
 
-<p><em>r.connectivity.distance</em> is the first tool of the
-r.connectivity.*-toolchain (followed by <em>r.connectivity.network</em>
+<p>
+<em>r.connectivity.distance</em> is the first tool of the 
+r.connectivity.*-toolchain (followed by <em>r.connectivity.network</em> 
 and <em>r.connectivity.corridors</em>).</p>
 
-<p><em>r.connectivity.distance</em> loops through all polygons in the
+<p>
+<em>r.connectivity.distance</em> loops through all polygons in the
 input vector map and calculates the cost-distance to all the other
 polygons within a user-defined Euclidean distance threshold.</p>
 
-<p>It produces two vector maps that hold the network:</p>
+<p>
+It produces two vector maps that hold the network:
+
+<p>
 <ul>
 <li>an edge-map (connections between patches) and a</li>
 <li>vertex-map (centroid representations of the patches).</li>
 </ul>
 
-<p>Attributes of the edge-map are:</p>
-<table>
+<p>
+Attributes of the edge-map are:
+
+<p>
+<table border='1'>
 <tr>
   <td>cat</td>
   <td>line category</td>
@@ -47,10 +58,13 @@ polygons within a user-defined Euclidean distance threshold.</p>
   <td>cost-distance from from_patch to to_patch</td>
   <td>double precision</td>
 </tr>
-
 </table>
-<p>Attributes of the vertex-map are:</p>
-<table>
+
+<p>
+Attributes of the vertex-map are:
+
+<p>
+<table border='1'>
 <tr>
   <td>cat</td>
   <td>category of the input patches</td>
@@ -58,34 +72,40 @@ polygons within a user-defined Euclidean distance threshold.</p>
 </tr>
 <tr>
   <td>pop_proxy</td>
-  <td>the user defined population proxy to be used in further analysis,
-representing a proxy for the amount of organisms potentially dispersing
-from a patch (e.g. habitat area)</td>
+  <td>the user defined population proxy to be used<br>
+      in further analysis, representing a proxy for<br>
+      the amount of organisms potentially dispersing<br>
+      from a patch (e.g. habitat area)</td>
   <td>double precision</td>
 </tr>
 </table>
 
-<p>On user request (<b>p-flag</b>) the shortest paths between the possible
+<p>
+On user request (<b>p-flag</b>) the shortest paths between the possible
 combination of patches can be extracted (using <em>r.drain</em>), along
-with start and stop points.</p>
+with start and stop points.
 
-<p>In addition, <em>r.connectivity.distance</em> outputs a cost distance
-raster map for every input area which later on are used in
-<em>r.connectivity.corridors</em> (together with output from
-<em>r.connectivity.network</em>) for corridor identification.</p>
+<p>
+In addition, <em>r.connectivity.distance</em> outputs a cost distance 
+raster map for every input area which later on are used in 
+<em>r.connectivity.corridors</em> (together with output from 
+<em>r.connectivity.network</em>) for corridor identification.
 
-<p>Distance between patches is measured as border to border distance. With
+<p>
+Distance between patches is measured as border to border distance. With
 the <b>border_dist</b> option, the user can define the number of cells
-(n) along the border to be used for distance measuring.<br>
+(n) along the border to be used for distance measuring.
+
+<p>
 The distance from a (start) patch to another (end) is measured as the
 n-th closest cell on the border of the other (end) patch. An increased
 number of border cells used for distance measuring also increases the
 width of possible corridors computed with
-<em>r.connectivity.corridors</em> later on.</p>
+<em>r.connectivity.corridors</em> later on.
 
 <p>If an output directory is given for the <b>conefor_dir</b> option is
 specified, also output suitable for further processing in
-<a href="http://www.conefor.org">CONEFOR</a> will be produced, namely:</p>
+<a href="http://www.conefor.org">CONEFOR</a> will be produced, namely:
 <ul>
 <li>a node file</li>
 <li>a directed connection file, and</li>
@@ -93,6 +113,7 @@ specified, also output suitable for further processing in
 </ul>
 
 <h2>EXAMPLES</h2>
+
 The following example is based on the North Carolina dataset!
 <p><em>Please be aware that all input parameters of the following example are
 purely hypothetical (though they intend to imitate a real life
@@ -107,9 +128,9 @@ species lives only in the larger core area of the swamps (> 1ha) while
 the borders are no suitable habitats.<br>
 It is not the most mobile of species and can cover (under optimal
 conditions) maximal 1.5 km.
-</p>
 
 <h3>Prepare input data</h3>
+
 Before we can run the connectivity analysis with the r.connectivity.*-tools
 we need to prepare the example input data. Because we want to use
 cost distance as a distance measure we have to provide a cost raster map
@@ -137,10 +158,7 @@ landuse96_28m[-1,-1]==11&& \
 landuse96_28m==11,1,null())"
 
 # Vectorize patches
-r.to.vect input=patches output=patches feature=area
-
-# Add a column for the population proxy (in this case area in hectares)
-v.db.addcolumn map=patches layer=1 columns="area_ha double precision"
+r.to.vect input=patches output=patches type=area
 
 # Upload area to attribute table (later used as population proxy)
 v.to.db map=patches type=point,line,boundary,centroid layer=1 qlayer=1 \
@@ -190,9 +208,10 @@ echo '0 = 56 #not classified (2*resolution (28m))
 18 = 28 #Mixed Hardwoods/Conifers (1*resolution (28m))
 20 = 42 #Water Bodies (1,5*resolution (28m))
 21 = 84 #Unconsolidated Sediment (3*resolution (28m))' | r.reclass \
-input=landuse96_28m output=costs rules=- --overwrite
+input=landuse96_28m output=costs rules=-
 </pre></div>
 
+<p>
 <div style="margin: 10px">
 <a href="r_connectivity_distance_costs.png">
 <img src="r_connectivity_distance_costs.png" width="600" height="600"
@@ -221,6 +240,7 @@ costs=costs prefix=hws_connectivity cutoff=4500 border_dist=18 \
 conefor_dir=./conefor
 </pre></div>
 
+<p>
 <div style="margin: 10px">
 <a href="r_connectivity_distance_shortest_paths.png">
 <img src="r_connectivity_distance_shortest_paths.png" width="600"
@@ -230,6 +250,7 @@ height="600" alt="Output network represented by shortest paths">
 represented by shortest paths and patch areas, produced in the example above.</i>
 </div>
 
+<p>
 <div style="margin: 10px">
 <a href="r_connectivity_distance_network.png">
 <img src="r_connectivity_distance_network.png" width="600" height="600"
