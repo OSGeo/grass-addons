@@ -1,90 +1,66 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
- <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
- <meta name="Author" content="GRASS Development Team">
- <meta http-equiv="content-language" content="en-us">
- <meta name="viewport" content="width=device-width, initial-scale=1">
- <title>i.eodag.py - GRASS GIS manual</title>
- <meta name="description" content="i.eodag.py: Eodag interface to install imagery datasets from various providers.">
- <meta name="keywords" content="eodag, sentinel, landsat, modis, datasets, download">
- <link rel="stylesheet" href="grassdocs.css" type="text/css">
-</head>
-<body bgcolor="white">
-<div id="container">
+<h2>DESCRIPTION</h2>
+<H3>WARNING: I.EODAG IS STILL UNDER DEVELOPMENT. THIS IS AN EXPERIMENTAL VERSION.</H3>
 
-<a href="index.html"><img src="grass_logo.png" alt="GRASS logo"></a>
-<hr class="header">
+<em>i.eodag</em> allows to search and download imagery datasets, e.g. Sentinel, Landsat, and MODIS, from a number of different providers.
+The module utilizes the <a href="https://eodag.readthedocs.io/en/stable/">EODAG API</a>, as a single interface to search for datasets on the providers that EODAG supports.
 
-<h2>NAME</h2>
-<em><b>i.eodag.py</b></em>  - Eodag interface to install imagery datasets from various providers.
-<h2>KEYWORDS</h2>
-<a href="eodag.html">eodag</a>, <a href="topic_sentinel.html">sentinel</a>, <a href="keywords.html#landsat">landsat</a>, <a href="keywords.html#modis">modis</a>, <a href="keywords.html#datasets">datasets</a>, <a href="keywords.html#download">download</a>
-<h2>SYNOPSIS</h2>
-<div id="name"><b>i.eodag.py</b><br></div>
-<b>i.eodag.py --help</b><br>
-<div id="synopsis"><b>i.eodag.py</b> [-<b>led</b>] <b>dataset</b>=<em>string</em>  [<b>output</b>=<em>name</em>]   [<b>id</b>=<em>string</em>[,<i>string</i>,...]]   [<b>provider</b>=<em>string</em>]   [<b>start</b>=<em>string</em>]   [<b>end</b>=<em>string</em>]   [<b>relation</b>=<em>string</em>]   [<b>clouds</b>=<em>integer</em>]   [<b>timeout</b>=<em>integer</em>]   [--<b>help</b>]  [--<b>verbose</b>]  [--<b>quiet</b>]  [--<b>ui</b>]
-</div>
+<p>
+To be able to download data through i.eodag, you will need to register for the providers you are interested in.
+See <a href="https://eodag.readthedocs.io/en/stable/getting_started_guide/register.html">providers registration</a>, and <a href="https://eodag.readthedocs.io/en/stable/getting_started_guide/configure.html">configure EODAG</a> for more details about configuring the providers' credentials.
+<p>
 
-<div id="flags">
-<h3>Flags:</h3>
-<dl>
-<dt><b>-l</b></dt>
-<dd>List the search result without downloading</dd>
+<p>
+Currently, only products which footprint intersects current computation
+region extent (area of interest, AOI) are filtered.
 
-<dt><b>-e</b></dt>
-<dd>Extract the downloaded the datasets</dd>
+<p>
+To only list available scenes, <b>l</b> flag must be set. If no <b>start</b>
+or <b>end</b> dates are provided, the module will search scenes from the
+past 60 days.
 
-<dt><b>-d</b></dt>
-<dd>Delete the product archieve after downloading</dd>
+<p>
+To download all scenes found within the time frame provided, the user must
+remove the <b>l</b> flag and provide an <b>output</b> directory. Otherwise,
+files will be downloaded into <em>/tmp</em> directory.
+To download only selected scenes, one or more IDs must be provided
+through the <b>id</b> option file and an
+<b>output</b> directory.
 
-<dt><b>--help</b></dt>
-<dd>Print usage summary</dd>
-<dt><b>--verbose</b></dt>
-<dd>Verbose module output</dd>
-<dt><b>--quiet</b></dt>
-<dd>Quiet module output</dd>
-<dt><b>--ui</b></dt>
-<dd>Force launching GUI dialog</dd>
-</dl>
-</div>
+<h2>EXAMPLES</h2>
 
-<div id="parameters">
-<h3>Parameters:</h3>
-<dl>
-<dt><b>dataset</b>=<em>string</em>&nbsp;<b>[required]</b></dt>
-<dd>Imagery dataset to search for</dd>
-<dd>Default: <em>S1_SAR_GRD</em></dd>
+Search available scenes:
 
-<dt><b>output</b>=<em>name</em></dt>
-<dd>Name for output directory where to store downloaded data OR search results</dd>
+<div class="code"><pre>
+i.eodag.py  start=2022-05-25 end=2022-06-01 \
+    dataset=S2_MSI_L2A provider=cop_dataspace -l
+<pre></div>
 
-<dt><b>id</b>=<em>string[,<i>string</i>,...]</em></dt>
-<dd>List of scenes IDs to download</dd>
+Download all available scenes:
 
-<dt><b>provider</b>=<em>string</em></dt>
-<dd>Provider to use for searching/downloading, if none is provided the searching will be done according to the config file priority</dd>
+<div class="code"><pre>
+i.eodag.py  start=2022-05-25 end=2022-06-01 \
+    dataset=S2_MSI_L2A provider=cop_dataspace
+<pre></div>
 
-<dt><b>start</b>=<em>string</em></dt>
-<dd>Start date ('YYYY-MM-DD'), by default it is 60 days ago</dd>
+Download selected scenes by ID:
 
-<dt><b>end</b>=<em>string</em></dt>
-<dd>End date ('YYYY-MM-DD')</dd>
+<div class="code"><pre>
+i.eodag.py provider=cop_dataspace \
+    id=S2B_MSIL2A_20240526T080609_N0510_R078_T37SDD_20240526T094753,S2B_MSIL2A_20240529T081609_N0510_R121_T37SED_20240529T124818 \
+    -e config=custom/eodag_config.yaml
+<pre></div>
 
-<dt><b>relation</b>=<em>string</em></dt>
-<dd>Relation with area of interest</dd>
-<dd>Options: <em>intersects,  contains,  within</em></dd>
-<dd>Default: <em>intersects</em></dd>
+<h2>REQUIREMENTS</h2>
 
-<dt><b>clouds</b>=<em>integer</em></dt>
-<dd>Maximum cloud cover percentage for Landsat scene</dd>
+<ul>
+    <li><a href="https://eodag.readthedocs.io/en/stable/getting_started_guide/install.html">eodag library</a> (install with <code>pip install eodag</code>)</li>
+</ul>
 
-<dt><b>timeout</b>=<em>integer</em></dt>
-<dd>Download timeout in seconds</dd>
-<dd>Default: <em>300</em></dd>
+<h2>SEE ALSO</h2>
 
-</dl>
-</div>
-</div> <!-- end container -->
-</body>
-</html>
+<h2>AUTHOR</h2>
+
+<a href="https://github.com/HamedElgizery" target="_blank">Hamed Elgizery</a>, Giza, Egypt.<br>
+<p>
+GSoC 2024 Mentors: Luca Delucchi, Stefan Blumentrath, Veronica Andreo
+</p>

@@ -45,19 +45,9 @@
 # % guisection: Output
 # %end
 
-# %option
-# % key: format
-# % type: string
-# % description: Output format
-# % required: no
-# % options: plain,json
-# % answer: json
-# %end
-
 # %option G_OPT_F_INPUT
 # % key: config
-# % label: Full path to yaml config file, following the format https://eodag.readthedocs.io/en/stable/getting_started_guide/configure.html#yaml-user-configuration-file
-# % description: '-' for standard input
+# % label: Full path to yaml config file
 # % required: no
 # %end
 
@@ -72,7 +62,7 @@
 # %option
 # % key: provider
 # % type: string
-# % description: Provider to use for searching/downloading, if none is provided the searching will be done according to the config file priority
+# % description: Available providers: https://eodag.readthedocs.io/en/stable/getting_started_guide/providers.html
 # % required: yes
 # % guisection: Filter
 # %end
@@ -90,32 +80,6 @@
 # % description: End date (in any ISO 8601 format)
 # % guisection: Filter
 # %end
-
-# %option
-# % key: relation
-# % type: string
-# % description: Relation with area of interest
-# % options: intersects, contains, within
-# % answer: intersects
-# % guisection: Optional
-# %end
-
-# %option
-# % key: clouds
-# % type: integer
-# % description: Maximum cloud cover percentage for Landsat scene
-# % required: no
-# % guisection: Filter
-# %end
-
-# %option
-# % key: timeout
-# % type: integer
-# % description: Download timeout in seconds
-# % answer: 300
-# % guisection: Optional
-# %end
-
 
 # %flag
 # % key: l
@@ -136,16 +100,17 @@
 import sys
 import os
 import getpass
-from datetime import *
+from pathlib import Path
+from datetime import datetime, timedelta
+
 import grass.script as gs
 from grass.exceptions import ParameterError
-from pathlib import Path
 
 
 def create_dir(directory):
     try:
-        p = Path(directory).mkdir(parents=True, exist_ok=True)
-    except Exception as e:
+        Path(directory).mkdir(parents=True, exist_ok=True)
+    except:
         gs.fatal(_("Could not create directory {}").format(dir))
 
 
@@ -174,10 +139,6 @@ def get_bb(vector=None):
     }
 
 
-def download_products(products_list):
-    dag.download_all(products_list)
-
-
 def download_by_id(query_id: str):
     gs.verbose(
         _(
@@ -198,7 +159,8 @@ def download_by_id(query_id: str):
     dag.download(product[0])
 
 
-def download_by_ids(products_ids: list):
+def download_by_ids(products_ids):
+    # Search in all recognized providers
     for product_id in products_ids:
         try:
             download_by_id(product_id)
@@ -206,7 +168,7 @@ def download_by_ids(products_ids: list):
             gs.error(
                 _(
                     "Product ending with: {}, failed to download".format(
-                        id[-min(len(id), 8) :]
+                        product_id[-min(len(id), 8) :]
                     )
                 )
             )
@@ -250,7 +212,8 @@ def no_fallback_search(search_parameters, provider):
     # This will use the prefered provider by default
     search_result = dag.search_iter_page(**search_parameters)
 
-    # TODO: Would it be useful if user could iterate through the pages manually, and look for the product themselves?
+    # TODO: Would it be useful if user could iterate through
+    # the pages manually, and look for the product themselves?
     try:
         return list(search_result)[0]
     except Exception as e:
@@ -269,6 +232,8 @@ def main():
 
     if options["provider"]:
         dag.set_preferred_provider(options["provider"])
+    else:
+        gs.fatal(_("Please specify a provider..."))
 
     # Download by ids... if ids are provided only these ids will be downloaded
     if options["id"]:
@@ -277,22 +242,18 @@ def main():
     else:
 
         items_per_page = 20
-        # TODO: Check that the product exists, could be handled by catching exceptions when searching...
+        # TODO: Check that the product exists,
+        # could be handled by catching exceptions when searching...
         product_type = options["dataset"]
 
         # TODO: Allow user to specify a shape file path
         geom = (
             # use boudning box of current computational region
-            # get_bb()
-            {
-                "lonmin": 1.9,
-                "latmin": 43.9,
-                "lonmax": 2,
-                "latmax": 45,
-            }  # hardcoded for testing
+            get_bb()
+            # { "lonmin": 1.9, "latmin": 43.9, "lonmax": 2, "latmax": 45, }  # hardcoded for testing
         )
 
-        gs.verbose(geom)
+        gs.verbose(_("Region used for searching: {}".format(geom)))
 
         search_parameters = {
             "items_per_page": items_per_page,
@@ -338,11 +299,12 @@ def main():
         search_parameters["end"] = end_date
 
         search_results = no_fallback_search(search_parameters, options["provider"])
-        num_results = len(search_results)
 
+        num_results = len(search_results)
         gs.verbose(
             _("Found {} matching scenes of type {}".format(num_results, product_type))
         )
+
         if flags["l"]:
             # TODO: Oragnize output format better
             idx = 0
@@ -359,11 +321,18 @@ def main():
             # TODO: Consider adding a quicklook flag
             # TODO: Add timeout and wait parameters for downloading offline products...
             # https://eodag.readthedocs.io/en/stable/getting_started_guide/product_storage_status.html
-            download_products(search_results)
+            dag.download_all(search_results)
 
 
 if __name__ == "__main__":
+    gs.warning(_("Experimental Version..."))
+    gs.warning(
+        _(
+            "This module is still under development, and its behaviour is not guaranteed to be reliable"
+        )
+    )
     options, flags = gs.parser()
+
     try:
         from eodag import EODataAccessGateway
         from eodag import setup_logging
