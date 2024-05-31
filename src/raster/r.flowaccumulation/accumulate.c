@@ -1,8 +1,9 @@
 #include <grass/raster.h>
 #include "global.h"
 
-void accumulate(struct raster_map *dir_map, struct raster_map *accum_map,
-                int check_overflow, int use_less_memory, int use_zero)
+void accumulate(struct raster_map *dir_map, struct raster_map *weight_map,
+                struct raster_map *accum_map, int check_overflow,
+                int use_less_memory, int use_zero)
 {
     switch (accum_map->type) {
     case CELL_TYPE:
@@ -24,12 +25,16 @@ void accumulate(struct raster_map *dir_map, struct raster_map *accum_map,
             if (use_less_memory) {
                 if (use_zero)
                     accumulate_cmz(dir_map, accum_map);
+                else if (weight_map)
+                    accumulate_cmw(dir_map, weight_map, accum_map);
                 else
                     accumulate_cm(dir_map, accum_map);
             }
             else {
                 if (use_zero)
                     accumulate_cz(dir_map, accum_map);
+                else if (weight_map)
+                    accumulate_cw(dir_map, weight_map, accum_map);
                 else
                     accumulate_c(dir_map, accum_map);
             }
@@ -54,12 +59,16 @@ void accumulate(struct raster_map *dir_map, struct raster_map *accum_map,
             if (use_less_memory) {
                 if (use_zero)
                     accumulate_fmz(dir_map, accum_map);
+                else if (weight_map)
+                    accumulate_fmw(dir_map, weight_map, accum_map);
                 else
                     accumulate_fm(dir_map, accum_map);
             }
             else {
                 if (use_zero)
                     accumulate_fz(dir_map, accum_map);
+                else if (weight_map)
+                    accumulate_fw(dir_map, weight_map, accum_map);
                 else
                     accumulate_f(dir_map, accum_map);
             }
@@ -84,12 +93,16 @@ void accumulate(struct raster_map *dir_map, struct raster_map *accum_map,
             if (use_less_memory) {
                 if (use_zero)
                     accumulate_dmz(dir_map, accum_map);
+                else if (weight_map)
+                    accumulate_dmw(dir_map, weight_map, accum_map);
                 else
                     accumulate_dm(dir_map, accum_map);
             }
             else {
                 if (use_zero)
                     accumulate_dz(dir_map, accum_map);
+                else if (weight_map)
+                    accumulate_dw(dir_map, weight_map, accum_map);
                 else
                     accumulate_d(dir_map, accum_map);
             }

@@ -2,37 +2,38 @@
 
 <p>
 <em>r.boxplot</em> draws boxplots of the raster values of an input
-raster layer. The user has the option to define a zonal (categorical)
-layer. In that case, a boxplot will be drawn for each zone, using the
+raster map. The user has the option to define a zonal (categorical)
+map. In that case, a boxplot will be drawn for each zone, using the
 values of the input raster that fall within that zone.
 
 <p>
 If there is a zonal map, the user can add a line and band to
-represent the median and interquartile range of the input layer. Note
+represent the median and interquartile range (IQR) of the input layer. Note
 that all values of the input raster (within the region's extent)
-are used to compute the median and IQR. If the zones of your zonal map
-cover only part of the region, you can use <em>r.mask</em> to mask out
-the non-covered parts of the input map first. That will result in
+are used to compute the median and IQR. If the zones of the zonal map
+cover only part of the region, the user can mask out the non-covered 
+parts of the input map first by means of <em>r.mask</em>. That will result in
 an IQR and median representing the values that fall within the zones of
-the zonal map only.
+the zonal map only. Otherwise, the computational region can be changed to 
+fit the extent of the zonal map with <em>g.region</em>
 
 <p>
 By default, the resulting plot is displayed on screen. However, the
-user can also save the plot to file using the <em>output</em> option.
+user can also save the plot to file using the <b>output</b> option.
 The format is determined by the extension given by the user. So, if
-output = outputfile.png, the plot will be saved as a png file.
+output = outputfile.png, the plot will be saved as a PNG file.
 
 <p>
 The whiskers extend to the most extreme data point, which is no
-more than <i>range</i> &#10005; the interquartile range (iqr) from the
-box. By default, a <i>range</i> of 1.5 is used, but the user can change
+more than <b>range</b> &#10005; the IQR from the box. 
+By default, a <b>range</b> of 1.5 is used, but the user can change
 this. Note that range values need to be larger than 0.
 
 <p>
-By default, outliers are not included in the plot. Set the -o flag
+By default, outliers are not included in the plot. Set the <b>o</b> flag
 to include them in the plot. To also create a point vector map with the
 locations of the outliers, the user needs to provide the name of the
-output map using <i>map_outliers</i>.
+output map using <b>map_outliers</b>.
 
 <p>
 There are a few layout options, including the option to rotate the
@@ -46,7 +47,7 @@ raster's median line and IQR band, and set the width of the boxplots.
 
 <h2>NOTE</h2>
 
-The r.boxplot module operates on the raster array defined by the
+The <em>r.boxplot</em> module operates on the raster array defined by the
 current region settings, not the original extent and resolution of the
 input map. See <a
 href="https://grass.osgeo.org/grass-stable/manuals/r.univar.html">g.region</a>
@@ -54,21 +55,21 @@ to understand the impact of the region settings on the calculations.
 
 To include outliers, the function converts the raster
 cell with outlier values to a point vector layer. This may take some
-time if there are a lot of outliers. So, if you are working with very
-large raster layers, be cautious to not set the <i>range</i> value very
-low as that may result in a huge number of outliers.
+time if there are a lot of outliers. So, if users are working with very
+large raster layers, they should be cautious to not set the <b>range</b> value
+too low as that may result in a huge number of outliers.
 
 <p>
 The zonal map needs to be an integer map. If it is not, the function will exit
 with the error message, 'The zonal raster must be of type CELL (integer)'.
 
 <p>
-If the -c flag is used, the bxp_color and median_color are ignored,
-even if set by the user. The option to color boxploxs using the colors
-of the categories of the zonal raster (-c flag) only works if the zonal
+If the <b>c</b> flag is used, the <b>bxp_color</b> and <b>median_color</b> 
+are ignored, even if set by the user. The option to color boxploxs using the colors
+of the zonal raster categories (<b>c</b> flag) only works if the zonal
 map contains a color table. If it does not, the function exits with the
-error message that 'The zonal map does not have a color table'. If you
-think there is a color table, run <i>r.colors.out</i> and check if the
+error message that 'The zonal map does not have a color table'. If the user 
+thinks there is a color table, run <em>r.colors.out</em> and check if the
 categories are integers. If not, that is the problem. If they are all
 integers, you probably have caught a bug.
 
@@ -80,10 +81,10 @@ simply changing the region and/or setting a (different) mask.
 <h2>EXAMPLE</h2>
 
 <h3>Example 1</h3>
-Draw a boxplot of the values of the <em>elevation</em> layer from the
+Draw a boxplot of the values of the <i>elevation</i> layer from the
 <a href="https://grass.osgeo.org/download/data/">NC sample
-dataset</a>. Set the -h flag to print the boxplot horizontally. Set the plot
-dimensions to 7 inch wide, 1 inch high.
+dataset</a>. Set the <b>h</b> flag to print the boxplot horizontally. 
+Set the plot dimensions to 7 inch wide, 1 inch high.
 
 <div class="code"><pre>
 g.region raster=elevation
@@ -95,10 +96,10 @@ r.boxplot -h input=elevation plot_dimensions="7,1" output="r_boxplot_01.png"
 <img src="r_boxplot_01.png"><br>
 
 <h3>Example 2</h3>
-Draw boxplots of the values of the <em>elevation</em> layer per category from
+Draw boxplots of the values of the <i>elevation</i> layer per category from
 the <i>landclass96</i> layer from the same
 <a href="https://grass.osgeo.org/download/data/">NC sample
-dataset</a>. Use the -r flag to rotate the x-asis labels.
+dataset</a>. Use the <b>r</b> flag to rotate the x-asis labels.
 
 <div class="code"><pre>
 r.boxplot -r input=elevation zone=landclass96 output="r_boxplot_02.png"
@@ -109,15 +110,15 @@ r.boxplot -r input=elevation zone=landclass96 output="r_boxplot_02.png"
 <img src="r_boxplot_02.png"><br>
 
 <h3>Example 3</h3>
-Draw boxplots of the values of the <em>elevation</em> layer per category from
+Draw boxplots of the values of the <i>elevation</i> layer per category from
 the <i>landclass96</i> layer from the same
 <a href="https://grass.osgeo.org/download/data/">NC sample
-dataset</a>. Set the -o flag to include outliers. Use order=ascending
+dataset</a>. Set the <b>o</b> flag to include outliers. Use <b>bx_sort=ascending</b>
 to order the boxplots from low to high median. Provide a name for the outlier
 map to save the outlier locations as a point vector map.
 
 <div class="code"><pre>
-r.boxplot -o order=ascending input=elevation zones=landclass96 output="r_boxplot_03.png" map_outliers="outliers"
+r.boxplot -o bx_sort=ascending input=elevation zones=landclass96 output="r_boxplot_03.png" map_outliers="outliers"
 </pre>
 </div><br>
 
@@ -125,29 +126,29 @@ r.boxplot -o order=ascending input=elevation zones=landclass96 output="r_boxplot
 <img src="r_boxplot_03.png"><br>
 
 <p>
-Below, part of the landclass96 raster map is shown, with on top the vector point
-layer with location of outliers. Curiously, for some lakes, only part of the
+Below, part of the <i>landclass96</i> raster map is shown, with the vector point
+layer with location of outliers on top. Curiously, for some lakes, only part of the
 raster cells are outliers.</p>
 
 <p>
 <img src="r_boxplot_map_03.png"><br>
 
 <h3>Example 4</h3>
-Draw boxplots of the values of the <em>elevation</em> layer per category from
+Draw boxplots of the values of the <i>elevation</i> layer per category from
 the <i>landclass96</i> layer from the same
 <a href="https://grass.osgeo.org/download/data/">NC sample
-dataset</a>. Set the -c flag to color the boxplots, use order=ascending
+dataset</a>. Set the <b>c</b> flag to color the boxplots, use <b>bx_sort=ascending</b>
 to order the boxplots from low to high median, and set the font size to 11.
 
 <div class="code"><pre>
-r.boxplot -c order=ascending fontsize=11 input=elevation zones=landclass96 output="r_boxplot_04.png"
+r.boxplot -c bx_sort=ascending fontsize=11 input=elevation zones=landclass96 output="r_boxplot_04.png"
 </pre>
 </div><br>
 
 <h3>Example 5</h3>
 To make it easier to compare the elevation distribution across the different
-land use categories, you can plot a line and band representing the
-median and interquartile range (IQR) of the whole raster layer.
+land classes, you can plot a line and band representing the
+median and interquartile range of the whole raster layer.
 
 <div class="code"><pre>
 r.boxplot -c input=elevation zones=landclass96 raster_statistics=median,IQR
@@ -173,7 +174,7 @@ project by the
 <em>
 <a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.scatterplot.html">r.scatterplot</a>,
 <a href="https://grass.osgeo.org/grass-stable/manuals/r.stats.zonal.html">r.stats.zonal</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/addons/d.vect.colbp.html">d.vect.colbp</a>
+<a href="https://grass.osgeo.org/grass-stable/manuals/addons/v.boxplot.html">v.boxplot</a>
 </em>
 
 <h2>AUTHOR</h2>

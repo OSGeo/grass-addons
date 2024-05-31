@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = d.vect.colhist
+PGM = t.rast.line
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 

@@ -35,7 +35,6 @@ import grass.pygrass.modules as mod
 
 
 class CmdMapList(object):
-
     """Listing and execution of PyGRASS module objects"""
 
     def __init__(self):
@@ -63,7 +62,6 @@ class CmdMapList(object):
 
 
 class VectorAlgebraLexer(object):
-
     """!Lexical analyzer for the GRASS GIS vector algebra"""
 
     # Buffer functions from v.buffer
@@ -163,7 +161,6 @@ class VectorAlgebraLexer(object):
 
 
 class VectorAlgebraParser(object):
-
     """This is the vector algebra parser class"""
 
     # Get the tokens from the lexer class

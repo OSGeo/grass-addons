@@ -117,6 +117,7 @@ Created on Tue Oct 15 21:18:00 2013
 # TODO: remove unused functions
 
 import sys
+import decimal
 
 from grass.script import core as gcore
 import grass.temporal as tgis
@@ -131,10 +132,14 @@ def format_order(number, zeros):
     return str(number).zfill(zeros)
 
 
-def frange(x, y, step):
-    while x <= y:
-        yield x
-        x += step
+def frange(x, y, step, precision):
+    scale = 10**precision
+    array = [
+        val / scale
+        for val in range(int(x * scale), int((y + step) * scale), int(step * scale))
+        if val / scale <= y
+    ]
+    return array
 
 
 def check_maps_exist(maps, mapset):
@@ -161,7 +166,7 @@ def main():
     basename = strds
     start_water_level = float(options["start_water_level"])
     end_water_level = float(options["end_water_level"])
-    water_level_step = float(options["water_level_step"])
+    water_level_step = options["water_level_step"]
     # if options['coordinates']:
     #    options['coordinates'].split(',')
     # passing coordinates parameter as is
@@ -186,10 +191,13 @@ def main():
     title = _("r.lake series")
     desctiption = _("r.lake series")
 
-    water_levels = [
-        step for step in frange(start_water_level, end_water_level, water_level_step)
+    precision = abs(decimal.Decimal(water_level_step).as_tuple().exponent)
+    water_levels = frange(
+        start_water_level, end_water_level, float(water_level_step), precision
+    )
+    outputs = [
+        f"{basename}_{water_level:.{precision}f}" for water_level in water_levels
     ]
-    outputs = ["%s%s%s" % (basename, "_", water_level) for water_level in water_levels]
 
     if not gcore.overwrite():
         check_maps_exist(outputs, mapset)

@@ -9,21 +9,21 @@ and tic labels.
 <p>
 Instead of a fixed color, dots can be colored using colors from a 
 user-defined column, or by the spatial density of nearby points, using 
-the option <em>type=density</em>. The spatial density is computed by 
+the option <tt>type=density</tt>. The spatial density is computed by 
 grouping the points in 2D bins. The number of bins along the x-axis and 
 y-axis is user-defined. The user can select a color map from a list of 
 sequential colormaps and perceptually uniform sequential colormaps. See 
 the matplotlib <a 
 href="https://matplotlib.org/stable/users/explain/colors/colormaps.html"> 
-manual page</a> for details. Use the <b>-r</b> flag to reverse the order of 
-the colors. 
+manual page</a> for details. Use the <b>-r</b> flag to reverse the 
+order of the colors. 
 
 <p>
 By default, the resulting plot is displayed on screen (default). 
 However, the user can also save the plot to a file using the 
-<em>file_name</em> option. The format is determined by the extension 
-given by the user. So, if <tt>file_name = outputfile.png</tt>, the plot will be 
-saved as a PNG file.
+<b>file_name</b> option. The format is determined by the extension 
+given by the user. So, if <tt>file_name = outputfile.png</tt>, the plot 
+will be saved as a PNG file.
 
 <p>
 A linear or polynomial trend line with user-defined degrees can be 
@@ -36,19 +36,18 @@ plotted on top of the scatterplot, following the method described <a
 href="https://carstenschelp.github.io/2018/09/14/Plot_Confidence_Ellipse_001.html">here</a>, 
 and using the code described <a 
 href="https://matplotlib.org/stable/gallery/statistics/confidence_ellipse.html">here</a>. 
-The radius of the ellipse can be controlled by n_sd which is the number 
-of standard deviations (SD). The default is 2 SD, which results in an 
-ellipse that encloses around 95% of the points. Optionally, separate 
-confidence ellipses can be drawn for groups defined in the column 
-<i>groups</i>. Groups can be assigned a random color, or a color based 
-on the RGB colors in a user-defined column. Note, all records in the 
-group should have the same color.
+The radius of the ellipse can be controlled by <b>n</b> which is the 
+number of standard deviations (SD). The default is 2 SD, which results 
+in an ellipse that encloses around 95% of the points. Optionally, 
+separate confidence ellipses can be drawn for groups defined in the 
+column <b>groups</b>. Groups can be assigned a random color, or a color 
+based on the RGB colors in a user-defined column. Note, all records in 
+the group should have the same color.
 
 <p>
-The user has the option to limit/expand the X-axis (<em>xlim</em>) and 
-Y-axis (<em>ylim</em>). This can e.g., make it easier to compare 
-different plots.
-
+The user has the option to limit/expand the X-axis 
+(<b>x_axis_limits</b>) and Y-axis (<b>y_axis_limits</b>). This can 
+e.g., make it easier to compare different plots.
 
 <h2>EXAMPLES</h2>
 

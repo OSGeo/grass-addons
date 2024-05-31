@@ -508,9 +508,9 @@ def main():
     """Main function"""
     flag_c = flags["c"]
 
-    options[
-        "version"
-    ] = "1.0.0"  # right now only supported version, therefore not in GUI
+    options["version"] = (
+        "1.0.0"  # right now only supported version, therefore not in GUI
+    )
 
     grass.debug("Using GDAL WCS driver")
     wcs = WCSGdalDrv()  # only supported driver
