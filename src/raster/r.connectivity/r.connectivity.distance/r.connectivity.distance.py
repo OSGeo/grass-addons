@@ -267,7 +267,7 @@ def main():
 
     # Lazy import GDAL python bindings
     try:
-        from osgeo import gdal, osr
+        from osgeo import gdal, osr, ogr
     except ImportError as e:
         grass.fatal(_("Module requires GDAL python bindings: {}").format(e))
 
