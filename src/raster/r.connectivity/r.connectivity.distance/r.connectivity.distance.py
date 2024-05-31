@@ -899,17 +899,6 @@ def main():
                     start_points=start_points,
                 )
 
-                # grass.run_command(
-                #     "v.db.addtable",
-                #     map=cost_paths,
-                #     quiet=True,
-                #     columns="cat integer,\
-                #                    from_p integer,\
-                #                    to_p integer,\
-                #                    dist_min double precision,\
-                #                    dist double precision,\
-                #                    dist_max double precision",
-                # )
                 grass.run_command(
                     "v.db.addtable",
                     map=cost_paths,
