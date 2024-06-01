@@ -262,9 +262,6 @@ def main():
             "geom": geom,
         }
 
-        if options["clouds"]:
-            search_parameters["cloudCover"] = options["clouds"]
-
         # Assumes that the user enter time in UTC
         end_date = options["end"]
         if not options["end"]:
