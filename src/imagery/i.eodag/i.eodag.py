@@ -140,23 +140,60 @@ def get_bb(vector=None):
 
 
 def download_by_id(query_id: str):
-    gs.verbose(
-        _(
-            "Searching for product ending with: {}".format(
-                query_id[-min(len(query_id), 8) :]
-            )
-        )
-    )
+    gs.verbose(_("Searching for product id: {}".format(query_id)))
     product, count = dag.search(id=query_id)
     if count != 1:
-        raise ParameterError("Product couldn't be uniquely identified")
+        raise ParameterError("Product couldn't be uniquely identified.")
     if not product[0].properties["id"].startswith(query_id):
-        raise ParameterError("Product wasn't found")
-    gs.verbose(
-        _("Poduct ending with: {} is found.".format(query_id[-min(len(query_id), 8) :]))
-    )
+        raise ParameterError("Product wasn't found.")
+    gs.verbose(_("Poduct {} is found.".format(query_id)))
     gs.verbose(_("Downloading..."))
     dag.download(product[0])
+
+
+def ids_from_file_txt(ids_file_txt):
+    ids_set = set()
+    with open(ids_file_txt, "r") as ids_stream:
+        line_index = 0
+        lines = ids_stream.read().split("\n")
+        for line in lines:
+            line_index += 1
+            if not line:
+                continue
+            line = line.strip()
+            if line.find(" ") != -1:
+                gs.warning(
+                    _(
+                        'File "{}", line {}, has space(s). Skipping line... '.format(
+                            ids_file_txt, line_index
+                        )
+                    )
+                )
+                continue
+            ids_set.add(line.strip())
+    return ids_set
+
+
+def parse_id_option(id_option_string):
+    to_download_items = id_option_string.split(",")
+    ids_set = set()
+    for download_item in to_download_items:
+        if (
+            download_item.find(".") != -1
+            and download_item[download_item.find(".") :] != ".txt"
+        ):
+            gs.warning(
+                _(
+                    'File "{}", extenstion "{}" not recognized.\nAdded to IDs...'.format(
+                        download_item, download_item[download_item.find(".") + 1 :]
+                    )
+                )
+            )
+        if download_item[-4:] == ".txt":
+            ids_set.update(ids_from_file_txt(download_item))
+        else:
+            ids_set.add(download_item.strip())
+    return ids_set
 
 
 def download_by_ids(products_ids):
@@ -165,13 +202,7 @@ def download_by_ids(products_ids):
         try:
             download_by_id(product_id)
         except ParameterError:
-            gs.error(
-                _(
-                    "Product ending with: {}, failed to download".format(
-                        product_id[-min(len(id), 8) :]
-                    )
-                )
-            )
+            gs.error(_("Product {} failed to download".format(product_id)))
 
 
 def setup_environment_variables():
@@ -181,12 +212,10 @@ def setup_environment_variables():
     os.environ["EODAG__{}__DOWNLOAD__DELETE_ARCHIV".format(options["provider"])] = str(
         flags["d"]
     )
-
     if options["output"]:
         os.environ[
             "EODAG__{}__DOWNLOAD__OUTPUTS_PREFIX".format(options["provider"])
         ] = options["output"]
-
     if options["config"]:
         os.environ["EODAG_CFG_FILE"] = options["config"]
 
@@ -206,41 +235,37 @@ def no_fallback_search(search_parameters, provider):
             return SearchResult([])
     except Exception as e:
         gs.verbose(e)
-        gs.fatal(_("Server error, try again."))
+        gs.fatal(_("Server error, please try again."))
 
     # https://eodag.readthedocs.io/en/stable/api_reference/core.html#eodag.api.core.EODataAccessGateway.search_iter_page
     # This will use the prefered provider by default
     search_result = dag.search_iter_page(**search_parameters)
 
-    # TODO: Would it be useful if user could iterate through
-    # the pages manually, and look for the product themselves?
+    # TODO: We can consider adding a method for the user to dynamically surf the pages
     try:
         return list(search_result)[0]
     except Exception as e:
         gs.verbose(e)
-        gs.fatal(_("Server error, try again."))
+        gs.fatal(_("Server error, please try again."))
 
 
 def main():
     # products: https://github.com/CS-SI/eodag/blob/develop/eodag/resources/product_types.yml
 
-    # setting the envirionmnets variables has to come before the dag initialization
-    setup_environment_variables()
-
+    # Setting the envirionmnets variables has to come before the dag initialization
     global dag
+    setup_environment_variables()
     dag = EODataAccessGateway()
-
     if options["provider"]:
         dag.set_preferred_provider(options["provider"])
     else:
-        gs.fatal(_("Please specify a provider..."))
+        # TODO: Add a way to search witout specifying a provider
+        gs.fatal(_("Please specify a provider."))
 
     # Download by ids... if ids are provided only these ids will be downloaded
     if options["id"]:
-        ids = options["id"].split(",")
-        download_by_ids(ids)
+        download_by_ids(parse_id_option(options["id"]))
     else:
-
         items_per_page = 20
         # TODO: Check that the product exists,
         # could be handled by catching exceptions when searching...
@@ -262,10 +287,6 @@ def main():
             "geom": geom,
         }
 
-        if options["clouds"]:
-            search_parameters["cloudCover"] = options["clouds"]
-
-        # Assumes that the user enter time in UTC
         end_date = options["end"]
         if not options["end"]:
             end_date = datetime.utcnow().isoformat()
@@ -299,7 +320,6 @@ def main():
         search_parameters["end"] = end_date
 
         search_results = no_fallback_search(search_parameters, options["provider"])
-
         num_results = len(search_results)
         gs.verbose(
             _("Found {} matching scenes of type {}".format(num_results, product_type))
