@@ -1,18 +1,16 @@
 #!/usr/bin/env python
-#
-############################################################################
-#
-# MODULE:      i.sentinel.download
-# AUTHOR(S):   Martin Landa
-# PURPOSE:     Downloads Sentinel data from Copernicus Open Access Hub,
-#              USGS Earth Explorer or Google Cloud Storage.
-# COPYRIGHT:   (C) 2018-2021 by Martin Landa, and the GRASS development team
-#
-#              This program is free software under the GNU General Public
-#              License (>=v2). Read the file COPYING that comes with GRASS
-#              for details.
-#
-#############################################################################
+
+"""
+ MODULE:      i.sentinel.download
+ AUTHOR(S):   Martin Landa
+ PURPOSE:     Downloads Sentinel data from Copernicus Open Access Hub,
+              USGS Earth Explorer or Google Cloud Storage.
+ COPYRIGHT:   (C) 2018-2024 by Martin Landa, and the GRASS development team
+
+              This program is free software under the GNU General Public
+              License (>=v2). Read the file COPYING that comes with GRASS
+              for details.
+"""
 
 # %module
 # % description: Downloads Sentinel satellite data from Copernicus Open Access Hub, USGS Earth Explorer, or Google Cloud Storage.
@@ -108,8 +106,8 @@
 # %option
 # % key: relativeorbitnumber
 # % type: integer
-# % multiple: no
-# % description: Relative orbit number to download (Sentinel-1: from 1 to 175; Sentinel-2: from 1 to 143)
+# % multiple: yes
+# % description: Relative orbit number to download (Sentinel-1: from 1 to 175; Sentinel-2: from 1 to 143; Sentinel-3: from 1 to 385)
 # % label:_Only supported by ESA Copernicus Open Access Hub.
 # % guisection: Filter
 # %end
@@ -148,6 +146,11 @@
 # % guisection: Sort
 # %end
 # %flag
+# % key: p
+# % description: Print compiled query string and exit (only supported for ESA_COAH)
+# % guisection: Print
+# %end
+# %flag
 # % key: l
 # % description: List filtered products and exit
 # % guisection: Print
@@ -163,8 +166,9 @@
 # %end
 # %rules
 # % requires: -b,map
-# % required: output,-l
+# % required: output,-l,-p
 # % excludes: uuid,map,area_relation,clouds,producttype,start,end,limit,query,sort,order
+# % excludes: -p,-l
 # %end
 
 import fnmatch
@@ -177,24 +181,28 @@ import sys
 import logging
 import time
 from collections import OrderedDict
-from glob import glob
+
 from datetime import datetime
+from subprocess import PIPE
+
 
 import grass.script as gs
+from grass.pygrass.modules import Module
 
-cloudcover_products = ["S2MSI1C", "S2MSI2A", "S2MSI2Ap"]
+CLOUDCOVER_PRODUCTS = ["S2MSI1C", "S2MSI2A", "S2MSI2Ap"]
 
 
-def create_dir(dir):
-    if not os.path.isdir(dir):
+def create_dir(directory):
+    """Try to create a directory"""
+    if not os.path.isdir(directory):
         try:
-            os.makedirs(dir)
+            os.makedirs(directory)
             return 0
-        except Exception as e:
-            gs.warning(_("Could not create directory {}").format(dir))
+        except OSError as e:
+            gs.warning(_("Could not create directory {}").format(directory))
             return 1
     else:
-        gs.verbose(_("Directory {} already exists").format(dir))
+        gs.verbose(_("Directory {} already exists").format(directory))
         return 0
 
 
@@ -222,18 +230,17 @@ def get_aoi_box(vector=None):
             se_lat=info["se_lat"],
             se_lon=info["se_long"],
         )
-    else:
-        info = gs.parse_command("g.region", flags="upg", **args)
-        return "POLYGON(({nw_lon} {nw_lat}, {ne_lon} {ne_lat}, {se_lon} {se_lat}, {sw_lon} {sw_lat}, {nw_lon} {nw_lat}))".format(
-            nw_lat=info["n"],
-            nw_lon=info["w"],
-            ne_lat=info["n"],
-            ne_lon=info["e"],
-            sw_lat=info["s"],
-            sw_lon=info["w"],
-            se_lat=info["s"],
-            se_lon=info["e"],
-        )
+    info = gs.parse_command("g.region", flags="upg", **args)
+    return "POLYGON(({nw_lon} {nw_lat}, {ne_lon} {ne_lat}, {se_lon} {se_lat}, {sw_lon} {sw_lat}, {nw_lon} {nw_lat}))".format(
+        nw_lat=info["n"],
+        nw_lon=info["w"],
+        ne_lat=info["n"],
+        ne_lon=info["e"],
+        sw_lat=info["s"],
+        sw_lon=info["w"],
+        se_lat=info["s"],
+        se_lon=info["e"],
+    )
 
 
 def get_aoi(vector=None):
@@ -272,14 +279,22 @@ def get_aoi(vector=None):
             )
         coords = geom.replace("POLYGON((", "").replace("))", "").split(", ")
         poly = "POLYGON(("
-        poly_coords = []
-        for coord in coords:
-            coord_latlon = gs.parse_command(
-                "m.proj", coordinates=coord.replace(" ", ","), flags="od"
-            )
-            for key in coord_latlon:
-                poly_coords.append((" ").join(key.split("|")[0:2]))
-        poly += (", ").join(poly_coords) + "))"
+        coord_proj = Module(
+            "m.proj",
+            input="-",
+            flags="od",
+            stdin_="\n".join(coords),
+            stdout_=PIPE,
+            stderr_=PIPE,
+        )
+        poly += (", ").join(
+            [
+                " ".join(poly_coords.split("|")[0:2])
+                for poly_coords in coord_proj.outputs["stdout"]
+                .value.strip()
+                .split("\n")
+            ]
+        ) + "))"
         # Note: poly must be < 2000 chars incl. sentinelsat request (see RFC 2616 HTTP/1.1)
         if len(poly) > 1850:
             gs.fatal(
@@ -291,12 +306,11 @@ def get_aoi(vector=None):
         else:
             gs.message(_("Sending WKT from AOI map to ESA..."))
         return poly
-    else:
-        return geom
+    return geom
 
 
 def get_bbox_from_S2_UTMtile(tile):
-    # download and parse S2-UTM tilegrid kml
+    """download and parse S2-UTM tilegrid kml"""
     tile_kml_url = (
         "https://sentinel.esa.int/documents/247904/1955685/"
         "S2A_OPER_GIP_TILPAR_MPC__20151209T095117_"
@@ -308,7 +322,7 @@ def get_bbox_from_S2_UTMtile(tile):
     r = None
     # get center coordinates from tile
     nsmap = {"kml": "http://www.opengis.net/kml/2.2"}
-    search_string = ".//*[kml:name='{}']//kml:Point//kml:coordinates".format(tile)
+    search_string = f".//*[kml:name='{tile}']//kml:Point//kml:coordinates"
     kml_search = root.findall(search_string, nsmap)
     coord_str = kml_search[0].text
     lon = float(coord_str.split(",")[0])
@@ -319,7 +333,7 @@ def get_bbox_from_S2_UTMtile(tile):
 
 
 def check_s2l1c_identifier(identifier, source="esa"):
-    # checks beginning of identifier string for correct pattern
+    """checks beginning of identifier string for correct pattern"""
     if source == "esa":
         expression = "^(S2[A-B]_MSIL1C_20[0-9][0-9][0-9][0-9])"
         test = re.match(expression, identifier)
@@ -368,7 +382,7 @@ def parse_manifest_gcs(root):
                         for subfolder in ["DATASTRIP", "GRANULE"]:
                             if subfolder in subsubelem_dict["href"]:
                                 path_end = subsubelem_dict["href"].split(subfolder)[-1]
-                                href_corrected = "{}{}".format(subfolder, path_end)
+                                href_corrected = f"{subfolder}{path_end}"
                                 subsubelem_dict["href"] = href_corrected
                 elem_dict.update(subsubelem_dict)
                 if subsubelem.tag == "checksum":
@@ -384,16 +398,16 @@ def get_checksum(filename, hash_function="md5"):
     hash_function = hash_function.lower()
 
     with open(filename, "rb") as f:
-        bytes = f.read()  # read file as bytes
+        file_bytes = f.read()  # read file as bytes
         if hash_function == "md5":
-            readable_hash = hashlib.md5(bytes).hexdigest()
+            readable_hash = hashlib.md5(file_bytes).hexdigest()
         elif hash_function == "sha256":
-            readable_hash = hashlib.sha256(bytes).hexdigest()
+            readable_hash = hashlib.sha256(file_bytes).hexdigest()
         elif hash_function == "sha3-256":
-            readable_hash = hashlib.sha3_256(bytes).hexdigest()
+            readable_hash = hashlib.sha3_256(file_bytes).hexdigest()
         else:
-            raise Exception(
-                (
+            gs.fatal(
+                _(
                     "{} is an invalid hash function. " "Please Enter MD5 or SHA256"
                 ).format(hash_function)
             )
@@ -410,13 +424,13 @@ def download_gcs_file(url, destination, checksum_function, checksum):
             return 0
     try:
         r_file = requests.get(url, allow_redirects=True)
-        open(destination, "wb").write(r_file.content)
+        with open(destination, "wb") as dest:
+            dest.write(r_file.content)
         sum_dl = get_checksum(destination, checksum_function)
         if sum_dl.lower() != checksum.lower():
             gs.verbose(_("Checksumming not successful for {}").format(destination))
             return 2
-        else:
-            return 0
+        return 0
 
     except Exception as e:
         gs.verbose(_("There was a problem downloading {}").format(url))
@@ -425,7 +439,7 @@ def download_gcs_file(url, destination, checksum_function, checksum):
 
 def download_gcs(scene, output):
     """Downloads a single S2 scene from Google Cloud Storage."""
-    final_scene_dir = os.path.join(output, "{}.SAFE".format(scene))
+    final_scene_dir = os.path.join(output, f"{scene}.SAFE")
     create_dir(final_scene_dir)
     level = scene.split("_")[1]
     if level == "MSIL1C":
@@ -440,7 +454,7 @@ def download_gcs(scene, output):
     tile_last_letters = tile_block[4:]
 
     url_scene = os.path.join(
-        baseurl, tile_no, tile_first_letter, tile_last_letters, "{}.SAFE".format(scene)
+        baseurl, tile_no, tile_first_letter, tile_last_letters, f"{scene}.SAFE"
     )
     # download the manifest.safe file
     safe_file = "manifest.safe"
@@ -482,7 +496,7 @@ def download_gcs(scene, output):
             len(
                 fnmatch.filter(
                     required_abs_folders,
-                    "*{}*/{}*".format(check_folder[0], check_folder[1]),
+                    f"*{check_folder[0]}*/{check_folder[1]}*",
                 )
             )
             == 0
@@ -517,10 +531,10 @@ def download_gcs(scene, output):
         if dl_file["href"].startswith("."):
             href_url = dl_file["href"][1:]
         else:
-            href_url = "/{}".format(dl_file["href"])
+            href_url = f"/{dl_file['href']}"
         # neither os.path.join nor urljoin join these properly...
-        dl_url = "{}{}".format(url_scene, href_url)
-        output_path_file = "{}{}".format(final_scene_dir, href_url)
+        dl_url = f"{url_scene}{href_url}"
+        output_path_file = f"{final_scene_dir}{href_url}"
         checksum_function = dl_file["checksumName"].lower()
         dl_code = download_gcs_file(
             url=dl_url,
@@ -579,7 +593,12 @@ class SentinelDownloader(object):
             except ImportError as e:
                 gs.fatal(_("Module requires sentinelsat library: {}").format(e))
             # connect SciHub via API
-            self._api = SentinelAPI(self._user, self._password, api_url=self._apiname)
+            self._api = SentinelAPI(
+                self._user,
+                self._password,
+                api_url=self._apiname,
+                show_progressbars=gs.verbosity() > 0,
+            )
         elif self._apiname == "USGS_EE":
             api_login = False
             while api_login is False:
@@ -604,6 +623,7 @@ class SentinelDownloader(object):
         sortby=[],
         asc=True,
         relativeorbitnumber=None,
+        print_only=False,
     ):
         # Dict to identify plaforms from requested product
         platforms = {
@@ -614,14 +634,6 @@ class SentinelDownloader(object):
             "S3": "Sentinel-3",
         }
         args = {}
-        if clouds:
-            args["cloudcoverpercentage"] = (0, int(clouds))
-        if relativeorbitnumber:
-            args["relativeorbitnumber"] = relativeorbitnumber
-            if producttype.startswith("S2") and int(relativeorbitnumber) > 143:
-                gs.warning("This relative orbit number is out of range")
-            elif int(relativeorbitnumber) > 175:
-                gs.warning(_("This relative orbit number is out of range"))
         if producttype:
             if producttype.startswith("S3"):
                 # Using custom product names for Sentinel-3 products that look less cryptic
@@ -632,6 +644,29 @@ class SentinelDownloader(object):
             else:
                 args["producttype"] = producttype
             args["platformname"] = platforms[producttype[0:2]]
+        if clouds:
+            args["cloudcoverpercentage"] = (0, int(clouds))
+        if relativeorbitnumber:
+            args["relativeorbitnumber"] = relativeorbitnumber
+            if (
+                (
+                    args["platformname"] == "Sentinel-2"
+                    and any([orbit_nr > 143 for orbit_nr in relativeorbitnumber])
+                )
+                or (
+                    args["platformname"] == "Sentinel-3"
+                    and any([orbit_nr > 385 for orbit_nr in relativeorbitnumber])
+                )
+                or (
+                    args["platformname"] == "Sentinel-1"
+                    and any([orbit_nr > 175 for orbit_nr in relativeorbitnumber])
+                )
+            ):
+                gs.warning(
+                    _("The relative orbit number is out of range for {}").format(
+                        args["platformname"]
+                    )
+                )
         if not start:
             start = "NOW-60DAYS"
         else:
@@ -641,7 +676,11 @@ class SentinelDownloader(object):
         else:
             end = end.replace("-", "")
         if query:
-            redefined = [value for value in args.keys() if value in query.keys()]
+            if "ingestiondate" in query:
+                query["ingestiondate"] = tuple(
+                    query["ingestiondate"].lstrip("[").rstrip("]").split(" TO ")
+                )
+            redefined = [value for value in args if value in query]
             if redefined:
                 gs.warning(
                     _("Query overrides already defined options ({})").format(
@@ -655,6 +694,17 @@ class SentinelDownloader(object):
             )
         )
         if self._cred_req is False:
+            if print_only:
+                print(
+                    self._api.format_query(
+                        area=area,
+                        area_relation=area_relation,
+                        date=(start, end),
+                        **args,
+                    )
+                )
+                sys.exit()
+
             # in the main function it is ensured that there is an "identifier" query
             self._products_df_sorted = pandas.DataFrame(
                 {"identifier": [query["identifier"]]}
@@ -685,6 +735,7 @@ class SentinelDownloader(object):
         )
 
     def list(self):
+        """Print information on products to download"""
         if self._products_df_sorted is None:
             return
         id_kw = ("uuid", "entity_id")
@@ -712,12 +763,10 @@ class SentinelDownloader(object):
                     .iloc[idx]
                     .strftime("%Y-%m-%dT%H:%M:%SZ")
                 )
-            print_str += " {0} {1}".format(time_string, ccp)
+            print_str += f" {time_string} {ccp}"
             if kw_idx == 0:
-                print_str += " {0}".format(
-                    self._products_df_sorted["producttype"].iloc[idx]
-                )
-                print_str += " {0}".format(self._products_df_sorted["size"].iloc[idx])
+                print_str += f" {self._products_df_sorted['producttype'].iloc[idx]}"
+                print_str += f" {self._products_df_sorted['size'].iloc[idx]}"
 
             print(print_str)
 
@@ -727,7 +776,7 @@ class SentinelDownloader(object):
         if prod_df_type != dict:
             if self._products_df_sorted.empty:
                 return
-        elif not self._products_df_sorted or os.path.exists(output) == False:
+        elif not self._products_df_sorted or os.path.exists(output) is False:
             return
         # Check if ingestion date is returned by API
         if "ingestiondate" not in self._products_df_sorted:
@@ -755,10 +804,8 @@ class SentinelDownloader(object):
                 )
                 if self._products_df_sorted["ingestiondate"].iloc[idx] <= creation_time:
                     gs.message(
-                        _(
-                            "Skipping scene: {} which is already downloaded.".format(
-                                self._products_df_sorted["identifier"].iloc[idx]
-                            )
+                        _("Skipping scene: {} which is already downloaded.").format(
+                            self._products_df_sorted["identifier"].iloc[idx]
                         )
                     )
                     skiprows.append(display_id)
@@ -794,7 +841,7 @@ class SentinelDownloader(object):
             for idx in range(len(self._products_df_sorted["entity_id"])):
                 scene = self._products_df_sorted["entity_id"].iloc[idx]
                 identifier = self._products_df_sorted["display_id"].iloc[idx]
-                zip_file = os.path.join(output, "{}.zip".format(identifier))
+                zip_file = os.path.join(output, f"{identifier}.zip")
                 gs.message(_("Downloading {}...").format(identifier))
                 try:
                     ee.download(identifier=identifier, output_dir=output, timeout=600)
@@ -815,7 +862,7 @@ class SentinelDownloader(object):
         elif datasource == "ESA_COAH":
             for idx in range(len(self._products_df_sorted["uuid"])):
                 gs.message(
-                    "{} -> {}.SAFE".format(
+                    _("{} -> {}.SAFE").format(
                         self._products_df_sorted["uuid"].iloc[idx],
                         os.path.join(
                             output, self._products_df_sorted["identifier"].iloc[idx]
@@ -845,19 +892,18 @@ class SentinelDownloader(object):
                 if dl_code == 0:
                     gs.message(
                         _("Downloaded to {}").format(
-                            os.path.join(output, "{}.SAFE".format(scene_id))
+                            os.path.join(output, f"{scene_id}.SAFE")
                         )
                     )
                 else:
                     # remove incomplete file
-                    del_folder = os.path.join(output, "{}.SAFE".format(scene_id))
+                    del_folder = os.path.join(output, f"{scene_id}.SAFE")
                     try:
                         shutil.rmtree(del_folder)
                     except Exception as e:
                         gs.warning(
-                            _(
-                                "Unable to removed unfinished "
-                                "download {}".format(del_folder)
+                            _("Unable to removed unfinished " "download {}").format(
+                                del_folder
                             )
                         )
 
@@ -895,11 +941,11 @@ class SentinelDownloader(object):
 
         # Sentinel-1 data does not have cloudcoverpercentage
         prod_types = [type for type in self._products_df_sorted["producttype"]]
-        if not any(type in prod_types for type in cloudcover_products):
+        if not any(type in prod_types for type in CLOUDCOVER_PRODUCTS):
             del attrs["cloudcoverpercentage"]
 
-        for key in attrs.keys():
-            field = ogr.FieldDefn(key, attrs[key])
+        for key, val in attrs.items():
+            field = ogr.FieldDefn(key, val)
             layer.CreateField(field)
 
         # features
@@ -969,7 +1015,7 @@ class SentinelDownloader(object):
                 try:
                     odata = self._api.get_product_odata(uuid, full=True)
                 except SentinelAPIError as e:
-                    gs.error(_("{0}. UUID {1} skipped".format(e, uuid)))
+                    gs.error(_("{0}. UUID {1} skipped").format(e, uuid))
                     continue
 
                 for k, v in odata.items():
@@ -1039,23 +1085,20 @@ class SentinelDownloader(object):
                 entity_id = self._api.get_entity_id([usgs_id], "SENTINEL_2A")
                 self.get_products_from_uuid_usgs(entity_id)
                 return
+            if "filename" in query:
+                esa_id = query["filename"].replace(".SAFE", "")
             else:
-                if "filename" in query:
-                    esa_id = query["filename"].replace(".SAFE", "")
-                else:
-                    esa_id = query["identifier"]
-                check_s2l1c_identifier(esa_id, source="esa")
-                esa_prod_id = esa_id.split("_")[-1]
-                utm_tile = esa_id.split("_")[-2]
-                acq_date = esa_id.split("_")[2].split("T")[0]
-                acq_date_string = "{0}-{1}-{2}".format(
-                    acq_date[:4], acq_date[4:6], acq_date[6:]
-                )
-                start_date = end_date = acq_date_string
-                # build the USGS style S2-identifier
-                if utm_tile.startswith("T"):
-                    utm_tile_base = utm_tile[1:]
-                bbox = get_bbox_from_S2_UTMtile(utm_tile_base)
+                esa_id = query["identifier"]
+            check_s2l1c_identifier(esa_id, source="esa")
+            esa_prod_id = esa_id.split("_")[-1]
+            utm_tile = esa_id.split("_")[-2]
+            acq_date = esa_id.split("_")[2].split("T")[0]
+            acq_date_string = f"{acq_date[:4]}-{acq_date[4:6]}-{acq_date[6:]}"
+            start_date = end_date = acq_date_string
+            # build the USGS style S2-identifier
+            if utm_tile.startswith("T"):
+                utm_tile_base = utm_tile[1:]
+            bbox = get_bbox_from_S2_UTMtile(utm_tile_base)
         else:
             # get coordinate pairs from wkt string
             str_1 = "POLYGON(("
@@ -1120,7 +1163,7 @@ class SentinelDownloader(object):
 
 
 def main():
-    global cloudcover_products
+    global CLOUDCOVER_PRODUCTS
 
     cred_req = True
     api_url = "https://apihub.copernicus.eu/apihub"
@@ -1136,6 +1179,11 @@ def main():
                 cred_req = False
     elif options["datasource"] == "USGS_EE":
         api_url = "USGS_EE"
+
+    if flags["p"]:
+        if not options["datasource"] == "ESA_COAH":
+            gs.fatal(_("The p-flag is only supported for ESA_COAH datasource"))
+        cred_req = False
 
     if not options["settings"] and cred_req is True:
         gs.fatal(
@@ -1179,7 +1227,7 @@ def main():
         map_box = get_aoi_box(options["map"])
 
     sortby = options["sort"].split(",")
-    if not options["producttype"] in cloudcover_products:
+    if not options["producttype"] in CLOUDCOVER_PRODUCTS:
         if options["clouds"]:
             gs.info(
                 _(
@@ -1213,12 +1261,19 @@ def main():
                 "start": options["start"],
                 "end": options["end"],
                 "sortby": sortby,
-                "asc": True if options["order"] == "asc" else False,
-                "relativeorbitnumber": options["relativeorbitnumber"],
+                "asc": options["order"] == "asc",
+                "relativeorbitnumber": (
+                    {
+                        int(orbit_nr)
+                        for orbit_nr in options["relativeorbitnumber"].split(",")
+                    }
+                    if options["relativeorbitnumber"]
+                    else None
+                ),
             }
 
             if options["datasource"] == "ESA_COAH" or options["datasource"] == "GCS":
-                downloader.filter(**filter_args)
+                downloader.filter(**filter_args, print_only=flags["p"])
             elif options["datasource"] == "USGS_EE":
                 downloader.filter_USGS(**filter_args)
     except Exception as e:
