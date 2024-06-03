@@ -204,7 +204,10 @@ def parse_file_option(file_option_string):
     ids_set = set()
     files_list = file_option_string.split(",")
     for file in files_list:
-        ids_set.update(ids_from_file_txt(file))
+        try:
+            ids_set.update(ids_from_file_txt(file))
+        except FileNotFoundError:
+            gs.warning(_('Couldn\'t read file "{}", Skipping file...'.format(file)))
     return ids_set
 
 
