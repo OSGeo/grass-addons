@@ -60,6 +60,14 @@
 # %end
 
 # %option
+# % key: file
+# % type: string
+# % multiple: yes
+# % description: List of text files with IDs to download
+# % guisection: Filter
+# %end
+
+# %option
 # % key: provider
 # % type: string
 # % description: Available providers: https://eodag.readthedocs.io/en/stable/getting_started_guide/providers.html
@@ -140,14 +148,14 @@ def get_bb(vector=None):
 
 
 def download_by_id(query_id: str):
-    gs.verbose(_("Searching for product id: {}".format(query_id)))
-    product, count = dag.search(id=query_id)
+    gs.message(_("Attempting to download product: {}".format(query_id)))
+    product, count = dag.search(id=query_id, provider=options["provider"])
     if count != 1:
         raise ParameterError("Product couldn't be uniquely identified.")
     if not product[0].properties["id"].startswith(query_id):
         raise ParameterError("Product wasn't found.")
     gs.verbose(_("Poduct {} is found.".format(query_id)))
-    gs.verbose(_("Downloading..."))
+    gs.verbose(_("Downloading {}".format(query_id)))
     dag.download(product[0])
 
 
@@ -174,38 +182,34 @@ def ids_from_file_txt(ids_file_txt):
     return ids_set
 
 
-def parse_id_option(id_option_string):
-    to_download_items = id_option_string.split(",")
-    ids_set = set()
-    for download_item in to_download_items:
-        if (
-            download_item.find(".") != -1
-            and download_item[download_item.find(".") :] != ".txt"
-        ):
-            gs.warning(
-                _(
-                    'File "{}", extenstion "{}" not recognized.\nAdded to IDs...'.format(
-                        download_item, download_item[download_item.find(".") + 1 :]
-                    )
-                )
-            )
-        if download_item[-4:] == ".txt":
-            ids_set.update(ids_from_file_txt(download_item))
-        else:
-            ids_set.add(download_item.strip())
-    return ids_set
-
-
 def download_by_ids(products_ids):
     # Search in all recognized providers
     for product_id in products_ids:
         try:
             download_by_id(product_id)
-        except ParameterError:
+        except ParameterError as e:
+            gs.error(e)
             gs.error(_("Product {} failed to download".format(product_id)))
 
 
+def parse_id_option(id_option_string):
+    to_download_ids = id_option_string.split(",")
+    ids_set = set()
+    for to_download_id in to_download_ids:
+        ids_set.add(to_download_id.strip())
+    return ids_set
+
+
+def parse_file_option(file_option_string):
+    ids_set = set()
+    files_list = file_option_string.split(",")
+    for file in files_list:
+        ids_set.update(ids_from_file_txt(file))
+    return ids_set
+
+
 def setup_environment_variables():
+    # Setting the envirionmnets variables has to come before the eodag initialization
     os.environ["EODAG__{}__DOWNLOAD__EXTRACT".format(options["provider"])] = str(
         flags["e"]
     )
@@ -250,9 +254,8 @@ def no_fallback_search(search_parameters, provider):
 
 
 def main():
-    # products: https://github.com/CS-SI/eodag/blob/develop/eodag/resources/product_types.yml
+    # Products: https://github.com/CS-SI/eodag/blob/develop/eodag/resources/product_types.yml
 
-    # Setting the envirionmnets variables has to come before the dag initialization
     global dag
     setup_environment_variables()
     dag = EODataAccessGateway()
@@ -262,9 +265,20 @@ def main():
         # TODO: Add a way to search witout specifying a provider
         gs.fatal(_("Please specify a provider."))
 
-    # Download by ids... if ids are provided only these ids will be downloaded
-    if options["id"]:
-        download_by_ids(parse_id_option(options["id"]))
+    # Download by ids
+    # Searching for additional products won't take place
+    if options["id"] or options["file"]:
+        # Duplicates will be
+        ids_set = set()
+        if options["id"]:
+            ids_set.update(parse_id_option(options["id"]))
+        if options["file"]:
+            ids_set.update(parse_file_option(options["file"]))
+        gs.message(_("Found {} distinct product(s) IDs.".format(len(ids_set))))
+        for product_id in ids_set:
+            gs.message(product_id)
+        gs.verbose(_("Attempting to download."))
+        download_by_ids(ids_set)
     else:
         items_per_page = 20
         # TODO: Check that the product exists,
