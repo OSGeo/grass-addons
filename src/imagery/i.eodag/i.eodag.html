@@ -1,12 +1,12 @@
 <h2>DESCRIPTION</h2>
-<H3>WARNING: I.EODAG IS STILL UNDER DEVELOPMENT. THIS IS AN EXPERIMENTAL VERSION.</H3>
+<h3>WARNING: I.EODAG IS UNDER DEVELOPMENT. THIS IS AN EXPERIMENTAL VERSION.</h3>
 
-<em>i.eodag</em> allows to search and download imagery datasets, e.g. Sentinel, Landsat, and MODIS, from a number of different providers.
-The module utilizes the <a href="https://eodag.readthedocs.io/en/stable/">EODAG API</a>, as a single interface to search for datasets on the providers that EODAG supports.
+<em>i.eodag</em> allows to search and download imagery datasets, e.g. Sentinel,
+Landsat, and MODIS, from a number of different providers.
+The module utilizes the
+<a href="https://eodag.readthedocs.io/en/stable/">EODAG API</a>,
+as a single interface to search for datasets on the providers that EODAG supports.
 
-<p>
-To be able to download data through i.eodag, you will need to register for the providers you are interested in.
-See <a href="https://eodag.readthedocs.io/en/stable/getting_started_guide/register.html">providers registration</a>, and <a href="https://eodag.readthedocs.io/en/stable/getting_started_guide/configure.html">configure EODAG</a> for more details about configuring the providers' credentials.
 
 <p>
 Currently, only products which footprint intersects the current computational
@@ -24,6 +24,37 @@ files will be downloaded into <em>/tmp</em> directory.
 To download only selected scenes, one or more IDs must be provided
 through the <b>id</b> option.
 
+<p>
+To be able to download data through <em>i.eodag</em>, the user will need to register for the
+providers of interest.
+<em>i.eodag</em> reads the user credentials, which the user should have acquired,
+from the EODAG YAML config file.  User have to specify the config file path
+location through the <b>config</b> option, otherwise <em>i.eodag</em>
+will use the credentials found in the default config file <em>~/.config/eodag/eodag.yml</em>
+
+<p>
+Following is an example for a config YAML file with <em>Copernicus Dataspace</em> credentials:
+<div class="code"><pre>
+cop_dataspace:
+    priority: # Lower value means lower priority (Default: 0)
+    search:   # Search parameters configuration
+    download:
+        extract:
+        outputs_prefix:
+    auth:
+        credentials:
+          username: email@email.com
+          password: password
+</pre></div>
+
+<p>
+See
+<a href="https://eodag.readthedocs.io/en/stable/getting_started_guide/register.html" target="_blank">
+  Providers Registration</a>,
+and <a href="https://eodag.readthedocs.io/en/stable/getting_started_guide/configure.html" target="_blank">
+  Configure EODAG</a>
+sections for more details about registration and configuration of the providers' credentials.
+
 <h2>EXAMPLES</h2>
 
 Search and list the available Sentinel 2 scenes in the Copernicus Data Space Ecosystem:
@@ -40,21 +71,39 @@ i.eodag start=2022-05-25 end=2022-06-01 \
     dataset=S2_MSI_L2A provider=cop_dataspace
 <pre></div>
 
-Download selected scenes by ID:
+Download and extract only selected scenes into the <em>download_here</em> directory,
+using a custom config file:
 
 <div class="code"><pre>
-i.eodag provider=cop_dataspace \
-    id=S2B_MSIL2A_20240526T080609_N0510_R078_T37SDD_20240526T094753,S2B_MSIL2A_20240529T081609_N0510_R121_T37SED_20240529T124818 \
-    -e config=custom/eodag_config.yaml
+i.eodag -e provider=cop_dataspace \
+    id="S2B_MSIL2A_20240526T080609_N0510_R078_T37SDD_20240526T094753,
+    S2B_MSIL2A_20240529T081609_N0510_R121_T37SED_20240529T124818" \
+    config=full/path/to/eodag/config.yaml \
+    output=download_here
 <pre></div>
 
 <h2>REQUIREMENTS</h2>
 
 <ul>
-    <li><a href="https://eodag.readthedocs.io/en/stable/getting_started_guide/install.html">eodag library</a> (install with <code>pip install eodag</code>)</li>
+    <li><a href="https://eodag.readthedocs.io/en/stable/getting_started_guide/install.html">eodag library</a>
+    (install with <code>pip install eodag</code>)</li>
 </ul>
 
 <h2>SEE ALSO</h2>
+
+<em>
+<a href="https://grass.osgeo.org/grass83/manuals/addons/i.landsat.html">i.landsat</a>
+</em>
+<p>
+<em>
+<a href="https://grass.osgeo.org/grass83/manuals/addons/i.sentinel.html">i.sentinel</a>
+</em>
+</p>
+<p>
+<em>
+<a href="https://grass.osgeo.org/grass83/manuals/addons/i.modis.html">i.modis</a>
+</em>
+</p>
 
 <h2>AUTHOR</h2>
 
