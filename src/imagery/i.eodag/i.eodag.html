@@ -1,0 +1,105 @@
+<h2>DESCRIPTION</h2>
+<h3>WARNING: I.EODAG IS UNDER DEVELOPMENT. THIS IS AN EXPERIMENTAL VERSION.</h3>
+
+<em>i.eodag</em> allows to search and download imagery datasets, e.g. Sentinel,
+Landsat, and MODIS, from a number of different providers.
+The module utilizes the
+<a href="https://eodag.readthedocs.io/en/stable/">EODAG API</a>,
+as a single interface to search for datasets on the providers that EODAG supports.
+
+
+<p>
+Currently, only products which footprint intersects the current computational
+region extent (area of interest, AOI) are retrieved.
+
+<p>
+To only list available scenes, <b>l</b> flag must be set. If no <b>start</b>
+or <b>end</b> dates are provided, the module will search scenes from the
+past 60 days.
+
+<p>
+To download all scenes found within the time frame provided, the user must
+remove the <b>l</b> flag and provide an <b>output</b> directory. Otherwise,
+files will be downloaded into <em>/tmp</em> directory.
+To download only selected scenes, one or more IDs must be provided
+through the <b>id</b> option.
+
+<p>
+To be able to download data through <em>i.eodag</em>, the user will need to register for the
+providers of interest.
+<em>i.eodag</em> reads the user credentials, which the user should have acquired,
+from the EODAG YAML config file.  User have to specify the config file path
+location through the <b>config</b> option, otherwise <em>i.eodag</em>
+will use the credentials found in the default config file <em>~/.config/eodag/eodag.yml</em>
+
+<p>
+Following is an example for a config YAML file with <em>Copernicus Dataspace</em> credentials:
+<div class="code"><pre>
+cop_dataspace:
+    priority: # Lower value means lower priority (Default: 0)
+    search:   # Search parameters configuration
+    download:
+        extract:
+        outputs_prefix:
+    auth:
+        credentials:
+          username: email@email.com
+          password: password
+</pre></div>
+
+<p>
+See
+<a href="https://eodag.readthedocs.io/en/stable/getting_started_guide/register.html" target="_blank">
+  Providers Registration</a>,
+and <a href="https://eodag.readthedocs.io/en/stable/getting_started_guide/configure.html" target="_blank">
+  Configure EODAG</a>
+sections for more details about registration and configuration of the providers' credentials.
+
+<h2>EXAMPLES</h2>
+
+Search and list the available Sentinel 2 scenes in the Copernicus Data Space Ecosystem:
+
+<div class="code"><pre>
+i.eodag -l start=2022-05-25 end=2022-06-01 \
+    dataset=S2_MSI_L2A provider=cop_dataspace
+<pre></div>
+
+Download all available scenes in the tmp directory:
+
+<div class="code"><pre>
+i.eodag start=2022-05-25 end=2022-06-01 \
+    dataset=S2_MSI_L2A provider=cop_dataspace
+<pre></div>
+
+Download and extract only selected scenes into the <em>download_here</em> directory,
+using a custom config file:
+
+<div class="code"><pre>
+i.eodag -e provider=cop_dataspace \
+    id="S2B_MSIL2A_20240526T080609_N0510_R078_T37SDD_20240526T094753,
+    S2B_MSIL2A_20240529T081609_N0510_R121_T37SED_20240529T124818" \
+    config=full/path/to/eodag/config.yaml \
+    output=download_here
+<pre></div>
+
+<h2>REQUIREMENTS</h2>
+
+<ul>
+    <li><a href="https://eodag.readthedocs.io/en/stable/getting_started_guide/install.html">EODAG library</a>
+    (install with <code>pip install eodag</code>)</li>
+</ul>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="i.landsat.html">i.landsat</a>,
+<a href="i.sentinel.html">i.sentinel</a>,
+<a href="i.modis.html">i.modis</a>
+</em>
+
+<h2>AUTHOR</h2>
+
+<a href="https://github.com/HamedElgizery" target="_blank">Hamed Elgizery</a>, Giza, Egypt.<br>
+<p>
+GSoC 2024 Mentors: Luca Delucchi, Stefan Blumentrath, Veronica Andreo
+</p>
