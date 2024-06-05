@@ -5,9 +5,6 @@
   M., Ducke, B., Landa, M.)
 */
 
-/* Define Boolean type - not necessary in C++*/
-/* typedef enum { BFALSE, BTRUE } bool;*/
-
 /* Define vertex indices. */
 #define X 0
 #define Y 1
@@ -48,10 +45,10 @@ struct tFaceStructure {
 };
 
 /* Define flags */
-#define ONHULL    TRUE
-#define REMOVED   TRUE
-#define VISIBLE   TRUE
-#define PROCESSED TRUE
+#define ONHULL    true
+#define REMOVED   true
+#define VISIBLE   true
+#define PROCESSED true
 
 /* Global variable definitions */
 tVertex vertices = NULL;
