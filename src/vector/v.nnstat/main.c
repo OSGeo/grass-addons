@@ -92,9 +92,9 @@ int main(int argc, char *argv[])
 
     /* perform 2D or 3D NNA ? */
     xD.v3 = Vect_is_3d(&map); // test if vector layer is 2D or 3D
-    xD.i3 = (flg.d23->answer || (xD.v3 == FALSE && opt.zcol->answer == NULL))
-                ? FALSE
-                : TRUE; // if -2 flag or input layer is 2D (without zcolumn),
+    xD.i3 = (flg.d23->answer || (xD.v3 == false && opt.zcol->answer == NULL))
+                ? false
+                : true; // if -2 flag or input layer is 2D (without zcolumn),
                         // perform 2D NNA, otherwise 3D
 
     /* Warnings */
@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
                     "Neighbour Analysis, please remove flag -2."));
     }
 
-    if (xD.v3 == TRUE && opt.zcol->answer) {
+    if (xD.v3 == true && opt.zcol->answer) {
         G_warning(_("Input layer <%s> is 3D - it was not necessary to set up "
                     "attribute column. 3D Nearest Neighbour Analysis is being "
                     "performed..."),
