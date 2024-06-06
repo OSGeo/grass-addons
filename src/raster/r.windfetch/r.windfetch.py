@@ -165,11 +165,17 @@ def main():
         "r.reclass", input=input_raster, output=temporary_raster, stdin=rules, rules="-"
     )
     if points_map:
-        point_data = gs.read_command('v.out.ascii', input=points_map, type="point", format="point", separator="comma")
+        point_data = gs.read_command(
+            "v.out.ascii",
+            input=points_map,
+            type="point",
+            format="point",
+            separator="comma",
+        )
         point_data = StringIO(point_data)
         reader = csv.reader(point_data)
         coordinates = ",".join([f"{row[0]},{row[1]}" for row in reader])
-    
+
     fetch = point_fetch(
         land=temporary_raster,
         coordinates=coordinates,
