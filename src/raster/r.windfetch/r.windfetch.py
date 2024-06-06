@@ -71,13 +71,6 @@ for details.
 # % label: Angular step size between minor directions.
 # % description: Fetch computed as an average of multiple minor directions around each direction.
 # %end
-# %option
-# % key: column_prefix
-# % type: string
-# % required: no
-# % multiple: no
-# % description: Column prefix for new attribute columns
-# %end
 # %option G_OPT_F_OUTPUT
 # % key: output_file
 # % required: no
@@ -95,6 +88,9 @@ for details.
 # %end
 # %rules
 # % exclusive: coordinates, points
+# %end
+# %rules
+# % required: coordinates, points
 # %end
 
 
