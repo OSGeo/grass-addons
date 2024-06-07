@@ -150,10 +150,10 @@ def point_fetch(land, coordinates, direction, step, minor_directions, minor_step
 
 def main():
     options, flags = gs.parser()
-    
+
     if check_version():
         gs.fatal(_("r.windfetch requires GRASS GIS version >= 8.4"))
-    
+
     input_raster = options["input"]
     coordinates = options["coordinates"]
     points_map = options["points"]
