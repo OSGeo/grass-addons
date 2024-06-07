@@ -104,6 +104,12 @@ from io import StringIO
 import grass.script as gs
 
 
+def check_version():
+    if gs.version()["version"].split(".")[:2] >= ["8", "4"]:
+        return True
+    return False
+
+
 def clean(name):
     gs.run_command("g.remove", type="raster", name=name, flags="f", superquiet=True)
 
@@ -116,7 +122,6 @@ def point_fetch(land, coordinates, direction, step, minor_directions, minor_step
         direction=0,
         coordinates=coordinates,
         step=1,
-        flags="l",
         format="json",
     )
     gs.verbose(_("Computing wind fetch..."))
@@ -145,6 +150,10 @@ def point_fetch(land, coordinates, direction, step, minor_directions, minor_step
 
 def main():
     options, flags = gs.parser()
+    
+    if check_version():
+        gs.fatal(_("r.windfetch requires GRASS GIS version >= 8.4"))
+    
     input_raster = options["input"]
     coordinates = options["coordinates"]
     points_map = options["points"]
