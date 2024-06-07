@@ -15,7 +15,7 @@ for details.
 """
 
 # %module
-# % description: Computes wind fetch.
+# % description: Computes wind fetch which is the length of water over which winds blow without obstruction
 # % keyword: raster
 # % keyword: distance
 # % keyword: wind
@@ -26,6 +26,7 @@ for details.
 # %end
 # %option G_OPT_M_COORDS
 # % multiple: yes
+# % description: Coordinates for which to compute wind fetch
 # %end
 # %option G_OPT_V_INPUT
 # % key: points
