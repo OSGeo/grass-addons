@@ -129,7 +129,7 @@ def create_dir(directory):
         gs.fatal(_("Could not create directory {}").format(dir))
 
 
-def get_bb(vector=None):
+def get_bb():
     # are we in LatLong location?
     kv = gs.parse_command("g.proj", flags="j")
     if "+proj" not in kv:
