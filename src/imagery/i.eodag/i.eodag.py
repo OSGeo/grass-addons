@@ -17,7 +17,6 @@
 #
 #############################################################################
 
-
 # %Module
 # % description: Eodag interface to install imagery datasets from various providers.
 # % keyword: imagery
@@ -28,7 +27,6 @@
 # % keyword: datasets
 # % keyword: download
 # %end
-
 # %option
 # % key: dataset
 # % type: string
@@ -37,20 +35,37 @@
 # % answer: S1_SAR_GRD
 # % guisection: Filter
 # %end
-
+# %option G_OPT_V_MAP
+# % description: If not given then current computational extent is used
+# % label: Name of input vector map to define Area of Interest (AOI)
+# % required: no
+# % guisection: Region
+# %end
+# %option
+# % key: clouds
+# % type: integer
+# % description: Maximum cloud cover percentage for Sentinel scene
+# % required: no
+# % guisection: Filter
+# %end
+# %option G_OPT_V_OUTPUT
+# % key: footprints
+# % description: Name for output vector map with footprints
+# % label: Only supported for download from ESA_Copernicus Open Access Hub
+# % required: no
+# % guisection: Output
+# %end
 # %option G_OPT_M_DIR
 # % key: output
 # % description: Name for output directory where to store downloaded data OR search results
 # % required: no
 # % guisection: Output
 # %end
-
 # %option G_OPT_F_INPUT
 # % key: config
 # % label: Full path to yaml config file
 # % required: no
 # %end
-
 # %option
 # % key: id
 # % type: string
@@ -58,7 +73,13 @@
 # % description: List of scenes IDs to download
 # % guisection: Filter
 # %end
-
+# %option
+# % key: file
+# % type: string
+# % multiple: yes
+# % description: List of text files with IDs to download
+# % guisection: Filter
+# %end
 # %option
 # % key: provider
 # % type: string
@@ -66,36 +87,30 @@
 # % required: yes
 # % guisection: Filter
 # %end
-
 # %option
 # % key: start
 # % type: string
 # % description: Start date (in any ISO 8601 format), by default it is 60 days ago
 # % guisection: Filter
 # %end
-
 # %option
 # % key: end
 # % type: string
 # % description: End date (in any ISO 8601 format)
 # % guisection: Filter
 # %end
-
 # %flag
 # % key: l
 # % description: List the search result without downloading
 # %end
-
 # %flag
 # % key: e
 # % description: Extract the downloaded the datasets
 # %end
-
 # %flag
 # % key: d
 # % description: Delete the product archieve after downloading
 # %end
-
 
 import sys
 import os
@@ -115,22 +130,19 @@ def create_dir(directory):
 
 
 def get_bb(vector=None):
-    args = {}
-    if vector:
-        args["vector"] = vector
     # are we in LatLong location?
     kv = gs.parse_command("g.proj", flags="j")
     if "+proj" not in kv:
         gs.fatal(_("Unable to get bounding box: unprojected location not supported"))
     if kv["+proj"] != "longlat":
-        info = gs.parse_command("g.region", flags="uplg", **args)
+        info = gs.parse_command("g.region", flags="uplg")
         return {
             "lonmin": info["nw_long"],
             "latmin": info["sw_lat"],
             "lonmax": info["ne_long"],
             "latmax": info["nw_lat"],
         }
-    info = gs.parse_command("g.region", flags="upg", **args)
+    info = gs.parse_command("g.region", flags="upg")
     return {
         "lonmin": info["w"],
         "latmin": info["s"],
@@ -139,24 +151,48 @@ def get_bb(vector=None):
     }
 
 
+def get_aoi(vector=None):
+    """Get the AOI for querying"""
+    # Handle empty AOI
+    if not vector:
+        return get_bb()
+
+    # TODO: Read Vector WKB
+
+
 def download_by_id(query_id: str):
-    gs.verbose(
-        _(
-            "Searching for product ending with: {}".format(
-                query_id[-min(len(query_id), 8) :]
-            )
-        )
-    )
-    product, count = dag.search(id=query_id)
+    gs.message(_("Attempting to download product: {}".format(query_id)))
+    product, count = dag.search(id=query_id, provider=options["provider"])
     if count != 1:
-        raise ParameterError("Product couldn't be uniquely identified")
+        raise ParameterError("Product couldn't be uniquely identified.")
     if not product[0].properties["id"].startswith(query_id):
-        raise ParameterError("Product wasn't found")
-    gs.verbose(
-        _("Poduct ending with: {} is found.".format(query_id[-min(len(query_id), 8) :]))
-    )
-    gs.verbose(_("Downloading..."))
+        raise ParameterError("Product wasn't found.")
+    gs.verbose(_("Poduct {} is found.".format(query_id)))
+    gs.verbose(_("Downloading {}".format(query_id)))
     dag.download(product[0])
+
+
+def ids_from_file_txt(ids_file_txt):
+    ids_set = set()
+    with open(ids_file_txt, "r") as ids_stream:
+        line_index = 0
+        lines = ids_stream.read().split("\n")
+        for line in lines:
+            line_index += 1
+            if not line:
+                continue
+            line = line.strip()
+            if line.find(" ") != -1:
+                gs.warning(
+                    _(
+                        'File "{}", line {}, has space(s). Skipping line... '.format(
+                            ids_file_txt, line_index
+                        )
+                    )
+                )
+                continue
+            ids_set.add(line.strip())
+    return ids_set
 
 
 def download_by_ids(products_ids):
@@ -164,29 +200,42 @@ def download_by_ids(products_ids):
     for product_id in products_ids:
         try:
             download_by_id(product_id)
-        except ParameterError:
-            gs.error(
-                _(
-                    "Product ending with: {}, failed to download".format(
-                        product_id[-min(len(id), 8) :]
-                    )
-                )
-            )
+        except ParameterError as e:
+            gs.error(e)
+            gs.error(_("Product {} failed to download".format(product_id)))
+
+
+def parse_id_option(id_option_string):
+    to_download_ids = id_option_string.split(",")
+    ids_set = set()
+    for to_download_id in to_download_ids:
+        ids_set.add(to_download_id.strip())
+    return ids_set
+
+
+def parse_file_option(file_option_string):
+    ids_set = set()
+    files_list = file_option_string.split(",")
+    for file in files_list:
+        try:
+            ids_set.update(ids_from_file_txt(file))
+        except FileNotFoundError:
+            gs.warning(_('Couldn\'t read file "{}", Skipping file...'.format(file)))
+    return ids_set
 
 
 def setup_environment_variables():
+    # Setting the envirionmnets variables has to come before the eodag initialization
     os.environ["EODAG__{}__DOWNLOAD__EXTRACT".format(options["provider"])] = str(
         flags["e"]
     )
     os.environ["EODAG__{}__DOWNLOAD__DELETE_ARCHIV".format(options["provider"])] = str(
         flags["d"]
     )
-
     if options["output"]:
         os.environ[
             "EODAG__{}__DOWNLOAD__OUTPUTS_PREFIX".format(options["provider"])
         ] = options["output"]
-
     if options["config"]:
         os.environ["EODAG_CFG_FILE"] = options["config"]
 
@@ -206,7 +255,7 @@ def no_fallback_search(search_parameters, provider):
             return SearchResult([])
     except Exception as e:
         gs.verbose(e)
-        gs.fatal(_("Server error, try again."))
+        gs.fatal(_("Server error, please try again."))
 
     # https://eodag.readthedocs.io/en/stable/api_reference/core.html#eodag.api.core.EODataAccessGateway.search_iter_page
     # This will use the prefered provider by default
@@ -215,54 +264,98 @@ def no_fallback_search(search_parameters, provider):
     # TODO: Would it be useful if user could iterate through
     # the pages manually, and look for the product themselves?
     try:
-        return list(search_result)[0]
+        # Merging the pages into one list with all products
+        return [j for i in search_result for j in i]
     except Exception as e:
         gs.verbose(e)
-        gs.fatal(_("Server error, try again."))
+        gs.fatal(_("Server error, please try again."))
+
+
+def create_products_dataframe(eo_products):
+    result_dict = {"id": [], "time": [], "cloud_coverage": [], "product_type": []}
+    for product in eo_products:
+        if "id" in product.properties and product.properties["id"] is not None:
+            result_dict["id"].append(product.properties["id"])
+        else:
+            result_dict["id"].append(None)
+        if (
+            "startTimeFromAscendingNode" in product.properties
+            and product.properties["startTimeFromAscendingNode"] is not None
+        ):
+            try:
+                result_dict["time"].append(
+                    normalize_time(product.properties["startTimeFromAscendingNode"])
+                )
+            except:
+                result_dict["time"].append(
+                    product.properties["startTimeFromAscendingNode"]
+                )
+        else:
+            result_dict["time"].append(None)
+        if (
+            "cloudCover" in product.properties
+            and product.properties["cloudCover"] is not None
+        ):
+            result_dict["cloud_coverage"].append(product.properties["cloudCover"])
+        else:
+            result_dict["cloud_coverage"].append(None)
+        if (
+            "productType" in product.properties
+            and product.properties["productType"] is not None
+        ):
+            result_dict["product_type"].append(product.properties["productType"])
+        else:
+            result_dict["product_type"].append(None)
+
+    df = pd.DataFrame().from_dict(result_dict)
+    return df
 
 
 def main():
-    # products: https://github.com/CS-SI/eodag/blob/develop/eodag/resources/product_types.yml
-
-    # setting the envirionmnets variables has to come before the dag initialization
-    setup_environment_variables()
+    # Products: https://github.com/CS-SI/eodag/blob/develop/eodag/resources/product_types.yml
 
     global dag
+    setup_environment_variables()
     dag = EODataAccessGateway()
-
     if options["provider"]:
         dag.set_preferred_provider(options["provider"])
     else:
-        gs.fatal(_("Please specify a provider..."))
+        # TODO: Add a way to search witout specifying a provider
+        gs.fatal(_("Please specify a provider."))
 
-    # Download by ids... if ids are provided only these ids will be downloaded
-    if options["id"]:
-        ids = options["id"].split(",")
-        download_by_ids(ids)
+    # Download by ids
+    # Searching for additional products won't take place
+    if options["id"] or options["file"]:
+        # Duplicates will be
+        ids_set = set()
+        if options["id"]:
+            ids_set.update(parse_id_option(options["id"]))
+        if options["file"]:
+            ids_set.update(parse_file_option(options["file"]))
+        gs.message(_("Found {} distinct product(s) IDs.".format(len(ids_set))))
+        for product_id in ids_set:
+            gs.message(product_id)
+        gs.verbose(_("Attempting to download."))
+        download_by_ids(ids_set)
     else:
-
-        items_per_page = 20
+        items_per_page = 40
         # TODO: Check that the product exists,
         # could be handled by catching exceptions when searching...
         product_type = options["dataset"]
 
-        # TODO: Allow user to specify a shape file path
-        geom = (
-            # use boudning box of current computational region
-            get_bb()
-            # { "lonmin": 1.9, "latmin": 43.9, "lonmax": 2, "latmax": 45, }  # hardcoded for testing
-        )
+        # HARDCODED VALUES FOR TESTING { "lonmin": 1.9, "latmin": 43.9, "lonmax": 2, "latmax": 45, }  # hardcoded for testing
 
+        geom = get_aoi(options["map"])
         gs.verbose(_("Region used for searching: {}".format(geom)))
-
         search_parameters = {
             "items_per_page": items_per_page,
             "productType": product_type,
-            # TODO: Convert to a shapely object
             "geom": geom,
         }
 
-        # Assumes that the user enter time in UTC
+        if options["clouds"]:
+            search_parameters["cloudCover"] = options["clouds"]
+
         end_date = options["end"]
         if not options["end"]:
             end_date = datetime.utcnow().isoformat()
@@ -296,24 +389,30 @@ def main():
         search_parameters["end"] = end_date
 
         search_results = no_fallback_search(search_parameters, options["provider"])
-
         num_results = len(search_results)
-        gs.verbose(
-            _("Found {} matching scenes of type {}".format(num_results, product_type))
-        )
+        print(num_results)
 
         if flags["l"]:
-            # TODO: Oragnize output format better
-            idx = 0
-            for product in search_results:
-                print(
-                    _(
-                        "Product #{} - ID:{},provider:{}".format(
-                            idx, product.properties["id"], product.provider
-                        )
-                    )
-                )
-                idx += 1
+            df = create_products_dataframe(search_results)
+            gs.message(_("{} product(s) found.").format(num_results))
+            for idx in range(len(df)):
+                product_id = df["id"].iloc[idx]
+                if product_id is None:
+                    time_string = "id_NA"
+                time_string = df["time"].iloc[idx]
+                if time_string is None:
+                    time_string = "time_NA"
+                else:
+                    time_string += "Z"
+                cloud_cover_string = df["cloud_coverage"].iloc[idx]
+                if cloud_cover_string is not None:
+                    cloud_cover_string = f"{cloud_cover_string:2.0f}%"
+                else:
+                    cloud_cover_string = "cloudcover_NA"
+                product_type = df["product_type"].iloc[idx]
+                if product_type is None:
+                    product_type = "producttype_NA"
+                print(f"{product_id} {time_string} {cloud_cover_string} {product_type}")
         else:
             # TODO: Consider adding a quicklook flag
             # TODO: Add timeout and wait parameters for downloading offline products...
@@ -334,7 +433,14 @@ if __name__ == "__main__":
         from eodag import EODataAccessGateway
         from eodag import setup_logging
         from eodag.api.search_result import SearchResult
+    except:
+        gs.fatal(_("Cannot import eodag. Please intall the library first."))
+    try:
+        import pandas as pd
+    except:
+        gs.fatal(_("Cannot import pandas. Please intall the library first."))
 
+    if "DEBUG" in gs.read_command("g.gisenv"):
         debug_level = int(gs.read_command("g.gisenv", get="DEBUG"))
         if not debug_level:
             setup_logging(1)
@@ -342,7 +448,5 @@ if __name__ == "__main__":
             setup_logging(2)
         else:
             setup_logging(3)
-    except:
-        gs.fatal(_("Cannot import eodag. Please intall the library first."))
 
     sys.exit(main())
