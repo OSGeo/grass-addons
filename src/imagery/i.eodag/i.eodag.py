@@ -69,14 +69,6 @@
 # % guisection: Filter
 # %end
 
-# %option G_OPT_V_OUTPUT
-# % key: footprints
-# % description: Name for output vector map with footprints
-# % label: Only supported for download from ESA_Copernicus Open Access Hub
-# % required: no
-# % guisection: Output
-# %end
-
 # %option G_OPT_M_DIR
 # % key: output
 # % description: Name for output directory where to store downloaded data OR search results
@@ -184,17 +176,15 @@ def download_by_id(query_id: str):
         raise ParameterError("Product couldn't be uniquely identified.")
     if not product[0].properties["id"].startswith(query_id):
         raise ParameterError("Product wasn't found.")
-    gs.verbose(_("Poduct {} is found.".format(query_id)))
-    gs.verbose(_("Downloading {}".format(query_id)))
+    gs.verbose(_("Poduct {} is found. Downloading...".format(query_id)))
     dag.download(product[0])
 
 
 def ids_from_file_txt(ids_file_txt):
     ids_set = set()
     with open(ids_file_txt, "r") as ids_stream:
-        line_index = 0
         lines = ids_stream.read().split("\n")
-        for line_index, enumerate(line in lines):
+        for line_index, line in enumerate(lines):
             if not line:
                 continue
             line = line.strip()
@@ -202,7 +192,7 @@ def ids_from_file_txt(ids_file_txt):
                 gs.warning(
                     _(
                         'File "{}", line {}, has space(s). Skipping line... '.format(
-                            ids_file_txt, line_index
+                            ids_file_txt, line_index + 1
                         )
                     )
                 )
