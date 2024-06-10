@@ -64,7 +64,7 @@
 # %option
 # % key: clouds
 # % type: integer
-# % description: Maximum cloud cover percentage for Sentinel scene
+# % description: Maximum cloud cover percentage for Sentinel scene [0, 100]
 # % required: no
 # % guisection: Filter
 # %end
@@ -117,9 +117,11 @@ import sys
 import os
 import getpass
 from pathlib import Path
+from subprocess import PIPE
 from datetime import datetime, timedelta
 
 import grass.script as gs
+from grass.pygrass.modules import Module
 from grass.exceptions import ParameterError
 
 
@@ -158,7 +160,56 @@ def get_aoi(vector=None):
     if not vector:
         return get_bb()
 
-    # TODO: Read Vector WKB
+    args = {}
+    args["input"] = vector
+
+    if gs.vector_info_topo(vector)["areas"] <= 0:
+        gs.fatal(_("No areas found in AOI map <{}>...").format(vector))
+    elif gs.vector_info_topo(vector)["areas"] > 1:
+        gs.warning(
+            _(
+                "More than one area found in AOI map <{}>. \
+                      Using only the first area..."
+            ).format(vector)
+        )
+
+    # are we in LatLong location?
+    s = gs.read_command("g.proj", flags="j")
+    kv = gs.parse_key_val(s)
+    if "+proj" not in kv:
+        gs.fatal(_("Unable to get AOI: unprojected location not supported"))
+
+    geom_dict = gs.parse_command("v.out.ascii", format="wkt", **args)
+    num_vertices = len(str(geom_dict.keys()).split(","))
+    geom = [key for key in geom_dict][0]
+    if kv["+proj"] != "longlat":
+        gs.verbose(
+            _("Generating WKT from AOI map ({} vertices)...").format(num_vertices)
+        )
+        # TODO: Might need to check for number of coordinates
+        #       Make sure it won't cause problems like in:
+        #       https://github.com/OSGeo/grass-addons/blob/grass8/src/imagery/i.sentinel/i.sentinel.download/i.sentinel.download.py#L273
+        feature_type = geom[: geom.find("(")]
+        coords = geom.replace(feature_type + "((", "").replace("))", "").split(", ")
+        projected_geom = feature_type + "(("
+        coord_proj = Module(
+            "m.proj",
+            input="-",
+            flags="od",
+            stdin_="\n".join(coords),
+            stdout_=PIPE,
+            stderr_=PIPE,
+        )
+        projected_geom += (", ").join(
+            [
+                " ".join(poly_coords.split("|")[0:2])
+                for poly_coords in coord_proj.outputs["stdout"]
+                .value.strip()
+                .split("\n")
+            ]
+        ) + "))"
+        return projected_geom
+    return geom
 
 
 def download_by_id(query_id: str):
@@ -281,9 +332,9 @@ def main():
         # TODO: Add a way to search witout specifying a provider
         gs.fatal(_("Please specify a provider."))
 
-    # Download by ids
+    # Download by IDs
     # Searching for additional products won't take place
-    if options["id"] or options["file"]:
+    if options["id"]:
         ids_set = set()
         if Path(options["id"]).is_file():
             gs.message(_('Reading file "{}"'.format(options["id"])))
