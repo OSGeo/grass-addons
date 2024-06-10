@@ -194,8 +194,7 @@ def ids_from_file_txt(ids_file_txt):
     with open(ids_file_txt, "r") as ids_stream:
         line_index = 0
         lines = ids_stream.read().split("\n")
-        for line in lines:
-            line_index += 1
+        for line_index, enumerate(line in lines):
             if not line:
                 continue
             line = line.strip()
