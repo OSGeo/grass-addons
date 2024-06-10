@@ -76,8 +76,8 @@
 # %option
 # % key: file
 # % type: string
-# % multiple: yes
-# % description: List of text files with IDs to download
+# % multiple: no
+# % description: Text file with IDs to download, one per row
 # % guisection: Filter
 # %end
 # %option
