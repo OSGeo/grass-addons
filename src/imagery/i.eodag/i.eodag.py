@@ -27,6 +27,24 @@
 # % keyword: datasets
 # % keyword: download
 # %end
+
+# FLAGS
+# %flag
+# % key: l
+# % description: List the search result without downloading
+# %end
+
+# %flag
+# % key: e
+# % description: Extract the downloaded the datasets
+# %end
+
+# %flag
+# % key: d
+# % description: Delete the product archieve after downloading
+# %end
+
+# OPTIONS
 # %option
 # % key: dataset
 # % type: string
@@ -35,12 +53,14 @@
 # % answer: S1_SAR_GRD
 # % guisection: Filter
 # %end
+
 # %option G_OPT_V_MAP
 # % description: If not given then current computational extent is used
 # % label: Name of input vector map to define Area of Interest (AOI)
 # % required: no
 # % guisection: Region
 # %end
+
 # %option
 # % key: clouds
 # % type: integer
@@ -48,6 +68,7 @@
 # % required: no
 # % guisection: Filter
 # %end
+
 # %option G_OPT_V_OUTPUT
 # % key: footprints
 # % description: Name for output vector map with footprints
@@ -55,17 +76,20 @@
 # % required: no
 # % guisection: Output
 # %end
+
 # %option G_OPT_M_DIR
 # % key: output
 # % description: Name for output directory where to store downloaded data OR search results
 # % required: no
 # % guisection: Output
 # %end
+
 # %option G_OPT_F_INPUT
 # % key: config
 # % label: Full path to yaml config file
 # % required: no
 # %end
+
 # %option
 # % key: id
 # % type: string
@@ -73,6 +97,7 @@
 # % description: List of scenes IDs to download
 # % guisection: Filter
 # %end
+
 # %option
 # % key: file
 # % type: string
@@ -80,6 +105,7 @@
 # % description: Text file with IDs to download, one per row
 # % guisection: Filter
 # %end
+
 # %option
 # % key: provider
 # % type: string
@@ -87,30 +113,21 @@
 # % required: yes
 # % guisection: Filter
 # %end
+
 # %option
 # % key: start
 # % type: string
 # % description: Start date (in any ISO 8601 format), by default it is 60 days ago
 # % guisection: Filter
 # %end
+
 # %option
 # % key: end
 # % type: string
 # % description: End date (in any ISO 8601 format)
 # % guisection: Filter
 # %end
-# %flag
-# % key: l
-# % description: List the search result without downloading
-# %end
-# %flag
-# % key: e
-# % description: Extract the downloaded the datasets
-# %end
-# %flag
-# % key: d
-# % description: Delete the product archieve after downloading
-# %end
+
 
 import sys
 import os
@@ -390,7 +407,6 @@ def main():
 
         search_results = no_fallback_search(search_parameters, options["provider"])
         num_results = len(search_results)
-        print(num_results)
 
         if flags["l"]:
             df = create_products_dataframe(search_results)
