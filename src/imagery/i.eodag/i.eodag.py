@@ -180,27 +180,6 @@ def download_by_id(query_id: str):
     dag.download(product[0])
 
 
-def ids_from_file_txt(ids_file_txt):
-    ids_set = set()
-    with open(ids_file_txt, "r") as ids_stream:
-        lines = ids_stream.read().split("\n")
-        for line_index, line in enumerate(lines):
-            if not line:
-                continue
-            line = line.strip()
-            if line.find(" ") != -1:
-                gs.warning(
-                    _(
-                        'File "{}", line {}, has space(s). Skipping line... '.format(
-                            ids_file_txt, line_index + 1
-                        )
-                    )
-                )
-                continue
-            ids_set.add(line.strip())
-    return ids_set
-
-
 def download_by_ids(products_ids):
     # Search in all recognized providers
     for product_id in products_ids:
@@ -337,10 +316,13 @@ def main():
         if options["id"]:
             ids_set.update(parse_id_option(options["id"]))
         if options["file"]:
-            ids_set.update(parse_file_option(options["file"]))
+            ids_set = set(
+                Path(options["file"]).read_text(encoding="UTF8").strip().split("\n")
+            )
+            # Remove empty lines
+            ids_set.discard(str())
         gs.message(_("Found {} distinct product(s) IDs.".format(len(ids_set))))
-        for product_id in ids_set:
-            gs.message(product_id)
+        gs.message("\n".join(ids_set))
         gs.verbose(_("Attempting to download."))
         download_by_ids(ids_set)
     else:
