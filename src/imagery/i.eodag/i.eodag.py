@@ -86,15 +86,7 @@
 # % key: id
 # % type: string
 # % multiple: yes
-# % description: List of scenes IDs to download
-# % guisection: Filter
-# %end
-
-# %option
-# % key: file
-# % type: string
-# % multiple: no
-# % description: Text file with IDs to download, one per row
+# % description: List of scenes IDs to download | A single text file with one ID on each line
 # % guisection: Filter
 # %end
 
@@ -188,14 +180,6 @@ def download_by_ids(products_ids):
         except ParameterError as e:
             gs.error(e)
             gs.error(_("Product {} failed to download".format(product_id)))
-
-
-def parse_id_option(id_option_string):
-    to_download_ids = id_option_string.split(",")
-    ids_set = set()
-    for to_download_id in to_download_ids:
-        ids_set.add(to_download_id.strip())
-    return ids_set
 
 
 def setup_environment_variables():
@@ -300,19 +284,18 @@ def main():
     # Download by ids
     # Searching for additional products won't take place
     if options["id"] or options["file"]:
-        # Duplicates will be
         ids_set = set()
-        if options["id"]:
-            ids_set.update(parse_id_option(options["id"]))
-        if options["file"]:
+        if Path(options["id"]).is_file():
+            gs.message(_('Reading file "{}"'.format(options["id"])))
             ids_set = set(
-                Path(options["file"]).read_text(encoding="UTF8").strip().split("\n")
+                Path(options["id"]).read_text(encoding="UTF8").strip().split("\n")
             )
-            # Remove empty lines
-            ids_set.discard(str())
-        gs.message(_("Found {} distinct product(s) IDs.".format(len(ids_set))))
+        else:
+            ids_set = set(pid.strip() for pid in options["id"].split(","))
+        # Remove empty strings
+        ids_set.discard(str())
+        gs.message(_("Found {} distinct ID(s).".format(len(ids_set))))
         gs.message("\n".join(ids_set))
-        gs.verbose(_("Attempting to download."))
         download_by_ids(ids_set)
     else:
         items_per_page = 40
