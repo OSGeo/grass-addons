@@ -8,13 +8,13 @@ Fetch is an important feature in wave modeling for waves created by wind.
 Input is a binary raster map <b>input</b> where land is 1 and 0 is water.
 To compute fetch for certain point(s), user provides either the coordinates
 with the <b>coordinates</b> parameter or a points vector map with <b>points</b> parameter.
-Output is formatted with <b>format</b> parameter either as JSOn or CSV and can
+Output is formatted with <b>format</b> parameter either as JSON or CSV and can
 be printed to a file (<b>output_file</b>) or to standard output.
 
 
 <h2>NOTES</h2>
-Wind fetch is computed for certain directions, specified by parameters <b>direction</b>
-and <b>step</b>. Direction angle is in degrees with 0 in the East. For example,
+Wind fetch is computed for specific directions, determined by parameters <b>direction</b>
+and <b>step</b>. Direction angle is in degrees counterclockwise from the East. For example,
 for <code>direction=45</code> and <code>step=90</code>, <em>r.windfetch</em> computes fetch
 for directions 45, 135, 225, and 315 (NE, NW, SW, SE).
 
