@@ -49,7 +49,7 @@
 # % key: dataset
 # % type: string
 # % description: Imagery dataset to search for
-# % required: yes
+# % required: no
 # % answer: S1_SAR_GRD
 # % guisection: Filter
 # %end

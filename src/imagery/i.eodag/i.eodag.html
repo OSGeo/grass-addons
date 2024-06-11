@@ -57,18 +57,24 @@ sections for more details about registration and configuration of the providers'
 
 <h2>EXAMPLES</h2>
 
-Search and list the available Sentinel 2 scenes in the Copernicus Data Space Ecosystem:
+Search and list the available Sentinel 2 scenes in the Copernicus Data Space Ecosystem, using a Vector Map as an AOI:
 
 <div class="code"><pre>
 i.eodag -l start=2022-05-25 end=2022-06-01 \
-    dataset=S2_MSI_L2A provider=cop_dataspace
+    map=vector_map_sample dataset=S2_MSI_L2A provider=cop_dataspace
 <pre></div>
 
-Download all available scenes in the tmp directory:
+Download all available scenes in the tmp directory, with Cloud Coverage not exceeding 50%:
 
 <div class="code"><pre>
 i.eodag start=2022-05-25 end=2022-06-01 \
-    dataset=S2_MSI_L2A provider=cop_dataspace
+    dataset=S2_MSI_L2A provider=cop_dataspace clouds=50
+<pre></div>
+
+Download only selected scenes from a text file of IDs, using the Copernicus Data Space Ecosystem as the provider:
+
+<div class="code"><pre>
+i.eodag file=ids_list.txt provider=cop_dataspace
 <pre></div>
 
 Download and extract only selected scenes into the <em>download_here</em> directory,
