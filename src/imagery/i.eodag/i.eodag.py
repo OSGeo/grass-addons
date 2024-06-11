@@ -50,7 +50,7 @@
 # % type: string
 # % description: Imagery dataset to search for
 # % required: no
-# % answer: S1_SAR_GRD
+# % answer: S2_MSI_L2A
 # % guisection: Filter
 # %end
 
@@ -102,7 +102,8 @@
 # % key: provider
 # % type: string
 # % description: Available providers: https://eodag.readthedocs.io/en/stable/getting_started_guide/providers.html
-# % required: yes
+# % required: no
+# % answer: peps
 # % guisection: Filter
 # %end
 
