@@ -224,25 +224,20 @@ def get_aoi(vector=None):
     return geom
 
 
-def download_by_id(query_id: str):
-    gs.message(_("Attempting to download product: {}".format(query_id)))
-    product, count = dag.search(id=query_id, provider=options["provider"])
-    if count != 1:
-        raise ParameterError("Product couldn't be uniquely identified.")
-    if not product[0].properties["id"].startswith(query_id):
-        raise ParameterError("Product wasn't found.")
-    gs.verbose(_("Poduct {} is found. Downloading...".format(query_id)))
-    dag.download(product[0])
-
-
-def download_by_ids(products_ids):
-    # Search in all recognized providers
-    for product_id in products_ids:
-        try:
-            download_by_id(product_id)
-        except ParameterError as e:
-            gs.error(e)
-            gs.error(_("Product {} failed to download".format(product_id)))
+def search_by_ids(products_ids):
+    gs.message("Searching for products...")
+    search_result = []
+    for query_id in products_ids:
+        gs.message(_("Searching for {}".format(query_id)))
+        product, count = dag.search(id=query_id, provider=options["provider"])
+        if count > 1:
+            gs.message(_("Could not be uniquely identified."))
+        elif count == 0 or not product[0].properties["id"].startswith(query_id):
+            gs.message(_("Not found."))
+        else:
+            gs.message(_("Found."))
+            search_result.append(product[0])
+    return search_result
 
 
 def setup_environment_variables():
@@ -332,6 +327,28 @@ def create_products_dataframe(eo_products):
     return df
 
 
+def list_products(products):
+    df = create_products_dataframe(products)
+    for idx in range(len(df)):
+        product_id = df["id"].iloc[idx]
+        if product_id is None:
+            time_string = "id_NA"
+        time_string = df["time"].iloc[idx]
+        if time_string is None:
+            time_string = "time_NA"
+        else:
+            time_string += "Z"
+        cloud_cover_string = df["cloud_coverage"].iloc[idx]
+        if cloud_cover_string is not None:
+            cloud_cover_string = f"{cloud_cover_string:2.0f}%"
+        else:
+            cloud_cover_string = "cloudcover_NA"
+        product_type = df["product_type"].iloc[idx]
+        if product_type is None:
+            product_type = "producttype_NA"
+        print(f"{product_id} {time_string} {cloud_cover_string} {product_type}")
+
+
 def main():
     # Products: https://github.com/CS-SI/eodag/blob/develop/eodag/resources/product_types.yml
 
@@ -352,7 +369,7 @@ def main():
         ids_set.discard(str())
         gs.message(_("Found {} distinct ID(s).".format(len(ids_set))))
         gs.message("\n".join(ids_set))
-        download_by_ids(ids_set)
+        search_result = search_by_ids(ids_set)
     elif options["file"]:
         ids_set = set()
         if Path(options["file"]).is_file():
@@ -366,7 +383,7 @@ def main():
         ids_set.discard(str())
         gs.message(_("Found {} distinct ID(s).".format(len(ids_set))))
         gs.message("\n".join(ids_set))
-        download_by_ids(ids_set)
+        search_result = search_by_ids(ids_set)
     else:
         items_per_page = 40
         # TODO: Check that the product exists,
@@ -418,35 +435,16 @@ def main():
         search_parameters["start"] = start_date
         search_parameters["end"] = end_date
 
-        search_results = no_fallback_search(search_parameters, options["provider"])
-        num_results = len(search_results)
+        search_result = no_fallback_search(search_parameters, options["provider"])
 
-        if flags["l"]:
-            df = create_products_dataframe(search_results)
-            gs.message(_("{} product(s) found.").format(num_results))
-            for idx in range(len(df)):
-                product_id = df["id"].iloc[idx]
-                if product_id is None:
-                    time_string = "id_NA"
-                time_string = df["time"].iloc[idx]
-                if time_string is None:
-                    time_string = "time_NA"
-                else:
-                    time_string += "Z"
-                cloud_cover_string = df["cloud_coverage"].iloc[idx]
-                if cloud_cover_string is not None:
-                    cloud_cover_string = f"{cloud_cover_string:2.0f}%"
-                else:
-                    cloud_cover_string = "cloudcover_NA"
-                product_type = df["product_type"].iloc[idx]
-                if product_type is None:
-                    product_type = "producttype_NA"
-                print(f"{product_id} {time_string} {cloud_cover_string} {product_type}")
-        else:
-            # TODO: Consider adding a quicklook flag
-            # TODO: Add timeout and wait parameters for downloading offline products...
-            # https://eodag.readthedocs.io/en/stable/getting_started_guide/product_storage_status.html
-            dag.download_all(search_results)
+    gs.message(_("{} product(s) found.").format(len(search_result)))
+    if flags["l"]:
+        list_products(search_result)
+    else:
+        # TODO: Consider adding a quicklook flag
+        # TODO: Add timeout and wait parameters for downloading offline products...
+        # https://eodag.readthedocs.io/en/stable/getting_started_guide/product_storage_status.html
+        dag.download_all(search_result)
 
 
 if __name__ == "__main__":
