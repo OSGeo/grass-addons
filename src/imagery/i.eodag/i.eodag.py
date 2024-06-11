@@ -86,7 +86,15 @@
 # % key: id
 # % type: string
 # % multiple: yes
-# % description: List of scenes IDs to download | A single text file with one ID on each line
+# % description: List of scenes IDs to download
+# % guisection: Filter
+# %end
+
+# %option
+# % key: file
+# % type: string
+# % multiple: no
+# % description: Text file with a collection of IDs, one ID per line
 # % guisection: Filter
 # %end
 
@@ -110,6 +118,10 @@
 # % type: string
 # % description: End date (in any ISO 8601 format)
 # % guisection: Filter
+# %end
+
+# %rules
+# % exclusive: file, id
 # %end
 
 
@@ -335,14 +347,21 @@ def main():
     # Download by IDs
     # Searching for additional products won't take place
     if options["id"]:
+        ids_set = set(pid.strip() for pid in options["id"].split(","))
+        # Remove empty strings
+        ids_set.discard(str())
+        gs.message(_("Found {} distinct ID(s).".format(len(ids_set))))
+        gs.message("\n".join(ids_set))
+        download_by_ids(ids_set)
+    elif options["file"]:
         ids_set = set()
-        if Path(options["id"]).is_file():
-            gs.message(_('Reading file "{}"'.format(options["id"])))
+        if Path(options["file"]).is_file():
+            gs.message(_('Reading file "{}"'.format(options["file"])))
             ids_set = set(
-                Path(options["id"]).read_text(encoding="UTF8").strip().split("\n")
+                Path(options["file"]).read_text(encoding="UTF8").strip().split("\n")
             )
         else:
-            ids_set = set(pid.strip() for pid in options["id"].split(","))
+            gs.fatal(_('Could not open file "{}"'.format(options["file"])))
         # Remove empty strings
         ids_set.discard(str())
         gs.message(_("Found {} distinct ID(s).".format(len(ids_set))))
