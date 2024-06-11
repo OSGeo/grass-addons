@@ -349,6 +349,22 @@ def list_products(products):
         print(f"{product_id} {time_string} {cloud_cover_string} {product_type}")
 
 
+def apply_filters(search_result):
+    filtered_result = []
+    for product in search_result:
+        valid = True
+        if (
+            options["clouds"]
+            and "cloudCover" in product.properties
+            and product.properties["cloudCover"] is not None
+            and product.properties["cloudCover"] > int(options["clouds"])
+        ):
+            valid = False
+        if valid:
+            filtered_result.append(product)
+    return filtered_result
+
+
 def main():
     # Products: https://github.com/CS-SI/eodag/blob/develop/eodag/resources/product_types.yml
 
@@ -437,6 +453,8 @@ def main():
 
         search_result = no_fallback_search(search_parameters, options["provider"])
 
+    gs.message(_("Applying filters..."))
+    search_result = apply_filters(search_result)
     gs.message(_("{} product(s) found.").format(len(search_result)))
     if flags["l"]:
         list_products(search_result)
