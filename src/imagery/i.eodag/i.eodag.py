@@ -50,7 +50,7 @@
 # % type: string
 # % description: Imagery dataset to search for
 # % required: no
-# % answer: S2_MSI_L2A
+# % answer: S2_MSI_L1C
 # % guisection: Filter
 # %end
 
