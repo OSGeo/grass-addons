@@ -36,12 +36,12 @@
 
 # %flag
 # % key: e
-# % description: Extract the downloaded the datasets
+# % description: Extract the downloaded the datasets, not considered unless provider is set
 # %end
 
 # %flag
 # % key: d
-# % description: Delete the product archieve after downloading
+# % description: Delete the product archieve after downloading, not considered unless provider is set
 # %end
 
 # OPTIONS
@@ -101,9 +101,8 @@
 # %option
 # % key: provider
 # % type: string
-# % description: Available providers: https://eodag.readthedocs.io/en/stable/getting_started_guide/providers.html
+# % description: The provider to search within. Available providers: https://eodag.readthedocs.io/en/stable/getting_started_guide/providers.html
 # % required: no
-# % answer: peps
 # % guisection: Filter
 # %end
 
@@ -230,7 +229,10 @@ def search_by_ids(products_ids):
     search_result = []
     for query_id in products_ids:
         gs.message(_("Searching for {}".format(query_id)))
-        product, count = dag.search(id=query_id, provider=options["provider"])
+        if options["provider"]:  # If provider is set, then search without fallback
+            product, count = dag.search(id=query_id, provider=options["provider"])
+        else:
+            product, count = dag.search(id=query_id)
         if count > 1:
             gs.message(_("Could not be uniquely identified."))
         elif count == 0 or not product[0].properties["id"].startswith(query_id):
@@ -243,16 +245,31 @@ def search_by_ids(products_ids):
 
 def setup_environment_variables():
     # Setting the envirionmnets variables has to come before the eodag initialization
-    os.environ["EODAG__{}__DOWNLOAD__EXTRACT".format(options["provider"])] = str(
-        flags["e"]
-    )
-    os.environ["EODAG__{}__DOWNLOAD__DELETE_ARCHIV".format(options["provider"])] = str(
-        flags["d"]
-    )
-    if options["output"]:
-        os.environ[
-            "EODAG__{}__DOWNLOAD__OUTPUTS_PREFIX".format(options["provider"])
-        ] = options["output"]
+    if options["provider"]:
+        # Flags can't be taken into consideration without specifying the provider
+        os.environ["EODAG__{}__DOWNLOAD__EXTRACT".format(options["provider"])] = str(
+            flags["e"]
+        )
+        os.environ["EODAG__{}__DOWNLOAD__DELETE_ARCHIV".format(options["provider"])] = (
+            str(flags["d"])
+        )
+        if options["output"]:
+            os.environ[
+                "EODAG__{}__DOWNLOAD__OUTPUTS_PREFIX".format(options["provider"])
+            ] = options["output"]
+    else:
+        if flags["e"]:
+            gs.warning(
+                _(
+                    "Ignoring 'e' flag...\n'extract' option in the config file will be used.\nIf you wish to use the 'e' flag, please set a provider."
+                )
+            )
+        if flags["d"]:
+            gs.warning(
+                _(
+                    "Ignoring 'd' flag...\n'delete_archive' option in the config file will be used.\nIf you wish to use the 'd' flag, please set a provider"
+                )
+            )
     if options["config"]:
         os.environ["EODAG_CFG_FILE"] = options["config"]
 
@@ -291,6 +308,7 @@ def no_fallback_search(search_parameters, provider):
 def create_products_dataframe(eo_products):
     result_dict = {"id": [], "time": [], "cloud_coverage": [], "product_type": []}
     for product in eo_products:
+        print(product.properties)
         if "id" in product.properties and product.properties["id"] is not None:
             result_dict["id"].append(product.properties["id"])
         else:
@@ -374,9 +392,6 @@ def main():
     dag = EODataAccessGateway()
     if options["provider"]:
         dag.set_preferred_provider(options["provider"])
-    else:
-        # TODO: Add a way to search witout specifying a provider
-        gs.fatal(_("Please specify a provider."))
 
     # Download by IDs
     # Searching for additional products won't take place
@@ -451,8 +466,10 @@ def main():
         # TODO: Requires further testing to make sure the isoformat works with all the providers
         search_parameters["start"] = start_date
         search_parameters["end"] = end_date
-
-        search_result = no_fallback_search(search_parameters, options["provider"])
+        if options["provider"]:
+            search_result = no_fallback_search(search_parameters, options["provider"])
+        else:
+            search_result = dag.search_all(**search_parameters)
 
     gs.message(_("Applying filters..."))
     search_result = apply_filters(search_result)
