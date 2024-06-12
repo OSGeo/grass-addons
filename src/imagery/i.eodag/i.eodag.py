@@ -308,7 +308,6 @@ def no_fallback_search(search_parameters, provider):
 def create_products_dataframe(eo_products):
     result_dict = {"id": [], "time": [], "cloud_coverage": [], "product_type": []}
     for product in eo_products:
-        print(product.properties)
         if "id" in product.properties and product.properties["id"] is not None:
             result_dict["id"].append(product.properties["id"])
         else:
