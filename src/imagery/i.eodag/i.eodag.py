@@ -101,7 +101,7 @@
 # %option
 # % key: provider
 # % type: string
-# % description: The provider to search within. Available providers: https://eodag.readthedocs.io/en/stable/getting_started_guide/providers.html
+# % description: The provider to search within. Providers available by default: https://eodag.readthedocs.io/en/stable/getting_started_guide/providers.html
 # % required: no
 # % guisection: Filter
 # %end
