@@ -1,0 +1,65 @@
+<h2>DESCRIPTION</h2>
+
+<em>t.stac.catalog</em> is a tool for exploring STAC Catalog metadata from a STAC API. The tool is based on the PySTAC library and provides a set of modules for working with STAC APIs.
+
+<h2>Requirements</h2>
+
+Requires the <a href="https://pystac.readthedocs.io/en/stable/installation.html">pystac (1.9.x)</a> and <a href="https://pystac-client.readthedocs.io/en/stable/">pystac_client (0.7.x)</a> libraries.
+
+<h2>EXAMPLES</h2>
+
+Get the catalog metadata from a STAC API.
+
+A list of STAC API and Catalogs can be found at <a target="_blank" href="https://stacindex.org/catalogs">https://stacindex.org/catalogs</a>
+
+<pre><code class="code">
+    t.stac.catalog url="https://earth-search.aws.element84.com/v1/"
+</code></pre>
+
+GRASS Jupyter Notebooks can be used to visualize the catalog metadata.
+
+<pre><code class="code">
+    from grass import gs
+    catalog = gs.parse_command('t.stac.catalog', url="https://earth-search.aws.element84.com/v1/")
+
+    print(catalog)
+
+    # Output
+    {'conformsTo': ['https://api.stacspec.org/v1.0.0/core',
+                'https://api.stacspec.org/v1.0.0/collections',
+                'https://api.stacspec.org/v1.0.0/ogcapi-features',
+                'https://api.stacspec.org/v1.0.0/item-search',
+                'https://api.stacspec.org/v1.0.0/ogcapi-features#fields',
+                'https://api.stacspec.org/v1.0.0/ogcapi-features#sort',
+                'https://api.stacspec.org/v1.0.0/ogcapi-features#query',
+                'https://api.stacspec.org/v1.0.0/item-search#fields',
+                'https://api.stacspec.org/v1.0.0/item-search#sort',
+                'https://api.stacspec.org/v1.0.0/item-search#query',
+                'https://api.stacspec.org/v0.3.0/aggregation',
+                'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core',
+                'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/oas30',
+                'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/geojson'],
+ 'description': 'A STAC API of public datasets on AWS',
+ 'id': 'earth-search-aws',
+ 'stac_version': '1.0.0',
+ 'title': 'Earth Search by Element 84',
+ 'type': 'Catalog'}
+</code></pre>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="https://grass.osgeo.org/grass-stable/manuals/t.stac.catalog.html">t.stac.catalog</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/t.stac.collection.html">t.stac.collection</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/t.stac.item">t.stac.item</a>
+</em>
+<p>
+<a href="https://grasswiki.osgeo.org/wiki/Temporal_data_processing">GRASS GIS Wiki: temporal data processing</a>
+
+<h2>AUTHORS</h2>
+
+Corey T. White<br>
+
+<h2>Sponsor</h2>
+OpenPlains Inc.<br>
+Center for Geospatial Analytics at North Carolina State University
