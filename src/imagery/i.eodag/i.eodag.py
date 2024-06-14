@@ -318,7 +318,7 @@ def no_fallback_search(search_parameters, provider):
 
 
 def create_products_dataframe(eo_products):
-    result_dict = {"id": [], "time": [], "cloud_coverage": [], "product_type": []}
+    result_dict = {"id": [], "time": [], "cloudCover": [], "productType": []}
     for product in eo_products:
         if "id" in product.properties and product.properties["id"] is not None:
             result_dict["id"].append(product.properties["id"])
@@ -342,16 +342,16 @@ def create_products_dataframe(eo_products):
             "cloudCover" in product.properties
             and product.properties["cloudCover"] is not None
         ):
-            result_dict["cloud_coverage"].append(product.properties["cloudCover"])
+            result_dict["cloudCover"].append(product.properties["cloudCover"])
         else:
-            result_dict["cloud_coverage"].append(None)
+            result_dict["cloudCover"].append(None)
         if (
             "productType" in product.properties
             and product.properties["productType"] is not None
         ):
-            result_dict["product_type"].append(product.properties["productType"])
+            result_dict["productType"].append(product.properties["productType"])
         else:
-            result_dict["product_type"].append(None)
+            result_dict["productType"].append(None)
 
     df = pd.DataFrame().from_dict(result_dict)
     return df
@@ -368,15 +368,15 @@ def list_products(products):
             time_string = "time_NA"
         else:
             time_string += "Z"
-        cloud_cover_string = df["cloud_coverage"].iloc[idx]
+        cloud_cover_string = df["cloudCover"].iloc[idx]
         if cloud_cover_string is not None:
             cloud_cover_string = f"{cloud_cover_string:2.0f}%"
         else:
-            cloud_cover_string = "cloudcover_NA"
-        product_type = df["product_type"].iloc[idx]
-        if product_type is None:
-            product_type = "producttype_NA"
-        print(f"{product_id} {time_string} {cloud_cover_string} {product_type}")
+            cloud_cover_string = "cloudCover_NA"
+        product_type_string = df["productType"].iloc[idx]
+        if product_type_string is None:
+            product_type_string = "productType_NA"
+        print(f"{product_id} {time_string} {cloud_cover_string} {product_type_string}")
 
 
 def apply_filters(search_result):
