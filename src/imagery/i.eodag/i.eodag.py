@@ -41,7 +41,7 @@
 
 # %flag
 # % key: d
-# % description: Delete the product archieve after downloading, not considered unless provider is set
+# % description: Delete the product archive after downloading, not considered unless provider is set
 # %end
 
 # OPTIONS
