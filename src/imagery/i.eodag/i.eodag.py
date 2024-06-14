@@ -229,10 +229,7 @@ def search_by_ids(products_ids):
     search_result = []
     for query_id in products_ids:
         gs.message(_("Searching for {}".format(query_id)))
-        if options["provider"]:  # If provider is set, then search without fallback
-            product, count = dag.search(id=query_id, provider=options["provider"])
-        else:
-            product, count = dag.search(id=query_id)
+        product, count = dag.search(id=query_id, provider=options["provider"] or None)
         if count > 1:
             gs.message(_("Could not be uniquely identified."))
         elif count == 0 or not product[0].properties["id"].startswith(query_id):
