@@ -394,15 +394,12 @@ def main():
 
     # Download by IDs
     # Searching for additional products won't take place
+    ids_set = set()
     if options["id"]:
+        # Parse IDs
         ids_set = set(pid.strip() for pid in options["id"].split(","))
-        # Remove empty strings
-        ids_set.discard(str())
-        gs.message(_("Found {} distinct ID(s).".format(len(ids_set))))
-        gs.message("\n".join(ids_set))
-        search_result = search_by_ids(ids_set)
     elif options["file"]:
-        ids_set = set()
+        # Read IDs from file
         if Path(options["file"]).is_file():
             gs.message(_('Reading file "{}"'.format(options["file"])))
             ids_set = set(
@@ -410,7 +407,8 @@ def main():
             )
         else:
             gs.fatal(_('Could not open file "{}"'.format(options["file"])))
-        # Remove empty strings
+
+    if len(ids_set):
         ids_set.discard(str())
         gs.message(_("Found {} distinct ID(s).".format(len(ids_set))))
         gs.message("\n".join(ids_set))
