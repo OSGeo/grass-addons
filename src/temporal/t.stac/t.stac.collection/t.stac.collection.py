@@ -29,6 +29,14 @@
 # %end
 
 # %option
+# % key: collection_id
+# % description: Collection ID
+# % type: string
+# % required: yes
+# % multiple: no
+# %end
+
+# %option
 # % key: request_method
 # % type: string
 # % required: yes
@@ -42,13 +50,8 @@
 # % key: vector_metadata
 # % label: Output vector metadata
 # % required: no
-# % description: Output catalog metadata as vector polygons
+# % description: Output collection metadata as vector polygons
 # % guisection: Optional
-# %end
-
-# %flag
-# % key: b
-# % description: basic info
 # %end
 
 # %option
@@ -114,10 +117,10 @@ def main():
 
     # STAC Client options
     client_url = options["url"]  # required
+    collection_id = options["collection_id"]  # optional
     vector_metadata = options["vector_metadata"]  # optional
 
     # Flag options
-    basic_info = flags["b"]  # optional
 
     # Authentication options
     user_name = options["user_name"]  # optional
@@ -131,26 +134,15 @@ def main():
 
     try:
         client = Client.open(client_url, headers=req_headers)
-
-        if basic_info:
-            gs.message(_(f"Client Id: {client.id}"))
-            gs.message(_(f"Client Title: {client.title}"))
-            gs.message(_(f"Client Description: {client.description}"))
-            gs.message(_(f"Client STAC Extensions: {client.stac_extensions}"))
-            gs.message(_(f"Client Extra Fields: {client.extra_fields}"))
-            gs.message(_(f"Client links: {client.links}"))
-            gs.message(_(f"Client catalog_type: {client.catalog_type}"))
-
     except APIError as e:
         gs.fatal(_("APIError Error opening STAC API: {}".format(e)))
 
-    # Get all collections
-    collection_list = get_all_collections(client)
-    if basic_info:
-        gs.message(_(f"Collections: {len(collection_list)}\n"))
-        for i in collection_list:
-            gs.message(_(f"{i.get('id')}: {i.get('title')}"))
-        return None
+    if collection_id:
+        try:
+            collection = client.get_collection(collection_id)
+            return pprint(collection.to_dict())
+        except APIError as e:
+            gs.fatal(_("APIError Error getting collection: {}".format(e)))
 
     # Create metadata vector
     if vector_metadata:
