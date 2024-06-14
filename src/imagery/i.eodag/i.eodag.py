@@ -64,7 +64,7 @@
 # %option
 # % key: clouds
 # % type: integer
-# % description: Maximum cloud cover percentage for Sentinel scene [0, 100]
+# % description: Maximum cloud cover percentage for scene [0, 100]
 # % required: no
 # % guisection: Filter
 # %end
