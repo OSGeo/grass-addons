@@ -60,6 +60,8 @@ sections for more details about registration and configuration of the providers'
 Search and list the available Sentinel 2 scenes in the Copernicus Data Space Ecosystem, using a Vector Map as an AOI:
 
 <div class="code"><pre>
+v.extract input=urbanarea where="NAME = 'Durham'" output=durham
+
 i.eodag -l start=2022-05-25 end=2022-06-01 \
     map=durham dataset=S2_MSI_L2A provider=cop_dataspace
 <pre></div>
