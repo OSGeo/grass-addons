@@ -243,35 +243,47 @@ def search_by_ids(products_ids):
     return search_result
 
 
-def setup_environment_variables():
+def setup_environment_variables(env, **kwargs):
+    provider = kwargs.get("provider")
+    extract = kwargs.get("e")
+    delete_archive = kwargs.get("d")
+    output = kwargs.get("output")
+    config = kwargs.get("config")
+
     # Setting the envirionmnets variables has to come before the eodag initialization
-    if options["provider"]:
+    if config:
+        env["EODAG_CFG_FILE"] = options["config"]
+    if provider:
         # Flags can't be taken into consideration without specifying the provider
-        os.environ["EODAG__{}__DOWNLOAD__EXTRACT".format(options["provider"])] = str(
-            flags["e"]
-        )
-        os.environ["EODAG__{}__DOWNLOAD__DELETE_ARCHIV".format(options["provider"])] = (
-            str(flags["d"])
-        )
-        if options["output"]:
-            os.environ[
-                "EODAG__{}__DOWNLOAD__OUTPUTS_PREFIX".format(options["provider"])
-            ] = options["output"]
+        env[f"EODAG__{provider.upper()}__DOWNLOAD__EXTRACT"] = str(extract)
+        env[f"EODAG__{provider.upper()}__DOWNLOAD__DELETE_ARCHIV"] = str(delete_archive)
+        if output:
+            env[f"EODAG__{provider.upper()}__DOWNLOAD__OUTPUTS_PREFIX"] = output
     else:
-        if flags["e"]:
+        if extract:
             gs.warning(
                 _(
-                    "Ignoring 'e' flag...\n'extract' option in the config file will be used.\nIf you wish to use the 'e' flag, please set a provider."
+                    """Ignoring 'e' flag...
+                    'extract' option in the config file will be used.
+                    If you wish to use the 'e' flag, please specify a provider."""
                 )
             )
-        if flags["d"]:
+        if delete_archive:
             gs.warning(
                 _(
-                    "Ignoring 'd' flag...\n'delete_archive' option in the config file will be used.\nIf you wish to use the 'd' flag, please set a provider"
+                    """Ignoring 'd' flag...
+                    'delete_archive' option in the config file will be used.
+                    If you wish to use the 'd' flag, please specify a provider."""
                 )
             )
-    if options["config"]:
-        os.environ["EODAG_CFG_FILE"] = options["config"]
+        if output:
+            gs.warning(
+                _(
+                    """Ignoring 'output' option...
+                    'output' option in the config file will be used.
+                    If you wish to use the 'output' option, please specify a provider."""
+                )
+            )
 
 
 def normalize_time(datetime_str: str):
@@ -387,7 +399,7 @@ def main():
     # Products: https://github.com/CS-SI/eodag/blob/develop/eodag/resources/product_types.yml
 
     global dag
-    setup_environment_variables()
+    setup_environment_variables(os.environ, **options, **flags)
     dag = EODataAccessGateway()
     if options["provider"]:
         dag.set_preferred_provider(options["provider"])
