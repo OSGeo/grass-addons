@@ -144,12 +144,8 @@ def create_dir(directory):
         gs.fatal(_("Could not create directory {}").format(dir))
 
 
-def get_bb():
-    # are we in LatLong location?
-    kv = gs.parse_command("g.proj", flags="j")
-    if "+proj" not in kv:
-        gs.fatal(_("Unable to get bounding box: unprojected location not supported"))
-    if kv["+proj"] != "longlat":
+def get_bb(proj):
+    if proj["+proj"] != "longlat":
         info = gs.parse_command("g.region", flags="uplg")
         return {
             "lonmin": info["nw_long"],
@@ -168,9 +164,14 @@ def get_bb():
 
 def get_aoi(vector=None):
     """Get the AOI for querying"""
+
+    proj = gs.parse_command("g.proj", flags="j")
+    if "+proj" not in proj:
+        gs.fatal(_("Unable to get AOI: unprojected location not supported"))
+
     # Handle empty AOI
     if not vector:
-        return get_bb()
+        return get_bb(proj)
 
     args = {}
     args["input"] = vector
@@ -185,16 +186,10 @@ def get_aoi(vector=None):
             ).format(vector)
         )
 
-    # are we in LatLong location?
-    s = gs.read_command("g.proj", flags="j")
-    kv = gs.parse_key_val(s)
-    if "+proj" not in kv:
-        gs.fatal(_("Unable to get AOI: unprojected location not supported"))
-
     geom_dict = gs.parse_command("v.out.ascii", format="wkt", **args)
     num_vertices = len(str(geom_dict.keys()).split(","))
     geom = [key for key in geom_dict][0]
-    if kv["+proj"] != "longlat":
+    if proj["+proj"] != "longlat":
         gs.verbose(
             _("Generating WKT from AOI map ({} vertices)...").format(num_vertices)
         )
@@ -317,38 +312,29 @@ def no_fallback_search(search_parameters, provider):
 def create_products_dataframe(eo_products):
     result_dict = {"id": [], "time": [], "cloudCover": [], "productType": []}
     for product in eo_products:
-        if "id" in product.properties and product.properties["id"] is not None:
-            result_dict["id"].append(product.properties["id"])
-        else:
-            result_dict["id"].append(None)
-        if (
-            "startTimeFromAscendingNode" in product.properties
-            and product.properties["startTimeFromAscendingNode"] is not None
-        ):
-            try:
-                result_dict["time"].append(
-                    normalize_time(product.properties["startTimeFromAscendingNode"])
-                )
-            except:
-                result_dict["time"].append(
-                    product.properties["startTimeFromAscendingNode"]
-                )
-        else:
-            result_dict["time"].append(None)
-        if (
-            "cloudCover" in product.properties
-            and product.properties["cloudCover"] is not None
-        ):
-            result_dict["cloudCover"].append(product.properties["cloudCover"])
-        else:
-            result_dict["cloudCover"].append(None)
-        if (
-            "productType" in product.properties
-            and product.properties["productType"] is not None
-        ):
-            result_dict["productType"].append(product.properties["productType"])
-        else:
-            result_dict["productType"].append(None)
+        for key in result_dict:
+            if key == "time":
+                if (
+                    "startTimeFromAscendingNode" in product.properties
+                    and product.properties["startTimeFromAscendingNode"] is not None
+                ):
+                    try:
+                        result_dict["time"].append(
+                            normalize_time(
+                                product.properties["startTimeFromAscendingNode"]
+                            )
+                        )
+                    except:
+                        result_dict["time"].append(
+                            product.properties["startTimeFromAscendingNode"]
+                        )
+                else:
+                    result_dict["time"].append(None)
+            else:
+                if key in product.properties and product.properties[key] is not None:
+                    result_dict[key].append(product.properties[key])
+                else:
+                    result_dict[key].append(None)
 
     df = pd.DataFrame().from_dict(result_dict)
     return df
