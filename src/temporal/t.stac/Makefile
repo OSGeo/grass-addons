@@ -3,6 +3,7 @@ MODULE_TOPDIR =../..
 PGM = t.stac
 
 SUBDIRS = libstac \
+        t.stac.catalog \
         t.stac.collection \
         t.stac.item \
         t.stac.import \
