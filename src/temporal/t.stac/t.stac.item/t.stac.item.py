@@ -5,7 +5,7 @@
 # MODULE:       t.stac.item
 # AUTHOR:       Corey T. White, OpenPlains Inc.
 # PURPOSE:      Get items from a STAC API server
-# COPYRIGHT:    (C) 2024 Corey White
+# COPYRIGHT:    (C) 2023-2024 Corey White
 #               This program is free software under the GNU General
 #               Public License (>=v2). Read the file COPYING that
 #               comes with GRASS for details.
@@ -23,7 +23,7 @@
 # %option
 # % key: url
 # % type: string
-# % description: STAC API Client URL (examples at https://stacspec.org/en/about/datasets/ )
+# % description: STAC API Client URL
 # % required: yes
 # %end
 
@@ -31,8 +31,155 @@
 # % key: collections
 # % type: string
 # % required: yes
+# % multiple: no
+# % description: Collection Id.
+# %end
+
+# %option
+# % key: max_items
+# % type: integer
+# % description: The maximum number of items to return from the search, even if there are more matching results.
+# % multiple: no
+# % required: no
+# % answer: 10
+# % guisection: Request
+# %end
+
+# %option
+# % key: limit
+# % type: integer
+# % description: A recommendation to the service as to the number of items to return per page of results. Defaults to 100.
+# % multiple: no
+# % required: no
+# % answer: 100
+# % guisection: Request
+# %end
+
+# %option
+# % key: ids
+# % type: string
+# % description: List of one or more Item ids to filter on.
+# % multiple: no
+# % required: no
+# % guisection: Query
+# %end
+
+# %option
+# % key: bbox
+# % type: double
+# % required: no
 # % multiple: yes
-# % description: List of one or more Collection IDs or pystac. Collection instances.
+# % description: The bounding box of the request in WGS84 (example [-72.5,40.5,-72,41]). (default is current region)
+# % guisection: Query
+# %end
+
+# %option G_OPT_V_INPUT
+# % key: intersects
+# % required: no
+# % description: Results filtered to only those intersecting the geometry.
+# % guisection: Query
+# %end
+
+# %option
+# % key: datetime
+# % label: Datetime Filter
+# % description: Either a single datetime or datetime range used to filter results.
+# % required: no
+# % guisection: Query
+# %end
+
+# %option
+# % key: query
+# % description: List or JSON of query parameters as per the STAC API query extension.
+# % required: no
+# % guisection: Query
+# %end
+
+# %option
+# % key: filter
+# % description: JSON of query parameters as per the STAC API filter extension
+# % required: no
+# % guisection: Query
+# %end
+
+# %option
+# % key: asset_keys
+# % label: Asset Keys
+# % type: string
+# % required: no
+# % multiple: yes
+# % description: List of one or more asset keys to filter item downloads. \nUse -d (dry run) option to get a list of available asset keys.
+# % guisection: Query
+# %end
+
+# %option
+# % key: filter_lang
+# % type: string
+# % required: no
+# % multiple: no
+# % options: cql2-json,cql2-text
+# % description: Language variant used in the filter body. If filter is a dictionary or not provided, defaults to ‘cql2-json’. If filter is a string, defaults to cql2-text.
+# % guisection: Query
+# %end
+
+# %option
+# % key: sortby
+# % description: A single field or list of fields to sort the response by
+# % required: no
+# % guisection: Query
+# %end
+
+# %option G_OPT_STRDS_OUTPUT
+# % key: strds_output
+# % description: (WIP) Data will be imported as a space time dataset.
+# % required: no
+# % multiple: no
+# % guisection: Output
+# %end
+
+# %option
+# % key: method
+# % type: string
+# % required: no
+# % multiple: no
+# % options: nearest,bilinear,bicubic,lanczos,bilinear_f,bicubic_f,lanczos_f
+# % description: Resampling method to use for reprojection (required if location projection not longlat)
+# % descriptions: nearest;nearest neighbor;bilinear;bilinear interpolation;bicubic;bicubic interpolation;lanczos;lanczos filter;bilinear_f;bilinear interpolation with fallback;bicubic_f;bicubic interpolation with fallback;lanczos_f;lanczos filter with fallback
+# % guisection: Output
+# % answer: nearest
+# %end
+
+# %option
+# % key: resolution
+# % type: string
+# % required: no
+# % multiple: no
+# % options: estimated,value,region
+# % description: Resolution of output raster map (default: estimated)
+# % descriptions: estimated;estimated resolution;value; user-specified resolution;region;current region resolution
+# % guisection: Output
+# % answer: estimated
+# %end
+
+# %option
+# % key: resolution_value
+# % type: double
+# % required: no
+# % multiple: no
+# % description: Resolution of output raster map (use with option resolution=value)
+# % guisection: Output
+# %end
+
+# %option
+# % key: extent
+# % type: string
+# % required: no
+# % multiple: no
+# % options: input,region
+# % description: Output raster map extent
+# % descriptions: input;extent of input map;region; extent of current region
+# % guisection: Output
+# % answer: input
 # %end
 
 # %option
@@ -74,6 +221,26 @@
 # % guisection: Authentication
 # %end
 
+# %flag
+# % key: m
+# % description: metadata only
+# %end
+
+# %flag
+# % key: d
+# % description: Dowload and import data
+# %end
+
+# %flag
+# % key: p
+# % description: Patch data
+# %end
+
+# %option G_OPT_M_NPROCS
+# %end
+
+# %option G_OPT_MEMORYMB
+# %end
 
 import os
 import sys
