@@ -5,7 +5,7 @@
 # MODULE:       t.stac.collection
 # AUTHOR:       Corey T. White, OpenPlains Inc.
 # PURPOSE:      View SpatioTemporal Asset Catalogs (STAC) collection.
-# COPYRIGHT:    (C) 2024 Corey White
+# COPYRIGHT:    (C) 2023-2024 Corey White
 #               This program is free software under the GNU General
 #               Public License (>=v2). Read the file COPYING that
 #               comes with GRASS for details.
