@@ -3,6 +3,8 @@ from grass.pygrass.gis.region import Region
 from grass.pygrass.vector import VectorTopo
 from grass.pygrass.vector.geometry import Point, Area, Centroid, Boundary
 import base64
+import tempfile
+import json
 
 
 def encode_credentials(username, password):
@@ -192,6 +194,16 @@ def polygon_centroid(polygon_coords):
     # Create a centroid for the boundary to make it an area
     centroid = Centroid(x=centroid_x, y=centroid_y)
     return centroid
+
+
+def create_vector_from_feature_collection(vector, feature_collection):
+    """Create a vector from items in a Feature Collection"""
+    json_str = json.dumps(feature_collection)
+    with tempfile.NamedTemporaryFile(delete=False, dir=".", suffix=".json") as fp:
+        fp.write(bytes(json_str, "utf-8"))
+        fp.truncate()
+        fp.close()
+        gs.run_command("v.import", input=fp.name, output=vector, overwrite=True)
 
 
 def create_metadata_vector(vector, metadata):
