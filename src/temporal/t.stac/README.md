@@ -1,4 +1,4 @@
-# (In-Development) t.stac.import
+# (In-Development) t.stac
 
 ## Description
 
@@ -116,3 +116,43 @@ fields. Use items_as_dicts to avoid object unmarshalling errors.
     t.stac.import -d url=https://earth-search.aws.element84.com/v1/
     collections=sentinel-2-l2a
     ```
+
+## Workflow example
+
+```python
+
+
+# Search for items in the collection
+STAC_API_URL = "https://planetarycomputer.microsoft.com/api/stac/v1"
+
+catalog = gs.run_command(
+    "t.stac.catalog",
+    url=STAC_API_URL,
+    format="json"
+)
+collection = gs.run_command(
+    "t.stac.collection",
+    url=STAC_API_URL,
+    collection_id="sentinel-2-l2a",
+    format="json"
+)
+search = gs.run_command(
+    "t.stac.item",
+    url=STAC_API_URL,
+    collections="sentinel-2-l2a",
+    format="json"
+)
+
+
+# Search for items in the collection
+items = gs.run_command(
+    "t.stac.items",
+    url=STAC_API_URL,
+    collections="sentinel-2-l2a",
+    format="json"
+)
+
+
+
+
+```
