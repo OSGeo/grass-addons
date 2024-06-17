@@ -21,6 +21,9 @@
 
 from grass.gunittest.case import TestCase
 from grass.gunittest.main import test
+from grass.gunittest.gmodules import SimpleModule
+import json
+from unittest.mock import patch
 
 # spec = importlib.util.spec_from_file_location(
 #     name="stac_lib", location="t.stac.collection.py"
@@ -31,7 +34,7 @@ from grass.gunittest.main import test
 
 
 # Tests
-class TestStacCollection(TestCase):
+class TestStacCatalog(TestCase):
     @classmethod
     def setUpClass(cls):
         """Ensures expected computational region"""
@@ -40,23 +43,30 @@ class TestStacCollection(TestCase):
         cls.use_temp_region()
         # cls.runModule or self.runModule is used for general module calls
         cls.runModule("g.region", raster="elevation")
+        with open("data/catalog.json") as f:
+            cls.json_format_expected = json.load(f)
 
     @classmethod
     def tearDownClass(cls):
         """Remove temporary region"""
         cls.del_temp_region()
 
-    def test_stac_catalog(self):
-        """Test t.stac.catalog"""
-        # assertModule is used to call module which we test
-        # we expect module to finish successfully
-        self.assertModule("t.stac.catalog", url=self.url)
+    @patch("grass.gunittest.case.TestCase.assertModule")
+    def test_plain_output_json(self, MockAssertModule):
+        """Test t.stac.catalog formated as json"""
 
-    def test_stac_catalog_basic_info(self):
-        """Test t.stac.catalog with basic info"""
-        # assertModule is used to call module which we test
-        # we expect module to finish successfully
-        self.assertModule("t.stac.catalog", url=self.url, b=True)
+        mock_instance = MockAssertModule.return_value
+        mock_instance.outputs.stdout = self.json_format_expected
+        self.assertModule("t.stac.catalog", url=self.url, format="json")
+        # result = json.loads(module.outputs.stdout)
+        self.assertEqual(mock_instance.outputs.stdout, self.json_format_expected)
+
+    @patch("grass.gunittest.case.TestCase.assertModule")
+    def test_plain_output_basic_info_flag(self, MockAssertModule):
+        """Testing format as plain basic info"""
+        mock_instance = MockAssertModule.return_value
+        mock_instance.outputs.stdout = json.dumps(self.json_format_expected)
+        self.assertModule("t.stac.catalog", url=self.url, format="plain", flags="b")
 
 
 if __name__ == "__main__":

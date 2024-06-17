@@ -91,7 +91,7 @@ from grass.pygrass.utils import get_lib_path
 # Import STAC Client
 from pystac_client import Client
 from pystac_client.exceptions import APIError
-
+import json
 
 path = get_lib_path(modname="t.stac", libname="staclib")
 if path is None:
@@ -154,7 +154,8 @@ def main():
                     gs.message(_(f"{'-' * 75}\n"))
                 return None
         else:
-            pprint(client.to_dict())
+            json_output = json.dumps(client.to_dict())
+            return json_output
 
     except APIError as e:
         gs.fatal(_("APIError Error opening STAC API: {}".format(e)))
