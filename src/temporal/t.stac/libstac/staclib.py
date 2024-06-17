@@ -45,11 +45,17 @@ def generate_indentation(depth):
 
 def print_summary(data, depth=1):
     """Print summary of json data recursively increasing indentation."""
+    start_depth = depth
     for key, value in data.items():
-        indentation = generate_indentation(depth)
+        indentation = generate_indentation(start_depth)
         if isinstance(value, dict):
             gs.message(_(f"#\n# {indentation}{key}:"))
-            print_summary(value, depth=depth + 1)
+            print_summary(value, depth=start_depth + 1)
+        if isinstance(value, list):
+            gs.message(_(f"# {indentation}{key}:"))
+            for item in value:
+                if isinstance(item, dict):
+                    print_summary(item, depth=start_depth + 1)
         else:
             gs.message(_(f"# {indentation}{key}: {value}"))
 

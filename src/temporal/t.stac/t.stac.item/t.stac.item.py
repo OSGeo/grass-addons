@@ -416,12 +416,16 @@ def collect_item_assets(item, assset_keys, asset_roles):
 
 def report_plain_asset_summary(asset):
     gs.message(_("\nAsset"))
-    gs.message(_("Asset Key:"))
-    gs.message(_(f"Asset Title: {asset.title}"))
-    gs.message(_(f"Asset Description: {asset.description}"))
-    # gs.message(_(f"Asset Media Type: {media_type}"))
-    gs.message(_(f"Asset Roles: {asset.roles}"))
-    gs.message(_(f"Asset Href: {asset.href}"))
+    gs.message(_(f"Asset Item Id: {asset.get('item_id')}"))
+
+    gs.message(_(f"Asset Title: {asset.get('title')}"))
+    gs.message(_(f"Asset Filename: {asset.get('file_name')}"))
+    gs.message(_(f"Raster bands: {asset.get('raster:bands')}"))
+    gs.message(_(f"Raster bands: {asset.get('eo:bands')}"))
+    gs.message(_(f"Asset Description: {asset.get('description')}"))
+    gs.message(_(f"Asset Media Type: { MediaType(asset.get('type')).name}"))
+    gs.message(_(f"Asset Roles: {asset.get('roles')}"))
+    gs.message(_(f"Asset Href: {asset.get('href')}"))
 
 
 def import_grass_raster(params):

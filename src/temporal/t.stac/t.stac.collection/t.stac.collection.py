@@ -83,6 +83,17 @@
 # % guisection: Authentication
 # %end
 
+# %option
+# % key: format
+# % type: string
+# % required: no
+# % multiple: no
+# % options: json,plain
+# % description: Output format
+# % guisection: Output
+# % answer: json
+# %end
+
 import sys
 from pprint import pprint
 import grass.script as gs
@@ -121,6 +132,7 @@ def main():
     vector_metadata = options["vector_metadata"]  # optional
 
     # Flag options
+    format = options["format"]  # optional
 
     # Authentication options
     user_name = options["user_name"]  # optional
@@ -140,18 +152,19 @@ def main():
     if collection_id:
         try:
             collection = client.get_collection(collection_id)
-            return pprint(collection.to_dict())
+            if format == "json":
+                return pprint(collection.to_dict())
+            elif format == "plain":
+                return libstac.print_summary(collection.to_dict())
         except APIError as e:
             gs.fatal(_("APIError Error getting collection: {}".format(e)))
 
     # Create metadata vector
-    if vector_metadata:
-        gs.message(_(f"Outputting metadata to {vector_metadata}"))
-        libstac.create_metadata_vector(vector_metadata, collection_list)
-        gs.message(_(f"Metadata written to {vector_metadata}"))
-        return vector_metadata
-    else:
-        return pprint(collection_list)
+    # if vector_metadata:
+    #     gs.message(_(f"Outputting metadata to {vector_metadata}"))
+    #     libstac.create_metadata_vector(vector_metadata, collection_list)
+    #     gs.message(_(f"Metadata written to {vector_metadata}"))
+    #     return vector_metadata
 
 
 if __name__ == "__main__":
