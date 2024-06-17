@@ -78,8 +78,8 @@ Your submission must be compliant with the GRASS
 submission rules as found in the GRASS source code
 and [RFC2 (Legal aspects of submission)](https://github.com/OSGeo/grass/blob/main/doc/development/rfc/legal_aspects_of_code_contributions.md).
 
-Also, please read the general GRASS contributing instructions before creating a pull request:
-<https://github.com/OSGeo/grass/?tab=readme-ov-file#contributing>
+Also, please read the contributing instructions before creating a pull request:
+<https://github.com/OSGeo/grass-addons/blob/grass8/CONTRIBUTING.md>
 
 If you aim at becoming code maintainer with full write access, this must be
 formally requested, see here for details:
