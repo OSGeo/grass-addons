@@ -139,7 +139,7 @@
 # % required: no
 # % multiple: no
 # % options: cql2-json,cql2-text
-# % description: Language variant used in the filter body. If filter is a dictionary or not provided, defaults to ‘cql2-json’. If filter is a string, defaults to cql2-text.
+# % description: Language variant used in the filter body. If filter is a dictionary or not provided, defaults to cql2-json. If filter is a string, defaults to cql2-text.
 # % guisection: Query
 # %end
 
