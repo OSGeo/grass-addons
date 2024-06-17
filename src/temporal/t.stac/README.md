@@ -2,9 +2,9 @@
 
 ## Description
 
-**t.stac.import** utilizes the
+The **t.stac** toolset utilizes the
 [pystac-client (v0.5.1)](https://github.com/stac-utils/pystac-client) to search
-STAC APIs and import and import items into GRASS GIS.
+STAC APIs and import items into GRASS GIS.
 
 ### Item Search Parameters
 
