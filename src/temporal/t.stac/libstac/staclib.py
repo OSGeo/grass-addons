@@ -5,6 +5,7 @@ from grass.pygrass.vector.geometry import Point, Area, Centroid, Boundary
 import base64
 import tempfile
 import json
+import os
 
 
 def encode_credentials(username, password):
@@ -91,6 +92,8 @@ def check_url_type(url):
     - str: 's3', 'gs', 'http', or 'unknown' based on the URL type.
     """
     if url.startswith("s3://"):
+        os.environ["AWS_PROFILE"] = "default"
+        os.environ["AWS_REQUEST_PAYER"] = "requester"
         return url.replace("s3://", "/vsis3/")  # Amazon S3
     elif url.startswith("gs://"):
         return url.replace("gs://", "/vsigs/")  # Google Cloud Storage

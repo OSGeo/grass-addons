@@ -392,23 +392,26 @@ def report_stac_item(item):
     libstac.print_summary(item.properties)
 
 
-def collect_item_assets(item, assset_keys, asset_roles, asset_media_types):
-    for key, asset in item.assets.items():
+def collect_item_assets(item, assset_keys, asset_roles):
 
+    for key, asset in item.assets.items():
+        asset_file_name = f"{item.collection_id}.{item.id}.{key}"
         # Check if the asset key is in the list of asset keys
         if assset_keys and key not in assset_keys:
             continue
 
         # Check if the asset fits the roles
-        if asset_roles and asset.roles not in asset_roles:
-            continue
+        if asset_roles:
+            if not any(role in asset.roles for role in asset_roles):
+                continue
 
-        # Check if the asset fits the media types
-        media_type = asset.media_type
-        if asset_media_types and media_type not in asset_media_types:
-            continue
+        asset_dict = asset.to_dict()
+        # The output file name
+        asset_dict["collection_id"] = item.collection_id
+        asset_dict["item_id"] = item.id
+        asset_dict["file_name"] = asset_file_name
 
-        return asset
+        return asset_dict
 
 
 def report_plain_asset_summary(asset):
@@ -422,20 +425,22 @@ def report_plain_asset_summary(asset):
 
 
 def import_grass_raster(params):
-    url, output, resample_method, extent, resolution, resolution_value, memory = params
-    input_url = libstac.check_url_type(url)
+    assets, resample_method, extent, resolution, resolution_value, memory = params
+    gs.message(_(f"Downloading Asset: {assets}"))
+    input_url = libstac.check_url_type(assets["href"])
+    gs.message(_(f"Import Url: {input_url}"))
 
     try:
-        gs.message(_(f"Importing: {output}"))
+        gs.message(_(f"Importing: {assets['file_name']}"))
         gs.parse_command(
             "r.import",
             input=input_url,
-            output=output,
+            output=assets["file_name"],
             resample=resample_method,
             extent=extent,
             resolution=resolution,
             resolution_value=resolution_value,
-            # title=title,
+            title=assets["file_name"],
             memory=memory,
             quiet=True,
         )
@@ -474,8 +479,7 @@ def download_assets(
                 for _a in executor.map(
                     import_grass_raster,
                     zip(
-                        urls,
-                        filenames,
+                        assets,
                         resample_method_list,
                         resample_extent_list,
                         resolution_list,
@@ -486,80 +490,6 @@ def download_assets(
                     pbar.update(1)
             except Exception as e:
                 gs.fatal(_("Error importing raster: {}".format(str(e))))
-
-
-def import_items(items, asset_keys=None, roles=None):
-    """Import items"""
-
-    # PARQUET = "application/x-parquet"
-    # NETCDF = "application/x-netcdf"
-    # ZARR = "application/x-zarr"
-
-    VECTOR_MEDIA_TYPES = [
-        MediaType.GEOJSON,
-        MediaType.GEOPACKAGE,
-        MediaType.FLATGEOBUF,
-        MediaType.JSON,
-        MediaType.TEXT,
-        MediaType.XML,
-        # PARQUET
-    ]
-
-    RASTER_MEDIA_TYPES = [
-        MediaType.GEOTIFF,
-        MediaType.COG,
-        MediaType.JPEG,
-        MediaType.PNG,
-        MediaType.TIFF,
-        MediaType.JPEG2000,
-    ]
-
-    HDF_MEDIA_TYPES = [MediaType.HDF5, MediaType.HDF]
-
-    asset_download_list = []
-    asset_name_list = []
-
-    for item in items:
-        report_stac_item(item)
-        # print_summary(item.to_dict())
-        for key, asset in item.assets.items():
-            media_type = asset.media_type
-            if asset_keys and key not in asset_keys:
-                continue
-
-            # gs.message(_("\nAsset"))
-            # gs.message(_(f"Asset Key: {key}"))
-            # gs.message(_(f"Asset Title: {asset.title}"))
-            # gs.message(_(f"Asset Description: {asset.description}"))
-            # gs.message(_(f"Asset Media Type: {media_type}"))
-            # gs.message(_(f"Asset Roles: {asset.roles}"))
-            # gs.message(_(f"Asset Href: {asset.href}"))
-
-            # if media_type == MediaType.COG:
-            #     url = asset.href
-            #     asset_download_list.append(url)
-            #     asset_name = os.path.splitext(os.path.basename(url))[0]
-            #     asset_name_list.append(f"{item.id}.{asset_name}")
-
-            #     gs.message(_(f"Asset added to download queue: {asset.to_dict()} \n"))
-
-            if media_type in RASTER_MEDIA_TYPES:
-                url = asset.href
-                asset_download_list.append(url)
-                asset_name = os.path.splitext(os.path.basename(url))[0]
-                asset_name_list.append(f"{item.id}.{asset_name}")
-
-                gs.message(_(f"Asset added to download queue: {asset.to_dict()} \n"))
-
-            # if media_type in VECTOR_MEDIA_TYPES:
-            #     url = asset.href
-            #     asset_download_list.append(url)
-            #     asset_name = os.path.splitext(os.path.basename(url))[0]
-            #     asset_name_list.append(f"{item.id}.{asset_name}")
-
-        gs.message(_("*" * 80))
-
-    return [asset_download_list, asset_name_list]
 
 
 def main():
@@ -722,10 +652,9 @@ def main():
             return pprint([item.to_dict() for item in items])
 
     for item in items:
-        asset = collect_item_assets(
-            item, asset_keys, asset_roles=item_roles, asset_media_types=None
-        )
-        collection_items_assets.append(asset)
+        asset = collect_item_assets(item, asset_keys, asset_roles=item_roles)
+        if asset:
+            collection_items_assets.append(asset)
 
     gs.message(_(f"{len(collection_items_assets)} Assets Ready for download..."))
     if asset_metadata:
@@ -733,15 +662,24 @@ def main():
             if format == "plain":
                 report_plain_asset_summary(asset)
             if format == "json":
-                pprint(asset.to_dict())
+                pprint(asset)
 
     if download:
         # Import items
-        if asset_metadata:
-            dowload_items_assests_queue = [
-                asset.href for asset in collection_items_assets
-            ]
-            libstac.print_list_attribute(dowload_items_assests_queue, "Download Queue:")
+        # if asset_metadata:
+        # dowload_items_assests_queue = [
+        #     asset for asset in collection_items_assets
+        # ]
+        # libstac.print_list_attribute(dowload_items_assests_queue, "Download Queue:")
+        download_assets(
+            assets=collection_items_assets,
+            resample_method=method,
+            resample_extent=extent,
+            resolution=resolution,
+            resolution_value=resolution_value,
+            memory=memory,
+            nprocs=nprocs,
+        )
 
 
 if __name__ == "__main__":
