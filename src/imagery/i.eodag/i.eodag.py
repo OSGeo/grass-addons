@@ -107,6 +107,23 @@
 # %end
 
 # %option
+# % key: sort
+# % description: Sort by values in given order
+# % multiple: yes
+# % options: ingestiondate,cloudcover
+# % answer: cloudcover,ingestiondate
+# % guisection: Sort
+# %end
+
+# %option
+# % key: order
+# % description: Sort order (see sort parameter)
+# % options: asc,desc
+# % answer: asc
+# % guisection: Sort
+# %end
+
+# %option
 # % key: start
 # % type: string
 # % description: Start date (in any ISO 8601 format), by default it is 60 days ago
@@ -131,6 +148,7 @@ import getpass
 from pathlib import Path
 from subprocess import PIPE
 from datetime import datetime, timedelta
+from functools import cmp_to_key
 
 import grass.script as gs
 from grass.pygrass.modules import Module
@@ -362,7 +380,8 @@ def list_products(products):
         print(f"{product_id} {time_string} {cloud_cover_string} {product_type_string}")
 
 
-def apply_filters(search_result):
+def filter_result(search_result):
+    # TODO: Use EODAG Crunch instead
     filtered_result = []
     for product in search_result:
         valid = True
@@ -375,7 +394,29 @@ def apply_filters(search_result):
             valid = False
         if valid:
             filtered_result.append(product)
-    return filtered_result
+    search_result = filtered_result
+
+
+def sort_result(search_result):
+    sort_keys = options["sort"].split(",")
+    sort_order = options["order"].split(",")
+    sort_order.extend(["asc"] * max(0, len(sort_keys) - len(sort_order)))
+
+    def products_compare(first, second):
+        for idx, sort_key in enumerate(sort_keys):
+            if sort_key == "ingestiondate":
+                first_value = first.properties["startTimeFromAscendingNode"]
+                second_value = second.properties["startTimeFromAscendingNode"]
+            elif sort_key == "cloudcover":
+                first_value = first.properties["cloudCover"]
+                second_value = second.properties["cloudCover"]
+            if first_value < second_value:
+                return 1 if sort_order[idx] == "desc" else -1
+            elif first_value > second_value:
+                return -1 if sort_order[idx] == "desc" else 1
+        return 0
+
+    search_result.sort(key=cmp_to_key(products_compare))
 
 
 def main():
@@ -464,7 +505,8 @@ def main():
             search_result = dag.search_all(**search_parameters)
 
     gs.message(_("Applying filters..."))
-    search_result = apply_filters(search_result)
+    filter_result(search_result)
+    sort_result(search_result)
     gs.message(_("{} product(s) found.").format(len(search_result)))
     if flags["l"]:
         list_products(search_result)
