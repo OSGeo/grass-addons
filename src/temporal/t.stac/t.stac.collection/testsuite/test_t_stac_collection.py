@@ -6,7 +6,7 @@
 #
 # AUTHOR:    Corey T. White
 #
-# PURPOSE:   This is a test file for t.stac.import
+# PURPOSE:   This is a test file for t.stac.collection
 #
 # COPYRIGHT: (C) 2023-2024 by Corey T. White and the GRASS Development Team
 #

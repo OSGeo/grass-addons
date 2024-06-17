@@ -6,7 +6,6 @@ SUBDIRS = libstac \
         t.stac.catalog \
         t.stac.collection \
         t.stac.item \
-        t.stac.import \
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
