@@ -95,28 +95,6 @@ fields. Use items_as_dicts to avoid object unmarshalling errors.
 * [STAC API - S3 Requester Pays](https://gdal.org/user/virtual_file_systems.html#vsis3-aws-s3-files)
 * [STAC API - GCS Requester Pays](https://gdal.org/user/virtual_file_systems.html#vsigs-google-cloud-storage-files)
 
-## Basic Usage
-
-1. Check the STAC API for the available collections.
-
-    ```bash
-    t.stac.import -c urlhttps://earth-search.aws.element84.com/v1/
-    ```
-
-2. Search for items in the collection.
-
-    ```bash
-    t.stac.import -i url=https://earth-search.aws.element84.com/v1/
-    collections=sentinel-2-l2a
-    ```
-
-3. Import (dry-run) the items into GRASS GIS.
-
-    ```bash
-    t.stac.import -d url=https://earth-search.aws.element84.com/v1/
-    collections=sentinel-2-l2a
-    ```
-
 ## Workflow example
 
 ```python
