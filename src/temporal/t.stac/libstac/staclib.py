@@ -243,13 +243,13 @@ def create_vector_from_feature_collection(vector, search, limit, max_items):
         feature_collection["features"].extend(temp_features["features"])
 
     json_str = json.dumps(feature_collection)
-    with tempfile.NamedTemporaryFile(delete=False, dir=".", suffix=".json") as fp:
+    with tempfile.NamedTemporaryFile(delete=True, dir=".", suffix=".json") as fp:
         fp.write(bytes(json_str, "utf-8"))
         fp.truncate()
-        fp.close()
         gs.run_command(
             "v.import", input=fp.name, output=vector, overwrite=True, quiet=True
         )
+        fp.close()
 
     gs.run_command("v.colors", map=vector, color="random", quiet=True)
 
