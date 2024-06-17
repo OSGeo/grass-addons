@@ -2,11 +2,11 @@
 
 ############################################################################
 #
-# NAME:      t_stac_import
+# NAME:      t_stac_item
 #
 # AUTHOR:    Corey T. White
 #
-# PURPOSE:   This is a test file for t.stac.import
+# PURPOSE:   This is a test file for t.stac.item
 #
 # COPYRIGHT: (C) 2023 by Corey T. White and the GRASS Development Team
 #
@@ -36,11 +36,43 @@ class TestStacItem(TestCase):
         """Remove temporary region"""
         pass
 
-    def test_search_collections(self):
-        """Test t.stac.collection without vector metadata creation"""
-        # assertModule is used to call module which we test
-        # we expect module to finish successfully
+    def test_search_items(self):
+        """Test t.stac.item without vector metadata creation"""
+        # Should return count of items found in the collection
         self.assertModule("t.stac.item", url=self.url, collections=self.collections)
+
+    def test_search_items_summary_json(self):
+        """Test t.stac.item with JSON output"""
+        # Should return JSON output of items found in the collection
+        self.assertModule(
+            "t.stac.item",
+            url=self.url,
+            collections=self.collections,
+            format="json",
+            flag="m",
+        )
+
+    def test_search_items_summary_plain(self):
+        """Test t.stac.item with plain text output"""
+        # Should return plain text output of items found in the collection
+        self.assertModule(
+            "t.stac.item",
+            url=self.url,
+            collections=self.collections,
+            format="plain",
+            flag="m",
+        )
+
+    def test_search_items_vector_footprint(self):
+        """Test t.stac.item with vector metadata creation"""
+        # Should return vector metadata of items found in the collection
+        self.assertModule(
+            "t.stac.item",
+            url=self.url,
+            collections=self.collections,
+            vector="naip_footprints",
+            flag="m",
+        )
 
     def test_collections_not_found(self):
         """Test t.stac.collection with vector metadata creation"""

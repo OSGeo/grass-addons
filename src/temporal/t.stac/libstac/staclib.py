@@ -53,6 +53,13 @@ def print_summary(data, depth=1):
             gs.message(_(f"# {indentation}{key}: {value}"))
 
 
+def print_list_attribute(data, title):
+    "Print a list attribute"
+    gs.message(_(f"{title}"))
+    for item in data:
+        gs.message(_(f"\t{item}"))
+
+
 def print_attribute(item, attribute, message=None):
     """Print an attribute of the item and handle AttributeError."""
     message = message if message else attribute.capitalize()
@@ -196,14 +203,72 @@ def polygon_centroid(polygon_coords):
     return centroid
 
 
-def create_vector_from_feature_collection(vector, feature_collection):
+def _flatten_dict(d, parent_key="", sep="_"):
+    items = []
+    for k, v in d.items():
+        new_key = f"{parent_key}{sep}{k}" if parent_key else k
+        if isinstance(v, dict):
+            items.extend(_flatten_dict(v, new_key, sep=sep).items())
+        else:
+            items.append((new_key, v))
+    return dict(items)
+
+
+def create_vector_from_feature_collection(vector, search, limit, max_items):
     """Create a vector from items in a Feature Collection"""
+    n_matched = search.matched()
+    pages = (n_matched // max_items) + 1
+    feature_collection = {"type": "FeatureCollection", "features": []}
+
+    # Extract asset information for each item
+    for page in range(pages):
+        temp_features = search.item_collection_as_dict()
+        for idx, item in enumerate(temp_features["features"]):
+            flattened_assets = _flatten_dict(
+                item["assets"], parent_key="assets", sep="."
+            )
+            temp_features["features"][idx]["properties"].update(flattened_assets)
+            temp_features["features"][idx]["properties"]["collection"] = item[
+                "collection"
+            ]
+        feature_collection["features"].extend(temp_features["features"])
+
     json_str = json.dumps(feature_collection)
     with tempfile.NamedTemporaryFile(delete=False, dir=".", suffix=".json") as fp:
         fp.write(bytes(json_str, "utf-8"))
         fp.truncate()
         fp.close()
-        gs.run_command("v.import", input=fp.name, output=vector, overwrite=True)
+        gs.run_command(
+            "v.import", input=fp.name, output=vector, overwrite=True, quiet=True
+        )
+
+    gs.run_command("v.colors", map=vector, color="random", quiet=True)
+
+
+def fetch_items_with_pagination(items_search, limit, max_items):
+    """
+    Fetches items from a search result with pagination.
+
+    Args:
+        items_search (SearchResult): The search result object.
+        limit (int): The maximum number of items to fetch.
+        max_items (int): The maximum number of items on a page.
+
+    Returns:
+        list: A list of items fetched from the search result.
+    """
+    items = []
+    n_matched = items_search.matched()
+    pages = (n_matched // max_items) + 1
+    gs.message(_(f"Fetching {n_matched} items in {pages} pages."))
+    for page in range(pages):
+        page_items = items_search.items()
+        for item in page_items:
+            items.append(item)
+        if len(items) >= limit:
+            break
+
+    return items
 
 
 def create_metadata_vector(vector, metadata):

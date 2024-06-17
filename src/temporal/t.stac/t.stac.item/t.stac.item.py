@@ -119,7 +119,17 @@
 # % type: string
 # % required: no
 # % multiple: yes
-# % description: List of one or more asset keys to filter item downloads. \nUse -d (dry run) option to get a list of available asset keys.
+# % description: List of one or more asset keys to filter item downloads.
+# % guisection: Query
+# %end
+
+# %option
+# % key: item_roles
+# % label: Item roles
+# % type: string
+# % required: no
+# % multiple: yes
+# % description: List of one or more item roles to filter by.
 # % guisection: Query
 # %end
 
@@ -254,7 +264,17 @@
 
 # %flag
 # % key: m
-# % description: metadata only
+# % description: Collection Search Item Summary
+# %end
+
+# %flag
+# % key: i
+# % description: Item metadata
+# %end
+
+# %flag
+# % key: a
+# % description: Asset metadata
 # %end
 
 # %flag
@@ -282,15 +302,13 @@ import json
 from pystac_client import Client
 from pystac_client.exceptions import APIError
 from pystac import MediaType
-
-try:
-    from pystac_client import Client
-except ImportError:
-    from pystac_client import Client
-
+from concurrent.futures import ThreadPoolExecutor
+from tqdm import tqdm
 
 import grass.script as gs
 from grass.pygrass.utils import get_lib_path
+from grass.exceptions import CalledModuleError
+
 
 path = get_lib_path(modname="t.stac", libname="staclib")
 if path is None:
@@ -298,35 +316,6 @@ if path is None:
 sys.path.append(path)
 
 import staclib as libstac
-
-
-def validate_collections_option(client, collections=[]):
-    """Validate that the collection the user specificed is valid
-
-    Args:
-        collections (String[]): User defined collection
-        client (Client): A PyStac Client
-
-    Returns:grass r.import unable to determine number raster bands
-        boolean: Returns true if the collection is available.
-    """
-    try:
-        available_collections = client.get_collections()
-    except APIError as e:
-        gs.fatal(_("Error getting collections: {}".format(e)))
-
-    available_collections_ids = [c.id for c in list(available_collections)]
-
-    # gs.message(_(f"Available Collections: {available_collections_ids}"))
-
-    if all(item in available_collections_ids for item in collections):
-        return True
-
-    for collection in collections:
-        if collection not in available_collections_ids:
-            gs.warning(_(f"{collection} collection not found"))
-
-    return False
 
 
 def search_stac_api(client, **kwargs):
@@ -342,8 +331,9 @@ def search_stac_api(client, **kwargs):
 
     try:
         gs.message(_(f"Search Matched: {search.matched()} items"))
-        gs.message(_(f"Pages: {len(list(search.pages()))}"))
-        gs.message(_(f"Max items per page: {len(list(search.items()))}"))
+        # These requests tend to be very slow
+        # gs.message(_(f"Pages: {len(list(search.pages()))}"))
+        # gs.message(_(f"Max items per page: {len(list(search.items()))}"))
 
     except e:
         gs.warning(_(f"No items found: {e}"))
@@ -380,27 +370,122 @@ def collection_metadata(collection):
         libstac.print_summary(collection.extra_fields)
     except AttributeError:
         gs.info(_("# Extra Fields not found."))
-
-    return collection.to_dict()
+    gs.message(_("*" * 80))
 
 
 def report_stac_item(item):
     """Print a report of the STAC item to the console."""
     gs.message(_(f"Collection ID: {item.collection_id}"))
     gs.message(_(f"Item: {item.id}"))
-    gs.message(_(f"Geometry: {item.geometry}"))
+    libstac.print_attribute(item, "geometry", "Geometry")
     gs.message(_(f"Bbox: {item.bbox}"))
 
     libstac.print_attribute(item, "datetime", "Datetime")
     libstac.print_attribute(item, "start_datetime", "Start Datetime")
     libstac.print_attribute(item, "end_datetime", "End Datetime")
+    gs.message(_("Extra Fields:"))
+    libstac.print_summary(item.extra_fields)
 
-    gs.message(_(f"Links: {item.links}"))
+    libstac.print_list_attribute(item.stac_extensions, "Extensions:")
+    # libstac.print_attribute(item, "stac_extensions", "Extensions")
+    gs.message(_("Properties:"))
+    libstac.print_summary(item.properties)
 
-    libstac.print_attribute(item, "extra_fields", "Extra Fields")
-    libstac.print_attribute(item, "stac_extensions", "Extensions")
 
-    gs.message(_(f"Properties: {item.properties}"))
+def collect_item_assets(item, assset_keys, asset_roles, asset_media_types):
+    for key, asset in item.assets.items():
+
+        # Check if the asset key is in the list of asset keys
+        if assset_keys and key not in assset_keys:
+            continue
+
+        # Check if the asset fits the roles
+        if asset_roles and asset.roles not in asset_roles:
+            continue
+
+        # Check if the asset fits the media types
+        media_type = asset.media_type
+        if asset_media_types and media_type not in asset_media_types:
+            continue
+
+        return asset
+
+
+def report_plain_asset_summary(asset):
+    gs.message(_("\nAsset"))
+    gs.message(_("Asset Key:"))
+    gs.message(_(f"Asset Title: {asset.title}"))
+    gs.message(_(f"Asset Description: {asset.description}"))
+    # gs.message(_(f"Asset Media Type: {media_type}"))
+    gs.message(_(f"Asset Roles: {asset.roles}"))
+    gs.message(_(f"Asset Href: {asset.href}"))
+
+
+def import_grass_raster(params):
+    url, output, resample_method, extent, resolution, resolution_value, memory = params
+    input_url = libstac.check_url_type(url)
+
+    try:
+        gs.message(_(f"Importing: {output}"))
+        gs.parse_command(
+            "r.import",
+            input=input_url,
+            output=output,
+            resample=resample_method,
+            extent=extent,
+            resolution=resolution,
+            resolution_value=resolution_value,
+            # title=title,
+            memory=memory,
+            quiet=True,
+        )
+    except CalledModuleError as e:
+        gs.fatal(_("Error importing raster: {}".format(e.stderr)))
+
+
+def download_assets(
+    assets,
+    resample_method,
+    resample_extent,
+    resolution,
+    resolution_value,
+    memory=300,
+    nprocs=1,
+):
+    """Downloads a list of images from the given URLs to the given filenames."""
+    number_of_assets = len(assets)
+    resample_extent_list = [resample_extent] * number_of_assets
+    resolution_list = [resolution] * number_of_assets
+    resolution_value_list = [resolution_value] * number_of_assets
+    resample_method_list = [resample_method] * number_of_assets
+    memory_list = [memory] * number_of_assets
+    max_cpus = os.cpu_count() - 1
+    if nprocs > max_cpus:
+        gs.warning(
+            _(
+                "Number of processes {nprocs} is greater than the number of CPUs {max_cpus}."
+            )
+        )
+        nprocs = max_cpus
+
+    with tqdm(total=number_of_assets, desc="Downloading assets") as pbar:
+        with ThreadPoolExecutor(max_workers=nprocs) as executor:
+            try:
+                for _a in executor.map(
+                    import_grass_raster,
+                    zip(
+                        urls,
+                        filenames,
+                        resample_method_list,
+                        resample_extent_list,
+                        resolution_list,
+                        resolution_value_list,
+                        memory_list,
+                    ),
+                ):
+                    pbar.update(1)
+            except Exception as e:
+                gs.fatal(_("Error importing raster: {}".format(str(e))))
 
 
 def import_items(items, asset_keys=None, roles=None):
@@ -506,8 +591,13 @@ def main():
     asset_keys_input = options["asset_keys"]  # optional
     asset_keys = asset_keys_input.split(",") if asset_keys_input else None
 
+    item_roles_input = options["item_roles"]  # optional
+    item_roles = item_roles_input.split(",") if item_roles_input else None
+
     # Flags
-    metadata_only = flags["m"]
+    summary_metadata = flags["m"]
+    item_metadata = flags["i"]
+    asset_metadata = flags["a"]
     download = flags["d"]
     patch = flags["p"]
 
@@ -526,7 +616,7 @@ def main():
     nprocs = int(options["nprocs"])  # optional
 
     search_params = {}  # Store STAC API search parameters
-    collection_items_output = []
+    collection_items_assets = []
     dowload_items_assests_queue = []
 
     try:
@@ -547,15 +637,17 @@ def main():
     except APIError as e:
         gs.fatal(_(f"Error getting collection {collection_id}: {e}"))
 
-    if metadata_only and format == "plain":
-        collection_metadata(collection)
-        return 0
-
-    if format == "json" and metadata_only:
-        return pprint(collection.to_dict())
+    if summary_metadata:
+        if format == "plain":
+            return collection_metadata(collection)
+        elif format == "json":
+            return pprint(collection.to_dict())
+        else:
+            # Return plain text by default
+            return collection_metadata(collection)
 
     # Start item search
-    intersects = options["intersects"]  # optional
+
     if intersects:
         # Convert the vector to a geojson
         output_geojson = "tmp_stac_intersects.geojson"
@@ -608,18 +700,48 @@ def main():
 
     # Search the STAC API
     items_search = search_stac_api(client=client, **search_params)
+    # Create vector layer of items metadata
     if items_vector:
         libstac.create_vector_from_feature_collection(
-            "stac_items", items_search.item_collection_as_dict()
+            items_vector, items_search, limit, max_items
         )
-    if metadata_only:
-        return pprint(json.dumps(items_search.item_collection_as_dict()))
+    # if item_metadata and format == "json":
+    #     return pprint(items_search.item_collection_as_dict())
 
-    # asset_list, asset_name_list = import_items(
-    #     list(items_search.items()), asset_keys
-    # )
-    # gs.message(_(f"{len(asset_list)} Assets Ready for download..."))
-    return None
+    # Fetch items from all pages
+    items = libstac.fetch_items_with_pagination(items_search, limit, max_items)
+
+    # Report item metadata
+    if item_metadata:
+        if format == "plain":
+            gs.message(_(f"Items Found: {len(list(items))}"))
+            for item in items:
+                report_stac_item(item)
+            return None
+        if format == "json":
+            return pprint([item.to_dict() for item in items])
+
+    for item in items:
+        asset = collect_item_assets(
+            item, asset_keys, asset_roles=item_roles, asset_media_types=None
+        )
+        collection_items_assets.append(asset)
+
+    gs.message(_(f"{len(collection_items_assets)} Assets Ready for download..."))
+    if asset_metadata:
+        for asset in collection_items_assets:
+            if format == "plain":
+                report_plain_asset_summary(asset)
+            if format == "json":
+                pprint(asset.to_dict())
+
+    if download:
+        # Import items
+        if asset_metadata:
+            dowload_items_assests_queue = [
+                asset.href for asset in collection_items_assets
+            ]
+            libstac.print_list_attribute(dowload_items_assests_queue, "Download Queue:")
 
 
 if __name__ == "__main__":
