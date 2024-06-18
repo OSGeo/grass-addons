@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: UTF-8 -*-
 
 """
 MODULE:       r.connectivity.network
@@ -73,8 +72,8 @@ ToDo:
 - replace R with Python
 - add RGB columns instead of QML
 - Fix history assignment
-- - grass.parse_command('v.support', map=edges, flags='g')[comments]
-- - grass.parse_command('v.support', map=nodes, flags='g')[comments]
+- - gscript.parse_command('v.support', map=edges, flags='g')[comments]
+- - gscript.parse_command('v.support', map=nodes, flags='g')[comments]
 """
 
 # %Module
@@ -209,10 +208,11 @@ import platform
 import warnings
 import numpy as np
 import matplotlib
+
 # Required for Windows
-matplotlib.use('wx')
+matplotlib.use("wx")
 import matplotlib.pyplot as plt
-import grass.script as grass
+import grass.script as gscript
 import grass.script.task as task
 import grass.script.db as grass_db
 
@@ -221,17 +221,18 @@ import grass.script.db as grass_db
 if "GISBASE" not in os.environ:
     sys.exit("You must be in GRASS GIS to run this program")
 
+
 def cleanup():
-    """tmp_maps = grass.read_command("g.list",
+    """tmp_maps = gscript.read_command("g.list",
                                   type=['vector', 'raster'],
                                   pattern='{}*'.format(TMP_prefix),
                                   separator=',')
 
     if tmp_maps:
-        grass.run_command("g.remove", type=['vector', 'raster'],
+        gscript.run_command("g.remove", type=['vector', 'raster'],
                           pattern='{}*'.format(TMP_prefix), quiet=True,
                           flags='f')
-    #grass.del_temp_region()"""
+    #gscript.del_temp_region()"""
     pass
 
 
@@ -239,7 +240,7 @@ def is_number(string):
     """Check if a string can be converted to numeric"""
 
     try:
-        complex(string) # for int, long, float and complex
+        complex(string)  # for int, long, float and complex
     except ValueError:
         return False
 
@@ -253,119 +254,144 @@ def main():
     try:
         import igraph
     except ImportError:
-        gscript.fatal("Could not import igraph library! To install it run:",
-                      "pip install python-igraph")
-    #Input variables
-    network_map = options['input']
+        gscript.fatal(
+            "Could not import igraph library! To install it run:",
+            "pip install python-igraph",
+        )
+    # Input variables
+    network_map = options["input"]
     # network_mapset = network_map.split('@')[0]
     # network = network_map.split('@')[1] if len(network_map.split('@'))
     # > 1 else None
-    prefix = options['prefix']
-    cores = options['cores']
-    convergence_treshold = options['convergence_threshold']
-    base = float(options['base'])
-    exponent = float(options['exponent'])
-    qml_style_dir = options['qml_style']
-    if is_number(options['connectivity_cutoff']):
-        if float(options['connectivity_cutoff']) > 0:
-            connectivity_cutoff = float(options['connectivity_cutoff'])
+    prefix = options["prefix"]
+    cores = options["cores"]
+    convergence_treshold = options["convergence_threshold"]
+    base = float(options["base"])
+    exponent = float(options["exponent"])
+    qml_style_dir = options["qml_style"]
+    if is_number(options["connectivity_cutoff"]):
+        if float(options["connectivity_cutoff"]) > 0:
+            connectivity_cutoff = float(options["connectivity_cutoff"])
         else:
-            grass.fatal('"connectivity_cutoff" has to be > 0.')
+            gscript.fatal('"connectivity_cutoff" has to be > 0.')
     else:
-        grass.fatal('Option "connectivity_cutoff" is not given as a number.')
-    lnbh_cutoff = options['lnbh_cutoff']
-    cl_thresh = options['cl_thresh']
+        gscript.fatal('Option "connectivity_cutoff" is not given as a number.')
+    lnbh_cutoff = options["lnbh_cutoff"]
+    cl_thresh = options["cl_thresh"]
 
     cd_cutoff = connectivity_cutoff
 
-    kernel_plot = options['kernel_plot']
-    overview_plot = options['overview_plot']
+    kernel_plot = options["kernel_plot"]
+    overview_plot = options["overview_plot"]
 
-    verbose = grass.verbosity() == 3
-    overwrite = grass.overwrite()
+    verbose = gscript.verbosity() == 3
+    overwrite = gscript.overwrite()
 
-    edge_output = '{}_edge_measures'.format(prefix)
-    edge_output_tmp = '{}_edge_measures_tmp'.format(prefix)
-    vertex_output = '{}_vertex_measures'.format(prefix)
-    vertex_output_tmp = '{}_vertex_measures_tmp'.format(prefix)
-    network_output = '{}_network_measures'.format(prefix)
+    edge_output = f"{prefix}_edge_measures"
+    edge_output_tmp = f"{prefix}_edge_measures_tmp"
+    vertex_output = f"{prefix}_vertex_measures"
+    vertex_output_tmp = f"{prefix}_vertex_measures_tmp"
+    network_output = f"{prefix}_network_measures"
 
     # Check if input parameters are correct
     for table in [vertex_output, edge_output, network_output]:
-        if grass.db.db_table_exist(table) and not overwrite:
-            grass.fatal('Table "{}" already exists. \
-                         Use --o flag to overwrite'.format(table))
+        if gscript.db.db_table_exist(table) and not overwrite:
+            gscript.fatal(
+                _(
+                    'Table "{}" already exists. \
+                         Use --o flag to overwrite'
+                ).format(table)
+            )
 
     if qml_style_dir:
         if not os.path.exists(qml_style_dir):
-            grass.fatal('QML output requested but directory "{}" \
-                        does not exists.'.format(qml_style_dir))
+            gscript.fatal(
+                _(
+                    'QML output requested but directory "{}" \
+                        does not exists.'
+                ).format(qml_style_dir)
+            )
         if not os.path.isdir(qml_style_dir):
-            grass.fatal('QML output requested but "{}" is not a \
-                        directory.'.format(qml_style_dir))
+            gscript.fatal(
+                _(
+                    'QML output requested but "{}" is not a \
+                        directory.'
+                ).format(qml_style_dir)
+            )
         if not os.access(qml_style_dir, os.R_OK):
-            grass.fatal('Output directory "{}" for QML files is not \
-                        writable.'.format(qml_style_dir))
+            gscript.fatal(
+                _(
+                    'Output directory "{}" for QML files is not \
+                        writable.'
+                ).format(qml_style_dir)
+            )
 
     for plot in [kernel_plot, overview_plot]:
         if plot:
             if not os.path.exists(os.path.dirname(plot)):
-                grass.fatal('Directory for output "{}" does not \
-                            exists.'.format(plot))
+                gscript.fatal(
+                    _(
+                        'Directory for output "{}" does not \
+                            exists.'
+                    ).format(plot)
+                )
             if not os.access(os.path.dirname(plot), os.R_OK):
-                grass.fatal('Output directory "{}" is not \
-                            writable.'.format(plot))
+                gscript.fatal(
+                    _(
+                        'Output directory "{}" is not \
+                            writable.'
+                    ).format(plot)
+                )
 
     # Visualise negative exponential decay kernel and exit
-    x_flag = flags['x']
+    x_flag = flags["x"]
 
     # Calculate edge betweenness community (default is do not)
     # y_flag = flags['y']
 
     # Install missing R packages
-    i_flag = flags['i']
+    i_flag = flags["i"]
 
     # Remove indirect connections from network
-    r_flag = flags['r']
+    r_flag = flags["r"]
 
     db_connection = grass_db.db_connection()
     # parse_command('db.connect', flags='g')
-    db_name = grass.read_command('db.databases').rstrip('\n')
+    db_name = gscript.read_command("db.databases").rstrip("\n")
 
-    net_hist_str = grass.parse_command('v.info', map=network_map,
-                                      flags='h', delimiter=':'
-                                      )['COMMAND'].split('\n')[0]
-    # grass.parse_command('v.info', map=network_map, flags='h'
+    net_hist_str = gscript.parse_command(
+        "v.info", map=network_map, flags="h", delimiter=":"
+    )["COMMAND"].split("\n")[0]
+    # gscript.parse_command('v.info', map=network_map, flags='h'
     #                     ).split('\n')[0].split(': ')[1]
     # Parsing goes wrong in some cases (extractig with -tp) as input
     dist_cmd_dict = task.cmdstring_to_tuple(net_hist_str)
-    command = os.environ['CMDLINE']
+    command = os.environ["CMDLINE"]
 
-    dist_prefix = dist_cmd_dict[1]['prefix']
-    pop_proxy = dist_cmd_dict[1]['pop_proxy']
+    dist_prefix = dist_cmd_dict[1]["prefix"]
+    pop_proxy = dist_cmd_dict[1]["pop_proxy"]
 
-    in_vertices = '{}_vertices'.format(dist_prefix)
+    in_vertices = "{}_vertices".format(dist_prefix)
 
     # OS adjustment
     os_type = platform.system()
 
-    grass.verbose("prefix is {}".format(prefix))
-    grass.verbose("cores is {}".format(cores))
-    grass.verbose("convergence_treshold is {}".format(convergence_treshold))
-    grass.verbose("base is {}".format(base))
-    grass.verbose("exponent is {}".format(exponent))
-    grass.verbose("cd_cutoff is {}".format(cd_cutoff))
-    grass.verbose("connectivity_cutoff is {}".format(connectivity_cutoff))
-    grass.verbose("lnbh_cutoff is {}".format(lnbh_cutoff))
-    grass.verbose("kernel_plot is {}".format(kernel_plot))
-    grass.verbose("overview_plot is {}".format(overview_plot))
-    grass.verbose("dist_prefix is {}".format(dist_prefix))
-    grass.verbose("EDGES is {}_edges".format(prefix))
-    grass.verbose("VERTICES is {}_vertices".format(prefix))
-    grass.verbose("cl_thresh is {}".format(cl_thresh))
+    gscript.verbose(_("prefix is {}").format(prefix))
+    gscript.verbose(_("cores is {}").format(cores))
+    gscript.verbose(_("convergence_treshold is {}").format(convergence_treshold))
+    gscript.verbose(_("base is {}").format(base))
+    gscript.verbose(_("exponent is {}").format(exponent))
+    gscript.verbose(_("cd_cutoff is {}").format(cd_cutoff))
+    gscript.verbose(_("connectivity_cutoff is {}").format(connectivity_cutoff))
+    gscript.verbose(_("lnbh_cutoff is {}").format(lnbh_cutoff))
+    gscript.verbose(_("kernel_plot is {}").format(kernel_plot))
+    gscript.verbose(_("overview_plot is {}").format(overview_plot))
+    gscript.verbose(_("dist_prefix is {}").format(dist_prefix))
+    gscript.verbose(_("EDGES is {}_edges").format(prefix))
+    gscript.verbose(_("VERTICES is {}_vertices").format(prefix))
+    gscript.verbose(_("cl_thresh is {}").format(cl_thresh))
 
-
-    #Visualise the negative exponential decay kernel and exit (if requested)
+    # Visualise the negative exponential decay kernel and exit (if requested)
     if x_flag or kernel_plot:
         if x_flag:
             plt.ion()
@@ -374,8 +400,7 @@ def main():
         # ax = plt.axes()
         x_values = np.linspace(0, cd_cutoff, 1000)
 
-        plt.plot(x_values, np.exp(base*(np.power(10.0,
-                                                 exponent))*x_values))
+        plt.plot(x_values, np.exp(base * (np.power(10.0, exponent)) * x_values))
 
         # Simplified version could be
         # plt.plot(x, np.exp(exponent*x))
@@ -388,30 +413,63 @@ def main():
             fig.savefig(kernel_plot)
 
     if cores > 1 and os_type == "Windows":
-        grass.warning('Parallel processing not yet supported on MS Windows. \
-                       Setting number of cores to 1.')
+        gscript.warning(
+            _(
+                "Parallel processing not yet supported on MS Windows. \
+                       Setting number of cores to 1."
+            )
+        )
         cores = 1
 
-
-    #Check igraph version
+    # Check igraph version
     if igraph.__version_info__ < (0, 6, 2):
-        grass.fatal('The required igraph version is 0.6.2 or \
+        gscript.fatal(
+            _(
+                "The required igraph version is 0.6.2 or \
                      later, the installed version is {}. \
                      Please download and install at least igraph \
-                     version 0.6.2'.format(".".join(igraph.__version_info__)))
+                     version 0.6.2"
+            ).format(".".join(igraph.__version_info__))
+        )
 
-    driver = db_connection['driver']
+    driver = db_connection["driver"]
     database = db_name
-    schema = db_connection['schema']
+    schema = db_connection["schema"]
     command = command
 
-    gscript.verbose("Reading and preparing input data...\n")
-    vertices = np.gefromtext(BytesIO(gscript.read_command('v.db.select', flags="c", map=in_vertices, columns="cat,{}".format(pop_proxy), separator=',').strip("\n")), dtype=None, names=['patch_id', 'pop_proxy'], delimiter=",")
+    gscript.verbose(_("Reading and preparing input data...\n"))
+    vertices = np.gefromtext(
+        BytesIO(
+            gscript.read_command(
+                "v.db.select",
+                flags="c",
+                map=in_vertices,
+                columns="cat,{}".format(pop_proxy),
+                separator=",",
+            ).strip("\n")
+        ),
+        dtype=None,
+        names=["patch_id", "pop_proxy"],
+        delimiter=",",
+    )
 
-    #Read edge data
-    edges = np.gefromtext(BytesIO(gscript.read_command('v.db.select', flags="c", map=in_edges, columns='cat,from_p,to_p,dist', separator=',').strip("\n")), dtype=None, names=['cat', 'from_patch', 'to_patch', 'distance'], delimiter=",")
+    # Read edge data
+    edges = np.gefromtext(
+        BytesIO(
+            gscript.read_command(
+                "v.db.select",
+                flags="c",
+                map=in_edges,
+                columns="cat,from_p,to_p,dist",
+                separator=",",
+            ).strip("\n")
+        ),
+        dtype=None,
+        names=["cat", "from_patch", "to_patch", "distance"],
+        delimiter=",",
+    )
 
-    # THe following can be done in igraph graph.simplify(combine_edges=dict(weight="mean"))
+    # The following can be done in igraph graph.simplify(combine_edges=dict(weight="mean"))
     # https://igraph.org/python/doc/igraph.GraphBase-class.html#simplify
     """con_id_u_pre = np.unique(np.sort(e_df[:,[1,2]]), axis=0)
     con_id_u_pre_df = data.frame(con_id_u_pre=unique(con_id_u_pre), con_id_u=1:length(unique(con_id_u_pre)))
@@ -423,48 +481,53 @@ def main():
 
     # Merge vertices and edges to graph-object
     # Build directed graph
-    gscript.verbose("Building the graph...")
+    gscript.verbose(_("Building the graph..."))
 
     g = Graph().as_directed()
-    g.add_vertices(vertices[:,0].astype("i").astype("S"))
-    g.vs["patch_id"] = vertices[:,0].astype("i")
-    g.vs["pop_proxy"] = vertices[:,1]
+    g.add_vertices(vertices[:, 0].astype("i").astype("S"))
+    g.vs["patch_id"] = vertices[:, 0].astype("i")
+    g.vs["pop_proxy"] = vertices[:, 1]
 
-    g.add_edges(edges[:,[1,2]].astype("i").astype("S"))
-    g.es["cat"] = edges[:,0].astype("i")
-    g.es["from_patch"] = edges[:,1].astype("i").astype("S")
-    g.es["to_patch"] = edges[:,2].astype("i").astype("S")
-    g.es["cost_distance"] = edges[:,3]
-    
-    #g = add.edges(g, t(edges), con_id=e$con_id, con_id_u=e$con_id_u, from_p=e$from_p, from_pop=e$from_pop, to_p=e$to_p, to_pop=e$to_pop, cost_distance=e$cost_distance, cd_u=e$cd_u, distance_weight_e=e$distance_weight_e, distance_weight_e_ud=e$distance_weight_e_ud, mf_o=e$mf_o, mf_o_inv=e$mf_o_inv, mf_i=e$mf_i, mf_i_inv=e$mf_i_inv, mf_u=e$mf_u, mf_inv_u=e$mf_inv_u, cf=e$cf, cf_inv=e$cf_inv, cf_u=e$cf_u, cf_inv_u=e$cf_inv_u)
+    g.add_edges(edges[:, [1, 2]].astype("i").astype("S"))
+    g.es["cat"] = edges[:, 0].astype("i")
+    g.es["from_patch"] = edges[:, 1].astype("i").astype("S")
+    g.es["to_patch"] = edges[:, 2].astype("i").astype("S")
+    g.es["cost_distance"] = edges[:, 3]
+
+    # g = add.edges(g, t(edges), con_id=e$con_id, con_id_u=e$con_id_u, from_p=e$from_p, from_pop=e$from_pop, to_p=e$to_p, to_pop=e$to_pop, cost_distance=e$cost_distance, cd_u=e$cd_u, distance_weight_e=e$distance_weight_e, distance_weight_e_ud=e$distance_weight_e_ud, mf_o=e$mf_o, mf_o_inv=e$mf_o_inv, mf_i=e$mf_i, mf_i_inv=e$mf_i_inv, mf_u=e$mf_u, mf_inv_u=e$mf_inv_u, cf=e$cf, cf_inv=e$cf_inv, cf_u=e$cf_u, cf_inv_u=e$cf_inv_u)
 
     ##Remove connections longer than cost distance threshold if requested
-    #if(remove_longer_cutoff == 1) {{
-    #con_id_True =  e_grouped_df$con_id[grep(True, e_grouped_df$dist_ud<cd_cutoff)]
-    #e_grouped_df_pre = merge(data.frame(con_id=con_id_True), e_grouped_df)
-    #con_id_u_df = data.frame(con_id_u_old=unique(e_grouped_df_pre$con_id_u), con_id_u=1:length(unique(e_grouped_df_pre$con_id_u)))
-    #e_grouped_df = merge(data.frame(con_id_old=e_grouped_df_pre$con_id, con_id_u_old=e_grouped_df_pre$con_id_u, con_id=1:length(e_grouped_df_pre$con_id), from_p=e_grouped_df_pre$from_p, to_p=e_grouped_df_pre$to_p, dist=e_grouped_df_pre$dist, dist_ud=e_grouped_df_pre$dist_ud), con_id_u_df, all.x=True)
-    #}}
+    # if(remove_longer_cutoff == 1) {{
+    # con_id_True =  e_grouped_df$con_id[grep(True, e_grouped_df$dist_ud<cd_cutoff)]
+    # e_grouped_df_pre = merge(data.frame(con_id=con_id_True), e_grouped_df)
+    # con_id_u_df = data.frame(con_id_u_old=unique(e_grouped_df_pre$con_id_u), con_id_u=1:length(unique(e_grouped_df_pre$con_id_u)))
+    # e_grouped_df = merge(data.frame(con_id_old=e_grouped_df_pre$con_id, con_id_u_old=e_grouped_df_pre$con_id_u, con_id=1:length(e_grouped_df_pre$con_id), from_p=e_grouped_df_pre$from_p, to_p=e_grouped_df_pre$to_p, dist=e_grouped_df_pre$dist, dist_ud=e_grouped_df_pre$dist_ud), con_id_u_df, all.x=True)
+    # }}
 
-    #Merge vertex and grouped edge data
+    # Merge vertex and grouped edge data
     # Can be done in igraph
     """from_pop = merge(data.frame(con_id=e_grouped_df$con_id, from_p=e_grouped_df$from_p), data.frame(from_p=as.integer(v$patch_id), from_pop=as.double(v$pop_proxy)), all.x=True, sort=False)
     to_pop = merge(data.frame(con_id=e_grouped_df$con_id, to_p=e_grouped_df$to_p), data.frame(to_p=as.integer(v$patch_id), to_pop=as.double(v$pop_proxy)), all.x=True, sort=False)
     e = merge(merge(from_pop, to_pop, sort=True), data.frame(con_id=e_grouped_df$con_id, con_id_u=e_grouped_df$con_id_u, cost_distance=e_grouped_df$dist, cd_u=e_grouped_df$dist_ud), by="con_id", sort=True)"""
 
-    #Calculate attributes representing proxies for potential flow between patches
-    g.es["exponential_distance_weight"] = np.exp(((float(base)*(10.0**float(exponent)))*np.array(g.es["cost_distance"]))) # distance_weight_e
-    #out_areal_distance_weight_e = e$from_pop*distance_weight_e
-    #in_areal_distance_weight_e = e$to_pop*distance_weight_e
+    # Calculate attributes representing proxies for potential flow between patches
+    g.es["exponential_distance_weight"] = np.exp(
+        ((float(base) * (10.0 ** float(exponent))) * np.array(g.es["cost_distance"]))
+    )  # distance_weight_e
+    # out_areal_distance_weight_e = e$from_pop*distance_weight_e
+    # in_areal_distance_weight_e = e$to_pop*distance_weight_e
 
-    g.es["maximum_flow_out"] = g.es["from_pop"]*g.es["exponential_distance_weight"]
-    g.es["maximum_flow_in"] = g.es["to_pop"]*g.es["exponential_distance_weight"]
-    g.es["maximum_flow_sum"] = np.array(g.es["from_pop"]*g.es["exponential_distance_weight"])+np.array(g.es["to_pop"]*g.es["exponential_distance_weight"])
+    g.es["maximum_flow_out"] = g.es["from_pop"] * g.es["exponential_distance_weight"]
+    g.es["maximum_flow_in"] = g.es["to_pop"] * g.es["exponential_distance_weight"]
+    g.es["maximum_flow_sum"] = np.array(
+        g.es["from_pop"] * g.es["exponential_distance_weight"]
+    ) + np.array(g.es["to_pop"] * g.es["exponential_distance_weight"])
 
-    g.es["maximum_flow_out_inverse"] = g.es["mf_o"]**-1
-    g.es["maximum_flow_in_inverse"] = g.es["mf_i"]**-1
-    g.es["maximum_flow_sum_inverse"] = ((g.es["maximum_flow_sum"]*-1)-min(g.es["maximum_flow_sum"]*-1))*(ifelse(max(g.es["maximum_flow_sum"])>10000000000000000,10000000000000000,max(g.es["maximum_flow_sum"]))-ifelse(min(g.es["maximum_flow_sum"])<0.000000000001,0.000000000001,min(g.es["maximum_flow_sum"])))/(max(g.es["maximum_flow_sum"]*-1)-min(g.es["maximum_flow_sum"]*-1))+ifelse(min(g.es["maximum_flow_sum"])<0.000000000001,0.000000000001,min(g.es["maximum_flow_sum"]))
+    g.es["maximum_flow_out_inverse"] = g.es["mf_o"] ** -1
+    g.es["maximum_flow_in_inverse"] = g.es["mf_i"] ** -1
+    # g.es["maximum_flow_sum_inverse"] = ((g.es["maximum_flow_sum"]*-1)-min(g.es["maximum_flow_sum"]*-1))*(ifelse(max(g.es["maximum_flow_sum"])>10000000000000000,10000000000000000,max(g.es["maximum_flow_sum"]))-ifelse(min(g.es["maximum_flow_sum"])<0.000000000001,0.000000000001,min(g.es["maximum_flow_sum"])))/(max(g.es["maximum_flow_sum"]*-1)-min(g.es["maximum_flow_sum"]*-1))+ifelse(min(g.es["maximum_flow_sum"])<0.000000000001,0.000000000001,min(g.es["maximum_flow_sum"]))
 
+    """
     flow_df = data.frame(from_p=e$from_p, mf_i=mf_i)
     sum_mf_i_groups = groupedData(mf_i ~ from_p | from_p, data=as.data.frame(flow_df), FUN=sum)
     sum_mf_i_pre = gsummary(sum_mf_i_groups, sum)
@@ -493,13 +556,21 @@ def main():
     e_ud_pre = merge(e, ud_grouped_df, all.x=True)
     first_con_id = data.frame(con_id=e_ud_pre$con_id[e_ud_pre$con_id_avg>e_ud_pre$con_id])
     e_ud = merge(first_con_id, e)
+    """
 
     # Build undirected graph
     # graph.simplify(combine_edges=dict(weight="mean"))
     # https://igraph.org/python/doc/igraph.GraphBase-class.html#simplify
     g_ud = deepcopy(g)
-    g_ud = g_ud.simplify(combine_edges=dict(mf_o="mean", mf_i="mean", ))
-    g_ud.es["exponential_distance_weight_undirected"] = np.exp((basis*(10^exponent))*np.array(g_ud.es["cost_distance_undirected"]))
+    g_ud = g_ud.simplify(
+        combine_edges=dict(
+            mf_o="mean",
+            mf_i="mean",
+        )
+    )
+    g_ud.es["exponential_distance_weight_undirected"] = np.exp(
+        (basis * (10 ^ exponent)) * np.array(g_ud.es["cost_distance_undirected"])
+    )
 
     """
     g_ud = add.edges(g_ud, t(edges), con_id=e_ud$con_id,
@@ -534,6 +605,7 @@ def main():
 
     # g.es["cd_u = unlist(mclapply(mc.cores={0}, 0:(length(E(g))-1), function(x) (E(g)[x]$cost_distance+E(g, path=c(ends(g, x)[2], ends(g, x)[1]))$cost_distance)/2))
 
+    """
     ####################################
     ### Can the following be vectorised????
 
@@ -541,7 +613,10 @@ def main():
     g_ud.es["is_short_mf"] = as.integer(unlist(mclapply(mc.cores={0}, 1:(length(E(g_ud))), function(x) length(get.shortest.paths(g_ud, from=ends(g_ud, x)[1], to=ends(g_ud, x)[2], weights=g_ud.es["mf_inv_u)$vpath[[1]])))==2)
     g_ud.es["is_short_cf"] = as.integer(unlist(mclapply(mc.cores={0}, 1:(length(E(g_ud))), function(x) length(get.shortest.paths(g_ud, from=ends(g_ud, x)[1], to=ends(g_ud, x)[2], weights=g_ud.es["cf_inv_u)$vpath[[1]])))==2)
     # g_ud.es["is_short"] = ifelse((g_ud.es["isshort_cd==0 & g_ud.es["isshort_mf==0 & g_ud.es["isshort_cf==0), 0, 1)
-    g_ud.es["is_short"] = np.min(g_ud.es["is_short_cd"], g_ud.es["is_short_mf"], g_ud.es["is_short_cf"])
+    """
+    g_ud.es["is_short"] = np.min(
+        g_ud.es["is_short_cd"], g_ud.es["is_short_mf"], g_ud.es["is_short_cf"]
+    )
 
     ####################################
 
@@ -552,20 +627,21 @@ def main():
     # Remove indirect connections if requested
     if remove_indirect == 1:
         g_ud_d = deepcopy(g_ud)
-        g_ud_d.delete.edges(g_ud.es.select[is_short_eq=0])
+        g_ud_d.delete.edges(g_ud.es.select(is_short_eq=0))
 
     # Remove connections above connectivity threshold if requested
+    """
     if connectivity_cutoff >= 0.0:
         g_ud_cd = deepcopy(g_ud)
         g_ud_cd = g_ud_cd.delete_edges(E(g_ud)[grep(True, g_ud.es["cd_u>=connectivity_cutoff)])
         g_ud_d_cd = deepcopy(g_ud_d)
         g_ud_d_cd = g_ud_d_cd.delete_edges(E(g_ud_d)[grep(True, g_ud_d.es["cd_u>=connectivity_cutoff)])
-
+    """
     ########################################################################
     ### Analysis on graph level
     ########################################################################
 
-    gscript.verbose("Starting analysis on graph level...")
+    gscript.verbose(_("Starting analysis on graph level..."))
 
     ### graph measures
     vertices_n = len(g_ud.vs)
@@ -574,15 +650,16 @@ def main():
     edges_n_cd = len(g_ud_cd.es)
     edges_n_d_cd = len(g_ud_d_cd.es)
 
-
     ########################################################################
     ###### Calculate number of clusters
     # On the undirected graph with only direct edges and on the undirected graph with only direct edges shorter cost distance threshold
     cl_no_d = g_ud_d.clusters()["no"]
     cl_no_d_cd = g_ud_d_cd.clusters()["no"]
 
+    """
     cls_size_d = as.vector(gsummary(groupedData(pop_size ~ 1 | cl, data.frame(cl=clusters(g_ud_d)$membership, pop_size=g_ud_d.vs["pop_proxy), order.groups=True, FUN=sum), sum)$pop_size)
     cls_size_d_cd = as.vector(gsummary(groupedData(pop_size ~ 1 | cl, data.frame(cl=clusters(g_ud_d_cd)$membership, pop_size=g_ud_d_cd.vs["pop_proxy), order.groups=True, FUN=sum), sum)$pop_size)
+    """
 
     cl_max_size_d = max(cls_size_d)
     cl_max_size_d_cd = max(cls_size_d_cd)
@@ -590,15 +667,20 @@ def main():
     cl_mean_size_d = mean(cls_size_d)
     cl_mean_size_d_cd = mean(cls_size_d_cd)
 
-    diam = g_ud.diameter(directed=False, unconnected=True, weights=g_ud.es["cd_u)
-    diam_d = g_ud_d.diameter(directed=False, unconnected=True, weights=g_ud_d.es["cd_u)
-    diam_d_cd = g_ud_d_cd.diameter(directed=False, unconnected=True, weights=E(g_ud_d_cd)$cd_u)
+    diam = g_ud.diameter(directed=False, unconnected=True, weights=g_ud.es["cd_u"])
+    diam_d = g_ud_d.diameter(
+        directed=False, unconnected=True, weights=g_ud_d.es["cd_u"]
+    )
+    diam_d_cd = g_ud_d_cd.diameter(
+        directed=False, unconnected=True, weights=g_ud_d_cd.es["cd_u"]
+    )
 
     density = g.density(g, loops=False)
     density_u = g_ud.density(g_ud, loops=False)
     density_ud = g_ud_d.density(g_ud_d, loops=False)
     density_udc = g_ud_d_cd.density(g_ud_d_cd, loops=False)
 
+    """
     if network_overview_ps:
         ###### Edge removal operations
         for edge_length in np.sort(g_ud.es["cd_u"], decreasing=True, na.last=NA):
@@ -625,7 +707,7 @@ def main():
         lines(df_edgeremoval$distance/(10^(nchar(as.integer(max(df_edgeremoval$distance)))-2)), df_edgeremoval$cl_del_diam*100/diam_d, type="l", lty=4)
         # Lable axis 4!!!
         # axis(4, seq.int(0, 100, 25), yaxs="i", labels=seq.int(0, ceiling((as.integer(edges_n)/(10^(nchar(as.integer(edges_n))-2))))*(10^(nchar(as.integer(edges_n))-2)), ceiling((as.integer(edges_n)/(10^(nchar(as.integer(edges_n))-2))))*(10^(nchar(as.integer(edges_n))-2))/4))
-
+    """
     ########################################################################
     ###Analysis on edge level
     ########################################################################
@@ -637,74 +719,77 @@ def main():
     ### Minimum spanning tree weighted by maximum potential flow
 
     g_ud_d.es["mf_mst_ud"] = 0
-    E(g_ud_d.es["mf_mst_ud"] = [grep(True, g_ud_d.es["con_id %in% E(minimum.spanning.tree(g_ud_d, weights=g_ud_d.es["mf_inv_u))$con_id)]$mf_mst_ud = 1
+    # E(g_ud_d.es["mf_mst_ud"] = [grep(True, g_ud_d.es["con_id %in% E(minimum.spanning.tree(g_ud_d, weights=g_ud_d.es["mf_inv_u))$con_id)]$mf_mst_ud = 1
 
     ### Minimum spanning tree weighted by cost distance
     g_ud_d.es["cd_mst_ud"] = 0
-    g_ud_d.es["cd_mst_ud"] = [grep(True, g_ud_d.es["con_id %in% E(minimum.spanning.tree(g_ud_d, weights=g_ud_d.es["cd_u))$con_id)]$cd_mst_ud = 1
+    # g_ud_d.es["cd_mst_ud"] = [grep(True, g_ud_d.es["con_id %in% E(minimum.spanning.tree(g_ud_d, weights=g_ud_d.es["cd_u))$con_id)]$cd_mst_ud = 1
 
     g_ud_d.es["cf_mst_ud"] = 0
-    g_ud_d.es["cf_mst_ud"] = [grep(True, g_ud_d.es["con_id %in% E(minimum.spanning.tree(g_ud_d, weights=g_ud_d.es["cf_inv_u))$con_id)]$cf_mst_ud = 1
+    # g_ud_d.es["cf_mst_ud"] = [grep(True, g_ud_d.es["con_id %in% E(minimum.spanning.tree(g_ud_d, weights=g_ud_d.es["cf_inv_u))$con_id)]$cf_mst_ud = 1
 
     ###### Calculate minimum spanning trees (MST) on the undirected graph with only direct edges shorter cost distance threshold
     ### Minimum spanning tree weighted by maximum potential flow
     g_ud_d_cd.es["mf_mst_udc"] = 0
-    g_ud_d_cd.es["mf_mst_udc"] = [grep(True, E(g_ud_d_cd)$con_id %in% E(minimum.spanning.tree(g_ud_d_cd, weights=E(g_ud_d_cd)$mf_inv_u))$con_id)]$mf_mst_udc = 1
-
+    # g_ud_d_cd.es["mf_mst_udc"] = [grep(True, E(g_ud_d_cd)$con_id %in% E(minimum.spanning.tree(g_ud_d_cd, weights=E(g_ud_d_cd)$mf_inv_u))$con_id)]$mf_mst_udc = 1
 
     ### Minimum spanning tree weighted by cost distance
     g_ud_d_cd.es["cd_mst_udc"] = 0
-    g_ud_d_cd.es["cd_mst_udc"] = [grep(True, E(g_ud_d_cd)$con_id %in% E(minimum.spanning.tree(g_ud_d_cd, weights=E(g_ud_d_cd)$cd_u))$con_id)]$cd_mst_udc = 1
+    # g_ud_d_cd.es["cd_mst_udc"] = [grep(True, E(g_ud_d_cd)$con_id %in% E(minimum.spanning.tree(g_ud_d_cd, weights=E(g_ud_d_cd)$cd_u))$con_id)]$cd_mst_udc = 1
 
     ### Minimum spanning tree weighted by competing potential flow
     g_ud_d_cd.es["cf_mst_udc"] = 0
-    g_ud_d_cd.es["cf_mst_udc"] = [grep(True, E(g_ud_d_cd)$con_id %in% E(minimum.spanning.tree(g_ud_d_cd, weights=E(g_ud_d_cd)$cf_inv_u))$con_id)]$cf_mst_udc = 1
+    # g_ud_d_cd.es["cf_mst_udc"] = [grep(True, E(g_ud_d_cd)$con_id %in% E(minimum.spanning.tree(g_ud_d_cd, weights=E(g_ud_d_cd)$cf_inv_u))$con_id)]$cf_mst_udc = 1
 
     ########################################################################
     ### Identify bridges for the undirected graph
-    E(g_ud.es["is_br_u"] = as.integer(unlist(mclapply(mc.cores={0}, 1:(length(E(g_ud))), function(x) clusters(delete.edges(g_ud, E(g_ud)[as.integer(x)]))$no-cl_no_d)))
+    # E(g_ud.es["is_br_u"] = as.integer(unlist(mclapply(mc.cores={0}, 1:(length(E(g_ud))), function(x) clusters(delete.edges(g_ud, E(g_ud)[as.integer(x)]))$no-cl_no_d)))
 
     # Identify bridges for the undirected graph with only direct edges
-    E(g_ud_d.es["is_br_ud"] = as.integer(unlist(mclapply(mc.cores={0}, 1:(length(E(g_ud_d))), function(x) clusters(delete.edges(g_ud_d, E(g_ud_d)[as.integer(x)]))$no-cl_no_d)))
+    # E(g_ud_d.es["is_br_ud"] = as.integer(unlist(mclapply(mc.cores={0}, 1:(length(E(g_ud_d))), function(x) clusters(delete.edges(g_ud_d, E(g_ud_d)[as.integer(x)]))$no-cl_no_d)))
 
     ### Identify bridges for the undirected graph with only direct edges shorter cost distance threshold
-    E(g_ud_d_cd.es["is_br_udc"] = as.integer(unlist(mclapply(mc.cores={0}, 1:(length(E(g_ud_d_cd))), function(x) clusters(delete.edges(g_ud_d_cd, E(g_ud_d_cd)[as.integer(x)]))$no-cl_no_d_cd)))
+    # E(g_ud_d_cd.es["is_br_udc"] = as.integer(unlist(mclapply(mc.cores={0}, 1:(length(E(g_ud_d_cd))), function(x) clusters(delete.edges(g_ud_d_cd, E(g_ud_d_cd)[as.integer(x)]))$no-cl_no_d_cd)))
 
     ########################################################################
 
     biconnected_components_d = biconnected.components(g_ud)
 
     # Identify component edges (biconnected components) for the undirected graph with only direct edges
-    g_ud.es["bc_e_u = 0
-    for c in 1:biconnected_components_d$no:
-        g_ud.es["bc_e_u[unlist(biconnected_components_d$component_edges[c])] = c
+    g_ud.es["bc_e_u"] = 0
+    for c in range(biconnected_components_d["no"]):
+        g_ud.es["bc_e_u"][unlist(biconnected_components_d["component_edges"][c])] = c
 
     # Identify tree edges (biconnected components) for the undirected graph with only direct edges
-    g_ud.es["bc_te_u = 0
-    for c in 1:biconnected_components_d$no:
-        g_ud.es["bc_te_u[unlist(biconnected_components_d$tree_edges[c])] = c
+    g_ud.es["bc_te_u"] = 0
+    for c in range(biconnected_components_d["no"]):
+        g_ud.es["bc_te_u"][unlist(biconnected_components_d["tree_edges"][c])] = c
 
     biconnected_components_d = biconnected.components(g_ud_d)
     # Identify component edges (biconnected components) for the undirected graph with only direct edges
-    g_ud_d.es["bc_e_ud = 0
-    for c in 1:biconnected_components_d$no:
-        g_ud_d.es["bc_e_ud[unlist(biconnected_components_d$component_edges[c])] = c
+    g_ud_d.es["bc_e_ud"] = 0
+    for c in range(biconnected_components_d["no"]):
+        g_ud_d.es["bc_e_ud"][unlist(biconnected_components_d["component_edges"][c])] = c
 
     # Identify tree edges (biconnected components) for the undirected graph with only direct edges
-    g_ud_d.es["bc_te_ud = 0
-    for c in 1:biconnected_components_d$no:
-        g_ud_d.es["bc_te_ud[unlist(biconnected_components_d$tree_edges[c])] = c
+    g_ud_d.es["bc_te_ud"] = 0
+    for c in range(biconnected_components_d["no"]):
+        g_ud_d.es["bc_te_ud"][unlist(biconnected_components_d["tree_edges"][c])] = c
 
     biconnected_components_d_cd = biconnected.components(g_ud_d_cd)
     # Identify component edges (biconnected components) for the undirected graph with only direct edges shorter cost distance threshold
-    E(g_ud_d_cd)$bc_e_udc = 0
-    for c in 1:biconnected_components_d_cd$no:
-       E(g_ud_d_cd)$bc_e_udc[unlist(biconnected_components_d_cd$component_edges[c])] = c
+    g_ud_d_cd.es["bc_e_udc"] = 0
+    for c in range(biconnected_components_d_cd["no"]):
+        g_ud_d_cd.es["bc_e_udc"][
+            unlist(biconnected_components_d_cd["component_edges"][c])
+        ] = c
 
     # Identify tree edges (biconnected components) for the undirected graph with only direct edges shorter cost distance threshold
-    E(g_ud_d_cd)$bc_te_udc = 0
-    for c in 1:biconnected_components_d_cd$no:
-        E(g_ud_d_cd)$bc_te_udc[unlist(biconnected_components_d_cd$tree_edges[c])] = c
+    g_ud_d_cd.es["bc_te_udc"] = 0
+    for c in range(biconnected_components_d_cd["no"]):
+        g_ud_d_cd.es["bc_te_udc"][
+            unlist(biconnected_components_d_cd["tree_edges"][c])
+        ] = c
 
     ########################################################################
     ### Calculate edge betweenness
@@ -715,54 +800,79 @@ def main():
 
     ### Calculate edge betweenness on the entire undirected graph with only direct edges
 
-    path_lengths = shortest.paths(g_ud_d, v=V(g_ud_d), to=V(g_ud_d), weights=g_ud_d.es["cd_u)
+    path_lengths = shortest.paths(
+        g_ud_d, v=g_ud_d.vs, to=g_ud_d.vs, weights=g_ud_d.es["cd_u"]
+    )
 
     # weighted by cost distance
-    E(g_ud_d.es.["cd_eb_ud"] = edge.betweenness(g_ud_d, e=E(g_ud_d), directed=False, weights=g_ud_d.es["cd_u)
-    E(g_ud_d.es.["cd_leb_ud"] = hist(unlist(mclapply(mc.cores={0}, 1:length(V(g_ud_d)), function(x) get.shortest.paths(g_ud_d, x,  V(g_ud_d)[grep(True, path_lengths[x,]<(lnbh_cutoff*connectivity_cutoff))], weights=g_ud_d.es["cd_u, output=c("epath"))$epath)), breaks=0:(length(E(g_ud_d))), plot=False)$counts/2
+    g_ud_d.es["cd_eb_ud"] = edge.betweenness(
+        g_ud_d, e=g_ud_d.es, directed=False, weights=g_ud_d.es["cd_u"]
+    )
+    # g_ud_d.es.["cd_leb_ud"] = hist(unlist(mclapply(mc.cores={0}, 1:length(V(g_ud_d)), function(x) get.shortest.paths(g_ud_d, x,  V(g_ud_d)[grep(True, path_lengths[x,]<(lnbh_cutoff*connectivity_cutoff))], weights=g_ud_d.es["cd_u, output=c("epath"))$epath)), breaks=0:(length(E(g_ud_d))), plot=False)$counts/2
     # g_ud_d.es["cd_leb_ud = edge.betweenness.estimate(g_ud_d, e=E(g_ud_d), directed=False, lnbh_cutoff*connectivity_cutoff, weights=g_ud_d.es["cd_u)
 
     # weighted by maximum potential flow
-    E(g_ud_d.es.["mf_eb_ud"] = edge.betweenness(g_ud_d, e=E(g_ud_d), directed=False, weights=g_ud_d.es["mf_inv_u)
-    E(g_ud_d.es.["mf_leb_ud"] = hist(unlist(mclapply(mc.cores={0}, 1:length(V(g_ud_d)), function(x) get.shortest.paths(g_ud_d, x,  V(g_ud_d)[grep(True, path_lengths[x,]<(lnbh_cutoff*connectivity_cutoff))], weights=g_ud_d.es["mf_inv_u, output=c("epath"))$epath)), breaks=0:(length(E(g_ud_d))), plot=False)$counts/2
+    g_ud_d.es["mf_eb_ud"] = edge.betweenness(
+        g_ud_d, e=g_ud_d.es, directed=False, weights=g_ud_d.es["mf_inv_u"]
+    )
+    # g_ud_d.es.["mf_leb_ud"] = hist(unlist(mclapply(mc.cores={0}, 1:length(V(g_ud_d)), function(x) get.shortest.paths(g_ud_d, x,  V(g_ud_d)[grep(True, path_lengths[x,]<(lnbh_cutoff*connectivity_cutoff))], weights=g_ud_d.es["mf_inv_u, output=c("epath"))$epath)), breaks=0:(length(E(g_ud_d))), plot=False)$counts/2
 
     # weighted by competing potential flow
-    E(g_ud_d.es.["cf_eb_ud"] = edge.betweenness(g_ud_d, e=E(g_ud_d), directed=False, weights=g_ud_d.es["cf_inv_u)
-    E(g_ud_d.es.["cf_leb_ud"] = hist(unlist(mclapply(mc.cores={0}, 1:length(V(g_ud_d)), function(x) get.shortest.paths(g_ud_d, x,  V(g_ud_d)[grep(True, path_lengths[x,]<(lnbh_cutoff*connectivity_cutoff))], weights=g_ud_d.es["cf_inv_u, output=c("epath"))$epath)), breaks=0:(length(E(g_ud_d))), plot=False)$counts/2
+    g_ud_d.es["cf_eb_ud"] = edge.betweenness(
+        g_ud_d, e=g_ud_d.es, directed=False, weights=g_ud_d.es["cf_inv_u"]
+    )
+    # g_ud_d.es.["cf_leb_ud"] = hist(unlist(mclapply(mc.cores={0}, 1:length(V(g_ud_d)), function(x) get.shortest.paths(g_ud_d, x,  V(g_ud_d)[grep(True, path_lengths[x,]<(lnbh_cutoff*connectivity_cutoff))], weights=g_ud_d.es["cf_inv_u, output=c("epath"))$epath)), breaks=0:(length(E(g_ud_d))), plot=False)$counts/2
 
     ########################################################################
     ### Calculate edge betweenness on the entire undirected graph with only direct edges shorter cost distance threshold
 
-    path_lengths_cd = shortest.paths(g_ud_d_cd, v=V(g_ud_d_cd), to=V(g_ud_d_cd), weights=E(g_ud_d_cd)$cd_u)
+    path_lengths_cd = shortest.paths(
+        g_ud_d_cd, v=g_ud_d_cd.vs, to=g_ud_d_cd.vs, weights=g_ud_d_cd.es["cd_u"]
+    )
 
     # weighted by cost distance
-    g_ud_d_cd.es["cd_eb_udc"] = edge.betweenness(g_ud_d_cd, e=E(g_ud_d_cd), directed=False, weights=E(g_ud_d_cd)$cd_u)
-    g_ud_d_cd.es["cd_leb_udc"] = hist(unlist(mclapply(mc.cores={0}, 1:length(V(g_ud_d_cd)), function(x) get.shortest.paths(g_ud_d_cd, x,  V(g_ud_d_cd)[grep(True, path_lengths_cd[x,]<(lnbh_cutoff*connectivity_cutoff))], weights=E(g_ud_d_cd)$cd_u, output=c("epath"))$epath)), breaks=0:(length(E(g_ud_d_cd))), plot=False)$counts/2
-
+    g_ud_d_cd.es["cd_eb_udc"] = edge.betweenness(
+        g_ud_d_cd, e=g_ud_d_cd.es, directed=False, weights=g_ud_d_cd.es["cd_u"]
+    )
+    # g_ud_d_cd.es["cd_leb_udc"] = hist(unlist(mclapply(mc.cores={0}, 1:length(V(g_ud_d_cd)), function(x) get.shortest.paths(g_ud_d_cd, x,  V(g_ud_d_cd)[grep(True, path_lengths_cd[x,]<(lnbh_cutoff*connectivity_cutoff))], weights=E(g_ud_d_cd)$cd_u, output=c("epath"))$epath)), breaks=0:(length(E(g_ud_d_cd))), plot=False)$counts/2
 
     # weighted by maximum potential flow
-    E(g_ud_d_cd.es["mf_eb_udc"] = edge.betweenness(g_ud_d_cd, e=E(g_ud_d_cd), directed=False, weights=E(g_ud_d_cd)$mf_inv_u)
-    E(g_ud_d_cd.es["mf_leb_udc"] = hist(unlist(mclapply(mc.cores={0}, 1:length(V(g_ud_d_cd)), function(x) get.shortest.paths(g_ud_d_cd, x,  V(g_ud_d_cd)[grep(True, path_lengths_cd[x,]<(lnbh_cutoff*connectivity_cutoff))], weights=E(g_ud_d_cd)$mf_inv_u, output=c("epath"))$epath)), breaks=0:(length(E(g_ud_d_cd))), plot=False)$counts/2
+    g_ud_d_cd.es["mf_eb_udc"] = edge.betweenness(
+        g_ud_d_cd, e=g_ud_d_cd.es, directed=False, weights=g_ud_d_cd.es["mf_inv_u"]
+    )
+    # g_ud_d_cd.es["mf_leb_udc"] = hist(unlist(mclapply(mc.cores={0}, 1:length(V(g_ud_d_cd)), function(x) get.shortest.paths(g_ud_d_cd, x,  V(g_ud_d_cd)[grep(True, path_lengths_cd[x,]<(lnbh_cutoff*connectivity_cutoff))], weights=E(g_ud_d_cd)$mf_inv_u, output=c("epath"))$epath)), breaks=0:(length(E(g_ud_d_cd))), plot=False)$counts/2
 
     # weighted by competing potential flow
-    E(g_ud_d_cd.es["cf_eb_udc"] = edge.betweenness(g_ud_d_cd, e=E(g_ud_d_cd), directed=False, weights=E(g_ud_d_cd)$cf_inv_u)
-    E(g_ud_d_cd.es["cf_leb_udc"] = hist(unlist(mclapply(mc.cores={0}, 1:length(V(g_ud_d_cd)), function(x) get.shortest.paths(g_ud_d_cd, x,  V(g_ud_d_cd)[grep(True, path_lengths_cd[x,]<(lnbh_cutoff*connectivity_cutoff))], weights=E(g_ud_d_cd)$cf_inv_u, output=c("epath"))$epath)), breaks=0:(length(E(g_ud_d_cd))), plot=False)$counts/2
+    g_ud_d_cd.es["cf_eb_udc"] = edge.betweenness(
+        g_ud_d_cd, e=g_ud_d_cd.es, directed=False, weights=g_ud_d_cd.es["cf_inv_u"]
+    )
+    # g_ud_d_cd.es["cf_leb_udc"] = hist(unlist(mclapply(mc.cores={0}, 1:length(V(g_ud_d_cd)), function(x) get.shortest.paths(g_ud_d_cd, x,  V(g_ud_d_cd)[grep(True, path_lengths_cd[x,]<(lnbh_cutoff*connectivity_cutoff))], weights=E(g_ud_d_cd)$cf_inv_u, output=c("epath"))$epath)), breaks=0:(length(E(g_ud_d_cd))), plot=False)$counts/2
 
     if cl_thresh > 0:
         #########################################################################
         ####### Calculate edge betweenness community on the undirected graph
         ## weighted by competing potential flow
-        ebc = edge.betweenness.community(g_ud, weights=g_ud.es["cf_inv_u, directed=False, edge.betweenness=True, merges=True, bridges=True, modularity=True, membership=True)
+        ebc = edge.betweenness.community(
+            g_ud,
+            weights=g_ud.es["cf_inv_u"],
+            directed=False,
+            edge_betweenness=True,
+            merges=True,
+            bridges=True,
+            modularity=True,
+            membership=True,
+        )
 
-        E(g_ud.es["cf_iebc_v"] = ebc$edge.betweenness
+        g_ud.es["cf_iebc_v"] = ebc["edge.betweenness"]
         # cf_iebc_m = ebc$merges
-        E(g_ud.es["cf_iebc_r"] = ebc$removed.edges
-        E(g_ud.es["cf_iebc_b"] = unlist(mclapply(mc.cores={0}, 1:length(E(g_ud)), function(x) ifelse(x %in% ebc$bridges, 1, 0)))
-        E(g_ud.es["cf_iebc_c"] = crossing(ebc, g_ud)
+        g_ud.es["cf_iebc_r"] = ebc["removed.edges"]
+        # g_ud.es["cf_iebc_b"] = unlist(mclapply(mc.cores={0}, 1:length(E(g_ud)), function(x) ifelse(x %in% ebc$bridges, 1, 0)))
+        g_ud.es["cf_iebc_c"] = crossing(ebc, g_ud)
 
         # g.vs["cf_iebc_mo = ebc$modularity
-        V(g.vs["cf_iebc_me"] = ebc$membership
+        g.vs["cf_iebc_me"] = ebc.es["membership"]
 
+        """
         com_struct = as.character(cutat(ebc, cl_no_d))
         for i in (cl_no_d+1):(cl_no_d+cl_thresh):
             com_struct = paste(com_struct, cutat(ebc, i), sep=';')
@@ -774,6 +884,7 @@ def main():
         com_no_u = length(ebc)
         com_sizes_u = sizes(ebc)
         com_sizes_u_names = paste("Size of comumity ", names(sizes(ebc)), " (at maximum modularity score (from iebc))", sep="")
+        """
 
         # The following workaround was written when igraph did not support weights when calculating edge.betweenness.community
         # The results of this procedure differ significantly from the (new) edge.betweenness.community in igraph 0.6-2 with weights (above)
@@ -784,55 +895,59 @@ def main():
         ebc_rank = 0
         ebc_value = 0
         ebc_clust = 0
-        g_ud.vs["cf_ebc_cs = as.character(clusters(g_ud)$membership)
+        g_ud.vs["cf_ebc_cs"] = str(clusters(g_ud)["membership"])
         del_eb_g = g_ud
 
         for edge in del_eb_g.es:
             # Recalculate edge betweenness for the remaining edges
-            E(del_eb_g)$cf_eb_ud = edge.betweenness(del_eb_g, e=E(del_eb_g), directed=False, weights=E(del_eb_g)$cf_inv_u)
+            del_eb_g.es["cf_eb_ud"] = edge.betweenness(
+                del_eb_g, e=del_eb_g.es, directed=False, weights=del_eb_g.es["cf_inv_u"]
+            )
             # Identify edge with highest edge betweenness value
-            idx = sort.int(E(del_eb_g)$cf_eb_ud, decreasing=True, na.last=NA, index.return=True)$ix[1]
+            # idx = sort.int(del_eb_g.es["cf_eb_ud"], decreasing=True, na.last=NA, index.return=True).es["ix"][1]
             # Save edge betweenness value for this edge
-            ebc_con_id_u[n] = E(del_eb_g)$con_id_u[idx]
+            ebc_con_id_u[n] = del_eb_g.es["con_id_u"][idx]
             ebc_rank[n] = n
-            ebc_clust[n] = clusters(del_eb_g)$no
-            if((ebc_clust[n]-cl_no_d)<(cl_no_d+cl_thresh)) {{if(n>1) {{if(ebc_clust[n]>ebc_clust[n-1]) g_ud.vs["cf_ebc_cs = paste(g_ud.vs["cf_ebc_cs, clusters(del_eb_g)$membership, sep=";")}}}}
-            ebc_value[n] = E(del_eb_g)$cf_eb_ud[idx]
+            ebc_clust[n] = clusters(del_eb_g)["no"]
+            # if((ebc_clust[n]-cl_no_d)<(cl_no_d+cl_thresh)) {{if(n>1) {{if(ebc_clust[n]>ebc_clust[n-1]) g_ud.vs["cf_ebc_cs = paste(g_ud.vs["cf_ebc_cs, clusters(del_eb_g)$membership, sep=";")}}}}
+            ebc_value[n] = del_eb_g.es["cf_eb_ud"][idx]
             # Delete edge with highest edge betweenness value
-            del_eb_g = delete.edges(del_eb_g, E(del_eb_g)[idx])
-            n = n+1
+            del_eb_g = delete.edges(del_eb_g, del_eb_g.es[idx])
+            n += 1
 
-        g_ud.vs["cf_ebc_cl = unlist(mclapply(mc.cores={0}, 1:length(V(g_ud)), function(x) strsplit(g_ud.vs["cf_ebc_cs, ";")[[x]][(cl_no_d+cl_thresh)]))
+        # g_ud.vs["cf_ebc_cl"] = unlist(mclapply(mc.cores={0}, 1:length(V(g_ud)), function(x) strsplit(g_ud.vs["cf_ebc_cs, ";")[[x]][(cl_no_d+cl_thresh)]))
 
         # ebc_df = merge(data.frame(con_id=g.es["con_id, con_id_u=g.es["con_id_u), data.frame(con_id_u=ebc_con_id_u, ebc_rank=ebc_rank, ebc_clust=ebc_clust, ebc_value=ebc_value), all.x=True)
-        idx = sort.int(ebc_con_id_u, index.return=True)$ix
-        g_ud.es["cf_ebc_v = ebc_value[idx]
-        g_ud.es["cf_ebc_r = ebc_rank[idx]
-        g_ud.es["cf_ebc_c = ebc_clust[idx]
+        # idx = sort.int(ebc_con_id_u, index.return=True)["ix"]
+        g_ud.es["cf_ebc_v"] = ebc_value[idx]
+        g_ud.es["cf_ebc_r"] = ebc_rank[idx]
+        g_ud.es["cf_ebc_c"] = ebc_clust[idx]
 
-        g_ud.es["cf_ebc_vi = strftime(Sys.time()+g_ud.es["cf_ebc_r)
+        g_ud.es["cf_ebc_vi"] = strftime(Sys.time() + g_ud.es["cf_ebc_r"])
 
         #########################################################################
         ### Calculate community connectors (based on community structure from ebc)
-        com_membership = data.frame(patch_id=g_ud_d_cd.vs["patch_id, com=g_ud.vs["cf_ebc_cl)
+        """
+        com_membership = data.frame(patch_id=g_ud_d_cd.vs["patch_id"], com=g_ud.vs["cf_ebc_cl"])
         com_pc_pre = merge(merge(data.frame(id=1:length(E(g)), from_p=g.es["from_p, to_p=g.es["to_p), com_membership, by.x="from_p", by.y="patch_id"),  com_membership, by.x="to_p", by.y="patch_id")[order(merge(merge(data.frame(id=1:length(E(g)), from_p=g.es["from_p, to_p=g.es["to_p), com_membership, by.x="from_p", by.y="patch_id"),  com_membership, by.x="to_p", by.y="patch_id")$id) ,]
-        g.es["cf_ebc_cc = ifelse(com_pc_pre$com.x==com_pc_pre$com.y,0,1)
-
+        g.es["cf_ebc_cc"] = ifelse(com_pc_pre$com.x==com_pc_pre$com.y,0,1)
+        """
     else:
-        gscript.verbose("Skipping comunity algorithms...")
+        gscript.verbose(_("Skipping comunity algorithms..."))
 
     ########################################################################
     ###### Calculate cluster membership
-    g_ud_d.vs["cl_ud = clusters(g_ud_d)$membership
-    g_ud_d_cd.vs["cl_udc = clusters(g_ud_d_cd)$membership
+    g_ud_d.vs["cl_ud"] = clusters(g_ud_d)["membership"]
+    g_ud_d_cd.vs["cl_udc"] = clusters(g_ud_d_cd)["membership"]
 
     #########################################################################
     ### Calculate potential cluster connectors (based on cost distance threshold)
+    """
     cl_membership = data.frame(patch_id=g_ud_d_cd.vs["patch_id, cl=g_ud_d_cd.vs["cl_udc)
     cl_pc_pre = merge(merge(data.frame(id=1:length(E(g)), from_p=g.es["from_p, to_p=g.es["to_p), cl_membership, by.x="from_p", by.y="patch_id"),  cl_membership, by.x="to_p", by.y="patch_id")[order(merge(merge(data.frame(id=1:length(E(g)), from_p=g.es["from_p, to_p=g.es["to_p), cl_membership, by.x="from_p", by.y="patch_id"),  cl_membership, by.x="to_p", by.y="patch_id")$id) ,]
-    g.es["cl_pc = ifelse(cl_pc_pre$cl.x==cl_pc_pre$cl.y,0,1)
-
-    gscript.verbose("Starting analysis on vertex level...")
+    g.es["cl_pc"] = ifelse(cl_pc_pre$cl.x==cl_pc_pre$cl.y,0,1)
+    """
+    gscript.verbose(_("Starting analysis on vertex level..."))
 
     ########################################################################
     ### Analysis on vertex level
@@ -844,52 +959,64 @@ def main():
     # g.vs["deg_dir = as.integer(degree(g, v=V(g), mode=c("in")))
 
     # On the entire undirected graph
-    g_ud.vs["deg_u = degree(g_ud, v=V(g_ud))
+    g_ud.vs["deg_u"] = degree(g_ud, v=g_ud.vs)
 
     # On the undirected graph with edges shorter cost distance threshold
-    g_ud_cd.vs["deg_uc = degree(g_ud_cd, v=V(g_ud_cd))
+    g_ud_cd.vs["deg_uc"] = degree(g_ud_cd, v=g_ud_cd.vs)
 
     # On the undirected graph with only direct edges
-    g_ud_d.vs["deg_ud = degree(g_ud_d, v=V(g_ud_d))
+    g_ud_d.vs["deg_ud"] = degree(g_ud_d, v=g_ud_d.vs)
 
     # On the undirected graph with only direct edges shorter cost distance threshold
-    g_ud_d_cd.vs["deg_udc = degree(g_ud_d_cd, v=V(g_ud_d_cd))
+    g_ud_d_cd.vs["deg_udc"] = degree(g_ud_d_cd, v=g_ud_d_cd.vs)
 
     ########################################################################
     ###### Calculate closeness centrality
-    g_ud_d.vs["cd_cl_ud = closeness(g_ud_d, vids=V(g_ud_d), weights = g_ud_d.es["cd_u, normalized = False)
-    g_ud_d.vs["mf_cl_ud = closeness(g_ud_d, vids=V(g_ud_d), weights = g_ud_d.es["mf_inv_u, normalized = False)
-    g_ud_d.vs["cf_cl_ud = closeness(g_ud_d, vids=V(g_ud_d), weights = g_ud_d.es["cf_inv_u, normalized = False)
+    g_ud_d.vs["cd_cl_ud"] = closeness(
+        g_ud_d, vids=g_ud_d.vs, weights=g_ud_d.es["cd_u"], normalized=False
+    )
+    g_ud_d.vs["mf_cl_ud"] = closeness(
+        g_ud_d, vids=g_ud_d.vs, weights=g_ud_d.es["mf_inv_u"], normalized=False
+    )
+    g_ud_d.vs["cf_cl_ud"] = closeness(
+        g_ud_d, vids=g_ud_d.vs, weights=g_ud_d.es["cf_inv_u"], normalized=False
+    )
 
-    g_ud_d_cd.vs["cd_cl_udc = closeness(g_ud_d_cd, vids=V(g_ud_d_cd), weights = E(g_ud_d_cd)$cd_u, normalized = False)
-    g_ud_d_cd.vs["mf_cl_udc = closeness(g_ud_d_cd, vids=V(g_ud_d_cd), weights = E(g_ud_d_cd)$mf_inv_u, normalized = False)
-    g_ud_d_cd.vs["cf_cl_udc = closeness(g_ud_d_cd, vids=V(g_ud_d_cd), weights = E(g_ud_d_cd)$cf_inv_u, normalized = False)
+    g_ud_d_cd.vs["cd_cl_udc"] = closeness(
+        g_ud_d_cd, vids=g_ud_d_cd.vs, weights=g_ud_d_cd.es["cd_u"], normalized=False
+    )
+    g_ud_d_cd.vs["mf_cl_udc"] = closeness(
+        g_ud_d_cd, vids=g_ud_d_cd.vs, weights=g_ud_d_cd["mf_inv_u"], normalized=False
+    )
+    g_ud_d_cd.vs["cf_cl_udc"] = closeness(
+        g_ud_d_cd, vids=g_ud_d_cd.vs, weights=g_ud_d_cd["cf_inv_u"], normalized=False
+    )
 
     ########################################################################
     ###### Calculate biconnected components
 
     # On the undirected graph with only direct edges
     # Number of new clusters when a vertex is deleted
-    g_ud_d.vs["art_ud = unlist(mclapply(mc.cores={0}, 1:(length(V(g_ud_d))), function(x) ifelse((clusters(delete.vertices(g_ud_d, V(g_ud_d)[x]))$no-cl_no_d)<0,0,clusters(delete.vertices(g_ud_d, V(g_ud_d)[x]))$no-cl_no_d)))
+    # g_ud_d.vs["art_ud"] = unlist(mclapply(mc.cores={0}, 1:(length(V(g_ud_d))), function(x) ifelse((clusters(delete.vertices(g_ud_d, V(g_ud_d)[x]))$no-cl_no_d)<0,0,clusters(delete.vertices(g_ud_d, V(g_ud_d)[x]))$no-cl_no_d)))
     # Vertex is articulation point
-    g_ud_d.vs["art_p_ud = 0
-    g_ud_d.vs["art_p_ud[biconnected_components_d$articulation_points] = 1
+    g_ud_d.vs["art_p_ud"] = 0
+    g_ud_d.vs[art_p_ud[biconnected_components_d["articulation_points"]]] = 1
 
     # On the undirected graph with only direct edges shorter cost distance threshold
     # Number of new clusters when a vertex is deleted
-    g_ud_d_cd.vs["art_udc = unlist(mclapply(mc.cores={0}, 1:(length(V(g_ud_d_cd))), function(x) ifelse((clusters(delete.vertices(g_ud_d_cd, V(g_ud_d_cd)[x]))$no-cl_no_d_cd)<0,0,clusters(delete.vertices(g_ud_d_cd, V(g_ud_d_cd)[x]))$no-cl_no_d_cd)))
+    # g_ud_d_cd.vs["art_udc"] = unlist(mclapply(mc.cores={0}, 1:(length(V(g_ud_d_cd))), function(x) ifelse((clusters(delete.vertices(g_ud_d_cd, V(g_ud_d_cd)[x]))$no-cl_no_d_cd)<0,0,clusters(delete.vertices(g_ud_d_cd, V(g_ud_d_cd)[x]))$no-cl_no_d_cd)))
     # Vertex is articulation point
-    g_ud_d_cd.vs["art_p_udc = 0
-    g_ud_d_cd.vs["art_p_udc[biconnected_components_d_cd$articulation_points] = 1
+    g_ud_d_cd.vs["art_p_udc"] = 0
+    g_ud_d_cd.vs["art_p_udc"][biconnected_components_d_cd["articulation_points"]] = 1
 
     ########################################################################
     ###### Calculate eigenvector centrality
     # Calculate eigenvector for the entire directed graph
-
+    """
     # Calculate eigenvector centrality weighted by competing potential flow
     cf_evc_groups = groupedData(cf ~ 1 | to_p, data=e, FUN=sum)
     cf_evc = gsummary(cf_evc_groups, sum)
-    df_cf_evc_d = data.frame(patch_id=cf_evc$to_p, cf_evc_d=cf_evc$cf)
+    df_cf_evc_d = data.frame(patch_id=cf_evc["to_p"], cf_evc_d=cf_evc["cf"])
 
     # Calculate eigenvector centrality weighted by maximum potential flow
     mf_o_evc_groups = groupedData(mf_o ~ 1 | to_p, data=e, FUN=sum)
@@ -1005,12 +1132,13 @@ def main():
 
     # Write dataframe
     dbWriteTable(con, network_output, network_overview_measures, overwrite=overwrite, row.names=False)
+    """
 
     ###############################################################
     ##### Merge vertexmeasures in a dataframe and save it
 
     ### Create initial export data frame
-    vertex_export_df_ud = as.data.frame(1:length(V(g_ud)))
+    # vertex_export_df_ud = as.data.frame(1:length(V(g_ud)))
 
     #### Adjust vertex-attributes first
 
@@ -1019,14 +1147,15 @@ def main():
     vertex_attribute_list = list.vertex.attributes(g_ud)
     if len(vertex_attribute_list) > 0:
         for vl in vertex_attribute_list:
-            vertex_export_df_ud = as.data.frame(cbind(vertex_export_df_ud, get.vertex.attribute(g_ud, vl)))
+            # vertex_export_df_ud = as.data.frame(cbind(vertex_export_df_ud, get.vertex.attribute(g_ud, vl)))
+            continue
 
-        vertex_export_df_ud = vertex_export_df_ud[2:length(vertex_export_df_ud)]
-        names(vertex_export_df_ud) = vertex_attribute_list
+        vertex_export_df_ud = vertex_export_df_ud[2 : length(vertex_export_df_ud)]
+        vertex_export_df_ud["names"] = vertex_attribute_list
 
     ### Create initial export data frame
 
-    vertex_export_df_ud_d = as.data.frame(1:length(V(g_ud_d)))
+    # vertex_export_df_ud_d = as.data.frame(1:length(V(g_ud_d)))
 
     #### Adjust vertex-attributes first
     g_ud_d = remove.vertex.attribute(g_ud_d, "pop_proxy")
@@ -1034,41 +1163,44 @@ def main():
     vertex_attribute_list = list.vertex.attributes(g_ud_d)
     if length(vertex_attribute_list) > 0:
         for vl in vertex_attribute_list:
-            vertex_export_df_ud_d = as.data.frame(cbind(vertex_export_df_ud_d, get.vertex.attribute(g_ud_d, vl)))
+            # vertex_export_df_ud_d = as.data.frame(cbind(vertex_export_df_ud_d, get.vertex.attribute(g_ud_d, vl)))
+            continue
 
-        vertex_export_df_ud_d = vertex_export_df_ud_d[2:length(vertex_export_df_ud_d)]
-        names(vertex_export_df_ud_d) = vertex_attribute_list
+        # vertex_export_df_ud_d = vertex_export_df_ud_d[2:length(vertex_export_df_ud_d)]
+        vertex_export_df_ud_d["names"] = vertex_attribute_list
 
     ###Create initial export data frame
-    vertex_export_df_ud_d_cd = as.data.frame(1:length(V(g_ud_d_cd)))
+    # vertex_export_df_ud_d_cd = as.data.frame(1:length(V(g_ud_d_cd)))
 
     ####Adjust vertex-attributes first
     g_ud_d_cd = remove.vertex.attribute(g_ud_d_cd, "pop_proxy")
     vertex_attribute_list = list.vertex.attributes(g_ud_d_cd)
 
-    if len(vertex_attribute_list)>0:
+    if len(vertex_attribute_list) > 0:
         for vl in vertex_attribute_list:
-            vertex_export_df_ud_d_cd = as.data.frame(cbind(vertex_export_df_ud_d_cd, get.vertex.attribute(g_ud_d_cd, vl)))
+            # vertex_export_df_ud_d_cd = as.data.frame(cbind(vertex_export_df_ud_d_cd, get.vertex.attribute(g_ud_d_cd, vl)))
+            continue
 
-        vertex_export_df_ud_d_cd = vertex_export_df_ud_d_cd[2:length(vertex_export_df_ud_d_cd)]
-        names(vertex_export_df_ud_d_cd) = vertex_attribute_list
+        # vertex_export_df_ud_d_cd = vertex_export_df_ud_d_cd[2:length(vertex_export_df_ud_d_cd)]
+        vertex_export_df_ud_d_cd["names"] = vertex_attribute_list
 
     ###Create initial export data frame
-    vertex_export_df_d = as.data.frame(1:length(V(g)))
+    # vertex_export_df_d = as.data.frame(1:length(V(g)))
     vertex_attribute_list = list.vertex.attributes(g)
-    if len(vertex_attribute_list)>0:
+    if len(vertex_attribute_list) > 0:
         for vl in vertex_attribute_list:
-            vertex_export_df_d = as.data.frame(cbind(vertex_export_df_d, get.vertex.attribute(g, vl)))
+            # vertex_export_df_d = as.data.frame(cbind(vertex_export_df_d, get.vertex.attribute(g, vl)))
+            continue
 
-        vertex_export_df_d = vertex_export_df_d[2:length(vertex_export_df_d)]
-        names(vertex_export_df_d) = vertex_attribute_list
+        # vertex_export_df_d = vertex_export_df_d[2:length(vertex_export_df_d)]
+        vertex_export_df_d["names"] = vertex_attribute_list
 
-    vertex_export_df = merge(merge(merge(vertex_export_df_d, vertex_export_df_ud, by="patch_id"), vertex_export_df_ud_d, by="patch_id"), vertex_export_df_ud_d_cd, by="patch_id")
-    dbWriteTable(con, vertex_output, vertex_export_df, overwrite=overwrite, row.names=False)
+    # vertex_export_df = merge(merge(merge(vertex_export_df_d, vertex_export_df_ud, by="patch_id"), vertex_export_df_ud_d, by="patch_id"), vertex_export_df_ud_d_cd, by="patch_id")
+    # dbWriteTable(con, vertex_output, vertex_export_df, overwrite=overwrite, row.names=False)
 
     #########################################################################
     ###Create initial export data frame for the undirected graph
-    edge_export_df_ud = as.data.frame(g_ud.es["con_id_u)
+    # edge_export_df_ud = as.data.frame(g_ud.es["con_id_u)
 
     ####Adjust edge attributes for the undirected graphs first
     g_ud = remove.edge.attribute(g_ud, "con_id")
@@ -1080,7 +1212,7 @@ def main():
     g_ud = remove.edge.attribute(g_ud, "cost_distance")
     g_ud = remove.edge.attribute(g_ud, "cd_u")
     g_ud = remove.edge.attribute(g_ud, "distance_weight_e")
-    #g_ud = remove.edge.attribute(g_ud, "distance_weight_e_ud")
+    # g_ud = remove.edge.attribute(g_ud, "distance_weight_e_ud")
     g_ud = remove.edge.attribute(g_ud, "mf_o")
     g_ud = remove.edge.attribute(g_ud, "mf_i")
     g_ud = remove.edge.attribute(g_ud, "mf_o_inv")
@@ -1094,13 +1226,14 @@ def main():
 
     edge_attribute_list = list.edge.attributes(g_ud)
 
-    if length(edge_attribute_list )>0:
+    if length(edge_attribute_list) > 0:
         for el in edge_attribute_list:
-            edge_export_df_ud = as.data.frame(cbind(edge_export_df_ud, get.edge.attribute(g_ud, el)))
-        names(edge_export_df_ud) = append("con_id_u", edge_attribute_list)
+            # edge_export_df_ud = as.data.frame(cbind(edge_export_df_ud, get.edge.attribute(g_ud, el)))
+            continue
+        edge_export_df_ud["names"] = append("con_id_u", edge_attribute_list)
 
     ###Create initial export data frame for the undirected graph with only direct edges
-    edge_export_df_ud_d = as.data.frame(g_ud_d.es["con_id_u)
+    # edge_export_df_ud_d = as.data.frame(g_ud_d.es["con_id_u)
 
     ####Adjust edge attributes for the undirected graph with only direct edges
     g_ud_d = remove.edge.attribute(g_ud_d, "con_id")
@@ -1112,7 +1245,7 @@ def main():
     g_ud_d = remove.edge.attribute(g_ud_d, "cost_distance")
     g_ud_d = remove.edge.attribute(g_ud_d, "cd_u")
     g_ud_d = remove.edge.attribute(g_ud_d, "distance_weight_e")
-    #g_ud_d = remove.edge.attribute(g_ud_d, "distance_weight_e_ud")
+    # g_ud_d = remove.edge.attribute(g_ud_d, "distance_weight_e_ud")
     g_ud_d = remove.edge.attribute(g_ud_d, "mf_o")
     g_ud_d = remove.edge.attribute(g_ud_d, "mf_i")
     g_ud_d = remove.edge.attribute(g_ud_d, "mf_o_inv")
@@ -1130,14 +1263,15 @@ def main():
 
     edge_attribute_list = list.edge.attributes(g_ud_d)
 
-    if len(edge_attribute_list )>0:
+    if len(edge_attribute_list) > 0:
         for el in edge_attribute_list:
-            edge_export_df_ud_d = as.data.frame(cbind(edge_export_df_ud_d, get.edge.attribute(g_ud_d, el)))
+            # edge_export_df_ud_d = as.data.frame(cbind(edge_export_df_ud_d, get.edge.attribute(g_ud_d, el)))
+            pass
 
-        names(edge_export_df_ud_d) = append("con_id_u", edge_attribute_list)
+        edge_export_df_ud_d["names"] = append("con_id_u", edge_attribute_list)
 
     ###Create initial export data frame for the undirected graph with only direct edges
-    edge_export_df_ud_d_cd = as.data.frame(E(g_ud_d_cd)$con_id_u)
+    # edge_export_df_ud_d_cd = as.data.frame(E(g_ud_d_cd)$con_id_u)
 
     ####Adjust edge attributes for the undirected graph with only direct edges
     g_ud_d_cd = remove.edge.attribute(g_ud_d_cd, "con_id")
@@ -1149,7 +1283,7 @@ def main():
     g_ud_d_cd = remove.edge.attribute(g_ud_d_cd, "cost_distance")
     g_ud_d_cd = remove.edge.attribute(g_ud_d_cd, "cd_u")
     g_ud_d_cd = remove.edge.attribute(g_ud_d_cd, "distance_weight_e")
-    #g_ud_d_cd = remove.edge.attribute(g_ud_d_cd, "distance_weight_e_ud")
+    # g_ud_d_cd = remove.edge.attribute(g_ud_d_cd, "distance_weight_e_ud")
     g_ud_d_cd = remove.edge.attribute(g_ud_d_cd, "mf_o")
     g_ud_d_cd = remove.edge.attribute(g_ud_d_cd, "mf_i")
     g_ud_d_cd = remove.edge.attribute(g_ud_d_cd, "mf_o_inv")
@@ -1167,190 +1301,281 @@ def main():
 
     edge_attribute_list = list.edge.attributes(g_ud_d_cd)
 
-    if len(edge_attribute_list )>0:
+    if len(edge_attribute_list) > 0:
         for el in edge_attribute_list:
-            edge_export_df_ud_d_cd = as.data.frame(cbind(edge_export_df_ud_d_cd, get.edge.attribute(g_ud_d_cd, el)))
-        names(edge_export_df_ud_d_cd) = append("con_id_u", edge_attribute_list)
+            # edge_export_df_ud_d_cd = as.data.frame(cbind(edge_export_df_ud_d_cd, get.edge.attribute(g_ud_d_cd, el)))
+            pass
+        edge_export_df_ud_d_cd["names"] = append("con_id_u", edge_attribute_list)
 
     ###Create initial export data frame for the directed graph
-    edge_export_df = as.data.frame(1:length(E(g)))
+    # edge_export_df = as.data.frame(1:length(E(g)))
 
     ####Adjust edge attributes for the directed graph first
-    g.es["cd"] = g.es["cost_distance
-    g.es["distk"] = g.es["distance_weight_e
-    g.es["distk_u"] = g.es["distance_weight_e_ud
+    g.es["cd"] = g.es["cost_distance"]
+    g.es["distk"] = g.es["distance_weight_e"]
+    g.es["distk_u"] = g.es["distance_weight_e_ud"]
     g = remove.edge.attribute(g, "distance_weight_e")
     g = remove.edge.attribute(g, "distance_weight_e_ud")
     g = remove.edge.attribute(g, "cost_distance")
 
     edge_attribute_list = list.edge.attributes(g)
 
-    if len(edge_attribute_list )>0:
+    if len(edge_attribute_list) > 0:
         for el in edge_attribute_list:
-            edge_export_df = as.data.frame(cbind(edge_export_df, get.edge.attribute(g, el)))
+            # edge_export_df = as.data.frame(cbind(edge_export_df, get.edge.attribute(g, el)))
+            pass
 
-        names(edge_export_df) = append("id", edge_attribute_list)
+        edge_export_df["names"] = append("id", edge_attribute_list)
 
-    export_df_list =c("edge_export_df_ud", "edge_export_df_ud_d", "edge_export_df_ud_d_cd")
+    export_df_list = (
+        "edge_export_df_ud",
+        "edge_export_df_ud_d",
+        "edge_export_df_ud_d_cd",
+    )
     for df in export_df_list:
         if len(names(get(df))):
-            edge_export_df_final = merge(edge_export_df, get(df), all.x=True, by="con_id_u", suffixes=c("_x", "_y"))
+            edge_export_df_final = merge(
+                edge_export_df,
+                get(df),
+                all_x=True,
+                by="con_id_u",
+                suffixes=("_x", "_y"),
+            )
             edge_export_df = edge_export_df_final
 
-    dbWriteTable(con, edge_output, edge_export_df, overwrite=overwrite, row.names=False)
+    dbWriteTable(con, edge_output, edge_export_df, overwrite=overwrite, row_names=False)
     dbDisconnect(con)
 
-    if qml_directory != '':
+    if qml_directory != "":
         #########################
-        #CREATE .qml-files for edge measures visualistion in QGIS
+        # CREATE .qml-files for edge measures visualistion in QGIS
 
         no_quantile = 5
-        colortable = c('          <prop k="color" v="215,25,28,255"/>',
-                        '          <prop k="color" v="253,174,97,255"/>',
-                        '          <prop k="color" v="255,255,191,255"/>',
-                        '          <prop k="color" v="166,217,106,255"/>',
-                        '          <prop k="color" v="26,150,65,255"/>')
-        colortable_bin = c('          <prop k="color" v="0,0,0,255"/>')
-        for (attribute in names(edge_export_df_final)) {{
+        colortable = (
+            '          <prop k="color" v="215,25,28,255"/>',
+            '          <prop k="color" v="253,174,97,255"/>',
+            '          <prop k="color" v="255,255,191,255"/>',
+            '          <prop k="color" v="166,217,106,255"/>',
+            '          <prop k="color" v="26,150,65,255"/>',
+        )
+        colortable_bin = '          <prop k="color" v="0,0,0,255"/>'
+        for attribute in edge_export_df_final:
 
-        #Skip id and geom columns
-        if(attribute %in% c("id", "con_id", "con_id_u", "from_p", "to_p", "WKT", "cf_ebc_vi")) {{ next }}
+            # Skip id and geom columns
+            if attribute in (
+                "id",
+                "con_id",
+                "con_id_u",
+                "from_p",
+                "to_p",
+                "WKT",
+                "cf_ebc_vi",
+            ):
+                continue
 
-        st_mod = storage.mode(unlist(edge_export_df_final[grep(1, match(names(edge_export_df_final), attribute))]))
-        att_val = unlist(edge_export_df_final[grep(1, match(names(edge_export_df_final), attribute))])
+            st_mod = storage.mode(
+                unlist(
+                    edge_export_df_final[
+                        grep(1, match(names(edge_export_df_final), attribute))
+                    ]
+                )
+            )
+            att_val = unlist(
+                edge_export_df_final[
+                    grep(1, match(names(edge_export_df_final), attribute))
+                ]
+            )
 
-        #Write header
+        # Write header
         qml = "<!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>"
         qml += '<qgis version="1.8" minimumScale="0" maximumScale="1e+08" hasScaleBasedVisibilityFlag="0">'
-        qml += '  <transparencyLevelInt>255</transparencyLevelInt>'
+        qml += "  <transparencyLevelInt>255</transparencyLevelInt>"
 
-        if max(att_val, na.rm=True)-min(att_val, na.rm=True)==1:
+        if max(att_val, na_rm=True) - min(att_val, na_rm=True) == 1:
 
-            #More header
-            qml += paste('  <renderer-v2 attr="', attribute, '" symbollevels="0" type="categorizedSymbol">', sep=''))
+            # More header
+            qml += paste(
+                '  <renderer-v2 attr="',
+                attribute,
+                '" symbollevels="0" type="categorizedSymbol">',
+                sep="",
+            )
 
-            #Categories
-            qml += '    <categories>')
-            qml += '      <category symbol=\"0\" value=\"1\" label=\"\"/>')
-            qml += '    </categories>')
+            # Categories
+            qml += "    <categories>"
+            qml += '      <category symbol="0" value="1" label=""/>'
+            qml += "    </categories>"
 
-            #Write symbols
-            qml += '    <symbols>')
-            qml += '      <symbol outputUnit="MM" alpha="1" type="line" name="0">')
-            qml += '        <layer pass=\"0\" class=\"SimpleLine\" locked=\"0\">')
-            qml += '          <prop k=\"capstyle\" v=\"square\"/>')
-            qml += colortable_bin)
-            qml += '          <prop k=\"customdash\" v=\"5;2\"/>')
-            qml += '          <prop k=\"joinstyle\" v=\"bevel\"/>')
-            qml += '          <prop k=\"offset\" v=\"0\"/>')
-            qml += '          <prop k=\"penstyle\" v=\"solid\"/>')
-            qml += '          <prop k=\"use_custom_dash\" v=\"0\"/>')
-            qml += '          <prop k=\"width\" v=\"0.26\"/>')
-            qml += '        </layer>')
-            qml += '      </symbol>')
+            # Write symbols
+            qml += "    <symbols>"
+            qml += '      <symbol outputUnit="MM" alpha="1" type="line" name="0">'
+            qml += '        <layer pass="0" class="SimpleLine" locked="0">'
+            qml += '          <prop k="capstyle" v="square"/>'
+            qml += colortable_bin
+            qml += '          <prop k="customdash" v="5;2"/>'
+            qml += '          <prop k="joinstyle" v="bevel"/>'
+            qml += '          <prop k="offset" v="0"/>'
+            qml += '          <prop k="penstyle" v="solid"/>'
+            qml += '          <prop k="use_custom_dash" v="0"/>'
+            qml += '          <prop k="width" v="0.26"/>'
+            qml += "        </layer>"
+            qml += "      </symbol>"
         else:
 
-            attribute_quantile = quantile(edge_export_df_final[grep(1, match(names(edge_export_df_final), attribute))], probs=seq(0, 1, 1/5), na.rm=True, type=8)
+            # attribute_quantile = quantile(edge_export_df_final[grep(1, match(names(edge_export_df_final), attribute))], probs=seq(0, 1, 1/5), na.rm=True, type=8)
 
-            #Write more header
-            qml += paste('  <renderer-v2 attr="', attribute, '" symbollevels="1" type="graduatedSymbol">', sep=''))
+            # Write more header
+            qml += paste(
+                '  <renderer-v2 attr="',
+                attribute,
+                '" symbollevels="1" type="graduatedSymbol">',
+                sep="",
+            )
 
-            #Write ranges
-            ranges = character()
-            qml += '    <ranges>'
-            for quant in 1:no_quantile:
-                ranges = append(ranges, paste('      <range symbol="', (quant-1),
-                                               '" lower="', attribute_quantile[quant],
-                                               '" upper="', attribute_quantile[(quant+1)],
-                                               '" label="', round(attribute_quantile[quant], 4),
-                                               ' - ', round(attribute_quantile[(quant+1)], 4),
-                                               '">', sep='')
+            # Write ranges
+            ranges = str()
+            qml += "    <ranges>"
+            for quant in range(no_quantile):
+                ranges = append(
+                    ranges,
+                    paste(
+                        '      <range symbol="',
+                        (quant - 1),
+                        '" lower="',
+                        attribute_quantile[quant],
+                        '" upper="',
+                        attribute_quantile[(quant + 1)],
+                        '" label="',
+                        round(attribute_quantile[quant], 4),
+                        " - ",
+                        round(attribute_quantile[(quant + 1)], 4),
+                        '">',
+                        sep="",
+                    ),
+                )
 
         qml += ranges
-        qml += '    </ranges>'
+        qml += "    </ranges>"
 
-        #Write symbols
-        qml += '    <symbols>'
+        # Write symbols
+        qml += "    <symbols>"
 
-        for quant in 1:no_quantile:
-            qml += paste('      <symbol outputUnit="MM" alpha="1" type="line" name="',
-                                     (quant-1), '">',
-                                     sep='')
-            qml += paste('        <layer pass=\"',
-                                     (quant-1),
-                                     '\" class=\"SimpleLine\" locked=\"0\">',
-                                     sep='')
-            qml += '          <prop k=\"capstyle\" v=\"square\"/>'
+        for quant in range(no_quantile):
+            qml += paste(
+                '      <symbol outputUnit="MM" alpha="1" type="line" name="',
+                (quant - 1),
+                '">',
+                sep="",
+            )
+            qml += paste(
+                '        <layer pass="',
+                (quant - 1),
+                '" class="SimpleLine" locked="0">',
+                sep="",
+            )
+            qml += '          <prop k="capstyle" v="square"/>'
             qml += colortable[quant]
-            qml += '          <prop k=\"customdash\" v=\"5;2\"/>'
-            qml += '          <prop k=\"joinstyle\" v=\"bevel\"/>'
-            qml += '          <prop k=\"offset\" v=\"0\"/>'
-            qml += '          <prop k=\"penstyle\" v=\"solid\"/>'
-            qml += '          <prop k=\"use_custom_dash\" v=\"0\"/>'
-            qml += '          <prop k=\"width\" v=\"0.26\"/>'
-            qml += '        </layer>'
-            qml += '      </symbol>'
+            qml += '          <prop k="customdash" v="5;2"/>'
+            qml += '          <prop k="joinstyle" v="bevel"/>'
+            qml += '          <prop k="offset" v="0"/>'
+            qml += '          <prop k="penstyle" v="solid"/>'
+            qml += '          <prop k="use_custom_dash" v="0"/>'
+            qml += '          <prop k="width" v="0.26"/>'
+            qml += "        </layer>"
+            qml += "      </symbol>"
 
-        #Write Footer
-        qml += '    </symbols>'
-        qml += '    <source-symbol>'
-        qml += '      <symbol outputUnit=\"MM\" alpha=\"1\" type=\"line\" name=\"0\">'
-        qml += '        <layer pass=\"0\" class=\"SimpleLine\" locked=\"0\">'
-        qml += '          <prop k=\"capstyle\" v=\"square\"/>'
-        qml += '          <prop k=\"color\" v=\"161,238,135,255\"/>'
-        qml += '          <prop k=\"customdash\" v=\"5;2\"/>'
-        qml += '          <prop k=\"joinstyle\" v=\"bevel\"/>'
-        qml += '          <prop k=\"offset\" v=\"0\"/>'
-        qml += '          <prop k=\"penstyle\" v=\"solid\"/>'
-        qml += '          <prop k=\"use_custom_dash\" v=\"0\"/>'
-        qml += '          <prop k=\"width\" v=\"0.26\"/>'
-        qml += '        </layer>'
-        qml += '      </symbol>'
-        qml += '    </source-symbol>'
+        # Write Footer
+        qml += "    </symbols>"
+        qml += "    <source-symbol>"
+        qml += '      <symbol outputUnit="MM" alpha="1" type="line" name="0">'
+        qml += '        <layer pass="0" class="SimpleLine" locked="0">'
+        qml += '          <prop k="capstyle" v="square"/>'
+        qml += '          <prop k="color" v="161,238,135,255"/>'
+        qml += '          <prop k="customdash" v="5;2"/>'
+        qml += '          <prop k="joinstyle" v="bevel"/>'
+        qml += '          <prop k="offset" v="0"/>'
+        qml += '          <prop k="penstyle" v="solid"/>'
+        qml += '          <prop k="use_custom_dash" v="0"/>'
+        qml += '          <prop k="width" v="0.26"/>'
+        qml += "        </layer>"
+        qml += "      </symbol>"
+        qml += "    </source-symbol>"
         qml += '    <mode name="quantile"/>'
         qml += '    <rotation field=""/>'
         qml += '    <sizescale field=""/>'
-        qml += '  </renderer-v2>'
-        qml += '  <customproperties/>'
-        qml += paste('  <displayfield>"', attribute, '"</displayfield>', sep='')
-        qml += '  <attributeactions/>'
-        qml += '</qgis>'
+        qml += "  </renderer-v2>"
+        qml += "  <customproperties/>"
+        qml += '  <displayfield>"' + attribute + '"</displayfield>'
+        qml += "  <attributeactions/>"
+        qml += "</qgis>"
 
-        #Save qml-file
-        qml_output = paste(qml_directory, paste(paste("edge_measures_", attribute, sep=''), "qml", sep='.'), sep="/")
+        # Save qml-file
+        qml_output = paste(
+            qml_directory,
+            paste(paste("edge_measures_", attribute, sep=""), "qml", sep="."),
+            sep="/",
+        )
         con_qml = file(qml_output, open="wt")
-        write.table(qml, con_qml, append = False, quote = False, sep = " ", eol = "\n", na = "NA", dec = ".", row.names = False, col.names = False)
+        write.table(
+            qml,
+            con_qml,
+            append=False,
+            quote=False,
+            sep=" ",
+            eol="\n",
+            na="NA",
+            dec=".",
+            row_names=False,
+            col_names=False,
+        )
         close(con_qml)
 
-    grass.run_command('g.copy', quiet=True,
-                      vector='{},{}'.format(network_map,
-                                            edge_output))
-    grass.run_command('g.copy', quiet=True,
-                      vector='{},{}'.format(in_vertices,
-                                            vertex_output))
+    gscript.run_command(
+        "g.copy", quiet=True, vector="{},{}".format(network_map, edge_output)
+    )
+    gscript.run_command(
+        "g.copy", quiet=True, vector="{},{}".format(in_vertices, vertex_output)
+    )
 
     # Use v.db.connect instead of v.db.join (much faster)
 
-    grass.run_command('v.db.join', map=edge_output, column='cat',
-                      other_table=edge_output_tmp,
-                      other_column='con_id', quiet=True)
-    grass.run_command('v.db.join', map=vertex_output, column='cat',
-                      other_table=vertex_output_tmp,
-                      other_column='patch_id', quiet=True)
+    gscript.run_command(
+        "v.db.join",
+        map=edge_output,
+        column="cat",
+        other_table=edge_output_tmp,
+        other_column="con_id",
+        quiet=True,
+    )
+    gscript.run_command(
+        "v.db.join",
+        map=vertex_output,
+        column="cat",
+        other_table=vertex_output_tmp,
+        other_column="patch_id",
+        quiet=True,
+    )
 
-    update_history = '{}\n{}'.format(net_hist_str,
-                                     os.environ['CMDLINE'])
+    update_history = "{}\n{}".format(net_hist_str, os.environ["CMDLINE"])
 
-    grass.run_command('v.support', flags='h', map=vertex_output,
-                      person=os.environ['USER'],
-                      cmdhist=update_history)
+    gscript.run_command(
+        "v.support",
+        flags="h",
+        map=vertex_output,
+        person=os.environ["USER"],
+        cmdhist=update_history,
+    )
 
-    grass.run_command('v.support', flags='h', map=edge_output,
-                      person=os.environ['USER'],
-                      cmdhist=update_history)
+    gscript.run_command(
+        "v.support",
+        flags="h",
+        map=edge_output,
+        person=os.environ["USER"],
+        cmdhist=update_history,
+    )
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gscript.parser()
     atexit.register(cleanup)
     sys.exit(main())
