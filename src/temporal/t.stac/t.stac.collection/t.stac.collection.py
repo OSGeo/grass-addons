@@ -55,35 +55,6 @@
 # %end
 
 # %option
-# % key: user_name
-# % type: string
-# % required: no
-# % multiple: no
-# % description: Basic Auth username
-# % guisection: Authentication
-# %end
-
-# %option
-# % key: userpass
-# % label: Password
-# % type: string
-# % required: no
-# % multiple: no
-# % description: Basic Auth password
-# % guisection: Authentication
-# %end
-
-# %option
-# % key: token
-# % label: API Token
-# % type: string
-# % required: no
-# % multiple: no
-# % description: API Token
-# % guisection: Authentication
-# %end
-
-# %option
 # % key: format
 # % type: string
 # % required: no
@@ -133,15 +104,8 @@ def main():
     # Flag options
     format = options["format"]  # optional
 
-    # Authentication options
-    user_name = options["user_name"]  # optional
-    userpass = options["userpass"]  # optional
-    token = options["token"]  # optional
-
     # Set the request headers
-    req_headers = libstac.set_request_headers(
-        username=user_name, password=userpass, token=token
-    )
+    req_headers = libstac.set_request_headers()
 
     try:
         client = Client.open(client_url, headers=req_headers)

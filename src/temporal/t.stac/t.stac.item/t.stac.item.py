@@ -232,36 +232,6 @@
 # % guisection: Authentication
 # %end
 
-# %option
-# % key: userpass
-# % label: Password
-# % type: string
-# % required: no
-# % multiple: no
-# % description: Basic Auth password
-# % guisection: Authentication
-# %end
-
-# %option
-# % key: token
-# % label: API Token
-# % type: string
-# % required: no
-# % multiple: no
-# % description: API Token
-# % guisection: Authentication
-# %end
-
-# %option
-# % key: pc_subscription_key
-# % label: Planetary Computer Subscription Key
-# % type: string
-# % required: no
-# % multiple: no
-# % description: Your Planetary Computer Subscription Key (Ocp-Apim-Subscription-Key)
-# % guisection: Authentication
-# %end
-
 # %flag
 # % key: m
 # % description: Collection Search Item Summary
@@ -506,10 +476,10 @@ def main():
     collection_id = options["collection_id"]  # required
 
     # Authentication options
-    user_name = options["user_name"]  # optional
-    userpass = options["userpass"]  # optional
-    token = options["token"]  # optional
-    pc_subscription_key = options["pc_subscription_key"]  # optional
+    # user_name = options["user_name"]  # optional
+    # userpass = options["userpass"]  # optional
+    # token = options["token"]  # optional
+    # pc_subscription_key = options["pc_subscription_key"]  # optional
 
     # Request options
     limit = int(options["limit"])  # optional
@@ -553,16 +523,10 @@ def main():
 
     search_params = {}  # Store STAC API search parameters
     collection_items_assets = []
-    dowload_items_assests_queue = []
 
     try:
 
-        req_headers = libstac.set_request_headers(
-            username=user_name,
-            password=userpass,
-            token=token,
-            pc_subscription_key=pc_subscription_key,
-        )
+        req_headers = libstac.set_request_headers()
 
         client = Client.open(client_url, headers=req_headers)
     except APIError as e:
@@ -643,8 +607,6 @@ def main():
         libstac.create_vector_from_feature_collection(
             items_vector, items_search, limit, max_items
         )
-    # if item_metadata and format == "json":
-    #     return pprint(items_search.item_collection_as_dict())
 
     # Fetch items from all pages
     items = libstac.fetch_items_with_pagination(items_search, limit, max_items)
