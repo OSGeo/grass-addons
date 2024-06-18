@@ -18,7 +18,7 @@
 #############################################################################
 
 # %Module
-# % description: Eodag interface to install imagery datasets from various providers.
+# % description: Downloads imagery datasets from various providers through the EODAG API.
 # % keyword: imagery
 # % keyword: eodag
 # % keyword: sentinel
