@@ -99,11 +99,10 @@ from pprint import pprint
 import grass.script as gs
 from grass.pygrass.utils import get_lib_path
 
-try:
-    from pystac_client import Client
-    from pystac_client.exceptions import APIError
-except ImportError:
-    from pystac_client import Client
+
+from pystac_client import Client
+from pystac_client.exceptions import APIError
+from pystac_client.conformance import ConformanceClasses
 
 path = get_lib_path(modname="t.stac", libname="staclib")
 if path is None:
@@ -149,11 +148,16 @@ def main():
     except APIError as e:
         gs.fatal(_("APIError Error opening STAC API: {}".format(e)))
 
+    if libstac.conform_to_collections(client):
+        gs.verbose(_("Conforms to STAC Collections"))
+
     if collection_id:
         try:
             collection = client.get_collection(collection_id)
             if format == "json":
-                return pprint(collection.to_dict())
+                gs.message(_(f"collection: {collection}"))
+                return collection
+                # return pprint(collection.to_dict())
             elif format == "plain":
                 return libstac.print_summary(collection.to_dict())
         except APIError as e:

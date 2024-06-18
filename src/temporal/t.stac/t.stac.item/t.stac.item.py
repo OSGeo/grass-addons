@@ -320,6 +320,8 @@ import staclib as libstac
 
 def search_stac_api(client, **kwargs):
     """Search the STAC API"""
+    if libstac.conform_to_item_search(client):
+        gs.verbose(_("STAC API Conforms to Item Search"))
     try:
         search = client.search(**kwargs)
     except APIError as e:
@@ -617,6 +619,8 @@ def main():
     if filter_lang:
         search_params["filter_lang"] = filter_lang
 
+    if libstac.conform_to_query(client):
+        gs.verbose(_("STAC API Conforms to Item Search Query"))
     if query:
         if isinstance(query, str):
             query = json.loads(query)
@@ -669,12 +673,7 @@ def main():
                 pprint(asset)
 
     if download:
-        # Import items
-        # if asset_metadata:
-        # dowload_items_assests_queue = [
-        #     asset for asset in collection_items_assets
-        # ]
-        # libstac.print_list_attribute(dowload_items_assests_queue, "Download Queue:")
+        # Download and Import assets
         download_assets(
             assets=collection_items_assets,
             resample_method=method,

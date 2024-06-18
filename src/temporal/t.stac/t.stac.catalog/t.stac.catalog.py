@@ -99,17 +99,6 @@ if path is None:
 sys.path.append(path)
 
 
-def get_all_collections(client):
-    """Get a list of collections from STAC Client"""
-    try:
-        collections = client.get_collections()
-        collection_list = list(collections)
-        return [i.to_dict() for i in collection_list]
-
-    except APIError as e:
-        gs.fatal(_("Error getting collections: {}".format(e)))
-
-
 def main():
     """Main function"""
     import staclib as libstac
@@ -143,7 +132,7 @@ def main():
             gs.message(_(f"Client catalog_type: {client.catalog_type}"))
             gs.message(_(f"{'-' * 75}\n"))
             # Get all collections
-            collection_list = get_all_collections(client)
+            collection_list = libstac.get_all_collections(client)
             if not basic_info:
                 gs.message(_(f"Collections: {len(collection_list)}\n"))
                 for i in collection_list:

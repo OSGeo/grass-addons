@@ -6,6 +6,8 @@ import base64
 import tempfile
 import json
 import os
+from pystac_client.conformance import ConformanceClasses
+from pystac_client.exceptions import APIError
 
 
 def encode_credentials(username, password):
@@ -225,8 +227,18 @@ def _flatten_dict(d, parent_key="", sep="_"):
 
 def create_vector_from_feature_collection(vector, search, limit, max_items):
     """Create a vector from items in a Feature Collection"""
-    n_matched = search.matched()
-    pages = (n_matched // max_items) + 1
+    n_matched = None
+    try:
+        n_matched = search.matched()
+    except Exception:
+        gs.verbose(_("STAC API doesn't support matched() method."))
+
+    if n_matched:
+        pages = (n_matched // max_items) + 1
+    else:
+        # These requests tend to be very slow
+        pages = len(list(search.pages()))
+
     feature_collection = {"type": "FeatureCollection", "features": []}
 
     # Extract asset information for each item
@@ -267,9 +279,18 @@ def fetch_items_with_pagination(items_search, limit, max_items):
         list: A list of items fetched from the search result.
     """
     items = []
-    n_matched = items_search.matched()
-    pages = (n_matched // max_items) + 1
-    gs.message(_(f"Fetching {n_matched} items in {pages} pages."))
+    n_matched = None
+    try:
+        n_matched = items_search.matched()
+    except Exception:
+        gs.verbose(_("STAC API doesn't support matched() method."))
+
+    if n_matched:
+        pages = (n_matched // max_items) + 1
+    else:
+        # These requests tend to be very slow
+        pages = len(list(items_search.pages()))
+
     for page in range(pages):
         page_items = items_search.items()
         for item in page_items:
@@ -365,3 +386,76 @@ def create_metadata_vector(vector, metadata):
         new_vec.build()
 
     return metadata
+
+
+def get_all_collections(client):
+    """Get a list of collections from STAC Client"""
+    if conform_to_collections(client):
+        gs.verbose(_("Client conforms to Collection"))
+    try:
+        collections = client.get_collections()
+        collection_list = list(collections)
+        return [i.to_dict() for i in collection_list]
+
+    except APIError as e:
+        gs.fatal(_("Error getting collections: {}".format(e)))
+
+
+def _check_conformance(client, conformance_class, response="fatal"):
+    """Check if the STAC API conforms to the given conformance class"""
+    if not client._conforms_to(conformance_class):
+        if response == "fatal":
+            gs.fatal(_(f"STAC API does not conform to {conformance_class}"))
+            return False
+        elif response == "warning":
+            gs.warning(_(f"STAC API does not conform to {conformance_class}"))
+            return True
+        elif response == "verbose":
+            gs.verbose(_(f"STAC API does not conform to {conformance_class}"))
+            return True
+        elif response == "info":
+            gs.info(_(f"STAC API does not conform to {conformance_class}"))
+            return True
+        elif response == "message":
+            gs.message(_(f"STAC API does not conform to {conformance_class}"))
+            return True
+
+
+def conform_to_collections(client):
+    """Check if the STAC API conforms to the Collections conformance class"""
+    return _check_conformance(client, ConformanceClasses.COLLECTIONS)
+
+
+def conform_to_item_search(client):
+    """Check if the STAC API conforms to the Item Search conformance class"""
+    return _check_conformance(client, ConformanceClasses.ITEM_SEARCH)
+
+
+def conform_to_filter(client):
+    """Check if the STAC API conforms to the Filter conformance class"""
+    return _check_conformance(client, ConformanceClasses.FILTER)
+
+
+def conform_to_query(client):
+    """Check if the STAC API conforms to the Query conformance class"""
+    return _check_conformance(client, ConformanceClasses.QUERY)
+
+
+def conform_to_sort(client):
+    """Check if the STAC API conforms to the Sort conformance class"""
+    return _check_conformance(client, ConformanceClasses.SORT)
+
+
+def conform_to_fields(client):
+    """Check if the STAC API conforms to the Fields conformance class"""
+    return _check_conformance(client, ConformanceClasses.FIELDS)
+
+
+def conform_to_core(client):
+    """Check if the STAC API conforms to the Core conformance class"""
+    return _check_conformance(client, ConformanceClasses.CORE)
+
+
+def conform_to_context(client):
+    """Check if the STAC API conforms to the Context conformance class"""
+    return _check_conformance(client, ConformanceClasses.CONTEXT)
