@@ -223,15 +223,6 @@
 # % answer: input
 # %end
 
-# %option
-# % key: user_name
-# % type: string
-# % required: no
-# % multiple: no
-# % description: Basic Auth username
-# % guisection: Authentication
-# %end
-
 # %flag
 # % key: m
 # % description: Collection Search Item Summary
