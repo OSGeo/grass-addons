@@ -15,27 +15,39 @@ def encode_credentials(username, password):
     return base64.b64encode(f"{username}:{password}".encode("utf-8")).decode("utf-8")
 
 
-def set_request_headers(**kwargs):
+def set_request_headers(settings):
     """Set request headers"""
-    username = kwargs.get("username")
-    password = kwargs.get("password")
-    token = kwargs.get("token")
-    pl_subscription_key = kwargs.get("pc_subscription_key")
-
     req_headers = {}
+    username = password = None
+    if settings == "-":
+        # stdin
+        import getpass
 
-    if (username and password) and token:
-        raise ValueError("Provide either username and password or token, not both")
+        username = input(_("Insert username: "))
+        password = getpass.getpass(_("Insert password: "))
+
+    elif settings:
+        try:
+            with open(settings, "r") as fd:
+                lines = list(
+                    filter(None, (line.rstrip() for line in fd))
+                )  # non-blank lines only
+                if len(lines) < 2:
+                    gs.fatal(_("Invalid settings file"))
+                username = lines[0].strip()
+                password = lines[1].strip()
+
+        except IOError as e:
+            gs.fatal(_("Unable to open settings file: {}").format(e))
+    else:
+        return req_headers
+
+    if username is None or password is None:
+        gs.fatal(_("No user or password given"))
 
     if username and password:
         b64_userpass = encode_credentials(username, password)
         req_headers["Authorization"] = f"Basic {b64_userpass}"
-
-    if token:
-        req_headers["Authorization"] = f"Bearer {token}"
-
-    if pl_subscription_key:
-        req_headers["Ocp-Apim-Subscription-Key"] = pl_subscription_key
 
     return req_headers
 
@@ -239,6 +251,8 @@ def create_vector_from_feature_collection(vector, search, limit, max_items):
         # These requests tend to be very slow
         pages = len(list(search.pages()))
 
+    gs.message(_(f"Fetching items {n_matched} from {pages} pages."))
+
     feature_collection = {"type": "FeatureCollection", "features": []}
 
     # Extract asset information for each item
@@ -403,7 +417,7 @@ def get_all_collections(client):
 
 def _check_conformance(client, conformance_class, response="fatal"):
     """Check if the STAC API conforms to the given conformance class"""
-    if not client._conforms_to(conformance_class):
+    if not client.conforms_to(conformance_class):
         if response == "fatal":
             gs.fatal(_(f"STAC API does not conform to {conformance_class}"))
             return False

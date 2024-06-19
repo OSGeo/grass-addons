@@ -46,6 +46,14 @@
 # % guisection: Request
 # %end
 
+# %option G_OPT_F_INPUT
+# % key: settings
+# % label: Full path to settings file (user, password)
+# % description: '-' for standard input
+# % guisection: Request
+# % required: no
+# %end
+
 # %option
 # % key: max_items
 # % type: integer
@@ -245,7 +253,7 @@
 
 # %flag
 # % key: p
-# % description: Patch data
+# % description: (WIP) Patch data
 # %end
 
 # %option G_OPT_M_NPROCS
@@ -466,12 +474,6 @@ def main():
     client_url = options["url"]  # required
     collection_id = options["collection_id"]  # required
 
-    # Authentication options
-    # user_name = options["user_name"]  # optional
-    # userpass = options["userpass"]  # optional
-    # token = options["token"]  # optional
-    # pc_subscription_key = options["pc_subscription_key"]  # optional
-
     # Request options
     limit = int(options["limit"])  # optional
     max_items = int(options["max_items"])  # optional
@@ -517,7 +519,9 @@ def main():
 
     try:
 
-        req_headers = libstac.set_request_headers()
+        # Set the request headers
+        settings = options["settings"]
+        req_headers = libstac.set_request_headers(settings)
 
         client = Client.open(client_url, headers=req_headers)
     except APIError as e:

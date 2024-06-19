@@ -22,6 +22,7 @@
 from grass.gunittest.case import TestCase
 from grass.gunittest.main import test
 from grass.gunittest.gmodules import SimpleModule
+from pystac_client import Client
 import json
 from unittest.mock import patch
 
@@ -51,14 +52,16 @@ class TestStacCatalog(TestCase):
         """Remove temporary region"""
         cls.del_temp_region()
 
-    @patch("grass.gunittest.case.TestCase.assertModule")
-    def test_plain_output_json(self, MockAssertModule):
+    # @patch("grass.gunittest.case.TestCase.assertModule")
+    @patch("pystac_client.Client.open")
+    @patch("pystac_client.Client.get_collections")
+    def test_plain_output_json(self, MockClientOpen, MockClientGetCollections):
         """Test t.stac.catalog formated as json"""
-
-        mock_instance = MockAssertModule.return_value
-        mock_instance.outputs.stdout = self.json_format_expected
+        mock_instance = MockClientOpen.return_value
+        mock_instance.client = Client.from_dict(self.json_format_expected)
+        mock_client_collection = MockClientGetCollections.return_value
+        mock_client_collection.get_collections = mock_instance.get_collections()
         self.assertModule("t.stac.catalog", url=self.url, format="json")
-        # result = json.loads(module.outputs.stdout)
         self.assertEqual(mock_instance.outputs.stdout, self.json_format_expected)
 
     @patch("grass.gunittest.case.TestCase.assertModule")

@@ -31,11 +31,20 @@
 # %option
 # % key: request_method
 # % type: string
-# % required: yes
+# % required: no
 # % multiple: no
 # % options: GET,POST
 # % answer: POST
 # % description:  The HTTP method to use when making a request to the service.
+# % guisection: Request
+# %end
+
+# %option G_OPT_F_INPUT
+# % key: settings
+# % label: Full path to settings file (user, password)
+# % description: '-' for standard input
+# % guisection: Request
+# % required: no
 # %end
 
 # %option
@@ -64,6 +73,7 @@ from pystac_client import Client
 from pystac_client.exceptions import APIError
 import json
 
+
 path = get_lib_path(modname="t.stac", libname="staclib")
 if path is None:
     gs.fatal("Not able to find the stac library directory.")
@@ -82,7 +92,8 @@ def main():
     basic_info = flags["b"]  # optional
 
     # Set the request headers
-    req_headers = libstac.set_request_headers()
+    settings = options["settings"]
+    req_headers = libstac.set_request_headers(settings)
 
     try:
         client = Client.open(client_url, headers=req_headers)
@@ -95,6 +106,9 @@ def main():
             gs.message(_(f"Client Extra Fields: {client.extra_fields}"))
             gs.message(_(f"Client catalog_type: {client.catalog_type}"))
             gs.message(_(f"{'-' * 75}\n"))
+            libstac.print_list_attribute(client.get_conforms_to(), "Conforms To:")
+            gs.message(_(f"{'-' * 75}\n"))
+
             # Get all collections
             collection_list = libstac.get_all_collections(client)
             if not basic_info:

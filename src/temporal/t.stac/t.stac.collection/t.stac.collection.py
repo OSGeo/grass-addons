@@ -39,19 +39,20 @@
 # %option
 # % key: request_method
 # % type: string
-# % required: yes
+# % required: no
 # % multiple: no
 # % options: GET,POST
 # % answer: POST
 # % description:  The HTTP method to use when making a request to the service.
+# % guisection: Request
 # %end
 
-# %option G_OPT_V_OUTPUT
-# % key: vector_metadata
-# % label: Output vector metadata
+# %option G_OPT_F_INPUT
+# % key: settings
+# % label: Full path to settings file (user, password)
+# % description: '-' for standard input
+# % guisection: Request
 # % required: no
-# % description: Output collection metadata as vector polygons
-# % guisection: Optional
 # %end
 
 # %option
@@ -99,13 +100,14 @@ def main():
     # STAC Client options
     client_url = options["url"]  # required
     collection_id = options["collection_id"]  # optional
-    vector_metadata = options["vector_metadata"]  # optional
+    # vector_metadata = options["vector_metadata"]  # optional
 
     # Flag options
     format = options["format"]  # optional
 
     # Set the request headers
-    req_headers = libstac.set_request_headers()
+    settings = options["settings"]
+    req_headers = libstac.set_request_headers(settings)
 
     try:
         client = Client.open(client_url, headers=req_headers)
