@@ -169,12 +169,12 @@
 # % answer: json
 # %end
 
-# %option G_OPT_STRDS_OUTPUT
+# %option G_OPT_F_OUTPUT
 # % key: strds_output
-# % description: (WIP) Data will be imported as a space time dataset.
-# % required: no
-# % multiple: no
+# % label: STRDS Output
+# % description: Spatial Temporal Raster Dataset Registration File
 # % guisection: Output
+# % required: no
 # %end
 
 # %option
@@ -249,11 +249,6 @@
 # %flag
 # % key: d
 # % description: Dowload and import assets
-# %end
-
-# %flag
-# % key: p
-# % description: (WIP) Patch data
 # %end
 
 # %option G_OPT_M_NPROCS
@@ -365,7 +360,6 @@ def report_stac_item(item):
 
 
 def collect_item_assets(item, assset_keys, asset_roles):
-
     for key, asset in item.assets.items():
         asset_file_name = f"{item.collection_id}.{item.id}.{key}"
         # Check if the asset key is in the list of asset keys
@@ -382,6 +376,7 @@ def collect_item_assets(item, assset_keys, asset_roles):
         asset_dict["collection_id"] = item.collection_id
         asset_dict["item_id"] = item.id
         asset_dict["file_name"] = asset_file_name
+        asset_dict["datetime"] = item.properties["datetime"]
 
         return asset_dict
 
@@ -499,7 +494,6 @@ def main():
     item_metadata = flags["i"]
     asset_metadata = flags["a"]
     download = flags["d"]
-    patch = flags["p"]
 
     # Output options
     strds_output = options["strds_output"]  # optional
@@ -621,6 +615,10 @@ def main():
         asset = collect_item_assets(item, asset_keys, asset_roles=item_roles)
         if asset:
             collection_items_assets.append(asset)
+
+    if strds_output:
+        strds_output = os.path.abspath(strds_output)
+        libstac.register_strds_from_items(collection_items_assets, strds_output)
 
     gs.message(_(f"{len(collection_items_assets)} Assets Ready for download..."))
     if asset_metadata:

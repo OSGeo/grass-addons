@@ -330,6 +330,20 @@ def create_vector_from_feature_collection(vector, search, limit, max_items):
     gs.run_command("v.colors", map=vector, color="random", quiet=True)
 
 
+def register_strds_from_items(collection_items_assets, strds_output):
+    """Create registy for STRDS from collection items assets"""
+    with open(strds_output, "w") as f:
+        for asset in collection_items_assets:
+            semantic_label = asset.get("file_name").split(".")[-1]
+            created_date = asset.get("datetime")
+
+            if created_date:
+                f.write(f"{asset['file_name']}|{created_date}|{semantic_label}\n")
+            else:
+                gs.warning(_("No datetime found for item."))
+                f.write(f"{asset['file_name']}|{None}|{semantic_label}\n")
+
+
 def fetch_items_with_pagination(items_search, limit, max_items):
     """
     Fetches items from a search result with pagination.
