@@ -119,7 +119,7 @@ git switch -c new-feature
 
 You can use your favourite tools to change source code or other files
 in the local copy of the code. When making such changes, please follow the
-general [GRASS Programming Style Guide](https://github.com/OSGeo/grass/blob/main/doc/development/style_guide.md).
+general [GRASS GIS Programming Style Guide](https://github.com/OSGeo/grass/blob/main/doc/development/style_guide.md).
 
 ### Committing
 
