@@ -66,6 +66,11 @@
 # % answer: json
 # %end
 
+# %flag
+# % key: b
+# % description: Return basic information only
+# %end
+
 import sys
 from pprint import pprint
 import grass.script as gs
@@ -102,8 +107,11 @@ def main():
     collection_id = options["collection_id"]  # optional
     # vector_metadata = options["vector_metadata"]  # optional
 
-    # Flag options
+    # Output format
     format = options["format"]  # optional
+
+    # Flag options
+    basic_info = flags["b"]  # optional
 
     # Set the request headers
     settings = options["settings"]
@@ -120,12 +128,16 @@ def main():
     if collection_id:
         try:
             collection = client.get_collection(collection_id)
+            collection_dict = collection.to_dict()
             if format == "json":
                 gs.message(_(f"collection: {collection}"))
-                return collection
+                return collection_dict
                 # return pprint(collection.to_dict())
             elif format == "plain":
-                return libstac.print_summary(collection.to_dict())
+                if basic_info:
+                    return libstac.print_basic_collection_info(collection_dict)
+                return libstac.print_summary(collection_dict)
+
         except APIError as e:
             gs.fatal(_("APIError Error getting collection: {}".format(e)))
 

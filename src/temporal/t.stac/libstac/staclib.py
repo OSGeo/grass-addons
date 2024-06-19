@@ -90,6 +90,56 @@ def print_attribute(item, attribute, message=None):
         gs.info(_(f"{message} not found."))
 
 
+def print_basic_collection_info(collection):
+    """Print basic information about a collection"""
+    gs.message(_(f"Collection ID: {collection.get('id')}"))
+    gs.message(_(f"STAC Version: {collection.get('stac_version')}"))
+    gs.message(_(f"Description: {collection.get('description')}"))
+    gs.message(_(f"Extent: {collection.get('extent')}"))
+    gs.message(_(f"License: {collection.get('license')}"))
+    gs.message(_(f"Keywords: {collection.get('keywords')}"))
+    item_summary = collection.get("summaries")
+    gs.message(_(f"{'-' * 75}\n"))
+    if item_summary:
+        gs.message(_("Summary:"))
+        for k, v in item_summary.items():
+            gs.message(_(f"{k}: {v}"))
+        gs.message(_(f"{'-' * 75}\n"))
+    item_assets = collection.get("item_assets")
+    item_asset_keys = item_assets.keys()
+
+    gs.message(_(f"Item Assets Keys: {list(item_asset_keys)}"))
+    gs.message(_(f"{'-' * 75}\n"))
+    for key, value in item_assets.items():
+        gs.message(_(f"Asset: {value.get('title')}"))
+        gs.message(_(f"Key: {key}"))
+        gs.message(_(f"Roles: {value.get('roles')}"))
+        gs.message(_(f"Type: {value.get('type')}"))
+        gs.message(_(f"Description: {value.get('description')}"))
+        if value.get("gsd"):
+            gs.message(_(f"GSD: {value.get('gsd')}"))
+        if value.get("eo:bands"):
+            gs.message(_("EO Bands:"))
+            for band in value.get("eo:bands"):
+                gs.message(_(f"Band: {band}"))
+        if value.get("proj:shape"):
+            gs.message(_(f"Shape: {value.get('proj:shape')}"))
+        if value.get("proj:transform"):
+            gs.message(_(f"Asset Transform: {value.get('proj:transform')}"))
+        if value.get("proj:crs"):
+            gs.message(_(f"CRS: {value.get('proj:crs')}"))
+        if value.get("proj:geometry"):
+            gs.message(_(f"Geometry: {value.get('proj:geometry')}"))
+        if value.get("proj:extent"):
+            gs.message(_(f"Asset Extent: {value.get('proj:extent')}"))
+        if value.get("raster:bands"):
+            gs.message(_("Raster Bands:"))
+            for band in value.get("raster:bands"):
+                gs.message(_(f"Band: {band}"))
+
+        gs.message(_(f"{'-' * 75}\n"))
+
+
 def region_to_wgs84_decimal_degrees_bbox():
     """convert region bbox to wgs84 decimal degrees bbox"""
     region = gs.parse_command("g.region", quiet=True, flags="ubg")
