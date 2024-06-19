@@ -119,15 +119,24 @@ t.stac.catalog url=https://earth-search.aws.element84.com/v1/ format=plain
 <h3>Basic STAC catalog metadata</h3>
 <pre><code>
     t.stac.catalog url=https://earth-search.aws.element84.com/v1/ format=plain -b
-
-    # Output
-    Client Id: earth-search-aws
-    Client Title: Earth Search by Element 84
-    Client Description: A STAC API of public datasets on AWS
-    Client STAC Extensions: []
-    Client Extra Fields: {'type': 'Catalog', 'conformsTo': ['https://api.stacspec.org/v1.0.0/core', 'https://api.stacspec.org/v1.0.0/collections', 'https://api.stacspec.org/v1.0.0/ogcapi-features', 'https://api.stacspec.org/v1.0.0/item-search', 'https://api.stacspec.org/v1.0.0/ogcapi-features#fields', 'https://api.stacspec.org/v1.0.0/ogcapi-features#sort', 'https://api.stacspec.org/v1.0.0/ogcapi-features#query', 'https://api.stacspec.org/v1.0.0/item-search#fields', 'https://api.stacspec.org/v1.0.0/item-search#sort', 'https://api.stacspec.org/v1.0.0/item-search#query', 'https://api.stacspec.org/v0.3.0/aggregation', 'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core', 'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/oas30', 'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/geojson']}
-    Client catalog_type: ABSOLUTE_PUBLISHED
-    ---------------------------------------------------------------------------
+Client Id: earth-search-aws
+Client Title: Earth Search by Element 84
+Client Description: A STAC API of public datasets on AWS
+Client STAC Extensions: []
+Client Extra Fields: {'type': 'Catalog', 'conformsTo': ['https://api.stacspec.org/v1.0.0/core', 'https://api.stacspec.org/v1.0.0/collections', 'https://api.stacspec.org/v1.0.0/ogcapi-features', 'https://api.stacspec.org/v1.0.0/item-search', 'https://api.stacspec.org/v1.0.0/ogcapi-features#fields', 'https://api.stacspec.org/v1.0.0/ogcapi-features#sort', 'https://api.stacspec.org/v1.0.0/ogcapi-features#query', 'https://api.stacspec.org/v1.0.0/item-search#fields', 'https://api.stacspec.org/v1.0.0/item-search#sort', 'https://api.stacspec.org/v1.0.0/item-search#query', 'https://api.stacspec.org/v0.3.0/aggregation', 'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core', 'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/oas30', 'http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/geojson']}
+Client catalog_type: ABSOLUTE_PUBLISHED
+---------------------------------------------------------------------------
+Collections: 9
+---------------------------------------------------------------------------
+sentinel-2-pre-c1-l2a: Sentinel-2 Pre-Collection 1 Level-2A
+cop-dem-glo-30: Copernicus DEM GLO-30
+naip: NAIP: National Agriculture Imagery Program
+cop-dem-glo-90: Copernicus DEM GLO-90
+landsat-c2-l2: Landsat Collection 2 Level-2
+sentinel-2-l2a: Sentinel-2 Level-2A
+sentinel-2-l1c: Sentinel-2 Level-1C
+sentinel-2-c1-l2a: Sentinel-2 Collection 1 Level-2A
+sentinel-1-grd: Sentinel-1 Level-1C Ground Range Detected (GRD)
 
 </code></pre>
 
@@ -140,7 +149,7 @@ The <em>t.stac.catalog</em> tool supports authentication with the STAC API using
 
 <h3>Basic Authentication</h3>
 <pre><code>
-    t.stac.catalog url="https://earth-search.aws.element84.com/v1/" auth="user:password"
+    t.stac.catalog url="https://earth-search.aws.element84.com/v1/" settings="user:password"
 </code></pre>
 
 <h3>AWS</h3>
@@ -168,6 +177,10 @@ The <em>t.stac.catalog</em> tool supports authentication with the STAC API using
 
 Corey T. White<br>
 
-<h2>Sponsor</h2>
-OpenPlains Inc.<br>
+<h2>Sponsors</h2>
+<ul>
+    <li><a target="_blank" href="https://openplains.com">OpenPlains Inc.</a></li>
+    <li><a target="_blank" href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a></li>
+</ul>
+
 Center for Geospatial Analytics at North Carolina State University

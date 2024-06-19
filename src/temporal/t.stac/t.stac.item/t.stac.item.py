@@ -273,6 +273,7 @@ from pystac_client.exceptions import APIError
 from pystac import MediaType
 from concurrent.futures import ThreadPoolExecutor
 from tqdm import tqdm
+import tempfile
 
 import grass.script as gs
 from grass.pygrass.utils import get_lib_path

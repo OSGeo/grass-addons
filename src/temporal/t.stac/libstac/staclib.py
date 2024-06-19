@@ -269,7 +269,7 @@ def create_vector_from_feature_collection(vector, search, limit, max_items):
         feature_collection["features"].extend(temp_features["features"])
 
     json_str = json.dumps(feature_collection)
-    with tempfile.NamedTemporaryFile(delete=True, dir=".", suffix=".json") as fp:
+    with tempfile.NamedTemporaryFile(delete=True, suffix=".json") as fp:
         fp.write(bytes(json_str, "utf-8"))
         fp.truncate()
         gs.run_command(

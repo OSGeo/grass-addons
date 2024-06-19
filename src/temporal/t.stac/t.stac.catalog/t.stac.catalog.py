@@ -98,6 +98,10 @@ def main():
     try:
         client = Client.open(client_url, headers=req_headers)
 
+        # Check if the client conforms to the STAC Item Search
+        # This will exit the program if the client does not conform
+        libstac.conform_to_item_search(client)
+
         if format == "plain":
             gs.message(_(f"Client Id: {client.id}"))
             gs.message(_(f"Client Title: {client.title}"))
@@ -106,18 +110,26 @@ def main():
             gs.message(_(f"Client Extra Fields: {client.extra_fields}"))
             gs.message(_(f"Client catalog_type: {client.catalog_type}"))
             gs.message(_(f"{'-' * 75}\n"))
-            libstac.print_list_attribute(client.get_conforms_to(), "Conforms To:")
-            gs.message(_(f"{'-' * 75}\n"))
 
             # Get all collections
             collection_list = libstac.get_all_collections(client)
+            gs.message(_(f"Collections: {len(collection_list)}\n"))
+            gs.message(_(f"{'-' * 75}\n"))
+
+            if basic_info:
+                for i in collection_list:
+                    gs.message(_(f"{i.get('id')}: {i.get('title')}"))
+
             if not basic_info:
-                gs.message(_(f"Collections: {len(collection_list)}\n"))
                 for i in collection_list:
                     gs.message(_(f"{i.get('id')}: {i.get('title')}"))
                     gs.message(_(f"{i.get('description')}"))
                     gs.message(_(f"Extent: {i.get('extent')}"))
                     gs.message(_(f"License: {i.get('license')}"))
+                    gs.message(_(f"{'-' * 75}\n"))
+                    libstac.print_list_attribute(
+                        client.get_conforms_to(), "Conforms To:"
+                    )
                     gs.message(_(f"{'-' * 75}\n"))
                 return None
         else:
