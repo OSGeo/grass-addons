@@ -60,7 +60,6 @@
 # % description: The maximum number of items to return from the search, even if there are more matching results.
 # % multiple: no
 # % required: no
-# % answer: 10
 # % guisection: Request
 # %end
 
@@ -472,7 +471,7 @@ def main():
 
     # Request options
     limit = int(options["limit"])  # optional
-    max_items = int(options["max_items"])  # optional
+    max_items = int(options["max_items"]) if options["max_items"] else None  # optional
     request_method = options["request_method"]  # optional
 
     # Query options

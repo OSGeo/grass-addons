@@ -363,7 +363,7 @@ def fetch_items_with_pagination(items_search, limit, max_items):
     except Exception:
         gs.verbose(_("STAC API doesn't support matched() method."))
 
-    if n_matched:
+    if n_matched and max_items is not None:
         pages = (n_matched // max_items) + 1
     else:
         # These requests tend to be very slow
