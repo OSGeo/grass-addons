@@ -178,10 +178,11 @@ def create_dir(directory):
     try:
         Path(directory).mkdir(parents=True, exist_ok=True)
     except:
-        gs.fatal(_("Could not create directory {}").format(dir))
+        gs.fatal(_("Could not create directory {}").format(directory))
 
 
 def get_bb(proj):
+    gs.verbose("Generating AOI from bounding box...")
     if proj["+proj"] != "longlat":
         info = gs.parse_command("g.region", flags="uplg")
         return {
@@ -260,14 +261,16 @@ def search_by_ids(products_ids):
     gs.verbose("Searching for products...")
     search_result = []
     for query_id in products_ids:
-        gs.message(_("Searching for {}".format(query_id)))
+        gs.verbose(_("Searching for {}".format(query_id)))
         product, count = dag.search(id=query_id, provider=options["provider"] or None)
         if count > 1:
-            gs.message(_("Could not be uniquely identified."))
+            gs.warning(
+                _("{}\nCould not be uniquely identified. Skipping...".format(query_id))
+            )
         elif count == 0 or not product[0].properties["id"].startswith(query_id):
-            gs.message(_("Not found."))
+            gs.warning(_("{}\nNot Found. Skipping...".format(query_id)))
         else:
-            gs.message(_("Found."))
+            gs.verbose(_("Found."))
             search_result.append(product[0])
     return SearchResult(search_result)
 
@@ -292,25 +295,25 @@ def setup_environment_variables(env, **kwargs):
         if extract:
             gs.warning(
                 _(
-                    """Ignoring 'e' flag...
-                    'extract' option in the config file will be used.
-                    If you wish to use the 'e' flag, please specify a provider."""
+                    "Ignoring 'e' flag... \
+                    'extract' option in the config file will be used. \
+                    If you wish to use the 'e' flag, please specify a provider."
                 )
             )
         if delete_archive:
             gs.warning(
                 _(
-                    """Ignoring 'd' flag...
-                    'delete_archive' option in the config file will be used.
-                    If you wish to use the 'd' flag, please specify a provider."""
+                    "Ignoring 'd' flag... \
+                    'delete_archive' option in the config file will be used. \
+                    If you wish to use the 'd' flag, please specify a provider."
                 )
             )
         if output:
             gs.warning(
                 _(
-                    """Ignoring 'output' option...
-                    'output' option in the config file will be used.
-                    If you wish to use the 'output' option, please specify a provider."""
+                    "Ignoring 'output' option... \
+                    'output' option in the config file will be used. \
+                    If you wish to use the 'output' option, please specify a provider."
                 )
             )
 
@@ -373,12 +376,13 @@ def list_products(products):
 
 
 def filter_result(search_result, geometry, **kwargs):
+    prefilter_count = len(search_result)
     area_relation = kwargs["area_relation"]
     minimum_overlap = kwargs["minimum_overlap"]
     cloud_cover = kwargs["clouds"]
     if not geometry and kwargs["map"]:
         geometry = get_aoi(kwargs["map"])
-    gs.verbose(_("Applying filters..."))
+    gs.verbose(_("Filtering results..."))
 
     if geometry and area_relation or minimum_overlap:
         if area_relation == "Intersects":
@@ -400,6 +404,10 @@ def filter_result(search_result, geometry, **kwargs):
         search_result = search_result.filter_property(
             operator="le", cloudCover=int(cloud_cover)
         )
+    postfilter_count = len(search_result)
+    gs.verbose(
+        _("{} product(s) filtered out.".format(prefilter_count - postfilter_count))
+    )
 
     return search_result
 
@@ -468,7 +476,7 @@ def main():
 
         # HARDCODED VALUES FOR TESTING { "lonmin": 1.9, "latmin": 43.9, "lonmax": 2, "latmax": 45, }  # hardcoded for testing
         geometry = get_aoi(options["map"])
-        gs.verbose(_("Region: {}".format(geometry)))
+        gs.verbose(_("AOI: {}".format(geometry)))
 
         search_parameters = {
             "items_per_page": items_per_page,
