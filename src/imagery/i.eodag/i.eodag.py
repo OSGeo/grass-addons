@@ -44,12 +44,6 @@
 # % description: Delete the product archive after downloading, not considered unless provider is set
 # %end
 
-# %flag
-# % key: c
-# % label: Filter products to comply with other options e.g. area_relation, clouds, etc...
-# % description: Used if the user need to filter a list of IDs from the 'id' or 'file' options, otherwise filtering is done by default
-# %end
-
 # OPTIONS
 # %option
 # % key: dataset
@@ -117,7 +111,8 @@
 # %option
 # % key: provider
 # % type: string
-# % description: The provider to search within. Providers available by default: https://eodag.readthedocs.io/en/stable/getting_started_guide/providers.html
+# % label: The provider to search within.
+# % description: Providers available by default: https://eodag.readthedocs.io/en/stable/getting_started_guide/providers.html
 # % required: no
 # % guisection: Filter
 # %end
@@ -343,62 +338,35 @@ def no_fallback_search(search_parameters, provider):
         gs.fatal(_("Server error, please try again."))
 
 
-def create_products_dataframe(eo_products):
-    result_dict = {"id": [], "time": [], "cloudCover": [], "productType": []}
-    for product in eo_products:
-        for key in result_dict:
-            if key == "time":
-                if (
-                    "startTimeFromAscendingNode" in product.properties
-                    and product.properties["startTimeFromAscendingNode"] is not None
-                ):
+def list_products(products):
+    columns = ["id", "startTimeFromAscendingNode", "cloudCover", "productType"]
+    columns_NA = ["id_NA", "time_NA", "cloudCover_NA", "productType_NA"]
+    for product in products:
+        product_line = ""
+        for i, column in enumerate(columns):
+            product_attribute_value = product.properties[column]
+            if product_attribute_value is None:
+                product_attribute_value = columns_NA[i]
+            else:
+                if column == "cloudCover":
+                    product_attribute_value = f"{product_attribute_value:2.0f}%"
+                elif column == "startTimeFromAscendingNode":
                     try:
-                        result_dict["time"].append(
-                            normalize_time(
-                                product.properties["startTimeFromAscendingNode"]
-                            )
+                        product_attribute_value = normalize_time(
+                            product_attribute_value
                         )
                     except:
-                        result_dict["time"].append(
-                            product.properties["startTimeFromAscendingNode"]
-                        )
-                else:
-                    result_dict["time"].append(None)
-            else:
-                if key in product.properties and product.properties[key] is not None:
-                    result_dict[key].append(product.properties[key])
-                else:
-                    result_dict[key].append(None)
-
-    df = pd.DataFrame().from_dict(result_dict)
-    return df
-
-
-def list_products(products):
-    df = create_products_dataframe(products)
-    for idx in range(len(df)):
-        product_id = df["id"].iloc[idx]
-        if product_id is None:
-            time_string = "id_NA"
-        time_string = df["time"].iloc[idx]
-        if time_string is None:
-            time_string = "time_NA"
-        else:
-            time_string += "Z"
-        cloud_cover_string = df["cloudCover"].iloc[idx]
-        if cloud_cover_string is not None:
-            cloud_cover_string = f"{cloud_cover_string:2.0f}%"
-        else:
-            cloud_cover_string = "cloudCover_NA"
-        product_type_string = df["productType"].iloc[idx]
-        if product_type_string is None:
-            product_type_string = "productType_NA"
-        print(f"{product_id} {time_string} {cloud_cover_string} {product_type_string}")
+                        product_attribute_value = product.properties[column]
+                    product_attribute_value += "Z"
+            if i != 0:
+                product_line += " "
+            product_line += product_attribute_value
+        print(product_line)
 
 
 def filter_result(search_result, geometry, **kwargs):
     area_relation = kwargs["area_relation"]
-    cloud_cover = int(kwargs["clouds"])
+    cloud_cover = kwargs["clouds"]
     if not geometry and kwargs["map"]:
         geometry = get_aoi(kwargs["map"])
     gs.verbose(_("Applying filters..."))
@@ -417,7 +385,7 @@ def filter_result(search_result, geometry, **kwargs):
 
     if cloud_cover:
         search_result = search_result.filter_property(
-            operator="le", cloudCover=cloud_cover
+            operator="le", cloudCover=int(cloud_cover)
         )
 
     return search_result
@@ -486,10 +454,6 @@ def main():
         product_type = options["dataset"]
 
         # HARDCODED VALUES FOR TESTING { "lonmin": 1.9, "latmin": 43.9, "lonmax": 2, "latmax": 45, }  # hardcoded for testing
-        if not options["map"]:
-            gs.fatal(
-                "Please specify a region with the 'map' option.\nTo use the current computational region use 'map=-'"
-            )
         geometry = get_aoi(options["map"])
         gs.verbose(_("Region: {}".format(geometry)))
 
@@ -568,10 +532,6 @@ if __name__ == "__main__":
         from eodag.api.search_result import SearchResult
     except:
         gs.fatal(_("Cannot import eodag. Please intall the library first."))
-    try:
-        import pandas as pd
-    except:
-        gs.fatal(_("Cannot import pandas. Please intall the library first."))
 
     if "DEBUG" in gs.read_command("g.gisenv"):
         debug_level = int(gs.read_command("g.gisenv", get="DEBUG"))
