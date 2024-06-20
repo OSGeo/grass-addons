@@ -87,7 +87,14 @@
 # % type: string
 # % description: Spatial relation of footprint to AOI
 # % options: Intersects,Contains,IsWithin
-# % answer: Intersects
+# % required: no
+# % guisection: Region
+# %end
+
+# %option
+# % key: minimum_overlap
+# % type: integer
+# % description: Spatial percentage of AOI covered
 # % required: no
 # % guisection: Region
 # %end
@@ -150,6 +157,7 @@
 
 # %rules
 # % exclusive: file, id
+# % exclusive: minimum_overlap, area_relation
 # %end
 
 
@@ -329,7 +337,7 @@ def no_fallback_search(search_parameters, provider):
     search_result = dag.search_iter_page(**search_parameters)
 
     # TODO: Would it be useful if user could iterate through
-    # the pages manually, and look for the product themselves?
+    #       the pages manually, and look for the product themselves?
     try:
         # Merging the pages into one list with all products
         return SearchResult([j for i in search_result for j in i])
@@ -366,12 +374,13 @@ def list_products(products):
 
 def filter_result(search_result, geometry, **kwargs):
     area_relation = kwargs["area_relation"]
+    minimum_overlap = kwargs["minimum_overlap"]
     cloud_cover = kwargs["clouds"]
     if not geometry and kwargs["map"]:
         geometry = get_aoi(kwargs["map"])
     gs.verbose(_("Applying filters..."))
 
-    if geometry and area_relation:
+    if geometry and area_relation or minimum_overlap:
         if area_relation == "Intersects":
             search_result = search_result.filter_overlap(
                 geometry=geometry, intersects=True
@@ -382,6 +391,10 @@ def filter_result(search_result, geometry, **kwargs):
             )
         elif area_relation == "IsWithin":
             search_result = search_result.filter_overlap(geometry=geometry, within=True)
+        elif minimum_overlap:
+            search_result = search_result.filter_overlap(
+                geometry=geometry, minimum_overlap=int(minimum_overlap)
+            )
 
     if cloud_cover:
         search_result = search_result.filter_property(
