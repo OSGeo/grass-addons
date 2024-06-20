@@ -44,6 +44,12 @@
 # % description: Delete the product archive after downloading, not considered unless provider is set
 # %end
 
+# %flag
+# % key: c
+# % label: Filter products to comply with other options e.g. area_relation, clouds, etc...
+# % description: Used if the user need to filter a list of IDs from the 'id' or 'file' options, otherwise filtering is done by default
+# %end
+
 # OPTIONS
 # %option
 # % key: dataset
@@ -80,6 +86,16 @@
 # % key: config
 # % label: Full path to yaml config file
 # % required: no
+# %end
+
+# %option
+# % key: area_relation
+# % type: string
+# % description: Spatial relation of footprint to AOI
+# % options: Intersects,Contains,IsWithin
+# % answer: Intersects
+# % required: no
+# % guisection: Region
 # %end
 
 # %option
@@ -238,7 +254,7 @@ def get_aoi(vector=None):
 
 
 def search_by_ids(products_ids):
-    gs.message("Searching for products...")
+    gs.verbose("Searching for products...")
     search_result = []
     for query_id in products_ids:
         gs.message(_("Searching for {}".format(query_id)))
@@ -250,7 +266,7 @@ def search_by_ids(products_ids):
         else:
             gs.message(_("Found."))
             search_result.append(product[0])
-    return search_result
+    return SearchResult(search_result)
 
 
 def setup_environment_variables(env, **kwargs):
@@ -321,9 +337,9 @@ def no_fallback_search(search_parameters, provider):
     # the pages manually, and look for the product themselves?
     try:
         # Merging the pages into one list with all products
-        return [j for i in search_result for j in i]
+        return SearchResult([j for i in search_result for j in i])
     except Exception as e:
-        gs.verbose(e)
+        gs.debug(e)
         gs.fatal(_("Server error, please try again."))
 
 
@@ -380,24 +396,36 @@ def list_products(products):
         print(f"{product_id} {time_string} {cloud_cover_string} {product_type_string}")
 
 
-def filter_result(search_result):
-    # TODO: Use EODAG Crunch instead
-    filtered_result = []
-    for product in search_result:
-        valid = True
-        if (
-            options["clouds"]
-            and "cloudCover" in product.properties
-            and product.properties["cloudCover"] is not None
-            and product.properties["cloudCover"] > int(options["clouds"])
-        ):
-            valid = False
-        if valid:
-            filtered_result.append(product)
-    search_result = filtered_result
+def filter_result(search_result, geometry, **kwargs):
+    area_relation = kwargs["area_relation"]
+    cloud_cover = int(kwargs["clouds"])
+    if not geometry and kwargs["map"]:
+        geometry = get_aoi(kwargs["map"])
+    gs.verbose(_("Applying filters..."))
+
+    if geometry and area_relation:
+        if area_relation == "Intersects":
+            search_result = search_result.filter_overlap(
+                geometry=geometry, intersects=True
+            )
+        elif area_relation == "Contains":
+            search_result = search_result.filter_overlap(
+                geometry=geometry, contains=True
+            )
+        elif area_relation == "IsWithin":
+            search_result = search_result.filter_overlap(geometry=geometry, within=True)
+
+    if cloud_cover:
+        search_result = search_result.filter_property(
+            operator="le", cloudCover=cloud_cover
+        )
+
+    return search_result
 
 
 def sort_result(search_result):
+    gs.verbose(_("Sorting..."))
+
     sort_keys = options["sort"].split(",")
     sort_order = options["order"].split(",")
     sort_order.extend(["asc"] * max(0, len(sort_keys) - len(sort_order)))
@@ -417,6 +445,7 @@ def sort_result(search_result):
         return 0
 
     search_result.sort(key=cmp_to_key(products_compare))
+    return search_result
 
 
 def main():
@@ -429,7 +458,8 @@ def main():
         dag.set_preferred_provider(options["provider"])
 
     # Download by IDs
-    # Searching for additional products won't take place
+    # Searching for additional products will not take place
+
     ids_set = set()
     if options["id"]:
         # Parse IDs
@@ -437,7 +467,7 @@ def main():
     elif options["file"]:
         # Read IDs from file
         if Path(options["file"]).is_file():
-            gs.message(_('Reading file "{}"'.format(options["file"])))
+            gs.verbose(_('Reading file "{}"'.format(options["file"])))
             ids_set = set(
                 Path(options["file"]).read_text(encoding="UTF8").strip().split("\n")
             )
@@ -456,13 +486,17 @@ def main():
         product_type = options["dataset"]
 
         # HARDCODED VALUES FOR TESTING { "lonmin": 1.9, "latmin": 43.9, "lonmax": 2, "latmax": 45, }  # hardcoded for testing
+        if not options["map"]:
+            gs.fatal(
+                "Please specify a region with the 'map' option.\nTo use the current computational region use 'map=-'"
+            )
+        geometry = get_aoi(options["map"])
+        gs.verbose(_("Region: {}".format(geometry)))
 
-        geom = get_aoi(options["map"])
-        gs.verbose(_("Region used for searching: {}".format(geom)))
         search_parameters = {
             "items_per_page": items_per_page,
             "productType": product_type,
-            "geom": geom,
+            "geom": geometry,
         }
 
         if options["clouds"]:
@@ -504,9 +538,11 @@ def main():
         else:
             search_result = dag.search_all(**search_parameters)
 
-    gs.message(_("Applying filters..."))
-    filter_result(search_result)
-    sort_result(search_result)
+    search_result = filter_result(
+        search_result, geometry if "geometry" in locals() else None, **options
+    )
+    search_result = sort_result(search_result)
+
     gs.message(_("{} product(s) found.").format(len(search_result)))
     if flags["l"]:
         list_products(search_result)
