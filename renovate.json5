@@ -1,8 +1,7 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:base",
-    // Use config file from upstream GRASS repo
-    "github>OSGeo/grass:renovate.json5"
-  ]
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  extends: [
+    'config:recommended',
+    'github>OSGeo/grass:renovate.json5',
+  ],
 }
