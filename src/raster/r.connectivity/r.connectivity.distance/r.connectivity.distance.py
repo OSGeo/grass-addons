@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: UTF-8 -*-
+#!/usr/bin/env python3
 
 """
 MODULE:       r.connectivity.distance
@@ -64,8 +63,9 @@ PURPOSE:      Compute cost-distance between all polygons (patches) of an
                - an undirected connection file
 
 
-COPYRIGHT:    (C) 2018 by the Norwegian Institute for Nature Research
-                              (NINA)
+COPYRIGHT:    (C) 2018-2024 by the Norwegian Institute for Nature Research
+                  (NINA), Stefan Blumentrath and the GRASS GIS Development
+                  Team
 
 
               This program is free software under the GNU General Public
@@ -73,6 +73,7 @@ COPYRIGHT:    (C) 2018 by the Norwegian Institute for Nature Research
               GRASS for details.
 
 Todo:
+- Implement points mode
 - Write extra module for CONEFOR export?
     - probability output (exponent, base, weight option)
     - choose directed vs undirected output
@@ -227,6 +228,7 @@ Todo:
 import atexit
 import os
 import sys
+import shutil
 import subprocess
 
 from copy import deepcopy
@@ -234,7 +236,6 @@ from functools import partial
 from io import BytesIO
 from multiprocessing import Pool
 from pathlib import Path
-import shutil
 
 import numpy as np
 import grass.script as gs
