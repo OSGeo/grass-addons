@@ -1,8 +1,8 @@
 [tool.black]
+required-version = '24'
 line-length = 88
-target-version = ['py37', 'py38', 'py39', 'py310']
-include = '\.pyi?$'
-exclude = '''
+target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+extend-exclude = '''
 (
     # exclude directories in the root of the project
     /(
