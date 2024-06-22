@@ -385,11 +385,45 @@ def remove_duplicates(search_result):
     return SearchResult(filtered_result)
 
 
+def dates_to_iso_format():
+    end_date = options["end"]
+    if not options["end"]:
+        end_date = datetime.utcnow().isoformat()
+    try:
+        end_date = normalize_time(end_date)
+    except Exception as e:
+        gs.debug(e)
+        gs.fatal(_("Could not parse 'end' time."))
+
+    start_date = options["start"]
+    if not options["start"]:
+        delta_days = timedelta(60)
+        start_date = (datetime.fromisoformat(end_date) - delta_days).isoformat()
+    try:
+        start_date = normalize_time(start_date)
+    except Exception as e:
+        gs.debug(e)
+        gs.fatal(_("Could not parse 'start' time."))
+
+    if end_date < start_date:
+        gs.fatal(
+            _(
+                "End Date ({}) can not come before Start Date ({})".format(
+                    end_date, start_date
+                )
+            )
+        )
+    options["start"] = start_date
+    options["end"] = end_date
+
+
 def filter_result(search_result, geometry, **kwargs):
     prefilter_count = len(search_result)
     area_relation = kwargs["area_relation"]
     minimum_overlap = kwargs["minimum_overlap"]
     cloud_cover = kwargs["clouds"]
+    start_date = kwargs["start"]
+    end_date = kwargs["end"]
     if not geometry and kwargs["map"]:
         geometry = get_aoi(kwargs["map"])
     gs.verbose(_("Filtering results..."))
@@ -415,6 +449,7 @@ def filter_result(search_result, geometry, **kwargs):
             operator="le", cloudCover=int(cloud_cover)
         )
 
+    search_result = search_result.filter_date(start=start_date, end=end_date)
     search_result = remove_duplicates(search_result)
 
     postfilter_count = len(search_result)
@@ -459,6 +494,8 @@ def main():
     if options["provider"]:
         dag.set_preferred_provider(options["provider"])
 
+    dates_to_iso_format()
+
     # Download by IDs
     # Searching for additional products will not take place
     ids_set = set()
@@ -499,37 +536,8 @@ def main():
         if options["clouds"]:
             search_parameters["cloudCover"] = options["clouds"]
 
-        end_date = options["end"]
-        if not options["end"]:
-            end_date = datetime.utcnow().isoformat()
-        try:
-            end_date = normalize_time(end_date)
-        except Exception as e:
-            gs.debug(e)
-            gs.fatal(_("Could not parse 'end' time."))
-
-        start_date = options["start"]
-        if not options["start"]:
-            delta_days = timedelta(60)
-            start_date = (datetime.fromisoformat(end_date) - delta_days).isoformat()
-        try:
-            start_date = normalize_time(start_date)
-        except Exception as e:
-            gs.debug(e)
-            gs.fatal(_("Could not parse 'start' time."))
-
-        if end_date < start_date:
-            gs.fatal(
-                _(
-                    "End Date ({}) can not come before Start Date ({})".format(
-                        end_date, start_date
-                    )
-                )
-            )
-
-        # TODO: Requires further testing to make sure the isoformat works with all the providers
-        search_parameters["start"] = start_date
-        search_parameters["end"] = end_date
+        search_parameters["start"] = options["start"]
+        search_parameters["end"] = options["end"]
         if options["provider"]:
             search_result = no_fallback_search(search_parameters, options["provider"])
         else:
