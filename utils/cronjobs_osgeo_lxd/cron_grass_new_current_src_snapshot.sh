@@ -102,7 +102,7 @@ gzip $TARGETDIR/ChangeLog
 cp $PACKAGENAME\src_snapshot$DATE.tar.gz $TARGETDIR
 rm -f $PACKAGENAME\src_snapshot$DATE.tar.gz
 chmod a+r,g+w $TARGETDIR/* 2> /dev/null
-chgrp grass $TARGETDIR/*   2> /dev/null
+#chgrp grass $TARGETDIR/*   2> /dev/null
 
 # link for convenience:
 (cd $TARGETDIR ; rm -f $PACKAGENAME\src_snapshot_latest.tar.gz ; ln -s $PACKAGENAME\src_snapshot$DATE.tar.gz $PACKAGENAME\src_snapshot_latest.tar.gz)
