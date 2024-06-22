@@ -171,10 +171,10 @@ from functools import cmp_to_key
 
 import grass.script as gs
 from grass.pygrass.modules import Module
-from grass.exceptions import ParameterError
 
 
 def create_dir(directory):
+    """Creates directory."""
     try:
         Path(directory).mkdir(parents=True, exist_ok=True)
     except:
@@ -182,6 +182,17 @@ def create_dir(directory):
 
 
 def get_bb(proj):
+    """Gets the bouding box of a given projection information.
+
+    :param proj: Projection information from 'gs.parse_command("g.proj", flags="j")'
+    :type proj: str
+
+    :return: Bounding box of the current computational region.
+             Format:
+             {"lonmin" : lonmin, "latmin" : latmin,
+             "lonmax" : lonmax, "latmax" : latmax}
+    :rtype: dict
+    """
     gs.verbose("Generating AOI from bounding box...")
     if proj["+proj"] != "longlat":
         info = gs.parse_command("g.region", flags="uplg")
@@ -201,7 +212,18 @@ def get_bb(proj):
 
 
 def get_aoi(vector=None):
-    """Get the AOI for querying"""
+    """Parses and returns the AOI.
+
+    :param vector: Vector map (if None, returns the boudning box)
+    :type vector: str
+
+    :return: Either a WKT when using a Vector map, or a dict representing
+             the current computational region bounding box.
+             The latter format:
+             {"lonmin" : lonmin, "latmin" : latmin,
+             "lonmax" : lonmax, "latmax" : latmax}
+    :rtype: str | dict
+    """
 
     proj = gs.parse_command("g.proj", flags="j")
     if "+proj" not in proj:
@@ -258,6 +280,14 @@ def get_aoi(vector=None):
 
 
 def search_by_ids(products_ids):
+    """Searchs for products based on their ids.
+
+    :param products_ids: List of products' ids.
+    :type products_ids: list
+
+    :return: EO products found by searching with 'search_parameters'
+    :rtype: class:'eodag.api.search_result.SearchResult'
+    """
     gs.verbose("Searching for products...")
     search_result = []
     for query_id in products_ids:
@@ -276,6 +306,11 @@ def search_by_ids(products_ids):
 
 
 def setup_environment_variables(env, **kwargs):
+    """Sets up the eodag envirionmnets variables based on the provided options/flags.
+
+    :param kwargs: options/flags from gs.parser
+    :type kwargs: dict
+    """
     provider = kwargs.get("provider")
     extract = kwargs.get("e")
     delete_archive = kwargs.get("d")
@@ -319,13 +354,34 @@ def setup_environment_variables(env, **kwargs):
 
 
 def normalize_time(datetime_str: str):
+    """Unifies the different ISO formats into 'YYYY-MM-DDTHH:MM:SS'
+
+    :param datetime_str: Datetime in ISO format
+    :type datetime_str: str
+
+    :return: Datetime converted to 'YYYY-MM-DDTHH:MM:SS'
+    :rtype: str
+    """
     normalized_datetime = datetime.fromisoformat(datetime_str)
+    # Remove microseconds
     normalized_datetime = normalized_datetime.replace(microsecond=0)
+    # Remove timezone
     normalized_datetime = normalized_datetime.replace(tzinfo=None)
     return normalized_datetime.isoformat()
 
 
 def no_fallback_search(search_parameters, provider):
+    """Searches in a one and only one provider (fallback is disabled).
+
+    :param search_parameters: Queryables to which searching will take place
+    :type search_parameters: dict
+
+    :param provider: Provider to use for searching
+    :type provider: str
+
+    :return: EO products found by searching with 'search_parameters'
+    :rtype: class:'eodag.api.search_result.SearchResult'
+    """
     try:
         server_poke = dag.search(**search_parameters, provider=provider)
         if server_poke[1] == 0:
@@ -350,18 +406,26 @@ def no_fallback_search(search_parameters, provider):
 
 
 def list_products(products):
+    """Lists products on the Standard Output (Console) stream.
+
+    :param products: EO poducts to be listed
+    :type products: class:'eodag.api.search_result.SearchResult'
+    """
     columns = ["id", "startTimeFromAscendingNode", "cloudCover", "productType"]
     columns_NA = ["id_NA", "time_NA", "cloudCover_NA", "productType_NA"]
     for product in products:
         product_line = ""
         for i, column in enumerate(columns):
             product_attribute_value = product.properties[column]
+            # Display NA if not available
             if product_attribute_value is None:
                 product_attribute_value = columns_NA[i]
             else:
                 if column == "cloudCover":
+                    # Special formatting for cloud cover
                     product_attribute_value = f"{product_attribute_value:2.0f}%"
                 elif column == "startTimeFromAscendingNode":
+                    # Special formatting for datetime
                     try:
                         product_attribute_value = normalize_time(
                             product_attribute_value
@@ -375,6 +439,7 @@ def list_products(products):
 
 
 def remove_duplicates(search_result):
+    """Removes duplicated products, in case a provider returns a product multiple time."""
     filtered_result = []
     is_added = set()
     for product in search_result:
@@ -386,6 +451,12 @@ def remove_duplicates(search_result):
 
 
 def dates_to_iso_format():
+    """Converts the start/end options to the isoformat and save them in-place.
+
+    If options['end'] is not set, options['end'] will be today's date.
+    If options['start'] is not set, options['start'] will be 60 days prior
+    to options['end'] date.
+    """
     end_date = options["end"]
     if not options["end"]:
         end_date = datetime.utcnow().isoformat()
@@ -418,27 +489,50 @@ def dates_to_iso_format():
 
 
 def filter_result(search_result, geometry, **kwargs):
+    """Filter results to comply with options/flags.
+    :param search_result: Search Result to filter
+    :type search_result: class:'eodag.api.search_result.SearchResult'
+
+    :param geometry: WKT String with the geometry to filter with respect to
+    :type geometry: str, optional
+
+    :param kwargs: options/flags from gs.parser, with the crietria that will
+                    be used for filtering.
+    :type kwargs: dict
+
+    :returns: A collection of EO products matching the filters criteria.
+    :rtype: class:'eodag.api.search_result.SearchResult'
+    """
     prefilter_count = len(search_result)
     area_relation = kwargs["area_relation"]
     minimum_overlap = kwargs["minimum_overlap"]
     cloud_cover = kwargs["clouds"]
     start_date = kwargs["start"]
     end_date = kwargs["end"]
-    if not geometry and kwargs["map"]:
+
+    # If neither a geometry is provided as a paraemter
+    # nor a vector map is provided through "options",
+    # then none of the geometry filtering will take place.
+    if geometry is None and (area_relation is not None or minimum_overlap is not None):
         geometry = get_aoi(kwargs["map"])
     gs.verbose(_("Filtering results..."))
 
-    if geometry and area_relation or minimum_overlap:
+    if area_relation or minimum_overlap:
+        # Product's geometry intersects with AOI
         if area_relation == "Intersects":
             search_result = search_result.filter_overlap(
                 geometry=geometry, intersects=True
             )
+        # Product's geometry contains the AOI
         elif area_relation == "Contains":
+            print("HERE")
             search_result = search_result.filter_overlap(
                 geometry=geometry, contains=True
             )
+        # Product's geometry is within the AOI
         elif area_relation == "IsWithin":
             search_result = search_result.filter_overlap(geometry=geometry, within=True)
+        # Percentage of area covered from the AOI by the product's geometry
         elif minimum_overlap:
             search_result = search_result.filter_overlap(
                 geometry=geometry, minimum_overlap=int(minimum_overlap)
@@ -461,12 +555,25 @@ def filter_result(search_result, geometry, **kwargs):
 
 
 def sort_result(search_result):
+    """Sorts search results according to options['sort'] and options['order']
+
+    options['sort'] parameters and options['order'] are matched correspondingly.
+    If options['order'] parameters are not suffcient,
+    'asc' will be used by default.
+
+    :param search_result: EO products to be sorted
+    :type search_result: class'eodag.api.search_result.SearchResult'
+
+    :return: Sorted EO products
+    :rtype: class:'eodag.api.search_result.SearchResult'
+    """
     gs.verbose(_("Sorting..."))
 
     sort_keys = options["sort"].split(",")
     sort_order = options["order"].split(",")
     sort_order.extend(["asc"] * max(0, len(sort_keys) - len(sort_order)))
 
+    # Sort keys and sort orders are matched respectively
     def products_compare(first, second):
         for idx, sort_key in enumerate(sort_keys):
             if sort_key == "ingestiondate":
@@ -513,9 +620,12 @@ def main():
             gs.fatal(_('Could not open file "{}"'.format(options["file"])))
 
     if len(ids_set):
+        # Remove empty string
         ids_set.discard(str())
         gs.message(_("Found {} distinct ID(s).".format(len(ids_set))))
         gs.message("\n".join(ids_set))
+
+        # Search for products found from options["file"] or options["id"]
         search_result = search_by_ids(ids_set)
     else:
         items_per_page = 40
@@ -523,7 +633,7 @@ def main():
         # could be handled by catching exceptions when searching...
         product_type = options["dataset"]
 
-        # HARDCODED VALUES FOR TESTING { "lonmin": 1.9, "latmin": 43.9, "lonmax": 2, "latmax": 45, }  # hardcoded for testing
+        # HARDCODED VALUES FOR TESTING { "lonmin": 1.9, "latmin": 43.9, "lonmax": 2, "latmax": 45, }
         geometry = get_aoi(options["map"])
         gs.verbose(_("AOI: {}".format(geometry)))
 
@@ -564,7 +674,8 @@ if __name__ == "__main__":
     gs.warning(_("Experimental Version..."))
     gs.warning(
         _(
-            "This module is still under development, and its behaviour is not guaranteed to be reliable"
+            "This module is still under development, \
+            and its behaviour is not guaranteed to be reliable"
         )
     )
     options, flags = gs.parser()
@@ -576,6 +687,8 @@ if __name__ == "__main__":
     except:
         gs.fatal(_("Cannot import eodag. Please intall the library first."))
 
+    # To disable eodag logs, set DEBUG to 0
+    # with " g.gisenv 'set=DEBUG=0' "
     if "DEBUG" in gs.read_command("g.gisenv"):
         debug_level = int(gs.read_command("g.gisenv", get="DEBUG"))
         if not debug_level:
