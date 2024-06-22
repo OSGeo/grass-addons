@@ -63,24 +63,56 @@ Search and list the available Sentinel 2 scenes in the Copernicus Data Space Eco
 v.extract input=urbanarea where="NAME = 'Durham'" output=durham
 
 i.eodag -l start=2022-05-25 end=2022-06-01 \
-    map=durham dataset=S2_MSI_L2A provider=cop_dataspace
+    map=durham dataset=S2_MSI_L2A provider=cop_dataspace \
+    sort=cloudcover,ingestiondate order=asc,desc
 <pre></div>
 
-Download all available scenes in the tmp directory, with Cloud Coverage not exceeding 50%:
+Search and list the available Sentinel 2 scenes in the Copernicus Data Space
+Ecosystem, with at least 70% of the AOI covered:
+<div class="code"><pre>
+v.extract input=urbanarea where="NAME = 'Durham'" output=durham
+
+i.eodag -l start=2021-05-25 end=2022-06-01 \
+    dataset=S2_MSI_L2A provider=cop_dataspace \
+    clouds=50 map=durham minimum_overlap=70
+<pre></div>
+
+Sort results by <b>cloudcover</b>, and then by <b>ingestiondate</b> descendingly
+(latest to earliest):<br><em> Note that sorting with <b>cloudcover</b> use
+unrounded values, while they are rounded to the nearest intger when listing.</em>
+
+<div class="code"><pre>
+i.eodag -l start=2021-05-25 end=2022-06-01 \
+    dataset=S2_MSI_L2A provider=cop_dataspace \
+    sort=cloudcover,ingestiondate order=asc,desc
+<pre></div>
+
+Search for scenes with a list of IDs text file, and filter the results with the
+provided parameters:
+
+<div class="code"><pre>
+i.eodag -l file=ids_list.txt \
+  area_relation=Contains \
+  clouds=3
+<pre></div>
+
+Download all available scenes in the tmp directory, with Cloud Coverage not
+exceeding 50%:
 
 <div class="code"><pre>
 i.eodag start=2022-05-25 end=2022-06-01 \
     dataset=S2_MSI_L2A provider=cop_dataspace clouds=50
 <pre></div>
 
-Download only selected scenes from a text file of IDs, using the Copernicus Data Space Ecosystem as the provider:
+Download only selected scenes from a text file of IDs, using the Copernicus Data
+Space Ecosystem as the provider:
 
 <div class="code"><pre>
 i.eodag file=ids_list.txt provider=cop_dataspace
 <pre></div>
 
-Download and extract only selected scenes into the <em>download_here</em> directory,
-using a custom config file:
+Download and extract only selected scenes into the <em>download_here</em>
+directory, using a custom config file:
 
 <div class="code"><pre>
 i.eodag -e provider=cop_dataspace \
