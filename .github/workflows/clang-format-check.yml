@@ -25,7 +25,7 @@ jobs:
           inplace: True
       - name: Create and uploads code suggestions to apply
         id: diff
-        uses: ./.github/actions/create-upload-suggestions
+        uses: OSGeo/grass/.github/actions/create-upload-suggestions@main
         with:
           tool-name: clang-format
           # To keep repo's file structure in formatted changes artifact
