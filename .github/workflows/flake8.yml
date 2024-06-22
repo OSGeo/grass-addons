@@ -19,7 +19,7 @@ env:
   # renovate: datasource=python-version depName=python
   PYTHON_VERSION: "3.10"
   # renovate: datasource=pypi depName=flake8
-  FLAKE8_VERSION: "3.8.4"
+  FLAKE8_VERSION: "4.0.1"
 
 jobs:
   flake8:
