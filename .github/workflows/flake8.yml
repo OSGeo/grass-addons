@@ -15,23 +15,28 @@ concurrency:
     ${{ github.ref_protected != true }}
 
 permissions: {}
+env:
+  # renovate: datasource=python-version depName=python
+  PYTHON_VERSION: "3.10"
+  # renovate: datasource=pypi depName=flake8
+  FLAKE8_VERSION: "3.8.4"
 
 jobs:
   flake8:
     runs-on: ubuntu-22.04
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4 # v4.1.7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v5 # v5.1.0
         with:
-          python-version: "3.10"
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install
         run: |
-          python -m pip install --upgrade pip
-          pip install flake8==3.8.4
+          python -m pip install --upgrade pip pipx
+          pipx install flake8==${{ env.FLAKE8_VERSION }}
 
       - name: Run Flake8
         run: |
