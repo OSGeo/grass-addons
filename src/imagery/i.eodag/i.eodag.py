@@ -368,11 +368,21 @@ def list_products(products):
                         )
                     except:
                         product_attribute_value = product.properties[column]
-                    product_attribute_value += "Z"
             if i != 0:
                 product_line += " "
             product_line += product_attribute_value
         print(product_line)
+
+
+def remove_duplicates(search_result):
+    filtered_result = []
+    is_added = set()
+    for product in search_result:
+        if product.properties["id"] in is_added:
+            continue
+        is_added.add(product.properties["id"])
+        filtered_result.append(product)
+    return SearchResult(filtered_result)
 
 
 def filter_result(search_result, geometry, **kwargs):
@@ -404,6 +414,9 @@ def filter_result(search_result, geometry, **kwargs):
         search_result = search_result.filter_property(
             operator="le", cloudCover=int(cloud_cover)
         )
+
+    search_result = remove_duplicates(search_result)
+
     postfilter_count = len(search_result)
     gs.verbose(
         _("{} product(s) filtered out.".format(prefilter_count - postfilter_count))
@@ -448,7 +461,6 @@ def main():
 
     # Download by IDs
     # Searching for additional products will not take place
-
     ids_set = set()
     if options["id"]:
         # Parse IDs
@@ -529,6 +541,8 @@ def main():
     search_result = sort_result(search_result)
 
     gs.message(_("{} product(s) found.").format(len(search_result)))
+    # TODO: Add a way to search in multiple providers at once
+    #       Check for when this feature is added https://github.com/CS-SI/eodag/issues/163
     if flags["l"]:
         list_products(search_result)
     else:
