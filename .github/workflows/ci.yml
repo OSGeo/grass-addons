@@ -31,8 +31,8 @@ jobs:
         # only.
         include:
           - grass-version: main
-            python-version: "3.11"
-          - grass-version: releasebranch_8_3
+            python-version: "3.12"
+          - grass-version: releasebranch_8_4
             python-version: "3.10"
       fail-fast: false
 
