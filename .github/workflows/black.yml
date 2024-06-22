@@ -15,7 +15,7 @@ env:
   # renovate: datasource=python-version depName=python
   PYTHON_VERSION: "3.10"
   # renovate: datasource=pypi depName=black
-  BLACK_VERSION: "24.4.2"
+  BLACK_VERSION: "24.3.0"
 permissions: {}
 jobs:
   run-black:
