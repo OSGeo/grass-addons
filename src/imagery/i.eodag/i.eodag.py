@@ -525,7 +525,6 @@ def filter_result(search_result, geometry, **kwargs):
             )
         # Product's geometry contains the AOI
         elif area_relation == "Contains":
-            print("HERE")
             search_result = search_result.filter_overlap(
                 geometry=geometry, contains=True
             )
