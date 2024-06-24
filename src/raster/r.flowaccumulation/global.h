@@ -19,7 +19,7 @@ int gettimeofday(struct timeval *, struct timezone *);
 #define N               64
 #define NE              128
 
-#define INDEX(row, col) ((size_t)(row)*ncols + (col))
+#define INDEX(row, col) ((size_t)(row) * ncols + (col))
 #define DIR(row, col)   dir_map->cells.uint8[INDEX(row, col)]
 
 struct raster_map {

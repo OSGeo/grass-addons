@@ -819,10 +819,11 @@ int main(int argc, char *argv[])
                 /* ciclo row-col per calcolare G, P, I, T, Tb */
                 G_debug(2, "Calculating G, P, I, T, Tb");
 
-#pragma omp parallel for private(                                            \
-    row, col, G_x, G_y, I_x, I_y, P_x, P_y, T, vel, T_x, T_y, ddt, Uloop_a,  \
-    Uloop_b, Vloop_a, Vloop_b, vel_b, T_b, T_x_b, T_y_b, Uloop_dt, Vloop_dt, \
-    dt, CFL_u, CFL_v, CFL) shared(dn_loops, CFL_max)
+#pragma omp parallel for private(row, col, G_x, G_y, I_x, I_y, P_x, P_y, T, \
+                                     vel, T_x, T_y, ddt, Uloop_a, Uloop_b,  \
+                                     Vloop_a, Vloop_b, vel_b, T_b, T_x_b,   \
+                                     T_y_b, Uloop_dt, Vloop_dt, dt, CFL_u,  \
+                                     CFL_v, CFL) shared(dn_loops, CFL_max)
                 for (row = 1; row < nrows - 1; row++) {
                     if (exit == 1)
                         continue;
