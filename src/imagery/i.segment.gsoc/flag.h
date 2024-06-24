@@ -49,13 +49,13 @@ FLAG
 };
 
 #define FLAG_UNSET(flags, row, col) \
-    (flags)->array[(row)][(col) >> 3] &= ~(1 << ((col)&7))
+    (flags)->array[(row)][(col) >> 3] &= ~(1 << ((col) & 7))
 
 #define FLAG_SET(flags, row, col) \
-    (flags)->array[(row)][(col) >> 3] |= (1 << ((col)&7))
+    (flags)->array[(row)][(col) >> 3] |= (1 << ((col) & 7))
 
 #define FLAG_GET(flags, row, col) \
-    (flags)->array[(row)][(col) >> 3] & (1 << ((col)&7))
+    (flags)->array[(row)][(col) >> 3] & (1 << ((col) & 7))
 
 /* flag.c */
 int flag_clear_all(FLAG *);
