@@ -439,7 +439,7 @@ def list_products(products):
 
 
 def remove_duplicates(search_result):
-    """Removes duplicated products, in case a provider returns a product multiple time."""
+    """Removes duplicated products, in case a provider returns a product multiple times."""
     filtered_result = []
     is_added = set()
     for product in search_result:
