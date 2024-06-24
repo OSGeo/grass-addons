@@ -157,7 +157,6 @@
 
 # %rules
 # % exclusive: file, id
-# % exclusive: minimum_overlap, area_relation
 # %end
 
 
@@ -517,7 +516,7 @@ def filter_result(search_result, geometry, **kwargs):
         geometry = get_aoi(kwargs["map"])
     gs.verbose(_("Filtering results..."))
 
-    if area_relation or minimum_overlap:
+    if area_relation:
         # Product's geometry intersects with AOI
         if area_relation == "Intersects":
             search_result = search_result.filter_overlap(
@@ -531,11 +530,12 @@ def filter_result(search_result, geometry, **kwargs):
         # Product's geometry is within the AOI
         elif area_relation == "IsWithin":
             search_result = search_result.filter_overlap(geometry=geometry, within=True)
+
+    if minimum_overlap:
         # Percentage of area covered from the AOI by the product's geometry
-        elif minimum_overlap:
-            search_result = search_result.filter_overlap(
-                geometry=geometry, minimum_overlap=int(minimum_overlap)
-            )
+        search_result = search_result.filter_overlap(
+            geometry=geometry, minimum_overlap=int(minimum_overlap)
+        )
 
     if cloud_cover:
         search_result = search_result.filter_property(
