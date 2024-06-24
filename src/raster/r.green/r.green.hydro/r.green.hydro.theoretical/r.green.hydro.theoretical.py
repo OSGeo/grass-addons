@@ -206,7 +206,7 @@ def main(options, flags):
     except:
         msgr.error("Unexpected error")
 
-    msgr.message("\Init basins\n")
+    msgr.message("\\Init basins\n")
     # pdb.set_trace()
     #############################################################
     # core
