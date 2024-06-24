@@ -334,7 +334,7 @@ def get_aoi(vector=None):
         )
         # TODO: Might need to check for number of coordinates
         #       Make sure it won't cause problems like in:
-        #       https://github.com/OSGeo/grass-addons/blob/grass8/src/imagery/i.sentinel/i.sentinel.download/i.sentinel.download.py#L273
+        #       https://github.com/OSGeo/grass-addons/blob/8eb244b8f229d668ed5306ed9f18f3b0b08c1e45/src/imagery/i.sentinel/i.sentinel.download/i.sentinel.download.py#L273
         feature_type = geom[: geom.find("(")]
         coords = geom.replace(feature_type + "((", "").replace("))", "").split(", ")
         projected_geom = feature_type + "(("
