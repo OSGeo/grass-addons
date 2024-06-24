@@ -87,7 +87,7 @@ def hasColumn(tableDescription, column):
 
 
 def updateColumn(mapName, column, cats, values=None):
-    """!Updates column values for rows with a given categories.
+    r"""!Updates column values for rows with a given categories.
 
     \param cats categories to be updated
     or a list of tuples (cat, value) if \p values is None

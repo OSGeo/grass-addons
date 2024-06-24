@@ -824,7 +824,7 @@ def get_electro_length(opts):
 def get_gamma_NPV(r=0.03, y=30):
     """gamma it is a coefficient define as:
 
-        $\gamma = 1 - \frac{1 - (1+r)^y}{r(1+r)^y}$
+        $\\gamma = 1 - \frac{1 - (1+r)^y}{r(1+r)^y}$
 
     with $r$ as the interest rate (default value: 0.03) and
     $y$ as the number of years of the plant [years] (default value: 30);

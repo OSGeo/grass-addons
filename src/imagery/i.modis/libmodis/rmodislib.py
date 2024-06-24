@@ -21,7 +21,7 @@ import grass.script as grass
 
 
 def get_proj(flag="p"):
-    """!Returns the output from running "g.proj -p" plus towgs84 parameter
+    r"""!Returns the output from running "g.proj -p" plus towgs84 parameter
     (g.proj -d), as a dictionary. Example:
 
     \code

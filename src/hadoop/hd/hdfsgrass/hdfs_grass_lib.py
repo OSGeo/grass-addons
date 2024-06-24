@@ -27,7 +27,7 @@ from dagpype import stream_lines, to_stream, filt, nth
 
 
 class ConnectionManager:
-    """
+    r"""
     The handler of connection drivers for Hadoop/Hive.
     The module provides storing of connection profiles in
     default GRASS GIS database backend which is SQLite  by default.

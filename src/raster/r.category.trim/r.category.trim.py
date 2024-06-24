@@ -122,7 +122,7 @@ def main(options, flags):
     raster_color = [x for x in raster_color if "nv" not in x and "default" not in x]
     raster_color = [_f for _f in raster_color if _f]
     raster_color_cat = [z.split(" ")[0] for z in raster_color]
-    idx = [i for i, item in enumerate(raster_color_cat) if not re.search("\.", item)]
+    idx = [i for i, item in enumerate(raster_color_cat) if not re.search(r"\.", item)]
     raster_color_cat = [raster_color_cat[i] for i in idx]
     raster_color = [raster_color[i] for i in idx]
     raster_color_cat = list(map(int, raster_color_cat))

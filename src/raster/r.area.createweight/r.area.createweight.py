@@ -493,7 +493,7 @@ def natural_keys(text):
 
     import re  # Import needed library
 
-    return [atoi(c) for c in re.split("(\d+)", text)]  # Split string
+    return [atoi(c) for c in re.split(r"(\d+)", text)]  # Split string
 
 
 def join_2csv(file1, file2, separator=";", join="inner", fillempty="NULL"):

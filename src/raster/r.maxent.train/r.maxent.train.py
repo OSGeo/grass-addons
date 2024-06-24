@@ -826,7 +826,7 @@ def main(options, flags):
                 msg = "Combining samplePrediction layer and computing summary stats".format(
                     index + 1, len(prediction_csv)
                 )
-                colname = f"{nm}_{index+1}"
+                colname = f"{nm}_{index + 1}"
                 gs.run_command(
                     "v.db.addcolumn",
                     map=prediction_layers[0],
