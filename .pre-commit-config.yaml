@@ -40,7 +40,8 @@ repos:
     rev: v17.0.6
     hooks:
       - id: clang-format
-        types_or: [c, c++, javascript, json, objective-c]
+        exclude_types:
+          - jupyter
   - repo: https://github.com/adrienverge/yamllint.git
     rev: v1.35.1
     hooks:
