@@ -32,12 +32,15 @@ jobs:
           # list of files that changed across commits
           fetch-depth: 0
       - name: Lint code base
-        uses: super-linter/super-linter@v6.6.0
+        uses: super-linter/super-linter@88ea3923a7e1f89dd485d079f6eb5f5e8f937589 # v6.6.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # By default, super-linter expect all linters to have their config
+          # files inside .github/linters.
+          # Setting it to the root of the repo for easier configuration here.
+          LINTER_RULES_PATH: .
           FILTER_REGEX_EXCLUDE: ".*/src/gui/wxpython/wx.metadata/profiles/.*.xml"
           IGNORE_GENERATED_FILES: true
-          LOG_LEVEL: NOTICE
           VALIDATE_BASH: false # Until issues are fixed, some valid warnings
           VALIDATE_CHECKOV: false # Until issues are fixed
           VALIDATE_CLANG_FORMAT: false # Until we continue to check it in another workflow
@@ -57,3 +60,5 @@ jobs:
           VALIDATE_R: false
           VALIDATE_RENOVATE: false # Until configuration file is upgraded
           VALIDATE_SHELL_SHFMT: false # Until reformatting failing files
+          MARKDOWN_CONFIG_FILE: .markdownlint.yml
+          YAML_CONFIG_FILE: .yamllint
