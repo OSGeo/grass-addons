@@ -11,10 +11,10 @@ If there is a zonal map, the user can add a line and band to
 represent the median and interquartile range (IQR) of the input layer. Note
 that all values of the input raster (within the region's extent)
 are used to compute the median and IQR. If the zones of the zonal map
-cover only part of the region, the user can mask out the non-covered 
+cover only part of the region, the user can mask out the non-covered
 parts of the input map first by means of <em>r.mask</em>. That will result in
 an IQR and median representing the values that fall within the zones of
-the zonal map only. Otherwise, the computational region can be changed to 
+the zonal map only. Otherwise, the computational region can be changed to
 fit the extent of the zonal map with <em>g.region</em>
 
 <p>
@@ -25,7 +25,7 @@ output = outputfile.png, the plot will be saved as a PNG file.
 
 <p>
 The whiskers extend to the most extreme data point, which is no
-more than <b>range</b> &#10005; the IQR from the box. 
+more than <b>range</b> &#10005; the IQR from the box.
 By default, a <b>range</b> of 1.5 is used, but the user can change
 this. Note that range values need to be larger than 0.
 
@@ -64,11 +64,11 @@ The zonal map needs to be an integer map. If it is not, the function will exit
 with the error message, 'The zonal raster must be of type CELL (integer)'.
 
 <p>
-If the <b>c</b> flag is used, the <b>bxp_color</b> and <b>median_color</b> 
+If the <b>c</b> flag is used, the <b>bxp_color</b> and <b>median_color</b>
 are ignored, even if set by the user. The option to color boxploxs using the colors
 of the zonal raster categories (<b>c</b> flag) only works if the zonal
 map contains a color table. If it does not, the function exits with the
-error message that 'The zonal map does not have a color table'. If the user 
+error message that 'The zonal map does not have a color table'. If the user
 thinks there is a color table, run <em>r.colors.out</em> and check if the
 categories are integers. If not, that is the problem. If they are all
 integers, you probably have caught a bug.
@@ -83,7 +83,7 @@ simply changing the region and/or setting a (different) mask.
 <h3>Example 1</h3>
 Draw a boxplot of the values of the <i>elevation</i> layer from the
 <a href="https://grass.osgeo.org/download/data/">NC sample
-dataset</a>. Set the <b>h</b> flag to print the boxplot horizontally. 
+dataset</a>. Set the <b>h</b> flag to print the boxplot horizontally.
 Set the plot dimensions to 7 inch wide, 1 inch high.
 
 <div class="code"><pre>
