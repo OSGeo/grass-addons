@@ -16,6 +16,7 @@ For the sake of demonstrating the usage of the module, we use the following
 * `input_water_resources`
 * `input_protected_areas`
 
+<!-- markdownlint-disable no-inline-html -->
 <img alt="Area of interest" src="images/r_estimap_recreation_area_of_interest.png"
     width="190" />
 <img alt="Land suitability" src="images/r_estimap_recreation_land_suitability.png"
@@ -24,6 +25,7 @@ For the sake of demonstrating the usage of the module, we use the following
     width="190" />
 <img alt="Protected areas"  src="images/r_estimap_recreation_protected_areas.png"
     width="190" />
+<!-- markdownlint-enable no-inline-html -->
 
 The maps shown above are available to download, among other sample maps, at:
 <https://gitlab.com/natcapes/r.estimap.recreation.data>.
