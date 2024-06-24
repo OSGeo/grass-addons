@@ -280,7 +280,7 @@ def get_aoi(vector=None):
 
 
 def search_by_ids(products_ids):
-    """Searchs for products based on their ids.
+    """Search for products based on their ids.
 
     :param products_ids: List of products' ids.
     :type products_ids: list
