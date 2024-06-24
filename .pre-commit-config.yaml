@@ -45,5 +45,3 @@ repos:
     rev: v1.35.1
     hooks:
       - id: yamllint
-        args: [--format, parsable, --strict, -d,
-               '{extends: default, rules: {truthy: disable, line-length: {max: 120, allow-non-breakable-words: true}}}']
