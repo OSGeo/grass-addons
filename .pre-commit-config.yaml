@@ -24,9 +24,9 @@ repos:
                 .*\.svg$
           )
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.33.0
+    rev: v0.41.0
     hooks:
-      - id: markdownlint
+      - id: markdownlint-fix
   # Using this mirror lets us use mypyc-compiled black, which is about 2x faster
   - repo: https://github.com/psf/black-pre-commit-mirror
     rev: 24.4.2
@@ -42,8 +42,6 @@ repos:
       - id: clang-format
         types_or: [c, c++, javascript, json, objective-c]
   - repo: https://github.com/adrienverge/yamllint.git
-    rev: v1.29.0
+    rev: v1.35.1
     hooks:
       - id: yamllint
-        args: [--format, parsable, --strict, -d,
-               '{extends: default, rules: {truthy: disable, line-length: {max: 120, allow-non-breakable-words: true}}}']
