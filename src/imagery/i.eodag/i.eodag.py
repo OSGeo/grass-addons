@@ -415,7 +415,7 @@ def list_products(products):
     :param products: EO poducts to be listed
     :type products: class:'eodag.api.search_result.SearchResult'
     """
-    columns = ["id", "startTimeFromAscendingNode", "cloudCover", "productType"]
+    columns = ["id", "publicationDate", "cloudCover", "productType"]
     columns_NA = ["id_NA", "time_NA", "cloudCover_NA", "productType_NA"]
     for product in products:
         product_line = ""
@@ -428,7 +428,7 @@ def list_products(products):
                 if column == "cloudCover":
                     # Special formatting for cloud cover
                     product_attribute_value = f"{product_attribute_value:2.0f}%"
-                elif column == "startTimeFromAscendingNode":
+                elif column == "publicationDate":
                     # Special formatting for datetime
                     try:
                         product_attribute_value = normalize_time(
@@ -580,8 +580,8 @@ def sort_result(search_result):
     def products_compare(first, second):
         for sort_key in sort_keys:
             if sort_key == "ingestiondate":
-                first_value = first.properties["startTimeFromAscendingNode"]
-                second_value = second.properties["startTimeFromAscendingNode"]
+                first_value = first.properties["publicationDate"]
+                second_value = second.properties["publicationDate"]
             elif sort_key == "cloudcover":
                 first_value = first.properties["cloudCover"]
                 second_value = second.properties["cloudCover"]
