@@ -574,12 +574,11 @@ def sort_result(search_result):
     gs.verbose(_("Sorting..."))
 
     sort_keys = options["sort"].split(",")
-    sort_order = options["order"].split(",")
-    sort_order.extend(["asc"] * max(0, len(sort_keys) - len(sort_order)))
+    sort_order = options["order"]
 
     # Sort keys and sort orders are matched respectively
     def products_compare(first, second):
-        for idx, sort_key in enumerate(sort_keys):
+        for sort_key in sort_keys:
             if sort_key == "ingestiondate":
                 first_value = first.properties["startTimeFromAscendingNode"]
                 second_value = second.properties["startTimeFromAscendingNode"]
@@ -587,9 +586,9 @@ def sort_result(search_result):
                 first_value = first.properties["cloudCover"]
                 second_value = second.properties["cloudCover"]
             if first_value < second_value:
-                return 1 if sort_order[idx] == "desc" else -1
+                return 1 if sort_order == "desc" else -1
             elif first_value > second_value:
-                return -1 if sort_order[idx] == "desc" else 1
+                return -1 if sort_order == "desc" else 1
         return 0
 
     search_result.sort(key=cmp_to_key(products_compare))
