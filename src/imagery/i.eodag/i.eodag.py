@@ -163,9 +163,10 @@
 import sys
 import os
 import getpass
+import pytz
 from pathlib import Path
 from subprocess import PIPE
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from functools import cmp_to_key
 
 import grass.script as gs
@@ -362,9 +363,13 @@ def normalize_time(datetime_str: str):
     :rtype: str
     """
     normalized_datetime = datetime.fromisoformat(datetime_str)
+    if normalized_datetime.tzinfo is None:
+        normalized_datetime = normalized_datetime.replace(tzinfo=timezone.utc)
     # Remove microseconds
     normalized_datetime = normalized_datetime.replace(microsecond=0)
-    # Remove timezone
+    # Convert time to UTC
+    normalized_datetime = normalized_datetime.astimezone(pytz.utc)
+    # Remove timezone info
     normalized_datetime = normalized_datetime.replace(tzinfo=None)
     return normalized_datetime.isoformat()
 
@@ -458,7 +463,7 @@ def dates_to_iso_format():
     """
     end_date = options["end"]
     if not options["end"]:
-        end_date = datetime.utcnow().isoformat()
+        end_date = datetime.now(timezone.utc).isoformat()
     try:
         end_date = normalize_time(end_date)
     except Exception as e:
