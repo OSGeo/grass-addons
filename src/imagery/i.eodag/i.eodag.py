@@ -31,7 +31,12 @@
 # FLAGS
 # %flag
 # % key: l
-# % description: List the search result without downloading
+# % description: List filtered products and exit
+# %end
+
+# %flag
+# % key: j
+# % description: Print extended metadata information in JSON style
 # %end
 
 # %flag
@@ -155,8 +160,17 @@
 # % guisection: Filter
 # %end
 
+# %option
+# % key: save
+# % type: string
+# % description: File name to save in (the format will be adjusted according to the file extension)
+# % label: Supported files extensions [geojson: Rreadable by i.eodag | json: Beautified]
+# % guisection: Filter
+# %end
+
 # %rules
 # % exclusive: file, id
+# % exclusive: -l, -j
 # %end
 
 
@@ -164,6 +178,7 @@ import sys
 import os
 import getpass
 import pytz
+import json
 from pathlib import Path
 from subprocess import PIPE
 from datetime import datetime, timedelta, timezone
@@ -410,7 +425,7 @@ def no_fallback_search(search_parameters, provider):
 
 
 def list_products(products):
-    """Lists products on the Standard Output (Console) stream.
+    """Lists products on the Standard Output stream (shell).
 
     :param products: EO poducts to be listed
     :type products: class:'eodag.api.search_result.SearchResult'
@@ -440,6 +455,15 @@ def list_products(products):
                 product_line += " "
             product_line += product_attribute_value
         print(product_line)
+
+
+def list_products_json(products):
+    """Lists products on the Standard Output stream (shell) in JSON format.
+
+    :param products: EO poducts to be listed
+    :type products: class:'eodag.api.search_result.SearchResult'
+    """
+    print(json.dumps(products.as_geojson_object(), indent=4))
 
 
 def remove_duplicates(search_result):
@@ -595,6 +619,35 @@ def sort_result(search_result):
     return search_result
 
 
+def save_search_result(search_result, file_name):
+    """Save search results to files.
+
+    If the file is a json file,
+    the search result is saved in a beautified JSON format.
+    If the file is a geojson file,
+    the search result is saved using EODAG serialize method,
+    saving it in a format that can be read again by i.eodag,
+    to restore the search results.
+
+    :param search_result: EO products to be sorted
+    :type search_result: class'eodag.api.search_result.SearchResult'
+
+    :param file_name: EO products to be sorted
+    :type file_name: str
+    """
+    if file_name[-5:].lower() == ".json":
+        gs.verbose(_("Saving searchin result in '{}'".format(file_name)))
+        with open(file_name, "w") as f:
+            f.write(
+                json.dumps(
+                    search_result.as_geojson_object(), ensure_ascii=False, indent=4
+                )
+            )
+    if file_name[-8:].lower() == ".geojson":
+        gs.verbose(_("Saving searchin result in '{}'".format(file_name)))
+        dag.serialize(search_result, filename=file_name)
+
+
 def main():
     # Products: https://github.com/CS-SI/eodag/blob/develop/eodag/resources/product_types.yml
 
@@ -660,12 +713,17 @@ def main():
         search_result, geometry if "geometry" in locals() else None, **options
     )
     search_result = sort_result(search_result)
+    print(type(search_result))
 
     gs.message(_("{} product(s) found.").format(len(search_result)))
     # TODO: Add a way to search in multiple providers at once
     #       Check for when this feature is added https://github.com/CS-SI/eodag/issues/163
+    if options["save"]:
+        save_search_result(search_result, options["save"])
     if flags["l"]:
         list_products(search_result)
+    elif flags["j"]:
+        list_products_json(search_result)
     else:
         # TODO: Consider adding a quicklook flag
         # TODO: Add timeout and wait parameters for downloading offline products...
