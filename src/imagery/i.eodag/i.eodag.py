@@ -390,7 +390,7 @@ def normalize_time(datetime_str: str):
 
 
 def no_fallback_search(search_parameters, provider):
-    """Searches in a one and only one provider (fallback is disabled).
+    """Search in only one provider (fallback is disabled).
 
     :param search_parameters: Queryables to which searching will take place
     :type search_parameters: dict
