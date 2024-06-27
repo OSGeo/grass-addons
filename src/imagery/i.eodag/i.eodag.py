@@ -538,7 +538,7 @@ def filter_result(search_result, geometry, **kwargs):
     start_date = kwargs["start"]
     end_date = kwargs["end"]
 
-    # If neither a geometry is provided as a paraemter
+    # If neither a geometry is provided as a parameter
     # nor a vector map is provided through "options",
     # then none of the geometry filtering will take place.
     if geometry is None and (area_relation is not None or minimum_overlap is not None):
