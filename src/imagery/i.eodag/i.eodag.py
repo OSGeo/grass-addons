@@ -99,7 +99,7 @@
 # %option
 # % key: minimum_overlap
 # % type: integer
-# % description: Minimal overlap with the AOI in percent of the scene covered
+# % description: Minimal AOI area covered by the scene
 # % required: no
 # % guisection: Region
 # %end
