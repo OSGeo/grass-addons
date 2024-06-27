@@ -322,7 +322,7 @@ def search_by_ids(products_ids):
 
 
 def setup_environment_variables(env, **kwargs):
-    """Sets up the eodag envirionmnets variables based on the provided options/flags.
+    """Sets the eodag environment variables based on the provided options/flags.
 
     :param kwargs: options/flags from gs.parser
     :type kwargs: dict
