@@ -131,7 +131,7 @@
 
 # %option
 # % key: sort
-# % description: Sort by values in given order
+# % description: Field to sort values by
 # % multiple: yes
 # % options: ingestiondate,cloudcover
 # % answer: cloudcover,ingestiondate
