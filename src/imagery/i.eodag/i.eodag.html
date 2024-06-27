@@ -77,14 +77,14 @@ i.eodag -l start=2022-05-25 end=2022-06-01 \
     clouds=50 map=durham minimum_overlap=70
 <pre></div>
 
-Sort results by <b>cloudcover</b>, and then by <b>ingestiondate</b> descendingly
-(latest to earliest). Note that sorting with <b>cloudcover</b> use
+Sort results, descendingly, by <b>cloudcover</b>, and then by <b>ingestiondate</b> 
+Note that sorting with <b>cloudcover</b> use
 unrounded values, while they are rounded to the nearest integer when listing.
 
 <div class="code"><pre>
 i.eodag -l start=2022-05-25 end=2022-06-01 \
     dataset=S2_MSI_L2A provider=cop_dataspace \
-    sort=cloudcover,ingestiondate order=asc,desc
+    sort=cloudcover,ingestiondate order=desc
 <pre></div>
 
 Search for scenes with a list of IDs text file, and filter the results with the
