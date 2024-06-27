@@ -197,7 +197,7 @@ def create_dir(directory):
 
 
 def get_bb(proj):
-    """Gets the bounding box of the current computational 
+    """Gets the bounding box of the current computational
     region in geographic coordinates.
 
     :param proj: Projection information from 'gs.parse_command("g.proj", flags="j")'
