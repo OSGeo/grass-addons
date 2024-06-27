@@ -99,7 +99,7 @@
 # %option
 # % key: minimum_overlap
 # % type: integer
-# % description: Minimal overlap with the AOI in percent of the scene covered
+# % description: Minimal AOI area covered by the scene [0, 100]
 # % required: no
 # % guisection: Region
 # %end
@@ -131,7 +131,7 @@
 
 # %option
 # % key: sort
-# % description: Sort by values in given order
+# % description: Field to sort values by
 # % multiple: yes
 # % options: ingestiondate,cloudcover
 # % answer: cloudcover,ingestiondate
@@ -197,7 +197,8 @@ def create_dir(directory):
 
 
 def get_bb(proj):
-    """Gets the bouding box of a given projection information.
+    """Gets the bounding box of the current computational
+    region in geographic coordinates.
 
     :param proj: Projection information from 'gs.parse_command("g.proj", flags="j")'
     :type proj: str
@@ -321,7 +322,7 @@ def search_by_ids(products_ids):
 
 
 def setup_environment_variables(env, **kwargs):
-    """Sets up the eodag envirionmnets variables based on the provided options/flags.
+    """Sets the eodag environment variables based on the provided options/flags.
 
     :param kwargs: options/flags from gs.parser
     :type kwargs: dict
@@ -390,7 +391,7 @@ def normalize_time(datetime_str: str):
 
 
 def no_fallback_search(search_parameters, provider):
-    """Searches in a one and only one provider (fallback is disabled).
+    """Search in only one provider (fallback is disabled).
 
     :param search_parameters: Queryables to which searching will take place
     :type search_parameters: dict
@@ -538,7 +539,7 @@ def filter_result(search_result, geometry, **kwargs):
     start_date = kwargs["start"]
     end_date = kwargs["end"]
 
-    # If neither a geometry is provided as a paraemter
+    # If neither a geometry is provided as a parameter
     # nor a vector map is provided through "options",
     # then none of the geometry filtering will take place.
     if geometry is None and (area_relation is not None or minimum_overlap is not None):
@@ -561,7 +562,7 @@ def filter_result(search_result, geometry, **kwargs):
             search_result = search_result.filter_overlap(geometry=geometry, within=True)
 
     if minimum_overlap:
-        # Percentage of area covered from the AOI by the product's geometry
+        # Percentage of the AOI area covered by the product's geometry
         search_result = search_result.filter_overlap(
             geometry=geometry, minimum_overlap=int(minimum_overlap)
         )

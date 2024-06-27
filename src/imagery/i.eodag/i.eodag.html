@@ -72,19 +72,19 @@ Ecosystem, with at least 70% of the AOI covered:
 <div class="code"><pre>
 v.extract input=urbanarea where="NAME = 'Durham'" output=durham
 
-i.eodag -l start=2021-05-25 end=2022-06-01 \
+i.eodag -l start=2022-05-25 end=2022-06-01 \
     dataset=S2_MSI_L2A provider=cop_dataspace \
     clouds=50 map=durham minimum_overlap=70
 <pre></div>
 
-Sort results by <b>cloudcover</b>, and then by <b>ingestiondate</b> descendingly
-(latest to earliest):<br><em> Note that sorting with <b>cloudcover</b> use
-unrounded values, while they are rounded to the nearest intger when listing.</em>
+Sort results, descendingly, by <b>cloudcover</b>, and then by <b>ingestiondate</b> 
+Note that sorting with <b>cloudcover</b> use
+unrounded values, while they are rounded to the nearest integer when listing.
 
 <div class="code"><pre>
-i.eodag -l start=2021-05-25 end=2022-06-01 \
+i.eodag -l start=2022-05-25 end=2022-06-01 \
     dataset=S2_MSI_L2A provider=cop_dataspace \
-    sort=cloudcover,ingestiondate order=asc,desc
+    sort=cloudcover,ingestiondate order=desc
 <pre></div>
 
 Search for scenes with a list of IDs text file, and filter the results with the
@@ -96,8 +96,8 @@ i.eodag -l file=ids_list.txt \
     area_relation=Contains clouds=3
 <pre></div>
 
-Download all available scenes in the tmp directory, with Cloud Coverage not
-exceeding 50%:
+Download all available scenes with cloud coverage not exceeding 50% 
+in the tmp directory:
 
 <div class="code"><pre>
 i.eodag start=2022-05-25 end=2022-06-01 \
