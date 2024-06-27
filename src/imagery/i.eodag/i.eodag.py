@@ -345,24 +345,24 @@ def setup_environment_variables(env, **kwargs):
         if extract:
             gs.warning(
                 _(
-                    "Ignoring 'e' flag... \
-                    'extract' option in the config file will be used. \
+                    "Ignoring 'e' flag...\n \
+                    'extract' option in the config file will be used.\n \
                     If you wish to use the 'e' flag, please specify a provider."
                 )
             )
         if delete_archive:
             gs.warning(
                 _(
-                    "Ignoring 'd' flag... \
-                    'delete_archive' option in the config file will be used. \
+                    "Ignoring 'd' flag...\n \
+                    'delete_archive' option in the config file will be used.\n \
                     If you wish to use the 'd' flag, please specify a provider."
                 )
             )
         if output:
             gs.warning(
                 _(
-                    "Ignoring 'output' option... \
-                    'output' option in the config file will be used. \
+                    "Ignoring 'output' option...\n \
+                    'output' option in the config file will be used.\n \
                     If you wish to use the 'output' option, please specify a provider."
                 )
             )
@@ -758,5 +758,4 @@ if __name__ == "__main__":
             setup_logging(2)
         else:
             setup_logging(3)
-
     sys.exit(main())
