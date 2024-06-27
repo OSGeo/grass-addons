@@ -561,7 +561,7 @@ def filter_result(search_result, geometry, **kwargs):
             search_result = search_result.filter_overlap(geometry=geometry, within=True)
 
     if minimum_overlap:
-        # Percentage of area covered from the AOI by the product's geometry
+        # Percentage of the AOI area covered by the product's geometry
         search_result = search_result.filter_overlap(
             geometry=geometry, minimum_overlap=int(minimum_overlap)
         )
