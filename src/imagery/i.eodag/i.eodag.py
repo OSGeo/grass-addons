@@ -31,7 +31,14 @@
 # FLAGS
 # %flag
 # % key: l
+# % description: List available searching parameters
+# % guisection: List
+# %end
+
+# %flag
+# % key: m
 # % description: List filtered products and exit
+# % guisection: List
 # %end
 
 # %flag
@@ -49,13 +56,13 @@
 # % description: Delete the product archive after downloading, not considered unless provider is set
 # %end
 
+
 # OPTIONS
 # %option
 # % key: dataset
 # % type: string
 # % description: Imagery dataset to search for
 # % required: no
-# % answer: S2_MSI_L1C
 # % guisection: Filter
 # %end
 
@@ -165,12 +172,14 @@
 # % type: string
 # % description: File name to save in (the format will be adjusted according to the file extension)
 # % label: Supported files extensions [geojson: Rreadable by i.eodag | json: Beautified]
-# % guisection: Filter
+# % guisection: Save
 # %end
+
 
 # %rules
 # % exclusive: file, id
-# % exclusive: -l, -j
+# % exclusive: -l, -j, -m
+# % requires: -m, dataset, provider
 # %end
 
 
@@ -649,6 +658,77 @@ def save_search_result(search_result, file_name):
         dag.serialize(search_result, filename=file_name)
 
 
+def list_queryables(**kwargs):
+    """Print queryables info for given provider and/or productType in JSON format.
+
+    :param kwargs: Presit parameters values.
+    :type kwargs: dict
+    """
+    provider = kwargs["provider"]
+    productType = kwargs["dataset"]
+    queryables = dag.list_queryables(
+        provider=provider or None, productType=productType or None
+    )
+
+    # Literal is for queryables that have a certain list of options to set from
+    types_options = [
+        "str",
+        "int",
+        "float",
+        "dict",
+        "list",
+        "NoneType",
+        "Literal",
+        "Annotated",
+    ]  # For testing and catching edge cases
+
+    def get_type(info):
+        potential_type = info.__args__[0]
+        if potential_type.__name__ != "Optional":
+            assert potential_type.__name__ in types_options
+            return potential_type.__name__
+        potential_type = potential_type.__args__[0]
+        assert potential_type.__name__ in types_options
+        return potential_type.__name__
+
+    def is_required(info):
+        return info.__metadata__[0].is_required()
+
+    def get_default(info):
+        default = info.__metadata__[0].get_default()
+        return default if isinstance(default, str) else "None"
+
+    def get_options(info):
+        potential_type = info.__args__[0]
+        potential_type = potential_type.__args__
+        return potential_type
+
+    def get_range(info):
+        return (
+            info.__args__[0].__args__[0].__metadata__[0].gt,
+            info.__args__[0].__args__[0].__metadata__[1].lt,
+        )
+
+    queryables_dict = dict()
+    for queryable, info in queryables.items():
+        queryable_dict = dict()
+        queryable_dict["required"] = is_required(info)
+        queryable_dict["type"] = get_type(info)
+        queryable_dict["default"] = get_default(info)
+        if queryable_dict["type"] == "Literal":
+            # There is a presit options by the provider
+            queryable_dict["options"] = get_options(info)
+        if queryable_dict["type"] == "Annotated":
+            # There is a range for the queryable
+            queryable_dict["type"] = "int"
+            queryable_dict["range"] = get_range(info)
+        if queryable_dict["type"] == "NoneType":
+            queryable_dict["type"] = "str"
+        queryables_dict[queryable] = queryable_dict
+
+    print(json.dumps(queryables_dict, indent=4))
+
+
 def main():
     # Products: https://github.com/CS-SI/eodag/blob/develop/eodag/resources/product_types.yml
 
@@ -659,6 +739,10 @@ def main():
         dag.set_preferred_provider(options["provider"])
 
     dates_to_iso_format()
+
+    if flags["m"]:
+        list_queryables(**options, **flags)
+        return
 
     # Download by IDs
     # Searching for additional products will not take place
@@ -714,7 +798,6 @@ def main():
         search_result, geometry if "geometry" in locals() else None, **options
     )
     search_result = sort_result(search_result)
-    print(type(search_result))
 
     gs.message(_("{} product(s) found.").format(len(search_result)))
     # TODO: Add a way to search in multiple providers at once
