@@ -149,6 +149,13 @@
 # %end
 
 # %option
+# % key: query
+# % label: Extra searching parameters to use in query
+# % description: Note: Make sure to use provided options when possible, otherwise the values mignt not be recognized
+# % guisection: Filter
+# %end
+
+# %option
 # % key: start
 # % type: string
 # % description: Start date (in any ISO 8601 format), by default it is 60 days ago
@@ -447,7 +454,10 @@ def list_products(products):
     for product in products:
         product_line = ""
         for i, column in enumerate(columns):
-            product_attribute_value = product.properties[column]
+            if column in product.properties:
+                product_attribute_value = product.properties[column]
+            else:
+                product_attribute_value = None
             # Display NA if not available
             if product_attribute_value is None:
                 product_attribute_value = columns_NA[i]
@@ -660,7 +670,7 @@ def save_search_result(search_result, file_name):
         dag.serialize(search_result, filename=file_name)
 
 
-def list_providers(productType=None):
+def list_eodag_providers(productType=None):
     """Print providers available in JSON format.
 
     :param producType: Restricts providers to given product.
@@ -677,7 +687,7 @@ def list_providers(productType=None):
     )
 
 
-def list_products(provider=None):
+def list_eodag_products(provider=None):
     """Print products available in JSON format.
 
     :param provider: Restricts products to given provider.
@@ -690,7 +700,7 @@ def list_products(provider=None):
     print(json.dumps(dag.list_product_types(provider or None), indent=4))
 
 
-def list_queryables(**kwargs):
+def list_eodag_queryables(**kwargs):
     """Print queryables info for given provider and/or product type in JSON format.
 
     :param kwargs: Presit parameters values.
@@ -775,11 +785,11 @@ def main():
 
     if options["list"]:
         if options["list"] == "providers":
-            list_providers(options["prodcuttype"])
+            list_eodag_providers(options["prodcuttype"])
         elif options["list"] == "products":
-            list_products(options["provider"])
+            list_eodag_products(options["provider"])
         elif options["list"] == "queryables":
-            list_queryables(**options, **flags)
+            list_eodag_queryables(**options, **flags)
         return
 
     # Download by IDs
@@ -821,6 +831,10 @@ def main():
             "productType": product_type,
             "geom": geometry,
         }
+        if options["query"]:
+            for parameter in options["query"].split(","):
+                key, value = parameter.split("=")
+                search_parameters[key] = value
 
         if options["clouds"]:
             search_parameters["cloudCover"] = options["clouds"]
