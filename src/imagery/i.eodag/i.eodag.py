@@ -178,7 +178,7 @@
 # %end
 
 # %option
-# % key: list
+# % key: print
 # % type: string
 # % description: Print the available options of the given value in JSON
 # % options: products,providers,queryables
@@ -670,7 +670,7 @@ def save_search_result(search_result, file_name):
         dag.serialize(search_result, filename=file_name)
 
 
-def list_eodag_providers(productType=None):
+def print_eodag_providers(productType=None):
     """Print providers available in JSON format.
 
     :param producType: Restricts providers to given product.
@@ -687,7 +687,7 @@ def list_eodag_providers(productType=None):
     )
 
 
-def list_eodag_products(provider=None):
+def print_eodag_products(provider=None):
     """Print products available in JSON format.
 
     :param provider: Restricts products to given provider.
@@ -700,7 +700,7 @@ def list_eodag_products(provider=None):
     print(json.dumps(dag.list_product_types(provider or None), indent=4))
 
 
-def list_eodag_queryables(**kwargs):
+def print_eodag_queryables(**kwargs):
     """Print queryables info for given provider and/or product type in JSON format.
 
     :param kwargs: Presit parameters values.
@@ -783,13 +783,13 @@ def main():
 
     dates_to_iso_format()
 
-    if options["list"]:
-        if options["list"] == "providers":
-            list_eodag_providers(options["prodcuttype"])
-        elif options["list"] == "products":
-            list_eodag_products(options["provider"])
-        elif options["list"] == "queryables":
-            list_eodag_queryables(**options, **flags)
+    if options["print"]:
+        if options["print"] == "providers":
+            print_eodag_providers(options["prodcuttype"])
+        elif options["print"] == "products":
+            print_list_eodag_products(options["provider"])
+        elif options["print"] == "queryables":
+            print_list_eodag_queryables(**options, **flags)
         return
 
     # Download by IDs
