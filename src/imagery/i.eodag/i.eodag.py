@@ -181,7 +181,7 @@
 # % key: print
 # % type: string
 # % description: Print the available options of the given value in JSON
-# % options: products,providers,queryables
+# % options: products,providers,queryables,config
 # % guisection: Metadata
 # %end
 
@@ -670,6 +670,28 @@ def save_search_result(search_result, file_name):
         dag.serialize(search_result, filename=file_name)
 
 
+def print_eodag_configuration(provider=None):
+    def to_dict(config):
+        ret_dict = dict()
+        if isinstance(config, dict):
+            # If the current config is a dict of providers configs
+            for key, val in config.items():
+                ret_dict[key] = to_dict(val)
+        else:
+            # Parsing a provider's configuration
+            for key, val in config.__dict__.items():
+                if isinstance(val, eodag.config.PluginConfig):
+                    ret_dict[key] = to_dict(val)
+                else:
+                    ret_dict[key] = val
+        return ret_dict
+
+    if provider:
+        print(json.dumps(to_dict(dag.providers_config[provider]), indent=4))
+    else:
+        print(json.dumps(to_dict(dag.providers_config), indent=4))
+
+
 def print_eodag_providers(productType=None):
     """Print providers available in JSON format.
 
@@ -713,7 +735,10 @@ def print_eodag_queryables(**kwargs):
         provider=provider or None, productType=productType or None
     )
 
-    # Literal is for queryables that have a certain list of options to set from
+    # Literal is for queryables that have a certain list of options to choose from.
+    # Annotated is for queryables that accept a certain range e.g. cloudCover has range [0, 100].
+    # TODO: It is assumed that if the type is Annotated, then the nested type will be int
+    #       but that might not be the case.
     types_options = [
         "str",
         "int",
@@ -788,6 +813,8 @@ def main():
             print_eodag_providers(options["prodcuttype"])
         elif options["print"] == "products":
             print_list_eodag_products(options["provider"])
+        elif options["print"] == "config":
+            print_eodag_configuration(options["provider"])
         elif options["print"] == "queryables":
             print_list_eodag_queryables(**options, **flags)
         return
@@ -881,6 +908,7 @@ if __name__ == "__main__":
         from eodag import EODataAccessGateway
         from eodag import setup_logging
         from eodag.api.search_result import SearchResult
+        import eodag
     except:
         gs.fatal(_("Cannot import eodag. Please intall the library first."))
 
