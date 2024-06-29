@@ -674,6 +674,12 @@ def save_search_result(search_result, file_name):
 
 
 def print_eodag_configuration(provider=None):
+    """Print EODAG currently recognized configurations in JSON format.
+
+    :param provider: Print the configuration for only the given provider.
+    :type provider: dict
+    """
+
     def to_dict(config):
         ret_dict = dict()
         if isinstance(config, dict):
