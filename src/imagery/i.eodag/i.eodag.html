@@ -1,11 +1,11 @@
 <h2>DESCRIPTION</h2>
 <h3>WARNING: I.EODAG IS UNDER DEVELOPMENT. THIS IS AN EXPERIMENTAL VERSION.</h3>
 
-<em>i.eodag</em> allows to search and download imagery datasets, e.g. Sentinel,
+<em>i.eodag</em> allows to search and download imagery scenes, e.g. Sentinel,
 Landsat, and MODIS, from a number of different providers.
 The module utilizes the
 <a href="https://eodag.readthedocs.io/en/stable/">EODAG API</a>,
-as a single interface to search for datasets on the providers that EODAG supports.
+as a single interface to search for scenes on the providers that EODAG supports.
 
 
 <p>
@@ -63,7 +63,7 @@ Search and list the available Sentinel 2 scenes in the Copernicus Data Space Eco
 v.extract input=urbanarea where="NAME = 'Durham'" output=durham
 
 i.eodag -l start=2022-05-25 end=2022-06-01 \
-    map=durham dataset=S2_MSI_L2A provider=cop_dataspace \
+    map=durham producttype=S2_MSI_L2A provider=cop_dataspace \
     sort=cloudcover,ingestiondate order=asc,desc
 <pre></div>
 
@@ -73,17 +73,17 @@ Ecosystem, with at least 70% of the AOI covered:
 v.extract input=urbanarea where="NAME = 'Durham'" output=durham
 
 i.eodag -l start=2022-05-25 end=2022-06-01 \
-    dataset=S2_MSI_L2A provider=cop_dataspace \
+    producttype=S2_MSI_L2A provider=cop_dataspace \
     clouds=50 map=durham minimum_overlap=70
 <pre></div>
 
-Sort results, descendingly, by <b>cloudcover</b>, and then by <b>ingestiondate</b> 
+Sort results, descendingly, by <b>cloudcover</b>, and then by <b>ingestiondate</b>
 Note that sorting with <b>cloudcover</b> use
 unrounded values, while they are rounded to the nearest integer when listing.
 
 <div class="code"><pre>
 i.eodag -l start=2022-05-25 end=2022-06-01 \
-    dataset=S2_MSI_L2A provider=cop_dataspace \
+    producttype=S2_MSI_L2A provider=cop_dataspace \
     sort=cloudcover,ingestiondate order=desc
 <pre></div>
 
@@ -96,12 +96,21 @@ i.eodag -l file=ids_list.txt \
     area_relation=Contains clouds=3
 <pre></div>
 
-Download all available scenes with cloud coverage not exceeding 50% 
+Search and list the available Sentinel 2 scenes in the Copernicus Data Space
+Ecosystem, with relative orbit number 54:
+
+<div class="code"><pre>
+./i.eodag.py -l producttype=S2_MSI_L2A \
+    provider=cop_dataspace save=search_result.geojson \
+    query="relativeOrbitNumber=54"
+<pre></div>
+
+Download all available scenes with cloud coverage not exceeding 50%
 in the tmp directory:
 
 <div class="code"><pre>
 i.eodag start=2022-05-25 end=2022-06-01 \
-    dataset=S2_MSI_L2A provider=cop_dataspace clouds=50
+    producttype=S2_MSI_L2A provider=cop_dataspace clouds=50
 <pre></div>
 
 Download only selected scenes from a text file of IDs, using the Copernicus Data
