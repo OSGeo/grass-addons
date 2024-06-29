@@ -7,7 +7,7 @@
 # AUTHOR(S):   Hamed Elgizery
 # MENTOR(S):   Luca Delucchi, Veronica Andreo, Stefan Blumentrath
 #
-# PURPOSE:     Downloads imagery datasets e.g. Landsat, Sentinel, and MODIS
+# PURPOSE:     Downloads imagery secens e.g. Landsat, Sentinel, and MODIS
 #              using EODAG API.
 # COPYRIGHT:   (C) 2024-2025 by Hamed Elgizery, and the GRASS development team
 #
@@ -18,13 +18,14 @@
 #############################################################################
 
 # %Module
-# % description: Downloads imagery datasets from various providers through the EODAG API.
+# % description: Downloads imagery scenes from various providers through the EODAG API.
 # % keyword: imagery
 # % keyword: eodag
 # % keyword: sentinel
 # % keyword: landsat
 # % keyword: modis
-# % keyword: datasets
+# % keyword: dataset
+# % keyword: scene
 # % keyword: download
 # %end
 
@@ -48,7 +49,7 @@
 
 # %flag
 # % key: e
-# % description: Extract the downloaded the datasets, not considered unless provider is set
+# % description: Extract the downloaded the scenes, not considered unless provider is set
 # %end
 
 # %flag
@@ -59,9 +60,9 @@
 
 # OPTIONS
 # %option
-# % key: dataset
+# % key: producttype
 # % type: string
-# % description: Imagery dataset to search for
+# % description: Imagery producttype to search for
 # % required: no
 # % guisection: Filter
 # %end
@@ -179,7 +180,8 @@
 # %rules
 # % exclusive: file, id
 # % exclusive: -l, -j, -m
-# % requires: -m, dataset, provider
+# % requires: -m, producttype, provider
+# % requires: -l, producttype
 # %end
 
 
@@ -659,13 +661,13 @@ def save_search_result(search_result, file_name):
 
 
 def list_queryables(**kwargs):
-    """Print queryables info for given provider and/or productType in JSON format.
+    """Print queryables info for given provider and/or product type in JSON format.
 
     :param kwargs: Presit parameters values.
     :type kwargs: dict
     """
     provider = kwargs["provider"]
-    productType = kwargs["dataset"]
+    productType = kwargs["producttype"]
     queryables = dag.list_queryables(
         provider=provider or None, productType=productType or None
     )
@@ -772,7 +774,7 @@ def main():
         items_per_page = 40
         # TODO: Check that the product exists,
         # could be handled by catching exceptions when searching...
-        product_type = options["dataset"]
+        product_type = options["producttype"]
 
         # HARDCODED VALUES FOR TESTING { "lonmin": 1.9, "latmin": 43.9, "lonmax": 2, "latmax": 45, }
         geometry = get_aoi(options["map"])
@@ -842,4 +844,5 @@ if __name__ == "__main__":
             setup_logging(2)
         else:
             setup_logging(3)
+    setup_logging(3)
     sys.exit(main())
