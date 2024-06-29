@@ -353,6 +353,9 @@ def setup_environment_variables(env, **kwargs):
 
     # Setting the envirionmnets variables has to come before the eodag initialization
     if config:
+        config_file = Path(options["config"])
+        if not config_file.is_file():
+            gs.fatal(_("Config file '{}' not found.".format(options["config"])))
         env["EODAG_CFG_FILE"] = options["config"]
     if provider:
         # Flags can't be taken into consideration without specifying the provider
