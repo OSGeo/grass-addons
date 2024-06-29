@@ -37,12 +37,6 @@
 # %end
 
 # %flag
-# % key: m
-# % description: List filtered products and exit
-# % guisection: List
-# %end
-
-# %flag
 # % key: j
 # % description: Print extended metadata information in JSON style
 # %end
@@ -176,11 +170,17 @@
 # % guisection: Save
 # %end
 
+# %option
+# % key: list
+# % type: string
+# % description: Print the available options of the given value in JSON
+# % options: products,providers,queryables
+# % guisection: Metadata
+# %end
 
 # %rules
 # % exclusive: file, id
-# % exclusive: -l, -j, -m
-# % requires: -m, producttype, provider
+# % exclusive: -l, -j
 # % requires: -l, producttype
 # %end
 
@@ -660,6 +660,36 @@ def save_search_result(search_result, file_name):
         dag.serialize(search_result, filename=file_name)
 
 
+def list_providers(productType=None):
+    """Print providers available in JSON format.
+
+    :param producType: Restricts providers to given product.
+    :type productType: dict
+    """
+    if productType:
+        gs.message(_("Recongnized providers offering {}".format(productType)))
+    else:
+        gs.message(_("Recongnizaed providers"))
+    print(
+        json.dumps(
+            {"providers": dag.available_providers(productType or None)}, indent=4
+        )
+    )
+
+
+def list_products(provider=None):
+    """Print products available in JSON format.
+
+    :param provider: Restricts products to given provider.
+    :type provider: dict
+    """
+    if provider:
+        gs.message(_("Recognized products offered by {}".format(provider)))
+    else:
+        gs.message(_("Recongnizaed providers"))
+    print(json.dumps(dag.list_product_types(provider or None), indent=4))
+
+
 def list_queryables(**kwargs):
     """Print queryables info for given provider and/or product type in JSON format.
 
@@ -668,6 +698,7 @@ def list_queryables(**kwargs):
     """
     provider = kwargs["provider"]
     productType = kwargs["producttype"]
+    gs.message(_("Available queryables"))
     queryables = dag.list_queryables(
         provider=provider or None, productType=productType or None
     )
@@ -742,8 +773,13 @@ def main():
 
     dates_to_iso_format()
 
-    if flags["m"]:
-        list_queryables(**options, **flags)
+    if options["list"]:
+        if options["list"] == "providers":
+            list_providers(options["prodcuttype"])
+        elif options["list"] == "products":
+            list_products(options["provider"])
+        elif options["list"] == "queryables":
+            list_queryables(**options, **flags)
         return
 
     # Download by IDs
@@ -844,5 +880,4 @@ if __name__ == "__main__":
             setup_logging(2)
         else:
             setup_logging(3)
-    setup_logging(3)
     sys.exit(main())
