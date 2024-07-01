@@ -98,6 +98,13 @@
 # % guisection: Region
 # %end
 
+# %option G_OPT_V_OUTPUT
+# % key: footprints
+# % description: Name for output vector map with footprints
+# % required: no
+# % guisection: Output
+# %end
+
 # %option
 # % key: minimum_overlap
 # % type: integer
@@ -189,6 +196,8 @@
 # % exclusive: file, id
 # % exclusive: -l, -j
 # % requires: -l, producttype
+# % requires: -j, producttype
+# % exclusive: minimum_overlap, area_relation
 # %end
 
 
@@ -201,6 +210,7 @@ from pathlib import Path
 from subprocess import PIPE
 from datetime import datetime, timedelta, timezone
 from functools import cmp_to_key
+from collections import OrderedDict
 
 import grass.script as gs
 from grass.pygrass.modules import Module
@@ -644,6 +654,91 @@ def sort_result(search_result):
     return search_result
 
 
+def save_footprints(search_result, map_name):
+    """Save products footprints as a vector map in the current mapset.
+
+    Reprojection is done on the fly.
+
+    :param search_result: EO products to be sorted
+    :type search_result: class'eodag.api.search_result.SearchResult'
+
+    :param map_name: Footprint name to be used.
+    :type map_name: str
+    """
+    try:
+        from osgeo import ogr, osr
+    except ImportError as e:
+        gs.fatal(_("Option <footprints> requires GDAL library: {}").format(e))
+
+    gs.message(_("Writing footprints into <{}>...").format(map_name))
+    driver = ogr.GetDriverByName("GPKG")
+    tmp_name = gs.tempfile() + ".gpkg"
+    data_source = driver.CreateDataSource(tmp_name)
+
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(4326)
+
+    # features can be polygons or multi-polygons
+    layer = data_source.CreateLayer(str(map_name), srs, ogr.wkbMultiPolygon)
+
+    # attributes
+    attrs = OrderedDict(
+        [
+            ("uuid", ogr.OFTString),
+            ("ingestiondate", ogr.OFTString),
+            ("cloudcoverpercentage", ogr.OFTInteger),
+            ("producttype", ogr.OFTString),
+            ("identifier", ogr.OFTString),
+        ]
+    )
+
+    for key, val in attrs.items():
+        field = ogr.FieldDefn(key, val)
+        layer.CreateField(field)
+
+    # features
+    for idx in range(len(search_result)):
+        wkt = search_result[idx].properties["gmlgeometry"]
+        feature = ogr.Feature(layer.GetLayerDefn())
+        newgeom = ogr.CreateGeometryFromGML(wkt)
+        # convert polygons to multi-polygons
+        newgeomtype = ogr.GT_Flatten(newgeom.GetGeometryType())
+        if newgeomtype == ogr.wkbPolygon:
+            multigeom = ogr.Geometry(ogr.wkbMultiPolygon)
+            multigeom.AddGeometryDirectly(newgeom)
+            feature.SetGeometry(multigeom)
+        else:
+            feature.SetGeometry(newgeom)
+        for key in attrs.keys():
+            if key == "ingestiondate":
+                value = search_result[idx].properties["startTimeFromAscendingNode"]
+            elif key == "uuid":
+                value = search_result[idx].properties["uid"]
+            elif key == "cloudcoverpercentage":
+                value = search_result[idx].properties["cloudCover"]
+            elif key == "producttype":
+                value = search_result[idx].properties["productType"]
+            elif key == "identifier":
+                # Not sure if that is what is meant by identifier
+                value = search_result[idx].properties["platformSerialIdentifier"]
+            feature.SetField(key, value)
+        layer.CreateFeature(feature)
+        feature = None
+
+    data_source = None
+
+    # coordinates of footprints are in WKT -> fp precision issues
+    # -> snap
+    gs.run_command(
+        "v.import",
+        input=tmp_name,
+        output=map_name,
+        layer=map_name,
+        snap=1e-10,
+        quiet=True,
+    )
+
+
 def save_search_result(search_result, file_name):
     """Save search results to files.
 
@@ -728,7 +823,7 @@ def print_eodag_products(provider=None):
         gs.message(_("Recognized products offered by {}".format(provider)))
     else:
         gs.message(_("Recongnizaed providers"))
-    print(json.dumps(dag.list_product_types(provider or None), indent=4))
+    print(json.dumps({"products": dag.list_product_types(provider or None)}, indent=4))
 
 
 def print_eodag_queryables(**kwargs):
@@ -819,13 +914,13 @@ def main():
 
     if options["print"]:
         if options["print"] == "providers":
-            print_eodag_providers(options["prodcuttype"])
+            print_eodag_providers(options["producttype"])
         elif options["print"] == "products":
-            print_list_eodag_products(options["provider"])
+            print_eodag_products(options["provider"])
         elif options["print"] == "config":
             print_eodag_configuration(options["provider"])
         elif options["print"] == "queryables":
-            print_list_eodag_queryables(**options, **flags)
+            print_eodag_queryables(**options, **flags)
         return
 
     # Download by IDs
@@ -890,8 +985,13 @@ def main():
     gs.message(_("{} product(s) found.").format(len(search_result)))
     # TODO: Add a way to search in multiple providers at once
     #       Check for when this feature is added https://github.com/CS-SI/eodag/issues/163
+
     if options["save"]:
         save_search_result(search_result, options["save"])
+
+    if options["footprints"]:
+        save_footprints(search_result, options["footprints"])
+
     if flags["l"]:
         list_products(search_result)
     elif flags["j"]:
