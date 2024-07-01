@@ -753,6 +753,8 @@ def main():
     gs.message(_("{} product(s) found.").format(len(search_result)))
     # TODO: Add a way to search in multiple providers at once
     #       Check for when this feature is added https://github.com/CS-SI/eodag/issues/163
+    if options["footprints"]:
+        save_footprints(search_result, options["footprints"])
     if flags["l"]:
         list_products(search_result)
     else:
@@ -760,8 +762,6 @@ def main():
         # TODO: Add timeout and wait parameters for downloading offline products...
         # https://eodag.readthedocs.io/en/stable/getting_started_guide/product_storage_status.html
         dag.download_all(search_result)
-        if options["footprints"]:
-            save_footprints(search_result, options["footprints"])
 
 
 if __name__ == "__main__":
