@@ -241,10 +241,10 @@ def get_bb(proj):
     if proj["+proj"] != "longlat":
         info = gs.parse_command("g.region", flags="uplg")
         return {
-            "lonmin": info["nw_long"],
-            "latmin": info["sw_lat"],
-            "lonmax": info["ne_long"],
-            "latmax": info["nw_lat"],
+            "lonmin": float(info["nw_long"]),
+            "latmin": float(info["sw_lat"]),
+            "lonmax": float(info["ne_long"]),
+            "latmax": float(info["nw_lat"]),
         }
     info = gs.parse_command("g.region", flags="upg")
     return {
