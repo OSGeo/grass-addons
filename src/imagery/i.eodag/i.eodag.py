@@ -157,7 +157,7 @@
 
 # %option
 # % key: query
-# % label: Extra searching parameters to use in query
+# % label: Extra searching parameters to use in the search
 # % description: Note: Make sure to use provided options when possible, otherwise the values mignt not be recognized
 # % guisection: Filter
 # %end
