@@ -42,19 +42,6 @@
 # % guisection: Print
 # %end
 
-# %flag
-# % key: e
-# % description: Extract the downloaded the scenes, not considered unless provider is set
-# % guisection: Config
-# %end
-
-# %flag
-# % key: d
-# % description: Delete the product archive after downloading, not considered unless provider is set
-# % guisection: Config
-# %end
-
-
 # OPTIONS
 # %option
 # % key: producttype
@@ -174,6 +161,22 @@
 # %end
 
 # %option
+# % key: extract
+# % type: string
+# % description: Whether to extract downloaded scenes zip files or not (will override values set in the config file)
+# % options: Yes,No
+# % guisection: Config
+# %end
+
+# %option
+# % key: deletearchive
+# % type: string
+# % label: Whether to delete downloaded scenes zip files or not (will override values set in the config file)
+# % options: Yes,No
+# % guisection: Config
+# %end
+
+# %option
 # % key: start
 # % type: string
 # % label: Start date (ISO 8601 Format)
@@ -212,8 +215,8 @@
 # %rules
 # % exclusive: file, id
 # % exclusive: -l, -j
-# % requires: -l, producttype, file
-# % requires: -j, producttype, file
+# % requires: -l, producttype, file, id
+# % requires: -j, producttype, file, id
 # % exclusive: -l, print
 # % exclusive: -j, print
 # % exclusive: minimum_overlap, area_relation
@@ -376,8 +379,6 @@ def setup_environment_variables(env, **kwargs):
     :type kwargs: dict
     """
     provider = kwargs.get("provider")
-    extract = kwargs.get("e")
-    delete_archive = kwargs.get("d")
     output = kwargs.get("output")
     config = kwargs.get("config")
 
@@ -387,37 +388,6 @@ def setup_environment_variables(env, **kwargs):
         if not config_file.is_file():
             gs.fatal(_("Config file '{}' not found.".format(options["config"])))
         env["EODAG_CFG_FILE"] = options["config"]
-    if provider:
-        # Flags can't be taken into consideration without specifying the provider
-        env[f"EODAG__{provider.upper()}__DOWNLOAD__EXTRACT"] = str(extract)
-        env[f"EODAG__{provider.upper()}__DOWNLOAD__DELETE_ARCHIV"] = str(delete_archive)
-        if output:
-            env[f"EODAG__{provider.upper()}__DOWNLOAD__OUTPUTS_PREFIX"] = output
-    else:
-        if extract:
-            gs.warning(
-                _(
-                    "Ignoring 'e' flag...\n \
-                    'extract' option in the config file will be used.\n \
-                    If you wish to use the 'e' flag, please specify a provider."
-                )
-            )
-        if delete_archive:
-            gs.warning(
-                _(
-                    "Ignoring 'd' flag...\n \
-                    'delete_archive' option in the config file will be used.\n \
-                    If you wish to use the 'd' flag, please specify a provider."
-                )
-            )
-        if output:
-            gs.warning(
-                _(
-                    "Ignoring 'output' option...\n \
-                    'output' option in the config file will be used.\n \
-                    If you wish to use the 'output' option, please specify a provider."
-                )
-            )
 
 
 def normalize_time(datetime_str: str):
@@ -1034,7 +1004,18 @@ def main():
         # TODO: Add timeout and wait parameters for downloading offline products...
         # https://eodag.readthedocs.io/en/stable/getting_started_guide/product_storage_status.html
         try:
-            dag.download_all(search_result)
+            override_config = {}
+            if options["extract"]:
+                override_config["extract"] = (
+                    True if options["extract"].lower() == "yes" else False
+                )
+            if options["deletearchive"]:
+                override_config["delete_archive"] = (
+                    True if options["deletearchive"].lower() == "yes" else False
+                )
+            if options["output"]:
+                override_config["outputs_prefix"] = options["output"]
+            dag.download_all(search_result, **override_config)
         except MisconfiguredError as e:
             gs.fatal(_(e))
 
