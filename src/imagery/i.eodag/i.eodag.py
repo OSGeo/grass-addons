@@ -649,7 +649,7 @@ def save_footprints(search_result, map_name):
 
     Reprojection is done on the fly.
 
-    :param search_result: EO products to be sorted
+    :param search_results: EO products whose footprints are to be saved.
     :type search_result: class'eodag.api.search_result.SearchResult'
 
     :param map_name: Footprint name to be used.
