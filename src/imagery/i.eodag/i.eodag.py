@@ -43,7 +43,7 @@
 
 # %flag
 # % key: e
-# % description: Extract the downloaded the scenes, not considered unless provider is set
+# % description: Extract the downloaded scenes, not considered unless provider is set
 # %end
 
 # %flag
