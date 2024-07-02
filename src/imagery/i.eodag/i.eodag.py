@@ -73,6 +73,13 @@
 # % guisection: Output
 # %end
 
+# %option
+# % key: limit
+# % type: integer
+# % description: Limit number of scenes
+# % guisection: Filter
+# %end
+
 # %option G_OPT_F_INPUT
 # % key: config
 # % label: Full path to yaml config file
@@ -984,6 +991,8 @@ def main():
         search_result, geometry if "geometry" in locals() else None, **options
     )
     search_result = sort_result(search_result)
+    if options["limit"]:
+        search_result = SearchResult(search_result[: int(options["limit"])])
 
     gs.message(_("{} scenes(s) found.").format(len(search_result)))
     # TODO: Add a way to search in multiple providers at once
