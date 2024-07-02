@@ -125,7 +125,8 @@
 # % key: file
 # % type: string
 # % multiple: no
-# % description: Text file with a collection of IDs, one ID per line
+# % label: File with list of products to read
+# % description: Can be either a text file (one product ID per line), or a geojson file that was created by i.eodag
 # % guisection: Filter
 # %end
 
@@ -195,8 +196,8 @@
 # %rules
 # % exclusive: file, id
 # % exclusive: -l, -j
-# % requires: -l, producttype
-# % requires: -j, producttype
+# % requires: -l, producttype, file
+# % requires: -j, producttype, file
 # % exclusive: minimum_overlap, area_relation
 # %end
 
@@ -926,18 +927,31 @@ def main():
     # Download by IDs
     # Searching for additional products will not take place
     ids_set = set()
-    if options["id"]:
-        # Parse IDs
+    if options["id"]:  # Parse IDs
         ids_set = set(pid.strip() for pid in options["id"].split(","))
     elif options["file"]:
-        # Read IDs from file
         if Path(options["file"]).is_file():
             gs.verbose(_('Reading file "{}"'.format(options["file"])))
+        else:
+            gs.fatal(_('Could not open file "{}"'.format(options["file"])))
+        # Read IDs from TEXT file
+        if options["file"][-4:] == ".txt":
             ids_set = set(
                 Path(options["file"]).read_text(encoding="UTF8").strip().split("\n")
             )
+        elif options["file"][-8:] == ".geojson":
+            try:
+                search_result = dag.deserialize_and_register(options["file"])
+            except Exception as e:
+                gs.error(_(e))
+                gs.fatal(
+                    _(
+                        "File '{}' could not be read, file content is probably altered."
+                    ).format(options["file"])
+                )
         else:
-            gs.fatal(_('Could not open file "{}"'.format(options["file"])))
+            # Other unsupported file formats
+            gs.fatal(_("Could not read file '{}'".format(options["file"])))
 
     if len(ids_set):
         # Remove empty string
@@ -947,7 +961,7 @@ def main():
 
         # Search for products found from options["file"] or options["id"]
         search_result = search_by_ids(ids_set)
-    else:
+    elif "search_result" not in locals():
         items_per_page = 40
         # TODO: Check that the product exists,
         # could be handled by catching exceptions when searching...
@@ -982,7 +996,7 @@ def main():
     )
     search_result = sort_result(search_result)
 
-    gs.message(_("{} product(s) found.").format(len(search_result)))
+    gs.message(_("{} scenes(s) found.").format(len(search_result)))
     # TODO: Add a way to search in multiple providers at once
     #       Check for when this feature is added https://github.com/CS-SI/eodag/issues/163
 
@@ -1000,7 +1014,10 @@ def main():
         # TODO: Consider adding a quicklook flag
         # TODO: Add timeout and wait parameters for downloading offline products...
         # https://eodag.readthedocs.io/en/stable/getting_started_guide/product_storage_status.html
-        dag.download_all(search_result)
+        try:
+            dag.download_all(search_result)
+        except MisconfiguredError as e:
+            gs.fatal(_(e))
 
 
 if __name__ == "__main__":
@@ -1017,6 +1034,7 @@ if __name__ == "__main__":
         from eodag import EODataAccessGateway
         from eodag import setup_logging
         from eodag.api.search_result import SearchResult
+        from eodag.utils.exceptions import *
         import eodag
     except:
         gs.fatal(_("Cannot import eodag. Please intall the library first."))
