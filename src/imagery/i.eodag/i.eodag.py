@@ -32,23 +32,26 @@
 # FLAGS
 # %flag
 # % key: l
-# % description: List available searching parameters
-# % guisection: List
+# % description: List filtered products scenes and exit
+# % guisection: Print
 # %end
 
 # %flag
 # % key: j
-# % description: Print extended metadata information in JSON style
+# % description: Print scenes extended metadata information in JSON style and exit
+# % guisection: Print
 # %end
 
 # %flag
 # % key: e
 # % description: Extract the downloaded the scenes, not considered unless provider is set
+# % guisection: Config
 # %end
 
 # %flag
 # % key: d
 # % description: Delete the product archive after downloading, not considered unless provider is set
+# % guisection: Config
 # %end
 
 
@@ -78,7 +81,7 @@
 
 # %option G_OPT_M_DIR
 # % key: output
-# % description: Name for output directory where to store downloaded data OR search results
+# % description: Name for output directory where to store downloaded scenes data
 # % required: no
 # % guisection: Output
 # %end
@@ -87,6 +90,7 @@
 # % key: config
 # % label: Full path to yaml config file
 # % required: no
+# % guisection: Config
 # %end
 
 # %option
@@ -118,15 +122,17 @@
 # % type: string
 # % multiple: yes
 # % description: List of scenes IDs to download
+# % required: no
 # % guisection: Filter
 # %end
 
-# %option
+# %option G_OPT_F_INPUT
 # % key: file
 # % type: string
 # % multiple: no
-# % label: File with list of products to read
+# % label: File with a list of scenes to read
 # % description: Can be either a text file (one product ID per line), or a geojson file that was created by i.eodag
+# % required: no
 # % guisection: Filter
 # %end
 
@@ -145,6 +151,7 @@
 # % multiple: yes
 # % options: ingestiondate,cloudcover
 # % answer: cloudcover,ingestiondate
+# % required: no
 # % guisection: Sort
 # %end
 
@@ -153,36 +160,44 @@
 # % description: Sort order (see sort parameter)
 # % options: asc,desc
 # % answer: asc
+# % required: no
 # % guisection: Sort
 # %end
 
 # %option
 # % key: query
+# % multiple: yes
 # % label: Extra searching parameters to use in query
 # % description: Note: Make sure to use provided options when possible, otherwise the values mignt not be recognized
+# % required: no
 # % guisection: Filter
 # %end
 
 # %option
 # % key: start
 # % type: string
-# % description: Start date (in any ISO 8601 format), by default it is 60 days ago
+# % label: Start date (ISO 8601 Format)
+# % description: By default it is 60 days ago
+# % required: no
 # % guisection: Filter
 # %end
 
 # %option
 # % key: end
 # % type: string
-# % description: End date (in any ISO 8601 format)
+# % label: End date (ISO 8601 Format)
+# % description: By default it is the current date and time
+# % required: no
 # % guisection: Filter
 # %end
 
-# %option
+# %option G_OPT_F_OUTPUT
 # % key: save
 # % type: string
 # % description: File name to save in (the format will be adjusted according to the file extension)
 # % label: Supported files extensions [geojson: Rreadable by i.eodag | json: Beautified]
-# % guisection: Save
+# % required: no
+# % guisection: Output
 # %end
 
 # %option
@@ -190,7 +205,8 @@
 # % type: string
 # % description: Print the available options of the given value in JSON
 # % options: products,providers,queryables,config
-# % guisection: Metadata
+# % required: no
+# % guisection: Print
 # %end
 
 # %rules
@@ -198,6 +214,8 @@
 # % exclusive: -l, -j
 # % requires: -l, producttype, file
 # % requires: -j, producttype, file
+# % exclusive: -l, print
+# % exclusive: -j, print
 # % exclusive: minimum_overlap, area_relation
 # %end
 
@@ -242,11 +260,12 @@ def get_bb(proj):
     if proj["+proj"] != "longlat":
         info = gs.parse_command("g.region", flags="uplg")
         return {
-            "lonmin": info["nw_long"],
-            "latmin": info["sw_lat"],
-            "lonmax": info["ne_long"],
-            "latmax": info["nw_lat"],
+            "lonmin": float(info["nw_long"]),
+            "latmin": float(info["sw_lat"]),
+            "lonmax": float(info["ne_long"]),
+            "latmax": float(info["nw_lat"]),
         }
+    print("HERE")
     info = gs.parse_command("g.region", flags="upg")
     return {
         "lonmin": info["w"],
