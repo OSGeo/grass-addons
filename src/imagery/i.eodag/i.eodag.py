@@ -180,7 +180,7 @@
 # % key: save
 # % type: string
 # % description: File name to save in (the format will be adjusted according to the file extension)
-# % label: Supported files extensions [geojson: Rreadable by i.eodag | json: Beautified]
+# % label: Supported file extensions [geojson: Readable by i.eodag | json: Beautified]
 # % guisection: Save
 # %end
 
