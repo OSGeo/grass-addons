@@ -100,7 +100,7 @@ Search and list the available Sentinel 2 scenes in the Copernicus Data Space
 Ecosystem, with relative orbit number 54:
 
 <div class="code"><pre>
-./i.eodag.py -l producttype=S2_MSI_L2A \
+i.eodag -l producttype=S2_MSI_L2A \
     provider=cop_dataspace save=search_result.geojson \
     query="relativeOrbitNumber=54"
 <pre></div>

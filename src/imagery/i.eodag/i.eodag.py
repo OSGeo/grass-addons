@@ -46,7 +46,7 @@
 # %option
 # % key: producttype
 # % type: string
-# % description: Imagery producttype to search for
+# % description: Imagery product type to search for
 # % required: no
 # % guisection: Filter
 # %end
@@ -154,7 +154,7 @@
 # %option
 # % key: query
 # % multiple: yes
-# % label: Extra searching parameters to use in query
+# % label: Extra searching parameters to use in the search
 # % description: Note: Make sure to use provided options when possible, otherwise the values mignt not be recognized
 # % required: no
 # % guisection: Filter
@@ -197,8 +197,8 @@
 # %option G_OPT_F_OUTPUT
 # % key: save
 # % type: string
-# % description: File name to save in (the format will be adjusted according to the file extension)
-# % label: Supported files extensions [geojson: Rreadable by i.eodag | json: Beautified]
+# % description: File name to save the search results in (the format will be adjusted according to the file extension)
+# % label: Supported file extensions [geojson: Readable by i.eodag | json: Beautified]
 # % required: no
 # % guisection: Output
 # %end
