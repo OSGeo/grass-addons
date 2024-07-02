@@ -56,7 +56,7 @@
 # %option
 # % key: producttype
 # % type: string
-# % description: Imagery producttype to search for
+# % description: Imagery product type to search for
 # % required: no
 # % guisection: Filter
 # %end
