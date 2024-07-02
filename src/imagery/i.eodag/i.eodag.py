@@ -179,7 +179,7 @@
 # %option
 # % key: save
 # % type: string
-# % description: File name to save in (the format will be adjusted according to the file extension)
+# % description: File name to save the search results in (the format will be adjusted according to the file extension)
 # % label: Supported file extensions [geojson: Readable by i.eodag | json: Beautified]
 # % guisection: Save
 # %end
