@@ -275,7 +275,6 @@ def get_bb(proj):
             "lonmax": float(info["ne_long"]),
             "latmax": float(info["nw_lat"]),
         }
-    print("HERE")
     info = gs.parse_command("g.region", flags="upg")
     return {
         "lonmin": info["w"],
