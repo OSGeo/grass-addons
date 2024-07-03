@@ -796,17 +796,17 @@ def print_eodag_configuration(**kwargs):
 def print_eodag_providers(**kwargs):
     """Print providers available in JSON format.
 
-    :param producType: Restricts providers to given product.
-    :type productType: dict
+    :param kwargs: Restricts providers to providers offering specified product type.
+    :type kwargs: dict
     """
-    productType = kwargs["producttype"]
-    if productType:
-        gs.message(_("Recongnized providers offering {}".format(productType)))
+    product_type = kwargs["producttype"]
+    if product_type:
+        gs.message(_("Recongnized providers offering {}".format(product_type)))
     else:
         gs.message(_("Recongnizaed providers"))
     print(
         json.dumps(
-            {"providers": dag.available_providers(productType or None)}, indent=4
+            {"providers": dag.available_providers(product_type or None)}, indent=4
         )
     )
 
@@ -814,15 +814,22 @@ def print_eodag_providers(**kwargs):
 def print_eodag_products(**kwargs):
     """Print products available in JSON format.
 
-    :param provider: Restricts products to given provider.
-    :type provider: dict
+    :param kwargs: Restricts products to products offered by specific provider
+                   or specifies product type.
+    :type kwargs: dict
     """
     provider = kwargs["provider"]
+    product_type = kwargs["producttype"]
     if provider:
         gs.message(_("Recognized products offered by {}".format(provider)))
     else:
         gs.message(_("Recongnizaed providers"))
-    print(json.dumps({"products": dag.list_product_types(provider or None)}, indent=4))
+    products = dag.list_product_types(provider or None)
+    if product_type:
+        for product in products:
+            if product["ID"] == product_type:
+                products = [product]
+    print(json.dumps({"products": products}, indent=4))
 
 
 def print_eodag_queryables(**kwargs):
@@ -832,10 +839,10 @@ def print_eodag_queryables(**kwargs):
     :type kwargs: dict
     """
     provider = kwargs["provider"]
-    productType = kwargs["producttype"]
+    product_type = kwargs["producttype"]
     gs.message(_("Available queryables"))
     queryables = dag.list_queryables(
-        provider=provider or None, productType=productType or None
+        provider=provider or None, productType=product_type or None
     )
 
     # Literal is for queryables that have a certain list of options to choose from.
