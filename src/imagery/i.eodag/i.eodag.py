@@ -764,12 +764,13 @@ def save_search_result(search_result, file_name):
         dag.serialize(search_result, filename=file_name)
 
 
-def print_eodag_configuration(provider=None):
+def print_eodag_configuration(**kwargs):
     """Print EODAG currently recognized configurations in JSON format.
 
     :param provider: Print the configuration for only the given provider.
     :type provider: dict
     """
+    provider = kwargs["provider"]
 
     def to_dict(config):
         ret_dict = dict()
@@ -792,12 +793,13 @@ def print_eodag_configuration(provider=None):
         print(json.dumps(to_dict(dag.providers_config), indent=4))
 
 
-def print_eodag_providers(productType=None):
+def print_eodag_providers(**kwargs):
     """Print providers available in JSON format.
 
     :param producType: Restricts providers to given product.
     :type productType: dict
     """
+    productType = kwargs["producttype"]
     if productType:
         gs.message(_("Recongnized providers offering {}".format(productType)))
     else:
@@ -809,12 +811,13 @@ def print_eodag_providers(productType=None):
     )
 
 
-def print_eodag_products(provider=None):
+def print_eodag_products(**kwargs):
     """Print products available in JSON format.
 
     :param provider: Restricts products to given provider.
     :type provider: dict
     """
+    provider = kwargs["provider"]
     if provider:
         gs.message(_("Recognized products offered by {}".format(provider)))
     else:
@@ -909,14 +912,13 @@ def main():
     dates_to_iso_format()
 
     if options["print"]:
-        if options["print"] == "providers":
-            print_eodag_providers(options["producttype"])
-        elif options["print"] == "products":
-            print_eodag_products(options["provider"])
-        elif options["print"] == "config":
-            print_eodag_configuration(options["provider"])
-        elif options["print"] == "queryables":
-            print_eodag_queryables(**options, **flags)
+        print_functions = {
+            "providers": print_eodag_providers,
+            "products": print_eodag_products,
+            "config": print_eodag_configuration,
+            "queryables": print_eodag_queryables,
+        }
+        print_functions[options["print"]](**options)
         return
 
     # Download by IDs
