@@ -162,7 +162,7 @@
 # % key: query
 # % multiple: yes
 # % label: Extra searching parameters to use in the search
-# % description: Note: Make sure to use provided options when possible, otherwise the values mignt not be recognized
+# % description: Note: Make sure to use provided options when possible, otherwise the values might not be recognized
 # % required: no
 # % guisection: Filter
 # %end
