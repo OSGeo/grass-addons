@@ -835,7 +835,8 @@ def print_eodag_products(**kwargs):
 def print_eodag_queryables(**kwargs):
     """Print queryables info for given provider and/or product type in JSON format.
 
-    :param kwargs: Presit parameters values.
+    :param kwargs: options/flags from gs.parser, with the crietria that will
+                   be used for filtering.
     :type kwargs: dict
     """
     provider = kwargs["provider"]
