@@ -168,22 +168,6 @@
 # %end
 
 # %option
-# % key: extract
-# % type: string
-# % description: Whether to extract downloaded scenes zip files or not (will override values set in the config file)
-# % options: Yes,No
-# % guisection: Config
-# %end
-
-# %option
-# % key: deletearchive
-# % type: string
-# % label: Whether to delete downloaded scenes zip files or not (will override values set in the config file)
-# % options: Yes,No
-# % guisection: Config
-# %end
-
-# %option
 # % key: start
 # % type: string
 # % label: Start date (ISO 8601 Format)
@@ -1025,14 +1009,6 @@ def main():
         # https://eodag.readthedocs.io/en/stable/getting_started_guide/product_storage_status.html
         try:
             override_config = {}
-            if options["extract"]:
-                override_config["extract"] = (
-                    True if options["extract"].lower() == "yes" else False
-                )
-            if options["deletearchive"]:
-                override_config["delete_archive"] = (
-                    True if options["deletearchive"].lower() == "yes" else False
-                )
             if options["output"]:
                 override_config["outputs_prefix"] = options["output"]
             dag.download_all(search_result, **override_config)

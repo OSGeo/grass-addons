@@ -62,9 +62,16 @@ Search and list the available Sentinel 2 scenes in the Copernicus Data Space Eco
 <div class="code"><pre>
 v.extract input=urbanarea where="NAME = 'Durham'" output=durham
 
-i.eodag -l start=2022-05-25 end=2022-06-01 \
-    map=durham producttype=S2_MSI_L2A provider=cop_dataspace \
-    sort=cloudcover,ingestiondate order=asc,desc
+i.eodag -l start=2022-05-01 end=2022-06-01 \
+    map=durham producttype=S2_MSI_L2A provider=cop_dataspace
+
+6 scenes(s) found.
+S2B_MSIL2A_20220518T155819_N0400_R097_T17SPV_20220518T204903 2022-05-18T15:58:19 24% S2MSI2A
+S2A_MSIL2A_20220513T155821_N0400_R097_T17SPV_20220514T002317 2022-05-13T15:58:21 99% S2MSI2A
+S2B_MSIL2A_20220508T155819_N0400_R097_T17SPV_20220508T205707 2022-05-08T15:58:19 100% S2MSI2A
+S2A_MSIL2A_20220523T155831_N0400_R097_T17SPV_20220524T002713 2022-05-23T15:58:31 95% S2MSI2A
+S2A_MSIL2A_20220503T155831_N0400_R097_T17SPV_20220503T233818 2022-05-03T15:58:31 86% S2MSI2A
+S2B_MSIL2A_20220528T155819_N0400_R097_T17SPV_20220528T205325 2022-05-28T15:58:19  2% S2MSI2A
 <pre></div>
 
 Search and list the available Sentinel 2 scenes in the Copernicus Data Space
@@ -72,7 +79,7 @@ Ecosystem, with at least 70% of the AOI covered:
 <div class="code"><pre>
 v.extract input=urbanarea where="NAME = 'Durham'" output=durham
 
-i.eodag -l start=2022-05-25 end=2022-06-01 \
+i.eodag -l start=2022-05-01 end=2022-06-01 \
     producttype=S2_MSI_L2A provider=cop_dataspace \
     clouds=50 map=durham minimum_overlap=70
 <pre></div>
@@ -129,6 +136,41 @@ i.eodag -e provider=cop_dataspace \
     S2B_MSIL2A_20240529T081609_N0510_R121_T37SED_20240529T124818" \
     config=full/path/to/eodag/config.yaml \
     output=download_here
+<pre></div>
+
+List recognized eodag providers:
+<div class="code"><pre>
+i.eodag print=providers
+<pre></div>
+
+List recognized eodag providers, offering Sentinel 2 scenes:
+<div class="code"><pre>
+i.eodag print=providers producttype=S2_MSI_L2A
+<pre></div>
+
+List recognized eodag products:
+<div class="code"><pre>
+i.eodag print=products
+<pre></div>
+
+List recognized eodag products, offered by Copernicus Data Space Ecosystem:
+<div class="code"><pre>
+i.eodag print=products provider=cop_dataspace
+<pre></div>
+
+List queryables for Sentinel 2 scenes, that is offered by Copernicus Data Space Ecosystem:
+<div class="code"><pre>
+i.eodag print=queryables provider=cop_dataspace producttype=S2_MSI_L2A
+<pre></div>
+
+List current EODAG configuration:
+<div class="code"><pre>
+i.eodag print=config
+<pre></div>
+
+List current EODAG configuration for Copernicus Data Space Ecosystem:
+<div class="code"><pre>
+i.eodag print=config provider=cop_dataspace
 <pre></div>
 
 <h2>REQUIREMENTS</h2>
