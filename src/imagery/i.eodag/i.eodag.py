@@ -634,6 +634,8 @@ def sort_result(search_result):
     # Sort keys and sort orders are matched respectively
     def products_compare(first, second):
         for sort_key in sort_keys:
+            if sort_key not in first.properties:
+                continue
             if sort_key == "ingestiondate":
                 first_value = first.properties["startTimeFromAscendingNode"]
                 second_value = second.properties["startTimeFromAscendingNode"]
@@ -745,10 +747,10 @@ def save_search_result(search_result, file_name):
     saving it in a format that can be read again by i.eodag,
     to restore the search results.
 
-    :param search_result: EO products to be sorted
+    :param search_result: Search result with EO products to be saved.
     :type search_result: class'eodag.api.search_result.SearchResult'
 
-    :param file_name: EO products to be sorted
+    :param file_name: File to save search result in.
     :type file_name: str
     """
     if file_name[-5:].lower() == ".json":
