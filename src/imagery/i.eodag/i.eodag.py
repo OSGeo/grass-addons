@@ -188,8 +188,7 @@
 # %option G_OPT_F_OUTPUT
 # % key: save
 # % type: string
-# % description: File name to save the search results in (the format will be adjusted according to the file extension)
-# % label: Supported file extensions [geojson: Readable by i.eodag | json: Beautified]
+# % description: Geojson file name to save the search results in
 # % required: no
 # % guisection: Output
 # %end
@@ -724,11 +723,8 @@ def save_footprints(search_result, map_name):
 def save_search_result(search_result, file_name):
     """Save search results to files.
 
-    If the file is a json file,
-    the search result is saved in a beautified JSON format.
-    If the file is a geojson file,
-    the search result is saved using EODAG serialize method,
-    saving it in a format that can be read again by i.eodag,
+    The search result is saved using EODAG serialize method,
+    saving it in a format that can be read again by i.eodag
     to restore the search results.
 
     :param search_result: Search result with EO products to be saved.
@@ -737,17 +733,17 @@ def save_search_result(search_result, file_name):
     :param file_name: File to save search result in.
     :type file_name: str
     """
-    if file_name[-5:].lower() == ".json":
-        gs.verbose(_("Saving searchin result in '{}'".format(file_name)))
-        with open(file_name, "w") as f:
-            f.write(
-                json.dumps(
-                    search_result.as_geojson_object(), ensure_ascii=False, indent=4
-                )
-            )
     if file_name[-8:].lower() == ".geojson":
         gs.verbose(_("Saving searchin result in '{}'".format(file_name)))
         dag.serialize(search_result, filename=file_name)
+        return
+    gs.fatal(
+        _(
+            "Search result couldn't be saved in '{}'. Please make sure to use a 'geojson' file.".format(
+                file_name
+            )
+        )
+    )
 
 
 def print_eodag_configuration(**kwargs):
