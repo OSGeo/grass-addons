@@ -617,12 +617,14 @@ def sort_result(search_result):
     # Sort keys and sort orders are matched respectively
     def products_compare(first, second):
         for sort_key in sort_keys:
-            if sort_key not in first.properties:
-                continue
             if sort_key == "ingestiondate":
+                if "startTimeFromAscendingNode" not in first.properties:
+                    continue
                 first_value = first.properties["startTimeFromAscendingNode"]
                 second_value = second.properties["startTimeFromAscendingNode"]
             elif sort_key == "cloudcover":
+                if "cloudCover" not in first.properties:
+                    continue
                 first_value = first.properties["cloudCover"]
                 second_value = second.properties["cloudCover"]
             if first_value < second_value:
@@ -646,75 +648,18 @@ def save_footprints(search_result, map_name):
     :param map_name: Footprint name to be used.
     :type map_name: str
     """
-    try:
-        from osgeo import ogr, osr
-    except ImportError as e:
-        gs.fatal(_("Option <footprints> requires GDAL library: {}").format(e))
-
     gs.message(_("Writing footprints into <{}>...").format(map_name))
-    driver = ogr.GetDriverByName("GPKG")
-    tmp_name = gs.tempfile() + ".gpkg"
-    data_source = driver.CreateDataSource(tmp_name)
 
-    srs = osr.SpatialReference()
-    srs.ImportFromEPSG(4326)
-
-    # features can be polygons or multi-polygons
-    layer = data_source.CreateLayer(str(map_name), srs, ogr.wkbMultiPolygon)
-
-    # attributes
-    attrs = OrderedDict(
-        [
-            ("uuid", ogr.OFTString),
-            ("ingestiondate", ogr.OFTString),
-            ("cloudcoverpercentage", ogr.OFTInteger),
-            ("producttype", ogr.OFTString),
-            ("identifier", ogr.OFTString),
-        ]
-    )
-
-    for key, val in attrs.items():
-        field = ogr.FieldDefn(key, val)
-        layer.CreateField(field)
-
-    # features
-    for idx in range(len(search_result)):
-        wkt = search_result[idx].properties["gmlgeometry"]
-        feature = ogr.Feature(layer.GetLayerDefn())
-        newgeom = ogr.CreateGeometryFromGML(wkt)
-        # convert polygons to multi-polygons
-        newgeomtype = ogr.GT_Flatten(newgeom.GetGeometryType())
-        if newgeomtype == ogr.wkbPolygon:
-            multigeom = ogr.Geometry(ogr.wkbMultiPolygon)
-            multigeom.AddGeometryDirectly(newgeom)
-            feature.SetGeometry(multigeom)
-        else:
-            feature.SetGeometry(newgeom)
-        for key in attrs.keys():
-            if key == "ingestiondate":
-                value = search_result[idx].properties["startTimeFromAscendingNode"]
-            elif key == "uuid":
-                value = search_result[idx].properties["uid"]
-            elif key == "cloudcoverpercentage":
-                value = search_result[idx].properties["cloudCover"]
-            elif key == "producttype":
-                value = search_result[idx].properties["productType"]
-            elif key == "identifier":
-                # Not sure if that is what is meant by identifier
-                value = search_result[idx].properties["platformSerialIdentifier"]
-            feature.SetField(key, value)
-        layer.CreateFeature(feature)
-        feature = None
-
-    data_source = None
+    geojson_temp_dir = gs.tempdir()
+    geojson_temp_file = os.path.join(geojson_temp_dir, "search_result.geojson")
+    save_search_result(search_result, geojson_temp_file)
 
     # coordinates of footprints are in WKT -> fp precision issues
     # -> snap
     gs.run_command(
         "v.import",
-        input=tmp_name,
+        input=geojson_temp_file,
         output=map_name,
-        layer=map_name,
         snap=1e-10,
         quiet=True,
     )
@@ -733,17 +678,17 @@ def save_search_result(search_result, file_name):
     :param file_name: File to save search result in.
     :type file_name: str
     """
-    if file_name[-8:].lower() == ".geojson":
-        gs.verbose(_("Saving searchin result in '{}'".format(file_name)))
-        dag.serialize(search_result, filename=file_name)
-        return
-    gs.fatal(
-        _(
-            "Search result couldn't be saved in '{}'. Please make sure to use a 'geojson' file.".format(
-                file_name
+    if file_name[-8:].lower() != ".geojson":
+        file_name += ".geojson"
+        gs.warning(
+            _(
+                "Search results are saved in geojson format, which doesn't match the file extension. Search result will be saved in '{}'".format(
+                    file_name
+                )
             )
         )
-    )
+    gs.verbose(_("Saving searchin result in '{}'".format(file_name)))
+    dag.serialize(search_result, filename=file_name)
 
 
 def print_eodag_configuration(**kwargs):
