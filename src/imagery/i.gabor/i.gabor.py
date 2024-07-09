@@ -175,7 +175,7 @@ def main():
     inarr = garray.array(input)
     if flags["c"]:
         convolved = []
-        if type(q) == list:
+        if isinstance(q, list):
             for i in range(len(filters.keys())):
                 name = list(filters.keys())[i]
                 convolved.append(gabor_convolve(inarr, filters[name], threshold, q[i]))

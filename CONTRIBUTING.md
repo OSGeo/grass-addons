@@ -117,9 +117,9 @@ git switch -c new-feature
 
 ### Making changes
 
-You can use your favorite tools to change source code or other files
-in the local copy of the code. When make changes, please follow the
-[Submitting Guidelines](https://github.com/OSGeo/grass/blob/main/doc/development/submitting/submitting.md).
+You can use your favourite tools to change source code or other files
+in the local copy of the code. When making such changes, please follow the
+general [GRASS GIS Programming Style Guide](https://github.com/OSGeo/grass/blob/main/doc/development/style_guide.md).
 
 ### Committing
 

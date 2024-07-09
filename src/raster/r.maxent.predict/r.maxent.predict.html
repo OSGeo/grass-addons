@@ -1,116 +1,116 @@
 <h2>DESCRIPTION</h2>
 
-The <em>r.maxent.predict</em> addon can be used to apply a previously 
-calculated Maxent model to a new set of environmental raster data. It 
-requires a <i>.lambdas</i> file describing a Maxent model, and the 
-name of raster layers for all predictor variables described in the 
-lambdas file. The <i>.lambdas file</i> can be created by the 
+The <em>r.maxent.predict</em> addon can be used to apply a previously
+calculated Maxent model to a new set of environmental raster data. It
+requires a <i>.lambdas</i> file describing a Maxent model, and the
+name of raster layers for all predictor variables described in the
+lambdas file. The <i>.lambdas file</i> can be created by the
 <em>r.maxent.train</em> addon, or by the Maxent software directly.
 
 <p>
-For convenience, <em>r.maxent.train</em> creates a file 
-<i>maxent_explanatory_variable_names.csv</i>, which you can check for 
-the names of the predictor variables. If these are different from the  
-input raster layers, you can provide the variable names using the 
-<em>variables</em> parameter. Alternatively, you can provide a CSV file 
-with the names of the explanatory variables (first column) and the 
+For convenience, <em>r.maxent.train</em> creates a file
+<i>maxent_explanatory_variable_names.csv</i>, which you can check for
+the names of the predictor variables. If these are different from the
+input raster layers, you can provide the variable names using the
+<em>variables</em> parameter. Alternatively, you can provide a CSV file
+with the names of the explanatory variables (first column) and the
 names of the corresponding raster layers (second column).
 
 <p>
-Maxent includes the option of “clamping” projections. This constrains 
-the values for environmental values in the projected range to the limit 
-of that variable that is found in the training range. By default, 
-Maxent applied clamping. You can disable this by setting the 
-<em>-c</em> flag. You also have the option to reduce the prediction at 
-each point in projections by the difference between clamped and 
-non-clamped output at that point. Use the <em>-f</em> to enable this 
+Maxent includes the option of “clamping” projections. This constrains
+the values for environmental values in the projected range to the limit
+of that variable that is found in the training range. By default,
+Maxent applied clamping. You can disable this by setting the
+<em>-c</em> flag. You also have the option to reduce the prediction at
+each point in projections by the difference between clamped and
+non-clamped output at that point. Use the <em>-f</em> to enable this
 option.
 
 <h2>NOTES</h2>
 
-This addon requires the Maxent software. You can download the software 
-from the <a 
-href="https://biodiversityinformatics.amnh.org/open_source/maxent">Maxent 
-website</a>. The software includes a <em>Maxent.jar</em> file. The 
-addon expects a copy of the executable in the GRASS GIS addon 
-directory. If it is not there, you need to provide the path to the 
-<i>maxent.jar</i> file using the <b>maxent</b> parameter. To avoid 
-having to provide this each time again, you can use the <b>-i</b> flag. 
-If set, the <i>maxent.jar</i> file will be copied to the addon/script 
-directory. Note that if you already did this when running 
+This addon requires the Maxent software. You can download the software
+from the <a
+href="https://biodiversityinformatics.amnh.org/open_source/maxent">Maxent
+website</a>. The software includes a <em>Maxent.jar</em> file. The
+addon expects a copy of the executable in the GRASS GIS addon
+directory. If it is not there, you need to provide the path to the
+<i>maxent.jar</i> file using the <b>maxent</b> parameter. To avoid
+having to provide this each time again, you can use the <b>-i</b> flag.
+If set, the <i>maxent.jar</i> file will be copied to the addon/script
+directory. Note that if you already did this when running
 <em>r.maxent.train</em>, there is no need to repeat it here.
 
 <p>
-If you want to update the Maxent.jar file, use the <b>-u</b> flag. 
-Removing the Maxent.jar file needs to be done manually. Go to the GRASS 
-GIS addon directory, and delete the Maxent.jar file. To find the addon 
-directory, open GRASS GIS, and type `echo $GRASS_ADDON_BASE` on the 
+If you want to update the Maxent.jar file, use the <b>-u</b> flag.
+Removing the Maxent.jar file needs to be done manually. Go to the GRASS
+GIS addon directory, and delete the Maxent.jar file. To find the addon
+directory, open GRASS GIS, and type `echo $GRASS_ADDON_BASE` on the
 command line.
 
 <h2>Examples</h2>
 
 <p>
-The examples below use a dataset that you can download <a 
-href="https://ecodiv.earth/share/reader_SDM/grassmaxent_sampledata.zip">from 
-here</a>. It includes a vector point layer with observation locations 
-of the pale-throated sloth (<i>Bradypus tridactylus</i>) from <a 
-href="https://doi.org/10.15468/dl.br8b4a">GBIF</a>, the <a 
-href="https://www.iucnredlist.org/species/3037/210442660">IUCN RedList 
-range map</a> of the species, a boundary layer of the South American 
-countries from  <a 
-href="https://www.naturalearthdata.com/downloads/50m-cultural-vectors/">NaturalEarth</a> 
-and a number of bioclim raster layers from <a 
-href="https://www.worldclim.org/">WorldClim</a> version 2.1, 
-representing the climate conditions representing the period 1970-2000 
-and the climate conditions predicted for 2061–2080 based on the GCM 
+The examples below use a dataset that you can download <a
+href="https://ecodiv.earth/share/reader_SDM/grassmaxent_sampledata.zip">from
+here</a>. It includes a vector point layer with observation locations
+of the pale-throated sloth (<i>Bradypus tridactylus</i>) from <a
+href="https://doi.org/10.15468/dl.br8b4a">GBIF</a>, the <a
+href="https://www.iucnredlist.org/species/3037/210442660">IUCN RedList
+range map</a> of the species, a boundary layer of the South American
+countries from  <a
+href="https://www.naturalearthdata.com/downloads/50m-cultural-vectors/">NaturalEarth</a>
+and a number of bioclim raster layers from <a
+href="https://www.worldclim.org/">WorldClim</a> version 2.1,
+representing the climate conditions representing the period 1970-2000
+and the climate conditions predicted for 2061–2080 based on the GCM
 BCC-CSM2-MR and SSP 585.
 
 
 <p>
-The zip file contains a folder <i>sampledata</i>. This is a location 
-with five subfolders <i>PERMANENT</i>, <i>sloth</i>, <i>current</i>, 
-<i>future</i> and <i>model01</i>. Copy this Location to a GRASS 
-Database (use an existing one or create one first). If you are not 
-familiar with the concept of <i>Locations</i> and <i>Mapsets</i>, 
-please first read the <a 
-href="https://grass.osgeo.org/grass83/manuals/grass_database.html">explanation</a> 
+The zip file contains a folder <i>sampledata</i>. This is a location
+with five subfolders <i>PERMANENT</i>, <i>sloth</i>, <i>current</i>,
+<i>future</i> and <i>model01</i>. Copy this Location to a GRASS
+Database (use an existing one or create one first). If you are not
+familiar with the concept of <i>Locations</i> and <i>Mapsets</i>,
+please first read the <a
+href="https://grass.osgeo.org/grass83/manuals/grass_database.html">explanation</a>
 about the GRASS GIS database.
 
 <p>
-Unzip the file, start up GRASS GIS, open the GRASS GIS database to 
-which you copied the folder <i>sampledata</i>, switch to the Location 
-<i>sampledata</i> and open the mapset <i>model01</i>. This mapset 
+Unzip the file, start up GRASS GIS, open the GRASS GIS database to
+which you copied the folder <i>sampledata</i>, switch to the Location
+<i>sampledata</i> and open the mapset <i>model01</i>. This mapset
 should have access to the other mapsets.
 
-This addon is part of a series of three addons that can be used to 
-prepare the data, train a maxent presence only model, and to use the 
+This addon is part of a series of three addons that can be used to
+prepare the data, train a maxent presence only model, and to use the
 model to create prediction layers.
 
 <p>
-<div align="left" style="margin: 10px"> <a 
-href="r_maxent_predict_01.png"> <img src="r_maxent_predict_01.png" 
-alt="workflow, from data preparation, training a model to model 
-prediction" border="0"> </a><br><i>A workflow, from data preparation, 
-training a model to model prediction using three GRASS GIS addons.</i> 
+<div align="left" style="margin: 10px"> <a
+href="r_maxent_predict_01.png"> <img src="r_maxent_predict_01.png"
+alt="workflow, from data preparation, training a model to model
+prediction" border="0"> </a><br><i>A workflow, from data preparation,
+training a model to model prediction using three GRASS GIS addons.</i>
 </div>
 
 <p>
-The examples below show how to use the three addons in sequence. Only 
-the basic options are shown. For a detailed account of all options, 
-check out the Maxent tutorial on the <a 
-href="https://biodiversityinformatics.amnh.org/open_source/maxent">Maxent 
+The examples below show how to use the three addons in sequence. Only
+the basic options are shown. For a detailed account of all options,
+check out the Maxent tutorial on the <a
+href="https://biodiversityinformatics.amnh.org/open_source/maxent">Maxent
 website</a>.
 
 
 <h3>1: Data preparation</h3>
 
-You can use the <em>v.maxent.swd</em> to create the required input 
-layers. The code below creates the SWD file with the locations where 
-the species has been recorded (<b>species_output</b>) and a SWD file 
-with randomly created background point locations (<b>bgr_ouput</b>). The 
-SWD files contain, for each location, the values of the raster layers 
-selected with the <b>evp_maps</b> parameter. With the parameter 
-<b>export_rasters</b> you tell the addon to export the raster layers as 
+You can use the <em>v.maxent.swd</em> to create the required input
+layers. The code below creates the SWD file with the locations where
+the species has been recorded (<b>species_output</b>) and a SWD file
+with randomly created background point locations (<b>bgr_ouput</b>). The
+SWD files contain, for each location, the values of the raster layers
+selected with the <b>evp_maps</b> parameter. With the parameter
+<b>export_rasters</b> you tell the addon to export the raster layers as
 well.
 
 <div class="code">
@@ -128,29 +128,29 @@ v.maxent.swd -t \
 </div>
 
 <p>
-The output is a folder with the so-called SWD files  with the XY 
-coordinates for the species presence location (<i>spec_swd.csv</i>) and 
-the background locations (<i>bgrd_swd.csv</i>. Both also include the 
-values of the input raster layers for the given point locations. In 
-addition, there is the subfolder <i>envlayers</i> with the 
+The output is a folder with the so-called SWD files  with the XY
+coordinates for the species presence location (<i>spec_swd.csv</i>) and
+the background locations (<i>bgrd_swd.csv</i>. Both also include the
+values of the input raster layers for the given point locations. In
+addition, there is the subfolder <i>envlayers</i> with the
 environmental raster layers in <i>ascii</i> format.
 
 <h3>2: Train the model</h3>
 
-Use the output of <em>v.maxent.swd</em> as input for 
-<em>r.maxent.train</em>. First create a subfolder <i>output_model1</i>, 
+Use the output of <em>v.maxent.swd</em> as input for
+<em>r.maxent.train</em>. First create a subfolder <i>output_model1</i>,
 so we can write the output to that folder.
 
 <p>
-The <b>projectionlayers</b> parameter is optionally. If you set it, a 
-raster prediction layer will be created that represent the potential 
-suitability distribution under current conditions (the conditions used 
+The <b>projectionlayers</b> parameter is optionally. If you set it, a
+raster prediction layer will be created that represent the potential
+suitability distribution under current conditions (the conditions used
 to train the model).
 
 <p>
-With the <b>-y</b> and <b>-b</b> flags the point layers with the sample 
-predictions and the predictions at the background point locations are 
-created. Their values correspond to the values of the raster prediction 
+With the <b>-y</b> and <b>-b</b> flags the point layers with the sample
+predictions and the predictions at the background point locations are
+created. Their values correspond to the values of the raster prediction
 layer.
 
 <div class="code">
@@ -163,58 +163,58 @@ r.maxent.train -y -b -g \
   samplepredictions=model_1_samplepred \
   backgroundpredictions=model_1_bgrdpred \
   predictionlayer=model_1_suitability_current \
-  outputdirectory=output_model1 
+  outputdirectory=output_model1
 </pre>
 </div>
 
 <p>
-When <em>r.maxent.train</em> is finished, go to the output folder and 
-open the <i>Bradypus_tridactylus.html</i> file for an explanation of 
-the different model outputs and model evaluation statistics. For a more 
-detailed explanation, see the tutorial on the <a 
-href="https://biodiversityinformatics.amnh.org/open_source/maxent/">Maxent 
+When <em>r.maxent.train</em> is finished, go to the output folder and
+open the <i>Bradypus_tridactylus.html</i> file for an explanation of
+the different model outputs and model evaluation statistics. For a more
+detailed explanation, see the tutorial on the <a
+href="https://biodiversityinformatics.amnh.org/open_source/maxent/">Maxent
 website</a>.
 
 <p>
-In your current mapset, you'll find the raster prediction layer, and 
-the sample and background point layers with the predicted values. 
+In your current mapset, you'll find the raster prediction layer, and
+the sample and background point layers with the predicted values.
 
 <p>
-<div align="left" style="margin: 10px"> <a href="r_maxent_train.png"> 
-<img src="r_maxent_train.png" alt="Output layers in GRASS GIS" 
-border="0"> </a><br><i>The example creates the prediction raster layer 
-'model_1_suitability_current',  the sample point layer 
-'model_1_samplepred' and the background point layer 'model_bgrdpred' 
+<div align="left" style="margin: 10px"> <a href="r_maxent_train.png">
+<img src="r_maxent_train.png" alt="Output layers in GRASS GIS"
+border="0"> </a><br><i>The example creates the prediction raster layer
+'model_1_suitability_current',  the sample point layer
+'model_1_samplepred' and the background point layer 'model_bgrdpred'
 (for the latter, only part of the map is shown here).</i> </div>
 
 <h3>3: Create a prediction layer</h3>
 
-The third step is to use the model created in the previous step to 
-predict the species suitability distribution under future climates. 
-Note, we are going to make the (unrealistic) assumption that the 
+The third step is to use the model created in the previous step to
+predict the species suitability distribution under future climates.
+Note, we are going to make the (unrealistic) assumption that the
 ecosystems do not change.
 
 <div class="code">
 <pre>
-r.maxent.predict 
+r.maxent.predict
   lambda=output_model1/Bradypus_tridactylus.lambdas raster=bio02_ssp585,bio03_ssp585,bio08_ssp585,bio09_ssp585,bio13_ssp585,bio15_ssp585,bio17_ssp585,sa_eco_l2@current variables=bio02,bio03,bio08,bio09,bio13,bio15,bio17,landuse \
   output=model_1_ssp585
 </pre>
 </div>
 
 <p>
-The resulting layer is written to the current mapset as 
-<i>model_1_ssp585</i> (right map in the figure below). The results 
-suggest the area with suitable conditions will increase under future 
-climates compared the that under the current conditions (left map in 
-the figure below). Not sure that is realistic.  
+The resulting layer is written to the current mapset as
+<i>model_1_ssp585</i> (right map in the figure below). The results
+suggest the area with suitable conditions will increase under future
+climates compared the that under the current conditions (left map in
+the figure below). Not sure that is realistic.
 
 <p>
-<div align="left" style="margin: 10px"> <a 
-href="r_maxent_predict_02.png"> <img src="r_maxent_predict_02.png" 
-alt="Predicted suitability map for Bradypus tridactylus for the period 
-2061-2080 based on the GCM BCC-CSM2-MR and SSP 585." border="0"> 
-</a><br><i>Predicted suitabilty for the period 2061-2080 based on the 
+<div align="left" style="margin: 10px"> <a
+href="r_maxent_predict_02.png"> <img src="r_maxent_predict_02.png"
+alt="Predicted suitability map for Bradypus tridactylus for the period
+2061-2080 based on the GCM BCC-CSM2-MR and SSP 585." border="0">
+</a><br><i>Predicted suitabilty for the period 2061-2080 based on the
 GCM BCC-CSM2-MR and SSP 585.</i> </div>
 
 
@@ -240,15 +240,15 @@ Distributions, 17:43-57, 2011.</li>
 <h2>SEE ALSO</h2>
 
 <ul>
-<li><a href="v.maxent.swd.html">v.maxent.swd</a>, creating species and 
-background swd files and prediction rasters that can be used directly 
-by the <em>r.maxent.train</em> addon (or the Maxent software itself) to 
+<li><a href="v.maxent.swd.html">v.maxent.swd</a>, creating species and
+background swd files and prediction rasters that can be used directly
+by the <em>r.maxent.train</em> addon (or the Maxent software itself) to
 create species distribution models.</li>
-<li><a href="r.out.maxent_swd.html">r.out.maxent_swd</a>, creating 
-species and background swd files based on species distribution data in 
+<li><a href="r.out.maxent_swd.html">r.out.maxent_swd</a>, creating
+species and background swd files based on species distribution data in
 raster format.</li>
-<li><a href="r.maxent.train.html">r.maxent.train</a>, creates a maxent 
-model based on presence point data a set of environmental predictor 
+<li><a href="r.maxent.train.html">r.maxent.train</a>, creates a maxent
+model based on presence point data a set of environmental predictor
 layers.</li>
 </ul>
 
@@ -258,8 +258,7 @@ Paulo van Breugel, <a href="https://ecodiv.earth">https://ecodiv.earth</a><br>
 
 <p>
 HAS green academy University of Applied Sciences<br>
-<a href="https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/">Innovative 
+<a href="https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/">Innovative
 Biomonitoring research group</a><br>
-<a href="https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/">Climate-robust 
+<a href="https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/">Climate-robust
 Landscapes research group</a>
-

@@ -206,7 +206,7 @@ cp -r html/*  $TARGETPROGMAN/
 
 echo "Copied HTML progman to https://grass.osgeo.org/programming${GVERSION}"
 # fix permissions
-chgrp -R grass $TARGETPROGMAN/*
+#chgrp -R grass $TARGETPROGMAN/*
 chmod -R a+r,g+w $TARGETPROGMAN/
 chmod -R a+r,g+w $TARGETPROGMAN/*
 # bug in doxygen

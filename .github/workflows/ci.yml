@@ -32,20 +32,20 @@ jobs:
         include:
           - grass-version: main
             python-version: "3.11"
-          - grass-version: releasebranch_8_3
+          - grass-version: releasebranch_8_4
             python-version: "3.10"
       fail-fast: false
 
     steps:
       - name: Checkout core
-        uses: actions/checkout@v4
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           repository: OSGeo/grass
           ref: ${{ matrix.grass-version }}
           path: grass
 
       - name: Checkout addons
-        uses: actions/checkout@v4
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           path: grass-addons
 
@@ -57,7 +57,7 @@ jobs:
               sudo apt-get install -y --no-install-recommends --no-install-suggests
 
       - name: Set up Python ${{ matrix.python-version }} as default Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d # v5.1.0
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -105,7 +105,7 @@ jobs:
           pip install -r grass-addons/.github/workflows/extra_requirements.txt
 
       - name: Set up R
-        uses: r-lib/actions/setup-r@v2
+        uses: r-lib/actions/setup-r@929c772977a3a13c8733b363bf5a2f685c25dd91 # v2.9.0
         with:
           r-version: 4.2.1
 
@@ -119,7 +119,7 @@ jobs:
           ../.github/workflows/test.sh
 
       - name: Make HTML test report available
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4.3.4
         with:
           name: testreport-grass-${{ matrix.grass-version }}-python-${{ matrix.python-version }}
           path: grass-addons/src/testreport
