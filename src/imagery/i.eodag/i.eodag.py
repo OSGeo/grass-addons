@@ -584,8 +584,14 @@ def filter_result(search_result, geometry, **kwargs):
     if options["query"]:
         VALID_OPERATORS = ["eq", "ne", "ge", "gt", "le", "lt"]
         DEFAULT_OPERATOR = "eq"
-        for parameter in options["query"].split(","):
-            key, values = parameter.strip().split("=")
+        for parameter in map(str.strip, options["query"].split(",")):
+            if parameter == "":
+                continue
+            try:
+                key, values = map(str.strip, parameter.split("="))
+            except Exception as e:
+                gs.debug(e)
+                gs.fatal(_("Missing value for queryable <{}>".format(parameter)))
             if key == "start":
                 if start_date is not None:
                     gs.fatal(_("Queryable <start> can not be set multiple times"))
@@ -615,12 +621,11 @@ def filter_result(search_result, geometry, **kwargs):
                 continue
             operator = None
             tmp_search_result_list = []
-            for value in values.split("\\"):
-                value = value.strip()
+            for value in map(str.strip, values.split("\\")):
                 if value == "":
                     continue
                 if value.find("|") != -1:
-                    value, operator = [v.strip() for v in value.split("|")]
+                    value, operator = map(str.strip, value.split("|"))
                     if operator not in VALID_OPERATORS:
                         gs.fatal(
                             _(
