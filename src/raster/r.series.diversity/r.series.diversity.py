@@ -118,14 +118,7 @@
 # %option G_OPT_M_NPROCS
 # %end
 
-# %option
-# % key: memory
-# % type: integer
-# % required: no
-# % multiple: no
-# % label: Maximum memory to be used (in MB)
-# % description: Maximum memory to be used (in MB)
-# % answer: 300
+# %option G_OPT_MEMORYMB
 # %end
 
 # ----------------------------------------------------------------------------
