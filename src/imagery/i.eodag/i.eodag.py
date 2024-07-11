@@ -550,10 +550,8 @@ def filter_result(search_result, geometry, **kwargs):
     prefilter_count = len(search_result)
     area_relation = kwargs["area_relation"]
     minimum_overlap = kwargs["minimum_overlap"]
-    start_date = kwargs["start"]
-    end_date = kwargs["end"]
-
-    search_result = remove_duplicates(search_result)
+    start_date = None
+    end_date = None
 
     # If neither a geometry is provided as a parameter
     # nor a vector map is provided through "options",
@@ -587,57 +585,75 @@ def filter_result(search_result, geometry, **kwargs):
         VALID_OPERATORS = ["eq", "ne", "ge", "gt", "le", "lt"]
         DEFAULT_OPERATOR = "eq"
         for parameter in options["query"].split(","):
-            key, value = parameter.split("=")
-            operator = None
-            if value.find("|") != -1:
-                value, operator = value.split("|")
-                if operator not in VALID_OPERATORS:
+            key, values = parameter.strip().split("=")
+            if key == "start":
+                if start_date is not None:
+                    gs.fatal(_("Queryable <start> can not be set multiple times"))
+                try:
+                    start_date = normalize_time(values)
+                except Exception as e:
+                    gs.debug(e)
                     gs.fatal(
                         _(
-                            "Invalid operator <{}> for queryable <{}>. Available operators {}".format(
-                                operator, key, VALID_OPERATORS
+                            "Could not parse queryable <start>\nDate must be in ISO Format."
+                        )
+                    )
+                continue
+
+            if key == "end":
+                if end_date is not None:
+                    gs.fatal(_("Queryable <end> can not be set multiple times"))
+                try:
+                    end_date = normalize_time(values)
+                except Exception as e:
+                    gs.debug(e)
+                    gs.fatal(
+                        _(
+                            "Could not parse queryable <end>\nDate must be in ISO Format."
+                        )
+                    )
+                continue
+            operator = None
+            tmp_search_result_list = []
+            for value in values.split("\\"):
+                value = value.strip()
+                if value == "":
+                    continue
+                if value.find("|") != -1:
+                    value, operator = [v.strip() for v in value.split("|")]
+                    if operator not in VALID_OPERATORS:
+                        gs.fatal(
+                            _(
+                                "Invalid operator <{}> for queryable <{}>. Available operators {}".format(
+                                    operator, key, VALID_OPERATORS
+                                )
+                            )
+                        )
+                try:
+                    value = float(value)
+                except:
+                    if value.lower() == "none" or value.lower() == "null":
+                        value = None
+                try:
+                    filtered_search_result_list = search_result.filter_property(
+                        operator=operator, **{key: value}
+                    ).data
+                    tmp_search_result_list.extend(filtered_search_result_list)
+                except TypeError as e:
+                    gs.debug(e)
+                    gs.fatal(
+                        _(
+                            "Invalid operator <{}> for queryable <{}>\nAvailable operator 'eq'".format(
+                                operator, key
                             )
                         )
                     )
-            if key == "start" or key == "startTimeFromAscendingNode":
-                if operator is not None:
-                    gs.fatal(
-                        _(
-                            "Operators can not be used with <{}> query parameter."
-                        ).format(key)
-                    )
-                start_date = value
-                continue
-            if key == "end" or key == "completionTimeFromAscendingNode":
-                if operator is not None:
-                    gs.fatal(
-                        _(
-                            "Operators can not be used with <{}> query parameter."
-                        ).format(key)
-                    )
-                end_date = value
-                continue
-            try:
-                value = float(value)
-            except:
-                if value.lower() == "none" or value.lower() == "null":
-                    value = None
-            try:
-                search_result = search_result.filter_property(
-                    operator=operator, **{key: value}
-                )
-            except TypeError as e:
-                gs.debug(e)
-                gs.fatal(
-                    _(
-                        "Invalid operator <{}> for queryable <{}>\nAvailable operator 'eq'".format(
-                            operator, key
-                        )
-                    )
-                )
-    search_result = search_result.filter_date(
-        start=start_date or None, end=end_date or None
-    )
+            search_result = SearchResult(tmp_search_result_list)
+
+    # Remove duplictes that might be created while filtering
+    search_result = remove_duplicates(search_result)
+    if start_date or end_date:
+        search_result = search_result.filter_date(start=start_date, end=end_date)
 
     postfilter_count = len(search_result)
     gs.verbose(
