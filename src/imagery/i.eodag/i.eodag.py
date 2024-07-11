@@ -558,7 +558,6 @@ def filter_result(search_result, geometry, **kwargs):
     # then none of the geometry filtering will take place.
     if geometry is None and (area_relation is not None or minimum_overlap is not None):
         geometry = get_aoi(kwargs["map"])
-    gs.verbose(_("Filtering results..."))
 
     if area_relation:
         # Product's geometry intersects with AOI
@@ -681,8 +680,6 @@ def sort_result(search_result):
     :return: Sorted EO products
     :rtype: class:'eodag.api.search_result.SearchResult'
     """
-    gs.verbose(_("Sorting..."))
-
     sort_keys = options["sort"].split(",")
     sort_order = options["order"]
 
@@ -928,6 +925,12 @@ def main():
         print_functions[options["print"]](**options)
         return
 
+    # Try filtering on an empty search result
+    # to catch errors early instead of waiting till
+    # after the search is completed
+    gs.debug("Checking query option validity")
+    filter_result(SearchResult(None), None, **options)
+
     # Download by IDs
     # Searching for additional products will not take place
     ids_set = set()
@@ -991,9 +994,11 @@ def main():
         else:
             search_result = dag.search_all(**search_parameters)
 
+    gs.verbose(_("Filtering results..."))
     search_result = filter_result(
         search_result, geometry if "geometry" in locals() else None, **options
     )
+    gs.verbose(_("Sorting results..."))
     search_result = sort_result(search_result)
     if options["limit"]:
         search_result = SearchResult(search_result[: int(options["limit"])])
