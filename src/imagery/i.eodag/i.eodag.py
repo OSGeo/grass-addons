@@ -141,16 +141,18 @@
 
 # %option
 # % key: sort
+# % type: string
 # % description: Field to sort values by
-# % multiple: yes
 # % options: ingestiondate,cloudcover
 # % answer: cloudcover,ingestiondate
 # % required: no
+# % multiple: yes
 # % guisection: Sort
 # %end
 
 # %option
 # % key: order
+# % type: string
 # % description: Sort order (see sort parameter)
 # % options: asc,desc
 # % answer: asc
@@ -548,9 +550,10 @@ def filter_result(search_result, geometry, **kwargs):
     prefilter_count = len(search_result)
     area_relation = kwargs["area_relation"]
     minimum_overlap = kwargs["minimum_overlap"]
-    cloud_cover = kwargs["clouds"]
     start_date = kwargs["start"]
     end_date = kwargs["end"]
+
+    search_result = remove_duplicates(search_result)
 
     # If neither a geometry is provided as a parameter
     # nor a vector map is provided through "options",
@@ -580,13 +583,61 @@ def filter_result(search_result, geometry, **kwargs):
             geometry=geometry, minimum_overlap=int(minimum_overlap)
         )
 
-    if cloud_cover:
-        search_result = search_result.filter_property(
-            operator="le", cloudCover=int(cloud_cover)
-        )
-
-    search_result = search_result.filter_date(start=start_date, end=end_date)
-    search_result = remove_duplicates(search_result)
+    if options["query"]:
+        VALID_OPERATORS = ["eq", "ne", "ge", "gt", "le", "lt"]
+        DEFAULT_OPERATOR = "eq"
+        for parameter in options["query"].split(","):
+            key, value = parameter.split("=")
+            operator = None
+            if value.find("|") != -1:
+                value, operator = value.split("|")
+                if operator not in VALID_OPERATORS:
+                    gs.fatal(
+                        _(
+                            "Invalid operator <{}> for queryable <{}>. Available operators {}".format(
+                                operator, key, VALID_OPERATORS
+                            )
+                        )
+                    )
+            if key == "start" or key == "startTimeFromAscendingNode":
+                if operator is not None:
+                    gs.fatal(
+                        _(
+                            "Operators can not be used with <{}> query parameter."
+                        ).format(key)
+                    )
+                start_date = value
+                continue
+            if key == "end" or key == "completionTimeFromAscendingNode":
+                if operator is not None:
+                    gs.fatal(
+                        _(
+                            "Operators can not be used with <{}> query parameter."
+                        ).format(key)
+                    )
+                end_date = value
+                continue
+            try:
+                value = float(value)
+            except:
+                if value.lower() == "none" or value.lower() == "null":
+                    value = None
+            try:
+                search_result = search_result.filter_property(
+                    operator=operator, **{key: value}
+                )
+            except TypeError as e:
+                gs.debug(e)
+                gs.fatal(
+                    _(
+                        "Invalid operator <{}> for queryable <{}>\nAvailable operator 'eq'".format(
+                            operator, key
+                        )
+                    )
+                )
+    search_result = search_result.filter_date(
+        start=start_date or None, end=end_date or None
+    )
 
     postfilter_count = len(search_result)
     gs.verbose(
@@ -908,10 +959,6 @@ def main():
             "productType": product_type,
             "geom": geometry,
         }
-        if options["query"]:
-            for parameter in options["query"].split(","):
-                key, value = parameter.split("=")
-                search_parameters[key] = value
 
         if options["clouds"]:
             search_parameters["cloudCover"] = options["clouds"]
@@ -986,4 +1033,5 @@ if __name__ == "__main__":
             setup_logging(2)
         else:
             setup_logging(3)
+    setup_logging(3)
     sys.exit(main())
