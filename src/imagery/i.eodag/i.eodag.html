@@ -32,6 +32,153 @@ from the EODAG YAML config file.  User have to specify the config file path
 location through the <b>config</b> option, otherwise <em>i.eodag</em>
 will use the credentials found in the default config file <em>~/.config/eodag/eodag.yml</em>
 
+<h2>NOTES</h2>
+<h3>Querying</h3>
+<p>
+Querying, aka. Filtering, is a method introduced to i.eodag to filter search results based on an extended list of Products' properties, called
+<a href=""https://eodag.readthedocs.io/en/stable/notebooks/api_user_guide/4_search.html?highlight=queryables#Queryables>queryables</a>.<br>
+The <b>print</b> option can be used to get hint of the avaible queryables, refere to <a href="#list_queryables_example">examples</a>.<br>
+For example, to get the queryables for the product "S2_MSI_L2A" that is offered by Copernicus Data Space Ecosystem, aka. "cop_dataspace":
+<div class="code"><pre>
+i.eodag print=queryables provider=cop_dataspace producttype=S2_MSI_L2A
+</pre>
+</div>
+Note that the <b>print</b> option only gives a subset of the avaible queryables,
+and you can in fact use any of the product's properties, for filtering.
+If you are not sure about the all the available properties,
+you can run a generic search with the <b>j</b> flag and setting <b>limit=1</b>,
+to see an instance of the product of interest.
+The available queryables will be found in
+the JSON output in the "properties" section.
+
+<p>
+<h4>The possible types of these parameters are:</h4>
+<ul>
+  <li><b>str</b> most common type.</li>
+  <li><b>int</b> may have a specified range, e.g. the above cloudCover queryable.</li>
+  <li><b>float</b> may have a specified range.</li>
+  <li><b>Literal</b> has a list of options to choose from.</li>
+</ul>
+
+<p>
+The <b>query</b> option is used for querying. There is a list of rules that you need to follow when composing your queries:
+<h4>Operators</h4>
+<table border="1">
+<thead>
+<tr>
+<th>Relation</th>
+<th>Operator</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Equal</td>
+<td style="text-align: center"><code>eq</code></td>
+</tr>
+<tr>
+<td>Not Equal</td>
+<td style="text-align: center"><code>ne</code></td>
+</tr>
+<tr>
+<td>Less Than or Equal</td>
+<td style="text-align: center"><code>le</code></td>
+</tr>
+<tr>
+<td>Less Than</td>
+<td style="text-align: center"><code>lt</code></td>
+</tr>
+<tr>
+<td>Greater Than or Equal</td>
+<td style="text-align: center"><code>ge</code></td>
+</tr>
+<tr>
+<td>Greater Than</td>
+<td style="text-align: center"><code>gt</code></td>
+</tr>
+</tbody>
+</table>
+
+<h3>Query Structure</h3>
+
+<h4>Basic Structure:</h4>
+<div class="code"><pre>
+{queryable} = {value} \ {operator}
+</pre></div>
+<h4>Example</h4>
+Print products whose <b>orbitDirection</b> property equals "DESCENDING":
+<div class="code"><pre>
+i.eodag -l start=2022-05-01 end=2022-06-01 \
+provider=cop_dataspace producttype=S2_MSI_L2A \
+query="orbitDirection=DESCENDING\eq"
+</pre></div>
+NOTE: If no operator is specified then the 'eq' opeartor will be used <b>(default)</b>.
+<br>
+
+<h4>Multiple Values per Queryable:</h4>
+<div class="code"><pre>
+{queryable} = {value_1} \ {operator_1} | {value_2} \ {opeartor_2}
+</pre></div>
+
+<h4>Examples</h4>
+
+Print products whose <b>cloudCover</b> is either less than 30 <b>OR</b> greater than 60, aka. [0, 30) &cup; (60, 100].<br>
+Notice here that multiple values are used to indicate the <b>OR relation</b>.<br>
+<div class="code"><pre>
+i.eodag -l start=2022-05-01 end=2022-06-01 \
+provider=cop_dataspace producttype=S2_MSI_L2A \
+query="cloudCover=30\lt | 60\gt"
+</pre></div>
+
+To use the <b>AND relation</b> instead, write them in seperate queries, as in the following example.<br>
+Print products whose <b>cloudCover</b> are greater than 30 <b>AND</b> less than 60, aka. (30, 60).<br>
+<div class="code"><pre>
+i.eodag -l start=2022-05-01 end=2022-06-01 \
+provider=cop_dataspace producttype=S2_MSI_L2A \
+query="cloudCover=30\gt, cloudCover=60\lt"
+</pre></div>
+
+Print products whose <b>cloudCover</b> is Greater Than 30 <b>AND</b> Less Than 60, and having a descending orbit direction.
+<div class="code"><pre>
+i.eodag -l start=2022-05-01 end=2022-06-01 \
+provider=cop_dataspace producttype=S2_MSI_L2A \
+query="cloudCover=30\gt, cloudCover=60\lt, orbitDirection=DESCENDING"
+</pre></div>
+
+<h4>Null Values</h4>
+In some cases, products might have <b>Null</b> as the value of a some properties (aka. queryables).
+In these cases, if you attempt to filter with a queryable the products having this queryable set as <b>Null</b> will be filtered out.
+In case you don't want them to be filtered out, you will have to give an additional <b>Null</b> value to the queryable.
+
+<h4>Examples</h4>
+Print products whose <b>orbitDirection</b> is and only is <b>DESCENDING</b>.
+<div class="code"><pre>
+i.eodag -l start=2022-05-01 end=2022-06-01 \
+provider=cop_dataspace producttype=S2_MSI_L2A \
+query="orbitDirection=DESCENDING"
+</pre></div>
+Print products whose <b>orbitDirection</b> is <b>DESCENDING OR Null</b>.
+<div class="code"><pre>
+i.eodag -l start=2022-05-01 end=2022-06-01 \
+provider=cop_dataspace producttype=S2_MSI_L2A \
+query="orbitDirection=DESCENDING|Null"
+</pre></div>
+
+
+
+<h4>List of Frequently Used Queryables</h4>
+<ul>
+  <li><b>cloudCover</b> [0, 100]</li>
+  <li><b>orbitNumber</b></li>
+  <li><b>orbitDirection</b></li>
+  <li><b>storageStatus</b></li>
+  <li><b>start</b> ISO formated date referring to products caputred on start date or later.</li>
+  <li><b>end</b> ISO formated date referring to products caputred on end date or earlier.</li>
+</ul>
+
+<p>
+<b>NOTE: These queryables are only for reference, and they might not always be avaiable for all providers/products.</b>
+
+<h2>EODAG Configuration</h2>
 <p>
 Following is an example for a config YAML file with <em>Copernicus Dataspace</em> credentials:
 <div class="code"><pre>
@@ -46,6 +193,7 @@ cop_dataspace:
           username: email@email.com
           password: password
 </pre></div>
+
 
 <p>
 See
@@ -64,14 +212,6 @@ v.extract input=urbanarea where="NAME = 'Durham'" output=durham
 
 i.eodag -l start=2022-05-01 end=2022-06-01 \
     map=durham producttype=S2_MSI_L2A provider=cop_dataspace
-
-6 scenes(s) found.
-S2B_MSIL2A_20220518T155819_N0400_R097_T17SPV_20220518T204903 2022-05-18T15:58:19 24% S2MSI2A
-S2A_MSIL2A_20220513T155821_N0400_R097_T17SPV_20220514T002317 2022-05-13T15:58:21 99% S2MSI2A
-S2B_MSIL2A_20220508T155819_N0400_R097_T17SPV_20220508T205707 2022-05-08T15:58:19 100% S2MSI2A
-S2A_MSIL2A_20220523T155831_N0400_R097_T17SPV_20220524T002713 2022-05-23T15:58:31 95% S2MSI2A
-S2A_MSIL2A_20220503T155831_N0400_R097_T17SPV_20220503T233818 2022-05-03T15:58:31 86% S2MSI2A
-S2B_MSIL2A_20220528T155819_N0400_R097_T17SPV_20220528T205325 2022-05-28T15:58:19  2% S2MSI2A
 <pre></div>
 
 Search and list the available Sentinel 2 scenes in the Copernicus Data Space
@@ -159,7 +299,7 @@ i.eodag print=products provider=cop_dataspace
 <pre></div>
 
 List queryables for Sentinel 2 scenes, that is offered by Copernicus Data Space Ecosystem:
-<div class="code"><pre>
+<div id="list_queryables_example" class="code"><pre>
 i.eodag print=queryables provider=cop_dataspace producttype=S2_MSI_L2A
 <pre></div>
 
