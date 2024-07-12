@@ -899,7 +899,7 @@ def print_eodag_queryables(**kwargs):
     # Annotated is for queryables that accept a certain range e.g. cloudCover has range [0, 100].
     # TODO: It is assumed that if the type is Annotated, then the nested type will be int
     #       but that might not be the case.
-    types_options = [
+    METADATA_TYPES = [
         "str",
         "int",
         "float",
@@ -910,13 +910,17 @@ def print_eodag_queryables(**kwargs):
         "Annotated",
     ]  # For testing and catching edge cases
 
+    # Possible types to be passed through the query option
+    # TODO: We can possibly extend the supported types
+    SUPPORTED_TYPES = ["str", "int", "float", "Literal"]
+
     def get_type(info):
         potential_type = info.__args__[0]
         if potential_type.__name__ != "Optional":
-            assert potential_type.__name__ in types_options
+            assert potential_type.__name__ in METADATA_TYPES
             return potential_type.__name__
         potential_type = potential_type.__args__[0]
-        assert potential_type.__name__ in types_options
+        assert potential_type.__name__ in METADATA_TYPES
         return potential_type.__name__
 
     def is_required(info):
@@ -944,7 +948,7 @@ def print_eodag_queryables(**kwargs):
         queryable_dict["type"] = get_type(info)
         queryable_dict["default"] = get_default(info)
         if queryable_dict["type"] == "Literal":
-            # There is a presit options by the provider
+            # There is a restricted list of options to choose from
             queryable_dict["options"] = get_options(info)
         if queryable_dict["type"] == "Annotated":
             # There is a range for the queryable
@@ -952,7 +956,8 @@ def print_eodag_queryables(**kwargs):
             queryable_dict["range"] = get_range(info)
         if queryable_dict["type"] == "NoneType":
             queryable_dict["type"] = "str"
-        queryables_dict[queryable] = queryable_dict
+        if queryable_dict["type"] in SUPPORTED_TYPES:
+            queryables_dict[queryable] = queryable_dict
 
     if "geom" in queryables_dict:
         del queryables_dict["geom"]
@@ -973,15 +978,13 @@ def main():
         if queryable == "start":
             if options["start"]:
                 gs.fatal(_("Queryable <start> can not be set twice"))
-            options["start"] = values[0][
-                0
-            ]  # there will only be one value in the values, values[0][0] is the date
+            # there will only be one value in the values, values[0][0] is the date
+            options["start"] = values[0][0]
         if queryable == "end":
             if options["end"]:
                 gs.fatal(_("Queryable <end> can not be set twice"))
-            options["end"] = values[0][
-                0
-            ]  # there will only be one value in the values, values[0][0] is the date
+            # there will only be one value in the values, values[0][0] is the date
+            options["end"] = values[0][0]
     dates_to_iso_format()
 
     if options["print"]:
