@@ -1,9 +1,7 @@
 <h2>DESCRIPTION</h2>
 
 <em>v.to.rast.extern</em> transforms an external vector file (like 
-GeoPackage) into a raster file and import this into GRASS GIS. The user 
-can set a value Optionally, attributes can be converted to raster 
-category labels. 
+GeoPackage) into a raster file and import this into GRASS GIS. 
 
 
 <p>
@@ -19,6 +17,13 @@ href="https://gdal.org/api/python/utilities.html#osgeo.gdal.Rasterize">gdal.rast
 This is what this addon does; it converts the user-defined vector file 
 to an intermediate geoTIF file using gdal, and import the resulting 
 file in GRASS GIS. 
+
+<p>
+To illustrate the potential time saving; importing a vector layer with 
+53624 buildings in my city ('s-Hertogenbosch) and converting it to a 
+raster took about 35 + 2 seconds. Converting and importing the vector 
+layer as raster layer with <em>v.to.rast.extern</em> took 6 seconds.
+
 
 <h2>Notes</h2>
 

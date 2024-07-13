@@ -272,7 +272,7 @@ def main(options, flags):
         outputBounds=bounds,
         xRes=region["ewres"],
         yRes=region["nsres"],
-        targetAlignedPixels=True,
+        targetAlignedPixels=False,
         initValues=[nodata],
         noData=nodata,
         allTouched=all_touched,
