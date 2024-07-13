@@ -917,10 +917,16 @@ def print_eodag_queryables(**kwargs):
     def get_type(info):
         potential_type = info.__args__[0]
         if potential_type.__name__ != "Optional":
-            assert potential_type.__name__ in METADATA_TYPES
+            if potential_type.__name__ not in METADATA_TYPES:
+                raise AssertionError(
+                    f"Unrecognized EODAG data type <{potential_type.__name__}>"
+                )
             return potential_type.__name__
         potential_type = potential_type.__args__[0]
-        assert potential_type.__name__ in METADATA_TYPES
+        if potential_type.__name__ not in METADATA_TYPES:
+            raise AssertionError(
+                f"Unrecognized EODAG data type <{potential_type.__name__}>"
+            )
         return potential_type.__name__
 
     def is_required(info):
@@ -945,7 +951,14 @@ def print_eodag_queryables(**kwargs):
     for queryable, info in queryables.items():
         queryable_dict = dict()
         queryable_dict["required"] = is_required(info)
-        queryable_dict["type"] = get_type(info)
+        try:
+            queryable_dict["type"] = get_type(info)
+        except AssertionError as e:
+            gs.debug(e)
+            gs.warning(
+                "Unrecognized EODAG product type detected. Please report this issue, if accessible."
+            )
+            continue
         queryable_dict["default"] = get_default(info)
         if queryable_dict["type"] == "Literal":
             # There is a restricted list of options to choose from
