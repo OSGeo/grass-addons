@@ -25,20 +25,25 @@ To download only selected scenes, one or more IDs must be provided
 through the <b>id</b> option.
 
 <p>
-To be able to download data through <em>i.eodag</em>, the user will need to register for the
+To be able to download data through <em>i.eodag</em>, the user will
+need to register for the
 providers of interest.
-<em>i.eodag</em> reads the user credentials, which the user should have acquired,
-from the EODAG YAML config file.  User have to specify the config file path
-location through the <b>config</b> option, otherwise <em>i.eodag</em>
-will use the credentials found in the default config file <em>~/.config/eodag/eodag.yml</em>
+<em>i.eodag</em> reads the user credentials, which the user should have
+acquired, from the EODAG YAML config file.  User have to specify the config
+file path location through the <b>config</b> option, otherwise <em>i.eodag</em>
+will use the credentials found in the default config file
+<em>~/.config/eodag/eodag.yml</em>
 
 <h2>NOTES</h2>
 <h3>Querying</h3>
 <p>
-Querying, aka. Filtering, is a method introduced to i.eodag to filter search results based on an extended list of Products' properties, called
-<a href=""https://eodag.readthedocs.io/en/stable/notebooks/api_user_guide/4_search.html?highlight=queryables#Queryables>queryables</a>.<br>
-The <b>print</b> option can be used to get hint of the avaible queryables, refere to <a href="#list_queryables_example">examples</a>.<br>
-For example, to get the queryables for the product "S2_MSI_L2A" that is offered by Copernicus Data Space Ecosystem, aka. "cop_dataspace":
+Querying, aka. Filtering, is a method introduced to i.eodag to filter search
+results based on an extended list of Products' properties, called
+<a href="https://eodag.readthedocs.io/en/stable/notebooks/api_user_guide/4_search.html?highlight=queryables#Queryables">queryables</a>.<br>
+The <b>print</b> option can be used to get hint of the avaible queryables,
+refere to <a href="#list_queryables_example">examples</a>.<br>
+For example, to get the queryables for the product "S2_MSI_L2A" that is
+offered by Copernicus Data Space Ecosystem, aka. "cop_dataspace":
 <div class="code"><pre>
 i.eodag print=queryables provider=cop_dataspace producttype=S2_MSI_L2A
 </pre>
@@ -55,13 +60,15 @@ the JSON output in the "properties" section.
 <h4>The possible types of these parameters are:</h4>
 <ul>
   <li><b>str</b> most common type.</li>
-  <li><b>int</b> may have a specified range, e.g. the above cloudCover queryable.</li>
+  <li><b>int</b> may have a specified range, e.g. the above cloudCover
+    queryable.</li>
   <li><b>float</b> may have a specified range.</li>
   <li><b>Literal</b> has a list of options to choose from.</li>
 </ul>
 
 <p>
-The <b>query</b> option is used for querying. There is a list of rules that you need to follow when composing your queries:
+The <b>query</b> option is used for querying. There is a list of rules that you
+need to follow when composing your queries:
 <h4>Operators</h4>
 <table border="1">
 <thead>
@@ -111,8 +118,8 @@ i.eodag -l start=2022-05-01 end=2022-06-01 \
 provider=cop_dataspace producttype=S2_MSI_L2A \
 query="orbitDirection=DESCENDING\eq"
 </pre></div>
-NOTE: If no operator is specified then the 'eq' opeartor will be used <b>(default)</b>.
-<br>
+NOTE: If no operator is specified then the 'eq' opeartor will be used
+<b>(default)</b>.
 
 <h4>Multiple Values per Queryable:</h4>
 <div class="code"><pre>
@@ -121,23 +128,27 @@ NOTE: If no operator is specified then the 'eq' opeartor will be used <b>(defaul
 
 <h4>Examples</h4>
 
-Print products whose <b>cloudCover</b> is either less than 30 <b>OR</b> greater than 60, aka. [0, 30) &cup; (60, 100].<br>
-Notice here that multiple values are used to indicate the <b>OR relation</b>.<br>
+Print products whose <b>cloudCover</b> is either less than 30 <b>OR</b> greater
+than 60, aka. [0, 30) &cup; (60, 100].<br>
+Notice here that multiple values are used to indicate the <b>OR relation</b>.
 <div class="code"><pre>
 i.eodag -l start=2022-05-01 end=2022-06-01 \
 provider=cop_dataspace producttype=S2_MSI_L2A \
 query="cloudCover=30\lt | 60\gt"
 </pre></div>
 
-To use the <b>AND relation</b> instead, write them in seperate queries, as in the following example.<br>
-Print products whose <b>cloudCover</b> are greater than 30 <b>AND</b> less than 60, aka. (30, 60).<br>
+To use the <b>AND relation</b> instead, write them in seperate queries,
+as in the following example.<br>
+Print products whose <b>cloudCover</b> are greater than 30 <b>AND</b>
+less than 60, aka. (30, 60).
 <div class="code"><pre>
 i.eodag -l start=2022-05-01 end=2022-06-01 \
 provider=cop_dataspace producttype=S2_MSI_L2A \
 query="cloudCover=30\gt, cloudCover=60\lt"
 </pre></div>
 
-Print products whose <b>cloudCover</b> is Greater Than 30 <b>AND</b> Less Than 60, and having a descending orbit direction.
+Print products whose <b>cloudCover</b> is Greater Than 30 <b>AND</b> Less Than
+60, and having a descending orbit direction.
 <div class="code"><pre>
 i.eodag -l start=2022-05-01 end=2022-06-01 \
 provider=cop_dataspace producttype=S2_MSI_L2A \
@@ -145,9 +156,12 @@ query="cloudCover=30\gt, cloudCover=60\lt, orbitDirection=DESCENDING"
 </pre></div>
 
 <h4>Null Values</h4>
-In some cases, products might have <b>Null</b> as the value of a some properties (aka. queryables).
-In these cases, if you attempt to filter with a queryable the products having this queryable set as <b>Null</b> will be filtered out.
-In case you don't want them to be filtered out, you will have to give an additional <b>Null</b> value to the queryable.
+In some cases, products might have <b>Null</b> as the value of a some properties
+(aka. queryables).
+In these cases, if you attempt to filter with a queryable the products having
+this queryable set as <b>Null</b> will be filtered out.
+In case you don't want them to be filtered out, you will have to give
+an additional <b>Null</b> value to the queryable.
 
 <h4>Examples</h4>
 Print products whose <b>orbitDirection</b> is and only is <b>DESCENDING</b>.
@@ -171,16 +185,90 @@ query="orbitDirection=DESCENDING|Null"
   <li><b>orbitNumber</b></li>
   <li><b>orbitDirection</b></li>
   <li><b>storageStatus</b></li>
-  <li><b>start</b> ISO formated date referring to products caputred on start date or later.</li>
-  <li><b>end</b> ISO formated date referring to products caputred on end date or earlier.</li>
+  <li><b>start</b> ISO formated date referring to products caputred on
+    start date or later.</li>
+  <li><b>end</b> ISO formated date referring to products caputred on
+    end date or earlier.</li>
 </ul>
 
 <p>
-<b>NOTE: These queryables are only for reference, and they might not always be avaiable for all providers/products.</b>
+<b>NOTE: These queryables are only for reference,
+  and they might not always be avaiable for all providers/products.</b>
+
+<h3>Use Cases</h3>
+There are multiple use cases for <em>i.eodag</em> described below:
+<h4>Searching from Scratch</h4>
+<p>
+This is when you are searching for scenes for the first time and you don't
+know the IDs of the scenes you are looking for.
+The searching is done by setting the main options e.g. <b>producttype</b>,
+<b>start</b>, <b>end</b>, and, possibly, a <b>provider</b>.
+
+<h4>Searching using Scenes IDs</h4>
+<p>
+The use case is that you have a set of scenes IDs that you want to
+search for and download.
+You are able to do that through two methods:
+<ol>
+  <li>Use the <b>id</b>.</li>
+  <li>Use the <b>file</b> with a text file, having one ID per line.
+</ol>
+In both cases you can either specify a provider, or not.
+In case you don't specify the provider, products might be offered
+from different providers.
+
+<h4>Reading Products from a GeoJSON File</h4>
+<p>
+This use case is used if you have already done your searching,
+and you have a GeoJSON file produced by <em>i.eodag</em> using
+the <b>save</b> option. To do that you will have to use the <b>file</b>
+option and pass the GeoJSON file to it. No additional searching will be
+done in this case, but you will be able to further filter the products
+saved in the GeoJSON file through the different options,
+e.g. <b>start, end, query, area_relation, etc...</b>
+<p>
+<h4>Filtering by AOI</h4>
+When filtering scenes through the area related options
+(<b>area_relation</b> and/or <b>minimum_overlap</b>),
+<em>i.eodag</em> expects you to provide an
+<b>AOI</b> (Area of Interest), by providing a vector map from the current
+mapset, through the <b>map</b> option. In case you didn't provide an <b>AOI</b>,
+<em>i.eodag</em> will automatically use the <b>current computational region</b>
+to do the searching instead. That provides a more flexible approach in regard
+of specifying the <b>AOI</b> as you could modify the <b>current
+computationl region</b> through
+<a href="https://grass.osgeo.org/grass83/manuals/g.region.html">g.region</a>.
 
 <h2>EODAG Configuration</h2>
 <p>
-Following is an example for a config YAML file with <em>Copernicus Dataspace</em> credentials:
+EODAG configuration <b>YAML</b> file is used to set multiple values, including:
+<p>
+<dl>
+<dt><b>Priority</b>
+<dd>Used when the <em>i.eodag</em> tries to search for a product,
+with no <b>provider</b> specified. Searching is attempted with providers
+with higher priority first.
+
+<p>
+<dt><b>Credentials</b>
+<dd>Some providers require credentials to conduct searching,
+while others don't. However, you will need to set the credentials for downloading, in most cases.<br>
+See
+<a href="https://eodag.readthedocs.io/en/stable/getting_started_guide/register.html" target="_blank">
+  Providers Registration</a> for more details about registration and credentials.
+<p>
+NOTE: If you notice that <em>i.eodag</em> doesn't recognize
+a specific provider when searching or downloading,
+it might be that you need to specify the providers credentials.
+
+<p>
+<dt><b>Output Prefix</b>
+  <dd>Setting the output_prefix is similar to using the <b>output</b> option. It is the directory into which downloaded scenes will be saved.
+</dl>
+
+<p>
+Following is an example for a config YAML file with <em>Copernicus
+  Dataspace</em> credentials:
 <div class="code"><pre>
 cop_dataspace:
     priority: # Lower value means lower priority (Default: 0)
@@ -196,16 +284,15 @@ cop_dataspace:
 
 
 <p>
-See
-<a href="https://eodag.readthedocs.io/en/stable/getting_started_guide/register.html" target="_blank">
-  Providers Registration</a>,
-and <a href="https://eodag.readthedocs.io/en/stable/getting_started_guide/configure.html" target="_blank">
+See <a href="https://eodag.readthedocs.io/en/stable/getting_started_guide/configure.html" target="_blank">
   Configure EODAG</a>
-sections for more details about registration and configuration of the providers' credentials.
+section for more details about configuration of the
+providers' credentials and other EODAG YAML config file parameters.
 
 <h2>EXAMPLES</h2>
 
-Search and list the available Sentinel 2 scenes in the Copernicus Data Space Ecosystem, using a Vector Map as an AOI:
+Search and list the available Sentinel 2 scenes in the Copernicus Data Space
+Ecosystem, using a Vector Map as an AOI:
 
 <div class="code"><pre>
 v.extract input=urbanarea where="NAME = 'Durham'" output=durham
@@ -224,7 +311,8 @@ i.eodag -l start=2022-05-01 end=2022-06-01 \
     clouds=50 map=durham minimum_overlap=70
 <pre></div>
 
-Sort results, descendingly, by <b>cloudcover</b>, and then by <b>ingestiondate</b>
+Sort results, descendingly, by <b>cloudcover</b>,
+and then by <b>ingestiondate</b>
 Note that sorting with <b>cloudcover</b> use
 unrounded values, while they are rounded to the nearest integer when listing.
 
@@ -298,7 +386,8 @@ List recognized eodag products, offered by Copernicus Data Space Ecosystem:
 i.eodag print=products provider=cop_dataspace
 <pre></div>
 
-List queryables for Sentinel 2 scenes, that is offered by Copernicus Data Space Ecosystem:
+List queryables for Sentinel 2 scenes, that is offered by Copernicus
+Data Space Ecosystem:
 <div id="list_queryables_example" class="code"><pre>
 i.eodag print=queryables provider=cop_dataspace producttype=S2_MSI_L2A
 <pre></div>
