@@ -2,28 +2,20 @@
 
 <em>v.to.rast.extern</em> transforms an external vector file (like 
 GeoPackage) into a raster file and import this into GRASS GIS. 
+Optionally, attributes from the vector layer can be converted to raster 
+category labels. 
 
 
-<p>
-When you have a vector file that you want to convert to a raster layer, 
-you would normally import the vector layer in GRASS GIS using, e.g., 
-<em>v.in.ogr</em>, and subsequently convert the resulting vector layer 
-to a raster layer using <em>v.to.rast</em>. Because of the topological 
-vector format of GRASS, importing large vector layers can be slow. If 
-all you want is to have a raster layer based on a vector layer, it may 
-therefore be faster to first convert the vector layer to a raster layer 
-using an external tool like <a 
-href="https://gdal.org/api/python/utilities.html#osgeo.gdal.Rasterize">gdal.rasterize</a>. 
-This is what this addon does; it converts the user-defined vector file 
-to an intermediate geoTIF file using gdal, and import the resulting 
-file in GRASS GIS. 
-
-<p>
-To illustrate the potential time saving; importing a vector layer with 
-53624 buildings in my city ('s-Hertogenbosch) and converting it to a 
-raster took about 35 + 2 seconds. Converting and importing the vector 
-layer as raster layer with <em>v.to.rast.extern</em> took 6 seconds.
-
+<p> When you have a vector file that you want to convert to a raster 
+layer, you would normally import the vector layer in GRASS GIS using, 
+e.g., <em>v.in.ogr</em>, and subsequently convert the resulting vector 
+layer to a raster layer using <em>v.to.rast</em>. Because of the 
+topological vector format of GRASS, importing large vector layers can 
+be slow. To speed up the process, <em>v.in.ogr</em> converts the 
+user-defined vector file to an intermediate geoTIF file externally 
+(using <a 
+href="https://gdal.org/api/python/utilities.html#osgeo.gdal.Rasterize">gdal.rasterize</a>) 
+and import the geoTIF raster file in GRASS GIS. 
 
 <h2>Notes</h2>
 
@@ -49,6 +41,13 @@ using the <b>value</b> parameter. Alternatively, the user can specify
 the name of an existing column from the vector map's attribute table. 
 In that case, the values in that column will be used as raster values 
 in the output raster map.
+
+<p>
+You can use the <b>label_column</b> parameter to assign raster category 
+labels. The user should check if each unique value from the category 
+column has one corresponding label in the label column. If there are 
+categories with more than one label, the first from the label column 
+will be used (and a warning will be printed).
 
 <p>
 With the <b>-d</b> flag, all pixels touched by lines or polygons will 
@@ -103,13 +102,16 @@ selected.
 <h3>Example 2</h3>
 
 Import the geology.gpkg as raster. Specify the column of the attribute 
-table that holds the values you would like to use as raster values. 
+table that holds the values you would like to use as raster values and 
+the column that holds the labels you want to assign to the raster 
+values.
 
 <div class="code"><pre>
 # Import the layer
 v.to.rast.extern input=geology.gpkg \
 output=geology_rast2 \
 attribute_column=GEOL250_ \
+rat_column=GEO_NAME
 memory=2000
 
 # Assign random colors

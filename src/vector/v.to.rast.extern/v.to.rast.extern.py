@@ -43,6 +43,12 @@
 # %end
 
 # %option
+# % key: label_column
+# % description: Name of attribute column that hold the values to be used as raster labels
+# % guisection: Attributes
+# %end
+
+# %option
 # % key: value
 # % type: integer
 # % description: Raster value (for use=val)
@@ -72,6 +78,7 @@
 import atexit
 import os
 import sys
+import numpy as np
 from osgeo import ogr, gdal, osr
 import grass.script as gs
 import subprocess
@@ -108,6 +115,7 @@ def get_vector_crs_wkt(vector_file):
     spatialRef = layer.GetSpatialRef()
     if not spatialRef:
         raise ValueError("Layer does not have a spatial reference")
+    vector = None
     return spatialRef.ExportToWkt()
 
 
@@ -138,6 +146,7 @@ def get_data_type(vector_file, layer_name, column_name):
     if layer_name:
         layer = datasource.GetLayerByName(layer_name)
         if layer is None:
+            datasource = None
             raise ValueError(f"Layer {layer_name} not found in {vector_file}")
     else:
         layer = datasource.GetLayer(0)
@@ -147,15 +156,73 @@ def get_data_type(vector_file, layer_name, column_name):
     field_count = layer_definition.GetFieldCount()
 
     # Iterate through fields to find the specified column
+    field_type_name = None
     for i in range(field_count):
         field_definition = layer_definition.GetFieldDefn(i)
         field_name = field_definition.GetName()
         if field_name == column_name:
             field_type = field_definition.GetType()
             field_type_name = field_definition.GetFieldTypeName(field_type)
-            return field_type_name
+    if field_type_name is None:
+        raise ValueError(
+            f"Column {column_name} not found in attribute table of {vector_file}"
+        )
+    datasource = None
+    return field_type_name
 
-    raise ValueError(f"Column {column_name} not found in layer {layer_name}")
+
+def raster_labels(vector_file, layer_name, raster, column_name, column_rat):
+    """Add labels to raster layer"""
+
+    # Read the attribute data from the vector layer
+    datasource = ogr.Open(vector_file)
+    if layer_name:
+        layer = datasource.GetLayerByName(layer_name)
+        if layer is None:
+            datasource = None
+            raise ValueError(f"Layer {layer_name} not found in {vector_file}")
+    else:
+        layer = datasource.GetLayer(0)
+
+    ids = []
+    labels = []
+
+    for feature in layer:
+        feature_id = feature.GetFID()
+        if (
+            feature.GetField(column_name) != None
+            and feature.GetField(column_rat) != None
+        ):
+            ids.append(feature.GetField(column_name))
+            labels.append(feature.GetField(column_rat))
+    datasource = None  # Close the vector dataset
+
+    # Print warning if number of unique ids do not match number of unique labels
+    if len(np.unique(ids)) < len(np.unique(labels)):
+        gs.warning(
+            _(
+                "The number of unique raster values (based on column '{0}') is smaller "
+                "than the number of unique labels in the column '{1}'. This means "
+                "that there are raster value with more than one matching label."
+                "For those raster values, the first label in column '{1}' is used.".format(
+                    column_name, column_rat
+                )
+            )
+        )
+
+    # Create category rules
+    unique_ids = {}
+    for i in range(len(ids)):
+        if ids[i] not in unique_ids:
+            unique_ids[ids[i]] = labels[i]
+
+    cat_rules = "\n".join(
+        ["{0}|{1}".format(key, value) for key, value in unique_ids.items()]
+    )
+
+    gs.write_command(
+        "r.category", map=raster, rules="-", stdin=cat_rules, separator="pipe"
+    )
 
 
 def main(options, flags):
@@ -280,11 +347,12 @@ def main(options, flags):
         burnValues=raster_value,
     )
 
-    # Create raster and import in GRASS GIS
+    # Rasterize vector layer
     gs.message(_("Rasterizing, this may take a while."))
     gdal.Rasterize(output_tif, vector_file, options=rasterize_options)
     gs.message(_("Rasterization completed. Proceeding with next steps."))
 
+    # Import in GRASS GIS
     gs.run_command(
         "r.in.gdal",
         input=output_tif,
@@ -292,6 +360,18 @@ def main(options, flags):
         memory=memory,
     )
     gs.run_command("r.null", map=raster, setnull=nodata)
+
+    # Create raster label
+    if options["label_column"]:
+        if data_type == "Integer":
+            gs.message(_("Writing raster labels"))
+            raster_labels(
+                vector_file, vector_layer, raster, column_name, options["label_column"]
+            )
+        else:
+            gs.warning(
+                "The raster layer is of a float data type. No category labels can be assigned."
+            )
 
     # Write metadata
     input_file = os.path.basename(options["input"])
