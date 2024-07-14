@@ -190,8 +190,8 @@ def raster_labels(vector_file, layer_name, raster, column_name, column_rat):
     for feature in layer:
         feature_id = feature.GetFID()
         if (
-            feature.GetField(column_name) != None
-            and feature.GetField(column_rat) != None
+            feature.GetField(column_name) is not None
+            and feature.GetField(column_rat) is not None
         ):
             ids.append(feature.GetField(column_name))
             labels.append(feature.GetField(column_rat))
