@@ -62,6 +62,7 @@
 # % key: clouds
 # % type: integer
 # % description: Maximum cloud cover percentage for scene [0, 100]
+# % answer: 20
 # % required: no
 # % guisection: Filter
 # %end
@@ -92,6 +93,7 @@
 # % type: string
 # % description: Spatial relation of footprint to AOI
 # % options: Intersects,Contains,IsWithin
+# % answer: Intersects
 # % required: no
 # % guisection: Region
 # %end
