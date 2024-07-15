@@ -62,7 +62,6 @@
 # % key: clouds
 # % type: integer
 # % description: Maximum cloud cover percentage for scene [0, 100]
-# % answer: 20
 # % required: no
 # % guisection: Filter
 # %end
@@ -77,6 +76,7 @@
 # %option
 # % key: limit
 # % type: integer
+# % answer: 50
 # % description: Limit number of scenes
 # % guisection: Filter
 # %end
@@ -93,7 +93,6 @@
 # % type: string
 # % description: Spatial relation of footprint to AOI
 # % options: Intersects,Contains,IsWithin
-# % answer: Intersects
 # % required: no
 # % guisection: Region
 # %end
@@ -1005,7 +1004,6 @@ def main():
                 gs.fatal(_("Queryable <end> can not be set twice"))
             # there will only be one value in the values, values[0][0] is the date
             options["end"] = values[0][0]
-    dates_to_iso_format()
 
     if options["print"]:
         print_functions = {
@@ -1054,7 +1052,9 @@ def main():
 
         # Search for products found from options["file"] or options["id"]
         search_result = search_by_ids(ids_set)
+        limit = len(search_result)  # Disable limit option
     elif "search_result" not in locals():
+        dates_to_iso_format()
         items_per_page = 40
         # TODO: Check that the product exists,
         # could be handled by catching exceptions when searching...
