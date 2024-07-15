@@ -292,6 +292,11 @@ def get_aoi(vector=None):
     if not vector:
         return get_bb(proj)
 
+    if vector not in gs.parse_command("g.list", type="vector"):
+        gs.fatal(
+            _("Unable to get AOI: vector map <{}> could not be found".format(vector))
+        )
+
     args = {}
     args["input"] = vector
 
