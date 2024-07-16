@@ -72,8 +72,8 @@ the end of that day/month/year, for example:
 **filter** – JSON of query parameters as per the STAC API filter extension.
 
 **filter_lang** – Language variant used in the filter body. If filter is a
-dictionary or not provided, defaults to ‘cql2-json’. If filter is a string,
-defaults to cql2-text.
+dictionary or not provided, defaults to `cql2-json`. If filter is a string,
+defaults to `cql2-text`.
 
 **sortby** – A single field or list of fields to sort the response by
 
