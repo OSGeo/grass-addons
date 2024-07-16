@@ -14,10 +14,10 @@
 
 # %module
 # % description: Get STAC API Catalog metadata
-# % keyword: raster
-# % keyword: catalog
-# % keyword: STAC
 # % keyword: temporal
+# % keyword: STAC
+# % keyword: catalog
+# % keyword: metadata
 # %end
 
 # %option
