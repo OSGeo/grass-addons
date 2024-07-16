@@ -62,6 +62,7 @@
 # % key: clouds
 # % type: integer
 # % description: Maximum cloud cover percentage for scene [0, 100]
+# % answer: 100
 # % required: no
 # % guisection: Filter
 # %end
@@ -76,6 +77,7 @@
 # %option
 # % key: limit
 # % type: integer
+# % answer: 50
 # % description: Limit number of scenes
 # % guisection: Filter
 # %end
@@ -141,16 +143,18 @@
 
 # %option
 # % key: sort
+# % type: string
 # % description: Field to sort values by
-# % multiple: yes
 # % options: ingestiondate,cloudcover
 # % answer: cloudcover,ingestiondate
 # % required: no
+# % multiple: yes
 # % guisection: Sort
 # %end
 
 # %option
 # % key: order
+# % type: string
 # % description: Sort order (see sort parameter)
 # % options: asc,desc
 # % answer: asc
@@ -161,8 +165,7 @@
 # %option
 # % key: query
 # % multiple: yes
-# % label: Extra searching parameters to use in the search
-# % description: Note: Make sure to use provided options when possible, otherwise the values might not be recognized
+# % label: Query using extra filtering parameters
 # % required: no
 # % guisection: Filter
 # %end
@@ -288,6 +291,11 @@ def get_aoi(vector=None):
     # Handle empty AOI
     if not vector:
         return get_bb(proj)
+
+    if vector not in gs.parse_command("g.list", type="vector"):
+        gs.fatal(
+            _("Unable to get AOI: vector map <{}> could not be found".format(vector))
+        )
 
     args = {}
     args["input"] = vector
@@ -530,7 +538,91 @@ def dates_to_iso_format():
     options["end"] = end_date
 
 
-def filter_result(search_result, geometry, **kwargs):
+def parse_query(query=None):
+    """Parse query string.
+
+    :param query: WKT String with the geometry to filter with respect to
+    :type query: str
+
+    :returns: A dictionary of queryables as keys, and a list of tuples,
+              each tuple consists of a queryable value and an operator,
+              as the dictionary values.
+              Dict["queryable", List(Tuple("queryable_value", "operator"))]
+    :rtype: Dict[str, List(Tuple(str, str))]
+
+    """
+    VALID_OPERATORS = ["eq", "ne", "ge", "gt", "le", "lt"]
+    DEFAULT_OPERATOR = "eq"
+    query_list = []
+    if query is None:
+        return query_dicts
+    for parameter in map(str.strip, options["query"].split(",")):
+        if parameter == "":
+            continue
+        try:
+            key, values = map(str.strip, parameter.split("="))
+        except Exception as e:
+            gs.debug(e)
+            gs.fatal(_("Queryable <{}> could not be parsed".format(parameter)))
+        if key == "start":
+            try:
+                start_date = normalize_time(values)
+                query_dicts["start"] = [(start_date, DEFAULT_OPERATOR)]
+            except Exception as e:
+                gs.debug(e)
+                gs.fatal(
+                    _(
+                        "Queryable <{}> could not be parsed\nDate must be ISO formated".format(
+                            parameter
+                        )
+                    )
+                )
+            continue
+        if key == "end":
+            try:
+                end_date = normalize_time(values)
+                query_dicts["end"] = [(end_date, DEFAULT_OPERATOR)]
+            except Exception as e:
+                gs.debug(e)
+                gs.fatal(
+                    _(
+                        "Queryable <{}> could not be parsed\nDate must be ISO formated".format(
+                            parameter
+                        )
+                    )
+                )
+            continue
+        operator = None
+        values_operators = []
+        for value in map(str.strip, values.split("|")):
+            if value == "":
+                continue
+            if value.find(";") != -1:
+                try:
+                    value, operator = map(str.strip, value.split(";"))
+                except:
+                    gs.fatal(
+                        _("Queryable <{}> could not be parsed\n".format(parameter))
+                    )
+                if operator not in VALID_OPERATORS:
+                    gs.fatal(
+                        _(
+                            "Invalid operator <{}> for queryable <{}>. Available operators {}".format(
+                                operator, key, VALID_OPERATORS
+                            )
+                        )
+                    )
+            try:
+                value = float(value)
+            except:
+                if value.lower() == "none" or value.lower() == "null":
+                    value = None
+            values_operators.append((value, operator))
+        query_list.append((key, values_operators))
+    return query_list
+
+
+def filter_result(search_result, geometry=None, queryables=None, **kwargs):
     """Filter results to comply with options/flags.
     :param search_result: Search Result to filter
     :type search_result: class:'eodag.api.search_result.SearchResult'
@@ -545,6 +637,9 @@ def filter_result(search_result, geometry, **kwargs):
     :returns: A collection of EO products matching the filters criteria.
     :rtype: class:'eodag.api.search_result.SearchResult'
     """
+    if search_result is None:
+        search_result = SearchResult(None)
+
     prefilter_count = len(search_result)
     area_relation = kwargs["area_relation"]
     minimum_overlap = kwargs["minimum_overlap"]
@@ -552,12 +647,10 @@ def filter_result(search_result, geometry, **kwargs):
     start_date = kwargs["start"]
     end_date = kwargs["end"]
 
-    # If neither a geometry is provided as a parameter
-    # nor a vector map is provided through "options",
-    # then none of the geometry filtering will take place.
+    # If geometry is not set, but we need the geometry
+    # for filtering, then get the geometry
     if geometry is None and (area_relation is not None or minimum_overlap is not None):
         geometry = get_aoi(kwargs["map"])
-    gs.verbose(_("Filtering results..."))
 
     if area_relation:
         # Product's geometry intersects with AOI
@@ -585,12 +678,50 @@ def filter_result(search_result, geometry, **kwargs):
             operator="le", cloudCover=int(cloud_cover)
         )
 
-    search_result = search_result.filter_date(start=start_date, end=end_date)
+    # queryables are formatted as follow:
+    # [('queryable_1' , [(value_1, operator_1), (value_2, operator_2), (value_3, operator_3), ...]),
+    #  ('queryable_2' , [(value_1, operator_1), (value_2, operator_2), (value_3, operator_3), ...]),
+    #  ('queryable_3' , [(value_1, operator_1), (value_2, operator_2), (value_3, operator_3), ...]),
+    #  ...
+    #  ...
+    # ]
+    if queryables:
+        for queryable, values in queryables:
+            if queryable in ["start", "end"]:
+                continue
+            tmp_search_result_list = []
+            for value, operator in values:
+                try:
+                    filtered_search_result_list = search_result.filter_property(
+                        operator=operator, **{queryable: value}
+                    ).data
+                    tmp_search_result_list.extend(filtered_search_result_list)
+                except TypeError:
+                    gs.warning(
+                        _(
+                            "Invalid operator <{}> for queryable <{}>\nOperator <{}> will be used instead".format(
+                                operator, key, DEFAULT_OPERATOR
+                            )
+                        )
+                    )
+                    filtered_search_result_list = search_result.filter_property(
+                        operator=DEFAULT_OPERATOR, **{key: value}
+                    ).data
+                    tmp_search_result_list.extend(filtered_search_result_list)
+            search_result = SearchResult(tmp_search_result_list)
+
+    # Remove duplictes that might be created while filtering
     search_result = remove_duplicates(search_result)
+    if start_date or end_date:
+        search_result = search_result.filter_date(start=start_date, end=end_date)
 
     postfilter_count = len(search_result)
     gs.verbose(
-        _("{} product(s) filtered out.".format(prefilter_count - postfilter_count))
+        _(
+            "{} product(s) filtered out in total.".format(
+                prefilter_count - postfilter_count
+            )
+        )
     )
 
     return search_result
@@ -609,8 +740,6 @@ def sort_result(search_result):
     :return: Sorted EO products
     :rtype: class:'eodag.api.search_result.SearchResult'
     """
-    gs.verbose(_("Sorting..."))
-
     sort_keys = options["sort"].split(",")
     sort_order = options["order"]
 
@@ -777,7 +906,7 @@ def print_eodag_queryables(**kwargs):
     # Annotated is for queryables that accept a certain range e.g. cloudCover has range [0, 100].
     # TODO: It is assumed that if the type is Annotated, then the nested type will be int
     #       but that might not be the case.
-    types_options = [
+    METADATA_TYPES = [
         "str",
         "int",
         "float",
@@ -788,13 +917,23 @@ def print_eodag_queryables(**kwargs):
         "Annotated",
     ]  # For testing and catching edge cases
 
+    # Possible types to be passed through the query option
+    # TODO: We can possibly extend the supported types
+    SUPPORTED_TYPES = ["str", "int", "float", "Literal"]
+
     def get_type(info):
         potential_type = info.__args__[0]
         if potential_type.__name__ != "Optional":
-            assert potential_type.__name__ in types_options
+            if potential_type.__name__ not in METADATA_TYPES:
+                raise AssertionError(
+                    f"Unrecognized EODAG data type <{potential_type.__name__}>"
+                )
             return potential_type.__name__
         potential_type = potential_type.__args__[0]
-        assert potential_type.__name__ in types_options
+        if potential_type.__name__ not in METADATA_TYPES:
+            raise AssertionError(
+                f"Unrecognized EODAG data type <{potential_type.__name__}>"
+            )
         return potential_type.__name__
 
     def is_required(info):
@@ -819,10 +958,17 @@ def print_eodag_queryables(**kwargs):
     for queryable, info in queryables.items():
         queryable_dict = dict()
         queryable_dict["required"] = is_required(info)
-        queryable_dict["type"] = get_type(info)
+        try:
+            queryable_dict["type"] = get_type(info)
+        except AssertionError as e:
+            gs.debug(e)
+            gs.warning(
+                "Unrecognized EODAG product type detected. Please report this issue, if accessible."
+            )
+            continue
         queryable_dict["default"] = get_default(info)
         if queryable_dict["type"] == "Literal":
-            # There is a presit options by the provider
+            # There is a restricted list of options to choose from
             queryable_dict["options"] = get_options(info)
         if queryable_dict["type"] == "Annotated":
             # There is a range for the queryable
@@ -830,8 +976,11 @@ def print_eodag_queryables(**kwargs):
             queryable_dict["range"] = get_range(info)
         if queryable_dict["type"] == "NoneType":
             queryable_dict["type"] = "str"
-        queryables_dict[queryable] = queryable_dict
+        if queryable_dict["type"] in SUPPORTED_TYPES:
+            queryables_dict[queryable] = queryable_dict
 
+    if "geom" in queryables_dict:
+        del queryables_dict["geom"]
     print(json.dumps(queryables_dict, indent=4))
 
 
@@ -844,7 +993,18 @@ def main():
     if options["provider"]:
         dag.set_preferred_provider(options["provider"])
 
-    dates_to_iso_format()
+    queryables = parse_query(options["query"])
+    for queryable, values in queryables:
+        if queryable == "start":
+            if options["start"]:
+                gs.fatal(_("Queryable <start> can not be set twice"))
+            # there will only be one value in the values, values[0][0] is the date
+            options["start"] = values[0][0]
+        if queryable == "end":
+            if options["end"]:
+                gs.fatal(_("Queryable <end> can not be set twice"))
+            # there will only be one value in the values, values[0][0] is the date
+            options["end"] = values[0][0]
 
     if options["print"]:
         print_functions = {
@@ -893,7 +1053,9 @@ def main():
 
         # Search for products found from options["file"] or options["id"]
         search_result = search_by_ids(ids_set)
+        limit = len(search_result)  # Disable limit option
     elif "search_result" not in locals():
+        dates_to_iso_format()
         items_per_page = 40
         # TODO: Check that the product exists,
         # could be handled by catching exceptions when searching...
@@ -908,10 +1070,6 @@ def main():
             "productType": product_type,
             "geom": geometry,
         }
-        if options["query"]:
-            for parameter in options["query"].split(","):
-                key, value = parameter.split("=")
-                search_parameters[key] = value
 
         if options["clouds"]:
             search_parameters["cloudCover"] = options["clouds"]
@@ -923,9 +1081,14 @@ def main():
         else:
             search_result = dag.search_all(**search_parameters)
 
+    gs.verbose(_("Filtering results..."))
     search_result = filter_result(
-        search_result, geometry if "geometry" in locals() else None, **options
+        search_result,
+        geometry if "geometry" in locals() else None,
+        queryables,
+        **options,
     )
+    gs.verbose(_("Sorting results..."))
     search_result = sort_result(search_result)
     if options["limit"]:
         search_result = SearchResult(search_result[: int(options["limit"])])
