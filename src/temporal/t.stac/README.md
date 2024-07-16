@@ -40,7 +40,7 @@ by several libraries including Shapely, ArcPy, PySAL, and geojson.
 Results filtered to only those intersecting the geometry.
 
 **datetime –**
-Either a single datetime or datetime range used to filter results. You may
+Either a single datetime or datetime range used to filter results. Users may
 express a single datetime using a datetime.datetime instance, a
 RFC 3339-compliant timestamp, or a simple date string (see below).
 Instances of datetime.datetime may be either timezone aware or unaware.
