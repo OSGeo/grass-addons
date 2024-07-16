@@ -81,7 +81,7 @@ defaults to `cql2-text`.
 Note this may result in invalid STAC objects, as they may not have the fields 
 required. Use items_as_dicts to avoid object unmarshalling errors.
 
-### Dependancies
+### Dependencies
 
 * [pystac-client (v0.5.1)](https://github.com/stac-utils/pystac-client)
 
