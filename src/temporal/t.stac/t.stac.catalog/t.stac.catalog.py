@@ -35,7 +35,7 @@
 # % multiple: no
 # % options: GET,POST
 # % answer: POST
-# % description:  The HTTP method to use when making a request to the service.
+# % description: The HTTP method to use when making a request to the service.
 # % guisection: Request
 # %end
 
