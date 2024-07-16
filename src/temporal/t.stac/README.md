@@ -98,39 +98,28 @@ required. Use items_as_dicts to avoid object unmarshalling errors.
 ## Workflow example
 
 ```python
-
-
-# Search for items in the collection
 STAC_API_URL = "https://planetarycomputer.microsoft.com/api/stac/v1"
 
+# catalog metadata to explore collections available
 catalog = gs.run_command(
     "t.stac.catalog",
     url=STAC_API_URL,
     format="json"
 )
+
+# selected collection metadata to explore items within the collection
 collection = gs.run_command(
     "t.stac.collection",
     url=STAC_API_URL,
     collection_id="sentinel-2-l2a",
     format="json"
 )
-search = gs.run_command(
+
+# selected item metadata to explore assets available
+items = gs.run_command(
     "t.stac.item",
     url=STAC_API_URL,
     collections="sentinel-2-l2a",
     format="json"
 )
-
-
-# Search for items in the collection
-items = gs.run_command(
-    "t.stac.items",
-    url=STAC_API_URL,
-    collections="sentinel-2-l2a",
-    format="json"
-)
-
-
-
-
 ```
