@@ -48,7 +48,7 @@ Timezone aware instances will be converted to a UTC timestamp before being
 passed to the endpoint. Timezone unaware instances are assumed to represent
 UTC timestamps. You may represent a datetime range using a "/" separated
 string as described in the spec, or a list, tuple, or iterator of 2 timestamps
-or datetime instances. For open-ended ranges, use either".."
+or datetime instances. For open-ended ranges, use either ".."
 ('2020-01-01:00:00:00Z/..', ['2020-01-01:00:00:00Z', '..']) or
 a value of None (['2020-01-01:00:00:00Z', None]).
 
