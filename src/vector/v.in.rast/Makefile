@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = v.to.rast.extern
+PGM = v.in.rast
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 

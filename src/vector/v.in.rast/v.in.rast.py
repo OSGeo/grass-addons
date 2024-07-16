@@ -2,7 +2,7 @@
 
 ############################################################################
 #
-# MODULE:       v.to.rast_extern
+# MODULE:       v.in.rast
 # AUTHOR:       Paulo van Breugel
 # PURPOSE:      Convert an extrenal vector layer to a raster layer
 #               using ogr2ogr, and imports the resulting raster in GRASS GIS
