@@ -41,7 +41,7 @@ Results filtered to only those intersecting the geometry.
 
 **datetime –**
 Either a single datetime or datetime range used to filter results. Users may
-express a single datetime using a datetime.datetime instance, a
+express a single datetime using a datetime.datetime instance, an
 RFC 3339-compliant timestamp, or a simple date string (see below).
 Instances of datetime.datetime may be either timezone aware or unaware.
 Timezone aware instances will be converted to a UTC timestamp before being
