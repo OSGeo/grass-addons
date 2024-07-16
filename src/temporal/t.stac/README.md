@@ -67,9 +67,9 @@ the end of that day/month/year, for example:
 * 2017-06/2017-07 expands to 2017-06-01T00:00:00Z/2017-07-31T23:59:59Z
 * 2017-06-10/2017-06-11 expands to 2017-06-10T00:00:00Z/2017-06-11T23:59:59Z
 
-**query** – List or JSON of query parameters as per the STAC API query extension
+**query** – List or JSON of query parameters as per the STAC API query extension.
 
-**filter** – JSON of query parameters as per the STAC API filter extension
+**filter** – JSON of query parameters as per the STAC API filter extension.
 
 **filter_lang** – Language variant used in the filter body. If filter is a
 dictionary or not provided, defaults to ‘cql2-json’. If filter is a string,
