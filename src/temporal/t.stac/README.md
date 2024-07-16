@@ -50,7 +50,7 @@ UTC timestamps. You may represent a datetime range using a "/" separated
 string as described in the spec, or a list, tuple, or iterator of 2 timestamps
 or datetime instances. For open-ended ranges, use either ".."
 ('2020-01-01:00:00:00Z/..', ['2020-01-01:00:00:00Z', '..']) or
-a value of None (['2020-01-01:00:00:00Z', None]).
+None (['2020-01-01:00:00:00Z', None]).
 
 If using a simple date string, the datetime can be specified in YYYY-mm-dd
 format, optionally truncating to YYYY-mm or just YYYY. Simple date strings
