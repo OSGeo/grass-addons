@@ -16,7 +16,7 @@ If a "POST" request receives a 405 status for the response, it
 will automatically retry with "GET" for all subsequent requests.
 
 **max_items** – The maximum number of items to return from the search, even if
-there are more matching results. This client to limit the total number of Items
+there are more matching results. This will limit the total number of Items
 returned from the items(), item_collections(), and items_as_dicts methods().
 The client will continue to request pages of items until the number of max
 items is reached. This parameter defaults to 100. Setting this to None will
