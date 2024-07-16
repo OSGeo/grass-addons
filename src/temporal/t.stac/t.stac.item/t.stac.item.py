@@ -60,6 +60,7 @@
 # % description: The maximum number of items to return from the search, even if there are more matching results.
 # % multiple: no
 # % required: no
+# % answer: 1000
 # % guisection: Request
 # %end
 
