@@ -25,7 +25,7 @@ allow iteration over a possibly very large number of results.
 **limit** – A recommendation to the service as to the number of items to return
 per page of results. Defaults to 100.
 
-**ids** – List of one or more Item ids to filter on.
+**ids** – List of one or more Item IDs to filter on.
 
 **collections** – List of one or more Collection IDs or pystac.Collection
 instances. Only Items in one of the provided Collections will be searched.
