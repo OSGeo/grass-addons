@@ -553,7 +553,7 @@ def parse_query(query=None):
     """
     VALID_OPERATORS = ["eq", "ne", "ge", "gt", "le", "lt"]
     DEFAULT_OPERATOR = "eq"
-    query_dicts = {}
+    query_list = []
     if query is None:
         return query_dicts
     for parameter in map(str.strip, options["query"].split(",")):
@@ -597,9 +597,9 @@ def parse_query(query=None):
         for value in map(str.strip, values.split("|")):
             if value == "":
                 continue
-            if value.find("\\") != -1:
+            if value.find(";") != -1:
                 try:
-                    value, operator = map(str.strip, value.split("\\"))
+                    value, operator = map(str.strip, value.split(";"))
                 except:
                     gs.fatal(
                         _("Queryable <{}> could not be parsed\n".format(parameter))
@@ -618,8 +618,8 @@ def parse_query(query=None):
                 if value.lower() == "none" or value.lower() == "null":
                     value = None
             values_operators.append((value, operator))
-        query_dicts[key] = values_operators
-    return query_dicts
+        query_list.append((key, values_operators))
+    return query_list
 
 
 def filter_result(search_result, geometry=None, queryables=None, **kwargs):
@@ -679,14 +679,14 @@ def filter_result(search_result, geometry=None, queryables=None, **kwargs):
         )
 
     # queryables are formatted as follow:
-    # {'queryable_1' : [(value_1, operator_1), (value_2, operator_2), (value_3, operator_3), ...],
-    #  'queryable_2' : [(value_1, operator_1), (value_2, operator_2), (value_3, operator_3), ...],
-    #  'queryable_3' : [(value_1, operator_1), (value_2, operator_2), (value_3, operator_3), ...],
+    # [('queryable_1' , [(value_1, operator_1), (value_2, operator_2), (value_3, operator_3), ...]),
+    #  ('queryable_2' , [(value_1, operator_1), (value_2, operator_2), (value_3, operator_3), ...]),
+    #  ('queryable_3' , [(value_1, operator_1), (value_2, operator_2), (value_3, operator_3), ...]),
     #  ...
     #  ...
-    # }
+    # ]
     if queryables:
-        for queryable, values in queryables.items():
+        for queryable, values in queryables:
             if queryable in ["start", "end"]:
                 continue
             tmp_search_result_list = []
@@ -994,7 +994,7 @@ def main():
         dag.set_preferred_provider(options["provider"])
 
     queryables = parse_query(options["query"])
-    for queryable, values in queryables.items():
+    for queryable, values in queryables:
         if queryable == "start":
             if options["start"]:
                 gs.fatal(_("Queryable <start> can not be set twice"))

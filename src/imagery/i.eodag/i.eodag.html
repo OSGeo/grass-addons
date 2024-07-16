@@ -141,7 +141,7 @@ need to follow when composing queries:
 Basic structure:
 
 <div class="code"><pre>
-{queryable} = {value} \ {operator}
+{queryable} = {value} ; {operator}
 </pre></div>
 
 <p>
@@ -151,7 +151,7 @@ Print products which <b>orbitDirection</b> property is "DESCENDING":
 <div class="code"><pre>
 i.eodag -l start=2022-05-01 end=2022-06-01 \
 provider=cop_dataspace producttype=S2_MSI_L2A \
-query="orbitDirection=DESCENDING\eq"
+query="orbitDirection=DESCENDING;eq"
 </pre></div>
 NOTE: If no operator is specified then the 'eq' opeartor will be used.
 
@@ -159,7 +159,7 @@ NOTE: If no operator is specified then the 'eq' opeartor will be used.
 Multiple values per queryable:
 
 <div class="code"><pre>
-{queryable} = {value_1} \ {operator_1} | {value_2} \ {opeartor_2}
+{queryable} = {value_1} ; {operator_1} | {value_2} ; {opeartor_2}
 </pre></div>
 
 <p>
@@ -171,7 +171,7 @@ Notice here that multiple values are used to indicate the <b>OR</b> relation.
 <div class="code"><pre>
 i.eodag -l start=2022-05-01 end=2022-06-01 \
 provider=cop_dataspace producttype=S2_MSI_L2A \
-query="cloudCover=30\lt | 60\gt"
+query="cloudCover=30;lt | 60;gt"
 </pre></div>
 
 To use the <b>AND</b> relation instead, write them in separate queries.<br>
@@ -180,7 +180,7 @@ less than 60, aka. (30, 60).
 <div class="code"><pre>
 i.eodag -l start=2022-05-01 end=2022-06-01 \
 provider=cop_dataspace producttype=S2_MSI_L2A \
-query="cloudCover=30\gt, cloudCover=60\lt"
+query="cloudCover=30;gt, cloudCover=60;lt"
 </pre></div>
 
 Print products which <b>cloudCover</b> is greater than 30 <b>AND</b> less than
@@ -188,7 +188,7 @@ Print products which <b>cloudCover</b> is greater than 30 <b>AND</b> less than
 <div class="code"><pre>
 i.eodag -l start=2022-05-01 end=2022-06-01 \
 provider=cop_dataspace producttype=S2_MSI_L2A \
-query="cloudCover=30\gt, cloudCover=60\lt, orbitDirection=DESCENDING"
+query="cloudCover=30;gt, cloudCover=60;lt, orbitDirection=DESCENDING"
 </pre></div>
 
 <p>
