@@ -87,6 +87,7 @@
 
 # %option
 # % key: sort
+# % type: string
 # % description: Sort by values in given order
 # % multiple: yes
 # % options: acquisition_date,cloud_cover
@@ -96,6 +97,7 @@
 
 # %option
 # % key: order
+# % type: string
 # % description: Sort order (see sort parameter)
 # % options: asc,desc
 # % answer: asc
@@ -185,12 +187,18 @@ def main():
         gs.run_command("i.eodag", id=options["id"], output=outdir)
     else:
         # TODO: Map dataset to eodag productType
-        producttype = "LANDSAT_C2L2"
+        eodag_producttype = "LANDSAT_C2L2"
+        eodga_sort = ""
+        for sort_var in options["sort"].split(","):
+            if sort_var == "cloud_cover":
+                eodga_sort += "cloudcover"
+            if sort_var == "acquisition_date":
+                eodga_sort += "ingestiondate"
         scenes = json.loads(
             gs.read_command(
                 "i.eodag",
                 flags="j",
-                producttype=producttype,
+                producttype=eodag_producttype,
                 map=options["map"],
                 start=start_date,
                 end=end_date,
@@ -198,6 +206,17 @@ def main():
                 limit=options["limit"],
             )
         )
+                order=options["order"],
+                sort=eodga_sort,
+                # quiet=True
+            )
+        )
+        if options["tier"]:
+            scenes["features"] = list(
+                filter(lambda scene: options["tier"] in scene["id"], scenes["features"])
+            )
+
+        # print(json.dumps(scenes, indent=4))
         if flags["l"]:
             for scene in scenes["features"]:
                 product_line = ""
