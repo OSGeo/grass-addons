@@ -22,12 +22,6 @@
 # % keyword: download
 # %end
 
-# %option G_OPT_F_INPUT
-# % key: settings
-# % label: Full path to settings file (user, password)
-# % description: '-' for standard input
-# %end
-
 # %option G_OPT_M_DIR
 # % key: output
 # % description: Name for output directory where to store downloaded Landsat data
@@ -136,55 +130,13 @@
 # %end
 
 import os
+import json
 from datetime import *
 import grass.script as gs
-
-
-# bbox - get region in ll
-def get_bb(vector=None):
-    args = {}
-    if vector:
-        args["vector"] = vector
-    # are we in LatLong location?
-    kv = gs.parse_command("g.proj", flags="j")
-    if "+proj" not in kv:
-        gs.fatal("Unable to get bounding box: unprojected location not supported")
-    if kv["+proj"] != "longlat":
-        info = gs.parse_command("g.region", flags="uplg", **args)
-        return (info["nw_long"], info["sw_lat"], info["ne_long"], info["nw_lat"])
-    else:
-        info = gs.parse_command("g.region", flags="upg", **args)
-        return (info["w"], info["s"], info["e"], info["n"])
+from grass.pygrass.modules import Module
 
 
 def main():
-
-    user = password = None
-
-    if options["settings"] == "-":
-        # stdin
-        import getpass
-
-        user = input(_("Insert username: "))
-        password = getpass.getpass(_("Insert password: "))
-
-    else:
-        try:
-            with open(options["settings"], "r") as fd:
-                lines = list(
-                    filter(None, (line.rstrip() for line in fd))
-                )  # non-blank lines only
-                if len(lines) < 2:
-                    gs.fatal(_("Invalid settings file"))
-                user = lines[0].strip()
-                password = lines[1].strip()
-
-        except IOError as e:
-            gs.fatal(_("Unable to open settings file: {}").format(e))
-
-    if user is None or password is None:
-        gs.fatal(_("No user or password given"))
-
     start_date = options["start"]
     delta_days = timedelta(60)
     if not options["start"]:
@@ -208,106 +160,28 @@ def main():
 
     # Download by ID
     if options["id"]:
-
-        ids = options["id"].split(",")
-
-        ee = EarthExplorer(user, password)
-
-        for i in ids:
-
-            try:
-
-                ee.download(
-                    identifier=i, output_dir=outdir, timeout=int(options["timeout"])
-                )
-
-            except OSError:
-
-                gs.fatal(_("Scene ID <{}> not valid or not found").format(i))
-
-        ee.logout()
-
+        gs.run_command("i.eodag", id=options["id"], output=outdir)
     else:
-        landsat_api = landsatxplore.api.API(user, password)
-
-        bb = get_bb(options["map"])
-
-        # List available scenes
-        scenes = landsat_api.search(
-            dataset=options["dataset"],
-            bbox=bb,
-            start_date=start_date,
-            end_date=end_date,
-            max_cloud_cover=options["clouds"],
-            max_results=options["limit"],
-        )
-
-        if options["tier"]:
-            scenes = list(filter(lambda s: options["tier"] in s["display_id"], scenes))
-
-        # Output number of scenes found
-        gs.message(_("{} scenes found.".format(len(scenes))))
-
-        sort_vars = options["sort"].split(",")
-
-        reverse = False
-        if options["order"] == "desc":
-            reverse = True
-
-        # Sort scenes
-        sorted_scenes = sorted(
-            scenes, key=lambda i: (i[sort_vars[0]], i[sort_vars[1]]), reverse=reverse
-        )
-
-        landsat_api.logout()
-
-        if flags["l"]:
-
-            # Output sorted list of scenes found
-            # print('id', 'display_id', 'acquisition_date', 'cloud_cover')
-            for scene in sorted_scenes:
-                print(
-                    scene["entity_id"],
-                    scene["display_id"],
-                    scene["acquisition_date"].strftime("%Y-%m-%d"),
-                    scene["cloud_cover"],
-                )
-
-            gs.message(
-                _(
-                    "To download all scenes found, re-run the previous "
-                    "command without -l flag. Note that if no output "
-                    "option is provided, files will be downloaded in /tmp"
-                )
+        # TODO: Map dataset to eodag productType
+        producttype = "LANDSAT_C2L2"
+        scenes = json.loads(
+            gs.read_command(
+                "i.eodag",
+                flags="j",
+                producttype=producttype,
+                map=options["map"],
+                start=start_date,
+                end=end_date,
+                clouds=options["clouds"],
+                limit=options["limit"],
             )
+        )
 
-        else:
-
-            ee = EarthExplorer(user, password)
-
-            for scene in sorted_scenes:
-
-                gs.message(_("Downloading scene <{}> ...").format(scene["entity_id"]))
-
-                ee.download(
-                    identifier=scene["entity_id"],
-                    output_dir=outdir,
-                    timeout=int(options["timeout"]),
-                )
-
-            ee.logout()
+        # TODO: Do extra landsat specifc filtering
+        # TODO: Add list option
 
 
 if __name__ == "__main__":
     options, flags = gs.parser()
-
-    # lazy import
-    try:
-        import landsatxplore.api
-        from landsatxplore.earthexplorer import EarthExplorer
-
-    except ImportError:
-
-        gs.fatal(_("Cannot import landsatxplore. Please install the library first."))
 
     main()
