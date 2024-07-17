@@ -130,11 +130,31 @@
 # %end
 
 import os
+import pytz
 import json
 from datetime import *
 import grass.script as gs
 from grass.pygrass.modules import Module
 
+def normalize_time(datetime_str: str):
+    """Unifies the different ISO formats into 'YYYY-MM-DDTHH:MM:SS'
+
+    :param datetime_str: Datetime in ISO format
+    :type datetime_str: str
+
+    :return: Datetime converted to 'YYYY-MM-DDTHH:MM:SS'
+    :rtype: str
+    """
+    normalized_datetime = datetime.fromisoformat(datetime_str)
+    if normalized_datetime.tzinfo is None:
+        normalized_datetime = normalized_datetime.replace(tzinfo=timezone.utc)
+    # Remove microseconds
+    normalized_datetime = normalized_datetime.replace(microsecond=0)
+    # Convert time to UTC
+    normalized_datetime = normalized_datetime.astimezone(pytz.utc)
+    # Remove timezone info
+    normalized_datetime = normalized_datetime.replace(tzinfo=None)
+    return normalized_datetime.isoformat()
 
 def main():
     start_date = options["start"]
@@ -176,9 +196,22 @@ def main():
                 limit=options["limit"],
             )
         )
-
+        if flags["l"]:
+            for scene in scenes["features"]:
+                product_line = ""
+                product_line = scene["properties"]["landsat:scene_id"]
+                product_line += " " + scene["id"]
+                # Special formatting for datetime
+                try:
+                    acquisition_time = normalize_time(scene["properties"]["startTimeFromAscendingNode"])
+                except:
+                    acquisition_time = scene["properties"]["startTimeFromAscendingNode"]
+                product_line += " " + acquisition_time
+                cloud_cover = scene["properties"]["cloudCover"]
+                product_line += f" {cloud_cover:2.0f}%"
+                print(product_line)
         # TODO: Do extra landsat specifc filtering
-        # TODO: Add list option
+
 
 
 if __name__ == "__main__":
