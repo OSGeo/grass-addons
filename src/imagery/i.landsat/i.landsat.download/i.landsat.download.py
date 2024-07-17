@@ -136,6 +136,7 @@ from datetime import *
 import grass.script as gs
 from grass.pygrass.modules import Module
 
+
 def normalize_time(datetime_str: str):
     """Unifies the different ISO formats into 'YYYY-MM-DDTHH:MM:SS'
 
@@ -155,6 +156,7 @@ def normalize_time(datetime_str: str):
     # Remove timezone info
     normalized_datetime = normalized_datetime.replace(tzinfo=None)
     return normalized_datetime.isoformat()
+
 
 def main():
     start_date = options["start"]
@@ -203,7 +205,9 @@ def main():
                 product_line += " " + scene["id"]
                 # Special formatting for datetime
                 try:
-                    acquisition_time = normalize_time(scene["properties"]["startTimeFromAscendingNode"])
+                    acquisition_time = normalize_time(
+                        scene["properties"]["startTimeFromAscendingNode"]
+                    )
                 except:
                     acquisition_time = scene["properties"]["startTimeFromAscendingNode"]
                 product_line += " " + acquisition_time
@@ -211,7 +215,6 @@ def main():
                 product_line += f" {cloud_cover:2.0f}%"
                 print(product_line)
         # TODO: Do extra landsat specifc filtering
-
 
 
 if __name__ == "__main__":
