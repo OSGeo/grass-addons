@@ -4,8 +4,8 @@
 #
 # MODULE:       v.in.rast
 # AUTHOR:       Paulo van Breugel
-# PURPOSE:      Convert an extrenal vector layer to a raster layer
-#               using ogr2ogr, and imports the resulting raster in GRASS GIS
+# PURPOSE:      Convert an external vector layer to a raster layer
+#               using gdal.Rasterize, and imports the resulting raster in GRASS GIS
 #
 # COPYRIGHT:    (c) 2024 Paulo van Breugel, and the GRASS Development Team
 #               This program is free software under the GNU General Public
@@ -15,7 +15,7 @@
 #############################################################################
 
 # %module
-# % description: Converts an external vector layer to a raster layer using ogr2ogr, and imports this raster layer.
+# % description: Converts an external vector layer to a raster layer using gdal.Rasterize (the vector layer will be reprojected first if its CRS is different from the current mapset), and imports this raster layer.
 # % keyword: vector
 # % keyword: raster
 # % keyword: import
@@ -28,7 +28,7 @@
 # %option
 # % key: layer
 # % label: OGR layer name
-# % description: OGR layer name. <br>Examples:<br>ESRI Shapefile: shapefile name<br>Geopackage: layer name
+# % description: OGR layer name, like tbe name of an shapefile  or the name of a layer in a Geopackage (see v.in.ogr for examples)
 # % guisection: Input
 # %end
 
