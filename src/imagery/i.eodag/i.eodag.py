@@ -205,6 +205,22 @@
 # % guisection: Print
 # %end
 
+# %option
+# % key: timeout
+# % type: integer
+# % description: If download fails, maximum time in minutes before stop retrying to download
+# % answer: 300
+# % guisection: Config
+# %end
+
+# %option
+# % key: wait
+# % type: integer
+# % description: Wait time in minutes before retrying to download data
+# % answer: 2
+# % guisection: Config
+# %end
+
 # %rules
 # % exclusive: file, id
 # % exclusive: -l, -j
@@ -1093,7 +1109,7 @@ def main():
     if options["limit"]:
         search_result = SearchResult(search_result[: int(options["limit"])])
 
-    gs.message(_("{} scenes(s) found.").format(len(search_result)))
+    gs.message(_("{} scene(s) found.").format(len(search_result)))
     # TODO: Add a way to search in multiple providers at once
     #       Check for when this feature is added https://github.com/CS-SI/eodag/issues/163
 
@@ -1109,13 +1125,14 @@ def main():
         list_products_json(search_result)
     else:
         # TODO: Consider adding a quicklook flag
-        # TODO: Add timeout and wait parameters for downloading offline products...
-        # https://eodag.readthedocs.io/en/stable/getting_started_guide/product_storage_status.html
         try:
-            override_config = {}
+            custom_config = {
+                "timeout": int(options["timeout"]),
+                "wait": int(options["wait"]),
+            }
             if options["output"]:
-                override_config["outputs_prefix"] = options["output"]
-            dag.download_all(search_result, **override_config)
+                custom_config["outputs_prefix"] = options["output"]
+            dag.download_all(search_result, **custom_config)
         except MisconfiguredError as e:
             gs.fatal(_(e))
 
