@@ -50,8 +50,8 @@
 # % type: string
 # % description: Landsat dataset to search for
 # % required: no
-# % options: landsat_tm_c1, landsat_etm_c1, landsat_8_c1, landsat_tm_c2_l1, landsat_tm_c2_l2, landsat_etm_c2_l1, landsat_etm_c2_l2, landsat_ot_c2_l1, landsat_ot_c2_l2
-# % answer: landsat_8_c1
+# % options: landsat_tm_c2_l1, landsat_tm_c2_l2, landsat_etm_c2_l1, landsat_etm_c2_l2, landsat_8_ot_c2_l1, landsat_8_ot_c2_l2, landsat_9_ot_c2_l1, landsat_9_ot_c2_l2
+# % answer: landsat_9_ot_c2_l1
 # % guisection: Filter
 # %end
 
@@ -196,8 +196,16 @@ def main():
             "i.eodag", id=options["id"], output=outdir, provider="planetary_computer"
         )
     else:
-        # TODO: Map dataset to eodag productType
-        eodag_producttype = "LANDSAT_C2L2"
+        if "c1" in options["dataset"]:
+            gs.fatal(_("Landsat Collection 1 is no longer supported"))
+        if "l2" in options["dataset"]:
+            eodag_producttype = "LANDSAT_C2L2"
+        elif "l1" in options["dataset"]:
+            # TODO: Planetery Computer has Level 1 data offered till 2013...
+            # USGS is needed to compensate here
+            eodag_producttype = "LANDSAT_C2L1"
+        else:
+            gs.fatal(_("Dataset was not recognized"))
         eodag_sort = ""
         for sort_var in options["sort"].split(","):
             if sort_var == "cloud_cover":
@@ -205,6 +213,17 @@ def main():
             if sort_var == "acquisition_date":
                 eodag_sort += "ingestiondate,"
         eodag_sort = eodag_sort[:-1]
+        eodag_query = ""
+        if options["tier"]:
+            eodag_query += "landsat:collection_category={options['tier']},"
+        if "tm" in options["dataset"]:
+            eodag_query += "platformSerialIdentifier=landsat-5;eq"
+        if "etm" in options["dataset"]:
+            eodag_query += "platformSerialIdentifier=landsat-7;eq"
+        if "8_ot" in options["dataset"]:
+            eodag_query += "platformSerialIdentifier=landsat-8;eq"
+        if "9_ot" in options["dataset"]:
+            eodag_query += "platformSerialIdentifier=landsat-9;eq"
 
         scenes = json.loads(
             gs.read_command(
@@ -219,17 +238,12 @@ def main():
                 order=options["order"],
                 sort=eodag_sort,
                 provider="planetary_computer",
-                query=(
-                    f"landsat:collection_category={options['tier']}"
-                    if options["tier"]
-                    else None
-                ),
+                query=eodag_query,
                 # Each provider provides data in differet format,
                 # so using Microsoft Planetary Computer for consistency
                 quiet=True,
             )
         )
-
         # Output number of scenes found
         gs.message(_("{} scenes found.".format(len(scenes["features"]))))
 
