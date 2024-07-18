@@ -51,7 +51,7 @@
 # % description: Landsat dataset to search for
 # % required: no
 # % options: landsat_tm_c2_l1, landsat_tm_c2_l2, landsat_etm_c2_l1, landsat_etm_c2_l2, landsat_8_ot_c2_l1, landsat_8_ot_c2_l2, landsat_9_ot_c2_l1, landsat_9_ot_c2_l2
-# % answer: landsat_9_ot_c2_l1
+# % answer: landsat_9_ot_c2_l2
 # % guisection: Filter
 # %end
 
