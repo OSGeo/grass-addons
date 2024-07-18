@@ -550,12 +550,14 @@ def main():
             "v.db.addtable",
             quiet=True,
             map=shortest_paths,
-            columns="cat integer,\
-                                   from_p integer,\
-                                   to_p integer,\
-                                   dist_min double precision,\
-                                   dist double precision,\
-                                   dist_max double precision",
+            columns=[
+                "cat integer",
+                "from_p integer",
+                "to_p integer",
+                "dist_min double precision",
+                "dist double precision",
+                "dist_max double precision",
+            ],
         )
 
     start_region_bbox = Bbox(
@@ -790,7 +792,9 @@ def main():
             to_patch_ids = vpatch_ids[vpatch_ids["cat"] == int(to_cat)]["vid"]
 
             if len(to_patch_ids) == 1:
-                to_centroid = Centroid(v_id=to_patch_ids, c_mapinfo=vpatches.c_mapinfo)
+                to_centroid = Centroid(
+                    v_id=to_patch_ids[0], c_mapinfo=vpatches.c_mapinfo
+                )
                 to_x = to_centroid.x
                 to_y = to_centroid.y
             elif len(to_patch_ids) >= 1:
@@ -868,12 +872,14 @@ def main():
                     stderr=subprocess.PIPE,
                     output="{}_{}_cp".format(TMP_PREFIX, cat),
                     separator=",",
-                    columns="x double precision,\
-                                           y double precision,\
-                                           to_p integer,\
-                                           dist_min double precision,\
-                                           dist double precision,\
-                                           dist_max double precision",
+                    columns=[
+                        "x double precision",
+                        "y double precision",
+                        "to_p integer",
+                        "dist_min double precision",
+                        "dist double precision",
+                        "dist_max double precision",
+                    ],
                 )
                 sp.stdin.write(grass.encode("\n".join(to_coords)))
                 sp.stdin.close()
@@ -897,12 +903,7 @@ def main():
                     "v.db.addtable",
                     map=cost_paths,
                     quiet=True,
-                    columns="cat integer,\
-                                   from_p integer,\
-                                   to_p integer,\
-                                   dist_min double precision,\
-                                   dist double precision,\
-                                   dist_max double precision",
+                    columns=["cat integer", "from_p integer", "to_p integer"],
                 )
                 grass.run_command(
                     "v.db.update",
