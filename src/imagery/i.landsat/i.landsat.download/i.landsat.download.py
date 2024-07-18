@@ -39,6 +39,7 @@
 # %option
 # % key: clouds
 # % type: integer
+# % answer: 100
 # % description: Maximum cloud cover percentage for Landsat scene
 # % required: no
 # % guisection: Filter
@@ -187,50 +188,53 @@ def main():
 
     # Download by ID
     if options["id"]:
-        gs.run_command("i.eodag", id=options["id"], output=outdir)
+        # Should use other provider other than USGS,
+        # as there was a bug in USGS API, fixed here
+        # https://github.com/CS-SI/eodag/issues/1252
+        # TODO: set provider to USGS when the above changes goes into production
+        gs.run_command(
+            "i.eodag", id=options["id"], output=outdir, provider="planetary_computer"
+        )
     else:
         # TODO: Map dataset to eodag productType
         eodag_producttype = "LANDSAT_C2L2"
-        eodga_sort = ""
+        eodag_sort = ""
         for sort_var in options["sort"].split(","):
             if sort_var == "cloud_cover":
-                eodga_sort += "cloudcover"
+                eodag_sort += "cloudcover,"
             if sort_var == "acquisition_date":
-                eodga_sort += "ingestiondate"
+                eodag_sort += "ingestiondate,"
+        eodag_sort = eodag_sort[:-1]
 
         scenes = json.loads(
             gs.read_command(
                 "i.eodag",
                 flags="j",
                 producttype=eodag_producttype,
-                map=options["map"],
+                map=options["map"] if options["map"] else None,
                 start=start_date,
                 end=end_date,
-                clouds=options["clouds"],
+                clouds=options["clouds"] if options["clouds"] else None,
                 limit=options["limit"],
                 order=options["order"],
-                sort=eodga_sort,
+                sort=eodag_sort,
+                provider="planetary_computer",
+                query=(
+                    f"landsat:collection_category={options['tier']}"
+                    if options["tier"]
+                    else None
+                ),
                 # Each provider provides data in differet format,
-                # so using USGS for consistency
-                provider="usgs",
+                # so using Microsoft Planetary Computer for consistency
                 quiet=True,
             )
         )
-        if options["tier"]:
-            scenes["features"] = list(
-                filter(lambda scene: options["tier"] in scene["id"], scenes["features"])
-            )
-        scenes["features"] = scenes["features"][
-            : min(len(scenes["features"]), int(options["limit"]))
-        ]
 
         # Output number of scenes found
         gs.message(_("{} scenes found.".format(len(scenes["features"]))))
 
-        # print(json.dumps(scenes, indent=4))
         if flags["l"]:
             for scene in scenes["features"]:
-                product_line = ""
                 product_line = scene["properties"]["landsat:scene_id"]
                 product_line += " " + scene["id"]
                 # Special formatting for datetime
@@ -259,7 +263,10 @@ def main():
             with open(geojson_temp_file, "w") as file:
                 file.write(json.dumps(scenes))
             gs.run_command(
-                "i.eodag", file=geojson_temp_file, provider="usgs", output=outdir
+                "i.eodag",
+                file=geojson_temp_file,
+                provider="planetary_computer",
+                output=outdir,
             )
 
 
