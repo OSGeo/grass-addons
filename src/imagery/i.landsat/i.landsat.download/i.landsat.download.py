@@ -137,6 +137,9 @@ import json
 from datetime import *
 import grass.script as gs
 from grass.pygrass.modules import Module
+from eodag.api.search_result import SearchResult
+from eodag.api.product._product import EOProduct
+from subprocess import PIPE
 
 
 def normalize_time(datetime_str: str):
@@ -194,6 +197,7 @@ def main():
                 eodga_sort += "cloudcover"
             if sort_var == "acquisition_date":
                 eodga_sort += "ingestiondate"
+
         scenes = json.loads(
             gs.read_command(
                 "i.eodag",
@@ -204,17 +208,24 @@ def main():
                 end=end_date,
                 clouds=options["clouds"],
                 limit=options["limit"],
-            )
-        )
                 order=options["order"],
                 sort=eodga_sort,
-                # quiet=True
+                # Each provider provides data in differet format,
+                # so using USGS for consistency
+                provider="usgs",
+                quiet=True,
             )
         )
         if options["tier"]:
             scenes["features"] = list(
                 filter(lambda scene: options["tier"] in scene["id"], scenes["features"])
             )
+        scenes["features"] = scenes["features"][
+            : min(len(scenes["features"]), int(options["limit"]))
+        ]
+
+        # Output number of scenes found
+        gs.message(_("{} scenes found.".format(len(scenes["features"]))))
 
         # print(json.dumps(scenes, indent=4))
         if flags["l"]:
@@ -233,7 +244,23 @@ def main():
                 cloud_cover = scene["properties"]["cloudCover"]
                 product_line += f" {cloud_cover:2.0f}%"
                 print(product_line)
-        # TODO: Do extra landsat specifc filtering
+
+            gs.message(
+                _(
+                    "To download all scenes found, re-run the previous "
+                    "command without -l flag. Note that if no output "
+                    "option is provided, files will be downloaded in /tmp"
+                )
+            )
+        else:
+            geojson_temp_dir = gs.tempdir()
+            geojson_temp_file = os.path.join(geojson_temp_dir, "search_result.geojson")
+            print(geojson_temp_file)
+            with open(geojson_temp_file, "w") as file:
+                file.write(json.dumps(scenes))
+            gs.run_command(
+                "i.eodag", file=geojson_temp_file, provider="usgs", output=outdir
+            )
 
 
 if __name__ == "__main__":
