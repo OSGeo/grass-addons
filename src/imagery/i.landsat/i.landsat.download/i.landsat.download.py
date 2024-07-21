@@ -322,4 +322,16 @@ if __name__ == "__main__":
     except:
         gs.fatal(_("Cannot import eodag. Please intall the library first."))
 
+    # Check if eodag config file is created
+    file_path = os.path.join(os.path.expanduser("~"), ".config/eodag/eodag.yml")
+    if not os.path.isfile(file_path):
+        dag = EODataAccessGateway()
+        gs.info(
+            _(
+                "EODAG Config file is created, you can rerun the module after filling the necessary credentials in {}".format(
+                    file_path
+                )
+            )
+        )
+        sys.exit(0)
     sys.exit(main())
