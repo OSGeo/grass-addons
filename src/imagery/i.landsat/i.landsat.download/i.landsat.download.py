@@ -37,6 +37,16 @@
 # %end
 
 # %option
+# % key: datasource
+# % type: string
+# % answer: planetary_computer
+# % description: Data source to use for searching and downloading landsat scenes
+# % options: planetary_computer,usgs
+# % required: no
+# % guisection: Filter
+# %end
+
+# %option
 # % key: clouds
 # % type: integer
 # % answer: 100
@@ -135,6 +145,7 @@
 import os
 import pytz
 import json
+import sys
 from datetime import *
 import grass.script as gs
 from grass.pygrass.modules import Module
@@ -164,6 +175,79 @@ def normalize_time(datetime_str: str):
     return normalized_datetime.isoformat()
 
 
+def planetary_computer_query(**kwargs):
+    eodag_producttype = kwargs["eodag_producttype"]
+    eodag_sort = kwargs["eodag_sort"]
+    start_date = kwargs["start_date"]
+    end_date = kwargs["end_date"]
+    eodag_query = ""
+    if options["tier"]:
+        eodag_query += f"landsat:collection_category={options['tier']},"
+    if "tm" in options["dataset"]:
+        eodag_query += "platformSerialIdentifier=landsat-5"
+    if "etm" in options["dataset"]:
+        eodag_query += "platformSerialIdentifier=landsat-7"
+    if "8_ot" in options["dataset"]:
+        eodag_query += "platformSerialIdentifier=landsat-8"
+    if "9_ot" in options["dataset"]:
+        eodag_query += "platformSerialIdentifier=landsat-9"
+
+    scenes = json.loads(
+        gs.read_command(
+            "i.eodag",
+            flags="j",
+            producttype=eodag_producttype,
+            map=options["map"] if options["map"] else None,
+            start=start_date,
+            end=end_date,
+            clouds=options["clouds"] if options["clouds"] else None,
+            limit=options["limit"],
+            order=options["order"],
+            sort=eodag_sort,
+            provider="planetary_computer",
+            query=eodag_query,
+            quiet=True,
+        )
+    )
+    # Output number of scenes found
+    gs.message(_("{} scenes found.".format(len(scenes["features"]))))
+
+    if flags["l"]:
+        for scene in scenes["features"]:
+            product_line = scene["properties"]["landsat:scene_id"]
+            product_line += " " + scene["id"]
+            # Special formatting for datetime
+            try:
+                acquisition_time = normalize_time(
+                    scene["properties"]["startTimeFromAscendingNode"]
+                )
+            except:
+                acquisition_time = scene["properties"]["startTimeFromAscendingNode"]
+            product_line += " " + acquisition_time
+            cloud_cover = scene["properties"]["cloudCover"]
+            product_line += f" {cloud_cover:2.0f}%"
+            print(product_line)
+
+        gs.message(
+            _(
+                "To download all scenes found, re-run the previous "
+                "command without -l flag. Note that if no output "
+                "option is provided, files will be downloaded in /tmp"
+            )
+        )
+    else:
+        geojson_temp_dir = gs.tempdir()
+        geojson_temp_file = os.path.join(geojson_temp_dir, "search_result.geojson")
+        with open(geojson_temp_file, "w") as file:
+            file.write(json.dumps(scenes))
+        gs.run_command(
+            "i.eodag",
+            file=geojson_temp_file,
+            provider="planetary_computer",
+            output=outdir,
+        )
+
+
 def main():
     start_date = options["start"]
     delta_days = timedelta(60)
@@ -175,7 +259,6 @@ def main():
     if not options["end"]:
         end_date = date.today().strftime("%Y-%m-%d")
 
-    #    outdir = ""
     if options["output"]:
         outdir = options["output"]
         if os.path.isdir(outdir):
@@ -193,98 +276,46 @@ def main():
         # https://github.com/CS-SI/eodag/issues/1252
         # TODO: set provider to USGS when the above changes goes into production
         gs.run_command(
-            "i.eodag", id=options["id"], output=outdir, provider="planetary_computer"
+            "i.eodag", id=options["id"], output=outdir, provider=options["provider"]
         )
     else:
+        eodag_query = {"start_date": start_date, "end_date": end_date, "eodag_sort": ""}
+
         if "c1" in options["dataset"]:
             gs.fatal(_("Landsat Collection 1 is no longer supported"))
         if "l2" in options["dataset"]:
-            eodag_producttype = "LANDSAT_C2L2"
+            eodag_query["eodag_producttype"] = "LANDSAT_C2L2"
         elif "l1" in options["dataset"]:
+            if options["datasource"] != "usgs":
+                gs.warning(
+                    _(
+                        "Planetary Computer only offers Level 1 scenes till 2013...\nIt is recommended to use USGS instead."
+                    )
+                )
             # TODO: Planetery Computer has Level 1 data offered till 2013...
             # USGS is needed to compensate here
-            eodag_producttype = "LANDSAT_C2L1"
+            eodag_query["eodag_producttype"] = "LANDSAT_C2L1"
         else:
             gs.fatal(_("Dataset was not recognized"))
-        eodag_sort = ""
+
         for sort_var in options["sort"].split(","):
             if sort_var == "cloud_cover":
-                eodag_sort += "cloudcover,"
+                eodag_query["eodag_sort"] += "cloudcover,"
             if sort_var == "acquisition_date":
-                eodag_sort += "ingestiondate,"
-        eodag_sort = eodag_sort[:-1]
-        eodag_query = ""
-        if options["tier"]:
-            eodag_query += "landsat:collection_category={options['tier']},"
-        if "tm" in options["dataset"]:
-            eodag_query += "platformSerialIdentifier=landsat-5;eq"
-        if "etm" in options["dataset"]:
-            eodag_query += "platformSerialIdentifier=landsat-7;eq"
-        if "8_ot" in options["dataset"]:
-            eodag_query += "platformSerialIdentifier=landsat-8;eq"
-        if "9_ot" in options["dataset"]:
-            eodag_query += "platformSerialIdentifier=landsat-9;eq"
-
-        scenes = json.loads(
-            gs.read_command(
-                "i.eodag",
-                flags="j",
-                producttype=eodag_producttype,
-                map=options["map"] if options["map"] else None,
-                start=start_date,
-                end=end_date,
-                clouds=options["clouds"] if options["clouds"] else None,
-                limit=options["limit"],
-                order=options["order"],
-                sort=eodag_sort,
-                provider="planetary_computer",
-                query=eodag_query,
-                # Each provider provides data in differet format,
-                # so using Microsoft Planetary Computer for consistency
-                quiet=True,
-            )
-        )
-        # Output number of scenes found
-        gs.message(_("{} scenes found.".format(len(scenes["features"]))))
-
-        if flags["l"]:
-            for scene in scenes["features"]:
-                product_line = scene["properties"]["landsat:scene_id"]
-                product_line += " " + scene["id"]
-                # Special formatting for datetime
-                try:
-                    acquisition_time = normalize_time(
-                        scene["properties"]["startTimeFromAscendingNode"]
-                    )
-                except:
-                    acquisition_time = scene["properties"]["startTimeFromAscendingNode"]
-                product_line += " " + acquisition_time
-                cloud_cover = scene["properties"]["cloudCover"]
-                product_line += f" {cloud_cover:2.0f}%"
-                print(product_line)
-
-            gs.message(
-                _(
-                    "To download all scenes found, re-run the previous "
-                    "command without -l flag. Note that if no output "
-                    "option is provided, files will be downloaded in /tmp"
-                )
-            )
-        else:
-            geojson_temp_dir = gs.tempdir()
-            geojson_temp_file = os.path.join(geojson_temp_dir, "search_result.geojson")
-            print(geojson_temp_file)
-            with open(geojson_temp_file, "w") as file:
-                file.write(json.dumps(scenes))
-            gs.run_command(
-                "i.eodag",
-                file=geojson_temp_file,
-                provider="planetary_computer",
-                output=outdir,
-            )
+                eodag_query["eodag_sort"] += "ingestiondate,"
+        if options["datasource"] == "planetary_computer":
+            planetary_computer_query(**eodag_query)
+        elif options["datasource"] == "usgs":
+            # TODO: Implement USGS query, when USGS is back working
+            gs.fatal(_("USGS is not yet supported"))
+            # usgs_query()
 
 
 if __name__ == "__main__":
     options, flags = gs.parser()
+    try:
+        from eodag import EODataAccessGateway
+    except:
+        gs.fatal(_("Cannot import eodag. Please intall the library first."))
 
-    main()
+    sys.exit(main())
