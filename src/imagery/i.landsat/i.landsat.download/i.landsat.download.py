@@ -3,15 +3,19 @@
 ############################################################################
 #
 # MODULE:      i.landsat.download
-# AUTHOR(S):   Veronica Andreo
+# AUTHOR(S):   Veronica Andreo (original contributor)
+#              Hamed Elgizery <hamedashraf2004 gmail.com>
+#
 # PURPOSE:     Downloads Landsat TM, ETM and OLI data from EarthExplorer
-#              using landsatxplore Python library.
-# COPYRIGHT:   (C) 2020-2021 by Veronica Andreo, and the GRASS development team
+#              and Planetary Computer using EODAG Python library.
+#
+# COPYRIGHT:   (C) 2020-2025 by Veronica Andreo, and the GRASS development team
 #
 #              This program is free software under the GNU General Public
 #              License (>=v2). Read the file COPYING that comes with GRASS
 #              for details.
 #
+# CHANGELOG:   Switch API from landsatxplore to EODAG - Hamed Elgizery
 #############################################################################
 
 # %module
