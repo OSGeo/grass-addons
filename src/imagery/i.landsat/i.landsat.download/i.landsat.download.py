@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 ############################################################################
 #
@@ -359,7 +359,7 @@ def main():
         # https://github.com/CS-SI/eodag/issues/1252
         # TODO: set provider to USGS when the above changes goes into production
         gs.run_command(
-            "i.eodag", id=options["id"], output=outdir, provider=options["provider"]
+            "i.eodag", id=options["id"], output=outdir, provider=options["datasource"]
         )
     else:
         eodag_query = {"start_date": start_date, "end_date": end_date, "eodag_sort": ""}
