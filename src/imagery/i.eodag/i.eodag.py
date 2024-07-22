@@ -98,6 +98,14 @@
 # % guisection: Region
 # %end
 
+# %option
+# % key: pattern
+# % type: string
+# % description: Filter products by title name (using regex)
+# % required: no
+# % guisection: Region
+# %end
+
 # %option G_OPT_V_OUTPUT
 # % key: footprints
 # % description: Name for output vector map with footprints
@@ -725,6 +733,11 @@ def filter_result(search_result, geometry=None, queryables=None, **kwargs):
                     ).data
                     tmp_search_result_list.extend(filtered_search_result_list)
             search_result = SearchResult(tmp_search_result_list)
+
+    if options["pattern"]:
+        import re
+        pattern = re.compile(options["pattern"])
+        search_result = SearchResult(filter(lambda p: pattern.fullmatch(p.properties["title"]), search_result))
 
     # Remove duplictes that might be created while filtering
     search_result = remove_duplicates(search_result)
