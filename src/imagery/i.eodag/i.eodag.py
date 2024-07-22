@@ -736,8 +736,11 @@ def filter_result(search_result, geometry=None, queryables=None, **kwargs):
 
     if options["pattern"]:
         import re
+
         pattern = re.compile(options["pattern"])
-        search_result = SearchResult(filter(lambda p: pattern.fullmatch(p.properties["title"]), search_result))
+        search_result = SearchResult(
+            filter(lambda p: pattern.fullmatch(p.properties["title"]), search_result)
+        )
 
     # Remove duplictes that might be created while filtering
     search_result = remove_duplicates(search_result)
