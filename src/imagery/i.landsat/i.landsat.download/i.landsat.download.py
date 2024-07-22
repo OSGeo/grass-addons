@@ -252,6 +252,85 @@ def planetary_computer_query(**kwargs):
         )
 
 
+def usgs_query(**kwargs):
+    eodag_producttype = kwargs["eodag_producttype"]
+    eodag_sort = kwargs["eodag_sort"]
+    start_date = kwargs["start_date"]
+    end_date = kwargs["end_date"]
+    eodag_pattern = ""
+    if "tm" in options["dataset"]:
+        eodag_pattern += "LM05.+"
+    if "etm" in options["dataset"]:
+        eodag_pattern += "LE07.+"
+    if "8_ot" in options["dataset"]:
+        eodag_pattern += "LC08.+"
+    if "9_ot" in options["dataset"]:
+        eodag_pattern += "LC09.+"
+    if options["tier"]:
+        eodag_pattern += options["tier"]
+
+    scenes = json.loads(
+        gs.read_command(
+            "i.eodag",
+            flags="j",
+            producttype=eodag_producttype,
+            map=options["map"] if options["map"] else None,
+            start=start_date,
+            end=end_date,
+            clouds=options["clouds"] if options["clouds"] else None,
+            limit=options["limit"],
+            order=options["order"],
+            sort=eodag_sort,
+            provider="usgs",
+            pattern=eodag_pattern,
+            quiet=True,
+        )
+    )
+    # Output number of scenes found
+    gs.message(_("{} scenes found.".format(len(scenes["features"]))))
+
+    if flags["l"]:
+        for scene in scenes["features"]:
+            product_line = scene["properties"]["entityId"]
+            product_line += " " + scene["id"]
+            # Special formatting for datetime
+            try:
+                acquisition_time = normalize_time(
+                    scene["properties"]["startTimeFromAscendingNode"]
+                )
+            except:
+                acquisition_time = scene["properties"]["startTimeFromAscendingNode"]
+            product_line += " " + acquisition_time
+            cloud_cover = scene["properties"]["cloudCover"]
+            product_line += f" {cloud_cover:2.0f}%"
+            print(product_line)
+
+        gs.message(
+            _(
+                "To download all scenes found, re-run the previous "
+                "command without -l flag. Note that if no output "
+                "option is provided, files will be downloaded in /tmp"
+            )
+        )
+    else:
+        scenes = json.loads(
+            gs.read_command(
+                "i.eodag",
+                producttype=eodag_producttype,
+                map=options["map"] if options["map"] else None,
+                start=start_date,
+                end=end_date,
+                clouds=options["clouds"] if options["clouds"] else None,
+                limit=options["limit"],
+                order=options["order"],
+                sort=eodag_sort,
+                provider="usgs",
+                pattern=eodag_pattern,
+                quiet=True,
+            )
+        )
+
+
 def main():
     start_date = options["start"]
     delta_days = timedelta(60)
@@ -311,8 +390,7 @@ def main():
             planetary_computer_query(**eodag_query)
         elif options["datasource"] == "usgs":
             # TODO: Implement USGS query, when USGS is back working
-            gs.fatal(_("USGS is not yet supported"))
-            # usgs_query()
+            usgs_query(**eodag_query)
 
 
 if __name__ == "__main__":
