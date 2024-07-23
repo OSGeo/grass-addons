@@ -103,7 +103,7 @@
 # % type: string
 # % description: Filter products by title name (using regex)
 # % required: no
-# % guisection: Region
+# % guisection: Filter
 # %end
 
 # %option G_OPT_V_OUTPUT
