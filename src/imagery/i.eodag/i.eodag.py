@@ -380,7 +380,7 @@ def search_by_ids(products_ids):
     search_result = []
     for query_id in products_ids:
         gs.verbose(_("Searching for {}".format(query_id)))
-        product, count = dag.search(id=query_id, provider=options["provider"] or None)
+        product, count = dag.search(id=query_id, provider=options["provider"] or None, count=True)
         if count > 1:
             gs.warning(
                 _("{}\nCould not be uniquely identified. Skipping...".format(query_id))
