@@ -227,38 +227,23 @@ def main():
             gs.fatal(_("Dataset was not recognized"))
 
         eodag_sort = ""
-        eodag_query = ""  # Used with Planetary Computer
-        eodag_pattern = ""  # Used with USGS
+        eodag_pattern = ""
         for sort_var in options["sort"].split(","):
             if sort_var == "cloud_cover":
                 eodag_sort += "cloudcover,"
             if sort_var == "acquisition_date":
                 eodag_sort += "ingestiondate,"
 
-        if options["datasource"] == "planetary_computer":
-            if options["tier"]:
-                eodag_query += f"landsat:collection_category={options['tier']},"
-            if "tm" in options["dataset"]:
-                eodag_query += "platformSerialIdentifier=landsat-5"
-            if "etm" in options["dataset"]:
-                eodag_query += "platformSerialIdentifier=landsat-7"
-            if "8_ot" in options["dataset"]:
-                eodag_query += "platformSerialIdentifier=landsat-8"
-            if "9_ot" in options["dataset"]:
-                eodag_query += "platformSerialIdentifier=landsat-9"
-
-        elif options["datasource"] == "usgs":
-            eodag_pattern = ""
-            if "tm" in options["dataset"]:
-                eodag_pattern += "LM05.+"
-            if "etm" in options["dataset"]:
-                eodag_pattern += "LE07.+"
-            if "8_ot" in options["dataset"]:
-                eodag_pattern += "LC08.+"
-            if "9_ot" in options["dataset"]:
-                eodag_pattern += "LC09.+"
-            if options["tier"]:
-                eodag_pattern += options["tier"]
+        if "tm" in options["dataset"]:
+            eodag_pattern += "LM05.+"
+        if "etm" in options["dataset"]:
+            eodag_pattern += "LE07.+"
+        if "8_ot" in options["dataset"]:
+            eodag_pattern += "LC08.+"
+        if "9_ot" in options["dataset"]:
+            eodag_pattern += "LC09.+"
+        if options["tier"]:
+            eodag_pattern += options["tier"]
 
         try:
             scenes = json.loads(
@@ -274,8 +259,7 @@ def main():
                     order=options["order"],
                     sort=eodag_sort,
                     provider=options["datasource"],
-                    query=eodag_query,  # Used when searching with Planetary Computer
-                    pattern=eodag_pattern,  # Used when searching with USGS
+                    pattern=eodag_pattern,
                     quiet=True,
                 )
             )
@@ -344,8 +328,7 @@ def main():
                 order=options["order"],
                 sort=eodag_sort,
                 provider=options["datasource"],
-                query=eodag_query,  # Used when searching with Planetary Computer
-                pattern=eodag_pattern,  # Used when searching with USGS
+                pattern=eodag_pattern,
                 quiet=True,
             )
 
