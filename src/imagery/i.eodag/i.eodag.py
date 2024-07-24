@@ -242,25 +242,16 @@
 
 import sys
 import os
-import getpass
 import pytz
 import json
+import re
 from pathlib import Path
 from subprocess import PIPE
 from datetime import datetime, timedelta, timezone
 from functools import cmp_to_key
-from collections import OrderedDict
 
 import grass.script as gs
 from grass.pygrass.modules import Module
-
-
-def create_dir(directory):
-    """Creates directory."""
-    try:
-        Path(directory).mkdir(parents=True, exist_ok=True)
-    except:
-        gs.fatal(_("Could not create directory {}").format(directory))
 
 
 def get_bb(proj):
@@ -379,8 +370,10 @@ def search_by_ids(products_ids):
     gs.verbose("Searching for products...")
     search_result = []
     for query_id in products_ids:
-        gs.verbose(_("Searching for {}".format(query_id)))
-        product, count = dag.search(id=query_id, provider=options["provider"] or None, count=True)
+        gs.info(_("Searching for {}".format(query_id)))
+        product, count = dag.search(
+            id=query_id, provider=options["provider"] or None, count=True
+        )
         if count > 1:
             gs.warning(
                 _("{}\nCould not be uniquely identified. Skipping...".format(query_id))
@@ -388,7 +381,7 @@ def search_by_ids(products_ids):
         elif count == 0 or not product[0].properties["id"].startswith(query_id):
             gs.warning(_("{}\nNot Found. Skipping...".format(query_id)))
         else:
-            gs.verbose(_("Found."))
+            gs.info(_("Found."))
             search_result.append(product[0])
     return SearchResult(search_result)
 
@@ -399,8 +392,6 @@ def setup_environment_variables(env, **kwargs):
     :param kwargs: options/flags from gs.parser
     :type kwargs: dict
     """
-    provider = kwargs.get("provider")
-    output = kwargs.get("output")
     config = kwargs.get("config")
 
     # Setting the envirionmnets variables has to come before the eodag initialization
@@ -495,7 +486,15 @@ def list_products(products):
                         product_attribute_value = normalize_time(
                             product_attribute_value
                         )
-                    except:
+                    except ValueError:
+                        # Invalid ISO Format
+                        gs.warning(
+                            _(
+                                "Timestamp {} is not compliant with ISO 8601".format(
+                                    product_attribute_value
+                                )
+                            )
+                        )
                         product_attribute_value = product.properties[column]
             if i != 0:
                 product_line += " "
@@ -579,7 +578,7 @@ def parse_query(query=None):
     DEFAULT_OPERATOR = "eq"
     query_list = []
     if query is None:
-        return query_dicts
+        return query_list
     for parameter in map(str.strip, options["query"].split(",")):
         if parameter == "":
             continue
@@ -591,7 +590,7 @@ def parse_query(query=None):
         if key == "start":
             try:
                 start_date = normalize_time(values)
-                query_dicts["start"] = [(start_date, DEFAULT_OPERATOR)]
+                query_list.append(("start", (start_date, DEFAULT_OPERATOR)))
             except Exception as e:
                 gs.debug(e)
                 gs.fatal(
@@ -605,7 +604,7 @@ def parse_query(query=None):
         if key == "end":
             try:
                 end_date = normalize_time(values)
-                query_dicts["end"] = [(end_date, DEFAULT_OPERATOR)]
+                query_list.append(("end", (end_date, DEFAULT_OPERATOR)))
             except Exception as e:
                 gs.debug(e)
                 gs.fatal(
@@ -624,7 +623,7 @@ def parse_query(query=None):
             if value.find(";") != -1:
                 try:
                     value, operator = map(str.strip, value.split(";"))
-                except:
+                except ValueError:
                     gs.fatal(
                         _("Queryable <{}> could not be parsed\n".format(parameter))
                     )
@@ -638,8 +637,10 @@ def parse_query(query=None):
                     )
             try:
                 value = float(value)
-            except:
+            except ValueError:
+                # Not a numeric value
                 if value.lower() == "none" or value.lower() == "null":
+                    # User is allowing for scenes with Null values
                     value = None
             values_operators.append((value, operator))
         query_list.append((key, values_operators))
@@ -663,6 +664,8 @@ def filter_result(search_result, geometry=None, queryables=None, **kwargs):
     """
     if search_result is None:
         search_result = SearchResult(None)
+
+    DEFAULT_OPERATOR = "eq"
 
     prefilter_count = len(search_result)
     area_relation = kwargs["area_relation"]
@@ -724,22 +727,20 @@ def filter_result(search_result, geometry=None, queryables=None, **kwargs):
                     gs.warning(
                         _(
                             "Invalid operator <{}> for queryable <{}>\nOperator <{}> will be used instead".format(
-                                operator, key, DEFAULT_OPERATOR
+                                operator, queryable, DEFAULT_OPERATOR
                             )
                         )
                     )
                     filtered_search_result_list = search_result.filter_property(
-                        operator=DEFAULT_OPERATOR, **{key: value}
+                        operator=DEFAULT_OPERATOR, **{queryable: value}
                     ).data
                     tmp_search_result_list.extend(filtered_search_result_list)
             search_result = SearchResult(tmp_search_result_list)
 
     if options["pattern"]:
-        import re
-
         pattern = re.compile(options["pattern"])
         search_result = SearchResult(
-            filter(lambda p: pattern.fullmatch(p.properties["title"]), search_result)
+            [p for p in search_result if pattern.fullmatch(p.properties["title"])]
         )
 
     # Remove duplictes that might be created while filtering
@@ -1167,9 +1168,9 @@ if __name__ == "__main__":
         from eodag import EODataAccessGateway
         from eodag import setup_logging
         from eodag.api.search_result import SearchResult
-        from eodag.utils.exceptions import *
+        from eodag.utils.exceptions import MisconfiguredError
         import eodag
-    except:
+    except ImportError:
         gs.fatal(_("Cannot import eodag. Please intall the library first."))
 
     # To disable eodag logs, set DEBUG to 0
