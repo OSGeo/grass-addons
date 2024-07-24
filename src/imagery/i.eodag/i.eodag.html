@@ -336,6 +336,15 @@ i.eodag -l producttype=S2_MSI_L2A \
     query="relativeOrbitNumber=54"
 <pre></div>
 
+Search and list the available Tier 1 Landsat 9 Collection 2 Level 2 scenes in USGS,
+using filtering with a regular expression:
+
+<div class="code"><pre>
+i.eodag -l producttype=LANDSAT_C2L2 \
+    provider=usgs save=search_result.geojson \
+    pattern="LC09.*T1"
+<pre></div>
+
 Download all available scenes with cloud coverage not exceeding 50%
 in the /tmp directory:
 

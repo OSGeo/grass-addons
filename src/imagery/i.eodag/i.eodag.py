@@ -101,7 +101,7 @@
 # %option
 # % key: pattern
 # % type: string
-# % description: Filter products by title name (using regex)
+# % description: Filter products by id using a regular expression, e.g. 'LC09.*T1'
 # % required: no
 # % guisection: Filter
 # %end
