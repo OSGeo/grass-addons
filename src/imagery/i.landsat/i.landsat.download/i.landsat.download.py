@@ -9,7 +9,7 @@
 # PURPOSE:     Downloads Landsat TM, ETM and OLI data from EarthExplorer
 #              and Planetary Computer using EODAG Python library.
 #
-# COPYRIGHT:   (C) 2020-2025 by Veronica Andreo, and the GRASS development team
+# COPYRIGHT:   (C) 2020-2024 by Veronica Andreo, and the GRASS development team
 #
 #              This program is free software under the GNU General Public
 #              License (>=v2). Read the file COPYING that comes with GRASS
