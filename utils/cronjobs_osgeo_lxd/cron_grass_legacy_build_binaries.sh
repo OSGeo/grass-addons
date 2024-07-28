@@ -37,12 +37,13 @@ PATH=/home/neteler/binaries/bin:/usr/bin:/bin:/usr/X11R6/bin:/usr/local/bin
 GMAJOR=7
 GMINOR=8
 GPATCH=7 # required by grass-addons-index.sh
+
+# NEW_CURRENT: set to same value as in cron_grass_old_build_binaries.sh
+NEW_CURRENT=84
+
 DOTVERSION=$GMAJOR.$GMINOR
 VERSION=$GMAJOR$GMINOR
 GVERSION=$GMAJOR
-
-# NEW_CURRENT: set to same value as in cron_grass_old_current_build_binaries.sh
-NEW_CURRENT=83
 
 ###################
 # fail early

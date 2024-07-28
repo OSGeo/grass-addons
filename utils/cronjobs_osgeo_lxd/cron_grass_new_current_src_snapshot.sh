@@ -1,8 +1,7 @@
 #!/bin/sh
 
 # script to build GRASS GIS new current sources package from the main branch
-# (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
-# Markus Neteler 2002-2022
+# (c) 2002-2024, GPL 2+ Markus Neteler <neteler@osgeo.org>
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
@@ -13,7 +12,7 @@
 
 MAINDIR=/home/neteler
 GMAJOR=8
-GMINOR=3
+GMINOR=4
 GVERSION=$GMAJOR.$GMINOR.git
 DOTVERSION=$GMAJOR.$GMINOR
 GSHORTGVERSION=$GMAJOR$GMINOR

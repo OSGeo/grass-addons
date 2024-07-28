@@ -28,12 +28,12 @@ programmer's manual.
   * `hugo_clean_and_update_job.sh`
 * GRASS GIS source code weekly snapshots:
   * `cron_grass_legacy_src_snapshot.sh`
-  * `cron_grass_old_current_src_snapshot.sh`
+  * `cron_grass_old_src_snapshot.sh`
   * `cron_grass_new_current_src_snapshot.sh`
   * `cron_grass_preview_src_snapshot.sh`
 * GRASS GIS Linux binary weekly snapshots:
   * `cron_grass_legacy_build_binaries.sh`
-  * `cron_grass_old_current_build_binaries.sh`
+  * `cron_grass_old_build_binaries.sh`
   * `cron_grass_new_current_build_binaries.sh`
   * `cron_grass_preview_build_binaries.sh`
 * GRASS GIS addons manual pages:
