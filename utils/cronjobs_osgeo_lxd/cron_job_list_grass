@@ -26,9 +26,9 @@
 # weekly source snapshots (target dir: /var/www/code_and_data/)
 # legacy
 20 02 * * 6 nice sh /home/neteler/cronjobs/cron_grass_legacy_src_snapshot.sh
-# old stable
+# old (former stable)
 30 02 * * 6 nice sh /home/neteler/cronjobs/cron_grass_old_src_snapshot.sh
-# new stable
+# current stable
 40 02 * * 6 nice sh /home/neteler/cronjobs/cron_grass_current_stable_src_snapshot.sh
 # preview
 50 02 * * 6 nice sh /home/neteler/cronjobs/cron_grass_preview_src_snapshot.sh
