@@ -196,9 +196,7 @@ def main():
         # as there was a bug in USGS API, fixed here
         # https://github.com/CS-SI/eodag/issues/1252
         # TODO: set provider to USGS when the above changes goes into production
-        if options["datasource"] == "usgs" and not (
-            int(eodag.__version__.split(".")[0]) >= 3
-        ):
+        if options["datasource"] == "usgs" and int(eodag.__version__.split(".")[0]) < 3:
             gs.fatal(
                 _(
                     "EODAG 3.0.0 or later is needed to search by IDs with USGS".format(
