@@ -197,7 +197,7 @@ def main():
         # https://github.com/CS-SI/eodag/issues/1252
         # TODO: set provider to USGS when the above changes goes into production
         if options["datasource"] == "usgs" and not (
-            eodag.__version__ == "3.0.0b3" or eodag.__version__ >= "3.0.0"
+            int(eodag.__version__.split(".")[0]) >= 3
         ):
             gs.fatal(
                 _(
