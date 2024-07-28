@@ -2,15 +2,16 @@
 
 ## Version overview
 
-| **label**      | **meaning**                                                     |
-| -------------- | --------------------------------------------------------------- |
-| legacy         | legacy stable version, no longer recommended                    |
-| old            | old stable version, still in use                                |
-| current stable | current stable version (recommended)                            |
-| preview        | development version, for developers and new feature enthusiasts |
+| **label**      | **version meaning**                                        |
+| -------------- | ---------------------------------------------------------- |
+| legacy         | legacy stable version, no longer recommended               |
+| old            | old stable version, still in use                           |
+| current stable | current stable version (recommended)                       |
+| preview        | devel. version, for developers and new feature enthusiasts |
 
-The name of the cronjob files reflects the GRASS GIS version being compiled/packaged.
-The actual version numbers are only coded in the scripts themselves.
+The name of the cronjob files reflects the GRASS GIS version being
+compiled/packaged. The actual version numbers are only coded in the scripts
+themselves.
 
 ## What's this?
 
