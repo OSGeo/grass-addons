@@ -2,12 +2,12 @@
 
 ## Version overview
 
-| **label**   | **meaning**                                                     |
-| ----------- | --------------------------------------------------------------- |
-| legacy      | legacy stable version, no longer recommended for use            |
-| old current | current stable version, widely used                             |
-| new current | upcoming stable version, for early adopters                     |
-| preview     | development version, for developers and new feature enthusiasts |
+| **label**      | **meaning**                                                     |
+| -------------- | --------------------------------------------------------------- |
+| legacy         | legacy stable version, no longer recommended                    |
+| old            | old stable version, still in use                                |
+| current stable | current stable version (recommended)                            |
+| preview        | development version, for developers and new feature enthusiasts |
 
 The name of the cronjob files reflects the GRASS GIS version being compiled/packaged.
 The actual version numbers are only coded in the scripts themselves.
@@ -29,12 +29,12 @@ programmer's manual.
 * GRASS GIS source code weekly snapshots:
   * `cron_grass_legacy_src_snapshot.sh`
   * `cron_grass_old_src_snapshot.sh`
-  * `cron_grass_new_current_src_snapshot.sh`
+  * `cron_grass_current_stable_src_snapshot.sh`
   * `cron_grass_preview_src_snapshot.sh`
 * GRASS GIS Linux binary weekly snapshots:
   * `cron_grass_legacy_build_binaries.sh`
   * `cron_grass_old_build_binaries.sh`
-  * `cron_grass_new_current_build_binaries.sh`
+  * `cron_grass_current_stable_build_binaries.sh`
   * `cron_grass_preview_build_binaries.sh`
 * GRASS GIS addons manual pages:
   * addon manual pages are generated within above Linux binary weekly snapshots

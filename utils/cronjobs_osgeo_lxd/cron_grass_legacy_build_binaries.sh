@@ -169,6 +169,7 @@ $MYMAKE sphinxdoclib
 ##
 echo "Copy over the manual + pygrass HTML pages:"
 mkdir -p $TARGETHTMLDIR
+mkdir -p $TARGETHTMLDIR/addons # indeed only relevant the very first compile time
 # don't destroy the addons
 \mv $TARGETHTMLDIR/addons /tmp
 rm -f $TARGETHTMLDIR/*.*

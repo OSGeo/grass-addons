@@ -29,7 +29,7 @@
 # old stable
 30 02 * * 6 nice sh /home/neteler/cronjobs/cron_grass_old_src_snapshot.sh
 # new stable
-40 02 * * 6 nice sh /home/neteler/cronjobs/cron_grass_new_current_src_snapshot.sh
+40 02 * * 6 nice sh /home/neteler/cronjobs/cron_grass_current_stable_src_snapshot.sh
 # preview
 50 02 * * 6 nice sh /home/neteler/cronjobs/cron_grass_preview_src_snapshot.sh
 
@@ -40,7 +40,7 @@
 # old stable (no more releases planned)
 35 05 * * * nice sh /home/neteler/cronjobs/cron_grass_old_build_binaries.sh > /var/www/code_and_data/grass83/binary/linux/snapshot/build.log.txt 2>&1
 # new stable
-10 06 * * * nice sh /home/neteler/cronjobs/cron_grass_new_current_build_binaries.sh > /var/www/code_and_data/grass84/binary/linux/snapshot/build.log.txt 2>&1
+10 06 * * * nice sh /home/neteler/cronjobs/cron_grass_current_stable_build_binaries.sh > /var/www/code_and_data/grass84/binary/linux/snapshot/build.log.txt 2>&1
 # preview
 45 06 * * * nice sh /home/neteler/cronjobs/cron_grass_preview_build_binaries.sh     > /var/www/code_and_data/grass85/binary/linux/snapshot/build.log.txt 2>&1
 
