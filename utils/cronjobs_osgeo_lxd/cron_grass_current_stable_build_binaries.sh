@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# script to build GRASS GIS new current binaries + addons + progman from the `releasebranch_8_3` binaries
+# script to build GRASS GIS new current binaries + addons + progman from the `releasebranch_8_4` binaries
 # (c) 2002-2024, GPL 2+ Markus Neteler <neteler@osgeo.org>
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
@@ -21,14 +21,14 @@
 #  - Install apt-get install texlive-latex-extra python3-sphinxcontrib.apidoc
 #  - Clone source from github:
 #    mkdir -p ~/src ; cd ~/src
-#    git clone https://github.com/OSGeo/grass.git releasebranch_8_3
-#    cd releasebranch_8_3
-#    git checkout releasebranch_8_3
+#    git clone https://github.com/OSGeo/grass.git releasebranch_8_4
+#    cd releasebranch_8_4
+#    git checkout releasebranch_8_4
 #  - Prepare target directories:
 #    cd /var/www/code_and_data/
-#    mkdir grass83
+#    mkdir grass84
 #    cd /var/www/html/
-#    ln -s /var/www/code_and_data/grass83 .
+#    ln -s /var/www/code_and_data/grass84 .
 #
 #################################
 PATH=/home/neteler/binaries/bin:/usr/bin:/bin:/usr/X11R6/bin:/usr/local/bin
@@ -165,6 +165,7 @@ $MYMAKE sphinxdoclib
 ##
 echo "Copy over the manual + pygrass HTML pages:"
 mkdir -p $TARGETHTMLDIR
+mkdir -p $TARGETHTMLDIR/addons # indeed only relevant the very first compile time
 # don't destroy the addons
 \mv $TARGETHTMLDIR/addons /tmp
 rm -f $TARGETHTMLDIR/*.*

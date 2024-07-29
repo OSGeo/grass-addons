@@ -57,11 +57,12 @@ date
 # clean up
 touch include/Make/Platform.make
 $MYMAKE distclean > /dev/null 2>&1
+rm -f grass-$GMAJOR.*-install.sh grass-$GMAJOR.*.tar.gz grass-$GMAJOR.*_bin.txt
 
 # cleanup leftover garbage
 git status | grep '.rst' | xargs rm -f
 rm -rf lib/python/docs/_build/ lib/python/docs/_templates/layout.html
-rm -f config_${DOTVERSION}.git_log.txt ChangeLog
+rm -f config_*.git_log.txt ChangeLog
 
 # be sure to be on branch
 git checkout $BRANCH
