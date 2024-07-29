@@ -98,6 +98,14 @@
 # % guisection: Region
 # %end
 
+# %option
+# % key: pattern
+# % type: string
+# % description: Filter products by id using a regular expression, e.g. 'LC09.*T1'
+# % required: no
+# % guisection: Filter
+# %end
+
 # %option G_OPT_V_OUTPUT
 # % key: footprints
 # % description: Name for output vector map with footprints
@@ -205,6 +213,22 @@
 # % guisection: Print
 # %end
 
+# %option
+# % key: timeout
+# % type: integer
+# % description: If download fails, maximum time in minutes before stop retrying to download
+# % answer: 300
+# % guisection: Config
+# %end
+
+# %option
+# % key: wait
+# % type: integer
+# % description: Wait time in minutes before retrying to download data
+# % answer: 2
+# % guisection: Config
+# %end
+
 # %rules
 # % exclusive: file, id
 # % exclusive: -l, -j
@@ -218,25 +242,16 @@
 
 import sys
 import os
-import getpass
 import pytz
 import json
+import re
 from pathlib import Path
 from subprocess import PIPE
 from datetime import datetime, timedelta, timezone
 from functools import cmp_to_key
-from collections import OrderedDict
 
 import grass.script as gs
 from grass.pygrass.modules import Module
-
-
-def create_dir(directory):
-    """Creates directory."""
-    try:
-        Path(directory).mkdir(parents=True, exist_ok=True)
-    except:
-        gs.fatal(_("Could not create directory {}").format(directory))
 
 
 def get_bb(proj):
@@ -355,8 +370,10 @@ def search_by_ids(products_ids):
     gs.verbose("Searching for products...")
     search_result = []
     for query_id in products_ids:
-        gs.verbose(_("Searching for {}".format(query_id)))
-        product, count = dag.search(id=query_id, provider=options["provider"] or None)
+        gs.info(_("Searching for {}".format(query_id)))
+        product, count = dag.search(
+            id=query_id, provider=options["provider"] or None, count=True
+        )
         if count > 1:
             gs.warning(
                 _("{}\nCould not be uniquely identified. Skipping...".format(query_id))
@@ -364,7 +381,7 @@ def search_by_ids(products_ids):
         elif count == 0 or not product[0].properties["id"].startswith(query_id):
             gs.warning(_("{}\nNot Found. Skipping...".format(query_id)))
         else:
-            gs.verbose(_("Found."))
+            gs.info(_("Found."))
             search_result.append(product[0])
     return SearchResult(search_result)
 
@@ -375,8 +392,6 @@ def setup_environment_variables(env, **kwargs):
     :param kwargs: options/flags from gs.parser
     :type kwargs: dict
     """
-    provider = kwargs.get("provider")
-    output = kwargs.get("output")
     config = kwargs.get("config")
 
     # Setting the envirionmnets variables has to come before the eodag initialization
@@ -471,7 +486,15 @@ def list_products(products):
                         product_attribute_value = normalize_time(
                             product_attribute_value
                         )
-                    except:
+                    except ValueError:
+                        # Invalid ISO Format
+                        gs.warning(
+                            _(
+                                "Timestamp {} is not compliant with ISO 8601".format(
+                                    product_attribute_value
+                                )
+                            )
+                        )
                         product_attribute_value = product.properties[column]
             if i != 0:
                 product_line += " "
@@ -555,7 +578,7 @@ def parse_query(query=None):
     DEFAULT_OPERATOR = "eq"
     query_list = []
     if query is None:
-        return query_dicts
+        return query_list
     for parameter in map(str.strip, options["query"].split(",")):
         if parameter == "":
             continue
@@ -567,7 +590,7 @@ def parse_query(query=None):
         if key == "start":
             try:
                 start_date = normalize_time(values)
-                query_dicts["start"] = [(start_date, DEFAULT_OPERATOR)]
+                query_list.append(("start", (start_date, DEFAULT_OPERATOR)))
             except Exception as e:
                 gs.debug(e)
                 gs.fatal(
@@ -581,7 +604,7 @@ def parse_query(query=None):
         if key == "end":
             try:
                 end_date = normalize_time(values)
-                query_dicts["end"] = [(end_date, DEFAULT_OPERATOR)]
+                query_list.append(("end", (end_date, DEFAULT_OPERATOR)))
             except Exception as e:
                 gs.debug(e)
                 gs.fatal(
@@ -600,7 +623,7 @@ def parse_query(query=None):
             if value.find(";") != -1:
                 try:
                     value, operator = map(str.strip, value.split(";"))
-                except:
+                except ValueError:
                     gs.fatal(
                         _("Queryable <{}> could not be parsed\n".format(parameter))
                     )
@@ -614,8 +637,10 @@ def parse_query(query=None):
                     )
             try:
                 value = float(value)
-            except:
+            except ValueError:
+                # Not a numeric value
                 if value.lower() == "none" or value.lower() == "null":
+                    # User is allowing for scenes with Null values
                     value = None
             values_operators.append((value, operator))
         query_list.append((key, values_operators))
@@ -639,6 +664,8 @@ def filter_result(search_result, geometry=None, queryables=None, **kwargs):
     """
     if search_result is None:
         search_result = SearchResult(None)
+
+    DEFAULT_OPERATOR = "eq"
 
     prefilter_count = len(search_result)
     area_relation = kwargs["area_relation"]
@@ -700,15 +727,21 @@ def filter_result(search_result, geometry=None, queryables=None, **kwargs):
                     gs.warning(
                         _(
                             "Invalid operator <{}> for queryable <{}>\nOperator <{}> will be used instead".format(
-                                operator, key, DEFAULT_OPERATOR
+                                operator, queryable, DEFAULT_OPERATOR
                             )
                         )
                     )
                     filtered_search_result_list = search_result.filter_property(
-                        operator=DEFAULT_OPERATOR, **{key: value}
+                        operator=DEFAULT_OPERATOR, **{queryable: value}
                     ).data
                     tmp_search_result_list.extend(filtered_search_result_list)
             search_result = SearchResult(tmp_search_result_list)
+
+    if options["pattern"]:
+        pattern = re.compile(options["pattern"])
+        search_result = SearchResult(
+            [p for p in search_result if pattern.fullmatch(p.properties["title"])]
+        )
 
     # Remove duplictes that might be created while filtering
     search_result = remove_duplicates(search_result)
@@ -1093,7 +1126,7 @@ def main():
     if options["limit"]:
         search_result = SearchResult(search_result[: int(options["limit"])])
 
-    gs.message(_("{} scenes(s) found.").format(len(search_result)))
+    gs.message(_("{} scene(s) found.").format(len(search_result)))
     # TODO: Add a way to search in multiple providers at once
     #       Check for when this feature is added https://github.com/CS-SI/eodag/issues/163
 
@@ -1109,13 +1142,14 @@ def main():
         list_products_json(search_result)
     else:
         # TODO: Consider adding a quicklook flag
-        # TODO: Add timeout and wait parameters for downloading offline products...
-        # https://eodag.readthedocs.io/en/stable/getting_started_guide/product_storage_status.html
         try:
-            override_config = {}
+            custom_config = {
+                "timeout": int(options["timeout"]),
+                "wait": int(options["wait"]),
+            }
             if options["output"]:
-                override_config["outputs_prefix"] = options["output"]
-            dag.download_all(search_result, **override_config)
+                custom_config["outputs_prefix"] = options["output"]
+            dag.download_all(search_result, **custom_config)
         except MisconfiguredError as e:
             gs.fatal(_(e))
 
@@ -1134,9 +1168,9 @@ if __name__ == "__main__":
         from eodag import EODataAccessGateway
         from eodag import setup_logging
         from eodag.api.search_result import SearchResult
-        from eodag.utils.exceptions import *
+        from eodag.utils.exceptions import MisconfiguredError
         import eodag
-    except:
+    except ImportError:
         gs.fatal(_("Cannot import eodag. Please intall the library first."))
 
     # To disable eodag logs, set DEBUG to 0
