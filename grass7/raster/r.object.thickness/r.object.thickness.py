@@ -279,7 +279,7 @@ def main():
         csvreader = csv.reader(csvfile)
 
         # extracting field names through first row
-        fields = csvreader.next()
+        fields = next(csvreader)
 
         # extracting each data row one by one
         for row in csvreader:
