@@ -201,7 +201,22 @@ def create_dir(directory):
         return 0
 
 
-PRODUCTTYPE_MAP = {
+def normalize_time(datetime_str: str):
+    """Unifies the different ISO formats into 'YYYY-MM-DDTHH:MM:SS'
+
+    :param datetime_str: Datetime in ISO format
+    :type datetime_str: str
+
+    :return: Datetime converted to 'YYYY-MM-DDTHH:MM:SS'
+    :rtype: str
+    """
+    normalized_datetime = datetime.fromisoformat(datetime_str)
+    if normalized_datetime.tzinfo is None:
+        return normalized_datetime.strftime("%Y-%m-%dT%H:%M:%S")
+    return normalized_datetime.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
+
+
+EODAG_PRODUCTTYPE_MAP = {
     "S2MSI1C": "S2_MSI_L1C",
     "S2MSI2A": "S2_MSI_L2A",
     # Only found in wekeo, is S2MSI2Ap needed anymore?
@@ -333,10 +348,35 @@ def main():
                     )
                 )
             )
+    headers_mapping = {
+        "cop_dataspace": {
+            "cloud_cover": "cloudCover",
+            "datetime": "startTimeFromAscendingNode",
+        },
+    }
 
     if flags["l"]:
-        # TODO: Implement listing
-        pass
+        for scene in scenes["features"]:
+            product_line = scene["id"]
+            # Special formatting for datetime
+            try:
+                acquisition_time = normalize_time(
+                    scene["properties"][headers_mapping[eodag_provider]["datetime"]]
+                )
+            except:
+                acquisition_time = scene["properties"][
+                    headers_mapping[eodag_provider]["datetime"]
+                ]
+            product_line += " " + acquisition_time
+            if headers_mapping[eodag_provider]["cloud_cover"] in scene["properties"]:
+                cloud_cover = scene["properties"][
+                    headers_mapping[eodag_provider]["cloud_cover"]
+                ]
+                product_line += f" {cloud_cover:2.0f}%"
+            else:
+                product_line += " cloudcover_NA"
+            product_line += f" {options['producttype']}"
+            print(product_line)
     else:
         if len(scenes) == 0:
             return
