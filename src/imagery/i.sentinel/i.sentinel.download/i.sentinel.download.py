@@ -204,6 +204,9 @@ def create_dir(directory):
 PRODUCTTYPE_MAP = {
     "S2MSI1C": "S2_MSI_L1C",
     "S2MSI2A": "S2_MSI_L2A",
+    # Only found in wekeo, is S2MSI2Ap needed anymore?
+    # https://sentiwiki.copernicus.eu/web/s2-products#S2Products-XMLSchemaDefinitions(XSD)S2-Products-XML-Schema-Definitionstru
+    "S2MSI2Ap": "S2_MSI_L2AP",
     "OCN": "S1_SAR_OCN",
     "GRD": "S1_SAR_GRD",
     "SLC": "S1_SAR_SLC",
@@ -222,13 +225,17 @@ PRODUCTTYPE_MAP = {
     "S3SY2VG1": "S3_SY_VG1",
     "S3SY2V10": "S3_SY_V10",
     "S3SY2AOD": "S3_SY_AOD",
+    "S3OL1RAC": "S3_RAC - SARA/WEKEO",
+    "S3OL1SAC": "DEPRECATED",  # Can not be found anywhere within EODAG
 }
 
+# TODO: Can be extended?
 CLOUDCOVER_PRODUCTS = ["S2MSI1C", "S2MSI2A", "S2MSI2Ap"]
 
 DATASOURCE_MAP = {
     "ESA_CDSE": "cop_dataspace",
-    "GCS": "earth_search_gcs",
+    "GCS": "earth_search_gcs",  # TODO: Suggested to be removed
+    "SARA": "sara",  # TODO: Can be used as a source for S3OL1RAC
     "ESA_COAH": "DEPRECATED",  # Transferred to ESA_CDSE
     "USGS_EE": "DEPRECATED",  # No longer provides Sentinel products
 }
@@ -272,12 +279,16 @@ def main():
     eodag_flags = ""
     eodag_sort = ""
     eodag_pattern = ""
-    # Put footprint sorting back when it added to i.eodag
+
+    # TODO: Put footprint sorting back when it added to i.eodag
     for sort_var in options["sort"].split(","):
         if sort_var == "cloudcoverpercentage":
             eodag_sort += "cloudcover,"
         if sort_var == "ingestiondate":
             eodag_sort += "ingestiondate,"
+
+    if flags["b"]:
+        eodag_flags += "b"
 
     if options["uuid"]:
         # TODO: Change uuid option name to id
@@ -290,7 +301,6 @@ def main():
         )
     else:
         try:
-            # TODO: Implement the -b flag
             # TODO: Implement querying
             # TODO: Implement -p flag
             # TODO: Implement -s flag or remove it, since eodag alread skips already downloaded products
@@ -333,6 +343,7 @@ def main():
         create_dir(options["output"])
         gs.run_command(
             "i.eodag",
+            flags=eodag_flags,
             producttype=eodag_producttype,
             output=options["output"],
             map=options["map"] if options["map"] else None,
@@ -341,6 +352,9 @@ def main():
             clouds=options["clouds"] if options["clouds"] else None,
             limit=options["limit"],
             order=options["order"],
+            area_relation=(
+                options["area_relation"] if options["area_relation"] else None
+            ),
             sort=eodag_sort,
             provider=options["datasource"],
             pattern=eodag_pattern,
