@@ -42,6 +42,12 @@
 # % guisection: Print
 # %end
 
+# %flag
+# % key: b
+# % description: Use the borders of the AOI polygon and not the region of the AOI
+# % guisection: Filter
+# %end
+
 # OPTIONS
 # %option
 # % key: producttype
@@ -233,6 +239,7 @@
 # % exclusive: -l, -j
 # % requires: -l, producttype, file, id
 # % requires: -j, producttype, file, id
+# % requires: -b, map
 # % exclusive: -l, print
 # % exclusive: -j, print
 # % exclusive: minimum_overlap, area_relation
@@ -253,58 +260,72 @@ import grass.script as gs
 from grass.pygrass.modules import Module
 
 
-def get_bb(proj):
-    """Gets the bounding box of the current computational
-    region in geographic coordinates.
+def get_aoi_box(vector=None):
+    """Parses and returns the bounding box of the vector map,
+    or the current computational region.
 
-    :param proj: Projection information from 'gs.parse_command("g.proj", flags="j")'
-    :type proj: str
+    :param vector: Vector map
+    :type vector: str
 
-    :return: Bounding box of the current computational region.
-             Format:
-             {"lonmin" : lonmin, "latmin" : latmin,
-             "lonmax" : lonmax, "latmax" : latmax}
-    :rtype: dict
+    :return: Bounding box represented as a WKT Polygon.
+    :rtype: str
     """
-    gs.verbose("Generating AOI from bounding box...")
-    if proj["+proj"] != "longlat":
-        info = gs.parse_command("g.region", flags="uplg")
-        return {
-            "lonmin": float(info["nw_long"]),
-            "latmin": float(info["sw_lat"]),
-            "lonmax": float(info["ne_long"]),
-            "latmax": float(info["nw_lat"]),
-        }
-    info = gs.parse_command("g.region", flags="upg")
-    return {
-        "lonmin": info["w"],
-        "latmin": info["s"],
-        "lonmax": info["e"],
-        "latmax": info["n"],
-    }
+    args = {}
+    if vector:
+        args["vector"] = vector
+
+    # are we in LatLong location?
+    s = gs.read_command("g.proj", flags="j")
+    kv = gs.parse_key_val(s)
+    if "+proj" not in kv:
+        gs.fatal(
+            _("Unable to get AOI bounding box: unprojected location not supported")
+        )
+    if kv["+proj"] != "longlat":
+        info = gs.parse_command("g.region", flags="uplg", **args)
+        return "POLYGON(({nw_lon} {nw_lat}, {ne_lon} {ne_lat}, {se_lon} {se_lat}, {sw_lon} {sw_lat}, {nw_lon} {nw_lat}))".format(
+            nw_lat=info["nw_lat"],
+            nw_lon=info["nw_long"],
+            ne_lat=info["ne_lat"],
+            ne_lon=info["ne_long"],
+            sw_lat=info["sw_lat"],
+            sw_lon=info["sw_long"],
+            se_lat=info["se_lat"],
+            se_lon=info["se_long"],
+        )
+    info = gs.parse_command("g.region", flags="upg", **args)
+    return "POLYGON(({nw_lon} {nw_lat}, {ne_lon} {ne_lat}, {se_lon} {se_lat}, {sw_lon} {sw_lat}, {nw_lon} {nw_lat}))".format(
+        nw_lat=info["n"],
+        nw_lon=info["w"],
+        ne_lat=info["n"],
+        ne_lon=info["e"],
+        sw_lat=info["s"],
+        sw_lon=info["w"],
+        se_lat=info["s"],
+        se_lon=info["e"],
+    )
 
 
 def get_aoi(vector=None):
     """Parses and returns the AOI.
 
-    :param vector: Vector map (if None, returns the boudning box)
+    :param vector: Vector map
     :type vector: str
 
-    :return: Either a WKT when using a Vector map, or a dict representing
-             the current computational region bounding box.
-             The latter format:
-             {"lonmin" : lonmin, "latmin" : latmin,
-             "lonmax" : lonmax, "latmax" : latmax}
-    :rtype: str | dict
+    :return: Area of Interest represented as a WKT Polygon.
+    :rtype: str
     """
+
+    # If the 'b' flag is set then we use the Polygon borders
+    # If not set then we use the bounding box
+    # If no vector map is set then we use the bounding box
+    # of the current compuational region
+    if not vector or not flags["b"]:
+        return get_aoi_box(vector)
 
     proj = gs.parse_command("g.proj", flags="j")
     if "+proj" not in proj:
         gs.fatal(_("Unable to get AOI: unprojected location not supported"))
-
-    # Handle empty AOI
-    if not vector:
-        return get_bb(proj)
 
     if vector not in gs.parse_command("g.list", type="vector"):
         gs.fatal(
@@ -334,6 +355,7 @@ def get_aoi(vector=None):
         # TODO: Might need to check for number of coordinates
         #       Make sure it won't cause problems like in:
         #       https://github.com/OSGeo/grass-addons/blob/grass8/src/imagery/i.sentinel/i.sentinel.download/i.sentinel.download.py#L273
+        # As for now, EODAG takes care of the Polygon simplification if needed
         feature_type = geom[: geom.find("(")]
         coords = geom.replace(feature_type + "((", "").replace("))", "").split(", ")
         projected_geom = feature_type + "(("
