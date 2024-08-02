@@ -220,9 +220,6 @@ def normalize_time(datetime_str: str):
 PRODUCTTYPE_MAP = {
     "S2MSI1C": "S2_MSI_L1C",
     "S2MSI2A": "S2_MSI_L2A",
-    # Only found in wekeo, is S2MSI2Ap needed anymore?
-    # https://sentiwiki.copernicus.eu/web/s2-products#S2Products-XMLSchemaDefinitions(XSD)S2-Products-XML-Schema-Definitionstru
-    "S2MSI2Ap": "S2_MSI_L2AP",
     "OCN": "S1_SAR_OCN",
     "GRD": "S1_SAR_GRD",
     "SLC": "S1_SAR_SLC",
