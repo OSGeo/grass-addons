@@ -129,12 +129,13 @@
 # % key: sort
 # % description: Sort by values in given order
 # % multiple: yes
-# % options: ingestiondate,cloudcoverpercentage
-# % answer: cloudcoverpercentage,ingestiondate
+# % options: ingestiondate,cloudcoverpercentage,footprint
+# % answer: cloudcoverpercentage,ingestiondate,footprint
 # % guisection: Sort
 # %end
 # %option
 # % key: order
+# % type: string
 # % description: Sort order (see sort parameter)
 # % options: asc,desc
 # % answer: asc
@@ -328,12 +329,13 @@ def main():
     eodag_sort = ""
     eodag_pattern = ""
 
-    # TODO: Put footprint sorting back when it added to i.eodag
     for sort_var in options["sort"].split(","):
         if sort_var == "cloudcoverpercentage":
             eodag_sort += "cloudcover,"
         if sort_var == "ingestiondate":
             eodag_sort += "ingestiondate,"
+        if sort_var == "footprint":
+            eodag_sort += "footprint,"
 
     if flags["b"]:
         eodag_flags += "b"
