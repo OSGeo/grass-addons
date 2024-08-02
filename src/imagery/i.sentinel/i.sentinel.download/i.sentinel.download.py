@@ -315,6 +315,8 @@ def main():
 
     if flags["b"]:
         eodag_flags += "b"
+    if flags["s"]:
+        eodag_flags += "s"
 
     if options["uuid"]:
         # TODO: Change uuid option name to id
