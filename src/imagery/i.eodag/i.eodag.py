@@ -164,8 +164,8 @@
 # % key: sort
 # % type: string
 # % description: Field to sort values by
-# % options: ingestiondate,cloudcover
-# % answer: cloudcover,ingestiondate
+# % options: ingestiondate,cloudcover,footprint
+# % answer: cloudcover,ingestiondat,footprint
 # % required: no
 # % multiple: yes
 # % guisection: Sort
@@ -816,6 +816,10 @@ def sort_result(search_result):
                     continue
                 first_value = first.properties["cloudCover"]
                 second_value = second.properties["cloudCover"]
+            elif sort_key == "footprint":
+                # Sort by title lexicographically
+                first_value = first.properties["title"]
+                second_value = second.properties["title"]
             if first_value < second_value:
                 return 1 if sort_order == "desc" else -1
             elif first_value > second_value:
@@ -1193,14 +1197,14 @@ def main():
     if flags["s"]:
         search_result = skip_existing(options["output"], search_result)
 
+    gs.verbose(_("Sorting results..."))
+    search_result = sort_result(search_result)
+
     if options["limit"]:
         search_result = SearchResult(search_result[: int(options["limit"])])
 
     if options["footprints"]:
         save_footprints(search_result, options["footprints"])
-
-    gs.verbose(_("Sorting results..."))
-    search_result = sort_result(search_result)
 
     gs.message(_("{} scene(s) found.").format(len(search_result)))
     # TODO: Add a way to search in multiple providers at once
