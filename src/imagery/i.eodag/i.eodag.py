@@ -281,8 +281,7 @@ def get_aoi_box(vector=None):
         args["vector"] = vector
 
     # are we in LatLong location?
-    s = gs.read_command("g.proj", flags="j")
-    kv = gs.parse_key_val(s)
+    kv = gs.parse_command("g.proj", flags="j")
     if "+proj" not in kv:
         gs.fatal(
             _("Unable to get AOI bounding box: unprojected location not supported")
