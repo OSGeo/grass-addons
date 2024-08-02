@@ -164,6 +164,7 @@
 # % required: output,-l,-p
 # % excludes: uuid,map,area_relation,clouds,producttype,start,end,limit,query,sort,order
 # % excludes: -p,-l
+# % exclusive: -l, uuid
 # %end
 
 import fnmatch
@@ -216,7 +217,7 @@ def normalize_time(datetime_str: str):
     return normalized_datetime.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
 
 
-EODAG_PRODUCTTYPE_MAP = {
+PRODUCTTYPE_MAP = {
     "S2MSI1C": "S2_MSI_L1C",
     "S2MSI2A": "S2_MSI_L2A",
     # Only found in wekeo, is S2MSI2Ap needed anymore?
@@ -263,6 +264,16 @@ def main():
         gs.fatal(_("{} is unrecognized".format(options["datasource"])))
     if DATASOURCE_MAP[options["datasource"]] == "DEPRECATED":
         gs.fatal(_("{} is no longer supported".format(options["datasource"])))
+
+    if options["output"]:
+        outdir = options["output"]
+        if os.path.isdir(outdir):
+            if not os.access(outdir, os.W_OK):
+                gs.fatal(_("Output directory <{}> is not writable").format(outdir))
+        else:
+            gs.fatal(_("Output directory <{}> is not a directory").format(outdir))
+    else:
+        outdir = os.getcwd()
 
     start_date = options["start"]
     delta_days = timedelta(60)
@@ -311,14 +322,13 @@ def main():
         gs.run_command(
             "i.eodag",
             id=options["uuid"],
-            output=options["output"],
+            output=outdir,
             provider=options["datasource"],
         )
     else:
         try:
             # TODO: Implement querying
             # TODO: Implement -p flag
-            # TODO: Implement -s flag or remove it, since eodag alread skips already downloaded products
             scenes = json.loads(
                 gs.read_command(
                     "i.eodag",
@@ -337,6 +347,7 @@ def main():
                     provider=eodag_provider,
                     pattern=eodag_pattern,
                     footprints=options["footprints"] if options["footprints"] else None,
+                    output=outdir,
                     quiet=True,
                 )
             )
@@ -354,6 +365,9 @@ def main():
             "datetime": "startTimeFromAscendingNode",
         },
     }
+
+    # Output number of scenes found
+    gs.message(_("{} Sentinel product(s) found.".format(len(scenes["features"]))))
 
     if flags["l"]:
         for scene in scenes["features"]:
