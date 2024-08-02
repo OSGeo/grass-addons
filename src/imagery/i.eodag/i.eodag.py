@@ -48,6 +48,12 @@
 # % guisection: Filter
 # %end
 
+# %flag
+# % key: s
+# % description: Skip scenes that have already been downloaded after ingestiondate
+# % guisection: Filter
+# %end
+
 # OPTIONS
 # %option
 # % key: producttype
@@ -820,6 +826,47 @@ def sort_result(search_result):
     return search_result
 
 
+def skip_existing(output, search_result):
+    """Remove products that is already downloaded and saved in 'output' directory.
+
+    :param output: Output directory whose files will be compared with the scenes.
+    :type output: class'eodag.api.search_result.SearchResult'
+
+    :param search_results: EO products to be checked for existence in 'output' directory.
+    :type search_result: class'eodag.api.search_result.SearchResult'
+
+    :return: Sorted EO products
+    :rtype: class:'eodag.api.search_result.SearchResult'
+    """
+    filtered_result = []
+    # Check for previously downloaded scenes
+    existing_files = [os.path.join(output, f) for f in os.listdir(output)]
+    if len(existing_files) <= 1:
+        return search_result
+    # TODO: Implement a way to check if a file is completely downloaded
+    #       or if it was interrupted
+    for scene in search_result:
+        existing_file = [
+            sfile for sfile in existing_files if scene.properties["title"] in sfile
+        ]
+        if existing_file:
+            creation_time = datetime.utcfromtimestamp(
+                os.path.getctime(existing_file[0])
+            )
+            ingestion_time = datetime.fromisoformat(
+                scene.properties["startTimeFromAscendingNode"]
+            ).replace(tzinfo=None)
+            if ingestion_time <= creation_time:
+                gs.message(
+                    _("Skipping scene: {} which is already downloaded.").format(
+                        scene.properties["title"]
+                    )
+                )
+                continue
+        filtered_result.append(scene)
+    return SearchResult(filtered_result)
+
+
 def save_footprints(search_result, map_name):
     """Save products footprints as a vector map in the current mapset.
 
@@ -1142,10 +1189,18 @@ def main():
         queryables,
         **options,
     )
-    gs.verbose(_("Sorting results..."))
-    search_result = sort_result(search_result)
+
+    if flags["s"]:
+        search_result = skip_existing(options["output"], search_result)
+
     if options["limit"]:
         search_result = SearchResult(search_result[: int(options["limit"])])
+
+    if options["footprints"]:
+        save_footprints(search_result, options["footprints"])
+
+    gs.verbose(_("Sorting results..."))
+    search_result = sort_result(search_result)
 
     gs.message(_("{} scene(s) found.").format(len(search_result)))
     # TODO: Add a way to search in multiple providers at once
@@ -1153,9 +1208,6 @@ def main():
 
     if options["save"]:
         save_search_result(search_result, options["save"])
-
-    if options["footprints"]:
-        save_footprints(search_result, options["footprints"])
 
     if flags["l"]:
         list_products(search_result)
