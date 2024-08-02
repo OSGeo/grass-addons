@@ -396,25 +396,15 @@ def main():
     else:
         if len(scenes) == 0:
             return
-        create_dir(options["output"])
+        geojson_temp_dir = gs.tempdir()
+        geojson_temp_file = os.path.join(geojson_temp_dir, "search_result.geojson")
+        with open(geojson_temp_file, "w") as file:
+            file.write(json.dumps(scenes))
         gs.run_command(
             "i.eodag",
-            flags=eodag_flags,
-            producttype=eodag_producttype,
-            output=options["output"],
-            map=options["map"] if options["map"] else None,
-            start=start_date,
-            end=end_date,
-            clouds=options["clouds"] if options["clouds"] else None,
-            limit=options["limit"],
-            order=options["order"],
-            area_relation=(
-                options["area_relation"] if options["area_relation"] else None
-            ),
-            sort=eodag_sort,
-            provider=options["datasource"],
-            pattern=eodag_pattern,
-            quiet=True,
+            file=geojson_temp_file,
+            provider=eodag_provider,
+            output=outdir,
         )
     return 0
 
