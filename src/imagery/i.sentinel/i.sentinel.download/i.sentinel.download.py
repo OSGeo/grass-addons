@@ -327,6 +327,9 @@ def main():
     eodag_provider = DATASOURCE_MAP[options["datasource"]]
     eodag_flags = ""
     eodag_sort = ""
+    # TODO: Leave a note in the manual that in most cases values should be upper-case
+    # TODO: Add a method to list available queryables
+    eodag_query = options["query"]
     eodag_pattern = ""
 
     for sort_var in options["sort"].split(","):
@@ -341,6 +344,8 @@ def main():
         eodag_flags += "b"
     if flags["s"]:
         eodag_flags += "s"
+    if options["relativeorbitnumber"]:
+        eodag_query += f",relativeOrbitNumber={options['relativeorbitnumber']}"
 
     if options["uuid"]:
         # TODO: Change uuid option name to id
@@ -353,7 +358,6 @@ def main():
         )
     else:
         try:
-            # TODO: Implement querying
             # TODO: Implement -p flag
             scenes = json.loads(
                 gs.read_command(
@@ -372,6 +376,7 @@ def main():
                     sort=eodag_sort,
                     provider=eodag_provider,
                     pattern=eodag_pattern,
+                    query=eodag_query,
                     footprints=options["footprints"] if options["footprints"] else None,
                     output=outdir,
                     quiet=True,
