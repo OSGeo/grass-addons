@@ -506,16 +506,4 @@ if __name__ == "__main__":
     except ImportError:
         gs.fatal(_("Addon i.eodag not found. Please intall it with g.extension."))
 
-    # Check if eodag config file is created
-    file_path = os.path.join(os.path.expanduser("~"), ".config/eodag/eodag.yml")
-    if not os.path.isfile(file_path):
-        dag = EODataAccessGateway()
-        gs.info(
-            _(
-                "EODAG Config file is created, you can rerun the module after filling the necessary credentials in {}".format(
-                    file_path
-                )
-            )
-        )
-
     sys.exit(main())
