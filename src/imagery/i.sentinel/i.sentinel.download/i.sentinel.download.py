@@ -101,7 +101,7 @@
 # % key: id
 # % type: string
 # % multiple: yes
-# % description: List of UUID to download
+# % description: List of ID to download
 # % guisection: Filter
 # %end
 # %option
@@ -126,8 +126,8 @@
 # %option
 # % key: datasource
 # % description: Data-Hub to download scenes from.
-# % label: Default is ESA Copernicus Data Space Ecosystem (ESA_CDSE), but Sentinel-2 L1C data can also be acquired from Google Cloud Storage (GCS)
-# % options: ESA_CDSE,GCS
+# % label: The currently supported provider is ESA Copernicus Data Space Ecosystem (ESA_CDSE)
+# % options: ESA_CDSE
 # % answer: ESA_CDSE
 # % guisection: Filter
 # %end
@@ -274,7 +274,15 @@ REVERSE_PRODUCTTYPE_MAP = {
     "S3OL1SAC": "DEPRECATED",  # Can not be found anywhere within EODAG
 }
 
-CLOUDCOVER_PRODUCTS = ["S2MSI1C", "S2MSI2A"]
+CLOUDCOVER_PRODUCTS = [
+    "S2MSI1C",
+    "S2MSI2A",
+    "S3SY2SYN",
+    "S3SY2VGP",
+    "S3SY2VG1",
+    "S3SY2V10",
+    "S3SY2AOD",
+]
 
 DATASOURCE_MAP = {
     "ESA_CDSE": "cop_dataspace",
@@ -427,13 +435,7 @@ def main():
                 )
             )
         except CalledModuleError:
-            gs.fatal(
-                _(
-                    "Could not connect to {}.\nPlease check your credentials or try again later.".format(
-                        options["datasource"]
-                    )
-                )
-            )
+            gs.fatal(_("Connection to {} faild.\n".format(options["datasource"])))
     headers_mapping = {
         "cop_dataspace": {
             "cloud_cover": "cloudCover",
@@ -498,10 +500,7 @@ if __name__ == "__main__":
         import eodag
         from eodag import EODataAccessGateway
         from eodag.utils.exceptions import AuthenticationError
-    except:
-        gs.fatal(_("Cannot import eodag. Please intall the library first."))
 
-    try:
         gs.find_program("i.eodag", "--help")
     except ImportError:
         gs.fatal(_("Addon i.eodag not found. Please intall it with g.extension."))
