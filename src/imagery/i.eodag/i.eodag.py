@@ -165,7 +165,7 @@
 # % type: string
 # % description: Field to sort values by
 # % options: ingestiondate,cloudcover,footprint
-# % answer: cloudcover,ingestiondat,footprint
+# % answer: cloudcover,ingestiondate,footprint
 # % required: no
 # % multiple: yes
 # % guisection: Sort
