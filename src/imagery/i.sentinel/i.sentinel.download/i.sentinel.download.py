@@ -92,7 +92,7 @@
 # % guisection: Filter
 # %end
 # %option
-# % key: uuid
+# % key: id
 # % type: string
 # % multiple: yes
 # % description: List of UUID to download
@@ -163,9 +163,9 @@
 # %rules
 # % requires: -b,map
 # % required: output,-l,-p
-# % excludes: uuid,map,area_relation,clouds,producttype,start,end,limit,query,sort,order
+# % excludes: id,map,area_relation,clouds,producttype,start,end,limit,query,sort,order
 # % excludes: -p,-l
-# % exclusive: -l, uuid
+# % exclusive: -l, id
 # %end
 
 import fnmatch
@@ -268,12 +268,11 @@ REVERSE_PRODUCTTYPE_MAP = {
     "S3OL1SAC": "DEPRECATED",  # Can not be found anywhere within EODAG
 }
 
-# TODO: Can be extended?
-CLOUDCOVER_PRODUCTS = ["S2MSI1C", "S2MSI2A", "S2MSI2Ap"]
+CLOUDCOVER_PRODUCTS = ["S2MSI1C", "S2MSI2A"]
 
 DATASOURCE_MAP = {
     "ESA_CDSE": "cop_dataspace",
-    "GCS": "earth_search_gcs",  # TODO: Suggested to be removed
+    "GCS": "DEPRECATED",
     "SARA": "sara",  # TODO: Can be used as a source for S3OL1RAC
     "ESA_COAH": "DEPRECATED",  # Transferred to ESA_CDSE
     "USGS_EE": "DEPRECATED",  # No longer provides Sentinel products
@@ -294,7 +293,7 @@ def main():
             if not os.access(outdir, os.W_OK):
                 gs.fatal(_("Output directory <{}> is not writable").format(outdir))
         else:
-            gs.fatal(_("Output directory <{}> is not a directory").format(outdir))
+            create_dir(outdir)
     else:
         outdir = os.getcwd()
 
@@ -347,12 +346,10 @@ def main():
     if options["relativeorbitnumber"]:
         eodag_query += f",relativeOrbitNumber={options['relativeorbitnumber']}"
 
-    if options["uuid"]:
-        # TODO: Change uuid option name to id
-        #       or look for a way to use uuid
+    if options["id"]:
         gs.run_command(
             "i.eodag",
-            id=options["uuid"],
+            id=options["id"],
             output=outdir,
             provider=options["datasource"],
         )
@@ -428,7 +425,8 @@ def main():
             product_line += f" {options['producttype']}"
             print(product_line)
     else:
-        if len(scenes) == 0:
+        if len(scenes["features"]) == 0:
+            gs.warning(_("Nothing to download.\nExiting..."))
             return
         geojson_temp_dir = gs.tempdir()
         geojson_temp_file = os.path.join(geojson_temp_dir, "search_result.geojson")
@@ -439,6 +437,7 @@ def main():
             file=geojson_temp_file,
             provider=eodag_provider,
             output=outdir,
+            quiet=True,
         )
     return 0
 
