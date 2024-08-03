@@ -19,6 +19,12 @@
 # % keyword: Sentinel
 # % keyword: download
 # %end
+# %option G_OPT_F_INPUT
+# % key: settings
+# % label: Full path to settings file (user, password)
+# % required: no
+# % description: '-' for standard input
+# %end
 # %option G_OPT_M_DIR
 # % key: output
 # % description: Name for output directory where to store downloaded Sentinel data
@@ -346,6 +352,47 @@ def main():
     if options["relativeorbitnumber"]:
         eodag_query += f",relativeOrbitNumber={options['relativeorbitnumber']}"
 
+    # Credentials needed
+    if not flags["l"]:
+        if options["settings"] == "-":
+            # stdin
+            import getpass
+
+            user = input(_("Insert username: "))
+            password = getpass.getpass(_("Insert password: "))
+        else:
+            try:
+                with open(options["settings"], "r") as fd:
+                    lines = list(
+                        filter(None, (line.rstrip() for line in fd))
+                    )  # non-blank lines only
+                    if len(lines) < 2:
+                        gs.fatal(_("Invalid settings file"))
+                    user = lines[0].strip()
+                    password = lines[1].strip()
+                    if len(lines) > 2:
+                        api_url = lines[2].strip()
+            except IOError as e:
+                gs.fatal(_("Unable to open settings file: {}").format(e))
+            if user is None or password is None:
+                gs.fatal(_("No user or password given"))
+
+        os.environ[f"EODAG__{eodag_provider.upper()}__AUTH__CREDENTIALS__USERNAME"] = (
+            user
+        )
+        os.environ[f"EODAG__{eodag_provider.upper()}__AUTH__CREDENTIALS__PASSWORD"] = (
+            password
+        )
+
+        # Checking credentials early
+        dag = EODataAccessGateway()
+        try:
+            dag._plugins_manager.get_auth_plugin("cop_dataspace").authenticate()
+        except AuthenticationError:
+            gs.fatal(
+                _("Authentication failed, please check your credentials and try again.")
+            )
+
     if options["id"]:
         gs.run_command(
             "i.eodag",
@@ -425,9 +472,11 @@ def main():
             product_line += f" {options['producttype']}"
             print(product_line)
     else:
+
         if len(scenes["features"]) == 0:
             gs.warning(_("Nothing to download.\nExiting..."))
             return
+
         geojson_temp_dir = gs.tempdir()
         geojson_temp_file = os.path.join(geojson_temp_dir, "search_result.geojson")
         with open(geojson_temp_file, "w") as file:
@@ -448,6 +497,7 @@ if __name__ == "__main__":
     try:
         import eodag
         from eodag import EODataAccessGateway
+        from eodag.utils.exceptions import AuthenticationError
     except:
         gs.fatal(_("Cannot import eodag. Please intall the library first."))
 
