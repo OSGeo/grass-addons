@@ -468,10 +468,7 @@ if __name__ == "__main__":
         import eodag
         from eodag import EODataAccessGateway
         from eodag.utils.exceptions import AuthenticationError
-    except:
-        gs.fatal(_("Cannot import eodag. Please intall the library first."))
 
-    try:
         gs.find_program("i.eodag", "--help")
     except ImportError:
         gs.fatal(_("Addon i.eodag not found. Please intall it with g.extension."))
