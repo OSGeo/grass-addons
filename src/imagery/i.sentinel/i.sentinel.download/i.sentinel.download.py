@@ -245,34 +245,10 @@ PRODUCTTYPE_MAP = {
     "S3SY2VG1": "S3_SY_VG1",
     "S3SY2V10": "S3_SY_V10",
     "S3SY2AOD": "S3_SY_AOD",
-    "S3OL1RAC": "S3_RAC - SARA/WEKEO",
-    "S3OL1SAC": "DEPRECATED",  # Can not be found anywhere within EODAG
+    "S3OL1RAC": "DEPRECATED",
+    "S3OL1SAC": "DEPRECATED",
 }
 
-REVERSE_PRODUCTTYPE_MAP = {
-    "S2_MSI_L1C": "S2MSI1C",
-    "S2_MSI_L2A": "S2MSI2A",
-    "S1_SAR_OCN": "OCN",
-    "S1_SAR_GRD": "GRD",
-    "S1_SAR_SLC": "SLC",
-    "S3_EFR": "S3OL1EFR",
-    "S3_ERR": "S3OL1ERR",
-    "S3_SLSTR_L1RBT": "S3SL1RBT",
-    "S3_OLCI_L2WFR": "S3OL2WFR",
-    "S3_OLCI_L2WRR": "S3OL2WRR",
-    "S3_OLCI_L2LFR": "S3OL2LFR",
-    "S3_OLCI_L2LRR": "S3OL2LRR",
-    "S3_SLSTR_L2LST": "S3SL2LST",
-    "S3_SLSTR_L2FRP": "S3SL2FRP",
-    "S3_LAN": "S3SR2LAN",
-    "S3_SY_SYN": "S3SY2SYN",
-    "S3_SY_VGP": "S3SY2VGP",
-    "S3_SY_VG1": "S3SY2VG1",
-    "S3_SY_V10": "S3SY2V10",
-    "S3_SY_AOD": "S3SY2AOD",
-    "S3_RAC - SARA/WEKEO": "S3OL1RAC",
-    "S3OL1SAC": "DEPRECATED",  # Can not be found anywhere within EODAG
-}
 
 CLOUDCOVER_PRODUCTS = [
     "S2MSI1C",
@@ -287,7 +263,6 @@ CLOUDCOVER_PRODUCTS = [
 DATASOURCE_MAP = {
     "ESA_CDSE": "cop_dataspace",
     "GCS": "DEPRECATED",
-    "SARA": "sara",  # TODO: Can be used as a source for S3OL1RAC
     "ESA_COAH": "DEPRECATED",  # Transferred to ESA_CDSE
     "USGS_EE": "DEPRECATED",  # No longer provides Sentinel products
 }
@@ -436,6 +411,7 @@ def main():
             )
         except CalledModuleError:
             gs.fatal(_("Connection to {} faild.\n".format(options["datasource"])))
+
     headers_mapping = {
         "cop_dataspace": {
             "cloud_cover": "cloudCover",
@@ -449,28 +425,19 @@ def main():
     if flags["l"]:
         for scene in scenes["features"]:
             product_line = scene["id"]
-            # Special formatting for datetime
             try:
                 acquisition_time = normalize_time(
-                    scene["properties"][headers_mapping[eodag_provider]["datetime"]]
+                    scene["properties"].get(headers_mapping[eodag_provider]["datetime"])
                 )
             except:
-                acquisition_time = scene["properties"][
+                acquisition_time = scene["properties"].get(
                     headers_mapping[eodag_provider]["datetime"]
-                ]
+                )
+            cloud_cover = scene["properties"].get(
+                headers_mapping[eodag_provider]["cloud_cover"]
+            )
             product_line += " " + acquisition_time
-            if (
-                REVERSE_PRODUCTTYPE_MAP[scene["properties"]["eodag_product_type"]]
-                in CLOUDCOVER_PRODUCTS
-                and headers_mapping[eodag_provider]["cloud_cover"]
-                in scene["properties"]
-            ):
-                cloud_cover = scene["properties"][
-                    headers_mapping[eodag_provider]["cloud_cover"]
-                ]
-                product_line += f" {cloud_cover:2.0f}%"
-            else:
-                product_line += " cloudcover_NA"
+            product_line += f" {cloud_cover:2.0f}%" if cloud_cover else "cloudcover_NA"
             product_line += f" {options['producttype']}"
             print(product_line)
     else:
@@ -479,6 +446,8 @@ def main():
             gs.warning(_("Nothing to download.\nExiting..."))
             return
 
+        # Save search result in a temp file, and then use i.eodag
+        # to download scenes saved in that temp file
         geojson_temp_dir = gs.tempdir()
         geojson_temp_file = os.path.join(geojson_temp_dir, "search_result.geojson")
         with open(geojson_temp_file, "w") as file:
