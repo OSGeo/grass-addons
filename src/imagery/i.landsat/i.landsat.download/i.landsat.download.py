@@ -26,6 +26,12 @@
 # % keyword: download
 # %end
 
+# %option G_OPT_F_INPUT
+# % key: settings
+# % label: Full path to settings file (user, password)
+# % description: '-' for standard input
+# %end
+
 # %option G_OPT_M_DIR
 # % key: output
 # % description: Name for output directory where to store downloaded Landsat data
@@ -149,6 +155,7 @@
 import os
 import json
 import sys
+import yaml
 from datetime import datetime, timezone, timedelta, date
 import grass.script as gs
 from grass.exceptions import CalledModuleError
@@ -167,6 +174,119 @@ def normalize_time(datetime_str: str):
     if normalized_datetime.tzinfo is None:
         return normalized_datetime.strftime("%Y-%m-%dT%H:%M:%S")
     return normalized_datetime.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
+
+
+def get_custom_eodag_config(datasource, settings):
+    username = None
+    password = None
+    apikey = None
+    if settings == "-":
+        # stdin
+        import getpass
+
+        if datasource == "usgs":
+            username = input(_("Insert username: "))
+            password = getpass.getpass(_("Insert password: "))
+        elif datasource == "planetary_computer":
+            apikey = getpass.getpass(_("Insert API key: "))
+    else:
+        try:
+            with open(settings, "r") as fd:
+                lines = list(
+                    filter(None, (line.rstrip() for line in fd))
+                )  # non-blank lines only
+                if datasource == "usgs":
+                    if len(lines) < 2:
+                        gs.fatal(_("Invalid settings file"))
+                    username = lines[0].strip()
+                    password = lines[1].strip()
+                elif datasource == "planetary_computer":
+                    if len(lines) < 1:
+                        gs.fatal(_("Invalid settings file"))
+                    apikey = lines[0].strip()
+        except IOError as e:
+            gs.fatal(_("Unable to open settings file: {}").format(e))
+
+    geojson_temp_dir = gs.tempdir()
+    custom_eodag_config_path = os.path.join(
+        geojson_temp_dir, f"{datasource}_config.yml"
+    )
+
+    eodag_config = None
+    try:
+        with open(os.path.expanduser("~/.config/eodag/eodag.yml")) as def_config:
+            eodag_config = yaml.safe_load(def_config)
+    except FileNotFoundError:
+        pass
+
+    def build_default_usgs_config(username, password):
+        usgs_config = {"priority": None, "api": {}}
+        usgs_config["api"]["extract"] = None
+        usgs_config["api"]["outputs_prefix"] = None
+        usgs_config["api"]["dl_url_params"] = None
+        usgs_config["api"]["product_location_scheme"] = None
+        usgs_config["api"]["credentials"] = {}
+        usgs_config["api"]["credentials"]["username"] = username
+        usgs_config["api"]["credentials"]["password"] = password
+        return usgs_config
+
+    def build_default_planetary_computer_config(apikey):
+        planetary_computer_config = {
+            "priority": None,
+            "search": None,
+            "auth": {},
+            "download": {},
+        }
+        planetary_computer_config["auth"]["credentials"] = {"apikey": apikey}
+        planetary_computer_config["download"]["outputs_prefix"] = None
+        return planetary_computer_config
+
+    if datasource == "usgs":
+        if username is None or password is None:
+            gs.warnign(_("No user or password given for USGS"))
+        else:
+            if eodag_config is None:
+                # Shall we always just ignore any configuration in the eodag config file
+                # to eliminate confusion between i.eodag and i.landsat.download?
+                eodag_config = {"usgs": build_default_usgs_config(username, password)}
+            else:
+                try:
+                    eodag_config["usgs"]["api"]["credentials"]["username"] = username
+                    eodag_config["usgs"]["api"]["credentials"]["password"] = password
+                except KeyError:
+                    # In case the user messes up
+                    # usgs in eodag config file
+                    gs.warning(_("USGS EODAG configuration could not be parsed."))
+                    eodag_config["usgs"] = build_default_usgs_config(username, password)
+    elif datasource == "planetary_computer":
+        if apikey is None:
+            gs.warning(_("No API key given for Planetary Computer"))
+        else:
+            if eodag_config is None:
+                eodag_config = {
+                    "planetary_computer": build_default_planetary_computer_config(
+                        apikey
+                    )
+                }
+            else:
+                try:
+                    eodag_config["planetary_computer"]["auth"]["credentials"][
+                        "apikey"
+                    ] = apikey
+                except KeyError:
+                    # In case the user messes up
+                    # planetary computer in eodag config file
+                    gs.warning(
+                        _("Planetary Computer EODAG configuration could not be parsed.")
+                    )
+                    eodag_config["planetary_computer"] = (
+                        build_default_planetary_computer_config(apikey)
+                    )
+
+    with open(custom_eodag_config_path, "w") as file:
+        yaml.dump(eodag_config, file)
+
+    return custom_eodag_config_path
 
 
 def main():
@@ -190,6 +310,10 @@ def main():
     else:
         outdir = os.getcwd()
 
+    custom_eodag_config_path = get_custom_eodag_config(
+        options["datasource"], options["settings"]
+    )
+
     # Download by ID
     if options["id"]:
         # Should use other provider other than USGS,
@@ -205,7 +329,11 @@ def main():
                 )
             )
         gs.run_command(
-            "i.eodag", id=options["id"], output=outdir, provider=options["datasource"]
+            "i.eodag",
+            id=options["id"],
+            output=outdir,
+            provider=options["datasource"],
+            config=custom_eodag_config_path,
         )
     else:
         if "c1" in options["dataset"]:
@@ -258,6 +386,7 @@ def main():
                     sort=eodag_sort,
                     provider=options["datasource"],
                     pattern=eodag_pattern,
+                    config=custom_eodag_config_path,
                     quiet=True,
                 )
             )
@@ -327,6 +456,7 @@ def main():
                 sort=eodag_sort,
                 provider=options["datasource"],
                 pattern=eodag_pattern,
+                config=custom_eodag_config_path,
                 quiet=True,
             )
 
@@ -337,6 +467,7 @@ if __name__ == "__main__":
     try:
         import eodag
         from eodag import EODataAccessGateway
+        from eodag.utils.exceptions import AuthenticationError
     except:
         gs.fatal(_("Cannot import eodag. Please intall the library first."))
 
@@ -345,15 +476,4 @@ if __name__ == "__main__":
     except ImportError:
         gs.fatal(_("Addon i.eodag not found. Please intall it with g.extension."))
 
-    # Check if eodag config file is created
-    file_path = os.path.join(os.path.expanduser("~"), ".config/eodag/eodag.yml")
-    if not os.path.isfile(file_path):
-        dag = EODataAccessGateway()
-        gs.info(
-            _(
-                "EODAG Config file is created, you can rerun the module after filling the necessary credentials in {}".format(
-                    file_path
-                )
-            )
-        )
     sys.exit(main())
