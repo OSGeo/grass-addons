@@ -28,6 +28,7 @@
 
 # %option G_OPT_F_INPUT
 # % key: settings
+# % required: no
 # % label: Full path to settings file (user, password)
 # % description: '-' for standard input
 # %end
@@ -177,6 +178,8 @@ def normalize_time(datetime_str: str):
 
 
 def get_custom_eodag_config(datasource, settings):
+    if settings == "":
+        return None
     username = None
     password = None
     apikey = None
