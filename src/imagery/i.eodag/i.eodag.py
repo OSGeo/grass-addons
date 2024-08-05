@@ -841,33 +841,35 @@ def skip_existing(output, search_result):
     :return: Sorted EO products
     :rtype: class:'eodag.api.search_result.SearchResult'
     """
-    filtered_result = []
     # Check for previously downloaded scenes
-    existing_files = [os.path.join(output, f) for f in os.listdir(output)]
-    if len(existing_files) <= 1:
+    output = Path(output)
+
+    # Check if directory doesn't exist or if it is empty
+    if not output.exists() or next(os.scandir(output), None) is None:
+        gs.verbose(_("Directory '{}' is empty, no scenes to skip".format(output)))
         return search_result
-    # TODO: Implement a way to check if a file is completely downloaded
-    #       or if it was interrupted
+
     for scene in search_result:
-        existing_file = [
-            sfile for sfile in existing_files if scene.properties["title"] in sfile
-        ]
-        if existing_file:
-            creation_time = datetime.utcfromtimestamp(
-                os.path.getctime(existing_file[0])
-            )
-            ingestion_time = datetime.fromisoformat(
-                scene.properties["startTimeFromAscendingNode"]
-            ).replace(tzinfo=None)
-            if ingestion_time <= creation_time:
-                gs.message(
-                    _("Skipping scene: {} which is already downloaded.").format(
-                        scene.properties["title"]
+        SUFFIXES = ["", ".zip", ".ZIP"]
+        for suffix in SUFFIXES:
+            scene_file = output / (scene.properties["title"] + suffix)
+            print(scene_file)
+            if scene_file.exists():
+                creation_time = datetime.utcfromtimestamp(os.path.getctime(scene_file))
+                ingestion_time = scene.properties.get("modificationDate")
+                if (
+                    ingestion_time
+                    and datetime.fromisoformat(ingestion_time).replace(tzinfo=None)
+                    <= creation_time
+                ):
+                    gs.message(
+                        _("Skipping scene: {} which is already downloaded.").format(
+                            scene.properties["title"]
+                        )
                     )
-                )
-                continue
-        filtered_result.append(scene)
-    return SearchResult(filtered_result)
+                    search_result.remove(scene)
+                    break
+    return search_result
 
 
 def save_footprints(search_result, map_name):
