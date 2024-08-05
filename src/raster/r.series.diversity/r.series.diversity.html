@@ -24,39 +24,39 @@ the output layer is composed of the basename + renyi + alpha.
 
 <h4>Richness</h4>
 
-The species richness is simply the count of the number of layers. It is 
-a special case of the Reny enthropy: <tt>S = exp(R0)</tt>, whereby 
-<tt>S</tt> is the species richness <tt>R0</tt> the renyi index for 
-<tt>alpha=0</tt>. The name of the output layer is composed of the 
+The species richness is simply the count of the number of layers. It is
+a special case of the Reny enthropy: <tt>S = exp(R0)</tt>, whereby
+<tt>S</tt> is the species richness <tt>R0</tt> the renyi index for
+<tt>alpha=0</tt>. The name of the output layer is composed of the
 basename + richness.
 
 <h4>Shannon index</h4>
 
-The Shannon (also called the Shannon-Weaver or Shannon-Wiener) index is 
-defined as <tt>H' = -sum(p_i x log(p_i))</tt>, where <tt>p_i </tt> is 
-the proportional abundance of species <tt>i</tt>. The function uses the 
-natural logarithm (one can also use other bases for the log, but that 
-is currently not implemented, and doesn't make a real difference). Note 
-the Shannon index is a special case of the Renyi enthropy for <tt>alpha 
---> 1</tt>. The name of the output layer is composed of the basename + 
+The Shannon (also called the Shannon-Weaver or Shannon-Wiener) index is
+defined as <tt>H' = -sum(p_i x log(p_i))</tt>, where <tt>p_i </tt> is
+the proportional abundance of species <tt>i</tt>. The function uses the
+natural logarithm (one can also use other bases for the log, but that
+is currently not implemented, and doesn't make a real difference). Note
+the Shannon index is a special case of the Renyi enthropy for <tt>alpha
+--> 1</tt>. The name of the output layer is composed of the basename +
 shannon.
 
 <h4>Effective number of species (ENS)</h4>
 
-This option gives the Shannon index, converted to into equivalent or 
-effective numbers of species (also known as Hill numbers) (Lou Jost, 
-2006; Chase and Knight, 2013). The Shannon index, and other indice, can 
-be converted so they represent the number of equally abundant species 
-necessary to produce the observed value of diversity (an analogue the 
-concept of effective population size in genetics). An advantage of the 
-ENS is a more intuitive behavious, e.g., if two communities with 
-equally abundant but totally distinct species are combined, the ENS of 
-the combined community is twice that of the original communities. See 
-for an explanation and examples this <a 
-href="http://www.loujost.com/Statistics%20and%20Physics/Diversity%20and%20Similarity/EffectiveNumberOfSpecies.htm">blog 
-post</a> or <a 
-href="http://jonlefcheck.net/2012/10/23/diversity-as-effective-numbers">this 
-one</a>. The name of the output layer is composed of the basename + 
+This option gives the Shannon index, converted to into equivalent or
+effective numbers of species (also known as Hill numbers) (Lou Jost,
+2006; Chase and Knight, 2013). The Shannon index, and other indice, can
+be converted so they represent the number of equally abundant species
+necessary to produce the observed value of diversity (an analogue the
+concept of effective population size in genetics). An advantage of the
+ENS is a more intuitive behavious, e.g., if two communities with
+equally abundant but totally distinct species are combined, the ENS of
+the combined community is twice that of the original communities. See
+for an explanation and examples this <a
+href="http://www.loujost.com/Statistics%20and%20Physics/Diversity%20and%20Similarity/EffectiveNumberOfSpecies.htm">blog
+post</a> or <a
+href="http://jonlefcheck.net/2012/10/23/diversity-as-effective-numbers">this
+one</a>. The name of the output layer is composed of the basename +
 ens.
 
 <h4>Pielou's eveness (equitability) index</h4>
@@ -73,16 +73,16 @@ is composed of the basename + pielou.
 
 <h4>Simpson's index of diversity</h4>
 
-The Simpson's index is defined as <tt>D = sum p_i^2</tt>. This is 
-equivalent to <tt>-1 * 1 / exp(R2)</tt>, with <tt>R2</tt> the renyi 
-index for <tt>alpha=2</tt>. With this index, 0 represents infinite 
-diversity and 1, no diversity. As this is counterintuitive behavior for 
-a diversity index, we use <tt>1 - D</tt> (Gini, 1912; Simpson, 1949). 
-This is also called the probability of interspecific encounter (PIE) or 
-the Gini–Simpson index. The index represents the probability that two 
-individuals randomly selected from a sample will belong to different 
-species. The value ranges between 0 and 1, with greater values 
-representing greater sample diversity. The name of the output layer is 
+The Simpson's index is defined as <tt>D = sum p_i^2</tt>. This is
+equivalent to <tt>-1 * 1 / exp(R2)</tt>, with <tt>R2</tt> the renyi
+index for <tt>alpha=2</tt>. With this index, 0 represents infinite
+diversity and 1, no diversity. As this is counterintuitive behavior for
+a diversity index, we use <tt>1 - D</tt> (Gini, 1912; Simpson, 1949).
+This is also called the probability of interspecific encounter (PIE) or
+the Gini–Simpson index. The index represents the probability that two
+individuals randomly selected from a sample will belong to different
+species. The value ranges between 0 and 1, with greater values
+representing greater sample diversity. The name of the output layer is
 composed of the basename + ginisimpson.
 
 <h4>Inverse Simpson index (Simpson's Reciprocal Index)</h4>
@@ -105,15 +105,15 @@ below). These functions requires one input layer and compute the
 diversity using a moving window.
 
 <p>
-Currently when working with very large raster layers and many input 
-layers, computations can take a long time. Increasing the number of 
-threads (parameter <b>nprocs</b>) and increasing the memory (parameter 
+Currently when working with very large raster layers and many input
+layers, computations can take a long time. Increasing the number of
+threads (parameter <b>nprocs</b>) and increasing the memory (parameter
 <b>memory</b>) can speed up the calculations considerably.
 
 <p>
-See the blog post <a 
-href="https://ecodiv.earth/post/tree-species-diversity-distribution/">Tree 
-species diversity distribution</a> for a possible application of this 
+See the blog post <a
+href="https://ecodiv.earth/post/tree-species-diversity-distribution/">Tree
+species diversity distribution</a> for a possible application of this
 addon.
 
 <h2>EXAMPLES</h2>
@@ -160,9 +160,9 @@ r.series.diversity -s -h -p -g in=spec1,spec2,spec3,spec4,spec5 out=biodiversity
 </pre></div>
 
 <p>
-The species richness you get should of course be 5. The shannon index 
-is the same as the renyi index with <tt>alpha=1 (1.06)</tt>. The 
-inverse simpson and gini-simpson should be 2.3 and 0.57 respectively. 
+The species richness you get should of course be 5. The shannon index
+is the same as the renyi index with <tt>alpha=1 (1.06)</tt>. The
+inverse simpson and gini-simpson should be 2.3 and 0.57 respectively.
 Let's check:
 
 <div class="code"><pre>
@@ -202,8 +202,6 @@ max=0.5658
 <li>Simpson, E. H. 1949. Measurement of Diversity Nature 163</li>
 </ul>
 
-
-<h2>AUTHOR</h2>
 
 <h2>AUTHOR</h2>
 
