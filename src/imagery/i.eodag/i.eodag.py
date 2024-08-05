@@ -526,6 +526,7 @@ def list_products(products):
                 product_line += " "
             product_line += product_attribute_value
         print(product_line)
+        print(product.remote_location)
 
 
 def list_products_json(products):
@@ -845,15 +846,26 @@ def skip_existing(output, search_result):
     output = Path(output)
 
     # Check if directory doesn't exist or if it is empty
+
     if not output.exists() or next(os.scandir(output), None) is None:
         gs.verbose(_("Directory '{}' is empty, no scenes to skip".format(output)))
         return search_result
+    downloaded_dir = output / ".downloaded"
+    if not downloaded_dir.exists() or next(os.scandir(downloaded_dir), None) is None:
+        gs.verbose(
+            _(
+                "The `.download` directory in '{}' is empty, no scenes to skip".format(
+                    output
+                )
+            )
+        )
+        return search_result
+    from hashlib import md5
 
     for scene in search_result:
         SUFFIXES = ["", ".zip", ".ZIP"]
         for suffix in SUFFIXES:
             scene_file = output / (scene.properties["title"] + suffix)
-            print(scene_file)
             if scene_file.exists():
                 creation_time = datetime.utcfromtimestamp(os.path.getctime(scene_file))
                 ingestion_time = scene.properties.get("modificationDate")
@@ -862,6 +874,19 @@ def skip_existing(output, search_result):
                     and datetime.fromisoformat(ingestion_time).replace(tzinfo=None)
                     <= creation_time
                 ):
+                    # This is to check that the file was completely downloaded
+                    # without interruptions.
+                    # The reason this works:
+                    # When eodag completely download a scene, it saves a file
+                    # with the scene's remote location
+                    # in `.download`. The name of that file is the MD5 hash of
+                    # the scenes remote location
+                    # so here we are checking for the existance of that file.
+                    hashed_file = (
+                        downloaded_dir / md5(scene.remote_location.encode()).hexdigest()
+                    )
+                    if not hashed_file.exists():
+                        continue
                     gs.message(
                         _("Skipping scene: {} which is already downloaded.").format(
                             scene.properties["title"]
