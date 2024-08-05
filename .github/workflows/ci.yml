@@ -105,7 +105,7 @@ jobs:
           pip install -r grass-addons/.github/workflows/extra_requirements.txt
 
       - name: Set up R
-        uses: r-lib/actions/setup-r@929c772977a3a13c8733b363bf5a2f685c25dd91 # v2.9.0
+        uses: r-lib/actions/setup-r@d1a6cbabea8dd2f137598ba2a70ae37ac82d7941 # v2.10.0
         with:
           r-version: 4.2.1
 
