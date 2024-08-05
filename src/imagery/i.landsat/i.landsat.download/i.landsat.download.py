@@ -474,6 +474,6 @@ if __name__ == "__main__":
 
         gs.find_program("i.eodag", "--help")
     except ImportError:
-        gs.fatal(_("Addon i.eodag not found. Please intall it with g.extension."))
+        gs.fatal(_("Addon i.eodag not found. Please install it with g.extension."))
 
     sys.exit(main())
