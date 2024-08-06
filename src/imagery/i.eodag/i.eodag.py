@@ -526,7 +526,6 @@ def list_products(products):
                 product_line += " "
             product_line += product_attribute_value
         print(product_line)
-        print(product.remote_location)
 
 
 def list_products_json(products):
