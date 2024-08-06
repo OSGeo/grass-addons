@@ -1272,7 +1272,7 @@ def main():
                 "wait": int(options["wait"]),
             }
             if not search_result:
-                gs.message(_("Nothing to download.\nexiting..."))
+                gs.message(_("Nothing to download.\nExiting..."))
             if options["output"]:
                 custom_config["outputs_prefix"] = options["output"]
             dag.download_all(search_result, **custom_config)
