@@ -1245,10 +1245,34 @@ def main():
     else:
         # TODO: Consider adding a quicklook flag
         try:
+            # TODO: Would be better if we could find a way to not ask the user for the OTP manually
+            providers = (scene.provider for scene in search_result)
+            if "creodias" in providers:
+                gs.message(
+                    _(
+                        "Please enter Creodias OTP, to discard Creodias scenes enter '-': "
+                    )
+                )
+                creodias_otp = input().strip()
+                if creodias_otp == "-":
+                    search_result = SearchResult(
+                        [
+                            scene
+                            for scene in search_result
+                            if scene.provider != "creodias"
+                        ]
+                    )
+                else:
+                    dag.providers_config["creodias"].auth.credentials[
+                        "totp"
+                    ] = creodias_otp
+                    dag._plugins_manager.get_auth_plugin("creodias").authenticate()
             custom_config = {
                 "timeout": int(options["timeout"]),
                 "wait": int(options["wait"]),
             }
+            if not search_result:
+                gs.message(_("Nothing to download.\nexiting..."))
             if options["output"]:
                 custom_config["outputs_prefix"] = options["output"]
             dag.download_all(search_result, **custom_config)
