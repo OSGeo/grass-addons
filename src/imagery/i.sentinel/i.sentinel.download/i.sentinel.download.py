@@ -241,6 +241,7 @@ PRODUCTTYPE_MAP = {
     "S2MSI2A": "S2_MSI_L2A",
     "OCN": "S1_SAR_OCN",
     "GRD": "S1_SAR_GRD",
+    "GRDCOG": "S1_SAR_GRD_COG",
     "SLC": "S1_SAR_SLC",
     "S3OL1EFR": "S3_EFR",
     "S3OL1ERR": "S3_ERR",
