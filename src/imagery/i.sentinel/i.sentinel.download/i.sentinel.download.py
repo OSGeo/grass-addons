@@ -229,7 +229,11 @@ def parse_scene_size(scene_size):
     if size_MB < 1000:
         return f"{size_MB} MB"
     size_GB = round(scene_size / (2**30), 2)
-    return f"{size_GB} GB"
+    if size_GB < 1000:
+        return f"{size_GB} GB"
+    # Probably never needed
+    size_TB = round(scene_size / (2**40), 2)
+    return f"{size_TB} TB"
 
 
 PRODUCTTYPE_MAP = {
@@ -385,12 +389,17 @@ def main():
             )
 
     if options["id"]:
+        # Currently cop_dataspace on EODAG only supports searching
+        # for a specific product using the id (aka. products title)
+        # TODO: We could consider changin the id to uid
+        # when searching by uid is supported
         gs.run_command(
             "i.eodag",
             id=options["id"],
             output=outdir,
-            provider=options["datasource"],
+            provider=eodag_provider,
         )
+        return
     else:
         try:
             # TODO: Implement -p flag
@@ -432,7 +441,7 @@ def main():
 
     if flags["l"]:
         for scene in scenes["features"]:
-            product_line = scene["id"]
+            scene_id = scene["id"]
             try:
                 acquisition_time = normalize_time(
                     scene["properties"].get(headers_mapping[eodag_provider]["datetime"])
@@ -446,11 +455,9 @@ def main():
             )
             scene_size = scene["properties"].get("services")["download"]["size"]
             scene_size = parse_scene_size(scene_size)
-            product_line += " " + acquisition_time
-            product_line += f" {cloud_cover:2.0f}%" if cloud_cover else " cloudcover_NA"
-            product_line += f" {options['producttype']}"
-            product_line += f" {scene_size}"
-            print(product_line)
+            print(
+                f"{scene_id} {acquisition_time:19} {cloud_cover:3.0f}% {options['producttype']:8} {scene_size:9}"
+            )
     else:
 
         if len(scenes["features"]) == 0:
