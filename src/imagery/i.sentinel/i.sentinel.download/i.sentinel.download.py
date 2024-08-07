@@ -224,6 +224,14 @@ def normalize_time(datetime_str: str):
     return normalized_datetime.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
 
 
+def parse_scene_size(scene_size):
+    size_MB = round(scene_size / (2**20), 2)
+    if size_MB < 1000:
+        return f"{size_MB} MB"
+    size_GB = round(scene_size / (2**30), 2)
+    return f"{size_GB} GB"
+
+
 PRODUCTTYPE_MAP = {
     "S2MSI1C": "S2_MSI_L1C",
     "S2MSI2A": "S2_MSI_L2A",
@@ -436,9 +444,12 @@ def main():
             cloud_cover = scene["properties"].get(
                 headers_mapping[eodag_provider]["cloud_cover"]
             )
+            scene_size = scene["properties"].get("services")["download"]["size"]
+            scene_size = parse_scene_size(scene_size)
             product_line += " " + acquisition_time
-            product_line += f" {cloud_cover:2.0f}%" if cloud_cover else "cloudcover_NA"
+            product_line += f" {cloud_cover:2.0f}%" if cloud_cover else " cloudcover_NA"
             product_line += f" {options['producttype']}"
+            product_line += f" {scene_size}"
             print(product_line)
     else:
 
