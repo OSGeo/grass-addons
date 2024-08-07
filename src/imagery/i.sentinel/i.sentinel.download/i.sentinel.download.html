@@ -1,22 +1,21 @@
 <h2>DESCRIPTION</h2>
 
 The <em>i.sentinel.download</em> addon allows downloading Sentinel satellite products
-from the <a href="https://scihub.copernicus.eu/">Copernicus Open Access Hub</a>,
-<a href="https://earthexplorer.usgs.gov/">USGS Earth Explorer</a>, or
-<a href="https://cloud.google.com/storage/docs/public-datasets/sentinel-2?hl=en">Google Cloud Storage</a>.
+from the <a href="https://dataspace.copernicus.eu/">Copernicus Data Space Ecosystem</a>.
 
-<h3>Copernicus Open Access Hub</h3>
+<h3>Copernicus Data Space Ecosystem</h3>
 <p>
-Using the Copernicus Open Access Hub for searching and downloading Copernicus
+Using the Copernicus Data Space Ecosystem for searching and downloading Copernicus
 Sentinel data is the default option.
 The following product types (parameter <b>producttype</b>) are currently supported
-for download from the <b>Copernicus Open Access Hub</b>:
+for download from the <b>Copernicus Data Space Ecosystem</b>:
 <ul>
   <li>Sentinel-1 (SAR; available from Oct 2014 to present day)
   (SAR) <a href="https://sentinel.esa.int/web/sentinel/missions/sentinel-1/data-products">products</a>:
     <ul>
       <li>SLC: Single Look Complex (Level-1)</li>
       <li>GRD: Ground Range Detected (Level-1)</li>
+      <li>GRDCOG: COG format based Ground Range Detected (Level-1)</li> <!-- Is this a good description?-->
       <li>OCN: Ocean products for wind, wave and currents applications (Level-2)</li>
     </ul>
   </li>
@@ -24,7 +23,6 @@ for download from the <b>Copernicus Open Access Hub</b>:
   (optical) <a href="https://sentinel.esa.int/web/sentinel/missions/sentinel-2/data-products">products</a>:
   <ul>
     <li>S2MSI2A: operational Bottom-Of-Atmosphere reflectances in cartographic geometry Level-2A)</li>
-    <li>(S2MSI2Ap: pilot products of Bottom-Of-Atmosphere reflectances in cartographic geometry Level-2A), until March 2018)</li>
     <li>S2MSI1C: Top-Of-Atmosphere reflectances in cartographic geometry (Level-1C)</li>
   </ul>
   </li>
@@ -34,8 +32,6 @@ for download from the <b>Copernicus Open Access Hub</b>:
   <ul>
     <li>S3OL1EFR: Land colour and atmosphere TOA radiances at full resolution</li>
     <li>S3OL1ERR: Land colour and atmosphere TOA radiances at reduced resolution</li>
-    <li>S3OL1RAC: Dark offset and gain coefficients from radiometric calibration</li>
-    <li>S3OL1SAC: Wavelength characterisation from spectral calibration</li>
     <li>S3SL1RBT: Brightness temperatures and radiances</li>
     <li>S3OL2WFR: Ocean colour, water and atmosphere geophysical parameters</li>
     <li>S3OL2WRR: Ocean colour, water and atmosphere geophysical parameters at reduced resolution</li>
@@ -54,51 +50,17 @@ for download from the <b>Copernicus Open Access Hub</b>:
 </ul>
 
 <p>
-To connect to the Copernicus Open Access Hub both a <em>user</em> name
+To connect to the Copernicus Data Space Ecosystem both a <em>user</em> name
 and <em>password</em> are required;
-see <a href="https://scihub.copernicus.eu/dhus/#/self-registration">Register
+see <a href="https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/auth?client_id=cdse-public&redirect_uri=https%3A%2F%2Fdataspace.copernicus.eu%2Fbrowser%2F&response_type=code&scope=openid">Register
 new account</a> page for signing up.
 
-<h3>USGS Earth Explorer</h3>
-<p>
-The following product types (parameter <b>producttype</b>) are currently supported
-for download from the <b>USGS Earth Explorer</b>:
-<ul>
-  <li>Sentinel-2 (optical and infrared):
-  <ul>
-    <li>S2MSI1C: Top-Of-Atmosphere reflectances in cartographic geometry (Level-1C)</li>
-  </ul>
-  </li>
-</ul>
-
-<p>
-To connect to the USGS Earth Explorer both a <em>user</em> name
-and <em>password</em> are required;
-see <a href="https://ers.cr.usgs.gov/register">EROS Registration System</a>
-page for signing up.
-
-<h3>Google Cloud Storage</h3>
-<p>
-The following product types (parameter <b>producttype</b>) are currently supported
-for download from <b>Google Cloud Storage</b>:
-<ul>
-  <li>Sentinel-2 (optical and infrared):
-  <ul>
-    <li>S2MSI2A: operational Bottom-Of-Atmosphere reflectances in cartographic geometry Level-2A)</li>
-  </ul>
-  <ul>
-    <li>S2MSI1C: Top-Of-Atmosphere reflectances in cartographic geometry (Level-1C)</li>
-  </ul>
-  </li>
-</ul>
-Querying and filtering data on Google Cloud Storage requires the fee-based usage of
-<a href="https://cloud.google.com/bigquery/external-data-cloud-storage?hl=en">BigQuery</a>, which
-is currently not supported by <em>i.sentinel.download</em>. Instead, when using the <b>datasource=GCS</b>
-option, querying is performed using the <a href="https://scihub.copernicus.eu/">Copernicus Open Access Hub</a>
-interface, while only the download step makes use of Google Cloud Storage (download links are
-automatically generated from the respective Sentinel-2 identifier). As a consequence, a <b>settings</b> file
-with valid credentials for the Copernicus Open Access Hub is required for downloading
-from Google Cloud Storage in <em>i.sentinel.download</em>.
+<h3>Copernicus Open Access Hub (DEPRECTAED)</h3>
+<a href="https://scihub.copernicus.eu/">Copernicus Open Access Hub</a> is now permanently closed.
+To continue accessing Copernicus Sentinel data,
+Copernicus Data Space Ecosystem is now the new successor.
+<h3>USGS Earth Explorer (DEPRECATED)</h3>
+<h3>Google Cloud Storage (DEPRECATED)</h3>
 
 
 <h3>Credentials file</h3>
@@ -110,13 +72,10 @@ myusername
 mypassword
 </pre></div>
 
-Optionally on third line custom API URL can be defined. Note that
-empty lines in settings file are silently skipped.
-
 <h2>NOTES</h2>
 
 The data hub to download from can be indicated with the <b>datasource</b>
-option. ESA's Copernicus Open Access Hub is the default option.
+option. ESA's Copernicus Data Space Ecosystem is the default, and currently only, option.
 
 <p>
 User credentials can be also defined interactively
@@ -126,7 +85,6 @@ work in the graphical user interface.
 <div class="code"><pre>
 Insert username: myusername
 Insert password:
-Insert API URL (leave empty for https://scihub.copernicus.eu/apihub):
 </pre></div>
 
 <p>
@@ -138,9 +96,9 @@ defined also by vector <b>map</b>. In addition the spatial relation
 between AOI and the footprint (<b>area_relation</b>) can be set to
 <ul>
 <li><i>Contains</i>: to only return scenes where the AOI is contained
-inside the footprint (Only supported by Copernicus Open Access Hub)</li>
+inside the footprint (Only supported by Copernicus Data Space Ecosystem)</li>
 <li><i>IsWithin</i>: to only return scenes where the footprint is
-contained inside the AOI (Only supported by Copernicus Open Access Hub)</li>
+contained inside the AOI (Only supported by Copernicus Data Space Ecosystem)</li>
 <li><i>Intersects</i>: to return all scenes where the footprint
 intersects the AOI (default)</li>
 </ul>
@@ -153,7 +111,8 @@ beyond that.
 
 <p>
 Sentinel products can be also filtered by <b>producttype</b> or, in case of
-Sentinel-2 data, maximum <b>clouds</b> cover percentage.
+Sentinel-2 data, and some of Sentinel-3, maximum <b>clouds</b> cover percentage.
+<!-- Add list of products here-->
 
 <p>
 Extra search keywords can be specified with <b>query</b>. Multiple keywords
@@ -167,25 +126,27 @@ the keyword <i>usgs_identifier</i> can be used to search for a specific scene
 in USGS name format (see <a href="https://lta.cr.usgs.gov/DD/Sentinel2.html#entity_id">USGS Entity ID</a>)
 
 <p>
+<!-- Leave a note about uuid deprecation -->
 <em>i.sentinel.download</em> also allows downloading of Sentinel products
-by specifying a (list of) UUID. This operation is performed by the <b>uuid</b>
+by specifying a (list of) ID. This operation is performed by the <b>id</b>
 option. Note that this option is mutually exclusive with all other
-filtering options. The format of UUID differs between the Copernicus Open Access
-Hub and the USGS Earth Explorer (see examples below).
+filtering options.
 
+<!-- Remove -->
 <p>
 In case a Sentinel data download was interrupted, <em>i.sentinel.download</em>
 will continue to download once the command is restarted and the partially
 downloaded file (with <tt>.incomplete</tt> file extention) still present.
 
 <p>
-The <b>output</b> directory is created if not yet available.
+The <b>output</b> directory is created if not yet available. Default is current working directory.
 
 <p>
 The query string sent to ESA can be shown with <b>--verbose</b>.
 
-<h3>Long Term Archive (LTA)</h3>
-Access to the product URL for data that are no longer available online in the Copernicus Open Access Hub will automatically trigger
+<!-- Not sure if Data Space Ecosystem doesn't have an archive, but apparently not -->
+<h3>Long Term Archive (DEPRECATED)</h3>
+Access to the product URL for data that are no longer available online in the Copernicus Data Space Ecosystem will automatically trigger
 the retrieval of the data from the LTA, the actual download may be initiated once the data are restored
 (within minutes to hours). Full details are available in the updated
 <a href="https://scihub.copernicus.eu/userguide/" target="_blank">user guide</a>,
