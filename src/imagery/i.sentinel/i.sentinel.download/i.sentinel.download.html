@@ -111,62 +111,46 @@ beyond that.
 
 <p>
 Sentinel products can be also filtered by <b>producttype</b> or, in case of
-Sentinel-2 data, and some of Sentinel-3, maximum <b>clouds</b> cover percentage.
-<!-- Add list of products here-->
+S2MSI1C, S2MSI2A, S3SY2SYN, S3SY2VGP, S3SY2VG1, S3SY2VG1 and S3SY2AOD, maximum <b>clouds</b> cover percentage.
 
 <p>
 Extra search keywords can be specified with <b>query</b>. Multiple keywords
-can be listed separated with comma (e.g. 'polarisationmode=VV,orbitdirection=Ascending').
-Note that ESA maintains a
-<a href="https://scihub.copernicus.eu/twiki/do/view/SciHubUserGuide/FullTextSearch">list of valid search keywords</a>
-that can be used with <b>query</b>. Usage of the <b>query</b> option for searching
-and downloading from the <b>USGS Earth Explorer</b> allows the keywords
-<i>identifier</i> and <i>filename</i>, both in ESA format. Additionally,
-the keyword <i>usgs_identifier</i> can be used to search for a specific scene
-in USGS name format (see <a href="https://lta.cr.usgs.gov/DD/Sentinel2.html#entity_id">USGS Entity ID</a>)
+can be listed separated with comma (e.g. 'orbitdirection=ASCENDING,instrument=SYNERGY').
+
+<b>List of Queryables:</b>
+<ul>
+  <li>orbitNumber</li>
+  <li>timeliness (e.g. NT)</li>
+  <li>processingBaseline</li>
+  <li>storageStatus</li>
+</ul>
+
+Note that text based queryables have to be upper-case.
+Scenes with unavailbe queryable information are filtered out
+(e.g. if a product have the timeliness queryable set as <b>Null</b>,
+then it will be filtered out if you use query="timeliness=NT").
+
 
 <p>
-<!-- Leave a note about uuid deprecation -->
 <em>i.sentinel.download</em> also allows downloading of Sentinel products
-by specifying a (list of) ID. This operation is performed by the <b>id</b>
+by specifying a (list of) ID, where ID refers to the scene name on
+Copernicus Data Space Ecosystem. This operation is performed by the <b>id</b>
 option. Note that this option is mutually exclusive with all other
 filtering options.
 
-<!-- Remove -->
 <p>
 In case a Sentinel data download was interrupted, <em>i.sentinel.download</em>
-will continue to download once the command is restarted and the partially
-downloaded file (with <tt>.incomplete</tt> file extention) still present.
+will restart the download for the paritally downloaded data, from scratch,
+once the command is re-excuted.
 
 <p>
 The <b>output</b> directory is created if not yet available. Default is current working directory.
 
-<p>
-The query string sent to ESA can be shown with <b>--verbose</b>.
-
 <!-- Not sure if Data Space Ecosystem doesn't have an archive, but apparently not -->
 <h3>Long Term Archive (DEPRECATED)</h3>
-Access to the product URL for data that are no longer available online in the Copernicus Data Space Ecosystem will automatically trigger
-the retrieval of the data from the LTA, the actual download may be initiated once the data are restored
-(within minutes to hours). Full details are available in the updated
-<a href="https://scihub.copernicus.eu/userguide/" target="_blank">user guide</a>,
-section <a href="https://scihub.copernicus.eu/userguide/LongTermArchive" target="_blank">Long Term Archive (LTA) Access</a>.
-
-In this <a href="https://github.com/sentinelsat/sentinelsat/issues/358#issuecomment-615895388" target="_blank">issue of sentinelsat</a>,
-it is stated (as of 2020):<br>
-<em>Please be advised that a user quota on the maximum number of requests per hour per user is set. Note that if you</em>
-<ul>
-  <li><em>retrieve data directly from the GUI, you can retrieve only 1 product per half hour while</em></li>
-  <li><em>from APIHub 20 products each 12h</em></li>
-</ul>
-
 To work with LTA you need to define the <b>sleep</b> parameter (and you can set the maximum number of retries with
 the <b>retry</b> parameter) to retry a download after the <b>sleep</b> value in minutes.
 
-<p>
-As an alternative to triggering re-upload Sentinel-2 data from the LTA, scenes can be downloaded
-from <b>USGS Earth Explorer</b> or <b>Google Cloud Storage</b> where all data remain online and directly accessible.
-However, this applies only to Sentinel-2 data in levels 1C (USGS and GCS) and 2A (only GCS).
 
 <h2>EXAMPLES</h2>
 
@@ -402,10 +386,10 @@ i.sentinel.download datasource=USGS_EE start=2017-10-01 end=2017-11-01 productty
 
 <h2>REQUIREMENTS</h2>
 
+<!-- Should i.eodag be added or is EODAG enough? -->
 <ul>
-  <li><a href="https://pypi.python.org/pypi/sentinelsat">Sentinelsat library</a></li>
-  <li><a href="https://pypi.python.org/pypi/pandas">Pandas library</a></li>
-  <li><a href="https://pypi.python.org/pypi/landsatxplore">landsatxplore library</a></li> for downloading from USGS Earth Explorer
+    <li><a href="https://eodag.readthedocs.io/en/stable/getting_started_guide/install.html">EODAG library</a>
+    (install with <code>pip install eodag</code>)</li>
 </ul>
 
 <h2>SEE ALSO</h2>
@@ -441,3 +425,5 @@ Lab</a>, CTU in Prague, Czech Republic with support
 of <a href="https://opengeolabs.cz/en/home/">OpenGeoLabs</a> company
 <br>
 Guido Riembauer, <a href="https://www.mundialis.de/">mundialis</a> (USGS and GCS provider support)
+<br>
+<a href="https://github.com/HamedElgizery" target="_blank">Hamed Elgizery</a>, Giza, Egypt.<br> (EODAG Migration)
