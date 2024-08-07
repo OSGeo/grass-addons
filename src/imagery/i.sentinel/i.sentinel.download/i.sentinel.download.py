@@ -86,7 +86,6 @@
 # %option
 # % key: limit
 # % type: integer
-# % answer: 50
 # % description: Limit number of Sentinel products
 # % guisection: Filter
 # %end
@@ -392,7 +391,7 @@ def main():
     if options["id"]:
         # Currently cop_dataspace on EODAG only supports searching
         # for a specific product using the id (aka. products title)
-        # TODO: We could consider changin the id to uid
+        # TODO: We could consider changing the id to uid
         # when searching by uid is supported
         gs.run_command(
             "i.eodag",
@@ -413,7 +412,7 @@ def main():
                     start=start_date,
                     end=end_date,
                     clouds=options["clouds"] if options["clouds"] else None,
-                    limit=options["limit"],
+                    limit=options["limit"] if options["limit"] else int(1e9),
                     order=options["order"],
                     area_relation=(
                         options["area_relation"] if options["area_relation"] else None
@@ -439,8 +438,13 @@ def main():
 
     # Output number of scenes found
     gs.message(_("{} Sentinel product(s) found.".format(len(scenes["features"]))))
-
     if flags["l"]:
+        # To decide on the size of the cloud cover column (4 or 13)
+        cloud_NA_flag = any(
+            scene["properties"].get(headers_mapping[eodag_provider]["cloud_cover"])
+            is None
+            for scene in scenes["features"]
+        )
         for scene in scenes["features"]:
             scene_id = scene["id"]
             try:
@@ -452,12 +456,20 @@ def main():
                     headers_mapping[eodag_provider]["datetime"]
                 )
             cloud_cover = scene["properties"].get(
-                headers_mapping[eodag_provider]["cloud_cover"]
+                headers_mapping[eodag_provider]["cloud_cover"], "cloudcover_NA"
             )
-            scene_size = scene["properties"].get("services")["download"]["size"]
-            scene_size = parse_scene_size(scene_size)
+            if cloud_cover != "cloudcover_NA":
+                cloud_cover = (
+                    f"{cloud_cover:13}" if cloud_NA_flag else f"{cloud_cover:3.0f}%"
+                )
+            try:
+                scene_size = parse_scene_size(
+                    scene["properties"]["services"]["download"]["size"]
+                )
+            except KeyError:
+                scene_size = "size_NA"
             print(
-                f"{scene_id} {acquisition_time:19} {cloud_cover:3.0f}% {options['producttype']:8} {scene_size:9}"
+                f"{scene_id} {acquisition_time:19} {cloud_cover} {options['producttype']} {scene_size:9}"
             )
     else:
 
