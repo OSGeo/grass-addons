@@ -1,8 +1,7 @@
 #!/bin/sh
 
 # script to build GRASS GIS preview source package from the main branch
-# (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
-# Markus Neteler 2002-2023
+# (c) 2002-2024, GPL 2+ Markus Neteler <neteler@osgeo.org>
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
@@ -13,7 +12,7 @@
 
 MAINDIR=/home/neteler
 GMAJOR=8
-GMINOR=4
+GMINOR=5
 GVERSION=$GMAJOR.$GMINOR.git
 DOTVERSION=$GMAJOR.$GMINOR
 GSHORTGVERSION=$GMAJOR$GMINOR
@@ -54,11 +53,12 @@ date
 # clean up
 touch include/Make/Platform.make
 $MYMAKE distclean > /dev/null 2>&1
+rm -f grass-$GMAJOR.*-install.sh grass-$GMAJOR.*.tar.gz grass-$GMAJOR.*_bin.txt
 
 # cleanup leftover garbage
 git status | grep '.rst' | xargs rm -f
 rm -rf lib/python/docs/_build/ lib/python/docs/_templates/layout.html
-rm -f config_${DOTVERSION}.git_log.txt ChangeLog
+rm -f config_*.git_log.txt ChangeLog
 
 # reset i18N POT files to git, just to be sure
 git checkout locale/templates/*.pot

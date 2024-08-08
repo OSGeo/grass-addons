@@ -1,19 +1,18 @@
 #!/bin/sh
 
-# script to build GRASS GIS old current source package from the release branch
-# (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
-# Markus Neteler 2002-2023
+# script to build GRASS GIS new current sources package from the main branch
+# (c) 2002-2024, GPL 2+ Markus Neteler <neteler@osgeo.org>
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
 ## prep
-# git clone https://github.com/OSGeo/grass.git release_branch_8_2
+# git clone https://github.com/OSGeo/grass.git main
 #
 ###################################################################
 
 MAINDIR=/home/neteler
 GMAJOR=8
-GMINOR=2
+GMINOR=4
 GVERSION=$GMAJOR.$GMINOR.git
 DOTVERSION=$GMAJOR.$GMINOR
 GSHORTGVERSION=$GMAJOR$GMINOR
@@ -24,7 +23,7 @@ set -e
 ###################
 # where to find the GRASS sources (git clone):
 SOURCE=$MAINDIR/src/
-BRANCH=releasebranch_${GMAJOR}_${GMINOR}
+BRANCH=main
 # where to put the resulting .tar.gz file:
 TARGETMAIN=/var/www/code_and_data/
 TARGETDIR=$TARGETMAIN/grass${GSHORTGVERSION}/source/snapshot
@@ -54,11 +53,12 @@ date
 # clean up
 touch include/Make/Platform.make
 $MYMAKE distclean > /dev/null 2>&1
+rm -f grass-$GMAJOR.*-install.sh grass-$GMAJOR.*.tar.gz grass-$GMAJOR.*_bin.txt
 
 # cleanup leftover garbage
 git status | grep '.rst' | xargs rm -f
 rm -rf lib/python/docs/_build/ lib/python/docs/_templates/layout.html
-rm -f config_${DOTVERSION}.git_log.txt ChangeLog
+rm -f config_*.git_log.txt ChangeLog
 
 # reset i18N POT files to git, just to be sure
 git checkout locale/templates/*.pot
@@ -95,7 +95,7 @@ rm -f $TARGETDIR/ChangeLog.gz
 
 #publish the new one:
 cd $BRANCH/
-cp -p ChangeLog AUTHORS CHANGES CITING CITATION.cff COPYING GPL.TXT INSTALL.md REQUIREMENTS.html $TARGETDIR
+cp -p ChangeLog AUTHORS CHANGES CITING CITATION.cff COPYING GPL.TXT INSTALL.md REQUIREMENTS.md $TARGETDIR
 
 cd ..
 gzip $TARGETDIR/ChangeLog
