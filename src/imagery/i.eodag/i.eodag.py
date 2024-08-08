@@ -50,7 +50,7 @@
 
 # %flag
 # % key: s
-# % description: Skip scenes that have already been downloaded after ingestiondate
+# % description: Skip scenes that have already been downloaded
 # % guisection: Filter
 # %end
 
