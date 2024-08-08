@@ -282,6 +282,20 @@ cop_dataspace:
           password: password
 </pre></div>
 
+<h4>Creodias</h4>
+To register to Creodias, users should create an account
+<a href="https://portal.creodias.eu/register.php">here</a>, and
+then use their username and password in the eodag configuration file.
+Users will also need TOTP, a 6-digits temporary one time password, 
+to be able to authenticate and download scenes (product search 
+within creodias can be done without registering). 
+This TOTP is only valid for very short time, i.e., 30 to 60 seconds, so it shall
+not be set through the eodag configuration file.
+When <em>i.eodag</em> attempts to download a scene from creodias,
+users will be prompted to input the TOTP. If they prefer to discard these
+scenes, they should enter <b>"-"</b> instead. Note that interactive 
+prompt does not work in the graphical user interface.
+
 <p>
 See <a href="https://eodag.readthedocs.io/en/stable/getting_started_guide/configure.html" target="_blank">Configure EODAG</a>
 section for more details about configuration of the
