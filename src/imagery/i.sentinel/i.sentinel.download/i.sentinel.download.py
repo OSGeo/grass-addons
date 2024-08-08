@@ -170,7 +170,6 @@
 # % required: output,-l,-p
 # % excludes: id,map,area_relation,clouds,producttype,start,end,limit,query,sort,order
 # % excludes: -p,-l
-# % exclusive: -l, id
 # %end
 
 import fnmatch
@@ -393,13 +392,18 @@ def main():
         # for a specific product using the id (aka. products title)
         # TODO: We could consider changing the id to uid
         # when searching by uid is supported
-        gs.run_command(
-            "i.eodag",
-            id=options["id"],
-            output=outdir,
-            provider=eodag_provider,
-        )
-        return
+        try:
+            scenes = json.loads(
+                gs.read_command(
+                    "i.eodag",
+                    flags="j" + eodag_flags,
+                    id=options["id"],
+                    output=outdir,
+                    provider=eodag_provider,
+                )
+            )
+        except CalledModuleError:
+            gs.fatal(_("Connection to {} faild.\n".format(options["datasource"])))
     else:
         try:
             # TODO: Implement -p flag
@@ -423,7 +427,6 @@ def main():
                     query=eodag_query,
                     footprints=options["footprints"] if options["footprints"] else None,
                     output=outdir,
-                    quiet=True,
                 )
             )
         except CalledModuleError:
@@ -436,8 +439,6 @@ def main():
         },
     }
 
-    # Output number of scenes found
-    gs.message(_("{} Sentinel product(s) found.".format(len(scenes["features"]))))
     if flags["l"]:
         # To decide on the size of the cloud cover column (4 or 13)
         cloud_NA_flag = any(
@@ -472,7 +473,6 @@ def main():
                 f"{scene_id} {acquisition_time:19} {cloud_cover} {options['producttype']} {scene_size:9}"
             )
     else:
-
         if len(scenes["features"]) == 0:
             gs.warning(_("Nothing to download.\nExiting..."))
             return
