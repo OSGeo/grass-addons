@@ -326,7 +326,6 @@ def main():
     eodag_provider = DATASOURCE_MAP[options["datasource"]]
     eodag_flags = ""
     eodag_sort = ""
-    # TODO: Leave a note in the manual that in most cases values should be upper-case
     # TODO: Add a method to list available queryables
     eodag_query = options["query"]
     eodag_pattern = ""
@@ -345,6 +344,27 @@ def main():
         eodag_flags += "s"
     if options["relativeorbitnumber"]:
         eodag_query += f",relativeOrbitNumber={options['relativeorbitnumber']}"
+
+    if flags["p"]:
+        gs.run_command(
+            "i.eodag",
+            flags="p" + eodag_flags,
+            producttype=eodag_producttype,
+            map=options["map"] if options["map"] else None,
+            start=start_date,
+            end=end_date,
+            clouds=options["clouds"] if options["clouds"] else None,
+            limit=options["limit"] if options["limit"] else int(1e9),
+            order=options["order"],
+            area_relation=(
+                options["area_relation"] if options["area_relation"] else None
+            ),
+            sort=eodag_sort,
+            provider=eodag_provider,
+            pattern=eodag_pattern,
+            query=eodag_query,
+        )
+        return
 
     # Credentials needed
     if not flags["l"]:
@@ -406,7 +426,6 @@ def main():
             gs.fatal(_("Connection to {} faild.\n".format(options["datasource"])))
     else:
         try:
-            # TODO: Implement -p flag
             scenes = json.loads(
                 gs.read_command(
                     "i.eodag",
