@@ -286,14 +286,14 @@ cop_dataspace:
 To register to Creodias, users should create an account
 <a href="https://portal.creodias.eu/register.php">here</a>, and
 then use their username and password in the eodag configuration file.
-Users will also need TOTP, a 6-digits temporary one time password, 
-to be able to authenticate and download scenes (product search 
-within creodias can be done without registering). 
+Users will also need TOTP, a 6-digits temporary one time password,
+to be able to authenticate and download scenes (product search
+within creodias can be done without registering).
 This TOTP is only valid for very short time, i.e., 30 to 60 seconds, so it shall
 not be set through the eodag configuration file.
 When <em>i.eodag</em> attempts to download a scene from creodias,
 users will be prompted to input the TOTP. If they prefer to discard these
-scenes, they should enter <b>"-"</b> instead. Note that interactive 
+scenes, they should enter <b>"-"</b> instead. Note that interactive
 prompt does not work in the graphical user interface.
 
 <p>
@@ -427,6 +427,10 @@ i.eodag print=config provider=cop_dataspace
 <ul>
     <li><a href="https://eodag.readthedocs.io/en/stable/getting_started_guide/install.html">EODAG library</a>
     (install with <code>pip install eodag</code>)</li>
+    <li>For EODAG 3.0.0 and later, some of the providers have additonal dependencies that needs to be
+    installed, e.g. <code>pip install eodag[usgs]</code>, for more info see
+    <a href="https://eodag.readthedocs.io/en/stable/getting_started_guide/install.html">installation page</a>.
+    To install all dependencies use <code>pip install eodag[all]</code></li>
 </ul>
 
 <h2>SEE ALSO</h2>
