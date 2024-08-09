@@ -813,14 +813,20 @@ def sort_result(search_result):
         for sort_key in sort_keys:
             if sort_key == "ingestiondate":
                 if "startTimeFromAscendingNode" not in first.properties:
+                    gs.warning(
+                        _("Could not sort by ingestion date, please report this issue")
+                    )
+                    continue
+                if "startTimeFromAscendingNode" not in second.properties:
+                    gs.warning(
+                        _("Could not sort by ingestion date, please report this issue")
+                    )
                     continue
                 first_value = first.properties["startTimeFromAscendingNode"]
                 second_value = second.properties["startTimeFromAscendingNode"]
             elif sort_key == "cloudcover":
-                if "cloudCover" not in first.properties:
-                    continue
-                first_value = first.properties["cloudCover"]
-                second_value = second.properties["cloudCover"]
+                first_value = first.properties.get("cloudCover", int(1e9))
+                second_value = second.properties.get("cloudCover", int(1e9))
             elif sort_key == "footprint":
                 # Sort by title lexicographically
                 first_value = first.properties["title"]
