@@ -153,7 +153,7 @@ cd ...
 Compile:
 
 ```bash
-grass --tmp-location XY --exec g.extension module=r.pops.spread url=.
+grass --tmp-project XY --exec g.extension module=r.pops.spread url=.
 ```
 
 Run (assuming you checked how to create a GRASS GIS mapset with our data):
