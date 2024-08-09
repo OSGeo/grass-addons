@@ -107,6 +107,16 @@ User credentials can be also defined interactively when <b>settings=-</b>
 is given. Note that interactive prompt does not work in the graphical
 user interface.
 
+<p>
+Alternatively, if the settings option is not specified <em>i.landsat.download</em>
+will attempt to use credentials stored in the default EODAG configuration file in
+<code>$HOME/.config/eodag/eodag.yml</code>. Note any parameter set in the configuration
+file, e.g. 'extract' to specify whether to extract the downloaded scenes or not,
+will be used by <em>i.landsat.download</em>, unless overriden by user options.
+<b>Exception:</b> output parameter in EODAG configuration file is not used by <em>i.landsat.download</em>,
+and the default output directory is the current working directory.
+
+
 <h3>USGS EarthExplorer</h3>
 <p>
 To connect to EarthExplorer both a <em>username</em> and a <em>password</em>

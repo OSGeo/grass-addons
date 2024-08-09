@@ -179,6 +179,11 @@ def normalize_time(datetime_str: str):
 
 def get_custom_eodag_config(datasource, settings):
     if settings == "":
+        gs.warning(
+            _(
+                "settings option not specified, attempting to use credentials from EODAG default config file, if required."
+            )
+        )
         return None
     username = None
     password = None
