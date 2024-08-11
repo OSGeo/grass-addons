@@ -31,6 +31,7 @@ class TestEodag(TestCase):
     @classmethod
     def setUpClass(cls):
         """Use temporary region settings"""
+        print("EHRERKJELJZD")
         cls.use_temp_region()
         cls.runModule(
             "v.extract",
@@ -271,6 +272,39 @@ S2B_MSIL1C_20220617T155829_N0400_R097_T17SPV_20220618T113811 2022-06-17T15:58:29
             stdout_=PIPE,
         )
         self.assertEqual(i_eodag.outputs["stdout"].value.strip(), output)
+
+    def test_save_result_geojson(self):
+        """Test"""
+        # i.eodag -l map=durham provider=peps producttype=S2_MSI_L1C start=2022-05-01 end=2022-06-01 save=search_s2.geojson
+        i_eodag = Module(
+            "i.eodag",
+            flags="l",
+            provider="peps",
+            producttype="S2_MSI_L1C",
+            start="2022-05-01",
+            end="2022-06-01",
+            map="durham",
+            save="results/search_s2.geojson",
+            quiet=True,
+            overwrite=True,
+        )
+        self.assertFileExists("results/search_s2.geojson")
+        self.assertFilesEqualMd5("results/search_s2.geojson", "data/search_s2.geojson")
+
+    def test_save_footprint(self):
+        # i.eodag -l provider=peps producttype=S2_MSI_L1C start=2022-05-01 end=2022-06-01 footprints=s2_footprints
+        # This is not working...?
+        # v.import seems to complain
+        self.assertModule(
+            "i.eodag",
+            flags="l",
+            provider="peps",
+            producttype="S2_MSI_L1C",
+            start="2022-05-01",
+            end="2022-06-01",
+            map="durham",
+            footprints="s2_footprints",
+        )
 
 
 if __name__ == "__main__":
