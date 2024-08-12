@@ -403,7 +403,10 @@ def search_by_ids(products_ids):
             )
         else:
             product = dag.search(
-                id=query_id, provider=options["provider"] or None, count=True
+                id=query_id,
+                provider=options["provider"] or None,
+                productType=options["producttype"] or None,
+                count=True,
             )
             count = product.number_matched
         if count > 1:
