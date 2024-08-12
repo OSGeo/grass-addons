@@ -120,7 +120,7 @@ generate () {
 <body bgcolor=\"#FFFFFF\">
 <h2>GRASS GIS ${major}.${minor} Addons Manual pages</h2>
 
-<!-- Generated from: grasslxd (on osgeo7): ~/cronjobs/grass-addons-index.sh -->
+<!-- Generated from: grasslxd (on osgeo8-grass): ~/cronjobs/grass-addons-index.sh -->
 <!--       See also: https://github.com/OSGeo/grass-addons/tree/grass8/utils/cronjobs_osgeo_lxd/README.md -->
 
 <table><tr><td>
