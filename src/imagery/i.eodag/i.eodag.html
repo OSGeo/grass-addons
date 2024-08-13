@@ -52,7 +52,8 @@ The searching is done by setting the main options e.g. <b>producttype</b>,
 Users have a set of scenes IDs that they want to search for and download.
 They can either use the <b>id</b> option or use the <b>file</b> option
 and pass a text file, with one ID per line.
-In both cases, specifying a provider is optional. In case users do
+When searching with ID, user must specify the product type that the IDs belong to.
+Specifying a provider is optional. In case users do
 not specify the provider, products might be offered
 from different providers as long as the user provides the
 credentials in the configuration file.
@@ -359,6 +360,19 @@ i.eodag -l producttype=LANDSAT_C2L2 \
     pattern="LC09.*T1"
 <pre></div>
 
+Search and list Sentinel 2 scenes using IDs from Collection Data Space Ecosystem:
+<div class="code"><pre>
+i.eodag -l provider=cop_dataspace producttype=S2_MSI_L2A \
+    id="S2A_MSIL2A_20240728T154941_N0511_R054_T17SPV_20240728T235651,
+    S2A_MSIL2A_20240618T154941_N0510_R054_T17SPV_20240618T222157"
+<pre></div>
+
+Search and list for a Landsat scene using its ID from UGSS:
+<div class="code"><pre>
+i.eodag -l provider=usgs producttype=LANDSAT_C2L2 \
+    id=LC08_L2SP_016035_20240715_20240722_02_T1
+<pre></div>
+
 Download all available scenes with cloud coverage not exceeding 50%
 in the /tmp directory:
 
@@ -374,6 +388,8 @@ Space Ecosystem as the provider:
 i.eodag file=ids_list.txt provider=cop_dataspace
 <pre></div>
 
+
+
 Download only selected scenes into the <em>download_here</em>
 directory, using a custom config file:
 
@@ -381,6 +397,7 @@ directory, using a custom config file:
 i.eodag provider=cop_dataspace \
     id="S2B_MSIL2A_20240526T080609_N0510_R078_T37SDD_20240526T094753,
     S2B_MSIL2A_20240529T081609_N0510_R121_T37SED_20240529T124818" \
+    producttype=S2_MSI_L2A \
     config=full/path/to/eodag/config.yaml \
     output=download_here
 <pre></div>

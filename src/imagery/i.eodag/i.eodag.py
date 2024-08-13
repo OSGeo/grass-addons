@@ -59,7 +59,7 @@
 # % key: producttype
 # % type: string
 # % description: Imagery product type to search for
-# % required: no
+# % required: yes
 # % guisection: Filter
 # %end
 
