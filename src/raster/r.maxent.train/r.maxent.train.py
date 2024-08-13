@@ -1097,7 +1097,7 @@ def main(options, flags):
             asciifile = os.path.join(options["outputdirectory"], asci)
             gs.run_command(
                 "r.in.gdal",
-                overwrite=True,
+                flags="o",
                 input=asciifile,
                 output=grasslayers[idx],
                 memory=int(options["memory"]),
