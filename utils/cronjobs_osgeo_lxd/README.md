@@ -88,7 +88,7 @@ Important: there are two web related directories on the server:
 
 ## Infrastructure
 
-The server is hosted as LXD container on `osgeo7`, see:
+The server is hosted as LXD container on `osgeo8-grass`, see:
 <https://wiki.osgeo.org/wiki/SAC_Service_Status#grass>
 
 The container is only accessible via the related OSGeo ssh jumphost and
