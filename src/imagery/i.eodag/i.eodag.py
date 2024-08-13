@@ -54,6 +54,12 @@
 # % guisection: Filter
 # %end
 
+# %flag
+# % key: p
+# % description: Print compiled query string and exit
+# % guisection: Print
+# %end
+
 # OPTIONS
 # %option
 # % key: producttype
@@ -1114,6 +1120,30 @@ def print_eodag_queryables(**kwargs):
     print(json.dumps(queryables_dict, indent=4))
 
 
+def print_query(geometry, queryables, **kwargs):
+    print(f"flags: {''.join([f for f in flags if flags[f] and f != 'p'])}")
+    print(f"AOI: {geometry}")
+    print(f"provider: {kwargs['provider'] if options['provider'] else ANY}")
+    print(f"producttype: {kwargs['producttype'] if options['producttype'] else ANY}")
+    print(
+        f"area_relation: {kwargs['area_relation'] if options['area_relation'] else 'ANY'}"
+    )
+    print(
+        f"minimum_overlap: {kwargs['minimum_overlap'] if options['minimum_overlap'] else 'ANY'}"
+    )
+    print(f"pattern: {kwargs['pattern'] if options['pattern'] else 'ANY'}")
+    print(f"start (ge): {kwargs['start'] if options['start'] else 'ANY'}")
+    print(f"end (le): {kwargs['end'] if options['end'] else 'ANY'}")
+    print(f"limit: {kwargs['limit'] if options['limit'] else 'ANY'}")
+    if kwargs["clouds"]:
+        print(f"cloudCover (le): {kwargs['clouds']}")
+    DEFAULT_OPERATOR = "eq"
+    for k, v in queryables:
+        for value in v:
+            operator = value[1] if value[1] else DEFAULT_OPERATOR
+            print(f"{k} ({operator}): {value[0]}")
+
+
 def main():
     # Products: https://github.com/CS-SI/eodag/blob/develop/eodag/resources/product_types.yml
 
@@ -1122,6 +1152,8 @@ def main():
     dag = EODataAccessGateway()
     if options["provider"]:
         dag.set_preferred_provider(options["provider"])
+    geometry = get_aoi(options["map"])
+    gs.verbose(_("AOI: {}".format(geometry)))
 
     queryables = parse_query(options["query"])
     for queryable, values in queryables:
@@ -1180,10 +1212,12 @@ def main():
         ids_set.discard(str())
         gs.message(_("Found {} distinct ID(s).".format(len(ids_set))))
         gs.message("\n".join(ids_set))
-
         # Search for products found from options["file"] or options["id"]
+        options["limit"] = len(ids_set)  # Disable limit option
+        if flags["p"]:
+            print_query(geometry, queryables, **options)
+            return
         search_result = search_by_ids(ids_set)
-        limit = len(search_result)  # Disable limit option
     elif "search_result" not in locals():
         dates_to_iso_format()
         items_per_page = 40
@@ -1192,8 +1226,6 @@ def main():
         product_type = options["producttype"]
 
         # HARDCODED VALUES FOR TESTING { "lonmin": 1.9, "latmin": 43.9, "lonmax": 2, "latmax": 45, }
-        geometry = get_aoi(options["map"])
-        gs.verbose(_("AOI: {}".format(geometry)))
 
         search_parameters = {
             "items_per_page": items_per_page,
@@ -1206,6 +1238,11 @@ def main():
 
         search_parameters["start"] = options["start"]
         search_parameters["end"] = options["end"]
+        if not options["area_relation"]:
+            options["area_relation"] = "Intersects"
+        if flags["p"]:
+            print_query(geometry, queryables, **options)
+            return
         if options["provider"]:
             search_result = no_fallback_search(search_parameters, options["provider"])
         else:
