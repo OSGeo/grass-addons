@@ -469,7 +469,7 @@ def main():
         # Import rasterized patches
         grass.run_command(
             "r.external",
-            flags="o",
+            overwrite=True,
             quiet=True,
             input=prast,
             output="{}_patches_pol".format(TMP_PREFIX),

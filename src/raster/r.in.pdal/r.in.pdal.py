@@ -391,7 +391,7 @@ def main():
         if raster_file:
             raster_reference = "img" + str(os.getpid())
             grass.run_command(
-                "r.external", input=raster_file, flags="o", output=raster_reference
+                "r.external", input=raster_file, overwrite=True, output=raster_reference
             )
             result = grass.find_file(name=raster_reference, element="raster")
             if result["fullname"] == "":

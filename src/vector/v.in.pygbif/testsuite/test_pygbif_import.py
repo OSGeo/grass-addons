@@ -38,7 +38,7 @@ class TestPyGBIFImport(TestCase):
     def test_poa_taxon_count(self):
 
         v_in_pygbif_count = SimpleModule(
-            "v.in.pygbif", taxa="Poa", output="gbif_poa2", flags="o", verbose=True
+            "v.in.pygbif", taxa="Poa", output="gbif_poa2", overwrite=True, verbose=True
         )
         self.assertModule(v_in_pygbif_count)
         stdout_count = v_in_pygbif_count.outputs.stdout

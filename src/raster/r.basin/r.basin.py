@@ -388,7 +388,7 @@ def main():
             "r.stream.distance",
             stream_rast=r_outlet,
             direction=r_drainage_e,
-            flags="o",
+            overwrite=True,
             distance=r_distance,
         )
 

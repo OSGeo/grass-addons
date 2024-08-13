@@ -367,7 +367,7 @@ def main(options, flags):
     gs.info(_("Importing the predicted suitability layer in GRASS GIS\n"))
     gs.run_command(
         "r.in.gdal",
-        flags="o",
+        overwrite=True,
         input=temp_file,
         output=options["output"],
         memory=int(options["memory"]),

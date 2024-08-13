@@ -265,7 +265,7 @@ def main():
         map=interpol_area_points,
         table=interpol_area_points,
         layer="1",
-        flags="o",
+        overwrite=True,
     )
     # 4. Query distances to interpolation area points
     gscript.message(_("[r.mblend] Querying distances raster"))
