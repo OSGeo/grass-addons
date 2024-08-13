@@ -1121,13 +1121,17 @@ def print_eodag_queryables(**kwargs):
 
 
 def print_query(geometry, queryables, **kwargs):
-    print(f"Flags: {''.join([f for f in flags if flags[f] and f != 'p'])}")
+    print(f"flags: {''.join([f for f in flags if flags[f] and f != 'p'])}")
     print(f"AOI: {geometry}")
     print(f"provider: {kwargs['provider'] if options['provider'] else ANY}")
     print(f"producttype: {kwargs['producttype'] if options['producttype'] else ANY}")
     print(
-        f"areaRelation: {kwargs['area_relation'] if options['area_relation'] else 'ANY'}"
+        f"area_relation: {kwargs['area_relation'] if options['area_relation'] else 'ANY'}"
     )
+    print(
+        f"minimum_overlap: {kwargs['minimum_overlap'] if options['minimum_overlap'] else 'ANY'}"
+    )
+    print(f"pattern: {kwargs['pattern'] if options['pattern'] else 'ANY'}")
     print(f"start (ge): {kwargs['start'] if options['start'] else 'ANY'}")
     print(f"end (le): {kwargs['end'] if options['end'] else 'ANY'}")
     print(f"limit: {kwargs['limit'] if options['limit'] else 'ANY'}")
