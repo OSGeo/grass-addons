@@ -825,9 +825,35 @@ def sort_result(search_result):
                 first_value = first.properties["startTimeFromAscendingNode"]
                 second_value = second.properties["startTimeFromAscendingNode"]
             elif sort_key == "cloudcover":
+                if "cloudCover" not in first.properties:
+                    gs.warning(
+                        _(
+                            "Cloud cover not available for scene {}".format(
+                                first.properties.get("title", "NA")
+                            )
+                        )
+                    )
+                if "cloudCover" not in second.properties:
+                    gs.warning(
+                        _(
+                            "Cloud cover not available for scene {}".format(
+                                second.properties.get("title", "NA")
+                            )
+                        )
+                    )
                 first_value = first.properties.get("cloudCover", int(1e9))
                 second_value = second.properties.get("cloudCover", int(1e9))
             elif sort_key == "footprint":
+                if "title" not in first.properties:
+                    gs.warning(
+                        _("Could not sort by footprint, please report this issue")
+                    )
+                    continue
+                if "title" not in second.properties:
+                    gs.warning(
+                        _("Could not sort by footprint, please report this issue")
+                    )
+                    continue
                 # Sort by title lexicographically
                 first_value = first.properties["title"]
                 second_value = second.properties["title"]
