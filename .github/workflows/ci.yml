@@ -105,7 +105,7 @@ jobs:
           pip install -r grass-addons/.github/workflows/extra_requirements.txt
 
       - name: Set up R
-        uses: r-lib/actions/setup-r@929c772977a3a13c8733b363bf5a2f685c25dd91 # v2.9.0
+        uses: r-lib/actions/setup-r@e6be4b3706e0f39bc7a4cf4496a5f2c4cb840040 # v2.10.1
         with:
           r-version: 4.2.1
 
@@ -119,7 +119,7 @@ jobs:
           ../.github/workflows/test.sh
 
       - name: Make HTML test report available
-        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4.3.4
+        uses: actions/upload-artifact@89ef406dd8d7e03cfd12d9e0a4a378f454709029 # v4.3.5
         with:
           name: testreport-grass-${{ matrix.grass-version }}-python-${{ matrix.python-version }}
           path: grass-addons/src/testreport
