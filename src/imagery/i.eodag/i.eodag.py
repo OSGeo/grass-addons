@@ -42,6 +42,24 @@
 # % guisection: Print
 # %end
 
+# %flag
+# % key: b
+# % description: Use the borders of the AOI polygon and not the region of the AOI
+# % guisection: Filter
+# %end
+
+# %flag
+# % key: s
+# % description: Skip scenes that have already been downloaded
+# % guisection: Filter
+# %end
+
+# %flag
+# % key: p
+# % description: Print compiled query string and exit
+# % guisection: Print
+# %end
+
 # OPTIONS
 # %option
 # % key: producttype
@@ -62,7 +80,6 @@
 # % key: clouds
 # % type: integer
 # % description: Maximum cloud cover percentage for scene [0, 100]
-# % answer: 100
 # % required: no
 # % guisection: Filter
 # %end
@@ -153,8 +170,8 @@
 # % key: sort
 # % type: string
 # % description: Field to sort values by
-# % options: ingestiondate,cloudcover
-# % answer: cloudcover,ingestiondate
+# % options: ingestiondate,cloudcover,footprint
+# % answer: cloudcover,ingestiondate,footprint
 # % required: no
 # % multiple: yes
 # % guisection: Sort
@@ -234,6 +251,7 @@
 # % exclusive: -l, -j
 # % requires: -l, producttype, file, id
 # % requires: -j, producttype, file, id
+# % requires: -b, map
 # % exclusive: -l, print
 # % exclusive: -j, print
 # % exclusive: minimum_overlap, area_relation
@@ -254,58 +272,71 @@ import grass.script as gs
 from grass.pygrass.modules import Module
 
 
-def get_bb(proj):
-    """Gets the bounding box of the current computational
-    region in geographic coordinates.
+def get_aoi_box(vector=None):
+    """Parses and returns the bounding box of the vector map,
+    or the current computational region.
 
-    :param proj: Projection information from 'gs.parse_command("g.proj", flags="j")'
-    :type proj: str
+    :param vector: Vector map
+    :type vector: str
 
-    :return: Bounding box of the current computational region.
-             Format:
-             {"lonmin" : lonmin, "latmin" : latmin,
-             "lonmax" : lonmax, "latmax" : latmax}
-    :rtype: dict
+    :return: Bounding box represented as a WKT Polygon.
+    :rtype: str
     """
-    gs.verbose("Generating AOI from bounding box...")
-    if proj["+proj"] != "longlat":
-        info = gs.parse_command("g.region", flags="uplg")
-        return {
-            "lonmin": float(info["nw_long"]),
-            "latmin": float(info["sw_lat"]),
-            "lonmax": float(info["ne_long"]),
-            "latmax": float(info["nw_lat"]),
-        }
-    info = gs.parse_command("g.region", flags="upg")
-    return {
-        "lonmin": info["w"],
-        "latmin": info["s"],
-        "lonmax": info["e"],
-        "latmax": info["n"],
-    }
+    args = {}
+    if vector:
+        args["vector"] = vector
+
+    # are we in LatLong location?
+    kv = gs.parse_command("g.proj", flags="j")
+    if "+proj" not in kv:
+        gs.fatal(
+            _("Unable to get AOI bounding box: unprojected location not supported")
+        )
+    if kv["+proj"] != "longlat":
+        info = gs.parse_command("g.region", flags="uplg", **args)
+        return "POLYGON(({nw_lon} {nw_lat}, {ne_lon} {ne_lat}, {se_lon} {se_lat}, {sw_lon} {sw_lat}, {nw_lon} {nw_lat}))".format(
+            nw_lat=info["nw_lat"],
+            nw_lon=info["nw_long"],
+            ne_lat=info["ne_lat"],
+            ne_lon=info["ne_long"],
+            sw_lat=info["sw_lat"],
+            sw_lon=info["sw_long"],
+            se_lat=info["se_lat"],
+            se_lon=info["se_long"],
+        )
+    info = gs.parse_command("g.region", flags="upg", **args)
+    return "POLYGON(({nw_lon} {nw_lat}, {ne_lon} {ne_lat}, {se_lon} {se_lat}, {sw_lon} {sw_lat}, {nw_lon} {nw_lat}))".format(
+        nw_lat=info["n"],
+        nw_lon=info["w"],
+        ne_lat=info["n"],
+        ne_lon=info["e"],
+        sw_lat=info["s"],
+        sw_lon=info["w"],
+        se_lat=info["s"],
+        se_lon=info["e"],
+    )
 
 
 def get_aoi(vector=None):
     """Parses and returns the AOI.
 
-    :param vector: Vector map (if None, returns the boudning box)
+    :param vector: Vector map
     :type vector: str
 
-    :return: Either a WKT when using a Vector map, or a dict representing
-             the current computational region bounding box.
-             The latter format:
-             {"lonmin" : lonmin, "latmin" : latmin,
-             "lonmax" : lonmax, "latmax" : latmax}
-    :rtype: str | dict
+    :return: Area of Interest represented as a WKT Polygon.
+    :rtype: str
     """
+
+    # If the 'b' flag is set then we use the Polygon borders
+    # If not set then we use the bounding box
+    # If no vector map is set then we use the bounding box
+    # of the current compuational region
+    if not vector or not flags["b"]:
+        return get_aoi_box(vector)
 
     proj = gs.parse_command("g.proj", flags="j")
     if "+proj" not in proj:
         gs.fatal(_("Unable to get AOI: unprojected location not supported"))
-
-    # Handle empty AOI
-    if not vector:
-        return get_bb(proj)
 
     if vector not in gs.parse_command("g.list", type="vector"):
         gs.fatal(
@@ -335,6 +366,7 @@ def get_aoi(vector=None):
         # TODO: Might need to check for number of coordinates
         #       Make sure it won't cause problems like in:
         #       https://github.com/OSGeo/grass-addons/blob/grass8/src/imagery/i.sentinel/i.sentinel.download/i.sentinel.download.py#L273
+        # As for now, EODAG takes care of the Polygon simplification if needed
         feature_type = geom[: geom.find("(")]
         coords = geom.replace(feature_type + "((", "").replace("))", "").split(", ")
         projected_geom = feature_type + "(("
@@ -789,6 +821,10 @@ def sort_result(search_result):
                     continue
                 first_value = first.properties["cloudCover"]
                 second_value = second.properties["cloudCover"]
+            elif sort_key == "footprint":
+                # Sort by title lexicographically
+                first_value = first.properties["title"]
+                second_value = second.properties["title"]
             if first_value < second_value:
                 return 1 if sort_order == "desc" else -1
             elif first_value > second_value:
@@ -796,6 +832,73 @@ def sort_result(search_result):
         return 0
 
     search_result.sort(key=cmp_to_key(products_compare))
+    return search_result
+
+
+def skip_existing(output, search_result):
+    """Remove products that is already downloaded and saved in 'output' directory.
+
+    :param output: Output directory whose files will be compared with the scenes.
+    :type output: class'eodag.api.search_result.SearchResult'
+
+    :param search_results: EO products to be checked for existence in 'output' directory.
+    :type search_result: class'eodag.api.search_result.SearchResult'
+
+    :return: Sorted EO products
+    :rtype: class:'eodag.api.search_result.SearchResult'
+    """
+    # Check for previously downloaded scenes
+    output = Path(output)
+
+    # Check if directory doesn't exist or if it is empty
+
+    if not output.exists() or next(os.scandir(output), None) is None:
+        gs.verbose(_("Directory '{}' is empty, no scenes to skip".format(output)))
+        return search_result
+    downloaded_dir = output / ".downloaded"
+    if not downloaded_dir.exists() or next(os.scandir(downloaded_dir), None) is None:
+        gs.verbose(
+            _(
+                "The `.download` directory in '{}' is empty, no scenes to skip".format(
+                    output
+                )
+            )
+        )
+        return search_result
+    from hashlib import md5
+
+    for scene in search_result:
+        SUFFIXES = ["", ".zip", ".ZIP"]
+        for suffix in SUFFIXES:
+            scene_file = output / (scene.properties["title"] + suffix)
+            if scene_file.exists():
+                creation_time = datetime.utcfromtimestamp(os.path.getctime(scene_file))
+                ingestion_time = scene.properties.get("modificationDate")
+                if (
+                    ingestion_time
+                    and datetime.fromisoformat(ingestion_time).replace(tzinfo=None)
+                    <= creation_time
+                ):
+                    # This is to check that the file was completely downloaded
+                    # without interruptions.
+                    # The reason this works:
+                    # When eodag completely download a scene, it saves a file
+                    # with the scene's remote location
+                    # in `.download`. The name of that file is the MD5 hash of
+                    # the scenes remote location
+                    # so here we are checking for the existance of that file.
+                    hashed_file = (
+                        downloaded_dir / md5(scene.remote_location.encode()).hexdigest()
+                    )
+                    if not hashed_file.exists():
+                        continue
+                    gs.message(
+                        _("Skipping scene: {} which is already downloaded.").format(
+                            scene.properties["title"]
+                        )
+                    )
+                    search_result.remove(scene)
+                    break
     return search_result
 
 
@@ -1017,6 +1120,30 @@ def print_eodag_queryables(**kwargs):
     print(json.dumps(queryables_dict, indent=4))
 
 
+def print_query(geometry, queryables, **kwargs):
+    print(f"flags: {''.join([f for f in flags if flags[f] and f != 'p'])}")
+    print(f"AOI: {geometry}")
+    print(f"provider: {kwargs['provider'] if options['provider'] else ANY}")
+    print(f"producttype: {kwargs['producttype'] if options['producttype'] else ANY}")
+    print(
+        f"area_relation: {kwargs['area_relation'] if options['area_relation'] else 'ANY'}"
+    )
+    print(
+        f"minimum_overlap: {kwargs['minimum_overlap'] if options['minimum_overlap'] else 'ANY'}"
+    )
+    print(f"pattern: {kwargs['pattern'] if options['pattern'] else 'ANY'}")
+    print(f"start (ge): {kwargs['start'] if options['start'] else 'ANY'}")
+    print(f"end (le): {kwargs['end'] if options['end'] else 'ANY'}")
+    print(f"limit: {kwargs['limit'] if options['limit'] else 'ANY'}")
+    if kwargs["clouds"]:
+        print(f"cloudCover (le): {kwargs['clouds']}")
+    DEFAULT_OPERATOR = "eq"
+    for k, v in queryables:
+        for value in v:
+            operator = value[1] if value[1] else DEFAULT_OPERATOR
+            print(f"{k} ({operator}): {value[0]}")
+
+
 def main():
     # Products: https://github.com/CS-SI/eodag/blob/develop/eodag/resources/product_types.yml
 
@@ -1025,6 +1152,8 @@ def main():
     dag = EODataAccessGateway()
     if options["provider"]:
         dag.set_preferred_provider(options["provider"])
+    geometry = get_aoi(options["map"])
+    gs.verbose(_("AOI: {}".format(geometry)))
 
     queryables = parse_query(options["query"])
     for queryable, values in queryables:
@@ -1083,10 +1212,12 @@ def main():
         ids_set.discard(str())
         gs.message(_("Found {} distinct ID(s).".format(len(ids_set))))
         gs.message("\n".join(ids_set))
-
         # Search for products found from options["file"] or options["id"]
+        options["limit"] = len(ids_set)  # Disable limit option
+        if flags["p"]:
+            print_query(geometry, queryables, **options)
+            return
         search_result = search_by_ids(ids_set)
-        limit = len(search_result)  # Disable limit option
     elif "search_result" not in locals():
         dates_to_iso_format()
         items_per_page = 40
@@ -1095,8 +1226,6 @@ def main():
         product_type = options["producttype"]
 
         # HARDCODED VALUES FOR TESTING { "lonmin": 1.9, "latmin": 43.9, "lonmax": 2, "latmax": 45, }
-        geometry = get_aoi(options["map"])
-        gs.verbose(_("AOI: {}".format(geometry)))
 
         search_parameters = {
             "items_per_page": items_per_page,
@@ -1109,6 +1238,11 @@ def main():
 
         search_parameters["start"] = options["start"]
         search_parameters["end"] = options["end"]
+        if not options["area_relation"]:
+            options["area_relation"] = "Intersects"
+        if flags["p"]:
+            print_query(geometry, queryables, **options)
+            return
         if options["provider"]:
             search_result = no_fallback_search(search_parameters, options["provider"])
         else:
@@ -1121,10 +1255,18 @@ def main():
         queryables,
         **options,
     )
+
+    if flags["s"]:
+        search_result = skip_existing(options["output"], search_result)
+
     gs.verbose(_("Sorting results..."))
     search_result = sort_result(search_result)
+
     if options["limit"]:
         search_result = SearchResult(search_result[: int(options["limit"])])
+
+    if options["footprints"]:
+        save_footprints(search_result, options["footprints"])
 
     gs.message(_("{} scene(s) found.").format(len(search_result)))
     # TODO: Add a way to search in multiple providers at once
@@ -1133,9 +1275,6 @@ def main():
     if options["save"]:
         save_search_result(search_result, options["save"])
 
-    if options["footprints"]:
-        save_footprints(search_result, options["footprints"])
-
     if flags["l"]:
         list_products(search_result)
     elif flags["j"]:
@@ -1143,10 +1282,34 @@ def main():
     else:
         # TODO: Consider adding a quicklook flag
         try:
+            # TODO: Would be better if we could find a way to not ask the user for the OTP manually
+            providers = (scene.provider for scene in search_result)
+            if "creodias" in providers:
+                gs.message(
+                    _(
+                        "Please enter Creodias OTP, to discard Creodias scenes enter '-': "
+                    )
+                )
+                creodias_otp = input().strip()
+                if creodias_otp == "-":
+                    search_result = SearchResult(
+                        [
+                            scene
+                            for scene in search_result
+                            if scene.provider != "creodias"
+                        ]
+                    )
+                else:
+                    dag.providers_config["creodias"].auth.credentials[
+                        "totp"
+                    ] = creodias_otp
+                    dag._plugins_manager.get_auth_plugin("creodias").authenticate()
             custom_config = {
                 "timeout": int(options["timeout"]),
                 "wait": int(options["wait"]),
             }
+            if not search_result:
+                gs.message(_("Nothing to download.\nExiting..."))
             if options["output"]:
                 custom_config["outputs_prefix"] = options["output"]
             dag.download_all(search_result, **custom_config)
