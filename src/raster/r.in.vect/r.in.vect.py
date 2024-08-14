@@ -2,7 +2,7 @@
 
 ############################################################################
 #
-# MODULE:       v.in.rast
+# MODULE:       r.in.vect
 # AUTHOR:       Paulo van Breugel
 # PURPOSE:      Convert an external vector layer to a raster layer
 #               using gdal.Rasterize, and imports the resulting raster in GRASS GIS
