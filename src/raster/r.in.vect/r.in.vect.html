@@ -6,28 +6,27 @@ Optionally, attributes from the vector layer can be converted to raster
 category labels. 
 
 
-<p> When users have a vector file that they want to convert to a raster 
+<p>
+When users have a vector file that they want to convert to a raster 
 map, they would normally import the vector map into GRASS GIS using, 
 e.g., <em>v.in.ogr</em>, and subsequently convert the resulting vector 
-into a raster map using <em>v.to.rast</em>. Because of the 
-topological vector format of GRASS GIS, importing large vector maps can 
-be slow. To speed up the process, <em>r.in.vect</em> converts the 
-user-defined vector file to an intermediate geoTIF file  
-(using <a 
+into a raster map using <em>v.to.rast</em>. Because of the topological 
+vector format of GRASS GIS, importing large vector maps can be slow. To 
+speed up the process, <em>r.in.vect</em> converts the user-defined 
+vector file to an intermediate geoTIF file (using <a 
 href="https://gdal.org/api/python/utilities.html#osgeo.gdal.Rasterize">gdal.rasterize</a>) 
 and imports it into GRASS GIS. 
 
 <h2>Notes</h2>
 
-By default, <em>r.in.vect</em> will only affect data in areas 
-lying inside the boundaries of the current computational region. Before 
-running the function, users should therefore ensure that the  
-computational region is correctly set, and that the region's resolution is at 
-the desired level. Alternatively, users can use the <b>-v</b> flag 
-to import the whole vector layer. To ensure 
-that the resulting raster map cleanly aligns with the computational 
-region, the extent may be slightly larger than that of the vector 
-layer.
+By default, <em>r.in.vect</em> will only affect data in areas lying 
+inside the boundaries of the current computational region. Before 
+running the function, users should therefore ensure that the 
+computational region is correctly set, and that the region's resolution 
+is at the desired level. Alternatively, users can use the <b>-v</b> 
+flag to import the whole vector layer. To ensure that the resulting 
+raster map cleanly aligns with the computational region, the extent may 
+be slightly larger than that of the vector layer.
 
 <p>
 If the coordinate reference system (CRS) of the vector file differs 
@@ -53,7 +52,7 @@ will be used (and a warning will be printed).
 With the <b>-d</b> flag, all pixels touched by lines or polygons will 
 be updated, not just those on the line render path, or which center 
 point is within the polygon. For lines, this is similar to setting the 
-<b>-d</b flag in <em>v.to.rast</em>.
+<b>-d</b> flag in <em>v.to.rast</em>.
 
 <h2>EXAMPLE</h2>
 
@@ -86,12 +85,12 @@ output=geology_rast \
 memory=20000
 </pre></div>
 
-<div align="left" style="margin: 10px"> <a 
-href="r_in_vect_im01.png"> <img src="r_in_vect_im01.png" 
-alt="The geology vector file converted to, and imported as raster in 
-GRASS. Example 1" border="0"> </a><br><i>Figure 1: The geology vector file was 
-converted to, and imported as a raster into GRASS GIS, using the default 
-settings.</i> </div>
+<div align="left" style="margin: 10px"> <a href="r_in_vect_im01.png"> 
+<img src="r_in_vect_im01.png" alt="The geology vector file converted 
+to, and imported as raster in GRASS. Example 1" border="0"> 
+</a><br><i>Figure 1: The geology vector file was converted to, and 
+imported as a raster into GRASS GIS, using the default settings.</i> 
+</div>
 
 <p>
 If the GeoPackage file (or any other data source) has  
@@ -101,9 +100,9 @@ selected.
 
 <h3>Example 2</h3>
 
-Import the geology.gpkg as raster. Specify the column holding the values 
-to use as raster values and the column holding the labels for the raster 
-values.
+Import the geology.gpkg as raster. Specify the column holding the 
+values to use as raster values and the column holding the labels for 
+the raster values.
 
 <div class="code"><pre>
 # Import the layer
@@ -117,12 +116,12 @@ memory=2000
 r.colors map=geology_rast2 color=random
 </pre></div>
 
-<div align="left" style="margin: 10px"> <a 
-href="r_in_vect_im02.png"> <img src="r_in_vect_im02.png" 
-alt="The geology vector file converted to, and imported as raster in 
-GRASS GIS. Example 2" border="0"> </a><br><i>Figure 2: The geology vector file 
-converted to raster and imported into GRASS GIS using the values from the 
-vector attribute column GEOL250_ as raster values.</i> </div>
+<div align="left" style="margin: 10px"> <a href="r_in_vect_im02.png"> 
+<img src="r_in_vect_im02.png" alt="The geology vector file converted 
+to, and imported as raster in GRASS GIS. Example 2" border="0"> 
+</a><br><i>Figure 2: The geology vector file converted to raster and 
+imported into GRASS GIS using the values from the vector attribute 
+column GEOL250_ as raster values.</i> </div>
 
 
 <h3>Example 3</h3>
@@ -149,12 +148,11 @@ output=busroute6_1 \
 memory=2000 -v
 </pre></div>
 
-<div align="left" style="margin: 10px"> <a 
-href="r_in_vect_im03.png"> <img src="r_in_vect_im03.png" 
-alt="The busroute6 vector file converted to raster and imported into 
-GRASS GIS. Example 3" border="0"> </a><br><i>Figure 3: The busroute6 vector file 
-converted to raster and imported into GRASS GIS using the extent of the vector 
-map.</i> </div>
+<div align="left" style="margin: 10px"> <a href="r_in_vect_im03.png"> 
+<img src="r_in_vect_im03.png" alt="The busroute6 vector file converted 
+to raster and imported into GRASS GIS. Example 3" border="0"> 
+</a><br><i>Figure 3: The busroute6 vector file converted to raster and 
+imported into GRASS GIS using the extent of the vector map.</i> </div>
 
 
 <h3>Example 4</h3>
@@ -169,13 +167,13 @@ output=busroute6_2 \
 memory=2000 -v -d
 </pre></div>
 
-<div align="left" style="margin: 10px"> <a 
-href="r_in_vect_im04.png"> <img src="r_in_vect_im04.png" 
-alt="The busroute6 vector file converted to raster and imported into 
-GRASS GIS. Example 4" border="0"> </a><br><i>Figure 4: Rasterize the busroute 6
-vector map using the <b>-d</b> flag to create densified lines by adding extra 
-cells (shown in red). This avoids gaps or lines that consist of cells 
-that are only diagonally connected.</i> </div>
+<div align="left" style="margin: 10px"> <a href="r_in_vect_im04.png"> 
+<img src="r_in_vect_im04.png" alt="The busroute6 vector file converted 
+to raster and imported into GRASS GIS. Example 4" border="0"> 
+</a><br><i>Figure 4: Rasterize the busroute 6 vector map using the 
+<b>-d</b> flag to create densified lines by adding extra cells (shown 
+in red). This avoids gaps or lines that consist of cells that are only 
+diagonally connected.</i> </div>
 
 <h2>SEE ALSO</h2>
 
@@ -185,6 +183,6 @@ that are only diagonally connected.</i> </div>
 
 <h2>AUTHORS</h2>
 
-Paulo van Breugel (<a href="https://ecodiv.earth">ecodiv.earth</a><br> Applied Geo-information Sciences<br> <a
-href="https://www.has.nl/">HAS green academy, University of Applied
-Sciences</a><br>
+Paulo van Breugel (<a href="https://ecodiv.earth">ecodiv.earth</a><br> 
+Applied Geo-information Sciences<br> <a href="https://www.has.nl/">HAS 
+green academy, University of Applied Sciences</a><br>

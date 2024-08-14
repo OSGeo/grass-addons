@@ -51,8 +51,7 @@
 # %option
 # % key: value
 # % type: integer
-# % description: Raster value (for use=val)
-# % answer: 1
+# % description: Raster value (if attribute_column is left empty)
 # %end
 
 # %flag
@@ -68,6 +67,10 @@
 # %end
 
 # %option G_OPT_MEMORYMB
+# %end
+
+# %rules
+# % required: value,attribute_column
 # %end
 
 # %rules
