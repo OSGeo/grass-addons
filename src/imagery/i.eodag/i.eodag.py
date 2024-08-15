@@ -403,9 +403,20 @@ def search_by_ids(products_ids):
     search_result = []
     for query_id in products_ids:
         gs.info(_("Searching for {}".format(query_id)))
-        product, count = dag.search(
-            id=query_id, provider=options["provider"] or None, count=True
-        )
+        if int(eodag.__version__.split(".")[0]) < 3:
+            product, count = dag.search(
+                id=query_id, provider=options["provider"] or None
+            )
+        else:
+            if options["producttype"] is None:
+                gs.warning(_("The producttype option is not set"))
+            product = dag.search(
+                id=query_id,
+                provider=options["provider"] or None,
+                productType=options["producttype"] or None,
+                count=True,
+            )
+            count = product.number_matched
         if count > 1:
             gs.warning(
                 _("{}\nCould not be uniquely identified. Skipping...".format(query_id))
@@ -468,8 +479,17 @@ def no_fallback_search(search_parameters, provider):
     :rtype: class:'eodag.api.search_result.SearchResult'
     """
     try:
-        server_poke = dag.search(**search_parameters, provider=provider)
-        if server_poke[1] == 0:
+        if int(eodag.__version__.split(".")[0]) < 3:
+            server_poke = dag.search(**search_parameters, provider=provider)
+        elif (
+            int(eodag.__version__.split(".")[0]) >= 3
+            and server_poke.number_matched == 0
+        ):
+            server_poke = dag.search(**search_parameters, provider=provider, count=True)
+        if (int(eodag.__version__.split(".")[0]) < 3 and server_poke[1] == 0) or (
+            int(eodag.__version__.split(".")[0]) >= 3
+            and server_poke.number_matched == 0
+        ):
             gs.verbose(_("No products found"))
             return SearchResult([])
     except Exception as e:
