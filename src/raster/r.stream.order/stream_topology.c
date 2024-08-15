@@ -194,8 +194,8 @@ int ram_stream_geometry(CELL **streams, CELL **dirs)
                 } /* end for i */
                 SA[cur_stream].accum_length = cur_accum_length;
             } /* end if */
-        }     /* end while */
-    }         /* end for s */
+        } /* end while */
+    } /* end for s */
     return 0;
 }
 
@@ -420,8 +420,8 @@ int seg_stream_geometry(SEGMENT *streams, SEGMENT *dirs)
                 } /* end for i */
                 SA[cur_stream].accum_length = cur_accum_length;
             } /* end if */
-        }     /* end while */
-    }         /* end for s */
+        } /* end while */
+    } /* end for s */
     G_percent(1, 1, 1);
     return 0;
 }

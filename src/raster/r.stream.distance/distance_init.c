@@ -56,7 +56,7 @@ int ram_find_outlets(CELL **streams, int number_of_streams, CELL **dirs,
                         outlets[outlets_num++].c = c;
                     }
                 } /* end lasts */
-            }     /* end if streams */
+            } /* end if streams */
 
     return outlets_num;
 }
@@ -120,8 +120,8 @@ int seg_find_outlets(SEGMENT *streams, int number_of_streams, SEGMENT *dirs,
                         outlets[outlets_num++].c = c;
                     }
                 } /* end lasts */
-            }     /* end if streams */
-        }         /* end for c */
+            } /* end if streams */
+        } /* end for c */
     return outlets_num;
 }
 

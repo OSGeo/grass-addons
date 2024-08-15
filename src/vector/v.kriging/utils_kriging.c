@@ -21,7 +21,7 @@ void LMS_variogram(struct parameters *var_par, struct write *report)
             }
             gamma++;
         } // end j
-    }     // end i
+    } // end i
 
     // # of columns of design matrix A
     nc = var_par->function == 5 ? 3 : 1;
@@ -59,7 +59,7 @@ void LMS_variogram(struct parameters *var_par, struct write *report)
                 } // end switch variogram fuction
                 G_matrix_set_element(gR, nr, 0, *gamma);
                 nr++; // length of vector of valid elements (not null)
-            }         // end test if !isnan(*gamma)
+            } // end test if !isnan(*gamma)
             h++;
             gamma++;
         } // end j
@@ -137,8 +137,8 @@ double bivar_sill(int direction, mat_struct *gamma)
         if (!isnan(gamma_i)) {    // gamma is real:
             sum_gamma += gamma_i; // sum all real elements of the matrix
             n_gamma++;            // count them
-        }                         // end if
-    }                             // end for
+        } // end if
+    } // end for
 
     sill = sum_gamma / n_gamma;
 
@@ -325,7 +325,7 @@ void cell_centre(unsigned int col, unsigned int row, unsigned int dep,
                 xD->aniso_ratio * (reg->bot + (dep + 0.5) * reg->bt_res); // z0
             break;
         } // end switch
-    }     // end if
+    } // end if
 
     else { // 2D interpolation
         r0[2] = 0.;
@@ -389,7 +389,7 @@ void set_up_G(struct points *pnts, struct parameters *var_par,
                 mu += n1;                  // go to next element in the U row
                 ml++;                      // go to next element in the L col
             } // end non-diagonal elements condition
-        }     // end j loop
+        } // end j loop
 
         // go to the diagonal element in the next row
         dbu++;     // U
@@ -402,8 +402,8 @@ void set_up_G(struct points *pnts, struct parameters *var_par,
             *m1r = *m1c = 1.0; // ... shall be 1
             m1r += n1;         // go to next col in last row
             m1c++;             // go to next row in last col
-        }                      // end "last 1" condition
-    }                          // end i loop
+        } // end "last 1" condition
+    } // end i loop
 
     free(dr);
 
@@ -608,7 +608,7 @@ double result(struct points *pnts, struct ilist *index, mat_struct *w0)
         vt++; // element of value matrix
         wo++; // weight of the value
         wt++; // element of weight matrix
-    }         // end i for loop
+    } // end i for loop
 
     rslt_OK = G_matrix_product(w, ins); // interpolated value
 
@@ -784,7 +784,7 @@ void crossvalidation(struct int_par *xD, struct points *pnts,
         av_cell++;
 
         G_free_ilist(list); // free list memory
-    }                       // end i for loop
+    } // end i for loop
 
     fclose(fp);
     G_message(_("Cross validation results have been written into <%s>"),

@@ -90,7 +90,7 @@ static int count_fill(int peak_r, int peak_c, CELL peak_ele, int *n_splits,
                     /* found bottom of real depression, don't fill */
                     return -1;
             } /* end in region */
-        }     /* end sides */
+        } /* end sides */
 
         if (done) {
             *n_splits += (n_stack[top].n_ngbrs > 1);
@@ -197,8 +197,8 @@ static int fill_sink(int peak_r, int peak_c, CELL peak_ele)
                         }
                     }
                 } /* end contributing */
-            }     /* end in region */
-        }         /* end sides */
+            } /* end in region */
+        } /* end sides */
 
         if (done) {
             cseg_put(&ele, &peak_ele, r, c);
@@ -267,8 +267,8 @@ static int carve(int bottom_r, int bottom_c, CELL bottom_ele, int peak_r,
                         }
                     }
                 } /* end contributing */
-            }     /* end in region */
-        }         /* end sides */
+            } /* end in region */
+        } /* end sides */
 
         if (done) {
             /* lower all cells to bottom ele
