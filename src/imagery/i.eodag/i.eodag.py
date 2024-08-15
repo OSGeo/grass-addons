@@ -65,7 +65,7 @@
 # % key: producttype
 # % type: string
 # % description: Imagery product type to search for
-# % required: yes
+# % required: no
 # % guisection: Filter
 # %end
 
@@ -408,6 +408,8 @@ def search_by_ids(products_ids):
                 id=query_id, provider=options["provider"] or None
             )
         else:
+            if options["producttype"] is None:
+                gs.warning(_("The producttype option is not set"))
             product = dag.search(
                 id=query_id,
                 provider=options["provider"] or None,
@@ -477,11 +479,14 @@ def no_fallback_search(search_parameters, provider):
     :rtype: class:'eodag.api.search_result.SearchResult'
     """
     try:
-        server_poke = dag.search(**search_parameters, provider=provider, count=True)
-        if int(eodag.__version__.split(".")[0]) < 3 and server_poke[1] == 0:
-            gs.verbose(_("No products found"))
-            return SearchResult([])
-        if (
+        if int(eodag.__version__.split(".")[0]) < 3:
+            server_poke = dag.search(**search_parameters, provider=provider)
+        elif (
+            int(eodag.__version__.split(".")[0]) >= 3
+            and server_poke.number_matched == 0
+        ):
+            server_poke = dag.search(**search_parameters, provider=provider, count=True)
+        if (int(eodag.__version__.split(".")[0]) < 3 and server_poke[1] == 0) or (
             int(eodag.__version__.split(".")[0]) >= 3
             and server_poke.number_matched == 0
         ):
