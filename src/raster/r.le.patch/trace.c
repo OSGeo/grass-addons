@@ -861,7 +861,7 @@ void trace(int nrows, int ncols, DCELL **buf, DCELL **null_buf, CELL **pat,
                     return;
 
             } /*5 */
-        }     /*2 */
+        } /*2 */
     }
     return; /*1 */
 }
@@ -1187,11 +1187,11 @@ PATCH *get_bd(int row0, int col0, int nrows, int ncols, double class,
                                 else
                                     not_done = 0;
                             } /*8 */
-                        }     /*7 */
-                    }         /*6 */
-                }             /*5 */
-            }                 /*4 */
-        }                     /*3 */
+                        } /*7 */
+                    } /*6 */
+                } /*5 */
+            } /*4 */
+        } /*3 */
 
         /* STEP 3: GO THROUGH THE RESULTING PATCHMAP
            AND FIND THE INTERIOR & EDGE AREA IF REQUESTED */

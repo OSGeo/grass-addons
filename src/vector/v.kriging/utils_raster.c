@@ -72,7 +72,7 @@ void write2layer(struct int_par *xD, struct reg_par *reg, struct output *out,
                 Rast_put_row(out->fd_2d, out->dcell, DCELL_TYPE);
             }
         } // end row
-    }     // end dep
+    } // end dep
 
     switch (i3) {
     case TRUE:
