@@ -2,14 +2,19 @@
 
 """
  MODULE:      i.sentinel.download
- AUTHOR(S):   Martin Landa
- PURPOSE:     Downloads Sentinel data from Copernicus Open Access Hub,
-              USGS Earth Explorer or Google Cloud Storage.
+ AUTHOR(S):   Martin Landa (original contributor)
+              Hamed Elgizery <hamedashraf2004 gmail.com>
+
+ PURPOSE:     Downloads Sentinel data from Copernicus Data Space Ecosystem,
+              using the EODAG API.
+
  COPYRIGHT:   (C) 2018-2024 by Martin Landa, and the GRASS development team
 
               This program is free software under the GNU General Public
               License (>=v2). Read the file COPYING that comes with GRASS
               for details.
+
+ CHANGELOG:   Use the EODAG API as a unified datasource - Hamed Elgizery
 """
 
 # %module
@@ -368,6 +373,7 @@ def main():
 
     # Credentials needed
     if not flags["l"]:
+        # TODO: Use EODAG config file it is settings file is not set
         if options["settings"] == "-":
             # stdin
             import getpass
