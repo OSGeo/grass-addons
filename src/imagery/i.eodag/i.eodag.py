@@ -54,6 +54,12 @@
 # % guisection: Filter
 # %end
 
+# %flag
+# % key: p
+# % description: Print compiled query string and exit
+# % guisection: Print
+# %end
+
 # OPTIONS
 # %option
 # % key: producttype
@@ -397,9 +403,20 @@ def search_by_ids(products_ids):
     search_result = []
     for query_id in products_ids:
         gs.info(_("Searching for {}".format(query_id)))
-        product, count = dag.search(
-            id=query_id, provider=options["provider"] or None, count=True
-        )
+        if int(eodag.__version__.split(".")[0]) < 3:
+            product, count = dag.search(
+                id=query_id, provider=options["provider"] or None
+            )
+        else:
+            if options["producttype"] is None:
+                gs.warning(_("The producttype option is not set"))
+            product = dag.search(
+                id=query_id,
+                provider=options["provider"] or None,
+                productType=options["producttype"] or None,
+                count=True,
+            )
+            count = product.number_matched
         if count > 1:
             gs.warning(
                 _("{}\nCould not be uniquely identified. Skipping...".format(query_id))
@@ -462,8 +479,17 @@ def no_fallback_search(search_parameters, provider):
     :rtype: class:'eodag.api.search_result.SearchResult'
     """
     try:
-        server_poke = dag.search(**search_parameters, provider=provider)
-        if server_poke[1] == 0:
+        if int(eodag.__version__.split(".")[0]) < 3:
+            server_poke = dag.search(**search_parameters, provider=provider)
+        elif (
+            int(eodag.__version__.split(".")[0]) >= 3
+            and server_poke.number_matched == 0
+        ):
+            server_poke = dag.search(**search_parameters, provider=provider, count=True)
+        if (int(eodag.__version__.split(".")[0]) < 3 and server_poke[1] == 0) or (
+            int(eodag.__version__.split(".")[0]) >= 3
+            and server_poke.number_matched == 0
+        ):
             gs.verbose(_("No products found"))
             return SearchResult([])
     except Exception as e:
@@ -1114,6 +1140,30 @@ def print_eodag_queryables(**kwargs):
     print(json.dumps(queryables_dict, indent=4))
 
 
+def print_query(geometry, queryables, **kwargs):
+    print(f"flags: {''.join([f for f in flags if flags[f] and f != 'p'])}")
+    print(f"AOI: {geometry}")
+    print(f"provider: {kwargs['provider'] if options['provider'] else ANY}")
+    print(f"producttype: {kwargs['producttype'] if options['producttype'] else ANY}")
+    print(
+        f"area_relation: {kwargs['area_relation'] if options['area_relation'] else 'ANY'}"
+    )
+    print(
+        f"minimum_overlap: {kwargs['minimum_overlap'] if options['minimum_overlap'] else 'ANY'}"
+    )
+    print(f"pattern: {kwargs['pattern'] if options['pattern'] else 'ANY'}")
+    print(f"start (ge): {kwargs['start'] if options['start'] else 'ANY'}")
+    print(f"end (le): {kwargs['end'] if options['end'] else 'ANY'}")
+    print(f"limit: {kwargs['limit'] if options['limit'] else 'ANY'}")
+    if kwargs["clouds"]:
+        print(f"cloudCover (le): {kwargs['clouds']}")
+    DEFAULT_OPERATOR = "eq"
+    for k, v in queryables:
+        for value in v:
+            operator = value[1] if value[1] else DEFAULT_OPERATOR
+            print(f"{k} ({operator}): {value[0]}")
+
+
 def main():
     # Products: https://github.com/CS-SI/eodag/blob/develop/eodag/resources/product_types.yml
 
@@ -1122,6 +1172,8 @@ def main():
     dag = EODataAccessGateway()
     if options["provider"]:
         dag.set_preferred_provider(options["provider"])
+    geometry = get_aoi(options["map"])
+    gs.verbose(_("AOI: {}".format(geometry)))
 
     queryables = parse_query(options["query"])
     for queryable, values in queryables:
@@ -1180,10 +1232,12 @@ def main():
         ids_set.discard(str())
         gs.message(_("Found {} distinct ID(s).".format(len(ids_set))))
         gs.message("\n".join(ids_set))
-
         # Search for products found from options["file"] or options["id"]
+        options["limit"] = len(ids_set)  # Disable limit option
+        if flags["p"]:
+            print_query(geometry, queryables, **options)
+            return
         search_result = search_by_ids(ids_set)
-        limit = len(search_result)  # Disable limit option
     elif "search_result" not in locals():
         dates_to_iso_format()
         items_per_page = 40
@@ -1192,8 +1246,6 @@ def main():
         product_type = options["producttype"]
 
         # HARDCODED VALUES FOR TESTING { "lonmin": 1.9, "latmin": 43.9, "lonmax": 2, "latmax": 45, }
-        geometry = get_aoi(options["map"])
-        gs.verbose(_("AOI: {}".format(geometry)))
 
         search_parameters = {
             "items_per_page": items_per_page,
@@ -1206,6 +1258,11 @@ def main():
 
         search_parameters["start"] = options["start"]
         search_parameters["end"] = options["end"]
+        if not options["area_relation"]:
+            options["area_relation"] = "Intersects"
+        if flags["p"]:
+            print_query(geometry, queryables, **options)
+            return
         if options["provider"]:
             search_result = no_fallback_search(search_parameters, options["provider"])
         else:
