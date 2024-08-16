@@ -78,7 +78,7 @@ defaults to `cql2-text`.
 **sortby** – A single field or list of fields to sort the response by.
 
 **fields** – A list of fields to include in the response.
-Note this may result in invalid STAC objects, as they may not have the fields 
+Note this may result in invalid STAC objects, as they may not have the fields
 required. Use items_as_dicts to avoid object unmarshalling errors.
 
 ### Dependencies
