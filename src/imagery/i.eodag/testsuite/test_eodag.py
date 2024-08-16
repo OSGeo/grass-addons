@@ -31,7 +31,6 @@ class TestEodag(TestCase):
     @classmethod
     def setUpClass(cls):
         """Use temporary region settings"""
-        print("EHRERKJELJZD")
         cls.use_temp_region()
         cls.runModule(
             "v.extract",
@@ -49,10 +48,15 @@ class TestEodag(TestCase):
     def test_search_without_date(self):
         """Test"""
         self.assertModule(
-            "i.eodag", flags="l", producttype="S2_MSI_L2A", clouds=30, quiet=True
+            "i.eodag",
+            flags="l",
+            provider="peps",
+            producttype="S2_MSI_L2A",
+            clouds=30,
+            quiet=True,
         )
 
-    def test_search_S2_MSI_L2A_default(self):
+    def test_search_S2_MSI_L2A(self):
         """Test"""
         output = r"""S2A_MSIL2A_20240113T160621_N0510_R097_T17SPV_20240113T202049 2024-01-13T16:06:21  4% S2MSI2A
 S2A_MSIL2A_20240113T160621_N0510_R097_T17SPA_20240113T202049 2024-01-13T16:06:21  7% S2MSI2A
@@ -62,6 +66,7 @@ S2B_MSIL2A_20240118T160609_N0510_R097_T17SPV_20240118T203136 2024-01-18T16:06:09
         i_eodag = Module(
             "i.eodag",
             flags="l",
+            provider="peps",
             producttype="S2_MSI_L2A",
             clouds=30,
             map="durham",
@@ -292,6 +297,7 @@ S2B_MSIL1C_20220617T155829_N0400_R097_T17SPV_20220618T113811 2022-06-17T15:58:29
         self.assertFilesEqualMd5("results/search_s2.geojson", "data/search_s2.geojson")
 
     def test_save_footprint(self):
+        """Test"""
         # i.eodag -l provider=peps producttype=S2_MSI_L1C start=2022-05-01 end=2022-06-01 footprints=s2_footprints
         # This is not working...?
         # v.import seems to complain
@@ -304,6 +310,59 @@ S2B_MSIL1C_20220617T155829_N0400_R097_T17SPV_20220618T113811 2022-06-17T15:58:29
             end="2022-06-01",
             map="durham",
             footprints="s2_footprints",
+            quiet=True,
+        )
+
+    def test_print_config(self):
+        """Test"""
+        self.assertModule(
+            "i.eodag",
+            print="config",
+            quiet=True,
+        )
+
+    def test_print_providers(self):
+        """Test"""
+        self.assertModule(
+            "i.eodag",
+            print="providers",
+            quiet=True,
+        )
+
+    def test_print_products(self):
+        """Test"""
+        self.assertModule(
+            "i.eodag",
+            print="products",
+            quiet=True,
+        )
+
+    def test_print_specific_product(self):
+        """Test"""
+        self.assertModule(
+            "i.eodag",
+            print="products",
+            producttype="S2_MSI_L2A",
+            quiet=True,
+        )
+
+    def test_print_products_per_provider(self):
+        """Test"""
+        self.assertModule(
+            "i.eodag",
+            print="products",
+            provider="usgs",
+            quiet=True,
+        )
+
+    def test_print_queryables(self):
+        """Test"""
+        self.assertModule(
+            "i.eodag",
+            print="queryables",
+            provider="cop_dataspace",
+            producttype="S2_MSI_L2A",
+            quiet=True,
         )
 
 
