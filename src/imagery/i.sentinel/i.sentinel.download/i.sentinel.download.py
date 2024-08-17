@@ -373,41 +373,43 @@ def main():
 
     # Credentials needed
     if not flags["l"]:
-        # TODO: Use EODAG config file it is settings file is not set
-        if options["settings"] == "-":
-            # stdin
-            import getpass
+        if options["settings"]:
+            if options["settings"] == "-":
+                # stdin
+                import getpass
 
-            user = input(_("Insert username: "))
-            password = getpass.getpass(_("Insert password: "))
-        else:
-            try:
-                with open(options["settings"], "r") as fd:
-                    lines = list(
-                        filter(None, (line.rstrip() for line in fd))
-                    )  # non-blank lines only
-                    if len(lines) < 2:
-                        gs.fatal(_("Invalid settings file"))
-                    user = lines[0].strip()
-                    password = lines[1].strip()
-                    if len(lines) > 2:
-                        api_url = lines[2].strip()
-            except IOError as e:
-                gs.fatal(_("Unable to open settings file: {}").format(e))
-            if user is None or password is None:
-                gs.fatal(_("No user or password given"))
+                user = input(_("Insert username: "))
+                password = getpass.getpass(_("Insert password: "))
+            else:
+                try:
+                    with open(options["settings"], "r") as fd:
+                        lines = list(
+                            filter(None, (line.rstrip() for line in fd))
+                        )  # non-blank lines only
+                        if len(lines) < 2:
+                            gs.fatal(_("Invalid settings file"))
+                        user = lines[0].strip()
+                        password = lines[1].strip()
+                        if len(lines) > 2:
+                            api_url = lines[2].strip()
+                except IOError as e:
+                    gs.fatal(_("Unable to open settings file: {}").format(e))
+                if user is None or password is None:
+                    gs.fatal(_("No user or password given"))
 
-        os.environ[f"EODAG__{eodag_provider.upper()}__AUTH__CREDENTIALS__USERNAME"] = (
-            user
-        )
-        os.environ[f"EODAG__{eodag_provider.upper()}__AUTH__CREDENTIALS__PASSWORD"] = (
-            password
-        )
+            os.environ[
+                f"EODAG__{eodag_provider.upper()}__AUTH__CREDENTIALS__USERNAME"
+            ] = user
+            os.environ[
+                f"EODAG__{eodag_provider.upper()}__AUTH__CREDENTIALS__PASSWORD"
+            ] = password
 
         # Checking credentials early
         dag = EODataAccessGateway()
         try:
             dag._plugins_manager.get_auth_plugin("cop_dataspace").authenticate()
+        except MisconfiguredError as e:
+            gs.fatal(e)
         except AuthenticationError:
             gs.fatal(
                 _("Authentication failed, please check your credentials and try again.")
@@ -524,7 +526,7 @@ if __name__ == "__main__":
     try:
         import eodag
         from eodag import EODataAccessGateway
-        from eodag.utils.exceptions import AuthenticationError
+        from eodag.utils.exceptions import AuthenticationError, MisconfiguredError
 
         gs.find_program("i.eodag", "--help")
     except ImportError:
