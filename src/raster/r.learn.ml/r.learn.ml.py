@@ -1884,7 +1884,7 @@ def main():
 
         # onehot encoding
         if categorymaps is not None and norm_data is False:
-            enc = OneHotEncoder(categorical_features=categorymaps)
+            enc = OneHotEncoder(categorical_features=categorymaps,sparse_output=False )
             enc.fit(X)
             clf = Pipeline(
                 [
@@ -1894,6 +1894,7 @@ def main():
                             categorical_features=categorymaps,
                             n_values=enc.n_values_,
                             handle_unknown="ignore",
+                            categories='auto',
                             sparse=False,
                         ),
                     ),  # dense because not all clf can use sparse
@@ -1903,7 +1904,7 @@ def main():
 
         # standardization and onehot encoding
         if norm_data is True and categorymaps is not None:
-            enc = OneHotEncoder(categorical_features=categorymaps)
+            enc = OneHotEncoder(categorical_features=categorymaps, sparse_output=False   )
             enc.fit(X)
             clf = Pipeline(
                 [
@@ -1913,6 +1914,7 @@ def main():
                             categorical_features=categorymaps,
                             n_values=enc.n_values_,
                             handle_unknown="ignore",
+                            categories='auto',
                             sparse=False,
                         ),
                     ),
