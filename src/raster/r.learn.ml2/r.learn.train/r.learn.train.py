@@ -671,7 +671,7 @@ def main():
     # preprocessing -----------------------------------------------------------
     from sklearn.pipeline import Pipeline
     from sklearn.compose import ColumnTransformer
-    from sklearn.preprocessing import StandardScaler, OneHotEncoder
+    from sklearn.preprocessing import StandardScaler,
 
     # standardization
     if norm_data is True and category_maps is None:
@@ -691,7 +691,7 @@ def main():
     # standardization and one-hot encoding
     elif norm_data is True and category_maps is not None:
         scaler = StandardScaler()
-        enc = OneHotEncoder(handle_unknown="ignore", sparse=False)
+        enc =(handle_unknown="ignore", sparse=False)
         trans = ColumnTransformer(
             remainder="passthrough",
             transformers=[
