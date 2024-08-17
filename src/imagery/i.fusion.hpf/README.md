@@ -72,13 +72,13 @@ After installation, from within a GRASS-GIS session, see help details via
 
 ### Remarks
 
-* easy to use, i.e.:
-  * for one band `i.fusion.hpf pan=Panchromatic msx=${Band}`
-  * for multiple bands `i.fusion.hpf pan=Panchromatic msx=Red,Green,Blue,NIR`
-* easy to test various parameters that define the High-Pass filter’s
-  *kernel size* and *center value*
-* should work with **any** kind of imagery (think of bitness)
-* the "black border" effect, possibly caused due to a non-perfect match of the
+- easy to use, i.e.:
+  - for one band `i.fusion.hpf pan=Panchromatic msx=${Band}`
+  - for multiple bands `i.fusion.hpf pan=Panchromatic msx=Red,Green,Blue,NIR`
+- easy to test various parameters that define the High-Pass filter’s
+  _kernel size_ and _center value_
+- should work with **any** kind of imagery (think of bitness)
+- the "black border" effect, possibly caused due to a non-perfect match of the
   high vs. the low resolution of the input images, can be trimmed out by using
   the `trim` option --a floating point "trimming factor" with which to multiply
   the pixel size of the low resolution image-- and shrink the extent of the
@@ -86,47 +86,47 @@ After installation, from within a GRASS-GIS session, see help details via
 
 ## Implementation notes
 
-* First commit on Sat Oct 25 12:26:54 2014 +0300
-* Working state reached on Tue Nov 4 09:28:25 2014 +0200
+- First commit on Sat Oct 25 12:26:54 2014 +0300
+- Working state reached on Tue Nov 4 09:28:25 2014 +0200
 
 ## To Do
 
-* Go through <http://trac.osgeo.org/grass/wiki/Submitting/Python>
-* Access input raster by row I/O ?
-* Proper command history tracking. Not all "r" modules do it... ?
-* Add timestamps (r.timestamp)
-* Deduplicate code where applicable
-* Make the -v messages shorter, yet more informative (ie report center cell)
-* Test. Will it compile in other systems?
-* Checking options to integrate in `i.pansharpen`. Think of FFM methods vs.
+- Go through <http://trac.osgeo.org/grass/wiki/Submitting/Python>
+- Access input raster by row I/O ?
+- Proper command history tracking. Not all "r" modules do it... ?
+- Add timestamps (r.timestamp)
+- Deduplicate code where applicable
+- Make the -v messages shorter, yet more informative (ie report center cell)
+- Test. Will it compile in other systems?
+- Checking options to integrate in `i.pansharpen`. Think of FFM methods vs.
   Others?
-* Who else to thank?  Transfer from archive/
-* Improve [Documentation.lyx](https://gitlab.com/NikosAlexandris/i.fusion.hpf/blob/master/lyx/Documentation.lyx)
+- Who else to thank? Transfer from archive/
+- Improve [Documentation.lyx](https://gitlab.com/NikosAlexandris/i.fusion.hpf/blob/master/lyx/Documentation.lyx)
 
 ## Questions
 
-* To Ask!
+- To Ask!
 
 ## References
 
-* Gangkofner, U. G., Pradhan, P. S., and Holcomb, D. W. (2008). Optimizing
+- Gangkofner, U. G., Pradhan, P. S., and Holcomb, D. W. (2008). Optimizing
   the high-pass filter addition technique for image fusion.
   PHOTOGRAMMETRIC ENGINEERING & REMOTE SENSING, 74(9):1107–1118.
-* “ERDAS IMAGINE.” Accessed March 19, 2015. <http://doc.hexagongeospatial.com/ERDAS%20IMAGINE/ERDAS_IMAGINE_Help/#ii_hpfmerge_mergedialog.htm>.
+- “ERDAS IMAGINE.” Accessed March 19, 2015. <http://doc.hexagongeospatial.com/ERDAS%20IMAGINE/ERDAS_IMAGINE_Help/#ii_hpfmerge_mergedialog.htm>.
 
-* Aniruddha Ghosh & P.K. Joshi (2013) Assessment of pan-sharpened very
+- Aniruddha Ghosh & P.K. Joshi (2013) Assessment of pan-sharpened very
   high-resolution WorldView-2 images, International Journal of Remote Sensing,
   34:23, 8336-8359
 
 ## Ευχαριστώ
 
-* Nikos Ves
-* Ranjith, <https://class.coursera.org/interactivepython-005/forum/profile?user_id=9361576>
-* Anonymous on coursera's discussion forums
-* Pietro Zambelli
-* StackExchange contributors
-  * <http://stackoverflow.com/a/1140966/1172302>
-  * <http://stackoverflow.com/a/275025/1172302>
-* Yann Chemin
-* Aniruddha Ghosh
-* Παναγιώτης Μαυρογιώργος (<https://github.com/pmav99>)
+- Nikos Ves
+- Ranjith, <https://class.coursera.org/interactivepython-005/forum/profile?user_id=9361576>
+- Anonymous on coursera's discussion forums
+- Pietro Zambelli
+- StackExchange contributors
+  - <http://stackoverflow.com/a/1140966/1172302>
+  - <http://stackoverflow.com/a/275025/1172302>
+- Yann Chemin
+- Aniruddha Ghosh
+- Παναγιώτης Μαυρογιώργος (<https://github.com/pmav99>)
