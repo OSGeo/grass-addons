@@ -481,10 +481,7 @@ def no_fallback_search(search_parameters, provider):
     try:
         if int(eodag.__version__.split(".")[0]) < 3:
             server_poke = dag.search(**search_parameters, provider=provider)
-        elif (
-            int(eodag.__version__.split(".")[0]) >= 3
-            and server_poke.number_matched == 0
-        ):
+        elif int(eodag.__version__.split(".")[0]) >= 3:
             server_poke = dag.search(**search_parameters, provider=provider, count=True)
         if (int(eodag.__version__.split(".")[0]) < 3 and server_poke[1] == 0) or (
             int(eodag.__version__.split(".")[0]) >= 3
