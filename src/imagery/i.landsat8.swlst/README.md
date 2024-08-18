@@ -1,12 +1,12 @@
 # i.landsat8.swist
 
-*i.landsat8.swlst* is a GRASS GIS add-on, implementing a practical Split-Window (SW)
+_i.landsat8.swlst_ is a GRASS GIS add-on, implementing a practical Split-Window (SW)
 algorithm, estimating land surface temperature (LST), from the Thermal Infra-Red
 Sensor (TIRS) aboard Landsat 8 with an accuracy of better than 1.0 K.
 
 ## Quick examples
 
-After installation (see section *Installation* below), from within a GRASS-GIS
+After installation (see section _Installation_ below), from within a GRASS-GIS
 session, retrieve usage details via `i.landsat8.swlst --help`
 
 The shortest call for processing a complete Landsat8 scene normally is:
@@ -58,7 +58,7 @@ brightness temperature (BT); land surface emissivities (LSEs); and the
 coefficients of the main Split-Window equation (SWCs).
 
 **LSEs** are derived from an established look-up table linking the FROM-GLC
-classification scheme to average emissivities. The NDVI and the FVC are *not*
+classification scheme to average emissivities. The NDVI and the FVC are _not_
 computed each time an LST estimation is requested. Read [0] for details.
 
 The **SWCs** depend on each pixel's column water vapor (CWV). **CWV** values are
@@ -70,7 +70,7 @@ size of the spatial window querying for CWV values in adjacent pixels, is a key
 parameter of the MSWCVMR method. It influences accuracy and performance. In [2]
 it is stated:
 
-> A small window size n (N = n * n, see equation (1a)) cannot ensure a high
+> A small window size n (N = n \* n, see equation (1a)) cannot ensure a high
 > correlation between two bands' temperatures due to the instrument noise. In
 > contrast, the size cannot be too large because the variations in the surface
 > and atmospheric conditions become larger as the size increases.
@@ -128,13 +128,14 @@ Making the script `i.lansat8.swlst` available from within any GRASS-GIS ver.
 - ~~Fix retrieval of adjacent subranges (exclude 6, get it only if there is no
   match for subranges 1, 2, 3, 4, and 5)~~
 
-- Evaluate BIG mapcalc expressions -- are they correct?  I guess so ;-)
+- Evaluate BIG mapcalc expressions -- are they correct? I guess so ;-)
+
   - ~~Expression for Column Water Vapor~~
   - ~~CWV output values range -- is it rational?~~ It was not. There is a
     typo in paper [0]. The correct order of the coefficients is in papers [1,
     2].
   - ~~Expression for Land Surface Temperature~~
-  - ~~LST output values range -- is it rational?  At the moment, not!~~
+  - ~~LST output values range -- is it rational? At the moment, not!~~
     Fixed. The main Split-Window equation was wrong.
 
 - ~~Why is the LST out of range when using a fixed land cover class?~~ Cloudy
@@ -155,9 +156,9 @@ Making the script `i.lansat8.swlst` available from within any GRASS-GIS ver.
 
 - ~~Redo the example screenshots for the manual after corrections for CWV, LST
   equations.~~
-- Use existing i.emissivity?  Not exactly compatible -- read paper for details.
+- Use existing i.emissivity? Not exactly compatible -- read paper for details.
   Anyhow, options to input average and delta emissivity maps implemented.
-- Raster Row I/O -- Maybe *not* an option: see discussion with Pietro Zambelli
+- Raster Row I/O -- Maybe _not_ an option: see discussion with Pietro Zambelli
 - How to perform pixel value validity checks for in-between and end products?
   `r.mapcalc` can't do this. Best to implement a test checking the values
   on-the-fly while they are created. A C-function?
@@ -167,8 +168,8 @@ Making the script `i.lansat8.swlst` available from within any GRASS-GIS ver.
 - ~~Test for too small region?~~ Works for a region of 267 rows x 267 cols
   (71289 cells)
 - Deduplicate code in `split_window_lst` class, in functions
-`_build_average_emissivity_mapcalc()` and
-`_build_delta_emissivity_mapcalc()`
+  `_build_average_emissivity_mapcalc()` and
+  `_build_delta_emissivity_mapcalc()`
 - Implement a median window filter, as another option in addition to mean.
 - Profiling
 - Implement a complete cloud masking function using the BQA image. Support for

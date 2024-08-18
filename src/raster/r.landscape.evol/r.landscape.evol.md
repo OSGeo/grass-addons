@@ -37,18 +37,18 @@ a) GIS Implementation:
 
 b) Variables:
 
-* Tc = Transport Capacity [kg/meters.second]
-* K\*C\*P ~ Kt = mitigating effects of soil type, vegetation cover, and
+- Tc = Transport Capacity [kg/meters.second]
+- K\*C\*P ~ Kt = mitigating effects of soil type, vegetation cover, and
   land-use practices. [unitless]
-* gw = Hydrostatic pressure of water 9810 [kg/m2.second]
-* N = Manning's coefficient (0.3-0.6 for different types of stream channels) [unitless]
-* i = rainfall intensity [m/rainfall event]
-* A = upslope accumulated area per contour (cell) width [m2/m] = [m]
-* 0.595 = constant for time-lagged peak flow (assumes symmetrical unit-hydrograph)
-* t = length of rainfall event [seconds]
-* S = topographic slope [degrees]
-* m = transport coefficient for upslope area [unitless]
-* n = transport coefficient for slope [unitless]
+- gw = Hydrostatic pressure of water 9810 [kg/m2.second]
+- N = Manning's coefficient (0.3-0.6 for different types of stream channels) [unitless]
+- i = rainfall intensity [m/rainfall event]
+- A = upslope accumulated area per contour (cell) width [m2/m] = [m]
+- 0.595 = constant for time-lagged peak flow (assumes symmetrical unit-hydrograph)
+- t = length of rainfall event [seconds]
+- S = topographic slope [degrees]
+- m = transport coefficient for upslope area [unitless]
+- n = transport coefficient for slope [unitless]
 
 c) Converted to Map Algebra:
 
@@ -59,16 +59,16 @@ c) Converted to Map Algebra:
 
 d) NOTES:
 
-* This is likely the best of the three equations for simulating erosion at the
+- This is likely the best of the three equations for simulating erosion at the
   scale of small watersheds, including overland flow on hillslopes and
   channelized flow in gullies and streams.
-* It is likely not appropriate for simulating erosion and deposition processes
-  in larger rivers, especially meandering  flood plains.
-* `K*C*P` should equal an appropriate value of `Kt`: 0.001 for a soft
+- It is likely not appropriate for simulating erosion and deposition processes
+  in larger rivers, especially meandering flood plains.
+- `K*C*P` should equal an appropriate value of `Kt`: 0.001 for a soft
   substrate, 0.0001 for a normal substrate, 0.00001 for a hard substrate,
   0.000001 for a very hard substrate. See note below about methods for scaling
   these values.
-* `N` should likely scale with channel vegetation so that 0.03 = clean/straight
+- `N` should likely scale with channel vegetation so that 0.03 = clean/straight
   stream channel, 0.035 = major free-flowing river, 0.04 = sluggish stream with
   pools, 0.06 = very clogged streams. See below for methods to scale these
   values.
@@ -87,17 +87,17 @@ a) GIS Implmentation:
 
 b) Variables:
 
-* Tc = Transport Capacity [kg/meters.second]
-* K\*C\*P ~ Kt = mitigating effects of soil type, vegetation cover, and land-use
+- Tc = Transport Capacity [kg/meters.second]
+- K\*C\*P ~ Kt = mitigating effects of soil type, vegetation cover, and land-use
   practices. [unitless]
-* gw = Hydrostatic pressure of water 9810 [kg/m2.second]
-* N = Manning's coefficient ~0.3-0.6 for different types of stream channels [unitless]
-* i = rainfall intensity [m/rainfall event]
-* A = upslope accumulated area per contour (cell) width [m2/m] = [m]
-* 0.595 = constant for time-lagged peak flow (assumes symmetrical unit-hydrograph)
-* t = length of rainfall event [seconds]
-* B = topographic slope [degrees]
-* n = transport coefficient (here assumed to be scaled to slope) [unitless]
+- gw = Hydrostatic pressure of water 9810 [kg/m2.second]
+- N = Manning's coefficient ~0.3-0.6 for different types of stream channels [unitless]
+- i = rainfall intensity [m/rainfall event]
+- A = upslope accumulated area per contour (cell) width [m2/m] = [m]
+- 0.595 = constant for time-lagged peak flow (assumes symmetrical unit-hydrograph)
+- t = length of rainfall event [seconds]
+- B = topographic slope [degrees]
+- n = transport coefficient (here assumed to be scaled to slope) [unitless]
 
 c) Converted to Map Algebra:
 
@@ -107,16 +107,16 @@ c) Converted to Map Algebra:
 
 d) NOTES:
 
-* This implementation of the Shear Stress equation assumes the critical shear
+- This implementation of the Shear Stress equation assumes the critical shear
   stress is 0.
-* This means the equation is likely to over predict erosion in situations where
+- This means the equation is likely to over predict erosion in situations where
   shear stress is less than the actual critical shear stress, such as on
   vegetated hillslopes.
-* `K*C*P` should equal an appropriate value of `Kt`: 0.001 for a soft
+- `K*C*P` should equal an appropriate value of `Kt`: 0.001 for a soft
   substrate, 0.0001 for a normal substrate, 0.00001 for a hard substrate,
   0.000001 for a very hard substrate. See note below about methods for scaling
   these values.
-* `N` should likely scale with channel vegetation so that 0.03 = clean/straight
+- `N` should likely scale with channel vegetation so that 0.03 = clean/straight
   stream channel, 0.035 = major free-flowing river, 0.04 = sluggish stream with
   pools, 0.06 = very clogged streams. See below for methods to scale these
   values.
@@ -133,14 +133,14 @@ a) GIS Implementation:
 
 b) Variables:
 
-* Tc = Transport Capacity [kg/meters.second]
-* R = Rainfall intensity factor [MJ.mm/ha.h.yr]
-* K\*C\*P ~ Kt = mitigating effects of soil type, vegetation cover, and
+- Tc = Transport Capacity [kg/meters.second]
+- R = Rainfall intensity factor [MJ.mm/ha.h.yr]
+- K\*C\*P ~ Kt = mitigating effects of soil type, vegetation cover, and
   land-use practices. [unitless]
-* A = upslope accumulated area per contour (cell) width [m2/m] = [m]
-* S = topographic slope [degrees]
-* m = transport coefficient for upslope area [unitless]
-* n = transport coefficient for slope [unitless]
+- A = upslope accumulated area per contour (cell) width [m2/m] = [m]
+- S = topographic slope [degrees]
+- m = transport coefficient for upslope area [unitless]
+- n = transport coefficient for slope [unitless]
 
 c) Converted to Map Algebra:
 
@@ -150,9 +150,9 @@ c) Converted to Map Algebra:
 
 d) NOTES:
 
-* The USPED equation is best suited for modeling erosion and deposition on
+- The USPED equation is best suited for modeling erosion and deposition on
   hillslopes and small gullies.
-* It will vastly over predict erosion/deposition in channels and streams.
+- It will vastly over predict erosion/deposition in channels and streams.
 
 ### Scalar m and n exponents to simulate changing process across landscapes
 
@@ -181,8 +181,7 @@ exponent `m` to scale from 1.2 to 1 between a flow accumulation value of 5 and
 50, enter the following into the variable **m**: `"5,1.2,50,1"`. The exponent
 `m` will remain 1.2 for all cells where flow accumulation is below 5, and will
 remain 1 for all cells with flow accumulation above 50. It will scale linearly
-between 1.2 and 1 for all cells with values of flow accumulation between 5 and
-50.
+between 1.2 and 1 for all cells with values of flow accumulation between 5 and 50.
 
 A literature search indicates that maximum values of `m` should be less than or
 equal to 2, and that scaling between 1.2 and 1 is probably a good range to
@@ -190,7 +189,7 @@ start with.
 
 Exponent `n` relates to the influence of local topographic slope on transport
 capacity, and is used in the Stream Power, Shear Stress, and USPED equations.
-Values of `n` are  generally thought to be between 2 and 1, and experimentation
+Values of `n` are generally thought to be between 2 and 1, and experimentation
 suggests that they should scale _inversely_ with increasing local slope.
 Exponent `n` will scale linearly with slope between the two slope cutoff
 thresholds specified: `"thresh1,n1,thresh2,n2"`. So, for example, if you would
@@ -379,7 +378,7 @@ the value you input for **number**.
 
 Note that only the USPED equation needs a value for R factor, and USPED does
 not need the remaining climate variables. In the case of using USPED, only the
-first column  needs to contain data (for R factor), but you still need to
+first column needs to contain data (for R factor), but you still need to
 include all columns (the remaining columns can be with zeros or NaN's).
 
 In the case of using the Stream Power or Shear Stress equations, you still must
@@ -451,7 +450,9 @@ intensivity, as with USPED, as often R factor can only be estimated from
 rainfall totals at the timescale of the year or decade.
 
 <!-- markdownlint-disable line-length -->
+
 ### Conversion of output of divergence to calculated erosion and deposition in vertical meters of elevation change
+
 <!-- markdownlint-enable line-length -->
 
 In order to convert the changes in transport capacity into the amount of

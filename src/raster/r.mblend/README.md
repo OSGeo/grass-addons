@@ -10,8 +10,8 @@ Manual and detailed description is available at the [GRASS manual pages](https:/
 To cite or reference r.mblend please use the following article:
 
 L. M. de Sousa, J. P. Leitão. [Improvements to DEM merging with `r.mblend`](http://www.scitepress.org/DigitalLibrary/Link.aspx?doi=10.5220/0006672500420049).
-*Proceedings of the Fourth International Conference on Geographical Information
-Systems Theory, Applications and Management: GISTAM*, 1, 2018.
+_Proceedings of the Fourth International Conference on Geographical Information
+Systems Theory, Applications and Management: GISTAM_, 1, 2018.
 
 ## Copyright
 

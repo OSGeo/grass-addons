@@ -1,61 +1,61 @@
 # r.pops.spread
 
-This is a GRASS GIS module *r.pops.spread* for simulating spread of
+This is a GRASS GIS module _r.pops.spread_ for simulating spread of
 pests and pathogens. The module is a GRASS GIS interface to the PoPS
 (Pest or Pathogen Spread) model implemented in C++ library maintained
 in the [PoPS Core repository](https://github.com/ncsu-landscape-dynamics/pops-core).
 
-The purpose of the *r.pops.spread* module is to provide easy way of
+The purpose of the _r.pops.spread_ module is to provide easy way of
 running the model in GRASS GIS environment once you have calibrated
 the model for your purposes. You can obtain the calibration from a
 colleague or published work or you can calibrate the model manually (in
 GRASS GIS) or use the R interface to PoPS called
 [rpops](https://github.com/ncsu-landscape-dynamics/rpops) to do that.
 
-Note: Earlier versions of this module were called *r.spread.pest* and
-*r.spread.sod*.
+Note: Earlier versions of this module were called _r.spread.pest_ and
+_r.spread.sod_.
 
 ## How to cite
 
 If you use this software or code, please cite the following papers:
 
-* Ross K. Meentemeyer, Nik J. Cunniffe, Alex R. Cook, Joao A. N. Filipe,
+- Ross K. Meentemeyer, Nik J. Cunniffe, Alex R. Cook, Joao A. N. Filipe,
   Richard D. Hunter, David M. Rizzo, and Christopher A. Gilligan, 2011.
   Epidemiological modeling of invasion in heterogeneous landscapes:
   spread of sudden oak death in California (1990–2030).
-  *Ecosphere* 2:art17.
+  _Ecosphere_ 2:art17.
   [DOI: 10.1890/ES10-00192.1](https://doi.org/10.1890/ES10-00192.1)
 
-* Tonini, Francesco, Douglas Shoemaker, Anna Petrasova, Brendan Harmon,
+- Tonini, Francesco, Douglas Shoemaker, Anna Petrasova, Brendan Harmon,
   Vaclav Petras, Richard C. Cobb, Helena Mitasova,
   and Ross K. Meentemeyer, 2017.
   Tangible geospatial modeling for collaborative solutions
   to invasive species management.
-  *Environmental Modelling & Software* 92: 176-188.
+  _Environmental Modelling & Software_ 92: 176-188.
   [DOI: 10.1016/j.envsoft.2017.02.020](https://doi.org/10.1016/j.envsoft.2017.02.020)
 
 In case you are using the automatic management feature in rpops or the
 steering version of r.pops.spread (from the branch steering), please
 cite also:
 
-* Petrasova, A., Gaydos, D.A., Petras, V., Jones, C.M., Mitasova, H. and
+- Petrasova, A., Gaydos, D.A., Petras, V., Jones, C.M., Mitasova, H. and
   Meentemeyer, R.K., 2020.
   Geospatial simulation steering for adaptive management.
-  *Environmental Modelling & Software* 133: 104801.
+  _Environmental Modelling & Software_ 133: 104801.
   [DOI: 10.1016/j.envsoft.2020.104801](https://doi.org/10.1016/j.envsoft.2020.104801)
 
 In addition to citing the above paper, we also encourage you to
 reference, link, and/or acknowledge specific version of the software
 you are using for example:
 
-* *We have used rpops R package version 1.0.0 from
-  <https://github.com/ncsu-landscape-dynamics/rpops>*.
+- _We have used rpops R package version 1.0.0 from
+  <https://github.com/ncsu-landscape-dynamics/rpops>_.
 
 ## Download
 
 ### Download and install
 
-The latest release of the *r.pops.spread* module is available in GRASS GIS
+The latest release of the _r.pops.spread_ module is available in GRASS GIS
 Addons repository and can be installed directly in GRASS GIS through graphical
 user interface or using the following command:
 
@@ -166,20 +166,20 @@ grass .../modeling/scenario1 --exec r.pops.spread ...
 
 ### Authors
 
-*(alphabetical order)*:
+_(alphabetical order)_:
 
-* Chris Jones
-* Margaret Lawrimore
-* Vaclav Petras
-* Anna Petrasova
+- Chris Jones
+- Margaret Lawrimore
+- Vaclav Petras
+- Anna Petrasova
 
 ### Previous contributors
 
-*(alphabetical order)*:
+_(alphabetical order)_:
 
-* Zexi Chen
-* Devon Gaydos
-* Francesco Tonini
+- Zexi Chen
+- Devon Gaydos
+- Francesco Tonini
 
 See Git commit history, GitHub insights, or CHANGELOG.md file (if present)
 for details about contributions.
