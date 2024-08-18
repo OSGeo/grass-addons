@@ -1,5 +1,4 @@
 ---
-
 - mapset: vector_supply_and_use
   flags: []
   inputs:
