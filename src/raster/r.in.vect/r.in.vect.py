@@ -61,7 +61,7 @@
 # %end
 
 # %flag
-# % key: g
+# % key: a
 # % label: Match region's extent to vector bounding box
 # % description: Set region extent to match that of the bounding box of the vector layer.
 # %end
@@ -76,7 +76,7 @@
 # %end
 
 # %rules
-# % requires_all: -g,-v
+# % requires_all: -a,-v
 # %end
 
 # %rules
@@ -295,7 +295,7 @@ def main(options, flags):
         xmin, xmax, ymin, ymax = vlayer.GetExtent()
 
         # Set temporary region to match the extent to that of the vector
-        if not flags["g"]:
+        if not flags["a"]:
             gs.use_temp_region()
         gs.run_command("g.region", flags="a", n=ymax, s=ymin, e=xmax, w=xmin)
         region_current = gs.region()
