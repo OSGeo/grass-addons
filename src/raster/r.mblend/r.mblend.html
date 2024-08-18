@@ -8,7 +8,7 @@ producing a smooth transition from the high resolution DEM to the low
 resolution DEM.<br><br>
 
 <center>
-<img width=40% align=center src=both_inputs.png><br><br>
+<img width="40%" align="center" src="both_inputs.png"><br><br>
 </center>
 
 The module works by identifying the edge between the two rasters (near edge,
@@ -22,7 +22,7 @@ trends from the full difference at the near edge towards zero at the far edge.
 <br><br>
 
 <center>
-<img width=40% align=center src=edges.png><br><br>
+<img width="40%" align="center" src="edges.png"><br><br>
 </center>
 
 The differences raster is finally added to the low resolution DEM given as
@@ -32,7 +32,7 @@ the far edge) the closer is their value is to the low resolution raster,
 producing a smooth transition, without artefacts.<br><br>
 
 <center>
-<img width=40% src=blended.png>
+<img width="40%" src="blended.png">
 </center>
 
 <h2>EXAMPLES</h2>
@@ -51,11 +51,11 @@ r.mblend high=best_dem low=other_dem output=result far_edge=90
 
 <h2>REFERENCES</h2>
 
-J.P. Leit&atilde;o, L.M. de Sousa, <a href=https://doi.org/10.1016/j.jhydrol.2018.04.043>Towards the optimal fusion of high-resolution Digital Elevation Models for detailed urban flood assessment</a>, <i>Journal of Hydrology</i>, Volume 561, June 2018, Pages 651-661, DOI: <a href=https://doi.org/10.1016/j.jhydrol.2018.04.043>10.1016/j.jhydrol.2018.04.043</a>.
+J.P. Leit&atilde;o, L.M. de Sousa, <a href="https://doi.org/10.1016/j.jhydrol.2018.04.043">Towards the optimal fusion of high-resolution Digital Elevation Models for detailed urban flood assessment</a>, <i>Journal of Hydrology</i>, Volume 561, June 2018, Pages 651-661, DOI: <a href="https://doi.org/10.1016/j.jhydrol.2018.04.043">10.1016/j.jhydrol.2018.04.043</a>.
 <br><br>
-L.M. de Sousa, J.P. Leit&atilde;o, <a href=http://www.scitepress.org/PublicationsDetail.aspx?ID=mcJr0zto14w=&t=1>Improvements to DEM Merging with r.mblend</a>. In <i>Proceedings of the 4th International Conference on Geographical Information Systems Theory, Applications and Management - Volume 1: GISTAM</i>, March 2018, pages 42-49. ISBN 978-989-758-294-3 DOI: <a href=http://www.scitepress.org/DigitalLibrary/Link.aspx?doi=10.5220/0006672500420049>10.5220/0006672500420049</a>.
+L.M. de Sousa, J.P. Leit&atilde;o, <a href="http://www.scitepress.org/PublicationsDetail.aspx?ID=mcJr0zto14w=&t=1">Improvements to DEM Merging with r.mblend</a>. In <i>Proceedings of the 4th International Conference on Geographical Information Systems Theory, Applications and Management - Volume 1: GISTAM</i>, March 2018, pages 42-49. ISBN 978-989-758-294-3 DOI: <a href="http://www.scitepress.org/DigitalLibrary/Link.aspx?doi=10.5220/0006672500420049">10.5220/0006672500420049</a>.
 <br><br>
-J.P. Leit&atilde;o, D. Prodanovic, C. Maksimovic, <a href=http://www.sciencedirect.com/science/article/pii/S0098300416300012>Improving merge methods for grid-based digital elevation models</a>, <i>Computers & Geosciences</i>, Volume 88, March 2016, Pages 115-131, ISSN 0098-3004, DOI: <a href=http://doi.org/10.1016/j.cageo.2016.01.001>10.1016/j.cageo.2016.01.001</a>.
+J.P. Leit&atilde;o, D. Prodanovic, C. Maksimovic, <a href="http://www.sciencedirect.com/science/article/pii/S0098300416300012">Improving merge methods for grid-based digital elevation models</a>, <i>Computers & Geosciences</i>, Volume 88, March 2016, Pages 115-131, ISSN 0098-3004, DOI: <a href="http://doi.org/10.1016/j.cageo.2016.01.001">10.1016/j.cageo.2016.01.001</a>.
 
 
 <h2>AUTHORS</h2>

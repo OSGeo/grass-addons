@@ -349,20 +349,20 @@ Example of downloading a single Sentinel product by UUID:
 
 <div class="code"><pre>
 i.sentinel.download settings=credentials.txt uuid=6a10da0f-7777-4818-bc2c-4680e82297ac output=s2_data/
-<pre></div>
+</pre></div>
 
 <p>
 Example of downloading a single Sentinel product by UUID from <b>Google Cloud Storage</b>
 <div class="code"><pre>
 i.sentinel.download datasource=GCS settings=credentials.txt uuid=6a10da0f-7777-4818-bc2c-4680e82297ac output=s2_data/
-<pre></div>
+</pre></div>
 
 <p>
 Example of downloading a single Sentinel product by UUID from the <b>USGS Earth Explorer</b>:
 
 <div class="code"><pre>
 i.sentinel.download datasource=USGS_EE settings=credentials.txt uuid=2177169 output=s2_data/
-<pre></div>
+</pre></div>
 
 <h3>Download Sentinel products by scene name</h3>
 
@@ -400,7 +400,7 @@ i.sentinel.download settings=credentials.txt \
 i.sentinel.download settings=credentials.txt \
   query='filename=S2B_MSIL2A_20210120T155559_N0214_R054_T17SPV_20210120T201821.SAFE' \
   producttype=S2MSI2A start=2021-01-01 end=2021-02-15 output=s2_data/
-<pre></div>
+</pre></div>
 
 <p>
 Example of downloading a single Sentinel product by scene name from
@@ -409,7 +409,7 @@ Example of downloading a single Sentinel product by scene name from
 i.sentinel.download datasource=GCS start=2021-01-01 end=2021-02-15 producttype=S2MSI2A \
   query="filename=S2B_MSIL2A_20210120T155559_N0214_R054_T17SPV_20210120T201821.SAFE" settings=credentials.txt \
   output=s2_data/
-<pre></div>
+</pre></div>
 
   <p>
   Example of downloading a single Sentinel product by identifier from
@@ -418,7 +418,7 @@ i.sentinel.download datasource=GCS start=2021-01-01 end=2021-02-15 producttype=S
   # in this case, no settings file is required, because the identifier can be directly used to create a GCS download URL
   i.sentinel.download datasource=GCS query="identifier=S2B_MSIL2A_20210120T155559_N0214_R054_T17SPV_20210120T201821" \
     output=s2_data/
-  <pre></div>
+  </pre></div>
 
 <p>
 Example of downloading a single Sentinel product from <b>USGS Earth Explorer</b>
@@ -427,7 +427,7 @@ by the USGS-identifier:
 i.sentinel.download datasource=USGS_EE start=2017-09-01 end=2017-12-01 producttype=S2MSI1C \
   query="usgs_identifier=L1C_T32ULA_A003180_20171015T104525" settings=credentials.txt \
   output=s2_data/
-<pre></div>
+</pre></div>
 
 <p>
 It is also possible to use the keywords filename/identifier in ESA formatting in <b>query</b>
@@ -436,7 +436,7 @@ when downloading from the <b>USGS Earth Explorer</b>:
 i.sentinel.download datasource=USGS_EE start=2017-10-01 end=2017-11-01 producttype=S2MSI1C \
   query='filename=S2B_MSIL1C_20171015T104009_N0205_R008_T32ULA_20171015T104525' settings=credentials.txt \
   output=s2_data/
-<pre></div>
+</pre></div>
 
 
 <h2>REQUIREMENTS</h2>
