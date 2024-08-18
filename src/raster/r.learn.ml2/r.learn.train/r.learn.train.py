@@ -683,7 +683,7 @@ def main():
 
     # one-hot encoding
     elif norm_data is False and category_maps is not None:
-        enc = OneHotEncoder(handle_unknown="ignore", sparse=False)
+        enc = OneHotEncoder(handle_unknown="ignore", sparse_output=False)
         trans = ColumnTransformer(
             remainder="passthrough", transformers=[("onehot", enc, stack.categorical)]
         )
@@ -691,7 +691,7 @@ def main():
     # standardization and one-hot encoding
     elif norm_data is True and category_maps is not None:
         scaler = StandardScaler()
-        enc = OneHotEncoder(handle_unknown="ignore", sparse=False)
+        enc = OneHotEncoder(handle_unknown="ignore", sparse_output=False)
         trans = ColumnTransformer(
             remainder="passthrough",
             transformers=[
