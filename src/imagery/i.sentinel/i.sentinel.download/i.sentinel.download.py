@@ -119,6 +119,7 @@
 # %option
 # % key: sleep
 # % description: Sleep time in minutes before retrying to download data from ESA LTA
+# % answer: 1
 # % guisection: Filter
 # %end
 # %option
@@ -515,6 +516,8 @@ def main():
             file=geojson_temp_file,
             provider=eodag_provider,
             output=outdir,
+            wait=options["sleep"],
+            timeout=int(options["sleep"]) * int(options["retry"]),
             quiet=True,
         )
     return 0
