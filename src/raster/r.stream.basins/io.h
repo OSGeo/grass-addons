@@ -16,7 +16,7 @@
 #define NR(x)       (r + nextr[(x)])
 #define NC(x)       (c + nextc[(x)])
 #define INDEX(r, c) ((r) * ncols + (c))
-#define DIAG(x)     (((x) + 4) > 8 ? ((x)-4) : ((x) + 4))
+#define DIAG(x)     (((x) + 4) > 8 ? ((x) - 4) : ((x) + 4))
 
 #define SROWS       128
 #define SCOLS       128
