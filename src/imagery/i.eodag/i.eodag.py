@@ -828,11 +828,23 @@ def sort_result(search_result):
     sort_keys = list()
     for sort_key in options["sort"].split(","):
         if sort_key == "ingestiondate":
-            sort_keys.append(("startTimeFromAscendingNode", "3000-12-31T00:00:00"))
+            sort_keys.append(
+                (
+                    "startTimeFromAscendingNode",
+                    (
+                        "3000-12-31T00:00:00"
+                        if options["order"] == "asc"
+                        else "1000-01-01T00:00:00"
+                    ),
+                )
+            )
         if sort_key == "title":
-            sort_keys.append(("title", "Z" * 100))
+            sort_keys.append(("title", "Z" * 100 if options["order"] == "asc" else "A"))
         if sort_key == "cloudcover":
-            sort_keys.append(("cloudCover", int(1e9)))
+            sort_keys.append(
+                ("cloudCover", int(1e9) * 1 if options["order"] == "asc" else -1)
+            )
+    # Default values are used to put scenes with missing sorting key at the end
     search_result.sort(
         reverse=options["order"] == "desc",
         key=lambda product: [
