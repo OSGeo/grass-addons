@@ -805,65 +805,20 @@ def sort_result(search_result):
     :return: Sorted EO products
     :rtype: class:'eodag.api.search_result.SearchResult'
     """
-    sort_keys = options["sort"].split(",")
-    sort_order = options["order"]
-
-    # Sort keys and sort orders are matched respectively
-    def products_compare(first, second):
-        for sort_key in sort_keys:
-            if sort_key == "ingestiondate":
-                if "startTimeFromAscendingNode" not in first.properties:
-                    gs.warning(
-                        _("Could not sort by ingestion date, please report this issue")
-                    )
-                    continue
-                if "startTimeFromAscendingNode" not in second.properties:
-                    gs.warning(
-                        _("Could not sort by ingestion date, please report this issue")
-                    )
-                    continue
-                first_value = first.properties["startTimeFromAscendingNode"]
-                second_value = second.properties["startTimeFromAscendingNode"]
-            elif sort_key == "cloudcover":
-                if "cloudCover" not in first.properties:
-                    gs.warning(
-                        _(
-                            "Cloud cover not available for scene {}".format(
-                                first.properties.get("title", "NA")
-                            )
-                        )
-                    )
-                if "cloudCover" not in second.properties:
-                    gs.warning(
-                        _(
-                            "Cloud cover not available for scene {}".format(
-                                second.properties.get("title", "NA")
-                            )
-                        )
-                    )
-                first_value = first.properties.get("cloudCover", int(1e9))
-                second_value = second.properties.get("cloudCover", int(1e9))
-            elif sort_key == "footprint":
-                if "title" not in first.properties:
-                    gs.warning(
-                        _("Could not sort by footprint, please report this issue")
-                    )
-                    continue
-                if "title" not in second.properties:
-                    gs.warning(
-                        _("Could not sort by footprint, please report this issue")
-                    )
-                    continue
-                # Sort by title lexicographically
-                first_value = first.properties["title"]
-                second_value = second.properties["title"]
-            if first_value < second_value:
-                return 1 if sort_order == "desc" else -1
-            elif first_value > second_value:
-                return -1 if sort_order == "desc" else 1
-        return 0
-
-    search_result.sort(key=cmp_to_key(products_compare))
+    sort_keys = list()
+    for sort_key in options["sort"].split(","):
+        if sort_key == "ingestiondate":
+            sort_keys.append(("startTimeFromAscendingNode", "3000-12-31T00:00:00"))
+        if sort_key == "title":
+            sort_keys.append(("title", "Z" * 100))
+        if sort_key == "cloudcover":
+            sort_keys.append(("cloudCover", int(1e9)))
+    search_result.sort(
+        reverse=options["order"] == "desc",
+        key=lambda product: [
+            product.properties.get(sort_key, default) for sort_key, default in sort_keys
+        ],
+    )
     return search_result
 
 
