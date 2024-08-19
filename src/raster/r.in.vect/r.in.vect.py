@@ -61,12 +61,22 @@
 # %end
 
 # %flag
+# % key: a
+# % label: Match region's extent to vector bounding box
+# % description: Set region extent to match that of the bounding box of the vector layer.
+# %end
+
+# %flag
 # % key: d
 # % label: Create densified lines (default: thin lines)
 # % description: Pixels touched by lines or polygons will be included, not just those on the line render path, or whose center point is within the polygon.
 # %end
 
 # %option G_OPT_MEMORYMB
+# %end
+
+# %rules
+# % requires_all: -a,-v
 # %end
 
 # %rules
@@ -276,7 +286,7 @@ def main(options, flags):
         clean_maps.append(temp_vect)
 
     # Get computational region
-    region = gs.region()
+    region_current = gs.region()
 
     # Get extent vector layer (if user selects option to import whole vector layer)
     if flags["v"]:
@@ -284,40 +294,18 @@ def main(options, flags):
         vlayer = vector.GetLayer()
         xmin, xmax, ymin, ymax = vlayer.GetExtent()
 
-        if region["s"] != ymin:
-            south_limit = (
-                region["s"]
-                + floor((ymin - region["s"]) / region["nsres"]) * region["nsres"]
-            )
-        else:
-            south_limit = ymin
+        # Set temporary region to match the extent to that of the vector
+        if not flags["a"]:
+            gs.use_temp_region()
+        gs.run_command("g.region", flags="a", n=ymax, s=ymin, e=xmax, w=xmin)
+        region_current = gs.region()
 
-        if region["n"] != ymax:
-            north_limit = (
-                region["n"]
-                + ceil((ymax - region["n"]) / region["nsres"]) * region["nsres"]
-            )
-        else:
-            north_limit = ymax
-
-        if region["w"] != xmin:
-            west_limit = (
-                region["w"]
-                + floor((xmin - region["w"]) / region["ewres"]) * region["ewres"]
-            )
-        else:
-            west_limit = xmin
-
-        if region["e"] != xmax:
-            east_limit = (
-                region["e"]
-                + ceil((xmax - region["e"]) / region["ewres"]) * region["ewres"]
-            )
-        else:
-            east_limit = xmax
-        bounds = [west_limit, south_limit, east_limit, north_limit]
-    else:
-        bounds = [region["w"], region["s"], region["e"], region["n"]]
+    bounds = [
+        region_current["w"],
+        region_current["s"],
+        region_current["e"],
+        region_current["n"],
+    ]
 
     # Set the options for gdal.Rasterize() with gdal.RasterizeOptions()
     if data_type == "Integer":
@@ -340,8 +328,8 @@ def main(options, flags):
         creationOptions=["COMPRESS=DEFLATE"],
         outputType=output_type,
         outputBounds=bounds,
-        xRes=region["ewres"],
-        yRes=region["nsres"],
+        xRes=region_current["ewres"],
+        yRes=region_current["nsres"],
         targetAlignedPixels=False,
         initValues=[nodata],
         noData=nodata,
