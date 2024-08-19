@@ -251,7 +251,7 @@ S2B_MSIL2A_20240529T081609_N0510_R121_T37TDE_20240529T124818 2024-05-29T08:16:09
         self.assertEqual(i_eodag.outputs["stdout"].value.strip(), output)
 
     def test_end_comes_first_fail(self):
-        """Test"""
+        """Test that end date before start date fails."""
         self.assertModuleFail(
             "i.eodag", start="2020-01-04", end="2020-01-01", quiet=True
         )
