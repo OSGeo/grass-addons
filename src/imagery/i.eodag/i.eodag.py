@@ -481,10 +481,7 @@ def no_fallback_search(search_parameters, provider):
     try:
         if int(eodag.__version__.split(".")[0]) < 3:
             server_poke = dag.search(**search_parameters, provider=provider)
-        elif (
-            int(eodag.__version__.split(".")[0]) >= 3
-            and server_poke.number_matched == 0
-        ):
+        elif int(eodag.__version__.split(".")[0]) >= 3:
             server_poke = dag.search(**search_parameters, provider=provider, count=True)
         if (int(eodag.__version__.split(".")[0]) < 3 and server_poke[1] == 0) or (
             int(eodag.__version__.split(".")[0]) >= 3
@@ -825,33 +822,25 @@ def sort_result(search_result):
     :return: Sorted EO products
     :rtype: class:'eodag.api.search_result.SearchResult'
     """
-    sort_keys = options["sort"].split(",")
-    sort_order = options["order"]
-
-    # Sort keys and sort orders are matched respectively
-    def products_compare(first, second):
-        for sort_key in sort_keys:
-            if sort_key == "ingestiondate":
-                if "startTimeFromAscendingNode" not in first.properties:
-                    continue
-                first_value = first.properties["startTimeFromAscendingNode"]
-                second_value = second.properties["startTimeFromAscendingNode"]
-            elif sort_key == "cloudcover":
-                if "cloudCover" not in first.properties:
-                    continue
-                first_value = first.properties["cloudCover"]
-                second_value = second.properties["cloudCover"]
-            elif sort_key == "footprint":
-                # Sort by title lexicographically
-                first_value = first.properties["title"]
-                second_value = second.properties["title"]
-            if first_value < second_value:
-                return 1 if sort_order == "desc" else -1
-            elif first_value > second_value:
-                return -1 if sort_order == "desc" else 1
-        return 0
-
-    search_result.sort(key=cmp_to_key(products_compare))
+    sort_keys = list()
+    for sort_key in options["sort"].split(","):
+        if sort_key == "ingestiondate":
+            sort_keys.append("startTimeFromAscendingNode")
+        if sort_key == "title":
+            sort_keys.append("title")
+        if sort_key == "cloudcover":
+            sort_keys.append("cloudCover")
+    # Default values are used to put scenes with missing sorting key at the end
+    search_result.sort(
+        reverse=options["order"] == "desc",
+        key=lambda product: [
+            (
+                (sort_key not in product.properties) ^ (options["order"] == "desc"),
+                product.properties.get(sort_key, None),
+            )
+            for sort_key in sort_keys
+        ],
+    )
     return search_result
 
 
