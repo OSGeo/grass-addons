@@ -1,22 +1,21 @@
 <h2>DESCRIPTION</h2>
 
 The <em>i.sentinel.download</em> addon allows downloading Sentinel satellite products
-from the <a href="https://scihub.copernicus.eu/">Copernicus Open Access Hub</a>,
-<a href="https://earthexplorer.usgs.gov/">USGS Earth Explorer</a>, or
-<a href="https://cloud.google.com/storage/docs/public-datasets/sentinel-2?hl=en">Google Cloud Storage</a>.
+from the <a href="https://dataspace.copernicus.eu/">Copernicus Data Space Ecosystem</a>.
 
-<h3>Copernicus Open Access Hub</h3>
+<h3>Copernicus Data Space Ecosystem</h3>
 <p>
-Using the Copernicus Open Access Hub for searching and downloading Copernicus
+Using the Copernicus Data Space Ecosystem for searching and downloading Copernicus
 Sentinel data is the default option.
 The following product types (parameter <b>producttype</b>) are currently supported
-for download from the <b>Copernicus Open Access Hub</b>:
+for download from the <b>Copernicus Data Space Ecosystem</b>:
 <ul>
   <li>Sentinel-1 (SAR; available from Oct 2014 to present day)
   (SAR) <a href="https://sentinel.esa.int/web/sentinel/missions/sentinel-1/data-products">products</a>:
     <ul>
       <li>SLC: Single Look Complex (Level-1)</li>
       <li>GRD: Ground Range Detected (Level-1)</li>
+      <li>GRDCOG: COG format based Ground Range Detected (Level-1)</li> <!-- Is this a good description?-->
       <li>OCN: Ocean products for wind, wave and currents applications (Level-2)</li>
     </ul>
   </li>
@@ -24,7 +23,6 @@ for download from the <b>Copernicus Open Access Hub</b>:
   (optical) <a href="https://sentinel.esa.int/web/sentinel/missions/sentinel-2/data-products">products</a>:
   <ul>
     <li>S2MSI2A: operational Bottom-Of-Atmosphere reflectances in cartographic geometry Level-2A)</li>
-    <li>(S2MSI2Ap: pilot products of Bottom-Of-Atmosphere reflectances in cartographic geometry Level-2A), until March 2018)</li>
     <li>S2MSI1C: Top-Of-Atmosphere reflectances in cartographic geometry (Level-1C)</li>
   </ul>
   </li>
@@ -34,8 +32,6 @@ for download from the <b>Copernicus Open Access Hub</b>:
   <ul>
     <li>S3OL1EFR: Land colour and atmosphere TOA radiances at full resolution</li>
     <li>S3OL1ERR: Land colour and atmosphere TOA radiances at reduced resolution</li>
-    <li>S3OL1RAC: Dark offset and gain coefficients from radiometric calibration</li>
-    <li>S3OL1SAC: Wavelength characterisation from spectral calibration</li>
     <li>S3SL1RBT: Brightness temperatures and radiances</li>
     <li>S3OL2WFR: Ocean colour, water and atmosphere geophysical parameters</li>
     <li>S3OL2WRR: Ocean colour, water and atmosphere geophysical parameters at reduced resolution</li>
@@ -54,51 +50,17 @@ for download from the <b>Copernicus Open Access Hub</b>:
 </ul>
 
 <p>
-To connect to the Copernicus Open Access Hub both a <em>user</em> name
+To connect to the Copernicus Data Space Ecosystem both a <em>user</em> name
 and <em>password</em> are required;
-see <a href="https://scihub.copernicus.eu/dhus/#/self-registration">Register
+see <a href="https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/auth?client_id=cdse-public&redirect_uri=https%3A%2F%2Fdataspace.copernicus.eu%2Fbrowser%2F&response_type=code&scope=openid">Register
 new account</a> page for signing up.
 
-<h3>USGS Earth Explorer</h3>
-<p>
-The following product types (parameter <b>producttype</b>) are currently supported
-for download from the <b>USGS Earth Explorer</b>:
-<ul>
-  <li>Sentinel-2 (optical and infrared):
-  <ul>
-    <li>S2MSI1C: Top-Of-Atmosphere reflectances in cartographic geometry (Level-1C)</li>
-  </ul>
-  </li>
-</ul>
-
-<p>
-To connect to the USGS Earth Explorer both a <em>user</em> name
-and <em>password</em> are required;
-see <a href="https://ers.cr.usgs.gov/register">EROS Registration System</a>
-page for signing up.
-
-<h3>Google Cloud Storage</h3>
-<p>
-The following product types (parameter <b>producttype</b>) are currently supported
-for download from <b>Google Cloud Storage</b>:
-<ul>
-  <li>Sentinel-2 (optical and infrared):
-  <ul>
-    <li>S2MSI2A: operational Bottom-Of-Atmosphere reflectances in cartographic geometry Level-2A)</li>
-  </ul>
-  <ul>
-    <li>S2MSI1C: Top-Of-Atmosphere reflectances in cartographic geometry (Level-1C)</li>
-  </ul>
-  </li>
-</ul>
-Querying and filtering data on Google Cloud Storage requires the fee-based usage of
-<a href="https://cloud.google.com/bigquery/external-data-cloud-storage?hl=en">BigQuery</a>, which
-is currently not supported by <em>i.sentinel.download</em>. Instead, when using the <b>datasource=GCS</b>
-option, querying is performed using the <a href="https://scihub.copernicus.eu/">Copernicus Open Access Hub</a>
-interface, while only the download step makes use of Google Cloud Storage (download links are
-automatically generated from the respective Sentinel-2 identifier). As a consequence, a <b>settings</b> file
-with valid credentials for the Copernicus Open Access Hub is required for downloading
-from Google Cloud Storage in <em>i.sentinel.download</em>.
+<h3>Copernicus Open Access Hub (DEPRECTAED)</h3>
+<a href="https://scihub.copernicus.eu/">Copernicus Open Access Hub</a> is now permanently closed.
+To continue accessing Copernicus Sentinel data,
+Copernicus Data Space Ecosystem is now the new successor.
+<h3>USGS Earth Explorer (DEPRECATED)</h3>
+<h3>Google Cloud Storage (DEPRECATED)</h3>
 
 
 <h3>Credentials file</h3>
@@ -110,13 +72,10 @@ myusername
 mypassword
 </pre></div>
 
-Optionally on third line custom API URL can be defined. Note that
-empty lines in settings file are silently skipped.
-
 <h2>NOTES</h2>
 
 The data hub to download from can be indicated with the <b>datasource</b>
-option. ESA's Copernicus Open Access Hub is the default option.
+option. ESA's Copernicus Data Space Ecosystem is the default, and currently only, option.
 
 <p>
 User credentials can be also defined interactively
@@ -126,7 +85,6 @@ work in the graphical user interface.
 <div class="code"><pre>
 Insert username: myusername
 Insert password:
-Insert API URL (leave empty for https://scihub.copernicus.eu/apihub):
 </pre></div>
 
 <p>
@@ -138,9 +96,9 @@ defined also by vector <b>map</b>. In addition the spatial relation
 between AOI and the footprint (<b>area_relation</b>) can be set to
 <ul>
 <li><i>Contains</i>: to only return scenes where the AOI is contained
-inside the footprint (Only supported by Copernicus Open Access Hub)</li>
+inside the footprint (Only supported by Copernicus Data Space Ecosystem)</li>
 <li><i>IsWithin</i>: to only return scenes where the footprint is
-contained inside the AOI (Only supported by Copernicus Open Access Hub)</li>
+contained inside the AOI (Only supported by Copernicus Data Space Ecosystem)</li>
 <li><i>Intersects</i>: to return all scenes where the footprint
 intersects the AOI (default)</li>
 </ul>
@@ -153,59 +111,47 @@ beyond that.
 
 <p>
 Sentinel products can be also filtered by <b>producttype</b> or, in case of
-Sentinel-2 data, maximum <b>clouds</b> cover percentage.
+S2MSI1C, S2MSI2A, S3SY2SYN, S3SY2VGP, S3SY2VG1, S3SY2VG1 and S3SY2AOD, maximum <b>clouds</b> cover percentage.
 
 <p>
 Extra search keywords can be specified with <b>query</b>. Multiple keywords
-can be listed separated with comma (e.g. 'polarisationmode=VV,orbitdirection=Ascending').
-Note that ESA maintains a
-<a href="https://scihub.copernicus.eu/twiki/do/view/SciHubUserGuide/FullTextSearch">list of valid search keywords</a>
-that can be used with <b>query</b>. Usage of the <b>query</b> option for searching
-and downloading from the <b>USGS Earth Explorer</b> allows the keywords
-<i>identifier</i> and <i>filename</i>, both in ESA format. Additionally,
-the keyword <i>usgs_identifier</i> can be used to search for a specific scene
-in USGS name format (see <a href="https://lta.cr.usgs.gov/DD/Sentinel2.html#entity_id">USGS Entity ID</a>)
+can be listed separated with comma (e.g. 'polarizationChannels=VV&amp;VH,orbitdirection=ASCENDING').
+
+<p>
+<b>List of Some Queryables:</b>
+<ul>
+  <li>orbitNumber</li>
+  <li>timeliness (e.g. NT, NRT-3h, etc...)</li>
+  <li>processingBaseline</li>
+  <li>polarizationChannels (e.g. VV&amp;VH)</li>
+  <li>storageStatus</li>
+</ul>
+<!-- Will be abstracted into i.sentinel.download, when fixed in i.eodag -->
+Note refer to i.eodag to get a list of all queryables.
+
+Note that text based queryables have to be upper-case.
+Scenes with unavailbe queryable information are filtered out
+(e.g. if a product has the timeliness queryable set as <b>Null</b>,
+then it will be filtered out if you use query="timeliness=NT").
+If a scene doesn't have a queryable as part of its metadata,
+the scene will be silently maintained without any warnings.
+
 
 <p>
 <em>i.sentinel.download</em> also allows downloading of Sentinel products
-by specifying a (list of) UUID. This operation is performed by the <b>uuid</b>
+by specifying a (list of) ID, where ID refers to the scene name on
+Copernicus Data Space Ecosystem. This operation is performed by the <b>id</b>
 option. Note that this option is mutually exclusive with all other
-filtering options. The format of UUID differs between the Copernicus Open Access
-Hub and the USGS Earth Explorer (see examples below).
+filtering options. The <b>id</b> option also accepts text files with (list of)
+ID, one ID per line.
 
 <p>
 In case a Sentinel data download was interrupted, <em>i.sentinel.download</em>
-will continue to download once the command is restarted and the partially
-downloaded file (with <tt>.incomplete</tt> file extention) still present.
+will restart the download for the paritally downloaded data, from scratch,
+once the command is re-excuted.
 
 <p>
-The <b>output</b> directory is created if not yet available.
-
-<p>
-The query string sent to ESA can be shown with <b>--verbose</b>.
-
-<h3>Long Term Archive (LTA)</h3>
-Access to the product URL for data that are no longer available online in the Copernicus Open Access Hub will automatically trigger
-the retrieval of the data from the LTA, the actual download may be initiated once the data are restored
-(within minutes to hours). Full details are available in the updated
-<a href="https://scihub.copernicus.eu/userguide/" target="_blank">user guide</a>,
-section <a href="https://scihub.copernicus.eu/userguide/LongTermArchive" target="_blank">Long Term Archive (LTA) Access</a>.
-
-In this <a href="https://github.com/sentinelsat/sentinelsat/issues/358#issuecomment-615895388" target="_blank">issue of sentinelsat</a>,
-it is stated (as of 2020):<br>
-<em>Please be advised that a user quota on the maximum number of requests per hour per user is set. Note that if you</em>
-<ul>
-  <li><em>retrieve data directly from the GUI, you can retrieve only 1 product per half hour while</em></li>
-  <li><em>from APIHub 20 products each 12h</em></li>
-</ul>
-
-To work with LTA you need to define the <b>sleep</b> parameter (and you can set the maximum number of retries with
-the <b>retry</b> parameter) to retry a download after the <b>sleep</b> value in minutes.
-
-<p>
-As an alternative to triggering re-upload Sentinel-2 data from the LTA, scenes can be downloaded
-from <b>USGS Earth Explorer</b> or <b>Google Cloud Storage</b> where all data remain online and directly accessible.
-However, this applies only to Sentinel-2 data in levels 1C (USGS and GCS) and 2A (only GCS).
+The <b>output</b> directory is created if not yet available. Default is current working directory.
 
 <h2>EXAMPLES</h2>
 
@@ -218,13 +164,14 @@ g.region n=42 w=12 s=41 e=13 res=0:01 -p
 
 i.sentinel.download -l settings=credentials.txt producttype=S2MSI2A start=2018-01-01 end=2018-12-31
 
-357 Sentinel product(s) found
-379e2896-408d-4642-bc6f-ee941e395c32 2018-04-19T10:10:31Z  0% S2MSI2A
-0e3e361d-e8e0-4e71-a10d-c1faf1640beb 2018-04-19T10:10:31Z  0% S2MSI2A
-72ed25c8-5a36-40a5-97ce-e0b4d6347c7f 2018-04-06T10:00:31Z  0% S2MSI2A
-eee28af8-aaa6-4e59-9902-dd5cbfc08bab 2018-04-06T10:00:31Z  0% S2MSI2A
-e2a9d80d-da35-44bd-ab88-76bad398da41 2018-07-18T10:10:31Z  0% S2MSI2A
-...
+1062 Sentinel product(s) found.
+S2B_MSIL2A_20180124T101309_N9999_R022_T32TQL_20230726T165433 2018-01-24T10:13:09   0% S2MSI2A 43.38 MB
+S2B_MSIL2A_20180124T101309_N9999_R022_T33TTF_20230726T182752 2018-01-24T10:13:09   0% S2MSI2A 42.07 MB
+S2A_MSIL2A_20180129T101251_N9999_R022_T32TQM_20221022T182543 2018-01-29T10:12:51   0% S2MSI2A 613.37 MB
+S2A_MSIL2A_20180129T101251_N9999_R022_T33TTG_20221023T032353 2018-01-29T10:12:51   0% S2MSI2A 630.21 MB
+S2B_MSIL2A_20180210T100139_N9999_R122_T32TQM_20221022T182154 2018-02-10T10:01:39   0% S2MSI2A 0.98 GB
+S2B_MSIL2A_20180210T100139_N9999_R122_T33TTG_20221023T032353 2018-02-10T10:01:39   0% S2MSI2A 996.95 MB
+[...]
 </pre></div>
 
 Sort products by <b>ingestiondate</b>, limit cloud coverage to 3% per scene:
@@ -233,13 +180,13 @@ Sort products by <b>ingestiondate</b>, limit cloud coverage to 3% per scene:
 g.region n=42 w=12 s=41 e=13 res=0:01 -p
 i.sentinel.download -l settings=credentials.txt producttype=S2MSI2A start=2018-01-01 end=2018-12-31 sort=ingestiondate order=desc clouds=3
 
-191 Sentinel product(s) found
-1b0ee27e-c51a-49d9-b2a4-78db128a49f9 2018-12-27T10:04:19Z  0% S2MSI2A
-8da04aa9-5d8b-42bc-abb3-d2c9b61c5ee4 2018-12-27T10:04:19Z  1% S2MSI2A
-e4f324f4-8e98-440c-9141-ae3d24cd1faa 2018-12-27T10:04:19Z  1% S2MSI2A
-be507500-8538-44f0-969c-d6d45a16beea 2018-12-27T10:04:19Z  0% S2MSI2A
-1ab5dd20-4845-4325-bd71-5d0596f4d11d 2018-12-27T10:04:19Z  0% S2MSI2A
-...
+197 Sentinel product(s) found.
+S2B_MSIL2A_20180928T100019_N0208_R122_T32TQM_20180928T180353 2018-09-28T10:00:19   0% S2MSI2A 0.0 MB
+S2B_MSIL2A_20180928T100019_N0208_R122_T33TUF_20180928T180353 2018-09-28T10:00:19   1% S2MSI2A 0.0 MB
+S2B_MSIL2A_20180928T100019_N0208_R122_T33TUG_20180928T180353 2018-09-28T10:00:19   1% S2MSI2A 0.0 MB
+S2B_MSIL2A_20180928T100019_N0208_R122_T32TQL_20180928T180353 2018-09-28T10:00:19   0% S2MSI2A 234.59 MB
+S2B_MSIL2A_20180928T100019_N0208_R122_T33TTG_20180928T180353 2018-09-28T10:00:19   0% S2MSI2A 0.0 MB
+[...]
 </pre></div>
 
 Create a vector map of <b>footprints</b> of S-2 scenes with <b>clouds</b>
@@ -250,14 +197,16 @@ some footprint overlap):
 g.region n=42 w=12 s=41 e=13 res=0:01 -p
 i.sentinel.download -l settings=credentials.txt producttype=S2MSI2A start=2018-01-01 end=2018-12-31 clouds=1 footprints=s2_scenes_footprints
 
-131 Sentinel product(s) found
-Writing footprints into &lt;s2_scenes_footprints&gt;...
-...
-379e2896-408d-4642-bc6f-ee941e395c32 2018-04-19T10:10:31Z  0% S2MSI2A
-0e3e361d-e8e0-4e71-a10d-c1faf1640beb 2018-04-19T10:10:31Z  0% S2MSI2A
-...
-</pre></div>
-
+Writing footprints into <s2_scenes_footprints>...
+197 scene(s) found.
+[...]
+S2B_MSIL2A_20180210T100139_N9999_R122_T32TQM_20221022T182154 2018-02-10T10:01:39   0% S2MSI2A 0.98 GB
+S2B_MSIL2A_20180210T100139_N9999_R122_T33TTG_20221023T032353 2018-02-10T10:01:39   0% S2MSI2A 996.95 MB
+S2A_MSIL2A_20180406T100031_N0206_R122_T33TUF_20180406T120928 2018-04-06T10:00:31   0% S2MSI2A 0.0 MB
+S2A_MSIL2A_20181023T100051_N9999_R122_T32TQM_20221022T181952 2018-10-23T10:00:51   0% S2MSI2A 1.0 GB
+S2A_MSIL2A_20181023T100051_N9999_R122_T33TTG_20221023T032324 2018-10-23T10:00:51   0% S2MSI2A 0.99 GB
+S2A_MSIL2A_20181205T101401_N9999_R022_T32TQM_20221022T180259 2018-12-05T10:14:01   0% S2MSI2A 625.52 MB
+[...]
 <p>
 Find Sentinel-2 L1C products (S2MSI1C) of <b>last 60 days</b> (default) covering current computation region extent:
 
@@ -265,21 +214,21 @@ Find Sentinel-2 L1C products (S2MSI1C) of <b>last 60 days</b> (default) covering
 g.region n=42 w=12 s=41 e=13 res=0:01 -p
 i.sentinel.download -l settings=credentials.txt producttype=S2MSI1C sort=ingestiondate
 
-57 Sentinel product(s) found
-c5f6e871-3cd9-471f-a022-712f5e10a43a 2018-11-10T10:12:39Z 15% S2MSI1C
-a83ad139-c420-4433-bd21-f7ed35536e69 2018-11-10T10:12:39Z 14% S2MSI1C
-6a4f093a-3fa7-466e-8ec9-77718d7b8eac 2018-11-12T10:02:41Z  8% S2MSI1C
-9a668bfa-1a7e-4d92-8c51-ed2024415e6a 2018-11-15T10:12:51Z  6% S2MSI1C
-5f3d19a2-eddb-42eb-ab6d-67f0fdd18c58 2018-11-15T10:12:51Z  5% S2MSI1C
-...
+100 scene(s) found.
+S2B_MSIL1C_20240611T100559_N0510_R022_T33TTF_20240611T120915 2024-06-11T10:05:59  40% S2MSI1C 327.18 MB
+S2B_MSIL1C_20240611T100559_N0510_R022_T32TQL_20240611T120915 2024-06-11T10:05:59  40% S2MSI1C 359.88 MB
+S2B_MSIL1C_20240611T100559_N0510_R022_T33TTG_20240611T120915 2024-06-11T10:05:59  49% S2MSI1C 522.2 MB
+S2B_MSIL1C_20240611T100559_N0510_R022_T32TQM_20240611T120915 2024-06-11T10:05:59  48% S2MSI1C 503.76 MB
+S2A_MSIL1C_20240613T100031_N0510_R122_T32TQM_20240613T134114 2024-06-13T10:00:31  33% S2MSI1C 759.46 MB
+[...]
 </pre></div>
 
 <p>
-Find Sentinel-1 products by one or several specified <b>UUID</b>s:
+Find Sentinel-1 products by one or several specified <b>ID</b>s:
 
 <div class="code"><pre>
-i.sentinel.download -l settings=credentials.txt uuid=a45d5bbe-6919-49fc-84fd-72a7634d2035
-a45d5bbe-6919-49fc-84fd-72a7634d2035 2018-06-04T05:26:01Z cloudcover_NA SLC
+i.sentinel.download -l settings=credentials.txt id=S1A_IW_SLC__1SDV_20240609T052012_20240609T052039_054242_0698FA_72DA --quiet
+S1A_IW_SLC__1SDV_20240609T052012_20240609T052039_054242_0698FA_72DA 2024-06-09T05:20:12   0% S2MSI2A 7.71 GB
 </pre></div>
 
 <p>
@@ -288,42 +237,32 @@ a specific polarisation mode (see
 <a href="https://scihub.copernicus.eu/twiki/do/view/SciHubUserGuide/FullTextSearch">here</a> for query details):
 
 <div class="code"><pre>
-i.sentinel.download -l settings=credentials.txt producttype=SLC start=2018-01-01 end=2018-12-31 query='polarisationmode=VV'
-34 Sentinel product(s) found
-047db83e-db60-45f3-a6d2-3a32588dac01 2018-01-10T23:14:05Z cloudcover_NA SLC
-fc6107a5-9daf-45cc-a40a-0e5502c464b6 2018-01-22T23:14:05Z cloudcover_NA SLC
-4ad9b650-2954-4ff5-977b-90aedbed6514 2018-02-03T23:14:05Z cloudcover_NA SLC
+i.sentinel.download -l settings=credentials.txt producttype=SLC start=2018-01-01 end=2018-12-31 query='polarizationChannels=VV&amp;VH'
+393 scene(s) found.
+S1B_IW_SLC__1SDV_20180101T051051_20180101T051118_008973_010039_B427 2018-01-01T05:10:51 cloudcover_NA SLC 7.47 GB
+S1B_IW_SLC__1SDV_20180101T051116_20180101T051143_008973_010039_CF15 2018-01-01T05:11:16 cloudcover_NA SLC 7.46 GB
+S1A_IW_SLC__1SDV_20180101T170507_20180101T170535_019964_021FFD_BC68 2018-01-01T17:05:07 cloudcover_NA SLC 7.7 GB
+S1A_IW_SLC__1SDV_20180101T170532_20180101T170559_019964_021FFD_E2C9 2018-01-01T17:05:32 cloudcover_NA SLC 7.41 GB
+S1B_IW_SLC__1SDV_20180102T165631_20180102T165658_008995_0100F0_5814 2018-01-02T16:56:31 cloudcover_NA SLC 7.71 GB
+S1B_IW_SLC__1SDV_20180106T051902_20180106T051929_009046_0102AB_009C 2018-01-06T05:19:02 cloudcover_NA SLC 7.47 GB
 [...]
 </pre></div>
 
 <p>
 Find Sentinel-2 L1C products (S2MSI1C) covering an exemplary region in Germany with
-temporal and cloud filter from the <b>USGS Earth Explorer</b>. Note the different
-formats of <i>UUID</i> and <i>identifier</i> used by the <b>USGS Earth Explorer</b>
-(first two result columns):
+temporal and cloud filter.
 <div class="code"><pre>
 g.region n=51 w=6 s=50 e=7 res=0:01 -p
 
-i.sentinel.download datasource=USGS_EE start=2017-09-01 end=2017-12-01 clouds=10 producttype=S2MSI1C settings=credentials.txt -l
-20 Sentinel product(s) found
-2177169 L1C_T31UGR_A011488_20170903T105515 2017-09-03  0%
-2115539 L1C_T31UGR_A011631_20170913T105335 2017-09-13  0%
-2184043 L1C_T31UGR_A011774_20170923T105022 2017-09-23  0%
-2228254 L1C_T31UGR_A011917_20171003T105024 2017-10-03  0%
-2277543 L1C_T31UGR_A012060_20171013T105315 2017-10-13  0%
-5594498 L1C_T32ULB_A003180_20171015T104525 2017-10-15  0%
+i.sentinel.download start=2017-09-01 end=2017-12-01 clouds=10 producttype=S2MSI1C settings=credentials.txt -l
+40 scene(s) found.
+S2B_MSIL1C_20171015T104009_N0205_R008_T32ULB_20171015T104525 2017-10-15T10:40:09   0% S2MSI1C 0.0 MB
+S2B_MSIL1C_20171015T104009_N0500_R008_T31UGS_20231026T234139 2017-10-15T10:40:09   0% S2MSI1C 807.9 MB
+S2B_MSIL1C_20171015T104009_N0500_R008_T32ULB_20231026T234139 2017-10-15T10:40:09   0% S2MSI1C 807.19 MB
+S2A_MSIL1C_20171017T103021_N0205_R108_T31UGR_20171017T103024 2017-10-17T10:30:21   0% S2MSI1C 0.0 MB
+S2A_MSIL1C_20171017T103021_N0500_R108_T31UGR_20231015T102148 2017-10-17T10:30:21   0% S2MSI1C 460.84 MB
 [...]
 </pre></div>
-
-<p>
-Find Sentinel-2 L1C products (S2MSI1C) with specific UUIDs from the <b>USGS Earth Explorer</b>:
-<div class="code"><pre>
-i.sentinel.download datasource=USGS_EE uuid=2177169,2115539 settings=credentials.txt -l
-2 Sentinel product(s) found
-2177169 L1C_T31UGR_A011488_20170903T105515 2017-09-03  0%
-2115539 L1C_T31UGR_A011631_20170913T105335 2017-09-13  0%
-</pre></div>
-
 
 <h3>Download Sentinel products</h3>
 
@@ -334,117 +273,23 @@ g.region n=42 w=12 s=41 e=13 res=0:01 -p
 i.sentinel.download settings=credentials.txt producttype=S2MSI2A start=2018-05-01 end=2018-05-31 limit=1 output=s2_L2A_may2018/
 </pre></div>
 
-Download first (<b>limit=1</b>) S2MSI2A product found from <b>Google Cloud Storage</b>:
-<div class="code"><pre>
-i.sentinel.download settings=credentials.txt producttype=S2MSI2A start=2018-05-01 end=2018-05-31 limit=1 output=s2_L2A_may2018/ datasource=GCS
-</pre></div>
-
 The downloaded Sentinel data can subsequently be easily imported into GRASS GIS
 using <em><a href="i.sentinel.import.html">i.sentinel.import</a></em>
 module.
 
-<h3>Download Sentinel products by UUID</h3>
-
-Example of downloading a single Sentinel product by UUID:
-
-<div class="code"><pre>
-i.sentinel.download settings=credentials.txt uuid=6a10da0f-7777-4818-bc2c-4680e82297ac output=s2_data/
-</pre></div>
-
-<p>
-Example of downloading a single Sentinel product by UUID from <b>Google Cloud Storage</b>
-<div class="code"><pre>
-i.sentinel.download datasource=GCS settings=credentials.txt uuid=6a10da0f-7777-4818-bc2c-4680e82297ac output=s2_data/
-</pre></div>
-
-<p>
-Example of downloading a single Sentinel product by UUID from the <b>USGS Earth Explorer</b>:
+<h3>Download Sentinel products by ID</h3>
+Example of downloading a single Sentinel product by ID:
 
 <div class="code"><pre>
-i.sentinel.download datasource=USGS_EE settings=credentials.txt uuid=2177169 output=s2_data/
-</pre></div>
-
-<h3>Download Sentinel products by scene name</h3>
-
-<em>i.sentinel.download</em> also allows downloading of Sentinel products
-by specifying a (list of) scene names (name of the SAFE.zip file). This operation is
-performed by the <b>query</b> option. Note that this option is mutually exclusive with
-all other filtering options.
-
-<p>
-Example of downloading a single Sentinel product by scene names (name of the SAFE.zip file).
-Importantly, the <b>producttype</b>, <b>start</b> and <b>end</b> date need to be specified to
-override the default settings (otherwise no product will be found). There are two query
-variants, either with <b>identifier</b> or <b>filename</b>:
-
-<div class="code"><pre>
-# North Carolina sample dataset example
-
-# Sentinel-1, identifier= without ".SAFE" in the name
-i.sentinel.download settings=credentials.txt \
-  query='identifier=S1A_IW_GRDH_1SDV_20210130T231425_20210130T231450_036374_0444CC_0EA9' \
-  producttype=GRD start=2021-01-01 end=2021-02-15 output=s1_data/
-
-# Sentinel-1, filename= requires ".SAFE" in the name
-i.sentinel.download settings=credentials.txt \
-  query='filename=S1A_IW_GRDH_1SDV_20210130T231425_20210130T231450_036374_0444CC_0EA9.SAFE' \
-  producttype=GRD start=2021-01-01 end=2021-02-15 output=s1_data/
-
-
-# Sentinel-2, identifier= without ".SAFE" in the name
-i.sentinel.download settings=credentials.txt \
-  query='identifier=S2B_MSIL2A_20210120T155559_N0214_R054_T17SPV_20210120T201821' \
-  producttype=S2MSI2A start=2021-01-01 end=2021-02-15 output=s2_data/
-
-# Sentinel-2, filename= requires ".SAFE" in the name
-i.sentinel.download settings=credentials.txt \
-  query='filename=S2B_MSIL2A_20210120T155559_N0214_R054_T17SPV_20210120T201821.SAFE' \
-  producttype=S2MSI2A start=2021-01-01 end=2021-02-15 output=s2_data/
-</pre></div>
-
-<p>
-Example of downloading a single Sentinel product by scene name from
-<b>Google Cloud Storage</b>:
-<div class="code"><pre>
-i.sentinel.download datasource=GCS start=2021-01-01 end=2021-02-15 producttype=S2MSI2A \
-  query="filename=S2B_MSIL2A_20210120T155559_N0214_R054_T17SPV_20210120T201821.SAFE" settings=credentials.txt \
-  output=s2_data/
-</pre></div>
-
-  <p>
-  Example of downloading a single Sentinel product by identifier from
-  <b>Google Cloud Storage</b>:
-  <div class="code"><pre>
-  # in this case, no settings file is required, because the identifier can be directly used to create a GCS download URL
-  i.sentinel.download datasource=GCS query="identifier=S2B_MSIL2A_20210120T155559_N0214_R054_T17SPV_20210120T201821" \
-    output=s2_data/
-  </pre></div>
-
-<p>
-Example of downloading a single Sentinel product from <b>USGS Earth Explorer</b>
-by the USGS-identifier:
-<div class="code"><pre>
-i.sentinel.download datasource=USGS_EE start=2017-09-01 end=2017-12-01 producttype=S2MSI1C \
-  query="usgs_identifier=L1C_T32ULA_A003180_20171015T104525" settings=credentials.txt \
-  output=s2_data/
-</pre></div>
-
-<p>
-It is also possible to use the keywords filename/identifier in ESA formatting in <b>query</b>
-when downloading from the <b>USGS Earth Explorer</b>:
-<div class="code"><pre>
-i.sentinel.download datasource=USGS_EE start=2017-10-01 end=2017-11-01 producttype=S2MSI1C \
-  query='filename=S2B_MSIL1C_20171015T104009_N0205_R008_T32ULA_20171015T104525' settings=credentials.txt \
-  output=s2_data/
-</pre></div>
-
+i.sentinel.download settings=credentials.txt id=S2B_MSIL2A_20180210T100139_N9999_R122_T32TQM_20221022T182154 output=s2_data/
+<pre></div>
 
 <h2>REQUIREMENTS</h2>
 
 <ul>
-  <li><a href="https://pypi.python.org/pypi/sentinelsat">Sentinelsat library</a></li>
-  <li><a href="https://pypi.python.org/pypi/pandas">Pandas library</a></li>
-  <li><a href="https://pypi.python.org/pypi/landsatxplore">landsatxplore library</a></li> for downloading from USGS Earth Explorer
+    <li><a href="i.eodag.html">i.eodag</a></li>
+    <li><a href="https://eodag.readthedocs.io/en/stable/getting_started_guide/install.html">EODAG library</a>
+    (install with <code>pip install eodag</code>)</li>
 </ul>
 
 <h2>SEE ALSO</h2>
@@ -463,11 +308,17 @@ i.sentinel.download datasource=USGS_EE start=2017-10-01 end=2017-11-01 productty
 </em>
 
 <p>
-Copernicus Scihub reference: <a href="https://scihub.copernicus.eu/twiki/do/view/SciHubUserGuide/FullTextSearch">Simple search query</a>
-<p>
-Finding UUID by Sentinel scene name (example: 'S2B_MSIL2A_20190724T103029_N0213_R108_T32ULA_20190724T130550'; requires Scihub registration):<br>
-<a href="https://scihub.copernicus.eu/dhus/odata/v1/Products?$filter=substringof('S2B_MSIL2A_20190724T103029_N0213_R108_T32ULA_20190724T130550',Name)&$top=5&$format=json&$orderby=IngestionDate%20desc">https://scihub.copernicus.eu/dhus/odata/v1/Products?$filter=substringof('S2B_MSIL2A_20190724T103029_N0213_R108_T32ULA_20190724T130550',Name)&$top=5&$format=json&$orderby=IngestionDate%20desc</a><br>
-The UUID is shown in the server answer under 'Id'.
+Finding UUID by Sentinel scene name (example: 'S2B_MSIL2A_20190724T103029_N0213_R108_T32ULA_20190724T130550'):<br>
+<ol>
+<li>
+Visit the following page:
+<a href="https://browser.dataspace.copernicus.eu/">browser.dataspace.copernicus.eu</a><br>
+</li>
+<li>Go into the "Search" tab.</li>
+<li>Paste Sentinel scene ID into the Search Box, and press Search.</li>
+<li>A single scene should show up. Press the info icon on the bottom right of the scene.</li>
+<li>The UUID is shown in the URL at the bottom of the scene window, between brackets.<br> (e.g. https://zipper.dataspace.copernicus.eu/odata/v1/Products(<b>3cfcc58f-8316-5df0-b55e-e1831e745b51</b>)/$value) so the UUID is <b>3cfcc58f-8316-5df0-b55e-e1831e745b51</b> in this case</li>
+</ol>
 
 <p>
 See also <a href="https://training.gismentors.eu/grass-gis-workshop-jena/units/20.html">GRASS
@@ -480,3 +331,5 @@ Lab</a>, CTU in Prague, Czech Republic with support
 of <a href="https://opengeolabs.cz/en/home/">OpenGeoLabs</a> company
 <br>
 Guido Riembauer, <a href="https://www.mundialis.de/">mundialis</a> (USGS and GCS provider support)
+<br>
+<a href="https://github.com/HamedElgizery" target="_blank">Hamed Elgizery</a>, Giza, Egypt. (EODAG Migration)
