@@ -309,7 +309,7 @@ S2B_MSIL2A_20240529T081609_N0510_R121_T37TDE_20240529T124818 2024-05-29T08:16:09
             start="2022-05-01",
             end="2022-06-01",
             map="durham",
-            save="results/search_s2.geojson",
+            save="search_s2.geojson",
             quiet=True,
             overwrite=True,
         )
