@@ -260,7 +260,6 @@
 
 import sys
 import os
-import pytz
 import json
 import re
 from pathlib import Path
@@ -454,16 +453,13 @@ def normalize_time(datetime_str: str):
     :return: Datetime converted to 'YYYY-MM-DDTHH:MM:SS'
     :rtype: str
     """
+    # Remove microseconds
+    if datetime_str.find("Z") != -1:
+        datetime_str = datetime_str[: datetime_str.find("Z")]
     normalized_datetime = datetime.fromisoformat(datetime_str)
     if normalized_datetime.tzinfo is None:
-        normalized_datetime = normalized_datetime.replace(tzinfo=timezone.utc)
-    # Remove microseconds
-    normalized_datetime = normalized_datetime.replace(microsecond=0)
-    # Convert time to UTC
-    normalized_datetime = normalized_datetime.astimezone(pytz.utc)
-    # Remove timezone info
-    normalized_datetime = normalized_datetime.replace(tzinfo=None)
-    return normalized_datetime.isoformat()
+        return normalized_datetime.strftime("%Y-%m-%dT%H:%M:%S")
+    return normalized_datetime.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
 
 
 def no_fallback_search(search_parameters, provider):
