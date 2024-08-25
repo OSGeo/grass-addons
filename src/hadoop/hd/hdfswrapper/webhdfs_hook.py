@@ -84,7 +84,7 @@ class WebHDFSHook(BaseHook):
         print("progress: chunk_size %s" % b)
 
     def upload_file(self, source, destination, overwrite=True, parallelism=1, **kwargs):
-        """
+        r"""
         Uploads a file to HDFS
         :param source: Local path to file or folder. If a folder, all the files
           inside of it will be uploaded (note that this implies that folders empty

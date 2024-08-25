@@ -1,8 +1,7 @@
 #!/bin/sh
 
 # script to build GRASS GIS preview binaries + addons from the `main`
-# (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
-# 2022-2023
+# (c) 2002-2024, GPL 2+ Markus Neteler <neteler@osgeo.org>
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
@@ -34,7 +33,7 @@
 PATH=/home/neteler/binaries/bin:/usr/bin:/bin:/usr/X11R6/bin:/usr/local/bin
 
 GMAJOR=8
-GMINOR=4
+GMINOR=5
 GPATCH="0dev"  # required by grass-addons-index.sh
 DOTVERSION=$GMAJOR.$GMINOR
 VERSION=$GMAJOR$GMINOR
@@ -105,6 +104,7 @@ CFLAGS=$CFLAGSSTRING LDFLAGS=$LDFLAGSSTRING ./configure \
   --with-pdal \
   --with-fftw \
   --with-nls \
+  --with-libsvm \
   --with-blas --with-blas-includes=/usr/include/atlas/ \
   --with-lapack --with-lapack-includes=/usr/include/atlas/ \
   --with-zstd \
@@ -166,6 +166,7 @@ $MYMAKE sphinxdoclib
 ##
 echo "Copy over the manual + pygrass HTML pages:"
 mkdir -p $TARGETHTMLDIR
+mkdir -p $TARGETHTMLDIR/addons # indeed only relevant the very first compile time
 # don't destroy the addons
 \mv $TARGETHTMLDIR/addons /tmp
 rm -f $TARGETHTMLDIR/*.*
@@ -205,7 +206,7 @@ cp -r html/*  $TARGETPROGMAN/
 
 echo "Copied HTML progman to https://grass.osgeo.org/programming${GVERSION}"
 # fix permissions
-chgrp -R grass $TARGETPROGMAN/*
+#chgrp -R grass $TARGETPROGMAN/*
 chmod -R a+r,g+w $TARGETPROGMAN/
 chmod -R a+r,g+w $TARGETPROGMAN/*
 # bug in doxygen
@@ -309,7 +310,7 @@ mkdir -p $TARGETMAIN/addons/grass$GMAJOR/logs/
 cp -p ~/.grass$GMAJOR/addons/logs/* $TARGETMAIN/addons/grass$GMAJOR/logs/
 
 # generate addons modules.xml file (required for g.extension module)
-~/src/$BRANCH/bin.$ARCH/grass --tmp-location EPSG:4326 --exec ~/cronjobs/build-xml.py --build ~/.grass$GMAJOR/addons
+~/src/$BRANCH/bin.$ARCH/grass --tmp-project EPSG:4326 --exec ~/cronjobs/build-xml.py --build ~/.grass$GMAJOR/addons
 cp ~/.grass$GMAJOR/addons/modules.xml $TARGETMAIN/addons/grass$GMAJOR/modules.xml
 
 # regenerate keywords.html file with addons modules keywords

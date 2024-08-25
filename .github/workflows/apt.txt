@@ -13,6 +13,7 @@ libpng-dev
 libproj-dev
 libreadline-dev
 libzstd-dev
+proj-bin
 pdal
 sqlite3
 subversion

@@ -97,9 +97,9 @@ def build_unmet_demand_expression(
     # build expressions -- explicit: use the 'score' kwarg!
     expression = (
         "eval( unmet_demand = {expression},"
-        " \ \n distance = {distance} == {distance_category},"
-        " \ \n if( distance, unmet_demand,"
-        " \ \n null() ))"
+        " \\ \n distance = {distance} == {distance_category},"
+        " \\ \n if( distance, unmet_demand,"
+        " \\ \n null() ))"
     )
     if not real_numbers:
         expression = "round(" + expression + ")"

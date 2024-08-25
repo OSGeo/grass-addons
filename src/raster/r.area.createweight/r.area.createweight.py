@@ -440,7 +440,7 @@ def spatial_boundaries(vector, id):
 
     # Check if loss of spatial units (polygons)
     element_equal, origin_n, gridded_n = check_no_missing_zones(vector, gridded_vector)
-    if element_equal == False:
+    if element_equal is False:
         gscript.run_command(
             "g.remove",
             quiet=True,
@@ -493,7 +493,7 @@ def natural_keys(text):
 
     import re  # Import needed library
 
-    return [atoi(c) for c in re.split("(\d+)", text)]  # Split string
+    return [atoi(c) for c in re.split(r"(\d+)", text)]  # Split string
 
 
 def join_2csv(file1, file2, separator=";", join="inner", fillempty="NULL"):
@@ -575,7 +575,7 @@ def join_multiplecsv(
     """Join multiple csv files"""
 
     # Stop execution if outputfile exists and cannot be overwritten
-    if os.path.isfile(outfile) and overwrite == False:
+    if os.path.isfile(outfile) and overwrite is False:
         gscript.fatal(
             _(
                 "File '%s' already exists and overwrite option is "
@@ -610,7 +610,7 @@ def join_multiplecsv(
                 )
         else:  # in case there is only one file in the list
             tmp_file = fileList[0]
-        if os.path.isfile(outfile) and overwrite == True:
+        if os.path.isfile(outfile) and overwrite is True:
             os.remove(outfile)
         # Copy the temporary file to the desired output path
         shutil.copy2(tmp_file, outfile)

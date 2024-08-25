@@ -1,4 +1,5 @@
 scipy
+eodag
 pandas
 scikit-learn
 GDAL==${GDAL_VERSION}

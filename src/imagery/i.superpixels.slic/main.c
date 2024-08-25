@@ -561,8 +561,8 @@ int main(int argc, char *argv[])
                     }
 
                 } /* for( x=x1 */
-            }     /* for( y=y1 */
-        }         /* for (n=0 */
+            } /* for( y=y1 */
+        } /* for (n=0 */
 
         if (slic0) {
             /* adaptive m for SLIC zero */

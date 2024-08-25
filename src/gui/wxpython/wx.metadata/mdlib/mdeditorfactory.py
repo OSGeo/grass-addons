@@ -50,7 +50,6 @@ ADD_RM_BUTTON_SIZE = (35, 35)
 
 
 class MdFileWork:
-
     """initializer of metadata in OWSLib and export OWSLib object to xml by jinja template system"""
 
     def __init__(self, pathToXml=None):
@@ -190,7 +189,6 @@ class MdFileWork:
 
 
 class MdBox(wx.Panel):
-
     """widget(static box) which include metadata items (MdItem)"""
 
     def __init__(self, parent, label="label"):
@@ -327,7 +325,6 @@ class MdBoxKeywords(MdBox):
 
 
 class MdWxDuplicator:
-
     """duplicator of MdBox and MdItem object"""
 
     def __init__(self, mdItems, parent, boxlabel=None, mdItemOld=None, template=None):
@@ -391,7 +388,6 @@ class MdWxDuplicator:
 # METADATA ITEM (label+ctrlText+button(optional)+chckbox(template)
 # =========================================================================
 class MdItem(wx.BoxSizer):
-
     """main building blocks of generated GUI of editor"""
 
     def __init__(
@@ -902,7 +898,6 @@ class MdItemKeyword(wx.BoxSizer):
 
 
 class MdNotebookPage(scrolled.ScrolledPanel):
-
     """
     every notebook page is initialized by jinjainfo::MdDescription.group (label)
     """
@@ -1163,7 +1158,6 @@ class MdKeywords(wx.BoxSizer):
 # MAIN FRAME
 # =========================================================================
 class MdMainEditor(wx.Panel):
-
     """
     main functions : self.generateGUI(): generating GUI from: editor:MdItem,MdBox,MdNotebookPage
                      self.createNewMD(): filling OWSLib.iso.MD_Metadata by values from generated GUI

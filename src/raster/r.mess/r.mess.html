@@ -1,23 +1,23 @@
 <h2>DESCRIPTION</h2>
 
-The Multivariate Environmental Similarity (MES) surfaces was
-proposed by Elith et al (2010) [1] and originally implemented in the
-<a href="http://biodiversityinformatics.amnh.org/open_source/maxent/">Maxent software</a>.
-The MES provides a measure of the portional distance
+The Multivariate Environmental Similarity (MES) surfaces was proposed
+by Elith et al (2010) [1] and originally implemented in the <a
+href="http://biodiversityinformatics.amnh.org/open_source/maxent/">Maxent
+software</a>. The MES provides a measure of the proportional distance
 of any points (in the projection data) with respect to the range of
-individual covariates from reference data. More precisely, the MES
+individual covariates from the reference data. More precisely, the MES
 represents how similar a point is to a reference set of points, with
 respect to a set of predictor variables (V1, V2, ...). The values in
 the MESS are influenced by the full distribution of the reference
-points, so that sites within the environmental range of the
-reference points but in relatively unusual environments will have a
-smaller value than those in very common environments". See the
-supplementary materials of Elith et al. (2010) [1] for more details.
+points. So, sites within the environmental range of the reference
+points but  in relatively unusual environments will have a smaller
+value than those in very  common environments. See the supplementary
+materials of Elith et al. (2010) [1] for more details.
 
-<p><em>r.mess</em> computes the MES and the individual similarity
-layers (IES - the user can select to delete these layers) and
-optionally a number of other layers that help to further interpret
-the MES values
+<p>
+<em>r.mess</em> computes the MES and the individual similarity layers
+(IES - the user can select to delete these layers) and, optionally,
+several other layers that help to further interpret the MES values.
 
 <ul>
 <li>the area where for at least one of the variables has a value
@@ -28,15 +28,16 @@ the NT1 measure as proposed by Mesgaran et al. 2014 [2]</li>
 <li>the number of layers with negative values</li>
 </ul>
 
-<p>The user can compare a set of reference / baseline conditions
-(ref) and projected / test conditions (proj). For the reference
-conditions the whole region can be used (no reference areas or
-points are given). Alternatively, one can define a set of
-reference/sample points (presvect) or reference / sample areas
-(presrast) against which other areas are to be compared. The
-projected conditions can be future conditions in the same area
-(similarity across time), or conditions in another area (similarity
-between two different areas). See the examples for more details.
+<p>
+The user can compare a set of reference / baseline conditions (ref) and
+projected / test conditions (proj). For the reference conditions, the
+whole region can be used (no reference areas or points are given).
+Alternatively, one can define a set of reference/sample points
+(presvect) or reference/sample areas (presrast) against which other
+areas are to be compared. The projected conditions can be future
+conditions in the same area (similarity across time), or conditions in
+another area (similarity between two different areas). See the examples
+for more details.
 
 <h2>NOTES</h2>
 
@@ -50,30 +51,32 @@ and compute how similar the areas area outside the mask.
 <h2>EXAMPLE</h2>
 
 The examples below use the bioclimatic variables bio1 (mean annual
-temperature), bio12 (annual precipitation) and bio15 (precipitation
+temperature), bio12 (annual precipitation), and bio15 (precipitation
 seasonality) in Kenya and Uganda. All climate layers (current and
-future) are from http://www.worldclim.org. The protected areas layer
-includes all nationally designated protected areas with a IUCN
-category of II or higher from
-<a href="http://www.protectedplanet.net/">protectedplanet.net</a>.
+future) are from <a href="http://www.worldclim.org">Worldclim.org</a>.
+The protected areas layer includes all nationally designated protected
+areas with a IUCN category of II or higher from <a
+href="http://www.protectedplanet.net/">protectedplanet.net</a>.
 
 <h3>Example 1</h3>
 
 The simplest case is when only a set of reference data layers (<i>env
-</i>) is provided. The multi-variate similarity values of the
-resulting map are a measure of how similar conditions in a location
-are to the mediam conditions in the whole region.
+</i>) is provided. The multi-variate similarity values of the resulting
+map are a measure of how similar conditions in a location are to the
+median conditions in the whole region.
 
+<p>>
 <div class="code"><pre>
 g.region raster=bio1
 r.mess env=bio1,bio12,bio15 output=Ex_01
 </pre></div>
 
-<p>Thus, in the maps above, the value in each pixel represents how
-similar conditions are in that pixel to the median conditions in the
-whole region, in terms of mean annual temperature (bio1), mean
-annual precipitation (bio12), precipitation seasonality (bio15) and
-the three combined (MES).
+<p>
+Thus, in the maps above, the value in each pixel represents how similar
+conditions are in that pixel to the median conditions in the entire
+region, in  terms of mean annual temperature (bio1), mean annual
+precipitation (bio12),  precipitation seasonality (bio15) and the three
+combined (MES).
 
 <center>
 <img src="r_mess_Ex_01.png">
@@ -81,24 +84,26 @@ the three combined (MES).
 
 <h3>Example 2</h3>
 
-In the second example, conditions in the whole region are compared
-to those in the region's protected areas (ppa), which thus serves as
-the reference/sample area. See
-<a href="http://dx.doi.org/10.1371/journal.pone.0121444">van Breugel et al.(2015)</a>
-[3] for an example how this can be useful.
+In the second example, conditions in the entire region are compared to
+those in the region's protected areas (ppa), which thus serves as the
+reference/sample area. See <a
+href="http://dx.doi.org/10.1371/journal.pone.0121444">van Breugel et
+al.(2015)</a> [3] for an example of how this can be useful.
 
+<p>
 <div class="code"><pre>
 g.region raster=bio1
 r.mess -m -n -i env=bio1,bio12,bio15 ref_rast=ppa output=Ex_02
 </pre></div>
 
-<p>In the figure below the map with the protected areas, the MES, the
-most dissimilar variables and the areas with novel conditions are
-given. They show that the protected areas cover most of the region's
-annual precipitation, mean annual temperature and precipitation
-seasonality gradients. Areas with novel conditions can be found in
-northern Kenya.
+<p>
+In the figure below the map with the protected areas, the MES, the most
+dissimilar variables, and the areas with novel conditions are given.
+They show that the protected areas cover most of the region's annual
+precipitation, mean annual temperature, and precipitation seasonality
+gradients. Areas with novel conditions can be found in northern Kenya.
 
+<p>
 <center>
 <img src="r_mess_Ex_02.png">
 </center>
@@ -109,7 +114,7 @@ Similarity between long-term average conditions based on the period
 1950-2000 (<i>env</i>) and projections for climate conditions in
 2070 under RCP85 based on the IPSL General Circulation Models (<i>
 env_proj</i>). No reference points or areas are defined in this
-example, so the whole region is used as reference. Note that this is
+example, so the whole region is used as a reference. Note that this is
 equivalent to what the Maxent program does when computing the MESS
 layers.
 
@@ -119,15 +124,16 @@ r.mess env=bio1,bio12,bio15 env_proj=IPSL_bio1,IPSL_bio12,IPSL_bio15
 output=Ex_03
 </pre></div>
 
-<p>Results (below) shows that there is a fairly large area with novel
+<p>
+Results (below) shows that there is a fairly large area with novel
 conditions. Note that in the <i>MES</i> map, the values are based on
 the highest negative value across the input variables (here bio1,
-bio12, bio15). In the <i>SumNeg</i> map, values of all input
-variables are summed when negative. The <i>Count</i> map shows for
-each raster cell how many variables have a negative similarity
-scores. Thus, the values in the <i>MES</i> and <i>SumNeg</i> maps
-only differ were the MES of more than one variable is negative (dark
-grey areas in the <i>Count</i> map).
+bio12, bio15). In the <i>SumNeg</i> map, values of all input variables
+are summed when negative. The <i>Count</i> map shows for each raster
+cell how many variables have negative similarity scores. Thus, the
+values in the <i>MES</i> and <i>SumNeg</i> maps only differ where the
+MES of more than one variable is negative (dark gray areas in the
+<i>Count</i> map).
 
 <center>
 <img src="r_mess_Ex_03.png">
@@ -140,14 +146,16 @@ grey areas in the <i>Count</i> map).
 2010. The art of modelling range-shifting species. Methods in
 Ecology and Evolution 1:330-342.
 
-<p>[2] Mesgaran, M.B., Cousens, R.D. & Webber, B.L. (2014) Here be
+<p>
+[2] Mesgaran, M.B., Cousens, R.D. & Webber, B.L. (2014) Here be
 dragons: a tool for quantifying novelty due to covariate range and
 correlation change when projecting species distribution models.
 Diversity & Distributions, 20: 1147-1159, DOI: 10.1111/ddi.12209.
 
-<p>[3] van Breugel, P., Kindt, R., Lilles&oslash;, J.-P.B., & van Breugel,
-M. 2015. Environmental Gap Analysis to Prioritize Conservation
-Efforts in Eastern Africa. PLoS ONE 10: e0121444.
+<p>
+[3] van Breugel, P., Kindt, R., Lilles&oslash;, J.-P.B., & van Breugel,
+M. 2015. Environmental Gap Analysis to Prioritize Conservation Efforts
+in Eastern Africa. PLoS ONE 10: e0121444.
 
 
 <h2>AUTHOR</h2>

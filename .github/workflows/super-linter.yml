@@ -2,33 +2,63 @@
 name: General linting
 
 on:
-  - push
-  - pull_request
+  push:
+    branches:
+      - grass[0-9]+
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress:
+    # Do not cancel on protected branches, like grass8
+    ${{ github.ref_protected != true }}
+
+permissions: {}
 
 jobs:
   super-linter:
     name: GitHub Super Linter
-
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: read
+      packages: read
+      # To report GitHub Actions status checks
+      statuses: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        with:
+          # super-linter needs the full git history to get the
+          # list of files that changed across commits
+          fetch-depth: 0
       - name: Lint code base
-        uses: github/super-linter@v5
+        uses: super-linter/super-linter@1fa6ba58a88783e9714725cf89ac26d53e80c148 # v6.9.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Listed but commented out linters would be nice to have.
-          # (see https://github.com/github/super-linter#environment-variables)
-          #
-          # Python (supported using Pylint) and C/C++ (not supported) are
-          # handled separately due to the complexity of the settings.
-          # VALIDATE_BASH: true
-          # VALIDATE_CSS: true
-          # VALIDATE_DOCKER: true
-          VALIDATE_JAVASCRIPT_ES: true
-          # VALIDATE_JAVASCRIPT_STANDARD: true
-          VALIDATE_JSON: true
-          VALIDATE_MARKDOWN: true
-          VALIDATE_POWERSHELL: true
-          # VALIDATE_XML: true
-          VALIDATE_YAML: true
+          # By default, super-linter expect all linters to have their config
+          # files inside .github/linters.
+          # Setting it to the root of the repo for easier configuration here.
+          LINTER_RULES_PATH: .
+          FILTER_REGEX_EXCLUDE: ".*/src/gui/wxpython/wx.metadata/profiles/.*.xml"
+          IGNORE_GENERATED_FILES: true
+          VALIDATE_BASH: false # Until issues are fixed, some valid warnings
+          VALIDATE_CHECKOV: false # Until issues are fixed
+          VALIDATE_CLANG_FORMAT: false # Until we continue to check it in another workflow
+          VALIDATE_CPP: false # Until a configuration file is created to not contradict clang-format
+          VALIDATE_GITLEAKS: false # Until configured to ignore g.parser key in main.c files
+          VALIDATE_HTML: false # Until configured, some valid findings
+          VALIDATE_JSCPD: false # Too many detections, should be enabled only for changed files
+          VALIDATE_LATEX: false # Until issues are fixed, some valid findings
+          VALIDATE_NATURAL_LANGUAGE: false # Until issues are fixed, lots of valid suggestions
+          VALIDATE_PERL: false # Until issues are fixed
+          VALIDATE_PYTHON_BLACK: false # Until code is upgraded to a newer black version
+          VALIDATE_PYTHON_FLAKE8: false
+          VALIDATE_PYTHON_ISORT: false # Until issues are fixed
+          VALIDATE_PYTHON_MYPY: false # Issue with module name wx.wms
+          VALIDATE_PYTHON_PYLINT: false # Until issues are fixed
+          VALIDATE_PYTHON_RUFF: false # Until ruff is configured and most issues fixed
+          VALIDATE_R: false
+          VALIDATE_RENOVATE: false # Until configuration file is upgraded
+          VALIDATE_SHELL_SHFMT: false # Until reformatting failing files
+          MARKDOWN_CONFIG_FILE: .markdownlint.yml
+          YAML_CONFIG_FILE: .yamllint

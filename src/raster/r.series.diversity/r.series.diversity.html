@@ -14,9 +14,9 @@ and gini variants), pielou's eveness (Legendre & Legendre, 1998).
 
 This index quantify the diversity, uncertainty, or randomness of a
 system. The user can define the order of diversity by setting the
-order (<i>alpha</i>) value. The order of a diversity indicates its
+order (<b>alpha</b>) value. The order of a diversity indicates its
 sensitivity to common and rare species. The diversity of order zero
-( <i>alpha = 0</i>)  is completely insensitive to species
+( <b>alpha = 0</b>)  is completely insensitive to species
 frequencies and is better known as species richness. Increasing the
 order diminishes the relative weights of rare species in the
 resulting index (Jost 2006, Legendre & Legendre 1998). The name of
@@ -24,45 +24,46 @@ the output layer is composed of the basename + renyi + alpha.
 
 <h4>Richness</h4>
 
-The species richness is simply the count of the number of layers.
-It is a special case of the Reny enthropy: <i>S = exp(R0)</i>,
-whereby <i>S</i> is the species richness <i>R0</i> the renyi index
-for <i>alpha=0</i>. The name of the output layer is composed of the
+The species richness is simply the count of the number of layers. It is
+a special case of the Reny enthropy: <tt>S = exp(R0)</tt>, whereby
+<tt>S</tt> is the species richness <tt>R0</tt> the renyi index for
+<tt>alpha=0</tt>. The name of the output layer is composed of the
 basename + richness.
 
 <h4>Shannon index</h4>
 
-The Shannon (also called the Shannon-Weaver or Shannon-Wiener)
-index is defined as <i>H' = -sum(p_i x log(p_i))</i>, where <i>p_i
-</i> is the proportional abundance of species <i>i</i>. The function
-uses the natural logarithm (one can also use other bases for the
-log, but that is currently not implemented, and doesn't make a real
-difference). Note the Shannon index is a special case of the Renyi
-enthropy for <i>alpha --> 1</i>. The name of the output layer is
-composed of the basename + shannon.
+The Shannon (also called the Shannon-Weaver or Shannon-Wiener) index is
+defined as <tt>H' = -sum(p_i x log(p_i))</tt>, where <tt>p_i </tt> is
+the proportional abundance of species <tt>i</tt>. The function uses the
+natural logarithm (one can also use other bases for the log, but that
+is currently not implemented, and doesn't make a real difference). Note
+the Shannon index is a special case of the Renyi enthropy for <tt>alpha
+--> 1</tt>. The name of the output layer is composed of the basename +
+shannon.
 
 <h4>Effective number of species (ENS)</h4>
 
 This option gives the Shannon index, converted to into equivalent or
 effective numbers of species (also known as Hill numbers) (Lou Jost,
-2006; Chase and Knight, 2013). The Shannon index, and other indice,
-can be converted so they represent the number of equally abundant
-species necessary to produce the observed value of diversity (an
-analogue the concept of effective population size in genetics). An
-advantage of the ENS is a more intuitive behavious, e.g., if two
-communities with equally abundant but totally distinct species are
-combined, the ENS of the combined community is twice that of the
-original communities. See for an explanation and examples this
-<a href="http://www.loujost.com/Statistics%20and%20Physics/Diversity%20and%20Similarity/EffectiveNumberOfSpecies.htm">blog post</a>
-or <a href="http://jonlefcheck.net/2012/10/23/diversity-as-effective-numbers">this one</a>.
-The name of the output layer is composed of the
-basename + ens.
+2006; Chase and Knight, 2013). The Shannon index, and other indice, can
+be converted so they represent the number of equally abundant species
+necessary to produce the observed value of diversity (an analogue the
+concept of effective population size in genetics). An advantage of the
+ENS is a more intuitive behavious, e.g., if two communities with
+equally abundant but totally distinct species are combined, the ENS of
+the combined community is twice that of the original communities. See
+for an explanation and examples this <a
+href="http://www.loujost.com/Statistics%20and%20Physics/Diversity%20and%20Similarity/EffectiveNumberOfSpecies.htm">blog
+post</a> or <a
+href="http://jonlefcheck.net/2012/10/23/diversity-as-effective-numbers">this
+one</a>. The name of the output layer is composed of the basename +
+ens.
 
 <h4>Pielou's eveness (equitability) index</h4>
 
 Species evenness refers to how close in numbers each species in
 an environment are. The evenness of a community can be represented
-by Pielou's evenness index, which is defined as <i>H' / Hmax</i>. H'
+by Pielou's evenness index, which is defined as <tt>H' / Hmax</tt>. H'
 is the Shannon diversity index and Hmax the maximum value of H',
 equal to log(species richness). Note that a weakness of this index
 is its dependence on species counts, and more specifically that it
@@ -72,23 +73,23 @@ is composed of the basename + pielou.
 
 <h4>Simpson's index of diversity</h4>
 
-The Simpson's index is defined as <i>D = sum p_i^2</i>. This is
-equivalent to <i>-1 * 1 / exp(R2)</i>, with <i>R2</i> the renyi index
-for <i>alpha=2</i>. With this index, 0 represents infinite diversity
-and 1, no diversity. As this is counterintuitive behavior for a
-diversity index, we use <i>1 - D</i> (Gini, 1912; Simpson, 1949). This
-is also called the probability of interspecific encounter (PIE) or the
-Gini–Simpson index. The index represents the probability that two
+The Simpson's index is defined as <tt>D = sum p_i^2</tt>. This is
+equivalent to <tt>-1 * 1 / exp(R2)</tt>, with <tt>R2</tt> the renyi
+index for <tt>alpha=2</tt>. With this index, 0 represents infinite
+diversity and 1, no diversity. As this is counterintuitive behavior for
+a diversity index, we use <tt>1 - D</tt> (Gini, 1912; Simpson, 1949).
+This is also called the probability of interspecific encounter (PIE) or
+the Gini–Simpson index. The index represents the probability that two
 individuals randomly selected from a sample will belong to different
 species. The value ranges between 0 and 1, with greater values
-representing greater sample diversity. The name of the output layer
-is composed of the basename + ginisimpson.
+representing greater sample diversity. The name of the output layer is
+composed of the basename + ginisimpson.
 
 <h4>Inverse Simpson index (Simpson's Reciprocal Index)</h4>
 
 An alternative way to overcome the problem of the counter-intuitive
 nature of Simpson's Index is to use  the inverse Simpson index,
-which is defined as <i>ID = 1 / D)</i>. The lowest value of this
+which is defined as <tt>ID = 1 / D)</tt>. The lowest value of this
 index is 1 and represent a community containing only one species.
 The higher the value, the greater the diversity. The maximum value
 is the number of species in the sample. The name of the output layer
@@ -103,9 +104,17 @@ addon or the various related r.li.* addons (see
 below). These functions requires one input layer and compute the
 diversity using a moving window.
 
-<p>Currently when working with very large raster layers and many
-input layers, computations can take a long time. On the todo list:
-find a way to reduce this.
+<p>
+Currently when working with very large raster layers and many input
+layers, computations can take a long time. Increasing the number of
+threads (parameter <b>nprocs</b>) and increasing the memory (parameter
+<b>memory</b>) can speed up the calculations considerably.
+
+<p>
+See the blog post <a
+href="https://ecodiv.earth/post/tree-species-diversity-distribution/">Tree
+species diversity distribution</a> for a possible application of this
+addon.
 
 <h2>EXAMPLES</h2>
 
@@ -122,7 +131,8 @@ r.mapcalc "spec4 = 1"
 r.mapcalc "spec5 = 4"
 </pre></div>
 
-<p>Now we can calculate the renyi index for alpha is 0, 1 and 2
+<p>
+Now we can calculate the renyi index for alpha is 0, 1 and 2
 (this should be 1.61, 1.06 and 0.83 respectively)
 
 <div class="code"><pre>
@@ -141,17 +151,19 @@ min=0.834250021537946
 max=0.834250021537946
 </pre></div>
 
-<p>You can also compute the species richness, shannon, inverse
+<p>
+You can also compute the species richness, shannon, inverse
 simpson and gini-simpson indices
 
 <div class="code"><pre>
 r.series.diversity -s -h -p -g in=spec1,spec2,spec3,spec4,spec5 out=biodiversity
 </pre></div>
 
-<p>The species richness you get should of course be 5. The shannon
-index is the same as the renyi index with alpha=1 (1.06). The
-inverse simpson and gini-simpson should be 2.3 and 0.57
-respectively. Let's check:
+<p>
+The species richness you get should of course be 5. The shannon index
+is the same as the renyi index with <tt>alpha=1 (1.06)</tt>. The
+inverse simpson and gini-simpson should be 2.3 and 0.57 respectively.
+Let's check:
 
 <div class="code"><pre>
 r.info -r map=biodiversity_richness
@@ -171,8 +183,6 @@ min=0.5658
 max=0.5658
 </pre></div>
 
-
-
 <h2>SEE ALSO</h2>
 
 <em>
@@ -186,7 +196,7 @@ max=0.5658
 <h2>REFERENCES</h2>
 <ul>
 <li>Chase and Knight (2013). "Scale-dependent effect sizes of ecological drivers on biodiversity: why standardised sampling is not enough". Ecology Letters, Volume 16, Issue Supplement s1, pgs 17-26.</li>
-<li>Gini, C. 1912. Variabilit&#224 e mutabilit&#224. Reprinted in Memorie di metodologica statistica (Ed. Pizetti E, Salvemini, T). Rome: Libreria Eredi Virgilio Veschi 1.</li>
+<li>Gini, C. 1912. Variabilit&#224; e mutabilit&#224;. Reprinted in Memorie di metodologica statistica (Ed. Pizetti E, Salvemini, T). Rome: Libreria Eredi Virgilio Veschi 1.</li>
 <li>Jost L. 2006. Entropy and diversity. Oikos 113:363-75</li>
 <li>Legendre P, Legendre L. 1998. Numerical Ecology. Second English edition. Elsevier, Amsterdam</li>
 <li>Simpson, E. H. 1949. Measurement of Diversity Nature 163</li>
@@ -195,4 +205,11 @@ max=0.5658
 
 <h2>AUTHOR</h2>
 
-Paulo van Breugel, paulo at ecodiv dot earth
+Paulo van Breugel, <a href="https://ecodiv.earth">https://ecodiv.earth</a><br>
+
+<p>
+HAS green academy University of Applied Sciences<br>
+<a href="https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/">Innovative
+Biomonitoring research group</a><br>
+<a href="https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/">Climate-robust
+Landscapes research group</a>
