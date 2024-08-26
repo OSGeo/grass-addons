@@ -67,10 +67,6 @@ import sys
 from pprint import pprint
 import grass.script as gs
 from grass.pygrass.utils import get_lib_path
-
-# Import STAC Client
-from pystac_client import Client
-from pystac_client.exceptions import APIError
 import json
 
 
@@ -83,6 +79,13 @@ sys.path.append(path)
 def main():
     """Main function"""
     import staclib as libstac
+
+    try:
+        from pystac_client import Client
+        from pystac_client.exceptions import APIError
+    except ImportError:
+        gs.fatal(_("pystac_client is not installed."))
+        return None
 
     # STAC Client options
     client_url = options["url"]  # required
