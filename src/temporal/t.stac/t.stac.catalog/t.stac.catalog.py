@@ -124,10 +124,6 @@ def main():
         stac_helper = libstac.STACHelper()
         client = stac_helper.connect_to_stac(client_url, req_headers)
 
-        # Check if the client conforms to the STAC Item Search
-        # This will exit the program if the client does not conform
-        stac_helper.conforms_to_item_search()
-
         if format == "plain":
             sys.stdout.write(f"{'-' * 75}\n")
             sys.stdout.write(f"Catalog: {client.title}\n")

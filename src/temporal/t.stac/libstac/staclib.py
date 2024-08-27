@@ -163,11 +163,15 @@ class STACHelper:
 
     def conforms_to_collections(self):
         """Check if the STAC API conforms to the Collections conformance class"""
-        return self._check_conformance(ConformanceClasses.COLLECTIONS)
+        return self._check_conformance(
+            ConformanceClasses.COLLECTIONS, response="warning"
+        )
 
     def conforms_to_item_search(self):
         """Check if the STAC API conforms to the Item Search conformance class"""
-        return self._check_conformance(ConformanceClasses.ITEM_SEARCH, "warning")
+        return self._check_conformance(
+            ConformanceClasses.ITEM_SEARCH, response="warning"
+        )
 
     def conforms_to_filter(self):
         """Check if the STAC API conforms to the Filter conformance class"""
@@ -179,19 +183,19 @@ class STACHelper:
 
     def conforms_to_sort(self):
         """Check if the STAC API conforms to the Sort conformance class"""
-        return self._check_conformance(ConformanceClasses.SORT)
+        return self._check_conformance(ConformanceClasses.SORT, response="warning")
 
     def conforms_to_fields(self):
         """Check if the STAC API conforms to the Fields conformance class"""
-        return self._check_conformance(ConformanceClasses.FIELDS)
+        return self._check_conformance(ConformanceClasses.FIELDS, response="warning")
 
     def conforms_to_core(self):
         """Check if the STAC API conforms to the Core conformance class"""
-        return self._check_conformance(ConformanceClasses.CORE)
+        return self._check_conformance(ConformanceClasses.CORE, response="warning")
 
     def conforms_to_context(self):
         """Check if the STAC API conforms to the Context conformance class"""
-        return self._check_conformance(ConformanceClasses.CONTEXT)
+        return self._check_conformance(ConformanceClasses.CONTEXT, response="warning")
 
 
 def encode_credentials(username, password):
